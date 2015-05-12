@@ -58,6 +58,9 @@ class DashboardAction extends CAction
 	            if( $member['type'] == Organization::COLLECTION )
 	            {
 	                $organization = Organization::getPublicData( $key );
+	                $profil = Document::getLastImageByKey($key, Organization::COLLECTION, Document::IMG_PROFIL);
+					if($profil !="")
+						$organization["imagePath"]= $profil;
 	                array_push($organizations, $organization );
 	            }
 	       
@@ -81,6 +84,9 @@ class DashboardAction extends CAction
 	            if( $member['type'] == PHType::TYPE_CITOYEN )
 	            {
 	            	$citoyen = Person::getPublicData( $key );
+	            	$profil = Document::getLastImageByKey($key, Person::COLLECTION, Document::IMG_PROFIL);
+					if($profil !="")
+						$citoyen["imagePath"]= $profil;
 	            	array_push($people, $citoyen);
 	            }
 	    	}
