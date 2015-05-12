@@ -7,8 +7,6 @@
  *
 */
 
-
-
 //prevents the CTK to be executable
 //when uncommented the CTK can be used just like a module and controllers accessed directly
 
