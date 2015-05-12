@@ -1,4 +1,10 @@
 <?php 
+ /**
+  * Display the dashboard of the person
+  * @param String $id Not mandatory : if specify, look for the person with this Id. 
+  * Else will get the id of the person logged
+  * @return type
+  */
 class DashboardAction extends CAction
 {
     public function run( $id=null )

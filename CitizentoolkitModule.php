@@ -9,14 +9,14 @@
 
 //prevents the CTK to be executable
 //when uncommented the CTK can be used just like a module and controllers accessed directly
-
-class CtkModule extends CWebModule
+/*
+class CitizentoolkitModule extends CWebModule
 {
 	public function init()
 	{
 		// this method is called when the module is being created
 		// you may place code here to customize the module or the application
-		Yii::setPathOfAlias('ctk', dirname(__FILE__));
+		Yii::setPathOfAlias('citizenToolKit', dirname(__FILE__));
 		
 		Yii::app()->setComponents(array(
 		    'errorHandler'=>array(
@@ -51,5 +51,5 @@ class CtkModule extends CWebModule
 	            Yii::getPathOfAlias($this->id.'.assets') );
 	    return $this->_assetsUrl;
 	}
-}
+}*/
 
