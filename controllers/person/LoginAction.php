@@ -13,10 +13,10 @@ class LoginAction extends CAction
         $isMobile = $detect->isMobile();
         
         if($isMobile) {
-           $controller->render( $controller->module->id.".views.person.loginMobile" );
+           $controller->render( "loginMobile" );
         }
         else {
-           $controller->render( $controller->module->id.".views.person.login" );
+           $controller->render( "login" );
         }
     }
 }
