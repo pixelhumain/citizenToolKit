@@ -1,5 +1,5 @@
 <?php
-class LoginAction extends CAction
+class InviteAction extends CAction
 {
     public function run()
     {
