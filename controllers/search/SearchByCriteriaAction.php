@@ -14,6 +14,12 @@ class SearchByCriteriaAction extends CAction
 
 		$search = Search::findByCriterias($type, $criterias, "name", 10);
 
+		foreach ($search as $key => $value) {
+  			$profil = Document::getLastImageByKey($key, Person::COLLECTION, Document::IMG_PROFIL);
+  			if($profil !="")
+					$value["imagePath"]= $profil;
+					$search[$key] = $value;
+  		}
 		return Rest::json(array("result" => true, "list" => $search));
 	}
 }

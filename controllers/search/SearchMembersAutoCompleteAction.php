@@ -8,6 +8,21 @@ class SearchMembersAutoCompleteAction extends CAction
         $allCitoyens = PHDB::findAndSort( PHType::TYPE_CITOYEN , $query, array("name" => 1), 6);
         $limitOrganization = 12 - count($allCitoyens);
         $allOrganization = PHDB::findAndSort( Organization::COLLECTION, $query, array("name" => 1), $limitOrganization, array("_id", "name", "type", "address", "email", "links", "imagePath"));
+        
+        foreach ($allCitoyens as $key => $value) {
+  			$profil = Document::getLastImageByKey($key, Person::COLLECTION, Document::IMG_PROFIL);
+  			if($profil !="")
+					$value["imagePath"]= $profil;
+					$allCitoyens[$key] = $value;
+  		}
+
+  		foreach ($allOrganization as $key => $value) {
+  			$profil = Document::getLastImageByKey($key, Organization::COLLECTION, Document::IMG_PROFIL);
+  			if($profil !="")
+					$value["imagePath"]= $profil;
+					$allOrganization[$key] = $value;
+  		}
+
         $all = array(
           "citoyens" => $allCitoyens,
           "organizations" => $allOrganization,
