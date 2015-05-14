@@ -1,12 +1,13 @@
 <?php
-class GetUserAutoCompleteAction extends CAction
+class SearchMembersAutoCompleteAction extends CAction
 {
     public function run()
     {
         $query = array( '$or' => array( array("email" => new MongoRegex("/".$_POST['search']."/i")),
                                         array( "name" => new MongoRegex("/".$_POST['search']."/i"))));
-        $allCitoyens = PHDB::find ( PHType::TYPE_CITOYEN , $query);
-        $allOrganization = PHDB::find( Organization::COLLECTION, $query, array("_id", "name", "type", "address", "email", "links", "imagePath"));
+        $allCitoyens = PHDB::findAndSort( PHType::TYPE_CITOYEN , $query, array("name" => 1), 6);
+        $limitOrganization = 12 - count($allCitoyens);
+        $allOrganization = PHDB::findAndSort( Organization::COLLECTION, $query, array("name" => 1), $limitOrganization, array("_id", "name", "type", "address", "email", "links", "imagePath"));
         $all = array(
           "citoyens" => $allCitoyens,
           "organizations" => $allOrganization,

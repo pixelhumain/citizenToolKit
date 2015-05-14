@@ -1,5 +1,5 @@
 <?php
-class GetMemberAutocompleteAction extends CAction
+class GlobalAutoCompleteAction extends CAction
 {
     public function run()
     {

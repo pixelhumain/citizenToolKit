@@ -6,7 +6,7 @@ class RemoveMemberAction extends CAction
         $res = array( "result" => false , "msg" => "Something went wrong" );
 		try {
 			$res = Link::removeMember($memberOfId, Organization::COLLECTION, $memberId, $memberType, Yii::app()->session['userId']);
-		} catch (CommunecterException $e) {
+		} catch (CTKException $e) {
 			$res = array( "result" => false , "msg" => $e->getMessage() );
 		}
 
