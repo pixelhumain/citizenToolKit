@@ -310,11 +310,5 @@ class Person {
 	                  
 	    return true;
 	}
-
-	//TODO - Cette méthode n'a rien à faire là
-	public static function getItemInfoById($id, $context){
-		$item = PHDB::findOne( $context ,array("_id"=>new MongoId($id)));
-		return $item;
-	}
 }
 ?>
