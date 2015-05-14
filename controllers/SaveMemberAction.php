@@ -73,7 +73,7 @@ class SaveMemberAction extends CAction
 		try {
 			$res = Link::addMember($memberOfId, $memberOfType, $memberId, $memberType, Yii::app()->session["userId"], $isAdmin, $roles );
 			$res["member"] = $class::getById($memberId);
-		} catch (CommunecterException $e) {
+		} catch (CTKException $e) {
 			$res = array( "result" => false , "msg" => $e->getMessage() );
 		}
 

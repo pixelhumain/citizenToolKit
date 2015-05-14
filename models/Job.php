@@ -24,7 +24,7 @@ class Job {
 	public static function insertJob($job) {  
 		foreach ($job as $jobFieldName => $jobFieldValue) {
 			if (! Job::checkFieldBeforeUpdate($jobFieldName, $jobFieldValue)) {
-				throw new CommunecterException("Can not insert the job : unknown field ".$jobFieldName);
+				throw new CTKException("Can not insert the job : unknown field ".$jobFieldName);
 			}
 		}
 		//Manage tags : save any inexistant tag to DB 
@@ -43,7 +43,7 @@ class Job {
 	    	}
 	    	$job = Job::getById($newJobId);
 	    } else {
-	    	throw new CommunecterException("Problem inserting the new job offer");
+	    	throw new CTKException("Problem inserting the new job offer");
 	    }
 	                  
 	    return array("result"=>true, "msg"=>"Votre Offre d'emploi a été ajoutée avec succès.", "id"=>$newJobId, "job"=>$job);
@@ -52,12 +52,12 @@ class Job {
 	public static function updateJob($jobId, $job, $userId) {  
 		
 		if (! Authorisation::isJobAdmin($jobId, $userId)) {
-			throw new CommunecterException("Can not update the job : you are not authorized to update that job offer !");	
+			throw new CTKException("Can not update the job : you are not authorized to update that job offer !");	
 		}
 
 		foreach ($job as $jobFieldName => $jobFieldValue) {
 			if (! Job::checkFieldBeforeUpdate($jobFieldName, $jobFieldValue)) {
-				throw new CommunecterException("Can not insert the job : unknown field ".$jobFieldName);
+				throw new CTKException("Can not insert the job : unknown field ".$jobFieldName);
 			}
 			//address
 			if ($jobFieldName == "jobLocation.address") {
@@ -94,7 +94,7 @@ class Job {
 	public static function removeJob($jobId, $userId) {  
 
 		if (! Authorisation::isJobAdmin($jobId, $userId)) {
-			throw new CommunecterException("Can not remove the job : you are not authorized to update that job offer !");	
+			throw new CTKException("Can not remove the job : you are not authorized to update that job offer !");	
 		}
 		
 		//update the job
@@ -108,26 +108,6 @@ class Job {
 		
 		$job = array($jobFieldName => $jobFieldValue);
 		$res = Job::updateJob($jobId, $job, $userId);
-		/*if (! Job::checkFieldBeforeUpdate($jobFieldName, $jobFieldValue)) {
-			throw new CommunecterException("Can not update the job : unknown field ".$jobFieldName);
-		}
-
-		if (! Authorisation::isJobAdmin($jobId, $userId)) {
-			throw new CommunecterException("Can not update the job : you are not authorized to update that job offer !");	
-		}
-
-		//Specific case : tags
-		if ($jobFieldName == "tags") {
-			$jobFieldValue = Tags::filterAndSaveNewTags($jobFieldValue);
-		}
-
-		$job = array($jobFieldName => $jobFieldValue);
-		
-		//update the job
-		PHDB::update( Job::COLLECTION, array("_id" => new MongoId($jobId)), 
-		                          array('$set' => $job));
-	                  
-	    */
 		return $res;
 	}
 
