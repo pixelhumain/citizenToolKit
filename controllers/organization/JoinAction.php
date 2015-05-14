@@ -1,9 +1,9 @@
 <?php
 
-class DeleteAction extends CAction
+class JoinAction extends CAction
 {
 	/**
-	 * Delete an entry from the organization table using the id
+	 * 
 	 */
     public function run() {
     	$controller=$this->getController();
