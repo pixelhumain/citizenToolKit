@@ -12,8 +12,8 @@ class FileUploadAction extends CAction
 		$params["podId"] = $podId;
 		$params["editMode"] = $edit;
 		if(Yii::app()->request->isAjaxRequest)
-			echo $this->renderPartial('fileupload', $params, true);
+			echo $controller->renderPartial('fileupload', $params, true);
 		else
-			$this->render("fileupload",$params);
+			$controller->render("fileupload",$params);
     }
 }
