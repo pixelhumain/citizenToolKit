@@ -31,7 +31,6 @@ class RegisterAction extends CAction
 			$res = array("result" => false, "msg"=>$e->getMessage());
 		}
 
-		//echo json_encode(Citoyen::login($_POST['registerEmail'] , $_POST['registerPwd'] ));
 		Rest::json($res);
 		exit;
     }
