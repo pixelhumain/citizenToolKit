@@ -26,5 +26,4 @@ class DeleteAction extends CAction {
             echo json_encode(array('result'=>false,'error'=>'Something went wrong!',"filepath"=>$filepath));
         }
 	}
-
 }

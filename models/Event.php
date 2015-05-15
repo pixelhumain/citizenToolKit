@@ -180,5 +180,10 @@ class Event {
         }
         return $eventsAttending;
 	}
+
+
+	public static function delete($eventId){
+		return PHDB::remove(self::COLLECTION, array("_id"=>new MongoId($eventId)));
+	}
 }
 ?>
