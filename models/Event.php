@@ -87,7 +87,7 @@ class Event {
 		//					array('$set' => array( "attendees.".(string)$id."type" => $type ) ));
 	    
 	    //send validation mail
-	    //TODO : make emails as cron jobs
+	    //TODO : make emails as cron events
 	    /*$message = new YiiMailMessage; 
 	    $message->view = 'validation';
 	    $message->setSubject('Confirmer votre compte Pixel Humain');
@@ -184,6 +184,30 @@ class Event {
 
 	public static function delete($eventId){
 		return PHDB::remove(self::COLLECTION, array("_id"=>new MongoId($eventId)));
+	}
+
+
+	public static function updateEventField($eventId, $eventFieldName, $eventFieldValue, $userId){
+		$event = array($eventFieldName => $eventFieldValue);
+		$res = event::updateEvent($eventId, $event, $userId);
+		return $res;
+	}
+
+
+	public static function updateevent($eventId, $event, $userId) {  
+		
+		if (! Authorisation::isEventAdmin($eventId, $userId)) {
+			throw new CTKException("Can not update the event : you are not authorized to update that event!");	
+		}
+
+		if (isset($event["tags"]))
+			$event["tags"] = Tags::filterAndSaveNewTags($event["tags"]);
+
+		PHDB::update( Event::COLLECTION, array("_id" => new MongoId($eventId)), 
+		                          array('$set' => $event));
+	                  
+	    return array("result"=>true, "msg"=>"Votre evenement a été modifié avec succes", "id"=>$eventId);
+
 	}
 }
 ?>
