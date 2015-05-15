@@ -320,5 +320,23 @@ class Link {
     	}
     	return $res;
     }
+
+    public static function removeEventLinks($eventId){
+    	$events = Event::getById($eventId);
+    	foreach ($events["links"] as $type => $item) {
+			foreach ($item as $id => $itemInfo) {
+				if($type == "organizer"){
+					$res = PHDB::update( Organization::COLLECTION, 
+                  			array("_id" => new MongoId($id)) , 
+                  			array('$unset' => array( "links.events.".$eventId => "") ));
+				}else{
+					$res =PHDB::update( Person::COLLECTION, 
+                  			array("_id" => new MongoId($id)) , 
+                  			array('$unset' => array( "links.events.".$eventId => "") ));
+				}
+			}
+    	}
+    	return $res;
+    }
 } 
 ?>

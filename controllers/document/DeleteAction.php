@@ -14,9 +14,9 @@ class DeleteAction extends CAction {
             else
                 echo json_encode(array('result'=>false,'error'=>'Something went wrong!'));
 
-            if(isset($_POST['parentId']) && isset($_POST['parentType']) && isset($_POST['pictureKey']) && isset($_POST['path'])){
+            /*if(isset($_POST['parentId']) && isset($_POST['parentType']) && isset($_POST['pictureKey']) && isset($_POST['path'])){
             	Document::setImagePath($_POST['parentId'], $_POST['parentType'], "", $_POST['pictureKey']);
-            }
+            }*/
         } 
         else 
         {
