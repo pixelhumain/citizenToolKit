@@ -8,7 +8,7 @@ class DashboardAction extends CAction
     public function run($id) {
     	$controller=$this->getController();
 		if (empty($id)) {
-		  throw new CommunecterException("The organization id is mandatory to retrieve the organization !");
+		  throw new CTKException("The organization id is mandatory to retrieve the organization !");
 		}
 
 		$organization = Organization::getPublicData($id);

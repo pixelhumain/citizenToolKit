@@ -44,7 +44,7 @@ class AddNewOrganizationAsMemberAction extends CAction
 				unset(Yii::app()->session["checkCaptcha"]);
 			} catch (CTKException $e) {
 				return Rest::json(array("result"=>false, "msg"=>$e->getMessage()));
-			} catch (CommunecterException $e) {
+			} catch (CTKException $e) {
 				return Rest::json(array("result"=>false, "msg"=>$e->getMessage()));
 			}
 	  		return Rest::json(array("result"=>true, "msg"=>"Your organization has been added with success. Check your mail box : you will recieive soon a mail from us."));

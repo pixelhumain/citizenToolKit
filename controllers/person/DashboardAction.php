@@ -32,7 +32,7 @@ class DashboardAction extends CAction
 
 	    $controller->title = ((isset($person["name"])) ? $person["name"] : "")."'s Dashboard";
 	    $controller->subTitle = (isset($person["description"])) ? $person["description"] : "";
-	    $controller->pageTitle = "Communecter - Informations publiques de ".$controller->title;
+	    $controller->pageTitle = ucfirst($controller->module->id)." - Informations publiques de ".$controller->title;
 
 	    //Get Projects
 	    $projects = array();
