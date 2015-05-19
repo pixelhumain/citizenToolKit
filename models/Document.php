@@ -120,7 +120,7 @@ class Document {
 	 */
 	public static function getListDocumentsURLByContentKey($id, $contentKey, $docType=null, $limit=null){
 		$listDocuments= array();
-		$sort = array( 'created' => 1 );
+		$sort = array( 'created' => -1 );
 		$explodeContentKey = explode(".", $contentKey);
 		$listDocumentsofType = Document::listMyDocumentByContentKey($id, $explodeContentKey[0], $docType, $sort);
 		

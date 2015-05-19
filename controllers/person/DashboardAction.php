@@ -22,7 +22,9 @@ class DashboardAction extends CAction
 
 	    $person = Person::getPublicData($id);
 	    $contentKeyBase = Yii::app()->controller->id.".".Yii::app()->controller->action->id;
-	 	$images =  Document::listMyDocumentByType($id, Person::COLLECTION, $contentKeyBase , array( 'created' => 1 ));
+		$limit = array(Document::IMG_PROFIL => 1, Document::IMG_MEDIA => 5);
+		$images = Document::getListDocumentsURLByContentKey($id, $contentKeyBase, Document::DOC_TYPE_IMAGE, $limit);
+
 	    $params = array( "person" => $person);
 	    $params['images'] = $images;
 	    $params["contentKeyBase"] = $contentKeyBase;
