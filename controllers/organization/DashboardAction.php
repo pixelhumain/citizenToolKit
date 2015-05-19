@@ -19,7 +19,8 @@ class DashboardAction extends CAction
 		);
 
 		$contentKeyBase = Yii::app()->controller->id.".".Yii::app()->controller->action->id;
-		$images = Document::getListDocumentsURLByContentKey($id, $contentKeyBase, Document::DOC_TYPE_IMAGE);
+		$limit = array(Document::IMG_PROFIL => 1, Document::IMG_MEDIA => 5);
+		$images = Document::getListDocumentsURLByContentKey($id, $contentKeyBase, Document::DOC_TYPE_IMAGE, $limit);
 		
 		$params = array( "organization" => $organization);
 		$params["contentKeyBase"] = $contentKeyBase;

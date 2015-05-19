@@ -34,9 +34,7 @@ class Document {
 		return $listDocuments;
 	}
 
-
-	protected static function listMyDocumentByContentKey($userId, $contentKey, $docType = null, $sort=null){
-		
+	protected static function listMyDocumentByContentKey($userId, $contentKey, $docType = null, $sort=null){		
 		$params = array("id"=> $userId,
 						"contentKey" => new MongoRegex("/".$contentKey."/i"));
 		
@@ -117,23 +115,47 @@ class Document {
 	 * @param String $id The id of the owner of the image could be an organization, an event, a person, a project... 
 	 * @param String $contentKey The content key is composed with the controllerId, the action where the document is used and a type
 	 * @param String $docType The docType represent the type of document (see DOC_TYPE_* constant)
+	 * @param array $limit represent the number of document by type that will be return. If not set, everything will be return
 	 * @return array a list of URL access to the document
 	 */
-	public static function getListDocumentsURLByContentKey($id, $contentKey, $docType=null){
-		$listImages= array();
+	public static function getListDocumentsURLByContentKey($id, $contentKey, $docType=null, $limit=null){
+		$listDocuments= array();
 		$sort = array( 'created' => 1 );
 		$explodeContentKey = explode(".", $contentKey);
-		$listImagesofType = Document::listMyDocumentByContentKey($id, $explodeContentKey[0], $docType, $sort);
-		foreach ($listImagesofType as $key => $value) {
+		$listDocumentsofType = Document::listMyDocumentByContentKey($id, $explodeContentKey[0], $docType, $sort);
+		
+		foreach ($listDocumentsofType as $key => $value) {
+			$toPush = false;
 			if(isset($value["contentKey"]) && $value["contentKey"] != ""){
 				$explodeValueContentKey = explode(".", $value["contentKey"]);
+				
 				if($explodeContentKey[1] == $explodeValueContentKey[1]){
-    				$imageUrl = Document::getDocumentUrl($value);
-					$listImages[(string) $explodeValueContentKey[2]] = $imageUrl;
+					$currentType = (string) $explodeValueContentKey[2];
+					
+					if (! isset($limit)) {
+						$toPush = true;
+					} else {
+						if (isset($limit[$currentType])) {
+							$limitByType = $limit[$currentType];
+							$actuelNbCurrentType = isset($listDocuments[$currentType]) ? count($listDocuments[$currentType]) : 0;
+							if ($actuelNbCurrentType < $limitByType) {
+								$toPush = true;
+							}
+						} else {
+							$toPush = true;
+						}
+					}
 				}
 			}
+			if ($toPush) {
+				$imageUrl = Document::getDocumentUrl($value);
+				if (! isset($listDocuments[$currentType])) {
+					$listDocuments[$currentType] = array();
+				} 
+				array_push($listDocuments[$currentType], $imageUrl);
+			}
 		}
-		return $listImages;
+		return $listDocuments;
 	}
 
 	/**
