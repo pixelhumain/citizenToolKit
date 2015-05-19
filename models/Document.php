@@ -11,6 +11,8 @@ class Document {
 
 	const CATEGORY_PLAQUETTE = "Plaquette";
 
+	const DOC_TYPE_IMAGE = "image";
+
 	/**
 	 * get an project By Id
 	 * @param type $id : is the mongoId of the project
@@ -24,9 +26,18 @@ class Document {
 	  	return PHDB::find( self::COLLECTION,$params);
 	}
 
-	public static function listMyDocumentByType($userId, $type, $contentKey, $sort=null){
+	protected static function listMyDocumentByType($userId, $type, $contentKey, $sort=null){
 		$params = array("id"=> $userId,
 						"type" => $type,
+						"contentKey" => new MongoRegex("/".$contentKey."/i"));
+		$listDocuments = PHDB::findAndSort( self::COLLECTION,$params, $sort);
+		return $listDocuments;
+	}
+
+
+	protected static function listMyDocumentByContentKey($userId, $contentKey, $docType, $sort=null){
+		$params = array("id"=> $userId,
+						"doctype" => $docType,
 						"contentKey" => new MongoRegex("/".$contentKey."/i"));
 		$listDocuments = PHDB::findAndSort( self::COLLECTION,$params, $sort);
 		return $listDocuments;
@@ -105,7 +116,7 @@ class Document {
 		$listImages= array();
 		$sort = array( 'created' => 1 );
 		$explodeContentKey = explode(".", $contentKey);
-		$listImagesofType = Document::listMyDocumentByType($id, $explodeContentKey[0], "image", $sort);
+		$listImagesofType = Document::listMyDocumentByContentKey($id, $explodeContentKey[0], self::DOC_TYPE_IMAGE, $sort);
 		foreach ($listImagesofType as $key => $value) {
 			if(isset($value["contentKey"]) && $value["contentKey"] != ""){
 				$explodeValueContentKey = explode(".", $value["contentKey"]);
