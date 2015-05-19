@@ -128,10 +128,10 @@ class Document {
 			$toPush = false;
 			if(isset($value["contentKey"]) && $value["contentKey"] != ""){
 				$explodeValueContentKey = explode(".", $value["contentKey"]);
-				
+				$currentType = (string) $explodeValueContentKey[2];
 				if (isset($explodeContentKey[1])) {
 					if($explodeContentKey[1] == $explodeValueContentKey[1]){
-						$currentType = (string) $explodeValueContentKey[2];
+						
 						
 						if (! isset($limit)) {
 							$toPush = true;

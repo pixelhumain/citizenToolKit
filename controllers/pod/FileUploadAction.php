@@ -14,6 +14,6 @@ class FileUploadAction extends CAction
 		if(Yii::app()->request->isAjaxRequest)
 			echo $controller->renderPartial('fileupload', $params, true);
 		else
-			$controller->render("fileupload");
+			echo $controller->render("fileupload");
     }
 }
