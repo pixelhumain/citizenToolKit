@@ -8,7 +8,7 @@ class DashboardAction extends CAction
     public function run($id) {
     	$controller=$this->getController();
 		if (empty($id)) {
-		  throw new CommunecterException("The organization id is mandatory to retrieve the organization !");
+		  throw new CTKException("The organization id is mandatory to retrieve the organization !");
 		}
 
 		$organization = Organization::getPublicData($id);
@@ -19,7 +19,8 @@ class DashboardAction extends CAction
 		);
 
 		$contentKeyBase = Yii::app()->controller->id.".".Yii::app()->controller->action->id;
-		$images = Document::listMyDocumentByType($id, Organization::COLLECTION, $contentKeyBase , array( 'created' => 1 ));
+		$limit = array(Document::IMG_PROFIL => 1, Document::IMG_MEDIA => 5);
+		$images = Document::getListDocumentsURLByContentKey($id, $contentKeyBase, Document::DOC_TYPE_IMAGE, $limit);
 		
 		$params = array( "organization" => $organization);
 		$params["contentKeyBase"] = $contentKeyBase;
@@ -34,9 +35,6 @@ class DashboardAction extends CAction
 		$people = Organization::getMembersByOrganizationId($id, Person::COLLECTION);
 		foreach ($organizations as $key => $value) {
 			$newOrga = Organization::getById($key);
-			$profil = Document::getLastImageByKey($key, Organization::COLLECTION, Document::IMG_PROFIL);
-			if($profil !="")
-				$newOrga["imagePath"]= $profil;
 			array_push($contextMap["organizations"], $newOrga);
 			array_push($members["organizations"], $newOrga);
 

@@ -7,15 +7,16 @@ class DashboardAction extends CAction
         $event = Event::getPublicData($id);
 
         $controller->sidebar1 = array(
-          array('label' => "ACCUEIL", "key"=>"home","iconClass"=>"fa fa-home","href"=>"communecter/event/dashboard/id/".$id),
+          array('label' => "ACCUEIL", "key"=>"home","iconClass"=>"fa fa-home","href"=>$controller->module->id."/event/dashboard/id/".$id),
         );
 
         $controller->title = (isset($event["name"])) ? $event["name"] : "";
         $controller->subTitle = (isset($event["description"])) ? $event["description"] : "";
-        $controller->pageTitle = "Communecter - Informations sur l'evenement ".$controller->title;
+        $controller->pageTitle = ucfirst($controller->module->id)." - Informations sur l'evenement ".$controller->title;
 
-        $contentKeyBase = $controller->id.".".$controller->action->id;
-        $images = Document::listMyDocumentByType($id, Event::COLLECTION, $contentKeyBase , array( 'created' => 1 ));
+        $contentKeyBase = $controller->id.".".$controller->action->id; 
+        $images = Document::getListDocumentsURLByContentKey($id, $contentKeyBase, Document::DOC_TYPE_IMAGE);
+        
         $organizer = array();
 
         $people = array();
@@ -53,6 +54,7 @@ class DashboardAction extends CAction
             }
           }
         }
+        
         $params["images"] = $images;
         $params["contentKeyBase"] = $contentKeyBase;
         $params["attending"] = $attending;

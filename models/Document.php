@@ -5,10 +5,13 @@ class Document {
 
 	const IMG_BANNIERE = "banniere";
 	const IMG_PROFIL = "profil";
+	const IMG_LOGO = "logo";
 	const IMG_SLIDER = "slider";
 	const IMG_MEDIA = "media";
 
 	const CATEGORY_PLAQUETTE = "Plaquette";
+
+	const DOC_TYPE_IMAGE = "image";
 
 	/**
 	 * get an project By Id
@@ -23,10 +26,22 @@ class Document {
 	  	return PHDB::find( self::COLLECTION,$params);
 	}
 
-	public static function listMyDocumentByType($userId, $type, $contentKey, $sort=null){
+	protected static function listMyDocumentByType($userId, $type, $contentKey, $sort=null){
 		$params = array("id"=> $userId,
 						"type" => $type,
 						"contentKey" => new MongoRegex("/".$contentKey."/i"));
+		$listDocuments = PHDB::findAndSort( self::COLLECTION,$params, $sort);
+		return $listDocuments;
+	}
+
+	protected static function listMyDocumentByContentKey($userId, $contentKey, $docType = null, $sort=null){		
+		$params = array("id"=> $userId,
+						"contentKey" => new MongoRegex("/".$contentKey."/i"));
+		
+		if (isset($docType)) {
+			$params["doctype"] = $docType;
+		}
+
 		$listDocuments = PHDB::findAndSort( self::COLLECTION,$params, $sort);
 		return $listDocuments;
 	}
@@ -48,6 +63,7 @@ class Document {
 		if(!isset($params["contentKey"])){
 			$params["contentKey"] = "";
 		}
+
 	    $new = array(
 			"id" => $params['id'],
 	  		"type" => $params['type'],
@@ -59,14 +75,12 @@ class Document {
 	  		"size" => $params['size'],
 	  		'created' => time()
 	    );
+
 	    if(isset($params["category"]) && !empty($params["category"]))
 	    	$new["category"] = $params["category"];
 	    if(isset($params["contentKey"]) && !empty($params["contentKey"])){
 	    	$new["contentKey"] = $params["contentKey"];
-	    	$pathImg = "/upload/".$params['moduleId']."/".$params['type']."/".$params["id"]."/".$params["name"];
-	    	Document::setImagePath( $params['id'], $params['type'], $pathImg ,$params["contentKey"]);
 	    }
-
 
 	    PHDB::insert(self::COLLECTION,$new);
 	    //Link::connect($id, $type, $new["_id"], PHType::TYPE_PROJECTS, $id, "projects" );
@@ -97,26 +111,51 @@ class Document {
 	}
 
 	/**
-	* get a list of a image 
-	* @return return a list of image
-	*/
-	public static function getListImagesByKey($id, $contentKey){
-		$listImages= array();
+	 * get the list of document URL depending on the id of the owner, the contentKey and the docType
+	 * @param String $id The id of the owner of the image could be an organization, an event, a person, a project... 
+	 * @param String $contentKey The content key is composed with the controllerId, the action where the document is used and a type
+	 * @param String $docType The docType represent the type of document (see DOC_TYPE_* constant)
+	 * @param array $limit represent the number of document by type that will be return. If not set, everything will be return
+	 * @return array a list of URL access to the document
+	 */
+	public static function getListDocumentsURLByContentKey($id, $contentKey, $docType=null, $limit=null){
+		$listDocuments= array();
 		$sort = array( 'created' => 1 );
 		$explodeContentKey = explode(".", $contentKey);
-		$listImagesofType = Document::listMyDocumentByType($id, $explodeContentKey[0], "image", $sort);
-		foreach ($listImagesofType as $key => $value) {
+		$listDocumentsofType = Document::listMyDocumentByContentKey($id, $explodeContentKey[0], $docType, $sort);
+		
+		foreach ($listDocumentsofType as $key => $value) {
+			$toPush = false;
 			if(isset($value["contentKey"]) && $value["contentKey"] != ""){
 				$explodeValueContentKey = explode(".", $value["contentKey"]);
+				
 				if($explodeContentKey[1] == $explodeValueContentKey[1]){
-					$imagePath = "upload".DIRECTORY_SEPARATOR.Yii::app()->controller->module->id.$value["folder"].$value["name"];
-    				$imagePath = Yii::app()->getRequest()->getBaseUrl(true).DIRECTORY_SEPARATOR.$imagePath;
-    				$imagePath = str_replace(DIRECTORY_SEPARATOR, "/", $imagePath);
-					$listImages[(string) $explodeValueContentKey[2]] = $imagePath;
+					$currentType = (string) $explodeValueContentKey[2];
+					
+					if (! isset($limit)) {
+						$toPush = true;
+					} else {
+						if (isset($limit[$currentType])) {
+							$limitByType = $limit[$currentType];
+							$actuelNbCurrentType = isset($listDocuments[$currentType]) ? count($listDocuments[$currentType]) : 0;
+							if ($actuelNbCurrentType < $limitByType) {
+								$toPush = true;
+							}
+						} else {
+							$toPush = true;
+						}
+					}
 				}
 			}
+			if ($toPush) {
+				$imageUrl = Document::getDocumentUrl($value);
+				if (! isset($listDocuments[$currentType])) {
+					$listDocuments[$currentType] = array();
+				} 
+				array_push($listDocuments[$currentType], $imageUrl);
+			}
 		}
-		return $listImages;
+		return $listDocuments;
 	}
 
 	/**
@@ -145,27 +184,29 @@ class Document {
 		}
 	}
 
-
 	/**
 	* get the last images with a key
 	* @param itemId is the id of the item that we want to get images
 	* @param itemType is the type of the item that we want to get images
 	* @param key is the type of image we want to get
-	* @return
+	* @return return the url of a document
 	*/
 	public static function getLastImageByKey($itemId, $itemType, $key){
-		$imagePath = "";
+		$imageUrl = "";
 		$sort = array( 'created' => -1 );
 		$params = array("id"=> $itemId,
 						"type" => $itemType,
 						"contentKey" => new MongoRegex("/".$key."/i"));
 		$listImagesofType = PHDB::findAndSort( self::COLLECTION,$params, $sort, 1);
+		
 		foreach ($listImagesofType as $key => $value) {
-			$imagePath = DIRECTORY_SEPARATOR."upload".DIRECTORY_SEPARATOR.Yii::app()->controller->module->id.DIRECTORY_SEPARATOR.$value["folder"].DIRECTORY_SEPARATOR.$value["name"];
-    		$imagePath = str_replace(DIRECTORY_SEPARATOR, "/", $imagePath);
+			//$imagePath = DIRECTORY_SEPARATOR."upload".DIRECTORY_SEPARATOR.Yii::app()->controller->module->id.DIRECTORY_SEPARATOR.$value["folder"].DIRECTORY_SEPARATOR.$value["name"];
+    		//$imagePath = str_replace(DIRECTORY_SEPARATOR, "/", $imagePath);
+    		$imageUrl = Document::getDocumentUrl($value);
 		}
-		return $imagePath;
+		return $imageUrl;
 	}
+
 	/**
 	 * Get the list of categories available for the id and the type (Person, Organization, Event..)
 	 * @param String $id Id to search the categories for
@@ -194,6 +235,9 @@ class Document {
        return preg_replace('/[^A-Za-z0-9\-]/', '', $string); // Removes special chars.
     }
 
+    public static function getDocumentUrl($document){
+    	return Yii::app()->params['uploadUrl'].$document["moduleId"]."/".$document["folder"]."/".$document["name"];
+    }
 
 }
 ?>

@@ -1,6 +1,12 @@
 <?php
 class Link {
-	
+    
+    const person2person = "links.knows";
+    const person2organization = "links.memberOf";
+    const organization2person = "links.members";
+    const person2events = "links.events";
+    const person2projects = "links.projects";
+
 	/**
 	 * Add a member to an organization
 	 * Create a link between the 2 actors. The link will be typed members and memberOf
@@ -16,7 +22,7 @@ class Link {
 	 * @param type $userId The userId doing the action
      * @param type $userAdmin Boolean to set if the member is admin or not
 	 * @return result array with the result of the operation
-	 */
+	 */ 
     public static function addMember($memberOfId, $memberOfType, $memberId, $memberType, $userId, $userAdmin = false, $userRole = "") {
         
         //TODO SBAR => Change the boolean userAdmin to a role (admin, contributor, moderator...)

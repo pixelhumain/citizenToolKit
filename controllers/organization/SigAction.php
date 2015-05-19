@@ -9,14 +9,14 @@ class SigAction extends CAction
     	$controller=$this->getController();
     	//get The organization Id
 		if (empty($id)) {
-		  throw new CommunecterException("The organization id is mandatory to retrieve the organization !");
+		  throw new CTKException("The organization id is mandatory to retrieve the organization !");
 		}
 
 		$organization = Organization::getPublicData($id);
 
 		$controller->title = "Annuaire du réseau";
 		$controller->subTitle = "Trouver une structure grâce à de multiples critères";
-		$controller->pageTitle = "Communecter - ".$controller->title;
+		$controller->pageTitle = ucfirst($controller->module->id)." - ".$controller->title;
 
 		//Get this organizationEvent
 		$events = array();

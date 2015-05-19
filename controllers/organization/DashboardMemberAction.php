@@ -9,14 +9,14 @@ class DashboardMemberAction extends CAction
     	$controller=$this->getController();
 		//get The organization Id
 		if (empty($id)) {
-		  throw new CommunecterException("The organization id is mandatory to retrieve the organization !");
+		  throw new CTKException("The organization id is mandatory to retrieve the organization !");
 		}
 
 		$organization = Organization::getPublicData($id);
 		$params = array( "organization" => $organization);
 		$controller->title = (isset($organization["name"])) ? $organization["name"] : "";
 		$controller->subTitle = (isset($organization["description"])) ? $organization["description"] : "";
-		$controller->pageTitle = "Communecter - Informations publiques de ".$controller->title;
+		$controller->pageTitle = ucfirst($controller->module->id)." - Informations publiques de ".$controller->title;
 
 		if( isset($organization["links"]) && isset($organization["links"]["members"])) {
 			
@@ -49,13 +49,15 @@ class DashboardMemberAction extends CAction
 			} 
 			$params["members"] = $members;
 		}
-		$contentKeyBase = Yii::app()->controller->id.".".Yii::app()->controller->action->id;
-		$params["contentKeyBase"] = $contentKeyBase;
-		$images = Document::listMyDocumentByType($id, Organization::COLLECTION, $contentKeyBase , array( 'created' => 1 ));
 		
+		//Same content Key base as the dashboard
+		$contentKeyBase = Yii::app()->controller->id.".dashboard";
+		$params["contentKeyBase"] = $contentKeyBase;
+		$images = Document::getListDocumentsURLByContentKey($id, $contentKeyBase, Document::DOC_TYPE_IMAGE);
+		$params["images"] = $images;
+
 		$events = Organization::listEventsPublicAgenda($id);
 		$params["events"] = $events;
-		$params["images"] = $images;
 
 		$lists = Lists::get(array("organisationTypes"));
 		$params["organizationTypes"] = $lists["organisationTypes"];

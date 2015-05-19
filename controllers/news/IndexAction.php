@@ -1,5 +1,5 @@
 <?php
-class InviteAction extends CAction
+class IndexAction extends CAction
 {
     public function run($type=null, $id= null)
     {
