@@ -18,6 +18,10 @@ class DashboardMemberAction extends CAction
 		$controller->subTitle = (isset($organization["description"])) ? $organization["description"] : "";
 		$controller->pageTitle = ucfirst($controller->module->id)." - Informations publiques de ".$controller->title;
 
+		//Same content Key base as the dashboard
+		$contentKeyBase = Yii::app()->controller->id.".dashboard";
+		$params["contentKeyBase"] = $contentKeyBase;
+
 		if( isset($organization["links"]) && isset($organization["links"]["members"])) {
 			
 			$memberData;
@@ -44,16 +48,20 @@ class DashboardMemberAction extends CAction
 
 			if (count($subOrganizationIds) != 0 ) {
 				$randomOrganizationId = array_rand($subOrganizationIds);
-				$randomOrganization = Organization::getById( $subOrganizationIds[$randomOrganizationId] );
+				$randomOrganization = Organization::getById($subOrganizationIds[$randomOrganizationId]);
+				
+				//Load the images
+				$limit = array(Document::IMG_PROFIL => 1, Document::IMG_LOGO => 1);
+				$images = Document::getListDocumentsURLByContentKey((String) $randomOrganization["_id"], $contentKeyBase, Document::DOC_TYPE_IMAGE, $limit);
+				$randomOrganization["images"] = $images;
+
 				$params["randomOrganization"] = $randomOrganization;
 			} 
 			$params["members"] = $members;
 		}
 		
-		//Same content Key base as the dashboard
-		$contentKeyBase = Yii::app()->controller->id.".dashboard";
-		$params["contentKeyBase"] = $contentKeyBase;
-		$images = Document::getListDocumentsURLByContentKey($id, $contentKeyBase, Document::DOC_TYPE_IMAGE);
+		$limit = array(Document::IMG_PROFIL => 1, Document::IMG_MEDIA => 5);
+		$images = Document::getListDocumentsURLByContentKey($id, $contentKeyBase, Document::DOC_TYPE_IMAGE, $limit);
 		$params["images"] = $images;
 
 		$events = Organization::listEventsPublicAgenda($id);
