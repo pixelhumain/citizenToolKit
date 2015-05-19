@@ -5,6 +5,7 @@ class Document {
 
 	const IMG_BANNIERE = "banniere";
 	const IMG_PROFIL = "profil";
+	const IMG_LOGO = "logo";
 	const IMG_SLIDER = "slider";
 	const IMG_MEDIA = "media";
 
@@ -146,7 +147,6 @@ class Document {
 		}
 	}
 
-
 	/**
 	* get the last images with a key
 	* @param itemId is the id of the item that we want to get images
@@ -161,6 +161,7 @@ class Document {
 						"type" => $itemType,
 						"contentKey" => new MongoRegex("/".$key."/i"));
 		$listImagesofType = PHDB::findAndSort( self::COLLECTION,$params, $sort, 1);
+		
 		foreach ($listImagesofType as $key => $value) {
 			//$imagePath = DIRECTORY_SEPARATOR."upload".DIRECTORY_SEPARATOR.Yii::app()->controller->module->id.DIRECTORY_SEPARATOR.$value["folder"].DIRECTORY_SEPARATOR.$value["name"];
     		//$imagePath = str_replace(DIRECTORY_SEPARATOR, "/", $imagePath);
@@ -168,6 +169,7 @@ class Document {
 		}
 		return $imageUrl;
 	}
+
 	/**
 	 * Get the list of categories available for the id and the type (Person, Organization, Event..)
 	 * @param String $id Id to search the categories for

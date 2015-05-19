@@ -34,9 +34,6 @@ class DashboardAction extends CAction
 		$people = Organization::getMembersByOrganizationId($id, Person::COLLECTION);
 		foreach ($organizations as $key => $value) {
 			$newOrga = Organization::getById($key);
-			$profil = Document::getLastImageByKey($key, Organization::COLLECTION, Document::IMG_PROFIL);
-			if($profil !="")
-				$newOrga["imagePath"]= $profil;
 			array_push($contextMap["organizations"], $newOrga);
 			array_push($members["organizations"], $newOrga);
 
