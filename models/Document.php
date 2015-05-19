@@ -109,10 +109,11 @@ class Document {
 			if(isset($value["contentKey"]) && $value["contentKey"] != ""){
 				$explodeValueContentKey = explode(".", $value["contentKey"]);
 				if($explodeContentKey[1] == $explodeValueContentKey[1]){
-					$imagePath = "upload".DIRECTORY_SEPARATOR.Yii::app()->controller->module->id.$value["folder"].$value["name"];
-    				$imagePath = Yii::app()->getRequest()->getBaseUrl(true).DIRECTORY_SEPARATOR.$imagePath;
-    				$imagePath = str_replace(DIRECTORY_SEPARATOR, "/", $imagePath);
-					$listImages[(string) $explodeValueContentKey[2]] = $imagePath;
+					//$imagePath = "upload".DIRECTORY_SEPARATOR.Yii::app()->controller->module->id.$value["folder"].$value["name"];
+    				//$imagePath = Yii::app()->getRequest()->getBaseUrl(true).DIRECTORY_SEPARATOR.$imagePath;
+    				//$imagePath = str_replace(DIRECTORY_SEPARATOR, "/", $imagePath);
+    				$imageUrl = Document::getDocumentUrl($value);
+					$listImages[(string) $explodeValueContentKey[2]] = $imageUrl;
 				}
 			}
 		}
@@ -151,20 +152,21 @@ class Document {
 	* @param itemId is the id of the item that we want to get images
 	* @param itemType is the type of the item that we want to get images
 	* @param key is the type of image we want to get
-	* @return
+	* @return return the url of a document
 	*/
 	public static function getLastImageByKey($itemId, $itemType, $key){
-		$imagePath = "";
+		$imageUrl = "";
 		$sort = array( 'created' => -1 );
 		$params = array("id"=> $itemId,
 						"type" => $itemType,
 						"contentKey" => new MongoRegex("/".$key."/i"));
 		$listImagesofType = PHDB::findAndSort( self::COLLECTION,$params, $sort, 1);
 		foreach ($listImagesofType as $key => $value) {
-			$imagePath = DIRECTORY_SEPARATOR."upload".DIRECTORY_SEPARATOR.Yii::app()->controller->module->id.DIRECTORY_SEPARATOR.$value["folder"].DIRECTORY_SEPARATOR.$value["name"];
-    		$imagePath = str_replace(DIRECTORY_SEPARATOR, "/", $imagePath);
+			//$imagePath = DIRECTORY_SEPARATOR."upload".DIRECTORY_SEPARATOR.Yii::app()->controller->module->id.DIRECTORY_SEPARATOR.$value["folder"].DIRECTORY_SEPARATOR.$value["name"];
+    		//$imagePath = str_replace(DIRECTORY_SEPARATOR, "/", $imagePath);
+    		$imageUrl = Document::getDocumentUrl($value);
 		}
-		return $imagePath;
+		return $imageUrl;
 	}
 	/**
 	 * Get the list of categories available for the id and the type (Person, Organization, Event..)
@@ -194,6 +196,9 @@ class Document {
        return preg_replace('/[^A-Za-z0-9\-]/', '', $string); // Removes special chars.
     }
 
+    public static function getDocumentUrl($document){
+    	return Yii::app()->params['uploadUrl'].$document["moduleId"].DIRECTORY_SEPARATOR.$document["folder"].DIRECTORY_SEPARATOR.$document["name"];
+    }
 
 }
 ?>
