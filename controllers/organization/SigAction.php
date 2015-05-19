@@ -5,7 +5,7 @@ class SigAction extends CAction
 	/**
 	 * 
 	 */
-    public function run() {
+    public function run($id) {
     	$controller=$this->getController();
     	//get The organization Id
 		if (empty($id)) {
@@ -16,7 +16,7 @@ class SigAction extends CAction
 
 		$controller->title = "Annuaire du réseau";
 		$controller->subTitle = "Trouver une structure grâce à de multiples critères";
-		$controller->pageTitle = "Communecter - ".$this->title;
+		$controller->pageTitle = "Communecter - ".$controller->title;
 
 		//Get this organizationEvent
 		$events = array();
