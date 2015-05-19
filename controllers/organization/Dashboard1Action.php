@@ -17,9 +17,11 @@ class Dashboard1Action extends CAction
 		
 		$params = array( "organization" => $organization);
 		$params["events"] = $events;
-		$contentKeyBase = Yii::app()->controller->id.".".Yii::app()->controller->action->id;
+		
+		//Same content Key base as the dashboard
+		$contentKeyBase = Yii::app()->controller->id.".dashboard";
 		$params["contentKeyBase"] = $contentKeyBase;
-		$images = Document::listMyDocumentByType($id, Organization::COLLECTION, $contentKeyBase , array( 'created' => 1 ));
+		$images = Document::getListImagesByKey($id, $contentKeyBase);
 		$params["images"] = $images;
 
 		$documents = Document::getWhere( array( "type" => Organization::COLLECTION , "id" => $id) );

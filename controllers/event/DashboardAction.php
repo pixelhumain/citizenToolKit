@@ -14,8 +14,9 @@ class DashboardAction extends CAction
         $controller->subTitle = (isset($event["description"])) ? $event["description"] : "";
         $controller->pageTitle = ucfirst($controller->module->id)." - Informations sur l'evenement ".$controller->title;
 
-        $contentKeyBase = $controller->id.".".$controller->action->id;
-        $images = Document::listMyDocumentByType($id, Event::COLLECTION, $contentKeyBase , array( 'created' => 1 ));
+        $contentKeyBase = $controller->id.".".$controller->action->id; 
+        $images = Document::getListDocumentsURLByContentKey($id, $contentKeyBase, Document::DOC_TYPE_IMAGE);
+        
         $organizer = array();
 
         $people = array();
@@ -53,6 +54,7 @@ class DashboardAction extends CAction
             }
           }
         }
+        
         $params["images"] = $images;
         $params["contentKeyBase"] = $contentKeyBase;
         $params["attending"] = $attending;

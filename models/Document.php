@@ -35,10 +35,15 @@ class Document {
 	}
 
 
-	protected static function listMyDocumentByContentKey($userId, $contentKey, $docType, $sort=null){
+	protected static function listMyDocumentByContentKey($userId, $contentKey, $docType = null, $sort=null){
+		
 		$params = array("id"=> $userId,
-						"doctype" => $docType,
 						"contentKey" => new MongoRegex("/".$contentKey."/i"));
+		
+		if (isset($docType)) {
+			$params["doctype"] = $docType;
+		}
+
 		$listDocuments = PHDB::findAndSort( self::COLLECTION,$params, $sort);
 		return $listDocuments;
 	}
@@ -60,6 +65,7 @@ class Document {
 		if(!isset($params["contentKey"])){
 			$params["contentKey"] = "";
 		}
+
 	    $new = array(
 			"id" => $params['id'],
 	  		"type" => $params['type'],
@@ -71,14 +77,12 @@ class Document {
 	  		"size" => $params['size'],
 	  		'created' => time()
 	    );
+
 	    if(isset($params["category"]) && !empty($params["category"]))
 	    	$new["category"] = $params["category"];
 	    if(isset($params["contentKey"]) && !empty($params["contentKey"])){
 	    	$new["contentKey"] = $params["contentKey"];
-	    	$pathImg = "/upload/".$params['moduleId']."/".$params['type']."/".$params["id"]."/".$params["name"];
-	    	Document::setImagePath( $params['id'], $params['type'], $pathImg ,$params["contentKey"]);
 	    }
-
 
 	    PHDB::insert(self::COLLECTION,$new);
 	    //Link::connect($id, $type, $new["_id"], PHType::TYPE_PROJECTS, $id, "projects" );
@@ -109,21 +113,21 @@ class Document {
 	}
 
 	/**
-	* get a list of a image 
-	* @return return a list of image
-	*/
-	public static function getListImagesByKey($id, $contentKey){
+	 * get the list of document URL depending on the id of the owner, the contentKey and the docType
+	 * @param String $id The id of the owner of the image could be an organization, an event, a person, a project... 
+	 * @param String $contentKey The content key is composed with the controllerId, the action where the document is used and a type
+	 * @param String $docType The docType represent the type of document (see DOC_TYPE_* constant)
+	 * @return array a list of URL access to the document
+	 */
+	public static function getListDocumentsURLByContentKey($id, $contentKey, $docType=null){
 		$listImages= array();
 		$sort = array( 'created' => 1 );
 		$explodeContentKey = explode(".", $contentKey);
-		$listImagesofType = Document::listMyDocumentByContentKey($id, $explodeContentKey[0], self::DOC_TYPE_IMAGE, $sort);
+		$listImagesofType = Document::listMyDocumentByContentKey($id, $explodeContentKey[0], $docType, $sort);
 		foreach ($listImagesofType as $key => $value) {
 			if(isset($value["contentKey"]) && $value["contentKey"] != ""){
 				$explodeValueContentKey = explode(".", $value["contentKey"]);
 				if($explodeContentKey[1] == $explodeValueContentKey[1]){
-					//$imagePath = "upload".DIRECTORY_SEPARATOR.Yii::app()->controller->module->id.$value["folder"].$value["name"];
-    				//$imagePath = Yii::app()->getRequest()->getBaseUrl(true).DIRECTORY_SEPARATOR.$imagePath;
-    				//$imagePath = str_replace(DIRECTORY_SEPARATOR, "/", $imagePath);
     				$imageUrl = Document::getDocumentUrl($value);
 					$listImages[(string) $explodeValueContentKey[2]] = $imageUrl;
 				}

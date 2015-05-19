@@ -49,13 +49,15 @@ class DashboardMemberAction extends CAction
 			} 
 			$params["members"] = $members;
 		}
-		$contentKeyBase = Yii::app()->controller->id.".".Yii::app()->controller->action->id;
-		$params["contentKeyBase"] = $contentKeyBase;
-		$images = Document::listMyDocumentByType($id, Organization::COLLECTION, $contentKeyBase , array( 'created' => 1 ));
 		
+		//Same content Key base as the dashboard
+		$contentKeyBase = Yii::app()->controller->id.".dashboard";
+		$params["contentKeyBase"] = $contentKeyBase;
+		$images = Document::getListDocumentsURLByContentKey($id, $contentKeyBase, Document::DOC_TYPE_IMAGE);
+		$params["images"] = $images;
+
 		$events = Organization::listEventsPublicAgenda($id);
 		$params["events"] = $events;
-		$params["images"] = $images;
 
 		$lists = Lists::get(array("organisationTypes"));
 		$params["organizationTypes"] = $lists["organisationTypes"];
