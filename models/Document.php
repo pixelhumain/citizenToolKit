@@ -129,22 +129,26 @@ class Document {
 			if(isset($value["contentKey"]) && $value["contentKey"] != ""){
 				$explodeValueContentKey = explode(".", $value["contentKey"]);
 				
-				if($explodeContentKey[1] == $explodeValueContentKey[1]){
-					$currentType = (string) $explodeValueContentKey[2];
-					
-					if (! isset($limit)) {
-						$toPush = true;
-					} else {
-						if (isset($limit[$currentType])) {
-							$limitByType = $limit[$currentType];
-							$actuelNbCurrentType = isset($listDocuments[$currentType]) ? count($listDocuments[$currentType]) : 0;
-							if ($actuelNbCurrentType < $limitByType) {
+				if (isset($explodeContentKey[1])) {
+					if($explodeContentKey[1] == $explodeValueContentKey[1]){
+						$currentType = (string) $explodeValueContentKey[2];
+						
+						if (! isset($limit)) {
+							$toPush = true;
+						} else {
+							if (isset($limit[$currentType])) {
+								$limitByType = $limit[$currentType];
+								$actuelNbCurrentType = isset($listDocuments[$currentType]) ? count($listDocuments[$currentType]) : 0;
+								if ($actuelNbCurrentType < $limitByType) {
+									$toPush = true;
+								}
+							} else {
 								$toPush = true;
 							}
-						} else {
-							$toPush = true;
 						}
 					}
+				} else {
+					$toPush = true;
 				}
 			}
 			if ($toPush) {
