@@ -199,7 +199,7 @@ class Document {
     }
 
     public static function getDocumentUrl($document){
-    	return Yii::app()->params['uploadUrl'].$document["moduleId"].DIRECTORY_SEPARATOR.$document["folder"].DIRECTORY_SEPARATOR.$document["name"];
+    	return Yii::app()->params['uploadUrl'].$document["moduleId"]."/".$document["folder"]."/".$document["name"];
     }
 
 }
