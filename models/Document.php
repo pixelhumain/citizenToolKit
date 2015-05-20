@@ -181,7 +181,7 @@ class Document {
 		}
 		return $res;
 	}
-
+	
 	/**
 	* remove a document by id
 	* @return

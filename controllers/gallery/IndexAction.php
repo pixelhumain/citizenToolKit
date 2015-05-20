@@ -10,10 +10,27 @@ class IndexAction extends CAction
 		$params["itemId"] = $id;
 		$params['itemType'] = $type;
 		
-		//Delete the last 's' of the type to get the contentKey
-		$contentKey = substr($type,0,-1);
-		$params['images'] = Document::getListDocumentsByContentKey($id, $contentKey, Document::DOC_TYPE_IMAGE);
-		$params['controllerId'] = $contentKey;
+		//TODO SBAR - it's not beautifull. Refactor soon
+		switch ($type) {
+			case Person::COLLECTION:
+				$controllerId = "person";
+				break;
+			case Organization::COLLECTION:
+				$controllerId = "organization";
+				break;
+			case Project::COLLECTION:
+				$controllerId = "project";
+				break;
+			case Event::COLLECTION:
+				$controllerId = "event";
+				break;
+			default:
+				throw new CTKException("Impossible to manage this type ".$type);
+				break;
+		}
+
+		$params['controllerId'] = $controllerId;
+		$params['images'] = Document::getListDocumentsByContentKey($id, $controllerId, Document::DOC_TYPE_IMAGE);
 
 		$controller->title = $item["name"]."'s Gallery";
 		$controller->subTitle = "";
