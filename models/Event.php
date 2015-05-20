@@ -11,7 +11,12 @@ class Event {
 	}
 
 	public static function getWhere($params) {
-	  	return PHDB::findAndSort( self::COLLECTION,$params,array("created"),null);
+	  	$events =PHDB::findAndSort( self::COLLECTION,$params,array("created"),null);
+	  	foreach ($events as $key => $value) {
+ 	  		$imageUrl= DOcument::getLastImageByKey($key, self::COLLECTION, '');
+ 	  		$events[$key]["imageUrl"] = $imageUrl;
+	  	}
+	  	return $events;
 	}
 
 	/**
