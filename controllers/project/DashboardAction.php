@@ -41,11 +41,16 @@ class DashboardAction extends CAction
 	  				}*/
 	  			}
 	  		}
+	  		if (isset($project["properties"])){
+		  		$properties=$project["properties"];
+	  		}
 	  	}
+	  	
 	  	$params["contributors"] = $contributors;
 	  	$params["project"] = $project;
 	  	$params["organizations"] = $organizations;
 	  	$params["people"] = $people;
+	  	$params["properties"] = $properties;
 	  	//$params["admins"] = $admins;
 	  	$controller->render( "dashboard", $params );
 	}
