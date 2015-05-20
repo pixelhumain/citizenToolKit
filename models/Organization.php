@@ -224,7 +224,7 @@ class Organization {
 	  	$organization = Organization::getById($id);
 	  	
 	  	if (empty($organization)) {
-            throw new CommunecterException("The organization id is unkown : contact your admin");
+            throw new CTKException("The organization id is unkown : contact your admin");
         }
 	  	if (isset($organization) && isset($organization["links"]) && isset($organization["links"]["members"])) {
 	  		$members = $organization["links"]["members"];

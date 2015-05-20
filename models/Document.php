@@ -111,15 +111,15 @@ class Document {
 	}
 
 	/**
-	 * get the list of document URL depending on the id of the owner, the contentKey and the docType
+	 * get the list of documents depending on the id of the owner, the contentKey and the docType
 	 * @param String $id The id of the owner of the image could be an organization, an event, a person, a project... 
 	 * @param String $contentKey The content key is composed with the controllerId, the action where the document is used and a type
 	 * @param String $docType The docType represent the type of document (see DOC_TYPE_* constant)
 	 * @param array $limit represent the number of document by type that will be return. If not set, everything will be return
-	 * @return array a list of URL access to the document
+	 * @return array a list of documents + URL sorted by contentkey type (IMG_PROFIL...)
 	 */
-	public static function getListDocumentsURLByContentKey($id, $contentKey, $docType=null, $limit=null){
-		$listDocuments= array();
+	public static function getListDocumentsByContentKey($id, $contentKey, $docType=null, $limit=null){
+		$listDocuments = array();
 		$sort = array( 'created' => -1 );
 		$explodeContentKey = explode(".", $contentKey);
 		$listDocumentsofType = Document::listMyDocumentByContentKey($id, $explodeContentKey[0], $docType, $sort);
@@ -156,12 +156,32 @@ class Document {
 				if (! isset($listDocuments[$currentType])) {
 					$listDocuments[$currentType] = array();
 				} 
-				array_push($listDocuments[$currentType], $imageUrl);
+				$value['imageUrl'] = $imageUrl;
+				array_push($listDocuments[$currentType], $value);
 			}
 		}
 		return $listDocuments;
 	}
 
+	/**
+	 * @See getListDocumentsByContentKey. 
+	 * @return array Return only the Url of the documents ordered by contentkey type
+	 */
+	public static function getListDocumentsURLByContentKey($id, $contentKey, $docType=null, $limit=null){
+		$res = array();
+		$listDocuments = self::getListDocumentsByContentKey($id, $contentKey, $docType, $limit);
+
+		foreach ($listDocuments as $contentKey => $documents) {
+			foreach ($documents as $document) {
+				if (! isset($res[$contentKey])) {
+					$res[$contentKey] = array();
+				} 
+				array_push($res[$contentKey],$document["imageUrl"]);
+			}
+		}
+		return $res;
+	}
+	
 	/**
 	* remove a document by id
 	* @return
