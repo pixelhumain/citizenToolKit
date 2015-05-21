@@ -5,7 +5,6 @@
 		  	$controller=$this->getController();
 		  	$params = array();
 		  	$events = Event::getWhere($params);
-		  	
 		  	$controller->render("calendarView", array("events" => $events));
 		}
 	}
