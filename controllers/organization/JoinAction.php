@@ -5,7 +5,7 @@ class JoinAction extends CAction
 	/**
 	 * 
 	 */
-    public function run() {
+    public function run($id) {
     	$controller=$this->getController();
     	$params = array();
 		//get The organization Id
