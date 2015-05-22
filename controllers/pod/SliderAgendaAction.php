@@ -33,7 +33,8 @@ class SliderAgendaAction extends CAction
 
 		
 		$params["eventsAgenda"] = $events;
-		
+		if(isset(Yii::app()->session["userId"]))
+			$params["canEdit"] = Authorisation::canEditItem(Yii::app()->session["userId"], $type, $id);
 		if(Yii::app()->request->isAjaxRequest)
 	        echo $controller->renderPartial("sliderAgenda", $params,true);
 	    else
