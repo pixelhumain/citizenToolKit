@@ -52,6 +52,7 @@ class SigAction extends CAction
 		}
 
 		//Manage random Organization
+		$organizationMembers = Organization::getMembersByOrganizationId($id, Organization::COLLECTION);
 		$randomOrganizationId = array_rand($organizationMembers);
 		$randomOrganization = Organization::getById($randomOrganizationId);
 
