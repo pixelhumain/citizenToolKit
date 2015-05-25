@@ -163,6 +163,7 @@ class Person {
 		  	try {
 		  		//Format adress 
 		  		$newPerson["address"] = SIG::getAdressSchemaLikeByCodeInsee($person["city"]);
+		  		$newPerson["geo"] = SIG::getGeoPositionByInseeCode($person["city"]);
 		  	} catch (CTKException $e) {
 		  		throw new CTKException("Problem inserting the new person : unknown city");
 		  	}

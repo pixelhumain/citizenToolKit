@@ -30,7 +30,16 @@ class Job {
 		//Manage tags : save any inexistant tag to DB 
 		if (isset($job["tags"]))
 			$job["tags"] = Tags::filterAndSaveNewTags($job["tags"]);
-
+		
+		//Manage address
+		if (isset($job["jobLocation.address"])) {
+			if(!empty($job["jobLocation.address"]["postalCode"]) && !empty($job["jobLocation.address"]["codeInsee"])) {
+				$insee = $job["jobLocation.address"]["codeInsee"];
+				$address = SIG::getAdressSchemaLikeByCodeInsee($insee);
+				$job["jobLocation.address"] = $address;
+				$job["geo"] = SIG::getGeoPositionByInseeCode($insee);
+			}
+		}
 		//Insert the job
 		$result = PHDB::updateWithOptions( Job::COLLECTION, array("_id" => new MongoId()), 
                           array('$set' => $job), array("upsert" => true));
@@ -65,6 +74,7 @@ class Job {
 					$insee = $jobFieldValue["codeInsee"];
 					$address = SIG::getAdressSchemaLikeByCodeInsee($insee);
 					$job["jobLocation"] = array("address" => $address);
+					$job["geo"] = getGeoPositionByInseeCode($insee);
 				} else {
 					throw new CTKException("Error updating the Organization : address is not well formated !");			
 				}

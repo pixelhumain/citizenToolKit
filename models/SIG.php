@@ -34,8 +34,19 @@ class SIG
 				$entity["geo"] = $geoPos;
 			}
 			
-		}return $entity;
+		} 
+		return $entity;
 	}
+
+	//return geographical position of inseeCode
+	public static function getGeoPositionByInseeCode($inseeCode){
+		$city = self::getCityByCodeInsee($inseeCode);
+		$geopos = array( 	"@type" => "GeoCoordinates",
+							"latitude" => $city["geo"]["latitude"],
+							"longitude" => $city["geo"]["longitude"]);
+		return $geopos;
+	}
+
   	//récupère la position géographique depuis les Cities
   	//get geo position from Cities collection in data base
 	public static function getPositionByCp($cp){
@@ -58,7 +69,7 @@ class SIG
 			throw new InvalidArgumentException("The Insee Code is mandatory");
 		}
 
-		$city = PHDB::findOne(SIG::CITIES_COLLECTION_NAME, array("insee" => $codeInsee));
+		$city = PHDB::findOne(self::CITIES_COLLECTION_NAME, array("insee" => $codeInsee));
 		if (empty($city)) {
 			throw new CTKException("Impossible to find the city with the insee code : ".$codeInsee);
 		} else {
@@ -76,18 +87,15 @@ class SIG
 			throw new InvalidArgumentException("The postal Code is mandatory");
 		}
 
-		$city = PHDB::findAndSort(SIG::CITIES_COLLECTION_NAME, array("cp" => $postalCode), array("name" => -1));
+		$city = PHDB::findAndSort(self::CITIES_COLLECTION_NAME, array("cp" => $postalCode), array("name" => -1));
 		return $city;
 	}
 
 	public static function getAdressSchemaLikeByCodeInsee($codeInsee) {
-		$city = SIG::getCityByCodeInsee($codeInsee);
-		$geo = array( 	"@type" => "GeoCoordinates",
-							"latitude" => $city["geo"]["latitude"],
-							"longitude" => $city["geo"]["longitude"]);
+		$city = self::getCityByCodeInsee($codeInsee);
 
 		$address = array("@type"=>"PostalAddress", "postalCode"=> $city['cp'], 
-				"addressLocality" => $city["name"], "codeInsee" => $codeInsee, "geo" => $geo);
+				"addressLocality" => $city["name"], "codeInsee" => $codeInsee);
 		return $address;
 	}
 

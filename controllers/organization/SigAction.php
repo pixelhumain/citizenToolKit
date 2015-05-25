@@ -38,14 +38,10 @@ class SigAction extends CAction
 					
 				if($value["type"] == 'citoyens')		 { $publicData = Person::getPublicData($key); }
 				
-				$addData = array("tags", "name", "description");
+				$addData = array("geo", "tags", "name", "description");
 				foreach($addData as $data) {
 					if(!empty($publicData[$data]))
 						$organization["links"]["members"][$key][$data] = $publicData[$data];
-				}
-
-				if (!empty($publicData["address"]) && !empty($publicData["address"]["geo"])) {
-					$organization["links"]["members"][$key]["address"]["geo"] = $publicData["address"]["geo"];
 				} 
 
 			}

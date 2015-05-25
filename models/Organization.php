@@ -68,10 +68,6 @@ class Organization {
 
 		//Add the user creator of the organization in the system
 		$newOrganization["creator"] = $userId;
-
-		//fonction générique de SIG, à utiliser pour n'importe quelle entité
-		//si l'entité contient un champs address => postalCode, on trouve la position dans les Cites
-		//$newOrganization = SIG::addGeoPositionToEntity($organization);
 	
 		//Insert the organization
 	    PHDB::insert( Organization::COLLECTION, $newOrganization);
@@ -92,14 +88,6 @@ class Organization {
 	    $newOrganization = Organization::getById($newOrganizationId);
 	    return array("result"=>true, "msg"=>"Votre organisation est communectée.", 
 	    	"id"=>$newOrganizationId, "newOrganization"=> $newOrganization);
-	}
-
-	/* TODO Ajouter la position geo sur l'orga */
-	public static function addGeoPos($organization){
-		/*rechercher position par cp dans collec Cities
-		si on trouve
-		on recopie geo dans geoPos et on créé geo aussi
-		s */
 	}
 	
 	public static function newOrganizationFromPost($organization) {
@@ -161,6 +149,7 @@ class Organization {
 				$insee = $organization['city'];
 				$address = SIG::getAdressSchemaLikeByCodeInsee($insee);
 				$newOrganization["address"] = $address;
+				$newOrganization["geo"] = getGeoPositionByInseeCode($insee);
 			}
 		}
 				  
@@ -428,17 +417,17 @@ class Organization {
 			if(!empty($organizationFieldValue["postalCode"]) && !empty($organizationFieldValue["codeInsee"])) {
 				$insee = $organizationFieldValue["codeInsee"];
 				$address = SIG::getAdressSchemaLikeByCodeInsee($insee);
-				$organization = array("address" => $address);
+				$set = array("address" => $address, "geo" => SIG::getGeoPositionByInseeCode($insee));
 			} else {
 				throw new CTKException("Error updating the Organization : address is not well formated !");			
 			}
 		} else {
-			$organization = array($dataFieldName => $organizationFieldValue);	
+			$set = array($dataFieldName => $organizationFieldValue);	
 		}
 
 		//update the organization
 		PHDB::update( Organization::COLLECTION, array("_id" => new MongoId($organizationId)), 
-		                          array('$set' => $organization));
+		                          array('$set' => $set));
 	                  
 	    return true;
 	 }
