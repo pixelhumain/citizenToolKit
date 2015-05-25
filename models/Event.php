@@ -14,15 +14,17 @@ class Event {
 	  	$events =PHDB::findAndSort( self::COLLECTION,$params,array("created"),null);
 	  	foreach ($events as $key => $value) {
 	  		$events[$key]["organizer"] = "";
-	  		foreach ($value["links"] as $k => $v) {
-	  			if($k == "organizer"){
-	  				foreach ($v as $organizerId => $val) {
-	  					$organization = Organization::getById($organizerId);
-	  					$events[$key]["organizer"] = $organization["name"];
-	  				}
-	  			}
-	  		}
- 	  		$imageUrl= DOcument::getLastImageByKey($key, self::COLLECTION, '');
+	  		if(isset( $value["links"] )){
+		  		foreach ( $value["links"] as $k => $v ) {
+		  			if($k == "organizer"){
+		  				foreach ($v as $organizerId => $val) {
+		  					$organization = Organization::getById($organizerId);
+		  					$events[$key]["organizer"] = $organization["name"];
+		  				}
+		  			}
+		  		}
+		  	}
+ 	  		$imageUrl= Document::getLastImageByKey($key, self::COLLECTION, '');
  	  		$events[$key]["imageUrl"] = $imageUrl;
 	  	}
 	  	return $events;

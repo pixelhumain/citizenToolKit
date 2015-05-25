@@ -149,7 +149,7 @@ class Organization {
 				$insee = $organization['city'];
 				$address = SIG::getAdressSchemaLikeByCodeInsee($insee);
 				$newOrganization["address"] = $address;
-				$newOrganization["geo"] = getGeoPositionByInseeCode($insee);
+				$newOrganization["geo"] = SIG::getGeoPositionByInseeCode($insee);
 			}
 		}
 				  
