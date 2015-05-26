@@ -11,12 +11,15 @@ class Event {
 		$event = PHDB::findOne( PHType::TYPE_EVENTS,array("_id"=>new MongoId($id)));
 		if (!empty($event["startDate"]) && !empty($event["endDate"])) {
 			if (gettype($event["startDate"]) == "object" && gettype($event["endDate"]) == "object") {
-				$event["startDate"] = $event["startDate"]->toDateTime();
-				$event["endDate"] = $event["endDate"]->toDateTime();
+				$event["startDate"] = date('Y-m-d h:i:s', $event["startDate"]->sec);
+				$event["endDate"] = date('Y-m-d h:i:s', $event["endDate"]->sec);
 			} else {
-				$now = new DateTime;
-				$event["endDate"] = clone $now->modify('-1 day');
-				$event["startDate"] = clone $now->modify('-1 day');
+				//Manage old date with string on date event
+				$now = time();
+				$yesterday = mktime(0, 0, 0, date("m")  , date("d")-1, date("Y"));
+				$yester2day = mktime(0, 0, 0, date("m")  , date("d")-2, date("Y"));
+				$event["endDate"] = date('Y-m-d h:i:s', $yesterday);
+				$event["startDate"] = date('Y-m-d h:i:s',$yester2day);;
 			}
 		}
 
