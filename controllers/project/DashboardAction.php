@@ -18,6 +18,9 @@ class DashboardAction extends CAction
 	  	$people = array();
 	  	//$admins = array();
 	  	$contributors =array();
+	  	$properties = array();
+	  	        $contentKeyBase = $controller->id.".".$controller->action->id; 
+	  	        $images = Document::getListDocumentsURLByContentKey($id, $contentKeyBase, Document::DOC_TYPE_IMAGE);
 	  	if(!empty($project)){
 	  		$params = array();
 	  		if(isset($project["links"])){
@@ -45,7 +48,8 @@ class DashboardAction extends CAction
 		  		$properties=$project["properties"];
 	  		}
 	  	}
-	  	
+	  	$params["images"] = $images;
+	  	$params["contentKeyBase"] = $contentKeyBase;
 	  	$params["contributors"] = $contributors;
 	  	$params["project"] = $project;
 	  	$params["organizations"] = $organizations;
