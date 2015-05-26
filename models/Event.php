@@ -1,13 +1,26 @@
 <?php 
 class Event {
 	const COLLECTION = "events";
+
 	/**
 	 * get an event By Id
 	 * @param type $id : is the mongoId of the event
 	 * @return type
 	 */
 	public static function getById($id) {
-	  	return PHDB::findOne( PHType::TYPE_EVENTS,array("_id"=>new MongoId($id)));
+		$event = PHDB::findOne( PHType::TYPE_EVENTS,array("_id"=>new MongoId($id)));
+		if (!empty($event["startDate"]) && !empty($event["endDate"])) {
+			if (gettype($event["startDate"]) == "object" && gettype($event["endDate"]) == "object") {
+				$event["startDate"] = $event["startDate"]->toDateTime();
+				$event["endDate"] = $event["endDate"]->toDateTime();
+			} else {
+				$now = new DateTime;
+				$event["endDate"] = clone $now->modify('-1 day');
+				$event["startDate"] = clone $now->modify('-1 day');
+			}
+		}
+
+	  	return $event;
 	}
 
 	public static function getWhere($params) {
@@ -49,59 +62,68 @@ class Event {
 		return $event;
 	}
 
+	/**
+	 * Check the data of an event
+	 * @param array $event array of event data
+	 * @return true if the event is well format else throw exception if not
+	 */
+	public static function checkEventData($event) {
+		//Title is mandatory
+		if (empty($event["name"])) {
+			throw new CTKException("The event Title is required.");
+		}
+
+		//The organizer is required and should exist
+		if (empty($event["organization"])) {
+			throw new CTKException("You must select an organization");
+		} 
+		$organizer = Organization::getById($event["organization"]);
+		if (empty($organizer)) {
+			throw new CTKException("The organization does not exist. Please check the organizer.");
+		}
+
+		if(empty($event['startDate']) || empty($event['endDate'])) {
+			throw new CTKException("The start and end date of an event is required.");
+		}
+
+		//The end datetime must be after start daterime
+		$startDate = strtotime($event['startDate']);
+		$endDate = strtotime($event['endDate']);
+		if ($startDate >= $endDate) {
+			throw new CTKException("The start date must be before the end date.");
+		}
+	}
 
 	/**
 	 * Get an event from an id and return filter data in order to return only public data
 	 * @param type POST
 	 * @return save the event
 	*/
-	public static function saveEvent($params)
-	{
-	    //$attendees = array();
-	    $id = Yii::app()->session["userId"];
-	    $type = PHType::TYPE_CITOYEN;
-	    //$attendees[ Yii::app()->session["userId"] ] = array( "type" => PHType::TYPE_CITOYEN );
+	public static function saveEvent($params) {
+		
+		self::checkEventData($params);
 
 	    $new = array(
-			'email' => Yii::app()->session["userEmail"],
-			"name" => $params['title'],
+			"name" => $params['name'],
 			'type' => $params['type'],
-			      'public'=>true,//$params['public'],
+			'public' => true,
 			'created' => time(),
-			"links" => array( 
-				"creator" => array( (string)$id =>array("type" => $type, "isAdmin" => true))  
-			),
+			"startDate" => new MongoDate(strtotime($params['startDate'])),
+			"endDate" => new MongoDate(strtotime($params['endDate'])),
 	        "allDay" => $params['allDay'],
-	        'creator' => Yii::app()->session["userId"]
+	        'creator' => $params['userId'],
 	    );
 	    //sameAs      
-	    if(!empty($params['content']))
-	         $new["description"] = $params['content'];
-	    if(!empty($params['end']))
-	         $new["endDate"] = $params['end'];
-	    if(!empty($params['start']))
-	         $new["startDate"] = $params['start'];
-
-	    PHDB::insert(PHType::TYPE_EVENTS,$new);
+	    if(!empty($params['description']))
+	         $new["description"] = $params['description'];
 	    
-	    //add the association to the users association list
-	    Link::attendee($new["_id"], $id, true);
-	    //Link::connect($id, $type, $new["_id"], PHType::TYPE_EVENTS, $id, "events" );
-	    // add organization to event
-	    if(isset($params["organization"])){
-	    	/*PHDB::update( PHType::TYPE_EVENTS , 
-				array("_id" => new MongoId($new["_id"])) ,
-				array('$addToSet' => array( "links.attendees.".(string)$params["organization"]=>array("type" => Organization::COLLECTION, "isAdmin"=>true )) 
-					)
-				);*/
-	    	Link::addOrganizer($params["organization"], $new["_id"], $id);
-	    }
-
-	    //$where = array("_id" => new MongoId(Yii::app()->session["userId"]));
-	    //PHDB::update( PHType::TYPE_EVENTS , 
-		//					array("_id" => new MongoId($id)) ,
-		//					array('$set' => array( "attendees.".(string)$id."type" => $type ) ));
+	    PHDB::insert(self::COLLECTION,$new);
 	    
+	    //add the creator as the admin and the first attendee
+	    Link::attendee($new["_id"], $params['userId'], true);
+	    
+	    Link::addOrganizer($params["organization"], $new["_id"], $params['userId']);
+
 	    //send validation mail
 	    //TODO : make emails as cron events
 	    /*$message = new YiiMailMessage; 
@@ -114,6 +136,7 @@ class Event {
 	    
 	    //TODO : add an admin notification
 	    //Notification::saveNotification(array("type"=>NotificationType::ASSOCIATION_SAVED,"user"=>$new["_id"]));
+	    
 	    return array("result"=>true, "msg"=>"Votre evenement est communecté.", "id"=>$new["_id"], "event" => $new );
 	}
 
@@ -146,7 +169,7 @@ class Event {
 	*/
 	public static function checkExistingEvents($params){
 		$res = false;
-		$events = PHDB::find(PHType::TYPE_EVENTS,array( "name" => $params['title']));
+		$events = PHDB::find(PHType::TYPE_EVENTS,array( "name" => $params['name']));
 		if(!$events){
 			$res = false;
 		}else{
