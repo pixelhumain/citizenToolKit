@@ -144,26 +144,32 @@ class Event {
 	}
 
 	/**
-	 * Retrieve the list of events, the organization is part of the organizer
+	 * Retrieve the list of events, the organization is organizer
+	 * The event should not be over
 	 * @param String $organizationId The organization Id
-	 * @return array list of the events the organization is part of the organization array["$eventId"] => $eventValue
+	 * @param int $limit limit of the result
+	 * @return array list of the events the organization is part of the organization sorted on endDate
 	 */
-	public static function getListOrganizationEvents($organizationId) {
+	public static function getListCurrentEventsByOrganizationId($organizationId, $limit = 20) {
+		$listEvent = array();
+		$where = array 	('$and' => array (
+							array("links.organizer.".$organizationId => array('$exists' => true)),
+							array("endDate" => array('$gte' => new MongoDate(time())))
+						));
+        $eventOrganization = PHDB::findAndSort(self::COLLECTION, $where, array('endDate' => 1), $limit);
 
-		$where = array("organizer.".$organizationId => array('$exists' => true));
-        $eventOrganization = PHDB::find(PHType::TYPE_EVENTS, $where);
-
-        /*foreach ($eventOrganization as $eventId => $eventValue) {
-        	$res["$eventId"] = $eventValue;
-        }*/
-
+        //Add information for events
         foreach ($eventOrganization as $key => $value) {
-        	$profil = Document::getLastImageByKey($key, PHType::TYPE_EVENTS, Document::IMG_PROFIL);
+        	$profil = Document::getLastImageByKey($key, self::COLLECTION, Document::IMG_PROFIL);
         	if($profil!="")
-        		$value['imagePath']=$profil;
+        		$value['imageUrl']=$profil;
+        	
+        	$value["startDate"] = date('Y-m-d h:i:s', $value["startDate"]->sec);
+			$value["endDate"] = date('Y-m-d h:i:s', $value["endDate"]->sec);
+			$listEvent[$key] = $value;
         }
 
-        return $eventOrganization;
+        return $listEvent;
 	}
 
 	/**

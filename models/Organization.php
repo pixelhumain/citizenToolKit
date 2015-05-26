@@ -348,21 +348,24 @@ class Organization {
 
 
 	/**
-	 * List all the event of an organization and his members
+	 * List all the event of an organization and his members (if can edit member)
 	 * @param String $organisationId : is the mongoId of the organisation
 	 * @return all the event link with the organization
 	 */
+	//TODO SBAR : Refactor using a startDate in order to not retrieve all the database
 	public static function listEventsPublicAgenda($organizationId){
 		$events = array();
 		$organization = Organization::getById($organizationId);
-		$subOrganization = Organization::getMembersByOrganizationId($organizationId, Organization::COLLECTION);
+		
 		if(isset($organization["links"]["events"])){
 			foreach ($organization["links"]["events"] as $keyEv => $valueEv) {
 				 $event = Event::getPublicData($keyEv);
            		 $events[$keyEv] = $event;
 			}
 		}
+		//Specific case : if canEditMember
 		if(Authorisation::canEditMembersData($organizationId)){
+			$subOrganization = Organization::getMembersByOrganizationId($organizationId, Organization::COLLECTION);
 			foreach ($subOrganization as $key => $value) {
 				 $newOrganization = Organization::getById($key);
 				 if(!empty($newOrganization)&& isset($newOrganization["links"]["events"])){
