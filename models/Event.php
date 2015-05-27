@@ -251,5 +251,27 @@ class Event {
 	    return array("result"=>true, "msg"=>"Votre evenement a été modifié avec succes", "id"=>$eventId);
 
 	}
+
+	/**
+	* @param itemId is the id of an organiZation or a citizen
+	* @param  itemType is the type (organization or citizen)
+	* @param limit is the number of events we want to get
+	* @return an array with the next event since the current day
+	*//
+	public static function getLastEvents($itemId, $itemType, $limit=null){
+		$nextEvent = array();
+		if($itemType == Organization::COLLECTION){
+			$listEvent = Organization::listEventsPublicAgenda($itemId);
+		}else if($itemType == Person::COLLECTION){
+			$listEvent = Event::listEventAttending($itemId);
+		}else{
+			return array("result"=> false, "error" => "Wrong type", "type" => $itemType);
+		}
+
+		foreach ($listEvent as $key => $value) {
+			# code...
+		}
+		return $nextEvent;
+	}
 }
 ?>
