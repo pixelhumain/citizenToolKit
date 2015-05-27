@@ -21,7 +21,7 @@ class SliderAgendaAction extends CAction
 		  	$params["itemId"] = $id;
 		}
 
-
+		$params["eventTest"] = Event::getLastEvents($id, $type, 3);
 		foreach ($events as $key => $value) {
 			$limit = array(Document::IMG_PROFIL => 1, Document::IMG_MEDIA => 5);
 			$imageUrlTab = Document::getListDocumentsURLByContentKey($key, "event", Document::DOC_TYPE_IMAGE, $limit);

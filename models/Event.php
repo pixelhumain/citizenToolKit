@@ -263,21 +263,28 @@ class Event {
 	* @param  itemType is the type (organization or citizen)
 	* @param limit is the number of events we want to get
 	* @return an array with the next event since the current day
-	*//
+	*/
 	public static function getLastEvents($itemId, $itemType, $limit=null){
 		$nextEvent = array();
 		if($itemType == Organization::COLLECTION){
 			$listEvent = Organization::listEventsPublicAgenda($itemId);
 		}else if($itemType == Person::COLLECTION){
-			$listEvent = Event::listEventAttending($itemId);
+			$listEvent = Authorisation::listEventsIamAdminOf($id);
+		  	$eventsAttending = Event::listEventAttending($id);
+		  	foreach ($eventsAttending as $key => $value) {
+		  		$eventId = (string)$value["_id"];
+		  		if(!isset($events[$eventId])){
+		  			$listEvent[$eventId] = $value;
+		  		}
+		  	}
 		}else{
 			return array("result"=> false, "error" => "Wrong type", "type" => $itemType);
 		}
-
+		
 		foreach ($listEvent as $key => $value) {
 			# code...
 		}
-		return $nextEvent;
+		return $listEvent;
 	}
 }
 ?>
