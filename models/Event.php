@@ -145,7 +145,9 @@ class Event {
 
 	/**
 	 * Retrieve the list of events, the organization is organizer
+	 * Special case : when the organization can edit member data : retireve the events of the members
 	 * The event should not be over
+	 * The event of the organization $organizationId will be selected first
 	 * @param String $organizationId The organization Id
 	 * @param int $limit limit of the result
 	 * @return array list of the events the organization is part of the organization sorted on endDate
@@ -158,18 +160,22 @@ class Event {
 						));
         $eventOrganization = PHDB::findAndSort(self::COLLECTION, $where, array('endDate' => 1), $limit);
 
-        //Add information for events
-        foreach ($eventOrganization as $key => $value) {
-        	$profil = Document::getLastImageByKey($key, self::COLLECTION, Document::IMG_PROFIL);
-        	if($profil!="")
-        		$value['imageUrl']=$profil;
-        	
-        	$value["startDate"] = date('Y-m-d h:i:s', $value["startDate"]->sec);
-			$value["endDate"] = date('Y-m-d h:i:s', $value["endDate"]->sec);
-			$listEvent[$key] = $value;
+        //If not enougth events, lets see for canEditMember
+        if (count($eventOrganization) < $limit) {
+        	if(Authorisation::canEditMembersData($organizationId)) {
+				$subOrganization = Organization::getMembersByOrganizationId($organizationId, Organization::COLLECTION);
+				foreach ($subOrganization as $key => $value) {
+					//Recursive call : yes papa !!!
+					$subOrgaEvents = self::getListCurrentEventsByOrganizationId($key, $limit - count($eventOrganization));
+					foreach ($subOrgaEvents as $keyEvent => $valueEvent) {
+						$eventOrganization[$keyEvent] = $valueEvent;
+					}
+					if (count($eventOrganization) >= $limit) break;
+				}
+			}
         }
 
-        return $listEvent;
+        return $eventOrganization;
 	}
 
 	/**
@@ -230,8 +236,18 @@ class Event {
 	}
 
 
-	public static function delete($eventId){
-		return PHDB::remove(self::COLLECTION, array("_id"=>new MongoId($eventId)));
+	public static function delete($eventId, $userId){
+		if (! Authorisation::isEventAdmin($eventId, $userId)) {
+			throw new CTKException("Can not delete the event : you are not authorized to delete that event!");	
+		}
+
+		$res = Link::removeEventLinks($eventId);
+		
+		if($res["ok"]==1){
+    		$res = PHDB::remove(self::COLLECTION, array("_id"=>new MongoId($eventId)));
+    	}
+		
+		return array("result"=>true, "msg"=>"Votre evenement est supprimé.", "id"=>$eventId);
 	}
 
 
