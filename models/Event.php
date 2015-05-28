@@ -29,6 +29,21 @@ class Event {
 	public static function getWhere($params) {
 	  	$events =PHDB::findAndSort( self::COLLECTION,$params,array("created"),null);
 	  	foreach ($events as $key => $value) {
+
+	  		if (!empty($value["startDate"]) && !empty($value["endDate"])) {
+				if (gettype($value["startDate"]) == "object" && gettype($value["endDate"]) == "object") {
+					$events[$key]["startDate"] = date('Y-m-d h:i:s', $value["startDate"]->sec);
+					$events[$key]["endDate"] = date('Y-m-d h:i:s', $value["endDate"]->sec);
+				} else {
+					//Manage old date with string on date value
+					$now = time();
+					$yesterday = mktime(0, 0, 0, date("m")  , date("d")-1, date("Y"));
+					$yester2day = mktime(0, 0, 0, date("m")  , date("d")-2, date("Y"));
+					$events[$key]["endDate"] = date('Y-m-d h:i:s', $yesterday);
+					$events[$key]["startDate"] = date('Y-m-d h:i:s',$yester2day);;
+				}
+			}
+
 	  		$events[$key]["organizer"] = "";
 	  		if(isset( $value["links"] )){
 		  		foreach ( $value["links"] as $k => $v ) {
@@ -297,6 +312,35 @@ class Event {
 	                  
 	    return array("result"=>true, "msg"=>"Votre evenement a été modifié avec succes", "id"=>$eventId);
 
+	}
+
+	/**
+	* @param itemId is the id of an organiZation or a citizen
+	* @param  itemType is the type (organization or citizen)
+	* @param limit is the number of events we want to get
+	* @return an array with the next event since the current day
+	*/
+	public static function getLastEvents($itemId, $itemType, $limit=null){
+		$nextEvent = array();
+		if($itemType == Organization::COLLECTION){
+			$listEvent = Organization::listEventsPublicAgenda($itemId);
+		}else if($itemType == Person::COLLECTION){
+			$listEvent = Authorisation::listEventsIamAdminOf($id);
+		  	$eventsAttending = Event::listEventAttending($id);
+		  	foreach ($eventsAttending as $key => $value) {
+		  		$eventId = (string)$value["_id"];
+		  		if(!isset($events[$eventId])){
+		  			$listEvent[$eventId] = $value;
+		  		}
+		  	}
+		}else{
+			return array("result"=> false, "error" => "Wrong type", "type" => $itemType);
+		}
+		
+		foreach ($listEvent as $key => $value) {
+			// to do # code...
+		}
+		return $listEvent;
 	}
 }
 ?>

@@ -40,6 +40,7 @@ class SliderAgendaAction extends CAction
 		  	$params["itemId"] = $id;
 		}
 
+
 		$params["eventsAgenda"] = $events;
 		if(isset(Yii::app()->session["userId"]))
 			$params["canEdit"] = Authorisation::canEditItem(Yii::app()->session["userId"], $type, $id);
