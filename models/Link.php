@@ -344,5 +344,28 @@ class Link {
     	}
     	return $res;
     }
+
+    public static function removeRole($memberOfId, $memberOfType, $memberId, $memberType, $role, $userId) {
+        
+        //0. Check if the $memberOfId and the $memberId exists
+        $memberOf = Link::checkIdAndType($memberOfId, $memberOfType);
+        $member = Link::checkIdAndType($memberId, $memberType);
+        
+        //1.1 the $userId can manage the $memberOf (admin)
+        // Or the user can remove himself from a member list of an organization
+        if (!Authorisation::isOrganizationAdmin($userId, $memberOfId)) {
+            if ($memberId != $userId) {
+                throw new CTKException("You are not admin of the Organization : ".$memberOfId);
+            }
+        }
+
+        //2. Remove the role
+        PHDB::update( $memberOfType, 
+                   array("_id" => $memberOf["_id"]) , 
+                   array('$pull' => array( "links.members.".$memberId.".roles" => $role) ));
+ 
+
+        return array("result"=>true, "msg"=>Yii::t("link","The member's role has been removed with success",null,Yii::app()->controller->module->id), "memberOfid"=>$memberOfId, "memberid"=>$memberId);
+    }
 } 
 ?>
