@@ -106,7 +106,7 @@ class Event {
 		
 		self::checkEventData($params);
 
-	    $new = array(
+	    $newEvent = array(
 			"name" => $params['name'],
 			'type' => $params['type'],
 			'public' => true,
@@ -116,16 +116,27 @@ class Event {
 	        "allDay" => $params['allDay'],
 	        'creator' => $params['userId'],
 	    );
+	    
+	    //Postal code & geo
+	    if(!empty($params['postalCode'])) {
+			if (!empty($params['city'])) {
+				$insee = $params['city'];
+				$address = SIG::getAdressSchemaLikeByCodeInsee($insee);
+				$newEvent["address"] = $address;
+				$newEvent["geo"] = SIG::getGeoPositionByInseeCode($insee);
+			}
+		}
+
 	    //sameAs      
 	    if(!empty($params['description']))
-	         $new["description"] = $params['description'];
+	         $newEvent["description"] = $params['description'];
 	    
-	    PHDB::insert(self::COLLECTION,$new);
+	    PHDB::insert(self::COLLECTION,$newEvent);
 	    
 	    //add the creator as the admin and the first attendee
-	    Link::attendee($new["_id"], $params['userId'], true);
+	    Link::attendee($newEvent["_id"], $params['userId'], true);
 	    
-	    Link::addOrganizer($params["organization"], $new["_id"], $params['userId']);
+	    Link::addOrganizer($params["organization"], $newEvent["_id"], $params['userId']);
 
 	    //send validation mail
 	    //TODO : make emails as cron events
@@ -140,7 +151,7 @@ class Event {
 	    //TODO : add an admin notification
 	    //Notification::saveNotification(array("type"=>NotificationType::ASSOCIATION_SAVED,"user"=>$new["_id"]));
 	    
-	    return array("result"=>true, "msg"=>"Votre evenement est communecté.", "id"=>$new["_id"], "event" => $new );
+	    return array("result"=>true, "msg"=>"Votre evenement est communecté.", "id"=>$newEvent["_id"], "event" => $newEvent );
 	}
 
 	/**
@@ -252,13 +263,26 @@ class Event {
 
 
 	public static function updateEventField($eventId, $eventFieldName, $eventFieldValue, $userId){
-		$event = array($eventFieldName => $eventFieldValue);
-		$res = event::updateEvent($eventId, $event, $userId);
+
+		//address
+		if ($eventFieldName == "address") {
+			if(!empty($eventFieldValue["postalCode"]) && !empty($eventFieldValue["codeInsee"])) {
+				$insee = $eventFieldValue["codeInsee"];
+				$address = SIG::getAdressSchemaLikeByCodeInsee($insee);
+				$event = array("address" => $address, "geo" => SIG::getGeoPositionByInseeCode($insee));
+			} else {
+				throw new CTKException("Error updating the Organization : address is not well formated !");			
+			}
+		} else {
+			$event = array($eventFieldName => $eventFieldValue);	
+		}
+
+		$res = Event::updateEvent($eventId, $event, $userId);
 		return $res;
 	}
 
 
-	public static function updateevent($eventId, $event, $userId) {  
+	public static function updateEvent($eventId, $event, $userId) {  
 		
 		if (! Authorisation::isEventAdmin($eventId, $userId)) {
 			throw new CTKException("Can not update the event : you are not authorized to update that event!");	
@@ -266,6 +290,7 @@ class Event {
 
 		if (isset($event["tags"]))
 			$event["tags"] = Tags::filterAndSaveNewTags($event["tags"]);
+		
 
 		PHDB::update( Event::COLLECTION, array("_id" => new MongoId($eventId)), 
 		                          array('$set' => $event));

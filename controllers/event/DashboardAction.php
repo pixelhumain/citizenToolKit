@@ -61,6 +61,8 @@ class DashboardAction extends CAction
         $params["event"] = $event;
         $params["organizer"] = $organizer;
         $params["people"] = $people;
+        //TODO SBAR - create list of event type in DB
+        $params["eventTypes"] = array("event" => "Event", "meeting" => "Meeting", "discussion" => "Discussion", "cultural" => "Cultural");
         //$params["admins"] = $admins;
         $controller->render( "dashboard", $params );
     }

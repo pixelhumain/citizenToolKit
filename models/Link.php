@@ -336,7 +336,7 @@ class Link {
                   			array("_id" => new MongoId($id)) , 
                   			array('$unset' => array( "links.events.".$eventId => "") ));
 				}else{
-					$res =PHDB::update( Person::COLLECTION, 
+					$res = PHDB::update( Person::COLLECTION, 
                   			array("_id" => new MongoId($id)) , 
                   			array('$unset' => array( "links.events.".$eventId => "") ));
 				}

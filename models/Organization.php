@@ -75,7 +75,7 @@ class Organization {
 	    if (isset($newOrganization["_id"])) {
 	    	$newOrganizationId = (String) $newOrganization["_id"];
 	    } else {
-	    	throw new CommunecterException("Problem inserting the new organization");
+	    	throw new CTKException("Problem inserting the new organization");
 	    }
 		
 		//Add the creator as the first member and admin of the organization
@@ -300,7 +300,7 @@ class Organization {
 		//TODO SBAR = filter data to retrieve only public data	
 		$organization = Organization::getById($id);
 		if (empty($organization)) {
-			throw new CommunecterException("The organization id is unknown ! Check your URL");
+			throw new CTKException("The organization id is unknown ! Check your URL");
 		}
 
 		return $organization;
@@ -402,7 +402,7 @@ class Organization {
 	 * @param String $organizationFieldName The name of the field to update
 	 * @param String $organizationFieldValue 
 	 * @param String $userId 
-	 * @return boolean True if the update has been done correctly. Can throw CommunecterException on error.
+	 * @return boolean True if the update has been done correctly. Can throw CTKException on error.
 	 */
 	 public static function updateOrganizationField($organizationId, $organizationFieldName, $organizationFieldValue, $userId){
 	 	if (!Authorisation::isOrganizationAdmin($userId, $organizationId)) {

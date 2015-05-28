@@ -3,9 +3,8 @@ class DeleteAction extends CAction
 {
     public function run($eventId)
     {
-    	$res = Link::removeEventLinks($eventId);
-    	if($res["ok"]==1){
-    		Event::delete($eventId);
+    	if (isset(Yii::app()->session["userId"])) {
+    		Event::delete($eventId, Yii::app()->session["userId"]);
     	}
     	
     	Rest::json(array('result' => true, "msg" => "Evenement bien supprimé"));
