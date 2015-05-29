@@ -1,4 +1,4 @@
-CTOK : Citizen ToolKit 
+CTK : Citizen ToolKit 
 ===
 	The modular (H)API driven architecture also called CTK : Citizen ToolKit 
 	allows developpers to build efficiently citzen oriented application 
