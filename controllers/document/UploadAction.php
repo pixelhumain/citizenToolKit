@@ -50,7 +50,8 @@ class UploadAction extends CAction {
         	// directory to the uploads folder:
         	//we use a unique Id for the iamge name Yii::app()->session["userId"].'.'.$ext
             //renaming file
-        	$name = ($rename) ? Yii::app()->session["userId"].'.'.$ext : urlencode($pic['name']);
+            $cleanfileName = Document::clean(pathinfo($pic['name'], PATHINFO_FILENAME)).".".pathinfo($pic['name'], PATHINFO_EXTENSION);
+        	$name = ($rename) ? Yii::app()->session["userId"].'.'.$ext : $cleanfileName;
             if( file_exists ( $upload_dir.$name ) )
                 $name = time()."_".$name;
         	if( isset(Yii::app()->session["userId"]) && $name && 
