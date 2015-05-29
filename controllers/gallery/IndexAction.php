@@ -29,6 +29,9 @@ class IndexAction extends CAction
 				break;
 		}
 
+		if(isset(Yii::app()->session["userId"]))
+			$params["canEdit"] = Authorisation::canEditItem(Yii::app()->session["userId"], $type, $id);
+		
 		$params['controllerId'] = $controllerId;
 		$params['images'] = Document::getListDocumentsByContentKey($id, $controllerId, Document::DOC_TYPE_IMAGE);
 

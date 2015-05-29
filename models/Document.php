@@ -84,7 +84,7 @@ class Document {
 
 	    PHDB::insert(self::COLLECTION,$new);
 	    //Link::connect($id, $type, $new["_id"], PHType::TYPE_PROJECTS, $id, "projects" );
-	    return array("result"=>true, "msg"=>"Votre document est enregistré.", "id"=>$new["_id"]);	
+	    return array("result"=>true, "msg"=>Yii::t('document','Document saved successfully',null,Yii::app()->controller->module->id), "id"=>$new["_id"]);	
 	}
 
 	/**
