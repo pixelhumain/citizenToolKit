@@ -364,7 +364,11 @@ class Link {
                    array("_id" => $memberOf["_id"]) , 
                    array('$pull' => array( "links.members.".$memberId.".roles" => $role) ));
  
-
+        //3. Remove the role
+        PHDB::update($memberType,
+        			array("_id"=> $member["_id"]),
+        			array('$pull' => array("links.memberOf.".$memberOfId.".roles" => $role)) );
+        
         return array("result"=>true, "msg"=>Yii::t("link","The member's role has been removed with success",null,Yii::app()->controller->module->id), "memberOfid"=>$memberOfId, "memberid"=>$memberId);
     }
 } 
