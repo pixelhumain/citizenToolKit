@@ -19,8 +19,8 @@ class DashboardAction extends CAction
 	  	//$admins = array();
 	  	$contributors =array();
 	  	$properties = array();
-	  	        $contentKeyBase = $controller->id.".".$controller->action->id; 
-	  	        $images = Document::getListDocumentsURLByContentKey($id, $contentKeyBase, Document::DOC_TYPE_IMAGE);
+	  	$contentKeyBase = $controller->id.".".$controller->action->id; 
+	  	$images = Document::getListDocumentsURLByContentKey($id, $contentKeyBase, Document::DOC_TYPE_IMAGE);
 	  	if(!empty($project)){
 	  		$params = array();
 	  		if(isset($project["links"])){
@@ -29,12 +29,14 @@ class DashboardAction extends CAction
 	  					$organization = Organization::getPublicData($id);
 	  					if (!empty($organization)) {
 	  						array_push($organizations, $organization);
+	  						$organization["type"]="organization";
 	  						array_push($contributors, $organization);
 	  					}
 	  				}else if($e["type"]== PHType::TYPE_CITOYEN){
 	  					$citoyen = Person::getPublicData($id);
 	  					if(!empty($citoyen)){
 	  						array_push($people, $citoyen);
+	  						$citoyen["type"]="citoyen";
 	  						array_push($contributors, $citoyen);
 	  					}
 	  				}
@@ -48,6 +50,8 @@ class DashboardAction extends CAction
 		  		$properties=$project["properties"];
 	  		}
 	  	}
+	  	$lists = Lists::get(array("organisationTypes"));
+		$params["organizationTypes"] = $lists["organisationTypes"];
 	  	$params["images"] = $images;
 	  	$params["contentKeyBase"] = $contentKeyBase;
 	  	$params["contributors"] = $contributors;

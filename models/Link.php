@@ -140,8 +140,10 @@ class Link {
      * @param type $userId The userId doing the action
      * @return result array with the result of the operation
      */
-    public static function connect($originId, $originType, $targetId, $targetType, $userId, $connectType) {
-        
+    public static function connect($originId, $originType, $targetId, $targetType, $userId, $connectType,$isAdmin=false) {
+	    $links=array("links.".$connectType.".".$targetId.".type" => $targetType);
+        if($isAdmin)
+        	$links["links.".$connectType.".".$targetId.".isAdmin"]=$isAdmin;
         //0. Check if the $originId and the $targetId exists
         $origin = Link::checkIdAndType($originId, $originType);
 		$target = Link::checkIdAndType($targetId, $targetType);
@@ -149,13 +151,11 @@ class Link {
         //2. Create the links
         PHDB::update( $originType, 
                        array("_id" => $origin["_id"]) , 
-                       array('$set' => array( "links.".$connectType.".".$targetId.".type" => $targetType
-                       						  //,"links.".$connectType.".".$targetId.".isAdmin" => $userAdmin
-                                              )));
+                       array('$set' => $links));
         
         //3. Send Notifications
 	    //TODO - Send email to the member
-
+		
         return array("result"=>true, "msg"=>"The link knows has been added with success", "originId"=>$originId, "targetId"=>$targetId);
     }
 
