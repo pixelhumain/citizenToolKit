@@ -40,6 +40,31 @@ class Dashboard1Action extends CAction
 			array_push($contextMap["organizations"], $newOrga);
 		}
 
+		if(isset($organization["links"]) && isset($organization["links"]["members"])){
+			$equipe=array();
+			$ca = array();
+			$bureau =array();
+
+			foreach ($organization["links"]["members"] as $key => $value) {
+				if($value["type"]==PHType::TYPE_CITOYEN && isset($value["roles"])){
+					$person = Person::getById($key);
+					if(!empty($person)){
+						if(in_array("Bureau", $value["roles"]))
+							$bureau[$key] = $person;
+						else if(in_array("Conseil d'administration", $value["roles"]))
+							$ca[$key] = $person;
+						else if(in_array("Equipe", $value["roles"]))
+							$equipe[$key] = $person;
+					}
+				}
+			}
+			if(count($equipe)>0)
+				$params["equipe"] = $equipe;
+			if(count($ca)>0)
+				$params["ca"] = $ca;
+			if(count($bureau)>0)
+				$params["bureau"] = $bureau;
+		}
 		foreach ($events as $key => $value) {
 			$newEvent = Event::getById($key);
 			array_push($contextMap["events"], $newEvent);
