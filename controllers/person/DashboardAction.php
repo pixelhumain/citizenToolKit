@@ -107,6 +107,6 @@ class DashboardAction extends CAction
 	    $params["events"] = $events;
 	    $params["people"] = $people;
 
-	    $controller->render( $controller->module->id.".views.person.dashboard", $params );
+	    $controller->render( "dashboard", $params );
     }
 }
