@@ -3,12 +3,12 @@ class UploadAction extends CAction {
 	
 
 	public function run($dir,$folder=null,$ownerId=null,$input,$rename=false) {
-		$upload_dir = 'upload/';
+		$upload_dir = Yii::app()->params['uploadUrl'];
         if(!file_exists ( $upload_dir ))
             mkdir ( $upload_dir,0775 );
         
         //ex: upload/communecter
-        $upload_dir = 'upload/'.$dir.'/';
+        $upload_dir = Yii::app()->params['uploadUrl'].$dir.'/';
         if(!file_exists ( $upload_dir ))
             mkdir ( $upload_dir,0775 );
 

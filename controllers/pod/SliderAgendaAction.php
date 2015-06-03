@@ -29,14 +29,21 @@ class SliderAgendaAction extends CAction
 		}
 
 		else if($type == Person::COLLECTION){
-			$events = Authorisation::listEventsIamAdminOf($id);
-		  	$eventsAttending = Event::listEventAttending($id);
-		  	foreach ($eventsAttending as $key => $value) {
-		  		$eventId = (string)$value["_id"];
-		  		if(!isset($events[$eventId])){
-		  			$events[$eventId] = $value;
-		  		}
-		  	}
+			$listEvent = Event::getListCurrentEventsByPeopleId($id, 3);
+			
+			//Add information for events
+        	foreach ($listEvent as $key => $value) {
+	        	$profil = Document::getLastImageByKey($key, Event::COLLECTION, Document::IMG_PROFIL);
+	        	if($profil!="")
+	        		$value['imageUrl']=$profil;
+	        	
+	        	//TODO SBAR : add localization display ?
+	        	//@See http://php.net/manual/en/function.strftime.php
+	        	$value["startDate"] = date('Y-m-d h:i:s', $value["startDate"]->sec);
+				$value["endDate"] = date('Y-m-d h:i:s', $value["endDate"]->sec);
+				$events[$key] = $value;
+        	}
+
 		  	$params["itemId"] = $id;
 		}
 

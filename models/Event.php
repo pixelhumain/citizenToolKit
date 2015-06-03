@@ -315,32 +315,19 @@ class Event {
 	}
 
 	/**
-	* @param itemId is the id of an organiZation or a citizen
-	* @param  itemType is the type (organization or citizen)
+	* @param itemId is the id of  a citizen
 	* @param limit is the number of events we want to get
 	* @return an array with the next event since the current day
 	*/
-	public static function getLastEvents($itemId, $itemType, $limit=null){
-		$nextEvent = array();
-		if($itemType == Organization::COLLECTION){
-			$listEvent = Organization::listEventsPublicAgenda($itemId);
-		}else if($itemType == Person::COLLECTION){
-			$listEvent = Authorisation::listEventsIamAdminOf($id);
-		  	$eventsAttending = Event::listEventAttending($id);
-		  	foreach ($eventsAttending as $key => $value) {
-		  		$eventId = (string)$value["_id"];
-		  		if(!isset($events[$eventId])){
-		  			$listEvent[$eventId] = $value;
-		  		}
-		  	}
-		}else{
-			return array("result"=> false, "error" => "Wrong type", "type" => $itemType);
-		}
-		
-		foreach ($listEvent as $key => $value) {
-			// to do # code...
-		}
-		return $listEvent;
+	public static function getListCurrentEventsByPeopleId($userId, $limit = 20) {
+		$listEvent = array();
+		$where = array 	('$and' => array (
+							array("links.attendees.".$userId => array('$exists' => true)),
+							array("endDate" => array('$gte' => new MongoDate(time())))
+						));
+        $eventPeople = PHDB::findAndSort(self::COLLECTION, $where, array('endDate' => 1), $limit);
+
+        return $eventPeople;
 	}
 }
 ?>

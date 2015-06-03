@@ -3,17 +3,17 @@ class UploadsAction extends CAction {
 	
 
 	public function run($dir,$collection=null,$input,$rename=false) {
-		$upload_dir = 'upload/';
+		$upload_dir = Yii::app()->params['uploadUrl'];
         if(!file_exists ( $upload_dir ))
             mkdir ( $upload_dir );
         
-        $upload_dir = 'upload/'.$dir.'/';
+        $upload_dir = Yii::app()->params['uploadUrl'].$dir.'/';
         if(!file_exists ( $upload_dir ))
             mkdir ( $upload_dir );
 
         if( isset( $collection ))
             $dir .= '/'.$collection.'/';
-        $upload_dir = 'upload/'.$dir.'/';
+        $upload_dir = Yii::app()->params['uploadUrl'].$dir.'/';
         if(!file_exists ( $upload_dir ))
             mkdir ( $upload_dir );
         
