@@ -45,6 +45,9 @@ class Person {
 	  	return $person;
 	}
 
+	public static function getWhere($params) {
+	  	$people =PHDB::findAndSort( self::COLLECTION,$params,array("created"),null);
+	}
 	public static function setNameByid($name, $id) {
 		PHDB::update(PHType::TYPE_CITOYEN,
 			array("_id" => new MongoId($id)),

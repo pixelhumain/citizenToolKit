@@ -25,7 +25,7 @@ class Event {
 
 	  	return $event;
 	}
-
+	
 	public static function getWhere($params) {
 	  	$events =PHDB::findAndSort( self::COLLECTION,$params,array("created"),null);
 	  	foreach ($events as $key => $value) {
