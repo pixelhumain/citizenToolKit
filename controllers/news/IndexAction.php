@@ -10,7 +10,8 @@ class IndexAction extends CAction
         	$where["type"] = $type;
         if(isset($id))
         	$where["id"] = $id;
-		$news = News::getWhereSortLimit( $where, array("created"=>-1) ,15);
+        //var_dump($where);
+		$news = News::getWhereSortLimit( $where, array("created"=>-1) ,30);
 
 		if(Yii::app()->request->isAjaxRequest)
 	        echo $controller->renderPartial("index" , array( "news"=>$news, "userCP"=>Yii::app()->session['userCP'] ),true);
