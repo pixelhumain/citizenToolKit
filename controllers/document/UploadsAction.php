@@ -21,7 +21,7 @@ class UploadsAction extends CAction {
         
         if(strtolower($_SERVER['REQUEST_METHOD']) != 'post')
         {
-            echo json_encode(array('result'=>false,'error'=>'<?php echo Yii::t("document","Error! Wrong HTTP method!",null,Yii::app()->controller->module->id) ?>'));
+            echo json_encode(array('result'=>false,'error'=>Yii::t("document","Error! Wrong HTTP method!")));
             exit;
         }
         
@@ -32,7 +32,7 @@ class UploadsAction extends CAction {
                 $ext = pathinfo($_FILES[$input]['name'][$key], PATHINFO_EXTENSION);
                 if(!in_array($ext,$allowed_ext))
                 {
-                    echo json_encode(array('result'=>false,'error'=>'<?php echo Yii::t("document","Only",null,Yii::app()->controller->module->id) ?> '.implode(',',$allowed_ext).' <?php echo Yii::t("document","files are allowed!",null,Yii::app()->controller->module->id) ?>'));
+                    echo json_encode(array('result'=>false,'error'=>Yii::t("document","Only").implode(',',$allowed_ext).Yii::t("document","files are allowed!") ));
                     exit;
                 }   
             
@@ -53,7 +53,7 @@ class UploadsAction extends CAction {
             }
         }
         
-        echo json_encode(array('result'=>false,'error'=>'<?php echo Yii::t("document","Something went wrong with your upload!",null,Yii::app()->controller->module->id) ?>'));
+        echo json_encode(array('result'=>false,'error'=>Yii::t("document","Something went wrong with your upload!")));
         exit;
     }
 }

@@ -9,17 +9,17 @@ class DeleteAction extends CAction {
             if (unlink($filepath))
             {
                 Document::removeDocumentById($_POST['docId']);
-                echo json_encode(array('result'=>true, "msg" => Yii::t("document","Document deleted",null,Yii::app()->controller->module->id)));
+                echo json_encode(array('result'=>true, "msg" => Yii::t("document","Document deleted")));
             }
             else
-                echo json_encode(array('result'=>false,'error'=>Yii::t("document","Something went wrong!",null,Yii::app()->controller->module->id), "filepath" => $filepath));
+                echo json_encode(array('result'=>false,'error'=>Yii::t("common","Something went wrong!"), "filepath" => $filepath));
         } 
         else 
         {
             $doc = Document::getById( $_POST['docId'] );
             if( $doc )
                 Document::removeDocumentById($_POST['docId']);
-            echo json_encode(array('result'=>false,'error'=>Yii::t("document","Something went wrong!",null,Yii::app()->controller->module->id),"filepath"=>$filepath));
+            echo json_encode(array('result'=>false,'error'=>Yii::t("common","Something went wrong!"),"filepath"=>$filepath));
         }
 	}
 }
