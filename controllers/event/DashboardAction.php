@@ -12,7 +12,7 @@ class DashboardAction extends CAction
 
         $controller->title = (isset($event["name"])) ? $event["name"] : "";
         $controller->subTitle = (isset($event["description"])) ? $event["description"] : "";
-        $controller->pageTitle = ucfirst($controller->module->id)." - Informations sur l'evenement ".$controller->title;
+        $controller->pageTitle = ucfirst($controller->module->id)." - ".Yii::t("event","Event's informations")." ".$controller->title;
 
         $contentKeyBase = $controller->id.".".$controller->action->id; 
         $images = Document::getListDocumentsURLByContentKey($id, $contentKeyBase, Document::DOC_TYPE_IMAGE);

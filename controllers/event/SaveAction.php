@@ -14,7 +14,7 @@ class SaveAction extends CAction
             }
             Rest::json($res);
         } else
-            Rest::json(array("result"=>false, "msg"=>"Cette Evenement existe déjà."));
+            Rest::json(array("result"=>false, "msg"=>Yii::t("event","Event already exist")));
         exit;
     }
 }
