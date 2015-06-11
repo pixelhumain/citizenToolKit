@@ -1,7 +1,7 @@
 <?php
 class ListAction extends CAction
 {
-	public function run($organizationId) {
+	public function run($organizationId = null) {
 		$controller=$this->getController();
 
 		$jobList = Job::getJobsList($organizationId);
