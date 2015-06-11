@@ -101,26 +101,35 @@ class Event {
 		}
 
 		if(empty($event['startDate']) || empty($event['endDate'])) {
-			throw new CTKException("The start and end date of an event is required.");
+			throw new CTKException("The start and end date of an event are required.");
+		}
+		
+		if (! empty($event['allDay'])) {
+			$allDay = $event['allDay'] == 'true' ? true : false;
+ 		} else {
+			throw new CTKException("You must specify if the event is during all day or not.");
 		}
 
-		//The end datetime must be after start daterime
+		//The end datetime must be after start datetime
 		$startDate = strtotime($event['startDate']);
 		$endDate = strtotime($event['endDate']);
 		if ($startDate >= $endDate) {
-			throw new CTKException("The start date must be before the end date.");
+			//Special case when it's an allday event the startDate and endDate could be equals
+			if (!($startDate == $endDate && $allDay)) {
+				throw new CTKException("The start date must be before the end date.");
+			}
 		}
 	}
 
 	/**
-	 * Get an event from an id and return filter data in order to return only public data
+	 * Save an event from Post. Check if it is well format.
 	 * @param type POST
 	 * @return save the event
 	*/
 	public static function saveEvent($params) {
 		
 		self::checkEventData($params);
-
+		$allDay = $params['allDay'] == 'true' ? true : false;
 	    $newEvent = array(
 			"name" => $params['name'],
 			'type' => $params['type'],
@@ -128,7 +137,7 @@ class Event {
 			'created' => time(),
 			"startDate" => new MongoDate(strtotime($params['startDate'])),
 			"endDate" => new MongoDate(strtotime($params['endDate'])),
-	        "allDay" => $params['allDay'],
+	        "allDay" => $allDay,
 	        'creator' => $params['userId'],
 	    );
 	    
