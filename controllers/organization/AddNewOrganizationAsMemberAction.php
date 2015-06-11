@@ -47,8 +47,8 @@ class AddNewOrganizationAsMemberAction extends CAction
 			} catch (CTKException $e) {
 				return Rest::json(array("result"=>false, "msg"=>$e->getMessage()));
 			}
-	  		return Rest::json(array("result"=>true, "msg"=>"Your organization has been added with success. Check your mail box : you will recieive soon a mail from us."));
+	  		return Rest::json(array("result"=>true, "msg"=>Yii::t("organisation","Your organization has been added with success. Check your mail box : you will recieive soon a mail from us.")));
 		} else 
-	  		return Rest::json(array("result"=>false, "msg"=>"invalid Captcha Test"));
+	  		return Rest::json(array("result"=>false, "msg"=>Yii::t("organisation""invalid Captcha Test")));
     }
 }

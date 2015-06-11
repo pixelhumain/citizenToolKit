@@ -15,7 +15,7 @@ class SaveAction extends CAction
             } else
                    echo json_encode(array("result"=>false, "msg"=>"Ce projet existe déjà."));
     } else
-        echo json_encode(array("result"=>false, "msg"=>"Cette requete ne peut aboutir."));
+        echo json_encode(array("result"=>false, "msg"=>Yii::t("common", "Uncorrect request")));
     exit;
 
 	}

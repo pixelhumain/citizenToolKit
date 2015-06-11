@@ -11,7 +11,7 @@
 					$eventFieldValue = $_POST["value"];
 					Event::updateEventField($eventId, $eventFieldName, $eventFieldValue, Yii::app()->session["userId"] );
 				}else{
-					return Rest::json(array("result"=>false,"msg"=>"Uncorrect request"));
+					return Rest::json(array("result"=>false,"msg"=>Yii::t("event","Requête incorrecte")));
 				}
 			}
 			return Rest::json(array("result"=>true, "msg"=>Yii::t("event","Event well updated"), $eventFieldName=>$eventFieldValue));
