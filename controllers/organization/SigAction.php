@@ -14,8 +14,7 @@ class SigAction extends CAction
 
 		$organization = Organization::getPublicData($id);
 
-		$controller->title = "Annuaire du réseau";
-		$controller->subTitle = "Trouver une structure grâce à de multiples critères";
+		
 		$controller->pageTitle = ucfirst($controller->module->id)." - ".$controller->title;
 
 		//Get this organizationEvent
@@ -36,14 +35,13 @@ class SigAction extends CAction
 					$value["type"] == 'association'	 ||
 					$value["type"] == 'NGO')			 { $publicData = Organization::getPublicData($key); }
 					
-				if($value["type"] == 'citoyens')		 { $publicData = Person::getPublicData($key); }
+				//if($value["type"] == 'citoyens')		 { $publicData = Person::getPublicData($key); }
 				
 				$addData = array("geo", "tags", "name", "description","typeIntervention", "public"); //"typeIntervention", "public" GRANDDIR only
 				foreach($addData as $data) {
 					if( !empty($publicData[$data]) )
 						$organization["links"]["members"][$key][$data] = $publicData[$data];
 				} 
-
 			}
 		}
 

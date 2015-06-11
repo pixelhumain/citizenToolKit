@@ -4,6 +4,10 @@ class ListAction extends CAction {
 	public function run($id, $type,$getSub=false) 
 	{
 		$controller=$this->getController();
+		
+		$controller->title = "RESSOURCES";
+		$controller->subTitle = "Toutes les ressources de nos associations";
+		$controller->pageTitle = ucfirst($controller->module->id)." - ".$controller->title;
 
 		if( $type == Organization::COLLECTION )
 		{
