@@ -51,9 +51,9 @@ class Dashboard1Action extends CAction
 					if(!empty($person)){
 						if(in_array("Bureau", $value["roles"]))
 							$bureau[$key] = $person;
-						else if(in_array("Conseil d'administration", $value["roles"]))
+						if(in_array("Conseil d'administration", $value["roles"]))
 							$ca[$key] = $person;
-						else if(in_array("Equipe", $value["roles"]))
+						if(in_array("Equipe", $value["roles"]))
 							$equipe[$key] = $person;
 					}
 				}
