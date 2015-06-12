@@ -3,7 +3,7 @@ class SaveContributorAction extends CAction
 {
     public function run() {
 		$controller=$this->getController();
-		$res = array( "result" => false , "content" => "Something went wrong" );
+		$res = array( "result" => false , "content" => Yii::t("common", "Something went wrong!") );
 		if(isset( $_POST["id"]) )
 		{
 			$project = (isset($_POST["id"])) ? PHDB::findOne( PHType::TYPE_PROJECTS,array("_id"=>new MongoId($_POST["id"]))) : null;
@@ -66,7 +66,7 @@ class SaveContributorAction extends CAction
 						}
 						$member["id"]=$memberId["id"];
 						Link::connect($_POST["id"], PHType::TYPE_PROJECTS,$memberId["id"], $memberType, Yii::app()->session["userId"], "contributors",$isAdmin );
-						$res = array("result"=>true,"msg"=>"Vos données ont bien été enregistré.","member"=>$member, "reload"=>true);
+						$res = array("result"=>true,"msg"=>Yii::t("common", "Your data has been saved"),"member"=>$member, "reload"=>true);
 					}else{
 						if( isset($project['links']["contributors"]) && isset( $project['links']["contributors"][(string)$member["_id"]] ))
 							$res = array( "result" => false , "content" => "member allready exists" );
@@ -79,7 +79,7 @@ class SaveContributorAction extends CAction
 							}
 							Link::connect($member["_id"], $memberType, $_POST["id"], PHType::TYPE_PROJECTS, Yii::app()->session["userId"], "projects",$isAdmin);
 							Link::connect($_POST["id"], PHType::TYPE_PROJECTS, $member["_id"], $memberType, Yii::app()->session["userId"], "contributors",$isAdmin);
-							$res = array("result"=>true,"msg"=>"Vos données ont bien été enregistré.","member"=>$member,"reload"=>true);
+							$res = array("result"=>true,"msg"=>Yii::t("common", "Your data has been saved"),"member"=>$member,"reload"=>true);
 						}
 					}
 				}else

@@ -7,7 +7,7 @@ class UpdateFieldAction extends CAction
 	*/
     public function run() {
 		$organizationId = "";
-		$res = array("result"=>false, "msg"=>"Something went wrong");
+		$res = array("result"=>false, "msg"=>Yii::t("common", "Something went wrong!"));
 		if (!empty($_POST["pk"])) {
 			$organizationId = $_POST["pk"];
 		} else if (!empty($_POST["id"])) {
@@ -20,7 +20,7 @@ class UpdateFieldAction extends CAction
 				$organizationFieldValue = $_POST["value"];
 				try {
 					Organization::updateOrganizationField($organizationId, $organizationFieldName, $organizationFieldValue, Yii::app()->session["userId"] );
-					$res = array("result"=>true, "msg"=>"The organization has been updated", $organizationFieldName=>$organizationFieldValue);
+					$res = array("result"=>true, "msg"=>Yii::t("organisation", "The organization has been updated"), $organizationFieldName=>$organizationFieldValue);
 				} catch (CTKException $e) {
 					$res = array("result"=>false, "msg"=>$e->getMessage(), $organizationFieldName=>$organizationFieldValue);
 				}
