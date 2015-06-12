@@ -6,7 +6,7 @@ class PublicAction extends CAction
 
 		//get The job Id
 		if (empty($id)) {
-			throw new CTKException("The job posting id is mandatory to retrieve the job posting !");
+			throw new CTKException(Yii::t("job","The job posting id is mandatory to retrieve the job posting !"));
 		}
 
 		if (empty($_POST["mode"])) {
@@ -17,8 +17,8 @@ class PublicAction extends CAction
 
 		if ($mode == "insert") {
 			$job = array();
-			$controller->title = "New Job Offer";
-			$controller->subTitle = "Fill the form";
+			$controller->title = Yii::t("job","New Job Offer");
+			$controller->subTitle = Yii::t("job","Fill the form");
 		
 		} else {
 			$job = Job::getById($id);
@@ -29,7 +29,7 @@ class PublicAction extends CAction
 		$tags = json_encode(Tags::getActiveTags());
 		$organizations = Authorisation::listUserOrganizationAdmin(Yii::app()->session["userId"]);
 
-		$controller->pageTitle = "Job Posting";
+		$controller->pageTitle = Yii::t("job","Job Posting");
 
 		Rest::json(array("result"=>true, 
 			"content" => $controller->renderPartial("jobSV", array("job" => $job, "tags" => $tags, "organizations" => $organizations, "mode" => $mode), true)));	

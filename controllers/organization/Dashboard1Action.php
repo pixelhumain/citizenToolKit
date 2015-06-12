@@ -8,7 +8,7 @@ class Dashboard1Action extends CAction
     public function run($id) {
     	$controller=$this->getController();
 		if (empty($id)) {
-		  throw new CTKException("The organization id is mandatory to retrieve the organization !");
+		  throw new CTKException(Yii::t("organisation","The organization id is mandatory to retrieve the organization !"));
 		}
 
 		$organization = Organization::getPublicData($id);
@@ -74,7 +74,7 @@ class Dashboard1Action extends CAction
 			array_push($contextMap["people"], $newCitoyen);
 		}
 		$params["contextMap"] = $contextMap;
-		
+		$params["countries"] = OpenData::getCountriesList();
 		$lists = Lists::get(array("organisationTypes"));
 		$params["organizationTypes"] = $lists["organisationTypes"];
 

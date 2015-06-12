@@ -26,7 +26,8 @@ class Event {
 	  	return $event;
 	}
 	
-	public static function getWhere($params) {
+	public static function getWhere($params) 
+	{
 	  	$events =PHDB::findAndSort( self::COLLECTION,$params,array("created"),null);
 	  	foreach ($events as $key => $value) {
 
@@ -171,6 +172,19 @@ class Event {
 	    $message->addTo("oceatoon@gmail.com");//$params['registerEmail']
 	    $message->from = Yii::app()->params['adminEmail'];
 	    Yii::app()->mail->send($message);*/
+	    $creator = Person::getById($params['userId']);
+	    $params = array(
+	  		"type" => Cron::TYPE_MAIL,
+	  		"tpl"=>'newEvent',
+	        "subject" => 'Nouvel évènnement de créer sur '.Yii::app()->name,
+	        "from"=>Yii::app()->params['adminEmail'],
+	        "to" => $creator['email'],
+	        "tplParams" => array( "user"=> $params['userId'] ,
+	                               "title" => $newEvent['name'] ,
+	                               "creatorName" => $creator['name'],
+		                           "url"  => "/event/dashboard/id/".$newEvent["_id"] )
+	        );
+	  	Cron::save($params);
 	    
 	    //TODO : add an admin notification
 	    //Notification::saveNotification(array("type"=>NotificationType::ASSOCIATION_SAVED,"user"=>$new["_id"]));

@@ -24,17 +24,21 @@ class Cron {
 	 * @param $params : a set of information for a proper cron entry
 	*/
 	public static function save($params){
+		//echo "adding Cron entry";
 	    $new = array(
 			"userId" => Yii::app()->session['userId'],
-			"status" =>self::STATUS_PENDING,
-	  		"type" => $params['type'],
+			"status" => self::STATUS_PENDING,
+	  		"type"   => $params['type'],
+	  		//contextType
+	  		//contextId
+	  		//just in case can help us out 
 	    );
 	    
 	    if( isset( $params['execTS'] ) ) 
 	    	$new['execTS'] = $params['execTS'];
 
 	    if( $params['type'] == self::TYPE_MAIL )
-	    	array_merge($new , self::addMailParams($params) );
+	    	$new = array_merge($new , self::addMailParams($params) );
 
 	    PHDB::insert(self::COLLECTION,$new);
 	}
@@ -55,37 +59,43 @@ class Cron {
 
 	//TODO return result 
 	public static function processMail($params){
-	    Mail::send(array("tpl"=>$params['tpl'],
-	         "subject" => $params['subject'],
-	         "from"=>$params['from'],
-	         "to" => $params['to'],
-	         "tplParams" => $params['tplParams']
-	    ));
+	    try{
+	    	return Mail::send(array("tpl"=>$params['tpl'],
+		         "subject" => $params['subject'],
+		         "from"=>$params['from'],
+		         "to" => $params['to'],
+		         "tplParams" => $params['tplParams']
+		    ),true);
+	    }catch (Exception $e) {
+	    	//throw new CTKException("Problem sending Email : ".$e->getMessage());
+			return array( "result"=> false, "msg" => "Problem sending Email : ".$e->getMessage() );
+	    }
+	    
 	}
 	
 	public static function processEntry($params){
-	    if($value["type"] == self::TYPE_MAIL){
-			echo "sendmail : ".$value["name"];
-			$res = self::processMail( $value );
+		//echo "<br/>processing entry ".$params["type"].", id".$params["_id"];
+	    if($params["type"] == self::TYPE_MAIL){
+			$res = self::processMail( $params );
+			//echo "<br/>sendmail : ".$params["subject"].", <br/>result :".((is_array($res)) ? $res["msg"]  : $res);
 		}
-		if($res){
-			PHDB::update(self::COLLECTION, 
-    	        		 array("_id" => new MongoId($params["_id"])), 
-    	        		 array('$set' => array( "status" =>self::STATUS_DONE,
-    	        								"executedTS" =>time(),
-    	        								)
-    	        		 ));
+		if(!is_array($res) && $res){
+			//echo "<br/>processing entry ".$params["type"];
+			PHDB::remove(self::COLLECTION, array("_id" => new MongoId($params["_id"])));
 		}
 		else
 		{
 			//something went wrong with the process
+			$msg = ( is_array($res) && isset($res["msg"])) ? $res["msg"] : "";
 			PHDB::update(self::COLLECTION, 
     	        		 array("_id" => new MongoId($params["_id"])), 
     	        		 array('$set' => array( "status" =>self::STATUS_FAIL,
-    	        								"executedTS" =>time(),
+    	        								"executedTS" => new MongoDate(),
+    	        								"errorMsg" => $msg
     	        								)
     	        		 ));
 			//TODO : add notification to system admin
+			//explaining the fail
 		}
 
 	}
@@ -97,10 +107,13 @@ class Cron {
 	*/
 	public static function processCron($count=5){
 		$where = array( "status" => self::STATUS_PENDING, 
-						"execTS" => array( "$gt" => time() )
+						/*'$or' => array( array( "execTS" => array( '$gt' => time())),
+										array( "execTS" => array( '$exists'=>-1 ) ) )*/
 					);
 		$jobs = PHDB::findAndSort( self::COLLECTION, $where, array('execDate' => 1), self::EXEC_COUNT);
+		//var_dump($jobs);
 		foreach ($jobs as $key => $value) {
+			//TODO : cumulé plusieur message au meme email 
 			self::processEntry($value);
 		}
 	}
