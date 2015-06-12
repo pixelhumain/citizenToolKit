@@ -7,13 +7,13 @@ class GetCitiesByPostalCodeAction extends CAction
 {
     public function run()
     {
-        $errorMessage = array(array("value" => "", "text" => "Unknown Postal Code"));
+        $errorMessage = array(array("value" => "", "text" => Yii::t("job","Unknown Postal Code")));
         $cities = array();
         $postalCode = isset($_POST["postalCode"]) ? $_POST["postalCode"] : null;
         try {
             $cities = SIG::getCitiesByPostalCode($postalCode);
         } catch (CTKException $e) {
-            $cities = array("unknownId" => array("name" => "Unknown Postal Code", "insee" => ""));
+            $cities = array("unknownId" => array("name" => Yii::t("job","Unknown Postal Code"), "insee" => ""));
         }
 
         Rest::json($cities); 
