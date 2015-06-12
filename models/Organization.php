@@ -81,13 +81,30 @@ class Organization {
 		//Add the creator as the first member and admin of the organization
 	    Link::addMember($newOrganizationId, Organization::COLLECTION, $userId, PHType::TYPE_CITOYEN, $userId, true);
 
+	    //send Notification Email
+	    $creator = Person::getById($userId);
+	    $params = array (
+	  		"type" => Cron::TYPE_MAIL,
+	  		"tpl"=>'newOrganization',
+	        "subject" => 'Nouvelle Organization de créer sur '.Yii::app()->name,
+	        "from"=>Yii::app()->params['adminEmail'],
+	        "to" => $newOrganization["email"],
+	        "tplParams" => array( "user"=> $userId ,
+	                               "title" => $organization['name'] ,
+	                               "creatorName" => $creator['name'],
+		                           "url"  => "/organization/dashboard/id/".$newOrganization["_id"] )
+	    );
+	  	Cron::save($params);
+
 	    //TODO ???? : add an admin notification
 	    Notification::saveNotification(array("type"=>"Created",
 	    						"user"=>$newOrganizationId));
 	                  
 	    $newOrganization = Organization::getById($newOrganizationId);
-	    return array("result"=>true, "msg"=>"Votre organisation est communectée.", 
-	    	"id"=>$newOrganizationId, "newOrganization"=> $newOrganization);
+	    return array("result"=>true,
+		    			"msg"=>"Votre organisation est communectée.", 
+		    			"id"=>$newOrganizationId, 
+		    			"newOrganization"=> $newOrganization);
 	}
 	
 	public static function newOrganizationFromPost($organization) {

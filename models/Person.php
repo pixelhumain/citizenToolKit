@@ -203,13 +203,23 @@ class Person {
         //TODO : make emails as cron jobs
         /*$app = new Application($_POST["app"]);
         Mail::send(array("tpl"=>'validation',
-             "subject" => 'Confirmer votre compte  pour le site '.$app->name,
+             "subject" => 'Confirmer votre compte  pour le site '.$this->name,
              "from"=>Yii::app()->params['adminEmail'],
              "to" => (!PH::notlocalServer()) ? Yii::app()->params['adminEmail']: $email,
              "tplParams" => array( "user"=>$newAccount["_id"] ,
                                    "title" => $app->name ,
                                    "logo"  => $app->logoUrl )
         ));*/
+		$params = array(
+	  		"type" => Cron::TYPE_MAIL,
+	  		"tpl"=>'validation', //TODO validation should be Controller driven boolean $this->userAccountValidation 
+	        "subject" => "Confirmation d'inscription votre compte sur ".Yii::app()->name,
+	        "from"=>Yii::app()->params['adminEmail'],
+	        "to" => $person["email"],
+	        "tplParams" => array( "user"=>$person["_id"] ,
+	                               "title" => Yii::app()->name ,
+		                           "logo"  => "/images/logo.png" ) );
+  		Cron::save($params);
 
 	    return array("result"=>true, "msg"=>"You are now communnected", "id"=>$newpersonId); 
 	}

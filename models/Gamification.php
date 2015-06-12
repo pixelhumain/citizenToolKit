@@ -7,7 +7,13 @@ linking to someone : give both users
 creating : events, organizations, projects
 answering surveys
 asking questions
-...
+
+--- Visualisations & Graph representation ideas ---
+	GIS graph + 1 criteria + 1 link compare 
+		every city is a circle of sized by a criteria 
+		each circle is linked to neighbour circles 
+		the width of the link carries a link ponderation between 2 cities 
+
 */
 class Gamification {
 
@@ -57,6 +63,7 @@ class Gamification {
 	//doing a common task 
 	//creating a common task
 	//adding a new open data source or entry (interface add/propose an open data entry)
+
 
 	/**
 	 * adds an entry into the cron collection
