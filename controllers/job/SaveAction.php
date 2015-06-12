@@ -28,10 +28,10 @@ class SaveAction extends CAction
 				$collectionName = $controller->getCollectionFieldName($jobFieldName);
 				Job::updateJobField($jobId, $collectionName, $jobFieldValue, Yii::app()->session["userId"] );
 		  	} else {
-				return Rest::json(array("result"=>false,"msg"=>"Uncorrect request"));  
+				return Rest::json(array("result"=>false,"msg"=>Yii::t("common","Uncorrect request")));  
 		  	}	
 		}
 	  	
-	  	return Rest::json(array("result"=>true, "msg"=>"Votre Offre d'emploi a été modifiée avec succès.", $jobFieldName=>$jobFieldValue));
+	  	return Rest::json(array("result"=>true, "msg"=>Yii::t("job","Your job offer has been updated with success"), $jobFieldName=>$jobFieldValue));
 	}
 }
