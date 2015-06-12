@@ -74,7 +74,7 @@ class Dashboard1Action extends CAction
 			array_push($contextMap["people"], $newCitoyen);
 		}
 		$params["contextMap"] = $contextMap;
-		
+		$params["countries"] = OpenData::getCountriesList();
 		$lists = Lists::get(array("organisationTypes"));
 		$params["organizationTypes"] = $lists["organisationTypes"];
 
