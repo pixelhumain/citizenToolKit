@@ -50,7 +50,10 @@ class SigAction extends CAction
 		$randomOrganizationId = array_rand($organizationMembers);
 		$randomOrganization = Organization::getById($randomOrganizationId);
 
-		$controller->render( "sig", array("randomOrganization" => $randomOrganization, "organization" => $organization, "events" => $events));
+		$controller->render( "sig", array("randomOrganization" => $randomOrganization, 
+										  "organization" => $organization, 
+										  "events" => $events,
+										  "members"=>$organizationMembers));
     }
 
 }

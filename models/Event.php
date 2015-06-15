@@ -173,7 +173,7 @@ class Event {
 	    $message->from = Yii::app()->params['adminEmail'];
 	    Yii::app()->mail->send($message);*/
 	    $creator = Person::getById($params['userId']);
-	    Mail::validatePerson($creator,$newEvent);
+	    Mail::newEvent($creator,$newEvent);
 	    
 	    //TODO : add an admin notification
 	    //Notification::saveNotification(array("type"=>NotificationType::ASSOCIATION_SAVED,"user"=>$new["_id"]));
