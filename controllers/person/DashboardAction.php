@@ -100,7 +100,7 @@ class DashboardAction extends CAction
 	    	}
 	    	
 	    }
-
+	    $params["listCodeOrga"] = Lists::get(array("organisationTypes"));
 	   	$params["tags"] = $tags;
 	    $params["organizations"] = $organizations;
 	    $params["projects"] = $projects;

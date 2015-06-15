@@ -37,12 +37,22 @@ class SigAction extends CAction
 					
 				//if($value["type"] == 'citoyens')		 { $publicData = Person::getPublicData($key); }
 				
+<<<<<<< HEAD
+				$addData = array("geo", "tags", "name", "typeIntervention", "public", "description");
+=======
 				$addData = array("geo", "tags", "name", "description","typeIntervention", "public"); //"typeIntervention", "public" GRANDDIR only
+>>>>>>> 0b351b8ff1581e74a8097ec0eb03c0c0435513e2
 				foreach($addData as $data) {
 					if( !empty($publicData[$data]) )
 						$organization["links"]["members"][$key][$data] = $publicData[$data];
 				} 
+<<<<<<< HEAD
+
+				
+			} //die(var_dump($organization));
+=======
 			}
+>>>>>>> 0b351b8ff1581e74a8097ec0eb03c0c0435513e2
 		}
 
 		//Manage random Organization
