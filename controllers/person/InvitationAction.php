@@ -3,7 +3,7 @@ class InvitationAction extends CAction
 {
     public function run()
     {
-    	$res = array( "result" => false , "content" => "Something went wrong" );
+    	$res = array( "result" => false , "content" => Yii::t("common", "Something went wrong!" );
 		 if(Yii::app()->request->isAjaxRequest && isset( $_POST["parentId"]) )
 		 {
 		 	//test if group exist
@@ -48,7 +48,7 @@ class InvitationAction extends CAction
 						PHDB::update( $type, 
 								array("_id" => new MongoId($_POST["parentId"])) ,
 								array('$set' => array( "links.knows.".(string)$member["_id"].".type" => $type ) ));
-						$res = array("result"=>true,"msg"=>"Vos données ont bien été enregistré.","reload"=>true);
+						$res = array("result"=>true,"msg"=>Yii::t("common", "Your data has been saved"),"reload"=>true);
 						 //TODO : background send email
 						 //send validation mail
 						 //TODO : make emails as cron jobs
