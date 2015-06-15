@@ -12,7 +12,7 @@ class DashboardAction extends CAction
 
         $controller->title = (isset($event["name"])) ? $event["name"] : "";
         $controller->subTitle = (isset($event["description"])) ? $event["description"] : "";
-        $controller->pageTitle = ucfirst($controller->module->id)." - Informations sur l'evenement ".$controller->title;
+        $controller->pageTitle = ucfirst($controller->module->id)." - ".Yii::t("event","Event's informations")." ".$controller->title;
 
         $contentKeyBase = $controller->id.".".$controller->action->id; 
         $images = Document::getListDocumentsURLByContentKey($id, $contentKeyBase, Document::DOC_TYPE_IMAGE);
@@ -61,9 +61,10 @@ class DashboardAction extends CAction
         $params["event"] = $event;
         $params["organizer"] = $organizer;
         $params["people"] = $people;
-        //TODO SBAR - create list of event type in DB
-        $params["eventTypes"] = array("event" => "Event", "meeting" => "Meeting", "discussion" => "Discussion", "cultural" => "Cultural");
-        //$params["admins"] = $admins;
+        $params["countries"] = OpenData::getCountriesList();
+
+        $params["eventTypes"] = Lists::get(array("eventTypes"))["eventTypes"];
+
         $controller->render( "dashboard", $params );
     }
 }

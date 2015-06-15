@@ -45,6 +45,9 @@ class Person {
 	  	return $person;
 	}
 
+	public static function getWhere($params) {
+	  	$people =PHDB::findAndSort( self::COLLECTION,$params,array("created"),null);
+	}
 	public static function setNameByid($name, $id) {
 		PHDB::update(PHType::TYPE_CITOYEN,
 			array("_id" => new MongoId($id)),
@@ -200,14 +203,15 @@ class Person {
         //TODO : make emails as cron jobs
         /*$app = new Application($_POST["app"]);
         Mail::send(array("tpl"=>'validation',
-             "subject" => 'Confirmer votre compte  pour le site '.$app->name,
+             "subject" => 'Confirmer votre compte  pour le site '.$this->name,
              "from"=>Yii::app()->params['adminEmail'],
              "to" => (!PH::notlocalServer()) ? Yii::app()->params['adminEmail']: $email,
              "tplParams" => array( "user"=>$newAccount["_id"] ,
                                    "title" => $app->name ,
                                    "logo"  => $app->logoUrl )
         ));*/
-
+		Mail::validatePerson($person);
+		
 	    return array("result"=>true, "msg"=>"You are now communnected", "id"=>$newpersonId); 
 	}
 

@@ -31,7 +31,7 @@ class UploadAction extends CAction {
         
         if(strtolower($_SERVER['REQUEST_METHOD']) != 'post')
         {
-    	    echo json_encode(array('result'=>false,'error'=>'Error! Wrong HTTP method!'));
+    	    echo json_encode(array('result'=>false,'error'=>Yii::t("document","Error! Wrong HTTP method!")));
 	        exit;
         }
 
@@ -42,7 +42,7 @@ class UploadAction extends CAction {
         	$ext = strtolower(pathinfo($pic['name'], PATHINFO_EXTENSION));
         	if(!in_array($ext,$allowed_ext))
             {
-        		echo json_encode(array('result'=>false,'error'=>'Only '.implode(',',$allowed_ext).' files are allowed!'));
+        		echo json_encode(array('result'=>false,'error'=>Yii::t("document","Only").implode(',',$allowed_ext).Yii::t("document","files are allowed!")));
     	        exit;
         	}	
         
@@ -65,7 +65,7 @@ class UploadAction extends CAction {
     	        exit;
         	}
         }
-        echo json_encode(array('result'=>false,'error'=>'Something went wrong with your upload!'));
+        echo json_encode(array('result'=>false,'error'=>Yii::t("document","Something went wrong with your upload!")));
     	exit;
 	}
 

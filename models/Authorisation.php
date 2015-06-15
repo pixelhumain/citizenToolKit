@@ -198,7 +198,7 @@ class Authorisation {
         $where = array("links.contributors.".$userId.".isAdmin" => true);
         $projectList = PHDB::find(PHType::TYPE_PROJECTS, $where);
         //projects of organization i'am admin 
-        $listOrganizationAdmin = Authorisation::listUserOrganizationAdmin($userId);
+        //$listOrganizationAdmin = Authorisation::listUserOrganizationAdmin($userId);
         return $projectList;
     }
     //**************************************************************

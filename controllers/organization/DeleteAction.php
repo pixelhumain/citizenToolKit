@@ -7,7 +7,7 @@ class DeleteAction extends CAction
 	 */
     public function run() {
     	//TODO SBAR : refactor : not use
-		$result = array("result"=>false, "msg"=>"Cette requete ne peut aboutir.");
+		$result = array("result"=>false, "msg"=>Yii::t("common", "Uncorrect request"));
 		if(Yii::app()->session["userId"])
 		{
 			$account = Organization::getById($_POST["id"]);
@@ -17,7 +17,7 @@ class DeleteAction extends CAction
 				//TODO : Remove the association from all Ci accounts
 				PHDB::update( PHType::TYPE_CITOYEN,array( "_id" => new MongoId(Yii::app()->session["userId"]) ) , array('$pull' => array("associations"=>new MongoId( $_POST["id"]))));
 
-				$result = array("result"=>true,"msg"=>"Donnée enregistrée.");
+				$result = array("result"=>true,"msg"=>Yii::t("common", "Data saved"));
 			}
 		}
 		Rest::json($result);

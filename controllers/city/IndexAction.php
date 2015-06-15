@@ -5,9 +5,9 @@
   * Else will get the id of the person logged
   * @return type
   */
-class DashboardAction extends CAction
+class IndexAction extends CAction
 {
-    public function run( $id=null )
+    public function run( $insee=null )
     {
         $controller = $this->getController();
 
@@ -32,7 +32,7 @@ class DashboardAction extends CAction
 	      array('label' => "ACCUEIL", "key"=>"home","iconClass"=>"fa fa-home","href"=>"communecter/person/dashboard/id/".$id),
 	    );
 
-	    $controller->title = ((isset($person["name"])) ? $person["name"] : "")."'s Dashboard";
+	    $controller->title = "City Dashboard : ".$insee;
 	    $controller->subTitle = (isset($person["description"])) ? $person["description"] : "";
 	    $controller->pageTitle = ucfirst($controller->module->id)." - Informations publiques de ".$controller->title;
 
@@ -98,14 +98,14 @@ class DashboardAction extends CAction
 	            	array_push($people, $citoyen);
 	            }
 	    	}
-	    	
 	    }
-	    $params["listCodeOrga"] = Lists::get(array("organisationTypes"));
+
 	   	$params["tags"] = $tags;
 	    $params["organizations"] = $organizations;
 	    $params["projects"] = $projects;
 	    $params["events"] = $events;
 	    $params["people"] = $people;
+	    $params["insee"] = $insee;
 
 	    $controller->render("dashboard", $params );
     }
