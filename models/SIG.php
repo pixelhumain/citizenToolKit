@@ -95,7 +95,7 @@ class SIG
 		$city = self::getCityByCodeInsee($codeInsee);
 
 		$address = array("@type"=>"PostalAddress", "postalCode"=> $city['cp'], 
-				"addressLocality" => $city["name"], "codeInsee" => $codeInsee);
+				"addressLocality" => $city["alternateName"], "codeInsee" => $codeInsee);
 		return $address;
 	}
 

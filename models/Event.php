@@ -25,8 +25,9 @@ class Event {
 
 	  	return $event;
 	}
-
-	public static function getWhere($params) {
+	
+	public static function getWhere($params) 
+	{
 	  	$events =PHDB::findAndSort( self::COLLECTION,$params,array("created"),null);
 	  	foreach ($events as $key => $value) {
 
@@ -101,26 +102,35 @@ class Event {
 		}
 
 		if(empty($event['startDate']) || empty($event['endDate'])) {
-			throw new CTKException("The start and end date of an event is required.");
+			throw new CTKException("The start and end date of an event are required.");
+		}
+		
+		if (! empty($event['allDay'])) {
+			$allDay = $event['allDay'] == 'true' ? true : false;
+ 		} else {
+			throw new CTKException("You must specify if the event is during all day or not.");
 		}
 
-		//The end datetime must be after start daterime
+		//The end datetime must be after start datetime
 		$startDate = strtotime($event['startDate']);
 		$endDate = strtotime($event['endDate']);
 		if ($startDate >= $endDate) {
-			throw new CTKException("The start date must be before the end date.");
+			//Special case when it's an allday event the startDate and endDate could be equals
+			if (!($startDate == $endDate && $allDay)) {
+				throw new CTKException("The start date must be before the end date.");
+			}
 		}
 	}
 
 	/**
-	 * Get an event from an id and return filter data in order to return only public data
+	 * Save an event from Post. Check if it is well format.
 	 * @param type POST
 	 * @return save the event
 	*/
 	public static function saveEvent($params) {
 		
 		self::checkEventData($params);
-
+		$allDay = $params['allDay'] == 'true' ? true : false;
 	    $newEvent = array(
 			"name" => $params['name'],
 			'type' => $params['type'],
@@ -128,7 +138,7 @@ class Event {
 			'created' => time(),
 			"startDate" => new MongoDate(strtotime($params['startDate'])),
 			"endDate" => new MongoDate(strtotime($params['endDate'])),
-	        "allDay" => $params['allDay'],
+	        "allDay" => $allDay,
 	        'creator' => $params['userId'],
 	    );
 	    
@@ -162,6 +172,8 @@ class Event {
 	    $message->addTo("oceatoon@gmail.com");//$params['registerEmail']
 	    $message->from = Yii::app()->params['adminEmail'];
 	    Yii::app()->mail->send($message);*/
+	    $creator = Person::getById($params['userId']);
+	    Mail::validatePerson($creator,$newEvent);
 	    
 	    //TODO : add an admin notification
 	    //Notification::saveNotification(array("type"=>NotificationType::ASSOCIATION_SAVED,"user"=>$new["_id"]));
@@ -315,32 +327,19 @@ class Event {
 	}
 
 	/**
-	* @param itemId is the id of an organiZation or a citizen
-	* @param  itemType is the type (organization or citizen)
+	* @param itemId is the id of  a citizen
 	* @param limit is the number of events we want to get
 	* @return an array with the next event since the current day
 	*/
-	public static function getLastEvents($itemId, $itemType, $limit=null){
-		$nextEvent = array();
-		if($itemType == Organization::COLLECTION){
-			$listEvent = Organization::listEventsPublicAgenda($itemId);
-		}else if($itemType == Person::COLLECTION){
-			$listEvent = Authorisation::listEventsIamAdminOf($id);
-		  	$eventsAttending = Event::listEventAttending($id);
-		  	foreach ($eventsAttending as $key => $value) {
-		  		$eventId = (string)$value["_id"];
-		  		if(!isset($events[$eventId])){
-		  			$listEvent[$eventId] = $value;
-		  		}
-		  	}
-		}else{
-			return array("result"=> false, "error" => "Wrong type", "type" => $itemType);
-		}
-		
-		foreach ($listEvent as $key => $value) {
-			// to do # code...
-		}
-		return $listEvent;
+	public static function getListCurrentEventsByPeopleId($userId, $limit = 20) {
+		$listEvent = array();
+		$where = array 	('$and' => array (
+							array("links.attendees.".$userId => array('$exists' => true)),
+							array("endDate" => array('$gte' => new MongoDate(time())))
+						));
+        $eventPeople = PHDB::findAndSort(self::COLLECTION, $where, array('endDate' => 1), $limit);
+
+        return $eventPeople;
 	}
 }
 ?>

@@ -3,7 +3,7 @@ class EditAction extends CAction
 {
     public function run($id)
     {
-        $res = array( "result" => false , "content" => "Something went wrong" );
+        $res = array( "result" => false , "content" => Yii::t("common","Something went wrong!") );
         if(Yii::app()->request->isAjaxRequest && isset( $_POST["id"]) )
         {
           $event = (isset($_POST["id"])) ? PHDB::findOne( PHType::TYPE_EVENTS,array("_id"=>new MongoId($_POST["id"]))) : null;
@@ -73,7 +73,7 @@ class EditAction extends CAction
                 else {
                   Link::connect($member["_id"], $type, $_POST["id"], PHType::TYPE_EVENTS, Yii::app()->session["userId"], "events" );
                   Link::connect($_POST["id"], PHType::TYPE_EVENTS, $member["_id"], $type, Yii::app()->session["userId"], "attendees" );
-                  $res = array("result"=>true,"msg"=>"Vos données ont bien été enregistré.","reload"=>true);
+                  $res = array("result"=>true,"msg"=>Yii::t("common","Your data has been saved!"),"reload"=>true);
                 }
               }
             }else

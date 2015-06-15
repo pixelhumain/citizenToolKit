@@ -3,17 +3,17 @@ class UploadsAction extends CAction {
 	
 
 	public function run($dir,$collection=null,$input,$rename=false) {
-		$upload_dir = 'upload/';
+		$upload_dir = Yii::app()->params['uploadUrl'];
         if(!file_exists ( $upload_dir ))
             mkdir ( $upload_dir );
         
-        $upload_dir = 'upload/'.$dir.'/';
+        $upload_dir = Yii::app()->params['uploadUrl'].$dir.'/';
         if(!file_exists ( $upload_dir ))
             mkdir ( $upload_dir );
 
         if( isset( $collection ))
             $dir .= '/'.$collection.'/';
-        $upload_dir = 'upload/'.$dir.'/';
+        $upload_dir = Yii::app()->params['uploadUrl'].$dir.'/';
         if(!file_exists ( $upload_dir ))
             mkdir ( $upload_dir );
         
@@ -21,7 +21,7 @@ class UploadsAction extends CAction {
         
         if(strtolower($_SERVER['REQUEST_METHOD']) != 'post')
         {
-            echo json_encode(array('result'=>false,'error'=>'Error! Wrong HTTP method!'));
+            echo json_encode(array('result'=>false,'error'=>Yii::t("document","Error! Wrong HTTP method!")));
             exit;
         }
         
@@ -32,7 +32,7 @@ class UploadsAction extends CAction {
                 $ext = pathinfo($_FILES[$input]['name'][$key], PATHINFO_EXTENSION);
                 if(!in_array($ext,$allowed_ext))
                 {
-                    echo json_encode(array('result'=>false,'error'=>'Only '.implode(',',$allowed_ext).' files are allowed!'));
+                    echo json_encode(array('result'=>false,'error'=>Yii::t("document","Only").implode(',',$allowed_ext).Yii::t("document","files are allowed!") ));
                     exit;
                 }   
             
@@ -53,7 +53,7 @@ class UploadsAction extends CAction {
             }
         }
         
-        echo json_encode(array('result'=>false,'error'=>'Something went wrong with your upload!'));
+        echo json_encode(array('result'=>false,'error'=>Yii::t("document","Something went wrong with your upload!")));
         exit;
     }
 }

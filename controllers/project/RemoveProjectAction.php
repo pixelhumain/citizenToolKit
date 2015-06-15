@@ -5,7 +5,7 @@ class RemoveProjectAction extends CAction
 		$controller=$this->getController();
 		$project=Project::getById($projectId);
 		if (isset(Yii::app()->session["userId"]) && isset($project)){
-			$res = array( "result" => false , "msg" => "Something went wrong" );
+			$res = array( "result" => false , "msg" => Yii::t("common", "Something went wrong!") );
 			try {
 				$res = Project::removeProject($projectId);
 			} 
@@ -15,7 +15,7 @@ class RemoveProjectAction extends CAction
 			//return true;
 		}
 		else {
-			$res = array( "result" => false , "msg" => "Access denied" );
+			$res = array( "result" => false , "msg" =>  Yii::t("common", "Access denied") );
 		}
 		return Rest::json($res);
 	}

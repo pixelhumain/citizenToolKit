@@ -7,6 +7,6 @@ class DeleteAction extends CAction
     		Event::delete($eventId, Yii::app()->session["userId"]);
     	}
     	
-    	Rest::json(array('result' => true, "msg" => "Evenement bien supprimé"));
+    	Rest::json(array('result' => true, "msg" => Yii::t("event","Event removed")));
     }
 }

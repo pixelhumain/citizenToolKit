@@ -3,12 +3,12 @@ class UploadAction extends CAction {
 	
 
 	public function run($dir,$folder=null,$ownerId=null,$input,$rename=false) {
-		$upload_dir = 'upload/';
+		$upload_dir = Yii::app()->params['uploadUrl'];
         if(!file_exists ( $upload_dir ))
             mkdir ( $upload_dir,0775 );
         
         //ex: upload/communecter
-        $upload_dir = 'upload/'.$dir.'/';
+        $upload_dir = Yii::app()->params['uploadUrl'].$dir.'/';
         if(!file_exists ( $upload_dir ))
             mkdir ( $upload_dir,0775 );
 
@@ -31,7 +31,7 @@ class UploadAction extends CAction {
         
         if(strtolower($_SERVER['REQUEST_METHOD']) != 'post')
         {
-    	    echo json_encode(array('result'=>false,'error'=>'Error! Wrong HTTP method!'));
+    	    echo json_encode(array('result'=>false,'error'=>Yii::t("document","Error! Wrong HTTP method!")));
 	        exit;
         }
 
@@ -42,7 +42,7 @@ class UploadAction extends CAction {
         	$ext = strtolower(pathinfo($pic['name'], PATHINFO_EXTENSION));
         	if(!in_array($ext,$allowed_ext))
             {
-        		echo json_encode(array('result'=>false,'error'=>'Only '.implode(',',$allowed_ext).' files are allowed!'));
+        		echo json_encode(array('result'=>false,'error'=>Yii::t("document","Only").implode(',',$allowed_ext).Yii::t("document","files are allowed!")));
     	        exit;
         	}	
         
@@ -50,7 +50,8 @@ class UploadAction extends CAction {
         	// directory to the uploads folder:
         	//we use a unique Id for the iamge name Yii::app()->session["userId"].'.'.$ext
             //renaming file
-        	$name = ($rename) ? Yii::app()->session["userId"].'.'.$ext : urlencode($pic['name']);
+            $cleanfileName = Document::clean(pathinfo($pic['name'], PATHINFO_FILENAME)).".".pathinfo($pic['name'], PATHINFO_EXTENSION);
+        	$name = ($rename) ? Yii::app()->session["userId"].'.'.$ext : $cleanfileName;
             if( file_exists ( $upload_dir.$name ) )
                 $name = time()."_".$name;
         	if( isset(Yii::app()->session["userId"]) && $name && 
@@ -64,7 +65,7 @@ class UploadAction extends CAction {
     	        exit;
         	}
         }
-        echo json_encode(array('result'=>false,'error'=>'Something went wrong with your upload!'));
+        echo json_encode(array('result'=>false,'error'=>Yii::t("document","Something went wrong with your upload!")));
     	exit;
 	}
 

@@ -66,7 +66,7 @@ class SaveMemberAction extends CAction
 				}
 			}
 
-			Role::setRoles($rolesOrgTab, $memberOfId, Organization::COLLECTION);
+			//Role::setRoles($rolesOrgTab, $memberOfId, Organization::COLLECTION);
 		}
 
 		try {
