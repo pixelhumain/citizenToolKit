@@ -15,7 +15,7 @@ class DashboardMemberAction extends CAction
 		$organization = Organization::getPublicData($id);
 		$params = array( "organization" => $organization);
 		$controller->title = (isset($organization["name"])) ? $organization["name"] : "";
-		$controller->subTitle = (isset($organization["description"])) ? $organization["description"] : "";
+		$controller->subTitle = (isset($organization["shortDescripion"])) ? $organization["shortDescripion"] : "";
 		$controller->pageTitle = ucfirst($controller->module->id)." - Informations publiques de ".$controller->title;
 
 		//Same content Key base as the dashboard

@@ -211,18 +211,7 @@ class Event {
 	    $message->from = Yii::app()->params['adminEmail'];
 	    Yii::app()->mail->send($message);*/
 	    $creator = Person::getById($params['userId']);
-	    $params = array(
-	  		"type" => Cron::TYPE_MAIL,
-	  		"tpl"=>'newEvent',
-	        "subject" => 'Nouvel évènnement de créer sur '.Yii::app()->name,
-	        "from"=>Yii::app()->params['adminEmail'],
-	        "to" => $creator['email'],
-	        "tplParams" => array( "user"=> $params['userId'] ,
-	                               "title" => $newEvent['name'] ,
-	                               "creatorName" => $creator['name'],
-		                           "url"  => "/event/dashboard/id/".$newEvent["_id"] )
-	        );
-	  	Cron::save($params);
+	    Mail::validatePerson($creator,$newEvent);
 	    
 	    //TODO : add an admin notification
 	    //Notification::saveNotification(array("type"=>NotificationType::ASSOCIATION_SAVED,"user"=>$new["_id"]));
