@@ -29,13 +29,7 @@ class SaveContributorAction extends CAction
 								'email'=>$_POST['email'],
 								'invitedBy'=>Yii::app()->session["userId"],
 								'tobeactivated' => true,
-								'created' => time(),
-								'links'=>array( 'projects' => array($_POST["id"] =>array("type" => $_POST["type"],
-						 															"tobeconfirmed" => true,
-						 															"invitedBy" => Yii::app()->session["userId"]
-						 														)
-						 									)
-						 			)
+								'created' => time()
 						 	);
 						 	$memberId = Person::createAndInvite($member);
 						 	$isAdmin = (isset($_POST["contributorIsAdmin"])) ? $_POST["contributorIsAdmin"] : false;
@@ -52,19 +46,14 @@ class SaveContributorAction extends CAction
 								'invitedBy'=>Yii::app()->session["userId"],
 								'tobeactivated' => true,
 								'created' => time(),
-								'type'=> $_POST["organizationType"],
-								'links'=>array( 'projects' => array($_POST["id"] =>array("type" => $_POST["type"],
-						 															"tobeconfirmed" => true,
-						 															"invitedBy" => Yii::app()->session["userId"]
-						 														)
-						 									)
-						 			)
+								'type'=> $_POST["organizationType"]
 							);
 
 							$memberId = Organization::createAndInvite($member);
 							$isAdmin = false;
 						}
 						$member["id"]=$memberId["id"];
+						Link::connect($memberId["id"], $memberType,$_POST["id"], PHType::TYPE_PROJECTS, Yii::app()->session["userId"], "projects",$isAdmin);		
 						Link::connect($_POST["id"], PHType::TYPE_PROJECTS,$memberId["id"], $memberType, Yii::app()->session["userId"], "contributors",$isAdmin );
 						$res = array("result"=>true,"msg"=>"Vos données ont bien été enregistré.","member"=>$member, "reload"=>true);
 					}else{
