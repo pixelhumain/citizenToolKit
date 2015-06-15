@@ -61,10 +61,10 @@ class DashboardAction extends CAction
         $params["event"] = $event;
         $params["organizer"] = $organizer;
         $params["people"] = $people;
-        //TODO SBAR - create list of event type in DB
+        $params["countries"] = OpenData::getCountriesList();
 
         $params["eventTypes"] = Lists::get(array("eventTypes"))["eventTypes"];
-        //$params["admins"] = $admins;
+
         $controller->render( "dashboard", $params );
     }
 }

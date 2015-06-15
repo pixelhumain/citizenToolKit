@@ -2,6 +2,42 @@
 class Event {
 	const COLLECTION = "events";
 
+	//From Post/Form name to database field name
+	private static $dataBinding = array(
+	    "name" => array("name" => "name", "rules" => array("required")),
+	    "streetAddress" => array("name" => "address.streetAddress"),
+	    "postalCode" => array("name" => "address.postalCode"),
+	    "city" => array("name" => "address.codeInsee"),
+	    "addressLocality" => array("name" => "address.addressLocality"),
+	    "addressCountry" => array("name" => "address.addressCountry"),
+	    "description" => array("name" => "description"),
+	    "allDay" => array("name" => "allDay"),
+	    "startDate" => array("name" => "startDate", "rules" => array("eventStartDate")),
+	    "endDate" => array("name" => "endDate", "rules" => array("eventEndDate"))
+	);
+
+	//TODO SBAR - First test to validate data. Move it to DataValidator
+  	private static function getCollectionFieldNameAndValidate($eventFieldName, $eventFieldValue, $eventId) {
+		$res = "";
+		if (isset(self::$dataBinding["$eventFieldName"])) {
+			$data = self::$dataBinding["$eventFieldName"];
+			$name = $data["name"];
+			//Validate field
+			if (isset($data["rules"])) {
+				$rules = $data["rules"];
+				foreach ($rules as $rule) {
+					$isDataValidated = DataValidator::$rule($eventFieldValue, $eventId);
+					if ($isDataValidated != "") {
+						throw new CTKException($isDataValidated);
+					}
+				}	
+			}
+		} else {
+			throw new CTKException("Unknown field :".$eventFieldName);
+		}
+		return $name;
+	}
+
 	/**
 	 * get an event By Id
 	 * @param type $id : is the mongoId of the event
@@ -11,15 +47,17 @@ class Event {
 		$event = PHDB::findOne( PHType::TYPE_EVENTS,array("_id"=>new MongoId($id)));
 		if (!empty($event["startDate"]) && !empty($event["endDate"])) {
 			if (gettype($event["startDate"]) == "object" && gettype($event["endDate"]) == "object") {
-				$event["startDate"] = date('Y-m-d h:i:s', $event["startDate"]->sec);
-				$event["endDate"] = date('Y-m-d h:i:s', $event["endDate"]->sec);
+				//Set TZ to UTC in order to be the same than Mongo
+				date_default_timezone_set('UTC');
+				$event["startDate"] = date('Y-m-d H:i:s', $event["startDate"]->sec);
+				$event["endDate"] = date('Y-m-d H:i:s', $event["endDate"]->sec);	
 			} else {
 				//Manage old date with string on date event
 				$now = time();
 				$yesterday = mktime(0, 0, 0, date("m")  , date("d")-1, date("Y"));
 				$yester2day = mktime(0, 0, 0, date("m")  , date("d")-2, date("Y"));
-				$event["endDate"] = date('Y-m-d h:i:s', $yesterday);
-				$event["startDate"] = date('Y-m-d h:i:s',$yester2day);;
+				$event["endDate"] = date('Y-m-d H:i:s', $yesterday);
+				$event["startDate"] = date('Y-m-d H:i:s',$yester2day);;
 			}
 		}
 
@@ -302,20 +340,35 @@ class Event {
 
 	public static function updateEventField($eventId, $eventFieldName, $eventFieldValue, $userId){
 
+		if (! Authorisation::isEventAdmin($eventId, $userId)) {
+			throw new CTKException("Can not update the event : you are not authorized to update that event!");	
+		}
+
+		$dataFieldName = self::getCollectionFieldNameAndValidate($eventFieldName, $eventFieldValue, $eventId);
+
 		//address
 		if ($eventFieldName == "address") {
 			if(!empty($eventFieldValue["postalCode"]) && !empty($eventFieldValue["codeInsee"])) {
 				$insee = $eventFieldValue["codeInsee"];
 				$address = SIG::getAdressSchemaLikeByCodeInsee($insee);
-				$event = array("address" => $address, "geo" => SIG::getGeoPositionByInseeCode($insee));
+				$set = array("address" => $address, "geo" => SIG::getGeoPositionByInseeCode($insee));
 			} else {
-				throw new CTKException("Error updating the Organization : address is not well formated !");			
+				throw new CTKException("Error updating the Event : address is not well formated !");			
 			}
+		//Date format
+		} else if ($dataFieldName == "startDate" || $dataFieldName == "endDate") {
+			date_default_timezone_set('UTC');
+			$dt = DateTime::createFromFormat('Y-m-d H:i', $eventFieldValue);
+			if (empty($dt)) {
+				$dt = DateTime::createFromFormat('Y-m-d', $eventFieldValue);
+			}
+			$newMongoDate = new MongoDate($dt->getTimestamp());
+			$set = array($dataFieldName => $newMongoDate);	
 		} else {
-			$event = array($eventFieldName => $eventFieldValue);	
+			$set = array($dataFieldName => $eventFieldValue);
 		}
 
-		$res = Event::updateEvent($eventId, $event, $userId);
+		$res = Event::updateEvent($eventId, $set, $userId);
 		return $res;
 	}
 
