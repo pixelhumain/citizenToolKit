@@ -210,17 +210,8 @@ class Person {
                                    "title" => $app->name ,
                                    "logo"  => $app->logoUrl )
         ));*/
-		$params = array(
-	  		"type" => Cron::TYPE_MAIL,
-	  		"tpl"=>'validation', //TODO validation should be Controller driven boolean $this->userAccountValidation 
-	        "subject" => "Confirmation d'inscription votre compte sur ".Yii::app()->name,
-	        "from"=>Yii::app()->params['adminEmail'],
-	        "to" => $person["email"],
-	        "tplParams" => array( "user"=>$person["_id"] ,
-	                               "title" => Yii::app()->name ,
-		                           "logo"  => "/images/logo.png" ) );
-  		Cron::save($params);
-
+		Mail::validatePerson($person);
+		
 	    return array("result"=>true, "msg"=>"You are now communnected", "id"=>$newpersonId); 
 	}
 

@@ -10,7 +10,7 @@ things like :
 */
 class Cron {
 
-	const COLLECTION = "cron";
+	const COLLECTION = "cron";																																																																																																				
 	
 	const TYPE_MAIL = "mail";
 
@@ -62,16 +62,16 @@ class Cron {
 	    try{
 	    	return Mail::send(array("tpl"=>$params['tpl'],
 		         "subject" => $params['subject'],
-		         "from"=>$params['from'],
+		         "from"=>$params['from'],																																								
 		         "to" => $params['to'],
 		         "tplParams" => $params['tplParams']
-		    ),true);
+		    ),true);																																																																						
 	    }catch (Exception $e) {
 	    	//throw new CTKException("Problem sending Email : ".$e->getMessage());
 			return array( "result"=> false, "msg" => "Problem sending Email : ".$e->getMessage() );
 	    }
 	    
-	}
+	}									
 	
 	public static function processEntry($params){
 		//echo "<br/>processing entry ".$params["type"].", id".$params["_id"];

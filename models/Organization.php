@@ -83,18 +83,8 @@ class Organization {
 
 	    //send Notification Email
 	    $creator = Person::getById($userId);
-	    $params = array (
-	  		"type" => Cron::TYPE_MAIL,
-	  		"tpl"=>'newOrganization',
-	        "subject" => 'Nouvelle Organization de créer sur '.Yii::app()->name,
-	        "from"=>Yii::app()->params['adminEmail'],
-	        "to" => $newOrganization["email"],
-	        "tplParams" => array( "user"=> $userId ,
-	                               "title" => $organization['name'] ,
-	                               "creatorName" => $creator['name'],
-		                           "url"  => "/organization/dashboard/id/".$newOrganization["_id"] )
-	    );
-	  	Cron::save($params);
+	    Mail::newOrganization($creator,$newOrganization);
+	    
 
 	    //TODO ???? : add an admin notification
 	    Notification::saveNotification(array("type"=>"Created",
