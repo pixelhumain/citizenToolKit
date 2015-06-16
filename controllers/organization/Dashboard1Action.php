@@ -14,6 +14,9 @@ class Dashboard1Action extends CAction
 		$organization = Organization::getPublicData($id);
 		$events = Organization::listEventsPublicAgenda($id);
 		
+		$controller->title = (isset($organization["name"])) ? $organization["name"] : "";
+		$controller->subTitle = (isset($organization["shortDescripion"])) ? $organization["shortDescripion"] : "";
+		$controller->pageTitle = $controller->title." - ".$controller->subTitle;
 		
 		$params = array( "organization" => $organization);
 		$params["events"] = $events;

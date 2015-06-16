@@ -3,7 +3,7 @@ class SaveContributorAction extends CAction
 {
     public function run() {
 		$controller=$this->getController();
-		$res = array( "result" => false , "content" => Yii::t("common", "Something went wrong!") );
+		//$res = array( "result" => false , "content" => Yii::t("common", "Something went wrong!") );
 		if(isset( $_POST["id"]) )
 		{
 			$project = (isset($_POST["id"])) ? PHDB::findOne( PHType::TYPE_PROJECTS,array("_id"=>new MongoId($_POST["id"]))) : null;
@@ -29,13 +29,7 @@ class SaveContributorAction extends CAction
 								'email'=>$_POST['email'],
 								'invitedBy'=>Yii::app()->session["userId"],
 								'tobeactivated' => true,
-								'created' => time(),
-								'links'=>array( 'projects' => array($_POST["id"] =>array("type" => $_POST["type"],
-						 															"tobeconfirmed" => true,
-						 															"invitedBy" => Yii::app()->session["userId"]
-						 														)
-						 									)
-						 			)
+								'created' => time()
 						 	);
 						 	$memberId = Person::createAndInvite($member);
 						 	$isAdmin = (isset($_POST["contributorIsAdmin"])) ? $_POST["contributorIsAdmin"] : false;
@@ -45,26 +39,20 @@ class SaveContributorAction extends CAction
 								$isAdmin = false;
 							}
 					 	} else {
-					 //var_dump($member);die;
 							$member = array(
 								'name'=>$_POST['name'],
 								'email'=>$_POST['email'],
 								'invitedBy'=>Yii::app()->session["userId"],
 								'tobeactivated' => true,
 								'created' => time(),
-								'type'=> $_POST["organizationType"],
-								'links'=>array( 'projects' => array($_POST["id"] =>array("type" => $_POST["type"],
-						 															"tobeconfirmed" => true,
-						 															"invitedBy" => Yii::app()->session["userId"]
-						 														)
-						 									)
-						 			)
+								'type'=> $_POST["organizationType"]
 							);
 
 							$memberId = Organization::createAndInvite($member);
 							$isAdmin = false;
 						}
 						$member["id"]=$memberId["id"];
+						Link::connect($memberId["id"], $memberType,$_POST["id"], PHType::TYPE_PROJECTS, Yii::app()->session["userId"], "projects",$isAdmin);		
 						Link::connect($_POST["id"], PHType::TYPE_PROJECTS,$memberId["id"], $memberType, Yii::app()->session["userId"], "contributors",$isAdmin );
 						$res = array("result"=>true,"msg"=>Yii::t("common", "Your data has been saved"),"member"=>$member, "reload"=>true);
 					}else{
@@ -74,7 +62,7 @@ class SaveContributorAction extends CAction
 							$isAdmin = (isset($_POST["contributorIsAdmin"])) ? $_POST["contributorIsAdmin"] : false;
 							if ($isAdmin == "1") {
 								$isAdmin = true;
-								} else {
+							} else {
 								$isAdmin = false;
 							}
 							Link::connect($member["_id"], $memberType, $_POST["id"], PHType::TYPE_PROJECTS, Yii::app()->session["userId"], "projects",$isAdmin);

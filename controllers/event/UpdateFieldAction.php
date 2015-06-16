@@ -9,7 +9,11 @@
 				if (! empty($_POST["name"]) && ! empty($_POST["value"])) {
 					$eventFieldName = $_POST["name"];
 					$eventFieldValue = $_POST["value"];
-					Event::updateEventField($eventId, $eventFieldName, $eventFieldValue, Yii::app()->session["userId"] );
+					try {
+						Event::updateEventField($eventId, $eventFieldName, $eventFieldValue, Yii::app()->session["userId"]);
+					} catch (CTKException $e) {
+						return Rest::json(array("result"=>false, "msg"=>$e->getMessage(), $eventFieldName=>$eventFieldValue));
+					}
 				}else{
 					return Rest::json(array("result"=>false,"msg"=>Yii::t("event","Requête incorrecte")));
 				}

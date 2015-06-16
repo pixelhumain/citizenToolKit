@@ -2,7 +2,7 @@
 class SaveMemberAction extends CAction
 {
     public function run() {
-		$res = array( "result" => false , "msg" => "Something went wrong" );
+		$res = array( "result" => false , "msg" => Yii::t("common","Something went wrong!" ));
 		
 		$memberId = (isset($_POST['memberId'])) ? $_POST['memberId'] : "";
 		$memberType = (isset($_POST['memberType'])) ? $_POST['memberType'] : "";
@@ -22,7 +22,7 @@ class SaveMemberAction extends CAction
 			$class = "Organization";
 			$isAdmin = false;
 		} else {
-			throw new CTKException("Can not manage the type ".$memberType);
+			throw new CTKException(Yii::t("common","Can not manage the type ").$memberType);
 		}
 
 		//The member does not exist we have to create a new member
