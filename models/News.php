@@ -14,6 +14,7 @@ class News {
 	public static function getWhere($params) {
 	  	return PHDB::findAndSort( self::COLLECTION,$params);
 	}
+
 	public static function getWhereSortLimit($params,$sort,$limit=1) {
 	  	return PHDB::findAndSort( self::COLLECTION,$params,$sort,$limit);
 	}
@@ -45,6 +46,16 @@ class News {
 		 	{
 				$news["type"] = $_POST["type"];
 
+				if($_POST["type"] == Person::COLLECTION ){
+					$person = Person::getById($_POST["typeId"]);
+					if( isset( $person['geo'] ) )
+						$news["from"] = $person['geo'];
+				}else if($_POST["type"] == Organization::COLLECTION ){
+					$person = Person::getById($_POST["typeId"]);
+					if( isset( $person['geo'] ) )
+						$news["from"] = $person['geo'];
+				}
+
 				/*if( $_POST["type"] == Organization::COLLECTION && Authorisation::isOrganizationAdmin( Yii::app()->session["userId"], $_POST["typeId"]) )
 	 				throw new CTKException("You must be admin of this organization to post.");*/
 			}
@@ -53,7 +64,6 @@ class News {
 		 	{
 				foreach($_POST["scope"] as $scope)
 				{
-					
 					//dans le cas d'un groupe
 					//ajoute un à un chaque membre du groupe demandé (=> contact)
 					if($scope->scopeType == "groupe"){				 
@@ -64,7 +74,7 @@ class News {
 		    				foreach($groupe["members"] as $contact){
 		    					//recupere les donnes du contact
 								$where = array(	'_id'  => $contact );
-			 					$allContact = PHDB::find(PHType::TYPE_CITOYEN, $where);
+			 					$allContact = PHDB::find( Person::COLLECTION, $where);
 			 					$allContact = $allContact[$contact->__toString()];
 			 					//ajoute un scope de type "contact" dans la news
 								$news["scope"][] = array("scopeType" => "contact",

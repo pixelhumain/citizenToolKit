@@ -11,8 +11,8 @@ class Event {
 		$event = PHDB::findOne( PHType::TYPE_EVENTS,array("_id"=>new MongoId($id)));
 		if (!empty($event["startDate"]) && !empty($event["endDate"])) {
 			if (gettype($event["startDate"]) == "object" && gettype($event["endDate"]) == "object") {
-				$event["startDate"] = date('Y-m-d h:i:s', $event["startDate"]->sec);
-				$event["endDate"] = date('Y-m-d h:i:s', $event["endDate"]->sec);
+				//$event["startDate"] = date('Y-m-d h:i:s', $event["startDate"]->sec);
+				//$event["endDate"] = date('Y-m-d h:i:s', $event["endDate"]->sec);
 			} else {
 				//Manage old date with string on date event
 				$now = time();
