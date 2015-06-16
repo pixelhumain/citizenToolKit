@@ -33,7 +33,7 @@ class Project {
 	public static function saveProject($params){
 		$id = Yii::app()->session["userId"];
 	    $type = PHType::TYPE_CITOYEN;
-	    $new = array(
+	    $newProject = array(
 			"name" => $params['title'],
 			'url' => $params['url'],
 			//'version' => $params['version'],
@@ -44,7 +44,6 @@ class Project {
 			'created' => time(),
 			"links" => array( 
 				"contributors" => array( (string)$id =>array("type" => $type,"isAdmin" => true)), 
-				"organizer" => array((string)$id =>array("type" => $type)),  
 			),
 			"properties" => array (
 							"gouvernance" => $params["gouvernance"],
@@ -55,9 +54,17 @@ class Project {
 							"avancement" => $params["avancement"],
 			),
 	    );
-	    PHDB::insert(PHType::TYPE_PROJECTS,$new);
-	    Link::connect($id, $type, $new["_id"], PHType::TYPE_PROJECTS, $id, "projects" );
-	    return array("result"=>true, "msg"=>"Votre projet est communecté.", "id"=>$new["_id"]);	
+	    if(!empty($params['postalCode'])) {
+			if (!empty($params['city'])) {
+				$insee = $params['city'];
+				$address = SIG::getAdressSchemaLikeByCodeInsee($insee);
+				$newProject["address"] = $address;
+				$newProject["geo"] = SIG::getGeoPositionByInseeCode($insee);
+			}
+		}
+	    PHDB::insert(PHType::TYPE_PROJECTS,$newProject);
+	    Link::connect($id, $type, $newProject["_id"], PHType::TYPE_PROJECTS, $id, "projects" );
+	    return array("result"=>true, "msg"=>"Votre projet est communecté.", "id"=>$newProject["_id"]);	
 	}
 	public static function removeProject($projectId) {
 		$id = Yii::app()->session["userId"];
@@ -67,6 +74,23 @@ class Project {
         //1. Remove project's sheet corresponding to $projectId _id
         PHDB::remove(PHType::TYPE_PROJECTS,array("_id" => new MongoId($projectId)));
         return array("result"=>true, "msg"=>"The project has been removed with success", "projectid"=>$projectId);
+    }
+    public static function saveChart($properties){
+	    //print_r($properties);
+	    //$member["_id"], $memberType, Yii::app()->session["userId"],
+	    $propertiesList=array(
+							"gouvernance" => $properties["gouvernance"],
+							"local" => $properties["local"],	
+							"partenaire" => $properties["partenaire"],
+							"partage" => $properties["partage"],
+							"solidaire" => $properties["solidaire"],
+							"avancement" => $properties["avancement"],
+		);
+	    PHDB::update(PHType::TYPE_PROJECTS,
+			array("_id" => new MongoId($properties["projectID"])),
+            array('$set' => array("properties"=> $propertiesList))
+        );
+        return true;
     }
 
 }
