@@ -18,6 +18,10 @@ class DashboardAction extends CAction
 		  "organizations"=>array()
 		);
 
+		$controller->title = (isset($organization["name"])) ? $organization["name"] : "";
+		$controller->subTitle = (isset($organization["shortDescripion"])) ? $organization["shortDescripion"] : "";
+		$controller->pageTitle = $controller->title." - ".$controller->subTitle;
+
 		$contentKeyBase = Yii::app()->controller->id.".".Yii::app()->controller->action->id;
 		$limit = array(Document::IMG_PROFIL => 1, Document::IMG_MEDIA => 5);
 		$images = Document::getListDocumentsURLByContentKey($id, $contentKeyBase, Document::DOC_TYPE_IMAGE, $limit);
