@@ -25,7 +25,9 @@ class DirectoryAction extends CAction
       $controller->subTitle = (isset($person["description"])) ? $person["description"] : "";
       $controller->pageTitle = ucfirst($controller->module->id)." - Informations publiques de ".$controller->title;
 
-      //Get Projects
+      /* **************************************
+      *  PERSON
+      ***************************************** */
       $person = Person::getPublicData($id);
 
       /* **************************************
@@ -78,19 +80,18 @@ class DirectoryAction extends CAction
       *  PEOPLE
       ***************************************** */
       $people = array();
-      if( isset($person["links"]) && isset($person["links"]["knows"])) {
-        foreach ($person["links"]["knows"] as $key => $member) {
+      if( isset( $person["links"] ) && isset( $person["links"]["knows"] )) {
+        foreach ( $person["links"]["knows"] as $key => $member ) {
           $citoyen;
               if( $member['type'] == PHType::TYPE_CITOYEN )
               {
                 $citoyen = Person::getPublicData( $key );
-                $profil = Document::getLastImageByKey($key, Person::COLLECTION, Document::IMG_PROFIL);
-          if($profil !="")
-            $citoyen["imagePath"]= $profil;
-                array_push($people, $citoyen);
+                $profil = Document::getLastImageByKey( $key, Person::COLLECTION, Document::IMG_PROFIL );
+                if($profil !="" )
+                    $citoyen["imagePath"]= $profil;
+                array_push( $people, $citoyen );
               }
         }
-        
       }
 
       /* **************************************
@@ -100,7 +101,7 @@ class DirectoryAction extends CAction
       if(isset($person["links"]["projects"])){
         foreach ($person["links"]["projects"] as $key => $value) {
           $project = Project::getPublicData($key);
-          array_push($projects, $project);
+          array_push( $projects, $project );
         }
       }
 
@@ -110,6 +111,6 @@ class DirectoryAction extends CAction
       $params["people"] = $people;
 
 
-		$controller->render( "directory", $params );
+		  $controller->render( "directory", $params );
     }
 }
