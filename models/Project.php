@@ -92,6 +92,23 @@ class Project {
         );
         return true;
     }
+    /**
+	 * Update a project field value
+	 * @param String $projectId The person Id to update
+	 * @param String $projectFieldName The name of the field to update
+	 * @param String $projectFieldValue 
+	 * @param String $isAdmin or $isModerate (including after)
+	 * @return boolean True if the update has been done correctly. Can throw CTKException on error.
+	 */
+	public static function updateProjectField($projectId, $projectFieldName, $projectFieldValue, $userId) {  
+		$project = array($projectFieldName => $projectFieldValue);
+		
+		//update the project
+		PHDB::update( self::COLLECTION, array("_id" => new MongoId($projectId)), 
+		                          array('$set' => $project));
+	                  
+	    return array("result"=>true, "msg"=>"Votre projet a été modifié avec succes", "id"=>$projectId);
+	}
 
 }
 ?>
