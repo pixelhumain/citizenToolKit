@@ -3,7 +3,7 @@ class SaveContributorAction extends CAction
 {
     public function run() {
 		$controller=$this->getController();
-		$res = array( "result" => false , "content" => Yii::t("common", "Something went wrong!") );
+		//$res = array( "result" => false , "content" => Yii::t("common", "Something went wrong!") );
 		if(isset( $_POST["id"]) )
 		{
 			$project = (isset($_POST["id"])) ? PHDB::findOne( PHType::TYPE_PROJECTS,array("_id"=>new MongoId($_POST["id"]))) : null;
@@ -39,7 +39,6 @@ class SaveContributorAction extends CAction
 								$isAdmin = false;
 							}
 					 	} else {
-					 //var_dump($member);die;
 							$member = array(
 								'name'=>$_POST['name'],
 								'email'=>$_POST['email'],
@@ -63,7 +62,7 @@ class SaveContributorAction extends CAction
 							$isAdmin = (isset($_POST["contributorIsAdmin"])) ? $_POST["contributorIsAdmin"] : false;
 							if ($isAdmin == "1") {
 								$isAdmin = true;
-								} else {
+							} else {
 								$isAdmin = false;
 							}
 							Link::connect($member["_id"], $memberType, $_POST["id"], PHType::TYPE_PROJECTS, Yii::app()->session["userId"], "projects",$isAdmin);
