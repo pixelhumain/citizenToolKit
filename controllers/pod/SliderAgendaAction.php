@@ -10,39 +10,14 @@ class SliderAgendaAction extends CAction
 
         if($type == Organization::COLLECTION) {
 
-			$listEvent = Event::getListCurrentEventsByOrganizationId($id, 3);
-			
-			//Add information for events
-        	foreach ($listEvent as $key => $value) {
-	        	$profil = Document::getLastImageByKey($key, Event::COLLECTION, Document::IMG_PROFIL);
-	        	if($profil!="")
-	        		$value['imageUrl']=$profil;
-	        	
-	        	//TODO SBAR : add localization display ?
-	        	//@See http://php.net/manual/en/function.strftime.php
-	        	$value["startDate"] = date('Y-m-d h:i:s', $value["startDate"]->sec);
-				$value["endDate"] = date('Y-m-d h:i:s', $value["endDate"]->sec);
-				$events[$key] = $value;
-        	}
+			$events = Event::getListCurrentEventsByOrganizationId($id, 3);
 
 			$params["organizationId"] = $id;
 		}
 
 		else if($type == Person::COLLECTION){
-			$listEvent = Event::getListCurrentEventsByPeopleId($id, 3);
+			$events = Event::getListCurrentEventsByPeopleId($id, 3);
 			
-			//Add information for events
-        	foreach ($listEvent as $key => $value) {
-	        	$profil = Document::getLastImageByKey($key, Event::COLLECTION, Document::IMG_PROFIL);
-	        	if($profil!="")
-	        		$value['imageUrl']=$profil;
-	        	
-	        	//TODO SBAR : add localization display ?
-	        	//@See http://php.net/manual/en/function.strftime.php
-	        	$value["startDate"] = date('Y-m-d h:i:s', $value["startDate"]->sec);
-				$value["endDate"] = date('Y-m-d h:i:s', $value["endDate"]->sec);
-				$events[$key] = $value;
-        	}
 
 		  	$params["itemId"] = $id;
 		}
