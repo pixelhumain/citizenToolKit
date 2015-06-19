@@ -57,7 +57,7 @@ class Person {
 	 * @return type
 	 */
 	public static function getById($id) {
-	  	$person = PHDB::findOne( self::COLLECTION ,array("_id"=>new MongoId($id)));
+	  	$person = PHDB::findOneById( self::COLLECTION ,$id );
 	  	
 	  	if (empty($person)) {
 	  		//TODO Sylvain - Find a way to manage inconsistente data
