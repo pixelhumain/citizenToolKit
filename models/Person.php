@@ -3,6 +3,24 @@ class Person {
 	public $jsonLD= array();
 	const COLLECTION = "citoyens";
 
+	//From Post/Form name to database field name
+	private static $dataBinding = array(
+	    "name" => array("name" => "name", "rules" => array("required")),
+	    "email" => array("name" => "email", "rules" => array("email")),
+	    "address" => array("name" => "address"),
+	    "streetAddress" => array("name" => "address.streetAddress"),
+	    "postalCode" => array("name" => "address.postalCode"),
+	    "city" => array("name" => "address.codeInsee"),
+	    "addressLocality" => array("name" => "address.addressLocality"),
+	    "addressCountry" => array("name" => "address.addressCountry"),
+	    "tags" => array("name" => "tags"),
+	    "description" => array("name" => "description"),
+	    "facebook" => array("name" => "socialNetwork.facebook"),
+	    "twitter" => array("name" => "socialNetwork.twitter"),
+	    "googleplus" => array("name" => "socialNetwork.googleplus"),
+	    "github" => array("name" => "socialNetwork.github"),
+	);
+
 	/**
 	 * used to save any user session data 
 	 * good practise shouldn't be to heavy
@@ -33,7 +51,7 @@ class Person {
 	 * @return type
 	 */
 	public static function getById($id) {
-	  	$person = PHDB::findOne( PHType::TYPE_CITOYEN ,array("_id"=>new MongoId($id)));
+	  	$person = PHDB::findOne( self::COLLECTION ,array("_id"=>new MongoId($id)));
 	  	
 	  	if (empty($person)) {
 	  		//TODO Sylvain - Find a way to manage inconsistente data
@@ -293,26 +311,35 @@ class Person {
 	 * @return boolean True if the update has been done correctly. Can throw CTKException on error.
 	 */
 	public static function updatePersonField($personId, $personFieldName, $personFieldValue, $userId) {  
-		//TODO : Check the field sent
-		/*if (! Person::checkFieldBeforeUpdate($personFieldName, $personFieldValue)) {
-			throw new CTKException("Can not update the person : unknown field ".$personFieldName);
-		}*/
 
 		if ($personId != $userId) {
 			throw new CTKException("Can not update the person : you are not authorized to update that person !");	
 		}
 
-		//Specific case : tags
+		$dataFieldName = Person::getCollectionFieldNameAndValidate($personFieldName, $personFieldValue);
+	
+		//Specific case : 
+		//Tags
 		if ($personFieldName == "tags") {
-			$personFieldValue = Tags::filterAndSaveNewTags($personFieldValue);
+			$personFieldValue = Tags::filterAndSaveNewTags($personFieldValue, $personFieldValue);
+		}
+		//address
+		if ($dataFieldName == "address") {
+			if(!empty($personFieldValue["postalCode"]) && !empty($personFieldValue["codeInsee"])) {
+				$insee = $personFieldValue["codeInsee"];
+				$address = SIG::getAdressSchemaLikeByCodeInsee($insee);
+				$set = array("address" => $address, "geo" => SIG::getGeoPositionByInseeCode($insee));
+			} else {
+				throw new CTKException("Error updating the Person : address is not well formated !");			
+			}
+		} else {
+			$set = array($dataFieldName => $personFieldValue);	
 		}
 
-		$person = array($personFieldName => $personFieldValue);
-		
 		//update the person
-		PHDB::update( self::COLLECTION, array("_id" => new MongoId($personId)), 
-		                          array('$set' => $person));
-	                  
+		PHDB::update( self::COLLECTION, array("_id" => new MongoId($organizationId)), 
+		                          array('$set' => $set));
+	              
 	    return true;
 	}
 }

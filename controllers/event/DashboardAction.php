@@ -64,7 +64,7 @@ class DashboardAction extends CAction
         $params["countries"] = OpenData::getCountriesList();
 
         $params["eventTypes"] = Lists::get(array("eventTypes"))["eventTypes"];
-
+        //$params["admins"] = $admins;
         $controller->render( "dashboard", $params );
     }
 }

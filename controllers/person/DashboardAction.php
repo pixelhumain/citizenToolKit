@@ -100,6 +100,8 @@ class DashboardAction extends CAction
 	    	}
 	    	
 	    }
+
+	    $params["countries"] = OpenData::getCountriesList();
 	    $params["listCodeOrga"] = Lists::get(array("organisationTypes"));
 	   	$params["tags"] = $tags;
 	    $params["organizations"] = $organizations;
