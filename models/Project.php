@@ -8,7 +8,7 @@ class Project {
 	 * @return type
 	 */
 	public static function getById($id) {
-	  	return PHDB::findOne( PHType::TYPE_PROJECTS,array("_id"=>new MongoId($id)));
+	  	return PHDB::findOne( self::COLLECTION,array("_id"=>new MongoId($id)));
 	}
 	
 	/**
@@ -30,51 +30,113 @@ class Project {
 		return $project;
 	}
 
-	public static function saveProject($params){
-		$id = Yii::app()->session["userId"];
-	    $type = PHType::TYPE_CITOYEN;
-	    $newProject = array(
-			"name" => $params['title'],
-			'url' => $params['url'],
-			//'version' => $params['version'],
-			'licence' => $params['licence'],
-			'description' => $params['description'],
-			'startDate' => $params['start'],
-			'endDate' => $params['end'],
-			'created' => time(),
-			"links" => array( 
-				"contributors" => array( (string)$id =>array("type" => $type,"isAdmin" => true)), 
-			),
-			"properties" => array (
-							"gouvernance" => $params["gouvernance"],
-							"local" => $params["local"],	
-							"partenaire" => $params["partenaire"],
-							"partage" => $params["partage"],
-							"solidaire" => $params["solidaire"],
-							"avancement" => $params["avancement"],
-			),
+	/**
+	 * Apply project checks and business rules before inserting
+	 * @param array $project : array with the data of the project to check
+	 * @return array Project well format : ready to be inserted
+	 */
+	public static function getAndCheckProject($project, $userId) {
+
+		if (empty($project['name'])) {
+			throw new CTKException(Yii::t("project","You have to fill a name for your project"));
+		}
+		
+		// Is There a association with the same name ?
+	    $projectSameName = PHDB::findOne(self::COLLECTION ,array( "name" => $_POST['name']));
+	    if($projectSameName) { 
+	      throw new CTKException(Yii::t("project","A project with the same name already exist in the plateform"));
+	    }
+
+	    if(empty($project['startDate']) || empty($project['endDate'])) {
+			throw new CTKException("The start and end date of an event are required.");
+		}
+
+		//The end datetime must be after start datetime
+		$startDate = strtotime($project['startDate']);
+		$endDate = strtotime($project['endDate']);
+		if ($startDate > $endDate) {
+			throw new CTKException("The start date must be before the end date.");
+		}
+
+		$newProject = array(
+			"name" => $project['name'],
+			'startDate' => new MongoDate($startDate),
+			'endDate' => new MongoDate($endDate),
+			'creator' => $userId,
+			'created' => time()
 	    );
-	    if(!empty($params['postalCode'])) {
-			if (!empty($params['city'])) {
-				$insee = $params['city'];
+				  
+		if(!empty($project['postalCode'])) {
+			if (!empty($project['city'])) {
+				$insee = $project['city'];
 				$address = SIG::getAdressSchemaLikeByCodeInsee($insee);
 				$newProject["address"] = $address;
 				$newProject["geo"] = SIG::getGeoPositionByInseeCode($insee);
 			}
+		} else {
+			throw new CTKException(Yii::t("project","Please fill the postal code of the project to communect it"));
 		}
-	    PHDB::insert(PHType::TYPE_PROJECTS,$newProject);
-	    Link::connect($id, $type, $newProject["_id"], PHType::TYPE_PROJECTS, $id, "projects" );
+		
+		//No mandotory fields 
+		if (!empty($project['description']))
+			$newProject["description"] = $project['description'];
+		
+		if (!empty($project['url']))
+			$newProject["url"] = $project['url'];
+
+		if (!empty($project['licence']))
+			$newProject["licence"] = $project['licence'];
+
+		//Tags
+		if (isset($project['tags'])) {
+			if ( gettype($project['tags']) == "array" ) {
+				$tags = $project['tags'];
+			} else if ( gettype($project['tags']) == "string" ) {
+				$tags = explode(",", $project['tags']);
+			}
+			$newProject["tags"] = $tags;
+		}
+
+		return $newProject;
+	}
+
+	/**
+	 * Insert a new project, checking if the project is well formated
+	 * @param array $params Array with all fields for a project
+	 * @param string $userId UserId doing the insertion
+	 * @return array as result type
+	 */
+	public static function insert($params, $userId){
+	    $type = Person::COLLECTION;
+
+	    $newProject = self::getAndCheckProject($params, $userId);
+	    // TODO SBAR - If a Link::connect is used why add a link hard coded
+	    $newProject["links"] = array( "contributors" => 
+	    								array($userId =>array("type" => $type,"isAdmin" => true)));
+
+	    PHDB::insert(self::COLLECTION,$newProject);
+
+	    Link::connect($userId, $type, $newProject["_id"], self::COLLECTION, $userId, "projects", true );
+	    
 	    return array("result"=>true, "msg"=>"Votre projet est communecté.", "id"=>$newProject["_id"]);	
 	}
-	public static function removeProject($projectId) {
-		$id = Yii::app()->session["userId"];
-	    $type = PHType::TYPE_CITOYEN;
+
+	public static function removeProject($projectId, $userId) {
+		
+	    $type = Person::COLLECTION;
+
+	    if (! Authorisation::canEditItem($userId, self::COLLECTION, $projectId)) {
+			throw new CTKException("You can't remove this project : you are not admin of it");
+		}
+
 	    //0. Remove the links
-        Link::disconnect($id, $type, $projectId, PHType::TYPE_PROJECTS, $id, "projects" );
+        Link::disconnect($userId, $type, $projectId, PHType::TYPE_PROJECTS, $userId, "projects" );
         //1. Remove project's sheet corresponding to $projectId _id
-        PHDB::remove(PHType::TYPE_PROJECTS,array("_id" => new MongoId($projectId)));
+        PHDB::remove(self::COLLECTION,array("_id" => new MongoId($projectId)));
+
         return array("result"=>true, "msg"=>"The project has been removed with success", "projectid"=>$projectId);
     }
+
     public static function saveChart($properties){
 	    //print_r($properties);
 	    //$member["_id"], $memberType, Yii::app()->session["userId"],
@@ -86,12 +148,13 @@ class Project {
 							"solidaire" => $properties["solidaire"],
 							"avancement" => $properties["avancement"],
 		);
-	    PHDB::update(PHType::TYPE_PROJECTS,
+	    PHDB::update(self::COLLECTION,
 			array("_id" => new MongoId($properties["projectID"])),
             array('$set' => array("properties"=> $propertiesList))
         );
         return true;
     }
+
     /**
 	 * Update a project field value
 	 * @param String $projectId The person Id to update
