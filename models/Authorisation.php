@@ -276,13 +276,13 @@ class Authorisation {
     */
     public static function canEditItem($userId, $type, $itemId){
     	$res=false;
-    	if($type==PHType::TYPE_EVENTS){
+    	if($type == PHType::TYPE_EVENTS) {
     		$res = Authorisation::isEventAdmin($itemId, $userId);
-    	}else if($type==PHType::TYPE_PROJECTS){
+    	} else if($type == PHType::TYPE_PROJECTS) {
     		$res = Authorisation::isProjectAdmin($itemId, $userId);
-    	}else if($type == Organization::COLLECTION){
+    	} else if($type == Organization::COLLECTION) {
     		$res = Authorisation::isOrganizationAdmin($userId, $itemId);
-    	}else if($type== Person::COLLECTION){
+    	} else if($type == Person::COLLECTION) {
     		$res = ($userId==$itemId);
     	}
 
