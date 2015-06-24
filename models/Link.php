@@ -371,5 +371,37 @@ class Link {
         
         return array("result"=>true, "msg"=>Yii::t("link","The member's role has been removed with success",null,Yii::app()->controller->module->id), "memberOfid"=>$memberOfId, "memberid"=>$memberId);
     }
+
+    /**
+     * Remove a person in user Contact
+     * Delete a link between the 2 actors.
+     * @return result array with the result of the operation
+     */
+    public static function disconnectPerson($ownerId, $ownerType, $targetId, $targetType, $ownerLink, $targetLink = null) {
+        
+        //0. Check if the $owner and the $target exists
+        $owner = Link::checkIdAndType($ownerId, $ownerType);
+        $target = Link::checkIdAndType($targetId, $targetType);
+        
+        //1.1 the $userId can manage the $memberOf (admin)
+      
+
+        //2. Remove the links
+        PHDB::update( $ownerType, 
+                   array("_id" => new MongoId($ownerId)) , 
+                   array('$unset' => array( "links.".$ownerLink.".".$targetId => "") ));
+ 
+ 		if(isset($targetLink) && $targetLink != null){
+	        PHDB::update( $targetType, 
+	                       array("_id" => new MongoId($targetId)) , 
+	                       array('$unset' => array( "links.".$targetLink.".".$ownerId => "") ));
+	    }
+
+        //3. Send Notifications
+        //TODO - Send email to the member
+
+        return array("result"=>true, "msg"=>"The link has been removed with success");
+    }
+
 } 
 ?>

@@ -36,6 +36,14 @@ class DashboardAction extends CAction
 	    $controller->subTitle = (isset($person["description"])) ? $person["description"] : "";
 	    $controller->pageTitle = ucfirst($controller->module->id)." - Informations publiques de ".$controller->title;
 
+	    //$controller->pageTitle = "Citoyens ".$controller->title." - ".$controller->subTitle;
+
+	    if(isset($person["_id"]) && isset(Yii::app()->session["userId"]) && $person["_id"] != Yii::app()->session["userId"]){
+			if(isset($person["_id"]) && isset(Yii::app()->session["userId"]) && Link::isConnected( Yii::app()->session['userId'] , PHType::TYPE_CITOYEN , (string)$person["_id"] , PHType::TYPE_CITOYEN ))
+				$controller->toolbarMBZ = array("<li id='linkBtns'><a href='javascript:;' class='disconnectBtn text-red tooltips' data-name='".$person["name"]."' data-id='".$person["_id"]."' data-type='".Person::COLLECTION."' data-member-id='".Yii::app()->session["userId"]."' data-placement='top' data-original-title='Remove from my contact' ><i class='disconnectBtnIcon fa fa-unlink'></i>UNFOLLOW</a></li>" );
+			else
+				$controller->toolbarMBZ = array("<li id='linkBtns'><a href='javascript:;' class='connectBtn tooltips ' id='addKnowsRelation' data-placement='top' data-original-title='I know this person' ><i class=' connectBtnIcon fa fa-link '></i>FOLLOW</a></li>");
+		}
 	    //Get Projects
 	    $projects = array();
 	    if(isset($person["links"]["projects"])){
@@ -55,7 +63,7 @@ class DashboardAction extends CAction
 	  			$events[$eventId] = $value;
 	  		}
 	  	}
-	  	$tags = PHDB::findOne( PHType::TYPE_LISTS,array("name"=>"tags"), array('list'));
+	  	
 	    //TODO - SBAR : Pour le dashboard person, affiche t-on les événements des associations dont je suis memebre ?
 	  	//Get the organization where i am member of;
 	  	$organizations = array();
@@ -103,7 +111,7 @@ class DashboardAction extends CAction
 
 	    $params["countries"] = OpenData::getCountriesList();
 	    $params["listCodeOrga"] = Lists::get(array("organisationTypes"));
-	   	$params["tags"] = $tags;
+	   	$params["tags"] = Tags::getActiveTags();
 	    $params["organizations"] = $organizations;
 	    $params["projects"] = $projects;
 	    $params["events"] = $events;

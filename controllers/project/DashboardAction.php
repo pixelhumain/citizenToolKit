@@ -10,8 +10,13 @@ class DashboardAction extends CAction
 	    );
 	
 	    $controller->title = (isset($project["name"])) ? $project["name"] : "";
+	    $controller->toolbarMBZ = array(
+	    	"<a href='".Yii::app()->createUrl("/".$controller->module->id."/news/index/type/projects/id/".$id)."'><i class='fa fa-rss fa-2x'></i>TIMELINE</a>",
+	    	"<a href='".Yii::app()->createUrl("/".$controller->module->id."/discuss/index/type/projects/id/".$id)."'><i class='fa fa-comments-o fa-2x'></i>DISCUSS</a>"
+	    	);
+	    
 	    $controller->subTitle = (isset($project["description"])) ? $project["description"] : "";
-	    $controller->pageTitle = "Communecter - Informations sur l'evenement ".$controller->title;
+	    $controller->pageTitle = "Communecter - Informations sur le projet ".$controller->title;
 	
 	
 	  	$organizations = array();
@@ -51,6 +56,8 @@ class DashboardAction extends CAction
 	  		}
 	  	}
 	  	$lists = Lists::get(array("organisationTypes"));
+	  	$params["countries"] = OpenData::getCountriesList();
+	  	$params["tags"] = Tags::getActiveTags();
 		$params["organizationTypes"] = $lists["organisationTypes"];
 	  	$params["images"] = $images;
 	  	$params["contentKeyBase"] = $contentKeyBase;
