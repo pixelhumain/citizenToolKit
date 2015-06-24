@@ -55,7 +55,7 @@ class DashboardAction extends CAction
 	  			$events[$eventId] = $value;
 	  		}
 	  	}
-	  	$tags = PHDB::findOne( PHType::TYPE_LISTS,array("name"=>"tags"), array('list'));
+	  	
 	    //TODO - SBAR : Pour le dashboard person, affiche t-on les événements des associations dont je suis memebre ?
 	  	//Get the organization where i am member of;
 	  	$organizations = array();
@@ -103,7 +103,7 @@ class DashboardAction extends CAction
 
 	    $params["countries"] = OpenData::getCountriesList();
 	    $params["listCodeOrga"] = Lists::get(array("organisationTypes"));
-	   	$params["tags"] = $tags;
+	   	$params["tags"] = Tags::getActiveTags();
 	    $params["organizations"] = $organizations;
 	    $params["projects"] = $projects;
 	    $params["events"] = $events;
