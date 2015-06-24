@@ -20,7 +20,15 @@ class DashboardAction extends CAction
 
 		$controller->title = (isset($organization["name"])) ? $organization["name"] : "";
 		$controller->subTitle = (isset($organization["shortDescripion"])) ? $organization["shortDescripion"] : "";
-		$controller->pageTitle = $controller->title." - ".$controller->subTitle;
+		$controller->pageTitle = "Organization ".$controller->title." - ".$controller->subTitle;
+
+		
+
+		if(isset($organization["_id"]) && isset(Yii::app()->session["userId"]) && Link::isLinked((string)$organization["_id"], Organization::COLLECTION , Yii::app()->session["userId"]))
+			$controller->toolbarMBZ = array("<li id='linkBtns'><a href='javascript:;' class='removeMemberBtn text-red tooltips' data-name='".$organization["name"]."' data-memberof-id='".$organization["_id"]."' data-member-type='".Person::COLLECTION."' data-member-id='".Yii::app()->session["userId"]."' data-placement='top' data-original-title='Remove from my Organizations' ><i class='disconnectBtnIcon fa fa-unlink'></i>UNFOLLOW</a></li>" );
+		else
+			$controller->toolbarMBZ = array("<li id='linkBtns'><a href='javascript:;' class='connectBtn tooltips ' id='addMeAsMemberInfo' data-placement='top' data-original-title='I'm member of this organization' ><i class=' connectBtnIcon fa fa-link '></i>FOLLOW</a></li>");
+
 
 		$contentKeyBase = Yii::app()->controller->id.".".Yii::app()->controller->action->id;
 		$limit = array(Document::IMG_PROFIL => 1, Document::IMG_MEDIA => 5);
