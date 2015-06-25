@@ -7,6 +7,7 @@ class Link {
     const person2events = "events";
     const person2projects = "projects";
     const event2person = "attendees";
+    const project2person = "contributors";
 
 	/**
 	 * Add a member to an organization
