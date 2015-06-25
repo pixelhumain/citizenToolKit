@@ -420,7 +420,7 @@ class Organization {
 		//Specific case : 
 		//Tags
 		if ($dataFieldName == "tags") {
-			$organizationFieldValue = Tags::filterAndSaveNewTags($organizationFieldValue, $organizationFieldValue);
+			$organizationFieldValue = Tags::filterAndSaveNewTags($organizationFieldValue);
 		}
 		//address
 		if ($dataFieldName == "address") {
