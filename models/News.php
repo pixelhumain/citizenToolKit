@@ -36,8 +36,12 @@ class News {
 			$news = array("name" => $_POST["name"],
 						  "text" => $_POST["text"],
 						  "author" => Yii::app()->session["userId"],
+						  "date"=>time(),
 						  "created"=>time());
 
+			if(isset($_POST["date"])){
+				$news["date"] = $_POST["date"];//new MongoDate( strptime('$_POST["date"]', '%d/%m/%y') );
+			}
 			if(isset($_POST["tags"]))
 				$news["tags"] = $_POST["tags"];
 		 	if(isset($_POST["typeId"]))

@@ -10,7 +10,7 @@ class DashboardAction extends CAction
 	    );
 	
 	    $controller->title = (isset($project["name"])) ? $project["name"] : "";
-	    $controller->toolbarMBZ = array("<a href='".Yii::app()->createUrl("/".$controller->module->id."/news/index/type/projects/id/".$id)."'><i class='fa fa-rss'></i>Timeline</a>");
+	    $controller->toolbarMBZ = array("<a href='".Yii::app()->createUrl("/".$controller->module->id."/news/index/type/".Project::COLLECTION."/id/".$id)."'><i class='fa fa-rss'></i>Timeline</a>");
 	    $controller->subTitle = (isset($project["description"])) ? $project["description"] : "";
 	    $controller->pageTitle = "Communecter - Informations sur le projet ".$controller->title;
 	
