@@ -64,10 +64,13 @@ class City {
 		foreach ($cities as $key => $value) {
 			$return = array("codeInsee" => $value["insee"]);
 			$where = array("codeInsee.".$value["insee"] => array( '$exists' => 1 ));
-			$fields = array("codeInsee.".$insee);
+			$fields = array("codeInsee.".$value["insee"]);
 			$cityData = City::getWhereData($where, $fields);
-			if(isset($cityData))
-				$mapDataDep[$value["insee"]] = $cityData;
+			if(isset($cityData)){
+				foreach ($cityData as $k => $v) {
+					$mapDataDep[$value["insee"]] = $v["codeInsee"];
+				}
+			}	
 		}
 		return $mapDataDep;
 	}
@@ -79,10 +82,13 @@ class City {
 		foreach ($cities as $key => $value) {
 			$return = array("codeInsee" => $value["insee"]);
 			$where = array("codeInsee.".$value["insee"] => array( '$exists' => 1 ));
-			$fields = array("codeInsee.".$insee);
+			$fields = array("codeInsee.".$value["insee"]);
 			$cityData = City::getWhereData($where, $fields);
-			if(isset($cityData))
-				$mapDataRegion[$value["insee"]] = $cityData;
+			if(isset($cityData)){
+				foreach ($cityData as $k => $v) {
+					$mapDataRegion[$value["insee"]] = $v["codeInsee"];
+				}
+			}
 		}
 		return $mapDataRegion;
 	}
