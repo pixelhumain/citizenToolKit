@@ -38,29 +38,26 @@ class City {
 		return $dep;
 	}
 
-	public static function getRegionCitiesByInsee($insee, $fields){
+	public static function getRegionCitiesByInsee($insee, $fields=null){
 		$region = self::getCodeRegion($insee);
-	
 		$where = array("region" => $region["region"]);
-		$fields= array("insee");
-	
 		$cities = self::getWhere($where, $fields, 1000);
 		
 		return $cities;
 	}
 
-	public static function getDepartementCitiesByInsee($insee, $fields){
+	public static function getDepartementCitiesByInsee($insee, $fields=null){
 		$region = self::getCodeRegion($insee);
 		$dep = self::getCodeDepartement($insee);
 		$where = array("region" => $region["region"], "dep" => $dep["dep"]);
-		$cities = self::getWhere($where, null , 1000);
+		$cities = self::getWhere($where, $fields , 1000);
 		return $cities;
 	}
 
 
 	public static function getDepartementByInsee($insee, $fields){
 		$mapDataDep = array();
-		$cities = self::getDepartementCitiesByInsee($insee, $fields);
+		$cities = self::getDepartementCitiesByInsee($insee);
 		foreach ($cities as $key => $value) {
 			$return = array("codeInsee" => $value["insee"]);
 			$where = array("codeInsee.".$value["insee"] => array( '$exists' => 1 ));
@@ -68,7 +65,7 @@ class City {
 			$cityData = City::getWhereData($where, $fields);
 			if(isset($cityData)){
 				foreach ($cityData as $k => $v) {
-					$mapDataDep[$value["insee"]] = $v["codeInsee"];
+					$mapDataDep[$value["name"]] = $v["codeInsee"];
 				}
 			}	
 		}
@@ -78,7 +75,7 @@ class City {
 
 	public static function getRegionByInsee($insee, $fields){
 		$mapDataRegion = array();
-		$cities = self::getRegionCitiesByInsee($insee, $fields);
+		$cities = self::getRegionCitiesByInsee($insee);
 		foreach ($cities as $key => $value) {
 			$return = array("codeInsee" => $value["insee"]);
 			$where = array("codeInsee.".$value["insee"] => array( '$exists' => 1 ));
@@ -86,7 +83,7 @@ class City {
 			$cityData = City::getWhereData($where, $fields);
 			if(isset($cityData)){
 				foreach ($cityData as $k => $v) {
-					$mapDataRegion[$value["insee"]] = $v["codeInsee"];
+					$mapDataRegion[$value["name"]] = $v["codeInsee"];
 				}
 			}
 		}
