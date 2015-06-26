@@ -10,7 +10,18 @@ class DashboardAction extends CAction
 	    );
 	
 	    $controller->title = (isset($project["name"])) ? $project["name"] : "";
-	    $controller->toolbarMBZ = array("<a href='".Yii::app()->createUrl("/".$controller->module->id."/news/index/type/".Project::COLLECTION."/id/".$id)."'><i class='fa fa-rss'></i>Timeline</a>");
+
+	    if(isset($project["_id"]) && isset(Yii::app()->session["userId"]) && Link::isLinked($project["_id"] , Project::COLLECTION , Yii::app()->session['userId']))
+			$htmlFollowBtn = "<li id='linkBtns'><a href='javascript:;' class='disconnectBtn text-red tooltips' data-name='".$project["name"]."' data-id='".$project["_id"]."' data-type='".Project::COLLECTION."' data-member-id='".Yii::app()->session["userId"]."' data-ownerlink='".Link::person2projects."' data-targetlink='".Link::project2person."' data-placement='top' data-original-title='No more Attendee' ><i class='disconnectBtnIcon fa fa-unlink'></i>UNCONTRIBUTE</a></li>";
+		else
+			$htmlFollowBtn = "<li id='linkBtns'><a href='javascript:;' class='connectBtn tooltips ' id='addKnowsRelation' data-placement='top' data-ownerlink='".Link::person2projects."' data-targetlink='".Link::project2person."' data-original-title='I know this person' ><i class=' connectBtnIcon fa fa-link '></i>CONTRIBUTE</a></li>";
+
+	    $controller->toolbarMBZ = array(
+	    	"<a href='".Yii::app()->createUrl("/".$controller->module->id."/news/index/type/projects/id/".$id)."'><i class='fa fa-rss fa-2x'></i>TIMELINE</a>",
+	    	"<a href='".Yii::app()->createUrl("/".$controller->module->id."/discuss/index/type/projects/id/".$id)."'><i class='fa fa-comments-o fa-2x'></i>DISCUSS</a>",
+	    	$htmlFollowBtn
+	    	);
+	    
 	    $controller->subTitle = (isset($project["description"])) ? $project["description"] : "";
 	    $controller->pageTitle = "Communecter - Informations sur le projet ".$controller->title;
 	
@@ -52,6 +63,8 @@ class DashboardAction extends CAction
 	  		}
 	  	}
 	  	$lists = Lists::get(array("organisationTypes"));
+	  	$params["countries"] = OpenData::getCountriesList();
+	  	$params["tags"] = Tags::getActiveTags();
 		$params["organizationTypes"] = $lists["organisationTypes"];
 	  	$params["images"] = $images;
 	  	$params["contentKeyBase"] = $contentKeyBase;
