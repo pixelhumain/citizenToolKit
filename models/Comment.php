@@ -54,7 +54,18 @@ class Comment {
 					    	"name" => "Sylvain Barbot",
 					    	"imgProfil" => ""),
 					    "created" => 1435303517,
-					    "replies" => array()
+					    "replies" => array(
+					    	"558cfe5d2339f285060042bb" => array(
+					    		"_id" => new MongoId("558cfe5d2339f285060042bb"),
+					    		"text" => "Arrête avec tes généralités !",
+							    "author" => array(
+							    	"id" => "5577e2efa1aa14f08f0041ca",
+							    	"name" => "Sylvain Barbot",
+							    	"imgProfil" => ""),
+							    "created" => 1435303517,
+							    "replies" => array()
+							)
+						)
 					)
 			    )
 			),
