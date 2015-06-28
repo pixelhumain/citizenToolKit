@@ -28,11 +28,11 @@ class SaveSessionAction extends CAction
                     $newInfos['message'] = (string)$_POST['message'];
                 if( isset($_POST['type']) )
                     $newInfos['type'] = $_POST['type'];
-                if( isset($_POST['tags']) && !empty($_POST['tags']) )
+                if( isset($_POST['tags']) && count($_POST['tags']) )
                     $newInfos['tags'] = $_POST['tags'];
                 if( isset($_POST['cp']) )
                     $newInfos['cp'] = explode(",",$_POST['cp']);
-                if( isset($_POST['urls']) )
+                if( isset($_POST['urls']) && count($_POST['urls']) )
                     $newInfos['urls'] = $_POST['urls'];
 
                 $newInfos['created'] = time();
@@ -54,12 +54,14 @@ class SaveSessionAction extends CAction
                         $res['applicationExist'] = false;
                 }
 
-                Yii::app()->mongodb->surveys->update( array( "name" => $name ), 
-                                                       array('$set' => $newInfos ) ,
-                                                       array('upsert' => true ) 
-                                                      );
+                PHDB::updateWithOptions( Survey::COLLECTION,  array( "name" => $name ), 
+                                                   array('$set' => $newInfos ) ,
+                                                   array('upsert' => true ) );
+                
                 $res['result'] = true;
                 $res['msg'] = "surveySaved";
+                $res["savingTo"] = Survey::COLLECTION;
+                $res["newInfos"] = $newInfos;
             }else
                 $res = array('result' => false , 'msg'=>"user doen't exist");
         } else
