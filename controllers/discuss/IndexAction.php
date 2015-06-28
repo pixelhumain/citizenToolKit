@@ -1,27 +1,41 @@
 <?php
 class IndexAction extends CAction
 {
-    public function run($type=null, $id= null)
+    public function run($type=null, $id=null)
     {
         $controller=$this->getController();
-    
-        //mongo search cmd : db.news.find({created:{'$exists':1}})	
 
-        if( $type == Project::COLLECTION )
-        {
-            $controller->toolbarMBZ = array(
-                    "<a href='".Yii::app()->createUrl("/".$controller->module->id."/project/dashboard/id/".$id)."'><i class='fa fa-lightbulb-o'></i>Project</a>",
-                    "<a href='".Yii::app()->createUrl("/".$controller->module->id."/news/index/type/projects/id/".$id)."'><i class='fa fa-rss fa-2x'></i>TIMELINE</a>"
-            );
-            $project = Project::getById($id);
-            $controller->title = $project["name"]."'s Exchange Place";
-            $controller->subTitle = "Exchange about subject";
-            $controller->pageTitle = "Communecter - Espace de discussion";
+        $params = array();
+
+        $discussList = Discuss::getByParentIdAndType($id, $type, true);
+        foreach ($discussList as $discussId => $discuss) {
+            $params["discuss"] = $discuss;
+        }
+        
+        
+        
+        if($type == Event::COLLECTION) {
+            $params["parentType"] = "Evénement";
+            $name = @Event::getById($id)["name"];
+        } else if($type == Project::COLLECTION) {
+            $params["parentType"] = "Projet";
+            $name = @Project::getById($id)["name"];
+        } else if($type == Organization::COLLECTION) {
+            $params["parentType"] = "Organisation";
+            $name = @Organization::getById($id)["name"];
+        } else if($type == Person::COLLECTION) {
+            $params["parentType"] = "Personne";
+            $name = @Person::getById($id)["name"];
+        } else if($type == News::COLLECTION) {
+            $params["parentType"] = "News";
+            $name = @News::getById($id)["name"];
         }
 
+        $params["parentName"] = @$name;
+
 		if(Yii::app()->request->isAjaxRequest)
-	        echo $controller->renderPartial("index" , array(), true);
+	        echo $controller->renderPartial("index" , $params, true);
 	    else
-  			$controller->render( "index" , array() );
+  			$controller->render( "index" , $params );
     }
 }
