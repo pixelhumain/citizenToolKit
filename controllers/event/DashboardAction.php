@@ -55,6 +55,12 @@ class DashboardAction extends CAction
           }
         }
         
+        if(isset($event["_id"]) && isset(Yii::app()->session["userId"]) && Link::isLinked($event["_id"] , Event::COLLECTION , Yii::app()->session['userId']))
+			$controller->toolbarMBZ = array("<li id='linkBtns'><a href='javascript:;' class='disconnectBtn text-red tooltips' data-name='".$event["name"]."' data-id='".$event["_id"]."' data-type='".Event::COLLECTION."' data-member-id='".Yii::app()->session["userId"]."' data-ownerlink='".Link::person2events."' data-targetlink='".Link::event2person."' data-placement='top' data-original-title='No more Attendee' ><i class='disconnectBtnIcon fa fa-unlink'></i>NO ATTENDING</a></li>" );
+		else
+			$controller->toolbarMBZ = array("<li id='linkBtns'><a href='javascript:;' class='connectBtn tooltips ' id='addKnowsRelation' data-placement='top' data-ownerlink='".Link::person2events."' data-targetlink='".Link::event2person."' data-original-title='I know this person' ><i class=' connectBtnIcon fa fa-link '></i>ATTENDING</a></li>");
+
+
         $params["images"] = $images;
         $params["contentKeyBase"] = $contentKeyBase;
         $params["attending"] = $attending;

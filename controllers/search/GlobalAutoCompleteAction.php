@@ -49,6 +49,19 @@ class GlobalAutoCompleteAction extends CAction
 	  		$res["event"] = $allEvents;
 	  	}
 
+	  	if(strcmp($filter, Project::COLLECTION) != 0){
+	  		$allProject = PHDB::find(Project::COLLECTION, $query, array("name"));
+	  		foreach ($allProject as $key => $value) {
+	  			$profil = Document::getLastImageByKey($key, Project::COLLECTION, Document::IMG_PROFIL);
+	  			if($profil !="")
+						$value["imagePath"]= $profil;
+						$allProject[$key] = $value;
+	  		}
+	  		
+	 
+	  		$res["project"] = $allProject;
+	  	}
+
   		Rest::json($res);
 		Yii::app()->end();
     }
