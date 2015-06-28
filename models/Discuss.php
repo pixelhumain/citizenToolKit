@@ -120,7 +120,7 @@ class Discuss {
 		    				foreach($groupe["members"] as $contact){
 		    					//recupere les donnes du contact
 								$where = array(	'_id'  => $contact );
-			 					$allContact = PHDB::find(PHType::TYPE_CITOYEN, $where);
+			 					$allContact = PHDB::find(Person::COLLECTION, $where);
 			 					$allContact = $allContact[$contact->__toString()];
 			 					//if(!isset($allContact["name"])) {Rest::json( "pas de name" ); Yii::app()->end(); }
 			 					//ajoute un scope de type "contact" dans la news

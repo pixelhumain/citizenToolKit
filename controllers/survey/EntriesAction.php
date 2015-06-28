@@ -15,7 +15,7 @@ class EntriesAction extends CAction
         $where['applications.'.$moduleId.'.'.SurveyType::STATUS_CLEARED] = array('$exists'=>false);
 
       $list = PHDB::find(Survey::COLLECTION, $where );
-      $survey = PHDB::findOne (Action::ACTION_ROOMS, array("_id"=>new MongoId ( $id ) ) );
+      $survey = PHDB::findOne (Survey::PARENT_COLLECTION, array("_id"=>new MongoId ( $id ) ) );
       $where["survey"] = $survey;
 
       $user = ( isset( Yii::app()->session["userId"])) ? PHDB::findOne (Person::COLLECTION, array("_id"=>new MongoId ( Yii::app()->session["userId"] ) ) ) : null;
@@ -25,10 +25,12 @@ class EntriesAction extends CAction
       $controller->title = "Sondages : ".$survey["name"] ;
       $controller->subTitle = "Nombres de votants inscrit : ".$uniqueVoters;
       $controller->pageTitle = "Communecter - Sondages";
+      $surveyLink = ( isset( $survey["parentType"] ) && isset( $survey["parentId"] ) ) ? Yii::app()->createUrl("/communecter/survey/index/type/".$survey["parentType"]."/id/".$survey["parentId"]) : Yii::app()->createUrl("/communecter/survey"); 
       $controller->toolbarMBZ = array(
+        '<a href="'.$surveyLink.'" class="surveys" title="proposer une " ><i class="fa fa-bars"></i> SURVEYS</a>',
         '<a href="#" class="newVoteProposal" title="proposer une loi" ><i class="fa fa-paper-plane"></i> PROPOSER</a>',
         '<a href="#voterloiDescForm" role="button" data-toggle="modal" title="lexique pour compendre" ><i class="fa fa-question-circle"></i> AIDE</a>',
-        PHDB::count(Survey::COLLECTION, $where ));
+        );
 
       $controller->render( "index", array( "list" => $list,
                                            "where"=>$where,

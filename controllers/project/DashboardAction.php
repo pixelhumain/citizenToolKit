@@ -44,7 +44,7 @@ class DashboardAction extends CAction
 	  						$organization["type"]="organization";
 	  						array_push($contributors, $organization);
 	  					}
-	  				}else if($e["type"]== PHType::TYPE_CITOYEN){
+	  				}else if($e["type"]== Person::COLLECTION){
 	  					$citoyen = Person::getPublicData($id);
 	  					if(!empty($citoyen)){
 	  						array_push($people, $citoyen);

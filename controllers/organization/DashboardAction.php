@@ -29,7 +29,9 @@ class DashboardAction extends CAction
 		else
 			$controller->toolbarMBZ = array("<li id='linkBtns'><a href='javascript:;' class='connectBtn tooltips ' id='addMeAsMemberInfo' data-placement='top' data-original-title='I'm member of this organization' ><i class=' connectBtnIcon fa fa-link '></i>I'M MEMBER</a></li>");
 
-		array_push($controller->toolbarMBZ, "<a href='".Yii::app()->createUrl("/".$controller->module->id."/news/index/type/".Organization::COLLECTION."/id/".$id)."'><i class='fa fa-rss'></i>Timeline</a>");
+		array_push($controller->toolbarMBZ, "<a href='".Yii::app()->createUrl("/".$controller->module->id."/organization/calendar/type/".Organization::COLLECTION."/id/".$id)."'><i class='fa fa-calendar'></i>CALENDAR</a>");
+		array_push($controller->toolbarMBZ, "<a href='".Yii::app()->createUrl("/".$controller->module->id."/news/index/type/".Organization::COLLECTION."/id/".$id)."'><i class='fa fa-rss'></i>TIMELINE</a>");
+		array_push($controller->toolbarMBZ, "<a href='".Yii::app()->createUrl("/".$controller->module->id."/survey/index/type/".Organization::COLLECTION."/id/".$id)."'><i class='fa fa-legal'></i>SURVEYS</a>");
 
 		$contentKeyBase = Yii::app()->controller->id.".".Yii::app()->controller->action->id;
 		$limit = array(Document::IMG_PROFIL => 1, Document::IMG_MEDIA => 5);
