@@ -161,7 +161,6 @@ class Project {
 	}
 
 	public static function removeProject($projectId, $userId) {
-		
 	    $type = Person::COLLECTION;
 
 	    if (! Authorisation::canEditItem($userId, self::COLLECTION, $projectId)) {
@@ -175,7 +174,14 @@ class Project {
 
         return array("result"=>true, "msg"=>"The project has been removed with success", "projectid"=>$projectId);
     }
-
+	public static function removeTask($projectId,$taskId,$userId){
+		//echo $projectId." ".$taskId;
+		//PHDB::remove(self::COLLECTION,array("_id" => new MongoId($projectId), "task"=> $taskId));
+		$res = PHDB::update( self::COLLECTION, 
+                       array("_id" => new MongoId($projectId)) , 
+                       array('$unset' => array("tasks.".$taskId => 1)));
+        return array("result"=>true, "msg"=>$res);
+	}
     public static function saveChart($properties){
 	    //TODO SABR - Check the properties before inserting
 	    $propertiesList=array(
@@ -241,6 +247,21 @@ class Project {
 	                  
 	    return array("result"=>true, "msg"=>"Votre projet a été modifié avec succes", "id"=>$projectId);
 	}
-
+	/**/
+	public static function saveTask($task){
+		$taskArray=array(
+			"name"=> $task["taskName"],
+			"color" => $task["taskColor"],	
+			"startDate" => $task["taskStart"],
+			"endDate" => $task["taskEnd"]
+			);
+		$idTask=new MongoId();
+		//$update=array("task.".$inc.""=>$taskArray);		
+	    PHDB::update(self::COLLECTION,
+			array("_id" => new MongoId($task["projectId"])),
+            array('$set' => array("tasks.".$idTask  => $taskArray))
+        );
+		return array("result"=>true, "msg"=>"Votre task a été ajoutée avec succès","idTask" => $idTask);
+	}
 }
 ?>

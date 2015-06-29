@@ -24,6 +24,7 @@ class DashboardAction extends CAction
 	  	//$admins = array();
 	  	$contributors =array();
 	  	$properties = array();
+	  	$tasks = array();
 	  	$contentKeyBase = $controller->id.".".$controller->action->id; 
 	  	$images = Document::getListDocumentsURLByContentKey($id, $contentKeyBase, Document::DOC_TYPE_IMAGE);
 	  	if(!empty($project)){
@@ -45,16 +46,23 @@ class DashboardAction extends CAction
 	  						array_push($contributors, $citoyen);
 	  					}
 	  				}
-	
-	  				/*if(isset($e["isAdmin"]) && $e["isAdmin"]==true){
-	  					array_push($admins, $e);
-	  				}*/
 	  			}
 	  		}
+	  		// Properties defines the chart of the Project
 	  		if (isset($project["properties"])){
 		  		$properties=$project["properties"];
 	  		}
+	  		//Tasks will provide the GANTT of the project
+	  		if (isset($project["tasks"])){
+		  		$tasks=$project["tasks"];
+	  		}
 	  	}
+	  	//Gestion de l'admin - true or false
+	  	$isProjectAdmin= false;
+    	if(isset($project["_id"]) && isset(Yii::app()->session["userId"])) {
+    		$isProjectAdmin =  Authorisation::isProjectAdmin((String) $project["_id"],Yii::app()->session["userId"]);
+		}
+
 	  	$lists = Lists::get(array("organisationTypes"));
 	  	$params["countries"] = OpenData::getCountriesList();
 	  	$params["tags"] = Tags::getActiveTags();
@@ -66,6 +74,8 @@ class DashboardAction extends CAction
 	  	$params["organizations"] = $organizations;
 	  	$params["people"] = $people;
 	  	$params["properties"] = $properties;
+	  	$params["tasks"]=$tasks;
+	  	$params["admin"]=$isProjectAdmin;
 	  	//$params["admins"] = $admins;
 	  	$controller->render( "dashboard", $params );
 	}
