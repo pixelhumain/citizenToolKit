@@ -8,7 +8,7 @@ class ShowMyNetworkAction extends CAction
 	    
 	    $where = array_merge($where, $whereGeo);
 	    				
-    	$citoyens = PHDB::find(PHType::TYPE_CITOYEN, $where);
+    	$citoyens = PHDB::find(Person::COLLECTION, $where);
     	$citoyens["origine"] = "ShowMyNetwork";
     	
     	

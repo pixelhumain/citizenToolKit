@@ -27,7 +27,7 @@ class InitDataNetworkMappingAction extends CAction
 						"Collaborateurs", "Chercheurs", "Chercheurs", "Chercheurs", "Chercheurs");
 		
 		$where = array('geo' => array( '$exists' => true ));				
-    	$citoyens = PHDB::findAndSort(PHType::TYPE_CITOYEN, $where, array('name' => 1), 10);
+    	$citoyens = PHDB::findAndSort(Person::COLLECTION, $where, array('name' => 1), 10);
     	
     	$membres = array(); $i = 0;
     	foreach($citoyens as $citoyen){
@@ -36,7 +36,7 @@ class InitDataNetworkMappingAction extends CAction
     	}
     	
     	$where = array(	'_id'  => new MongoId(Yii::app()->session["userId"]) );
-	 	$me = PHDB::findOne(PHType::TYPE_CITOYEN, $where);
+	 	$me = PHDB::findOne(Person::COLLECTION, $where);
     	
     	
     	$newAsso = array(

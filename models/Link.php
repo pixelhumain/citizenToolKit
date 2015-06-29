@@ -1,11 +1,13 @@
 <?php
 class Link {
     
-    const person2person = "links.knows";
-    const person2organization = "links.memberOf";
-    const organization2person = "links.members";
-    const person2events = "links.events";
-    const person2projects = "links.projects";
+    const person2person = "knows";
+    const person2organization = "memberOf";
+    const organization2person = "members";
+    const person2events = "events";
+    const person2projects = "projects";
+    const event2person = "attendees";
+    const project2person = "contributors";
 
 	/**
 	 * Add a member to an organization
@@ -114,7 +116,7 @@ class Link {
 		
 		if ($type == Organization::COLLECTION) {
         	$res = Organization::getById($id); 
-        } else if ($type == PHType::TYPE_CITOYEN) {
+        } else if ($type == Person::COLLECTION) {
         	$res = Person::getById($id);
         } else if ($type== PHType::TYPE_EVENTS){
         	$res = Event:: getById($id);
@@ -267,11 +269,11 @@ class Link {
 	*/
     public static function attendee($eventId, $userId, $isAdmin = false){
 
-   		Link::addLink($userId, PHType::TYPE_CITOYEN, $eventId, PHType::TYPE_EVENTS, $userId, "events");
-   		Link::addLink($eventId, PHType::TYPE_EVENTS, $userId, PHType::TYPE_CITOYEN, $userId, "attendees");
+   		Link::addLink($userId, Person::COLLECTION, $eventId, PHType::TYPE_EVENTS, $userId, "events");
+   		Link::addLink($eventId, PHType::TYPE_EVENTS, $userId, Person::COLLECTION, $userId, "attendees");
 
     	if($isAdmin){
-    		PHDB::update(PHType::TYPE_CITOYEN, 
+    		PHDB::update(Person::COLLECTION, 
               		array("_id" => new MongoId($userId)), 
                     array('$set' => array("links.events.".$eventId.".isAdmin" => true))
             );
@@ -371,5 +373,64 @@ class Link {
         
         return array("result"=>true, "msg"=>Yii::t("link","The member's role has been removed with success",null,Yii::app()->controller->module->id), "memberOfid"=>$memberOfId, "memberid"=>$memberId);
     }
+
+    /**
+     * Delete a link between the 2 actors.
+     * @param $ownerId is the person who want to remowe a link
+     * @param $targetId is the id of item we want to be unlink with
+     * @param $ownerLink is the type of link between the owner and the target
+     * @param $targetLink is the type of link between the target and the owner
+     * @return result array with the result of the operation
+     */
+    public static function disconnectPerson($ownerId, $ownerType, $targetId, $targetType, $ownerLink, $targetLink = null) {
+        
+        //0. Check if the $owner and the $target exists
+        $owner = Link::checkIdAndType($ownerId, $ownerType);
+        $target = Link::checkIdAndType($targetId, $targetType);
+       
+        //1. Remove the links
+        PHDB::update( $ownerType, 
+                   array("_id" => new MongoId($ownerId)) , 
+                   array('$unset' => array( "links.".$ownerLink.".".$targetId => "") ));
+ 
+ 		if(isset($targetLink) && $targetLink != null){
+	        PHDB::update( $targetType, 
+	                       array("_id" => new MongoId($targetId)) , 
+	                       array('$unset' => array( "links.".$targetLink.".".$ownerId => "") ));
+	    }
+
+        //3. Send Notifications
+
+        return array("result"=>true, "msg"=>"The link has been removed with success");
+    }
+
+
+     /**
+     * Add a link between the 2 actors.
+     * @param $ownerId is the person who want to add a link
+     * @param $targetId is the id of item we want to be link with
+     * @param $ownerLink is the type of link between the owner and the target
+     * @param $targetLink is the type of link between the target and the owner
+     * @return result array with the result of the operation
+     */
+    public static function connectPerson($ownerId, $ownerType, $targetId, $targetType, $ownerLink, $targetLink = null){
+    	 //0. Check if the $owner and the $target exists
+        $owner = Link::checkIdAndType($ownerId, $ownerType);
+        $target = Link::checkIdAndType($targetId, $targetType);
+        $newObject = array('type' => $targetType );
+         PHDB::update( $ownerType, 
+           array("_id" => new MongoId($ownerId)) , 
+           array('$set' => array( "links.".$ownerLink.".".$targetId => $newObject) ));
+
+         if(isset($targetLink) && $targetLink != null){
+         	$newObject = array('type' => $ownerType );
+	        PHDB::update( $targetType, 
+			               array("_id" => new MongoId($targetId)) , 
+			               array('$set' => array( "links.".$targetLink.".".$ownerId => $newObject) ));
+	    }
+
+        return array("result"=>true, "msg"=>"The link has been added with success");
+    }
+
 } 
 ?>

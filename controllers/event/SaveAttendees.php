@@ -13,7 +13,7 @@ class EditAction extends CAction
             $memberEmail = $_POST['email'];
 
             if($_POST['type'] == "persons"){
-              $memberType = PHType::TYPE_CITOYEN;
+              $memberType = Person::COLLECTION;
             }else{
               $memberType = Organization::COLLECTION;
             }

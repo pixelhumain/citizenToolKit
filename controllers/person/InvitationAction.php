@@ -8,12 +8,12 @@ class InvitationAction extends CAction
 		 {
 		 	//test if group exist
 			$organization = (isset($_POST["parentId"])) ? PHDB::findOne( Organization::COLLECTION,array("_id"=>new MongoId($_POST["parentId"]))) : null;
-			$citoyen = (isset($_POST["parentId"])) ? PHDB::findOne( PHType::TYPE_CITOYEN,array("_id"=>new MongoId($_POST["parentId"]))) : null;
+			$citoyen = (isset($_POST["parentId"])) ? PHDB::findOne( Person::COLLECTION,array("_id"=>new MongoId($_POST["parentId"]))) : null;
 			if($citoyen || $organization)
 			{
 				$memberEmail = $_POST['email'];
 				if($citoyen){
-					$type =  PHType::TYPE_CITOYEN;
+					$type =  Person::COLLECTION;
 				}
 				else if($organization){
 					$type = Organization::COLLECTION;

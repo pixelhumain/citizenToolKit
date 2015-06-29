@@ -4,7 +4,7 @@ class GetMyPositionAction extends CAction
     public function run()
     {
         $where = array(	'_id'  => new MongoId(Yii::app()->session["userId"]) );
-	 	$user = PHDB::find(PHType::TYPE_CITOYEN, $where);
+	 	$user = PHDB::find(Person::COLLECTION, $where);
     	 
     	 //si l'utilisateur connecté n'a pas enregistré sa position geo
     	 //on prend la position de son CP

@@ -10,7 +10,7 @@ class GlobalAutoCompleteAction extends CAction
 
         if(strcmp($filter, Person::COLLECTION) != 0){
 
-	  		$allCitoyen = PHDB::find ( PHType::TYPE_CITOYEN ,$query ,array("name"));
+	  		$allCitoyen = PHDB::find ( Person::COLLECTION ,$query ,array("name"));
 
 	  		foreach ($allCitoyen as $key => $value) {
 	  			$profil = Document::getLastImageByKey($key, Person::COLLECTION, Document::IMG_PROFIL);
@@ -47,6 +47,19 @@ class GlobalAutoCompleteAction extends CAction
 	  		
 	 
 	  		$res["event"] = $allEvents;
+	  	}
+
+	  	if(strcmp($filter, Project::COLLECTION) != 0){
+	  		$allProject = PHDB::find(Project::COLLECTION, $query, array("name"));
+	  		foreach ($allProject as $key => $value) {
+	  			$profil = Document::getLastImageByKey($key, Project::COLLECTION, Document::IMG_PROFIL);
+	  			if($profil !="")
+						$value["imagePath"]= $profil;
+						$allProject[$key] = $value;
+	  		}
+	  		
+	 
+	  		$res["project"] = $allProject;
 	  	}
 
   		Rest::json($res);

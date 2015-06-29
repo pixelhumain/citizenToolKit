@@ -2,10 +2,12 @@
 class Person {
 	public $jsonLD= array();
 	const COLLECTION = "citoyens";
+	const CONTROLLER = "person";
 
 	//From Post/Form name to database field name
 	private static $dataBinding = array(
 	    "name" => array("name" => "name", "rules" => array("required")),
+	    "birthDate" => array("name" => "birthDate", "rules" => array("required")),
 	    "email" => array("name" => "email", "rules" => array("email")),
 	    "address" => array("name" => "address"),
 	    "streetAddress" => array("name" => "address.streetAddress"),
@@ -13,14 +15,19 @@ class Person {
 	    "city" => array("name" => "address.codeInsee"),
 	    "addressLocality" => array("name" => "address.addressLocality"),
 	    "addressCountry" => array("name" => "address.addressCountry"),
+	    "telephone" => array("name" => "telephone"),
 	    "tags" => array("name" => "tags"),
 	    "description" => array("name" => "description"),
-	    "facebook" => array("name" => "socialNetwork.facebook"),
-	    "twitter" => array("name" => "socialNetwork.twitter"),
-	    "googleplus" => array("name" => "socialNetwork.googleplus"),
-	    "github" => array("name" => "socialNetwork.github"),
+	    "facebookAccount" => array("name" => "socialNetwork.facebook"),
+	    "twitterAccount" => array("name" => "socialNetwork.twitter"),
+	    "gpplusAccount" => array("name" => "socialNetwork.googleplus"),
+	    "gitHubAccount" => array("name" => "socialNetwork.github"),
+	    "skypeAccount" => array("name" => "socialNetwork.skype"),
 	);
 
+	private static function getCollectionFieldNameAndValidate($personFieldName, $personFieldValue) {
+		return DataValidator::getCollectionFieldNameAndValidate(self::$dataBinding, $personFieldName, $personFieldValue);
+	}
 	/**
 	 * used to save any user session data 
 	 * good practise shouldn't be to heavy
@@ -51,13 +58,17 @@ class Person {
 	 * @return type
 	 */
 	public static function getById($id) {
-	  	$person = PHDB::findOne( self::COLLECTION ,array("_id"=>new MongoId($id)));
+	  	$person = PHDB::findOneById( self::COLLECTION ,$id );
 	  	
 	  	if (empty($person)) {
 	  		//TODO Sylvain - Find a way to manage inconsistente data
             //throw new CTKException("The person id ".$id." is unkown : contact your admin");
         } else {
 			$person["publicURL"] = '/person/public/id/'.$id;
+			if (!empty($person["birthDate"])) {
+				date_default_timezone_set('UTC');
+				$person["birthDate"] = date('Y-m-d H:i:s', $person["birthDate"]->sec);
+			}
         }
 
 	  	return $person;
@@ -67,7 +78,7 @@ class Person {
 	  	$people =PHDB::findAndSort( self::COLLECTION,$params,array("created"),null);
 	}
 	public static function setNameByid($name, $id) {
-		PHDB::update(PHType::TYPE_CITOYEN,
+		PHDB::update(Person::COLLECTION,
 			array("_id" => new MongoId($id)),
             array('$set' => array("name"=> $name))
             );
@@ -166,7 +177,7 @@ class Person {
         }
 
 		//Check if the email of the person is already in the database
-	  	$account = PHDB::findOne(PHType::TYPE_CITOYEN,array("email"=>$person["email"]));
+	  	$account = PHDB::findOne(Person::COLLECTION,array("email"=>$person["email"]));
 	  	if ($account) {
 	  		throw new CTKException("Problem inserting the new person : a person with this email already exists in the plateform");
 	  	}
@@ -209,7 +220,7 @@ class Person {
 	  	$person["tobeactivated"] = true;
 	  	$person["created"] = time();
 
-	  	PHDB::insert( PHType::TYPE_CITOYEN , $person);
+	  	PHDB::insert( Person::COLLECTION , $person);
  
         if (isset($person["_id"])) {
 	    	$newpersonId = (String) $person["_id"];
@@ -320,8 +331,8 @@ class Person {
 	
 		//Specific case : 
 		//Tags
-		if ($personFieldName == "tags") {
-			$personFieldValue = Tags::filterAndSaveNewTags($personFieldValue, $personFieldValue);
+		if ($dataFieldName == "tags") {
+			$personFieldValue = Tags::filterAndSaveNewTags($personFieldValue);
 		}
 		//address
 		if ($dataFieldName == "address") {
@@ -332,12 +343,20 @@ class Person {
 			} else {
 				throw new CTKException("Error updating the Person : address is not well formated !");			
 			}
+		} else if ($dataFieldName == "birthDate") {
+			date_default_timezone_set('UTC');
+			$dt = DateTime::createFromFormat('Y-m-d H:i', $personFieldValue);
+			if (empty($dt)) {
+				$dt = DateTime::createFromFormat('Y-m-d', $personFieldValue);
+			}
+			$newMongoDate = new MongoDate($dt->getTimestamp());
+			$set = array($dataFieldName => $newMongoDate);
 		} else {
 			$set = array($dataFieldName => $personFieldValue);	
 		}
 
 		//update the person
-		PHDB::update( self::COLLECTION, array("_id" => new MongoId($organizationId)), 
+		PHDB::update( self::COLLECTION, array("_id" => new MongoId($personId)), 
 		                          array('$set' => $set));
 	              
 	    return true;

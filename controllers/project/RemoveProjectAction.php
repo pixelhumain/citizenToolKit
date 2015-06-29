@@ -7,9 +7,9 @@ class RemoveProjectAction extends CAction
 		if (isset(Yii::app()->session["userId"]) && isset($project)){
 			$res = array( "result" => false , "msg" => Yii::t("common", "Something went wrong!") );
 			try {
-				$res = Project::removeProject($projectId);
+				$res = Project::removeProject($projectId, Yii::app()->session["userId"]);
 			} 
-			catch (CommunecterException $e) {
+			catch (CTKException $e) {
 				$res = array( "result" => false , "msg" => $e->getMessage() );
 			}
 			//return true;

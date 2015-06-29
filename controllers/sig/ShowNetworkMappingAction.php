@@ -14,7 +14,7 @@ class ShowNetworkMappingAction extends CAction
 				$where = array( 'geo'  => array( '$exists' => true ),
 								'_id' => new MongoId($membre["id"]) );
 			
-				$newMembre = PHDB::findOne(PHType::TYPE_CITOYEN, $where);
+				$newMembre = PHDB::findOne(Person::COLLECTION, $where);
 				$newMembre["type"] = $membre["tag_rangement"];
 					
 				foreach($asso["tags_rangement"] as $tagR){
