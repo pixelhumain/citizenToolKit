@@ -40,10 +40,10 @@ class DashboardMemberAction extends CAction
 					$memberData = Organization::getPublicData( $key );
 					array_push( $members[Organization::COLLECTION], $memberData );
 				}
-				elseif($member['type'] == PHType::TYPE_CITOYEN )
+				elseif($member['type'] == Person::COLLECTION )
 				{
 					$memberData = Person::getPublicData( $key );
-					array_push( $members[PHType::TYPE_CITOYEN], $memberData );
+					array_push( $members[Person::COLLECTION], $memberData );
 				}
 			}
 

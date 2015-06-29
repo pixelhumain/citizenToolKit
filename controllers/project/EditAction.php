@@ -13,7 +13,7 @@ class EditAction extends CAction
 		  	
 		  	if (!empty($project)) {
 		  		if($e["type"] == "citoyens"){
-		  			$citoyen = PHDB::findOne( PHType::TYPE_CITOYEN, array( "_id" => new MongoId($id)));
+		  			$citoyen = PHDB::findOne( Person::COLLECTION, array( "_id" => new MongoId($id)));
 		  			array_push($citoyens, $citoyen);
 		  		}else if($e["type"] == "organizations"){
 		      		$organization = PHDB::findOne( Organization::COLLECTION, array( "_id" => new MongoId($id)));

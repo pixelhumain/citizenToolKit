@@ -1,14 +1,43 @@
 <?php 
-class News {
+class Discuss {
 
-	const COLLECTION = "news";
+	const COLLECTION = "discuss";
+	
 	/**
-	 * get an project By Id
-	 * @param type $id : is the mongoId of the project
-	 * @return type
+	 * get an discuss By Id
+	 * @param String $id : is the mongoId of the discuss
+	 * @param boolean $withComments : true, will build a comments tree
+	 * @return array Collection of the discuss
 	 */
-	public static function getById($id) {
-	  	return PHDB::findOne( self::COLLECTION,array("_id"=>new MongoId($id)));
+	public static function getById($id, $withComments = null) {
+	  	$discuss = PHDB::findOne( self::COLLECTION,array("_id"=>new MongoId($id)));
+	  	if ($withComments) {
+	  		$comments = Comment::buildCommentsTree($id, self::COLLECTION);
+	  		$discuss["comments"] = $comments;
+	  	}
+
+	  	return $discuss;
+	}
+
+	/**
+	 * get the discuss By parent Id and parent Type
+	 * @param String $id : is the mongoId of the discuss
+	 * @param boolean $withComments : true, will build a comments tree
+	 * @return array of discuss
+	 */
+	public static function getByParentIdAndType($parentId, $parentType, $withComments = null) {
+	  	$discussList = PHDB::find( self::COLLECTION,
+	  							array("parentId" => $parentId,
+	  								  "parentType" => $parentType));
+	  	
+	  	if ($withComments) {
+	  		foreach ($discussList as $discussId => $discuss) {
+	  			$comments = Comment::buildCommentsTree($discussId, self::COLLECTION);
+	  			$discussList["$discussId"]["comments"] = $comments;
+	  		}
+	  	}
+
+	  	return $discussList;
 	}
 
 	public static function getWhere($params) {
@@ -19,6 +48,7 @@ class News {
 	  	return PHDB::findAndSort( self::COLLECTION,$params,$sort,$limit);
 	}
 	
+
 	public static function save($params)
 	{
 		//check a user is loggued 
@@ -35,12 +65,8 @@ class News {
 			$news = array("name" => $_POST["name"],
 						  "text" => $_POST["text"],
 						  "author" => Yii::app()->session["userId"],
-						  "date"=>time(),
 						  "created"=>time());
 
-			if(isset($_POST["date"])){
-				$news["date"] = $_POST["date"];//new MongoDate( strptime('$_POST["date"]', '%d/%m/%y') );
-			}
 			if(isset($_POST["tags"]))
 				$news["tags"] = $_POST["tags"];
 		 	if(isset($_POST["typeId"]))
@@ -136,4 +162,3 @@ class News {
 		}
 	}
 }
-?>

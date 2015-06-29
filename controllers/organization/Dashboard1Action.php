@@ -49,7 +49,7 @@ class Dashboard1Action extends CAction
 			$bureau =array();
 
 			foreach ($organization["links"]["members"] as $key => $value) {
-				if($value["type"]==PHType::TYPE_CITOYEN && isset($value["roles"])){
+				if($value["type"]==Person::COLLECTION && isset($value["roles"])){
 					$person = Person::getById($key);
 					if(!empty($person)){
 						if(in_array("Bureau", $value["roles"]))
