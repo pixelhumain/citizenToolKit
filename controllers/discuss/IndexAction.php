@@ -11,8 +11,10 @@ class IndexAction extends CAction
         foreach ($discussList as $discussId => $discuss) {
             $params["discuss"] = $discuss;
         }
-        
-        
+
+        if (empty($params["discuss"])) {
+            $params["discuss"] = array();
+        }
         
         if($type == Event::COLLECTION) {
             $params["parentType"] = "Evénement";

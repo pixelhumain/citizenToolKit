@@ -56,8 +56,8 @@ class Comment {
 					    "created" => 1435303517,
 					    "replies" => array(
 					    	"558cfe5d2339f285060042bb" => array(
-					    		"_id" => new MongoId("558cfe5d2339f285060042bb"),
-					    		"text" => "Arrête avec tes généralités !",
+					    		"_id" => new MongoId("558cfe5d2339f285060042dd"),
+					    		"text" => "Bing bang",
 							    "author" => array(
 							    	"id" => "5577e2efa1aa14f08f0041ca",
 							    	"name" => "Sylvain Barbot",
