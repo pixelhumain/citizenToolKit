@@ -5,7 +5,7 @@ class EntryAction extends CAction
     {
       $controller=$this->getController();
       $where = array("survey"=>$id);
-      $survey = PHDB::findOne (Action::ACTION_ROOMS, array("_id"=>new MongoId ( $id ) ) );
+      $survey = PHDB::findOne (Survey::PARENT_COLLECTION, array("_id"=>new MongoId ( $id ) ) );
       $where["survey"] = $survey;
       
       $controller->title = "Sondages : ".$survey["name"];

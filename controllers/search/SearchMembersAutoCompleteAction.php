@@ -5,7 +5,7 @@ class SearchMembersAutoCompleteAction extends CAction
     {
         $query = array( '$or' => array( array("email" => new MongoRegex("/".$_POST['search']."/i")),
                                         array( "name" => new MongoRegex("/".$_POST['search']."/i"))));
-        $allCitoyens = PHDB::findAndSort( PHType::TYPE_CITOYEN , $query, array("name" => 1), 6);
+        $allCitoyens = PHDB::findAndSort( Person::COLLECTION , $query, array("name" => 1), 6);
         $limitOrganization = 12 - count($allCitoyens);
         $allOrganization = PHDB::findAndSort( Organization::COLLECTION, $query, array("name" => 1), $limitOrganization, array("_id", "name", "type", "address", "email", "links", "imagePath"));
         

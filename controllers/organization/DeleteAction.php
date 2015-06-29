@@ -15,7 +15,7 @@ class DeleteAction extends CAction
 				PHDB::remove( Organization::COLLECTION,array("_id"=>new MongoId($_POST["id"])));
 				//temporary for dev
 				//TODO : Remove the association from all Ci accounts
-				PHDB::update( PHType::TYPE_CITOYEN,array( "_id" => new MongoId(Yii::app()->session["userId"]) ) , array('$pull' => array("associations"=>new MongoId( $_POST["id"]))));
+				PHDB::update( Person::COLLECTION,array( "_id" => new MongoId(Yii::app()->session["userId"]) ) , array('$pull' => array("associations"=>new MongoId( $_POST["id"]))));
 
 				$result = array("result"=>true,"msg"=>Yii::t("common", "Data saved"));
 			}

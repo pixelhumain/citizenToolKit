@@ -16,14 +16,22 @@ class SaveSessionAction extends CAction
             $email = $_POST["email"];
             $name  = $_POST['name'];
             //if exists login else create the new user
-            if(PHDB::findOne (PHType::TYPE_CITOYEN, array( "email" => $email ) ))
+            if(PHDB::findOne (Person::COLLECTION, array( "email" => $email ) ))
             {
                 //udate the new app specific fields
                 $newInfos = array();
                 $newInfos['email'] = (string)$email;
                 $newInfos['name'] = (string)$name;
-                if( isset($_POST['survey']) )
+                if( isset($_POST['survey']) ){
                     $newInfos['survey'] = $_POST['survey'];
+                    //this might not be necessary , since the information is on the parent survey
+                    /*$surveyRoom = PHDB::findOne (Survey::PARENT_COLLECTION, array( "_id" => new MongoId($_POST['survey']) ) );
+                    if( isset( $surveyRoom["parentType"] ) && isset($_POST['parentType']) ) 
+                        $newInfos['parentType'] = $_POST['parentType'];
+                    if( isset( $surveyRoom["parentId"] ) && isset($_POST['parentId']) ) 
+                        $newInfos['parentId'] = $_POST['parentId'];
+                        */
+                }
                 if( isset($_POST['message']) )
                     $newInfos['message'] = (string)$_POST['message'];
                 if( isset($_POST['type']) )
@@ -60,8 +68,7 @@ class SaveSessionAction extends CAction
                 
                 $res['result'] = true;
                 $res['msg'] = "surveySaved";
-                $res["savingTo"] = Survey::COLLECTION;
-                $res["newInfos"] = $newInfos;
+                
             }else
                 $res = array('result' => false , 'msg'=>"user doen't exist");
         } else

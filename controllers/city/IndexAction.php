@@ -89,7 +89,7 @@ class IndexAction extends CAction
 	    if( isset($person["links"]) && isset($person["links"]["knows"])) {
 	    	foreach ($person["links"]["knows"] as $key => $member) {
 	    		$citoyen;
-	            if( $member['type'] == PHType::TYPE_CITOYEN )
+	            if( $member['type'] == Person::COLLECTION )
 	            {
 	            	$citoyen = Person::getPublicData( $key );
 	            	$profil = Document::getLastImageByKey($key, Person::COLLECTION, Document::IMG_PROFIL);

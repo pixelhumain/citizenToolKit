@@ -116,7 +116,7 @@ class Link {
 		
 		if ($type == Organization::COLLECTION) {
         	$res = Organization::getById($id); 
-        } else if ($type == PHType::TYPE_CITOYEN) {
+        } else if ($type == Person::COLLECTION) {
         	$res = Person::getById($id);
         } else if ($type== PHType::TYPE_EVENTS){
         	$res = Event:: getById($id);
@@ -269,11 +269,11 @@ class Link {
 	*/
     public static function attendee($eventId, $userId, $isAdmin = false){
 
-   		Link::addLink($userId, PHType::TYPE_CITOYEN, $eventId, PHType::TYPE_EVENTS, $userId, "events");
-   		Link::addLink($eventId, PHType::TYPE_EVENTS, $userId, PHType::TYPE_CITOYEN, $userId, "attendees");
+   		Link::addLink($userId, Person::COLLECTION, $eventId, PHType::TYPE_EVENTS, $userId, "events");
+   		Link::addLink($eventId, PHType::TYPE_EVENTS, $userId, Person::COLLECTION, $userId, "attendees");
 
     	if($isAdmin){
-    		PHDB::update(PHType::TYPE_CITOYEN, 
+    		PHDB::update(Person::COLLECTION, 
               		array("_id" => new MongoId($userId)), 
                     array('$set' => array("links.events.".$eventId.".isAdmin" => true))
             );

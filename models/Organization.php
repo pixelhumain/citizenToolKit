@@ -2,6 +2,7 @@
 class Organization {
 
 	const COLLECTION = "organizations";
+	const CONTROLLER = "organization";
 	
 	//From Post/Form name to database field name
 	private static $dataBinding = array(
@@ -79,7 +80,7 @@ class Organization {
 	    }
 		
 		//Add the creator as the first member and admin of the organization
-	    Link::addMember($newOrganizationId, Organization::COLLECTION, $userId, PHType::TYPE_CITOYEN, $userId, true);
+	    Link::addMember($newOrganizationId, Organization::COLLECTION, $userId, Person::COLLECTION, $userId, true);
 
 	    //send Notification Email
 	    $creator = Person::getById($userId);
@@ -339,7 +340,7 @@ class Organization {
 		$newOrganization = Organization::insert($organization, $newPerson["id"]);
 
 		//Link the person as an admin
-		Link::addMember($newOrganization["id"], Organization::COLLECTION, $newPerson["id"], PHType::TYPE_CITOYEN, $newPerson["id"], true);
+		Link::addMember($newOrganization["id"], Organization::COLLECTION, $newPerson["id"], Person::COLLECTION, $newPerson["id"], true);
 
 		//Link the organization as a member of the invitor
 		

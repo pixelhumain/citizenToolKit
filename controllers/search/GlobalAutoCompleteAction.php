@@ -10,7 +10,7 @@ class GlobalAutoCompleteAction extends CAction
 
         if(strcmp($filter, Person::COLLECTION) != 0){
 
-	  		$allCitoyen = PHDB::find ( PHType::TYPE_CITOYEN ,$query ,array("name"));
+	  		$allCitoyen = PHDB::find ( Person::COLLECTION ,$query ,array("name"));
 
 	  		foreach ($allCitoyen as $key => $value) {
 	  			$profil = Document::getLastImageByKey($key, Person::COLLECTION, Document::IMG_PROFIL);
