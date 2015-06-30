@@ -31,8 +31,8 @@ class EntriesAction extends CAction
         '<a href="#" class="newVoteProposal" title="proposer une loi" ><i class="fa fa-paper-plane"></i> PROPOSER</a>',
         '<a href="#voterloiDescForm" role="button" data-toggle="modal" title="lexique pour compendre" ><i class="fa fa-question-circle"></i> AIDE</a>',
         );
-
-      $controller->render( "index", array( "list" => $list,
+      $tpl = ( isset($_GET['tpl']) ) ? $_GET['tpl'] : "index";
+      $controller->render( $tpl, array( "list" => $list,
                                            "where"=>$where,
                                            "user"=>$user,
                                            "isModerator"=>$isModerator,

@@ -20,6 +20,8 @@ class IndexAction extends CAction
 	        }
 	    }
 
+	    $city = PHDB::findOne(City::COLLECTION, array( "insee" => $insee ) );
+
 	    $person = Person::getPublicData($id);
 	    $contentKeyBase = Yii::app()->controller->id.".".Yii::app()->controller->action->id;
 		$limit = array(Document::IMG_PROFIL => 1, Document::IMG_MEDIA => 5);
@@ -32,8 +34,8 @@ class IndexAction extends CAction
 	      array('label' => "ACCUEIL", "key"=>"home","iconClass"=>"fa fa-home","href"=>"communecter/person/dashboard/id/".$id),
 	    );
 
-	    $controller->title = "City Dashboard : ".$insee;
-	    $controller->subTitle = (isset($person["description"])) ? $person["description"] : "";
+	    $controller->title = $city["name"]."'s City Dashboard : ";
+	    $controller->subTitle = (isset($city["description"])) ? $city["description"] : "";
 	    $controller->pageTitle = ucfirst($controller->module->id)." - Informations publiques de ".$controller->title;
 
 	    //Get Projects
