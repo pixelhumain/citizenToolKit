@@ -33,12 +33,27 @@ class Person {
 	 * good practise shouldn't be to heavy
 	 * user = array("name"=>$username)
 	 */
-	public static function saveUserSessionData($id,$email,$user)
+	public static function saveUserSessionData($account)
     {
-      Yii::app()->session["userId"] = $id;
-      Yii::app()->session["userEmail"] = $email;
-      Yii::app()->session["user"] = $user;
-      Yii::app()->session['logguedIntoApp'] = (isset(Yii::app()->controller->module->id)) ? Yii::app()->controller->module->id : "pixelhumain";
+	  	Yii::app()->session["userId"] = (string)$account["_id"];
+	  	Yii::app()->session["userEmail"] = $account["email"];
+
+	  	$name = (isset($account["name"])) ? $account["name"] : "Anonymous" ;
+	    $user = array("name"=>$name);
+
+	    if(isset( $account["cp"] )) 
+	      	$user ["postalCode"] = $account["cp"];
+	    if( isset( $account["address"]) && isset( $account["address"]["postalCode"]) )
+	     	$user ["postalCode"] = $account["address"]["postalCode"];
+	    if( isset( $account["address"]) && isset( $account["address"]["codeInsee"]) )
+	     	$user ["codeInsee"] = $account["address"]["codeInsee"];
+
+	    Yii::app()->session["user"] = $user;
+
+	    if( isset($account["isAdmin"]) && $account["isAdmin"] )
+            Yii::app()->session["userIsAdmin"] = $account["isAdmin"]; 
+
+	    Yii::app()->session['logguedIntoApp'] = (isset(Yii::app()->controller->module->id)) ? Yii::app()->controller->module->id : "communecter";
     }
 
     /**
@@ -235,7 +250,7 @@ class Person {
              "subject" => 'Confirmer votre compte  pour le site '.$this->name,
              "from"=>Yii::app()->params['adminEmail'],
              "to" => (!PH::notlocalServer()) ? Yii::app()->params['adminEmail']: $email,
-             "tplParams" => array( "user"=>$newAccount["_id"] ,
+             "tplParams" => array( "user"=>$account["_id"] ,
                                    "title" => $app->name ,
                                    "logo"  => $app->logoUrl )
         ));*/

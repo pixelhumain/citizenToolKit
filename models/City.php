@@ -2,29 +2,34 @@
 
 class City {
 
-	const COLLECTION_DATA = "cityData";
 	const COLLECTION = "cities";
+	const CONTROLLER = "city";
+	const COLLECTION_DATA = "cityData";
 	const REGION = "region";
 	const DEPARTEMENT = "departement";
 	const COLLECTION_IMPORTHISTORY = "importHistory";
 
 	public static function getWhere($params, $fields=null, $limit=20) 
 	{
-
 	  	$city =PHDB::findAndSort( self::COLLECTION,$params, array("created" =>1), $limit, $fields);
-	  	
 	  	return $city;
 	}
 
 	public static function getWhereData($params, $fields=null, $limit=20) 
 	{
-
-
 	  	$cityData =PHDB::findAndSort( self::COLLECTION_DATA,$params, array("created" =>1), $limit, $fields);
-	  	
 	  	return $cityData;
 	}
 
+	public static function getIdByInsee($insee){
+		$id = null;
+		$where = array("insee" => $insee);
+		$city = self::getWhere($where);
+		foreach ($city as $key => $value) {
+			$id = $value["_id"];
+		}
+		return $id;
+	}
 
 	public static function getCodeRegion($insee){
 		$where = array("insee" => $insee);

@@ -7,17 +7,13 @@ class PhotoVideoAction extends CAction
         $params = array();
 		$params["type"] = $type;
 		if(isset($id)){
-			$params["itemId"] = $id;
+			$params["photoVidId"] = $id;
 			if(isset(Yii::app()->session["userId"]))
 			$params["canEdit"] = Authorisation::canEditItem(Yii::app()->session["userId"], $type, $id);
 		}else if (isset($insee)){
 			$params["insee"] = $insee;
-			$where = array("insee" => $insee);
-			$city = City::getWhere($where);
-			foreach ($city as $key => $value) {
-				$id = $value["_id"];
-			}
-			$params["itemId"] = $id;
+			
+			$params["photoVidId"] = City::getIdByInsee($insee);
 		}
 
 		
