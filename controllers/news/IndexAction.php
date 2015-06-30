@@ -11,19 +11,23 @@ class IndexAction extends CAction
 
         //mongo search cmd : db.news.find({created:{'$exists':1}})	
 
-        if( $type == Project::COLLECTION )
-        {
+        if( $type == Project::COLLECTION ) {
             $controller->toolbarMBZ = array("<a href='".Yii::app()->createUrl("/".$controller->module->id."/project/dashboard/id/".$id)."'><i class='fa fa-lightbulb-o'></i>Project</a>");
             $project = Project::getById($id);
             $controller->title = $project["name"]."'s Timeline";
             $controller->subTitle = "Every Project is story to be told.";
             $controller->pageTitle = "Communecter - ".$controller->title;
-        }
-        else if( $type == Person::COLLECTION ){
+        } else if( $type == Person::COLLECTION ) {
             $controller->toolbarMBZ = array("<a href='".Yii::app()->createUrl("/".$controller->module->id."/person/dashboard/id/".$id)."'><i class='fa fa-user'></i>Person</a>");
             $person = Person::getById($id);
             $controller->title = $person["name"]."'s Timeline";
             $controller->subTitle = "Everyone has story to tell.";
+            $controller->pageTitle = "Communecter - ".$controller->title;
+        } else if( $type == Organization::COLLECTION ) {
+            $controller->toolbarMBZ = array("<a href='".Yii::app()->createUrl("/".$controller->module->id."/organization/dashboard/id/".$id)."'><i class='fa fa-group'></i>Organization</a>");
+            $organization = Organization::getById($id);
+            $controller->title = $organization["name"]."'s Timeline";
+            $controller->subTitle = "Every Organization has story to tell.";
             $controller->pageTitle = "Communecter - ".$controller->title;
         }
 
@@ -34,7 +38,7 @@ class IndexAction extends CAction
         if(isset($id))
         	$where["id"] = $id;
         //var_dump($where);
-		$news = News::getWhereSortLimit( $where, array("created"=>-1) ,30);
+		$news = News::getWhereSortLimit( $where, array("date"=>1) ,30);
 
 		if(Yii::app()->request->isAjaxRequest)
 	        echo $controller->renderPartial("index" , array( "news"=>$news, "userCP"=>Yii::app()->session['userCP'] ),true);

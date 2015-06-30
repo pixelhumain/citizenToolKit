@@ -2,13 +2,52 @@
 class Project {
 
 	const COLLECTION = "projects";
+	
+	//From Post/Form name to database field name
+	private static $dataBinding = array(
+	    "name" => array("name" => "name", "rules" => array("required")),
+	    "address" => array("name" => "address"),
+	    "postalCode" => array("name" => "address.postalCode"),
+	    "city" => array("name" => "address.codeInsee"),
+	    "addressCountry" => array("name" => "address.addressCountry"),
+	    "description" => array("name" => "description"),
+	    "startDate" => array("name" => "startDate", "rules" => array("projectStartDate")),
+	    "endDate" => array("name" => "endDate", "rules" => array("projectEndDate")),
+	    "tags" => array("name" => "tags"),
+	    "url" => array("name" => "url"),
+	    "description" => array("name" => "description"),
+	    "licence" => array("name" => "licence"),
+	);
+
+	private static function getCollectionFieldNameAndValidate($projectFieldName, $projectFieldValue, $projectId) {
+		return DataValidator::getCollectionFieldNameAndValidate(self::$dataBinding, $projectFieldName, $projectFieldValue, $projectId);
+	}
+
 	/**
 	 * get an project By Id
 	 * @param type $id : is the mongoId of the project
 	 * @return type
 	 */
 	public static function getById($id) {
-	  	return PHDB::findOne( self::COLLECTION,array("_id"=>new MongoId($id)));
+	  	$project = PHDB::findOne( self::COLLECTION,array("_id"=>new MongoId($id)));
+	  	
+	  	if (!empty($project["startDate"]) && !empty($project["endDate"])) {
+			if (gettype($project["startDate"]) == "object" && gettype($project["endDate"]) == "object") {
+				//Set TZ to UTC in order to be the same than Mongo
+				date_default_timezone_set('UTC');
+				$project["startDate"] = date('Y-m-d H:i:s', $project["startDate"]->sec);
+				$project["endDate"] = date('Y-m-d H:i:s', $project["endDate"]->sec);	
+			} else {
+				//Manage old date with string on date project
+				$now = time();
+				$yesterday = mktime(0, 0, 0, date("m")  , date("d")-1, date("Y"));
+				$yester2day = mktime(0, 0, 0, date("m")  , date("d")-2, date("Y"));
+				$project["endDate"] = date('Y-m-d H:i:s', $yesterday);
+				$project["startDate"] = date('Y-m-d H:i:s',$yester2day);;
+			}
+		}
+
+	  	return $project;
 	}
 	
 	/**
@@ -122,7 +161,6 @@ class Project {
 	}
 
 	public static function removeProject($projectId, $userId) {
-		
 	    $type = Person::COLLECTION;
 
 	    if (! Authorisation::canEditItem($userId, self::COLLECTION, $projectId)) {
@@ -136,10 +174,16 @@ class Project {
 
         return array("result"=>true, "msg"=>"The project has been removed with success", "projectid"=>$projectId);
     }
-
+	public static function removeTask($projectId,$taskId,$userId){
+		//echo $projectId." ".$taskId;
+		//PHDB::remove(self::COLLECTION,array("_id" => new MongoId($projectId), "task"=> $taskId));
+		$res = PHDB::update( self::COLLECTION, 
+                       array("_id" => new MongoId($projectId)) , 
+                       array('$unset' => array("tasks.".$taskId => 1)));
+        return array("result"=>true, "msg"=>$res);
+	}
     public static function saveChart($properties){
-	    //print_r($properties);
-	    //$member["_id"], $memberType, Yii::app()->session["userId"],
+	    //TODO SABR - Check the properties before inserting
 	    $propertiesList=array(
 							"gouvernance" => $properties["gouvernance"],
 							"local" => $properties["local"],	
@@ -164,14 +208,60 @@ class Project {
 	 * @return boolean True if the update has been done correctly. Can throw CTKException on error.
 	 */
 	public static function updateProjectField($projectId, $projectFieldName, $projectFieldValue, $userId) {  
-		$project = array($projectFieldName => $projectFieldValue);
-		
+		if (!Authorisation::canEditItem($userId, self::COLLECTION, $projectId)) {
+			throw new CTKException(Yii::t("project", "Can not update this project : you are not authorized to update that project !"));	
+		}
+		$dataFieldName = self::getCollectionFieldNameAndValidate($projectFieldName, $projectFieldValue, $projectId);
+	
+		//Specific case : 
+		//Tags
+		if ($dataFieldName == "tags") {
+			$projectFieldValue = Tags::filterAndSaveNewTags($projectFieldValue);
+		}
+
+		//address
+		if ($dataFieldName == "address") {
+			if(!empty($projectFieldValue["postalCode"]) && !empty($projectFieldValue["codeInsee"])) {
+				$insee = $projectFieldValue["codeInsee"];
+				$address = SIG::getAdressSchemaLikeByCodeInsee($insee);
+				$set = array("address" => $address, "geo" => SIG::getGeoPositionByInseeCode($insee));
+			} else {
+				throw new CTKException("Error updating the Project : address is not well formated !");			
+			}
+		//Start Date - End Date
+		} else if ($dataFieldName == "startDate" || $dataFieldName == "endDate") {
+			date_default_timezone_set('UTC');
+			$dt = DateTime::createFromFormat('Y-m-d H:i', $projectFieldValue);
+			if (empty($dt)) {
+				$dt = DateTime::createFromFormat('Y-m-d', $projectFieldValue);
+			}
+			$newMongoDate = new MongoDate($dt->getTimestamp());
+			$set = array($dataFieldName => $newMongoDate);	
+		} else {
+			$set = array($dataFieldName => $projectFieldValue);	
+		}
+
 		//update the project
 		PHDB::update( self::COLLECTION, array("_id" => new MongoId($projectId)), 
-		                          array('$set' => $project));
+		                          array('$set' => $set));
 	                  
 	    return array("result"=>true, "msg"=>"Votre projet a été modifié avec succes", "id"=>$projectId);
 	}
-
+	/**/
+	public static function saveTask($task){
+		$taskArray=array(
+			"name"=> $task["taskName"],
+			"color" => $task["taskColor"],	
+			"startDate" => $task["taskStart"],
+			"endDate" => $task["taskEnd"]
+			);
+		$idTask=new MongoId();
+		//$update=array("task.".$inc.""=>$taskArray);		
+	    PHDB::update(self::COLLECTION,
+			array("_id" => new MongoId($task["projectId"])),
+            array('$set' => array("tasks.".$idTask  => $taskArray))
+        );
+		return array("result"=>true, "msg"=>"Votre task a été ajoutée avec succès","idTask" => $idTask);
+	}
 }
 ?>

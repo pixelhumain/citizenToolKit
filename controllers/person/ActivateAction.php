@@ -13,7 +13,7 @@ class ActivateAction extends CAction
 	    if($account){
 	        Person::saveUserSessionData( $user, $account["email"],array("name"=>$account["name"]));
 	        //remove tobeactivated attribute on account
-	        PHDB::update(PHType::TYPE_CITOYEN,
+	        PHDB::update(Person::COLLECTION,
 	                            array("_id"=>new MongoId($user)), 
 	                            array('$unset' => array("tobeactivated"=>""))
 	                            );

@@ -12,8 +12,8 @@ class SaveContributorAction extends CAction
 				if(preg_match('#^[\w.-]+@[\w.-]+\.[a-zA-Z]{2,6}$#',$_POST['email']))
 				{
 					if($_POST['type'] == "citoyens"){
-						$member = PHDB::findOne( PHType::TYPE_CITOYEN , array("email"=>$_POST['email']));
-						$memberType = PHType::TYPE_CITOYEN;
+						$member = PHDB::findOne( Person::COLLECTION , array("email"=>$_POST['email']));
+						$memberType = Person::COLLECTION;
 					}
 					else
 					{

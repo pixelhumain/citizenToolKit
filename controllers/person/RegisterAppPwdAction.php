@@ -42,7 +42,7 @@ class LoginAction extends CAction
                             //test pwd
                             if( $app["pwd"] == $_POST['registerPwd'] )
                             {
-                                $account = PHDB::findOne(PHType::TYPE_CITOYEN,array("email"=>$_POST['registerEmail']));
+                                $account = PHDB::findOne(Person::COLLECTION,array("email"=>$_POST['registerEmail']));
                                 if($account){
                                     //TODO : check if account is participant in the app
                                     Yii::app()->session["userId"] = $account["_id"];

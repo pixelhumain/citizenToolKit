@@ -2,6 +2,7 @@
 class Person {
 	public $jsonLD= array();
 	const COLLECTION = "citoyens";
+	const CONTROLLER = "person";
 
 	//From Post/Form name to database field name
 	private static $dataBinding = array(
@@ -32,12 +33,27 @@ class Person {
 	 * good practise shouldn't be to heavy
 	 * user = array("name"=>$username)
 	 */
-	public static function saveUserSessionData($id,$email,$user)
+	public static function saveUserSessionData($account)
     {
-      Yii::app()->session["userId"] = $id;
-      Yii::app()->session["userEmail"] = $email;
-      Yii::app()->session["user"] = $user;
-      Yii::app()->session['logguedIntoApp'] = (isset(Yii::app()->controller->module->id)) ? Yii::app()->controller->module->id : "pixelhumain";
+	  	Yii::app()->session["userId"] = (string)$account["_id"];
+	  	Yii::app()->session["userEmail"] = $account["email"];
+
+	  	$name = (isset($account["name"])) ? $account["name"] : "Anonymous" ;
+	    $user = array("name"=>$name);
+
+	    if(isset( $account["cp"] )) 
+	      	$user ["postalCode"] = $account["cp"];
+	    if( isset( $account["address"]) && isset( $account["address"]["postalCode"]) )
+	     	$user ["postalCode"] = $account["address"]["postalCode"];
+	    if( isset( $account["address"]) && isset( $account["address"]["codeInsee"]) )
+	     	$user ["codeInsee"] = $account["address"]["codeInsee"];
+
+	    Yii::app()->session["user"] = $user;
+
+	    if( isset($account["isAdmin"]) && $account["isAdmin"] )
+            Yii::app()->session["userIsAdmin"] = $account["isAdmin"]; 
+
+	    Yii::app()->session['logguedIntoApp'] = (isset(Yii::app()->controller->module->id)) ? Yii::app()->controller->module->id : "communecter";
     }
 
     /**
@@ -77,7 +93,7 @@ class Person {
 	  	$people =PHDB::findAndSort( self::COLLECTION,$params,array("created"),null);
 	}
 	public static function setNameByid($name, $id) {
-		PHDB::update(PHType::TYPE_CITOYEN,
+		PHDB::update(Person::COLLECTION,
 			array("_id" => new MongoId($id)),
             array('$set' => array("name"=> $name))
             );
@@ -176,7 +192,7 @@ class Person {
         }
 
 		//Check if the email of the person is already in the database
-	  	$account = PHDB::findOne(PHType::TYPE_CITOYEN,array("email"=>$person["email"]));
+	  	$account = PHDB::findOne(Person::COLLECTION,array("email"=>$person["email"]));
 	  	if ($account) {
 	  		throw new CTKException("Problem inserting the new person : a person with this email already exists in the plateform");
 	  	}
@@ -219,7 +235,7 @@ class Person {
 	  	$person["tobeactivated"] = true;
 	  	$person["created"] = time();
 
-	  	PHDB::insert( PHType::TYPE_CITOYEN , $person);
+	  	PHDB::insert( Person::COLLECTION , $person);
  
         if (isset($person["_id"])) {
 	    	$newpersonId = (String) $person["_id"];
@@ -234,7 +250,7 @@ class Person {
              "subject" => 'Confirmer votre compte  pour le site '.$this->name,
              "from"=>Yii::app()->params['adminEmail'],
              "to" => (!PH::notlocalServer()) ? Yii::app()->params['adminEmail']: $email,
-             "tplParams" => array( "user"=>$newAccount["_id"] ,
+             "tplParams" => array( "user"=>$account["_id"] ,
                                    "title" => $app->name ,
                                    "logo"  => $app->logoUrl )
         ));*/

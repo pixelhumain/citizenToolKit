@@ -19,7 +19,6 @@ class News {
 	  	return PHDB::findAndSort( self::COLLECTION,$params,$sort,$limit);
 	}
 	
-
 	public static function save($params)
 	{
 		//check a user is loggued 
@@ -36,8 +35,12 @@ class News {
 			$news = array("name" => $_POST["name"],
 						  "text" => $_POST["text"],
 						  "author" => Yii::app()->session["userId"],
+						  "date"=>time(),
 						  "created"=>time());
 
+			if(isset($_POST["date"])){
+				$news["date"] = $_POST["date"];//new MongoDate( strptime('$_POST["date"]', '%d/%m/%y') );
+			}
 			if(isset($_POST["tags"]))
 				$news["tags"] = $_POST["tags"];
 		 	if(isset($_POST["typeId"]))
@@ -91,7 +94,7 @@ class News {
 		    				foreach($groupe["members"] as $contact){
 		    					//recupere les donnes du contact
 								$where = array(	'_id'  => $contact );
-			 					$allContact = PHDB::find(PHType::TYPE_CITOYEN, $where);
+			 					$allContact = PHDB::find(Person::COLLECTION, $where);
 			 					$allContact = $allContact[$contact->__toString()];
 			 					//if(!isset($allContact["name"])) {Rest::json( "pas de name" ); Yii::app()->end(); }
 			 					//ajoute un scope de type "contact" dans la news

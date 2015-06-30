@@ -20,15 +20,14 @@ class DirectoryAction extends CAction
           }
       }
 
-
-      $controller->title = ((isset($person["name"])) ? $person["name"] : "")."'s Directory";
-      $controller->subTitle = (isset($person["description"])) ? $person["description"] : "";
-      $controller->pageTitle = ucfirst($controller->module->id)." - Informations publiques de ".$controller->title;
-
       /* **************************************
       *  PERSON
       ***************************************** */
       $person = Person::getPublicData($id);
+
+      $controller->title = ((isset($person["name"])) ? $person["name"] : "")."'s Directory";
+      $controller->subTitle = (isset($person["description"])) ? $person["description"] : "";
+      $controller->pageTitle = ucfirst($controller->module->id)." - ".$controller->title;
 
       /* **************************************
       *  EVENTS
@@ -83,7 +82,7 @@ class DirectoryAction extends CAction
       if( isset( $person["links"] ) && isset( $person["links"]["knows"] )) {
         foreach ( $person["links"]["knows"] as $key => $member ) {
           $citoyen;
-              if( $member['type'] == PHType::TYPE_CITOYEN )
+              if( $member['type'] == Person::COLLECTION )
               {
                 $citoyen = Person::getPublicData( $key );
                 $profil = Document::getLastImageByKey( $key, Person::COLLECTION, Document::IMG_PROFIL );
