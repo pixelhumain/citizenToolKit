@@ -5,17 +5,22 @@ class EntryAction extends CAction
     {
       $controller=$this->getController();
       $where = array("survey"=>$id);
-      $survey = PHDB::findOne (Survey::PARENT_COLLECTION, array("_id"=>new MongoId ( $id ) ) );
+      $survey = PHDB::findOne (Survey::COLLECTION, array("_id"=>new MongoId ( $id ) ) );
       $where["survey"] = $survey;
       
       $controller->title = "Sondages : ".$survey["name"];
       $controller->subTitle = "Décision démocratiquement simple";
       $controller->pageTitle = "Communecter - Sondages";
 
-      Rest::json( array( 
-        "title" => $survey["name"] ,
-        "content" => $controller->renderPartial( "entry", array("survey"=>$survey), true),
-        "contentBrut" => $survey["message"] ) 
-      );
+      $params = array( 
+            "title" => $survey["name"] ,
+            "content" => $controller->renderPartial( "entry", array( "survey" => $survey ), true),
+            "contentBrut" => $survey["message"],
+            "survey" => $survey ) ;
+      if(!Yii::app()->request->isAjaxRequest){
+          $controller->layout = "//layouts/mainSimple";
+          $controller->render( "entryStandalone", $params );
+      } else
+          Rest::json( $params);
     }
 }

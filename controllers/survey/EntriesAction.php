@@ -18,8 +18,7 @@ class EntriesAction extends CAction
       $survey = PHDB::findOne (Survey::PARENT_COLLECTION, array("_id"=>new MongoId ( $id ) ) );
       $where["survey"] = $survey;
 
-      $user = ( isset( Yii::app()->session["userId"])) ? PHDB::findOne (Person::COLLECTION, array("_id"=>new MongoId ( Yii::app()->session["userId"] ) ) ) : null;
-
+    
       $uniqueVoters = PHDB::count( Person::COLLECTION, array("applications.survey"=>array('$exists'=>true)) );
 
       $controller->title = "Sondages : ".$survey["name"] ;
@@ -34,7 +33,6 @@ class EntriesAction extends CAction
       $tpl = ( isset($_GET['tpl']) ) ? $_GET['tpl'] : "index";
       $controller->render( $tpl, array( "list" => $list,
                                            "where"=>$where,
-                                           "user"=>$user,
                                            "isModerator"=>$isModerator,
                                            "uniqueVoters"=>$uniqueVoters )  );
     }
