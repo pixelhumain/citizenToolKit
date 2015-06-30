@@ -18,14 +18,15 @@ class RegisterAction extends CAction
 		$newPerson = array(
 			'name'=> $name,
 			'email'=>$email,
-			'postalCode'=> $postalCode,
+			'postalCode'=> $postalCode, //TODO : move to address node
 			'pwd'=>$pwd,
 			'city'=>$city);
 
 		try {
 			$res = Person::insert($newPerson, false);
 
-			Person::saveUserSessionData($res["id"],$email,array("name"=>$name));
+			$newPerson["_id"]=$res["id"];
+			Person::saveUserSessionData($newPerson);
 
 		} catch (CTKException $e) {
 			$res = array("result" => false, "msg"=>$e->getMessage());

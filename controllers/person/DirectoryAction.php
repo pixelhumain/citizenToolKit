@@ -20,15 +20,14 @@ class DirectoryAction extends CAction
           }
       }
 
-
-      $controller->title = ((isset($person["name"])) ? $person["name"] : "")."'s Directory";
-      $controller->subTitle = (isset($person["description"])) ? $person["description"] : "";
-      $controller->pageTitle = ucfirst($controller->module->id)." - Informations publiques de ".$controller->title;
-
       /* **************************************
       *  PERSON
       ***************************************** */
       $person = Person::getPublicData($id);
+
+      $controller->title = ((isset($person["name"])) ? $person["name"] : "")."'s Directory";
+      $controller->subTitle = (isset($person["description"])) ? $person["description"] : "";
+      $controller->pageTitle = ucfirst($controller->module->id)." - ".$controller->title;
 
       /* **************************************
       *  EVENTS

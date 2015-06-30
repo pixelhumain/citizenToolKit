@@ -10,20 +10,30 @@ class IndexAction extends CAction
         //check if information is Postal Code restricted 
         if(isset($_GET["cp"]))
           $where["cp"] = $_GET["cp"];
+        
         if( $type )
           $where["parentType"] = $type;
         if( $id )
-          $where["parentId"] = $id;
+            $where["parentId"] = $id;
+        
         $parentTitle = "";
+        $name = "";
         if( $type && $id ){
-          $parent = PHDB::findOneById( $type, $id );
-          if( isset( $parent["name"] ) ){
-            if($type == Organization::COLLECTION)
-              $parentCtrler = Organization::CONTROLLER;
-            else if($type == Person::COLLECTION)
-              $parentCtrler = Person::CONTROLLER;
-            $parentTitle = '<a href="'.Yii::app()->createUrl("/communecter/".$parentCtrler."/dashboard/id/".$id).'">'.$parent["name"]."</a>'s ";
-          }
+            if($type == City::COLLECTION)
+                $parent = PHDB::findOne( $type, array( "insee" =>$id) );
+            else
+                $parent = PHDB::findOneById( $type, $id );
+            if( isset( $parent["name"] ) )
+            {
+                if($type == Organization::COLLECTION)
+                    $parentCtrler = Organization::CONTROLLER;
+                else if($type == Person::COLLECTION)
+                    $parentCtrler = Person::CONTROLLER;
+                else if($type == City::COLLECTION)
+                    $parentCtrler = City::CONTROLLER;
+                $name = $parent["name"];
+                $parentTitle = '<a href="'.Yii::app()->createUrl("/communecter/".$parentCtrler."/dashboard/id/".$id).'">'.$parent["name"]."</a>'s ";
+            }
         }
 
         $list = PHDB::find(Survey::PARENT_COLLECTION, $where );
@@ -32,15 +42,23 @@ class IndexAction extends CAction
 
         $controller->title = $parentTitle."Surveys";
         $controller->subTitle = "Nombres de votants inscrit : ".$uniqueVoters;
-        $controller->pageTitle = "Communecter - Surveys ".$parentTitle;
+        $controller->pageTitle = "Communecter - Surveys ".$name;
 
         $controller->toolbarMBZ = array(
-        '<a href="#" class="newSurvey" title="proposer une " ><i class="fa fa-plus"></i> SURVEY </a>',
+            '<a href="#" class="newSurvey" title="proposer une " ><i class="fa fa-plus"></i> SURVEY </a>',
         );
 
-        $controller->render( "index", array( "list" => $list,
-                                      "where"=>$where,
-                                      "user"=>$user,
-                                      "uniqueVoters"=>$uniqueVoters )  );
+        $tpl = ( isset($_GET['tpl']) ) ? $_GET['tpl'] : "index";
+        $params = array( "list" => $list,
+                          "where"=>$where,
+                          "user"=>$user,
+                          "type"=>$type,
+                          "id"=>$id,
+                          "uniqueVoters"=>$uniqueVoters,
+                          );
+        if(Yii::app()->request->isAjaxRequest)
+            echo $controller->renderPartial( $tpl, $params,true );
+        else
+            $controller->render( $tpl, $params );
     }
 }
