@@ -1,7 +1,7 @@
-<?php 
+<?php
  /**
   * Display the dashboard of the person
-  * @param String $id Not mandatory : if specify, look for the person with this Id. 
+  * @param String $id Not mandatory : if specify, look for the person with this Id.
   * Else will get the id of the person logged
   * @return type
   */
@@ -22,8 +22,8 @@ class DashboardAction extends CAction
 
 	    $person = Person::getPublicData($id);
 	    $contentKeyBase = Yii::app()->controller->id.".".Yii::app()->controller->action->id;
-		$limit = array(Document::IMG_PROFIL => 1, Document::IMG_MEDIA => 5);
-		$images = Document::getListDocumentsURLByContentKey($id, $contentKeyBase, Document::DOC_TYPE_IMAGE, $limit);
+		  $limit = array(Document::IMG_PROFIL => 1, Document::IMG_MEDIA => 5);
+		  $images = Document::getListDocumentsURLByContentKey($id, $contentKeyBase, Document::DOC_TYPE_IMAGE, $limit);
 
 	    $params = array( "person" => $person);
 	    $params['images'] = $images;
@@ -53,14 +53,17 @@ class DashboardAction extends CAction
 	  		}
 	    }
 
-	    
+
 	    //Get the Events
 	  	$events = Authorisation::listEventsIamAdminOf($id);
+      //foreach($events as $event)
+
 	  	$eventsAttending = Event::listEventAttending($id);
 	  	foreach ($eventsAttending as $key => $value) {
 	  		$eventId = (string)$value["_id"];
 	  		if(!isset($events[$eventId])){
 	  			$events[$eventId] = $value;
+          //array_push($events, $value);
 	  		}
 	  	}
 	  	$tags = PHDB::findOne( PHType::TYPE_LISTS,array("name"=>"tags"), array('list'));
@@ -68,30 +71,31 @@ class DashboardAction extends CAction
 	  	//Get the organization where i am member of;
 	  	$organizations = array();
 	    if( isset($person["links"]) && isset($person["links"]["memberOf"])) {
-	    	
+
 	        foreach ($person["links"]["memberOf"] as $key => $member) {
 	            $organization;
 	            if( $member['type'] == Organization::COLLECTION )
 	            {
 	                $organization = Organization::getPublicData( $key );
 	                $profil = Document::getLastImageByKey($key, Organization::COLLECTION, Document::IMG_PROFIL);
-					if($profil !="")
-						$organization["imagePath"]= $profil;
-	                array_push($organizations, $organization );
+        					if($profil !="")
+        						$organization["imagePath"]= $profil;
+
+                  array_push($organizations, $organization );
 	            }
-	       
+
 	         	if(isset($organization["links"]["events"])){
-		  			foreach ($organization["links"]["events"] as $keyEv => $valueEv) {
-		  				$event = Event::getPublicData($keyEv);
-		  				$events[$keyEv] = $event;	
-		  			}
-		  			
-		  		}
-	        }        
+  		  			foreach ($organization["links"]["events"] as $keyEv => $valueEv) {
+  		  				$event = Event::getPublicData($keyEv);
+  		  				$events[$keyEv] = $event;
+                //array_push($events, $event);
+  		  			}
+            }
+	        }
 	        //$randomOrganizationId = array_rand($subOrganizationIds);
 	        //$randomOrganization = Organization::getById( $subOrganizationIds[$randomOrganizationId] );
 	        //$params["randomOrganization"] = $randomOrganization;
-	        
+
 	    }
 	    $people = array();
 	    if( isset($person["links"]) && isset($person["links"]["knows"])) {
@@ -106,15 +110,20 @@ class DashboardAction extends CAction
 	            	array_push($people, $citoyen);
 	            }
 	    	}
-	    	
+
 	    }
 
+      $cleanEvents = array();
+      foreach($events as $key => $event){
+        array_push($cleanEvents, $event);
+      }
+      //var_dump($cleanEvents); die();
 	    $params["countries"] = OpenData::getCountriesList();
 	    $params["listCodeOrga"] = Lists::get(array("organisationTypes"));
 	   	$params["tags"] = $tags;
 	    $params["organizations"] = $organizations;
 	    $params["projects"] = $projects;
-	    $params["events"] = $events;
+	    $params["events"] = $cleanEvents;
 	    $params["people"] = $people;
 
 	    $controller->render("dashboard", $params );
