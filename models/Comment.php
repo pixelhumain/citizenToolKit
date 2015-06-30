@@ -26,10 +26,10 @@ class Comment {
 		$commentTree = array( 
 			"558cfe5d2339f285060041aa" => array(
 				"_id" => new MongoId("558cfe5d2339f285060041aa"),
-				"text" => "Bla bla bla",
+				"text" => "Génial ! On peut voir ça où ?",
 			    "author" => array(
 					    	"id" => "5577e2efa1aa14f08f0041ca",
-					    	"name" => "Sylvain Barbot",
+					    	"name" => "Robert Johnson",
 					    	"imgProfil" => ""),
 			    "created" => 1435303517,
 			    "tags" => array( 
@@ -38,29 +38,29 @@ class Comment {
 			    "replies" => array(
 			    	"558cfe5d2339f285060042bb" => array(
 			    		"_id" => new MongoId("558cfe5d2339f285060042bb"),
-			    		"text" => "Arrête avec tes généralités !",
+			    		"text" => "Viens au local de l'association quand tu veux !",
 					    "author" => array(
 					    	"id" => "5577e2efa1aa14f08f0041ca",
-					    	"name" => "Sylvain Barbot",
+					    	"name" => "Travis Gabriel",
 					    	"imgProfil" => ""),
 					    "created" => 1435303517,
 					    "replies" => array()
 					),
 					"558cfe5d2339f285060042cc" => array(
 						"_id" => new MongoId("558cfe5d2339f285060041cc"),
-			    		"text" => "Tu n'as pas mieux à dire franchement !",
+			    		"text" => "C'est tjs à Trois Bassins ?",
 					    "author" => array(
 					    	"id" => "5577e2efa1aa14f08f0041ca",
-					    	"name" => "Sylvain Barbot",
+					    	"name" => "Robert Johnson",
 					    	"imgProfil" => ""),
 					    "created" => 1435303517,
 					    "replies" => array(
 					    	"558cfe5d2339f285060042bb" => array(
 					    		"_id" => new MongoId("558cfe5d2339f285060042dd"),
-					    		"text" => "Bing bang",
+					    		"text" => "Oui c'est ça",
 							    "author" => array(
 							    	"id" => "5577e2efa1aa14f08f0041ca",
-							    	"name" => "Sylvain Barbot",
+							    	"name" => "Travis Gabriel",
 							    	"imgProfil" => ""),
 							    "created" => 1435303517,
 							    "replies" => array()
@@ -71,7 +71,7 @@ class Comment {
 			),
 			"558cfe5d2339f285060041dd" => array(
 				"_id" => new MongoId("558cfe5d2339f285060041dd"),
-			    "text" => "Oui mais tu as pensais aux pauvres chauffeurs de taxi qui ont payé une licence à 200K€ ?",
+			    "text" => "C'est basé sur quelle technologie ?",
 			    "author" => array(
 					    	"id" => "5577e2efa1aa14f08f0041ca",
 					    	"name" => "Sylvain Barbot",
