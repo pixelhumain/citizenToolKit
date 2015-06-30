@@ -25,6 +25,15 @@ class City {
 	  	return $cityData;
 	}
 
+	public static function getIdByInsee($insee){
+		$id = null;
+		$where = array("insee" => $insee);
+		$city = self::getWhere($where);
+		foreach ($city as $key => $value) {
+			$id = $value["_id"];
+		}
+		return $id;
+	}
 
 	public static function getCodeRegion($insee){
 		$where = array("insee" => $insee);
