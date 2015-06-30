@@ -6,6 +6,7 @@ class City {
 	const COLLECTION = "cities";
 	const REGION = "region";
 	const DEPARTEMENT = "departement";
+	const COLLECTION_IMPORTHISTORY = "importHistory";
 
 	public static function getWhere($params, $fields=null, $limit=20) 
 	{
