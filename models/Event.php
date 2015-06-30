@@ -372,15 +372,15 @@ class Event {
 
 	  		if (!empty($value["startDate"]) && !empty($value["endDate"])) {
 				if (gettype($value["startDate"]) == "object" && gettype($value["endDate"]) == "object") {
-					$events[$key]["startDate"] = date('Y-m-d h:i:s', $value["startDate"]->sec);
-					$events[$key]["endDate"] = date('Y-m-d h:i:s', $value["endDate"]->sec);
+					$events[$key]["startDate"] = date('Y-m-d H:i:s', $value["startDate"]->sec);
+					$events[$key]["endDate"] = date('Y-m-d H:i:s', $value["endDate"]->sec);
 				} else {
 					//Manage old date with string on date value
 					$now = time();
 					$yesterday = mktime(0, 0, 0, date("m")  , date("d")-1, date("Y"));
 					$yester2day = mktime(0, 0, 0, date("m")  , date("d")-2, date("Y"));
-					$events[$key]["endDate"] = date('Y-m-d h:i:s', $yesterday);
-					$events[$key]["startDate"] = date('Y-m-d h:i:s',$yester2day);;
+					$events[$key]["endDate"] = date('Y-m-d H:i:s', $yesterday);
+					$events[$key]["startDate"] = date('Y-m-d H:i:s',$yester2day);;
 				}
 			}
 
