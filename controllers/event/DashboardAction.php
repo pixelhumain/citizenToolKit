@@ -14,9 +14,9 @@ class DashboardAction extends CAction
         $controller->subTitle = (isset($event["description"])) ? $event["description"] : "";
         $controller->pageTitle = ucfirst($controller->module->id)." - ".Yii::t("event","Event's informations")." ".$controller->title;
 
-        $contentKeyBase = $controller->id.".".$controller->action->id; 
+        $contentKeyBase = $controller->id.".".$controller->action->id;
         $images = Document::getListDocumentsURLByContentKey($id, $contentKeyBase, Document::DOC_TYPE_IMAGE);
-        
+
         $organizer = array();
 
         $people = array();
@@ -54,7 +54,7 @@ class DashboardAction extends CAction
             }
           }
         }
-        
+
         if(isset($event["_id"]) && isset(Yii::app()->session["userId"]) && Link::isLinked($event["_id"] , Event::COLLECTION , Yii::app()->session['userId']))
 			$controller->toolbarMBZ = array("<li id='linkBtns'><a href='javascript:;' class='disconnectBtn text-red tooltips' data-name='".$event["name"]."' data-id='".$event["_id"]."' data-type='".Event::COLLECTION."' data-member-id='".Yii::app()->session["userId"]."' data-ownerlink='".Link::person2events."' data-targetlink='".Link::event2person."' data-placement='top' data-original-title='No more Attendee' ><i class='disconnectBtnIcon fa fa-unlink'></i>NO ATTENDING</a></li>" );
 		else
@@ -69,7 +69,8 @@ class DashboardAction extends CAction
         $params["people"] = $people;
         $params["countries"] = OpenData::getCountriesList();
 
-        $params["eventTypes"] = Lists::get(array("eventTypes"))["eventTypes"];
+        $list = Lists::get(array("eventTypes"));
+        $params["eventTypes"] = $list["eventTypes"];
         //$params["admins"] = $admins;
         $controller->render( "dashboard", $params );
     }
