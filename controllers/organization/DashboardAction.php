@@ -5,7 +5,7 @@ class DashboardAction extends CAction
 	/**
 	* Dashboard Organization
 	*/
-    public function run($id) {
+    public function run($id) { 
     	$controller=$this->getController();
 		if (empty($id)) {
 		  throw new CTKException(Yii::t("organisation","The organization id is mandatory to retrieve the organization !"));
@@ -13,7 +13,7 @@ class DashboardAction extends CAction
 
 		$organization = Organization::getPublicData($id);
 		$events = Organization::listEventsPublicAgenda($id);
-		$members = array( 
+		$members = array(
 		  "citoyens"=> array(),
 		  "organizations"=>array()
 		);
@@ -22,7 +22,7 @@ class DashboardAction extends CAction
 		$controller->subTitle = (isset($organization["shortDescripion"])) ? $organization["shortDescripion"] : "";
 		$controller->pageTitle = "Organization ".$controller->title." - ".$controller->subTitle;
 
-		
+
 
 		if(isset($organization["_id"]) && isset(Yii::app()->session["userId"]) && Link::isLinked((string)$organization["_id"], Organization::COLLECTION , Yii::app()->session["userId"]))
 			$controller->toolbarMBZ = array("<li id='linkBtns'><a href='javascript:;' class='removeMemberBtn text-red tooltips' data-name='".$organization["name"]."' data-memberof-id='".$organization["_id"]."' data-member-type='".Person::COLLECTION."' data-member-id='".Yii::app()->session["userId"]."' data-placement='top' data-original-title='Remove from my Organizations' ><i class='disconnectBtnIcon fa fa-unlink'></i>NOT MEMBER</a></li>" );
@@ -36,7 +36,7 @@ class DashboardAction extends CAction
 		$contentKeyBase = Yii::app()->controller->id.".".Yii::app()->controller->action->id;
 		$limit = array(Document::IMG_PROFIL => 1, Document::IMG_MEDIA => 5);
 		$images = Document::getListDocumentsURLByContentKey($id, $contentKeyBase, Document::DOC_TYPE_IMAGE, $limit);
-		
+
 		$params = array( "organization" => $organization);
 		$params["contentKeyBase"] = $contentKeyBase;
 		$params["images"] = $images;

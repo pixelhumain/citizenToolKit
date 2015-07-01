@@ -308,7 +308,7 @@ class Organization {
 		//TODO SBAR = filter data to retrieve only public data	
 		$organization = Organization::getById($id);
 		if (empty($organization)) {
-			throw new CTKException("The organization id is unknown ! Check your URL");
+			//throw new CTKException("The organization id is unknown ! Check your URL");
 		}
 
 		return $organization;

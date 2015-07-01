@@ -1,7 +1,7 @@
-<?php 
+<?php
  /**
   * Display the dashboard of the person
-  * @param String $id Not mandatory : if specify, look for the person with this Id. 
+  * @param String $id Not mandatory : if specify, look for the person with this Id.
   * Else will get the id of the person logged
   * @return type
   */
@@ -22,8 +22,8 @@ class DashboardAction extends CAction
 
 	    $person = Person::getPublicData($id);
 	    $contentKeyBase = Yii::app()->controller->id.".".Yii::app()->controller->action->id;
-		$limit = array(Document::IMG_PROFIL => 1, Document::IMG_MEDIA => 5);
-		$images = Document::getListDocumentsURLByContentKey($id, $contentKeyBase, Document::DOC_TYPE_IMAGE, $limit);
+		  $limit = array(Document::IMG_PROFIL => 1, Document::IMG_MEDIA => 5);
+		  $images = Document::getListDocumentsURLByContentKey($id, $contentKeyBase, Document::DOC_TYPE_IMAGE, $limit);
 
 	    $params = array( "person" => $person);
 	    $params['images'] = $images;
@@ -37,13 +37,14 @@ class DashboardAction extends CAction
 	    $controller->pageTitle = ucfirst($controller->module->id)." - Informations publiques de ".$controller->title;
 
 	    //$controller->pageTitle = "Citoyens ".$controller->title." - ".$controller->subTitle;
-
+	    $controller->toolbarMBZ =array();
 	    if(isset($person["_id"]) && isset(Yii::app()->session["userId"]) && $person["_id"] != Yii::app()->session["userId"]){
 			if(isset($person["_id"]) && isset(Yii::app()->session["userId"]) && Link::isConnected( Yii::app()->session['userId'] , Person::COLLECTION , (string)$person["_id"] , Person::COLLECTION ))
-				$controller->toolbarMBZ = array("<li id='linkBtns'><a href='javascript:;' class='disconnectBtn text-red tooltips' data-name='".$person["name"]."' data-id='".$person["_id"]."' data-type='".Person::COLLECTION."' data-ownerlink='".link::person2person."' data-placement='top' data-original-title='Remove from my contact' ><i class='disconnectBtnIcon fa fa-unlink'></i>UNFOLLOW</a></li>" );
+				array_push($controller->toolbarMBZ, "<li id='linkBtns'><a href='javascript:;' class='disconnectBtn text-red tooltips' data-name='".$person["name"]."' data-id='".$person["_id"]."' data-type='".Person::COLLECTION."' data-ownerlink='".link::person2person."' data-placement='top' data-original-title='Remove from my contact' ><i class='disconnectBtnIcon fa fa-unlink'></i>UNFOLLOW</a></li>" );
 			else
-				$controller->toolbarMBZ = array("<li id='linkBtns'><a href='javascript:;' class='connectBtn tooltips ' id='addKnowsRelation' data-ownerlink='".link::person2person."' data-placement='top' data-original-title='I know this person' ><i class=' connectBtnIcon fa fa-link '></i>FOLLOW</a></li>");
+				array_push($controller->toolbarMBZ, "<li id='linkBtns'><a href='javascript:;' class='connectBtn tooltips ' id='addKnowsRelation' data-ownerlink='".link::person2person."' data-placement='top' data-original-title='I know this person' ><i class=' connectBtnIcon fa fa-link '></i>FOLLOW</a></li>");
 		}
+			array_push($controller->toolbarMBZ, "<a href='".Yii::app()->createUrl("/".$controller->module->id."/event/calendarview/id/".$person["_id"]."/type/".Yii::app()->controller->id)."'><i class='fa fa-calendar'></i>CALENDAR</a>");
 	    //Get Projects
 	    $projects = array();
 	    if(isset($person["links"]["projects"])){
@@ -53,14 +54,17 @@ class DashboardAction extends CAction
 	  		}
 	    }
 
-	    
+
 	    //Get the Events
 	  	$events = Authorisation::listEventsIamAdminOf($id);
+      //foreach($events as $event)
+
 	  	$eventsAttending = Event::listEventAttending($id);
 	  	foreach ($eventsAttending as $key => $value) {
 	  		$eventId = (string)$value["_id"];
 	  		if(!isset($events[$eventId])){
 	  			$events[$eventId] = $value;
+          //array_push($events, $value);
 	  		}
 	  	}
 	  	
@@ -68,30 +72,31 @@ class DashboardAction extends CAction
 	  	//Get the organization where i am member of;
 	  	$organizations = array();
 	    if( isset($person["links"]) && isset($person["links"]["memberOf"])) {
-	    	
+
 	        foreach ($person["links"]["memberOf"] as $key => $member) {
 	            $organization;
 	            if( $member['type'] == Organization::COLLECTION )
 	            {
 	                $organization = Organization::getPublicData( $key );
 	                $profil = Document::getLastImageByKey($key, Organization::COLLECTION, Document::IMG_PROFIL);
-					if($profil !="")
-						$organization["imagePath"]= $profil;
-	                array_push($organizations, $organization );
+        					if($profil !="")
+        						$organization["imagePath"]= $profil;
+
+                  array_push($organizations, $organization );
 	            }
-	       
+
 	         	if(isset($organization["links"]["events"])){
-		  			foreach ($organization["links"]["events"] as $keyEv => $valueEv) {
-		  				$event = Event::getPublicData($keyEv);
-		  				$events[$keyEv] = $event;	
-		  			}
-		  			
-		  		}
-	        }        
+  		  			foreach ($organization["links"]["events"] as $keyEv => $valueEv) {
+  		  				$event = Event::getPublicData($keyEv);
+  		  				$events[$keyEv] = $event;
+                //array_push($events, $event);
+  		  			}
+            }
+	        }
 	        //$randomOrganizationId = array_rand($subOrganizationIds);
 	        //$randomOrganization = Organization::getById( $subOrganizationIds[$randomOrganizationId] );
 	        //$params["randomOrganization"] = $randomOrganization;
-	        
+
 	    }
 	    $people = array();
 	    if( isset($person["links"]) && isset($person["links"]["knows"])) {
@@ -106,15 +111,20 @@ class DashboardAction extends CAction
 	            	array_push($people, $citoyen);
 	            }
 	    	}
-	    	
+
 	    }
 
+      $cleanEvents = array();
+      foreach($events as $key => $event){
+        array_push($cleanEvents, $event);
+      }
+      //var_dump($cleanEvents); die();
 	    $params["countries"] = OpenData::getCountriesList();
 	    $params["listCodeOrga"] = Lists::get(array("organisationTypes"));
 	   	$params["tags"] = Tags::getActiveTags();
 	    $params["organizations"] = $organizations;
 	    $params["projects"] = $projects;
-	    $params["events"] = $events;
+	    $params["events"] = $cleanEvents;
 	    $params["people"] = $people;
 
 	    $controller->render("dashboard", $params );

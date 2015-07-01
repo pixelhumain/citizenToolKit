@@ -6,7 +6,7 @@ class GraphAction extends CAction
       $controller=$this->getController();
       
       $where = array("survey"=>$id);
-      $survey = PHDB::findOne (Survey::PARENT_COLLECTION, array("_id"=>new MongoId ( $id ) ) );
+      $survey = PHDB::findOne (Survey::COLLECTION, array("_id"=>new MongoId ( $id ) ) );
       $where["survey"] = $survey;
       $voteDownCount = (isset($survey[Action::ACTION_VOTE_DOWN."Count"])) ? $survey[Action::ACTION_VOTE_DOWN."Count"] : 0;
       $voteAbstainCount = (isset($survey[Action::ACTION_VOTE_ABSTAIN."Count"])) ? $survey[Action::ACTION_VOTE_ABSTAIN."Count"] : 0;
@@ -23,12 +23,12 @@ class GraphAction extends CAction
 
       Rest::json( array( "title" => "Repartition de  votes : ".$survey["name"] ,
                          "content" => $controller->renderPartial( "graph", array( "name" => $survey["name"],
-                                                                            "voteDownCount" => $voteDownCount,
-                                                                            "voteAbstainCount" => $voteAbstainCount,
-                                                                            "voteUpCount" => $voteUpCount,
-                                                                            "voteUnclearCount" => $voteUnclearCount,
-                                                                            "voteMoreInfoCount" => $voteMoreInfoCount,
-                                                                            ), 
+                                                                                  "voteDownCount" => $voteDownCount,
+                                                                                  "voteAbstainCount" => $voteAbstainCount,
+                                                                                  "voteUpCount" => $voteUpCount,
+                                                                                  "voteUnclearCount" => $voteUnclearCount,
+                                                                                  "voteMoreInfoCount" => $voteMoreInfoCount,
+                                                                                  ), 
                                                             true)));
     }
 }

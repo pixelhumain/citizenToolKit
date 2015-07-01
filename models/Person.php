@@ -28,6 +28,12 @@ class Person {
 	private static function getCollectionFieldNameAndValidate($personFieldName, $personFieldValue) {
 		return DataValidator::getCollectionFieldNameAndValidate(self::$dataBinding, $personFieldName, $personFieldValue);
 	}
+
+	public static function logguedAndValid()
+    {
+    	$user = PHDB::findOneById( self::COLLECTION ,Yii::app()->session["userId"]);
+    	return ( isset( Yii::app()->session["userId"]) && !isset($user["tobeactivated"]) );
+    }
 	/**
 	 * used to save any user session data 
 	 * good practise shouldn't be to heavy
