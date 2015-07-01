@@ -49,11 +49,11 @@ class Action
                     $dbMethod = '$set';
 
                 // "actions": { "groups": { "538c5918f6b95c800400083f": { "voted": "voteUp" }, "538cb7f5f6b95c80040018b1": { "voted": "voteUp" } } } }
-                $map[self::NODE_ACTIONS.".".$collection.".".(string)$element["_id"].".".$action ] = $action ;
+                $map[ self::NODE_ACTIONS.".".$collection.".".(string)$element["_id"].".".$action ] = $action ;
                 //update the user table 
                 //adds or removes an action
-                PHDB::update (Person::COLLECTION, array( "_id" => $user["_id"]), 
-                                                       array( $dbMethod => $map));
+                PHDB::update ( Person::COLLECTION , array( "_id" => $user["_id"]), 
+                                                    array( $dbMethod => $map));
                 if($unset){
                     $dbMethod = '$pull';
                     //decrement when removing an action instance
@@ -69,12 +69,12 @@ class Action
                 
                 PHDB::update ($collection, array("_id" => new MongoId($element["_id"])), 
                                                                             array($dbMethod => array( $action => (string)$user["_id"]),
-                                                                              '$inc'=>array( $action."Count" => $inc)));
+                                                                                  '$inc'=>array( $action."Count" => $inc)));
                 self::addActionHistory( $email , $id, $collection, $action);
                 
                 $res = array( "result"          => true,  
                               "userActionSaved" => true,
-                              "user"            => PHDB::findOne (Person::COLLECTION,array("email" => $email ),array("actions")),
+                              "user"            => PHDB::findOne ( Person::COLLECTION , array("email" => $email ),array("actions")),
                               "element"         => PHDB::findOne ($collection,array("_id" => new MongoId($id) ),array( $action))
                                );
             } else
@@ -111,14 +111,15 @@ class Action
    * return an html according to enttry voting state
    * the total count of votes
    * filtering class
+   * boolean hasVoted
    * @return array
    */
     public static function  voteLinksAndInfos( $logguedAndValid, $value )
     {
-        $res = array("links"=>"",
-                     "totalVote"=>0,
-                     "avoter" => "mesvotes",
-                     "hasVoted" => true);
+        $res = array( "links"=>"",
+                      "totalVote"=>0,
+                      "avoter" => "mesvotes",
+                      "hasVoted" => true);
         //has loged user voted on this entry 
         //vote UPS
         $voteUpActive = ( $logguedAndValid && Action::isUserFollowing($value,Action::ACTION_VOTE_UP) ) ? "active":"";

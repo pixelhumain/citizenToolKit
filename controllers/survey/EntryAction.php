@@ -6,6 +6,7 @@ class EntryAction extends CAction
       $controller=$this->getController();
       $where = array("survey"=>$id);
       $survey = PHDB::findOne (Survey::COLLECTION, array("_id"=>new MongoId ( $id ) ) );
+      PHDB::update (Survey::COLLECTION, array("_id" => new MongoId($id)), array('$inc'=>array( "viewCount" => 1 )));
       $where["survey"] = $survey;
       
       $controller->title = "Sondages : ".$survey["name"];

@@ -37,8 +37,17 @@ class IndexAction extends CAction
         }
 
         $list = PHDB::find(Survey::PARENT_COLLECTION, $where );
+
+        if($type == Person::COLLECTION && Yii::app()->session["userId"] == $id )
+        {
+            //gather all votes I voted on , and that I follow 
+            $where2 = array( Action::ACTION_FOLLOW => $id );
+            $myList = PHDB::find( Survey::COLLECTION , $where2 );
+            array_merge($list,$myList);
+        }
+
         $user = ( isset( Yii::app()->session["userId"])) ? PHDB::findOne (Person::COLLECTION, array("_id"=>new MongoId ( Yii::app()->session["userId"] ) ) ) : null;
-        $uniqueVoters = PHDB::count( Person::COLLECTION, array("applications.survey"=>array('$exists'=>true)) );
+        $uniqueVoters = PHDB::count( Person::COLLECTION, array( "applications.survey" => array('$exists'=>true) ) );
 
         $controller->title = $parentTitle."Surveys";
         $controller->subTitle = "Nombres de votants inscrit : ".$uniqueVoters;
