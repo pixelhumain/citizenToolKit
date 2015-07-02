@@ -38,7 +38,6 @@ class Action
         if($user && $element)
         {
             //check user hasn't allready done the action
-            
             if( $unset 
                 || !isset( $element[ $action ] ) 
                 || ( isset( $element[ $action ] ) && !in_array( (string)$user["_id"] , $element[ $action ] ) ) )
