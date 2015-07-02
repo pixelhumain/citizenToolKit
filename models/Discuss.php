@@ -20,34 +20,26 @@ class Discuss {
 	}
 
 	/**
-	 * get the discuss By parent Id and parent Type
-	 * @param String $id : is the mongoId of the discuss
+	 * get the discussions inside discussion room by discussion room id
+	 * @param String $id : is the mongoId of the discuss room
 	 * @param boolean $withComments : true, will build a comments tree
 	 * @return array of discuss
 	 */
-	public static function getByParentIdAndType($parentId, $parentType, $withComments = null) {
-	  	$discussList = PHDB::find( self::COLLECTION,
-	  							array("parentId" => $parentId,
-	  								  "parentType" => $parentType));
+	public static function getDiscussListOfDiscussRoom($id, $withComments = null) {
 	  	
-	  	if ($withComments) {
-	  		foreach ($discussList as $discussId => $discuss) {
-	  			$comments = Comment::buildCommentsTree($discussId, self::COLLECTION);
-	  			$discussList["$discussId"]["comments"] = $comments;
-	  		}
-	  	}
+		  	$discussList = PHDB::find( self::COLLECTION,
+		  							array("parentId" => $id,
+		  								  "parentType" => self::COLLECTION));
+		  	
+		  	if ($withComments) {
+		  		foreach ($discussList as $discussId => $discuss) {
+		  			$comments = Comment::buildCommentsTree($discussId, self::COLLECTION);
+		  			$discussList["$discussId"]["comments"] = $comments;
+		  		}
+		  	}
 
 	  	return $discussList;
 	}
-
-	public static function getWhere($params) {
-	  	return PHDB::findAndSort( self::COLLECTION,$params);
-	}
-
-	public static function getWhereSortLimit($params,$sort,$limit=1) {
-	  	return PHDB::findAndSort( self::COLLECTION,$params,$sort,$limit);
-	}
-	
 
 	public static function save($params)
 	{

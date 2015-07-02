@@ -79,8 +79,8 @@ class DashboardAction extends CAction
 	            {
 	                $organization = Organization::getPublicData( $key );
 	                $profil = Document::getLastImageByKey($key, Organization::COLLECTION, Document::IMG_PROFIL);
-        					if($profil !="")
-        						$organization["imagePath"]= $profil;
+					if($profil !="")
+						$organization["imagePath"]= $profil;
 
                   array_push($organizations, $organization );
 	            }

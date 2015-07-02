@@ -4,7 +4,7 @@ class Person {
 	const COLLECTION = "citoyens";
 	const CONTROLLER = "person";
 
-	//From Post/Form name to database field name
+	//From Post/Form name to database field name with rules
 	private static $dataBinding = array(
 	    "name" => array("name" => "name", "rules" => array("required")),
 	    "birthDate" => array("name" => "birthDate", "rules" => array("required")),
@@ -23,11 +23,7 @@ class Person {
 	    "gpplusAccount" => array("name" => "socialNetwork.googleplus"),
 	    "gitHubAccount" => array("name" => "socialNetwork.github"),
 	    "skypeAccount" => array("name" => "socialNetwork.skype"),
-	);
-
-	private static function getCollectionFieldNameAndValidate($personFieldName, $personFieldValue) {
-		return DataValidator::getCollectionFieldNameAndValidate(self::$dataBinding, $personFieldName, $personFieldValue);
-	}
+	);	
 
 	public static function logguedAndValid()
     {
@@ -53,6 +49,13 @@ class Person {
 	     	$user ["postalCode"] = $account["address"]["postalCode"];
 	    if( isset( $account["address"]) && isset( $account["address"]["codeInsee"]) )
 	     	$user ["codeInsee"] = $account["address"]["codeInsee"];
+	    if( isset( $account["profilImageUrl"]))
+	     	$user ["profilImageUrl"] = $account["profilImageUrl"];
+		
+		//Image profil
+	    $simpleUser = self::getSimpleUserById((string)$account["_id"]);
+	    if( isset( $simpleUser["profilImageUrl"]))
+	     	$user ["profilImageUrl"] = $simpleUser["profilImageUrl"];
 
 	    Yii::app()->session["user"] = $user;
 
@@ -90,15 +93,39 @@ class Person {
 				date_default_timezone_set('UTC');
 				$person["birthDate"] = date('Y-m-d H:i:s', $person["birthDate"]->sec);
 			}
+			$profil = Document::getLastImageByKey($id, self::COLLECTION, Document::IMG_PROFIL);
+			$person["profilImageUrl"] = $profil;
         }
 
 	  	return $person;
 	}
 
+	/**
+	 * Retrieve a simple user (id, name, profilImageUrl) by id from DB
+	 * @param String $id of the person
+	 * @return array with data id, name, profilImageUrl
+	 */
+	public static function getSimpleUserById($id) {
+		
+		$simplePerson = array();
+		$person = PHDB::findOneById( self::COLLECTION ,$id, array("id" => 1, "name" => 1) );
+
+		$simplePerson["id"] = $id;
+		$simplePerson["name"] = @$person["name"];
+		$profil = Document::getLastImageByKey($id, self::COLLECTION, Document::IMG_PROFIL);
+		$simplePerson["profilImageUrl"] = $profil;
+		
+		return $simplePerson;
+
+	}
+
+	//TODO SBAR => should be private ?
 	public static function getWhere($params) {
 	  	$people =PHDB::findAndSort( self::COLLECTION,$params,array("created"),null);
 	}
-	public static function setNameByid($name, $id) {
+	
+	//TODO SBAR - To delete ?
+	private static function setNameByid($name, $id) {
 		PHDB::update(Person::COLLECTION,
 			array("_id" => new MongoId($id)),
             array('$set' => array("name"=> $name))
@@ -381,6 +408,11 @@ class Person {
 		                          array('$set' => $set));
 	              
 	    return true;
+	}
+
+	//Test and Valide a field name using the data validator
+	private static function getCollectionFieldNameAndValidate($personFieldName, $personFieldValue) {
+		return DataValidator::getCollectionFieldNameAndValidate(self::$dataBinding, $personFieldName, $personFieldValue);
 	}
 }
 ?>
