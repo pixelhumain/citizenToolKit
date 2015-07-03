@@ -108,10 +108,11 @@ class Person {
 	public static function getSimpleUserById($id) {
 		
 		$simplePerson = array();
-		$person = PHDB::findOneById( self::COLLECTION ,$id, array("id" => 1, "name" => 1) );
+		$person = PHDB::findOneById( self::COLLECTION ,$id, array("id" => 1, "name" => 1, "email" => 1) );
 
 		$simplePerson["id"] = $id;
 		$simplePerson["name"] = @$person["name"];
+		$simplePerson["email"] = @$person["email"];
 		$profil = Document::getLastImageByKey($id, self::COLLECTION, Document::IMG_PROFIL);
 		$simplePerson["profilImageUrl"] = $profil;
 		

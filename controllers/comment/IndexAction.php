@@ -1,27 +1,27 @@
 <?php
 class IndexAction extends CAction
 {
-    public function run($contexttype, $contextid)
+    public function run($type, $id)
     {
         $controller=$this->getController();
 
         $params = array();
 
-        $comments = Comment::buildCommentsTree($contextid, $contexttype);
+        $comments = Comment::buildCommentsTree($id, $type);
         $params['comments'] = $comments;
 
-        $params["contextType"] = "$contexttype";
+        $params["contextType"] = "$type";
 
-        if($contexttype == Event::COLLECTION) {
-            $params["context"] = Event::getById($contextid);
-        } else if($contexttype == Project::COLLECTION) {
-            $params["context"] = Project::getById($contextid);
-        } else if($contexttype == Organization::COLLECTION) {
-            $params["context"] = Organization::getById($contextid);
-        } else if($contexttype == Person::COLLECTION) {
-            $params["context"] = Person::getById($contextid);
-        } else if($contexttype == News::COLLECTION) {
-            $params["context"] = News::getById($contextid);
+        if($type == Event::COLLECTION) {
+            $params["context"] = Event::getById($id);
+        } else if($type == Project::COLLECTION) {
+            $params["context"] = Project::getById($id);
+        } else if($type == Organization::COLLECTION) {
+            $params["context"] = Organization::getById($id);
+        } else if($type == Person::COLLECTION) {
+            $params["context"] = Person::getById($id);
+        } else if($type == News::COLLECTION) {
+            $params["context"] = News::getById($id);
         }
         
 		if(Yii::app()->request->isAjaxRequest)
