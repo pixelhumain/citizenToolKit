@@ -27,8 +27,14 @@ class Action
     - can only add an action once vote , purchase, .. 
     - check user and element existance 
     - QUESTION : should actions be application inside
+    $userId : is the user tdoing the action
+    $id : the id of the element it applied on  
+    $collection : location of the element 
+    $action : what action 
+    $unset : 
+    $multiple
      */
-    public static function addAction( $userId=null , $id=null, $collection=null, $action=null, $unset=false  )
+    public static function addAction( $userId=null , $id=null, $collection=null, $action=null, $unset=false, $multiple=false  )
     {
         $res = array("result" => false);
         //TODO : should be the loggued user
@@ -41,7 +47,8 @@ class Action
             //check user hasn't allready done the action
             if( $unset 
                 || !isset( $element[ $action ] ) 
-                || ( isset( $element[ $action ] ) && !in_array( (string)$user["_id"] , $element[ $action ] ) ) )
+                || ( !$multiple && isset( $element[ $action ] ) && !in_array( (string)$user["_id"] , $element[ $action ] )
+                || $multiple ) )
             {
                 if($unset)
                     $dbMethod = '$unset';
