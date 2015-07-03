@@ -22,6 +22,10 @@ class IndexAction extends CAction
             $params["context"] = Person::getById($id);
         } else if($type == News::COLLECTION) {
             $params["context"] = News::getById($id);
+        } else if($type == Survey::COLLECTION) {
+            $params["context"] = Survey::getById($id);
+        } else if($type == ActionRoom::COLLECTION) {
+            $params["context"] = ActionRoom::getById($id);
         }
         
 		if(Yii::app()->request->isAjaxRequest)

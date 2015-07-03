@@ -8,8 +8,12 @@ class Survey
 	const COLLECTION = "surveys";
 	const PARENT_COLLECTION = "actionRooms";
 
-	
-     public static function moderateEntry($params) {
+	public static function getById($id) {
+		$survey = PHDB::findOneById( self::COLLECTION ,$id );
+		return $survey;
+	}
+
+    public static function moderateEntry($params) {
      	$res = array( "result" => false );
      	//check if user is set as admin
      	if( isset( Yii::app()->session["userId"] ))
