@@ -22,16 +22,17 @@ class Action
     const ACTION_ASK_EXPERTISE  = "expertiseRequest";*/
     const ACTION_COMMENT        = "comment";
     const ACTION_FOLLOW         = "follow";
+
    /*
     - can only add an action once vote , purchase, .. 
     - check user and element existance 
     - QUESTION : should actions be application inside
      */
-    public static function addAction( $email=null , $id=null, $collection=null, $action=null, $unset=false  )
+    public static function addAction( $userId=null , $id=null, $collection=null, $action=null, $unset=false  )
     {
         $res = array("result" => false);
         //TODO : should be the loggued user
-        $user = PHDB::findOne (Person::COLLECTION, array("email" => $email ));
+        $user = Person::getById($userId);
         //TODO : generic not only groups
         $element = ($id) ? PHDB::findOne ($collection, array("_id" => new MongoId($id) )) : null;
         $res = array('result' => false , 'msg'=>'something somewhere went terribly wrong');
@@ -65,18 +66,17 @@ class Action
                     //increment according to specifications
                     $inc = 1;
                 }
-                
                 PHDB::update ($collection, array("_id" => new MongoId($element["_id"])), 
-                                                                            array($dbMethod => array( $action => (string)$user["_id"]),
-                                                                                  '$inc'=>array( $action."Count" => $inc)));
-                self::addActionHistory( $email , $id, $collection, $action);
+                                           array( $dbMethod => array( $action => (string)$user["_id"]),
+                                                  '$inc'=>array( $action."Count" => $inc)));
+                self::addActionHistory( $userId , $id, $collection, $action);
                 
                 $res = array( "result"          => true,  
                               "userActionSaved" => true,
-                              "user"            => PHDB::findOne ( Person::COLLECTION , array("email" => $email ),array("actions")),
+                              "user"            => PHDB::findOne ( Person::COLLECTION , array("_id" => new MongoId( $userId ) ),array("actions")),
                               "element"         => PHDB::findOne ($collection,array("_id" => new MongoId($id) ),array( $action))
                                );
-            } else
+            } else 
                 $res = array( "result" => true,  "userAllreadyDidAction" => true );
         }
         return $res;
@@ -87,12 +87,12 @@ class Action
     on a given item
     in time we could also use it as a base for undoing tasks
      */
-    public static function addActionHistory($email=null , $id=null, $collection=null, $action=null){
-    	$currentAction = array( "who"=> $email,
-                						"self" => $action,
-                						"collection" => $collection,
-                						"ojectId" => $id,
-                						"created"=>time()
+    public static function addActionHistory($userId=null , $id=null, $collection=null, $action=null){
+    	$currentAction = array( "who"=> $userId,
+        						"self" => $action,
+        						"collection" => $collection,
+        						"ojectId" => $id,
+        						"created"=>time()
                 					);
         PHDB::insert( PHType::TYPE_ACTIVITYSTREAM, $currentAction );
     }

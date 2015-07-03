@@ -8,7 +8,7 @@ class AddActionAction extends CAction
 {
     public function run()
     {
-        $res = Action::addAction($_POST['email'] , $_POST['id'], $_POST['collection'],$_POST['action'], isset( $_POST['unset'] ) );
+        $res = Action::addAction($_POST['userId'] , $_POST['id'], $_POST['collection'],$_POST['action'], isset( $_POST['unset'] ) );
         Rest::json( $res );
         Yii::app()->end();
     }
