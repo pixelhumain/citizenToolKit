@@ -3,6 +3,20 @@ class Comment {
 
 	const COLLECTION = "comments";
 	
+	//From Post/Form name to database field name
+	private static $dataBinding = array(
+	    "content" => array("name" => "text", "rules" => array("required")),
+	    "author" => array("name" => "author"),
+	    "tags" => array("name" => "tags"),
+	    "contextId" => array("name" => "contextId", "rules" => array("required")),
+	    "contextType" => array("name" => "contextType", "rules" => array("required")),
+	    "parentId" => array("name" => "parentId")
+	);
+
+	private static function getCollectionFieldNameAndValidate($commentFieldName, $commentFieldValue, $commentId) {
+		return DataValidator::getCollectionFieldNameAndValidate(self::$commentBinding, $commentFieldName, $commentFieldValue);
+	}
+
 	/**
 	 * get a comment By Id
 	 * @param String $id : is the string representation of the mongoId of the comment
@@ -10,6 +24,11 @@ class Comment {
 	 */
 	public static function getById($id) {
 	  	$comment = PHDB::findOne( self::COLLECTION,array("_id"=>new MongoId($id)));
+	  	
+	  	if (isset($comment)) {
+	  		$comment["author"] = Person::getSimpleUserById($comment["author"]);
+	  	}
+
 	  	return $comment;
 	}
 
@@ -21,9 +40,80 @@ class Comment {
 	  	return PHDB::findAndSort( self::COLLECTION,$params,$sort,$limit);
 	}
 	
+	public static function insert($comment, $userId) {
+		//TODO SBAR - add check
+		$newComment = array(
+			"contextId" => $comment["contextId"],
+			"contextType" => $comment["contextType"],
+			"parentId" => @$comment["parentCommentId"],
+			"text" => $comment["content"],
+			"created" => time(),
+			"author" => $userId,
+			"tags" => @$comment["tags"]
+		);
 
-	public static function buildCommentsTree($parentId, $parentType) {
-		$commentTree = array( 
+		PHDB::insert(self::COLLECTION,$newComment);
+		
+		$newComment["author"] = Person::getSimpleUserById($newComment["author"]);
+		$res = array("result"=>true, "msg"=>"The comment has been posted", "newComment" => $newComment, "id"=>$newComment["_id"]);
+		
+		//Increment comment count (can have multiple comment by user)
+		$resAction = Action::addAction($userId , $comment["contextId"], $newComment["contextType"], Action::ACTION_COMMENT, false, true) ;
+		if (! $resAction["result"]) {
+			$res = array("result"=>false, "msg"=>"Something went really bad");
+		}
+
+		return $res;
+	}
+
+	/**
+	 * Build a comment tree link to a context
+	 * @param String $contextId The context object of the comment. 
+	 * @param String $contextType The context object type. Can be anything 
+	 * @return array of comment organize in tree
+	 */
+	public static function buildCommentsTree($contextId, $contextType) {
+		
+		$commentTree = array();
+		//1. Retrieve all comments of that context that are, root of the comment tree (parentId = "" or empty)
+		$where = array(
+					"contextId" => $contextId, 
+					"contextType" => $contextType, 
+					'$or' => array(
+								array("parentId" => ""), 
+								array("parentId" => array('$exists' => false))
+							)
+					);
+		$sort = array("created" => -1);
+		$commentsRoot = PHDB::findAndSort(self::COLLECTION, $where,$sort);
+
+		foreach ($commentsRoot as $commentId => $comment) {
+			//2. Get all the children of the comments recurslivly
+			$subComments = self::getSubComments($commentId);
+			$comment["author"] = Person::getSimpleUserById($comment["author"]);
+			$comment["replies"] = $subComments;
+			$commentTree[$commentId] = $comment;
+		}
+	
+		return $commentTree;
+	}
+
+	private static function getSubComments($commentId) {
+		$comments = array();
+
+		$where = array("parentId" => $commentId);
+		$comments = PHDB::find(self::COLLECTION, $where);
+
+		foreach ($comments as $commentId => $comment) {
+			$subComments = self::getSubComments($commentId);
+			$comment["author"] = Person::getSimpleUserById($comment["author"]);
+			$comment["replies"] = $subComments;
+			$comments[$commentId] = $comment;
+		}
+		return $comments;
+	}
+
+	/*$commentTree = array( 
 			"558cfe5d2339f285060041aa" => array(
 				"_id" => new MongoId("558cfe5d2339f285060041aa"),
 				"text" => "Génial ! On peut voir ça où ?",
@@ -82,7 +172,5 @@ class Comment {
 			    ),
 			    "replies" => array()
 			)
-		);
-		return $commentTree;
-	}
+		);*/
 }
