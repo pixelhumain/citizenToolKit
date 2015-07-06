@@ -55,7 +55,15 @@ class Comment {
 		PHDB::insert(self::COLLECTION,$newComment);
 		
 		$newComment["author"] = Person::getSimpleUserById($newComment["author"]);
-		return array("result"=>true, "msg"=>"The comment has been posted", "newComment" => $newComment, "id"=>$newComment["_id"]);	
+		$res = array("result"=>true, "msg"=>"The comment has been posted", "newComment" => $newComment, "id"=>$newComment["_id"]);
+		
+		//Increment comment count (can have multiple comment by user)
+		$resAction = Action::addAction($userId , $comment["contextId"], $newComment["contextType"], Action::ACTION_COMMENT, false, true) ;
+		if (! $resAction["result"]) {
+			$res = array("result"=>false, "msg"=>"Something went really bad");
+		}
+
+		return $res;
 	}
 
 	/**

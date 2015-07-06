@@ -12,11 +12,6 @@ class NetworkAction extends CAction
         "mapColor" => '',  //ex : '#456074', //'#5F8295', //'#955F5F', rgba(69, 116, 88, 0.49)
         "mapOpacity" => 1, //ex : 0.4
 
-        /* *
-         * Provider de fond de carte
-         * http://leaflet-extras.github.io/leaflet-providers/preview/index.html
-         * */
-
         /* MAP LAYERS (FOND DE CARTE) */
         "mapTileLayer" 	  => 'http://{s}.tile.thunderforest.com/landscape/{z}/{x}/{y}.png', //'http://{s}.tile.stamen.com/toner/{z}/{x}/{y}.png'
         "mapAttributions" => '<a href="http://www.opencyclemap.org">OpenCycleMap</a>',	 	//'Map tiles by <a href="http://stamen.com">Stamen Design</a>'
@@ -34,6 +29,7 @@ class NetworkAction extends CAction
         "useHomeButton" => true,
         "useHelpCoordinates" => false,
         "useFullScreen" => true,
+        "useResearchTools" => true,
 
         /* TYPE NON CLUSTERISÉ (liste des types de données à ne pas inclure dans les clusters sur la carte (marker seul))*/
         "notClusteredTag" => array("citoyens"),
