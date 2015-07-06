@@ -57,7 +57,7 @@ class City {
 		$region = self::getCodeRegion($insee);
 		$dep = self::getCodeDepartement($insee);
 		$where = array("region" => $region["region"], "dep" => $dep["dep"]);
-		$cities = self::getWhere($where, $fields , 1000);
+		$cities = self::getWhere($where, $fields , 20);
 		return $cities;
 	}
 
@@ -65,15 +65,28 @@ class City {
 	public static function getDepartementByInsee($insee, $fields, $type){
 		$mapDataDep = array();
 		$cities = self::getDepartementCitiesByInsee($insee);
+
 		foreach ($cities as $key => $value) {
-			$return = array("codeInsee" => $value["insee"]);
-			$where = array("codeInsee.".$value["insee"].".".$type => array( '$exists' => 1 ));
-			$fields = array("codeInsee.".$value["insee"]);
+			$return = array("insee" => $value["insee"]);
+			/*$where = array("codeInsee.".$value["insee"].".".$type => array( '$exists' => 1 ));
+			$fields = array("codeInsee.".$value["insee"]);*/
+
+			$where = array("insee"=>$value["insee"], $type => array( '$exists' => 1 ));
+        	$fields = array();
+
 			$cityData = City::getWhereData($where, $fields);
+			
 			if(isset($cityData)){
-				foreach ($cityData as $k => $v) {
+				/*foreach ($cityData as $k => $v) {
 					$mapDataDep[$value["name"]] = $v["codeInsee"];
-				}
+				}*/
+				foreach ($cityData as $k => $v){
+					//var_dump($v);
+					//var_dump($k);
+                    //if($k == $type)
+                    $mapDataDep[$value["name"]] = array($value["insee"] => array($type => $v[$type] ));
+                }
+                
 			}	
 		}
 		return $mapDataDep;
@@ -85,12 +98,17 @@ class City {
 		$cities = self::getRegionCitiesByInsee($insee);
 		foreach ($cities as $key => $value) {
 			$return = array("codeInsee" => $value["insee"]);
-			$where = array("codeInsee.".$value["insee"].".".$type => array( '$exists' => 1 ));
-			$fields = array("codeInsee.".$value["insee"]);
+			/*$where = array("codeInsee.".$value["insee"].".".$type => array( '$exists' => 1 ));
+			$fields = array("codeInsee.".$value["insee"]);*/
+
+			$where = array("insee"=>$value["insee"], $type => array( '$exists' => 1 ));
+        	$fields = array();
+
 			$cityData = City::getWhereData($where, $fields);
 			if(isset($cityData)){
 				foreach ($cityData as $k => $v) {
-					$mapDataRegion[$value["name"]] = $v["codeInsee"];
+					//$mapDataRegion[$value["name"]] = $v["codeInsee"];
+					$mapDataDep[$value["name"]] = array($value["insee"] => array($type => $v[$type] ));
 				}
 			}
 		}
