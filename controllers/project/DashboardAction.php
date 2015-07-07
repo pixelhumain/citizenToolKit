@@ -16,16 +16,17 @@ class DashboardAction extends CAction
 		else
 			$htmlFollowBtn = "<li id='linkBtns'><a href='javascript:;' class='connectBtn tooltips ' id='addKnowsRelation' data-placement='top' data-ownerlink='".Link::person2projects."' data-targetlink='".Link::project2person."' data-original-title='I know this person' ><i class=' connectBtnIcon fa fa-link '></i>CONTRIBUTE</a></li>";
 
+		$roomCount = PHDB::count(ActionRoom::COLLECTION, array("parentType"=>Project::COLLECTION , "parentId"=>$id));
 	    $controller->toolbarMBZ = array(
 	    	"<a href='".Yii::app()->createUrl("/".$controller->module->id."/news/index/type/projects/id/".$id)."'><i class='fa fa-rss fa-2x'></i>TIMELINE</a>",
-	    	"<a href='".Yii::app()->createUrl("/".$controller->module->id."/discuss/index/type/projects/id/".$id)."'><i class='fa fa-comments-o fa-2x'></i>DISCUSS</a>",
+	    	"<a href='".Yii::app()->createUrl("/".$controller->module->id."/rooms/index/type/projects/id/".$id)."'><span class='badge badge-danger animated bounceIn'>".$roomCount."</span><i class='fa fa-comments-o fa-2x'></i>DISCUSS</a>",
 	    	$htmlFollowBtn
 	    	);
 	    
 	    $controller->subTitle = (isset($project["description"])) ? $project["description"] : "";
 	    $controller->pageTitle = "Communecter - Informations sur le projet ".$controller->title;
 	
-	
+		
 	  	$organizations = array();
 	  	$people = array();
 	  	//$admins = array();

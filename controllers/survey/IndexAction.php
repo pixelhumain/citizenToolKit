@@ -54,7 +54,7 @@ class IndexAction extends CAction
         $controller->pageTitle = "Communecter - Surveys ".$name;
 
         $controller->toolbarMBZ = array(
-            '<a href="#" class="newSurvey" title="proposer une " ><i class="fa fa-plus"></i> SURVEY </a>',
+            '<a href="#" class="newRoom" title="proposer une " ><i class="fa fa-plus"></i> SURVEY </a>',
         );
 
         $tpl = ( isset($_GET['tpl']) ) ? $_GET['tpl'] : "index";

@@ -9,7 +9,7 @@ class DirectoryAction extends CAction
 {
     public function run( $insee=null )
     {
-        $controller=$this->getController();
+      $controller=$this->getController();
         
   		$where = array("address.codeInsee"=>$insee);
   		$params["events"] = Event::getWhere( $where );

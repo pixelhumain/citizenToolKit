@@ -1,7 +1,10 @@
 <?php 
 class ActionRoom {
 
-	const COLLECTION = "actionRooms";
+	const COLLECTION 		= "actionRooms";
+	const TYPE_SURVEY 		= "survey";
+	const TYPE_DISCUSS 		= "discuss";
+	const TYPE_BRAINSTORM 	= "brainstorm";
 	
 	/**
 	 * get a action room By Id
@@ -13,4 +16,7 @@ class ActionRoom {
 	  	return $actionRoom;
 	}
 
+	public static function getWhereSortLimit($params,$sort,$limit=1) {
+	  	return PHDB::findAndSort( self::COLLECTION,$params,$sort,$limit);
+	}
 }
