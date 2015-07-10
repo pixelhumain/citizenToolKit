@@ -7,15 +7,13 @@ class UpdateFieldAction extends CAction
     public function run()
     {
         $controller=$this->getController();
-        if (!empty($_POST["pk"])) {
-          $personId = $_POST["pk"];
-        if (! empty($_POST["name"]) && ! empty($_POST["value"])) {
-          $personFieldName = $_POST["name"];
-          $personFieldValue = $_POST["value"];
-          Person::updatePersonField($personId, $personFieldName, $personFieldValue, Yii::app()->session["userId"] );
+        if (!empty($_POST["pk"])) 
+        {
+            if (! empty($_POST["name"]) && ! empty($_POST["value"])) 
+                $res = Person::updatePersonField($_POST["pk"], $_POST["name"], $_POST["value"], Yii::app()->session["userId"] );
+        } else {
+                $res = array("result"=>false, "error"=>"Something went wrong", $_POST["name"]=>$_POST["value"]);
         }
-        }else{
-          $res = Rest::json(array("result"=>false, "error"=>"Something went wrong", $jobFieldName=>$jobFieldValue));
-        }
+        echo Rest::json($res);
     }
 }

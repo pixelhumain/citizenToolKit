@@ -23,6 +23,7 @@ class Person {
 	    "gpplusAccount" => array("name" => "socialNetwork.googleplus"),
 	    "gitHubAccount" => array("name" => "socialNetwork.github"),
 	    "skypeAccount" => array("name" => "socialNetwork.skype"),
+	    "bgClass" => array("name" => "preferences.bgClass"),
 	);	
 
 	public static function logguedAndValid()
@@ -51,6 +52,8 @@ class Person {
 	     	$user ["codeInsee"] = $account["address"]["codeInsee"];
 	    if( isset( $account["profilImageUrl"]))
 	     	$user ["profilImageUrl"] = $account["profilImageUrl"];
+	    if( isset( $account["preferences"]) && isset($account["preferences"]["bgClass"]) )
+	     	$user ["bg"] = $account["preferences"]["bgClass"];
 		
 		//Image profil
 	    $simpleUser = self::getSimpleUserById((string)$account["_id"]);
@@ -344,7 +347,6 @@ class Person {
 	    return $events;
 	} 
 
-
 	/**
 		* get person Data => need to update
 		* @param type $id : is the mongoId (String) of the person
@@ -370,29 +372,35 @@ class Person {
 	 * @param String $userId 
 	 * @return boolean True if the update has been done correctly. Can throw CTKException on error.
 	 */
-	public static function updatePersonField($personId, $personFieldName, $personFieldValue, $userId) {  
+	public static function updatePersonField($personId, $personFieldName, $personFieldValue, $userId) 
+	{  
 
-		if ($personId != $userId) {
+		if ($personId != $userId) 
 			throw new CTKException("Can not update the person : you are not authorized to update that person !");	
-		}
+
 
 		$dataFieldName = Person::getCollectionFieldNameAndValidate($personFieldName, $personFieldValue);
 	
 		//Specific case : 
 		//Tags
-		if ($dataFieldName == "tags") {
+		if ($dataFieldName == "tags") 
 			$personFieldValue = Tags::filterAndSaveNewTags($personFieldValue);
-		}
+
 		//address
-		if ($dataFieldName == "address") {
-			if(!empty($personFieldValue["postalCode"]) && !empty($personFieldValue["codeInsee"])) {
+		$user = null;
+		if ($dataFieldName == "address") 
+		{
+			if(!empty($personFieldValue["postalCode"]) && !empty($personFieldValue["codeInsee"])) 
+			{
 				$insee = $personFieldValue["codeInsee"];
 				$address = SIG::getAdressSchemaLikeByCodeInsee($insee);
 				$set = array("address" => $address, "geo" => SIG::getGeoPositionByInseeCode($insee));
-			} else {
+			} else 
 				throw new CTKException("Error updating the Person : address is not well formated !");			
-			}
-		} else if ($dataFieldName == "birthDate") {
+
+		} 
+		else if ($dataFieldName == "birthDate") 
+		{
 			date_default_timezone_set('UTC');
 			$dt = DateTime::createFromFormat('Y-m-d H:i', $personFieldValue);
 			if (empty($dt)) {
@@ -400,15 +408,23 @@ class Person {
 			}
 			$newMongoDate = new MongoDate($dt->getTimestamp());
 			$set = array($dataFieldName => $newMongoDate);
-		} else {
+		} 
+		else {
 			$set = array($dataFieldName => $personFieldValue);	
+			if ( $personFieldName == "bgClass") 
+			{
+				//save to session for all page reuse
+				$user = Yii::app()->session["user"];
+				$user["bg"] = $personFieldValue;
+				Yii::app()->session["user"] = $user;
+			} 
 		}
 
 		//update the person
 		PHDB::update( self::COLLECTION, array("_id" => new MongoId($personId)), 
 		                          array('$set' => $set));
 	              
-	    return true;
+	    return array("result"=>true,"user"=>$user,"personFieldName"=>$personFieldName);
 	}
 
 	//Test and Valide a field name using the data validator

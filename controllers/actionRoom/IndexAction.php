@@ -8,6 +8,7 @@ class IndexAction extends CAction
         $controller->title = "Action Rooms";
         $controller->subTitle = "Rooms to think, talk, decide in a group";
         $controller->pageTitle = "Communecter - Action Rooms";
+        $controller->toolbarMBZ = array();
         
         if( $type == Project::COLLECTION ) {
             $controller->toolbarMBZ = array("<a href='".Yii::app()->createUrl("/".$controller->module->id."/project/dashboard/id/".$id)."'><i class='fa fa-lightbulb-o'></i>Project</a>");
