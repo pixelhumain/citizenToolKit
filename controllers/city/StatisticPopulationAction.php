@@ -20,18 +20,18 @@ class StatisticPopulationAction extends CAction
 			$name = $value["name"];
 		}
 
-		/*foreach ($cityData as $key => $value) {
-			foreach ($value as $k => $v) {
-				$cityData = array($name => $v);
-			}
-		}*/
-
 		foreach ($cityData as $key => $value) {
+			foreach ($value as $k => $v) {
+				$cityData = array($name => array($insee => array($k => $v )));
+			}
+		}
+
+		/*foreach ($cityData as $key => $value) {
 			foreach ($value as $k => $v) {
 				if($k == "population")
 				$cityData = array($name => array($insee => array($k => $v )));
 			}
-		}
+		}*/
 
     	$params["cityData"] = $cityData;
 
