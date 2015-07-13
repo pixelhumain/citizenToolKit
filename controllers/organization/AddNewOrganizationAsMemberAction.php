@@ -42,7 +42,8 @@ class AddNewOrganizationAsMemberAction extends CAction
 				$newOrganization = Organization::newOrganizationFromPost($_POST);
 				$res = Organization::createPersonOrganizationAndAddMember($newPerson, $newOrganization, $_POST['parentOrganization']);
 				//notify parent Organization 
-				$creator = Person::getById($userId);
+				$creator = Person::getById(Yii::app()->session['userId']);
+				$newOrganization['id'] = $res["id"];
 	    		Mail::newOrganization($creator,$newOrganization);
 	    		
 				unset(Yii::app()->session["checkCaptcha"]);
@@ -51,6 +52,6 @@ class AddNewOrganizationAsMemberAction extends CAction
 			} 
 	  		return Rest::json(array("result"=>true, "msg"=>Yii::t("organisation", "Your organization has been added with success. Check your mail box : you will recieive soon a mail from us.")));
 		} else 
-	  		return Rest::json(array("result"=>false, "msg"=>Yii::t("organisation", "invalid Captcha Test"));
+	  		return Rest::json( array("result"=>false, "msg"=> Yii::t("organisation", "invalid Captcha Test") ) );
     }
 }

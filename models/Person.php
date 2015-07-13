@@ -24,6 +24,7 @@ class Person {
 	    "gitHubAccount" => array("name" => "socialNetwork.github"),
 	    "skypeAccount" => array("name" => "socialNetwork.skype"),
 	    "bgClass" => array("name" => "preferences.bgClass"),
+	    "bgUrl" => array("name" => "preferences.bgUrl"),
 	);	
 
 	public static function logguedAndValid()
@@ -417,7 +418,14 @@ class Person {
 				$user = Yii::app()->session["user"];
 				$user["bg"] = $personFieldValue;
 				Yii::app()->session["user"] = $user;
-			} 
+			} else if ( $personFieldName == "bgUrl") 
+			{
+				//save to session for all page reuse
+				$user = Yii::app()->session["user"];
+				$user["bgUrl"] = $personFieldValue;
+				Yii::app()->session["user"] = $user;
+			}  
+
 		}
 
 		//update the person
