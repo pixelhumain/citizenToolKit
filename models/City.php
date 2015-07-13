@@ -15,9 +15,13 @@ class City {
 	  	return $city;
 	}
 
-	public static function getWhereData($params, $fields=null, $limit=20) 
+	public static function getWhereData($params, $fields=null, $sort=null, $limit=20) 
 	{
-	  	$cityData =PHDB::findAndSort( self::COLLECTION_DATA,$params, array("created" =>1), $limit, $fields);
+		if($sort == null)
+	  		$cityData =PHDB::findAndSort( self::COLLECTION_DATA,$params, array("created" =>1), $limit, $fields);
+	  	else
+	  		$cityData =PHDB::findAndSort( self::COLLECTION_DATA,$params, $sort, $limit, $fields);
+
 	  	return $cityData;
 	}
 
@@ -48,7 +52,7 @@ class City {
 	public static function getRegionCitiesByInsee($insee, $fields=null){
 		$region = self::getCodeRegion($insee);
 		$where = array("region" => $region["region"]);
-		$cities = self::getWhere($where, $fields, 1000);
+		$cities = self::getWhere($where, $fields , 0);
 		
 		return $cities;
 	}
@@ -57,24 +61,21 @@ class City {
 		$region = self::getCodeRegion($insee);
 		$dep = self::getCodeDepartement($insee);
 		$where = array("region" => $region["region"], "dep" => $dep["dep"]);
-		$cities = self::getWhere($where, $fields , 20);
+		$cities = self::getWhere($where, $fields , 0);
 		return $cities;
 	}
 
 
-	public static function getDepartementByInsee($insee, $fields, $type){
+	public static function getDepartementByInsee($insee, $fields, $type, $sort=null){
 		$mapDataDep = array();
 		$cities = self::getDepartementCitiesByInsee($insee);
 
 		foreach ($cities as $key => $value) {
-			$return = array("insee" => $value["insee"]);
-			/*$where = array("codeInsee.".$value["insee"].".".$type => array( '$exists' => 1 ));
-			$fields = array("codeInsee.".$value["insee"]);*/
-
 			$where = array("insee"=>$value["insee"], $type => array( '$exists' => 1 ));
         	$fields = array();
+        	
 
-			$cityData = City::getWhereData($where, $fields);
+			$cityData = City::getWhereData($where, $fields, $sort);
 			
 			if(isset($cityData)){
 				/*foreach ($cityData as $k => $v) {
@@ -105,14 +106,52 @@ class City {
         	$fields = array();
 
 			$cityData = City::getWhereData($where, $fields);
+			
 			if(isset($cityData)){
 				foreach ($cityData as $k => $v) {
 					//$mapDataRegion[$value["name"]] = $v["codeInsee"];
-					$mapDataDep[$value["name"]] = array($value["insee"] => array($type => $v[$type] ));
+
+					$mapDataRegion[$value["name"]] = array($value["insee"] => array($type => $v[$type] ));
 				}
 			}
 		}
+
 		return $mapDataRegion;
+	}
+
+
+	public static function getDataByListInsee($listInsee, $type){
+		$mapData = array();
+		foreach ($listInsee as $key => $value)
+		{
+			
+			$whereCity = array("insee" => $value);
+			$fieldsCity  = array("name");
+
+			$city = City::getWhere($whereCity , $fieldsCity );
+			foreach ($city as $keyCity => $valueCity) {
+				$name = $valueCity["name"];
+				//var_dump($name);
+			}
+
+			
+
+			$where = array("insee"=>$value, $type => array( '$exists' => 1 ));
+        	$fields = array();
+        	$sort = array($type.".2011.total" => 1);
+
+			$cityData = City::getWhereData($where, $fields, $sort);
+
+			//var_dump($cityData);
+			if(isset($cityData)){
+				foreach ($cityData as $k => $v){
+					//var_dump($k);
+					//var_dump($v);
+					$mapData[$name] = array($value => array($type => $v[$type] ));
+                }  
+			}	
+		}
+		return $mapData;
 	}
 }
 ?>
