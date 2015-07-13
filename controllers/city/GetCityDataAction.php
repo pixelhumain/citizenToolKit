@@ -6,10 +6,9 @@ class GetCityDataAction extends CAction
 	 public function run($insee, $typeData, $type=null)
     {
         
-    	/*$where = array("codeInsee.".$insee.".".$typeData => array( '$exists' => 1 ));
-    	$fields = array("codeInsee.".$insee);*/
-        $where = array("insee"=>$insee, $typeData => array( '$exists' => 1 ));
+    	$where = array("insee"=>$insee, $typeData => array( '$exists' => 1 ));
         $fields = array();
+
     	if(isset($type) && strcmp($type, City::REGION)==0)
     		$cityData = City::getRegionByInsee($insee,$fields, $typeData);
     	else if(isset($type) && strcmp($type, City::DEPARTEMENT)==0)
@@ -23,11 +22,6 @@ class GetCityDataAction extends CAction
     			foreach ($city as $key => $value) {
     				$name = $value["name"];
     			}
-    			/*foreach ($cityData as $key => $value) {
-    				foreach ($value as $k => $v) {
-    					$cityData = array($name => $v);
-    				}
-    			}*/
 
                 foreach ($cityData as $key => $value) {
                     foreach ($value as $k => $v) {
@@ -35,8 +29,6 @@ class GetCityDataAction extends CAction
                         $cityData = array($name => array($insee => array($k => $v )));
                     }
                 }
-    			//$cityData[$city["name"]] = $cityData[0];
-    			//unset($cityData[0]);
     		}
     	Rest::json($cityData);
     }
