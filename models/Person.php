@@ -55,6 +55,8 @@ class Person {
 	     	$user ["profilImageUrl"] = $account["profilImageUrl"];
 	    if( isset( $account["preferences"]) && isset($account["preferences"]["bgClass"]) )
 	     	$user ["bg"] = $account["preferences"]["bgClass"];
+	    if( isset( $account["preferences"]) && isset($account["preferences"]["bgUrl"]) )
+	     	$user ["bgUrl"] = $account["preferences"]["bgUrl"];
 		
 		//Image profil
 	    $simpleUser = self::getSimpleUserById((string)$account["_id"]);
@@ -126,7 +128,7 @@ class Person {
 
 	//TODO SBAR => should be private ?
 	public static function getWhere($params) {
-	  	$people =PHDB::findAndSort( self::COLLECTION,$params,array("created"),null);
+	  	 return PHDB::findAndSort( self::COLLECTION,$params,array("created"),null);
 	}
 	
 	//TODO SBAR - To delete ?

@@ -31,7 +31,7 @@ class City {
 	public static function getIdByInsee($insee){
 		$id = null;
 		$where = array("insee" => $insee);
-		$city = self::getWhere($where);
+		$cities = self::getWhere($where);
 		foreach ($city as $key => $value) {
 			$id = $value["_id"];
 		}

@@ -50,6 +50,10 @@ class Project {
 	  	return $project;
 	}
 	
+	//TODO SBAR => should be private ?
+	public static function getWhere($params) {
+	  	return PHDB::findAndSort( self::COLLECTION, $params, array("created"),null);
+	}
 	/**
 	 * Get an project from an id and return filter data in order to return only public data
 	 * @param type $id 
@@ -57,8 +61,7 @@ class Project {
 	 */
 	public static function getPublicData($id) {
 		//Public datas 
-		$publicData = array (
-		);
+		$publicData = array ();
 
 		//TODO SBAR = filter data to retrieve only publi data	
 		$project = Project::getById($id);
