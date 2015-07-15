@@ -1,6 +1,9 @@
 <?php 
 class Event {
 	const COLLECTION = "events";
+	const CONTROLLER = "event";
+	const ICON = "fa-calendar";
+
 
 	//From Post/Form name to database field name
 	private static $dataBinding = array(

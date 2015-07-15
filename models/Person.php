@@ -3,6 +3,7 @@ class Person {
 	public $jsonLD= array();
 	const COLLECTION = "citoyens";
 	const CONTROLLER = "person";
+	const ICON = "fa-user";
 
 	//From Post/Form name to database field name with rules
 	private static $dataBinding = array(

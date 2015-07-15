@@ -3,6 +3,7 @@ class Organization {
 
 	const COLLECTION = "organizations";
 	const CONTROLLER = "organization";
+	const ICON = "fa-users";
 
 	const TYPE_NGO = "NGO";
 	const TYPE_BUSINESS = "LocalBusiness";

@@ -2,6 +2,8 @@
 class Project {
 
 	const COLLECTION = "projects";
+	const CONTROLLER = "project";
+	const ICON = "fa-lightbulb-o";
 	
 	//From Post/Form name to database field name
 	private static $dataBinding = array(
