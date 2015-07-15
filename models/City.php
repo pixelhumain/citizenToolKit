@@ -119,35 +119,25 @@ class City {
 
 	public static function getDataByListInsee($listInsee, $type){
 		$mapData = array();
-		foreach ($listInsee as $key => $value)
-		{
-			
-			$whereCity = array("insee" => $value);
-			$fieldsCity  = array("name");
+		
+		$where = array("insee"=>array('$in' =>$listInsee) , $type => array( '$exists' => 1 ));
+        $fields = array();
+        $sort = array($type.".2011.total" => -1);
 
+        $cityData = City::getWhereData($where, $fields, 30, $sort);
+		foreach ($cityData as $key => $value) 
+		{
+
+			$whereCity = array("insee" => $value["insee"]);
+			$fieldsCity  = array("name");
 			$city = City::getWhere($whereCity , $fieldsCity );
 			foreach ($city as $keyCity => $valueCity) {
 				$name = $valueCity["name"];
-				//var_dump($name);
 			}
 
-			
-
-			$where = array("insee"=>$value, $type => array( '$exists' => 1 ));
-        	$fields = array();
-        	$sort = array($type.".2011.total" => 1);
-
-			$cityData = City::getWhereData($where, $fields, $sort);
-
-			//var_dump($cityData);
-			if(isset($cityData)){
-				foreach ($cityData as $k => $v){
-					//var_dump($k);
-					//var_dump($v);
-					$mapData[$name] = array($value => array($type => $v[$type] ));
-                }  
-			}	
+			$mapData[$name] = array($value["insee"] => array($type => $value[$type] ));
 		}
+		
 		return $mapData;
 	}
 
