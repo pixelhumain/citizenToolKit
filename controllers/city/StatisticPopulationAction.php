@@ -38,7 +38,7 @@ class StatisticPopulationAction extends CAction
 
 
         if(Yii::app()->request->isAjaxRequest)
-         	$controller->renderPartial("statistiquePop", $params,true);
+         	echo $controller->renderPartial("statistiquePop", $params,true);
      	else
          	$controller->render("statistiquePop",$params);
     }
