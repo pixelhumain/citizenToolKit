@@ -26,13 +26,13 @@ class StatisticPopulationAction extends CAction
   			foreach ($value as $k => $v) 
    			{
    				if($k == $typeData)
-    				$cityData2 = array($name => array($insee => array($k => $v )));
+    				$cityDataTest = array($name => array($insee => array($k => $v )));
    			}
   		}
 
   		$params["nbCitiesDepartement"] = count(City::getDepartementCitiesByInsee($insee));
   		$params["nbCitiesRegion"] = count(City::getRegionCitiesByInsee($insee));
-     	$params["cityData"] = $cityData2;
+     	$params["cityData"] = $cityDataTest;
 
         $params["title"] = "Population/An";
 
