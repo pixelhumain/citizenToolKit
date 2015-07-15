@@ -3,6 +3,12 @@ class Organization {
 
 	const COLLECTION = "organizations";
 	const CONTROLLER = "organization";
+
+	const TYPE_NGO = "NGO";
+	const TYPE_BUSINESS = "LocalBusiness";
+	const TYPE_GROUP = "Group";
+	const TYPE_GOV = "GovernmentOrganization";
+
 	
 	//From Post/Form name to database field name
 	private static $dataBinding = array(
