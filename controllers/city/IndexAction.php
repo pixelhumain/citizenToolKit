@@ -21,6 +21,29 @@ class IndexAction extends CAction
 	    }
 
 	    $city = PHDB::findOne(City::COLLECTION, array( "insee" => $insee ) );
+	    //si la city n'est pas trouvé par son code insee, on cherche avec le code postal
+	    if($city == NULL) $city = PHDB::findOne(City::COLLECTION, array( "cp" => $insee ) );
+
+	    //si la city n'a pas de position geo OU que les lat/lng ne sont pas définit (==0)
+	    if( !isset($city["geo"]) ||
+	    	$city["geo"]["latitude"] == 0.00000000 || $city["geo"]["latitude"] == 0 ||
+	    	$city["geo"]["longitude"] == 0.00000000 || $city["geo"]["longitude"] == 0)
+		    {
+		    	//on recherche la position de la ville via nominatim 
+		    	//(limité à la France pour l'instant, pour être plus précis et trouver plus facilement)
+		    	$url = 'http://nominatim.openstreetmap.org/search?';
+	    	    $params = http_build_query(array('postalcode' => $insee, 'country' => 'france', 'format' => 'json'));
+			    $appel_api = file_get_contents($url.$params);
+			    $resultats = json_decode($appel_api);
+			    
+			    //si nominatim a fournis une réponse, 
+			    //on récupère les coordonnées de la première réponse (même s'il y en a parfois plusieurs)
+			    if(isset($resultats) && isset($resultats[0])){
+				    $city["geo"]["longitude"] = $resultats[0]->lon;
+				    $city["geo"]["latitude"]  = $resultats[0]->lat;
+				}
+
+		    }
 
 	    $person = Person::getPublicData($id);
 	    $contentKeyBase = Yii::app()->controller->id.".".Yii::app()->controller->action->id;
