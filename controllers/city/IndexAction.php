@@ -108,6 +108,7 @@ class IndexAction extends CAction
 	    $params["events"] = $events;
 	    $params["people"] = $people;
 	    $params["insee"] = $insee;
+	    $params["city"] = $city;
 
 	    $controller->render("dashboard", $params );
     }
