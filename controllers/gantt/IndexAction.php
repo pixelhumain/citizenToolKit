@@ -19,8 +19,8 @@ class IndexAction extends CAction
         array_push( $controller->toolbarMBZ, '<a href="#" class="newRoom" title="proposer une " ><i class="fa fa-plus"></i> Room </a>');
 		
         $where = array(
-                    "_id"=>new MongoId($id),
-                    "tasks" =>  array('$exists' => 1));
+                "_id"=>new MongoId($id),
+                "tasks" =>  array('$exists' => 1));
   		$tasks = Gantt::getTasks($where,$type);
         if (isset($year)){
 	        $period=$year;
@@ -44,8 +44,8 @@ class IndexAction extends CAction
 	        $tasks=$newArray;
 		}
 		else
-			$period="Yearly";
-		$params = array( "tasks" => $tasks,  "period" => $period);
+			$period="yearly";
+		$params = array("tasks" => $tasks,  "period" => $period);
 		if(Yii::app()->request->isAjaxRequest)
 	        echo $controller->renderPartial("index", $params,true);
 	    else

@@ -57,8 +57,8 @@ class DashboardAction extends CAction
 	  			}
 	  		}
 	  		// Properties defines the chart of the Project
-	  		if (isset($project["properties"])){
-		  		$properties=$project["properties"];
+	  		if (isset($project["properties"]["chart"])){
+		  		$properties=$project["properties"]["chart"];
 	  		}
 	  		//Tasks will provide the GANTT of the project
 	  		if (isset($project["tasks"])){
