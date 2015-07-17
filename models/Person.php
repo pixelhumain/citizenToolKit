@@ -3,6 +3,7 @@ class Person {
 	public $jsonLD= array();
 	const COLLECTION = "citoyens";
 	const CONTROLLER = "person";
+	const ICON = "fa-user";
 
 	//From Post/Form name to database field name with rules
 	private static $dataBinding = array(
@@ -24,6 +25,7 @@ class Person {
 	    "gitHubAccount" => array("name" => "socialNetwork.github"),
 	    "skypeAccount" => array("name" => "socialNetwork.skype"),
 	    "bgClass" => array("name" => "preferences.bgClass"),
+	    "bgUrl" => array("name" => "preferences.bgUrl"),
 	);	
 
 	public static function logguedAndValid()
@@ -54,6 +56,8 @@ class Person {
 	     	$user ["profilImageUrl"] = $account["profilImageUrl"];
 	    if( isset( $account["preferences"]) && isset($account["preferences"]["bgClass"]) )
 	     	$user ["bg"] = $account["preferences"]["bgClass"];
+	    if( isset( $account["preferences"]) && isset($account["preferences"]["bgUrl"]) )
+	     	$user ["bgUrl"] = $account["preferences"]["bgUrl"];
 		
 		//Image profil
 	    $simpleUser = self::getSimpleUserById((string)$account["_id"]);
@@ -125,7 +129,7 @@ class Person {
 
 	//TODO SBAR => should be private ?
 	public static function getWhere($params) {
-	  	$people =PHDB::findAndSort( self::COLLECTION,$params,array("created"),null);
+	  	 return PHDB::findAndSort( self::COLLECTION,$params,array("created"),null);
 	}
 	
 	//TODO SBAR - To delete ?
@@ -417,7 +421,14 @@ class Person {
 				$user = Yii::app()->session["user"];
 				$user["bg"] = $personFieldValue;
 				Yii::app()->session["user"] = $user;
-			} 
+			} else if ( $personFieldName == "bgUrl") 
+			{
+				//save to session for all page reuse
+				$user = Yii::app()->session["user"];
+				$user["bgUrl"] = $personFieldValue;
+				Yii::app()->session["user"] = $user;
+			}  
+
 		}
 
 		//update the person

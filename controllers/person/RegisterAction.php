@@ -26,7 +26,7 @@ class RegisterAction extends CAction
 			$res = Person::insert($newPerson, false);
 
 			$newPerson["_id"]=$res["id"];
-			Person::saveUserSessionData($newPerson);
+			//Person::saveUserSessionData($newPerson);
 
 		} catch (CTKException $e) {
 			$res = array("result" => false, "msg"=>$e->getMessage());
