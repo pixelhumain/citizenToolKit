@@ -19,7 +19,7 @@ class EditChartAction extends CAction
 							"solidaire" => $properties["solidaire"],
 							"avancement" => $properties["avancement"],
 		);*/
-        $res = Project::saveChart($idProject,$propertiesList);
+        $res = Project::saveChart( $idProject,$propertiesList );
 		echo json_encode(array("result"=>true, "properties"=>$propertiesList, "msg"=>"Ce projet a de nouvelle propriétés"));
         exit;
 	}
