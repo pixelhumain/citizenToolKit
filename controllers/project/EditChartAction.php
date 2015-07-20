@@ -3,7 +3,7 @@ class EditChartAction extends CAction
 {
     public function run() {
 		$controller=$this->getController();
-		$idProject=$_GET["id"];
+		$idProject=$_POST["id"];
 		//echo $idProject;
 		$newProperties=$_POST["chart"];
 		$propertiesList=[];
