@@ -28,7 +28,7 @@ class AddNewOrganizationAsMemberAction extends CAction
 			}
 		}
 	
-		if($captcha){
+		if($captcha) {
 		//Get the person data
 			$newPerson = array(
 				'name'=>$_POST['personName'],
@@ -43,14 +43,14 @@ class AddNewOrganizationAsMemberAction extends CAction
 				$res = Organization::createPersonOrganizationAndAddMember($newPerson, $newOrganization, $_POST['parentOrganization']);
 				//notify parent Organization 
 				$creator = Person::getById($userId);
-	    		Mail::newOrganization($creator,$newOrganization);
 	    		
 				unset(Yii::app()->session["checkCaptcha"]);
 			} catch (CTKException $e) {
 				return Rest::json(array("result"=>false, "msg"=>$e->getMessage()));
 			} 
-	  		return Rest::json(array("result"=>true, "msg"=>Yii::t("organisation", "Your organization has been added with success. Check your mail box : you will recieive soon a mail from us.")));
+	  		return Rest::json(array("result"=>true, 
+	  			"msg"=>Yii::t("organisation", "Your organization has been added with success. Check your mail box : you will recieive soon a mail from us.")));
 		} else 
-	  		return Rest::json(array("result"=>false, "msg"=>Yii::t("organisation", "invalid Captcha Test"));
+	  		return Rest::json(array("result"=>false, "msg"=>Yii::t("organisation", "invalid Captcha Test")));
     }
 }
