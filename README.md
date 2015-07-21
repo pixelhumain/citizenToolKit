@@ -1,6 +1,6 @@
 CTK : Citizen ToolKit 
 ===
-	The modular (H)API driven architecture also called CTK : Citizen ToolKit 
+	The modular (H)API driven architecture also called CTK (Citizen ToolKit) 
 	allows developpers to build efficiently citzen oriented application 
 	starting with function point definitions, then building the corresponding API 
 	and finally building the Front end on any device. 
