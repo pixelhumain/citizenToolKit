@@ -34,7 +34,7 @@ class DirectoryAction extends CAction
       ***************************************** */
       $events = Authorisation::listEventsIamAdminOf($id);
       $eventsAttending = Event::listEventAttending($id);
-      foreach ($eventsAttending as $key => $value) {
+      foreach ( $eventsAttending as $key => $value ) {
         $eventId = (string)$value["_id"];
         if(!isset($events[$eventId])){
           $events[$eventId] = $value;
