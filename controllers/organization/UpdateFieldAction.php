@@ -20,7 +20,7 @@ class UpdateFieldAction extends CAction
 				$organizationFieldValue = $_POST["value"];
 				try {
 					Organization::updateOrganizationField($organizationId, $organizationFieldName, $organizationFieldValue, Yii::app()->session["userId"] );
-					$res = array("result"=>true, "msg"=>Yii::t("organisation", "The organization has been updated"), $organizationFieldName=>$organizationFieldValue);
+					$res = array("result"=>true, "msg"=>Yii::t("organization", "The organization has been updated"), $organizationFieldName=>$organizationFieldValue);
 				} catch (CTKException $e) {
 					$res = array("result"=>false, "msg"=>$e->getMessage(), $organizationFieldName=>$organizationFieldValue);
 				}

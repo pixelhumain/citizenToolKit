@@ -49,8 +49,8 @@ class AddNewOrganizationAsMemberAction extends CAction
 				return Rest::json(array("result"=>false, "msg"=>$e->getMessage()));
 			} 
 	  		return Rest::json(array("result"=>true, 
-	  			"msg"=>Yii::t("organisation", "Your organization has been added with success. Check your mail box : you will recieive soon a mail from us.")));
+	  			"msg"=>Yii::t("organization", "Your organization has been added with success. Check your mail box : you will recieive soon a mail from us.")));
 		} else 
-	  		return Rest::json(array("result"=>false, "msg"=>Yii::t("organisation", "invalid Captcha Test")));
+	  		return Rest::json(array("result"=>false, "msg"=>Yii::t("organization", "invalid Captcha Test")));
     }
 }

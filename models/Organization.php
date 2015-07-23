@@ -76,7 +76,7 @@ class Organization {
 	    if (isset($newOrganization["_id"])) {
 	    	$newOrganizationId = (String) $newOrganization["_id"];
 	    } else {
-	    	throw new CTKException(Yii::t("organisation","Problem inserting the new organization"));
+	    	throw new CTKException(Yii::t("organization","Problem inserting the new organization"));
 	    }
 		
 		//Add the creator as the first member and admin of the organization
@@ -132,13 +132,13 @@ class Organization {
 		}
 
 		if (empty($organization['name'])) {
-			throw new CTKException(Yii::t("organisation","You have to fill a name for your organization"));
+			throw new CTKException(Yii::t("organization","You have to fill a name for your organization"));
 		}
 		
 		// Is There a association with the same name ?
 	    $organizationSameName = PHDB::findOne( Organization::COLLECTION,array( "name" => $organization["name"]));      
 	    if($organizationSameName) { 
-	      throw new CTKException(Yii::t("organisation","An organization with the same name already exist in the plateform"));
+	      throw new CTKException(Yii::t("organization","An organization with the same name already exist in the plateform"));
 	    }
 
 		$newOrganization = array(
@@ -148,7 +148,7 @@ class Organization {
 		);
 		
 		if (empty($organization['type'])) {
-			throw new CTKException(Yii::t("organisation", "You have to fill the type of your organization"));
+			throw new CTKException(Yii::t("organization", "You have to fill the type of your organization"));
 		}
 		$newOrganization["type"] = $organization['type'];
 				  
@@ -221,7 +221,7 @@ class Organization {
 	  	$organization = Organization::getById($id);
 	  	
 	  	if (empty($organization)) {
-            throw new CTKException(Yii::t("organisation", "The organization id is unkown : contact your admin"));
+            throw new CTKException(Yii::t("organization", "The organization id is unkown : contact your admin"));
         }
 	  	if (isset($organization) && isset($organization["links"]) && isset($organization["links"]["members"])) {
 	  		$members = $organization["links"]["members"];
@@ -249,7 +249,7 @@ class Organization {
 		
 		//Check if user is authorized to update
 		if (! Authorisation::isOrganizationAdmin($userId, $organizationId)) {
-			return Rest::json(array("result"=>false, "msg"=>Yii::t("organisation", "Unauthorized Access.")));
+			return Rest::json(array("result"=>false, "msg"=>Yii::t("organization", "Unauthorized Access.")));
 		}
 
 		//Manage tags : save any inexistant tag to DB 
@@ -264,7 +264,7 @@ class Organization {
 	    Notification::saveNotification(array("type"=>"Updated",
 	    						"user"=>$organizationId));
 	                  
-	    return array("result"=>true, "msg"=>Yii::t("organisation", "The organization has been updated"), "id"=>$organizationId);
+	    return array("result"=>true, "msg"=>Yii::t("organization", "The organization has been updated"), "id"=>$organizationId);
 		
 	}
 	
@@ -351,7 +351,7 @@ class Organization {
 		Link::addMember($parentOrganizationId, Organization::COLLECTION, $newOrganization["id"], Organization::COLLECTION, 
 						$newPerson["id"], $isParentOrganizationAdmin);
 		
-		return array("result"=>true, "msg"=>Yii::t("organisation", "The invitation process completed with success"), "id"=>$newOrganization["id"]);;
+		return array("result"=>true, "msg"=>Yii::t("organization", "The invitation process completed with success"), "id"=>$newOrganization["id"]);;
 	}
 
 
@@ -414,7 +414,7 @@ class Organization {
 	 */
 	 public static function updateOrganizationField($organizationId, $organizationFieldName, $organizationFieldValue, $userId){
 	 	if (!Authorisation::isOrganizationAdmin($userId, $organizationId)) {
-			throw new CTKException(Yii::t("organisation", "Can not update this organization : you are not authorized to update that organization !"));	
+			throw new CTKException(Yii::t("organization", "Can not update this organization : you are not authorized to update that organization !"));	
 		}
 		$dataFieldName = Organization::getCollectionFieldNameAndValidate($organizationFieldName, $organizationFieldValue);
 	
