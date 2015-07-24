@@ -22,11 +22,13 @@ class Event {
 	//TODO SBAR - First test to validate data. Move it to DataValidator
   	private static function getCollectionFieldNameAndValidate($eventFieldName, $eventFieldValue, $eventId) {
 		$res = "";
-		if (isset(self::$dataBinding["$eventFieldName"])) {
+		if (isset(self::$dataBinding["$eventFieldName"])) 
+		{
 			$data = self::$dataBinding["$eventFieldName"];
 			$name = $data["name"];
 			//Validate field
-			if (isset($data["rules"])) {
+			if (isset($data["rules"])) 
+			{
 				$rules = $data["rules"];
 				foreach ($rules as $rule) {
 					$isDataValidated = DataValidator::$rule($eventFieldValue, $eventId);
