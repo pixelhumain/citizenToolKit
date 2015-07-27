@@ -25,21 +25,22 @@ class DirectoryAction extends CAction
       ***************************************** */
       $person = Person::getPublicData($id);
 
-      $controller->title = ((isset($person["name"])) ? $person["name"] : "")."'s Directory";
-      $controller->subTitle = (isset($person["description"])) ? $person["description"] : "";
+      $controller->title = "Admin Directory Restricted Zone";
+      $controller->subTitle = "This is a restricted zone";
       $controller->pageTitle = ucfirst($controller->module->id)." - ".$controller->title;
 
       /* **************************************
       *  EVENTS
       ***************************************** */
-      $events = ($id);
-      foreach ( $eventsAttending as $key => $value ) 
-      {
+      $events = array();
+      /*Authorisation::listEventsIamAdminOf($id);
+      $eventsAttending = Event::listEventAttending($id);
+      foreach ($eventsAttending as $key => $value) {
         $eventId = (string)$value["_id"];
         if(!isset($events[$eventId])){
           $events[$eventId] = $value;
         }
-      }
+      }*/
 
       //TODO - SBAR : Pour le dashboard person, affiche t-on les événements des associations dont je suis memebre ?
       //Get the organization where i am member of;
@@ -48,7 +49,7 @@ class DirectoryAction extends CAction
       *  ORGANIZATIONS
       ***************************************** */
       $organizations = array();
-      if( isset($person["links"]) && isset($person["links"]["memberOf"])) 
+      /*if( isset($person["links"]) && isset($person["links"]["memberOf"])) 
       {
         
           foreach ($person["links"]["memberOf"] as $key => $member) 
@@ -75,36 +76,24 @@ class DirectoryAction extends CAction
           //$randomOrganizationId = array_rand($subOrganizationIds);
           //$randomOrganization = Organization::getById( $subOrganizationIds[$randomOrganizationId] );
           //$params["randomOrganization"] = $randomOrganization;
-          
-      }
+      }*/
 
       /* **************************************
       *  PEOPLE
       ***************************************** */
-      $people = array();
-      if( isset( $person["links"] ) && isset( $person["links"]["knows"] )) {
-        foreach ( $person["links"]["knows"] as $key => $member ) {
-              if( $member['type'] == Person::COLLECTION )
-              {
-                $citoyen = Person::getPublicData( $key );
-                $profil = Document::getLastImageByKey( $key, Person::COLLECTION, Document::IMG_PROFIL );
-                if($profil !="" )
-                    $citoyen["imagePath"]= $profil;
-                array_push( $people, $citoyen );
-              }
-        }
-      }
+      $people = Person::getWhere(array( "tobeactivated"=> array('$exists'=>1)));
+      
 
       /* **************************************
       *  PROJECTS
       ***************************************** */
       $projects = array();
-      if(isset($person["links"]["projects"])){
+      /*if(isset($person["links"]["projects"])){
         foreach ($person["links"]["projects"] as $key => $value) {
           $project = Project::getPublicData($key);
           array_push( $projects, $project );
         }
-      }
+      }*/
 
       $params["organizations"] = $organizations;
       $params["projects"] = $projects;

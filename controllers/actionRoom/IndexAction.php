@@ -29,7 +29,8 @@ class IndexAction extends CAction
             $controller->subTitle = "Every Organization thinks, talks & decides.";
             $controller->pageTitle = "Communecter - ".$controller->title;
         }
-        array_push( $controller->toolbarMBZ, '<a href="#" class="newRoom" title="proposer une " ><i class="fa fa-plus"></i> Room </a>');
+        $urlParams = ( isset($type) && isset($id)) ? "/type/".$type."/id/".$id : "";
+        array_push( $controller->toolbarMBZ, '<a href="#" onclick="openSubView(\'Add a Room\', \'/communecter/rooms/editroom'.$urlParams.'\',null,function(){editRoomSV ();})" title="proposer une " ><i class="fa fa-plus"></i> Room </a>');
 
         $where = array("created"=>array('$exists'=>1) ) ;
         if(isset($type))
