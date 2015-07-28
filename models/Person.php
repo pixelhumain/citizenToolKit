@@ -352,9 +352,9 @@ class Person {
 	} 
 
 	/**
-		* get person Data => need to update
-		* @param type $id : is the mongoId (String) of the person
-		* @return a map with : Person's informations, his organizations, events,projects
+	* get person Data => need to update
+	* @param type $id : is the mongoId (String) of the person
+	* @return a map with : Person's informations, his organizations, events,projects
 	*/
 	public static function getPersonMap($id){
 		$person = self::getById($id);
@@ -366,6 +366,22 @@ class Person {
 							"events" => $events
 						);
 		return $personMap;
+	}
+
+	/**
+	* Get Anonymous label name. The label looks like "Citizen of MyCity"
+	* @param type $id : is the mongoId (String) of the person
+	* @return String : The label used when a person is posting anonymously
+	*/
+	public static function getAnonymousName($id){
+		$person = self::getById($id);
+		
+		if (isset($person["address"]["addressLocality"])) {
+			$nameAnonymous = "Citizen of ".$person["address"]["addressLocality"];
+		} else {
+			$nameAnonymous = "Anonymous citizen";
+		}
+		return $nameAnonymous;
 	}
 
 	/**

@@ -17,6 +17,12 @@ class Comment {
 		return DataValidator::getCollectionFieldNameAndValidate(self::$commentBinding, $commentFieldName, $commentFieldValue);
 	}
 
+	//TODO SBAR - Retrieve options from the context object
+	private static $discussOptions = array( 	
+							"tree" => true,
+							"anonymous" => true,
+							"oneCommentOnly" => true); 
+
 	/**
 	 * get a comment By Id
 	 * @param String $id : is the string representation of the mongoId of the comment
@@ -41,6 +47,9 @@ class Comment {
 	}
 	
 	public static function insert($comment, $userId) {
+		//TODO SBAR - Retrieve options from the context object
+		$options = self::$discussOptions;
+
 		//TODO SBAR - add check
 		$newComment = array(
 			"contextId" => $comment["contextId"],
@@ -52,9 +61,13 @@ class Comment {
 			"tags" => @$comment["tags"]
 		);
 
-		PHDB::insert(self::COLLECTION,$newComment);
+		if (self::canUserComment($comment["contextId"], $comment["contextType"], $userId, $options)) {
+			PHDB::insert(self::COLLECTION,$newComment);
+		} else {
+			return array("result"=>false, "msg"=>"The user can not comment on this discussion");
+		}
 		
-		$newComment["author"] = Person::getSimpleUserById($newComment["author"]);
+		$newComment["author"] = self::getCommentAuthor($newComment, $options);
 		$res = array("result"=>true, "msg"=>"The comment has been posted", "newComment" => $newComment, "id"=>$newComment["_id"]);
 		
 		//Increment comment count (can have multiple comment by user)
@@ -72,9 +85,13 @@ class Comment {
 	 * @param String $contextType The context object type. Can be anything 
 	 * @return array of comment organize in tree
 	 */
-	public static function buildCommentsTree($contextId, $contextType) {
-		
+	public static function buildCommentsTree($contextId, $contextType, $userId) {
+
+		$res = array();
 		$commentTree = array();
+		//TODO SBAR - Retrieve options from the context object
+		$options = self::$discussOptions;
+
 		//1. Retrieve all comments of that context that are, root of the comment tree (parentId = "" or empty)
 		$where = array(
 					"contextId" => $contextId, 
@@ -88,89 +105,63 @@ class Comment {
 		$commentsRoot = PHDB::findAndSort(self::COLLECTION, $where,$sort);
 
 		foreach ($commentsRoot as $commentId => $comment) {
-			//2. Get all the children of the comments recurslivly
-			$subComments = self::getSubComments($commentId);
-			$comment["author"] = Person::getSimpleUserById($comment["author"]);
-			$comment["replies"] = $subComments;
+			//Get SubComment if option "tree" is set to true
+			if (@$options["tree"] == true) {
+				//2. Get all the children of the comments recurslivly
+				$subComments = self::getSubComments($commentId, $options);
+				$comment["replies"] = $subComments;
+			} else {
+				$comment["replies"] = array();
+			}
+
+			$comment["author"] = self::getCommentAuthor($comment, $options);
 			$commentTree[$commentId] = $comment;
+
 		}
-	
-		return $commentTree;
+		
+		//3. Manage the oneCommentOnly option
+		$canComment = self::canUserComment($contextId, $contextType, $userId, $options);
+
+		return array("result"=>true, "msg"=>"The comment tree has been retrieved with success", 
+							"options" => $options, "comments"=>$commentTree, "canComment"=>$canComment);
 	}
 
-	private static function getSubComments($commentId) {
+	private static function getSubComments($commentId, $options) {
 		$comments = array();
 
 		$where = array("parentId" => $commentId);
 		$comments = PHDB::find(self::COLLECTION, $where);
 
 		foreach ($comments as $commentId => $comment) {
-			$subComments = self::getSubComments($commentId);
-			$comment["author"] = Person::getSimpleUserById($comment["author"]);
+			$subComments = self::getSubComments($commentId, $options);
+			$comment["author"] = self::getCommentAuthor($comment, $options);
 			$comment["replies"] = $subComments;
 			$comments[$commentId] = $comment;
 		}
 		return $comments;
 	}
 
-	/*$commentTree = array( 
-			"558cfe5d2339f285060041aa" => array(
-				"_id" => new MongoId("558cfe5d2339f285060041aa"),
-				"text" => "Génial ! On peut voir ça où ?",
-			    "author" => array(
-					    	"id" => "5577e2efa1aa14f08f0041ca",
-					    	"name" => "Robert Johnson",
-					    	"imgProfil" => ""),
-			    "created" => 1435303517,
-			    "tags" => array( 
-			        "Culture"
-			    ),
-			    "replies" => array(
-			    	"558cfe5d2339f285060042bb" => array(
-			    		"_id" => new MongoId("558cfe5d2339f285060042bb"),
-			    		"text" => "Viens au local de l'association quand tu veux !",
-					    "author" => array(
-					    	"id" => "5577e2efa1aa14f08f0041ca",
-					    	"name" => "Travis Gabriel",
-					    	"imgProfil" => ""),
-					    "created" => 1435303517,
-					    "replies" => array()
-					),
-					"558cfe5d2339f285060042cc" => array(
-						"_id" => new MongoId("558cfe5d2339f285060041cc"),
-			    		"text" => "C'est tjs à Trois Bassins ?",
-					    "author" => array(
-					    	"id" => "5577e2efa1aa14f08f0041ca",
-					    	"name" => "Robert Johnson",
-					    	"imgProfil" => ""),
-					    "created" => 1435303517,
-					    "replies" => array(
-					    	"558cfe5d2339f285060042bb" => array(
-					    		"_id" => new MongoId("558cfe5d2339f285060042dd"),
-					    		"text" => "Oui c'est ça",
-							    "author" => array(
-							    	"id" => "5577e2efa1aa14f08f0041ca",
-							    	"name" => "Travis Gabriel",
-							    	"imgProfil" => ""),
-							    "created" => 1435303517,
-							    "replies" => array()
-							)
-						)
-					)
-			    )
-			),
-			"558cfe5d2339f285060041dd" => array(
-				"_id" => new MongoId("558cfe5d2339f285060041dd"),
-			    "text" => "C'est basé sur quelle technologie ?",
-			    "author" => array(
-					    	"id" => "5577e2efa1aa14f08f0041ca",
-					    	"name" => "Sylvain Barbot",
-					    	"imgProfil" => ""),
-			    "created" => 1435303517,
-			    "tags" => array( 
-			        "Culture"
-			    ),
-			    "replies" => array()
-			)
-		);*/
+	private static function getCommentAuthor($comment, $options) {
+		//If anonymous option is set the author of the comment will not displayed
+		if (@$options["anonymous"] == true) {
+			$author = array("name" => Person::getAnonymousName($comment["author"]));
+		} else {
+			$author = Person::getSimpleUserById($comment["author"]);
+		}
+		return $author;
+	}
+
+	private static function canUserComment($contextId, $contextType, $userId, $options) {
+		$canComment = true;
+		if (@$options["oneCommentOnly"] == true) {
+			$where = array(
+					"contextId" => $contextId, 
+					"contextType" => $contextType,
+					"author" => $userId);
+			$nbComments = PHDB::count(self::COLLECTION, $where);
+			if ($nbComments > 0) $canComment = false;
+		}
+		return $canComment;
+	}
+
 }
