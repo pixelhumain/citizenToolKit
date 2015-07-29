@@ -228,7 +228,6 @@ class Person {
 		//Check if the email of the person is already in the database
 	  	$account = PHDB::findOne(Person::COLLECTION,array("email"=>$person["email"]));
 	  	if ($account) {
-	  		echo "blablalbla";
 	  		throw new CTKException(Yii::t("person","Problem inserting the new person : a person with this email already exists in the plateform"));
 	  	}
 	  	
