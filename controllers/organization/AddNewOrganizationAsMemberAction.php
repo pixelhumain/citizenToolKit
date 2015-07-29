@@ -41,9 +41,6 @@ class AddNewOrganizationAsMemberAction extends CAction
 			try {
 				$newOrganization = Organization::newOrganizationFromPost($_POST);
 				$res = Organization::createPersonOrganizationAndAddMember($newPerson, $newOrganization, $_POST['parentOrganization']);
-				//notify parent Organization 
-				$creator = Person::getById($userId);
-	    		
 				unset(Yii::app()->session["checkCaptcha"]);
 			} catch (CTKException $e) {
 				return Rest::json(array("result"=>false, "msg"=>$e->getMessage()));

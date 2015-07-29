@@ -7,7 +7,7 @@ class DeleteAction extends CAction
 	public function run($id) {	
 		//get The job Id
 		if (empty($id)) {
-		  throw new CTKException(Yii::t("job","The job posting id is mandatory to retrieve the job posting !"));
+		  throw new CTKException(Yii::t("jobs","The job posting id is mandatory to retrieve the job posting !"));
 		}
 		$res = Job::removeJob($id, Yii::app()->session["userId"]);
 		Rest::json($res);

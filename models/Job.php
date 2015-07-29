@@ -24,7 +24,7 @@ class Job {
 	public static function insertJob($job) {  
 		foreach ($job as $jobFieldName => $jobFieldValue) {
 			if (! Job::checkFieldBeforeUpdate($jobFieldName, $jobFieldValue)) {
-				throw new CTKException(Yii::t("job","Can not insert the job : unknown field ").$jobFieldName);
+				throw new CTKException(Yii::t("jobs","Can not insert the job : unknown field ").$jobFieldName);
 			}
 		}
 		//Manage tags : save any inexistant tag to DB 
@@ -52,21 +52,21 @@ class Job {
 	    	}
 	    	$job = Job::getById($newJobId);
 	    } else {
-	    	throw new CTKException(Yii::t("job","Problem inserting the new job offer"));
+	    	throw new CTKException(Yii::t("jobs","Problem inserting the new job offer"));
 	    }
 	                  
-	    return array("result"=>true, "msg"=>Yii::t("job","Your job offer has been added with succes"), "id"=>$newJobId, "job"=>$job);
+	    return array("result"=>true, "msg"=>Yii::t("jobs","Your job offer has been added with succes"), "id"=>$newJobId, "job"=>$job);
 	}
 
 	public static function updateJob($jobId, $job, $userId) {  
 		
 		if (! Authorisation::isJobAdmin($jobId, $userId)) {
-			throw new CTKException(Yii::t("job","Can not update the job : you are not authorized to update that job offer !"));	
+			throw new CTKException(Yii::t("jobs","Can not update the job : you are not authorized to update that job offer !"));	
 		}
 
 		foreach ($job as $jobFieldName => $jobFieldValue) {
 			if (! Job::checkFieldBeforeUpdate($jobFieldName, $jobFieldValue)) {
-				throw new CTKException(Yii::t("job","Can not insert the job : unknown field ").$jobFieldName);
+				throw new CTKException(Yii::t("jobs","Can not insert the job : unknown field ").$jobFieldName);
 			}
 			//address
 			if ($jobFieldName == "jobLocation.address") {
@@ -76,7 +76,7 @@ class Job {
 					$job["jobLocation"] = array("address" => $address);
 					$job["geo"] = getGeoPositionByInseeCode($insee);
 				} else {
-					throw new CTKException(Yii::t("job","Error updating the Organization : address is not well formated !"));			
+					throw new CTKException(Yii::t("jobs","Error updating the Organization : address is not well formated !"));			
 				}
 				unset($job[$jobFieldName]);
 			} else {
@@ -92,7 +92,7 @@ class Job {
 		PHDB::update( Job::COLLECTION, array("_id" => new MongoId($jobId)), 
 		                          array('$set' => $job));
 	                  
-	    return array("result"=>true, "msg"=>Yii::t("job","Your job offer has been updated with success"), "id"=>$jobId);
+	    return array("result"=>true, "msg"=>Yii::t("jobs","Your job offer has been updated with success"), "id"=>$jobId);
 	}
 
 	/**
@@ -104,13 +104,13 @@ class Job {
 	public static function removeJob($jobId, $userId) {  
 
 		if (! Authorisation::isJobAdmin($jobId, $userId)) {
-			throw new CTKException(Yii::t("job","Can not remove the job : you are not authorized to update that job offer !"));	
+			throw new CTKException(Yii::t("jobs","Can not remove the job : you are not authorized to update that job offer !"));	
 		}
 		
 		//update the job
 		PHDB::remove(Job::COLLECTION, array("_id" => new MongoId($jobId)));
 	                  
-	    return array("result"=>true, "msg"=>Yii::t("job","Your job offer has been deleted with success"));
+	    return array("result"=>true, "msg"=>Yii::t("jobs","Your job offer has been deleted with success"));
 	}
 
 

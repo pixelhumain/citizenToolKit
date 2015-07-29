@@ -32,6 +32,6 @@ class SaveAction extends CAction
 		  	}	
 		}
 	  	
-	  	return Rest::json(array("result"=>true, "msg"=>Yii::t("job","Your job offer has been updated with success"), $jobFieldName=>$jobFieldValue));
+	  	return Rest::json(array("result"=>true, "msg"=>Yii::t("jobs","Your job offer has been updated with success"), $jobFieldName=>$jobFieldValue));
 	}
 }
