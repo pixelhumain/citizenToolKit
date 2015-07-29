@@ -221,13 +221,13 @@ class Person {
 		//Check the minimal data
 	  	foreach ($dataPersonMinimal as $data) {
 	  		if (empty($person["$data"])) 
-	  			throw new CTKException("Problem inserting the new person : ".$data." is missing");
+	  			throw new CTKException(Yii::t("person","Problem inserting the new person : ").$data.Yii::t("person"," is missing"));
 	  	}
 	  	
 	  	$newPerson["name"] = $person["name"];
 
 	  	if(! preg_match('#^[\w.-]+@[\w.-]+\.[a-zA-Z]{2,6}$#',$person["email"])) { 
-	  		throw new CTKException("Problem inserting the new person : email is not well formated");
+	  		throw new CTKException(Yii::t("person","Problem inserting the new person : email is not well formated"));
         } else {
         	$newPerson["email"] = $person["email"];
         }
@@ -235,7 +235,7 @@ class Person {
 		//Check if the email of the person is already in the database
 	  	$account = PHDB::findOne(Person::COLLECTION,array("email"=>$person["email"]));
 	  	if ($account) {
-	  		throw new CTKException("Problem inserting the new person : a person with this email already exists in the plateform");
+	  		throw new CTKException(Yii::t("person","Problem inserting the new person : a person with this email already exists in the plateform"));
 	  	}
 	  	
 	  	if (!empty($person["invitedBy"])) {
@@ -253,7 +253,7 @@ class Person {
 		  		$newPerson["address"] = SIG::getAdressSchemaLikeByCodeInsee($person["city"]);
 		  		$newPerson["geo"] = SIG::getGeoPositionByInseeCode($person["city"]);
 		  	} catch (CTKException $e) {
-		  		throw new CTKException("Problem inserting the new person : unknown city");
+		  		throw new CTKException(Yii::t("person","Problem inserting the new person : unknown city"));
 		  	}
 		}
 	  	return $newPerson;
