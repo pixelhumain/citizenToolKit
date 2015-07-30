@@ -103,6 +103,7 @@ class Comment {
 					);
 		$sort = array("created" => -1);
 		$commentsRoot = PHDB::findAndSort(self::COLLECTION, $where,$sort);
+		$nbComment = PHDB::count(self::COLLECTION, $where);
 
 		foreach ($commentsRoot as $commentId => $comment) {
 			//Get SubComment if option "tree" is set to true
@@ -123,7 +124,8 @@ class Comment {
 		$canComment = self::canUserComment($contextId, $contextType, $userId, $options);
 
 		return array("result"=>true, "msg"=>"The comment tree has been retrieved with success", 
-							"options" => $options, "comments"=>$commentTree, "canComment"=>$canComment);
+							"options" => $options, "comments"=>$commentTree, "canComment"=>$canComment, 
+							"nbComment"=>$nbComment);
 	}
 
 	private static function getSubComments($commentId, $options) {
