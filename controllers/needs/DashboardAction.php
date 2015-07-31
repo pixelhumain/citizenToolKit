@@ -16,10 +16,17 @@ class DashboardAction extends CAction
             $controller->subTitle = "Need's name // Every Project has a lack of ressources";
             $controller->pageTitle = "Communecter - ".$controller->title;
         } 
+        
         array_push( $controller->toolbarMBZ, '<a href="#" class="newNeed" title="proposer une " ><i class="fa fa-plus"></i> Need </a>');
-		//if(Yii::app()->request->isAjaxRequest)
-	    //    echo $controller->renderPartial("index",true);
-	    //else
-  			$controller->render( "dashboard");
+        $description=array();
+        $need=Need::getById($idNeed);
+        
+        if (isset($need["description"]))
+        	$description=$need["description"];
+        if (isset($helpers)){
+	        
+        }
+        $params = array( "need" => $need, "description" => $description );
+  		$controller->render( "dashboard", $params);
     }
 }

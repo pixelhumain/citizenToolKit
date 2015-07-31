@@ -17,8 +17,16 @@ class IndexAction extends CAction
             $controller->pageTitle = "Communecter - ".$controller->title;
         } 
         array_push( $controller->toolbarMBZ, '<a href="#" class="newRoom" title="proposer une " ><i class="fa fa-plus"></i> Room </a>');
+        $where = array("created"=>array('$exists'=>1) ) ;
+        if(isset($type))
+        	$where["parentType"] = $type;
+        if(isset($id))
+        	$where["parentId"] = $id;
+        //var_dump($where);
+		$needs = Need::getWhereSortLimit( $where, array("date"=>1) ,30);
+		$params = array( "needs" => $needs );
 		if(Yii::app()->request->isAjaxRequest)
-	        echo $controller->renderPartial("index",true);
+	        echo $controller->renderPartial("index",$params, true);
 	    else
   			$controller->render( "index"  );
     }
