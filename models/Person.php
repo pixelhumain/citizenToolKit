@@ -115,13 +115,14 @@ class Person {
 	public static function getSimpleUserById($id) {
 		
 		$simplePerson = array();
-		$person = PHDB::findOneById( self::COLLECTION ,$id, array("id" => 1, "name" => 1, "email" => 1) );
+		$person = PHDB::findOneById( self::COLLECTION ,$id, array("id" => 1, "name" => 1, "email" => 1, "address" => 1) );
 
 		$simplePerson["id"] = $id;
 		$simplePerson["name"] = @$person["name"];
 		$simplePerson["email"] = @$person["email"];
 		$profil = Document::getLastImageByKey($id, self::COLLECTION, Document::IMG_PROFIL);
 		$simplePerson["profilImageUrl"] = $profil;
+		$simplePerson["address"] = @$person["address"];
 		
 		return $simplePerson;
 
@@ -366,22 +367,6 @@ class Person {
 							"events" => $events
 						);
 		return $personMap;
-	}
-
-	/**
-	* Get Anonymous label name. The label looks like "Citizen of MyCity"
-	* @param type $id : is the mongoId (String) of the person
-	* @return String : The label used when a person is posting anonymously
-	*/
-	public static function getAnonymousName($id){
-		$person = self::getById($id);
-		
-		if (isset($person["address"]["addressLocality"])) {
-			$nameAnonymous = "Citizen of ".$person["address"]["addressLocality"];
-		} else {
-			$nameAnonymous = "Anonymous citizen";
-		}
-		return $nameAnonymous;
 	}
 
 	/**

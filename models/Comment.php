@@ -19,7 +19,7 @@ class Comment {
 
 	//TODO SBAR - Retrieve options from the context object
 	private static $discussOptions = array( 	
-							"tree" => true,
+							"tree" => false,
 							"anonymous" => true,
 							"oneCommentOnly" => true); 
 
@@ -144,12 +144,15 @@ class Comment {
 	}
 
 	private static function getCommentAuthor($comment, $options) {
+		$author = Person::getSimpleUserById($comment["author"]);
+		
 		//If anonymous option is set the author of the comment will not displayed
 		if (@$options["anonymous"] == true) {
-			$author = array("name" => Person::getAnonymousName($comment["author"]));
-		} else {
-			$author = Person::getSimpleUserById($comment["author"]);
+			$author = array(
+				"name" => "Anonymous",
+				"address" => array("addressLocality" => @$author["address"]["addressLocality"]));
 		}
+
 		return $author;
 	}
 
