@@ -2,6 +2,11 @@
 class Comment {
 
 	const COLLECTION = "comments";
+
+	//Options of the comment
+	const COMMENT_ON_TREE = "tree";
+	const COMMENT_ANONYMOUS = "anonymous";
+	const ONE_COMMENT_ONLY = "oneCommentOnly";
 	
 	//From Post/Form name to database field name
 	private static $dataBinding = array(
@@ -17,11 +22,10 @@ class Comment {
 		return DataValidator::getCollectionFieldNameAndValidate(self::$commentBinding, $commentFieldName, $commentFieldValue);
 	}
 
-	//TODO SBAR - Retrieve options from the context object
-	private static $discussOptions = array( 	
-							"tree" => false,
-							"anonymous" => true,
-							"oneCommentOnly" => true); 
+	private static $defaultDiscussOptions = array( 	
+							self::COMMENT_ON_TREE => true,
+							self::COMMENT_ANONYMOUS => false,
+							self::ONE_COMMENT_ONLY => false); 
 
 	/**
 	 * get a comment By Id
@@ -47,8 +51,7 @@ class Comment {
 	}
 	
 	public static function insert($comment, $userId) {
-		//TODO SBAR - Retrieve options from the context object
-		$options = self::$discussOptions;
+		$options = self::getCommentOptions($comment["contextId"], $comment["contextType"]);
 
 		//TODO SBAR - add check
 		$newComment = array(
@@ -89,8 +92,8 @@ class Comment {
 
 		$res = array();
 		$commentTree = array();
-		//TODO SBAR - Retrieve options from the context object
-		$options = self::$discussOptions;
+		
+		$options = self::getCommentOptions($contextId, $contextType);
 
 		//1. Retrieve all comments of that context that are, root of the comment tree (parentId = "" or empty)
 		$where = array(
@@ -107,7 +110,7 @@ class Comment {
 
 		foreach ($commentsRoot as $commentId => $comment) {
 			//Get SubComment if option "tree" is set to true
-			if (@$options["tree"] == true) {
+			if (@$options[self::COMMENT_ON_TREE] == true) {
 				//2. Get all the children of the comments recurslivly
 				$subComments = self::getSubComments($commentId, $options);
 				$comment["replies"] = $subComments;
@@ -147,7 +150,7 @@ class Comment {
 		$author = Person::getSimpleUserById($comment["author"]);
 		
 		//If anonymous option is set the author of the comment will not displayed
-		if (@$options["anonymous"] == true) {
+		if (@$options[self::COMMENT_ANONYMOUS] == true) {
 			$author = array(
 				"name" => "Anonymous",
 				"address" => array("addressLocality" => @$author["address"]["addressLocality"]));
@@ -158,7 +161,7 @@ class Comment {
 
 	private static function canUserComment($contextId, $contextType, $userId, $options) {
 		$canComment = true;
-		if (@$options["oneCommentOnly"] == true) {
+		if (@$options[self::ONE_COMMENT_ONLY] == true) {
 			$where = array(
 					"contextId" => $contextId, 
 					"contextType" => $contextType,
@@ -169,4 +172,40 @@ class Comment {
 		return $canComment;
 	}
 
+	/**
+	 * Retrieve comment options from a collection type and an id
+	 * @param String $id The id of the collection
+	 * @param String $type A collection (type) from where to retrieve the comment options
+	 * @return array of comment options
+	 */
+	public static function getCommentOptions($id, $type) {
+		$res = self::$defaultDiscussOptions;
+		
+		$collection = PHDB::findOneById( $type ,$id, array("commentOptions" => 1));
+
+		if (@$collection["commentOptions"]) {
+			$res = $collection["commentOptions"];
+		}
+		
+		return $res;
+	}
+
+	/**
+	 * Save the comment options inside a collection
+	 * @param String $id the id of the collection
+	 * @param String $type the type of the collection
+	 * @param String $options array of options to save
+	 * @return array of result (result/msg)
+	 */
+	public static function saveCommentOptions($id, $type, $options) {
+		$res = array("result" => true, "msg" => "The comment options has been saved successfully");
+
+		$where = array("_id"=>new MongoId($id));
+		$set = array("commentOptions" => $options);
+
+		//Update the collection
+		$res = PHDB::update($type, $where, array('$set' => $set));
+
+		return $res;
+	}
 }

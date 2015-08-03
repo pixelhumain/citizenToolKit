@@ -16,6 +16,7 @@ class SaveSessionAction extends CAction
             $email = $_POST["email"];
             $name  = $_POST['name'];
             //if exists login else create the new user
+            //TODO Tib : do not use the email to retrieve a person : prefere use the getById
             if(PHDB::findOne (Person::COLLECTION, array( "email" => $email ) ))
             {
                 //udate the new app specific fields
@@ -62,14 +63,21 @@ class SaveSessionAction extends CAction
                         $res['applicationExist'] = false;
                 }
 
-                PHDB::updateWithOptions( Survey::COLLECTION,  array( "name" => $name ), 
+                $result = PHDB::updateWithOptions( Survey::COLLECTION,  array( "name" => $name ), 
                                                    array('$set' => $newInfos ) ,
                                                    array('upsert' => true ) );
                 
+                $surveyId = PHDB::getIdFromUpsertResult($result);
+                //Save the comment options
+                if (@$_POST["commentOptions"]) {
+                    Comment::saveCommentOptions( $surveyId ,Survey::COLLECTION, $_POST["commentOptions"]);
+                }
+
                 $res['result'] = true;
                 $res['msg'] = "surveySaved";
+                $res['surveyId'] = $surveyId;
                 
-            }else
+            } else
                 $res = array('result' => false , 'msg'=>"user doen't exist");
         } else
             $res = array('result' => false , 'msg'=>'something somewhere went terribly wrong');
