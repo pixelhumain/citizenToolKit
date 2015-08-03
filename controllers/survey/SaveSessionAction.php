@@ -25,12 +25,12 @@ class SaveSessionAction extends CAction
                 if( isset($_POST['survey']) ){
                     $newInfos['survey'] = $_POST['survey'];
                     //this might not be necessary , since the information is on the parent survey
-                    /*$surveyRoom = PHDB::findOne (Survey::PARENT_COLLECTION, array( "_id" => new MongoId($_POST['survey']) ) );
+                    $surveyRoom = PHDB::findOne (Survey::PARENT_COLLECTION, array( "_id" => new MongoId($_POST['survey']) ) );
                     if( isset( $surveyRoom["parentType"] ) && isset($_POST['parentType']) ) 
                         $newInfos['parentType'] = $_POST['parentType'];
                     if( isset( $surveyRoom["parentId"] ) && isset($_POST['parentId']) ) 
                         $newInfos['parentId'] = $_POST['parentId'];
-                        */
+                        
                 }
                 if( isset($_POST['message']) )
                     $newInfos['message'] = (string)$_POST['message'];

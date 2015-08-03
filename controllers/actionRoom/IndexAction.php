@@ -37,8 +37,16 @@ class IndexAction extends CAction
         	$where["parentType"] = $type;
         if(isset($id))
         	$where["parentId"] = $id;
+
+        
         //var_dump($where);
-		$rooms = ActionRoom::getWhereSortLimit( $where, array("date"=>1) ,30);
+		$rooms = ActionRoom::getWhereSortLimit( $where, array("date"=>1) ,100);
+        
+        if( $type == Person::COLLECTION ){
+            //rooms I participated in  
+            $roomsAsParticipant = ActionRoom::getRoomsParticipated( $where, array("date"=>1) ,100);
+            array_merge($rooms, $roomsAsParticipant);
+        }
         $params = array( "rooms" => $rooms );
 		if(Yii::app()->request->isAjaxRequest)
 	        echo $controller->renderPartial("index" , $params,true);
