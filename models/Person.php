@@ -115,13 +115,14 @@ class Person {
 	public static function getSimpleUserById($id) {
 		
 		$simplePerson = array();
-		$person = PHDB::findOneById( self::COLLECTION ,$id, array("id" => 1, "name" => 1, "email" => 1) );
+		$person = PHDB::findOneById( self::COLLECTION ,$id, array("id" => 1, "name" => 1, "email" => 1, "address" => 1) );
 
 		$simplePerson["id"] = $id;
 		$simplePerson["name"] = @$person["name"];
 		$simplePerson["email"] = @$person["email"];
 		$profil = Document::getLastImageByKey($id, self::COLLECTION, Document::IMG_PROFIL);
 		$simplePerson["profilImageUrl"] = $profil;
+		$simplePerson["address"] = @$person["address"];
 		
 		return $simplePerson;
 
@@ -221,13 +222,13 @@ class Person {
 		//Check the minimal data
 	  	foreach ($dataPersonMinimal as $data) {
 	  		if (empty($person["$data"])) 
-	  			throw new CTKException("Problem inserting the new person : ".$data." is missing");
+	  			throw new CTKException(Yii::t("person","Problem inserting the new person : ").$data.Yii::t("person"," is missing"));
 	  	}
 	  	
 	  	$newPerson["name"] = $person["name"];
 
 	  	if(! preg_match('#^[\w.-]+@[\w.-]+\.[a-zA-Z]{2,6}$#',$person["email"])) { 
-	  		throw new CTKException("Problem inserting the new person : email is not well formated");
+	  		throw new CTKException(Yii::t("person","Problem inserting the new person : email is not well formated"));
         } else {
         	$newPerson["email"] = $person["email"];
         }
@@ -235,7 +236,7 @@ class Person {
 		//Check if the email of the person is already in the database
 	  	$account = PHDB::findOne(Person::COLLECTION,array("email"=>$person["email"]));
 	  	if ($account) {
-	  		throw new CTKException("Problem inserting the new person : a person with this email already exists in the plateform");
+	  		throw new CTKException(Yii::t("person","Problem inserting the new person : a person with this email already exists in the plateform"));
 	  	}
 	  	
 	  	if (!empty($person["invitedBy"])) {
@@ -253,7 +254,7 @@ class Person {
 		  		$newPerson["address"] = SIG::getAdressSchemaLikeByCodeInsee($person["city"]);
 		  		$newPerson["geo"] = SIG::getGeoPositionByInseeCode($person["city"]);
 		  	} catch (CTKException $e) {
-		  		throw new CTKException("Problem inserting the new person : unknown city");
+		  		throw new CTKException(Yii::t("person","Problem inserting the new person : unknown city"));
 		  	}
 		}
 	  	return $newPerson;
@@ -352,9 +353,9 @@ class Person {
 	} 
 
 	/**
-		* get person Data => need to update
-		* @param type $id : is the mongoId (String) of the person
-		* @return a map with : Person's informations, his organizations, events,projects
+	* get person Data => need to update
+	* @param type $id : is the mongoId (String) of the person
+	* @return a map with : Person's informations, his organizations, events,projects
 	*/
 	public static function getPersonMap($id){
 		$person = self::getById($id);

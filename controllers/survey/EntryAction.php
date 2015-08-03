@@ -18,6 +18,7 @@ class EntryAction extends CAction
             "content" => $controller->renderPartial( "entry", array( "survey" => $survey ), true),
             "contentBrut" => $survey["message"],
             "survey" => $survey ) ;
+      
       if(!Yii::app()->request->isAjaxRequest){
           $controller->layout = "//layouts/mainSimple";
           $controller->render( "entryStandalone", $params );

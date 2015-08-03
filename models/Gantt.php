@@ -2,15 +2,7 @@
 class Gantt {
 
 	const COLLECTION 		= "gantts";
-	/*const TYPE_SURVEY 		= "survey";
-	const TYPE_DISCUSS 		= "discuss";
-	const TYPE_BRAINSTORM 	= "brainstorm";*/
 	
-	/**
-	 * get a action room By Id
-	 * @param String $id : is the mongoId of the action room
-	 * @return array Document of the action room
-	 */
 	public static function getById($id,$type) {
 	  	$task = PHDB::findOne( $type ,array("_id"=>new MongoId($id)));
 	  	return $task;
@@ -32,16 +24,10 @@ class Gantt {
 		$tasks=[];
 		if(isset($res)){
 	    	foreach ($res["tasks"] as $key => $value) {
-	  			//$task = Gantt::getById($key,$type);
-	  			//print_r($value);
-	  			//$task=[];
 	  			$tasks[$key]= $value;
-	  			//array_push($tasks, $task);
 	  		}
 	    }
 	  	return $tasks;
-		//print_r($res);
-		//return $res;
 	}
 	/*public static function insert($params){
 		PHDB::insert(self::COLLECTION,$params);

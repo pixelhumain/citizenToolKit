@@ -21,27 +21,27 @@ class Action
     /*const ACTION_INFORM       = "inform";
     const ACTION_ASK_EXPERTISE  = "expertiseRequest";*/
     const ACTION_COMMENT        = "comment";
+    const ACTION_REPORT_ABUSE   = "reportAbuse";
     const ACTION_FOLLOW         = "follow";
 
-   /*
-    - can only add an action once vote , purchase, .. 
-    - check user and element existance 
-    - QUESTION : should actions be application inside
-    $userId : is the user tdoing the action
-    $id : the id of the element it applied on  
-    $collection : location of the element 
-    $action : what action 
-    $unset : 
-    $multiple
+    /**
+     * - can only add an action once vote , purchase, .. 
+     * - check user and element existance 
+     * - QUESTION : should actions be application inside
+     * @param String $userId : the id of the user doing the action
+     * @param String $id : the id of the element it applied on
+     * @param String $collection : Location of the element
+     * @param String $action : Type of the action
+     * @param boolean $unset : if the user already did the action, the action will be unset
+     * @param boolean $multiple : true : the user can do multiple action, else can not.
+     * @return array result (result, msg)
      */
     public static function addAction( $userId=null , $id=null, $collection=null, $action=null, $unset=false, $multiple=false  )
     {
-        $res = array("result" => false);
-        //TODO : should be the loggued user
         $user = Person::getById($userId);
-        //TODO : generic not only groups
         $element = ($id) ? PHDB::findOne ($collection, array("_id" => new MongoId($id) )) : null;
         $res = array('result' => false , 'msg'=>'something somewhere went terribly wrong');
+        
         if($user && $element)
         {
             //check user hasn't allready done the action
@@ -81,7 +81,8 @@ class Action
                 $res = array( "result"          => true,  
                               "userActionSaved" => true,
                               "user"            => PHDB::findOne ( Person::COLLECTION , array("_id" => new MongoId( $userId ) ),array("actions")),
-                              "element"         => PHDB::findOne ($collection,array("_id" => new MongoId($id) ),array( $action))
+                              "element"         => PHDB::findOne ($collection,array("_id" => new MongoId($id) ),array( $action)),
+                              "msg"             => "Ok !"
                                );
             } else 
                 $res = array( "result" => true,  "userAllreadyDidAction" => true );
