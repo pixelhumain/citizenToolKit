@@ -10,7 +10,7 @@ class SIG
     {
         $cs = Yii::app()->getClientScript();
 		$cs->registerCssFile(Yii::app()->theme->baseUrl. '/assets/css/sig.css');
-		$cs->registerCssFile("//cdn.leafletjs.com/leaflet-0.7.3/leaflet.css");
+		//$cs->registerCssFile("//cdn.leafletjs.com/leaflet-0.7.3/leaflet.css");
 		$cs->registerCssFile(Yii::app()->theme->baseUrl. '/assets/css/leaflet.css');
 		$cs->registerCssFile(Yii::app()->theme->baseUrl. '/assets/css/leaflet.draw.css');
 		$cs->registerCssFile(Yii::app()->theme->baseUrl. '/assets/css/leaflet.draw.ie.css');
