@@ -443,5 +443,43 @@ class Person {
 	private static function getCollectionFieldNameAndValidate($personFieldName, $personFieldValue) {
 		return DataValidator::getCollectionFieldNameAndValidate(self::$dataBinding, $personFieldName, $personFieldValue);
 	}
+
+	/**
+	 * get actionRooms by personId
+	 * @param type $id : is the mongoId (String) of the person
+	 * @return person document as in db
+	 */
+	public static function getActionRoomsByPersonId($id) 
+	{
+		//get action Rooms I created
+		$where = array("created"=>array('$exists'=>1) ) ;
+	  	$actionRooms = ActionRoom::getWhereSortLimit( $where, array("date"=>1) ,1000);
+	  	$actions = array();
+	  	$person = self::getById($id);
+
+	  	if (empty($person)) {
+            throw new CTKException("The person id is unkown : contact your admin");
+        }
+
+	  	if ( isset($person) && isset($person["actions"]) && isset($person["actions"]["surveys"])) 
+	  	{
+	  		$actionRooms = array();
+	  		foreach ( $person["actions"]["surveys"] as $entryId => $action) 
+	  		{
+	  			$entry = Survey::getById( $entryId );
+	  			$entry ['action'] = $action;
+	  			$actions[ $entryId ] = $entry;
+
+	  			if( isset( $entry['survey'] ) && !isset( $actionRooms[ $entry['survey'] ] ) )
+	  			{
+	  				$actionRoom = ActionRoom::getById( $entry['survey'] );
+	  				$actionRooms[ $entry['survey'] ] = $actionRoom;
+	  			}
+	  		}
+	  	}
+
+	  	return array( "rooms" => $actionRooms , 
+	  				  "actions"     => $actions );
+	}
 }
 ?>
