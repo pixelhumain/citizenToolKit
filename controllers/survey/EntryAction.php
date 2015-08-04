@@ -6,12 +6,23 @@ class EntryAction extends CAction
       $controller=$this->getController();
       $where = array("survey"=>$id);
       $survey = PHDB::findOne (Survey::COLLECTION, array("_id"=>new MongoId ( $id ) ) );
-      PHDB::update (Survey::COLLECTION, array("_id" => new MongoId($id)), array('$inc'=>array( "viewCount" => 1 )));
       $where["survey"] = $survey;
       
       $controller->title = "Sondages : ".$survey["name"];
       $controller->subTitle = "Décision démocratiquement simple";
-      $controller->pageTitle = "Communecter - Sondages";
+      $controller->pageTitle = "Communecter - Sondages : ".$survey["name"];
+
+      $pageView = ActivityStream::getWhere(array("verb"=>ActStr::VERB_VIEW,
+                                                 "actor.ip"=>$_SERVER['REMOTE_ADDR'],
+                                                 "object.objectType" => ActStr::TYPE_URL,
+                                                 "object.id"=>$controller->id."/".$controller->action->id."/id/".$id));
+
+      if( !count($pageView) )
+      {
+        ActStr::viewPage( $controller->id."/".$controller->action->id."/id/".$id );
+        //incerment this survey's entry pageView
+        PHDB::update ( Survey::COLLECTION , array("_id" => new MongoId($id)) , array('$inc'=>array( "viewCount" => 1 ) ));
+      }
 
       $params = array( 
             "title" => $survey["name"] ,
@@ -22,7 +33,7 @@ class EntryAction extends CAction
       if(!Yii::app()->request->isAjaxRequest){
           $controller->layout = "//layouts/mainSimple";
           $controller->render( "entryStandalone", $params );
-      } else
+      } else 
           Rest::json( $params);
     }
 }

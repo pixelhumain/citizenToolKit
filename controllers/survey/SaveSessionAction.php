@@ -67,7 +67,7 @@ class SaveSessionAction extends CAction
                     	$entryInfos['applications'] = array( $appKey => array( "usertype"=> (isset($_POST['type']) ) ? $_POST['type']:$_POST['app']  ));
                         //check for application specifics defined in DBs application entry
                     	if( isset( $app["moderation"] ) ){
-                    		$entryInfos['applications'][$appKey][SurveyType::STATUS_CLEARED] = false;
+                    		$newInfos['applications'][$appKey][Survey::STATUS_CLEARED] = false;
                             //TODO : set a Notification for admin moderation 
                         }
                         $res['applicationExist'] = true;
