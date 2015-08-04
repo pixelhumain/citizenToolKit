@@ -11,6 +11,7 @@ class SaveSurveyAction extends CAction
         {
             $email = $_POST["email"];
             $name  = $_POST['name'];
+
             //if exists login else create the new user
             if(PHDB::findOne (Person::COLLECTION, array( "email" => $email ) ))
             {
