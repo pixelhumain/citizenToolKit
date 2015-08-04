@@ -101,8 +101,8 @@ class Action
         						"collection" => $collection,
         						"ojectId" => $id,
         						"created"=>time()
-                					);
-        PHDB::insert( PHType::TYPE_ACTIVITYSTREAM, $currentAction );
+                				);
+        PHDB::insert( ActivityStream::COLLECTION, $currentAction );
     }
     
     /**

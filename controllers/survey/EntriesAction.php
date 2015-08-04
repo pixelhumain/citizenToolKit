@@ -12,7 +12,7 @@ class EntriesAction extends CAction
       $isModerator = Survey::isModerator(Yii::app()->session["userId"], $moduleId);
 
       if(!$isModerator && isset($app["moderation"]))
-        $where['applications.'.$moduleId.'.'.SurveyType::STATUS_CLEARED] = array('$exists'=>false);
+        $where['applications.'.$moduleId.'.'.Survey::STATUS_CLEARED] = array('$exists'=>false);
 
       $list = PHDB::find(Survey::COLLECTION, $where );
       $survey = PHDB::findOne (Survey::PARENT_COLLECTION, array("_id"=>new MongoId ( $id ) ) );
