@@ -14,10 +14,10 @@ class ActivateAction extends CAction
 	    if($account)
 	    {
 	        //remove tobeactivated attribute on account
-	        PHDB::update(Person::COLLECTION,
-	                            array("_id"=>new MongoId($user)), 
-	                            array('$unset' => array("tobeactivated"=>""))
-	                            );
+	        PHDB::update(	Person::COLLECTION,
+                        	array("_id"=>new MongoId($user)), 
+                            array('$unset' => array("tobeactivated"=>""))
+                        );
 	        $res = array("result"=>true);
 	        /*Notification::saveNotification(array("type"=>NotificationType::NOTIFICATION_ACTIVATED,
 	                      "user"=>$account["_id"]));*/

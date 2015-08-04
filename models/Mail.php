@@ -29,6 +29,35 @@ class Mail
         Cron::save($params);
     }
 
+    public static function notifAdminNewUser($person) {
+        $params = array(
+            "type" => Cron::TYPE_MAIL,
+            "tpl"=>'notifAdminNewUser',
+            "subject" => 'Nouvel utilisateur sur le site '.Yii::app()->name,
+            "from"=>Yii::app()->params['adminEmail'],
+            "to" => Yii::app()->params['adminEmail'],
+            "tplParams" => array(   "person"   => $person ,
+                                    "title" => Yii::app()->name ,
+                                    "logo"  => "/images/logo.png")
+        );
+        Mail::schedule($params);
+    }
+
+    public static function passwordRetreive( $email, $pwd )
+    {
+        $params = array(
+            "type" => Cron::TYPE_MAIL,
+            "tpl"=>'passwordRetreive',
+            "subject" => 'Réinitialisation du mot de passe pour le site '.Yii::app()->name,
+            "from"=>Yii::app()->params['adminEmail'],
+            "to" => $email,
+            "tplParams" => array(   "pwd"   => $pwd ,
+                                    "title" => Yii::app()->name ,
+                                     "logo"  => "/images/logo.png" )
+        );
+        Mail::schedule($params);
+    }
+
     public static function validatePerson( $person )
     {
         $params = array(

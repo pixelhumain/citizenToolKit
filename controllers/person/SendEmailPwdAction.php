@@ -26,20 +26,12 @@ class SendEmailPwdAction extends CAction
             }
             
             //send validation mail
-            //TODO : make emails as cron jobs
-            Mail::send(array("tpl"=>'passwordRetreive',
-                             "subject" => 'Réinitialisation du mot de passe pour le site '.$app->name,
-                             "from"=>Yii::app()->params['adminEmail'],
-                             "to" => (!PH::notlocalServer())? Yii::app()->params['adminEmail']: $email,
-                             "tplParams" => array( "pwd"   => $pwd ,
-                                                 "title" => $app->name ,
-                                                 "logo"  => $app->logoUrl )
-                                             ));
+            Mail::passwordRetreive($email, $pwd);
             $res = array("result"=>true,"msg"=>"Un mail avec un nouveau mot de passe vous a été envoyé à votre adresse email. Merci.");
         } else {
             //TODO evoyer un email de presentation 
             $res = array("result"=>false,"errId" => "UNKNOWN_ACCOUNT_ID", 
-               "msg"=>"Cet email n'existe pas dans notre base. Voulez vous créer un compte ?");
+            "msg"=>"Cet email n'existe pas dans notre base. Voulez vous créer un compte ?");
         }
         Rest::json($res);  
         Yii::app()->end();

@@ -26,7 +26,7 @@ class Person {
 	    "skypeAccount" => array("name" => "socialNetwork.skype"),
 	    "bgClass" => array("name" => "preferences.bgClass"),
 	    "bgUrl" => array("name" => "preferences.bgUrl"),
-	);	
+	);
 
 	public static function logguedAndValid()
     {
@@ -275,6 +275,8 @@ class Person {
 
 	  	//Add aditional information
 	  	$person["tobeactivated"] = true;
+	  	//By default no one is beta tester in a betaTest mode
+	  	$person["betaTester"] = false;
 	  	$person["created"] = time();
 
 	  	PHDB::insert( Person::COLLECTION , $person);
@@ -286,18 +288,10 @@ class Person {
 	    }
 
 	    //send validation mail
-        //TODO : make emails as cron jobs
-        /*$app = new Application($_POST["app"]);
-        Mail::send(array("tpl"=>'validation',
-             "subject" => 'Confirmer votre compte  pour le site '.$this->name,
-             "from"=>Yii::app()->params['adminEmail'],
-             "to" => (!PH::notlocalServer()) ? Yii::app()->params['adminEmail']: $email,
-             "tplParams" => array( "user"=>$account["_id"] ,
-                                   "title" => $app->name ,
-                                   "logo"  => $app->logoUrl )
-        ));*/
 		Mail::validatePerson($person);
-		
+		//A mail is sent to the admin
+		Mail::notifAdminNewUser($person);
+
 	    return array("result"=>true, "msg"=>"You are now communnected", "id"=>$newpersonId); 
 	}
 
@@ -443,5 +437,51 @@ class Person {
 	private static function getCollectionFieldNameAndValidate($personFieldName, $personFieldValue) {
 		return DataValidator::getCollectionFieldNameAndValidate(self::$dataBinding, $personFieldName, $personFieldValue);
 	}
+
+
+    /**
+     * Register or Login
+     * on PH registration requires only an email 
+     * test exists 
+     * if exists > request pwd
+     * otherwise add to DB 
+     * send validation mail 
+     * @param  [string] $email   email connected to the citizen account
+     * @param  [string] $pwd   pwd connected to the citizen account
+     * @return [type] [description]
+     */
+    public static function login($email, $pwd) 
+    {
+        if (! Yii::app()->request->isAjaxRequest || empty($email) || empty($pwd)) {
+        	return array("result"=>false, "msg"=>"Cette requête ne peut aboutir. Merci de bien vouloir réessayer en complétant les champs nécessaires");
+        }
+
+        Person::clearUserSessionData();
+        $account = PHDB::findOne(self::COLLECTION, array("email"=>$email));
+        
+        //Check the password
+        if ($account && !empty($pwd) && $account["pwd"] == hash('sha256', $email.$pwd)) {
+            Person::saveUserSessionData($account);
+            $res = array("result"=>true,  "id"=>$account["_id"],"isCommunected"=>isset($account["cp"]));
+        } else {
+            $res = array("result"=>false, "msg"=>"Email ou Mot de Passe ne correspondent pas, rééssayez.");
+        }
+
+        //The account is not validated
+        if (isset($account["tobeactivated"])) {
+            return array("result"=>false, 
+              "msg"=>"Your account is not validated : please check your mailbox to validate your user");
+        }
+        
+        //BetaTest mode
+        if (@Yii::app()->params['betaTest']) {
+        	if (isset($account["betaTester"]) && ! @$account["betaTester"]) {
+				$res = array("result"=>false, 
+                    "msg"=>"We're still finishing things, see you in september");
+			}
+        }
+        
+        return $res;
+    }
 }
 ?>
