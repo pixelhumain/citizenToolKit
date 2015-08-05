@@ -65,7 +65,7 @@ class Cron {
 		         "from"=>$params['from'],																																								
 		         "to" => $params['to'],
 		         "tplParams" => $params['tplParams']
-		    ),true);																																																																						
+		    ), false);																																																																						
 	    }catch (Exception $e) {
 	    	//throw new CTKException("Problem sending Email : ".$e->getMessage());
 			return array( "result"=> false, "msg" => "Problem sending Email : ".$e->getMessage() );

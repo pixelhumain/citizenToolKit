@@ -10,6 +10,7 @@ class Person {
 	    "name" => array("name" => "name", "rules" => array("required")),
 	    "birthDate" => array("name" => "birthDate", "rules" => array("required")),
 	    "email" => array("name" => "email", "rules" => array("email")),
+	    "pwd" => array("name" => "pwd"),
 	    "address" => array("name" => "address"),
 	    "streetAddress" => array("name" => "address.streetAddress"),
 	    "postalCode" => array("name" => "address.postalCode"),
@@ -32,7 +33,7 @@ class Person {
 	public static function logguedAndValid() {
     	$user = PHDB::findOneById( self::COLLECTION ,Yii::app()->session["userId"]);
     	
-    	$valid = Roles::canUserLogin($user);
+    	$valid = Role::canUserLogin($user);
     	$isLogguedAndValid = (isset( Yii::app()->session["userId"]) && $valid["result"]);
     	
     	return $isLogguedAndValid;
@@ -315,7 +316,7 @@ class Person {
 		//TODO SBAR = filter data to retrieve only publi data	
 		$person = self::getById($id);
 		if (empty($person)) {
-			throw new CTKException("The person id is unknown ! Check your URL");
+			//throw new CTKException("The person id is unknown ! Check your URL");
 		}
 
 		return $person;
@@ -461,7 +462,7 @@ class Person {
         $res = Role::canUserLogin($account);
         if ($res["result"]) {
 	        //Check the password
-	        if ($account && !empty($pwd) && $account["pwd"] == hash('sha256', $email.$pwd)) {
+	        if (self::checkPassword($pwd, $account)) {
 	            Person::saveUserSessionData($account);
 	            $res = array("result"=>true,  "id"=>$account["_id"],"isCommunected"=>isset($account["cp"]));
 	        } else {
@@ -470,6 +471,10 @@ class Person {
 	    }
         
         return $res;
+    }
+
+    private static function checkPassword($pwd, $account) {
+    	return ($account && @$account["pwd"] == hash('sha256', @$account["email"].$pwd)) ;
     }
 
 	/**
@@ -508,6 +513,31 @@ class Person {
 
 	  	return array( "rooms" => $actionRooms , 
 	  				  "actions"     => $actions );
+	}
+
+	/**
+	 * Change the password of the user
+	 * @param String $oldPassword 
+	 * @param String $newPassword 
+	 * @param String $userId 
+	 * @return array of result (result, msg)
+	 */
+	public static function changePassword($oldPassword, $newPassword, $userId) {
+		
+		$person = Person::getById($userId);
+
+		if (! self::checkPassword($oldPassword, $person)) {
+			return array("result" => false, "msg" => "Your current password is incorrect");
+		} 
+
+		if (strlen($newPassword) < 8) {
+			return array("result" => false, "msg" => "The new password should be 8 caracters long");
+		}
+		
+		$encodedPwd = hash('sha256', $person["email"].$newPassword);
+		self::updatePersonField($userId, "pwd", $encodedPwd, $userId);
+		
+		return array("result" => true, "msg" => "Your password has been changed with success !");
 	}
 
 }

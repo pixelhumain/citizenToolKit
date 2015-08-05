@@ -65,7 +65,19 @@ class Role {
 			throw new CTKException("The user does not have roles set on his profile : contact your admin");
 		}
 
-		if ($roles["superAdmin"]) {
+		if (@$roles["superAdmin"]) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	public static function isUserBetaTester($roles) {
+		if (! $roles) {
+			throw new CTKException("The user does not have roles set on his profile : contact your admin");
+		}
+		//
+		if (@Yii::app()->params['betaTest'] && @$roles["betaTester"]) {
 			return true;
 		} else {
 			return false;
@@ -77,7 +89,7 @@ class Role {
 	 * @param $roleTab is an array with all the roles
 	 * @param type $organisationId : is the mongoId of the organisation
 	 */
-	//TODO - is it still used ?
+	//TODO SBAR - is it still used ?
 	public static function setRoles($roleTab, $itemId, $itemType){
 		PHDB::update( $itemType,
 						array("_id" => new MongoId($itemId)), 

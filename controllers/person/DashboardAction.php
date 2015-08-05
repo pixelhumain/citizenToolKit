@@ -44,7 +44,11 @@ class DashboardAction extends CAction
 			else
 				array_push($controller->toolbarMBZ, "<li id='linkBtns'><a href='javascript:;' class='connectBtn tooltips ' id='addKnowsRelation' data-ownerlink='".link::person2person."' data-placement='top' data-original-title='I know this person' ><i class=' connectBtnIcon fa fa-link '></i>FOLLOW</a></li>");
 		}
-			array_push($controller->toolbarMBZ, "<a href='".Yii::app()->createUrl("/".$controller->module->id."/event/calendarview/id/".$person["_id"]."/type/".Yii::app()->controller->id)."'><i class='fa fa-calendar'></i>CALENDAR</a>");
+		array_push($controller->toolbarMBZ, "<a href='".Yii::app()->createUrl("/".$controller->module->id."/event/calendarview/id/".$person["_id"]."/type/".Yii::app()->controller->id)."'><i class='fa fa-calendar'></i>CALENDAR</a>");
+		
+		if (Person::logguedAndValid()) {
+			array_push($controller->toolbarMBZ, "<a href='javascript:;' class='changePasswordBtn'><i class='fa fa-key'></i>PASSWORD</a>");
+		}
 	    //Get Projects
 	    $projects = array();
 	    if(isset($person["links"]["projects"])){
