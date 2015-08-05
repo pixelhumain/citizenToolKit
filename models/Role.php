@@ -26,8 +26,10 @@ class Role {
 
 	private static function checkUserRoles($person) {
 		if (! @$person["roles"]) {
-			$roles = self::getDefaultRoles();
 			//Maybe it's an old user : we add the default role
+			//And retrieve the tobevalidated indicator
+			$roles = self::getDefaultRoles();
+			$roles["tobeactivated"] = @$person["tobeactivated"];
 			Person::updatePersonField((String) $person["_id"], "roles", $roles, (String)$person["_id"]);
 		} else {
 			$roles = $person["roles"];
