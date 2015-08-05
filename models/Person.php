@@ -70,8 +70,7 @@ class Person {
 
 	    Yii::app()->session["user"] = $user;
 
-	    if( isset($account["isAdmin"]) && $account["isAdmin"] )
-            Yii::app()->session["userIsAdmin"] = $account["isAdmin"]; 
+        Yii::app()->session["userIsAdmin"] = Role::isUserSuperAdmin(@$account["roles"]); 
 
 	    Yii::app()->session['logguedIntoApp'] = (isset(Yii::app()->controller->module->id)) ? Yii::app()->controller->module->id : "communecter";
     }
