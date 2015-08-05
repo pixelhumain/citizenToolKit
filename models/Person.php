@@ -99,7 +99,6 @@ class Person {
 	  		//TODO Sylvain - Find a way to manage inconsistente data
             //throw new CTKException("The person id ".$id." is unkown : contact your admin");
         } else {
-			$person["publicURL"] = '/person/public/id/'.$id;
 			if (!empty($person["birthDate"])) {
 				date_default_timezone_set('UTC');
 				$person["birthDate"] = date('Y-m-d H:i:s', $person["birthDate"]->sec);

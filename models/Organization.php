@@ -209,11 +209,7 @@ class Organization {
 	  	if (empty($organization)) {
             //TODO Sylvain - Find a way to manage inconsistent data
             //throw new CommunecterException("The organization id ".$id." is unkown : contact your admin");
-        } else {
-			//add the public URL to the data structure
-	  		$organization["publicURL"] = '/organization/public/id/'.$id;
-        }
-				
+        } 		
 	  	return $organization;
 	}
 
