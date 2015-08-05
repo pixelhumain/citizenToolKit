@@ -81,7 +81,7 @@ class DirectoryAction extends CAction
       /* **************************************
       *  PEOPLE
       ***************************************** */
-      $people = Person::getWhere(array( "tobeactivated"=> array('$exists'=>1)));
+      $people = Person::getWhere(array( "roles.tobeactivated"=> array('$exists'=>1)));
       
 
       /* **************************************

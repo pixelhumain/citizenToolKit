@@ -28,7 +28,6 @@ class SaveContributorAction extends CAction
 								'name'=>$_POST['name'],
 								'email'=>$_POST['email'],
 								'invitedBy'=>Yii::app()->session["userId"],
-								'tobeactivated' => true,
 								'created' => time()
 						 	);
 						 	$memberId = Person::createAndInvite($member);
@@ -43,7 +42,6 @@ class SaveContributorAction extends CAction
 								'name'=>$_POST['name'],
 								'email'=>$_POST['email'],
 								'invitedBy'=>Yii::app()->session["userId"],
-								'tobeactivated' => true,
 								'created' => time(),
 								'type'=> $_POST["organizationType"]
 							);

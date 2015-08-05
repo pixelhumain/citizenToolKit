@@ -26,12 +26,16 @@ class Person {
 	    "skypeAccount" => array("name" => "socialNetwork.skype"),
 	    "bgClass" => array("name" => "preferences.bgClass"),
 	    "bgUrl" => array("name" => "preferences.bgUrl"),
+	    "roles" => array("name" => "roles"),
 	);
 
-	public static function logguedAndValid()
-    {
+	public static function logguedAndValid() {
     	$user = PHDB::findOneById( self::COLLECTION ,Yii::app()->session["userId"]);
-    	return ( isset( Yii::app()->session["userId"]) && !isset($user["tobeactivated"]) );
+    	
+    	$valid = Roles::canUserLogin($user);
+    	$isLogguedAndValid = (isset( Yii::app()->session["userId"]) && $valid["result"]);
+    	
+    	return $isLogguedAndValid;
     }
 	/**
 	 * used to save any user session data 
@@ -273,10 +277,8 @@ class Person {
 	  	$person["@context"] = array("@vocab"=>"http://schema.org",
             "ph"=>"http://pixelhumain.com/ph/ontology/");
 
-	  	//Add aditional information
-	  	$person["tobeactivated"] = true;
-	  	//By default no one is beta tester in a betaTest mode
-	  	$person["betaTester"] = false;
+	  	$person["roles"] = Role::getDefaultRoles();
+
 	  	$person["created"] = time();
 
 	  	PHDB::insert( Person::COLLECTION , $person);
@@ -371,8 +373,7 @@ class Person {
 	 * @param String $userId 
 	 * @return boolean True if the update has been done correctly. Can throw CTKException on error.
 	 */
-	public static function updatePersonField($personId, $personFieldName, $personFieldValue, $userId) 
-	{  
+	public static function updatePersonField($personId, $personFieldName, $personFieldValue, $userId) {  
 
 		if ($personId != $userId) 
 			throw new CTKException("Can not update the person : you are not authorized to update that person !");	
@@ -459,27 +460,17 @@ class Person {
         Person::clearUserSessionData();
         $account = PHDB::findOne(self::COLLECTION, array("email"=>$email));
         
-        //Check the password
-        if ($account && !empty($pwd) && $account["pwd"] == hash('sha256', $email.$pwd)) {
-            Person::saveUserSessionData($account);
-            $res = array("result"=>true,  "id"=>$account["_id"],"isCommunected"=>isset($account["cp"]));
-        } else {
-            $res = array("result"=>false, "msg"=>"Email ou Mot de Passe ne correspondent pas, rééssayez.");
-        }
-
-        //The account is not validated
-        if (isset($account["tobeactivated"])) {
-            return array("result"=>false, 
-              "msg"=>"Your account is not validated : please check your mailbox to validate your user");
-        }
-        
-        //BetaTest mode
-        if (@Yii::app()->params['betaTest']) {
-        	if (isset($account["betaTester"]) && ! @$account["betaTester"]) {
-				$res = array("result"=>false, 
-                    "msg"=>"We're still finishing things, see you in september");
-			}
-        }
+        //Roles validation
+        $res = Role::canUserLogin($account);
+        if ($res["result"]) {
+	        //Check the password
+	        if ($account && !empty($pwd) && $account["pwd"] == hash('sha256', $email.$pwd)) {
+	            Person::saveUserSessionData($account);
+	            $res = array("result"=>true,  "id"=>$account["_id"],"isCommunected"=>isset($account["cp"]));
+	        } else {
+	            $res = array("result"=>false, "msg"=>"Email ou Mot de Passe ne correspondent pas, rééssayez.");
+	        }
+	    }
         
         return $res;
     }

@@ -16,7 +16,7 @@ class ActivateAction extends CAction
 	        //remove tobeactivated attribute on account
 	        PHDB::update(	Person::COLLECTION,
                         	array("_id"=>new MongoId($user)), 
-                            array('$unset' => array("tobeactivated"=>""))
+                            array('$unset' => array("roles.tobeactivated"=>""))
                         );
 	        $res = array("result"=>true);
 	        /*Notification::saveNotification(array("type"=>NotificationType::NOTIFICATION_ACTIVATED,

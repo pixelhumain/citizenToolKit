@@ -3,7 +3,7 @@ class InvitationAction extends CAction
 {
     public function run()
     {
-    	$res = array( "result" => false , "content" => Yii::t("common", "Something went wrong!" );
+    	$res = array( "result" => false , "content" => Yii::t("common", "Something went wrong!" ));
 		 if(Yii::app()->request->isAjaxRequest && isset( $_POST["parentId"]) )
 		 {
 		 	//test if group exist
@@ -34,7 +34,6 @@ class InvitationAction extends CAction
 						 $member = array(
 						 'name'=>$_POST['name'],
 						 'email'=>$memberEmail,
-						 'tobeactivated' => true,
 						 'created' => time(),
 						 'type'=>'citoyen',
 						 "links" => array( 
