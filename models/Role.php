@@ -10,7 +10,7 @@ class Role {
 	 *  - standalonePageAccess : true
 	 * @return array of role
 	 */
-	public static function getDefaultRoles()	{
+	public static function getDefaultRoles() {
 		//Manage roles of user
 	  	$roles = array();
 	  	$roles["tobeactivated"] = true;
