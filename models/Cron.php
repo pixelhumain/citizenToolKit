@@ -59,13 +59,14 @@ class Cron {
 
 	//TODO return result 
 	public static function processMail($params){
+	    $forceMail = Yii::app()->params['forceMailSend'];
 	    try{
 	    	return Mail::send(array("tpl"=>$params['tpl'],
 		         "subject" => $params['subject'],
 		         "from"=>$params['from'],																																								
 		         "to" => $params['to'],
 		         "tplParams" => $params['tplParams']
-		    ), false);																																																																						
+		    ), $forceMail);																																																																						
 	    }catch (Exception $e) {
 	    	//throw new CTKException("Problem sending Email : ".$e->getMessage());
 			return array( "result"=> false, "msg" => "Problem sending Email : ".$e->getMessage() );
