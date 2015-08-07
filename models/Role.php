@@ -2,6 +2,11 @@
 
 class Role {
 
+	const ADD_BETA_TESTER = "addBetaTester";
+	const REVOKE_BETA_TESTER = "revokeBetaTester";
+	const ADD_SUPER_ADMIN = "addSuperAdmin";
+	const REVOKE_SUPER_ADMIN = "revokeSuperAdmin";
+	
 	/**
 	 * Default Roles for a new person : 
 	 *  - tobeactivated : true
@@ -82,6 +87,34 @@ class Role {
 		} else {
 			return false;
 		}
+	}
+
+	/**
+	 * Update the role list of an item
+	 * @param String $action an action to make on a user role map. See type of RoleAction
+	 * @param String $userId a valid user id
+	 * @return array of result (result, msg)
+	 */
+	public static function updatePersonRole($action, $userId){
+		$mongoAction = '$set';
+		$roleValue = true;
+		if ($action == self::REVOKE_BETA_TESTER || $action == self::REVOKE_SUPER_ADMIN) {
+			$mongoAction = '$unset';
+			$roleValue = "";
+		}
+
+		if ($action == self::ADD_BETA_TESTER || $action == self::REVOKE_BETA_TESTER) {
+			$role = 'betaTester';
+		} else if ($action == self::ADD_SUPER_ADMIN || self::REVOKE_SUPER_ADMIN) {
+			$role = 'superAdmin';
+		}
+
+		PHDB::update( Person::COLLECTION,
+						array("_id" => new MongoId($userId)), 
+                        array($mongoAction => array( 'roles.'.$role => $roleValue))
+                    );
+
+		return array("result" => true, "msg" => "The role has been updated");
 	}
 
 	/**
