@@ -79,11 +79,13 @@ class DashboardAction extends CAction
 	            if( $member['type'] == Organization::COLLECTION )
 	            {
 	                $organization = Organization::getPublicData( $key );
-	                $profil = Document::getLastImageByKey($key, Organization::COLLECTION, Document::IMG_PROFIL);
-					if($profil !="")
-						$organization["imagePath"]= $profil;
+	                if (!empty($organization)) {
+		                $profil = Document::getLastImageByKey($key, Organization::COLLECTION, Document::IMG_PROFIL);
+						if($profil !="")
+							$organization["imagePath"]= $profil;
 
-                  array_push($organizations, $organization );
+	                  	array_push($organizations, $organization);
+	                }
 	            }
 
 	         	if(isset($organization["links"]["events"])){
