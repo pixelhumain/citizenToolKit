@@ -51,7 +51,9 @@ class DashboardAction extends CAction
 	    if(isset($person["links"]["projects"])){
 	    	foreach ($person["links"]["projects"] as $key => $value) {
 	  			$project = Project::getPublicData($key);
-	  			array_push($projects, $project);
+	  			if (! empty($project)) {
+	  				array_push($projects, $project);
+	  			}
 	  		}
 	    }
 
@@ -108,10 +110,12 @@ class DashboardAction extends CAction
 	            if( $member['type'] == Person::COLLECTION )
 	            {
 	            	$citoyen = Person::getPublicData( $key );
-	            	$profil = Document::getLastImageByKey($key, Person::COLLECTION, Document::IMG_PROFIL);
-					if($profil !="")
-						$citoyen["imagePath"]= $profil;
-	            	array_push($people, $citoyen);
+	            	if (!empty($citoyen)) {
+		            	$profil = Document::getLastImageByKey($key, Person::COLLECTION, Document::IMG_PROFIL);
+						if($profil !="")
+							$citoyen["imagePath"]= $profil;
+		            	array_push($people, $citoyen);
+		            }
 	            }
 	    	}
 
