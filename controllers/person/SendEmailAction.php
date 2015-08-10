@@ -3,13 +3,22 @@
  * 
  * @return [json] 
  */
-class SendEmailPwdAction extends CAction
+class SendEmailAction extends CAction
 {
     public function run()
     {
         $email = $_POST["email"];
-        if($user = PHDB::findOne(PHType::TYPE_CITOYEN,array( "email" => $email ) ))
-        {
+        $type = $_POST["type"];
+        
+        //Check user existance
+        $user = PHDB::findOne(PHType::TYPE_CITOYEN,array( "email" => $email));
+        if (!$user) {
+            return array("result"=>false, "errId" => "UNKNOWN_ACCOUNT_ID", 
+                         "msg"=>"Cet email n'existe pas dans notre base. Voulez vous créer un compte ?");
+        }
+
+        // Forgot my password Mail
+        if ($type == "password") {
             //reset password 
             $pwd = self::random_password(8);
             //TODO SBAR : Call the model
@@ -28,11 +37,15 @@ class SendEmailPwdAction extends CAction
             //send validation mail
             Mail::passwordRetreive($email, $pwd);
             $res = array("result"=>true,"msg"=>"Un mail avec un nouveau mot de passe vous a été envoyé à votre adresse email. Merci.");
+        
+        // Validation Mail
+        } else if ($type == "validation") {
+            Mail::validatePerson($user);
+            $res = array("result"=>true,"msg"=>"Un mail de validation vous a été envoyé à votre adresse email.");
         } else {
-            //TODO evoyer un email de presentation 
-            $res = array("result"=>false,"errId" => "UNKNOWN_ACCOUNT_ID", 
-            "msg"=>"Cet email n'existe pas dans notre base. Voulez vous créer un compte ?");
+            $res = array("result"=>true,"msg"=>"Unknow email type : please contact your admin !");
         }
+
         Rest::json($res);  
         Yii::app()->end();
     }

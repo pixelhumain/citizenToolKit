@@ -50,7 +50,7 @@ class Role {
 		//The account is not validated
         if (isset($roles["tobeactivated"]) && @$roles["tobeactivated"] ) {
             return array("result"=>false, 
-              "msg"=>"Your account is not validated : please check your mailbox to validate your user");
+              "msg"=>"notValidatedEmail");
         }
         
         //BetaTest mode
