@@ -31,11 +31,14 @@ class Person {
 	);
 
 	public static function logguedAndValid() {
-    	$user = PHDB::findOneById( self::COLLECTION ,Yii::app()->session["userId"]);
-    	
-    	$valid = Role::canUserLogin($user);
-    	$isLogguedAndValid = (isset( Yii::app()->session["userId"]) && $valid["result"]);
-    	
+    	if (isset(Yii::app()->session["userId"])) {
+	    	$user = PHDB::findOneById( self::COLLECTION ,Yii::app()->session["userId"]);
+	    	
+	    	$valid = Role::canUserLogin($user);
+	    	$isLogguedAndValid = (isset( Yii::app()->session["userId"]) && $valid["result"]);
+    	} else {
+    		$isLogguedAndValid = false;
+    	}
     	return $isLogguedAndValid;
     }
 	/**
