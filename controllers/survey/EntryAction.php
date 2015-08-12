@@ -24,12 +24,28 @@ class EntryAction extends CAction
         PHDB::update ( Survey::COLLECTION , array("_id" => new MongoId($id)) , array('$inc'=>array( "viewCount" => 1 ) ));
       }
 
+
       $params = array( 
             "title" => $survey["name"] ,
             "content" => $controller->renderPartial( "entry", array( "survey" => $survey ), true),
             "contentBrut" => $survey["message"],
-            "survey" => $survey ) ;
-      
+            "survey" => $survey,
+             ) ;
+
+      if( isset($survey["organizerType"]) )
+      {
+          if( $survey["organizerType"] == Person::COLLECTION ){
+            $organizer = Person::getById( $survey["organizerId"] );
+            $params["organizer"] = array(  "name" => $organizer["name"],
+                                           "link" => Yii::app()->createUrl('/'.$controller->module->id."/person/dashboard/id/".$survey["organizerId"]) );
+          }
+          else if( $survey["organizerType"] == Organization::COLLECTION ){
+            $organizer = Organization::getById( $survey["organizerId"] );
+            $params["organizer"] = array(  "name" => $organizer["name"],
+                                           "link" => Yii::app()->createUrl('/'.$controller->module->id."/organization/dashboard/id/".$survey["organizerId"]) );
+          }
+      }
+
       if(!Yii::app()->request->isAjaxRequest){
           $controller->layout = "//layouts/mainSimple";
           $controller->render( "entryStandalone", $params );

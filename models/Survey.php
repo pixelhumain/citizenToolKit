@@ -94,5 +94,27 @@ class Survey
 	     	$res["msg"] = "mustBeLoggued";
 		return $res;
      }
+
+     public static function closeEntry($params){
+     	$res = array( "result" => false );
+     	if( isset( Yii::app()->session["userId"] ))
+     	{ 
+     		if( $survey = PHDB::findOne( Survey::COLLECTION, array("_id"=>new MongoId($params["id"])) ) ) 
+     		{
+	     		if( Yii::app()->session["userEmail"] == $survey["email"] ) //&& isset($survey["organizerId"]) && Yii::app()->session["userId"] == $survey["organizerId"] )
+	     		{
+			     	//then remove the parent survey
+	     			PHDB::update( Survey::COLLECTION,
+	     							array("_id" => $survey["_id"]), 
+                          			array('$set' => array("dateEnd"=> time() )));
+	     			$res["result"] = true;
+			     } else 
+			     	$res["msg"] = "restrictedAccess";
+		     } else
+		     	$res["msg"] = "SurveydoesntExist";
+	     } else 
+	     	$res["msg"] = "mustBeLoggued";
+		return $res;
+     }
 }
 ?>

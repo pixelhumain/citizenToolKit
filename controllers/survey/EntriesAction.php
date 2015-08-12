@@ -26,8 +26,8 @@ class EntriesAction extends CAction
       $controller->pageTitle = "Communecter - Sondages";
       $surveyLink = ( isset( $survey["parentType"] ) && isset( $survey["parentId"] ) ) ? Yii::app()->createUrl("/communecter/survey/index/type/".$survey["parentType"]."/id/".$survey["parentId"]) : Yii::app()->createUrl("/communecter/survey"); 
       $controller->toolbarMBZ = array(
-        '<a href="'.$surveyLink.'" class="surveys" title="proposer une " ><i class="fa fa-bars"></i> SURVEYS</a>',
-        '<a href="#" class="newVoteProposal" title="proposer une loi" ><i class="fa fa-paper-plane"></i> PROPOSER</a>',
+        '<a href="'.$surveyLink.'" class="surveys" title="list of Surveys" ><i class="fa fa-bars"></i> SURVEYS</a>',
+        '<a href="#" class="newVoteProposal" title="faites une proposition" ><i class="fa fa-paper-plane"></i> PROPOSER</a>',
         '<a href="#voterloiDescForm" role="button" data-toggle="modal" title="lexique pour compendre" ><i class="fa fa-question-circle"></i> AIDE</a>',
         );
       $tpl = ( isset($_GET['tpl']) ) ? $_GET['tpl'] : "index";
