@@ -42,7 +42,7 @@ class Role {
 		return $roles;
 	}
 
-	public static function canUserLogin($person) {
+	public static function canUserLogin($person, $publicPage=false) {
 		$res = array("result"=>true, 
                     "msg"=>"Everything is ok : user can login !");
 
@@ -53,15 +53,21 @@ class Role {
               "msg"=>"notValidatedEmail");
         }
         
-        //BetaTest mode
-        if (@Yii::app()->params['betaTest']) {
-        	if (isset($roles["betaTester"]) && ! @$roles["betaTester"]) {
-				$res = array("result"=>false, 
-                    "msg"=>"We're still finishing things, see you in september");
-			}
-        }
+        //BetaTest mode only when not on publicPage
+        if (!$publicPage) {
+	        if (@Yii::app()->params['betaTest']) {
+	        	if (isset($roles["betaTester"]) && ! @$roles["betaTester"]) {
+					$res = array("result"=>false, 
+	                    "msg"=>"We're still finishing things, see you in september");
+				}
+	    	}    
+	    } else {
+	    	if (! @$roles["standalonePageAccess"]) {
+	    		$res = array("result"=>false, 
+	                    "msg"=>"You do not have access to this page.");
+	    	}
+	    }
         
-        //TODO - manage standalone page access
         return $res;
 	}
 

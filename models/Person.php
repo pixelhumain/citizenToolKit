@@ -128,7 +128,8 @@ class Person {
 		$simplePerson["email"] = @$person["email"];
 		$profil = Document::getLastImageByKey($id, self::COLLECTION, Document::IMG_PROFIL);
 		$simplePerson["profilImageUrl"] = $profil;
-		$simplePerson["address"] = @$person["address"];
+		
+		$simplePerson["address"] = empty($person["address"]) ? array("addressLocality" => "Unknown") : $person["address"];
 		
 		return $simplePerson;
 
@@ -450,9 +451,11 @@ class Person {
      * send validation mail 
      * @param  [string] $email   email connected to the citizen account
      * @param  [string] $pwd   pwd connected to the citizen account
+     * @param  [string] $publicPage is the page requested is publi or not. 
+     * If true, the betaTest option will not be ignored
      * @return [type] [description]
      */
-    public static function login($email, $pwd) 
+    public static function login($email, $pwd, $publicPage) 
     {
         if (! Yii::app()->request->isAjaxRequest || empty($email) || empty($pwd)) {
         	return array("result"=>false, "msg"=>"Cette requête ne peut aboutir. Merci de bien vouloir réessayer en complétant les champs nécessaires");
@@ -462,7 +465,7 @@ class Person {
         $account = PHDB::findOne(self::COLLECTION, array("email"=>$email));
         
         //Roles validation
-        $res = Role::canUserLogin($account);
+        $res = Role::canUserLogin($account, $publicPage);
         if ($res["result"]) {
 	        //Check the password
 	        if (self::checkPassword($pwd, $account)) {
