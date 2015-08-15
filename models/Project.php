@@ -19,6 +19,7 @@ class Project {
 	    "url" => array("name" => "url"),
 	    "description" => array("name" => "description"),
 	    "licence" => array("name" => "licence"),
+	    "avancement" => array("name" => "properties.avancement"),
 	);
 
 	private static function getCollectionFieldNameAndValidate($projectFieldName, $projectFieldValue, $projectId) {
@@ -187,19 +188,11 @@ class Project {
                        array('$unset' => array("tasks.".$taskId => 1)));
         return array("result"=>true, "msg"=>$res);
 	}*/
-    public static function saveChart($properties){
+    public static function saveChart($idProject,$properties){
 	    //TODO SABR - Check the properties before inserting
-	    $propertiesList=array(
-							"gouvernance" => $properties["gouvernance"],
-							"local" => $properties["local"],	
-							"partenaire" => $properties["partenaire"],
-							"partage" => $properties["partage"],
-							"solidaire" => $properties["solidaire"],
-							"avancement" => $properties["avancement"],
-		);
 	    PHDB::update(self::COLLECTION,
-			array("_id" => new MongoId($properties["projectID"])),
-            array('$set' => array("properties"=> $propertiesList))
+			array("_id" => new MongoId($idProject)),
+            array('$set' => array("properties.chart"=> $properties))
         );
         return true;
     }
@@ -242,7 +235,8 @@ class Project {
 			}
 			$newMongoDate = new MongoDate($dt->getTimestamp());
 			$set = array($dataFieldName => $newMongoDate);	
-		} else {
+		}
+		else {
 			$set = array($dataFieldName => $projectFieldValue);	
 		}
 

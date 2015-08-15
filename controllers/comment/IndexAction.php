@@ -7,10 +7,12 @@ class IndexAction extends CAction
 
         $params = array();
 
-        $comments = Comment::buildCommentsTree($id, $type);
-        $params['comments'] = $comments;
-
+        $res = Comment::buildCommentsTree($id, $type, Yii::app()->session["userId"]);
+        $params['comments'] = $res["comments"];
+        $params['options'] = $res["options"];
+        $params['canComment'] = $res["canComment"];
         $params["contextType"] = "$type";
+        $params["nbComment"] = $res["nbComment"];
 
         if($type == Event::COLLECTION) {
             $params["context"] = Event::getById($id);
@@ -26,10 +28,12 @@ class IndexAction extends CAction
             $params["context"] = Survey::getById($id);
         } else if($type == ActionRoom::COLLECTION) {
             $params["context"] = ActionRoom::getById($id);
+        } else {
+        	throw new CTKException("Error : the type is unknown ".$type);
         }
         
 		if(Yii::app()->request->isAjaxRequest)
-	        echo $controller->renderPartial("index" , $params, true);
+	        echo $controller->renderPartial("commentPod" , $params, true);
 	    else
   			$controller->render( "index" , $params );
     }

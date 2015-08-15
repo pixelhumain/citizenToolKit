@@ -53,8 +53,9 @@ class IndexAction extends CAction
         $controller->subTitle = "Nombres de votants inscrit : ".$uniqueVoters;
         $controller->pageTitle = "Communecter - Surveys ".$name;
 
+        $urlParams = ( isset($type) && isset($id)) ? "/type/".$type."/id/".$id : "";
         $controller->toolbarMBZ = array(
-            '<a href="#" class="newRoom" title="proposer une " ><i class="fa fa-plus"></i> SURVEY </a>',
+            '<a href="#" onclick="openSubView(\'Add a Room\', \'/communecter/rooms/editroom'.$urlParams.'\',null,function(){editRoomSV ();})" title="proposer une " ><i class="fa fa-plus"></i> Action Room </a>',
         );
 
         $tpl = ( isset($_GET['tpl']) ) ? $_GET['tpl'] : "index";

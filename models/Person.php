@@ -10,6 +10,7 @@ class Person {
 	    "name" => array("name" => "name", "rules" => array("required")),
 	    "birthDate" => array("name" => "birthDate", "rules" => array("required")),
 	    "email" => array("name" => "email", "rules" => array("email")),
+	    "pwd" => array("name" => "pwd"),
 	    "address" => array("name" => "address"),
 	    "streetAddress" => array("name" => "address.streetAddress"),
 	    "postalCode" => array("name" => "address.postalCode"),
@@ -26,12 +27,19 @@ class Person {
 	    "skypeAccount" => array("name" => "socialNetwork.skype"),
 	    "bgClass" => array("name" => "preferences.bgClass"),
 	    "bgUrl" => array("name" => "preferences.bgUrl"),
-	);	
+	    "roles" => array("name" => "roles"),
+	);
 
-	public static function logguedAndValid()
-    {
-    	$user = PHDB::findOneById( self::COLLECTION ,Yii::app()->session["userId"]);
-    	return ( isset( Yii::app()->session["userId"]) && !isset($user["tobeactivated"]) );
+	public static function logguedAndValid() {
+    	if (isset(Yii::app()->session["userId"])) {
+	    	$user = PHDB::findOneById( self::COLLECTION ,Yii::app()->session["userId"]);
+	    	
+	    	$valid = Role::canUserLogin($user);
+	    	$isLogguedAndValid = (isset( Yii::app()->session["userId"]) && $valid["result"]);
+    	} else {
+    		$isLogguedAndValid = false;
+    	}
+    	return $isLogguedAndValid;
     }
 	/**
 	 * used to save any user session data 
@@ -66,8 +74,7 @@ class Person {
 
 	    Yii::app()->session["user"] = $user;
 
-	    if( isset($account["isAdmin"]) && $account["isAdmin"] )
-            Yii::app()->session["userIsAdmin"] = $account["isAdmin"]; 
+        Yii::app()->session["userIsAdmin"] = Role::isUserSuperAdmin(@$account["roles"]); 
 
 	    Yii::app()->session['logguedIntoApp'] = (isset(Yii::app()->controller->module->id)) ? Yii::app()->controller->module->id : "communecter";
     }
@@ -95,7 +102,6 @@ class Person {
 	  		//TODO Sylvain - Find a way to manage inconsistente data
             //throw new CTKException("The person id ".$id." is unkown : contact your admin");
         } else {
-			$person["publicURL"] = '/person/public/id/'.$id;
 			if (!empty($person["birthDate"])) {
 				date_default_timezone_set('UTC');
 				$person["birthDate"] = date('Y-m-d H:i:s', $person["birthDate"]->sec);
@@ -115,13 +121,15 @@ class Person {
 	public static function getSimpleUserById($id) {
 		
 		$simplePerson = array();
-		$person = PHDB::findOneById( self::COLLECTION ,$id, array("id" => 1, "name" => 1, "email" => 1) );
+		$person = PHDB::findOneById( self::COLLECTION ,$id, array("id" => 1, "name" => 1, "email" => 1, "address" => 1) );
 
 		$simplePerson["id"] = $id;
 		$simplePerson["name"] = @$person["name"];
 		$simplePerson["email"] = @$person["email"];
 		$profil = Document::getLastImageByKey($id, self::COLLECTION, Document::IMG_PROFIL);
 		$simplePerson["profilImageUrl"] = $profil;
+		
+		$simplePerson["address"] = empty($person["address"]) ? array("addressLocality" => "Unknown") : $person["address"];
 		
 		return $simplePerson;
 
@@ -221,13 +229,13 @@ class Person {
 		//Check the minimal data
 	  	foreach ($dataPersonMinimal as $data) {
 	  		if (empty($person["$data"])) 
-	  			throw new CTKException("Problem inserting the new person : ".$data." is missing");
+	  			throw new CTKException(Yii::t("person","Problem inserting the new person : ").$data.Yii::t("person"," is missing"));
 	  	}
 	  	
 	  	$newPerson["name"] = $person["name"];
 
 	  	if(! preg_match('#^[\w.-]+@[\w.-]+\.[a-zA-Z]{2,6}$#',$person["email"])) { 
-	  		throw new CTKException("Problem inserting the new person : email is not well formated");
+	  		throw new CTKException(Yii::t("person","Problem inserting the new person : email is not well formated"));
         } else {
         	$newPerson["email"] = $person["email"];
         }
@@ -235,7 +243,7 @@ class Person {
 		//Check if the email of the person is already in the database
 	  	$account = PHDB::findOne(Person::COLLECTION,array("email"=>$person["email"]));
 	  	if ($account) {
-	  		throw new CTKException("Problem inserting the new person : a person with this email already exists in the plateform");
+	  		throw new CTKException(Yii::t("person","Problem inserting the new person : a person with this email already exists in the plateform"));
 	  	}
 	  	
 	  	if (!empty($person["invitedBy"])) {
@@ -253,7 +261,7 @@ class Person {
 		  		$newPerson["address"] = SIG::getAdressSchemaLikeByCodeInsee($person["city"]);
 		  		$newPerson["geo"] = SIG::getGeoPositionByInseeCode($person["city"]);
 		  	} catch (CTKException $e) {
-		  		throw new CTKException("Problem inserting the new person : unknown city");
+		  		throw new CTKException(Yii::t("person","Problem inserting the new person : unknown city"));
 		  	}
 		}
 	  	return $newPerson;
@@ -272,8 +280,8 @@ class Person {
 	  	$person["@context"] = array("@vocab"=>"http://schema.org",
             "ph"=>"http://pixelhumain.com/ph/ontology/");
 
-	  	//Add aditional information
-	  	$person["tobeactivated"] = true;
+	  	$person["roles"] = Role::getDefaultRoles();
+
 	  	$person["created"] = time();
 
 	  	PHDB::insert( Person::COLLECTION , $person);
@@ -285,18 +293,10 @@ class Person {
 	    }
 
 	    //send validation mail
-        //TODO : make emails as cron jobs
-        /*$app = new Application($_POST["app"]);
-        Mail::send(array("tpl"=>'validation',
-             "subject" => 'Confirmer votre compte  pour le site '.$this->name,
-             "from"=>Yii::app()->params['adminEmail'],
-             "to" => (!PH::notlocalServer()) ? Yii::app()->params['adminEmail']: $email,
-             "tplParams" => array( "user"=>$account["_id"] ,
-                                   "title" => $app->name ,
-                                   "logo"  => $app->logoUrl )
-        ));*/
 		Mail::validatePerson($person);
-		
+		//A mail is sent to the admin
+		Mail::notifAdminNewUser($person);
+
 	    return array("result"=>true, "msg"=>"You are now communnected", "id"=>$newpersonId); 
 	}
 
@@ -320,7 +320,7 @@ class Person {
 		//TODO SBAR = filter data to retrieve only publi data	
 		$person = self::getById($id);
 		if (empty($person)) {
-			throw new CTKException("The person id is unknown ! Check your URL");
+			//throw new CTKException("The person id is unknown ! Check your URL");
 		}
 
 		return $person;
@@ -352,9 +352,9 @@ class Person {
 	} 
 
 	/**
-		* get person Data => need to update
-		* @param type $id : is the mongoId (String) of the person
-		* @return a map with : Person's informations, his organizations, events,projects
+	* get person Data => need to update
+	* @param type $id : is the mongoId (String) of the person
+	* @return a map with : Person's informations, his organizations, events,projects
 	*/
 	public static function getPersonMap($id){
 		$person = self::getById($id);
@@ -376,8 +376,7 @@ class Person {
 	 * @param String $userId 
 	 * @return boolean True if the update has been done correctly. Can throw CTKException on error.
 	 */
-	public static function updatePersonField($personId, $personFieldName, $personFieldValue, $userId) 
-	{  
+	public static function updatePersonField($personId, $personFieldName, $personFieldValue, $userId) {  
 
 		if ($personId != $userId) 
 			throw new CTKException("Can not update the person : you are not authorized to update that person !");	
@@ -442,5 +441,110 @@ class Person {
 	private static function getCollectionFieldNameAndValidate($personFieldName, $personFieldValue) {
 		return DataValidator::getCollectionFieldNameAndValidate(self::$dataBinding, $personFieldName, $personFieldValue);
 	}
+
+    /**
+     * Register or Login
+     * on PH registration requires only an email 
+     * test exists 
+     * if exists > request pwd
+     * otherwise add to DB 
+     * send validation mail 
+     * @param  [string] $email   email connected to the citizen account
+     * @param  [string] $pwd   pwd connected to the citizen account
+     * @param  [string] $publicPage is the page requested is publi or not. 
+     * If true, the betaTest option will not be ignored
+     * @return [type] [description]
+     */
+    public static function login($email, $pwd, $publicPage) 
+    {
+        if (! Yii::app()->request->isAjaxRequest || empty($email) || empty($pwd)) {
+        	return array("result"=>false, "msg"=>"Cette requête ne peut aboutir. Merci de bien vouloir réessayer en complétant les champs nécessaires");
+        }
+
+        Person::clearUserSessionData();
+        $account = PHDB::findOne(self::COLLECTION, array("email"=>$email));
+        
+        //Roles validation
+        $res = Role::canUserLogin($account, $publicPage);
+        if ($res["result"]) {
+	        //Check the password
+	        if (self::checkPassword($pwd, $account)) {
+	            Person::saveUserSessionData($account);
+	            $res = array("result"=>true,  "id"=>$account["_id"],"isCommunected"=>isset($account["cp"]));
+	        } else {
+	            $res = array("result"=>false, "msg"=>"Email ou Mot de Passe ne correspondent pas, rééssayez.");
+	        }
+	    }
+        
+        return $res;
+    }
+
+    private static function checkPassword($pwd, $account) {
+    	return ($account && @$account["pwd"] == hash('sha256', @$account["email"].$pwd)) ;
+    }
+
+	/**
+	 * get actionRooms by personId
+	 * @param type $id : is the mongoId (String) of the person
+	 * @return person document as in db
+	 */
+	public static function getActionRoomsByPersonId($id) 
+	{
+		//get action Rooms I created
+		$where = array("created"=>array('$exists'=>1) ) ;
+	  	$actionRooms = ActionRoom::getWhereSortLimit( $where, array("date"=>1) ,1000);
+	  	$actions = array();
+	  	$person = self::getById($id);
+
+	  	if (empty($person)) {
+            throw new CTKException("The person id is unkown : contact your admin");
+        }
+
+	  	if ( isset($person) && isset($person["actions"]) && isset($person["actions"]["surveys"])) 
+	  	{
+	  		$actionRooms = array();
+	  		foreach ( $person["actions"]["surveys"] as $entryId => $action) 
+	  		{
+	  			$entry = Survey::getById( $entryId );
+	  			$entry ['action'] = $action;
+	  			$actions[ $entryId ] = $entry;
+
+	  			if( isset( $entry['survey'] ) && !isset( $actionRooms[ $entry['survey'] ] ) )
+	  			{
+	  				$actionRoom = ActionRoom::getById( $entry['survey'] );
+	  				$actionRooms[ $entry['survey'] ] = $actionRoom;
+	  			}
+	  		}
+	  	}
+
+	  	return array( "rooms" => $actionRooms , 
+	  				  "actions"     => $actions );
+	}
+
+	/**
+	 * Change the password of the user
+	 * @param String $oldPassword 
+	 * @param String $newPassword 
+	 * @param String $userId 
+	 * @return array of result (result, msg)
+	 */
+	public static function changePassword($oldPassword, $newPassword, $userId) {
+		
+		$person = Person::getById($userId);
+
+		if (! self::checkPassword($oldPassword, $person)) {
+			return array("result" => false, "msg" => "Your current password is incorrect");
+		} 
+
+		if (strlen($newPassword) < 8) {
+			return array("result" => false, "msg" => "The new password should be 8 caracters long");
+		}
+		
+		$encodedPwd = hash('sha256', $person["email"].$newPassword);
+		self::updatePersonField($userId, "pwd", $encodedPwd, $userId);
+		
+		return array("result" => true, "msg" => "Your password has been changed with success !");
+	}
+
 }
 ?>

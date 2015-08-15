@@ -29,16 +29,27 @@ class IndexAction extends CAction
             $controller->subTitle = "Every Organization thinks, talks & decides.";
             $controller->pageTitle = "Communecter - ".$controller->title;
         }
-        array_push( $controller->toolbarMBZ, '<a href="#" class="newRoom" title="proposer une " ><i class="fa fa-plus"></i> Room </a>');
+        $urlParams = ( isset($type) && isset($id)) ? "/type/".$type."/id/".$id : "";
+        array_push( $controller->toolbarMBZ, '<a href="#" onclick="openSubView(\'Add a Room\', \'/communecter/rooms/editroom'.$urlParams.'\',null,function(){editRoomSV ();})" title="proposer une " ><i class="fa fa-plus"></i> Room </a>');
 
         $where = array("created"=>array('$exists'=>1) ) ;
         if(isset($type))
         	$where["parentType"] = $type;
         if(isset($id))
         	$where["parentId"] = $id;
-        //var_dump($where);
-		$rooms = ActionRoom::getWhereSortLimit( $where, array("date"=>1) ,30);
+
+        if( $type == Person::COLLECTION ){
+            $roomsActions = Person::getActionRoomsByPersonId($id);
+            $rooms   = $roomsActions["rooms"];
+            $actions = $roomsActions["actions"];
+        }
+        else
+            $rooms = ActionRoom::getWhereSortLimit( $where, array("date"=>1));
+
         $params = array( "rooms" => $rooms );
+        if( isset($actions) )
+            $params["actions"] = $actions;
+
 		if(Yii::app()->request->isAjaxRequest)
 	        echo $controller->renderPartial("index" , $params,true);
 	    else

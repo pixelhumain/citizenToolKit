@@ -10,18 +10,19 @@ class ActivateAction extends CAction
     	$controller=$this->getController();
 	    $account = Person::getById($user);
 	    //TODO : move code below to the model Person
-	    if($account){
-	        Person::saveUserSessionData( $user, $account["email"],array("name"=>$account["name"]));
+	    $res = array("result"=>false);
+	    if($account) {
 	        //remove tobeactivated attribute on account
-	        PHDB::update(Person::COLLECTION,
-	                            array("_id"=>new MongoId($user)), 
-	                            array('$unset' => array("tobeactivated"=>""))
-	                            );
-	        /*Notification::saveNotification(array("type"=>NotificationType::NOTIFICATION_ACTIVATED,
-	                      "user"=>$account["_id"]));*/
+	        PHDB::update(	Person::COLLECTION,
+                        	array("_id"=>new MongoId($user)), 
+                            array('$unset' => array("roles.tobeactivated"=>""))
+                        );
+	        $res = array("result"=>true);
 	    }
 	    //TODO : add notification to the cities,region,departement info panel
 	    //TODO : redirect to monPH page , inciter le rezotage local
-	    $controller->redirect(Yii::app()->homeUrl);
+
+	    $controller->redirect(
+	    	array("person/login", "userValidated" => 1, "email" =>$account["email"]));
     }
 }

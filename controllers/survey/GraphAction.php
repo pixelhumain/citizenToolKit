@@ -28,7 +28,7 @@ class GraphAction extends CAction
                                                                                   "voteUpCount" => $voteUpCount,
                                                                                   "voteUnclearCount" => $voteUnclearCount,
                                                                                   "voteMoreInfoCount" => $voteMoreInfoCount,
-                                                                                  ), 
+                                                                                ), 
                                                             true)));
     }
 }

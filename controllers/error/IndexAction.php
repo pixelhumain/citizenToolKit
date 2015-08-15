@@ -5,12 +5,19 @@ class IndexAction extends CAction
     {
         $controller=$this->getController();
         $controller->pageTitle = "ERREUR";
-	    if($error=Yii::app()->errorHandler->error)
+        
+        
+
+	    if($error = Yii::app()->errorHandler->error )
 	    {
-	      if(Yii::app()->request->isAjaxRequest)
-	        echo $error['message'];
-	      else
-	        $controller->render('error', array("error"=>$error));
+	    	$controller->title = "ERREUR ".$error['code'];
+        	$controller->pageTitle = $controller->title;
+        	$controller->subTitle = $error['message'];
+
+	      	if(Yii::app()->request->isAjaxRequest)
+	        	echo $error['message'];
+	      	else
+	        	$controller->render('error', array("error"=>$error));
 	    }else 
 	      $controller->render( "index");
     }

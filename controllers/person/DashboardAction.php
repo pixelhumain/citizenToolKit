@@ -22,8 +22,8 @@ class DashboardAction extends CAction
 
 	    $person = Person::getPublicData($id);
 	    $contentKeyBase = Yii::app()->controller->id.".".Yii::app()->controller->action->id;
-		  $limit = array(Document::IMG_PROFIL => 1, Document::IMG_MEDIA => 5);
-		  $images = Document::getListDocumentsURLByContentKey($id, $contentKeyBase, Document::DOC_TYPE_IMAGE, $limit);
+		$limit = array(Document::IMG_PROFIL => 1, Document::IMG_MEDIA => 5);
+		$images = Document::getListDocumentsURLByContentKey($id, $contentKeyBase, Document::DOC_TYPE_IMAGE, $limit);
 
 	    $params = array( "person" => $person);
 	    $params['images'] = $images;
@@ -44,13 +44,16 @@ class DashboardAction extends CAction
 			else
 				array_push($controller->toolbarMBZ, "<li id='linkBtns'><a href='javascript:;' class='connectBtn tooltips ' id='addKnowsRelation' data-ownerlink='".link::person2person."' data-placement='top' data-original-title='I know this person' ><i class=' connectBtnIcon fa fa-link '></i>FOLLOW</a></li>");
 		}
-			array_push($controller->toolbarMBZ, "<a href='".Yii::app()->createUrl("/".$controller->module->id."/event/calendarview/id/".$person["_id"]."/type/".Yii::app()->controller->id)."'><i class='fa fa-calendar'></i>CALENDAR</a>");
+		array_push($controller->toolbarMBZ, "<a href='".Yii::app()->createUrl("/".$controller->module->id."/event/calendarview/id/".$person["_id"]."/type/".Yii::app()->controller->id)."'><i class='fa fa-calendar'></i>CALENDAR</a>");
+		
 	    //Get Projects
 	    $projects = array();
 	    if(isset($person["links"]["projects"])){
 	    	foreach ($person["links"]["projects"] as $key => $value) {
 	  			$project = Project::getPublicData($key);
-	  			array_push($projects, $project);
+	  			if (! empty($project)) {
+	  				array_push($projects, $project);
+	  			}
 	  		}
 	    }
 
@@ -78,11 +81,13 @@ class DashboardAction extends CAction
 	            if( $member['type'] == Organization::COLLECTION )
 	            {
 	                $organization = Organization::getPublicData( $key );
-	                $profil = Document::getLastImageByKey($key, Organization::COLLECTION, Document::IMG_PROFIL);
-					if($profil !="")
-						$organization["imagePath"]= $profil;
+	                if (!empty($organization)) {
+		                $profil = Document::getLastImageByKey($key, Organization::COLLECTION, Document::IMG_PROFIL);
+						if($profil !="")
+							$organization["imagePath"]= $profil;
 
-                  array_push($organizations, $organization );
+	                  	array_push($organizations, $organization);
+	                }
 	            }
 
 	         	if(isset($organization["links"]["events"])){
@@ -105,10 +110,12 @@ class DashboardAction extends CAction
 	            if( $member['type'] == Person::COLLECTION )
 	            {
 	            	$citoyen = Person::getPublicData( $key );
-	            	$profil = Document::getLastImageByKey($key, Person::COLLECTION, Document::IMG_PROFIL);
-					if($profil !="")
-						$citoyen["imagePath"]= $profil;
-	            	array_push($people, $citoyen);
+	            	if (!empty($citoyen)) {
+		            	$profil = Document::getLastImageByKey($key, Person::COLLECTION, Document::IMG_PROFIL);
+						if($profil !="")
+							$citoyen["imagePath"]= $profil;
+		            	array_push($people, $citoyen);
+		            }
 	            }
 	    	}
 

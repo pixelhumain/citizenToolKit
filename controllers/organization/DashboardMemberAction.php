@@ -9,7 +9,7 @@ class DashboardMemberAction extends CAction
     	$controller=$this->getController();
 		//get The organization Id
 		if (empty($id)) {
-		  throw new CTKException(Yii::t("organisation","The organization id is mandatory to retrieve the organization !"));
+		  throw new CTKException(Yii::t("organization","The organization id is mandatory to retrieve the organization !"));
 		}
 
 		$organization = Organization::getPublicData($id);

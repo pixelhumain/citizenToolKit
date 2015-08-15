@@ -8,7 +8,13 @@ class AddActionAction extends CAction
 {
     public function run()
     {
-        $res = Action::addAction($_POST['userId'] , $_POST['id'], $_POST['collection'],$_POST['action'], isset( $_POST['unset'] ) );
+        //User must be login to do action
+        $userId = Yii::app()->session["userId"];
+        if ( Person::logguedAndValid() ) { 
+        	$res = Action::addAction($userId , $_POST['id'], $_POST['collection'],$_POST['action'], isset( $_POST['unset'] ) );
+        } else {
+        	$res = array("result" => false, "msg" => "Please Log in order to vote ! ");
+        }
         Rest::json( $res );
         Yii::app()->end();
     }
