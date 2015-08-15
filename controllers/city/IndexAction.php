@@ -38,9 +38,11 @@ class IndexAction extends CAction
 			    
 			    //si nominatim a fournis une réponse, 
 			    //on récupère les coordonnées de la première réponse (même s'il y en a parfois plusieurs)
+			    //var_dump($resultats); die();
 			    if(isset($resultats) && isset($resultats[0])){
 				    $city["geo"]["longitude"] = $resultats[0]->lon;
 				    $city["geo"]["latitude"]  = $resultats[0]->lat;
+				    $city["geo"]["boundingbox"]  = $resultats[0]->boundingbox;
 				}
 
 		    }
