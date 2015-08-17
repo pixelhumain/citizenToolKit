@@ -99,7 +99,7 @@ class Action
     	$currentAction = array( "who"=> $userId,
         						"self" => $action,
         						"collection" => $collection,
-        						"ojectId" => $id,
+        						"objectId" => $id,
         						"created"=>time()
                 				);
         PHDB::insert( ActivityStream::COLLECTION, $currentAction );
@@ -193,4 +193,21 @@ class Action
         
         return $res;
     }
+
+    /**
+     * Retrieve the user action on an object
+     * @param String $objectId The object Id
+     * @param String $objectType The object Type : must be a collection
+     * @param String $userId The user Id that dis the action
+     * @return array of actions : the actions made on the object 
+     */
+    public static function getLastActionOnObjectByUser($objectId, $objectType, $userId) {
+        
+        $where = array( "who"=> $userId,
+                        "collection" => $objectType,
+                        "ojectId" => $objectId);
+        return PHDB::findAndSort( ActivityStream::COLLECTION, $where, array("created"), 1);
+
+    }
+
 }
