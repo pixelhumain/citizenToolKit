@@ -64,9 +64,11 @@ class Organization {
 	/**
 	 * insert a new organization in database
 	 * @param array A well format organization 
-	 * @return a json result as an array. 
+	 * @param String $creatorId : an existing user id representing the creator of the organization
+	 * @param String $adminId : can be ommited. user id representing the administrator of the organization
+	 * @return array result as an array. 
 	 */
-	public static function insert($organization, $userId) {
+	public static function insert($organization, $creatorId, $adminId = null) {
 	    
 		$newOrganization = Organization::getAndCheckOrganization($organization);
 		
@@ -75,7 +77,7 @@ class Organization {
 			$newOrganization["tags"] = Tags::filterAndSaveNewTags($newOrganization["tags"]);
 
 		//Add the user creator of the organization in the system
-		$newOrganization["creator"] = $userId;
+		$newOrganization["creator"] = $creatorId;
 	
 		//Insert the organization
 	    PHDB::insert( Organization::COLLECTION, $newOrganization);
@@ -86,11 +88,13 @@ class Organization {
 	    	throw new CTKException(Yii::t("organization","Problem inserting the new organization"));
 	    }
 		
-		//Add the creator as the first member and admin of the organization
-	    Link::addMember($newOrganizationId, Organization::COLLECTION, $userId, Person::COLLECTION, $userId, true);
+		if ($adminId) {
+			//Add the creator as the first member and admin of the organization
+		    Link::addMember($newOrganizationId, Organization::COLLECTION, $adminId, Person::COLLECTION, $creatorId, true);
+		}
 
 	    //send Notification Email
-	    $creator = Person::getById($userId);
+	    $creator = Person::getById($creatorId);
 	    Mail::newOrganization($creator,$newOrganization);
 	    
 
@@ -127,17 +131,6 @@ class Organization {
 	 * @return array Organization well format : ready to be inserted
 	 */
 	public static function getAndCheckOrganization($organization) {
-		//email : mandotory 
-		if(empty($organization['email'])) {
-			throw new CTKException("Vous devez remplir un email.");
-		} else {
-			//validate Email
-			$email = $organization['email'];
-			if (! preg_match('#^[\w.-]+@[\w.-]+\.[a-zA-Z]{2,6}$#',$email)) { 
-				throw new CTKException("Vous devez remplir un email valide.");
-			}
-		}
-
 		if (empty($organization['name'])) {
 			throw new CTKException(Yii::t("organization","You have to fill a name for your organization"));
 		}
@@ -149,11 +142,19 @@ class Organization {
 	    }
 
 		$newOrganization = array(
-			'email'=>$email,
 			"name" => $organization['name'],
 			'created' => time()
 		);
 		
+		//email : mandotory 
+		if(! empty($organization['email'])) {
+			//validate Email
+			if (! preg_match('#^[\w.-]+@[\w.-]+\.[a-zA-Z]{2,6}$#',$email)) { 
+				throw new CTKException("Vous devez remplir un email valide.");
+			}
+			$newOrganization["email"] = $organization['email'];
+		}
+
 		if (empty($organization['type'])) {
 			throw new CTKException(Yii::t("organization", "You have to fill the type of your organization"));
 		}
@@ -281,7 +282,7 @@ class Organization {
 	 */
 	public static function createAndInvite($param) {
 	  	try {
-	  		$res = self::insert($param, $param["invitedBy"]);
+	  		$res = self::insert($param, $param["invitedBy"], $param["invitedBy"]);
 	  	} catch (CTKException $e) {
 	  		$res = array("result"=>false, "msg"=> $e->getMessage());
 	  	}
@@ -340,7 +341,7 @@ class Organization {
 		$newPerson = Person::insert($person);
 
 		//Create a new organization
-		$newOrganization = Organization::insert($organization, $newPerson["id"]);
+		$newOrganization = Organization::insert($organization, $newPerson["id"], $newPerson["id"]);
 
 		//Link the person as an admin
 		Link::addMember($newOrganization["id"], Organization::COLLECTION, $newPerson["id"], Person::COLLECTION, $newPerson["id"], true);

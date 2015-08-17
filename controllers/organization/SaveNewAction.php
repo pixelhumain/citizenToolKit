@@ -12,7 +12,7 @@ class SaveNewAction extends CAction
 		$newOrganization = Organization::newOrganizationFromPost($_POST);
 		try {
 			//Save the organization
-			Rest::json(Organization::insert($newOrganization, Yii::app()->session["userId"]));
+			Rest::json(Organization::insert($newOrganization, Yii::app()->session["userId"], Yii::app()->session["userId"]));
 		} catch (CTKException $e) {
 			return Rest::json(array("result"=>false, "msg"=>$e->getMessage()));
 		}
