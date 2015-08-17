@@ -30,7 +30,7 @@ class NetworkAction extends CAction
         "useHelpCoordinates" => false,
         "useFullScreen" => true,
         "useResearchTools" => true,
-
+        
         /* TYPE NON CLUSTERISÉ (liste des types de données à ne pas inclure dans les clusters sur la carte (marker seul))*/
         "notClusteredTag" => array("citoyens"),
 

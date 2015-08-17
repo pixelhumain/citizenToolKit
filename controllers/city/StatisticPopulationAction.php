@@ -31,6 +31,7 @@ class StatisticPopulationAction extends CAction
 
         $controller=$this->getController();
         $where = array("insee"=>$insee, $typeData => array( '$exists' => 1 ));
+
      	$fields = array($typeData);
 
      	if(isset($type) && strcmp($type, City::REGION)==0)
@@ -110,9 +111,11 @@ class StatisticPopulationAction extends CAction
         $params["name_id"] = str_replace("-", "", $params["name_id"]);
         $params["name_id"] = str_replace(".", "", $params["name_id"]);
 
-        if(Yii::app()->request->isAjaxRequest)
-         	echo $controller->renderPartial("statistiquePop", $params,true);
-     	else
-         	$controller->render("statistiquePop",$params);
-    }
-}
+          if(Yii::app()->request->isAjaxRequest)
+           	echo $controller->renderPartial("statistiquePop", $params,true);
+       	  else
+           	$controller->render("statistiquePop",$params);
+      }
+  }
+
+?>

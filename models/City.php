@@ -33,7 +33,7 @@ class City {
 		$id = null;
 		$where = array("insee" => $insee);
 		$cities = self::getWhere($where);
-		foreach ($city as $key => $value) {
+		foreach ($cities as $key => $value) {
 			$id = $value["_id"];
 		}
 		return $id;
