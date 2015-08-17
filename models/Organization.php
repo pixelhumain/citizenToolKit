@@ -77,7 +77,7 @@ class Organization {
 			$newOrganization["tags"] = Tags::filterAndSaveNewTags($newOrganization["tags"]);
 
 		//Add the user creator of the organization in the system
-		$newOrganization["creator"] = $userId;
+		$newOrganization["creator"] = $creatorId;
 	
 		//Insert the organization
 	    PHDB::insert( Organization::COLLECTION, $newOrganization);
@@ -90,11 +90,11 @@ class Organization {
 		
 		if ($adminId) {
 			//Add the creator as the first member and admin of the organization
-		    Link::addMember($newOrganizationId, Organization::COLLECTION, $adminId, Person::COLLECTION, $userId, true);
+		    Link::addMember($newOrganizationId, Organization::COLLECTION, $adminId, Person::COLLECTION, $creatorId, true);
 		}
 
 	    //send Notification Email
-	    $creator = Person::getById($userId);
+	    $creator = Person::getById($creatorId);
 	    Mail::newOrganization($creator,$newOrganization);
 	    
 
