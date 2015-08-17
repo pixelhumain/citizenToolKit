@@ -96,18 +96,19 @@ class Comment {
 		$options = self::getCommentOptions($contextId, $contextType);
 
 		//1. Retrieve all comments of that context that are, root of the comment tree (parentId = "" or empty)
-		$where = array(
+		$whereContext = array(
 					"contextId" => $contextId, 
-					"contextType" => $contextType, 
-					'$or' => array(
+					"contextType" => $contextType);
+		$nbComment = PHDB::count(self::COLLECTION, $whereContext);
+		
+		$whereRoot = $whereContext;
+		$whereRoot['$or'] = array(
 								array("parentId" => ""), 
 								array("parentId" => array('$exists' => false))
-							)
-					);
+							);
 		$sort = array("created" => -1);
-		$commentsRoot = PHDB::findAndSort(self::COLLECTION, $where,$sort);
-		$nbComment = PHDB::count(self::COLLECTION, $where);
-
+		$commentsRoot = PHDB::findAndSort(self::COLLECTION, $whereRoot,$sort);
+		
 		foreach ($commentsRoot as $commentId => $comment) {
 			//Get SubComment if option "tree" is set to true
 			if (@$options[self::COMMENT_ON_TREE] == true) {
@@ -117,7 +118,6 @@ class Comment {
 			} else {
 				$comment["replies"] = array();
 			}
-
 			$comment["author"] = self::getCommentAuthor($comment, $options);
 			$commentTree[$commentId] = $comment;
 
@@ -140,6 +140,7 @@ class Comment {
 		foreach ($comments as $commentId => $comment) {
 			$subComments = self::getSubComments($commentId, $options);
 			$comment["author"] = self::getCommentAuthor($comment, $options);
+
 			$comment["replies"] = $subComments;
 			$comments[$commentId] = $comment;
 		}
