@@ -131,15 +131,6 @@ class Organization {
 	 * @return array Organization well format : ready to be inserted
 	 */
 	public static function getAndCheckOrganization($organization) {
-		//email : mandotory 
-		if(! empty($organization['email'])) {
-			//validate Email
-			$email = $organization['email'];
-			if (! preg_match('#^[\w.-]+@[\w.-]+\.[a-zA-Z]{2,6}$#',$email)) { 
-				throw new CTKException("Vous devez remplir un email valide.");
-			}
-		}
-
 		if (empty($organization['name'])) {
 			throw new CTKException(Yii::t("organization","You have to fill a name for your organization"));
 		}
@@ -151,11 +142,19 @@ class Organization {
 	    }
 
 		$newOrganization = array(
-			'email'=>$email,
 			"name" => $organization['name'],
 			'created' => time()
 		);
 		
+		//email : mandotory 
+		if(! empty($organization['email'])) {
+			//validate Email
+			if (! preg_match('#^[\w.-]+@[\w.-]+\.[a-zA-Z]{2,6}$#',$email)) { 
+				throw new CTKException("Vous devez remplir un email valide.");
+			}
+			$newOrganization["email"] = $organization['email'];
+		}
+
 		if (empty($organization['type'])) {
 			throw new CTKException(Yii::t("organization", "You have to fill the type of your organization"));
 		}
