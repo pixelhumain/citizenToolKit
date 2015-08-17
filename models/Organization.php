@@ -121,6 +121,23 @@ class Organization {
 		return $newOrganization;
 	}
 
+
+	public static function newOrganizationFromImportData($organization) {
+		$newOrganization = array();
+		$newOrganization["email"] = empty($organization['email']) ? "" : $organization['email'];
+		$newOrganization["country"] = empty($organization['addressCountry']) ? "" : $organization['addressCountry'];
+		$newOrganization["name"] = empty($organization['name']) ? "" : $organization['name'];
+		$newOrganization["type"] = empty($organization['type']) ? Organization::TYPE_GROUP : $organization['type'];
+		$newOrganization["postalCode"] = empty($organization['postalCode']) ? "" : $organization['postalCode'];
+		$newOrganization["city"] = empty($organization['city']) ? "" : $organization['city'];
+		$newOrganization["description"] = empty($organization['description']) ? "" : $organization['description'];
+		$newOrganization["tags"] = empty($organization['tags']) ? "" : $organization['tags'];
+		$newOrganization["typeIntervention"] = empty($organization['typeIntervention']) ? "" : $organization['typeIntervention'];
+		$newOrganization["typeOfPublic"] = empty($organization['public']) ? "" : $organization['public'];
+
+		return $newOrganization;
+	}
+
 	/**
 	 * Apply organization checks and business rules before inserting
 	 * @param array $organization : array with the data of the organization to check
