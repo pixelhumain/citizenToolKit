@@ -1,6 +1,17 @@
 <?php
 class Authorisation {
-	
+	//**************************************************************
+    // Super Admin Authorisation
+    //**************************************************************
+    public static function isUserSuperAdmin($userId) {
+        $res = false;
+        if (! empty($userId)) {
+            $account = Person::getById($userId);
+            $res = Role::isUserSuperAdmin(@$account["roles"]);
+        }
+        return $res;
+    }
+
     //**************************************************************
     // Organization Authorisation
     //**************************************************************
@@ -201,6 +212,7 @@ class Authorisation {
         //$listOrganizationAdmin = Authorisation::listUserOrganizationAdmin($userId);
         return $projectList;
     }
+
     //**************************************************************
     // Job Authorisation
     //**************************************************************
@@ -244,7 +256,6 @@ class Authorisation {
     	if(!empty($event)){
 
     		// case 1
-
     		if(isset($event["links"]["attendees"])){
     			foreach ($event["links"]["attendees"] as $key => $value) {
     				if($key ==  $userId){
@@ -254,9 +265,7 @@ class Authorisation {
 	    			}
     			}
     		}
-
     		// case 2 and 3
-
     		if(isset($event["links"]["organizer"])){
     			foreach ($event["links"]["organizer"] as $key => $value) {
     				if( Authorisation::canEditOrganisation($userId, $key)){
@@ -267,6 +276,46 @@ class Authorisation {
     	}
     	return $res;
     }
+
+    //**************************************************************
+    // Entry Authorisation
+    //**************************************************************
+    
+    /**
+    * Get the authorization to edit an entry. The entry is stored in the survey collection.
+    * A user can edit a vote if :
+    * 1/ he is super admin
+    * 2/ he is the organizer of the vote
+    * 3/ he is admin of an organisation witch is organizer 
+    * @param String $userId The userId to get the authorisation of
+    * @param String $eventId event to get authorisation of
+    * @return a boolean True if the user can edit and false else
+    */
+    public static function canEditEntry($userId, $voteEntry){
+        $res = false;
+        $entry = Survey::getById($voteEntry);
+
+        if(!empty($entry) && !empty($userId)) {
+            // case 1 : superAdmin
+            if (self::isUserSuperAdmin($userId)) {
+                return true;
+            }
+
+            //Organizer of the Entry
+            if (@$entry["organizerType"] == Person::COLLECTION && 
+                @$entry["organizerId"] == $userId) {
+                return true;
+            }
+            // case 2 and 3
+            if (@$entry["organizerType"] == Organization::COLLECTION) {
+                if( Authorisation::canEditOrganisation($userId, @$entry["organizerId"])){
+                    return true;
+                }
+            }
+        }
+        return $res;
+    }
+
 
     /**
     * Get the authorization for edit an item
@@ -284,11 +333,12 @@ class Authorisation {
     		$res = Authorisation::isOrganizationAdmin($userId, $itemId);
     	} else if($type == Person::COLLECTION) {
     		$res = ($userId==$itemId);
-    	}
+    	} else if($type == Survey::COLLECTION) {
+            $res = Authorisation::canEditEntry($userId, $itemId);
+        }
 
     	return $res;
     }
-
 
 } 
 ?>

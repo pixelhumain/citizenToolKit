@@ -77,7 +77,11 @@ class Organization {
 			$newOrganization["tags"] = Tags::filterAndSaveNewTags($newOrganization["tags"]);
 
 		//Add the user creator of the organization in the system
-		$newOrganization["creator"] = $creatorId;
+		if (empty($creatorId)) {
+			throw new CTKException("The creator of the organization is required.");
+		} else {
+			$newOrganization["creator"] = $creatorId;	
+		}
 	
 		//Insert the organization
 	    PHDB::insert( Organization::COLLECTION, $newOrganization);
@@ -149,7 +153,7 @@ class Organization {
 		//email : mandotory 
 		if(! empty($organization['email'])) {
 			//validate Email
-			if (! preg_match('#^[\w.-]+@[\w.-]+\.[a-zA-Z]{2,6}$#',$email)) { 
+			if (! preg_match('#^[\w.-]+@[\w.-]+\.[a-zA-Z]{2,6}$#', $organization['email'])) { 
 				throw new CTKException("Vous devez remplir un email valide.");
 			}
 			$newOrganization["email"] = $organization['email'];
