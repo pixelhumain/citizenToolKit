@@ -451,7 +451,7 @@ class Person {
      * send validation mail 
      * @param  [string] $email   email connected to the citizen account
      * @param  [string] $pwd   pwd connected to the citizen account
-     * @param  [string] $publicPage is the page requested is publi or not. 
+     * @param  [string] $publicPage is the page requested public or not. 
      * If true, the betaTest option will not be ignored
      * @return [type] [description]
      */
