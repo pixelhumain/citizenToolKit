@@ -6,8 +6,11 @@ class AuthenticateAction extends CAction
         $controller=$this->getController();
         $email = $_POST["email"];
   		
-  		$pageArray = $this->getControllerAndActionFromUrl(Yii::app()->session["requestedUrl"]);
-  		$publicPage = @$controller->pages[$pageArray["controllerId"]][$pageArray["actionId"]]["public"];
+  		$publicPage = false;
+  		if (Yii::app()->session["requestedUrl"]) {
+  			$pageArray = $this->getControllerAndActionFromUrl(Yii::app()->session["requestedUrl"]);
+  			$publicPage = @$controller->pages[$pageArray["controllerId"]][$pageArray["actionId"]]["public"];
+  		} 
 
         $res = Person::login( $email , $_POST["pwd"], $publicPage); 
         if( isset( $_POST["app"] ) )
@@ -20,7 +23,7 @@ class AuthenticateAction extends CAction
 	
 	public function getControllerAndActionFromUrl($url) {
 		if (!$url) {
-			throw new CTKException("Invalid URL : impossible to parse it !");
+			return array("controllerId" => "", "actionId" => "");
 		}
 
 		$controller = $this->getController();

@@ -203,10 +203,14 @@ class Action
      */
     public static function getLastActionOnObjectByUser($objectId, $objectType, $userId) {
         
+        $res = array();
         $where = array( "who"=> $userId,
                         "collection" => $objectType,
                         "ojectId" => $objectId);
-        return PHDB::findAndSort( ActivityStream::COLLECTION, $where, array("created"), 1);
+        $userAction = PHDB::findAndSort( ActivityStream::COLLECTION, $where, array("created"), 1);
+        foreach ($userAction as $key => $value) {
+            
+        }
 
     }
 
