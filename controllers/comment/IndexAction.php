@@ -9,6 +9,9 @@ class IndexAction extends CAction
 
         $res = Comment::buildCommentsTree($id, $type, Yii::app()->session["userId"]);
         $params['comments'] = $res["comments"];
+        $params['communitySelectedComments'] = $res["communitySelectedComments"];
+        $params['abusedComments'] = $res["abusedComments"];
+        
         $params['options'] = $res["options"];
         $params['canComment'] = $res["canComment"];
         $params["contextType"] = "$type";

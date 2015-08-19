@@ -120,15 +120,20 @@ class Comment {
 			}
 			$comment["author"] = self::getCommentAuthor($comment, $options);
 			$commentTree[$commentId] = $comment;
-
 		}
 		
 		//3. Manage the oneCommentOnly option
 		$canComment = self::canUserComment($contextId, $contextType, $userId, $options);
 
+		//4. Get community selected comments
+		$communitySelectedComments = self::getCommunitySelectedComments($contextId, $contextType, $options);
+		//5. Abused comments
+		$abusedComments = self::getAbusedComments($contextId, $contextType, $options);
+		
 		return array("result"=>true, "msg"=>"The comment tree has been retrieved with success", 
-							"options" => $options, "comments"=>$commentTree, "canComment"=>$canComment, 
-							"nbComment"=>$nbComment);
+						"options" => $options, "canComment"=>$canComment, "nbComment"=>$nbComment,
+						"comments"=>$commentTree, "communitySelectedComments" => $communitySelectedComments, "abusedComments" => $abusedComments,
+					);
 	}
 
 	private static function getSubComments($commentId, $options) {
@@ -171,6 +176,64 @@ class Comment {
 			if ($nbComments > 0) $canComment = false;
 		}
 		return $canComment;
+	}
+
+	/**
+	 * Retrieve the best comments of a discussion using the average of vote up
+	 * @param String The context id the discussion is liked to
+	 * @param String The context type the discussion is liked to
+	 * @return array of comments
+	 */
+	public static function getCommunitySelectedComments($contextId, $contextType, $options) {
+		//1. Retrieve average number of like on the comment tree
+		$c = Yii::app()->mongodb->selectCollection(self::COLLECTION);
+		$result = $c->aggregate( array(
+						'$group' => array(
+							'_id' => array("contextId" => $contextId, 'contextType' => $contextType ),
+							'avgVoteUp' => array('$avg' => '$voteUpCount'))));
+
+		if (@$result["ok"]) {
+			$avgVoteUp = $result["result"][0]["avgVoteUp"];
+		} else {
+			throw new CTKException("Something went wrong retrieving the average vote up !", $avgVoteUp);
+		}
+		
+		$whereContext = array(
+					"contextId" => $contextId, 
+					"contextType" => $contextType,
+					"voteUpCount" => array('$gte' => $avgVoteUp));
+
+		$comments = PHDB::find(Comment::COLLECTION, $whereContext);
+		
+		foreach ($comments as $commentId => $comment) {
+			$comment["author"] = self::getCommentAuthor($comment, $options);
+			$comment["replies"] = array();
+			$res[$commentId] = $comment;
+		}
+		return $res;
+	}
+
+	/**
+	 * Retrieve the comments declared as abused of a discussion 
+	 * @param String The context id the discussion is liked to
+	 * @param String The context type the discussion is liked to
+	 * @return float the ave
+	 */
+	public static function getAbusedComments($contextId, $contextType, $options) {
+		//1. Retrieve the comments with at least one abuse
+		$whereContext = array(
+					"contextId" => $contextId, 
+					"contextType" => $contextType,
+					"reportAbuseCount" => array('$gt' => 0));
+
+		$comments = PHDB::find(Comment::COLLECTION, $whereContext);
+		
+		foreach ($comments as $commentId => $comment) {
+			$comment["author"] = self::getCommentAuthor($comment, $options);
+			$comment["replies"] = array();
+			$res[$commentId] = $comment;
+		}
+		return $res;
 	}
 
 	/**

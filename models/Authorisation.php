@@ -324,7 +324,7 @@ class Authorisation {
     * @return a boolean
     */
     public static function canEditItem($userId, $type, $itemId){
-    	$res=false;
+        $res=false;
     	if($type == PHType::TYPE_EVENTS) {
     		$res = Authorisation::isEventAdmin($itemId, $userId);
     	} else if($type == PHType::TYPE_PROJECTS) {
