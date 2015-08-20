@@ -1,6 +1,8 @@
 <?php
 class IndexAction extends CAction
 {
+
+    //http://127.0.0.1/ph/communecter/rooms/index/type/citoyens/id/xxxxxx
     public function run( $type=null, $id= null )
     {
         $controller=$this->getController();

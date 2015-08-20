@@ -491,8 +491,8 @@ class Person {
 	public static function getActionRoomsByPersonId($id) 
 	{
 		//get action Rooms I created
-		$where = array("created"=>array('$exists'=>1) ) ;
-	  	$actionRooms = ActionRoom::getWhereSortLimit( $where, array("date"=>1) ,1000);
+		$where = array( "email"=> Yii::app()->session['userEmail'] ) ;
+	  	$actionRooms = PHDB::find(ActionRoom::COLLECTION,$where);//array();//ActionRoom::getWhereSortLimit( $where, array("created"=>1) ,1000);
 	  	$actions = array();
 	  	$person = self::getById($id);
 
@@ -502,7 +502,6 @@ class Person {
 
 	  	if ( isset($person) && isset($person["actions"]) && isset($person["actions"]["surveys"])) 
 	  	{
-	  		$actionRooms = array();
 	  		foreach ( $person["actions"]["surveys"] as $entryId => $action) 
 	  		{
 	  			$entry = Survey::getById( $entryId );
@@ -517,8 +516,8 @@ class Person {
 	  		}
 	  	}
 
-	  	return array( "rooms" => $actionRooms , 
-	  				  "actions"     => $actions );
+	  	return array( "rooms"   => $actionRooms , 
+	  				  "actions" => $actions );
 	}
 
 	/**
