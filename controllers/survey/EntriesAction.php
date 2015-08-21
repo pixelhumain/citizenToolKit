@@ -24,7 +24,7 @@ class EntriesAction extends CAction
       $controller->title = "Sondages : ".$survey["name"] ;
       $controller->subTitle = "Nombres de votants inscrit : ".$uniqueVoters;
       $controller->pageTitle = "Communecter - Sondages";
-      $surveyLink = ( isset( $survey["parentType"] ) && isset( $survey["parentId"] ) ) ? Yii::app()->createUrl("/communecter/survey/index/type/".$survey["parentType"]."/id/".$survey["parentId"]) : Yii::app()->createUrl("/communecter/survey"); 
+      $surveyLink = ( isset( $survey["parentType"] ) && isset( $survey["parentId"] ) ) ? Yii::app()->createUrl("/communecter/rooms/index/type/".$survey["parentType"]."/id/".$survey["parentId"]) : Yii::app()->createUrl("/communecter/rooms"); 
       $controller->toolbarMBZ = array(
         '<a href="'.$surveyLink.'" class="surveys" title="list of Surveys" ><i class="fa fa-bars"></i> SURVEYS</a>',
         '<a href="#" class="newVoteProposal" title="faites une proposition" ><i class="fa fa-paper-plane"></i> PROPOSER</a>',
