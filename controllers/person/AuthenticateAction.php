@@ -22,18 +22,19 @@ class AuthenticateAction extends CAction
     
 	
 	public function getControllerAndActionFromUrl($url) {
-		if (!$url) {
-			return array("controllerId" => "", "actionId" => "");
-		}
-
-		$controller = $this->getController();
-		$res = array();
-		$url2 = str_replace(Yii::app()->baseUrl ."/".$controller->moduleId."/", "", $url);
-		list($controller,$action) = explode("/", $url2);
-
-		$res["controllerId"] = $controller;
-		$res["actionId"] = $action;
-
+    $res = array("controllerId" => "", "actionId" => "");
+    if ($url) {
+  		$controller = $this->getController();
+  		$res = array();
+  		$url2 = str_replace(Yii::app()->baseUrl ."/".$controller->moduleId."/", "", $url);
+  		
+      if (substr_count($url2, '/') == 2) {
+        list($controller,$action) = explode("/", $url2);
+  		  $res["controllerId"] = $controller;
+  		  $res["actionId"] = $action;
+      }
+    }
+    
 		return $res;
     }
 }
