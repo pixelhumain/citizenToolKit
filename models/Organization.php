@@ -214,7 +214,10 @@ class Organization {
 	  	if (empty($organization)) {
             //TODO Sylvain - Find a way to manage inconsistent data
             //throw new CommunecterException("The organization id ".$id." is unkown : contact your admin");
-        } 		
+        } else {
+			$profil = Document::getLastImageByKey($id, self::COLLECTION, Document::IMG_PROFIL);
+			$organization["profilImageUrl"] = $profil;
+        }	
 	  	return $organization;
 	}
 
