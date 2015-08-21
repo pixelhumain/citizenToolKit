@@ -7,7 +7,7 @@ class AuthenticateAction extends CAction
         $email = $_POST["email"];
   		
   		$publicPage = false;
-  		if (Yii::app()->session["requestedUrl"]) {
+  		if (! empty(Yii::app()->session["requestedUrl"])) {
   			$pageArray = $this->getControllerAndActionFromUrl(Yii::app()->session["requestedUrl"]);
   			$publicPage = @$controller->pages[$pageArray["controllerId"]][$pageArray["actionId"]]["public"];
   		} 

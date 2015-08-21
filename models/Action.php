@@ -36,7 +36,7 @@ class Action
      * @param boolean $multiple : true : the user can do multiple action, else can not.
      * @return array result (result, msg)
      */
-    public static function addAction( $userId=null , $id=null, $collection=null, $action=null, $unset=false, $multiple=false  )
+    public static function addAction( $userId=null , $id=null, $collection=null, $action=null, $unset=false, $multiple=false)
     {
         $user = Person::getById($userId);
         $element = ($id) ? PHDB::findOne ($collection, array("_id" => new MongoId($id) )) : null;
@@ -192,26 +192,6 @@ class Action
             $res["links"] = "<div class='leftlinks'>".$linkVoteUp." ".$linkVoteUnclear." ".$linkVoteAbstain." ".$linkVoteMoreInfo." ".$linkVoteDown."</div>";
         
         return $res;
-    }
-
-    /**
-     * Retrieve the user action on an object
-     * @param String $objectId The object Id
-     * @param String $objectType The object Type : must be a collection
-     * @param String $userId The user Id that dis the action
-     * @return array of actions : the actions made on the object 
-     */
-    public static function getLastActionOnObjectByUser($objectId, $objectType, $userId) {
-        
-        $res = array();
-        $where = array( "who"=> $userId,
-                        "collection" => $objectType,
-                        "ojectId" => $objectId);
-        $userAction = PHDB::findAndSort( ActivityStream::COLLECTION, $where, array("created"), 1);
-        foreach ($userAction as $key => $value) {
-            
-        }
-
     }
 
 }
