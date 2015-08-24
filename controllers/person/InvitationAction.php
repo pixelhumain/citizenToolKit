@@ -1,10 +1,14 @@
 <?php
+/*
+an invite is made simply with an email and a name by a connected sponsor
+- check existence of the sponsor 
+*/
 class InvitationAction extends CAction
 {
     public function run()
     {
     	$res = array( "result" => false , "content" => Yii::t("common", "Something went wrong!" ));
-		 if(Yii::app()->request->isAjaxRequest && isset( $_POST["parentId"]) )
+		 if(Yii::app()->request->isAjaxRequest && isset( $_POST["parentId"]) && !empty($_POST["parentId"]) )
 		 {
 		 	//test if group exist
 			$organization = (isset($_POST["parentId"])) ? PHDB::findOne( Organization::COLLECTION,array("_id"=>new MongoId($_POST["parentId"]))) : null;
@@ -48,23 +52,12 @@ class InvitationAction extends CAction
 								array("_id" => new MongoId($_POST["parentId"])) ,
 								array('$set' => array( "links.knows.".(string)$member["_id"].".type" => $type ) ));
 						$res = array("result"=>true,"msg"=>Yii::t("common", "Your data has been saved"),"reload"=>true);
-						 //TODO : background send email
-						 //send validation mail
-						 //TODO : make emails as cron jobs
-						 /*$message = new YiiMailMessage;
-						 $message>view = 'invitation';
-						 $name = (isset($sponsor["name"])) ? "par ".$sponsor["name"] : "par ".$sponsor["email"];
-						 $message>setSubject('Invitation au projet Pixel Humain '.$name);
-						 $message>setBody(array("user"=>$member["_id"],
-						 "sponsorName"=>$name), 'text/html');
-						 $message>addTo("oceatoon@gmail.com");//$_POST['email']
-						 $message>from = Yii::app()>params['adminEmail'];
-						Yii::app()>mail>send($message);*/
-
-						 //TODO : add an admin notification
-						 Notification::saveNotification(array("type"=>NotificationType::NOTIFICATION_INVITATION,
-						 "user"=>Yii::app()->session["userId"],
-						 "invited"=>$member["_id"]));
+ 
+						Mail::invitation( Yii::app()->session['user']['name']);
+						 
+						Notification::saveNotification( array("type"=>NotificationType::NOTIFICATION_INVITATION,
+						"user"=>Yii::app()->session["userId"],
+						"invited"=>$member["_id"]));
 						 
 					}
 					else

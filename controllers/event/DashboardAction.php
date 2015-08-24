@@ -6,10 +6,7 @@ class DashboardAction extends CAction
         $controller=$this->getController();
         $event = Event::getPublicData($id);
 
-        $controller->sidebar1 = array(
-          array('label' => "ACCUEIL", "key"=>"home","iconClass"=>"fa fa-home","href"=>$controller->module->id."/event/dashboard/id/".$id),
-        );
-
+        
         $controller->title = (isset($event["name"])) ? $event["name"] : "";
         $controller->subTitle = (isset($event["description"])) ? $event["description"] : "";
         $controller->pageTitle = ucfirst($controller->module->id)." - ".Yii::t("event","Event's informations")." ".$controller->title;
@@ -22,6 +19,7 @@ class DashboardAction extends CAction
         $people = array();
         //$admins = array();
         $attending =array();
+        $controller->toolbarMBZ = array();
         if(!empty($event)){
           $params = array();
           if(isset($event["links"])){
@@ -39,14 +37,15 @@ class DashboardAction extends CAction
             }
             if(isset($event["links"]["organizer"])){
               foreach ($event["links"]["organizer"] as $id => $e) {
-                $organization = Organization::getBYId($id);
+                $organization = Organization::getById($id);
                 $organizer["id"] = $id;
                 $organizer["type"] = "organization";
                 $organizer["name"] = $organization["name"];
+                array_push($controller->toolbarMBZ,"<a href='".Yii::app()->createUrl("/".$controller->module->id."/organization/dashboard/id/".$id)."'><i class='fa fa-group'></i>Organization</a>");
               }
             }else if(isset($event["links"]["creator"])){
               foreach ($event["links"]["creator"] as $id => $e) {
-                $citoyen = Person::getBYId($id);
+                $citoyen = Person::getById($id);
                 $organizer["id"] = $id;
                 $organizer["type"] = "person";
                 $organizer["name"] = $citoyen["name"];
@@ -56,10 +55,9 @@ class DashboardAction extends CAction
         }
 
         if(isset($event["_id"]) && isset(Yii::app()->session["userId"]) && Link::isLinked($event["_id"] , Event::COLLECTION , Yii::app()->session['userId']))
-			$controller->toolbarMBZ = array("<li id='linkBtns'><a href='javascript:;' class='disconnectBtn text-red tooltips' data-name='".$event["name"]."' data-id='".$event["_id"]."' data-type='".Event::COLLECTION."' data-member-id='".Yii::app()->session["userId"]."' data-ownerlink='".Link::person2events."' data-targetlink='".Link::event2person."' data-placement='top' data-original-title='No more Attendee' ><i class='disconnectBtnIcon fa fa-unlink'></i>NO ATTENDING</a></li>" );
-		else
-			$controller->toolbarMBZ = array("<li id='linkBtns'><a href='javascript:;' class='connectBtn tooltips ' id='addKnowsRelation' data-placement='top' data-ownerlink='".Link::person2events."' data-targetlink='".Link::event2person."' data-original-title='I know this person' ><i class=' connectBtnIcon fa fa-link '></i>ATTENDING</a></li>");
-
+    			array_push($controller->toolbarMBZ,"<li id='linkBtns'><a href='javascript:;' class='disconnectBtn text-red tooltips' data-name='".$event["name"]."' data-id='".$event["_id"]."' data-type='".Event::COLLECTION."' data-member-id='".Yii::app()->session["userId"]."' data-ownerlink='".Link::person2events."' data-targetlink='".Link::event2person."' data-placement='top' data-original-title='No more Attendee' ><i class='disconnectBtnIcon fa fa-unlink'></i>NO ATTENDING</a></li>" );
+    		else
+    			array_push($controller->toolbarMBZ,"<li id='linkBtns'><a href='javascript:;' class='connectBtn tooltips ' id='addKnowsRelation' data-placement='top' data-ownerlink='".Link::person2events."' data-targetlink='".Link::event2person."' data-original-title='I know this person' ><i class=' connectBtnIcon fa fa-link '></i>ATTENDING</a></li>");
 
         $params["images"] = $images;
         $params["contentKeyBase"] = $contentKeyBase;

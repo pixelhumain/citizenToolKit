@@ -5,6 +5,7 @@ class InviteSVAction extends CAction
     {
         $controller=$this->getController();
 
+        $params = array();
         if( isset($_GET["isNotSV"])) 
             $params["isNotSV"] = true;
     	if(Yii::app()->request->isAjaxRequest)
