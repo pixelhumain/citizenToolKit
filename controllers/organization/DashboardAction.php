@@ -61,11 +61,13 @@ class DashboardAction extends CAction
 		}
 		foreach ($people as $key => $value) {
 			$newCitoyen = Person::getById($key);
-			$profil = Document::getLastImageByKey($key, Person::COLLECTION, Document::IMG_PROFIL);
-			if($profil !="")
-				$newCitoyen["imagePath"] = $profil;
-			array_push($contextMap["people"], $newCitoyen);
-			array_push($members["citoyens"], $newCitoyen);
+			if (!empty($newCitoyen)) {
+				$profil = Document::getLastImageByKey($key, Person::COLLECTION, Document::IMG_PROFIL);
+				if($profil !="")
+					$newCitoyen["imagePath"] = $profil;
+				array_push($contextMap["people"], $newCitoyen);
+				array_push($members["citoyens"], $newCitoyen);
+			}
 		}
 		$params["members"] = $members;
 		$params["contextMap"] = $contextMap;
