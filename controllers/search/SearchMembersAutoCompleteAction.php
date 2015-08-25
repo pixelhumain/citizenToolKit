@@ -1,34 +1,52 @@
 <?php
-class SearchMembersAutoCompleteAction extends CAction
-{
-    public function run()
-    {
-        $query = array( '$or' => array( array("email" => new MongoRegex("/".$_POST['search']."/i")),
-                                        array("name" => new MongoRegex("/".$_POST['search']."/i"))));
-        $allCitoyens = PHDB::findAndSort( Person::COLLECTION , $query, array("name" => 1), 6);
-        $limitOrganization = 12 - count($allCitoyens);
-        $allOrganization = PHDB::findAndSort( Organization::COLLECTION, $query, array("name" => 1), $limitOrganization, array("_id", "name", "type", "address", "email", "links"));
-        
-        foreach ($allCitoyens as $key => $value) {
-  			$logo = Document::getLastImageByKey($key, Person::COLLECTION, Document::IMG_LOGO);
-  			if($logo !="")
-					$value["logo"]= $logo;
-					$allCitoyens[$key] = $value;
-  		}
+class SearchMembersAutoCompleteAction extends CAction {
+	
+	const PERSON_ONLY = "personOnly";
+	const ORGANIZATION_ONLY = "organizationOnly";
+	const MIXTE = "mixte";
 
-  		foreach ($allOrganization as $key => $value) {
-  			$logo = Document::getLastImageByKey($key, Organization::COLLECTION, Document::IMG_LOGO);
-  			if($logo !="")
-					$value["logo"]= $logo;
-					$allOrganization[$key] = $value;
-  		}
+	public function run() {
+		$query = array( '$or' => 	array( array("email" => new MongoRegex("/".$_POST['search']."/i")),
+									array("name" => new MongoRegex("/".$_POST['search']."/i"))));
 
-        $all = array(
-          "citoyens" => $allCitoyens,
-          "organizations" => $allOrganization,
-        );
+		$limitSearchPerson = 0;
+		$limitSearchOrganization = 0;
+		$all = array();
 
-        Rest::json( $all );
-        Yii::app()->end(); 
-    }
+		if (@$_POST['searchMode'] == self::PERSON_ONLY) {
+			$limitSearchPerson = 12;
+		} else if (@$_POST['searchMode'] == self::ORGANIZATION_ONLY) {
+			$limitSearchOrganization = 12;
+		} else {
+			$limitSearchPerson = 6;
+			$limitSearchOrganization = 6;
+		}
+		
+		if ($limitSearchPerson > 0) {
+			$allCitoyens = PHDB::findAndSort( Person::COLLECTION , $query, array("name" => 1), $limitSearchPerson);
+			foreach ($allCitoyens as $key => $value) {
+				$person = Person::getById($key);
+				$allCitoyens[$key] = $person;
+			}
+			$all["citoyens"] = $allCitoyens;
+			//Update the number of organization to search
+			if ($limitSearchOrganization > 0) {
+				$limitSearchOrganization = 12 - count($allCitoyens);
+			}
+		}
+		
+		if ($limitSearchOrganization > 0) {
+			$allOrganization = PHDB::findAndSort( Organization::COLLECTION, $query, array("name" => 1), $limitSearchOrganization, array("_id", "name", "type", "address", "email", "links"));
+			foreach ($allOrganization as $key => $value) {
+			$logo = Document::getLastImageByKey($key, Organization::COLLECTION, Document::IMG_LOGO);
+			if($logo !="")
+				$value["logo"]= $logo;
+				$allOrganization[$key] = $value;
+			}
+			$all["organizations"] = $allOrganization;
+		}
+
+		Rest::json( $all );
+		Yii::app()->end(); 
+	}
 }
