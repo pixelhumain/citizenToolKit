@@ -5,10 +5,15 @@ class EditChartAction extends CAction
 		$controller=$this->getController();
 		$idProject=$_POST["id"];
 		//echo $idProject;
-		$newProperties=$_POST["chart"];
+		if(!empty($_POST["chart"]))
+			$newProperties=$_POST["chart"];
+		else
+			$newProperties=[];
 		$propertiesList=[];
-		foreach ($newProperties as $data){
-			$propertiesList[$data["label"]]=$data["value"];
+		if(!empty($newProperties)){
+			foreach ($newProperties as $data){
+				$propertiesList[$data["label"]]=$data["value"];
+			}
 		}
 		//print_r($propertiesList);
 		/*$propertiesList=array(
@@ -19,7 +24,16 @@ class EditChartAction extends CAction
 							"solidaire" => $properties["solidaire"],
 							"avancement" => $properties["avancement"],
 		);*/
-        $res = Project::saveChart( $idProject,$propertiesList );
+		if (!empty($newProperties)){
+        	$res = Project::saveChart($idProject,$propertiesList);
+        }
+        else
+        	$res = Project::removeChart($idProject);
+
+        //if(!empty($propertiesList)){
+	      //  $tabPropeties=$propertiesList;
+        //}
+        //else()
 		echo json_encode(array("result"=>true, "properties"=>$propertiesList, "msg"=>"Ce projet a de nouvelle propriétés"));
         exit;
 	}

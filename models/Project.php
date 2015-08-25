@@ -196,7 +196,13 @@ class Project {
         );
         return true;
     }
-
+	public static function removeChart($idProject){
+		PHDB::update(self::COLLECTION, 
+            array("_id" => new MongoId($idProject)) , 
+            array('$unset' => array("properties.chart" => 1))
+        );
+        return true;	
+	}
     /**
 	 * Update a project field value
 	 * @param String $projectId The person Id to update
