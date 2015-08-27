@@ -22,15 +22,16 @@ class Gamification {
 	//platefrom actions
 	const POINTS_USER_LOGIN = 5;
 	const POINTS_USER_REGISTRATION = 15;
-	const POINTS_SEARCH = 1;
-	const POINTS_ADD_POST = 1;
-	const POINTS_ANSWER_POST = 1;
-	const POINTS_POST_LIKED = 2;
+	//const POINTS_SEARCH = 1;
+	const POINTS_ADD_POST = 0.5;
+	const POINTS_ANSWER_POST = 0.1;
+	const POINTS_POST_LIKED = 0.1;
 
 	//links
-	const POINTS_LINK_USER_2_USER = 5;
-	const POINTS_LINK_USER_2_ORGANIZATION = 5;
-	const POINTS_LINK_USER_2_EVENT = 5;
+	const POINTS_LINK_USER_2_USER = 1;
+	const POINTS_LINK_USER_2_ORGANIZATION = 1;
+	const POINTS_LINK_USER_2_EVENT = 0.5;
+	const POINTS_LINK_USER_2_PROJECT = 0.5;
 
 	//creation
 	const POINTS_CREATE_ORGANIZATION = 10;
@@ -64,7 +65,42 @@ class Gamification {
 	//creating a common task
 	//adding a new open data source or entry (interface add/propose an open data entry)
 
-
+	/*
+	Calculate Gamification points based on gamifaication rules 
+	
+	*/
+	public static function calcPoints($userId) {
+		
+		$res = 0;
+		$person = Person::getById($userId);
+		if( isset( $person['links'] ) )
+		{
+			foreach ( $person['links'] as $type => $list) {
+				if( $type == Link::person2events ){
+					foreach ($list as $key => $value) {
+						$res += self::POINTS_LINK_USER_2_EVENT;
+					}
+				}
+				if( $type == Link::person2projects ){
+					foreach ($list as $key => $value) {
+						$res += self::POINTS_LINK_USER_2_PROJECT;
+					}
+				}
+				if( $type == Link::person2organization ){
+					foreach ($list as $key => $value) {
+						$res += self::POINTS_LINK_USER_2_ORGANIZATION;
+					}
+				}
+				if( $type == Link::person2person ){
+					foreach ($list as $key => $value) {
+						$res += self::POINTS_LINK_USER_2_USER;
+					}
+				}
+			}
+		}
+		
+		return $res;
+	}
 	/**
 	 * adds an entry into the cron collection
 	 * @param $params : a set of information for a proper cron entry

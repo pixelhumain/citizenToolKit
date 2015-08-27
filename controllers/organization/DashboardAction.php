@@ -23,12 +23,15 @@ class DashboardAction extends CAction
 		$controller->pageTitle = "Organization ".$controller->title." - ".$controller->subTitle;
 
 
-
-		if(isset($organization["_id"]) && isset(Yii::app()->session["userId"]) && Link::isLinked((string)$organization["_id"], Organization::COLLECTION , Yii::app()->session["userId"]))
-			$controller->toolbarMBZ = array("<li id='linkBtns'><a href='javascript:;' class='removeMemberBtn text-red tooltips' data-name='".$organization["name"]."' data-memberof-id='".$organization["_id"]."' data-member-type='".Person::COLLECTION."' data-member-id='".Yii::app()->session["userId"]."' data-placement='top' data-original-title='Remove from my Organizations' ><i class='disconnectBtnIcon fa fa-unlink'></i>NOT MEMBER</a></li>" );
-		else
-			$controller->toolbarMBZ = array("<li id='linkBtns'><a href='javascript:;' class='connectBtn tooltips ' id='addMeAsMemberInfo' data-placement='top' data-original-title='I'm member of this organization' ><i class=' connectBtnIcon fa fa-link '></i>I'M MEMBER</a></li>");
-
+		if( !isset( $organization["disabled"] ) ){
+			if(isset($organization["_id"]) && isset(Yii::app()->session["userId"]) && Link::isLinked((string)$organization["_id"], Organization::COLLECTION , Yii::app()->session["userId"]))
+				$controller->toolbarMBZ = array("<li id='linkBtns'><a href='javascript:;' class='removeMemberBtn text-red tooltips' data-name='".$organization["name"]."' data-memberof-id='".$organization["_id"]."' data-member-type='".Person::COLLECTION."' data-member-id='".Yii::app()->session["userId"]."' data-placement='top' data-original-title='Remove from my Organizations' ><i class='disconnectBtnIcon fa fa-unlink'></i>NOT MEMBER</a></li>" );
+			else
+				$controller->toolbarMBZ = array("<li id='linkBtns'><a href='javascript:;' class='connectBtn tooltips ' id='addMeAsMemberInfo' data-placement='top' data-original-title='I'm member of this organization' ><i class=' connectBtnIcon fa fa-link '></i>I'M MEMBER</a></li>");
+		} else 
+			$controller->toolbarMBZ = array();
+			//$controller->toolbarMBZ = array("<li id='linkBtns'><a href='javascript:;' class='tooltips ' data-placement='top' data-original-title='This Organization is disabled' ><i class='text-red fa fa-times '></i>DISABLED</a></li>");
+		
 		array_push($controller->toolbarMBZ, "<a href='".Yii::app()->createUrl("/".$controller->module->id."/event/calendarview/id/".$id."/type/".Organization::COLLECTION)."'><i class='fa fa-calendar'></i>CALENDAR</a>");
 		array_push($controller->toolbarMBZ, "<a href='".Yii::app()->createUrl("/".$controller->module->id."/news/index/type/".Organization::COLLECTION."/id/".$id)."'><i class='fa fa-rss'></i>TIMELINE</a>");
 		array_push($controller->toolbarMBZ, "<a href='".Yii::app()->createUrl("/".$controller->module->id."/survey/index/type/".Organization::COLLECTION."/id/".$id)."'><i class='fa fa-legal'></i>SURVEYS</a>");

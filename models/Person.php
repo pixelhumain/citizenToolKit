@@ -164,7 +164,7 @@ class Person {
 	      foreach ($person["links"]["memberOf"] as $id => $e) 
 	      {
 	        $organization = PHDB::findOne( Organization::COLLECTION, array( "_id" => new MongoId($id)));
-	        if (!empty($organization)) {
+	        if (!empty($organization) && !isset($organisation["disabled"])) {
 	          array_push($organizations, $organization);
 	        } else {
 	         // throw new CTKException("Données inconsistentes pour le citoyen : ".Yii::app()->session["userId"]);
@@ -544,6 +544,7 @@ class Person {
 		
 		return array("result" => true, "msg" => "Your password has been changed with success !");
 	}
+	
 
 }
 ?>
