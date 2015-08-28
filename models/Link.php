@@ -146,6 +146,7 @@ class Link {
 	    $links=array("links.".$connectType.".".$targetId.".type" => $targetType);
         if($isAdmin)
         	$links["links.".$connectType.".".$targetId.".isAdmin"]=$isAdmin;
+        
         //0. Check if the $originId and the $targetId exists
         $origin = Link::checkIdAndType($originId, $originType);
 		$target = Link::checkIdAndType($targetId, $targetType);
@@ -417,12 +418,14 @@ class Link {
     	 //0. Check if the $owner and the $target exists
         $owner = Link::checkIdAndType($ownerId, $ownerType);
         $target = Link::checkIdAndType($targetId, $targetType);
-        $newObject = array('type' => $targetType );
-         PHDB::update( $ownerType, 
-           array("_id" => new MongoId($ownerId)) , 
-           array('$set' => array( "links.".$ownerLink.".".$targetId => $newObject) ));
 
-         if(isset($targetLink) && $targetLink != null){
+        PHDB::update( $ownerType, 
+           array("_id" => new MongoId($ownerId)) , 
+           array('$set' => array( "links.".$ownerLink.".".$targetId.".type" => $targetType) ));
+
+        //Mail::newConnection();
+
+        if(isset($targetLink) && $targetLink != null){
          	$newObject = array('type' => $ownerType );
 	        PHDB::update( $targetType, 
 			               array("_id" => new MongoId($targetId)) , 

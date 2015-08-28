@@ -344,8 +344,9 @@ class Organization {
 		//Check organization datas 
 		Organization::getAndCheckOrganization($organization);
 		
-		//Create a new person
+		//Create a new person + send email validation
 		$newPerson = Person::insert($person);
+		Mail::validatePerson($person);
 
 		//Create a new organization
 		$newOrganization = Organization::insert($organization, $newPerson["id"], $newPerson["id"]);
@@ -354,11 +355,8 @@ class Organization {
 		Link::addMember($newOrganization["id"], Organization::COLLECTION, $newPerson["id"], Person::COLLECTION, $newPerson["id"], true);
 
 		//Link the organization as a member of the invitor
-		
-		//TODO SBAR - On GRANDDIR case, the parent organization can manage (data, event, project...) their organization members. 
-		//Should be a parameter of the application.
-		$isParentOrganizationAdmin = true;
-		
+		//Is the parent oragnization can manage the organizations bellow ?
+		$isParentOrganizationAdmin = @Yii::app()->params['isParentOrganizationAdmin'];
 		Link::addMember($parentOrganizationId, Organization::COLLECTION, $newOrganization["id"], Organization::COLLECTION, 
 						$newPerson["id"], $isParentOrganizationAdmin);
 		
