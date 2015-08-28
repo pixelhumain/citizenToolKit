@@ -43,6 +43,20 @@ class Mail
         Mail::schedule($params);
     }
 
+    public static function invitation($name) {
+        $params = array(
+            "type" => Cron::TYPE_MAIL,
+            "tpl"=>'invitation',
+            "subject" => 'Invited to '.Yii::app()->name.' by '.$name,
+            "from"=>Yii::app()->params['adminEmail'],
+            "to" => Yii::app()->params['adminEmail'],
+            "tplParams" => array(   "sponsorName"   => $name ,
+                                    "title" => Yii::app()->name ,
+                                    "logo"  => "/images/logo.png")
+        );
+        Mail::schedule($params);
+    }
+
     public static function passwordRetreive( $email, $pwd )
     {
         $params = array(

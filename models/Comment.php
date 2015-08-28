@@ -7,6 +7,12 @@ class Comment {
 	const COMMENT_ON_TREE = "tree";
 	const COMMENT_ANONYMOUS = "anonymous";
 	const ONE_COMMENT_ONLY = "oneCommentOnly";
+
+	//Comment status
+	const STATUS_POSTED 		 = "posted";
+	const STATUS_DECLARED_ABUSED = "declaredAbused";
+	const STATUS_DELETED 		 = "deleted";
+	const STATUS_ACCEPTED 		 = "accepted";
 	
 	//From Post/Form name to database field name
 	private static $dataBinding = array(
@@ -61,7 +67,8 @@ class Comment {
 			"text" => $comment["content"],
 			"created" => time(),
 			"author" => $userId,
-			"tags" => @$comment["tags"]
+			"tags" => @$comment["tags"],
+			"status" => self::STATUS_POSTED 
 		);
 
 		if (self::canUserComment($comment["contextId"], $comment["contextType"], $userId, $options)) {
@@ -119,16 +126,25 @@ class Comment {
 				$comment["replies"] = array();
 			}
 			$comment["author"] = self::getCommentAuthor($comment, $options);
+			//Manage comment declared as abused
+			if (@$comment["status"] == self::STATUS_DELETED) {
+				$comment["text"] = "This comment has been deleted because of his content.";
+			}
 			$commentTree[$commentId] = $comment;
-
 		}
 		
 		//3. Manage the oneCommentOnly option
 		$canComment = self::canUserComment($contextId, $contextType, $userId, $options);
 
+		//4. Get community selected comments
+		$communitySelectedComments = self::getCommunitySelectedComments($contextId, $contextType, $options);
+		//5. Abused comments
+		$abusedComments = self::getAbusedComments($contextId, $contextType, $options);
+		
 		return array("result"=>true, "msg"=>"The comment tree has been retrieved with success", 
-							"options" => $options, "comments"=>$commentTree, "canComment"=>$canComment, 
-							"nbComment"=>$nbComment);
+						"options" => $options, "canComment"=>$canComment, "nbComment"=>$nbComment,
+						"comments"=>$commentTree, "communitySelectedComments" => $communitySelectedComments, "abusedComments" => $abusedComments,
+					);
 	}
 
 	private static function getSubComments($commentId, $options) {
@@ -140,6 +156,9 @@ class Comment {
 		foreach ($comments as $commentId => $comment) {
 			$subComments = self::getSubComments($commentId, $options);
 			$comment["author"] = self::getCommentAuthor($comment, $options);
+			if (@$comment["status"] == self::STATUS_DELETED) {
+				$comment["text"] = "This comment has been deleted because of his content.";
+			}
 
 			$comment["replies"] = $subComments;
 			$comments[$commentId] = $comment;
@@ -171,6 +190,67 @@ class Comment {
 			if ($nbComments > 0) $canComment = false;
 		}
 		return $canComment;
+	}
+
+	/**
+	 * Retrieve the best comments of a discussion using the average of vote up
+	 * @param String The context id the discussion is liked to
+	 * @param String The context type the discussion is liked to
+	 * @return array of comments
+	 */
+	public static function getCommunitySelectedComments($contextId, $contextType, $options) {
+		$res = array();
+		//1. Retrieve average number of like on the comment tree
+		$c = Yii::app()->mongodb->selectCollection(self::COLLECTION);
+		$result = $c->aggregate( array(
+						'$group' => array(
+							'_id' => array("contextId" => $contextId, 'contextType' => $contextType ),
+							'avgVoteUp' => array('$avg' => '$voteUpCount'))));
+
+		if (@$result["ok"]) {
+			$avgVoteUp = $result["result"][0]["avgVoteUp"];
+		} else {
+			throw new CTKException("Something went wrong retrieving the average vote up !", $avgVoteUp);
+		}
+		
+		$whereContext = array(
+					"contextId" => $contextId, 
+					"contextType" => $contextType,
+					"voteUpCount" => array('$gte' => $avgVoteUp));
+		$sort = array("voteUpCount" => -1);
+		$comments = PHDB::findAndSort(Comment::COLLECTION, $whereContext, $sort);
+		
+		foreach ($comments as $commentId => $comment) {
+			$comment["author"] = self::getCommentAuthor($comment, $options);
+			$comment["replies"] = array();
+			$res[$commentId] = $comment;
+		}
+		return $res;
+	}
+
+	/**
+	 * Retrieve the comments declared as abused of a discussion 
+	 * @param String The context id the discussion is liked to
+	 * @param String The context type the discussion is liked to
+	 * @return float the ave
+	 */
+	public static function getAbusedComments($contextId, $contextType, $options) {
+		$res = array();
+		//1. Retrieve the comments with at least one abuse
+		$whereContext = array(
+					"contextId" => $contextId, 
+					"contextType" => $contextType,
+					"status" => self::STATUS_DECLARED_ABUSED,
+					"reportAbuseCount" => array('$gt' => 0));
+		$sort = array("created" => -1);
+		$comments = PHDB::findAndSort(Comment::COLLECTION, $whereContext, $sort);
+		
+		foreach ($comments as $commentId => $comment) {
+			$comment["author"] = self::getCommentAuthor($comment, $options);
+			$comment["replies"] = array();
+			$res[$commentId] = $comment;
+		}
+		return $res;
 	}
 
 	/**
@@ -209,4 +289,70 @@ class Comment {
 
 		return $res;
 	}
+
+
+	//------------------------------------------------------------//
+	//---------------------- Abuse Process -----------------------//
+	//------------------------------------------------------------//
+
+	public static function reportAbuse($userId, $commentId, $reason) {
+        $action = Action::ACTION_REPORT_ABUSE;
+        $collection = Comment::COLLECTION;
+        $user = Person::getById($userId);
+        $comment = ($commentId) ? PHDB::findOne ($collection, array("_id" => new MongoId($commentId) )) : null;
+
+        if($user && $comment) {
+            //check user hasn't allready done the action
+            if( !isset($comment[$action])) {
+                $dbMethod = '$set';
+
+                // "actions": { "groups": { "538c5918f6b95c800400083f": { "voted": "voteUp" }, "538cb7f5f6b95c80040018b1": { "voted": "voteUp" } } } }
+                $map[ Action::NODE_ACTIONS.".".$collection.".".(string)$commentId.".".$action ] = $action ;
+                //update the user table 
+                //adds or removes an action
+                PHDB::update ( Person::COLLECTION , array( "_id" => $user["_id"]), 
+                                                    array( $dbMethod => $map));
+                
+                //push unique user Ids into action node list
+                $dbMethod = '$set';
+
+                //increment according to specifications
+                $inc = 1;
+                
+                PHDB::update ($collection, array("_id" => new MongoId($commentId)), 
+                                           array( $dbMethod => array( 
+                                           				$action.".".$userId => $reason,
+                                           				'status' => self::STATUS_DECLARED_ABUSED),
+                                                  '$inc'=>array( $action."Count" => $inc)));
+                Action::addActionHistory( $userId , $commentId, $collection, $action);
+                
+                $res = array( "result"          => true,  
+                              "userActionSaved" => true,
+                              "user"            => PHDB::findOne ( Person::COLLECTION , array("_id" => new MongoId( $userId ) ),array("actions")),
+                              "element"         => PHDB::findOne ($collection,array("_id" => new MongoId($commentId) ),array( $action)),
+                              "msg"             => "Ok !"
+                               );
+            } else 
+                $res = array( "result" => true,  "userAllreadyDidAction" => true );
+        }
+        return $res;     
+    }
+
+    public static function changeStatus($userId, $commentId, $action) {
+		$comment = self::getById($commentId);
+    	if (Authorisation::canEditItem($userId, $comment["contextType"], $comment["contextId"])) {
+    		PHDB::update(self::COLLECTION, array("_id" => new MongoId($commentId)),
+    					array('$set' => array("status" => $action)));
+    	}
+    	
+    	$res = array( "result"          => true,  
+                       "userActionSaved" => true,
+                       "user"            => PHDB::findOne ( Person::COLLECTION , array("_id" => new MongoId($userId)),array("actions")),
+                       "element"         => PHDB::findOne (self::COLLECTION, array("_id" => new MongoId($commentId)), array( $action)),
+                       "msg"             => "Ok !"
+               );
+    	return $res;
+    }
+
+
 }

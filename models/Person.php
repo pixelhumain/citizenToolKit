@@ -164,7 +164,7 @@ class Person {
 	      foreach ($person["links"]["memberOf"] as $id => $e) 
 	      {
 	        $organization = PHDB::findOne( Organization::COLLECTION, array( "_id" => new MongoId($id)));
-	        if (!empty($organization)) {
+	        if (!empty($organization) && !isset($organisation["disabled"])) {
 	          array_push($organizations, $organization);
 	        } else {
 	         // throw new CTKException("Données inconsistentes pour le citoyen : ".Yii::app()->session["userId"]);
@@ -451,7 +451,7 @@ class Person {
      * send validation mail 
      * @param  [string] $email   email connected to the citizen account
      * @param  [string] $pwd   pwd connected to the citizen account
-     * @param  [string] $publicPage is the page requested is publi or not. 
+     * @param  [string] $publicPage is the page requested public or not. 
      * If true, the betaTest option will not be ignored
      * @return [type] [description]
      */
@@ -491,8 +491,8 @@ class Person {
 	public static function getActionRoomsByPersonId($id) 
 	{
 		//get action Rooms I created
-		$where = array("created"=>array('$exists'=>1) ) ;
-	  	$actionRooms = ActionRoom::getWhereSortLimit( $where, array("date"=>1) ,1000);
+		$where = array( "email"=> Yii::app()->session['userEmail'] ) ;
+	  	$actionRooms = PHDB::find(ActionRoom::COLLECTION,$where);//array();//ActionRoom::getWhereSortLimit( $where, array("created"=>1) ,1000);
 	  	$actions = array();
 	  	$person = self::getById($id);
 
@@ -502,7 +502,6 @@ class Person {
 
 	  	if ( isset($person) && isset($person["actions"]) && isset($person["actions"]["surveys"])) 
 	  	{
-	  		$actionRooms = array();
 	  		foreach ( $person["actions"]["surveys"] as $entryId => $action) 
 	  		{
 	  			$entry = Survey::getById( $entryId );
@@ -517,8 +516,8 @@ class Person {
 	  		}
 	  	}
 
-	  	return array( "rooms" => $actionRooms , 
-	  				  "actions"     => $actions );
+	  	return array( "rooms"   => $actionRooms , 
+	  				  "actions" => $actions );
 	}
 
 	/**
@@ -545,6 +544,7 @@ class Person {
 		
 		return array("result" => true, "msg" => "Your password has been changed with success !");
 	}
+	
 
 }
 ?>

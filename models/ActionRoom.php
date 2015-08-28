@@ -2,6 +2,7 @@
 class ActionRoom {
 
 	const COLLECTION 		= "actionRooms";
+	
 	const TYPE_SURVEY 		= "survey";
 	const TYPE_DISCUSS 		= "discuss";
 	const TYPE_BRAINSTORM 	= "brainstorm";

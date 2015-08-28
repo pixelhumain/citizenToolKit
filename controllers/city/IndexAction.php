@@ -59,7 +59,7 @@ class IndexAction extends CAction
 	      array('label' => "ACCUEIL", "key"=>"home","iconClass"=>"fa fa-home","href"=>"communecter/person/dashboard/id/".$id),
 	    );
 
-	    $controller->title = $city["name"]."'s City Dashboard : ";
+	    $controller->title = $city["name"]."'s City Dashboard";
 	    $controller->subTitle = (isset($city["description"])) ? $city["description"] : "";
 	    $controller->pageTitle = ucfirst($controller->module->id)." - Informations publiques de ".$controller->title;
 

@@ -12,10 +12,21 @@ class IndexAction extends CAction
         if( $type == Project::COLLECTION ) {
             $controller->toolbarMBZ = array("<a href='".Yii::app()->createUrl("/".$controller->module->id."/project/dashboard/id/".$id)."'><i class='fa fa-lightbulb-o'></i>Project</a>");
             $project = Project::getById($id);
-            $controller->title = $project["name"]."'s Tasks";
+            $controller->title = $project["name"]."'s Timeline";
             $controller->subTitle = "Every Project has steps to get over.";
             $controller->pageTitle = "Communecter - ".$controller->title;
         } 
+         
+        else if( $type == Event::COLLECTION ) {
+            $controller->toolbarMBZ = array("<a href='".Yii::app()->createUrl("/".$controller->module->id."/event/dashboard/id/".$id)."'><i class='fa fa-lightbulb-o'></i>Event</a>");
+            $event = Event::getById($id);
+            $controller->title = $event["name"]."'s Timeline";
+            $controller->subTitle = "Every event has steps to get over.";
+            $controller->pageTitle = "Communecter - ".$controller->title;
+        } 
+        /*  CAN EDIT OR NOT   */
+		$edit = Authorisation :: canEditItem(Yii::app()->session["userId"], $type, $id);
+		///////////////////////
         array_push( $controller->toolbarMBZ, '<a href="#" class="newRoom" title="proposer une " ><i class="fa fa-plus"></i> Room </a>');
 		
         $where = array(
@@ -45,7 +56,7 @@ class IndexAction extends CAction
 		}
 		else
 			$period="yearly";
-		$params = array("tasks" => $tasks,  "period" => $period);
+		$params = array("tasks" => $tasks,  "period" => $period, "edit" => $edit);
 		if(Yii::app()->request->isAjaxRequest)
 	        echo $controller->renderPartial("index", $params,true);
 	    else

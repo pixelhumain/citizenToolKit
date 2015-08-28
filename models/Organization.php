@@ -77,7 +77,11 @@ class Organization {
 			$newOrganization["tags"] = Tags::filterAndSaveNewTags($newOrganization["tags"]);
 
 		//Add the user creator of the organization in the system
-		$newOrganization["creator"] = $creatorId;
+		if (empty($creatorId)) {
+			throw new CTKException("The creator of the organization is required.");
+		} else {
+			$newOrganization["creator"] = $creatorId;	
+		}
 	
 		//Insert the organization
 	    PHDB::insert( Organization::COLLECTION, $newOrganization);
@@ -257,7 +261,10 @@ class Organization {
 	  	if (empty($organization)) {
             //TODO Sylvain - Find a way to manage inconsistent data
             //throw new CommunecterException("The organization id ".$id." is unkown : contact your admin");
-        } 		
+        } else {
+			$profil = Document::getLastImageByKey($id, self::COLLECTION, Document::IMG_PROFIL);
+			$organization["profilImageUrl"] = $profil;
+        }	
 	  	return $organization;
 	}
 
@@ -493,5 +500,7 @@ class Organization {
 	                  
 	    return true;
 	 }
+
+	
 }
 ?>

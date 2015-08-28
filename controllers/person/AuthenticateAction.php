@@ -6,8 +6,11 @@ class AuthenticateAction extends CAction
         $controller=$this->getController();
         $email = $_POST["email"];
   		
-  		$pageArray = $this->getControllerAndActionFromUrl(Yii::app()->session["requestedUrl"]);
-  		$publicPage = @$controller->pages[$pageArray["controllerId"]][$pageArray["actionId"]]["public"];
+  		$publicPage = false;
+  		if (! empty(Yii::app()->session["requestedUrl"])) {
+  			$pageArray = $this->getControllerAndActionFromUrl(Yii::app()->session["requestedUrl"]);
+  			$publicPage = @$controller->pages[$pageArray["controllerId"]][$pageArray["actionId"]]["public"];
+  		} 
 
         $res = Person::login( $email , $_POST["pwd"], $publicPage); 
         if( isset( $_POST["app"] ) )
@@ -19,18 +22,19 @@ class AuthenticateAction extends CAction
     
 	
 	public function getControllerAndActionFromUrl($url) {
-		if (!$url) {
-			throw new CTKException("Invalid URL : impossible to parse it !");
-		}
-
-		$controller = $this->getController();
-		$res = array();
-		$url2 = str_replace(Yii::app()->baseUrl ."/".$controller->moduleId."/", "", $url);
-		list($controller,$action) = explode("/", $url2);
-
-		$res["controllerId"] = $controller;
-		$res["actionId"] = $action;
-
+    $res = array("controllerId" => "", "actionId" => "");
+    if ($url) {
+  		$controller = $this->getController();
+  		$res = array();
+  		$url2 = str_replace(Yii::app()->baseUrl ."/".$controller->moduleId."/", "", $url);
+  		
+      if (substr_count($url2, '/') == 2) {
+        list($controller,$action) = explode("/", $url2);
+  		  $res["controllerId"] = $controller;
+  		  $res["actionId"] = $action;
+      }
+    }
+    
 		return $res;
     }
 }
