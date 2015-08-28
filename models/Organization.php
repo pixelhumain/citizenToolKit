@@ -70,7 +70,7 @@ class Organization {
 	 */
 	public static function insert($organization, $creatorId, $adminId = null) {
 	    
-		$newOrganization = Organization::getAndCheckOrganization($organization);
+	    $newOrganization = Organization::getAndCheckOrganization($organization);
 		
 		//Manage tags : save any inexistant tag to DB 
 		if (isset($newOrganization["tags"]))
@@ -95,7 +95,7 @@ class Organization {
 
 	    //send Notification Email
 	    $creator = Person::getById($creatorId);
-	    Mail::newOrganization($creator,$newOrganization);
+	    //Mail::newOrganization($creator,$newOrganization);
 	    
 
 	    //TODO ???? : add an admin notification
@@ -128,16 +128,26 @@ class Organization {
 
 	public static function newOrganizationFromImportData($organization) {
 		$newOrganization = array();
+		$newOrganization["key"] = "organizationsCollection";
 		$newOrganization["email"] = empty($organization['email']) ? "" : $organization['email'];
-		$newOrganization["country"] = empty($organization['addressCountry']) ? "" : $organization['addressCountry'];
+		$newOrganization["country"] = empty($organization['address']['addressCountry']) ? "" : $organization['address']['addressCountry'];
 		$newOrganization["name"] = empty($organization['name']) ? "" : $organization['name'];
 		$newOrganization["type"] = empty($organization['type']) ? Organization::TYPE_GROUP : $organization['type'];
 		$newOrganization["postalCode"] = empty($organization['postalCode']) ? "" : $organization['postalCode'];
 		$newOrganization["city"] = empty($organization['city']) ? "" : $organization['city'];
 		$newOrganization["description"] = empty($organization['description']) ? "" : $organization['description'];
 		$newOrganization["tags"] = empty($organization['tags']) ? "" : $organization['tags'];
-		$newOrganization["typeIntervention"] = empty($organization['typeIntervention']) ? "" : $organization['typeIntervention'];
-		$newOrganization["typeOfPublic"] = empty($organization['public']) ? "" : $organization['public'];
+		$newOrganization["roles"] = empty($organization['roles']) ? "" : $organization['roles'];
+		$newOrganization["video"] = empty($organization['video']) ? "" : $organization['video'];
+		$newOrganization["contactPoint"] = empty($organization['contactPoint']) ? "" : $organization['contactPoint'];
+		$newOrganization["address"] = empty($organization['address']) ? "" : $organization['address'];
+		$newOrganization["created"] = empty($organization['created']) ? "" : $organization['created'];
+
+		if(!empty($organization['address']['streetAddress']))
+		{
+			$nominatim = "http://nominatim.openstreetmap.org/search?q=".urlencode($organization['address']['streetAddress'])."&format=json&polygon=0&addressdetails=1";
+			var_dump($nominatim);
+		}	
 
 		return $newOrganization;
 	}
@@ -164,9 +174,9 @@ class Organization {
 		);
 		
 		//email : mandotory 
-		if(! empty($organization['email'])) {
+		if(!empty($organization['email'])) {
 			//validate Email
-			if (! preg_match('#^[\w.-]+@[\w.-]+\.[a-zA-Z]{2,6}$#',$email)) { 
+			if (! preg_match('#^[\w.-]+@[\w.-]+\.[a-zA-Z]{2,6}$#',$organization['email'])) { 
 				throw new CTKException("Vous devez remplir un email valide.");
 			}
 			$newOrganization["email"] = $organization['email'];
@@ -199,6 +209,26 @@ class Organization {
 			$newOrganization["tags"] = $tags;
 		}
 		
+
+		//ConctactPoint
+		if(!empty($organization['contactPoint'])){
+			foreach ($organization['contactPoint'] as $key => $valueContactPoint) {
+				if(!empty($valueContactPoint['email'])){
+					//validate Email
+					if (! preg_match('#^[\w.-]+@[\w.-]+\.[a-zA-Z]{2,6}$#',$valueContactPoint['email'])) { 
+						throw new CTKException("Vous devez remplir un email valide pour le contactPoint ".$valueContactPoint['email'].".");
+					}
+				}
+			}
+			$newOrganization["contactPoint"] = $organization['contactPoint'];
+		}
+
+		//address by ImportData
+		if(!empty($organization['address'])){
+			$newOrganization["address"] = $organization['address'];
+		}
+
+
 		//************************ Spécifique Granddir ********************/
 		//TODO SBAR : A sortir du CTK. Prévoir une méthode populateSpecific() à appeler ici
 		//Cette méthode sera implémenté dans le Modèle Organization spécifique de Granddir
