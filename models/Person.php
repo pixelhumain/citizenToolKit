@@ -203,6 +203,8 @@ class Person {
 	public static function createAndInvite($param) {
 	  	try {
 	  		$res = self::insert($param, true);
+	  		//send invitation mail
+			Mail::invitePerson($param);
 	  	} catch (CTKException $e) {
 	  		$res = array("result"=>false, "msg"=> $e->getMessage());
 	  	}
@@ -292,8 +294,6 @@ class Person {
 	    	throw new CTKException("Problem inserting the new person");
 	    }
 
-	    //send validation mail
-		Mail::validatePerson($person);
 		//A mail is sent to the admin
 		Mail::notifAdminNewUser($person);
 

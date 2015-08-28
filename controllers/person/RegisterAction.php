@@ -24,6 +24,9 @@ class RegisterAction extends CAction
 
 		try {
 			$res = Person::insert($newPerson, false);
+			
+			//send validation mail
+			Mail::validatePerson($newPerson);
 
 			$newPerson["_id"]=$res["id"];
 			//Person::saveUserSessionData($newPerson);
