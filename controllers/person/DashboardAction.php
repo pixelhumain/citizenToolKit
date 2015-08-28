@@ -81,7 +81,7 @@ class DashboardAction extends CAction
 	            if( $member['type'] == Organization::COLLECTION )
 	            {
 	                $organization = Organization::getPublicData( $key );
-	                if (!empty($organization)) {
+	                if (!empty($organization) && !isset($organization["disabled"])) {
 		                $profil = Document::getLastImageByKey($key, Organization::COLLECTION, Document::IMG_PROFIL);
 						if($profil !="")
 							$organization["imagePath"]= $profil;

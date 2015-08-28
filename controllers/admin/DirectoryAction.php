@@ -48,35 +48,7 @@ class DirectoryAction extends CAction
       /* **************************************
       *  ORGANIZATIONS
       ***************************************** */
-      $organizations = array();
-      /*if( isset($person["links"]) && isset($person["links"]["memberOf"])) 
-      {
-        
-          foreach ($person["links"]["memberOf"] as $key => $member) 
-          {
-            $organization;
-            if( $member['type'] == Organization::COLLECTION )
-            {
-                $organization = Organization::getPublicData( $key );
-                $profil = Document::getLastImageByKey($key, Organization::COLLECTION, Document::IMG_PROFIL);
-                if($profil !="")
-                  $organization["imagePath"]= $profil;
-                array_push($organizations, $organization );
-            }
-         
-            if(isset($organization["links"]["events"]))
-            {
-              foreach ($organization["links"]["events"] as $keyEv => $valueEv) 
-              {
-                $event = Event::getPublicData($keyEv);
-                $events[$keyEv] = $event; 
-              }
-            }
-          }        
-          //$randomOrganizationId = array_rand($subOrganizationIds);
-          //$randomOrganization = Organization::getById( $subOrganizationIds[$randomOrganizationId] );
-          //$params["randomOrganization"] = $randomOrganization;
-      }*/
+      $organizations = Organization::getWhere(array());
 
       /* **************************************
       *  PEOPLE
