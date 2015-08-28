@@ -210,7 +210,7 @@ class Comment {
 		if (@$result["ok"]) {
 			$avgVoteUp = $result["result"][0]["avgVoteUp"];
 		} else {
-			throw new CTKException("Something went wrong retrieving the average vote up !", $avgVoteUp);
+			throw new CTKException("Something went wrong retrieving the average vote up !");
 		}
 		
 		$whereContext = array(
