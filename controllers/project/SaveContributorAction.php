@@ -1,4 +1,7 @@
 <?php
+/*
+- check if project exists
+*/
 class SaveContributorAction extends CAction
 {
     public function run() {
@@ -17,7 +20,7 @@ class SaveContributorAction extends CAction
 					}
 					else
 					{
-						$member = PHDB::findOne( Organization::COLLECTION , array("email"=>$_POST['email']));
+						$member = PHDB::findOne( Organization::COLLECTION , array("_id"=> new MongoId( $_POST['contribId'] )));
 						$memberType = Organization::COLLECTION;
 					}
 
