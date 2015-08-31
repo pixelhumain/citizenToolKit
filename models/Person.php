@@ -224,10 +224,14 @@ class Person {
 	 */
 	public static function getAndcheckPersonData($person, $minimal) {
 		$dataPersonMinimal = array("name", "email");
+		
 		$newPerson = array();
 		if (! $minimal) {
 			array_push($dataPersonMinimal, "postalCode", "city", "pwd");
+		} else {
+			$newPerson["pending"] = true;
 		}
+
 		//Check the minimal data
 	  	foreach ($dataPersonMinimal as $data) {
 	  		if (empty($person["$data"])) 

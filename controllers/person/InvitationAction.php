@@ -3,13 +3,11 @@
 an invite is made simply with an email and a name by a connected sponsor
 - check existence of the sponsor 
 */
-class InvitationAction extends CAction
-{
-    public function run()
-    {
-    	$res = array( "result" => false , "content" => Yii::t("common", "Something went wrong!" ));
-		 if(Yii::app()->request->isAjaxRequest && isset( $_POST["parentId"]) && !empty($_POST["parentId"]) )
-		 {
+class InvitationAction extends CAction {
+    public function run() {
+    	
+    	$res = array( "result" => false , "msg" => Yii::t("common", "Something went wrong !" ));
+		if(Yii::app()->request->isAjaxRequest && isset( $_POST["parentId"]) && !empty($_POST["parentId"])) {
 		 	//test if group exist
 			$organization = (isset($_POST["parentId"])) ? PHDB::findOne( Organization::COLLECTION,array("_id"=>new MongoId($_POST["parentId"]))) : null;
 			$citoyen = (isset($_POST["parentId"])) ? PHDB::findOne( Person::COLLECTION,array("_id"=>new MongoId($_POST["parentId"]))) : null;
@@ -29,12 +27,10 @@ class InvitationAction extends CAction
 				}
 
 			 	//check citizen exist by email
-			 	if(preg_match('#^[\w.-]+@[\w.-]+\.[a-zA-Z]{2,6}$#',$memberEmail))
-				{
+			 	if(preg_match('#^[\w.-]+@[\w.-]+\.[a-zA-Z]{2,6}$#',$memberEmail)) {
 					$member = PHDB::findOne( $type , array("email"=>$memberEmail));
-					if( !$member )
-					{
-						 //create an entry in the citoyens colelction
+					if( !$member ) {
+						 //create an entry in the citoyens collection
 						 $member = array(
 						 'name'=>$_POST['name'],
 						 'email'=>$memberEmail,
@@ -66,7 +62,7 @@ class InvitationAction extends CAction
 						$memberType = "citoyens";
 						if( isset($citoyen['links']["knows"]) && isset( $organization['links']["knows"][(string)$member["_id"]] ))
 
-							$res = array( "result" => false , "content" => "allready in your contact" );
+							$res = array( "result" => false , "msg" => "allready in your contact" );
 						else {
 							PHDB::update( $type , array( "email" => $memberEmail) ,
 								array('$set' => array( "links.knows.".$_POST["parentId"].".type" => "citoyens" ) ));
@@ -78,9 +74,10 @@ class InvitationAction extends CAction
 						}	
 					}
 				} else
-				$res = array( "result" => false , "content" => "email must be valid" );
+				$res = array( "result" => false , "msg" => "email must be valid" );
 			}
 		 }
+
 		 Rest::json( $res );
     }
 }
