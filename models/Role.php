@@ -84,10 +84,6 @@ class Role {
 	}
 
 	public static function isUserBetaTester($roles) {
-		if (! $roles) {
-			throw new CTKException("The user does not have roles set on his profile : contact your admin");
-		}
-		//
 		if (@Yii::app()->params['betaTest'] && @$roles["betaTester"]) {
 			return true;
 		} else {

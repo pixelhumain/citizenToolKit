@@ -9,6 +9,6 @@ class InviteSVAction extends CAction
         if( isset($_GET["isNotSV"])) 
             $params["isNotSV"] = true;
     	if(Yii::app()->request->isAjaxRequest)
-			echo $controller->renderPartial("inviteSV", $params,true);
+    		Rest::json(array("result"=>true, "content" => $controller->renderPartial("inviteSV", $params,true)));	
     }
 }

@@ -44,6 +44,9 @@ class DashboardAction extends CAction
 	  					if (!empty($organization)) {
 	  						array_push($organizations, $organization);
 	  						$organization["type"]="organization";
+	  						$profil = Document::getLastImageByKey($id, Organization::COLLECTION, Document::IMG_PROFIL);
+	  						if($profil !="")
+								$organization["imagePath"]= $profil;
 	  						array_push($contributors, $organization);
 	  					}
 	  				}else if($e["type"]== Person::COLLECTION){
@@ -51,6 +54,9 @@ class DashboardAction extends CAction
 	  					if(!empty($citoyen)){
 	  						array_push($people, $citoyen);
 	  						$citoyen["type"]="citoyen";
+	  						$profil = Document::getLastImageByKey($id, Person::COLLECTION, Document::IMG_PROFIL);
+	  						if($profil !="")
+								$citoyen["imagePath"]= $profil;
 	  						array_push($contributors, $citoyen);
 	  					}
 	  				}

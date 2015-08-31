@@ -152,7 +152,7 @@ class Link {
 		$target = Link::checkIdAndType($targetId, $targetType);
 
         //2. Create the links
-        PHDB::update( $originType, 
+        PHDB::update($originType, 
                        array("_id" => $origin["_id"]) , 
                        array('$set' => $links));
         
