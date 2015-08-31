@@ -17,7 +17,6 @@ class Project {
 	    "endDate" => array("name" => "endDate", "rules" => array("projectEndDate")),
 	    "tags" => array("name" => "tags"),
 	    "url" => array("name" => "url"),
-	    "description" => array("name" => "description"),
 	    "licence" => array("name" => "licence"),
 	    "avancement" => array("name" => "properties.avancement"),
 	);
