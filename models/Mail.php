@@ -53,7 +53,8 @@ class Mail
             "to" => $person["email"],
             "tplParams" => array(   "invitorName"   => $invitor["name"],
                                     "title" => Yii::app()->name ,
-                                    "logo"  => "/images/logo.png")
+                                    "logo"  => "/images/logo.png",
+                                    "invitedUserId" => $person["_id"])
         );
         Mail::schedule($params);
     }

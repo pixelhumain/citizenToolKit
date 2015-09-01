@@ -46,11 +46,15 @@ class Role {
 		$res = array("result"=>true, 
                     "msg"=>"Everything is ok : user can login !");
 
+		//check if the user has been created with minimal data
+		if (@$person["pending"]) {
+			return array("result"=>false, "pendingUserId" => (String) $person["_id"], "msg"=>"accountPending");
+		}
+
 		$roles = self::checkUserRoles($person);
 		//The account is not validated
         if (isset($roles["tobeactivated"]) && @$roles["tobeactivated"] ) {
-            return array("result"=>false, 
-              "msg"=>"notValidatedEmail");
+            return array("result"=>false, "msg"=>"notValidatedEmail");
         }
         
         //BetaTest mode only when not on publicPage

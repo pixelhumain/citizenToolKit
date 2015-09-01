@@ -121,11 +121,12 @@ class Person {
 	public static function getSimpleUserById($id) {
 		
 		$simplePerson = array();
-		$person = PHDB::findOneById( self::COLLECTION ,$id, array("id" => 1, "name" => 1, "email" => 1, "address" => 1) );
+		$person = PHDB::findOneById( self::COLLECTION ,$id, array("id" => 1, "name" => 1, "email" => 1, "address" => 1, "pending" => 1) );
 
 		$simplePerson["id"] = $id;
 		$simplePerson["name"] = @$person["name"];
 		$simplePerson["email"] = @$person["email"];
+		$simplePerson["pending"] = @$person["pending"];
 		$profil = Document::getLastImageByKey($id, self::COLLECTION, Document::IMG_PROFIL);
 		$simplePerson["profilImageUrl"] = $profil;
 		
@@ -220,9 +221,10 @@ class Person {
 	 * @param array $person : array with the data of the person to check
 	 * @param boolean $minimal : true : a person can be created using only name and email. 
 	 * Else : postalCode, city and pwd are also requiered
+	 * @param boolean $uniqueEmail : true : check if a person already exist in the db with that email
 	 * @return the new person with the business rules applied
 	 */
-	public static function getAndcheckPersonData($person, $minimal) {
+	public static function getAndcheckPersonData($person, $minimal, $uniqueEmail = true) {
 		$dataPersonMinimal = array("name", "email");
 		
 		$newPerson = array();
@@ -247,11 +249,13 @@ class Person {
         }
 
 		//Check if the email of the person is already in the database
-	  	$account = PHDB::findOne(Person::COLLECTION,array("email"=>$person["email"]));
-	  	if ($account) {
-	  		throw new CTKException(Yii::t("person","Problem inserting the new person : a person with this email already exists in the plateform"));
+	  	if ($uniqueEmail) {
+		  	$account = PHDB::findOne(Person::COLLECTION,array("email"=>$person["email"]));
+		  	if ($account) {
+		  		throw new CTKException(Yii::t("person","Problem inserting the new person : a person with this email already exists in the plateform"));
+		  	}
 	  	}
-	  	
+
 	  	if (!empty($person["invitedBy"])) {
 	  		$newPerson["invitedBy"] = $person["invitedBy"];
 	  	}
@@ -474,7 +478,7 @@ class Person {
 	        //Check the password
 	        if (self::checkPassword($pwd, $account)) {
 	            Person::saveUserSessionData($account);
-	            $res = array("result"=>true,  "id"=>$account["_id"],"isCommunected"=>isset($account["cp"]));
+	            $res = array("result"=>true, "id"=>$account["_id"],"isCommunected"=>isset($account["cp"]));
 	        } else {
 	            $res = array("result"=>false, "msg"=>"Email ou Mot de Passe ne correspondent pas, rééssayez.");
 	        }
@@ -548,7 +552,63 @@ class Person {
 		
 		return array("result" => true, "msg" => "Your password has been changed with success !");
 	}
-	
 
+	/**
+	 * Validate an email account depending on a validation key
+	 * @param String $accountId the account to check
+	 * @param String $validationKey the validation key
+	 * @return array of result (result, msg)
+	 */
+	public static function validateEmailAccount($accountId, $validationKey) {
+		assert('$accountId != ""; //The userId is mandatory');
+		assert('$validationKey != ""; //The validation key is mandatory');
+
+		$account = self::getSimpleUserById($accountId);
+		$validationKeycheck = self::getValidationKeyCheck($accountId);
+		if (!empty($account) && $validationKeycheck == $validationKey) {
+	        //remove tobeactivated attribute on account
+	        PHDB::update(	Person::COLLECTION,
+                        	array("_id"=>new MongoId($accountId)), 
+                            array('$unset' => array("roles.tobeactivated"=>""))
+                        );
+        	$res = array("result"=>true, "account" => $account, "msg" => "The account and email is now validated !");
+        } else {
+        	$res = array("result"=>false, "msg" => "The validation key is incorrect !");	
+        }
+	    
+
+	    return $res;
+	}
+
+	public static function getValidationKeyCheck($accountId) {
+		$account = self::getSimpleUserById($accountId);
+		if($account) {
+			$validationKeycheck = hash('sha256',$accountId.$account["email"]);
+		} else {
+	    	throw new CTKException("The account is unknwon !");
+	    }
+
+	    return $validationKeycheck;
+	}
+
+	public static function updateMinimalData($personId, $person) {
+
+		//Check if it's a minimal user
+		$account = self::getById($personId);
+		if (! @$account["pending"]) {
+			throw new CTKException("Impossible to update an account not pending !");
+		} else {
+			$person["email"] = $account["email"];
+			//Update des infos minimal
+			$personToUpdate = self::getAndcheckPersonData($person, false, false);
+
+			PHDB::update(Person::COLLECTION, array("_id" => new MongoId($personId)), 
+			                          array('$set' => $personToUpdate, '$unset' => array("pending" => "")));
+
+			$res = array("result" => true, "msg" => "The pending user has been updated and is now complete");
+
+		}
+		return $res;
+	}
 }
 ?>

@@ -22,7 +22,7 @@ class ConnectAction extends CTKAction {
 			$res = Person::createAndInvite($newPerson);
             if ($res["result"]) {
                 $invitedUserId = $res["id"];
-                $res = Link::connect($this->currentUserId, Person::COLLECTION, $newUserId, Person::COLLECTION, $this->currentUserId, Link::person2person);
+                $res = Link::connect($this->currentUserId, Person::COLLECTION, $invitedUserId, Person::COLLECTION, $this->currentUserId, Link::person2person);
             } 
 		}
 
