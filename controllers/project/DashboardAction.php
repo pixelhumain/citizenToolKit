@@ -23,7 +23,7 @@ class DashboardAction extends CAction
 	    	$htmlFollowBtn
 	    	);
 	    
-	    $controller->subTitle = (isset($project["description"])) ? $project["description"] : "";
+	    $controller->subTitle = ( isset($project["description"])) ? ( ( strlen( $project["description"] ) > 120 ) ? substr($project["description"], 0, 120)."..." : $project["description"]) : "";
 	    $controller->pageTitle = "Communecter - Informations sur le projet ".$controller->title;
 	
 		
