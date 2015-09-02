@@ -345,8 +345,8 @@ class Organization {
 		Organization::getAndCheckOrganization($organization);
 		
 		//Create a new person + send email validation
-		$newPerson = Person::insert($person);
-		Mail::validatePerson($person);
+		$res = Person::insert($person);
+		Mail::validatePerson($res["person"]);
 
 		//Create a new organization
 		$newOrganization = Organization::insert($organization, $newPerson["id"], $newPerson["id"]);

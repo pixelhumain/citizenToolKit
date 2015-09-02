@@ -1,13 +1,16 @@
 <?php
-class InviteSVAction extends CAction
+class InviteSVAction extends CTKAction
 {
     public function run()
     {
         $controller=$this->getController();
 
         $params = array();
+        $params['currentUser'] = Person::getById($this->currentUserId);
+        
         if( isset($_GET["isNotSV"])) 
             $params["isNotSV"] = true;
+    	
     	if(Yii::app()->request->isAjaxRequest)
     		Rest::json(array("result"=>true, "content" => $controller->renderPartial("inviteSV", $params,true)));	
     }

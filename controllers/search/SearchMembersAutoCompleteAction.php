@@ -6,8 +6,10 @@ class SearchMembersAutoCompleteAction extends CAction {
 	const MIXTE = "mixte";
 
 	public function run() {
-		$query = array( '$or' => 	array( array("email" => new MongoRegex("/".$_POST['search']."/i")),
-									array("name" => new MongoRegex("/".$_POST['search']."/i"))));
+		//$search = str_replace(" ", "\\s",urldecode($_POST['search']));
+		$search = trim(urldecode($_POST['search']));
+		$query = array( '$or' => 	array( array("email" => new MongoRegex("/".$search."/i")),
+									array("name" => new MongoRegex("/".$search."/i"))));
 
 		$limitSearchPerson = 0;
 		$limitSearchOrganization = 0;

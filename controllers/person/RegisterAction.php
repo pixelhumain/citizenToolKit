@@ -49,11 +49,11 @@ class RegisterAction extends CAction
 			try {
 				$newPerson['email'] = $email;
 				$res = Person::insert($newPerson, false);
-				
+				$newPerson["_id"]=$res["id"];
+
 				//send validation mail
 				Mail::validatePerson($newPerson);
 
-				$newPerson["_id"]=$res["id"];
 				//Person::saveUserSessionData($newPerson);
 
 			} catch (CTKException $e) {
