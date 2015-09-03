@@ -205,7 +205,7 @@ class Person {
 	  	try {
 	  		$res = self::insert($param, true);
 	  		//send invitation mail
-			Mail::invitePerson($param);
+			Mail::invitePerson($res["person"]);
 	  	} catch (CTKException $e) {
 	  		$res = array("result"=>false, "msg"=> $e->getMessage());
 	  	}
@@ -284,6 +284,7 @@ class Person {
 	 * @return array result, msg and id
 	 */
 	public static function insert($person, $minimal = false) {
+
 	  	//Check Person data + business rules
 	  	$person = self::getAndcheckPersonData($person, $minimal);
 
@@ -305,7 +306,7 @@ class Person {
 		//A mail is sent to the admin
 		Mail::notifAdminNewUser($person);
 
-	    return array("result"=>true, "msg"=>"You are now communnected", "id"=>$newpersonId); 
+	    return array("result"=>true, "msg"=>"You are now communnected", "id"=>$newpersonId, "person"=>$person); 
 	}
 
 	/**
