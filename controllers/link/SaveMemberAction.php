@@ -8,6 +8,8 @@ class SaveMemberAction extends CAction
 		$memberType = (isset($_POST['memberType'])) ? $_POST['memberType'] : "";
 		$memberOfId = $_POST["parentOrganisation"];
 		$memberOfType = Organization::COLLECTION;
+		$organization = Organization::getById( $memberOfId );
+
 		$isAdmin = false;
 
 		if($memberType == Person::COLLECTION) {
@@ -26,15 +28,17 @@ class SaveMemberAction extends CAction
 		}
 
 		//The member does not exist we have to create a new member
-		if ($memberId == "") {
-			$memberName = (isset($_POST['memberName'])) ? $_POST['memberName'] : "";
-			$memberEmail = (isset($_POST['memberEmail'])) ? $_POST['memberEmail'] : "";
-
+		if ($memberId == "" && ( isset($_POST['memberName']) || isset($_POST['memberName']) ) ) 
+		{
 			$member = array(
-				 'name'=>$memberName,
-				 'email'=>$memberEmail,
-				 'invitedBy'=>Yii::app()->session["userId"]);			
+				 'invitedBy'=>Yii::app()->session["userId"]
+			);			
 			
+			if(isset($_POST['memberName']))
+				$member["name"] = $_POST['memberName'];
+			if(isset($_POST['memberEmail']))
+				$member["email"] = $_POST['memberEmail'];
+
 			//Type d'organization
 			if ($memberType == Organization::COLLECTION) { 
 				$member["type"] = (isset($_POST["organizationType"])) ? $_POST["organizationType"] : "";
@@ -42,15 +46,14 @@ class SaveMemberAction extends CAction
 
 			//create an entry in the right type collection
 			$result = $class::createAndInvite($member);
-			if ($result["result"]) {
+			if ($result["result"]) 
 				$memberId = $result["id"];
-			} else {
+			else 
 				return Rest::json($result);
-			}
 		}
 
-		//Manage Role : see with JR : maybe to move on the model
-		if(isset($_POST["memberRoles"])){
+		if(isset($_POST["memberRoles"]))
+		{
 			if (gettype($_POST['memberRoles']) == "array") {
 				$roles = $_POST['memberRoles'];
 			} else if (gettype($_POST['memberRoles']) == "string") {
@@ -71,6 +74,7 @@ class SaveMemberAction extends CAction
 
 		try {
 			$res = Link::addMember($memberOfId, $memberOfType, $memberId, $memberType, Yii::app()->session["userId"], $isAdmin, $roles );
+			Notification::actionOnPerson ( ActStr::VERB_JOIN, ActStr::ICON_SHARE, $memberId,$memberType, Yii::app()->session['user']['name'], Organization::COLLECTION, $memberOfId,$organization["name"] ) ;
 			$res["member"] = $class::getById($memberId);
 		} catch (CommunecterException $e) {
 			$res = array( "result" => false , "msg" => $e->getMessage() );
