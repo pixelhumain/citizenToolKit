@@ -3,7 +3,9 @@ class GlobalAutoCompleteAction extends CAction
 {
     public function run($filter = null)
     {
-        $query = array( "name" => new MongoRegex("/".$_POST['name']."/i"));
+        $search = trim(urldecode($_POST['name']));
+        
+        $query = array( "name" => new MongoRegex("/".$search."/i"));
   		
         $res = array();
 
