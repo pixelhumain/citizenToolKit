@@ -225,9 +225,10 @@ class Organization {
 	 * get members an Organization By an organization Id
 	 * @param String $id : is the mongoId (String) of the organization
 	 * @param String $type : can be use to filter the member by type (all (default), person, organization)
+	 * @param String $role : can be use to filter the member by role (isAdmin:true)
 	 * @return arrays of members (links.members)
 	 */
-	public static function getMembersByOrganizationId($id, $type="all") {
+	public static function getMembersByOrganizationId($id, $type="all",$role=null) {
 	  	$res = array();
 	  	$organization = Organization::getById($id);
 	  	
@@ -244,11 +245,15 @@ class Organization {
 		            if ($member['type'] == $type ) {
 		                $res[$key] = $member;
 		            }
+		            if ( $role && @$member[$role] == true ) {
+		                $res[$key] = $member;
+		            }
 	        	}
 	  		}
 	  	}
 	  	return $res;
 	}
+
 
 	/*
 	 * Save an organization in database
@@ -256,8 +261,8 @@ class Organization {
 	 * @return a json result as an array. 
 	 */
 	//TODO SBAR => deprecated and not used
-	public static function update($organizationId, $organization, $userId) {
-		
+	public static function update($organizationId, $organization, $userId) 
+	{
 		//Check if user is authorized to update
 		if (! Authorisation::isOrganizationAdmin($userId, $organizationId)) {
 			return Rest::json(array("result"=>false, "msg"=>Yii::t("organization", "Unauthorized Access.")));
@@ -268,15 +273,14 @@ class Organization {
 			$organization["tags"] = Tags::filterAndSaveNewTags($organization["tags"]);
 	    
 	    //update the organization
-	    PHDB::update( Organization::COLLECTION,array("_id" => new MongoId($organizationId)), 
-	                                          array('$set' => $organization));
-    
+	    PHDB::update( Organization::COLLECTION, array("_id" => new MongoId($organizationId)), 
+	                                            array('$set' => $organization) );
+
 	    //TODO ???? : add an admin notification
 	    Notification::saveNotification(array("type"=>"Updated",
 	    						"user"=>$organizationId));
-	                  
+
 	    return array("result"=>true, "msg"=>Yii::t("organization", "The organization has been updated"), "id"=>$organizationId);
-		
 	}
 	
 	/**

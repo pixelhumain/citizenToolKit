@@ -49,7 +49,7 @@ class InvitationAction extends CAction {
 								array('$set' => array( "links.knows.".(string)$member["_id"].".type" => $type ) ));
 						$res = array("result"=>true,"msg"=>Yii::t("common", "Your data has been saved"),"reload"=>true);
  
-						Mail::invitation( Yii::app()->session['user']['name']);
+						Mail::invitation( Yii::app()->session['user']['name'] );
 						 
 						Notification::saveNotification( array("type"=>NotificationType::NOTIFICATION_INVITATION,
 						"user"=>Yii::app()->session["userId"],

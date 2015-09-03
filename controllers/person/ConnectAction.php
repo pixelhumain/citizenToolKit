@@ -15,16 +15,19 @@ class ConnectAction extends CTKAction {
         if (!empty($_POST["connectUserId"])) {
         	$invitedUserId = $_POST["connectUserId"];
         	$res = Link::connect($this->currentUserId, Person::COLLECTION, $_POST["connectUserId"], Person::COLLECTION, $this->currentUserId, Link::person2person);
-        
+            $actionType = ActStr::VERB_FOLLOW;
 		//Case 2 : the person invited does not exist in the db
 		} else if (empty($_POST["invitedUserId"])) {
 			$newPerson = array("name" => $_POST["invitedUserName"], "email" => $_POST["invitedUserEmail"], "invitedBy" => $this->currentUserId);
 			$res = Person::createAndInvite($newPerson);
+            $actionType = ActStr::VERB_INVITE;
             if ($res["result"]) {
                 $invitedUserId = $res["id"];
                 $res = Link::connect($this->currentUserId, Person::COLLECTION, $invitedUserId, Person::COLLECTION, $this->currentUserId, Link::person2person);
             } 
 		}
+
+        Notification::connectPeople ( $invitedUserId, $this->currentUserId , Yii::app()->session['user']["name"],$actionType ) ;
 
         if (@$res["result"] == true) {
             $person = Person::getSimpleUserById($invitedUserId);
@@ -36,3 +39,4 @@ class ConnectAction extends CTKAction {
 		return Rest::json($res);
     }
 }
+
