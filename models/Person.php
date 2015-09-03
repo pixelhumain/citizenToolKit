@@ -303,7 +303,7 @@ class Person {
 		//TODO SBAR = filter data to retrieve only publi data	
 		$person = self::getById($id);
 		if (empty($person)) {
-			throw new CTKException("The person id is unknown ! Check your URL");
+			//throw new CTKException("The person id is unknown ! Check your URL");
 		}
 
 		return $person;
