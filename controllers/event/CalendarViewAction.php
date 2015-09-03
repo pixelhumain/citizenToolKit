@@ -3,6 +3,11 @@
 
 		public function run($id=null, $type=null){
 		  	$controller=$this->getController();
+
+		  	$controller->title = "Agenda Partagé";
+	        $controller->subTitle = "Tous les évennements du réseau Granddir";
+	        $controller->pageTitle = ucfirst($controller->module->id)." - ".$controller->title;
+
 		  	$params = array();
 		  	$events = Event::getWhere($params);
 		  	if(isset($id) && $id!=null){
