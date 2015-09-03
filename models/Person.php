@@ -19,7 +19,7 @@ class Person {
 	    "addressCountry" => array("name" => "address.addressCountry"),
 	    "telephone" => array("name" => "telephone"),
 	    "tags" => array("name" => "tags"),
-	    "description" => array("name" => "description"),
+	    "shortDescription" => array("name" => "shortDescription"),
 	    "facebookAccount" => array("name" => "socialNetwork.facebook"),
 	    "twitterAccount" => array("name" => "socialNetwork.twitter"),
 	    "gpplusAccount" => array("name" => "socialNetwork.googleplus"),
