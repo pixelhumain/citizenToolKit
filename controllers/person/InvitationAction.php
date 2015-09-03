@@ -74,7 +74,7 @@ class InvitationAction extends CAction {
 						}	
 					}
 				} else
-				$res = array( "result" => false , "msg" => "email must be valid" );
+					$res = array( "result" => false , "msg" => "email must be valid" );
 			}
 		 }
 
