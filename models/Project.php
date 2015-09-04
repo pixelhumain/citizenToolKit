@@ -150,17 +150,22 @@ class Project {
 	 * @param string $userId UserId doing the insertion
 	 * @return array as result type
 	 */
-	public static function insert($params, $userId){
-	    $type = Person::COLLECTION;
+	public static function insert($params, $parentId,$parentType){
+	    if ( $parentType== "citoyen"){
+		    $type= Person::COLLECTION;
+	    }
+	    else {
+		    $type= Organization::COLLECTION;
+	    }
 
-	    $newProject = self::getAndCheckProject($params, $userId);
+	    $newProject = self::getAndCheckProject($params, $parentId);
 	    // TODO SBAR - If a Link::connect is used why add a link hard coded
 	    $newProject["links"] = array( "contributors" => 
-	    								array($userId =>array("type" => $type,"isAdmin" => true)));
+	    								array($parentId =>array("type" => $type,"isAdmin" => true)));
 
 	    PHDB::insert(self::COLLECTION,$newProject);
 
-	    Link::connect($userId, $type, $newProject["_id"], self::COLLECTION, $userId, "projects", true );
+	    Link::connect($parentId, $type, $newProject["_id"], self::COLLECTION, $parentId, "projects", true );
 	    
 	    return array("result"=>true, "msg"=>"Votre projet est communecté.", "id"=>$newProject["_id"]);	
 	}
