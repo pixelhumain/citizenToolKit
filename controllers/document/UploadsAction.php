@@ -17,7 +17,7 @@ class UploadsAction extends CAction {
         if(!file_exists ( $upload_dir ))
             mkdir ( $upload_dir );
         
-        $allowed_ext = array('jpg','jpeg','png','gif',"pdf","xls","xlsx","doc","docx","ppt","pptx");
+        $allowed_ext = array('jpg','jpeg','png','gif',"pdf","xls","xlsx","doc","docx","ppt","pptx","odt","ods");
         
         if(strtolower($_SERVER['REQUEST_METHOD']) != 'post')
         {

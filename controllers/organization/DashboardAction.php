@@ -19,7 +19,7 @@ class DashboardAction extends CAction
 		);
 
 		$controller->title = (isset($organization["name"])) ? $organization["name"] : "";
-		$controller->subTitle = (isset($organization["shortDescripion"])) ? $organization["shortDescripion"] : "";
+		$controller->subTitle = (isset($organization["shortDescription"])) ? $organization["shortDescription"] : "";
 		$controller->pageTitle = "Organization ".$controller->title." - ".$controller->subTitle;
 
 
