@@ -404,6 +404,42 @@ class Organization {
         }
 		return $events;
 	}
+	/**
+	 * List all the project of an organization and his members (if can edit member)
+	 * @param String $organisationId : is the mongoId of the organisation
+	 * @return all the project link with the organization
+	 */
+
+	public static function listProjects($organizationId){
+		$projects = array();
+		$organization = Organization::getById($organizationId);
+		
+		if(isset($organization["links"]["projects"])){
+			foreach ($organization["links"]["projects"] as $keyProj => $valueProj) {
+				 $project = Project::getPublicData($keyProj);
+           		 $projects[$keyProj] = $project;
+			}
+		}
+		//Specific case : if canEditMember
+		if(Authorisation::canEditMembersData($organizationId)){
+			$subOrganization = Organization::getMembersByOrganizationId($organizationId, Organization::COLLECTION);
+			foreach ($subOrganization as $key => $value) {
+				 $newOrganization = Organization::getById($key);
+				 if(!empty($newOrganization)&& isset($newOrganization["links"]["projects"])){
+				 	foreach ($newOrganization["links"]["projects"] as $keyProj => $valueProj) {
+				 		$project = Project::getPublicData($keyProj);
+           		 		$projects[$keyProj] = $project;
+				 	}
+				 }	 
+			}
+		}
+		foreach ($projects as $key => $value) {
+        	$profil = Document::getLastImageByKey($key, PHType::TYPE_PROJECTS, Document::IMG_PROFIL);
+        	if($profil!="")
+        		$value['imagePath']=$profil;
+        }
+		return $projects;
+	}
 
 	/**
 	 * Update the roles' list of an organization
