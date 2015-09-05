@@ -13,6 +13,7 @@ class DashboardAction extends CAction
 
 		$organization = Organization::getPublicData($id);
 		$events = Organization::listEventsPublicAgenda($id);
+		$projects = Organization::listProjects($id);
 		$members = array(
 		  "citoyens"=> array(),
 		  "organizations"=>array()
@@ -72,7 +73,18 @@ class DashboardAction extends CAction
 				array_push($members["citoyens"], $newCitoyen);
 			}
 		}
+		/*$projects = array();
+	    if(isset($organizations["links"]["projects"])){
+	    	foreach ($organizations["links"]["projects"] as $key => $value) {
+	  			$project = Project::getPublicData($key);
+	  			if (! empty($project)) {
+	  				array_push($projects, $project);
+	  			}
+	  		}
+	    }*/
+
 		$params["members"] = $members;
+		$params["projects"] = $projects;
 		$params["contextMap"] = $contextMap;
 		//list
 		$params["tags"] = Tags::getActiveTags();
@@ -81,7 +93,6 @@ class DashboardAction extends CAction
 		$params["organizationTypes"] = $lists["organisationTypes"];
 		$params["typeIntervention"] = $lists["typeIntervention"];
 		$params["countries"] = OpenData::getCountriesList();
-
 		//Plaquette de présentation
 		$listPlaquette = Document::listDocumentByCategory($id, Organization::COLLECTION, Document::CATEGORY_PLAQUETTE, array( 'created' => 1 ));
 		$params["plaquette"] = reset($listPlaquette);

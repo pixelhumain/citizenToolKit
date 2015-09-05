@@ -11,7 +11,7 @@ class LoginAction extends CAction
           $detect = new Mobile_Detect;
         
         $isMobile = $detect->isMobile();
-        
+
         if($isMobile) {
            $controller->render( "loginMobile" );
         }

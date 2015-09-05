@@ -3,6 +3,30 @@ class IndexAction extends CAction
 {
     public function run( $type=null, $id= null, $year= null )
     {
+	    function array_msort($array, $cols)
+		{
+		    $colarr = array();
+		    foreach ($cols as $col => $order) {
+		        $colarr[$col] = array();
+		        foreach ($array as $k => $row) { $colarr[$col]['_'.$k] = strtolower($row[$col]); }
+		    }
+		    $eval = 'array_multisort(';
+		    foreach ($cols as $col => $order) {
+		        $eval .= '$colarr[\''.$col.'\'],'.$order.',';
+		    }
+		    $eval = substr($eval,0,-1).');';
+		    eval($eval);
+		    $ret = array();
+		    foreach ($colarr as $col => $arr) {
+		        foreach ($arr as $k => $v) {
+		            $k = substr($k,1);
+		            if (!isset($ret[$k])) $ret[$k] = $array[$k];
+		            $ret[$k][$col] = $array[$k][$col];
+		        }
+		    }
+		    return $ret;
+		
+		}
         $controller=$this->getController();
         
         $controller->title = "Action Tasks";
@@ -54,12 +78,21 @@ class IndexAction extends CAction
 	        }
 	        $tasks=$newArray;
 		}
-		else
+		else{
 			$period="yearly";
-		$params = array("tasks" => $tasks,  "period" => $period, "edit" => $edit);
+		}
+		
+		/* Tri des taches par ordre de date croissante*/
+		$tasks2 = array_msort($tasks, array('startDate'=>SORT_ASC, 'endDate'=>SORT_ASC));
+
+// Trie les données par volume décroissant, edition croissant
+// Ajoute $data en tant que dernier paramètre, pour trier par la clé commune
+		$params = array("tasks" => $tasks2,  "period" => $period, "edit" => $edit);
 		if(Yii::app()->request->isAjaxRequest)
 	        echo $controller->renderPartial("index", $params,true);
 	    else
   			$controller->render( "index" , $params );
     }
+    
+    
 }
