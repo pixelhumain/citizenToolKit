@@ -11,7 +11,7 @@ class GetPodOpenDataAction extends CAction
         foreach ($user as $key => $value) {
             $tabPod = $value["preferences"]["dashboards"]["city/opendata"] ;
             foreach ($value["preferences"]["dashboards"]["city/opendata"] as $namePod => $valuePOD){
-                $chaine = $chaine . '<div class="col-sm-4 col-xs-12 '.$namePod.'">
+                $chaine = $chaine . '<div class="col-sm-6 col-xs-12 '.$namePod.'">
                                         <div class="panel panel-white pulsate">
                                             <div class="panel-heading border-light ">
                                                 <h4 class="panel-title"> <i class="fa fa-cog fa-spin fa-2x icon-big text-center"></i> Loading Population Section</h4>

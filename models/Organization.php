@@ -134,7 +134,6 @@ class Organization {
 		$newOrganization = array();
 		$newOrganization["key"] = "organizationsCollection";
 		$newOrganization["email"] = empty($organization['email']) ? "" : $organization['email'];
-		$newOrganization["country"] = empty($organization['address']['addressCountry']) ? "" : $organization['address']['addressCountry'];
 		$newOrganization["name"] = empty($organization['name']) ? "" : $organization['name'];
 		$newOrganization["type"] = empty($organization['type']) ? Organization::TYPE_GROUP : $organization['type'];
 		$newOrganization["postalCode"] = empty($organization['postalCode']) ? "" : $organization['postalCode'];
@@ -144,13 +143,30 @@ class Organization {
 		$newOrganization["roles"] = empty($organization['roles']) ? "" : $organization['roles'];
 		$newOrganization["video"] = empty($organization['video']) ? "" : $organization['video'];
 		$newOrganization["contactPoint"] = empty($organization['contactPoint']) ? "" : $organization['contactPoint'];
-		$newOrganization["address"] = empty($organization['address']) ? "" : $organization['address'];
+		//$newOrganization["address"] = empty($organization['address']) ? "" : $organization['address'];
 		$newOrganization["created"] = empty($organization['created']) ? "" : $organization['created'];
 
 		if(!empty($organization['address']['streetAddress']))
 		{
 			$nominatim = "http://nominatim.openstreetmap.org/search?q=".urlencode($organization['address']['streetAddress'])."&format=json&polygon=0&addressdetails=1";
-			var_dump($nominatim);
+
+			$curl = curl_init($nominatim);
+			curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+			$returnCURL = json_decode(curl_exec($curl),true);
+			if(!empty($returnCURL))
+			{
+				var_dump($nominatim);
+				foreach ($returnCURL as $key => $valueAdress) {
+					var_dump($valueAdress);
+					$newOrganization['address']['geo']['@type'] = "GeoCoordinates" ;
+					$newOrganization['address']['geo']['latitude'] = $valueAdress['lat'];
+					$newOrganization['address']['geo']['longitude'] = $valueAdress['lon'] ;
+				}
+
+			}
+			else
+				$newOrganization['address']['streetAddress'] = $organization['address']['streetAddress'] ;
+			curl_close($curl);
 		}	
 
 		return $newOrganization;

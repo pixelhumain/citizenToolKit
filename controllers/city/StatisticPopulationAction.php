@@ -61,7 +61,7 @@ class StatisticPopulationAction extends CAction
 			{
 				$name = $value["name"];
 			}
-			
+			//var_dump($cityData);
 	  		foreach ($cityData as $key => $value) 
 	  		{	
 	  			foreach ($value as $k => $v) 

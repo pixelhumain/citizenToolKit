@@ -20,7 +20,6 @@ class GetCityDataAction extends CAction
             $fields = array($typeData);
 
 
-
     	if(isset($typeZone) && strcmp($typeZone, City::REGION)==0)
     	{
             if(isset($_POST['optionCities']) && $_POST['optionCities'] != null)
@@ -39,7 +38,7 @@ class GetCityDataAction extends CAction
     			$cityData = City::getWhereData($where, $fields);
     			$where = array("insee" => $insee);
     			$fields = array("name");
-
+                //var_dump($cityData);
     			$city = City::getWhere($where, $fields);
     			foreach ($city as $key => $value) {
     				$name = $value["name"];
