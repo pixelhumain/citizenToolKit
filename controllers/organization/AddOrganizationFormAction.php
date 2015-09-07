@@ -24,12 +24,12 @@ class AddOrganizationFormAction extends CAction
 			'tags'=>json_encode($tags));
 		if( isset($_GET["isNotSV"])) 
             $params["isNotSV"] = true;
-		if($isMobile) {
+		/*if($isMobile) {
 			$controller->layout = "//layouts/mainSimple";
 			$controller->render( "addOrganizationMobile" , $params );
 		}
-		else {
+		else {*/
    			$controller->renderPartial( "addOrganizationSV" , $params );
-	  	}
+	  	//}
     }
 }
