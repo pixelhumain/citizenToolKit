@@ -52,6 +52,15 @@ class Gamification {
 	//project activity
 	const POINTS_PROJECT_ADDING_BULLET_POINTS = 5;
 	const POINTS_PROJECT_ADD_CONTRIBUTOR = 5;
+
+	const BADGE_SEED_LIMIT = 50;
+	const BADGE_GERM_LIMIT = 100;
+	const BADGE_PLANT_LIMIT = 200;
+	const BADGE_TREE_LIMIT = 300;
+	const BADGE_FOREST_LIMIT = 500;
+	const BADGE_COUNTRY_LIMIT = 5000;
+	const BADGE_CONTINENT_LIMIT = 20000;
+	const BADGE_PLANET_LIMIT = 100000;
 	//points if profile is filled above 80%
 
 	//city actions
@@ -69,29 +78,29 @@ class Gamification {
 	Calculate Gamification points based on gamifaication rules 
 	
 	*/
-	public static function calcPoints($userId) {
+	public static function calcPoints($userId, $filter=null) {
 		
 		$res = 0;
 		$person = Person::getById($userId);
 		if( isset( $person['links'] ) )
 		{
 			foreach ( $person['links'] as $type => $list) {
-				if( $type == Link::person2events ){
+				if( $type == Link::person2events && ( !$filter || $filter == Link::person2events) ){
 					foreach ($list as $key => $value) {
 						$res += self::POINTS_LINK_USER_2_EVENT;
 					}
 				}
-				if( $type == Link::person2projects ){
+				if( $type == Link::person2projects && (!$filter || $filter == Link::person2projects) ){
 					foreach ($list as $key => $value) {
 						$res += self::POINTS_LINK_USER_2_PROJECT;
 					}
 				}
-				if( $type == Link::person2organization ){
+				if( $type == Link::person2organization && (!$filter || $filter == Link::person2organization) ){
 					foreach ($list as $key => $value) {
 						$res += self::POINTS_LINK_USER_2_ORGANIZATION;
 					}
 				}
-				if( $type == Link::person2person ){
+				if( $type == Link::person2person && (!$filter || $filter == Link::person2person) ){
 					foreach ($list as $key => $value) {
 						$res += self::POINTS_LINK_USER_2_USER;
 					}
@@ -99,6 +108,30 @@ class Gamification {
 			}
 		}
 		
+		return $res;
+	}
+
+	public static function badge($userId) {
+		
+		$total = self::calcPoints($userId);
+		$res = "air";
+
+		if( $total > self::BADGE_SEED_LIMIT && $total < self::BADGE_GERM_LIMIT )
+			$res = "seed";
+		if( $total > self::BADGE_GERM_LIMIT && $total < self::BADGE_PLANT_LIMIT )
+			$res = "germ";
+		if( $total > self::BADGE_PLANT_LIMIT && $total < self::BADGE_TREE_LIMIT )
+			$res = "plant";
+		if( $total > self::BADGE_TREE_LIMIT && $total < self::BADGE_FOREST_LIMIT )
+			$res = "tree";
+		if( $total > self::BADGE_FOREST_LIMIT && $total < self::BADGE_COUNTRY_LIMIT )
+			$res = "forest";
+		if( $total > self::BADGE_COUNTRY_LIMIT && $total < self::BADGE_PLANET_LIMIT )
+			$res = "country";
+		if( $total > self::BADGE_PLANET_LIMIT )
+			$res = "planet";
+		
+
 		return $res;
 	}
 	/**
