@@ -6,7 +6,7 @@ class PhotoVideoAction extends CAction {
 		$params["type"] = $type;
 		if(isset($id)){
 			$params["photoVidId"] = $id;
-			$params["video"] = PHDB::findOneById($type, $id, array("video"))["video"];
+			$params["video"] = @PHDB::findOneById($type, $id, array("video"))["video"];
 			if(isset(Yii::app()->session["userId"]))
 				$params["canEdit"] = Authorisation::canEditItem(Yii::app()->session["userId"], $type, $id);
 		} else if (isset($insee)){
