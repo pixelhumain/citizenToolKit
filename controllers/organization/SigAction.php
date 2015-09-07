@@ -50,6 +50,10 @@ class SigAction extends CAction
 		$organizationMembers = Organization::getMembersByOrganizationId($id, Organization::COLLECTION);
 		$randomOrganizationId = array_rand($organizationMembers);
 		$randomOrganization = Organization::getById($randomOrganizationId);
+		//Load the images
+		$limit = array(Document::IMG_PROFIL => 1, Document::IMG_LOGO => 1);
+		$images = Document::getListDocumentsURLByContentKey((String) $randomOrganization["_id"], $contentKeyBase, Document::DOC_TYPE_IMAGE, $limit);
+		$randomOrganization["images"] = $images;
 
 		$controller->render( "sig", array("randomOrganization" => $randomOrganization,
 										  "organization" => $organization,
