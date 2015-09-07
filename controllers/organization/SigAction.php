@@ -13,7 +13,10 @@ class SigAction extends CAction
 		}
 
 		$organization = Organization::getPublicData($id);
-
+		
+		//Same content Key base as the dashboard
+		$contentKeyBase = Yii::app()->controller->id.".dashboard";
+		$params["contentKeyBase"] = $contentKeyBase;
 
 		$controller->pageTitle = ucfirst($controller->module->id)." - ".$controller->title;
 
