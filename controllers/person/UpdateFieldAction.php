@@ -10,10 +10,10 @@ class UpdateFieldAction extends CAction
         $res = array("result"=>false, "error"=>"Something went wrong");
         if (!empty($_POST["pk"])) 
         {
-            if (! empty($_POST["name"]) && ! empty($_POST["value"])) 
+            if (! empty($_POST["name"])) 
             {
-                $res = Person::updatePersonField($_POST["pk"], $_POST["name"], $_POST["value"], Yii::app()->session["userId"] );
-                if( $_POST["value"] == "bgCustom" && isset( $_POST["url"] ))
+                $res = Person::updatePersonField($_POST["pk"], $_POST["name"], @$_POST["value"], Yii::app()->session["userId"] );
+                if( @$_POST["value"] == "bgCustom" && isset( $_POST["url"] ))
                     Person::updatePersonField($_POST["pk"], "bgUrl", $_POST["url"], Yii::app()->session["userId"] );
             }
         } 

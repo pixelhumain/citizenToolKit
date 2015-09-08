@@ -15,9 +15,9 @@ class UpdateFieldAction extends CAction
 		}
 
 		if ($organizationId != "") {
-			if (! empty($_POST["name"]) && ! empty($_POST["value"])) {
+			if (! empty($_POST["name"])) {
 				$organizationFieldName = $_POST["name"];
-				$organizationFieldValue = $_POST["value"];
+				$organizationFieldValue = @$_POST["value"];
 				try {
 					Organization::updateOrganizationField($organizationId, $organizationFieldName, $organizationFieldValue, Yii::app()->session["userId"] );
 					$res = array("result"=>true, "msg"=>Yii::t("organization", "The organization has been updated"), $organizationFieldName=>$organizationFieldValue);
