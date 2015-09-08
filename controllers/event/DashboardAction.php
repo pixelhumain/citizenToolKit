@@ -37,11 +37,25 @@ class DashboardAction extends CAction
             }
             if(isset($event["links"]["organizer"])){
               foreach ($event["links"]["organizer"] as $id => $e) {
-                $organization = Organization::getById($id);
+	            $organizer["type"] = $e["type"];
+	            if($organizer["type"]=="projects"){
+	                $iconNav="fa-lightbulb-o";
+	                $urlType="project";
+	                $organizerInfo = Project::getById($id);
+	                $organizer["type"]=$urlType;
+                }
+                else{
+	                $iconNav="fa-group";
+	                $urlType="organization";	
+	                $organizerInfo = Organization::getById($id);  
+					$organizer["type"]=$urlType;              
+                }
+
+                
                 $organizer["id"] = $id;
-                $organizer["type"] = "organization";
-                $organizer["name"] = $organization["name"];
-                array_push($controller->toolbarMBZ,"<a href='".Yii::app()->createUrl("/".$controller->module->id."/organization/dashboard/id/".$id)."'><i class='fa fa-group'></i>Organization</a>");
+
+                $organizer["name"] = $organizerInfo["name"];
+                                array_push($controller->toolbarMBZ,"<a href='".Yii::app()->createUrl("/".$controller->module->id."/".$urlType."/dashboard/id/".$id)."'><i class='fa ".$iconNav."'></i>".$organizer["type"]."</a>");
               }
             }else if(isset($event["links"]["creator"])){
               foreach ($event["links"]["creator"] as $id => $e) {

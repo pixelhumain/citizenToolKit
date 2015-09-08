@@ -241,20 +241,48 @@ class Link {
 	 * @param type $userId The user Id who try to link the organization to the event
 	 * @return result array with the result of the operation
 	 */
-    public static function addOrganizer($organizationId, $eventId, $userId) {
+    public static function addOrganizer($organizerId, $organizerType, $eventId, $userId) {
 		$res = array("result"=>false, "msg"=>"You can't add this event to this organization");
-   		$isUserAdmin = Authorisation::isOrganizationAdmin($userId, $organizationId);
-   		if($isUserAdmin){
-   			PHDB::update(Organization::COLLECTION,
-   						array("_id" => new MongoId($organizationId)),
-   						array('$set' => array("links.events.".$eventId.".type" => PHType::TYPE_EVENTS))
-   				);
-   			PHDB::update(PHType::TYPE_EVENTS,
-   						array("_id"=>new MongoId($eventId)),
-   						array('$set'=> array("links.organizer.".$organizationId.".type"=>Organization::COLLECTION))
-   				);
-   			$res = array("result"=>true, "msg"=>"The event has been added with success");
-   		};
+		if ($organizerType=="organizations"){
+	   		$isUserAdmin = Authorisation::isOrganizationAdmin($userId, $organizerId);
+	   		if($isUserAdmin){
+	   			PHDB::update(Organization::COLLECTION,
+	   						array("_id" => new MongoId($organizerId)),
+	   						array('$set' => array("links.events.".$eventId.".type" => PHType::TYPE_EVENTS))
+	   			);
+	   			PHDB::update(PHType::TYPE_EVENTS,
+	   						array("_id"=>new MongoId($eventId)),
+	   						array('$set'=> array("links.organizer.".$organizerId.".type"=>Organization::COLLECTION))
+	   			);
+	   			$res = array("result"=>true, "msg"=>"The event has been added with success");
+	   		};
+	   	}
+	   	else if ($organizerType=="projects"){
+		   	$isUserAdmin = Authorisation::isProjectAdmin($organizerId,$userId);
+	   		if($isUserAdmin){
+	   			PHDB::update(Project::COLLECTION,
+	   						array("_id" => new MongoId($organizerId)),
+	   						array('$set' => array("links.events.".$eventId.".type" => PHType::TYPE_EVENTS))
+	   			);
+	   			PHDB::update(PHType::TYPE_EVENTS,
+	   						array("_id"=>new MongoId($eventId)),
+	   						array('$set'=> array("links.organizer.".$organizerId.".type"=>Project::COLLECTION))
+	   			);
+	   			$res = array("result"=>true, "msg"=>"The event has been added with success");
+	   		};
+	   	}
+	   	else {
+		   	PHDB::update(Person::COLLECTION,
+	   						array("_id" => new MongoId($organizerId)),
+	   						array('$set' => array("links.events.".$eventId.".type" => PHType::TYPE_EVENTS))
+	   			);
+	   			PHDB::update(PHType::TYPE_EVENTS,
+	   						array("_id"=>new MongoId($eventId)),
+	   						array('$set'=> array("links.creator.".$organizerId.".type"=>Person::COLLECTION))
+	   			);
+	   			$res = array("result"=>true, "msg"=>"The event has been added with success");
+
+	   	}
    		return $res;
    }
 
