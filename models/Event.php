@@ -107,13 +107,13 @@ class Event {
 		}
 
 		//The organizer is required and should exist
-		if (empty($event["organization"])) {
-			throw new CTKException("You must select an organization");
+		if (empty($event["organizerId"])) {
+			throw new CTKException("You must select an organizer");
 		} 
-		$organizer = Organization::getById($event["organization"]);
+		/*$organizer = Organization::getById($event["organization"]);
 		if (empty($organizer)) {
-			throw new CTKException("The organization does not exist. Please check the organizer.");
-		}
+			throw new CTKException("The organizer does not exist. Please check the organizer.");
+		}*/
 
 		if(empty($event['startDate']) || empty($event['endDate'])) {
 			throw new CTKException("The start and end date of an event are required.");
@@ -174,8 +174,8 @@ class Event {
 	    
 	    //add the creator as the admin and the first attendee
 	    Link::attendee($newEvent["_id"], $params['userId'], true);
-	    
-	    Link::addOrganizer($params["organization"], $newEvent["_id"], $params['userId']);
+
+	    Link::addOrganizer($params["organizerId"],$params["organizerType"], $newEvent["_id"], $params['userId']);
 
 	    //send validation mail
 	    //TODO : make emails as cron events

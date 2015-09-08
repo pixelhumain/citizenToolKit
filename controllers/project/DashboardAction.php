@@ -25,11 +25,9 @@ class DashboardAction extends CAction
 	    
 	    $controller->subTitle = ( isset($project["description"])) ? ( ( strlen( $project["description"] ) > 120 ) ? substr($project["description"], 0, 120)."..." : $project["description"]) : "";
 	    $controller->pageTitle = "Communecter - Informations sur le projet ".$controller->title;
-	
-		
+	    
 	  	$organizations = array();
 	  	$people = array();
-	  	//$admins = array();
 	  	$contributors =array();
 	  	$properties = array();
 	  	$tasks = array();
@@ -37,6 +35,8 @@ class DashboardAction extends CAction
 	  	$images = Document::getListDocumentsURLByContentKey($id, $contentKeyBase, Document::DOC_TYPE_IMAGE);
 	  	if(!empty($project)){
 	  		$params = array();
+	  		// Get people or orga who contribute to the project 
+	  		// Get image for each contributors
 	  		if(isset($project["links"])){
 	  			foreach ($project["links"]["contributors"] as $id => $e) {
 	  				if($e["type"]== Organization::COLLECTION){
@@ -71,10 +71,26 @@ class DashboardAction extends CAction
 		  		$tasks=$project["tasks"];
 	  		}
 	  	}
+	  	
 	  	//Gestion de l'admin - true or false
-	  	$isProjectAdmin= false;
+	  	// First find if user session is directly link to project
+	  	// Second if not, find if user belong to an organization admin of the project
+	  	// return true or false
+	  	$isProjectAdmin = false;
+	  	$admins=[];
     	if(isset($project["_id"]) && isset(Yii::app()->session["userId"])) {
     		$isProjectAdmin =  Authorisation::isProjectAdmin((String) $project["_id"],Yii::app()->session["userId"]);
+    		if (!$isProjectAdmin && !empty($organizations)){
+	    		foreach ($organizations as $data){
+		    		$admins = Organization::getMembersByOrganizationId( (string)$data['_id'], Person::COLLECTION , "isAdmin" );
+		    		foreach ($admins as $key => $member){
+			    		if ($key == Yii::app()->session["userId"]){
+				    		$isProjectAdmin=1;
+				    		break 2;
+			    		}
+		    		}
+	    		}
+    		}
 		}
 
 	  	$lists = Lists::get(array("organisationTypes"));
@@ -90,6 +106,7 @@ class DashboardAction extends CAction
 	  	$params["properties"] = $properties;
 	  	$params["tasks"]=$tasks;
 	  	$params["admin"]=$isProjectAdmin;
+	  		  	$params["admins"]=$admins;
 	  	//$params["admins"] = $admins;
 	  	$controller->render( "dashboard", $params );
 	}
