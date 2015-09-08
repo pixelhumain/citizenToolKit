@@ -17,7 +17,8 @@ class DisableAction extends CAction
 				PHDB::update( Organization::COLLECTION, array("_id"=>new MongoId($id)) , 
 														array('$set' => array("disabled"=> true)));
 				//add notification to all members 
-
+				$organization["id"] = $id;
+				Notification::actionOnPerson ( ActStr::VERB_CLOSE, ActStr::ICON_CLOSE, $organization, $organization ) ;
 				$result = array("result"=>true,"msg" => Yii::t("common", "Organization Disabled") );
 			}
 		}

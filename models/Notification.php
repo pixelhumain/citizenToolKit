@@ -41,7 +41,7 @@ class Notification{
 	    	$admins = Organization::getMembersByOrganizationId( $memberId, Person::COLLECTION , "isAdmin" );
 		    foreach ($admins as $key => $value) 
 		    {
-		    	if( $key != Yii::app()->session['userId'] && count($people) < self::PEOPLE_NOTIFY_LIMIT )
+		    	if( $key != Yii::app()->session['userId'] && !in_array($key, $people) && count($people) < self::PEOPLE_NOTIFY_LIMIT )
 		    		array_push( $people, $key);
 		    }	
 	    }else
@@ -57,7 +57,7 @@ class Notification{
 	    $notif = array( "persons" => $people,
 	                    "label"   => Yii::app()->session['user']["name"]." invited ".$objectName." to ".$projectName , 
 	                    "icon"    => ActStr::ICON_SHARE ,
-	                    "url"     => Yii::app()->createUrl('/project/dashboard/id/'.$projectId) 
+	                    "url"     => Yii::app()->createUrl('/'.Yii::app()->controller->module->id.'/project/dashboard/id/'.$projectId) 
 	                );
 	    $stream["notify"] = ActivityStream::addNotification( $notif );
 	    ActivityStream::addEntry($stream);
@@ -66,17 +66,17 @@ class Notification{
 	}
 
 	/*
-	when someone joins or leaves a project / organization
+	when someone joins or leaves or disables a project / organization
 	notify all contributors
+
 	the action/verb can be done by the person or by an admin (remove from project)
 	$verb can be join, leave
 	$icon : anicon to show
-	$memberId $memberType : the type and Id of the member (person or Orga)
-	$actorName : the name of the person
-	$targetType, $targetId,$targetName : context of the action (project, orga)
-	
+	$member : a map of the object member 
+		should contain : id ,type, name of the member (person or Orga)
+	$target : context of the action (project, orga)
 	*/
-	public static function actionOnPerson ( $verb, $icon, $memberId, $memberType, $actorName, $targetType, $targetId,$targetName ) 
+	public static function actionOnPerson ( $verb, $icon, $member, $target ) 
 	{
 	    $asParam = array(
 	    	"type" => ActStr::TEST, 
@@ -86,27 +86,27 @@ class Notification{
             	"id"   => ( isset(Yii::app()->session["userId"]) ) ? Yii::app()->session["userId"] : null
             ),
             "target"=>array(
-	            "type" => $targetType,
-	            "id"   => $targetId 
+	            "type" => $target["type"],
+	            "id"   => $target["id"] 
             )
         );
 
         //build list of people to notify
         $people = array();
         //when admin makes the change
-        if( $memberId != Yii::app()->session["userId"] ){
-        	if( $memberType == Organization::COLLECTION )
+        if( $member['id'] != Yii::app()->session["userId"] ){
+        	if( $member['type'] == Organization::COLLECTION )
         	{
         		$asParam["object"] = array(
 		            "type" => Organization::COLLECTION,
-		            "id"   => $memberId
+		            "id"   => $member['id']
 	            );
 
-	            //inform the invited organisations admins
-		    	$admins = Organization::getMembersByOrganizationId( $memberId, Person::COLLECTION , "isAdmin" );
+	            //inform the organisations admins
+		    	$admins = Organization::getMembersByOrganizationId( $member['id'], Person::COLLECTION , "isAdmin" );
 			    foreach ($admins as $key => $value) 
 			    {
-			    	if( $key != Yii::app()->session['userId'] && count($people) < self::PEOPLE_NOTIFY_LIMIT )
+			    	if( $key != Yii::app()->session['userId'] && !in_array($key, $people) && count($people) < self::PEOPLE_NOTIFY_LIMIT )
 			    		array_push( $people, $key);
 			    }
         	} 
@@ -114,28 +114,30 @@ class Notification{
         	{ 
 	        	$asParam["object"] = array(
 		            "type" => Person::COLLECTION,
-		            "id"   => $memberId
+		            "id"   => $member['id']
 	            );
-	        	array_push( $people, $memberId );
+	        	array_push( $people, $member['id'] );
 	        }
         }
 
 	    $stream = ActStr::buildEntry($asParam);
 
-	    
-	    //inform the projects members of the new member 
-	    $members = ( $targetType == Project::COLLECTION ) ? Project::getContributorsByProjectId( $targetId,"all", null ) 
-	    												  : Organization::getMembersByOrganizationId( $targetId,"all", null ) ;
+	    //inform the projects members of the new member
+	    $members = ( $target["type"] == Project::COLLECTION ) ? Project::getContributorsByProjectId( $target["id"] ,"all", null ) 
+	    												  : Organization::getMembersByOrganizationId( $target["id"] ,"all", null ) ;
 	    foreach ($members as $key => $value) 
 	    {
-	    	if( $key != Yii::app()->session['userId'] && count($people) < self::PEOPLE_NOTIFY_LIMIT )
+	    	if( $key != Yii::app()->session['userId'] && !in_array($key, $people) && count($people) < self::PEOPLE_NOTIFY_LIMIT )
 	    		array_push( $people, $key);
 	    }
+	    $label = Yii::app()->session['user']['name']." ".$verb." you to ".$target["name"] ;
+	    if( $verb == ActStr::VERB_CLOSE )
+	    	$targetName." has been disabled by ".Yii::app()->session['user']['name'];
 	    $notif = array( 
 	    	"persons" => $people,
-            "label"   => $actorName." ".$verb." you to ".$targetName , 
+            "label"   => $label,
             "icon"    => $icon ,
-            "url"     => Yii::app()->createUrl('/'.$targetType.'/dashboard/id/'.$targetId) 
+            "url"     => Yii::app()->createUrl('/'.Yii::app()->controller->module->id.'/'.$target["type"].'/dashboard/id/'.$target["id"] ) 
         );
 	    $stream["notify"] = ActivityStream::addNotification( $notif );
 	    ActivityStream::addEntry($stream);
@@ -169,7 +171,7 @@ class Notification{
 	    	"persons" => array($followedPersonId),
             "label"   => $followerName.$actionMsg , 
             "icon"    => ActStr::ICON_SHARE ,
-            "url"     => Yii::app()->createUrl('/person/dashboard/id/'.$followerId)
+            "url"     => Yii::app()->createUrl('/'.Yii::app()->controller->module->id.'/person/dashboard/id/'.$followerId)
         );
 	    $stream["notify"] = ActivityStream::addNotification( $notif );
 	    ActivityStream::addEntry($stream);

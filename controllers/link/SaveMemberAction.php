@@ -28,6 +28,7 @@ class SaveMemberAction extends CAction
 		}
 
 		//The member does not exist we have to create a new member
+		
 		if ($memberId == "" && ( isset($_POST['memberName']) || isset($_POST['memberName']) ) ) 
 		{
 			$member = array(
@@ -46,8 +47,9 @@ class SaveMemberAction extends CAction
 
 			//create an entry in the right type collection
 			$result = $class::createAndInvite($member);
-			if ($result["result"]) 
-				$memberId = $result["id"];
+			if ($result["result"]) {
+				$member["id"] = $memberId;
+			}
 			else 
 				return Rest::json($result);
 		}
@@ -74,7 +76,14 @@ class SaveMemberAction extends CAction
 
 		try {
 			$res = Link::addMember($memberOfId, $memberOfType, $memberId, $memberType, Yii::app()->session["userId"], $isAdmin, $roles );
-			Notification::actionOnPerson ( ActStr::VERB_JOIN, ActStr::ICON_SHARE, $memberId,$memberType, Yii::app()->session['user']['name'], Organization::COLLECTION, $memberOfId,$organization["name"] ) ;
+
+			$member = array(
+				"id"=>$memberId,
+				"type"=>$memberType
+			);
+			if(isset($_POST['memberName']))
+				$member["name"] = $_POST['memberName'];
+			Notification::actionOnPerson ( ActStr::VERB_JOIN, ActStr::ICON_SHARE, $member , array("type"=>Organization::COLLECTION,"id"=> $memberOfId,"name"=>$organization["name"]) ) ;
 			$res["member"] = $class::getById($memberId);
 		} catch (CommunecterException $e) {
 			$res = array( "result" => false , "msg" => $e->getMessage() );
