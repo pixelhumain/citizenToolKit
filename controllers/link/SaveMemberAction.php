@@ -75,9 +75,15 @@ class SaveMemberAction extends CAction
 		}
 
 		try {
-			$res = Link::addMember($memberOfId, $memberOfType, $member["id"], $memberType, Yii::app()->session["userId"], $isAdmin, $roles );
+			$res = Link::addMember($memberOfId, $memberOfType, $memberId, $memberType, Yii::app()->session["userId"], $isAdmin, $roles );
 
-			Notification::actionOnPerson ( ActStr::VERB_JOIN, ActStr::ICON_SHARE, $member, array("type"=>Organization::COLLECTION,"id"=> $memberOfId,"name"=>$organization["name"]) ) ;
+			$member = array(
+				"id"=>$memberId,
+				"type"=>$memberType
+			);
+			if(isset($_POST['memberName']))
+				$member["name"] = $_POST['memberName'];
+			Notification::actionOnPerson ( ActStr::VERB_JOIN, ActStr::ICON_SHARE, $member , array("type"=>Organization::COLLECTION,"id"=> $memberOfId,"name"=>$organization["name"]) ) ;
 			$res["member"] = $class::getById($memberId);
 		} catch (CommunecterException $e) {
 			$res = array( "result" => false , "msg" => $e->getMessage() );
