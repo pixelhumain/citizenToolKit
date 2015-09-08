@@ -57,7 +57,7 @@ class Notification{
 	    $notif = array( "persons" => $people,
 	                    "label"   => Yii::app()->session['user']["name"]." invited ".$objectName." to ".$projectName , 
 	                    "icon"    => ActStr::ICON_SHARE ,
-	                    "url"     => Yii::app()->createUrl('/project/dashboard/id/'.$projectId) 
+	                    "url"     => Yii::app()->createUrl('/'.Yii::app()->controller->module->id.'/project/dashboard/id/'.$projectId) 
 	                );
 	    $stream["notify"] = ActivityStream::addNotification( $notif );
 	    ActivityStream::addEntry($stream);
@@ -137,7 +137,7 @@ class Notification{
 	    	"persons" => $people,
             "label"   => $label,
             "icon"    => $icon ,
-            "url"     => Yii::app()->createUrl('/'.$target["type"].'/dashboard/id/'.$target["id"] ) 
+            "url"     => Yii::app()->createUrl('/'.Yii::app()->controller->module->id.'/'.$target["type"].'/dashboard/id/'.$target["id"] ) 
         );
 	    $stream["notify"] = ActivityStream::addNotification( $notif );
 	    ActivityStream::addEntry($stream);
@@ -171,7 +171,7 @@ class Notification{
 	    	"persons" => array($followedPersonId),
             "label"   => $followerName.$actionMsg , 
             "icon"    => ActStr::ICON_SHARE ,
-            "url"     => Yii::app()->createUrl('/person/dashboard/id/'.$followerId)
+            "url"     => Yii::app()->createUrl('/'.Yii::app()->controller->module->id.'/person/dashboard/id/'.$followerId)
         );
 	    $stream["notify"] = ActivityStream::addNotification( $notif );
 	    ActivityStream::addEntry($stream);
