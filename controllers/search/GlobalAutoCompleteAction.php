@@ -12,13 +12,13 @@ class GlobalAutoCompleteAction extends CAction
 
         if(strcmp($filter, Person::COLLECTION) != 0){
 
-	  		$allCitoyen = PHDB::find ( Person::COLLECTION ,$query ,array("name"));
+	  		$allCitoyen = PHDB::find ( Person::COLLECTION ,$query ,array("name", "address"));
 
 	  		foreach ($allCitoyen as $key => $value) {
 	  			$profil = Document::getLastImageByKey($key, Person::COLLECTION, Document::IMG_PROFIL);
 	  			if($profil !="")
-						$value["imagePath"]= $profil;
-						$allCitoyen[$key] = $value;
+					$value["imagePath"]= $profil;
+				$allCitoyen[$key] = $value;
 	  		}
 
 	  		$res["citoyen"] = $allCitoyen;
@@ -27,24 +27,24 @@ class GlobalAutoCompleteAction extends CAction
 
 	  	if(strcmp($filter, Organization::COLLECTION) != 0){
 
-	  		$allOrganizations = PHDB::find ( Organization::COLLECTION ,$query ,array("name", "type"));
+	  		$allOrganizations = PHDB::find ( Organization::COLLECTION ,$query ,array("name", "type", "address"));
 	  		foreach ($allOrganizations as $key => $value) {
 	  			$profil = Document::getLastImageByKey($key, Organization::COLLECTION, Document::IMG_PROFIL);
 	  			if($profil !="")
-						$value["imagePath"]= $profil;
-						$allOrganizations[$key] = $value;
+					$value["imagePath"]= $profil;
+				$allOrganizations[$key] = $value;
 	  		}
 
 	  		$res["organization"] = $allOrganizations;
 	  	}
 
 	  	if(strcmp($filter, Event::COLLECTION) != 0){
-	  		$allEvents = PHDB::find(PHType::TYPE_EVENTS, $query, array("name"));
+	  		$allEvents = PHDB::find(PHType::TYPE_EVENTS, $query, array("name", "address"));
 	  		foreach ($allEvents as $key => $value) {
 	  			$profil = Document::getLastImageByKey($key, Event::COLLECTION, Document::IMG_PROFIL);
 	  			if($profil !="")
-						$value["imagePath"]= $profil;
-						$allEvents[$key] = $value;
+					$value["imagePath"]= $profil;
+				$allEvents[$key] = $value;
 	  		}
 	  		
 	 
@@ -52,12 +52,12 @@ class GlobalAutoCompleteAction extends CAction
 	  	}
 
 	  	if(strcmp($filter, Project::COLLECTION) != 0){
-	  		$allProject = PHDB::find(Project::COLLECTION, $query, array("name"));
+	  		$allProject = PHDB::find(Project::COLLECTION, $query, array("name", "address"));
 	  		foreach ($allProject as $key => $value) {
 	  			$profil = Document::getLastImageByKey($key, Project::COLLECTION, Document::IMG_PROFIL);
 	  			if($profil !="")
-						$value["imagePath"]= $profil;
-						$allProject[$key] = $value;
+					$value["imagePath"]= $profil;
+				$allProject[$key] = $value;
 	  		}
 	  		
 	 
