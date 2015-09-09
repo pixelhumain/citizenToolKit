@@ -100,11 +100,6 @@ class Organization {
 	    //send Notification Email
 	    $creator = Person::getById($creatorId);
 	    //Mail::newOrganization($creator,$newOrganization);
-	    
-
-	    //TODO ???? : add an admin notification
-	    Notification::saveNotification(array("type"=>"Created",
-	    						"user"=>$newOrganizationId));
 	                  
 	    $newOrganization = Organization::getById($newOrganizationId);
 	    return array("result"=>true,
@@ -338,10 +333,6 @@ class Organization {
 	    //update the organization
 	    PHDB::update( Organization::COLLECTION, array("_id" => new MongoId($organizationId)), 
 	                                            array('$set' => $organization) );
-
-	    //TODO ???? : add an admin notification
-	    Notification::saveNotification(array("type"=>"Updated",
-	    						"user"=>$organizationId));
 
 	    return array("result"=>true, "msg"=>Yii::t("organization", "The organization has been updated"), "id"=>$organizationId);
 	}
