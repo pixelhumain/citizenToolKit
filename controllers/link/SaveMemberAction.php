@@ -48,7 +48,9 @@ class SaveMemberAction extends CAction
 			//create an entry in the right type collection
 			$result = $class::createAndInvite($member);
 			if ($result["result"]) {
+				$memberId = $result["id"];
 				$member["id"] = $memberId;
+
 			}
 			else 
 				return Rest::json($result);
