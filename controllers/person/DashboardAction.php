@@ -60,14 +60,11 @@ class DashboardAction extends CAction
 
 	    //Get the Events
 	  	$events = Authorisation::listEventsIamAdminOf($id);
-      //foreach($events as $event)
-
 	  	$eventsAttending = Event::listEventAttending($id);
 	  	foreach ($eventsAttending as $key => $value) {
 	  		$eventId = (string)$value["_id"];
 	  		if(!isset($events[$eventId])){
 	  			$events[$eventId] = $value;
-          //array_push($events, $value);
 	  		}
 	  	}
 	  	
@@ -118,7 +115,7 @@ class DashboardAction extends CAction
 		            }
 	            }
 	    	}
-
+	    	uasort($people, array($this, 'comparePeople'));
 	    }
 
       $cleanEvents = array();
@@ -136,4 +133,9 @@ class DashboardAction extends CAction
 
 	    $controller->render("dashboard", $params );
     }
+
+    private function comparePeople($person1, $person2) {
+    	return strcmp($person1["name"], $person2["name"]);
+    }
+
 }
