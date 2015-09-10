@@ -1,9 +1,17 @@
 <?php
 	class CalendarViewAction extends CAction{
 
-		public function run($id=null, $type=null){
+		public function run($id=null, $type=null, $pod=null){
 		  	$controller=$this->getController();
+
+		  	$person = Person::getPublicData( Yii::app()->session['userId'] );
+
+		  	$controller->title = ((isset($person["name"])) ? $person["name"] : "")."'s Calendar";
+	   		$controller->subTitle = "All events and important dates ";
+	    	$controller->pageTitle = ucfirst($controller->module->id)." - ".$controller->title;
+
 		  	$params = array();
+		  	$params["canEdit"] = Authorisation::canEditItem(Yii::app()->session["userId"], $type, $id);
 		  	$events = Event::getWhere($params);
 		  	if(isset($id) && $id!=null){
 		  		if(isset($type) && $type!=null){
@@ -15,7 +23,12 @@
 		  			}
 		  		}
 		  	}
-		  	$controller->render("calendarView", array("events" => $events));
+		  	$tpl = ( $pod ) ? "../pod/calendarPod" : "calendarView";
+		  	if(Yii::app()->request->isAjaxRequest){
+	            echo $controller->renderPartial($tpl, array("events" => $events));
+	        }
+	        else 
+		  		$controller->render( $tpl , array("events" => $events));
 		}
 	}
 ?>

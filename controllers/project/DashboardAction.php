@@ -25,7 +25,6 @@ class DashboardAction extends CAction
 	    
 	    $controller->subTitle = ( isset($project["description"])) ? ( ( strlen( $project["description"] ) > 120 ) ? substr($project["description"], 0, 120)."..." : $project["description"]) : "";
 	    $controller->pageTitle = "Communecter - Informations sur le projet ".$controller->title;
-	    
 	  	$organizations = array();
 	  	$people = array();
 	  	$contributors =array();
