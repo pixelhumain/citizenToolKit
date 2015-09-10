@@ -11,6 +11,7 @@
 	    	$controller->pageTitle = ucfirst($controller->module->id)." - ".$controller->title;
 
 		  	$params = array();
+		  	$params["canEdit"] = Authorisation::canEditItem(Yii::app()->session["userId"], $type, $id);
 		  	$events = Event::getWhere($params);
 		  	if(isset($id) && $id!=null){
 		  		if(isset($type) && $type!=null){

@@ -45,13 +45,16 @@ class DashboardAction extends CAction
 		$params["contentKeyBase"] = $contentKeyBase;
 		$params["images"] = $images;
 		$params["events"] = $events;
+
 		$contextMap = array();
 		$contextMap["organization"] = $organization;
 		$contextMap["events"] = array();
 		$contextMap["organizations"] = array();
 		$contextMap["people"] = array();
+
 		$organizations = Organization::getMembersByOrganizationId($id, Organization::COLLECTION);
 		$people = Organization::getMembersByOrganizationId($id, Person::COLLECTION);
+
 		foreach ($organizations as $key => $value) {
 			$newOrga = Organization::getById($key);
 			array_push($contextMap["organizations"], $newOrga);
@@ -63,6 +66,7 @@ class DashboardAction extends CAction
 			$newEvent = Event::getById($key);
 			array_push($contextMap["events"], $newEvent);
 		}
+		
 		foreach ($people as $key => $value) {
 			$newCitoyen = Person::getById($key);
 			if (!empty($newCitoyen)) {
