@@ -12,6 +12,6 @@ class InviteSVAction extends CTKAction
             $params["isNotSV"] = true;
     	
     	if(Yii::app()->request->isAjaxRequest)
-    		Rest::json(array("result"=>true, "content" => $controller->renderPartial("inviteSV", $params,true)));	
+    		$controller->renderPartial("inviteSV", $params);
     }
 }
