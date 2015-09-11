@@ -32,6 +32,9 @@ class DashboardAction extends CAction
 	  	$tasks = array();
 	  	$contentKeyBase = $controller->id.".".$controller->action->id; 
 	  	$images = Document::getListDocumentsURLByContentKey($id, $contentKeyBase, Document::DOC_TYPE_IMAGE);
+
+	  	$params["events"] = array();//Project::listEventsPublicAgenda($id);
+
 	  	if(!empty($project)){
 	  		$params = array();
 	  		// Get people or orga who contribute to the project 

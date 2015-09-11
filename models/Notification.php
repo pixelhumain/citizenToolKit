@@ -66,7 +66,7 @@ class Notification{
 	}
 
 	/*
-	when someone joins or leaves or disables a project / organization
+	when someone joins or leaves or disables a project / organization / event
 	notify all contributors
 
 	the action/verb can be done by the person or by an admin (remove from project)
@@ -74,10 +74,13 @@ class Notification{
 	$icon : anicon to show
 	$member : a map of the object member 
 		should contain : id ,type, name of the member (person or Orga)
-	$target : context of the action (project, orga)
+	$target : context of the action (project, orga,event)
 	*/
 	public static function actionOnPerson ( $verb, $icon, $member, $target ) 
 	{
+		$targetId = ( isset( $target["id"] ) ) ? $target["id"] : (string)$target["_id"] ;
+		if( $member )
+			$memberId = ( isset( $member["id"] ) ) ? $member["id"] : (string)$member["_id"] ;
 	    $asParam = array(
 	    	"type" => ActStr::TEST, 
             "verb" => $verb,
@@ -87,57 +90,64 @@ class Notification{
             ),
             "target"=>array(
 	            "type" => $target["type"],
-	            "id"   => $target["id"] 
+	            "id"   => $targetId
             )
         );
 
         //build list of people to notify
         $people = array();
         //when admin makes the change
-        if( $member['id'] != Yii::app()->session["userId"] ){
+        //notify the people concerned by the entity
+        if( isset($memberId) && $memberId != Yii::app()->session["userId"] ){
         	if( $member['type'] == Organization::COLLECTION )
         	{
         		$asParam["object"] = array(
 		            "type" => Organization::COLLECTION,
-		            "id"   => $member['id']
+		            "id"   => $memberId
 	            );
 
 	            //inform the organisations admins
-		    	$admins = Organization::getMembersByOrganizationId( $member['id'], Person::COLLECTION , "isAdmin" );
+		    	$admins = Organization::getMembersByOrganizationId( $memberId, Person::COLLECTION , "isAdmin" );
 			    foreach ($admins as $key => $value) 
 			    {
 			    	if( $key != Yii::app()->session['userId'] && !in_array($key, $people) && count($people) < self::PEOPLE_NOTIFY_LIMIT )
 			    		array_push( $people, $key);
 			    }
         	} 
+
         	else 
         	{ 
 	        	$asParam["object"] = array(
 		            "type" => Person::COLLECTION,
-		            "id"   => $member['id']
+		            "id"   => $memberId
 	            );
-	        	array_push( $people, $member['id'] );
+	        	array_push( $people, $memberId );
 	        }
         }
 
 	    $stream = ActStr::buildEntry($asParam);
 
 	    //inform the projects members of the new member
-	    $members = ( $target["type"] == Project::COLLECTION ) ? Project::getContributorsByProjectId( $target["id"] ,"all", null ) 
-	    												  : Organization::getMembersByOrganizationId( $target["id"] ,"all", null ) ;
+	    $members = ( $target["type"] == Project::COLLECTION ) ? Project::getContributorsByProjectId( $targetId ,"all", null ) 
+	    												  : Organization::getMembersByOrganizationId( $targetId ,"all", null ) ;
 	    foreach ($members as $key => $value) 
 	    {
 	    	if( $key != Yii::app()->session['userId'] && !in_array($key, $people) && count($people) < self::PEOPLE_NOTIFY_LIMIT )
 	    		array_push( $people, $key);
 	    }
 	    $label = Yii::app()->session['user']['name']." ".$verb." you to ".$target["name"] ;
+	    $url = $target["type"].'/dashboard/id/'.$targetId;
 	    if( $verb == ActStr::VERB_CLOSE )
-	    	$targetName." has been disabled by ".Yii::app()->session['user']['name'];
+	    	$target["name"]." has been disabled by ".Yii::app()->session['user']['name'];
+	    else if( $verb == ActStr::VERB_POST ){
+	    	$target["name"]." : new post by ".Yii::app()->session['user']['name'];
+	    	$url = 'news/index/type/'.$target["type"].'/id/'.$targetId;
+	    }
 	    $notif = array( 
 	    	"persons" => $people,
             "label"   => $label,
             "icon"    => $icon ,
-            "url"     => Yii::app()->createUrl('/'.Yii::app()->controller->module->id.'/'.$target["type"].'/dashboard/id/'.$target["id"] ) 
+            "url"     => Yii::app()->createUrl('/'.Yii::app()->controller->module->id.'/'.$url ) 
         );
 	    $stream["notify"] = ActivityStream::addNotification( $notif );
 	    ActivityStream::addEntry($stream);

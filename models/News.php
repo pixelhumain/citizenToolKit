@@ -54,9 +54,11 @@ class News {
 					if( isset( $person['geo'] ) )
 						$news["from"] = $person['geo'];
 				}else if($_POST["type"] == Organization::COLLECTION ){
-					$person = Person::getById($_POST["typeId"]);
-					if( isset( $person['geo'] ) )
-						$news["from"] = $person['geo'];
+					$organization = Organization::getById($_POST["typeId"]);
+					if( isset( $organization['geo'] ) )
+						$news["from"] = $organization['geo'];
+
+					Notification::actionOnPerson ( ActStr::VERB_POST, ActStr::ICON_SHARE, null , $organization)  ;
 				}
 
 				/*if( $_POST["type"] == Organization::COLLECTION && Authorisation::isOrganizationAdmin( Yii::app()->session["userId"], $_POST["typeId"]) )
@@ -129,7 +131,6 @@ class News {
 			}
 
 		    PHDB::insert(self::COLLECTION,$news);
-		    //Link::connect($id, $type, $new["_id"], PHType::TYPE_PROJECTS, $id, "projects" );
 		    return array("result"=>true, "msg"=>"Votre news est enregistré.", "id"=>$news["_id"],"object"=>$news);	
 		} else {
 			return array("result"=>false, "msg"=>"Please Fill required Fields.");	

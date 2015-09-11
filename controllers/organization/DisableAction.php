@@ -5,6 +5,7 @@ class DisableAction extends CAction
 	 /**
 	 * Deletes an Organization
 	 * Remove any links on any person linked to this mongoid 
+	 * notify all members of the organization
 	 * @param type $id : is the mongoId of the organisation to be deleted
 	 */
     public function run($id) {

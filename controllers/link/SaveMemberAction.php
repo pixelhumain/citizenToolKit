@@ -1,4 +1,13 @@
 <?php
+/*
+* make sure the organization exists
+* only accept person and organization types
+* if no id is given means the nw member doesn't exist
+* 	create and Invite the new entity by email
+* set up the roles of the member
+* Link member to the organization
+* notify all members 
+*/
 class SaveMemberAction extends CAction
 {
     public function run() {

@@ -32,11 +32,9 @@ class DashboardAction extends CAction
 		} else 
 			$controller->toolbarMBZ = array();
 			//$controller->toolbarMBZ = array("<li id='linkBtns'><a href='javascript:;' class='tooltips ' data-placement='top' data-original-title='This Organization is disabled' ><i class='text-red fa fa-times '></i>DISABLED</a></li>");
-		
-		array_push($controller->toolbarMBZ, "<a href='".Yii::app()->createUrl("/".$controller->module->id."/event/calendarview/id/".$id."/type/".Organization::COLLECTION)."'><i class='fa fa-calendar'></i>CALENDAR</a>");
-		array_push($controller->toolbarMBZ, "<a href='".Yii::app()->createUrl("/".$controller->module->id."/news/index/type/".Organization::COLLECTION."/id/".$id)."'><i class='fa fa-rss'></i>TIMELINE</a>");
 		array_push($controller->toolbarMBZ, "<a href='".Yii::app()->createUrl("/".$controller->module->id."/survey/index/type/".Organization::COLLECTION."/id/".$id)."'><i class='fa fa-legal'></i>SURVEYS</a>");
-
+		array_push($controller->toolbarMBZ, "<a href='".Yii::app()->createUrl("/".$controller->module->id."/news/index/type/".Organization::COLLECTION."/id/".$id)."'><i class='fa fa-rss'></i>TIMELINE</a>");
+		
 		$contentKeyBase = Yii::app()->controller->id.".".Yii::app()->controller->action->id;
 		$limit = array(Document::IMG_PROFIL => 1, Document::IMG_MEDIA => 5);
 		$images = Document::getListDocumentsURLByContentKey($id, $contentKeyBase, Document::DOC_TYPE_IMAGE, $limit);
@@ -68,6 +66,8 @@ class DashboardAction extends CAction
 		}
 		
 		foreach ($people as $key => $value) {
+			if( $key == Yii::app()->session['userId'] )
+				array_push($controller->toolbarMBZ, "<a href='#' class='new-news' data-id='".$id."' data-type='".Organization::COLLECTION."'><i class='fa fa-comment'></i>MESSAGE</a>");
 			$newCitoyen = Person::getById($key);
 			if (!empty($newCitoyen)) {
 				$profil = Document::getLastImageByKey($key, Person::COLLECTION, Document::IMG_PROFIL);
