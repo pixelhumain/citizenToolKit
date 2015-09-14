@@ -256,23 +256,6 @@ class Project {
 	                  
 	    return array("result"=>true, "msg"=>"Votre projet a été modifié avec succes", "id"=>$projectId);
 	}
-	/**/
-	/*public static function saveTask($task){
-		$taskArray=array(
-			"name"=> $task["taskName"],
-			"color" => $task["taskColor"],	
-			"startDate" => $task["taskStart"],
-			"endDate" => $task["taskEnd"]
-			);
-		$idTask=new MongoId();
-		//$update=array("task.".$inc.""=>$taskArray);		
-	    PHDB::update(self::COLLECTION,
-			array("_id" => new MongoId($task["projectId"])),
-            array('$set' => array("tasks.".$idTask  => $taskArray))
-        );
-		return array("result"=>true, "msg"=>"Votre task a été ajoutée avec succès","idTask" => $idTask);
-	}*/
-
 
  	/**
     *	- check if project exists
