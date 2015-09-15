@@ -9,7 +9,7 @@ class SliderAgendaAction extends CAction
         $events=array();
 
         if($type == Organization::COLLECTION) {
-			$events = Event::getListCurrentEventsByOrganizationId($id, 3);
+			$events = Event::addInfoEvents(Event::getListCurrentEventsByOrganizationId($id, 3));
 			$params["organizationId"] = $id;
 		}
 

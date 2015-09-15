@@ -222,7 +222,7 @@ class Event {
 			}
         }
 
-        return Event::addInfoEvents($eventOrganization);
+        return $eventOrganization;
 	}
 
 	/**

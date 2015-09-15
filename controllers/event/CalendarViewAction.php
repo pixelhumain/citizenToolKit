@@ -16,7 +16,7 @@
 		  				$events = Event::getListCurrentEventsByPeopleId($id);
 
 		  			}else if (strcmp($type, "organization") == 0){
-		  				$events = Event::getListCurrentEventsByOrganizationId($id);
+		  				$events = Event::addInfoEvents(Event::getListCurrentEventsByOrganizationId($id));
 		  			}
 		  		}
 		  	}
