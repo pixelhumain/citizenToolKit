@@ -372,6 +372,7 @@ class Event {
 
 	  		if (!empty($value["startDate"]) && !empty($value["endDate"])) {
 				if (gettype($value["startDate"]) == "object" && gettype($value["endDate"]) == "object") {
+					date_default_timezone_set('UTC');
 					$events[$key]["startDate"] = date('Y-m-d H:i:s', $value["startDate"]->sec);
 					$events[$key]["endDate"] = date('Y-m-d H:i:s', $value["endDate"]->sec);
 				} else {
