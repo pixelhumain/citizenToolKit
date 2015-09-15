@@ -14,10 +14,7 @@ class ViewerAction extends CAction
         	$itemType = Project::COLLECTION;
         }
 
-
         $item = PHDB::findOne( $itemType ,array("_id"=>new MongoId($id)));
-
-        
 
         $viewerMap = array($type => $item);
         $viewerMap[Organization::COLLECTION] = array();
@@ -55,8 +52,15 @@ class ViewerAction extends CAction
         		
         	}
         }
+
         $params = array('viewerMap' => $viewerMap);
         $params["typeMap"] = $type;
-        $controller->renderPartial("viewer", $params);
+
+        if(Yii::app()->request->isAjaxRequest)
+            $controller->renderPartial("viewer", $params);
+        else{
+            Yii::app()->theme  = "empty";
+            $controller->render("viewer", $params);
+        }            
     }
 }

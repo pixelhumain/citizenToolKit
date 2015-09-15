@@ -6,7 +6,7 @@
 
 		  	$person = Person::getPublicData( Yii::app()->session['userId'] );
 
-		  	$controller->title = ((isset($person["name"])) ? $person["name"] : "")."'s Calendar";
+		  	$controller->title = ((isset($person["name"])) ? $person["name"] : ucfirst($controller->module->id))."'s Calendar";
 	   		$controller->subTitle = "All events and important dates ";
 	    	$controller->pageTitle = ucfirst($controller->module->id)." - ".$controller->title;
 

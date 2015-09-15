@@ -405,5 +405,39 @@ class Event {
 	  	}
 	  	return $events;
 	}
+
+	/**
+	 * get attendees of an Event By an event Id
+	 * @param String $id : is the mongoId (String) of the event
+	 * @param String $type : can be use to filter the member by type (all (default), person, event)
+	 * @param String $role : can be use to filter the member by role (isAdmin:true)
+	 * @return arrays of members (links.members)
+	 */
+	public static function getAttendeesByEventId($id, $type="all",$role=null) {
+	  	$res = array();
+	  	$event = Event::getById($id);
+	  	
+	  	if (empty($event)) {
+            throw new CTKException(Yii::t("event", "The event id is unkown : contact your admin"));
+        }
+	  	if (isset($event) && isset($event["links"]) && isset($event["links"]["attendees"])) {
+	  		//No filter needed
+	  		if ($type == "all") {
+	  			return $event["links"]["attendees"];
+	  		} else {
+	  			foreach ($event["links"]["attendees"] as $key => $member) {
+		            if ($member['type'] == $type ) {
+		                $res[$key] = $member;
+		            }
+		            if ( $role && @$member[$role] == true ) {
+		                $res[$key] = $member;
+		            }
+	        	}
+	  		}
+	  	}
+	  	return $res;
+	}
+
+	
 }
 ?>

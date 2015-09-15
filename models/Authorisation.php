@@ -89,6 +89,21 @@ class Authorisation {
         return $res;
     }
 
+    /**
+     * Return true if the user is admin of the organization or if it's a new organization
+     * @param String the id of the user
+     * @param String the id of the organization
+     * @return array of Organization (simple)
+     */
+    /*public static function isProjectAdmin($userId, $projectId) {
+        $res = false;
+        $project = Project::getById($projectId);
+        if( @$project["links"]['contributors'][$userid]["isAdmin"] == true )
+            $res = true;
+        
+        return $res;
+    }*/
+
 
  	/**
  	 * Description

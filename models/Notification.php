@@ -128,8 +128,14 @@ class Notification{
 	    $stream = ActStr::buildEntry($asParam);
 
 	    //inform the projects members of the new member
-	    $members = ( $target["type"] == Project::COLLECTION ) ? Project::getContributorsByProjectId( $targetId ,"all", null ) 
-	    												  : Organization::getMembersByOrganizationId( $targetId ,"all", null ) ;
+	    $members = null;
+	    if( $target["type"] == Project::COLLECTION ) 
+	    	$members = Project::getContributorsByProjectId( $targetId ,"all", null ) ;
+	    else if( $target["type"] == Organization::COLLECTION ) 
+	    	$members = Organization::getMembersByOrganizationId( $targetId ,"all", null ) ;
+	    else if( $target["type"] == Event::COLLECTION ) 
+	    	$members = Event::getAttendeesByEventId( $targetId ,"all", null ) ;
+
 	    foreach ($members as $key => $value) 
 	    {
 	    	if( $key != Yii::app()->session['userId'] && !in_array($key, $people) && count($people) < self::PEOPLE_NOTIFY_LIMIT )

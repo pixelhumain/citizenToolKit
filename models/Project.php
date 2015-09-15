@@ -398,5 +398,29 @@ class Project {
 	  	}
 	  	return $res;
 	}
+	/**
+	 * List all the event of a project and his members (if can edit member)
+	 * @param String $organisationId : is the mongoId of the organisation
+	 * @return all the event link with the organization
+	 */
+	//TODO SBAR : Refactor using a startDate in order to not retrieve all the database
+	public static function listEventsPublicAgenda($projectId)
+	{
+		$events = array();
+		$project = Organization::getById($projectId);
+		
+		if(isset($project["links"]["events"])){
+			foreach ($project["links"]["events"] as $keyEv => $valueEv) {
+				 $event = Event::getPublicData($keyEv);
+           		 $events[$keyEv] = $event;
+			}
+		}
+		foreach ($events as $key => $value) {
+        	$profil = Document::getLastImageByKey($key, PHType::TYPE_EVENTS, Document::IMG_PROFIL);
+        	if($profil!="")
+        		$value['imagePath']=$profil;
+        }
+		return $events;
+	}
 }
 ?>
