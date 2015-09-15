@@ -19,14 +19,26 @@ class DashboardAction extends CAction
         
         array_push( $controller->toolbarMBZ, '<a href="#" class="newNeed" title="proposer une " ><i class="fa fa-plus"></i> Need </a>');
         $description=array();
+        $helpers=array();
         $need=Need::getById($idNeed);
         
         if (isset($need["description"]))
         	$description=$need["description"];
-        if (isset($helpers)){
-	        
-        }
-        $params = array( "need" => $need, "description" => $description );
+        if(isset($need["links"])){
+  			foreach ($need["links"]["helpers"] as $id => $e) {
+					$citoyen = Person::getPublicData($id);
+					if(!empty($citoyen)){
+						$citoyen["type"]="citoyen";
+						$citoyen["isValidated"]=$e["isValidated"];
+						$profil = Document::getLastImageByKey($id, Person::COLLECTION, Document::IMG_PROFIL);
+						if($profil !="")
+						$citoyen["imagePath"]= $profil;
+						array_push($helpers, $citoyen);
+					}
+				}
+  		}
+
+        $params = array( "need" => $need, "description" => $description, "helpers" => $helpers );
   		$controller->render( "dashboard", $params);
     }
 }

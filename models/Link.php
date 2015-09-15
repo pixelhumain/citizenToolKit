@@ -232,7 +232,34 @@ class Link {
        
         return $result;
     }
-
+    /**
+	 * Add a helper to a need
+	 * Create a link between need and helper. The link will be typed need and helpers
+	 * @param type $organizerId The Id (organization) where an event will be linked. 
+	 * @param type $eventId The Id (event) where an organization will be linked. 
+	 * @param type $userId The user Id who try to link the organization to the event
+	 * @return result array with the result of the operation
+	 */
+	public static function addHelper($needId, $helperId, $helperType, $booleanState) {
+		if($booleanState==0){
+			$isValidated=false;
+		}
+		else{
+			$isValidated=true;
+		}
+		$linksPerson="links.needs.".$needId;
+		$linksNeed="links.helpers.".$helperId;
+		PHDB::update(Person::COLLECTION,
+	   						array("_id" => new MongoId($helperId)),
+	   						array('$set' => array($linksPerson.".type" => Need::COLLECTION, $linksPerson.".isValidated"=>$isValidated))
+	   	);
+	   	PHDB::update(Need::COLLECTION,
+	   		array("_id"=>new MongoId($needId)),
+	   		array('$set'=> array($linksNeed.".type"=>Person::COLLECTION, $linksNeed.".isValidated"=> $isValidated))
+	   	);
+	   	$res = array("result"=>true, "msg"=>"The event has been added with success");
+		return $res;
+	}
     /**
 	 * Add a organization to an event
 	 * Create a link between the 2 actors. The link will be typed event and organizer
@@ -276,11 +303,11 @@ class Link {
 	   						array("_id" => new MongoId($organizerId)),
 	   						array('$set' => array("links.events.".$eventId.".type" => PHType::TYPE_EVENTS))
 	   			);
-	   			PHDB::update(PHType::TYPE_EVENTS,
-	   						array("_id"=>new MongoId($eventId)),
-	   						array('$set'=> array("links.creator.".$organizerId.".type"=>Person::COLLECTION))
-	   			);
-	   			$res = array("result"=>true, "msg"=>"The event has been added with success");
+   			PHDB::update(PHType::TYPE_EVENTS,
+   						array("_id"=>new MongoId($eventId)),
+   						array('$set'=> array("links.creator.".$organizerId.".type"=>Person::COLLECTION))
+   			);
+   			$res = array("result"=>true, "msg"=>"The event has been added with success");
 
 	   	}
    		return $res;
