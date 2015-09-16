@@ -58,7 +58,21 @@ class News {
 					if( isset( $organization['geo'] ) )
 						$news["from"] = $organization['geo'];
 
-					Notification::actionOnPerson ( ActStr::VERB_POST, ActStr::ICON_SHARE, null , $organization)  ;
+					Notification::actionOnPerson ( ActStr::VERB_POST, ActStr::ICON_COMMENT, null , $organization )  ;
+				}
+				else if($_POST["type"] == Event::COLLECTION ){
+					$event = Event::getById($_POST["typeId"]);
+					if( isset( $event['geo'] ) )
+						$news["from"] = $event['geo'];
+
+					Notification::actionOnPerson ( ActStr::VERB_POST, ActStr::ICON_COMMENT, null , $event )  ;
+				}
+				else if($_POST["type"] == Project::COLLECTION ){
+					$project = Project::getById($_POST["typeId"]);
+					if( isset( $project['geo'] ) )
+						$news["from"] = $project['geo'];
+					$project["type"] = Project::COLLECTION; 
+					Notification::actionOnPerson ( ActStr::VERB_POST, ActStr::ICON_COMMENT, null , $project )  ;
 				}
 
 				/*if( $_POST["type"] == Organization::COLLECTION && Authorisation::isOrganizationAdmin( Yii::app()->session["userId"], $_POST["typeId"]) )

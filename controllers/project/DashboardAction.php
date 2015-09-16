@@ -33,33 +33,35 @@ class DashboardAction extends CAction
 	  	$contentKeyBase = $controller->id.".".$controller->action->id; 
 	  	$images = Document::getListDocumentsURLByContentKey($id, $contentKeyBase, Document::DOC_TYPE_IMAGE);
 
-	  	$params["events"] = array();//Project::listEventsPublicAgenda($id);
+	  	
 
 	  	if(!empty($project)){
 	  		$params = array();
 	  		// Get people or orga who contribute to the project 
 	  		// Get image for each contributors
 	  		if(isset($project["links"])){
-	  			foreach ($project["links"]["contributors"] as $id => $e) {
+	  			foreach ($project["links"]["contributors"] as $uid => $e) {
 	  				if($e["type"]== Organization::COLLECTION){
-	  					$organization = Organization::getPublicData($id);
+	  					$organization = Organization::getPublicData($uid);
 	  					if (!empty($organization)) {
 	  						array_push($organizations, $organization);
 	  						$organization["type"]="organization";
-	  						$profil = Document::getLastImageByKey($id, Organization::COLLECTION, Document::IMG_PROFIL);
+	  						$profil = Document::getLastImageByKey($uid, Organization::COLLECTION, Document::IMG_PROFIL);
 	  						if($profil !="")
 								$organization["imagePath"]= $profil;
 	  						array_push($contributors, $organization);
 	  					}
 	  				}else if($e["type"]== Person::COLLECTION){
-	  					$citoyen = Person::getPublicData($id);
+	  					$citoyen = Person::getPublicData($uid);
 	  					if(!empty($citoyen)){
 	  						array_push($people, $citoyen);
 	  						$citoyen["type"]="citoyen";
-	  						$profil = Document::getLastImageByKey($id, Person::COLLECTION, Document::IMG_PROFIL);
+	  						$profil = Document::getLastImageByKey($uid, Person::COLLECTION, Document::IMG_PROFIL);
 	  						if($profil !="")
 								$citoyen["imagePath"]= $profil;
 	  						array_push($contributors, $citoyen);
+	  						if( $uid == Yii::app()->session['userId'] )
+                    			array_push($controller->toolbarMBZ, "<a href='#' class='new-news' data-id='".$id."' data-type='".Project::COLLECTION."' data-name='".$project['name']."'><i class='fa fa-comment'></i>MESSAGE</a>");
 	  					}
 	  				}
 	  			}
@@ -104,11 +106,14 @@ class DashboardAction extends CAction
 	  	$params["contributors"] = $contributors;
 	  	$params["project"] = $project;
 	  	$params["organizations"] = $organizations;
+	  	$params["events"] = Project::listEventsPublicAgenda($id);
+	  	
 	  	$params["people"] = $people;
 	  	$params["properties"] = $properties;
 	  	$params["tasks"]=$tasks;
+
 	  	$params["admin"]=$isProjectAdmin;
-	  		  	$params["admins"]=$admins;
+	  	$params["admins"]=$admins;
 	  	//$params["admins"] = $admins;
 	  	$controller->render( "dashboard", $params );
 	}
