@@ -207,7 +207,7 @@ class Authorisation {
 
         //project i'am admin 
         $where = array("links.contributors.".$userId.".isAdmin" => true);
-        $projectList = PHDB::find(PHType::TYPE_PROJECTS, $where);
+        $projectList = PHDB::find(Project::COLLECTION, $where);
         //projects of organization i'am admin 
         //$listOrganizationAdmin = Authorisation::listUserOrganizationAdmin($userId);
         return $projectList;
@@ -325,9 +325,9 @@ class Authorisation {
     */
     public static function canEditItem($userId, $type, $itemId){
         $res=false;
-    	if($type == PHType::TYPE_EVENTS) {
+    	if($type == Event::COLLECTION) {
     		$res = Authorisation::isEventAdmin($itemId, $userId);
-    	} else if($type == PHType::TYPE_PROJECTS) {
+    	} else if($type == Project::COLLECTION) {
     		$res = Authorisation::isProjectAdmin($itemId, $userId);
     	} else if($type == Organization::COLLECTION) {
     		$res = Authorisation::isOrganizationAdmin($userId, $itemId);
