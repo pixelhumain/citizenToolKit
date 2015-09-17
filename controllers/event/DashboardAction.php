@@ -11,7 +11,7 @@ class DashboardAction extends CAction
         );
 
         $controller->title = (isset($event["name"])) ? $event["name"] : "";
-        $controller->subTitle = (isset($event["description"])) ? $event["description"] : "";
+        $controller->subTitle = mb_strimwidth(strip_tags(@$event["description"]), 0, 130, "...");
         $controller->pageTitle = ucfirst($controller->module->id)." - ".Yii::t("event","Event's informations")." ".$controller->title;
 
         $contentKeyBase = $controller->id.".".$controller->action->id;

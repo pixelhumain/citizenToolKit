@@ -7,6 +7,10 @@ class DashboardMemberAction extends CAction
 	*/
     public function run($id) {
     	$controller=$this->getController();
+    	$controller->title = "BIENVENUE";
+		$controller->subTitle = "Découvrez le réseau Granddir et son actualité";
+		$controller->pageTitle = "Granddir - Ensemble pour agir durablement à la Réunion";
+
 		//get The organization Id
 		if (empty($id)) {
 		  throw new CTKException(Yii::t("organization","The organization id is mandatory to retrieve the organization !"));
@@ -14,10 +18,6 @@ class DashboardMemberAction extends CAction
 
 		$organization = Organization::getPublicData($id);
 		$params = array( "organization" => $organization);
-		
-		$controller->title = (isset($organization["name"])) ? $organization["name"] : "";
-		$controller->subTitle = (isset($organization["shortDescripion"])) ? $organization["shortDescripion"] : "";
-		$controller->pageTitle = ucfirst($controller->module->id)." - Informations publiques de ".$controller->title;
 
 		//Same content Key base as the dashboard
 		$contentKeyBase = Yii::app()->controller->id.".dashboard";

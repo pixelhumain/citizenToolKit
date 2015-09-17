@@ -18,9 +18,11 @@ class DashboardAction extends CAction
 		  "organizations"=>array()
 		);
 
-		$controller->title = (isset($organization["name"])) ? $organization["name"] : "";
-		$controller->subTitle = (isset($organization["shortDescription"])) ? $organization["shortDescription"] : "";
-		$controller->pageTitle = "Organization ".$controller->title." - ".$controller->subTitle;
+		//Build the title/subtitle
+		//Special Granddir
+		$controller->title = "ANNUAIRE DU RESEAU";
+		$controller->subTitle = "<a href='".Yii::app()->createUrl("/".$controller->module->id."/organization/sig/id/".$controller->instanceOwnerId."'").">Annuaire </a>/ ".@$organization["name"];
+		$controller->pageTitle = "GRANDDIR - Annuaire du réseau - ".@$organization["name"];
 
 
 
@@ -82,7 +84,7 @@ class DashboardAction extends CAction
 		//Plaquette de présentation
 		$listPlaquette = Document::listDocumentByCategory($id, Organization::COLLECTION, Document::CATEGORY_PLAQUETTE, array( 'created' => 1 ));
 		$params["plaquette"] = reset($listPlaquette);
-		$controller->title = (isset($organization["name"])) ? $organization["name"] : "";
+		
 		$controller->render( "dashboard", $params );
     }
 }
