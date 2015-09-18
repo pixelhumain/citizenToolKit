@@ -66,6 +66,17 @@ class DashboardAction extends CAction
 	  				}
 	  			}
 	  		}
+	  		
+	  		$events=array();
+	  		if( isset($project["links"]["events"])) {
+	    		foreach ($project["links"]["events"] as $key => $event) {
+	    			$event = Event::getById( $key );
+	            	if (!empty($event)) {
+		            	array_push($events, $event);
+		            }
+		    	}
+		    }
+
 	  		// Properties defines the chart of the Project
 	  		if (isset($project["properties"]["chart"])){
 		  		$properties=$project["properties"]["chart"];
@@ -106,8 +117,7 @@ class DashboardAction extends CAction
 	  	$params["contributors"] = $contributors;
 	  	$params["project"] = $project;
 	  	$params["organizations"] = $organizations;
-	  	$params["events"] = Project::listEventsPublicAgenda($id);
-	  	
+	  	$params["events"] = $events;
 	  	$params["people"] = $people;
 	  	$params["properties"] = $properties;
 	  	$params["tasks"]=$tasks;

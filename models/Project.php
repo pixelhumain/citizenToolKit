@@ -32,7 +32,6 @@ class Project {
 	 */
 	public static function getById($id) {
 	  	$project = PHDB::findOne( self::COLLECTION,array("_id"=>new MongoId($id)));
-	  	
 	  	if (!empty($project["startDate"]) && !empty($project["endDate"])) {
 			if (gettype($project["startDate"]) == "object" && gettype($project["endDate"]) == "object") {
 				//Set TZ to UTC in order to be the same than Mongo
