@@ -23,39 +23,60 @@ class DashboardAction extends CAction
 	    	$htmlFollowBtn
 	    	);
 	    
-	    $controller->subTitle = (isset($project["description"])) ? $project["description"] : "";
+	    $controller->subTitle = ( isset($project["description"])) ? ( ( strlen( $project["description"] ) > 120 ) ? substr($project["description"], 0, 120)."..." : $project["description"]) : "";
 	    $controller->pageTitle = "Communecter - Informations sur le projet ".$controller->title;
-	
-		
 	  	$organizations = array();
 	  	$people = array();
-	  	//$admins = array();
 	  	$contributors =array();
 	  	$properties = array();
 	  	$tasks = array();
 	  	$contentKeyBase = $controller->id.".".$controller->action->id; 
 	  	$images = Document::getListDocumentsURLByContentKey($id, $contentKeyBase, Document::DOC_TYPE_IMAGE);
+
+	  	
+
 	  	if(!empty($project)){
 	  		$params = array();
+	  		// Get people or orga who contribute to the project 
+	  		// Get image for each contributors
 	  		if(isset($project["links"])){
-	  			foreach ($project["links"]["contributors"] as $id => $e) {
+	  			foreach ($project["links"]["contributors"] as $uid => $e) {
 	  				if($e["type"]== Organization::COLLECTION){
-	  					$organization = Organization::getPublicData($id);
+	  					$organization = Organization::getPublicData($uid);
 	  					if (!empty($organization)) {
 	  						array_push($organizations, $organization);
 	  						$organization["type"]="organization";
+	  						$profil = Document::getLastImageByKey($uid, Organization::COLLECTION, Document::IMG_PROFIL);
+	  						if($profil !="")
+								$organization["imagePath"]= $profil;
 	  						array_push($contributors, $organization);
 	  					}
 	  				}else if($e["type"]== Person::COLLECTION){
-	  					$citoyen = Person::getPublicData($id);
+	  					$citoyen = Person::getPublicData($uid);
 	  					if(!empty($citoyen)){
 	  						array_push($people, $citoyen);
 	  						$citoyen["type"]="citoyen";
+	  						$profil = Document::getLastImageByKey($uid, Person::COLLECTION, Document::IMG_PROFIL);
+	  						if($profil !="")
+								$citoyen["imagePath"]= $profil;
 	  						array_push($contributors, $citoyen);
+	  						if( $uid == Yii::app()->session['userId'] )
+                    			array_push($controller->toolbarMBZ, "<a href='#' class='new-news' data-id='".$id."' data-type='".Project::COLLECTION."' data-name='".$project['name']."'><i class='fa fa-comment'></i>MESSAGE</a>");
 	  					}
 	  				}
 	  			}
 	  		}
+	  		
+	  		$events=array();
+	  		if( isset($project["links"]["events"])) {
+	    		foreach ($project["links"]["events"] as $key => $event) {
+	    			$event = Event::getById( $key );
+	            	if (!empty($event)) {
+		            	array_push($events, $event);
+		            }
+		    	}
+		    }
+
 	  		// Properties defines the chart of the Project
 	  		if (isset($project["properties"]["chart"])){
 		  		$properties=$project["properties"]["chart"];
@@ -65,10 +86,26 @@ class DashboardAction extends CAction
 		  		$tasks=$project["tasks"];
 	  		}
 	  	}
+	  	
 	  	//Gestion de l'admin - true or false
-	  	$isProjectAdmin= false;
+	  	// First find if user session is directly link to project
+	  	// Second if not, find if user belong to an organization admin of the project
+	  	// return true or false
+	  	$isProjectAdmin = false;
+	  	$admins=[];
     	if(isset($project["_id"]) && isset(Yii::app()->session["userId"])) {
     		$isProjectAdmin =  Authorisation::isProjectAdmin((String) $project["_id"],Yii::app()->session["userId"]);
+    		if (!$isProjectAdmin && !empty($organizations)){
+	    		foreach ($organizations as $data){
+		    		$admins = Organization::getMembersByOrganizationId( (string)$data['_id'], Person::COLLECTION , "isAdmin" );
+		    		foreach ($admins as $key => $member){
+			    		if ($key == Yii::app()->session["userId"]){
+				    		$isProjectAdmin=1;
+				    		break 2;
+			    		}
+		    		}
+	    		}
+    		}
 		}
 
 	  	$lists = Lists::get(array("organisationTypes"));
@@ -80,10 +117,13 @@ class DashboardAction extends CAction
 	  	$params["contributors"] = $contributors;
 	  	$params["project"] = $project;
 	  	$params["organizations"] = $organizations;
+	  	$params["events"] = $events;
 	  	$params["people"] = $people;
 	  	$params["properties"] = $properties;
 	  	$params["tasks"]=$tasks;
+
 	  	$params["admin"]=$isProjectAdmin;
+	  	$params["admins"]=$admins;
 	  	//$params["admins"] = $admins;
 	  	$controller->render( "dashboard", $params );
 	}

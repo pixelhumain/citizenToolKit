@@ -1,4 +1,13 @@
 <?php
+/*
+* make sure the organization exists
+* only accept person and organization types
+* if no id is given means the nw member doesn't exist
+* 	create and Invite the new entity by email
+* set up the roles of the member
+* Link member to the organization
+* notify all members 
+*/
 class SaveMemberAction extends CAction
 {
     public function run() {
@@ -8,6 +17,8 @@ class SaveMemberAction extends CAction
 		$memberType = (isset($_POST['memberType'])) ? $_POST['memberType'] : "";
 		$memberOfId = $_POST["parentOrganisation"];
 		$memberOfType = Organization::COLLECTION;
+		$organization = Organization::getById( $memberOfId );
+
 		$isAdmin = false;
 
 		if($memberType == Person::COLLECTION) {
@@ -26,15 +37,18 @@ class SaveMemberAction extends CAction
 		}
 
 		//The member does not exist we have to create a new member
-		if ($memberId == "") {
-			$memberName = (isset($_POST['memberName'])) ? $_POST['memberName'] : "";
-			$memberEmail = (isset($_POST['memberEmail'])) ? $_POST['memberEmail'] : "";
-
+		
+		if ($memberId == "" && ( isset($_POST['memberName']) || isset($_POST['memberName']) ) ) 
+		{
 			$member = array(
-				 'name'=>$memberName,
-				 'email'=>$memberEmail,
-				 'invitedBy'=>Yii::app()->session["userId"]);			
+				 'invitedBy'=>Yii::app()->session["userId"]
+			);			
 			
+			if(isset($_POST['memberName']))
+				$member["name"] = $_POST['memberName'];
+			if(isset($_POST['memberEmail']))
+				$member["email"] = $_POST['memberEmail'];
+
 			//Type d'organization
 			if ($memberType == Organization::COLLECTION) { 
 				$member["type"] = (isset($_POST["organizationType"])) ? $_POST["organizationType"] : "";
@@ -44,13 +58,15 @@ class SaveMemberAction extends CAction
 			$result = $class::createAndInvite($member);
 			if ($result["result"]) {
 				$memberId = $result["id"];
-			} else {
-				return Rest::json($result);
+				$member["id"] = $memberId;
+
 			}
+			else 
+				return Rest::json($result);
 		}
 
-		//Manage Role : see with JR : maybe to move on the model
-		if(isset($_POST["memberRoles"])){
+		if(isset($_POST["memberRoles"]))
+		{
 			if (gettype($_POST['memberRoles']) == "array") {
 				$roles = $_POST['memberRoles'];
 			} else if (gettype($_POST['memberRoles']) == "string") {
@@ -71,6 +87,14 @@ class SaveMemberAction extends CAction
 
 		try {
 			$res = Link::addMember($memberOfId, $memberOfType, $memberId, $memberType, Yii::app()->session["userId"], $isAdmin, $roles );
+
+			$member = array(
+				"id"=>$memberId,
+				"type"=>$memberType
+			);
+			if(isset($_POST['memberName']))
+				$member["name"] = $_POST['memberName'];
+			Notification::actionOnPerson ( ActStr::VERB_JOIN, ActStr::ICON_SHARE, $member , array("type"=>Organization::COLLECTION,"id"=> $memberOfId,"name"=>$organization["name"]) ) ;
 			$res["member"] = $class::getById($memberId);
 		} catch (CommunecterException $e) {
 			$res = array( "result" => false , "msg" => $e->getMessage() );

@@ -70,7 +70,7 @@ class Organization {
 	 */
 	public static function insert($organization, $creatorId, $adminId = null) {
 	    
-		$newOrganization = Organization::getAndCheckOrganization($organization);
+	    $newOrganization = Organization::getAndCheckOrganization($organization);
 		
 		//Manage tags : save any inexistant tag to DB 
 		if (isset($newOrganization["tags"]))
@@ -99,12 +99,7 @@ class Organization {
 
 	    //send Notification Email
 	    $creator = Person::getById($creatorId);
-	    Mail::newOrganization($creator,$newOrganization);
-	    
-
-	    //TODO ???? : add an admin notification
-	    Notification::saveNotification(array("type"=>"Created",
-	    						"user"=>$newOrganizationId));
+	    //Mail::newOrganization($creator,$newOrganization);
 	                  
 	    $newOrganization = Organization::getById($newOrganizationId);
 	    return array("result"=>true,
@@ -125,6 +120,49 @@ class Organization {
 		$newOrganization["tags"] = empty($organization['tagsOrganization']) ? "" : $organization['tagsOrganization'];
 		$newOrganization["typeIntervention"] = empty($organization['typeIntervention']) ? "" : $organization['typeIntervention'];
 		$newOrganization["typeOfPublic"] = empty($organization['public']) ? "" : $organization['public'];
+
+		return $newOrganization;
+	}
+
+
+	public static function newOrganizationFromImportData($organization) {
+		$newOrganization = array();
+		$newOrganization["key"] = "organizationsCollection";
+		$newOrganization["email"] = empty($organization['email']) ? "" : $organization['email'];
+		$newOrganization["name"] = empty($organization['name']) ? "" : $organization['name'];
+		$newOrganization["type"] = empty($organization['type']) ? Organization::TYPE_GROUP : $organization['type'];
+		$newOrganization["postalCode"] = empty($organization['postalCode']) ? "" : $organization['postalCode'];
+		$newOrganization["city"] = empty($organization['city']) ? "" : $organization['city'];
+		$newOrganization["description"] = empty($organization['description']) ? "" : $organization['description'];
+		$newOrganization["tags"] = empty($organization['tags']) ? "" : $organization['tags'];
+		$newOrganization["roles"] = empty($organization['roles']) ? "" : $organization['roles'];
+		$newOrganization["video"] = empty($organization['video']) ? "" : $organization['video'];
+		$newOrganization["contactPoint"] = empty($organization['contactPoint']) ? "" : $organization['contactPoint'];
+		//$newOrganization["address"] = empty($organization['address']) ? "" : $organization['address'];
+		$newOrganization["created"] = empty($organization['created']) ? "" : $organization['created'];
+
+		if(!empty($organization['address']['streetAddress']))
+		{
+			$nominatim = "http://nominatim.openstreetmap.org/search?q=".urlencode($organization['address']['streetAddress'])."&format=json&polygon=0&addressdetails=1";
+
+			$curl = curl_init($nominatim);
+			curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+			$returnCURL = json_decode(curl_exec($curl),true);
+			if(!empty($returnCURL))
+			{
+				var_dump($nominatim);
+				foreach ($returnCURL as $key => $valueAdress) {
+					var_dump($valueAdress);
+					$newOrganization['address']['geo']['@type'] = "GeoCoordinates" ;
+					$newOrganization['address']['geo']['latitude'] = $valueAdress['lat'];
+					$newOrganization['address']['geo']['longitude'] = $valueAdress['lon'] ;
+				}
+
+			}
+			else
+				$newOrganization['address']['streetAddress'] = $organization['address']['streetAddress'] ;
+			curl_close($curl);
+		}	
 
 		return $newOrganization;
 	}
@@ -151,9 +189,9 @@ class Organization {
 		);
 		
 		//email : mandotory 
-		if(! empty($organization['email'])) {
+		if(!empty($organization['email'])) {
 			//validate Email
-			if (! preg_match('#^[\w.-]+@[\w.-]+\.[a-zA-Z]{2,6}$#', $organization['email'])) { 
+			if (! preg_match('#^[\w.-]+@[\w.-]+\.[a-zA-Z]{2,6}$#',$organization['email'])) { 
 				throw new CTKException("Vous devez remplir un email valide.");
 			}
 			$newOrganization["email"] = $organization['email'];
@@ -186,6 +224,26 @@ class Organization {
 			$newOrganization["tags"] = $tags;
 		}
 		
+
+		//ConctactPoint
+		if(!empty($organization['contactPoint'])){
+			foreach ($organization['contactPoint'] as $key => $valueContactPoint) {
+				if(!empty($valueContactPoint['email'])){
+					//validate Email
+					if (! preg_match('#^[\w.-]+@[\w.-]+\.[a-zA-Z]{2,6}$#',$valueContactPoint['email'])) { 
+						throw new CTKException("Vous devez remplir un email valide pour le contactPoint ".$valueContactPoint['email'].".");
+					}
+				}
+			}
+			$newOrganization["contactPoint"] = $organization['contactPoint'];
+		}
+
+		//address by ImportData
+		if(!empty($organization['address'])){
+			$newOrganization["address"] = $organization['address'];
+		}
+
+
 		//************************ Spécifique Granddir ********************/
 		//TODO SBAR : A sortir du CTK. Prévoir une méthode populateSpecific() à appeler ici
 		//Cette méthode sera implémenté dans le Modèle Organization spécifique de Granddir
@@ -225,9 +283,10 @@ class Organization {
 	 * get members an Organization By an organization Id
 	 * @param String $id : is the mongoId (String) of the organization
 	 * @param String $type : can be use to filter the member by type (all (default), person, organization)
+	 * @param String $role : can be use to filter the member by role (isAdmin:true)
 	 * @return arrays of members (links.members)
 	 */
-	public static function getMembersByOrganizationId($id, $type="all") {
+	public static function getMembersByOrganizationId($id, $type="all",$role=null) {
 	  	$res = array();
 	  	$organization = Organization::getById($id);
 	  	
@@ -244,11 +303,15 @@ class Organization {
 		            if ($member['type'] == $type ) {
 		                $res[$key] = $member;
 		            }
+		            if ( $role && @$member[$role] == true ) {
+		                $res[$key] = $member;
+		            }
 	        	}
 	  		}
 	  	}
 	  	return $res;
 	}
+
 
 	/*
 	 * Save an organization in database
@@ -256,8 +319,8 @@ class Organization {
 	 * @return a json result as an array. 
 	 */
 	//TODO SBAR => deprecated and not used
-	public static function update($organizationId, $organization, $userId) {
-		
+	public static function update($organizationId, $organization, $userId) 
+	{
 		//Check if user is authorized to update
 		if (! Authorisation::isOrganizationAdmin($userId, $organizationId)) {
 			return Rest::json(array("result"=>false, "msg"=>Yii::t("organization", "Unauthorized Access.")));
@@ -268,15 +331,10 @@ class Organization {
 			$organization["tags"] = Tags::filterAndSaveNewTags($organization["tags"]);
 	    
 	    //update the organization
-	    PHDB::update( Organization::COLLECTION,array("_id" => new MongoId($organizationId)), 
-	                                          array('$set' => $organization));
-    
-	    //TODO ???? : add an admin notification
-	    Notification::saveNotification(array("type"=>"Updated",
-	    						"user"=>$organizationId));
-	                  
+	    PHDB::update( Organization::COLLECTION, array("_id" => new MongoId($organizationId)), 
+	                                            array('$set' => $organization) );
+
 	    return array("result"=>true, "msg"=>Yii::t("organization", "The organization has been updated"), "id"=>$organizationId);
-		
 	}
 	
 	/**
@@ -345,8 +403,8 @@ class Organization {
 		Organization::getAndCheckOrganization($organization);
 		
 		//Create a new person + send email validation
-		$newPerson = Person::insert($person);
-		Mail::validatePerson($person);
+		$res = Person::insert($person);
+		Mail::validatePerson($res["person"]);
 
 		//Create a new organization
 		$newOrganization = Organization::insert($organization, $newPerson["id"], $newPerson["id"]);
@@ -399,6 +457,42 @@ class Organization {
         		$value['imagePath']=$profil;
         }
 		return $events;
+	}
+	/**
+	 * List all the project of an organization and his members (if can edit member)
+	 * @param String $organisationId : is the mongoId of the organisation
+	 * @return all the project link with the organization
+	 */
+
+	public static function listProjects($organizationId){
+		$projects = array();
+		$organization = Organization::getById($organizationId);
+		
+		if(isset($organization["links"]["projects"])){
+			foreach ($organization["links"]["projects"] as $keyProj => $valueProj) {
+				 $project = Project::getPublicData($keyProj);
+           		 $projects[$keyProj] = $project;
+			}
+		}
+		//Specific case : if canEditMember
+		if(Authorisation::canEditMembersData($organizationId)){
+			$subOrganization = Organization::getMembersByOrganizationId($organizationId, Organization::COLLECTION);
+			foreach ($subOrganization as $key => $value) {
+				 $newOrganization = Organization::getById($key);
+				 if(!empty($newOrganization)&& isset($newOrganization["links"]["projects"])){
+				 	foreach ($newOrganization["links"]["projects"] as $keyProj => $valueProj) {
+				 		$project = Project::getPublicData($keyProj);
+           		 		$projects[$keyProj] = $project;
+				 	}
+				 }	 
+			}
+		}
+		foreach ($projects as $key => $value) {
+        	$profil = Document::getLastImageByKey($key, PHType::TYPE_PROJECTS, Document::IMG_PROFIL);
+        	if($profil!="")
+        		$value['imagePath']=$profil;
+        }
+		return $projects;
 	}
 
 	/**

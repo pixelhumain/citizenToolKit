@@ -40,11 +40,10 @@ class DashboardAction extends CAction
 	    $controller->toolbarMBZ =array();
 	    if(isset($person["_id"]) && isset(Yii::app()->session["userId"]) && $person["_id"] != Yii::app()->session["userId"]){
 			if(isset($person["_id"]) && isset(Yii::app()->session["userId"]) && Link::isConnected( Yii::app()->session['userId'] , Person::COLLECTION , (string)$person["_id"] , Person::COLLECTION ))
-				array_push($controller->toolbarMBZ, "<li id='linkBtns'><a href='javascript:;' class='disconnectBtn text-red tooltips' data-name='".$person["name"]."' data-id='".$person["_id"]."' data-type='".Person::COLLECTION."' data-ownerlink='".link::person2person."' data-placement='top' data-original-title='Remove from my contact' ><i class='disconnectBtnIcon fa fa-unlink'></i>UNFOLLOW</a></li>" );
+				array_push($controller->toolbarMBZ, "<li id='linkBtns'><a href='javascript:;' class='unfollowBtn text-red tooltips' data-name=\"".$person["name"]."\" data-id='".$person["_id"]."' data-type='".Person::COLLECTION."' data-ownerlink='".link::person2person."' data-placement='top' data-original-title='Remove from my contact' ><i class='disconnectBtnIcon fa fa-unlink'></i>UNFOLLOW</a></li>" );
 			else
-				array_push($controller->toolbarMBZ, "<li id='linkBtns'><a href='javascript:;' class='connectBtn tooltips ' id='addKnowsRelation' data-ownerlink='".link::person2person."' data-placement='top' data-original-title='I know this person' ><i class=' connectBtnIcon fa fa-link '></i>FOLLOW</a></li>");
+				array_push($controller->toolbarMBZ, "<li id='linkBtns'><a href='javascript:;' class='followBtn tooltips ' id='addKnowsRelation' data-id='".$person["_id"]."' data-ownerlink='".link::person2person."' data-placement='top' data-original-title='I know this person' ><i class=' connectBtnIcon fa fa-link '></i>FOLLOW</a></li>");
 		}
-		array_push($controller->toolbarMBZ, "<a href='".Yii::app()->createUrl("/".$controller->module->id."/event/calendarview/id/".$person["_id"]."/type/".Yii::app()->controller->id)."'><i class='fa fa-calendar'></i>CALENDAR</a>");
 		
 	    //Get Projects
 	    $projects = array();
@@ -60,14 +59,11 @@ class DashboardAction extends CAction
 
 	    //Get the Events
 	  	$events = Authorisation::listEventsIamAdminOf($id);
-      //foreach($events as $event)
-
 	  	$eventsAttending = Event::listEventAttending($id);
 	  	foreach ($eventsAttending as $key => $value) {
 	  		$eventId = (string)$value["_id"];
 	  		if(!isset($events[$eventId])){
 	  			$events[$eventId] = $value;
-          //array_push($events, $value);
 	  		}
 	  	}
 	  	
@@ -118,7 +114,7 @@ class DashboardAction extends CAction
 		            }
 	            }
 	    	}
-
+	    	uasort($people, array($this, 'comparePeople'));
 	    }
 
       $cleanEvents = array();
@@ -136,4 +132,9 @@ class DashboardAction extends CAction
 
 	    $controller->render("dashboard", $params );
     }
+
+    private function comparePeople($person1, $person2) {
+    	return strcmp($person1["name"], $person2["name"]);
+    }
+
 }

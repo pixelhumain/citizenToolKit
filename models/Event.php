@@ -107,13 +107,13 @@ class Event {
 		}
 
 		//The organizer is required and should exist
-		if (empty($event["organization"])) {
-			throw new CTKException("You must select an organization");
+		if (empty($event["organizerId"])) {
+			throw new CTKException("You must select an organizer");
 		} 
-		$organizer = Organization::getById($event["organization"]);
+		/*$organizer = Organization::getById($event["organization"]);
 		if (empty($organizer)) {
-			throw new CTKException("The organization does not exist. Please check the organizer.");
-		}
+			throw new CTKException("The organizer does not exist. Please check the organizer.");
+		}*/
 
 		if(empty($event['startDate']) || empty($event['endDate'])) {
 			throw new CTKException("The start and end date of an event are required.");
@@ -174,8 +174,8 @@ class Event {
 	    
 	    //add the creator as the admin and the first attendee
 	    Link::attendee($newEvent["_id"], $params['userId'], true);
-	    
-	    Link::addOrganizer($params["organization"], $newEvent["_id"], $params['userId']);
+
+	    Link::addOrganizer($params["organizerId"],$params["organizerType"], $newEvent["_id"], $params['userId']);
 
 	    //send validation mail
 	    //TODO : make emails as cron events
@@ -405,5 +405,39 @@ class Event {
 	  	}
 	  	return $events;
 	}
+
+	/**
+	 * get attendees of an Event By an event Id
+	 * @param String $id : is the mongoId (String) of the event
+	 * @param String $type : can be use to filter the member by type (all (default), person, event)
+	 * @param String $role : can be use to filter the member by role (isAdmin:true)
+	 * @return arrays of members (links.members)
+	 */
+	public static function getAttendeesByEventId($id, $type="all",$role=null) {
+	  	$res = array();
+	  	$event = Event::getById($id);
+	  	
+	  	if (empty($event)) {
+            throw new CTKException(Yii::t("event", "The event id is unkown : contact your admin"));
+        }
+	  	if (isset($event) && isset($event["links"]) && isset($event["links"]["attendees"])) {
+	  		//No filter needed
+	  		if ($type == "all") {
+	  			return $event["links"]["attendees"];
+	  		} else {
+	  			foreach ($event["links"]["attendees"] as $key => $member) {
+		            if ($member['type'] == $type ) {
+		                $res[$key] = $member;
+		            }
+		            if ( $role && @$member[$role] == true ) {
+		                $res[$key] = $member;
+		            }
+	        	}
+	  		}
+	  	}
+	  	return $res;
+	}
+
+	
 }
 ?>

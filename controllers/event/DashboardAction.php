@@ -1,4 +1,9 @@
 <?php
+/**
+* gather images 
+* gather attendees for the links.attendees map
+* gathers organizers from links.organizer () type project, orga
+*/
 class DashboardAction extends CAction
 {
     public function run($id)
@@ -23,12 +28,15 @@ class DashboardAction extends CAction
         if(!empty($event)){
           $params = array();
           if(isset($event["links"])){
-            foreach ($event["links"]["attendees"] as $id => $e) {
+            foreach ($event["links"]["attendees"] as $uid => $e) {
 
-              $citoyen = Person::getPublicData($id);
+              $citoyen = Person::getPublicData($uid);
               if(!empty($citoyen)){
                 array_push($people, $citoyen);
                 array_push($attending, $citoyen);
+
+                if( $uid == Yii::app()->session['userId'] )
+                    array_push($controller->toolbarMBZ, "<a href='#' class='new-news' data-id='".$id."' data-type='".Event::COLLECTION."' data-name='".$event['name']."'><i class='fa fa-comment'></i>MESSAGE</a>");
               }
 
               /*if(isset($e["isAdmin"]) && $e["isAdmin"]==true){
@@ -36,28 +44,44 @@ class DashboardAction extends CAction
               }*/
             }
             if(isset($event["links"]["organizer"])){
-              foreach ($event["links"]["organizer"] as $id => $e) {
-                $organization = Organization::getById($id);
-                $organizer["id"] = $id;
-                $organizer["type"] = "organization";
-                $organizer["name"] = $organization["name"];
-                array_push($controller->toolbarMBZ,"<a href='".Yii::app()->createUrl("/".$controller->module->id."/organization/dashboard/id/".$id)."'><i class='fa fa-group'></i>Organization</a>");
+              foreach ($event["links"]["organizer"] as $uid => $e) 
+              {
+	            $organizer["type"] = $e["type"];
+	            if($organizer["type"] == Project::COLLECTION ){
+	                $iconNav="fa-lightbulb-o";
+	                $urlType="project";
+	                $organizerInfo = Project::getById($uid);
+	                $organizer["type"]=$urlType;
+                }
+                else{
+	                $iconNav="fa-group";
+	                $urlType="organization";	
+	                $organizerInfo = Organization::getById($uid);  
+					$organizer["type"]=$urlType;              
+                }
+                
+                $organizer["id"] = $uid;
+
+                $organizer["name"] = $organizerInfo["name"];
+                array_push($controller->toolbarMBZ,"<a href='".Yii::app()->createUrl("/".$controller->module->id."/".$urlType."/dashboard/id/".$uid)."'><i class='fa ".$iconNav."'></i>".$organizer["type"]."</a>");
               }
-            }else if(isset($event["links"]["creator"])){
-              foreach ($event["links"]["creator"] as $id => $e) {
-                $citoyen = Person::getById($id);
-                $organizer["id"] = $id;
-                $organizer["type"] = "person";
-                $organizer["name"] = $citoyen["name"];
-              }
+            }else if(isset($event["links"]["creator"]))
+            {
+                foreach ($event["links"]["creator"] as $uid => $e)
+                {
+                    $citoyen = Person::getById($uid);
+                    $organizer["id"] = $uid;
+                    $organizer["type"] = "person";
+                    $organizer["name"] = $citoyen["name"];
+                }
             }
           }
         }
 
         if(isset($event["_id"]) && isset(Yii::app()->session["userId"]) && Link::isLinked($event["_id"] , Event::COLLECTION , Yii::app()->session['userId']))
-    			array_push($controller->toolbarMBZ,"<li id='linkBtns'><a href='javascript:;' class='disconnectBtn text-red tooltips' data-name='".$event["name"]."' data-id='".$event["_id"]."' data-type='".Event::COLLECTION."' data-member-id='".Yii::app()->session["userId"]."' data-ownerlink='".Link::person2events."' data-targetlink='".Link::event2person."' data-placement='top' data-original-title='No more Attendee' ><i class='disconnectBtnIcon fa fa-unlink'></i>NO ATTENDING</a></li>" );
-    		else
-    			array_push($controller->toolbarMBZ,"<li id='linkBtns'><a href='javascript:;' class='connectBtn tooltips ' id='addKnowsRelation' data-placement='top' data-ownerlink='".Link::person2events."' data-targetlink='".Link::event2person."' data-original-title='I know this person' ><i class=' connectBtnIcon fa fa-link '></i>ATTENDING</a></li>");
+			array_push($controller->toolbarMBZ,"<li id='linkBtns'><a href='javascript:;' class='disconnectBtn text-red tooltips' data-name='".$event["name"]."' data-id='".$event["_id"]."' data-type='".Event::COLLECTION."' data-member-id='".Yii::app()->session["userId"]."' data-ownerlink='".Link::person2events."' data-targetlink='".Link::event2person."' data-placement='top' data-original-title='No more Attendee' ><i class='disconnectBtnIcon fa fa-unlink'></i>NO ATTENDING</a></li>" );
+		else
+			array_push($controller->toolbarMBZ,"<li id='linkBtns'><a href='javascript:;' class='connectBtn tooltips ' id='addKnowsRelation' data-placement='top' data-ownerlink='".Link::person2events."' data-targetlink='".Link::event2person."' data-original-title='I know this person' ><i class=' connectBtnIcon fa fa-link '></i>ATTENDING</a></li>");
 
         $params["images"] = $images;
         $params["contentKeyBase"] = $contentKeyBase;

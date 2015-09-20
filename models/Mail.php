@@ -43,17 +43,18 @@ class Mail
         Mail::schedule($params);
     }
 
-    //TODO SBAR - Do the template
-    public static function invitation($name) {
+    public static function invitePerson($person) {
+        $invitor = Person::getSimpleUserById($person["invitedBy"]);
         $params = array(
             "type" => Cron::TYPE_MAIL,
             "tpl"=>'invitation',
-            "subject" => 'Invited to '.Yii::app()->name.' by '.$name,
+            "subject" => 'You have been invited to '.Yii::app()->name.' by '.$invitor["name"],
             "from"=>Yii::app()->params['adminEmail'],
-            "to" => Yii::app()->params['adminEmail'],
-            "tplParams" => array(   "sponsorName"   => $name ,
+            "to" => $person["email"],
+            "tplParams" => array(   "invitorName"   => $invitor["name"],
                                     "title" => Yii::app()->name ,
-                                    "logo"  => "/images/logo.png")
+                                    "logo"  => "/images/logo.png",
+                                    "invitedUserId" => $person["_id"])
         );
         Mail::schedule($params);
     }

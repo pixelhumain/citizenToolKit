@@ -3,8 +3,8 @@ class AuthenticateAction extends CAction
 {
     public function run()
     {
-        $controller=$this->getController();
-        $email = $_POST["email"];
+      $controller=$this->getController();
+      $email = $_POST["email"];
   		
   		$publicPage = false;
   		if (! empty(Yii::app()->session["requestedUrl"])) {
@@ -12,12 +12,13 @@ class AuthenticateAction extends CAction
   			$publicPage = @$controller->pages[$pageArray["controllerId"]][$pageArray["actionId"]]["public"];
   		} 
 
-        $res = Person::login( $email , $_POST["pwd"], $publicPage); 
-        if( isset( $_POST["app"] ) )
-			$res = array_merge($res, Citoyen::applicationRegistered($_POST["app"],$email));
+      $res = Person::login( $email , $_POST["pwd"], $publicPage); 
+      
+      if( isset( $_POST["app"] ) )
+		   $res = array_merge($res, Citoyen::applicationRegistered($_POST["app"],$email));
 
-        Rest::json($res);
-        Yii::app()->end();
+      Rest::json($res);
+      Yii::app()->end();
     }
     
 	

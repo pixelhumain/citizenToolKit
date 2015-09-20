@@ -89,6 +89,21 @@ class Authorisation {
         return $res;
     }
 
+    /**
+     * Return true if the user is admin of the organization or if it's a new organization
+     * @param String the id of the user
+     * @param String the id of the organization
+     * @return array of Organization (simple)
+     */
+    /*public static function isProjectAdmin($userId, $projectId) {
+        $res = false;
+        $project = Project::getById($projectId);
+        if( @$project["links"]['contributors'][$userid]["isAdmin"] == true )
+            $res = true;
+        
+        return $res;
+    }*/
+
 
  	/**
  	 * Description
@@ -207,7 +222,7 @@ class Authorisation {
 
         //project i'am admin 
         $where = array("links.contributors.".$userId.".isAdmin" => true);
-        $projectList = PHDB::find(PHType::TYPE_PROJECTS, $where);
+        $projectList = PHDB::find(Project::COLLECTION, $where);
         //projects of organization i'am admin 
         //$listOrganizationAdmin = Authorisation::listUserOrganizationAdmin($userId);
         return $projectList;
@@ -325,9 +340,9 @@ class Authorisation {
     */
     public static function canEditItem($userId, $type, $itemId){
         $res=false;
-    	if($type == PHType::TYPE_EVENTS) {
+    	if($type == Event::COLLECTION) {
     		$res = Authorisation::isEventAdmin($itemId, $userId);
-    	} else if($type == PHType::TYPE_PROJECTS) {
+    	} else if($type == Project::COLLECTION) {
     		$res = Authorisation::isProjectAdmin($itemId, $userId);
     	} else if($type == Organization::COLLECTION) {
     		$res = Authorisation::isOrganizationAdmin($userId, $itemId);

@@ -32,7 +32,6 @@ class Project {
 	 */
 	public static function getById($id) {
 	  	$project = PHDB::findOne( self::COLLECTION,array("_id"=>new MongoId($id)));
-	  	
 	  	if (!empty($project["startDate"]) && !empty($project["endDate"])) {
 			if (gettype($project["startDate"]) == "object" && gettype($project["endDate"]) == "object") {
 				//Set TZ to UTC in order to be the same than Mongo
@@ -150,17 +149,22 @@ class Project {
 	 * @param string $userId UserId doing the insertion
 	 * @return array as result type
 	 */
-	public static function insert($params, $userId){
-	    $type = Person::COLLECTION;
+	public static function insert($params, $parentId,$parentType){
+	    if ( $parentType== "citoyen"){
+		    $type= Person::COLLECTION;
+	    }
+	    else {
+		    $type= Organization::COLLECTION;
+	    }
 
-	    $newProject = self::getAndCheckProject($params, $userId);
+	    $newProject = self::getAndCheckProject($params, $parentId);
 	    // TODO SBAR - If a Link::connect is used why add a link hard coded
 	    $newProject["links"] = array( "contributors" => 
-	    								array($userId =>array("type" => $type,"isAdmin" => true)));
+	    								array($parentId =>array("type" => $type,"isAdmin" => true)));
 
 	    PHDB::insert(self::COLLECTION,$newProject);
 
-	    Link::connect($userId, $type, $newProject["_id"], self::COLLECTION, $userId, "projects", true );
+	    Link::connect($parentId, $type, $newProject["_id"], self::COLLECTION, $parentId, "projects", true );
 	    
 	    return array("result"=>true, "msg"=>"Votre projet est communecté.", "id"=>$newProject["_id"]);	
 	}
@@ -251,21 +255,154 @@ class Project {
 	                  
 	    return array("result"=>true, "msg"=>"Votre projet a été modifié avec succes", "id"=>$projectId);
 	}
-	/**/
-	/*public static function saveTask($task){
-		$taskArray=array(
-			"name"=> $task["taskName"],
-			"color" => $task["taskColor"],	
-			"startDate" => $task["taskStart"],
-			"endDate" => $task["taskEnd"]
-			);
-		$idTask=new MongoId();
-		//$update=array("task.".$inc.""=>$taskArray);		
-	    PHDB::update(self::COLLECTION,
-			array("_id" => new MongoId($task["projectId"])),
-            array('$set' => array("tasks.".$idTask  => $taskArray))
-        );
-		return array("result"=>true, "msg"=>"Votre task a été ajoutée avec succès","idTask" => $idTask);
-	}*/
+
+ 	/**
+    *	- check if project exists
+	*   - according to type of added contributor : Person or Organization
+	*   - check existence based on new contributor Id 
+		* 	- if exist 
+		*		- if not allready member
+		*			Link connect member to project as contributor
+		*	- else : create and invite the member 
+		*		Link connect the member
+		*	 	send Notifications
+    * @return [json Map] list
+    */
+	public static function addContributor( $projectId )
+	{
+	    $res = array( "result" => false , "content" => Yii::t("common", "Something went wrong!") );
+		if(isset( $projectId) )
+		{
+			$project = PHDB::findOne( PHType::TYPE_PROJECTS,array("_id"=>new MongoId($projectId)));
+			if($project)
+			{
+				if(preg_match('#^[\w.-]+@[\w.-]+\.[a-zA-Z]{2,6}$#',$_POST['email']))
+				{
+					if($_POST['type'] == "citoyens"){
+						$params = ( !isset( $_POST['contribId'] ) || $_POST['contribId'] == ""  ) ? array( "email" => $_POST['email'] ) 
+																  : array( "_id" => new MongoId( $_POST['contribId'] ));
+						$member = PHDB::findOne( Person::COLLECTION , $params);
+						$memberType = Person::COLLECTION;
+					}
+					else
+					{
+						$member = PHDB::findOne( Organization::COLLECTION , array("_id"=> new MongoId( $_POST['contribId'] )));
+						$memberType = Organization::COLLECTION;
+					}
+
+					if( !$member )
+					{
+						if($_POST['type'] == "citoyens")
+						{
+							$member = array(
+								'name'=>$_POST['name'],
+								'email'=>$_POST['email'],
+								'invitedBy'=>Yii::app()->session["userId"],
+								'created' => time()
+						 	);
+						 	$memberId = Person::createAndInvite($member);
+						 	$isAdmin = (isset($_POST["contributorIsAdmin"])) ? $_POST["contributorIsAdmin"] : false;
+						  	if ($isAdmin == "1") {
+								$isAdmin = true;
+							} else {
+								$isAdmin = false;
+							}
+					 	} else {
+							$member = array(
+								'name'=>$_POST['name'],
+								'email'=>$_POST['email'],
+								'invitedBy'=>Yii::app()->session["userId"],
+								'created' => time(),
+								'type'=> $_POST["organizationType"]
+							);
+
+							$memberId = Organization::createAndInvite($member);
+							$isAdmin = false;
+						}
+						$member["id"] = $memberId["id"];
+						Link::connect($memberId["id"], $memberType,$projectId, PHType::TYPE_PROJECTS, Yii::app()->session["userId"], "projects",$isAdmin);		
+						Link::connect($projectId, PHType::TYPE_PROJECTS,$memberId["id"], $memberType, Yii::app()->session["userId"], "contributors",$isAdmin );
+						$res = array("result"=>true,"msg"=>Yii::t("common", "Your data has been saved"),"member"=>$member, "reload"=>true);
+					}else{
+						if( isset($project['links']["contributors"]) && isset( $project['links']["contributors"][(string)$member["_id"]] ))
+							$res = array( "result" => false , "content" => "member allready exists" );
+						else {
+							$isAdmin = (isset($_POST["contributorIsAdmin"])) ? $_POST["contributorIsAdmin"] : false;
+							if ($isAdmin == "1") {
+								$isAdmin = true;
+							} else {
+								$isAdmin = false;
+							}
+							Link::connect($member["_id"], $memberType, $projectId, PHType::TYPE_PROJECTS, Yii::app()->session["userId"], "projects",$isAdmin);
+							Link::connect($projectId, PHType::TYPE_PROJECTS, $member["_id"], $memberType, Yii::app()->session["userId"], "contributors",$isAdmin);
+
+							//add notification 
+							Notification::invited2Project($memberType, $member["_id"], $projectId, $project["name"]);
+							$res = array("result"=>true,"msg"=>Yii::t("common", "Your data has been saved"),"member"=>$member,"reload"=>true);
+						}
+					}
+				}else
+					$res = array( "result" => false , "content" => "email must be valid" );
+			}
+		}
+		return $res;
+	}
+	/**
+	 * get contributors for a Project By an project Id
+	 * @param String $id : is the mongoId (String) of the project
+	 * @param String $type : can be used to filter the contributor by type (all (default), person, project)
+	 * @return arrays of contributors (links.contributors)
+	 */
+	public static function getContributorsByProjectId($id, $type="all",$role=null) {
+	  	$res = array();
+	  	$project = project::getById($id);
+	  	
+	  	if (empty($project)) {
+            throw new CTKException(Yii::t("project", "The project id is unkown : contact your admin"));
+        }
+	  	
+	  	if ( isset($project) && isset( $project["links"] ) && isset( $project["links"]["contributors"] ) ) 
+	  	{
+	  		$contributors = $project["links"]["contributors"];
+	  		//No filter needed
+	  		if ($type == "all") {
+	  			return $contributors;
+	  		} else {
+	  			foreach ($project["links"]["contributors"] as $key => $contributor) {
+		            if ($contributor['type'] == $type ) {
+		                $res[$key] = $contributor;
+		            }
+		            if ( $role && @$contributor[$role] == true ) {
+		                $res[$key] = $contributor;
+		            }
+	        	}
+	  		}
+	  	}
+	  	return $res;
+	}
+	/**
+	 * List all the event of a project and his members (if can edit member)
+	 * @param String $organisationId : is the mongoId of the organisation
+	 * @return all the event link with the organization
+	 */
+	//TODO SBAR : Refactor using a startDate in order to not retrieve all the database
+	public static function listEventsPublicAgenda($projectId)
+	{
+		$events = array();
+		$project = Organization::getById($projectId);
+		
+		if(isset($project["links"]["events"])){
+			foreach ($project["links"]["events"] as $keyEv => $valueEv) {
+				 $event = Event::getPublicData($keyEv);
+           		 $events[$keyEv] = $event;
+			}
+		}
+		foreach ($events as $key => $value) {
+        	$profil = Document::getLastImageByKey($key, PHType::TYPE_EVENTS, Document::IMG_PROFIL);
+        	if($profil!="")
+        		$value['imagePath']=$profil;
+        }
+		return $events;
+	}
 }
 ?>

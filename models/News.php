@@ -54,9 +54,25 @@ class News {
 					if( isset( $person['geo'] ) )
 						$news["from"] = $person['geo'];
 				}else if($_POST["type"] == Organization::COLLECTION ){
-					$person = Person::getById($_POST["typeId"]);
-					if( isset( $person['geo'] ) )
-						$news["from"] = $person['geo'];
+					$organization = Organization::getById($_POST["typeId"]);
+					if( isset( $organization['geo'] ) )
+						$news["from"] = $organization['geo'];
+
+					Notification::actionOnPerson ( ActStr::VERB_POST, ActStr::ICON_COMMENT, null , $organization )  ;
+				}
+				else if($_POST["type"] == Event::COLLECTION ){
+					$event = Event::getById($_POST["typeId"]);
+					if( isset( $event['geo'] ) )
+						$news["from"] = $event['geo'];
+
+					Notification::actionOnPerson ( ActStr::VERB_POST, ActStr::ICON_COMMENT, null , $event )  ;
+				}
+				else if($_POST["type"] == Project::COLLECTION ){
+					$project = Project::getById($_POST["typeId"]);
+					if( isset( $project['geo'] ) )
+						$news["from"] = $project['geo'];
+					$project["type"] = Project::COLLECTION; 
+					Notification::actionOnPerson ( ActStr::VERB_POST, ActStr::ICON_COMMENT, null , $project )  ;
 				}
 
 				/*if( $_POST["type"] == Organization::COLLECTION && Authorisation::isOrganizationAdmin( Yii::app()->session["userId"], $_POST["typeId"]) )
@@ -129,7 +145,6 @@ class News {
 			}
 
 		    PHDB::insert(self::COLLECTION,$news);
-		    //Link::connect($id, $type, $new["_id"], PHType::TYPE_PROJECTS, $id, "projects" );
 		    return array("result"=>true, "msg"=>"Votre news est enregistré.", "id"=>$news["_id"],"object"=>$news);	
 		} else {
 			return array("result"=>false, "msg"=>"Please Fill required Fields.");	

@@ -5,6 +5,7 @@ class DisableAction extends CAction
 	 /**
 	 * Deletes an Organization
 	 * Remove any links on any person linked to this mongoid 
+	 * notify all members of the organization
 	 * @param type $id : is the mongoId of the organisation to be deleted
 	 */
     public function run($id) {
@@ -17,7 +18,8 @@ class DisableAction extends CAction
 				PHDB::update( Organization::COLLECTION, array("_id"=>new MongoId($id)) , 
 														array('$set' => array("disabled"=> true)));
 				//add notification to all members 
-
+				$organization["id"] = $id;
+				Notification::actionOnPerson ( ActStr::VERB_CLOSE, ActStr::ICON_CLOSE, $organization, $organization ) ;
 				$result = array("result"=>true,"msg" => Yii::t("common", "Organization Disabled") );
 			}
 		}
