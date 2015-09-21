@@ -10,13 +10,14 @@ class City {
 	const COLLECTION_IMPORTHISTORY = "importHistory";
 	const CITOYENS = "citoyens";
 
+	/* Retourne des infos sur la commune dans la collection cities" */
 	public static function getWhere($params, $fields=null, $limit=20) 
 	{
 	  	$city =PHDB::findAndSort( self::COLLECTION,$params, array("created" =>1), $limit, $fields);
 	  	return $city;
 	}
 
-
+	/* Retourne des infos sur la commune dans la collection cityData" */
 	public static function getWhereData($params, $fields=null, $limit=20, $sort=null) 
 	{
 		if(isset($sort)){
@@ -29,6 +30,7 @@ class City {
 	  	return $cityData;
 	}
 
+	/* Retourne l'id d'une commune par rapport a son code insee */
 	public static function getIdByInsee($insee){
 		$id = null;
 		$where = array("insee" => $insee);
@@ -39,6 +41,7 @@ class City {
 		return $id;
 	}
 
+	/* Retourne le code de la region d'une commune par rapport a son code insee */
 	public static function getCodeRegion($insee){
 		$where = array("insee" => $insee);
 		$fields = array("region");
@@ -46,6 +49,7 @@ class City {
 		return $region;
 	}
 
+	/* Retourne le code du departement d'une commune par rapport a son code insee */
 	public static function getCodeDepartement($insee){
 		$where = array("insee" => $insee);
 		$fields = array("dep");
@@ -53,6 +57,7 @@ class City {
 		return $dep;
 	}
 
+	/* Retourne le code de la region d'une commune par rapport a son code insee */
 	public static function getRegionCitiesByInsee($insee, $fields=null){
 		$region = self::getCodeRegion($insee);
 		$where = array("region" => $region["region"]);
@@ -72,7 +77,6 @@ class City {
 	public static function getDepartementByInsee($insee, $fields, $typeData, $option=null, $inseeCities=null){
 		$mapDataDep = array();
 		$cities = self::getDepartementCitiesByInsee($insee);
-		
 		if($inseeCities==null)
 		{
 			$tabInsee = array();
@@ -85,8 +89,22 @@ class City {
 		else
 			$where = array("insee"=>array('$in' =>$inseeCities) , $typeData => array( '$exists' => 1 ));
 
-        $fields = array("insee", $typeData.$option);
-        $sort = array($typeData.$option => -1);
+		/*$fields = array("insee", $typeData.$option) ;
+		$sort = array($typeData.$option => -1);*/
+
+		$fields[] = "insee" ;
+		if(!empty($option))
+		{
+			foreach ($option as $key => $value) {
+				$fields[] = $typeData.$value;
+				$sort[] = array($typeData.$value => -1);
+			}
+		}else{
+			$fields[] = $typeData;
+			$sort = array($typeData => -1);
+		}
+        
+
 		$cityData = City::getWhereData($where, $fields, 30, $sort);
 		foreach ($cityData as $key => $value) {
 			foreach ($cities as $k => $v) {
@@ -115,9 +133,13 @@ class City {
 		else
 			$where = array("insee"=>array('$in' =>$inseeCities) , $typeData => array( '$exists' => 1 ));
 
-		
-        $fields = array("insee", $typeData.$option);
-        $sort = array($typeData.$option => -1);
+		/*$fields = array("insee", $typeData.$option) ;
+		$sort = array($typeData.$option => -1);*/
+        $fields[] = "insee" ;
+		foreach ($option as $key => $value) {
+			$fields[] = $typeData.$value;
+			$sort[] = array($typeData.$value => -1);
+		}
 		$cityData = City::getWhereData($where, $fields, 30, $sort);
 		foreach ($cityData as $key => $value) {
 			foreach ($cities as $k => $v) {
@@ -155,6 +177,58 @@ class City {
 		return $mapData;
 	}
 
+
+
+	public static function getPopulationTotalInsee($insee,$years){
+		$where = array("insee"=>$insee, "population" => array( '$exists' => 1 ));
+        $fields = array("population.".$years.".total");
+        $cityData = City::getWhereData($where, $fields);
+
+        foreach ($cityData as $key => $valueCity) {
+				$totalPop = $valueCity['population'][$years]['total']['value'];
+			}
+		return $totalPop;
+	}
+
+	public static function getPopulationHommesInsee($insee,$years){
+		$where = array("insee"=>$insee, "population" => array( '$exists' => 1 ));
+        $fields = array("population.".$years.".hommes.total");
+        $cityData = City::getWhereData($where, $fields);
+
+        foreach ($cityData as $key => $valueCity) {
+				$totalPop = $valueCity['population'][$years]['hommes']['total']['value'];
+			}
+		return $totalPop;
+	}
+
+	public static function getPopulationFemmesInsee($insee,$years){
+		$where = array("insee"=>$insee, "population" => array( '$exists' => 1 ));
+        $fields = array("population.".$years.".femmes.total");
+        $cityData = City::getWhereData($where, $fields);
+
+        foreach ($cityData as $key => $valueCity) {
+				$totalPop = $valueCity['population'][$years]['femmes']['total']['value'];
+			}
+		return $totalPop;
+	}
+
+
+	public static function getPopulationTotalInseeDepartement($insee,$years){
+		$fields = array("insee");
+		$cities = City::getDepartementCitiesByInsee($insee, $fields);
+
+		$count = 0 ;
+		foreach ($cities as $idCities => $value) {
+
+			$data = City::getPopulationTotalInsee($value['insee'],$years);
+			$count = $count + $data;
+			
+			
+
+		}
+
+		return $count;
+	}
 
 	
 

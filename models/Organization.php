@@ -126,6 +126,7 @@ class Organization {
 
 
 	public static function newOrganizationFromImportData($organization) {
+		//var_dump($organization);
 		$newOrganization = array();
 		$newOrganization["key"] = "organizationsCollection";
 		$newOrganization["email"] = empty($organization['email']) ? "" : $organization['email'];
@@ -140,29 +141,38 @@ class Organization {
 		$newOrganization["contactPoint"] = empty($organization['contactPoint']) ? "" : $organization['contactPoint'];
 		//$newOrganization["address"] = empty($organization['address']) ? "" : $organization['address'];
 		$newOrganization["created"] = empty($organization['created']) ? "" : $organization['created'];
+		$newOrganization["details"] = empty($organization['details']) ? "" : $organization['details'];
+		$newOrganization['address']['streetAddress'] = empty($organization['address']['streetAddress']) ? "" : $organization['address']['streetAddress'];
+		$newOrganization['address']['postalCode'] = empty($organization['address']['postalCode']) ? "" : $organization['address']['postalCode'];
+		$newOrganization['address']['addressCountry'] = empty($organization['address']['addressCountry']) ? "" : $organization['address']['addressCountry'];
+		$newOrganization['address']['addressLocality'] = empty($organization['address']['addressLocality']) ? "" : $organization['address']['addressLocality'];
+		$newOrganization['address']['geo']['latitude'] = empty($organization['address']['geo']['latitude']) ? "" : $organization['address']['geo']['latitude'];
+		$newOrganization['address']['geo']['longitude'] = empty($organization['address']['geo']['longitude']) ? "" : $organization['address']['geo']['longitude'];
 
-		if(!empty($organization['address']['streetAddress']))
+
+		$newOrganization["url"] = empty($organization['url']) ? "" : $organization['url'];
+		
+
+
+		/*if(!empty($organization['address']['streetAddress']))
 		{
 			$nominatim = "http://nominatim.openstreetmap.org/search?q=".urlencode($organization['address']['streetAddress'])."&format=json&polygon=0&addressdetails=1";
 
 			$curl = curl_init($nominatim);
 			curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
 			$returnCURL = json_decode(curl_exec($curl),true);
-			if(!empty($returnCURL))
+			//var_dump($returnCURL);
+			if(!empty($returnCURL) || $returnCURL != array())
 			{
-				var_dump($nominatim);
 				foreach ($returnCURL as $key => $valueAdress) {
-					var_dump($valueAdress);
 					$newOrganization['address']['geo']['@type'] = "GeoCoordinates" ;
 					$newOrganization['address']['geo']['latitude'] = $valueAdress['lat'];
 					$newOrganization['address']['geo']['longitude'] = $valueAdress['lon'] ;
 				}
 
-			}
-			else
-				$newOrganization['address']['streetAddress'] = $organization['address']['streetAddress'] ;
+			}	
 			curl_close($curl);
-		}	
+		}*/
 
 		return $newOrganization;
 	}
@@ -241,6 +251,16 @@ class Organization {
 		//address by ImportData
 		if(!empty($organization['address'])){
 			$newOrganization["address"] = $organization['address'];
+		}
+
+		//details by ImportData
+		if(!empty($organization['details'])){
+			$newOrganization["details"] = $organization['details'];
+		}
+
+		//url by ImportData
+		if(!empty($organization['url'])){
+			$newOrganization["url"] = $organization['url'];
 		}
 
 
