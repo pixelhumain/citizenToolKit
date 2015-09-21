@@ -151,4 +151,27 @@ class Mail
         Mail::schedule($params);
     }
 
+    /**
+     * Send an email when some one ask to become an admin of an organization to the current admins
+     * @param array $organization datas of an organization
+     * @param array $newPendingAdmin Datas of a person asking to become an admin
+     * @param array $listofAdminsEmail array of email to send to
+     * @return null
+     */
+    public static function someoneDemandToBecomeAdmin( $organization, $newPendingAdmin, $listofAdminsEmail ) {
+       
+       foreach ($listofAdminsEmail as $currentAdminEmail) {
+           $params = array (
+                "type" => Cron::TYPE_MAIL,
+                "tpl"=>'askToBecomeAdmin',
+                "subject" => Yii::t("common",'New Organization created on ').Yii::app()->name,
+                "from"=>Yii::app()->params['adminEmail'],
+                "to" => $currentAdminEmail,
+                "tplParams" => array(  "newPendingAdmin"=> $newPendingAdmin ,
+                                        "organization" => $organization,
+                                       "url"  => "/organization/dashboard/id/".$organization["_id"] )
+            );   
+            Mail::schedule($params);
+        }
+    }
 }

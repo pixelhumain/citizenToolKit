@@ -546,6 +546,33 @@ class Organization {
 	    return true;
 	 }
 
-	
+	public static function addPersonAsAdmin($idOrganization, $idPerson, $userId) {
+		$res = array("result" => true, "msg" => "You are now admin of the organization");
+
+		$organization = self::getById($idOrganization);
+		$pendingAdmin = Person::getSimpleUserById($idPerson);
+		//First case : The organization doesn't have an admin yet : the person is automatically added as admin
+		$usersAdmin = Authorisation::listOrganizationAdmins($idOrganization);
+		if ($userAdmin.count() == 0) {
+			Link::addMember($idOrganization, self::COLLECTION, $idPerson, Person::COLLECTION, $userId, true, "", false);
+		} else {
+			//Second case : there is already an admin (or few) 
+			// 1. Admin link will be added but pending
+			Link::addMember($idOrganization, self::COLLECTION, $idPerson, Person::COLLECTION, $userId, true, "", true);
+			// 2. Notification and email are sent to the admin(s)
+			foreach ($usersAdmin as $adminId) {
+				$currentAdmin = Person::getSimpleUserById($key);
+				array_push($listofAdminsEmail, $currentAdmin["email"]);
+			}
+			Mail::someoneDemandToBecomeAdmin($organization, $pendingAdmin, $listofAdminsEmail);
+			//Notification::
+			
+			// After : the 1rst existing Admin to take the decision will remove the "pending" to make a real admin
+		}
+
+		return $res;
+	}
+
+
 }
 ?>

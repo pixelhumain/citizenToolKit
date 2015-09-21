@@ -48,7 +48,9 @@ class Authorisation {
     	$res = array();
         
         //organization i'am admin 
-        $where = array("links.members.".$userId.".isAdmin" => true);
+        $where = array( "links.members.".$userId.".isAdmin" => true,
+                        "links.members.".$userId.".isAdmin.pending" => array('$exists' => false )
+                    );
 
         $organizations = PHDB::find(Organization::COLLECTION, $where);
         $res = $organizations;
@@ -353,6 +355,37 @@ class Authorisation {
         }
 
     	return $res;
+    }
+
+    /**
+     * List the user that are admin of the organization
+     * @param type $organizationId The organization Id to look for
+     * @param type $pending : include the pending admins. By default no.
+     * @return type array of person Id
+     */
+    public static function listOrganizationAdmins($organizationId, $pending=false) {
+        $res = array();
+        $where = array( "_id" => new MongoId($organizationId),
+                        "links.members.".$userId.".isAdmin.pending" => array('$exists' => $pending )
+                    );
+
+        $organization = PHDB::find(Organization::COLLECTION, $where);
+        
+        if ($members = @$organization["links"]["members"]) {
+            foreach ($members as $personId => $linkDetail) {
+                if (@$linkDetail["isAdmin"] == true) {
+                    if ($pending) {
+                        if (isset($linkDetail["isAdmin"]["pending"])) {
+                            array_push($res, $personId);
+                        } 
+                    } else {
+                        array_push($res, $personId);
+                    }
+                }
+            }
+        }
+
+        return $res;
     }
 
 } 
