@@ -3,7 +3,7 @@
  */
 class GetCityDataAction extends CAction
 {
-	 public function run($insee, $typeData, $typeZone=null, $option=null)
+	public function run($insee, $typeData, $typeZone=null, $option=null)
     {
         
 

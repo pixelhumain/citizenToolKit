@@ -8,8 +8,7 @@ class AddPodOpenDataAction extends CAction
         $where = array('_id'  => new MongoId(Yii::app()->session["userId"]) );
         $user = PHDB::find(PHType::TYPE_CITOYEN, $where);
         $error = false ;
-       // var_dump($find );
-        //var_dump($modify);
+       
         if($modify == "add")
         {
             foreach ($user as $key => $value) {
@@ -38,6 +37,9 @@ class AddPodOpenDataAction extends CAction
             else
                 $tabPod = array();
 
+            /*var_dump($tabPod);
+            var_dump(count($test));*/
+
             if($modify == "add")
             {
                 $infopod['title'] = $_POST['titlePod'];
@@ -56,6 +58,8 @@ class AddPodOpenDataAction extends CAction
                             array("upsert" => true));
             Rest::json(array('result' => true,
                             'msgSuccess' => $msgSuccess));
+                            
+            //Rest::json(array('result' => true));
         }
         
     }

@@ -5,7 +5,7 @@ class GetListOptionAction extends CAction
 {
 	public function run()
     {
-        if(isset($_POST['insee']) && isset($_POST['typeData']) && isset($_POST['name_id']))
+        if(isset($_POST['insee']) && isset($_POST['typeData']))
         {
             $where = array("insee"=>$_POST['insee'], $_POST['typeData'] => array( '$exists' => 1 ));
             $fields = array($_POST['typeData']);
@@ -17,7 +17,7 @@ class GetListOptionAction extends CAction
                 {
                     if($k == $_POST['typeData'])
                     {
-                        $chaine = CityOpenData::listOption($v, $chaine, true, $_POST['name_id']);
+                        $chaine = CityOpenData::listOption2($v, $chaine, true, "");
                     }   
                 }
             }
