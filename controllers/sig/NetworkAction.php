@@ -13,13 +13,13 @@ class NetworkAction extends CAction
         "mapOpacity" => 1, //ex : 0.4
 
         /* MAP LAYERS (FOND DE CARTE) */
-        "mapTileLayer" 	  => 'http://{s}.tile.thunderforest.com/transport/{z}/{x}/{y}.png',//'http://{s}.tile.thunderforest.com/landscape/{z}/{x}/{y}.png', //'http://{s}.tile.stamen.com/toner/{z}/{x}/{y}.png'
+        "mapTileLayer" 	  => 'http://{s}.tile.thunderforest.com/landscape/{z}/{x}/{y}.png',//'http://{s}.tile.thunderforest.com/landscape/{z}/{x}/{y}.png', //'http://{s}.tile.stamen.com/toner/{z}/{x}/{y}.png'
         "mapAttributions" => '<a href="http://www.opencyclemap.org">OpenCycleMap</a>',	 	//'Map tiles by <a href="http://stamen.com">Stamen Design</a>'
 
         /* MAP BUTTONS */
-        "mapBtnBgColor" => '#E6D414',
-        "mapBtnColor" => '#213042',
-        "mapBtnBgColor_hover" => '#5896AB',
+        //"mapBtnBgColor" => '#E6D414',
+        //"mapBtnColor" => '#213042',
+        //"mapBtnBgColor_hover" => '#5896AB',
 
         /* USE */
         "usePanel" => true,
@@ -30,6 +30,7 @@ class NetworkAction extends CAction
         "useFullScreen" => true,
         "useResearchTools" => true,
         "useFilterType"=>true,
+        "useChartsMarkers" => true,
 
         /* TYPE NON CLUSTERISÉ (liste des types de données à ne pas inclure dans les clusters sur la carte (marker seul))*/
         "notClusteredTag" => array("citoyens"),

@@ -184,6 +184,7 @@ class City {
         $fields = array("population.".$years.".total");
         $cityData = City::getWhereData($where, $fields);
 
+        $totalPop = 1;
         foreach ($cityData as $key => $valueCity) {
 				$totalPop = $valueCity['population'][$years]['total']['value'];
 			}
@@ -195,6 +196,7 @@ class City {
         $fields = array("population.".$years.".hommes.total");
         $cityData = City::getWhereData($where, $fields);
 
+        $totalPop = 1;
         foreach ($cityData as $key => $valueCity) {
 				$totalPop = $valueCity['population'][$years]['hommes']['total']['value'];
 			}
@@ -206,6 +208,7 @@ class City {
         $fields = array("population.".$years.".femmes.total");
         $cityData = City::getWhereData($where, $fields);
 
+        $totalPop = 1;
         foreach ($cityData as $key => $valueCity) {
 				$totalPop = $valueCity['population'][$years]['femmes']['total']['value'];
 			}
@@ -217,7 +220,7 @@ class City {
 		$fields = array("insee");
 		$cities = City::getDepartementCitiesByInsee($insee, $fields);
 
-		$count = 0 ;
+		$count = 1;
 		foreach ($cities as $idCities => $value) {
 
 			$data = City::getPopulationTotalInsee($value['insee'],$years);

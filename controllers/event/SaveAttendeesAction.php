@@ -1,16 +1,58 @@
 <?php
-class EditAction extends CAction
+class SaveAttendeesAction extends CAction
 {
-    public function run($id)
+    public function run($idEvent = null, $attendeeId = null)
     {
-        $res = array( "result" => false , "content" => Yii::t("common","Something went wrong!") );
-        if(Yii::app()->request->isAjaxRequest && isset( $_POST["id"]) )
-        {
-          $event = (isset($_POST["id"])) ? PHDB::findOne( PHType::TYPE_EVENTS,array("_id"=>new MongoId($_POST["id"]))) : null;
+        $res = array( "result" => false , "msg" => Yii::t("common","Something went wrong!") );
+       // if(Yii::app()->request->isAjaxRequest && isset( $idEvent))
+        //{
+          $event = (isset($idEvent)) ? PHDB::findOne( PHType::TYPE_EVENTS,array("_id"=>new MongoId($idEvent))) : null;
         
-          if($event)
-          {
-            $memberEmail = $_POST['email'];
+        if($event)
+        {	
+	        $attendeeType = Person::COLLECTION;
+	        if(isset($attendeeId) && !empty($attendeeId)){
+		        if( isset($event['links']["events"]) && isset( $event['links']["events"][$attendeeId] ))
+                  $res = array( "result" => false , "msg" => Yii::t("event","Allready attending for this event",null,Yii::app()->controller->module->id) );
+                else {
+                	Link::connect($attendeeId, $attendeeType, $idEvent, PHType::TYPE_EVENTS, Yii::app()->session["userId"], "events" );
+					Link::connect($idEvent, PHType::TYPE_EVENTS, $attendeeId, $attendeeType, Yii::app()->session["userId"], "attendees" );
+					$citoyen = Person::getPublicData( $attendeeId );
+	            	if (!empty($citoyen)) {
+		            	$profil = Document::getLastImageByKey($attendeeId, Person::COLLECTION, Document::IMG_PROFIL);
+						if($profil !="")
+							$citoyen["imagePath"]= $profil;
+		            }
+					$res = array("result"=>true, "attendee" => $citoyen, "msg" => Yii::t("event","ATTENDEE SUCCESSFULLY ADD!!",null,Yii::app()->controller->module->id),"reload"=>true);
+                }
+	        }
+	        else{
+		       // $res = array( "result" => false , "msg" => Yii::t("common","ici ca v//a!") );
+                	$member = array(
+					'name'=>$_POST['name'],
+					'email'=>$_POST['email'],
+					'invitedBy'=>Yii::app()->session["userId"],
+					'created' => time(),
+					'links'=>array( 'events' => array($idEvent => array("type" => 'events',
+                                            //"tobeconfirmed" => true,
+                                            "invitedBy" => Yii::app()->session["userId"],
+										)
+									)
+								)	
+					);
+					
+                $member = Person::createAndInvite($member);
+               // print_r($newAttendee);             
+                Link::connect($idEvent, Event::COLLECTION, $member["id"], $attendeeType, Yii::app()->session["userId"], "attendees" );
+                //Link::connect($newAttendee["id"], $attendeeType, $idEvent, Event::COLLECTION, Yii::app()->session["userId"], "events" );
+                $res = array("result"=>true,"attendee" => $member, "msg"=> Yii::t("event","Attendee well registered and invite!!",null,Yii::app()->controller->module->id) ,"reload"=>true);  
+        	}
+	        //Guide of attendee
+	        // Add me as attendee (Btn at the top)
+	        // Invite someone (People)
+	        // To develop - private event or restricted on confirmation
+			
+            /*$memberEmail = $_POST['email'];
 
             if($_POST['type'] == "persons"){
               $memberType = Person::COLLECTION;
@@ -76,8 +118,9 @@ class EditAction extends CAction
               }
             }else
               $res = array( "result" => false , "content" => "email must be valid" );
-          }
+          }*/
         }
+        //}
         Rest::json( $res );
     }
 }
