@@ -1,7 +1,7 @@
 <?php
 class IndexAction extends CAction
 {
-    public function run( $type=null, $id= null)
+    public function run( $type=null, $id= null, $isAdmin=null)
     {
         $controller=$this->getController();
         
@@ -24,7 +24,7 @@ class IndexAction extends CAction
         	$where["parentId"] = $id;
         //var_dump($where);
 		$needs = Need::getWhereSortLimit( $where, array("date"=>1) ,30);
-		$params = array( "needs" => $needs );
+		$params = array( "needs" => $needs, "isAdmin"=> $isAdmin);
 		if(Yii::app()->request->isAjaxRequest)
 	        echo $controller->renderPartial("index",$params, true);
 	    else

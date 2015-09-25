@@ -85,6 +85,6 @@ class Need {
 		PHDB::update( self::COLLECTION, array("_id" => new MongoId($needId)), 
 		                          array('$set' => $set));
 	                  
-	    return array("result"=>true, "msg"=>"Votre projet a été modifié avec succes", "id"=>$needId);
+	    return array("result"=>true, "msg"=>"Votre besoin a été modifié avec succes", "id"=>$needId);
 	}
 }
