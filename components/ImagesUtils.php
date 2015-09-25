@@ -3,24 +3,46 @@
  * Images manipulation
  */
 class ImagesUtils {
+	
+	private $srcImage;
+	private $source_width;
+	private $source_height;
+	private $source_type;
+	private $destImage;
+	private $dest_width;
+	private $dest_height;
 
-	public static function resizeImage($srcImage, $newwidth, $newheight, $destImage = null) {
-		$filename = $srcImage;
-		list($source_width, $source_height, $source_type) = getimagesize($srcImage);
-
-		switch ($source_type) {
+	/**
+	 * Construct the Image Utility class
+	 * @param String $srcImage : path to the image to transform. Must be a gif, a jpeg or a png
+	 * @return type
+	 */
+	public function __construct($srcImage) {
+		list($this->source_width, $this->source_height, $this->source_type) = getimagesize($srcImage);
+		switch ($this->source_type) {
 		    case IMAGETYPE_GIF:
-		        $source_gdim = imagecreatefromgif($srcImage);
+		        $this->srcImage = imagecreatefromgif($srcImage);
 		        break;
 		    case IMAGETYPE_JPEG:
-		        $source_gdim = imagecreatefromjpeg($srcImage);
+		        $this->srcImage = imagecreatefromjpeg($srcImage);
 		        break;
 		    case IMAGETYPE_PNG:
-		        $source_gdim = imagecreatefrompng($srcImage);
+		        $this->srcImage = imagecreatefrompng($srcImage);
 		        break;
 		}
+	}
 
-		$source_aspect_ratio = $source_width / $source_height;
+    public function __destruct() {
+        if (is_resource($this->srcImage)) {
+            imagedestroy($this->srcImage);
+        }
+        if (is_resource($this->destImage)) {
+            imagedestroy($this->destImage);
+        }
+    }
+
+	public function resizeImage($newwidth, $newheight) {
+		$source_aspect_ratio = $this->source_width / $this->source_height;
 		$desired_aspect_ratio = $newwidth / $newheight;
 
 		if ($source_aspect_ratio > $desired_aspect_ratio) {
@@ -36,21 +58,19 @@ class ImagesUtils {
 		/*
 		 * Resize the image into a temporary GD image
 		 */
-
 		$temp_gdim = imagecreatetruecolor($temp_width, $temp_height);
 		imagecopyresampled(
 		    $temp_gdim,
-		    $source_gdim,
+		    $this->srcImage,
 		    0, 0,
 		    0, 0,
 		    $temp_width, $temp_height,
-		    $source_width, $source_height
+		    $this->source_width, $this->source_height
 		);
 
 		/*
 		 * Copy cropped region from temporary image into the desired GD image
 		 */
-
 		$x0 = ($temp_width - $newwidth) / 2;
 		$y0 = ($temp_height - $newheight) / 2;
 		$desired_gdim = imagecreatetruecolor($newwidth, $newheight);
@@ -62,41 +82,54 @@ class ImagesUtils {
 		    $newwidth, $newheight
 		);
 
-		if (isset($destImage)) {
-			//Save Image
-			imagejpeg($desired_gdim, $destImage);
-		} else {
-			// Output and free memory
-			header('Content-type: image/jpeg');
-			imagejpeg($desired_gdim);
-		}
-		
+		$this->destImage = $desired_gdim;
 		imagedestroy($temp_gdim);
-		imagedestroy($desired_gdim);
+		//imagedestroy($desired_gdim);
 		
+		return $this;
 	}
 
-	public static function createCircleImage($srcImage, $destImage) {
-		$dest = Yii::app()->params['uploadDir']."communecter/image_2_tmp.jpg";
-		@unlink($dest);
+	public function display() {
+		header('Content-type: image/jpeg');
+		imagejpeg($this->destImage);
+	}
 
-		self::resizeImage($srcImage, 152, 152, $dest);
-		$image = imagecreatefromjpeg($dest);		
-		$square = imagesx($image) < imagesy($image) ? imagesx($image) : imagesy($image);
+	public function save($destImagePath) {
+		//Save Image
+		imagejpeg($this->destImage, $destImagePath);
+	}
+
+	public function createCircleImage($newwidth, $newheight) {
+		$this->resizeImage($newwidth, $newheight);
+		$square = imagesx($this->destImage) < imagesy($this->destImage) ? imagesx($this->destImage) : imagesy($this->destImage);
 		$width = $square;
 		$height = $square;
-		$crop = new CircleCrop($image,$width,$height);
-		$crop->crop()->save($destImage);
+		$this->circleCrop($width,$height);
 	}
 
-	public static function createMarkerFromImage($profilImage, $srcEmptyMarker, $destImage) {
-		//Temporary file. TODO manage random
-		$destCircleImage = Yii::app()->params['uploadDir']."communecter/circleImage.png";
-		@unlink($destCircleImage);
+	public function circleCrop($newwidth, $newheight) {
+        //$this->reset();
+       	$mask = imagecreatetruecolor($newwidth, $newheight);
+       	imageantialias($mask, true);
+        $maskTransparent = imagecolorallocate($mask, 255, 0, 255);
+        imagecolortransparent($mask, $maskTransparent);
+        imagefilledellipse($mask, $newwidth / 2, $newheight / 2, $newwidth, $newheight, $maskTransparent);
+        
+        imagecopymerge($this->destImage, $mask, 0, 0, 0, 0, $newwidth, $newheight, 100);
+        $dstTransparent = imagecolorallocate($this->destImage, 255, 0, 255);
+        imagefill($this->destImage, 0, 0, $dstTransparent);
+        imagefill($this->destImage, $newwidth - 1, 0, $dstTransparent);
+        imagefill($this->destImage, 0, $newheight - 1, $dstTransparent);
+        imagefill($this->destImage, $newwidth - 1, $newheight - 1, $dstTransparent);
+        imagecolortransparent($this->destImage, $dstTransparent);
+        return $this;
+    }
 
-		//Get a circle image
-		self::createCircleImage($profilImage, $destCircleImage);
-		$source = imagecreatefrompng($destCircleImage);
+	public function createMarkerFromImage($srcEmptyMarker) {
+		//Create a circle image
+		$this->createCircleImage(152, 152);
+
+		$source = $this->destImage;
 		imageantialias($source, true);
 		$destination = imagecreatefrompng($srcEmptyMarker);
 		imagealphablending($destination,false);
