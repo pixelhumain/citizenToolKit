@@ -41,6 +41,16 @@ class ImagesUtils {
         }
     }
 
+	public function display() {
+		header('Content-type: image/png');
+		imagepng($this->destImage);
+	}
+
+	public function save($destImagePath) {
+		//Save Image
+		imagejpeg($this->destImage, $destImagePath);
+	}
+
 	public function resizeImage($newwidth, $newheight) {
 		$source_aspect_ratio = $this->source_width / $this->source_height;
 		$desired_aspect_ratio = $newwidth / $newheight;
@@ -89,25 +99,16 @@ class ImagesUtils {
 		return $this;
 	}
 
-	public function display() {
-		header('Content-type: image/jpeg');
-		imagejpeg($this->destImage);
-	}
-
-	public function save($destImagePath) {
-		//Save Image
-		imagejpeg($this->destImage, $destImagePath);
-	}
-
 	public function createCircleImage($newwidth, $newheight) {
 		$this->resizeImage($newwidth, $newheight);
 		$square = imagesx($this->destImage) < imagesy($this->destImage) ? imagesx($this->destImage) : imagesy($this->destImage);
 		$width = $square;
 		$height = $square;
 		$this->circleCrop($width,$height);
+		return $this;
 	}
 
-	public function circleCrop($newwidth, $newheight) {
+	private function circleCrop($newwidth, $newheight) {
         //$this->reset();
        	$mask = imagecreatetruecolor($newwidth, $newheight);
        	imageantialias($mask, true);
@@ -127,10 +128,10 @@ class ImagesUtils {
 
 	public function createMarkerFromImage($srcEmptyMarker) {
 		//Create a circle image
-		$this->createCircleImage(152, 152);
+		$this->createCircleImage(40, 40);
 
 		$source = $this->destImage;
-		imageantialias($source, true);
+		
 		$destination = imagecreatefrompng($srcEmptyMarker);
 		imagealphablending($destination,false);
 		imagesavealpha($destination, true);
@@ -144,16 +145,53 @@ class ImagesUtils {
 		$hauteur_destination = imagesy($destination);
  
 		// On veut placer le logo au centre du marker
-		$destination_x = 22;
-		$destination_y = 23;
+		$destination_x = 6;
+		$destination_y = 6;
  
 		// On met le logo (source) dans l'image de destination (le marker)
-		imagecopymerge($destination, $source, $destination_x, $destination_y, 0, 0, $largeur_source, $hauteur_source, 60);
+		imagecopymerge($destination, $source, $destination_x, $destination_y, 0, 0, $largeur_source, $hauteur_source, 100);
  
-		header("Content-type: image/png");
-		// On affiche l'image de destination qui a été fusionnée avec le logo
-		imagepng($destination);
+ 		$this->destImage = $destination;
+ 		
+		return $this;
+	}
 
+	private function _clone_img_resource($img) {
+
+	  //Get width from image.
+	  $w = imagesx($img);
+	  //Get height from image.
+	  $h = imagesy($img);
+	  //Get the transparent color from a 256 palette image.
+	  $trans = imagecolortransparent($img);
+
+	  //If this is a true color image...
+	  if (imageistruecolor($img)) {
+
+	    $clone = imagecreatetruecolor($w, $h);
+	    imagealphablending($clone, false);
+	    imagesavealpha($clone, true);
+	  }
+	  //If this is a 256 color palette image...
+	  else {
+
+	    $clone = imagecreate($w, $h);
+
+	    //If the image has transparency...
+	    if($trans >= 0) {
+
+	      $rgb = imagecolorsforindex($img, $trans);
+
+	      imagesavealpha($clone, true);
+	      $trans_index = imagecolorallocatealpha($clone, $rgb['red'], $rgb['green'], $rgb['blue'], $rgb['alpha']);
+	      imagefill($clone, 0, 0, $trans_index);
+	    }
+	  }
+
+	  //Create the Clone!!
+	  imagecopy($clone, $img, 0, 0, 0, 0, $w, $h);
+
+	  return $clone;
 	}
 
 }
