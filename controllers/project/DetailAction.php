@@ -60,7 +60,7 @@ class DetailAction extends CAction
 								$citoyen["imagePath"]= $profil;
 	  						array_push($contributors, $citoyen);
 	  						if( $uid == Yii::app()->session['userId'] )
-                    			array_push($controller->toolbarMBZ, array('tooltip' => "Send a message to this Project","iconClass"=>"fa fa-comment","href"=>"<a href='#' class='new-news tooltips btn btn-default' data-id='".$id."' data-type='".Project::COLLECTION."' data-name='".$project['name']."'") );
+                    			array_push($controller->toolbarMBZ, array('tooltip' => "Send a message to this Project","iconClass"=>"fa fa-envelope-o","href"=>"<a href='#' class='new-news tooltips btn btn-default' data-id='".$id."' data-type='".Project::COLLECTION."' data-name='".$project['name']."'") );
 	  					}
 	  				}
 	  			}

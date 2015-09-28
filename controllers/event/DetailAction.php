@@ -34,7 +34,7 @@ class DetailAction extends CAction
                 array_push($attending, $citoyen);
 
                 if( $uid == Yii::app()->session['userId'] )
-                    array_push($controller->toolbarMBZ, "<a href='#' class='new-news' data-id='".$id."' data-type='".Event::COLLECTION."' data-name='".$event['name']."'><i class='fa fa-comment'></i>MESSAGE</a>");
+                    array_push($controller->toolbarMBZ, array('tooltip' => "Send a message to this Event","iconClass"=>"fa fa-envelope-o","href"=>"<a href='#' class='new-news' data-id='".$id."' data-type='".Event::COLLECTION."' data-name='".$event['name']."'") );
               }
 
               /*if(isset($e["isAdmin"]) && $e["isAdmin"]==true){
@@ -61,7 +61,7 @@ class DetailAction extends CAction
                 $organizer["id"] = $uid;
 
                 $organizer["name"] = $organizerInfo["name"];
-                array_push($controller->toolbarMBZ,"<a href='".Yii::app()->createUrl("/".$controller->module->id."/".$urlType."/dashboard/id/".$uid)."'><i class='fa ".$iconNav."'></i>".$organizer["type"]."</a>");
+                array_push($controller->toolbarMBZ, array('tooltip' => "Back to ".$urlType,"iconClass"=>"fa ".$iconNav,"href"=>"<a href='".Yii::app()->createUrl("/".$controller->module->id."/".$urlType."/dashboard/id/".$uid)."'") );
               }
             }else if(isset($event["links"]["creator"]))
             {
@@ -77,9 +77,9 @@ class DetailAction extends CAction
         }
 
         if(isset($event["_id"]) && isset(Yii::app()->session["userId"]) && Link::isLinked($event["_id"] , Event::COLLECTION , Yii::app()->session['userId']))
-			array_push($controller->toolbarMBZ,"<li id='linkBtns'><a href='javascript:;' class='disconnectBtn text-red tooltips' data-name='".$event["name"]."' data-id='".$event["_id"]."' data-type='".Event::COLLECTION."' data-member-id='".Yii::app()->session["userId"]."' data-ownerlink='".Link::person2events."' data-targetlink='".Link::event2person."' data-placement='top' data-original-title='No more Attendee' ><i class='disconnectBtnIcon fa fa-unlink'></i>NO ATTENDING</a></li>" );
+            array_push($controller->toolbarMBZ, array('tooltip' => "leave this Event", "parent"=>"span","parentId"=>"linkBtns","iconClass"=>"disconnectBtnIcon fa fa-unlink","href"=>"<a href='javascript:;' class='disconnectBtn text-red tooltips btn btn-default'  data-name='".$event["name"]."' data-id='".$event["_id"]."' data-type='".Event::COLLECTION."' data-member-id='".Yii::app()->session["userId"]."' data-ownerlink='".Link::person2events."' data-targetlink='".Link::event2person."'") );
 		else
-			array_push($controller->toolbarMBZ,"<li id='linkBtns'><a href='javascript:;' class='connectBtn tooltips ' id='addKnowsRelation' data-placement='top' data-ownerlink='".Link::person2events."' data-targetlink='".Link::event2person."' data-original-title='I know this person' ><i class=' connectBtnIcon fa fa-link '></i>ATTENDING</a></li>");
+			array_push($controller->toolbarMBZ, array('tooltip' => "join this Event", "parent"=>"span","parentId"=>"linkBtns","iconClass"=>"connectBtnIcon fa fa-unlink","href"=>"<a href='javascript:;' class='connectBtn tooltips ' id='addKnowsRelation' data-placement='top' data-ownerlink='".Link::person2events."' data-targetlink='".Link::event2person."' ") );
 
         $params["images"] = $images;
         $params["contentKeyBase"] = $contentKeyBase;
