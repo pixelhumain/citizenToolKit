@@ -123,7 +123,6 @@ class Document {
 		$sort = array( 'created' => -1 );
 		$explodeContentKey = explode(".", $contentKey);
 		$listDocumentsofType = Document::listMyDocumentByContentKey($id, $explodeContentKey[0], $docType, $sort);
-		
 		foreach ($listDocumentsofType as $key => $value) {
 			$toPush = false;
 			if(isset($value["contentKey"]) && $value["contentKey"] != ""){
@@ -131,8 +130,6 @@ class Document {
 				$currentType = (string) $explodeValueContentKey[2];
 				if (isset($explodeContentKey[1])) {
 					if($explodeContentKey[1] == $explodeValueContentKey[1]){
-						
-						
 						if (! isset($limit)) {
 							$toPush = true;
 						} else {
@@ -160,6 +157,7 @@ class Document {
 				array_push($listDocuments[$currentType], $value);
 			}
 		}
+
 		return $listDocuments;
 	}
 
