@@ -23,18 +23,13 @@ class DetailAction extends CAction
 		$controller->subTitle = (isset($organization["shortDescripion"])) ? $organization["shortDescripion"] : "";
 		$controller->pageTitle = "Organization ".$controller->title." - ".$controller->subTitle;
 
-
-		if( !isset( $organization["disabled"] ) ){
-			if(isset($organization["_id"]) && isset(Yii::app()->session["userId"]) && Link::isLinked((string)$organization["_id"], Organization::COLLECTION , Yii::app()->session["userId"]))
-				$controller->toolbarMBZ = array("<li id='linkBtns'><a href='javascript:;' class='removeMemberBtn text-red tooltips' data-name='".$organization["name"]."' data-memberof-id='".$organization["_id"]."' data-member-type='".Person::COLLECTION."' data-member-id='".Yii::app()->session["userId"]."' data-placement='top' data-original-title='Remove from my Organizations' ><i class='disconnectBtnIcon fa fa-unlink'></i>NOT MEMBER</a></li>" );
-			else
-				$controller->toolbarMBZ = array("<li id='linkBtns'><a href='javascript:;' class='connectBtn tooltips ' id='addMeAsMemberInfo' data-placement='top' data-original-title='I'm member of this organization' ><i class=' connectBtnIcon fa fa-link '></i>I'M MEMBER</a></li>");
-		} else 
-			$controller->toolbarMBZ = array();
-			//$controller->toolbarMBZ = array("<li id='linkBtns'><a href='javascript:;' class='tooltips ' data-placement='top' data-original-title='This Organization is disabled' ><i class='text-red fa fa-times '></i>DISABLED</a></li>");
-		array_push($controller->toolbarMBZ, "<a href='".Yii::app()->createUrl("/".$controller->module->id."/survey/index/type/".Organization::COLLECTION."/id/".$id)."'><i class='fa fa-legal'></i>SURVEYS</a>");
-		array_push($controller->toolbarMBZ, "<a href='".Yii::app()->createUrl("/".$controller->module->id."/news/index/type/".Organization::COLLECTION."/id/".$id)."'><i class='fa fa-rss'></i>TIMELINE</a>");
 		
+	  	$controller->toolbarMBZ = array();
+		//$controller->toolbarMBZ = array("<li id='linkBtns'><a href='javascript:;' class='tooltips ' data-placement='top' data-original-title='This Organization is disabled' ><i class='text-red fa fa-times '></i>DISABLED</a></li>");
+		
+		array_push( $controller->toolbarMBZ, array('tooltip' => "SURVEYS : Organization Action Room","iconClass"=>"fa fa-legal","href"=>"<a class='tooltips btn btn-default' href='".Yii::app()->createUrl("/".$controller->module->id."/survey/index/type/".Organization::COLLECTION."/id/".$id)."'") );
+	  	array_push( $controller->toolbarMBZ, array('tooltip' => "TIMELINE : Organization Activity","iconClass"=>"fa fa-rss","href"=>"<a  class='tooltips btn btn-default' href='".Yii::app()->createUrl("/".$controller->module->id."/news/index/type/".Organization::COLLECTION."/id/".$id)."'") );
+
 		$contentKeyBase = Yii::app()->controller->id.".".Yii::app()->controller->action->id;
 		$limit = array(Document::IMG_PROFIL => 1, Document::IMG_MEDIA => 5);
 		$images = Document::getListDocumentsURLByContentKey($id, $contentKeyBase, Document::DOC_TYPE_IMAGE, $limit);
@@ -67,7 +62,7 @@ class DetailAction extends CAction
 		
 		foreach ($people as $key => $value) {
 			if( $key == Yii::app()->session['userId'] )
-				array_push($controller->toolbarMBZ, "<a href='#' class='new-news' data-id='".$id."' data-type='".Organization::COLLECTION."'><i class='fa fa-comment'></i>MESSAGE</a>");
+				array_push($controller->toolbarMBZ, array('tooltip' => "Send a message to this Organization","iconClass"=>"fa fa-envelope-o","href"=>"<a href='#' class='new-news tooltips btn btn-default' data-id='".$id."' data-type='".Organization::COLLECTION."' data-name='".$organization['name']."'") );
 			$newCitoyen = Person::getById($key);
 			if (!empty($newCitoyen)) {
 				$profil = Document::getLastImageByKey($key, Person::COLLECTION, Document::IMG_PROFIL);
@@ -77,6 +72,14 @@ class DetailAction extends CAction
 				array_push($members["citoyens"], $newCitoyen);
 			}
 		}
+
+		if( !isset( $organization["disabled"] ) ){
+			if(isset($organization["_id"]) && isset(Yii::app()->session["userId"]) && Link::isLinked((string)$organization["_id"], Organization::COLLECTION , Yii::app()->session["userId"]))
+				$htmlFollowBtn = array('tooltip' => "leave this Organization", "parent"=>"span","parentId"=>"linkBtns","iconClass"=>"disconnectBtnIcon fa fa-unlink","href"=>"<a href='javascript:;' class='removeMemberBtn text-red tooltips btn btn-default' data-name='".$organization["name"]."' data-memberof-id='".$organization["_id"]."' data-member-type='".Person::COLLECTION."' data-member-id='".Yii::app()->session["userId"]."'");
+			else
+				$htmlFollowBtn = array('tooltip' => "join this Organization", "parent"=>"span","parentId"=>"linkBtns","iconClass"=>"connectBtnIcon fa fa-unlink","href"=>"<a href='javascript:;' class='connectBtn tooltips btn btn-default ' id='addMeAsMemberInfo'");
+	  		array_push($controller->toolbarMBZ, $htmlFollowBtn);
+		} 
 		/*$projects = array();
 	    if(isset($organizations["links"]["projects"])){
 	    	foreach ($organizations["links"]["projects"] as $key => $value) {
