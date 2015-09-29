@@ -31,8 +31,8 @@ class DetailAction extends CAction
 	  	$tasks = array();
 	  	$needs = array();
 	  	$events=array();
-	  	$contentKeyBase = $controller->id.".".$controller->action->id; 
-	  	$images = Document::getListDocumentsURLByContentKey($id, $contentKeyBase, Document::DOC_TYPE_IMAGE);
+	  	$contentKeyBase = $controller->id.".dashboard"; 
+	  	$images = Document::getListDocumentsURLByContentKey((string)$project["_id"], $contentKeyBase, Document::DOC_TYPE_IMAGE);
 
 	  	if(!empty($project)){
 	  		$params = array();
