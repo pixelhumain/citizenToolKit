@@ -121,6 +121,20 @@ class Organization {
 		$newOrganization["typeIntervention"] = empty($organization['typeIntervention']) ? "" : $organization['typeIntervention'];
 		$newOrganization["typeOfPublic"] = empty($organization['public']) ? "" : $organization['public'];
 
+		//error_log("latitude : ".$organization['geoPosLatitude']);
+		if(!empty($organization['geoPosLatitude']) && !empty($organization["geoPosLongitude"])){
+			$newOrganization["geo"] = array("@type"=>"GeoCoordinates",
+											"latitude" => $organization['geoPosLatitude'],
+											"longitude" => $organization['geoPosLongitude']);
+
+			$newOrganization["geoPosition"] = array("type"=>"point",
+													"coordinates" =>
+													array($organization['geoPosLatitude'],
+											 	  		  $organization['geoPosLongitude'])
+											 	  	);
+			//$newOrganization["geo"] = empty($organization['public']) ? "" : $organization['public'];
+		}
+		
 		return $newOrganization;
 	}
 
@@ -217,7 +231,11 @@ class Organization {
 				$insee = $organization['city'];
 				$address = SIG::getAdressSchemaLikeByCodeInsee($insee);
 				$newOrganization["address"] = $address;
-				$newOrganization["geo"] = SIG::getGeoPositionByInseeCode($insee);
+
+				if(empty($organization["geo"]))
+					$newOrganization["geo"] = SIG::getGeoPositionByInseeCode($insee);
+				else
+					$newOrganization["geo"] = $organization["geo"];
 			}
 		}
 				  
@@ -551,7 +569,8 @@ class Organization {
 			if(!empty($organizationFieldValue["postalCode"]) && !empty($organizationFieldValue["codeInsee"])) {
 				$insee = $organizationFieldValue["codeInsee"];
 				$address = SIG::getAdressSchemaLikeByCodeInsee($insee);
-				$set = array("address" => $address, "geo" => SIG::getGeoPositionByInseeCode($insee));
+				if(empty($organizationFieldValue["geo"]))
+					$set = array("address" => $address, "geo" => SIG::getGeoPositionByInseeCode($insee));
 			} else {
 				throw new CTKException("Error updating the Organization : address is not well formated !");			
 			}
