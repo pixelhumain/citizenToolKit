@@ -3,11 +3,13 @@ class Document {
 
 	const COLLECTION = "documents";
 
-	const IMG_BANNIERE = "banniere";
-	const IMG_PROFIL = "profil";
-	const IMG_LOGO = "logo";
-	const IMG_SLIDER = "slider";
-	const IMG_MEDIA = "media";
+	const IMG_BANNIERE 			= "banniere";
+	const IMG_PROFIL 			= "profil";
+	const IMG_PROFIL_RESIZED 	= "profil-resized";
+	const IMG_PROFIL_MARKER 	= "profil-marker";
+	const IMG_LOGO 				= "logo";
+	const IMG_SLIDER 			= "slider";
+	const IMG_MEDIA 			= "media";
 
 	const CATEGORY_PLAQUETTE = "Plaquette";
 
