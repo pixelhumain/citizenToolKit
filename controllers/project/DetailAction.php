@@ -102,7 +102,7 @@ class DetailAction extends CAction
 	  	// Second if not, find if user belong to an organization admin of the project
 	  	// return true or false
 	  	$isProjectAdmin = false;
-	  	$admins=[];
+	  	$admins = array();
     	if(isset($project["_id"]) && isset(Yii::app()->session["userId"])) {
     		$isProjectAdmin =  Authorisation::isProjectAdmin((String) $project["_id"],Yii::app()->session["userId"]);
     		if (!$isProjectAdmin && !empty($organizations)){
