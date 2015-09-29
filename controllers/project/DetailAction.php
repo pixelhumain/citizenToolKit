@@ -29,8 +29,10 @@ class DetailAction extends CAction
 	  	$contributors =array();
 	  	$properties = array();
 	  	$tasks = array();
-	  	$contentKeyBase = $controller->id.".".$controller->action->id; 
-	  	$images = Document::getListDocumentsURLByContentKey($id, $contentKeyBase, Document::DOC_TYPE_IMAGE);
+	  	$needs = array();
+	  	$events=array();
+	  	$contentKeyBase = $controller->id.".dashboard"; 
+	  	$images = Document::getListDocumentsURLByContentKey((string)$project["_id"], $contentKeyBase, Document::DOC_TYPE_IMAGE);
 
 	  	if(!empty($project)){
 	  		$params = array();
@@ -64,7 +66,6 @@ class DetailAction extends CAction
 	  			}
 	  		}
 	  		
-	  		$events=array();
 	  		if( isset($project["links"]["events"])) {
 	    		foreach ($project["links"]["events"] as $key => $event) {
 	    			$event = Event::getById( $key );
@@ -82,6 +83,14 @@ class DetailAction extends CAction
 	  		if (isset($project["tasks"])){
 		  		$tasks=$project["tasks"];
 	  		}
+	  		//Need keep on
+	  		$whereNeed = array("created"=>array('$exists'=>1) ) ;
+	  		//if(isset($type))
+        	$whereNeed["parentType"] = Project::COLLECTION;
+			//if(isset($id))
+        	$whereNeed["parentId"] = (string)$project["_id"];
+			//var_dump($where);
+			$needs = Need::getWhereSortLimit( $whereNeed, array("date"=>1) ,30);
 	  	}
 	  	if(isset($project["_id"]) && isset(Yii::app()->session["userId"]) && Link::isLinked($project["_id"] , Project::COLLECTION , Yii::app()->session['userId']))
 			$htmlFollowBtn = array('tooltip' => "stop contributing to this Project", "parent"=>"span","parentId"=>"linkBtns","iconClass"=>"disconnectBtnIcon fa fa-unlink","href"=>"<a href='javascript:;' class='disconnectBtn text-red tooltips btn btn-default' data-name='".$project["name"]."' data-id='".$project["_id"]."' data-type='".Project::COLLECTION."' data-member-id='".Yii::app()->session["userId"]."' data-ownerlink='".Link::person2projects."' data-targetlink='".Link::project2person."'");
@@ -93,7 +102,7 @@ class DetailAction extends CAction
 	  	// Second if not, find if user belong to an organization admin of the project
 	  	// return true or false
 	  	$isProjectAdmin = false;
-	  	$admins=[];
+	  	$admins = array();
     	if(isset($project["_id"]) && isset(Yii::app()->session["userId"])) {
     		$isProjectAdmin =  Authorisation::isProjectAdmin((String) $project["_id"],Yii::app()->session["userId"]);
     		if (!$isProjectAdmin && !empty($organizations)){
@@ -122,7 +131,7 @@ class DetailAction extends CAction
 	  	$params["people"] = $people;
 	  	$params["properties"] = $properties;
 	  	$params["tasks"]=$tasks;
-
+	  	$params["needs"]=$needs;
 	  	$params["admin"]=$isProjectAdmin;
 	  	$params["admins"]=$admins;
 

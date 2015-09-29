@@ -14,8 +14,8 @@ class DetailAction extends CAction
         $controller->subTitle = (isset($event["description"])) ? $event["description"] : "";
         $controller->pageTitle = ucfirst($controller->module->id)." - ".Yii::t("event","Event's informations")." ".$controller->title;
 
-        $contentKeyBase = $controller->id.".".$controller->action->id;
-        $images = Document::getListDocumentsURLByContentKey($id, $contentKeyBase, Document::DOC_TYPE_IMAGE);
+        $contentKeyBase = $controller->id.".dashboard";
+        $images = Document::getListDocumentsURLByContentKey((string)$event["_id"], $contentKeyBase, Document::DOC_TYPE_IMAGE);
 
         $organizer = array();
 
