@@ -27,7 +27,7 @@ class SearchMembersAutoCompleteAction extends CAction {
 		if ($limitSearchPerson > 0) {
 			$allCitoyens = PHDB::findAndSort( Person::COLLECTION , $query, array("name" => 1), $limitSearchPerson);
 			foreach ($allCitoyens as $key => $value) {
-				$person = Person::getById($key);
+				$person = Person::getSimpleUserById($key);
 				$allCitoyens[$key] = $person;
 			}
 			$all["citoyens"] = $allCitoyens;
@@ -38,12 +38,10 @@ class SearchMembersAutoCompleteAction extends CAction {
 		}
 		
 		if ($limitSearchOrganization > 0) {
-			$allOrganization = PHDB::findAndSort( Organization::COLLECTION, $query, array("name" => 1), $limitSearchOrganization, array("_id", "name", "type", "address", "email", "links"));
+			$allOrganization = PHDB::findAndSort( Organization::COLLECTION, $query, array("name" => 1), $limitSearchOrganization, array("_id"));
 			foreach ($allOrganization as $key => $value) {
-			$logo = Document::getLastImageByKey($key, Organization::COLLECTION, Document::IMG_LOGO);
-			if($logo !="")
-				$value["logo"]= $logo;
-				$allOrganization[$key] = $value;
+				$orga = Organization::getSimpleOrganizationById($key);
+				$allOrganization[$key] = $orga;
 			}
 			$all["organizations"] = $allOrganization;
 		}

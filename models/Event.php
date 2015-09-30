@@ -65,10 +65,30 @@ class Event {
 				$event["startDate"] = date('Y-m-d H:i:s',$yester2day);;
 			}
 		}
-
 	  	return $event;
 	}
-	
+
+	/**
+	 * Retrieve a simple event (id, name, type profilImageUrl) by id from DB
+	 * @param String $id of the event
+	 * @return array with data id, name, type profilImageUrl
+	 */
+	public static function getSimpleEventById($id) {
+		
+		$simpleEvent = array();
+		$event = PHDB::findOneById( self::COLLECTION ,$id, array("id" => 1, "name" => 1, "type" => 1, "address" => 1) );
+
+		$simpleEvent["id"] = $id;
+		$simpleEvent["name"] = @$event["name"];
+		$simpleEvent["type"] = @$event["type"];
+		$profil = Document::getLastImageByKey($id, self::COLLECTION, Document::IMG_PROFIL);
+		$simpleEvent["profilImageUrl"] = $profil;
+		
+		$simpleEvent["address"] = empty($event["address"]) ? array("addressLocality" => "Unknown") : $event["address"];
+		
+		return $simpleEvent;
+	}
+
 	public static function getWhere($params) 
 	{
 	  	$events =PHDB::findAndSort( self::COLLECTION,$params,array("created"),null);

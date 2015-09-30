@@ -318,6 +318,31 @@ class Organization {
 	}
 
 	/**
+	 * Retrieve a simple organization (id, name, profilImageUrl) by id from DB
+	 * @param String $id of the organization
+	 * @return array with data id, name, profilImageUrl, logoImageUrl
+	 */
+	public static function getSimpleOrganizationById($id) {
+
+		$simpleOrganization = array();
+		$orga = PHDB::findOneById( self::COLLECTION ,$id, array("id" => 1, "name" => 1, "type" => 1, "email" => 1, "address" => 1, "pending" => 1) );
+
+		$simpleOrganization["id"] = $id;
+		$simpleOrganization["name"] = @$orga["name"];
+		$simpleOrganization["type"] = @$orga["type"];
+		$simpleOrganization["email"] = @$orga["email"];
+		$simpleOrganization["pending"] = @$orga["pending"];
+		$profil = Document::getLastImageByKey($id, self::COLLECTION, Document::IMG_PROFIL);
+		$simpleOrganization["profilImageUrl"] = $profil;
+		$logo = Document::getLastImageByKey($id, self::COLLECTION, Document::IMG_LOGO);
+		$simpleOrganization["logoImageUrl"] = $logo;
+		
+		$simpleOrganization["address"] = empty($orga["address"]) ? array("addressLocality" => "Unknown") : $orga["address"];
+		
+		return $simpleOrganization;
+	}
+
+	/**
 	 * get members an Organization By an organization Id
 	 * @param String $id : is the mongoId (String) of the organization
 	 * @param String $type : can be use to filter the member by type (all (default), person, organization)

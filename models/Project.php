@@ -47,8 +47,25 @@ class Project {
 				$project["startDate"] = date('Y-m-d H:i:s',$yester2day);;
 			}
 		}
-
 	  	return $project;
+	}
+
+	/**
+	 * Retrieve a simple project (id, name, profilImageUrl) by id from DB
+	 * @param String $id of the project
+	 * @return array with data id, name, profilImageUrl
+	 */
+	public static function getSimpleProjectById($id) {
+		
+		$simpleProject = array();
+		$project = PHDB::findOneById( self::COLLECTION ,$id, array("id" => 1, "name" => 1, "address" => 1) );
+
+		$simpleProject["id"] = $id;
+		$simpleProject["name"] = @$project["name"];
+		$profil = Document::getLastImageByKey($id, self::COLLECTION, Document::IMG_PROFIL);
+		$simpleProject["profilImageUrl"] = $profil;
+		$simpleProject["address"] = empty($project["address"]) ? array("addressLocality" => "Unknown") : $project["address"];
+		return $simpleProject;
 	}
 	
 	//TODO SBAR => should be private ?
