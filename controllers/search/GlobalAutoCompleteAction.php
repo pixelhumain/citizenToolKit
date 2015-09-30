@@ -15,10 +15,8 @@ class GlobalAutoCompleteAction extends CAction
 	  		$allCitoyen = PHDB::find ( Person::COLLECTION ,$query ,array("name", "address"));
 
 	  		foreach ($allCitoyen as $key => $value) {
-	  			$profil = Document::getLastImageByKey($key, Person::COLLECTION, Document::IMG_PROFIL);
-	  			if($profil !="")
-					$value["imagePath"]= $profil;
-				$allCitoyen[$key] = $value;
+	  			$person = Person::getSimpleUserById($key);
+				$allCitoyen[$key] = $person;
 	  		}
 
 	  		$res["citoyen"] = $allCitoyen;
@@ -29,10 +27,8 @@ class GlobalAutoCompleteAction extends CAction
 
 	  		$allOrganizations = PHDB::find ( Organization::COLLECTION ,$query ,array("name", "type", "address"));
 	  		foreach ($allOrganizations as $key => $value) {
-	  			$profil = Document::getLastImageByKey($key, Organization::COLLECTION, Document::IMG_PROFIL);
-	  			if($profil !="")
-					$value["imagePath"]= $profil;
-				$allOrganizations[$key] = $value;
+	  			$orga = Organization::getSimpleOrganizationById($key);
+				$allOrganizations[$key] = $orga;
 	  		}
 
 	  		$res["organization"] = $allOrganizations;
@@ -41,10 +37,8 @@ class GlobalAutoCompleteAction extends CAction
 	  	if(strcmp($filter, Event::COLLECTION) != 0){
 	  		$allEvents = PHDB::find(PHType::TYPE_EVENTS, $query, array("name", "address"));
 	  		foreach ($allEvents as $key => $value) {
-	  			$profil = Document::getLastImageByKey($key, Event::COLLECTION, Document::IMG_PROFIL);
-	  			if($profil !="")
-					$value["imagePath"]= $profil;
-				$allEvents[$key] = $value;
+	  			$event = Event::getSimpleEventById($key);
+				$allEvents[$key] = $event;
 	  		}
 	  		
 	 
@@ -54,10 +48,8 @@ class GlobalAutoCompleteAction extends CAction
 	  	if(strcmp($filter, Project::COLLECTION) != 0){
 	  		$allProject = PHDB::find(Project::COLLECTION, $query, array("name", "address"));
 	  		foreach ($allProject as $key => $value) {
-	  			$profil = Document::getLastImageByKey($key, Project::COLLECTION, Document::IMG_PROFIL);
-	  			if($profil !="")
-					$value["imagePath"]= $profil;
-				$allProject[$key] = $value;
+	  			$project = Project::getSimpleProjectById($key);
+				$allProject[$key] = $project;
 	  		}
 	  		
 	 
