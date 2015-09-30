@@ -30,15 +30,13 @@ class DetailAction extends CAction
 		array_push( $controller->toolbarMBZ, array('tooltip' => "SURVEYS : Organization Action Room","iconClass"=>"fa fa-legal","href"=>"<a class='tooltips btn btn-default' href='".Yii::app()->createUrl("/".$controller->module->id."/survey/index/type/".Organization::COLLECTION."/id/".$id)."'") );
 	  	array_push( $controller->toolbarMBZ, array('tooltip' => "TIMELINE : Organization Activity","iconClass"=>"fa fa-rss","href"=>"<a  class='tooltips btn btn-default' href='".Yii::app()->createUrl("/".$controller->module->id."/news/index/type/".Organization::COLLECTION."/id/".$id)."'") );
 
-		$contentKeyBase = Yii::app()->controller->id.".".Yii::app()->controller->action->id;
+		$contentKeyBase = Yii::app()->controller->id.".dashboard";
 		$limit = array(Document::IMG_PROFIL => 1, Document::IMG_MEDIA => 5);
-		$images = Document::getListDocumentsURLByContentKey($id, $contentKeyBase, Document::DOC_TYPE_IMAGE, $limit);
-
+		$images = Document::getListDocumentsURLByContentKey((string)$organization["_id"], $contentKeyBase, Document::DOC_TYPE_IMAGE, $limit);
 		$params = array( "organization" => $organization);
 		$params["contentKeyBase"] = $contentKeyBase;
 		$params["images"] = $images;
 		$params["events"] = $events;
-
 		$contextMap = array();
 		$contextMap["organization"] = $organization;
 		$contextMap["events"] = array();

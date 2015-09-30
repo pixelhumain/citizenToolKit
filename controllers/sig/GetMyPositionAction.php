@@ -13,12 +13,16 @@ class GetMyPositionAction extends CAction
             $type = isset($me["type"]) ? $me["type"] : "citoyen";
                 
         	if(!isset($me["geo"]) && isset($me["cp"])) {
-                $res = array("position" => SIG::getPositionByCp($me["cp"]), "type" => $type);
+                $res = array("position" => SIG::getPositionByCp($me["cp"]), 
+                             "type" => $type, 
+                             "typeSig" => PHType::TYPE_CITOYEN);
     			Rest::json( $res );
     			Yii::app()->end();
             }
             else{
-                $res = array("position" => $me["geo"], "type" => $type);
+                $res = array("position" => $me["geo"], 
+                             "type" => $type, 
+                             "typeSig" => PHType::TYPE_CITOYEN);
                 Rest::json( $res );
                 Yii::app()->end();
             }

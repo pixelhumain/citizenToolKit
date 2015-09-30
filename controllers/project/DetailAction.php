@@ -31,8 +31,8 @@ class DetailAction extends CAction
 	  	$tasks = array();
 	  	$needs = array();
 	  	$events=array();
-	  	$contentKeyBase = $controller->id.".".$controller->action->id; 
-	  	$images = Document::getListDocumentsURLByContentKey($id, $contentKeyBase, Document::DOC_TYPE_IMAGE);
+	  	$contentKeyBase = $controller->id.".dashboard"; 
+	  	$images = Document::getListDocumentsURLByContentKey((string)$project["_id"], $contentKeyBase, Document::DOC_TYPE_IMAGE);
 
 	  	if(!empty($project)){
 	  		$params = array();
@@ -102,7 +102,7 @@ class DetailAction extends CAction
 	  	// Second if not, find if user belong to an organization admin of the project
 	  	// return true or false
 	  	$isProjectAdmin = false;
-	  	$admins=[];
+	  	$admins = array();
     	if(isset($project["_id"]) && isset(Yii::app()->session["userId"])) {
     		$isProjectAdmin =  Authorisation::isProjectAdmin((String) $project["_id"],Yii::app()->session["userId"]);
     		if (!$isProjectAdmin && !empty($organizations)){
