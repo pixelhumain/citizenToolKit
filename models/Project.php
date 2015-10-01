@@ -131,10 +131,26 @@ class Project {
 				$insee = $project['city'];
 				$address = SIG::getAdressSchemaLikeByCodeInsee($insee);
 				$newProject["address"] = $address;
-				$newProject["geo"] = SIG::getGeoPositionByInseeCode($insee);
+				//$newProject["geo"] = SIG::getGeoPositionByInseeCode($insee);
 			}
 		} else {
 			throw new CTKException(Yii::t("project","Please fill the postal code of the project to communect it"));
+		}
+
+		if(!empty($project['geoPosLatitude']) && !empty($project["geoPosLongitude"])){
+			
+			$newProject["geo"] = 	array(	"@type"=>"GeoCoordinates",
+						"latitude" => $project['geoPosLatitude'],
+						"longitude" => $project['geoPosLongitude']);
+
+			$newProject["geoPosition"] = 
+				array(	"type"=>"point",
+						"coordinates" =>
+							array($project['geoPosLatitude'],
+					 	  		  $project['geoPosLongitude']));
+		}else
+		{
+			$newProject["geo"] = SIG::getGeoPositionByInseeCode($insee);
 		}
 		
 		//No mandotory fields 
