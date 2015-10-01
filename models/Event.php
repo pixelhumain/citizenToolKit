@@ -182,10 +182,26 @@ class Event {
 				$insee = $params['city'];
 				$address = SIG::getAdressSchemaLikeByCodeInsee($insee);
 				$newEvent["address"] = $address;
-				$newEvent["geo"] = SIG::getGeoPositionByInseeCode($insee);
 			}
 		}
+		
+		
+		if(!empty($params['geoPosLatitude']) && !empty($params["geoPosLongitude"])){
+			
 
+			$newEvent["geo"] = 	array(	"@type"=>"GeoCoordinates",
+						"latitude" => $params['geoPosLatitude'],
+						"longitude" => $params['geoPosLongitude']);
+
+			$newEvent["geoPosition"] = 
+				array(	"type"=>"point",
+						"coordinates" =>
+							array($params['geoPosLatitude'],
+					 	  		  $params['geoPosLongitude']));
+		}else
+		{
+			$newEvent["geo"] = SIG::getGeoPositionByInseeCode($insee);
+		}
 	    //sameAs      
 	    if(!empty($params['description']))
 	         $newEvent["description"] = $params['description'];
@@ -276,7 +292,7 @@ class Event {
 				}
 				else if(isset($params["userId"])){
 					foreach ($value["links"]["attendees"] as $keyEv => $valueEv) {
-						if($keyEv==$params["userId"]){
+						if($keyEv==$params["userId"] && isset($params["start"])){
 							$startDate = explode(" ", $value["startDate"]);
 							$start = explode(" ", $params["start"]);
 							if( $startDate[0] == $start[0]){
