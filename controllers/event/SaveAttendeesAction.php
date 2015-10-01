@@ -3,10 +3,10 @@ class SaveAttendeesAction extends CAction
 {
     public function run($idEvent = null, $attendeeId = null)
     {
-        $res = array( "result" => false , "msg" => Yii::t("common","Something went wrong!") );
+        $res = array( "result" => false , "msg" => Yii::t("common","Something went wrong!") ,"event" => $idEvent);
        // if(Yii::app()->request->isAjaxRequest && isset( $idEvent))
         //{
-          $event = (isset($idEvent)) ? PHDB::findOne( PHType::TYPE_EVENTS,array("_id"=>new MongoId($idEvent))) : null;
+        $event = (isset($idEvent)) ? PHDB::findOne(Event::COLLECTION,array("_id"=>new MongoId($idEvent))) : null;
         
         if($event)
         {	
@@ -15,8 +15,8 @@ class SaveAttendeesAction extends CAction
 		        if( isset($event['links']["events"]) && isset( $event['links']["events"][$attendeeId] ))
                   $res = array( "result" => false , "msg" => Yii::t("event","Allready attending for this event",null,Yii::app()->controller->module->id) );
                 else {
-                	Link::connect($attendeeId, $attendeeType, $idEvent, PHType::TYPE_EVENTS, Yii::app()->session["userId"], "events" );
-					Link::connect($idEvent, PHType::TYPE_EVENTS, $attendeeId, $attendeeType, Yii::app()->session["userId"], "attendees" );
+                	Link::connect($attendeeId, $attendeeType, $idEvent, Event::COLLECTION, Yii::app()->session["userId"], "events" );
+					Link::connect($idEvent, Event::COLLECTION, $attendeeId, $attendeeType, Yii::app()->session["userId"], "attendees" );
 					$citoyen = Person::getPublicData( $attendeeId );
 	            	if (!empty($citoyen)) {
 		            	$profil = Document::getLastImageByKey($attendeeId, Person::COLLECTION, Document::IMG_PROFIL);
