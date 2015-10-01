@@ -51,8 +51,6 @@ class GlobalAutoCompleteAction extends CAction
 	  			$project = Project::getSimpleProjectById($key);
 				$allProject[$key] = $project;
 	  		}
-	  		
-	 
 	  		$res["project"] = $allProject;
 	  	}
 

@@ -72,11 +72,20 @@ class DetailAction extends CAction
 		}
 
 		if( !isset( $organization["disabled"] ) ){
+			//Link button
 			if(isset($organization["_id"]) && isset(Yii::app()->session["userId"]) && Link::isLinked((string)$organization["_id"], Organization::COLLECTION , Yii::app()->session["userId"]))
-				$htmlFollowBtn = array('tooltip' => "leave this Organization", "parent"=>"span","parentId"=>"linkBtns","iconClass"=>"disconnectBtnIcon fa fa-unlink","href"=>"<a href='javascript:;' class='removeMemberBtn text-red tooltips btn btn-default' data-name='".$organization["name"]."' data-memberof-id='".$organization["_id"]."' data-member-type='".Person::COLLECTION."' data-member-id='".Yii::app()->session["userId"]."'");
+				$htmlFollowBtn = array('tooltip' => "leave this Organization", "iconClass"=>"disconnectBtnIcon fa fa-unlink",
+					"href"=>"<a href='#' class='removeMemberBtn text-red tooltips btn btn-default' data-name='".$organization["name"]."' data-memberof-id='".$organization["_id"]."' data-member-type='".Person::COLLECTION."' data-member-id='".Yii::app()->session["userId"]."'");
 			else
-				$htmlFollowBtn = array('tooltip' => "join this Organization", "parent"=>"span","parentId"=>"linkBtns","iconClass"=>"connectBtnIcon fa fa-unlink","href"=>"<a href='javascript:;' class='connectBtn tooltips btn btn-default ' id='addMeAsMemberInfo'");
+				$htmlFollowBtn = array('tooltip' => "join this Organization", "iconClass"=>"connectBtnIcon fa fa-unlink","href"=>"<a href='javascript:;' class='connectBtn tooltips btn btn-default ' id='addMeAsMemberInfo'");
 	  		array_push($controller->toolbarMBZ, $htmlFollowBtn);
+	  		
+	  		//Ask Admin button
+	  		if (! Authorisation::isOrganizationAdmin(Yii::app()->session["userId"], $id)) {
+	  			array_push($controller->toolbarMBZ, array('tooltip' => "Declare me as admin of this organization","iconClass"=>"fa fa-user-plus","href"=>"<a href='#' class='declare-me-admin tooltips btn btn-default' data-id='".$id."' data-type='".Organization::COLLECTION."' data-name='".$organization['name']."'") );
+	  		}
+
+
 		} 
 		/*$projects = array();
 	    if(isset($organizations["links"]["projects"])){
