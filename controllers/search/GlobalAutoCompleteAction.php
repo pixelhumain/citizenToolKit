@@ -16,6 +16,7 @@ class GlobalAutoCompleteAction extends CAction
 
 	  		foreach ($allCitoyen as $key => $value) {
 	  			$person = Person::getSimpleUserById($key);
+	  			$person["type"] = "citoyen";
 				$allCitoyen[$key] = $person;
 	  		}
 
@@ -54,7 +55,40 @@ class GlobalAutoCompleteAction extends CAction
 	  		$res["project"] = $allProject;
 	  	}
 
+
+	  	if(strcmp($filter, City::COLLECTION) != 0){
+	  		$query = array( "name" => new MongoRegex("/".self::wd_remove_accents($search)."/i"));
+	  		$allCities = PHDB::find(City::COLLECTION, $query, array("name", "cp", "insee", "geo"));
+	  		foreach ($allCities as $key => $value) {
+	  			$city = City::getSimpleCityById($key);
+				$allCities[$key] = $city;
+	  		}
+	  		$res["cities"] = $allCities;
+
+	  		if(empty($res["cities"])){
+	  			$query = array( "cp" => $search);
+		  		$allCities = PHDB::find(City::COLLECTION, $query, array("name", "cp", "insee", "geo"));
+		  		foreach ($allCities as $key => $value) {
+		  			$city = City::getSimpleCityById($key);
+					$allCities[$key] = $city;
+		  		}
+		  		$res["cities"] = $allCities;  		
+	  		}
+	  	}
+
   		Rest::json($res);
 		Yii::app()->end();
     }
+
+    //supprime les accen (utilisé pour la recherche de ville pour améliorer les résultats)
+    private function wd_remove_accents($str, $charset='utf-8')
+	{
+	    $str = htmlentities($str, ENT_NOQUOTES, $charset);
+	    
+	    $str = preg_replace('#&([A-za-z])(?:acute|cedil|caron|circ|grave|orn|ring|slash|th|tilde|uml);#', '\1', $str);
+	    $str = preg_replace('#&([A-za-z]{2})(?:lig);#', '\1', $str); // pour les ligatures e.g. '&oelig;'
+	    $str = preg_replace('#&[^;]+;#', '', $str); // supprime les autres caractères
+	    
+	    return $str;
+	}
 }

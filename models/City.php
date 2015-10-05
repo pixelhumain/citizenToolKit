@@ -233,7 +233,20 @@ class City {
 		return $count;
 	}
 
-	
+	public static function getSimpleCityById($id) {
+
+		$simpleCity = array();
+		$city = PHDB::findOneById( self::COLLECTION ,$id, array("id" => 1, "name" => 1, "insee" => 1, "cp" => 1, "geo" => 1) );
+
+		$simpleCity["id"] = $id;
+		$simpleCity["name"] = @$city["name"];
+		$simpleCity["insee"] = @$city["insee"];
+		$simpleCity["cp"] = @$city["cp"];
+		$simpleCity["geo"] = @$city["geo"];
+		$simpleCity["type"] = "city";
+		
+		return $simpleCity;
+	}
 
 }
 ?>
