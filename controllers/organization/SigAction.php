@@ -14,6 +14,13 @@ class SigAction extends CAction
 
 		$organization = Organization::getPublicData($id);
 		
+		if (isset($organization["description"])) {
+			$organization["description"] = strip_tags($organization["description"]);
+		}
+		if (isset($organization["shortDescription"])) {
+			$organization["shortDescription"] = strip_tags($organization["shortDescription"]);
+		}
+
 		//Same content Key base as the dashboard
 		$contentKeyBase = Yii::app()->controller->id.".dashboard";
 		$params["contentKeyBase"] = $contentKeyBase;
@@ -40,11 +47,15 @@ class SigAction extends CAction
 
 				//if($value["type"] == 'citoyens')		 { $publicData = Person::getPublicData($key); }
 
-
-				$addData = array("geo", "tags", "name", "description","typeIntervention", "public"); //"typeIntervention", "public" GRANDDIR only
+				$addData = array("geo", "tags", "name", "shortDescription", "description", "typeIntervention", "public"); //"typeIntervention", "public" GRANDDIR only
 				foreach($addData as $data) {
-					if( !empty($publicData[$data]) )
-						$organization["links"]["members"][$key][$data] = $publicData[$data];
+					if( !empty($publicData[$data]) ) {
+						if ($data == "description" || $data == "shortDescription") {
+							$organization["links"]["members"][$key][$data] = strip_tags($publicData[$data]);
+						} else {
+							$organization["links"]["members"][$key][$data] = $publicData[$data];
+						}
+					}
 				}
 			}
 		}
