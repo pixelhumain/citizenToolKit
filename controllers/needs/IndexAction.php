@@ -15,6 +15,7 @@ class IndexAction extends CAction
             $controller->title = $project["name"]."'s Needs";
             $controller->subTitle = "Need's name // Every Project has a lack of ressources";
             $controller->pageTitle = "Communecter - ".$controller->title;
+            $parentName=$project["name"];
         } 
         array_push( $controller->toolbarMBZ, '<a href="#" class="newRoom" title="proposer une " ><i class="fa fa-plus"></i> Room </a>');
         $where = array("created"=>array('$exists'=>1) ) ;
@@ -24,7 +25,7 @@ class IndexAction extends CAction
         	$where["parentId"] = $id;
         //var_dump($where);
 		$needs = Need::getWhereSortLimit( $where, array("date"=>1) ,30);
-		$params = array( "needs" => $needs, "isAdmin"=> $isAdmin);
+		$params = array( "needs" => $needs, "isAdmin"=> $isAdmin, "parentName" => $parentName);
 		if(Yii::app()->request->isAjaxRequest)
 	        echo $controller->renderPartial("index",$params, true);
 	    else

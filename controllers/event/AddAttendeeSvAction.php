@@ -1,5 +1,5 @@
 <?php
-class AddNeedSvAction extends CAction
+class AddAttendeeSvAction extends CAction
 {
     public function run(){
 
@@ -9,9 +9,10 @@ class AddNeedSvAction extends CAction
     	//$params["countries"] = OpenData::getCountriesList();
     	if( isset($_GET["isNotSV"])) {
             $params["isNotSV"] = true;
-//            $params["parentName"] = $_GET["parentName"];
+			$params["id"]=$_GET["eventId"];
+			$params["eventName"]=$_GET["eventName"];
         }
         if(Yii::app()->request->isAjaxRequest)
-			echo $controller->renderPartial("addNeedSV", $params, true);
+			echo $controller->renderPartial("addAttendeesSV", $params, true);
     }
 }
