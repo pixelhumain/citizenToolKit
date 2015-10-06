@@ -49,7 +49,7 @@ class IndexAction extends CAction
 			$newsContributor=ActivityStream::getActivtyForObjectId($param);
 			if(isset($newsContributor)){
 				foreach ($newsContributor as $key => $data){
-					$newsObject=NewsTranslator::convertToNews($data,::NEWS_CONTRIBUTORS);
+					$newsObject=NewsTranslator::convertToNews($data,NewsTranslator::NEWS_CONTRIBUTORS);
 					$news[$key]=$newsObject;
 				}
 			}
