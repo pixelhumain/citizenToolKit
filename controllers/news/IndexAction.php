@@ -26,9 +26,9 @@ class IndexAction extends CAction
         } else if( $type == Organization::COLLECTION ) {
             $controller->toolbarMBZ = array("<a href='".Yii::app()->createUrl("/".$controller->module->id."/organization/dashboard/id/".$id)."'><i class='fa fa-group'></i>Organization</a>");
             $organization = Organization::getById($id);
-            $controller->title = $organization["name"]."'s Timeline";
-            $controller->subTitle = "Every Organization has story to tell.";
-            $controller->pageTitle = "Communecter - ".$controller->title;
+            $controller->title = "Fil d'actualité - ".$organization["name"];
+            $controller->subTitle = "Actualités du réseau de GRANDDIR";
+            $controller->pageTitle = "GRANDDIR - Fil d'actualités";
         }
 
 
@@ -39,10 +39,11 @@ class IndexAction extends CAction
         	$where["id"] = $id;
         //var_dump($where);
 		$news = News::getWhereSortLimit( $where, array("date"=>1) ,30);
+        $tags = Tags::getActiveTags();
 
 		if(Yii::app()->request->isAjaxRequest)
-	        echo $controller->renderPartial("index" , array( "news"=>$news, "userCP"=>Yii::app()->session['userCP'] ),true);
+	        echo $controller->renderPartial("index" , array( "news"=>$news, "tags" => $tags, "userCP"=>Yii::app()->session['userCP'] ),true);
 	    else
-  			$controller->render( "index" , array( "news"=>$news, "userCP"=>Yii::app()->session['userCP'] ) );
+  			$controller->render( "index" , array( "news"=>$news, "tags" => $tags, "userCP"=>Yii::app()->session['userCP'] ) );
     }
 }
