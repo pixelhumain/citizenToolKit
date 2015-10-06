@@ -40,6 +40,17 @@ class IndexAction extends CAction
         //var_dump($where);
 		$news = News::getWhereSortLimit( $where, array("date"=>1) ,30);
 
+		if ($type == Project::COLLECTION){
+			//Get contributor for project
+			$param = array("verb" => "invite", "target.objectType" => $type, "target.id" => $id);
+			$newsContributor=ActivityStream::getActivtyForObjectId($param);
+			if(isset($newsContributor)){
+				foreach ($newsContributor as $key => $data){
+					$newsObject=NewsTranslator::convertToNews($data,"newsContributors");
+					$news[$key]=$newsObject;
+				}
+			}
+		}
 		if(Yii::app()->request->isAjaxRequest)
 	        echo $controller->renderPartial("index" , array( "news"=>$news, "userCP"=>Yii::app()->session['userCP'] ),true);
 	    else

@@ -132,6 +132,7 @@ class Project {
 				$address = SIG::getAdressSchemaLikeByCodeInsee($insee);
 				$newProject["address"] = $address;
 				//$newProject["geo"] = SIG::getGeoPositionByInseeCode($insee);
+				echo "oui";
 			}
 		} else {
 			throw new CTKException(Yii::t("project","Please fill the postal code of the project to communect it"));
@@ -198,8 +199,8 @@ class Project {
 	    PHDB::insert(self::COLLECTION,$newProject);
 
 	    Link::connect($parentId, $type, $newProject["_id"], self::COLLECTION, $parentId, "projects", true );
-	    
-	    return array("result"=>true, "msg"=>"Votre projet est communecté.", "id"=>$newProject["_id"]);	
+	    Notification::createdProject($type, $parentId, $newProject["_id"], $params["name"],$newProject["address"]["codeInsee"]);
+	    return array("result"=>true, "msg"=>"Votre projet est communecté.", "id" => $newProject["_id"]);	
 	}
 
 	public static function removeProject($projectId, $userId) {
