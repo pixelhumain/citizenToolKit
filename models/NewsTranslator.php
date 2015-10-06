@@ -1,8 +1,9 @@
 <?php 
 class NewsTranslator {
 	
+	const NEWS_CONTRIBUTORS = "newsContributors";
 	public static function convertToNews($object, $useCase){	
-		if($useCase=="newsContributors")
+		if($useCase ==  self::NEWS_CONTRIBUTORS )
 		$newsObject= array ("_id" => $object["_id"],
 							"name" => "New contributor",
 							"text"=>"has been invited",

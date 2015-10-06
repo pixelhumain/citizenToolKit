@@ -42,23 +42,21 @@ class IndexAction extends CAction
         $news = News::getWhereSortLimit( $where, array("date"=>1) ,30);
 
         //TODO : get all notifications for the current context
-        $lastReadingDate
-        $newsNotifications = ActivityStream::getActivityAsNews( $where );
-
-        //TODO : reorganise by created date
-        $news = array_merge($news,$newsNotifications);
-
-		if ($type == Project::COLLECTION){
+        
+		if ( $type == Project::COLLECTION ){
 			//Get contributor for project
-			$param = array("verb" => "invite", "target.objectType" => $type, "target.id" => $id);
+			$param = array("verb" => ActStr::VERB_INVITE, "target.objectType" => $type, "target.id" => $id);
 			$newsContributor=ActivityStream::getActivtyForObjectId($param);
 			if(isset($newsContributor)){
 				foreach ($newsContributor as $key => $data){
-					$newsObject=NewsTranslator::convertToNews($data,"newsContributors");
+					$newsObject=NewsTranslator::convertToNews($data,::NEWS_CONTRIBUTORS);
 					$news[$key]=$newsObject;
 				}
 			}
 		}
+
+        //TODO : reorganise by created date
+
 		if(Yii::app()->request->isAjaxRequest)
 	        echo $controller->renderPartial("index" , array( "news"=>$news, "userCP"=>Yii::app()->session['userCP'] ),true);
 	    else

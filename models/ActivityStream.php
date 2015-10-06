@@ -59,10 +59,7 @@ class ActivityStream {
 	{
 	    return PHDB::findAndSort(self::COLLECTION, $param,$sort);
 	}
-	public static function getActivtyForObjectId($param,$sort=array("timestamp"=>-1))
-	{
-	    return PHDB::findAndSort(self::COLLECTION, $param,$sort);
-	}
+	
 	
 	public static function removeNotifications($id)
 	{
