@@ -195,4 +195,32 @@ class Notification{
 	    //TODO mail::following
 	    //add a link to follow back easily
 	}
+	/*
+	When a project is create 
+	The project is inject to activity stream
+	It will appear for person or organization
+	// => advanced notification to add if one user wants to be notified for all news projects in certain field (Tags)
+	*/
+	public static function createdProject($authorType, $authorId, $projectId, $projectName, $codeInsee) 
+	{
+	    $asParam = array(
+	    	"type" => "Creation of project", 
+            "verb" => ActStr::VERB_CREATE,
+            "actor"=>array(
+            	"type" => $authorType,
+            	"id"   => $authorId
+            ),
+            "object"=>array(
+	            "type" => Project::COLLECTION,
+	            "id"   => $projectId
+            ),
+            "codeInse" => $codeInsee
+        );
+	    $stream = ActStr::buildEntry($asParam);
+
+	    //$actionMsg = ($actionType == ActStr::VERB_INVITE ) ? " invited you" : " is following you";
+	    ActivityStream::addEntry($stream);
+	    //TODO mail::following
+	    //add a link to follow back easily
+	}
 }
