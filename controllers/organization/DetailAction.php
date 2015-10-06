@@ -28,7 +28,8 @@ class DetailAction extends CAction
 		//$controller->toolbarMBZ = array("<li id='linkBtns'><a href='javascript:;' class='tooltips ' data-placement='top' data-original-title='This Organization is disabled' ><i class='text-red fa fa-times '></i>DISABLED</a></li>");
 		
 		array_push( $controller->toolbarMBZ, array('tooltip' => "SURVEYS : Organization Action Room","iconClass"=>"fa fa-legal","href"=>"<a class='tooltips btn btn-default' href='".Yii::app()->createUrl("/".$controller->module->id."/survey/index/type/".Organization::COLLECTION."/id/".$id)."'") );
-	  	array_push( $controller->toolbarMBZ, array('tooltip' => "TIMELINE : Organization Activity","iconClass"=>"fa fa-rss","href"=>"<a  class='tooltips btn btn-default' href='".Yii::app()->createUrl("/".$controller->module->id."/news/index/type/".Organization::COLLECTION."/id/".$id)."'") );
+		$onclick = "showAjaxPanel( baseUrl+'/'+moduleId+'/news/index/type/".Organization::COLLECTION."/id/".$id."', 'ORGANIZATION ACTIVITY ','rss' )";
+	  	array_push( $controller->toolbarMBZ, array('tooltip' => "TIMELINE : Organization Activity","iconClass"=>"fa fa-rss","href"=>"<a  class='tooltips btn btn-default' href='#' onclick=\"".$onclick."\"") );
 
 		$contentKeyBase = Yii::app()->controller->id.".dashboard";
 		$limit = array(Document::IMG_PROFIL => 1, Document::IMG_MEDIA => 5);

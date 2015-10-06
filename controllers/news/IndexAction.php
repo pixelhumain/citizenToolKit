@@ -38,7 +38,15 @@ class IndexAction extends CAction
         if(isset($id))
         	$where["id"] = $id;
         //var_dump($where);
-		$news = News::getWhereSortLimit( $where, array("date"=>1) ,30);
+		//TODO : get since a certain date
+        $news = News::getWhereSortLimit( $where, array("date"=>1) ,30);
+
+        //TODO : get all notifications for the current context
+        $lastReadingDate
+        $newsNotifications = ActivityStream::getActivityAsNews( $where );
+
+        //TODO : reorganise by created date
+        $news = array_merge($news,$newsNotifications);
 
 		if(Yii::app()->request->isAjaxRequest)
 	        echo $controller->renderPartial("index" , array( "news"=>$news, "userCP"=>Yii::app()->session['userCP'] ),true);
