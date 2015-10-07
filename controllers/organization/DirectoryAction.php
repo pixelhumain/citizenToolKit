@@ -72,8 +72,9 @@ class DirectoryAction extends CAction
         }
 
             
-
-    	 $page = "../default/directory";
+        $params["organization"] = $organization;
+        $params["type"] = Organization::CONTROLLER;
+    	  $page = "../default/directory";
         if( isset($_GET[ "tpl" ]) )
           $page = "../default/".$_GET[ "tpl" ];
         if(Yii::app()->request->isAjaxRequest){

@@ -33,25 +33,37 @@ class IndexAction extends CAction
 		
 		}
         //mongo search cmd : db.news.find({created:{'$exists':1}})	
-
+		$params = array();
+		$params["type"] = $type; 
         if( $type == Project::COLLECTION ) {
             $controller->toolbarMBZ = array("<a href='".Yii::app()->createUrl("/".$controller->module->id."/project/dashboard/id/".$id)."'><i class='fa fa-lightbulb-o'></i>Project</a>");
             $project = Project::getById($id);
+            $params["project"] = $project; 
             $controller->title = $project["name"]."'s Timeline";
             $controller->subTitle = "Every Project is story to be told.";
             $controller->pageTitle = "Communecter - ".$controller->title;
         } else if( $type == Person::COLLECTION ) {
             $controller->toolbarMBZ = array("<a href='".Yii::app()->createUrl("/".$controller->module->id."/person/dashboard/id/".$id)."'><i class='fa fa-user'></i>Person</a>");
             $person = Person::getById($id);
+            $params["person"] = $person; 
             $controller->title = $person["name"]."'s Timeline";
             $controller->subTitle = "Everyone has story to tell.";
             $controller->pageTitle = "Communecter - ".$controller->title;
         } else if( $type == Organization::COLLECTION ) {
             $controller->toolbarMBZ = array("<a href='".Yii::app()->createUrl("/".$controller->module->id."/organization/dashboard/id/".$id)."'><i class='fa fa-group'></i>Organization</a>");
             $organization = Organization::getById($id);
+            $params["organization"] = $organization; 
             $controller->title = $organization["name"]."'s Timeline";
             $controller->subTitle = "Every Organization has story to tell.";
             $controller->pageTitle = "Communecter - ".$controller->title;
+        }
+        else if( $type == Event::COLLECTION ) {
+            $controller->toolbarMBZ = array("<a href='".Yii::app()->createUrl("/".$controller->module->id."/event/dashboard/id/".$id)."'><i class='fa fa-group'></i>Event</a>");
+            $event = Event::getById($id);
+            $params["event"] = $event; 
+            $controller->title = $event["name"]."'s Timeline";
+            $controller->subTitle = "Every Event has story to tell.";
+            $controller->pageTitle = "Communect - ".$controller->title;
         }
 
 
@@ -89,9 +101,11 @@ class IndexAction extends CAction
 		$news = array_msort($news, array('created'=>SORT_DESC));
         //TODO : reorganise by created date
 
+		$params["news"] = $news; 
+		$params["userCP"] = Yii::app()->session['userCP'];
 		if(Yii::app()->request->isAjaxRequest)
-	        echo $controller->renderPartial("index" , array( "news"=>$news, "userCP"=>Yii::app()->session['userCP'] ),true);
+	        echo $controller->renderPartial("index" , $params ,true);
 	    else
-  			$controller->render( "index" , array( "news"=>$news, "userCP"=>Yii::app()->session['userCP'] ) );
+  			$controller->render( "index" , $params  );
     }
 }
