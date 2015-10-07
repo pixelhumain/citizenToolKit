@@ -134,4 +134,8 @@ class DetailAction extends CAction
         else 
 			$controller->render( $page , $params );
     }
+
+    private function comparePeople($person1, $person2) {
+        return strcmp($person1["name"], $person2["name"]);
+    }
 }
