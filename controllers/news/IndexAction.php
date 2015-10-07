@@ -98,6 +98,17 @@ class IndexAction extends CAction
 				}
 			}
 		}
+		if ( $type == Person::COLLECTION ){ 
+			//GET NEW PROJECT
+			$paramProject = array("verb" => ActStr::VERB_CREATE, "object.objectType" => Project::COLLECTION,"actor.objectType" => $type, "actor.id" => $id);
+			$newsProject=ActivityStream::getActivtyForObjectId($paramProject);
+			if(isset($newsProject)){
+				foreach ($newsProject as $key => $data){
+					$newsObject=NewsTranslator::convertToNews($data,NewsTranslator::NEWS_CREATE_PROJECT);
+					$news[$key]=$newsObject;
+				}
+			}
+		}
 		$news = array_msort($news, array('created'=>SORT_DESC));
         //TODO : reorganise by created date
 

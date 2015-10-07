@@ -201,7 +201,7 @@ class Notification{
 	It will appear for person or organization
 	// => advanced notification to add if one user wants to be notified for all news projects in certain field (Tags)
 	*/
-	public static function createdProject($authorType, $authorId, $projectId, $projectName, $codeInsee) 
+	public static function createdProject($authorType, $authorId, $projectId, $projectName, $codeInsee,$tags) 
 	{
 	    $asParam = array(
 	    	"type" => "Creation of project", 
@@ -214,7 +214,8 @@ class Notification{
 	            "type" => Project::COLLECTION,
 	            "id"   => $projectId
             ),
-            "codeInse" => $codeInsee
+            "codeInse" => $codeInsee,
+            "tags" => $tags,
         );
 	    $stream = ActStr::buildEntry($asParam);
 

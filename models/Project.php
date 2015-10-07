@@ -132,7 +132,6 @@ class Project {
 				$address = SIG::getAdressSchemaLikeByCodeInsee($insee);
 				$newProject["address"] = $address;
 				//$newProject["geo"] = SIG::getGeoPositionByInseeCode($insee);
-				echo "oui";
 			}
 		} else {
 			throw new CTKException(Yii::t("project","Please fill the postal code of the project to communect it"));
@@ -192,6 +191,9 @@ class Project {
 	    }
 
 	    $newProject = self::getAndCheckProject($params, $parentId);
+	    if (isset($newProject["tags"]))
+			$newProject["tags"] = Tags::filterAndSaveNewTags($newProject["tags"]);
+
 	    // TODO SBAR - If a Link::connect is used why add a link hard coded
 	    $newProject["links"] = array( "contributors" => 
 	    								array($parentId =>array("type" => $type,"isAdmin" => true)));
@@ -199,7 +201,7 @@ class Project {
 	    PHDB::insert(self::COLLECTION,$newProject);
 
 	    Link::connect($parentId, $type, $newProject["_id"], self::COLLECTION, $parentId, "projects", true );
-	    Notification::createdProject($type, $parentId, $newProject["_id"], $params["name"],$newProject["geo"]);
+	    Notification::createdProject($type, $parentId, $newProject["_id"], $params["name"],$newProject["geo"],$newProject["tags"]);
 	    return array("result"=>true, "msg"=>"Votre projet est communecté.", "id" => $newProject["_id"]);	
 	}
 
