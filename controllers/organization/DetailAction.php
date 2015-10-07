@@ -30,11 +30,11 @@ class DetailAction extends CAction
 		/*$onclick = "togglePanel('.infoPanel')";
 	  	array_push( $controller->toolbarMBZ, array('tooltip' => "Details","iconClass"=>"fa fa-home","href"=>"<a  class='tooltips btn btn-default' href='#' onclick=\"".$onclick."\"") );
 	  	*/
-	  	$onclick = "showAjaxPanel( baseUrl+'/'+moduleId+'/rooms/index/type/".Organization::COLLECTION."/id/".$id."', 'ORGANIZATION ACTION ROOM ','legal' )";		
+	  	$onclick = "showAjaxPanel( '/rooms/index/type/".Organization::COLLECTION."/id/".$id."', 'ORGANIZATION ACTION ROOM ','legal' )";		
 		array_push( $controller->toolbarMBZ, array('tooltip' => "SURVEYS : Organization Action Room","iconClass"=>"fa fa-legal","href"=>"<a class='tooltips btn btn-default' href='#' onclick=\"".$onclick."\"") );
-		$onclick = "showAjaxPanel( baseUrl+'/'+moduleId+'/news/index/type/".Organization::COLLECTION."/id/".$id."', 'ORGANIZATION ACTIVITY ','rss' )";
+		$onclick = "showAjaxPanel( '/news/index/type/".Organization::COLLECTION."/id/".$id."', 'ORGANIZATION ACTIVITY ','rss' )";
 	  	array_push( $controller->toolbarMBZ, array('tooltip' => "TIMELINE : Organization Activity","iconClass"=>"fa fa-rss","href"=>"<a  class='tooltips btn btn-default' href='#' onclick=\"".$onclick."\"") );
-	  	$onclick = "showAjaxPanel( baseUrl+'/'+moduleId+'/organization/directory/id/".$id."?tpl=directory2&isNotSV=1', 'ORGANIZATION MEMBERS ','users' )";
+	  	$onclick = "showAjaxPanel( '/organization/directory/id/".$id."?tpl=directory2&isNotSV=1', 'ORGANIZATION MEMBERS ','users' )";
 	  	array_push( $controller->toolbarMBZ, array('tooltip' => "MEMBERS : Organization participants","iconClass"=>"fa fa-users","href"=>"<a  class='tooltips btn btn-default' href='#' onclick=\"".$onclick."\"") );
 
 		$contentKeyBase = Yii::app()->controller->id.".dashboard";
