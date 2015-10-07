@@ -24,7 +24,7 @@ class Notification{
             ),
             "object"=>array(
 	            "type" => $memberType,
-	            "id"   => $memberId
+	            "id"   => (string)$memberId
             ),
             "target"=>array(
 	            "type" => Project::COLLECTION,
@@ -215,6 +215,31 @@ class Notification{
 	            "id"   => $projectId
             ),
             "codeInse" => $codeInsee
+        );
+	    $stream = ActStr::buildEntry($asParam);
+
+	    //$actionMsg = ($actionType == ActStr::VERB_INVITE ) ? " invited you" : " is following you";
+	    ActivityStream::addEntry($stream);
+	    //TODO mail::following
+	    //add a link to follow back easily
+	}
+	public static function createdNeed($targetType, $targetId, $objectId, $objectName, $authorId) 
+	{
+	    $asParam = array(
+	    	"type" => "Creation of Need", 
+            "verb" => ActStr::VERB_CREATE,
+            "actor"=>array(
+            	"type" => Person::COLLECTION,
+            	"id"   => $authorId
+            ),
+            "object"=>array(
+	            "type" => Need::COLLECTION,
+	            "id"   => $objectId
+            ),
+            "target" => array(
+	            "type" => $targetType,
+	            "id" => $targetId
+            )
         );
 	    $stream = ActStr::buildEntry($asParam);
 

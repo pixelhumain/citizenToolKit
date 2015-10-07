@@ -54,6 +54,7 @@ class Need {
 	}
 	public static function insert($params){
 		PHDB::insert(self::COLLECTION,$params);
+		Notification::createdNeed($params["parentType"], $params["parentId"], $params["_id"], $params["name"], Yii::app()-> session["userId"]);
 		return array("result"=>true, "msg"=>"Votre besoin est communecté.","idNeed"=>$params["_id"]);
 	}
 	

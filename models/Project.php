@@ -199,7 +199,7 @@ class Project {
 	    PHDB::insert(self::COLLECTION,$newProject);
 
 	    Link::connect($parentId, $type, $newProject["_id"], self::COLLECTION, $parentId, "projects", true );
-	    Notification::createdProject($type, $parentId, $newProject["_id"], $params["name"],$newProject["address"]["codeInsee"]);
+	    Notification::createdProject($type, $parentId, $newProject["_id"], $params["name"],$newProject["geo"]);
 	    return array("result"=>true, "msg"=>"Votre projet est communecté.", "id" => $newProject["_id"]);	
 	}
 

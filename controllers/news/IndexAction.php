@@ -8,7 +8,30 @@ class IndexAction extends CAction
         $controller->title = "Timeline";
         $controller->subTitle = "NEWS comes from everywhere, and from anyone.";
         $controller->pageTitle = "Communecter - Timeline Globale";
-
+		 function array_msort($array, $cols)
+		{
+		    $colarr = array();
+		    foreach ($cols as $col => $order) {
+		        $colarr[$col] = array();
+		        foreach ($array as $k => $row) { $colarr[$col]['_'.$k] = strtolower($row[$col]); }
+		    }
+		    $eval = 'array_multisort(';
+		    foreach ($cols as $col => $order) {
+		        $eval .= '$colarr[\''.$col.'\'],'.$order.',';
+		    }
+		    $eval = substr($eval,0,-1).');';
+		    eval($eval);
+		    $ret = array();
+		    foreach ($colarr as $col => $arr) {
+		        foreach ($arr as $k => $v) {
+		            $k = substr($k,1);
+		            if (!isset($ret[$k])) $ret[$k] = $array[$k];
+		            $ret[$k][$col] = $array[$k][$col];
+		        }
+		    }
+		    return $ret;
+		
+		}
         //mongo search cmd : db.news.find({created:{'$exists':1}})	
 
         if( $type == Project::COLLECTION ) {
@@ -43,18 +66,27 @@ class IndexAction extends CAction
 
         //TODO : get all notifications for the current context
         
-		if ( $type == Project::COLLECTION ){
-			//Get contributor for project
-			$param = array("verb" => ActStr::VERB_INVITE, "target.objectType" => $type, "target.id" => $id);
-			$newsContributor=ActivityStream::getActivtyForObjectId($param);
+		if ( $type == Project::COLLECTION ){ 
+			//GET NEW CONTRIBUTOR
+			$paramContrib = array("verb" => ActStr::VERB_INVITE, "target.objectType" => $type, "target.id" => $id);
+			$newsContributor=ActivityStream::getActivtyForObjectId($paramContrib);
 			if(isset($newsContributor)){
 				foreach ($newsContributor as $key => $data){
 					$newsObject=NewsTranslator::convertToNews($data,NewsTranslator::NEWS_CONTRIBUTORS);
 					$news[$key]=$newsObject;
 				}
 			}
+			//GET NEW NEED
+			$paramNeed = array("verb" => ActStr::VERB_CREATE, "object.objectType" => Need::COLLECTION, "target.objectType" => $type, "target.id" => $id);
+			$newsNeed=ActivityStream::getActivtyForObjectId($paramNeed);
+			if(isset($newsNeed)){
+				foreach ($newsNeed as $key => $data){
+					$newsObject=NewsTranslator::convertToNews($data,NewsTranslator::NEWS_CREATE_NEED);
+					$news[$key]=$newsObject;
+				}
+			}
 		}
-
+		$news = array_msort($news, array('created'=>SORT_DESC));
         //TODO : reorganise by created date
 
 		if(Yii::app()->request->isAjaxRequest)
