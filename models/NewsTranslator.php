@@ -42,12 +42,13 @@ class NewsTranslator {
 			return $newsObject;	
 		}	
 		else if($useCase ==  self::NEWS_CREATE_PROJECT ){
-			$projet=Project::getById($object["_id"]);
+			$project=Project::getById($object["object"]["id"]);
+			if (@$object["tags"]) $tags=$object["tags"]; else $tags="";
 			$newsObject= array ("_id" => $object["_id"],
 								"name" => $project["name"],
 								"text"=>"has been created",
 								"author"=>$object["actor"]["id"],
-								//"date"=>$object["date"],
+								"tags"=>$tags,
 								"created"=>$object["timestamp"],
 								"id"=>$object["object"]["id"],
 								"type"=>$object["object"]["objectType"],
