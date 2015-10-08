@@ -97,6 +97,15 @@ class IndexAction extends CAction
 					$news[$key]=$newsObject;
 				}
 			}
+			$paramEvent = array("verb" => ActStr::VERB_CREATE, "object.objectType" => Event::COLLECTION,"target.objectType" => $type, "target.id" => $id);
+			$newsEvent=ActivityStream::getActivtyForObjectId($paramEvent);
+						print_r($newsEvent);
+			if(isset($newsEvent)){
+				foreach ($newsEvent as $key => $data){
+					$newsObject=NewsTranslator::convertToNews($data,NewsTranslator::NEWS_CREATE_EVENT);
+					$news[$key]=$newsObject;
+				}
+			}
 		}
 		if ( $type == Person::COLLECTION ){ 
 			//GET NEW PROJECT
@@ -109,6 +118,18 @@ class IndexAction extends CAction
 				}
 			}
 			$paramEvent = array("verb" => ActStr::VERB_CREATE, "object.objectType" => Event::COLLECTION,"actor.objectType" => $type, "actor.id" => $id);
+			$newsEvent=ActivityStream::getActivtyForObjectId($paramEvent);
+						print_r($newsEvent);
+			if(isset($newsEvent)){
+				foreach ($newsEvent as $key => $data){
+					$newsObject=NewsTranslator::convertToNews($data,NewsTranslator::NEWS_CREATE_EVENT);
+					$news[$key]=$newsObject;
+				}
+			}
+		}
+		if ( $type == Organization::COLLECTION ){ 
+			//GET EVENT FOR ORGA
+			$paramEvent = array("verb" => ActStr::VERB_CREATE, "object.objectType" => Event::COLLECTION,"target.objectType" => $type, "target.id" => $id);
 			$newsEvent=ActivityStream::getActivtyForObjectId($paramEvent);
 						print_r($newsEvent);
 			if(isset($newsEvent)){
