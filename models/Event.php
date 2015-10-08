@@ -8,6 +8,7 @@ class Event {
 	//From Post/Form name to database field name
 	private static $dataBinding = array(
 	    "name" => array("name" => "name", "rules" => array("required")),
+	    "type" => array("name" => "type"),
 	    "streetAddress" => array("name" => "address.streetAddress"),
 	    "postalCode" => array("name" => "address.postalCode"),
 	    "city" => array("name" => "address.codeInsee"),
@@ -212,7 +213,8 @@ class Event {
 	    Link::attendee($newEvent["_id"], $params['userId'], true);
 
 	    Link::addOrganizer($params["organizerId"],$params["organizerType"], $newEvent["_id"], $params['userId']);
-
+		
+		Notification::createdEvent($params["organizerType"], $params["organizerId"], $newEvent["_id"], $newEvent["name"],$newEvent["geo"],$newEvent["type"], $params['userId']);
 	    //send validation mail
 	    //TODO : make emails as cron events
 	    /*$message = new YiiMailMessage; 

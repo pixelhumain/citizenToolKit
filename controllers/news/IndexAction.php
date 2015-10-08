@@ -108,6 +108,15 @@ class IndexAction extends CAction
 					$news[$key]=$newsObject;
 				}
 			}
+			$paramEvent = array("verb" => ActStr::VERB_CREATE, "object.objectType" => Event::COLLECTION,"actor.objectType" => $type, "actor.id" => $id);
+			$newsEvent=ActivityStream::getActivtyForObjectId($paramEvent);
+						print_r($newsEvent);
+			if(isset($newsEvent)){
+				foreach ($newsEvent as $key => $data){
+					$newsObject=NewsTranslator::convertToNews($data,NewsTranslator::NEWS_CREATE_EVENT);
+					$news[$key]=$newsObject;
+				}
+			}
 		}
 		$news = array_msort($news, array('created'=>SORT_DESC));
         //TODO : reorganise by created date

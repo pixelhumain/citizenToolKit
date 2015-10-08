@@ -4,6 +4,7 @@ class NewsTranslator {
 	const NEWS_CONTRIBUTORS = "newsContributors";
 	const NEWS_CREATE_PROJECT = "newsCreateProject";
 	const NEWS_CREATE_NEED = "newsCreateNeed";
+	const NEWS_CREATE_EVENT = "newsCreateEvent";
 	public static function convertToNews($object, $useCase){	
 		if($useCase ==  self::NEWS_CONTRIBUTORS ){
 			$author=Person::getById($object["actor"]["id"]);
@@ -56,5 +57,23 @@ class NewsTranslator {
 							);
 			return $newsObject;	
 		}	
+		else if($useCase ==  self::NEWS_CREATE_EVENT ){
+			$event=Event::getById($object["object"]["id"]);
+			if (@$object["tags"]) $tags=$object["tags"]; else $tags="";
+			$newsObject= array ("_id" => $object["_id"],
+								"name" => $event["name"],
+								"text"=>"has been created",
+								"author"=>$object["actor"]["id"],
+								"targetId" => $object["target"]["id"],
+								"targetType" => $object["target"]["objectType"],
+								"tags"=>$tags,
+								"created"=>$object["timestamp"],
+								"id"=>$object["object"]["id"],
+								"type"=>$object["object"]["objectType"],
+								"icon" => "fa-calendar"
+							);
+			return $newsObject;	
+		}	
+
 	}
 }
