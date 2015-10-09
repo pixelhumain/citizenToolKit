@@ -316,13 +316,16 @@ class Event {
 	 */
 	public static function listEventAttending($userId){
 		$where = array("links.attendees.".$userId => array('$exists' => true));
+		$listEventAttending= array();
 		$eventsAttending = PHDB::find(PHType::TYPE_EVENTS, $where);
 		foreach ($eventsAttending as $key => $value) {
         	$profil = Document::getLastImageByKey($key, PHType::TYPE_EVENTS, Document::IMG_PROFIL);
-        	if($profil!="")
+        	if(strcmp($profil, "")!= 0){
         		$value['imagePath']=$profil;
+        	}
+        	$listEventAttending[$key] = $value;
         }
-        return $eventsAttending;
+        return $listEventAttending;
 	}
 
 
