@@ -13,6 +13,8 @@ class RegisterAction extends CAction
         $name = (!empty($_POST['name'])) ? $_POST['name'] : "";
 		$email = (!empty($_POST['email'])) ? $_POST['email'] : "";
 		$postalCode = (!empty($_POST['cp'])) ? $_POST['cp'] : "";
+		$geoPosLatitude = (!empty($_POST['geoPosLatitude'])) ? $_POST['geoPosLatitude'] : "";
+		$geoPosLongitude = (!empty($_POST['geoPosLongitude'])) ? $_POST['geoPosLongitude'] : "";
 		$pwd = (!empty($_POST['pwd'])) ? $_POST['pwd'] : "";
 		$city = (!empty($_POST['city'])) ? $_POST['city'] : "";
 		$pendingUserId = (!empty($_POST['pendingUserId'])) ? $_POST['pendingUserId'] : "";
@@ -21,6 +23,8 @@ class RegisterAction extends CAction
 		$newPerson = array(
 			'name'=> $name,
 			'postalCode'=> $postalCode, //TODO : move to address node
+			'geoPosLatitude'=> $geoPosLatitude,
+			'geoPosLongitude'=> $geoPosLongitude,
 			'pwd'=>$pwd,
 			'city'=>$city);
 
