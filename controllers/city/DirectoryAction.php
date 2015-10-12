@@ -25,6 +25,16 @@ class DirectoryAction extends CAction
   		$params["organizations"] = Organization::getWhere( $where );
   		$params["people"] = Person::getWhere( $where );
       $params["projects"] = Project::getWhere( $where );
-  		$controller->render( "../default/directory", $params );
+      $params["type"] = City::CONTROLLER;
+      $params["city"] = $city;
+
+      $page = "../default/directory";
+        if( isset($_GET[ "tpl" ]) )
+          $page = "../default/".$_GET[ "tpl" ];
+        if(Yii::app()->request->isAjaxRequest){
+            echo $controller->renderPartial($page,$params,true);
+        } else {
+            $controller->render($page,$params);
+        }
     }
 }

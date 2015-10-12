@@ -42,14 +42,16 @@ class IndexAction extends CAction
             $controller->title = $project["name"]."'s Timeline";
             $controller->subTitle = "Every Project is story to be told.";
             $controller->pageTitle = "Communecter - ".$controller->title;
-        } else if( $type == Person::COLLECTION ) {
+        } 
+        else if( $type == Person::COLLECTION ) {
             $controller->toolbarMBZ = array("<a href='".Yii::app()->createUrl("/".$controller->module->id."/person/dashboard/id/".$id)."'><i class='fa fa-user'></i>Person</a>");
             $person = Person::getById($id);
             $params["person"] = $person; 
             $controller->title = $person["name"]."'s Timeline";
             $controller->subTitle = "Everyone has story to tell.";
             $controller->pageTitle = "Communecter - ".$controller->title;
-        } else if( $type == Organization::COLLECTION ) {
+        } 
+        else if( $type == Organization::COLLECTION ) {
             $controller->toolbarMBZ = array("<a href='".Yii::app()->createUrl("/".$controller->module->id."/organization/dashboard/id/".$id)."'><i class='fa fa-group'></i>Organization</a>");
             $organization = Organization::getById($id);
             $params["organization"] = $organization; 
