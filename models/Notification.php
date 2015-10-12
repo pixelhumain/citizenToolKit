@@ -201,7 +201,7 @@ class Notification{
 	It will appear for person or organization
 	// => advanced notification to add if one user wants to be notified for all news projects in certain field (Tags)
 	*/
-	public static function createdProject($authorType, $authorId, $projectId, $projectName, $codeInsee,$tags) 
+	public static function createdProject($authorType, $authorId, $projectId, $projectName, $geo,$tags) 
 	{
 	    $asParam = array(
 	    	"type" => "Creation of project", 
@@ -214,8 +214,35 @@ class Notification{
 	            "type" => Project::COLLECTION,
 	            "id"   => $projectId
             ),
-            "codeInse" => $codeInsee,
+            "geo" => $geo,
             "tags" => $tags,
+        );
+	    $stream = ActStr::buildEntry($asParam);
+
+	    //$actionMsg = ($actionType == ActStr::VERB_INVITE ) ? " invited you" : " is following you";
+	    ActivityStream::addEntry($stream);
+	    //TODO mail::following
+	    //add a link to follow back easily
+	}
+	public static function createdEvent($targetType, $targetId, $eventId, $eventName, $geo, $tags, $authorId) 
+	{
+	    $asParam = array(
+	    	"type" => "Creation of Event", 
+            "verb" => ActStr::VERB_CREATE,
+            "actor"=>array(
+	            "type" => Person::COLLECTION,
+            	"id"   => $authorId
+            ),
+            "object"=>array(
+	            "type" => Event::COLLECTION,
+	            "id"   => $eventId
+            ),
+            "target" => array(
+	            "type" => $targetType,
+	            "id" => $targetId
+            ),
+            "geo" => $geo,
+            "tags" => array($tags),
         );
 	    $stream = ActStr::buildEntry($asParam);
 

@@ -186,7 +186,7 @@ class Authorisation {
      * @return array List of EventId (String) the user is admin of
      */
     public static function listEventsIamAdminOf($userId) {
-        $eventList = array();
+        $eventListFinal = array();
 
         //event i'am admin 
         $where = array("links.attendees.".$userId.".isAdmin" => true);
@@ -206,9 +206,9 @@ class Authorisation {
         	$profil = Document::getLastImageByKey($key, PHType::TYPE_EVENTS, Document::IMG_PROFIL);
         	if($profil!="")
         		$value['imagePath']=$profil;
+        	$eventListFinal[$key] = $value;
         }
-
-        return $eventList;
+        return $eventListFinal;
     }
     
     //**************************************************************

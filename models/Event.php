@@ -8,6 +8,7 @@ class Event {
 	//From Post/Form name to database field name
 	private static $dataBinding = array(
 	    "name" => array("name" => "name", "rules" => array("required")),
+	    "type" => array("name" => "type"),
 	    "streetAddress" => array("name" => "address.streetAddress"),
 	    "postalCode" => array("name" => "address.postalCode"),
 	    "city" => array("name" => "address.codeInsee"),
@@ -212,7 +213,8 @@ class Event {
 	    Link::attendee($newEvent["_id"], $params['userId'], true);
 
 	    Link::addOrganizer($params["organizerId"],$params["organizerType"], $newEvent["_id"], $params['userId']);
-
+		
+		Notification::createdEvent($params["organizerType"], $params["organizerId"], $newEvent["_id"], $newEvent["name"],$newEvent["geo"],$newEvent["type"], $params['userId']);
 	    //send validation mail
 	    //TODO : make emails as cron events
 	    /*$message = new YiiMailMessage; 
@@ -314,13 +316,16 @@ class Event {
 	 */
 	public static function listEventAttending($userId){
 		$where = array("links.attendees.".$userId => array('$exists' => true));
+		$listEventAttending= array();
 		$eventsAttending = PHDB::find(PHType::TYPE_EVENTS, $where);
 		foreach ($eventsAttending as $key => $value) {
         	$profil = Document::getLastImageByKey($key, PHType::TYPE_EVENTS, Document::IMG_PROFIL);
-        	if($profil!="")
+        	if(strcmp($profil, "")!= 0){
         		$value['imagePath']=$profil;
+        	}
+        	$listEventAttending[$key] = $value;
         }
-        return $eventsAttending;
+        return $listEventAttending;
 	}
 
 

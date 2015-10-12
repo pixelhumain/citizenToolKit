@@ -15,7 +15,7 @@ class Person {
 	    "streetAddress" => array("name" => "address.streetAddress"),
 	    "postalCode" => array("name" => "address.postalCode"),
 	    "city" => array("name" => "address.codeInsee"),
-	    "addressLocality" => array("name" => "address.addressLocality"),
+	    "addressLocality" => array("name" => "address.addressLocality"), 
 	    "addressCountry" => array("name" => "address.addressCountry"),
 	    "telephone" => array("name" => "telephone"),
 	    "tags" => array("name" => "tags"),
@@ -269,7 +269,22 @@ class Person {
 		  	try {
 		  		//Format adress 
 		  		$newPerson["address"] = SIG::getAdressSchemaLikeByCodeInsee($person["city"]);
-		  		$newPerson["geo"] = SIG::getGeoPositionByInseeCode($person["city"]);
+
+		  		//throw new CTKException(Yii::t("person","Problem inserting the new person : unknown city"));
+		  		error_log(json_encode($person));
+				if(!empty($person['geoPosLatitude']) && !empty($person["geoPosLongitude"])){
+					$newPerson["geo"] = array("@type"=>"GeoCoordinates",
+													"latitude" => $person['geoPosLatitude'],
+													"longitude" => $person['geoPosLongitude']);
+
+					$newPerson["geoPosition"] = array("type"=>"point",
+															"coordinates" =>
+															array($person['geoPosLatitude'],
+													 	  		  $person['geoPosLongitude'])
+													 	  	);
+					//$newPerson["geo"] = empty($organization['public']) ? "" : $organization['public'];
+				}
+				$newPerson["geo"] = !empty($newPerson["geo"]) ? $newPerson["geo"] : SIG::getGeoPositionByInseeCode($person["city"]);
 		  	} catch (CTKException $e) {
 		  		throw new CTKException(Yii::t("person","Problem inserting the new person : unknown city"));
 		  	}
@@ -406,7 +421,8 @@ class Person {
 			{
 				$insee = $personFieldValue["codeInsee"];
 				$address = SIG::getAdressSchemaLikeByCodeInsee($insee);
-				$set = array("address" => $address, "geo" => SIG::getGeoPositionByInseeCode($insee));
+				$geo = $organizationFieldValue["geo"] ? $organizationFieldValue["geo"] : SIG::getGeoPositionByInseeCode($insee);
+				$set = array("address" => $address, "geo" => $geo);
 			} else 
 				throw new CTKException("Error updating the Person : address is not well formated !");			
 
