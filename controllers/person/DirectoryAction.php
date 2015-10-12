@@ -113,7 +113,8 @@ class DirectoryAction extends CAction
       $params["projects"] = $projects;
       $params["events"] = $events;
       $params["people"] = $people;
-
+      $params["type"] = Person::CONTROLLER;
+      $params["person"] = $person;
 
 		  $page = "../default/directory";
       if( isset($_GET[ "tpl" ]) )
