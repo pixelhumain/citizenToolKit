@@ -16,7 +16,12 @@ class News {
 	}
 
 	public static function getWhereSortLimit($params,$sort,$limit=1) {
-	  	return PHDB::findAndSort( self::COLLECTION,$params,$sort,$limit);
+	  	$res = PHDB::findAndSort( self::COLLECTION,$params,$sort,$limit);
+
+	  	foreach ($res as $key => $news) {
+	  		$res[$key]["author"] = Person::getById($news["author"]);
+	  	}
+	  	return $res;
 	}
 	
 	public static function save($params)
