@@ -33,15 +33,6 @@ class DetailAction extends CAction
         $controller->subTitle = (isset($person["description"])) ? $person["description"] : "";
         $controller->pageTitle = ucfirst($controller->module->id)." - Informations publiques de ".$controller->title;
 
-        //$controller->pageTitle = "Citoyens ".$controller->title." - ".$controller->subTitle;
-        $controller->toolbarMBZ =array();
-        if(isset($person["_id"]) && isset(Yii::app()->session["userId"]) && $person["_id"] != Yii::app()->session["userId"]){
-            if(isset($person["_id"]) && isset(Yii::app()->session["userId"]) && Link::isConnected( Yii::app()->session['userId'] , Person::COLLECTION , (string)$person["_id"] , Person::COLLECTION ))
-                array_push($controller->toolbarMBZ, "<li id='linkBtns'><a href='javascript:;' class='unfollowBtn text-red tooltips' data-name=\"".$person["name"]."\" data-id='".$person["_id"]."' data-type='".Person::COLLECTION."' data-ownerlink='".link::person2person."' data-placement='top' data-original-title='Remove from my contact' ><i class='disconnectBtnIcon fa fa-unlink'></i>UNFOLLOW</a></li>" );
-            else
-                array_push($controller->toolbarMBZ, "<li id='linkBtns'><a href='javascript:;' class='followBtn tooltips ' id='addKnowsRelation' data-id='".$person["_id"]."' data-ownerlink='".link::person2person."' data-placement='top' data-original-title='I know this person' ><i class=' connectBtnIcon fa fa-link '></i>FOLLOW</a></li>");
-        }
-        
         //Get Projects
         $projects = array();
         if(isset($person["links"]["projects"])){
@@ -126,7 +117,8 @@ class DetailAction extends CAction
         $params["projects"] = $projects;
         $params["events"] = $cleanEvents;
         $params["people"] = $people;
-
+        $params["type"] = Person::CONTROLLER;
+        $params["person"] = $person;
         
 		$page = "detail";
 		if(Yii::app()->request->isAjaxRequest)
