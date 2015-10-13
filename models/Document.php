@@ -209,6 +209,35 @@ class Document {
 	}
 
 	/**
+	* get a list of images with a key depending on limit
+	* @param itemId is the id of the item that we want to get images
+	* @param itemType is the type of the item that we want to get images
+	* @param limit an array containing couple with the imagetype and the numbers of images wanted (see IMG_* for available type)
+	* @return return an array of type and urls of a document
+	*/
+	public static function getImagesByKey($itemId, $itemType, $limit) {
+		$imageUrl = "";
+		$res = array();
+
+		foreach ($limit as $key => $aLimit) {
+			$sort = array( 'created' => -1 );
+			$params = array("id"=> $itemId,
+						"type" => $itemType,
+						"contentKey" => new MongoRegex("/".$key."/i"));
+			$listImagesofType = PHDB::findAndSort( self::COLLECTION,$params, $sort, $aLimit);
+
+			$arrayOfImagesPath = array();
+			foreach ($listImagesofType as $id => $document) {
+	    		$imageUrl = Document::getDocumentUrl($document);
+	    		array_push($arrayOfImagesPath, $imageUrl);
+			}
+			$res[$key] = $arrayOfImagesPath;
+		}
+		
+		return $res;
+	}
+
+	/**
 	* get the last images with a key
 	* @param itemId is the id of the item that we want to get images
 	* @param itemType is the type of the item that we want to get images

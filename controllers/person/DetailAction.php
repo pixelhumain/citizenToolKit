@@ -19,8 +19,9 @@ class DetailAction extends CAction
 
         $person = Person::getPublicData($id);
         $contentKeyBase = "Yii::app()->controller->id.".".dashboard";
-        $limit = array(Document::IMG_PROFIL => 1, Document::IMG_MEDIA => 5);
-        $images = Document::getListDocumentsURLByContentKey((string)$person["_id"], $contentKeyBase, Document::DOC_TYPE_IMAGE, $limit);
+        
+        $limit = array(Document::IMG_PROFIL => 1);
+        $images = Document::getImagesByKey($id, Person::COLLECTION, $limit);
 
         $params = array( "person" => $person);
         $params['images'] = $images;
