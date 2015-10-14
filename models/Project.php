@@ -47,6 +47,9 @@ class Project {
 				$project["startDate"] = date('Y-m-d H:i:s',$yester2day);;
 			}
 		}
+		
+		$project = array_merge($project, Document::retrieveAllImagesUrl($id, self::COLLECTION));
+
 	  	return $project;
 	}
 
@@ -62,9 +65,9 @@ class Project {
 
 		$simpleProject["id"] = $id;
 		$simpleProject["name"] = @$project["name"];
-		$profil = Document::getLastImageByKey($id, self::COLLECTION, Document::IMG_PROFIL);
-		$simpleProject["profilImageUrl"] = $profil;
+		$simpleProject = array_merge($simpleProject, Document::retrieveAllImagesUrl($id, self::COLLECTION));
 		$simpleProject["address"] = empty($project["address"]) ? array("addressLocality" => "Unknown") : $project["address"];
+
 		return $simpleProject;
 	}
 	

@@ -66,6 +66,8 @@ class Event {
 				$event["startDate"] = date('Y-m-d H:i:s',$yester2day);;
 			}
 		}
+		$event = array_merge($event, Document::retrieveAllImagesUrl($id, self::COLLECTION));
+
 	  	return $event;
 	}
 
@@ -82,8 +84,7 @@ class Event {
 		$simpleEvent["id"] = $id;
 		$simpleEvent["name"] = @$event["name"];
 		$simpleEvent["type"] = @$event["type"];
-		$profil = Document::getLastImageByKey($id, self::COLLECTION, Document::IMG_PROFIL);
-		$simpleEvent["profilImageUrl"] = $profil;
+		$simpleEvent = array_merge($simpleEvent, Document::retrieveAllImagesUrl($id, self::COLLECTION));
 		
 		$simpleEvent["address"] = empty($event["address"]) ? array("addressLocality" => "Unknown") : $event["address"];
 		

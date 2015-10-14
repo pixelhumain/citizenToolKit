@@ -9,6 +9,7 @@ class ImagesUtils {
 	private $source_height;
 	private $source_type;
 	private $destImage;
+	private $dest_type;
 	private $dest_width;
 	private $dest_height;
 
@@ -28,8 +29,12 @@ class ImagesUtils {
 		        break;
 		    case IMAGETYPE_PNG:
 		        $this->srcImage = imagecreatefrompng($srcImage);
+		        $this->transformTransparencyToWhite();
+		        $this->srcImage = $this->destImage;
 		        break;
 		}
+		//By default the destination type is the same than the source type
+		$this->dest_type = $this->source_type;
 	}
 
     public function __destruct() {
@@ -48,10 +53,28 @@ class ImagesUtils {
 
 	public function save($destImagePath) {
 		//Save Image
-		imagejpeg($this->destImage, $destImagePath);
+		switch ($this->dest_type) {
+		    case IMAGETYPE_GIF:
+		        imagegif($this->destImage, $destImagePath);
+		        break;
+		    case IMAGETYPE_JPEG:
+		        imagejpeg($this->destImage, $destImagePath);
+		        break;
+		    case IMAGETYPE_PNG:
+		        imagepng($this->destImage, $destImagePath);
+		        break;
+		}
 	}
 
+	/**
+	 * Resize the image a newWidth and a newHeight
+	 * If the image is a png with transparency, the background will be filled with white color
+	 * @param int $newwidth 
+	 * @param int $newheight 
+	 * @return this
+	 */
 	public function resizeImage($newwidth, $newheight) {
+
 		$source_aspect_ratio = $this->source_width / $this->source_height;
 		$desired_aspect_ratio = $newwidth / $newheight;
 
@@ -84,6 +107,7 @@ class ImagesUtils {
 		$x0 = ($temp_width - $newwidth) / 2;
 		$y0 = ($temp_height - $newheight) / 2;
 		$desired_gdim = imagecreatetruecolor($newwidth, $newheight);
+
 		imagecopy(
 		    $desired_gdim,
 		    $temp_gdim,
@@ -100,6 +124,9 @@ class ImagesUtils {
 	}
 
 	public function createCircleImage($newwidth, $newheight) {
+		//There will be transparency around the circle so dest Type is png
+		$this->dest_type = IMAGETYPE_PNG;
+
 		$this->resizeImage($newwidth, $newheight);
 		$square = imagesx($this->destImage) < imagesy($this->destImage) ? imagesx($this->destImage) : imagesy($this->destImage);
 		$width = $square;
@@ -111,7 +138,8 @@ class ImagesUtils {
 	private function circleCrop($newwidth, $newheight) {
         //$this->reset();
        	$mask = imagecreatetruecolor($newwidth, $newheight);
-       	imageantialias($mask, true);
+       	imagealphablending($mask,false);
+		
         $maskTransparent = imagecolorallocate($mask, 255, 0, 255);
         imagecolortransparent($mask, $maskTransparent);
         imagefilledellipse($mask, $newwidth / 2, $newheight / 2, $newwidth, $newheight, $maskTransparent);
@@ -127,6 +155,9 @@ class ImagesUtils {
     }
 
 	public function createMarkerFromImage($srcEmptyMarker) {
+		//There will be transparency around the circle so dest Type is png
+		$this->dest_type = IMAGETYPE_PNG;
+
 		//Create a circle image
 		$this->createCircleImage(40, 40);
 
@@ -154,6 +185,13 @@ class ImagesUtils {
  		$this->destImage = $destination;
  		
 		return $this;
+	}
+
+	public function transformTransparencyToWhite() {
+		$this->destImage = imagecreatetruecolor($this->source_width, $this->source_height);
+		$white = imagecolorallocate($this->destImage,  255, 255, 255);
+		imagefilledrectangle($this->destImage, 0, 0, $this->source_width, $this->source_height, $white);
+		imagecopy($this->destImage, $this->srcImage, 0, 0, 0, 0, $this->source_width, $this->source_height);
 	}
 
 	private function _clone_img_resource($img) {
@@ -193,5 +231,7 @@ class ImagesUtils {
 
 	  return $clone;
 	}
+
+
 
 }
