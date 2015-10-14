@@ -95,7 +95,7 @@ class Person {
 	 * @param type $id : is the mongoId of the person
 	 * @return type
 	 */
-	public static function getById($id) {
+	public static function getById($id) { 
 	  	$person = PHDB::findOneById( self::COLLECTION ,$id );
 	  	
 	  	if (empty($person)) {
