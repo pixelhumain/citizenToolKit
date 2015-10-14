@@ -1,7 +1,7 @@
 <?php
 class ViewerAction extends CAction
 {
-    public function run($id, $type)
+    public function run($id, $type,$data=null)
     {
         $controller=$this->getController();
 
@@ -49,18 +49,21 @@ class ViewerAction extends CAction
 		        		}
 	        		}
         		}
-        		
         	}
         }
 
         $params = array('viewerMap' => $viewerMap);
         $params["typeMap"] = $type;
 
-        if(Yii::app()->request->isAjaxRequest)
-            $controller->renderPartial("viewer", $params);
+        if($data) 
+            Rest::json($viewerMap);
         else{
-            Yii::app()->theme  = "empty";
-            $controller->render("viewer", $params);
-        }            
+            if(Yii::app()->request->isAjaxRequest)
+                $controller->renderPartial($page, $params);
+            else{
+                Yii::app()->theme  = "empty";
+                $controller->render($page, $params);
+            }    
+        }        
     }
 }

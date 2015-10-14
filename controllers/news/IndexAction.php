@@ -36,32 +36,46 @@ class IndexAction extends CAction
 		$params = array();
 		$params["type"] = $type; 
         if( $type == Project::COLLECTION ) {
-            $controller->toolbarMBZ = array("<a href='".Yii::app()->createUrl("/".$controller->module->id."/project/dashboard/id/".$id)."'><i class='fa fa-lightbulb-o'></i>Project</a>");
             $project = Project::getById($id);
+            $onclick = "showAjaxPanel( '/project/detail/id/".$id."?isNotSV=1', 'PROJET DETAIL : ".$project["name"]."','lightbulb-o' )";
+	        $entry = array('tooltip' => "Back to Project Details",
+                            "iconClass"=>"fa fa-lightbulb-o",
+                            "href"=>"<a  class='tooltips  btn btn-default' href='#' onclick=\"".$onclick."\"");
+            Menu::add2MBZ($entry);
             $params["project"] = $project; 
             $controller->title = $project["name"]."'s Timeline";
             $controller->subTitle = "Every Project is story to be told.";
             $controller->pageTitle = "Communecter - ".$controller->title;
         } 
         else if( $type == Person::COLLECTION ) {
-            $controller->toolbarMBZ = array("<a href='".Yii::app()->createUrl("/".$controller->module->id."/person/dashboard/id/".$id)."'><i class='fa fa-user'></i>Person</a>");
             $person = Person::getById($id);
+            $onclick = "showAjaxPanel( '/person/detail/id/".$id."?isNotSV=1', 'PERSON DETAIL : ".$person["name"]."','user' )";
+	        $entry = array('tooltip' => "Back to Person Details",
+                            "iconClass"=>"fa fa-user",
+                            "href"=>"<a  class='tooltips  btn btn-default' href='#' onclick=\"".$onclick."\"");
+            
             $params["person"] = $person; 
             $controller->title = $person["name"]."'s Timeline";
             $controller->subTitle = "Everyone has story to tell.";
             $controller->pageTitle = "Communecter - ".$controller->title;
         } 
         else if( $type == Organization::COLLECTION ) {
-            $controller->toolbarMBZ = array("<a href='".Yii::app()->createUrl("/".$controller->module->id."/organization/dashboard/id/".$id)."'><i class='fa fa-group'></i>Organization</a>");
             $organization = Organization::getById($id);
+            $onclick = "showAjaxPanel( '/organization/detail/id/".$id."?isNotSV=1', 'ORGANIZATION DETAIL : ".$organization["name"]."','group' )";
+	        $entry = array('tooltip' => "Back to Organization Details",
+                            "iconClass"=>"fa fa-group",
+                            "href"=>"<a  class='tooltips  btn btn-default' href='#' onclick=\"".$onclick."\"");
             $params["organization"] = $organization; 
             $controller->title = $organization["name"]."'s Timeline";
             $controller->subTitle = "Every Organization has story to tell.";
             $controller->pageTitle = "Communecter - ".$controller->title;
         }
         else if( $type == Event::COLLECTION ) {
-            $controller->toolbarMBZ = array("<a href='".Yii::app()->createUrl("/".$controller->module->id."/event/dashboard/id/".$id)."'><i class='fa fa-group'></i>Event</a>");
             $event = Event::getById($id);
+            $onclick = "showAjaxPanel( '/organization/detail/id/".$id."?isNotSV=1', 'EVENT DETAIL : ".$event["name"]."','calendar' )";
+	        $entry = array('tooltip' => "Back to Event Details",
+                            "iconClass"=>"fa fa-calendar",
+                            "href"=>"<a  class='tooltips  btn btn-default' href='#' onclick=\"".$onclick."\"");
             $params["event"] = $event; 
             $controller->title = $event["name"]."'s Timeline";
             $controller->subTitle = "Every Event has story to tell.";
