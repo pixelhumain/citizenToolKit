@@ -34,6 +34,14 @@ class IndexAction extends CAction
 		}
         //mongo search cmd : db.news.find({created:{'$exists':1}})	
 		$params = array();
+		if (!isset($id)){
+			if(@$_GET["id"])
+				$id=$_GET["id"];
+			else 
+				$id = Yii::app() -> session["userId"] ;
+		}	
+		if(!@$type)
+			$type= Person::COLLECTION;
 		$params["type"] = $type; 
         if( $type == Project::COLLECTION ) {
             $controller->toolbarMBZ = array("<a href='".Yii::app()->createUrl("/".$controller->module->id."/project/dashboard/id/".$id)."'><i class='fa fa-lightbulb-o'></i>Project</a>");
@@ -119,11 +127,21 @@ class IndexAction extends CAction
 					$news[$key]=$newsObject;
 				}
 			}
+			// GET EVENT FOR PERSON
 			$paramEvent = array("verb" => ActStr::VERB_CREATE, "object.objectType" => Event::COLLECTION,"actor.objectType" => $type, "actor.id" => $id);
 			$newsEvent=ActivityStream::getActivtyForObjectId($paramEvent);
 			if(isset($newsEvent)){
 				foreach ($newsEvent as $key => $data){
 					$newsObject=NewsTranslator::convertToNews($data,NewsTranslator::NEWS_CREATE_EVENT);
+					$news[$key]=$newsObject;
+				}
+			}
+			// GET ORGANIZATION FOR PERSON
+			$paramOrga = array("verb" => ActStr::VERB_CREATE, "object.objectType" => Organization::COLLECTION,"actor.id" => $id, "actor.objectType" => Person::COLLECTION);
+			$newsOrga=ActivityStream::getActivtyForObjectId($paramOrga);
+			if(isset($newsOrga)){
+				foreach ($newsOrga as $key => $data){
+					$newsObject=NewsTranslator::convertToNews($data,NewsTranslator::NEWS_CREATE_ORGANIZATION);
 					$news[$key]=$newsObject;
 				}
 			}
