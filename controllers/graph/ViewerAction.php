@@ -36,6 +36,7 @@ class ViewerAction extends CAction
 	        			array_push($viewerMap[Event::COLLECTION], $obj);
 	        		}else if (strcmp($key, "projects") == 0){
 	        			$obj = Project::getById($k);
+                $obj["type"] = "projects";
 	        			array_push($viewerMap[Project::COLLECTION], $obj);
 	        		}else if(strcmp($key, "members")== 0){
 	        			if(isset($v["type"])){
@@ -49,7 +50,7 @@ class ViewerAction extends CAction
 		        		}
 	        		}
         		}
-        		
+
         	}
         }
 
@@ -61,6 +62,6 @@ class ViewerAction extends CAction
         else{
             Yii::app()->theme  = "empty";
             $controller->render("viewer", $params);
-        }            
+        }
     }
 }
