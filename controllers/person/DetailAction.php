@@ -105,10 +105,10 @@ class DetailAction extends CAction
             uasort($people, array($this, 'comparePeople'));
         }
 
-      $cleanEvents = array();
-      foreach($events as $key => $event){
-        array_push($cleanEvents, $event);
-      }
+        $cleanEvents = array();
+        foreach($events as $key => $event){
+            array_push($cleanEvents, $event);
+        }
       //var_dump($cleanEvents); die();
         $params["countries"] = OpenData::getCountriesList();
         $params["listCodeOrga"] = Lists::get(array("organisationTypes"));
@@ -117,8 +117,7 @@ class DetailAction extends CAction
         $params["projects"] = $projects;
         $params["events"] = $cleanEvents;
         $params["people"] = $people;
-        $params["type"] = Person::CONTROLLER;
-        $params["person"] = $person;
+        
         
 		$page = "detail";
 		if(Yii::app()->request->isAjaxRequest)
