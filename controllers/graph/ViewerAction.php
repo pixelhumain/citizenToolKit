@@ -1,7 +1,7 @@
 <?php
 class ViewerAction extends CAction
 {
-    public function run($id, $type)
+    public function run($id, $type,$data=null)
     {
         $controller=$this->getController();
 
@@ -36,6 +36,7 @@ class ViewerAction extends CAction
 	        			array_push($viewerMap[Event::COLLECTION], $obj);
 	        		}else if (strcmp($key, "projects") == 0){
 	        			$obj = Project::getById($k);
+                $obj["type"] = "projects";
 	        			array_push($viewerMap[Project::COLLECTION], $obj);
 	        		}else if(strcmp($key, "members")== 0){
 	        			if(isset($v["type"])){
@@ -49,18 +50,21 @@ class ViewerAction extends CAction
 		        		}
 	        		}
         		}
-        		
         	}
         }
 
         $params = array('viewerMap' => $viewerMap);
         $params["typeMap"] = $type;
 
-        if(Yii::app()->request->isAjaxRequest)
-            $controller->renderPartial("viewer", $params);
+        if($data)
+            Rest::json($viewerMap);
         else{
-            Yii::app()->theme  = "empty";
-            $controller->render("viewer", $params);
-        }            
+            if(Yii::app()->request->isAjaxRequest)
+                $controller->renderPartial('viewer', $params);
+            else{
+                Yii::app()->theme  = "empty";
+                $controller->render('viewer', $params);
+            }
+        }
     }
 }
