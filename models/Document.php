@@ -378,7 +378,8 @@ class Document {
 		} else {
 			if ($generatedImageType == self::GENERATED_MARKER) {
 				$markerDefaultName = str_replace("empty", "default", self::getEmptyMarkerFileName($type, $subType));
-				$res = "/communecter/assets/images/sig/icons_carto/".$markerDefaultName;
+				//$res = "/communecter/assets/images/sig/markers/icons_carto/".$markerDefaultName;
+				$res = "/images/sig/markers/".$markerDefaultName;
 			} else {
 				$res = "";
 			}
