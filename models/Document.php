@@ -379,7 +379,9 @@ class Document {
 			if ($generatedImageType == self::GENERATED_MARKER) {
 				$markerDefaultName = str_replace("empty", "default", self::getEmptyMarkerFileName($type, $subType));
 				//$res = "/communecter/assets/images/sig/markers/icons_carto/".$markerDefaultName;
-				$res = "/images/sig/markers/".$markerDefaultName;
+				//remove the "/ph/" on the assersUrl if there
+				$assetsUrl = str_replace(Yii::app()->homeUrl, "", Yii::app()->controller->module->assetsUrl);
+				$res = "/".$assetsUrl."/images/sig/markers/icons_carto/".$markerDefaultName;
 			} else {
 				$res = "";
 			}
