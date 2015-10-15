@@ -48,7 +48,7 @@ class Project {
 			}
 		}
 		
-		$project = array_merge($project, Document::retrieveAllImagesUrl($id, self::COLLECTION));
+		//$project = array_merge($project, Document::retrieveAllImagesUrl($id, self::COLLECTION));
 
 	  	return $project;
 	}
