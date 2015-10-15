@@ -19,8 +19,8 @@ class NewsTranslator {
 			}
 			$newsObject= array ("_id" => $object["_id"],
 								"name" => "New contributor",
-								"text"=>$newContributor["name"]."</a> has been invited by ".$author["name"],
-								"author"=>$object["actor"]["id"],
+								"text"=>"has been invited by ",
+								"author"=>array("id" => $object["actor"]["id"]), 
 								//"date"=>$object["date"],
 								"created"=>$object["timestamp"],
 								"id"=>$object["target"]["id"],
@@ -34,7 +34,7 @@ class NewsTranslator {
 			$newsObject= array ("_id" => $object["_id"],
 								"name" => $need["name"],
 								"text"=>"has been created",
-								"author"=>$object["actor"]["id"],
+								"author"=>array("id" => $object["actor"]["id"]),
 								//"date"=>$object["date"],
 								"created"=>$object["timestamp"],
 								"id"=>$object["object"]["id"],
@@ -131,7 +131,7 @@ class NewsTranslator {
 			if (@$object["tags"]) $tags = $object["tags"]; else $tags="";
 			$newsObject= array ("_id" => $object["_id"],
 								"name" => $orga["name"],
-								"text"=>"has been created",
+								"text"=>trim(preg_replace('/<[^>]*>/', ' ',(substr($orga["description"],0 ,100 )))),
 								"author"=> array(
 									"id" => $object["actor"]["id"],
 									"name" => $author["name"],

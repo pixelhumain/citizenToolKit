@@ -123,7 +123,6 @@ class IndexAction extends CAction
 			}
 			$paramEvent = array("verb" => ActStr::VERB_CREATE, "object.objectType" => Event::COLLECTION,"target.objectType" => $type, "target.id" => $id);
 			$newsEvent=ActivityStream::getActivtyForObjectId($paramEvent);
-						print_r($newsEvent);
 			if(isset($newsEvent)){
 				foreach ($newsEvent as $key => $data){
 					$newsObject=NewsTranslator::convertToNews($data,NewsTranslator::NEWS_CREATE_EVENT);
@@ -185,6 +184,7 @@ class IndexAction extends CAction
 
 		$params["news"] = $news; 
 		$params["userCP"] = Yii::app()->session['userCP'];
+								//print_r($params["news"]);
 		if(Yii::app()->request->isAjaxRequest)
 	        echo $controller->renderPartial("index" , $params ,true);
 	    else
