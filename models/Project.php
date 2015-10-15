@@ -47,8 +47,9 @@ class Project {
 				$project["startDate"] = date('Y-m-d H:i:s',$yester2day);;
 			}
 		}
-		
-		$project = array_merge($project, Document::retrieveAllImagesUrl($id, self::COLLECTION));
+		if (!empty($project)) {
+			$project = array_merge($project, Document::retrieveAllImagesUrl($id, self::COLLECTION));
+		}
 
 	  	return $project;
 	}
