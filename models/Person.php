@@ -106,8 +106,7 @@ class Person {
 				date_default_timezone_set('UTC');
 				$person["birthDate"] = date('Y-m-d H:i:s', $person["birthDate"]->sec);
 			}
-			$profil = Document::getLastImageByKey($id, self::COLLECTION, Document::IMG_PROFIL);
-			$person["profilImageUrl"] = $profil;
+			$person = array_merge($person, Document::retrieveAllImagesUrl($id, self::COLLECTION));
         }
 
 	  	return $person;
@@ -127,9 +126,9 @@ class Person {
 		$simplePerson["name"] = @$person["name"];
 		$simplePerson["email"] = @$person["email"];
 		$simplePerson["pending"] = @$person["pending"];
-		$profil = Document::getLastImageByKey($id, self::COLLECTION, Document::IMG_PROFIL);
-		$simplePerson["profilImageUrl"] = $profil;
-		
+		//images
+		$simplePerson = array_merge($simplePerson, Document::retrieveAllImagesUrl($id, self::COLLECTION));
+
 		$simplePerson["address"] = empty($person["address"]) ? array("addressLocality" => "Unknown") : $person["address"];
 		
 		return $simplePerson;

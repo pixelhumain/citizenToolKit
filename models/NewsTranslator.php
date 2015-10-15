@@ -101,7 +101,7 @@ class NewsTranslator {
 			if (@$object["tags"]) $tags=$object["tags"]; else $tags="";
 			$newsObject= array ("_id" => $object["_id"],
 								"name" => $event["name"],
-								"text"=> substr($event["description"],0 ,100 ),
+								"text"=> substr(isset($event["description"]) ? $event["description"] : "",0 ,100 ),
 								"author"=> array(
 									"id" => $object["actor"]["id"],
 									"name" => $author["name"],

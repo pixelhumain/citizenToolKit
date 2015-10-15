@@ -5,15 +5,21 @@ class Document {
 
 	const IMG_BANNIERE 			= "banniere";
 	const IMG_PROFIL 			= "profil";
-	const IMG_PROFIL_RESIZED 	= "profil-resized";
-	const IMG_PROFIL_MARKER 	= "profil-marker";
 	const IMG_LOGO 				= "logo";
 	const IMG_SLIDER 			= "slider";
 	const IMG_MEDIA 			= "media";
+	const IMG_PROFIL_RESIZED 	= "profil-resized";
+	const IMG_PROFIL_MARKER 	= "profil-marker";
 
-	const CATEGORY_PLAQUETTE = "Plaquette";
+	const CATEGORY_PLAQUETTE 	= "Plaquette";
 
-	const DOC_TYPE_IMAGE = "image";
+	const DOC_TYPE_IMAGE 		= "image";
+
+	const GENERATED_IMAGES_FOLDER 		= "thumb";
+	const FILENAME_PROFIL_RESIZED 	  	= "profil-resized.png";
+	const FILENAME_PROFIL_MARKER 	  	= "profil-marker.png";
+	const GENERATED_THUMB_PROFIL 	  	= "thumb-profil";
+	const GENERATED_MARKER		 	  	= "marker";
 
 	/**
 	 * get an project By Id
@@ -85,7 +91,10 @@ class Document {
 	    }
 
 	    PHDB::insert(self::COLLECTION,$new);
-	    //Link::connect($id, $type, $new["_id"], PHType::TYPE_PROJECTS, $id, "projects" );
+	    //Generate image profil if necessary
+	    if (substr_count(@$new["contentKey"], self::IMG_PROFIL)) {
+	    	self::generateProfilImages($new);
+	    }
 	    return array("result"=>true, "msg"=>Yii::t('document','Document saved successfully',null,Yii::app()->controller->module->id), "id"=>$new["_id"]);	
 	}
 
@@ -209,6 +218,35 @@ class Document {
 	}
 
 	/**
+	* get a list of images with a key depending on limit
+	* @param itemId is the id of the item that we want to get images
+	* @param itemType is the type of the item that we want to get images
+	* @param limit an array containing couple with the imagetype and the numbers of images wanted (see IMG_* for available type)
+	* @return return an array of type and urls of a document
+	*/
+	public static function getImagesByKey($itemId, $itemType, $limit) {
+		$imageUrl = "";
+		$res = array();
+
+		foreach ($limit as $key => $aLimit) {
+			$sort = array( 'created' => -1 );
+			$params = array("id"=> $itemId,
+						"type" => $itemType,
+						"contentKey" => new MongoRegex("/".$key."/i"));
+			$listImagesofType = PHDB::findAndSort( self::COLLECTION,$params, $sort, $aLimit);
+
+			$arrayOfImagesPath = array();
+			foreach ($listImagesofType as $id => $document) {
+	    		$imageUrl = Document::getDocumentUrl($document);
+	    		array_push($arrayOfImagesPath, $imageUrl);
+			}
+			$res[$key] = $arrayOfImagesPath;
+		}
+		
+		return $res;
+	}
+
+	/**
 	* get the last images with a key
 	* @param itemId is the id of the item that we want to get images
 	* @param itemType is the type of the item that we want to get images
@@ -260,8 +298,142 @@ class Document {
     }
 
     public static function getDocumentUrl($document){
-    	return "/".Yii::app()->params['uploadUrl'].$document["moduleId"]."/".$document["folder"]."/".$document["name"];
+    	return self::getDocumentFolderUrl($document)."/".$document["name"];
     }
+
+    public static function getDocumentFolderUrl($document){
+    	return "/".Yii::app()->params['uploadUrl'].$document["moduleId"]."/".$document["folder"]."/";
+    }
+
+    public static function getDocumentPath($document){
+    	return self::getDocumentFolderPath($document).$document["name"];
+    }
+
+    public static function getDocumentFolderPath($document){
+    	return Yii::app()->params['uploadDir'].$document["moduleId"]."/".$document["folder"]."/";
+    }
+
+    public static function generateProfilImages($document) {
+    	$dir = $document["moduleId"];
+    	$folder = $document["folder"];
+
+		//The images will be stored in the /uploadDir/moduleId/ownerType/ownerId/thumb (ex : /upload/communecter/citoyen/1242354235435/thumb)
+		$upload_dir = Yii::app()->params['uploadDir'].$dir.'/'.$folder.'/'.self::GENERATED_IMAGES_FOLDER;
+        if(file_exists ( $upload_dir )) {
+            CFileHelper::removeDirectory($upload_dir."bck");
+            rename($upload_dir, $upload_dir."bck");
+        }
+        mkdir($upload_dir, 0775);
+        
+     	$imageUtils = new ImagesUtils(self::getDocumentPath($document));
+    	$destPathThumb = $upload_dir."/".self::FILENAME_PROFIL_RESIZED;
+    	$imageUtils->resizeImage(50,50)->save($destPathThumb);
+		
+		$destPathMarker = $upload_dir."/".self::FILENAME_PROFIL_MARKER;
+    	$markerFileName = self::getEmptyMarkerFileName(@$document["type"], @$document["subType"]);
+    	if ($markerFileName) {
+    		$srcEmptyMarker = self::getPathToMarkersAsset().$markerFileName;
+    		$imageUtils->createMarkerFromImage($srcEmptyMarker)->save($destPathMarker);
+    	}
+        
+        //Remove the bck directory
+        CFileHelper::removeDirectory($upload_dir."bck");
+	}
+
+	/**
+	 * Return the url of the generated image 
+	 * @param String $id Identifier of the object to retrieve the generated image
+	 * @param String $type Type of the object to retrieve the generated image
+	 * @param String $generatedImageType Type of generated image See GENERATED_*
+	 * @param String $subType used for organization (NGO, business)
+	 * @return String containing the URL of the generated image of the type 
+	 */
+	public static function getGeneratedImageUrl($id, $type, $generatedImageType, $subType = null) {
+		$sort = array( 'created' => -1 );
+		$params = array("id"=> $id,
+						"type" => $type,
+						"contentKey" => new MongoRegex("/".self::IMG_PROFIL."/i"));
+		$listDocuments = PHDB::findAndSort( self::COLLECTION,$params, $sort, 1);
+
+		$generatedImageExist = false;
+		if ($lastProfilImage = reset($listDocuments)) {
+			$documentPath = self::getDocumentFolderPath($lastProfilImage).'thumb/';
+			if ($generatedImageType == self::GENERATED_THUMB_PROFIL) {
+				$documentPath = $documentPath.self::FILENAME_PROFIL_RESIZED;
+			} else if ($generatedImageType == self::GENERATED_MARKER) {
+				$documentPath = $documentPath.self::FILENAME_PROFIL_MARKER;
+			}
+			$generatedImageExist = file_exists($documentPath);
+		}
+
+		//If there is an existing profil image
+		if ($generatedImageExist) {
+			$documentUrl = self::getDocumentFolderUrl($lastProfilImage).'thumb/';
+			if ($generatedImageType == self::GENERATED_THUMB_PROFIL) {
+				$res = $documentUrl.self::FILENAME_PROFIL_RESIZED;
+			} else if ($generatedImageType == self::GENERATED_MARKER) {
+				$res = $documentUrl.self::FILENAME_PROFIL_MARKER;
+			}
+		//Else the default image is returned
+		} else {
+			if ($generatedImageType == self::GENERATED_MARKER) {
+				$markerDefaultName = str_replace("empty", "default", self::getEmptyMarkerFileName($type, $subType));
+				//$res = "/communecter/assets/images/sig/markers/icons_carto/".$markerDefaultName;
+				$res = "/images/sig/markers/".$markerDefaultName;
+			} else {
+				$res = "";
+			}
+		}
+		return $res;
+	}
+
+	private static function getEmptyMarkerFileName($type, $subType = null) {
+		$markerFileName = "";
+
+		switch ($type) {
+			case Person::COLLECTION :
+				$markerFileName = "citizen-marker-empty.png";
+				break;
+			case Organization::COLLECTION :
+				if ($subType == "NGO") 
+					$markerFileName = "ngo-marker-empty.png";
+				else if ($subType == "LocalBusiness") 
+					$markerFileName = "business-marker-empty.png";
+				else 
+					$markerFileName = "ngo-marker-empty.png";
+				break;
+			case Event::COLLECTION :
+				$markerFileName = "event-marker-empty.png";
+				break;
+			case Project::COLLECTION :
+				$markerFileName = "project-marker-empty.png";
+				break;
+			case City::COLLECTION :
+				$markerFileName = "city-marker-empty.png";
+				break;
+		}
+
+		return $markerFileName;
+	}
+
+	private static function getPathToMarkersAsset() {
+		return dirname(__FILE__).DIRECTORY_SEPARATOR."..".DIRECTORY_SEPARATOR."..".
+				DIRECTORY_SEPARATOR."communecter".DIRECTORY_SEPARATOR."assets".DIRECTORY_SEPARATOR.
+				"images".DIRECTORY_SEPARATOR."sig".DIRECTORY_SEPARATOR."markers".DIRECTORY_SEPARATOR.
+				"icons_carto".DIRECTORY_SEPARATOR;
+	}
+
+	public static function retrieveAllImagesUrl($id, $type, $subType = null) {
+		$res = array();
+		//images
+		$profil = self::getLastImageByKey($id, $type, self::IMG_PROFIL);
+		$profilThumb = self::getGeneratedImageUrl($id, $type, self::GENERATED_THUMB_PROFIL);
+		$marker = self::getGeneratedImageUrl($id, $type, self::GENERATED_MARKER);
+		$res["profilImageUrl"] = $profil;
+		$res["profilThumbImageUrl"] = $profilThumb;
+		$res["profilMarkerImageUrl"] = $marker;
+		return $res;
+	}
 
 }
 ?>
