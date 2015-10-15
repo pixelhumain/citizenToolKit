@@ -11,31 +11,41 @@ class NewsTranslator {
 			$author=Person::getById($object["actor"]["id"]);
 			if($object["object"]["objectType"]==Person::COLLECTION){
 				$newContributor=Person::getById($object["object"]["id"]);
+				$contributorImage = Document::getLastImageByKey((string) $object["object"]["id"], Person::COLLECTION, Document::IMG_PROFIL);
 				$icon="fa-user";
 			}
 			else{
 				$newContributor=Organization::getById($object["object"]["id"]);
-				$icon="fa-users";
+				$contributorImage = Document::getLastImageByKey((string)$object["object"]["id"], Organization::COLLECTION, Document::IMG_PROFIL);
+				$icon="fa-group";
 			}
 			$newsObject= array ("_id" => $object["_id"],
 								"name" => "New contributor",
 								"text"=>"has been invited by ",
-								"author"=>array("id" => $object["actor"]["id"]), 
-								//"date"=>$object["date"],
+								"author"=> array(
+									"id" => (string)$object["object"]["id"],
+									"name" => $newContributor["name"],
+									"profilImageUrl" => $contributorImage
+								),
 								"created"=>$object["timestamp"],
-								"id"=>$object["target"]["id"],
-								"type"=>$object["target"]["objectType"],
+								"id"=>$object["object"]["id"],
+								"type"=>$object["object"]["objectType"],
 								"icon" => $icon
 							);
 			return $newsObject;
 		}
 		else if($useCase ==  self::NEWS_CREATE_NEED ){
 			$need=Need::getById($object["object"]["id"]);
+			$author=Person::getById($object["actor"]["id"]);
+			$authorImage = Document::getLastImageByKey((string) $object["actor"]["id"], Person::COLLECTION, Document::IMG_PROFIL);
 			$newsObject= array ("_id" => $object["_id"],
 								"name" => $need["name"],
-								"text"=>"has been created",
-								"author"=>array("id" => $object["actor"]["id"]),
-								//"date"=>$object["date"],
+								"text"=> isset($need["description"]) ? $need["description"] : "has been add to the project",
+								"author"=> array(
+									"id" => $object["actor"]["id"],
+									"name" => $author["name"],
+									"profilImageUrl" => $authorImage
+								),
 								"created"=>$object["timestamp"],
 								"id"=>$object["object"]["id"],
 								"type"=>$object["object"]["objectType"],

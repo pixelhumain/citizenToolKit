@@ -8,7 +8,7 @@ class IndexAction extends CAction
         $controller->title = "Timeline";
         $controller->subTitle = "NEWS comes from everywhere, and from anyone.";
         $controller->pageTitle = "Communecter - Timeline Globale";
-       
+
         if(!function_exists("array_msort")){
 			function array_msort($array, $cols)
 			{
@@ -52,7 +52,7 @@ class IndexAction extends CAction
 	        $entry = array('tooltip' => "Back to Project Details",
                             "iconClass"=>"fa fa-lightbulb-o",
                             "href"=>"<a  class='tooltips  btn btn-default' href='#' onclick=\"".$onclick."\"");
-            Menu::add2MBZ($entry);
+            //Menu::add2MBZ($entry);
             $params["project"] = $project; 
             $controller->title = $project["name"]."'s Timeline";
             $controller->subTitle = "Every Project is story to be told.";
@@ -76,6 +76,7 @@ class IndexAction extends CAction
 	        $entry = array('tooltip' => "Back to Organization Details",
                             "iconClass"=>"fa fa-group",
                             "href"=>"<a  class='tooltips  btn btn-default' href='#' onclick=\"".$onclick."\"");
+			//Menu::add2MBZ($entry);
             $params["organization"] = $organization; 
             $controller->title = $organization["name"]."'s Timeline";
             $controller->subTitle = "Every Organization has story to tell.";
