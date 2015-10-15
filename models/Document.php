@@ -380,7 +380,8 @@ class Document {
 				$markerDefaultName = str_replace("empty", "default", self::getEmptyMarkerFileName($type, $subType));
 				//$res = "/communecter/assets/images/sig/markers/icons_carto/".$markerDefaultName;
 				//remove the "/ph/" on the assersUrl if there
-				$assetsUrl = str_replace(Yii::app()->homeUrl, "", Yii::app()->controller->module->assetsUrl);
+				$homeUrlRegEx = "/".str_replace("/", "\/", Yii::app()->homeUrl)."/";
+				$assetsUrl = preg_replace($homeUrlRegEx, "", Yii::app()->controller->module->assetsUrl,1);
 				$res = "/".$assetsUrl."/images/sig/markers/icons_carto/".$markerDefaultName;
 			} else {
 				$res = "";
