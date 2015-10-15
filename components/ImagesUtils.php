@@ -166,7 +166,6 @@ class ImagesUtils {
 		$destination = imagecreatefrompng($srcEmptyMarker);
 		imagealphablending($destination,false);
 		imagesavealpha($destination, true);
-		imageantialias($destination, true);
 		
 		// On charge d'abord les images
 		// Les fonctions imagesx et imagesy renvoient la largeur et la hauteur d'une image
