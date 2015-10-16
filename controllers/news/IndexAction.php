@@ -188,6 +188,8 @@ class IndexAction extends CAction
 
 		$params["news"] = $news; 
 		$params["userCP"] = Yii::app()->session['userCP'];
+		$params["contextParentType"] = $type;
+		$params["contextParentId"] = $id;
 								//print_r($params["news"]);
 		if(Yii::app()->request->isAjaxRequest)
 	        echo $controller->renderPartial("index" , $params ,true);

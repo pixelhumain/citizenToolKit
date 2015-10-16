@@ -12,25 +12,30 @@ class NewsTranslator {
 			if($object["object"]["objectType"]==Person::COLLECTION){
 				$newContributor=Person::getById($object["object"]["id"]);
 				$contributorImage = Document::getLastImageByKey((string) $object["object"]["id"], Person::COLLECTION, Document::IMG_PROFIL);
-				$icon="fa-user";
 			}
 			else{
 				$newContributor=Organization::getById($object["object"]["id"]);
 				$contributorImage = Document::getLastImageByKey((string)$object["object"]["id"], Organization::COLLECTION, Document::IMG_PROFIL);
-				$icon="fa-group";
 			}
 			$newsObject= array ("_id" => $object["_id"],
-								"name" => "New contributor",
-								"text"=>"has been invited by ",
-								"author"=> array(
+								"name" => $newContributor["name"]." is a new contributor",
+								"text"=>"has joined the project",
+								"target"=> array(
 									"id" => (string)$object["object"]["id"],
 									"name" => $newContributor["name"],
+									"type" => Person::COLLECTION,
 									"profilImageUrl" => $contributorImage
 								),
+								"author"=> array(
+									"id" => (string)$object["actor"]["id"],
+									"type" => Person::COLLECTION,
+									"name" => $author["name"],
+								),
 								"created"=>$object["timestamp"],
-								"id"=>$object["object"]["id"],
+								"id"=>(string)$object["object"]["id"],
 								"type"=>$object["object"]["objectType"],
-								"icon" => $icon
+								"verb" => $object["verb"],
+								"icon" => "fa-users"
 							);
 			return $newsObject;
 		}
@@ -46,9 +51,16 @@ class NewsTranslator {
 									"name" => $author["name"],
 									"profilImageUrl" => $authorImage
 								),
+								"target" => array(
+									"id" => $object["target"]["id"],
+									"type" => $object["target"]["objectType"],
+								//	"name" => $target["name"],
+								//	"profilImageUrl" => $targetImage
+								),
 								"created"=>$object["timestamp"],
-								"id"=>$object["object"]["id"],
+								"id"=>(string)$object["object"]["id"],
 								"type"=>$object["object"]["objectType"],
+								"verb" => $object["verb"],
 								"icon" => "fa-cubes"
 							);
 			return $newsObject;	
@@ -86,6 +98,7 @@ class NewsTranslator {
 								"id"=>(string)$object["object"]["id"],
 								"type"=>$object["object"]["objectType"],
 								"imageBackground" => $image,
+								"verb" => $object["verb"],
 								"icon" => "fa-lightbulb-o"
 							);
 			return $newsObject;	
@@ -129,6 +142,7 @@ class NewsTranslator {
 								"id"=>(string) $object["object"]["id"],
 								"imageBackground" => $image,
 								"type"=>$object["object"]["objectType"],
+								"verb" => $object["verb"],
 								"icon" => "fa-calendar"
 							);
 			return $newsObject;	
@@ -152,6 +166,7 @@ class NewsTranslator {
 								"id"=>$object["object"]["id"],
 								"imageBackground" => $image,
 								"type"=>$object["object"]["objectType"],
+								"verb" => $object["verb"],
 								"icon" => "fa-group"
 							);
 			return $newsObject;	
