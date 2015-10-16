@@ -82,6 +82,15 @@ class SIG
 		
 	}
 
+	public static function getInseeByLatLng($lat, lng){
+		
+	}
+
+	public static function getCountryByLatLng($lat, lng){
+		
+	}
+
+
 	/**
 	 * Get the city by insee code. Can throw Exception if the city is unknown.
 	 * @param String $codeInsee the code insee of the city
