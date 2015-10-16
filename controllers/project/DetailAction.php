@@ -17,11 +17,8 @@ class DetailAction extends CAction
 	    $controller->title = (isset($project["name"])) ? $project["name"] : "";
 
 		$roomCount = PHDB::count(ActionRoom::COLLECTION, array("parentType"=>Project::COLLECTION , "parentId"=>$id));
-	    $controller->toolbarMBZ = array(
-	    	array('tooltip' => "TIMELINE : Project Activity","iconClass"=>"fa fa-rss","href"=>"<a  class='tooltips btn btn-default' href='".Yii::app()->createUrl("/".$controller->module->id."/news/index/type/projects/id/".$id)."'"),
-	    	array('tooltip' => "See Project Discussion", "badge"=>"<span class='notifications-count  badge badge-danger animated bounceIn'>".$roomCount."</span>","iconClass"=>"fa fa-comments-o","href"=>"<a class='tooltips btn btn-default' href='".Yii::app()->createUrl("/".$controller->module->id."/rooms/index/type/projects/id/".$id)."'")
-	    );
 	    
+	    Menu::project($project);
 	    $controller->subTitle = ( isset($project["description"])) ? ( ( strlen( $project["description"] ) > 120 ) ? substr($project["description"], 0, 120)."..." : $project["description"]) : "";
 	    $controller->pageTitle = "Communecter - Informations sur le projet ".$controller->title;
 	  	$organizations = array();
@@ -37,7 +34,7 @@ class DetailAction extends CAction
 	  	if(!empty($project)){
 	  		$params = array();
 	  		// Get people or orga who contribute to the project 
-	  		// Get image for each contributors
+	  		// Get image for each contributors																																																																																																																																																																																				
 	  		if(isset($project["links"])){
 	  			foreach ($project["links"]["contributors"] as $uid => $e) {
 	  				if($e["type"]== Organization::COLLECTION){
@@ -60,7 +57,7 @@ class DetailAction extends CAction
 								$citoyen["imagePath"]= $profil;
 	  						array_push($contributors, $citoyen);
 	  						if( $uid == Yii::app()->session['userId'] )
-                    			array_push($controller->toolbarMBZ, array('tooltip' => "Send a message to this Project","iconClass"=>"fa fa-envelope-o","href"=>"<a href='#' class='new-news tooltips btn btn-default' data-id='".$id."' data-type='".Project::COLLECTION."' data-name='".$project['name']."'") );
+	  							Menu::add2MBZ( array('tooltip' => "Send a message to this Project","iconClass"=>"fa fa-envelope-o","href"=>"<a href='#' class='new-news tooltips btn btn-default' data-id='".$id."' data-type='".Project::COLLECTION."' data-name='".$project['name']."'") );
 	  					}
 	  				}
 	  			}
@@ -96,7 +93,7 @@ class DetailAction extends CAction
 			$htmlFollowBtn = array('tooltip' => "stop contributing to this Project", "parent"=>"span","parentId"=>"linkBtns","iconClass"=>"disconnectBtnIcon fa fa-unlink","href"=>"<a href='javascript:;' class='disconnectBtn text-red tooltips btn btn-default' data-name='".$project["name"]."' data-id='".$project["_id"]."' data-type='".Project::COLLECTION."' data-member-id='".Yii::app()->session["userId"]."' data-ownerlink='".Link::person2projects."' data-targetlink='".Link::project2person."'");
 		else
 			$htmlFollowBtn = array('tooltip' => "I want to contribute to this Project", "parent"=>"span","parentId"=>"linkBtns","iconClass"=>"connectBtnIcon fa fa-unlink","href"=>"<a href='javascript:;' class='connectBtn tooltips btn btn-default' id='addKnowsRelation' data-ownerlink='".Link::person2projects."' data-targetlink='".Link::project2person."'");
-	  	array_push($controller->toolbarMBZ, $htmlFollowBtn);
+	  	Menu::add2MBZ($htmlFollowBtn);
 	  	//Gestion de l'admin - true or false
 	  	// First find if user session is directly link to project
 	  	// Second if not, find if user belong to an organization admin of the project
