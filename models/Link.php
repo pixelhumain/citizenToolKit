@@ -25,7 +25,8 @@ class Link {
      * @param type $userAdmin Boolean to set if the member is admin or not
 	 * @return result array with the result of the operation
 	 */ 
-    public static function addMember($memberOfId, $memberOfType, $memberId, $memberType, $userId, $userAdmin = false, $userRole = "") {
+    public static function addMember($memberOfId, $memberOfType, $memberId, $memberType, 
+                        $userId, $userAdmin = false, $userRole = "", $pendingAdmin=false) {
         
         //TODO SBAR => Change the boolean userAdmin to a role (admin, contributor, moderator...)
 
@@ -47,6 +48,10 @@ class Link {
             // Add an admin flag 
             $setArrayMembers["links.members.".$memberId.".isAdmin"] = $userAdmin;
             $setArrayMemberOf["links.memberOf.".$memberOfId.".isAdmin"] = $userAdmin;
+            if ($pendingAdmin) {
+                $setArrayMembers["links.members.".$memberId.".isAdmin.pending"] = true;
+                $setArrayMemberOf["links.memberOf.".$memberOfId.".isAdmin.pending"] = true;
+            }
         }
         if ($userRole != ""){
         	$setArrayMembers["links.members.".$memberId.".roles"] = $userRole;
@@ -67,6 +72,7 @@ class Link {
 
         return array("result"=>true, "msg"=>"The member has been added with success", "memberOfId"=>$memberOfId, "memberid"=>$memberId);
     }
+
 
     /**
      * Remove a member of an organization

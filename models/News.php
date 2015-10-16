@@ -16,7 +16,12 @@ class News {
 	}
 
 	public static function getWhereSortLimit($params,$sort,$limit=1) {
-	  	return PHDB::findAndSort( self::COLLECTION,$params,$sort,$limit);
+	  	$res = PHDB::findAndSort( self::COLLECTION,$params,$sort,$limit);
+
+	  	foreach ($res as $key => $news) {
+	  		$res[$key]["author"] = Person::getById($news["author"]);
+	  	}
+	  	return $res;
 	}
 	
 	public static function save($params)
@@ -27,8 +32,6 @@ class News {
 
 	 	if(empty($user))
 	 		throw new CTKException("You must be loggued in to add a news entry.");
-
-	 	
 
 	 	if( isset($_POST["name"]) && isset($_POST["text"]) )
 	 	{

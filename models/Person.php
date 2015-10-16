@@ -15,7 +15,7 @@ class Person {
 	    "streetAddress" => array("name" => "address.streetAddress"),
 	    "postalCode" => array("name" => "address.postalCode"),
 	    "city" => array("name" => "address.codeInsee"),
-	    "addressLocality" => array("name" => "address.addressLocality"),
+	    "addressLocality" => array("name" => "address.addressLocality"), 
 	    "addressCountry" => array("name" => "address.addressCountry"),
 	    "telephone" => array("name" => "telephone"),
 	    "tags" => array("name" => "tags"),
@@ -95,7 +95,7 @@ class Person {
 	 * @param type $id : is the mongoId of the person
 	 * @return type
 	 */
-	public static function getById($id) {
+	public static function getById($id) { 
 	  	$person = PHDB::findOneById( self::COLLECTION ,$id );
 	  	
 	  	if (empty($person)) {
@@ -106,8 +106,7 @@ class Person {
 				date_default_timezone_set('UTC');
 				$person["birthDate"] = date('Y-m-d H:i:s', $person["birthDate"]->sec);
 			}
-			$profil = Document::getLastImageByKey($id, self::COLLECTION, Document::IMG_PROFIL);
-			$person["profilImageUrl"] = $profil;
+			$person = array_merge($person, Document::retrieveAllImagesUrl($id, self::COLLECTION));
         }
 
 	  	return $person;
@@ -127,9 +126,9 @@ class Person {
 		$simplePerson["name"] = @$person["name"];
 		$simplePerson["email"] = @$person["email"];
 		$simplePerson["pending"] = @$person["pending"];
-		$profil = Document::getLastImageByKey($id, self::COLLECTION, Document::IMG_PROFIL);
-		$simplePerson["profilImageUrl"] = $profil;
-		
+		//images
+		$simplePerson = array_merge($simplePerson, Document::retrieveAllImagesUrl($id, self::COLLECTION));
+
 		$simplePerson["address"] = empty($person["address"]) ? array("addressLocality" => "Unknown") : $person["address"];
 		
 		return $simplePerson;
@@ -269,7 +268,22 @@ class Person {
 		  	try {
 		  		//Format adress 
 		  		$newPerson["address"] = SIG::getAdressSchemaLikeByCodeInsee($person["city"]);
-		  		$newPerson["geo"] = SIG::getGeoPositionByInseeCode($person["city"]);
+
+		  		//throw new CTKException(Yii::t("person","Problem inserting the new person : unknown city"));
+		  		error_log(json_encode($person));
+				if(!empty($person['geoPosLatitude']) && !empty($person["geoPosLongitude"])){
+					$newPerson["geo"] = array("@type"=>"GeoCoordinates",
+													"latitude" => $person['geoPosLatitude'],
+													"longitude" => $person['geoPosLongitude']);
+
+					$newPerson["geoPosition"] = array("type"=>"point",
+															"coordinates" =>
+															array($person['geoPosLatitude'],
+													 	  		  $person['geoPosLongitude'])
+													 	  	);
+					//$newPerson["geo"] = empty($organization['public']) ? "" : $organization['public'];
+				}
+				$newPerson["geo"] = !empty($newPerson["geo"]) ? $newPerson["geo"] : SIG::getGeoPositionByInseeCode($person["city"]);
 		  	} catch (CTKException $e) {
 		  		throw new CTKException(Yii::t("person","Problem inserting the new person : unknown city"));
 		  	}
@@ -406,7 +420,8 @@ class Person {
 			{
 				$insee = $personFieldValue["codeInsee"];
 				$address = SIG::getAdressSchemaLikeByCodeInsee($insee);
-				$set = array("address" => $address, "geo" => SIG::getGeoPositionByInseeCode($insee));
+				$geo = $organizationFieldValue["geo"] ? $organizationFieldValue["geo"] : SIG::getGeoPositionByInseeCode($insee);
+				$set = array("address" => $address, "geo" => $geo);
 			} else 
 				throw new CTKException("Error updating the Person : address is not well formated !");			
 

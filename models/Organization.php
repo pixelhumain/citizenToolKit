@@ -100,7 +100,7 @@ class Organization {
 	    //send Notification Email
 	    $creator = Person::getById($creatorId);
 	    //Mail::newOrganization($creator,$newOrganization);
-	                  
+	   Notification::createdOrganization($creatorId, $newOrganizationId, $newOrganization["name"], $newOrganization["geo"],$newOrganization["tags"]);             
 	    $newOrganization = Organization::getById($newOrganizationId);
 	    return array("result"=>true,
 		    			"msg"=>"Votre organisation est communectée.", 
@@ -121,6 +121,20 @@ class Organization {
 		$newOrganization["typeIntervention"] = empty($organization['typeIntervention']) ? "" : $organization['typeIntervention'];
 		$newOrganization["typeOfPublic"] = empty($organization['public']) ? "" : $organization['public'];
 
+		//error_log("latitude : ".$organization['geoPosLatitude']);
+		if(!empty($organization['geoPosLatitude']) && !empty($organization["geoPosLongitude"])){
+			$newOrganization["geo"] = array("@type"=>"GeoCoordinates",
+											"latitude" => $organization['geoPosLatitude'],
+											"longitude" => $organization['geoPosLongitude']);
+
+			$newOrganization["geoPosition"] = array("type"=>"point",
+													"coordinates" =>
+													array($organization['geoPosLatitude'],
+											 	  		  $organization['geoPosLongitude'])
+											 	  	);
+			//$newOrganization["geo"] = empty($organization['public']) ? "" : $organization['public'];
+		}
+		
 		return $newOrganization;
 	}
 
@@ -217,7 +231,11 @@ class Organization {
 				$insee = $organization['city'];
 				$address = SIG::getAdressSchemaLikeByCodeInsee($insee);
 				$newOrganization["address"] = $address;
-				$newOrganization["geo"] = SIG::getGeoPositionByInseeCode($insee);
+
+				if(empty($organization["geo"]))
+					$newOrganization["geo"] = SIG::getGeoPositionByInseeCode($insee);
+				else
+					$newOrganization["geo"] = $organization["geo"];
 			}
 		}
 				  
@@ -293,10 +311,34 @@ class Organization {
             //TODO Sylvain - Find a way to manage inconsistent data
             //throw new CommunecterException("The organization id ".$id." is unkown : contact your admin");
         } else {
-			$profil = Document::getLastImageByKey($id, self::COLLECTION, Document::IMG_PROFIL);
-			$organization["profilImageUrl"] = $profil;
+			$organization = array_merge($organization, Document::retrieveAllImagesUrl($id, self::COLLECTION));
         }	
 	  	return $organization;
+	}
+
+	/**
+	 * Retrieve a simple organization (id, name, profilImageUrl) by id from DB
+	 * @param String $id of the organization
+	 * @return array with data id, name, profilImageUrl, logoImageUrl
+	 */
+	public static function getSimpleOrganizationById($id) {
+
+		$simpleOrganization = array();
+		$orga = PHDB::findOneById( self::COLLECTION ,$id, array("id" => 1, "name" => 1, "type" => 1, "email" => 1, "address" => 1, "pending" => 1) );
+
+		$simpleOrganization["id"] = $id;
+		$simpleOrganization["name"] = @$orga["name"];
+		$simpleOrganization["type"] = @$orga["type"];
+		$simpleOrganization["email"] = @$orga["email"];
+		$simpleOrganization["pending"] = @$orga["pending"];
+		$simpleOrganization = array_merge($simpleOrganization, Document::retrieveAllImagesUrl($id, self::COLLECTION, @$orga["type"]));
+		
+		$logo = Document::getLastImageByKey($id, self::COLLECTION, Document::IMG_LOGO);
+		$simpleOrganization["logoImageUrl"] = $logo;
+		
+		$simpleOrganization["address"] = empty($orga["address"]) ? array("addressLocality" => "Unknown") : $orga["address"];
+		
+		return $simpleOrganization;
 	}
 
 	/**
@@ -551,7 +593,8 @@ class Organization {
 			if(!empty($organizationFieldValue["postalCode"]) && !empty($organizationFieldValue["codeInsee"])) {
 				$insee = $organizationFieldValue["codeInsee"];
 				$address = SIG::getAdressSchemaLikeByCodeInsee($insee);
-				$set = array("address" => $address, "geo" => SIG::getGeoPositionByInseeCode($insee));
+				if(empty($organizationFieldValue["geo"]))
+					$set = array("address" => $address, "geo" => SIG::getGeoPositionByInseeCode($insee));
 			} else {
 				throw new CTKException("Error updating the Organization : address is not well formated !");			
 			}
@@ -566,6 +609,33 @@ class Organization {
 	    return true;
 	 }
 
-	
+	public static function addPersonAsAdmin($idOrganization, $idPerson, $userId) {
+		$res = array("result" => true, "msg" => "You are now admin of the organization");
+
+		$organization = self::getById($idOrganization);
+		$pendingAdmin = Person::getSimpleUserById($idPerson);
+		//First case : The organization doesn't have an admin yet : the person is automatically added as admin
+		$usersAdmin = Authorisation::listOrganizationAdmins($idOrganization);
+		if ($userAdmin.count() == 0) {
+			Link::addMember($idOrganization, self::COLLECTION, $idPerson, Person::COLLECTION, $userId, true, "", false);
+		} else {
+			//Second case : there is already an admin (or few) 
+			// 1. Admin link will be added but pending
+			Link::addMember($idOrganization, self::COLLECTION, $idPerson, Person::COLLECTION, $userId, true, "", true);
+			// 2. Notification and email are sent to the admin(s)
+			foreach ($usersAdmin as $adminId) {
+				$currentAdmin = Person::getSimpleUserById($key);
+				array_push($listofAdminsEmail, $currentAdmin["email"]);
+			}
+			Mail::someoneDemandToBecomeAdmin($organization, $pendingAdmin, $listofAdminsEmail);
+			//Notification::
+			
+			// After : the 1rst existing Admin to take the decision will remove the "pending" to make a real admin
+		}
+
+		return $res;
+	}
+
+
 }
 ?>

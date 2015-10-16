@@ -203,12 +203,15 @@ class Comment {
 		//1. Retrieve average number of like on the comment tree
 		$c = Yii::app()->mongodb->selectCollection(self::COLLECTION);
 		$result = $c->aggregate( array(
-						'$group' => array(
-							'_id' => array("contextId" => $contextId, 'contextType' => $contextType ),
-							'avgVoteUp' => array('$avg' => '$voteUpCount'))));
+						array('$match' => array(
+							"contextId" => $contextId, "contextType" => "$contextType" )),
+						array('$group' => array(
+							'_id' => array("contextId" => '$contextId', 'contextType' => '$contextType' ),
+							'avgVoteUp' => array('$avg' => '$voteUpCount')))
+						));
 
 		if (@$result["ok"]) {
-			$avgVoteUp = $result["result"][0]["avgVoteUp"];
+			$avgVoteUp = @$result["result"][0]["avgVoteUp"];
 		} else {
 			throw new CTKException("Something went wrong retrieving the average vote up !");
 		}

@@ -6,7 +6,7 @@ class StatisticPopulationAction extends CAction
     {
     	if($optionData!=null)
         {   
-            $option = [];
+            $option = array();
             $exploseOptionData = explode('&', $optionData);
             foreach ($exploseOptionData as $key => $value) {
                 $param = explode("=", $value);
@@ -18,7 +18,7 @@ class StatisticPopulationAction extends CAction
 
         if($inseeCities!=null)
         {   
-            $cities = [];
+            $cities = array();
             $exploseCitiesData = explode('&', $inseeCities);
             foreach ($exploseCitiesData as $key => $value) {
                 $param = explode("=", $value);
@@ -33,7 +33,8 @@ class StatisticPopulationAction extends CAction
         $where = array("insee"=>$insee, $typeData => array( '$exists' => 1 ));
 
      	$fields = array($typeData);
-
+        $cityDataTest = array();
+        
      	if(isset($type) && strcmp($type, City::REGION)==0)
         {
             if($inseeCities != null)

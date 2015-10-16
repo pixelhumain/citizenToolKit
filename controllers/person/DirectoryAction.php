@@ -102,6 +102,9 @@ class DirectoryAction extends CAction
       if(isset($person["links"]["projects"])){
         foreach ($person["links"]["projects"] as $key => $value) {
           $project = Project::getPublicData($key);
+          $profil = Document::getLastImageByKey($key, Project::COLLECTION, Document::IMG_SLIDER);
+           if($profil !="")
+                $project["imagePath"]= $profil;
           array_push( $projects, $project );
         }
       }
@@ -110,7 +113,8 @@ class DirectoryAction extends CAction
       $params["projects"] = $projects;
       $params["events"] = $events;
       $params["people"] = $people;
-
+      $params["type"] = Person::CONTROLLER;
+      $params["person"] = $person;
 
 		  $page = "../default/directory";
       if( isset($_GET[ "tpl" ]) )

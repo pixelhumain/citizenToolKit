@@ -131,7 +131,6 @@ class IndexAction extends CAction
 			$tasksFinal=$newArray;
 		/* Tri des taches par ordre de date croissante*/
 		$tasks2 = array_msort($tasksFinal, array('startDate'=>SORT_ASC, 'endDate'=>SORT_ASC));
-
 // Trie les données par volume décroissant, edition croissant
 // Ajoute $data en tant que dernier paramètre, pour trier par la clé commune
 		$params = array("tasks" => $tasks2,  "period" => $period, "edit" => $isAdmin);

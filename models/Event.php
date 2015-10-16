@@ -8,6 +8,7 @@ class Event {
 	//From Post/Form name to database field name
 	private static $dataBinding = array(
 	    "name" => array("name" => "name", "rules" => array("required")),
+	    "type" => array("name" => "type"),
 	    "streetAddress" => array("name" => "address.streetAddress"),
 	    "postalCode" => array("name" => "address.postalCode"),
 	    "city" => array("name" => "address.codeInsee"),
@@ -65,10 +66,31 @@ class Event {
 				$event["startDate"] = date('Y-m-d H:i:s',$yester2day);;
 			}
 		}
+		$event = array_merge($event, Document::retrieveAllImagesUrl($id, self::COLLECTION));
 
 	  	return $event;
 	}
-	
+
+	/**
+	 * Retrieve a simple event (id, name, type profilImageUrl) by id from DB
+	 * @param String $id of the event
+	 * @return array with data id, name, type profilImageUrl
+	 */
+	public static function getSimpleEventById($id) {
+		
+		$simpleEvent = array();
+		$event = PHDB::findOneById( self::COLLECTION ,$id, array("id" => 1, "name" => 1, "type" => 1, "address" => 1) );
+
+		$simpleEvent["id"] = $id;
+		$simpleEvent["name"] = @$event["name"];
+		$simpleEvent["type"] = @$event["type"];
+		$simpleEvent = array_merge($simpleEvent, Document::retrieveAllImagesUrl($id, self::COLLECTION));
+		
+		$simpleEvent["address"] = empty($event["address"]) ? array("addressLocality" => "Unknown") : $event["address"];
+		
+		return $simpleEvent;
+	}
+
 	public static function getWhere($params) 
 	{
 	  	$events =PHDB::findAndSort( self::COLLECTION,$params,array("created"),null);
@@ -162,10 +184,26 @@ class Event {
 				$insee = $params['city'];
 				$address = SIG::getAdressSchemaLikeByCodeInsee($insee);
 				$newEvent["address"] = $address;
-				$newEvent["geo"] = SIG::getGeoPositionByInseeCode($insee);
 			}
 		}
+		
+		
+		if(!empty($params['geoPosLatitude']) && !empty($params["geoPosLongitude"])){
+			
 
+			$newEvent["geo"] = 	array(	"@type"=>"GeoCoordinates",
+						"latitude" => $params['geoPosLatitude'],
+						"longitude" => $params['geoPosLongitude']);
+
+			$newEvent["geoPosition"] = 
+				array(	"type"=>"point",
+						"coordinates" =>
+							array($params['geoPosLatitude'],
+					 	  		  $params['geoPosLongitude']));
+		}else
+		{
+			$newEvent["geo"] = SIG::getGeoPositionByInseeCode($insee);
+		}
 	    //sameAs      
 	    if(!empty($params['description']))
 	         $newEvent["description"] = $params['description'];
@@ -176,7 +214,8 @@ class Event {
 	    Link::attendee($newEvent["_id"], $params['userId'], true);
 
 	    Link::addOrganizer($params["organizerId"],$params["organizerType"], $newEvent["_id"], $params['userId']);
-
+		
+		Notification::createdEvent($params["organizerType"], $params["organizerId"], $newEvent["_id"], $newEvent["name"],$newEvent["geo"],$newEvent["type"], $params['userId']);
 	    //send validation mail
 	    //TODO : make emails as cron events
 	    /*$message = new YiiMailMessage; 
@@ -256,7 +295,7 @@ class Event {
 				}
 				else if(isset($params["userId"])){
 					foreach ($value["links"]["attendees"] as $keyEv => $valueEv) {
-						if($keyEv==$params["userId"]){
+						if($keyEv==$params["userId"] && isset($params["start"])){
 							$startDate = explode(" ", $value["startDate"]);
 							$start = explode(" ", $params["start"]);
 							if( $startDate[0] == $start[0]){
@@ -278,13 +317,16 @@ class Event {
 	 */
 	public static function listEventAttending($userId){
 		$where = array("links.attendees.".$userId => array('$exists' => true));
+		$listEventAttending= array();
 		$eventsAttending = PHDB::find(PHType::TYPE_EVENTS, $where);
 		foreach ($eventsAttending as $key => $value) {
         	$profil = Document::getLastImageByKey($key, PHType::TYPE_EVENTS, Document::IMG_PROFIL);
-        	if($profil!="")
+        	if(strcmp($profil, "")!= 0){
         		$value['imagePath']=$profil;
+        	}
+        	$listEventAttending[$key] = $value;
         }
-        return $eventsAttending;
+        return $listEventAttending;
 	}
 
 

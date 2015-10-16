@@ -15,10 +15,9 @@ class GlobalAutoCompleteAction extends CAction
 	  		$allCitoyen = PHDB::find ( Person::COLLECTION ,$query ,array("name", "address"));
 
 	  		foreach ($allCitoyen as $key => $value) {
-	  			$profil = Document::getLastImageByKey($key, Person::COLLECTION, Document::IMG_PROFIL);
-	  			if($profil !="")
-					$value["imagePath"]= $profil;
-				$allCitoyen[$key] = $value;
+	  			$person = Person::getSimpleUserById($key);
+	  			$person["type"] = "citoyen";
+				$allCitoyen[$key] = $person;
 	  		}
 
 	  		$res["citoyen"] = $allCitoyen;
@@ -29,10 +28,8 @@ class GlobalAutoCompleteAction extends CAction
 
 	  		$allOrganizations = PHDB::find ( Organization::COLLECTION ,$query ,array("name", "type", "address"));
 	  		foreach ($allOrganizations as $key => $value) {
-	  			$profil = Document::getLastImageByKey($key, Organization::COLLECTION, Document::IMG_PROFIL);
-	  			if($profil !="")
-					$value["imagePath"]= $profil;
-				$allOrganizations[$key] = $value;
+	  			$orga = Organization::getSimpleOrganizationById($key);
+				$allOrganizations[$key] = $orga;
 	  		}
 
 	  		$res["organization"] = $allOrganizations;
@@ -41,10 +38,8 @@ class GlobalAutoCompleteAction extends CAction
 	  	if(strcmp($filter, Event::COLLECTION) != 0){
 	  		$allEvents = PHDB::find(PHType::TYPE_EVENTS, $query, array("name", "address"));
 	  		foreach ($allEvents as $key => $value) {
-	  			$profil = Document::getLastImageByKey($key, Event::COLLECTION, Document::IMG_PROFIL);
-	  			if($profil !="")
-					$value["imagePath"]= $profil;
-				$allEvents[$key] = $value;
+	  			$event = Event::getSimpleEventById($key);
+				$allEvents[$key] = $event;
 	  		}
 	  		
 	 
@@ -54,17 +49,46 @@ class GlobalAutoCompleteAction extends CAction
 	  	if(strcmp($filter, Project::COLLECTION) != 0){
 	  		$allProject = PHDB::find(Project::COLLECTION, $query, array("name", "address"));
 	  		foreach ($allProject as $key => $value) {
-	  			$profil = Document::getLastImageByKey($key, Project::COLLECTION, Document::IMG_PROFIL);
-	  			if($profil !="")
-					$value["imagePath"]= $profil;
-				$allProject[$key] = $value;
+	  			$project = Project::getSimpleProjectById($key);
+				$allProject[$key] = $project;
 	  		}
-	  		
-	 
 	  		$res["project"] = $allProject;
+	  	}
+
+
+	  	if(strcmp($filter, City::COLLECTION) != 0){
+	  		$query = array( "name" => new MongoRegex("/".self::wd_remove_accents($search)."/i"));
+	  		$allCities = PHDB::find(City::COLLECTION, $query, array("name", "cp", "insee", "geo"));
+	  		foreach ($allCities as $key => $value) {
+	  			$city = City::getSimpleCityById($key);
+				$allCities[$key] = $city;
+	  		}
+	  		$res["cities"] = $allCities;
+
+	  		if(empty($res["cities"])){
+	  			$query = array( "cp" => $search);
+		  		$allCities = PHDB::find(City::COLLECTION, $query, array("name", "cp", "insee", "geo"));
+		  		foreach ($allCities as $key => $value) {
+		  			$city = City::getSimpleCityById($key);
+					$allCities[$key] = $city;
+		  		}
+		  		$res["cities"] = $allCities;  		
+	  		}
 	  	}
 
   		Rest::json($res);
 		Yii::app()->end();
     }
+
+    //supprime les accen (utilisé pour la recherche de ville pour améliorer les résultats)
+    private function wd_remove_accents($str, $charset='utf-8')
+	{
+	    $str = htmlentities($str, ENT_NOQUOTES, $charset);
+	    
+	    $str = preg_replace('#&([A-za-z])(?:acute|cedil|caron|circ|grave|orn|ring|slash|th|tilde|uml);#', '\1', $str);
+	    $str = preg_replace('#&([A-za-z]{2})(?:lig);#', '\1', $str); // pour les ligatures e.g. '&oelig;'
+	    $str = preg_replace('#&[^;]+;#', '', $str); // supprime les autres caractères
+	    
+	    return $str;
+	}
 }

@@ -31,6 +31,11 @@ class OpenDataAction extends CAction
         $controller->pageTitle = ucfirst($controller->module->id)." - ".$controller->title;
 
         $params["insee"] = $insee;
-        $controller->render("openData",$params);
+        $params["city"] = $city;
+        $page = "openData";
+        if(Yii::app()->request->isAjaxRequest)
+            echo $controller->renderPartial($page,$params,true);
+        else 
+        $controller->render($page, $params );
     }
 }

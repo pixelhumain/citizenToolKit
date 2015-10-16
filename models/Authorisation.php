@@ -48,7 +48,9 @@ class Authorisation {
     	$res = array();
         
         //organization i'am admin 
-        $where = array("links.members.".$userId.".isAdmin" => true);
+        $where = array( "links.members.".$userId.".isAdmin" => true,
+                        "links.members.".$userId.".isAdmin.pending" => array('$exists' => false )
+                    );
 
         $organizations = PHDB::find(Organization::COLLECTION, $where);
         $res = $organizations;
@@ -86,6 +88,22 @@ class Authorisation {
 
         $myOrganizations = Authorisation::listUserOrganizationAdmin($userId);
        	$res = array_key_exists((string)$organizationId, $myOrganizations);    
+        return $res;
+    }
+
+    /**
+     * Return true if the user is member of the organization
+     * @param String the id of the user
+     * @param String the id of the organization
+     * @return array of Organization (simple)
+     */
+    public static function isOrganizationMember($userId, $organizationId) {
+        $res = false;
+        
+        //Get the members of the organization : if there is no member then it's a new organization
+        //We are in a creation process
+        $organizationMembers = Organization::getMembersByOrganizationId($organizationId);
+        $res = array_key_exists((string)$userId, $organizationMembers);    
         return $res;
     }
 
@@ -168,7 +186,7 @@ class Authorisation {
      * @return array List of EventId (String) the user is admin of
      */
     public static function listEventsIamAdminOf($userId) {
-        $eventList = array();
+        $eventListFinal = array();
 
         //event i'am admin 
         $where = array("links.attendees.".$userId.".isAdmin" => true);
@@ -188,9 +206,9 @@ class Authorisation {
         	$profil = Document::getLastImageByKey($key, PHType::TYPE_EVENTS, Document::IMG_PROFIL);
         	if($profil!="")
         		$value['imagePath']=$profil;
+        	$eventListFinal[$key] = $value;
         }
-
-        return $eventList;
+        return $eventListFinal;
     }
     
     //**************************************************************
@@ -353,6 +371,37 @@ class Authorisation {
         }
 
     	return $res;
+    }
+
+    /**
+     * List the user that are admin of the organization
+     * @param type $organizationId The organization Id to look for
+     * @param type $pending : include the pending admins. By default no.
+     * @return type array of person Id
+     */
+    public static function listOrganizationAdmins($organizationId, $pending=false) {
+        $res = array();
+        $where = array( "_id" => new MongoId($organizationId),
+                        "links.members.".$userId.".isAdmin.pending" => array('$exists' => $pending )
+                    );
+
+        $organization = PHDB::find(Organization::COLLECTION, $where);
+        
+        if ($members = @$organization["links"]["members"]) {
+            foreach ($members as $personId => $linkDetail) {
+                if (@$linkDetail["isAdmin"] == true) {
+                    if ($pending) {
+                        if (isset($linkDetail["isAdmin"]["pending"])) {
+                            array_push($res, $personId);
+                        } 
+                    } else {
+                        array_push($res, $personId);
+                    }
+                }
+            }
+        }
+
+        return $res;
     }
 
 } 

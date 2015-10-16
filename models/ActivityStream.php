@@ -60,6 +60,7 @@ class ActivityStream {
 	    return PHDB::findAndSort(self::COLLECTION, $param,$sort);
 	}
 	
+	
 	public static function removeNotifications($id)
 	{
 	    $notif = PHDB::findOne(self::COLLECTION, array("_id"=> new MongoId($id) ) );

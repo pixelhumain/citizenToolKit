@@ -1,9 +1,14 @@
 <?php
-class DashboardAction extends CAction
+
+class DetailAction extends CAction
 {
- 	public function run($id){
-	  	$controller=$this->getController();
-	  	$project = Project::getPublicData($id);
+	/**
+	* Dashboard Organization
+	*/
+    public function run($id) { 
+    	$controller=$this->getController();
+		
+		$project = Project::getPublicData($id);
 	
 	  	$controller->sidebar1 = array(
 	      array('label' => "ACCUEIL", "key"=>"home","iconClass"=>"fa fa-home","href"=>"communecter/project/dashboard/id/".$id),
@@ -11,17 +16,11 @@ class DashboardAction extends CAction
 	
 	    $controller->title = (isset($project["name"])) ? $project["name"] : "";
 
-	    if(isset($project["_id"]) && isset(Yii::app()->session["userId"]) && Link::isLinked($project["_id"] , Project::COLLECTION , Yii::app()->session['userId']))
-			$htmlFollowBtn = "<li id='linkBtns'><a href='javascript:;' class='disconnectBtn text-red tooltips' data-name='".$project["name"]."' data-id='".$project["_id"]."' data-type='".Project::COLLECTION."' data-member-id='".Yii::app()->session["userId"]."' data-ownerlink='".Link::person2projects."' data-targetlink='".Link::project2person."' data-placement='top' data-original-title='No more Attendee' ><i class='disconnectBtnIcon fa fa-unlink'></i>UNCONTRIBUTE</a></li>";
-		else
-			$htmlFollowBtn = "<li id='linkBtns'><a href='javascript:;' class='connectBtn tooltips ' id='addKnowsRelation' data-placement='top' data-ownerlink='".Link::person2projects."' data-targetlink='".Link::project2person."' data-original-title='I know this person' ><i class=' connectBtnIcon fa fa-link '></i>CONTRIBUTE</a></li>";
-
 		$roomCount = PHDB::count(ActionRoom::COLLECTION, array("parentType"=>Project::COLLECTION , "parentId"=>$id));
 	    $controller->toolbarMBZ = array(
-	    	"<a href='".Yii::app()->createUrl("/".$controller->module->id."/news/index/type/projects/id/".$id)."'><i class='fa fa-rss fa-2x'></i>TIMELINE</a>",
-	    	"<a href='".Yii::app()->createUrl("/".$controller->module->id."/rooms/index/type/projects/id/".$id)."'><span class='badge badge-danger animated bounceIn'>".$roomCount."</span><i class='fa fa-comments-o fa-2x'></i>DISCUSS</a>",
-	    	$htmlFollowBtn
-	    	);
+	    	array('tooltip' => "TIMELINE : Project Activity","iconClass"=>"fa fa-rss","href"=>"<a  class='tooltips btn btn-default' href='".Yii::app()->createUrl("/".$controller->module->id."/news/index/type/projects/id/".$id)."'"),
+	    	array('tooltip' => "See Project Discussion", "badge"=>"<span class='notifications-count  badge badge-danger animated bounceIn'>".$roomCount."</span>","iconClass"=>"fa fa-comments-o","href"=>"<a class='tooltips btn btn-default' href='".Yii::app()->createUrl("/".$controller->module->id."/rooms/index/type/projects/id/".$id)."'")
+	    );
 	    
 	    $controller->subTitle = ( isset($project["description"])) ? ( ( strlen( $project["description"] ) > 120 ) ? substr($project["description"], 0, 120)."..." : $project["description"]) : "";
 	    $controller->pageTitle = "Communecter - Informations sur le projet ".$controller->title;
@@ -30,10 +29,10 @@ class DashboardAction extends CAction
 	  	$contributors =array();
 	  	$properties = array();
 	  	$tasks = array();
-	  	$contentKeyBase = $controller->id.".".$controller->action->id; 
-	  	$images = Document::getListDocumentsURLByContentKey($id, $contentKeyBase, Document::DOC_TYPE_IMAGE);
-
-	  	
+	  	$needs = array();
+	  	$events=array();
+	  	$contentKeyBase = $controller->id.".dashboard"; 
+	  	$images = Document::getListDocumentsURLByContentKey((string)$project["_id"], $contentKeyBase, Document::DOC_TYPE_IMAGE);
 
 	  	if(!empty($project)){
 	  		$params = array();
@@ -61,13 +60,12 @@ class DashboardAction extends CAction
 								$citoyen["imagePath"]= $profil;
 	  						array_push($contributors, $citoyen);
 	  						if( $uid == Yii::app()->session['userId'] )
-                    			array_push($controller->toolbarMBZ, "<a href='#' class='new-news' data-id='".$id."' data-type='".Project::COLLECTION."' data-name='".$project['name']."'><i class='fa fa-comment'></i>MESSAGE</a>");
+                    			array_push($controller->toolbarMBZ, array('tooltip' => "Send a message to this Project","iconClass"=>"fa fa-envelope-o","href"=>"<a href='#' class='new-news tooltips btn btn-default' data-id='".$id."' data-type='".Project::COLLECTION."' data-name='".$project['name']."'") );
 	  					}
 	  				}
 	  			}
 	  		}
 	  		
-	  		$events=array();
 	  		if( isset($project["links"]["events"])) {
 	    		foreach ($project["links"]["events"] as $key => $event) {
 	    			$event = Event::getById( $key );
@@ -85,14 +83,26 @@ class DashboardAction extends CAction
 	  		if (isset($project["tasks"])){
 		  		$tasks=$project["tasks"];
 	  		}
+	  		//Need keep on
+	  		$whereNeed = array("created"=>array('$exists'=>1) ) ;
+	  		//if(isset($type))
+        	$whereNeed["parentType"] = Project::COLLECTION;
+			//if(isset($id))
+        	$whereNeed["parentId"] = (string)$project["_id"];
+			//var_dump($where);
+			$needs = Need::getWhereSortLimit( $whereNeed, array("date"=>1) ,30);
 	  	}
-	  	
+	  	if(isset($project["_id"]) && isset(Yii::app()->session["userId"]) && Link::isLinked($project["_id"] , Project::COLLECTION , Yii::app()->session['userId']))
+			$htmlFollowBtn = array('tooltip' => "stop contributing to this Project", "parent"=>"span","parentId"=>"linkBtns","iconClass"=>"disconnectBtnIcon fa fa-unlink","href"=>"<a href='javascript:;' class='disconnectBtn text-red tooltips btn btn-default' data-name='".$project["name"]."' data-id='".$project["_id"]."' data-type='".Project::COLLECTION."' data-member-id='".Yii::app()->session["userId"]."' data-ownerlink='".Link::person2projects."' data-targetlink='".Link::project2person."'");
+		else
+			$htmlFollowBtn = array('tooltip' => "I want to contribute to this Project", "parent"=>"span","parentId"=>"linkBtns","iconClass"=>"connectBtnIcon fa fa-unlink","href"=>"<a href='javascript:;' class='connectBtn tooltips btn btn-default' id='addKnowsRelation' data-ownerlink='".Link::person2projects."' data-targetlink='".Link::project2person."'");
+	  	array_push($controller->toolbarMBZ, $htmlFollowBtn);
 	  	//Gestion de l'admin - true or false
 	  	// First find if user session is directly link to project
 	  	// Second if not, find if user belong to an organization admin of the project
 	  	// return true or false
 	  	$isProjectAdmin = false;
-	  	$admins=array();
+	  	$admins = array();
     	if(isset($project["_id"]) && isset(Yii::app()->session["userId"])) {
     		$isProjectAdmin =  Authorisation::isProjectAdmin((String) $project["_id"],Yii::app()->session["userId"]);
     		if (!$isProjectAdmin && !empty($organizations)){
@@ -121,10 +131,16 @@ class DashboardAction extends CAction
 	  	$params["people"] = $people;
 	  	$params["properties"] = $properties;
 	  	$params["tasks"]=$tasks;
-
+	  	$params["needs"]=$needs;
 	  	$params["admin"]=$isProjectAdmin;
 	  	$params["admins"]=$admins;
-	  	//$params["admins"] = $admins;
-	  	$controller->render( "dashboard", $params );
-	}
+
+		
+
+		$page = "detail";
+		if(Yii::app()->request->isAjaxRequest)
+            echo $controller->renderPartial($page,$params,true);
+        else 
+			$controller->render( $page , $params );
+    }
 }

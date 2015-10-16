@@ -48,7 +48,30 @@ class Project {
 			}
 		}
 
+		if (!empty($project)) {
+			$project = array_merge($project, Document::retrieveAllImagesUrl($id, self::COLLECTION));
+		}
+
+
 	  	return $project;
+	}
+
+	/**
+	 * Retrieve a simple project (id, name, profilImageUrl) by id from DB
+	 * @param String $id of the project
+	 * @return array with data id, name, profilImageUrl
+	 */
+	public static function getSimpleProjectById($id) {
+		
+		$simpleProject = array();
+		$project = PHDB::findOneById( self::COLLECTION ,$id, array("id" => 1, "name" => 1, "address" => 1) );
+
+		$simpleProject["id"] = $id;
+		$simpleProject["name"] = @$project["name"];
+		$simpleProject = array_merge($simpleProject, Document::retrieveAllImagesUrl($id, self::COLLECTION));
+		$simpleProject["address"] = empty($project["address"]) ? array("addressLocality" => "Unknown") : $project["address"];
+
+		return $simpleProject;
 	}
 	
 	//TODO SBAR => should be private ?
@@ -114,10 +137,26 @@ class Project {
 				$insee = $project['city'];
 				$address = SIG::getAdressSchemaLikeByCodeInsee($insee);
 				$newProject["address"] = $address;
-				$newProject["geo"] = SIG::getGeoPositionByInseeCode($insee);
+				//$newProject["geo"] = SIG::getGeoPositionByInseeCode($insee);
 			}
 		} else {
 			throw new CTKException(Yii::t("project","Please fill the postal code of the project to communect it"));
+		}
+
+		if(!empty($project['geoPosLatitude']) && !empty($project["geoPosLongitude"])){
+			
+			$newProject["geo"] = 	array(	"@type"=>"GeoCoordinates",
+						"latitude" => $project['geoPosLatitude'],
+						"longitude" => $project['geoPosLongitude']);
+
+			$newProject["geoPosition"] = 
+				array(	"type"=>"point",
+						"coordinates" =>
+							array($project['geoPosLatitude'],
+					 	  		  $project['geoPosLongitude']));
+		}else
+		{
+			$newProject["geo"] = SIG::getGeoPositionByInseeCode($insee);
 		}
 		
 		//No mandotory fields 
@@ -158,6 +197,9 @@ class Project {
 	    }
 
 	    $newProject = self::getAndCheckProject($params, $parentId);
+	    if (isset($newProject["tags"]))
+			$newProject["tags"] = Tags::filterAndSaveNewTags($newProject["tags"]);
+
 	    // TODO SBAR - If a Link::connect is used why add a link hard coded
 	    $newProject["links"] = array( "contributors" => 
 	    								array($parentId =>array("type" => $type,"isAdmin" => true)));
@@ -165,8 +207,8 @@ class Project {
 	    PHDB::insert(self::COLLECTION,$newProject);
 
 	    Link::connect($parentId, $type, $newProject["_id"], self::COLLECTION, $parentId, "projects", true );
-	    
-	    return array("result"=>true, "msg"=>"Votre projet est communecté.", "id"=>$newProject["_id"]);	
+	    Notification::createdProject($type, $parentId, Yii::app() -> session["userId"], $newProject["_id"], $params["name"],$newProject["geo"],$newProject["tags"]);
+	    return array("result"=>true, "msg"=>"Votre projet est communecté.", "id" => $newProject["_id"]);	
 	}
 
 	public static function removeProject($projectId, $userId) {

@@ -24,7 +24,7 @@ class Notification{
             ),
             "object"=>array(
 	            "type" => $memberType,
-	            "id"   => $memberId
+	            "id"   => (string)$memberId
             ),
             "target"=>array(
 	            "type" => Project::COLLECTION,
@@ -194,5 +194,112 @@ class Notification{
 	    
 	    //TODO mail::following
 	    //add a link to follow back easily
+	}
+	/*
+	When a project is create 
+	The project is inject to activity stream
+	It will appear for person or organization
+	// => advanced notification to add if one user wants to be notified for all news projects in certain field (Tags)
+	*/
+	public static function createdProject($authorType, $authorId, $userId, $projectId, $projectName, $geo,$tags) 
+	{
+	    $asParam = array(
+	    	"type" => "Creation of project", 
+            "verb" => ActStr::VERB_CREATE,
+            "actor" => array (
+	            "type" => Person::COLLECTION,
+	            "id" => $userId
+            ),
+            "target"=>array(
+            	"type" => $authorType,
+            	"id"   => $authorId
+            ),
+            "object"=>array(
+	            "type" => Project::COLLECTION,
+	            "id"   => $projectId
+            ),
+            "geo" => $geo,
+            "tags" => $tags,
+        );
+	    $stream = ActStr::buildEntry($asParam);
+
+	    //$actionMsg = ($actionType == ActStr::VERB_INVITE ) ? " invited you" : " is following you";
+	    ActivityStream::addEntry($stream);
+	    //TODO mail::following
+	    //add a link to follow back easily
+	}
+	public static function createdEvent($targetType, $targetId, $eventId, $eventName, $geo, $tags, $authorId) 
+	{
+	    $asParam = array(
+	    	"type" => "Creation of Event", 
+            "verb" => ActStr::VERB_CREATE,
+            "actor"=>array(
+	            "type" => Person::COLLECTION,
+            	"id"   => $authorId
+            ),
+            "object"=>array(
+	            "type" => Event::COLLECTION,
+	            "id"   => $eventId
+            ),
+            "target" => array(
+	            "type" => $targetType,
+	            "id" => $targetId
+            ),
+            "geo" => $geo,
+            "tags" => array($tags),
+        );
+	    $stream = ActStr::buildEntry($asParam);
+
+	    //$actionMsg = ($actionType == ActStr::VERB_INVITE ) ? " invited you" : " is following you";
+	    ActivityStream::addEntry($stream);
+	    //TODO mail::following
+	    //add a link to follow back easily
+	}
+	public static function createdNeed($targetType, $targetId, $objectId, $objectName, $authorId) 
+	{
+	    $asParam = array(
+	    	"type" => "Creation of Need", 
+            "verb" => ActStr::VERB_CREATE,
+            "actor"=>array(
+            	"type" => Person::COLLECTION,
+            	"id"   => $authorId
+            ),
+            "object"=>array(
+	            "type" => Need::COLLECTION,
+	            "id"   => $objectId
+            ),
+            "target" => array(
+	            "type" => $targetType,
+	            "id" => $targetId
+            )
+        );
+	    $stream = ActStr::buildEntry($asParam);
+
+	    //$actionMsg = ($actionType == ActStr::VERB_INVITE ) ? " invited you" : " is following you";
+	    ActivityStream::addEntry($stream);
+	    //TODO mail::following
+	    //add a link to follow back easily
+	}
+	public static function createdOrganization($userId, $orgaId, $orgaName, $geo,$tags) 
+	{
+	    $asParam = array(
+	    	"type" => "Creation of Organization", 
+            "verb" => ActStr::VERB_CREATE,
+            "actor" => array (
+	            "type" => Person::COLLECTION,
+	            "id" => $userId
+            ),
+            "object"=>array(
+	            "type" => Organization::COLLECTION,
+	            "id"   => $orgaId
+            ),
+            "geo" => $geo,
+            "tags" => $tags,
+        );
+	    $stream = ActStr::buildEntry($asParam);
+
+	    //$actionMsg = ($actionType == ActStr::VERB_INVITE ) ? " invited you" : " is following you";
+	    ActivityStream::addEntry($stream);
+	    //TODO mail::following
 	}
 }
