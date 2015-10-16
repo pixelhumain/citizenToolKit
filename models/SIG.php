@@ -24,6 +24,29 @@ class SIG
 		return $cs;
     }
     
+
+
+    public static function geoCodage($organization){
+    	if(!empty($organization['address']['streetAddress']))
+		{
+			$nominatim = "http://nominatim.openstreetmap.org/search?q=".urlencode($organization['address']['streetAddress'])."&format=json&polygon=0&addressdetails=1";
+
+			$curl = curl_init($nominatim);
+			curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+			$returnCURL = json_decode(curl_exec($curl),true);
+			//var_dump($returnCURL);
+			if(!empty($returnCURL) || $returnCURL != array())
+			{
+				foreach ($returnCURL as $key => $valueAdress) {
+					$newOrganization['address']['geo']['@type'] = "GeoCoordinates" ;
+					$newOrganization['address']['geo']['latitude'] = $valueAdress['lat'];
+					$newOrganization['address']['geo']['longitude'] = $valueAdress['lon'] ;
+				}
+
+			}	
+			curl_close($curl);
+		}
+    }
 	
 	//ajoute la position géographique d'une donnée si elle contient un Code Postal
 	//add geographical position to a data if it contains Postal Code

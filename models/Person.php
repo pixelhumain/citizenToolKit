@@ -301,7 +301,7 @@ class Person {
 
 	  	//Check Person data + business rules
 	  	$person = self::getAndcheckPersonData($person, $minimal);
-
+	  	
 	  	$person["@context"] = array("@vocab"=>"http://schema.org",
             "ph"=>"http://pixelhumain.com/ph/ontology/");
 
@@ -320,7 +320,7 @@ class Person {
 		//A mail is sent to the admin
 		Mail::notifAdminNewUser($person);
 
-	    return array("result"=>true, "msg"=>"You are now communnected", "id"=>$newpersonId, "person"=>$person); 
+	    return array("result"=>true, "msg"=>"You are now communnected", "id"=>$newpersonId, "person"=>$person);
 	}
 
 	/**
