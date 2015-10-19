@@ -187,6 +187,8 @@ class IndexAction extends CAction
         //TODO : reorganise by created date
 
 		$params["news"] = $news; 
+		$params["contextParentType"] = $type; 
+		$params["contextParentId"] = $id;
 		$params["userCP"] = Yii::app()->session['userCP'];
 		$params["contextParentType"] = $type;
 		$params["contextParentId"] = $id;

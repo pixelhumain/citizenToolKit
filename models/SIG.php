@@ -82,11 +82,11 @@ class SIG
 		
 	}
 
-	public static function getInseeByLatLng($lat, lng){
+	public static function getInseeByLatLng($lat, $lng){
 		
 	}
 
-	public static function getCountryByLatLng($lat, lng){
+	public static function getCountryByLatLng($lat, $lng){
 		
 	}
 
