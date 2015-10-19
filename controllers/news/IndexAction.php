@@ -8,32 +8,43 @@ class IndexAction extends CAction
         $controller->title = "Timeline";
         $controller->subTitle = "NEWS comes from everywhere, and from anyone.";
         $controller->pageTitle = "Communecter - Timeline Globale";
-		 function array_msort($array, $cols)
-		{
-		    $colarr = array();
-		    foreach ($cols as $col => $order) {
-		        $colarr[$col] = array();
-		        foreach ($array as $k => $row) { $colarr[$col]['_'.$k] = strtolower($row[$col]); }
-		    }
-		    $eval = 'array_multisort(';
-		    foreach ($cols as $col => $order) {
-		        $eval .= '$colarr[\''.$col.'\'],'.$order.',';
-		    }
-		    $eval = substr($eval,0,-1).');';
-		    eval($eval);
-		    $ret = array();
-		    foreach ($colarr as $col => $arr) {
-		        foreach ($arr as $k => $v) {
-		            $k = substr($k,1);
-		            if (!isset($ret[$k])) $ret[$k] = $array[$k];
-		            $ret[$k][$col] = $array[$k][$col];
-		        }
-		    }
-		    return $ret;
-		
+
+        if(!function_exists("array_msort")){
+			function array_msort($array, $cols)
+			{
+			    $colarr = array();
+			    foreach ($cols as $col => $order) {
+			        $colarr[$col] = array();
+			        foreach ($array as $k => $row) { $colarr[$col]['_'.$k] = strtolower($row[$col]); }
+			    }
+			    $eval = 'array_multisort(';
+			    foreach ($cols as $col => $order) {
+			        $eval .= '$colarr[\''.$col.'\'],'.$order.',';
+			    }
+			    $eval = substr($eval,0,-1).');';
+			    eval($eval);
+			    $ret = array();
+			    foreach ($colarr as $col => $arr) {
+			        foreach ($arr as $k => $v) {
+			            $k = substr($k,1);
+			            if (!isset($ret[$k])) $ret[$k] = $array[$k];
+			            $ret[$k][$col] = $array[$k][$col];
+			        }
+			    }
+			    return $ret;
+			
+			}
 		}
         //mongo search cmd : db.news.find({created:{'$exists':1}})	
 		$params = array();
+		if (!isset($id)){
+			if(@$_GET["id"])
+				$id=$_GET["id"];
+			else 
+				$id = Yii::app() -> session["userId"] ;
+		}	
+		if(!@$type)
+			$type= Person::COLLECTION;
 		$params["type"] = $type; 
         if( $type == Project::COLLECTION ) {
             $project = Project::getById($id);
@@ -41,7 +52,7 @@ class IndexAction extends CAction
 	        $entry = array('tooltip' => "Back to Project Details",
                             "iconClass"=>"fa fa-lightbulb-o",
                             "href"=>"<a  class='tooltips  btn btn-default' href='#' onclick=\"".$onclick."\"");
-            Menu::add2MBZ($entry);
+            //Menu::add2MBZ($entry);
             $params["project"] = $project; 
             $controller->title = $project["name"]."'s Timeline";
             $controller->subTitle = "Every Project is story to be told.";
@@ -65,6 +76,7 @@ class IndexAction extends CAction
 	        $entry = array('tooltip' => "Back to Organization Details",
                             "iconClass"=>"fa fa-group",
                             "href"=>"<a  class='tooltips  btn btn-default' href='#' onclick=\"".$onclick."\"");
+			//Menu::add2MBZ($entry);
             $params["organization"] = $organization; 
             $controller->title = $organization["name"]."'s Timeline";
             $controller->subTitle = "Every Organization has story to tell.";
@@ -115,7 +127,6 @@ class IndexAction extends CAction
 			}
 			$paramEvent = array("verb" => ActStr::VERB_CREATE, "object.objectType" => Event::COLLECTION,"target.objectType" => $type, "target.id" => $id);
 			$newsEvent=ActivityStream::getActivtyForObjectId($paramEvent);
-						print_r($newsEvent);
 			if(isset($newsEvent)){
 				foreach ($newsEvent as $key => $data){
 					$newsObject=NewsTranslator::convertToNews($data,NewsTranslator::NEWS_CREATE_EVENT);
@@ -133,11 +144,21 @@ class IndexAction extends CAction
 					$news[$key]=$newsObject;
 				}
 			}
+			// GET EVENT FOR PERSON
 			$paramEvent = array("verb" => ActStr::VERB_CREATE, "object.objectType" => Event::COLLECTION,"actor.objectType" => $type, "actor.id" => $id);
 			$newsEvent=ActivityStream::getActivtyForObjectId($paramEvent);
 			if(isset($newsEvent)){
 				foreach ($newsEvent as $key => $data){
 					$newsObject=NewsTranslator::convertToNews($data,NewsTranslator::NEWS_CREATE_EVENT);
+					$news[$key]=$newsObject;
+				}
+			}
+			// GET ORGANIZATION FOR PERSON
+			$paramOrga = array("verb" => ActStr::VERB_CREATE, "object.objectType" => Organization::COLLECTION,"actor.id" => $id, "actor.objectType" => Person::COLLECTION);
+			$newsOrga=ActivityStream::getActivtyForObjectId($paramOrga);
+			if(isset($newsOrga)){
+				foreach ($newsOrga as $key => $data){
+					$newsObject=NewsTranslator::convertToNews($data,NewsTranslator::NEWS_CREATE_ORGANIZATION);
 					$news[$key]=$newsObject;
 				}
 			}
@@ -167,6 +188,7 @@ class IndexAction extends CAction
 
 		$params["news"] = $news; 
 		$params["userCP"] = Yii::app()->session['userCP'];
+								//print_r($params["news"]);
 		if(Yii::app()->request->isAjaxRequest)
 	        echo $controller->renderPartial("index" , $params ,true);
 	    else

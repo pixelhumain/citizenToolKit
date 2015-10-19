@@ -151,6 +151,23 @@ class Mail
         Mail::schedule($params);
     }
 
+
+    public static function inviteContact($mailContact, $user) {
+        $params = array(
+            "type" => Cron::TYPE_MAIL,
+            "tpl"=>'invitation',
+            "subject" => 'You have been invited to '.Yii::app()->name.' by '.$user["name"],
+            "from"=>Yii::app()->params['adminEmail'],
+            "to" => $person["email"],
+            "tplParams" => array(   "invitorName"   => $user["name"],
+                                    "title" => Yii::app()->name ,
+                                    "logo"  => "/images/logo.png",
+                                    "invitedUserId" => $person["_id"])
+        );
+        Mail::schedule($params);
+    }
+
+
     /**
      * Send an email when some one ask to become an admin of an organization to the current admins
      * @param array $organization datas of an organization

@@ -100,7 +100,7 @@ class Organization {
 	    //send Notification Email
 	    $creator = Person::getById($creatorId);
 	    //Mail::newOrganization($creator,$newOrganization);
-	                  
+	   Notification::createdOrganization($creatorId, $newOrganizationId, $newOrganization["name"], $newOrganization["geo"],$newOrganization["tags"]);             
 	    $newOrganization = Organization::getById($newOrganizationId);
 	    return array("result"=>true,
 		    			"msg"=>"Votre organisation est communectée.", 
@@ -311,8 +311,7 @@ class Organization {
             //TODO Sylvain - Find a way to manage inconsistent data
             //throw new CommunecterException("The organization id ".$id." is unkown : contact your admin");
         } else {
-			$profil = Document::getLastImageByKey($id, self::COLLECTION, Document::IMG_PROFIL);
-			$organization["profilImageUrl"] = $profil;
+			$organization = array_merge($organization, Document::retrieveAllImagesUrl($id, self::COLLECTION));
         }	
 	  	return $organization;
 	}
@@ -332,8 +331,8 @@ class Organization {
 		$simpleOrganization["type"] = @$orga["type"];
 		$simpleOrganization["email"] = @$orga["email"];
 		$simpleOrganization["pending"] = @$orga["pending"];
-		$profil = Document::getLastImageByKey($id, self::COLLECTION, Document::IMG_PROFIL);
-		$simpleOrganization["profilImageUrl"] = $profil;
+		$simpleOrganization = array_merge($simpleOrganization, Document::retrieveAllImagesUrl($id, self::COLLECTION, @$orga["type"]));
+		
 		$logo = Document::getLastImageByKey($id, self::COLLECTION, Document::IMG_LOGO);
 		$simpleOrganization["logoImageUrl"] = $logo;
 		

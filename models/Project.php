@@ -47,6 +47,12 @@ class Project {
 				$project["startDate"] = date('Y-m-d H:i:s',$yester2day);;
 			}
 		}
+
+		if (!empty($project)) {
+			$project = array_merge($project, Document::retrieveAllImagesUrl($id, self::COLLECTION));
+		}
+
+
 	  	return $project;
 	}
 
@@ -62,9 +68,9 @@ class Project {
 
 		$simpleProject["id"] = $id;
 		$simpleProject["name"] = @$project["name"];
-		$profil = Document::getLastImageByKey($id, self::COLLECTION, Document::IMG_PROFIL);
-		$simpleProject["profilImageUrl"] = $profil;
+		$simpleProject = array_merge($simpleProject, Document::retrieveAllImagesUrl($id, self::COLLECTION));
 		$simpleProject["address"] = empty($project["address"]) ? array("addressLocality" => "Unknown") : $project["address"];
+
 		return $simpleProject;
 	}
 	
@@ -201,7 +207,7 @@ class Project {
 	    PHDB::insert(self::COLLECTION,$newProject);
 
 	    Link::connect($parentId, $type, $newProject["_id"], self::COLLECTION, $parentId, "projects", true );
-	    Notification::createdProject($type, $parentId, $newProject["_id"], $params["name"],$newProject["geo"],$newProject["tags"]);
+	    Notification::createdProject($type, $parentId, Yii::app() -> session["userId"], $newProject["_id"], $params["name"],$newProject["geo"],$newProject["tags"]);
 	    return array("result"=>true, "msg"=>"Votre projet est communecté.", "id" => $newProject["_id"]);	
 	}
 

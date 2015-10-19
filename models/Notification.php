@@ -201,12 +201,16 @@ class Notification{
 	It will appear for person or organization
 	// => advanced notification to add if one user wants to be notified for all news projects in certain field (Tags)
 	*/
-	public static function createdProject($authorType, $authorId, $projectId, $projectName, $geo,$tags) 
+	public static function createdProject($authorType, $authorId, $userId, $projectId, $projectName, $geo,$tags) 
 	{
 	    $asParam = array(
 	    	"type" => "Creation of project", 
             "verb" => ActStr::VERB_CREATE,
-            "actor"=>array(
+            "actor" => array (
+	            "type" => Person::COLLECTION,
+	            "id" => $userId
+            ),
+            "target"=>array(
             	"type" => $authorType,
             	"id"   => $authorId
             ),
@@ -275,5 +279,27 @@ class Notification{
 	    ActivityStream::addEntry($stream);
 	    //TODO mail::following
 	    //add a link to follow back easily
+	}
+	public static function createdOrganization($userId, $orgaId, $orgaName, $geo,$tags) 
+	{
+	    $asParam = array(
+	    	"type" => "Creation of Organization", 
+            "verb" => ActStr::VERB_CREATE,
+            "actor" => array (
+	            "type" => Person::COLLECTION,
+	            "id" => $userId
+            ),
+            "object"=>array(
+	            "type" => Organization::COLLECTION,
+	            "id"   => $orgaId
+            ),
+            "geo" => $geo,
+            "tags" => $tags,
+        );
+	    $stream = ActStr::buildEntry($asParam);
+
+	    //$actionMsg = ($actionType == ActStr::VERB_INVITE ) ? " invited you" : " is following you";
+	    ActivityStream::addEntry($stream);
+	    //TODO mail::following
 	}
 }
