@@ -30,6 +30,7 @@ class ViewerAction extends CAction
 	        			array_push($viewerMap[Organization::COLLECTION], $obj);
 	        		}else if (strcmp($key, "knows") == 0 || strcmp($key, "attendees") == 0 || strcmp($key, "contributors") == 0){
 	        			$obj = Person::getById($k);
+                $obj["type"] = "person";
 	        			array_push($viewerMap[Person::COLLECTION], $obj);
 	        		}else if (strcmp($key, "events") == 0){
 	        			$obj = Event::getById($k);
@@ -45,6 +46,7 @@ class ViewerAction extends CAction
 		        				array_push($viewerMap[Organization::COLLECTION], $obj);
 		        			}else if(strcmp($v["type"], Person::COLLECTION)== 0){
 		        				$obj = Person::getById($k);
+                    $obj["type"] = "person";
 		        				array_push($viewerMap[Person::COLLECTION], $obj);
 		        			}
 		        		}
