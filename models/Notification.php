@@ -128,7 +128,7 @@ class Notification{
 	    $stream = ActStr::buildEntry($asParam);
 
 	    //inform the projects members of the new member
-	    $members = null;
+	    $members = array();
 	    if( $target["type"] == Project::COLLECTION ) 
 	    	$members = Project::getContributorsByProjectId( $targetId ,"all", null ) ;
 	    else if( $target["type"] == Organization::COLLECTION ) 

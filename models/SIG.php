@@ -82,12 +82,35 @@ class SIG
 		
 	}
 
-	public static function getInseeByLatLng($lat, $lng){
-		
+	//récupère la ville qui correspond à une position géographique
+	public static function getCityByLatLng($lat, $lng, $cp){
+
+		$request = array("geoShape"  => 
+						  array('$geoIntersects'  => 
+						  	array('$geometry' => 
+						  		array("type" 	    => "Point", 
+						  			  "coordinates" => array($lng, $lat))
+						  		)));
+		if($cp != null){
+			$request = array_merge(array("cp"  => $cp), $request);
+		}
+
+		$oneCity =	PHDB::findOne(self::CITIES_COLLECTION_NAME, $request);
+		return $oneCity;
 	}
 
-	public static function getCountryByLatLng($lat, $lng){
-		
+	//récupère le code insee d'une position geographique
+	//(préciser un CP pour un résultat plus rapide)
+	public static function getInseeByLatLngCp($lat, $lng, $cp){
+		$oneCity =	self::getCityByLatLng($lat, $lng, $cp);
+		if($oneCity != null && $oneCity["insee"] != null) return $oneCity;//["insee"];
+		else return null;
+	}
+
+	//TODO : FAIRE LA VERIFICATION AVEC LES GEOSHAPES DES COUNTRY
+	public static function getCountryByLatLng($lat, $lng, $cp){
+		//$oneCity =	self::getCityByLatLng($lat, $lng);
+		return null; //$oneCity["country"];
 	}
 
 

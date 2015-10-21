@@ -238,6 +238,10 @@ class Organization {
 					$newOrganization["geo"] = $organization["geo"];
 			}
 		}
+
+		//méthode pour récupérer le code insee à partir d'une position geographique :
+		//$geo = SIG::getPositionByCp($organization['postalCode']);
+		//$insee = SIG::getInseeByLatLngCp($geo["latitude"], $geo["longitude"], $organization['postalCode']);
 				  
 		if (!empty($organization['description']))
 			$newOrganization["description"] = $organization['description'];
