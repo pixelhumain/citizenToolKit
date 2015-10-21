@@ -6,6 +6,8 @@ class NewsTranslator {
 	const NEWS_CREATE_NEED = "newsCreateNeed";
 	const NEWS_CREATE_EVENT = "newsCreateEvent";
 	const NEWS_CREATE_ORGANIZATION = "newsCreateOrganization";
+	const NEWS_CREATE_TASK = "newsCreateTask";
+	const NEWS_JOIN_ORGANIZATION = "newsMemberJoinOrganization";
 	public static function convertToNews($object, $useCase){	
 		if($useCase ==  self::NEWS_CONTRIBUTORS ){
 			$author=Person::getById($object["actor"]["id"]);
@@ -62,6 +64,32 @@ class NewsTranslator {
 								"type"=>$object["object"]["objectType"],
 								"verb" => $object["verb"],
 								"icon" => "fa-cubes"
+							);
+			return $newsObject;	
+		}	
+else if($useCase ==  self::NEWS_CREATE_TASK ){
+			$task=Gantt::getById($object["object"]["id"],$object["target"]["objectType"]);
+			$author=Person::getById($object["actor"]["id"]);
+			$authorImage = Document::getLastImageByKey((string) $object["actor"]["id"], Person::COLLECTION, Document::IMG_PROFIL);
+			$newsObject= array ("_id" => $object["_id"],
+								"name" => $task["taskName"],
+								"text" => "ok",
+								"author"=> array(
+									"id" => $object["actor"]["id"],
+									"name" => $author["name"],
+									"profilImageUrl" => $authorImage
+								),
+								"target" => array(
+									"id" => $object["target"]["id"],
+									"type" => $object["target"]["objectType"],
+								//	"name" => $target["name"],
+								//	"profilImageUrl" => $targetImage
+								),
+								"created"=>$object["timestamp"],
+								"id"=>(string)$object["object"]["id"],
+								"type"=>$object["object"]["objectType"],
+								"verb" => $object["verb"],
+								"icon" => "fa-tasks"
 							);
 			return $newsObject;	
 		}	
@@ -171,6 +199,64 @@ class NewsTranslator {
 							);
 			return $newsObject;	
 		}	
-
+		else if($useCase ==  self::NEWS_JOIN_ORGANIZATION ){
+			$newMember=Person::getById($object["actor"]["id"]);
+			$memberImage = Document::getLastImageByKey((string)$object["actor"]["id"], Person::COLLECTION, Document::IMG_PROFIL);
+			if (@$object["tags"]) $tags = $object["tags"]; else $tags="";
+			$newsObject= array ("_id" => $object["_id"],
+								"name" =>$newMember["name"]." is new member",
+								"text"=> "has joined the organization",
+								"target"=> array(
+									"id" => (string)$object["actor"]["id"],
+									"name" => $newMember["name"],
+									"type" => Person::COLLECTION,
+									"profilImageUrl" => $memberImage
+								),
+								"author"=> array(
+									"id" => (string)$object["actor"]["id"],
+									"type" => Person::COLLECTION,
+									"name" => $newMember["name"],
+								),
+								"tags"=>$tags,
+								"created"=>$object["timestamp"],
+								"id"=> (string)$object["actor"]["id"],
+								"type"=> $object["actor"]["objectType"],
+								"verb" => $object["verb"],
+								"icon" => "fa-group"
+							);
+			return $newsObject;	
+		}	
+		/*if($useCase ==  self::NEWS_CONTRIBUTORS ){
+			$author=Person::getById($object["actor"]["id"]);
+			if($object["object"]["objectType"]==Person::COLLECTION){
+				$newContributor=Person::getById($object["object"]["id"]);
+				$contributorImage = Document::getLastImageByKey((string) $object["object"]["id"], Person::COLLECTION, Document::IMG_PROFIL);
+			}
+			else{
+				$newContributor=Organization::getById($object["object"]["id"]);
+				$contributorImage = Document::getLastImageByKey((string)$object["object"]["id"], Organization::COLLECTION, Document::IMG_PROFIL);
+			}
+			$newsObject= array ("_id" => $object["_id"],
+								"name" => $newContributor["name"]." is a new contributor",
+								"text"=>"has joined the project",
+								"target"=> array(
+									"id" => (string)$object["object"]["id"],
+									"name" => $newContributor["name"],
+									"type" => Person::COLLECTION,
+									"profilImageUrl" => $contributorImage
+								),
+								"author"=> array(
+									"id" => (string)$object["actor"]["id"],
+									"type" => Person::COLLECTION,
+									"name" => $author["name"],
+								),
+								"created"=>$object["timestamp"],
+								"id"=>(string)$object["object"]["id"],
+								"type"=>$object["object"]["objectType"],
+								"verb" => $object["verb"],
+								"icon" => "fa-users"
+							);
+			return $newsObject;
+		}*/
 	}
 }

@@ -125,11 +125,21 @@ class IndexAction extends CAction
 					$news[$key]=$newsObject;
 				}
 			}
+			// GET NEW EVENT
 			$paramEvent = array("verb" => ActStr::VERB_CREATE, "object.objectType" => Event::COLLECTION,"target.objectType" => $type, "target.id" => $id);
 			$newsEvent=ActivityStream::getActivtyForObjectId($paramEvent);
 			if(isset($newsEvent)){
 				foreach ($newsEvent as $key => $data){
 					$newsObject=NewsTranslator::convertToNews($data,NewsTranslator::NEWS_CREATE_EVENT);
+					$news[$key]=$newsObject;
+				}
+			}
+			// GET NEW TASK
+			$paramTask = array("verb" => ActStr::VERB_CREATE, "object.objectType" => Gantt::COLLECTION,"target.objectType" => $type, "target.id" => $id);
+			$newsTask=ActivityStream::getActivtyForObjectId($paramTask);
+			if(isset($newsTask)){
+				foreach ($newsTask as $key => $data){
+					$newsObject=NewsTranslator::convertToNews($data,NewsTranslator::NEWS_CREATE_TASK);
 					$news[$key]=$newsObject;
 				}
 			}
@@ -182,10 +192,20 @@ class IndexAction extends CAction
 					$news[$key]=$newsObject;
 				}
 			}
+			// GET NEW MEMBER FOR ORGANIZATION
+			$paramMember = array("verb" => ActStr::VERB_JOIN, "target.objectType" => $type,"target.id" => $id);
+			$newsMember=ActivityStream::getActivtyForObjectId($paramMember);
+			print_r($newsMember);
+			if(isset($newsMember)){
+				foreach ($newsMember as $key => $data){
+					$newsObject=NewsTranslator::convertToNews($data,NewsTranslator::NEWS_JOIN_ORGANIZATION);
+					$news[$key]=$newsObject;
+				}
+			}
+
 		}
 		$news = array_msort($news, array('created'=>SORT_DESC));
         //TODO : reorganise by created date
-
 		$params["news"] = $news; 
 		$params["contextParentType"] = $type; 
 		$params["contextParentId"] = $id;

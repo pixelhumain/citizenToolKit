@@ -100,7 +100,7 @@ class Organization {
 	    //send Notification Email
 	    $creator = Person::getById($creatorId);
 	    //Mail::newOrganization($creator,$newOrganization);
-	   Notification::createdOrganization($creatorId, $newOrganizationId, $newOrganization["name"], $newOrganization["geo"],$newOrganization["tags"]);             
+	   Notification::createdObjectAsParam(Person::COLLECTION,$creatorId,Organization::COLLECTION, $newOrganizationId, null, null, $newOrganization["geo"],$newOrganization["tags"]);             
 	    $newOrganization = Organization::getById($newOrganizationId);
 	    return array("result"=>true,
 		    			"msg"=>"Votre organisation est communectée.", 
