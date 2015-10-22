@@ -193,6 +193,32 @@ class Person {
 	}
 
 	/**
+	 * get memberOf a Person By a person Id
+	 * @param type $id : is the mongoId (String) of the person
+	 * @return person document as in db
+	 */
+	public static function getPersonKnowsByPersonId($id) {
+	  	$res = array();
+	  	$person = self::getById($id);
+	  	
+	  	if (empty($person)) {
+            throw new CTKException("The person id is unkown : contact your admin");
+        }
+	  	if (isset($person) && isset($person["links"]) && isset($person["links"]["knows"])) {
+	  		$myContacts = $person["links"]["knows"];
+	  	}
+	  	foreach ($myContacts as $key => $contact) {
+			if($contact["type"] == "citoyens"){
+				$contactComplet = self::getById($key);
+				$myContacts[$key] = $contactComplet;
+			}
+			//var_dump($contactComplet);
+		}
+		$res = $myContacts;
+	  	return $res;
+	}
+
+	/**
 	 * Happens when a Person is invited or linked as a member and doesn't exist in the system
 	 * It is created in a temporary state
 	 * This creates and invites the email to fill extra information 
