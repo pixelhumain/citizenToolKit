@@ -100,8 +100,9 @@ class IndexAction extends CAction
         // 	$where["type"] = $type;
         // if(isset($id))
         // 	$where["id"] = $id;
+        if($type == "citoyen") $type = "citoyens";
         $where["scope.".$type] = $id;
-       
+
         //TODO : get since a certain date
         $news = News::getWhereSortLimit( $where, array("date"=>1) ,30);
 
