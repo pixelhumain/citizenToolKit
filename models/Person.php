@@ -240,7 +240,7 @@ class Person {
 	  	}
 
 	  	foreach (array("knows", "memberOf", "events", "projects") as $n => $link) {
-		  	foreach ($myContacts[$link] as $key => $contact) {
+		  	foreach (@$myContacts[$link] as $key => $contact) {
 		  		//error_log(var_dump($contact));
 		  		$type = isset($contact["type"]) ? $contact["type"] : "";
 		  		$contactComplet = null;
