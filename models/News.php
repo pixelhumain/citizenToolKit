@@ -85,8 +85,7 @@ class News {
 		 	if( isset($_POST["scope"])) {
 		 		$news["scope"] = $_POST["scope"];
 			}
-
-		    PHDB::insert(self::COLLECTION,$news);
+			PHDB::insert(self::COLLECTION,$news);
 		    $news["author"] = Person::getById($news["author"]);
 		  	
 		    return array("result"=>true, "msg"=>"Votre news est enregistré.", "id"=>$news["_id"],"object"=>$news);	
