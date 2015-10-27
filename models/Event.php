@@ -215,7 +215,7 @@ class Event {
 
 	    Link::addOrganizer($params["organizerId"],$params["organizerType"], $newEvent["_id"], $params['userId']);
 				
-		Notification::createdObjectAsParam(Person::COLLECTION,$params['userId'],Event::COLLECTION, $newEvent["_id"], $params["organizerType"], $params["organizerId"], $newEvent["geo"], array($newEvent["type"]));
+		Notification::createdObjectAsParam(Person::COLLECTION,$params['userId'],Event::COLLECTION, $newEvent["_id"], $params["organizerType"], $params["organizerId"], $newEvent["geo"], array($newEvent["type"]),$newEvent["address"]["codeInsee"]);
 	    //send validation mail
 	    //TODO : make emails as cron events
 	    /*$message = new YiiMailMessage; 

@@ -54,7 +54,11 @@ class Need {
 	}
 	public static function insert($params){
 		PHDB::insert(self::COLLECTION,$params);
-		Notification::createdObjectAsParam(Person::COLLECTION,Yii::app()-> session["userId"],Need::COLLECTION, $params["_id"], $params["parentType"], $params["parentId"],null, null);
+		if($params["parentType"]==Project::COLLECTION){
+			$parent = Project::getById($params["parentId"]);
+		}
+		//$parent = $class::getById($params["parentId"]);
+		Notification::createdObjectAsParam(Person::COLLECTION,Yii::app()-> session["userId"],Need::COLLECTION, $params["_id"], $params["parentType"], $params["parentId"],null, null, $parent["address"]["codeInsee"]);
 
 		return array("result"=>true, "msg"=>"Votre besoin est communecté.","idNeed"=>$params["_id"]);
 	}
