@@ -4,6 +4,9 @@ class Organization {
 	const COLLECTION = "organizations";
 	const CONTROLLER = "organization";
 	const ICON = "fa-users";
+	const ICON_BIZ = "fa-industry";
+	const ICON_GROUP = "fa-circle-o";
+	const ICON_GOV = "fa-circle-o";
 
 	const TYPE_NGO = "NGO";
 	const TYPE_BUSINESS = "LocalBusiness";
