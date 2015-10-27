@@ -213,7 +213,6 @@ class Person {
 				$contactComplet = self::getById($key);
 				$myContacts[$key] = $contactComplet;
 			}
-			//var_dump($contactComplet);
 		}
 		$res = $myContacts;
 	  	return $res;
@@ -240,7 +239,7 @@ class Person {
 
 	  	foreach (array("knows", "memberOf", "events", "projects") as $n => $link) {
 		  	foreach ($myContacts[$link] as $key => $contact) {
-		  		//error_log(var_dump($contact));
+		  		
 		  		$type = isset($contact["type"]) ? $contact["type"] : "";
 		  		$contactComplet = null;
 				if($type == "citoyens")		{ $contactComplet = self::getById($key); $type = "people"; }
@@ -249,11 +248,9 @@ class Person {
 				if($type == "events")		{ $contactComplet = Event::getById($key); }
 				
 				if($contactComplet != null)	$res[$type][$key] = $contactComplet;
-				
-				//var_dump($contactComplet);
 			}
 		}
-		$res;// = $myContacts;
+		$res;
 	  	return $res;
 	}
 

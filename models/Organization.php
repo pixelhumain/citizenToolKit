@@ -140,7 +140,7 @@ class Organization {
 
 
 	public static function newOrganizationFromImportData($organization) {
-		//var_dump($organization);
+		
 		$newOrganization = array();
 		$newOrganization["key"] = "organizationsCollection";
 		$newOrganization["email"] = empty($organization['email']) ? "" : $organization['email'];
