@@ -234,23 +234,27 @@ class Person {
 	  	if (empty($person)) {
             throw new CTKException("The person id is unkown : contact your admin");
         }
+        $myContacts = array();
 	  	if (isset($person) && isset($person["links"])) {
 	  		$myContacts = $person["links"];
 	  	}
 
 	  	foreach (array("knows", "memberOf", "events", "projects") as $n => $link) {
-		  	foreach ($myContacts[$link] as $key => $contact) {
-		  		//error_log(var_dump($contact));
-		  		$type = isset($contact["type"]) ? $contact["type"] : "";
-		  		$contactComplet = null;
-				if($type == "citoyens")		{ $contactComplet = self::getById($key); $type = "people"; }
-				if($type == "organizations"){ $contactComplet = Organization::getById($key); }
-				if($type == "projects")		{ $contactComplet = Project::getById($key); }
-				if($type == "events")		{ $contactComplet = Event::getById($key); }
-				
-				if($contactComplet != null)	$res[$type][$key] = $contactComplet;
-				
-				//var_dump($contactComplet);
+	  		if( isset($myContacts[$link]))
+	  		{
+			  	foreach ($myContacts[$link] as $key => $contact) {
+			  		//error_log(var_dump($contact));
+			  		$type = isset($contact["type"]) ? $contact["type"] : "";
+			  		$contactComplet = null;
+					if($type == "citoyens")		{ $contactComplet = self::getById($key); $type = "people"; }
+					if($type == "organizations"){ $contactComplet = Organization::getById($key); }
+					if($type == "projects")		{ $contactComplet = Project::getById($key); }
+					if($type == "events")		{ $contactComplet = Event::getById($key); }
+					
+					if($contactComplet != null)	$res[$type][$key] = $contactComplet;
+					
+					//var_dump($contactComplet);
+				}
 			}
 		}
 		$res;// = $myContacts;
