@@ -202,7 +202,7 @@ class Notification{
 	// => advanced notification to add if one user wants to be notified for all news projects in certain field (Tags)
 	*/
 
-	public static function createdObjectAsParam($actorType, $actorId, $objectType, $objectId, $targetType, $targetId, $geo, $tags){
+	public static function createdObjectAsParam($actorType, $actorId, $objectType, $objectId, $targetType, $targetId, $geo, $tags, $insee){
 		$param=array("type" => "has created object", "verb" => ActStr::VERB_CREATE);
 		if (!empty($actorType)){
 			$param["actor"] = array(
@@ -226,6 +226,8 @@ class Notification{
 			$param["tags"]=$tags;
 		if(!empty($geo))
 			$param["geo"]=$geo;
+		if (!empty($insee))
+			$param["codeInsee"]=$insee;
 		$stream = ActStr::buildEntry($param);
 	    ActivityStream::addEntry($stream);
 
