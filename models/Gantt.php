@@ -9,7 +9,7 @@ class Gantt {
 	}
 
 	public static function getWhereSort($params,$sort) {
-		$tasks=[];
+		$tasks=array();
 	  	$tasksKey = PHDB::find(self::COLLECTION,$params);
 	  	if(isset($tasksKey)){
 	    	foreach ($tasksKey as $key => $value) {
@@ -21,7 +21,7 @@ class Gantt {
 	}
 	public static function getTasks($where,$type){
 		$res = PHDB::findOne($type, $where);
-		$tasks=[];
+		$tasks=array();
 		if(isset($res)){
 	    	foreach ($res["tasks"] as $key => $value) {
 	  			$tasks[$key]= $value;

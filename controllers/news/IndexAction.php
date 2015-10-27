@@ -95,12 +95,14 @@ class IndexAction extends CAction
 
 
         $where = array("created"=>array('$exists'=>1),"text"=>array('$exists'=>1) ) ;
-        if(isset($type))
-        	$where["type"] = $type;
-        if(isset($id))
-        	$where["id"] = $id;
-        //var_dump($where);
-		//TODO : get since a certain date
+        // if(isset($type))
+        // 	$where["type"] = $type;
+        // if(isset($id))
+        // 	$where["id"] = $id;
+        if($type == "citoyen") $type = "citoyens";
+        $where["scope.".$type] = $id;
+
+        //TODO : get since a certain date
         $news = News::getWhereSortLimit( $where, array("date"=>1) ,30);
         $news=array();
 
@@ -238,6 +240,7 @@ class IndexAction extends CAction
 			}
 
 		}
+
 		$news = array_msort($news, array('created'=>SORT_DESC));
         //TODO : reorganise by created date
 		$params["news"] = $news; 
