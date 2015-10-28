@@ -4,6 +4,9 @@ class Organization {
 	const COLLECTION = "organizations";
 	const CONTROLLER = "organization";
 	const ICON = "fa-users";
+	const ICON_BIZ = "fa-industry";
+	const ICON_GROUP = "fa-circle-o";
+	const ICON_GOV = "fa-circle-o";
 
 	const TYPE_NGO = "NGO";
 	const TYPE_BUSINESS = "LocalBusiness";
@@ -69,7 +72,6 @@ class Organization {
 	 * @return array result as an array. 
 	 */
 	public static function insert($organization, $creatorId, $adminId = null) {
-	    
 	    $newOrganization = Organization::getAndCheckOrganization($organization);
 		
 		//Manage tags : save any inexistant tag to DB 
@@ -92,15 +94,35 @@ class Organization {
 	    	throw new CTKException(Yii::t("organization","Problem inserting the new organization"));
 	    }
 		
+		//Manage link with the creator depending of the role selected
+		if (@$organization["role"] == "admin") {
+			$isToLink = true;
+			$memberId = $creatorId;
+			$isAdmin = true;
+		} else if (@$organization["role"] == "member") {
+			$isToLink = true;
+			$memberId = $creatorId;
+			$isAdmin = false;
+		} else if (@$organization["role"] == "creator") {
+			$isToLink = false;
+		}
+		unset($organization["role"]);
+
+		//If the adminId is set then add him as admin
 		if ($adminId) {
-			//Add the creator as the first member and admin of the organization
-		    Link::addMember($newOrganizationId, Organization::COLLECTION, $adminId, Person::COLLECTION, $creatorId, true);
+			$isToLink = true;
+			$memberId = $adminId;
+			$isAdmin = true;
+		}
+		if ($isToLink) {
+		    Link::addMember($newOrganizationId, Organization::COLLECTION, $memberId, Person::COLLECTION, $creatorId, $isAdmin);
 		}
 
 	    //send Notification Email
 	    $creator = Person::getById($creatorId);
 	    //Mail::newOrganization($creator,$newOrganization);
-	   Notification::createdObjectAsParam(Person::COLLECTION,$creatorId,Organization::COLLECTION, $newOrganizationId, null, null, $newOrganization["geo"],$newOrganization["tags"],$newOrganization["address"]["codeInsee"]);             
+		Notification::createdObjectAsParam(Person::COLLECTION,$creatorId,Organization::COLLECTION, $newOrganizationId, null, null, $newOrganization["geo"],$newOrganization["tags"],$newOrganization["address"]["codeInsee"]);
+
 	    $newOrganization = Organization::getById($newOrganizationId);
 	    return array("result"=>true,
 		    			"msg"=>"Votre organisation est communectée.", 
@@ -114,12 +136,18 @@ class Organization {
 		$newOrganization["country"] = empty($organization['organizationCountry']) ? "" : $organization['organizationCountry'];
 		$newOrganization["name"] = empty($organization['organizationName']) ? "" : $organization['organizationName'];
 		$newOrganization["type"] = empty($organization['type']) ? "" : $organization['type'];
+		//Location
+		$newOrganization["streetAddress"] = empty($organization['streetAddress']) ? "" : $organization['streetAddress'];
 		$newOrganization["postalCode"] = empty($organization['postalCode']) ? "" : $organization['postalCode'];
 		$newOrganization["city"] = empty($organization['city']) ? "" : $organization['city'];
+		$newOrganization["addressCountry"] = empty($organization['organizationCountry']) ? "" : $organization['organizationCountry'];
+
 		$newOrganization["description"] = empty($organization['description']) ? "" : $organization['description'];
 		$newOrganization["tags"] = empty($organization['tagsOrganization']) ? "" : $organization['tagsOrganization'];
 		$newOrganization["typeIntervention"] = empty($organization['typeIntervention']) ? "" : $organization['typeIntervention'];
 		$newOrganization["typeOfPublic"] = empty($organization['public']) ? "" : $organization['public'];
+		$newOrganization["role"] = empty($organization['role']) ? "" : $organization['role'];
+		$newOrganization["category"] = empty($organization['category'.$newOrganization["type"]]) ? "" : $organization['category'.$newOrganization["type"]];
 
 		//error_log("latitude : ".$organization['geoPosLatitude']);
 		if(!empty($organization['geoPosLatitude']) && !empty($organization["geoPosLongitude"])){
@@ -162,12 +190,7 @@ class Organization {
 		$newOrganization['address']['addressLocality'] = empty($organization['address']['addressLocality']) ? "" : $organization['address']['addressLocality'];
 		$newOrganization['address']['geo']['latitude'] = empty($organization['address']['geo']['latitude']) ? "" : $organization['address']['geo']['latitude'];
 		$newOrganization['address']['geo']['longitude'] = empty($organization['address']['geo']['longitude']) ? "" : $organization['address']['geo']['longitude'];
-
-
 		$newOrganization["url"] = empty($organization['url']) ? "" : $organization['url'];
-		
-
-
 		/*if(!empty($organization['address']['streetAddress']))
 		{
 			$nominatim = "http://nominatim.openstreetmap.org/search?q=".urlencode($organization['address']['streetAddress'])."&format=json&polygon=0&addressdetails=1";
@@ -230,6 +253,8 @@ class Organization {
 			if (!empty($organization['city'])) {
 				$insee = $organization['city'];
 				$address = SIG::getAdressSchemaLikeByCodeInsee($insee);
+				$address["streetAddress"] = $organization["streetAddress"];
+				$address["addressCountry"] = $organization["addressCountry"];
 				$newOrganization["address"] = $address;
 
 				if(empty($organization["geo"]))
@@ -256,7 +281,17 @@ class Organization {
 			$newOrganization["tags"] = $tags;
 		}
 		
+		//category
+		if (isset($organization['category'])) {
+			if ( gettype($organization['category']) == "array" ) {
+				$category = $organization['category'];
+			} else if ( gettype($organization['category']) == "string" ) {
+				$category = explode(",", $organization['category']);
+			}
+			$newOrganization["category"] = $category;
+		}
 
+		//************************ Import Data specific ********************/
 		//ConctactPoint
 		if(!empty($organization['contactPoint'])){
 			foreach ($organization['contactPoint'] as $key => $valueContactPoint) {
