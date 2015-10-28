@@ -12,16 +12,20 @@ class AddOrganizationFormAction extends CAction
 				$organization = null;
 			}
 	  	}
-		$types = PHDB::findOne ( PHType::TYPE_LISTS,array("name"=>"organisationTypes"), array('list'));
+		//$types = PHDB::findOne ( PHType::TYPE_LISTS,array("name"=>"organisationTypes"), array('list'));
 		$tags = Tags::getActiveTags();
+		$lists = Lists::get(array("organisationTypes", "NGOCategories", 'localBusinessCategories'));
 	  
 		$detect = new Mobile_Detect;
 		$isMobile = $detect->isMobile();
 	  
 		$params = array( 
 			"organization" => $organization,'type'=>$type,
-			'types'=>$types['list'],
+			'types'=>$lists['organisationTypes'],
+			'NGOCategories'=>@$lists['NGOCategories'],
+			'localBusinessCategories'=>@$lists['localBusinessCategories'],
 			'tags'=>json_encode($tags));
+
 		if( isset($_GET["isNotSV"])) 
             $params["isNotSV"] = true;
 		/*if($isMobile) {
