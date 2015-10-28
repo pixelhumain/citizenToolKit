@@ -1,10 +1,9 @@
 <?php
 class IndexAction extends CAction
 {
-    public function run($type=null, $id= null)
+    public function run($type=null, $id= null,$date = null)
     {
         $controller=$this->getController();
-        
         $controller->title = "Timeline";
         $controller->subTitle = "NEWS comes from everywhere, and from anyone.";
         $controller->pageTitle = "Communecter - Timeline Globale";
@@ -105,6 +104,7 @@ class IndexAction extends CAction
 
         //TODO : get since a certain date
         $news = News::getWhereSortLimit( $where, array("date"=>1) ,30);
+        $news=array();
 
         //TODO : get all notifications for the current context
         
@@ -147,8 +147,42 @@ class IndexAction extends CAction
 			}
 		}
 		if ( $type == Person::COLLECTION ){ 
+			// GET ACTIVITYSTREAM FROM OTHER WITH SAME CODEINSEE
+			if(@$date && $date != null){
+				$date=  intval($date);
+			}
+			else
+				$date=time();
+			$person=Person::getById(Yii::app()->session["userId"]);
+			$paramInsee = array(
+							'$and' => array(
+								array("verb"=> ActStr::VERB_CREATE), 
+								array('$or' => array(
+									array("object.objectType" => Project::COLLECTION), 
+									array("object.objectType" => Event::COLLECTION), 
+									array("object.objectType" => Organization::COLLECTION)
+									)
+								), 
+								array("codeInsee" => $person["address"]["codeInsee"]),
+								array("timestamp" => array('$lt' => $date))
+							)
+					);
+			$newsLocality=ActivityStream::getActivtyForObjectId($paramInsee,array("timestamp"=>-1));
+			foreach ($newsLocality as $key => $data){
+				if($data["object"]["objectType"]==Project::COLLECTION){
+					$newsObject=NewsTranslator::convertToNews($data,NewsTranslator::NEWS_CREATE_PROJECT);
+				}
+				else if($data["object"]["objectType"]==Event::COLLECTION){
+					$newsObject=NewsTranslator::convertToNews($data,NewsTranslator::NEWS_CREATE_EVENT);
+				}
+				else if($data["object"]["objectType"]==Organization::COLLECTION){
+					$newsObject=NewsTranslator::convertToNews($data,NewsTranslator::NEWS_CREATE_ORGANIZATION);
+				}
+				$news[$key]=$newsObject;
+			}
+			//print_r($newsLocality);
 			//GET NEW PROJECT
-			$paramProject = array("verb" => ActStr::VERB_CREATE, "object.objectType" => Project::COLLECTION,"actor.objectType" => $type, "actor.id" => $id);
+			/*$paramProject = array("verb" => ActStr::VERB_CREATE, "object.objectType" => Project::COLLECTION,"actor.objectType" => $type, "actor.id" => $id);
 			$newsProject=ActivityStream::getActivtyForObjectId($paramProject);
 			if(isset($newsProject)){
 				foreach ($newsProject as $key => $data){
@@ -173,7 +207,7 @@ class IndexAction extends CAction
 					$newsObject=NewsTranslator::convertToNews($data,NewsTranslator::NEWS_CREATE_ORGANIZATION);
 					$news[$key]=$newsObject;
 				}
-			}
+			}*/
 		}
 		if ( $type == Organization::COLLECTION ){ 
 			//GET EVENT FOR ORGA
@@ -197,7 +231,7 @@ class IndexAction extends CAction
 			// GET NEW MEMBER FOR ORGANIZATION
 			$paramMember = array("verb" => ActStr::VERB_JOIN, "target.objectType" => $type,"target.id" => $id);
 			$newsMember=ActivityStream::getActivtyForObjectId($paramMember);
-			print_r($newsMember);
+			//print_r($newsMember);
 			if(isset($newsMember)){
 				foreach ($newsMember as $key => $data){
 					$newsObject=NewsTranslator::convertToNews($data,NewsTranslator::NEWS_JOIN_ORGANIZATION);
@@ -215,9 +249,17 @@ class IndexAction extends CAction
 		$params["userCP"] = Yii::app()->session['userCP'];
 		$params["contextParentType"] = $type;
 		$params["contextParentId"] = $id;
+		$params["limitDate"] = end($news);
 								//print_r($params["news"]);
-		if(Yii::app()->request->isAjaxRequest)
-	        echo $controller->renderPartial("index" , $params ,true);
+		if(Yii::app()->request->isAjaxRequest){
+			if (!@$_GET["isNotSV"])
+				echo json_encode($params);
+	        else{
+//echo json_encode($params);
+	       echo 	$controller->renderPartial("index", $params,true);
+	        	
+	      }
+	    }
 	    else
   			$controller->render( "index" , $params  );
     }

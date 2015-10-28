@@ -609,7 +609,7 @@ class Person {
 	  		}
 	  	}
 
-	  	return array( "rooms"   => $actionRooms , 
+	  	return array( "rooms"	=> $actionRooms , 
 	  				  "actions" => $actions );
 	}
 

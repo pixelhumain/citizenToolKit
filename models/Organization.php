@@ -4,6 +4,9 @@ class Organization {
 	const COLLECTION = "organizations";
 	const CONTROLLER = "organization";
 	const ICON = "fa-users";
+	const ICON_BIZ = "fa-industry";
+	const ICON_GROUP = "fa-circle-o";
+	const ICON_GOV = "fa-circle-o";
 
 	const TYPE_NGO = "NGO";
 	const TYPE_BUSINESS = "LocalBusiness";
@@ -118,7 +121,8 @@ class Organization {
 	    //send Notification Email
 	    $creator = Person::getById($creatorId);
 	    //Mail::newOrganization($creator,$newOrganization);
-	    Notification::createdObjectAsParam(Person::COLLECTION,$creatorId,Organization::COLLECTION, $newOrganizationId, null, null, $newOrganization["geo"],$newOrganization["tags"]);             
+		Notification::createdObjectAsParam(Person::COLLECTION,$creatorId,Organization::COLLECTION, $newOrganizationId, null, null, $newOrganization["geo"],$newOrganization["tags"],$newOrganization["address"]["codeInsee"]);
+
 	    $newOrganization = Organization::getById($newOrganizationId);
 	    return array("result"=>true,
 		    			"msg"=>"Votre organisation est communectée.", 
@@ -164,7 +168,7 @@ class Organization {
 
 
 	public static function newOrganizationFromImportData($organization) {
-		//var_dump($organization);
+		
 		$newOrganization = array();
 		$newOrganization["key"] = "organizationsCollection";
 		$newOrganization["email"] = empty($organization['email']) ? "" : $organization['email'];

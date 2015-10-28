@@ -5,10 +5,14 @@ class City {
 	const COLLECTION = "cities";
 	const CONTROLLER = "city";
 	const COLLECTION_DATA = "cityData";
+
 	const REGION = "region";
 	const DEPARTEMENT = "departement";
-	const COLLECTION_IMPORTHISTORY = "importHistory";
+	const CITY = "city";
+	const NEIGHBOUR_HOOD = "neighbourhood";
 	const CITOYENS = "citoyens";
+	const COLLECTION_IMPORTHISTORY = "importHistory";
+	const ICON = "fa-university";
 
 	/* Retourne des infos sur la commune dans la collection cities" */
 	public static function getWhere($params, $fields=null, $limit=20) 
