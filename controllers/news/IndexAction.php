@@ -255,7 +255,7 @@ class IndexAction extends CAction
 			if (!@$_GET["isNotSV"])
 				echo json_encode($params);
 	        else{
-//echo json_encode($params);
+			//echo json_encode($params);
 	       echo 	$controller->renderPartial("index", $params,true);
 	        	
 	      }
