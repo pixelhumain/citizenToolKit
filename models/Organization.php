@@ -69,7 +69,6 @@ class Organization {
 	 * @return array result as an array. 
 	 */
 	public static function insert($organization, $creatorId, $adminId = null) {
-	    
 	    $newOrganization = Organization::getAndCheckOrganization($organization);
 		
 		//Manage tags : save any inexistant tag to DB 
@@ -92,7 +91,7 @@ class Organization {
 	    	throw new CTKException(Yii::t("organization","Problem inserting the new organization"));
 	    }
 		
-		//Manage link with the creator
+		//Manage link with the creator depending of the role selected
 		if (@$organization["role"] == "admin") {
 			$isToLink = true;
 			$memberId = $creatorId;
@@ -104,10 +103,13 @@ class Organization {
 		} else if (@$organization["role"] == "creator") {
 			$isToLink = false;
 		}
+		unset($organization["role"]);
+
+		//If the adminId is set then add him as admin
 		if ($adminId) {
 			$isToLink = true;
 			$memberId = $adminId;
-			$isAdmin = false;
+			$isAdmin = true;
 		}
 		if ($isToLink) {
 		    Link::addMember($newOrganizationId, Organization::COLLECTION, $memberId, Person::COLLECTION, $creatorId, $isAdmin);
@@ -141,6 +143,7 @@ class Organization {
 		$newOrganization["typeIntervention"] = empty($organization['typeIntervention']) ? "" : $organization['typeIntervention'];
 		$newOrganization["typeOfPublic"] = empty($organization['public']) ? "" : $organization['public'];
 		$newOrganization["role"] = empty($organization['role']) ? "" : $organization['role'];
+		$newOrganization["category"] = empty($organization['category'.$newOrganization["type"]]) ? "" : $organization['category'.$newOrganization["type"]];
 
 		//error_log("latitude : ".$organization['geoPosLatitude']);
 		if(!empty($organization['geoPosLatitude']) && !empty($organization["geoPosLongitude"])){
@@ -274,7 +277,17 @@ class Organization {
 			$newOrganization["tags"] = $tags;
 		}
 		
+		//category
+		if (isset($organization['category'])) {
+			if ( gettype($organization['category']) == "array" ) {
+				$category = $organization['category'];
+			} else if ( gettype($organization['category']) == "string" ) {
+				$category = explode(",", $organization['category']);
+			}
+			$newOrganization["category"] = $category;
+		}
 
+		//************************ Import Data specific ********************/
 		//ConctactPoint
 		if(!empty($organization['contactPoint'])){
 			foreach ($organization['contactPoint'] as $key => $valueContactPoint) {
