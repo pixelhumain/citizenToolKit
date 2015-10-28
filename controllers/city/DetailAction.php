@@ -22,7 +22,7 @@ class DetailAction extends CAction
         //si la city n'a pas de position geo OU que les lat/lng ne sont pas définit (==0)
         if( !isset($city["geo"]) ||
             $city["geo"]["latitude"] == 0.00000000 || $city["geo"]["latitude"] == 0 ||
-            $city["geo"]["longitude"] == 0.00000000 || $city["geo"]["longitude"] == 0)
+            $city["geo"]["longitude"] == 0.00000000 || $city["geo"]["longitude"] == 0 )
             {
                 //on recherche la position de la ville via nominatim 
                 //(limité à la France pour l'instant, pour être plus précis et trouver plus facilement)
@@ -38,7 +38,6 @@ class DetailAction extends CAction
                     $city["geo"]["latitude"]  = $resultats[0]->lat;
                     $city["geo"]["boundingbox"]  = $resultats[0]->boundingbox;
                 }
-
             }
 
         $person = Person::getPublicData($id);
@@ -156,10 +155,11 @@ class DetailAction extends CAction
         $params["people"] = $people;
         $params["insee"] = $insee;
         $params["city"] = $city;
+        
         $page = "detail";
         if(Yii::app()->request->isAjaxRequest)
             echo $controller->renderPartial($page,$params,true);
         else 
-        $controller->render($page, $params );
+            $controller->render($page, $params );
     }
 }
