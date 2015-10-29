@@ -88,7 +88,7 @@ class News {
 			PHDB::insert(self::COLLECTION,$news);
 		    $news["author"] = Person::getById($news["author"]);
 		  	
-		    return array("result"=>true, "msg"=>"Votre news est enregistré.", "id"=>$news["_id"],"object"=>$news);	
+		    return array("result"=>true, "msg"=>"Votre news est enregistrée.", "id"=>$news["_id"],"object"=>$news);	
 		} else {
 			return array("result"=>false, "msg"=>"Please Fill required Fields.");	
 		}

@@ -92,6 +92,7 @@ class DetailAction extends CAction
 		$params["plaquette"] = reset($listPlaquette);
 		$controller->title = (isset($organization["name"])) ? $organization["name"] : "";
 		$page = "detail";
+		
 		if(Yii::app()->request->isAjaxRequest)
             echo $controller->renderPartial($page,$params,true);
         else 

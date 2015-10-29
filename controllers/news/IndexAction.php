@@ -1,13 +1,13 @@
 <?php
 class IndexAction extends CAction
 {
-    public function run($type=null, $id= null,$date = null)
+    public function run($type=null, $id= null,$date = null, $streamType="activity")
     {
         $controller=$this->getController();
         $controller->title = "Timeline";
         $controller->subTitle = "NEWS comes from everywhere, and from anyone.";
         $controller->pageTitle = "Communecter - Timeline Globale";
-
+        $news = array(); 
         if(!function_exists("array_msort")){
 			function array_msort($array, $cols)
 			{
@@ -41,7 +41,12 @@ class IndexAction extends CAction
 				$id=$_GET["id"];
 			else 
 				$id = Yii::app() -> session["userId"] ;
-		}	
+		}
+		if(@$date && $date != null)
+			$date=  intval($date);
+		else
+			$date=time();
+	
 		if(!@$type)
 			$type= Person::COLLECTION;
 		$params["type"] = $type; 
@@ -93,154 +98,149 @@ class IndexAction extends CAction
             $controller->pageTitle = "Communect - ".$controller->title;
         }
 
-
-        $where = array("created"=>array('$exists'=>1),"text"=>array('$exists'=>1) ) ;
-        // if(isset($type))
-        // 	$where["type"] = $type;
-        // if(isset($id))
-        // 	$where["id"] = $id;
-        if($type == "citoyen") $type = "citoyens";
-        $where["scope.".$type] = $id;
-
-        //TODO : get since a certain date
-        $news = News::getWhereSortLimit( $where, array("date"=>1) ,30);
-        $news=array();
-
+		if ($streamType == "news"){
+	        $where = array("created"=>array('$lt' => $date),"text"=>array('$exists'=>1) ) ;
+	       // if(isset($type))
+	        //	$where["type"] = $type;
+	         //if(isset($id))
+	         //	$where["id"] = $id;
+	        //if($type == "citoyen") $type = "citoyens";
+	        //$where["scope.".$type] = $id;
+	
+	        //TODO : get since a certain date
+	        $news = News::getWhereSortLimit( $where, array("date"=>1) ,30);
+	       // print_r($news);
+		}
         //TODO : get all notifications for the current context
-        
-		if ( $type == Project::COLLECTION ){ 
-			//GET NEW CONTRIBUTOR
-			$paramContrib = array("verb" => ActStr::VERB_INVITE, "target.objectType" => $type, "target.id" => $id);
-			$newsContributor=ActivityStream::getActivtyForObjectId($paramContrib);
-			if(isset($newsContributor)){
-				foreach ($newsContributor as $key => $data){
-					$newsObject=NewsTranslator::convertToNews($data,NewsTranslator::NEWS_CONTRIBUTORS);
-					$news[$key]=$newsObject;
+        else {
+			if ( $type == Project::COLLECTION ){ 
+				//GET NEW CONTRIBUTOR
+				$paramContrib = array("verb" => ActStr::VERB_INVITE, "target.objectType" => $type, "target.id" => $id);
+				$newsContributor=ActivityStream::getActivtyForObjectId($paramContrib);
+				if(isset($newsContributor)){
+					foreach ($newsContributor as $key => $data){
+						$newsObject=NewsTranslator::convertToNews($data,NewsTranslator::NEWS_CONTRIBUTORS);
+						$news[$key]=$newsObject;
+					}
+				}
+				//GET NEW NEED
+				$paramNeed = array("verb" => ActStr::VERB_CREATE, "object.objectType" => Need::COLLECTION, "target.objectType" => $type, "target.id" => $id);
+				$newsNeed=ActivityStream::getActivtyForObjectId($paramNeed);
+				if(isset($newsNeed)){
+					foreach ($newsNeed as $key => $data){
+						$newsObject=NewsTranslator::convertToNews($data,NewsTranslator::NEWS_CREATE_NEED);
+						$news[$key]=$newsObject;
+					}
+				}
+				// GET NEW EVENT
+				$paramEvent = array("verb" => ActStr::VERB_CREATE, "object.objectType" => Event::COLLECTION,"target.objectType" => $type, "target.id" => $id);
+				$newsEvent=ActivityStream::getActivtyForObjectId($paramEvent);
+				if(isset($newsEvent)){
+					foreach ($newsEvent as $key => $data){
+						$newsObject=NewsTranslator::convertToNews($data,NewsTranslator::NEWS_CREATE_EVENT);
+						$news[$key]=$newsObject;
+					}
+				}
+				// GET NEW TASK
+				$paramTask = array("verb" => ActStr::VERB_CREATE, "object.objectType" => Gantt::COLLECTION,"target.objectType" => $type, "target.id" => $id);
+				$newsTask=ActivityStream::getActivtyForObjectId($paramTask);
+				if(isset($newsTask)){
+					foreach ($newsTask as $key => $data){
+						$newsObject=NewsTranslator::convertToNews($data,NewsTranslator::NEWS_CREATE_TASK);
+						$news[$key]=$newsObject;
+					}
 				}
 			}
-			//GET NEW NEED
-			$paramNeed = array("verb" => ActStr::VERB_CREATE, "object.objectType" => Need::COLLECTION, "target.objectType" => $type, "target.id" => $id);
-			$newsNeed=ActivityStream::getActivtyForObjectId($paramNeed);
-			if(isset($newsNeed)){
-				foreach ($newsNeed as $key => $data){
-					$newsObject=NewsTranslator::convertToNews($data,NewsTranslator::NEWS_CREATE_NEED);
+			if ( $type == Person::COLLECTION ){ 
+				// GET ACTIVITYSTREAM FROM OTHER WITH SAME CODEINSEE
+				$person=Person::getById(Yii::app()->session["userId"]);
+				$paramInsee = array(
+								'$and' => array(
+									array("verb"=> ActStr::VERB_CREATE), 
+									array('$or' => array(
+										array("object.objectType" => Project::COLLECTION), 
+										array("object.objectType" => Event::COLLECTION), 
+										array("object.objectType" => Organization::COLLECTION)
+										)
+									), 
+									array("codeInsee" => $person["address"]["codeInsee"]),
+									array("timestamp" => array('$lt' => $date))
+								)
+						);
+				$newsLocality=ActivityStream::getActivtyForObjectId($paramInsee,array("timestamp"=>-1));
+				foreach ($newsLocality as $key => $data){
+					if($data["object"]["objectType"]==Project::COLLECTION){
+						$newsObject=NewsTranslator::convertToNews($data,NewsTranslator::NEWS_CREATE_PROJECT);
+					}
+					else if($data["object"]["objectType"]==Event::COLLECTION){
+						$newsObject=NewsTranslator::convertToNews($data,NewsTranslator::NEWS_CREATE_EVENT);
+					}
+					else if($data["object"]["objectType"]==Organization::COLLECTION){
+						$newsObject=NewsTranslator::convertToNews($data,NewsTranslator::NEWS_CREATE_ORGANIZATION);
+					}
 					$news[$key]=$newsObject;
 				}
+				//print_r($newsLocality);
+				//GET NEW PROJECT
+				/*$paramProject = array("verb" => ActStr::VERB_CREATE, "object.objectType" => Project::COLLECTION,"actor.objectType" => $type, "actor.id" => $id);
+				$newsProject=ActivityStream::getActivtyForObjectId($paramProject);
+				if(isset($newsProject)){
+					foreach ($newsProject as $key => $data){
+						$newsObject=NewsTranslator::convertToNews($data,NewsTranslator::NEWS_CREATE_PROJECT);
+						$news[$key]=$newsObject;
+					}
+				}
+				// GET EVENT FOR PERSON
+				$paramEvent = array("verb" => ActStr::VERB_CREATE, "object.objectType" => Event::COLLECTION,"actor.objectType" => $type, "actor.id" => $id);
+				$newsEvent=ActivityStream::getActivtyForObjectId($paramEvent);
+				if(isset($newsEvent)){
+					foreach ($newsEvent as $key => $data){
+						$newsObject=NewsTranslator::convertToNews($data,NewsTranslator::NEWS_CREATE_EVENT);
+						$news[$key]=$newsObject;
+					}
+				}
+				// GET ORGANIZATION FOR PERSON
+				$paramOrga = array("verb" => ActStr::VERB_CREATE, "object.objectType" => Organization::COLLECTION,"actor.id" => $id, "actor.objectType" => Person::COLLECTION);
+				$newsOrga=ActivityStream::getActivtyForObjectId($paramOrga);
+				if(isset($newsOrga)){
+					foreach ($newsOrga as $key => $data){
+						$newsObject=NewsTranslator::convertToNews($data,NewsTranslator::NEWS_CREATE_ORGANIZATION);
+						$news[$key]=$newsObject;
+					}
+				}*/
 			}
-			// GET NEW EVENT
-			$paramEvent = array("verb" => ActStr::VERB_CREATE, "object.objectType" => Event::COLLECTION,"target.objectType" => $type, "target.id" => $id);
-			$newsEvent=ActivityStream::getActivtyForObjectId($paramEvent);
-			if(isset($newsEvent)){
-				foreach ($newsEvent as $key => $data){
-					$newsObject=NewsTranslator::convertToNews($data,NewsTranslator::NEWS_CREATE_EVENT);
-					$news[$key]=$newsObject;
+			if ( $type == Organization::COLLECTION ){ 
+				//GET EVENT FOR ORGA
+				$paramEvent = array("verb" => ActStr::VERB_CREATE, "object.objectType" => Event::COLLECTION,"target.objectType" => $type, "target.id" => $id);
+				$newsEvent=ActivityStream::getActivtyForObjectId($paramEvent);
+				if(isset($newsEvent)){
+					foreach ($newsEvent as $key => $data){
+						$newsObject=NewsTranslator::convertToNews($data,NewsTranslator::NEWS_CREATE_EVENT);
+						$news[$key]=$newsObject;
+					}
 				}
-			}
-			// GET NEW TASK
-			$paramTask = array("verb" => ActStr::VERB_CREATE, "object.objectType" => Gantt::COLLECTION,"target.objectType" => $type, "target.id" => $id);
-			$newsTask=ActivityStream::getActivtyForObjectId($paramTask);
-			if(isset($newsTask)){
-				foreach ($newsTask as $key => $data){
-					$newsObject=NewsTranslator::convertToNews($data,NewsTranslator::NEWS_CREATE_TASK);
-					$news[$key]=$newsObject;
+				//GET PROJECT FOR ORGA
+				$paramProject = array("verb" => ActStr::VERB_CREATE, "object.objectType" => Project::COLLECTION,"actor.objectType" => $type, "actor.id" => $id);
+				$newsProject=ActivityStream::getActivtyForObjectId($paramProject);
+				if(isset($newsProject)){
+					foreach ($newsProject as $key => $data){
+						$newsObject=NewsTranslator::convertToNews($data,NewsTranslator::NEWS_CREATE_PROJECT);
+						$news[$key]=$newsObject;
+					}
 				}
+				// GET NEW MEMBER FOR ORGANIZATION
+				$paramMember = array("verb" => ActStr::VERB_JOIN, "target.objectType" => $type,"target.id" => $id);
+				$newsMember=ActivityStream::getActivtyForObjectId($paramMember);
+				//print_r($newsMember);
+				if(isset($newsMember)){
+					foreach ($newsMember as $key => $data){
+						$newsObject=NewsTranslator::convertToNews($data,NewsTranslator::NEWS_JOIN_ORGANIZATION);
+						$news[$key]=$newsObject;
+					}
+				}
+	
 			}
 		}
-		if ( $type == Person::COLLECTION ){ 
-			// GET ACTIVITYSTREAM FROM OTHER WITH SAME CODEINSEE
-			if(@$date && $date != null){
-				$date=  intval($date);
-			}
-			else
-				$date=time();
-			$person=Person::getById(Yii::app()->session["userId"]);
-			$paramInsee = array(
-							'$and' => array(
-								array("verb"=> ActStr::VERB_CREATE), 
-								array('$or' => array(
-									array("object.objectType" => Project::COLLECTION), 
-									array("object.objectType" => Event::COLLECTION), 
-									array("object.objectType" => Organization::COLLECTION)
-									)
-								), 
-								array("codeInsee" => $person["address"]["codeInsee"]),
-								array("timestamp" => array('$lt' => $date))
-							)
-					);
-			$newsLocality=ActivityStream::getActivtyForObjectId($paramInsee,array("timestamp"=>-1));
-			foreach ($newsLocality as $key => $data){
-				if($data["object"]["objectType"]==Project::COLLECTION){
-					$newsObject=NewsTranslator::convertToNews($data,NewsTranslator::NEWS_CREATE_PROJECT);
-				}
-				else if($data["object"]["objectType"]==Event::COLLECTION){
-					$newsObject=NewsTranslator::convertToNews($data,NewsTranslator::NEWS_CREATE_EVENT);
-				}
-				else if($data["object"]["objectType"]==Organization::COLLECTION){
-					$newsObject=NewsTranslator::convertToNews($data,NewsTranslator::NEWS_CREATE_ORGANIZATION);
-				}
-				$news[$key]=$newsObject;
-			}
-			//print_r($newsLocality);
-			//GET NEW PROJECT
-			/*$paramProject = array("verb" => ActStr::VERB_CREATE, "object.objectType" => Project::COLLECTION,"actor.objectType" => $type, "actor.id" => $id);
-			$newsProject=ActivityStream::getActivtyForObjectId($paramProject);
-			if(isset($newsProject)){
-				foreach ($newsProject as $key => $data){
-					$newsObject=NewsTranslator::convertToNews($data,NewsTranslator::NEWS_CREATE_PROJECT);
-					$news[$key]=$newsObject;
-				}
-			}
-			// GET EVENT FOR PERSON
-			$paramEvent = array("verb" => ActStr::VERB_CREATE, "object.objectType" => Event::COLLECTION,"actor.objectType" => $type, "actor.id" => $id);
-			$newsEvent=ActivityStream::getActivtyForObjectId($paramEvent);
-			if(isset($newsEvent)){
-				foreach ($newsEvent as $key => $data){
-					$newsObject=NewsTranslator::convertToNews($data,NewsTranslator::NEWS_CREATE_EVENT);
-					$news[$key]=$newsObject;
-				}
-			}
-			// GET ORGANIZATION FOR PERSON
-			$paramOrga = array("verb" => ActStr::VERB_CREATE, "object.objectType" => Organization::COLLECTION,"actor.id" => $id, "actor.objectType" => Person::COLLECTION);
-			$newsOrga=ActivityStream::getActivtyForObjectId($paramOrga);
-			if(isset($newsOrga)){
-				foreach ($newsOrga as $key => $data){
-					$newsObject=NewsTranslator::convertToNews($data,NewsTranslator::NEWS_CREATE_ORGANIZATION);
-					$news[$key]=$newsObject;
-				}
-			}*/
-		}
-		if ( $type == Organization::COLLECTION ){ 
-			//GET EVENT FOR ORGA
-			$paramEvent = array("verb" => ActStr::VERB_CREATE, "object.objectType" => Event::COLLECTION,"target.objectType" => $type, "target.id" => $id);
-			$newsEvent=ActivityStream::getActivtyForObjectId($paramEvent);
-			if(isset($newsEvent)){
-				foreach ($newsEvent as $key => $data){
-					$newsObject=NewsTranslator::convertToNews($data,NewsTranslator::NEWS_CREATE_EVENT);
-					$news[$key]=$newsObject;
-				}
-			}
-			//GET PROJECT FOR ORGA
-			$paramProject = array("verb" => ActStr::VERB_CREATE, "object.objectType" => Project::COLLECTION,"actor.objectType" => $type, "actor.id" => $id);
-			$newsProject=ActivityStream::getActivtyForObjectId($paramProject);
-			if(isset($newsProject)){
-				foreach ($newsProject as $key => $data){
-					$newsObject=NewsTranslator::convertToNews($data,NewsTranslator::NEWS_CREATE_PROJECT);
-					$news[$key]=$newsObject;
-				}
-			}
-			// GET NEW MEMBER FOR ORGANIZATION
-			$paramMember = array("verb" => ActStr::VERB_JOIN, "target.objectType" => $type,"target.id" => $id);
-			$newsMember=ActivityStream::getActivtyForObjectId($paramMember);
-			//print_r($newsMember);
-			if(isset($newsMember)){
-				foreach ($newsMember as $key => $data){
-					$newsObject=NewsTranslator::convertToNews($data,NewsTranslator::NEWS_JOIN_ORGANIZATION);
-					$news[$key]=$newsObject;
-				}
-			}
-
-		}
-
 		$news = array_msort($news, array('created'=>SORT_DESC));
         //TODO : reorganise by created date
 		$params["news"] = $news; 
@@ -255,7 +255,7 @@ class IndexAction extends CAction
 			if (!@$_GET["isNotSV"])
 				echo json_encode($params);
 	        else{
-//echo json_encode($params);
+			//echo json_encode($params);
 	       echo 	$controller->renderPartial("index", $params,true);
 	        	
 	      }
