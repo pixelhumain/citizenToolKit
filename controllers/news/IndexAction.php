@@ -7,7 +7,7 @@ class IndexAction extends CAction
         $controller->title = "Timeline";
         $controller->subTitle = "NEWS comes from everywhere, and from anyone.";
         $controller->pageTitle = "Communecter - Timeline Globale";
-
+        $news = array(); 
         if(!function_exists("array_msort")){
 			function array_msort($array, $cols)
 			{
