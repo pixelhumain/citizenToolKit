@@ -5,7 +5,7 @@ class DetailAction extends CAction
 	/**
 	* Dashboard Organization
 	*/
-    public function run($id) { 
+    public function run($id, $alone=false) { //alone = no toolbar, no moduleLabel in view
     	$controller=$this->getController();
 		if (empty($id)) {
 		  throw new CTKException(Yii::t("organization","The organization id is mandatory to retrieve the organization !"));
@@ -86,9 +86,13 @@ class DetailAction extends CAction
 		//Plaquette de présentation
 		$listPlaquette = Document::listDocumentByCategory($id, Organization::COLLECTION, Document::CATEGORY_PLAQUETTE, array( 'created' => 1 ));
 		$params["plaquette"] = reset($listPlaquette);
+		
+		$params["alone"] = (isset($alone) && $alone == "true");
+
 		$controller->title = (isset($organization["name"])) ? $organization["name"] : "";
 		$page = "detail";
 		
+
 		if(Yii::app()->request->isAjaxRequest)
             echo $controller->renderPartial($page,$params,true);
         else 
