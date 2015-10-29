@@ -54,4 +54,22 @@ class Lists {
 
     return $res;
     }
+
+
+  /**
+   * Get Labels linked to ids on list collection
+   * @param array $listName name of the list
+   * @param array $ids array of ids to retrieve
+   * @return array of labels
+   */
+  public static function getLabels($listName, $ids){
+    $listValue = self::get($listName);
+    $res = array();
+    foreach ($ids as $id) {
+        $label = "";
+        $label = @$listValue[$id];
+        array_push($res, $label) ;    
+    }
+    return $res;
+  }
 }
