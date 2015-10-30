@@ -5,7 +5,7 @@ class DetailAction extends CAction
 	/**
 	* Dashboard Organization
 	*/
-    public function run($id) { 
+    public function run($id, $alone=false) { //alone = no toolbar, no moduleLabel in view
     	$controller=$this->getController();
 		if (empty($id)) {
 		  throw new CTKException(Yii::t("organization","The organization id is mandatory to retrieve the organization !"));
@@ -78,17 +78,25 @@ class DetailAction extends CAction
 		$params["contextMap"] = $contextMap;
 		//list
 		$params["tags"] = Tags::getActiveTags();
-		$lists = Lists::get(array("public", "typeIntervention", "organisationTypes"));
+		$listsToRetrieve = array("public", "typeIntervention", "organisationTypes", "NGOCategories", "localBusinessCategories");
+		$lists = Lists::get($listsToRetrieve);
 		$params["public"] = $lists["public"];
 		$params["organizationTypes"] = $lists["organisationTypes"];
 		$params["typeIntervention"] = $lists["typeIntervention"];
+		$params["NGOCategories"] = $lists["NGOCategories"];
+		$params["localBusinessCategories"] = $lists["localBusinessCategories"];
+		
 		$params["countries"] = OpenData::getCountriesList();
 		//Plaquette de présentation
 		$listPlaquette = Document::listDocumentByCategory($id, Organization::COLLECTION, Document::CATEGORY_PLAQUETTE, array( 'created' => 1 ));
 		$params["plaquette"] = reset($listPlaquette);
+		
+		$params["alone"] = (isset($alone) && $alone == "true");
+
 		$controller->title = (isset($organization["name"])) ? $organization["name"] : "";
 		$page = "detail";
 		
+
 		if(Yii::app()->request->isAjaxRequest)
             echo $controller->renderPartial($page,$params,true);
         else 

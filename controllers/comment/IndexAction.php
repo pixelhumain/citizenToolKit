@@ -38,7 +38,7 @@ class IndexAction extends CAction
 		if(Yii::app()->request->isAjaxRequest)
 	        echo $controller->renderPartial("commentPod" , $params, true);
 	    else
-  			$controller->render( "index" , $params );
+  			$controller->renderPartial("commentPod" , $params, true);
     }
 
  
