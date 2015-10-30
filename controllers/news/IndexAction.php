@@ -43,7 +43,7 @@ class IndexAction extends CAction
 				$id = Yii::app() -> session["userId"] ;
 		}
 		if(@$date && $date != null)
-			$date=  intval($date);
+			$date = intval($date);
 		else
 			$date=time();
 		$news=array();
@@ -99,23 +99,35 @@ class IndexAction extends CAction
         }
 
 		if ($streamType == "news"){
-	        $where = array("created"=>array('$lt' => $date),"text"=>array('$exists'=>1) ) ;
-			// if(isset($type))
-	        //	$where["type"] = $type;
+			if($type == "citoyen") 
+				$type = "citoyens";
+			//$scope=array("scope.".$type => $id);	
+			//$where["scope.".$type] = $id;
+			// $date = new Date(myDate.toISOString());
+	        $where = array(
+			        	'$and' => array(
+								array("text" => array('$exists'=>1)),
+								array("scope.".$type => $id),
+								array('created' => array(
+											'$lt' => $date
+											)
+								)
+			        		)	
+			        );
+			 //if(isset($type))
+	        	//$where["type"] = $type;
 	        //if(isset($id))
-	        //	$where["id"] = $id;
-			if($type == "citoyen") $type = "citoyens";
-				$where["scope.".$type] = $id;
-	
+	        	//$where["id"] = $id;
+				$news=News::getNewsForObjectId($where,array("created"=>-1));
 	        //TODO : get since a certain date
-	        $news = News::getWhereSortLimit( $where, array("date"=>1) ,3);
-	       // print_r($news);
+	//        $news = News::getWhereSortLimit($where, array("date"=>1) ,3);
+	        //print_r($news);
 		}
         //TODO : get all notifications for the current context
         else {
 			if ( $type == Project::COLLECTION ){ 
 				$paramInsee = array(
-								array('$and' => array(
+								'$and' => array(
 									array("timestamp" => array('$lt' => $date)),
 									array("target.objectType"=>$type,"target.id"=>$id),
 									array('$or' => array(
@@ -133,7 +145,7 @@ class IndexAction extends CAction
 										)	
 										)
 									)
-								)
+								
 								)
 							);
 				//GET NEW CONTRIBUTOR

@@ -15,7 +15,7 @@ class News {
 	  	return PHDB::findAndSort( self::COLLECTION,$params);
 	}
 
-	public static function getWhereSortLimit($params,$sort,$limit=1) {
+	public static function getWhereSortLimit($params,$sort=array("created"=>-1),$limit=1) {
 	  	$res = PHDB::findAndSort( self::COLLECTION,$params,$sort,$limit);
 
 	  	foreach ($res as $key => $news) {
@@ -23,7 +23,14 @@ class News {
 	  	}
 	  	return $res;
 	}
-	
+	public static function getNewsForObjectId($param,$sort=array("created"=>-1))
+	{
+	    $res = PHDB::findAndSort(self::COLLECTION, $param,$sort,3);
+	    foreach ($res as $key => $news) {
+	  		$res[$key]["author"] = Person::getById($news["author"]);
+	  	}
+	  	return $res;
+	}
 	public static function save($params)
 	{
 		//check a user is loggued 
@@ -38,11 +45,11 @@ class News {
 			$news = array("name" => $_POST["name"],
 						  "text" => $_POST["text"],
 						  "author" => Yii::app()->session["userId"],
-						  "date"=>time(),
-						  "created"=>time());
+						  "date"=>new MongoDate(time()),
+						  "created"=>new MongoDate(time()));
 
 			if(isset($_POST["date"])){
-				$news["date"] = $_POST["date"];//new MongoDate( strptime('$_POST["date"]', '%d/%m/%y') );
+				$news["date"] = new MongoDate(strtotime(str_replace('/', '-', $_POST["date"])));
 			}
 			if(isset($_POST["tags"]))
 				$news["tags"] = $_POST["tags"];
