@@ -1,7 +1,7 @@
 <?php
 class IndexAction extends CAction
 {
-    public function run($type=null, $id= null,$date = null, $streamType="activity")
+    public function run($type=null, $id= null,$date = null, $streamType="news")
     {
         $controller=$this->getController();
         $controller->title = "Timeline";
@@ -46,7 +46,7 @@ class IndexAction extends CAction
 			$date=  intval($date);
 		else
 			$date=time();
-	
+		$news=array();
 		if(!@$type)
 			$type= Person::COLLECTION;
 		$params["type"] = $type; 
@@ -100,20 +100,42 @@ class IndexAction extends CAction
 
 		if ($streamType == "news"){
 	        $where = array("created"=>array('$lt' => $date),"text"=>array('$exists'=>1) ) ;
-	       // if(isset($type))
+			// if(isset($type))
 	        //	$where["type"] = $type;
-	         //if(isset($id))
-	         //	$where["id"] = $id;
-	        //if($type == "citoyen") $type = "citoyens";
-	        //$where["scope.".$type] = $id;
+	        //if(isset($id))
+	        //	$where["id"] = $id;
+			if($type == "citoyen") $type = "citoyens";
+				$where["scope.".$type] = $id;
 	
 	        //TODO : get since a certain date
-	        $news = News::getWhereSortLimit( $where, array("date"=>1) ,30);
+	        $news = News::getWhereSortLimit( $where, array("date"=>1) ,3);
 	       // print_r($news);
 		}
         //TODO : get all notifications for the current context
         else {
 			if ( $type == Project::COLLECTION ){ 
+				$paramInsee = array(
+								array('$and' => array(
+									array("timestamp" => array('$lt' => $date)),
+									array("target.objectType"=>$type,"target.id"=>$id),
+									array('$or' => array(
+										array('$and' => array(
+											array("verb"=> ActStr::VERB_CREATE), 
+											array('$or' => array(
+												array("object.objectType" => Need::COLLECTION), 
+												array("object.objectType" => Event::COLLECTION), 
+												array("object.objectType" => Organization::COLLECTION),
+												array("object.objectType" => Gantt::COLLECTION)
+												)
+											) 									
+										),
+										array("verb" => ActStr::VERB_INVITE)
+										)	
+										)
+									)
+								)
+								)
+							);
 				//GET NEW CONTRIBUTOR
 				$paramContrib = array("verb" => ActStr::VERB_INVITE, "target.objectType" => $type, "target.id" => $id);
 				$newsContributor=ActivityStream::getActivtyForObjectId($paramContrib);
@@ -166,7 +188,7 @@ class IndexAction extends CAction
 									array("codeInsee" => $person["address"]["codeInsee"]),
 									array("timestamp" => array('$lt' => $date))
 								)
-						);
+				);
 				$newsLocality=ActivityStream::getActivtyForObjectId($paramInsee,array("timestamp"=>-1));
 				foreach ($newsLocality as $key => $data){
 					if($data["object"]["objectType"]==Project::COLLECTION){
@@ -255,8 +277,9 @@ class IndexAction extends CAction
 			if (!@$_GET["isNotSV"])
 				echo json_encode($params);
 	        else{
-			//echo json_encode($params);
-	       echo 	$controller->renderPartial("index", $params,true);
+//echo json_encode($params);
+	       echo $controller->renderPartial("index", $params,true);
+
 	        	
 	      }
 	    }

@@ -7,13 +7,9 @@ class DetailAction extends CAction
         $controller = $this->getController();
         //echo $insee;
         //get The person Id
-        if (empty($id)) {
-            if (empty(Yii::app()->session["userId"])) {
-                $controller->redirect(Yii::app()->homeUrl);
-            } else {
-                $id = Yii::app()->session["userId"];
-            }
-        }
+        $id =  null;
+        if (!empty($id)) 
+            $id = Yii::app()->session["userId"];
 
         $city = PHDB::findOne(City::COLLECTION, array( "insee" => $insee ) );
         //si la city n'est pas trouvé par son code insee, on cherche avec le code postal
@@ -40,7 +36,7 @@ class DetailAction extends CAction
                 }
             }
 
-        $person = Person::getPublicData($id);
+        $person = ($id) ? Person::getPublicData($id) : null;
         //$person = PHDB::find(Person::COLLECTION, array( "address.codeInsee" => $insee ) );
         
         $contentKeyBase = Yii::app()->controller->id.".".Yii::app()->controller->action->id;
