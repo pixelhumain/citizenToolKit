@@ -104,6 +104,7 @@ class IndexAction extends CAction
 			//$scope=array("scope.".$type => $id);	
 			//$where["scope.".$type] = $id;
 			// $date = new Date(myDate.toISOString());
+			$date=new MongoDate($date);
 	        $where = array(
 			        	'$and' => array(
 								array("text" => array('$exists'=>1)),
