@@ -43,9 +43,10 @@ class IndexAction extends CAction
 				$id = Yii::app() -> session["userId"] ;
 		}
 		if(@$date && $date != null)
-			$date = intval($date);
+			$date = $date;
 		else
 			$date=time();
+		$date=new MongoDate($date);
 		$news=array();
 		if(!@$type)
 			$type= Person::COLLECTION;
@@ -104,7 +105,7 @@ class IndexAction extends CAction
 			//$scope=array("scope.".$type => $id);	
 			//$where["scope.".$type] = $id;
 			// $date = new Date(myDate.toISOString());
-			$date=new MongoDate($date);
+			//$date=new MongoDate($date);
 	        $where = array(
 			        	'$and' => array(
 								array("text" => array('$exists'=>1)),
@@ -187,6 +188,7 @@ class IndexAction extends CAction
 				}
 			}
 			if ( $type == Person::COLLECTION ){ 
+				//$date=new MongoDate($date);
 				// GET ACTIVITYSTREAM FROM OTHER WITH SAME CODEINSEE
 				$person=Person::getById(Yii::app()->session["userId"]);
 				$paramInsee = array(
