@@ -89,7 +89,7 @@ class SIG
 						  array('$geoIntersects'  => 
 						  	array('$geometry' => 
 						  		array("type" 	    => "Point", 
-						  			  "coordinates" => array($lng, $lat))
+						  			  "coordinates" => array(floatval($lng), floatval($lat)))
 						  		)));
 		if($cp != null){
 			$request = array_merge(array("cp"  => $cp), $request);
