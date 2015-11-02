@@ -45,7 +45,7 @@ class ActivityStream {
    */
 	public static function addEntry($param)
 	{
-	    $param["timestamp"] = time();
+	    $param["timestamp"] = new MongoDate(time());
 	    PHDB::insert(self::COLLECTION, $param);
 	}
 	public static function getWhere($params) {
