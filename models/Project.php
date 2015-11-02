@@ -129,7 +129,7 @@ class Project {
 			'startDate' => new MongoDate($startDate),
 			'endDate' => new MongoDate($endDate),
 			'creator' => $userId,
-			'created' => time()
+			'created' => new MongoDate(time())
 	    );
 				  
 		if(!empty($project['postalCode'])) {
