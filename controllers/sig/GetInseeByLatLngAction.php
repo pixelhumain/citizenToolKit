@@ -3,7 +3,7 @@ class GetInseeByLatLngAction extends CAction
 {
     public function run()
     {
-        $city = SIG::getInseeByLatLng($_POST["lat"], $_POST["lng"],  $_POST["cp"]);
+        $city = SIG::getInseeByLatLngCp($_POST["latitude"], $_POST["longitude"],  (isset($_POST["cp"])) ? $_POST["cp"] : null);
 	    Rest::json( $city );
         Yii::app()->end();
     }
