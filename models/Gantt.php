@@ -29,6 +29,7 @@ class Gantt {
 	    }
 	  	return $tasks;
 	}
+	
 	/*public static function insert($params){
 		PHDB::insert(self::COLLECTION,$params);
 		return array("result"=>true, "msg"=>"Votre tâche est communecté.","idTask"=>$params["_id"]);
