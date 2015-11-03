@@ -128,29 +128,51 @@ class IndexAction extends CAction
         //TODO : get all notifications for the current context
         else {
 			if ( $type == Project::COLLECTION ){ 
-				$paramInsee = array(
+				$paramProject = array(
 								'$and' => array(
 									array("timestamp" => array('$lt' => $date)),
 									array("target.objectType"=>$type,"target.id"=>$id),
-									array('$or' => array(
-										array('$and' => array(
-											array("verb"=> ActStr::VERB_CREATE), 
-											array('$or' => array(
-												array("object.objectType" => Need::COLLECTION), 
-												array("object.objectType" => Event::COLLECTION), 
-												array("object.objectType" => Organization::COLLECTION),
-												array("object.objectType" => Gantt::COLLECTION)
+									array('$or' => 
+										array(
+											array('$and'=> 
+												array(
+													array("verb"=> ActStr::VERB_CREATE), 
+													array('$or' => 
+														array(
+															array("object.objectType" => Need::COLLECTION), 
+															array("object.objectType" => Event::COLLECTION), 
+															//array("object.objectType" => Organization::COLLECTION),
+															array("object.objectType" => Gantt::COLLECTION)
+														)
+													)
 												)
-											) 									
-										),
-										array("verb" => ActStr::VERB_INVITE)
+											), 									
+											array("verb" => ActStr::VERB_INVITE)
 										)	
-										)
-									)
-								
+									)	
 								)
 							);
-				//GET NEW CONTRIBUTOR
+				$newsProject=ActivityStream::getActivtyForObjectId($paramProject,array("timestamp"=>-1));
+				if (@$newsProject){
+					foreach ($newsProject as $key => $data){
+						if($data["verb"]==ActStr::VERB_CREATE){
+							if($data["object"]["objectType"]==Need::COLLECTION){
+								$newsObject=NewsTranslator::convertToNews($data,NewsTranslator::NEWS_CREATE_NEED);
+							}
+							else if($data["object"]["objectType"]==Event::COLLECTION){
+								$newsObject=NewsTranslator::convertToNews($data,NewsTranslator::NEWS_CREATE_EVENT);
+							}
+							else if($data["object"]["objectType"]==Gantt::COLLECTION){
+								$newsObject=NewsTranslator::convertToNews($data,NewsTranslator::NEWS_CREATE_TASK);
+							}	
+						}
+						else if ($data["verb"]==ActStr::VERB_INVITE){
+							$newsObject=NewsTranslator::convertToNews($data,NewsTranslator::NEWS_CONTRIBUTORS);
+						}
+						$news[$key]=$newsObject;	
+					}
+				}
+				/*//GET NEW CONTRIBUTOR
 				$paramContrib = array("verb" => ActStr::VERB_INVITE, "target.objectType" => $type, "target.id" => $id);
 				$newsContributor=ActivityStream::getActivtyForObjectId($paramContrib);
 				if(isset($newsContributor)){
@@ -185,7 +207,7 @@ class IndexAction extends CAction
 						$newsObject=NewsTranslator::convertToNews($data,NewsTranslator::NEWS_CREATE_TASK);
 						$news[$key]=$newsObject;
 					}
-				}
+				}*/
 			}
 			if ( $type == Person::COLLECTION ){ 
 				//$date=new MongoDate($date);
