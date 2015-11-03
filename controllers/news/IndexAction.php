@@ -141,7 +141,6 @@ class IndexAction extends CAction
 														array(
 															array("object.objectType" => Need::COLLECTION), 
 															array("object.objectType" => Event::COLLECTION), 
-															//array("object.objectType" => Organization::COLLECTION),
 															array("object.objectType" => Gantt::COLLECTION)
 														)
 													)
