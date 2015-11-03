@@ -41,8 +41,8 @@ class IndexAction extends CAction
             $controller->pageTitle = "Communecter - ".$controller->title;
             // If event, we add it to the timeline
 			if (isset($project["links"]["events"])){
-				$taskEvent=[];
-				$newArrayEvent=[];
+				$taskEvent=array();
+				$newArrayEvent=array();
 				foreach ($project["links"]["events"] as $idEvent => $e) {
 					$eventsProject=Event::getById($idEvent);
 					array_push($taskEvent,$eventsProject);	
@@ -95,7 +95,7 @@ class IndexAction extends CAction
                 "tasks" =>  array('$exists' => 1));
   		$tasks = Gantt::getTasks($where,$type);
   	
-  		$newArray=[];
+  		$newArray=array();
         if (isset($year)){
 	        $period=$year;
 	        foreach ($tasks as $key => $val){
