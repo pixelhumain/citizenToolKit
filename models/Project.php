@@ -12,6 +12,7 @@ class Project {
 	    "postalCode" => array("name" => "address.postalCode"),
 	    "city" => array("name" => "address.codeInsee"),
 	    "addressCountry" => array("name" => "address.addressCountry"),
+	    "geo" => array("name" => "geo"),
 	    "description" => array("name" => "description"),
 	    "startDate" => array("name" => "startDate", "rules" => array("projectStartDate")),
 	    "endDate" => array("name" => "endDate", "rules" => array("projectEndDate")),
@@ -52,7 +53,7 @@ class Project {
 			$project = array_merge($project, Document::retrieveAllImagesUrl($id, self::COLLECTION));
 		}
 
-
+		$project["typeSig"] = "projects";
 	  	return $project;
 	}
 

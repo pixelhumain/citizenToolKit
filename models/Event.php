@@ -14,6 +14,7 @@ class Event {
 	    "city" => array("name" => "address.codeInsee"),
 	    "addressLocality" => array("name" => "address.addressLocality"),
 	    "addressCountry" => array("name" => "address.addressCountry"),
+	    "geo" => array("name" => "geo"),
 	    "description" => array("name" => "description"),
 	    "allDay" => array("name" => "allDay"),
 	    "startDate" => array("name" => "startDate", "rules" => array("eventStartDate")),
@@ -68,7 +69,8 @@ class Event {
 		}
 		if(!empty($event))
 		$event = array_merge($event, Document::retrieveAllImagesUrl($id, self::COLLECTION));
-
+		$event["typeSig"] = "events";
+	  	
 	  	return $event;
 	}
 

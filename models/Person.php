@@ -17,6 +17,7 @@ class Person {
 	    "city" => array("name" => "address.codeInsee"),
 	    "addressLocality" => array("name" => "address.addressLocality"), 
 	    "addressCountry" => array("name" => "address.addressCountry"),
+	    "geo" => array("name" => "geo"),
 	    "telephone" => array("name" => "telephone"),
 	    "tags" => array("name" => "tags"),
 	    "shortDescription" => array("name" => "shortDescription"),
@@ -108,7 +109,8 @@ class Person {
 			}
 			$person = array_merge($person, Document::retrieveAllImagesUrl($id, self::COLLECTION));
         }
-
+        $person["typeSig"] = "people";
+	  	
 	  	return $person;
 	}
 
@@ -257,8 +259,11 @@ class Person {
 				}
 			}
 		}
-		$res;// = $myContacts;
-	  	return $res;
+
+		if($id != Yii::app()->session["userId"])
+			$res["people"][(string)$id] = $person;
+		
+		return $res;
 	}
 
 	/**
