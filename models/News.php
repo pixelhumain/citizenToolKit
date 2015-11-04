@@ -25,7 +25,7 @@ class News {
 	}
 	public static function getNewsForObjectId($param,$sort=array("created"=>-1))
 	{
-	    $res = PHDB::findAndSort(self::COLLECTION, $param,$sort,3);
+	    $res = PHDB::findAndSort(self::COLLECTION, $param,$sort,5);
 	    foreach ($res as $key => $news) {
 	  		$res[$key]["author"] = Person::getById($news["author"]);
 	  	}
