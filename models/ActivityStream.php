@@ -57,7 +57,7 @@ class ActivityStream {
 	}
 	public static function getActivtyForObjectId($param,$sort=array("timestamp"=>-1))
 	{
-	    return PHDB::findAndSort(self::COLLECTION, $param,$sort,3);
+	    return PHDB::findAndSort(self::COLLECTION, $param,$sort,5);
 	}
 	
 	
