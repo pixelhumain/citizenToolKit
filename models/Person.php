@@ -376,7 +376,7 @@ class Person {
 
 	  	$person["roles"] = Role::getDefaultRoles();
 
-	  	$person["created"] = time();
+	  	$person["created"] = new mongoDate(time());
 
 	  	PHDB::insert( Person::COLLECTION , $person);
  
