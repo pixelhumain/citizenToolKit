@@ -29,6 +29,7 @@ class Organization {
 	    "city" => array("name" => "address.codeInsee"),
 	    "addressLocality" => array("name" => "address.addressLocality"),
 	    "addressCountry" => array("name" => "address.addressCountry"),
+	    "geo" => array("name" => "geo"),
 	    "tags" => array("name" => "tags"),
 	    "typeIntervention" => array("name" => "typeIntervention"),
 	    "typeOfPublic" => array("name" => "typeOfPublic"),
@@ -354,6 +355,7 @@ class Organization {
         } else {
 			$organization = array_merge($organization, Document::retrieveAllImagesUrl($id, self::COLLECTION));
         }	
+        $organization["typeSig"] = "organizations";
 	  	return $organization;
 	}
 

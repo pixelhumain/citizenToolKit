@@ -61,6 +61,33 @@ class SIG
 		return $entity;
 	}
 
+	//ajoute la position géographique d'une donnée si elle contient un Code Postal
+	//add geographical position to a data if it contains Postal Code
+	public static function updateEntityGeoposition($entityType, $entityId, $latitude, $longitude){
+		error_log("updateEntity Start");
+		$geo = array("@type"=>"GeoCoordinates", "latitude" => $latitude, "longitude" => $longitude);
+
+		//PH::update($entityType,array("geo" => $geo));
+
+		if($entityType == PHType::TYPE_CITOYEN){
+			error_log("update TYPE_CITOYEN");
+			Person::updatePersonField($entityId, "geo", $geo, Yii::app()->session['userId'] );
+		}
+		if($entityType == PHType::TYPE_ORGANIZATIONS){
+			error_log("update TYPE_ORGANIZATIONS");
+			Organization::updateOrganizationField($entityId, "geo", $geo, Yii::app()->session['userId'] );
+		}
+		if($entityType == PHType::TYPE_PROJECTS){
+			error_log("update TYPE_PROJECTS");
+			Project::updateProjectField($entityId, "geo", $geo, Yii::app()->session['userId'] );
+		}
+		if($entityType == PHType::TYPE_EVENTS){
+			error_log("update TYPE_EVENTS");
+			Event::updateEventField($entityId, "geo", $geo, Yii::app()->session['userId'] );
+		}
+		error_log("updateEntity OK");
+	}
+
 	//return geographical position of inseeCode
 	public static function getGeoPositionByInseeCode($inseeCode){
 		$city = self::getCityByCodeInsee($inseeCode);
