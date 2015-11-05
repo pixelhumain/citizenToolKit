@@ -296,7 +296,6 @@ class IndexAction extends CAction
 						$news[$key]=$newsObject;
 					}
 				}
-	
 			}
 		}
 		$news = array_msort($news, array('created'=>SORT_DESC));
