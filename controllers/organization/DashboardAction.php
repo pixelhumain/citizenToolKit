@@ -95,11 +95,7 @@ class DashboardAction extends CAction
 		$lists = Lists::get(array("public", "typeIntervention", "organisationTypes"));
 		$params["public"] = $lists["public"];
 		$params["organizationTypes"] = $lists["organisationTypes"];
-		$params["typeIntervention"] = $lists["typeIntervention"];
 		$params["countries"] = OpenData::getCountriesList();
-		//Plaquette de présentation
-		$listPlaquette = Document::listDocumentByCategory($id, Organization::COLLECTION, Document::CATEGORY_PLAQUETTE, array( 'created' => 1 ));
-		$params["plaquette"] = reset($listPlaquette);
 		$controller->title = (isset($organization["name"])) ? $organization["name"] : "";
 		$controller->render( "dashboard", $params );
     }
