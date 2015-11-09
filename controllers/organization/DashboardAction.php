@@ -93,6 +93,7 @@ class DashboardAction extends CAction
 		//list
 		$params["tags"] = Tags::getActiveTags();
 		$listsToRetrieve = array("public", "typeIntervention", "organisationTypes", "NGOCategories", "localBusinessCategories");
+		$lists = Lists::get($listsToRetrieve);
 		$params["public"] = $lists["public"];
 		$params["organizationTypes"] = $lists["organisationTypes"];
 		$params["typeIntervention"] = $lists["typeIntervention"];
