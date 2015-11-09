@@ -96,6 +96,9 @@ class DashboardAction extends CAction
 		$params["public"] = $lists["public"];
 		$params["organizationTypes"] = $lists["organisationTypes"];
 		$params["typeIntervention"] = $lists["typeIntervention"];
+		$params["NGOCategories"] 	 = isset($lists["NGOCategories"]) ? $lists["NGOCategories"] : null;
+		$params["localBusinessCategories"] = isset($lists["localBusinessCategories"]) ? $lists["localBusinessCategories"] : null;
+		
 		$params["countries"] = OpenData::getCountriesList();
 		//Plaquette de présentation
 		$listPlaquette = Document::listDocumentByCategory($id, Organization::COLLECTION, Document::CATEGORY_PLAQUETTE, array( 'created' => 1 ));
