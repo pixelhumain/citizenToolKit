@@ -92,7 +92,7 @@ class DashboardAction extends CAction
 		$params["contextMap"] = $contextMap;
 		//list
 		$params["tags"] = Tags::getActiveTags();
-		$lists = Lists::get(array("public", "typeIntervention", "organisationTypes"));
+		$listsToRetrieve = array("public", "typeIntervention", "organisationTypes", "NGOCategories", "localBusinessCategories");
 		$params["public"] = $lists["public"];
 		$params["organizationTypes"] = $lists["organisationTypes"];
 		$params["typeIntervention"] = $lists["typeIntervention"];
