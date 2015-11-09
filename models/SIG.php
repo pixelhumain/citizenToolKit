@@ -121,8 +121,9 @@ class SIG
 		if($cp != null){
 			$request = array_merge(array("cp"  => $cp), $request);
 		}
-
 		$oneCity =	PHDB::findOne(self::CITIES_COLLECTION_NAME, $request);
+		// var_dump($request);	
+		// var_dump($oneCity);	
 		return $oneCity;
 	}
 
@@ -154,6 +155,26 @@ class SIG
 		$city = PHDB::findOne(self::CITIES_COLLECTION_NAME, array("insee" => $codeInsee));
 		if (empty($city)) {
 			throw new CTKException("Impossible to find the city with the insee code : ".$codeInsee);
+		} else {
+			return $city;
+		}
+	}
+
+	/**
+	 * Get the city by insee code. Can throw Exception if the city is unknown.
+	 * @param String $codeInsee the code insee of the city
+	 * @return Array With all the field as the cities collection
+	 */
+	public static function getCodeInseeByCityName($cityName) {
+		if (empty($cityName)) {
+			throw new InvalidArgumentException("The City Name is mandatory");
+		}
+ 		error_log($cityName);
+ 		error_log(utf8_encode($cityName));
+
+		$city = PHDB::findOne(self::CITIES_COLLECTION_NAME, array("name" => new MongoRegex("/".PHDB::wd_remove_accents($cityName)."/i")));
+		if (empty($city)) {
+			throw new CTKException("Impossible to find the city with the City Name : ".$cityName);
 		} else {
 			return $city;
 		}

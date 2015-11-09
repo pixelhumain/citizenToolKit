@@ -80,11 +80,11 @@ class DetailAction extends CAction
 		$params["tags"] = Tags::getActiveTags();
 		$listsToRetrieve = array("public", "typeIntervention", "organisationTypes", "NGOCategories", "localBusinessCategories");
 		$lists = Lists::get($listsToRetrieve);
-		$params["public"] = $lists["public"];
-		$params["organizationTypes"] = $lists["organisationTypes"];
-		$params["typeIntervention"] = $lists["typeIntervention"];
-		$params["NGOCategories"] = $lists["NGOCategories"];
-		$params["localBusinessCategories"] = $lists["localBusinessCategories"];
+		$params["public"] 			 = isset($lists["public"]) 			  ? $lists["public"] : null;
+		$params["organizationTypes"] = isset($lists["organisationTypes"]) ? $lists["organisationTypes"] : null;
+		$params["typeIntervention"]  = isset($lists["typeIntervention"])  ? $lists["typeIntervention"] : null;
+		$params["NGOCategories"] 	 = isset($lists["NGOCategories"]) 	  ? $lists["NGOCategories"] : null;
+		$params["localBusinessCategories"] = isset($lists["localBusinessCategories"]) ? $lists["localBusinessCategories"] : null;
 		
 		$params["countries"] = OpenData::getCountriesList();
 		//Plaquette de présentation
