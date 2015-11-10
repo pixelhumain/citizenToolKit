@@ -34,7 +34,7 @@ class DetailAction extends CAction
                 array_push($attending, $citoyen);
 
                 if( $uid == Yii::app()->session['userId'] )
-                    array_push($controller->toolbarMBZ, array('position'=>'left', 'label'=>'Contact', 'tooltip' => "Send a message to this Event","iconClass"=>"fa fa-envelope-o","href"=>"<a href='#' class='new-news tooltips btn btn-default' data-id='".$id."' data-type='".Event::COLLECTION."' data-name='".$event['name']."'") );
+                    array_push($controller->toolbarMBZ, array('position'=>'right', 'label'=>'Contact', 'tooltip' => "Send a message to this Event","iconClass"=>"fa fa-envelope-o","href"=>"<a href='#' class='new-news tooltips btn btn-default' data-id='".$id."' data-type='".Event::COLLECTION."' data-name='".$event['name']."'") );
               }
 
               /*if(isset($e["isAdmin"]) && $e["isAdmin"]==true){
