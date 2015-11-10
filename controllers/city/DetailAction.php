@@ -129,20 +129,19 @@ class DetailAction extends CAction
         }
         
         
-        $people = array();
-        if( isset($person["links"]) && isset($person["links"]["knows"])) {
-            foreach ($person["links"]["knows"] as $key => $member) {
-                $citoyen;
-                if( $member['type'] == Person::COLLECTION )
-                {
-                    $citoyen = Person::getPublicData( $key );
-                    $profil = Document::getLastImageByKey($key, Person::COLLECTION, Document::IMG_PROFIL);
-                    if($profil !="")
-                        $citoyen["imagePath"]= $profil;
-                    array_push($people, $citoyen);
-                }
+        $allPeople = array();
+        $people = PHDB::find(Person::COLLECTION, array( "address.codeInsee" => $insee ) );
+        
+       // if( isset($person["links"]) && isset($person["links"]["knows"])) {
+            foreach ($people as $key => $onePerson) {
+                $citoyen = Person::getPublicData( $key );
+                $profil = Document::getLastImageByKey($key, Person::COLLECTION, Document::IMG_PROFIL);
+                if($profil !="")
+                   $citoyen["imagePath"]= $profil;
+                array_push($allPeople, $citoyen);
+                
             }
-        }
+        //}
 
         $params["tags"] = $tags;
         $params["organizations"] = $organizations;
