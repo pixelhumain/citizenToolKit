@@ -16,7 +16,13 @@ class DetailAction extends CAction
             $controller->subTitle = "Need's name // Every Project has a lack of ressources";
             $controller->pageTitle = "Communecter - ".$controller->title;
         } 
-        
+        else if( $type == Organization::COLLECTION ) {
+            $controller->toolbarMBZ = array("<a href='".Yii::app()->createUrl("/".$controller->module->id."/organization/dashboard/id/".$id)."'><i class='fa fa-users'></i>Organization</a>");
+            $organization = Organization::getById($id);
+            $controller->title = $organization["name"]."'s Needs";
+            $controller->subTitle = "Need's name // Every Project has a lack of ressources";
+            $controller->pageTitle = "Communecter - ".$controller->title;
+        } 
         array_push( $controller->toolbarMBZ, '<a href="#" class="newNeed" title="proposer une " ><i class="fa fa-plus"></i> Need </a>');
         $description=array();
         $helpers=array();

@@ -57,6 +57,9 @@ class Need {
 		if($params["parentType"]==Project::COLLECTION){
 			$parent = Project::getById($params["parentId"]);
 		}
+		if($params["parentType"]==Organization::COLLECTION){
+			$parent = Organization::getById($params["parentId"]);
+		}
 		//$parent = $class::getById($params["parentId"]);
 		Notification::createdObjectAsParam(Person::COLLECTION,Yii::app()-> session["userId"],Need::COLLECTION, $params["_id"], $params["parentType"], $params["parentId"],null, null, $parent["address"]["codeInsee"]);
 

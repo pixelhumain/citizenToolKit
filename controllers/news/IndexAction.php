@@ -182,6 +182,7 @@ class IndexAction extends CAction
 									array('$or' => array(
 										array("object.objectType" => Project::COLLECTION), 
 										array("object.objectType" => Event::COLLECTION), 
+										array("object.objectType" => Need::COLLECTION), 
 										array("object.objectType" => Organization::COLLECTION)
 										)
 									), 
@@ -233,6 +234,9 @@ class IndexAction extends CAction
 						if($data["verb"]==ActStr::VERB_CREATE){
 							if($data["object"]["objectType"]==Project::COLLECTION){
 								$newsObject=NewsTranslator::convertToNews($data,NewsTranslator::NEWS_CREATE_PROJECT);
+							}
+							else if($data["object"]["objectType"]==Need::COLLECTION){
+								$newsObject=NewsTranslator::convertToNews($data,NewsTranslator::NEWS_CREATE_NEED);
 							}
 							else if($data["object"]["objectType"]==Event::COLLECTION){
 								$newsObject=NewsTranslator::convertToNews($data,NewsTranslator::NEWS_CREATE_EVENT);

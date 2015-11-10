@@ -36,4 +36,6 @@ class ActivateAction extends CAction
         //var_dump($params);
 	    $controller->redirect($params);
     }
+
+    
 }
