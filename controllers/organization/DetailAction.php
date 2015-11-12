@@ -71,7 +71,7 @@ class DetailAction extends CAction
 	  			}
 	  		}
 	    }*/
-
+	    
 	    $params["organization"] = $organization;
 		$params["members"] = $members;
 		$params["projects"] = $projects;
