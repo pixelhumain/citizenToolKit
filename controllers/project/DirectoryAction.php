@@ -59,7 +59,11 @@ class DirectoryAction extends CAction
                     $citoyen["imagePath"]= $profil;
                     array_push($contributors, $citoyen);
                     if( $uid == Yii::app()->session['userId'] )
-                      Menu::add2MBZ( array('position' => 'right', 'tooltip' => "Send a message to this Project", "label" => "Contact", "iconClass"=>"fa fa-envelope-o","href"=>"<a href='#' class='new-news tooltips btn btn-default' data-id='".$id."' data-type='".Project::COLLECTION."' data-name='".$project['name']."'") );
+                      Menu::add2MBZ( array('position' => 'right', 
+                                    'tooltip' => Yii::t("common", "Send a message to this Project"), 
+                                    "label" => Yii::t("common", "Contact"), 
+                                    "iconClass"=>"fa fa-envelope-o",
+                                    "href"=>"<a href='#' class='new-news tooltips btn btn-default' data-id='".$id."' data-type='".Project::COLLECTION."' data-name='".$project['name']."'") );
                   }
                 }
               }
@@ -75,9 +79,21 @@ class DirectoryAction extends CAction
             }
         }
         if(isset($project["_id"]) && isset(Yii::app()->session["userId"]) && Link::isLinked($project["_id"] , Project::COLLECTION , Yii::app()->session['userId']))
-            $htmlFollowBtn = array('position' => 'right','tooltip' => "stop contributing to this Project", "parent"=>"span","parentId"=>"linkBtns","label"=>"Stop contributing", "iconClass"=>"disconnectBtnIcon fa fa-unlink","href"=>"<a href='javascript:;' class='disconnectBtn text-red tooltips btn btn-default' data-name='".$project["name"]."' data-id='".$project["_id"]."' data-type='".Project::COLLECTION."' data-member-id='".Yii::app()->session["userId"]."' data-ownerlink='".Link::person2projects."' data-targetlink='".Link::project2person."'");
+            $htmlFollowBtn = array('position' => 'right',
+                                   'tooltip' => Yii::t("common", "Stop contributing to this Project"), 
+                                   "parent"=>"span",
+                                   "parentId"=>"linkBtns",
+                                   "label"=>Yii::t("common", "Stop contributing"), 
+                                   "iconClass"=>"disconnectBtnIcon fa fa-unlink",
+                                   "href"=>"<a href='javascript:;' class='disconnectBtn text-red tooltips btn btn-default' data-name='".$project["name"]."' data-id='".$project["_id"]."' data-type='".Project::COLLECTION."' data-member-id='".Yii::app()->session["userId"]."' data-ownerlink='".Link::person2projects."' data-targetlink='".Link::project2person."'");
         else
-            $htmlFollowBtn = array('position' => 'right','tooltip' => "I want to contribute to this Project", "parent"=>"span","parentId"=>"linkBtns","label"=>"Start contributing","iconClass"=>"connectBtnIcon fa fa-link","href"=>"<a href='javascript:;' class='connectBtn tooltips btn btn-default' id='addKnowsRelation' data-ownerlink='".Link::person2projects."' data-targetlink='".Link::project2person."'");
+            $htmlFollowBtn = array('position' => 'right',
+                                   'tooltip' => Yii::t("common", "I want to contribute to this Project"), 
+                                   "parent"=>"span",
+                                   "parentId"=>"linkBtns",
+                                   "label"=>Yii::t("common", "Start contributing"),
+                                   "iconClass"=>"connectBtnIcon fa fa-link",
+                                   "href"=>"<a href='javascript:;' class='connectBtn tooltips btn btn-default' id='addKnowsRelation' data-ownerlink='".Link::person2projects."' data-targetlink='".Link::project2person."'");
         Menu::add2MBZ($htmlFollowBtn);
 
         $params["organizations"] = $organizations;
