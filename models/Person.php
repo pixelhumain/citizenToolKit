@@ -350,10 +350,11 @@ class Person {
 													"latitude" => $person['geoPosLatitude'],
 													"longitude" => $person['geoPosLongitude']);
 
-					$newPerson["geoPosition"] = array("type"=>"point",
+					$newPerson["geoPosition"] = array("type"=>"Point",
 															"coordinates" =>
-															array($person['geoPosLatitude'],
-													 	  		  $person['geoPosLongitude'])
+															array(
+																floatval($person['geoPosLongitude']),
+																floatval($person['geoPosLatitude']))
 													 	  	);
 					//$newPerson["geo"] = empty($organization['public']) ? "" : $organization['public'];
 				}
