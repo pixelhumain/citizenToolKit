@@ -182,7 +182,7 @@ class IndexAction extends CAction
 									array('$or' => array(
 										array("object.objectType" => Project::COLLECTION), 
 										array("object.objectType" => Event::COLLECTION), 
-										array("object.objectType" => Need::COLLECTION), 
+										//array("object.objectType" => Need::COLLECTION), 
 										array("object.objectType" => Organization::COLLECTION)
 										)
 									), 
