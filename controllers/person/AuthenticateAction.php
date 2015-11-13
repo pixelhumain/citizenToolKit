@@ -14,8 +14,8 @@ class AuthenticateAction extends CAction
 
       $res = Person::login( $email , $_POST["pwd"], $publicPage); 
       
-      if( isset( $_POST["app"] ) )
-		   $res = array_merge($res, Citoyen::applicationRegistered($_POST["app"],$email));
+      if( isset( $_POST["app"]))
+		    $res = array_merge($res, Citoyen::applicationRegistered($_POST["app"],$email));
 
       Rest::json($res);
       Yii::app()->end();

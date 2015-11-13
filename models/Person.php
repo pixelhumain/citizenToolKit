@@ -92,6 +92,7 @@ class Person {
       Yii::app()->session["userEmail"] = null; 
       Yii::app()->session["user"] = null; 
       Yii::app()->session['logguedIntoApp'] = null;
+      Yii::app()->session['requestedUrl'] = null;
     }
 
 	/**
