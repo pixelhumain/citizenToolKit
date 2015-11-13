@@ -341,9 +341,9 @@ class Person {
 	  	if (! $minimal) {
 		  	//user name
 		  	$newPerson["username"] = $person["username"];
-		  	if (self::checkUniqueUsername($newPerson["username"])) {
+		  	/*if ( self::checkUniqueUsername($newPerson["username"]) ) {
 		  		throw new CTKException(Yii::t("person","Problem inserting the new person : a person with this username already exists in the plateform"));
-		  	}
+		  	}*/
 
 		  	//Encode the password
 		  	$newPerson["pwd"] = hash('sha256', $person["email"].$person["pwd"]);
