@@ -8,6 +8,7 @@ class Person {
 	//From Post/Form name to database field name with rules
 	private static $dataBinding = array(
 	    "name" => array("name" => "name", "rules" => array("required")),
+	    "username" => array("username" => "username", "rules" => array("required", "uniqueUsername")),
 	    "birthDate" => array("name" => "birthDate", "rules" => array("required")),
 	    "email" => array("name" => "email", "rules" => array("email")),
 	    "pwd" => array("name" => "pwd"),
@@ -54,7 +55,9 @@ class Person {
 
 	  	$name = (isset($account["name"])) ? $account["name"] : "Anonymous" ;
 	    $user = array("name"=>$name);
-
+		
+		if(isset( $account["username"] )) 
+	      	$user ["username"] = $account["username"];
 	    if(isset( $account["cp"] )) 
 	      	$user ["postalCode"] = $account["cp"];
 	    if( isset( $account["address"]) && isset( $account["address"]["postalCode"]) )
@@ -89,6 +92,7 @@ class Person {
       Yii::app()->session["userEmail"] = null; 
       Yii::app()->session["user"] = null; 
       Yii::app()->session['logguedIntoApp'] = null;
+      Yii::app()->session['requestedUrl'] = null;
     }
 
 	/**
@@ -122,10 +126,11 @@ class Person {
 	public static function getSimpleUserById($id) {
 		
 		$simplePerson = array();
-		$person = PHDB::findOneById( self::COLLECTION ,$id, array("id" => 1, "name" => 1, "email" => 1, "address" => 1, "pending" => 1) );
+		$person = PHDB::findOneById( self::COLLECTION ,$id, array("id" => 1, "name" => 1, "username" => 1, "email" => 1, "address" => 1, "pending" => 1) );
 
 		$simplePerson["id"] = $id;
 		$simplePerson["name"] = @$person["name"];
+		$simplePerson["username"] = @$person["username"];
 		$simplePerson["email"] = @$person["email"];
 		$simplePerson["pending"] = @$person["pending"];
 		//images
@@ -302,7 +307,7 @@ class Person {
 		
 		$newPerson = array();
 		if (! $minimal) {
-			array_push($dataPersonMinimal, "postalCode", "city", "pwd");
+			array_push($dataPersonMinimal, "username", "postalCode", "city", "pwd");
 		} else {
 			$newPerson["pending"] = true;
 		}
@@ -334,6 +339,12 @@ class Person {
 	  	}
 
 	  	if (! $minimal) {
+		  	//user name
+		  	$newPerson["username"] = $person["username"];
+		  	if (self::checkUniqueUsername($newPerson["username"])) {
+		  		throw new CTKException(Yii::t("person","Problem inserting the new person : a person with this username already exists in the plateform"));
+		  	}
+
 		  	//Encode the password
 		  	$newPerson["pwd"] = hash('sha256', $person["email"].$person["pwd"]);
 		  	
@@ -343,17 +354,16 @@ class Person {
 		  		//Format adress 
 		  		$newPerson["address"] = SIG::getAdressSchemaLikeByCodeInsee($person["city"]);
 
-		  		//throw new CTKException(Yii::t("person","Problem inserting the new person : unknown city"));
-		  		error_log(json_encode($person));
 				if(!empty($person['geoPosLatitude']) && !empty($person["geoPosLongitude"])){
 					$newPerson["geo"] = array("@type"=>"GeoCoordinates",
 													"latitude" => $person['geoPosLatitude'],
 													"longitude" => $person['geoPosLongitude']);
 
-					$newPerson["geoPosition"] = array("type"=>"point",
+					$newPerson["geoPosition"] = array("type"=>"Point",
 															"coordinates" =>
-															array($person['geoPosLatitude'],
-													 	  		  $person['geoPosLongitude'])
+															array(
+																floatval($person['geoPosLongitude']),
+																floatval($person['geoPosLatitude']))
 													 	  	);
 					//$newPerson["geo"] = empty($organization['public']) ? "" : $organization['public'];
 				}
@@ -511,20 +521,17 @@ class Person {
 		} 
 		else {
 			$set = array($dataFieldName => $personFieldValue);	
-			if ( $personFieldName == "bgClass") 
-			{
+			if ( $personFieldName == "bgClass") {
 				//save to session for all page reuse
 				$user = Yii::app()->session["user"];
 				$user["bg"] = $personFieldValue;
 				Yii::app()->session["user"] = $user;
-			} else if ( $personFieldName == "bgUrl") 
-			{
+			} else if ( $personFieldName == "bgUrl") {
 				//save to session for all page reuse
 				$user = Yii::app()->session["user"];
 				$user["bgUrl"] = $personFieldValue;
 				Yii::app()->session["user"] = $user;
 			}  
-
 		}
 
 		//update the person
@@ -710,6 +717,15 @@ class Person {
 
 			$res = array("result" => true, "msg" => "The pending user has been updated and is now complete");
 
+		}
+		return $res;
+	}
+
+	public static function checkUniqueUsername($username) {
+		$res = true;
+		$checkUsername = PHDB::findOne(Person::COLLECTION,array("username"=>$username));
+		if ($checkUsername) {
+			$res = false;	
 		}
 		return $res;
 	}

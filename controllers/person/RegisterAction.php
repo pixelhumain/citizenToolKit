@@ -11,6 +11,7 @@ class RegisterAction extends CAction
         $controller=$this->getController();
 
         $name = (!empty($_POST['name'])) ? $_POST['name'] : "";
+        $username = (!empty($_POST['username'])) ? $_POST['username'] : "";
 		$email = (!empty($_POST['email'])) ? $_POST['email'] : "";
 		$postalCode = (!empty($_POST['cp'])) ? $_POST['cp'] : "";
 		$geoPosLatitude = (!empty($_POST['geoPosLatitude'])) ? $_POST['geoPosLatitude'] : "";
@@ -22,6 +23,7 @@ class RegisterAction extends CAction
 		//Get the person data
 		$newPerson = array(
 			'name'=> $name,
+			'username'=> $username,
 			'postalCode'=> $postalCode, //TODO : move to address node
 			'geoPosLatitude'=> $geoPosLatitude,
 			'geoPosLongitude'=> $geoPosLongitude,
