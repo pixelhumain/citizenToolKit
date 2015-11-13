@@ -309,7 +309,7 @@ class Person {
 
 		//Check the minimal data
 	  	foreach ($dataPersonMinimal as $data) {
-	  		if (empty($person["$data"])) 
+	  		if ( empty( $person["$data"] ) )
 	  			throw new CTKException(Yii::t("person","Problem inserting the new person : ").$data.Yii::t("person"," is missing"));
 	  	}
 	  	
@@ -393,7 +393,6 @@ class Person {
 
 		//A mail is sent to the admin
 		Mail::notifAdminNewUser($person);
-
 	    return array("result"=>true, "msg"=>"You are now communnected", "id"=>$newpersonId, "person"=>$person);
 	}
 
