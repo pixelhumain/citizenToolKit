@@ -490,7 +490,7 @@ class Link {
          	$newObject = array('type' => $ownerType );
 	        PHDB::update( $targetType, 
 			               array("_id" => new MongoId($targetId)) , 
-			               array('$set' => array( "links.".$targetLink.".".$ownerId => $newObject) ));
+			               array('$set' => array( "links.".$targetLink.".".$ownerId.".type" => $ownerType) ));
 	    }
 
         return array("result"=>true, "msg"=>"The link has been added with success");

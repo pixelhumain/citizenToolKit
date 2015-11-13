@@ -9,7 +9,6 @@ class DisconnectAction extends CTKAction {
 		if (! $this->userLogguedAndValid()) {
         	return Rest::json(array("result" => false, "msg" => "The current user is not valid : please login."));
         }
-
-        return Rest::json(Link::disconnectPerson(Yii::app()->session['userId'], Person::COLLECTION, $id, $type, Link::person2person));
+        return Rest::json(Link::disconnectPerson(Yii::app()->session['userId'], Person::COLLECTION, $id, $type, $ownerLink,$targetLink));
     }
 }

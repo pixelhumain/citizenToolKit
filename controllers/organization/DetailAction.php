@@ -62,7 +62,7 @@ class DetailAction extends CAction
 			}
 		}
 
-		/*$projects = array();
+		$projects = array();
 	    if(isset($organizations["links"]["projects"])){
 	    	foreach ($organizations["links"]["projects"] as $key => $value) {
 	  			$project = Project::getPublicData($key);
@@ -70,7 +70,7 @@ class DetailAction extends CAction
 	  				array_push($projects, $project);
 	  			}
 	  		}
-	    }*/
+	    }
 	    
 	    $params["organization"] = $organization;
 		$params["members"] = $members;
