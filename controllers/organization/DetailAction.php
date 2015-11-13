@@ -61,17 +61,7 @@ class DetailAction extends CAction
 				array_push($members["citoyens"], $newCitoyen);
 			}
 		}
-
-		$projects = array();
-	    if(isset($organizations["links"]["projects"])){
-	    	foreach ($organizations["links"]["projects"] as $key => $value) {
-	  			$project = Project::getPublicData($key);
-	  			if (! empty($project)) {
-	  				array_push($projects, $project);
-	  			}
-	  		}
-	    }
-	    
+	   
 	    $params["organization"] = $organization;
 		$params["members"] = $members;
 		$params["projects"] = $projects;
@@ -95,7 +85,6 @@ class DetailAction extends CAction
 
 		$controller->title = (isset($organization["name"])) ? $organization["name"] : "";
 		$page = "detail";
-
 		if(Yii::app()->request->isAjaxRequest)
             echo $controller->renderPartial($page,$params,true);
         else 
