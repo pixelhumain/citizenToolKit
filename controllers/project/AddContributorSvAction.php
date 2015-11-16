@@ -1,7 +1,7 @@
 <?php
 class AddContributorSvAction extends CAction
 {
-    public function run(){
+    public function run($id=null,$type=null){
 
     	$controller=$this->getController();
     	$params = array();
@@ -13,6 +13,7 @@ class AddContributorSvAction extends CAction
 			$params["organizationTypes"]= $lists["organisationTypes"];
 			$params["id"]=$_GET["projectId"];
 			$params["projectName"]=$_GET["projectName"];
+			$params["project"]=Project::getPublicData($_GET["projectId"]);
         }
         if(Yii::app()->request->isAjaxRequest)
 			echo $controller->renderPartial("addContributorSV", $params, true);
