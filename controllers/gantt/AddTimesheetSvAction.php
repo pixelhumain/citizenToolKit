@@ -1,7 +1,7 @@
 <?php
 class AddTimesheetSvAction extends CAction
 {
-    public function run(){
+    public function run($id = null, $type = null){
 
     	$controller=$this->getController();
     	//$params = array();
@@ -11,6 +11,8 @@ class AddTimesheetSvAction extends CAction
             $tasks = str_replace('\"','"',$_GET["tasks"]);
             //echo $tasks;
 			$params["tasks"] = unserialize(base64_decode($tasks));
+            $params["project"]  = Project::getPublicData($id);
+
 			//print_r($_GET["tasks"]);
         }
         if(Yii::app()->request->isAjaxRequest){
