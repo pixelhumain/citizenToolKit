@@ -5,10 +5,19 @@ class EventSVAction extends CAction
 
     	$controller = $this->getController();
     	$params = array();
-    	
-    	if( $type == Organization::COLLECTION )
-    		$params["organizationId"] = $id;
-
+    	if(@$_GET["contextType"]){
+	    	if( $_GET["contextType"] == "organization" ){
+	    		$params["organizationId"] = $_GET["contextId"];
+	    		$params["organization"] = Organization::getPublicData($_GET["contextId"]);
+			}
+	    	else if( $_GET["contextType"] == "project" ){
+	    		$params["projectId"] = $_GET["contextId"];
+	    		$params["project"] = Project::getPublicData($_GET["contextId"]);
+			}
+		}
+		else {
+			$params["person"] = Person::getPublicData(Yii::app() -> session['userId']);
+		}
     	$lists = Lists::get(array("eventTypes"));
     	$params["lists"] = $lists;
         if( isset($_GET["isNotSV"])) 

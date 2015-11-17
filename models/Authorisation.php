@@ -237,12 +237,21 @@ class Authorisation {
     
 	public static function listProjectsIamAdminOf($userId) {
         $projectList = array();
-
+		
         //project i'am admin 
         $where = array("links.contributors.".$userId.".isAdmin" => true);
         $projectList = PHDB::find(Project::COLLECTION, $where);
-        //projects of organization i'am admin 
-        //$listOrganizationAdmin = Authorisation::listUserOrganizationAdmin($userId);
+        $listOrganizationAdmin = Authorisation::listUserOrganizationAdmin($userId);
+        foreach ($listOrganizationAdmin as $organizationId => $organization) {
+            $projectOrganization = Organization::listProjects($organizationId);
+            foreach ($projectOrganization as $projectId => $projectValue) {
+	            if (!empty($projectValue) && count($projectValue) > 1){
+	            	if(array_key_exists($projectId, $projectList) != true){
+                		$projectList[$projectId] = $projectValue;
+					}
+				}
+            }
+        }
         return $projectList;
     }
 
