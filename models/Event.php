@@ -191,6 +191,12 @@ class Event {
 		}
 		
 		
+	    //Postal code & geo
+	    if(!empty($params['country'])) {
+			$newEvent["address"]["addressCountry"] = $params['country'];
+		}
+		
+		
 		if(!empty($params['geoPosLatitude']) && !empty($params["geoPosLongitude"])){
 			
 
