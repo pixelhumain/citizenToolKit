@@ -9,6 +9,6 @@ class CheckUsernameAction extends CAction {
         assert('!empty($username); //The username is mandatory');
     	
         //TODO SBAR - return a list of username available
-        Rest::json(Person::checkUniqueUsername($username));
+        Rest::json(Person::isUniqueUsername($username));
     }
 }
