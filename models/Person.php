@@ -8,7 +8,7 @@ class Person {
 	//From Post/Form name to database field name with rules
 	private static $dataBinding = array(
 	    "name" => array("name" => "name", "rules" => array("required")),
-	    "username" => array("username" => "username", "rules" => array("required", "uniqueUsername")),
+	    "username" => array("name" => "username", "rules" => array("required", "uniqueUsername")),
 	    "birthDate" => array("name" => "birthDate", "rules" => array("required")),
 	    "email" => array("name" => "email", "rules" => array("email")),
 	    "pwd" => array("name" => "pwd"),
@@ -341,9 +341,9 @@ class Person {
 	  	if (! $minimal) {
 		  	//user name
 		  	$newPerson["username"] = $person["username"];
-		  	/*if ( self::checkUniqueUsername($newPerson["username"]) ) {
+		  	if ( self::checkUniqueUsername($newPerson["username"]) ) {
 		  		throw new CTKException(Yii::t("person","Problem inserting the new person : a person with this username already exists in the plateform"));
-		  	}*/
+		  	}
 
 		  	//Encode the password
 		  	$newPerson["pwd"] = hash('sha256', $person["email"].$person["pwd"]);
@@ -721,7 +721,7 @@ class Person {
 		return $res;
 	}
 
-	public static function checkUniqueUsername($username) {
+	public static function isUniqueUsername($username) {
 		$res = true;
 		$checkUsername = PHDB::findOne(Person::COLLECTION,array("username"=>$username));
 		if ($checkUsername) {
