@@ -133,6 +133,19 @@ else if($useCase ==  self::NEWS_CREATE_TASK ){
 								"verb" => $object["verb"],
 								"icon" => "fa-lightbulb-o"
 							);
+			if (@$project["voteUp"]){
+				$newsObject["voteUp"]=$project["voteUp"];
+				$newsObject["voteUpCount"]=$project["voteUpCount"];
+			}
+			if (@$project["voteDown"]){
+				$newsObject["voteDown"]=$project["voteDown"];
+				$newsObject["voteDownCount"]=$project["voteDownCount"];
+			}
+			if (@$project["comment"]){
+				$newsObject["comment"]=$project["comment"];
+				$newsObject["commentCount"]=$project["commentCount"];
+			}
+
 			return $newsObject;	
 		}	
 		else if($useCase ==  self::NEWS_CREATE_EVENT ){
@@ -177,6 +190,18 @@ else if($useCase ==  self::NEWS_CREATE_TASK ){
 								"verb" => $object["verb"],
 								"icon" => "fa-calendar"
 							);
+			if (@$event["voteUp"]){
+				$newsObject["voteUp"]=$event["voteUp"];
+				$newsObject["voteUpCount"]=$event["voteUpCount"];
+			}
+			if (@$event["voteDown"]){
+				$newsObject["voteDown"]=$event["voteDown"];
+				$newsObject["voteDownCount"]=$event["voteDownCount"];
+			}
+			if (@$event["comment"]){
+				$newsObject["comment"]=$event["comment"];
+				$newsObject["commentCount"]=$event["commentCount"];
+			}
 			return $newsObject;	
 		}	
 		else if($useCase ==  self::NEWS_CREATE_ORGANIZATION ){
@@ -201,6 +226,18 @@ else if($useCase ==  self::NEWS_CREATE_TASK ){
 								"verb" => $object["verb"],
 								"icon" => "fa-group"
 							);
+			if (@$orga["voteUp"]){
+				$newsObject["voteUp"]=$orga["voteUp"];
+				$newsObject["voteUpCount"]=$orga["voteUpCount"];
+			}
+			if (@$orga["voteDown"]){
+				$newsObject["voteDown"]=$orga["voteDown"];
+				$newsObject["voteDownCount"]=$orga["voteDownCount"];
+			}
+			if (@$orga["comment"]){
+				$newsObject["comment"]=$orga["comment"];
+				$newsObject["commentCount"]=$orga["commentCount"];
+			}
 			return $newsObject;	
 		}	
 		else if($useCase ==  self::NEWS_JOIN_ORGANIZATION ){
