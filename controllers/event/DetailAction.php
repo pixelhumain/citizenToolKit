@@ -59,7 +59,7 @@ class DetailAction extends CAction
 	                $iconNav="fa-group";
 	                $urlType="organization";	
 	                $organizerInfo = Organization::getById($uid);  
-					$organizer["type"]=$urlType;              
+					        $organizer["type"]=$urlType;              
                 }
                 
                 $organizer["id"] = $uid;
@@ -84,22 +84,22 @@ class DetailAction extends CAction
           }
         }
 
-        if(isset($event["_id"]) && isset(Yii::app()->session["userId"]) && Link::isLinked($event["_id"] , Event::COLLECTION , Yii::app()->session['userId']))
-            array_push($controller->toolbarMBZ, array('position'=>'right', 
-                                                      'label'=>Yii::t("common",'Leave'), 
-                                                      'tooltip' => Yii::t("event","Leave this Event"), 
-                                                      "parent"=>"span",
-                                                      "parentId"=>"linkBtns",
-                                                      "iconClass"=>"disconnectBtnIcon fa fa-unlink",
-                                                      "href"=>"<a href='javascript:;' class='disconnectBtn text-red tooltips btn btn-default'  data-name='".$event["name"]."' data-id='".$event["_id"]."' data-type='".Event::COLLECTION."' data-member-id='".Yii::app()->session["userId"]."' data-ownerlink='".Link::person2events."' data-targetlink='".Link::event2person."'") );
-		else
-			array_push($controller->toolbarMBZ, array('position'=>'right', 
-                                                      'label'=>Yii::t("event",'Join'),
-                                                      'tooltip' => Yii::t("event","Join this Event"), 
-                                                      "parent"=>"span",
-                                                      "parentId"=>"linkBtns",
-                                                      "iconClass"=>"connectBtnIcon fa fa-unlink",
-                                                      "href"=>"<a href='javascript:;' class='connectBtn tooltips ' id='addKnowsRelation' data-placement='top' data-ownerlink='".Link::person2events."' data-targetlink='".Link::event2person."' ") );
+        if( isset($event["_id"]) && isset(Yii::app()->session["userId"]) && Link::isLinked($event["_id"] , Event::COLLECTION , Yii::app()->session['userId']) )
+          array_push($controller->toolbarMBZ, array('position'=>'right', 
+                                                    'label'=>Yii::t("common",'Leave'), 
+                                                    'tooltip' => Yii::t("event","Leave this Event"), 
+                                                    "parent"=>"span",
+                                                    "parentId"=>"linkBtns",
+                                                    "iconClass"=>"disconnectBtnIcon fa fa-unlink",
+                                                    "href"=>"<a href='javascript:;' class='disconnectBtn text-red tooltips btn btn-default'  data-name='".$event["name"]."' data-id='".$event["_id"]."' data-attendee-id='".$uid."' data-type='".Event::COLLECTION."'") );
+    		else
+    			array_push($controller->toolbarMBZ, array('position'=>'right', 
+                                                    'label'=>Yii::t("event",'Join'),
+                                                    'tooltip' => Yii::t("event","Join this Event"), 
+                                                    "parent"=>"span",
+                                                    "parentId"=>"linkBtns",
+                                                    "iconClass"=>"connectBtnIcon fa fa-unlink",
+                                                    "href"=>"<a href='javascript:;' class='connectBtn tooltips  btn btn-default'   data-attendee-id='".$uid."' data-placement='top'") );
 
         $params["images"] = $images;
         $params["contentKeyBase"] = $contentKeyBase;

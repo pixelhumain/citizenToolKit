@@ -91,16 +91,19 @@ class ActivityStream {
 	public static function removeNotificationsByUser()
 	{
 		try{
+		    
 		    $userNotifcations = PHDB::find( self::COLLECTION,array("notify.id"  => Yii::app()->session["userId"] ));
-		    foreach ($userNotifcations as $key => $value) {
+		    
+		    foreach ($userNotifcations as $key => $value) 
+		    {
 		    	if(count($value["notify"]["id"]) == 1 )
 		    		PHDB::update( self::COLLECTION,
 				                  array("_id"  => $value["_id"] ), 
 				                  array('$unset' => array("notify"=>true) ) );
 		    	else
 		    		PHDB::update( self::COLLECTION,
-			                  array("_id"  => $value["_id"] ), 
-			                  array('$pull' => array( "notify.id" => Yii::app()->session["userId"] )));
+			                  	  array("_id"  => $value["_id"] ), 
+			                  	  array('$pull' => array( "notify.id" => Yii::app()->session["userId"] )));
 		    	
 		    }
 		    /*PHDB::updateWithOptions( self::COLLECTION,
@@ -111,7 +114,7 @@ class ActivityStream {
 		    $res = array( "result"=>true,"msg"=>"Removed succesfully" );
 	    }
 	    catch (Exception $e) {  
-	          $res = array( "result"=>false,"msg"=>"Something went wrong :".$e->getMessage() );
+	        $res = array( "result"=>false,"msg"=>"Something went wrong :".$e->getMessage() );
 	    } 
 	
 
