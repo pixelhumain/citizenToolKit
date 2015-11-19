@@ -112,9 +112,9 @@ class Person {
 				$person["birthDate"] = date('Y-m-d H:i:s', $person["birthDate"]->sec);
 			}
 			$person = array_merge($person, Document::retrieveAllImagesUrl($id, self::COLLECTION));
+			$person["typeSig"] = "people";
         }
-        $person["typeSig"] = "people";
-	  	
+        
 	  	return $person;
 	}
 

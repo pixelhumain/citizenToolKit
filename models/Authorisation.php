@@ -17,7 +17,7 @@ class Authorisation {
     //**************************************************************
 
     /**
-     * Return true if the user is admin of at least an organization 
+     * Return true if the user is admin (not pending) of at least an organization 
      * @param String the id of the user
      * @return boolean true/false
      */
@@ -29,7 +29,7 @@ class Authorisation {
 
         foreach ($personMemberOf as $linkKey => $linkValue) {
             if (!empty($linkValue) && !empty($linkValue["isAdmin"])) {
-                if ($linkValue["isAdmin"]) {
+                if ($linkValue["isAdmin"] && @$linkValue["isAdminPending"] != false) {
                     $res = true;
                     break;
                 }
@@ -49,7 +49,7 @@ class Authorisation {
         
         //organization i'am admin 
         $where = array( "links.members.".$userId.".isAdmin" => true,
-                        "links.members.".$userId.".isAdmin.pending" => array('$exists' => false )
+                        "links.members.".$userId.".isAdminPending" => array('$exists' => false )
                     );
 
         $organizations = PHDB::find(Organization::COLLECTION, $where);
@@ -384,27 +384,23 @@ class Authorisation {
 
     /**
      * List the user that are admin of the organization
-     * @param type $organizationId The organization Id to look for
-     * @param type $pending : include the pending admins. By default no.
+     * @param string $organizationId The organization Id to look for
+     * @param boolean $pending : true include the pending admins. By default no.
      * @return type array of person Id
      */
     public static function listOrganizationAdmins($organizationId, $pending=false) {
         $res = array();
-        $where = array( "_id" => new MongoId($organizationId),
-                        "links.members.".$userId.".isAdmin.pending" => array('$exists' => $pending )
-                    );
-
-        $organization = PHDB::find(Organization::COLLECTION, $where);
+        
+        $organization = Organization::getById($organizationId);
         
         if ($members = @$organization["links"]["members"]) {
             foreach ($members as $personId => $linkDetail) {
                 if (@$linkDetail["isAdmin"] == true) {
                     if ($pending) {
-                        if (isset($linkDetail["isAdmin"]["pending"])) {
-                            array_push($res, $personId);
-                        } 
-                    } else {
                         array_push($res, $personId);
+                    } else if (@$linkDetail["isAdminPending"] == null || @$linkDetail["isAdminPending"] == false) {
+                        var_dump($linkDetail);
+                        array_push($res, $personId); 
                     }
                 }
             }

@@ -49,8 +49,8 @@ class Link {
             $setArrayMembers["links.members.".$memberId.".isAdmin"] = $userAdmin;
             $setArrayMemberOf["links.memberOf.".$memberOfId.".isAdmin"] = $userAdmin;
             if ($pendingAdmin) {
-                $setArrayMembers["links.members.".$memberId.".isAdmin.pending"] = true;
-                $setArrayMemberOf["links.memberOf.".$memberOfId.".isAdmin.pending"] = true;
+                $setArrayMembers["links.members.".$memberId.".isAdminPending"] = true;
+                $setArrayMemberOf["links.memberOf.".$memberOfId.".isAdminPending"] = true;
             }
         }
         if ($userRole != ""){

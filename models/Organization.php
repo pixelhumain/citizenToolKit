@@ -656,23 +656,31 @@ class Organization {
 		$res = array("result" => true, "msg" => "You are now admin of the organization");
 
 		$organization = self::getById($idOrganization);
-		$pendingAdmin = Person::getSimpleUserById($idPerson);
+		$pendingAdmin = Person::getById($idPerson);
+		
+		if (!$organization || !$pendingAdmin) {
+			return array("result" => false, "msg" => "Unknown organization or person. Please check your parameters !");
+		}
 		//First case : The organization doesn't have an admin yet : the person is automatically added as admin
-		$usersAdmin = Authorisation::listOrganizationAdmins($idOrganization);
-		if ($userAdmin.count() == 0) {
+		$usersAdmin = Authorisation::listOrganizationAdmins($idOrganization, false);
+		if (in_array($idPerson, $usersAdmin)) 
+			return array("result" => false, "msg" => "Your are already admin of this organization !");
+
+		if (count($usersAdmin) == 0) {
 			Link::addMember($idOrganization, self::COLLECTION, $idPerson, Person::COLLECTION, $userId, true, "", false);
 		} else {
 			//Second case : there is already an admin (or few) 
 			// 1. Admin link will be added but pending
 			Link::addMember($idOrganization, self::COLLECTION, $idPerson, Person::COLLECTION, $userId, true, "", true);
 			// 2. Notification and email are sent to the admin(s)
+			$listofAdminsEmail = array();
 			foreach ($usersAdmin as $adminId) {
-				$currentAdmin = Person::getSimpleUserById($key);
+				$currentAdmin = Person::getSimpleUserById($adminId);
 				array_push($listofAdminsEmail, $currentAdmin["email"]);
 			}
 			Mail::someoneDemandToBecomeAdmin($organization, $pendingAdmin, $listofAdminsEmail);
-			//Notification::
-			
+			//TODO - Notification
+			$res = array("result" => true, "msg" => "Your request has been sent to other admins.");
 			// After : the 1rst existing Admin to take the decision will remove the "pending" to make a real admin
 		}
 
