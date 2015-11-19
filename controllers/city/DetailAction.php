@@ -147,7 +147,7 @@ class DetailAction extends CAction
         $params["organizations"] = $organizations;
         $params["projects"] = $projects;
         $params["events"] = $events;
-        $params["people"] = $people;
+        $params["people"] = $allPeople;
         $params["insee"] = $insee;
         $params["city"] = $city;
         

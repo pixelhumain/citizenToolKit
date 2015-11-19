@@ -381,9 +381,9 @@ class Link {
     public static function isLinked($itemId, $itemType, $userId){
     	$res = false;
     	$item = PHDB::findOne( $itemType ,array("_id"=>new MongoId($itemId)));
-    	if(isset($item["links"])){
+    	if(isset($item["links"]) && isset($item["links"]['attendees'])){
     		foreach ($item["links"] as $key => $value) {
-    			if(isset($value[$userId])){
+    			if( isset($value[$userId]) ){
     				$res= true;
     			}
     		}
