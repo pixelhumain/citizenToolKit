@@ -12,7 +12,6 @@ class AddContributorSvAction extends CAction
 			$lists = Lists::get(array("organisationTypes"));
 			$params["organizationTypes"]= $lists["organisationTypes"];
 			$params["id"]=$_GET["projectId"];
-			$params["projectName"]=$_GET["projectName"];
 			$params["project"]=Project::getPublicData($_GET["projectId"]);
         }
         if(Yii::app()->request->isAjaxRequest)

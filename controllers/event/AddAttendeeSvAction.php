@@ -10,7 +10,7 @@ class AddAttendeeSvAction extends CAction
     	if( isset($_GET["isNotSV"])) {
             $params["isNotSV"] = true;
 			$params["id"]=$_GET["eventId"];
-			$params["eventName"]=$_GET["eventName"];
+			$params["event"]=Event::getById($_GET["eventId"]);
         }
         if(Yii::app()->request->isAjaxRequest)
 			echo $controller->renderPartial("addAttendeesSV", $params, true);

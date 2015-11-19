@@ -30,6 +30,10 @@ class DetailAction extends CAction
 
               $citoyen = Person::getPublicData($uid);
               if(!empty($citoyen)){
+	            $citoyen["type"]="citoyens";
+	            $profil = Document::getLastImageByKey($uid, Person::COLLECTION, Document::IMG_PROFIL);
+	  			if($profil !="")
+					$citoyen["imagePath"]= $profil;
                 array_push($people, $citoyen);
                 array_push($attending, $citoyen);
 
