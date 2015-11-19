@@ -181,12 +181,12 @@ class Mail
            $params = array (
                 "type" => Cron::TYPE_MAIL,
                 "tpl"=>'askToBecomeAdmin',
-                "subject" => Yii::t("common",'New Organization created on ').Yii::app()->name,
+                "subject" => "[".Yii::app()->name."]".Yii::t("organization","A citizen ask to become an admin of one of your organization"),
                 "from"=>Yii::app()->params['adminEmail'],
                 "to" => $currentAdminEmail,
                 "tplParams" => array(  "newPendingAdmin"=> $newPendingAdmin ,
-                                        "organization" => $organization,
-                                       "url"  => "/organization/dashboard/id/".$organization["_id"] )
+                                        "title" => Yii::app()->name ,
+                                        "organization" => $organization)
             );   
             Mail::schedule($params);
         }
