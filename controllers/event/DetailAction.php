@@ -95,7 +95,7 @@ class DetailAction extends CAction
                                                     "parent"=>"span",
                                                     "parentId"=>"linkBtns",
                                                     "iconClass"=>"disconnectBtnIcon fa fa-unlink",
-                                                    "href"=>"<a href='javascript:;' class='disconnectBtn text-red tooltips btn btn-default'  data-name='".$event["name"]."' data-id='".$event["_id"]."' data-attendee-id='".$uid."' data-type='".Event::COLLECTION."'") );
+                                                    "href"=>"<a href='javascript:;' class='disconnectBtn text-red tooltips btn btn-default'  data-name='".$event["name"]."' data-id='".$event["_id"]."' data-attendee-id='".Yii::app()->session['userId']."' data-type='".Event::COLLECTION."'") );
     		else
     			array_push($controller->toolbarMBZ, array('position'=>'right', 
                                                     'label'=>Yii::t("event",'Join'),
@@ -103,7 +103,7 @@ class DetailAction extends CAction
                                                     "parent"=>"span",
                                                     "parentId"=>"linkBtns",
                                                     "iconClass"=>"connectBtnIcon fa fa-unlink",
-                                                    "href"=>"<a href='javascript:;' class='connectBtn tooltips  btn btn-default'   data-attendee-id='".$uid."' data-placement='top'") );
+                                                    "href"=>"<a href='javascript:;' class='connectBtn attendeeMeBtn tooltips  btn btn-default'   data-attendee-id='".Yii::app()->session['userId']."' data-placement='top'") );
 
         $params["images"] = $images;
         $params["contentKeyBase"] = $contentKeyBase;

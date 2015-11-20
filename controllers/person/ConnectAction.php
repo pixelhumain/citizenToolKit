@@ -3,12 +3,12 @@
 //Connect someone (person) to your network
 //2 cases : the person exists in the db or he has to be invited
 class ConnectAction extends CTKAction {
-    public function run($id,$type, $ownerLink, $targetLink = null) {
+    public function run($id = null,$type = null, $ownerLink = null, $targetLink = null) {
 
     	$invitedUserId = "";
 
         if (! $this->userLogguedAndValid()) {
-        	return Rest::json(array("result" => false, "msg" => "The current user is not valid : please login."));
+        	Rest::json(array("result" => false, "msg" => "The current user is not valid : please login."));
         }
 
         //Case 1 : the person invited exists in the db
@@ -44,7 +44,7 @@ class ConnectAction extends CTKAction {
             $res = array("result" => false, "msg" => $res["msg"]);
         }
 
-		return Rest::json($res);
+		Rest::json($res);
     }
 }
 

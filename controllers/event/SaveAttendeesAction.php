@@ -11,35 +11,45 @@ class SaveAttendeesAction extends CAction
         if($event)
         {	
 	        $attendeeType = Person::COLLECTION;
-	        if(isset($attendeeId) && !empty($attendeeId)){
+	        if( isset($attendeeId) && !empty($attendeeId) )
+            {
 		        if( isset($event['links']["events"]) && isset( $event['links']["events"][$attendeeId] ))
                   $res = array( "result" => false , "msg" => Yii::t("event","Allready attending for this event",null,Yii::app()->controller->module->id) );
-                else {
-                	Link::connect($attendeeId, $attendeeType, $idEvent, Event::COLLECTION, Yii::app()->session["userId"], "events" );
-					Link::connect($idEvent, Event::COLLECTION, $attendeeId, $attendeeType, Yii::app()->session["userId"], "attendees" );
+                else 
+                {
+                	Link::connect( $attendeeId, $attendeeType, $idEvent, Event::COLLECTION, Yii::app()->session["userId"], "events" );
+					Link::connect( $idEvent, Event::COLLECTION, $attendeeId, $attendeeType, Yii::app()->session["userId"], "attendees" );
 					$citoyen = Person::getPublicData( $attendeeId );
-	            	if (!empty($citoyen)) {
+
+	            	if (!empty($citoyen)) 
+                    {
 		            	$profil = Document::getLastImageByKey($attendeeId, Person::COLLECTION, Document::IMG_PROFIL);
 						if($profil !="")
 							$citoyen["imagePath"]= $profil;
 		            }
-					$res = array("result"=>true, "attendee" => $citoyen, "msg" => Yii::t("event","ATTENDEE SUCCESSFULLY ADD!!",null,Yii::app()->controller->module->id),"reload"=>true);
+					$res = array("result"=>true, 
+                                //"attendee" => $citoyen, 
+                                "msg" => Yii::t("event","ATTENDEE SUCCESSFULLY ADD!!",null,Yii::app()->controller->module->id),
+                                //"personLink"=>$personLink,
+                                //"eventLink"=>$eventLink,
+                                "reload"=>true);
                 }
 	        }
-	        else{
-		       // $res = array( "result" => false , "msg" => Yii::t("common","ici ca v//a!") );
-                	$member = array(
-					'name'=>$_POST['name'],
-					'email'=>$_POST['email'],
-					'invitedBy'=>Yii::app()->session["userId"],
-					'created' => time(),
-					'links'=>array( 'events' => array($idEvent => array("type" => 'events',
-                                            //"tobeconfirmed" => true,
-                                            "invitedBy" => Yii::app()->session["userId"],
-										)
-									)
-								)	
-					);
+	        else
+            {
+            	$member = array(
+  					'name'=>$_POST['name'],
+  					'email'=>$_POST['email'],
+  					'invitedBy'=>Yii::app()->session["userId"],
+  					'created' => time(),
+  					'links'=>array( 'events' => array($idEvent => array(
+                                "type" => 'events',
+                                //"tobeconfirmed" => true,
+                                "invitedBy" => Yii::app()->session["userId"],
+  							)
+						)
+					)	
+				);
 					
                 $member = Person::createAndInvite($member);
                // print_r($newAttendee);             
