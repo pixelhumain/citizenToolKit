@@ -53,9 +53,11 @@ class EntryAction extends CAction
       $params["images"] = $images;
       $params["contentKeyBase"] = $contentKeyBase;
 
-      if(!Yii::app()->request->isAjaxRequest){
+      if(Yii::app()->request->isAjaxRequest)
+            echo $controller->renderPartial("entryStandalone",$params,true);
+      else if( !Yii::app()->request->isAjaxRequest ){
           $controller->layout = "//layouts/mainSimple";
-          $controller->render( "entryStandalone", $params );
+          $controller->renderPartial( "entryStandalone", $params );
       } else 
           Rest::json( $params);
     }
