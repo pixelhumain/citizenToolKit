@@ -568,6 +568,11 @@ class Person {
         Person::clearUserSessionData();
         $account = PHDB::findOne(self::COLLECTION, array("email"=>$email));
         
+        //return an error when email does not exist
+        if ($account == null) {
+        	return array("result"=>false, "msg"=>"Email ou Mot de Passe ne correspondent pas, rééssayez.");
+        }
+        
         //Roles validation
         $res = Role::canUserLogin($account, $publicPage);
         if ($res["result"]) {
