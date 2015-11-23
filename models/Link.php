@@ -186,7 +186,7 @@ class Link {
         $origin = Link::checkIdAndType($originId, $originType);
         $target = Link::checkIdAndType($targetId, $targetType);
 
-        //2. Create the links
+        //2. Remove the links
         PHDB::update( $originType, 
                        array("_id" => $origin["_id"]) , 
                        array('$unset' => array("links.".$connectType.".".$targetId => "") ));
