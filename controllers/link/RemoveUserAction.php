@@ -21,7 +21,7 @@ class RemoveUserAction extends CAction
 			} catch (CTKException $e) {
 				$res = array( "result" => false , "msg" => $e->getMessage() );
 			}
-		}
+		} 
 		return Rest::json($res);
     }
 }
