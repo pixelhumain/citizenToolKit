@@ -142,7 +142,7 @@ class Notification{
 	    		array_push( $people, $key);
 	    }
 	    $label = Yii::app()->session['user']['name']." ".$verb." you to ".$target["name"] ;
-	    $url = $target["type"].'/dashboard/id/'.$targetId;
+	    $url = $target["type"].'/detail/id/'.$targetId;
 	    if( $verb == ActStr::VERB_CLOSE )
 	    	$target["name"]." has been disabled by ".Yii::app()->session['user']['name'];
 	    else if( $verb == ActStr::VERB_POST ){
@@ -187,7 +187,7 @@ class Notification{
 	    	"persons" => array($followedPersonId),
             "label"   => $followerName.$actionMsg , 
             "icon"    => ActStr::ICON_SHARE ,
-            "url"     => Yii::app()->createUrl('/'.Yii::app()->controller->module->id.'/person/dashboard/id/'.$followerId)
+            "url"     => Yii::app()->createUrl('/'.Yii::app()->controller->module->id.'/person/detail/id/'.$followerId)
         );
 	    $stream["notify"] = ActivityStream::addNotification( $notif );
 	    ActivityStream::addEntry($stream);
