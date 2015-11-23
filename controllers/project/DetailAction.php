@@ -45,6 +45,9 @@ class DetailAction extends CAction
 	  						$profil = Document::getLastImageByKey($uid, Organization::COLLECTION, Document::IMG_PROFIL);
 	  						if($profil !="")
 								$organization["imagePath"]= $profil;
+							if(@$e["isAdmin"]){
+		  						$organization["isAdmin"]=true;  				
+	  						}
 	  						array_push($contributors, $organization);
 	  					}
 	  				}else if($e["type"]== Person::COLLECTION){
@@ -55,6 +58,9 @@ class DetailAction extends CAction
 	  						$profil = Document::getLastImageByKey($uid, Person::COLLECTION, Document::IMG_PROFIL);
 	  						if($profil !="")
 								$citoyen["imagePath"]= $profil;
+							if(@$e["isAdmin"]){
+		  						$citoyen["isAdmin"]=true;  				
+	  						}
 	  						array_push($contributors, $citoyen);
 	  						if( $uid == Yii::app()->session['userId'] )
 	  							Menu::add2MBZ( array('position'=>'right', 
