@@ -341,7 +341,7 @@ class Person {
 	  	if (! $minimal) {
 		  	//user name
 		  	$newPerson["username"] = $person["username"];
-		  	if ( self::checkUniqueUsername($newPerson["username"]) ) {
+		  	if ( self::isUniqueUsername($newPerson["username"]) ) {
 		  		throw new CTKException(Yii::t("person","Problem inserting the new person : a person with this username already exists in the plateform"));
 		  	}
 
@@ -567,6 +567,11 @@ class Person {
 
         Person::clearUserSessionData();
         $account = PHDB::findOne(self::COLLECTION, array("email"=>$email));
+        
+        //return an error when email does not exist
+        if ($account == null) {
+        	return array("result"=>false, "msg"=>"Email ou Mot de Passe ne correspondent pas, rééssayez.");
+        }
         
         //Roles validation
         $res = Role::canUserLogin($account, $publicPage);
