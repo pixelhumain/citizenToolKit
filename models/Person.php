@@ -341,7 +341,7 @@ class Person {
 	  	if (! $minimal) {
 		  	//user name
 		  	$newPerson["username"] = $person["username"];
-		  	if ( self::isUniqueUsername($newPerson["username"]) ) {
+		  	if ( ! self::isUniqueUsername($newPerson["username"]) ) {
 		  		throw new CTKException(Yii::t("person","Problem inserting the new person : a person with this username already exists in the plateform"));
 		  	}
 
