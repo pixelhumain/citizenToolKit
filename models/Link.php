@@ -378,13 +378,19 @@ class Link {
         return array("result"=>true, "msg"=>"The link ".$connectType." has been added with success", "originId"=>$originId, "targetId"=>$targetId);
     }
 
-    public static function isLinked($itemId, $itemType, $userId){
+    public static function isLinked($itemId, $itemType, $userId) {
     	$res = false;
+        if ($itemType == Person::COLLECTION) $linkType = self::person2person;
+        elseif ($itemType == Organization::COLLECTION) $linkType = self::organization2person;
+        elseif ($itemType == Event::COLLECTION) $linkType = self::event2person;
+        elseif ($itemType == Project::COLLECTION) $linkType = self::project2person;
+        else $linkType = "unknown";
+
     	$item = PHDB::findOne( $itemType ,array("_id"=>new MongoId($itemId)));
-    	if(isset($item["links"]) && isset($item["links"]['attendees'])){
-    		foreach ($item["links"] as $key => $value) {
-    			if( isset($value[$userId]) ){
-    				$res= true;
+    	if(isset($item["links"]) && isset($item["links"][$linkType])){
+            foreach ($item["links"][$linkType] as $key => $value) {
+                if( $key == $userId) {
+    				$res = true;
     			}
     		}
     	}
