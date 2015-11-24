@@ -110,7 +110,7 @@ class DetailAction extends CAction
 	  	// return true or false
 	  	$isProjectAdmin = false;
 	  	$admins = array();
-    	if(isset($project["_id"]) && isset(Yii::app()->session["userId"])) {
+    	/*if(isset($project["_id"]) && isset(Yii::app()->session["userId"])) {
     		$isProjectAdmin =  Authorisation::isProjectAdmin((String) $project["_id"],Yii::app()->session["userId"]);
     		if (!$isProjectAdmin && !empty($organizations)){
 	    		foreach ($organizations as $data){
@@ -123,8 +123,8 @@ class DetailAction extends CAction
 		    		}
 	    		}
     		}
-		}
-
+		}*/
+		$isProjectAdmin=Authorisation::isProjectAdmin($project["_id"], Yii::app()->session["userId"]);
 	  	$lists = Lists::get(array("organisationTypes"));
 	  	$params["countries"] = OpenData::getCountriesList();
 	  	$params["tags"] = Tags::getActiveTags();

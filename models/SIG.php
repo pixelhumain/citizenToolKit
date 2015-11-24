@@ -165,6 +165,32 @@ class SIG
 	 * @param String $codeInsee the code insee of the city
 	 * @return Array With all the field as the cities collection
 	 */
+	public static function getLatLngByInsee($codeInsee) {
+		if (empty($codeInsee)) {
+			throw new InvalidArgumentException("The Insee Code is mandatory");
+		}
+
+		$city = PHDB::findOne(self::CITIES_COLLECTION_NAME, array("insee" => $codeInsee));
+		if (empty($city)) {
+			throw new CTKException("Impossible to find the city with the insee code : ".$codeInsee);
+		} else {
+			$position = isset($city["geo"]) ? array("geo" => $city["geo"]) : "";
+			if($position == ""){
+				$position = isset($city["geoPosition"]) ? array("geoPosition" => $city["geoPosition"]) : "";	
+			}
+
+			if(isset($city["geoShape"])){ $position["geoShape"] = $city["geoShape"]; }
+			//var_dump($position); die();
+			
+			return $position;
+		}
+	}
+
+	/**
+	 * Get the city by insee code. Can throw Exception if the city is unknown.
+	 * @param String $codeInsee the code insee of the city
+	 * @return Array With all the field as the cities collection
+	 */
 	public static function getCodeInseeByCityName($cityName) {
 		if (empty($cityName)) {
 			throw new InvalidArgumentException("The City Name is mandatory");

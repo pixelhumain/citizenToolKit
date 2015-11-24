@@ -8,6 +8,7 @@ class Link {
     const person2projects = "projects";
     const event2person = "attendees";
     const project2person = "contributors";
+    const need2Item = "needs";
 
 	/**
 	 * Add a member to an organization
@@ -124,10 +125,12 @@ class Link {
         	$res = Organization::getById($id); 
         } else if ($type == Person::COLLECTION) {
         	$res = Person::getById($id);
-        } else if ($type== PHType::TYPE_EVENTS){
+        } else if ($type== Event::COLLECTION){
         	$res = Event:: getById($id);
-        } else if ($type== PHType::TYPE_PROJECTS){
+        } else if ($type== Project::COLLECTION){
         	$res = Project:: getById($id);
+        } else if ($type== Need::COLLECTION){
+        	$res = Need:: getById($id);
         } else {
         	throw new CTKException("Can not manage this type of MemberOf : ".$type);
         }

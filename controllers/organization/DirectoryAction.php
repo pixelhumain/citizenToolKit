@@ -42,7 +42,10 @@ class DirectoryAction extends CAction
           ***************************************** */
         $organizations = Organization::getMembersByOrganizationId($id, Organization::COLLECTION);
         foreach ($organizations as $key => $value) {
-          $newOrga = Organization::getById($key);
+        	$newOrga = Organization::getById($key);
+			if(@$value["isAdmin"] && $value["isAdmin"]==1){
+	            $newOrga["isAdmin"]=$value["isAdmin"];
+        	} 
           array_push($params["organizations"], $newOrga);
 
         }
@@ -57,6 +60,9 @@ class DirectoryAction extends CAction
             $profil = Document::getLastImageByKey($key, Person::COLLECTION, Document::IMG_PROFIL);
             if($profil !="")
                 $newCitoyen["imagePath"] = $profil;
+            if(@$value["isAdmin"] && $value["isAdmin"]==1){
+	            $newCitoyen["isAdmin"]=$value["isAdmin"];
+             } 
             array_push($params["people"], $newCitoyen);
         }
 

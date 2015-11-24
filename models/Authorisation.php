@@ -226,6 +226,23 @@ class Authorisation {
      * @param String $userId The userId to get the authorisation of
      * @return boolean True if the user isAdmin, False else
      */
+    /* $isProjectAdmin = false;
+	  	$admins = array();
+    	if(isset($project["_id"]) && isset(Yii::app()->session["userId"])) {
+    		$isProjectAdmin =  Authorisation::isProjectAdmin((String) $project["_id"],Yii::app()->session["userId"]);
+    		if (!$isProjectAdmin && !empty($organizations)){
+	    		foreach ($organizations as $data){
+		    		$admins = Organization::getMembersByOrganizationId( (string)$data['_id'], Person::COLLECTION , "isAdmin" );
+		    		foreach ($admins as $key => $member){
+			    		if ($key == Yii::app()->session["userId"]){
+				    		$isProjectAdmin=1;
+				    		break 2;
+			    		}
+		    		}
+	    		}
+    		}
+		}*/
+
      public static function isProjectAdmin($projectId, $userId) {
     	$res = false;
         $listProject = Authorisation::listProjectsIamAdminOf($userId);
