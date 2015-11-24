@@ -354,8 +354,8 @@ class Organization {
             //throw new CommunecterException("The organization id ".$id." is unkown : contact your admin");
         } else {
 			$organization = array_merge($organization, Document::retrieveAllImagesUrl($id, self::COLLECTION));
-        }	
-        $organization["typeSig"] = "organizations";
+			$organization["typeSig"] = "organizations";
+        }
 	  	return $organization;
 	}
 
