@@ -13,7 +13,7 @@ class Mail
             $message->setSubject($params['subject']);
             $message->setBody($params['tplParams'], 'text/html');
             $message->addTo($params['to']);
-            $message->from = $params['from'];
+            $message->from = array($params['from'] => "Communecter");
 
             return Yii::app()->mail->send($message);
         } else 
