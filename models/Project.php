@@ -14,6 +14,7 @@ class Project {
 	    "addressCountry" => array("name" => "address.addressCountry"),
 	    "geo" => array("name" => "geo"),
 	    "description" => array("name" => "description"),
+	    "shortDescription" => array("name" => "shortDescription"),
 	    "startDate" => array("name" => "startDate", "rules" => array("projectStartDate")),
 	    "endDate" => array("name" => "endDate", "rules" => array("projectEndDate")),
 	    "tags" => array("name" => "tags"),
