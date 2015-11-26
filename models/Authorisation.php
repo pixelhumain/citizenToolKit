@@ -126,9 +126,14 @@ class Authorisation {
     public static function isMeteorConnected( $token ) {
         
         $result = false;
-        if( PHDB::findOne( "users" , array( "services.resume.loginTokens.0.hashedToken" => $token ) ) )
-            $result = true;
-
+        if( $user = PHDB::findOne( "users" , array( "services.resume.loginTokens.0.hashedToken" => $token ) ) )
+        {
+            if( $account = PHDB::findOne(self::COLLECTION, array("email"=>$user["username"])) )
+            {
+                Person::saveUserSessionData($account);
+                $result = true;
+            }
+        }
         return $result;
     }
 
