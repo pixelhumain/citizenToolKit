@@ -38,26 +38,20 @@ class DetailAction extends CAction
 	  		if(isset($project["links"])){
 	  			foreach ($project["links"]["contributors"] as $uid => $e) {
 	  				if($e["type"]== Organization::COLLECTION){
-	  					$organization = Organization::getPublicData($uid);
+	  					$organization = Organization::getSimpleOrganizationById($uid);
 	  					if (!empty($organization)) {
 	  						array_push($organizations, $organization);
 	  						$organization["type"]="organization";
-	  						$profil = Document::getLastImageByKey($uid, Organization::COLLECTION, Document::IMG_PROFIL);
-	  						if($profil !="")
-								$organization["imagePath"]= $profil;
 							if(@$e["isAdmin"]){
 		  						$organization["isAdmin"]=true;  				
 	  						}
 	  						array_push($contributors, $organization);
 	  					}
 	  				}else if($e["type"]== Person::COLLECTION){
-	  					$citoyen = Person::getPublicData($uid);
+	  					$citoyen = Person::getSimpleUserById($uid);
 	  					if(!empty($citoyen)){
 	  						array_push($people, $citoyen);
 	  						$citoyen["type"]="citoyen";
-	  						$profil = Document::getLastImageByKey($uid, Person::COLLECTION, Document::IMG_PROFIL);
-	  						if($profil !="")
-								$citoyen["imagePath"]= $profil;
 							if(@$e["isAdmin"]){
 		  						$citoyen["isAdmin"]=true;  				
 	  						}

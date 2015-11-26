@@ -40,15 +40,12 @@ class DetailAction extends CAction
 		$people = Organization::getMembersByOrganizationId($id, Person::COLLECTION);
 
 		foreach ($organizations as $key => $value) {
-			$newOrga = Organization::getById($key);
+			$newOrga = Organization::getSimpleOrganizationById($key);
 			if(!empty($newOrga)){
 				if (@$organization["links"]["members"][$key] && $organization["links"]["members"][$key]["type"] == Organization::COLLECTION && @$organization["links"]["members"][$key]["isAdmin"]){
 					$newOrga["isAdmin"]=true;  				
 				}
 				$newOrga["type"]="organization";
-				$profil = Document::getLastImageByKey($key, Organization::COLLECTION, Document::IMG_PROFIL);
-					if($profil !="")
-						$newOrga["imagePath"] = $profil;
 				array_push($contextMap["organizations"], $newOrga);
 				//array_push($members["organizations"], $newOrga);
 				array_push($members, $newOrga);
@@ -61,17 +58,13 @@ class DetailAction extends CAction
 		}
 		
 		foreach ($people as $key => $value) {
-			$newCitoyen = Person::getById($key);
+			$newCitoyen = Person::getSimpleUserById($key);
 			if (!empty($newCitoyen)) {
 				if (@$organization["links"]["members"][$key] && $organization["links"]["members"][$key]["type"] == Person::COLLECTION && @$organization["links"]["members"][$key]["isAdmin"]){
 				$newCitoyen["isAdmin"]=true;  				
-			}
-			$newCitoyen["type"]="citoyen";
-				//$profil = Document::getLastImageByKey($key, Person::COLLECTION, Document::IMG_PROFIL);
-				//if($profil !="")
-				//	$newCitoyen["imagePath"] = $profil;
+				}
+				$newCitoyen["type"]="citoyen";
 				array_push($contextMap["people"], $newCitoyen);
-				//array_push($members["citoyens"], $newCitoyen);
 				array_push($members, $newCitoyen);
 			}
 		}

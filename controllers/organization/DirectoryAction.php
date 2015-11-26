@@ -56,13 +56,10 @@ class DirectoryAction extends CAction
         $people = Organization::getMembersByOrganizationId($id, Person::COLLECTION);
         foreach ($people as $key => $value) 
         {
-            $newCitoyen = Person::getById($key);
-            $profil = Document::getLastImageByKey($key, Person::COLLECTION, Document::IMG_PROFIL);
-            if($profil !="")
-                $newCitoyen["imagePath"] = $profil;
+            $newCitoyen = Person::getSimpleUserById($key);
             if(@$value["isAdmin"] && $value["isAdmin"]==1){
 	            $newCitoyen["isAdmin"]=$value["isAdmin"];
-             } 
+            } 
             array_push($params["people"], $newCitoyen);
         }
 
