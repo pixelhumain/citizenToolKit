@@ -503,7 +503,7 @@ class Person {
 			{
 				$insee = $personFieldValue["codeInsee"];
 				$address = SIG::getAdressSchemaLikeByCodeInsee($insee);
-				$geo = $organizationFieldValue["geo"] ? $organizationFieldValue["geo"] : SIG::getGeoPositionByInseeCode($insee);
+				$geo = SIG::getGeoPositionByInseeCode($insee);
 				$set = array("address" => $address, "geo" => $geo);
 			} else 
 				throw new CTKException("Error updating the Person : address is not well formated !");			
