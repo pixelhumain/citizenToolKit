@@ -71,7 +71,7 @@ class Authorisation {
     }
 
     /**
-     * Return true if the user is admin of the organization or if it's a new organization
+     * Return true if the user is admin of the organization
      * @param String the id of the user
      * @param String the id of the organization
      * @return array of Organization (simple)
@@ -79,13 +79,6 @@ class Authorisation {
     public static function isOrganizationAdmin($userId, $organizationId) {
         $res = false;
         
-        //Get the members of the organization : if there is no member then it's a new organization
-        //We are in a creation process
-        $organizationMembers = Organization::getMembersByOrganizationId($organizationId);
-        if (count($organizationMembers) == 0) {
-            return true;
-        } 
-
         $myOrganizations = Authorisation::listUserOrganizationAdmin($userId);
        	$res = array_key_exists((string)$organizationId, $myOrganizations);    
         return $res;
