@@ -652,6 +652,15 @@ class Organization {
 	    return true;
 	 }
 
+	/**
+	 * Add someone as admin of an organization.
+	 * If there are already admins of the organization, they will receive a notification and email to 
+	 * accept or not the new admin
+	 * @param String $idOrganization The id of the organization
+	 * @param String $idPerson The id of the person asking to become an admin
+	 * @param String $userId The userId doing the action
+	 * @return array of result (result => bool, msg => string)
+	 */
 	public static function addPersonAsAdmin($idOrganization, $idPerson, $userId) {
 		$res = array("result" => true, "msg" => "You are now admin of the organization");
 

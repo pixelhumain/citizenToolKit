@@ -18,12 +18,13 @@ class Link {
 	 * 2 entry will be added :
 	 * - $memberOf.links.members["$memberId"]
 	 * - $member.links.memberOf["$memberOfId"]
-	 * @param type $memberOfId The Id memberOf (organization) where a member will be linked. 
-	 * @param type $memberOfType The Type (should be organization) memberOf where a member will be linked. 
-	 * @param type $memberId The member Id to add. It will be the member added to the memberOf
-	 * @param type $memberType MemberType to add : could be an organization or a person
-	 * @param type $userId The userId doing the action
-     * @param type $userAdmin Boolean to set if the member is admin or not
+	 * @param String $memberOfId The Id memberOf (organization) where a member will be linked. 
+	 * @param String $memberOfType The Type (should be organization) memberOf where a member will be linked. 
+	 * @param String $memberId The member Id to add. It will be the member added to the memberOf
+	 * @param String $memberType MemberType to add : could be an organization or a person
+	 * @param String $userId The userId doing the action
+     * @param Boolean $userAdmin if true the member will be added as an admin 
+     * @param Boolean $pendingAdmin if true the member will be added as a pending admin 
 	 * @return result array with the result of the operation
 	 */ 
     public static function addMember($memberOfId, $memberOfType, $memberId, $memberType, 
@@ -40,9 +41,12 @@ class Link {
         
         //1. Check if the $userId can manage the $memberOf
         if (!Authorisation::isOrganizationAdmin($userId, $memberOfId)) {
-            // Add a toBeValidated tag on the link
-            $setArrayMembers["links.members.".$memberId.".toBeValidated"] = true;
-            $setArrayMemberOf["links.memberOf.".$memberOfId.".toBeValidated"] = true;
+            // Specific case when the user is added as an admin
+            if (!$userAdmin) {
+                // Add a toBeValidated tag on the link
+                $setArrayMembers["links.members.".$memberId.".toBeValidated"] = true;
+                $setArrayMemberOf["links.memberOf.".$memberOfId.".toBeValidated"] = true;
+            }
         }
  
         if ($userAdmin) {
