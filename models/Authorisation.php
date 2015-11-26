@@ -124,10 +124,26 @@ class Authorisation {
 
 
  	/**
- 	 * Description
+ 	 * Description : Check if user is connect 
+     * - to the web interface : communecter.org
+     * - or to the mobile interface : meteor.communecter.org
  	 * @param type $userId 
  	 * @return type
  	 */
+    public static function isMeteorConnected( $token ) {
+        
+        $result = false;
+        if( PHDB::findOne( "users" , array( "services.resume.loginTokens.0.hashedToken" => $token ) ) )
+            $result = true;
+
+        return $result;
+    }
+
+    /**
+     * Description
+     * @param type $userId 
+     * @return type
+     */
     public static function getAuthorisation($userId) {
         
         //TODO : think about how to manage authentification
