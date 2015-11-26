@@ -547,21 +547,15 @@ class Person {
 	}
 
     /**
-     * Register or Login
-     * on PH registration requires only an email 
-     * test exists 
-     * if exists > request pwd
-     * otherwise add to DB 
-     * send validation mail 
+     * Login with email and password. Check if the email and password match on db.
      * @param  [string] $email   email connected to the citizen account
      * @param  [string] $pwd   pwd connected to the citizen account
-     * @param  [string] $publicPage is the page requested public or not. 
-     * If true, the betaTest option will not be ignored
-     * @return [type] [description]
+     * @param  [string] $publicPage is the page requested public or not. If true, the betaTest option will not be ignored
+     * @return [array] array of result as (result => boolean, msg => string)
      */
     public static function login($email, $pwd, $publicPage) 
     {
-        if (! Yii::app()->request->isAjaxRequest || empty($email) || empty($pwd)) {
+        if (empty($email) || empty($pwd)) {
         	return array("result"=>false, "msg"=>"Cette requête ne peut aboutir. Merci de bien vouloir réessayer en complétant les champs nécessaires");
         }
 
