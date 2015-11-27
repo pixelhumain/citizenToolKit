@@ -67,10 +67,10 @@ class Event {
 				$event["startDate"] = date('Y-m-d H:i:s',$yester2day);;
 			}
 		}
-		if(!empty($event))
+		if(!empty($event)){
 		$event = array_merge($event, Document::retrieveAllImagesUrl($id, self::COLLECTION));
 		$event["typeSig"] = "events";
-	  	
+	  	}
 	  	return $event;
 	}
 

@@ -73,7 +73,8 @@ class DetailAction extends CAction
                                                           'label'=> Yii::t("common","Back to")." ".$urlType, 
                                                           'tooltip' => Yii::t("common","Back to")." ".$urlType, 
                                                           "iconClass"=>"fa ".$iconNav,
-                                                          "href"=>"<a href='".Yii::app()->createUrl("/".$controller->module->id."/".$urlType."/dashboard/id/".$uid)."'") );
+														  "parent"=>"span",
+                                                          "href"=>'<a href="javascript:;" onclick="openMainPanelFromPanel( \'/'.$urlType.'/detail/id/'.$uid.'\', \''.$urlType.' : '.$organizer["name"].'\',\''.$iconNav.'\', \''.$uid.'\')" class="tooltips btn btn-default"'));
               }
             }else if(isset($event["links"]["creator"]))
             {
