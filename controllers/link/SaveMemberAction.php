@@ -94,7 +94,7 @@ class SaveMemberAction extends CAction
 			);
 			if(isset($_POST['memberName']))
 				$member["name"] = $_POST['memberName'];
-			Notification::actionOnPerson ( ActStr::VERB_JOIN, ActStr::ICON_SHARE, $member , array("type"=>Organization::CONTROLLER,"id"=> $memberOfId,"name"=>$organization["name"]) ) ;
+			Notification::actionOnPerson ( ActStr::VERB_JOIN, ActStr::ICON_SHARE, $member , array("type"=>Organization::COLLECTION,"id"=> $memberOfId,"name"=>$organization["name"]) ) ;
 			$res["member"] = $class::getById($memberId);
 		} catch (CommunecterException $e) {
 			$res = array( "result" => false , "msg" => $e->getMessage() );
