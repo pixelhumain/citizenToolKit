@@ -31,7 +31,7 @@ class DirectoryAction extends CAction
       $eventsBd = PHDB::find(Event::COLLECTION, array( "address.codeInsee" => $insee ) );
       $events = array();
       foreach ($eventsBd as $key => $event) {
-          //$event = Event::getPublicData((string)$event["_id"]);
+          $event = Event::getPublicData((string)$event["_id"]);
           array_push($events, $event);
       }
       

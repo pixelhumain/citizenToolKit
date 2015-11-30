@@ -51,13 +51,13 @@ class Event {
 	 * @return type
 	 */
 	public static function getById($id) {
-		$event = PHDB::findOne( PHType::TYPE_EVENTS,array("_id"=>new MongoId($id)));
+		$event = PHDB::findOne(self::COLLECTION,array("_id"=>new MongoId($id)));
 		if (!empty($event["startDate"]) && !empty($event["endDate"])) {
 			if (gettype($event["startDate"]) == "object" && gettype($event["endDate"]) == "object") {
 				//Set TZ to UTC in order to be the same than Mongo
 				date_default_timezone_set('UTC');
 				$event["startDate"] = date('Y-m-d H:i:s', $event["startDate"]->sec);
-				$event["endDate"] = date('Y-m-d H:i:s', $event["endDate"]->sec);	
+				$event["endDate"] = date('Y-m-d H:i:s', $event["endDate"]->sec);
 			} else {
 				//Manage old date with string on date event
 				$now = time();
@@ -343,9 +343,8 @@ class Event {
 		if (! Authorisation::isEventAdmin($eventId, $userId)) {
 			throw new CTKException("Can not delete the event : you are not authorized to delete that event!");	
 		}
-
+		$res = ActivityStream::removeObject($eventId,event::COLLECTION);
 		$res = Link::removeEventLinks($eventId);
-		
 		if($res["ok"]==1){
     		$res = PHDB::remove(self::COLLECTION, array("_id"=>new MongoId($eventId)));
     	}
