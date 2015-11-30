@@ -241,27 +241,34 @@ else if($useCase ==  self::NEWS_CREATE_TASK ){
 			return $newsObject;	
 		}	
 		else if($useCase ==  self::NEWS_JOIN_ORGANIZATION ){
-			$newMember=Person::getById($object["actor"]["id"]);
+			$author=Person::getById($object["actor"]["id"]);
 			$memberImage = Document::getLastImageByKey((string)$object["actor"]["id"], Person::COLLECTION, Document::IMG_PROFIL);
+			if($object["object"]["objectType"]==Organization::COLLECTION){
+				$newMember=Organization::getById($object["object"]["id"]);	
+			}
+			else{
+				$newMember=Person::getById($object["object"]["id"]);	
+			}
+				
 			if (@$object["tags"]) $tags = $object["tags"]; else $tags="";
 			$newsObject= array ("_id" => $object["_id"],
 								"name" =>$newMember["name"]." is new member",
 								"text"=> "has joined the organization",
 								"target"=> array(
 									"id" => (string)$object["actor"]["id"],
-									"name" => $newMember["name"],
+									"name" => $author["name"],
 									"type" => Person::COLLECTION,
 									"profilImageUrl" => $memberImage
 								),
 								"author"=> array(
 									"id" => (string)$object["actor"]["id"],
 									"type" => Person::COLLECTION,
-									"name" => $newMember["name"],
+									"name" => $author["name"],
 								),
 								"tags"=>$tags,
 								"created"=>$object["timestamp"],
-								"id"=> (string)$object["actor"]["id"],
-								"type"=> $object["actor"]["objectType"],
+								"id"=> (string)$object["object"]["id"],
+								"type"=> $object["object"]["objectType"],
 								"verb" => $object["verb"],
 								"icon" => "fa-group"
 							);

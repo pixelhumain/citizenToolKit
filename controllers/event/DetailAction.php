@@ -70,7 +70,7 @@ class DetailAction extends CAction
 
                 $organizer["name"] = $organizerInfo["name"];
                 array_push($controller->toolbarMBZ, array('position' => 'right', 
-                                                          'label'=> Yii::t("common","Back to")." ".$urlType, 
+                                                          'label'=> Yii::t("common","Organizator detail"), 
                                                           'tooltip' => Yii::t("common","Back to")." ".$urlType, 
                                                           "iconClass"=>"fa ".$iconNav,
 														  "parent"=>"span",

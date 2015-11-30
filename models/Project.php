@@ -52,9 +52,8 @@ class Project {
 
 		if (!empty($project)) {
 			$project = array_merge($project, Document::retrieveAllImagesUrl($id, self::COLLECTION));
+			$project["typeSig"] = "projects";
 		}
-
-		$project["typeSig"] = "projects";
 	  	return $project;
 	}
 

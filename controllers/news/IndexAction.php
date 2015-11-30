@@ -42,10 +42,12 @@ class IndexAction extends CAction
 			else 
 				$id = Yii::app() -> session["userId"] ;
 		}
-		if(@$date && $date != null)
+		if(@$date && $date != null){
 			$date = $date;
-		else
+		}
+		else{
 			$date=time();
+		}
 		$date=new MongoDate($date);
 		$news=array();
 		if(!@$type)
@@ -208,7 +210,7 @@ class IndexAction extends CAction
 				$paramOrganization = array(
 								'$and' => array(
 									array("timestamp" => array('$lt' => $date)),
-									array("target.objectType"=>$type,"target.id"=>$id),
+									array("target.objectType"=>Organization::CONTROLLER,"target.id"=>$id),
 									array('$or' => 
 										array(
 											array('$and'=> 
@@ -225,7 +227,7 @@ class IndexAction extends CAction
 											), 									
 											array("verb" => ActStr::VERB_JOIN)
 										)	
-									)	
+									)
 								)
 							);
 				$newsOrganization=ActivityStream::getActivtyForObjectId($paramOrganization,array("timestamp"=>-1));
@@ -233,7 +235,7 @@ class IndexAction extends CAction
 					foreach ($newsOrganization as $key => $data){
 						if($data["verb"]==ActStr::VERB_CREATE){
 							if($data["object"]["objectType"]==Project::COLLECTION){
-								$newsObject=NewsTranslator::convertToNews($data,NewsTranslator::NEWS_CREATE_PROJECT);
+$newsObject=NewsTranslator::convertToNews($data,NewsTranslator::NEWS_CREATE_PROJECT);
 							}
 							else if($data["object"]["objectType"]==Need::COLLECTION){
 								$newsObject=NewsTranslator::convertToNews($data,NewsTranslator::NEWS_CREATE_NEED);
@@ -243,7 +245,7 @@ class IndexAction extends CAction
 							}
 						}
 						else if ($data["verb"]==ActStr::VERB_JOIN){
-							$newsObject=NewsTranslator::convertToNews($data,NewsTranslator::NEWS_JOIN_ORGANIZATION);
+$newsObject=NewsTranslator::convertToNews($data,NewsTranslator::NEWS_JOIN_ORGANIZATION);
 						}
 						$news[$key]=$newsObject;	
 					}
