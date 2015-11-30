@@ -210,7 +210,7 @@ class IndexAction extends CAction
 				$paramOrganization = array(
 								'$and' => array(
 									array("timestamp" => array('$lt' => $date)),
-									array("target.objectType"=>Organization::CONTROLLER,"target.id"=>$id),
+									array("target.objectType"=>Organization::COLLECTION,"target.id"=>$id),
 									array('$or' => 
 										array(
 											array('$and'=> 
