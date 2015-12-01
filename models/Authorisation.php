@@ -272,7 +272,7 @@ class Authorisation {
         //project i'am admin 
         $where = array("links.contributors.".$userId.".isAdmin" => true);
         $projectList = PHDB::find(Project::COLLECTION, $where);
-        $listOrganizationAdmin = Authorisation::listUserOrganizationAdmin($userId);
+        /*$listOrganizationAdmin = Authorisation::listUserOrganizationAdmin($userId);
         foreach ($listOrganizationAdmin as $organizationId => $organization) {
             $projectOrganization = Organization::listProjects($organizationId);
             foreach ($projectOrganization as $projectId => $projectValue) {
@@ -282,7 +282,7 @@ class Authorisation {
 					}
 				}
             }
-        }
+        }*/
         return $projectList;
     }
 

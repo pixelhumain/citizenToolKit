@@ -2,7 +2,7 @@
 class Need {
 
 	const COLLECTION 		= "needs";
-	
+	const CONTROLLER = "need";
 	private static $dataBinding = array(
 	    "name" => array("name" => "name", "rules" => array("required")),
 		"type" => array("name" => "type"),
