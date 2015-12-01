@@ -142,7 +142,14 @@ class Notification{
 	    		array_push( $people, $key);
 	    }
 	    $label = Yii::app()->session['user']['name']." ".$verb." you to ".$target["name"] ;
-	    $url = $target["type"].'/detail/id/'.$targetId;
+	    $ctrls = array(
+	    	Organization::COLLECTION => Organization::CONTROLLER,
+	    	Person::COLLECTION => Person::CONTROLLER,
+	    	Event::COLLECTION => Event::CONTROLLER,
+	    	Project::COLLECTION => Project::CONTROLLER,
+	    	Need::COLLECTION => Need::CONTROLLER
+	    );
+	    $url = $ctrls[ $target["type"] ].'/detail/id/'.$targetId;
 	    if( $verb == ActStr::VERB_CLOSE )
 	    	$target["name"]." has been disabled by ".Yii::app()->session['user']['name'];
 	    else if( $verb == ActStr::VERB_POST ){
