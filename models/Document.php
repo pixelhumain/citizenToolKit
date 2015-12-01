@@ -259,11 +259,10 @@ class Document {
 		$params = array("id"=> $itemId,
 						"type" => $itemType,
 						"contentKey" => new MongoRegex("/".$key."/i"));
+		
 		$listImagesofType = PHDB::findAndSort( self::COLLECTION,$params, $sort, 1);
 		
 		foreach ($listImagesofType as $key => $value) {
-			//$imagePath = DIRECTORY_SEPARATOR."upload".DIRECTORY_SEPARATOR.Yii::app()->controller->module->id.DIRECTORY_SEPARATOR.$value["folder"].DIRECTORY_SEPARATOR.$value["name"];
-    		//$imagePath = str_replace(DIRECTORY_SEPARATOR, "/", $imagePath);
     		$imageUrl = Document::getDocumentUrl($value);
 		}
 		return $imageUrl;
@@ -302,7 +301,7 @@ class Document {
     }
 
     public static function getDocumentFolderUrl($document){
-    	return "/".Yii::app()->params['uploadUrl'].$document["moduleId"]."/".$document["folder"]."/";
+    	return "/".Yii::app()->params['uploadUrl'].$document["moduleId"]."/".$document["folder"];
     }
 
     public static function getDocumentPath($document){
@@ -357,7 +356,7 @@ class Document {
 
 		$generatedImageExist = false;
 		if ($lastProfilImage = reset($listDocuments)) {
-			$documentPath = self::getDocumentFolderPath($lastProfilImage).'thumb/';
+			$documentPath = self::getDocumentFolderPath($lastProfilImage).'/thumb/';
 			if ($generatedImageType == self::GENERATED_THUMB_PROFIL) {
 				$documentPath = $documentPath.self::FILENAME_PROFIL_RESIZED;
 			} else if ($generatedImageType == self::GENERATED_MARKER) {
@@ -368,7 +367,7 @@ class Document {
 
 		//If there is an existing profil image
 		if ($generatedImageExist) {
-			$documentUrl = self::getDocumentFolderUrl($lastProfilImage).'thumb/';
+			$documentUrl = self::getDocumentFolderUrl($lastProfilImage).'/thumb/';
 			if ($generatedImageType == self::GENERATED_THUMB_PROFIL) {
 				$res = $documentUrl.self::FILENAME_PROFIL_RESIZED;
 			} else if ($generatedImageType == self::GENERATED_MARKER) {
