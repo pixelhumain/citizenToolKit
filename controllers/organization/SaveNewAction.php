@@ -11,8 +11,12 @@ class SaveNewAction extends CAction
 		// Retrieve data from form
 		$newOrganization = Organization::newOrganizationFromPost($_POST);
 		try {
-			//Save the organization
-			Rest::json(Organization::insert($newOrganization, Yii::app()->session["userId"]));
+			if ( Person::logguedAndValid() ) {
+				//Save the organization
+				Rest::json(Organization::insert($newOrganization, Yii::app()->session["userId"]));
+			} else {
+				return Rest::json(array("result"=>false, "msg"=>"You are not loggued with a valid user !"));
+			}
 		} catch (CTKException $e) {
 			return Rest::json(array("result"=>false, "msg"=>$e->getMessage()));
 		}
