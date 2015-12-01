@@ -88,6 +88,10 @@ class Notification{
             	"type" => Person::COLLECTION,
             	"id"   => ( isset(Yii::app()->session["userId"]) ) ? Yii::app()->session["userId"] : null
             ),
+            "object"=>array(
+            	"type" => Person::COLLECTION,
+            	"id"   => ( isset(Yii::app()->session["userId"]) ) ? Yii::app()->session["userId"] : null
+            ),
             "target"=>array(
 	            "type" => $target["type"],
 	            "id"   => $targetId

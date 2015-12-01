@@ -132,8 +132,19 @@ class ActivityStream {
 	    );
 	    return $notify;
 	}
-	public static function removeObject($objectId,$type){
-		$res = PHDB::remove(self::COLLECTION, array("object.id"=>new MongoId($objectId),"object.objectType"=> $type));
+	public static function removeObject($objectId,$type,$targetId=null,$targetType=null,$verb=null){
+		$where=array("object.id"=>$objectId,"object.objectType"=> $type);
+		if(@$targetId && $targetId!=null){
+			$where["target.id"]=$targetId;
+		}
+		if(@$targetType && $targetType!=null){
+			$where["target.objectType"]=$targetType;
+		}
+		if(@$verb && $verb != null){
+			$where["verb"]=$verb;
+		}
+		$res = PHDB::remove(self::COLLECTION, $where);
+		return $res;
 	}
 
 
