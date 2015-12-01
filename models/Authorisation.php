@@ -123,13 +123,17 @@ class Authorisation {
  	 * @param type $userId 
  	 * @return type
  	 */
-    public static function isMeteorConnected( $token ) {
+    public static function isMeteorConnected( $token, $test=null ) {
         
         $result = false;
         if( $user = PHDB::findOne( "users" , array( "services.resume.loginTokens.0.hashedToken" => $token ) ) )
         {
+            if($test)
+                var_dump($user);
             if( $account = PHDB::findOne(Person::COLLECTION, array("email"=>$user["profile"]["pixelhumain"]["email"])) )
             {
+                if($test)
+                    var_dump($account);
                 Person::saveUserSessionData($account);
                 $result = true;
             }
