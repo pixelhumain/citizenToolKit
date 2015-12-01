@@ -136,6 +136,8 @@ class Authorisation {
                 if($test)
                     var_dump($account);
                 Person::saveUserSessionData($account);
+                if($test)
+                    echo "<br/>".Yii::app()->session['userId'];
                 $result = true;
             }
         }
