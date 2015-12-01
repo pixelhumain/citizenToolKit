@@ -150,7 +150,7 @@ class Organization {
 		$newOrganization["typeIntervention"] = empty($organization['typeIntervention']) ? "" : $organization['typeIntervention'];
 		$newOrganization["typeOfPublic"] = empty($organization['public']) ? "" : $organization['public'];
 		$newOrganization["role"] = empty($organization['role']) ? "" : $organization['role'];
-		$newOrganization["category"] = empty($organization['category'.$newOrganization["type"]]) ? "" : $organization['category'.$newOrganization["type"]];
+		$newOrganization["category"] = empty($organization['category']) ? "" : $organization['category'];
 
 		//error_log("latitude : ".$organization['geoPosLatitude']);
 		if(!empty($organization['geoPosLatitude']) && !empty($organization["geoPosLongitude"])){
