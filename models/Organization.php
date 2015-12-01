@@ -417,13 +417,13 @@ class Organization {
 	  	return $res;
 	}
 
-
-	/*
-	 * Save an organization in database
-	 * @param array A well format organization 
-	 * @return a json result as an array. 
+	/**
+	 * update an organization in database
+	 * @param String $organizationId : 
+	 * @param array $organization organization fields to update
+	 * @param String $userId : the userId making the update
+	 * @return array of result (result => boolean, msg => string)
 	 */
-	//TODO SBAR => deprecated and not used
 	public static function update($organizationId, $organization, $userId) 
 	{
 		//Check if user is authorized to update
@@ -431,13 +431,9 @@ class Organization {
 			return Rest::json(array("result"=>false, "msg"=>Yii::t("organization", "Unauthorized Access.")));
 		}
 
-		//Manage tags : save any inexistant tag to DB 
-		if(isset($organization["tags"]))
-			$organization["tags"] = Tags::filterAndSaveNewTags($organization["tags"]);
-	    
-	    //update the organization
-	    PHDB::update( Organization::COLLECTION, array("_id" => new MongoId($organizationId)), 
-	                                            array('$set' => $organization) );
+		foreach ($organization as $fieldName => $fieldValue) {
+			self::updateField($organizationId, $fieldName, $fieldValue);
+		}
 
 	    return array("result"=>true, "msg"=>Yii::t("organization", "The organization has been updated"), "id"=>$organizationId);
 	}
@@ -616,23 +612,29 @@ class Organization {
 	 * Update an organization field value
 	 * @param String $organisationId The organization Id to update
 	 * @param String $organizationFieldName The name of the field to update
-	 * @param String $organizationFieldValue 
-	 * @param String $userId 
+	 * @param String $organizationFieldValue the value of the field
+	 * @param String $userId the user Id must be admin of the organization to update it
 	 * @return boolean True if the update has been done correctly. Can throw CTKException on error.
 	 */
 	 public static function updateOrganizationField($organizationId, $organizationFieldName, $organizationFieldValue, $userId){
 	 	if (!Authorisation::isOrganizationAdmin($userId, $organizationId)) {
 			throw new CTKException(Yii::t("organization", "Can not update this organization : you are not authorized to update that organization !"));	
 		}
+		
+		$res = self::updateField($organizationId, $organizationFieldName, $organizationFieldValue);
+	                  
+	    return $res;
+	}
+
+	private static function updateField($organizationId, $organizationFieldName, $organizationFieldValue) {
 		$dataFieldName = Organization::getCollectionFieldNameAndValidate($organizationFieldName, $organizationFieldValue);
 	
 		//Specific case : 
 		//Tags
 		if ($dataFieldName == "tags") {
 			$organizationFieldValue = Tags::filterAndSaveNewTags($organizationFieldValue);
-		}
+		} else if ($dataFieldName == "address") {
 		//address
-		if ($dataFieldName == "address") {
 			if(!empty($organizationFieldValue["postalCode"]) && !empty($organizationFieldValue["codeInsee"])) {
 				$insee = $organizationFieldValue["codeInsee"];
 				$address = SIG::getAdressSchemaLikeByCodeInsee($insee);
@@ -648,9 +650,8 @@ class Organization {
 		//update the organization
 		PHDB::update( Organization::COLLECTION, array("_id" => new MongoId($organizationId)), 
 		                          array('$set' => $set));
-	                  
-	    return true;
-	 }
+		return true;
+	}
 
 	/**
 	 * Add someone as admin of an organization.
