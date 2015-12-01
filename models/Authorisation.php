@@ -128,7 +128,7 @@ class Authorisation {
         $result = false;
         if( $user = PHDB::findOne( "users" , array( "services.resume.loginTokens.0.hashedToken" => $token ) ) )
         {
-            if( $account = PHDB::findOne(self::COLLECTION, array("email"=>$user["username"])) )
+            if( $account = PHDB::findOne(Person::COLLECTION, array("email"=>$user["profile"]["pixelhumain"]["email"])) )
             {
                 Person::saveUserSessionData($account);
                 $result = true;
