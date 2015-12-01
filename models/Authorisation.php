@@ -126,6 +126,7 @@ class Authorisation {
     public static function isMeteorConnected( $token, $test=null ) {
         
         $result = false;
+        echo $token;
         if( $user = PHDB::findOne( "users" , array( "services.resume.loginTokens.0.hashedToken" => $token ) ) )
         {
             if($test)
