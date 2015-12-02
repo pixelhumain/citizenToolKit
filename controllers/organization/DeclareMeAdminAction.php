@@ -16,7 +16,7 @@ class DeclareMeAdminAction extends CAction
 		}
 
 		$result = Organization::addPersonAsAdmin($idOrganization, $idPerson, Yii::app()->session["userId"]);
-
+		$result["organization"]=Organization::getById($idOrganization);
 		Rest::json($result);
     }
 
