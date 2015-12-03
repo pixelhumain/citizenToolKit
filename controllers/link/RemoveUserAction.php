@@ -10,6 +10,7 @@ class RemoveUserAction extends CAction
 	        $parentId=$_POST["parentId"];
 	        $parentType=$_POST["parentType"];
 	        $connectType=$_POST["connectType"];
+	        $removeMeAsAdmin=false;
 			try {
 				if($parentType==Organization::COLLECTION)
 					$parentConnect="memberOf";
@@ -17,7 +18,10 @@ class RemoveUserAction extends CAction
 					$parentConnect=$parentType;
 				Link::disconnect($userId, $userType, $parentId, $parentType,Yii::app()->session['userId'], $parentConnect);
 				Link::disconnect($parentId, $parentType, $userId, $userType,Yii::app()->session['userId'], $connectType);
-				$res = array( "result" => true , "msg" => Yii::t("",$connectType." successfully removed"), "collection" => $userType );			
+				if($userId == Yii::app()->session["userId"]){
+					$removeMeAsAdmin=true;
+				}
+				$res = array( "result" => true , "msg" => Yii::t("",$connectType." successfully removed"), "collection" => $userType,"removeMeAsAdmin"=> $removeMeAsAdmin);			
 			} catch (CTKException $e) {
 				$res = array( "result" => false , "msg" => $e->getMessage() );
 			}
