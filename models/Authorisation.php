@@ -200,9 +200,9 @@ class Authorisation {
      * List all the event the userId is adminOf
      * A user can be admin of an event if :
      * 1/ He is attendee + admin of the event
-     * 2/ He is admin of an organization organizing an event
-     * 3/ He is admin of an organization that can edit it members (canEditMembers flag) 
-     *      and the organizations members is organizing the event
+     * 2/ He is creator of the event so admin
+     * 3/ He is admin of an organization organizing an event
+     * 4/ He is admin of a project organizing an event
      * @param String $userId The userId to get the authorisation of
      * @return array List of EventId (String) the user is admin of
      */
@@ -211,20 +211,27 @@ class Authorisation {
 
         //event i'am admin 
         $where = array("links.attendees.".$userId.".isAdmin" => true);
-        $eventList = PHDB::find(PHType::TYPE_EVENTS, $where);
+        $eventList = PHDB::find(Event::COLLECTION, $where);
 
 
         //events of organization i'am admin 
         $listOrganizationAdmin = Authorisation::listUserOrganizationAdmin($userId);
         foreach ($listOrganizationAdmin as $organizationId => $organization) {
-            $eventOrganization = Organization::listEventsPublicAgenda($organizationId);
-            foreach ($eventOrganization as $eventId => $eventValue) {
+            $eventOrganizationAsOrganizer = Event::listEventByOrganizerId($organizationId, Organization::COLLECTION);
+            foreach ($eventOrganizationAsOrganizer as $eventId => $eventValue) {
                 $eventList[$eventId] = $eventValue;
             }
         }
-
+		//events of project i'am admin 
+        $listProjectAdmin = Authorisation::listProjectsIamAdminOf($userId);
+        foreach ($listProjectAdmin as $projectId => $project) {
+            $eventProjectAsOrganizer = Event::listEventByOrganizerId($projectId, Project::COLLECTION);
+            foreach ($eventProjectAsOrganizer as $eventId => $eventValue) {
+                $eventList[$eventId] = $eventValue;
+            }
+		}
         foreach ($eventList as $key => $value) {
-        	$profil = Document::getLastImageByKey($key, PHType::TYPE_EVENTS, Document::IMG_PROFIL);
+        	$profil = Document::getLastImageByKey($key, Event::COLLECTION, Document::IMG_PROFIL);
         	if($profil!="")
         		$value['imagePath']=$profil;
         	$eventListFinal[$key] = $value;

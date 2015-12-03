@@ -302,9 +302,9 @@ class Link {
 	   		if($isUserAdmin){
 	   			PHDB::update(Project::COLLECTION,
 	   						array("_id" => new MongoId($organizerId)),
-	   						array('$set' => array("links.events.".$eventId.".type" => PHType::TYPE_EVENTS))
+	   						array('$set' => array("links.events.".$eventId.".type" => Event::COLLECTION))
 	   			);
-	   			PHDB::update(PHType::TYPE_EVENTS,
+	   			PHDB::update(Event::COLLECTION,
 	   						array("_id"=>new MongoId($eventId)),
 	   						array('$set'=> array("links.organizer.".$organizerId.".type"=>Project::COLLECTION))
 	   			);
@@ -314,9 +314,9 @@ class Link {
 	   	else {
 		   	PHDB::update(Person::COLLECTION,
 	   						array("_id" => new MongoId($organizerId)),
-	   						array('$set' => array("links.events.".$eventId.".type" => PHType::TYPE_EVENTS))
+	   						array('$set' => array("links.events.".$eventId.".type" => Event::COLLECTION))
 	   			);
-   			PHDB::update(PHType::TYPE_EVENTS,
+   			PHDB::update(Event::COLLECTION,
    						array("_id"=>new MongoId($eventId)),
    						array('$set'=> array("links.creator.".$organizerId.".type"=>Person::COLLECTION))
    			);
@@ -326,34 +326,39 @@ class Link {
    		return $res;
    }
 
-
-
     /**
 	* Link a person to an event
 	* Create a link between the 2 actors. The link will be typed event and organizer
 	* @param type $eventId The Id (event) where a person will be linked. 
 	* @param type $userId The user (person) Id who want to be link to the event
 	* @param type $userAdmin (Boolean) to set if the member is admin or not
+	* @param type $creator (Boolean) to set if attendee is creator of the event
 	* @return result array with the result of the operation
+	* When organization or project create an event, this parent is admin
+	* Creator is automatically attendee but stays admin if he is parent admin 
 	*/
-    public static function attendee($eventId, $userId, $isAdmin = false){
-
+    public static function attendee($eventId, $userId, $isAdmin = false, $creator = true){
    		Link::addLink($userId, Person::COLLECTION, $eventId, PHType::TYPE_EVENTS, $userId, "events");
    		Link::addLink($eventId, PHType::TYPE_EVENTS, $userId, Person::COLLECTION, $userId, "attendees");
+   		$userType=Person::COLLECTION;
+   		$link2person="links.events.".$eventId;
+   		$link2event="links.attendees.".$userId;
+   		$where2person=array($link2person.".type"=>Event::COLLECTION, $link2person.".isAdmin" => $isAdmin);
+   		$where2event=array($link2event.".type" => $userType, $link2event.".isAdmin" => $isAdmin);
+   		if($creator) {
+	   		$where2person[$link2person.".isCreator"] = true;
+	   		$where2event[$link2event.".isCreator"] = true;
+   		}
+		PHDB::update(Person::COLLECTION, 
+          		array("_id" => new MongoId($userId)), 
+                array('$set' => $where2person)
+        );
 
-    	if($isAdmin){
-    		PHDB::update(Person::COLLECTION, 
-              		array("_id" => new MongoId($userId)), 
-                    array('$set' => array("links.events.".$eventId.".isAdmin" => true))
-            );
-
-            PHDB::update( PHType::TYPE_EVENTS, 
-              		array("_id" => new MongoId($eventId)), 
-                    array('$set' => array("links.attendees.".$userId.".isAdmin" => true))
-            );
-    	}
+        PHDB::update( PHType::TYPE_EVENTS, 
+          		array("_id" => new MongoId($eventId)), 
+                array('$set' => $where2event)
+        );
     }
-
 
     /**
      * Connect 2 actors : Event, Person, Organization or Project

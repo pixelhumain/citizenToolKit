@@ -41,7 +41,7 @@ class DetailAction extends CAction
 	  					$organization = Organization::getSimpleOrganizationById($uid);
 	  					if (!empty($organization)) {
 	  						array_push($organizations, $organization);
-	  						$organization["type"]="organization";
+	  						$organization["type"]=Organization::COLLECTION;
 							if(@$e["isAdmin"]){
 		  						$organization["isAdmin"]=true;  				
 	  						}
@@ -51,7 +51,7 @@ class DetailAction extends CAction
 	  					$citoyen = Person::getSimpleUserById($uid);
 	  					if(!empty($citoyen)){
 	  						array_push($people, $citoyen);
-	  						$citoyen["type"]="citoyen";
+	  						$citoyen["type"]=Person::COLLECTION;
 							if(@$e["isAdmin"]){
 		  						$citoyen["isAdmin"]=true;  				
 	  						}

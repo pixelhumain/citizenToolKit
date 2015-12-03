@@ -114,7 +114,7 @@ class Event {
 		//TODO SBAR = filter data to retrieve only publi data	
 		$event = Event::getById($id);
 		if (empty($event)) {
-			throw new CTKException("The event id is unknown ! Check your URL");
+		//	throw new CTKException("The event id is unknown ! Check your URL");
 		}
 
 		return $event;
@@ -219,9 +219,15 @@ class Event {
 	    
 	    PHDB::insert(self::COLLECTION,$newEvent);
 	    
-	    //add the creator as the admin and the first attendee
-	    Link::attendee($newEvent["_id"], $params['userId'], true);
-
+	    /*
+		*   Add the creator as the first attendee
+		*	He is admin because he is admin of organizer
+		*/
+		$creator = true;
+		$isAdmin = false;
+		if($params["organizerType"]==Person::COLLECTION)
+			$isAdmin=true;
+	    Link::attendee($newEvent["_id"], $params['userId'], $isAdmin, $creator);
 	    Link::addOrganizer($params["organizerId"],$params["organizerType"], $newEvent["_id"], $params['userId']);
 				
 		Notification::createdObjectAsParam(Person::COLLECTION,$params['userId'],Event::COLLECTION, $newEvent["_id"], $params["organizerType"], $params["organizerId"], $newEvent["geo"], array($newEvent["type"]),$newEvent["address"]["codeInsee"]);
@@ -303,12 +309,14 @@ class Event {
 					}
 				}
 				else if(isset($params["userId"])){
-					foreach ($value["links"]["attendees"] as $keyEv => $valueEv) {
-						if($keyEv==$params["userId"] && isset($params["start"])){
-							$startDate = explode(" ", $value["startDate"]);
-							$start = explode(" ", $params["start"]);
-							if( $startDate[0] == $start[0]){
-								$res = true;
+					if(isset($value["links"]["attendees"])){
+						foreach ($value["links"]["attendees"] as $keyEv => $valueEv) {
+							if($keyEv==$params["userId"] && isset($params["start"])){
+								$startDate = explode(" ", $value["startDate"]);
+								$start = explode(" ", $params["start"]);
+								if( $startDate[0] == $start[0]){
+									$res = true;
+								}
 							}
 						}
 					}
@@ -456,6 +464,16 @@ class Event {
 	  	return $events;
 	}
 
+	/* 	get event list where organizer is one of my organization that I administrate
+	*	@param string itemId is to find organizerId in event
+	*   @param string itemType is to find organizerType in event
+	*
+	*/
+	public static function listEventByOrganizerId($itemId,$itemType){
+		$where=array("links.organizer.".$itemId.".type" => $itemType);
+		$events=PHDB::find(self::COLLECTION, $where);
+		return $events;
+	}
 	/**
 	 * get attendees of an Event By an event Id
 	 * @param String $id : is the mongoId (String) of the event

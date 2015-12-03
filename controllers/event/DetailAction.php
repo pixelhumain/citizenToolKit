@@ -30,7 +30,7 @@ class DetailAction extends CAction
 
               $citoyen = Person::getPublicData($uid);
               if(!empty($citoyen)){
-	            $citoyen["type"]="citoyens";
+	            $citoyen["type"]=Person::COLLECTION;
 	            $profil = Document::getLastImageByKey($uid, Person::COLLECTION, Document::IMG_PROFIL);
 	  			if($profil !="")
 					$citoyen["imagePath"]= $profil;
@@ -63,11 +63,9 @@ class DetailAction extends CAction
 	                $iconNav="fa-group";
 	                $urlType="organization";	
 	                $organizerInfo = Organization::getById($uid);  
-					        $organizer["type"]=$urlType;              
+					$organizer["type"]=$urlType;              
                 }
-                
                 $organizer["id"] = $uid;
-
                 $organizer["name"] = $organizerInfo["name"];
                 array_push($controller->toolbarMBZ, array('position' => 'right', 
                                                           'label'=> Yii::t("common","Organizator detail"), 
