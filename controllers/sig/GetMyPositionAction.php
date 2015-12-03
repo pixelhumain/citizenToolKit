@@ -26,7 +26,7 @@ class GetMyPositionAction extends CAction
                 $res = array("position" => SIG::getPositionByCp($me["cp"]), 
                              "type" => $type, 
                              "profilMarkerImageUrl" => $profilMarkerImageUrl,
-                             "typeSig" => PHType::TYPE_CITOYEN);
+                             "typeSig" => Person::COLLECTION);
     			Rest::json( $res );
     			Yii::app()->end();
             }
@@ -35,7 +35,7 @@ class GetMyPositionAction extends CAction
                              "type" => $type, 
                              "profilMarkerImageUrl" => $profilMarkerImageUrl,
                              "profilMarkerExists" => $profilMarkerExists,
-                             "typeSig" => PHType::TYPE_CITOYEN);
+                             "typeSig" => Person::COLLECTION);
                 Rest::json( $res );
                 Yii::app()->end();
             }
