@@ -114,7 +114,7 @@ class Event {
 		//TODO SBAR = filter data to retrieve only publi data	
 		$event = Event::getById($id);
 		if (empty($event)) {
-			throw new CTKException("The event id is unknown ! Check your URL");
+			//throw new CTKException("The event id is unknown ! Check your URL");
 		}
 
 		return $event;
