@@ -678,10 +678,12 @@ class Organization {
 
 		if (count($usersAdmin) == 0) {
 			Link::addMember($idOrganization, self::COLLECTION, $idPerson, Person::COLLECTION, $userId, true, "", false);
+			Notification::actionOnPerson ( ActStr::VERB_JOIN, ActStr::ICON_SHARE, $pendingAdmin , array("type"=>Organization::COLLECTION,"id"=> $idOrganization,"name"=>$organization["name"]) ) ;
 		} else {
 			//Second case : there is already an admin (or few) 
 			// 1. Admin link will be added but pending
 			Link::addMember($idOrganization, self::COLLECTION, $idPerson, Person::COLLECTION, $userId, true, "", true);
+			Notification::actionOnPerson ( ActStr::VERB_JOIN, ActStr::ICON_SHARE, $pendingAdmin , array("type"=>Organization::COLLECTION,"id"=> $idOrganization,"name"=>$organization["name"]) ) ;
 			// 2. Notification and email are sent to the admin(s)
 			$listofAdminsEmail = array();
 			foreach ($usersAdmin as $adminId) {
