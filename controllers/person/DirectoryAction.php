@@ -34,7 +34,7 @@ class DirectoryAction extends CAction
       ***************************************** */
       $events=array();
       if(isset($person["links"]["events"]))
-            {
+        {
               foreach ($person["links"]["events"] as $keyEv => $valueEv) 
               {
                 $event = Event::getPublicData($keyEv);
@@ -95,10 +95,12 @@ class DirectoryAction extends CAction
               if( $member['type'] == Person::COLLECTION )
               {
                 $citoyen = Person::getPublicData( $key );
-                $profil = Document::getLastImageByKey( $key, Person::COLLECTION, Document::IMG_PROFIL );
-                if($profil !="" )
-                    $citoyen["imagePath"]= $profil;
-                array_push( $people, $citoyen );
+				if(!empty($citoyen)){
+	                $profil = Document::getLastImageByKey( $key, Person::COLLECTION, Document::IMG_PROFIL );
+	                if($profil !="" )
+	                    $citoyen["imagePath"]= $profil;
+	                array_push( $people, $citoyen );
+                }
               }
         }
       }
