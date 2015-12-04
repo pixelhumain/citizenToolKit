@@ -454,6 +454,37 @@ class Authorisation {
 
         return $res;
     }
+    /**
+     * List the user that are admin of the organization
+     * @param string $organizationId The organization Id to look for
+     * @param boolean $pending : true include the pending admins. By default no.
+     * @return type array of person Id
+     */
+    public static function listAdmins($parentId, $parentType, $pending=false) {
+        $res = array();   
+        if ($parentType == Organization::COLLECTION){     
+	        $parent = Organization::getById($parentId);
+	        $link="members";
+		}
+		else if ($parentType == Project::COLLECTION){     
+	        $parent = Project::getById($parentId);
+	        $link="contributors";
+		}
 
+        if ($users = @$parent["links"][$link]) {
+            foreach ($users as $personId => $linkDetail) {
+                if (@$linkDetail["isAdmin"] == true) {
+                    if ($pending) {
+                        array_push($res, $personId);
+                    } else if (@$linkDetail["isAdminPending"] == null || @$linkDetail["isAdminPending"] == false) {
+                        var_dump($linkDetail);
+                        array_push($res, $personId); 
+                    }
+                }
+            }
+        }
+
+        return $res;
+    }
 } 
 ?>

@@ -113,8 +113,8 @@ class IndexAction extends CAction
 								array("text" => array('$exists'=>1)),
 								array("scope.".$type => $id),
 								array('created' => array(
-											'$lt' => $date
-											)
+										'$lt' => $date
+									)
 								)
 			        		)	
 			        );
