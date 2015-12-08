@@ -155,10 +155,14 @@ class Link {
      * @param type $userId The userId doing the action
      * @return result array with the result of the operation
      */
-    public static function connect($originId, $originType, $targetId, $targetType, $userId, $connectType,$isAdmin=false) {
+    public static function connect($originId, $originType, $targetId, $targetType, $userId, $connectType,$isAdmin=false,$pendingAdmin=false) {
 	    $links=array("links.".$connectType.".".$targetId.".type" => $targetType);
-        if($isAdmin)
+        if($isAdmin){
         	$links["links.".$connectType.".".$targetId.".isAdmin"]=$isAdmin;
+			if ($pendingAdmin) {
+                $setArrayMembers["links.".$connectType.".".$targetId.".isAdminPending"] = true;
+            }
+        }
         
         //0. Check if the $originId and the $targetId exists
         $origin = Link::checkIdAndType($originId, $originType);
@@ -302,9 +306,9 @@ class Link {
 	   		if($isUserAdmin){
 	   			PHDB::update(Project::COLLECTION,
 	   						array("_id" => new MongoId($organizerId)),
-	   						array('$set' => array("links.events.".$eventId.".type" => PHType::TYPE_EVENTS))
+	   						array('$set' => array("links.events.".$eventId.".type" => Event::COLLECTION))
 	   			);
-	   			PHDB::update(PHType::TYPE_EVENTS,
+	   			PHDB::update(Event::COLLECTION,
 	   						array("_id"=>new MongoId($eventId)),
 	   						array('$set'=> array("links.organizer.".$organizerId.".type"=>Project::COLLECTION))
 	   			);
@@ -314,9 +318,9 @@ class Link {
 	   	else {
 		   	PHDB::update(Person::COLLECTION,
 	   						array("_id" => new MongoId($organizerId)),
-	   						array('$set' => array("links.events.".$eventId.".type" => PHType::TYPE_EVENTS))
+	   						array('$set' => array("links.events.".$eventId.".type" => Event::COLLECTION))
 	   			);
-   			PHDB::update(PHType::TYPE_EVENTS,
+   			PHDB::update(Event::COLLECTION,
    						array("_id"=>new MongoId($eventId)),
    						array('$set'=> array("links.creator.".$organizerId.".type"=>Person::COLLECTION))
    			);
@@ -326,34 +330,39 @@ class Link {
    		return $res;
    }
 
-
-
     /**
 	* Link a person to an event
 	* Create a link between the 2 actors. The link will be typed event and organizer
 	* @param type $eventId The Id (event) where a person will be linked. 
 	* @param type $userId The user (person) Id who want to be link to the event
 	* @param type $userAdmin (Boolean) to set if the member is admin or not
+	* @param type $creator (Boolean) to set if attendee is creator of the event
 	* @return result array with the result of the operation
+	* When organization or project create an event, this parent is admin
+	* Creator is automatically attendee but stays admin if he is parent admin 
 	*/
-    public static function attendee($eventId, $userId, $isAdmin = false){
-
+    public static function attendee($eventId, $userId, $isAdmin = false, $creator = true){
    		Link::addLink($userId, Person::COLLECTION, $eventId, PHType::TYPE_EVENTS, $userId, "events");
    		Link::addLink($eventId, PHType::TYPE_EVENTS, $userId, Person::COLLECTION, $userId, "attendees");
+   		$userType=Person::COLLECTION;
+   		$link2person="links.events.".$eventId;
+   		$link2event="links.attendees.".$userId;
+   		$where2person=array($link2person.".type"=>Event::COLLECTION, $link2person.".isAdmin" => $isAdmin);
+   		$where2event=array($link2event.".type" => $userType, $link2event.".isAdmin" => $isAdmin);
+   		if($creator) {
+	   		$where2person[$link2person.".isCreator"] = true;
+	   		$where2event[$link2event.".isCreator"] = true;
+   		}
+		PHDB::update(Person::COLLECTION, 
+          		array("_id" => new MongoId($userId)), 
+                array('$set' => $where2person)
+        );
 
-    	if($isAdmin){
-    		PHDB::update(Person::COLLECTION, 
-              		array("_id" => new MongoId($userId)), 
-                    array('$set' => array("links.events.".$eventId.".isAdmin" => true))
-            );
-
-            PHDB::update( PHType::TYPE_EVENTS, 
-              		array("_id" => new MongoId($eventId)), 
-                    array('$set' => array("links.attendees.".$userId.".isAdmin" => true))
-            );
-    	}
+        PHDB::update( PHType::TYPE_EVENTS, 
+          		array("_id" => new MongoId($eventId)), 
+                array('$set' => $where2event)
+        );
     }
-
 
     /**
      * Connect 2 actors : Event, Person, Organization or Project
@@ -508,6 +517,71 @@ class Link {
 
         return array("result"=>true, "msg"=>"The link has been added with success");
     }
+	
+	/**
+	 * Add someone as admin of an organization.
+	 * If there are already admins of the organization, they will receive a notification and email to 
+	 * accept or not the new admin
+	 * @param String $idOrganization The id of the organization
+	 * @param String $idPerson The id of the person asking to become an admin
+	 * @param String $userId The userId doing the action
+	 * @return array of result (result => bool, msg => string)
+	 */
+	public static function addPersonAsAdmin($parentId, $parentType, $personId, $userId) {
 
+		if($parentType == Organization::COLLECTION){
+			$parentData = Organization::getById($parentId);
+			$usersAdmin = Authorisation::listOrganizationAdmins($parentId, false);
+			$parentController=Organization::CONTROLLER;
+		}
+		else if ($parentType == Project::COLLECTION){
+			$parentData = Project::getById($parentId);			
+			$usersAdmin = Authorisation::listOrganizationAdmins($parentId, false);
+			$parentController=Project::CONTROLLER;
+		}
+		
+		$pendingAdmin = Person::getById($personId);
+		if (!$parentData || !$pendingAdmin) {
+			return array("result" => false, "msg" => "Unknown ".$parentController." or person. Please check your parameters !");
+		} else {
+			$res = array("result" => true, "msg" => "You are now admin of the organization", "parent" => $parentData);
+		}
+		//First case : The organization doesn't have an admin yet : the person is automatically added as admin
+		
+		if (in_array($personId, $usersAdmin)) 
+			return array("result" => false, "msg" => "Your are already admin of this organization !");
+
+		if (count($usersAdmin) == 0) {
+			if($parentType==Organization::COLLECTION)
+				Link::addMember($parentId, $parentType, $personId, Person::COLLECTION, $userId, true, "", false);
+			else if ($parentType == Project::COLLECTION){
+				Link::connect($parentId, $parentType, $personId, Person::COLLECTION,Yii::app() -> session["userId"], "contributors", true,false);
+				Link::connect($personId, Person::COLLECTION, $parentId, $parentType, Yii::app() -> session["userId"], "projects", true, false);
+			}
+			Notification::actionOnPerson ( ActStr::VERB_JOIN, ActStr::ICON_SHARE, $pendingAdmin , array("type"=>$parentType,"id"=> $parentId,"name"=>$parentData["name"]) ) ;
+		} else {
+			//Second case : there is already an admin (or few) 
+			// 1. Admin link will be added but pending
+			if($parentType==Organization::COLLECTION)
+				Link::addMember($parentId, $parentType, $personId, Person::COLLECTION, $userId, true, "", true);
+			else if ($parentType == Project::COLLECTION){
+				Link::connect($parentId, $parentType, $personId, Person::COLLECTION, "contributors", true,true);
+				Link::connect($personId, Person::COLLECTION, $parentId, $parentType, "projects", true, true);
+			}
+			Notification::actionOnPerson ( ActStr::VERB_JOIN, ActStr::ICON_SHARE, $pendingAdmin , array("type"=>$parentType,"id"=> $parentId,"name"=>$parentData["name"]) ) ;
+			// 2. Notification and email are sent to the admin(s)
+			$listofAdminsEmail = array();
+			foreach ($usersAdmin as $adminId) {
+				$currentAdmin = Person::getSimpleUserById($adminId);
+				array_push($listofAdminsEmail, $currentAdmin["email"]);
+			}
+			Mail::someoneDemandToBecomeAdmin($parentData, $pendingAdmin, $listofAdminsEmail);
+			//TODO - Notification
+			$res = array("result" => true, "msg" => "Your request has been sent to other admins.", "parent" => $parentData);
+			// After : the 1rst existing Admin to take the decision will remove the "pending" to make a real admin
+		}
+
+		return $res;
+	}
 } 
 ?>

@@ -122,9 +122,22 @@ class Organization {
 	    //send Notification Email
 	    $creator = Person::getById($creatorId);
 	    //Mail::newOrganization($creator,$newOrganization);
-	    
-		Notification::createdObjectAsParam(Person::COLLECTION,$creatorId,Organization::COLLECTION, $newOrganizationId, null, null, $newOrganization["geo"],
-											$newOrganization["tags"],$newOrganization["address"]["codeInsee"]);
+	    if(isset($newOrganization["geo"]) && !empty($newOrganization["geo"])){
+		    $orgaGeo=$newOrganization["geo"];
+	    }
+	    else
+	    	$orgaGeo="";
+	    if (@$newOrganization["tags"] && !empty($newOrganization["tags"])){
+		    $orgaTags=$newOrganization["tags"];
+	    }
+	    else	
+	    	$orgaTags="";
+	    if (@$newOrganization["address"]["codeInsee"] && !empty($newOrganization["address"]["codeInsee"]))
+	    	$orgaCodeInsee=$newOrganization["address"]["codeInsee"];
+	    else
+	    	$orgaCodeInsee="";
+		Notification::createdObjectAsParam(Person::COLLECTION,$creatorId,Organization::COLLECTION, $newOrganizationId, null, null, $orgaGeo,$orgaTags
+											,$orgaCodeInsee);
 
 	    $newOrganization = Organization::getById($newOrganizationId);
 	    return array("result"=>true,

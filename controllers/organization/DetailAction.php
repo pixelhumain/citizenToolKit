@@ -45,9 +45,8 @@ class DetailAction extends CAction
 				if (@$organization["links"]["members"][$key] && $organization["links"]["members"][$key]["type"] == Organization::COLLECTION && @$organization["links"]["members"][$key]["isAdmin"]){
 					$newOrga["isAdmin"]=true;  				
 				}
-				$newOrga["type"]="organization";
+				$newOrga["type"]=Organization::COLLECTION;
 				array_push($contextMap["organizations"], $newOrga);
-				//array_push($members["organizations"], $newOrga);
 				array_push($members, $newOrga);
 			}
 		}
@@ -63,7 +62,7 @@ class DetailAction extends CAction
 				if (@$organization["links"]["members"][$key] && $organization["links"]["members"][$key]["type"] == Person::COLLECTION && @$organization["links"]["members"][$key]["isAdmin"]){
 				$newCitoyen["isAdmin"]=true;  				
 				}
-				$newCitoyen["type"]="citoyen";
+				$newCitoyen["type"]=Person::COLLECTION;
 				array_push($contextMap["people"], $newCitoyen);
 				array_push($members, $newCitoyen);
 			}
