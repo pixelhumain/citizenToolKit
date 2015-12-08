@@ -252,5 +252,58 @@ class City {
 		return $simpleCity;
 	}
 
+	//rajoute les attributs "geoPosition" sur chaque City
+	//en recopiant les valeurs de l'attribut "geo.longitude" et "geo.latitude"
+	public static function updateGeoPosition(){
+		//récupère les villes qui on un attribut geo mais qui n'ont pas de geoPosition
+		$request=array( "geo" => array( '$exists' => true ),
+						"geoPosition.float" => array( '$exists' => false ),
+						//"geoPosition" => array( '$exists' => false ),
+					  );
+
+		//$maxCities = 300;
+		$nbCities=0;
+		$cnt=0;
+		
+		$allCities = PHDB::findAndSort(City::COLLECTION, $request, array("insee"=>1), 1000);
+		error_log("update geoPosition Cities : ".count($allCities). " trouvées");
+		
+		for($i=0; $i<20 && count($allCities)>0; $i++){
+			
+			$allCities = PHDB::findAndSort(City::COLLECTION, $request, array("insee"=>1), 1000);
+			error_log("update geoPosition Cities : ".count($allCities). " trouvées");
+			
+			//si on a trouvé une ville
+			if(count($allCities)>0){
+				foreach ($allCities as $key => $city) {
+					//if($nbCities > $maxCities) return null;
+					$nbCities++;
+					//on rajoute l'attribut geoPosition (type Point)
+					if(isset($city["geo"]["latitude"]) && isset($city["geo"]["longitude"])){
+						$lat = $city["geo"]["latitude"];
+						$lng = $city["geo"]["longitude"]; 	
+						//if($cnt==50){
+							error_log("update ".$city["insee"]. " to geoPosition lat:".$lat." lng:".$lng." num : ".$nbCities);		
+							//$cnt=0;
+						//}
+						//$cnt++;
+						PHDB::update( City::COLLECTION, 
+									  array("insee" => $city["insee"],
+									  		"name" => $city["name"], 
+									  		"cp" => $city["cp"]), 
+				                          array('$set' => 
+				                          		array("geoPosition" => 
+					                          		array("type"=>"Point",
+					                          			  "float"=>"true",
+					                          			  "coordinates" => array(floatval($lng), floatval($lat))
+					                          			  )
+				                          			)
+				                          		)
+				                    );
+					}
+				}
+			}
+		}
+	}
 }
 ?>
