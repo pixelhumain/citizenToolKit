@@ -6,6 +6,7 @@ class City {
 	const CONTROLLER = "city";
 	const COLLECTION_DATA = "cityData";
 
+	const COLOR = "#E6304C";
 	const REGION = "region";
 	const DEPARTEMENT = "departement";
 	const CITY = "city";

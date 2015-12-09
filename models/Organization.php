@@ -7,6 +7,7 @@ class Organization {
 	const ICON_BIZ = "fa-industry";
 	const ICON_GROUP = "fa-circle-o";
 	const ICON_GOV = "fa-circle-o";
+	const COLOR = "#93C020";
 
 	const TYPE_NGO = "NGO";
 	const TYPE_BUSINESS = "LocalBusiness";

@@ -4,6 +4,7 @@ class Project {
 	const COLLECTION = "projects";
 	const CONTROLLER = "project";
 	const ICON = "fa-lightbulb-o";
+	const COLOR = "#8C5AA1";
 	
 	//From Post/Form name to database field name
 	private static $dataBinding = array(
