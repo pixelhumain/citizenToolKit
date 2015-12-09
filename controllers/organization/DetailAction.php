@@ -31,7 +31,7 @@ class DetailAction extends CAction
 		$params["images"] = $images;
 		$params["events"] = $events;
 		$contextMap = array();
-		$contextMap["organization"] = $organization;
+		$contextMap["organization"] = array($organization);
 		$contextMap["events"] = array();
 		$contextMap["organizations"] = array();
 		$contextMap["people"] = array();
