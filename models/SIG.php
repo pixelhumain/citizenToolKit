@@ -124,7 +124,7 @@ class SIG
 		$oneCity =	PHDB::findOne(City::COLLECTION, $request);
 
 		
-		//City::updateGeoPosition();
+		//City::updateGeoPositions();
 		error_log($lng." - ".$lat);
 		if($oneCity == null){
 			$request = array("geoPosition" => array( '$exists' => true ),
