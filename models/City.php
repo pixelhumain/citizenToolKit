@@ -284,7 +284,7 @@ class City {
 		error_log("$*^!! @?? !!! ! **`+!!");
 		error_log("------------------------------------------------------------");
 		
-		for($i=0; $i<35 && count($allCities)>0; $i++){
+		for($i=0; $i<40 && count($allCities)>0; $i++){
 			
 			$allCities = PHDB::findAndSort(City::COLLECTION, $request, array("insee"=>1), 1000);
 			error_log("iteration n°" . $i . " - update geoPosition Cities : ".count($allCities). " trouvées");
