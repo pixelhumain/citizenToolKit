@@ -7,6 +7,7 @@ class Organization {
 	const ICON_BIZ = "fa-industry";
 	const ICON_GROUP = "fa-circle-o";
 	const ICON_GOV = "fa-circle-o";
+	const COLOR = "#93C020";
 
 	const TYPE_NGO = "NGO";
 	const TYPE_BUSINESS = "LocalBusiness";
@@ -148,17 +149,17 @@ class Organization {
 	
 	public static function newOrganizationFromPost($organization) {
 		$newOrganization = array();
-		$newOrganization["email"] = empty($organization['organizationEmail']) ? "" : $organization['organizationEmail'];
+		$newOrganization["email"] = empty($organization['organizationEmail']) ? "" : trim($organization['organizationEmail']);
 		$newOrganization["country"] = empty($organization['organizationCountry']) ? "" : $organization['organizationCountry'];
-		$newOrganization["name"] = empty($organization['organizationName']) ? "" : $organization['organizationName'];
+		$newOrganization["name"] = empty($organization['organizationName']) ? "" : rtrim($organization['organizationName']);
 		$newOrganization["type"] = empty($organization['type']) ? "" : $organization['type'];
 		//Location
-		$newOrganization["streetAddress"] = empty($organization['streetAddress']) ? "" : $organization['streetAddress'];
+		$newOrganization["streetAddress"] = empty($organization['streetAddress']) ? "" : rtrim($organization['streetAddress']);
 		$newOrganization["postalCode"] = empty($organization['postalCode']) ? "" : $organization['postalCode'];
 		$newOrganization["city"] = empty($organization['city']) ? "" : $organization['city'];
 		$newOrganization["addressCountry"] = empty($organization['organizationCountry']) ? "" : $organization['organizationCountry'];
 
-		$newOrganization["description"] = empty($organization['description']) ? "" : $organization['description'];
+		$newOrganization["description"] = empty($organization['description']) ? "" : rtrim($organization['description']);
 		$newOrganization["tags"] = empty($organization['tagsOrganization']) ? "" : $organization['tagsOrganization'];
 		$newOrganization["typeIntervention"] = empty($organization['typeIntervention']) ? "" : $organization['typeIntervention'];
 		$newOrganization["typeOfPublic"] = empty($organization['public']) ? "" : $organization['public'];

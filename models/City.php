@@ -6,6 +6,7 @@ class City {
 	const CONTROLLER = "city";
 	const COLLECTION_DATA = "cityData";
 
+	const COLOR = "#E6304C";
 	const REGION = "region";
 	const DEPARTEMENT = "departement";
 	const CITY = "city";
@@ -252,5 +253,77 @@ class City {
 		return $simpleCity;
 	}
 
+	//rajoute les attributs "geoPosition" sur chaque City
+	//en recopiant les valeurs de l'attribut "geo.longitude" et "geo.latitude"
+	public static function updateGeoPositions(){
+		//récupère les villes qui on un attribut geo mais qui n'ont pas de geoPosition
+		$request=array( "geo" => array( '$exists' => true ),
+						"geoPosition.float" => array( '$exists' => false ),
+						//"geoPosition" => array( '$exists' => false ),
+					  );
+
+		//$maxCities = 300;
+		$nbCities=0;
+		$cnt=0;
+		
+		$allCities = PHDB::findAndSort(City::COLLECTION, $request, array("insee"=>1), 1000);
+		error_log("------------------------------------------------------------");
+		error_log("START update geoPosition Cities : ".count($allCities). " trouvées");
+		error_log("------------------------------------------------------------");
+		error_log("L'opération peut durer entre 5 et 10 minutes");
+		error_log("------------------------------------------------------------");
+		error_log("Sûrement plus si vous êtes sous Windows ;)");
+		error_log("------------------------------------------------------------");
+		error_log("Vous avez le droit de prendre un café et de garder le silence");
+		error_log("Tout ce que vous direz ne sera pas retenu contre vous");
+		error_log("------------------------------------------------------------");
+		error_log("Nous vous souhaitons un agréable vol sur notre compagnie");
+		error_log("En cas de bug intepestif, merci de le signaler à votre commandant de bord");
+		error_log("Ou à l'une de nos charmantes hotesses");
+		error_log("Les issus de secours se situent à l'avant et à l'arrière de votre navigateur");
+		error_log("$*^!! @?? !!! ! **`+!!");
+		error_log("------------------------------------------------------------");
+		
+		for($i=0; $i<40 && count($allCities)>0; $i++){
+			
+			$allCities = PHDB::findAndSort(City::COLLECTION, $request, array("insee"=>1), 1000);
+			error_log("iteration n°" . $i . " - update geoPosition Cities : ".count($allCities). " trouvées");
+			error_log("###");
+			error_log("###");
+			
+			//si on a trouvé une ville
+			if(count($allCities)>0){
+				foreach ($allCities as $key => $city) {
+					//if($nbCities > $maxCities) return null;
+					$nbCities++;
+					//on rajoute l'attribut geoPosition (type Point)
+					if(isset($city["geo"]["latitude"]) && isset($city["geo"]["longitude"])){
+						$lat = $city["geo"]["latitude"];
+						$lng = $city["geo"]["longitude"]; 	
+						if($cnt<=0){
+							error_log("update ".$city["insee"]. " to geoPosition lat:".$lat." lng:".$lng." num : ".$nbCities);		
+							$cnt=50;
+						}
+						$cnt--;
+						PHDB::update( City::COLLECTION, 
+									  array("insee" => $city["insee"],
+									  		"name" => $city["name"], 
+									  		"cp" => $city["cp"]), 
+				                          array('$set' => 
+				                          		array("geoPosition" => 
+					                          		array("type"=>"Point",
+					                          			  "float"=>"true",
+					                          			  "coordinates" => array(floatval($lng), floatval($lat))
+					                          			  )
+				                          			)
+				                          		)
+				                    );
+					}
+				}
+			}
+		}
+		error_log("La mise à jour est terminée. ".$nbCities." communes ont été traitées");
+		return true;
+	}
 }
 ?>

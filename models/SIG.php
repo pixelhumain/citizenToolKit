@@ -4,7 +4,7 @@ Contains anything generix for the site
  */
 class SIG
 {
-    const CITIES_COLLECTION_NAME = "cities";
+    //const CITIES_COLLECTION_NAME = "cities";
 
     public static function clientScripts()
     {
@@ -110,6 +110,7 @@ class SIG
 	}
 
 	//récupère la ville qui correspond à une position géographique
+	//https://docs.mongodb.org/manual/reference/operator/query/near/#op._S_near
 	public static function getCityByLatLng($lat, $lng, $cp){
 
 		$request = array("geoShape"  => 
@@ -118,12 +119,37 @@ class SIG
 						  		array("type" 	    => "Point", 
 						  			  "coordinates" => array(floatval($lng), floatval($lat)))
 						  		)));
-		if($cp != null){
-			$request = array_merge(array("cp"  => $cp), $request);
+		if($cp != null){ $request = array_merge(array("cp"  => $cp), $request); }
+		
+		$oneCity =	PHDB::findOne(City::COLLECTION, $request);
+
+		
+		//City::updateGeoPositions();
+		error_log($lng." - ".$lat);
+		if($oneCity == null){
+			$request = array("geoPosition" => array( '$exists' => true ),
+							 "geoPosition.coordinates"  => 
+							  array('$near'  => 
+								  	array(	'$geometry' => 
+								  			array("type" 	    => "Point", 
+								  			   	  "coordinates" => array( floatval($lng), 
+								  			  						   	  floatval($lat) )
+											  			 		),
+							  		 		"maxDistance" => 100000,
+							  		 		"minDistance" => 10
+							  			 ),
+						  	 		)
+					   		);
+				
+			if($cp != null){ $request = array_merge(array("cp"  => $cp), $request); }
+
+			$oneCity =	PHDB::findOne(City::COLLECTION, $request);
+			//var_dump($oneCity);
 		}
-		$oneCity =	PHDB::findOne(self::CITIES_COLLECTION_NAME, $request);
+
 		// var_dump($request);	
 		// var_dump($oneCity);	
+		//var_dump($oneCity);
 		return $oneCity;
 	}
 
@@ -152,7 +178,7 @@ class SIG
 			throw new InvalidArgumentException("The Insee Code is mandatory");
 		}
 
-		$city = PHDB::findOne(self::CITIES_COLLECTION_NAME, array("insee" => $codeInsee));
+		$city = PHDB::findOne(City::COLLECTION, array("insee" => $codeInsee));
 		if (empty($city)) {
 			throw new CTKException("Impossible to find the city with the insee code : ".$codeInsee);
 		} else {
@@ -170,7 +196,7 @@ class SIG
 			throw new InvalidArgumentException("The Insee Code is mandatory");
 		}
 
-		$city = PHDB::findOne(self::CITIES_COLLECTION_NAME, array("insee" => $codeInsee));
+		$city = PHDB::findOne(City::COLLECTION, array("insee" => $codeInsee));
 		if (empty($city)) {
 			throw new CTKException("Impossible to find the city with the insee code : ".$codeInsee);
 		} else {
@@ -180,6 +206,7 @@ class SIG
 			}
 
 			if(isset($city["geoShape"])){ $position["geoShape"] = $city["geoShape"]; }
+			if(isset($city["name"]))	{ $position["name"] 	= $city["name"]; }
 			//var_dump($position); die();
 			
 			return $position;
@@ -198,7 +225,7 @@ class SIG
  		error_log($cityName);
  		error_log(utf8_encode($cityName));
 
-		$city = PHDB::findOne(self::CITIES_COLLECTION_NAME, array("name" => new MongoRegex("/".PHDB::wd_remove_accents($cityName)."/i")));
+		$city = PHDB::findOne(City::COLLECTION, array("name" => new MongoRegex("/".PHDB::wd_remove_accents($cityName)."/i")));
 		if (empty($city)) {
 			throw new CTKException("Impossible to find the city with the City Name : ".$cityName);
 		} else {
@@ -216,7 +243,7 @@ class SIG
 			throw new InvalidArgumentException("The postal Code is mandatory");
 		}
 
-		$city = PHDB::findAndSort(self::CITIES_COLLECTION_NAME, array("cp" => $postalCode), array("name" => -1));
+		$city = PHDB::findAndSort(City::COLLECTION, array("cp" => $postalCode), array("name" => -1));
 		return $city;
 	}
 

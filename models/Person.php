@@ -4,6 +4,7 @@ class Person {
 	const COLLECTION = "citoyens";
 	const CONTROLLER = "person";
 	const ICON = "fa-user";
+	const COLOR = "#F5E740";
 
 	//From Post/Form name to database field name with rules
 	private static $dataBinding = array(
