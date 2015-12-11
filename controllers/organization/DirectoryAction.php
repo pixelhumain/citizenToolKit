@@ -60,6 +60,13 @@ class DirectoryAction extends CAction
             if(@$value["isAdmin"] && $value["isAdmin"]==1){
 	            $newCitoyen["isAdmin"]=$value["isAdmin"];
             } 
+			if(@$value["toBeValidated"]){
+	            $newCitoyen["toBeValidated"]=$value["toBeValidated"];
+            } 
+			if(@$value["isAdminPending"]){
+	            $newCitoyen["isAdminPending"]=$value["isAdminPending"];
+            } 
+
             array_push($params["people"], $newCitoyen);
         }
 

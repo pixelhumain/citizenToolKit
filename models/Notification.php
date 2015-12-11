@@ -75,8 +75,9 @@ class Notification{
 	$member : a map of the object member 
 		should contain : id ,type, name of the member (person or Orga)
 	$target : context of the action (project, orga,event)
+	$invitation : adapt notification's text if it's an invitation from someone
 	*/
-	public static function actionOnPerson ( $verb, $icon, $member, $target ) 
+	public static function actionOnPerson ( $verb, $icon, $member, $target, $invitation=false) 
 	{
 		$targetId = ( isset( $target["id"] ) ) ? $target["id"] : (string)$target["_id"] ;
 		if( $member )
@@ -103,7 +104,7 @@ class Notification{
         //when admin makes the change
         //notify the people concerned by the entity
         if( isset($memberId) && $memberId != Yii::app()->session["userId"] ){
-        	if( $member['type'] == Organization::COLLECTION )
+        	if(@$member['type'] && $member['type'] == Organization::COLLECTION )
         	{
         		$asParam["object"] = array(
 		            "type" => Organization::COLLECTION,
@@ -160,6 +161,26 @@ class Notification{
 	    	$target["name"]." : new post by ".Yii::app()->session['user']['name'];
 	    	$url = 'news/index/type/'.$target["type"].'/id/'.$targetId;
 	    }
+	    else if($verb == ActStr::VERB_WAIT){
+		    $label = Yii::app()->session['user']['name']." wants to join ".$target["name"];
+		    $url = $ctrls[ $target["type"] ].'/directory/id/'.$targetId;
+	    }
+	    else if($verb == ActStr::VERB_AUTHORIZE){
+		    $label = Yii::app()->session['user']['name']." wants to administrate ".$target["name"];
+		    $url = $ctrls[ $target["type"] ].'/directory/id/'.$targetId;
+	    }
+		else if($verb == ActStr::VERB_CONFIRM){
+		    $label = Yii::app()->session['user']['name']." add ".$member["name"]." as admin of ".$target["name"];
+		    $url = $ctrls[ $target["type"] ].'/directory/id/'.$targetId;
+	    }
+	    else if($verb == ActStr::VERB_ACCEPT){
+		    $label = Yii::app()->session['user']['name']." add ".$member["name"]." as member of ".$target["name"];
+		    $url = $ctrls[ $target["type"] ].'/directory/id/'.$targetId;
+	    }
+		if($invitation == ActStr::VERB_INVITE){
+			 $label = Yii::app()->session['user']['name']." has invited ".$member["name"]." to join ".$target["name"];
+			 $url = $ctrls[ $target["type"] ].'/directory/id/'.$targetId;
+		}
 	    $notif = array( 
 	    	"persons" => $people,
             "label"   => $label,

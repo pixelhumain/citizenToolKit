@@ -20,7 +20,7 @@ class SaveMemberAction extends CAction
 		$organization = Organization::getById( $memberOfId );
 
 		$isAdmin = false;
-
+		$invitation = false;
 		if($memberType == Person::COLLECTION) {
 			$class = "Person";
 			$isAdmin = (isset($_POST["memberIsAdmin"])) ? $_POST["memberIsAdmin"] : false;
@@ -42,7 +42,9 @@ class SaveMemberAction extends CAction
 		{
 			$member = array(
 				 'invitedBy'=>Yii::app()->session["userId"]
-			);			
+			);
+						
+			$invitation = ActStr::VERB_INVITE;
 			
 			if(isset($_POST['memberName']))
 				$member["name"] = $_POST['memberName'];
@@ -81,12 +83,11 @@ class SaveMemberAction extends CAction
 					array_push($rolesOrgTab, $value);
 				}
 			}
-
 			//Role::setRoles($rolesOrgTab, $memberOfId, Organization::COLLECTION);
 		}
 
 		try {
-			$res = Link::addMember($memberOfId, $memberOfType, $memberId, $memberType, Yii::app()->session["userId"], $isAdmin, $roles );
+			$res = Link::addMember($memberOfId, $memberOfType, $memberId, $memberType, Yii::app()->session["userId"], $isAdmin, $roles);
 
 			$member = array(
 				"id"=>$memberId,
@@ -94,7 +95,11 @@ class SaveMemberAction extends CAction
 			);
 			if(isset($_POST['memberName']))
 				$member["name"] = $_POST['memberName'];
-			Notification::actionOnPerson ( ActStr::VERB_JOIN, ActStr::ICON_SHARE, $member , array("type"=>Organization::COLLECTION,"id"=> $memberOfId,"name"=>$organization["name"]) ) ;
+			$verb=ActStr::VERB_JOIN;
+			if($res["notification"] == "toBeValidated"){
+				$verb = ActStr::VERB_WAIT;		
+			}
+			Notification::actionOnPerson ( $verb, ActStr::ICON_SHARE, $member , array("type"=>Organization::COLLECTION,"id"=> $memberOfId,"name"=>$organization["name"]),$invitation) ;
 			$res["member"] = $class::getById($memberId);
 		} catch (CommunecterException $e) {
 			$res = array( "result" => false , "msg" => $e->getMessage() );

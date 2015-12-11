@@ -59,6 +59,10 @@ class DirectoryAction extends CAction
                   if(!empty($citoyen)){
 	                   if(@$e["isAdmin"] && $e["isAdmin"]==1)
                     	$citoyen["isAdmin"]= $e["isAdmin"];
+						if(@$e["isAdminPending"]){
+							$citoyen["isAdminPending"]=$e["isAdminPending"];
+            			} 
+
                     array_push($people, $citoyen);
                     $citoyen["type"]="citoyen";
                     $profil = Document::getLastImageByKey($uid, Person::COLLECTION, Document::IMG_PROFIL);

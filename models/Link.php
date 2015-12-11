@@ -30,54 +30,31 @@ class Link {
     public static function addMember($memberOfId, $memberOfType, $memberId, $memberType, 
                         $userId, $userAdmin = false, $userRole = "", $pendingAdmin=false) {
         
-        //TODO SBAR => Change the boolean userAdmin to a role (admin, contributor, moderator...)
-
-        //0. Check if the $memberOfId and the $memberId exists
-        $memberOf = Link::checkIdAndType($memberOfId, $memberOfType);
-		$member = Link::checkIdAndType($memberId, $memberType);
-
-        $setArrayMembers = array("links.members.".$memberId.".type" => $memberType);
-        $setArrayMemberOf = array("links.memberOf.".$memberOfId.".type" => $memberOfType);
-        
+        $organization=Organization::getById($memberOfId);
+        $listAdmin=Authorisation::listOrganizationAdmins($memberOfId);
+       // print_r($listAdmin);
+        //TODO SBAR => Change the boolean userAdmin to a role (admin, contributor, moderator...)        
         //1. Check if the $userId can manage the $memberOf
+        $toBeValidated = false;
+        $notification="";
         if (!Authorisation::isOrganizationAdmin($userId, $memberOfId)) {
             // Specific case when the user is added as an admin
             if (!$userAdmin) {
                 // Add a toBeValidated tag on the link
-                $setArrayMembers["links.members.".$memberId.".toBeValidated"] = true;
-                $setArrayMemberOf["links.memberOf.".$memberOfId.".toBeValidated"] = true;
+                if(@$organization["links"]["members"] && count($organization["links"]["members"])!=0 && !empty($listAdmin)){
+                	$toBeValidated = true;
+					$notification="toBeValidated";
+                }
             }
         }
- 
-        if ($userAdmin) {
-            // Add an admin flag 
-            $setArrayMembers["links.members.".$memberId.".isAdmin"] = $userAdmin;
-            $setArrayMemberOf["links.memberOf.".$memberOfId.".isAdmin"] = $userAdmin;
-            if ($pendingAdmin) {
-                $setArrayMembers["links.members.".$memberId.".isAdminPending"] = true;
-                $setArrayMemberOf["links.memberOf.".$memberOfId.".isAdminPending"] = true;
-            }
-        }
-        if ($userRole != ""){
-        	$setArrayMembers["links.members.".$memberId.".roles"] = $userRole;
-        	$setArrayMemberOf["links.memberOf.".$memberOfId.".roles"] = $userRole;
-        }
-
-        //2. Create the links
-        PHDB::update( $memberOfType, 
-                   array("_id" => $memberOf["_id"]) , 
-                   array('$set' => $setArrayMembers));
-        
-        PHDB::update( $memberType, 
-                   array("_id" => $member["_id"]) , 
-                   array('$set' => $setArrayMemberOf));
-
+        // Create link between both entity
+		$res=self::connect($memberOfId, $memberOfType, $memberId, $memberType, $userId,"members",$userAdmin,$pendingAdmin,$toBeValidated, $userRole);
+		$res=self::connect($memberId, $memberType, $memberOfId, $memberOfType, $userId,"memberOf",$userAdmin,$pendingAdmin,$toBeValidated, $userRole);
         //3. Send Notifications
 	    //TODO - Send email to the member
 
-        return array("result"=>true, "msg"=>"The member has been added with success", "memberOfId"=>$memberOfId, "memberid"=>$memberId);
+        return array("result"=>true, "msg"=>"The member has been added with success", "memberOfId"=>$memberOfId, "memberId"=>$memberId,"notification" => $notification);
     }
-
 
     /**
      * Remove a member of an organization
@@ -124,7 +101,6 @@ class Link {
     }
 
     private static function checkIdAndType($id, $type) {
-		
 		if ($type == Organization::COLLECTION) {
         	$res = Organization::getById($id); 
         } else if ($type == Person::COLLECTION) {
@@ -144,35 +120,43 @@ class Link {
     }
 
     /**
-     * Connect 2 actors : organization or Person
+     * Connection between 2 class : organization, person, event, projects, places
 	 * Create a link between the 2 actors. The link will be typed as knows
-	 * 1 entry will be added :
+	 * 1 entry will be added:
 	 * - $origin.links.knows["$target"]
      * @param type $originId The Id of actor who wants to create a link with the $target
-     * @param type $originType The Type (Organization or Person) of actor who wants to create a link with the $target
-     * @param type $targetId The actor that will be linked
-     * @param type $targetType The Type (Organization or Person) that will be linked
+     * @param type $originType The Type (Organization or Person or Project or Places) of actor who wants to create a link with the $target
+     * @param type $targetId The itemId that will be linked (Organization or Person or Project or Places)
+     * @param type $targetType The Type (Organization or Person or Project or Places) that will be linked
      * @param type $userId The userId doing the action
+     * @param type $connectType the name of connection in the target about user 
+     * @param type $isAdmin boolean if new connection has admin role in the parent
+     * @parem type $pendingAdmin boolean if new connection has to be validate by an admin
+     * @param type $isPending boolean if new connection add itself and need admin validation
+     * @param type $role array if user added has a role in parent item
      * @return result array with the result of the operation
      */
-    public static function connect($originId, $originType, $targetId, $targetType, $userId, $connectType,$isAdmin=false,$pendingAdmin=false) {
+    public static function connect($originId, $originType, $targetId, $targetType, $userId, $connectType,$isAdmin=false,$pendingAdmin=false,$isPending=false, $role="") {
 	    $links=array("links.".$connectType.".".$targetId.".type" => $targetType);
+	    if($isPending){
+		    $links["links.".$connectType.".".$targetId.".toBeValidated"] = $isPending;
+	    }
         if($isAdmin){
         	$links["links.".$connectType.".".$targetId.".isAdmin"]=$isAdmin;
 			if ($pendingAdmin) {
-                $setArrayMembers["links.".$connectType.".".$targetId.".isAdminPending"] = true;
+                $links["links.".$connectType.".".$targetId.".isAdminPending"] = true;
             }
         }
-        
+        if ($role != ""){
+        	$links["links.".$connectType.".".$targetId.".roles"] = $role;
+        }
         //0. Check if the $originId and the $targetId exists
         $origin = Link::checkIdAndType($originId, $originType);
 		$target = Link::checkIdAndType($targetId, $targetType);
-
-        //2. Create the links
+	    //2. Create the links
         PHDB::update($originType, 
                        array("_id" => $origin["_id"]) , 
                        array('$set' => $links));
-        
         //3. Send Notifications
 	    //TODO - Send email to the member
 		
@@ -322,13 +306,13 @@ class Link {
 	   			);
    			PHDB::update(Event::COLLECTION,
    						array("_id"=>new MongoId($eventId)),
-   						array('$set'=> array("links.creator.".$organizerId.".type"=>Person::COLLECTION))
+   						array('$set'=> array("links.organizer.".$organizerId.".type"=>Person::COLLECTION))
    			);
    			$res = array("result"=>true, "msg"=>"The event has been added with success");
 
 	   	}
    		return $res;
-   }
+   	}
 
     /**
 	* Link a person to an event
@@ -536,7 +520,7 @@ class Link {
 		}
 		else if ($parentType == Project::COLLECTION){
 			$parentData = Project::getById($parentId);			
-			$usersAdmin = Authorisation::listOrganizationAdmins($parentId, false);
+			$usersAdmin = Authorisation::listAdmins($parentId,  $parentType, false);
 			$parentController=Project::CONTROLLER;
 		}
 		
@@ -544,12 +528,12 @@ class Link {
 		if (!$parentData || !$pendingAdmin) {
 			return array("result" => false, "msg" => "Unknown ".$parentController." or person. Please check your parameters !");
 		} else {
-			$res = array("result" => true, "msg" => "You are now admin of the organization", "parent" => $parentData);
+			$res = array("result" => true, "msg" => Yii::t("common", "You are now admin of")." ".Yii::t("common","this ".$parentController), "parent" => $parentData);
 		}
 		//First case : The organization doesn't have an admin yet : the person is automatically added as admin
 		
 		if (in_array($personId, $usersAdmin)) 
-			return array("result" => false, "msg" => "Your are already admin of this organization !");
+			return array("result" => false, "msg" => Yii::t("common", "Your are already admin of")." ".Yii::t("common","this ".$parentController)." !");
 
 		if (count($usersAdmin) == 0) {
 			if($parentType==Organization::COLLECTION)
@@ -565,10 +549,10 @@ class Link {
 			if($parentType==Organization::COLLECTION)
 				Link::addMember($parentId, $parentType, $personId, Person::COLLECTION, $userId, true, "", true);
 			else if ($parentType == Project::COLLECTION){
-				Link::connect($parentId, $parentType, $personId, Person::COLLECTION, "contributors", true,true);
-				Link::connect($personId, Person::COLLECTION, $parentId, $parentType, "projects", true, true);
+				Link::connect($parentId, $parentType, $personId, Person::COLLECTION, Yii::app() -> session["userId"], "contributors", true,true);
+				Link::connect($personId, Person::COLLECTION, $parentId, $parentType, Yii::app() -> session["userId"], "projects", true, true);
 			}
-			Notification::actionOnPerson ( ActStr::VERB_JOIN, ActStr::ICON_SHARE, $pendingAdmin , array("type"=>$parentType,"id"=> $parentId,"name"=>$parentData["name"]) ) ;
+			Notification::actionOnPerson ( ActStr::VERB_AUTHORIZE, ActStr::ICON_SHARE, $pendingAdmin , array("type"=>$parentType,"id"=> $parentId,"name"=>$parentData["name"])) ;
 			// 2. Notification and email are sent to the admin(s)
 			$listofAdminsEmail = array();
 			foreach ($usersAdmin as $adminId) {
@@ -577,11 +561,29 @@ class Link {
 			}
 			Mail::someoneDemandToBecomeAdmin($parentData, $pendingAdmin, $listofAdminsEmail);
 			//TODO - Notification
-			$res = array("result" => true, "msg" => "Your request has been sent to other admins.", "parent" => $parentData);
+			$res = array("result" => true, "msg" => Yii::t("common","Your request has been sent to other admins."), "parent" => $parentData);
 			// After : the 1rst existing Admin to take the decision will remove the "pending" to make a real admin
 		}
 
 		return $res;
 	}
+	
+	/*
+	* This function is similar to disconnect but he just remove a value as pending, isAdminPending, isPending
+	* @valueUpdate is string to know which line disconnect
+	* Using for acceptAsAdmin, AcceptAsMember, etc...
+	*/
+	public static function updateLink($parentType,$parentId,$userId,$userType,$connectType,$connectTypeOf,$valueUpdate){
+		PHDB::update($parentType, 
+                 array("_id" => new MongoId($parentId)) , 
+                array('$unset' => array("links.".$connectType.".".$userId.".".$valueUpdate => ""))
+                );
+        PHDB::update($userType, 
+                array("_id" => new MongoId($userId)) , 
+                array('$unset' => array("links.".$connectTypeOf.".".$parentId.".".$valueUpdate => ""))
+                );
+		return array("result"=>true, "msg"=>"The link has been added with success");
+	}		
+
 } 
 ?>

@@ -436,7 +436,6 @@ class Authorisation {
      */
     public static function listOrganizationAdmins($organizationId, $pending=false) {
         $res = array();
-        
         $organization = Organization::getById($organizationId);
         
         if ($members = @$organization["links"]["members"]) {
@@ -445,7 +444,6 @@ class Authorisation {
                     if ($pending) {
                         array_push($res, $personId);
                     } else if (@$linkDetail["isAdminPending"] == null || @$linkDetail["isAdminPending"] == false) {
-                        var_dump($linkDetail);
                         array_push($res, $personId); 
                     }
                 }
@@ -477,7 +475,6 @@ class Authorisation {
                     if ($pending) {
                         array_push($res, $personId);
                     } else if (@$linkDetail["isAdminPending"] == null || @$linkDetail["isAdminPending"] == false) {
-                        var_dump($linkDetail);
                         array_push($res, $personId); 
                     }
                 }
