@@ -56,7 +56,7 @@ class Authorisation {
         $res = $organizations;
         foreach ($organizations as $e) {
         	$res[(string)new MongoId($e['_id'])] = $e;
-        	if(Authorisation::canEditMembersData(new MongoId($e['_id']))){
+        	if (Authorisation::canEditMembersData($e['_id'])) {
         		if(isset($e["links"]["members"])){
         			foreach ($e["links"]["members"] as $key => $value) {
         				if(isset($value["type"]) && $value["type"] == Organization::COLLECTION){
@@ -80,7 +80,7 @@ class Authorisation {
         $res = false;
         
         $myOrganizations = Authorisation::listUserOrganizationAdmin($userId);
-       	$res = array_key_exists((string)$organizationId, $myOrganizations);    
+        $res = array_key_exists((string)$organizationId, $myOrganizations);    
         return $res;
     }
 
@@ -162,14 +162,18 @@ class Authorisation {
 
     /**
      * Return true if the organization can modify his members datas
+     * Depends if the params isParentOrganizationAdmin is set to true and if the organization 
+     * got a flag canEditMember set to true
      * @param String $organizationId An id of an organization
      * @return boolean True if the organization can edit his members data. False, else.
      */
     public static function canEditMembersData($organizationId) {
         $res = false;
-        $organization = Organization::getById($organizationId);
-        if (isset($organization["canEditMember"]) && $organization["canEditMember"])
-            $res = true;
+        if (Yii::app()->params['isParentOrganizationAdmin']) {
+            $organization = Organization::getById($organizationId);
+            if (isset($organization["canEditMember"]) && $organization["canEditMember"])
+                $res = true;
+        }
         return $res;
     }
 
