@@ -137,6 +137,7 @@ class Organization {
 	    	$orgaCodeInsee=$newOrganization["address"]["codeInsee"];
 	    else
 	    	$orgaCodeInsee="";
+	    
 		Notification::createdObjectAsParam(Person::COLLECTION,$creatorId,Organization::COLLECTION, $newOrganizationId, null, null, $orgaGeo,$orgaTags
 											,$orgaCodeInsee);
 
@@ -150,7 +151,7 @@ class Organization {
 	public static function newOrganizationFromPost($organization) {
 		$newOrganization = array();
 		$newOrganization["email"] = empty($organization['organizationEmail']) ? "" : trim($organization['organizationEmail']);
-		$newOrganization["country"] = empty($organization['organizationCountry']) ? "" : $organization['organizationCountry'];
+		//$newOrganization["country"] = empty($organization['organizationCountry']) ? "" : $organization['organizationCountry'];
 		$newOrganization["name"] = empty($organization['organizationName']) ? "" : rtrim($organization['organizationName']);
 		$newOrganization["type"] = empty($organization['type']) ? "" : $organization['type'];
 		//Location
