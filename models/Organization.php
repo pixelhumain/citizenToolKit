@@ -45,25 +45,8 @@ class Organization {
 	}
 
 	//TODO SBAR - First test to validate data. Move it to DataValidator
-  	private static function getCollectionFieldNameAndValidate($organizationFieldName, $organizationFieldValue) {
-		$res = "";
-		if (isset(self::$dataBinding["$organizationFieldName"])) {
-			$data = self::$dataBinding["$organizationFieldName"];
-			$name = $data["name"];
-			//Validate field
-			if (isset($data["rules"])) {
-				$rules = $data["rules"];
-				foreach ($rules as $rule) {
-					$isDataValidated = DataValidator::$rule($organizationFieldValue);
-					if ($isDataValidated != "") {
-						throw new CTKException($isDataValidated);
-					}
-				}	
-			}
-		} else {
-			throw new CTKException("Unknown field :".$organizationFieldName);
-		}
-		return $name;
+  	private static function getCollectionFieldNameAndValidate($organizationFieldName, $organizationFieldValue, $organizationId) {
+		return DataValidator::getCollectionFieldNameAndValidate(self::$dataBinding, $organizationFieldName, $organizationFieldValue, $organizationId);
 	}
 
 	/**
@@ -642,7 +625,7 @@ class Organization {
 	}
 
 	private static function updateField($organizationId, $organizationFieldName, $organizationFieldValue) {
-		$dataFieldName = Organization::getCollectionFieldNameAndValidate($organizationFieldName, $organizationFieldValue);
+		$dataFieldName = Organization::getCollectionFieldNameAndValidate($organizationFieldName, $organizationFieldValue, $organizationId);
 	
 		//Specific case : 
 		//Tags
