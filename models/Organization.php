@@ -45,25 +45,8 @@ class Organization {
 	}
 
 	//TODO SBAR - First test to validate data. Move it to DataValidator
-  	private static function getCollectionFieldNameAndValidate($organizationFieldName, $organizationFieldValue) {
-		$res = "";
-		if (isset(self::$dataBinding["$organizationFieldName"])) {
-			$data = self::$dataBinding["$organizationFieldName"];
-			$name = $data["name"];
-			//Validate field
-			if (isset($data["rules"])) {
-				$rules = $data["rules"];
-				foreach ($rules as $rule) {
-					$isDataValidated = DataValidator::$rule($organizationFieldValue);
-					if ($isDataValidated != "") {
-						throw new CTKException($isDataValidated);
-					}
-				}	
-			}
-		} else {
-			throw new CTKException("Unknown field :".$organizationFieldName);
-		}
-		return $name;
+  	private static function getCollectionFieldNameAndValidate($organizationFieldName, $organizationFieldValue, $organizationId) {
+		return DataValidator::getCollectionFieldNameAndValidate(self::$dataBinding, $organizationFieldName, $organizationFieldValue, $organizationId);
 	}
 
 	/**
@@ -137,6 +120,7 @@ class Organization {
 	    	$orgaCodeInsee=$newOrganization["address"]["codeInsee"];
 	    else
 	    	$orgaCodeInsee="";
+	    
 		Notification::createdObjectAsParam(Person::COLLECTION,$creatorId,Organization::COLLECTION, $newOrganizationId, null, null, $orgaGeo,$orgaTags
 											,$orgaCodeInsee);
 
@@ -150,7 +134,7 @@ class Organization {
 	public static function newOrganizationFromPost($organization) {
 		$newOrganization = array();
 		$newOrganization["email"] = empty($organization['organizationEmail']) ? "" : trim($organization['organizationEmail']);
-		$newOrganization["country"] = empty($organization['organizationCountry']) ? "" : $organization['organizationCountry'];
+		//$newOrganization["country"] = empty($organization['organizationCountry']) ? "" : $organization['organizationCountry'];
 		$newOrganization["name"] = empty($organization['organizationName']) ? "" : rtrim($organization['organizationName']);
 		$newOrganization["type"] = empty($organization['type']) ? "" : $organization['type'];
 		//Location
@@ -641,7 +625,7 @@ class Organization {
 	}
 
 	private static function updateField($organizationId, $organizationFieldName, $organizationFieldValue) {
-		$dataFieldName = Organization::getCollectionFieldNameAndValidate($organizationFieldName, $organizationFieldValue);
+		$dataFieldName = Organization::getCollectionFieldNameAndValidate($organizationFieldName, $organizationFieldValue, $organizationId);
 	
 		//Specific case : 
 		//Tags
