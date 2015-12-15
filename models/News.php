@@ -27,7 +27,7 @@ class News {
 	{
 	    $res = PHDB::findAndSort(self::COLLECTION, $param,$sort,5);
 	    foreach ($res as $key => $news) {
-	  		$res[$key]["author"] = Person::getById($news["author"]);
+	  		$res[$key]["author"] = Person::getSimpleUserById($news["author"]);
 	  	}
 	  	return $res;
 	}
@@ -93,12 +93,39 @@ class News {
 		 		$news["scope"] = $_POST["scope"];
 			}
 			PHDB::insert(self::COLLECTION,$news);
-		    $news["author"] = Person::getById($news["author"]);
+		    $news["author"] = Person::getSimpleUserById($news["author"]);
 		  	
 		    return array("result"=>true, "msg"=>"Votre news est enregistrée.", "id"=>$news["_id"],"object"=>$news);	
 		} else {
 			return array("result"=>false, "msg"=>"Please Fill required Fields.");	
 		}
+	}
+	public static function delete($id) {
+		return PHDB::remove(self::COLLECTION,array("_id"=>new MongoId($id)));
+	}
+	public static function updateField($newsId, $name, $value, $userId){
+		//if (!Authorisation::canEditItem($userId, self::COLLECTION, $projectId)) {
+		//	throw new CTKException(Yii::t("project", "Can not update this project : you are not authorized to update that project !"));	
+		//}
+		/*		A rajouter vérification auteur !!!!!! */
+		//$dataFieldName = self::getCollectionFieldNameAndValidate($projectFieldName, $projectFieldValue, $projectId);
+	
+		//Specific case : 
+		//Tags
+		//if ($dataFieldName == "tags") {
+		//	$projectFieldValue = Tags::filterAndSaveNewTags($projectFieldValue);
+		//}
+
+		//address
+
+		$set = array($name => $value);	
+
+
+		//update the project
+		PHDB::update( self::COLLECTION, array("_id" => new MongoId($newsId)), 
+		                          array('$set' => $set));
+	                  
+	    return array("result"=>true, "msg"=>Yii::t("common","News well updated"), "id"=>$newsId);
 	}
 }
 ?>
