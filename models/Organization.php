@@ -147,7 +147,6 @@ class Organization {
 		$newOrganization["tags"] = empty($organization['tagsOrganization']) ? "" : $organization['tagsOrganization'];
 		$newOrganization["typeIntervention"] = empty($organization['typeIntervention']) ? "" : $organization['typeIntervention'];
 		$newOrganization["typeOfPublic"] = empty($organization['public']) ? "" : $organization['public'];
-		$newOrganization["role"] = empty($organization['role']) ? "" : $organization['role'];
 		$newOrganization["category"] = empty($organization['category']) ? "" : $organization['category'];
 
 		//error_log("latitude : ".$organization['geoPosLatitude']);
@@ -162,6 +161,10 @@ class Organization {
 											 	  		  $organization['geoPosLongitude'])
 											 	  	);
 			//$newOrganization["geo"] = empty($organization['public']) ? "" : $organization['public'];
+		}
+
+		if (!empty($organization['role'])) {
+			$newOrganization["role"] = $organization['role'];
 		}
 		
 		return $newOrganization;
