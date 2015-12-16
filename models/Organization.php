@@ -14,7 +14,6 @@ class Organization {
 	const TYPE_GROUP = "Group";
 	const TYPE_GOV = "GovernmentOrganization";
 
-	
 	//From Post/Form name to database field name
 	private static $dataBinding = array(
 	    "name" => array("name" => "name", "rules" => array("required", "organizationSameName")),
@@ -24,6 +23,7 @@ class Organization {
 	    "type" => array("name" => "type"),
 	    "shortDescription" => array("name" => "shortDescription"),
 	    "description" => array("name" => "description"),
+	    "category" => array("name" => "category"),
 	    "address" => array("name" => "address"),
 	    "streetAddress" => array("name" => "address.streetAddress"),
 	    "postalCode" => array("name" => "address.postalCode"),
@@ -133,21 +133,22 @@ class Organization {
 	
 	public static function newOrganizationFromPost($organization) {
 		$newOrganization = array();
-		$newOrganization["email"] = empty($organization['organizationEmail']) ? "" : trim($organization['organizationEmail']);
-		//$newOrganization["country"] = empty($organization['organizationCountry']) ? "" : $organization['organizationCountry'];
-		$newOrganization["name"] = empty($organization['organizationName']) ? "" : rtrim($organization['organizationName']);
-		$newOrganization["type"] = empty($organization['type']) ? "" : $organization['type'];
+		if (isset($organization['organizationEmail'])) $newOrganization["email"] = trim($organization['organizationEmail']);
+		if (isset($organization['organizationName'])) $newOrganization["name"] = rtrim($organization['organizationName']);
+		if (isset($organization['type'])) $newOrganization["type"] = $organization['type'];
+		
 		//Location
-		$newOrganization["streetAddress"] = empty($organization['streetAddress']) ? "" : rtrim($organization['streetAddress']);
-		$newOrganization["postalCode"] = empty($organization['postalCode']) ? "" : $organization['postalCode'];
-		$newOrganization["city"] = empty($organization['city']) ? "" : $organization['city'];
-		$newOrganization["addressCountry"] = empty($organization['organizationCountry']) ? "" : $organization['organizationCountry'];
+		if (isset($organization['streetAddress'])) $newOrganization["streetAddress"] = rtrim($organization['streetAddress']);
+		if (isset($organization['postalCode'])) $newOrganization["postalCode"] = $organization['postalCode'];
+		if (isset($organization['city'])) $newOrganization["city"] = $organization['city'];
+		if (isset($organization['organizationCountry'])) $newOrganization["addressCountry"] = $organization['organizationCountry'];
 
-		$newOrganization["description"] = empty($organization['description']) ? "" : rtrim($organization['description']);
-		$newOrganization["tags"] = empty($organization['tagsOrganization']) ? "" : $organization['tagsOrganization'];
-		$newOrganization["typeIntervention"] = empty($organization['typeIntervention']) ? "" : $organization['typeIntervention'];
-		$newOrganization["typeOfPublic"] = empty($organization['public']) ? "" : $organization['public'];
-		$newOrganization["category"] = empty($organization['category']) ? "" : $organization['category'];
+		if (isset($organization['description'])) $newOrganization["description"] = rtrim($organization['description']);
+		if (isset($organization['tagsOrganization'])) $newOrganization["tags"] = $organization['tagsOrganization'];
+		if (isset($organization['typeIntervention'])) $newOrganization["typeIntervention"] = $organization['typeIntervention'];
+		if (isset($organization['typeOfPublic'])) $newOrganization["typeOfPublic"] = $organization['typeOfPublic'];
+		if (isset($organization['category'])) $newOrganization["category"] = $organization['category'];
+		if (isset($organization['role'])) $newOrganization["role"] = $organization['role'];
 
 		//error_log("latitude : ".$organization['geoPosLatitude']);
 		if(!empty($organization['geoPosLatitude']) && !empty($organization["geoPosLongitude"])){
@@ -160,11 +161,6 @@ class Organization {
 													array($organization['geoPosLatitude'],
 											 	  		  $organization['geoPosLongitude'])
 											 	  	);
-			//$newOrganization["geo"] = empty($organization['public']) ? "" : $organization['public'];
-		}
-
-		if (!empty($organization['role'])) {
-			$newOrganization["role"] = $organization['role'];
 		}
 		
 		return $newOrganization;
@@ -257,8 +253,8 @@ class Organization {
 			if (!empty($organization['city'])) {
 				$insee = $organization['city'];
 				$address = SIG::getAdressSchemaLikeByCodeInsee($insee);
-				$address["streetAddress"] = $organization["streetAddress"];
-				$address["addressCountry"] = $organization["addressCountry"];
+				$address["streetAddress"] = @$organization["streetAddress"];
+				$address["addressCountry"] = @$organization["addressCountry"];
 				$newOrganization["address"] = $address;
 
 				if(empty($organization["geo"]))
