@@ -626,23 +626,24 @@ class Organization {
 
 	private static function updateField($organizationId, $organizationFieldName, $organizationFieldValue) {
 		$dataFieldName = Organization::getCollectionFieldNameAndValidate($organizationFieldName, $organizationFieldValue, $organizationId);
-	
+		$set = array($dataFieldName => $organizationFieldValue);
+
 		//Specific case : 
 		//Tags
 		if ($dataFieldName == "tags") {
 			$organizationFieldValue = Tags::filterAndSaveNewTags($organizationFieldValue);
+			$set = array($dataFieldName => $organizationFieldValue);
 		} else if ($dataFieldName == "address") {
 		//address
 			if(!empty($organizationFieldValue["postalCode"]) && !empty($organizationFieldValue["codeInsee"])) {
 				$insee = $organizationFieldValue["codeInsee"];
 				$address = SIG::getAdressSchemaLikeByCodeInsee($insee);
+				$set = array("address" => $address);
 				if(empty($organizationFieldValue["geo"]))
-					$set = array("address" => $address, "geo" => SIG::getGeoPositionByInseeCode($insee));
+					$set["geo"] = SIG::getGeoPositionByInseeCode($insee);
 			} else {
 				throw new CTKException("Error updating the Organization : address is not well formated !");			
 			}
-		} else {
-			$set = array($dataFieldName => $organizationFieldValue);	
 		}
 
 		//update the organization
