@@ -31,6 +31,7 @@ class Organization {
 	    "addressLocality" => array("name" => "address.addressLocality"),
 	    "addressCountry" => array("name" => "address.addressCountry"),
 	    "geo" => array("name" => "geo"),
+	    "geoPosition" => array("name" => "geoPosition"),
 	    "tags" => array("name" => "tags"),
 	    "typeIntervention" => array("name" => "typeIntervention"),
 	    "typeOfPublic" => array("name" => "typeOfPublic"),
