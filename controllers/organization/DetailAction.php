@@ -32,10 +32,10 @@ class DetailAction extends CAction
 		$params["events"] = $events;
 		$contextMap = array();
 		$contextMap["organization"] = array($organization);
-		$contextMap["events"] = array();
-		$contextMap["organizations"] = array();
 		$contextMap["people"] = array();
-
+		$contextMap["organizations"] = array();
+		$contextMap["events"] = array();
+		
 		$organizations = Organization::getMembersByOrganizationId($id, Organization::COLLECTION);
 		$people = Organization::getMembersByOrganizationId($id, Person::COLLECTION);
 
