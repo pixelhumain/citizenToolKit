@@ -235,7 +235,7 @@ class Person {
 	 */
 	public static function getPersonLinksByPersonId($id) {
 	  	$res = array("people" => array(), "organizations" => array(), 
-	  				 "events" => array(), "projects" => array());
+	  				 "projects" => array(), "events" => array());
 
 	  	$person = self::getById($id);
 	  	
@@ -247,7 +247,7 @@ class Person {
 	  		$myContacts = $person["links"];
 	  	}
 
-	  	foreach (array("knows", "memberOf", "events", "projects") as $n => $link) {
+	  	foreach (array("knows", "memberOf", "projects", "events") as $n => $link) {
 	  		if( isset($myContacts[$link]))
 	  		{
 			  	foreach ($myContacts[$link] as $key => $contact) {
