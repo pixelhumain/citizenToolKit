@@ -7,12 +7,19 @@ class GlobalAutoCompleteAction extends CAction
         
         $query = array( "name" => new MongoRegex("/".$search."/i"));
   		
+  		error_log((string)strpos($search, "#"));
+        if(strpos($search, "#") === 0){
+        	$search = substr($search, 1, strlen($search));
+        	error_log($search);
+        	$query = array( "tags" => array('$in' => array(new MongoRegex("/".$search."/i")))) ; //new MongoRegex("/".$search."/i") )));
+  		}
+
         $res = array();
 
 
         if(strcmp($filter, Person::COLLECTION) != 0){
 
-	  		$allCitoyen = PHDB::find ( Person::COLLECTION ,$query ,array("name", "address"));
+	  		$allCitoyen = PHDB::find ( Person::COLLECTION , $query, array("name", "address"));
 
 	  		foreach ($allCitoyen as $key => $value) {
 	  			$person = Person::getSimpleUserById($key);

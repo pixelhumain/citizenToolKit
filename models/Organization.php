@@ -365,13 +365,15 @@ class Organization {
 	public static function getSimpleOrganizationById($id) {
 
 		$simpleOrganization = array();
-		$orga = PHDB::findOneById( self::COLLECTION ,$id, array("id" => 1, "name" => 1, "type" => 1, "email" => 1, "address" => 1, "pending" => 1) );
+		$orga = PHDB::findOneById( self::COLLECTION ,$id, array("id" => 1, "name" => 1, "type" => 1, "email" => 1, 
+													 			"address" => 1, "pending" => 1, "tags" => 1) );
 
 		$simpleOrganization["id"] = $id;
 		$simpleOrganization["name"] = @$orga["name"];
 		$simpleOrganization["type"] = @$orga["type"];
 		$simpleOrganization["email"] = @$orga["email"];
 		$simpleOrganization["pending"] = @$orga["pending"];
+		$simpleOrganization["tags"] = @$orga["tags"];
 		$simpleOrganization = array_merge($simpleOrganization, Document::retrieveAllImagesUrl($id, self::COLLECTION, @$orga["type"]));
 		
 		$logo = Document::getLastImageByKey($id, self::COLLECTION, Document::IMG_LOGO);
