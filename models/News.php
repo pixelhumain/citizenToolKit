@@ -40,16 +40,18 @@ class News {
 	 	if(empty($user))
 	 		throw new CTKException("You must be loggued in to add a news entry.");
 
-	 	if( isset($_POST["name"]) && isset($_POST["text"]) )
+	 	if( isset($_POST["text"]) && !empty($_POST["text"]))
 	 	{
-			$news = array("name" => $_POST["name"],
-						  "text" => $_POST["text"],
+			$news = array("text" => $_POST["text"],
 						  "author" => Yii::app()->session["userId"],
 						  "date"=>new MongoDate(time()),
 						  "created"=>new MongoDate(time()));
 
 			if(isset($_POST["date"])){
 				$news["date"] = new MongoDate(strtotime(str_replace('/', '-', $_POST["date"])));
+			}
+			if (isset($_POST["mediaContent"])){
+				$news["media"] = $_POST["mediaContent"];
 			}
 			if(isset($_POST["tags"]))
 				$news["tags"] = $_POST["tags"];
@@ -88,9 +90,11 @@ class News {
 				/*if( $_POST["type"] == Organization::COLLECTION && Authorisation::isOrganizationAdmin( Yii::app()->session["userId"], $_POST["typeId"]) )
 	 				throw new CTKException("You must be admin of this organization to post.");*/
 			}
-
 		 	if( isset($_POST["scope"])) {
-		 		$news["scope"] = $_POST["scope"];
+			 	$news["scope"]["type"]=$_POST["scope"];
+			 	if($_POST["scope"]=="public"){
+		 			$news["scope"]["cities"] = array($user["address"]["addressLocality"]);
+		 		}
 			}
 			PHDB::insert(self::COLLECTION,$news);
 		    $news["author"] = Person::getSimpleUserById($news["author"]);

@@ -111,7 +111,7 @@ class IndexAction extends CAction
 	        $where = array(
 			        	'$and' => array(
 								array("text" => array('$exists'=>1)),
-								array("scope.".$type => $id),
+								array("author" => $id),
 								array('created' => array(
 										'$lt' => $date
 									)
