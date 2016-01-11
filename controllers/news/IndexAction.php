@@ -268,6 +268,7 @@ $newsObject=NewsTranslator::convertToNews($data,NewsTranslator::NEWS_JOIN_ORGANI
 		$news = array_msort($news, array('created'=>SORT_DESC));
         //TODO : reorganise by created date
 		$params["news"] = $news; 
+		$params["tags"] = Tags::getActiveTags();
 		$params["contextParentType"] = $type; 
 		$params["contextParentId"] = $id;
 		$params["userCP"] = Yii::app()->session['userCP'];
