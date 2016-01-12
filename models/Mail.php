@@ -188,7 +188,7 @@ class Mail
                                         "title" => Yii::app()->name ,
                                         "parent" => $parent,
                                         "parentType" => $parentType,
-                                        "type"=> $typeOfDemand)
+                                        "typeOfDemand"=> $typeOfDemand)
             );   
             Mail::schedule($params);
         }
