@@ -559,7 +559,8 @@ class Link {
 				$currentAdmin = Person::getSimpleUserById($adminId);
 				array_push($listofAdminsEmail, $currentAdmin["email"]);
 			}
-			Mail::someoneDemandToBecomeAdmin($parentData, $pendingAdmin, $listofAdminsEmail);
+			$typeOfDemand="admin";
+			Mail::someoneDemandToBecome($parentData, $parentType, $pendingAdmin, $listofAdminsEmail,$typeOfDemand);
 			//TODO - Notification
 			$res = array("result" => true, "msg" => Yii::t("common","Your request has been sent to other admins."), "parent" => $parentData);
 			// After : the 1rst existing Admin to take the decision will remove the "pending" to make a real admin

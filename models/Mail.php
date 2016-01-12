@@ -175,18 +175,20 @@ class Mail
      * @param array $listofAdminsEmail array of email to send to
      * @return null
      */
-    public static function someoneDemandToBecomeAdmin( $parent, $newPendingAdmin, $listofAdminsEmail ) {
+    public static function someoneDemandToBecome( $parent, $parentType, $newPendingAdmin, $listofAdminsEmail, $typeOfDemand) {
        
        foreach ($listofAdminsEmail as $currentAdminEmail) {
            $params = array (
                 "type" => Cron::TYPE_MAIL,
                 "tpl"=>'askToBecomeAdmin',
-                "subject" => "[".Yii::app()->name."]".Yii::t("organization","A citizen ask to become an admin of one of your organization/project"),
+                "subject" => "[".Yii::app()->name."]".Yii::t("organization","A citizen ask to become ".$typeOfDemand." of ".$parent["name"]),
                 "from"=>Yii::app()->params['adminEmail'],
                 "to" => $currentAdminEmail,
                 "tplParams" => array(  "newPendingAdmin"=> $newPendingAdmin ,
                                         "title" => Yii::app()->name ,
-                                        "organization" => $parent)
+                                        "parent" => $parent,
+                                        "parentType" => $parentType,
+                                        "type"=> $typeOfDemand)
             );   
             Mail::schedule($params);
         }
