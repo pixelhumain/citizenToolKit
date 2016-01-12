@@ -101,6 +101,9 @@ class Link {
     }
 
     private static function checkIdAndType($id, $type) {
+        /*echo "ici";
+        var_dump($type);
+        var_dump($id);*/
 		if ($type == Organization::COLLECTION) {
         	$res = Organization::getById($id); 
         } else if ($type == Person::COLLECTION) {

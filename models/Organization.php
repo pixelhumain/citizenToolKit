@@ -58,8 +58,10 @@ class Organization {
 	 * @return array result as an array. 
 	 */
 	public static function insert($organization, $creatorId, $adminId = null) {
+	    
 	    $newOrganization = Organization::getAndCheckOrganization($organization);
 		
+
 		//Manage tags : save any inexistant tag to DB 
 		if (isset($newOrganization["tags"]))
 			$newOrganization["tags"] = Tags::filterAndSaveNewTags($newOrganization["tags"]);
@@ -100,6 +102,7 @@ class Organization {
 			$memberId = $adminId;
 			$isAdmin = true;
 		}
+		
 		if ($isToLink) {
 		    Link::addMember($newOrganizationId, Organization::COLLECTION, $memberId, Person::COLLECTION, $creatorId, $isAdmin);
 		}
@@ -171,7 +174,6 @@ class Organization {
 	public static function newOrganizationFromImportData($organization) {
 		
 		$newOrganization = array();
-		$newOrganization["key"] = "organizationsCollection";
 		$newOrganization["email"] = empty($organization['email']) ? "" : $organization['email'];
 		$newOrganization["name"] = empty($organization['name']) ? "" : $organization['name'];
 		$newOrganization["type"] = empty($organization['type']) ? Organization::TYPE_GROUP : $organization['type'];
@@ -179,12 +181,12 @@ class Organization {
 		$newOrganization["city"] = empty($organization['city']) ? "" : $organization['city'];
 		$newOrganization["description"] = empty($organization['description']) ? "" : $organization['description'];
 		$newOrganization["tags"] = empty($organization['tags']) ? "" : $organization['tags'];
-		$newOrganization["roles"] = empty($organization['roles']) ? "" : $organization['roles'];
-		$newOrganization["video"] = empty($organization['video']) ? "" : $organization['video'];
-		$newOrganization["contactPoint"] = empty($organization['contactPoint']) ? "" : $organization['contactPoint'];
+		$newOrganization["role"] = empty($organization['role']) ? "" : $organization['role'];
+		//$newOrganization["video"] = empty($organization['video']) ? "" : $organization['video'];
+		//$newOrganization["contactPoint"] = empty($organization['contactPoint']) ? "" : $organization['contactPoint'];
 		//$newOrganization["address"] = empty($organization['address']) ? "" : $organization['address'];
 		$newOrganization["created"] = empty($organization['created']) ? "" : $organization['created'];
-		$newOrganization["details"] = empty($organization['details']) ? "" : $organization['details'];
+		//$newOrganization["details"] = empty($organization['details']) ? "" : $organization['details'];
 		$newOrganization['address']['streetAddress'] = empty($organization['address']['streetAddress']) ? "" : $organization['address']['streetAddress'];
 		$newOrganization['address']['postalCode'] = empty($organization['address']['postalCode']) ? "" : $organization['address']['postalCode'];
 		$newOrganization['address']['addressCountry'] = empty($organization['address']['addressCountry']) ? "" : $organization['address']['addressCountry'];
@@ -211,7 +213,7 @@ class Organization {
 			}	
 			curl_close($curl);
 		}*/
-
+		//var_dump($newOrganization);
 		return $newOrganization;
 	}
 
@@ -311,6 +313,10 @@ class Organization {
 			$newOrganization["address"] = $organization['address'];
 		}
 
+		if(!empty($organization['role'])){
+			$newOrganization["role"] = $organization['role'];
+		}
+
 		//details by ImportData
 		if(!empty($organization['details'])){
 			$newOrganization["details"] = $organization['details'];
@@ -335,6 +341,9 @@ class Organization {
 			$newOrganization["typeOfPublic"] = $organization["typeOfPublic"];
 		}
 
+
+		/*echo "yoyo";
+		var_dump($newOrganization);*/
 		return $newOrganization;
 	}
 

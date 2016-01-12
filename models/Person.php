@@ -102,6 +102,8 @@ class Person {
 	 * @return type
 	 */
 	public static function getById($id) { 
+		/*echo "yoyo";
+		var_dump($id);*/
 	  	$person = PHDB::findOneById( self::COLLECTION ,$id );
 	  	
 	  	if (empty($person)) {
