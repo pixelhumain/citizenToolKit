@@ -566,7 +566,9 @@ class Person {
         }
 
         Person::clearUserSessionData();
-        $account = PHDB::findOne(self::COLLECTION, array("email"=>$email));
+        $account = PHDB::findOne(self::COLLECTION, array( '$or' => array( 
+        															array( "email" => $email),
+        															array("username" => $email) ) ));
         
         //return an error when email does not exist
         if ($account == null) {
