@@ -50,8 +50,10 @@ class IndexAction extends CAction
 		}
 		$date=new MongoDate($date);
 		$news=array();
-		if(!@$type)
-			$type= Person::COLLECTION;
+		if(!@$type || empty($type))
+			$type = Person::COLLECTION;
+		else if ($type == "citoyen")
+			$type = Person::COLLECTION;
 		$params["type"] = $type; 
         if( $type == Project::COLLECTION ) {
             $project = Project::getById($id);
@@ -102,24 +104,17 @@ class IndexAction extends CAction
         }
 
 		if ($streamType == "news"){
-			if($type == "citoyen") 
-				$type = "citoyens";
-			//$scope=array("scope.".$type => $id);	
-			//$where["scope.".$type] = $id;
-			// $date = new Date(myDate.toISOString());
-			//$date=new MongoDate($date);
-			$authorFollowedAndMe=[];
-			array_push($authorFollowedAndMe,array("author"=>$id));
-			if(@$person["links"]["knows"] && !empty($person["links"]["knows"])){
-				foreach ($person["links"]["knows"] as $key => $data){
-					array_push($authorFollowedAndMe,array("author"=>$key));
-					//print_r($authorFollowedAndMe);
+			if($type == "citoyens") {
+				$authorFollowedAndMe=[];
+				array_push($authorFollowedAndMe,array("author"=>$id));
+				if(@$person["links"]["knows"] && !empty($person["links"]["knows"])){
+					foreach ($person["links"]["knows"] as $key => $data){
+						array_push($authorFollowedAndMe,array("author"=>$key));
+					}
 				}
-			}
-			if(@$person["address"]["addressLocality"])
-				array_push($authorFollowedAndMe, array("scope.cities" => $person["address"]["addressLocality"]));
-	        $where = array(
-			        	'$and' => array(
+				if(@$person["address"]["addressLocality"])
+					array_push($authorFollowedAndMe, array("scope.cities" => $person["address"]["addressLocality"]));
+		        $where = array('$and' => array(
 								array("text" => array('$exists'=>1)),
 								array('$or'=> 
 										$authorFollowedAndMe
@@ -128,13 +123,26 @@ class IndexAction extends CAction
 										'$lt' => $date
 									)
 								),
-			        		)	
-			        );
+				        	)	
+				        );
+			}
+			else if($type == "organizations" || $type == "projects"){
+				$where = array('$and' => array(
+						array("text" => array('$exists'=>1)),
+						array("type"=> $type),
+						array("id"=> $id),
+						array('created' => array(
+								'$lt' => $date
+							)
+						),
+		        	)	
+				);
+			}
 			 //if(isset($type))
 	        	//$where["type"] = $type;
 	        //if(isset($id))
 	        	//$where["id"] = $id;
-				$news=News::getNewsForObjectId($where,array("created"=>-1));
+			$news=News::getNewsForObjectId($where,array("created"=>-1));
 				//print_r($news);
 	        //TODO : get since a certain date
 	//        $news = News::getWhereSortLimit($where, array("date"=>1) ,3);
