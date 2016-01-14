@@ -34,13 +34,13 @@ class News {
 	public static function save($params)
 	{
 		//check a user is loggued 
-	 	$user = Person::getById( Yii::app()->session["userId"] );
+	 	$user = Person::getById(Yii::app()->session["userId"]);
 	 	//TODO : if type is Organization check the connected user isAdmin
 
 	 	if(empty($user))
 	 		throw new CTKException("You must be loggued in to add a news entry.");
 
-	 	if( isset($_POST["text"]) && !empty($_POST["text"]))
+	 	if((isset($_POST["text"]) && !empty($_POST["text"])) || (isset($_POST["mediaContent"]) && !empty($_POST["mediaContent"])))
 	 	{
 			$news = array("text" => $_POST["text"],
 						  "author" => Yii::app()->session["userId"],
@@ -69,7 +69,7 @@ class News {
 					$organization = Organization::getById($_POST["typeId"]);
 					if( isset( $organization['geo'] ) )
 						$news["from"] = $organization['geo'];
-
+						$organization["type"]=Organization::COLLECTION;
 					Notification::actionOnPerson ( ActStr::VERB_POST, ActStr::ICON_COMMENT, null , $organization )  ;
 				}
 				else if($_POST["type"] == Event::COLLECTION ){
