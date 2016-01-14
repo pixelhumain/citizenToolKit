@@ -37,10 +37,14 @@ class IndexAction extends CAction
         //mongo search cmd : db.news.find({created:{'$exists':1}})	
 		$params = array();
 		if (!isset($id)){
+			if($type!="pixels"){
 			if(@$_GET["id"])
 				$id=$_GET["id"];
 			else 
 				$id = Yii::app() -> session["userId"] ;
+			} else {
+				$id="";
+			}
 		}
 		if(@$date && $date != null){
 			$date = $date;
@@ -102,18 +106,22 @@ class IndexAction extends CAction
             $controller->subTitle = "Every Event has story to tell.";
             $controller->pageTitle = "Communect - ".$controller->title;
         }
-
+		else if ($type=="communecter"){
+			 $controller->title = "Pixel's Timeline";
+            $controller->subTitle = "Say us bugs or feature ideas";
+            $controller->pageTitle = "Communect - ".$controller->title;
+		}
 		if ($streamType == "news"){
 			if($type == "citoyens") {
 				$authorFollowedAndMe=[];
 				array_push($authorFollowedAndMe,array("author"=>$id));
 				if(@$person["links"]["knows"] && !empty($person["links"]["knows"])){
 					foreach ($person["links"]["knows"] as $key => $data){
-						array_push($authorFollowedAndMe,array("author"=>$key));
+						array_push($authorFollowedAndMe,array("id"=>$key, "type" => "citoyens"));
 					}
 				}
 				if(@$person["address"]["addressLocality"])
-					array_push($authorFollowedAndMe, array("scope.cities" => $person["address"]["addressLocality"]));
+					array_push($authorFollowedAndMe, array("scope.cities" => $person["address"]["addressLocality"],"type" => array('$ne' => "pixels")));
 		        $where = array('$and' => array(
 								array("text" => array('$exists'=>1)),
 								array('$or'=> 
@@ -131,6 +139,17 @@ class IndexAction extends CAction
 						array("text" => array('$exists'=>1)),
 						array("type"=> $type),
 						array("id"=> $id),
+						array('created' => array(
+								'$lt' => $date
+							)
+						),
+		        	)	
+				);
+			}
+			else if ($type == "pixels"){
+				$where = array('$and' => array(
+						array("text" => array('$exists'=>1)),
+						array("type"=> $type),
 						array('created' => array(
 								'$lt' => $date
 							)
