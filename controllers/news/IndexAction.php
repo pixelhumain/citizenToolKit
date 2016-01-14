@@ -108,7 +108,7 @@ class IndexAction extends CAction
 			//$where["scope.".$type] = $id;
 			// $date = new Date(myDate.toISOString());
 			//$date=new MongoDate($date);
-			$authorFollowedAndMe=[];
+			$authorFollowedAndMe =  array();
 			array_push($authorFollowedAndMe,array("author"=>$id));
 			if(@$person["links"]["knows"] && !empty($person["links"]["knows"])){
 				foreach ($person["links"]["knows"] as $key => $data){
