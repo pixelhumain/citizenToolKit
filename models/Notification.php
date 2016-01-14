@@ -131,12 +131,11 @@ class Notification{
         }
 
 	    $stream = ActStr::buildEntry($asParam);
-
 	    //inform the projects members of the new member
 	    $members = array();
 	    if( $target["type"] == Project::COLLECTION ) 
 	    	$members = Project::getContributorsByProjectId( $targetId ,"all", null ) ;
-	    else if( $target["type"] == Organization::COLLECTION ) 
+	    else if( $target["type"] == Organization::COLLECTION) 
 	    	$members = Organization::getMembersByOrganizationId( $targetId ,"all", null ) ;
 	    else if( $target["type"] == Event::COLLECTION ) 
 	    	$members = Event::getAttendeesByEventId( $targetId ,"all", null ) ;
@@ -156,9 +155,9 @@ class Notification{
 	    );
 	    $url = $ctrls[ $target["type"] ].'/detail/id/'.$targetId;
 	    if( $verb == ActStr::VERB_CLOSE )
-	    	$target["name"]." has been disabled by ".Yii::app()->session['user']['name'];
+		    $label = $target["name"]." has been disabled by ".Yii::app()->session['user']['name'];
 	    else if( $verb == ActStr::VERB_POST ){
-	    	$target["name"]." : new post by ".Yii::app()->session['user']['name'];
+		    $label = $target["name"]." : new post by ".Yii::app()->session['user']['name'];
 	    	$url = 'news/index/type/'.$target["type"].'/id/'.$targetId;
 	    }
 	    else if($verb == ActStr::VERB_WAIT){
