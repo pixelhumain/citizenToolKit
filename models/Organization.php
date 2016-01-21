@@ -383,6 +383,7 @@ class Organization {
 		$simpleOrganization["email"] = @$orga["email"];
 		$simpleOrganization["pending"] = @$orga["pending"];
 		$simpleOrganization["tags"] = @$orga["tags"];
+		$simpleOrganization["geo"] = @$orga["geo"];
 		$simpleOrganization = array_merge($simpleOrganization, Document::retrieveAllImagesUrl($id, self::COLLECTION, @$orga["type"]));
 		
 		$logo = Document::getLastImageByKey($id, self::COLLECTION, Document::IMG_LOGO);
