@@ -514,7 +514,7 @@ class Link {
 	 * @param String $userId The userId doing the action
 	 * @return array of result (result => bool, msg => string)
 	 */
-	public static function addPersonAsAdmin($parentId, $parentType, $personId, $userId) {
+	public static function addPersonAsAdmin($parentId, $parentType, $personId, $userId, $actionFromAdmin=null) {
 
 		if($parentType == Organization::COLLECTION){
 			$parentData = Organization::getById($parentId);
@@ -526,7 +526,6 @@ class Link {
 			$usersAdmin = Authorisation::listAdmins($parentId,  $parentType, false);
 			$parentController=Project::CONTROLLER;
 		}
-		
 		$pendingAdmin = Person::getById($personId);
 		if (!$parentData || !$pendingAdmin) {
 			return array("result" => false, "msg" => "Unknown ".$parentController." or person. Please check your parameters !");
@@ -538,13 +537,14 @@ class Link {
 		if (in_array($personId, $usersAdmin)) 
 			return array("result" => false, "msg" => Yii::t("common", "Your are already admin of")." ".Yii::t("common","this ".$parentController)." !");
 
-		if (count($usersAdmin) == 0) {
+		if (count($usersAdmin) == 0 || $actionFromAdmin) {
 			if($parentType==Organization::COLLECTION)
 				Link::addMember($parentId, $parentType, $personId, Person::COLLECTION, $userId, true, "", false);
 			else if ($parentType == Project::COLLECTION){
 				Link::connect($parentId, $parentType, $personId, Person::COLLECTION,Yii::app() -> session["userId"], "contributors", true,false);
 				Link::connect($personId, Person::COLLECTION, $parentId, $parentType, Yii::app() -> session["userId"], "projects", true, false);
 			}
+
 			Notification::actionOnPerson ( ActStr::VERB_JOIN, ActStr::ICON_SHARE, $pendingAdmin , array("type"=>$parentType,"id"=> $parentId,"name"=>$parentData["name"]) ) ;
 		} else {
 			//Second case : there is already an admin (or few) 
