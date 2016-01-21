@@ -130,14 +130,14 @@ class Person {
 		
 		$simplePerson = array();
 		$person = PHDB::findOneById( self::COLLECTION ,$id, array("id" => 1, "name" => 1, "username" => 1, "email" => 1, 
-																  "address" => 1, "geo" => 1, "pending" => 1, "tags" => 1) );
+																  "address" => 1, "geo" => 1, "roles" => 1, "tags" => 1) );
 		$simplePerson["id"] = $id;
 		$simplePerson["name"] = @$person["name"];
 		$simplePerson["username"] = @$person["username"];
 		$simplePerson["email"] = @$person["email"];
 		$simplePerson["geo"] = @$person["geo"];
 		$simplePerson["tags"] = @$person["tags"];
-		$simplePerson["pending"] = @$person["pending"];
+		$simplePerson["tobeactivated"] = @$person["roles"]["tobeactivated"];
 
 		//images
 		$simplePerson = array_merge($simplePerson, Document::retrieveAllImagesUrl($id, self::COLLECTION));
