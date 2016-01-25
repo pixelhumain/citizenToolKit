@@ -56,7 +56,7 @@ class GlobalAutoCompleteAction extends CAction
 	        /***********************************  PERSONS   *****************************************/
 	        if(strcmp($filter, Person::COLLECTION) != 0){
 
-	        	$allCitoyen = PHDB::find ( Person::COLLECTION , $query, array("name", "address"));
+	        	$allCitoyen = PHDB::find ( Person::COLLECTION , $query, array("name", "address", "shortDescription", "description"));
 
 		  		foreach ($allCitoyen as $key => $value) {
 		  			$person = Person::getSimpleUserById($key);
@@ -71,9 +71,10 @@ class GlobalAutoCompleteAction extends CAction
 		  	/***********************************  ORGANISATIONS   *****************************************/
 	        if(strcmp($filter, Organization::COLLECTION) != 0){
 
-		  		$allOrganizations = PHDB::find ( Organization::COLLECTION ,$query ,array("name", "type", "address"));
+		  		$allOrganizations = PHDB::find ( Organization::COLLECTION ,$query ,array("name", "address", "shortDescription", "description"));
 		  		foreach ($allOrganizations as $key => $value) {
 		  			$orga = Organization::getSimpleOrganizationById($key);
+					$orga["type"] = "organization";
 					$allOrganizations[$key] = $orga;
 		  		}
 
@@ -82,9 +83,10 @@ class GlobalAutoCompleteAction extends CAction
 
 		  	/***********************************  EVENT   *****************************************/
 	        if(strcmp($filter, Event::COLLECTION) != 0){
-		  		$allEvents = PHDB::find(PHType::TYPE_EVENTS, $query, array("name", "address"));
+		  		$allEvents = PHDB::find(PHType::TYPE_EVENTS, $query, array("name", "address", "shortDescription", "description"));
 		  		foreach ($allEvents as $key => $value) {
 		  			$event = Event::getSimpleEventById($key);
+					$event["type"] = "event";
 					$allEvents[$key] = $event;
 		  		}
 		  		
@@ -94,9 +96,10 @@ class GlobalAutoCompleteAction extends CAction
 
 		  	/***********************************  PROJECTS   *****************************************/
 	        if(strcmp($filter, Project::COLLECTION) != 0){
-		  		$allProject = PHDB::find(Project::COLLECTION, $query, array("name", "address"));
+		  		$allProject = PHDB::find(Project::COLLECTION, $query, array("name", "address", "shortDescription", "description"));
 		  		foreach ($allProject as $key => $value) {
 		  			$project = Project::getSimpleProjectById($key);
+					$project["type"] = "project";
 					$allProject[$key] = $project;
 		  		}
 		  		$res["project"] = $allProject;
@@ -139,6 +142,7 @@ class GlobalAutoCompleteAction extends CAction
 	  		$allCities = PHDB::find(City::COLLECTION, $query, array("name", "cp", "insee", "geo"));
 	  		foreach ($allCities as $key => $value) {
 	  			$city = City::getSimpleCityById($key);
+	  			$city["type"] = "city";
 				$allCities[$key] = $city;
 	  		}
 	  		$res["cities"] = $allCities;
@@ -148,6 +152,7 @@ class GlobalAutoCompleteAction extends CAction
 		  		$allCities = PHDB::find(City::COLLECTION, $query, array("name", "cp", "insee", "geo"));
 		  		foreach ($allCities as $key => $value) {
 		  			$city = City::getSimpleCityById($key);
+					$city["type"] = "city";
 					$allCities[$key] = $city;
 		  		}
 		  		$res["cities"] = $allCities;  		
