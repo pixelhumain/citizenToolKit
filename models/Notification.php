@@ -18,7 +18,7 @@ class Notification{
 	    $asParam = array(
 	    	"type" => ActStr::TEST, 
             "verb" => ActStr::VERB_INVITE,
-            "actor"=>array(
+            "author"=>array(
             	"type" => Person::COLLECTION,
             	"id"   => ( isset(Yii::app()->session["userId"]) ) ? Yii::app()->session["userId"] : null
             ),
@@ -85,7 +85,7 @@ class Notification{
 	    $asParam = array(
 	    	"type" => ActStr::TEST, 
             "verb" => $verb,
-            "actor"=>array(
+            "author"=>array(
             	"type" => Person::COLLECTION,
             	"id"   => ( isset(Yii::app()->session["userId"]) ) ? Yii::app()->session["userId"] : null
             ),
@@ -202,7 +202,7 @@ class Notification{
 	    $asParam = array(
 	    	"type" => ActStr::TEST, 
             "verb" => ActStr::VERB_FOLLOW,
-            "actor"=>array(
+            "author"=>array(
             	"type" => Person::COLLECTION,
             	"id"   => ( isset(Yii::app()->session["userId"]) ) ? Yii::app()->session["userId"] : null
             ),
@@ -233,14 +233,8 @@ class Notification{
 	// => advanced notification to add if one user wants to be notified for all news projects in certain field (Tags)
 	*/
 
-	public static function createdObjectAsParam($actorType, $actorId, $objectType, $objectId, $targetType, $targetId, $geo, $tags, $insee){
-		$param=array("type" => "has created object", "verb" => ActStr::VERB_CREATE);
-		if (!empty($actorType)){
-			$param["actor"] = array(
-				"type" => $actorType, 
-				"id" => $actorId
-			);
-		}
+	public static function createdObjectAsParam($authorType, $authorId, $objectType, $objectId, $targetType, $targetId, $geo, $tags, $insee, $verb="create"){
+		$param=array("type" => ActivityStream::COLLECTION, "verb" => ActStr::VERB_CREATE);
 		if (!empty($objectType)){
 			$param["object"] = array(
 				"type" => $objectType, 
@@ -253,13 +247,14 @@ class Notification{
 				"id" => $targetId
 				);
 		}
+
 		if (!empty($tags))
 			$param["tags"]=$tags;
 		if(!empty($geo))
 			$param["geo"]=$geo;
 		if (!empty($insee))
-			$param["codeInsee"]=$insee;
-		$stream = ActStr::buildEntry($param);
+			$param["cities"]=$insee;	
+		$stream = ActivityStream::buildEntry($param);
 	    ActivityStream::addEntry($stream);
 
 	}
