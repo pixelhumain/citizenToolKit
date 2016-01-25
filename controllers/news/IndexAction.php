@@ -121,9 +121,8 @@ class IndexAction extends CAction
 					}
 				}
 				if(@$person["address"]["codeInsee"])
-					array_push($authorFollowedAndMe, array("scope.cities" => $person["address"]["codeInsee"],"type" => array('$ne' => "pixels")));
+					array_push($authorFollowedAndMe, array("scope.cities." => $person["address"]["codeInsee"],"type" => "activityStream"));
 		        $where = array('$and' => array(
-								array("text" => array('$exists'=>1)),
 								array('$or'=> 
 										$authorFollowedAndMe
 								),
@@ -133,6 +132,7 @@ class IndexAction extends CAction
 								),
 				        	)	
 				        );
+				       //print_r($where);
 			}
 			else if($type == "organizations" || $type == "projects"){
 				$where = array('$and' => array(
@@ -160,7 +160,6 @@ class IndexAction extends CAction
 			else if($type == "city"){
 				$codeInsee = $insee;
 				$where = array('$and' => array(
-						array("text" => array('$exists'=>1)),
 						array("scope.cities[]" => $codeInsee),
 						array("type" => array('$ne' => "pixels")),
 						array('created' => array(
@@ -169,16 +168,9 @@ class IndexAction extends CAction
 						),
 		        	)	
 				);
+			//	print_r($where);
 			}
-			 //if(isset($type))
-	        	//$where["type"] = $type;
-	        //if(isset($id))
-	        	//$where["id"] = $id;
 			$news=News::getNewsForObjectId($where,array("created"=>-1));
-				//print_r($news);
-	        //TODO : get since a certain date
-	//        $news = News::getWhereSortLimit($where, array("date"=>1) ,3);
-	        //print_r($news);
 		}
         //TODO : get all notifications for the current context
         else {

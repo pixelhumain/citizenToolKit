@@ -13,7 +13,7 @@ class EntryAction extends CAction
       $controller->pageTitle = "Communecter - Sondages : ".$survey["name"];
 
       $pageView = ActivityStream::getWhere(array("verb"=>ActStr::VERB_VIEW,
-                                                 "actor.ip"=>$_SERVER['REMOTE_ADDR'],
+                                                 "author.ip"=>$_SERVER['REMOTE_ADDR'],
                                                  "object.objectType" => ActStr::TYPE_URL,
                                                  "object.id"=>$controller->id."/".$controller->action->id."/id/".$id));
 
