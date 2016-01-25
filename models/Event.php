@@ -83,7 +83,7 @@ class Event {
 	public static function getSimpleEventById($id) {
 		
 		$simpleEvent = array();
-		$event = PHDB::findOneById( self::COLLECTION ,$id, array("id" => 1, "name" => 1, "type" => 1, 
+		$event = PHDB::findOneById( self::COLLECTION ,$id, array("id" => 1, "name" => 1, "type" => 1,  "shortDescription" => 1, "description" => 1,
 																 "address" => 1, "geo" => 1, "tags" => 1) );
 
 		$simpleEvent["id"] = $id;
@@ -91,6 +91,9 @@ class Event {
 		$simpleEvent["type"] = @$event["type"];
 		$simpleEvent["geo"] = @$event["geo"];
 		$simpleEvent["tags"] = @$event["tags"];
+		$simpleEvent["shortDescription"] = @$event["shortDescription"];
+		$simpleEvent["description"] = @$event["description"];
+		
 		$simpleEvent = array_merge($simpleEvent, Document::retrieveAllImagesUrl($id, self::COLLECTION));
 		
 		$simpleEvent["address"] = empty($event["address"]) ? array("addressLocality" => "Unknown") : $event["address"];
