@@ -49,7 +49,7 @@ class Authorisation {
         
         //organization i'am admin 
         $where = array( "links.members.".$userId.".isAdmin" => true,
-                        "links.members.".$userId.".isAdminPending" => array('$exists' => false )
+                        "links.members.".$userId.".toBeValidated" => array('$exists' => false )
                     );
 
         $organizations = PHDB::find(Organization::COLLECTION, $where);
@@ -445,11 +445,14 @@ class Authorisation {
         if ($members = @$organization["links"]["members"]) {
             foreach ($members as $personId => $linkDetail) {
                 if (@$linkDetail["isAdmin"] == true) {
-                    if ($pending) {
-                        array_push($res, $personId);
-                    } else if (@$linkDetail["isAdminPending"] == null || @$linkDetail["isAdminPending"] == false) {
-                        array_push($res, $personId); 
-                    }
+	                $userActivated = Role::isUserActivated($personId);
+	                if($userActivated){
+	                    if ($pending) {
+	                        array_push($res, $personId);
+	                    } else if (@$linkDetail["isAdminPending"] == null || @$linkDetail["isAdminPending"] == false) {
+	                        array_push($res, $personId); 
+	                    }
+					}
                 }
             }
         }

@@ -125,8 +125,7 @@ class Organization {
 	    else
 	    	$orgaCodeInsee="";
 	    
-		Notification::createdObjectAsParam(Person::COLLECTION,$creatorId,Organization::COLLECTION, $newOrganizationId, null, null, $orgaGeo,$orgaTags
-											,$orgaCodeInsee);
+		Notification::createdObjectAsParam(Person::COLLECTION,$creatorId,Organization::COLLECTION, $newOrganizationId, null, null, $orgaGeo,$orgaTags,$orgaCodeInsee);
 
 	    $newOrganization = Organization::getById($newOrganizationId);
 	    return array("result"=>true,
@@ -483,8 +482,8 @@ class Organization {
 	public static function getSimpleOrganizationById($id) {
 
 		$simpleOrganization = array();
-		$orga = PHDB::findOneById( self::COLLECTION ,$id, array("id" => 1, "name" => 1, "type" => 1, "email" => 1, 
-													 			"address" => 1, "pending" => 1, "tags" => 1) );
+		$orga = PHDB::findOneById( self::COLLECTION ,$id, array("id" => 1, "name" => 1, "type" => 1, "email" => 1,  "shortDescription" => 1, "description" => 1,
+													 			"address" => 1, "pending" => 1, "tags" => 1, "geo" => 1) );
 
 		$simpleOrganization["id"] = $id;
 		$simpleOrganization["name"] = @$orga["name"];
@@ -492,6 +491,9 @@ class Organization {
 		$simpleOrganization["email"] = @$orga["email"];
 		$simpleOrganization["pending"] = @$orga["pending"];
 		$simpleOrganization["tags"] = @$orga["tags"];
+		$simpleOrganization["geo"] = @$orga["geo"];
+		$simpleOrganization["shortDescription"] = @$orga["shortDescription"];
+		$simpleOrganization["description"] = @$orga["description"];
 		$simpleOrganization = array_merge($simpleOrganization, Document::retrieveAllImagesUrl($id, self::COLLECTION, @$orga["type"]));
 		
 		$logo = Document::getLastImageByKey($id, self::COLLECTION, Document::IMG_LOGO);

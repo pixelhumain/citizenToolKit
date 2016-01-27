@@ -55,20 +55,22 @@ class DirectoryAction extends CAction
                     array_push($contributors, $organization);
                   }
                 }else if($e["type"]== Person::COLLECTION){
-                  $citoyen = Person::getPublicData($uid);
+                  $citoyen = Person::getSimpleUserById($uid);
                   if(!empty($citoyen)){
 	                   if(@$e["isAdmin"] && $e["isAdmin"]==1)
-                    	$citoyen["isAdmin"]= $e["isAdmin"];
+                    		$citoyen["isAdmin"]= $e["isAdmin"];
 						if(@$e["isAdminPending"]){
 							$citoyen["isAdminPending"]=$e["isAdminPending"];
             			} 
-
+            			if(@$citoyen["roles"]["toBeValidated"]){
+							$citoyen["toBeValidated"]=$citoyen["roles"]["toBeValidated"];
+            			} 
                     array_push($people, $citoyen);
                     $citoyen["type"]="citoyen";
                     $profil = Document::getLastImageByKey($uid, Person::COLLECTION, Document::IMG_PROFIL);
                     if($profil !="")
-                    $citoyen["imagePath"]= $profil;
-                                       array_push($contributors, $citoyen);
+                    	$citoyen["imagePath"]= $profil;
+                    array_push($contributors, $citoyen);
                     if( $uid == Yii::app()->session['userId'] )
                       Menu::add2MBZ( array('position' => 'right', 
                                     'tooltip' => Yii::t("common", "Send a message to this Project"), 

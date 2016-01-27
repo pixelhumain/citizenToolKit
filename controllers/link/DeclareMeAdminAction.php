@@ -8,15 +8,16 @@ class DeclareMeAdminAction extends CAction
 	 */
     public function run() {
     	$parentId = $_POST["parentId"];
-    	$idPerson = $_POST["idPerson"];
+    	$idPerson = $_POST["userId"];
     	$parentType = $_POST["parentType"];
+    	$actionAdmin = $_POST["adminAction"];
     	$result = array("result"=>false, "msg"=>Yii::t("common", "Incorrect request"));
 		
 		if (! Person::logguedAndValid()) {
 			return $result;
 		}
 		
-		$result = Link::addPersonAsAdmin($parentId, $parentType, $idPerson, Yii::app()->session["userId"]);
+		$result = Link::addPersonAsAdmin($parentId, $parentType, $idPerson, Yii::app()->session["userId"],$actionAdmin);
 		Rest::json($result);
     }
 

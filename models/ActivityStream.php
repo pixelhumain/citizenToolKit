@@ -45,6 +45,10 @@ class ActivityStream {
    */
 	public static function addEntry($param)
 	{
+		if($param["type"]==self::COLLECTION){
+			$news=$param;
+		    PHDB::insert(News::COLLECTION, $news);
+		}
 	    $param["timestamp"] = new MongoDate(time());
 	    PHDB::insert(self::COLLECTION, $param);
 	}
@@ -146,6 +150,45 @@ class ActivityStream {
 		$res = PHDB::remove(self::COLLECTION, $where);
 		return $res;
 	}
+	public static function buildEntry($params)
+    {
+        $action = array(
+            "type" => $params["type"],
+            "verb" => $params["verb"],
+            "author" => Yii::app()->session["userId"],
+            "date" => new MongoDate(time()),
+            "created" => new MongoDate(time())
+        );
 
+        if( isset( $params["object"] )){
+            $action["object"] = array( 
+                "objectType" => $params["object"]['type'],
+                "id" => $params["object"]['id']
+            );
+        }
+
+        if( isset( $params["target"] )){
+            $action["target"] = array( 
+                "objectType" => $params["target"]['type'],
+                "id" => $params["target"]['id']
+            );
+        }
+
+        if( isset( $params["ip"] ))
+        	$action["author"]["ip"] = $params["ip"];
+        	
+		if($params["type"]==ActivityStream::COLLECTION){
+			$action["scope"]["type"]="public";
+	        if( isset( $params["cities"] ))
+	        	$action["scope"]["cities"][$params["cities"]] = $params["cities"];
+			if( isset( $params["geo"] ))
+	        	$action["scope"]["geo"] = $params["geo"];
+		}
+        if( isset( $params["label"] ))
+        	$action["object"]["displayName"] = $params["label"];
+		if (isset ($params["tags"]))
+			$action["tags"] = $params["tags"];
+      return $action;
+    }
 
 }

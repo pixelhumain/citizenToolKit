@@ -27,7 +27,11 @@ class News {
 	{
 	    $res = PHDB::findAndSort(self::COLLECTION, $param,$sort,5);
 	    foreach ($res as $key => $news) {
+		    if($news["type"]==ActivityStream::COLLECTION){
+		  		$res[$key]=NewsTranslator::convertParamsForNews($news);
+	  		}
 	  		$res[$key]["author"] = Person::getSimpleUserById($news["author"]);
+	  		
 	  	}
 	  	return $res;
 	}
@@ -90,10 +94,13 @@ class News {
 				/*if( $_POST["type"] == Organization::COLLECTION && Authorisation::isOrganizationAdmin( Yii::app()->session["userId"], $_POST["typeId"]) )
 	 				throw new CTKException("You must be admin of this organization to post.");*/
 			}
-		 	if( isset($_POST["scope"])) {
-			 	$news["scope"]["type"]=$_POST["scope"];
-			 	if($_POST["scope"]=="public"){
-		 			$news["scope"]["cities"] = array($user["address"]["addressLocality"]);
+		 	if( isset($_POST["scope"]) || $_POST["type"]=="city") {
+			 	if($_POST["type"]=="city")
+			 		$news["scope"]["type"]="public";
+			 	else
+			 		$news["scope"]["type"]=$_POST["scope"];
+			 	if($news["scope"]["type"]=="public"){
+		 			$news["scope"]["cities"] = array($user["address"]["codeInsee"]);
 		 		}
 			}
 			PHDB::insert(self::COLLECTION,$news);

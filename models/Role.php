@@ -96,6 +96,7 @@ class Role {
 		}
 	}
 
+
 	public static function isDeveloper($roles) {
 		if (@$roles[self::DEVELOPER]) {
 			return true;
@@ -104,6 +105,14 @@ class Role {
 		}
 	}
 
+	public static function isUserActivated($id){
+		$personRole = PHDB::findOneById( Person::COLLECTION ,$id, array("role" => 1));
+		if (!@$personRole["tobeactivated"])
+			return true;
+		else 
+			return false;
+	}
+	
 	/**
 	 * Update the role list of an item
 	 * @param String $action an action to make on a user role map. See type of RoleAction

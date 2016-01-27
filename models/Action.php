@@ -82,6 +82,7 @@ class Action
                               "userActionSaved" => true,
                               "user"            => PHDB::findOne ( Person::COLLECTION , array("_id" => new MongoId( $userId ) ),array("actions")),
                               "element"         => PHDB::findOne ($collection,array("_id" => new MongoId($id) ),array( $action)),
+                              "inc"			=> $inc,
                               "msg"             => "Ok !"
                                );
             } else 

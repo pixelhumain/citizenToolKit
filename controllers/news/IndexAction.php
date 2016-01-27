@@ -1,7 +1,7 @@
 <?php
 class IndexAction extends CAction
 {
-    public function run($type=null, $id= null,$date = null, $streamType="news")
+    public function run($type=null, $id= null, $insee= null, $date = null, $streamType="news")
     {
         $controller=$this->getController();
         $controller->title = "Timeline";
@@ -38,10 +38,10 @@ class IndexAction extends CAction
 		$params = array();
 		if (!isset($id)){
 			if($type!="pixels"){
-			if(@$_GET["id"])
-				$id=$_GET["id"];
-			else 
-				$id = Yii::app() -> session["userId"] ;
+				if(@$_GET["id"])
+					$id=$_GET["id"];
+				else 
+					$id = Yii::app() -> session["userId"] ;
 			} else {
 				$id="";
 			}
@@ -120,10 +120,9 @@ class IndexAction extends CAction
 						array_push($authorFollowedAndMe,array("id"=>$key, "type" => "citoyens"));
 					}
 				}
-				if(@$person["address"]["addressLocality"])
-					array_push($authorFollowedAndMe, array("scope.cities" => $person["address"]["addressLocality"],"type" => array('$ne' => "pixels")));
+				if(@$person["address"]["codeInsee"])
+					array_push($authorFollowedAndMe, array("scope.cities." => $person["address"]["codeInsee"],"type" => "activityStream"));
 		        $where = array('$and' => array(
-								array("text" => array('$exists'=>1)),
 								array('$or'=> 
 										$authorFollowedAndMe
 								),
@@ -133,6 +132,7 @@ class IndexAction extends CAction
 								),
 				        	)	
 				        );
+				       //print_r($where);
 			}
 			else if($type == "organizations" || $type == "projects"){
 				$where = array('$and' => array(
@@ -157,15 +157,20 @@ class IndexAction extends CAction
 		        	)	
 				);
 			}
-			 //if(isset($type))
-	        	//$where["type"] = $type;
-	        //if(isset($id))
-	        	//$where["id"] = $id;
+			else if($type == "city"){
+				$codeInsee = $insee;
+				$where = array('$and' => array(
+						array("scope.cities[]" => $codeInsee),
+						array("type" => array('$ne' => "pixels")),
+						array('created' => array(
+								'$lt' => $date
+							)
+						),
+		        	)	
+				);
+			//	print_r($where);
+			}
 			$news=News::getNewsForObjectId($where,array("created"=>-1));
-				//print_r($news);
-	        //TODO : get since a certain date
-	//        $news = News::getWhereSortLimit($where, array("date"=>1) ,3);
-	        //print_r($news);
 		}
         //TODO : get all notifications for the current context
         else {
@@ -299,8 +304,6 @@ $newsObject=NewsTranslator::convertToNews($data,NewsTranslator::NEWS_JOIN_ORGANI
 		$params["contextParentType"] = $type; 
 		$params["contextParentId"] = $id;
 		$params["userCP"] = Yii::app()->session['userCP'];
-		$params["contextParentType"] = $type;
-		$params["contextParentId"] = $id;
 		$params["limitDate"] = end($news);
 								//print_r($params["news"]);
 		if(Yii::app()->request->isAjaxRequest){
