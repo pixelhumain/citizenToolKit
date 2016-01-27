@@ -8,9 +8,48 @@ class NewsTranslator {
 	const NEWS_CREATE_ORGANIZATION = "newsCreateOrganization";
 	const NEWS_CREATE_TASK = "newsCreateTask";
 	const NEWS_JOIN_ORGANIZATION = "newsMemberJoinOrganization";
+
+	public static function convertParamsForNews($params){
+		if($params["object"]["objectType"]==Event::COLLECTION){
+			$object=Event::getById((string)$params["object"]["id"]);
+			$docImg = Document::IMG_PROFIL;
+			$params["icon"] = "fa-calendar";
+		} 
+		else if ($params["object"]["objectType"]==Organization::COLLECTION){
+			$object=Organization::getById((string)$params["object"]["id"]);
+			$docImg = Document::IMG_PROFIL;
+			$params["icon"] = "fa-group";
+		} 
+		else if ($params["object"]["objectType"]==Project::COLLECTION){
+			$object=Project::getById((string)$params["object"]["id"]);
+			$docImg = Document::IMG_SLIDER;
+			$params["icon"]="fa-lightbulb-o";
+		}
+		$params["imageBackground"] = Document::getLastImageByKey((string) $params["object"]["id"],$params["object"]["objectType"] , $docImg);
+		$params["name"] = $object["name"];
+		$params["text"] = trim(preg_replace('/<[^>]*>/', ' ',(substr(isset($object["description"]) ? $object["description"] : "",0 ,100 ))));
+		if(@$params["target"]["objectType"]){
+			if ($params["target"]["objectType"] == Organization::COLLECTION){
+				$params["target"]=Organization::getSimpleOrganizationById($params["target"]["id"]);
+				$params["target"]["objectType"]="organizations";
+			}
+			else if ($params["target"]["objectType"]== Project::COLLECTION){
+				$params["target"] =Project::getSimpleProjectById($params["target"]["id"]);
+				$params["target"]["objectType"]="projects";
+
+			}
+				
+		}
+		return $params;
+	}
+	
+	
+	
+	
+	
 	public static function convertToNews($object, $useCase){	
 		if($useCase ==  self::NEWS_CONTRIBUTORS ){
-			$author=Person::getById($object["actor"]["id"]);
+			$author=Person::getById($object["author"]["id"]);
 			if($object["object"]["objectType"]==Person::COLLECTION){
 				$newContributor=Person::getById($object["object"]["id"]);
 				$contributorImage = Document::getLastImageByKey((string) $object["object"]["id"], Person::COLLECTION, Document::IMG_PROFIL);
@@ -29,7 +68,7 @@ class NewsTranslator {
 									"profilImageUrl" => $contributorImage
 								),
 								"author"=> array(
-									"id" => (string)$object["actor"]["id"],
+									"id" => (string)$object["author"]["id"],
 									"type" => Person::COLLECTION,
 									"name" => $author["name"],
 								),
@@ -43,13 +82,13 @@ class NewsTranslator {
 		}
 		else if($useCase ==  self::NEWS_CREATE_NEED ){
 			$need=Need::getById($object["object"]["id"]);
-			$author=Person::getById($object["actor"]["id"]);
-			$authorImage = Document::getLastImageByKey((string) $object["actor"]["id"], Person::COLLECTION, Document::IMG_PROFIL);
+			$author=Person::getById($object["author"]["id"]);
+			$authorImage = Document::getLastImageByKey((string) $object["author"]["id"], Person::COLLECTION, Document::IMG_PROFIL);
 			$newsObject= array ("_id" => $object["_id"],
 								"name" => $need["name"],
 								"text"=> isset($need["description"]) ? $need["description"] : "has been add to the project",
 								"author"=> array(
-									"id" => $object["actor"]["id"],
+									"id" => $object["author"]["id"],
 									"name" => $author["name"],
 									"profilImageUrl" => $authorImage
 								),
@@ -73,13 +112,13 @@ else if($useCase ==  self::NEWS_CREATE_TASK ){
                 "tasks" =>  array('$exists' => 1));
 			$tasks = Gantt::getTasks($where,$object["target"]["objectType"]);
 			$task=$tasks[(string)$object["object"]["id"]];
-			$author=Person::getById($object["actor"]["id"]);
-			$authorImage = Document::getLastImageByKey((string) $object["actor"]["id"], Person::COLLECTION, Document::IMG_PROFIL);
+			$author=Person::getById($object["author"]["id"]);
+			$authorImage = Document::getLastImageByKey((string) $object["author"]["id"], Person::COLLECTION, Document::IMG_PROFIL);
 			$newsObject= array ("_id" => $object["_id"],
 								"name" => $task["name"],
 								"text" => "ok",
 								"author"=> array(
-									"id" => $object["actor"]["id"],
+									"id" => $object["author"]["id"],
 									"name" => $author["name"],
 									"profilImageUrl" => $authorImage
 								),
@@ -100,8 +139,8 @@ else if($useCase ==  self::NEWS_CREATE_TASK ){
 		else if($useCase ==  self::NEWS_CREATE_PROJECT ){
 			$project=Project::getById((string)$object["object"]["id"]);
 			$image = Document::getLastImageByKey((string)$object["object"]["id"], Project::COLLECTION, Document::IMG_SLIDER);
-			$author=Person::getById($object["actor"]["id"]);
-			$authorImage = Document::getLastImageByKey((string) $object["actor"]["id"], Person::COLLECTION, Document::IMG_PROFIL);
+			$author=Person::getById($object["author"]["id"]);
+			$authorImage = Document::getLastImageByKey((string) $object["author"]["id"], Person::COLLECTION, Document::IMG_PROFIL);
 			if ($object["target"]["objectType"] == Organization::COLLECTION){
 				$target=Organization::getById($object["target"]["id"]);
 				$targetImage = Document::getLastImageByKey((string) $object["target"]["id"], Organization::COLLECTION, Document::IMG_PROFIL);
@@ -114,7 +153,7 @@ else if($useCase ==  self::NEWS_CREATE_TASK ){
 								"name" => $project["name"],
 								"text"=> trim(preg_replace('/<[^>]*>/', ' ',(substr($project["description"],0 ,100 )))),
 								"author"=> array(
-									"id" => $object["actor"]["id"],
+									"id" => $object["author"]["id"],
 									"name" => $author["name"],
 									"profilImageUrl" => $authorImage
 								),
@@ -151,8 +190,8 @@ else if($useCase ==  self::NEWS_CREATE_TASK ){
 		else if($useCase ==  self::NEWS_CREATE_EVENT ){
 			$event=Event::getById((string)$object["object"]["id"]);
 			$image = Document::getLastImageByKey((string) $object["object"]["id"], Event::COLLECTION, Document::IMG_PROFIL);
-			$author=Person::getById($object["actor"]["id"]);
-			$authorImage = Document::getLastImageByKey((string) $object["actor"]["id"], Person::COLLECTION, Document::IMG_PROFIL);
+			$author=Person::getById($object["author"]["id"]);
+			$authorImage = Document::getLastImageByKey((string) $object["author"]["id"], Person::COLLECTION, Document::IMG_PROFIL);
 			if ($object["target"]["objectType"] == Organization::COLLECTION){
 				$target=Organization::getById($object["target"]["id"]);
 				$targetImage = Document::getLastImageByKey((string) $object["target"]["id"], Organization::COLLECTION, Document::IMG_PROFIL);
@@ -171,7 +210,7 @@ else if($useCase ==  self::NEWS_CREATE_TASK ){
 								"name" => $event["name"],
 								"text"=> substr(isset($event["description"]) ? $event["description"] : "",0 ,100 ),
 								"author"=> array(
-									"id" => $object["actor"]["id"],
+									"id" => $object["author"]["id"],
 									"name" => $author["name"],
 									"profilImageUrl" => $authorImage
 								),
@@ -207,14 +246,14 @@ else if($useCase ==  self::NEWS_CREATE_TASK ){
 		else if($useCase ==  self::NEWS_CREATE_ORGANIZATION ){
 			$orga=Organization::getById($object["object"]["id"]);
 			$image = Document::getLastImageByKey((string)$object["object"]["id"], Organization::COLLECTION, Document::IMG_PROFIL);
-			$author=Person::getById($object["actor"]["id"]);
-			$authorImage = Document::getLastImageByKey((string) $object["actor"]["id"], Person::COLLECTION, Document::IMG_PROFIL);
+			$author=Person::getById($object["author"]["id"]);
+			$authorImage = Document::getLastImageByKey((string) $object["author"]["id"], Person::COLLECTION, Document::IMG_PROFIL);
 			if (@$object["tags"]) $tags = $object["tags"]; else $tags="";
 			$newsObject= array ("_id" => $object["_id"],
 								"name" => $orga["name"],
 								"text"=>trim(preg_replace('/<[^>]*>/', ' ',(substr($orga["description"],0 ,100 )))),
 								"author"=> array(
-									"id" => $object["actor"]["id"],
+									"id" => $object["author"]["id"],
 									"name" => $author["name"],
 									"profilImageUrl" => $authorImage
 								),
@@ -241,8 +280,8 @@ else if($useCase ==  self::NEWS_CREATE_TASK ){
 			return $newsObject;	
 		}	
 		else if($useCase ==  self::NEWS_JOIN_ORGANIZATION ){
-			$author=Person::getById($object["actor"]["id"]);
-			$memberImage = Document::getLastImageByKey((string)$object["actor"]["id"], Person::COLLECTION, Document::IMG_PROFIL);
+			$author=Person::getById($object["author"]["id"]);
+			$memberImage = Document::getLastImageByKey((string)$object["author"]["id"], Person::COLLECTION, Document::IMG_PROFIL);
 			if($object["object"]["objectType"]==Organization::COLLECTION){
 				$newMember=Organization::getById($object["object"]["id"]);	
 			}
@@ -251,17 +290,17 @@ else if($useCase ==  self::NEWS_CREATE_TASK ){
 			}
 				
 			if (@$object["tags"]) $tags = $object["tags"]; else $tags="";
-			$newsObject= array ("_id" => $object["_id"],
+			$newsObject = array ("_id" => $object["_id"],
 								"name" =>$newMember["name"]." is new member",
 								"text"=> "has joined the organization",
 								"target"=> array(
-									"id" => (string)$object["actor"]["id"],
+									"id" => (string)$object["author"]["id"],
 									"name" => $author["name"],
 									"type" => Person::COLLECTION,
 									"profilImageUrl" => $memberImage
 								),
 								"author"=> array(
-									"id" => (string)$object["actor"]["id"],
+									"id" => (string)$object["author"]["id"],
 									"type" => Person::COLLECTION,
 									"name" => $author["name"],
 								),

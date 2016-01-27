@@ -38,16 +38,17 @@ class ActStr {
         $action = array(
             "type" => $params["type"],
             "verb" => $params["verb"],
+            "author" => Yii::app()->session["userId"],
             "date" => new MongoDate(time()),
-            "timestamp" => new MongoDate(time())
+            "created" => new MongoDate(time())
         );
 
-        if( isset( $params["actor"] )){
-            $action["actor"] = array( 
-                "objectType" => $params["actor"]['type'],
-                "id" => $params["actor"]['id']
+      /*  if( isset( $params["author"] )){
+            $action["author"] = array( 
+                "objectType" => $params["author"]['type'],
+                "id" => $params["author"]['id']
             );
-        }
+        }*/
 
         if( isset( $params["object"] )){
             $action["object"] = array( 
@@ -64,13 +65,15 @@ class ActStr {
         }
 
         if( isset( $params["ip"] ))
-        	$action["actor"]["ip"] = $params["ip"];
-
-        if( isset( $params["codeInsee"] ))
-        	$action["codeInsee"] = $params["codeInsee"];
-		if( isset( $params["geo"] ))
-        	$action["geo"] = $params["geo"];
-
+        	$action["author"]["ip"] = $params["ip"];
+        	
+		if($params["type"]==ActivityStream::COLLECTION){
+			$action["scope.type"]="public";
+	        if( isset( $params["cities"] ))
+	        	$action["scope"]["cities"] = $params["cities"];
+			if( isset( $params["geo"] ))
+	        	$action["scope"]["geo"] = $params["geo"];
+		}
         if( isset( $params["label"] ))
         	$action["object"]["displayName"] = $params["label"];
 		if (isset ($params["tags"]))
