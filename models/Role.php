@@ -6,6 +6,7 @@ class Role {
 	const REVOKE_BETA_TESTER = "revokeBetaTester";
 	const ADD_SUPER_ADMIN = "addSuperAdmin";
 	const REVOKE_SUPER_ADMIN = "revokeSuperAdmin";
+	const DEVELOPER = "developer";
 	
 	/**
 	 * Default Roles for a new person : 
@@ -94,6 +95,16 @@ class Role {
 			return false;
 		}
 	}
+
+
+	public static function isDeveloper($roles) {
+		if (@$roles[self::DEVELOPER]) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
 	public static function isUserActivated($id){
 		$personRole = PHDB::findOneById( Person::COLLECTION ,$id, array("role" => 1));
 		if (!@$personRole["tobeactivated"])
@@ -101,6 +112,7 @@ class Role {
 		else 
 			return false;
 	}
+	
 	/**
 	 * Update the role list of an item
 	 * @param String $action an action to make on a user role map. See type of RoleAction
