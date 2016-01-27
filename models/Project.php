@@ -119,7 +119,7 @@ class Project {
 	    }
 
 	    if(empty($project['startDate']) || empty($project['endDate'])) {
-			throw new CTKException("The start and end date of an event are required.");
+			throw new CTKException("The start or end date of an project are required.");
 		}
 
 		//The end datetime must be after start datetime
@@ -175,7 +175,8 @@ class Project {
 			$newProject["licence"] = $project['licence'];
 
 		//Tags
-		if (isset($project['tags'])) {
+		$newProject["tags"] = null;
+		if (isset($project['tags']) ) {
 			if ( gettype($project['tags']) == "array" ) {
 				$tags = $project['tags'];
 			} else if ( gettype($project['tags']) == "string" ) {
