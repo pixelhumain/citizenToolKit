@@ -170,51 +170,152 @@ class Organization {
 		return $newOrganization;
 	}
 
-
-	public static function newOrganizationFromImportData($organization) {
-		
+	
+	public static function newOrganizationFromImportData($organization, $emailCreator=null) {
+		//var_dump($organization);
 		$newOrganization = array();
-		$newOrganization["email"] = empty($organization['email']) ? "" : $organization['email'];
-		$newOrganization["name"] = empty($organization['name']) ? "" : $organization['name'];
+		/*if(!empty($organization['email']))
+			$newOrganization["email"] = $organization['email'];*/
+
+		$newOrganization["email"] = empty($organization["email"]) ? $emailCreator : $organization["email"];
+
+		if(!empty($organization['name']))
+			$newOrganization["name"] = $organization['name'];
+
 		$newOrganization["type"] = empty($organization['type']) ? Organization::TYPE_GROUP : $organization['type'];
-		$newOrganization["postalCode"] = empty($organization['postalCode']) ? "" : $organization['postalCode'];
-		$newOrganization["city"] = empty($organization['city']) ? "" : $organization['city'];
-		$newOrganization["description"] = empty($organization['description']) ? "" : $organization['description'];
-		$newOrganization["tags"] = empty($organization['tags']) ? "" : $organization['tags'];
+		
+		if(!empty($organization['description']))
+			$newOrganization["description"] = $organization['description'];
+
+		
+
 		$newOrganization["role"] = empty($organization['role']) ? "" : $organization['role'];
-		//$newOrganization["video"] = empty($organization['video']) ? "" : $organization['video'];
-		//$newOrganization["contactPoint"] = empty($organization['contactPoint']) ? "" : $organization['contactPoint'];
-		//$newOrganization["address"] = empty($organization['address']) ? "" : $organization['address'];
-		$newOrganization["created"] = empty($organization['created']) ? "" : $organization['created'];
-		//$newOrganization["details"] = empty($organization['details']) ? "" : $organization['details'];
+		$newOrganization["creator"] = empty($organization['creator']) ? "" : $organization['creator'];
+		
+		$newOrganization['address']['@type'] = "PostalAddress" ;
 		$newOrganization['address']['streetAddress'] = empty($organization['address']['streetAddress']) ? "" : $organization['address']['streetAddress'];
 		$newOrganization['address']['postalCode'] = empty($organization['address']['postalCode']) ? "" : $organization['address']['postalCode'];
-		$newOrganization['address']['addressCountry'] = empty($organization['address']['addressCountry']) ? "" : $organization['address']['addressCountry'];
+		$newOrganization['address']['addressCountry'] = empty($organization['address']['addressCountry']) ? "FR" : $organization['address']['addressCountry'];
 		$newOrganization['address']['addressLocality'] = empty($organization['address']['addressLocality']) ? "" : $organization['address']['addressLocality'];
-		$newOrganization['address']['geo']['latitude'] = empty($organization['address']['geo']['latitude']) ? "" : $organization['address']['geo']['latitude'];
-		$newOrganization['address']['geo']['longitude'] = empty($organization['address']['geo']['longitude']) ? "" : $organization['address']['geo']['longitude'];
-		$newOrganization["url"] = empty($organization['url']) ? "" : $organization['url'];
-		/*if(!empty($organization['address']['streetAddress']))
+		$newOrganization['address']['codeInsee'] = empty($organization['address']['codeInsee']) ? "" : $organization['address']['codeInsee'];
+	
+		if(!empty($organization['geo']))
 		{
-			$nominatim = "http://nominatim.openstreetmap.org/search?q=".urlencode($organization['address']['streetAddress'])."&format=json&polygon=0&addressdetails=1";
+			$newOrganization['geo']['@type'] = "GeoCoordinates" ;
+			$newOrganization['geo']['latitude'] = empty($organization['geo']['latitude']) ? "" : $organization['geo']['latitude'];
+			$newOrganization['geo']['longitude'] = empty($organization['geo']['longitude']) ? "" : $organization['geo']['longitude'];
+		}
+		
+		if(!empty($organization['url']))
+			$newOrganization["url"] = empty($organization['url']) ? "" : $organization['url'];
 
-			$curl = curl_init($nominatim);
-			curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-			$returnCURL = json_decode(curl_exec($curl),true);
-			//var_dump($returnCURL);
-			if(!empty($returnCURL) || $returnCURL != array())
+
+		if(!empty($organization['tags']))
+		{	
+			$tags = array();
+			foreach ($organization['tags'] as $key => $value) {
+				if(!empty(trim($value)))
+					$tags[] = $value;
+			}
+			$newOrganization["tags"] = $tags;
+		}
+
+		if(!empty($organization['telephone']))
+		{
+			$tel = array();
+			$fixe = array();
+			$mobile = array();
+			if(!empty($organization['telephone']["fixe"]))
 			{
-				foreach ($returnCURL as $key => $valueAdress) {
-					$newOrganization['address']['geo']['@type'] = "GeoCoordinates" ;
-					$newOrganization['address']['geo']['latitude'] = $valueAdress['lat'];
-					$newOrganization['address']['geo']['longitude'] = $valueAdress['lon'] ;
+				foreach ($organization['telephone']["fixe"] as $key => $value) {
+					if(!empty(trim($value)))
+						$fixe[] = $value;
 				}
+			}
+			if(!empty($organization['telephone']["mobile"]))
+			{
+				foreach ($organization['telephone']["mobile"] as $key => $value) {
+					if(!empty(trim($value)))
+						$mobile[] = $value;
+				}
+			}
+			if(count($mobile) != 0)
+				$tel["mobile"] = $mobile ;
+			if(count($fixe) != 0)
+				$tel["fixe"] = $fixe ;
+			if(count($tel) != 0)	
+				$newOrganization['telephone'] = $tel;
+		}
 
-			}	
-			curl_close($curl);
-		}*/
-		//var_dump($newOrganization);
+		if(!empty($organization['contact']))
+		{
+			$contact = array();
+			
+			foreach ($organization['contact'] as $keyContact => $valueContact) {
+				$unContact = array();
+				
+				foreach ($valueContact as $key => $value) {
+					//var_dump($value);
+					if(is_array($value))
+					{
+						$arrayName = array();
+						foreach ($value as $keyArray => $valueArray) {
+							if(!empty(trim($valueArray)))
+								$arrayName[] = $valueArray ;
+						}
+						if(count($arrayName) != 0)
+							$unContact[$key] = $arrayName;
+					}
+					else{
+						if(!empty(trim($value)))
+							$unContact[$key] = $value ;	
+					}
+					
+				}
+				if(count($unContact) != 0)
+					$contact[] = $unContact;
+			}
+			
+			if(count($contact) != 0)	
+				$newOrganization['contact'] = $contact;
+		}
 		return $newOrganization;
+	}
+	public static function getAndCheckNameOrganization($organization, $arrayOrganization) {
+
+
+	}
+
+	public static function getAndCheckAdressOrganization($organization) {
+		if(!empty(trim($organization['address']['postalCode'])))
+		{
+			$where = array("cp"=>$organization['address']['postalCode']);
+			$fields = array("name", "alternateName");
+	        $option = City::getWhere($where, $fields);
+	        if(!empty($option))
+	        {
+	        	/*$findCity = false ;
+		        //var_dump($organization['address']['postalCode']);
+		        foreach ($option as $key => $value) {
+		        	//var_dump($value['name']);
+		        	//var_dump($value['alternateName']);
+		        	if($organization['address']['addressLocality'] == $value['name'])
+		        	{
+		        		$findCity = true;
+		        		$organization['address']['addressLocality'] = $value['alternateName'] ;
+		        	}
+		        }
+		        if($findCity != true)
+					throw new CTKException("Le nom de la ville n'est pas conforme.");*/
+		    }
+		    else
+		    	throw new CTKException("Ce code postal n'existe pas.");	
+	        	
+	    }else{
+	    	throw new CTKException("Cette organisation n'a pas de code postal.");	
+		}
+
+		return $organization ;
 	}
 
 	/**
@@ -271,8 +372,8 @@ class Organization {
 		//$geo = SIG::getPositionByCp($organization['postalCode']);
 		//$insee = SIG::getInseeByLatLngCp($geo["latitude"], $geo["longitude"], $organization['postalCode']);
 				  
-		if (!empty($organization['description']))
-			$newOrganization["description"] = $organization['description'];
+		
+
 				  
 		//Tags
 		if (isset($organization['tags'])) {
@@ -296,8 +397,14 @@ class Organization {
 
 		//************************ Import Data specific ********************/
 		//ConctactPoint
-		if(!empty($organization['contactPoint'])){
-			foreach ($organization['contactPoint'] as $key => $valueContactPoint) {
+		if (!empty($organization['description']))
+			$newOrganization["description"] = $organization['description'];
+
+		if (!empty($organization['telephone']))
+			$newOrganization["telephone"] = $organization['telephone'];
+
+		if(!empty($organization['contact'])){
+			foreach ($organization['contact'] as $key => $valueContactPoint) {
 				if(!empty($valueContactPoint['email'])){
 					//validate Email
 					if (! preg_match('#^[\w.-]+@[\w.-]+\.[a-zA-Z]{2,6}$#',$valueContactPoint['email'])) { 
@@ -305,12 +412,16 @@ class Organization {
 					}
 				}
 			}
-			$newOrganization["contactPoint"] = $organization['contactPoint'];
+			$newOrganization["contact"] = $organization['contact'];
 		}
 
 		//address by ImportData
 		if(!empty($organization['address'])){
 			$newOrganization["address"] = $organization['address'];
+		}
+
+		if(!empty($organization['creator'])){
+			$newOrganization["creator"] = $organization['creator'];
 		}
 
 		if(!empty($organization['role'])){
@@ -342,8 +453,6 @@ class Organization {
 		}
 
 
-		/*echo "yoyo";
-		var_dump($newOrganization);*/
 		return $newOrganization;
 	}
 

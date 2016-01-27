@@ -5,7 +5,7 @@ class ImportDataAction extends CAction
     public function run()
     {
         $controller = $this->getController();
-    	$params = array();
+    	$params = Import::importData($_FILES, $_POST);
 
         if(Yii::app()->request->isAjaxRequest)
             echo $controller->renderPartial("importData",$params,true);
@@ -13,3 +13,5 @@ class ImportDataAction extends CAction
             $controller->render("importData",$params);
     }
 }
+
+?>

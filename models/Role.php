@@ -6,6 +6,7 @@ class Role {
 	const REVOKE_BETA_TESTER = "revokeBetaTester";
 	const ADD_SUPER_ADMIN = "addSuperAdmin";
 	const REVOKE_SUPER_ADMIN = "revokeSuperAdmin";
+	const DEVELOPER = "developer";
 	
 	/**
 	 * Default Roles for a new person : 
@@ -89,6 +90,14 @@ class Role {
 
 	public static function isUserBetaTester($roles) {
 		if (@Yii::app()->params['betaTest'] && @$roles["betaTester"]) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	public static function isDeveloper($roles) {
+		if (@$roles[self::DEVELOPER]) {
 			return true;
 		} else {
 			return false;
