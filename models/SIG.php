@@ -250,8 +250,11 @@ class SIG
 	public static function getAdressSchemaLikeByCodeInsee($codeInsee) {
 		$city = self::getCityByCodeInsee($codeInsee);
 
-		$address = array("@type"=>"PostalAddress", "postalCode"=> $city['cp'], 
-				"addressLocality" => $city["alternateName"], "codeInsee" => $codeInsee);
+		$address = array("@type"=>"PostalAddress", 
+						"postalCode"=> $city['cp'], 
+						"addressLocality" => $city["alternateName"], 
+						"codeInsee" => $codeInsee,
+						"country" => $city['country'] );
 		return $address;
 	}
 
