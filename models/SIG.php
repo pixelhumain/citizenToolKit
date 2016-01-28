@@ -254,7 +254,7 @@ class SIG
 						"postalCode"=> $city['cp'], 
 						"addressLocality" => $city["alternateName"], 
 						"codeInsee" => $codeInsee,
-						"country" => $city['country'] );
+						"addressCountry" => $city['country'] );
 		return $address;
 	}
 
