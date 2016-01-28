@@ -23,12 +23,17 @@ class News {
 	  	}
 	  	return $res;
 	}
-	public static function getNewsForObjectId($param,$sort=array("created"=>-1))
+	public static function getNewsForObjectId($param,$sort=array("created"=>-1),$type)
 	{
 	    $res = PHDB::findAndSort(self::COLLECTION, $param,$sort,5);
 	    foreach ($res as $key => $news) {
-		    if($news["type"]==ActivityStream::COLLECTION){
-		  		$res[$key]=NewsTranslator::convertParamsForNews($news);
+		    if(@$news["type"]){
+			    if($news["type"]==ActivityStream::COLLECTION)
+			  		$res[$key]=NewsTranslator::convertParamsForNews($news);
+		  		if($news["type"]==Project::COLLECTION)
+			  		$res[$key]["postOn"]=Project::getSimpleProjectById($news["id"]);
+		  		if ($news["type"]==Organization::COLLECTION)
+			  		$res[$key]["postOn"]=Organization::getSimpleOrganizationById($news["id"]);
 	  		}
 	  		$res[$key]["author"] = Person::getSimpleUserById($news["author"]);
 	  		
