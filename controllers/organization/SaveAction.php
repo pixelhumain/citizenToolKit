@@ -1,6 +1,6 @@
 <?php
 
-class SaveNewAction extends CAction
+class SaveAction extends CAction
 {
     /**
 	* Save a new organization with the minimal information
