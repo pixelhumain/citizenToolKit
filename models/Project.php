@@ -14,6 +14,7 @@ class Project {
 	    "city" => array("name" => "address.codeInsee"),
 	    "addressCountry" => array("name" => "address.addressCountry"),
 	    "geo" => array("name" => "geo"),
+	    "geoPosition" => array("name" => "geoPosition"),
 	    "description" => array("name" => "description"),
 	    "shortDescription" => array("name" => "shortDescription"),
 	    "startDate" => array("name" => "startDate" ),
@@ -155,11 +156,12 @@ class Project {
 						"latitude" => $project['geoPosLatitude'],
 						"longitude" => $project['geoPosLongitude']);
 
-			$newProject["geoPosition"] = 
-				array(	"type"=>"point",
-						"coordinates" =>
-							array($project['geoPosLatitude'],
-					 	  		  $project['geoPosLongitude']));
+			$newProject["geoPosition"] = array("type"=>"Point",
+													"coordinates" =>
+														array(
+															floatval($project['geoPosLongitude']),
+															floatval($project['geoPosLatitude']))
+												 	  	);
 		}else if(!$update)
 		{
 			$newProject["geo"] = SIG::getGeoPositionByInseeCode($insee);

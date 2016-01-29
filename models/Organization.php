@@ -159,11 +159,12 @@ class Organization {
 											"latitude" => $organization['geoPosLatitude'],
 											"longitude" => $organization['geoPosLongitude']);
 
-			$newOrganization["geoPosition"] = array("type"=>"point",
-													"coordinates" =>
-													array($organization['geoPosLatitude'],
-											 	  		  $organization['geoPosLongitude'])
-											 	  	);
+			$newOrganization["geoPosition"] = array("type"=>"Point",
+															"coordinates" =>
+																array(
+																	floatval($person['geoPosLongitude']),
+																	floatval($person['geoPosLatitude']))
+														 	  	);
 		}
 		
 		return $newOrganization;
