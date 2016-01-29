@@ -1,7 +1,7 @@
 <?php
 class IndexAction extends CAction
 {
-    public function run($type=null, $id= null, $insee= null, $date = null, $streamType="news")
+    public function run($type=null, $id= null, $date = null, $streamType="news")
     {
         $controller=$this->getController();
         $controller->title = "Timeline";
@@ -38,10 +38,15 @@ class IndexAction extends CAction
 		$params = array();
 		if (!isset($id)){
 			if($type!="pixels"){
-				if(@$_GET["id"])
-					$id=$_GET["id"];
-				else 
-					$id = Yii::app() -> session["userId"] ;
+				if($type=="city"){
+					$id=$_GET["insee"];
+				}
+				else{
+					if(@$_GET["id"])
+						$id=$_GET["id"];
+					else 
+						$id = Yii::app() -> session["userId"] ;
+				}
 			} else {
 				$id="";
 			}
@@ -158,9 +163,8 @@ class IndexAction extends CAction
 				);
 			}
 			else if($type == "city"){
-				$codeInsee = $insee;
 				$where = array('$and' => array(
-						array("scope.cities" => array('$in' => array($codeInsee))),
+						array("scope.cities" => array('$in' => array($id))),
 						array("type" => array('$ne' => "pixels")),
 						array('created' => array(
 								'$lt' => $date
@@ -168,7 +172,6 @@ class IndexAction extends CAction
 						),
 		        	)	
 				);
-			//	print_r($where);
 			}
 			$news=News::getNewsForObjectId($where,array("created"=>-1),$type);
 		}
@@ -297,6 +300,7 @@ $newsObject=NewsTranslator::convertToNews($data,NewsTranslator::NEWS_JOIN_ORGANI
 				}
 			}
 		}
+
 		$news = array_msort($news, array('created'=>SORT_DESC));
         //TODO : reorganise by created date
 		$params["news"] = $news; 
