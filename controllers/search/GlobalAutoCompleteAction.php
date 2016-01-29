@@ -5,7 +5,13 @@ class GlobalAutoCompleteAction extends CAction
     {
         $search = trim(urldecode($_POST['name']));
         $locality = isset($_POST['locality']) ? trim(urldecode($_POST['locality'])) : null;
-        
+        $searchType = isset($_POST['searchType']) ? $_POST['searchType'] : null;
+
+        if($search == "" && $locality == "") {
+        	Rest::json(array());
+			Yii::app()->end();
+        }
+
         /***********************************  DEFINE GLOBAL QUERY   *****************************************/
         $query = array( "name" => new MongoRegex("/".$search."/i"));
   		
@@ -41,13 +47,14 @@ class GlobalAutoCompleteAction extends CAction
 
 
         /***********************************  PERSONS   *****************************************/
-        if(strcmp($filter, Person::COLLECTION) != 0){
+        if(strcmp($filter, Person::COLLECTION) != 0 && $this->typeWanted("persons", $searchType)){
 
         	$allCitoyen = PHDB::find ( Person::COLLECTION , $query, array("name", "address", "shortDescription", "description"));
 
 	  		foreach ($allCitoyen as $key => $value) {
 	  			$person = Person::getSimpleUserById($key);
 	  			$person["type"] = "citoyen";
+				$person["typeSig"] = "citoyens";
 				$allCitoyen[$key] = $person;
 	  		}
 
@@ -56,12 +63,13 @@ class GlobalAutoCompleteAction extends CAction
 	  	}
 
 	  	/***********************************  ORGANISATIONS   *****************************************/
-        if(strcmp($filter, Organization::COLLECTION) != 0){
+        if(strcmp($filter, Organization::COLLECTION) != 0 && $this->typeWanted("organizations", $searchType)){
 
 	  		$allOrganizations = PHDB::find ( Organization::COLLECTION ,$query ,array("name", "address", "shortDescription", "description"));
 	  		foreach ($allOrganizations as $key => $value) {
 	  			$orga = Organization::getSimpleOrganizationById($key);
 				$orga["type"] = "organization";
+				$orga["typeSig"] = "organizations";
 				$allOrganizations[$key] = $orga;
 	  		}
 
@@ -69,11 +77,12 @@ class GlobalAutoCompleteAction extends CAction
 	  	}
 
 	  	/***********************************  EVENT   *****************************************/
-        if(strcmp($filter, Event::COLLECTION) != 0){
+        if(strcmp($filter, Event::COLLECTION) != 0 && $this->typeWanted("events", $searchType)){
 	  		$allEvents = PHDB::find(PHType::TYPE_EVENTS, $query, array("name", "address", "shortDescription", "description"));
 	  		foreach ($allEvents as $key => $value) {
 	  			$event = Event::getById($key);
 				$event["type"] = "event";
+				$event["typeSig"] = "events";
 				$allEvents[$key] = $event;
 	  		}
 	  		
@@ -82,19 +91,20 @@ class GlobalAutoCompleteAction extends CAction
 	  	}
 
 	  	/***********************************  PROJECTS   *****************************************/
-        if(strcmp($filter, Project::COLLECTION) != 0){
+        if(strcmp($filter, Project::COLLECTION) != 0 && $this->typeWanted("projects", $searchType)){
 	  		$allProject = PHDB::find(Project::COLLECTION, $query, array("name", "address", "shortDescription", "description"));
 	  		foreach ($allProject as $key => $value) {
 	  			$project = Project::getById($key);
 				$project["type"] = "project";
+				$project["typeSig"] = "projects";
 				$allProject[$key] = $project;
 	  		}
 	  		$res["project"] = $allProject;
 	  	}
-	  	
+
 
 	  	/***********************************  CITIES   *****************************************/
-        if(strcmp($filter, City::COLLECTION) != 0){
+        if(strcmp($filter, City::COLLECTION) != 0 && $this->typeWanted("cities", $searchType)){
 	  		$query = array( "name" => new MongoRegex("/".self::wd_remove_accents($search)."/i"));
 	  		
 	  		/***********************************  DEFINE LOCALITY QUERY   *****************************************/
@@ -119,7 +129,8 @@ class GlobalAutoCompleteAction extends CAction
 	  			if($nbCities < $nbMaxCities){
 		  			$city = City::getSimpleCityById($key);
 		  			$city["type"] = "city";
-					$allCitiesRes[$key] = $city;
+					$city["typeSig"] = "city";
+				$allCitiesRes[$key] = $city;
 				} $nbCities++;
 	  		}
 	  		$res["cities"] = $allCitiesRes;
@@ -132,6 +143,7 @@ class GlobalAutoCompleteAction extends CAction
 		  			if($nbCities < $nbMaxCities){
 			  			$city = City::getSimpleCityById($key);
 						$city["type"] = "city";
+						$city["typeSig"] = "city";
 						$allCitiesRes[$key] = $city;
 					} $nbCities++;
 		  		}
@@ -165,5 +177,10 @@ class GlobalAutoCompleteAction extends CAction
 			//le cas où le lieu est demandé en toute lettre
 			return "NAME";
 		}
+	}
+
+	private function typeWanted($type, $searchType){
+		if($searchType == null) return true;
+		return in_array($type, $searchType);
 	}
 }

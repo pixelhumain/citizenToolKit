@@ -108,36 +108,36 @@ class Project {
 	 * @param array $project : array with the data of the project to check
 	 * @return array Project well format : ready to be inserted
 	 */
-	public static function getAndCheckProject($project, $userId) {
+	public static function getAndCheckProject($project, $userId,$update=null) {
 
+		$newProject = array();
 		if (empty($project['name'])) {
 			throw new CTKException(Yii::t("project","You have to fill a name for your project"));
-		}
+		}else
+			$newProject['startDate'] = $project['name'];
 		
-		// Is There a association with the same name ?
-	    $projectSameName = PHDB::findOne(self::COLLECTION ,array( "name" => $_POST['name']));
-	    if($projectSameName) { 
-	      throw new CTKException(Yii::t("project","A project with the same name already exist in the plateform"));
-	    }
-
-	    if(empty($project['startDate']) || empty($project['endDate'])) {
-			throw new CTKException("The start and end date of an event are required.");
+		// Is There a project with the same name ?
+		if(!$update){
+		    $projectSameName = PHDB::findOne(self::COLLECTION ,array( "name" => $_POST['name']));
+		    if($projectSameName) { 
+		      throw new CTKException(Yii::t("project","A project with the same name already exist in the plateform"));
+		    }
 		}
 
-		//The end datetime must be after start datetime
-		$startDate = strtotime($project['startDate']);
-		$endDate = strtotime($project['endDate']);
-		if ($startDate > $endDate) {
-			throw new CTKException("The start date must be before the end date.");
+		
+		if(!$update){
+			$newProject = array(
+				"name" => $project['name'],
+				'creator' => $userId,
+				'created' => new MongoDate(time())
+		    );
 		}
 
-		$newProject = array(
-			"name" => $project['name'],
-			'startDate' => new MongoDate($startDate),
-			'endDate' => new MongoDate($endDate),
-			'creator' => $userId,
-			'created' => new MongoDate(time())
-	    );
+		if(!empty($project['startDate']) )
+			$newProject['startDate'] = new MongoDate( strtotime( $project['startDate'] ));
+			
+		if(!empty($project['endDate'])) 
+			$newProject['endDate'] = new MongoDate( strtotime( $project['endDate'] ));
 				  
 		if(!empty($project['postalCode'])) {
 			if (!empty($project['city'])) {
@@ -146,7 +146,7 @@ class Project {
 				$newProject["address"] = $address;
 				//$newProject["geo"] = SIG::getGeoPositionByInseeCode($insee);
 			}
-		} else {
+		} else if(!$update){
 			throw new CTKException(Yii::t("project","Please fill the postal code of the project to communect it"));
 		}
 
@@ -161,7 +161,7 @@ class Project {
 						"coordinates" =>
 							array($project['geoPosLatitude'],
 					 	  		  $project['geoPosLongitude']));
-		}else
+		}else if(!$update)
 		{
 			$newProject["geo"] = SIG::getGeoPositionByInseeCode($insee);
 		}
@@ -177,7 +177,8 @@ class Project {
 			$newProject["licence"] = $project['licence'];
 
 		//Tags
-		if (isset($project['tags'])) {
+		$newProject["tags"] = null;
+		if (isset($project['tags']) ) {
 			if ( gettype($project['tags']) == "array" ) {
 				$tags = $project['tags'];
 			} else if ( gettype($project['tags']) == "string" ) {
@@ -196,27 +197,41 @@ class Project {
 	 * @return array as result type
 	 */
 	public static function insert($params, $parentId,$parentType){
-	    if ( $parentType== "citoyen"){
-		    $type= Person::COLLECTION;
-	    }
-	    else {
-		    $type= Organization::COLLECTION;
-	    }
-
 	    $newProject = self::getAndCheckProject($params, $parentId);
 	    if (isset($newProject["tags"]))
 			$newProject["tags"] = Tags::filterAndSaveNewTags($newProject["tags"]);
 
 	    // TODO SBAR - If a Link::connect is used why add a link hard coded
 	    $newProject["links"] = array( "contributors" => 
-	    								array($parentId =>array("type" => $type,"isAdmin" => true)));
+	    								array($parentId =>array("type" => $parentType,"isAdmin" => true)));
 
 	    PHDB::insert(self::COLLECTION,$newProject);
 
-	    Link::connect($parentId, $type, $newProject["_id"], self::COLLECTION, $parentId, "projects", true );
+	    Link::connect($parentId, $parentType, $newProject["_id"], self::COLLECTION, $parentId, "projects", true );
 
-	    Notification::createdObjectAsParam(Person::COLLECTION,Yii::app() -> session["userId"],Project::COLLECTION, (String)$newProject["_id"], $type, $parentId, $newProject["geo"], $newProject["tags"],$newProject["address"]["codeInsee"]);
+	    Notification::createdObjectAsParam(Person::COLLECTION,Yii::app() -> session["userId"],Project::COLLECTION, (String)$newProject["_id"], $parentType, $parentId, $newProject["geo"], $newProject["tags"],$newProject["address"]["codeInsee"]);
 	    return array("result"=>true, "msg"=>"Votre projet est communecté.", "id" => $newProject["_id"]);	
+	}
+
+	/**
+	 * update an organization in database
+	 * @param String $organizationId : 
+	 * @param array $organization organization fields to update
+	 * @param String $userId : the userId making the update
+	 * @return array of result (result => boolean, msg => string)
+	 */
+	public static function update($projectId, $projectChangedFields, $userId) 
+	{
+		//Check if user is authorized to update
+		if (! Authorisation::isProjectAdmin($projectId,$userId)) {
+			return array("result"=>false, "msg"=>Yii::t("project", "Unauthorized Access."),"res"=>Authorisation::isProjectAdmin($userId, $projectId));
+		}
+		
+		foreach ($projectChangedFields as $fieldName => $fieldValue) {
+			self::updateProjectField($projectId, $fieldName, $fieldValue, $userId);
+		}
+
+	    return array("result"=>true, "msg"=>Yii::t("project", "The project has been updated"), "id"=>$projectId);
 	}
 
 	public static function removeProject($projectId, $userId) {
@@ -277,7 +292,7 @@ class Project {
 		}
 
 		//address
-		if ($dataFieldName == "address") {
+		else if ($dataFieldName == "address") {
 			if(!empty($projectFieldValue["postalCode"]) && !empty($projectFieldValue["codeInsee"])) {
 				$insee = $projectFieldValue["codeInsee"];
 				$address = SIG::getAdressSchemaLikeByCodeInsee($insee);
@@ -303,7 +318,7 @@ class Project {
 		PHDB::update( self::COLLECTION, array("_id" => new MongoId($projectId)), 
 		                          array('$set' => $set));
 	                  
-	    return array("result"=>true, "msg"=>"Votre projet a été modifié avec succes", "id"=>$projectId);
+	    return array("result"=>true, "msg"=>Yii::t("project","Your project is updated"), "id"=>$projectId);
 	}
 
  	/**

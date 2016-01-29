@@ -12,12 +12,11 @@ class UpdateAction extends CAction
 		}
 
 		$projectId = $_POST["projectId"];
-		$project = Project::newprojectFromPost($_POST);
-
+		unset($_POST["projectId"]);
 		$res = array("result"=>false, "msg"=>Yii::t("common", "Something went wrong!"));
 		try {
-			project::update($projectId, $project, Yii::app()->session["userId"]);
-			$res = array("result"=>true, "msg"=>Yii::t("project", "The project has been updated"));
+			$project = Project::getAndCheckProject($_POST, Yii::app()->session["userId"],true);
+			$res = Project::update($projectId, $project, Yii::app()->session["userId"]);
 		} catch (CTKException $e) {
 			$res = array("result"=>false, "msg"=>$e->getMessage());
 		}
