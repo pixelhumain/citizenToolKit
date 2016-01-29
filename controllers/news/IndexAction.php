@@ -160,7 +160,7 @@ class IndexAction extends CAction
 			else if($type == "city"){
 				$codeInsee = $insee;
 				$where = array('$and' => array(
-						array("scope.cities[]" => $codeInsee),
+						array("scope.cities" => array('$in' => array($codeInsee))),
 						array("type" => array('$ne' => "pixels")),
 						array('created' => array(
 								'$lt' => $date
@@ -170,7 +170,7 @@ class IndexAction extends CAction
 				);
 			//	print_r($where);
 			}
-			$news=News::getNewsForObjectId($where,array("created"=>-1));
+			$news=News::getNewsForObjectId($where,array("created"=>-1),$type);
 		}
         //TODO : get all notifications for the current context
         else {

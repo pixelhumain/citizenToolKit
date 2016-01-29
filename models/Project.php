@@ -121,7 +121,7 @@ class Project {
 	    }
 
 	    if(empty($project['startDate']) || empty($project['endDate'])) {
-			throw new CTKException("The start and end date of an event are required.");
+			throw new CTKException("The start or end date of an project are required.");
 		}
 
 		//The end datetime must be after start datetime
@@ -177,7 +177,8 @@ class Project {
 			$newProject["licence"] = $project['licence'];
 
 		//Tags
-		if (isset($project['tags'])) {
+		$newProject["tags"] = null;
+		if (isset($project['tags']) ) {
 			if ( gettype($project['tags']) == "array" ) {
 				$tags = $project['tags'];
 			} else if ( gettype($project['tags']) == "string" ) {
@@ -196,26 +197,19 @@ class Project {
 	 * @return array as result type
 	 */
 	public static function insert($params, $parentId,$parentType){
-	    if ( $parentType== "citoyen"){
-		    $type= Person::COLLECTION;
-	    }
-	    else {
-		    $type= Organization::COLLECTION;
-	    }
-
 	    $newProject = self::getAndCheckProject($params, $parentId);
 	    if (isset($newProject["tags"]))
 			$newProject["tags"] = Tags::filterAndSaveNewTags($newProject["tags"]);
 
 	    // TODO SBAR - If a Link::connect is used why add a link hard coded
 	    $newProject["links"] = array( "contributors" => 
-	    								array($parentId =>array("type" => $type,"isAdmin" => true)));
+	    								array($parentId =>array("type" => $parentType,"isAdmin" => true)));
 
 	    PHDB::insert(self::COLLECTION,$newProject);
 
-	    Link::connect($parentId, $type, $newProject["_id"], self::COLLECTION, $parentId, "projects", true );
+	    Link::connect($parentId, $parentType, $newProject["_id"], self::COLLECTION, $parentId, "projects", true );
 
-	    Notification::createdObjectAsParam(Person::COLLECTION,Yii::app() -> session["userId"],Project::COLLECTION, (String)$newProject["_id"], $type, $parentId, $newProject["geo"], $newProject["tags"],$newProject["address"]["codeInsee"]);
+	    Notification::createdObjectAsParam(Person::COLLECTION,Yii::app() -> session["userId"],Project::COLLECTION, (String)$newProject["_id"], $parentType, $parentId, $newProject["geo"], $newProject["tags"],$newProject["address"]["codeInsee"]);
 	    return array("result"=>true, "msg"=>"Votre projet est communecté.", "id" => $newProject["_id"]);	
 	}
 
