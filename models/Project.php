@@ -16,8 +16,8 @@ class Project {
 	    "geo" => array("name" => "geo"),
 	    "description" => array("name" => "description"),
 	    "shortDescription" => array("name" => "shortDescription"),
-	    "startDate" => array("name" => "startDate", "rules" => array("projectStartDate")),
-	    "endDate" => array("name" => "endDate", "rules" => array("projectEndDate")),
+	    "startDate" => array("name" => "startDate" ),
+	    "endDate" => array("name" => "endDate"),
 	    "tags" => array("name" => "tags"),
 	    "url" => array("name" => "url"),
 	    "licence" => array("name" => "licence"),
@@ -114,7 +114,7 @@ class Project {
 		if (empty($project['name'])) {
 			throw new CTKException(Yii::t("project","You have to fill a name for your project"));
 		}else
-			$newProject['startDate'] = $project['name'];
+			$newProject['name'] = $project['name'];
 		
 		// Is There a project with the same name ?
 		if(!$update){
@@ -124,7 +124,6 @@ class Project {
 		    }
 		}
 
-		
 		if(!$update){
 			$newProject = array(
 				"name" => $project['name'],
@@ -134,10 +133,10 @@ class Project {
 		}
 
 		if(!empty($project['startDate']) )
-			$newProject['startDate'] = new MongoDate( strtotime( $project['startDate'] ));
+			$newProject['startDate'] = $project['startDate'];
 			
 		if(!empty($project['endDate'])) 
-			$newProject['endDate'] = new MongoDate( strtotime( $project['endDate'] ));
+			$newProject['endDate'] = $project['endDate'];
 				  
 		if(!empty($project['postalCode'])) {
 			if (!empty($project['city'])) {
@@ -224,14 +223,14 @@ class Project {
 	{
 		//Check if user is authorized to update
 		if (! Authorisation::isProjectAdmin($projectId,$userId)) {
-			return array("result"=>false, "msg"=>Yii::t("project", "Unauthorized Access."),"res"=>Authorisation::isProjectAdmin($userId, $projectId));
+			return array("result"=>false, "msg"=>Yii::t("project", "Unauthorized Access."));
 		}
 		
 		foreach ($projectChangedFields as $fieldName => $fieldValue) {
 			self::updateProjectField($projectId, $fieldName, $fieldValue, $userId);
 		}
 
-	    return array("result"=>true, "msg"=>Yii::t("project", "The project has been updated"), "id"=>$projectId);
+	    return array("result"=>$projectChangedFields, "msg"=>Yii::t("project", "The project has been updated"), "id"=>$projectId);
 	}
 
 	public static function removeProject($projectId, $userId) {
@@ -292,7 +291,7 @@ class Project {
 		}
 
 		//address
-		else if ($dataFieldName == "address") {
+		if ($dataFieldName == "address") {
 			if(!empty($projectFieldValue["postalCode"]) && !empty($projectFieldValue["codeInsee"])) {
 				$insee = $projectFieldValue["codeInsee"];
 				$address = SIG::getAdressSchemaLikeByCodeInsee($insee);
