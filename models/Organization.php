@@ -162,8 +162,8 @@ class Organization {
 			$newOrganization["geoPosition"] = array("type"=>"Point",
 															"coordinates" =>
 																array(
-																	floatval($person['geoPosLongitude']),
-																	floatval($person['geoPosLatitude']))
+																	floatval($organization['geoPosLongitude']),
+																	floatval($organization['geoPosLatitude']))
 														 	  	);
 		}
 		
@@ -186,8 +186,6 @@ class Organization {
 		
 		if(!empty($organization['description']))
 			$newOrganization["description"] = $organization['description'];
-
-		
 
 		$newOrganization["role"] = empty($organization['role']) ? "" : $organization['role'];
 		$newOrganization["creator"] = empty($organization['creator']) ? "" : $organization['creator'];
