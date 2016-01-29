@@ -133,10 +133,10 @@ class Project {
 		}
 
 		if(!empty($project['startDate']) )
-			$newProject['startDate'] = $project['startDate'];
+			$newProject['startDate'] = new MongoDate( strtotime( $project['startDate'] ));//$project['startDate'];
 			
 		if(!empty($project['endDate'])) 
-			$newProject['endDate'] = $project['endDate'];
+			$newProject['endDate'] = new MongoDate( strtotime( $project['endDate'] ));//$project['endDate']
 				  
 		if(!empty($project['postalCode'])) {
 			if (!empty($project['city'])) {
@@ -176,11 +176,10 @@ class Project {
 			$newProject["licence"] = $project['licence'];
 
 		//Tags
-		$newProject["tags"] = null;
 		if (isset($project['tags']) ) {
-			if ( gettype($project['tags']) == "array" ) {
+			if ( is_array( $project['tags'] ) ) {
 				$tags = $project['tags'];
-			} else if ( gettype($project['tags']) == "string" ) {
+			} else if ( is_string($project['tags']) ) {
 				$tags = explode(",", $project['tags']);
 			}
 			$newProject["tags"] = $tags;
@@ -208,7 +207,7 @@ class Project {
 
 	    Link::connect($parentId, $parentType, $newProject["_id"], self::COLLECTION, $parentId, "projects", true );
 
-	    Notification::createdObjectAsParam(Person::COLLECTION,Yii::app() -> session["userId"],Project::COLLECTION, (String)$newProject["_id"], $parentType, $parentId, $newProject["geo"], $newProject["tags"],$newProject["address"]["codeInsee"]);
+	    Notification::createdObjectAsParam(Person::COLLECTION,Yii::app() -> session["userId"],Project::COLLECTION, (String)$newProject["_id"], $parentType, $parentId, $newProject["geo"], (isset($newProject["tags"])) ? $newProject["tags"]:null ,$newProject["address"]["codeInsee"]);
 	    return array("result"=>true, "msg"=>"Votre projet est communecté.", "id" => $newProject["_id"]);	
 	}
 
@@ -230,7 +229,7 @@ class Project {
 			self::updateProjectField($projectId, $fieldName, $fieldValue, $userId);
 		}
 
-	    return array("result"=>$projectChangedFields, "msg"=>Yii::t("project", "The project has been updated"), "id"=>$projectId);
+	    return array("result"=>true, "msg"=>Yii::t("project", "The project has been updated"), "id"=>$projectId);
 	}
 
 	public static function removeProject($projectId, $userId) {
@@ -302,11 +301,16 @@ class Project {
 		//Start Date - End Date
 		} else if ($dataFieldName == "startDate" || $dataFieldName == "endDate") {
 			date_default_timezone_set('UTC');
-			$dt = DateTime::createFromFormat('Y-m-d H:i', $projectFieldValue);
-			if (empty($dt)) {
-				$dt = DateTime::createFromFormat('Y-m-d', $projectFieldValue);
+			if( !is_string( $projectFieldValue ) && get_class( $projectFieldValue ) == "MongoDate"){
+				$newMongoDate = $projectFieldValue;
+			}else{
+				$dt = DateTime::createFromFormat('Y-m-d H:i', $projectFieldValue);
+				if (empty($dt)) {
+					$dt = DateTime::createFromFormat('Y-m-d', $projectFieldValue);
+				}
+
+				$newMongoDate = new MongoDate($dt->getTimestamp());
 			}
-			$newMongoDate = new MongoDate($dt->getTimestamp());
 			$set = array($dataFieldName => $newMongoDate);	
 		}
 		else {
@@ -315,7 +319,7 @@ class Project {
 
 		//update the project
 		PHDB::update( self::COLLECTION, array("_id" => new MongoId($projectId)), 
-		                          array('$set' => $set));
+		                        array('$set' => $set));
 	                  
 	    return array("result"=>true, "msg"=>Yii::t("project","Your project is updated"), "id"=>$projectId);
 	}
