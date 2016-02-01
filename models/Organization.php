@@ -159,11 +159,12 @@ class Organization {
 											"latitude" => $organization['geoPosLatitude'],
 											"longitude" => $organization['geoPosLongitude']);
 
-			$newOrganization["geoPosition"] = array("type"=>"point",
-													"coordinates" =>
-													array($organization['geoPosLatitude'],
-											 	  		  $organization['geoPosLongitude'])
-											 	  	);
+			$newOrganization["geoPosition"] = array("type"=>"Point",
+															"coordinates" =>
+																array(
+																	floatval($organization['geoPosLongitude']),
+																	floatval($organization['geoPosLatitude']))
+														 	  	);
 		}
 		
 		return $newOrganization;
@@ -185,8 +186,6 @@ class Organization {
 		
 		if(!empty($organization['description']))
 			$newOrganization["description"] = $organization['description'];
-
-		
 
 		$newOrganization["role"] = empty($organization['role']) ? "" : $organization['role'];
 		$newOrganization["creator"] = empty($organization['creator']) ? "" : $organization['creator'];
@@ -213,8 +212,9 @@ class Organization {
 		{	
 			$tags = array();
 			foreach ($organization['tags'] as $key => $value) {
-				if(!empty(trim($value)))
-					$tags[] = $value;
+				$trimValue=trim($value);
+				if(!empty($trimValue))
+					$tags[] = $trimValue;
 			}
 			$newOrganization["tags"] = $tags;
 		}
@@ -227,15 +227,17 @@ class Organization {
 			if(!empty($organization['telephone']["fixe"]))
 			{
 				foreach ($organization['telephone']["fixe"] as $key => $value) {
-					if(!empty(trim($value)))
-						$fixe[] = $value;
+					$trimValue=trim($value);
+					if(!empty($trimValue))
+						$fixe[] = $trimValue;
 				}
 			}
 			if(!empty($organization['telephone']["mobile"]))
 			{
 				foreach ($organization['telephone']["mobile"] as $key => $value) {
-					if(!empty(trim($value)))
-						$mobile[] = $value;
+					$trimValue=trim($value);
+					if(!empty($trimValue))
+						$mobile[] = $trimValue;
 				}
 			}
 			if(count($mobile) != 0)
@@ -259,15 +261,17 @@ class Organization {
 					{
 						$arrayName = array();
 						foreach ($value as $keyArray => $valueArray) {
-							if(!empty(trim($valueArray)))
-								$arrayName[] = $valueArray ;
+							$trimValue=trim($value);
+							if(!empty($trimValue))
+								$arrayName[] = $trimValue ;
 						}
 						if(count($arrayName) != 0)
 							$unContact[$key] = $arrayName;
 					}
 					else{
-						if(!empty(trim($value)))
-							$unContact[$key] = $value ;	
+						$trimValue=trim($value);
+						if(!empty($trimValue))
+							$unContact[$key] = $trimValue ;	
 					}
 					
 				}
@@ -286,9 +290,10 @@ class Organization {
 	}
 
 	public static function getAndCheckAdressOrganization($organization) {
-		if(!empty(trim($organization['address']['postalCode'])))
+		$trimPostalCode=trim($organization['address']['postalCode']);
+		if(!empty($trimPostalCode))
 		{
-			$where = array("cp"=>$organization['address']['postalCode']);
+			$where = array("cp"=>$trimPostalCode);
 			$fields = array("name", "alternateName");
 	        $option = City::getWhere($where, $fields);
 	        if(!empty($option))
