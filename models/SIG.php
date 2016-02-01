@@ -135,7 +135,7 @@ class SIG
 								  			   	  "coordinates" => array( floatval($lng), 
 								  			  						   	  floatval($lat) )
 											  			 		),
-							  		 		"maxDistance" => 100000,
+							  		 		"maxDistance" => 10000,
 							  		 		"minDistance" => 10
 							  			 ),
 						  	 		)
@@ -143,7 +143,7 @@ class SIG
 				
 			if($cp != null){ $request = array_merge(array("cp"  => $cp), $request); }
 
-			$oneCity =	PHDB::findOne(City::COLLECTION, $request);
+			$oneCity =	PHDB::findAndSort(City::COLLECTION, $request, array(), 15);
 			//var_dump($oneCity);
 		}
 
@@ -156,9 +156,15 @@ class SIG
 	//récupère le code insee d'une position geographique
 	//(préciser un CP pour un résultat plus rapide)
 	public static function getInseeByLatLngCp($lat, $lng, $cp){
-		$oneCity =	self::getCityByLatLng($lat, $lng, $cp);
-		if($oneCity != null && $oneCity["insee"] != null) return $oneCity;//["insee"];
+		// $oneCity =	self::getCityByLatLng($lat, $lng, $cp);
+		// if($oneCity != null && $oneCity["insee"] != null) return $oneCity;//["insee"];
+		// else return null;
+
+		$cities =	self::getCityByLatLng($lat, $lng, $cp);
+		if($cities != null) return $cities;//["insee"];
 		else return null;
+
+
 	}
 
 	//TODO : FAIRE LA VERIFICATION AVEC LES GEOSHAPES DES COUNTRY
@@ -251,10 +257,10 @@ class SIG
 		$city = self::getCityByCodeInsee($codeInsee);
 
 		$address = array("@type"=>"PostalAddress", 
-						"postalCode"=> $city['cp'], 
-						"addressLocality" => $city["alternateName"], 
+						"postalCode"=> isset($city['cp']) ? $city['cp'] : "", 
+						"addressLocality" => isset($city["alternateName"]) ? $city['alternateName'] : "", 
 						"codeInsee" => $codeInsee,
-						"addressCountry" => $city['country'] );
+						"addressCountry" => isset($city['country']) ? $city['country'] : "" );
 		return $address;
 	}
 
