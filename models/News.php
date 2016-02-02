@@ -29,7 +29,8 @@ class News {
 	    foreach ($res as $key => $news) {
 		    if(@$news["type"]){
 			    if($news["type"]==ActivityStream::COLLECTION){
-			  		$res[$key]=NewsTranslator::convertParamsForNews($news);
+				    if($news["object"]["objectType"]!="needs")
+			  			$res[$key]=NewsTranslator::convertParamsForNews($news);
 			  	}
 		  		if($news["type"]==Project::COLLECTION)
 			  		$res[$key]["postOn"]=Project::getSimpleProjectById($news["id"]);
