@@ -227,8 +227,10 @@ class Project {
 			return array("result"=>false, "msg"=>Yii::t("project", "Unauthorized Access."));
 		}
 		
+		$project = self::getById( $projectId );
 		foreach ($projectChangedFields as $fieldName => $fieldValue) {
-			self::updateProjectField($projectId, $fieldName, $fieldValue, $userId);
+			if( $project[ $fieldName ] != $fieldValue)
+				self::updateProjectField($projectId, $fieldName, $fieldValue, $userId);
 		}
 
 	    return array("result"=>true, "msg"=>Yii::t("project", "The project has been updated"), "id"=>$projectId);
@@ -320,6 +322,7 @@ class Project {
 		}
 
 		//update the project
+		$set = array_merge($set , array("modified" => new MongoDate(time())));
 		PHDB::update( self::COLLECTION, array("_id" => new MongoId($projectId)), 
 		                        array('$set' => $set));
 	                  
