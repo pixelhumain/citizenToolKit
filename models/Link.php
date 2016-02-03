@@ -48,8 +48,8 @@ class Link {
             }
         }
         // Create link between both entity
-		$res=self::connect($memberOfId, $memberOfType, $memberId, $memberType, $userId,"members",$userAdmin,$pendingAdmin,$toBeValidated, $userRole);
-		$res=self::connect($memberId, $memberType, $memberOfId, $memberOfType, $userId,"memberOf",$userAdmin,$pendingAdmin,$toBeValidated, $userRole);
+		$res=self::connect($memberOfId, $memberOfType, $memberId, $memberType, $userId,"members",$userAdmin,$pendingAdmin, $toBeValidated, $userRole);
+		$res=self::connect($memberId, $memberType, $memberOfId, $memberOfType, $userId,"memberOf",$userAdmin,$pendingAdmin, $toBeValidated, $userRole);
         //3. Send Notifications
 	    //TODO - Send email to the member
 
@@ -506,7 +506,7 @@ class Link {
     }
 	
 	/**
-	 * Add someone as admin of an organization.
+	 * Add someone as admin or member of an organization or project.
 	 * If there are already admins of the organization, they will receive a notification and email to 
 	 * accept or not the new admin
 	 * @param String $idOrganization The id of the organization
@@ -514,61 +514,94 @@ class Link {
 	 * @param String $userId The userId doing the action
 	 * @return array of result (result => bool, msg => string)
 	 */
-	public static function addPersonAsAdmin($parentId, $parentType, $personId, $userId, $actionFromAdmin=null) {
-
+	     /*    $organization=Organization::getById($memberOfId);
+        $listAdmin=Authorisation::listOrganizationAdmins($memberOfId);
+       // print_r($listAdmin);
+        //TODO SBAR => Change the boolean userAdmin to a role (admin, contributor, moderator...)        
+        //1. Check if the $userId can manage the $memberOf
+        $toBeValidated = false;
+        $notification="";
+        if (!Authorisation::isOrganizationAdmin($userId, $memberOfId)) {
+            // Specific case when the user is added as an admin
+            if (!$userAdmin) {
+                // Add a toBeValidated tag on the link
+                if(@$organization["links"]["members"] && count($organization["links"]["members"])!=0 && !empty($listAdmin)){
+                	$toBeValidated = true;
+					$notification="toBeValidated";
+                }
+            }
+        }
+        // Create link between both entity
+		$res=self::connect($memberOfId, $memberOfType, $memberId, $memberType, $userId,"members",$userAdmin,$pendingAdmin, $toBeValidated, $userRole);
+		$res=self::connect($memberId, $memberType, $memberOfId, $memberOfType, $userId,"memberOf",$userAdmin,$pendingAdmin, $toBeValidated, $userRole);*/
+	public static function addPersonAs($parentId, $parentType, $childrenId, $childrenType, $connectAsAdmin, $userId, $actionFromAdmin=false,$userRole="") {
+		$typeOfDemand="admin";
 		if($parentType == Organization::COLLECTION){
 			$parentData = Organization::getById($parentId);
 			$usersAdmin = Authorisation::listOrganizationAdmins($parentId, false);
 			$parentController=Organization::CONTROLLER;
+			$parentConnectAs="members";
+			$childrenConnectAs="memberOf";
+			if(!$connectAsAdmin)
+				$typeOfDemand = "member";
 		}
 		else if ($parentType == Project::COLLECTION){
 			$parentData = Project::getById($parentId);			
 			$usersAdmin = Authorisation::listAdmins($parentId,  $parentType, false);
 			$parentController=Project::CONTROLLER;
+			$parentConnectAs="contributors";
+			$childrenConnectAs="projects";
+			if(!$connectAsAdmin)
+				$typeOfDemand = "contributor";
 		}
-		$pendingAdmin = Person::getById($personId);
+		$pendingAdmin = Person::getById($childrenId);
 		if (!$parentData || !$pendingAdmin) {
 			return array("result" => false, "msg" => "Unknown ".$parentController." or person. Please check your parameters !");
 		} else {
-			$res = array("result" => true, "msg" => Yii::t("common", "You are now admin of")." ".Yii::t("common","this ".$parentController), "parent" => $parentData);
+			if($actionFromAdmin)
+				$msg=$pendingAdmin["name"]." is now admin of ".$parentData["name"];
+			else
+				$msg= Yii::t("common", "You are now ".$typeOfDemand." of")." ".Yii::t("common","this ".$parentController);
+			$res = array("result" => true, "msg" => $msg, "parent" => $parentData,"parentType"=>$parentType);
 		}
-		//First case : The organization doesn't have an admin yet : the person is automatically added as admin
-		
-		if (in_array($personId, $usersAdmin)) 
+		//First case : You are already member or admin
+		///??????? A enlever !!!!!!!!!!!!!!!!!!!!!!!!!!!!
+		if (in_array($childrenId, $usersAdmin)) 
 			return array("result" => false, "msg" => Yii::t("common", "Your are already admin of")." ".Yii::t("common","this ".$parentController)." !");
-
+		//Second case : The parent doesn't have an admin yet or it is an action from an admin : the person is automatically added as admin or member of the parent
 		if (count($usersAdmin) == 0 || $actionFromAdmin) {
-			if($parentType==Organization::COLLECTION)
-				Link::addMember($parentId, $parentType, $personId, Person::COLLECTION, $userId, true, "", false);
-			else if ($parentType == Project::COLLECTION){
-				Link::connect($parentId, $parentType, $personId, Person::COLLECTION,Yii::app() -> session["userId"], "contributors", true,false);
-				Link::connect($personId, Person::COLLECTION, $parentId, $parentType, Yii::app() -> session["userId"], "projects", true, false);
-			}
-
-			Notification::actionOnPerson ( ActStr::VERB_JOIN, ActStr::ICON_SHARE, $pendingAdmin , array("type"=>$parentType,"id"=> $parentId,"name"=>$parentData["name"]) ) ;
+			if($actionFromAdmin)
+				$verb = ActStr::VERB_CONFIRM;
+			else
+				$verb = ActStr::VERB_JOIN;
+			$toBeValidatedAdmin=false;
+			$toBeValidated=false;	
 		} else {
-			//Second case : there is already an admin (or few) 
-			// 1. Admin link will be added but pending
-			if($parentType==Organization::COLLECTION)
-				Link::addMember($parentId, $parentType, $personId, Person::COLLECTION, $userId, true, "", true);
-			else if ($parentType == Project::COLLECTION){
-				Link::connect($parentId, $parentType, $personId, Person::COLLECTION, Yii::app() -> session["userId"], "contributors", true,true);
-				Link::connect($personId, Person::COLLECTION, $parentId, $parentType, Yii::app() -> session["userId"], "projects", true, true);
+			if ($connectAsAdmin){
+				$verb = ActStr::VERB_AUTHORIZE;
+				$toBeValidatedAdmin=true;
+				$toBeValidated=false;
 			}
-			Notification::actionOnPerson ( ActStr::VERB_AUTHORIZE, ActStr::ICON_SHARE, $pendingAdmin , array("type"=>$parentType,"id"=> $parentId,"name"=>$parentData["name"])) ;
+			else{
+				$verb = ActStr::VERB_WAIT;
+				$toBeValidatedAdmin=false;
+				$toBeValidated=true;
+			}
 			// 2. Notification and email are sent to the admin(s)
 			$listofAdminsEmail = array();
 			foreach ($usersAdmin as $adminId) {
 				$currentAdmin = Person::getSimpleUserById($adminId);
 				array_push($listofAdminsEmail, $currentAdmin["email"]);
 			}
-			$typeOfDemand="admin";
 			Mail::someoneDemandToBecome($parentData, $parentType, $pendingAdmin, $listofAdminsEmail,$typeOfDemand);
 			//TODO - Notification
-			$res = array("result" => true, "msg" => Yii::t("common","Your request has been sent to other admins."), "parent" => $parentData);
+			$res = array("result" => true, "msg" => Yii::t("common","Your request has been sent to other admins."), "parent" => $parentData,"parentType"=>$parentType);
 			// After : the 1rst existing Admin to take the decision will remove the "pending" to make a real admin
 		}
-
+		Link::connect($parentId, $parentType, $childrenId, $childrenType,Yii::app() -> session["userId"], $parentConnectAs, $connectAsAdmin, $toBeValidatedAdmin, $toBeValidated, $userRole);
+		Link::connect($childrenId, $childrenType, $parentId, $parentType, Yii::app() -> session["userId"], $childrenConnectAs, $connectAsAdmin, $toBeValidatedAdmin, $toBeValidated, $userRole);
+		Notification::actionOnPerson ( $verb, ActStr::ICON_SHARE, $pendingAdmin , array("type"=>$parentType,"id"=> $parentId,"name"=>$parentData["name"])) ;
+		
 		return $res;
 	}
 	

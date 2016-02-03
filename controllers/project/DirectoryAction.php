@@ -62,8 +62,8 @@ class DirectoryAction extends CAction
 						if(@$e["isAdminPending"]){
 							$citoyen["isAdminPending"]=$e["isAdminPending"];
             			} 
-            			if(@$citoyen["roles"]["toBeValidated"]){
-							$citoyen["toBeValidated"]=$citoyen["roles"]["toBeValidated"];
+            			if(@$e["toBeValidated"]){
+							$citoyen["toBeValidated"]=$e["toBeValidated"];
             			} 
                     array_push($people, $citoyen);
                     $citoyen["type"]="citoyen";
@@ -71,12 +71,12 @@ class DirectoryAction extends CAction
                     if($profil !="")
                     	$citoyen["imagePath"]= $profil;
                     array_push($contributors, $citoyen);
-                    if( $uid == Yii::app()->session['userId'] )
-                      Menu::add2MBZ( array('position' => 'right', 
+                    /*if( $uid == Yii::app()->session['userId'] )
+                     Menu::add2MBZ( array('position' => 'right', 
                                     'tooltip' => Yii::t("common", "Send a message to this Project"), 
                                     "label" => Yii::t("common", "Contact"), 
                                     "iconClass"=>"fa fa-envelope-o",
-                                    "href"=>"<a href='#' class='new-news tooltips btn btn-default' data-id='".$id."' data-type='".Project::COLLECTION."' data-name='".$project['name']."'") );
+                                    "href"=>"<a href='#' class='new-news tooltips btn btn-default' data-id='".$id."' data-type='".Project::COLLECTION."' data-name='".$project['name']."'") );*/
                   }
                 }
               }
