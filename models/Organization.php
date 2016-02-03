@@ -37,6 +37,8 @@ class Organization {
 	    "typeOfPublic" => array("name" => "typeOfPublic"),
 	    "url"=>array("name" => "url"),
 	    "telephone" => array("name" => "telephone"),
+	    //"fixe" => array("name" => "telephone.fixe"),
+	    //"mobile" => array("name" => "telephone.mobile"),
 	    "video" => array("name" => "video")
 	);
 	
@@ -159,11 +161,12 @@ class Organization {
 											"latitude" => $organization['geoPosLatitude'],
 											"longitude" => $organization['geoPosLongitude']);
 
-			$newOrganization["geoPosition"] = array("type"=>"point",
-													"coordinates" =>
-													array($organization['geoPosLatitude'],
-											 	  		  $organization['geoPosLongitude'])
-											 	  	);
+			$newOrganization["geoPosition"] = array("type"=>"Point",
+															"coordinates" =>
+																array(
+																	floatval($organization['geoPosLongitude']),
+																	floatval($organization['geoPosLatitude']))
+														 	  	);
 		}
 		
 		return $newOrganization;
@@ -185,8 +188,6 @@ class Organization {
 		
 		if(!empty($organization['description']))
 			$newOrganization["description"] = $organization['description'];
-
-		
 
 		$newOrganization["role"] = empty($organization['role']) ? "" : $organization['role'];
 		$newOrganization["creator"] = empty($organization['creator']) ? "" : $organization['creator'];
@@ -213,9 +214,9 @@ class Organization {
 		{	
 			$tags = array();
 			foreach ($organization['tags'] as $key => $value) {
-				$value = trim($value);
-				if(!empty($value))
-					$tags[] = $value;
+				$trimValue=trim($value);
+				if(!empty($trimValue))
+					$tags[] = $trimValue;
 			}
 			$newOrganization["tags"] = $tags;
 		}
@@ -228,17 +229,17 @@ class Organization {
 			if(!empty($organization['telephone']["fixe"]))
 			{
 				foreach ($organization['telephone']["fixe"] as $key => $value) {
-					$value = trim($value);
-					if(!empty($value))
-						$fixe[] = $value;
+					$trimValue=trim($value);
+					if(!empty($trimValue))
+						$fixe[] = $trimValue;
 				}
 			}
 			if(!empty($organization['telephone']["mobile"]))
 			{
 				foreach ($organization['telephone']["mobile"] as $key => $value) {
-					$value = trim($value);
-					if(!empty($value))
-						$mobile[] = $value;
+					$trimValue=trim($value);
+					if(!empty($trimValue))
+						$mobile[] = $trimValue;
 				}
 			}
 			if(count($mobile) != 0)
@@ -262,17 +263,17 @@ class Organization {
 					{
 						$arrayName = array();
 						foreach ($value as $keyArray => $valueArray) {
-							$valueArray = trim($valueArray);
-							if(!empty($valueArray))
-								$arrayName[] = $valueArray ;
+							$trimValue=trim($value);
+							if(!empty($trimValue))
+								$arrayName[] = $trimValue ;
 						}
 						if(count($arrayName) != 0)
 							$unContact[$key] = $arrayName;
 					}
 					else{
-						$value = trim($value);
-						if(!empty($value))
-							$unContact[$key] = $value ;	
+						$trimValue=trim($value);
+						if(!empty($trimValue))
+							$unContact[$key] = $trimValue ;	
 					}
 					
 				}
@@ -291,9 +292,10 @@ class Organization {
 	}
 
 	public static function getAndCheckAdressOrganization($organization) {
-		$value = trim($organization['address']['postalCode']);
-		if(!empty($value)) {
-			$where = array("cp"=>$organization['address']['postalCode']);
+		$trimPostalCode=trim($organization['address']['postalCode']);
+		if(!empty($trimPostalCode))
+		{
+			$where = array("cp"=>$trimPostalCode);
 			$fields = array("name", "alternateName");
 	        $option = City::getWhere($where, $fields);
 	        if(!empty($option))
@@ -375,6 +377,9 @@ class Organization {
 		//méthode pour récupérer le code insee à partir d'une position geographique :
 		//$geo = SIG::getPositionByCp($organization['postalCode']);
 		//$insee = SIG::getInseeByLatLngCp($geo["latitude"], $geo["longitude"], $organization['postalCode']);
+				  
+		
+
 				  
 		//Tags
 		if (isset($organization['tags'])) {
@@ -546,18 +551,27 @@ class Organization {
 	 * @param String $userId : the userId making the update
 	 * @return array of result (result => boolean, msg => string)
 	 */
-	public static function update($organizationId, $organization, $userId) 
+	public static function update($organizationId, $newOrganization, $userId) 
 	{
 		//Check if user is authorized to update
 		if (! Authorisation::isOrganizationAdmin($userId, $organizationId)) {
 			return Rest::json(array("result"=>false, "msg"=>Yii::t("organization", "Unauthorized Access.")));
 		}
-
-		foreach ($organization as $fieldName => $fieldValue) {
-			self::updateField($organizationId, $fieldName, $fieldValue);
+		$countUpdated = 0;
+		$organization = self::getById($organizationId);
+		foreach ($newOrganization as $fieldName => $fieldValue) 
+		{
+			//TKA : optim, ne marche pas quand les fieldnames sont en profondeur ex : postalCode
+			//if( @$organization[$fieldName] && $organization[$fieldName] != $fieldValue){
+				self::updateField($organizationId, $fieldName, $fieldValue);
+				$countUpdated++;
+			//}
 		}
 
-	    return array("result"=>true, "msg"=>Yii::t("organization", "The organization has been updated"), "id"=>$organizationId);
+	    return array("result" => true, 
+	    			 "msg"    => Yii::t("organization", "The organization has been updated"), 
+	    			 "id"     => $organizationId,
+	    			 "updatedFileds" => $countUpdated);
 	}
 	
 	/**
@@ -754,10 +768,36 @@ class Organization {
 
 		//Specific case : 
 		//Tags
+
 		if ($dataFieldName == "tags") {
 			$organizationFieldValue = Tags::filterAndSaveNewTags($organizationFieldValue);
 			$set = array($dataFieldName => $organizationFieldValue);
-		} else if ($dataFieldName == "address") {
+		} else if ($dataFieldName == "telephone") {
+			//Telephone
+			$tel = array();
+			$fixe = array();
+			$mobile = array();
+			
+			if(!empty($organizationFieldValue))
+			{
+				foreach ($organizationFieldValue as $key => $value) {
+					if(substr($value, 0, 2) == "02")
+						$fixe[] = $value ;
+					else
+						$mobile[] = $value ;
+
+					if(!empty($fixe))
+						$tel["fixe"] = $fixe;
+					if(!empty($mobile))
+						$tel["mobile"] = $mobile;
+				}
+			}
+			
+
+			$set = array($dataFieldName => $tel);
+
+		}
+		else if ($dataFieldName == "address") {
 		//address
 			if(!empty($organizationFieldValue["postalCode"]) && !empty($organizationFieldValue["codeInsee"])) {
 				$insee = $organizationFieldValue["codeInsee"];

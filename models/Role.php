@@ -106,8 +106,8 @@ class Role {
 	}
 
 	public static function isUserActivated($id){
-		$personRole = PHDB::findOneById( Person::COLLECTION ,$id, array("role" => 1));
-		if (!@$personRole["tobeactivated"])
+		$personRole = PHDB::findOneById( Person::COLLECTION ,$id, array("roles" => 1));
+		if (!@$personRole["roles"]["tobeactivated"])
 			return true;
 		else 
 			return false;

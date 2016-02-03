@@ -43,8 +43,12 @@ class Mail
         Mail::schedule($params);
     }
 
-    public static function invitePerson($person) {
+    public static function invitePerson($person, $msg = null) {
         $invitor = Person::getSimpleUserById($person["invitedBy"]);
+
+        if(empty($msg))
+            $msg = $invitor["name"]. " vous invite à rejoindre Communecter.";
+
         $params = array(
             "type" => Cron::TYPE_MAIL,
             "tpl"=>'invitation',
@@ -54,7 +58,8 @@ class Mail
             "tplParams" => array(   "invitorName"   => $invitor["name"],
                                     "title" => Yii::app()->name ,
                                     "logo"  => "/images/logo.png",
-                                    "invitedUserId" => $person["_id"])
+                                    "invitedUserId" => $person["_id"],
+                                    "message" => $msg)
         );
         Mail::schedule($params);
     }
@@ -166,7 +171,24 @@ class Mail
         );
         Mail::schedule($params);
     }
-
+	/**
+	* Send an email to contact@pixelhumain.com quand quelqu'un post dans les news help and bugs	
+	* @param string $text message of user
+	*/
+	 public static function helpAndDebugNews($text) {
+        $params = array(
+            "type" => Cron::TYPE_MAIL,
+            "tpl"=>'helpAndDebugNews',
+            "subject" => 'You received a new post on help and debug stream by '.Yii::app()->name,
+            "from"=>Yii::app()->params['userEmail'],
+            "to" => "contact@pixelhumain.com",
+            "tplParams" => array(
+                                    "title" => Yii::app()->session["user"]["username"] ,
+                                    "logo"  => "/images/logo.png",
+                                    "content"=> $text)
+        );
+        Mail::schedule($params);
+    }
 
     /**
      * Send an email when some one ask to become an admin of an organization to the current admins

@@ -49,7 +49,7 @@ class Authorisation {
         
         //organization i'am admin 
         $where = array( "links.members.".$userId.".isAdmin" => true,
-                        "links.members.".$userId.".toBeValidated" => array('$exists' => false )
+                        "links.members.".$userId.".isAdminPending" => array('$exists' => false )
                     );
 
         $organizations = PHDB::find(Organization::COLLECTION, $where);

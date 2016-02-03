@@ -180,7 +180,7 @@ class ActivityStream {
 		if($params["type"]==ActivityStream::COLLECTION){
 			$action["scope"]["type"]="public";
 	        if( isset( $params["cities"] ))
-	        	$action["scope"]["cities"][$params["cities"]] = $params["cities"];
+	        	$action["scope"]["cities"][] = $params["cities"];
 			if( isset( $params["geo"] ))
 	        	$action["scope"]["geo"] = $params["geo"];
 		}

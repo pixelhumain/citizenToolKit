@@ -173,20 +173,22 @@ class Event {
 	 * @param type POST
 	 * @return save the event
 	*/
-	public static function saveEvent($params) {
+	public static function getAndCheckEvent($params,$update=false) {
 		
 		self::checkEventData($params);
 		$allDay = $params['allDay'] == 'true' ? true : false;
 	    $newEvent = array(
 			"name" => $params['name'],
 			'type' => $params['type'],
-			'public' => true,
-			'created' => time(),
-			"startDate" => new MongoDate(strtotime($params['startDate'])),
-			"endDate" => new MongoDate(strtotime($params['endDate'])),
-	        "allDay" => $allDay,
-	        'creator' => Yii::app()->session['userId'],
-	    );
+			"allDay" => $allDay
+		);
+		if(!$update)
+			$newEvent = array_merge( $newEvent , array( 'public' => true,
+														'created' => new MongoDate(time()),
+														"startDate" => new MongoDate(strtotime($params['startDate'])),
+														"endDate" => new MongoDate(strtotime($params['endDate'])),
+												        'creator' => Yii::app()->session['userId']) );
+
 	    
 	    //Postal code & geo
 	    if(!empty($params['postalCode'])) {
@@ -216,14 +218,20 @@ class Event {
 						"coordinates" =>
 							array($params['geoPosLatitude'],
 					 	  		  $params['geoPosLongitude']));
-		}else
+		}
+		else
 		{
 			$newEvent["geo"] = SIG::getGeoPositionByInseeCode($insee);
 		}
 	    //sameAs      
 	    if(!empty($params['description']))
 	         $newEvent["description"] = $params['description'];
-	    
+
+	    return $newEvent;
+	}
+
+	public static function saveEvent($params) {
+		$newEvent = self::getAndCheckEvent($params);
 	    PHDB::insert(self::COLLECTION,$newEvent);
 	    
 	    /*
@@ -254,9 +262,30 @@ class Event {
 	    //TODO : add an admin notification
 	    //Notification::saveNotification(array("type"=>NotificationType::ASSOCIATION_SAVED,"user"=>$new["_id"]));
 	    
-	    return array("result"=>true, "msg"=>"Votre evenement est communecté.", "id"=>$newEvent["_id"], "event" => $newEvent );
+	    return array("result"=>true, "msg"=>Yii::t("event","Your event has been connected."), "id"=>$newEvent["_id"], "event" => $newEvent );
 	}
 
+	/**
+	 * update an event in database
+	 * @param String $eventId : 
+	 * @param array $event event fields to update
+	 * @param String $userId : the userId making the update
+	 * @return array of result (result => boolean, msg => string)
+	 */
+	public static function update($eventId, $eventChangedFields, $userId) 
+	{
+		//Check if user is authorized to update
+		if (! Authorisation::iseventAdmin($eventId,$userId)) {
+			return array("result"=>false, "msg"=>Yii::t("event", "Unauthorized Access."));
+		}
+		$event = self::getById($eventId);
+		foreach ($eventChangedFields as $fieldName => $fieldValue) {
+			//if( $event[$fieldName] != $fieldValue)
+				self::updateEventField($eventId, $fieldName, $fieldValue, $userId);
+		}
+
+	    return array("result"=>true, "msg"=>Yii::t("event", "The event has been updated"), "id"=>$eventId);
+	}
 	/**
 	 * Retrieve the list of events, the organization is organizer
 	 * Special case : when the organization can edit member data : retireve the events of the members
@@ -399,6 +428,7 @@ class Event {
 			$set = array($dataFieldName => $eventFieldValue);
 		}
 
+
 		$res = Event::updateEvent($eventId, $set, $userId);
 		return $res;
 	}
@@ -413,7 +443,7 @@ class Event {
 		if (isset($event["tags"]))
 			$event["tags"] = Tags::filterAndSaveNewTags($event["tags"]);
 		
-
+		$event["modified"] = new MongoDate(time());
 		PHDB::update( Event::COLLECTION, array("_id" => new MongoId($eventId)), 
 		                          array('$set' => $event));
 	                  

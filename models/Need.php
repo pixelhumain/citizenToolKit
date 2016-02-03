@@ -63,7 +63,7 @@ class Need {
 		Link::connect($params["_id"],self::COLLECTION,$params["parentId"],$params["parentType"],Yii::app() -> session["userId"],$params["parentType"]);
 		Link::connect($params["parentId"],$params["parentType"],$params["_id"],self::COLLECTION,Yii::app() -> session["userId"],self::COLLECTION);
 		//$parent = $class::getById($params["parentId"]);
-		Notification::createdObjectAsParam(Person::COLLECTION,Yii::app()-> session["userId"],Need::COLLECTION, $params["_id"], $params["parentType"], $params["parentId"],null, null, $parent["address"]["codeInsee"]);
+		//Notification::createdObjectAsParam(Person::COLLECTION,Yii::app()-> session["userId"],Need::COLLECTION, $params["_id"], $params["parentType"], $params["parentId"],null, null, $parent["address"]["codeInsee"]);
 
 		return array("result"=>true, "msg"=>"Votre besoin est communecté.","idNeed"=>$params["_id"]);
 	}

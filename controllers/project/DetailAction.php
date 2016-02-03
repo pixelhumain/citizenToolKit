@@ -56,12 +56,12 @@ class DetailAction extends CAction
 		  						$citoyen["isAdmin"]=true;  				
 	  						}
 	  						array_push($contributors, $citoyen);
-	  						if( $uid == Yii::app()->session['userId'] )
+	  						/*if( $uid == Yii::app()->session['userId'] )
 	  							Menu::add2MBZ( array('position'=>'right', 
 	  												 'label'=>Yii::t("common", 'Contact'), 
 	  												 'tooltip' => Yii::t("common", "Send a message to this Project"),
 	  												 "iconClass"=>"fa fa-envelope-o",
-	  												 "href"=>"<a href='#' class='new-news tooltips btn btn-default' data-id='".$id."' data-type='".Project::COLLECTION."' data-name='".$project['name']."'") );
+	  												 "href"=>"<a href='#' class='new-news tooltips btn btn-default' data-id='".$id."' data-type='".Project::COLLECTION."' data-name='".$project['name']."'") );*/
 	  					}
 	  				}
 	  			}

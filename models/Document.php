@@ -14,6 +14,7 @@ class Document {
 	const CATEGORY_PLAQUETTE 	= "Plaquette";
 
 	const DOC_TYPE_IMAGE 		= "image";
+	const DOC_TYPE_CSV		= "text/csv";
 
 	const GENERATED_IMAGES_FOLDER 		= "thumb";
 	const FILENAME_PROFIL_RESIZED 	  	= "profil-resized.png";

@@ -284,14 +284,16 @@ class Person {
 	 * It is created in a temporary state
 	 * This creates and invites the email to fill extra information 
 	 * into the Person profile 
-	 * @param type $param 
+	 * the email will contain the message
+	 * @param ARRAY $param  
+	 * @param STRING $msg Message that will be sent by mail to user invited
 	 * @return type
 	 */
-	public static function createAndInvite($param) {
+	public static function createAndInvite($param, $msg = null) {
 	  	try {
 	  		$res = self::insert($param, true);
 	  		//send invitation mail
-			Mail::invitePerson($res["person"]);
+			Mail::invitePerson($res["person"], $msg);
 	  	} catch (CTKException $e) {
 	  		$res = array("result"=>false, "msg"=> $e->getMessage());
 	  	}
@@ -737,6 +739,22 @@ class Person {
 			$res = false;	
 		}
 		return $res;
+	}
+
+
+
+	public static function getPersonIdByEmail($email) {
+		//Check if the email of the person is already in the database
+	  	if ($email){
+		  	$account = PHDB::findOne(Person::COLLECTION,array("email"=>$email));
+		  	if ($account) {
+		  		$id = $account["_id"] ;
+			} else {
+		    	$id = false ;
+		    }
+	  	}
+	  	
+	  	return $id ;
 	}
 }
 ?>

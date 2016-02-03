@@ -5,7 +5,7 @@ class NewsAction extends CAction
 		
 		$controller=$this->getController();
 		$controller->layout = "//layouts/mainSearch";
-        $controller->render( "news" );
+        $controller->renderPartial( "news" );
 
 		//return Rest::json(array("result" => true, "list" => $search));
 	}

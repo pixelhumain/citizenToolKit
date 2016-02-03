@@ -111,7 +111,9 @@ class GlobalAutoCompleteAction extends CAction
 	        if($locality != null && $locality != ""){
 
 	        	if($type == "NAME"){ 
-	        		$query = array("name" => new MongoRegex("/".self::wd_remove_accents($locality)."/i"));
+	        		$query = array('$or' => array(array("name" => new MongoRegex("/".self::wd_remove_accents($locality)."/i")),
+	        									  array("alternateName" => new MongoRegex("/".self::wd_remove_accents($locality)."/i"))));
+	        		//error_log("search city with : " . self::wd_remove_accents($locality));
 	        	}
 	        	if($type == "CODE_POSTAL_INSEE") {
 	        		$query = array("cp" => $locality );
@@ -121,15 +123,18 @@ class GlobalAutoCompleteAction extends CAction
 	        	}
 		    }
 
-	  		$allCities = PHDB::find(City::COLLECTION, $query, array("name", "cp", "insee", "geo"));
+	  		$allCities = PHDB::find(City::COLLECTION, $query, array("name", "alternateName", "cp", "insee", "geo"));
 	  		$allCitiesRes = array();
 	  		$nbMaxCities = 20;
 	  		$nbCities = 0;
 	  		foreach ($allCities as $key => $value) {
 	  			if($nbCities < $nbMaxCities){
-		  			$city = City::getSimpleCityById($key);
+		  			$city = $value; // City::getSimpleCityById($key);
 		  			$city["type"] = "city";
 					$city["typeSig"] = "city";
+					//error_log("found city : " . $value["alternateName"]." ".$locality);
+					if($value["alternateName"] == strtoupper($locality))  $city["name"] = ucwords(strtolower($value["alternateName"])) ;
+					else $city["name"] = ucwords(strtolower($value["name"])) ;
 				$allCitiesRes[$key] = $city;
 				} $nbCities++;
 	  		}
@@ -158,6 +163,7 @@ class GlobalAutoCompleteAction extends CAction
     //supprime les accen (utilisé pour la recherche de ville pour améliorer les résultats)
     private function wd_remove_accents($str, $charset='utf-8')
 	{
+		return $str;
 	    $str = htmlentities($str, ENT_NOQUOTES, $charset);
 	    
 	    $str = preg_replace('#&([A-za-z])(?:acute|cedil|caron|circ|grave|orn|ring|slash|th|tilde|uml);#', '\1', $str);

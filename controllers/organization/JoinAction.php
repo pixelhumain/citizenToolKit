@@ -16,7 +16,7 @@ class JoinAction extends CAction
 		$params["parentOrganization"] = Organization::getPublicData($id);
 		
 		$lists = Lists::get(array("organisationTypes","typeIntervention","public"));
-
+		
 		if ( !isset($lists["organisationTypes"]) || !isset($lists["typeIntervention"]) || !isset($lists["public"]) ) {
 			throw new CTKException(Yii::t("organization",Yii::t("organization", "Missing List data in 'lists' collection, must have organisationTypes, typeIntervention, public")));
 		}

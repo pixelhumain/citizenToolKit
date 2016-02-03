@@ -10,7 +10,10 @@ class DeclareMeAdminAction extends CAction
     	$parentId = $_POST["parentId"];
     	$idPerson = $_POST["userId"];
     	$parentType = $_POST["parentType"];
-    	$actionAdmin = $_POST["adminAction"];
+if($_POST["adminAction"]=="false")
+    	$actionAdmin = false;
+    	else
+    		$actionAdmin=true;
     	$result = array("result"=>false, "msg"=>Yii::t("common", "Incorrect request"));
 		
 		if (! Person::logguedAndValid()) {

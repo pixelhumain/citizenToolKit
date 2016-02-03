@@ -133,10 +133,14 @@ class Notification{
 	    $stream = ActStr::buildEntry($asParam);
 	    //inform the projects members of the new member
 	    $members = array();
-	    if( $target["type"] == Project::COLLECTION ) 
+	    if( $target["type"] == Project::COLLECTION ) {
 	    	$members = Project::getContributorsByProjectId( $targetId ,"all", null ) ;
-	    else if( $target["type"] == Organization::COLLECTION) 
+			$typeOfConnect="contributor";
+	    }
+	    else if( $target["type"] == Organization::COLLECTION) {
 	    	$members = Organization::getMembersByOrganizationId( $targetId ,"all", null ) ;
+	    	$typeOfConnect="member";
+	    }
 	    else if( $target["type"] == Event::COLLECTION ) 
 	    	$members = Event::getAttendeesByEventId( $targetId ,"all", null ) ;
 
@@ -173,11 +177,11 @@ class Notification{
 		    $url = $ctrls[ $target["type"] ].'/directory/id/'.$targetId;
 	    }
 	    else if($verb == ActStr::VERB_ACCEPT){
-		    $label = Yii::app()->session['user']['name']." add ".$member["name"]." as member of ".$target["name"];
+		    $label = Yii::app()->session['user']['name']." add ".$member["name"]." as ".$typeOfConnect." of ".$target["name"];
 		    $url = $ctrls[ $target["type"] ].'/directory/id/'.$targetId;
 	    }
 		if($invitation == ActStr::VERB_INVITE){
-			 $label = Yii::app()->session['user']['name']." has invited ".$member["name"]." to join ".$target["name"];
+			 $label = Yii::app()->session['user']['name']." has been invited ".$member["name"]." to join ".$target["name"];
 			 $url = $ctrls[ $target["type"] ].'/directory/id/'.$targetId;
 		}
 	    $notif = array( 
