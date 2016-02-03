@@ -1,9 +1,9 @@
 <?php
 
-class ConnectMeAsAction extends CAction
+class ConnectAction extends CAction
 {
 	 /**
-	 * TODO clement : La PHPDOC
+	 * TODO Clement : La PHPDOC
 	 */
     public function run() {
 	    $result = array("result"=>false, "msg"=>Yii::t("common", "Incorrect request"));
@@ -13,11 +13,18 @@ class ConnectMeAsAction extends CAction
 		}
 
 	    $roles="";
-	    $userId = $_POST["userId"];
-	    $userType = $_POST["userType"];
+	    $childId = @$_POST["childId"];
+	    $childType = $_POST["childType"];
     	$parentId = $_POST["parentId"];
     	$parentType = $_POST["parentType"];
     	$connectType = $_POST["connectType"];
+    	
+    	//The childId can be empty => it's an invitation
+    	//Let's create it
+    	if (empty($childId)) {
+    		$childName = $_POST["childName"];
+	    	$childEmail = $_POST["childEmail"];	
+    	}
     	
     	if ($connectType=="admin"){
 	    	$connectType=true;
@@ -29,7 +36,7 @@ class ConnectMeAsAction extends CAction
 		if(@$_POST["adminAction"] == "true")
 	    	$actionAdmin = true;
     				
-		$result = Link::addPersonAs($parentId, $parentType, $userId, $userType, $connectType, Yii::app()->session["userId"], $actionAdmin,$roles);
+		$result = Link::addPersonAs($parentId, $parentType, $childId, $childType, $connectType, Yii::app()->session["userId"], $actionAdmin,$roles);
 		Rest::json($result);
     }
 

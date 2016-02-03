@@ -553,7 +553,10 @@ class Link {
 			$childrenConnectAs="projects";
 			if(!$connectAsAdmin)
 				$typeOfDemand = "contributor";
-		}
+		} else {
+            throw new CTKException(Yii::t("common","Can not manage the type ").$parentType);
+        }
+        
 		$pendingAdmin = Person::getById($childrenId);
 		if (!$parentData || !$pendingAdmin) {
 			return array("result" => false, "msg" => "Unknown ".$parentController." or person. Please check your parameters !");
