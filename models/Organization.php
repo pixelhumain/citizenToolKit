@@ -213,7 +213,8 @@ class Organization {
 		{	
 			$tags = array();
 			foreach ($organization['tags'] as $key => $value) {
-				if(!empty(trim($value)))
+				$value = trim($value);
+				if(!empty($value))
 					$tags[] = $value;
 			}
 			$newOrganization["tags"] = $tags;
@@ -227,14 +228,16 @@ class Organization {
 			if(!empty($organization['telephone']["fixe"]))
 			{
 				foreach ($organization['telephone']["fixe"] as $key => $value) {
-					if(!empty(trim($value)))
+					$value = trim($value);
+					if(!empty($value))
 						$fixe[] = $value;
 				}
 			}
 			if(!empty($organization['telephone']["mobile"]))
 			{
 				foreach ($organization['telephone']["mobile"] as $key => $value) {
-					if(!empty(trim($value)))
+					$value = trim($value);
+					if(!empty($value))
 						$mobile[] = $value;
 				}
 			}
@@ -259,14 +262,16 @@ class Organization {
 					{
 						$arrayName = array();
 						foreach ($value as $keyArray => $valueArray) {
-							if(!empty(trim($valueArray)))
+							$valueArray = trim($valueArray);
+							if(!empty($valueArray))
 								$arrayName[] = $valueArray ;
 						}
 						if(count($arrayName) != 0)
 							$unContact[$key] = $arrayName;
 					}
 					else{
-						if(!empty(trim($value)))
+						$value = trim($value);
+						if(!empty($value))
 							$unContact[$key] = $value ;	
 					}
 					
@@ -286,8 +291,8 @@ class Organization {
 	}
 
 	public static function getAndCheckAdressOrganization($organization) {
-		if(!empty(trim($organization['address']['postalCode'])))
-		{
+		$value = trim($organization['address']['postalCode']);
+		if(!empty($value)) {
 			$where = array("cp"=>$organization['address']['postalCode']);
 			$fields = array("name", "alternateName");
 	        $option = City::getWhere($where, $fields);
@@ -370,9 +375,6 @@ class Organization {
 		//méthode pour récupérer le code insee à partir d'une position geographique :
 		//$geo = SIG::getPositionByCp($organization['postalCode']);
 		//$insee = SIG::getInseeByLatLngCp($geo["latitude"], $geo["longitude"], $organization['postalCode']);
-				  
-		
-
 				  
 		//Tags
 		if (isset($organization['tags'])) {
