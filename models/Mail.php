@@ -43,8 +43,12 @@ class Mail
         Mail::schedule($params);
     }
 
-    public static function invitePerson($person) {
+    public static function invitePerson($person, $msg = null) {
         $invitor = Person::getSimpleUserById($person["invitedBy"]);
+
+        if(empty($msg))
+            $msg = $invitor["name"]. " vous invite à rejoindre Communecter.";
+
         $params = array(
             "type" => Cron::TYPE_MAIL,
             "tpl"=>'invitation',
@@ -54,7 +58,8 @@ class Mail
             "tplParams" => array(   "invitorName"   => $invitor["name"],
                                     "title" => Yii::app()->name ,
                                     "logo"  => "/images/logo.png",
-                                    "invitedUserId" => $person["_id"])
+                                    "invitedUserId" => $person["_id"],
+                                    "message" => $msg)
         );
         Mail::schedule($params);
     }
