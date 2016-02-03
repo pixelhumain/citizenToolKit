@@ -28,15 +28,16 @@ class News {
 	    $res = PHDB::findAndSort(self::COLLECTION, $param,$sort,5);
 	    foreach ($res as $key => $news) {
 		    if(@$news["type"]){
-			    if($news["type"]==ActivityStream::COLLECTION)
+			    if($news["type"]==ActivityStream::COLLECTION){
 			  		$res[$key]=NewsTranslator::convertParamsForNews($news);
+			  	}
 		  		if($news["type"]==Project::COLLECTION)
 			  		$res[$key]["postOn"]=Project::getSimpleProjectById($news["id"]);
 		  		if ($news["type"]==Organization::COLLECTION)
 			  		$res[$key]["postOn"]=Organization::getSimpleOrganizationById($news["id"]);
+			  		
 	  		}
 	  		$res[$key]["author"] = Person::getSimpleUserById($news["author"]);
-	  		
 	  	}
 	  	return $res;
 	}
@@ -45,7 +46,7 @@ class News {
 		//check a user is loggued 
 	 	$user = Person::getById(Yii::app()->session["userId"]);
 	 	//TODO : if type is Organization check the connected user isAdmin
-
+	 	
 	 	if(empty($user))
 	 		throw new CTKException("You must be loggued in to add a news entry.");
 
@@ -68,27 +69,28 @@ class News {
 				$news["id"] = $_POST["typeId"];
 		 	if(isset($_POST["type"]))
 		 	{
-				$news["type"] = $_POST["type"];
-
-				if($_POST["type"] == Person::COLLECTION ){
+				$type=$_POST["type"];
+				$news["type"] = $type;
+				
+				if($type == Person::COLLECTION ){
 					$person = Person::getById($_POST["typeId"]);
 					if( isset( $person['geo'] ) )
 						$news["from"] = $person['geo'];
-				}else if($_POST["type"] == Organization::COLLECTION ){
+				}else if($type == Organization::COLLECTION ){
 					$organization = Organization::getById($_POST["typeId"]);
 					if( isset( $organization['geo'] ) )
 						$news["from"] = $organization['geo'];
 						$organization["type"]=Organization::COLLECTION;
 					Notification::actionOnPerson ( ActStr::VERB_POST, ActStr::ICON_COMMENT, null , $organization )  ;
 				}
-				else if($_POST["type"] == Event::COLLECTION ){
+				else if($type == Event::COLLECTION ){
 					$event = Event::getById($_POST["typeId"]);
 					if( isset( $event['geo'] ) )
 						$news["from"] = $event['geo'];
 
 					Notification::actionOnPerson ( ActStr::VERB_POST, ActStr::ICON_COMMENT, null , $event )  ;
 				}
-				else if($_POST["type"] == Project::COLLECTION ){
+				else if($type == Project::COLLECTION ){
 					$project = Project::getById($_POST["typeId"]);
 					if( isset( $project['geo'] ) )
 						$news["from"] = $project['geo'];
@@ -110,7 +112,11 @@ class News {
 			}
 			PHDB::insert(self::COLLECTION,$news);
 		    $news["author"] = Person::getSimpleUserById($news["author"]);
-		  	
+		    
+		    /* Send email alert to contact@pixelhumain.com */
+		  	if(@$type && $type=="pixels"){
+		  		Mail::helpAndDebugNews($news["text"]);
+		  	}
 		    return array("result"=>true, "msg"=>"Votre news est enregistrée.", "id"=>$news["_id"],"object"=>$news);	
 		} else {
 			return array("result"=>false, "msg"=>"Please Fill required Fields.");	

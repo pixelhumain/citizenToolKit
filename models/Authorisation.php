@@ -276,7 +276,7 @@ class Authorisation {
     		}
 		}*/
 
-     public static function isProjectAdmin($projectId, $userId) {
+    public static function isProjectAdmin($projectId, $userId) {
     	$res = false;
         $listProject = Authorisation::listProjectsIamAdminOf($userId);
         if(isset($listProject[(string)$projectId])){
