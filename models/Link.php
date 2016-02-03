@@ -620,7 +620,7 @@ class Link {
                 array('$unset' => array("links.".$connectTypeOf.".".$parentId.".".$valueUpdate => ""))
                 );
 		return array("result"=>true, "msg"=>"The link has been added with success");
-	}		
+	}
 
 } 
 ?>

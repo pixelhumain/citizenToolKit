@@ -181,7 +181,7 @@ class Notification{
 		    $url = $ctrls[ $target["type"] ].'/directory/id/'.$targetId;
 	    }
 		if($invitation == ActStr::VERB_INVITE){
-			 $label = Yii::app()->session['user']['name']." has invited ".$member["name"]." to join ".$target["name"];
+			 $label = Yii::app()->session['user']['name']." has been invited ".$member["name"]." to join ".$target["name"];
 			 $url = $ctrls[ $target["type"] ].'/directory/id/'.$targetId;
 		}
 	    $notif = array( 

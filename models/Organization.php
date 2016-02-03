@@ -37,6 +37,8 @@ class Organization {
 	    "typeOfPublic" => array("name" => "typeOfPublic"),
 	    "url"=>array("name" => "url"),
 	    "telephone" => array("name" => "telephone"),
+	    //"fixe" => array("name" => "telephone.fixe"),
+	    //"mobile" => array("name" => "telephone.mobile"),
 	    "video" => array("name" => "video")
 	);
 	
@@ -549,18 +551,27 @@ class Organization {
 	 * @param String $userId : the userId making the update
 	 * @return array of result (result => boolean, msg => string)
 	 */
-	public static function update($organizationId, $organization, $userId) 
+	public static function update($organizationId, $newOrganization, $userId) 
 	{
 		//Check if user is authorized to update
 		if (! Authorisation::isOrganizationAdmin($userId, $organizationId)) {
 			return Rest::json(array("result"=>false, "msg"=>Yii::t("organization", "Unauthorized Access.")));
 		}
-
-		foreach ($organization as $fieldName => $fieldValue) {
-			self::updateField($organizationId, $fieldName, $fieldValue);
+		$countUpdated = 0;
+		$organization = self::getById($organizationId);
+		foreach ($newOrganization as $fieldName => $fieldValue) 
+		{
+			//TKA : optim, ne marche pas quand les fieldnames sont en profondeur ex : postalCode
+			//if( @$organization[$fieldName] && $organization[$fieldName] != $fieldValue){
+				self::updateField($organizationId, $fieldName, $fieldValue);
+				$countUpdated++;
+			//}
 		}
 
-	    return array("result"=>true, "msg"=>Yii::t("organization", "The organization has been updated"), "id"=>$organizationId);
+	    return array("result" => true, 
+	    			 "msg"    => Yii::t("organization", "The organization has been updated"), 
+	    			 "id"     => $organizationId,
+	    			 "updatedFileds" => $countUpdated);
 	}
 	
 	/**
@@ -757,10 +768,36 @@ class Organization {
 
 		//Specific case : 
 		//Tags
+
 		if ($dataFieldName == "tags") {
 			$organizationFieldValue = Tags::filterAndSaveNewTags($organizationFieldValue);
 			$set = array($dataFieldName => $organizationFieldValue);
-		} else if ($dataFieldName == "address") {
+		} else if ($dataFieldName == "telephone") {
+			//Telephone
+			$tel = array();
+			$fixe = array();
+			$mobile = array();
+			
+			if(!empty($organizationFieldValue))
+			{
+				foreach ($organizationFieldValue as $key => $value) {
+					if(substr($value, 0, 2) == "02")
+						$fixe[] = $value ;
+					else
+						$mobile[] = $value ;
+
+					if(!empty($fixe))
+						$tel["fixe"] = $fixe;
+					if(!empty($mobile))
+						$tel["mobile"] = $mobile;
+				}
+			}
+			
+
+			$set = array($dataFieldName => $tel);
+
+		}
+		else if ($dataFieldName == "address") {
 		//address
 			if(!empty($organizationFieldValue["postalCode"]) && !empty($organizationFieldValue["codeInsee"])) {
 				$insee = $organizationFieldValue["codeInsee"];

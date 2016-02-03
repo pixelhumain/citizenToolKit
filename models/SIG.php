@@ -125,7 +125,7 @@ class SIG
 
 		
 		//City::updateGeoPositions();
-		error_log($lng." - ".$lat);
+		//error_log($lng." - ".$lat);
 		if($oneCity == null){
 			$request = array("geoPosition" => array( '$exists' => true ),
 							 "geoPosition.coordinates"  => 
@@ -228,8 +228,8 @@ class SIG
 		if (empty($cityName)) {
 			throw new InvalidArgumentException("The City Name is mandatory");
 		}
- 		error_log($cityName);
- 		error_log(utf8_encode($cityName));
+ 		//error_log($cityName);
+ 		//error_log(utf8_encode($cityName));
 
 		$city = PHDB::findOne(City::COLLECTION, array("name" => new MongoRegex("/".PHDB::wd_remove_accents($cityName)."/i")));
 		if (empty($city)) {

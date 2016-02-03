@@ -5,7 +5,7 @@ class AgendaAction extends CAction
 		
 		$controller=$this->getController();
 		$controller->layout = "//layouts/mainSearch";
-        $controller->render( "agenda" );
+        $controller->renderPartial( "agenda" );
         
 		//return Rest::json(array("result" => true, "list" => $search));
 	}
