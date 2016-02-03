@@ -37,6 +37,8 @@ class Organization {
 	    "typeOfPublic" => array("name" => "typeOfPublic"),
 	    "url"=>array("name" => "url"),
 	    "telephone" => array("name" => "telephone"),
+	    //"fixe" => array("name" => "telephone.fixe"),
+	    //"mobile" => array("name" => "telephone.mobile"),
 	    "video" => array("name" => "video")
 	);
 	
@@ -752,10 +754,36 @@ class Organization {
 
 		//Specific case : 
 		//Tags
+
 		if ($dataFieldName == "tags") {
 			$organizationFieldValue = Tags::filterAndSaveNewTags($organizationFieldValue);
 			$set = array($dataFieldName => $organizationFieldValue);
-		} else if ($dataFieldName == "address") {
+		} else if ($dataFieldName == "telephone") {
+			//Telephone
+			$tel = array();
+			$fixe = array();
+			$mobile = array();
+			
+			if(!empty($organizationFieldValue))
+			{
+				foreach ($organizationFieldValue as $key => $value) {
+					if(substr($value, 0, 2) == "02")
+						$fixe[] = $value ;
+					else
+						$mobile[] = $value ;
+
+					if(!empty($fixe))
+						$tel["fixe"] = $fixe;
+					if(!empty($mobile))
+						$tel["mobile"] = $mobile;
+				}
+			}
+			
+
+			$set = array($dataFieldName => $tel);
+
+		}
+		else if ($dataFieldName == "address") {
 		//address
 			if(!empty($organizationFieldValue["postalCode"]) && !empty($organizationFieldValue["codeInsee"])) {
 				$insee = $organizationFieldValue["codeInsee"];
