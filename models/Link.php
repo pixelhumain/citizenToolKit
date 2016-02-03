@@ -534,8 +534,13 @@ class Link {
         // Create link between both entity
 		$res=self::connect($memberOfId, $memberOfType, $memberId, $memberType, $userId,"members",$userAdmin,$pendingAdmin, $toBeValidated, $userRole);
 		$res=self::connect($memberId, $memberType, $memberOfId, $memberOfType, $userId,"memberOf",$userAdmin,$pendingAdmin, $toBeValidated, $userRole);*/
-	public static function addPersonAs($parentId, $parentType, $childrenId, $childrenType, $connectAsAdmin, $userId, $actionFromAdmin=false,$userRole="") {
-		$typeOfDemand="admin";
+	public static function connectParentToChild($parentId, $parentType, $child, $connectAsAdmin, $userId, $actionFromAdmin=false,$userRole="") {
+		
+        $typeOfDemand="admin";
+        $childId = $child["childId"];
+        $childType = $child["childType"];
+        $invitation = false;
+
 		if($parentType == Organization::COLLECTION){
 			$parentData = Organization::getById($parentId);
 			$usersAdmin = Authorisation::listOrganizationAdmins($parentId, false);
@@ -556,20 +561,56 @@ class Link {
 		} else {
             throw new CTKException(Yii::t("common","Can not manage the type ").$parentType);
         }
-        
-		$pendingAdmin = Person::getById($childrenId);
-		if (!$parentData || !$pendingAdmin) {
-			return array("result" => false, "msg" => "Unknown ".$parentController." or person. Please check your parameters !");
-		} else {
+
+        if ($childType == Organization::COLLECTION) {
+            $class = "Organization";
+        //ou Child type Person
+        } else if ($childType == Person::COLLECTION) {
+            $class = "Person";
+        }
+		//if the childId is empty => it's an invitation
+        //Let's create the child
+        if (empty($childId)) {
+            $childName = @$child["childName"];
+            $childEmail = @$child["childEmail"];    
+            $child = array(
+                 'invitedBy'=>Yii::app()->session["userId"]
+            );
+                        
+            $invitation = ActStr::VERB_INVITE;
+            
+            $child["name"] = $childName;
+            $child["email"] = $childEmail;
+
+            //Child Type d'organization
+            if ($childType == Organization::COLLECTION) {
+                $child["type"] = (isset($_POST["organizationType"])) ? $_POST["organizationType"] : "";
+            }
+
+            //create an entry in the right collection type
+            $result = $class::createAndInvite($child);
+            if ($result["result"]) {
+                $childId = $result["id"];
+            } else 
+                return Rest::json($result);
+        }
+
+        $pendingChild = $class::getById($childId);
+
+		if (!$parentData) {
+			return array("result" => false, "msg" => "Unknown ".$parentController.". Please check your parameters !");
+		} else if (!$pendingChild) {
+            return array("result" => false, "msg" => "Unknown ".$childType.". Please check your parameters !");
+        } else {
 			if($actionFromAdmin)
-				$msg=$pendingAdmin["name"]." is now admin of ".$parentData["name"];
+				$msg=$pendingChild["name"]." is now admin of ".$parentData["name"];
 			else
 				$msg= Yii::t("common", "You are now ".$typeOfDemand." of")." ".Yii::t("common","this ".$parentController);
 			$res = array("result" => true, "msg" => $msg, "parent" => $parentData,"parentType"=>$parentType);
 		}
+
 		//First case : You are already member or admin
-		///??????? A enlever !!!!!!!!!!!!!!!!!!!!!!!!!!!!
-		if (in_array($childrenId, $usersAdmin)) 
+		if (in_array($childId, $usersAdmin)) 
 			return array("result" => false, "msg" => Yii::t("common", "Your are already admin of")." ".Yii::t("common","this ".$parentController)." !");
 		//Second case : The parent doesn't have an admin yet or it is an action from an admin : the person is automatically added as admin or member of the parent
 		if (count($usersAdmin) == 0 || $actionFromAdmin) {
@@ -596,14 +637,14 @@ class Link {
 				$currentAdmin = Person::getSimpleUserById($adminId);
 				array_push($listofAdminsEmail, $currentAdmin["email"]);
 			}
-			Mail::someoneDemandToBecome($parentData, $parentType, $pendingAdmin, $listofAdminsEmail,$typeOfDemand);
+			Mail::someoneDemandToBecome($parentData, $parentType, $pendingChild, $listofAdminsEmail, $typeOfDemand);
 			//TODO - Notification
 			$res = array("result" => true, "msg" => Yii::t("common","Your request has been sent to other admins."), "parent" => $parentData,"parentType"=>$parentType);
 			// After : the 1rst existing Admin to take the decision will remove the "pending" to make a real admin
 		}
-		Link::connect($parentId, $parentType, $childrenId, $childrenType,Yii::app() -> session["userId"], $parentConnectAs, $connectAsAdmin, $toBeValidatedAdmin, $toBeValidated, $userRole);
-		Link::connect($childrenId, $childrenType, $parentId, $parentType, Yii::app() -> session["userId"], $childrenConnectAs, $connectAsAdmin, $toBeValidatedAdmin, $toBeValidated, $userRole);
-		Notification::actionOnPerson ( $verb, ActStr::ICON_SHARE, $pendingAdmin , array("type"=>$parentType,"id"=> $parentId,"name"=>$parentData["name"])) ;
+		Link::connect($parentId, $parentType, $childId, $childType,Yii::app() -> session["userId"], $parentConnectAs, $connectAsAdmin, $toBeValidatedAdmin, $toBeValidated, $userRole);
+		Link::connect($childId, $childType, $parentId, $parentType, Yii::app() -> session["userId"], $childrenConnectAs, $connectAsAdmin, $toBeValidatedAdmin, $toBeValidated, $userRole);
+		Notification::actionOnPerson($verb, ActStr::ICON_SHARE, $pendingChild , array("type"=>$parentType,"id"=> $parentId,"name"=>$parentData["name"]), $invitation) ;
 		
 		return $res;
 	}
