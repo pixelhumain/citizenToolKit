@@ -229,7 +229,7 @@ class Project {
 		
 		$project = self::getById( $projectId );
 		foreach ($projectChangedFields as $fieldName => $fieldValue) {
-			if( $project[ $fieldName ] != $fieldValue)
+			//if( $project[ $fieldName ] != $fieldValue)
 				self::updateProjectField($projectId, $fieldName, $fieldValue, $userId);
 		}
 

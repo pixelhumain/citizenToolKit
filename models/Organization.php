@@ -549,18 +549,27 @@ class Organization {
 	 * @param String $userId : the userId making the update
 	 * @return array of result (result => boolean, msg => string)
 	 */
-	public static function update($organizationId, $organization, $userId) 
+	public static function update($organizationId, $newOrganization, $userId) 
 	{
 		//Check if user is authorized to update
 		if (! Authorisation::isOrganizationAdmin($userId, $organizationId)) {
 			return Rest::json(array("result"=>false, "msg"=>Yii::t("organization", "Unauthorized Access.")));
 		}
-
-		foreach ($organization as $fieldName => $fieldValue) {
-			self::updateField($organizationId, $fieldName, $fieldValue);
+		$countUpdated = 0;
+		$organization = self::getById($organizationId);
+		foreach ($newOrganization as $fieldName => $fieldValue) 
+		{
+			//TKA : optim, ne marche pas quand les fieldnames sont en profondeur ex : postalCode
+			//if( @$organization[$fieldName] && $organization[$fieldName] != $fieldValue){
+				self::updateField($organizationId, $fieldName, $fieldValue);
+				$countUpdated++;
+			//}
 		}
 
-	    return array("result"=>true, "msg"=>Yii::t("organization", "The organization has been updated"), "id"=>$organizationId);
+	    return array("result" => true, 
+	    			 "msg"    => Yii::t("organization", "The organization has been updated"), 
+	    			 "id"     => $organizationId,
+	    			 "updatedFileds" => $countUpdated);
 	}
 	
 	/**

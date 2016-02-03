@@ -16,8 +16,7 @@ class UpdateAction extends CAction
 
 		$res = array("result"=>false, "msg"=>Yii::t("common", "Something went wrong!"));
 		try {
-			Organization::update($organizationId, $organization, Yii::app()->session["userId"]);
-			$res = array("result"=>true, "msg"=>Yii::t("organization", "The organization has been updated"));
+			$res = Organization::update($organizationId, $organization, Yii::app()->session["userId"]);
 		} catch (CTKException $e) {
 			$res = array("result"=>false, "msg"=>$e->getMessage());
 		}

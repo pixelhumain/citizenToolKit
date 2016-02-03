@@ -280,7 +280,7 @@ class Event {
 		}
 		$event = self::getById($eventId);
 		foreach ($eventChangedFields as $fieldName => $fieldValue) {
-			if( $event[$fieldName] != $fieldValue)
+			//if( $event[$fieldName] != $fieldValue)
 				self::updateEventField($eventId, $fieldName, $fieldValue, $userId);
 		}
 
