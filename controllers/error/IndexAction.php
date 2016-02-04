@@ -7,7 +7,7 @@ class IndexAction extends CAction
         $controller->pageTitle = "ERREUR";
         
         
-
+        $controller->layout = "//layouts/mainSimple";
 	    if($error = Yii::app()->errorHandler->error )
 	    {
 	    	$controller->title = "ERREUR ".$error['code'];
