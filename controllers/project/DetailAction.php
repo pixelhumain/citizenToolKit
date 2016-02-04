@@ -93,11 +93,11 @@ class DetailAction extends CAction
 			//var_dump($where);
 			$needs = Need::getWhereSortLimit( $whereNeed, array("date"=>1) ,30);
 	  	}
-	  	if(isset($project["_id"]) && isset(Yii::app()->session["userId"]) && Link::isLinked($project["_id"] , Project::COLLECTION , Yii::app()->session['userId']))
+	  	/*if(isset($project["_id"]) && isset(Yii::app()->session["userId"]) && Link::isLinked($project["_id"] , Project::COLLECTION , Yii::app()->session['userId']))
 			$htmlFollowBtn = array('position' => 'right','label'=> Yii::t("common", 'Stop contributing'), 'tooltip' => Yii::t("common", "Stop contributing to this Project"), "parent"=>"span","parentId"=>"linkBtns","iconClass"=>"disconnectBtnIcon fa fa-unlink","href"=>"<a href='javascript:;' class='disconnectBtn text-red tooltips btn btn-default' data-name='".$project["name"]."' data-id='".$project["_id"]."' data-type='".Project::COLLECTION."' data-member-id='".Yii::app()->session["userId"]."' data-ownerlink='".Link::person2projects."' data-targetlink='".Link::project2person."'");
 		else
 			$htmlFollowBtn = array('position' => 'right', 'label'=> Yii::t("common", "Start contributing"),'tooltip' => Yii::t("common", "I want to contribute to this Project"), "parent"=>"span","parentId"=>"linkBtns","iconClass"=>"connectBtnIcon fa fa-unlink","href"=>"<a href='javascript:;' class='connectBtn tooltips btn btn-default' id='addKnowsRelation' data-ownerlink='".Link::person2projects."' data-targetlink='".Link::project2person."'");
-	  	Menu::add2MBZ($htmlFollowBtn);
+	  	Menu::add2MBZ($htmlFollowBtn);*/
 	  	//Gestion de l'admin - true or false
 	  	// First find if user session is directly link to project
 	  	// Second if not, find if user belong to an organization admin of the project
