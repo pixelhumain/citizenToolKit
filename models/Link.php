@@ -554,8 +554,8 @@ class Link {
         }
         
         //Check if the user is admin
-        $actionFromAdmin = isset($usersAdmin[$userId]);
-
+		$actionFromAdmin=in_array($userId,$usersAdmin);
+		
         if ($childType == Organization::COLLECTION) {
             $class = "Organization";
         //ou Child type Person
@@ -602,12 +602,17 @@ class Link {
         //First case : The parent doesn't have an admin yet or it is an action from an admin : 
 		if (count($usersAdmin) == 0 || $actionFromAdmin) {
             //the person is automatically added as member (admin or not) of the parent
-            if($actionFromAdmin)
+            if($actionFromAdmin){
 				$verb = ActStr::VERB_CONFIRM;
-			else
+				$msg=$pendingChild["name"]." ".Yii::t("common","is now admin of")." ".$parentData["name"];
+			}
+			else{
 				$verb = ActStr::VERB_JOIN;
+				$msg= Yii::t("common", "You are now ".$typeOfDemand." of")." ".Yii::t("common","this ".$parentController);
+			}
 			$toBeValidatedAdmin=false;
 			$toBeValidated=false;
+           
 		//Second case : Not an admin doing the action.
         } else {
             //Someone ask to become an admin 
@@ -629,7 +634,7 @@ class Link {
             }
             Mail::someoneDemandToBecome($parentData, $parentType, $pendingChild, $listofAdminsEmail, $typeOfDemand);
             //TODO - Notification
-            $res = array("result" => true, "msg" => Yii::t("common","Your request has been sent to other admins."), "parent" => $parentData,"parentType"=>$parentType);
+            $msg = Yii::t("common","Your request has been sent to other admins.");
             // After : the 1rst existing Admin to take the decision will remove the "pending" to make a real admin
         }        
 
@@ -637,13 +642,7 @@ class Link {
 		Link::connect($parentId, $parentType, $childId, $childType,Yii::app()->session["userId"], $parentConnectAs, $isConnectingAdmin, $toBeValidatedAdmin, $toBeValidated, $userRole);
 		Link::connect($childId, $childType, $parentId, $parentType, Yii::app()->session["userId"], $childConnectAs, $isConnectingAdmin, $toBeValidatedAdmin, $toBeValidated, $userRole);
 		Notification::actionOnPerson($verb, ActStr::ICON_SHARE, $pendingChild , array("type"=>$parentType,"id"=> $parentId,"name"=>$parentData["name"]), $invitation) ;
-		
-        if($actionFromAdmin)
-            $msg=$pendingChild["name"]." is now admin of ".$parentData["name"];
-        else
-            $msg= Yii::t("common", "You are now ".$typeOfDemand." of")." ".Yii::t("common","this ".$parentController);
-        $res = array("result" => true, "msg" => $msg, "parent" => $parentData,"parentType"=>$parentType);
-
+		$res = array("result" => true, "msg" => $msg, "parent" => $parentData,"parentType"=>$parentType);
 		return $res;
 	}
 	
