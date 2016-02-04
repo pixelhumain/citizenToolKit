@@ -39,7 +39,8 @@ class AddAsMemberAction extends CAction
 
 			$user = array(
 				"id"=>$userId,
-				"type"=>$userType
+				"type"=>$userType,
+				"name" => "TODO"	
 			);
 			if(isset($_POST['userName']))
 				$user["name"] = $_POST['userName'];			
