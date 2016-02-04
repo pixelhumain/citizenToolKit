@@ -505,35 +505,21 @@ class Link {
         return array("result"=>true, "msg"=>"The link has been added with success");
     }
 	
-	/**
-	 * Add someone as admin or member of an organization or project.
-	 * If there are already admins of the organization, they will receive a notification and email to 
-	 * accept or not the new admin
-	 * @param String $idOrganization The id of the organization
-	 * @param String $idPerson The id of the person asking to become an admin
-	 * @param String $userId The userId doing the action
-	 * @return array of result (result => bool, msg => string)
-	 */
-	     /*    $organization=Organization::getById($memberOfId);
-        $listAdmin=Authorisation::listOrganizationAdmins($memberOfId);
-       // print_r($listAdmin);
-        //TODO SBAR => Change the boolean userAdmin to a role (admin, contributor, moderator...)        
-        //1. Check if the $userId can manage the $memberOf
-        $toBeValidated = false;
-        $notification="";
-        if (!Authorisation::isOrganizationAdmin($userId, $memberOfId)) {
-            // Specific case when the user is added as an admin
-            if (!$userAdmin) {
-                // Add a toBeValidated tag on the link
-                if(@$organization["links"]["members"] && count($organization["links"]["members"])!=0 && !empty($listAdmin)){
-                	$toBeValidated = true;
-					$notification="toBeValidated";
-                }
-            }
-        }
-        // Create link between both entity
-		$res=self::connect($memberOfId, $memberOfType, $memberId, $memberType, $userId,"members",$userAdmin,$pendingAdmin, $toBeValidated, $userRole);
-		$res=self::connect($memberId, $memberType, $memberOfId, $memberOfType, $userId,"memberOf",$userAdmin,$pendingAdmin, $toBeValidated, $userRole);*/
+    /**
+     * Connect A Child to parent with a link
+     * @param String $parentId Id of the parent to link to
+     * @param String $parentType type of the parent to link to
+     * @param Array $child array discribing a child to link to the parent. 
+     *                         childId => the id of the child. Could be empty if it's an invitation
+     *                         childType => the type of the child. Mandatory
+     *                         childName => Used if it's an invitation
+     *                         childEmail => Used if it's an invitation
+     * @param boolean $connectAsAdmin Is the child admin ?
+     * @param String $userId The userId doing the action
+     * @param bool $actionFromAdmin Is an admin doing the action
+     * @param string $userRole The role the child inside the parent. Not use yet.
+     * @return array of result ()
+     */
 	public static function connectParentToChild($parentId, $parentType, $child, $connectAsAdmin, $userId, $actionFromAdmin=false,$userRole="") {
 		
         $typeOfDemand="admin";

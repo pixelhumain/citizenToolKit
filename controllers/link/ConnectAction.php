@@ -6,6 +6,10 @@ class ConnectAction extends CAction
 	 * TODO Clement : La PHPDOC
 	 */
     public function run() {
+	    assert('!empty($_POST["childType"]); //The child type is mandatory');
+	    assert('!empty($_POST["parentId"]); //The parent id is mandatory');
+	    assert('!empty($_POST["parentType"]); //The parent type is mandatory');
+
 	    $result = array("result"=>false, "msg"=>Yii::t("common", "Incorrect request"));
 		
 		if (! Person::logguedAndValid()) {
