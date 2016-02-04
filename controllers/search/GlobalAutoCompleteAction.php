@@ -17,8 +17,9 @@ class GlobalAutoCompleteAction extends CAction
   		
 
         /***********************************  TAGS   *****************************************/
-        if(strpos($search, "#") === 0){
-        	$search = substr($search, 1, strlen($search));
+        if(strpos($search, "#") != false){
+        	$search = substr($search, 0, strlen($search));
+        	error_log("search tag ".$search);
         	$query = array( "tags" => array('$in' => array(new MongoRegex("/".$search."/i")))) ; //new MongoRegex("/".$search."/i") )));
   		}
 
@@ -43,7 +44,7 @@ class GlobalAutoCompleteAction extends CAction
 	    }
 	  	
   	
-	        $res = array();
+	    $res = array();
 
 
         /***********************************  PERSONS   *****************************************/
