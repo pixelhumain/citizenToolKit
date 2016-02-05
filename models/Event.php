@@ -17,6 +17,7 @@ class Event {
 	    "addressLocality" => array("name" => "address.addressLocality"),
 	    "addressCountry" => array("name" => "address.addressCountry"),
 	    "geo" => array("name" => "geo"),
+	    "geoPosition" => array("name" => "geoPosition"),
 	    "description" => array("name" => "description"),
 	    "allDay" => array("name" => "allDay"),
 	    "startDate" => array("name" => "startDate", "rules" => array("eventStartDate")),
@@ -248,7 +249,7 @@ class Event {
 
 		if($params["organizerType"] == Person::COLLECTION )
 			$isAdmin=true;
-		
+
 	    Link::attendee($newEvent["_id"], Yii::app()->session['userId'], $isAdmin, $creator);
 	    Link::addOrganizer($params["organizerId"],$params["organizerType"], $newEvent["_id"], Yii::app()->session['userId']);
 				
