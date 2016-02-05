@@ -181,7 +181,7 @@ class Mail
             "tpl"=>'helpAndDebugNews',
             "subject" => 'You received a new post on help and debug stream by '.Yii::app()->name,
             "from"=>Yii::app()->params['userEmail'],
-            "to" => "contact@pixelhumain.com",
+            "to" => "pixelhumain@gmail.com",
             "tplParams" => array(
                                     "title" => Yii::app()->session["user"]["username"] ,
                                     "logo"  => "/images/logo.png",

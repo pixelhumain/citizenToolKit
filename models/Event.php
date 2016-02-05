@@ -204,6 +204,9 @@ class Event {
 	    if(!empty($params['country'])) {
 			$newEvent["address"]["addressCountry"] = $params['country'];
 		}
+		if(!empty($params['streetAddress'])) {
+			$newEvent["address"]["streetAddress"] = $params['streetAddress'];
+		}
 		
 		
 		if(!empty($params['geoPosLatitude']) && !empty($params["geoPosLongitude"])){
@@ -240,7 +243,9 @@ class Event {
 		*/
 		$creator = true;
 		$isAdmin = false;
-		if($params["organizerType"]==Person::COLLECTION)
+		if( !isset( $params["organizerType"] ) )
+
+		if($params["organizerType"]==Person::COLLECTION )
 			$isAdmin=true;
 	    Link::attendee($newEvent["_id"], Yii::app()->session['userId'], $isAdmin, $creator);
 	    Link::addOrganizer($params["organizerId"],$params["organizerType"], $newEvent["_id"], Yii::app()->session['userId']);
@@ -278,7 +283,7 @@ class Event {
 		if (! Authorisation::iseventAdmin($eventId,$userId)) {
 			return array("result"=>false, "msg"=>Yii::t("event", "Unauthorized Access."));
 		}
-		$event = self::getById($eventId);
+		//$event = self::getById($eventId);
 		foreach ($eventChangedFields as $fieldName => $fieldValue) {
 			//if( $event[$fieldName] != $fieldValue)
 				self::updateEventField($eventId, $fieldName, $fieldValue, $userId);
@@ -427,7 +432,6 @@ class Event {
 		} else {
 			$set = array($dataFieldName => $eventFieldValue);
 		}
-
 
 		$res = Event::updateEvent($eventId, $set, $userId);
 		return $res;

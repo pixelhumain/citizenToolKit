@@ -22,7 +22,6 @@ class GlobalAutoCompleteAction extends CAction
         	$query = array( "tags" => array('$in' => array(new MongoRegex("/".$search."/i")))) ; //new MongoRegex("/".$search."/i") )));
   		}
 
-
   		/***********************************  DEFINE LOCALITY QUERY   *****************************************/
         if($locality != null && $locality != ""){
 
@@ -42,9 +41,7 @@ class GlobalAutoCompleteAction extends CAction
         	$query = array('$and' => array($query, $queryLocality) );
 	    }
 	  	
-  	
 	        $res = array();
-
 
         /***********************************  PERSONS   *****************************************/
         if(strcmp($filter, Person::COLLECTION) != 0 && $this->typeWanted("persons", $searchType)){
@@ -78,7 +75,9 @@ class GlobalAutoCompleteAction extends CAction
 
 	  	/***********************************  EVENT   *****************************************/
         if(strcmp($filter, Event::COLLECTION) != 0 && $this->typeWanted("events", $searchType)){
-	  		$allEvents = PHDB::find(PHType::TYPE_EVENTS, $query, array("name", "address", "shortDescription", "description"));
+        	if( isset( $query['$and'] ) ) 
+        		array_push( $query[ '$and' ], array( "endDate" => array( '$gte' => new MongoDate( time()) ) ) );
+	  		$allEvents = PHDB::find( PHType::TYPE_EVENTS, $query, array("name", "address", "shortDescription", "description"));
 	  		foreach ($allEvents as $key => $value) {
 	  			$event = Event::getById($key);
 				$event["type"] = "event";
@@ -102,17 +101,16 @@ class GlobalAutoCompleteAction extends CAction
 	  		$res["project"] = $allProject;
 	  	}
 
-
 	  	/***********************************  CITIES   *****************************************/
         if(strcmp($filter, City::COLLECTION) != 0 && $this->typeWanted("cities", $searchType)){
-	  		$query = array( "name" => new MongoRegex("/".self::wd_remove_accents($search)."/i"));
+	  		$query = array( "name" => new MongoRegex("/".self::wd_remove_accents($search)."/i"));//array('$text' => array('$search' => $search));//
 	  		
 	  		/***********************************  DEFINE LOCALITY QUERY   *****************************************/
 	        if($locality != null && $locality != ""){
 
 	        	if($type == "NAME"){ 
-	        		$query = array('$or' => array(array("name" => new MongoRegex("/".self::wd_remove_accents($locality)."/i")),
-	        									  array("alternateName" => new MongoRegex("/".self::wd_remove_accents($locality)."/i"))));
+	        		$query = array('$or' => array( array( "name" => new MongoRegex("/".self::wd_remove_accents($locality)."/i")),
+	        									   array( "alternateName" => new MongoRegex("/".self::wd_remove_accents($locality)."/i"))));
 	        		//error_log("search city with : " . self::wd_remove_accents($locality));
 	        	}
 	        	if($type == "CODE_POSTAL_INSEE") {
