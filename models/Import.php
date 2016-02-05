@@ -18,7 +18,8 @@ class Import
             if($nameFile[count($nameFile)-1] == "json" || $nameFile[count($nameFile)-1] == "js")
                 $params = Import::parsingJSON($file, $post);
             else if($nameFile[count($nameFile)-1] == "csv")
-                $params = Import::parsingCSV($file, $post);
+                $params = Import::parsingCSV($post);
+                //$params = Import::parsingCSV($file, $post);
         }
 
         return $params ;
@@ -92,6 +93,140 @@ class Import
     }
 
 
+    public static function parsingJSON2($file, $post) 
+    {
+        header('Content-Type: text/html; charset=UTF-8');
+        if(isset($file['fileImport']))
+        {
+            $json = $post['file'];
+            
+            $nameFile = $post['nameFile'] ;
+            $arrayNameFile = explode(".", $nameFile);
+            
+            $path = sys_get_temp_dir().'/filesImportData/' ;
+            
+            if(!file_exists($path))
+                mkdir($path , 0775);
+
+            $path = sys_get_temp_dir().'/filesImportData/'.$nameFile .'/';
+            if(!file_exists($path))
+                mkdir($path , 0775);
+
+            Import::createJSON($json, $nameFile, $path);
+
+            $json_objet = json_decode($json, true);
+            
+            $chaine ="";
+            foreach ($json_objet as $key => $value) {
+                $chaine .= FileHelper::arbreJson($value , "", "");
+            }
+
+            $arbre = explode(";",  $chaine);
+            $listBrancheJson = array();
+            foreach ($arbre as $key => $value) 
+            {
+                if(!in_array($value, $listBrancheJson) && trim($value) != "")
+                    $listBrancheJson[] = $value ;
+            }
+            
+            $params = array("createLink"=>true,
+                            "typeFile" => "json",
+                            "arbre"=>$listBrancheJson,
+                            "nameFile"=>$nameFile ,
+                            "json_origine"=>$json,
+                            "idCollection"=>$post['chooseCollection']);
+            
+        }
+        else
+        {
+            $params = array("createLink"=>false);
+        }
+        return $params ;
+
+    }
+
+    public static function parsingCSV2($post) 
+    {
+        //var_dump($post);
+        header('Content-Type: text/html; charset=UTF-8');
+
+        if(isset($post['nameFile']) && isset($post['file']))
+        {
+            $path = sys_get_temp_dir().'/filesImportData/' ;
+            if(!file_exists($path))
+                mkdir($path , 0775);
+
+            $path = sys_get_temp_dir().'/filesImportData/'.$post['nameFile'].'/';
+            if(!file_exists($path))
+                mkdir($path , 0775);
+
+            $countLine = 0;
+            $countFile = 1;
+            $test = [];
+            $line = [];
+
+            foreach ($post['file'] as $key => $value) 
+            {
+
+                $arrayCSV[$key] = $value;
+                if($key == 0)
+                    $headerCSV = $value;
+                
+                if($countLine == 0 || $key == 0)
+                    $arrayCSV[0] = $headerCSV;
+                else
+                    $arrayCSV[$countLine] = $value;
+
+
+                if($countLine == 5000)
+                {
+                    $nameFile = $post['nameFile'].'_'.$countFile.'.csv' ;
+                    Import::createCSV($arrayCSV, $nameFile, $path);
+                    $countLine = 0;
+                    $countFile++;
+                    $arrayCSV = array();
+                }
+                else
+                    $countLine++;
+
+            }
+            $nameFile = $post['nameFile'].'_'.$countFile.'.csv' ;
+            Import::createCSV($arrayCSV, $nameFile, $path);
+            
+            $subFiles = scandir(sys_get_temp_dir()."/filesImportData/".$post['nameFile']);
+
+
+            $params = array("_id"=>new MongoId($post['chooseCollection']));
+            $fields = array("mappingFields");
+            $fieldsCollection = Import::getMicroFormats($params, $fields);
+            $arrayPathMapping2 = array();
+            foreach ($fieldsCollection as $key => $value) 
+            {
+                $pathMapping = FileHelper::arbreJson($value['mappingFields'], "", "");
+                $arrayPathMapping = explode(";",  $pathMapping);
+                foreach ($arrayPathMapping as $keyPathMapping => $valuePathMapping) 
+                {
+                    
+                    if(!empty($valuePathMapping))
+                        $arrayPathMapping2[] =  $valuePathMapping;
+                }
+            }
+            
+            $params = array("createLink"=>true,
+                            "typeFile" => "csv",
+                            "arrayCSV" => $post['file'],
+                            "subFiles" => $subFiles,
+                            "nameFile"=>$post['nameFile'],
+                            "arrayPathMapping"=>$arrayPathMapping2,
+                            "idCollection"=>$post['chooseCollection']);
+        }
+        else
+        {
+            $params = array("createLink"=>false);  
+        }
+
+        return $params ;
+    }
 
 
 	public static function parsingCSV($file, $post) 
@@ -115,8 +250,9 @@ class Import
                 mkdir($path , 0775);
 
             $path = sys_get_temp_dir().'/filesImportData/'.$arrayNameFile[0].'/';
-            if(!file_exists($path))
-                mkdir($path , 0775);
+            if(file_exists($path))
+               rmdir($path);
+            mkdir($path , 0775);
 
             $countLine = 0;
             $countFile = 1;
@@ -187,10 +323,11 @@ class Import
            
             $i = 0 ;
             
-
-
+            //var_dump($post['infoCreateData']);
+            //var_dump($arrayCSV);
             foreach ($arrayCSV as $keyCSV => $lineCSV) 
             {
+                //var_dump($lineCSV);
                 // On rejet la premier lignes qui correspond a l'en-tete, et les lignes qui seraient null
                 if($i>0 && $lineCSV[0] != null)
                 {
@@ -201,8 +338,10 @@ class Import
                     
                     foreach($post['infoCreateData']as $key => $objetInfoData) 
                     {
+                        //var_dump($objetInfoData);
                         //$objetInfoData->idHeadCSV;
                         //$objetInfoData->valueLinkCollection;
+                        
                         $valueData = $lineCSV[$objetInfoData['idHeadCSV']] ;
                         //var_dump($valueData);
                         
@@ -211,7 +350,7 @@ class Import
                             $paramsInfoCollection = array("_id"=>new MongoId($post['idCollection']));
                             $fieldsInfoCollection =  array("mappingFields.".$objetInfoData['valueLinkCollection']);
 
-                            $infoCollection = ImportData::getMicroFormats($paramsInfoCollection);
+                            $infoCollection = Import::getMicroFormats($paramsInfoCollection);
 
                            
                             //var_dump($infoCollection) ; 
@@ -219,9 +358,7 @@ class Import
 
 
                             $typeData = FileHelper::get_value_json($infoCollection,$mappingTypeData);
-                            /*var_dump($mappingTypeData) ; 
-                           
-                            var_dump($typeData) ; */
+                            
 
                             $mapping = explode(".", $objetInfoData['valueLinkCollection']);
                            
@@ -270,7 +407,6 @@ class Import
                         $lineJsonArray[] = $e->getMessage();
                         $arrayJsonError[] = $newOrganization ;
                     }
-                     //var_dump($arrayJson);
                 }
                 $i++;
             }
@@ -335,7 +471,7 @@ class Import
                         $paramsInfoCollection = array("_id"=>new MongoId($post['idCollection']));
                         $fieldsInfoCollection =  array("mappingFields.".$objetInfoData['valueLinkCollection']);
 
-                        $infoCollection = ImportData::getMicroFormats($paramsInfoCollection);
+                        $infoCollection = Import::getMicroFormats($paramsInfoCollection);
 
                        
                         //var_dump($infoCollection) ; 
@@ -539,6 +675,13 @@ class Import
         }
 
         return $tableau ;
+    }
+
+
+    public static function getMicroFormats($params, $fields=null, $limit=0) 
+    {
+        $microFormats =PHDB::findAndSort(self::MICROFORMATS,$params, array("created" =>1), $limit, $fields);
+        return $microFormats;
     }
 }
 
