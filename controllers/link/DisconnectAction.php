@@ -1,12 +1,12 @@
 <?php
-class RemoveUserAction extends CAction
+class DisconnectAction extends CAction
 {
     public function run()
     {
         $res = array( "result" => false , "msg" => Yii::t("common","Something went wrong!" ));
         if(@$_POST){
-	        $userId=$_POST["userId"];
-	        $userType=$_POST["userType"];
+	        $childId=$_POST["childId"];
+	        $childType=$_POST["childType"];
 	        $parentId=$_POST["parentId"];
 	        $parentType=$_POST["parentType"];
 	        $connectType=$_POST["connectType"];
@@ -16,12 +16,12 @@ class RemoveUserAction extends CAction
 					$parentConnect="memberOf";
 				else
 					$parentConnect=$parentType;
-				Link::disconnect($userId, $userType, $parentId, $parentType,Yii::app()->session['userId'], $parentConnect);
-				Link::disconnect($parentId, $parentType, $userId, $userType,Yii::app()->session['userId'], $connectType);
-				if($userId == Yii::app()->session["userId"]){
+				Link::disconnect($childId, $childType, $parentId, $parentType,Yii::app()->session['userId'], $parentConnect);
+				Link::disconnect($parentId, $parentType, $childId, $childType,Yii::app()->session['userId'], $connectType);
+				if($childId == Yii::app()->session["userId"]){
 					$removeMeAsAdmin=true;
 				}
-				$res = array( "result" => true , "msg" => Yii::t("",$connectType." successfully removed"), "collection" => $userType,"removeMeAsAdmin"=> $removeMeAsAdmin);			
+				$res = array( "result" => true , "msg" => Yii::t("",$connectType." successfully removed"), "collection" => $childType,"removeMeAsAdmin"=> $removeMeAsAdmin,"parentId"=>$parentId,"parentType"=>$parentId);			
 			} catch (CTKException $e) {
 				$res = array( "result" => false , "msg" => $e->getMessage() );
 			}

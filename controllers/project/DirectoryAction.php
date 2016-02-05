@@ -91,7 +91,7 @@ class DirectoryAction extends CAction
               }
             }
         }
-        if(isset($project["_id"]) && isset(Yii::app()->session["userId"]) && Link::isLinked($project["_id"] , Project::COLLECTION , Yii::app()->session['userId']))
+        /*if(isset($project["_id"]) && isset(Yii::app()->session["userId"]) && Link::isLinked($project["_id"] , Project::COLLECTION , Yii::app()->session['userId']))
             $htmlFollowBtn = array('position' => 'right',
                                    'tooltip' => Yii::t("common", "Stop contributing to this Project"), 
                                    "parent"=>"span",
@@ -107,7 +107,7 @@ class DirectoryAction extends CAction
                                    "label"=>Yii::t("common", "Start contributing"),
                                    "iconClass"=>"connectBtnIcon fa fa-link",
                                    "href"=>"<a href='javascript:;' class='connectBtn tooltips btn btn-default' id='addKnowsRelation' data-ownerlink='".Link::person2projects."' data-targetlink='".Link::project2person."'");
-        Menu::add2MBZ($htmlFollowBtn);
+        Menu::add2MBZ($htmlFollowBtn);*/
 
         $params["organizations"] = $organizations;
         $params["events"] = $events;

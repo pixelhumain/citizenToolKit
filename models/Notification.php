@@ -159,29 +159,29 @@ class Notification{
 	    );
 	    $url = $ctrls[ $target["type"] ].'/detail/id/'.$targetId;
 	    if( $verb == ActStr::VERB_CLOSE )
-		    $label = $target["name"]." has been disabled by ".Yii::app()->session['user']['name'];
+		    $label = $target["name"]." ".Yii::t("common","has been disabled by")." ".Yii::app()->session['user']['name'];
 	    else if( $verb == ActStr::VERB_POST ){
-		    $label = $target["name"]." : new post by ".Yii::app()->session['user']['name'];
+		    $label = $target["name"]." : ".Yii::t("common","new post by")." ".Yii::app()->session['user']['name'];
 	    	$url = 'news/index/type/'.$target["type"].'/id/'.$targetId;
 	    }
 	    else if($verb == ActStr::VERB_WAIT){
-		    $label = Yii::app()->session['user']['name']." wants to join ".$target["name"];
+		    $label = Yii::app()->session['user']['name']." ".Yii::t("common","wants to join")." ".$target["name"];
 		    $url = $ctrls[ $target["type"] ].'/directory/id/'.$targetId;
 	    }
 	    else if($verb == ActStr::VERB_AUTHORIZE){
-		    $label = Yii::app()->session['user']['name']." wants to administrate ".$target["name"];
+		    $label = Yii::app()->session['user']['name']." ".Yii::t("common","wants to administrate")." ".$target["name"];
 		    $url = $ctrls[ $target["type"] ].'/directory/id/'.$targetId;
 	    }
 		else if($verb == ActStr::VERB_CONFIRM){
-		    $label = Yii::app()->session['user']['name']." add ".$member["name"]." as admin of ".$target["name"];
+		    $label = Yii::app()->session['user']['name']." ".Yii::t("common","just added")." ".$member["name"]." ".Yii::t("common","as admin of")." ".$target["name"];
 		    $url = $ctrls[ $target["type"] ].'/directory/id/'.$targetId;
 	    }
 	    else if($verb == ActStr::VERB_ACCEPT){
-		    $label = Yii::app()->session['user']['name']." add ".$member["name"]." as ".$typeOfConnect." of ".$target["name"];
+		    $label = Yii::app()->session['user']['name']." ".Yii::t("common","just added")." ".$member["name"]." ".Yii::t("common","as ".$typeOfConnect." of")." ".$target["name"];
 		    $url = $ctrls[ $target["type"] ].'/directory/id/'.$targetId;
 	    }
 		if($invitation == ActStr::VERB_INVITE){
-			 $label = Yii::app()->session['user']['name']." has been invited ".$member["name"]." to join ".$target["name"];
+			 $label = Yii::app()->session['user']['name']." ".Yii::t("common","has invited")." ".$member["name"]." ".Yii::t("common","to join")." ".$target["name"];
 			 $url = $ctrls[ $target["type"] ].'/directory/id/'.$targetId;
 		}
 	    $notif = array( 

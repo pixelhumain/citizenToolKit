@@ -134,7 +134,7 @@ class Link {
      * @param type $userId The userId doing the action
      * @param type $connectType the name of connection in the target about user 
      * @param type $isAdmin boolean if new connection has admin role in the parent
-     * @parem type $pendingAdmin boolean if new connection has to be validate by an admin
+     * @param type $pendingAdmin boolean if new connection has to be validated by an admin
      * @param type $isPending boolean if new connection add itself and need admin validation
      * @param type $role array if user added has a role in parent item
      * @return result array with the result of the operation
@@ -160,9 +160,7 @@ class Link {
         PHDB::update($originType, 
                        array("_id" => $origin["_id"]) , 
                        array('$set' => $links));
-        //3. Send Notifications
-	    //TODO - Send email to the member
-		
+        
         return array("result"=>true, "msg"=>"The link knows has been added with success", "originId"=>$originId, "targetId"=>$targetId);
     }
 
@@ -506,7 +504,11 @@ class Link {
     }
 	
     /**
-     * Connect A Child to parent with a link
+     * Connect A Child to parent with a link. 
+     * Child can be a person or an organization.
+     * Parent can be an Organization or a Project
+     * The child can be set as admin of the parent
+     * 
      * @param String $parentId Id of the parent to link to
      * @param String $parentType type of the parent to link to
      * @param Array $child array discribing a child to link to the parent. 
@@ -514,26 +516,25 @@ class Link {
      *                         childType => the type of the child. Mandatory
      *                         childName => Used if it's an invitation
      *                         childEmail => Used if it's an invitation
-     * @param boolean $connectAsAdmin Is the child admin ?
+     * @param boolean $isConnectingAdmin Is the child admin ? 
      * @param String $userId The userId doing the action
-     * @param bool $actionFromAdmin Is an admin doing the action
      * @param string $userRole The role the child inside the parent. Not use yet.
      * @return array of result ()
      */
-	public static function connectParentToChild($parentId, $parentType, $child, $connectAsAdmin, $userId, $actionFromAdmin=false,$userRole="") {
+	public static function connectParentToChild($parentId, $parentType, $child, $isConnectingAdmin, $userId, $userRole="") {
 		
         $typeOfDemand="admin";
-        $childId = $child["childId"];
+        $childId = @$child["childId"];
         $childType = $child["childType"];
         $invitation = false;
 
 		if($parentType == Organization::COLLECTION){
 			$parentData = Organization::getById($parentId);
 			$usersAdmin = Authorisation::listOrganizationAdmins($parentId, false);
-			$parentController=Organization::CONTROLLER;
-			$parentConnectAs="members";
-			$childrenConnectAs="memberOf";
-			if(!$connectAsAdmin)
+			$parentController = Organization::CONTROLLER;
+			$parentConnectAs = "members";
+			$childConnectAs = "memberOf";
+			if(!$isConnectingAdmin)
 				$typeOfDemand = "member";
 		}
 		else if ($parentType == Project::COLLECTION){
@@ -541,32 +542,38 @@ class Link {
 			$usersAdmin = Authorisation::listAdmins($parentId,  $parentType, false);
 			$parentController=Project::CONTROLLER;
 			$parentConnectAs="contributors";
-			$childrenConnectAs="projects";
-			if(!$connectAsAdmin)
+			$childConnectAs="projects";
+			if(!$isConnectingAdmin)
 				$typeOfDemand = "contributor";
 		} else {
             throw new CTKException(Yii::t("common","Can not manage the type ").$parentType);
         }
-
+        
+        if (!$parentData) {
+            return array("result" => false, "msg" => "Unknown ".$parentController.". Please check your parameters !");
+        }
+        
+        //Check if the user is admin
+		$actionFromAdmin=in_array($userId,$usersAdmin);
+		
         if ($childType == Organization::COLLECTION) {
             $class = "Organization";
         //ou Child type Person
         } else if ($childType == Person::COLLECTION) {
             $class = "Person";
+        } else {
+            return array("result" => false, "msg" => "Unknown ".$childType.". Please check your parameters !");
         }
-		//if the childId is empty => it's an invitation
+		
+        //if the childId is empty => it's an invitation
         //Let's create the child
         if (empty($childId)) {
-            $childName = @$child["childName"];
-            $childEmail = @$child["childEmail"];    
-            $child = array(
-                 'invitedBy'=>Yii::app()->session["userId"]
-            );
-                        
             $invitation = ActStr::VERB_INVITE;
-            
-            $child["name"] = $childName;
-            $child["email"] = $childEmail;
+            $child = array(
+                'name' => @$child["childName"],
+                'email' => @$child["childEmail"],
+                'invitedBy'=>Yii::app()->session["userId"]
+            );     
 
             //Child Type d'organization
             if ($childType == Organization::COLLECTION) {
@@ -581,57 +588,61 @@ class Link {
                 return Rest::json($result);
         }
 
+        //Retrieve the child info
         $pendingChild = $class::getById($childId);
-
-		if (!$parentData) {
-			return array("result" => false, "msg" => "Unknown ".$parentController.". Please check your parameters !");
-		} else if (!$pendingChild) {
-            return array("result" => false, "msg" => "Unknown ".$childType.". Please check your parameters !");
-        } else {
-			if($actionFromAdmin)
-				$msg=$pendingChild["name"]." is now admin of ".$parentData["name"];
-			else
-				$msg= Yii::t("common", "You are now ".$typeOfDemand." of")." ".Yii::t("common","this ".$parentController);
-			$res = array("result" => true, "msg" => $msg, "parent" => $parentData,"parentType"=>$parentType);
-		}
-
-		//First case : You are already member or admin
-		if (in_array($childId, $usersAdmin)) 
+        if (!$pendingChild) {
+            return array("result" => true, "msg" => "Something went wrong ! Impossible to find the children ".$childId);
+        }
+		
+        //Check : You are already member or admin
+		if ($actionFromAdmin && $userId == $childId) 
 			return array("result" => false, "msg" => Yii::t("common", "Your are already admin of")." ".Yii::t("common","this ".$parentController)." !");
-		//Second case : The parent doesn't have an admin yet or it is an action from an admin : the person is automatically added as admin or member of the parent
+		
+
+        //First case : The parent doesn't have an admin yet or it is an action from an admin : 
 		if (count($usersAdmin) == 0 || $actionFromAdmin) {
-			if($actionFromAdmin)
+            //the person is automatically added as member (admin or not) of the parent
+            if($actionFromAdmin){
 				$verb = ActStr::VERB_CONFIRM;
-			else
-				$verb = ActStr::VERB_JOIN;
-			$toBeValidatedAdmin=false;
-			$toBeValidated=false;	
-		} else {
-			if ($connectAsAdmin){
-				$verb = ActStr::VERB_AUTHORIZE;
-				$toBeValidatedAdmin=true;
-				$toBeValidated=false;
+				$msg=$pendingChild["name"]." ".Yii::t("common","is now admin of")." ".$parentData["name"];
 			}
 			else{
-				$verb = ActStr::VERB_WAIT;
-				$toBeValidatedAdmin=false;
-				$toBeValidated=true;
+				$verb = ActStr::VERB_JOIN;
+				$msg= Yii::t("common", "You are now ".$typeOfDemand." of")." ".Yii::t("common","this ".$parentController);
 			}
-			// 2. Notification and email are sent to the admin(s)
-			$listofAdminsEmail = array();
-			foreach ($usersAdmin as $adminId) {
-				$currentAdmin = Person::getSimpleUserById($adminId);
-				array_push($listofAdminsEmail, $currentAdmin["email"]);
-			}
-			Mail::someoneDemandToBecome($parentData, $parentType, $pendingChild, $listofAdminsEmail, $typeOfDemand);
-			//TODO - Notification
-			$res = array("result" => true, "msg" => Yii::t("common","Your request has been sent to other admins."), "parent" => $parentData,"parentType"=>$parentType);
-			// After : the 1rst existing Admin to take the decision will remove the "pending" to make a real admin
-		}
-		Link::connect($parentId, $parentType, $childId, $childType,Yii::app() -> session["userId"], $parentConnectAs, $connectAsAdmin, $toBeValidatedAdmin, $toBeValidated, $userRole);
-		Link::connect($childId, $childType, $parentId, $parentType, Yii::app() -> session["userId"], $childrenConnectAs, $connectAsAdmin, $toBeValidatedAdmin, $toBeValidated, $userRole);
+			$toBeValidatedAdmin=false;
+			$toBeValidated=false;
+           
+		//Second case : Not an admin doing the action.
+        } else {
+            //Someone ask to become an admin 
+            if ($isConnectingAdmin) {
+    			//Admin validation process
+                $verb = ActStr::VERB_AUTHORIZE;
+    			$toBeValidatedAdmin=true;
+    			$toBeValidated=false;
+            } else {
+                $verb = ActStr::VERB_WAIT;
+                $toBeValidatedAdmin=false;
+                $toBeValidated=true;
+            }
+            //Notification and email are sent to the admin(s)
+            $listofAdminsEmail = array();
+            foreach ($usersAdmin as $adminId) {
+                $currentAdmin = Person::getSimpleUserById($adminId);
+                array_push($listofAdminsEmail, $currentAdmin["email"]);
+            }
+            Mail::someoneDemandToBecome($parentData, $parentType, $pendingChild, $listofAdminsEmail, $typeOfDemand);
+            //TODO - Notification
+            $msg = Yii::t("common","Your request has been sent to other admins.");
+            // After : the 1rst existing Admin to take the decision will remove the "pending" to make a real admin
+        }        
+
+			
+		Link::connect($parentId, $parentType, $childId, $childType,Yii::app()->session["userId"], $parentConnectAs, $isConnectingAdmin, $toBeValidatedAdmin, $toBeValidated, $userRole);
+		Link::connect($childId, $childType, $parentId, $parentType, Yii::app()->session["userId"], $childConnectAs, $isConnectingAdmin, $toBeValidatedAdmin, $toBeValidated, $userRole);
 		Notification::actionOnPerson($verb, ActStr::ICON_SHARE, $pendingChild , array("type"=>$parentType,"id"=> $parentId,"name"=>$parentData["name"]), $invitation) ;
-		
+		$res = array("result" => true, "msg" => $msg, "parent" => $parentData,"parentType"=>$parentType);
 		return $res;
 	}
 	

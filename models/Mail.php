@@ -175,13 +175,13 @@ class Mail
 	* Send an email to contact@pixelhumain.com quand quelqu'un post dans les news help and bugs	
 	* @param string $text message of user
 	*/
-	 public static function helpAndDebugNews($text) {
+	 public static function notifAdminBugMessage($text) {
         $params = array(
             "type" => Cron::TYPE_MAIL,
             "tpl"=>'helpAndDebugNews',
             "subject" => 'You received a new post on help and debug stream by '.Yii::app()->name,
-            "from"=>Yii::app()->params['userEmail'],
-            "to" => "pixelhumain@gmail.com",
+            "from"=>Yii::app()->session['userEmail'],
+            "to" => Yii::app()->params['adminEmail'],
             "tplParams" => array(
                                     "title" => Yii::app()->session["user"]["username"] ,
                                     "logo"  => "/images/logo.png",
