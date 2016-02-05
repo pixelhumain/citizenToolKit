@@ -10,6 +10,7 @@ class Event {
 	private static $dataBinding = array(
 	    "name" => array("name" => "name", "rules" => array("required")),
 	    "type" => array("name" => "type"),
+	    "address" => array("name" => "address"),
 	    "streetAddress" => array("name" => "address.streetAddress"),
 	    "postalCode" => array("name" => "address.postalCode"),
 	    "city" => array("name" => "address.codeInsee"),
@@ -216,11 +217,11 @@ class Event {
 						"latitude" => $params['geoPosLatitude'],
 						"longitude" => $params['geoPosLongitude']);
 
-			$newEvent["geoPosition"] = 
-				array(	"type"=>"point",
-						"coordinates" =>
-							array($params['geoPosLatitude'],
-					 	  		  $params['geoPosLongitude']));
+			$newEvent["geoPosition"] = array(	"type"			=> "point",
+												"coordinates" 	=> array(
+																		floatval($params['geoPosLongitude']),
+																		floatval($params['geoPosLatitude']))
+															 	  	);
 		}
 		else
 		{
@@ -245,12 +246,13 @@ class Event {
 		$isAdmin = false;
 		if( !isset( $params["organizerType"] ) )
 
-		if($params["organizerType"]==Person::COLLECTION )
+		if($params["organizerType"] == Person::COLLECTION )
 			$isAdmin=true;
+		
 	    Link::attendee($newEvent["_id"], Yii::app()->session['userId'], $isAdmin, $creator);
 	    Link::addOrganizer($params["organizerId"],$params["organizerType"], $newEvent["_id"], Yii::app()->session['userId']);
 				
-		Notification::createdObjectAsParam(Person::COLLECTION,Yii::app()->session['userId'],Event::COLLECTION, (String)$newEvent["_id"], $params["organizerType"], $params["organizerId"], $newEvent["geo"], array($newEvent["type"]),$newEvent["address"]["codeInsee"]);
+		Notification::createdObjectAsParam( Person::COLLECTION, Yii::app()->session['userId'],Event::COLLECTION, (String)$newEvent["_id"], $params["organizerType"], $params["organizerId"], $newEvent["geo"], array($newEvent["type"]),$newEvent["address"]["codeInsee"]);
 
 	    //send validation mail
 	    //TODO : make emails as cron events
@@ -412,7 +414,7 @@ class Event {
 		$dataFieldName = self::getCollectionFieldNameAndValidate($eventFieldName, $eventFieldValue, $eventId);
 
 		//address
-		if ($eventFieldName == "address") {
+		if ($dataFieldName == "address") {
 			if(!empty($eventFieldValue["postalCode"]) && !empty($eventFieldValue["codeInsee"])) {
 				$insee = $eventFieldValue["codeInsee"];
 				$address = SIG::getAdressSchemaLikeByCodeInsee($insee);
