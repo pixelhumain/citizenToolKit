@@ -125,12 +125,23 @@ class IndexAction extends CAction
 						array_push($authorFollowedAndMe,array("id"=>$key, "type" => "citoyens"));
 					}
 				}
+				if(@$person["links"]["memberOf"] && !empty($person["links"]["memberOf"])){
+					foreach ($person["links"]["memberOf"] as $key => $data){
+						array_push($authorFollowedAndMe,array("id"=>$key, "type" => "organizations"));
+					}
+				}
+				if(@$person["links"]["projects"] && !empty($person["links"]["projects"])){
+					foreach ($person["links"]["projects"] as $key => $data){
+						array_push($authorFollowedAndMe,array("id"=>$key, "type" => "projects"));
+					}
+				}
 				if(@$person["address"]["codeInsee"])
 					array_push($authorFollowedAndMe, array("scope.cities." => $person["address"]["codeInsee"],"type" => "activityStream"));
 		        $where = array('$and' => array(
 								array('$or'=> 
 										$authorFollowedAndMe
 								),
+								array("type" => array('$ne' => "pixels")),
 								array('created' => array(
 										'$lt' => $date
 									)
