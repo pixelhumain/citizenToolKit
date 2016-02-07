@@ -6,8 +6,8 @@ class SaveAttendeesAction extends CAction
         $res = array( "result" => false , "msg" => Yii::t("common","Something went wrong!") ,"event" => $idEvent);
        // if(Yii::app()->request->isAjaxRequest && isset( $idEvent))
         //{
-        if( !$idEvent && isset($_POST["idEvent"]))
-          $idEvent = $_POST["idEvent"];
+        if( !$idEvent && isset($_POST["eventId"]))
+          $idEvent = $_POST["eventId"];
         if( !$attendeeId && isset($_POST["attendeeId"]))
           $attendeeId = $_POST["attendeeId"];
 
