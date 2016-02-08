@@ -9,6 +9,7 @@ class DetailAction extends CAction
     	$controller=$this->getController();
 		
         //get The person Id
+
         if (empty($id)) {
             if (empty(Yii::app()->session["userId"])) {
                 $controller->redirect(Yii::app()->homeUrl);
@@ -16,14 +17,14 @@ class DetailAction extends CAction
                 $id = Yii::app()->session["userId"];
             }
         }
-
+        $me = ( $id = Yii::app()->session["userId"] ) ? true : false;
         $person = Person::getPublicData($id);
         $contentKeyBase = "Yii::app()->controller->id.".".dashboard";
         
         $limit = array(Document::IMG_PROFIL => 1);
         $images = Document::getImagesByKey($id, Person::COLLECTION, $limit);
 
-        $params = array( "person" => $person);
+        $params = array( "person" => $person, "me" => $me);
         $params['images'] = $images;
         $params["contentKeyBase"] = $contentKeyBase;
         $controller->sidebar1 = array(
