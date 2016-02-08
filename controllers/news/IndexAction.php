@@ -187,7 +187,7 @@ class IndexAction extends CAction
 			$news=News::getNewsForObjectId($where,array("created"=>-1),$type);
 		}
         //TODO : get all notifications for the current context
-        else {
+        /*else {
 			if ( $type == Project::COLLECTION ){ 
 				$paramProject = array(
 								'$and' => array(
@@ -310,7 +310,7 @@ $newsObject=NewsTranslator::convertToNews($data,NewsTranslator::NEWS_JOIN_ORGANI
 					}
 				}
 			}
-		}
+		}*/
 
 		$news = array_msort($news, array('created'=>SORT_DESC));
         //TODO : reorganise by created date

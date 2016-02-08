@@ -17,7 +17,7 @@ class DetailAction extends CAction
                 $id = Yii::app()->session["userId"];
             }
         }
-        $me = ( $id = Yii::app()->session["userId"] ) ? true : false;
+        $me = ( $id == Yii::app()->session["userId"] ) ? true : false;
         $person = Person::getPublicData($id);
         $contentKeyBase = "Yii::app()->controller->id.".".dashboard";
         
