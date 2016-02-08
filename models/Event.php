@@ -10,12 +10,14 @@ class Event {
 	private static $dataBinding = array(
 	    "name" => array("name" => "name", "rules" => array("required")),
 	    "type" => array("name" => "type"),
+	    "address" => array("name" => "address"),
 	    "streetAddress" => array("name" => "address.streetAddress"),
 	    "postalCode" => array("name" => "address.postalCode"),
 	    "city" => array("name" => "address.codeInsee"),
 	    "addressLocality" => array("name" => "address.addressLocality"),
 	    "addressCountry" => array("name" => "address.addressCountry"),
 	    "geo" => array("name" => "geo"),
+	    "geoPosition" => array("name" => "geoPosition"),
 	    "description" => array("name" => "description"),
 	    "allDay" => array("name" => "allDay"),
 	    "startDate" => array("name" => "startDate", "rules" => array("eventStartDate")),
@@ -204,6 +206,9 @@ class Event {
 	    if(!empty($params['country'])) {
 			$newEvent["address"]["addressCountry"] = $params['country'];
 		}
+		if(!empty($params['streetAddress'])) {
+			$newEvent["address"]["streetAddress"] = $params['streetAddress'];
+		}
 		
 		
 		if(!empty($params['geoPosLatitude']) && !empty($params["geoPosLongitude"])){
@@ -213,11 +218,11 @@ class Event {
 						"latitude" => $params['geoPosLatitude'],
 						"longitude" => $params['geoPosLongitude']);
 
-			$newEvent["geoPosition"] = 
-				array(	"type"=>"point",
-						"coordinates" =>
-							array($params['geoPosLatitude'],
-					 	  		  $params['geoPosLongitude']));
+			$newEvent["geoPosition"] = array(	"type"			=> "point",
+												"coordinates" 	=> array(
+																		floatval($params['geoPosLongitude']),
+																		floatval($params['geoPosLatitude']))
+															 	  	);
 		}
 		else
 		{
@@ -240,12 +245,14 @@ class Event {
 		*/
 		$creator = true;
 		$isAdmin = false;
-		if($params["organizerType"]==Person::COLLECTION)
+		
+		if($params["organizerType"] == Person::COLLECTION )
 			$isAdmin=true;
+
 	    Link::attendee($newEvent["_id"], Yii::app()->session['userId'], $isAdmin, $creator);
 	    Link::addOrganizer($params["organizerId"],$params["organizerType"], $newEvent["_id"], Yii::app()->session['userId']);
 				
-		Notification::createdObjectAsParam(Person::COLLECTION,Yii::app()->session['userId'],Event::COLLECTION, (String)$newEvent["_id"], $params["organizerType"], $params["organizerId"], $newEvent["geo"], array($newEvent["type"]),$newEvent["address"]["codeInsee"]);
+		Notification::createdObjectAsParam( Person::COLLECTION, Yii::app()->session['userId'],Event::COLLECTION, (String)$newEvent["_id"], $params["organizerType"], $params["organizerId"], $newEvent["geo"], array($newEvent["type"]),$newEvent["address"]["codeInsee"]);
 
 	    //send validation mail
 	    //TODO : make emails as cron events
@@ -278,7 +285,7 @@ class Event {
 		if (! Authorisation::iseventAdmin($eventId,$userId)) {
 			return array("result"=>false, "msg"=>Yii::t("event", "Unauthorized Access."));
 		}
-		$event = self::getById($eventId);
+		//$event = self::getById($eventId);
 		foreach ($eventChangedFields as $fieldName => $fieldValue) {
 			//if( $event[$fieldName] != $fieldValue)
 				self::updateEventField($eventId, $fieldName, $fieldValue, $userId);
@@ -407,11 +414,16 @@ class Event {
 		$dataFieldName = self::getCollectionFieldNameAndValidate($eventFieldName, $eventFieldValue, $eventId);
 
 		//address
-		if ($eventFieldName == "address") {
+		if ($dataFieldName == "address") {
 			if(!empty($eventFieldValue["postalCode"]) && !empty($eventFieldValue["codeInsee"])) {
 				$insee = $eventFieldValue["codeInsee"];
 				$address = SIG::getAdressSchemaLikeByCodeInsee($insee);
-				$set = array("address" => $address, "geo" => SIG::getGeoPositionByInseeCode($insee));
+				
+				if(!empty( $eventFieldValue["streetAddress"] ))
+					$address[ "streetAddress" ] = $eventFieldValue["streetAddress"];
+
+				$set = array("address" => $address, 
+							 "geo" => SIG::getGeoPositionByInseeCode($insee));
 			} else {
 				throw new CTKException("Error updating the Event : address is not well formated !");			
 			}
@@ -427,7 +439,6 @@ class Event {
 		} else {
 			$set = array($dataFieldName => $eventFieldValue);
 		}
-
 
 		$res = Event::updateEvent($eventId, $set, $userId);
 		return $res;

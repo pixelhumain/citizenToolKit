@@ -173,11 +173,11 @@ class Notification{
 		    $url = $ctrls[ $target["type"] ].'/directory/id/'.$targetId;
 	    }
 		else if($verb == ActStr::VERB_CONFIRM){
-		    $label = Yii::app()->session['user']['name']." ".Yii::t("common","has added")." ".$member["name"]." ".Yii::t("common","as admin of")." ".$target["name"];
+		    $label = Yii::app()->session['user']['name']." ".Yii::t("common","just added")." ".$member["name"]." ".Yii::t("common","as admin of")." ".$target["name"];
 		    $url = $ctrls[ $target["type"] ].'/directory/id/'.$targetId;
 	    }
 	    else if($verb == ActStr::VERB_ACCEPT){
-		    $label = Yii::app()->session['user']['name']." ".Yii::t("common","has added")." ".$member["name"]." ".Yii::t("common","as ".$typeOfConnect." of")." ".$target["name"];
+		    $label = Yii::app()->session['user']['name']." ".Yii::t("common","just added")." ".$member["name"]." ".Yii::t("common","as ".$typeOfConnect." of")." ".$target["name"];
 		    $url = $ctrls[ $target["type"] ].'/directory/id/'.$targetId;
 	    }
 		if($invitation == ActStr::VERB_INVITE){

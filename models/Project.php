@@ -145,6 +145,8 @@ class Project {
 				$address = SIG::getAdressSchemaLikeByCodeInsee($insee);
 				//$address["addressCountry"] = $project["addressCountry"];
 				$newProject["address"] = $address;
+				if( !empty($project['streetAddress'])) 
+					$newProject["address"]["streetAddress"] = $project['streetAddress'];
 				//$newProject["geo"] = SIG::getGeoPositionByInseeCode($insee);
 			}
 		} else if(!$update){
