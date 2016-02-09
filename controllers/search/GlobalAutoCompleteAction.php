@@ -6,6 +6,9 @@ class GlobalAutoCompleteAction extends CAction
         $search = trim(urldecode($_POST['name']));
         $locality = isset($_POST['locality']) ? trim(urldecode($_POST['locality'])) : null;
         $searchType = isset($_POST['searchType']) ? $_POST['searchType'] : null;
+        $indexMin = isset($_POST['indexMin']) ? $_POST['indexMin'] : 0;
+        $indexMax = isset($_POST['indexMax']) ? $_POST['indexMax'] : 10;
+
 
         if($search == "" && $locality == "") {
         	Rest::json(array());
@@ -43,6 +46,7 @@ class GlobalAutoCompleteAction extends CAction
 	    }
 
 	    $res = array();
+	    $allRes = array();
 
         /***********************************  PERSONS   *****************************************/
         if(strcmp($filter, Person::COLLECTION) != 0 && $this->typeWanted("persons", $searchType)){
@@ -57,6 +61,7 @@ class GlobalAutoCompleteAction extends CAction
 	  		}
 
 	  		$res["citoyen"] = $allCitoyen;
+	  		$allRes = array_merge($allRes, $allCitoyen);
 
 	  	}
 
@@ -72,6 +77,7 @@ class GlobalAutoCompleteAction extends CAction
 	  		}
 
 	  		$res["organization"] = $allOrganizations;
+	  		$allRes = array_merge($allRes, $allOrganizations);
 	  	}
 
 	  	/***********************************  EVENT   *****************************************/
@@ -88,6 +94,7 @@ class GlobalAutoCompleteAction extends CAction
 	  		
 	 
 	  		$res["event"] = $allEvents;
+	  		$allRes = array_merge($allRes, $allEvents);
 	  	}
 
 	  	/***********************************  PROJECTS   *****************************************/
@@ -100,6 +107,7 @@ class GlobalAutoCompleteAction extends CAction
 				$allProject[$key] = $project;
 	  		}
 	  		$res["project"] = $allProject;
+	  		$allRes = array_merge($allRes, $allProject);
 	  	}
 
 	  	/***********************************  CITIES   *****************************************/
@@ -153,9 +161,27 @@ class GlobalAutoCompleteAction extends CAction
 		  		}
 		  		$res["cities"] = $allCitiesRes;  		
 	  		}
+
+	  		$allRes = array_merge($allRes, $allCitiesRes);
+
 	  	}
 
-  		Rest::json($res);
+	  	//trie les éléments dans l'ordre alphabetique par name
+	  	function mySort($a, $b){
+		    return $b['name'] < $a['name'];
+		}
+	  	usort($allRes, "mySort");
+
+	  	$limitRes = array();
+	  	$index = 0;
+	  	foreach ($allRes as $key => $value) {
+	  		if($index < $indexMax && $index >= $indexMin){ $limitRes[] = $value;
+		  	}//else{ break; }
+		  	$index++;
+	  	}
+
+  		//Rest::json($res);
+		Rest::json($limitRes);
 		Yii::app()->end();
     }
 
