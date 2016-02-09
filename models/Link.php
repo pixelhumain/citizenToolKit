@@ -662,8 +662,9 @@ class Link {
      * @return type
      */
     public static function validateLink($parentId, $parentType, $childId, $childType, $linkOption, $userId) {
-        $res = array( "result" => false , "msg" => Yii::t("common","Something went wrong!" ));
         
+        $res = array( "result" => false , "msg" => Yii::t("common","Something went wrong!" ));
+
         if ($childType == Organization::COLLECTION) {
             $class = "Organization";
             if ($linkOption == Link::IS_ADMIN_PENDING) {
@@ -678,7 +679,7 @@ class Link {
         //Retrieve the child info
         $pendingChild = $class::getById($childId);
         if (!$pendingChild) {
-            return array("result" => true, "msg" => "Something went wrong ! Impossible to find the children ".$childId);
+            return array("result" => false, "msg" => "Something went wrong ! Impossible to find the children ".$childId);
         }
 
         //Retrieve parent and connection
@@ -698,14 +699,13 @@ class Link {
 
         //Check if the user is admin
         $actionFromAdmin=in_array($userId,$usersAdmin);
-
         //Check the link exists in order to update it
         if (@$parent["links"][$connectType][$childId][$linkOption] && 
-            @$pendingChild["links"][$connectTypeOf][$childId][$linkOption]) {
+            @$pendingChild["links"][$connectTypeOf][$parentId][$linkOption]) {
             self::updateLink($parentType, $parentId, $childId, $childType, $connectType, $connectTypeOf, $linkOption);
         } else {
             return array( "result" => false , 
-                "msg" => "The link ".$linkOption." does not exist between ".@$parent["name"]." and ".@$child["name"]);
+                "msg" => "The link ".$linkOption." does not exist between ".@$parent["name"]." and ".@$pendingChild["name"]);
         }
 
         $user = array(
@@ -716,10 +716,10 @@ class Link {
         
         //Notifications
         if ($linkOption == Link::IS_ADMIN_PENDING) {
-            Notification::actionOnPerson ( ActStr::VERB_ACCEPT, ActStr::ICON_SHARE, $user, array("type"=>$parentType,"id"=> $parentId,"name"=>$parent["name"]));
+            Notification::actionOnPerson ( ActStr::VERB_CONFIRM, ActStr::ICON_SHARE, $user, array("type"=>$parentType,"id"=> $parentId,"name"=>$parent["name"]));
             $msg = $pendingChild["name"]." has been validated as admin of ".$parent["name"];
         } else if ($linkOption == Link::TO_BE_VALIDATED) {
-            Notification::actionOnPerson ( ActStr::VERB_CONFIRM, ActStr::ICON_SHARE, $user, array("type"=>$parentType,"id"=> $parentId,"name"=>$parent["name"]) ) ;
+            Notification::actionOnPerson ( ActStr::VERB_ACCEPT, ActStr::ICON_SHARE, $user, array("type"=>$parentType,"id"=> $parentId,"name"=>$parent["name"]));
             $msg = $pendingChild["name"]." has been validated as member of ".$parent["name"];
         }
 
