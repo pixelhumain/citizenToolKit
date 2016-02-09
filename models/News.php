@@ -116,7 +116,7 @@ class News {
 		    
 		    /* Send email alert to contact@pixelhumain.com */
 		  	if(@$type && $type=="pixels"){
-		  		Mail::helpAndDebugNews($news["text"]);
+		  		Mail::notifAdminBugMessage($news["text"]);
 		  	}
 		    return array("result"=>true, "msg"=>"Votre news est enregistrée.", "id"=>$news["_id"],"object"=>$news);	
 		} else {

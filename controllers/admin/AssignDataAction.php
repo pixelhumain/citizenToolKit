@@ -5,12 +5,13 @@ class AssignDataAction extends CAction
     public function run()
     {
         $controller = $this->getController();
-    	$params = Import::importData($_FILES, $_POST);
 
-        if(Yii::app()->request->isAjaxRequest)
-            echo $controller->renderPartial("importData",$params,true);
-        else 
-            $controller->render("importData",$params);
+        if($_POST['typeFile'] == "json" || $_POST['typeFile'] == "js")
+        	$params = Import::parsingJSON($_POST);
+        else if($_POST['typeFile'] == "csv")
+        	$params = Import::parsingCSV2($_POST);
+
+        return Rest::json($params);
     }
 }
 

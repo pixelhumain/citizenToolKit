@@ -442,6 +442,23 @@ class Person {
 		return $person;
 	}
 
+	/**
+	 * answers to show or not to show a field by it's name
+	 * @param String $id : is the mongoId of the action room
+	 * @param String $person : is the mongoId of the action room
+	 * @return "" or the value to be shown
+	 */
+	public static function showField($fieldName,$person, $isLinked) {
+	  	$res = null;
+
+	  	if( Yii::app()->session['userId'] == (string)$person["_id"]
+	  		||  ( isset($person["preferences"]) && isset($person["preferences"]["publicFields"]) && in_array( $fieldName, $person["preferences"]["publicFields"]) )  
+	  		|| ( $isLinked && isset($person["preferences"]) && isset($person["preferences"]["privateFields"]) && in_array( $fieldName, $person["preferences"]["privateFields"]))  )
+	  		$res = ArrayHelper::getValueByDotPath($person,$fieldName); 
+	  	
+	  	return $res;
+	}
+
  	/**
 		 * get all events details of a Person By a person Id
 		 * @param type $id : is the mongoId (String) of the person

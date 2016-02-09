@@ -135,8 +135,8 @@ class SIG
 								  			   	  "coordinates" => array( floatval($lng), 
 								  			  						   	  floatval($lat) )
 											  			 		),
-							  		 		"maxDistance" => 10000,
-							  		 		"minDistance" => 10
+							  		 		'$maxDistance' => 50000,
+							  		 		'$minDistance' => 10
 							  			 ),
 						  	 		)
 					   		);
