@@ -509,6 +509,7 @@ class Link {
     }
 	
     /**
+	 * Author @clement.damiens@gmail.com && @sylvain.barbot@gmail.com
      * Connect A Child to parent with a link. 
      * Child can be a person or an organization.
      * Parent can be an Organization or a Project

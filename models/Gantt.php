@@ -57,7 +57,7 @@ class Gantt {
 			array("_id" => new MongoId($id)),
             array('$set' => array("tasks.".$idTask  => $taskArray))
         );
-        Notification::createdObjectAsParam(Person::COLLECTION,Yii::app() -> session["userId"], Gantt::COLLECTION, $idTask, $task["parentType"], $task["parentId"], null, null,null);
+      //  Notification::createdObjectAsParam(Person::COLLECTION,Yii::app() -> session["userId"], Gantt::COLLECTION, $idTask, $task["parentType"], $task["parentId"], null, null,null);
 		return array("result"=>true, "msg"=>"Votre task a été ajoutée avec succès","idTask" => $idTask);
 	}
 
