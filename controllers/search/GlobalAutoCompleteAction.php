@@ -9,7 +9,6 @@ class GlobalAutoCompleteAction extends CAction
         $indexMin = isset($_POST['indexMin']) ? $_POST['indexMin'] : 0;
         $indexMax = isset($_POST['indexMax']) ? $_POST['indexMax'] : 15;
 
-
         if($search == "" && $locality == "") {
         	Rest::json(array());
 			Yii::app()->end();
@@ -22,7 +21,6 @@ class GlobalAutoCompleteAction extends CAction
         /***********************************  TAGS   *****************************************/
         if(strpos($search, "#") != false){
         	$search = substr($search, 0, strlen($search));
-        	error_log("search tag ".$search);
         	$query = array( "tags" => array('$in' => array(new MongoRegex("/".$search."/i")))) ; //new MongoRegex("/".$search."/i") )));
   		}
 
@@ -45,7 +43,7 @@ class GlobalAutoCompleteAction extends CAction
         	$query = array('$and' => array($query, $queryLocality) );
 	    }
 
-	    $res = array();
+	    //$res = array();
 	    $allRes = array();
 
         /***********************************  PERSONS   *****************************************/
@@ -60,7 +58,7 @@ class GlobalAutoCompleteAction extends CAction
 				$allCitoyen[$key] = $person;
 	  		}
 
-	  		$res["citoyen"] = $allCitoyen;
+	  		//$res["citoyen"] = $allCitoyen;
 	  		$allRes = array_merge($allRes, $allCitoyen);
 
 	  	}
@@ -76,7 +74,7 @@ class GlobalAutoCompleteAction extends CAction
 				$allOrganizations[$key] = $orga;
 	  		}
 
-	  		$res["organization"] = $allOrganizations;
+	  		//$res["organization"] = $allOrganizations;
 	  		$allRes = array_merge($allRes, $allOrganizations);
 	  	}
 
@@ -92,8 +90,7 @@ class GlobalAutoCompleteAction extends CAction
 				$allEvents[$key] = $event;
 	  		}
 	  		
-	 
-	  		$res["event"] = $allEvents;
+	  		//$res["event"] = $allEvents;
 	  		$allRes = array_merge($allRes, $allEvents);
 	  	}
 
@@ -106,7 +103,7 @@ class GlobalAutoCompleteAction extends CAction
 				$project["typeSig"] = "projects";
 				$allProject[$key] = $project;
 	  		}
-	  		$res["project"] = $allProject;
+	  		//$res["project"] = $allProject;
 	  		$allRes = array_merge($allRes, $allProject);
 	  	}
 
@@ -145,9 +142,9 @@ class GlobalAutoCompleteAction extends CAction
 				$allCitiesRes[$key] = $city;
 				} $nbCities++;
 	  		}
-	  		$res["cities"] = $allCitiesRes;
+	  		//$res["cities"] = $allCitiesRes;
 
-	  		if(empty($res["cities"])){
+	  		if(empty($allCitiesRes)){
 	  			$query = array( "cp" => $search);
 		  		$allCities = PHDB::find(City::COLLECTION, $query, array("name", "cp", "insee", "geo"));
 		  		$nbCities = 0;
@@ -159,7 +156,7 @@ class GlobalAutoCompleteAction extends CAction
 						$allCitiesRes[$key] = $city;
 					} $nbCities++;
 		  		}
-		  		$res["cities"] = $allCitiesRes;  		
+		  		//$res["cities"] = $allCitiesRes;  		
 	  		}
 
 	  		$allRes = array_merge($allRes, $allCitiesRes);
