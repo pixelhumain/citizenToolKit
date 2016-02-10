@@ -28,13 +28,16 @@ class DetailAction extends CAction
 	  	$tasks = array();
 	  	$needs = array();
 	  	$events=array();
-	  	$contentKeyBase = $controller->id.".dashboard"; 
-	  	$images = Document::getListDocumentsURLByContentKey((string)$project["_id"], $contentKeyBase, Document::DOC_TYPE_IMAGE);
-
+	  	$contentKeyBase = "Yii::app()->controller->id.".".dashboard";
+		$limit = array(Document::IMG_PROFIL => 1, Document::IMG_MEDIA => 5);
+		$images = Document::getImagesByKey((string)$project["_id"], Project::COLLECTION, $limit);
+	  	/*$contentKeyBase = Yii::app()->controller->id.".dashboard";
+	  	$limit = array(Document::IMG_PROFIL => 1, Document::IMG_MEDIA => 5);
+	  	$images = Document::getListDocumentsURLByContentKey((string)$project["_id"], $contentKeyBase, Document::DOC_TYPE_IMAGE,$limit);*/
 	  	if(!empty($project)){
 	  		$params = array();
 	  		// Get people or orga who contribute to the project 
-	  		// Get image for each contributors																																																																																																																																																																																				
+	  		// Get image for each contributors														
 	  		if(isset($project["links"])){
 	  			foreach ($project["links"]["contributors"] as $uid => $e) {
 	  				if($e["type"]== Organization::COLLECTION){
@@ -56,12 +59,6 @@ class DetailAction extends CAction
 		  						$citoyen["isAdmin"]=true;  				
 	  						}
 	  						array_push($contributors, $citoyen);
-	  						/*if( $uid == Yii::app()->session['userId'] )
-	  							Menu::add2MBZ( array('position'=>'right', 
-	  												 'label'=>Yii::t("common", 'Contact'), 
-	  												 'tooltip' => Yii::t("common", "Send a message to this Project"),
-	  												 "iconClass"=>"fa fa-envelope-o",
-	  												 "href"=>"<a href='#' class='new-news tooltips btn btn-default' data-id='".$id."' data-type='".Project::COLLECTION."' data-name='".$project['name']."'") );*/
 	  					}
 	  				}
 	  			}
@@ -93,31 +90,12 @@ class DetailAction extends CAction
 			//var_dump($where);
 			$needs = Need::getWhereSortLimit( $whereNeed, array("date"=>1) ,30);
 	  	}
-	  	/*if(isset($project["_id"]) && isset(Yii::app()->session["userId"]) && Link::isLinked($project["_id"] , Project::COLLECTION , Yii::app()->session['userId']))
-			$htmlFollowBtn = array('position' => 'right','label'=> Yii::t("common", 'Stop contributing'), 'tooltip' => Yii::t("common", "Stop contributing to this Project"), "parent"=>"span","parentId"=>"linkBtns","iconClass"=>"disconnectBtnIcon fa fa-unlink","href"=>"<a href='javascript:;' class='disconnectBtn text-red tooltips btn btn-default' data-name='".$project["name"]."' data-id='".$project["_id"]."' data-type='".Project::COLLECTION."' data-member-id='".Yii::app()->session["userId"]."' data-ownerlink='".Link::person2projects."' data-targetlink='".Link::project2person."'");
-		else
-			$htmlFollowBtn = array('position' => 'right', 'label'=> Yii::t("common", "Start contributing"),'tooltip' => Yii::t("common", "I want to contribute to this Project"), "parent"=>"span","parentId"=>"linkBtns","iconClass"=>"connectBtnIcon fa fa-unlink","href"=>"<a href='javascript:;' class='connectBtn tooltips btn btn-default' id='addKnowsRelation' data-ownerlink='".Link::person2projects."' data-targetlink='".Link::project2person."'");
-	  	Menu::add2MBZ($htmlFollowBtn);*/
 	  	//Gestion de l'admin - true or false
 	  	// First find if user session is directly link to project
 	  	// Second if not, find if user belong to an organization admin of the project
 	  	// return true or false
 	  	$isProjectAdmin = false;
 	  	$admins = array();
-    	/*if(isset($project["_id"]) && isset(Yii::app()->session["userId"])) {
-    		$isProjectAdmin =  Authorisation::isProjectAdmin((String) $project["_id"],Yii::app()->session["userId"]);
-    		if (!$isProjectAdmin && !empty($organizations)){
-	    		foreach ($organizations as $data){
-		    		$admins = Organization::getMembersByOrganizationId( (string)$data['_id'], Person::COLLECTION , "isAdmin" );
-		    		foreach ($admins as $key => $member){
-			    		if ($key == Yii::app()->session["userId"]){
-				    		$isProjectAdmin=1;
-				    		break 2;
-			    		}
-		    		}
-	    		}
-    		}
-		}*/
 		$isProjectAdmin=Authorisation::isProjectAdmin($project["_id"], Yii::app()->session["userId"]);
 	  	$lists = Lists::get(array("organisationTypes"));
 	  	$params["countries"] = OpenData::getCountriesList();
@@ -135,7 +113,6 @@ class DetailAction extends CAction
 	  	$params["needs"]=$needs;
 	  	$params["admin"]=$isProjectAdmin;
 	  	$params["admins"]=$admins;
-
 		$page = "detail";
 		if(Yii::app()->request->isAjaxRequest)
             echo $controller->renderPartial($page,$params,true);

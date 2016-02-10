@@ -8,21 +8,23 @@ class DetailAction extends CAction
     public function run($id) { 
     	$controller=$this->getController();
 		$event = Event::getPublicData($id);
-
-        
+        Menu::event($event);
         $controller->title = (isset($event["name"])) ? $event["name"] : "";
         $controller->subTitle = (isset($event["description"])) ? $event["description"] : "";
         $controller->pageTitle = ucfirst($controller->module->id)." - ".Yii::t("event","Event's informations")." ".$controller->title;
-
-        $contentKeyBase = $controller->id.".dashboard";
-        $images = Document::getListDocumentsURLByContentKey((string)$event["_id"], $contentKeyBase, Document::DOC_TYPE_IMAGE);
+		$contentKeyBase = "Yii::app()->controller->id.".".dashboard";
+		$limit = array(Document::IMG_PROFIL => 1, Document::IMG_MEDIA => 5);
+		$images = Document::getImagesByKey((string)$event["_id"], Event::COLLECTION, $limit);
+        /* Vérifier comportement si réintégration
+	        $contentKeyBase = $controller->id.".dashboard";
+        $images = Document::getListDocumentsURLByContentKey((string)$event["_id"], $contentKeyBase, Document::DOC_TYPE_IMAGE);*/
 
         $organizer = array();
 
         $people = array();
         //$admins = array();
         $attending =array();
-        $controller->toolbarMBZ = array();
+        //$controller->toolbarMBZ = array();
         if(!empty($event)){
           $params = array();
           if(isset($event["links"])){
@@ -37,12 +39,12 @@ class DetailAction extends CAction
                 array_push($people, $citoyen);
                 array_push($attending, $citoyen);
 
-                if( $uid == Yii::app()->session['userId'] )
+                /*if( $uid == Yii::app()->session['userId'] )
                     array_push($controller->toolbarMBZ, array('position'=>'right', 
                                                               'label'=> Yii::t("common","Contact"), 
                                                               'tooltip' => Yii::t("common","Send a message to this Event"),
                                                               "iconClass"=>"fa fa-envelope-o",
-                                                              "href"=>"<a href='#' class='new-news tooltips btn btn-default' data-id='".$id."' data-type='".Event::COLLECTION."' data-name='".$event['name']."'") );
+                                                              "href"=>"<a href='#' class='new-news tooltips btn btn-default' data-id='".$id."' data-type='".Event::COLLECTION."' data-name='".$event['name']."'") );*/
               }
 
               /*if(isset($e["isAdmin"]) && $e["isAdmin"]==true){
@@ -63,16 +65,18 @@ class DetailAction extends CAction
 	                $iconNav="fa-group";
 	                $urlType="organization";	
 	                $organizerInfo = Organization::getById($uid);  
-					$organizer["type"]=$urlType;              
+					$organizer["type"]=$urlType;
+					$organizer["typeOrga"]=$organizerInfo["type"];              
                 }
                 $organizer["id"] = $uid;
                 $organizer["name"] = $organizerInfo["name"];
+                $organizer["profilImageUrl"] = $organizerInfo["profilImageUrl"];
                 array_push($controller->toolbarMBZ, array('position' => 'right', 
                                                           'label'=> Yii::t("common","Organizator detail"), 
                                                           'tooltip' => Yii::t("common","Back to")." ".$urlType, 
                                                           "iconClass"=>"fa ".$iconNav,
 														  "parent"=>"span",
-                                                          "href"=>'<a href="javascript:;" onclick="openMainPanelFromPanel( \'/'.$urlType.'/detail/id/'.$uid.'\', \''.$urlType.' : '.$organizer["name"].'\',\''.$iconNav.'\', \''.$uid.'\')" class="tooltips btn btn-default"'));
+                                                          "href"=>'<a href="javascript:;" onclick="loadByHash( \'#'.$urlType.'.detail.id.'.$uid.'\')" class="tooltips btn btn-default"'));
               }
             }else if(isset($event["links"]["creator"]))
             {
@@ -86,23 +90,6 @@ class DetailAction extends CAction
             }
           }
         }
-
-        if( isset($event["_id"]) && isset(Yii::app()->session["userId"]) && Link::isLinked($event["_id"] , Event::COLLECTION , Yii::app()->session['userId']) )
-          array_push($controller->toolbarMBZ, array('position'=>'right', 
-                                                    'label'=>Yii::t("common",'Leave'), 
-                                                    'tooltip' => Yii::t("event","Leave this Event"), 
-                                                    "parent"=>"span",
-                                                    "parentId"=>"linkBtns",
-                                                    "iconClass"=>"disconnectBtnIcon fa fa-unlink",
-                                                    "href"=>"<a href='javascript:;' class='disconnectBtn text-red tooltips btn btn-default'  data-name='".$event["name"]."' data-id='".$event["_id"]."' data-attendee-id='".Yii::app()->session['userId']."' data-type='".Event::COLLECTION."'") );
-    		else
-    			array_push($controller->toolbarMBZ, array('position'=>'right', 
-                                                    'label'=>Yii::t("event",'Join'),
-                                                    'tooltip' => Yii::t("event","Join this Event"), 
-                                                    "parent"=>"span",
-                                                    "parentId"=>"linkBtns",
-                                                    "iconClass"=>"connectBtnIcon fa fa-unlink",
-                                                    "href"=>"<a href='javascript:;' class='connectBtn attendeeMeBtn tooltips  btn btn-default'   data-attendee-id='".Yii::app()->session['userId']."' data-placement='top'") );
 
         $params["images"] = $images;
         $params["contentKeyBase"] = $contentKeyBase;

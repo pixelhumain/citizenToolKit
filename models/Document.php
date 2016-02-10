@@ -43,7 +43,7 @@ class Document {
 		return $listDocuments;
 	}
 
-	protected static function listMyDocumentByContentKey($userId, $contentKey, $docType = null, $sort=null){		
+	protected static function listMyDocumentByContentKey($userId, $contentKey, $docType = null, $sort=null){	
 		$params = array("id"=> $userId,
 						"contentKey" => new MongoRegex("/".$contentKey."/i"));
 		
@@ -180,7 +180,6 @@ class Document {
 	public static function getListDocumentsURLByContentKey($id, $contentKey, $docType=null, $limit=null){
 		$res = array();
 		$listDocuments = self::getListDocumentsByContentKey($id, $contentKey, $docType, $limit);
-
 		foreach ($listDocuments as $contentKey => $documents) {
 			foreach ($documents as $document) {
 				if (! isset($res[$contentKey])) {

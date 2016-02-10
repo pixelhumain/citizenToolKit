@@ -22,10 +22,13 @@ class DetailAction extends CAction
 		$controller->title = (isset($organization["name"])) ? $organization["name"] : "";
 		$controller->subTitle = (isset($organization["shortDescripion"])) ? $organization["shortDescripion"] : "";
 		$controller->pageTitle = "Organization ".$controller->title." - ".$controller->subTitle;
-
+		$contentKeyBase = "Yii::app()->controller->id.".".dashboard";
+		$limit = array(Document::IMG_PROFIL => 1, Document::IMG_MEDIA => 5);
+		$images = Document::getImagesByKey((string)$organization["_id"],Organization::COLLECTION, $limit);
+		/*Vérifier son comportement si réintégration du slider
 		$contentKeyBase = Yii::app()->controller->id.".dashboard";
 		$limit = array(Document::IMG_PROFIL => 1, Document::IMG_MEDIA => 5);
-		$images = Document::getListDocumentsURLByContentKey((string)$organization["_id"], $contentKeyBase, Document::DOC_TYPE_IMAGE, $limit);
+		$images = Document::getListDocumentsURLByContentKey((string)$organization["_id"], $contentKeyBase, Document::DOC_TYPE_IMAGE, $limit);*/
 		$params = array( "organization" => $organization);
 		$params["contentKeyBase"] = $contentKeyBase;
 		$params["images"] = $images;
