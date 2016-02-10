@@ -23,7 +23,6 @@ class ConnectAction extends CAction
 	    	"childName" => @$_POST["childName"],
             "childEmail" => @$_POST["childEmail"]
 	    );
-	    
     	$parentId = $_POST["parentId"];
     	$parentType = $_POST["parentType"];
     	$connectType = $_POST["connectType"];

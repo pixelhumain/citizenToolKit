@@ -180,6 +180,11 @@ class Notification{
 		    $label = Yii::app()->session['user']['name']." ".Yii::t("common","just added")." ".$member["name"]." ".Yii::t("common","as ".$typeOfConnect." of")." ".$target["name"];
 		    $url = $ctrls[ $target["type"] ].'/directory/id/'.$targetId;
 	    }
+		else if($verb == ActStr::VERB_JOIN){
+		    $label = Yii::app()->session['user']['name']." ".Yii::t("common","participates to the event")." ".$target["name"];
+		    $url = $ctrls[ $target["type"] ].'/detail/id/'.$targetId;
+	    }
+
 		if($invitation == ActStr::VERB_INVITE){
 			 $label = Yii::app()->session['user']['name']." ".Yii::t("common","has invited")." ".$member["name"]." ".Yii::t("common","to join")." ".$target["name"];
 			 $url = $ctrls[ $target["type"] ].'/directory/id/'.$targetId;

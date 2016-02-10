@@ -551,6 +551,15 @@ class Link {
 			$childConnectAs="projects";
 			if(!$isConnectingAdmin)
 				$typeOfDemand = "contributor";
+		} 
+		else if ($parentType == Event::COLLECTION){
+			$parentData = Event::getById($parentId);			
+			$usersAdmin = Authorisation::listOfEventAdmins($parentId);
+			$parentController = Event::CONTROLLER;
+			$parentConnectAs="attendees";
+			$childConnectAs="events";
+			if(!$isConnectingAdmin)
+				$typeOfDemand = "attendee";
 		} else {
             throw new CTKException(Yii::t("common","Can not manage the type ").$parentType);
         }
@@ -605,12 +614,18 @@ class Link {
 			return array("result" => false, "msg" => Yii::t("common", "Your are already admin of")." ".Yii::t("common","this ".$parentController)." !");
 		
 
-        //First case : The parent doesn't have an admin yet or it is an action from an admin : 
-		if (count($usersAdmin) == 0 || $actionFromAdmin) {
+        //First case : The parent doesn't have an admin yet or it is an action from an admin or it is an event: 
+		if (count($usersAdmin) == 0 || $actionFromAdmin || $parentType == Event::COLLECTION) {
             //the person is automatically added as member (admin or not) of the parent
             if($actionFromAdmin){
-				$verb = ActStr::VERB_CONFIRM;
-				$msg=$pendingChild["name"]." ".Yii::t("common","is now admin of")." ".$parentData["name"];
+	            //If admin add as admin or member 
+	            if($isConnectingAdmin==true){
+					$verb = ActStr::VERB_CONFIRM;
+					$msg=$pendingChild["name"]." ".Yii::t("common","is now admin of")." ".$parentData["name"];
+				} else {
+					$verb = ActStr::VERB_ACCEPT;
+					$msg=$pendingChild["name"]." ".Yii::t("common","is now ".$typeOfDemand." of")." ".$parentData["name"];
+				}
 			}
 			else{
 				$verb = ActStr::VERB_JOIN;
