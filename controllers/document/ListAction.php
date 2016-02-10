@@ -6,7 +6,7 @@ class ListAction extends CAction {
 		$controller=$this->getController();
 		
 		$controller->title = "RESSOURCES";
-		$controller->subTitle = "Toutes les ressources de nos associations";
+		$controller->subTitle = "Toutes les ressources de nos structures adhérentes";
 		$controller->pageTitle = ucfirst($controller->module->id)." - ".$controller->title;
 
 		if( $type == Organization::COLLECTION )

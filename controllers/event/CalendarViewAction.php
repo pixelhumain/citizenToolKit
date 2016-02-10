@@ -5,7 +5,7 @@
 		  	$controller=$this->getController();
 
 		  	$controller->title = "Agenda Partagé";
-	        $controller->subTitle = "Tous les évennements du réseau Granddir";
+	        $controller->subTitle = "Tous les événements du réseau GRANDDIR";
 	        $controller->pageTitle = ucfirst($controller->module->id)." - ".$controller->title;
 
 		  	$params = array();
