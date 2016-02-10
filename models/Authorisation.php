@@ -243,7 +243,18 @@ class Authorisation {
         }
         return $eventListFinal;
     }
-    
+    public static function listOfEventAdmins($eventId) {
+        $res = array();
+        $event = Event::getById($eventId);
+        if ($attendees = @$event["links"]["attendees"]){
+	        foreach ($attendees as $personId => $linkDetail){
+		    	if(@$linkDetail["isAdmin"]==true){
+			    	array_push($res, $personId);
+		    	}   
+	        } 
+	    }	
+        return $res;
+    }
     //**************************************************************
     // Project Authorisation
     //**************************************************************
@@ -289,7 +300,9 @@ class Authorisation {
         $projectList = array();
 		
         //project i'am admin 
-        $where = array("links.contributors.".$userId.".isAdmin" => true);
+        $where = array("links.contributors.".$userId.".isAdmin" => true,
+         				"links.contributors.".$userId.".isAdminPending" => array('$exists' => false )
+         		);
         $projectList = PHDB::find(Project::COLLECTION, $where);
         /*$listOrganizationAdmin = Authorisation::listUserOrganizationAdmin($userId);
         foreach ($listOrganizationAdmin as $organizationId => $organization) {
