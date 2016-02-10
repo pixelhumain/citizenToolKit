@@ -29,7 +29,7 @@ class News {
 	    foreach ($res as $key => $news) {
 		    if(@$news["type"]){
 			    if($news["type"]==ActivityStream::COLLECTION){
-				    if($news["object"]["objectType"]!="needs")
+				    if($news["object"]["objectType"]!="needs" && $news["object"]["objectType"]!="gantts")
 			  			$res[$key]=NewsTranslator::convertParamsForNews($news);
 			  	}
 		  		if($news["type"]==Project::COLLECTION)

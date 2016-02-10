@@ -10,6 +10,11 @@ class Link {
     const project2person = "contributors";
     const need2Item = "needs";
 
+    //Link options
+    const TO_BE_VALIDATED = "toBeValidated";
+    const IS_ADMIN = "isAdmin";
+    const IS_ADMIN_PENDING = "isAdminPending";
+
 	/**
 	 * Add a member to an organization
 	 * Create a link between the 2 actors. The link will be typed members and memberOf
@@ -140,14 +145,14 @@ class Link {
      * @return result array with the result of the operation
      */
     public static function connect($originId, $originType, $targetId, $targetType, $userId, $connectType,$isAdmin=false,$pendingAdmin=false,$isPending=false, $role="") {
-	    $links=array("links.".$connectType.".".$targetId.".type" => $targetType);
+        $links=array("links.".$connectType.".".$targetId.".type" => $targetType);
 	    if($isPending){
-		    $links["links.".$connectType.".".$targetId.".toBeValidated"] = $isPending;
+		    $links["links.".$connectType.".".$targetId.".".Link::TO_BE_VALIDATED] = $isPending;
 	    }
         if($isAdmin){
-        	$links["links.".$connectType.".".$targetId.".isAdmin"]=$isAdmin;
+        	$links["links.".$connectType.".".$targetId.".".Link::IS_ADMIN]=$isAdmin;
 			if ($pendingAdmin) {
-                $links["links.".$connectType.".".$targetId.".isAdminPending"] = true;
+                $links["links.".$connectType.".".$targetId.".".Link::IS_ADMIN_PENDING] = true;
             }
         }
         if ($role != ""){
@@ -504,6 +509,7 @@ class Link {
     }
 	
     /**
+	 * Author @clement.damiens@gmail.com && @sylvain.barbot@gmail.com
      * Connect A Child to parent with a link. 
      * Child can be a person or an organization.
      * Parent can be an Organization or a Project
@@ -646,12 +652,87 @@ class Link {
 		return $res;
 	}
 	
+    /**
+     * Description
+     * @param type $parentId 
+     * @param type $parentType 
+     * @param type $childId 
+     * @param type $childType 
+     * @param type $linkOption 
+     * @param type $userId 
+     * @return type
+     */
+    public static function validateLink($parentId, $parentType, $childId, $childType, $linkOption, $userId) {
+        
+        $res = array( "result" => false , "msg" => Yii::t("common","Something went wrong!" ));
+
+        if ($childType == Organization::COLLECTION) {
+            $class = "Organization";
+            if ($linkOption == Link::IS_ADMIN_PENDING) {
+                return array("result" => false, "msg" => "Impossible to validate an organization as admin !");
+            }
+        //ou Child type Person
+        } else if ($childType == Person::COLLECTION) {
+            $class = "Person";
+        } else {
+            return array("result" => false, "msg" => "Unknown ".$childType.". Please check your parameters !");
+        }
+        //Retrieve the child info
+        $pendingChild = $class::getById($childId);
+        if (!$pendingChild) {
+            return array("result" => false, "msg" => "Something went wrong ! Impossible to find the children ".$childId);
+        }
+
+        //Retrieve parent and connection
+        if ($parentType==Organization::COLLECTION) {
+            $parent = Organization::getById( $parentId );
+            $connectTypeOf="memberOf";
+            $connectType="members";
+            $usersAdmin = Authorisation::listOrganizationAdmins($parentId, false);
+        } else if ($parentType==Project::COLLECTION) {
+            $parent = Project::getById( $parentId );            
+            $connectTypeOf = "projects";
+            $connectType = "contributors";
+            $usersAdmin = Authorisation::listAdmins($parentId,  $parentType, false);
+        } else {
+            throw new CTKException(Yii::t("common","Can not manage the type ").$parentType);
+        }
+
+        //Check if the user is admin
+        $actionFromAdmin=in_array($userId,$usersAdmin);
+        //Check the link exists in order to update it
+        if (@$parent["links"][$connectType][$childId][$linkOption] && 
+            @$pendingChild["links"][$connectTypeOf][$parentId][$linkOption]) {
+            self::updateLink($parentType, $parentId, $childId, $childType, $connectType, $connectTypeOf, $linkOption);
+        } else {
+            return array( "result" => false , 
+                "msg" => "The link ".$linkOption." does not exist between ".@$parent["name"]." and ".@$pendingChild["name"]);
+        }
+
+        $user = array(
+            "id"=>$childId,
+            "type"=>$childType,
+            "name" => $pendingChild["name"],
+        );
+        
+        //Notifications
+        if ($linkOption == Link::IS_ADMIN_PENDING) {
+            Notification::actionOnPerson ( ActStr::VERB_CONFIRM, ActStr::ICON_SHARE, $user, array("type"=>$parentType,"id"=> $parentId,"name"=>$parent["name"]));
+            $msg = $pendingChild["name"]." has been validated as admin of ".$parent["name"];
+        } else if ($linkOption == Link::TO_BE_VALIDATED) {
+            Notification::actionOnPerson ( ActStr::VERB_ACCEPT, ActStr::ICON_SHARE, $user, array("type"=>$parentType,"id"=> $parentId,"name"=>$parent["name"]));
+            $msg = $pendingChild["name"]." has been validated as member of ".$parent["name"];
+        }
+
+        return array( "result" => true , "msg" => $msg );
+    }
+
 	/*
 	* This function is similar to disconnect but he just remove a value as pending, isAdminPending, isPending
 	* @valueUpdate is string to know which line disconnect
 	* Using for acceptAsAdmin, AcceptAsMember, etc...
 	*/
-	public static function updateLink($parentType,$parentId,$userId,$userType,$connectType,$connectTypeOf,$valueUpdate){
+	private static function updateLink($parentType,$parentId,$userId,$userType,$connectType,$connectTypeOf,$valueUpdate){
 		PHDB::update($parentType, 
                  array("_id" => new MongoId($parentId)) , 
                 array('$unset' => array("links.".$connectType.".".$userId.".".$valueUpdate => ""))
