@@ -13,14 +13,14 @@ class GlobalAutoCompleteAction extends CAction
         	Rest::json(array());
 			Yii::app()->end();
         }
-
+       
         /***********************************  DEFINE GLOBAL QUERY   *****************************************/
         $query = array( "name" => new MongoRegex("/".$search."/i"));
   		
 
         /***********************************  TAGS   *****************************************/
-        if(strpos($search, "#") != false){
-        	$search = substr($search, 0, strlen($search));
+        if(strpos($search, "#") > -1){
+        	$search = substr($search, 1, strlen($search));
         	$query = array( "tags" => array('$in' => array(new MongoRegex("/".$search."/i")))) ; //new MongoRegex("/".$search."/i") )));
   		}
 
