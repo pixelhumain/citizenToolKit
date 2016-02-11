@@ -113,17 +113,17 @@ class SIG
 	//https://docs.mongodb.org/manual/reference/operator/query/near/#op._S_near
 	public static function getCityByLatLng($lat, $lng, $cp){
 
-		$request = array("geoShape"  => 
-						  array('$geoIntersects'  => 
-						  	array('$geometry' => 
-						  		array("type" 	    => "Point", 
-						  			  "coordinates" => array(floatval($lng), floatval($lat)))
-						  		)));
-		if($cp != null){ $request = array_merge(array("cp"  => $cp), $request); }
+		// $request = array("geoShape"  => 
+		// 				  array('$geoIntersects'  => 
+		// 				  	array('$geometry' => 
+		// 				  		array("type" 	    => "Point", 
+		// 				  			  "coordinates" => array(floatval($lng), floatval($lat)))
+		// 				  		)));
+		// if($cp != null){ $request = array_merge(array("cp"  => $cp), $request); }
 		
-		$oneCity =	PHDB::findOne(City::COLLECTION, $request);
+		// $oneCity =	PHDB::findOne(City::COLLECTION, $request);
 
-		
+		$oneCity = null;
 		//City::updateGeoPositions();
 		//error_log($lng." - ".$lat);
 		if($oneCity == null){
