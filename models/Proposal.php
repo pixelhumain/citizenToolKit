@@ -118,6 +118,32 @@ class Proposal
  		}
  		return $totalVotant;
 	}
+
+	public static function createModeration($parentType, $parentId){
+        error_log("createModeration ? " . $parentType . " - ". $parentId);
+		$dateWeek  = mktime(0, 0, 0, date("m"), date("d")+7, date("Y"));
+		$voteDateEnd = date("Y-m-d H:i:s", $dateWeek ); 
+		$moderation = array(
+			"title" => "Moderation",
+		    "description" => "",
+		    "amendementActivated" => "false",
+		    "amendementDateEnd" => "",
+		    "voteActivated" => "true",
+		    "voteDateEnd" => $voteDateEnd,
+		    "majority" => "75",
+		    "voteAnonymous" => "true",
+		    "voteCanChange" => "false",
+		    "status" => "tovote",
+		    "parentId" => $parentId,
+		    "parentType" => $parentType,
+		    "modified" => new MongoDate(time()),
+		    "updated" => new MongoDate(time()),
+		    "created" => time()
+		);
+
+        PHDB::insert(self::COLLECTION, $moderation );
+        error_log("moderation created");
+	}
 }
 
 ?>

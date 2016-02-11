@@ -110,9 +110,10 @@ class Import
                 $file = json_decode($post['file'][0], true);
             }else {
                 $file = json_decode($post['file'][0], true);
-                $file = $file[$post["pathObject"]];
+                $file = @$file[$post["pathObject"]];
             }
             
+            if(@$file)
             foreach ($file as $keyFile => $valueFile){
                 $nb++;
                 //if(!empty($valueFile)){

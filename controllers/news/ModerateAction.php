@@ -58,7 +58,7 @@ class ModerateAction extends CAction
 
                         $thParams = $params = CO2::getThemeParams();
                         $nbAdminModeration = @$thParams["nbAdminModeration"];
-                        error_log("nbAdminModeration : ".@$nbAdminModeration);
+                        //error_log("nbAdminModeration : ".@$nbAdminModeration);
                         
                         /**** ISANABUSE ? ****/
                         if((@$news["moderateCount"]+$resAction['inc']) >= $nbAdminModeration){

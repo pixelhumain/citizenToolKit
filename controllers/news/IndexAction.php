@@ -362,9 +362,9 @@ class IndexAction extends CAction
 				// }
 
 			//Exclude => If there is more than 5 reportAbuse
-			$where['$and'][] =  array('$or'=>array(array("reportAbuseCount" => array('$lt' => 5)),
+			/*$where['$and'][] =  array('$or'=>array(array("reportAbuseCount" => array('$lt' => 5)),
 													array("reportAbuseCount" => array('$exists'=>0))
-												  ));
+												  ));*/
 			//var_dump($where);// exit;
 			//Exclude => If isAnAbuse
 			$where = array_merge($where,  array( 'isAnAbuse' => array('$ne' => true) ) );
