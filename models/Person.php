@@ -273,6 +273,14 @@ class Person {
 			}
 		}
 
+		//trie les éléments dans l'ordre alphabetique par name
+	  	function mySort($a, $b){ return isset($a['name']) && isset($b['name']) ? $b['name'] < $a['name'] : false; }
+
+	  	if(isset($res["citoyens"])) 	 usort($res["people"], 		  "mySort");
+	  	if(isset($res["organizations"])) usort($res["organizations"], "mySort");
+	  	if(isset($res["projects"])) 	 usort($res["projects"], 	  "mySort");
+	  	if(isset($res["events"])) 		 usort($res["events"], 		  "mySort");
+
 		if($id != Yii::app()->session["userId"])
 			$res["people"][(string)$id] = $person;
 		
