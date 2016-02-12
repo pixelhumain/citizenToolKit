@@ -543,7 +543,22 @@ class Organization {
 	  	}
 	  	return $res;
 	}
-
+	public static function getFollowersByOrganizationId($id) {
+	  	$res = array();
+	  	$organization = Organization::getById($id);
+	  	
+	  	if (empty($organization)) {
+            throw new CTKException(Yii::t("organization", "The organization id is unkown : contact your admin"));
+        }
+	  	if (isset($organization) && isset($organization["links"]) && isset($organization["links"]["followers"])) {
+	  		$followers = $organization["links"]["followers"];
+	  		//No filter needed
+	  		foreach ($organization["links"]["followers"] as $key => $follower) {
+		                $res[$key] = $follower;
+	  		}
+	  	}
+	  	return $res;
+	}
 	/**
 	 * update an organization in database
 	 * @param String $organizationId : 

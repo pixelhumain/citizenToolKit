@@ -61,7 +61,7 @@ class DetailAction extends CAction
 	                $organizerInfo = Project::getById($uid);
 	                $organizer["type"]=$urlType;
                 }
-                else{
+                else {
 	                $iconNav="fa-group";
 	                $urlType="organization";	
 	                $organizerInfo = Organization::getById($uid);  

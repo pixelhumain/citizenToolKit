@@ -41,7 +41,7 @@ class DetailAction extends CAction
 		
 		$organizations = Organization::getMembersByOrganizationId($id, Organization::COLLECTION);
 		$people = Organization::getMembersByOrganizationId($id, Person::COLLECTION);
-
+		$followers = Organization::getFollowersByOrganizationId($id);
 		foreach ($organizations as $key => $value) {
 			$newOrga = Organization::getSimpleOrganizationById($key);
 			if(!empty($newOrga)){
@@ -70,11 +70,12 @@ class DetailAction extends CAction
 				array_push($members, $newCitoyen);
 			}
 		}
-	   
+
 	    $params["organization"] = $organization;
 		$params["members"] = $members;
 		$params["projects"] = $projects;
 		$params["contextMap"] = $contextMap;
+		$params["followers"] = count($followers);
 		//list
 		$params["tags"] = Tags::getActiveTags();
 		$listsToRetrieve = array("public", "typeIntervention", "organisationTypes", "NGOCategories", "localBusinessCategories");

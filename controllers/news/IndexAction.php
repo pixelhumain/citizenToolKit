@@ -135,6 +135,18 @@ class IndexAction extends CAction
 						array_push($authorFollowedAndMe,array("id"=>$key, "type" => "projects"));
 					}
 				}
+				if(@$person["links"]["follows"] && !empty($person["links"]["follows"])){
+					foreach ($person["links"]["follows"] as $key => $data){
+						$follow=array("id"=>$key, "scope.type" => "public", "type" => "");
+						if($data["type"]==Project::COLLECTION)
+							$follow["type"] = "projects";
+						if($data["type"]==Person::COLLECTION)
+							$follow["type"] = "citoyens";
+						if($data["type"]==Organization::COLLECTION)
+							$follow["type"] = "organizations";
+						array_push($authorFollowedAndMe,$follow);
+					}
+				}
 				if(@$person["address"]["codeInsee"])
 					array_push($authorFollowedAndMe, array("scope.cities." => $person["address"]["codeInsee"],"type" => "activityStream"));
 		        $where = array('$and' => array(

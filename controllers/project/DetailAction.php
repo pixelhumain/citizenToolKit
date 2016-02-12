@@ -24,6 +24,7 @@ class DetailAction extends CAction
 	  	$organizations = array();
 	  	$people = array();
 	  	$contributors =array();
+	  	$followers = array();
 	  	$properties = array();
 	  	$tasks = array();
 	  	$needs = array();
@@ -72,7 +73,9 @@ class DetailAction extends CAction
 		            }
 		    	}
 		    }
-
+			if (isset($project["links"]["followers"])){
+				$followers = count($project["links"]["followers"]);
+			}
 	  		// Properties defines the chart of the Project
 	  		if (isset($project["properties"]["chart"])){
 		  		$properties=$project["properties"]["chart"];
@@ -104,6 +107,7 @@ class DetailAction extends CAction
 	  	$params["images"] = $images;
 	  	$params["contentKeyBase"] = $contentKeyBase;
 	  	$params["contributors"] = $contributors;
+	  	$params["followers"] = $followers;
 	  	$params["project"] = $project;
 	  	$params["organizations"] = $organizations;
 	  	$params["events"] = $events;

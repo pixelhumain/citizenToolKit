@@ -34,54 +34,63 @@ class DirectoryAction extends CAction
             $people = array();
             $contributors =array();
             $events =array();
+            $followers = array();
           if(!empty($project)){
             // Get people or orga who contribute to the project 
             // Get image for each contributors                                                                                                                                                                               
             if(isset($project["links"])){
-              foreach ($project["links"]["contributors"] as $uid => $e) {
-                if($e["type"]== Organization::COLLECTION){
-                  $organization = Organization::getPublicData($uid);
-                  if (!empty($organization)) {
-	                   if(@$e["isAdmin"] && $e["isAdmin"]==1)
-                    	$organization["isAdmin"]= $e["isAdmin"];
-
-                    array_push($organizations, $organization);
-                    $organization["type"]="organization";
-                    $profil = Document::getLastImageByKey($uid, Organization::COLLECTION, Document::IMG_PROFIL);
-                    if($profil !="")
-                    $organization["imagePath"]= $profil;
-                    if(@$e["isAdmin"] && $e["isAdmin"]==1)
-                    	$organization["isAdmin"]= $e["isAdmin"];
-                    array_push($contributors, $organization);
-                  }
-                }else if($e["type"]== Person::COLLECTION){
-                  $citoyen = Person::getSimpleUserById($uid);
-                  if(!empty($citoyen)){
-	                   if(@$e["isAdmin"] && $e["isAdmin"]==1)
-                    		$citoyen["isAdmin"]= $e["isAdmin"];
-						if(@$e["isAdminPending"]){
-							$citoyen["isAdminPending"]=$e["isAdminPending"];
-            			} 
-            			if(@$e["toBeValidated"]){
-							$citoyen["toBeValidated"]=$e["toBeValidated"];
-            			} 
-                    array_push($people, $citoyen);
-                    $citoyen["type"]="citoyen";
-                    $profil = Document::getLastImageByKey($uid, Person::COLLECTION, Document::IMG_PROFIL);
-                    if($profil !="")
-                    	$citoyen["imagePath"]= $profil;
-                    array_push($contributors, $citoyen);
-                    /*if( $uid == Yii::app()->session['userId'] )
-                     Menu::add2MBZ( array('position' => 'right', 
-                                    'tooltip' => Yii::t("common", "Send a message to this Project"), 
-                                    "label" => Yii::t("common", "Contact"), 
-                                    "iconClass"=>"fa fa-envelope-o",
-                                    "href"=>"<a href='#' class='new-news tooltips btn btn-default' data-id='".$id."' data-type='".Project::COLLECTION."' data-name='".$project['name']."'") );*/
-                  }
-                }
-              }
+				if (isset($project["links"]["contributors"])){
+					foreach ($project["links"]["contributors"] as $uid => $e) {
+						if($e["type"]== Organization::COLLECTION){
+						  $organization = Organization::getPublicData($uid);
+						  if (!empty($organization)) {
+						       if(@$e["isAdmin"] && $e["isAdmin"]==1)
+						    	$organization["isAdmin"]= $e["isAdmin"];
+						
+						    array_push($organizations, $organization);
+						    $organization["type"]="organization";
+						    $profil = Document::getLastImageByKey($uid, Organization::COLLECTION, Document::IMG_PROFIL);
+						    if($profil !="")
+						    $organization["imagePath"]= $profil;
+						    if(@$e["isAdmin"] && $e["isAdmin"]==1)
+						    	$organization["isAdmin"]= $e["isAdmin"];
+						    array_push($contributors, $organization);
+						  }
+						}else if($e["type"]== Person::COLLECTION){
+						  	$citoyen = Person::getSimpleUserById($uid);
+							if(!empty($citoyen)){
+							   if(@$e["isAdmin"] && $e["isAdmin"]==1)
+									$citoyen["isAdmin"]= $e["isAdmin"];
+								if(@$e["isAdminPending"]){
+									$citoyen["isAdminPending"]=$e["isAdminPending"];
+								} 
+								if(@$e["toBeValidated"]){
+									$citoyen["toBeValidated"]=$e["toBeValidated"];
+								} 
+								array_push($people, $citoyen);
+								$citoyen["type"]="citoyen";
+								$profil = Document::getLastImageByKey($uid, Person::COLLECTION, Document::IMG_PROFIL);
+								if($profil !="")
+									$citoyen["imagePath"]= $profil;
+								array_push($contributors, $citoyen);
+							}
+						}
+					}
+				}
             }
-            
+            if( isset($project["links"]["followers"])) {
+            	foreach ($project["links"]["followers"] as $uid => $e){
+    				$citoyen = Person::getSimpleUserById($uid);
+					if(!empty($citoyen)){
+						//array_push($people, $citoyen);
+						$citoyen["type"]="citoyen";
+						$profil = Document::getLastImageByKey($uid, Person::COLLECTION, Document::IMG_PROFIL);
+						if($profil !="")
+							$citoyen["imagePath"]= $profil;
+						array_push($followers, $citoyen);
+					}
+				}
+			}
             if( isset($project["links"]["events"])) {
               foreach ($project["links"]["events"] as $key => $event) {
                 $event = Event::getById( $key );
@@ -113,7 +122,7 @@ class DirectoryAction extends CAction
         $params["events"] = $events;
         $params["people"] = $people;
         $params["contributors"] = $contributors;
-
+		$params["followers"] = $followers;
         $page = "../default/directory";
         if( isset($_GET[ "tpl" ]) )
           $page = "../default/".$_GET[ "tpl" ];

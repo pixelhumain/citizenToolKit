@@ -507,7 +507,41 @@ class Link {
 
         return array("result"=>true, "msg"=>"The link has been added with success");
     }
-	
+	public static function follow($parentId, $parentType, $child){
+		$childId = @$child["childId"];
+        $childType = $child["childType"];
+
+		if($parentType == Organization::COLLECTION){
+			$parentData = Organization::getById($parentId);
+			$usersAdmin = Authorisation::listOrganizationAdmins($parentId, false);
+			$parentController = Organization::CONTROLLER;
+		}
+		else if ($parentType == Project::COLLECTION){
+			$parentData = Project::getById($parentId);			
+			$usersAdmin = Authorisation::listAdmins($parentId,  $parentType, false);
+			$parentController=Project::CONTROLLER;
+		} 
+		else if ($parentType == Person::COLLECTION){
+			$parentData = Person::getById($parentId);			
+			$usersAdmin = [];
+			$parentController=Person::CONTROLLER;
+		} else {
+            throw new CTKException(Yii::t("common","Can not manage the type ").$parentType);
+        }
+        //Retrieve the child info
+        $pendingChild = Person::getById($childId);
+        if (!$pendingChild) {
+            return array("result" => true, "msg" => "Something went wrong ! Impossible to find the children ".$childId);
+        }
+		$parentConnectAs = "followers";
+		$childConnectAs = "follows";
+		$verb = ActStr::VERB_FOLLOW;
+		$msg=Yii::t("common","You are following")." ".$parentData["name"];
+		Link::connect($parentId, $parentType, $childId, $childType,Yii::app()->session["userId"], $parentConnectAs);
+		Link::connect($childId, $childType, $parentId, $parentType, Yii::app()->session["userId"], $childConnectAs);
+		Notification::actionOnPerson($verb, ActStr::ICON_SHARE, $pendingChild , array("type"=>$parentType,"id"=> $parentId,"name"=>$parentData["name"]));
+		return array( "result" => true , "msg" => $msg );
+	}
     /**
 	 * Author @clement.damiens@gmail.com && @sylvain.barbot@gmail.com
      * Connect A Child to parent with a link. 
@@ -662,7 +696,7 @@ class Link {
 			
 		Link::connect($parentId, $parentType, $childId, $childType,Yii::app()->session["userId"], $parentConnectAs, $isConnectingAdmin, $toBeValidatedAdmin, $toBeValidated, $userRole);
 		Link::connect($childId, $childType, $parentId, $parentType, Yii::app()->session["userId"], $childConnectAs, $isConnectingAdmin, $toBeValidatedAdmin, $toBeValidated, $userRole);
-		Notification::actionOnPerson($verb, ActStr::ICON_SHARE, $pendingChild , array("type"=>$parentType,"id"=> $parentId,"name"=>$parentData["name"]), $invitation) ;
+		Notification::actionOnPerson($verb, ActStr::ICON_SHARE, $pendingChild , array("type"=>$parentType,"id"=> $parentId,"name"=>$parentData["name"]), $invitation);
 		$res = array("result" => true, "msg" => $msg, "parent" => $parentData,"parentType"=>$parentType);
 		return $res;
 	}
