@@ -16,7 +16,7 @@ class Import
             $nameFile = explode(".", $file['fileImport']['name']) ;
             //var_dump($nameFile);
             if($nameFile[count($nameFile)-1] == "json" || $nameFile[count($nameFile)-1] == "js")
-                $params = Import::parsingJSON($file, $post);
+                $params = Import::parsingJSON($post);
             else if($nameFile[count($nameFile)-1] == "csv")
                 $params = Import::parsingCSV($post);
                 //$params = Import::parsingCSV($file, $post);
@@ -26,7 +26,7 @@ class Import
     }
 
 
-    public static function parsingJSON($file, $post) 
+   /* public static function parsingJSON($file, $post) 
     {
         header('Content-Type: text/html; charset=UTF-8');
         if(isset($file['fileImport']))
@@ -76,7 +76,7 @@ class Import
         }
         return $params ;
 
-    }
+    }*/
 
     public static function createCSV ($arrayCSV, $nameFile, $path)
     {
@@ -93,12 +93,14 @@ class Import
     }
 
 
-    public static function parsingJSON2($file, $post) 
+    public static function parsingJSON2($post) 
     {
         header('Content-Type: text/html; charset=UTF-8');
-        if(isset($file['fileImport']))
+        if(isset($post['nameFile']))
         {
-            $json = $post['file'];
+            $json = $post['file'][0];
+            $search = array("\t", "\n", "\r");
+            $json = strip_tags (str_replace($search, " ", $json));
             
             $nameFile = $post['nameFile'] ;
             $arrayNameFile = explode(".", $nameFile);
@@ -113,13 +115,16 @@ class Import
                 mkdir($path , 0775);
 
             Import::createJSON($json, $nameFile, $path);
+            $subFiles = scandir(sys_get_temp_dir()."/filesImportData/".$nameFile);
 
             $json_objet = json_decode($json, true);
-            
+            //var_dump($json_objet);
             $chaine ="";
-            foreach ($json_objet as $key => $value) {
-                $chaine .= FileHelper::arbreJson($value , "", "");
-            }
+
+            $chaine .= ArrayHelper::getAllBranchsJSON($json_objet);
+            /*foreach ($json_objet as $key => $value) {
+                $chaine .= ArrayHelper::getAllBranchsJSON($value);
+            }*/
 
             $arbre = explode(";",  $chaine);
             $listBrancheJson = array();
@@ -128,12 +133,30 @@ class Import
                 if(!in_array($value, $listBrancheJson) && trim($value) != "")
                     $listBrancheJson[] = $value ;
             }
+
+            $params = array("_id"=>new MongoId($post['chooseCollection']));
+            $fields = array("mappingFields");
+            $fieldsCollection = Import::getMicroFormats($params, $fields);
+            $arrayPathMapping2 = array();
+            foreach ($fieldsCollection as $key => $value) 
+            {
+                $pathMapping = ArrayHelper::getAllBranchsJSON($value['mappingFields'], "", "");
+                $arrayPathMapping = explode(";",  $pathMapping);
+                foreach ($arrayPathMapping as $keyPathMapping => $valuePathMapping) 
+                {
+                    
+                    if(!empty($valuePathMapping))
+                        $arrayPathMapping2[] =  $valuePathMapping;
+                }
+            }
             
             $params = array("createLink"=>true,
                             "typeFile" => "json",
+                            "subFiles" => $subFiles,
                             "arbre"=>$listBrancheJson,
                             "nameFile"=>$nameFile ,
                             "json_origine"=>$json,
+                            "arrayPathMapping"=>$arrayPathMapping2,
                             "idCollection"=>$post['chooseCollection']);
             
         }
@@ -229,7 +252,7 @@ class Import
     }
 
 
-	public static function parsingCSV($file, $post) 
+	/*public static function parsingCSV($file, $post) 
     {
         header('Content-Type: text/html; charset=UTF-8');
         if(isset($file['fileImport']) && isset($post['separateurDonnees']) && isset($post['separateurTexte']) && isset($post['chooseCollection']))
@@ -238,10 +261,6 @@ class Import
             $csv->setFlags(SplFileObject::READ_CSV);
             
             $csv->setCsvControl($post['separateurDonnees'], $post['separateurTexte'], '"');
-            /*$csvControl = $csv->getCsvControl();
-            var_dump($csvControl);
-            $csv->setCsvControl($csvControl[0], $csvControl[1]);*/
-
             $arrayNameFile = explode(".", $file['fileImport']['name']);
             // On découpe le fichier s'il est trop gros, 5000 ligne par fichier
 
@@ -299,7 +318,7 @@ class Import
         }
 
         return $params ;
-    }
+    }*/
 
     
     
@@ -308,8 +327,14 @@ class Import
     {
         /**** new ****/
         $arrayJson = array();
-        if(isset($post['infoCreateData']) && isset($post['idCollection']) && isset($post['subFile']) && isset($post['nameFile']))
-        {
+
+        if(isset($post['infoCreateData']) && isset($post['idCollection']) && isset($post['subFile']) && isset($post['nameFile'])){
+
+            $paramsInfoCollection = array("_id"=>new MongoId($post['idCollection']));
+            $fieldsInfoCollection =  array("mappingFields.".$objetInfoData['valueLinkCollection']);
+            $infoCollection = Import::getMicroFormats($paramsInfoCollection);
+
+
             $pathSubFile =  sys_get_temp_dir().'/filesImportData/'.$post['nameFile'].'/'.$post['subFile'] ;
             $arrayCSV = new SplFileObject($pathSubFile, 'r');
             $arrayCSV->setFlags(SplFileObject::READ_CSV);
@@ -323,90 +348,54 @@ class Import
            
             $i = 0 ;
             
-            //var_dump($post['infoCreateData']);
-            //var_dump($arrayCSV);
-            foreach ($arrayCSV as $keyCSV => $lineCSV) 
-            {
-                //var_dump($lineCSV);
-                // On rejet la premier lignes qui correspond a l'en-tete, et les lignes qui seraient null
-                if($i>0 && $lineCSV[0] != null)
-                {
-                    if (($i%500) == 0)
-                    {
-                        set_time_limit(30) ;
-                    }
+            foreach ($arrayCSV as $keyCSV => $lineCSV){
+                
+                if($i>0 && $lineCSV[0] != null){
                     
-                    foreach($post['infoCreateData']as $key => $objetInfoData) 
-                    {
-                        //var_dump($objetInfoData);
-                        //$objetInfoData->idHeadCSV;
-                        //$objetInfoData->valueLinkCollection;
+                    if (($i%500) == 0)
+                        set_time_limit(30) ;
+                    
+                    foreach($post['infoCreateData']as $key => $objetInfoData){
                         
                         $valueData = $lineCSV[$objetInfoData['idHeadCSV']] ;
-                        //var_dump($valueData);
                         
-                        if(isset($valueData))
-                        {
-                            $paramsInfoCollection = array("_id"=>new MongoId($post['idCollection']));
-                            $fieldsInfoCollection =  array("mappingFields.".$objetInfoData['valueLinkCollection']);
-
-                            $infoCollection = Import::getMicroFormats($paramsInfoCollection);
-
-                           
-                            //var_dump($infoCollection) ; 
+                        if(isset($valueData)) {
                             $mappingTypeData = explode(".", $post['idCollection'].".mappingFields.".$objetInfoData['valueLinkCollection']);
-
-
                             $typeData = FileHelper::get_value_json($infoCollection,$mappingTypeData);
-                            
-
                             $mapping = explode(".", $objetInfoData['valueLinkCollection']);
                            
                             if(isset($jsonData[$mapping[0]]))
                             {
-                                if(count($mapping) > 1)
-                                { 
+                                if(count($mapping) > 1){ 
                                     $newmap = array_splice($mapping, 1);
                                     $jsonData[$mapping[0]] = FileHelper::create_json_with_father($newmap, $valueData, $jsonData[$mapping[0]], $typeData);
                                 }
-                                else
-                                {
+                                else{
                                     $jsonData[$mapping[0]] = $valueData;
                                 }
-                                 $lineJsonArray[] = $valueData;
                             }
                             else
                             {
-                                if(count($mapping) > 1)
-                                { 
+                                if(count($mapping) > 1){ 
                                     $newmap = array_splice($mapping, 1);
                                     $jsonData[$mapping[0]] = FileHelper::create_json($newmap, $valueData, $typeData);
                                 }
-                                else
-                                {
+                                else{
                                     $jsonData[$mapping[0]] = $valueData;
                                 }
-                                 $lineJsonArray[] = $valueData;
                             }
-                           
+                            
                         }
                         
                     }
-                    $newOrganization = Organization::newOrganizationFromImportData($jsonData, $post["creatorEmail"]);
-                    $newOrganization["role"] = $post["role"];
-                    $newOrganization["creator"] = $post["creatorID"];
 
+                    Import::checkData($infoCollection[$post['idCollection']]["key"], $jsonData, $post);
+
+                    if(empty($entite["msgError"]))
+                        $arrayJson[] = $entite ;
+                    else
+                        $arrayJsonError[] = $entite ; 
                     
-                    try{
-                        $newOrganization2 = Organization::getAndCheckAdressOrganization($newOrganization);
-                        //$newOrganization2 = Organization::getAndCheckNameOrganization($newOrganization, $arrayJson);
-                        $arrayJson[] = Organization::getAndCheckOrganization($newOrganization2) ;
-                    }
-                    catch (CTKException $e){
-                        $newOrganization["msgError"] = $e->getMessage();
-                        $lineJsonArray[] = $e->getMessage();
-                        $arrayJsonError[] = $newOrganization ;
-                    }
                 }
                 $i++;
             }
@@ -420,17 +409,17 @@ class Import
             if(!isset($arrayJsonError))
                 $arrayJsonError = array();
 
-            $rere = $arrayJson;
+            $listEntite = $arrayJson;
             foreach ($arrayJsonError as $key => $value) 
             {
-                $rere[] = $value;
+                $listEntite[] = $value;
             }
-            $test = Import::createArrayList($rere) ;
+            $listEntite = Import::createArrayList($listEntite) ;
 
             $params = array("result" => true,
                             "jsonImport"=> json_encode($arrayJson),
                             "jsonError"=> json_encode($arrayJsonError),
-                            "csvContenu" => $test);
+                            "listEntite" => $listEntite);
         }
         else
         {
@@ -440,53 +429,64 @@ class Import
     }
 
 
+    public static function checkData($keyCollection, $data, $post){
+        $res = array() ;
+        if($keyCollection == "Organizations"){
+            try{    
+                $newOrganization = Organization::newOrganizationFromImportData($data, $post["creatorEmail"]);
+                $newOrganization["role"] = $post["role"];
+                $newOrganization["creator"] = $post["creatorID"];
+                $newOrganization2 = Organization::getAndCheckAdressOrganization($newOrganization);
+                $res = Organization::getAndCheckOrganization($newOrganization2) ;
+            }
+            catch (CTKException $e){
+                $newOrganization["msgError"] = $e->getMessage();
+                $res = $newOrganization ;
+            }
+        } else if($keyCollection == "Projets"){
+            try{
+                //$data["creator"] = $post["creatorID"];
+                $newProject = Project::createProjectFromImportData($data);
+                $res = Project::getAndCheckProjectFromImportData($newProject, $post["creatorID"]);
+            }
+            catch(CTKException $e){
+                $newProject["msgError"] = $e->getMessage();
+                $res = $newProject ;
+            }
+        }
+        return $res ;
+    }
+
     public static function previewDataJSON($post) 
     {
         $params = array("result" => false); 
-        if(isset($post['infoCreateData']) && isset($post['jsonFile']))
+        if(isset($post['infoCreateData']) && isset($post['file']))
         {
 
-            //$pathFile =  sys_get_temp_dir().'/filesImportData/'.$post['nameFile'].'/'.$post['nameFile'].'.'.$post['typeFile'] ;
-            //var_dump($pathFile); 
+            $paramsInfoCollection = array("_id"=>new MongoId($post['idCollection']));
+            $infoCollection = Import::getMicroFormats($paramsInfoCollection);
+            $jsonFile = json_decode($post['file'][0], true);
 
-            //$file = file_get_contents(".".$pathFile, FILE_USE_INCLUDE_PATH);
-            //var_dump($post['jsonFile']); 
-            $jsonFile = json_decode($post['jsonFile'], true);
-            $jsonFile2 = json_decode($jsonFile, true);
+            if(substr($post['file'][0], 0,1) == "{")
+                $jsonFile2[] = $jsonFile ;
+            else
+                $jsonFile2 = $jsonFile ;
+           // $jsonFile2 = json_decode($jsonFile, true);
             //var_dump($jsonFile2);   
             foreach ($jsonFile2 as $keyJSON => $valueJSON) 
             {
-                //var_dump($valueJSON);
-                foreach($post['infoCreateData']as $key => $objetInfoData) 
-                {
-
-                    //$valueData = $valueJSON[$objetInfoData['idHeadCSV']] ;
-
-                    //var_dump($objetInfoData['idHeadCSV']);
+                foreach($post['infoCreateData']as $key => $objetInfoData){
+                    
                     $cheminLien = explode(".", $objetInfoData['idHeadCSV']);
-                    $valueData = FileHelper::get_value_json($valueJSON, $cheminLien);
-                    //var_dump($valueData);
-                    if(isset($valueData))
-                    {
-                        $paramsInfoCollection = array("_id"=>new MongoId($post['idCollection']));
-                        $fieldsInfoCollection =  array("mappingFields.".$objetInfoData['valueLinkCollection']);
-
-                        $infoCollection = Import::getMicroFormats($paramsInfoCollection);
-
-                       
-                        //var_dump($infoCollection) ; 
+                    $valueData = ArrayHelper::getValueJson($valueJSON, $cheminLien);
+                    
+                    if(isset($valueData)){
                         $mappingTypeData = explode(".", $post['idCollection'].".mappingFields.".$objetInfoData['valueLinkCollection']);
-
-
-                        $typeData = FileHelper::get_value_json($infoCollection,$mappingTypeData);
-                        //var_dump($mappingTypeData) ; 
-                       
-                        //var_dump($typeData) ; 
-
+                        $typeData = ArrayHelper::getValueJson($infoCollection,$mappingTypeData);
+                        
                         $mapping = explode(".", $objetInfoData['valueLinkCollection']);
                        
-                        if(isset($jsonData[$mapping[0]]))
-                        {
+                        if(isset($jsonData[$mapping[0]])){
                             if(count($mapping) > 1)
                             { 
                                 $newmap = array_splice($mapping, 1);
@@ -496,9 +496,7 @@ class Import
                             {
                                 $jsonData[$mapping[0]] = $valueData;
                             }
-                        }
-                        else
-                        {
+                        } else {
                             if(count($mapping) > 1)
                             { 
                                 $newmap = array_splice($mapping, 1);
@@ -513,32 +511,15 @@ class Import
 
                 }
 
-                $newOrganization = Organization::newOrganizationFromImportData($jsonData, $post["creatorEmail"]);
-                $newOrganization["role"] = $post["role"];
-                $newOrganization["creator"] = $post["creatorID"];
 
-                
-                try{
-                    $newOrganization2 = Organization::getAndCheckAdressOrganization($newOrganization);
-                    //$newOrganization2 = Organization::getAndCheckNameOrganization($newOrganization, $arrayJson);
-                    $arrayJson[] = Organization::getAndCheckOrganization($newOrganization2) ;
-                }
-                catch (CTKException $e){
-                    $newOrganization["msgError"] = $e->getMessage();
-                    $arrayJsonError[] = $newOrganization ;
-                }
-                //var_dump($valueJSON);
-                   /* $cheminLien = explode(".", $idLien);
-                    //var_dump($cheminLien);
-                    $valueIdLien = FileHelper::get_value_json($json_array, $cheminLien) ;
-                    //var_dump($valueIdLien);
+                $entite = Import::checkData($infoCollection[$post['idCollection']]["key"], $jsonData, $post);
 
-                
 
-                    $params = array('result'=> true,
-                                    "jsonimport"=>FileHelper::indent_json(json_encode($jsonimport)),
-                                    "jsonrejet"=>FileHelper::indent_json(json_encode($jsonrejet)),
-                                    "lien"=>$post['lien']);*/
+                if(empty($entite["msgError"]))
+                    $arrayJson[] = $entite ;
+                else
+                    $arrayJsonError[] = $entite ; 
+
             }
 
             if(!isset($arrayJson))
@@ -547,13 +528,20 @@ class Import
             if(!isset($arrayJsonError))
                 $arrayJsonError = array();
 
-            //var_dump($arrayJson);
-            // var_dump($arrayJsonError);
+            $listEntite = $arrayJson;
+            foreach ($arrayJsonError as $key => $value) 
+            {
+                $listEntite[] = $value;
+            }
+            
+            if(empty($listEntite))
+                $listEntite = Import::createArrayList($listEntite) ;
+
             $params = array("result" => true,
                             "jsonImport"=> json_encode($arrayJson),
-                            "jsonError"=> json_encode($arrayJsonError));
+                            "jsonError"=> json_encode($arrayJsonError),
+                            "listEntite"=> $listEntite);
         }
-
 
         return $params;
 
@@ -660,16 +648,95 @@ class Import
     }
 
 
+    public static function importProjectsInMongo($post)
+    {
+        /***** new version *****/
+
+        $newFolder = false ;
+
+        $path = '../../modules/cityData/importData/' ;
+        if(!file_exists($path))
+            mkdir($path , 0775);
+
+        $pathFile = '../../modules/cityData/importData/'.$post['nameFile'].'/' ;
+        if(!file_exists($pathFile))
+        {
+            mkdir($pathFile , 0775);
+            $count = 1 ;
+            $newFolder = true ;
+        }    
+        else
+        {
+            $files = scandir($pathFile);
+            $count = 1 ;
+            foreach ($files as $key => $value) {
+                $name_file = explode(".", $value);
+                if (strpos($name_file[0], "cityData") !== false) 
+                {
+                   $count++;
+                }
+            }
+        }
+
+        //importmongo all
+        if(file_exists("../../modules/cityData/importData/importAllMongo.sh") == true)
+            $textImportMongoAll = file_get_contents("../../modules/cityData/importData/importAllMongo.sh", FILE_USE_INCLUDE_PATH);
+        else
+            $textImportMongoAll = "" ;
+
+        if($newFolder)
+        {
+            $textImportMongoAll = $textImportMongoAll."cd ".$post['nameFile'].";\n";
+            $textImportMongoAll = $textImportMongoAll."sh importMongo.sh;\n";
+            $textImportMongoAll = $textImportMongoAll."cd .. ;\n";
+        }
+
+        //importmongo 
+        if(file_exists("../../modules/cityData/importData/".$post['nameFile']."/importMongo.sh") == true)
+            $textFileSh = file_get_contents("../../modules/cityData/importData/".$post['nameFile']."/importMongo.sh", FILE_USE_INCLUDE_PATH);
+        else
+            $textFileSh = "" ;
+
+
+        $textFileSh = $textFileSh . "mongoimport --db pixelhumain --collection organizations ".$post['nameFile']."_".$count.".json --jsonArray;\n";
+        
+        file_put_contents("../../modules/cityData/importData/".$post['nameFile']."/".$post['nameFile']."_".$count.".json", $post['jsonImport']);
+        file_put_contents("../../modules/cityData/importData/".$post['nameFile']."/error_".$count.".json", $post['jsonError']);
+        file_put_contents("../../modules/cityData/importData/".$post['nameFile']."/importMongo.sh", $textFileSh);
+        file_put_contents("../../modules/cityData/importData/importAllMongo.sh", $textImportMongoAll);
+
+        if(isset($post['jsonImport'])){
+            $arrayDataImport = json_decode($post['jsonImport'], true) ;
+
+            foreach ($arrayDataImport as $key => $value){
+                try{
+                    $resData[] = Project::insertProjetFromImportData($value, $post['creatorID'],Person::COLLECTION) ; 
+                }
+                catch (CTKException $e){
+                    $resData[] = $e->getMessage();
+                }        
+            }
+            $params = array("result" => true, 
+                            "resData" => $resData);
+        }
+        else
+        {
+            $params = array("result" => false); 
+        }
+        return $params;
+    }
+
 
     public static function createArrayList($list) {
         $head2 = array("name", "msgError") ;
         $tableau = array();
         $tableau[] = $head2 ;
+        //var_dump($list);
         foreach ($list as $keyList => $valueList){
             $element = array();
             foreach ($head2 as $keyHead => $valueHead){
                 $map = explode(".", $valueHead);
-                $element[] = FileHelper::get_value_json($valueList, $map);
+                //$element[] = ArrayHelper::getValueJson($valueList, $map);
             }
             $tableau[] = $element ;
         }

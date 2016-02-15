@@ -6,12 +6,14 @@ class ImportInMongoAction extends CAction
     {
 
     	$paramsInfoCollection = array("_id"=>new MongoId($_POST['idCollection']));
-        $infoCollection = ImportData::getMicroFormats($paramsInfoCollection);
+        $infoCollection = Import::getMicroFormats($paramsInfoCollection);
 
-       
+       	$params = array();
         //var_dump($infoCollection[$_POST['idCollection']]['key']) ; 
         if($infoCollection[$_POST['idCollection']]['key'] == "Organizations")
         	$params = Import::importOrganizationsInMongo($_POST);
+        if($infoCollection[$_POST['idCollection']]['key'] == "Projets")
+        	$params = Import::importProjectsInMongo($_POST);
 
         return Rest::json($params);
     }

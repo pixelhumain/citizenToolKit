@@ -773,5 +773,18 @@ class Person {
 	  	
 	  	return $id ;
 	}
+
+	/*
+    * This function checks if $userId is linked to this email
+    * 
+    * 
+    */
+	public static function isLinkedEmail($email, $userId) {
+    	$res = false ;
+        $id = getPersonIdByEmail($email);
+        if($id != false)
+        	$res = Link::isLinked($id, Person::COLLECTION, $userId);
+        return $res;
+    }
 }
 ?>

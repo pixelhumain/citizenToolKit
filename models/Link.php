@@ -759,5 +759,9 @@ class Link {
 		return array("result"=>true, "msg"=>"The link has been added with success");
 	}
 
+
+
+    
+
 } 
 ?>

@@ -110,7 +110,7 @@ class Project {
 	 * @return array Project well format : ready to be inserted
 	 */
 	public static function getAndCheckProject($project, $userId,$update=null) {
-
+		
 		$newProject = array();
 		if (empty($project['name'])) {
 			throw new CTKException(Yii::t("project","You have to fill a name for your project"));
@@ -119,7 +119,8 @@ class Project {
 		
 		// Is There a project with the same name ?
 		if(!$update){
-		    $projectSameName = PHDB::findOne(self::COLLECTION ,array( "name" => $_POST['name']));
+		   // $projectSameName = PHDB::findOne(self::COLLECTION ,array( "name" => $_POST['name']));
+			$projectSameName = PHDB::findOne(self::COLLECTION ,array( "name" => $project['name']));
 		    if($projectSameName) { 
 		      throw new CTKException(Yii::t("project","A project with the same name already exist in the plateform"));
 		    }
@@ -149,11 +150,16 @@ class Project {
 					$newProject["address"]["streetAddress"] = $project['streetAddress'];
 				//$newProject["geo"] = SIG::getGeoPositionByInseeCode($insee);
 			}
+		}else if($project['address']){
+			$newProject['address'] = $project['address'] ;
 		} else if(!$update){
 			throw new CTKException(Yii::t("project","Please fill the postal code of the project to communect it"));
 		}
-
-		if(!empty($project['geoPosLatitude']) && !empty($project["geoPosLongitude"])){
+		if(!empty($project['geo']) && !empty($project["geoPosition"])){
+			$newProject["geo"] = $project['geo'];
+			$newProject["geoPosition"] = $project['geoPosition'];
+		}
+		else if(!empty($project['geoPosLatitude']) && !empty($project["geoPosLongitude"])){
 			
 			$newProject["geo"] = 	array(	"@type"=>"GeoCoordinates",
 						"latitude" => $project['geoPosLatitude'],
@@ -165,9 +171,11 @@ class Project {
 															floatval($project['geoPosLongitude']),
 															floatval($project['geoPosLatitude']))
 												 	  	);
-		}else if(!$update)
-		{
-			$newProject["geo"] = SIG::getGeoPositionByInseeCode($insee);
+		}else if(!$update){
+			if(!empty($insee))
+				$newProject["geo"] = SIG::getGeoPositionByInseeCode($insee);
+			else
+				throw new CTKException(Yii::t("project","Please fill the insee code of the project to communect it"));
 		}
 		
 		//No mandotory fields 
@@ -479,6 +487,178 @@ class Project {
         		$value['imagePath']=$profil;
         }
 		return $events;
+	}
+
+
+
+
+	/* 	Get state an event from an OpenAgenda ID 
+	*	@param string OpenAgenda ID
+	*	@param string Date Update openAgenda
+	*   return String ("Add", "Update" or "Delete")
+	*/
+	public static function createProjectFromImportData($projectImportData) {
+		if(!empty($projectImportData['name']))
+			$newProject["name"] = $projectImportData["name"];
+
+		if(!empty($projectImportData['startDate']))
+			$newProject["startDate"] = $projectImportData["startDate"];
+
+		if(!empty($projectImportData['endDate']))
+			$newProject["endDate"] = $projectImportData["endDate"];
+
+		if(!empty($projectImportDataprojectImportData['description']))
+			$newProject["description"] = $projectImportData["description"];
+
+		if(!empty($projetImportData['tags']))
+			$newProject["tags"] = $projectImportData["tags"];
+
+		$newProject['address']['@type'] = "PostalAddress" ;
+		$newProject['address']['streetAddress'] = empty($projectImportData['address']['streetAddress']) ? "" : $projectImportData['address']['streetAddress'];
+		$newProject['address']['postalCode'] = empty($projectImportData['address']['postalCode']) ? "" : $projectImportData['address']['postalCode'];
+		$newProject['address']['addressCountry'] = empty($projectImportData['address']['addressCountry']) ? "FR" : $projectImportData['address']['addressCountry'];
+		$newProject['address']['addressLocality'] = empty($projectImportData['address']['addressLocality']) ? "" : $projectImportData['address']['addressLocality'];
+		$newProject['address']['codeInsee'] = empty($projectImportData['address']['codeInsee']) ? "" : $projectImportData['address']['codeInsee'];
+	
+
+		if(!empty($projectImportData['geo']['latitude']))
+			$newProject["geoPosLatitude"] = $projectImportData['geo']['latitude'];
+		if(!empty($projectImportData['geo']['longitude']))
+			$newProject["geoPosLongitude"] = $projectImportData['geo']['longitude'];
+
+
+		/*var_dump($newProject["geoPosLatitude"]);
+		var_dump($newProject["geoPosLongitude"]);
+		var_dump($projectImportData['address']['postalCode']);*/
+
+		if(!empty($newProject["geoPosLatitude"]) && !empty($newProject["geoPosLongitude"]) ){
+			$city = SIG::getInseeByLatLngCp($newProject["geoPosLatitude"], $newProject["geoPosLongitude"],(empty($projectImportData['address']['postalCode']) ? null : $projectImportData['address']['postalCode']) );
+			if(!empty($city)){
+				foreach ($city as $key => $value){
+					$insee = $value["insee"];
+					$newProject['address']['addressCountry'] = $value["country"];
+					$newProject['address']['addressLocality'] = $value["alternateName"];
+					break;
+				}
+			}
+			else
+				throw new CTKException("Nous n'avons pas pu récupere la commune avec les coordonnées géographique et son code postal.");
+		}	
+		
+		//var_dump($insee);
+
+		if(!empty($insee) && !empty($projectImportData['address']['codeInsee']) ){
+			if($insee == $projectImportData['address']['codeInsee'])
+				$newProject['address']['codeInsee'] = $insee ;
+			else
+				throw new CTKException("L'INSEE du fichier et celui retourné par la géolocalisation n'est pas le même.");
+		}else if(!empty($insee)){
+			$newProject['address']['codeInsee'] = $insee ;
+		}else if(!empty($projectImportData['address']['codeInsee'])){
+			$newProject['address']['codeInsee'] = $projectImportData['address']['codeInsee'];
+		}
+
+
+		
+		return $newProject;
+	}
+	public static function getAndCheckProjectFromImportData($project, $userId,$update=null) {
+		
+		$newProject = array();
+		if (empty($project['name'])) {
+			throw new CTKException(Yii::t("project","You have to fill a name for your project"));
+		}else
+			$newProject['name'] = $project['name'];
+		
+		// Is There a project with the same name ?
+		if(!$update){
+		   	$projectSameName = PHDB::findOne(self::COLLECTION ,array( "name" => $project['name']));
+		    if($projectSameName) { 
+		      throw new CTKException(Yii::t("project","A project with the same name already exist in the plateform"));
+		    }
+		}
+
+		if(!$update){
+			$newProject = array(
+				"name" => $project['name'],
+				'creator' => $userId,
+				'created' => new MongoDate(time())
+		    );
+		}
+
+		if(!empty($project['startDate']) )
+			$newProject['startDate'] = new MongoDate( strtotime( $project['startDate'] ));//$project['startDate'];
+			
+		if(!empty($project['endDate'])) 
+			$newProject['endDate'] = new MongoDate( strtotime( $project['endDate'] ));//$project['endDate']
+				  
+		
+		if(!empty($project['address'])) {
+			if(empty($project['address']['postalCode']))
+				throw new CTKException(Yii::t("project","Please fill the postal code of the project to communect it"));
+			if(empty($project['address']['codeInsee']))
+				throw new CTKException(Yii::t("project","Please fill the postal code of the project to communect it"));
+			if(empty($project['address']['addressCountry']))
+				throw new CTKException(Yii::t("project","Please fill the country of the project to communect it"));
+			if(empty($project['address']['addressLocality']))
+				throw new CTKException(Yii::t("project","Please fill the locality code of the project to communect it"));
+			
+			$newProject['address'] = $project['address'] ;
+
+		}else {
+			throw new CTKException(Yii::t("project","Please fill the adress of the project to communect it"));
+		}
+
+		if(!empty($project['geo']) && !empty($project["geoPosition"])){
+			$newProject["geo"] = $project['geo'];
+			$newProject["geoPosition"] = $project['geoPosition'];
+		}
+		else
+			throw new CTKException(Yii::t("project","Please fill the geo and geoPosition of the project to communect it"));
+		
+		if (!empty($project['description']))
+			$newProject["description"] = $project['description'];
+		
+		if (!empty($project['url']))
+			$newProject["url"] = $project['url'];
+
+		if (!empty($project['licence']))
+			$newProject["licence"] = $project['licence'];
+
+		if (isset($project['tags']) ) {
+			if ( is_array( $project['tags'] ) ) {
+				$tags = $project['tags'];
+			} else if ( is_string($project['tags']) ) {
+				$tags = explode(",", $project['tags']);
+			}
+			$newProject["tags"] = $tags;
+		}
+
+		return $newProject;
+	}
+
+
+
+	/**
+	 * Insert a new project, checking if the project is well formated
+	 * @param array $params Array with all fields for a project
+	 * @param string $userId UserId doing the insertion
+	 * @return array as result type
+	 */
+	public static function insertProjetFromImportData($params, $parentId,$parentType){
+	    $newProject = self::getAndCheckProjectFromImportData($params, $parentId);
+	    
+	    if(isset($newProject["tags"]))
+			$newProject["tags"] = Tags::filterAndSaveNewTags($newProject["tags"]);
+
+	    $newProject["links"] = array( "contributors" => 
+	    								array($parentId =>array("type" => $parentType,"isAdmin" => true)));
+
+	    PHDB::insert(self::COLLECTION,$newProject);
+	    Link::connect($parentId, $parentType, $newProject["_id"], self::COLLECTION, $parentId, "projects", true );
+
+	    //Notification::createdObjectAsParam(Person::COLLECTION,Yii::app() -> session["userId"],Project::COLLECTION, (String)$newProject["_id"], $parentType, $parentId, $newProject["geo"], (isset($newProject["tags"])) ? $newProject["tags"]:null ,$newProject["address"]["codeInsee"]);
+	    return array("result"=>true, "msg"=>"Votre projet est communecté.", "id" => $newProject["_id"]);	
 	}
 }
 ?>

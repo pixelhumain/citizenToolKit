@@ -189,7 +189,7 @@ class Event {
 														'created' => new MongoDate(time()),
 														"startDate" => new MongoDate(strtotime($params['startDate'])),
 														"endDate" => new MongoDate(strtotime($params['endDate'])),
-												        'creator' => Yii::app()->session['userId']) );
+												        'creator' => (empty($params["creator"]) ? Yii::app()->session['userId'] : $params["creator"] ) ) );
 
 	    
 	    //Postal code & geo
@@ -199,6 +199,11 @@ class Event {
 				$address = SIG::getAdressSchemaLikeByCodeInsee($insee);
 				$newEvent["address"] = $address;
 			}
+
+			// For module "OpenAgenda"
+		} else if(!empty($params['address'])) {
+			$newEvent["address"] = $params['address'];
+			$newEvent['address']['@type'] = "PostalAddress" ;
 		}
 		
 		
@@ -232,11 +237,20 @@ class Event {
 	    if(!empty($params['description']))
 	         $newEvent["description"] = $params['description'];
 
+
+	    if(!empty($params['sourceId']))
+	    	$newEvent["sourceId"] = $params['sourceId'];
+	    if(!empty($params['sourceUrl']))
+	    	$newEvent["sourceUrl"] = $params['sourceUrl'];
+	    if(!empty($params['dates']))
+	    	$newEvent["dates"] = $params['dates'];
+
 	    return $newEvent;
 	}
 
 	public static function saveEvent($params) {
 		$newEvent = self::getAndCheckEvent($params);
+
 	    PHDB::insert(self::COLLECTION,$newEvent);
 	    
 	    /*
@@ -555,6 +569,139 @@ class Event {
 	  	return $res;
 	}
 
+	/* 	Get an event from an OpenAgenda ID 
+	*	@param string OpenAgenda Id is to find event
+	*   return Event
+	*/
+	public static function getEventsOpenAgenda($eventsIdOpenAgenda){
+		$where=array("sourceId" => $eventsIdOpenAgenda);
+		$event=PHDB::find(self::COLLECTION, $where);
+		return $event;
+	}
+
+
+
+	/* 	Get state an event from an OpenAgenda ID 
+	*	@param string OpenAgenda ID
+	*	@param string Date Update openAgenda
+	*   return String ("Add", "Update" or "Delete")
+	*/
+	public static function getStateEventsOpenAgenda($eventsIdOpenAgenda, $dateUpdate, $endDateOpenAgende){
+		$state = "";
+		$event=Event::getEventsOpenAgenda($eventsIdOpenAgenda);
+		if(empty($event)){
+			$state = "Add";
+		}else{
+			foreach ($event as $key => $value) {
+				$arrayTimeEnd = explode(":", $endDateOpenAgende[0]["dates"][0]["timeEnd"]);
+				$arrayDate = explode("-", $endDateOpenAgende[0]["dates"][0]["date"]);
+				$end = mktime($arrayTimeEnd[0], $arrayTimeEnd[1], $arrayTimeEnd[2], $arrayDate[1]  , $arrayDate[2], $arrayDate[0]);
+				$endDateEvents = date('Y-m-d H:i:s', $end);
+				$today = mktime(date("H"), date("i"), date("s"), date("m")  , date("d")-1, date("Y"));
+				
+				if(!empty($value["modified"]->sec))
+					$lastUpDate = $value["modified"]->sec ;
+				else
+					$lastUpDate = $value["created"]->sec ;
+				
+				if($today > strtotime($endDateEvents)){
+					$state = "Delete";
+				}else if(strtotime($dateUpdate) > $lastUpDate ){
+					
+					//var_dump("HERE");
+					$state = "Update";
+				}
+				break;
+			}
+			
+		}
+
+		return $state;
+	}
+
+	/* 	Get state an event from an OpenAgenda ID 
+	*	@param string OpenAgenda ID
+	*	@param string Date Update openAgenda
+	*   return String ("Add", "Update" or "Delete")
+	*/
+	public static function createEventsFromOpenAgenda($eventOpenAgenda) {
+		$newEvents["name"] = empty($eventOpenAgenda["title"]["fr"]) ? "" : $eventOpenAgenda["title"]["fr"];
+		$newEvents["description"] = empty($eventOpenAgenda["description"]["fr"]) ? "" : $eventOpenAgenda["description"]["fr"];
+		$newEvents["organizerId"] = "5694ea2a94ef47ad1c8b456d";
+		$newEvents["organizerType"] = Person::COLLECTION ;
+		if(!empty($eventOpenAgenda["locations"][0]["dates"][0]["timeStart"]) && !empty($eventOpenAgenda["locations"][0]["dates"][0]["timeStart"]) && !empty($eventOpenAgenda["locations"][0]["dates"][0]["date"]))
+		{
+			$arrayTimeStart = explode(":", $eventOpenAgenda["locations"][0]["dates"][0]["timeStart"]);
+
+			$nbDates = count($eventOpenAgenda["locations"][0]["dates"]);
+			$arrayTimeEnd = explode(":", $eventOpenAgenda["locations"][0]["dates"][$nbDates-1]["timeEnd"]);
+			$arrayDateStart = explode("-", $eventOpenAgenda["locations"][0]["dates"][0]["date"]);
+			$arrayDateEnd = explode("-", $eventOpenAgenda["locations"][0]["dates"][$nbDates-1]["date"]);
+
+			$start = mktime($arrayTimeStart[0], $arrayTimeStart[1], $arrayTimeStart[2], $arrayDateStart[1]  , $arrayDateStart[2], $arrayDateStart[0]);
+			$end = mktime($arrayTimeEnd[0], $arrayTimeEnd[1], $arrayTimeEnd[2], $arrayDateEnd[1]  , $arrayDateEnd[2], $arrayDateEnd[0]);
+
+			$newEvents["startDate"] = date('Y-m-d H:i:s', $start);
+			$newEvents["endDate"] = date('Y-m-d H:i:s', $end);
+		}
+		
+		if(!empty($eventOpenAgenda["locations"][0]["dates"]))
+			$newEvents["dates"] = $eventOpenAgenda["locations"][0]["dates"];
+
+
+		$newEvents["geoPosLatitude"] = empty($eventOpenAgenda["locations"][0]["latitude"]) ? "" : $eventOpenAgenda["locations"][0]["latitude"];
+		$newEvents["geoPosLongitude"] = empty($eventOpenAgenda["locations"][0]["longitude"]) ? "" : $eventOpenAgenda["locations"][0]["longitude"];
+
+
+		if(!empty($newEvents["geoPosLongitude"]) && !empty($newEvents["geoPosLongitude"]))
+		{
+			$newEvents['address']['@type'] = "PostalAddress" ;
+			$newEvents['address']['postalCode'] = empty($eventOpenAgenda["locations"][0]["postalCode"]) ? "" : $eventOpenAgenda["locations"][0]["postalCode"];
+			
+			$where = array("cp"=>$newEvents['address']['postalCode']);
+			$option = City::getWhere($where);
+	        if(empty($option))
+	        	throw new CTKException("Ce code postal n'existe pas.");	
+
+			$city = SIG::getInseeByLatLngCp($newEvents["geoPosLatitude"], $newEvents["geoPosLongitude"],  (empty($eventOpenAgenda["locations"][0]["postalCode"]) ? null : $eventOpenAgenda["locations"][0]["postalCode"]) );
+
+			if($eventOpenAgenda["locations"][0]["postalCode"] == $city["cp"])
+				$newEvents['address']['postalCode'] = $eventOpenAgenda["locations"][0]["postalCode"] ;
+			else
+				throw new CTKException("Erreur: le code postal ne correspond pas à la city retourné.");
+
+			$newEvents['address']['streetAddress'] = "";
+			$newEvents['address']['addressCountry'] =  $city["country"];
+			$newEvents['address']['addressLocality'] = $city["alternateName"];
+			$newEvents['address']['codeInsee'] = $city["insee"];	
 	
+		}
+		$newEvents["creator"] = "5694ea2a94ef47ad1c8b456d";
+		$newEvents["type"] = "other";
+		$newEvents["public"] = true;
+		$newEvents['allDay'] = 'true' ;
+
+		$newEvents['sourceId'] = $eventOpenAgenda["uid"] ;
+		$newEvents['sourceUrl'] = $eventOpenAgenda["link"] ;
+
+		return $newEvents;
+	}
+
+
+	public static function saveEventFromOpenAgenda($params) {
+		$newEvent = self::getAndCheckEvent($params);
+
+	    PHDB::insert(self::COLLECTION,$newEvent);
+	    
+		$creator = true;
+		$isAdmin = true;
+		Link::attendee($newEvent["_id"], "5694ea2a94ef47ad1c8b456d", $isAdmin, $creator);
+	    Link::addOrganizer($params["organizerId"],$params["organizerType"], $newEvent["_id"], "5694ea2a94ef47ad1c8b456d");
+				
+		return array("result"=>true, "msg"=>Yii::t("event","Your event has been connected."), "id"=>$newEvent["_id"], "event" => $newEvent );
+	
+
+	}
+
 }
 ?>

@@ -325,5 +325,7 @@ class City {
 		error_log("La mise à jour est terminée. ".$nbCities." communes ont été traitées");
 		return true;
 	}
+
+
 }
 ?>
