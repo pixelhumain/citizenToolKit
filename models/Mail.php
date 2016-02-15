@@ -90,5 +90,4 @@ class Mail
         );
         Mail::schedule($params);
     }
-
 }
