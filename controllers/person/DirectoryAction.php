@@ -89,7 +89,7 @@ class DirectoryAction extends CAction
       /* **************************************
       *  PEOPLE
       ***************************************** */
-      $people = array();
+    $people = array();
       if( isset( $person["links"] ) && isset( $person["links"]["knows"] )) {
         foreach ( $person["links"]["knows"] as $key => $member ) {
               if( $member['type'] == Person::COLLECTION )

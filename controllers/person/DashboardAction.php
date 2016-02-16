@@ -101,8 +101,8 @@ class DashboardAction extends CAction
 
 	    }
 	    $people = array();
-	    if( isset($person["links"]) && isset($person["links"]["knows"])) {
-	    	foreach ($person["links"]["knows"] as $key => $member) {
+	    if( isset($person["links"]) && isset($person["links"]["follows"])) {
+	    	foreach ($person["links"]["follows"] as $key => $member) {
 	    		$citoyen;
 	            if( $member['type'] == Person::COLLECTION )
 	            {
