@@ -897,7 +897,7 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 			if(empty($project['address']['postalCode']))
 				throw new CTKException(Yii::t("project","Please fill the postal code of the project to communect it"));
 			if(empty($project['address']['codeInsee']))
-				throw new CTKException(Yii::t("project","Please fill the postal code of the project to communect it"));
+				throw new CTKException(Yii::t("project","Please fill Insee of the project to communect it"));
 			if(empty($project['address']['addressCountry']))
 				throw new CTKException(Yii::t("project","Please fill the country of the project to communect it"));
 			if(empty($project['address']['addressLocality']))
@@ -979,13 +979,13 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 
 
 	/**
-	 * insert a new organization in database
+	 * insert a new organization in database From ImportDATA
 	 * @param array A well format organization 
 	 * @param String $creatorId : an existing user id representing the creator of the organization
 	 * @param String $adminId : can be ommited. user id representing the administrator of the organization
 	 * @return array result as an array. 
 	 */
-	public static function insertProject($organization, $creatorId, $adminId = null) {
+	public static function insertOrganization($organization, $creatorId, $adminId = null) {
 	    
 	    $newOrganization = Organization::getAndCheckOrganization($organization);
 		
@@ -1032,26 +1032,6 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 		if ($isToLink) {
 		    Link::addMember($newOrganizationId, Organization::COLLECTION, $memberId, Person::COLLECTION, $creatorId, $isAdmin);
 		}
-
-	    //send Notification Email
-	    $creator = Person::getById($creatorId);
-	    //Mail::newOrganization($creator,$newOrganization);
-	    if(isset($newOrganization["geo"]) && !empty($newOrganization["geo"])){
-		    $orgaGeo=$newOrganization["geo"];
-	    }
-	    else
-	    	$orgaGeo="";
-	    if (@$newOrganization["tags"] && !empty($newOrganization["tags"])){
-		    $orgaTags=$newOrganization["tags"];
-	    }
-	    else	
-	    	$orgaTags="";
-	    if (@$newOrganization["address"]["codeInsee"] && !empty($newOrganization["address"]["codeInsee"]))
-	    	$orgaCodeInsee=$newOrganization["address"]["codeInsee"];
-	    else
-	    	$orgaCodeInsee="";
-	    
-		Notification::createdObjectAsParam(Person::COLLECTION,$creatorId,Organization::COLLECTION, $newOrganizationId, null, null, $orgaGeo,$orgaTags,$orgaCodeInsee);
 
 	    $newOrganization = Organization::getById($newOrganizationId);
 	    return array("result"=>true,

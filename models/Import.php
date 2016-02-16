@@ -225,7 +225,7 @@ class Import
             $arrayPathMapping2 = array();
             foreach ($fieldsCollection as $key => $value) 
             {
-                $pathMapping = FileHelper::arbreJson($value['mappingFields'], "", "");
+                $pathMapping = ArrayHelper::getAllBranchsJSON($value['mappingFields']);
                 $arrayPathMapping = explode(";",  $pathMapping);
                 foreach ($arrayPathMapping as $keyPathMapping => $valuePathMapping) 
                 {
@@ -331,7 +331,6 @@ class Import
         if(isset($post['infoCreateData']) && isset($post['idCollection']) && isset($post['subFile']) && isset($post['nameFile'])){
 
             $paramsInfoCollection = array("_id"=>new MongoId($post['idCollection']));
-            $fieldsInfoCollection =  array("mappingFields.".$objetInfoData['valueLinkCollection']);
             $infoCollection = Import::getMicroFormats($paramsInfoCollection);
 
 
@@ -361,7 +360,7 @@ class Import
                         
                         if(isset($valueData)) {
                             $mappingTypeData = explode(".", $post['idCollection'].".mappingFields.".$objetInfoData['valueLinkCollection']);
-                            $typeData = FileHelper::get_value_json($infoCollection,$mappingTypeData);
+                            $typeData = ArrayHelper::getValueJson($infoCollection,$mappingTypeData);
                             $mapping = explode(".", $objetInfoData['valueLinkCollection']);
                            
                             if(isset($jsonData[$mapping[0]]))
@@ -389,7 +388,7 @@ class Import
                         
                     }
 
-                    Import::checkData($infoCollection[$post['idCollection']]["key"], $jsonData, $post);
+                    $entite = Import::checkData($infoCollection[$post['idCollection']]["key"], $jsonData, $post);
 
                     if(empty($entite["msgError"]))
                         $arrayJson[] = $entite ;
@@ -454,6 +453,7 @@ class Import
                 $res = $newProject ;
             }
         }
+
         return $res ;
     }
 
@@ -471,10 +471,8 @@ class Import
                 $jsonFile2[] = $jsonFile ;
             else
                 $jsonFile2 = $jsonFile ;
-           // $jsonFile2 = json_decode($jsonFile, true);
-            //var_dump($jsonFile2);   
-            foreach ($jsonFile2 as $keyJSON => $valueJSON) 
-            {
+            foreach ($jsonFile2 as $keyJSON => $valueJSON){
+
                 foreach($post['infoCreateData']as $key => $objetInfoData){
                     
                     $cheminLien = explode(".", $objetInfoData['idHeadCSV']);
@@ -497,8 +495,7 @@ class Import
                                 $jsonData[$mapping[0]] = $valueData;
                             }
                         } else {
-                            if(count($mapping) > 1)
-                            { 
+                            if(count($mapping) > 1) { 
                                 $newmap = array_splice($mapping, 1);
                                 $jsonData[$mapping[0]] = FileHelper::create_json($newmap, $valueData, $typeData);
                             }
@@ -510,7 +507,6 @@ class Import
                     }
 
                 }
-
 
                 $entite = Import::checkData($infoCollection[$post['idCollection']]["key"], $jsonData, $post);
 
