@@ -772,6 +772,7 @@ class Person {
 		//Check if the email of the person is already in the database
 	  	if ($email){
 		  	$account = PHDB::findOne(Person::COLLECTION,array("email"=>$email));
+		  	//var_dump($account);
 		  	if ($account) {
 		  		$id = $account["_id"] ;
 			} else {
@@ -789,9 +790,14 @@ class Person {
     */
 	public static function isLinkedEmail($email, $userId) {
     	$res = false ;
-        $id = getPersonIdByEmail($email);
+        $id = Person::getPersonIdByEmail($email);
+        //var_dump($id);
         if($id != false)
+        {
         	$res = Link::isLinked($id, Person::COLLECTION, $userId);
+        	var_dump($res);
+        }	
+        
         return $res;
     }
 }
