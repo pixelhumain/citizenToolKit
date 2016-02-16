@@ -207,7 +207,7 @@ class Person {
 	  	return $res;
 	}
 
-	/**
+	/** NE serait-ce pas à supprimmer? appeler nul part
 	 * get Knows a Person By a person Id
 	 * @param type $id : is the mongoId (String) of the person
 	 * @return person document as in db
@@ -235,7 +235,7 @@ class Person {
 	}
 
 	
-	/**
+	/** De même !!
 	 * get all links By a person Id
 	 * @param type $id : is the mongoId (String) of the person
 	 * @return person document as in db

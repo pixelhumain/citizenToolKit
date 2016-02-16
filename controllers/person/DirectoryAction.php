@@ -89,7 +89,7 @@ class DirectoryAction extends CAction
       /* **************************************
       *  PEOPLE
       ***************************************** */
-      $people = array();
+    $people = array();
       if( isset( $person["links"] ) && isset( $person["links"]["knows"] )) {
         foreach ( $person["links"]["knows"] as $key => $member ) {
               if( $member['type'] == Person::COLLECTION )
@@ -118,13 +118,68 @@ class DirectoryAction extends CAction
           array_push( $projects, $project );
         }
       }
+      $follows = array("citoyens"=>array(),
+      					"projects"=>array(),
+      					"organizations"=>array(),
+      					"count" => 0
+      			);
+	  if (isset($person["links"]["follows"])){
+		  $countFollows=0;
+		   foreach ( $person["links"]["follows"] as $key => $member ) {
+	              if( $member['type'] == Person::COLLECTION )
+	              {
+	                $citoyen = Person::getPublicData( $key );
+					if(!empty($citoyen)){
+		                $profil = Document::getLastImageByKey( $key, Person::COLLECTION, Document::IMG_PROFIL );
+		                if($profil !="" )
+		                    $citoyen["imagePath"]= $profil;
+		                array_push( $follows[Person::COLLECTION], $citoyen );
+	                }
+	              }
+	              if( $member['type'] == Organization::COLLECTION )
+	              {
+						$organization = Organization::getPublicData( $key );
+						$profil = Document::getLastImageByKey($key, Organization::COLLECTION, Document::IMG_PROFIL);
+						if($profil !="")
+							$organization["imagePath"]= $profil;
+						array_push($follows[Organization::COLLECTION], $organization );
+					}
+	              if( $member['type'] == Project::COLLECTION )
+	              {
+						$project = Project::getPublicData($key);
+						$profil = Document::getLastImageByKey($key, Project::COLLECTION, Document::IMG_SLIDER);
+						if($profil !="")
+							$project["imagePath"]= $profil;
+						array_push( $follows[Project::COLLECTION], $project );
+	              }
+	            $countFollows++;
+        	}
+			$follows["count"]= $countFollows;
+	  }
+      $followers = array();
+	  if (isset($person["links"]["followers"])){
+		   foreach ( $person["links"]["followers"] as $key => $member ) {
+	              if( $member['type'] == Person::COLLECTION )
+	              {
+	                $citoyen = Person::getPublicData( $key );
+					if(!empty($citoyen)){
+		                $profil = Document::getLastImageByKey( $key, Person::COLLECTION, Document::IMG_PROFIL );
+		                if($profil !="" )
+		                    $citoyen["imagePath"]= $profil;
+		                array_push( $followers, $citoyen );
+	                }
+	              }
+        	}
 
+	  }
       $params["organizations"] = $organizations;
       $params["projects"] = $projects;
       $params["events"] = $events;
       $params["people"] = $people;
       $params["type"] = Person::CONTROLLER;
       $params["person"] = $person;
+      $params["followers"] = $followers;
+      $params["follows"] = $follows;
 
 		  $page = "../default/directory";
       if( isset($_GET[ "tpl" ]) )

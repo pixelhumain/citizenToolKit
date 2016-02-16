@@ -25,7 +25,8 @@ class DirectoryAction extends CAction
             "organizations" => array(),
             "events" => array(),
             "people" => array(),
-            "projects" => array()
+            "projects" => array(),
+            "followers" => array()
             );
 
           /* **************************************
@@ -69,7 +70,13 @@ class DirectoryAction extends CAction
 
             array_push($params["people"], $newCitoyen);
         }
-
+        
+		$followers = Organization::getFollowersByOrganizationId($id);
+        foreach ($followers as $key => $value) 
+        {
+            $newCitoyen = Person::getSimpleUserById($key);
+            array_push($params["followers"], $newCitoyen);
+        }
           /* **************************************
           *  PROJECTS
           ***************************************** */

@@ -14,6 +14,8 @@ class DisconnectAction extends CAction
 			try {
 				if($parentType==Organization::COLLECTION)
 					$parentConnect="memberOf";
+				else if($connectType == "followers")
+					$parentConnect="follows";
 				else
 					$parentConnect=$parentType;
 				Link::disconnect($childId, $childType, $parentId, $parentType,Yii::app()->session['userId'], $parentConnect);

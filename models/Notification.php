@@ -143,7 +143,8 @@ class Notification{
 	    }
 	    else if( $target["type"] == Event::COLLECTION ) 
 	    	$members = Event::getAttendeesByEventId( $targetId ,"all", null ) ;
-
+		else if($target["type"] == Person::COLLECTION)
+			$people = array($targetId);
 	    foreach ($members as $key => $value) 
 	    {
 	    	if( $key != Yii::app()->session['userId'] && !in_array($key, $people) && count($people) < self::PEOPLE_NOTIFY_LIMIT )
@@ -164,6 +165,15 @@ class Notification{
 		    $label = $target["name"]." : ".Yii::t("common","new post by")." ".Yii::app()->session['user']['name'];
 	    	$url = 'news/index/type/'.$target["type"].'/id/'.$targetId;
 	    }
+		else if( $verb == ActStr::VERB_FOLLOW ){
+			if($target["type"]==Person::COLLECTION)
+				$specificLab = Yii::t("common","is following you");
+			else
+				$specificLab = Yii::t("common","is following")." ".$target["name"];
+		    $label = Yii::app()->session['user']['name']." ".$specificLab;
+	    	$url = Person::CONTROLLER.'/detail/id/'.Yii::app()->session['userId'];
+	    }
+
 	    else if($verb == ActStr::VERB_WAIT){
 		    $label = Yii::app()->session['user']['name']." ".Yii::t("common","wants to join")." ".$target["name"];
 		    $url = $ctrls[ $target["type"] ].'/directory/id/'.$targetId;
