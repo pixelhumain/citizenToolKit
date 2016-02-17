@@ -137,14 +137,26 @@ class IndexAction extends CAction
 				}
 				if(@$person["links"]["follows"] && !empty($person["links"]["follows"])){
 					foreach ($person["links"]["follows"] as $key => $data){
-						$follow=array("id"=>$key, "scope.type" => "public", "type" => "");
-						if($data["type"]==Project::COLLECTION)
-							$follow["type"] = "projects";
-						if($data["type"]==Person::COLLECTION)
-							$follow["type"] = "citoyens";
-						if($data["type"]==Organization::COLLECTION)
-							$follow["type"] = "organizations";
-						array_push($authorFollowedAndMe,$follow);
+						$followNews=array("id"=>$key, "scope.type" => "public", "type" => "");
+						$followActivity=array("type" => "activityStream");
+						if($data["type"]==Project::COLLECTION){
+							$followNews["type"] = $data["type"];
+							$followActivity=array("type"=>"activityStream","target.id" => $key,"target.objectType"=>$data["type"]);
+							//$followActivity["target"]["id"]=$key;
+							//$followActivity=array("type");["target"]["objectType"]=$data["type"];
+						}if($data["type"]==Person::COLLECTION){
+							$followNews["type"] = "citoyens";
+							$followActivity=array("type"=>"activityStream","target.id" => $key,"target.objectType"=>$data["type"]);
+							//$followActivity["target"]["id"]=$key;
+							//$followActivity["target"]["objectType"]=$data["type"];
+						}if($data["type"]==Organization::COLLECTION){
+							$followActivity["target"]["id"]=$key;
+							$followActivity=array("type"=>"activityStream","target.id" => $key,"target.objectType"=>$data["type"]);
+							//$followActivity["target"]["objectType"]=$data["type"];
+							//$followNews["type"] = "organizations";
+						}
+						array_push($authorFollowedAndMe,$followNews);
+						array_push($authorFollowedAndMe,$followActivity);
 					}
 				}
 				if(@$person["address"]["codeInsee"])
@@ -160,7 +172,7 @@ class IndexAction extends CAction
 								),
 				        	)	
 				        );
-				       //print_r($where);
+				      // print_r($where);
 			}
 			else if($type == "organizations" || $type == "projects"){
 				$where = array('$and' => array(

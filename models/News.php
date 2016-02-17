@@ -26,6 +26,7 @@ class News {
 	public static function getNewsForObjectId($param,$sort=array("created"=>-1),$type)
 	{
 	    $res = PHDB::findAndSort(self::COLLECTION, $param,$sort,5);
+	    //print_r($res);
 	    foreach ($res as $key => $news) {
 		    if(@$news["type"]){
 			    if($news["type"]==ActivityStream::COLLECTION){
