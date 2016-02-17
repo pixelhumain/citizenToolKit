@@ -23,8 +23,10 @@ class ActivateAction extends CAction
     	}
         
     	//InvitedBy
-    	if (@$res["account"]["pending"] == true) {
-            $params["pending"] = true;
+    
+    	if (@$res["account"]["tobeactivated"] == true) {
+	    	//echo true;
+            $params["tobeactivated"] = true;
             $params["pendingUserId"] = $user;
             if (!empty($invitedBy)) {
         		Yii::app()->session["invitor"] = Person::getSimpleUserById($invitedBy);
@@ -32,7 +34,7 @@ class ActivateAction extends CAction
                 Yii::app()->session["invitor"] = "";
             }
         }
-
+		//print_r($params);
         //var_dump($params);
 	    $controller->redirect($params);
     }
