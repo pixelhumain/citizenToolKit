@@ -61,13 +61,19 @@ class DetailAction extends CAction
 	                $organizerInfo = Project::getById($uid);
 	                $organizer["type"]=$urlType;
                 }
-                else {
+	            else if($organizer["type"] == Organization::COLLECTION ){
 	                $iconNav="fa-group";
 	                $urlType="organization";	
 	                $organizerInfo = Organization::getById($uid);  
 					$organizer["type"]=$urlType;
 					$organizer["typeOrga"]=$organizerInfo["type"];              
                 }
+				else{
+					$iconNav="fa-user";
+	                $urlType="person";	
+	                $organizerInfo = Person::getById($uid);  
+					$organizer["type"]=$urlType;
+				}
                 $organizer["id"] = $uid;
                 $organizer["name"] = $organizerInfo["name"];
                 $organizer["profilImageUrl"] = $organizerInfo["profilImageUrl"];
