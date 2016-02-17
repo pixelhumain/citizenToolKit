@@ -5,6 +5,6 @@ class LogoutAction extends CAction
     {
         $controller = $this->getController();
         Person::clearUserSessionData();
-    	$controller->redirect( Yii::app()->createUrl($controller->module->id."/person/login") );
+    	$controller->redirect( Yii::app()->createUrl($controller->module->id) );
     }
 }

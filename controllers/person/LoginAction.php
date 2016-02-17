@@ -4,18 +4,7 @@ class LoginAction extends CAction
     public function run()
     {
         $controller=$this->getController();
-        $controller->layout = "//layouts/mainSimple";
-        if(Yii::app()->session["userId"]) 
-          $controller->redirect( Yii::app()->homeUrl );
-        else
-          $detect = new Mobile_Detect;
+        $controller->redirect( Yii::app()->createUrl($controller->module->id) );
         
-        /*$isMobile = $detect->isMobile();
-
-        if($isMobile) {
-           $controller->render( "loginMobile" );
-        }
-        else */
-           $controller->render( "login" );
     }
 }
