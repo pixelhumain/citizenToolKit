@@ -240,8 +240,8 @@ class Organization {
 		}
 		$newOrganization["type"] = $organization['type'];
 		
-		if (empty($organization['addressCountry'])) {
-			throw new CTKException(Yii::t("organization", "You have to fill the country of your organization"));
+		if (empty($organization['city'])) {
+			throw new CTKException(Yii::t("organization", "You have to fill the city of your organization"));
 		}
 
 
@@ -258,7 +258,10 @@ class Organization {
 				else
 					$newOrganization["geo"] = $organization["geo"];
 			}
+		}else{
+			throw new CTKException(Yii::t("organization", "You have to fill the postal codes of your organization"));
 		}
+
 
 		//méthode pour récupérer le code insee à partir d'une position geographique :
 		//$geo = SIG::getPositionByCp($organization['postalCode']);
@@ -292,7 +295,7 @@ class Organization {
 		if (!empty($organization['description']))
 			$newOrganization["description"] = $organization['description'];
 
-		if (!empty($organization['telephone']))
+		/*if (!empty($organization['telephone']))
 			$newOrganization["telephone"] = $organization['telephone'];
 
 		if(!empty($organization['contact'])){
@@ -328,7 +331,7 @@ class Organization {
 		//url by ImportData
 		if(!empty($organization['url'])){
 			$newOrganization["url"] = $organization['url'];
-		}
+		}*/
 
 
 		//************************ Spécifique Granddir ********************/
