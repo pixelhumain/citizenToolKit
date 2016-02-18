@@ -159,7 +159,7 @@ class GlobalAutoCompleteAction extends CAction
 		  		//$res["cities"] = $allCitiesRes;  		
 	  		}
 
-	  		$allRes = array_merge($allRes, $allCitiesRes);
+	  		
 
 	  	}
 
@@ -169,6 +169,10 @@ class GlobalAutoCompleteAction extends CAction
 		}
 	  	usort($allRes, "mySort");
 
+	  	//error_log("count : " . count($allRes));
+	  	if(count($allRes) < $indexMax) 
+	  		$allRes = array_merge($allRes, $allCitiesRes);
+
 	  	$limitRes = array();
 	  	$index = 0;
 	  	foreach ($allRes as $key => $value) {
@@ -177,12 +181,13 @@ class GlobalAutoCompleteAction extends CAction
 		  	$index++;
 	  	}
 
+	  	
   		//Rest::json($res);
 		Rest::json($limitRes);
 		Yii::app()->end();
     }
 
-    //supprime les accen (utilisé pour la recherche de ville pour améliorer les résultats)
+    //supprime les accents (utilisé pour la recherche de ville pour améliorer les résultats)
     private function wd_remove_accents($str, $charset='utf-8')
 	{
 		return $str;
