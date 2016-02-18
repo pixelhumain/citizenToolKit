@@ -62,8 +62,10 @@ class Role {
         if (!$publicPage) {
 	        if (@Yii::app()->params['betaTest']) {
 	        	if (isset($roles["betaTester"]) && ! @$roles["betaTester"]) {
+		        	$minusDay=29-date("d");
 					$res = array("result"=>false, 
-	                    "msg"=>"We're still finishing things, see you in september");
+	                    "msg"=>"Ouverture dans J-".$minusDay." !! <br/> A très vite !");
+	                    //Communecter opens on 29th February ! It's coming, it coming !
 				}
 	    	}    
 	    } else {
