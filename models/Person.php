@@ -700,8 +700,8 @@ class Person {
 	public static function validateEmailAccount($accountId, $validationKey) {
 		assert('$accountId != ""; //The userId is mandatory');
 		assert('$validationKey != ""; //The validation key is mandatory');
-		$validationKeycheck = self::getValidationKeyCheck($accountId);
-		if ($validationKeycheck == $validationKey) {
+	
+		if (self::isRightValidationKey($accountId, $validationKey)) {
 	        //remove tobeactivated attribute on account
 	        $res = self::validateUser($accountId);
         } else {
@@ -710,22 +710,26 @@ class Person {
 	    
 	    return $res;
 	}
-
+	public static function isRightValidationKey($accountId, $validationKey){
+		$validationKeycheck = self::getValidationKeyCheck($accountId);
+		return ($validationKeycheck == $validationKey);
+	}
 	/**
-	 * remove tobeactivated attribute on account
+	 * remove tobeactivated attribute on account ??
 	 * @param type $accountId 
+	 * @param type $admin
 	 * @return type
 	 */
 	public static function validateUser($accountId,$admin=false) {
 		assert('$accountId != ""; //The userId is mandatory');
         $account = self::getSimpleUserById($accountId);
         if (!empty($account)) {
-	        if($admin==true){
-		        PHDB::update(	Person::COLLECTION,
-		                    	array("_id"=>new MongoId($accountId)), 
-		                        array('$unset' => array("roles.tobeactivated"=>""))
-		                    );
-	        }
+	       // if($admin==true){
+	        PHDB::update(	Person::COLLECTION,
+	                    	array("_id"=>new MongoId($accountId)), 
+	                        array('$unset' => array("roles.tobeactivated"=>""))
+	                    );
+	        //}
 	       	$res = array("result"=>true, "account" => $account, "msg" => "The account and email is now validated !");
 	    } else {
 	    	$res = array("result"=>false, "msg" => "Unknown account !");	
