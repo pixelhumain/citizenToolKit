@@ -10,7 +10,8 @@ class SaveAction extends CAction
 		$controller=$this->getController();
 		// Retrieve data from form
 		$newOrganization = Organization::newOrganizationFromPost($_POST);
-		try {
+
+		try{
 			if ( Person::logguedAndValid() ) {
 				//Save the organization
 				Rest::json(Organization::insert($newOrganization, Yii::app()->session["userId"]));

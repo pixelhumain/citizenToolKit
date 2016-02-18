@@ -239,7 +239,12 @@ class Organization {
 			throw new CTKException(Yii::t("organization", "You have to fill the type of your organization"));
 		}
 		$newOrganization["type"] = $organization['type'];
-				  
+		
+		if (empty($organization['addressCountry'])) {
+			throw new CTKException(Yii::t("organization", "You have to fill the country of your organization"));
+		}
+
+
 		if(!empty($organization['postalCode'])) {
 			if (!empty($organization['city'])) {
 				$insee = $organization['city'];
