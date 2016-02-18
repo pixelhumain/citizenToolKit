@@ -710,19 +710,22 @@ class Person {
 	 * @param type $accountId 
 	 * @return type
 	 */
-	public static function validateUser($accountId) {
+	public static function validateUser($accountId,$admin=false) {
 		assert('$accountId != ""; //The userId is mandatory');
         $account = self::getSimpleUserById($accountId);
         if (!empty($account)) {
-	        PHDB::update(	Person::COLLECTION,
-	                    	array("_id"=>new MongoId($accountId)), 
-	                        array('$unset' => array("roles.tobeactivated"=>""))
-	                    );
+	        if($admin==true){
+		        PHDB::update(	Person::COLLECTION,
+		                    	array("_id"=>new MongoId($accountId)), 
+		                        array('$unset' => array("roles.tobeactivated"=>""))
+		                    );
+	        }
 	       	$res = array("result"=>true, "account" => $account, "msg" => "The account and email is now validated !");
 	    } else {
 	    	$res = array("result"=>false, "msg" => "Unknown account !");	
 	    }
-        
+        	//$res = array("result"=>true, "account" => $account, "msg" => "The account and email is now validated !");
+
         return $res;
 	}
 
@@ -749,7 +752,7 @@ class Person {
 			$personToUpdate = self::getAndcheckPersonData($person, false, false);
 
 			PHDB::update(Person::COLLECTION, array("_id" => new MongoId($personId)), 
-			                          array('$set' => $personToUpdate, '$unset' => array("pending" => "")));
+			                          array('$set' => $personToUpdate, '$unset' => array("pending" => "","roles.tobeactivated"=>"")));
 
 			$res = array("result" => true, "msg" => "The pending user has been updated and is now complete");
 

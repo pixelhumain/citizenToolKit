@@ -28,6 +28,7 @@ class NewsTranslator {
 		$params["imageBackground"] = Document::getLastImageByKey((string) $params["object"]["id"],$params["object"]["objectType"] , $docImg);
 		$params["name"] = $object["name"];
 		$params["text"] = trim(preg_replace('/<[^>]*>/', ' ',(substr(isset($object["description"]) ? $object["description"] : "",0 ,100 ))));
+		$params["scope"]["address"]=$object["address"];
 		if(@$params["target"]["objectType"]){
 			if ($params["target"]["objectType"] == Organization::COLLECTION){
 				$params["target"]=Organization::getSimpleOrganizationById($params["target"]["id"]);

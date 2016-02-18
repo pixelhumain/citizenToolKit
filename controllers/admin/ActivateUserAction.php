@@ -10,7 +10,7 @@ class ActivateUserAction extends CAction {
 		if (! Authorisation::isUserSuperAdmin(Yii::app()->session["userId"])) {
 			$res = array("result" => false, "msg" => "You must be logged as an admin user to do this action !");
 		} else {
-			$res = Person::validateUser($user);
+			$res = Person::validateUser($user,true);
 		}
 		Rest::json($res);
 	}
