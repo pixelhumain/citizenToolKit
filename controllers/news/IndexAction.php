@@ -350,7 +350,7 @@ $newsObject=NewsTranslator::convertToNews($data,NewsTranslator::NEWS_JOIN_ORGANI
 				echo json_encode($params);
 	        else{
 //echo json_encode($params);
-	       echo $controller->renderPartial("indexSearch", $params,true);
+	       echo $controller->renderPartial("indexSearch", $params, true);
 	      }
 	    }
 	    else

@@ -274,7 +274,13 @@ class Person {
 		}
 
 		//trie les éléments dans l'ordre alphabetique par name
-	  	function mySort($a, $b){ return isset($a['name']) && isset($b['name']) ? $b['name'] < $a['name'] : false; }
+	  	function mySort($a, $b){ 
+		  	if( isset($a['name']) && isset($b['name']) ){
+		    	return (strtolower($b['name']) < strtolower($a['name']));
+			}else{
+				return false;
+			}
+		}
 
 	  	if(isset($res["citoyens"])) 	 usort($res["people"], 		  "mySort");
 	  	if(isset($res["organizations"])) usort($res["organizations"], "mySort");
