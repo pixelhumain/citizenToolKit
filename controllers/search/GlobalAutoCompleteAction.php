@@ -165,7 +165,11 @@ class GlobalAutoCompleteAction extends CAction
 
 	  	//trie les éléments dans l'ordre alphabetique par name
 	  	function mySort($a, $b){
-		    return $b['name'] < $a['name'];
+	  		if(isset($a['name']) && isset($b['name'])){
+		    	return ( strtolower($b['name']) < strtolower($a['name']) );
+			}else{
+				return false;
+			}
 		}
 	  	usort($allRes, "mySort");
 
