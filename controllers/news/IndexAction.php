@@ -178,8 +178,9 @@ class IndexAction extends CAction
 				);
 			}
 			else if($type == "city"){
+				//array('$in' => array($id))
 				$where = array('$and' => array(
-						array("scope.cities" => array('$in' => array($id))),
+						array("scope.cities.codeInsee" => $id ),
 						array("type" => array('$ne' => "pixels")),
 						array('created' => array(
 								'$lt' => $date

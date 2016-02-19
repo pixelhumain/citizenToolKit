@@ -179,11 +179,15 @@ class ActivityStream {
         	
 		if($params["type"]==ActivityStream::COLLECTION){
 			$action["scope"]["type"]="public";
-	        if( isset( $params["cities"] ))
-	        	$action["scope"]["cities"][] = $params["cities"];
+	        if( isset( $params["address"] )){
+	        	$insee=$params["address"]["codeInsee"];
+	        	$cp=$params["address"]["postalCode"];
+	        }
 			if( isset( $params["geo"] ))
-	        	$action["scope"]["geo"] = $params["geo"];
+				$geo = $params["geo"];
+			$action["scope"]["cities"][] = array("codeInsee" => $insee, "postalCode" => $cp,"geo"=> $geo);
 		}
+		
         if( isset( $params["label"] ))
         	$action["object"]["displayName"] = $params["label"];
 		if (isset ($params["tags"]))
