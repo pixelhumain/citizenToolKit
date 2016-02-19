@@ -61,44 +61,25 @@ class IndexAction extends CAction
 		$news=array();
 		if(!@$type || empty($type))
 			$type = Person::COLLECTION;
-		else if ($type == "citoyen")
-			$type = Person::COLLECTION;
+		
 		$params["type"] = $type; 
         if( $type == Project::COLLECTION ) {
             $project = Project::getById($id);
-            $onclick = "showAjaxPanel( '/project/detail/id/".$id."?isNotSV=1', 'PROJET DETAIL : ".$project["name"]."','lightbulb-o' )";
-	        $entry = array('tooltip' => "Back to Project Details",
-                            "iconClass"=>"fa fa-lightbulb-o",
-                            "href"=>"<a  class='tooltips  btn btn-default' href='#' onclick=\"".$onclick."\"");
-            //Menu::add2MBZ($entry);
+            if(@Yii::app()->session["userId"] && @$project["links"]["contributors"][Yii::app()->session["userId"]] && !@$project["links"]["contributors"][Yii::app()->session["userId"]][TO_BE_VALIDATED])
+            	$params["canPostNews"] = true;
             $params["project"] = $project; 
-            $controller->title = $project["name"]."'s Timeline";
-            $controller->subTitle = "Every Project is story to be told.";
-            $controller->pageTitle = "Communecter - ".$controller->title;
         } 
         else if( $type == Person::COLLECTION ) {
             $person = Person::getById($id);
-            $onclick = "showAjaxPanel( '/person/detail/id/".$id."?isNotSV=1', 'PERSON DETAIL : ".$person["name"]."','user' )";
-	        $entry = array('tooltip' => "Back to Person Details",
-                            "iconClass"=>"fa fa-user",
-                            "href"=>"<a  class='tooltips  btn btn-default' href='#' onclick=\"".$onclick."\"");
-            
+            if (@Yii::app()->session["userId"])
+				$params["canPostNews"] = true;
             $params["person"] = $person; 
-            $controller->title = $person["name"]."'s Timeline";
-            $controller->subTitle = "Everyone has story to tell.";
-            $controller->pageTitle = "Communecter - ".$controller->title;
         } 
-        else if( $type == Organization::COLLECTION ) {
+        else if( $type == Organization::COLLECTION) {
             $organization = Organization::getById($id);
-            $onclick = "showAjaxPanel( '/organization/detail/id/".$id."?isNotSV=1', 'ORGANIZATION DETAIL : ".$organization["name"]."','group' )";
-	        $entry = array('tooltip' => "Back to Organization Details",
-                            "iconClass"=>"fa fa-group",
-                            "href"=>"<a  class='tooltips  btn btn-default' href='#' onclick=\"".$onclick."\"");
-			//Menu::add2MBZ($entry);
+            if(@Yii::app()->session["userId"] && @$organization["links"]["members"][Yii::app()->session["userId"]] && !@$organization["links"]["members"][Yii::app()->session["userId"]][Link::TO_BE_VALIDATED])
+            	$params["canPostNews"] = true;
             $params["organization"] = $organization; 
-            $controller->title = $organization["name"]."'s Timeline";
-            $controller->subTitle = "Every Organization has story to tell.";
-            $controller->pageTitle = "Communecter - ".$controller->title;
         }
         else if( $type == Event::COLLECTION ) {
             $event = Event::getById($id);
@@ -107,14 +88,13 @@ class IndexAction extends CAction
                             "iconClass"=>"fa fa-calendar",
                             "href"=>"<a  class='tooltips  btn btn-default' href='#' onclick=\"".$onclick."\"");
             $params["event"] = $event; 
-            $controller->title = $event["name"]."'s Timeline";
-            $controller->subTitle = "Every Event has story to tell.";
-            $controller->pageTitle = "Communect - ".$controller->title;
+        }
+        else if ($type=="city"){
+	        if (@Yii::app()->session["userId"])
+				$params["canPostNews"] = true;
         }
 		else if ($type=="communecter"){
-			 $controller->title = "Pixel's Timeline";
-            $controller->subTitle = "Say us bugs or feature ideas";
-            $controller->pageTitle = "Communect - ".$controller->title;
+			$params["canPostNews"] = true;
 		}
 		if ($streamType == "news"){
 			if($type == "citoyens") {
@@ -345,13 +325,13 @@ $newsObject=NewsTranslator::convertToNews($data,NewsTranslator::NEWS_JOIN_ORGANI
 		$params["userCP"] = Yii::app()->session['userCP'];
 		$params["limitDate"] = end($news);
 								//print_r($params["news"]);
+								
 		if(Yii::app()->request->isAjaxRequest){
 			if (!@$_GET["isNotSV"])
 				echo json_encode($params);
 	        else{
-//echo json_encode($params);
-	       echo $controller->renderPartial("indexSearch", $params,true);
-	      }
+				echo $controller->renderPartial("indexSearch", $params,true);
+	       }
 	    }
 	    else
   			$controller->render( "index" , $params  );

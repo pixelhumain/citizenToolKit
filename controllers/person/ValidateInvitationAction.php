@@ -17,6 +17,7 @@ class ValidateInvitationAction extends CAction
 	    	$account = Person::getById($user);
 	    	if(!empty($account)){
 	    		$params["email"] = $account["email"];
+	    		$params["userValidated"] = 1;
 				$params["pendingUserId"] = $user;
 	    		$invitedBy= $account["invitedBy"];
 	    		if (!empty($invitedBy)) 
