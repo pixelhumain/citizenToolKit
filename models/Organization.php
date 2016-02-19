@@ -123,7 +123,7 @@ class Organization {
 	    else	
 	    	$orgaTags="";
 	    if (@$newOrganization["address"]["codeInsee"] && !empty($newOrganization["address"]["codeInsee"]))
-	    	$orgaCodeInsee=$newOrganization["address"]["codeInsee"];
+	    	$orgaCodeInsee=$newOrganization["address"];
 	    else
 	    	$orgaCodeInsee="";
 	    

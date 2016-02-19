@@ -220,7 +220,7 @@ class Project {
 
 	    Link::connect($parentId, $parentType, $newProject["_id"], self::COLLECTION, $parentId, "projects", true );
 
-	    Notification::createdObjectAsParam(Person::COLLECTION,Yii::app() -> session["userId"],Project::COLLECTION, (String)$newProject["_id"], $parentType, $parentId, $newProject["geo"], (isset($newProject["tags"])) ? $newProject["tags"]:null ,$newProject["address"]["codeInsee"]);
+	    Notification::createdObjectAsParam(Person::COLLECTION,Yii::app() -> session["userId"],Project::COLLECTION, (String)$newProject["_id"], $parentType, $parentId, $newProject["geo"], (isset($newProject["tags"])) ? $newProject["tags"]:null ,$newProject["address"]);
 	    return array("result"=>true, "msg"=>"Votre projet est communecté.", "id" => $newProject["_id"]);	
 	}
 
