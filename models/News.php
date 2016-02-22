@@ -73,29 +73,29 @@ class News {
 		 	{
 				$type=$_POST["type"];
 				$news["type"] = $type;
-				
+				$from="";
 				if($type == Person::COLLECTION ){
 					$person = Person::getById($_POST["typeId"]);
 					if( isset( $person['geo'] ) )
-						$news["from"] = $person['geo'];
+						$from = $person['geo'];
 				}else if($type == Organization::COLLECTION ){
 					$organization = Organization::getById($_POST["typeId"]);
 					if( isset( $organization['geo'] ) )
-						$news["from"] = $organization['geo'];
+						$from = $organization['geo'];
 						$organization["type"]=Organization::COLLECTION;
 					Notification::actionOnPerson ( ActStr::VERB_POST, ActStr::ICON_COMMENT, null , $organization )  ;
 				}
 				else if($type == Event::COLLECTION ){
 					$event = Event::getById($_POST["typeId"]);
 					if( isset( $event['geo'] ) )
-						$news["from"] = $event['geo'];
+						$from = $event['geo'];
 
 					Notification::actionOnPerson ( ActStr::VERB_POST, ActStr::ICON_COMMENT, null , $event )  ;
 				}
 				else if($type == Project::COLLECTION ){
 					$project = Project::getById($_POST["typeId"]);
 					if( isset( $project['geo'] ) )
-						$news["from"] = $project['geo'];
+						$from = $project['geo'];
 					$project["type"] = Project::COLLECTION; 
 					Notification::actionOnPerson ( ActStr::VERB_POST, ActStr::ICON_COMMENT, null , $project )  ;
 				}
@@ -104,13 +104,18 @@ class News {
 	 				throw new CTKException("You must be admin of this organization to post.");*/
 			}
 		 	if( isset($_POST["scope"]) || $_POST["type"]=="city") {
-			 	if($_POST["type"]=="city")
+			 	if($_POST["type"]=="city"){
 			 		$news["scope"]["type"]="public";
-			 	else
+			 		$news["scope"]["cities"][] = array("codeInsee"=>$_POST["codeInsee"]);
+				}
+			 	else {
 			 		$news["scope"]["type"]=$_POST["scope"];
-			 	if($news["scope"]["type"]=="public"){
-		 			$news["scope"]["cities"] = array($user["address"]["codeInsee"]);
-		 		}
+			 		$news["scope"]["cities"][] = array("codeInsee"=>$user["address"]["codeInsee"],
+		 											"postalCode"=>$user["address"]["postalCode"],
+		 											"geo" => $from
+		 										);
+			 	}
+		 			
 			}
 			PHDB::insert(self::COLLECTION,$news);
 		    $news["author"] = Person::getSimpleUserById($news["author"]);

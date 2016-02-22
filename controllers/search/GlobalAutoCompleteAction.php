@@ -172,6 +172,7 @@ class GlobalAutoCompleteAction extends CAction
 			}
 		}
 	  	usort($allRes, "mySort");
+	  	usort($allCitiesRes, "mySort");
 
 	  	//error_log("count : " . count($allRes));
 	  	if(count($allRes) < $indexMax) 
