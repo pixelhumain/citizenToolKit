@@ -20,6 +20,7 @@ class Person {
 	    "addressLocality" => array("name" => "address.addressLocality"), 
 	    "addressCountry" => array("name" => "address.addressCountry"),
 	    "geo" => array("name" => "geo"),
+	    "geoPosition" => array("name" => "geoPosition"),
 	    "telephone" => array("name" => "telephone"),
 	    "tags" => array("name" => "tags"),
 	    "shortDescription" => array("name" => "shortDescription"),
@@ -524,13 +525,14 @@ class Person {
 	 * @return boolean True if the update has been done correctly. Can throw CTKException on error.
 	 */
 	public static function updatePersonField($personId, $personFieldName, $personFieldValue, $userId) {  
-
-		if ($personId != $userId) 
-			throw new CTKException("Can not update the person : you are not authorized to update that person !");	
+		//var_dump(Role::isSuperAdmin(Role::getRolesUserId($userId)) == true);
+		if ($personId != $userId && Role::isSuperAdmin(Role::getRolesUserId($userId)) == false){
+			throw new CTKException("Can not update the person : you are not authorized to update that person !");
+		}		
 
 
 		$dataFieldName = Person::getCollectionFieldNameAndValidate($personFieldName, $personFieldValue);
-	
+		var_dump($dataFieldName);
 		//Specific case : 
 		//Tags
 		if ($dataFieldName == "tags") 
@@ -796,11 +798,11 @@ class Person {
 	  	return $id ;
 	}
 
-	/*
+	/**
     * This function checks if $userId is linked to this email
     * 
-    * 
-    */
+    * @autors
+    **/
 	public static function isLinkedEmail($email, $userId) {
     	$res = false ;
         $id = Person::getPersonIdByEmail($email);
@@ -813,5 +815,85 @@ class Person {
         
         return $res;
     }
+
+    /**
+	 * get all person badly geoLocalited
+	 * @return Array
+	 * @author Raphael RIVIERE
+	 */
+    public static function getPersonBadlyGeoLocalited() {
+    	$res = array() ;
+       	$persons = PHDB::find(self::COLLECTION);
+       	foreach ($persons as $key => $person) {
+       		if(!empty($person['address'])){
+       			if(!empty($person['address']["codeInsee"]) && !empty($person['address']["postalCode"])){
+       				$insee = $person['address']["codeInsee"];
+       				if(!empty($person['geo'])){
+       					$find = false;
+       					$city = SIG::getInseeByLatLngCp($person['geo']["latitude"], $person['geo']["longitude"], $person['address']["postalCode"]);
+     					/*var_dump($person["name"]);
+     					var_dump($person['geo']["latitude"]);
+     					var_dump($person['geo']["longitude"]);
+     					var_dump($person['address']["postalCode"]);
+     					var_dump($city);*/
+     					if(!empty($city)){
+       						
+       						foreach ($city as $key => $value) {
+       							if($value["insee"] == $insee)
+       								$find = true;
+       						}
+       					}
+       					if($find == false){
+       						//var_dump("here");
+       						$result["person"] = $person;
+	       					$result["error"] = "Cette entité est mal géolocalisé";
+	       					$res[]= $result ;
+       					}
+       				}else{
+	       				$result["person"] = $person;
+	       				$result["error"] = "Cette entité n'a pas de géolocalisation";
+	       				$res[]= $result ;
+	       			}
+       			}else{
+       				$result["citoyen"] = $person;
+       				$result["error"] = "Cette entité n'a pas de code Insee et/ou de code postal";
+       				$res[]= $result ;
+       			}	
+       		}
+       	}
+        return $res;
+    }
+
+    /**
+	 * getPersonFollowsByUser
+	 * @return Array<Person>
+	 * @author Raphael RIVIERE
+	 */
+  
+
+     public static function getPersonFollowsByUser($id) {
+	  	$res = array();
+	  	$person = Person::getById($id);
+	  	
+	  	if (empty($person)) {
+            throw new CTKException(Yii::t("organization", "The organization id is unkown : contact your admin"));
+        }
+	  	if (isset($person) && isset($person["links"]) && isset($person["links"]["follows"])) {
+	  		foreach ($person["links"]["follows"] as $key => $follow) {
+
+	  					if($follow["type"] == "citoyens")
+	  						$entity = PHDB::findOneById( self::COLLECTION ,$key );
+	  					else if($follow["type"] == "organizations")
+	  						$entity = PHDB::findOneById(ORGANIZATION::COLLECTION ,$key );
+
+		                $res[$key] = $entity;
+	  		}
+	  	}
+	  	return $res;
+	}
+
+
+
+
 }
 ?>

@@ -1,7 +1,7 @@
 <?php
 class Link {
     
-    const person2person = "knows";
+    const person2person = "follows";
     const person2organization = "memberOf";
     const organization2person = "members";
     const person2events = "events";

@@ -7,6 +7,7 @@ class InviteSVAction extends CTKAction
 
         $params = array();
         $params['currentUser'] = Person::getById($this->currentUserId);
+        $params['follows'] = Person::getPersonFollowsByUser($this->currentUserId);
         
         if( isset($_GET["isNotSV"])) 
             $params["isNotSV"] = true;

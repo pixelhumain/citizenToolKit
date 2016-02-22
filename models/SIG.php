@@ -64,26 +64,33 @@ class SIG
 	//ajoute la position géographique d'une donnée si elle contient un Code Postal
 	//add geographical position to a data if it contains Postal Code
 	public static function updateEntityGeoposition($entityType, $entityId, $latitude, $longitude){
+		
 		error_log("updateEntity Start");
 		$geo = array("@type"=>"GeoCoordinates", "latitude" => $latitude, "longitude" => $longitude);
+		$geoPosition = array("type"=>"Point", "coordinates" => array($longitude, $latitude));
 
 		//PH::update($entityType,array("geo" => $geo));
 
-		if($entityType == PHType::TYPE_CITOYEN){
+		if($entityType == PHType::TYPE_CITOYEN || $entityType == PHType::TYPE_PERSON ){
+			var_dump($entityType);
 			error_log("update TYPE_CITOYEN");
 			Person::updatePersonField($entityId, "geo", $geo, Yii::app()->session['userId'] );
+			Person::updatePersonField($entityId, "geoPosition", $geoPosition, Yii::app()->session['userId'] );
 		}
 		if($entityType == PHType::TYPE_ORGANIZATIONS){
 			error_log("update TYPE_ORGANIZATIONS");
 			Organization::updateOrganizationField($entityId, "geo", $geo, Yii::app()->session['userId'] );
+			Organization::updateOrganizationField($entityId, "geoPosition", $geoPosition, Yii::app()->session['userId'] );
 		}
 		if($entityType == PHType::TYPE_PROJECTS){
 			error_log("update TYPE_PROJECTS");
 			Project::updateProjectField($entityId, "geo", $geo, Yii::app()->session['userId'] );
+			Project::updateProjectField($entityId, "geoPosition", $geoPosition, Yii::app()->session['userId'] );
 		}
 		if($entityType == PHType::TYPE_EVENTS){
 			error_log("update TYPE_EVENTS");
 			Event::updateEventField($entityId, "geo", $geo, Yii::app()->session['userId'] );
+			Event::updateEventField($entityId, "geoPosition", $geoPosition, Yii::app()->session['userId'] );
 		}
 		error_log("updateEntity OK");
 	}
