@@ -11,8 +11,7 @@ class ActivateAction extends CAction
     	assert('$validationKey != ""; //The validation Key is mandatory');
 
     	$controller=$this->getController();
-    	$params = array("person/login");	   
-
+    	$params = array();
     	//Validate email
     	$res = Person::validateEmailAccount($user, $validationKey);
     	if ($res["result"]) {
@@ -36,7 +35,11 @@ class ActivateAction extends CAction
         }
 		//print_r($params);
         //var_dump($params);
-	    $controller->redirect($params);
+        $params = implode('&', array_map(function ($v, $k) { return $k . '=' . $v; }, 
+                                            $params, 
+                                            array_keys($params)
+                                        ));
+	    $controller->redirect(Yii::app()->createUrl($controller->module->id)."?".$params."#panel.box-login");
     }
 
     
