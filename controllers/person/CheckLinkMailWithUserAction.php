@@ -6,13 +6,15 @@ class CheckLinkMailWithUserAction extends CAction {
     
     public function run() {
       $params = array();
-        $res = Person::isLinkedEmail($_POST['mail'], Yii::app()->session["userId"]);
-        //var_dump($res);
+      $res = Person::getPersonFollowsByUser(Yii::app()->session["userId"]);
+
       if($res != false){
         $params["result"] = false;
       }else
         $params["result"] = true;
+
+        $params["follows"] = $res ;
       
-        Rest::json($params);
+      Rest::json($params);
     }
 }

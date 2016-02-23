@@ -1,7 +1,7 @@
 <?php
 class Link {
     
-    const person2person = "knows";
+    const person2person = "follows";
     const person2organization = "memberOf";
     const organization2person = "members";
     const person2events = "events";
@@ -195,7 +195,7 @@ class Link {
         //3. Send Notifications
         //TODO - Send email to the member
 
-        return array("result"=>true, "msg"=>"The link knows has been removed with success", "originId"=>$originId, "targetId"=>$targetId);
+        return array("result"=>true, "msg"=>"The link follows has been removed with success", "originId"=>$originId, "targetId"=>$targetId);
     }
 
     /**
@@ -210,7 +210,7 @@ class Link {
         $res = false;
         $where = array(
                     "_id"=>new MongoId($originId),
-                    "links.knows.".$targetId =>  array('$exists' => 1));
+                    "links.follows.".$targetId =>  array('$exists' => 1));
 
         $originLinksKnows = PHDB::findOne($originType, $where);
         

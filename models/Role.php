@@ -7,6 +7,7 @@ class Role {
 	const ADD_SUPER_ADMIN = "addSuperAdmin";
 	const REVOKE_SUPER_ADMIN = "revokeSuperAdmin";
 	const DEVELOPER = "developer";
+	const SUPERADMIN = "superAdmin";
 	
 	/**
 	 * Default Roles for a new person : 
@@ -82,7 +83,7 @@ class Role {
 		if (! $roles) {
 			throw new CTKException("The user does not have roles set on his profile : contact your admin");
 		}
-
+		//var_dump($roles);
 		if (@$roles["superAdmin"]) {
 			return true;
 		} else {
@@ -98,6 +99,13 @@ class Role {
 		}
 	}
 
+	public static function isSuperAdmin($roles) {
+		if (@$roles[self::SUPERADMIN]) {
+			return true;
+		} else {
+			return false;
+		}
+	}
 
 	public static function isDeveloper($roles) {
 		if (@$roles[self::DEVELOPER]) {
@@ -154,6 +162,16 @@ class Role {
 						array("_id" => new MongoId($itemId)), 
                         array('$set' => array( 'roles' => $roleTab))
                     );
+	}
+
+
+
+	public static function getRolesUserId($id){
+		$personRole = PHDB::findOneById( Person::COLLECTION ,$id, array("roles" => 1));
+		if (!empty($personRole["roles"]))
+			return $personRole["roles"];
+		else 
+			return false;
 	}
 }
 ?>

@@ -657,7 +657,7 @@ class Organization {
 	 * @return boolean True if the update has been done correctly. Can throw CTKException on error.
 	 */
 	 public static function updateOrganizationField($organizationId, $organizationFieldName, $organizationFieldValue, $userId){
-	 	if (!Authorisation::isOrganizationAdmin($userId, $organizationId)) {
+	 	if (!Authorisation::isOrganizationAdmin($userId, $organizationId) && Role::isSuperAdmin(Role::getRolesUserId($userId)) == false) {
 			throw new CTKException(Yii::t("organization", "Can not update this organization : you are not authorized to update that organization !"));	
 		}
 		
@@ -1061,6 +1061,69 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 		    			"msg"=>"Votre organisation est communectée.", 
 		    			"id"=>$newOrganizationId, 
 		    			"newOrganization"=> $newOrganization);
+	}
+
+
+	/**
+	 * get all Organizations badly geoLocalited
+	 * @return Array
+	 */
+    public static function getOrganizationsBadlyGeoLocalited() {
+    	$res = array() ;
+       	$organizations = PHDB::find(self::COLLECTION);
+       	foreach ($organizations as $key => $organization) {
+       		if(!empty($organization['address'])){
+       			if(!empty($organization['address']["codeInsee"]) && !empty($organization['address']["postalCode"])){
+       				$insee = $organization['address']["codeInsee"];
+       				if(!empty($organization['geo'])){
+       					$find = false;
+       					$city = SIG::getInseeByLatLngCp($organization['geo']["latitude"], $organization['geo']["longitude"], null);
+     					if(!empty($city)){
+       						//var_dump($city);
+       						foreach ($city as $key => $value) {
+       						//var_dump($value["insee"]);
+       						if($value["insee"] == $insee)
+       							$find = true;
+       						}
+       					}
+       					if($find == false){
+       						//var_dump("here");
+       						$result["organization"] = $organization;
+	       					$result["error"] = "Cette entité est mal géolocalisé";
+	       					$res[]= $result ;
+       					}
+       				}else{
+	       				$result["organization"] = $organization;
+	       				$result["error"] = "Cette entité n'a pas de géolocalisation";
+	       				$res[]= $result ;
+	       			}
+       			}else{
+       				$result["organization"] = $organization;
+       				$result["error"] = "Cette entité n'a pas de code Insee et/ou de code postal";
+       				$res[]= $result ;
+       			}	
+       		}
+       	}
+        return $res;
+    }
+
+
+
+    public static function getFollowsByOrganizationId($id) {
+	  	$res = array();
+	  	$organization = Organization::getById($id);
+	  	
+	  	if (empty($organization)) {
+            throw new CTKException(Yii::t("organization", "The organization id is unkown : contact your admin"));
+        }
+	  	if (isset($organization) && isset($organization["links"]) && isset($organization["links"]["follows"])) {
+	  		$followers = $organization["links"]["follows"];
+	  		//No filter needed
+	  		foreach ($organization["links"]["follows"] as $key => $follower) {
+		                $res[$key] = $follower;
+	  		}
+	  	}
+	  	return $res;
 	}
 
 
