@@ -99,6 +99,7 @@ class Import
         if(isset($post['nameFile']))
         {
             $json = $post['file'][0];
+
             $search = array("\t", "\n", "\r");
             $json = strip_tags (str_replace($search, " ", $json));
             
@@ -116,16 +117,29 @@ class Import
 
             Import::createJSON($json, $nameFile, $path);
             $subFiles = scandir(sys_get_temp_dir()."/filesImportData/".$nameFile);
-
-            $json_objet = json_decode($json, true);
-            //var_dump($json_objet);
+            
             $chaine ="";
+            if(!empty($post["pathObject"])){
 
-            $chaine .= ArrayHelper::getAllBranchsJSON($json_objet);
-            /*foreach ($json_objet as $key => $value) {
-                $chaine .= ArrayHelper::getAllBranchsJSON($value);
-            }*/
+                $obj = json_decode($json, true);
+                $map = explode(".", $post["pathObject"]) ;
+                $json_objet = ArrayHelper::getValueJson($obj, $map);
+                foreach ($json_objet as $key => $value) {
+                    $chaine .= ArrayHelper::getAllBranchsJSON($value);
+                }
+            }else{
+                $json_objet = json_decode($json, true);
+                if(substr($json, 0,1) == "{")
+                    $chaine .= ArrayHelper::getAllBranchsJSON($json_objet);
+                else{
+                    foreach ($json_objet as $key => $value) {
+                        $chaine .= ArrayHelper::getAllBranchsJSON($value);
+                    }
+                }
 
+            }
+                
+            
             $arbre = explode(";",  $chaine);
             $listBrancheJson = array();
             foreach ($arbre as $key => $value) 
@@ -156,6 +170,7 @@ class Import
                             "arbre"=>$listBrancheJson,
                             "nameFile"=>$nameFile ,
                             "json_origine"=>$json,
+                            "jsonData"=>json_encode($json_objet),
                             "arrayPathMapping"=>$arrayPathMapping2,
                             "idCollection"=>$post['chooseCollection']);
             
@@ -439,6 +454,8 @@ class Import
                 $res = Organization::getAndCheckOrganization($newOrganization2) ;
             }
             catch (CTKException $e){
+                if(empty($newOrganization))
+                    $newOrganization = $data;
                 $newOrganization["msgError"] = $e->getMessage();
                 $res = $newOrganization ;
             }
@@ -449,7 +466,11 @@ class Import
                 $res = Project::getAndCheckProjectFromImportData($newProject, $post["creatorID"]);
             }
             catch(CTKException $e){
+                if(empty($newProject))
+                    $newProject = $data;
+
                 $newProject["msgError"] = $e->getMessage();
+                
                 $res = $newProject ;
             }
         }
@@ -466,16 +487,31 @@ class Import
             $paramsInfoCollection = array("_id"=>new MongoId($post['idCollection']));
             $infoCollection = Import::getMicroFormats($paramsInfoCollection);
             $jsonFile = json_decode($post['file'][0], true);
+            //var_dump($jsonFile);
 
-            if(substr($post['file'][0], 0,1) == "{")
-                $jsonFile2[] = $jsonFile ;
-            else
-                $jsonFile2 = $jsonFile ;
+            if(!empty($post["pathObject"])){
+                $obj = json_decode($post['file'][0], true);
+                $map = explode(".", $post["pathObject"]) ;
+                $jsonFile2 = ArrayHelper::getValueJson($obj, $map);
+            }else{
+                if(substr($post['file'][0], 0,1) == "{")
+                    $jsonFile2[] = $jsonFile ;
+                else
+                    $jsonFile2 = $jsonFile ; 
+            }
+
+
+            
+
+            //var_dump($jsonFile2);
+
             foreach ($jsonFile2 as $keyJSON => $valueJSON){
 
                 foreach($post['infoCreateData']as $key => $objetInfoData){
                     
                     $cheminLien = explode(".", $objetInfoData['idHeadCSV']);
+                    //var_dump($valueJSON);
+                    //var_dump($cheminLien);
                     $valueData = ArrayHelper::getValueJson($valueJSON, $cheminLien);
                     
                     if(isset($valueData)){
@@ -507,7 +543,9 @@ class Import
                     }
 
                 }
-
+                if(empty($jsonData))
+                    $jsonData = array();
+                
                 $entite = Import::checkData($infoCollection[$post['idCollection']]["key"], $jsonData, $post);
 
 
@@ -745,6 +783,23 @@ class Import
     {
         $microFormats =PHDB::findAndSort(self::MICROFORMATS,$params, array("created" =>1), $limit, $fields);
         return $microFormats;
+    }
+
+
+    public static function getDataByUrl($url){
+        //  Initiate curl
+        $ch = curl_init();
+        // Disable SSL verification
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        // Will return the response, if false it print the response
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        // Set the url
+        curl_setopt($ch, CURLOPT_URL,$url);
+        // Execute
+        $result=curl_exec($ch);
+        // Closing
+        curl_close($ch);
+        return $result;
     }
 }
 

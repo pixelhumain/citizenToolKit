@@ -2,7 +2,7 @@
 
 //Connect someone (person) to your network
 //2 cases : the person exists in the db or he has to be invited
-class ConnectAction extends CTKAction {
+class FollowsAction extends CTKAction {
     public function run($id = null,$type = null, $ownerLink = null, $targetLink = null) {
 
     	$invitedUserId = "";
@@ -19,11 +19,13 @@ class ConnectAction extends CTKAction {
         if (!empty($_POST["connectUserId"]) || !empty($invitedUserId)) {
         	if (!empty($_POST["connectUserId"]))
         		$invitedUserId = $_POST["connectUserId"];
-        	$res = Link::connect($this->currentUserId, Person::COLLECTION, $invitedUserId, Person::COLLECTION, $this->currentUserId, Link::person2person);
+        	$res = Link::follow($this->currentUserId, Person::COLLECTION, $invitedUserId);
+        	//$res = Link::connect($this->currentUserId, Person::COLLECTION, $invitedUserId, Person::COLLECTION, $this->currentUserId, Link::person2person);
             $actionType = ActStr::VERB_FOLLOW;
 		//Case 2 : the person invited does not exist in the db
 		} else if (empty($_POST["invitedUserId"])) {
-			if(empty($targetLink)){
+			// targetLink n'est appriorie plus utiliser 
+			//if(empty($targetLink)){
 				$newPerson = array("name" => $_POST["invitedUserName"], "email" => $_POST["invitedUserEmail"], "invitedBy" => $this->currentUserId);
 				if(!empty($_POST["msgEmail"]))
 					$res = Person::createAndInvite($newPerson, $_POST["msgEmail"]);
@@ -33,18 +35,19 @@ class ConnectAction extends CTKAction {
 	            $actionType = ActStr::VERB_INVITE;
 	            if ($res["result"]) {
 	                $invitedUserId = $res["id"];
-	                $res = Link::connect($this->currentUserId, Person::COLLECTION, $invitedUserId, Person::COLLECTION, $this->currentUserId, Link::person2person);
+	                $res = Link::follow($this->currentUserId, Person::COLLECTION, $invitedUserId);
+	                //$res = Link::connect($this->currentUserId, Person::COLLECTION, $invitedUserId, Person::COLLECTION, $this->currentUserId, Link::person2person);
 	            }
-	        }
+	        /*}
 	        else{
 		        $actionType = ActStr::VERB_JOIN;
 		        $invitedUserId = Yii::app()->session['userId'];
 		        $res = Link::connectPerson(Yii::app()->session['userId'], Person::COLLECTION, $id, $type, $ownerLink,$targetLink);
 
-			}
+			}*/
 		}
 		
-		Notification::connectPeople ( $invitedUserId, $this->currentUserId , Yii::app()->session['user']["name"], $actionType ) ;
+		//Notification::connectPeople ( $invitedUserId, $this->currentUserId , Yii::app()->session['user']["name"], $actionType ) ;
 
         if (@$res["result"] == true) {
             $person = Person::getSimpleUserById($invitedUserId);

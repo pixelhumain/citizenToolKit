@@ -831,11 +831,6 @@ class Person {
        				if(!empty($person['geo'])){
        					$find = false;
        					$city = SIG::getInseeByLatLngCp($person['geo']["latitude"], $person['geo']["longitude"], $person['address']["postalCode"]);
-     					/*var_dump($person["name"]);
-     					var_dump($person['geo']["latitude"]);
-     					var_dump($person['geo']["longitude"]);
-     					var_dump($person['address']["postalCode"]);
-     					var_dump($city);*/
      					if(!empty($city)){
        						
        						foreach ($city as $key => $value) {

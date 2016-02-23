@@ -498,6 +498,7 @@ class Project {
 	*   return String ("Add", "Update" or "Delete")
 	*/
 	public static function createProjectFromImportData($projectImportData) {
+			
 		if(!empty($projectImportData['name']))
 			$newProject["name"] = $projectImportData["name"];
 
@@ -522,30 +523,29 @@ class Project {
 	
 
 		if(!empty($projectImportData['geo']['latitude']))
+		{
 			$newProject["geoPosLatitude"] = $projectImportData['geo']['latitude'];
+
+		}	
 		if(!empty($projectImportData['geo']['longitude']))
 			$newProject["geoPosLongitude"] = $projectImportData['geo']['longitude'];
-
-
-		/*var_dump($newProject["geoPosLatitude"]);
-		var_dump($newProject["geoPosLongitude"]);
-		var_dump($projectImportData['address']['postalCode']);*/
 
 		if(!empty($newProject["geoPosLatitude"]) && !empty($newProject["geoPosLongitude"]) ){
 			$city = SIG::getInseeByLatLngCp($newProject["geoPosLatitude"], $newProject["geoPosLongitude"],(empty($projectImportData['address']['postalCode']) ? null : $projectImportData['address']['postalCode']) );
 			if(!empty($city)){
+
 				foreach ($city as $key => $value){
 					$insee = $value["insee"];
+					$cp = $value["cp"];
 					$newProject['address']['addressCountry'] = $value["country"];
 					$newProject['address']['addressLocality'] = $value["alternateName"];
 					break;
 				}
 			}
-			else
+			else{
 				throw new CTKException("Nous n'avons pas pu récupere la commune avec les coordonnées géographique et son code postal.");
+			}	
 		}	
-		
-		//var_dump($insee);
 
 		if(!empty($insee) && !empty($projectImportData['address']['codeInsee']) ){
 			if($insee == $projectImportData['address']['codeInsee'])
@@ -559,11 +559,23 @@ class Project {
 		}
 
 
+		if(!empty($projectImportData['address']['postalCode']) && !empty($cp)){
+			if($cp == $projectImportData['address']['postalCode'])
+				$newProject['address']['postalCode'] = $cp ;
+			else
+				throw new CTKException("Le code postal du fichier et celui retourné par la géolocalisation n'est pas le même.");
+		}else if(!empty($cp)){
+			$newProject['address']['postalCode'] = $cp ;
+		}else if(!empty($projectImportData['address']['postalCode'])){
+			$newProject['address']['postalCode'] = $projectImportData['address']['postalCode'];
+		}
+
+
 		
 		return $newProject;
 	}
 	public static function getAndCheckProjectFromImportData($project, $userId,$update=null) {
-		
+		//var_dump($project);
 		$newProject = array();
 		if (empty($project['name'])) {
 			throw new CTKException(Yii::t("project","You have to fill a name for your project"));
@@ -609,9 +621,17 @@ class Project {
 			throw new CTKException(Yii::t("project","Please fill the adress of the project to communect it"));
 		}
 
-		if(!empty($project['geo']) && !empty($project["geoPosition"])){
-			$newProject["geo"] = $project['geo'];
-			$newProject["geoPosition"] = $project['geoPosition'];
+		if(!empty($project['geoPosLatitude']) && !empty($project["geoPosLongitude"])){
+			$newProject["geo"] = 	array(	"@type"=>"GeoCoordinates",
+						"latitude" => $project['geoPosLatitude'],
+						"longitude" => $project['geoPosLongitude']);
+
+			$newProject["geoPosition"] = array("type"=>"Point",
+													"coordinates" =>
+														array(
+															floatval($project['geoPosLongitude']),
+															floatval($project['geoPosLatitude']))
+												 	  	);
 		}
 		else
 			throw new CTKException(Yii::t("project","Please fill the geo and geoPosition of the project to communect it"));
