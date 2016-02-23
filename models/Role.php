@@ -83,7 +83,7 @@ class Role {
 		if (! $roles) {
 			throw new CTKException("The user does not have roles set on his profile : contact your admin");
 		}
-		var_dump($roles);
+		//var_dump($roles);
 		if (@$roles["superAdmin"]) {
 			return true;
 		} else {
