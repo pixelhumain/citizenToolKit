@@ -39,6 +39,6 @@ class ValidateInvitationAction extends CAction {
                                             array_keys($params)
                                         ));
         
-        $controller->redirect(Yii::app()->createUrl($controller->module->id)."?".$params."#panel.box-register");
+        $controller->redirect(Yii::app()->createUrl("/".$controller->module->id)."?".$params."#panel.box-register");
     }
 }
