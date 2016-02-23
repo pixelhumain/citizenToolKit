@@ -6,6 +6,7 @@ class GlobalAutoCompleteAction extends CAction
         $search = trim(urldecode($_POST['name']));
         $locality = isset($_POST['locality']) ? trim(urldecode($_POST['locality'])) : null;
         $searchType = isset($_POST['searchType']) ? $_POST['searchType'] : null;
+        $searchBy = isset($_POST['searchBy']) ? $_POST['searchBy'] : "INSEE";
         $indexMin = isset($_POST['indexMin']) ? $_POST['indexMin'] : 0;
         $indexMax = isset($_POST['indexMax']) ? $_POST['indexMax'] : 15;
 
@@ -28,6 +29,8 @@ class GlobalAutoCompleteAction extends CAction
         if($locality != null && $locality != ""){
 
         	$type = $this->getTypeOfLocalisation($locality);
+        	if($searchBy == "INSEE") $type = $searchBy;
+
         	$queryLocality = array();
         	
         	if($type == "NAME"){ 
@@ -40,6 +43,10 @@ class GlobalAutoCompleteAction extends CAction
         		$queryLocality = array("address.postalCode" 
 						=> new MongoRegex("/".$locality."/i"));
         	}
+        	if($type == "INSEE") {
+        		$queryLocality = array("address.codeInsee" => $locality );
+        	}
+        	
         	$query = array('$and' => array($query, $queryLocality) );
 	    }
 
@@ -69,6 +76,10 @@ class GlobalAutoCompleteAction extends CAction
 	  		$allOrganizations = PHDB::find ( Organization::COLLECTION ,$query ,array("name", "address", "shortDescription", "description"));
 	  		foreach ($allOrganizations as $key => $value) {
 	  			$orga = Organization::getSimpleOrganizationById($key);
+	  			$followers = Organization::getFollowersByOrganizationId($key);
+	  			if(@$followers[Yii::app()->session["userId"]]){
+		  			$orga["isFollowed"] = true;
+	  			}
 				$orga["type"] = "organization";
 				$orga["typeSig"] = "organizations";
 				$allOrganizations[$key] = $orga;
@@ -99,6 +110,9 @@ class GlobalAutoCompleteAction extends CAction
 	  		$allProject = PHDB::find(Project::COLLECTION, $query, array("name", "address", "shortDescription", "description"));
 	  		foreach ($allProject as $key => $value) {
 	  			$project = Project::getById($key);
+	  			if(@$project["links"]["followers"][Yii::app()->session["userId"]]){
+		  			$orga["isFollowed"] = true;
+	  			}
 				$project["type"] = "project";
 				$project["typeSig"] = "projects";
 				$allProject[$key] = $project;
@@ -124,6 +138,9 @@ class GlobalAutoCompleteAction extends CAction
 	        	}
 	        	if($type == "DEPARTEMENT") {
 	        		$query = array("dep" => $locality );
+	        	}
+	        	if($type == "INSEE") {
+	        		$query = array("insee" => $locality );
 	        	}
 		    }
 
@@ -171,12 +188,15 @@ class GlobalAutoCompleteAction extends CAction
 				return false;
 			}
 		}
-	  	usort($allRes, "mySort");
-	  	usort($allCitiesRes, "mySort");
+	  	
+	  	if(isset($allRes)) usort($allRes, "mySort");
+
+	  	if(isset($allCitiesRes)) usort($allCitiesRes, "mySort");
 
 	  	//error_log("count : " . count($allRes));
 	  	if(count($allRes) < $indexMax) 
-	  		$allRes = array_merge($allRes, $allCitiesRes);
+	  		if(isset($allCitiesRes)) 
+	  			$allRes = array_merge($allRes, $allCitiesRes);
 
 	  	$limitRes = array();
 	  	$index = 0;
