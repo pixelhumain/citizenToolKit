@@ -545,7 +545,7 @@ class Link {
 		Link::connect($parentId, $parentType, $childId, $childType,Yii::app()->session["userId"], $parentConnectAs);
 		Link::connect($childId, $childType, $parentId, $parentType, Yii::app()->session["userId"], $childConnectAs);
 		Notification::actionOnPerson($verb, ActStr::ICON_SHARE, $pendingChild , array("type"=>$parentType,"id"=> $parentId,"name"=>$parentData["name"]));
-		return array( "result" => true , "msg" => $msg );
+		return array( "result" => true , "msg" => $msg, "parentEntity" => $parentData );
 	}
 	 /**
      * Check and remove the link "follows" if a user already follow an entity and will become a member or contributor or knows

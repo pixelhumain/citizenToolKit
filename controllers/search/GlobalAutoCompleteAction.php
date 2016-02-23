@@ -76,6 +76,10 @@ class GlobalAutoCompleteAction extends CAction
 	  		$allOrganizations = PHDB::find ( Organization::COLLECTION ,$query ,array("name", "address", "shortDescription", "description"));
 	  		foreach ($allOrganizations as $key => $value) {
 	  			$orga = Organization::getSimpleOrganizationById($key);
+	  			$followers = Organization::getFollowersByOrganizationId($key);
+	  			if(@$followers[Yii::app()->session["userId"]]){
+		  			$orga["isFollowed"] = true;
+	  			}
 				$orga["type"] = "organization";
 				$orga["typeSig"] = "organizations";
 				$allOrganizations[$key] = $orga;
@@ -106,6 +110,9 @@ class GlobalAutoCompleteAction extends CAction
 	  		$allProject = PHDB::find(Project::COLLECTION, $query, array("name", "address", "shortDescription", "description"));
 	  		foreach ($allProject as $key => $value) {
 	  			$project = Project::getById($key);
+	  			if(@$project["links"]["followers"][Yii::app()->session["userId"]]){
+		  			$orga["isFollowed"] = true;
+	  			}
 				$project["type"] = "project";
 				$project["typeSig"] = "projects";
 				$allProject[$key] = $project;
