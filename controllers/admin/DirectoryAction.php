@@ -71,9 +71,9 @@ class DirectoryAction extends CAction
       $params["projects"] = $projects;
       $params["events"] = $events;
       $params["people"] = $people;
+      $params["path"] = "../default/";
 
-
-		  $page = "../default/directory";
+		  $page = $params["path"]."directoryTable";
 
       if(Yii::app()->request->isAjaxRequest){
         echo $controller->renderPartial($page,$params,true);

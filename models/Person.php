@@ -810,7 +810,7 @@ class Person {
         if($id != false)
         {
         	$res = Link::isLinked($id, Person::COLLECTION, $userId);
-        	var_dump($res);
+        	//var_dump($res);
         }	
         
         return $res;
