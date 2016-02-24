@@ -44,16 +44,15 @@ class DirectoryAction extends CAction
         $organizations = Organization::getMembersByOrganizationId($id, Organization::COLLECTION);
         foreach ($organizations as $key => $value) {
         	$newOrga = Organization::getById($key);
-			if(@$value["isAdmin"] && $value["isAdmin"]==1){
+          if(@$value["isAdmin"] && $value["isAdmin"]==1){
 	            $newOrga["isAdmin"]=$value["isAdmin"];
         	} 
           array_push($params["organizations"], $newOrga);
-
         }
 
-          /* **************************************
-          *  PEOPLE
-          ***************************************** */
+        /* **************************************
+        *  PEOPLE
+        ***************************************** */
         $people = Organization::getMembersByOrganizationId($id, Person::COLLECTION);
         foreach ($people as $key => $value) 
         {
@@ -61,25 +60,26 @@ class DirectoryAction extends CAction
             if(@$value["isAdmin"] && $value["isAdmin"]==1){
 	            $newCitoyen["isAdmin"]=$value["isAdmin"];
             } 
-			if(@$value["toBeValidated"]){
+      			if(@$value["toBeValidated"]){
 	            $newCitoyen["toBeValidated"]=$value["toBeValidated"];
             } 
-			if(@$value["isAdminPending"]){
+      			if(@$value["isAdminPending"]){
 	            $newCitoyen["isAdminPending"]=$value["isAdminPending"];
-            } 
+            }
 
             array_push($params["people"], $newCitoyen);
         }
         
-		$followers = Organization::getFollowersByOrganizationId($id);
+		    $followers = Organization::getFollowersByOrganizationId($id);
         foreach ($followers as $key => $value) 
         {
             $newCitoyen = Person::getSimpleUserById($key);
             array_push($params["followers"], $newCitoyen);
         }
-          /* **************************************
-          *  PROJECTS
-          ***************************************** */
+
+        /* **************************************
+        *  PROJECTS
+        ***************************************** */
         $projects = array();
         if(isset($organization["links"]["projects"])){
             foreach ($organization["links"]["projects"] as $key => $value) {

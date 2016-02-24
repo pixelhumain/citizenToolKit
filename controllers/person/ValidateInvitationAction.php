@@ -23,22 +23,23 @@ class ValidateInvitationAction extends CAction {
             if(!empty($account) && !empty($account["pending"])){
 	    		$params["email"] = $account["email"];
                 $params["name"] = $account["name"];
-	    		$params["userValidated"] = 1;
+	    		//$params["userValidated"] = 1;
 				$params["pendingUserId"] = $user;
 	    		$invitedBy = $account["invitedBy"];
 	    		if (!empty($invitedBy)) 
 	    		   Yii::app()->session["invitor"] = Person::getSimpleUserById($invitedBy);
 	    		else
-	    			$msg = "Something went wrong ! Impossible to retrieve your invitor.";	
+	    			$msg = "Something went wrong ! Impossible to retrieve your invitor.";
+	    		$msg = "";
 	    	}
     	}
     	
         $params["msg"] = $msg;
-	    $params = implode('&', array_map(function ($v, $k) { return $k . '=' . $v; }, 
+	    $params = implode('&', array_map(function ($v, $k) { return $k . '=' . urlencode($v); }, 
                                             $params, 
                                             array_keys($params)
                                         ));
         
-        $controller->redirect(Yii::app()->createUrl($controller->module->id)."?".$params."#panel.box-register");
+        $controller->redirect(Yii::app()->createUrl("/".$controller->module->id)."?".$params."#panel.box-register");
     }
 }
