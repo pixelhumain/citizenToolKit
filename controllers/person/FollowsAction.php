@@ -19,7 +19,12 @@ class FollowsAction extends CTKAction {
         if (!empty($_POST["connectUserId"]) || !empty($invitedUserId)) {
         	if (!empty($_POST["connectUserId"]))
         		$invitedUserId = $_POST["connectUserId"];
-        	$res = Link::follow($this->currentUserId, Person::COLLECTION, $invitedUserId);
+
+        	//$child["childId"] = $invitedUserId ;
+        	$child["childId"] = $this->currentUserId ;
+        	$child["childType"] = Person::COLLECTION;
+
+        	$res = Link::follow($invitedUserId, Person::COLLECTION, $child);
         	//$res = Link::connect($this->currentUserId, Person::COLLECTION, $invitedUserId, Person::COLLECTION, $this->currentUserId, Link::person2person);
             $actionType = ActStr::VERB_FOLLOW;
 		//Case 2 : the person invited does not exist in the db
@@ -34,8 +39,10 @@ class FollowsAction extends CTKAction {
 
 	            $actionType = ActStr::VERB_INVITE;
 	            if ($res["result"]) {
-	                $invitedUserId = $res["id"];
-	                $res = Link::follow($this->currentUserId, Person::COLLECTION, $invitedUserId);
+	            	$invitedUserId = $res["id"];
+	                $child["childId"] = $this->currentUserId;
+        			$child["childType"] = Person::COLLECTION;
+	                $res = Link::follow($invitedUserId, Person::COLLECTION, $child);
 	                //$res = Link::connect($this->currentUserId, Person::COLLECTION, $invitedUserId, Person::COLLECTION, $this->currentUserId, Link::person2person);
 	            }
 	        /*}
@@ -45,6 +52,8 @@ class FollowsAction extends CTKAction {
 		        $res = Link::connectPerson(Yii::app()->session['userId'], Person::COLLECTION, $id, $type, $ownerLink,$targetLink);
 
 			}*/
+
+			
 		}
 		
 		//Notification::connectPeople ( $invitedUserId, $this->currentUserId , Yii::app()->session['user']["name"], $actionType ) ;

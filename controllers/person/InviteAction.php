@@ -1,5 +1,5 @@
 <?php
-class InviteSVAction extends CTKAction
+class InviteAction extends CTKAction
 {
     public function run()
     {
@@ -9,10 +9,7 @@ class InviteSVAction extends CTKAction
         $params['currentUser'] = Person::getById($this->currentUserId);
         $params['follows'] = Person::getPersonFollowsByUser($this->currentUserId);
         
-        if( isset($_GET["isNotSV"])) 
-            $params["isNotSV"] = true;
-    	
-    	if(Yii::app()->request->isAjaxRequest)
-    		$controller->renderPartial("inviteSV", $params);
+        if(Yii::app()->request->isAjaxRequest)
+    		$controller->renderPartial("invite", $params);
     }
 }
