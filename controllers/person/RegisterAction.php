@@ -38,40 +38,35 @@ class RegisterAction extends CAction
 				exit;
 			} 
 			//TODO - send Notification to invitor
-
-			//Try to login with the user
-			$res = Person::login($email,$pwd,false);
-			if ($res["result"]) {
-				$controller->redirect(array("person/login"));
-			} else if ($res["msg"] == "notValidatedEmail") {
-				$newPerson["_id"] = $pendingUserId;
-				$newPerson['email'] = $email;
-
-				//send validation mail if the user is not validated
-				Mail::validatePerson($newPerson);
-				$res = array("result"=>true, "msg"=>"You are now communnected", "id"=>$pendingUserId); 
-			}else if ($res["msg"] == "notValidatedEmail") {
-				$newPerson["_id"] = $pendingUserId;
-				$newPerson['email'] = $email;
-
-				//send validation mail if the user is not validated
-				Mail::validatePerson($newPerson);
-				$res = array("result"=>true, "msg"=>"You are now communnected", "id"=>$pendingUserId); 
-			}
 		} else {
 			try {
 				$newPerson['email'] = $email;
 				$res = Person::insert($newPerson, false);
 				$newPerson["_id"]=$res["id"];
 
-				//send validation mail
-				Mail::validatePerson($newPerson);
-
-				//Person::saveUserSessionData($newPerson);
-
 			} catch (CTKException $e) {
 				$res = array("result" => false, "msg"=>$e->getMessage());
 			}
+		}
+
+		//Try to login with the user
+		$res = Person::login($email,$pwd,false);
+		if ($res["result"]) {
+			$controller->redirect(array("person/login"));
+		} else if ($res["msg"] == "betaTestNotOpen") {
+			$newPerson["_id"] = $pendingUserId;
+			$newPerson['email'] = $email;
+			//TODO
+			//send communecter overview mail
+			//Mail::communecterOverview($newPerson);
+			$res = array("result"=>true, "msg"=> Yii::t("login","You are now communnected !")." ".Yii::t("login","Our developpers are fighting to open soon ! Check your mail that will happen soon !"), "id"=>$pendingUserId); 
+		} else if ($res["msg"] == "notValidatedEmail") {
+			$newPerson["_id"] = $pendingUserId;
+			$newPerson['email'] = $email;
+
+			//send validation mail if the user is not validated
+			Mail::validatePerson($newPerson);
+			$res = array("result"=>true, "msg"=> Yii::t("login","You are now communnected !")." ".Yii::t("login","Check your mailbox you'll receive soon a mail to validate your email address."), "id"=>$pendingUserId); 
 		}
 
 		Rest::json($res);
