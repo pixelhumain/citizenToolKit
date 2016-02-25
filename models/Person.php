@@ -780,9 +780,10 @@ class Person {
 			                          	// Jusqu'à l'ouverture les personnes ne sont pas validées lorsqu'elles sont invitées
 			                          	//,"roles.tobeactivated"=>""
 			                          	)));
-
+			
+			//Send Notification to Invitor
+			Notification::actionOnPerson(ActStr::VERB_SIGNIN, ActStr::ICON_SHARE, $personToUpdate , array("type"=>self::COLLECTION,"id"=> $personId,"name"=>$personToUpdate["name"]));
 			$res = array("result" => true, "msg" => "The pending user has been updated and is now complete");
-
 		}
 		return $res;
 	}

@@ -199,6 +199,12 @@ class Notification{
 			 $label = Yii::app()->session['user']['name']." ".Yii::t("common","has invited")." ".$member["name"]." ".Yii::t("common","to join")." ".$target["name"];
 			 $url = $ctrls[ $target["type"] ].'/directory/id/'.$targetId;
 		}
+		
+		if($verb == ActStr::VERB_SIGNIN){
+			 $label = $member["name"]." ".Yii::t("common","confirms your invitation and create an account.");
+			 $url = $ctrls[ $target["type"] ]..'/detail/id/'.$targetId;
+		}
+
 	    $notif = array( 
 	    	"persons" => $people,
             "label"   => $label,
