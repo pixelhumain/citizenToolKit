@@ -10,6 +10,9 @@ class RegisterAction extends CAction
     {
         $controller=$this->getController();
 
+        //Remove session params
+        Yii::app()->session["invitor"] = null;
+
         $name = (!empty($_POST['name'])) ? $_POST['name'] : "";
         $username = (!empty($_POST['username'])) ? $_POST['username'] : "";
 		$email = (!empty($_POST['email'])) ? $_POST['email'] : "";
@@ -44,6 +47,13 @@ class RegisterAction extends CAction
 			if ($res["result"]) {
 				$controller->redirect(array("person/login"));
 			} else if ($res["msg"] == "notValidatedEmail") {
+				$newPerson["_id"] = $pendingUserId;
+				$newPerson['email'] = $email;
+
+				//send validation mail if the user is not validated
+				Mail::validatePerson($newPerson);
+				$res = array("result"=>true, "msg"=>"You are now communnected", "id"=>$pendingUserId); 
+			}else if ($res["msg"] == "notValidatedEmail") {
 				$newPerson["_id"] = $pendingUserId;
 				$newPerson['email'] = $email;
 
