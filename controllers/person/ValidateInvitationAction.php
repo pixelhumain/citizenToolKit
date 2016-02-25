@@ -13,33 +13,46 @@ class ValidateInvitationAction extends CAction {
     	$params = array();
     	
         //Validate validation key
+        $error = "somethingWrong";
     	$res = Person::isRightValidationKey($user, $validationKey);
-    	$msg = "Something went wrong !!";
         
         if ($res==true) {
 	    	//Get the invites user in the db
             $account = Person::getById($user);
-	    	
-            if(!empty($account) && !empty($account["pending"])){
-	    		$params["email"] = $account["email"];
-                $params["name"] = $account["name"];
-	    		//$params["userValidated"] = 1;
-				$params["pendingUserId"] = $user;
-	    		$invitedBy = $account["invitedBy"];
-	    		if (!empty($invitedBy)) 
-	    		   Yii::app()->session["invitor"] = Person::getSimpleUserById($invitedBy);
-	    		else
-	    			$msg = "Something went wrong ! Impossible to retrieve your invitor.";
-	    		$msg = "";
+            $error="";
+
+            if(!empty($account)) {
+            	if(!empty($account["pending"])){
+		    		$params["email"] = $account["email"];
+	                $params["name"] = $account["name"];
+		    		//$params["userValidated"] = 1;
+					$params["pendingUserId"] = $user;
+		    		$invitedBy = $account["invitedBy"];
+		    		if (!empty($invitedBy)) 
+		    		   $params["invitor"] = $invitedBy;
+		    		else
+						//Something went wrong ! Impossible to retrieve your invitor.
+		    			$error = "unknwonInvitor";
+		    		$msg = "";
+		    	} else {
+		    		//Your account already exists on the plateform : please try to login
+		    		$error = "accountAlreadyExists";
+		    		$params["error"] = $error;
+		    		$controller->redirect(Yii::app()->createUrl("/".$controller->module->id)."?".$this->arrayToUrlParams($params)."#panel.box-login");
+		    	}
 	    	}
     	}
     	
-        $params["msg"] = $msg;
-	    $params = implode('&', array_map(function ($v, $k) { return $k . '=' . urlencode($v); }, 
+        $params["error"] = $error;
+        $controller->redirect(Yii::app()->createUrl("/".$controller->module->id)."?".$this->arrayToUrlParams($params)."#panel.box-register");
+    }
+
+    private function arrayToUrlParams($params) {
+    	$params = implode('&', array_map(function ($v, $k) { return $k . '=' . urlencode($v); }, 
                                             $params, 
                                             array_keys($params)
                                         ));
-        
-        $controller->redirect(Yii::app()->createUrl("/".$controller->module->id)."?".$params."#panel.box-register");
+    	return $params;
+
     }
 }

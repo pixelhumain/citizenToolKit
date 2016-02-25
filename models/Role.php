@@ -54,19 +54,13 @@ class Role {
 		}
 
 		$roles = self::checkUserRoles($person);
-		//The account is not validated
-        if (isset($roles["tobeactivated"]) && @$roles["tobeactivated"] ) {
-            return array("result"=>false, "msg"=>"notValidatedEmail");
-        }
-        
+		
         //BetaTest mode only when not on publicPage
         if (!$publicPage) {
 	        if (@Yii::app()->params['betaTest']) {
 	        	if (isset($roles["betaTester"]) && ! @$roles["betaTester"]) {
-		        	$minusDay=29-date("d");
-					$res = array("result"=>false, 
-	                    "msg"=>"Ouverture dans J-".$minusDay." !! <br/> A très vite !");
-	                    //Communecter opens on 29th February ! It's coming, it coming !
+					return array("result"=>false, 
+						"msg" => "betaTestNotOpen");
 				}
 	    	}    
 	    } else {
@@ -75,6 +69,11 @@ class Role {
 	                    "msg"=>"You do not have access to this page.");
 	    	}
 	    }
+
+	    //The account is not validated
+        if (isset($roles["tobeactivated"]) && @$roles["tobeactivated"] ) {
+            return array("result"=>false, "msg"=>"notValidatedEmail");
+        }
         
         return $res;
 	}
