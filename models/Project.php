@@ -498,7 +498,7 @@ class Project {
 	*   return String ("Add", "Update" or "Delete")
 	*/
 	public static function createProjectFromImportData($projectImportData) {
-			
+		//var_dump($projectImportData);
 		if(!empty($projectImportData['name']))
 			$newProject["name"] = $projectImportData["name"];
 
@@ -511,8 +511,22 @@ class Project {
 		if(!empty($projectImportDataprojectImportData['description']))
 			$newProject["description"] = $projectImportData["description"];
 
-		if(!empty($projetImportData['tags']))
+		if(!empty($projectImportData['tags']))
 			$newProject["tags"] = $projectImportData["tags"];
+
+		if(!empty($projectImportData['source'])){
+
+			if(!empty($projectImportData['source']['sourceId']))
+				$newProject["source"]['sourceId'] = $projectImportData["source"]['sourceId'];
+			if(!empty($projectImportData['source']['sourceUrl']))
+				$newProject["source"]['sourceUrl'] = $projectImportData["source"]['sourceUrl'];
+			$projectImportData["source"]['sourceKey'] = "patapouf";
+			if(!empty($projectImportData['source']['sourceKey']))
+				$newProject["source"]['sourceKey'] = $projectImportData["source"]['sourceKey'];
+		}
+
+
+
 
 		$newProject['address']['@type'] = "PostalAddress" ;
 		$newProject['address']['streetAddress'] = empty($projectImportData['address']['streetAddress']) ? "" : $projectImportData['address']['streetAddress'];
@@ -570,12 +584,22 @@ class Project {
 			$newProject['address']['postalCode'] = $projectImportData['address']['postalCode'];
 		}
 
-
-		
 		return $newProject;
 	}
 	public static function getAndCheckProjectFromImportData($project, $userId,$update=null) {
 		//var_dump($project);
+		if(!empty($project['source']['sourceId']) ){
+			$id = $project['source']['sourceId'] ;
+			if($id >= "8025" &&  $id <= "8152"){
+				throw new CTKException(Yii::t("project","Projet Amaury"));
+			}
+
+			if($id >= "8169" &&  $id <= "11686"){
+				throw new CTKException(Yii::t("project","Projet Amaury"));
+			}
+		}
+
+
 		$newProject = array();
 		if (empty($project['name'])) {
 			throw new CTKException(Yii::t("project","You have to fill a name for your project"));
@@ -621,7 +645,12 @@ class Project {
 			throw new CTKException(Yii::t("project","Please fill the adress of the project to communect it"));
 		}
 
-		if(!empty($project['geoPosLatitude']) && !empty($project["geoPosLongitude"])){
+
+		if(!empty($project['geo']) && !empty($project["geoPosition"])){
+			$newProject["geo"] = $project['geo'];
+			$newProject["geoPosition"] = $project['geoPosition'];
+
+		}else if(!empty($project['geoPosLatitude']) && !empty($project["geoPosLongitude"])){
 			$newProject["geo"] = 	array(	"@type"=>"GeoCoordinates",
 						"latitude" => $project['geoPosLatitude'],
 						"longitude" => $project['geoPosLongitude']);
@@ -644,6 +673,9 @@ class Project {
 
 		if (!empty($project['licence']))
 			$newProject["licence"] = $project['licence'];
+
+		if (!empty($project['source']))
+			$newProject["source"] = $project['source'];
 
 		if (isset($project['tags']) ) {
 			if ( is_array( $project['tags'] ) ) {
@@ -671,11 +703,11 @@ class Project {
 	    if(isset($newProject["tags"]))
 			$newProject["tags"] = Tags::filterAndSaveNewTags($newProject["tags"]);
 
-	    $newProject["links"] = array( "contributors" => 
-	    								array($parentId =>array("type" => $parentType,"isAdmin" => true)));
+	    /*$newProject["links"] = array( "contributors" => 
+	    								array($parentId =>array("type" => $parentType,"isAdmin" => true)));*/
 
 	    PHDB::insert(self::COLLECTION,$newProject);
-	    Link::connect($parentId, $parentType, $newProject["_id"], self::COLLECTION, $parentId, "projects", true );
+	    /*Link::connect($parentId, $parentType, $newProject["_id"], self::COLLECTION, $parentId, "projects", true );*/
 
 	    //Notification::createdObjectAsParam(Person::COLLECTION,Yii::app() -> session["userId"],Project::COLLECTION, (String)$newProject["_id"], $parentType, $parentId, $newProject["geo"], (isset($newProject["tags"])) ? $newProject["tags"]:null ,$newProject["address"]["codeInsee"]);
 	    return array("result"=>true, "msg"=>"Votre projet est communecté.", "id" => $newProject["_id"]);	

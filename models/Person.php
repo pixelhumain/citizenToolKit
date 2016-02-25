@@ -529,7 +529,9 @@ class Person {
 	 */
 	public static function updatePersonField($personId, $personFieldName, $personFieldValue, $userId) {  
 		//var_dump(Role::isSuperAdmin(Role::getRolesUserId($userId)) == true);
-		if ($personId != $userId && Role::isSuperAdmin(Role::getRolesUserId($userId)) == false){
+		
+		//if ($personId != $userId){
+		if (!Authorisation::canEditItem($userId, self::COLLECTION, $personId)) {
 			throw new CTKException("Can not update the person : you are not authorized to update that person !");
 		}		
 

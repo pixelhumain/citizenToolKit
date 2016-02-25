@@ -462,7 +462,9 @@ class Import
         } else if($keyCollection == "Projets"){
             try{
                 //$data["creator"] = $post["creatorID"];
+                //var_dump($data);
                 $newProject = Project::createProjectFromImportData($data);
+
                 $res = Project::getAndCheckProjectFromImportData($newProject, $post["creatorID"]);
             }
             catch(CTKException $e){
@@ -513,7 +515,7 @@ class Import
                     //var_dump($valueJSON);
                     //var_dump($cheminLien);
                     $valueData = ArrayHelper::getValueJson($valueJSON, $cheminLien);
-                    
+                    //var_dump($valueJSON);
                     if(isset($valueData)){
                         $mappingTypeData = explode(".", $post['idCollection'].".mappingFields.".$objetInfoData['valueLinkCollection']);
                         $typeData = ArrayHelper::getValueJson($infoCollection,$mappingTypeData);

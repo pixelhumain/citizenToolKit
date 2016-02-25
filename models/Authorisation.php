@@ -78,9 +78,12 @@ class Authorisation {
      */
     public static function isOrganizationAdmin($userId, $organizationId) {
         $res = false;
-        
-        $myOrganizations = Authorisation::listUserOrganizationAdmin($userId);
-        $res = array_key_exists((string)$organizationId, $myOrganizations);    
+        if(Role::isSuperAdmin(Role::getRolesUserId($userId)))
+            $res = true ;
+        else{
+            $myOrganizations = Authorisation::listUserOrganizationAdmin($userId);
+            $res = array_key_exists((string)$organizationId, $myOrganizations);  
+        }   
         return $res;
     }
 
@@ -437,11 +440,13 @@ class Authorisation {
     	} else if($type == Organization::COLLECTION) {
     		$res = Authorisation::isOrganizationAdmin($userId, $itemId);
     	} else if($type == Person::COLLECTION) {
-    		$res = ($userId==$itemId);
+            if($userId==$itemId || Role::isSuperAdmin(Role::getRolesUserId($userId)) == true )
+                $res = true;
+            else
+                $res = false ;
     	} else if($type == Survey::COLLECTION) {
             $res = Authorisation::canEditEntry($userId, $itemId);
         }
-
     	return $res;
     }
 

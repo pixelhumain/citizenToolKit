@@ -7,7 +7,11 @@ class InviteAction extends CTKAction
 
         $params = array();
         $params['currentUser'] = Person::getById($this->currentUserId);
-        $params['follows'] = Person::getPersonFollowsByUser($this->currentUserId);
+        $follows = Person::getPersonFollowsByUser($this->currentUserId);
+        foreach ($follows as $key => $value) {
+            if(!empty($value["email"]) && $value["email"] != "")
+                $params['follows'][] = $value["email"];
+        }
         
         if(Yii::app()->request->isAjaxRequest)
     		$controller->renderPartial("invite", $params);
