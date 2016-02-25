@@ -29,7 +29,7 @@ class ValidateInvitationAction extends CAction {
 					$params["pendingUserId"] = $user;
 		    		$invitedBy = $account["invitedBy"];
 		    		if (!empty($invitedBy)) 
-		    		   Yii::app()->session["invitor"] = Person::getSimpleUserById($invitedBy);
+		    		   $params["invitor"] = $invitedBy;
 		    		else
 						//Something went wrong ! Impossible to retrieve your invitor.
 		    			$error = "unknwonInvitor";

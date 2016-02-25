@@ -10,9 +10,6 @@ class RegisterAction extends CAction
     {
         $controller=$this->getController();
 
-        //Remove session params
-        Yii::app()->session["invitor"] = null;
-
         $name = (!empty($_POST['name'])) ? $_POST['name'] : "";
         $username = (!empty($_POST['username'])) ? $_POST['username'] : "";
 		$email = (!empty($_POST['email'])) ? $_POST['email'] : "";
