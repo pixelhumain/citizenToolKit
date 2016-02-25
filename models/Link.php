@@ -195,7 +195,7 @@ class Link {
         //3. Send Notifications
         //TODO - Send email to the member
 
-        return array("result"=>true, "msg"=>"The link follows has been removed with success", "originId"=>$originId, "targetId"=>$targetId);
+        return array("result"=>true, "msg"=>"The link follows has been removed with success", "originId"=>$originId, "targetId"=>$targetId, "parentEntity"=>$target);
     }
 
     /**

@@ -38,7 +38,18 @@ class Authorisation {
 
     	return $res;
     }
-
+	//trie les éléments dans l'ordre alphabetique par name
+	 public static 	function sortByName($array){
+	 	function mySort($a, $b){
+	  		if(isset($a['name']) && isset($b['name'])){
+		    	return ( strtolower($b['name']) < strtolower($a['name']) );
+			}else{
+				return false;
+			}
+		}
+		usort($array,"mySort");
+		return $array;
+	}
     /**
      * Return an array with the organizations the user is admin of
      * @param String the id of the user
@@ -46,7 +57,7 @@ class Authorisation {
      */
     public static function listUserOrganizationAdmin($userId) {
     	$res = array();
-        
+        $result = array();
         //organization i'am admin 
         $where = array( "links.members.".$userId.".isAdmin" => true,
                         "links.members.".$userId.".isAdminPending" => array('$exists' => false )
@@ -61,12 +72,21 @@ class Authorisation {
         			foreach ($e["links"]["members"] as $key => $value) {
         				if(isset($value["type"]) && $value["type"] == Organization::COLLECTION){
         					$subOrganization = Organization::getById($key);
-        					$res[$key] = $subOrganization;
+        					$res[$key] = $subOrganization;        					
         				}
         			}
         		}
         	}
         }
+		/*function mySort($a, $b){
+	  		if(isset($a['name']) && isset($b['name'])){
+		    	return ( strtolower($b['name']) < strtolower($a['name']) );
+			}else{
+				return false;
+			}
+		}
+        if(isset($res)) usort($res,"mySort");*/
+        //$res=self::sortByName($res);
     	return $res;
     }
 
@@ -318,6 +338,16 @@ class Authorisation {
 				}
             }
         }*/
+       /* function mySort($a, $b){
+	  		if(isset($a['name']) && isset($b['name'])){
+		    	return ( strtolower($b['name']) < strtolower($a['name']) );
+			}else{
+				return false;
+			}
+		}
+
+        if(isset($res)) usort($res,"mySort");*/
+		//$projectList = self::sortByName($projectList);
         return $projectList;
     }
 
