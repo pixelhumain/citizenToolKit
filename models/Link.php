@@ -683,8 +683,12 @@ class Link {
 				}
 			}
 			else{
+
 				$verb = ActStr::VERB_JOIN;
-				$msg= Yii::t("common", "You are now ".$typeOfDemand." of")." ".Yii::t("common","this ".$parentController);
+				if($childId==Yii::app()->session["userId"] )
+					$msg= Yii::t("common", "You are now ".$typeOfDemand." of")." ".Yii::t("common","this ".$parentController);
+				else
+					$msg= $pendingChild["name"]." ".Yii::t("common","is now ".$typeOfDemand." of")." ".$parentData["name"];
 			}
 			// Check if links follows exists than if true, remove of follows and followers links
 			self::checkAndRemoveFollowLink($parentId,$parentType,$childId,$childType);
