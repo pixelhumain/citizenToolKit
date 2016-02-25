@@ -784,7 +784,7 @@ class Person {
 			                          	)));
 			
 			//Send Notification to Invitor
-			Notification::actionOnPerson(ActStr::VERB_SIGNIN, ActStr::ICON_SHARE, $personToUpdate , array("type"=>self::COLLECTION,"id"=> $personId,"name"=>$personToUpdate["name"]));
+			Notification::actionOnPerson(ActStr::VERB_SIGNIN, ActStr::ICON_SHARE, $account , array("type"=>self::COLLECTION,"id"=> $account["invitedBy"],"name"=>""));
 			$res = array("result" => true, "msg" => "The pending user has been updated and is now complete");
 		}
 		return $res;
