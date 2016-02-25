@@ -657,8 +657,9 @@ class Organization {
 	 * @return boolean True if the update has been done correctly. Can throw CTKException on error.
 	 */
 	 public static function updateOrganizationField($organizationId, $organizationFieldName, $organizationFieldValue, $userId){
-	 	if (!Authorisation::isOrganizationAdmin($userId, $organizationId) && Role::isSuperAdmin(Role::getRolesUserId($userId)) == false) {
-			throw new CTKException(Yii::t("organization", "Can not update this organization : you are not authorized to update that organization !"));	
+	 	
+	 	if (!Authorisation::canEditItem($userId, self::COLLECTION, $organizationId)) {
+			//throw new CTKException(Yii::t("organization", "Can not update this organization : you are not authorized to update that organization !"));	
 		}
 		
 		$res = self::updateField($organizationId, $organizationFieldName, $organizationFieldValue);

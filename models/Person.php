@@ -530,7 +530,9 @@ class Person {
 	 */
 	public static function updatePersonField($personId, $personFieldName, $personFieldValue, $userId) {  
 		//var_dump(Role::isSuperAdmin(Role::getRolesUserId($userId)) == true);
-		if ($personId != $userId && Role::isSuperAdmin(Role::getRolesUserId($userId)) == false){
+		
+		//if ($personId != $userId){
+		if (!Authorisation::canEditItem($userId, self::COLLECTION, $personId)) {
 			throw new CTKException("Can not update the person : you are not authorized to update that person !");
 		}		
 
@@ -772,9 +774,13 @@ class Person {
 			                          	// Jusqu'à l'ouverture les personnes ne sont pas validées lorsqu'elles sont invitées
 			                          	//,"roles.tobeactivated"=>""
 			                          	)));
-
+			
+			//Send Notification to Invitor
+			Notification::actionOnPerson(
+				ActStr::VERB_SIGNIN, ActStr::ICON_SHARE, 
+				array("type"=>self::COLLECTION,"id"=> $account["_id"],"name"=>$account["name"]),
+				array("type"=>self::COLLECTION, "id"=> $account["invitedBy"],"name"=>"", ));
 			$res = array("result" => true, "msg" => "The pending user has been updated and is now complete");
-
 		}
 		return $res;
 	}
@@ -838,11 +844,6 @@ class Person {
        				if(!empty($person['geo'])){
        					$find = false;
        					$city = SIG::getInseeByLatLngCp($person['geo']["latitude"], $person['geo']["longitude"], $person['address']["postalCode"]);
-     					/*var_dump($person["name"]);
-     					var_dump($person['geo']["latitude"]);
-     					var_dump($person['geo']["longitude"]);
-     					var_dump($person['address']["postalCode"]);
-     					var_dump($city);*/
      					if(!empty($city)){
        						
        						foreach ($city as $key => $value) {

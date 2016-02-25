@@ -9,7 +9,6 @@ class GetEntityBadlyGeoLocalitedAction extends CAction
         $citoyens = Person::getPersonBadlyGeoLocalited();
         $organizations = Organization::getOrganizationsBadlyGeoLocalited();
        // $state = Event::getStateEventsOpenAgenda($_POST["OpenAgendaID"], $_POST["modified"], $_POST["location"]);
-
         //$params['state'] = $state;
 		$params["person"] = $citoyens;
         $params["organization"] = $organizations;
