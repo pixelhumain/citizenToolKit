@@ -530,7 +530,9 @@ class Person {
 	 */
 	public static function updatePersonField($personId, $personFieldName, $personFieldValue, $userId) {  
 		//var_dump(Role::isSuperAdmin(Role::getRolesUserId($userId)) == true);
-		if ($personId != $userId && Role::isSuperAdmin(Role::getRolesUserId($userId)) == false){
+		
+		//if ($personId != $userId){
+		if (!Authorisation::canEditItem($userId, self::COLLECTION, $personId)) {
 			throw new CTKException("Can not update the person : you are not authorized to update that person !");
 		}		
 
@@ -847,11 +849,6 @@ class Person {
        				if(!empty($person['geo'])){
        					$find = false;
        					$city = SIG::getInseeByLatLngCp($person['geo']["latitude"], $person['geo']["longitude"], $person['address']["postalCode"]);
-     					/*var_dump($person["name"]);
-     					var_dump($person['geo']["latitude"]);
-     					var_dump($person['geo']["longitude"]);
-     					var_dump($person['address']["postalCode"]);
-     					var_dump($city);*/
      					if(!empty($city)){
        						
        						foreach ($city as $key => $value) {
