@@ -420,7 +420,7 @@ class Person {
 	  	$person["roles"] = Role::getDefaultRoles();
 
 	  	$person["created"] = new mongoDate(time());
-	  	$person["settings"] = array("seeExplanations"=> true);
+	  	$person["preferences"] = array("seeExplanations"=> true);
 
 	  	PHDB::insert( Person::COLLECTION , $person);
  
@@ -754,14 +754,6 @@ class Person {
 	    }
 
 	    return $validationKeycheck;
-	}
-	
-	public static function updateSettingsPerson($personId, $update=null) {
-		PHDB::update(Person::COLLECTION, array("_id" => new MongoId($personId)), 
-			                          array('$unset' => array("settings.seeExplanations" => "")
-			                          ));
-		$res = array("result" => true, "msg" => "Your request is well updated");
-		return $res;
 	}
 	
 	public static function updateMinimalData($personId, $person) {
