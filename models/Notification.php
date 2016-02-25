@@ -202,7 +202,7 @@ class Notification{
 		
 		if($verb == ActStr::VERB_SIGNIN){
 			 $label = $member["name"]." ".Yii::t("common","confirms your invitation and create an account.");
-			 $url = $ctrls[ $target["type"] ].'/detail/id/'.$targetId;
+			 $url = $ctrls[ $target["type"] ].'/detail/id/'.$memberId;
 		}
 
 	    $notif = array( 
