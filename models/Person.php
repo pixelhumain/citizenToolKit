@@ -883,8 +883,8 @@ class Person {
 	  	$res = array();
 	  	$person = Person::getById($id);
 	  	
-	  	if (empty($person)) {
-            throw new CTKException(Yii::t("organization", "The organization id is unkown : contact your admin"));
+	  	if(empty($person)) {
+            throw new CTKException(Yii::t("common", "Something went wrong : please contact your admin"));
         }
 	  	if (isset($person) && isset($person["links"]) && isset($person["links"]["follows"])) {
 	  		foreach ($person["links"]["follows"] as $key => $follow) {

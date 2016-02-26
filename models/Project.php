@@ -36,12 +36,15 @@ class Project {
 	 */
 	public static function getById($id) {
 	  	$project = PHDB::findOne( self::COLLECTION,array("_id"=>new MongoId($id)));
-	  	if (!empty($project["startDate"]) && !empty($project["endDate"])) {
-			if (gettype($project["startDate"]) == "object" && gettype($project["endDate"]) == "object") {
+	  	if (!empty($project["startDate"]) || !empty($project["endDate"])) {
+			if (gettype($project["startDate"]) == "object" || gettype($project["endDate"]) == "object") {
 				//Set TZ to UTC in order to be the same than Mongo
 				date_default_timezone_set('UTC');
-				$project["startDate"] = date('Y-m-d H:i:s', $project["startDate"]->sec);
-				$project["endDate"] = date('Y-m-d H:i:s', $project["endDate"]->sec);	
+				if (!empty($project["startDate"]))
+					$project["startDate"] = date('Y-m-d H:i:s', $project["startDate"]->sec);
+				if (!empty($project["endDate"]))
+					$project["endDate"] = date('Y-m-d H:i:s', $project["endDate"]->sec);
+
 			} else {
 				//Manage old date with string on date project
 				$now = time();
@@ -505,6 +508,9 @@ class Project {
 		if(!empty($projectImportData['startDate']))
 			$newProject["startDate"] = $projectImportData["startDate"];
 
+		if(!empty($projectImportData['created']))
+			$newProject["created"] = $projectImportData["created"];
+
 		if(!empty($projectImportData['endDate']))
 			$newProject["endDate"] = $projectImportData["endDate"];
 
@@ -586,7 +592,7 @@ class Project {
 
 		return $newProject;
 	}
-	public static function getAndCheckProjectFromImportData($project, $userId,$update=null) {
+	public static function getAndCheckProjectFromImportData($project, $userId,$insert=null, $update=null) {
 		//var_dump($project);
 		if(!empty($project['source']['sourceId']) ){
 			$id = $project['source']['sourceId'] ;
@@ -619,24 +625,43 @@ class Project {
 				"name" => $project['name'],
 				'creator' => $userId,
 				'created' => new MongoDate(time())
-		    );
+			);
 		}
 
 		if(!empty($project['startDate']) )
-			$newProject['startDate'] = new MongoDate( strtotime( $project['startDate'] ));//$project['startDate'];
+		{	
+			if(!$insert){	
+				$newProject['startDate'] = $project['startDate'];
+			}else{
+				$t = strtotime($project['startDate']); 
+				$m = new MongoDate(strtotime($project['startDate']));
+				$newProject['startDate'] = $m;
+			}
 			
-		if(!empty($project['endDate'])) 
-			$newProject['endDate'] = new MongoDate( strtotime( $project['endDate'] ));//$project['endDate']
+			
+		}	
+			
+		if(!empty($project['endDate']))
+		{
+			if(!$insert){	
+				$newProject['endDate'] = $project['endDate'];
+			}else{
+				$t = strtotime($project['endDate']); 
+				$m = new MongoDate(strtotime($project['endDate']));
+				$newProject['endDate'] = $m;
+			}
+		} 
+			
 				  
 		
 		if(!empty($project['address'])) {
-			if(empty($project['address']['postalCode']))
+			if(empty($project['address']['postalCode']) && $insert)
 				throw new CTKException(Yii::t("project","Please fill the postal code of the project to communect it"));
-			if(empty($project['address']['codeInsee']))
-				throw new CTKException(Yii::t("project","Please fill the postal code of the project to communect it"));
-			if(empty($project['address']['addressCountry']))
+			if(empty($project['address']['codeInsee']) && $insert)
+				throw new CTKException(Yii::t("project","Please fill the Insee of the project to communect it"));
+			if(empty($project['address']['addressCountry']) && $insert)
 				throw new CTKException(Yii::t("project","Please fill the country of the project to communect it"));
-			if(empty($project['address']['addressLocality']))
+			if(empty($project['address']['addressLocality']) && $insert)
 				throw new CTKException(Yii::t("project","Please fill the locality code of the project to communect it"));
 			
 			$newProject['address'] = $project['address'] ;
@@ -662,7 +687,7 @@ class Project {
 															floatval($project['geoPosLatitude']))
 												 	  	);
 		}
-		else
+		else if($insert)
 			throw new CTKException(Yii::t("project","Please fill the geo and geoPosition of the project to communect it"));
 		
 		if (!empty($project['description']))
@@ -698,7 +723,7 @@ class Project {
 	 * @return array as result type
 	 */
 	public static function insertProjetFromImportData($params, $parentId,$parentType){
-	    $newProject = self::getAndCheckProjectFromImportData($params, $parentId);
+	    $newProject = self::getAndCheckProjectFromImportData($params, $parentId, true);
 	    
 	    if(isset($newProject["tags"]))
 			$newProject["tags"] = Tags::filterAndSaveNewTags($newProject["tags"]);
