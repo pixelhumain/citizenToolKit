@@ -144,7 +144,7 @@ class GlobalAutoCompleteAction extends CAction
 	        	}
 		    }
 
-	  		$allCities = PHDB::find(City::COLLECTION, $query, array("name", "alternateName", "cp", "insee", "geo"));
+	  		$allCities = PHDB::find(City::COLLECTION, $query, array("name", "alternateName", "cp", "insee", "geo", "geoShape"));
 	  		$allCitiesRes = array();
 	  		$nbMaxCities = 20;
 	  		$nbCities = 0;
@@ -163,7 +163,7 @@ class GlobalAutoCompleteAction extends CAction
 
 	  		if(empty($allCitiesRes)){
 	  			$query = array( "cp" => $search);
-		  		$allCities = PHDB::find(City::COLLECTION, $query, array("name", "cp", "insee", "geo"));
+		  		$allCities = PHDB::find(City::COLLECTION, $query, array("name", "cp", "insee", "geo", "geoShape"));
 		  		$nbCities = 0;
 	  			foreach ($allCities as $key => $value) {
 		  			if($nbCities < $nbMaxCities){
