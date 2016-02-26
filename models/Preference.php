@@ -4,7 +4,7 @@ class Preference {
 		PHDB::update($type, array("_id" => new MongoId($id)), 
 			                          array('$unset' => array("preferences.seeExplanations" => "")
 			                          ));
-		$res = array("result" => true, "msg" => "Your request is well updated");
+		$res = array("result" => true, "msg" => Yii::t("common","Your request is well updated"));
 		return $res;
 	}
 }
