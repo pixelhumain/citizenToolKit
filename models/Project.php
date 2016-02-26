@@ -36,12 +36,15 @@ class Project {
 	 */
 	public static function getById($id) {
 	  	$project = PHDB::findOne( self::COLLECTION,array("_id"=>new MongoId($id)));
-	  	if (!empty($project["startDate"]) && !empty($project["endDate"])) {
-			if (gettype($project["startDate"]) == "object" && gettype($project["endDate"]) == "object") {
+	  	if (!empty($project["startDate"]) || !empty($project["endDate"])) {
+			if (gettype($project["startDate"]) == "object" || gettype($project["endDate"]) == "object") {
 				//Set TZ to UTC in order to be the same than Mongo
 				date_default_timezone_set('UTC');
-				$project["startDate"] = date('Y-m-d H:i:s', $project["startDate"]->sec);
-				$project["endDate"] = date('Y-m-d H:i:s', $project["endDate"]->sec);	
+				if (!empty($project["startDate"]))
+					$project["startDate"] = date('Y-m-d H:i:s', $project["startDate"]->sec);
+				if (!empty($project["endDate"]))
+					$project["endDate"] = date('Y-m-d H:i:s', $project["endDate"]->sec);
+
 			} else {
 				//Manage old date with string on date project
 				$now = time();
