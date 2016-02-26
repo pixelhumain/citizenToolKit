@@ -141,8 +141,10 @@ class Notification{
 	    	$members = Organization::getMembersByOrganizationId( $targetId ,"all", null ) ;
 	    	$typeOfConnect="member";
 	    }
-	    else if( $target["type"] == Event::COLLECTION ) 
+	    else if( $target["type"] == Event::COLLECTION ) {
 	    	$members = Event::getAttendeesByEventId( $targetId ,"all", null ) ;
+	    	$typeOfConnect="attendee";
+	    }
 		else if($target["type"] == Person::COLLECTION)
 			$people = array($targetId);
 	    foreach ($members as $key => $value) 
