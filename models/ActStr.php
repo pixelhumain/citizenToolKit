@@ -22,6 +22,7 @@ class ActStr {
     const VERB_INVITE = "invite";
     const VERB_ACCEPT = "accept";
     const VERB_CLOSE = "close";
+    const VERB_SIGNIN = "signin";
       
     const VERB_HOST = "host";
     const VERB_FOLLOW = "follow";

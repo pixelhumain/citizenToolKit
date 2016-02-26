@@ -9,7 +9,7 @@ class UpdateSettingsAction extends CAction
     public function run()
     {
         $controller=$this->getController();
-        $res=Person::updateSettingsPerson(Yii::app()->session["userId"]);
+        $res=Preference::updatePreferences(Yii::app()->session["userId"],Person::COLLECTION);
 		Rest::json($res);
 		exit;
     }

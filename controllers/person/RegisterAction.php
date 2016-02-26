@@ -37,7 +37,7 @@ class RegisterAction extends CAction
 				Rest::json($res);
 				exit;
 			} 
-			//TODO - send Notification to invitor
+
 		} else {
 			try {
 				$newPerson['email'] = $email;

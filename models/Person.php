@@ -420,7 +420,7 @@ class Person {
 	  	$person["roles"] = Role::getDefaultRoles();
 
 	  	$person["created"] = new mongoDate(time());
-	  	$person["settings"] = array("seeExplanations"=> true);
+	  	$person["preferences"] = array("seeExplanations"=> true);
 
 	  	PHDB::insert( Person::COLLECTION , $person);
  
@@ -758,14 +758,6 @@ class Person {
 	    return $validationKeycheck;
 	}
 	
-	public static function updateSettingsPerson($personId, $update=null) {
-		PHDB::update(Person::COLLECTION, array("_id" => new MongoId($personId)), 
-			                          array('$unset' => array("settings.seeExplanations" => "")
-			                          ));
-		$res = array("result" => true, "msg" => "Your request is well updated");
-		return $res;
-	}
-	
 	public static function updateMinimalData($personId, $person) {
 
 		//Check if it's a minimal user
@@ -782,9 +774,13 @@ class Person {
 			                          	// Jusqu'à l'ouverture les personnes ne sont pas validées lorsqu'elles sont invitées
 			                          	//,"roles.tobeactivated"=>""
 			                          	)));
-
+			
+			//Send Notification to Invitor
+			Notification::actionOnPerson(
+				ActStr::VERB_SIGNIN, ActStr::ICON_SHARE, 
+				array("type"=>self::COLLECTION,"id"=> $account["_id"],"name"=>$account["name"]),
+				array("type"=>self::COLLECTION, "id"=> $account["invitedBy"],"name"=>"", ));
 			$res = array("result" => true, "msg" => "The pending user has been updated and is now complete");
-
 		}
 		return $res;
 	}

@@ -195,7 +195,7 @@ class Link {
         //3. Send Notifications
         //TODO - Send email to the member
 
-        return array("result"=>true, "msg"=>"The link follows has been removed with success", "originId"=>$originId, "targetId"=>$targetId);
+        return array("result"=>true, "msg"=>"The link follows has been removed with success", "originId"=>$originId, "targetId"=>$targetId, "parentEntity"=>$target);
     }
 
     /**
@@ -683,8 +683,12 @@ class Link {
 				}
 			}
 			else{
+
 				$verb = ActStr::VERB_JOIN;
-				$msg= Yii::t("common", "You are now ".$typeOfDemand." of")." ".Yii::t("common","this ".$parentController);
+				if($childId==Yii::app()->session["userId"] )
+					$msg= Yii::t("common", "You are now ".$typeOfDemand." of")." ".Yii::t("common","this ".$parentController);
+				else
+					$msg= $pendingChild["name"]." ".Yii::t("common","is now ".$typeOfDemand." of")." ".$parentData["name"];
 			}
 			// Check if links follows exists than if true, remove of follows and followers links
 			self::checkAndRemoveFollowLink($parentId,$parentType,$childId,$childType);

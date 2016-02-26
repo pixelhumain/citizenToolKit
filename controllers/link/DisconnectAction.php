@@ -18,12 +18,12 @@ class DisconnectAction extends CAction
 					$parentConnect="follows";
 				else
 					$parentConnect=$parentType;
-				Link::disconnect($childId, $childType, $parentId, $parentType,Yii::app()->session['userId'], $parentConnect);
+				$data=Link::disconnect($childId, $childType, $parentId, $parentType,Yii::app()->session['userId'], $parentConnect);
 				Link::disconnect($parentId, $parentType, $childId, $childType,Yii::app()->session['userId'], $connectType);
 				if($childId == Yii::app()->session["userId"]){
 					$removeMeAsAdmin=true;
 				}
-				$res = array( "result" => true , "msg" => Yii::t("",$connectType." successfully removed"), "collection" => $childType,"removeMeAsAdmin"=> $removeMeAsAdmin,"parentId"=>$parentId,"parentType"=>$parentId);			
+				$res = array( "result" => true , "msg" => Yii::t("",$connectType." successfully removed"), "collection" => $childType,"removeMeAsAdmin"=> $removeMeAsAdmin,"parentId"=>$parentId,"parentType"=>$parentId,"parentEntity"=>$data["parentEntity"]);			
 			} catch (CTKException $e) {
 				$res = array( "result" => false , "msg" => $e->getMessage() );
 			}
