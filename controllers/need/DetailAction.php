@@ -1,35 +1,38 @@
 <?php
 class DetailAction extends CAction
 {
-    public function run( $idNeed=null, $type=null, $id= null)
+    public function run($id)
     {
         $controller=$this->getController();
         
         $controller->title = "Action Needs";
         $controller->subTitle = "Define need in order to receive help from community";
         $controller->pageTitle = "Communecter - Action Needs";
-        
-        if( $type == Project::COLLECTION ) {
-            $controller->toolbarMBZ = array("<a href='".Yii::app()->createUrl("/".$controller->module->id."/project/dashboard/id/".$id)."'><i class='fa fa-lightbulb-o'></i>Project</a>");
-            $project = Project::getById($id);
+        $need=Need::getById($id);
+        foreach ($need["links"] as $key => $data){
+	        foreach ($data as $uid => $value){
+		       	$parentType=$value["type"];
+		       	$parentId=$uid;
+	        }
+        }
+        if( $parentType == Project::COLLECTION ) {
+            $project = Project::getById($parentId);
             $controller->title = $project["name"]."'s Needs";
             $controller->subTitle = "Need's name // Every Project has a lack of ressources";
             $controller->pageTitle = "Communecter - ".$controller->title;
         } 
-        else if( $type == Organization::COLLECTION ) {
-            $controller->toolbarMBZ = array("<a href='".Yii::app()->createUrl("/".$controller->module->id."/organization/dashboard/id/".$id)."'><i class='fa fa-users'></i>Organization</a>");
-            $organization = Organization::getById($id);
+        else if( $parentType == Organization::COLLECTION ) {
+
+            $organization = Organization::getById($parentId);
             $controller->title = $organization["name"]."'s Needs";
             $controller->subTitle = "Need's name // Every Project has a lack of ressources";
             $controller->pageTitle = "Communecter - ".$controller->title;
         } 
-        array_push( $controller->toolbarMBZ, '<a href="#" class="newNeed" title="proposer une " ><i class="fa fa-plus"></i> Need </a>');
         $description=array();
         $helpers=array();
-        $need=Need::getById($idNeed);
         if (isset($need["description"]))
         	$description=$need["description"];
-        if(isset($need["links"])){
+        if(isset($need["links"]["helpers"])){
   			foreach ($need["links"]["helpers"] as $id => $e) {
 					$citoyen = Person::getPublicData($id);
 					if(!empty($citoyen)){
@@ -44,9 +47,9 @@ class DetailAction extends CAction
   		}
   		$admin = false;
 		if(isset(Yii::app()->session["userId"]) && isset($_GET["id"]))
-			$admin = Authorisation::canEditItem(Yii::app()->session["userId"], $type, $id);
+			$admin = Authorisation::canEditItem(Yii::app()->session["userId"], $parentType, $parentId);
 
-        $params = array( "need" => $need, "description" => $description, "helpers" => $helpers, "isAdmin" => $admin );
+        $params = array( "need" => $need, "description" => $description, "helpers" => $helpers, "isAdmin" => $admin, "parentType" => $parentType, "parentId" => $parentId );
         $page = "detail";
         if(Yii::app()->request->isAjaxRequest)
             echo $controller->renderPartial($page,$params,true);
