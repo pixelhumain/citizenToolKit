@@ -23,7 +23,7 @@ class DetailAction extends CAction
         
         $limit = array(Document::IMG_PROFIL => 1);
         $images = Document::getImagesByKey($id, Person::COLLECTION, $limit);
-
+		
         $params = array( "person" => $person, "me" => $me);
         $params['images'] = $images;
         $params["contentKeyBase"] = $contentKeyBase;
@@ -115,6 +115,7 @@ class DetailAction extends CAction
         $params["countries"] = OpenData::getCountriesList();
         $params["listCodeOrga"] = Lists::get(array("organisationTypes"));
         $params["tags"] = Tags::getActiveTags();
+        $params["preferences"] =  Preference::getPreferencesByTypeId($id, Person::COLLECTION);
         $params["organizations"] = $organizations;
         $params["projects"] = $projects;
         $params["events"] = $cleanEvents;

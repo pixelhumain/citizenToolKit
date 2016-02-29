@@ -1,5 +1,10 @@
 <?php 
 class Preference {
+	public static function getPreferencesByTypeId($id, $type){
+		$preferences = PHDB::findOneById( $type ,$id, array("preferences" => 1));
+		return $preferences;
+	}
+	
 	public static function updatePreferences($id, $type, $update=null) {
 		PHDB::update($type, array("_id" => new MongoId($id)), 
 			                          array('$unset' => array("preferences.seeExplanations" => "")
@@ -32,7 +37,6 @@ class Preference {
 		}
 		$res = array("result" => true, "msg" => Yii::t("common","Confidentiality param well updated"));
 		return $res;
-
-		
 	}
+	
 }
