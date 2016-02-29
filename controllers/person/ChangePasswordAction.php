@@ -7,7 +7,7 @@ class ChangePasswordAction extends CAction
     public function run() {
     	$controller=$this->getController();
 
-    	$userId = Yii::app()->session['userId'];
+    	$userId = @$_GET["id"];
     	$mode = @$_GET["mode"];
         
         if (! Person::logguedAndValid() ) {

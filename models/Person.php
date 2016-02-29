@@ -265,11 +265,11 @@ class Person {
 			  		$type = isset($contact["type"]) ? $contact["type"] : "";
 			  		$contactComplet = null;
 					if($type == "citoyens")		{ $contactComplet = self::getById($key); $type = "people"; }
-					if ($link != "follows"){
+					//if ($link != "follows"){
 						if($type == "organizations"){ $contactComplet = Organization::getById($key); }
 						if($type == "projects")		{ $contactComplet = Project::getById($key); }
 						if($type == "events")		{ $contactComplet = Event::getById($key); }
-					}
+					//}
 					if($contactComplet != null)	$res[$type][$key] = $contactComplet;
 					
 					//var_dump($contactComplet);
