@@ -803,5 +803,51 @@ class Import
         curl_close($ch);
         return $result;
     }
+
+
+
+
+
+
+    public static function addDataInDb($post)
+    {
+        $jsonString = $post["file"];
+        $typeEntity = $post["chooseEntity"];
+
+        if(substr($jsonString, 0,1) == "{")
+            $jsonArray[] = json_decode($jsonString, true) ;
+        else
+            $jsonArray = json_decode($jsonString, true) ;
+
+        if(isset($jsonArray)){
+            $resData =  array();
+            foreach ($jsonArray as $key => $value){
+                try{
+                    $res = Project::insertProjetFromImportData($value, $post['creatorID'],Person::COLLECTION) ; 
+
+                    if($res["result"] == true){
+                        $projet["name"] =  $value["name"];
+                        $projet["info"] = "Success" ;
+                    }else{
+                        $projet["name"] =  $value["name"];
+                        $projet["info"] = "Error" ;
+                    }
+                    $resData[] = $projet;
+                }
+                catch (CTKException $e){
+                    $projet["name"] =  $value["name"];
+                    $projet["info"] = $e->getMessage();
+                    $resData[] = $projet;
+                }        
+            }
+            $params = array("result" => true, 
+                            "resData" => $resData);
+        }
+        else
+        {
+            $params = array("result" => false); 
+        }
+        return $params;
+    }
 }
 
