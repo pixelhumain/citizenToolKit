@@ -7,17 +7,16 @@ class ChangePasswordAction extends CAction
     public function run() {
     	$controller=$this->getController();
 
-    	$userId = @$_POST["userId"];
-    	$mode = @$_POST["mode"];
+    	$userId = Yii::app()->session['userId'];
+    	$mode = @$_GET["mode"];
         
-        if (! Person::logguedAndValid() || Yii::app()->session["userId"] != $userId) {
+        if (! Person::logguedAndValid() ) {
     		Rest::json(array("result" => false, "msg" => "You can not modify a password of this user !"));
     		return;
     	}
 
     	if ($mode == "initSV") {
-			Rest::json(array("result"=>true, 
-				"content" => $controller->renderPartial("changePasswordSV", array(), true)));
+			echo $controller->renderPartial("changePasswordSV", array(), true);
     	} else if ($mode == "changePassword") {
     		$res = Person::changePassword(@$_POST["oldPassword"], @$_POST["newPassword"], $userId);
     		Rest::json($res);
