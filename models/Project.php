@@ -37,21 +37,23 @@ class Project {
 	public static function getById($id) {
 	  	$project = PHDB::findOne( self::COLLECTION,array("_id"=>new MongoId($id)));
 	  	if (!empty($project["startDate"]) || !empty($project["endDate"])) {
-			if (gettype($project["startDate"]) == "object" || gettype($project["endDate"]) == "object") {
-				//Set TZ to UTC in order to be the same than Mongo
-				date_default_timezone_set('UTC');
-				if (!empty($project["startDate"]))
-					$project["startDate"] = date('Y-m-d H:i:s', $project["startDate"]->sec);
-				if (!empty($project["endDate"]))
-					$project["endDate"] = date('Y-m-d H:i:s', $project["endDate"]->sec);
+	  		if(isset($project["startDate"]) && isset($project["endDate"])){
+				if (gettype($project["startDate"]) == "object" || gettype($project["endDate"]) == "object") {
+					//Set TZ to UTC in order to be the same than Mongo
+					date_default_timezone_set('UTC');
+					if (!empty($project["startDate"]))
+						$project["startDate"] = date('Y-m-d H:i:s', $project["startDate"]->sec);
+					if (!empty($project["endDate"]))
+						$project["endDate"] = date('Y-m-d H:i:s', $project["endDate"]->sec);
 
-			} else {
-				//Manage old date with string on date project
-				$now = time();
-				$yesterday = mktime(0, 0, 0, date("m")  , date("d")-1, date("Y"));
-				$yester2day = mktime(0, 0, 0, date("m")  , date("d")-2, date("Y"));
-				$project["endDate"] = date('Y-m-d H:i:s', $yesterday);
-				$project["startDate"] = date('Y-m-d H:i:s',$yester2day);;
+				} else {
+					//Manage old date with string on date project
+					$now = time();
+					$yesterday = mktime(0, 0, 0, date("m")  , date("d")-1, date("Y"));
+					$yester2day = mktime(0, 0, 0, date("m")  , date("d")-2, date("Y"));
+					$project["endDate"] = date('Y-m-d H:i:s', $yesterday);
+					$project["startDate"] = date('Y-m-d H:i:s',$yester2day);;
+				}
 			}
 		}
 
@@ -699,6 +701,9 @@ class Project {
 		if (!empty($project['licence']))
 			$newProject["licence"] = $project['licence'];
 
+		if (!empty($project['properties']))
+			$newProject["properties"] = $project['properties'];
+
 		if (!empty($project['source']))
 			$newProject["source"] = $project['source'];
 
@@ -737,5 +742,38 @@ class Project {
 	    //Notification::createdObjectAsParam(Person::COLLECTION,Yii::app() -> session["userId"],Project::COLLECTION, (String)$newProject["_id"], $parentType, $parentId, $newProject["geo"], (isset($newProject["tags"])) ? $newProject["tags"]:null ,$newProject["address"]["codeInsee"]);
 	    return array("result"=>true, "msg"=>"Votre projet est communecté.", "id" => $newProject["_id"]);	
 	}
+
+
+
+	public static function getQuestionAnwser($project){
+		if(!empty($project["tags"])){
+			if(in_array("commun", $project['tags']) || in_array("fabmob", $project['tags'])){
+				$url = "http://data.patapouf.org".$project["source"]["sourceUrl"];
+				
+
+				$res = Import::getDataByUrl($url);
+
+				$json = json_decode($res, true);
+
+				if(!empty($json["question_answers"])){
+					foreach ($json["question_answers"] as $key => $value) {
+						$qt["key"] = $value["question"]["slug"] ;
+						$qt["description"] = $value["answer"] ;
+						$qt["value"] = -1 ;
+						$project["properties"]["chart"][] = $qt;
+
+					}
+
+				}
+				
+				
+				
+			}
+		}
+
+
+		return $project ;
+	}
+
 }
 ?>

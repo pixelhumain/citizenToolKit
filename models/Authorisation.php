@@ -98,12 +98,8 @@ class Authorisation {
      */
     public static function isOrganizationAdmin($userId, $organizationId) {
         $res = false;
-        if(Role::isSuperAdmin(Role::getRolesUserId($userId)))
-            $res = true ;
-        else{
-            $myOrganizations = Authorisation::listUserOrganizationAdmin($userId);
-            $res = array_key_exists((string)$organizationId, $myOrganizations);  
-        }   
+        $myOrganizations = Authorisation::listUserOrganizationAdmin($userId);
+        $res = array_key_exists((string)$organizationId, $myOrganizations);
         return $res;
     }
 
@@ -469,6 +465,9 @@ class Authorisation {
     		$res = Authorisation::isProjectAdmin($itemId, $userId);
     	} else if($type == Organization::COLLECTION) {
     		$res = Authorisation::isOrganizationAdmin($userId, $itemId);
+            if(Role::isSuperAdmin(Role::getRolesUserId($userId)) && $res==false)
+                $res = true ; 
+
     	} else if($type == Person::COLLECTION) {
             if($userId==$itemId || Role::isSuperAdmin(Role::getRolesUserId($userId)) == true )
                 $res = true;

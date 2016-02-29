@@ -464,8 +464,8 @@ class Import
                 //$data["creator"] = $post["creatorID"];
                 //var_dump($data);
                 $newProject = Project::createProjectFromImportData($data);
-
-                $res = Project::getAndCheckProjectFromImportData($newProject, $post["creatorID"]);
+                $newProject2 = Project::getQuestionAnwser($newProject);
+                $res = Project::getAndCheckProjectFromImportData($newProject2, $post["creatorID"]);
             }
             catch(CTKException $e){
                 if(empty($newProject))
@@ -743,7 +743,7 @@ class Import
 
         if(isset($post['jsonImport'])){
             $arrayDataImport = json_decode($post['jsonImport'], true) ;
-
+            $resData =  array();
             foreach ($arrayDataImport as $key => $value){
                 try{
                     $resData[] = Project::insertProjetFromImportData($value, $post['creatorID'],Person::COLLECTION) ; 
