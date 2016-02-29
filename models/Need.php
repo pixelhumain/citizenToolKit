@@ -1,8 +1,10 @@
 <?php 
 class Need {
 
-	const COLLECTION 		= "needs";
+	const COLLECTION = "needs";
 	const CONTROLLER = "need";
+	const ICON = "fa-cubes";
+	const COLOR = "#8C5AA1";
 	private static $dataBinding = array(
 	    "name" => array("name" => "name", "rules" => array("required")),
 		"type" => array("name" => "type"),
@@ -48,8 +50,24 @@ class Need {
 
 	  	return $need;
 	}
-
-	public static function getWhereSortLimit($params,$sort,$limit=1) {
+	
+	public static function listNeeds($id, $type){
+		$needs=array();
+		if($type==Organization::COLLECTION){
+			$parent=Organization::getById($id);
+		}
+		if($type==Project::COLLECTION){
+			$parent=Project::getById($id);
+		}
+		if(@$parent["links"]["needs"]){
+			foreach ($parent["links"]["needs"] as $key => $value){
+				$need = self::getById($key);
+           		$needs[$key] = $need;
+			}
+		}
+		return $needs;
+	}
+	public static function getWhereSortLimit($params,$sort=array("created"=>-1),$limit=1) {
 	  	return PHDB::findAndSort( self::COLLECTION,$params,$sort,$limit);
 	}
 	public static function insert($params){

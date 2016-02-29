@@ -265,11 +265,11 @@ class Person {
 			  		$type = isset($contact["type"]) ? $contact["type"] : "";
 			  		$contactComplet = null;
 					if($type == "citoyens")		{ $contactComplet = self::getById($key); $type = "people"; }
-					if ($link != "follows"){
+					//if ($link != "follows"){
 						if($type == "organizations"){ $contactComplet = Organization::getById($key); }
 						if($type == "projects")		{ $contactComplet = Project::getById($key); }
 						if($type == "events")		{ $contactComplet = Event::getById($key); }
-					}
+					//}
 					if($contactComplet != null)	$res[$type][$key] = $contactComplet;
 					
 					//var_dump($contactComplet);
@@ -538,7 +538,6 @@ class Person {
 
 
 		$dataFieldName = Person::getCollectionFieldNameAndValidate($personFieldName, $personFieldValue);
-		var_dump($dataFieldName);
 		//Specific case : 
 		//Tags
 		if ($dataFieldName == "tags") 
@@ -686,17 +685,17 @@ class Person {
 		$person = Person::getById($userId);
 
 		if (! self::checkPassword($oldPassword, $person)) {
-			return array("result" => false, "msg" => "Your current password is incorrect");
+			return array("result" => false, "msg" => Yii::t("person","Your current password is incorrect"));
 		} 
 
 		if (strlen($newPassword) < 8) {
-			return array("result" => false, "msg" => "The new password should be 8 caracters long");
+			return array("result" => false, "msg" => Yii::t("person","The new password should be 8 caracters long"));
 		}
 		
 		$encodedPwd = hash('sha256', $person["email"].$newPassword);
 		self::updatePersonField($userId, "pwd", $encodedPwd, $userId);
 		
-		return array("result" => true, "msg" => "Your password has been changed with success !");
+		return array("result" => true, "msg" => Yii::t("person","Your password has been changed with success !"));
 	}
 
 	/**

@@ -29,6 +29,7 @@ class DetailAction extends CAction
 	  	$tasks = array();
 	  	$needs = array();
 	  	$events=array();
+	  	$needs = Need::listNeeds($id, Project::COLLECTION);
 	  	$contentKeyBase = "Yii::app()->controller->id.".".dashboard";
 		$limit = array(Document::IMG_PROFIL => 1, Document::IMG_MEDIA => 5);
 		$images = Document::getImagesByKey((string)$project["_id"], Project::COLLECTION, $limit);
@@ -111,6 +112,7 @@ class DetailAction extends CAction
 	  	$params["project"] = $project;
 	  	$params["organizations"] = $organizations;
 	  	$params["events"] = $events;
+	  	$params["needs"] = $needs;
 	  	$params["people"] = $people;
 	  	$params["properties"] = $properties;
 	  	$params["tasks"]=$tasks;

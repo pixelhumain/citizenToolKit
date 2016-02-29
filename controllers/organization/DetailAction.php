@@ -14,6 +14,7 @@ class DetailAction extends CAction
 		$organization = Organization::getPublicData($id);
 		$events = Organization::listEventsPublicAgenda($id);
 		$projects = Organization::listProjects($id);
+		$needs = Need::listNeeds($id, Organization::COLLECTION);
 		$members = array(
 		  //"citoyens"=> array(),
 		  //"organizations"=>array()
@@ -33,6 +34,7 @@ class DetailAction extends CAction
 		$params["contentKeyBase"] = $contentKeyBase;
 		$params["images"] = $images;
 		$params["events"] = $events;
+		$params["needs"] = $needs;
 		$contextMap = array();
 		$contextMap["organization"] = array($organization);
 		$contextMap["people"] = array();
