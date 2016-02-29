@@ -23,12 +23,7 @@ class SaveNeedAction extends CAction
                 if (isset($_POST["startDate"])){
 	                $newNeed["startDate"] = $_POST["startDate"];
 	                $newNeed["endDate"] = $_POST["endDate"];
-                }
-                if( isset( $_POST["parentType"] ) ) 
-                    $newNeed['parentType'] = $_POST['parentType'];
-                if( isset( $_POST["parentId"] ) ) 
-                    $newNeed['parentId'] = $_POST['parentId'];
-                
+                }                
                 $newNeed['created'] = time();
 
                 $res=Need::insert($newNeed);

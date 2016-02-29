@@ -31,6 +31,8 @@ class IndexAction extends CAction
             $params["context"] = Survey::getById($id);
         } else if($type == ActionRoom::COLLECTION) {
             $params["context"] = ActionRoom::getById($id);
+        } else if($type == Need::COLLECTION) {
+            $params["context"] = Need::getById($id);
         } else {
         	throw new CTKException("Error : the type is unknown ".$type);
         }
