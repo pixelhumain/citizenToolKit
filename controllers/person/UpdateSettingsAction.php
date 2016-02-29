@@ -9,7 +9,11 @@ class UpdateSettingsAction extends CAction
     public function run()
     {
         $controller=$this->getController();
-        $res=Preference::updatePreferences(Yii::app()->session["userId"],Person::COLLECTION);
+        if(isset($_POST["type"])){
+	        $res=Preference::updateConfidentiality(Yii::app()->session["userId"],Person::COLLECTION,$_POST);
+        } else{
+        	$res=Preference::updatePreferences(Yii::app()->session["userId"],Person::COLLECTION);
+        }
 		Rest::json($res);
 		exit;
     }

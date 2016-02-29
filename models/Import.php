@@ -464,8 +464,8 @@ class Import
                 //$data["creator"] = $post["creatorID"];
                 //var_dump($data);
                 $newProject = Project::createProjectFromImportData($data);
-
-                $res = Project::getAndCheckProjectFromImportData($newProject, $post["creatorID"]);
+                $newProject2 = Project::getQuestionAnwser($newProject);
+                $res = Project::getAndCheckProjectFromImportData($newProject2, $post["creatorID"]);
             }
             catch(CTKException $e){
                 if(empty($newProject))
@@ -743,7 +743,7 @@ class Import
 
         if(isset($post['jsonImport'])){
             $arrayDataImport = json_decode($post['jsonImport'], true) ;
-
+            $resData =  array();
             foreach ($arrayDataImport as $key => $value){
                 try{
                     $resData[] = Project::insertProjetFromImportData($value, $post['creatorID'],Person::COLLECTION) ; 
@@ -802,6 +802,52 @@ class Import
         // Closing
         curl_close($ch);
         return $result;
+    }
+
+
+
+
+
+
+    public static function addDataInDb($post)
+    {
+        $jsonString = $post["file"];
+        $typeEntity = $post["chooseEntity"];
+
+        if(substr($jsonString, 0,1) == "{")
+            $jsonArray[] = json_decode($jsonString, true) ;
+        else
+            $jsonArray = json_decode($jsonString, true) ;
+
+        if(isset($jsonArray)){
+            $resData =  array();
+            foreach ($jsonArray as $key => $value){
+                try{
+                    $res = Project::insertProjetFromImportData($value, $post['creatorID'],Person::COLLECTION) ; 
+
+                    if($res["result"] == true){
+                        $projet["name"] =  $value["name"];
+                        $projet["info"] = "Success" ;
+                    }else{
+                        $projet["name"] =  $value["name"];
+                        $projet["info"] = "Error" ;
+                    }
+                    $resData[] = $projet;
+                }
+                catch (CTKException $e){
+                    $projet["name"] =  $value["name"];
+                    $projet["info"] = $e->getMessage();
+                    $resData[] = $projet;
+                }        
+            }
+            $params = array("result" => true, 
+                            "resData" => $resData);
+        }
+        else
+        {
+            $params = array("result" => false); 
+        }
+        return $params;
     }
 }
 
