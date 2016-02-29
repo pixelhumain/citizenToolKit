@@ -14,7 +14,7 @@ class ChangePasswordAction extends CAction {
             $userId = @$_POST["id"];
             $mode = @$_POST["mode"];
         }
-        
+
         if (! Person::logguedAndValid() || Yii::app()->session["userId"] != $userId) {
             Rest::json(array("result" => false, "msg" => "You can not modify a password of this user !"));
             return;
