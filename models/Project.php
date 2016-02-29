@@ -699,6 +699,9 @@ class Project {
 		if (!empty($project['licence']))
 			$newProject["licence"] = $project['licence'];
 
+		if (!empty($project['properties']))
+			$newProject["properties"] = $project['properties'];
+
 		if (!empty($project['source']))
 			$newProject["source"] = $project['source'];
 
@@ -737,5 +740,38 @@ class Project {
 	    //Notification::createdObjectAsParam(Person::COLLECTION,Yii::app() -> session["userId"],Project::COLLECTION, (String)$newProject["_id"], $parentType, $parentId, $newProject["geo"], (isset($newProject["tags"])) ? $newProject["tags"]:null ,$newProject["address"]["codeInsee"]);
 	    return array("result"=>true, "msg"=>"Votre projet est communecté.", "id" => $newProject["_id"]);	
 	}
+
+
+
+	public static function getQuestionAnwser($project){
+		if(!empty($project["tags"])){
+			if(in_array("commun", $project['tags']) || in_array("fabmob", $project['tags'])){
+				$url = "http://data.patapouf.org".$project["source"]["sourceUrl"];
+				
+
+				$res = Import::getDataByUrl($url);
+
+				$json = json_decode($res, true);
+
+				if(!empty($json["question_answers"])){
+					foreach ($json["question_answers"] as $key => $value) {
+						$qt["key"] = $value["question"]["slug"] ;
+						$qt["description"] = $value["answer"] ;
+						$qt["value"] = -1 ;
+						$project["properties"]["chart"][] = $qt;
+
+					}
+
+				}
+				
+				
+				
+			}
+		}
+
+
+		return $project ;
+	}
+
 }
 ?>
