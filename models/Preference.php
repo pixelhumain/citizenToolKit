@@ -22,12 +22,12 @@ class Preference {
 
 		} else if($setValue == "private"){
 			PHDB::update($type, array("_id" => new MongoId($id)), 
-			     array('$set'=> array("preferences.privateFields.".$setType => $setType), '$unset' => array("preferences.publicFields.".$setType => ""))
+			     array('$set'=> array("preferences.privateFields.".$setType => true), '$unset' => array("preferences.publicFields.".$setType => ""))
 			);
 			
 		} else if($setValue == "public"){
 			PHDB::update($type, array("_id" => new MongoId($id)), 
-			    array('$unset' => array("preferences.privateFields.".$setType => ""),'$set'=> array("preferences.publicFields.".$setType => $setType))
+			    array('$unset' => array("preferences.privateFields.".$setType => ""),'$set'=> array("preferences.publicFields.".$setType => true))
 			);
 		}
 		$res = array("result" => true, "msg" => Yii::t("common","Confidentiality param well updated"));
