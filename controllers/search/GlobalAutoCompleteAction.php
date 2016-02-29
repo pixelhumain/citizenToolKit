@@ -9,7 +9,8 @@ class GlobalAutoCompleteAction extends CAction
         $searchBy = isset($_POST['searchBy']) ? $_POST['searchBy'] : "INSEE";
         $indexMin = isset($_POST['indexMin']) ? $_POST['indexMin'] : 0;
         $indexMax = isset($_POST['indexMax']) ? $_POST['indexMax'] : 15;
-
+        error_log("global search " . $search);
+	    
         if($search == "" && $locality == "") {
         	Rest::json(array());
 			Yii::app()->end();
@@ -120,15 +121,19 @@ class GlobalAutoCompleteAction extends CAction
 	  		//$res["project"] = $allProject;
 	  		$allRes = array_merge($allRes, $allProject);
 	  	}
-
+		    
 	  	/***********************************  CITIES   *****************************************/
         if(strcmp($filter, City::COLLECTION) != 0 && $this->typeWanted("cities", $searchType)){
 	  		$query = array( "name" => new MongoRegex("/".self::wd_remove_accents($search)."/i"));//array('$text' => array('$search' => $search));//
 	  		
 	  		/***********************************  DEFINE LOCALITY QUERY   *****************************************/
-	        if($locality != null && $locality != ""){
-
-	        	if($type == "NAME"){ 
+	        	if($locality == null || $locality == ""){
+		    		$locality = $search;
+		    	}
+		    	$type = $this->getTypeOfLocalisation($locality);
+		    	if($searchBy == "INSEE") $type = $searchBy;
+	        	error_log("type " . $type);
+	    		if($type == "NAME"){ 
 	        		$query = array('$or' => array( array( "name" => new MongoRegex("/".self::wd_remove_accents($locality)."/i")),
 	        									   array( "alternateName" => new MongoRegex("/".self::wd_remove_accents($locality)."/i"))));
 	        		//error_log("search city with : " . self::wd_remove_accents($locality));
@@ -142,7 +147,7 @@ class GlobalAutoCompleteAction extends CAction
 	        	if($type == "INSEE") {
 	        		$query = array("insee" => $locality );
 	        	}
-		    }
+			    //}
 
 	  		$allCities = PHDB::find(City::COLLECTION, $query, array("name", "alternateName", "cp", "insee", "geo", "geoShape"));
 	  		$allCitiesRes = array();
