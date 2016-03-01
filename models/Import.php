@@ -122,8 +122,11 @@ class Import
             if(!empty($post["pathObject"])){
 
                 $obj = json_decode($json, true);
+                //var_dump($obj );
                 $map = explode(".", $post["pathObject"]) ;
+                //var_dump($map);
                 $json_objet = ArrayHelper::getValueJson($obj, $map);
+                //var_dump($json_objet);
                 foreach ($json_objet as $key => $value) {
                     $chaine .= ArrayHelper::getAllBranchsJSON($value);
                 }
@@ -363,7 +366,7 @@ class Import
             $i = 0 ;
             
             foreach ($arrayCSV as $keyCSV => $lineCSV){
-                
+                $jsonData = array();
                 if($i>0 && $lineCSV[0] != null){
                     
                     if (($i%500) == 0)
@@ -463,6 +466,7 @@ class Import
             try{
                 //$data["creator"] = $post["creatorID"];
                 //var_dump($data);
+                $data["source"]['sourceKey'] = "patapouf";
                 $newProject = Project::createProjectFromImportData($data);
                 $newProject2 = Project::getQuestionAnwser($newProject);
                 $res = Project::getAndCheckProjectFromImportData($newProject2, $post["creatorID"]);
@@ -502,21 +506,18 @@ class Import
                     $jsonFile2 = $jsonFile ; 
             }
 
-
-            
-
-            //var_dump($jsonFile2);
-
             foreach ($jsonFile2 as $keyJSON => $valueJSON){
-
+                //var_dump("--------------------------------------");
+                $jsonData = array();
                 foreach($post['infoCreateData']as $key => $objetInfoData){
                     
                     $cheminLien = explode(".", $objetInfoData['idHeadCSV']);
-                    //var_dump($valueJSON);
-                    //var_dump($cheminLien);
+                    //var_dump($objetInfoData['idHeadCSV']);
+                    
                     $valueData = ArrayHelper::getValueJson($valueJSON, $cheminLien);
-                    //var_dump($valueJSON);
-                    if(isset($valueData)){
+                    //var_dump($valueData);
+                    if(!empty($valueData)){
+                        //var_dump("Here");
                         $mappingTypeData = explode(".", $post['idCollection'].".mappingFields.".$objetInfoData['valueLinkCollection']);
                         $typeData = ArrayHelper::getValueJson($infoCollection,$mappingTypeData);
                         
@@ -548,6 +549,8 @@ class Import
                 if(empty($jsonData))
                     $jsonData = array();
                 
+                //var_dump($jsonData);
+
                 $entite = Import::checkData($infoCollection[$post['idCollection']]["key"], $jsonData, $post);
 
 
@@ -827,15 +830,21 @@ class Import
 
                     if($res["result"] == true){
                         $projet["name"] =  $value["name"];
+                        $projet["geo"] =  $value["geo"]["latitude"] . " / " . $value["geo"]["longitude"];
+                        $projet["cp"] =  $value["address"]["postalCode"] . " ". $value["address"]["addressLocality"];
                         $projet["info"] = "Success" ;
                     }else{
                         $projet["name"] =  $value["name"];
+                        $projet["geo"] =  $value["geo"]["latitude"] . " / " . $value["geo"]["longitude"];
+                        $projet["cp"] =  $value["address"]["postalCode"] . " ". $value["address"]["addressLocality"];
                         $projet["info"] = "Error" ;
                     }
                     $resData[] = $projet;
                 }
                 catch (CTKException $e){
                     $projet["name"] =  $value["name"];
+                    $projet["geo"] =  $value["geo"]["latitude"] . " / " . $value["geo"]["longitude"];
+                    $projet["cp"] =  $value["address"]["postalCode"] . " ". $value["address"]["addressLocality"];
                     $projet["info"] = $e->getMessage();
                     $resData[] = $projet;
                 }        
@@ -847,6 +856,7 @@ class Import
         {
             $params = array("result" => false); 
         }
+      
         return $params;
     }
 }

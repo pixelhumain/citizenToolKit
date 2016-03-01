@@ -823,6 +823,7 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 			$tel = array();
 			$fixe = array();
 			$mobile = array();
+			$fax = array();
 			if(!empty($organization['telephone']["fixe"]))
 			{
 				foreach ($organization['telephone']["fixe"] as $key => $value) {
@@ -839,10 +840,21 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 						$mobile[] = $trimValue;
 				}
 			}
+
+			if(!empty($organization['telephone']["fax"]))
+			{
+				foreach ($organization['telephone']["fax"] as $key => $value) {
+					$trimValue=trim($value);
+					if(!empty($trimValue))
+						$fax[] = $trimValue;
+				}
+			}
 			if(count($mobile) != 0)
 				$tel["mobile"] = $mobile ;
 			if(count($fixe) != 0)
 				$tel["fixe"] = $fixe ;
+			if(count($fax) != 0)
+				$tel["fax"] = $fax ;
 			if(count($tel) != 0)	
 				$newOrganization['telephone'] = $tel;
 		}

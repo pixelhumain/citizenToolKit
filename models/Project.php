@@ -534,15 +534,18 @@ class Project {
 		}
 
 
-
-
 		$newProject['address']['@type'] = "PostalAddress" ;
 		$newProject['address']['streetAddress'] = empty($projectImportData['address']['streetAddress']) ? "" : $projectImportData['address']['streetAddress'];
 		$newProject['address']['postalCode'] = empty($projectImportData['address']['postalCode']) ? "" : $projectImportData['address']['postalCode'];
-		$newProject['address']['addressCountry'] = empty($projectImportData['address']['addressCountry']) ? "FR" : $projectImportData['address']['addressCountry'];
+		$newProject['address']['addressCountry'] = empty($projectImportData['address']['addressCountry']) ? "" : $projectImportData['address']['addressCountry'];
 		$newProject['address']['addressLocality'] = empty($projectImportData['address']['addressLocality']) ? "" : $projectImportData['address']['addressLocality'];
 		$newProject['address']['codeInsee'] = empty($projectImportData['address']['codeInsee']) ? "" : $projectImportData['address']['codeInsee'];
 	
+		if(!empty($newProject['address']['postalCode'])){
+			$cityByCp = PHDB::find(City::COLLECTION, array("cp"=>$newProject['address']['postalCode']));
+			if(empty($cityByCp))
+				throw new CTKException("Ce code postal n'existe pas");
+		}
 
 		if(!empty($projectImportData['geo']['latitude']))
 		{
@@ -563,9 +566,26 @@ class Project {
 					$newProject['address']['addressLocality'] = $value["alternateName"];
 					break;
 				}
+			
 			}
 			else{
-				throw new CTKException("Nous n'avons pas pu récupere la commune avec les coordonnées géographique et son code postal.");
+				if(!empty($cityByCp)) {
+					$find = false ;
+					foreach ($cityByCp as $key => $value){
+						if($value["alternateName"] == $projectImportData['address']['addressLocality'] || $value["name"] == $projectImportData['address']['addressLocality']){
+							$insee = $value["insee"];
+							$cp = $value["cp"];
+							$newProject['address']['addressCountry'] = $value["country"];
+							$newProject['address']['addressLocality'] = $value["alternateName"];
+							$find = true ;
+							break;
+						}
+					}
+					if($find == false)
+						throw new CTKException("Nous n'avons pas trouver la commune : Vérifier si le code postal et le nom de la commune soient bonnes");
+				}
+
+				$newProject['warning'] = "Il y a une incohérence entre la géolocalisation et le code postal";
 			}	
 		}	
 
@@ -603,7 +623,7 @@ class Project {
 			}
 
 			if($id >= "8169" &&  $id <= "11686"){
-				throw new CTKException(Yii::t("project","Projet Amaury"));
+				throw new CTKException(Yii::t("project","Projet ImaginationForPeople"));
 			}
 		}
 
@@ -615,12 +635,12 @@ class Project {
 			$newProject['name'] = $project['name'];
 		
 		// Is There a project with the same name ?
-		if(!$update){
+		/*if(!$update){
 		   	$projectSameName = PHDB::findOne(self::COLLECTION ,array( "name" => $project['name']));
 		    if($projectSameName) { 
 		      throw new CTKException(Yii::t("project","A project with the same name already exist in the plateform"));
 		    }
-		}
+		}*/
 
 		if(!$update){
 			$newProject = array(
@@ -706,6 +726,9 @@ class Project {
 
 		if (!empty($project['source']))
 			$newProject["source"] = $project['source'];
+
+		if (!empty($project['warnings']))
+			$newProject["warnings"] = $project['warnings'];
 
 		if (isset($project['tags']) ) {
 			if ( is_array( $project['tags'] ) ) {
