@@ -830,21 +830,18 @@ class Import
 
                     if($res["result"] == true){
                         $projet["name"] =  $value["name"];
-                        $projet["geo"] =  $value["geo"]["latitude"] . " / " . $value["geo"]["longitude"];
-                        $projet["cp"] =  $value["address"]["postalCode"] . " ". $value["address"]["addressLocality"];
+                        
                         $projet["info"] = "Success" ;
                     }else{
                         $projet["name"] =  $value["name"];
-                        $projet["geo"] =  $value["geo"]["latitude"] . " / " . $value["geo"]["longitude"];
-                        $projet["cp"] =  $value["address"]["postalCode"] . " ". $value["address"]["addressLocality"];
+                        
                         $projet["info"] = "Error" ;
                     }
                     $resData[] = $projet;
                 }
                 catch (CTKException $e){
                     $projet["name"] =  $value["name"];
-                    $projet["geo"] =  $value["geo"]["latitude"] . " / " . $value["geo"]["longitude"];
-                    $projet["cp"] =  $value["address"]["postalCode"] . " ". $value["address"]["addressLocality"];
+                    
                     $projet["info"] = $e->getMessage();
                     $resData[] = $projet;
                 }        
