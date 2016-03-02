@@ -19,8 +19,38 @@ class Preference {
 			
 		$setType = $param["type"]; 
 		$setValue = $param["value"];
+		$publicFields = array();
+		$privateFields = array();
+		$res = array();
+
+	    if(@$context["preferences"]["publicFields"] && !empty($context["preferences"]["publicFields"])){
+			$publicFields=$context["preferences"]["publicFields"];
+			//if(in_array($setType, $publicFields)) {
+			foreach ($publicFields as $key => $value) {
+			    if ($setType === $value) {
+			    	unset($publicFields[$key]);
+			    }
+			}	
+		}
+		if(@$context["preferences"]["privateFields"] && !empty($context["preferences"]["privateFields"]))			{
+			$privateFields=$context["preferences"]["privateFields"];
+			foreach ($privateFields as $key => $value) {
+			    if ($setType === $value) {
+			    	unset($privateFields[$key]);
+			    }
+			}		
+		} 
+		if($setValue=="public"){
+			$publicFields[]=$setType;
+		}
+		if($setValue=="private"){
+			$privateFields[]=$setType;
+		}
 		
-		if($setValue == "hide"){
+			PHDB::update($type, array("_id" => new MongoId($id)), 
+			    array('$set' => array("preferences.privateFields" => $privateFields, "preferences.publicFields" => $publicFields)));		
+		
+		/*if($setValue == "hide"){
 			PHDB::update($type, array("_id" => new MongoId($id)), 
 			    array('$unset' => array("preferences.publicFields.".$setType => "","preferences.privateFields.".$setType => "")
 			));
@@ -34,7 +64,7 @@ class Preference {
 			PHDB::update($type, array("_id" => new MongoId($id)), 
 			    array('$unset' => array("preferences.privateFields.".$setType => ""),'$set'=> array("preferences.publicFields.".$setType => true))
 			);
-		}
+		}*/
 		$res = array("result" => true, "msg" => Yii::t("common","Confidentiality param well updated"));
 		return $res;
 	}
