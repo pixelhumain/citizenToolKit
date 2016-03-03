@@ -20,7 +20,7 @@ class GetAction extends CAction
         } else
             $res = array('result' => false , 'msg'=>'something somewhere went terribly wrong');
             
-        Rest::json($res);  
+        Rest::json($res,false);  
         Yii::app()->end();
     }
 }

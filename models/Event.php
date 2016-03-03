@@ -223,7 +223,7 @@ class Event {
 						"latitude" => $params['geoPosLatitude'],
 						"longitude" => $params['geoPosLongitude']);
 
-			$newEvent["geoPosition"] = array(	"type"			=> "point",
+			$newEvent["geoPosition"] = array(	"type"			=> "Point",
 												"coordinates" 	=> array(
 																		floatval($params['geoPosLongitude']),
 																		floatval($params['geoPosLatitude']))

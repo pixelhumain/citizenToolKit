@@ -114,24 +114,23 @@ class Gamification {
 	public static function badge($userId) {
 		
 		$total = self::calcPoints($userId);
-		$res = "air";
+		$res = Yii::t("common","air");
 
 		if( $total > self::BADGE_SEED_LIMIT && $total < self::BADGE_GERM_LIMIT )
-			$res = "seed";
+			$res = Yii::t("common","seed");
 		if( $total > self::BADGE_GERM_LIMIT && $total < self::BADGE_PLANT_LIMIT )
-			$res = "germ";
+			$res = Yii::t("common","germ");
 		if( $total > self::BADGE_PLANT_LIMIT && $total < self::BADGE_TREE_LIMIT )
-			$res = "plant";
+			$res = Yii::t("common","plant");
 		if( $total > self::BADGE_TREE_LIMIT && $total < self::BADGE_FOREST_LIMIT )
-			$res = "tree";
+			$res = Yii::t("common","tree");
 		if( $total > self::BADGE_FOREST_LIMIT && $total < self::BADGE_COUNTRY_LIMIT )
-			$res = "forest";
+			$res = Yii::t("common","forest");
 		if( $total > self::BADGE_COUNTRY_LIMIT && $total < self::BADGE_PLANET_LIMIT )
-			$res = "country";
+			$res = Yii::t("common","country");
 		if( $total > self::BADGE_PLANET_LIMIT )
-			$res = "planet";
+			$res = Yii::t("common","planet");
 		
-
 		return $res;
 	}
 	/**

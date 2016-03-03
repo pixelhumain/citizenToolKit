@@ -9,7 +9,7 @@ class GetCountriesAction extends CAction
     {
         
         $countries = OpenData::getCountriesList();
-        Rest::json($countries); 
+        Rest::json($countries,false); 
         Yii::app()->end();
     }
 }

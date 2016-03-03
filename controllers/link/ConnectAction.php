@@ -12,28 +12,27 @@ class ConnectAction extends CAction
 
 	    $result = array("result"=>false, "msg"=>Yii::t("common", "Incorrect request"));
 		
-		if (! Person::logguedAndValid()) {
-			return $result;
+		if ( Person::logguedAndValid() ) 
+		{
+		    $roles="";
+		    $child = array(
+				"childId" => @$_POST["childId"],
+		    	"childType" => $_POST["childType"],
+		    	"childName" => @$_POST["childName"],
+	            "childEmail" => @$_POST["childEmail"]
+		    );
+	    	$parentId = $_POST["parentId"];
+	    	$parentType = $_POST["parentType"];
+	    	$connectType = $_POST["connectType"];
+	    	
+	    	if ($connectType=="admin"){
+		    	$connectType=true;
+	    	} else {
+		    	$connectType=false;
+	    	}
+	    				
+			$result = Link::connectParentToChild($parentId, $parentType, $child, $connectType, Yii::app()->session["userId"], $roles);
 		}
-
-	    $roles="";
-	    $child = array(
-			"childId" => @$_POST["childId"],
-	    	"childType" => $_POST["childType"],
-	    	"childName" => @$_POST["childName"],
-            "childEmail" => @$_POST["childEmail"]
-	    );
-    	$parentId = $_POST["parentId"];
-    	$parentType = $_POST["parentType"];
-    	$connectType = $_POST["connectType"];
-    	
-    	if ($connectType=="admin"){
-	    	$connectType=true;
-    	} else {
-	    	$connectType=false;
-    	}
-    				
-		$result = Link::connectParentToChild($parentId, $parentType, $child, $connectType, Yii::app()->session["userId"], $roles);
 		Rest::json($result);
     }
 
