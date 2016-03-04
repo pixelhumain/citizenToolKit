@@ -183,7 +183,7 @@ class Mail
             "from"=>Yii::app()->session['userEmail'],
             "to" => Yii::app()->params['adminEmail'],
             "tplParams" => array(
-                                    "title" => Yii::app()->session["user"]["username"] ,
+                                    "title" => Yii::app()->session["userName"] ,
                                     "logo"  => "/images/logo.png",
                                     "content"=> $text)
         );

@@ -93,7 +93,7 @@ class IndexAction extends CAction
 	        if (@Yii::app()->session["userId"])
 				$params["canPostNews"] = true;
         }
-		else if ($type=="communecter"){
+		else if ($type=="pixels"){
 			$params["canPostNews"] = true;
 		}
 		if ($streamType == "news"){
@@ -328,13 +328,14 @@ $newsObject=NewsTranslator::convertToNews($data,NewsTranslator::NEWS_JOIN_ORGANI
 								//print_r($params["news"]);
 								
 		if(Yii::app()->request->isAjaxRequest){
-			if (!@$_GET["isNotSV"])
+			if (!@$_GET["isFirst"]){
+				 echo $controller->renderPartial("index", $params,true);
+	       } else{
+				//
 				echo json_encode($params);
-	        else{
-				echo $controller->renderPartial("indexSearch", $params,true);
-	       }
+	      }
 	    }
 	    else
-  			$controller->render( "index" , $params  );
+			$controller->render( "index" , $params  );
     }
 }
