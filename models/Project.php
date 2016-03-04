@@ -38,15 +38,17 @@ class Project {
 	  	$project = PHDB::findOne( self::COLLECTION,array("_id"=>new MongoId($id)));
 	  	if ($project !=null) {
 		  	if (!empty($project["startDate"]) || !empty($project["endDate"])) {
-		  		if(isset($project["startDate"]) && isset($project["endDate"])){
-					if (gettype($project["startDate"]) == "object" || gettype($project["endDate"]) == "object") {
+		  		if(isset($project["startDate"]) && isset($project["endDate"])) {
+					if (gettype($project["startDate"]) == "object") {
 						//Set TZ to UTC in order to be the same than Mongo
 						date_default_timezone_set('UTC');
 						if (!empty($project["startDate"]))
 							$project["startDate"] = date('Y-m-d H:i:s', $project["startDate"]->sec);
+					}
+					if (gettype($project["endDate"]) == "object") {
+						date_default_timezone_set('UTC');
 						if (!empty($project["endDate"]))
 							$project["endDate"] = date('Y-m-d H:i:s', $project["endDate"]->sec);
-
 					} else {
 						//Manage old date with string on date project
 						$now = time();
@@ -58,7 +60,7 @@ class Project {
 				}
 			}
 		}
-		
+
 		if (!empty($project)) {
 			$project = array_merge($project, Document::retrieveAllImagesUrl($id, self::COLLECTION));
 			$project["typeSig"] = "projects";
