@@ -100,7 +100,8 @@ class DetailAction extends CAction
 	  	// return true or false
 	  	$isProjectAdmin = false;
 	  	$admins = array();
-		$isProjectAdmin=Authorisation::isProjectAdmin($project["_id"], Yii::app()->session["userId"]);
+	  	$isProjectAdmin=Authorisation::canEditItem(Yii::app()->session["userId"], Project::COLLECTION, $project["_id"]);
+		//$isProjectAdmin=Authorisation::isProjectAdmin($project["_id"], Yii::app()->session["userId"]);
 	  	$lists = Lists::get(array("organisationTypes"));
 	  	$params["countries"] = OpenData::getCountriesList();
 	  	$params["tags"] = Tags::getActiveTags();

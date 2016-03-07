@@ -23,6 +23,8 @@ class Project {
 	    "url" => array("name" => "url"),
 	    "licence" => array("name" => "licence"),
 	    "avancement" => array("name" => "properties.avancement"),
+	    "state" => array("name" => "state"),
+	    "warnings" => array("name" => "warnings"),
 	);
 
 	private static function getCollectionFieldNameAndValidate($projectFieldName, $projectFieldValue, $projectId) {
@@ -508,7 +510,7 @@ class Project {
 	*	@param string Date Update openAgenda
 	*   return String ("Add", "Update" or "Delete")
 	*/
-	public static function createProjectFromImportData($projectImportData) {
+	public static function createProjectFromImportData($projectImportData, $key=null) {
 		//var_dump($projectImportData);
 		if(!empty($projectImportData['name']))
 			$newProject["name"] = $projectImportData["name"];
@@ -534,20 +536,33 @@ class Project {
 				$newProject["source"]['sourceId'] = $projectImportData["source"]['sourceId'];
 			if(!empty($projectImportData['source']['sourceUrl']))
 				$newProject["source"]['sourceUrl'] = $projectImportData["source"]['sourceUrl'];
-			$projectImportData["source"]['sourceKey'] = "patapouf";
-			if(!empty($projectImportData['source']['sourceKey']))
-				$newProject["source"]['sourceKey'] = $projectImportData["source"]['sourceKey'];
+			//$projectImportData["source"]['sourceKey'] = "patapouf";
+			if(!empty($key))
+				$newProject["source"]['sourceKey'] = $key;
 		}
 
+		if(!empty($projectImportData['warnings']))
+			$newProject["warnings"] = $projectImportData["warnings"];
 
-		$newProject['address']['@type'] = "PostalAddress" ;
+
+		/*$newProject['address']['@type'] = "PostalAddress" ;
 		$newProject['address']['streetAddress'] = empty($projectImportData['address']['streetAddress']) ? "" : $projectImportData['address']['streetAddress'];
 		$newProject['address']['postalCode'] = empty($projectImportData['address']['postalCode']) ? "" : $projectImportData['address']['postalCode'];
 		$newProject['address']['addressCountry'] = empty($projectImportData['address']['addressCountry']) ? "" : $projectImportData['address']['addressCountry'];
 		$newProject['address']['addressLocality'] = empty($projectImportData['address']['addressLocality']) ? "" : $projectImportData['address']['addressLocality'];
 		$newProject['address']['codeInsee'] = empty($projectImportData['address']['codeInsee']) ? "" : $projectImportData['address']['codeInsee'];
-	
-		if(!empty($newProject['address']['postalCode'])){
+		*/
+		
+		if(!empty($projectImportData['geo']['latitude']))
+			$newProject['geo']['latitude'] = $projectImportData['geo']['latitude'];
+
+		if(!empty($projectImportData['geo']['longitude']))
+			$newProject['geo']['longitude'] = $projectImportData['geo']['longitude'];
+
+
+		$newProject['address'] = Import::getAndCheckAddressForEntity($projectImportData['address'], (empty($newProject['geo']) ? null : $newProject['geo'])) ;
+
+		/*if(!empty($newProject['address']['postalCode'])){
 			$cityByCp = PHDB::find(City::COLLECTION, array("cp"=>$newProject['address']['postalCode']));
 			if(empty($cityByCp))
 				throw new CTKException("Ce code postal n'existe pas");
@@ -616,27 +631,21 @@ class Project {
 			$newProject['address']['postalCode'] = $cp ;
 		}else if(!empty($projectImportData['address']['postalCode'])){
 			$newProject['address']['postalCode'] = $projectImportData['address']['postalCode'];
-		}
+		}*/
 
 		return $newProject;
 	}
-	public static function getAndCheckProjectFromImportData($project, $userId,$insert=null, $update=null) {
+
+
+	public static function getAndCheckProjectFromImportData($project, $userId,$insert=null, $update=null, $warnings = null) {
 		//var_dump($project);
-		if(!empty($project['source']['sourceId']) ){
-			$id = $project['source']['sourceId'] ;
-			if($id >= "8025" &&  $id <= "8152"){
-				throw new CTKException(Yii::t("project","Projet Amaury"));
-			}
-
-			if($id >= "8169" &&  $id <= "11686"){
-				throw new CTKException(Yii::t("project","Projet ImaginationForPeople"));
-			}
-		}
-
-
+		
 		$newProject = array();
 		if (empty($project['name'])) {
-			throw new CTKException(Yii::t("project","You have to fill a name for your project"));
+			if($warnings)
+				$newProject["warnings"][] = "001" ;
+			else
+				throw new CTKException(Yii::t("import","001"));
 		}else
 			$newProject['name'] = $project['name'];
 		
@@ -644,7 +653,7 @@ class Project {
 		/*if(!$update){
 		   	$projectSameName = PHDB::findOne(self::COLLECTION ,array( "name" => $project['name']));
 		    if($projectSameName) { 
-		      throw new CTKException(Yii::t("project","A project with the same name already exist in the plateform"));
+		      throw new CTKException(Yii::t("import","A project with the same name already exist in the plateform"));
 		    }
 		}*/
 
@@ -680,22 +689,38 @@ class Project {
 			}
 		} 
 			
-				  
-		
 		if(!empty($project['address'])) {
-			if(empty($project['address']['postalCode']) && $insert)
-				throw new CTKException(Yii::t("project","Please fill the postal code of the project to communect it"));
-			if(empty($project['address']['codeInsee']) && $insert)
-				throw new CTKException(Yii::t("project","Please fill the Insee of the project to communect it"));
-			if(empty($project['address']['addressCountry']) && $insert)
-				throw new CTKException(Yii::t("project","Please fill the country of the project to communect it"));
-			if(empty($project['address']['addressLocality']) && $insert)
-				throw new CTKException(Yii::t("project","Please fill the locality code of the project to communect it"));
-			
+			if(empty($project['address']['postalCode']) /*&& $insert*/){
+				if($warnings)
+					$newProject["warnings"][] = "101" ;
+				else
+					throw new CTKException(Yii::t("import","101", null, Yii::app()->controller->module->id));
+			}
+			if(empty($project['address']['codeInsee'])/*&& $insert*/){
+				if($warnings)
+					$newProject["warnings"][] = "102" ;
+				else
+					throw new CTKException(Yii::t("import","102", null, Yii::app()->controller->module->id));
+			}
+			if(empty($project['address']['addressCountry']) /*&& $insert*/){
+				if($warnings)
+					$newProject["warnings"][] = "104" ;
+				else
+					throw new CTKException(Yii::t("import","104", null, Yii::app()->controller->module->id));
+			}
+			if(empty($project['address']['addressLocality']) /*&& $insert*/){
+				if($warnings)
+					$newProject["warnings"][] = "105" ;
+				else
+					throw new CTKException(Yii::t("import","105", null, Yii::app()->controller->module->id));
+			}
 			$newProject['address'] = $project['address'] ;
 
 		}else {
-			throw new CTKException(Yii::t("project","Please fill the adress of the project to communect it"));
+			if($warnings)
+				$newProject["warnings"][] = "100" ;
+			else
+				throw new CTKException(Yii::t("import","100", null, Yii::app()->controller->module->id));
 		}
 
 
@@ -715,8 +740,13 @@ class Project {
 															floatval($project['geoPosLatitude']))
 												 	  	);
 		}
-		else if($insert)
-			throw new CTKException(Yii::t("project","Please fill the geo and geoPosition of the project to communect it"));
+		else if($insert){
+			if($warnings)
+				$newProject["warnings"][] = "150" ;
+			else
+				throw new CTKException(Yii::t("import","150", null, Yii::app()->controller->module->id));
+		}else if($warnings)
+			$newProject["warnings"][] = "150" ;
 		
 		if (!empty($project['description']))
 			$newProject["description"] = $project['description'];
@@ -733,8 +763,6 @@ class Project {
 		if (!empty($project['source']))
 			$newProject["source"] = $project['source'];
 
-		if (!empty($project['warnings']))
-			$newProject["warnings"] = $project['warnings'];
 
 		if (isset($project['tags']) ) {
 			if ( is_array( $project['tags'] ) ) {
@@ -744,6 +772,24 @@ class Project {
 			}
 			$newProject["tags"] = $tags;
 		}
+
+		if (!empty($project['warnings'])){
+			$newProject["warnings"] = $project['warnings'];
+			$newProject["state"] = "uncomplete";
+		}
+
+		if(!empty($project['source']['sourceId']) ){
+			$id = $project['source']['sourceId'] ;
+			if($id >= "8025" &&  $id <= "8152"){
+				throw new CTKException(Yii::t("project","Projet Amaury"));
+			}
+			if($id >= "8169" &&  $id <= "11686"){
+				throw new CTKException(Yii::t("project","Projet ImaginationForPeople"));
+			}
+		}
+
+
+		
 
 		return $newProject;
 	}
@@ -794,15 +840,45 @@ class Project {
 					}
 
 				}
-				
-				
-				
 			}
 		}
 
 
 		return $project ;
 	}
+
+	public static function isSourceAdmin($idProject, $idUser){
+		$res = false ;
+		$project = PHDB::findOne(self::COLLECTION,array("_id"=>new MongoId($idProject)));
+		if(!empty($project["source"]["sourceKey"])){
+			$user = PHDB::findOne(Person::COLLECTION,array("_id"=>new MongoId($idUser),
+														"sourceAdmin" => $project["source"]["sourceKey"]));
+		}
+
+		if(!empty($user))
+			$res = true ;
+		return $res;
+	}
+
+	public static function isUncomplete($idProject){
+		$res = false ;
+		$project = PHDB::findOne(self::COLLECTION,array("_id"=>new MongoId($idProject), "state" => "uncomplete"));
+		if(!empty($project))
+			$res = true;
+
+		return $res ;
+	}
+
+	public static function checkWarning($idProject, $userId){
+		$project = PHDB::findOne(self::COLLECTION,array("_id"=>new MongoId($idProject)));
+		unset($project["warnings"]);
+		$newproject = self::getAndCheckProjectFromImportData($project, $userId, null, true, true);
+		if(!empty($newproject["warnings"]))
+			Project::updateProjectField($idProject, "warnings", $newproject["warnings"], $userId );
+		else
+			Project::updateProjectField($idProject, "state", true, $userId );
+	}
+
 
 }
 ?>

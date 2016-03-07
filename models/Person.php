@@ -849,13 +849,17 @@ class Person {
        							if($value["insee"] == $insee)
        								$find = true;
        						}
-       					}
-       					if($find == false){
-       						//var_dump("here");
+       						if($find == false){
+	       						$result["person"] = $person;
+		       					$result["error"] = "Cette entité est mal géolocalisé";
+		       					$res[]= $result ;
+	       					}
+       					}else{
        						$result["person"] = $person;
-	       					$result["error"] = "Cette entité est mal géolocalisé";
+	       					$result["error"] = "Nous n'avons pas trouver de commune";
 	       					$res[]= $result ;
        					}
+       					
        				}else{
 	       				$result["person"] = $person;
 	       				$result["error"] = "Cette entité n'a pas de géolocalisation";
@@ -878,7 +882,7 @@ class Person {
 	 */
   
 
-     public static function getPersonFollowsByUser($id) {
+    public static function getPersonFollowsByUser($id) {
 	  	$res = array();
 	  	$person = Person::getById($id);
 	  	
@@ -899,6 +903,12 @@ class Person {
 	  	return $res;
 	}
 
+
+	public static function getSourceAdmin($id) {
+	  	$result = PHDB::findOneById( self::COLLECTION ,$id, array('sourceAdmin'));
+	  	
+	  	return $result['sourceAdmin'];
+	}
 
 
 

@@ -5,16 +5,23 @@ class ImportInMongoAction extends CAction
     public function run()
     {
 
-    	$paramsInfoCollection = array("_id"=>new MongoId($_POST['idCollection']));
-        $infoCollection = Import::getMicroFormats($paramsInfoCollection);
+    	$paramsCollection = array("_id"=>new MongoId($_POST['idCollection']));
+        $fieldsCollection = array("key");
+        $infoCollection = Import::getMicroFormats($paramsCollection, $fieldsCollection);
+        
+        if($infoCollection[$_POST['idCollection']]["key"] == "Organizations")
+            $collection = Organization::COLLECTION;
+        else if($infoCollection[$_POST['idCollection']]['key'] == "Projets")
+        	$collection = Project::COLLECTION;
 
-       	$params = array();
-        //var_dump($infoCollection[$_POST['idCollection']]['key']) ; 
-        if($infoCollection[$_POST['idCollection']]['key'] == "Organizations")
-        	$params = Import::importOrganizationsInMongo($_POST);
-        if($infoCollection[$_POST['idCollection']]['key'] == "Projets")
-        	$params = Import::importProjectsInMongo($_POST);
+        $paramsForJson = array("jsonImport"=> $_POST["jsonImport"],
+                            "jsonError"=> $_POST["jsonError"],
+                            "nameFile" => $_POST["nameFile"],
+                            "collection" => $collection);
 
+        Import::createOrUpdateJsonForImport($paramsForJson);
+
+        $params = array();
         return Rest::json($params);
     }
 }

@@ -781,7 +781,19 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 		if(!empty($organization['name']))
 			$newOrganization["name"] = $organization['name'];
 
-		$newOrganization["type"] = empty($organization['type']) ? Organization::TYPE_GROUP : $organization['type'];
+		if(!empty($organizationorganization['source'])){
+			if(!empty($organization['source']['sourceId']))
+				$newProject["source"]['sourceId'] = $organization["source"]['sourceId'];
+			if(!empty($organization['source']['sourceUrl']))
+				$newProject["source"]['sourceUrl'] = $organization["source"]['sourceUrl'];
+			$organization["source"]['sourceKey'] = "patapouf";
+			if(!empty($organization['source']['sourceKey']))
+				$newProject["source"]['sourceKey'] = $organization["source"]['sourceKey'];
+			if(!empty($organization['source']['sourceUpdate']))
+				$newProject["source"]['sourceUpdate'] = $organization["source"]['sourceUpdate'];
+		}
+
+		$newOrganization["type"] = empty($organization['type']) ? Organization::TYPE_GOV : $organization['type'];
 		
 		if(!empty($organization['description']))
 			$newOrganization["description"] = $organization['description'];
@@ -789,20 +801,8 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 		$newOrganization["role"] = empty($organization['role']) ? "" : $organization['role'];
 		$newOrganization["creator"] = empty($organization['creator']) ? "" : $organization['creator'];
 		
-		$newOrganization['address']['@type'] = "PostalAddress" ;
-		$newOrganization['address']['streetAddress'] = empty($organization['address']['streetAddress']) ? "" : $organization['address']['streetAddress'];
-		$newOrganization['address']['postalCode'] = empty($organization['address']['postalCode']) ? "" : $organization['address']['postalCode'];
-		$newOrganization['address']['addressCountry'] = empty($organization['address']['addressCountry']) ? "FR" : $organization['address']['addressCountry'];
-		$newOrganization['address']['addressLocality'] = empty($organization['address']['addressLocality']) ? "" : $organization['address']['addressLocality'];
-		$newOrganization['address']['codeInsee'] = empty($organization['address']['codeInsee']) ? "" : $organization['address']['codeInsee'];
-	
-		if(!empty($organization['geo']))
-		{
-			$newOrganization['geo']['@type'] = "GeoCoordinates" ;
-			$newOrganization['geo']['latitude'] = empty($organization['geo']['latitude']) ? "" : $organization['geo']['latitude'];
-			$newOrganization['geo']['longitude'] = empty($organization['geo']['longitude']) ? "" : $organization['geo']['longitude'];
-		}
 		
+
 		if(!empty($organization['url']))
 			$newOrganization["url"] = empty($organization['url']) ? "" : $organization['url'];
 
@@ -859,17 +859,12 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 				$newOrganization['telephone'] = $tel;
 		}
 
-		if(!empty($organization['contact']))
-		{
+		if(!empty($organization['contact'])){
 			$contact = array();
-			
 			foreach ($organization['contact'] as $keyContact => $valueContact) {
 				$unContact = array();
-				
 				foreach ($valueContact as $key => $value) {
-					//var_dump($value);
-					if(is_array($value))
-					{
+					if(is_array($value)){
 						$arrayName = array();
 						foreach ($value as $keyArray => $valueArray) {
 							$trimValue=trim($value);
@@ -884,15 +879,88 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 						if(!empty($trimValue))
 							$unContact[$key] = $trimValue ;	
 					}
-					
 				}
 				if(count($unContact) != 0)
 					$contact[] = $unContact;
 			}
-			
 			if(count($contact) != 0)	
 				$newOrganization['contact'] = $contact;
 		}
+
+		//adress
+		$newOrganization['address']['@type'] = "PostalAddress" ;
+		$newOrganization['address']['streetAddress'] = empty($organization['address']['streetAddress']) ? "" : $organization['address']['streetAddress'];
+		$newOrganization['address']['postalCode'] = empty($organization['address']['postalCode']) ? "" : $organization['address']['postalCode'];
+		$newOrganization['address']['addressCountry'] = empty($organization['address']['addressCountry']) ? "FR" : $organization['address']['addressCountry'];
+		$newOrganization['address']['addressLocality'] = empty($organization['address']['addressLocality']) ? "" : $organization['address']['addressLocality'];
+		$newOrganization['address']['codeInsee'] = empty($organization['address']['codeInsee']) ? "" : $organization['address']['codeInsee'];
+
+
+		//geo
+		if(!empty($organization['geo']))
+		{
+			$newOrganization['geo']['@type'] = "GeoCoordinates" ;
+			$newOrganization['geo']['latitude'] = empty($organization['geo']['latitude']) ? "" : $organization['geo']['latitude'];
+			$newOrganization['geo']['longitude'] = empty($organization['geo']['longitude']) ? "" : $organization['geo']['longitude'];
+		}
+		
+		// Vérifie les geo et l'adresse
+		if(!empty($newOrganization['geo']['latitude']) && !empty($newOrganization['geo']['longitude']) ){
+			$city = SIG::getInseeByLatLngCp($newOrganization['geo']['latitude'], $newOrganization['geo']['longitude'],(empty($newOrganization['address']['postalCode']) ? null : $newOrganization['address']['postalCode']) );
+			if(!empty($city)){
+
+				foreach ($city as $key => $value){
+					$insee = $value["insee"];
+					$cp = $value["cp"];
+					$newOrganization['address']['addressCountry'] = $value["country"];
+					$newOrganization['address']['addressLocality'] = $value["alternateName"];
+					break;
+				}
+			}
+			else{
+				if(!empty($cityByCp)) {
+					$find = false ;
+					foreach ($cityByCp as $key => $value){
+						if($value["alternateName"] == $organization['address']['addressLocality'] || $value["name"] == $organization['address']['addressLocality']){
+							$insee = $value["insee"];
+							$cp = $value["cp"];
+							$newOrganization['address']['addressCountry'] = $value["country"];
+							$newOrganization['address']['addressLocality'] = $value["alternateName"];
+							$find = true ;
+							break;
+						}
+					}
+					if($find == false)
+						throw new CTKException("Nous n'avons pas trouver la commune : Vérifier si le code postal et le nom de la commune soient bonnes");
+				}
+
+				$newOrganization['warning'] = "Il y a une incohérence entre la géolocalisation et le code postal";
+			}	
+		}	
+
+		if(!empty($insee) && !empty($organization['address']['codeInsee']) ){
+			if($insee == $organization['address']['codeInsee'])
+				$newOrganization['address']['codeInsee'] = $insee ;
+			else
+				throw new CTKException("L'INSEE du fichier et celui retourné par la géolocalisation n'est pas le même.");
+		}else if(!empty($insee)){
+			$newOrganization['address']['codeInsee'] = $insee ;
+		}else if(!empty($organization['address']['codeInsee'])){
+			$newOrganization['address']['codeInsee'] = $organization['address']['codeInsee'];
+		}
+
+
+		if(!empty($organization['address']['postalCode']) && !empty($cp)){
+			if($cp == $organization['address']['postalCode'])
+				$newOrganization['address']['postalCode'] = $cp ;
+			else
+				throw new CTKException("Le code postal du fichier et celui retourné par la géolocalisation n'est pas le même.");
+		}else if(!empty($cp)){
+			$newOrganization['address']['postalCode'] = $cp ;
+		}else if(!empty($organization['address']['postalCode'])){
+			$newOrganization['address']['postalCode'] = $organization['address']['postalCode'];
+		}
+
 		return $newOrganization;
 	}
 
@@ -902,7 +970,7 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 	 * @param array $organization : array with the data of the organization to check
 	 * @return array Organization well format : ready to be inserted
 	 */
-	public static function getAndCheckOrganizationFromImportData($organization) {
+	public static function getAndCheckOrganizationFromImportData($organization, $insert=null) {
 		$newOrganization = array();
 		if (empty($organization['name'])) 
 			throw new CTKException(Yii::t("organization","You have to fill a name for your organization"));
@@ -914,6 +982,8 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 	    if($organizationSameName) { 
 	      throw new CTKException(Yii::t("organization","An organization with the same name already exist in the plateform"));
 	    }
+
+
 
 		$newOrganization['created'] = time() ;
 		
@@ -929,28 +999,31 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 		}
 		$newOrganization["type"] = $organization['type'];
 				  
-		if(!empty($project['address'])) {
-			if(empty($project['address']['postalCode']))
-				throw new CTKException(Yii::t("project","Please fill the postal code of the project to communect it"));
-			if(empty($project['address']['codeInsee']))
-				throw new CTKException(Yii::t("project","Please fill Insee of the project to communect it"));
-			if(empty($project['address']['addressCountry']))
-				throw new CTKException(Yii::t("project","Please fill the country of the project to communect it"));
-			if(empty($project['address']['addressLocality']))
-				throw new CTKException(Yii::t("project","Please fill the locality code of the project to communect it"));
+		if(!empty($organization['address'])) {
+			if(empty($organization['address']['postalCode']) && $insert)
+				throw new CTKException(Yii::t("organization","Please fill the postal code of the organization to communect it"));
+			if(empty($organization['address']['codeInsee']) && $insert)
+				throw new CTKException(Yii::t("organization","Please fill Insee of the organization to communect it"));
+			if(empty($organization['address']['addressCountry']) && $insert)
+				throw new CTKException(Yii::t("organization","Please fill the country of the organization to communect it"));
+			if(empty($organization['address']['addressLocality']) && $insert)
+				throw new CTKException(Yii::t("organization","Please fill the locality code of the organization to communect it"));
 			
-			$newProject['address'] = $project['address'] ;
+			$newOrganization['address'] = $organization['address'] ;
 
 		}else {
-			throw new CTKException(Yii::t("project","Please fill the adress of the project to communect it"));
+			throw new CTKException(Yii::t("organization","Please fill the adress of the organization to communect it"));
 		}
 
-		if(!empty($project['geo']) && !empty($project["geoPosition"])){
-			$newProject["geo"] = $project['geo'];
-			$newProject["geoPosition"] = $project['geoPosition'];
+		if(!empty($organization['geo']) && !empty($organization["geoPosition"])){
+			$newOrganization["geo"] = $organization['geo'];
+			$newOrganization["geoPosition"] = $organization['geoPosition'];
 		}
-		else
-			throw new CTKException(Yii::t("project","Please fill the geo and geoPosition of the project to communect it"));
+		else{
+			if($insert)
+				throw new CTKException(Yii::t("organization","Please fill the geo and geoPosition of the organization to communect it"));
+		}
+			
 		
 
 		if (isset($organization['tags'])) {

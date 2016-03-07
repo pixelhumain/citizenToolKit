@@ -9,7 +9,9 @@ class AssignDataAction extends CAction
         if($_POST['typeFile'] == "json" || $_POST['typeFile'] == "js")
         	$params = Import::parsingJSON2($_POST);
         else if($_POST['typeFile'] == "csv")
-        	$params = Import::parsingCSV2($_POST);
+            $params = Import::parsingCSV2($_POST);
+        	//$params = Import::alternateCP($_POST);
+        	
 
         return Rest::json($params);
     }
