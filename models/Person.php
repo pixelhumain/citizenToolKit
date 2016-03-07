@@ -882,7 +882,7 @@ class Person {
 	 */
   
 
-     public static function getPersonFollowsByUser($id) {
+    public static function getPersonFollowsByUser($id) {
 	  	$res = array();
 	  	$person = Person::getById($id);
 	  	
@@ -903,6 +903,12 @@ class Person {
 	  	return $res;
 	}
 
+
+	public static function getSourceAdmin($id) {
+	  	$result = PHDB::findOneById( self::COLLECTION ,$id, array('sourceAdmin'));
+	  	
+	  	return $result['sourceAdmin'];
+	}
 
 
 

@@ -1143,6 +1143,29 @@ class Import
     }
 
 
+    public static function getAllEntitiesByKey($key){
+        $result = array();
+        $projects = array();
+        $organizations = array();
+        $events = array();
+        
+        $res = PHDB::find(Project::COLLECTION, array("source.sourceKey"=>$key, "state" => "uncomplete"));
+        foreach ($res as $key => $value) {
+            $projects["id"] = $key;
+            $projects["name"] = $value["name"];
+            $projects["warnings"] = $value["warnings"];
+        }
+
+        $result["project"] = $projects;
+        $result["organization"] = PHDB::find(Organization::COLLECTION, array("source.sourceKey"=>$key, "state" => "uncomplete"));
+        $result["event"] = PHDB::find(Event::COLLECTION, array("source.sourceKey"=>$key, "state" => "uncomplete"));
+
+        return $result ;
+    }
+
+    
+
+
 
 }
 

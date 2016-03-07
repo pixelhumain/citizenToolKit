@@ -463,6 +463,10 @@ class Authorisation {
     		$res = Authorisation::isEventAdmin($itemId, $userId);
     	} else if($type == Project::COLLECTION) {
     		$res = Authorisation::isProjectAdmin($itemId, $userId);
+            /*if(Role::isSuperAdmin(Role::getRolesUserId($userId)) && $res==false)
+                $res = true ;*/
+            if(Project::isSourceAdmin($itemId, $userId) && $res==false)
+                $res = true ;
     	} else if($type == Organization::COLLECTION) {
     		$res = Authorisation::isOrganizationAdmin($userId, $itemId);
             if(Role::isSuperAdmin(Role::getRolesUserId($userId)) && $res==false)
