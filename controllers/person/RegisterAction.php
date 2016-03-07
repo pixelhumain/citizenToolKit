@@ -13,22 +13,27 @@ class RegisterAction extends CAction
         $name = (!empty($_POST['name'])) ? $_POST['name'] : "";
         $username = (!empty($_POST['username'])) ? $_POST['username'] : "";
 		$email = (!empty($_POST['email'])) ? $_POST['email'] : "";
-		$postalCode = (!empty($_POST['cp'])) ? $_POST['cp'] : "";
-		$geoPosLatitude = (!empty($_POST['geoPosLatitude'])) ? $_POST['geoPosLatitude'] : "";
-		$geoPosLongitude = (!empty($_POST['geoPosLongitude'])) ? $_POST['geoPosLongitude'] : "";
 		$pwd = (!empty($_POST['pwd'])) ? $_POST['pwd'] : "";
-		$city = (!empty($_POST['city'])) ? $_POST['city'] : "";
 		$pendingUserId = (!empty($_POST['pendingUserId'])) ? $_POST['pendingUserId'] : "";
 
-		//Get the person data
 		$newPerson = array(
 			'name'=> $name,
 			'username'=> $username,
-			'postalCode'=> $postalCode, //TODO : move to address node
-			'geoPosLatitude'=> $geoPosLatitude,
-			'geoPosLongitude'=> $geoPosLongitude,
-			'pwd'=>$pwd,
-			'city'=>$city);
+			'pwd'=>$pwd
+		);
+
+		if (@$_POST['mode']) 
+			$mode = Person::REGISTER_MODE_TWO_STEPS;
+		else 
+			$mode = Person::REGISTER_MODE_NORMAL;
+
+		// Deprecated but keep it for Rest calls.
+		if ($mode == Person::REGISTER_MODE_NORMAL) {
+			$newPerson['city'] = @$_POST['city'];
+			$newPerson['postalCode'] = @$_POST['cp'];
+			$newPerson['geoPosLatitude'] = @$_POST['geoPosLatitude'];
+			$newPerson['geoPosLongitude'] = @$_POST['geoPosLongitude'];
+		}
 
 		//The user already exist in the db : the data should be updated
 		if ($pendingUserId != "") {
@@ -41,11 +46,12 @@ class RegisterAction extends CAction
 		} else {
 			try {
 				$newPerson['email'] = $email;
-				$res = Person::insert($newPerson, false);
+				$res = Person::insert($newPerson, $mode);
 				$newPerson["_id"]=$res["id"];
-
 			} catch (CTKException $e) {
 				$res = array("result" => false, "msg"=>$e->getMessage());
+				Rest::json($res);
+				exit;
 			}
 		}
 

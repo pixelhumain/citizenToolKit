@@ -6,6 +6,10 @@ class Person {
 	const ICON = "fa-user";
 	const COLOR = "#F5E740";
 
+	const REGISTER_MODE_MINIMAL	 	= "minimal";
+	const REGISTER_MODE_NORMAL 		= "normal";
+	const REGISTER_MODE_TWO_STEPS 	= "two_steps_register";
+
 	//From Post/Form name to database field name with rules
 	private static $dataBinding = array(
 	    "name" => array("name" => "name", "rules" => array("required")),
@@ -309,7 +313,7 @@ class Person {
 	 */
 	public static function createAndInvite($param, $msg = null) {
 	  	try {
-	  		$res = self::insert($param, true);
+	  		$res = self::insert($param, self::REGISTER_MODE_MINIMAL);
 	  		//send invitation mail
 			Mail::invitePerson($res["person"], $msg);
 	  	} catch (CTKException $e) {
@@ -325,19 +329,24 @@ class Person {
 	 * Apply person checks and business rules before inserting
 	 * Throws CTKException on error
 	 * @param array $person : array with the data of the person to check
-	 * @param boolean $minimal : true : a person can be created using only name and email. 
-	 * Else : postalCode, city and pwd are also requiered
+	 * @param string $mode : insert mode type. 
+	 * REGISTER_MODE_MINIMAL : a person can be created using only name and email. 
+	 * REGISTER_MODE_NORMAL : name, email, username, password, postalCode, city
+	 * REGISTER_MODE_TWO_STEPS : name, username, email, password
 	 * @param boolean $uniqueEmail : true : check if a person already exist in the db with that email
 	 * @return the new person with the business rules applied
 	 */
-	public static function getAndcheckPersonData($person, $minimal, $uniqueEmail = true) {
+	public static function getAndcheckPersonData($person, $mode, $uniqueEmail = true) {
 		$dataPersonMinimal = array("name", "email");
 		
 		$newPerson = array();
-		if (! $minimal) {
-			array_push($dataPersonMinimal, "username", "postalCode", "city", "pwd");
-		} else {
+		if ($mode == self::REGISTER_MODE_MINIMAL) {
 			$newPerson["pending"] = true;
+		} else if ($mode == self::REGISTER_MODE_NORMAL) {
+			array_push($dataPersonMinimal, "username", "postalCode", "city", "pwd");
+		} else if ($mode == self::REGISTER_MODE_TWO_STEPS) {
+			array_push($dataPersonMinimal, "username", "pwd");
+			$newPerson[self::REGISTER_MODE_TWO_STEPS] = true;
 		}
 
 		//Check the minimal data
@@ -366,7 +375,7 @@ class Person {
 	  		$newPerson["invitedBy"] = $person["invitedBy"];
 	  	}
 
-	  	if (! $minimal) {
+	  	if ($mode == self::REGISTER_MODE_NORMAL || $mode == self::REGISTER_MODE_TWO_STEPS) {
 		  	//user name
 		  	$newPerson["username"] = $person["username"];
 		  	if ( ! self::isUniqueUsername($newPerson["username"]) ) {
@@ -375,7 +384,9 @@ class Person {
 
 		  	//Encode the password
 		  	$newPerson["pwd"] = hash('sha256', $person["email"].$person["pwd"]);
-		  	
+		}
+
+		if ($mode == self::REGISTER_MODE_NORMAL) {
 		  	//Manage the adress : postalCode / adressLocality / codeInsee
 		  	//Get Locality label
 		  	try {
@@ -409,10 +420,10 @@ class Person {
 	 * @param boolean $minimal : true : a person can be created using only "name" and "email". Else : "postalCode" and "pwd" are also requiered
 	 * @return array result, msg and id
 	 */
-	public static function insert($person, $minimal = false) {
+	public static function insert($person, $mode = self::REGISTER_MODE_NORMAL) {
 
 	  	//Check Person data + business rules
-	  	$person = self::getAndcheckPersonData($person, $minimal);
+	  	$person = self::getAndcheckPersonData($person, $mode);
 	  	
 	  	$person["@context"] = array("@vocab"=>"http://schema.org",
             "ph"=>"http://pixelhumain.com/ph/ontology/");
@@ -766,7 +777,7 @@ class Person {
 		} else {
 			$person["email"] = $account["email"];
 			//Update des infos minimal
-			$personToUpdate = self::getAndcheckPersonData($person, false, false);
+			$personToUpdate = self::getAndcheckPersonData($person, self::REGISTER_MODE_TWO_STEPS, false);
 
 			PHDB::update(Person::COLLECTION, array("_id" => new MongoId($personId)), 
 			                          array('$set' => $personToUpdate, '$unset' => array("pending" => ""
