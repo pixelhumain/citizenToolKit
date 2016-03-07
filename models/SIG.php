@@ -86,6 +86,9 @@ class SIG
 			error_log("update TYPE_PROJECTS");
 			Project::updateProjectField($entityId, "geo", $geo, Yii::app()->session['userId'] );
 			Project::updateProjectField($entityId, "geoPosition", $geoPosition, Yii::app()->session['userId'] );
+			if(Project::isUncomplete($entityId))
+				Project::checkWarning($entityId, Yii::app()->session['userId'] );
+				
 		}
 		if($entityType == PHType::TYPE_EVENTS){
 			error_log("update TYPE_EVENTS");
@@ -277,4 +280,5 @@ class SIG
 						$att.'.longitude' => array('$gt' => floatval($params['lngMinScope']), '$lt' => floatval($params['lngMaxScope']))
 					  );
 	}
+
 }

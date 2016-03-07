@@ -13,6 +13,10 @@ class UpdateFieldAction extends CAction
 			$projectFieldValue = $_POST["value"];
 			try {
 				Project::updateProjectField($projectId, $projectFieldName, $projectFieldValue, Yii::app()->session["userId"] );
+				if(Project::isUncomplete($projectId)){
+					Project::checkWarning($projectId, Yii::app()->session['userId'] );
+				}
+
 			} catch (CTKException $e) {
 				return Rest::json(array("result"=>false, "msg"=>$e->getMessage(), $projectFieldName=>$projectFieldValue));
 			}

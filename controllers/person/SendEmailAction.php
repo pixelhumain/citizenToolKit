@@ -1,12 +1,13 @@
 <?php
 /**
- * 
+ * Send an mail to a user with the email.
+ * Depending of the type. Could be
+ * - password = to send a new password to the user
+ * - validation = to send the validation email to the user
  * @return [json] 
  */
-class SendEmailAction extends CAction
-{
-    public function run()
-    {
+class SendEmailAction extends CAction {
+    public function run() {
         $email = $_POST["email"];
         $type = $_POST["type"];
         
@@ -31,15 +32,15 @@ class SendEmailAction extends CAction
             if (empty($_POST["app"])) {
                 $app = new Application("");
             } else {
-                $app = new Application($_POST["app"]);    
+                $app = new Application($_POST["app"]);
             }
             
             //send validation mail
             Mail::passwordRetreive($email, $pwd);
-            $res = array("result"=>true,"msg"=>"Un mail avec un nouveau mot de passe vous a été envoyé à votre adresse email. Merci.");
+            $res = array("result"=>true, "msg"=>"Un mail avec un nouveau mot de passe vous a été envoyé à votre adresse email. Merci.");
         
         // Validation Mail
-        } else if ($type == "validation") {
+        } else if ($type == "validateEmail") {
             Mail::validatePerson($user);
             $res = array("result"=>true,"msg"=>"Un mail de validation vous a été envoyé à votre adresse email.");
         } else {

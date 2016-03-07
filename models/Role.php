@@ -8,6 +8,7 @@ class Role {
 	const REVOKE_SUPER_ADMIN = "revokeSuperAdmin";
 	const DEVELOPER = "developer";
 	const SUPERADMIN = "superAdmin";
+	const SOURCEADMIN = "sourceAdmin";
 	
 	/**
 	 * Default Roles for a new person : 
@@ -108,6 +109,14 @@ class Role {
 
 	public static function isDeveloper($roles) {
 		if (@$roles[self::DEVELOPER]) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	public static function isSourceAdmin($roles) {
+		if (@$roles[self::SOURCEADMIN]) {
 			return true;
 		} else {
 			return false;
