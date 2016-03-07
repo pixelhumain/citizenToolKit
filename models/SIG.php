@@ -277,4 +277,5 @@ class SIG
 						$att.'.longitude' => array('$gt' => floatval($params['lngMinScope']), '$lt' => floatval($params['lngMaxScope']))
 					  );
 	}
+
 }
