@@ -36,23 +36,29 @@ class Project {
 	 */
 	public static function getById($id) {
 	  	$project = PHDB::findOne( self::COLLECTION,array("_id"=>new MongoId($id)));
-	  	if (!empty($project["startDate"]) || !empty($project["endDate"])) {
-	  		if(isset($project["startDate"]) && isset($project["endDate"])){
-				if (gettype($project["startDate"]) == "object" || gettype($project["endDate"]) == "object") {
-					//Set TZ to UTC in order to be the same than Mongo
-					date_default_timezone_set('UTC');
-					if (!empty($project["startDate"]))
-						$project["startDate"] = date('Y-m-d H:i:s', $project["startDate"]->sec);
-					if (!empty($project["endDate"]))
-						$project["endDate"] = date('Y-m-d H:i:s', $project["endDate"]->sec);
-
-				} else {
-					//Manage old date with string on date project
+	  	if ($project !=null) {
+		  	if (!empty($project["startDate"]) || !empty($project["endDate"])) {
+		  		if(isset($project["startDate"]) && isset($project["endDate"])) {
 					$now = time();
 					$yesterday = mktime(0, 0, 0, date("m")  , date("d")-1, date("Y"));
 					$yester2day = mktime(0, 0, 0, date("m")  , date("d")-2, date("Y"));
-					$project["endDate"] = date('Y-m-d H:i:s', $yesterday);
-					$project["startDate"] = date('Y-m-d H:i:s',$yester2day);;
+
+					if (gettype($project["startDate"]) == "object") {
+						//Set TZ to UTC in order to be the same than Mongo
+						date_default_timezone_set('UTC');
+						if (!empty($project["startDate"]))
+							$project["startDate"] = date('Y-m-d H:i:s', $project["startDate"]->sec);
+					} else {
+						$project["startDate"] = date('Y-m-d H:i:s',$yester2day);;
+					}
+					
+					if (gettype($project["endDate"]) == "object") {
+						date_default_timezone_set('UTC');
+						if (!empty($project["endDate"]))
+							$project["endDate"] = date('Y-m-d H:i:s', $project["endDate"]->sec);
+					} else {
+						$project["endDate"] = date('Y-m-d H:i:s', $yesterday);
+					}
 				}
 			}
 		}
