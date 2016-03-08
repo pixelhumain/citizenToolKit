@@ -14,7 +14,7 @@ class SourceAdminAction extends CAction
             }
         }
         
-        $params["entities"] = $result;
+        $params["entitiesSourceAdmin"] = $result;
         if(Yii::app()->request->isAjaxRequest)
             echo $controller->renderPartial("sourceadmin",$params,true);
         else 

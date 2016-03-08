@@ -40,11 +40,10 @@ class Project {
 	  	$project = PHDB::findOne( self::COLLECTION,array("_id"=>new MongoId($id)));
 	  	if ($project !=null) {
 		  	if (!empty($project["startDate"]) || !empty($project["endDate"])) {
-		  		if(isset($project["startDate"]) && isset($project["endDate"])) {
-					$now = time();
-					$yesterday = mktime(0, 0, 0, date("m")  , date("d")-1, date("Y"));
+		  		$now = time();
+		  		
+		  		if(isset($project["startDate"])) {
 					$yester2day = mktime(0, 0, 0, date("m")  , date("d")-2, date("Y"));
-
 					if (gettype($project["startDate"]) == "object") {
 						//Set TZ to UTC in order to be the same than Mongo
 						date_default_timezone_set('UTC');
@@ -53,7 +52,10 @@ class Project {
 					} else {
 						$project["startDate"] = date('Y-m-d H:i:s',$yester2day);;
 					}
-					
+				}
+
+		  		if(isset($project["startDate"]) && isset($project["endDate"])) {
+					$yesterday = mktime(0, 0, 0, date("m")  , date("d")-1, date("Y"));
 					if (gettype($project["endDate"]) == "object") {
 						date_default_timezone_set('UTC');
 						if (!empty($project["endDate"]))
@@ -510,7 +512,7 @@ class Project {
 	*	@param string Date Update openAgenda
 	*   return String ("Add", "Update" or "Delete")
 	*/
-	public static function createProjectFromImportData($projectImportData, $key=null) {
+	public static function createProjectFromImportData($projectImportData, $key=null, $warnings = null) {
 		//var_dump($projectImportData);
 		if(!empty($projectImportData['name']))
 			$newProject["name"] = $projectImportData["name"];
@@ -524,7 +526,7 @@ class Project {
 		if(!empty($projectImportData['endDate']))
 			$newProject["endDate"] = $projectImportData["endDate"];
 
-		if(!empty($projectImportDataprojectImportData['description']))
+		if(!empty($projectImportData['description']))
 			$newProject["description"] = $projectImportData["description"];
 
 		if(!empty($projectImportData['tags']))
@@ -537,6 +539,7 @@ class Project {
 			if(!empty($projectImportData['source']['sourceUrl']))
 				$newProject["source"]['sourceUrl'] = $projectImportData["source"]['sourceUrl'];
 			//$projectImportData["source"]['sourceKey'] = "patapouf";
+			 $key = "patapouf";
 			if(!empty($key))
 				$newProject["source"]['sourceKey'] = $key;
 		}
@@ -545,13 +548,7 @@ class Project {
 			$newProject["warnings"] = $projectImportData["warnings"];
 
 
-		/*$newProject['address']['@type'] = "PostalAddress" ;
-		$newProject['address']['streetAddress'] = empty($projectImportData['address']['streetAddress']) ? "" : $projectImportData['address']['streetAddress'];
-		$newProject['address']['postalCode'] = empty($projectImportData['address']['postalCode']) ? "" : $projectImportData['address']['postalCode'];
-		$newProject['address']['addressCountry'] = empty($projectImportData['address']['addressCountry']) ? "" : $projectImportData['address']['addressCountry'];
-		$newProject['address']['addressLocality'] = empty($projectImportData['address']['addressLocality']) ? "" : $projectImportData['address']['addressLocality'];
-		$newProject['address']['codeInsee'] = empty($projectImportData['address']['codeInsee']) ? "" : $projectImportData['address']['codeInsee'];
-		*/
+		
 		
 		if(!empty($projectImportData['geo']['latitude']))
 			$newProject['geo']['latitude'] = $projectImportData['geo']['latitude'];
@@ -560,79 +557,18 @@ class Project {
 			$newProject['geo']['longitude'] = $projectImportData['geo']['longitude'];
 
 
-		$newProject['address'] = Import::getAndCheckAddressForEntity($projectImportData['address'], (empty($newProject['geo']) ? null : $newProject['geo'])) ;
 
-		/*if(!empty($newProject['address']['postalCode'])){
-			$cityByCp = PHDB::find(City::COLLECTION, array("cp"=>$newProject['address']['postalCode']));
-			if(empty($cityByCp))
-				throw new CTKException("Ce code postal n'existe pas");
+		if(!empty($projectImportData['address'])){
+			$details = Import::getAndCheckAddressForEntity($projectImportData['address'], (empty($newProject['geo']) ? null : $newProject['geo']), true) ;
+			$newProject['address'] = $details['address'];
+
+			if(!empty($newProject['warnings']))
+				$newProject['warnings'] = array_merge($newProject['warnings'], $details['warnings']);
+			else
+				$newProject['warnings'] = $details['warnings'];
+
 		}
-
-		if(!empty($projectImportData['geo']['latitude']))
-		{
-			$newProject["geoPosLatitude"] = $projectImportData['geo']['latitude'];
-
-		}	
-		if(!empty($projectImportData['geo']['longitude']))
-			$newProject["geoPosLongitude"] = $projectImportData['geo']['longitude'];
-
-		if(!empty($newProject["geoPosLatitude"]) && !empty($newProject["geoPosLongitude"]) ){
-			$city = SIG::getInseeByLatLngCp($newProject["geoPosLatitude"], $newProject["geoPosLongitude"],(empty($projectImportData['address']['postalCode']) ? null : $projectImportData['address']['postalCode']) );
-			if(!empty($city)){
-
-				foreach ($city as $key => $value){
-					$insee = $value["insee"];
-					$cp = $value["cp"];
-					$newProject['address']['addressCountry'] = $value["country"];
-					$newProject['address']['addressLocality'] = $value["alternateName"];
-					break;
-				}
 			
-			}
-			else{
-				if(!empty($cityByCp)) {
-					$find = false ;
-					foreach ($cityByCp as $key => $value){
-						if($value["alternateName"] == $projectImportData['address']['addressLocality'] || $value["name"] == $projectImportData['address']['addressLocality']){
-							$insee = $value["insee"];
-							$cp = $value["cp"];
-							$newProject['address']['addressCountry'] = $value["country"];
-							$newProject['address']['addressLocality'] = $value["alternateName"];
-							$find = true ;
-							break;
-						}
-					}
-					if($find == false)
-						throw new CTKException("Nous n'avons pas trouver la commune : Vérifier si le code postal et le nom de la commune soient bonnes");
-				}
-
-				$newProject['warning'] = "Il y a une incohérence entre la géolocalisation et le code postal";
-			}	
-		}	
-
-		if(!empty($insee) && !empty($projectImportData['address']['codeInsee']) ){
-			if($insee == $projectImportData['address']['codeInsee'])
-				$newProject['address']['codeInsee'] = $insee ;
-			else
-				throw new CTKException("L'INSEE du fichier et celui retourné par la géolocalisation n'est pas le même.");
-		}else if(!empty($insee)){
-			$newProject['address']['codeInsee'] = $insee ;
-		}else if(!empty($projectImportData['address']['codeInsee'])){
-			$newProject['address']['codeInsee'] = $projectImportData['address']['codeInsee'];
-		}
-
-
-		if(!empty($projectImportData['address']['postalCode']) && !empty($cp)){
-			if($cp == $projectImportData['address']['postalCode'])
-				$newProject['address']['postalCode'] = $cp ;
-			else
-				throw new CTKException("Le code postal du fichier et celui retourné par la géolocalisation n'est pas le même.");
-		}else if(!empty($cp)){
-			$newProject['address']['postalCode'] = $cp ;
-		}else if(!empty($projectImportData['address']['postalCode'])){
-			$newProject['address']['postalCode'] = $projectImportData['address']['postalCode'];
-		}*/
-
 		return $newProject;
 	}
 
@@ -728,16 +664,16 @@ class Project {
 			$newProject["geo"] = $project['geo'];
 			$newProject["geoPosition"] = $project['geoPosition'];
 
-		}else if(!empty($project['geoPosLatitude']) && !empty($project["geoPosLongitude"])){
+		}else if(!empty($project["geo"]['latitude']) && !empty($project["geo"]["longitude"])){
 			$newProject["geo"] = 	array(	"@type"=>"GeoCoordinates",
-						"latitude" => $project['geoPosLatitude'],
-						"longitude" => $project['geoPosLongitude']);
+						"latitude" => $project["geo"]['latitude'],
+						"longitude" => $project["geo"]["longitude"]);
 
 			$newProject["geoPosition"] = array("type"=>"Point",
 													"coordinates" =>
 														array(
-															floatval($project['geoPosLongitude']),
-															floatval($project['geoPosLatitude']))
+															floatval($project["geo"]['latitude']),
+															floatval($project["geo"]['longitude']))
 												 	  	);
 		}
 		else if($insert){
@@ -802,8 +738,11 @@ class Project {
 	 * @param string $userId UserId doing the insertion
 	 * @return array as result type
 	 */
-	public static function insertProjetFromImportData($params, $parentId,$parentType){
-	    $newProject = self::getAndCheckProjectFromImportData($params, $parentId, true);
+	public static function insertProjetFromImportData($params, $parentId,$parentType, $warnings){
+	    $newProject = self::getAndCheckProjectFromImportData($params, $parentId, true, null, $warnings);
+
+	    if(!empty($newProject["warnings"]) && $warnings == true)
+	    	$newProject["warnings"] = Import::getAndCheckWarnings($newProject["warnings"]);
 	    
 	    if(isset($newProject["tags"]))
 			$newProject["tags"] = Tags::filterAndSaveNewTags($newProject["tags"]);

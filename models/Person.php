@@ -912,5 +912,240 @@ class Person {
 
 
 
+
+	/* 	Get state an event from an OpenAgenda ID 
+	*	@param string OpenAgenda ID
+	*	@param string Date Update openAgenda
+	*   return String ("Add", "Update" or "Delete")
+	*/
+	public static function createPersonFromImportData($personImportData, $key=null, $warnings = null) {
+		if(!empty($personImportData['name']))
+			$newPerson["name"] = $personImportData["name"];
+
+		if(!empty($personImportData['email']))
+			$newPerson["email"] = $personImportData["email"];
+
+		if(!empty($personImportData['username']))
+			$newPerson["username"] = $personImportData["username"];
+
+		if(!empty($personImportData['pwd']))
+			$newPerson["pwd"] = $personImportData["pwd"];
+
+		if(!empty($personImportData['created']))
+			$newPerson["created"] = $personImportData["created"];
+
+		if(!empty($personImportData['tags']))
+			$newPerson["tags"] = $personImportData["tags"];
+
+		if(!empty($personImportData['sourceAdmin']))
+			$newPerson["sourceAdmin"] = $personImportData["sourceAdmin"];
+
+		if(!empty($personImportData['source'])){
+
+			if(!empty($personImportData['source']['sourceId']))
+				$newPerson["source"]['sourceId'] = $personImportData["source"]['sourceId'];
+			if(!empty($personImportData['source']['sourceUrl']))
+				$newPerson["source"]['sourceUrl'] = $personImportData["source"]['sourceUrl'];
+			if(!empty($key))
+				$newPerson["source"]['sourceKey'] = $key;
+		}
+
+		if(!empty($personImportData['warnings']))
+			$newPerson["warnings"] = $personImportData["warnings"];
+
+		if(!empty($personImportData['geo']['latitude']))
+			$newPerson['geo']['latitude'] = $personImportData['geo']['latitude'];
+
+		if(!empty($personImportData['geo']['longitude']))
+			$newPerson['geo']['longitude'] = $personImportData['geo']['longitude'];
+
+
+
+		if(!empty($personImportData['address'])){
+			$details = Import::getAndCheckAddressForEntity($personImportData['address'], (empty($newPerson['geo']) ? null : $newPerson['geo']), $warnings) ;
+			$newPerson['address'] = $details['address'];
+
+			if(!empty($newPerson['warnings']))
+				$newPerson['warnings'] = array_merge($newPerson['warnings'], $details['warnings']);
+			else
+				$newPerson['warnings'] = $details['warnings'];
+		}
+			
+		return $newPerson;
+	}
+
+
+	public static function getAndCheckPersonFromImportData($person, $userId,$insert=null, $update=null, $warnings = null) {
+		//var_dump($project);
+		
+		$newPerson = array();
+		if (empty($person['name'])) {
+			if($warnings)
+				$newPerson["warnings"][] = "201" ;
+			else
+				throw new CTKException(Yii::t("import","201"));
+		}else
+			$newPerson['name'] = $person['name'];
+
+
+
+		if (empty($person['email'])) {
+			if($warnings)
+				$newPerson["warnings"][] = "203" ;
+			else
+				throw new CTKException(Yii::t("import","203"));
+		}else{
+			if(! preg_match('#^[\w.-]+@[\w.-]+\.[a-zA-Z]{2,6}$#',$person["email"])){
+				if($warnings)
+					$newPerson["warnings"][] = "205" ;
+				else
+					throw new CTKException(Yii::t("import","205"));
+	        }
+
+			//Check if the email of the person is already in the database
+		  	$account = PHDB::findOne(Person::COLLECTION,array("email"=>$person["email"]));
+		  	if($account){
+		  		if($warnings)
+					$newPerson["warnings"][] = "206" ;
+				else
+		  			throw new CTKException(Yii::t("import","206"));
+		  	}
+		  	$newPerson['email'] = $person['email'];
+		}
+			
+
+		if (empty($person['username'])) {
+			if($warnings)
+				$newPerson["warnings"][] = "207" ;
+			else
+				throw new CTKException(Yii::t("import","207"));
+		}else{
+
+			if ( !self::isUniqueUsername($person["username"]) ) {
+				if($warnings)
+					$newPerson["warnings"][] = "207" ;
+				else
+		  		throw new CTKException(Yii::t("import","207"));
+		  	}
+		  	$newPerson['username'] = $person['username'];
+		}
+			
+
+
+
+
+		if (empty($person['pwd'])) {
+			if($warnings)
+				$newPerson["warnings"][] = "204" ;
+			else
+				throw new CTKException(Yii::t("import","204"));
+		}else
+			$newPerson['pwd'] = $person['pwd'];
+		
+		if(!$update)
+			$newPerson["created"] = new MongoDate(time());
+			
+		
+		if (!empty($person["invitedBy"])) {
+	  		$newPerson["invitedBy"] = $person["invitedBy"];
+	  	}
+		
+			
+		if(!empty($person['address'])) {
+			if(empty($person['address']['postalCode']) /*&& $insert*/){
+				if($warnings)
+					$newPerson["warnings"][] = "101" ;
+				else
+					throw new CTKException(Yii::t("import","101", null, Yii::app()->controller->module->id));
+			}
+			if(empty($project['address']['codeInsee'])/*&& $insert*/){
+				if($warnings)
+					$newPerson["warnings"][] = "102" ;
+				else
+					throw new CTKException(Yii::t("import","102", null, Yii::app()->controller->module->id));
+			}
+			if(empty($person['address']['addressCountry']) /*&& $insert*/){
+				if($warnings)
+					$newPerson["warnings"][] = "104" ;
+				else
+					throw new CTKException(Yii::t("import","104", null, Yii::app()->controller->module->id));
+			}
+			if(empty($project['address']['addressLocality']) /*&& $insert*/){
+				if($warnings)
+					$newPerson["warnings"][] = "105" ;
+				else
+					throw new CTKException(Yii::t("import","105", null, Yii::app()->controller->module->id));
+			}
+			$newPerson['address'] = $person['address'] ;
+
+		}else {
+			if($warnings)
+				$newPerson["warnings"][] = "100" ;
+			else
+				throw new CTKException(Yii::t("import","100", null, Yii::app()->controller->module->id));
+		}
+
+
+		if(!empty($person['geo']) && !empty($person["geoPosition"])){
+			$newPerson["geo"] = $person['geo'];
+			$newPerson["geoPosition"] = $person['gepersonoPosition'];
+
+		}else if(!empty($person["geo"]['latitude']) && !empty($person["geo"]["longitude"])){
+			$newPerson["geo"] = 	array(	"@type"=>"GeoCoordinates",
+						"latitude" => $person["geo"]['latitude'],
+						"longitude" => $person["geo"]["longitude"]);
+
+			$newPerson["geoPosition"] = array("type"=>"Point",
+													"coordinates" =>
+														array(
+															floatval($person["geo"]['latitude']),
+															floatval($person["geo"]['longitude']))
+												 	  	);
+		}
+		else if($insert){
+			if($warnings)
+				$newPerson["warnings"][] = "150" ;
+			else
+				throw new CTKException(Yii::t("import","150", null, Yii::app()->controller->module->id));
+		}else if($warnings)
+			$newPerson["warnings"][] = "150" ;
+		
+		if (!empty($person['sourceAdmin']))
+			$newPerson["sourceAdmin"] = $person['sourceAdmin'];
+		
+		if (!empty($person['source']))
+			$newPerson["source"] = $person['source'];
+
+		return $newPerson;
+	}
+
+	/**
+	 * Insert a new project, checking if the project is well formated
+	 * @param array $params Array with all fields for a project
+	 * @param string $userId UserId doing the insertion
+	 * @return array as result type
+	 */
+	public static function insertPersonFromImportData($params, $parentId,$parentType, $warnings){
+	    $person = self::getAndCheckPersonFromImportData($params, $parentId, true, null, $warnings);
+
+	    if(!empty($person["warnings"]) && $warnings == true)
+	    	$person["warnings"] = Import::getAndCheckWarnings($person["warnings"]);
+	    
+	    $person["@context"] = array("@vocab"=>"http://schema.org",
+            "ph"=>"http://pixelhumain.com/ph/ontology/");
+	    $person["roles"] = Role::getDefaultRoles();
+	  	$person["created"] = new mongoDate(time());
+	  	$person["preferences"] = array("seeExplanations"=> true);
+
+	    PHDB::insert(Person::COLLECTION , $person);
+
+	    if (isset($person["_id"]))
+	    	$newpersonId = (String) $person["_id"];
+	    else
+	    	throw new CTKException("Problem inserting the new person");
+
+	    return array("result"=>true, "msg"=>"Cette personne est communecté.", "id" => $newProject["_id"]);	
+	}
+
 }
 ?>
