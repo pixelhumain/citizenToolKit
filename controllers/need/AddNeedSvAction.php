@@ -7,14 +7,12 @@ class AddNeedSvAction extends CAction
     	$params = array();
     	
     	//$params["countries"] = OpenData::getCountriesList();
-    	if( isset($_GET["isNotSV"])) {
-            $params["isNotSV"] = true;
-            if( $type == Project::COLLECTION )
+
+        if( $type == Project::COLLECTION )
                 $params["project"]  = Project::getPublicData($id);
-            else if( $type == Organization::COLLECTION )
+        else if( $type == Organization::COLLECTION )
                 $params["organization"]  = Organization::getPublicData($id);
             //$params["parentName"] = $_GET["parentName"];
-        }
         if(Yii::app()->request->isAjaxRequest)
 			echo $controller->renderPartial("addNeedSV", $params, true);
     }
