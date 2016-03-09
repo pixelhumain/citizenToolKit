@@ -568,6 +568,8 @@ class Person {
 			{
 				$insee = $personFieldValue["codeInsee"];
 				$address = SIG::getAdressSchemaLikeByCodeInsee($insee);
+				if (!empty($personFieldValue["streetAddress"])) $address["streetAddress"] = $personFieldValue["streetAddress"];
+				if (!empty($personFieldValue["addressCountry"])) $address["addressCountry"] = $personFieldValue["addressCountry"];
 				$geo = SIG::getGeoPositionByInseeCode($insee);
 				$set = array("address" => $address, "geo" => $geo);
 			} else 
@@ -945,7 +947,7 @@ class Person {
 
 		foreach ($personChangedFields as $fieldName => $fieldValue) {
 			//if( $project[ $fieldName ] != $fieldValue)
-				self::updatePersonField($projectId, $fieldName, $fieldValue, $userId);
+				self::updatePersonField($personId, $fieldName, $fieldValue, $userId);
 		}
 
 	    return array("result"=>true, "msg"=>Yii::t("person", "The person has been updated"), "id"=>$personId);
