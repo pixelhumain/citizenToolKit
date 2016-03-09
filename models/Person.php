@@ -921,7 +921,29 @@ class Person {
 	  	return $result['sourceAdmin'];
 	}
 
+	/**
+	 * update a person in database
+	 * @param String $personId : 
+	 * @param array $personChangedFields fields to update
+	 * @param String $userId : the userId making the update
+	 * @return array of result (result => boolean, msg => string)
+	 */
+	public static function update($personId, $personChangedFields, $userId) {
 
+		$person = self::getById( $personId );
+		
+		if (! $person) {
+			error_log("Unknown person Id : ".$personId);
+			return array("result"=>false, "msg"=>Yii::t("person", "Something went really wrong ! "), "id"=>$personId);
+		}
+
+		foreach ($personChangedFields as $fieldName => $fieldValue) {
+			//if( $project[ $fieldName ] != $fieldValue)
+				self::updatePersonField($projectId, $fieldName, $fieldValue, $userId);
+		}
+
+	    return array("result"=>true, "msg"=>Yii::t("person", "The person has been updated"), "id"=>$personId);
+	}
 
 }
 ?>
