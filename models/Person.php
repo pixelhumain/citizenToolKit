@@ -121,6 +121,12 @@ class Person {
 			}
 			$person = array_merge($person, Document::retrieveAllImagesUrl($id, self::COLLECTION));
 			$person["typeSig"] = "people";
+			if(!isset($person["address"])) 
+				$person["address"] = array( "codeInsee" => "", 
+											"postalCode" => "", 
+											"addressLocality" => "",
+											"streetAddress" => "",
+											"addressCountry" => "");
         }
         
 	  	return $person;

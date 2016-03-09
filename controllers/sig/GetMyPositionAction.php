@@ -33,7 +33,8 @@ class GetMyPositionAction extends CAction
     			Yii::app()->end();
             }
             else{
-                $res = array("position" => $me["geo"], 
+                $geo = isset($me["geo"]) ? $me["geo"] : array("latitude" => 0, "longitude" => 0, "default" => true);
+                $res = array("position" => $geo, 
                              "type" => $type, 
                              "profilMarkerImageUrl" => $profilMarkerImageUrl,
                              "profilMarkerExists" => $profilMarkerExists,
