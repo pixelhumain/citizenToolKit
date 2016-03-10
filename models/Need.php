@@ -70,16 +70,17 @@ class Need {
 	public static function getWhereSortLimit($params,$sort=array("created"=>-1),$limit=1) {
 	  	return PHDB::findAndSort( self::COLLECTION,$params,$sort,$limit);
 	}
-	public static function insert($params){
+	
+	public static function insert($params, $context){
 		PHDB::insert(self::COLLECTION,$params);
-		if($params["parentType"]==Project::COLLECTION){
-			$parent = Project::getById($params["parentId"]);
+		if($context["parentType"]==Project::COLLECTION){
+			$parent = Project::getById($context["parentId"]);
 		}
-		if($params["parentType"]==Organization::COLLECTION){
-			$parent = Organization::getById($params["parentId"]);
+		if($context["parentType"]==Organization::COLLECTION){
+			$parent = Organization::getById($context["parentId"]);
 		}
-		Link::connect($params["_id"],self::COLLECTION,$params["parentId"],$params["parentType"],Yii::app() -> session["userId"],$params["parentType"]);
-		Link::connect($params["parentId"],$params["parentType"],$params["_id"],self::COLLECTION,Yii::app() -> session["userId"],self::COLLECTION);
+		Link::connect($params["_id"],self::COLLECTION,$context["parentId"],$context["parentType"],Yii::app() -> session["userId"],$context["parentType"]);
+		Link::connect($context["parentId"],$context["parentType"],$params["_id"],self::COLLECTION,Yii::app() -> session["userId"],self::COLLECTION);
 		//$parent = $class::getById($params["parentId"]);
 		//Notification::createdObjectAsParam(Person::COLLECTION,Yii::app()-> session["userId"],Need::COLLECTION, $params["_id"], $params["parentType"], $params["parentId"],null, null, $parent["address"]["codeInsee"]);
 

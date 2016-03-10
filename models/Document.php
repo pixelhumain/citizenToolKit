@@ -439,17 +439,15 @@ class Document {
 
 
 
-	public static function getImageByUrl($url) {
-		$res = array();
-		//images
-		$ch = curl_init('http://example.com/image.php');
-		$fp = fopen('/my/folder/flower.gif', 'wb');
-		curl_setopt($ch, CURLOPT_FILE, $fp);
-		curl_setopt($ch, CURLOPT_HEADER, 0);
-		curl_exec($ch);
-		curl_close($ch);
-		fclose($fp);
-		return $res;
+	public static function getImageByUrl($urlImage, $path, $nameImage) {
+		
+		// Ouvre un fichier pour lire un contenu existant
+		$current = file_get_contents($urlImage);
+		// Écrit le résultat dans le fichier
+		$file = "../../modules/cityData/".$nameImage;
+		file_put_contents($file, $current);
+
+		
 	}
 
 }

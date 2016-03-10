@@ -6,7 +6,6 @@ class Import
 { 
 	const MICROFORMATS = "microformats";
     const ORGANIZATIONS = "organizations";
-    public static $errorMsg = array('100' => "");
 	
 
     public static function importData($file, $post) 
@@ -537,6 +536,9 @@ class Import
                     $jsonFile2 = $jsonFile ; 
             }
 
+            if(!empty($post['nbTest']))
+                $nb = 0 ;
+
             foreach ($jsonFile2 as $keyJSON => $valueJSON){
                 //var_dump("--------------------------------------");
                 $jsonData = array();
@@ -590,6 +592,14 @@ class Import
                     $arrayJson[] = $entite ;
                 else
                     $arrayJsonError[] = $entite ; 
+
+
+                if(!empty($post['nbTest'])){
+                    $nb++;
+                    if($nb >= $post['nbTest'])
+                        break;
+                }
+                   
 
             }
 
@@ -656,7 +666,7 @@ class Import
 
         if(file_exists($path."dataImport.json") == true){
             $fileDataImport = file_get_contents($path."dataImport.json", FILE_USE_INCLUDE_PATH);
-            $chaine = substr($fileDataImport, 1, strlen($fileDataImport)-2) . substr($post['jsonImport'], 1, strlen($post['jsonImport'])-2);
+            $chaine = substr($fileDataImport, 1, strlen($fileDataImport)-2) .",".substr($post['jsonImport'], 1, strlen($post['jsonImport'])-2);
             $newFileDataImport = "[".$chaine."]";
         }else
             $newFileDataImport = $post['jsonImport'] ;
@@ -899,7 +909,7 @@ class Import
             $resData =  array();
             foreach ($jsonArray as $key => $value){
                 try{
-                    $res = Project::insertProjetFromImportData($value, $post['creatorID'],Person::COLLECTION) ; 
+                    $res = Project::insertProjetFromImportData($value, $post['creatorID'],Person::COLLECTION,true) ; 
 
                     if($res["result"] == true){
                         $projet["name"] =  $value["name"];
@@ -1059,7 +1069,7 @@ class Import
     }
 
 
-    public static function getAndCheckAddressForEntity($address, $geo = null){
+    public static function getAndCheckAddressForEntity($address, $geo = null, $warnings = null){
         $newAddress = array(    '@type' => 'PostalAddress',
                                 'streetAddress' =>  '', 
                                 'postalCode' =>  '',
@@ -1067,18 +1077,26 @@ class Import
                                 'addressCountry' =>  '',
                                 'codeInsee' =>  '');
 
+        $details["warnings"] = array();
+
 
         //On test si le code postal est dans la BD
         if(!empty($address['postalCode'])){
             $cityByCp = PHDB::find(City::COLLECTION, array("cp"=>$address['postalCode']));
-            if(empty($cityByCp))
-                throw new CTKException(Yii::t("import","106", null, Yii::app()->controller->module->id));
+            if(empty($cityByCp)){
+                if($warnings)
+                    $details["warnings"][] = "106";
+                else
+                    throw new CTKException(Yii::t("import","106", null, Yii::app()->controller->module->id));
+
+            }
+                
         }
         //On a besoin de récupere la locality, la country, l'insee
         //Si on a la latitude et la longitude 
         if(!empty($geo["latitude"]) && !empty($geo["longitude"])){
             //On récupere la city correspondant a la latitude, la longitude et le code postal
-            $city = self::getInseeByLatLngCp($geo["latitude"], $geo["longitude"],(empty($address['postalCode']) ? null : $address['postalCode']) );
+            $city = SIG::getInseeByLatLngCp($geo["latitude"], $geo["longitude"],(empty($address['postalCode']) ? null : $address['postalCode']) );
             if(!empty($city)){
                 foreach ($city as $key => $value){
                     $insee = $value["insee"];
@@ -1103,10 +1121,15 @@ class Import
                             break;
                         }
                     }
-                    if($find == false) 
-                        throw new CTKException(Yii::t("import","110", null, Yii::app()->controller->module->id));
+                    if($find == false){
+                        if($warnings)
+                            $details["warnings"][] = "110";
+                        else
+                            throw new CTKException(Yii::t("import","110", null, Yii::app()->controller->module->id));
+                    } 
+                        
                 }
-                $newProject['warning'] = "170";
+                $newProject['warnings'][] = "170";
             }   
         }   
 
@@ -1114,8 +1137,13 @@ class Import
         if(!empty($insee) && !empty($address['codeInsee']) ){
             if($insee == $address['codeInsee'])
                 $newAddress['codeInsee'] = $insee ;
-            else
-                throw new CTKException(Yii::t("import","171", null, Yii::app()->controller->module->id));
+            else{
+                if($warnings)
+                    $details["warnings"][] = "171";
+                else
+                    throw new CTKException(Yii::t("import","171", null, Yii::app()->controller->module->id));
+            }
+                
         }else if(!empty($insee)){
             $newAddress['codeInsee'] = $insee ;
         }else if(!empty($address['codeInsee'])){
@@ -1126,8 +1154,13 @@ class Import
         if(!empty($address['postalCode']) && !empty($cp)){
             if($cp == $address['postalCode'])
                 $newAddress['postalCode'] = $cp ;
-            else
-                throw new CTKException(Yii::t("import","172", null, Yii::app()->controller->module->id));
+            else{
+                if($warnings)
+                    $detail["warnings"][] = "172";
+                else
+                    throw new CTKException(Yii::t("import","172", null, Yii::app()->controller->module->id));
+            }
+                
         }else if(!empty($cp)){
             $newAddress['postalCode'] = $cp ;
         }else if(!empty($address['postalCode'])){
@@ -1138,25 +1171,26 @@ class Import
             $newAddress['streetAddress'] = $address['streetAddress'];
 
 
-
-        return $newAddress ;
+        $details["address"] = $newAddress;
+        return $details ;
     }
 
 
     public static function getAllEntitiesByKey($key){
         $result = array();
-        $projects = array();
         $organizations = array();
         $events = array();
         
         $res = PHDB::find(Project::COLLECTION, array("source.sourceKey"=>$key, "state" => "uncomplete"));
         foreach ($res as $key => $value) {
+            $projects = array();
             $projects["id"] = $key;
             $projects["name"] = $value["name"];
             $projects["warnings"] = $value["warnings"];
+            $result["project"][] = $projects;
         }
 
-        $result["project"] = $projects;
+        
         $result["organization"] = PHDB::find(Organization::COLLECTION, array("source.sourceKey"=>$key, "state" => "uncomplete"));
         $result["event"] = PHDB::find(Event::COLLECTION, array("source.sourceKey"=>$key, "state" => "uncomplete"));
 

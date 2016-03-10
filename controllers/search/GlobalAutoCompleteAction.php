@@ -9,7 +9,7 @@ class GlobalAutoCompleteAction extends CAction
         $searchBy = isset($_POST['searchBy']) ? $_POST['searchBy'] : "INSEE";
         $indexMin = isset($_POST['indexMin']) ? $_POST['indexMin'] : 0;
         $indexMax = isset($_POST['indexMax']) ? $_POST['indexMax'] : 15;
-        error_log("global search " . $search);
+        error_log("global search " . $search . " - searchBy : ". $searchBy. " & locality : ". $locality);
 	    
         if($search == "" && $locality == "") {
         	Rest::json(array());
@@ -29,8 +29,9 @@ class GlobalAutoCompleteAction extends CAction
   		/***********************************  DEFINE LOCALITY QUERY   *****************************************/
         if($locality != null && $locality != ""){
 
-        	$type = $this->getTypeOfLocalisation($locality);
-        	if($searchBy == "INSEE") $type = $searchBy;
+        	//$type = $this->getTypeOfLocalisation($locality);
+        	//if($searchBy == "INSEE") 
+        	$type = $searchBy;
 
         	$queryLocality = array();
         	
@@ -42,7 +43,42 @@ class GlobalAutoCompleteAction extends CAction
         	}
         	if($type == "DEPARTEMENT") {
         		$queryLocality = array("address.postalCode" 
-						=> new MongoRegex("/".$locality."/i"));
+						=> new MongoRegex("/^".$locality."/i"));
+        	}
+        	if($type == "REGION") {
+        		//#TODO GET REGION NAME | CITIES.DEP = myDep
+        		$regionName = PHDB::findOne( City::COLLECTION, array("insee" => $locality), array("regionName", "dep"));
+        		
+				if(isset($regionName["regionName"])){ //quand la city a bien la donnée "regionName"
+        			$regionName = $regionName["regionName"];
+        			//#TODO GET ALL DEPARTMENT BY REGION
+        			$deps = PHDB::find( City::COLLECTION, array("regionName" => $regionName), array("dep"));
+        			$departements = array();
+        			$inQuest = array();
+        			foreach($deps as $index => $value){
+        				if(!in_array($value["dep"], $departements)){
+	        				$departements[] = $value["dep"];
+	        				$inQuest[] = new MongoRegex("/^".$value["dep"]."/i");
+				        	$queryLocality = array("address.postalCode" => array('$in' => $inQuest));
+	        				
+				        }
+        			}
+        			//$queryLocality = array('$or' => $orQuest);
+        			//error_log("queryLocality : " . print_R($queryLocality, true));
+        			
+        		}else{ //quand la city communectée n'a pas la donnée "regionName", on prend son département à la place
+        			$regionName = isset($regionName["dep"]) ? $regionName["dep"] : "";
+        			$queryLocality = array("address.postalCode" 
+						=> new MongoRegex("/^".$regionName."/i"));
+        		}
+        		
+
+        		//$str = implode(",", $regionName);
+        		error_log("regionName : ".$regionName );
+
+        		//#TODO CREATE REQUEST CITIES.POSTALCODE IN (LIST_DEPARTMENT)" 
+      //   		$queryLocality = array("address.postalCode" 
+						// => new MongoRegex("/^".$locality."/i"));
         	}
         	if($type == "INSEE") {
         		$queryLocality = array("address.codeInsee" => $locality );
@@ -92,9 +128,12 @@ class GlobalAutoCompleteAction extends CAction
 
 	  	/***********************************  EVENT   *****************************************/
         if(strcmp($filter, Event::COLLECTION) != 0 && $this->typeWanted("events", $searchType)){
-        	if( isset( $query['$and'] ) ) 
-        		array_push( $query[ '$and' ], array( "endDate" => array( '$gte' => new MongoDate( time()) ) ) );
-	  		$allEvents = PHDB::find( PHType::TYPE_EVENTS, $query, array("name", "address", "shortDescription", "description"));
+        	
+        	if( !isset( $query['$and'] ) ) 
+        		$query['$and'] = array();
+        	
+        	array_push( $query[ '$and' ], array( "endDate" => array( '$gte' => new MongoDate( time() ) ) ) );
+	  		$allEvents = PHDB::findAndSort( PHType::TYPE_EVENTS, $query, array("startDate" => 1), 100, array("name", "address", "startDate", "endDate", "shortDescription", "description"));
 	  		foreach ($allEvents as $key => $value) {
 	  			$event = Event::getById($key);
 				$event["type"] = "event";
@@ -194,7 +233,9 @@ class GlobalAutoCompleteAction extends CAction
 			}
 		}
 	  	
-	  	if(isset($allRes)) usort($allRes, "mySort");
+	  	if(isset($allRes)) //si on a des resultat dans la liste
+	  		if(!$this->typeWanted("events", $searchType)) //si on n'est pas en mode "event" (les event sont classé par date)
+	  			usort($allRes, "mySort"); //on tri les éléments par ordre alphabetique sur le name
 
 	  	if(isset($allCitiesRes)) usort($allCitiesRes, "mySort");
 

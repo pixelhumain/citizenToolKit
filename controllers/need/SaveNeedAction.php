@@ -19,16 +19,17 @@ class SaveNeedAction extends CAction
                 $newNeed['duration'] = $_POST["needIsPonctual"];
                 $newNeed["quantity"] = $_POST["quantity"];
                 $newNeed["benefits"] = $_POST["needIsRemunerate"];
-                
+                $context = array();
+                $context["parentId"] = $_POST["parentId"];
+                $context["parentType"] = $_POST["parentType"];
+
                 if (isset($_POST["startDate"])){
 	                $newNeed["startDate"] = $_POST["startDate"];
 	                $newNeed["endDate"] = $_POST["endDate"];
                 }                
                 $newNeed['created'] = time();
 
-                $res=Need::insert($newNeed);
-               $url = Yii::app()->createUrl("/".$controller->module->id."/needs/dashboard/idNeed/".$res["idNeed"]."/type/".$newNeed['parentType']."/id/".$newNeed['parentId']."");
-
+                $res=Need::insert($newNeed,$context);
                 //PHDB::insert( Survey::PARENT_COLLECTION, $newNeed );
                 /*PHDB::updateWithOptions( Survey::PARENT_COLLECTION,  array( "name" => $name ), 
                                                    array('$set' => $newInfos ) ,
@@ -37,7 +38,6 @@ class SaveNeedAction extends CAction
                 
                 $res['result'] = true;
                 $res['msg'] = "Need Saved";
-                $res["url"] = $url;
                 $res["newNeed"] = $newNeed;
           //  }else
             //    $res = array('result' => false , 'msg'=>"user doen't exist");
