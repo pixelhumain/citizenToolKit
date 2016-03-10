@@ -6,13 +6,12 @@ class AddContributorSvAction extends CAction
     	$controller=$this->getController();
     	$params = array();
     	
-    	//$params["countries"] = OpenData::getCountriesList();
 
-			$lists = Lists::get(array("organisationTypes"));
-			$params["organizationTypes"]= $lists["organisationTypes"];
-			$params["id"]=$_GET["projectId"];
-			$params["project"]=Project::getPublicData($_GET["projectId"]);
-        
+		$lists = Lists::get(array("organisationTypes"));
+		$params["organizationTypes"]= $lists["organisationTypes"];
+		$params["id"]=$_GET["projectId"];
+		$params["project"]=Project::getPublicData($_GET["projectId"]);
+
         if(Yii::app()->request->isAjaxRequest)
 			echo $controller->renderPartial("addContributorSV", $params, true);
     }
