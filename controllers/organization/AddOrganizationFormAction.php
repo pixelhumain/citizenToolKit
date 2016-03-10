@@ -26,8 +26,6 @@ class AddOrganizationFormAction extends CAction
 			'localBusinessCategories'=>@$lists['localBusinessCategories'],
 			'tags'=>json_encode($tags));
 
-		if( isset($_GET["isNotSV"])) 
-            $params["isNotSV"] = true;
 		/*if($isMobile) {
 			$controller->layout = "//layouts/mainSimple";
 			$controller->render( "addOrganizationMobile" , $params );
