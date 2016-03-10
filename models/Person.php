@@ -36,6 +36,7 @@ class Person {
 	    "bgClass" => array("name" => "preferences.bgClass"),
 	    "bgUrl" => array("name" => "preferences.bgUrl"),
 	    "roles" => array("name" => "roles"),
+	    "two_steps_register" => array("name" => "two_steps_register"),
 	);
 
 	public static function logguedAndValid() {
@@ -307,6 +308,39 @@ class Person {
 		return $res;
 	}
 
+
+	public static function newPersonFromPost($person) {
+		$newPerson = array();
+		
+		//Location
+		if (isset($person['streetAddress'])) $newPerson["address"]["streetAddress"] = rtrim($person['streetAddress']);
+		if (isset($person['postalCode'])) $newPerson["address"]["postalCode"] = $person['postalCode'];
+		if (isset($person['addressLocality'])) $newPerson["address"]["addressLocality"] = $person['addressLocality'];
+		if (isset($person['addressCountry'])) $newPerson["address"]["addressCountry"] = $person['addressCountry'];
+		if (isset($person['codeInsee'])) $newPerson["address"]["codeInsee"] = $person['codeInsee'];
+
+		if (isset($person['two_steps_register'])) $newPerson["two_steps_register"] = $person['two_steps_register'];
+
+		if (isset($person['description'])) $newPerson["description"] = rtrim($person['description']);
+		if (isset($person['role'])) $newPerson["role"] = $person['role'];
+
+		//error_log("latitude : ".$person['geoPosLatitude']);
+		if(!empty($person['geoPosLatitude']) && !empty($person["geoPosLongitude"])){
+			$newPerson["geo"] = array("@type"=>"GeoCoordinates",
+											"latitude" => $person['geoPosLatitude'],
+											"longitude" => $person['geoPosLongitude']);
+
+			$newPerson["geoPosition"] = array("type"=>"Point",
+															"coordinates" =>
+																array(
+																	floatval($person['geoPosLongitude']),
+																	floatval($person['geoPosLatitude']))
+														 	  	);
+		}
+		
+		return $newPerson;
+	}
+
 	/**
 	 * Happens when a Person is invited or linked as a member and doesn't exist in the system
 	 * It is created in a temporary state
@@ -564,6 +598,7 @@ class Person {
 		$user = null;
 		if ($dataFieldName == "address") 
 		{
+			error_log(implode(",", $personFieldValue));
 			if(!empty($personFieldValue["postalCode"]) && !empty($personFieldValue["codeInsee"])) 
 			{
 				$insee = $personFieldValue["codeInsee"];

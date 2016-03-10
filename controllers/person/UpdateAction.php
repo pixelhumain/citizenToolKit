@@ -12,7 +12,7 @@ class UpdateAction extends CAction
 		}
 
 		$personId = $_POST["personId"];
-		$person = Organization::newOrganizationFromPost($_POST);
+		$person = Person::newPersonFromPost($_POST);
 
 		$res = array("result"=>false, "msg"=>Yii::t("common", "Something went wrong!"));
 		try {

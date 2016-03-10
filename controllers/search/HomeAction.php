@@ -5,7 +5,8 @@ class HomeAction extends CAction
 		
 		$controller=$this->getController();
 		$controller->layout = "//layouts/mainSearch";
-        $controller->renderPartial( "home" );
+
+		$controller->renderPartial( "home" );
         
 		//return Rest::json(array("result" => true, "list" => $search));
 	}
