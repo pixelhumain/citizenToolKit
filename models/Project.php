@@ -575,7 +575,7 @@ class Project {
 
 	public static function getAndCheckProjectFromImportData($project, $userId,$insert=null, $update=null, $warnings = null) {
 		//var_dump($project);
-		
+
 		$newProject = array();
 		if (empty($project['name'])) {
 			if($warnings)
@@ -762,7 +762,7 @@ class Project {
 	public static function getQuestionAnwser($project){
 		if(!empty($project["tags"])){
 			if(in_array("commun", $project['tags']) || in_array("fabmob", $project['tags'])){
-				$url = "http://data.patapouf.org".$project["source"]["sourceUrl"];
+				$url = "http://data.patapouf.org".$project["source"]["url"];
 				
 
 				$res = Import::getDataByUrl($url);
@@ -774,7 +774,7 @@ class Project {
 						$qt["key"] = $value["question"]["slug"] ;
 						$qt["description"] = $value["answer"] ;
 						$qt["value"] = -1 ;
-						$project["properties"]["chart"][] = $qt;
+						$project["properties"]["socialCode"][] = $qt;
 
 					}
 
