@@ -83,7 +83,7 @@ class IndexAction extends CAction
         }
         else if( $type == Event::COLLECTION ) {
             $event = Event::getById($id);
-            $onclick = "showAjaxPanel( '/organization/detail/id/".$id."?isNotSV=1', 'EVENT DETAIL : ".$event["name"]."','calendar' )";
+            $onclick = "showAjaxPanel( '/organization/detail/id/".$id."', 'EVENT DETAIL : ".$event["name"]."','calendar' )";
 	        $entry = array('tooltip' => "Back to Event Details",
                             "iconClass"=>"fa fa-calendar",
                             "href"=>"<a  class='tooltips  btn btn-default' href='#' onclick=\"".$onclick."\"");

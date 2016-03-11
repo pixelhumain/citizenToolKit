@@ -6,6 +6,7 @@ class AddChartSvAction extends CAction
     	$controller=$this->getController();
     	//$params = array();
     	//$params["countries"] = OpenData::getCountriesList();
+
             $properties = str_replace('\"','"',$_GET["properties"]);
             //echo $tasks;
 			$params["properties"] = unserialize(base64_decode($properties));
