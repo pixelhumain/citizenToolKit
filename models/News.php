@@ -8,7 +8,21 @@ class News {
 	 * @return type
 	 */
 	public static function getById($id) {
-	  	return PHDB::findOne( self::COLLECTION,array("_id"=>new MongoId($id)));
+	  	$news = PHDB::findOne( self::COLLECTION,array("_id"=>new MongoId($id)));
+	  	if(@$news["type"]){
+		    if($news["type"]==ActivityStream::COLLECTION){
+			    if($news["object"]["objectType"]!="needs" && $news["object"]["objectType"]!="gantts")
+		  			$res=NewsTranslator::convertParamsForNews($news);
+		  	}
+	  		if($news["type"]==Project::COLLECTION)
+		  		$res["postOn"]=Project::getSimpleProjectById($news["id"]);
+	  		if ($news["type"]==Organization::COLLECTION)
+		  		$res["postOn"]=Organization::getSimpleOrganizationById($news["id"]);
+		  		
+  		}
+  		$res["author"] = Person::getSimpleUserById($news["author"]);
+  		return $res;
+
 	}
 
 	public static function getWhere($params) {
