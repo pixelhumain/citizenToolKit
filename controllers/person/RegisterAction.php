@@ -43,9 +43,10 @@ class RegisterAction extends CAction
 				$newPerson['email'] = $email;
 				$res = Person::insert($newPerson, false);
 				$newPerson["_id"]=$res["id"];
-
 			} catch (CTKException $e) {
 				$res = array("result" => false, "msg"=>$e->getMessage());
+				Rest::json($res);
+				exit;
 			}
 		}
 
