@@ -1048,10 +1048,7 @@ class Person {
 			//Check if the email of the person is already in the database
 		  	$account = PHDB::findOne(Person::COLLECTION,array("email"=>$person["email"]));
 		  	if($account){
-		  		if($warnings)
-					$newPerson["warnings"][] = "206" ;
-				else
-		  			throw new CTKException(Yii::t("import","206"));
+		  		throw new CTKException(Yii::t("import","206"));
 		  	}
 		  	$newPerson['email'] = $person['email'];
 		}
