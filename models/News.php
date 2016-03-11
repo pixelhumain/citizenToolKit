@@ -12,23 +12,26 @@ class News {
 	  	if(@$news["type"]){
 		    if($news["type"]==ActivityStream::COLLECTION){
 			    if($news["object"]["objectType"]!="needs" && $news["object"]["objectType"]!="gantts")
-		  			$res=NewsTranslator::convertParamsForNews($news);
+		  			$news=NewsTranslator::convertParamsForNews($news);
 		  	}
 	  		if($news["type"]==Project::COLLECTION)
-		  		$res["postOn"]=Project::getSimpleProjectById($news["id"]);
+		  		$news["postOn"]=Project::getSimpleProjectById($news["id"]);
 	  		if ($news["type"]==Organization::COLLECTION)
-		  		$res["postOn"]=Organization::getSimpleOrganizationById($news["id"]);
+		  		$news["postOn"]=Organization::getSimpleOrganizationById($news["id"]);
 		  		
   		}
-  		$res["author"] = Person::getSimpleUserById($news["author"]);
-  		return $res;
+  		$news["author"] = Person::getSimpleUserById($news["author"]);
+  		return $news;
 
 	}
 
 	public static function getWhere($params) {
 	  	return PHDB::findAndSort( self::COLLECTION,$params);
 	}
-
+	public static function getAuthor($id){
+		return PHDB::findOneById( self::COLLECTION ,$id, 
+				array("author" => 1));
+	}
 	public static function getWhereSortLimit($params,$sort=array("created"=>-1),$limit=1) {
 	  	$res = PHDB::findAndSort( self::COLLECTION,$params,$sort,$limit);
 

@@ -79,7 +79,9 @@ class Comment {
 		
 		$newComment["author"] = self::getCommentAuthor($newComment, $options);
 		$res = array("result"=>true, "msg"=>"The comment has been posted", "newComment" => $newComment, "id"=>$newComment["_id"]);
-		
+		if($comment["contextType"]=="news"){
+			Notification::actionOnPerson ( ActStr::VERB_COMMENT, ActStr::ICON_SHARE, "", array("type"=>$comment["contextType"],"id"=> $comment["contextId"]));
+		}
 		//Increment comment count (can have multiple comment by user)
 		$resAction = Action::addAction($userId , $comment["contextId"], $newComment["contextType"], Action::ACTION_COMMENT, false, true) ;
 		if (! $resAction["result"]) {
