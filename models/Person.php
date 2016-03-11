@@ -9,7 +9,7 @@ class Person {
 	//From Post/Form name to database field name with rules
 	private static $dataBinding = array(
 	    "name" => array("name" => "name", "rules" => array("required")),
-	    "username" => array("name" => "username", "rules" => array("required", "uniqueUsername")),
+	    "username" => array("name" => "username", "rules" => array("required", "checkUsername")),
 	    "birthDate" => array("name" => "birthDate", "rules" => array("required")),
 	    "email" => array("name" => "email", "rules" => array("email")),
 	    "pwd" => array("name" => "pwd"),
@@ -371,6 +371,9 @@ class Person {
 	  	if (! $minimal) {
 		  	//user name
 		  	$newPerson["username"] = $person["username"];
+		  	if (strlen($newPerson["username"]) < 4 || strlen($newPerson["username"]) > 32) {
+		  		throw new CTKException(Yii::t("person","The username length should be between 4 and 32 characters"));
+		  	} 
 		  	if ( ! self::isUniqueUsername($newPerson["username"]) ) {
 		  		throw new CTKException(Yii::t("person","Problem inserting the new person : a person with this username already exists in the plateform"));
 		  	}
@@ -616,7 +619,7 @@ class Person {
         
         //return an error when email does not exist
         if ($account == null) {
-        	return array("result"=>false, "msg"=>"Email ou Mot de Passe ne correspondent pas, rééssayez.");
+        	return array("result"=>false, "msg"=>"Erreur : impossible de trouver un compte avec ce nom d'utilisateur ou cet email.");
         }
         
         //Roles validation
