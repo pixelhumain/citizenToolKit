@@ -8,7 +8,7 @@ class GlobalAutoCompleteAction extends CAction
         $searchType = isset($_POST['searchType']) ? $_POST['searchType'] : null;
         $searchBy = isset($_POST['searchBy']) ? $_POST['searchBy'] : "INSEE";
         $indexMin = isset($_POST['indexMin']) ? $_POST['indexMin'] : 0;
-        $indexMax = isset($_POST['indexMax']) ? $_POST['indexMax'] : 15;
+        $indexMax = isset($_POST['indexMax']) ? $_POST['indexMax'] : 100;
         error_log("global search " . $search . " - searchBy : ". $searchBy. " & locality : ". $locality);
 	    
         if($search == "" && $locality == "") {
