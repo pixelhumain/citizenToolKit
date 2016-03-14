@@ -339,6 +339,9 @@ class Person {
 		if (! $minimal) {
 			array_push($dataPersonMinimal, "username", "postalCode", "city", "pwd");
 		} else {
+			//generate unique temporary userName for Meteor app when inviting
+			$newPerson["username"] = substr(str_shuffle("0123456789abcdefghijklmnopqrstuvwxyz"), 0, 32);
+			//Add pending boolean
 			$newPerson["pending"] = true;
 		}
 
