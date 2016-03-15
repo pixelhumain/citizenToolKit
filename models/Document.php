@@ -500,8 +500,7 @@ class Document {
         	$pic = file_get_contents($pathFile.$nameFile, FILE_USE_INCLUDE_PATH);
         	
         	$ext = strtolower(pathinfo($nameFile, PATHINFO_EXTENSION));
-        	if(!in_array($ext,$allowed_ext))
-            {
+        	if(!in_array($ext,$allowed_ext)){
         		return array('result'=>false,'error'=>Yii::t("document","Only").implode(',',$allowed_ext).Yii::t("document","files are allowed!"));
     	    
         	}	

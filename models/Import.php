@@ -1064,19 +1064,21 @@ class Import
         $newWarnings = array();
         $warningsUseless = array();
 
-        if(in_array("101", $warnings) && in_array("102", $warnings) && in_array("105", $warnings) && in_array("103", $warnings) && in_array("104", $warnings))
+        if(in_array("101", $warnings) && in_array("102", $warnings) && in_array("105", $warnings) && in_array("103", $warnings) && in_array("104", $warnings) !in_array("150", $warningsUseless))
         {
             $warningsUseless[] = "101";
             $warningsUseless[] = "102";
             $warningsUseless[] = "103";
             $warningsUseless[] = "104";
             $warningsUseless[] = "105";
+            $warningsUseless[] = "150";
             $newWarnings[] = "100";
         }    
 
-        if(in_array("151", $warnings) && in_array("152", $warnings)){
+        if(in_array("151", $warnings) && in_array("152", $warnings) && !in_array("150", $warningsUseless)){
             $warningsUseless[] = "151";
             $warningsUseless[] = "152";
+            $warningsUseless[] = "150";
             $newWarnings[] = "150";
         }
 
@@ -1094,7 +1096,7 @@ class Import
         $msg = "";
         foreach ($warnings as $key => $codeWarning) {
             if($msg != "")
-                $msg .= "\n";
+                $msg .= "<br/>";
             $msg .= Yii::t("import",$codeWarning, null, Yii::app()->controller->module->id);
         }
 
@@ -1235,9 +1237,29 @@ class Import
             $result["person"][] = $person;
         }
 
-        
-        $result["organization"] = PHDB::find(Organization::COLLECTION, array("source.sourceKey"=>$key, "state" => "uncomplete"));
-        $result["event"] = PHDB::find(Event::COLLECTION, array("source.sourceKey"=>$key, "state" => "uncomplete"));
+        $res = PHDB::find(Organization::COLLECTION, array("source.key"=>$key));
+        foreach ($res as $key => $value) {
+            $person = array();
+            $person["id"] = $key;
+            $person["name"] = $value["name"];
+            if(!empty($value["warnings"]))
+                $person["warnings"] = $value["warnings"];
+            else
+                $person["warnings"] = array();
+            $result["organization"][] = $person;
+        }
+
+        $res = PHDB::find(Event::COLLECTION, array("source.key"=>$key));
+        foreach ($res as $key => $value) {
+            $person = array();
+            $person["id"] = $key;
+            $person["name"] = $value["name"];
+            if(!empty($value["warnings"]))
+                $person["warnings"] = $value["warnings"];
+            else
+                $person["warnings"] = array();
+            $result["event"][] = $person;
+        }
 
         return $result ;
     }
