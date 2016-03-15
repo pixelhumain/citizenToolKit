@@ -29,6 +29,7 @@ class ActStr {
     const VERB_CONFIRM = "confirm";
     const VERB_AUTHORIZE = "authorize";
     const VERB_ATTEND = "attend";
+    const VERB_COMMENT = "comment";
     
     const VERB_POST = "post";
 

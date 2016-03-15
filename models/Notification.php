@@ -147,17 +147,22 @@ class Notification{
 	    }
 		else if($target["type"] == Person::COLLECTION)
 			$people = array($targetId);
+		else if($target["type"] == News::COLLECTION){
+			$author=News::getAuthor($target["id"]);
+			$people = array($author["author"]);
+		}
 	    foreach ($members as $key => $value) 
 	    {
 	    	if( $key != Yii::app()->session['userId'] && !in_array($key, $people) && count($people) < self::PEOPLE_NOTIFY_LIMIT )
 	    		array_push( $people, $key);
 	    }
-	    $label = Yii::app()->session['user']['name']." ".$verb." you to ".$target["name"] ;
+	    
 	    $ctrls = array(
 	    	Organization::COLLECTION => Organization::CONTROLLER,
 	    	Person::COLLECTION => Person::CONTROLLER,
 	    	Event::COLLECTION => Event::CONTROLLER,
 	    	Project::COLLECTION => Project::CONTROLLER,
+			News::COLLECTION => News::COLLECTION,
 	    	Need::COLLECTION => Need::CONTROLLER
 	    );
 	    $url = $ctrls[ $target["type"] ].'/detail/id/'.$targetId;
@@ -194,8 +199,13 @@ class Notification{
 	    }
 		else if($verb == ActStr::VERB_JOIN){
 		    $label = Yii::app()->session['user']['name']." ".Yii::t("common","participates to the event")." ".$target["name"];
-		    $url = $ctrls[ $target["type"] ].'/detail/id/'.$targetId;
+		    $url = 'news/detail/id/'.$targetId;
 	    }
+	    else if($verb == ActStr::VERB_COMMENT){
+		    $label = Yii::app()->session['user']['name']." ".Yii::t("common","has commented your post");
+		    $url = $ctrls[ $target["type"] ].'/detail/id/'.$targetId;
+	    } else
+	    	$label = Yii::app()->session['user']['name']." ".$verb." you to ".$target["name"] ;
 
 		if($invitation == ActStr::VERB_INVITE){
 			 $label = Yii::app()->session['user']['name']." ".Yii::t("common","has invited")." ".$member["name"]." ".Yii::t("common","to join")." ".$target["name"];

@@ -8,13 +8,30 @@ class News {
 	 * @return type
 	 */
 	public static function getById($id) {
-	  	return PHDB::findOne( self::COLLECTION,array("_id"=>new MongoId($id)));
+	  	$news = PHDB::findOne( self::COLLECTION,array("_id"=>new MongoId($id)));
+	  	if(@$news["type"]){
+		    if($news["type"]==ActivityStream::COLLECTION){
+			    if($news["object"]["objectType"]!="needs" && $news["object"]["objectType"]!="gantts")
+		  			$news=NewsTranslator::convertParamsForNews($news);
+		  	}
+	  		if($news["type"]==Project::COLLECTION)
+		  		$news["postOn"]=Project::getSimpleProjectById($news["id"]);
+	  		if ($news["type"]==Organization::COLLECTION)
+		  		$news["postOn"]=Organization::getSimpleOrganizationById($news["id"]);
+		  		
+  		}
+  		$news["author"] = Person::getSimpleUserById($news["author"]);
+  		return $news;
+
 	}
 
 	public static function getWhere($params) {
 	  	return PHDB::findAndSort( self::COLLECTION,$params);
 	}
-
+	public static function getAuthor($id){
+		return PHDB::findOneById( self::COLLECTION ,$id, 
+				array("author" => 1));
+	}
 	public static function getWhereSortLimit($params,$sort=array("created"=>-1),$limit=1) {
 	  	$res = PHDB::findAndSort( self::COLLECTION,$params,$sort,$limit);
 
