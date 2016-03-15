@@ -960,13 +960,18 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 			$newOrganization["email"] = $organization['email'];
 		}
 
-		if (empty($organization['type'])) {
+		if(empty($organization['type'])) {
 			if($warnings)
+			{
 				$newOrganization["warnings"][] = "208" ;
+				$newOrganization["type"] = self::TYPE_GROUP ;
+			}	
 			else
 				throw new CTKException("208");
+		}else{
+			$newOrganization["type"] = $organization['type'];
 		}
-		$newOrganization["type"] = $organization['type'];
+		
 				  
 		
 		if(!empty($organization['address'])) {
@@ -1123,7 +1128,7 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 	 * @param String $adminId : can be ommited. user id representing the administrator of the organization
 	 * @return array result as an array. 
 	 */
-	public static function insertOrganizationFromImportData($organization, $creatorId, $adminId = null, $warnings = null, $pathFolderImage = null){
+	public static function insertOrganizationFromImportData($organization, $creatorId, $warnings = null, $pathFolderImage = null){
 	    
 	    $newOrganization = Organization::getAndCheckOrganizationFromImportData($organization, true, null, $warnings);
 		
@@ -1136,8 +1141,6 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 		} else {
 			$newOrganization["creator"] = $creatorId;	
 		}
-	
-		
 	
 		//Insert the organization
 	    PHDB::insert( Organization::COLLECTION, $newOrganization);

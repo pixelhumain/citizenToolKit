@@ -383,22 +383,10 @@ class Import
 
             $paramsInfoCollection = array("_id"=>new MongoId($post['idCollection']));
             $infoCollection = Import::getMicroFormats($paramsInfoCollection);
-
             $arrayCSV = $post['file'];
             $arrayHeadCSV = $arrayCSV[0];
-            /*$pathSubFile =  sys_get_temp_dir().'/filesImportData/'.$post['nameFile'].'/'. ;
-            $arrayCSV = new SplFileObject($pathSubFile, 'r');
-            $arrayCSV->setFlags(SplFileObject::READ_CSV);
-            $arrayCSV->setCsvControl(',', '"', '"');
 
             $i = 0 ;
-            while (!$arrayCSV->eof() && $i == 0) {
-                $arrayHeadCSV = $arrayCSV->fgetcsv() ;
-                $i++;
-            }*/
-           
-            $i = 0 ;
-            
             foreach ($arrayCSV as $keyCSV => $lineCSV){
                 $jsonData = array();
                 if($i>0 && $lineCSV[0] != null){
@@ -407,7 +395,7 @@ class Import
                         set_time_limit(30) ;
                     
                     foreach($post['infoCreateData']as $key => $objetInfoData){
-                        //var_dump($lineCSV);
+                       
                         $valueData = false ;
                         if(!empty($lineCSV[$objetInfoData['idHeadCSV']]))
                             $valueData = $lineCSV[$objetInfoData['idHeadCSV']] ;
@@ -439,10 +427,21 @@ class Import
                         }
                         
                     }
+                    if(empty($post['key']))
+                        $keyEntity = null;
+                    else
+                        $keyEntity = $post['key'];
 
-                    $entite = Import::checkData($infoCollection[$post['idCollection']]["key"], $jsonData, $post);
-                    if(empty($entite["geo"]))
+                    if(empty($post['warnings']))
+                        $warnings = null;
+                    else
+                        $warnings = true;
+                    
+                    $entite = Import::checkData($infoCollection[$post['idCollection']]["key"], $jsonData, $post,  $keyEntity, $warnings);
+
+                    if(empty($entite["geo"]) && !empty($entite["msgError"]))
                         $notGeo = true ;
+                    
                     if(empty($entite["msgError"]))
                         $arrayJson[] = $entite ;
                     else
@@ -479,16 +478,19 @@ class Import
     }
 
 
-    public static function checkData($keyCollection, $data, $post){
+    public static function checkData($keyCollection, $data, $post, $keyEntity = null, $warnings = null){
         $res = array() ;
+
+        if(!empty($keyEntity))
+            $data["source"]['key'] = $keyEntity;
+
         if($keyCollection == "Organizations"){
             try{    
-                $data["source"]['key'] = "patapouf";
                 $newOrganization = Organization::newOrganizationFromImportData($data, $post["creatorEmail"]);
                 $newOrganization["role"] = $post["role"];
                 $newOrganization["creator"] = $post["creatorID"];
                 $newOrganization2 = Organization::getQuestionAnwser($newOrganization);
-                $res = Organization::getAndCheckOrganizationFromImportData($newOrganization2, null, null, true) ;
+                $res = Organization::getAndCheckOrganizationFromImportData($newOrganization2, null, null, $warnings) ;
             }
             catch (CTKException $e){
                 if(empty($newOrganization))
@@ -498,12 +500,9 @@ class Import
             }
         } else if($keyCollection == "Projets"){
             try{
-                //$data["creator"] = $post["creatorID"];
-                //var_dump($data);
-                //$data["source"]['sourceKey'] = "patapouf";
                 $newProject = Project::createProjectFromImportData($data);
                 $newProject2 = Project::getQuestionAnwser($newProject);
-                $res = Project::getAndCheckProjectFromImportData($newProject2, $post["creatorID"], null, null, true);
+                $res = Project::getAndCheckProjectFromImportData($newProject2, $post["creatorID"], null, null, $warnings);
             }
             catch(CTKException $e){
                 if(empty($newProject))
@@ -515,8 +514,8 @@ class Import
             }
         } else if($keyCollection == "Person"){
             try{
-                $newPerson = Person::createPersonFromImportData($data, "livincoop", true);
-                $res = Person::getAndCheckPersonFromImportData($newPerson, null, null, false);
+                $newPerson = Person::createPersonFromImportData($data, true);
+                $res = Person::getAndCheckPersonFromImportData($newPerson, null, null, $warnings);
             }
             catch(CTKException $e){
                 if(empty($newPerson))
@@ -600,12 +599,21 @@ class Import
                 if(empty($jsonData))
                     $jsonData = array();
                 
-                //var_dump($jsonData);
+                if(empty($post['key']))
+                    $keyEntity = null;
+                else
+                    $keyEntity = $post['key'];
 
-                $entite = Import::checkData($infoCollection[$post['idCollection']]["key"], $jsonData, $post);
+                if(empty($post['warnings']))
+                    $warnings = null;
+                else
+                    $warnings = true;
 
-                if(empty($entite["geo"]))
+                $entite = Import::checkData($infoCollection[$post['idCollection']]["key"], $jsonData, $post, $keyEntity, $warnings);
+
+                if(empty($entite["geo"]) && !empty($entite["msgError"]))
                     $notGeo = true ;
+
                 if(empty($entite["msgError"]))
                     $arrayJson[] = $entite ;
                 else
@@ -932,7 +940,7 @@ class Import
                     if($typeEntity == "project")
                         $res = Project::insertProjetFromImportData($value, $post['creatorID'],Person::COLLECTION,true,$pathFolderImage) ;
                     else if($typeEntity == "organization")
-                        $res = Organization::insertOrganizationFromImportData($value, $post['creatorID'],Person::COLLECTION,true,$pathFolderImage) ;
+                        $res = Organization::insertOrganizationFromImportData($value, $post['creatorID'],true,$pathFolderImage) ;
                     else if($typeEntity == "person")
                         $res = Person::insertPersonFromImportData($value,true,$pathFolderImage, $moduleId) ; 
 
@@ -1233,6 +1241,15 @@ class Import
 
         return $result ;
     }
+
+
+    public static function imageDrive($id){
+        
+    }
+
+
+
+
 
     
 

@@ -923,7 +923,7 @@ class Person {
 	*	@param string Date Update openAgenda
 	*   return String ("Add", "Update" or "Delete")
 	*/
-	public static function createPersonFromImportData($personImportData, $key=null, $warnings = null) {
+	public static function createPersonFromImportData($personImportData, $warnings = null) {
 		if(!empty($personImportData['name']))
 			$newPerson["name"] = $personImportData["name"];
 
@@ -950,8 +950,8 @@ class Person {
 				$newPerson["source"]['id'] = $personImportData["source"]['id'];
 			if(!empty($personImportData['source']['url']))
 				$newPerson["source"]['url'] = $personImportData["source"]['url'];
-			if(!empty($key))
-				$newPerson["source"]['key'] = $key;
+			if(!empty($personImportData['source']['key']))
+				$newPerson["source"]['key'] = $personImportData['source']['key'];
 		}
 
 		if(!empty($personImportData['warnings']))
@@ -969,27 +969,27 @@ class Person {
 		if(!empty($personImportData['geo']['longitude']))
 			$newPerson['geo']['longitude'] = $personImportData['geo']['longitude'];
 
-		if(!empty($organization['telephone'])){
+		if(!empty($personImportData['telephone'])){
 			$tel = array();
 			$fixe = array();
 			$mobile = array();
 			$fax = array();
-			if(!empty($organization['telephone']["fixe"])){
-				foreach ($organization['telephone']["fixe"] as $key => $value) {
+			if(!empty($personImportData['telephone']["fixe"])){
+				foreach ($personImportData['telephone']["fixe"] as $key => $value) {
 					$trimValue=trim($value);
 					if(!empty($trimValue))
-						$fixe[] = $trimValue;
+						$fixe[] = "0".$trimValue;
 				}
 			}
-			if(!empty($organization['telephone']["mobile"])){
-				foreach ($organization['telephone']["mobile"] as $key => $value) {
+			if(!empty($personImportData['telephone']["mobile"])){
+				foreach ($personImportData['telephone']["mobile"] as $key => $value) {
 					$trimValue=trim($value);
 					if(!empty($trimValue))
-						$mobile[] = $trimValue;
+						$mobile[] = "0".$trimValue;
 				}
 			}
-			if(!empty($organization['telephone']["fax"])){
-				foreach ($organization['telephone']["fax"] as $key => $value) {
+			if(!empty($personImportData['telephone']["fax"])){
+				foreach ($personImportData['telephone']["fax"] as $key => $value) {
 					$trimValue=trim($value);
 					if(!empty($trimValue))
 						$fax[] = $trimValue;
@@ -1002,7 +1002,7 @@ class Person {
 			if(count($fax) != 0)
 				$tel["fax"] = $fax ;
 			if(count($tel) != 0)	
-				$newOrganization['telephone'] = $tel;
+				$newPerson['telephone'] = $tel;
 		}
 
 		if(!empty($personImportData['address'])){
@@ -1026,29 +1026,23 @@ class Person {
 			if($warnings)
 				$newPerson["warnings"][] = "201" ;
 			else
-				throw new CTKException(Yii::t("import","201"));
+				throw new CTKException(Yii::t("import","201", null, Yii::app()->controller->module->id));
 		}else
 			$newPerson['name'] = $person['name'];
 
 
 
 		if (empty($person['email'])) {
-			if($warnings)
-				$newPerson["warnings"][] = "203" ;
-			else
-				throw new CTKException(Yii::t("import","203"));
+			throw new CTKException(Yii::t("import","203"));
 		}else{
 			if(! preg_match('#^[\w.-]+@[\w.-]+\.[a-zA-Z]{2,6}$#',$person["email"])){
-				if($warnings)
-					$newPerson["warnings"][] = "205" ;
-				else
-					throw new CTKException(Yii::t("import","205"));
+				throw new CTKException(Yii::t("import","205", null, Yii::app()->controller->module->id));
 	        }
 
 			//Check if the email of the person is already in the database
 		  	$account = PHDB::findOne(Person::COLLECTION,array("email"=>$person["email"]));
 		  	if($account){
-		  		throw new CTKException(Yii::t("import","206"));
+		  		throw new CTKException(Yii::t("import","206", null, Yii::app()->controller->module->id));
 		  	}
 		  	$newPerson['email'] = $person['email'];
 		}
@@ -1065,12 +1059,12 @@ class Person {
 				if($warnings)
 					$newPerson["warnings"][] = "210" ;
 				else
-					throw new CTKException(Yii::t("import","210"));
+					throw new CTKException(Yii::t("import","210", null, Yii::app()->controller->module->id));
 			}
 		}else{
 
 			if ( !self::isUniqueUsername($person["username"]) ) {
-				throw new CTKException(Yii::t("import","207"));
+				throw new CTKException(Yii::t("import","207", null, Yii::app()->controller->module->id));
 		  	}
 		  	$newPerson['username'] = $person['username'];
 		}
@@ -1079,7 +1073,7 @@ class Person {
 			if($warnings)
 				$newPerson["warnings"][] = "204" ;
 			else
-				throw new CTKException(Yii::t("import","204"));
+				throw new CTKException(Yii::t("import","204", null, Yii::app()->controller->module->id));
 		}else
 			$newPerson['pwd'] = $person['pwd'];
 		
@@ -1163,6 +1157,9 @@ class Person {
 		if (!empty($person['image']))
 			$newPerson["image"] = $person['image'];
 
+		if(!empty($person['shortDescription']))
+			$newPerson["shortDescription"] = $person["shortDescription"];
+
 		//Tags
 		if (isset($person['tags']) ) {
 			if ( is_array( $person['tags'] ) ) {
@@ -1210,26 +1207,30 @@ class Person {
 	    else
 	    	throw new CTKException("Problem inserting the new person");
 
-	    if(!empty($nameImage) && file_exists($pathFolderImage.$nameImage)){
-			
-			$res = Document::uploadDocument($moduleId, self::COLLECTION, $newpersonId, "avatar", false, $pathFolderImage, $nameImage);
-			if(!empty($res["result"]) && $res["result"] == true){
-				$params = array();
-				$params['id'] = $newpersonId;
-				$params['type'] = self::COLLECTION;
-				$params['moduleId'] = $moduleId;
-				$params['folder'] = self::COLLECTION."/".$newpersonId;
-				$params['name'] = $res['name'];
-				$params['author'] = Yii::app()->session["userId"] ;
-				$params['size'] = $res["size"];
-				$params["contentKey"] = "profil";
-				$res2 = Document::save($params);
-				if($res2["result"] == false)
-					throw new CTKException("Impossible de save.");
+	    if(!empty($nameImage)){
+			try{
+				$res = Document::uploadDocument($moduleId, self::COLLECTION, $newpersonId, "avatar", false, $pathFolderImage, $nameImage);
+				if(!empty($res["result"]) && $res["result"] == true){
+					$params = array();
+					$params['id'] = $newpersonId;
+					$params['type'] = self::COLLECTION;
+					$params['moduleId'] = $moduleId;
+					$params['folder'] = self::COLLECTION."/".$newpersonId;
+					$params['name'] = $res['name'];
+					$params['author'] = Yii::app()->session["userId"] ;
+					$params['size'] = $res["size"];
+					$params["contentKey"] = "profil";
+					$res2 = Document::save($params);
+					if($res2["result"] == false)
+						throw new CTKException("Impossible de save.");
 
-			}else{
-				throw new CTKException("Impossible uploader le document.");
+				}else{
+					throw new CTKException("Impossible uploader le document.");
+				}
+			}catch (CTKException $e){
+				throw new CTKException($e);
 			}
+			
 			
 		}
 

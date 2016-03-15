@@ -486,7 +486,16 @@ class Document {
 
         }
         
-        if(!empty($pathFile) && file_exists($pathFile.$nameFile)){
+
+        $file_headers = @get_headers($pathFile.$nameFile);
+			if($file_headers[0] == 'HTTP/1.1 404 Not Found') {
+			    $exists = false;
+			}
+			else {
+			    $exists = true;
+			}
+
+        if(!empty($pathFile) && $file_headers[0] != 'HTTP/1.1 404 Not Found'){
         	
         	$pic = file_get_contents($pathFile.$nameFile, FILE_USE_INCLUDE_PATH);
         	

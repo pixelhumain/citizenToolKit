@@ -534,14 +534,12 @@ class Project {
 
 		if(!empty($projectImportData['source'])){
 
-			if(!empty($projectImportData['source']['sourceId']))
-				$newProject["source"]['sourceId'] = $projectImportData["source"]['sourceId'];
-			if(!empty($projectImportData['source']['sourceUrl']))
-				$newProject["source"]['sourceUrl'] = $projectImportData["source"]['sourceUrl'];
-			//$projectImportData["source"]['sourceKey'] = "patapouf";
-			 $key = "patapouf";
-			if(!empty($key))
-				$newProject["source"]['sourceKey'] = $key;
+			if(!empty($projectImportData['source']['id']))
+				$newProject["source"]['id'] = $projectImportData["source"]['id'];
+			if(!empty($projectImportData['source']['url']))
+				$newProject["source"]['url'] = $projectImportData["source"]['url'];
+			if(!empty($projectImportData['source']['key']))
+				$newProject["source"]['key'] = $key;
 		}
 
 		if(!empty($projectImportData['warnings']))
