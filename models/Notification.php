@@ -142,6 +142,7 @@ class Notification{
 	    	$typeOfConnect="member";
 	    }
 	    else if( $target["type"] == Event::COLLECTION ) {
+	    	//TODO notify only the admin of the event
 	    	$members = Event::getAttendeesByEventId( $targetId ,"all", null ) ;
 	    	$typeOfConnect="attendee";
 	    }
@@ -183,19 +184,23 @@ class Notification{
 
 	    else if($verb == ActStr::VERB_WAIT){
 		    $label = Yii::app()->session['user']['name']." ".Yii::t("common","wants to join")." ".$target["name"];
-		    $url = $ctrls[ $target["type"] ].'/directory/id/'.$targetId;
+		    $url = $ctrls[ $target["type"] ].'/directory/id/'.$targetId.'?tpl=directory2';
 	    }
 	    else if($verb == ActStr::VERB_AUTHORIZE){
 		    $label = Yii::app()->session['user']['name']." ".Yii::t("common","wants to administrate")." ".$target["name"];
-		    $url = $ctrls[ $target["type"] ].'/directory/id/'.$targetId;
+		    $url = $ctrls[ $target["type"] ].'/directory/id/'.$targetId.'?tpl=directory2';
 	    }
 		else if($verb == ActStr::VERB_CONFIRM){
 		    $label = Yii::app()->session['user']['name']." ".Yii::t("common","just added")." ".$member["name"]." ".Yii::t("common","as admin of")." ".$target["name"];
-		    $url = $ctrls[ $target["type"] ].'/directory/id/'.$targetId;
+		    $url = $ctrls[ $target["type"] ].'/directory/id/'.$targetId.'?tpl=directory2';
 	    }
 	    else if($verb == ActStr::VERB_ACCEPT){
 		    $label = Yii::app()->session['user']['name']." ".Yii::t("common","just added")." ".$member["name"]." ".Yii::t("common","as ".$typeOfConnect." of")." ".$target["name"];
-		    $url = $ctrls[ $target["type"] ].'/directory/id/'.$targetId;
+		    // No directory for event but detail page
+		    if ($target["type"] == Event::COLLECTION)
+		    	$url = $ctrls[ $target["type"] ].'/detail/id/'.$targetId;
+		    else 
+		    	$url = $ctrls[ $target["type"] ].'/directory/id/'.$targetId.'?tpl=directory2';
 	    }
 		else if($verb == ActStr::VERB_JOIN){
 		    $label = Yii::app()->session['user']['name']." ".Yii::t("common","participates to the event")." ".$target["name"];
@@ -209,7 +214,7 @@ class Notification{
 
 		if($invitation == ActStr::VERB_INVITE){
 			 $label = Yii::app()->session['user']['name']." ".Yii::t("common","has invited")." ".$member["name"]." ".Yii::t("common","to join")." ".$target["name"];
-			 $url = $ctrls[ $target["type"] ].'/directory/id/'.$targetId;
+			 $url = $ctrls[ $target["type"] ].'/directory/id/'.$targetId.'?tpl=directory2';
 		}
 		
 		if($verb == ActStr::VERB_SIGNIN){
