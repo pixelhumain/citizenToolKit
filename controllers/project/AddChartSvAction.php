@@ -4,8 +4,6 @@ class AddChartSvAction extends CAction
     public function run($id=null){
 
     	$controller=$this->getController();
-    	//$params = array();
-    	//$params["countries"] = OpenData::getCountriesList();
 		$project = Project::getById($id);
 		$params["project"] = $project;
 		$params["properties"]=array();
