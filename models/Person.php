@@ -604,6 +604,7 @@ class Person {
 
 		//address
 		$user = null;
+		$thisUser = self::getById($personId);
 		if ($dataFieldName == "address") 
 		{
 			error_log(implode(",", $personFieldValue));
@@ -613,8 +614,17 @@ class Person {
 				$address = SIG::getAdressSchemaLikeByCodeInsee($insee);
 				if (!empty($personFieldValue["streetAddress"])) $address["streetAddress"] = $personFieldValue["streetAddress"];
 				if (!empty($personFieldValue["addressCountry"])) $address["addressCountry"] = $personFieldValue["addressCountry"];
-				$geo = SIG::getGeoPositionByInseeCode($insee);
-				$set = array("address" => $address, "geo" => $geo);
+				
+				$set = array("address" => $address);
+
+				if(empty($thisUser["geo"])){
+					$geo = SIG::getGeoPositionByInseeCode($insee);
+					$set["geo"] = $geo;
+				}
+
+				PHDB::update( self::COLLECTION, array("_id" => new MongoId($personId)), 
+		                          		array('$unset' => array("two_steps_register"=>"")));
+
 			} else 
 				throw new CTKException("Error updating the Person : address is not well formated !");			
 
@@ -646,7 +656,7 @@ class Person {
 
 		//update the person
 		PHDB::update( self::COLLECTION, array("_id" => new MongoId($personId)), 
-		                          array('$set' => $set));
+		                          		array('$set' => $set));
 	              
 	    return array("result"=>true,"user"=>$user,"personFieldName"=>$personFieldName);
 	}
