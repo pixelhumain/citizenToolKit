@@ -11,8 +11,20 @@ class Log {
 	const COLLECTION = "logs";				
 
 	/**
+	 * Set an array of parameters for actions we want to log
+	 * @return $array : a set of actions with parameters
+	*/
+	public static function getActionsToLog(){
+		return array(
+	      "person/authenticate" => array('waitForResult' => true, "keepDuration" => 60),
+	      "person/logout" => array('waitForResult' => false, "keepDuration" => 60),
+	      "organization/save" => array('waitForResult' => true, "keepDuration" => 60),
+	    );
+	}
+
+	/**
 	 * adds an entry into the logs collection
-	 * @param $params : a set of information for a proper logs entry
+	 * @param $libAction : a set of information for a proper logs entry
 	*/
 	public static function pushBeforeAction($libAction){
 
@@ -36,15 +48,31 @@ class Log {
 	    return $mongoId;
 	}
 
+	/**
+	 * Set the result answer of the logging action
+	 * @param $id : the log id
+	 * @param $result : the result information
+	*/
 	public static function setResult($id, $result){
 
 		PHDB::update(
 			self::COLLECTION, 
 			array("_id" => new MongoId($id)),
-			array('$set' => array("result" => $result))
+			array('$set' => array("result.result" => @$result['result'], "result.msg" => @$result['msg']))
 		);
 	}
 
+
+	/**
+	 * List all the log in the collection logs
+	*/
+	public static function getAll(){
+		return PHDB::find(self::COLLECTION);
+	}
+
+	/**
+	 * Give a lift of IpAdress to block
+	*/
 	public static function getIpAddressToBlock(){
 		//More than 5 login false in 5 minutes
 		$c = Yii::app()->mongodb->selectCollection(self::COLLECTION);
@@ -105,26 +133,20 @@ class Log {
 		}
 	}
 
+	/**
+	 * Let to clean the logs depends to the rules defined in the array logs parameters
+	*/
 	public static function cleanUp(){
-	    $actionsToLog = array(
-	      "person/authenticate" => array('waitForResult' => true, "keepDuration" => 60),
-	      // "person/logout" => array('waitForResult' => false, "keepDuration" => 60)
-	    );
+	    $actionsToLog = Log::getActionsToLog();
 
 	    foreach($actionsToLog as $action => $param){
 	    	PHDB::remove(self::COLLECTION, array( 
 	    		"action"=> $action
-	    		, "created" => array('$lt' => 'new Date(ISODate().getTime() - 1000 * 60 * 2)')
+	    		, "created" => array('$lt' => 'new Date(ISODate().getTime() - 1000 * 60 * 60)')
 	    	));
 	    }
 
 	}
-}
-
-
-function test_print($item, $key)
-{
-    echo "La clé $key contient l'élément $item<br/>";
 }
 
 ?>
