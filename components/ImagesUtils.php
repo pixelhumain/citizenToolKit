@@ -20,6 +20,7 @@ class ImagesUtils {
 	 */
 	public function __construct($srcImage) {
 		list($this->source_width, $this->source_height, $this->source_type) = getimagesize($srcImage);
+		
 		switch ($this->source_type) {
 		    case IMAGETYPE_GIF:
 		        $this->srcImage = imagecreatefromgif($srcImage);

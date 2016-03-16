@@ -72,6 +72,7 @@ class Document {
 		if(!isset($params["contentKey"])){
 			$params["contentKey"] = "";
 		}
+		
 
 	    $new = array(
 			"id" => $params['id'],
@@ -84,6 +85,7 @@ class Document {
 	  		"size" => $params['size'],
 	  		'created' => time()
 	    );
+
 
 	    if(isset($params["category"]) && !empty($params["category"]))
 	    	$new["category"] = $params["category"];
@@ -448,6 +450,85 @@ class Document {
 		file_put_contents($file, $current);
 
 		
+	}
+
+
+	public static function uploadDocument($dir,$folder=null,$ownerId=null,$input,$rename=false, $pathFile, $nameFile) {
+		$upload_dir = Yii::app()->params['uploadUrl'];
+        if(!file_exists ( $upload_dir ))
+            mkdir ( $upload_dir,0775 );
+        
+        //ex: upload/communecter
+        $upload_dir = Yii::app()->params['uploadUrl'].$dir.'/';
+        if(!file_exists ( $upload_dir ))
+            mkdir ( $upload_dir,0775 );
+
+        //ex: upload/communecter/person
+        if( isset( $folder )){
+            $upload_dir .= $folder.'/';
+            if( !file_exists ( $upload_dir ) )
+                mkdir ( $upload_dir,0775 );
+        }
+
+        //ex: upload/communecter/person/userId
+        if( isset( $ownerId ))
+        {
+            $upload_dir .= $ownerId.'/';
+            if( !file_exists ( $upload_dir ) )
+                mkdir ( $upload_dir,0775 );
+        }
+        
+        $allowed_ext = array('jpg','jpeg','png','gif',"pdf","xls","xlsx","doc","docx","ppt","pptx","odt");
+        
+        if(strtolower($_SERVER['REQUEST_METHOD']) != 'post')
+        {
+    	    return array('result'=>false,'error'=>Yii::t("document","Error! Wrong HTTP method!"));
+
+        }
+        
+
+        $file_headers = @get_headers($pathFile.$nameFile);
+			if($file_headers[0] == 'HTTP/1.1 404 Not Found') {
+			    $exists = false;
+			}
+			else {
+			    $exists = true;
+			}
+
+        if(!empty($pathFile) && $file_headers[0] != 'HTTP/1.1 404 Not Found'){
+        	
+        	$pic = file_get_contents($pathFile.$nameFile, FILE_USE_INCLUDE_PATH);
+        	
+        	$ext = strtolower(pathinfo($nameFile, PATHINFO_EXTENSION));
+        	if(!in_array($ext,$allowed_ext)){
+        		return array('result'=>false,'error'=>Yii::t("document","Only").implode(',',$allowed_ext).Yii::t("document","files are allowed!"));
+    	    
+        	}	
+        
+        	// Move the uploaded file from the temporary 
+        	// directory to the uploads folder:
+        	// we use a unique Id for the iamge name Yii::app()->session["userId"].'.'.$ext
+            // renaming file
+            $cleanfileName = Document::clean(pathinfo($nameFile, PATHINFO_FILENAME)).".".pathinfo($nameFile, PATHINFO_EXTENSION);
+        	$name = ($rename) ? Yii::app()->session["userId"].'.'.$ext : $cleanfileName;
+            if( file_exists ( $upload_dir.$name ) )
+                $name = time()."_".$name;
+
+            /*var_dump(Yii::app()->session["userId"]);
+            var_dump($name);
+            var_dump(file_put_contents($upload_dir.$name , $pic));*/
+
+        	if(isset(Yii::app()->session["userId"]) && $name && file_put_contents($upload_dir.$name , $pic))
+            {   
+        		return array('result'=>true,
+                                        "success"=>true,
+                                        'name'=>$name,
+                                        'dir'=> $upload_dir,
+                                        'size'=> Document::getHumanFileSize ( filesize ( $upload_dir.$name ) ) );
+    	        
+        	}
+        }
+        return array('result'=>false,'error'=>Yii::t("document","Something went wrong with your upload!"));
 	}
 
 }

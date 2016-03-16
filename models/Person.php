@@ -13,7 +13,7 @@ class Person {
 	//From Post/Form name to database field name with rules
 	private static $dataBinding = array(
 	    "name" => array("name" => "name", "rules" => array("required")),
-	    "username" => array("name" => "username", "rules" => array("required", "uniqueUsername")),
+	    "username" => array("name" => "username", "rules" => array("required", "checkUsername")),
 	    "birthDate" => array("name" => "birthDate", "rules" => array("required")),
 	    "email" => array("name" => "email", "rules" => array("email")),
 	    "pwd" => array("name" => "pwd"),
@@ -37,6 +37,8 @@ class Person {
 	    "bgUrl" => array("name" => "preferences.bgUrl"),
 	    "roles" => array("name" => "roles"),
 	    "two_steps_register" => array("name" => "two_steps_register"),
+	    "source" => array("name" => "source"),
+	    "warnings" => array("name" => "warnings"),
 	);
 
 	public static function logguedAndValid() {
@@ -381,6 +383,9 @@ class Person {
 		
 		$newPerson = array();
 		if ($mode == self::REGISTER_MODE_MINIMAL) {
+			//generate unique temporary userName for Meteor app when inviting
+			$newPerson["username"] = substr(str_shuffle("0123456789abcdefghijklmnopqrstuvwxyz"), 0, 32);
+			//Add pending boolean
 			$newPerson["pending"] = true;
 		} else if ($mode == self::REGISTER_MODE_NORMAL) {
 			array_push($dataPersonMinimal, "username", "postalCode", "city", "pwd");
@@ -418,6 +423,9 @@ class Person {
 	  	if ($mode == self::REGISTER_MODE_NORMAL || $mode == self::REGISTER_MODE_TWO_STEPS) {
 		  	//user name
 		  	$newPerson["username"] = $person["username"];
+		  	if (strlen($newPerson["username"]) < 4 || strlen($newPerson["username"]) > 32) {
+		  		throw new CTKException(Yii::t("person","The username length should be between 4 and 32 characters"));
+		  	} 
 		  	if ( ! self::isUniqueUsername($newPerson["username"]) ) {
 		  		throw new CTKException(Yii::t("person","Problem inserting the new person : a person with this username already exists in the plateform"));
 		  	}
@@ -668,7 +676,7 @@ class Person {
         
         //return an error when email does not exist
         if ($account == null) {
-        	return array("result"=>false, "msg"=>"Email ou Mot de Passe ne correspondent pas, rééssayez.");
+        	return array("result"=>false, "msg"=>"Erreur : impossible de trouver un compte avec ce nom d'utilisateur ou cet email.");
         }
         
         //Roles validation
@@ -994,7 +1002,7 @@ class Person {
 	*	@param string Date Update openAgenda
 	*   return String ("Add", "Update" or "Delete")
 	*/
-	public static function createPersonFromImportData($personImportData, $key=null, $warnings = null) {
+	public static function createPersonFromImportData($personImportData, $warnings = null) {
 		if(!empty($personImportData['name']))
 			$newPerson["name"] = $personImportData["name"];
 
@@ -1017,17 +1025,22 @@ class Person {
 			$newPerson["sourceAdmin"] = $personImportData["sourceAdmin"];
 
 		if(!empty($personImportData['source'])){
-
-			if(!empty($personImportData['source']['sourceId']))
-				$newPerson["source"]['sourceId'] = $personImportData["source"]['sourceId'];
-			if(!empty($personImportData['source']['sourceUrl']))
-				$newPerson["source"]['sourceUrl'] = $personImportData["source"]['sourceUrl'];
-			if(!empty($key))
-				$newPerson["source"]['sourceKey'] = $key;
+			if(!empty($personImportData['source']['id']))
+				$newPerson["source"]['id'] = $personImportData["source"]['id'];
+			if(!empty($personImportData['source']['url']))
+				$newPerson["source"]['url'] = $personImportData["source"]['url'];
+			if(!empty($personImportData['source']['key']))
+				$newPerson["source"]['key'] = $personImportData['source']['key'];
 		}
 
 		if(!empty($personImportData['warnings']))
 			$newPerson["warnings"] = $personImportData["warnings"];
+
+		if(!empty($personImportData['image']))
+			$newPerson["image"] = $personImportData["image"];
+
+		if(!empty($personImportData['shortDescription']))
+			$newPerson["shortDescription"] = $personImportData["shortDescription"];
 
 		if(!empty($personImportData['geo']['latitude']))
 			$newPerson['geo']['latitude'] = $personImportData['geo']['latitude'];
@@ -1035,7 +1048,41 @@ class Person {
 		if(!empty($personImportData['geo']['longitude']))
 			$newPerson['geo']['longitude'] = $personImportData['geo']['longitude'];
 
-
+		if(!empty($personImportData['telephone'])){
+			$tel = array();
+			$fixe = array();
+			$mobile = array();
+			$fax = array();
+			if(!empty($personImportData['telephone']["fixe"])){
+				foreach ($personImportData['telephone']["fixe"] as $key => $value) {
+					$trimValue=trim($value);
+					if(!empty($trimValue))
+						$fixe[] = "0".$trimValue;
+				}
+			}
+			if(!empty($personImportData['telephone']["mobile"])){
+				foreach ($personImportData['telephone']["mobile"] as $key => $value) {
+					$trimValue=trim($value);
+					if(!empty($trimValue))
+						$mobile[] = "0".$trimValue;
+				}
+			}
+			if(!empty($personImportData['telephone']["fax"])){
+				foreach ($personImportData['telephone']["fax"] as $key => $value) {
+					$trimValue=trim($value);
+					if(!empty($trimValue))
+						$fax[] = $trimValue;
+				}
+			}
+			if(count($mobile) != 0)
+				$tel["mobile"] = $mobile ;
+			if(count($fixe) != 0)
+				$tel["fixe"] = $fixe ;
+			if(count($fax) != 0)
+				$tel["fax"] = $fax ;
+			if(count($tel) != 0)	
+				$newPerson['telephone'] = $tel;
+		}
 
 		if(!empty($personImportData['address'])){
 			$details = Import::getAndCheckAddressForEntity($personImportData['address'], (empty($newPerson['geo']) ? null : $newPerson['geo']), $warnings) ;
@@ -1051,70 +1098,61 @@ class Person {
 	}
 
 
-	public static function getAndCheckPersonFromImportData($person, $userId,$insert=null, $update=null, $warnings = null) {
-		//var_dump($project);
+	public static function getAndCheckPersonFromImportData($person, $insert=null, $update=null, $warnings = null) {
 		
 		$newPerson = array();
 		if (empty($person['name'])) {
 			if($warnings)
 				$newPerson["warnings"][] = "201" ;
 			else
-				throw new CTKException(Yii::t("import","201"));
+				throw new CTKException(Yii::t("import","201", null, Yii::app()->controller->module->id));
 		}else
 			$newPerson['name'] = $person['name'];
 
 
 
 		if (empty($person['email'])) {
-			if($warnings)
-				$newPerson["warnings"][] = "203" ;
-			else
-				throw new CTKException(Yii::t("import","203"));
+			throw new CTKException(Yii::t("import","203"));
 		}else{
 			if(! preg_match('#^[\w.-]+@[\w.-]+\.[a-zA-Z]{2,6}$#',$person["email"])){
-				if($warnings)
-					$newPerson["warnings"][] = "205" ;
-				else
-					throw new CTKException(Yii::t("import","205"));
+				throw new CTKException(Yii::t("import","205", null, Yii::app()->controller->module->id));
 	        }
 
 			//Check if the email of the person is already in the database
 		  	$account = PHDB::findOne(Person::COLLECTION,array("email"=>$person["email"]));
 		  	if($account){
-		  		if($warnings)
-					$newPerson["warnings"][] = "206" ;
-				else
-		  			throw new CTKException(Yii::t("import","206"));
+		  		throw new CTKException(Yii::t("import","206", null, Yii::app()->controller->module->id));
 		  	}
 		  	$newPerson['email'] = $person['email'];
 		}
 			
 
-		if (empty($person['username'])) {
-			if($warnings)
-				$newPerson["warnings"][] = "207" ;
-			else
-				throw new CTKException(Yii::t("import","207"));
+		if(empty($person['username'])){
+			if(!empty($person['email'])){
+
+				$newPerson['username'] = self::generedUserNameByEmail($person['email'], true) ;
+				if($warnings)
+					$newPerson["warnings"][] = "211" ;
+
+			}else{
+				if($warnings)
+					$newPerson["warnings"][] = "210" ;
+				else
+					throw new CTKException(Yii::t("import","210", null, Yii::app()->controller->module->id));
+			}
 		}else{
 
 			if ( !self::isUniqueUsername($person["username"]) ) {
-				if($warnings)
-					$newPerson["warnings"][] = "207" ;
-				else
-		  		throw new CTKException(Yii::t("import","207"));
+				throw new CTKException(Yii::t("import","207", null, Yii::app()->controller->module->id));
 		  	}
 		  	$newPerson['username'] = $person['username'];
 		}
 			
-
-
-
-
 		if (empty($person['pwd'])) {
 			if($warnings)
 				$newPerson["warnings"][] = "204" ;
 			else
-				throw new CTKException(Yii::t("import","204"));
+				throw new CTKException(Yii::t("import","204", null, Yii::app()->controller->module->id));
 		}else
 			$newPerson['pwd'] = $person['pwd'];
 		
@@ -1134,7 +1172,7 @@ class Person {
 				else
 					throw new CTKException(Yii::t("import","101", null, Yii::app()->controller->module->id));
 			}
-			if(empty($project['address']['codeInsee'])/*&& $insert*/){
+			if(empty($person['address']['codeInsee'])/*&& $insert*/){
 				if($warnings)
 					$newPerson["warnings"][] = "102" ;
 				else
@@ -1146,7 +1184,7 @@ class Person {
 				else
 					throw new CTKException(Yii::t("import","104", null, Yii::app()->controller->module->id));
 			}
-			if(empty($project['address']['addressLocality']) /*&& $insert*/){
+			if(empty($person['address']['addressLocality']) /*&& $insert*/){
 				if($warnings)
 					$newPerson["warnings"][] = "105" ;
 				else
@@ -1164,7 +1202,7 @@ class Person {
 
 		if(!empty($person['geo']) && !empty($person["geoPosition"])){
 			$newPerson["geo"] = $person['geo'];
-			$newPerson["geoPosition"] = $person['gepersonoPosition'];
+			$newPerson["geoPosition"] = $person['geoPosition'];
 
 		}else if(!empty($person["geo"]['latitude']) && !empty($person["geo"]["longitude"])){
 			$newPerson["geo"] = 	array(	"@type"=>"GeoCoordinates",
@@ -1185,10 +1223,32 @@ class Person {
 				throw new CTKException(Yii::t("import","150", null, Yii::app()->controller->module->id));
 		}else if($warnings)
 			$newPerson["warnings"][] = "150" ;
-		
+
+		if (!empty($person['telephone']))
+			$newPerson["telephone"] = $person['telephone'];
+
 		if (!empty($person['sourceAdmin']))
 			$newPerson["sourceAdmin"] = $person['sourceAdmin'];
 		
+		if (!empty($person['source']))
+			$newPerson["source"] = $person['source'];
+
+		if (!empty($person['image']))
+			$newPerson["image"] = $person['image'];
+
+		if(!empty($person['shortDescription']))
+			$newPerson["shortDescription"] = $person["shortDescription"];
+
+		//Tags
+		if (isset($person['tags']) ) {
+			if ( is_array( $person['tags'] ) ) {
+				$tags = $person['tags'];
+			} else if ( is_string($person['tags']) ) {
+				$tags = explode(",", $person['tags']);
+			}
+			$newPerson["tags"] = $tags;
+		}
+
 		if (!empty($person['source']))
 			$newPerson["source"] = $person['source'];
 
@@ -1201,26 +1261,95 @@ class Person {
 	 * @param string $userId UserId doing the insertion
 	 * @return array as result type
 	 */
-	public static function insertPersonFromImportData($params, $parentId,$parentType, $warnings){
-	    $person = self::getAndCheckPersonFromImportData($params, $parentId, true, null, $warnings);
-
-	    if(!empty($person["warnings"]) && $warnings == true)
-	    	$person["warnings"] = Import::getAndCheckWarnings($person["warnings"]);
+	public static function insertPersonFromImportData($person, $warnings, $pathFolderImage = null, $moduleId = null){
 	    
-	    $person["@context"] = array("@vocab"=>"http://schema.org",
+	    $newPerson = self::getAndCheckPersonFromImportData($person, null, null, $warnings);
+	    
+	    if(!empty($newPerson["warnings"]) && $warnings == true)
+	    	$newPerson["warnings"] = Import::getAndCheckWarnings($newPerson["warnings"]);
+	    
+	    $newPerson["@context"] = array("@vocab"=>"http://schema.org",
             "ph"=>"http://pixelhumain.com/ph/ontology/");
-	    $person["roles"] = Role::getDefaultRoles();
-	  	$person["created"] = new mongoDate(time());
-	  	$person["preferences"] = array("seeExplanations"=> true);
+	    $newPerson["roles"] = Role::getDefaultRoles();
+	  	$newPerson["created"] = new mongoDate(time());
+	  	$newPerson["preferences"] = array("seeExplanations"=> true);
 
-	    PHDB::insert(Person::COLLECTION , $person);
+	  	if(!empty($newPerson["image"])){
+			$nameImage = $newPerson["image"];
+			unset($newPerson["image"]);
+		}
 
-	    if (isset($person["_id"]))
-	    	$newpersonId = (String) $person["_id"];
+	    PHDB::insert(Person::COLLECTION , $newPerson);
+
+	    if (isset($newPerson["_id"]))
+	    	$newpersonId = (String) $newPerson["_id"];
 	    else
 	    	throw new CTKException("Problem inserting the new person");
 
-	    return array("result"=>true, "msg"=>"Cette personne est communecté.", "id" => $newProject["_id"]);	
+	    if(!empty($nameImage)){
+			try{
+				$res = Document::uploadDocument($moduleId, self::COLLECTION, $newpersonId, "avatar", false, $pathFolderImage, $nameImage);
+				if(!empty($res["result"]) && $res["result"] == true){
+					$params = array();
+					$params['id'] = $newpersonId;
+					$params['type'] = self::COLLECTION;
+					$params['moduleId'] = $moduleId;
+					$params['folder'] = self::COLLECTION."/".$newpersonId;
+					$params['name'] = $res['name'];
+					$params['author'] = Yii::app()->session["userId"] ;
+					$params['size'] = $res["size"];
+					$params["contentKey"] = "profil";
+					$res2 = Document::save($params);
+					if($res2["result"] == false)
+						throw new CTKException("Impossible de save.");
+
+				}else{
+					throw new CTKException("Impossible uploader le document.");
+				}
+			}catch (CTKException $e){
+				throw new CTKException($e);
+			}
+			
+			
+		}
+
+
+	    return array("result"=>true, "msg"=>"Cette personne est communecté.", "id" => $newPerson["_id"]);	
+	}
+
+
+
+	public static function generedUserNameByEmail($chaine, $isEmail = null){
+		
+		if($isEmail == true){
+			$arrayEmail = explode("@", $chaine);
+			$name = $arrayEmail[0];
+		}else
+			$name = $chaine;
+			
+		$name = strtr($name,'àáâãäçèéêëìíîïñòóôõöùúûüýÿÀÁÂÃÄÇÈÉÊËÌÍÎÏÑÒÓÔÕÖÙÚÛÜÝ._','aaaaaceeeeiiiinooooouuuuyyAAAAACEEEEIIIINOOOOOUUUUY--'); // Replaces all spaces with hyphens.
+		$name = preg_replace('/[^A-Za-z0-9\-]/', '', $name);
+		
+		if(strlen($name) >= 4 && strlen($name) <= 20 ){
+			if ( !self::isUniqueUsername($name) ) {
+				 $name = self::generedUserNameByEmail($name."1");
+		  	}
+		}else{
+
+			if(strlen($name) < 4){
+
+				while(strlen($name) < 4){
+					$name = $name."1" ;
+				}
+			}
+
+			if(strlen($name) > 20){
+				$name = substr($name ,0 , 20);
+			} 
+
+		}
+
+		return $name;
 	}
 
 }

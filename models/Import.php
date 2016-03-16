@@ -116,14 +116,14 @@ class Import
     public static function parsingJSON2($post) 
     {
         header('Content-Type: text/html; charset=UTF-8');
-        if(isset($post['nameFile']))
+        if(isset($post['file']))
         {
             $json = $post['file'][0];
 
             $search = array("\t", "\n", "\r");
             $json = strip_tags (str_replace($search, " ", $json));
-            
-            $nameFile = $post['nameFile'] ;
+           
+            /*$nameFile = $post['nameFile'] ;
             $arrayNameFile = explode(".", $nameFile);
             
             $path = sys_get_temp_dir().'/filesImportData/' ;
@@ -136,11 +136,10 @@ class Import
                 mkdir($path , 0775);
 
             Import::createJSON($json, $nameFile, $path);
-            $subFiles = scandir(sys_get_temp_dir()."/filesImportData/".$nameFile);
+            $subFiles = scandir(sys_get_temp_dir()."/filesImportData/".$nameFile);*/
             
             $chaine ="";
             if(!empty($post["pathObject"])){
-
                 $obj = json_decode($json, true);
                 //var_dump($obj );
                 $map = explode(".", $post["pathObject"]) ;
@@ -159,7 +158,6 @@ class Import
                         $chaine .= ArrayHelper::getAllBranchsJSON($value);
                     }
                 }
-
             }
                 
             
@@ -171,7 +169,7 @@ class Import
                     $listBrancheJson[] = $value ;
             }
 
-            $params = array("_id"=>new MongoId($post['chooseCollection']));
+            $params = array("_id"=>new MongoId($post['idMicroformat']));
             $fields = array("mappingFields");
             $fieldsCollection = Import::getMicroFormats($params, $fields);
             $arrayPathMapping2 = array();
@@ -188,10 +186,12 @@ class Import
             }
             
             $params = array("createLink"=>true,
-                            "typeFile" => "json",
                             "arbre"=>$listBrancheJson,
-                            "nameFile"=>$nameFile ,
+                            "typeFile" => "json",
                             "arrayPathMapping"=>$arrayPathMapping2);
+                            
+                            //"nameFile"=>$nameFile ,
+                            
                             //"json_origine"=>$json,
                            // "jsonData"=>json_encode($json_objet),
                              //"subFiles" => $subFiles,
@@ -378,26 +378,15 @@ class Import
         /**** new ****/
         $arrayJson = array();
         $notGeo = false ;
+
         if(isset($post['infoCreateData']) && isset($post['idCollection']) && isset($post['file']) && isset($post['nameFile'])){
 
             $paramsInfoCollection = array("_id"=>new MongoId($post['idCollection']));
             $infoCollection = Import::getMicroFormats($paramsInfoCollection);
-
             $arrayCSV = $post['file'];
             $arrayHeadCSV = $arrayCSV[0];
-            /*$pathSubFile =  sys_get_temp_dir().'/filesImportData/'.$post['nameFile'].'/'. ;
-            $arrayCSV = new SplFileObject($pathSubFile, 'r');
-            $arrayCSV->setFlags(SplFileObject::READ_CSV);
-            $arrayCSV->setCsvControl(',', '"', '"');
 
             $i = 0 ;
-            while (!$arrayCSV->eof() && $i == 0) {
-                $arrayHeadCSV = $arrayCSV->fgetcsv() ;
-                $i++;
-            }*/
-           
-            $i = 0 ;
-            
             foreach ($arrayCSV as $keyCSV => $lineCSV){
                 $jsonData = array();
                 if($i>0 && $lineCSV[0] != null){
@@ -406,8 +395,10 @@ class Import
                         set_time_limit(30) ;
                     
                     foreach($post['infoCreateData']as $key => $objetInfoData){
-                        
-                        $valueData = $lineCSV[$objetInfoData['idHeadCSV']] ;
+                       
+                        $valueData = false ;
+                        if(!empty($lineCSV[$objetInfoData['idHeadCSV']]))
+                            $valueData = $lineCSV[$objetInfoData['idHeadCSV']] ;
                         
                         if(isset($valueData)) {
                             $mappingTypeData = explode(".", $post['idCollection'].".mappingFields.".$objetInfoData['valueLinkCollection']);
@@ -436,10 +427,21 @@ class Import
                         }
                         
                     }
+                    if(empty($post['key']))
+                        $keyEntity = null;
+                    else
+                        $keyEntity = $post['key'];
 
-                    $entite = Import::checkData($infoCollection[$post['idCollection']]["key"], $jsonData, $post);
-                    if(empty($entite["geo"]))
+                    if(empty($post['warnings']))
+                        $warnings = null;
+                    else
+                        $warnings = true;
+                    
+                    $entite = Import::checkData($infoCollection[$post['idCollection']]["key"], $jsonData, $post,  $keyEntity, $warnings);
+
+                    if(empty($entite["geo"]) && !empty($entite["msgError"]))
                         $notGeo = true ;
+                    
                     if(empty($entite["msgError"]))
                         $arrayJson[] = $entite ;
                     else
@@ -476,14 +478,19 @@ class Import
     }
 
 
-    public static function checkData($keyCollection, $data, $post){
+    public static function checkData($keyCollection, $data, $post, $keyEntity = null, $warnings = null){
         $res = array() ;
+
+        if(!empty($keyEntity))
+            $data["source"]['key'] = $keyEntity;
+
         if($keyCollection == "Organizations"){
             try{    
                 $newOrganization = Organization::newOrganizationFromImportData($data, $post["creatorEmail"]);
                 $newOrganization["role"] = $post["role"];
                 $newOrganization["creator"] = $post["creatorID"];
-                $res = Organization::getAndCheckOrganizationFromImportData($newOrganization) ;
+                $newOrganization2 = Organization::getQuestionAnwser($newOrganization);
+                $res = Organization::getAndCheckOrganizationFromImportData($newOrganization2, null, null, $warnings) ;
             }
             catch (CTKException $e){
                 if(empty($newOrganization))
@@ -493,12 +500,9 @@ class Import
             }
         } else if($keyCollection == "Projets"){
             try{
-                //$data["creator"] = $post["creatorID"];
-                //var_dump($data);
-                $data["source"]['sourceKey'] = "patapouf";
                 $newProject = Project::createProjectFromImportData($data);
                 $newProject2 = Project::getQuestionAnwser($newProject);
-                $res = Project::getAndCheckProjectFromImportData($newProject2, $post["creatorID"], null, null, true);
+                $res = Project::getAndCheckProjectFromImportData($newProject2, $post["creatorID"], null, null, $warnings);
             }
             catch(CTKException $e){
                 if(empty($newProject))
@@ -507,6 +511,19 @@ class Import
                 $newProject["msgError"] = $e->getMessage();
                 
                 $res = $newProject ;
+            }
+        } else if($keyCollection == "Person"){
+            try{
+                $newPerson = Person::createPersonFromImportData($data, true);
+                $res = Person::getAndCheckPersonFromImportData($newPerson, null, null, $warnings);
+            }
+            catch(CTKException $e){
+                if(empty($newPerson))
+                    $newPerson = $data;
+
+                $newPerson["msgError"] = $e->getMessage();
+                
+                $res = $newPerson ;
             }
         }
 
@@ -582,12 +599,21 @@ class Import
                 if(empty($jsonData))
                     $jsonData = array();
                 
-                //var_dump($jsonData);
+                if(empty($post['key']))
+                    $keyEntity = null;
+                else
+                    $keyEntity = $post['key'];
 
-                $entite = Import::checkData($infoCollection[$post['idCollection']]["key"], $jsonData, $post);
+                if(empty($post['warnings']))
+                    $warnings = null;
+                else
+                    $warnings = true;
 
-                if(empty($entite["geo"]))
+                $entite = Import::checkData($infoCollection[$post['idCollection']]["key"], $jsonData, $post, $keyEntity, $warnings);
+
+                if(empty($entite["geo"]) && !empty($entite["msgError"]))
                     $notGeo = true ;
+
                 if(empty($entite["msgError"]))
                     $arrayJson[] = $entite ;
                 else
@@ -895,10 +921,11 @@ class Import
 
 
 
-    public static function addDataInDb($post)
+    public static function addDataInDb($post, $moduleId = null)
     {
         $jsonString = $post["file"];
         $typeEntity = $post["chooseEntity"];
+        $pathFolderImage = $post["pathFolderImage"];
 
         if(substr($jsonString, 0,1) == "{")
             $jsonArray[] = json_decode($jsonString, true) ;
@@ -909,24 +936,30 @@ class Import
             $resData =  array();
             foreach ($jsonArray as $key => $value){
                 try{
-                    $res = Project::insertProjetFromImportData($value, $post['creatorID'],Person::COLLECTION,true) ; 
+
+                    if($typeEntity == "project")
+                        $res = Project::insertProjetFromImportData($value, $post['creatorID'],Person::COLLECTION,true,$pathFolderImage) ;
+                    else if($typeEntity == "organization")
+                        $res = Organization::insertOrganizationFromImportData($value, $post['creatorID'],true,$pathFolderImage) ;
+                    else if($typeEntity == "person")
+                        $res = Person::insertPersonFromImportData($value,true,$pathFolderImage, $moduleId) ; 
+
 
                     if($res["result"] == true){
-                        $projet["name"] =  $value["name"];
+                        $entite["name"] =  $value["name"];
         
-                        $projet["info"] = "Success" ;
+                        $entite["info"] = "Success" ;
                     }else{
-                        $projet["name"] =  $value["name"];
+                        $entite["name"] =  $value["name"];
                         
-                        $projet["info"] = "Error" ;
+                        $entite["info"] = "Error" ;
                     }
-                    $resData[] = $projet;
+                    $resData[] = $entite;
                 }
                 catch (CTKException $e){
-                    $projet["name"] =  $value["name"];
-                    
-                    $projet["info"] = $e->getMessage();
-                    $resData[] = $projet;
+                    $entite["name"] =  $value["name"];
+                    $entite["info"] = $e->getMessage();
+                    $resData[] = $entite;
                 }        
             }
             $params = array("result" => true, 
@@ -1031,19 +1064,21 @@ class Import
         $newWarnings = array();
         $warningsUseless = array();
 
-        if(in_array("101", $warnings) && in_array("102", $warnings) && in_array("105", $warnings) && in_array("103", $warnings) && in_array("104", $warnings))
+        if(in_array("101", $warnings) && in_array("102", $warnings) && in_array("105", $warnings) && in_array("103", $warnings) && in_array("104", $warnings) && !in_array("150", $warningsUseless))
         {
             $warningsUseless[] = "101";
             $warningsUseless[] = "102";
             $warningsUseless[] = "103";
             $warningsUseless[] = "104";
             $warningsUseless[] = "105";
+            $warningsUseless[] = "150";
             $newWarnings[] = "100";
         }    
 
-        if(in_array("151", $warnings) && in_array("152", $warnings)){
+        if(in_array("151", $warnings) && in_array("152", $warnings) && !in_array("150", $warningsUseless)){
             $warningsUseless[] = "151";
             $warningsUseless[] = "152";
+            $warningsUseless[] = "150";
             $newWarnings[] = "150";
         }
 
@@ -1061,7 +1096,7 @@ class Import
         $msg = "";
         foreach ($warnings as $key => $codeWarning) {
             if($msg != "")
-                $msg .= "\n";
+                $msg .= "<br/>";
             $msg .= Yii::t("import",$codeWarning, null, Yii::app()->controller->module->id);
         }
 
@@ -1181,7 +1216,7 @@ class Import
         $organizations = array();
         $events = array();
         
-        $res = PHDB::find(Project::COLLECTION, array("source.sourceKey"=>$key, "state" => "uncomplete"));
+        $res = PHDB::find(Project::COLLECTION, array("source.key"=>$key, "state" => "uncomplete"));
         foreach ($res as $key => $value) {
             $projects = array();
             $projects["id"] = $key;
@@ -1190,12 +1225,53 @@ class Import
             $result["project"][] = $projects;
         }
 
-        
-        $result["organization"] = PHDB::find(Organization::COLLECTION, array("source.sourceKey"=>$key, "state" => "uncomplete"));
-        $result["event"] = PHDB::find(Event::COLLECTION, array("source.sourceKey"=>$key, "state" => "uncomplete"));
+        $res = PHDB::find(Person::COLLECTION, array("source.key"=>$key));
+        foreach ($res as $key => $value) {
+            $person = array();
+            $person["id"] = $key;
+            $person["name"] = $value["name"];
+            if(!empty($value["warnings"]))
+                $person["warnings"] = $value["warnings"];
+            else
+                $person["warnings"] = array();
+            $result["person"][] = $person;
+        }
+
+        $res = PHDB::find(Organization::COLLECTION, array("source.key"=>$key));
+        foreach ($res as $key => $value) {
+            $person = array();
+            $person["id"] = $key;
+            $person["name"] = $value["name"];
+            if(!empty($value["warnings"]))
+                $person["warnings"] = $value["warnings"];
+            else
+                $person["warnings"] = array();
+            $result["organization"][] = $person;
+        }
+
+        $res = PHDB::find(Event::COLLECTION, array("source.key"=>$key));
+        foreach ($res as $key => $value) {
+            $person = array();
+            $person["id"] = $key;
+            $person["name"] = $value["name"];
+            if(!empty($value["warnings"]))
+                $person["warnings"] = $value["warnings"];
+            else
+                $person["warnings"] = array();
+            $result["event"][] = $person;
+        }
 
         return $result ;
     }
+
+
+    public static function imageDrive($id){
+        
+    }
+
+
+
+
 
     
 
