@@ -672,7 +672,7 @@ class Link {
         //First case : The parent doesn't have an admin yet or it is an action from an admin or it is an event: 
 		if (count($usersAdmin) == 0 || $actionFromAdmin || $parentType == Event::COLLECTION) {
             //the person is automatically added as member (admin or not) of the parent
-            if($actionFromAdmin){
+            if ($actionFromAdmin) {
 	            //If admin add as admin or member 
 	            if($isConnectingAdmin==true){
 					$verb = ActStr::VERB_CONFIRM;
@@ -681,9 +681,7 @@ class Link {
 					$verb = ActStr::VERB_ACCEPT;
 					$msg=$pendingChild["name"]." ".Yii::t("common","is now ".$typeOfDemand." of")." ".$parentData["name"];
 				}
-			}
-			else{
-
+			} else{
 				$verb = ActStr::VERB_JOIN;
 				if($childId==Yii::app()->session["userId"] )
 					$msg= Yii::t("common", "You are now ".$typeOfDemand." of")." ".Yii::t("common","this ".$parentController);
@@ -718,8 +716,7 @@ class Link {
             //TODO - Notification
             $msg = Yii::t("common","Your request has been sent to other admins.");
             // After : the 1rst existing Admin to take the decision will remove the "pending" to make a real admin
-        }        
-
+        } 
 			
 		Link::connect($parentId, $parentType, $childId, $childType,Yii::app()->session["userId"], $parentConnectAs, $isConnectingAdmin, $toBeValidatedAdmin, $toBeValidated, $userRole);
 		Link::connect($childId, $childType, $parentId, $parentType, Yii::app()->session["userId"], $childConnectAs, $isConnectingAdmin, $toBeValidatedAdmin, $toBeValidated, $userRole);
