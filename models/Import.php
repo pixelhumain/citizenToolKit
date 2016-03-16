@@ -1064,7 +1064,7 @@ class Import
         $newWarnings = array();
         $warningsUseless = array();
 
-        if(in_array("101", $warnings) && in_array("102", $warnings) && in_array("105", $warnings) && in_array("103", $warnings) && in_array("104", $warnings) !in_array("150", $warningsUseless))
+        if(in_array("101", $warnings) && in_array("102", $warnings) && in_array("105", $warnings) && in_array("103", $warnings) && in_array("104", $warnings) && !in_array("150", $warningsUseless))
         {
             $warningsUseless[] = "101";
             $warningsUseless[] = "102";
