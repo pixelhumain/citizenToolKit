@@ -194,7 +194,7 @@ class GlobalAutoCompleteAction extends CAction
 			    	$query["country"] = $country;
 			    }
 
-	  		$allCities = PHDB::find(City::COLLECTION, $query, array("name", "alternateName", "cp", "insee", "geo", "geoShape"));
+	  		$allCities = PHDB::find(City::COLLECTION, $query, array("name", "alternateName", "cp", "insee", "regionName", "country", "geo", "geoShape"));
 	  		$allCitiesRes = array();
 	  		$nbMaxCities = 20;
 	  		$nbCities = 0;
