@@ -19,6 +19,9 @@ class Log {
 	      "person/authenticate" => array('waitForResult' => true, "keepDuration" => 60),
 	      "person/logout" => array('waitForResult' => false, "keepDuration" => 60),
 	      "organization/save" => array('waitForResult' => true, "keepDuration" => 60),
+	      "person/register" => array('waitForResult' => true, "keepDuration" => 60),
+	      "news/save" => array('waitForResult' => true, "keepDuration" => 60),
+	      "action/addaction" => array('waitForResult' => true, "keepDuration" => 60),
 	    );
 	}
 
@@ -26,14 +29,10 @@ class Log {
 	 * adds an entry into the logs collection
 	 * @param $libAction : a set of information for a proper logs entry
 	*/
-	public static function pushBeforeAction($libAction){
-
-    	//To save in the session and update the result
-    	$mongoId = new MongoId();
+	public static function setLogBeforeAction($libAction){
 
     	//Data by default
 	    $logs =array(
-	    	"_id" => $mongoId,
 			"userId" => @Yii::app()->session['userId'],
 			"browser" => $_SERVER["HTTP_USER_AGENT"],
 			"ipAddress" => $_SERVER["REMOTE_ADDR"],
@@ -43,9 +42,7 @@ class Log {
 
 	    //POST or GET
     	if(!empty($_REQUEST)) $logs['params'] = $_REQUEST;
-
-	    PHDB::insert(self::COLLECTION,$logs);
-	    return $mongoId;
+	    return $logs;
 	}
 
 	/**
@@ -53,13 +50,27 @@ class Log {
 	 * @param $id : the log id
 	 * @param $result : the result information
 	*/
-	public static function setResult($id, $result){
+	public static function setLogAfterAction($log, $result){
 
-		PHDB::update(
-			self::COLLECTION, 
-			array("_id" => new MongoId($id)),
-			array('$set' => array("result.result" => @$result['result'], "result.msg" => @$result['msg']))
-		);
+		$log['result']['result'] = @$result['result'];
+		$log['result']['msg'] = @$result['msg'];
+		self::save($log);
+
+	}
+
+	public static function save($log){
+		//Update
+		if(isset($log['_id'])){
+			$id = $log['_id'];
+			unset($log['_id']);
+			PHDB::update(  self::COLLECTION, 
+		     								    array("_id"=>new MongoId($id)),
+		     									array('$set' => $log)
+		     								);
+		}//Insert
+		else{
+			PHDB::insert(self::COLLECTION,$log);
+		}
 	}
 
 
@@ -74,57 +85,25 @@ class Log {
 	 * Give a lift of IpAdress to block
 	*/
 	public static function getSummaryByAction(){
-		//More than 5 login false in 5 minutes
+		
 		$c = Yii::app()->mongodb->selectCollection(self::COLLECTION);
 		$result = $c->aggregate(
-			array(
-				'$group' =>
-				  	array(
-					  	'_id'=> '$ipAddress', 
-					    'count'=> array('$sum'=> 1),
-					    'minDate'=> array( '$min' => '$created' ),
-   						'maxDate'=> array( '$max' => '$created' ),
-					    'details'=> 
-					    array('$push' =>  
-					    	array(
-						        'action' => '$action'
-						        , 'result' => '$result.result'
-				        	)
-			        	)
-			        )
-			),
-		    array(
-		    	'$match' => 
-					array(
-						'count'=> array('$gt'=> 0)
-					)
-				
-		    ),
-		    array( 
-				'$sort' => array(
-					'ipAddress' => -1
-					, 'details.action' => -1 
+			array(   
+			  '$group'=> 
+		  		array(
+			    	'_id' => array(
+			    		'action' => '$action'
+			    		, 'ip' => '$ipAddress'
+			    		, 'result' => '$result.result'
+			    		, 'msg' => '$result.msg'
+			    	),
+				    'count' => array ('$sum' => 1),
+				    'minDate' => array ( '$min' => '$created' ),
+				    'maxDate' => array ( '$max' => '$created' )
 				)
-			)
-		);
-
-		if (@$result["ok"]) {
-			$list = @$result;
-		} else {
-			throw new CTKException("Something went wrong retrieving the list of IP !");
-		}
-
-		$nb = count($list['result']);
-		for($i=0;$i<$nb;$i++){
-			$nb = count($list['result']);
-			for($i=0;$i<$nb;$i++){
-				echo "Adresse IP => ".$list['result'][$i]['_id']."<br/>";
-				echo "Nombre de tentative => ".$list['result'][$i]['count']."<br/>";
-				echo "Date de la première tentative =>".$list['result'][$i]['minDate']."<br/>";
-				echo "Date de la dernière tentative =>".$list['result'][$i]['maxDate']."<br/>";
-
-			}
-		}
+			
+		));
+		return $result;
 	}
 
 	/**
@@ -147,6 +126,7 @@ class Log {
 						        'action' => '$action'
 						        // , 'date' => '$created'
 						        , 'result' => '$result.result'
+						        , 'message' => '$result.message'
 						        // , 'dateDifference'=> array (
 					        	// 	'$subtract' => array('new Date()', '$created')
 				        		// ) 
@@ -158,7 +138,7 @@ class Log {
 		    	'$match' => 
 					array(
 						'count'=> array('$gt'=> 0)
-						,'details.action' => 'person/authenticate'
+						,'details.action' => 'person/register'
 						,'details.result' => false
 					)
 				
