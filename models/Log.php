@@ -73,6 +73,63 @@ class Log {
 	/**
 	 * Give a lift of IpAdress to block
 	*/
+	public static function getSummaryByAction(){
+		//More than 5 login false in 5 minutes
+		$c = Yii::app()->mongodb->selectCollection(self::COLLECTION);
+		$result = $c->aggregate(
+			array(
+				'$group' =>
+				  	array(
+					  	'_id'=> '$ipAddress', 
+					    'count'=> array('$sum'=> 1),
+					    'minDate'=> array( '$min' => '$created' ),
+   						'maxDate'=> array( '$max' => '$created' ),
+					    'details'=> 
+					    array('$push' =>  
+					    	array(
+						        'action' => '$action'
+						        , 'result' => '$result.result'
+				        	)
+			        	)
+			        )
+			),
+		    array(
+		    	'$match' => 
+					array(
+						'count'=> array('$gt'=> 0)
+					)
+				
+		    ),
+		    array( 
+				'$sort' => array(
+					'ipAddress' => -1
+					, 'details.action' => -1 
+				)
+			)
+		);
+
+		if (@$result["ok"]) {
+			$list = @$result;
+		} else {
+			throw new CTKException("Something went wrong retrieving the list of IP !");
+		}
+
+		$nb = count($list['result']);
+		for($i=0;$i<$nb;$i++){
+			$nb = count($list['result']);
+			for($i=0;$i<$nb;$i++){
+				echo "Adresse IP => ".$list['result'][$i]['_id']."<br/>";
+				echo "Nombre de tentative => ".$list['result'][$i]['count']."<br/>";
+				echo "Date de la première tentative =>".$list['result'][$i]['minDate']."<br/>";
+				echo "Date de la dernière tentative =>".$list['result'][$i]['maxDate']."<br/>";
+
+			}
+		}
+	}
+
+	/**
+	 * Give a lift of IpAdress to block
+	*/
 	public static function getIpAddressToBlock(){
 		//More than 5 login false in 5 minutes
 		$c = Yii::app()->mongodb->selectCollection(self::COLLECTION);
