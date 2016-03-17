@@ -75,12 +75,11 @@ class Person {
 	     	$user ["codeInsee"] = $account["address"]["codeInsee"];
 	    if( isset( $account["profilImageUrl"]))
 	     	$user ["profilImageUrl"] = $account["profilImageUrl"];
-	    if( isset( $account["preferences"]) && isset($account["preferences"]["bgClass"]) )
-	     	$user ["bg"] = $account["preferences"]["bgClass"];
-	    if( isset( $account["preferences"]) && isset($account["preferences"]["bgUrl"]) )
-	     	$user ["bgUrl"] = $account["preferences"]["bgUrl"];
-		
+		if( isset( $account["roles"]))
+	     	$user ["roles"] = $account["roles"];
+
 		//Image profil
+	    //TODO SBAR : c'est plus bon ça. A refaire. Le profil ImageUrl n'est plus utilisé.
 	    $simpleUser = self::getSimpleUserById((string)$account["_id"]);
 	    if( isset( $simpleUser["profilImageUrl"]))
 	     	$user ["profilImageUrl"] = $simpleUser["profilImageUrl"];
