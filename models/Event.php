@@ -453,7 +453,7 @@ class Event {
 		} else {
 			$set = array($dataFieldName => $eventFieldValue);
 		}
-
+		
 		$res = Event::updateEvent($eventId, $set, $userId);
 		return $res;
 	}
