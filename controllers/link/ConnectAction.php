@@ -23,15 +23,15 @@ class ConnectAction extends CAction
 		    );
 	    	$parentId = $_POST["parentId"];
 	    	$parentType = $_POST["parentType"];
-	    	$connectType = $_POST["connectType"];
+	    	$isConnectingAdmin = @$_POST["connectType"];
 	    	
-	    	if ($connectType=="admin"){
-		    	$connectType=true;
+	    	if ($isConnectingAdmin=="admin"){
+		    	$isConnectingAdmin=true;
 	    	} else {
-		    	$connectType=false;
+		    	$isConnectingAdmin=false;
 	    	}
 	    				
-			$result = Link::connectParentToChild($parentId, $parentType, $child, $connectType, Yii::app()->session["userId"], $roles);
+			$result = Link::connectParentToChild($parentId, $parentType, $child, $isConnectingAdmin, Yii::app()->session["userId"], $roles);
 		}
 		Rest::json($result);
     }
