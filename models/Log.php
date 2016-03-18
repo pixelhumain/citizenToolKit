@@ -20,7 +20,7 @@ class Log {
 	      "person/logout" => array('waitForResult' => false, "keepDuration" => 60),
 	      "organization/save" => array('waitForResult' => true, "keepDuration" => 60),
 	      "person/register" => array('waitForResult' => true, "keepDuration" => 60),
-	      "news/save" => array('waitForResult' => true, "keepDuration" => 60),
+	      "news/save" => array('waitForResult' => true, "keepDuration" => 30),
 	      "action/addaction" => array('waitForResult' => true, "keepDuration" => 60),
 	    );
 	}
