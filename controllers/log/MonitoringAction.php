@@ -9,6 +9,6 @@ class MonitoringAction extends CAction
 		$controller = $this->getController();
 		$summary = Log::getSummaryByAction();
 		$actionsToLog = Log::getActionsToLog();
-		echo $controller->renderPartial('monitoring', array("summary" => $summary, "actionsToLog" => $actionsToLog), true);
+		echo $controller->renderPartial('monitoring', array("summary" => $summary, "actionsToLog" => $actionsToLog));
     }
 }

@@ -7,6 +7,9 @@
 class CleanUpAction extends CAction
 {
     public function run() {
+    	echo date('Y-m-d H:i:s')." - Démarrage du script pour nettoyer les logs<br/>";
     	Log::cleanUp();
+    	echo date('Y-m-d H:i:s')." - Fin du script pour nettoyer les logs<br/>";
+
     }
 }
