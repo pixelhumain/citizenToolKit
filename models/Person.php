@@ -1317,9 +1317,7 @@ class Person {
 				}
 			}catch (CTKException $e){
 				throw new CTKException($e);
-			}
-			
-			
+			}	
 		}
 
 
