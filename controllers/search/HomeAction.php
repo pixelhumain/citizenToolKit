@@ -12,6 +12,7 @@ class HomeAction extends CAction
 
 		$controller=$this->getController();
 		$controller->layout = "//layouts/mainSearch";
+
         $controller->renderPartial( "home" , 
         	array("countCitoyen" 	=> $countCitoyen,
         		  "countOrga" 		=> $countOrga,

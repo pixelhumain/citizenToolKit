@@ -8,8 +8,10 @@ class GlobalAutoCompleteAction extends CAction
         $searchType = isset($_POST['searchType']) ? $_POST['searchType'] : null;
         $searchBy = isset($_POST['searchBy']) ? $_POST['searchBy'] : "INSEE";
         $indexMin = isset($_POST['indexMin']) ? $_POST['indexMin'] : 0;
-        $indexMax = isset($_POST['indexMax']) ? $_POST['indexMax'] : 15;
-        error_log("global search " . $search . " - searchBy : ". $searchBy. " & locality : ". $locality);
+        $indexMax = isset($_POST['indexMax']) ? $_POST['indexMax'] : 100;
+        $country = isset($_POST['country']) ? $_POST['country'] : "";
+
+        error_log("global search " . $search . " - searchBy : ". $searchBy. " & locality : ". $locality. " & country : ". $country);
 	    
         if($search == "" && $locality == "") {
         	Rest::json(array());
@@ -188,7 +190,11 @@ class GlobalAutoCompleteAction extends CAction
 	        	}
 			    //}
 
-	  		$allCities = PHDB::find(City::COLLECTION, $query, array("name", "alternateName", "cp", "insee", "geo", "geoShape"));
+			    if($country != ""){
+			    	$query["country"] = $country;
+			    }
+
+	  		$allCities = PHDB::find(City::COLLECTION, $query, array("name", "alternateName", "cp", "insee", "regionName", "country", "geo", "geoShape"));
 	  		$allCitiesRes = array();
 	  		$nbMaxCities = 20;
 	  		$nbCities = 0;

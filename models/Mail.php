@@ -119,7 +119,7 @@ class Mail
             "tplParams" => array( "user"=> $creator['_id'] ,
                                    "title" => $newEvent['name'] ,
                                    "creatorName" => $creator['name'],
-                                   "url"  => "/event/dashboard/id/".$newEvent["_id"] )
+                                   "url"  => "/event/detail/id/".$newEvent["_id"] )
             );
         Mail::schedule($params);
     }

@@ -6,6 +6,10 @@ class Person {
 	const ICON = "fa-user";
 	const COLOR = "#F5E740";
 
+	const REGISTER_MODE_MINIMAL	 	= "minimal";
+	const REGISTER_MODE_NORMAL 		= "normal";
+	const REGISTER_MODE_TWO_STEPS 	= "two_steps_register";
+
 	//From Post/Form name to database field name with rules
 	private static $dataBinding = array(
 	    "name" => array("name" => "name", "rules" => array("required")),
@@ -32,6 +36,7 @@ class Person {
 	    "bgClass" => array("name" => "preferences.bgClass"),
 	    "bgUrl" => array("name" => "preferences.bgUrl"),
 	    "roles" => array("name" => "roles"),
+	    "two_steps_register" => array("name" => "two_steps_register"),
 	    "source" => array("name" => "source"),
 	    "warnings" => array("name" => "warnings"),
 	);
@@ -70,12 +75,11 @@ class Person {
 	     	$user ["codeInsee"] = $account["address"]["codeInsee"];
 	    if( isset( $account["profilImageUrl"]))
 	     	$user ["profilImageUrl"] = $account["profilImageUrl"];
-	    if( isset( $account["preferences"]) && isset($account["preferences"]["bgClass"]) )
-	     	$user ["bg"] = $account["preferences"]["bgClass"];
-	    if( isset( $account["preferences"]) && isset($account["preferences"]["bgUrl"]) )
-	     	$user ["bgUrl"] = $account["preferences"]["bgUrl"];
-		
+		if( isset( $account["roles"]))
+	     	$user ["roles"] = $account["roles"];
+
 		//Image profil
+	    //TODO SBAR : c'est plus bon ça. A refaire. Le profil ImageUrl n'est plus utilisé.
 	    $simpleUser = self::getSimpleUserById((string)$account["_id"]);
 	    if( isset( $simpleUser["profilImageUrl"]))
 	     	$user ["profilImageUrl"] = $simpleUser["profilImageUrl"];
@@ -119,6 +123,12 @@ class Person {
 			}
 			$person = array_merge($person, Document::retrieveAllImagesUrl($id, self::COLLECTION));
 			$person["typeSig"] = "people";
+			if(!isset($person["address"])) 
+				$person["address"] = array( "codeInsee" => "", 
+											"postalCode" => "", 
+											"addressLocality" => "",
+											"streetAddress" => "",
+											"addressCountry" => "");
         }
         
 	  	return $person;
@@ -299,6 +309,39 @@ class Person {
 		return $res;
 	}
 
+
+	public static function newPersonFromPost($person) {
+		$newPerson = array();
+		
+		//Location
+		if (isset($person['streetAddress'])) $newPerson["address"]["streetAddress"] = rtrim($person['streetAddress']);
+		if (isset($person['postalCode'])) $newPerson["address"]["postalCode"] = $person['postalCode'];
+		if (isset($person['addressLocality'])) $newPerson["address"]["addressLocality"] = $person['addressLocality'];
+		if (isset($person['addressCountry'])) $newPerson["address"]["addressCountry"] = $person['addressCountry'];
+		if (isset($person['codeInsee'])) $newPerson["address"]["codeInsee"] = $person['codeInsee'];
+
+		if (isset($person['two_steps_register'])) $newPerson["two_steps_register"] = $person['two_steps_register'];
+
+		if (isset($person['description'])) $newPerson["description"] = rtrim($person['description']);
+		if (isset($person['role'])) $newPerson["role"] = $person['role'];
+
+		//error_log("latitude : ".$person['geoPosLatitude']);
+		if(!empty($person['geoPosLatitude']) && !empty($person["geoPosLongitude"])){
+			$newPerson["geo"] = array("@type"=>"GeoCoordinates",
+											"latitude" => $person['geoPosLatitude'],
+											"longitude" => $person['geoPosLongitude']);
+
+			$newPerson["geoPosition"] = array("type"=>"Point",
+															"coordinates" =>
+																array(
+																	floatval($person['geoPosLongitude']),
+																	floatval($person['geoPosLatitude']))
+														 	  	);
+		}
+		
+		return $newPerson;
+	}
+
 	/**
 	 * Happens when a Person is invited or linked as a member and doesn't exist in the system
 	 * It is created in a temporary state
@@ -311,7 +354,7 @@ class Person {
 	 */
 	public static function createAndInvite($param, $msg = null) {
 	  	try {
-	  		$res = self::insert($param, true);
+	  		$res = self::insert($param, self::REGISTER_MODE_MINIMAL);
 	  		//send invitation mail
 			Mail::invitePerson($res["person"], $msg);
 	  	} catch (CTKException $e) {
@@ -327,22 +370,27 @@ class Person {
 	 * Apply person checks and business rules before inserting
 	 * Throws CTKException on error
 	 * @param array $person : array with the data of the person to check
-	 * @param boolean $minimal : true : a person can be created using only name and email. 
-	 * Else : postalCode, city and pwd are also requiered
+	 * @param string $mode : insert mode type. 
+	 * REGISTER_MODE_MINIMAL : a person can be created using only name and email. 
+	 * REGISTER_MODE_NORMAL : name, email, username, password, postalCode, city
+	 * REGISTER_MODE_TWO_STEPS : name, username, email, password
 	 * @param boolean $uniqueEmail : true : check if a person already exist in the db with that email
 	 * @return the new person with the business rules applied
 	 */
-	public static function getAndcheckPersonData($person, $minimal, $uniqueEmail = true) {
+	public static function getAndcheckPersonData($person, $mode, $uniqueEmail = true) {
 		$dataPersonMinimal = array("name", "email");
 		
 		$newPerson = array();
-		if (! $minimal) {
-			array_push($dataPersonMinimal, "username", "postalCode", "city", "pwd");
-		} else {
+		if ($mode == self::REGISTER_MODE_MINIMAL) {
 			//generate unique temporary userName for Meteor app when inviting
 			$newPerson["username"] = substr(str_shuffle("0123456789abcdefghijklmnopqrstuvwxyz"), 0, 32);
 			//Add pending boolean
 			$newPerson["pending"] = true;
+		} else if ($mode == self::REGISTER_MODE_NORMAL) {
+			array_push($dataPersonMinimal, "username", "postalCode", "city", "pwd");
+		} else if ($mode == self::REGISTER_MODE_TWO_STEPS) {
+			array_push($dataPersonMinimal, "username", "pwd");
+			$newPerson[self::REGISTER_MODE_TWO_STEPS] = true;
 		}
 
 		//Check the minimal data
@@ -371,7 +419,7 @@ class Person {
 	  		$newPerson["invitedBy"] = $person["invitedBy"];
 	  	}
 
-	  	if (! $minimal) {
+	  	if ($mode == self::REGISTER_MODE_NORMAL || $mode == self::REGISTER_MODE_TWO_STEPS) {
 		  	//user name
 		  	$newPerson["username"] = $person["username"];
 		  	if (strlen($newPerson["username"]) < 4 || strlen($newPerson["username"]) > 32) {
@@ -383,7 +431,9 @@ class Person {
 
 		  	//Encode the password
 		  	$newPerson["pwd"] = hash('sha256', $person["email"].$person["pwd"]);
-		  	
+		}
+
+		if ($mode == self::REGISTER_MODE_NORMAL) {
 		  	//Manage the adress : postalCode / adressLocality / codeInsee
 		  	//Get Locality label
 		  	try {
@@ -417,10 +467,10 @@ class Person {
 	 * @param boolean $minimal : true : a person can be created using only "name" and "email". Else : "postalCode" and "pwd" are also requiered
 	 * @return array result, msg and id
 	 */
-	public static function insert($person, $minimal = false) {
+	public static function insert($person, $mode = self::REGISTER_MODE_NORMAL) {
 
 	  	//Check Person data + business rules
-	  	$person = self::getAndcheckPersonData($person, $minimal);
+	  	$person = self::getAndcheckPersonData($person, $mode);
 	  	
 	  	$person["@context"] = array("@vocab"=>"http://schema.org",
             "ph"=>"http://pixelhumain.com/ph/ontology/");
@@ -553,14 +603,27 @@ class Person {
 
 		//address
 		$user = null;
+		$thisUser = self::getById($personId);
 		if ($dataFieldName == "address") 
 		{
+			error_log(implode(",", $personFieldValue));
 			if(!empty($personFieldValue["postalCode"]) && !empty($personFieldValue["codeInsee"])) 
 			{
 				$insee = $personFieldValue["codeInsee"];
 				$address = SIG::getAdressSchemaLikeByCodeInsee($insee);
-				$geo = SIG::getGeoPositionByInseeCode($insee);
-				$set = array("address" => $address, "geo" => $geo);
+				if (!empty($personFieldValue["streetAddress"])) $address["streetAddress"] = $personFieldValue["streetAddress"];
+				if (!empty($personFieldValue["addressCountry"])) $address["addressCountry"] = $personFieldValue["addressCountry"];
+				
+				$set = array("address" => $address);
+
+				if(empty($thisUser["geo"])){
+					$geo = SIG::getGeoPositionByInseeCode($insee);
+					$set["geo"] = $geo;
+				}
+
+				PHDB::update( self::COLLECTION, array("_id" => new MongoId($personId)), 
+		                          		array('$unset' => array("two_steps_register"=>"")));
+
 			} else 
 				throw new CTKException("Error updating the Person : address is not well formated !");			
 
@@ -592,7 +655,7 @@ class Person {
 
 		//update the person
 		PHDB::update( self::COLLECTION, array("_id" => new MongoId($personId)), 
-		                          array('$set' => $set));
+		                          		array('$set' => $set));
 	              
 	    return array("result"=>true,"user"=>$user,"personFieldName"=>$personFieldName);
 	}
@@ -774,7 +837,7 @@ class Person {
 		} else {
 			$person["email"] = $account["email"];
 			//Update des infos minimal
-			$personToUpdate = self::getAndcheckPersonData($person, false, false);
+			$personToUpdate = self::getAndcheckPersonData($person, self::REGISTER_MODE_TWO_STEPS, false);
 
 			PHDB::update(Person::COLLECTION, array("_id" => new MongoId($personId)), 
 			                          array('$set' => $personToUpdate, '$unset' => array("pending" => ""
@@ -918,7 +981,29 @@ class Person {
 	  	return $result['sourceAdmin'];
 	}
 
+	/**
+	 * update a person in database
+	 * @param String $personId : 
+	 * @param array $personChangedFields fields to update
+	 * @param String $userId : the userId making the update
+	 * @return array of result (result => boolean, msg => string)
+	 */
+	public static function update($personId, $personChangedFields, $userId) {
 
+		$person = self::getById( $personId );
+		
+		if (! $person) {
+			error_log("Unknown person Id : ".$personId);
+			return array("result"=>false, "msg"=>Yii::t("person", "Something went really wrong ! "), "id"=>$personId);
+		}
+
+		foreach ($personChangedFields as $fieldName => $fieldValue) {
+			//if( $project[ $fieldName ] != $fieldValue)
+				self::updatePersonField($personId, $fieldName, $fieldValue, $userId);
+		}
+
+	    return array("result"=>true, "msg"=>Yii::t("person", "The person has been updated"), "id"=>$personId);
+	}
 
 
 	/* 	Get state an event from an OpenAgenda ID 

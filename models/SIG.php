@@ -153,7 +153,7 @@ class SIG
 				
 			if($cp != null){ $request = array_merge(array("cp"  => $cp), $request); }
 
-			$oneCity =	PHDB::findAndSort(City::COLLECTION, $request, array(), 15);
+			$oneCity =	PHDB::findAndSort(City::COLLECTION, $request, array());
 			//var_dump($oneCity);
 		}
 
