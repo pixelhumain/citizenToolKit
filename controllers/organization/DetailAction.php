@@ -33,6 +33,8 @@ class DetailAction extends CAction
 		$params = array( "organization" => $organization);
 		$params["contentKeyBase"] = $contentKeyBase;
 		$params["images"] = $images;
+		$list = Lists::get(array("eventTypes"));
+        $params["eventTypes"] = $list["eventTypes"];
 		$params["events"] = $events;
 		$params["needs"] = $needs;
 		$contextMap = array();
@@ -55,7 +57,6 @@ class DetailAction extends CAction
 				array_push($members, $newOrga);
 			}
 		}
-
 		foreach ($events as $key => $value) {
 			$newEvent = Event::getById($key);
 			array_push($contextMap["events"], $newEvent);

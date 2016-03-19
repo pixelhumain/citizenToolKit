@@ -112,6 +112,8 @@ class DetailAction extends CAction
 	  	$params["followers"] = $followers;
 	  	$params["project"] = $project;
 	  	$params["organizations"] = $organizations;
+	  	$listEvent = Lists::get(array("eventTypes"));
+        $params["eventTypes"] = $listEvent["eventTypes"];
 	  	$params["events"] = $events;
 	  	$params["needs"] = $needs;
 	  	$params["people"] = $people;
