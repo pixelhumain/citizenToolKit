@@ -655,7 +655,7 @@ class Link {
             if ($result["result"]) {
                 $childId = $result["id"];
             } else 
-                return Rest::json($result);
+                return $result;
         }
 
         //Retrieve the child info

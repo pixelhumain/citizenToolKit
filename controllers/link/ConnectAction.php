@@ -12,27 +12,29 @@ class ConnectAction extends CAction
 
 	    $result = array("result"=>false, "msg"=>Yii::t("common", "Incorrect request"));
 		
-		if ( Person::logguedAndValid() ) 
-		{
-		    $roles="";
-		    $child = array(
-				"childId" => @$_POST["childId"],
-		    	"childType" => $_POST["childType"],
-		    	"childName" => @$_POST["childName"],
-	            "childEmail" => @$_POST["childEmail"]
-		    );
-	    	$parentId = $_POST["parentId"];
-	    	$parentType = $_POST["parentType"];
-	    	$isConnectingAdmin = @$_POST["connectType"];
-	    	
-	    	if ($isConnectingAdmin=="admin"){
-		    	$isConnectingAdmin=true;
-	    	} else {
-		    	$isConnectingAdmin=false;
-	    	}
-	    				
-			$result = Link::connectParentToChild($parentId, $parentType, $child, $isConnectingAdmin, Yii::app()->session["userId"], $roles);
+		if ( ! Person::logguedAndValid() ) {
+			return array("result"=>false, "msg"=>Yii::t("common", "You are not loggued or do not have acces to this feature "));
 		}
+		
+	    $roles="";
+	    $child = array(
+			"childId" => @$_POST["childId"],
+	    	"childType" => $_POST["childType"],
+	    	"childName" => @$_POST["childName"],
+            "childEmail" => @$_POST["childEmail"]
+	    );
+    	$parentId = $_POST["parentId"];
+    	$parentType = $_POST["parentType"];
+    	$isConnectingAdmin = @$_POST["connectType"];
+    	
+    	if ($isConnectingAdmin=="admin"){
+	    	$isConnectingAdmin=true;
+    	} else {
+	    	$isConnectingAdmin=false;
+    	}
+    				
+		$result = Link::connectParentToChild($parentId, $parentType, $child, $isConnectingAdmin, Yii::app()->session["userId"], $roles);
+
 		Rest::json($result);
     }
 
