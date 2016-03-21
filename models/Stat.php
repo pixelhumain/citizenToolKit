@@ -16,11 +16,11 @@ class Stat {
 	public static function createGlobalStat(){
 
 		$stat['created'] = new MongoDate(time());
-		$stat['type'] = 'global';
-		$stat['citoyens'] = self::consolidateCitoyens();
-		$stat['projects'] = self::consolidateProjects();
-		$stat['organizations'] = self::consolidateFromListAndCollection('organisationTypes', Organization::COLLECTION);
-		$stat['events'] = self::consolidateFromListAndCollection('eventTypes', Event::COLLECTION);
+		// $stat['type'] = 'global';
+		$stat['global']['citoyens'] = self::consolidateCitoyens();
+		$stat['global']['projects'] = self::consolidateProjects();
+		$stat['global']['organizations'] = self::consolidateFromListAndCollection('organisationTypes', Organization::COLLECTION);
+		$stat['global']['events'] = self::consolidateFromListAndCollection('eventTypes', Event::COLLECTION);
 
 		self::save($stat);
 	}
