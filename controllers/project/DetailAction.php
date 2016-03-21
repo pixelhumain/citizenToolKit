@@ -40,7 +40,7 @@ class DetailAction extends CAction
 	  		$params = array();
 	  		// Get people or orga who contribute to the project 
 	  		// Get image for each contributors														
-	  		if(isset($project["links"])){
+	  		if(isset($project["links"]) && isset($project["links"]["contributors"])){
 	  			foreach ($project["links"]["contributors"] as $uid => $e) {
 	  				if($e["type"]== Organization::COLLECTION){
 	  					$organization = Organization::getSimpleOrganizationById($uid);
