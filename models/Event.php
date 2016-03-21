@@ -623,7 +623,7 @@ class Event {
 		$newEvents["description"] = empty($eventOpenAgenda["description"]["fr"]) ? "" : $eventOpenAgenda["description"]["fr"];
 		$newEvents["shortDescription"] = empty($eventOpenAgenda["freeText"]["fr"]) ? "" : $eventOpenAgenda["freeText"]["fr"];
 		$newEvents["image"] = empty($eventOpenAgenda["image"]) ? "" : $eventOpenAgenda["image"];
-		$newEvents["organizerId"] = "56cc5a0c94ef47ae237b23d6";
+		$newEvents["organizerId"] = Yii::app()->params['idOpenAgenda'];
 		$newEvents["organizerType"] = Person::COLLECTION ;	
 			
 		if(!empty($eventOpenAgenda["locations"][0]["dates"])){
@@ -682,7 +682,7 @@ class Event {
 
 		$newEvents["tags"] = empty($eventOpenAgenda["freeText"]["fr"]) ? "" : explode(",", $eventOpenAgenda["freeText"]["fr"]);
 
-		$newEvents["creator"] = "56cc5a0c94ef47ae237b23d6";
+		$newEvents["creator"] = Yii::app()->params['idOpenAgenda'];
 		$newEvents["type"] = "other";
 		$newEvents["public"] = true;
 		$newEvents['allDay'] = 'true' ;
@@ -704,8 +704,8 @@ class Event {
 	    
 		$creator = true;
 		$isAdmin = true;
-		Link::attendee($newEvent["_id"], "56cc5a0c94ef47ae237b23d6", $isAdmin, $creator);
-	    Link::addOrganizer($params["organizerId"],$params["organizerType"], $newEvent["_id"], "56cc5a0c94ef47ae237b23d6");
+		Link::attendee($newEvent["_id"], Yii::app()->params['idOpenAgenda'], $isAdmin, $creator);
+	    Link::addOrganizer($params["organizerId"],$params["organizerType"], $newEvent["_id"], Yii::app()->params['idOpenAgenda']);
 
 
 	     /*if(!empty($nameImage)){
