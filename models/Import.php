@@ -500,6 +500,7 @@ class Import
             }
         } else if($keyCollection == "Projets"){
             try{
+
                 $newProject = Project::createProjectFromImportData($data);
                 $newProject2 = Project::getQuestionAnwser($newProject);
                 $res = Project::getAndCheckProjectFromImportData($newProject2, $post["creatorID"], null, null, $warnings);
@@ -514,6 +515,21 @@ class Import
             }
         } else if($keyCollection == "Person"){
             try{
+               if(empty($data["address"]["postalCode"]) || $data["address"]["postalCode"] == ""){
+                   
+                    $data["address"]["postalCode"] = "59000" ;
+                    $data["address"]["addressLocality"] = "LILLE" ;
+                    $data["address"]["addressCountry"] = "FR" ;
+                }
+                
+                if(empty($data["geo"])){
+                   $data['geo']['latitude'] = "50.62905900";
+                   $data['geo']['longitude'] = "3.06038000";
+                }
+
+        if(!empty($personImportData['geo']['longitude']))
+            $newPerson['geo']['longitude'] = $personImportData['geo']['longitude'];
+
                 $newPerson = Person::createPersonFromImportData($data, true);
                 $res = Person::getAndCheckPersonFromImportData($newPerson, null, null, $warnings);
             }
@@ -1118,6 +1134,7 @@ class Import
         //On test si le code postal est dans la BD
         if(!empty($address['postalCode'])){
             $cityByCp = PHDB::find(City::COLLECTION, array("cp"=>$address['postalCode']));
+            //var_dump($cityByCp);
             if(empty($cityByCp)){
                 if($warnings)
                     $details["warnings"][] = "106";
@@ -1166,6 +1183,24 @@ class Import
                 }
                 $newProject['warnings'][] = "170";
             }   
+        }else{
+            foreach ($cityByCp as $key => $value){
+                //On test si l'alternateName ou le name corresponds à la Locality se trouvant dans $address
+                if($value["alternateName"] == $address['addressLocality'] || $value["name"] == $address['addressLocality']){
+                    $insee = $value["insee"];
+                    $cp = $value["cp"];
+                    $newAddress['addressCountry'] = $value["country"];
+                    $newAddress['addressLocality'] = $value["alternateName"];
+                    $find = true ;
+                    break;
+                }
+            }
+            if($find == false){
+                if($warnings)
+                    $details["warnings"][] = "110";
+                else
+                    throw new CTKException(Yii::t("import","110", null, Yii::app()->controller->module->id));
+            }
         }   
 
         //Afin d'éviter des incohérences, on test si l'insee fournir par $address et l'insee sont identique
