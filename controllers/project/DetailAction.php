@@ -58,8 +58,13 @@ class DetailAction extends CAction
 	  						array_push($people, $citoyen);
 	  						$citoyen["type"]=Person::COLLECTION;
 							if(@$e["isAdmin"]){
+								if(@$e["isAdminPending"])
+									$citoyen["isAdminPending"]=true;
 		  						$citoyen["isAdmin"]=true;  				
 	  						}
+	  						if(@$e["toBeValidated"]){
+	  							$citoyen["toBeValidated"]=true;  
+							}	
 	  						array_push($contributors, $citoyen);
 	  					}
 	  				}
