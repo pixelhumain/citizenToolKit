@@ -74,18 +74,18 @@ class Comment {
 		if (self::canUserComment($comment["contextId"], $comment["contextType"], $userId, $options)) {
 			PHDB::insert(self::COLLECTION,$newComment);
 		} else {
-			return array("result"=>false, "msg"=>"The user can not comment on this discussion");
+			return array("result"=>false, "msg"=> Yii::t("comment","Error calling the serveur : contact your administrator."));
 		}
 		
 		$newComment["author"] = self::getCommentAuthor($newComment, $options);
-		$res = array("result"=>true, "msg"=>"The comment has been posted", "newComment" => $newComment, "id"=>$newComment["_id"]);
+		$res = array("result"=>true, "msg"=>Yii::t("comment","The comment has been posted"), "newComment" => $newComment, "id"=>$newComment["_id"]);
 		if($comment["contextType"]=="news"){
 			Notification::actionOnPerson ( ActStr::VERB_COMMENT, ActStr::ICON_SHARE, "", array("type"=>$comment["contextType"],"id"=> $comment["contextId"]));
 		}
 		//Increment comment count (can have multiple comment by user)
 		$resAction = Action::addAction($userId , $comment["contextId"], $newComment["contextType"], Action::ACTION_COMMENT, false, true) ;
 		if (! $resAction["result"]) {
-			$res = array("result"=>false, "msg"=>"Something went really bad");
+			$res = array("result"=>false, "msg"=> Yii::t("comment","Something went really bad"));
 		}
 
 		return $res;
@@ -130,7 +130,7 @@ class Comment {
 			$comment["author"] = self::getCommentAuthor($comment, $options);
 			//Manage comment declared as abused
 			if (@$comment["status"] == self::STATUS_DELETED) {
-				$comment["text"] = "This comment has been deleted because of his content.";
+				$comment["text"] = Yii::t("comment","This comment has been deleted because of his content.");
 			}
 			$commentTree[$commentId] = $comment;
 		}
@@ -159,7 +159,7 @@ class Comment {
 			$subComments = self::getSubComments($commentId, $options);
 			$comment["author"] = self::getCommentAuthor($comment, $options);
 			if (@$comment["status"] == self::STATUS_DELETED) {
-				$comment["text"] = "This comment has been deleted because of his content.";
+				$comment["text"] = Yii::t("comment","This comment has been deleted because of his content.");
 			}
 
 			$comment["replies"] = $subComments;
@@ -215,7 +215,7 @@ class Comment {
 		if (@$result["ok"]) {
 			$avgVoteUp = @$result["result"][0]["avgVoteUp"];
 		} else {
-			throw new CTKException("Something went wrong retrieving the average vote up !");
+			throw new CTKException(Yii::t("comment","Something went wrong retrieving the average vote up !"));
 		}
 		
 		$whereContext = array(
@@ -284,7 +284,7 @@ class Comment {
 	 * @return array of result (result/msg)
 	 */
 	public static function saveCommentOptions($id, $type, $options) {
-		$res = array("result" => true, "msg" => "The comment options has been saved successfully");
+		$res = array("result" => true, "msg" => Yii::t("comment","The comment options has been saved successfully"));
 
 		$where = array("_id"=>new MongoId($id));
 		$set = array("commentOptions" => $options);
