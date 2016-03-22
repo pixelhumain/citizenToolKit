@@ -35,7 +35,7 @@ class ImportEventsOpenAgendaInDBAction extends CAction
             }
         }
 
-        if(!empty($_POST["jsonEventsDelete"])){
+        /*if(!empty($_POST["jsonEventsDelete"])){
             foreach (json_decode($_POST["jsonEventsDelete"], true) as $key => $eventOpenAgenda) {
                 try{
                     $event = Event::getEventsOpenAgenda($eventOpenAgenda["uid"]);
@@ -49,7 +49,7 @@ class ImportEventsOpenAgendaInDBAction extends CAction
                 }
                 
             }
-        }
+        }*/
 
         //var_dump($params) ;
     

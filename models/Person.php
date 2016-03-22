@@ -1066,14 +1066,14 @@ class Person {
 				foreach ($personImportData['telephone']["fixe"] as $key => $value) {
 					$trimValue=trim($value);
 					if(!empty($trimValue))
-						$fixe[] = "0".$trimValue;
+						$fixe[] = $trimValue;
 				}
 			}
 			if(!empty($personImportData['telephone']["mobile"])){
 				foreach ($personImportData['telephone']["mobile"] as $key => $value) {
 					$trimValue=trim($value);
 					if(!empty($trimValue))
-						$mobile[] = "0".$trimValue;
+						$mobile[] = $trimValue;
 				}
 			}
 			if(!empty($personImportData['telephone']["fax"])){
@@ -1092,17 +1092,17 @@ class Person {
 			if(count($tel) != 0)	
 				$newPerson['telephone'] = $tel;
 		}
-
+		//var_dump($personImportData['address']);
 		if(!empty($personImportData['address'])){
 			$details = Import::getAndCheckAddressForEntity($personImportData['address'], (empty($newPerson['geo']) ? null : $newPerson['geo']), $warnings) ;
 			$newPerson['address'] = $details['address'];
-
+			//var_dump($newPerson['address']);
 			if(!empty($newPerson['warnings']))
 				$newPerson['warnings'] = array_merge($newPerson['warnings'], $details['warnings']);
 			else
 				$newPerson['warnings'] = $details['warnings'];
 		}
-			
+		//var_dump("---------------------------------");	
 		return $newPerson;
 	}
 
@@ -1199,6 +1199,8 @@ class Person {
 				else
 					throw new CTKException(Yii::t("import","105", null, Yii::app()->controller->module->id));
 			}
+
+
 			$newPerson['address'] = $person['address'] ;
 
 		}else {
@@ -1280,6 +1282,8 @@ class Person {
 	    $newPerson["@context"] = array("@vocab"=>"http://schema.org",
             "ph"=>"http://pixelhumain.com/ph/ontology/");
 	    $newPerson["roles"] = Role::getDefaultRoles();
+	    $newPerson["roles"]["tobeactivated"] = false;
+	    $newPerson["roles"]["betaTester"] = true;
 	  	$newPerson["created"] = new mongoDate(time());
 	  	$newPerson["preferences"] = array("seeExplanations"=> true);
 
@@ -1317,9 +1321,7 @@ class Person {
 				}
 			}catch (CTKException $e){
 				throw new CTKException($e);
-			}
-			
-			
+			}	
 		}
 
 

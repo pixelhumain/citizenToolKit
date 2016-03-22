@@ -33,6 +33,8 @@ class DetailAction extends CAction
 		$params = array( "organization" => $organization);
 		$params["contentKeyBase"] = $contentKeyBase;
 		$params["images"] = $images;
+		$list = Lists::get(array("eventTypes"));
+        $params["eventTypes"] = $list["eventTypes"];
 		$params["events"] = $events;
 		$params["needs"] = $needs;
 		$contextMap = array();
@@ -55,7 +57,6 @@ class DetailAction extends CAction
 				array_push($members, $newOrga);
 			}
 		}
-
 		foreach ($events as $key => $value) {
 			$newEvent = Event::getById($key);
 			array_push($contextMap["events"], $newEvent);
@@ -64,9 +65,17 @@ class DetailAction extends CAction
 		foreach ($people as $key => $value) {
 			$newCitoyen = Person::getSimpleUserById($key);
 			if (!empty($newCitoyen)) {
-				if (@$organization["links"]["members"][$key] && $organization["links"]["members"][$key]["type"] == Person::COLLECTION && @$organization["links"]["members"][$key]["isAdmin"]){
-				$newCitoyen["isAdmin"]=true;  				
+				if (@$organization["links"]["members"][$key] && $organization["links"]["members"][$key]["type"] == Person::COLLECTION) {
+					if(@$organization["links"]["members"][$key]["isAdmin"]){
+						if(@$organization["links"]["members"][$key]["isAdminPending"])
+							$newCitoyen["isAdminPending"]=true;  
+							$newCitoyen["isAdmin"]=true;  	
+					}			
+					if(@$organization["links"]["members"][$key]["toBeValidated"]){
+						$newCitoyen["toBeValidated"]=true;  
+					}		
 				}
+				
 				$newCitoyen["type"]=Person::COLLECTION;
 				array_push($contextMap["people"], $newCitoyen);
 				array_push($members, $newCitoyen);

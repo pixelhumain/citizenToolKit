@@ -19,6 +19,7 @@ class Event {
 	    "geo" => array("name" => "geo"),
 	    "geoPosition" => array("name" => "geoPosition"),
 	    "description" => array("name" => "description"),
+	    "shortDescription" => array("name" => "shortDescription"),
 	    "allDay" => array("name" => "allDay"),
 	    "startDate" => array("name" => "startDate", "rules" => array("eventStartDate")),
 	    "endDate" => array("name" => "endDate", "rules" => array("eventEndDate"))
@@ -237,13 +238,6 @@ class Event {
 	    if(!empty($params['description']))
 	         $newEvent["description"] = $params['description'];
 
-
-	    if(!empty($params['sourceId']))
-	    	$newEvent["sourceId"] = $params['sourceId'];
-	    if(!empty($params['sourceUrl']))
-	    	$newEvent["sourceUrl"] = $params['sourceUrl'];
-	    if(!empty($params['dates']))
-	    	$newEvent["dates"] = $params['dates'];
 
 	    return $newEvent;
 	}
@@ -574,7 +568,7 @@ class Event {
 	*   return Event
 	*/
 	public static function getEventsOpenAgenda($eventsIdOpenAgenda){
-		$where=array("sourceId" => $eventsIdOpenAgenda);
+		$where=array("source.id" => $eventsIdOpenAgenda);
 		$event=PHDB::find(self::COLLECTION, $where);
 		return $event;
 	}
@@ -627,33 +621,36 @@ class Event {
 	public static function createEventsFromOpenAgenda($eventOpenAgenda) {
 		$newEvents["name"] = empty($eventOpenAgenda["title"]["fr"]) ? "" : $eventOpenAgenda["title"]["fr"];
 		$newEvents["description"] = empty($eventOpenAgenda["description"]["fr"]) ? "" : $eventOpenAgenda["description"]["fr"];
-		$newEvents["organizerId"] = "5694ea2a94ef47ad1c8b456d";
-		$newEvents["organizerType"] = Person::COLLECTION ;
-		if(!empty($eventOpenAgenda["locations"][0]["dates"][0]["timeStart"]) && !empty($eventOpenAgenda["locations"][0]["dates"][0]["timeStart"]) && !empty($eventOpenAgenda["locations"][0]["dates"][0]["date"]))
-		{
-			$arrayTimeStart = explode(":", $eventOpenAgenda["locations"][0]["dates"][0]["timeStart"]);
-
+		$newEvents["shortDescription"] = empty($eventOpenAgenda["freeText"]["fr"]) ? "" : $eventOpenAgenda["freeText"]["fr"];
+		$newEvents["image"] = empty($eventOpenAgenda["image"]) ? "" : $eventOpenAgenda["image"];
+		$newEvents["organizerId"] = Yii::app()->params['idOpenAgenda'];
+		$newEvents["organizerType"] = Person::COLLECTION ;	
+			
+		if(!empty($eventOpenAgenda["locations"][0]["dates"])){
 			$nbDates = count($eventOpenAgenda["locations"][0]["dates"]);
-			$arrayTimeEnd = explode(":", $eventOpenAgenda["locations"][0]["dates"][$nbDates-1]["timeEnd"]);
-			$arrayDateStart = explode("-", $eventOpenAgenda["locations"][0]["dates"][0]["date"]);
-			$arrayDateEnd = explode("-", $eventOpenAgenda["locations"][0]["dates"][$nbDates-1]["date"]);
+			if(!empty($eventOpenAgenda["locations"][0]["dates"][0]["timeStart"]) && !empty($eventOpenAgenda["locations"][0]["dates"][$nbDates-1]["timeEnd"])){
+				$arrayTimeStart = explode(":", $eventOpenAgenda["locations"][0]["dates"][0]["timeStart"]);
+				$arrayTimeEnd = explode(":", $eventOpenAgenda["locations"][0]["dates"][$nbDates-1]["timeEnd"]);
+				
+				$arrayDateStart = explode("-", $eventOpenAgenda["locations"][0]["dates"][0]["date"]);
+				$arrayDateEnd = explode("-", $eventOpenAgenda["locations"][0]["dates"][$nbDates-1]["date"]);
 
-			$start = mktime($arrayTimeStart[0], $arrayTimeStart[1], $arrayTimeStart[2], $arrayDateStart[1]  , $arrayDateStart[2], $arrayDateStart[0]);
-			$end = mktime($arrayTimeEnd[0], $arrayTimeEnd[1], $arrayTimeEnd[2], $arrayDateEnd[1]  , $arrayDateEnd[2], $arrayDateEnd[0]);
+				$start = mktime($arrayTimeStart[0], $arrayTimeStart[1], $arrayTimeStart[2], $arrayDateStart[1]  , $arrayDateStart[2], $arrayDateStart[0]);
+				$end = mktime($arrayTimeEnd[0], $arrayTimeEnd[1], $arrayTimeEnd[2], $arrayDateEnd[1]  , $arrayDateEnd[2], $arrayDateEnd[0]);
 
-			$newEvents["startDate"] = date('Y-m-d H:i:s', $start);
-			$newEvents["endDate"] = date('Y-m-d H:i:s', $end);
-		}
-		
-		if(!empty($eventOpenAgenda["locations"][0]["dates"]))
+				$newEvents["startDate"] = date('Y-m-d H:i:s', $start);
+				$newEvents["endDate"] = date('Y-m-d H:i:s', $end);
+			}
+			
 			$newEvents["dates"] = $eventOpenAgenda["locations"][0]["dates"];
+		}
 
 
-		$newEvents["geoPosLatitude"] = empty($eventOpenAgenda["locations"][0]["latitude"]) ? "" : $eventOpenAgenda["locations"][0]["latitude"];
-		$newEvents["geoPosLongitude"] = empty($eventOpenAgenda["locations"][0]["longitude"]) ? "" : $eventOpenAgenda["locations"][0]["longitude"];
+		$newEvents["geo"]["latitude"] = empty($eventOpenAgenda["locations"][0]["latitude"]) ? "" : $eventOpenAgenda["locations"][0]["latitude"];
+		$newEvents["geo"]["longitude"] = empty($eventOpenAgenda["locations"][0]["longitude"]) ? "" : $eventOpenAgenda["locations"][0]["longitude"];
 
 
-		if(!empty($newEvents["geoPosLongitude"]) && !empty($newEvents["geoPosLongitude"]))
+		if(!empty($newEvents["geo"]["latitude"]) && !empty($newEvents["geo"]["longitude"]))
 		{
 			$newEvents['address']['@type'] = "PostalAddress" ;
 			$newEvents['address']['postalCode'] = empty($eventOpenAgenda["locations"][0]["postalCode"]) ? "" : $eventOpenAgenda["locations"][0]["postalCode"];
@@ -663,45 +660,200 @@ class Event {
 	        if(empty($option))
 	        	throw new CTKException("Ce code postal n'existe pas.");	
 
-			$city = SIG::getInseeByLatLngCp($newEvents["geoPosLatitude"], $newEvents["geoPosLongitude"],  (empty($eventOpenAgenda["locations"][0]["postalCode"]) ? null : $eventOpenAgenda["locations"][0]["postalCode"]) );
-
-			if($eventOpenAgenda["locations"][0]["postalCode"] == $city["cp"])
-				$newEvents['address']['postalCode'] = $eventOpenAgenda["locations"][0]["postalCode"] ;
-			else
-				throw new CTKException("Erreur: le code postal ne correspond pas à la city retourné.");
-
-			$newEvents['address']['streetAddress'] = "";
-			$newEvents['address']['addressCountry'] =  $city["country"];
-			$newEvents['address']['addressLocality'] = $city["alternateName"];
-			$newEvents['address']['codeInsee'] = $city["insee"];	
+			$city = SIG::getInseeByLatLngCp($newEvents["geo"]["latitude"], $newEvents["geo"]["longitude"],  (empty($eventOpenAgenda["locations"][0]["postalCode"]) ? null : $eventOpenAgenda["locations"][0]["postalCode"]) );
+			if(!empty($city)){
+				foreach ($city as $key => $value) {
+					if($eventOpenAgenda["locations"][0]["postalCode"] == $value["cp"])
+					{
+						$newEvents['address']['postalCode'] = $eventOpenAgenda["locations"][0]["postalCode"] ;
+						$newEvents['address']['streetAddress'] = $eventOpenAgenda["locations"][0]["address"];
+						$newEvents['address']['addressCountry'] =  $value["country"];
+						$newEvents['address']['addressLocality'] = $value["alternateName"];
+						$newEvents['address']['codeInsee'] = $value["insee"];
+					}	
+					else
+						throw new CTKException("Erreur: le code postal ne correspond pas à la city retourné.");
+				}
+			}else{
+				throw new CTKException("Erreur: On n'a pu récupérer la commune associé.");
+			}		
 	
 		}
-		$newEvents["creator"] = "5694ea2a94ef47ad1c8b456d";
+
+		$newEvents["tags"] = empty($eventOpenAgenda["freeText"]["fr"]) ? "" : explode(",", $eventOpenAgenda["freeText"]["fr"]);
+
+		$newEvents["creator"] = Yii::app()->params['idOpenAgenda'];
 		$newEvents["type"] = "other";
 		$newEvents["public"] = true;
 		$newEvents['allDay'] = 'true' ;
 
-		$newEvents['sourceId'] = $eventOpenAgenda["uid"] ;
-		$newEvents['sourceUrl'] = $eventOpenAgenda["link"] ;
+		$newEvents['source']["id"] = $eventOpenAgenda["uid"] ;
+		$newEvents['source']["url"] = $eventOpenAgenda["link"] ;
+		$newEvents['source']["key"] = "openagenda" ;
 
 		return $newEvents;
 	}
 
-
 	public static function saveEventFromOpenAgenda($params) {
-		$newEvent = self::getAndCheckEvent($params);
-
+		$newEvent = self::getAndCheckEventOpenAgenda($params);
+		/*if(!empty($newEvent["image"])){
+			$nameImage = $newEvent["image"];
+			unset($newEvent["image"]);
+		}*/
 	    PHDB::insert(self::COLLECTION,$newEvent);
 	    
 		$creator = true;
 		$isAdmin = true;
-		Link::attendee($newEvent["_id"], "5694ea2a94ef47ad1c8b456d", $isAdmin, $creator);
-	    Link::addOrganizer($params["organizerId"],$params["organizerType"], $newEvent["_id"], "5694ea2a94ef47ad1c8b456d");
+		Link::attendee($newEvent["_id"], Yii::app()->params['idOpenAgenda'], $isAdmin, $creator);
+	    Link::addOrganizer($params["organizerId"],$params["organizerType"], $newEvent["_id"], Yii::app()->params['idOpenAgenda']);
+
+
+	     /*if(!empty($nameImage)){
+			try{
+				$res = Document::uploadDocument($moduleId, self::COLLECTION, $newpersonId, "avatar", false, $pathFolderImage, $nameImage);
+				if(!empty($res["result"]) && $res["result"] == true){
+					$params = array();
+					$params['id'] = $newpersonId;
+					$params['type'] = self::COLLECTION;
+					$params['moduleId'] = $moduleId;
+					$params['folder'] = self::COLLECTION."/".$newpersonId;
+					$params['name'] = $res['name'];
+					$params['author'] = Yii::app()->session["userId"] ;
+					$params['size'] = $res["size"];
+					$params["contentKey"] = "profil";
+					$res2 = Document::save($params);
+					if($res2["result"] == false)
+						throw new CTKException("Impossible de save.");
+
+				}else{
+					throw new CTKException("Impossible uploader le document.");
+				}
+			}catch (CTKException $e){
+				throw new CTKException($e);
+			}
+		}*/
+
 				
 		return array("result"=>true, "msg"=>Yii::t("event","Your event has been connected."), "id"=>$newEvent["_id"], "event" => $newEvent );
 	
 
 	}
 
+	
+	public static function getAndCheckEventOpenAgenda($event) {
+		$newEvent = array();
+		
+		if (empty($event['name'])) {
+			throw new CTKException(Yii::t("import","001", null, Yii::app()->controller->module->id));
+		}else
+			$newEvent['name'] = $event['name'];
+
+
+
+		$newEvent['created'] = new MongoDate(time()) ;
+		
+		if(!empty($event['email'])) {
+			if (! preg_match('#^[\w.-]+@[\w.-]+\.[a-zA-Z]{2,6}$#',$organization['email'])) { 
+				throw new CTKException(Yii::t("import","205", null, Yii::app()->controller->module->id));
+			}
+			$newEvent["email"] = $event['email'];
+		}
+
+		if(empty($event['type'])) {
+			throw new CTKException(Yii::t("import","208", null, Yii::app()->controller->module->id));
+		}else{
+			$newEvent["type"] = $event['type'];
+		}
+				  
+		
+		if(!empty($event['address'])) {
+			if(empty($event['address']['postalCode'])){
+				throw new CTKException(Yii::t("import","101", null, Yii::app()->controller->module->id));
+			}
+			if(empty($event['address']['codeInsee'])){
+				throw new CTKException(Yii::t("import","102", null, Yii::app()->controller->module->id));
+			}
+			if(empty($event['address']['addressCountry'])){
+				throw new CTKException(Yii::t("import","104", null, Yii::app()->controller->module->id));
+			}
+			if(empty($event['address']['addressLocality']))
+				throw new CTKException(Yii::t("import","105", null, Yii::app()->controller->module->id));
+			
+			$newEvent['address'] = $event['address'] ;
+
+		}else {
+			throw new CTKException(Yii::t("import","100", null, Yii::app()->controller->module->id));
+		}
+
+		if(!empty($event['geo']) && !empty($event["geoPosition"])){
+			$newEvent["geo"] = $event['geo'];
+			$newEvent["geoPosition"] = $event['geoPosition'];
+
+		}else if(!empty($event["geo"]['latitude']) && !empty($event["geo"]["longitude"])){
+			$newEvent["geo"] = 	array(	"@type"=>"GeoCoordinates",
+						"latitude" => $event["geo"]['latitude'],
+						"longitude" => $event["geo"]["longitude"]);
+
+			$newEvent["geoPosition"] = array("type"=>"Point",
+													"coordinates" =>
+														array(
+															floatval($event["geo"]['latitude']),
+															floatval($event["geo"]['longitude']))
+												 	  	);
+		}
+		else
+			throw new CTKException(Yii::t("import","150", null, Yii::app()->controller->module->id));
+			
+		
+		if (isset($event['tags'])) {
+			if ( gettype($event['tags']) == "array" ) {
+				$tags = $event['tags'];
+			} else if ( gettype($event['tags']) == "string" ) {
+				$tags = explode(",", $event['tags']);
+			}
+			$newEvent["tags"] = $tags;
+		}
+		
+		if (!empty($event['description']))
+			$newEvent["description"] = $event['description'];
+
+		if (!empty($event['shortDescription']))
+			$newEvent["shortDescription"] = $event['shortDescription'];
+
+		if(!empty($event['creator'])){
+			$newEvent["creator"] = $event['creator'];
+		}
+
+		if(!empty($event['source'])){
+			$newEvent["source"] = $event['source'];
+		}
+
+		//url by ImportData
+		if(!empty($event['url'])){
+			$newEvent["url"] = $event['url'];
+		}
+
+		if(!empty($event['allDay'])){
+			$newEvent["allDay"] = $event['allDay'];
+		}
+
+		if(!empty($event['startDate'])){	
+			$m = new MongoDate(strtotime($event['startDate']));
+			$newEvent['startDate'] = $m;
+		}	
+		if(!empty($event['image'])){
+			$newEvent["image"] = $event['image'];
+		}
+
+		if(!empty($event['endDate'])){
+			$m = new MongoDate(strtotime($event['endDate']));
+			$newEvent['endDate'] = $m;
+		}		
+		
+		return $newEvent;
+	}
+
+
+	
 }
 ?>

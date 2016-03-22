@@ -58,8 +58,13 @@ class DetailAction extends CAction
 	  						array_push($people, $citoyen);
 	  						$citoyen["type"]=Person::COLLECTION;
 							if(@$e["isAdmin"]){
+								if(@$e["isAdminPending"])
+									$citoyen["isAdminPending"]=true;
 		  						$citoyen["isAdmin"]=true;  				
 	  						}
+	  						if(@$e["toBeValidated"]){
+	  							$citoyen["toBeValidated"]=true;  
+							}	
 	  						array_push($contributors, $citoyen);
 	  					}
 	  				}
@@ -112,6 +117,8 @@ class DetailAction extends CAction
 	  	$params["followers"] = $followers;
 	  	$params["project"] = $project;
 	  	$params["organizations"] = $organizations;
+	  	$listEvent = Lists::get(array("eventTypes"));
+        $params["eventTypes"] = $listEvent["eventTypes"];
 	  	$params["events"] = $events;
 	  	$params["needs"] = $needs;
 	  	$params["people"] = $people;
