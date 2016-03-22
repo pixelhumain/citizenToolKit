@@ -86,7 +86,7 @@ class Action
                               "msg"             => "Ok !"
                                );
             } else 
-                $res = array( "result" => true,  "userAllreadyDidAction" => true, "msg" => Yii::t("common","You have already made this action" );
+                $res = array( "result" => true,  "userAllreadyDidAction" => true, "msg" => Yii::t("common","You have already made this action" ));
         }
         return $res;
     }
