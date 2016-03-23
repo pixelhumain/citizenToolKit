@@ -41,6 +41,7 @@ class DetailAction extends CAction
 		$contextMap["organization"] = array($organization);
 		$contextMap["people"] = array();
 		$contextMap["organizations"] = array();
+		$contextMap["projects"] = array();
 		$contextMap["events"] = array();
 		
 		$organizations = Organization::getMembersByOrganizationId($id, Organization::COLLECTION);
@@ -60,6 +61,11 @@ class DetailAction extends CAction
 		foreach ($events as $key => $value) {
 			$newEvent = Event::getById($key);
 			array_push($contextMap["events"], $newEvent);
+		}
+		
+		foreach ($projects as $key => $value) {
+			$newProject = Project::getById($key);
+			array_push($contextMap["projects"], $newProject);
 		}
 		
 		foreach ($people as $key => $value) {
