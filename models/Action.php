@@ -32,12 +32,11 @@ class Action
      * @param String $id : the id of the element it applied on
      * @param String $collection : Location of the element
      * @param String $action : Type of the action
-     * @param String $reason : Detail or comment
      * @param boolean $unset : if the user already did the action, the action will be unset
      * @param boolean $multiple : true : the user can do multiple action, else can not.
      * @return array result (result, msg)
      */
-    public static function addAction( $userId=null , $id=null, $collection=null, $action=null, $reason=null, $unset=false, $multiple=false)
+    public static function addAction( $userId=null , $id=null, $collection=null, $action=null, $unset=false, $multiple=false)
     {
         $user = Person::getById($userId);
         $element = ($id) ? PHDB::findOne ($collection, array("_id" => new MongoId($id) )) : null;
@@ -74,21 +73,9 @@ class Action
                     //increment according to specifications
                     $inc = 1;
                 }
-                
-                if(isset($reason)){
-                    PHDB::update ($collection, array("_id" => new MongoId($element["_id"])), 
-                                           array( $dbMethod => array( 
-                                                    $action => (string)$user["_id"],
-                                                    $action."Reason" => array((string)$user["_id"] => $reason)),
-                                                    '$inc'=>array( $action."Count" => $inc)));
-                }
-                else{
-                    PHDB::update ($collection, array("_id" => new MongoId($element["_id"])), 
-                                           array( $dbMethod => array( 
-                                                    $action => (string)$user["_id"]),
-                                                    '$inc'=>array( $action."Count" => $inc)));
-                }
-                
+                PHDB::update ($collection, array("_id" => new MongoId($element["_id"])), 
+                                           array( $dbMethod => array( $action => (string)$user["_id"]),
+                                                  '$inc'=>array( $action."Count" => $inc)));
                 self::addActionHistory( $userId , $id, $collection, $action);
                 
                 $res = array( "result"          => true,  

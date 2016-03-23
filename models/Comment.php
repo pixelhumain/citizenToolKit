@@ -340,9 +340,6 @@ class Comment {
             } else 
                 $res = array( "result" => true,  "userAllreadyDidAction" => true );
         }
-        else{
-        	$res = array( "result" => false,  "msg" => "An error occured" );
-        }
         return $res;     
     }
 
