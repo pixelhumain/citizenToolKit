@@ -36,7 +36,7 @@ class Action
      * @param boolean $multiple : true : the user can do multiple action, else can not.
      * @return array result (result, msg)
      */
-    public static function addAction( $userId=null , $id=null, $collection=null, $action=null, $unset=false, $multiple=false)
+    public static function addAction( $userId=null , $id=null, $collection=null, $action=null, $unset=false, $multiple=false, $reason="")
     {
         $user = Person::getById($userId);
         $element = ($id) ? PHDB::findOne ($collection, array("_id" => new MongoId($id) )) : null;
@@ -56,7 +56,11 @@ class Action
                     $dbMethod = '$set';
 
                 // "actions": { "groups": { "538c5918f6b95c800400083f": { "voted": "voteUp" }, "538cb7f5f6b95c80040018b1": { "voted": "voteUp" } } } }
-                $map[ self::NODE_ACTIONS.".".$collection.".".(string)$element["_id"].".".$action ] = $action ;
+                if (!empty($reason))
+	                $addToMap = $reason ; 
+                else 
+                	$addToMap = $action;
+                $map[ self::NODE_ACTIONS.".".$collection.".".(string)$element["_id"].".".$action ] = $addToMap ;
                 //update the user table 
                 //adds or removes an action
                 PHDB::update ( Person::COLLECTION , array( "_id" => $user["_id"]), 
