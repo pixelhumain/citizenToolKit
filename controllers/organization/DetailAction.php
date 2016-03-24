@@ -71,17 +71,9 @@ class DetailAction extends CAction
 		foreach ($people as $key => $value) {
 			$newCitoyen = Person::getSimpleUserById($key);
 			if (!empty($newCitoyen)) {
-				if (@$organization["links"]["members"][$key] && $organization["links"]["members"][$key]["type"] == Person::COLLECTION) {
-					if(@$organization["links"]["members"][$key]["isAdmin"]){
-						if(@$organization["links"]["members"][$key]["isAdminPending"])
-							$newCitoyen["isAdminPending"]=true;  
-							$newCitoyen["isAdmin"]=true;  	
-					}			
-					if(@$organization["links"]["members"][$key]["toBeValidated"]){
-						$newCitoyen["toBeValidated"]=true;  
-					}		
+				if (@$organization["links"]["members"][$key] && $organization["links"]["members"][$key]["type"] == Person::COLLECTION && @$organization["links"]["members"][$key]["isAdmin"]){
+				$newCitoyen["isAdmin"]=true;  				
 				}
-				
 				$newCitoyen["type"]=Person::COLLECTION;
 				array_push($contextMap["people"], $newCitoyen);
 				array_push($members, $newCitoyen);
