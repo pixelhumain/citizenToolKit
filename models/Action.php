@@ -32,12 +32,12 @@ class Action
      * @param String $id : the id of the element it applied on
      * @param String $collection : Location of the element
      * @param String $action : Type of the action
-     * @param String $reason : Detail or comment
      * @param boolean $unset : if the user already did the action, the action will be unset
+     * @param String $reason : Detail or comment
      * @param boolean $multiple : true : the user can do multiple action, else can not.
      * @return array result (result, msg)
      */
-    public static function addAction( $userId=null , $id=null, $collection=null, $action=null, $reason=null, $unset=false, $multiple=false)
+    public static function addAction( $userId=null , $id=null, $collection=null, $action=null, $unset=false, $multiple=false, $reason="")
     {
         $user = Person::getById($userId);
         $element = ($id) ? PHDB::findOne ($collection, array("_id" => new MongoId($id) )) : null;
@@ -57,7 +57,11 @@ class Action
                     $dbMethod = '$set';
 
                 // "actions": { "groups": { "538c5918f6b95c800400083f": { "voted": "voteUp" }, "538cb7f5f6b95c80040018b1": { "voted": "voteUp" } } } }
-                $map[ self::NODE_ACTIONS.".".$collection.".".(string)$element["_id"].".".$action ] = $action ;
+                if (!empty($reason))
+	                $addToMap = $reason ; 
+                else 
+                	$addToMap = $action;
+                $map[ self::NODE_ACTIONS.".".$collection.".".(string)$element["_id"].".".$action ] = $addToMap ;
                 //update the user table 
                 //adds or removes an action
                 PHDB::update ( Person::COLLECTION , array( "_id" => $user["_id"]), 
