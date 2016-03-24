@@ -21,7 +21,6 @@ class AddHelperValidationAction extends CAction
 				$helperId = $helperId;
 				$msg = Yii::t("need","Congrats, help is succesfully validated",null,Yii::app()->controller->module->id);
 			}
-			
 			$helperType = "citoyen";
 			$helper=Person::getById($helperId);
 			if (!empty($helper)) {
