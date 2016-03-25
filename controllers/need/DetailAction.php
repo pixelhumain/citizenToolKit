@@ -10,24 +10,23 @@ class DetailAction extends CAction
         $controller->pageTitle = "Communecter - Action Needs";
         $need=Need::getById($id);
         foreach ($need["links"] as $key => $data){
-	        foreach ($data as $uid => $value){
-		       	$parentType=$value["type"];
-		       	$parentId=$uid;
+	        if ($key != "helpers"){
+		        foreach ($data as $uid => $value){
+			       	$parentType=$value["type"];
+			       	$parentId=$uid;
+		        }
 	        }
         }
+        $parent=array();
         if( $parentType == Project::COLLECTION ) {
-            $project = Project::getById($parentId);
-            $controller->title = $project["name"]."'s Needs";
-            $controller->subTitle = "Need's name // Every Project has a lack of ressources";
-            $controller->pageTitle = "Communecter - ".$controller->title;
+            $parent = Project::getById($parentId);
         } 
         else if( $parentType == Organization::COLLECTION ) {
-
-            $organization = Organization::getById($parentId);
-            $controller->title = $organization["name"]."'s Needs";
-            $controller->subTitle = "Need's name // Every Project has a lack of ressources";
-            $controller->pageTitle = "Communecter - ".$controller->title;
+            $parent = Organization::getById($parentId);
         } 
+        $limit = array(Document::IMG_PROFIL => 1, Document::IMG_MEDIA => 5);
+		$images = Document::getImagesByKey($parentId,$parentType, $limit);
+
         $description=array();
         $helpers=array();
         if (isset($need["description"]))
@@ -49,7 +48,7 @@ class DetailAction extends CAction
 		if(isset(Yii::app()->session["userId"]) && isset($_GET["id"]))
 			$admin = Authorisation::canEditItem(Yii::app()->session["userId"], $parentType, $parentId);
 
-        $params = array( "need" => $need, "description" => $description, "helpers" => $helpers, "isAdmin" => $admin, "parentType" => $parentType, "parentId" => $parentId );
+        $params = array( "need" => $need, "description" => $description, "helpers" => $helpers, "isAdmin" => $admin, "parentType" => $parentType, "parentId" => $parentId, "parent" => $parent, "images" => $images);
         $page = "detail";
         if(Yii::app()->request->isAjaxRequest)
             echo $controller->renderPartial($page,$params,true);

@@ -17,7 +17,6 @@ class GlobalAutoCompleteAction extends CAction
         	Rest::json(array());
 			Yii::app()->end();
         }
-       
         /***********************************  DEFINE GLOBAL QUERY   *****************************************/
         $query = array( "name" => new MongoRegex("/".$search."/i"));
   		
@@ -135,11 +134,12 @@ class GlobalAutoCompleteAction extends CAction
 	  	/***********************************  EVENT   *****************************************/
         if(strcmp($filter, Event::COLLECTION) != 0 && $this->typeWanted("events", $searchType)){
         	
-        	if( !isset( $query['$and'] ) ) 
-        		$query['$and'] = array();
+        	$queryEvent = $query;
+        	if( !isset( $queryEvent['$and'] ) ) 
+        		$queryEvent['$and'] = array();
         	
-        	array_push( $query[ '$and' ], array( "endDate" => array( '$gte' => new MongoDate( time() ) ) ) );
-	  		$allEvents = PHDB::findAndSort( PHType::TYPE_EVENTS, $query, array("startDate" => 1), 100, array("name", "address", "startDate", "endDate", "shortDescription", "description"));
+        	array_push( $queryEvent[ '$and' ], array( "endDate" => array( '$gte' => new MongoDate( time() ) ) ) );
+	  		$allEvents = PHDB::findAndSort( PHType::TYPE_EVENTS, $queryEvent, array("startDate" => 1), 100, array("name", "address", "startDate", "endDate", "shortDescription", "description"));
 	  		foreach ($allEvents as $key => $value) {
 	  			$event = Event::getById($key);
 				$event["type"] = "event";

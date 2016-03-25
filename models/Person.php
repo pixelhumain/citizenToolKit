@@ -1315,10 +1315,32 @@ class Person {
 	    	throw new CTKException("Problem inserting the new person");
 
 	    if(!empty($nameImage)){
-	    	Document::saveDocument($newpersonId, self::COLLECTION, Yii::app()->session["userId"], $moduleId, $nameImage, "avatar", false, $pathFolderImage);
-	    }
-	    	
-	   	return array("result"=>true, "msg"=>"Cette personne est communecté.", "id" => $newPerson["_id"]);	
+			try{
+				$res = Document::uploadDocument($moduleId, self::COLLECTION, $newpersonId, "avatar", false, $pathFolderImage, $nameImage);
+				if(!empty($res["result"]) && $res["result"] == true){
+					$params = array();
+					$params['id'] = $newpersonId;
+					$params['type'] = self::COLLECTION;
+					$params['moduleId'] = $moduleId;
+					$params['folder'] = self::COLLECTION."/".$newpersonId;
+					$params['name'] = $res['name'];
+					$params['author'] = Yii::app()->session["userId"] ;
+					$params['size'] = $res["size"];
+					$params["contentKey"] = "profil";
+					$res2 = Document::save($params);
+					if($res2["result"] == false)
+						throw new CTKException("Impossible de save.");
+
+				}else{
+					throw new CTKException("Impossible uploader le document.");
+				}
+			}catch (CTKException $e){
+				throw new CTKException($e);
+			}	
+		}
+
+
+	    return array("result"=>true, "msg"=>"Cette personne est communecté.", "id" => $newPerson["_id"]);	
 	}
 
 
