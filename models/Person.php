@@ -1173,6 +1173,29 @@ class Person {
 	  		$newPerson["invitedBy"] = $person["invitedBy"];
 	  	}
 		
+		if(!empty($person['geo']) && !empty($person["geoPosition"])){
+			$newPerson["geo"] = $person['geo'];
+			$newPerson["geoPosition"] = $person['geoPosition'];
+
+		}else if(!empty($person["geo"]['latitude']) && !empty($person["geo"]["longitude"])){
+			$newPerson["geo"] = 	array(	"@type"=>"GeoCoordinates",
+						"latitude" => $person["geo"]['latitude'],
+						"longitude" => $person["geo"]["longitude"]);
+
+			$newPerson["geoPosition"] = array("type"=>"Point",
+													"coordinates" =>
+														array(
+															floatval($person["geo"]['latitude']),
+															floatval($person["geo"]['longitude']))
+												 	  	);
+		}
+		else if($insert){
+			if($warnings)
+				$newPerson["warnings"][] = "150" ;
+			else
+				throw new CTKException(Yii::t("import","150", null, Yii::app()->controller->module->id));
+		}else if($warnings)
+			$newPerson["warnings"][] = "150" ;
 			
 		if(!empty($person['address'])) {
 			if(empty($person['address']['postalCode']) /*&& $insert*/){
@@ -1204,36 +1227,28 @@ class Person {
 			$newPerson['address'] = $person['address'] ;
 
 		}else {
-			if($warnings)
+
+			if(!empty($newPerson["geo"])){
+				$resDataGouv = json_decode(file_get_contents("http://api-adresse.data.gouv.fr/reverse/?lon=".$newPerson["geo"]["longitude"]."&lat=".$newPerson["geo"]["latitude"]), true);
+				//var_dump($resDataGouv);
+
+				if(!empty($resDataGouv["features"])){
+					$newPerson['address']['addressCountry'] = "FR";
+					$newPerson['address']['codeInsee'] = $resDataGouv["features"][0]["properties"]["citycode"];
+					$newPerson['address']['postalCode'] = $resDataGouv["features"][0]["properties"]["postcode"];
+					$newPerson['address']['streetAddress'] = $resDataGouv["features"][0]["properties"]["street"];
+					$newPerson['address']['addressLocality'] = City::getAlternateNameByInseeAndCP($newPerson['address']['codeInsee'], $newPerson['address']['postalCode']);
+				}
+				else if($warnings)
+					$newPerson["warnings"][] = "100" ;
+				else
+					throw new CTKException(Yii::t("import","100", null, Yii::app()->controller->module->id));
+			}
+			else if($warnings)
 				$newPerson["warnings"][] = "100" ;
 			else
 				throw new CTKException(Yii::t("import","100", null, Yii::app()->controller->module->id));
 		}
-
-
-		if(!empty($person['geo']) && !empty($person["geoPosition"])){
-			$newPerson["geo"] = $person['geo'];
-			$newPerson["geoPosition"] = $person['geoPosition'];
-
-		}else if(!empty($person["geo"]['latitude']) && !empty($person["geo"]["longitude"])){
-			$newPerson["geo"] = 	array(	"@type"=>"GeoCoordinates",
-						"latitude" => $person["geo"]['latitude'],
-						"longitude" => $person["geo"]["longitude"]);
-
-			$newPerson["geoPosition"] = array("type"=>"Point",
-													"coordinates" =>
-														array(
-															floatval($person["geo"]['latitude']),
-															floatval($person["geo"]['longitude']))
-												 	  	);
-		}
-		else if($insert){
-			if($warnings)
-				$newPerson["warnings"][] = "150" ;
-			else
-				throw new CTKException(Yii::t("import","150", null, Yii::app()->controller->module->id));
-		}else if($warnings)
-			$newPerson["warnings"][] = "150" ;
 
 		if (!empty($person['telephone']))
 			$newPerson["telephone"] = $person['telephone'];

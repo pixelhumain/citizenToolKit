@@ -118,11 +118,13 @@ class Import
         header('Content-Type: text/html; charset=UTF-8');
         if(isset($post['file']))
         {
-            $json = $post['file'][0];
 
-            $search = array("\t", "\n", "\r");
-            $json = strip_tags (str_replace($search, " ", $json));
-           
+            $json = $post['file'][0];
+            
+            //activer
+            /*$search = array("\t", "\n", "\r");
+            $json = strip_tags (str_replace($search, " ", $json));*/
+            
             /*$nameFile = $post['nameFile'] ;
             $arrayNameFile = explode(".", $nameFile);
             
@@ -150,10 +152,12 @@ class Import
                     $chaine .= ArrayHelper::getAllBranchsJSON($value);
                 }
             }else{
+                //var_dump($json);
                 $json_objet = json_decode($json, true);
                 if(substr($json, 0,1) == "{")
                     $chaine .= ArrayHelper::getAllBranchsJSON($json_objet);
                 else{
+                    
                     foreach ($json_objet as $key => $value) {
                         $chaine .= ArrayHelper::getAllBranchsJSON($value);
                     }
@@ -515,7 +519,7 @@ class Import
             }
         } else if($keyCollection == "Person"){
             try{
-               if(empty($data["address"]["postalCode"]) || $data["address"]["postalCode"] == ""){
+               /*if(empty($data["address"]["postalCode"]) || $data["address"]["postalCode"] == ""){
                    
                     $data["address"]["postalCode"] = "59000" ;
                     $data["address"]["addressLocality"] = "LILLE" ;
@@ -525,10 +529,8 @@ class Import
                 if(empty($data["geo"])){
                    $data['geo']['latitude'] = "50.62905900";
                    $data['geo']['longitude'] = "3.06038000";
-                }
+                }*/
 
-        if(!empty($personImportData['geo']['longitude']))
-            $newPerson['geo']['longitude'] = $personImportData['geo']['longitude'];
 
                 $newPerson = Person::createPersonFromImportData($data, true);
                 $res = Person::getAndCheckPersonFromImportData($newPerson, null, null, $warnings);
