@@ -218,7 +218,7 @@ class SIG
 		} else {
 			if(@$postalCode && $postalCode != null){
 				foreach ($city["postalCodes"] as $data){
-					if ($data["postalcode"]==$postalCode){
+					if ($data["postalCode"]==$postalCode){
 						$position = isset($data["geo"]) ? array("geo" => $data["geo"]) : "";
 						if($position == ""){
 							$position = isset($data["geoPosition"]) ? array("geoPosition" => $data["geoPosition"]) : "";	
@@ -271,14 +271,14 @@ class SIG
 		if (empty($postalCode)) {
 			throw new InvalidArgumentException("The postal Code is mandatory");
 		}
-		$city = PHDB::findAndSort(City::COLLECTION, array("postalCodes.postalcode" => array('$in' => array($postalCode))), array("name" => -1));
+		$city = PHDB::findAndSort(City::COLLECTION, array("postalCodes.postalCode" => array('$in' => array($postalCode))), array("name" => -1));
 		$cities = array();
 		foreach($city as $key => $value){
 			$newCity["insee"] = $value["insee"];
 			foreach($value["postalCodes"] as $data){
-				if($data["postalcode"]==$postalCode){
+				if($data["postalCode"]==$postalCode){
 					$newCity["name"] = $data["name"];
-					$newCity["postalcode"] = $data["postalcode"];
+					$newCity["postalCode"] = $data["postalCode"];
 					$newCity["geo"] = $data["geo"];
 					$newCity["geoPosition"] = $data["geoPosition"];
 					break;
@@ -298,8 +298,8 @@ class SIG
 			$address["codeInsee"] = isset($city['codeInsee']) ? $city['codeInsee'] : "" ;
 			$address["addressCountry"] = isset($city['country']) ? $city['country'] : "";
 			foreach ($city["postalCodes"] as $data){
-				if ($data["postalcode"]==$postalCode){
-					$address["postalCode"] = $data["postalcode"];
+				if ($data["postalCode"]==$postalCode){
+					$address["postalCode"] = $data["postalCode"];
 					$address["addressLocality"] = $data["name"]; 
 					break;
 				}
