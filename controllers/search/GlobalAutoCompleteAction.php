@@ -27,7 +27,7 @@ class GlobalAutoCompleteAction extends CAction
         	$query = array( "tags" => array('$in' => array(new MongoRegex("/".$search."/i")))) ; //new MongoRegex("/".$search."/i") )));
   		}
 
-  		$query = array('$and' => array($query, array("state" => array('$ne' => "uncomplete")) ));
+  		$query = array('$and' => array( $query , array("state" => array('$ne' => "uncomplete")) ));
 
   		/***********************************  DEFINE LOCALITY QUERY   *****************************************/
         if($locality != null && $locality != ""){
