@@ -706,10 +706,14 @@ class Organization {
 		//address
 			if(!empty($organizationFieldValue["postalCode"]) && !empty($organizationFieldValue["codeInsee"])) {
 				$insee = $organizationFieldValue["codeInsee"];
-				$address = SIG::getAdressSchemaLikeByCodeInsee($insee);
+				$postalCode = $organizationFieldValue["postalCode"];
+				
+				$address = SIG::getAdressSchemaLikeByCodeInsee($insee, $postalCode);
 				$set = array("address" => $address);
+				if (!empty($organizationFieldValue["streetAddress"]))
+					$set["address"]["streetAddress"] = $organizationFieldValue["streetAddress"];
 				if(empty($organizationFieldValue["geo"]))
-					$set["geo"] = SIG::getGeoPositionByInseeCode($insee);
+					$set["geo"] = SIG::getGeoPositionByInseeCode($insee, $postalCode);
 			} else {
 				throw new CTKException("Error updating the Organization : address is not well formated !");			
 			}

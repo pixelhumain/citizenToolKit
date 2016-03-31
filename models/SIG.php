@@ -99,11 +99,15 @@ class SIG
 	}
 
 	//return geographical position of inseeCode
-	public static function getGeoPositionByInseeCode($inseeCode){
+	public static function getGeoPositionByInseeCode($inseeCode, $postalCode = null){
 		$city = self::getCityByCodeInsee($inseeCode);
-		$geopos = array( 	"@type" => "GeoCoordinates",
-							"latitude" => $city["geo"]["latitude"],
-							"longitude" => $city["geo"]["longitude"]);
+		foreach ($city["postalCodes"] as $data){
+			if($data["postalCode"] == $postalCode){
+				$geopos = array( 	"@type" => "GeoCoordinates",
+									"latitude" => $data["geo"]["latitude"],
+									"longitude" => $data["geo"]["longitude"]);
+			}
+		}						
 		return $geopos;
 	}
 
@@ -293,10 +297,10 @@ class SIG
 	public static function getAdressSchemaLikeByCodeInsee($codeInsee, $postalCode=null) {
 		$city = self::getCityByCodeInsee($codeInsee);
 		$address=array();
-		if(@$postalCode && $postalCode != null){
-			$address["@type"] = "PostalAddress";
-			$address["codeInsee"] = isset($city['codeInsee']) ? $city['codeInsee'] : "" ;
-			$address["addressCountry"] = isset($city['country']) ? $city['country'] : "";
+		$address["@type"] = "PostalAddress";
+		$address["codeInsee"] = isset($city['codeInsee']) ? $city['codeInsee'] : "" ;
+		$address["addressCountry"] = isset($city['country']) ? $city['country'] : "";
+		if($postalCode != null){
 			foreach ($city["postalCodes"] as $data){
 				if ($data["postalCode"]==$postalCode){
 					$address["postalCode"] = $data["postalCode"];
@@ -304,12 +308,6 @@ class SIG
 					break;
 				}
 			}
-		}else{
-			$address = array("@type"=>"PostalAddress", 
-							"postalCode"=> isset($city['cp']) ? $city['cp'] : "", 
-							"addressLocality" => isset($city["alternateName"]) ? $city['alternateName'] : "", 
-							"codeInsee" => $codeInsee,
-							"addressCountry" => isset($city['country']) ? $city['country'] : "" );
 		}
 		return $address;
 	}

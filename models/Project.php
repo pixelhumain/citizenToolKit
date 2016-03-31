@@ -158,7 +158,7 @@ class Project {
 		if(!empty($project['postalCode'])) {
 			if (!empty($project['city'])) {
 				$insee = $project['city'];
-				$address = SIG::getAdressSchemaLikeByCodeInsee($insee);
+				$address = SIG::getAdressSchemaLikeByCodeInsee($insee,$project['postalCode']);
 				//$address["addressCountry"] = $project["addressCountry"];
 				$newProject["address"] = $address;
 				if( !empty($project['streetAddress'])) 
@@ -323,7 +323,7 @@ class Project {
 		if ($dataFieldName == "address") {
 			if(!empty($projectFieldValue["postalCode"]) && !empty($projectFieldValue["codeInsee"])) {
 				$insee = $projectFieldValue["codeInsee"];
-				$address = SIG::getAdressSchemaLikeByCodeInsee($insee);
+				$address = SIG::getAdressSchemaLikeByCodeInsee($insee,$projectFieldValue["postalCode"]);
 				$set = array("address" => $address, "geo" => SIG::getGeoPositionByInseeCode($insee));
 			} else {
 				throw new CTKException("Error updating the Project : address is not well formated !");			
