@@ -610,14 +610,15 @@ class Person {
 			if(!empty($personFieldValue["postalCode"]) && !empty($personFieldValue["codeInsee"])) 
 			{
 				$insee = $personFieldValue["codeInsee"];
-				$address = SIG::getAdressSchemaLikeByCodeInsee($insee);
+				$postalCode = $personFieldValue["postalCode"];
+				$address = SIG::getAdressSchemaLikeByCodeInsee($insee,$postalCode);
 				if (!empty($personFieldValue["streetAddress"])) $address["streetAddress"] = $personFieldValue["streetAddress"];
 				if (!empty($personFieldValue["addressCountry"])) $address["addressCountry"] = $personFieldValue["addressCountry"];
 				
 				$set = array("address" => $address);
 
 				if(empty($thisUser["geo"])){
-					$geo = SIG::getGeoPositionByInseeCode($insee);
+					$geo = SIG::getGeoPositionByInseeCode($insee,$postalCode);
 					$set["geo"] = $geo;
 				}
 
