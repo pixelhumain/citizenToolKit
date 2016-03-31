@@ -298,7 +298,7 @@ class SIG
 		$city = self::getCityByCodeInsee($codeInsee);
 		$address=array();
 		$address["@type"] = "PostalAddress";
-		$address["codeInsee"] = isset($city['codeInsee']) ? $city['codeInsee'] : "" ;
+		$address["codeInsee"] = isset($city['insee']) ? $city['insee'] : "" ;
 		$address["addressCountry"] = isset($city['country']) ? $city['country'] : "";
 		if($postalCode != null){
 			foreach ($city["postalCodes"] as $data){

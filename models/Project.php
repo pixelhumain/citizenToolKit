@@ -10,6 +10,7 @@ class Project {
 	private static $dataBinding = array(
 	    "name" => array("name" => "name", "rules" => array("required")),
 	    "address" => array("name" => "address"),
+	    "streetAddress" => array("name" => "address.streetAddress"),
 	    "postalCode" => array("name" => "address.postalCode"),
 	    "city" => array("name" => "address.codeInsee"),
 	    "addressCountry" => array("name" => "address.addressCountry"),
@@ -323,8 +324,11 @@ class Project {
 		if ($dataFieldName == "address") {
 			if(!empty($projectFieldValue["postalCode"]) && !empty($projectFieldValue["codeInsee"])) {
 				$insee = $projectFieldValue["codeInsee"];
-				$address = SIG::getAdressSchemaLikeByCodeInsee($insee,$projectFieldValue["postalCode"]);
-				$set = array("address" => $address, "geo" => SIG::getGeoPositionByInseeCode($insee));
+				$postalCode = $projectFieldValue["postalCode"];
+				$address = SIG::getAdressSchemaLikeByCodeInsee($insee,$postalCode);
+				$set = array("address" => $address, "geo" => SIG::getGeoPositionByInseeCode($insee,$postalCode));
+				if (!empty($projectFieldValue["streetAddress"]))
+					$set["address"]["streetAddress"] = $projectFieldValue["streetAddress"];
 			} else {
 				throw new CTKException("Error updating the Project : address is not well formated !");			
 			}
