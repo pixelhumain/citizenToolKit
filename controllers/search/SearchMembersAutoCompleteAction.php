@@ -38,7 +38,9 @@ class SearchMembersAutoCompleteAction extends CAction {
 		}
 		
 		if ($limitSearchOrganization > 0) {
-			$allOrganization = PHDB::findAndSort( Organization::COLLECTION, $query, array("name" => 1), $limitSearchOrganization, array("_id"));
+			$queryDisabled = array("disabled" => array('$exists' => false));
+			$queryOrganization = array('$and' => array($query, $queryDisabled));
+			$allOrganization = PHDB::findAndSort( Organization::COLLECTION, $queryOrganization, array("name" => 1), $limitSearchOrganization, array("_id"));
 			foreach ($allOrganization as $key => $value) {
 				$orga = Organization::getSimpleOrganizationById($key);
 				$allOrganization[$key] = $orga;

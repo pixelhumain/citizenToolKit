@@ -278,9 +278,15 @@ class Person {
 			  		$contactComplet = null;
 					if($type == "citoyens")		{ $contactComplet = self::getById($key); $type = "people"; }
 					//if ($link != "follows"){
-						if($type == "organizations"){ $contactComplet = Organization::getById($key); }
-						if($type == "projects")		{ $contactComplet = Project::getById($key); }
-						if($type == "events")		{ $contactComplet = Event::getById($key); }
+					if($type == "organizations"){ 
+						$contactComplet = Organization::getById($key);
+						//Do not add orga disabled
+						if (@$contactComplet["disabled"]) {
+							$contactComplet = null;
+						}
+					}
+					if($type == "projects")		{ $contactComplet = Project::getById($key); }
+					if($type == "events")		{ $contactComplet = Event::getById($key); }
 					//}
 					if($contactComplet != null)	$res[$type][$key] = $contactComplet;
 					

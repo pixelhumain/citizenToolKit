@@ -77,7 +77,8 @@ class IndexAction extends CAction
         } 
         else if( $type == Organization::COLLECTION) {
             $organization = Organization::getById($id);
-            if(@Yii::app()->session["userId"] && @$organization["links"]["members"][Yii::app()->session["userId"]] && !@$organization["links"]["members"][Yii::app()->session["userId"]][Link::TO_BE_VALIDATED])
+            if(@Yii::app()->session["userId"] && @$organization["links"]["members"][Yii::app()->session["userId"]] && !@$organization["links"]["members"][Yii::app()->session["userId"]][Link::TO_BE_VALIDATED]
+            	&& !@$organization["disabled"])
             	$params["canPostNews"] = true;
             $params["organization"] = $organization; 
         }

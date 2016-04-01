@@ -114,8 +114,9 @@ class GlobalAutoCompleteAction extends CAction
 
 	  	/***********************************  ORGANISATIONS   *****************************************/
         if(strcmp($filter, Organization::COLLECTION) != 0 && $this->typeWanted("organizations", $searchType)){
-
-	  		$allOrganizations = PHDB::find ( Organization::COLLECTION ,$query ,array("name", "address", "shortDescription", "description"));
+        	$queryDisabled = array("disabled" => array('$exists' => false));
+        	$queryOrganization = array('$and' => array($query, $queryDisabled));
+	  		$allOrganizations = PHDB::find ( Organization::COLLECTION ,$queryOrganization ,array("name", "address", "shortDescription", "description"));
 	  		foreach ($allOrganizations as $key => $value) {
 	  			$orga = Organization::getSimpleOrganizationById($key);
 	  			$followers = Organization::getFollowersByOrganizationId($key);
