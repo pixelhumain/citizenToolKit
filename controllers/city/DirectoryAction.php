@@ -40,9 +40,11 @@ class DirectoryAction extends CAction
       foreach ($organizationsBd as $key => $orga) {
           $orga = Organization::getPublicData((string)$orga["_id"]);
           $profil = Document::getLastImageByKey((string)$orga["_id"], Organization::COLLECTION, Document::IMG_PROFIL);
-              if($profil !="")
-                  $orga["imagePath"]= $profil;
-          array_push($organizations, $orga);
+          if($profil !="")
+              $orga["imagePath"]= $profil;
+          if (!@$orga["disabled"]) {
+            array_push($organizations, $orga);
+          }
       }
       
       
