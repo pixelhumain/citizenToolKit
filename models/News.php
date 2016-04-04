@@ -2,6 +2,12 @@
 class News {
 
 	const COLLECTION = "news";
+	const CONTROLLER = "news";
+	const ICON = "fa-users";
+	const ICON_BIZ = "fa-industry";
+	const ICON_GROUP = "fa-circle-o";
+	const ICON_GOV = "fa-circle-o";
+	const COLOR = "#93C020";
 	/**
 	 * get an project By Id
 	 * @param type $id : is the mongoId of the project
