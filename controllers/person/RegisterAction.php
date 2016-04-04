@@ -65,14 +65,14 @@ class RegisterAction extends CAction
 			//TODO
 			//send communecter overview mail
 			//Mail::communecterOverview($newPerson);
-			$res = array("result"=>true, "msg"=> Yii::t("login","You are now communnected !")." ".Yii::t("login","Our developpers are fighting to open soon ! Check your mail that will happen soon !"), "id"=>$pendingUserId); 
+			$res = array("result"=>true, "msg"=> Yii::t("login","You are now communnected !")."<br>".Yii::t("login","Our developpers are fighting to open soon ! Check your mail that will happen soon !"), "id"=>$pendingUserId); 
 		} else if ($res["msg"] == "notValidatedEmail") {
 			$newPerson["_id"] = $pendingUserId;
 			$newPerson['email'] = $email;
 
 			//send validation mail if the user is not validated
 			Mail::validatePerson($newPerson);
-			$res = array("result"=>true, "msg"=> Yii::t("login","You are now communnected !")." ".Yii::t("login","Check your mailbox you'll receive soon a mail to validate your email address."), "id"=>$pendingUserId); 
+			$res = array("result"=>true, "msg"=> Yii::t("login","You are now communnected !")."<br>".Yii::t("login","Check your mailbox you'll receive soon a mail to validate your email address."), "id"=>$pendingUserId); 
 		}
 
 		Rest::json($res);
