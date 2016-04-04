@@ -532,9 +532,9 @@ class Import
                 }*/
                 $invite = false ;
                 
-                if(!empty($post["nameInvite"]) && !empty($post["msgInvite"])){
+                if(!empty($post["invite"])){
                     $invite = true ;
-                    $data["nameInvite"] = $post["nameInvite"];
+                    $data["nameInvitor"] = $post["nameInvitor"];
                     $data["msgInvite"] = $post["msgInvite"];
                 }
 
@@ -968,17 +968,17 @@ class Import
                     else if($typeEntity == "organization")
                         $res = Organization::insertOrganizationFromImportData($value, $post['creatorID'],true,$pathFolderImage) ;
                     else if($typeEntity == "person")
-                        $res = Person::insertPersonFromImportData($value,true,$pathFolderImage, $moduleId) ; 
-
+                        $res = Person::insertPersonFromImportData($value,true, null, $pathFolderImage, $moduleId) ;
+                    else if($typeEntity == "invite"){
+                        $res = Person::insertPersonFromImportData($value,true, true, $pathFolderImage, $moduleId) ;
+                    }
 
                     if($res["result"] == true){
                         $entite["name"] =  $value["name"];
-        
-                        $entite["info"] = "Success" ;
+                        $entite["info"] = "Success";
                     }else{
                         $entite["name"] =  $value["name"];
-                        
-                        $entite["info"] = "Error" ;
+                        $entite["info"] = "Error";
                     }
                     $resData[] = $entite;
                 }

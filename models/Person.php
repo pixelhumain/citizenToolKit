@@ -1036,8 +1036,8 @@ class Person {
 		if(!empty($personImportData['msgInvite']))
 			$newPerson["msgInvite"] = $personImportData["msgInvite"];
 
-		if(!empty($personImportData['nameInvite']))
-			$newPerson["nameInvite"] = $personImportData["nameInvite"];
+		if(!empty($personImportData['nameInvitor']))
+			$newPerson["nameInvitor"] = $personImportData["nameInvitor"];
 
 		if(!empty($personImportData['source'])){
 			if(!empty($personImportData['source']['id']))
@@ -1281,8 +1281,8 @@ class Person {
 		}else{
 			if (!empty($person['msgInvite']))
 				$newPerson["msgInvite"] = $person['msgInvite'];
-			if (!empty($person['nameInvite']))
-				$newPerson["nameInvite"] = $person['nameInvite'];
+			if (!empty($person['nameInvitor']))
+				$newPerson["nameInvitor"] = $person['nameInvitor'];
 		}
 			
 		
@@ -1330,9 +1330,9 @@ class Person {
 	 * @param string $userId UserId doing the insertion
 	 * @return array as result type
 	 */
-	public static function insertPersonFromImportData($person, $warnings, $pathFolderImage = null, $moduleId = null){
+	public static function insertPersonFromImportData($person, $warnings, $invite=null, $pathFolderImage = null, $moduleId = null){
 	    
-	    $newPerson = self::getAndCheckPersonFromImportData($person, null, null, $warnings);
+	    $newPerson = self::getAndCheckPersonFromImportData($person, $invite, null, null, $warnings);
 	    
 	    if(!empty($newPerson["warnings"]) && $warnings == true)
 	    	$newPerson["warnings"] = Import::getAndCheckWarnings($newPerson["warnings"]);
@@ -1340,8 +1340,6 @@ class Person {
 	    $newPerson["@context"] = array("@vocab"=>"http://schema.org",
             "ph"=>"http://pixelhumain.com/ph/ontology/");
 	    $newPerson["roles"] = Role::getDefaultRoles();
-	    $newPerson["roles"]["tobeactivated"] = false;
-	    $newPerson["roles"]["betaTester"] = true;
 	  	$newPerson["created"] = new mongoDate(time());
 	  	$newPerson["preferences"] = array("seeExplanations"=> true);
 
@@ -1349,6 +1347,17 @@ class Person {
 			$nameImage = $newPerson["image"];
 			unset($newPerson["image"]);
 		}
+
+		if(!empty($invite)){
+			$msgMail = $person["msgInvite"];
+			$nameInvitor = $person["nameInvitor"];
+        	unset($person["msgInvite"]);
+        	unset($person["nameInvitor"]);
+		}
+
+			
+
+
 
 	    PHDB::insert(Person::COLLECTION , $newPerson);
 
@@ -1382,20 +1391,21 @@ class Person {
 			}	
 		}
 
+		if(!empty($invite)){
+			Mail::invitePerson($newPerson, $msgMail, $nameInvitor);
+		}
 
-	    return array("result"=>true, "msg"=>"Cette personne est communecté.", "id" => $newPerson["_id"]);	
+		return array("result"=>true, "msg"=>"Cette personne est communecté.", "id" => $newPerson["_id"]);	
 	}
 
 
 
 	public static function generedUserNameByEmail($chaine, $isEmail = null){
-		
 		if($isEmail == true){
 			$arrayEmail = explode("@", $chaine);
 			$name = $arrayEmail[0];
 		}else
-			$name = $chaine;
-			
+			$name = $chaine;	
 		$name = strtr($name,'àáâãäçèéêëìíîïñòóôõöùúûüýÿÀÁÂÃÄÇÈÉÊËÌÍÎÏÑÒÓÔÕÖÙÚÛÜÝ._','aaaaaceeeeiiiinooooouuuuyyAAAAACEEEEIIIINOOOOOUUUUY--'); // Replaces all spaces with hyphens.
 		$name = preg_replace('/[^A-Za-z0-9\-]/', '', $name);
 		
@@ -1404,7 +1414,6 @@ class Person {
 				 $name = self::generedUserNameByEmail($name."1");
 		  	}
 		}else{
-
 			if(strlen($name) < 4){
 
 				while(strlen($name) < 4){
@@ -1417,7 +1426,6 @@ class Person {
 			} 
 
 		}
-
 		return $name;
 	}
 

@@ -43,8 +43,11 @@ class Mail
         Mail::schedule($params);
     }
 
-    public static function invitePerson($person, $msg = null) {
-        $invitor = Person::getSimpleUserById($person["invitedBy"]);
+    public static function invitePerson($person, $msg = null, $nameInvitor = null) {
+        if(isset($person["invitedBy"]))
+            $invitor = Person::getSimpleUserById($person["invitedBy"]);
+        else if(isset($nameInvitor))
+            $invitor["name"] = $nameInvitor ;
 
         if(empty($msg))
             $msg = $invitor["name"]. " vous invite à rejoindre Communecter.";
@@ -215,4 +218,5 @@ class Mail
             Mail::schedule($params);
         }
     }
+
 }
