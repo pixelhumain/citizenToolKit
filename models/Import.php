@@ -530,10 +530,18 @@ class Import
                    $data['geo']['latitude'] = "50.62905900";
                    $data['geo']['longitude'] = "3.06038000";
                 }*/
-
+                $invite = false ;
+                
+                if(!empty($post["nameInvite"]) && !empty($post["msgInvite"])){
+                    $invite = true ;
+                    $data["nameInvite"] = $post["nameInvite"];
+                    $data["msgInvite"] = $post["msgInvite"];
+                }
 
                 $newPerson = Person::createPersonFromImportData($data, true);
-                $res = Person::getAndCheckPersonFromImportData($newPerson, null, null, $warnings);
+                $res = Person::getAndCheckPersonFromImportData($newPerson, $invite, null, null, $warnings);
+                
+                
             }
             catch(CTKException $e){
                 if(empty($newPerson))
@@ -1121,130 +1129,24 @@ class Import
         return $msg;
     }
 
+    public static function getLocalityByLatLonNominatim($lat, $lon){
+        $url = "http://nominatim.openstreetmap.org/reverse?format=json&lat=".$lat."&lon=".$lon."&zoom=18&addressdetails=1" ;
+        $options = array(
+            "http"=>array(
+                "header"=>"User-Agent: Mozilla/5.0 (iPad; U; CPU OS 3_2 like Mac OS X; en-us) AppleWebKit/531.21.10 (KHTML, like Gecko) Version/4.0.4 Mobile/7B334b Safari/531.21.102011-10-16 20:23:10\r\n" // i.e. An iPad
+            )
+        );
 
-    public static function getAndCheckAddressForEntity($address, $geo = null, $warnings = null){
-        $newAddress = array(    '@type' => 'PostalAddress',
-                                'streetAddress' =>  '', 
-                                'postalCode' =>  '',
-                                'addressLocality' =>  '',
-                                'addressCountry' =>  '',
-                                'codeInsee' =>  '');
-
-        $details["warnings"] = array();
-
-
-        //On test si le code postal est dans la BD
-        if(!empty($address['postalCode'])){
-            $cityByCp = PHDB::find(City::COLLECTION, array("cp"=>$address['postalCode']));
-            //var_dump($cityByCp);
-            if(empty($cityByCp)){
-                if($warnings)
-                    $details["warnings"][] = "106";
-                else
-                    throw new CTKException(Yii::t("import","106", null, Yii::app()->controller->module->id));
-
-            }
-                
-        }
-        //On a besoin de récupere la locality, la country, l'insee
-        //Si on a la latitude et la longitude 
-        if(!empty($geo["latitude"]) && !empty($geo["longitude"])){
-            //On récupere la city correspondant a la latitude, la longitude et le code postal
-            $city = SIG::getInseeByLatLngCp($geo["latitude"], $geo["longitude"],(empty($address['postalCode']) ? null : $address['postalCode']) );
-            if(!empty($city)){
-                foreach ($city as $key => $value){
-                    $insee = $value["insee"];
-                    $cp = $value["cp"];
-                    $newAddress['addressCountry'] = $value["country"];
-                    $newAddress['addressLocality'] = $value["alternateName"];
-                    break;
-                }
-            }
-            else{
-                //On va parcourir les cities récuperer via le cp
-                if(!empty($cityByCp)) {
-                    $find = false ;
-                    foreach ($cityByCp as $key => $value){
-                        //On test si l'alternateName ou le name corresponds à la Locality se trouvant dans $address
-                        if($value["alternateName"] == $address['addressLocality'] || $value["name"] == $address['addressLocality']){
-                            $insee = $value["insee"];
-                            $cp = $value["cp"];
-                            $newAddress['addressCountry'] = $value["country"];
-                            $newAddress['addressLocality'] = $value["alternateName"];
-                            $find = true ;
-                            break;
-                        }
-                    }
-                    if($find == false){
-                        if($warnings)
-                            $details["warnings"][] = "110";
-                        else
-                            throw new CTKException(Yii::t("import","110", null, Yii::app()->controller->module->id));
-                    } 
-                        
-                }
-                $newProject['warnings'][] = "170";
-            }   
-        }else{
-            foreach ($cityByCp as $key => $value){
-                //On test si l'alternateName ou le name corresponds à la Locality se trouvant dans $address
-                if($value["alternateName"] == $address['addressLocality'] || $value["name"] == $address['addressLocality']){
-                    $insee = $value["insee"];
-                    $cp = $value["cp"];
-                    $newAddress['addressCountry'] = $value["country"];
-                    $newAddress['addressLocality'] = $value["alternateName"];
-                    $find = true ;
-                    break;
-                }
-            }
-            if($find == false){
-                if($warnings)
-                    $details["warnings"][] = "110";
-                else
-                    throw new CTKException(Yii::t("import","110", null, Yii::app()->controller->module->id));
-            }
-        }   
-
-        //Afin d'éviter des incohérences, on test si l'insee fournir par $address et l'insee sont identique
-        if(!empty($insee) && !empty($address['codeInsee']) ){
-            if($insee == $address['codeInsee'])
-                $newAddress['codeInsee'] = $insee ;
-            else{
-                if($warnings)
-                    $details["warnings"][] = "171";
-                else
-                    throw new CTKException(Yii::t("import","171", null, Yii::app()->controller->module->id));
-            }
-                
-        }else if(!empty($insee)){
-            $newAddress['codeInsee'] = $insee ;
-        }else if(!empty($address['codeInsee'])){
-            $newAddress['codeInsee'] = $address['codeInsee'];
-        }
-
-        //Même chose pour le code postal
-        if(!empty($address['postalCode']) && !empty($cp)){
-            if($cp == $address['postalCode'])
-                $newAddress['postalCode'] = $cp ;
-            else{
-                if($warnings)
-                    $detail["warnings"][] = "172";
-                else
-                    throw new CTKException(Yii::t("import","172", null, Yii::app()->controller->module->id));
-            }
-                
-        }else if(!empty($cp)){
-            $newAddress['postalCode'] = $cp ;
-        }else if(!empty($address['postalCode'])){
-            $newAddress['postalCode'] = $address['postalCode'];
-        }
-
-        if(!empty($address['streetAddress']))
-            $newAddress['streetAddress'] = $address['streetAddress'];
+        $context = stream_context_create($options);
+        $result = file_get_contents($url, false, $context);
+        return $result;
+    }   
 
 
-        $details["address"] = $newAddress;
-        return $details ;
+    public static function getLocalityByLatLonDataGouv($lat, $lon){
+        $url = "http://api-adresse.data.gouv.fr/reverse/?lon=".$lon."&lat=".$lat."&zoom=18&addressdetails=1" ;
+        $json = file_get_contents($url);
+        return $json ;
     }
 
 
