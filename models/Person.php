@@ -467,7 +467,7 @@ class Person {
 	 * @param boolean $minimal : true : a person can be created using only "name" and "email". Else : "postalCode" and "pwd" are also requiered
 	 * @return array result, msg and id
 	 */
-	public static function insert($person, $mode = self::REGISTER_MODE_NORMAL) {
+	public static function insert($person, $mode = self::REGISTER_MODE_NORMAL, $inviteCode = null) {
 
 	  	//Check Person data + business rules
 	  	$person = self::getAndcheckPersonData($person, $mode);
@@ -476,6 +476,11 @@ class Person {
             "ph"=>"http://pixelhumain.com/ph/ontology/");
 
 	  	$person["roles"] = Role::getDefaultRoles();
+
+	  	//if valid invite code , user is automatically geta tester
+	  	//inviteCodes are server configs 
+	  	if( @Yii::app()->params['betaTest'] && $inviteCode && in_array( $inviteCode , Yii::app()->params['validInviteCodes'] ))
+	  		$person["roles"]['betaTester'] = true;
 
 	  	$person["created"] = new mongoDate(time());
 	  	$person["preferences"] = array("seeExplanations"=> true);

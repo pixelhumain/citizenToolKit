@@ -22,6 +22,8 @@ class RegisterAction extends CAction
 			'pwd'=>$pwd
 		);
 
+		$inviteCode = (@$_POST['inviteCode']) ? $_POST['inviteCode'] : null;
+
 		if (@$_POST['mode']) 
 			$mode = Person::REGISTER_MODE_TWO_STEPS;
 		else 
@@ -46,7 +48,7 @@ class RegisterAction extends CAction
 		} else {
 			try {
 				$newPerson['email'] = $email;
-				$res = Person::insert($newPerson, $mode);
+				$res = Person::insert($newPerson, $mode,$inviteCode);
 				$newPerson["_id"]=$res["id"];
 			} catch (CTKException $e) {
 				$res = array("result" => false, "msg"=>$e->getMessage());
