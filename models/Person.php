@@ -298,7 +298,7 @@ class Person {
 			}
 		}
 
-	  	if(isset($res["citoyens"])) 	 usort($res["people"], 		  "mySort");
+	  	if(isset($res["people"])) 	 	 usort($res["people"], 		  "mySort");
 	  	if(isset($res["organizations"])) usort($res["organizations"], "mySort");
 	  	if(isset($res["projects"])) 	 usort($res["projects"], 	  "mySort");
 	  	if(isset($res["events"])) 		 usort($res["events"], 		  "mySort");
