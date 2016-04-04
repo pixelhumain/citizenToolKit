@@ -180,11 +180,13 @@ class GlobalAutoCompleteAction extends CAction
 	        	error_log("type " . $type);
 	    		if($type == "NAME"){ 
 	        		$query = array('$or' => array( array( "name" => new MongoRegex("/".self::wd_remove_accents($locality)."/i")),
-	        									   array( "alternateName" => new MongoRegex("/".self::wd_remove_accents($locality)."/i"))));
+	        									   array( "alternateName" => new MongoRegex("/".self::wd_remove_accents($locality)."/i")),
+	        									   array("postalCodes.name" => array('$in' => array(new MongoRegex("/".self::wd_remove_accents($locality)."/i"))))
+	        					));
 	        		//error_log("search city with : " . self::wd_remove_accents($locality));
 	        	}
 	        	if($type == "CODE_POSTAL_INSEE") {
-	        		$query = array("cp" => $locality );
+	        		$query = array("postalCodes.postalCode" => array('$in' => array($locality)));
 	        	}
 	        	if($type == "DEPARTEMENT") {
 	        		$query = array("dep" => $locality );
@@ -198,8 +200,34 @@ class GlobalAutoCompleteAction extends CAction
 			    	$query["country"] = $country;
 			    }
 
-	  		$allCities = PHDB::find(City::COLLECTION, $query, array("name", "alternateName", "cp", "insee", "regionName", "country", "geo", "geoShape"));
+	  		//$allCities = PHDB::find(City::COLLECTION, $query, array("name", "alternateName", "cp", "insee", "regionName", "country", "geo", "geoShape","postalCodes"));
+	  		$allCities = PHDB::find(City::COLLECTION, $query);
 	  		$allCitiesRes = array();
+	  		$nbMaxCities = 20;
+	  		$nbCities = 0;
+	  		foreach($allCities as $data){
+		  		foreach ($data["postalCodes"] as $val){
+			  		if($nbCities < $nbMaxCities){
+			  		$newCity = array();
+			  		$newCity = array(
+			  						"_id"=>$data["_id"],
+			  						"insee" => $data["insee"], 
+			  						"regionName" => $data["regionName"], 
+			  						"country" => $data["country"],
+			  						"geoShape" => $data["geoShape"],
+			  						"cp" => $val["postalCode"],
+			  						"geo" => $val["geo"],
+			  						"geoPosition" => $val["geoPosition"],
+			  						"name" => ucwords(strtolower($val["name"])),
+			  						"alternateName" => ucwords(strtolower($val["name"])),
+			  						"type"=>"city",
+			  						"typeSig" => "city");
+			  						//$key=new MongoId();
+			  		$allCitiesRes[]=$newCity;
+			  		} $nbCities++;
+		  		}
+	  		}
+	  		/*$allCitiesRes = array();
 	  		$nbMaxCities = 20;
 	  		$nbCities = 0;
 	  		foreach ($allCities as $key => $value) {
@@ -212,7 +240,7 @@ class GlobalAutoCompleteAction extends CAction
 					else $city["name"] = ucwords(strtolower($value["name"])) ;
 				$allCitiesRes[$key] = $city;
 				} $nbCities++;
-	  		}
+	  		}*/
 	  		//$res["cities"] = $allCitiesRes;
 
 	  		if(empty($allCitiesRes)){

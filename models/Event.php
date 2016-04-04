@@ -425,13 +425,14 @@ class Event {
 		if ($dataFieldName == "address") {
 			if(!empty($eventFieldValue["postalCode"]) && !empty($eventFieldValue["codeInsee"])) {
 				$insee = $eventFieldValue["codeInsee"];
-				$address = SIG::getAdressSchemaLikeByCodeInsee($insee);
+				$postalCode = $eventFieldValue["postalCode"];
+				$address = SIG::getAdressSchemaLikeByCodeInsee($insee,$postalCode);
 				
 				if(!empty( $eventFieldValue["streetAddress"] ))
 					$address[ "streetAddress" ] = $eventFieldValue["streetAddress"];
 
 				$set = array("address" => $address, 
-							 "geo" => SIG::getGeoPositionByInseeCode($insee));
+							 "geo" => SIG::getGeoPositionByInseeCode($insee,$postalCode));
 			} else {
 				throw new CTKException("Error updating the Event : address is not well formated !");			
 			}
