@@ -10,7 +10,6 @@ class SaveAction extends CAction
 		$controller=$this->getController();
 		// Retrieve data from form
 		$newOrganization = Organization::newOrganizationFromPost($_POST);
-
 		try{
 			if ( Person::logguedAndValid() ) {
 				//Save the organization

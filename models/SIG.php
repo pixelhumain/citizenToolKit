@@ -99,13 +99,15 @@ class SIG
 	}
 
 	//return geographical position of inseeCode
-	public static function getGeoPositionByInseeCode($inseeCode, $postalCode = null){
+	public static function getGeoPositionByInseeCode($inseeCode, $postalCode = null, $cityName = null){
 		$city = self::getCityByCodeInsee($inseeCode);
 		foreach ($city["postalCodes"] as $data){
 			if($data["postalCode"] == $postalCode){
+				if ($cityName == null || $data["name"] == $cityName){
 				$geopos = array( 	"@type" => "GeoCoordinates",
 									"latitude" => $data["geo"]["latitude"],
 									"longitude" => $data["geo"]["longitude"]);
+				}
 			}
 		}						
 		return $geopos;
@@ -277,24 +279,24 @@ class SIG
 		}
 		$city = PHDB::findAndSort(City::COLLECTION, array("postalCodes.postalCode" => array('$in' => array($postalCode))), array("name" => -1));
 		$cities = array();
-		foreach($city as $key => $value){
-			$newCity["insee"] = $value["insee"];
+		foreach($city as $value){
 			foreach($value["postalCodes"] as $data){
-				if($data["postalCode"]==$postalCode){
+				if($data["postalCode"] == $postalCode){
+					$newCity["insee"] = $value["insee"];
 					$newCity["name"] = $data["name"];
 					$newCity["postalCode"] = $data["postalCode"];
 					$newCity["geo"] = $data["geo"];
 					$newCity["geoPosition"] = $data["geoPosition"];
-					break;
+					$cities[]=$newCity;	
 				}
-			}
-			$cities[$key]=$newCity;			
+		
+			}		
 		}
 		return $cities;
 		
 	}
 
-	public static function getAdressSchemaLikeByCodeInsee($codeInsee, $postalCode=null) {
+	public static function getAdressSchemaLikeByCodeInsee($codeInsee, $postalCode = null, $cityName = null) {
 		$city = self::getCityByCodeInsee($codeInsee);
 		$address=array();
 		$address["@type"] = "PostalAddress";
@@ -303,9 +305,11 @@ class SIG
 		if($postalCode != null){
 			foreach ($city["postalCodes"] as $data){
 				if ($data["postalCode"]==$postalCode){
+					if ($cityName == null || $data["name"] == $cityName){
 					$address["postalCode"] = $data["postalCode"];
 					$address["addressLocality"] = $data["name"]; 
-					break;
+					}
+					
 				}
 			}
 		}

@@ -159,7 +159,8 @@ class Project {
 		if(!empty($project['postalCode'])) {
 			if (!empty($project['city'])) {
 				$insee = $project['city'];
-				$address = SIG::getAdressSchemaLikeByCodeInsee($insee,$project['postalCode']);
+				$cityName= $project['cityName'];
+				$address = SIG::getAdressSchemaLikeByCodeInsee($insee,$project['postalCode'],$cityName);
 				//$address["addressCountry"] = $project["addressCountry"];
 				$newProject["address"] = $address;
 				if( !empty($project['streetAddress'])) 
@@ -325,8 +326,9 @@ class Project {
 			if(!empty($projectFieldValue["postalCode"]) && !empty($projectFieldValue["codeInsee"])) {
 				$insee = $projectFieldValue["codeInsee"];
 				$postalCode = $projectFieldValue["postalCode"];
-				$address = SIG::getAdressSchemaLikeByCodeInsee($insee,$postalCode);
-				$set = array("address" => $address, "geo" => SIG::getGeoPositionByInseeCode($insee,$postalCode));
+				$cityName = $projectFieldValue["addressLocality"];
+				$address = SIG::getAdressSchemaLikeByCodeInsee($insee,$postalCode,$cityName);
+				$set = array("address" => $address, "geo" => SIG::getGeoPositionByInseeCode($insee,$postalCode,$cityName));
 				if (!empty($projectFieldValue["streetAddress"]))
 					$set["address"]["streetAddress"] = $projectFieldValue["streetAddress"];
 			} else {
