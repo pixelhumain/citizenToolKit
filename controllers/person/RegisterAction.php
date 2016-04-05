@@ -71,6 +71,7 @@ class RegisterAction extends CAction
 		} else if ($res["msg"] == "notValidatedEmail") {
 			$newPerson["_id"] = $pendingUserId;
 			$newPerson['email'] = $email;
+			$newPerson["inviteCode"] = $inviteCode;
 
 			//send validation mail if the user is not validated
 			Mail::validatePerson($newPerson);

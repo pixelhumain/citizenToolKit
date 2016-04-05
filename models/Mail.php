@@ -38,7 +38,7 @@ class Mail
             "to" => Yii::app()->params['adminEmail'],
             "tplParams" => array(   "person"   => $person ,
                                     "title" => Yii::app()->name ,
-                                    "logo"  => "/images/logo.png")
+                                    "logo"  => "/images/logoLTxt.jpg")
         );
         Mail::schedule($params);
     }
@@ -107,7 +107,7 @@ class Mail
             "to" => $person["email"],
             "tplParams" => array( "user"  => $person["_id"] ,
                                   "title" => Yii::app()->name ,
-                                  "logo"  => "/images/logo.png" ) );
+                                  "logo"  => "/images/logoLTxt.jpg" ) );
         Mail::schedule($params);
     }
 

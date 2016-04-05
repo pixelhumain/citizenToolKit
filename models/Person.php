@@ -479,8 +479,10 @@ class Person {
 
 	  	//if valid invite code , user is automatically geta tester
 	  	//inviteCodes are server configs 
-	  	if( @Yii::app()->params['betaTest'] && $inviteCode && in_array( $inviteCode , Yii::app()->params['validInviteCodes'] ))
+	  	if( @Yii::app()->params['betaTest'] && $inviteCode && in_array( $inviteCode , Yii::app()->params['validInviteCodes'] )) {
 	  		$person["roles"]['betaTester'] = true;
+	  		$person["inviteCode"] = $inviteCode;
+	  	}
 
 	  	$person["created"] = new mongoDate(time());
 	  	$person["preferences"] = array("seeExplanations"=> true);
