@@ -129,8 +129,11 @@ class Person {
 											"addressLocality" => "",
 											"streetAddress" => "",
 											"addressCountry" => "");
+        
+			
         }
         
+        $person = self::clearAttributesByConfidentiality($person);
 	  	return $person;
 	}
 
@@ -160,7 +163,8 @@ class Person {
 
 		$simplePerson["address"] = empty($person["address"]) ? array("addressLocality" => "Unknown") : $person["address"];
 		
-		return $simplePerson;
+		$simplePerson = self::clearAttributesByConfidentiality($simplePerson);
+	  	return $simplePerson;
 
 	}
 
@@ -526,12 +530,20 @@ class Person {
 	 * @return "" or the value to be shown
 	 */
 	public static function showField($fieldName,$person, $isLinked) {
+	  	
 	  	$res = null;
 
+	  	$attConfName = $fieldName;
+	  	if($fieldName == "address.streetAddress") 	$attConfName = "locality";
+	  	if($fieldName == "telephone") 				$attConfName =  "phone";
+
 	  	if( Yii::app()->session['userId'] == (string)$person["_id"]
-	  		||  ( isset($person["preferences"]) && isset($person["preferences"]["publicFields"]) && in_array( $fieldName, $person["preferences"]["publicFields"]) )  
-	  		|| ( $isLinked && isset($person["preferences"]) && isset($person["preferences"]["privateFields"]) && in_array( $fieldName, $person["preferences"]["privateFields"]))  )
-	  		$res = ArrayHelper::getValueByDotPath($person,$fieldName); 
+	  		||  ( isset($person["preferences"]) && isset($person["preferences"]["publicFields"]) && in_array( $attConfName, $person["preferences"]["publicFields"]) )  
+	  		|| ( $isLinked && isset($person["preferences"]) && isset($person["preferences"]["privateFields"]) && in_array( $attConfName, $person["preferences"]["privateFields"]))  )
+	  	{
+	  		$res = ArrayHelper::getValueByDotPath($person,$fieldName);
+	  	
+	  	}
 	  	
 	  	return $res;
 	}
@@ -1362,6 +1374,37 @@ class Person {
 		}
 
 		return $name;
+	}
+
+	public static function clearAttributesByConfidentiality($entity){
+
+		//si l'entité n'est pas valable on ne fait rien
+		if(!isset($entity) || $entity == NULL) return $entity;
+
+		//recupere l'id de l'entité (2 cas possibles)
+		$id = isset($entity['$id']) ? $entity['$id'] : "";
+		//if($id == "") $id = isset($entity['_id'])&&isset($entity['_id']['$id']) ? $entity['_id']['$id'] : "";
+		if($id == "") $id = isset($entity['_id']) ? $entity['_id'] : "";
+		if($id == "") $id = isset($entity['id']) ? $entity['id'] : "";
+		if($id == "") return $entity;
+		
+		$isLinked = Link::isLinked((string)$id,Person::COLLECTION, Yii::app()->session['userId']);
+		$attNameConfidentiality = array("email", "locality", "phone");
+
+		foreach ($attNameConfidentiality as $key => $fieldName) {
+			if( Yii::app()->session['userId'] == (string)$id 
+		  		||  ( isset($entity["preferences"]) && isset($entity["preferences"]["publicFields"]) && in_array( $fieldName, $entity["preferences"]["publicFields"]) )  
+		  		|| ( $isLinked && isset($entity["preferences"]) && isset($entity["preferences"]["privateFields"]) && in_array( $fieldName, $person["preferences"]["privateFields"]))  )
+			{}
+			else{
+				if($fieldName == "locality")  { $entity["address"]["streetAddress"] = ""; }
+				else if($fieldName == "phone"){ $entity["telephone"] = ""; }
+				else{
+					$entity[$fieldName] = "";
+				}
+			}
+	  	}	
+		return $entity;
 	}
 
 }
