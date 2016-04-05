@@ -206,6 +206,7 @@ class GlobalAutoCompleteAction extends CAction
 	  		$nbMaxCities = 20;
 	  		$nbCities = 0;
 	  		foreach($allCities as $data){
+		  		$countPostalCodeByInsee = count($data["postalCodes"]);
 		  		foreach ($data["postalCodes"] as $val){
 			  		if($nbCities < $nbMaxCities){
 			  		$newCity = array();
@@ -222,7 +223,10 @@ class GlobalAutoCompleteAction extends CAction
 			  						"alternateName" => ucwords(strtolower($val["name"])),
 			  						"type"=>"city",
 			  						"typeSig" => "city");
-			  						//$key=new MongoId();
+			  		if($countPostalCodeByInsee > 1){
+			  			$newCity["countCpByInsee"] = $countPostalCodeByInsee;
+			  			$newCity["cityInsee"] = ucwords(strtolower($data["alternateName"]));
+			  		}
 			  		$allCitiesRes[]=$newCity;
 			  		} $nbCities++;
 		  		}
