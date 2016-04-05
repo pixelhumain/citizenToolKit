@@ -504,7 +504,7 @@ class Person {
 	 * @return person
 	 */
 	public static function getPublicData($id) {
-		//Public datas 
+		//Public datas
 		$publicData = array (
 			"imagePath",
 			"name",
