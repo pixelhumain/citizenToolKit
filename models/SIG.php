@@ -99,11 +99,17 @@ class SIG
 	}
 
 	//return geographical position of inseeCode
-	public static function getGeoPositionByInseeCode($inseeCode){
+	public static function getGeoPositionByInseeCode($inseeCode, $postalCode = null, $cityName = null){
 		$city = self::getCityByCodeInsee($inseeCode);
-		$geopos = array( 	"@type" => "GeoCoordinates",
-							"latitude" => $city["geo"]["latitude"],
-							"longitude" => $city["geo"]["longitude"]);
+		foreach ($city["postalCodes"] as $data){
+			if($data["postalCode"] == $postalCode){
+				if ($cityName == null || $data["name"] == $cityName){
+				$geopos = array( 	"@type" => "GeoCoordinates",
+									"latitude" => $data["geo"]["latitude"],
+									"longitude" => $data["geo"]["longitude"]);
+				}
+			}
+		}						
 		return $geopos;
 	}
 
@@ -207,7 +213,7 @@ class SIG
 	 * @param String $codeInsee the code insee of the city
 	 * @return Array With all the field as the cities collection
 	 */
-	public static function getLatLngByInsee($codeInsee) {
+	public static function getLatLngByInsee($codeInsee,$postalCode=null) {
 		if (empty($codeInsee)) {
 			throw new InvalidArgumentException("The Insee Code is mandatory");
 		}
@@ -216,13 +222,26 @@ class SIG
 		if (empty($city)) {
 			throw new CTKException("Impossible to find the city with the insee code : ".$codeInsee);
 		} else {
-			$position = isset($city["geo"]) ? array("geo" => $city["geo"]) : "";
-			if($position == ""){
-				$position = isset($city["geoPosition"]) ? array("geoPosition" => $city["geoPosition"]) : "";	
+			if(@$postalCode && $postalCode != null){
+				foreach ($city["postalCodes"] as $data){
+					if ($data["postalCode"]==$postalCode){
+						$position = isset($data["geo"]) ? array("geo" => $data["geo"]) : "";
+						if($position == ""){
+							$position = isset($data["geoPosition"]) ? array("geoPosition" => $data["geoPosition"]) : "";	
+						}
+						if(isset($data["name"]))	{ $position["name"] 	= $data["name"]; }
+						break;
+					}
+				}
 			}
-
+			else{
+				$position = isset($city["geo"]) ? array("geo" => $city["geo"]) : "";
+				if($position == ""){
+					$position = isset($city["geoPosition"]) ? array("geoPosition" => $city["geoPosition"]) : "";	
+				}
+				if(isset($city["name"]))	{ $position["name"] 	= $city["name"]; }
+			}
 			if(isset($city["geoShape"])){ $position["geoShape"] = $city["geoShape"]; }
-			if(isset($city["name"]))	{ $position["name"] 	= $city["name"]; }
 			//var_dump($position); die();
 			
 			return $position;
@@ -258,19 +277,42 @@ class SIG
 		if (empty($postalCode)) {
 			throw new InvalidArgumentException("The postal Code is mandatory");
 		}
-
-		$city = PHDB::findAndSort(City::COLLECTION, array("cp" => $postalCode), array("name" => -1));
-		return $city;
+		$city = PHDB::findAndSort(City::COLLECTION, array("postalCodes.postalCode" => array('$in' => array($postalCode))), array("name" => -1));
+		$cities = array();
+		foreach($city as $value){
+			foreach($value["postalCodes"] as $data){
+				if($data["postalCode"] == $postalCode){
+					$newCity["insee"] = $value["insee"];
+					$newCity["name"] = $data["name"];
+					$newCity["postalCode"] = $data["postalCode"];
+					$newCity["geo"] = $data["geo"];
+					$newCity["geoPosition"] = $data["geoPosition"];
+					$cities[]=$newCity;	
+				}
+		
+			}		
+		}
+		return $cities;
+		
 	}
 
-	public static function getAdressSchemaLikeByCodeInsee($codeInsee) {
+	public static function getAdressSchemaLikeByCodeInsee($codeInsee, $postalCode = null, $cityName = null) {
 		$city = self::getCityByCodeInsee($codeInsee);
-
-		$address = array("@type"=>"PostalAddress", 
-						"postalCode"=> isset($city['cp']) ? $city['cp'] : "", 
-						"addressLocality" => isset($city["alternateName"]) ? $city['alternateName'] : "", 
-						"codeInsee" => $codeInsee,
-						"addressCountry" => isset($city['country']) ? $city['country'] : "" );
+		$address=array();
+		$address["@type"] = "PostalAddress";
+		$address["codeInsee"] = isset($city['insee']) ? $city['insee'] : "" ;
+		$address["addressCountry"] = isset($city['country']) ? $city['country'] : "";
+		if($postalCode != null){
+			foreach ($city["postalCodes"] as $data){
+				if ($data["postalCode"]==$postalCode){
+					if ($cityName == null || $data["name"] == $cityName){
+					$address["postalCode"] = $data["postalCode"];
+					$address["addressLocality"] = $data["name"]; 
+					}
+					
+				}
+			}
+		}
 		return $address;
 	}
 

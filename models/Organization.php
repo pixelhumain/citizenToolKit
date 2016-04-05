@@ -146,6 +146,7 @@ class Organization {
 		if (isset($organization['streetAddress'])) $newOrganization["streetAddress"] = rtrim($organization['streetAddress']);
 		if (isset($organization['postalCode'])) $newOrganization["postalCode"] = $organization['postalCode'];
 		if (isset($organization['city'])) $newOrganization["city"] = $organization['city'];
+		if (isset($organization['cityName'])) $newOrganization["cityName"] = $organization['cityName'];
 		if (isset($organization['organizationCountry'])) $newOrganization["addressCountry"] = $organization['organizationCountry'];
 
 		if (isset($organization['description'])) $newOrganization["description"] = rtrim($organization['description']);
@@ -248,13 +249,15 @@ class Organization {
 		if(!empty($organization['postalCode'])) {
 			if (!empty($organization['city'])) {
 				$insee = $organization['city'];
-				$address = SIG::getAdressSchemaLikeByCodeInsee($insee);
+				$postalCode=$organization['postalCode'];
+				$cityName= $organization['cityName'];
+				$address = SIG::getAdressSchemaLikeByCodeInsee($insee,$postalCode,$cityName);
 				$address["streetAddress"] = @$organization["streetAddress"];
 				$address["addressCountry"] = @$organization["addressCountry"];
 				$newOrganization["address"] = $address;
 
 				if(empty($organization["geo"]))
-					$newOrganization["geo"] = SIG::getGeoPositionByInseeCode($insee);
+					$newOrganization["geo"] = SIG::getGeoPositionByInseeCode($insee,$postalCode,$cityName);
 				else
 					$newOrganization["geo"] = $organization["geo"];
 			}
@@ -706,10 +709,14 @@ class Organization {
 		//address
 			if(!empty($organizationFieldValue["postalCode"]) && !empty($organizationFieldValue["codeInsee"])) {
 				$insee = $organizationFieldValue["codeInsee"];
-				$address = SIG::getAdressSchemaLikeByCodeInsee($insee);
+				$postalCode = $organizationFieldValue["postalCode"];
+				$cityName = $organizationFieldValue["addressLocality"];
+				$address = SIG::getAdressSchemaLikeByCodeInsee($insee, $postalCode,$cityName);
 				$set = array("address" => $address);
+				if (!empty($organizationFieldValue["streetAddress"]))
+					$set["address"]["streetAddress"] = $organizationFieldValue["streetAddress"];
 				if(empty($organizationFieldValue["geo"]))
-					$set["geo"] = SIG::getGeoPositionByInseeCode($insee);
+					$set["geo"] = SIG::getGeoPositionByInseeCode($insee, $postalCode,$cityName);
 			} else {
 				throw new CTKException("Error updating the Organization : address is not well formated !");			
 			}
