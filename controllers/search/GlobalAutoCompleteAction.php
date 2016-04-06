@@ -210,12 +210,13 @@ class GlobalAutoCompleteAction extends CAction
 		  		foreach ($data["postalCodes"] as $val){
 			  		if($nbCities < $nbMaxCities){
 			  		$newCity = array();
+			  		//$regionName = 
 			  		$newCity = array(
 			  						"_id"=>$data["_id"],
 			  						"insee" => $data["insee"], 
-			  						"regionName" => $data["regionName"], 
+			  						"regionName" => isset($data["regionName"]) ? $data["regionName"] : "", 
 			  						"country" => $data["country"],
-			  						"geoShape" => $data["geoShape"],
+			  						"geoShape" => isset($data["geoShape"]) ? $data["geoShape"] : "",
 			  						"cp" => $val["postalCode"],
 			  						"geo" => $val["geo"],
 			  						"geoPosition" => $val["geoPosition"],

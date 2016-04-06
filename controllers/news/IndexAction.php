@@ -83,10 +83,14 @@ class IndexAction extends CAction
         }
         else if( $type == Event::COLLECTION ) {
             $event = Event::getById($id);
-            $onclick = "showAjaxPanel( '/organization/detail/id/".$id."', 'EVENT DETAIL : ".$event["name"]."','calendar' )";
+            $onclick = "showAjaxPanel( '/event/detail/id/".$id."', 'EVENT DETAIL : ".$event["name"]."','calendar' )";
 	        $entry = array('tooltip' => "Back to Event Details",
                             "iconClass"=>"fa fa-calendar",
                             "href"=>"<a  class='tooltips  btn btn-default' href='#' onclick=\"".$onclick."\"");
+            if((@Yii::app()->session["userId"] && @$event["links"]["attendees"][Yii::app()->session["userId"]] && !@$event["links"]["attendees"][Yii::app()->session["userId"]][Link::TO_BE_VALIDATED]) ||
+            	(@Yii::app()->session["userId"] && @$event["links"]["organizer"][Yii::app()->session["userId"]] && !@$event["links"]["organizer"][Yii::app()->session["userId"]][Link::TO_BE_VALIDATED]))
+            	$params["canPostNews"] = true;
+            
             $params["event"] = $event; 
         }
         else if ($type=="city"){
@@ -154,7 +158,7 @@ class IndexAction extends CAction
 				        );
 				      // print_r($where);
 			}
-			else if($type == "organizations" || $type == "projects"){
+			else if($type == "organizations" || $type == "projects" || $type == "events"){
 				$where = array('$and' => array(
 						array("text" => array('$exists'=>1)),
 						array("type"=> $type),
@@ -180,7 +184,7 @@ class IndexAction extends CAction
 			else if($type == "city"){
 				//array('$in' => array($id))
 				$where = array('$and' => array(
-						array("scope.cities.codeInsee" => $id ),
+						array("scope.cities.codeInsee" => $id, "scope.type" => "public" ),
 						array("type" => array('$ne' => "pixels")),
 						array('created' => array(
 								'$lt' => $date

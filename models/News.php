@@ -107,7 +107,7 @@ class News {
 					if( isset( $event['geo'] ) )
 						$from = $event['geo'];
 
-					Notification::actionOnPerson ( ActStr::VERB_POST, ActStr::ICON_COMMENT, null , $event )  ;
+					//Notification::actionOnEvent ( ActStr::VERB_POST, ActStr::ICON_COMMENT, null , $event )  ;
 				}
 				else if($type == Project::COLLECTION ){
 					$project = Project::getById($_POST["typeId"]);
@@ -127,6 +127,7 @@ class News {
 				}
 			 	else {
 			 		$news["scope"]["type"]=$_POST["scope"];
+			 		if($_POST["scope"] == "public")
 			 		$news["scope"]["cities"][] = array("codeInsee"=>$user["address"]["codeInsee"],
 		 											"postalCode"=>$user["address"]["postalCode"],
 		 											"geo" => $from
