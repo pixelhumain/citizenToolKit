@@ -157,7 +157,7 @@ class SIG
 						  	 		)
 					   		);
 				
-			if($cp != null){ $request = array_merge(array("cp"  => $cp), $request); }
+			if($cp != null){ $request = array_merge(array("postalCodes.postalCode" => array('$in' => array($cp))), $request); }
 
 			$oneCity =	PHDB::findAndSort(City::COLLECTION, $request, array());
 			//var_dump($oneCity);
@@ -321,6 +321,50 @@ class SIG
     					$att.'.latitude' => array('$gt' => floatval($params['latMinScope']), '$lt' => floatval($params['latMaxScope'])),
 						$att.'.longitude' => array('$gt' => floatval($params['lngMinScope']), '$lt' => floatval($params['lngMaxScope']))
 					  );
+	}
+
+
+
+	public static function getCityByLatLngGeoShape($lat, $lng, $cp){
+
+		$request = array("geoShape"  => 
+		 				  array('$geoIntersects'  => 
+		 				  	array('$geometry' => 
+		 				  		array("type" 	    => "Point", 
+	 				  			  	"coordinates" => array(floatval($lng), floatval($lat)))
+		 				  		)));
+		if($cp != null){ $request = array_merge(array("postalCodes.postalCode" => array('$in' => array($cp))), $request); }
+		
+		$oneCity =	PHDB::findOne(City::COLLECTION, $request);
+
+		/*$oneCity = null;
+		//City::updateGeoPositions();
+		//error_log($lng." - ".$lat);
+		if($oneCity == null){
+			$request = array("geoPosition" => array( '$exists' => true ),
+							 "geoPosition.coordinates"  => 
+							  array('$near'  => 
+								  	array(	'$geometry' => 
+								  			array("type" 	    => "Point", 
+								  			   	  "coordinates" => array( floatval($lng), 
+								  			  						   	  floatval($lat) )
+											  			 		),
+							  		 		'$maxDistance' => 50000,
+							  		 		'$minDistance' => 10
+							  			 ),
+						  	 		)
+					   		);
+				
+			if($cp != null){ $request = array_merge(array("postalCodes.postalCode" => array('$in' => array($cp))), $request); }
+
+			$oneCity =	PHDB::findAndSort(City::COLLECTION, $request, array());
+			//var_dump($oneCity);
+		}
+*/
+		// var_dump($request);	
+		// var_dump($oneCity);	
+		//var_dump($oneCity);
+		return $oneCity;
 	}
 
 }

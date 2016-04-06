@@ -40,7 +40,7 @@ class DetailAction extends CAction
 	  		$params = array();
 	  		// Get people or orga who contribute to the project 
 	  		// Get image for each contributors														
-	  		if(isset($project["links"])){
+	  		if(isset($project["links"]) && isset($project["links"]["contributors"])){
 	  			foreach ($project["links"]["contributors"] as $uid => $e) {
 	  				if($e["type"]== Organization::COLLECTION){
 	  					$organization = Organization::getSimpleOrganizationById($uid);
@@ -58,8 +58,14 @@ class DetailAction extends CAction
 	  						array_push($people, $citoyen);
 	  						$citoyen["type"]=Person::COLLECTION;
 							if(@$e["isAdmin"]){
+								if(@$e["isAdminPending"])
+									$citoyen["isAdminPending"]=true;
 		  						$citoyen["isAdmin"]=true;  				
 	  						}
+	  						if(@$e["toBeValidated"]){
+	  							$citoyen["toBeValidated"]=true;  
+							}	
+
 	  						array_push($contributors, $citoyen);
 	  					}
 	  				}
