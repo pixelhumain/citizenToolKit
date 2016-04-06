@@ -133,12 +133,24 @@ class IndexAction extends CAction
 							$followActivity=array("type"=>"activityStream","target.id" => $key,"target.objectType"=>$data["type"]);
 							//$followActivity["target"]["id"]=$key;
 							//$followActivity["target"]["objectType"]=$data["type"];
-						}if($data["type"]==Organization::COLLECTION){
+						}if($data["type"]==Organization::COLLECTION){ 
 							$followActivity["target"]["id"]=$key;
 							$followActivity=array("type"=>"activityStream","target.id" => $key,"target.objectType"=>$data["type"]);
 							//$followActivity["target"]["objectType"]=$data["type"];
 							//$followNews["type"] = "organizations";
-						}
+						}		
+				        else if( $type == Event::COLLECTION ) {
+				            $event = Event::getById($id);
+				            $onclick = "showAjaxPanel( '/event/detail/id/".$id."', 'EVENT DETAIL : ".$event["name"]."','calendar' )";
+					        $entry = array('tooltip' => "Back to Event Details",
+				                            "iconClass"=>"fa fa-calendar",
+				                            "href"=>"<a  class='tooltips  btn btn-default' href='#' onclick=\"".$onclick."\"");
+				            if((@Yii::app()->session["userId"] && @$event["links"]["attendees"][Yii::app()->session["userId"]] && !@$event["links"]["attendees"][Yii::app()->session["userId"]][Link::TO_BE_VALIDATED]) ||
+				            	(@Yii::app()->session["userId"] && @$event["links"]["organizer"][Yii::app()->session["userId"]] && !@$event["links"]["organizer"][Yii::app()->session["userId"]][Link::TO_BE_VALIDATED]))
+				            	$params["canPostNews"] = true;
+				            
+				            $params["event"] = $event; 
+				        }
 						array_push($authorFollowedAndMe,$followNews);
 						array_push($authorFollowedAndMe,$followActivity);
 					}
