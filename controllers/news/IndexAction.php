@@ -1,7 +1,7 @@
 <?php
 class IndexAction extends CAction
 {
-    public function run($type=null, $id= null, $date = null, $streamType="news")
+    public function run($type=null, $id= null, $date = null, $viewer=null,$streamType="news")
     {
         $controller=$this->getController();
         $controller->title = "Timeline";
@@ -102,79 +102,94 @@ class IndexAction extends CAction
 		}
 		if ($streamType == "news"){
 			if($type == "citoyens") {
-				$authorFollowedAndMe=[];
-				array_push($authorFollowedAndMe,array("author"=>$id));
-				if(@$person["links"]["knows"] && !empty($person["links"]["knows"])){
-					foreach ($person["links"]["knows"] as $key => $data){
-						array_push($authorFollowedAndMe,array("id"=>$key, "type" => "citoyens"));
-					}
+				if (@$viewer && $viewer != null){
+					$where = array('$and' => array(
+						array("author"=> $id),
+						array("target"=> array('$exists' => false)),
+						array('created' => array(
+								'$lt' => $date
+							)
+						),
+						)	
+					);
 				}
-				if(@$person["links"]["memberOf"] && !empty($person["links"]["memberOf"])){
-					foreach ($person["links"]["memberOf"] as $key => $data){
-						array_push($authorFollowedAndMe,array("id"=>$key, "type" => "organizations"));
+				else{
+					$authorFollowedAndMe=[];
+					array_push($authorFollowedAndMe,array("author"=>$id));
+					/*if(@$person["links"]["knows"] && !empty($person["links"]["knows"])){
+						foreach ($person["links"]["knows"] as $key => $data){
+							array_push($authorFollowedAndMe,array("id"=>$key, "type" => "citoyens"));
+						}
+					}*/
+					if(@$person["links"]["memberOf"] && !empty($person["links"]["memberOf"])){
+						foreach ($person["links"]["memberOf"] as $key => $data){
+							array_push($authorFollowedAndMe,array("id"=>$key, "type" => "organizations"));
+						}
 					}
-				}
-				if(@$person["links"]["projects"] && !empty($person["links"]["projects"])){
-					foreach ($person["links"]["projects"] as $key => $data){
-						array_push($authorFollowedAndMe,array("id"=>$key, "type" => "projects"));
+					if(@$person["links"]["projects"] && !empty($person["links"]["projects"])){
+						foreach ($person["links"]["projects"] as $key => $data){
+							array_push($authorFollowedAndMe,array("id"=>$key, "type" => "projects"));
+						}
 					}
-				}
-				if(@$person["links"]["follows"] && !empty($person["links"]["follows"])){
-					foreach ($person["links"]["follows"] as $key => $data){
-						$followNews=array("id"=>$key, "scope.type" => "public", "type" => "");
-						$followActivity=array("type" => "activityStream");
-						if($data["type"]==Project::COLLECTION){
-							$followNews["type"] = $data["type"];
-							$followActivity=array("type"=>"activityStream","target.id" => $key,"target.objectType"=>$data["type"]);
-							//$followActivity["target"]["id"]=$key;
-							//$followActivity=array("type");["target"]["objectType"]=$data["type"];
-						}if($data["type"]==Person::COLLECTION){
-							$followNews["type"] = "citoyens";
-							$followActivity=array("type"=>"activityStream","target.id" => $key,"target.objectType"=>$data["type"]);
-							//$followActivity["target"]["id"]=$key;
-							//$followActivity["target"]["objectType"]=$data["type"];
-						}if($data["type"]==Organization::COLLECTION){ 
-							$followActivity["target"]["id"]=$key;
-							$followActivity=array("type"=>"activityStream","target.id" => $key,"target.objectType"=>$data["type"]);
-							//$followActivity["target"]["objectType"]=$data["type"];
-							//$followNews["type"] = "organizations";
-						}		
-				        else if( $type == Event::COLLECTION ) {
-				            $event = Event::getById($id);
-				            $onclick = "showAjaxPanel( '/event/detail/id/".$id."', 'EVENT DETAIL : ".$event["name"]."','calendar' )";
-					        $entry = array('tooltip' => "Back to Event Details",
-				                            "iconClass"=>"fa fa-calendar",
-				                            "href"=>"<a  class='tooltips  btn btn-default' href='#' onclick=\"".$onclick."\"");
-				            if((@Yii::app()->session["userId"] && @$event["links"]["attendees"][Yii::app()->session["userId"]] && !@$event["links"]["attendees"][Yii::app()->session["userId"]][Link::TO_BE_VALIDATED]) ||
-				            	(@Yii::app()->session["userId"] && @$event["links"]["organizer"][Yii::app()->session["userId"]] && !@$event["links"]["organizer"][Yii::app()->session["userId"]][Link::TO_BE_VALIDATED]))
-				            	$params["canPostNews"] = true;
-				            
-				            $params["event"] = $event; 
-				        }
-						array_push($authorFollowedAndMe,$followNews);
-						array_push($authorFollowedAndMe,$followActivity);
+					if(@$person["links"]["follows"] && !empty($person["links"]["follows"])){
+						foreach ($person["links"]["follows"] as $key => $data){
+							$followNews=array("id"=>$key, "scope.type" => "public", "type" => "");
+							$followActivity=array("type" => "activityStream");
+							if($data["type"]==Project::COLLECTION){
+								$followNews["type"] = $data["type"];
+								$followActivity=array("type"=>"activityStream","target.id" => $key,"target.objectType"=>$data["type"]);
+								//$followActivity["target"]["id"]=$key;
+								//$followActivity=array("type");["target"]["objectType"]=$data["type"];
+							}if($data["type"]==Person::COLLECTION){
+								$followNews["type"] = "citoyens";
+								$followActivity=array("type"=>"activityStream","target.id" => $key,"target.objectType"=>$data["type"]);
+								//$followActivity["target"]["id"]=$key;
+								//$followActivity["target"]["objectType"]=$data["type"];
+							}if($data["type"]==Organization::COLLECTION){ 
+								$followActivity["target"]["id"]=$key;
+								$followActivity=array("type"=>"activityStream","target.id" => $key,"target.objectType"=>$data["type"]);
+								//$followActivity["target"]["objectType"]=$data["type"];
+								//$followNews["type"] = "organizations";
+							}		
+					        else if( $type == Event::COLLECTION ) {
+					            $event = Event::getById($id);
+					            $onclick = "showAjaxPanel( '/event/detail/id/".$id."', 'EVENT DETAIL : ".$event["name"]."','calendar' )";
+						        $entry = array('tooltip' => "Back to Event Details",
+					                            "iconClass"=>"fa fa-calendar",
+					                            "href"=>"<a  class='tooltips  btn btn-default' href='#' onclick=\"".$onclick."\"");
+					            if((@Yii::app()->session["userId"] && @$event["links"]["attendees"][Yii::app()->session["userId"]] && !@$event["links"]["attendees"][Yii::app()->session["userId"]][Link::TO_BE_VALIDATED]) ||
+					            	(@Yii::app()->session["userId"] && @$event["links"]["organizer"][Yii::app()->session["userId"]] && !@$event["links"]["organizer"][Yii::app()->session["userId"]][Link::TO_BE_VALIDATED]))
+					            	$params["canPostNews"] = true;
+					            
+					            $params["event"] = $event; 
+					        }
+							array_push($authorFollowedAndMe,$followNews);
+							array_push($authorFollowedAndMe,$followActivity);
+						}
 					}
+					if(@$person["address"]["codeInsee"])
+						array_push($authorFollowedAndMe, array("scope.cities." => $person["address"]["codeInsee"],"type" => "activityStream"));
+			        $where = array('$and' => array(
+									array('$or'=> 
+											$authorFollowedAndMe
+									),
+									array("type" => array('$ne' => "pixels")),
+									array('created' => array(
+											'$lt' => $date
+										)
+									),
+					        	)	
+					        );
+					      // print_r($where);
 				}
-				if(@$person["address"]["codeInsee"])
-					array_push($authorFollowedAndMe, array("scope.cities." => $person["address"]["codeInsee"],"type" => "activityStream"));
-		        $where = array('$and' => array(
-								array('$or'=> 
-										$authorFollowedAndMe
-								),
-								array("type" => array('$ne' => "pixels")),
-								array('created' => array(
-										'$lt' => $date
-									)
-								),
-				        	)	
-				        );
-				      // print_r($where);
 			}
 			else if($type == "organizations" || $type == "projects" || $type == "events"){
 				$where = array('$and' => array(
-						array("text" => array('$exists'=>1)),
-						array("type"=> $type),
-						array("id"=> $id),
+						//array("text" => array('$exists'=>1)),
+						array('$or'=>array(
+							array("type"=> $type,"id"=> $id),
+							array("target.objectType"=> $type,"target.id"=> $id)
+						)),
 						array('created' => array(
 								'$lt' => $date
 							)
@@ -341,6 +356,9 @@ $newsObject=NewsTranslator::convertToNews($data,NewsTranslator::NEWS_JOIN_ORGANI
 		$params["contextParentId"] = $id;
 		$params["userCP"] = Yii::app()->session['userCP'];
 		$params["limitDate"] = end($news);
+		if(@$viewer && $viewer != null){
+			$params["viewer"]=$viewer;
+		}
 								//print_r($params["news"]);
 								
 		if(Yii::app()->request->isAjaxRequest){
