@@ -88,7 +88,7 @@ class Event {
 		$simpleEvent = array();
 		$event = PHDB::findOneById( self::COLLECTION ,$id, array("id" => 1, "name" => 1, "type" => 1,  "shortDescription" => 1, "description" => 1,
 																 "address" => 1, "geo" => 1, "tags" => 1) );
-
+		if(!empty($event)){
 		$simpleEvent["id"] = $id;
 		$simpleEvent["name"] = @$event["name"];
 		$simpleEvent["type"] = @$event["type"];
@@ -100,8 +100,8 @@ class Event {
 		$simpleEvent = array_merge($simpleEvent, Document::retrieveAllImagesUrl($id, self::COLLECTION));
 		
 		$simpleEvent["address"] = empty($event["address"]) ? array("addressLocality" => "Unknown") : $event["address"];
-		
-		return $simpleEvent;
+		}
+		return @$simpleEvent;
 	}
 
 	public static function getWhere($params) 

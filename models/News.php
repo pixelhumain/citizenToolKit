@@ -54,8 +54,12 @@ class News {
 			  		$res[$key]["postOn"]=Project::getSimpleProjectById($news["id"]);
 		  		if ($news["type"]==Organization::COLLECTION)
 			  		$res[$key]["postOn"]=Organization::getSimpleOrganizationById($news["id"]);
-			  	if ($news["type"]==Event::COLLECTION)
-			  		$res[$key]["postOn"]=Event::getSimpleEventById($news["id"]);
+			  	if ($news["type"]==Event::COLLECTION){
+				  	$event=Event::getSimpleEventById($news["id"]);
+					  	if(!empty($event)){
+				  		$res[$key]["postOn"]=$event;
+				  		}
+			  		}
 			  		
 	  		}
 	  		$res[$key]["author"] = Person::getSimpleUserById($news["author"]);
