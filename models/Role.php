@@ -9,7 +9,8 @@ class Role {
 	const DEVELOPER = "developer";
 	const SUPERADMIN = "superAdmin";
 	const SOURCEADMIN = "sourceAdmin";
-	
+	const CANIMPORT = "canImportData";
+
 	/**
 	 * Default Roles for a new person : 
 	 *  - tobeactivated : true
@@ -101,6 +102,14 @@ class Role {
 
 	public static function isSuperAdmin($roles) {
 		if (@$roles[self::SUPERADMIN]) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	public static function isCanImport($roles) {
+		if (@$roles[self::CANIMPORT]) {
 			return true;
 		} else {
 			return false;
