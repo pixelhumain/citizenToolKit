@@ -65,8 +65,10 @@ class IndexAction extends CAction
 		$params["type"] = $type; 
         if( $type == Project::COLLECTION ) {
             $project = Project::getById($id);
-            if(@Yii::app()->session["userId"] && @$project["links"]["contributors"][Yii::app()->session["userId"]] && !@$project["links"]["contributors"][Yii::app()->session["userId"]][TO_BE_VALIDATED])
+            if(@Yii::app()->session["userId"])
             	$params["canPostNews"] = true;
+            if (@Yii::app()->session["userId"] && @$project["links"]["contributors"][Yii::app()->session["userId"]] && !@$project["links"]["contributors"][Yii::app()->session["userId"]][TO_BE_VALIDATED])
+            	$params["canManageNews"] = true;
             $params["project"] = $project; 
         } 
         else if( $type == Person::COLLECTION ) {
@@ -77,8 +79,10 @@ class IndexAction extends CAction
         } 
         else if( $type == Organization::COLLECTION) {
             $organization = Organization::getById($id);
-            if(@Yii::app()->session["userId"] && @$organization["links"]["members"][Yii::app()->session["userId"]] && !@$organization["links"]["members"][Yii::app()->session["userId"]][Link::TO_BE_VALIDATED])
+            if(@Yii::app()->session["userId"])
             	$params["canPostNews"] = true;
+            if (@Yii::app()->session["userId"] && @$organization["links"]["members"][Yii::app()->session["userId"]] && !@$organization["links"]["members"][Yii::app()->session["userId"]][Link::TO_BE_VALIDATED])
+            	$params["canManageNews"] = true;
             $params["organization"] = $organization; 
         }
         else if( $type == Event::COLLECTION ) {
