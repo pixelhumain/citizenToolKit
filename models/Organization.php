@@ -960,7 +960,7 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 	    }*/
 
 
-		$newOrganization['created'] = time() ;
+		$newEvent['created'] = new MongoDate(time()) ;
 		
 		if(!empty($organization['email'])) {
 			if (! preg_match('#^[\w.-]+@[\w.-]+\.[a-zA-Z]{2,6}$#',$organization['email'])) { 
