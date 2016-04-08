@@ -108,7 +108,6 @@ class News {
 					$event = Event::getById($_POST["typeId"]);
 					if( isset( $event['geo'] ) )
 						$from = $event['geo'];
-
 					//Notification::actionOnEvent ( ActStr::VERB_POST, ActStr::ICON_COMMENT, null , $event )  ;
 				}
 				else if($type == Project::COLLECTION ){
