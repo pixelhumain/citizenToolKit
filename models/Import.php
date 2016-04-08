@@ -177,7 +177,7 @@ class Import
             $params = array("_id"=>new MongoId($post['idMicroformat']));
             $fields = array("mappingFields");
             $fieldsCollection = Import::getMicroFormats($params, $fields);
-            $arrayPathMapping2 = array();
+            $arrayMicroformat = array();
             foreach ($fieldsCollection as $key => $value) 
             {
                 $pathMapping = ArrayHelper::getAllBranchsJSON($value['mappingFields'], "", "");
@@ -186,14 +186,14 @@ class Import
                 {
                     
                     if(!empty($valuePathMapping))
-                        $arrayPathMapping2[] =  $valuePathMapping;
+                        $arrayMicroformat[] =  $valuePathMapping;
                 }
             }
             
             $params = array("createLink"=>true,
                             "arbre"=>$listBrancheJson,
                             "typeFile" => "json",
-                            "arrayPathMapping"=>$arrayPathMapping2);
+                            "arrayMicroformat"=>$arrayMicroformat);
                             
                             //"nameFile"=>$nameFile ,
                             
@@ -214,83 +214,22 @@ class Import
 
     public static function parsingCSV2($post) 
     {
-        //var_dump($post);
-        /*header('Content-Type: text/html; charset=UTF-8');
+        
+        $arrayMicroformat = self::getMicroformat($post['idMicroformat']);
 
-        if(isset($post['nameFile']) && isset($post['file']))
-        {*/
-            /*$path = sys_get_temp_dir().'/filesImportData/' ;
-            if(!file_exists($path))
-                mkdir($path , 0775);
-
-            $path = sys_get_temp_dir().'/filesImportData/'.$post['nameFile'].'/';
-            if(!file_exists($path))
-                mkdir($path , 0775);*/
-
-            /*$countLine = 0;
-            $countFile = 1;
-            $test = [];
-            $line = [];*/
-
-            /*foreach ($post['file'] as $key => $value) 
-            {
-
-                $arrayCSV[$key] = $value;
-                if($key == 0)
-                    $headerCSV = $value;
-                
-                if($countLine == 0 || $key == 0)
-                    $arrayCSV[0] = $headerCSV;
-                else
-                    $arrayCSV[$countLine] = $value;
-
-
-                if($countLine == 5000)
-                {
-                    $nameFile = $post['nameFile'].'_'.$countFile.'.csv' ;
-                    Import::createCSV($arrayCSV, $nameFile, $path);
-                    $countLine = 0;
-                    $countFile++;
-                    $arrayCSV = array();
-                }
-                else
-                    $countLine++;
-
-            }
-            $nameFile = $post['nameFile'].'_'.$countFile.'.csv' ;
-            Import::createCSV($arrayCSV, $nameFile, $path);
-            
-            $subFiles = scandir(sys_get_temp_dir()."/filesImportData/".$post['nameFile']);*/
-
-            $arrayMicroformat = self::getMicroformat($post['idMicroformat']);
-
-            if($post['idMapping'] != "-1"){
-                $where = array("_id" => new MongoId($post['idMapping']));
-                $fields = array("fields");
-                $mapping = self::getMappings($where, $fields);
-                $arrayMapping = $mapping[$post['idMapping']]["fields"];
-            }
-            else
-                $arrayMapping = array();
-
-            $params = array("createLink"=>true,
-                            "arrayMicroformat"=>$arrayMicroformat,
-                            "arrayMapping"=>$arrayMapping,
-                            "typeFile"=>$post['typeFile']);
-
-            /*$params = array("createLink"=>true,
-                            "typeFile" => "csv",
-                            "arrayCSV" => $post['file'],
-                            "subFiles" => $subFiles,
-                            "nameFile"=>$post['nameFile'],
-                            "arrayPathMapping"=>$arrayPathMapping2,
-                            "idCollection"=>$post['chooseCollection']);*/
-       /*}
+        if($post['idMapping'] != "-1"){
+            $where = array("_id" => new MongoId($post['idMapping']));
+            $fields = array("fields");
+            $mapping = self::getMappings($where, $fields);
+            $arrayMapping = $mapping[$post['idMapping']]["fields"];
+        }
         else
-        {
-            $params = array("createLink"=>false);  
-        }*/
+            $arrayMapping = array();
 
+        $params = array("createLink"=>true,
+                        "arrayMicroformat"=>$arrayMicroformat,
+                        "arrayMapping"=>$arrayMapping,
+                        "typeFile"=>$post['typeFile']);
         return $params ;
     }
 
@@ -498,6 +437,7 @@ class Import
         if(!empty($post['key']))
             $data["source"]['key'] = $post['key'];
 
+        $data["tags"][] = "NuitDebout";
 
         if(!empty($post["warnings"]) && $post["warnings"] == "true")
             $warnings = true ;
@@ -568,6 +508,20 @@ class Import
                 
                 $res = $newPerson ;
             }
+        }else if($keyCollection == "Events"){
+            try{
+                //
+                $newEvent = Event::newEventFromImportData($data, $post["creatorEmail"], $warnings);
+                $newEvent["creator"] = $post["creatorID"];
+
+                $res = Event::getAndCheckEventFromImportData($newEvent, null, null, $warnings) ;
+            }
+            catch (CTKException $e){
+                if(empty($newEvent))
+                    $newEvent = $data;
+                $newEvent["msgError"] = $e->getMessage();
+                $res = $newEvent ;
+            }
         }
 
         return $res ;
@@ -575,6 +529,7 @@ class Import
 
     public static function previewDataJSON($post) 
     {
+        
         $params = array("result" => false); 
         $notGeo = false ;
         if(isset($post['infoCreateData']) && isset($post['file']))
@@ -703,7 +658,7 @@ class Import
 
         if(isset($post['typeFile']))
         {
-            if($post['typeFile'] == "json" || $post['typeFile'] == "js")
+            if($post['typeFile'] == "json" || $post['typeFile'] == "js" || $post['typeFile'] == "geojson")
                 $params = Import::previewDataJSON($post);
             else if($post['typeFile'] == "csv")
                 $params = Import::previewDataCSV($post);
@@ -983,9 +938,10 @@ class Import
                         $res = Organization::insertOrganizationFromImportData($value, $post['creatorID'],true,$pathFolderImage) ;
                     else if($typeEntity == "person")
                         $res = Person::insertPersonFromImportData($value,true, null, $pathFolderImage, $moduleId) ;
-                    else if($typeEntity == "invite"){
+                    else if($typeEntity == "invite")
                         $res = Person::insertPersonFromImportData($value,true, true, $pathFolderImage, $moduleId) ;
-                    }
+                    else if($typeEntity == "event")
+                        $res = Event::insertEventFromImportData($value,true);
 
                     if($res["result"] == true){
                         $entite["name"] =  $value["name"];
@@ -1313,9 +1269,9 @@ class Import
                 
                 $newGeo["geo"]["latitude"] = $resultNominatim[0]["lat"];
                 $newGeo["geo"]["longitude"] = $resultNominatim[0]["lon"];
-        
+                
                 $city = SIG::getCityByLatLngGeoShape($newGeo["geo"]["latitude"], $newGeo["geo"]["longitude"],(empty($cp) ? null : $cp) );
-                //var_dump($city);
+                
                 if(!empty($city)){
                     //foreach ($city as $key => $value){
                         $newAddress["codeInsee"] = $city["insee"];
@@ -1344,28 +1300,51 @@ class Import
                 else
                      throw new CTKException(Yii::t("import","152", null, Yii::app()->controller->module->id));
             }
-            if(!empty($geo["latitude"]) && !empty($geo["longitude"]))   
+            if(!empty($geo["latitude"]) && !empty($geo["longitude"])){
+                $newGeo["geo"]["latitude"] = $geo["latitude"] ;
+                $newGeo["geo"]["longitude"] =  $geo["longitude"] ;
                 $resultNominatim = json_decode(self::getLocalityByLatLonNominatim($geo["latitude"], $geo["longitude"]), true);
+            }  
+                
+            
+            if(!empty($resultNominatim)){
+                if($resultNominatim["address"]["country_code"] == "fr"){
 
-
-            $city = SIG::getCityByLatLngGeoShape($newGeo["geo"]["latitude"], $newGeo["geo"]["longitude"],(empty($resultNominatim["address"]["postcode"]) ? null : $resultNominatim["address"]["postcode"]) );
-            if(!empty($city)){
-                foreach ($city as $key => $value){
-                    $newAddress["postalCode"] = $resultNominatim["address"]["postcode"];
-                    $newAddress["codeInsee"] = $value["insee"];
-                    $newAddress['addressCountry'] = $value["country"];
-                    foreach ($value["postalCodes"] as $keyCp => $valueCp){
-                        if($valueCp["postalCode"] == $cp){
-                            $newAddress['addressLocality'] = $valueCp["name"];
-                        }
+                    
+                    $arrayCP = explode(";", $resultNominatim["address"]["postcode"]);
+                    $city = SIG::getCityByLatLngGeoShape($newGeo["geo"]["latitude"], $newGeo["geo"]["longitude"],(empty($arrayCP[0]) ? null : $arrayCP[0]) );
+                    //$city = SIG::getCityByLatLngGeoShape($newGeo["geo"]["latitude"], $newGeo["geo"]["longitude"], null);
+                
+                    if(!empty($city)){
+                        //foreach ($city as $key => $value){
+                            $newAddress["codeInsee"] = $city["insee"];
+                            $newAddress['addressCountry'] = $city["country"];
+                            
+                            $newAddress['postalCode'] = $arrayCP[0];
+                            foreach ($city["postalCodes"] as $keyCp => $valueCp){
+                                if($valueCp["postalCode"] == $arrayCP[0]){
+                                    $newAddress['addressLocality'] = $valueCp["name"];
+                                }
+                            }
+                        //    break;
+                        //}
                     }
-                    break;
+                }else{
+                    throw new CTKException("N'est pas en France");
                 }
             }
+            
 
         } // Cas 4 Il y a les 2
         else if(!empty($address) && !empty($geo)){
-           
+           $newAddress["streetAddress"] = (empty($address["streetAddress"])?"":$address["streetAddress"]) ;
+           $newAddress["postalCode"] = (empty($address["postalCode"])?"":$address["postalCode"]) ;
+           $newAddress["addressLocality"] = (empty($address["addressLocality"])?"":$address["addressLocality"]) ;
+           $newAddress["addressCountry"] = (empty($address["addressCountry"])?"":$address["addressCountry"]) ;
+           $newAddress["codeInsee"] = (empty($address["codeInsee"])?"":$address["codeInsee"]) ;
+           $newGeo["geo"]["latitude"] = (empty($geo["latitude"])?"":$geo["latitude"]) ;
+           $newGeo["geo"]["longitude"] = (empty($geo["longitude"])?"":$geo["longitude"]) ;
+                                 
 
         }
 
