@@ -437,7 +437,7 @@ class Import
         if(!empty($post['key']))
             $data["source"]['key'] = $post['key'];
 
-        $data["tags"][] = "NuitDebout";
+        //$data["tags"][] = "NuitDebout";
 
         if(!empty($post["warnings"]) && $post["warnings"] == "true")
             $warnings = true ;
@@ -935,9 +935,9 @@ class Import
                     if($typeEntity == "project")
                         $res = Project::insertProjetFromImportData($value, $post['creatorID'],Person::COLLECTION,true,$pathFolderImage) ;
                     else if($typeEntity == "organization")
-                        $res = Organization::insertOrganizationFromImportData($value, $post['creatorID'],true,$pathFolderImage) ;
+                        $res = Organization::insertOrganizationFromImportData($value, $post['creatorID'],true,$pathFolderImage, $moduleId) ;
                     else if($typeEntity == "person")
-                        $res = Person::insertPersonFromImportData($value,true, null, $pathFolderImage, $moduleId) ;
+                        $res = Person::insertPersonFromImportData($value,null, true, $pathFolderImage, $moduleId) ;
                     else if($typeEntity == "invite")
                         $res = Person::insertPersonFromImportData($value,true, true, $pathFolderImage, $moduleId) ;
                     else if($typeEntity == "event")
@@ -1344,8 +1344,7 @@ class Import
            $newAddress["codeInsee"] = (empty($address["codeInsee"])?"":$address["codeInsee"]) ;
            $newGeo["geo"]["latitude"] = (empty($geo["latitude"])?"":$geo["latitude"]) ;
            $newGeo["geo"]["longitude"] = (empty($geo["longitude"])?"":$geo["longitude"]) ;
-                                 
-
+        
         }
 
         if(!empty($newGeo["geo"]["latitude"]) && !empty($newGeo["geo"]["longitude"])){

@@ -805,7 +805,7 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 
 		if(empty($organization['type'])){
 			$newOrganization["type"] = Organization::TYPE_GROUP ;
-			$newOrganization["warnings"][] = "212" ;
+			//$newOrganization["warnings"][] = "212" ;
 			
 		}else{
 			$newOrganization["type"] = $organization['type'];
@@ -917,7 +917,7 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 
 		//if(!empty($organization['address'])){
 		$address = (empty($organization['address']) ? null : $organization['address']);
-		$geo = (empty($newOrganization['geo']) ? null : $newOrganization['geo']);
+		$geo = (empty($organization['geo']) ? null : $organization['geo']);
 		$details = Import::getAndCheckAddressForEntity($address, $geo, $warnings) ;
 		$newOrganization['address'] = $details['address'];
 
@@ -930,6 +930,9 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 			$newOrganization['warnings'] = $details['warnings'];
 
 		//}
+		$newOrganization["image"] = "r8HE2Uzi.jpg";
+		/*if(!empty($organization['image']))
+			$newOrganization["image"] = "r8HE2Uzi.jpg";*/
 
 		return $newOrganization;
 	}
@@ -973,9 +976,8 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 		}
 
 		if(empty($organization['type'])) {
-			if($warnings)
-			{
-				$newOrganization["warnings"][] = "208" ;
+			if($warnings){
+				//$newOrganization["warnings"][] = "208" ;
 				$newOrganization["type"] = self::TYPE_GROUP ;
 			}	
 			else
@@ -1118,6 +1120,8 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 
 		}
 
+		if (!empty($organization['image']))
+			$newOrganization["image"] = $organization['image'];
 
 		if (!empty($organization['properties']))
 			$newOrganization["properties"] = $organization['properties'];
@@ -1143,7 +1147,7 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 	 * @param String $adminId : can be ommited. user id representing the administrator of the organization
 	 * @return array result as an array. 
 	 */
-	public static function insertOrganizationFromImportData($organization, $creatorId, $warnings = null, $pathFolderImage = null){
+	public static function insertOrganizationFromImportData($organization, $creatorId, $warnings = null, $pathFolderImage = null, $moduleId = null){
 	    
 	    $newOrganization = Organization::getAndCheckOrganizationFromImportData($organization, true, null, $warnings);
 		
@@ -1156,6 +1160,11 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 		} else {
 			$newOrganization["creator"] = $creatorId;	
 		}
+		
+		if(!empty($newOrganization["image"])){
+			$nameImage = $newOrganization["image"];
+			unset($newOrganization["image"]);
+		}
 	
 		//Insert the organization
 	    PHDB::insert( Organization::COLLECTION, $newOrganization);
@@ -1165,6 +1174,32 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 	    } else {
 	    	throw new CTKException(Yii::t("organization","Problem inserting the new organization"));
 	    }
+
+
+	    if(!empty($nameImage)){
+	    	try{
+				$res = Document::uploadDocument($moduleId, self::COLLECTION, $newOrganizationId, "avatar", false, $pathFolderImage, $nameImage);
+				if(!empty($res["result"]) && $res["result"] == true){
+					$params = array();
+					$params['id'] = $newOrganizationId;
+					$params['type'] = self::COLLECTION;
+					$params['moduleId'] = $moduleId;
+					$params['folder'] = self::COLLECTION."/".$newOrganizationId;
+					$params['name'] = $res['name'];
+					$params['author'] = Yii::app()->session["userId"] ;
+					$params['size'] = $res["size"];
+					$params["contentKey"] = "profil";
+					$res2 = Document::save($params);
+					if($res2["result"] == false)
+						throw new CTKException("Impossible de save.");
+
+				}else{
+					throw new CTKException("Impossible uploader le document.");
+				}
+			}catch (CTKException $e){
+				throw new CTKException($e);
+			}	
+		}
 
 		$newOrganization = Organization::getById($newOrganizationId);
 	    return array("result"=>true,

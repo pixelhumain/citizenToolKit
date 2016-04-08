@@ -1291,13 +1291,6 @@ class Person {
 				else
 					throw new CTKException(Yii::t("import","100", null, Yii::app()->controller->module->id));
 			}
-
-
-
-
-
-
-
 		}else{
 			if (!empty($person['msgInvite']))
 				$newPerson["msgInvite"] = $person['msgInvite'];
