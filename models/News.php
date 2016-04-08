@@ -54,8 +54,12 @@ class News {
 			  		$res[$key]["postOn"]=Project::getSimpleProjectById($news["id"]);
 		  		if ($news["type"]==Organization::COLLECTION)
 			  		$res[$key]["postOn"]=Organization::getSimpleOrganizationById($news["id"]);
-			  	if ($news["type"]==Event::COLLECTION)
-			  		$res[$key]["postOn"]=Event::getSimpleEventById($news["id"]);
+			  	if ($news["type"]==Event::COLLECTION){
+				  	$event=Event::getSimpleEventById($news["id"]);
+					  	if(!empty($event)){
+				  		$res[$key]["postOn"]=$event;
+				  		}
+			  		}
 			  		
 	  		}
 	  		$res[$key]["author"] = Person::getSimpleUserById($news["author"]);
@@ -73,6 +77,8 @@ class News {
 
 	 	if((isset($_POST["text"]) && !empty($_POST["text"])) || (isset($_POST["mediaContent"]) && !empty($_POST["mediaContent"])))
 	 	{
+		 	$codeInsee=$user["address"]["codeInsee"];
+		 	$postalCode=$user["address"]["postalCode"];
 			$news = array("text" => $_POST["text"],
 						  "author" => Yii::app()->session["userId"],
 						  "date"=>new MongoDate(time()),
@@ -97,10 +103,14 @@ class News {
 					$person = Person::getById($_POST["typeId"]);
 					if( isset( $person['geo'] ) )
 						$from = $person['geo'];
+					$codeInsee=$person["address"]["codeInsee"];
+					$postalCode=$person["address"]["postalCode"];
 				}else if($type == Organization::COLLECTION ){
 					$organization = Organization::getById($_POST["typeId"]);
 					if( isset( $organization['geo'] ) )
 						$from = $organization['geo'];
+					$codeInsee=$organization["address"]["codeInsee"];
+					$postalCode=$organization["address"]["postalCode"];
 						$organization["type"]=Organization::COLLECTION;
 					Notification::actionOnPerson ( ActStr::VERB_POST, ActStr::ICON_COMMENT, null , $organization )  ;
 				}
@@ -108,13 +118,16 @@ class News {
 					$event = Event::getById($_POST["typeId"]);
 					if( isset( $event['geo'] ) )
 						$from = $event['geo'];
-
+					$codeInsee=$event["address"]["codeInsee"];
+					$postalCode=$event["address"]["postalCode"];
 					//Notification::actionOnEvent ( ActStr::VERB_POST, ActStr::ICON_COMMENT, null , $event )  ;
 				}
 				else if($type == Project::COLLECTION ){
 					$project = Project::getById($_POST["typeId"]);
 					if( isset( $project['geo'] ) )
 						$from = $project['geo'];
+					$codeInsee=$project["address"]["codeInsee"];
+					$postalCode=$project["address"]["postalCode"];
 					$project["type"] = Project::COLLECTION; 
 					Notification::actionOnPerson ( ActStr::VERB_POST, ActStr::ICON_COMMENT, null , $project )  ;
 				}
@@ -130,8 +143,8 @@ class News {
 			 	else {
 			 		$news["scope"]["type"]=$_POST["scope"];
 			 		if($_POST["scope"] == "public")
-			 		$news["scope"]["cities"][] = array("codeInsee"=>$user["address"]["codeInsee"],
-		 											"postalCode"=>$user["address"]["postalCode"],
+			 		$news["scope"]["cities"][] = array("codeInsee"=>$codeInsee,
+		 											"postalCode"=>$postalCode,
 		 											"geo" => $from
 		 										);
 			 	}
