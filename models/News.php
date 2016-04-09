@@ -18,6 +18,10 @@ class News {
 		  		$news["postOn"]=Project::getSimpleProjectById($news["id"]);
 	  		if ($news["type"]==Organization::COLLECTION)
 		  		$news["postOn"]=Organization::getSimpleOrganizationById($news["id"]);
+	  		if ($news["type"]==Event::COLLECTION)
+		  		$news["postOn"]=Event::getSimpleEventById($news["id"]);
+	  		if ($news["type"]==Person::COLLECTION)
+		  		$news["postOn"]=Person::getSimplePersonById($Person["id"]);
 		  		
   		}
   		$news["author"] = Person::getSimpleUserById($news["author"]);
@@ -50,6 +54,8 @@ class News {
 				    if($news["object"]["objectType"]!="needs" && $news["object"]["objectType"]!="gantts")
 			  			$res[$key]=NewsTranslator::convertParamsForNews($news);
 			  	}
+		  		if($news["type"]==Person::COLLECTION)
+			  		$res[$key]["postOn"]=Person::getSimpleUserById($news["id"]);
 		  		if($news["type"]==Project::COLLECTION)
 			  		$res[$key]["postOn"]=Project::getSimpleProjectById($news["id"]);
 		  		if ($news["type"]==Organization::COLLECTION)
@@ -141,8 +147,10 @@ class News {
 			 		$news["scope"]["cities"][] = array("codeInsee"=>$_POST["codeInsee"]);
 				}
 			 	else {
-			 		$news["scope"]["type"]=$_POST["scope"];
-			 		if($_POST["scope"] == "public")
+			 		$scope = $_POST["scope"];
+			 		if($scope== "public" && Yii::app()->session["userId"] != $news["author"]) $scope== "private";
+			 		$news["scope"]["type"]= $scope;
+			 		if($scope== "public")
 			 		$news["scope"]["cities"][] = array("codeInsee"=>$codeInsee,
 		 											"postalCode"=>$postalCode,
 		 											"geo" => $from
@@ -151,13 +159,13 @@ class News {
 		 			
 			}
 			PHDB::insert(self::COLLECTION,$news);
-		    $news["author"] = Person::getSimpleUserById($news["author"]);
+		    $news["author"] = Person::getSimpleUserById(Yii::app()->session["userId"]);
 		    
 		    /* Send email alert to contact@pixelhumain.com */
 		  	if(@$type && $type=="pixels"){
 		  		Mail::notifAdminBugMessage($news["text"]);
 		  	}
-		    return array("result"=>true, "msg"=>"Votre news est enregistrée.", "id"=>$news["_id"],"object"=>$news);	
+		    return array("result"=>true, "msg"=>"Votre message est enregistré.", "id"=>$news["_id"],"object"=>$news);	
 		} else {
 			return array("result"=>false, "msg"=>"Please Fill required Fields.");	
 		}

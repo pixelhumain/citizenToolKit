@@ -1467,7 +1467,7 @@ class Person {
 		foreach ($attNameConfidentiality as $key => $fieldName) {
 			if( Yii::app()->session['userId'] == (string)$id 
 		  		||  ( isset($entity["preferences"]) && isset($entity["preferences"]["publicFields"]) && in_array( $fieldName, $entity["preferences"]["publicFields"]) )  
-		  		|| ( $isLinked && isset($entity["preferences"]) && isset($entity["preferences"]["privateFields"]) && in_array( $fieldName, $person["preferences"]["privateFields"]))  )
+		  		|| ( $isLinked && isset($entity["preferences"]) && isset($entity["preferences"]["privateFields"]) && in_array( $fieldName, $entity["preferences"]["privateFields"]))  )
 			{}
 			else{
 				if($fieldName == "locality")  { $entity["address"]["streetAddress"] = ""; }
