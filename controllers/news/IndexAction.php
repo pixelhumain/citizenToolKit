@@ -3,7 +3,7 @@ class IndexAction extends CAction
 {
     public function run($type=null, $id= null, $date = null, $viewer=null,$streamType="news")
     {
-        $controller=$this->getController();
+    	$controller=$this->getController();
         $controller->title = "Timeline";
         $controller->subTitle = "NEWS comes from everywhere, and from anyone.";
         $controller->pageTitle = "Communecter - Timeline Globale";
@@ -65,7 +65,7 @@ class IndexAction extends CAction
 		$params["type"] = $type; 
         if( $type == Project::COLLECTION ) {
             $project = Project::getById($id);
-            if(@Yii::app()->session["userId"] && @$project["links"]["contributors"][Yii::app()->session["userId"]] && !@$project["links"]["contributors"][Yii::app()->session["userId"]][TO_BE_VALIDATED])
+            if(@Yii::app()->session["userId"])// && @$project["links"]["contributors"][Yii::app()->session["userId"]] && !@$project["links"]["contributors"][Yii::app()->session["userId"]][TO_BE_VALIDATED])
             	$params["canPostNews"] = true;
             $params["project"] = $project; 
         } 
@@ -77,7 +77,7 @@ class IndexAction extends CAction
         } 
         else if( $type == Organization::COLLECTION) {
             $organization = Organization::getById($id);
-            if(@Yii::app()->session["userId"] && @$organization["links"]["members"][Yii::app()->session["userId"]] && !@$organization["links"]["members"][Yii::app()->session["userId"]][Link::TO_BE_VALIDATED])
+            if(@Yii::app()->session["userId"])// && @$organization["links"]["members"][Yii::app()->session["userId"]] && !@$organization["links"]["members"][Yii::app()->session["userId"]][Link::TO_BE_VALIDATED])
             	$params["canPostNews"] = true;
             $params["organization"] = $organization; 
         }
@@ -100,11 +100,13 @@ class IndexAction extends CAction
 		else if ($type=="pixels"){
 			$params["canPostNews"] = true;
 		}
+
 		if ($streamType == "news"){
 			if($type == "citoyens") {
 				if (@$viewer && $viewer != null){
 					$where = array('$and' => array(
-						array("author"=> $id),
+						array('$or' => array(array("author"=> $id), array('$and' => array(array("id"=> $id), array("type" => "citoyens")) ) )),
+						//array("author"=> $id),
 						array("target"=> array('$exists' => false)),
 						array('created' => array(
 								'$lt' => $date
@@ -169,6 +171,7 @@ class IndexAction extends CAction
 					}
 					if(@$person["address"]["codeInsee"])
 						array_push($authorFollowedAndMe, array("scope.cities." => $person["address"]["codeInsee"],"type" => "activityStream"));
+			    
 			        $where = array('$and' => array(
 									array('$or'=> 
 											$authorFollowedAndMe
