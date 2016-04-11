@@ -1164,28 +1164,25 @@ class Person {
 		if(!$update)
 			$newPerson["created"] = new MongoDate(time());
 
+		if(empty($person['username'])){
+			if(!empty($person['email'])){
+				$newPerson['username'] = self::generedUserNameByEmail($person['email'], true) ;
+				if($warnings)
+					$newPerson["warnings"][] = "211" ;
+			}else{
+				if($warnings)
+					$newPerson["warnings"][] = "210" ;
+				else
+					throw new CTKException(Yii::t("import","210", null, Yii::app()->controller->module->id));
+			}
+		}else{
+			if ( !self::isUniqueUsername($person["username"]) ) {
+				throw new CTKException(Yii::t("import","207", null, Yii::app()->controller->module->id));
+		  	}
+		  	$newPerson['username'] = $person['username'];
+		}
 
 		if(empty($invite)){
-			if(empty($person['username'])){
-				if(!empty($person['email'])){
-
-					$newPerson['username'] = self::generedUserNameByEmail($person['email'], true) ;
-					if($warnings)
-						$newPerson["warnings"][] = "211" ;
-
-				}else{
-					if($warnings)
-						$newPerson["warnings"][] = "210" ;
-					else
-						throw new CTKException(Yii::t("import","210", null, Yii::app()->controller->module->id));
-				}
-			}else{
-
-				if ( !self::isUniqueUsername($person["username"]) ) {
-					throw new CTKException(Yii::t("import","207", null, Yii::app()->controller->module->id));
-			  	}
-			  	$newPerson['username'] = $person['username'];
-			}
 
 			if (empty($person['pwd'])) {
 				if($warnings)
@@ -1194,8 +1191,6 @@ class Person {
 					throw new CTKException(Yii::t("import","204", null, Yii::app()->controller->module->id));
 			}else
 				$newPerson['pwd'] = $person['pwd'];
-		
-
 		
 			if(!empty($person['geo']) && !empty($person["geoPosition"])){
 				$newPerson["geo"] = $person['geo'];
@@ -1347,6 +1342,7 @@ class Person {
 	    
 	    $newPerson = self::getAndCheckPersonFromImportData($person, $invite, null, null, $warnings);
 	    
+	    
 	    if(!empty($newPerson["warnings"]) && $warnings == true)
 	    	$newPerson["warnings"] = Import::getAndCheckWarnings($newPerson["warnings"]);
 	    
@@ -1368,11 +1364,7 @@ class Person {
         	unset($person["nameInvitor"]);
 		}
 
-			
-
-
-
-	    PHDB::insert(Person::COLLECTION , $newPerson);
+		PHDB::insert(Person::COLLECTION , $newPerson);
 
 	    if (isset($newPerson["_id"]))
 	    	$newpersonId = (String) $newPerson["_id"];
