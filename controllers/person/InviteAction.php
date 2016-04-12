@@ -12,6 +12,7 @@ class InviteAction extends CTKAction
         foreach ($follows as $key => $value) {
             if(!empty($value["email"]) && $value["email"] != "")
                 $params['follows'][] = $value["email"];
+                $params['listFollowsId'][] = (string)$value["_id"];
         }
         
         if(Yii::app()->request->isAjaxRequest)
