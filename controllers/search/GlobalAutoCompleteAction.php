@@ -138,7 +138,7 @@ class GlobalAutoCompleteAction extends CAction
         	if( !isset( $queryEvent['$and'] ) ) 
         		$queryEvent['$and'] = array();
         	
-        	array_push( $queryEvent[ '$and' ] );//, array( "endDate" => array( '$gte' => new MongoDate( time() ) ) ) );
+        	array_push( $queryEvent[ '$and' ], array( "endDate" => array( '$gte' => new MongoDate( time() ) ) ) );
 	  		$allEvents = PHDB::findAndSort( PHType::TYPE_EVENTS, $queryEvent, array("startDate" => 1), 100, array("name", "address", "startDate", "endDate", "shortDescription", "description"));
 	  		foreach ($allEvents as $key => $value) {
 	  			$event = Event::getById($key);
