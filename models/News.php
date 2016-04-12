@@ -68,6 +68,9 @@ class News {
 			  		}
 			  		
 	  		}
+	  		if(@$news["text"] && strlen ($news["text"]) > 500){
+		  		$res[$key]["text"]=trim(preg_replace('/<[^>]*>/', ' ',(substr(isset($news["text"]) ? $news["text"] : "",0 ,500 ))))."...<br><a href='javascript:;' onclick='loadByHash(\"#news.detail.id.".(string) $news["_id"]."\")'>Lire la suite</a>";
+	  		}
 	  		$res[$key]["author"] = Person::getSimpleUserById($news["author"]);
 	  	}
 	  	return $res;
