@@ -127,7 +127,15 @@ class DetailAction extends CAction
 	  	$params["needs"]=$needs;
 	  	$params["admin"]=$isProjectAdmin;
 	  	$params["admins"]=$admins;
-		$page = "detail";
+
+		//Display different for simplyDirectory
+		if($controller->action->id == 'simply'){
+			$page = "simplyDetail";
+		}else{
+			$page = "detail";
+		}
+
+
 		if(Yii::app()->request->isAjaxRequest)
             echo $controller->renderPartial($page,$params,true);
         else 
