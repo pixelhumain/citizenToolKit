@@ -969,7 +969,6 @@ class Event {
 		else
 			$newEvent['warnings'] = $details['warnings'];
 
-		//}
 
 		return $newEvent;
 	}

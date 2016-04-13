@@ -1118,17 +1118,23 @@ class Person {
 			if(count($tel) != 0)	
 				$newPerson['telephone'] = $tel;
 		}
-		//var_dump($personImportData['address']);
-		if(!empty($personImportData['address'])){
-			$details = Import::getAndCheckAddressForEntity($personImportData['address'], (empty($newPerson['geo']) ? null : $newPerson['geo']), $warnings) ;
-			$newPerson['address'] = $details['address'];
-			//var_dump($newPerson['address']);
-			if(!empty($newPerson['warnings']))
-				$newPerson['warnings'] = array_merge($newPerson['warnings'], $details['warnings']);
-			else
-				$newPerson['warnings'] = $details['warnings'];
-		}
-		//var_dump("---------------------------------");	
+		
+		
+		$address = (empty($personImportData['address']) ? null : $personImportData['address']);
+		$geo = (empty($personImportData['geo']) ? null : $personImportData['geo']);
+		$details = Import::getAndCheckAddressForEntity($address, $geo, $warnings) ;
+		$newPerson['address'] = $details['address'];
+
+		if(!empty($details['geo']))
+			$newPerson['geo'] = $details['geo'] ;
+
+		if(!empty($newPerson['warnings']))
+			$newPerson['warnings'] = array_merge($newPerson['warnings'], $details['warnings']);
+		else
+			$newPerson['warnings'] = $details['warnings'];
+
+
+
 		return $newPerson;
 	}
 

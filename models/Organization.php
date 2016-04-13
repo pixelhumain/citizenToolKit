@@ -909,13 +909,7 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 		if(!empty($organization['source']))
 			$newOrganization["source"] = $organization["source"];
 		
-		/*if(!empty($organization['geo']['latitude']))
-			$newOrganization['geo']['latitude'] = $organization['geo']['latitude'];
-
-		if(!empty($organization['geo']['longitude']))
-			$newOrganization['geo']['longitude'] = $organization['geo']['longitude'];*/
-
-		//if(!empty($organization['address'])){
+		
 		$address = (empty($organization['address']) ? null : $organization['address']);
 		$geo = (empty($organization['geo']) ? null : $organization['geo']);
 		$details = Import::getAndCheckAddressForEntity($address, $geo, $warnings) ;
@@ -928,11 +922,6 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 			$newOrganization['warnings'] = array_merge($newOrganization['warnings'], $details['warnings']);
 		else
 			$newOrganization['warnings'] = $details['warnings'];
-
-		//}
-		$newOrganization["image"] = "r8HE2Uzi.jpg";
-		/*if(!empty($organization['image']))
-			$newOrganization["image"] = "r8HE2Uzi.jpg";*/
 
 		return $newOrganization;
 	}
