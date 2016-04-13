@@ -21,8 +21,7 @@ class News {
 	  		if ($news["type"]==Event::COLLECTION)
 		  		$news["postOn"]=Event::getSimpleEventById($news["id"]);
 	  		if ($news["type"]==Person::COLLECTION)
-		  		$news["postOn"]=Person::getSimplePersonById($Person["id"]);
-		  		
+		  		$news["postOn"]=Person::getSimpleUserById($news["id"]);		  		
   		}
   		$news["author"] = Person::getSimpleUserById($news["author"]);
   		return $news;
@@ -147,7 +146,7 @@ class News {
 		 	if( isset($_POST["scope"]) || $_POST["type"]=="city") {
 			 	if($_POST["type"]=="city"){
 			 		$news["scope"]["type"]="public";
-			 		$news["scope"]["cities"][] = array("codeInsee"=>$_POST["codeInsee"]);
+			 		$news["scope"]["cities"][] = array("codeInsee"=>$_POST["codeInsee"], "postalCode"=>$_POST["postalCode"]);
 				}
 			 	else {
 			 		$scope = $_POST["scope"];
