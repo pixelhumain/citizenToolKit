@@ -5,7 +5,7 @@ class DetailAction extends CAction
     {
 	    $controller=$this->getController();
         $news = News::getById($id);
-        $params=array("news" => $news);
+        $params=array("news" => $news,"contextParentType"=> $news["type"],"contextParentId"=> $news["id"]);
         $page = "detail";
         if(Yii::app()->request->isAjaxRequest)
             echo $controller->renderPartial($page,$params,true);
