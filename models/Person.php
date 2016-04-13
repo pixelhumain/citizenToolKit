@@ -1465,6 +1465,15 @@ class Person {
 	  	}	
 		return $entity;
 	}
+	/**
+     * get Mail Person By Id
+     * @param type $id : is the mongoId of the person
+     * @return type
+     */
+    public static function getEmailById($id) { 
+        $person = PHDB::findOneById( self::COLLECTION ,$id, array("email"=>1));
+        return $person;
+    }
 
 }
 ?>

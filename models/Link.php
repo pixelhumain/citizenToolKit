@@ -709,7 +709,7 @@ class Link {
             //Notification and email are sent to the admin(s)
             $listofAdminsEmail = array();
             foreach ($usersAdmin as $adminId) {
-                $currentAdmin = Person::getSimpleUserById($adminId);
+                $currentAdmin = Person::getEmailById($adminId);
                 array_push($listofAdminsEmail, $currentAdmin["email"]);
             }
             Mail::someoneDemandToBecome($parentData, $parentType, $pendingChild, $listofAdminsEmail, $typeOfDemand);
