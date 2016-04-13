@@ -137,6 +137,7 @@ class Person {
 	  	return $person;
 	}
 
+
 	/**
 	 * Retrieve a simple user (id, name, profilImageUrl) by id from DB
 	 * @param String $id of the person
