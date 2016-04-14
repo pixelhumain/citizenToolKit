@@ -3,6 +3,11 @@ class GlobalAutoCompleteAction extends CAction
 {
     public function run($filter = null)
     {
+
+  //   	$pathParams = Yii::app()->controller->module->viewPath.'/default/dir/';
+		// echo file_get_contents($pathParams."simply.json");
+		// die();
+
         $search = trim(urldecode($_POST['name']));
         $locality = isset($_POST['locality']) ? trim(urldecode($_POST['locality'])) : null;
         $searchType = isset($_POST['searchType']) ? $_POST['searchType'] : null;
@@ -260,17 +265,43 @@ class GlobalAutoCompleteAction extends CAction
 	  		if(isset($allCitiesRes)) 
 	  			$allRes = array_merge($allRes, $allCitiesRes);
 
-	  	$limitRes = array();
+	  	$limitRes = $filters = array();
 	  	$index = 0;
 	  	foreach ($allRes as $key => $value) {
-	  		if($index < $indexMax && $index >= $indexMin){ $limitRes[] = $value;
+	  		if($index < $indexMax && $index >= $indexMin){ 
+	  			$limitRes[] = $value;
 		  	}//else{ break; }
+
+		  	//filter tag
+		  	if(isset($value['tags']))foreach ($value['tags'] as $key => $value) {
+		  		if(isset($filters['tags'][$value])){
+		  			$filters['tags'][$value] +=1;
+		  		}
+		  		else{
+		  			$filters['tags'][$value] = 1;
+		  		}
+		  		arsort($filters['tags']);
+		  	}
+
+		  	//filter type
+	  		if(isset($value['type'])){
+	  			if(isset($filters['types'][$value['type']])){
+	  				$filters['types'][$value['type']] +=1;
+	  			}
+	  			else{
+	  				$filters['types'][$value['type']] = 1;
+	  			}
+	  			arsort($filters['types']);
+	  		}
 		  	$index++;
 	  	}
 
-	  	
-  		//Rest::json($res);
-		Rest::json($limitRes);
+	  	$res['res'] = $limitRes;
+	  	$res['filters'] = $filters;
+	  	Rest::json($res);
+  		// Rest::json($res);
+  		// Rest::json($filters);
+		// Rest::json($limitRes);
 		Yii::app()->end();
     }
 
