@@ -69,7 +69,7 @@ class RegisterAction extends CAction
 			//Mail::communecterOverview($newPerson);
 			$res = array("result"=>true, "msg"=> Yii::t("login","You are now communnected !")."<br>".Yii::t("login","Our developpers are fighting to open soon ! Check your mail that will happen soon !"), "id"=>$pendingUserId); 
 		} else if ($res["msg"] == "notValidatedEmail") {
-			$newPerson["_id"] = $pendingUserId;
+			$newPerson["_id"] = $res["id"];
 			$newPerson['email'] = $email;
 			$newPerson["inviteCode"] = $inviteCode;
 

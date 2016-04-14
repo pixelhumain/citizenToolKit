@@ -122,7 +122,7 @@ class Mail
             "tplParams" => array( "user"=> $creator['_id'] ,
                                    "title" => $newEvent['name'] ,
                                    "creatorName" => $creator['name'],
-                                   "url"  => "/event/detail/id/".$newEvent["_id"] )
+                                   "url"  => "#event.detail.id.".$newEvent["_id"] )
             );
         Mail::schedule($params);
     }
@@ -138,7 +138,7 @@ class Mail
             "tplParams" => array( "user"=> $creator['_id'] ,
                                    "title" => $newProject['name'] ,
                                    "creatorName" => $creator['name'],
-                                   "url"  => "/event/dashboard/id/".$newProject["_id"] )
+                                   "url"  => "#project.detail.id.".$newProject["_id"] )
             );
         Mail::schedule($params);
     }
@@ -154,7 +154,7 @@ class Mail
             "tplParams" => array( "user"=> $creator['_id'] ,
                                    "title" => $newOrganization['name'] ,
                                    "creatorName" => $creator['name'],
-                                   "url"  => "/organization/dashboard/id/".$newOrganization["_id"] )
+                                   "url"  => "#organization.dashboard.id.".$newOrganization["_id"] )
         );
         Mail::schedule($params);
     }
