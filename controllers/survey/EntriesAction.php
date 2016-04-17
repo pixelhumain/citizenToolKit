@@ -31,9 +31,13 @@ class EntriesAction extends CAction
         '<a href="#voterloiDescForm" role="button" data-toggle="modal" title="lexique pour compendre" ><i class="fa fa-question-circle"></i> AIDE</a>',
         );
       $tpl = ( isset($_GET['tpl']) ) ? $_GET['tpl'] : "index";
-      $controller->render( $tpl, array( "list" => $list,
-                                           "where"=>$where,
-                                           "isModerator"=>$isModerator,
-                                           "uniqueVoters"=>$uniqueVoters )  );
+
+      
+      $controller->layout = "//layouts/mainSearch";
+      $controller->renderPartial( $tpl, array( "list" => $list,
+                                       "where"=>$where,
+                                       "isModerator"=>$isModerator,
+                                       "uniqueVoters"=>$uniqueVoters )  );
+      
     }
 }

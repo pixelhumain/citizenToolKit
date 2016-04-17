@@ -56,7 +56,7 @@ class EntryAction extends CAction
       if(Yii::app()->request->isAjaxRequest)
             echo $controller->renderPartial("entryStandalone",$params,true);
       else if( !Yii::app()->request->isAjaxRequest ){
-          $controller->layout = "//layouts/mainSimple";
+          $controller->layout = "//layouts/mainSearch";
           $controller->renderPartial( "entryStandalone", $params );
       } else 
           Rest::json( $params);
