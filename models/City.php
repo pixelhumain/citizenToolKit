@@ -370,6 +370,31 @@ class City {
 	}
 
 	
+	public static function getCitizenAssemblyByInsee($insee){
+		$where = array("address.codeInsee" => $insee,
+						"citizenType" => "citizenAssembly");
+
+		$fields = array("_id");
+		$CTZAssembly = PHDB::findOne( Organization::COLLECTION, $where ,$fields);
+		return $CTZAssembly;
+	}
+
+
+	public static function createCitizenAssembly(){
+		$params = array("habitants" => array('$gt' => 20000));
+		$limit = 400;
+		$sort = array("habitants" => 1);
+		$cityData = PHDB::findAndSort( self::COLLECTION, $params, $sort, $limit);
+		foreach ($cityData as $key => $value) {
+			$cityData[$key]["typeSig"] = "city";
+			$cityData[$key]["cp"] = $value["postalCodes"][0]["postalCode"];
+		}
+		error_log("createCitizenAssembly ".count($cityData));
+		return $cityData;
+	}
+
+
+
 
 
 }
