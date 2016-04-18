@@ -59,9 +59,11 @@ class Role {
         //BetaTest mode only when not on publicPage
         if (!$publicPage) {
 	        if (@Yii::app()->params['betaTest']) {
-	        	if (! @$roles["betaTester"]) {
-					return array("result"=>false, 
-						"msg" => "betaTestNotOpen");
+	        	if (isset($roles["betaTester"])) {
+	        		if (! $roles["betaTester"]) {
+						return array("result"=>false, 
+							"msg" => "betaTestNotOpen");
+					}
 				}
 	    	}    
 	    } else {
