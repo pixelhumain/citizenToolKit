@@ -65,27 +65,39 @@ class IndexAction extends CAction
 		$params["type"] = $type; 
         if( $type == Project::COLLECTION ) {
             $project = Project::getById($id);
-            if(@Yii::app()->session["userId"])// && @$project["links"]["contributors"][Yii::app()->session["userId"]] && !@$project["links"]["contributors"][Yii::app()->session["userId"]][TO_BE_VALIDATED])
+            if(@Yii::app()->session["userId"]){
             	$params["canPostNews"] = true;
+                if(@$project["links"]["contributors"][Yii::app()->session["userId"]] && !@$project["links"]["contributors"][Yii::app()->session["userId"]][TO_BE_VALIDATED])
+            	$params["canManageNews"] = true;
+            }
             $params["project"] = $project; 
         } 
         else if( $type == Person::COLLECTION ) {
             $person = Person::getById($id);
-            if (@Yii::app()->session["userId"])
+            if (@Yii::app()->session["userId"]){
 				$params["canPostNews"] = true;
+				if (Yii::app()->session["userId"]){
+					$params["canManageNews"]=true;
+				}
+			}
             $params["person"] = $person; 
         } 
         else if( $type == Organization::COLLECTION) {
             $organization = Organization::getById($id);
-            if(@Yii::app()->session["userId"])// && @$organization["links"]["members"][Yii::app()->session["userId"]] && !@$organization["links"]["members"][Yii::app()->session["userId"]][Link::TO_BE_VALIDATED])
-            	$params["canPostNews"] = true;
+            if(@Yii::app()->session["userId"]){
+				$params["canPostNews"] = true;
+            	if (@$organization["links"]["members"][Yii::app()->session["userId"]] && !@$organization["links"]["members"][Yii::app()->session["userId"]][Link::TO_BE_VALIDATED])
+            		$params["canManageNews"] = true;
+			}	
             $params["organization"] = $organization; 
         }
         else if( $type == Event::COLLECTION ) {
             $event = Event::getById($id);
             if((@Yii::app()->session["userId"] && @$event["links"]["attendees"][Yii::app()->session["userId"]] && !@$event["links"]["attendees"][Yii::app()->session["userId"]][Link::TO_BE_VALIDATED]) ||
-            	(@Yii::app()->session["userId"] && @$event["links"]["organizer"][Yii::app()->session["userId"]] && !@$event["links"]["organizer"][Yii::app()->session["userId"]][Link::TO_BE_VALIDATED]))
+            	(@Yii::app()->session["userId"] && @$event["links"]["organizer"][Yii::app()->session["userId"]] && !@$event["links"]["organizer"][Yii::app()->session["userId"]][Link::TO_BE_VALIDATED])){
             	$params["canPostNews"] = true;
+				$params["canManageNews"] = true;
+            }
             
             $params["event"] = $event; 
         }
