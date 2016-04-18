@@ -1403,6 +1403,17 @@ class Person {
 			}	
 		}
 
+		if(!empty($paramsLink) && $paramsLink["link"] == true){
+			if($paramsLink["typeLink"] == "Organization")
+				Link::addMember($paramsLink["idLink"], Organization::COLLECTION, $newpersonId, Person::COLLECTION, Yii::app()->session["userId"], $paramsLink["isAdmin"]);
+
+			if($paramsLink["typeLink"] == "Person"){
+				$child["childId"] = $paramsLink["idLink"];
+        		$child["childType"] = Person::COLLECTION;
+        		Link::follow($newpersonId, Person::COLLECTION, $child);
+			}	
+		}
+
 		if(!empty($invite)){
 			Mail::invitePerson($newPerson, $msgMail, $nameInvitor);
 		}

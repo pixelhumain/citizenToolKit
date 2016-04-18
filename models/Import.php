@@ -437,7 +437,7 @@ class Import
         if(!empty($post['key']))
             $data["source"]['key'] = $post['key'];
 
-        //$data["tags"][] = "NuitDebout";
+        $data["tags"][] = "Alternatibat";
 
         if(!empty($post["warnings"]) && $post["warnings"] == "true")
             $warnings = true ;
@@ -919,22 +919,33 @@ class Import
             $resData =  array();
             foreach ($jsonArray as $key => $value){
                 try{
+                    
+                    if($post["link"] == "true"){
+                        $paramsLink = array();
+                        $paramsLink["link"] = true;
+                        $paramsLink["idLink"] = $post["idLink"];
+                        $paramsLink["typeLink"] = $post["typeLink"];
+                        if($post["isAdmin"] == "true")
+                            $paramsLink["isAdmin"] = true;
+                        else
+                            $paramsLink["isAdmin"] = false;
+                    }else{
+                        $paramsLink = null;
+                    }
 
                     if($typeEntity == "project")
-                        $res = Project::insertProjetFromImportData($value, $post['creatorID'],Person::COLLECTION,true,$pathFolderImage) ;
+                        $res = Project::insertProjetFromImportData($value, $post['creatorID'],Person::COLLECTION,true,$pathFolderImage, $paramsLink) ;
                     else if($typeEntity == "organization")
-                        $res = Organization::insertOrganizationFromImportData($value, $post['creatorID'],true,$pathFolderImage, $moduleId) ;
+                        $res = Organization::insertOrganizationFromImportData($value, $post['creatorID'],true,$pathFolderImage, $moduleId, $paramsLink) ;
                     else if($typeEntity == "person")
-                        $res = Person::insertPersonFromImportData($value,null, true, $pathFolderImage, $moduleId) ;
+                        $res = Person::insertPersonFromImportData($value,null, true, $pathFolderImage, $moduleId, $paramsLink) ;
                     else if($typeEntity == "invite")
-                        $res = Person::insertPersonFromImportData($value,true, true, $pathFolderImage, $moduleId) ;
+                        $res = Person::insertPersonFromImportData($value,true, true, $pathFolderImage, $moduleId, $paramsLink) ;
                     else if($typeEntity == "event")
-                        $res = Event::insertEventFromImportData($value,true);
+                        $res = Event::insertEventFromImportData($value,true, $post["link"]);
 
 
-                    if(!empty($post["link"])){
-                        Link::fo
-                    }
+                    
 
 
                     if($res["result"] == true){
@@ -1135,14 +1146,57 @@ class Import
         }
             
         $result = file_get_contents($url);
-
-        if($result == "[]"){
+        //var_dump($url);
+        
+        if($result == "[]" && !empty($street)){
             $result = file_get_contents($urlminimiun);
+            //var_dump($urlminimiun);
         }
         
         return $result;
     }    
 
+
+   public static function getLocalityByLatLonGoogleMap($street = null, $cp = null, $city = null, $country = null, $polygon_geojson = null){
+        $url = "https://maps.googleapis.com/maps/api/geocode/json?address=" ;
+        $urlminimiun = "https://maps.googleapis.com/maps/api/geocode/json?address=" ;
+
+        if(!empty($street))
+            $url .= str_replace(" ", "+", $street);
+        
+        if(!empty($cp)){
+            if(!empty($street))
+                $url .= "+".$cp;
+            else
+                $url .= $cp;
+            $urlminimiun .= $cp;
+        }
+            
+        if(!empty($city)){
+            $url .= "+".str_replace(" ", "+", $city);
+            $urlminimiun .= "+=".str_replace(" ", "+", $city);
+        }
+
+
+        $url .= "+Reunion";
+        $urlminimiun .= "+Reunion";
+
+        $url = $url . "&key=".Yii::app()->params['google']['keyMaps'] ;
+        $urlminimiun = $urlminimiun . "&key=".Yii::app()->params['google']['keyMaps'] ;
+        //var_dump($url);
+        
+        $json = file_get_contents($url);
+
+        $resultGoogle = json_decode($json, true);
+        //var_dump(count($resultGoogle["results"]));
+        if(count($resultGoogle["results"]) == 0 && !empty($street)){
+            $json = file_get_contents($urlminimiun);
+            //var_dump($urlminimiun);
+        }
+            
+
+        return $json ;
+    }
 
     public static function getLocalityByLatLonDataGouv($lat, $lon){
         $url = "http://api-adresse.data.gouv.fr/reverse/?lon=".$lon."&lat=".$lat."&zoom=18&addressdetails=1" ;
@@ -1265,6 +1319,7 @@ class Import
 
             $resultNominatim = json_decode(self::getGeoByAddressNominatim($street, $cp, $city, $country), true);
             
+            //var_dump($resultGoogle);
             if(!empty($resultNominatim[0])){
                 
                 $newGeo["geo"]["latitude"] = $resultNominatim[0]["lat"];
@@ -1284,7 +1339,29 @@ class Import
                     //    break;
                     //}
                 }
+            }else{
+
+                $resultGoogle = json_decode(self::getLocalityByLatLonGoogleMap($street, $cp, $city, $country), true);
+                if(!empty($resultGoogle["results"])){
+                    $newGeo["geo"]["latitude"] = $resultGoogle["results"][0]["geometry"]["location"]["lat"];
+                    $newGeo["geo"]["longitude"] = $resultGoogle["results"][0]["geometry"]["location"]["lng"];
+                    $city = SIG::getCityByLatLngGeoShape($newGeo["geo"]["latitude"], $newGeo["geo"]["longitude"],(empty($cp) ? null : $cp) );
+                    
+                    if(!empty($city)){
+                        
+                        $newAddress["codeInsee"] = $city["insee"];
+                        $newAddress['addressCountry'] = $city["country"];
+                        foreach ($city["postalCodes"] as $keyCp => $valueCp){
+                            if($valueCp["postalCode"] == $cp){
+                                $newAddress['addressLocality'] = $valueCp["name"];
+                            }
+                        }
+                    }
+                }
             }
+
+            
+
         } // Cas 3 il n'y a que la Géo 
         else if(empty($address) && !empty($geo)){
             if(empty($geo["latitude"])){
@@ -1332,6 +1409,8 @@ class Import
                 }else{
                     throw new CTKException("N'est pas en France");
                 }
+            }else{
+                $resultDataGouv = json_decode(self::getLocalityByLatLonNominatim($geo["latitude"], $geo["longitude"]), true);
             }
             
 

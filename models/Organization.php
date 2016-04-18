@@ -1137,7 +1137,7 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 	 * @param String $adminId : can be ommited. user id representing the administrator of the organization
 	 * @return array result as an array. 
 	 */
-	public static function insertOrganizationFromImportData($organization, $creatorId, $warnings = null, $pathFolderImage = null, $moduleId = null){
+	public static function insertOrganizationFromImportData($organization, $creatorId, $warnings = null, $pathFolderImage = null, $moduleId = null, $paramsLink = null){
 	    
 	    $newOrganization = Organization::getAndCheckOrganizationFromImportData($organization, true, null, $warnings);
 		
@@ -1190,6 +1190,16 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 				throw new CTKException($e);
 			}	
 		}
+
+
+		if(!empty($paramsLink) && $paramsLink["link"] == true){
+			if($paramsLink["typeLink"] == "Organization")
+				Link::addMember($newOrganizationId, Organization::COLLECTION, $paramsLink["idLink"], Organization::COLLECTION, $creatorId, $paramsLink["isAdmin"]);
+
+			if($paramsLink["typeLink"] == "Person")
+				Link::addMember($newOrganizationId, Organization::COLLECTION, $paramsLink["idLink"], Person::COLLECTION, $creatorId, $paramsLink["isAdmin"]);
+		}
+
 
 		$newOrganization = Organization::getById($newOrganizationId);
 	    return array("result"=>true,
