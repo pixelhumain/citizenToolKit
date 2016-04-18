@@ -808,7 +808,16 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 			//$newOrganization["warnings"][] = "212" ;
 			
 		}else{
-			$newOrganization["type"] = $organization['type'];
+			//$newOrganization["type"] = $organization['type'];
+			if(trim($organization['type']) == "Association")
+				$newOrganization["type"] = Organization::TYPE_GOV ;
+			else if(trim($organization['type']) == "Groupe gouvernemental")
+				$newOrganization["type"] = Organization::TYPE_NGO ;
+			else if(trim($organization['type']) == "Entreprise")
+				$newOrganization["type"] = Organization::TYPE_BUSINESS ;
+			else
+				$newOrganization["type"] = Organization::TYPE_NGO ;
+
 		}
 			
 		
@@ -946,11 +955,7 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 		}else
 			$newOrganization['name'] = $organization['name'];
 		
-		// Is There a association with the same name ?
-	    /*$organizationSameName = PHDB::findOne( Organization::COLLECTION,array( "name" => $organization["name"]));      
-	    if($organizationSameName) { 
-	      throw new CTKException(Yii::t("organization","An organization with the same name already exist in the plateform"));
-	    }*/
+		
 
 
 		$newEvent['created'] = new MongoDate(time()) ;
@@ -1125,7 +1130,12 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 				throw new CTKException(Yii::t("organization","Projet ImaginationForPeople"));
 			}
 		}*/
-		
+
+		// Is There a association with the same name ?
+	    $organizationSameName = PHDB::findOne( Organization::COLLECTION,array( "name" => $organization["name"], "address.codeInsee" => $newOrganization["address"]["codeInsee"]));      
+	    if($organizationSameName) { 
+	      throw new CTKException(Yii::t("organization","An organization with the same name already exist in the plateform"));
+	    }
 		return $newOrganization;
 	}
 
@@ -1194,7 +1204,7 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 
 		if(!empty($paramsLink) && $paramsLink["link"] == true){
 			if($paramsLink["typeLink"] == "Organization")
-				Link::addMember($newOrganizationId, Organization::COLLECTION, $paramsLink["idLink"], Organization::COLLECTION, $creatorId, $paramsLink["isAdmin"]);
+				Link::addMember($paramsLink["idLink"], Organization::COLLECTION, $newOrganizationId, Organization::COLLECTION, $creatorId, $paramsLink["isAdmin"]);
 
 			if($paramsLink["typeLink"] == "Person")
 				Link::addMember($newOrganizationId, Organization::COLLECTION, $paramsLink["idLink"], Person::COLLECTION, $creatorId, $paramsLink["isAdmin"]);

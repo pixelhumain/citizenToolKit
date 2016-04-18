@@ -437,7 +437,7 @@ class Import
         if(!empty($post['key']))
             $data["source"]['key'] = $post['key'];
 
-        $data["tags"][] = "Alternatibat";
+        //$data["tags"][] = "Alternatibat";
 
         if(!empty($post["warnings"]) && $post["warnings"] == "true")
             $warnings = true ;
@@ -943,10 +943,6 @@ class Import
                         $res = Person::insertPersonFromImportData($value,true, true, $pathFolderImage, $moduleId, $paramsLink) ;
                     else if($typeEntity == "event")
                         $res = Event::insertEventFromImportData($value,true, $post["link"]);
-
-
-                    
-
 
                     if($res["result"] == true){
                         $entite["name"] =  $value["name"];
