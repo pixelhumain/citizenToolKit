@@ -6,6 +6,10 @@ class EditRoomAction extends CAction
         $controller=$this->getController();
 
         $listRoomTypes = Lists::getListByName("listRoomTypes");
+        foreach ($listRoomTypes as $key => $value) {
+            //error_log("translate ".$value);
+            $listRoomTypes[$key] = Yii::t("rooms",$value, null, Yii::app()->controller->module->id);
+        }
         $tagsList =  Lists::getListByName("tags");
         $params = array(
             "listRoomTypes" => $listRoomTypes,

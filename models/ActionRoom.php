@@ -6,6 +6,7 @@ class ActionRoom {
 	const TYPE_SURVEY 		= "survey";
 	const TYPE_DISCUSS 		= "discuss";
 	const TYPE_BRAINSTORM 	= "brainstorm";
+	const TYPE_VOTE 		= "vote";
 	
 	/**
 	 * get a action room By Id
