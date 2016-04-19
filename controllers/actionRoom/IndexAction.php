@@ -13,21 +13,26 @@ class IndexAction extends CAction
         $controller->pageTitle = "Communecter - Action Rooms";
         $controller->toolbarMBZ = array();
         
+        $nameParentTitle = "";
+
         if( $type == Project::COLLECTION ) {
             $controller->toolbarMBZ = array("<a href='".Yii::app()->createUrl("/".$controller->module->id."/project/dashboard/id/".$id)."'><i class='fa fa-lightbulb-o'></i>Project</a>");
             $project = Project::getById($id);
+            $nameParentTitle = $project["name"];
             $controller->title = $project["name"]."'s Rooms";
             $controller->subTitle = "Every Project thinks, talks & decides.";
             $controller->pageTitle = "Communecter - ".$controller->title;
         } else if( $type == Person::COLLECTION ) {
             $controller->toolbarMBZ = array("<a href='".Yii::app()->createUrl("/".$controller->module->id."/person/dashboard/id/".$id)."'><i class='fa fa-user'></i>Person</a>");
             $person = Person::getById($id);
+            $nameParentTitle = $person["name"];
             $controller->title = $person["name"]."'s Rooms";
             $controller->subTitle = "Everyone thinks, talks & decides.";
             $controller->pageTitle = "Communecter - ".$controller->title;
         } else if( $type == Organization::COLLECTION ) {
             $controller->toolbarMBZ = array("<a href='".Yii::app()->createUrl("/".$controller->module->id."/organization/dashboard/id/".$id)."'><i class='fa fa-group'></i>Organization</a>");
             $organization = Organization::getById($id);
+            $nameParentTitle = $organization["name"];
             $controller->title = $organization["name"]."'s Rooms";
             $controller->subTitle = "Every Organization thinks, talks & decides.";
             $controller->pageTitle = "Communecter - ".$controller->title;
@@ -50,7 +55,7 @@ class IndexAction extends CAction
             $rooms = ActionRoom::getWhereSortLimit( $where, array("date"=>1), 15);
 
         error_log("count rooms : ".count($rooms));
-        $params = array( "rooms" => $rooms );
+        $params = array( "rooms" => $rooms, "nameParentTitle" => $nameParentTitle );
         if( isset($actions) )
             $params["actions"] = $actions;
 
