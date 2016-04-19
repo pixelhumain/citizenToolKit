@@ -11,26 +11,26 @@ class IndexAction extends CAction
         $controller->title = "Action Rooms";
         $controller->subTitle = "Rooms to think, talk, decide in a group";
         $controller->pageTitle = "Communecter - Action Rooms";
-        $controller->toolbarMBZ = array();
+        //$controller->toolbarMBZ = array();
         
         $nameParentTitle = "";
 
         if( $type == Project::COLLECTION ) {
-            $controller->toolbarMBZ = array("<a href='".Yii::app()->createUrl("/".$controller->module->id."/project/dashboard/id/".$id)."'><i class='fa fa-lightbulb-o'></i>Project</a>");
+            //$controller->toolbarMBZ = array("<a href='".Yii::app()->createUrl("/".$controller->module->id."/project/dashboard/id/".$id)."'><i class='fa fa-lightbulb-o'></i>Project</a>");
             $project = Project::getById($id);
             $nameParentTitle = $project["name"];
             $controller->title = $project["name"]."'s Rooms";
             $controller->subTitle = "Every Project thinks, talks & decides.";
             $controller->pageTitle = "Communecter - ".$controller->title;
         } else if( $type == Person::COLLECTION ) {
-            $controller->toolbarMBZ = array("<a href='".Yii::app()->createUrl("/".$controller->module->id."/person/dashboard/id/".$id)."'><i class='fa fa-user'></i>Person</a>");
+            //$controller->toolbarMBZ = array("<a href='".Yii::app()->createUrl("/".$controller->module->id."/person/dashboard/id/".$id)."'><i class='fa fa-user'></i>Person</a>");
             $person = Person::getById($id);
             $nameParentTitle = $person["name"];
             $controller->title = $person["name"]."'s Rooms";
             $controller->subTitle = "Everyone thinks, talks & decides.";
             $controller->pageTitle = "Communecter - ".$controller->title;
         } else if( $type == Organization::COLLECTION ) {
-            $controller->toolbarMBZ = array("<a href='".Yii::app()->createUrl("/".$controller->module->id."/organization/dashboard/id/".$id)."'><i class='fa fa-group'></i>Organization</a>");
+            //$controller->toolbarMBZ = array("<a href='".Yii::app()->createUrl("/".$controller->module->id."/organization/dashboard/id/".$id)."'><i class='fa fa-group'></i>Organization</a>");
             $organization = Organization::getById($id);
             $nameParentTitle = $organization["name"];
             $controller->title = $organization["name"]."'s Rooms";
@@ -38,7 +38,7 @@ class IndexAction extends CAction
             $controller->pageTitle = "Communecter - ".$controller->title;
         }
         $urlParams = ( isset($type) && isset($id)) ? "/type/".$type."/id/".$id : "";
-        array_push( $controller->toolbarMBZ, '<a href="#" onclick="openSubView(\'Add a Room\', \'/communecter/rooms/editroom'.$urlParams.'\',null,function(){editRoomSV ();})" title="proposer une " ><i class="fa fa-plus"></i> Room </a>');
+        //array_push( $controller->toolbarMBZ, '<a href="#" onclick="openSubView(\'Add a Room\', \'/communecter/rooms/editroom'.$urlParams.'\',null,function(){editRoomSV ();})" title="proposer une " ><i class="fa fa-plus"></i> Room </a>');
 
         $where = array("created"=>array('$exists'=>1) ) ;
         if(isset($type))
