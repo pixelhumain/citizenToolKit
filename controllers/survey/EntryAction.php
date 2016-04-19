@@ -52,10 +52,11 @@ class EntryAction extends CAction
       $images = Document::getListDocumentsURLByContentKey($id, $contentKeyBase, Document::DOC_TYPE_IMAGE, $limit);
       $params["images"] = $images;
       $params["contentKeyBase"] = $contentKeyBase;
+      
+      if(Yii::app()->request->isAjaxRequest)
+            echo $controller->renderPartial("entryStandalone",$params,true);
+      else if( !Yii::app()->request->isAjaxRequest ){
 
-      if(Yii::app()->request->isAjaxRequest){
-          echo $controller->renderPartial("entryStandalone",$params,true);
-      } else if( !Yii::app()->request->isAjaxRequest ) {
           $controller->layout = "//layouts/mainSearch";
           $controller->render( "entryStandalone", $params );
       } else 

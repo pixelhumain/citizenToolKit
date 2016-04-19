@@ -24,13 +24,25 @@ class EntriesAction extends CAction
       $controller->subTitle = "Nombres de votants inscrit : ".$uniqueVoters;
       $controller->pageTitle = "Communecter - Sondages";
       $surveyLink = ( isset( $survey["parentType"] ) && isset( $survey["parentId"] ) ) ? Yii::app()->createUrl("/communecter/rooms/index/type/".$survey["parentType"]."/id/".$survey["parentId"]) : Yii::app()->createUrl("/communecter/rooms"); 
-      $surveyLoadByHash = ( isset( $survey["parentType"] ) && isset( $survey["parentId"] ) ) ? "#rooms.index.type.".$survey["parentType"].".id.".$survey["parentId"] : "#rooms"; 
+      
+      $parentType = $survey["parentType"] == "organizations" ? "organization" : "";
+      if( $parentType == "" )
+      $parentType = $survey["parentType"] == "projects" ? "project" : "";
+
+      $surveyLoadByHash = ( isset( $survey["parentType"] ) && isset( $survey["parentId"] ) ) ? "#".$parentType.".detail.id.".$survey["parentId"] : "#rooms"; 
       // $controller->toolbarMBZ = array(
       //   '<a href="'.$surveyLink.'" class="surveys" title="list of Surveys" ><i class="fa fa-bars"></i> SURVEYS</a>',
       //   '<a href="#" class="newVoteProposal" title="faites une proposition" ><i class="fa fa-paper-plane"></i> PROPOSER</a>',
       //   '<a href="#voterloiDescForm" role="button" data-toggle="modal" title="lexique pour compendre" ><i class="fa fa-question-circle"></i> AIDE</a>',
       //   );
      
+      $nameParentTitle = "";
+      if( $survey["parentType"] == Organization::COLLECTION ) {
+        //$controller->toolbarMBZ = array("<a href='".Yii::app()->createUrl("/".$controller->module->id."/organization/dashboard/id/".$id)."'><i class='fa fa-group'></i>Organization</a>");
+        $organization = Organization::getById($survey["parentId"]);
+        $nameParentTitle = $organization["name"];
+      }
+
       $tpl = ( isset($_GET['tpl']) ) ? $_GET['tpl'] : "index";
 
 
@@ -39,7 +51,9 @@ class EntriesAction extends CAction
                                        "where"=>$where,
                                        "isModerator"=>$isModerator,
                                        "uniqueVoters"=>$uniqueVoters,
-                                       "surveyLoadByHash" => $surveyLoadByHash )  );
+                                       "nameParentTitle"=>$nameParentTitle,
+                                       "surveyLoadByHash" => $surveyLoadByHash
+                                        )  );
       
     }
 }

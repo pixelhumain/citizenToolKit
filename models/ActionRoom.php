@@ -21,4 +21,14 @@ class ActionRoom {
 	public static function getWhereSortLimit($params,$sort,$limit=1) {
 	  	return PHDB::findAndSort( self::COLLECTION,$params,$sort,$limit);
 	}
+
+	public static function getSingleActionRoomByOrgaParent($idOrga){
+		error_log("idOrga " . $idOrga);
+		$actionRoom = PHDB::findOne( self::COLLECTION, 
+										array("parentId"=> $idOrga, 
+											  //"parentType" => "organizations",
+											  //"type" => "vote"
+											  ));
+	  	return $actionRoom;
+	}
 }
