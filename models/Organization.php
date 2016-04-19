@@ -146,6 +146,7 @@ class Organization {
 		if (isset($organization['streetAddress'])) $newOrganization["streetAddress"] = rtrim($organization['streetAddress']);
 		if (isset($organization['postalCode'])) $newOrganization["postalCode"] = $organization['postalCode'];
 		if (isset($organization['city'])) $newOrganization["city"] = $organization['city'];
+		if (isset($organization['cityName'])) $newOrganization["cityName"] = $organization['cityName'];
 		if (isset($organization['organizationCountry'])) $newOrganization["addressCountry"] = $organization['organizationCountry'];
 
 		if (isset($organization['description'])) $newOrganization["description"] = rtrim($organization['description']);
@@ -248,13 +249,15 @@ class Organization {
 		if(!empty($organization['postalCode'])) {
 			if (!empty($organization['city'])) {
 				$insee = $organization['city'];
-				$address = SIG::getAdressSchemaLikeByCodeInsee($insee);
+				$postalCode=$organization['postalCode'];
+				$cityName= $organization['cityName'];
+				$address = SIG::getAdressSchemaLikeByCodeInsee($insee,$postalCode,$cityName);
 				$address["streetAddress"] = @$organization["streetAddress"];
 				$address["addressCountry"] = @$organization["addressCountry"];
 				$newOrganization["address"] = $address;
 
 				if(empty($organization["geo"]))
-					$newOrganization["geo"] = SIG::getGeoPositionByInseeCode($insee);
+					$newOrganization["geo"] = SIG::getGeoPositionByInseeCode($insee,$postalCode,$cityName);
 				else
 					$newOrganization["geo"] = $organization["geo"];
 			}
@@ -706,10 +709,14 @@ class Organization {
 		//address
 			if(!empty($organizationFieldValue["postalCode"]) && !empty($organizationFieldValue["codeInsee"])) {
 				$insee = $organizationFieldValue["codeInsee"];
-				$address = SIG::getAdressSchemaLikeByCodeInsee($insee);
+				$postalCode = $organizationFieldValue["postalCode"];
+				$cityName = $organizationFieldValue["addressLocality"];
+				$address = SIG::getAdressSchemaLikeByCodeInsee($insee, $postalCode,$cityName);
 				$set = array("address" => $address);
+				if (!empty($organizationFieldValue["streetAddress"]))
+					$set["address"]["streetAddress"] = $organizationFieldValue["streetAddress"];
 				if(empty($organizationFieldValue["geo"]))
-					$set["geo"] = SIG::getGeoPositionByInseeCode($insee);
+					$set["geo"] = SIG::getGeoPositionByInseeCode($insee, $postalCode,$cityName);
 			} else {
 				throw new CTKException("Error updating the Organization : address is not well formated !");			
 			}
@@ -770,7 +777,7 @@ class Organization {
 
 
 
-public static function newOrganizationFromImportData($organization, $emailCreator=null) {
+public static function newOrganizationFromImportData($organization, $emailCreator=null, $warnings=null) {
 		//var_dump($organization);
 		$newOrganization = array();
 		/*if(!empty($organization['email']))
@@ -798,7 +805,7 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 
 		if(empty($organization['type'])){
 			$newOrganization["type"] = Organization::TYPE_GROUP ;
-			$newOrganization["warnings"][] = "212" ;
+			//$newOrganization["warnings"][] = "212" ;
 			
 		}else{
 			$newOrganization["type"] = $organization['type'];
@@ -902,22 +909,30 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 		if(!empty($organization['source']))
 			$newOrganization["source"] = $organization["source"];
 		
-		if(!empty($organization['geo']['latitude']))
+		/*if(!empty($organization['geo']['latitude']))
 			$newOrganization['geo']['latitude'] = $organization['geo']['latitude'];
 
 		if(!empty($organization['geo']['longitude']))
-			$newOrganization['geo']['longitude'] = $organization['geo']['longitude'];
+			$newOrganization['geo']['longitude'] = $organization['geo']['longitude'];*/
 
-		if(!empty($organization['address'])){
-			$details = Import::getAndCheckAddressForEntity($organization['address'], (empty($newOrganization['geo']) ? null : $newOrganization['geo']), true) ;
-			$newOrganization['address'] = $details['address'];
+		//if(!empty($organization['address'])){
+		$address = (empty($organization['address']) ? null : $organization['address']);
+		$geo = (empty($organization['geo']) ? null : $organization['geo']);
+		$details = Import::getAndCheckAddressForEntity($address, $geo, $warnings) ;
+		$newOrganization['address'] = $details['address'];
 
-			if(!empty($newOrganization['warnings']))
-				$newOrganization['warnings'] = array_merge($newOrganization['warnings'], $details['warnings']);
-			else
-				$newOrganization['warnings'] = $details['warnings'];
+		if(!empty($details['geo']))
+			$newOrganization['geo'] = $details['geo'] ;
 
-		}
+		if(!empty($newOrganization['warnings']))
+			$newOrganization['warnings'] = array_merge($newOrganization['warnings'], $details['warnings']);
+		else
+			$newOrganization['warnings'] = $details['warnings'];
+
+		//}
+		$newOrganization["image"] = "r8HE2Uzi.jpg";
+		/*if(!empty($organization['image']))
+			$newOrganization["image"] = "r8HE2Uzi.jpg";*/
 
 		return $newOrganization;
 	}
@@ -931,7 +946,7 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 	public static function getAndCheckOrganizationFromImportData($organization, $insert=null, $update=null, $warnings = null) {
 		$newOrganization = array();
 		
-
+		
 		$newOrganization = array();
 		if (empty($organization['name'])) {
 			if($warnings)
@@ -948,7 +963,7 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 	    }*/
 
 
-		$newOrganization['created'] = time() ;
+		$newEvent['created'] = new MongoDate(time()) ;
 		
 		if(!empty($organization['email'])) {
 			if (! preg_match('#^[\w.-]+@[\w.-]+\.[a-zA-Z]{2,6}$#',$organization['email'])) { 
@@ -961,9 +976,8 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 		}
 
 		if(empty($organization['type'])) {
-			if($warnings)
-			{
-				$newOrganization["warnings"][] = "208" ;
+			if($warnings){
+				//$newOrganization["warnings"][] = "208" ;
 				$newOrganization["type"] = self::TYPE_GROUP ;
 			}	
 			else
@@ -971,8 +985,7 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 		}else{
 			$newOrganization["type"] = $organization['type'];
 		}
-		
-				  
+			  
 		
 		if(!empty($organization['address'])) {
 			if(empty($organization['address']['postalCode']) /*&& $insert*/){
@@ -984,8 +997,10 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 			if(empty($organization['address']['codeInsee'])/*&& $insert*/){
 				if($warnings)
 					$newOrganization["warnings"][] = "102" ;
-				else
+				else{
 					throw new CTKException(Yii::t("import","102", null, Yii::app()->controller->module->id));
+				}
+					
 			}
 			if(empty($organization['address']['addressCountry']) /*&& $insert*/){
 				if($warnings)
@@ -1007,7 +1022,7 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 			else
 				throw new CTKException(Yii::t("import","100", null, Yii::app()->controller->module->id));
 		}
-
+		
 		if(!empty($organization['geo']) && !empty($organization["geoPosition"])){
 			$newOrganization["geo"] = $organization['geo'];
 			$newOrganization["geoPosition"] = $organization['geoPosition'];
@@ -1102,12 +1117,16 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 				$newOrganization["warnings"] = $organization['warnings'];
 			}
 			$newOrganization["state"] = "uncomplete";
+
 		}
+
+		if (!empty($organization['image']))
+			$newOrganization["image"] = $organization['image'];
 
 		if (!empty($organization['properties']))
 			$newOrganization["properties"] = $organization['properties'];
 
-		if(!empty($organization['source']['id']) ){
+		/*if(!empty($organization['source']['id']) ){
 			$id = $organization['source']['id'] ;
 			if($id >= "8025" &&  $id <= "8152"){
 				throw new CTKException(Yii::t("organization","Projet Amaury"));
@@ -1115,8 +1134,8 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 			if($id >= "8169" &&  $id <= "11686"){
 				throw new CTKException(Yii::t("organization","Projet ImaginationForPeople"));
 			}
-		}
-
+		}*/
+		
 		return $newOrganization;
 	}
 
@@ -1128,7 +1147,7 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 	 * @param String $adminId : can be ommited. user id representing the administrator of the organization
 	 * @return array result as an array. 
 	 */
-	public static function insertOrganizationFromImportData($organization, $creatorId, $warnings = null, $pathFolderImage = null){
+	public static function insertOrganizationFromImportData($organization, $creatorId, $warnings = null, $pathFolderImage = null, $moduleId = null){
 	    
 	    $newOrganization = Organization::getAndCheckOrganizationFromImportData($organization, true, null, $warnings);
 		
@@ -1141,6 +1160,11 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 		} else {
 			$newOrganization["creator"] = $creatorId;	
 		}
+		
+		if(!empty($newOrganization["image"])){
+			$nameImage = $newOrganization["image"];
+			unset($newOrganization["image"]);
+		}
 	
 		//Insert the organization
 	    PHDB::insert( Organization::COLLECTION, $newOrganization);
@@ -1151,8 +1175,31 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 	    	throw new CTKException(Yii::t("organization","Problem inserting the new organization"));
 	    }
 
-	    
-	    
+
+	    if(!empty($nameImage)){
+	    	try{
+				$res = Document::uploadDocument($moduleId, self::COLLECTION, $newOrganizationId, "avatar", false, $pathFolderImage, $nameImage);
+				if(!empty($res["result"]) && $res["result"] == true){
+					$params = array();
+					$params['id'] = $newOrganizationId;
+					$params['type'] = self::COLLECTION;
+					$params['moduleId'] = $moduleId;
+					$params['folder'] = self::COLLECTION."/".$newOrganizationId;
+					$params['name'] = $res['name'];
+					$params['author'] = Yii::app()->session["userId"] ;
+					$params['size'] = $res["size"];
+					$params["contentKey"] = "profil";
+					$res2 = Document::save($params);
+					if($res2["result"] == false)
+						throw new CTKException("Impossible de save.");
+
+				}else{
+					throw new CTKException("Impossible uploader le document.");
+				}
+			}catch (CTKException $e){
+				throw new CTKException($e);
+			}	
+		}
 
 		$newOrganization = Organization::getById($newOrganizationId);
 	    return array("result"=>true,

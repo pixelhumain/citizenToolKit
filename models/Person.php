@@ -129,10 +129,14 @@ class Person {
 											"addressLocality" => "",
 											"streetAddress" => "",
 											"addressCountry" => "");
+        
+			
         }
         
+        $person = self::clearAttributesByConfidentiality($person);
 	  	return $person;
 	}
+
 
 	/**
 	 * Retrieve a simple user (id, name, profilImageUrl) by id from DB
@@ -160,7 +164,8 @@ class Person {
 
 		$simplePerson["address"] = empty($person["address"]) ? array("addressLocality" => "Unknown") : $person["address"];
 		
-		return $simplePerson;
+		$simplePerson = self::clearAttributesByConfidentiality($simplePerson);
+	  	return $simplePerson;
 
 	}
 
@@ -298,7 +303,7 @@ class Person {
 			}
 		}
 
-	  	if(isset($res["citoyens"])) 	 usort($res["people"], 		  "mySort");
+	  	if(isset($res["people"])) 	 	 usort($res["people"], 		  "mySort");
 	  	if(isset($res["organizations"])) usort($res["organizations"], "mySort");
 	  	if(isset($res["projects"])) 	 usort($res["projects"], 	  "mySort");
 	  	if(isset($res["events"])) 		 usort($res["events"], 		  "mySort");
@@ -467,7 +472,7 @@ class Person {
 	 * @param boolean $minimal : true : a person can be created using only "name" and "email". Else : "postalCode" and "pwd" are also requiered
 	 * @return array result, msg and id
 	 */
-	public static function insert($person, $mode = self::REGISTER_MODE_NORMAL) {
+	public static function insert($person, $mode = self::REGISTER_MODE_NORMAL, $inviteCode = null) {
 
 	  	//Check Person data + business rules
 	  	$person = self::getAndcheckPersonData($person, $mode);
@@ -476,6 +481,13 @@ class Person {
             "ph"=>"http://pixelhumain.com/ph/ontology/");
 
 	  	$person["roles"] = Role::getDefaultRoles();
+
+	  	//if valid invite code , user is automatically geta tester
+	  	//inviteCodes are server configs 
+	  	if( @Yii::app()->params['betaTest'] && $inviteCode && in_array( $inviteCode , Yii::app()->params['validInviteCodes'] )) {
+	  		$person["roles"]['betaTester'] = true;
+	  		$person["inviteCode"] = $inviteCode;
+	  	}
 
 	  	$person["created"] = new mongoDate(time());
 	  	$person["preferences"] = array("seeExplanations"=> true);
@@ -499,7 +511,7 @@ class Person {
 	 * @return person
 	 */
 	public static function getPublicData($id) {
-		//Public datas 
+		//Public datas
 		$publicData = array (
 			"imagePath",
 			"name",
@@ -526,12 +538,20 @@ class Person {
 	 * @return "" or the value to be shown
 	 */
 	public static function showField($fieldName,$person, $isLinked) {
+	  	
 	  	$res = null;
 
+	  	$attConfName = $fieldName;
+	  	if($fieldName == "address.streetAddress") 	$attConfName = "locality";
+	  	if($fieldName == "telephone") 				$attConfName =  "phone";
+
 	  	if( Yii::app()->session['userId'] == (string)$person["_id"]
-	  		||  ( isset($person["preferences"]) && isset($person["preferences"]["publicFields"]) && in_array( $fieldName, $person["preferences"]["publicFields"]) )  
-	  		|| ( $isLinked && isset($person["preferences"]) && isset($person["preferences"]["privateFields"]) && in_array( $fieldName, $person["preferences"]["privateFields"]))  )
-	  		$res = ArrayHelper::getValueByDotPath($person,$fieldName); 
+	  		||  ( isset($person["preferences"]) && isset($person["preferences"]["publicFields"]) && in_array( $attConfName, $person["preferences"]["publicFields"]) )  
+	  		|| ( $isLinked && isset($person["preferences"]) && isset($person["preferences"]["privateFields"]) && in_array( $attConfName, $person["preferences"]["privateFields"]))  )
+	  	{
+	  		$res = ArrayHelper::getValueByDotPath($person,$fieldName);
+	  	
+	  	}
 	  	
 	  	return $res;
 	}
@@ -610,14 +630,15 @@ class Person {
 			if(!empty($personFieldValue["postalCode"]) && !empty($personFieldValue["codeInsee"])) 
 			{
 				$insee = $personFieldValue["codeInsee"];
-				$address = SIG::getAdressSchemaLikeByCodeInsee($insee);
+				$postalCode = $personFieldValue["postalCode"];
+				$address = SIG::getAdressSchemaLikeByCodeInsee($insee,$postalCode);
 				if (!empty($personFieldValue["streetAddress"])) $address["streetAddress"] = $personFieldValue["streetAddress"];
 				if (!empty($personFieldValue["addressCountry"])) $address["addressCountry"] = $personFieldValue["addressCountry"];
 				
 				$set = array("address" => $address);
 
 				if(empty($thisUser["geo"])){
-					$geo = SIG::getGeoPositionByInseeCode($insee);
+					$geo = SIG::getGeoPositionByInseeCode($insee,$postalCode);
 					$set["geo"] = $geo;
 				}
 
@@ -1033,6 +1054,12 @@ class Person {
 		if(!empty($personImportData['sourceAdmin']))
 			$newPerson["sourceAdmin"] = $personImportData["sourceAdmin"];
 
+		if(!empty($personImportData['msgInvite']))
+			$newPerson["msgInvite"] = $personImportData["msgInvite"];
+
+		if(!empty($personImportData['nameInvitor']))
+			$newPerson["nameInvitor"] = $personImportData["nameInvitor"];
+
 		if(!empty($personImportData['source'])){
 			if(!empty($personImportData['source']['id']))
 				$newPerson["source"]['id'] = $personImportData["source"]['id'];
@@ -1107,7 +1134,7 @@ class Person {
 	}
 
 
-	public static function getAndCheckPersonFromImportData($person, $insert=null, $update=null, $warnings = null) {
+	public static function getAndCheckPersonFromImportData($person, $invite=null, $insert=null, $update=null, $warnings = null) {
 		
 		$newPerson = array();
 		if (empty($person['name'])) {
@@ -1135,14 +1162,14 @@ class Person {
 		  	$newPerson['email'] = $person['email'];
 		}
 			
+		if(!$update)
+			$newPerson["created"] = new MongoDate(time());
 
 		if(empty($person['username'])){
 			if(!empty($person['email'])){
-
 				$newPerson['username'] = self::generedUserNameByEmail($person['email'], true) ;
 				if($warnings)
 					$newPerson["warnings"][] = "211" ;
-
 			}else{
 				if($warnings)
 					$newPerson["warnings"][] = "210" ;
@@ -1150,91 +1177,131 @@ class Person {
 					throw new CTKException(Yii::t("import","210", null, Yii::app()->controller->module->id));
 			}
 		}else{
-
 			if ( !self::isUniqueUsername($person["username"]) ) {
 				throw new CTKException(Yii::t("import","207", null, Yii::app()->controller->module->id));
 		  	}
 		  	$newPerson['username'] = $person['username'];
 		}
-			
-		if (empty($person['pwd'])) {
-			if($warnings)
-				$newPerson["warnings"][] = "204" ;
-			else
-				throw new CTKException(Yii::t("import","204", null, Yii::app()->controller->module->id));
-		}else
-			$newPerson['pwd'] = $person['pwd'];
+
+		if(empty($invite)){
+
+			if (empty($person['pwd'])) {
+				if($warnings)
+					$newPerson["warnings"][] = "204" ;
+				else
+					throw new CTKException(Yii::t("import","204", null, Yii::app()->controller->module->id));
+			}else
+				$newPerson['pwd'] = $person['pwd'];
 		
-		if(!$update)
-			$newPerson["created"] = new MongoDate(time());
+			if(!empty($person['geo']) && !empty($person["geoPosition"])){
+				$newPerson["geo"] = $person['geo'];
+				$newPerson["geoPosition"] = $person['geoPosition'];
+
+			}else if(!empty($person["geo"]['latitude']) && !empty($person["geo"]["longitude"])){
+				$newPerson["geo"] = 	array(	"@type"=>"GeoCoordinates",
+							"latitude" => $person["geo"]['latitude'],
+							"longitude" => $person["geo"]["longitude"]);
+
+				$newPerson["geoPosition"] = array("type"=>"Point",
+														"coordinates" =>
+															array(
+																floatval($person["geo"]['latitude']),
+																floatval($person["geo"]['longitude']))
+													 	  	);
+			}
+			else if($insert){
+				if($warnings)
+					$newPerson["warnings"][] = "150" ;
+				else
+					throw new CTKException(Yii::t("import","150", null, Yii::app()->controller->module->id));
+			}else if($warnings)
+				$newPerson["warnings"][] = "150" ;
+				
+			if(!empty($person['address'])) {
+				if(empty($person['address']['postalCode']) /*&& $insert*/){
+					if($warnings)
+						$newPerson["warnings"][] = "101" ;
+					else
+						throw new CTKException(Yii::t("import","101", null, Yii::app()->controller->module->id));
+				}
+				if(empty($person['address']['codeInsee'])/*&& $insert*/){
+					if($warnings)
+						$newPerson["warnings"][] = "102" ;
+					else
+						throw new CTKException(Yii::t("import","102", null, Yii::app()->controller->module->id));
+				}
+				if(empty($person['address']['addressCountry']) /*&& $insert*/){
+					if($warnings)
+						$newPerson["warnings"][] = "104" ;
+					else
+						throw new CTKException(Yii::t("import","104", null, Yii::app()->controller->module->id));
+				}
+				if(empty($person['address']['addressLocality']) /*&& $insert*/){
+					if($warnings)
+						$newPerson["warnings"][] = "105" ;
+					else
+						throw new CTKException(Yii::t("import","105", null, Yii::app()->controller->module->id));
+				}
+
+
+				$newPerson['address'] = $person['address'] ;
+
+			}else {
+				if(!empty($newPerson["geo"])){
+					
+					$resLocality = json_decode(Import::getLocalityByLatLonNominatim($newPerson["geo"]["latitude"], $newPerson["geo"]["longitude"]),true);
+					
+					//var_dump($resLocality);
+					if(!empty($resLocality["address"])){
+						
+						$newPerson['address']['addressCountry'] = "FR";
+						$city = SIG::getInseeByLatLngCp($newPerson["geo"]["latitude"], $newPerson["geo"]["longitude"], (empty($resLocality["address"]["postcode"])?null:$resLocality["address"]["postcode"]));
+						if($city != null){
+							foreach ($city as $key => $value) {
+								$insee = $value["insee"];
+							}
+							$newPerson['address']['codeInsee'] = $insee ;
+							$newPerson['address']['postalCode'] = (empty($resLocality["address"]["postcode"])?"":$resLocality["address"]["postcode"]);
+							$newPerson['address']['streetAddress'] = (empty($resLocality["address"]["road"])?"":$resLocality["address"]["road"]);
+							$locality = City::getAlternateNameByInseeAndCP($newPerson['address']['codeInsee'], $newPerson['address']['postalCode']);
+							$newPerson['address']['addressLocality'] = $locality['alternateName'];
+							
+						}
+						
+
+						//Result DataGouv
+						/*$newPerson['address']['addressCountry'] = "FR";
+						$newPerson['address']['codeInsee'] = $resLocality["features"][0]["properties"]["citycode"];
+						$newPerson['address']['postalCode'] = $resLocality["features"][0]["properties"]["postcode"];
+						$newPerson['address']['streetAddress'] = $resLocality["features"][0]["properties"]["street"];
+						$newPerson['address']['addressLocality'] = City::getAlternateNameByInseeAndCP($newPerson['address']['codeInsee'], $newPerson['address']['postalCode']);
+						*/
+					}
+					else if($warnings)
+						$newPerson["warnings"][] = "100" ;
+					else
+						throw new CTKException(Yii::t("import","100", null, Yii::app()->controller->module->id));
+				}
+				else if($warnings)
+					$newPerson["warnings"][] = "100" ;
+				else
+					throw new CTKException(Yii::t("import","100", null, Yii::app()->controller->module->id));
+			}
+		}else{
+			if (!empty($person['msgInvite']))
+				$newPerson["msgInvite"] = $person['msgInvite'];
+			if (!empty($person['nameInvitor']))
+				$newPerson["nameInvitor"] = $person['nameInvitor'];
+		}
 			
 		
+		
+		
+			
 		if (!empty($person["invitedBy"])) {
 	  		$newPerson["invitedBy"] = $person["invitedBy"];
 	  	}
 		
-			
-		if(!empty($person['address'])) {
-			if(empty($person['address']['postalCode']) /*&& $insert*/){
-				if($warnings)
-					$newPerson["warnings"][] = "101" ;
-				else
-					throw new CTKException(Yii::t("import","101", null, Yii::app()->controller->module->id));
-			}
-			if(empty($person['address']['codeInsee'])/*&& $insert*/){
-				if($warnings)
-					$newPerson["warnings"][] = "102" ;
-				else
-					throw new CTKException(Yii::t("import","102", null, Yii::app()->controller->module->id));
-			}
-			if(empty($person['address']['addressCountry']) /*&& $insert*/){
-				if($warnings)
-					$newPerson["warnings"][] = "104" ;
-				else
-					throw new CTKException(Yii::t("import","104", null, Yii::app()->controller->module->id));
-			}
-			if(empty($person['address']['addressLocality']) /*&& $insert*/){
-				if($warnings)
-					$newPerson["warnings"][] = "105" ;
-				else
-					throw new CTKException(Yii::t("import","105", null, Yii::app()->controller->module->id));
-			}
-
-
-			$newPerson['address'] = $person['address'] ;
-
-		}else {
-			if($warnings)
-				$newPerson["warnings"][] = "100" ;
-			else
-				throw new CTKException(Yii::t("import","100", null, Yii::app()->controller->module->id));
-		}
-
-
-		if(!empty($person['geo']) && !empty($person["geoPosition"])){
-			$newPerson["geo"] = $person['geo'];
-			$newPerson["geoPosition"] = $person['geoPosition'];
-
-		}else if(!empty($person["geo"]['latitude']) && !empty($person["geo"]["longitude"])){
-			$newPerson["geo"] = 	array(	"@type"=>"GeoCoordinates",
-						"latitude" => $person["geo"]['latitude'],
-						"longitude" => $person["geo"]["longitude"]);
-
-			$newPerson["geoPosition"] = array("type"=>"Point",
-													"coordinates" =>
-														array(
-															floatval($person["geo"]['latitude']),
-															floatval($person["geo"]['longitude']))
-												 	  	);
-		}
-		else if($insert){
-			if($warnings)
-				$newPerson["warnings"][] = "150" ;
-			else
-				throw new CTKException(Yii::t("import","150", null, Yii::app()->controller->module->id));
-		}else if($warnings)
-			$newPerson["warnings"][] = "150" ;
-
 		if (!empty($person['telephone']))
 			$newPerson["telephone"] = $person['telephone'];
 
@@ -1272,9 +1339,10 @@ class Person {
 	 * @param string $userId UserId doing the insertion
 	 * @return array as result type
 	 */
-	public static function insertPersonFromImportData($person, $warnings, $pathFolderImage = null, $moduleId = null){
+	public static function insertPersonFromImportData($person, $warnings, $invite=null, $pathFolderImage = null, $moduleId = null){
 	    
-	    $newPerson = self::getAndCheckPersonFromImportData($person, null, null, $warnings);
+	    $newPerson = self::getAndCheckPersonFromImportData($person, $invite, null, null, $warnings);
+	    
 	    
 	    if(!empty($newPerson["warnings"]) && $warnings == true)
 	    	$newPerson["warnings"] = Import::getAndCheckWarnings($newPerson["warnings"]);
@@ -1282,8 +1350,6 @@ class Person {
 	    $newPerson["@context"] = array("@vocab"=>"http://schema.org",
             "ph"=>"http://pixelhumain.com/ph/ontology/");
 	    $newPerson["roles"] = Role::getDefaultRoles();
-	    $newPerson["roles"]["tobeactivated"] = false;
-	    $newPerson["roles"]["betaTester"] = true;
 	  	$newPerson["created"] = new mongoDate(time());
 	  	$newPerson["preferences"] = array("seeExplanations"=> true);
 
@@ -1292,7 +1358,14 @@ class Person {
 			unset($newPerson["image"]);
 		}
 
-	    PHDB::insert(Person::COLLECTION , $newPerson);
+		if(!empty($invite)){
+			$msgMail = $person["msgInvite"];
+			$nameInvitor = $person["nameInvitor"];
+        	unset($person["msgInvite"]);
+        	unset($person["nameInvitor"]);
+		}
+
+		PHDB::insert(Person::COLLECTION , $newPerson);
 
 	    if (isset($newPerson["_id"]))
 	    	$newpersonId = (String) $newPerson["_id"];
@@ -1300,22 +1373,45 @@ class Person {
 	    	throw new CTKException("Problem inserting the new person");
 
 	    if(!empty($nameImage)){
-	    	Document::saveDocument($newpersonId, self::COLLECTION, Yii::app()->session["userId"], $moduleId, $nameImage, "avatar", false, $pathFolderImage);
-	    }
-	    	
-	   	return array("result"=>true, "msg"=>"Cette personne est communecté.", "id" => $newPerson["_id"]);	
+			try{
+				$res = Document::uploadDocument($moduleId, self::COLLECTION, $newpersonId, "avatar", false, $pathFolderImage, $nameImage);
+				if(!empty($res["result"]) && $res["result"] == true){
+					$params = array();
+					$params['id'] = $newpersonId;
+					$params['type'] = self::COLLECTION;
+					$params['moduleId'] = $moduleId;
+					$params['folder'] = self::COLLECTION."/".$newpersonId;
+					$params['name'] = $res['name'];
+					$params['author'] = Yii::app()->session["userId"] ;
+					$params['size'] = $res["size"];
+					$params["contentKey"] = "profil";
+					$res2 = Document::save($params);
+					if($res2["result"] == false)
+						throw new CTKException("Impossible de save.");
+
+				}else{
+					throw new CTKException("Impossible uploader le document.");
+				}
+			}catch (CTKException $e){
+				throw new CTKException($e);
+			}	
+		}
+
+		if(!empty($invite)){
+			Mail::invitePerson($newPerson, $msgMail, $nameInvitor);
+		}
+
+		return array("result"=>true, "msg"=>"Cette personne est communecté.", "id" => $newPerson["_id"]);	
 	}
 
 
 
 	public static function generedUserNameByEmail($chaine, $isEmail = null){
-		
 		if($isEmail == true){
 			$arrayEmail = explode("@", $chaine);
 			$name = $arrayEmail[0];
 		}else
-			$name = $chaine;
-			
+			$name = $chaine;	
 		$name = strtr($name,'àáâãäçèéêëìíîïñòóôõöùúûüýÿÀÁÂÃÄÇÈÉÊËÌÍÎÏÑÒÓÔÕÖÙÚÛÜÝ._','aaaaaceeeeiiiinooooouuuuyyAAAAACEEEEIIIINOOOOOUUUUY--'); // Replaces all spaces with hyphens.
 		$name = preg_replace('/[^A-Za-z0-9\-]/', '', $name);
 		
@@ -1324,7 +1420,6 @@ class Person {
 				 $name = self::generedUserNameByEmail($name."1");
 		  	}
 		}else{
-
 			if(strlen($name) < 4){
 
 				while(strlen($name) < 4){
@@ -1337,9 +1432,48 @@ class Person {
 			} 
 
 		}
-
 		return $name;
 	}
+
+	public static function clearAttributesByConfidentiality($entity){
+
+		//si l'entité n'est pas valable on ne fait rien
+		if(!isset($entity) || $entity == NULL) return $entity;
+
+		//recupere l'id de l'entité (2 cas possibles)
+		$id = isset($entity['$id']) ? $entity['$id'] : "";
+		//if($id == "") $id = isset($entity['_id'])&&isset($entity['_id']['$id']) ? $entity['_id']['$id'] : "";
+		if($id == "") $id = isset($entity['_id']) ? $entity['_id'] : "";
+		if($id == "") $id = isset($entity['id']) ? $entity['id'] : "";
+		if($id == "") return $entity;
+		
+		$isLinked = Link::isLinked((string)$id,Person::COLLECTION, Yii::app()->session['userId']);
+		$attNameConfidentiality = array("email", "locality", "phone");
+
+		foreach ($attNameConfidentiality as $key => $fieldName) {
+			if( Yii::app()->session['userId'] == (string)$id 
+		  		||  ( isset($entity["preferences"]) && isset($entity["preferences"]["publicFields"]) && in_array( $fieldName, $entity["preferences"]["publicFields"]) )  
+		  		|| ( $isLinked && isset($entity["preferences"]) && isset($entity["preferences"]["privateFields"]) && in_array( $fieldName, $entity["preferences"]["privateFields"]))  )
+			{}
+			else{
+				if($fieldName == "locality")  { $entity["address"]["streetAddress"] = ""; }
+				else if($fieldName == "phone"){ $entity["telephone"] = ""; }
+				else{
+					$entity[$fieldName] = "";
+				}
+			}
+	  	}	
+		return $entity;
+	}
+	/**
+     * get Mail Person By Id
+     * @param type $id : is the mongoId of the person
+     * @return type
+     */
+    public static function getEmailById($id) { 
+        $person = PHDB::findOneById( self::COLLECTION ,$id, array("email"=>1));
+        return $person;
+    }
 
 }
 ?>

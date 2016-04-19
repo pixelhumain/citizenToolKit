@@ -65,6 +65,7 @@ class DetailAction extends CAction
 	  						if(@$e["toBeValidated"]){
 	  							$citoyen["toBeValidated"]=true;  
 							}	
+
 	  						array_push($contributors, $citoyen);
 	  					}
 	  				}
@@ -91,13 +92,17 @@ class DetailAction extends CAction
 		  		$tasks=$project["tasks"];
 	  		}
 	  		//Need keep on
-	  		$whereNeed = array("created"=>array('$exists'=>1) ) ;
+	  		//$whereNeed = array("created"=>array('$exists'=>1) ) ;
 	  		//if(isset($type))
-        	$whereNeed["parentType"] = Project::COLLECTION;
+        	//$whereNeed["parentType"] = Project::COLLECTION;
 			//if(isset($id))
-        	$whereNeed["parentId"] = (string)$project["_id"];
+        	//$whereNeed["parentId"] = (string)$project["_id"];
 			//var_dump($where);
-			$needs = Need::getWhereSortLimit( $whereNeed, array("date"=>1) ,30);
+			//$needs = Need::getWhereSortLimit( $whereNeed, array("date"=>1) ,30);
+
+			//$needs = Need::listNeeds($id, Project::COLLECTION);
+			//echo "need"; var_dump($needs);
+	  	
 	  	}
 	  	//Gestion de l'admin - true or false
 	  	// First find if user session is directly link to project
@@ -124,7 +129,7 @@ class DetailAction extends CAction
 	  	$params["people"] = $people;
 	  	$params["properties"] = $properties;
 	  	$params["tasks"]=$tasks;
-	  	$params["needs"]=$needs;
+	  	//$params["needs"]=$needs;
 	  	$params["admin"]=$isProjectAdmin;
 	  	$params["admins"]=$admins;
 

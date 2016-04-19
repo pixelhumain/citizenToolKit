@@ -6,7 +6,7 @@ class AssignDataAction extends CAction
     {
         $controller = $this->getController();
 
-        if($_POST['typeFile'] == "json" || $_POST['typeFile'] == "js")
+        if($_POST['typeFile'] == "json" || $_POST['typeFile'] == "js" || $_POST['typeFile'] == "geojson")
         	$params = Import::parsingJSON2($_POST);
         else if($_POST['typeFile'] == "csv")
             $params = Import::parsingCSV2($_POST);

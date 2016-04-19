@@ -327,5 +327,50 @@ class City {
 	}
 
 
+	/* Retourne le code du departement d'une commune par rapport a son code insee */
+	public static function getAlternateNameByInseeAndCP($insee, $cp){
+		$where = array("insee" => $insee,
+						"cp" => $cp);
+		$fields = array("alternateName");
+		$dep = PHDB::findOne( self::COLLECTION, $where ,$fields);
+		return $dep;
+	}
+
+	public static function getCitiesForcheck(){
+		$where = array();
+		$count = PHDB::count(self::COLLECTION, $where);
+
+		$cities = array();
+		$limit = 50;
+		
+		$zero = 0;
+		if($count%$limit > 0) {
+			$zero = 1 ;
+			$res = round($count/$limit , 0);
+		}	
+		
+		$result =  $zero + $res;
+
+		$i = 0 ;
+		$index=0;
+		
+		while($i < $result){
+			set_time_limit(30) ;
+			$rescities = PHDB::findAndLimitAndIndex(self::COLLECTION, $where, $limit, $index);
+			$cities = array_merge($cities, $rescities);
+			//$cities = $rescities;
+			$index += $limit;
+			$i++;
+
+		}
+		/*var_dump($count);
+		var_dump($cities);*/
+
+		return $cities;
+	}
+
+	
+
+
 }
 ?>

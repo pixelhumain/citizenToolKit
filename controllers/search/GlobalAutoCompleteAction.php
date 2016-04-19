@@ -23,7 +23,6 @@ class GlobalAutoCompleteAction extends CAction
         	Rest::json(array());
 			Yii::app()->end();
         }
-       
         /***********************************  DEFINE GLOBAL QUERY   *****************************************/
         $query = array( "name" => new MongoRegex("/".$search."/i"));
   		
@@ -34,7 +33,7 @@ class GlobalAutoCompleteAction extends CAction
         	$query = array( "tags" => array('$in' => array(new MongoRegex("/".$search."/i")))) ; //new MongoRegex("/".$search."/i") )));
   		}
 
-  		$query = array('$and' => array($query, array("state" => array('$ne' => "uncomplete")) ));
+  		$query = array('$and' => array( $query , array("state" => array('$ne' => "uncomplete")) ));
 
   		/***********************************  SOURCEKEY   *****************************************/
          if($sourceKey != null && $sourceKey != ""){
@@ -149,11 +148,12 @@ class GlobalAutoCompleteAction extends CAction
 	  	/***********************************  EVENT   *****************************************/
         if(strcmp($filter, Event::COLLECTION) != 0 && $this->typeWanted("events", $searchType)){
         	
-        	if( !isset( $query['$and'] ) ) 
-        		$query['$and'] = array();
+        	$queryEvent = $query;
+        	if( !isset( $queryEvent['$and'] ) ) 
+        		$queryEvent['$and'] = array();
         	
-        	array_push( $query[ '$and' ], array( "endDate" => array( '$gte' => new MongoDate( time() ) ) ) );
-	  		$allEvents = PHDB::findAndSort( PHType::TYPE_EVENTS, $query, array("startDate" => 1), 100, array("name", "address", "startDate", "endDate", "shortDescription", "description"));
+        	array_push( $queryEvent[ '$and' ], array( "endDate" => array( '$gte' => new MongoDate( time() ) ) ) );
+	  		$allEvents = PHDB::findAndSort( PHType::TYPE_EVENTS, $queryEvent, array("startDate" => 1), 100, array("name", "address", "startDate", "endDate", "shortDescription", "description"));
 	  		foreach ($allEvents as $key => $value) {
 	  			$event = Event::getById($key);
 				$event["type"] = "event";
@@ -194,11 +194,13 @@ class GlobalAutoCompleteAction extends CAction
 	        	error_log("type " . $type);
 	    		if($type == "NAME"){ 
 	        		$query = array('$or' => array( array( "name" => new MongoRegex("/".self::wd_remove_accents($locality)."/i")),
-	        									   array( "alternateName" => new MongoRegex("/".self::wd_remove_accents($locality)."/i"))));
+	        									   array( "alternateName" => new MongoRegex("/".self::wd_remove_accents($locality)."/i")),
+	        									   array("postalCodes.name" => array('$in' => array(new MongoRegex("/".self::wd_remove_accents($locality)."/i"))))
+	        					));
 	        		//error_log("search city with : " . self::wd_remove_accents($locality));
 	        	}
 	        	if($type == "CODE_POSTAL_INSEE") {
-	        		$query = array("cp" => $locality );
+	        		$query = array("postalCodes.postalCode" => array('$in' => array($locality)));
 	        	}
 	        	if($type == "DEPARTEMENT") {
 	        		$query = array("dep" => $locality );
@@ -212,8 +214,39 @@ class GlobalAutoCompleteAction extends CAction
 			    	$query["country"] = $country;
 			    }
 
-	  		$allCities = PHDB::find(City::COLLECTION, $query, array("name", "alternateName", "cp", "insee", "regionName", "country", "geo", "geoShape"));
+	  		//$allCities = PHDB::find(City::COLLECTION, $query, array("name", "alternateName", "cp", "insee", "regionName", "country", "geo", "geoShape","postalCodes"));
+	  		$allCities = PHDB::find(City::COLLECTION, $query);
 	  		$allCitiesRes = array();
+	  		$nbMaxCities = 20;
+	  		$nbCities = 0;
+	  		foreach($allCities as $data){
+		  		$countPostalCodeByInsee = count($data["postalCodes"]);
+		  		foreach ($data["postalCodes"] as $val){
+			  		if($nbCities < $nbMaxCities){
+			  		$newCity = array();
+			  		//$regionName = 
+			  		$newCity = array(
+			  						"_id"=>$data["_id"],
+			  						"insee" => $data["insee"], 
+			  						"regionName" => isset($data["regionName"]) ? $data["regionName"] : "", 
+			  						"country" => $data["country"],
+			  						"geoShape" => isset($data["geoShape"]) ? $data["geoShape"] : "",
+			  						"cp" => $val["postalCode"],
+			  						"geo" => $val["geo"],
+			  						"geoPosition" => $val["geoPosition"],
+			  						"name" => ucwords(strtolower($val["name"])),
+			  						"alternateName" => ucwords(strtolower($val["name"])),
+			  						"type"=>"city",
+			  						"typeSig" => "city");
+			  		if($countPostalCodeByInsee > 1){
+			  			$newCity["countCpByInsee"] = $countPostalCodeByInsee;
+			  			$newCity["cityInsee"] = ucwords(strtolower($data["alternateName"]));
+			  		}
+			  		$allCitiesRes[]=$newCity;
+			  		} $nbCities++;
+		  		}
+	  		}
+	  		/*$allCitiesRes = array();
 	  		$nbMaxCities = 20;
 	  		$nbCities = 0;
 	  		foreach ($allCities as $key => $value) {
@@ -226,7 +259,7 @@ class GlobalAutoCompleteAction extends CAction
 					else $city["name"] = ucwords(strtolower($value["name"])) ;
 				$allCitiesRes[$key] = $city;
 				} $nbCities++;
-	  		}
+	  		}*/
 	  		//$res["cities"] = $allCitiesRes;
 
 	  		if(empty($allCitiesRes)){

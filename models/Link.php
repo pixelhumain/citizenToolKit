@@ -697,9 +697,6 @@ class Link {
         } else {
             //Someone ask to become an admin 
             if ($isConnectingAdmin) {
-	            // Check if already ask to become member
-	            if(@$pendingChild["links"][$childConnectAs][$parentId][self::TO_BE_VALIDATED])
-	            	self::updateLink($parentType,$parentId,$childId,$childType,$parentConnectAs,$childConnectAs,self::TO_BE_VALIDATED);
     			//Admin validation process
                 $verb = ActStr::VERB_AUTHORIZE;
     			$toBeValidatedAdmin=true;
@@ -712,7 +709,7 @@ class Link {
             //Notification and email are sent to the admin(s)
             $listofAdminsEmail = array();
             foreach ($usersAdmin as $adminId) {
-                $currentAdmin = Person::getSimpleUserById($adminId);
+                $currentAdmin = Person::getEmailById($adminId);
                 array_push($listofAdminsEmail, $currentAdmin["email"]);
             }
             Mail::someoneDemandToBecome($parentData, $parentType, $pendingChild, $listofAdminsEmail, $typeOfDemand);

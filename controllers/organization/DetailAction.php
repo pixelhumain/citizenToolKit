@@ -80,8 +80,8 @@ class DetailAction extends CAction
 					if(@$organization["links"]["members"][$key]["toBeValidated"]){
 						$newCitoyen["toBeValidated"]=true;  
 					}		
+  				
 				}
-				
 				$newCitoyen["type"]=Person::COLLECTION;
 				array_push($contextMap["people"], $newCitoyen);
 				array_push($members, $newCitoyen);
