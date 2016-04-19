@@ -5,6 +5,7 @@ class IndexAction extends CAction
     //http://127.0.0.1/ph/communecter/rooms/index/type/citoyens/id/xxxxxx
     public function run( $type=null, $id= null )
     {
+        error_log("room index Action ".$type);
         $controller=$this->getController();
         
         $controller->title = "Action Rooms";
@@ -46,8 +47,9 @@ class IndexAction extends CAction
             $actions = $roomsActions["actions"];
         }
         else
-            $rooms = ActionRoom::getWhereSortLimit( $where, array("date"=>1));
+            $rooms = ActionRoom::getWhereSortLimit( $where, array("date"=>1), 15);
 
+        error_log("count rooms : ".count($rooms));
         $params = array( "rooms" => $rooms );
         if( isset($actions) )
             $params["actions"] = $actions;

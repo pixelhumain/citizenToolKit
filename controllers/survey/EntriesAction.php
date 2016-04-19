@@ -25,6 +25,7 @@ class EntriesAction extends CAction
       $controller->subTitle = "Nombres de votants inscrit : ".$uniqueVoters;
       $controller->pageTitle = "Communecter - Sondages";
       $surveyLink = ( isset( $survey["parentType"] ) && isset( $survey["parentId"] ) ) ? Yii::app()->createUrl("/communecter/rooms/index/type/".$survey["parentType"]."/id/".$survey["parentId"]) : Yii::app()->createUrl("/communecter/rooms"); 
+      $surveyLoadByHash = ( isset( $survey["parentType"] ) && isset( $survey["parentId"] ) ) ? "#rooms.index.type.".$survey["parentType"].".id.".$survey["parentId"] : "#rooms"; 
       $controller->toolbarMBZ = array(
         '<a href="'.$surveyLink.'" class="surveys" title="list of Surveys" ><i class="fa fa-bars"></i> SURVEYS</a>',
         '<a href="#" class="newVoteProposal" title="faites une proposition" ><i class="fa fa-paper-plane"></i> PROPOSER</a>',
@@ -37,7 +38,8 @@ class EntriesAction extends CAction
       $controller->renderPartial( $tpl, array( "list" => $list,
                                        "where"=>$where,
                                        "isModerator"=>$isModerator,
-                                       "uniqueVoters"=>$uniqueVoters )  );
+                                       "uniqueVoters"=>$uniqueVoters,
+                                       "surveyLoadByHash" => $surveyLoadByHash )  );
       
     }
 }

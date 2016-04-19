@@ -10,6 +10,7 @@ class SaveSessionAction extends CAction
 {
     public function run()
     {
+        error_log("saveSession");
         $res = array();
         if( Yii::app()->session["userId"] )
         {
