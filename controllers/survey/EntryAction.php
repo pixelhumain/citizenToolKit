@@ -37,12 +37,12 @@ class EntryAction extends CAction
           if( $survey["organizerType"] == Person::COLLECTION ){
             $organizer = Person::getById( $survey["organizerId"] );
             $params["organizer"] = array(  "name" => $organizer["name"],
-                                           "link" => Yii::app()->createUrl('/'.$controller->module->id."/person/dashboard/id/".$survey["organizerId"]) );
+                                           "link" => "loadByHash('#person.detail.id.".$survey["organizerId"]."')");
           }
           else if( $survey["organizerType"] == Organization::COLLECTION ){
             $organizer = Organization::getById( $survey["organizerId"] );
             $params["organizer"] = array(  "name" => $organizer["name"],
-                                           "link" => Yii::app()->createUrl('/'.$controller->module->id."/organization/dashboard/id/".$survey["organizerId"]) );
+                                           "link" => "loadByHash('#organization.detail.id.".$survey["organizerId"]."')");
           }
       }
 
@@ -53,11 +53,11 @@ class EntryAction extends CAction
       $params["images"] = $images;
       $params["contentKeyBase"] = $contentKeyBase;
 
-      if(Yii::app()->request->isAjaxRequest)
-            echo $controller->renderPartial("entryStandalone",$params,true);
-      else if( !Yii::app()->request->isAjaxRequest ){
+      if(Yii::app()->request->isAjaxRequest){
+          echo $controller->renderPartial("entryStandalone",$params,true);
+      } else if( !Yii::app()->request->isAjaxRequest ) {
           $controller->layout = "//layouts/mainSearch";
-          $controller->renderPartial( "entryStandalone", $params );
+          $controller->render( "entryStandalone", $params );
       } else 
           Rest::json( $params);
     }
