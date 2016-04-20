@@ -1124,12 +1124,10 @@ class Import
         
         if(!empty($cp)){
             $url .= "&postalcode=".$cp;
-            $urlminimiun .= "&postalcode=".$cp;
         }
             
         if(!empty($city)){
             $url .= "&city=".str_replace(" ", "+", $city);
-            $urlminimiun .= "&city=".str_replace(" ", "+", $city);
         }
             
         
@@ -1138,24 +1136,35 @@ class Import
         
         if(!empty($polygon_geojson)){
             $url .= "&polygon_geojson=1";
-            $urlminimiun .= "&polygon_geojson=1";
+        }
+        $result = file_get_contents($url);
+        
+        return $result;
+    }
+
+    public static function getGeoByAddressMinimunNominatim($cp = null, $city = null, $country = null, $polygon_geojson = null){
+        
+        $urlminimiun = "http://nominatim.openstreetmap.org/search?format=json&addressdetails=1" ;
+        if(!empty($cp)){
+            $urlminimiun .= "postalcode=".$cp;
         }
             
-        $result = file_get_contents($url);
-        //var_dump($url);
-        
-        if($result == "[]" && !empty($street)){
-            $result = file_get_contents($urlminimiun);
-            //var_dump($urlminimiun);
+        if(!empty($city)){
+            $urlminimiun .= "&city=".str_replace(" ", "+", $city);
         }
+        /*if(!empty($country))
+            $url .= "&countrycodes=".$country;*/
         
+        if(!empty($polygon_geojson)){
+            $urlminimiun .= "&polygon_geojson=1";
+        }
+        $result = file_get_contents($urlminimiun);
         return $result;
     }    
 
 
-   public static function getLocalityByLatLonGoogleMap($street = null, $cp = null, $city = null, $country = null, $polygon_geojson = null){
+   public static function getGeoByAddressGoogleMap($street = null, $cp = null, $city = null, $country = null, $polygon_geojson = null){
         $url = "https://maps.googleapis.com/maps/api/geocode/json?address=" ;
-        $urlminimiun = "https://maps.googleapis.com/maps/api/geocode/json?address=" ;
 
         if(!empty($street))
             $url .= str_replace(" ", "+", $street);
@@ -1165,32 +1174,43 @@ class Import
                 $url .= "+".$cp;
             else
                 $url .= $cp;
-            $urlminimiun .= $cp;
         }
             
         if(!empty($city)){
             $url .= "+".str_replace(" ", "+", $city);
-            $urlminimiun .= "+=".str_replace(" ", "+", $city);
         }
 
-
-        $url .= "+Reunion";
-        $urlminimiun .= "+Reunion";
+        if(!empty($country)){
+            $url .= $country;
+        }
+        
 
         $url = $url . "&key=".Yii::app()->params['google']['keyMaps'] ;
-        $urlminimiun = $urlminimiun . "&key=".Yii::app()->params['google']['keyMaps'] ;
         //var_dump($url);
         
         $json = file_get_contents($url);
 
-        $resultGoogle = json_decode($json, true);
-        //var_dump(count($resultGoogle["results"]));
-        if(count($resultGoogle["results"]) == 0 && !empty($street)){
-            $json = file_get_contents($urlminimiun);
-            //var_dump($urlminimiun);
+        return $json ;
+    }
+
+    public static function getGeoByAddressMinimunGoogleMap($cp = null, $city = null, $country = null, $polygon_geojson = null){
+        $urlminimiun = "https://maps.googleapis.com/maps/api/geocode/json?address=" ;
+
+        if(!empty($cp)){
+            $urlminimiun .= $cp;
         }
             
+        if(!empty($city)){
+            $urlminimiun .= "+=".str_replace(" ", "+", $city);
+        }
 
+
+        if(!empty($country)){
+            $urlminimiun .= $country;
+        }
+
+        $urlminimiun = $urlminimiun . "&key=".Yii::app()->params['google']['keyMaps'] ;
+        $json = file_get_contents($urlminimiun);    
         return $json ;
     }
 
@@ -1315,14 +1335,12 @@ class Import
 
             $resultNominatim = json_decode(self::getGeoByAddressNominatim($street, $cp, $city, $country), true);
             
-            //var_dump($resultGoogle);
             if(!empty($resultNominatim[0])){
                 
                 $newGeo["geo"]["latitude"] = $resultNominatim[0]["lat"];
                 $newGeo["geo"]["longitude"] = $resultNominatim[0]["lon"];
                 
                 $city = SIG::getCityByLatLngGeoShape($newGeo["geo"]["latitude"], $newGeo["geo"]["longitude"],(empty($cp) ? null : $cp) );
-                
                 if(!empty($city)){
                     //foreach ($city as $key => $value){
                         $newAddress["codeInsee"] = $city["insee"];
@@ -1332,12 +1350,9 @@ class Import
                                 $newAddress['addressLocality'] = $valueCp["name"];
                             }
                         }
-                    //    break;
-                    //}
                 }
             }else{
-
-                $resultGoogle = json_decode(self::getLocalityByLatLonGoogleMap($street, $cp, $city, $country), true);
+                $resultGoogle = json_decode(self::getGeoByAddressGoogleMap($street, $cp, $city, $country), true);
                 if(!empty($resultGoogle["results"])){
                     $newGeo["geo"]["latitude"] = $resultGoogle["results"][0]["geometry"]["location"]["lat"];
                     $newGeo["geo"]["longitude"] = $resultGoogle["results"][0]["geometry"]["location"]["lng"];
@@ -1350,6 +1365,39 @@ class Import
                         foreach ($city["postalCodes"] as $keyCp => $valueCp){
                             if($valueCp["postalCode"] == $cp){
                                 $newAddress['addressLocality'] = $valueCp["name"];
+                            }
+                        }
+                    }
+                }else{
+                    $resultNominatim = json_decode(self::getGeoByAddressMinimunNominatim($cp, $city, $country), true);
+                    if(!empty($resultNominatim[0])){
+                        $newGeo["geo"]["latitude"] = $resultNominatim[0]["lat"];
+                        $newGeo["geo"]["longitude"] = $resultNominatim[0]["lon"];
+                        $city = SIG::getCityByLatLngGeoShape($newGeo["geo"]["latitude"], $newGeo["geo"]["longitude"],(empty($cp) ? null : $cp) );
+                        if(!empty($city)){
+                            //foreach ($city as $key => $value){
+                                $newAddress["codeInsee"] = $city["insee"];
+                                $newAddress['addressCountry'] = $city["country"];
+                                foreach ($city["postalCodes"] as $keyCp => $valueCp){
+                                    if($valueCp["postalCode"] == $cp){
+                                        $newAddress['addressLocality'] = $valueCp["name"];
+                                    }
+                                }
+                        }
+                    }else{
+                        $resultGoogle = json_decode(self::getGeoByAddressMinimunGoogleMap($street, $cp, $city, $country), true);
+                        if(!empty($resultGoogle["results"])){
+                            $newGeo["geo"]["latitude"] = $resultGoogle["results"][0]["geometry"]["location"]["lat"];
+                            $newGeo["geo"]["longitude"] = $resultGoogle["results"][0]["geometry"]["location"]["lng"];
+                            $city = SIG::getCityByLatLngGeoShape($newGeo["geo"]["latitude"], $newGeo["geo"]["longitude"],(empty($cp) ? null : $cp) );
+                            if(!empty($city)){
+                                $newAddress["codeInsee"] = $city["insee"];
+                                $newAddress['addressCountry'] = $city["country"];
+                                foreach ($city["postalCodes"] as $keyCp => $valueCp){
+                                    if($valueCp["postalCode"] == $cp){
+                                        $newAddress['addressLocality'] = $valueCp["name"];
+                                    }
+                                }
                             }
                         }
                     }

@@ -855,7 +855,7 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 				foreach ($organization['telephone']["fixe"] as $key => $value) {
 					$trimValue=trim($value);
 					if(!empty($trimValue))
-						$fixe[] = $trimValue;
+						$fixe[] = "0".$trimValue;
 				}
 			}
 			if(!empty($organization['telephone']["mobile"]))
@@ -863,7 +863,7 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 				foreach ($organization['telephone']["mobile"] as $key => $value) {
 					$trimValue=trim($value);
 					if(!empty($trimValue))
-						$mobile[] = $trimValue;
+						$mobile[] = "0".$trimValue;
 				}
 			}
 
@@ -872,7 +872,7 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 				foreach ($organization['telephone']["fax"] as $key => $value) {
 					$trimValue=trim($value);
 					if(!empty($trimValue))
-						$fax[] = $trimValue;
+						$fax[] = "0".$trimValue;
 				}
 			}
 			if(count($mobile) != 0)
