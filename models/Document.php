@@ -519,8 +519,8 @@ class Document {
             var_dump(file_put_contents($upload_dir.$name , $pic));*/
             $pic = file_get_contents($pathFile.$nameFile, FILE_USE_INCLUDE_PATH);
             //var_dump($pic);
-            $re = file_put_contents($upload_dir.$name , $pic);
-            var_dump($re);
+            //$re = file_put_contents($upload_dir.$name , $pic);
+            
         	if(isset(Yii::app()->session["userId"]) && $name && file_put_contents($upload_dir.$name , $pic)){   
         		return array('result'=>true,
                                         "success"=>true,

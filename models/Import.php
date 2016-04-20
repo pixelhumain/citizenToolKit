@@ -437,7 +437,7 @@ class Import
         if(!empty($post['key']))
             $data["source"]['key'] = $post['key'];
 
-        //$data["tags"][] = "Alternatibat";
+        //$data["image"][] = "Alternatibat";
 
         if(!empty($post["warnings"]) && $post["warnings"] == "true")
             $warnings = true ;
@@ -1131,8 +1131,8 @@ class Import
         }
             
         
-        /*if(!empty($country))
-            $url .= "&countrycodes=".$country;*/
+        if(!empty($country))
+            $url .= "&countrycodes=".$country;
         
         if(!empty($polygon_geojson)){
             $url .= "&polygon_geojson=1";
@@ -1161,8 +1161,8 @@ class Import
         if(!empty($city)){
             $urlminimiun .= "&city=".str_replace(" ", "+", $city);
         }
-        /*if(!empty($country))
-            $url .= "&countrycodes=".$country;*/
+        if(!empty($country))
+            $urlminimiun .= "&countrycodes=".$country;
         
         if(!empty($polygon_geojson)){
             $urlminimiun .= "&polygon_geojson=1";
@@ -1175,7 +1175,7 @@ class Import
 
         $context = stream_context_create($options);
         $result = file_get_contents($urlminimiun, false, $context);
-       //var_dump($urlminimiun) ;
+        //var_dump($urlminimiun) ;
         return $result;
     }    
 
@@ -1273,7 +1273,7 @@ class Import
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
         $result = curl_exec($ch);
         curl_close($ch);
-
+        //var_dump($url) ;
         return $result ;
     }
 
@@ -1423,11 +1423,15 @@ class Import
             $resultNominatim = json_decode(self::getGeoByAddressNominatim($street, $cp, $nameCity, $country), true);
             $erreur = true ;
             if(!empty($resultNominatim[0])){
-                //var_dump("noinatim long");
-                //var_dump($resultNominatim);
                 $newGeo["geo"]["latitude"] = $resultNominatim[0]["lat"];
                 $newGeo["geo"]["longitude"] = $resultNominatim[0]["lon"];
-                
+                if(empty($cp) && !empty($resultNominatim[0]["address"]["postcode"])){
+                    $arraycp = explode(";", $resultNominatim[0]["address"]["postcode"]) ;
+                    $cp = $arraycp[0] ;
+                    $newAddress["postalCode"] = $cp ;
+                }
+                    
+
                 $city = SIG::getCityByLatLngGeoShape($newGeo["geo"]["latitude"], $newGeo["geo"]["longitude"],(empty($cp) ? null : $cp) );
                 if(!empty($city)){
                     //foreach ($city as $key => $value){
@@ -1468,8 +1472,6 @@ class Import
             if($erreur == true){
                 $resultGoogle = json_decode(self::getGeoByAddressGoogleMap($street, $cp, $nameCity, $country), true);
                 if(!empty($resultGoogle["results"])){
-                    //var_dump("resultGoogle long");
-                    //var_dump($resultGoogle);
                     $newGeo["geo"]["latitude"] = $resultGoogle["results"][0]["geometry"]["location"]["lat"];
                     $newGeo["geo"]["longitude"] = $resultGoogle["results"][0]["geometry"]["location"]["lng"];
                     $city = SIG::getCityByLatLngGeoShape($newGeo["geo"]["latitude"], $newGeo["geo"]["longitude"],(empty($cp) ? null : $cp) );
@@ -1546,7 +1548,7 @@ class Import
             }
 
             if($erreur == true){
-                var_dump("Error");
+                //var_dump("Error");
             }
                 
             
