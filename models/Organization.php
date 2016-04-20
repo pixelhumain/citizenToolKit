@@ -810,13 +810,13 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 		}else{
 			//$newOrganization["type"] = $organization['type'];
 			if(trim($organization['type']) == "Association")
-				$newOrganization["type"] = Organization::TYPE_GOV ;
-			else if(trim($organization['type']) == "Groupe gouvernemental")
 				$newOrganization["type"] = Organization::TYPE_NGO ;
+			else if(trim($organization['type']) == "Groupe gouvernemental")
+				$newOrganization["type"] = Organization::TYPE_GOV ;
 			else if(trim($organization['type']) == "Entreprise")
 				$newOrganization["type"] = Organization::TYPE_BUSINESS ;
 			else
-				$newOrganization["type"] = Organization::TYPE_NGO ;
+				$newOrganization["type"] = Organization::TYPE_GROUP ;
 
 		}
 			
@@ -855,7 +855,7 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 				foreach ($organization['telephone']["fixe"] as $key => $value) {
 					$trimValue=trim($value);
 					if(!empty($trimValue))
-						$fixe[] = $trimValue;
+						$fixe[] = "0".$trimValue;
 				}
 			}
 			if(!empty($organization['telephone']["mobile"]))
@@ -863,7 +863,7 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 				foreach ($organization['telephone']["mobile"] as $key => $value) {
 					$trimValue=trim($value);
 					if(!empty($trimValue))
-						$mobile[] = $trimValue;
+						$mobile[] = "0".$trimValue;
 				}
 			}
 
@@ -872,7 +872,7 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 				foreach ($organization['telephone']["fax"] as $key => $value) {
 					$trimValue=trim($value);
 					if(!empty($trimValue))
-						$fax[] = $trimValue;
+						$fax[] = "0".$trimValue;
 				}
 			}
 			if(count($mobile) != 0)
@@ -921,7 +921,7 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 		
 		$address = (empty($organization['address']) ? null : $organization['address']);
 		$geo = (empty($organization['geo']) ? null : $organization['geo']);
-
+		//var_dump($newOrganization['name']);
 		$details = Import::getAndCheckAddressForEntity($address, $geo, $warnings) ;
 		$newOrganization['address'] = $details['address'];
 
@@ -932,6 +932,12 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 			$newOrganization['warnings'] = array_merge($newOrganization['warnings'], $details['warnings']);
 		else
 			$newOrganization['warnings'] = $details['warnings'];
+
+		$newOrganization["image"] = "nuit-debout-dijon.jpg";
+
+		$newOrganization["citizenType"] = "citizenAssembly";
+
+		$newOrganization["tags"][] = "NuitDebout";
 
 		return $newOrganization;
 	}
@@ -1098,6 +1104,9 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 		//details by ImportData
 		if(!empty($organization['details'])){
 			$newOrganization["details"] = $organization['details'];
+		}
+		if(!empty($organization['citizenType'])){
+			$newOrganization["citizenType"] = $organization['citizenType'];
 		}
 
 		//url by ImportData
