@@ -46,7 +46,7 @@ class GlobalAutoCompleteAction extends CAction
 
   		/***********************************  SOURCEKEY   *****************************************/
          if($sourceKey != null && $sourceKey != ""){
-        	$sourceKeyQuery = array( "source.sourceKey" => array('$in' => array(new MongoRegex("/".$sourceKey."/i")))) ; //new MongoRegex("/".$search."/i") )));
+        	$sourceKeyQuery = array( "source.key" => array('$in' => array(new MongoRegex("/".$sourceKey."/i")))) ; //new MongoRegex("/".$search."/i") )));
         	$query = array('$and' => array( $query ,$sourceKeyQuery));
   		}
 
