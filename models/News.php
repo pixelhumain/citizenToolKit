@@ -113,13 +113,13 @@ class News {
 					}
 					else {
 						$scope = $_POST["scope"];
-						if($scope== "public" && Yii::app()->session["userId"] != $news["author"]) $scope== "private";
-							$news["scope"]["type"]= $scope;
-						if($scope== "public")
+						$news["scope"]["type"]=$scope;
+						if($scope== "public"){
 							$news["scope"]["cities"][] = array("codeInsee"=>$codeInsee,
 																"postalCode"=>$postalCode,
 																"geo" => $from
 															);
+						}
 					}		
 				}
 			}

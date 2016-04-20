@@ -76,7 +76,7 @@ class IndexAction extends CAction
             $person = Person::getById($id);
             if (@Yii::app()->session["userId"]){
 				$params["canPostNews"] = true;
-				if (Yii::app()->session["userId"]){
+				if (Yii::app()->session["userId"]==$id){
 					$params["canManageNews"]=true;
 				}
 			}
@@ -111,6 +111,12 @@ class IndexAction extends CAction
 
 		if($type == "citoyens") {
 			if (@$viewer && $viewer != null){
+				$scope=array(
+					array("scope.type"=> "public"),
+					array("scope.type"=> "restricted")
+				);
+				if (@$params["canManageNews"] && $params["canManageNews"])
+					array_push($scope,array("scope.type"=>"private"));
 				$where = array('$and' => array(
 					array('$or' => 
 						array(
@@ -123,7 +129,9 @@ class IndexAction extends CAction
 							) 
 						)
 					),
-					array("scope.type"=> "public"),
+					array('$or' => 
+						$scope
+					),
 					array('created' => array(
 							'$lt' => $date
 						)
@@ -146,7 +154,16 @@ class IndexAction extends CAction
 				}
 				if(@$person["links"]["follows"] && !empty($person["links"]["follows"])){
 					foreach ($person["links"]["follows"] as $key => $data){
-						$followNews=array("target.id"=>$key, "scope.type" => "public", "target.type" => $data["type"]);
+						$followNews=array('$and'=>array(
+												array("target.id"=>$key, "target.type" => $data["type"]),
+												array('$or'=>
+													array(
+														array("scope.type" => "public"),
+														array("scope.type" => "restricted")
+													)
+												)
+											)
+										);
 						array_push($authorFollowedAndMe,$followNews);
 						//array_push($authorFollowedAndMe,$followActivity);
 					}
@@ -170,10 +187,21 @@ class IndexAction extends CAction
 			}
 		}
 		else if($type == "organizations" || $type == "projects" || $type == "events"){
+			$scope=array(
+					array("scope.type"=> "public"),
+					array("scope.type"=> "restricted"),
+			);
+			if (@$params["canManageNews"] && $params["canManageNews"])
+				array_push($scope,array("scope.type"=>"private"));
+			else if(@Yii::app()->session["userId"])
+				array_push($scope,array("author"=>Yii::app()->session["userId"]));
+			$whereScope=array('$or'=>$scope);
+
 			$where = array('$and' => array(
-					array('$or'=>array(
-						array("target.type"=> $type,"target.id"=> $id)
-					)),
+						array('$or'=>array(
+							array("target.type"=> $type,"target.id"=> $id),
+						)),
+					$whereScope,
 					array('created' => array(
 							'$lt' => $date
 						)
