@@ -701,7 +701,7 @@ class Person {
 
         Person::clearUserSessionData();
         $account = PHDB::findOne(self::COLLECTION, array( '$or' => array( 
-        															array( "email" => $email),
+        															array("email" => '/^'.preg_quote($email).'$/i'),
         															array("username" => $email) ) ));
         
         //return an error when email does not exist
