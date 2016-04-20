@@ -10,8 +10,7 @@ class DisableAction extends CAction
 	 */
     public function run($id) {
     	$result = array("result"=>false, "msg"=>Yii::t("common", "Incorrect request"));
-		if(Yii::app()->session["userId"] || Yii::app()->session["userIsAdmin"] )
-		{
+		if(Yii::app()->session["userId"] || Yii::app()->session["userIsAdmin"] ) {
 			$organization = Organization::getById( $id );
 			if( $organization && Yii::app()->session["userId"] == $organization['creator'] ) {
 				
@@ -19,7 +18,7 @@ class DisableAction extends CAction
 														array('$set' => array("disabled"=> true)));
 				//add notification to all members 
 				$organization["id"] = $id;
-				Notification::actionOnPerson ( ActStr::VERB_CLOSE, ActStr::ICON_CLOSE, $organization, $organization ) ;
+				Notification::actionOnPerson ( ActStr::VERB_CLOSE, ActStr::ICON_CLOSE, $organization, array("type"=>Organization::COLLECTION,"id"=> $id,"name"=>$organization["name"]) ) ;
 				$result = array("result"=>true,"msg" => Yii::t("common", "Organization Disabled") );
 			}
 		}
