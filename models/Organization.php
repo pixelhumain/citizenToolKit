@@ -816,7 +816,7 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 			else if(trim($organization['type']) == "Entreprise")
 				$newOrganization["type"] = Organization::TYPE_BUSINESS ;
 			else
-				$newOrganization["type"] = Organization::TYPE_NGO ;
+				$newOrganization["type"] = Organization::TYPE_GROUP ;
 
 		}
 			

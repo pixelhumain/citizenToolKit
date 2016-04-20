@@ -701,7 +701,7 @@ class Person {
 
         Person::clearUserSessionData();
         $account = PHDB::findOne(self::COLLECTION, array( '$or' => array( 
-        															array( "email" => $email),
+        															array("email" => new MongoRegex('/^'.preg_quote($email).'$/i')),
         															array("username" => $email) ) ));
         
         //return an error when email does not exist
@@ -1119,23 +1119,17 @@ class Person {
 			if(count($tel) != 0)	
 				$newPerson['telephone'] = $tel;
 		}
-		
-		
-		$address = (empty($personImportData['address']) ? null : $personImportData['address']);
-		$geo = (empty($personImportData['geo']) ? null : $personImportData['geo']);
-		$details = Import::getAndCheckAddressForEntity($address, $geo, $warnings) ;
-		$newPerson['address'] = $details['address'];
-
-		if(!empty($details['geo']))
-			$newPerson['geo'] = $details['geo'] ;
-
-		if(!empty($newPerson['warnings']))
-			$newPerson['warnings'] = array_merge($newPerson['warnings'], $details['warnings']);
-		else
-			$newPerson['warnings'] = $details['warnings'];
-
-
-
+		//var_dump($personImportData['address']);
+		if(!empty($personImportData['address'])){
+			$details = Import::getAndCheckAddressForEntity($personImportData['address'], (empty($newPerson['geo']) ? null : $newPerson['geo']), $warnings) ;
+			$newPerson['address'] = $details['address'];
+			//var_dump($newPerson['address']);
+			if(!empty($newPerson['warnings']))
+				$newPerson['warnings'] = array_merge($newPerson['warnings'], $details['warnings']);
+			else
+				$newPerson['warnings'] = $details['warnings'];
+		}
+		//var_dump("---------------------------------");	
 		return $newPerson;
 	}
 
@@ -1400,17 +1394,6 @@ class Person {
 				}
 			}catch (CTKException $e){
 				throw new CTKException($e);
-			}	
-		}
-
-		if(!empty($paramsLink) && $paramsLink["link"] == true){
-			if($paramsLink["typeLink"] == "Organization")
-				Link::addMember($paramsLink["idLink"], Organization::COLLECTION, $newpersonId, Person::COLLECTION, Yii::app()->session["userId"], $paramsLink["isAdmin"]);
-
-			if($paramsLink["typeLink"] == "Person"){
-				$child["childId"] = $paramsLink["idLink"];
-        		$child["childType"] = Person::COLLECTION;
-        		Link::follow($newpersonId, Person::COLLECTION, $child);
 			}	
 		}
 
