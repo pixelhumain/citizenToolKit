@@ -921,7 +921,7 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 		
 		$address = (empty($organization['address']) ? null : $organization['address']);
 		$geo = (empty($organization['geo']) ? null : $organization['geo']);
-
+		//var_dump($newOrganization['name']);
 		$details = Import::getAndCheckAddressForEntity($address, $geo, $warnings) ;
 		$newOrganization['address'] = $details['address'];
 
