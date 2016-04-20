@@ -1,12 +1,13 @@
 <?php
 /*
-	
+    
  */
 class Import
 { 
-	const MICROFORMATS = "microformats";
+    const MICROFORMATS = "microformats";
     const ORGANIZATIONS = "organizations";
-	
+    const MAPPINGS = "mappings";
+    
 
     public static function importData($file, $post) 
     {
@@ -176,7 +177,7 @@ class Import
             $params = array("_id"=>new MongoId($post['idMicroformat']));
             $fields = array("mappingFields");
             $fieldsCollection = Import::getMicroFormats($params, $fields);
-            $arrayPathMapping2 = array();
+            $arrayMicroformat = array();
             foreach ($fieldsCollection as $key => $value) 
             {
                 $pathMapping = ArrayHelper::getAllBranchsJSON($value['mappingFields'], "", "");
@@ -185,14 +186,14 @@ class Import
                 {
                     
                     if(!empty($valuePathMapping))
-                        $arrayPathMapping2[] =  $valuePathMapping;
+                        $arrayMicroformat[] =  $valuePathMapping;
                 }
             }
             
             $params = array("createLink"=>true,
                             "arbre"=>$listBrancheJson,
                             "typeFile" => "json",
-                            "arrayPathMapping"=>$arrayPathMapping2);
+                            "arrayMicroformat"=>$arrayMicroformat);
                             
                             //"nameFile"=>$nameFile ,
                             
@@ -213,79 +214,27 @@ class Import
 
     public static function parsingCSV2($post) 
     {
-        //var_dump($post);
-        /*header('Content-Type: text/html; charset=UTF-8');
+        
+        $arrayMicroformat = self::getMicroformat($post['idMicroformat']);
 
-        if(isset($post['nameFile']) && isset($post['file']))
-        {*/
-            /*$path = sys_get_temp_dir().'/filesImportData/' ;
-            if(!file_exists($path))
-                mkdir($path , 0775);
-
-            $path = sys_get_temp_dir().'/filesImportData/'.$post['nameFile'].'/';
-            if(!file_exists($path))
-                mkdir($path , 0775);*/
-
-            /*$countLine = 0;
-            $countFile = 1;
-            $test = [];
-            $line = [];*/
-
-            /*foreach ($post['file'] as $key => $value) 
-            {
-
-                $arrayCSV[$key] = $value;
-                if($key == 0)
-                    $headerCSV = $value;
-                
-                if($countLine == 0 || $key == 0)
-                    $arrayCSV[0] = $headerCSV;
-                else
-                    $arrayCSV[$countLine] = $value;
-
-
-                if($countLine == 5000)
-                {
-                    $nameFile = $post['nameFile'].'_'.$countFile.'.csv' ;
-                    Import::createCSV($arrayCSV, $nameFile, $path);
-                    $countLine = 0;
-                    $countFile++;
-                    $arrayCSV = array();
-                }
-                else
-                    $countLine++;
-
-            }
-            $nameFile = $post['nameFile'].'_'.$countFile.'.csv' ;
-            Import::createCSV($arrayCSV, $nameFile, $path);
-            
-            $subFiles = scandir(sys_get_temp_dir()."/filesImportData/".$post['nameFile']);*/
-
-            $arrayPathMapping = self::getMapping($post['idMicroformat']);
-
-            $params = array("createLink"=>true,
-                            "arrayPathMapping"=>$arrayPathMapping,
-                            "typeFile"=>$post['typeFile']);
-
-
-            /*$params = array("createLink"=>true,
-                            "typeFile" => "csv",
-                            "arrayCSV" => $post['file'],
-                            "subFiles" => $subFiles,
-                            "nameFile"=>$post['nameFile'],
-                            "arrayPathMapping"=>$arrayPathMapping2,
-                            "idCollection"=>$post['chooseCollection']);*/
-       /*}
+        if($post['idMapping'] != "-1"){
+            $where = array("_id" => new MongoId($post['idMapping']));
+            $fields = array("fields");
+            $mapping = self::getMappings($where, $fields);
+            $arrayMapping = $mapping[$post['idMapping']]["fields"];
+        }
         else
-        {
-            $params = array("createLink"=>false);  
-        }*/
+            $arrayMapping = array();
 
+        $params = array("createLink"=>true,
+                        "arrayMicroformat"=>$arrayMicroformat,
+                        "arrayMapping"=>$arrayMapping,
+                        "typeFile"=>$post['typeFile']);
         return $params ;
     }
 
 
-    public static function getMapping($idMicroformat){
+    public static function getMicroformat($idMicroformat){
         
         $params = array("_id"=>new MongoId($idMicroformat));
         $fields = array("mappingFields");
@@ -306,7 +255,7 @@ class Import
         return $arrayPathMapping2 ;
     }
 
-	/*public static function parsingCSV($file, $post) 
+    /*public static function parsingCSV($file, $post) 
     {
         header('Content-Type: text/html; charset=UTF-8');
         if(isset($file['fileImport']) && isset($post['separateurDonnees']) && isset($post['separateurTexte']) && isset($post['chooseCollection']))
@@ -404,7 +353,7 @@ class Import
                         if(!empty($lineCSV[$objetInfoData['idHeadCSV']]))
                             $valueData = $lineCSV[$objetInfoData['idHeadCSV']] ;
                         
-                        if(isset($valueData)) {
+                        if(!empty($valueData)) {
                             $mappingTypeData = explode(".", $post['idCollection'].".mappingFields.".$objetInfoData['valueLinkCollection']);
                             $typeData = ArrayHelper::getValueJson($infoCollection,$mappingTypeData);
                             $mapping = explode(".", $objetInfoData['valueLinkCollection']);
@@ -441,7 +390,7 @@ class Import
                     else
                         $warnings = true;
                     
-                    $entite = Import::checkData($infoCollection[$post['idCollection']]["key"], $jsonData, $post,  $keyEntity, $warnings);
+                    $entite = Import::checkData($infoCollection[$post['idCollection']]["key"], $jsonData, $post);
 
                     if(empty($entite["geo"]) && !empty($entite["msgError"]))
                         $notGeo = true ;
@@ -482,15 +431,23 @@ class Import
     }
 
 
-    public static function checkData($keyCollection, $data, $post, $keyEntity = null, $warnings = null){
+    public static function checkData($keyCollection, $data, $post){
         $res = array() ;
 
-        if(!empty($keyEntity))
-            $data["source"]['key'] = $keyEntity;
+        if(!empty($post['key']))
+            $data["source"]['key'] = $post['key'];
+
+        //$data["tags"][] = "Alternatibat";
+
+        if(!empty($post["warnings"]) && $post["warnings"] == "true")
+            $warnings = true ;
+        else
+            $warnings = false ;
+        
 
         if($keyCollection == "Organizations"){
             try{    
-                $newOrganization = Organization::newOrganizationFromImportData($data, $post["creatorEmail"]);
+                $newOrganization = Organization::newOrganizationFromImportData($data, $post["creatorEmail"], $warnings);
                 $newOrganization["role"] = $post["role"];
                 $newOrganization["creator"] = $post["creatorID"];
                 $newOrganization2 = Organization::getQuestionAnwser($newOrganization);
@@ -519,21 +476,17 @@ class Import
             }
         } else if($keyCollection == "Person"){
             try{
-               /*if(empty($data["address"]["postalCode"]) || $data["address"]["postalCode"] == ""){
-                   
-                    $data["address"]["postalCode"] = "59000" ;
-                    $data["address"]["addressLocality"] = "LILLE" ;
-                    $data["address"]["addressCountry"] = "FR" ;
+                $invite = false ;
+                if(!empty($post["invite"])){
+                    $invite = true ;
+                    $data["nameInvitor"] = $post["nameInvitor"];
+                    $data["msgInvite"] = $post["msgInvite"];
                 }
-                
-                if(empty($data["geo"])){
-                   $data['geo']['latitude'] = "50.62905900";
-                   $data['geo']['longitude'] = "3.06038000";
-                }*/
-
 
                 $newPerson = Person::createPersonFromImportData($data, true);
-                $res = Person::getAndCheckPersonFromImportData($newPerson, null, null, $warnings);
+                $res = Person::getAndCheckPersonFromImportData($newPerson, $invite, null, null, $post["warnings"]);
+                
+                
             }
             catch(CTKException $e){
                 if(empty($newPerson))
@@ -543,6 +496,20 @@ class Import
                 
                 $res = $newPerson ;
             }
+        }else if($keyCollection == "Events"){
+            try{
+                //
+                $newEvent = Event::newEventFromImportData($data, $post["creatorEmail"], $warnings);
+                $newEvent["creator"] = $post["creatorID"];
+
+                $res = Event::getAndCheckEventFromImportData($newEvent, null, null, $warnings) ;
+            }
+            catch (CTKException $e){
+                if(empty($newEvent))
+                    $newEvent = $data;
+                $newEvent["msgError"] = $e->getMessage();
+                $res = $newEvent ;
+            }
         }
 
         return $res ;
@@ -550,6 +517,7 @@ class Import
 
     public static function previewDataJSON($post) 
     {
+        
         $params = array("result" => false); 
         $notGeo = false ;
         if(isset($post['infoCreateData']) && isset($post['file']))
@@ -584,7 +552,7 @@ class Import
                     
                     $valueData = ArrayHelper::getValueJson($valueJSON, $cheminLien);
                     //var_dump($valueData);
-                    if(!empty($valueData)){
+                    if(!empty($valueData) && isset($valueData)){
                         //var_dump("Here");
                         $mappingTypeData = explode(".", $post['idCollection'].".mappingFields.".$objetInfoData['valueLinkCollection']);
                         $typeData = ArrayHelper::getValueJson($infoCollection,$mappingTypeData);
@@ -622,12 +590,9 @@ class Import
                 else
                     $keyEntity = $post['key'];
 
-                if(empty($post['warnings']))
-                    $warnings = null;
-                else
-                    $warnings = true;
+                
 
-                $entite = Import::checkData($infoCollection[$post['idCollection']]["key"], $jsonData, $post, $keyEntity, $warnings);
+                $entite = Import::checkData($infoCollection[$post['idCollection']]["key"], $jsonData, $post);
 
                 if(empty($entite["geo"]) && !empty($entite["msgError"]))
                     $notGeo = true ;
@@ -681,7 +646,7 @@ class Import
 
         if(isset($post['typeFile']))
         {
-            if($post['typeFile'] == "json" || $post['typeFile'] == "js")
+            if($post['typeFile'] == "json" || $post['typeFile'] == "js" || $post['typeFile'] == "geojson")
                 $params = Import::previewDataJSON($post);
             else if($post['typeFile'] == "csv")
                 $params = Import::previewDataCSV($post);
@@ -954,23 +919,37 @@ class Import
             $resData =  array();
             foreach ($jsonArray as $key => $value){
                 try{
+                    
+                    if($post["link"] == "true"){
+                        $paramsLink = array();
+                        $paramsLink["link"] = true;
+                        $paramsLink["idLink"] = $post["idLink"];
+                        $paramsLink["typeLink"] = $post["typeLink"];
+                        if($post["isAdmin"] == "true")
+                            $paramsLink["isAdmin"] = true;
+                        else
+                            $paramsLink["isAdmin"] = false;
+                    }else{
+                        $paramsLink = null;
+                    }
 
                     if($typeEntity == "project")
-                        $res = Project::insertProjetFromImportData($value, $post['creatorID'],Person::COLLECTION,true,$pathFolderImage) ;
+                        $res = Project::insertProjetFromImportData($value, $post['creatorID'],Person::COLLECTION,true,$pathFolderImage, $paramsLink) ;
                     else if($typeEntity == "organization")
-                        $res = Organization::insertOrganizationFromImportData($value, $post['creatorID'],true,$pathFolderImage) ;
+                        $res = Organization::insertOrganizationFromImportData($value, $post['creatorID'],true,$pathFolderImage, $moduleId, $paramsLink) ;
                     else if($typeEntity == "person")
-                        $res = Person::insertPersonFromImportData($value,true,$pathFolderImage, $moduleId) ; 
-
+                        $res = Person::insertPersonFromImportData($value,null, true, $pathFolderImage, $moduleId, $paramsLink) ;
+                    else if($typeEntity == "invite")
+                        $res = Person::insertPersonFromImportData($value,true, true, $pathFolderImage, $moduleId, $paramsLink) ;
+                    else if($typeEntity == "event")
+                        $res = Event::insertEventFromImportData($value,true, $post["link"]);
 
                     if($res["result"] == true){
                         $entite["name"] =  $value["name"];
-        
-                        $entite["info"] = "Success" ;
+                        $entite["info"] = "Success";
                     }else{
                         $entite["name"] =  $value["name"];
-                        
-                        $entite["info"] = "Error" ;
+                        $entite["info"] = "Error";
                     }
                     $resData[] = $entite;
                 }
@@ -1121,130 +1100,110 @@ class Import
         return $msg;
     }
 
+    public static function getLocalityByLatLonNominatim($lat, $lon){
+        $url = "http://nominatim.openstreetmap.org/reverse?format=json&lat=".$lat."&lon=".$lon."&zoom=18&addressdetails=1" ;
+        $options = array(
+            "http"=>array(
+                "header"=>"User-Agent: Mozilla/5.0 (iPad; U; CPU OS 3_2 like Mac OS X; en-us) AppleWebKit/531.21.10 (KHTML, like Gecko) Version/4.0.4 Mobile/7B334b Safari/531.21.102011-10-16 20:23:10\r\n" // i.e. An iPad
+            )
+        );
 
-    public static function getAndCheckAddressForEntity($address, $geo = null, $warnings = null){
-        $newAddress = array(    '@type' => 'PostalAddress',
-                                'streetAddress' =>  '', 
-                                'postalCode' =>  '',
-                                'addressLocality' =>  '',
-                                'addressCountry' =>  '',
-                                'codeInsee' =>  '');
+        $context = stream_context_create($options);
+        $result = file_get_contents($url, false, $context);
 
-        $details["warnings"] = array();
+        return $result;
+    }
 
 
-        //On test si le code postal est dans la BD
-        if(!empty($address['postalCode'])){
-            $cityByCp = PHDB::find(City::COLLECTION, array("cp"=>$address['postalCode']));
-            //var_dump($cityByCp);
-            if(empty($cityByCp)){
-                if($warnings)
-                    $details["warnings"][] = "106";
-                else
-                    throw new CTKException(Yii::t("import","106", null, Yii::app()->controller->module->id));
-
-            }
-                
+    public static function getGeoByAddressNominatim($street = null, $cp = null, $city = null, $country = null, $polygon_geojson = null){
+        
+        $url = "http://nominatim.openstreetmap.org/search?format=json&addressdetails=1" ;
+        $urlminimiun = "http://nominatim.openstreetmap.org/search?format=json&addressdetails=1" ;
+        if(!empty($street))
+            $url .= "&street=".str_replace(" ", "+", $street);
+        
+        if(!empty($cp)){
+            $url .= "&postalcode=".$cp;
+            $urlminimiun .= "&postalcode=".$cp;
         }
-        //On a besoin de récupere la locality, la country, l'insee
-        //Si on a la latitude et la longitude 
-        if(!empty($geo["latitude"]) && !empty($geo["longitude"])){
-            //On récupere la city correspondant a la latitude, la longitude et le code postal
-            $city = SIG::getInseeByLatLngCp($geo["latitude"], $geo["longitude"],(empty($address['postalCode']) ? null : $address['postalCode']) );
-            if(!empty($city)){
-                foreach ($city as $key => $value){
-                    $insee = $value["insee"];
-                    $cp = $value["cp"];
-                    $newAddress['addressCountry'] = $value["country"];
-                    $newAddress['addressLocality'] = $value["alternateName"];
-                    break;
-                }
-            }
-            else{
-                //On va parcourir les cities récuperer via le cp
-                if(!empty($cityByCp)) {
-                    $find = false ;
-                    foreach ($cityByCp as $key => $value){
-                        //On test si l'alternateName ou le name corresponds à la Locality se trouvant dans $address
-                        if($value["alternateName"] == $address['addressLocality'] || $value["name"] == $address['addressLocality']){
-                            $insee = $value["insee"];
-                            $cp = $value["cp"];
-                            $newAddress['addressCountry'] = $value["country"];
-                            $newAddress['addressLocality'] = $value["alternateName"];
-                            $find = true ;
-                            break;
-                        }
-                    }
-                    if($find == false){
-                        if($warnings)
-                            $details["warnings"][] = "110";
-                        else
-                            throw new CTKException(Yii::t("import","110", null, Yii::app()->controller->module->id));
-                    } 
-                        
-                }
-                $newProject['warnings'][] = "170";
-            }   
-        }else{
-            foreach ($cityByCp as $key => $value){
-                //On test si l'alternateName ou le name corresponds à la Locality se trouvant dans $address
-                if($value["alternateName"] == $address['addressLocality'] || $value["name"] == $address['addressLocality']){
-                    $insee = $value["insee"];
-                    $cp = $value["cp"];
-                    $newAddress['addressCountry'] = $value["country"];
-                    $newAddress['addressLocality'] = $value["alternateName"];
-                    $find = true ;
-                    break;
-                }
-            }
-            if($find == false){
-                if($warnings)
-                    $details["warnings"][] = "110";
-                else
-                    throw new CTKException(Yii::t("import","110", null, Yii::app()->controller->module->id));
-            }
-        }   
+            
+        if(!empty($city)){
+            $url .= "&city=".str_replace(" ", "+", $city);
+            $urlminimiun .= "&city=".str_replace(" ", "+", $city);
+        }
+            
+        
+        /*if(!empty($country))
+            $url .= "&countrycodes=".$country;*/
+        
+        if(!empty($polygon_geojson)){
+            $url .= "&polygon_geojson=1";
+            $urlminimiun .= "&polygon_geojson=1";
+        }
+            
+        $result = file_get_contents($url);
+        //var_dump($url);
+        
+        if($result == "[]" && !empty($street)){
+            $result = file_get_contents($urlminimiun);
+            //var_dump($urlminimiun);
+        }
+        
+        return $result;
+    }    
 
-        //Afin d'éviter des incohérences, on test si l'insee fournir par $address et l'insee sont identique
-        if(!empty($insee) && !empty($address['codeInsee']) ){
-            if($insee == $address['codeInsee'])
-                $newAddress['codeInsee'] = $insee ;
-            else{
-                if($warnings)
-                    $details["warnings"][] = "171";
-                else
-                    throw new CTKException(Yii::t("import","171", null, Yii::app()->controller->module->id));
-            }
-                
-        }else if(!empty($insee)){
-            $newAddress['codeInsee'] = $insee ;
-        }else if(!empty($address['codeInsee'])){
-            $newAddress['codeInsee'] = $address['codeInsee'];
+
+   public static function getLocalityByLatLonGoogleMap($street = null, $cp = null, $city = null, $country = null, $polygon_geojson = null){
+        $url = "https://maps.googleapis.com/maps/api/geocode/json?address=" ;
+        $urlminimiun = "https://maps.googleapis.com/maps/api/geocode/json?address=" ;
+
+        if(!empty($street))
+            $url .= str_replace(" ", "+", $street);
+        
+        if(!empty($cp)){
+            if(!empty($street))
+                $url .= "+".$cp;
+            else
+                $url .= $cp;
+            $urlminimiun .= $cp;
+        }
+            
+        if(!empty($city)){
+            $url .= "+".str_replace(" ", "+", $city);
+            $urlminimiun .= "+=".str_replace(" ", "+", $city);
         }
 
-        //Même chose pour le code postal
-        if(!empty($address['postalCode']) && !empty($cp)){
-            if($cp == $address['postalCode'])
-                $newAddress['postalCode'] = $cp ;
-            else{
-                if($warnings)
-                    $detail["warnings"][] = "172";
-                else
-                    throw new CTKException(Yii::t("import","172", null, Yii::app()->controller->module->id));
-            }
-                
-        }else if(!empty($cp)){
-            $newAddress['postalCode'] = $cp ;
-        }else if(!empty($address['postalCode'])){
-            $newAddress['postalCode'] = $address['postalCode'];
+
+        $url .= "+Reunion";
+        $urlminimiun .= "+Reunion";
+
+        $url = $url . "&key=".Yii::app()->params['google']['keyMaps'] ;
+        $urlminimiun = $urlminimiun . "&key=".Yii::app()->params['google']['keyMaps'] ;
+        //var_dump($url);
+        
+        $json = file_get_contents($url);
+
+        $resultGoogle = json_decode($json, true);
+        //var_dump(count($resultGoogle["results"]));
+        if(count($resultGoogle["results"]) == 0 && !empty($street)){
+            $json = file_get_contents($urlminimiun);
+            //var_dump($urlminimiun);
         }
+            
 
-        if(!empty($address['streetAddress']))
-            $newAddress['streetAddress'] = $address['streetAddress'];
+        return $json ;
+    }
 
+    public static function getLocalityByLatLonDataGouv($lat, $lon){
+        $url = "http://api-adresse.data.gouv.fr/reverse/?lon=".$lon."&lat=".$lat."&zoom=18&addressdetails=1" ;
+        $json = file_get_contents($url);
+        return $json ;
+    }
 
-        $details["address"] = $newAddress;
-        return $details ;
+    public static function getGeoByAddressDataGouv($lat, $lon){
+        $url = "http://api-adresse.data.gouv.fr/reverse/?lon=".$lon."&lat=".$lat."&zoom=18&addressdetails=1" ;
+        $json = file_get_contents($url);
+        return $json ;
     }
 
 
@@ -1302,17 +1261,342 @@ class Import
     }
 
 
-    public static function imageDrive($id){
-        
+    public static function getMappings($where=array(),$fields=null){
+        $allMapping = PHDB::find(self::MAPPINGS, $where, $fields);
+        return $allMapping;
     }
 
 
+    public static function getAndCheckAddressForEntity($address = null, $geo = null, $warnings = null){
+        
+        $details["warnings"] = array();
+        $newAddress = array(    '@type' => 'PostalAddress',
+                                 'streetAddress' =>  '', 
+                                 'postalCode' =>  '',
+                                 'addressLocality' =>  '',
+                                 'addressCountry' =>  '',
+                                 'codeInsee' =>  '');
+
+        $newGeo["geo"] = array(  "@type"=>"GeoCoordinates",
+                        "latitude" => "",
+                        "longitude" => "");
+
+        //Cas 1 Pas d'adresse , ni geo
+        if(empty($address) && empty($geo)){
+             if($warnings){
+                $details["warnings"][] = "100";
+                $details["warnings"][] = "150";
+             }    
+             else
+                 throw new CTKException(Yii::t("import","100", null, Yii::app()->controller->module->id));
+        }//Cas 2 On a que l'addresse
+        else if(!empty($address) && empty($geo)){
+
+            if(!empty($address["streetAddress"])){
+                $street = $address["streetAddress"] ;
+                $newAddress["streetAddress"] = $address["streetAddress"];
+            }  
+            else
+                $street = null ;
+            if(!empty($address["postalCode"])){
+                $cp = $address["postalCode"] ;
+                $newAddress["postalCode"] = $cp ;
+            } 
+            else
+                $cp = null ;
+            if(!empty($address["addressCountry"]))
+                $country = $address["addressCountry"] ;
+            else
+                $country = null ;
+            if(!empty($address["addressLocality"]))
+                $city = $address["addressLocality"] ;
+            else
+                $city = null ;
+
+            $resultNominatim = json_decode(self::getGeoByAddressNominatim($street, $cp, $city, $country), true);
+            
+            //var_dump($resultGoogle);
+            if(!empty($resultNominatim[0])){
+                
+                $newGeo["geo"]["latitude"] = $resultNominatim[0]["lat"];
+                $newGeo["geo"]["longitude"] = $resultNominatim[0]["lon"];
+                
+                $city = SIG::getCityByLatLngGeoShape($newGeo["geo"]["latitude"], $newGeo["geo"]["longitude"],(empty($cp) ? null : $cp) );
+                
+                if(!empty($city)){
+                    //foreach ($city as $key => $value){
+                        $newAddress["codeInsee"] = $city["insee"];
+                        $newAddress['addressCountry'] = $city["country"];
+                        foreach ($city["postalCodes"] as $keyCp => $valueCp){
+                            if($valueCp["postalCode"] == $cp){
+                                $newAddress['addressLocality'] = $valueCp["name"];
+                            }
+                        }
+                    //    break;
+                    //}
+                }
+            }else{
+
+                $resultGoogle = json_decode(self::getLocalityByLatLonGoogleMap($street, $cp, $city, $country), true);
+                if(!empty($resultGoogle["results"])){
+                    $newGeo["geo"]["latitude"] = $resultGoogle["results"][0]["geometry"]["location"]["lat"];
+                    $newGeo["geo"]["longitude"] = $resultGoogle["results"][0]["geometry"]["location"]["lng"];
+                    $city = SIG::getCityByLatLngGeoShape($newGeo["geo"]["latitude"], $newGeo["geo"]["longitude"],(empty($cp) ? null : $cp) );
+                    
+                    if(!empty($city)){
+                        
+                        $newAddress["codeInsee"] = $city["insee"];
+                        $newAddress['addressCountry'] = $city["country"];
+                        foreach ($city["postalCodes"] as $keyCp => $valueCp){
+                            if($valueCp["postalCode"] == $cp){
+                                $newAddress['addressLocality'] = $valueCp["name"];
+                            }
+                        }
+                    }
+                }
+            }
+
+            
+
+        } // Cas 3 il n'y a que la Géo 
+        else if(empty($address) && !empty($geo)){
+            if(empty($geo["latitude"])){
+                if($warnings)
+                    $details["warnings"][] = "151";
+                else
+                    throw new CTKException(Yii::t("import","151", null, Yii::app()->controller->module->id));
+            }
+
+            if(empty($geo["longitude"])){
+                if($warnings)
+                    $details["warnings"][] = "152";
+                else
+                     throw new CTKException(Yii::t("import","152", null, Yii::app()->controller->module->id));
+            }
+            if(!empty($geo["latitude"]) && !empty($geo["longitude"])){
+                $newGeo["geo"]["latitude"] = $geo["latitude"] ;
+                $newGeo["geo"]["longitude"] =  $geo["longitude"] ;
+                $resultNominatim = json_decode(self::getLocalityByLatLonNominatim($geo["latitude"], $geo["longitude"]), true);
+            }  
+                
+            
+            if(!empty($resultNominatim)){
+                if($resultNominatim["address"]["country_code"] == "fr"){
+
+                    
+                    $arrayCP = explode(";", $resultNominatim["address"]["postcode"]);
+                    $city = SIG::getCityByLatLngGeoShape($newGeo["geo"]["latitude"], $newGeo["geo"]["longitude"],(empty($arrayCP[0]) ? null : $arrayCP[0]) );
+                    //$city = SIG::getCityByLatLngGeoShape($newGeo["geo"]["latitude"], $newGeo["geo"]["longitude"], null);
+                
+                    if(!empty($city)){
+                        //foreach ($city as $key => $value){
+                            $newAddress["codeInsee"] = $city["insee"];
+                            $newAddress['addressCountry'] = $city["country"];
+                            
+                            $newAddress['postalCode'] = $arrayCP[0];
+                            foreach ($city["postalCodes"] as $keyCp => $valueCp){
+                                if($valueCp["postalCode"] == $arrayCP[0]){
+                                    $newAddress['addressLocality'] = $valueCp["name"];
+                                }
+                            }
+                        //    break;
+                        //}
+                    }
+                }else{
+                    throw new CTKException("N'est pas en France");
+                }
+            }else{
+                $resultDataGouv = json_decode(self::getLocalityByLatLonNominatim($geo["latitude"], $geo["longitude"]), true);
+            }
+            
+
+        } // Cas 4 Il y a les 2
+        else if(!empty($address) && !empty($geo)){
+            /*$newAddress["streetAddress"] = (empty($address["streetAddress"])?"":$address["streetAddress"]) ;
+            $newAddress["postalCode"] = (empty($address["postalCode"])?"":$address["postalCode"]) ;
+            $newAddress["addressLocality"] = (empty($address["addressLocality"])?"":$address["addressLocality"]) ;
+            $newAddress["addressCountry"] = (empty($address["addressCountry"])?"":$address["addressCountry"]) ;
+            $newAddress["codeInsee"] = (empty($address["codeInsee"])?"":$address["codeInsee"]) ;*/
+           
+            $newGeo["geo"]["latitude"] = (empty($geo["latitude"])?"":$geo["latitude"]) ;
+            $newGeo["geo"]["longitude"] = (empty($geo["longitude"])?"":$geo["longitude"]) ;
 
 
+            if(!empty($address["streetAddress"])){
+                $street = $address["streetAddress"] ;
+                $newAddress["streetAddress"] = $address["streetAddress"];
+            }  
+            else
+                $street = null ;
 
-    
+            if(!empty($address["postalCode"])){
+                $cp = $address["postalCode"] ;
+                $newAddress["postalCode"] = $cp ;
+            } 
+            else
+                $cp = null ;
+            if(!empty($address["addressCountry"]))
+                $country = $address["addressCountry"] ;
+            else
+                $country = null ;
+            if(!empty($address["addressLocality"]))
+                $city = $address["addressLocality"] ;
+            else
+                $city = null ;
 
+            $resultNominatim = json_decode(self::getGeoByAddressNominatim($street, $cp, $city, $country), true);
+            
+            if(!empty($resultNominatim[0])){
+                
+                //Comparer la geo avec nominatim
+                
 
+                //
+                //var_dump($cp);
 
+            }
+            $city = SIG::getCityByLatLngGeoShape($newGeo["geo"]["latitude"], $newGeo["geo"]["longitude"],(empty($cp) ? null : $cp) );
+            
+            if(!empty($city)){
+                //foreach ($city as $key => $value){
+                    $newAddress["codeInsee"] = $city["insee"];
+                    $newAddress['addressCountry'] = $city["country"];
+                    foreach ($city["postalCodes"] as $keyCp => $valueCp){
+                        if($valueCp["postalCode"] == $cp){
+                            $newAddress['addressLocality'] = $valueCp["name"];
+                        }
+                    }
+                //    break;
+                //}
+            }
+            
+        
+        }
+
+        if(!empty($newGeo["geo"]["latitude"]) && !empty($newGeo["geo"]["longitude"])){
+
+            $newGeo["geoPosition"] = array("type"=>"Point",
+                                                "coordinates" =>
+                                                    array(
+                                                        floatval($newGeo["geo"]['latitude']),
+                                                        floatval($newGeo["geo"]['longitude'])));
+            $details["geo"] = $newGeo["geo"];
+            $details["geoPosition"] = $newGeo["geoPosition"];
+        }
+        
+                                                   
+        
+        /*//On test si le code postal est dans la BD
+        if(!empty($address['postalCode'])){
+             $cityByCp = PHDB::find(City::COLLECTION, array("cp"=>$address['postalCode']));
+             //var_dump($cityByCp);
+             if(empty($cityByCp)){
+                 if($warnings)
+                     $details["warnings"][] = "106";
+                 else
+                     throw new CTKException(Yii::t("import","106", null, Yii::app()->controller->module->id));
+ 
+             }
+                 
+         }
+         //On a besoin de récupere la locality, la country, l'insee
+         //Si on a la latitude et la longitude 
+         if(!empty($geo["latitude"]) && !empty($geo["longitude"])){
+             //On récupere la city correspondant a la latitude, la longitude et le code postal
+             $city = SIG::getInseeByLatLngCp($geo["latitude"], $geo["longitude"],(empty($address['postalCode']) ? null : $address['postalCode']) );
+             if(!empty($city)){
+                 foreach ($city as $key => $value){
+                     $insee = $value["insee"];
+                    $cp = $value["cp"];
+                     $newAddress['addressCountry'] = $value["country"];
+                     $newAddress['addressLocality'] = $value["alternateName"];
+                     break;
+                 }
+             }
+             else{
+                 //On va parcourir les cities récuperer via le cp
+                 if(!empty($cityByCp)) {
+                     $find = false ;
+                     foreach ($cityByCp as $key => $value){
+                         //On test si l'alternateName ou le name corresponds à la Locality se trouvant dans $address
+                         if($value["alternateName"] == $address['addressLocality'] || $value["name"] == $address['addressLocality']){
+                             $insee = $value["insee"];
+                             $cp = $value["cp"];
+                             $newAddress['addressCountry'] = $value["country"];
+                             $newAddress['addressLocality'] = $value["alternateName"];
+                             $find = true ;
+                             break;
+                         }
+                     }
+                if($find == false){
+                         if($warnings)
+                             $details["warnings"][] = "110";
+                         else
+                             throw new CTKException(Yii::t("import","110", null, Yii::app()->controller->module->id));
+                     } 
+                         
+                 }
+                 $newProject['warnings'][] = "170";
+             }   
+         }else{
+            $find = false;
+             foreach ($cityByCp as $key => $value){
+                 //On test si l'alternateName ou le name corresponds à la Locality se trouvant dans $address
+                 if($value["alternateName"] == $address['addressLocality'] || $value["name"] == $address['addressLocality']){
+                     $insee = $value["insee"];
+                     $cp = $value["cp"];
+                     $newAddress['addressCountry'] = $value["country"];
+                     $newAddress['addressLocality'] = $value["alternateName"];
+                     $find = true ;
+                     break;
+                 }
+             }
+             if($find == false){
+                 if($warnings)
+                     $details["warnings"][] = "110";
+                 else
+                     throw new CTKException(Yii::t("import","110", null, Yii::app()->controller->module->id));
+             }
+         }   
+ 
+         //Afin d'éviter des incohérences, on test si l'insee fournir par $address et l'insee sont identique
+         if(!empty($insee) && !empty($address['codeInsee']) ){
+             if($insee == $address['codeInsee'])
+                 $newAddress['codeInsee'] = $insee ;
+             else{
+                 if($warnings)
+                     $details["warnings"][] = "171";
+                 else
+                     throw new CTKException(Yii::t("import","171", null, Yii::app()->controller->module->id));
+             }}else if(!empty($insee)){
+             $newAddress['codeInsee'] = $insee ;
+         }else if(!empty($address['codeInsee'])){
+             $newAddress['codeInsee'] = $address['codeInsee'];
+         }
+ 
+         //Même chose pour le code postal
+         if(!empty($address['postalCode']) && !empty($cp)){
+             if($cp == $address['postalCode'])
+                 $newAddress['postalCode'] = $cp ;
+             else{
+                 if($warnings)
+                     $detail["warnings"][] = "172";
+                 else
+                     throw new CTKException(Yii::t("import","172", null, Yii::app()->controller->module->id));
+             }
+                 
+         }else if(!empty($cp)){
+             $newAddress['postalCode'] = $cp ;
+         }else if(!empty($address['postalCode'])){
+             $newAddress['postalCode'] = $address['postalCode'];
+         }
+ 
+         if(!empty($address['streetAddress']))
+             $newAddress['streetAddress'] = $address['streetAddress'];
+        */
+        $details["address"] = $newAddress;
+
+        return $details;
+    } 
 }
 

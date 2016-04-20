@@ -38,13 +38,16 @@ class Mail
             "to" => Yii::app()->params['adminEmail'],
             "tplParams" => array(   "person"   => $person ,
                                     "title" => Yii::app()->name ,
-                                    "logo"  => "/images/logo.png")
+                                    "logo"  => "/images/logoLTxt.jpg")
         );
         Mail::schedule($params);
     }
 
-    public static function invitePerson($person, $msg = null) {
-        $invitor = Person::getSimpleUserById($person["invitedBy"]);
+    public static function invitePerson($person, $msg = null, $nameInvitor = null) {
+        if(isset($person["invitedBy"]))
+            $invitor = Person::getSimpleUserById($person["invitedBy"]);
+        else if(isset($nameInvitor))
+            $invitor["name"] = $nameInvitor ;
 
         if(empty($msg))
             $msg = $invitor["name"]. " vous invite à rejoindre Communecter.";
@@ -104,7 +107,7 @@ class Mail
             "to" => $person["email"],
             "tplParams" => array( "user"  => $person["_id"] ,
                                   "title" => Yii::app()->name ,
-                                  "logo"  => "/images/logo.png" ) );
+                                  "logo"  => "/images/logoLTxt.jpg" ) );
         Mail::schedule($params);
     }
 
@@ -119,7 +122,7 @@ class Mail
             "tplParams" => array( "user"=> $creator['_id'] ,
                                    "title" => $newEvent['name'] ,
                                    "creatorName" => $creator['name'],
-                                   "url"  => "/event/detail/id/".$newEvent["_id"] )
+                                   "url"  => "#event.detail.id.".$newEvent["_id"] )
             );
         Mail::schedule($params);
     }
@@ -135,7 +138,7 @@ class Mail
             "tplParams" => array( "user"=> $creator['_id'] ,
                                    "title" => $newProject['name'] ,
                                    "creatorName" => $creator['name'],
-                                   "url"  => "/event/dashboard/id/".$newProject["_id"] )
+                                   "url"  => "#project.detail.id.".$newProject["_id"] )
             );
         Mail::schedule($params);
     }
@@ -151,7 +154,7 @@ class Mail
             "tplParams" => array( "user"=> $creator['_id'] ,
                                    "title" => $newOrganization['name'] ,
                                    "creatorName" => $creator['name'],
-                                   "url"  => "/organization/dashboard/id/".$newOrganization["_id"] )
+                                   "url"  => "#organization.dashboard.id.".$newOrganization["_id"] )
         );
         Mail::schedule($params);
     }
@@ -215,4 +218,5 @@ class Mail
             Mail::schedule($params);
         }
     }
+
 }

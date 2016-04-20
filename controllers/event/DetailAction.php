@@ -109,9 +109,9 @@ class DetailAction extends CAction
         $params["eventTypes"] = $list["eventTypes"];
         
 		$page = "detail";
-		if(Yii::app()->request->isAjaxRequest)
-            echo $controller->renderPartial($page,$params,true);
+		    if(Yii::app()->request->isAjaxRequest)
+          echo $controller->renderPartial($page,$params,true);
         else 
-			$controller->render( $page , $params );
+			    $controller->render( $page , $params );
     }
 }

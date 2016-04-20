@@ -59,9 +59,11 @@ class Role {
         //BetaTest mode only when not on publicPage
         if (!$publicPage) {
 	        if (@Yii::app()->params['betaTest']) {
-	        	if (isset($roles["betaTester"]) && ! @$roles["betaTester"]) {
-					return array("result"=>false, 
-						"msg" => "betaTestNotOpen");
+	        	if (isset($roles["betaTester"])) {
+	        		if (! $roles["betaTester"]) {
+						return array("result"=>false, 
+							"msg" => "betaTestNotOpen");
+					}
 				}
 	    	}    
 	    } else {
@@ -73,7 +75,7 @@ class Role {
 
 	    //The account is not validated
         if (isset($roles["tobeactivated"]) && @$roles["tobeactivated"] ) {
-            return array("result"=>false, "msg"=>"notValidatedEmail");
+            return array("result"=>false, "id" => @$person[_id], "msg"=>"notValidatedEmail");
         }
         
         return $res;

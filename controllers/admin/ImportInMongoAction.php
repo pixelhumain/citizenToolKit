@@ -15,6 +15,8 @@ class ImportInMongoAction extends CAction
         	$collection = Project::COLLECTION;
         else if($infoCollection[$_POST['idCollection']]['key'] == "Person")
             $collection = Person::COLLECTION;
+        else if($infoCollection[$_POST['idCollection']]['key'] == "Events")
+            $collection = Event::COLLECTION;
 
         $paramsForJson = array("jsonImport"=> $_POST["jsonImport"],
                             "jsonError"=> $_POST["jsonError"],
