@@ -855,7 +855,7 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 				foreach ($organization['telephone']["fixe"] as $key => $value) {
 					$trimValue=trim($value);
 					if(!empty($trimValue))
-						$fixe[] = "0".$trimValue;
+						$fixe[] = $trimValue;
 				}
 			}
 			if(!empty($organization['telephone']["mobile"]))
@@ -863,7 +863,7 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 				foreach ($organization['telephone']["mobile"] as $key => $value) {
 					$trimValue=trim($value);
 					if(!empty($trimValue))
-						$mobile[] = "0".$trimValue;
+						$mobile[] = $trimValue;
 				}
 			}
 
@@ -872,7 +872,7 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 				foreach ($organization['telephone']["fax"] as $key => $value) {
 					$trimValue=trim($value);
 					if(!empty($trimValue))
-						$fax[] = "0".$trimValue;
+						$fax[] = $trimValue;
 				}
 			}
 			if(count($mobile) != 0)
@@ -885,9 +885,9 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 				$newOrganization['telephone'] = $tel;
 		}
 
-		if(!empty($organization['contact'])){
+		if(!empty($organization['contacts'])){
 			$contact = array();
-			foreach ($organization['contact'] as $keyContact => $valueContact) {
+			foreach ($organization['contacts'] as $keyContact => $valueContact) {
 				$unContact = array();
 				foreach ($valueContact as $key => $value) {
 					if(is_array($value)){
@@ -910,7 +910,7 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 					$contact[] = $unContact;
 			}
 			if(count($contact) != 0)	
-				$newOrganization['contact'] = $contact;
+				$newOrganization['contacts'] = $contact;
 		}
 
 		
@@ -933,11 +933,10 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 		else
 			$newOrganization['warnings'] = $details['warnings'];
 
-		$newOrganization["image"] = "nuit-debout-dijon.jpg";
+		if(!empty($organization['citizenType']))
+			$newOrganization["citizenType"] = $organization['citizenType'];
 
-		$newOrganization["citizenType"] = "citizenAssembly";
-
-		$newOrganization["tags"][] = "NuitDebout";
+		
 
 		return $newOrganization;
 	}
@@ -1074,8 +1073,8 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 		if (!empty($organization['telephone']))
 			$newOrganization["telephone"] = $organization['telephone'];
 
-		if(!empty($organization['contact'])){
-			foreach ($organization['contact'] as $key => $valueContactPoint) {
+		if(!empty($organization['contacts'])){
+			foreach ($organization['contacts'] as $key => $valueContactPoint) {
 				if(!empty($valueContactPoint['email'])){
 					//validate Email
 					if (! preg_match('#^[\w.-]+@[\w.-]+\.[a-zA-Z]{2,6}$#',$valueContactPoint['email'])) { 
@@ -1086,7 +1085,7 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 					}
 				}
 			}
-			$newOrganization["contact"] = $organization['contact'];
+			$newOrganization["contacts"] = $organization['contacts'];
 		}
 
 		if(!empty($organization['creator'])){

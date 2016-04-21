@@ -437,7 +437,8 @@ class Import
         if(!empty($post['key']))
             $data["source"]['key'] = $post['key'];
 
-        //$data["image"][] = "Alternatibat";
+        $data["tags"][] = "Alternative";
+        $data["tags"][] = "Alternatiba";
 
         if(!empty($post["warnings"]) && $post["warnings"] == "true")
             $warnings = true ;
@@ -1132,7 +1133,7 @@ class Import
             
         
         if(!empty($country))
-            $url .= "&countrycodes=".$country;
+           // $url .= "&countrycodes=".$country;
         
         if(!empty($polygon_geojson)){
             $url .= "&polygon_geojson=1";
@@ -1162,7 +1163,7 @@ class Import
             $urlminimiun .= "&city=".str_replace(" ", "+", $city);
         }
         if(!empty($country))
-            $urlminimiun .= "&countrycodes=".$country;
+            //$urlminimiun .= "&countrycodes=".$country;
         
         if(!empty($polygon_geojson)){
             $urlminimiun .= "&polygon_geojson=1";
