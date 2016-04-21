@@ -3,31 +3,54 @@ class GlobalAutoCompleteAction extends CAction
 {
     public function run($filter = null)
     {
-        $search = trim(urldecode($_POST['name']));
+
+  //   	$pathParams = Yii::app()->controller->module->viewPath.'/default/dir/';
+		// echo file_get_contents($pathParams."simply.json");
+		// die();
+
+        $search = isset($_POST['name']) ? trim(urldecode($_POST['name'])) : null;
         $locality = isset($_POST['locality']) ? trim(urldecode($_POST['locality'])) : null;
         $searchType = isset($_POST['searchType']) ? $_POST['searchType'] : null;
+        $searchTag = isset($_POST['searchTag']) ? $_POST['searchTag'] : null;
         $searchBy = isset($_POST['searchBy']) ? $_POST['searchBy'] : "INSEE";
         $indexMin = isset($_POST['indexMin']) ? $_POST['indexMin'] : 0;
         $indexMax = isset($_POST['indexMax']) ? $_POST['indexMax'] : 100;
         $country = isset($_POST['country']) ? $_POST['country'] : "";
+        $sourceKey = isset($_POST['sourceKey']) ? $_POST['sourceKey'] : "";
 
-        error_log("global search " . $search . " - searchBy : ". $searchBy. " & locality : ". $locality. " & country : ". $country);
+        error_log("global search " . $search . " - searchBy : ". $searchBy. " & locality : ". $locality. " & country : ". $country." & sourceKey : ".$sourceKey);
 	    
-        if($search == "" && $locality == "") {
+        if($search == "" && $locality == "" && $sourceKey == "") {
         	Rest::json(array());
 			Yii::app()->end();
         }
         /***********************************  DEFINE GLOBAL QUERY   *****************************************/
-        $query = array( "name" => new MongoRegex("/".$search."/i"));
-  		
+        $query = array( "name" => new MongoRegex("/".$search."/i"));		
 
         /***********************************  TAGS   *****************************************/
+        $tmpTags = array();
         if(strpos($search, "#") > -1){
         	$search = substr($search, 1, strlen($search));
-        	$query = array( "tags" => array('$in' => array(new MongoRegex("/".$search."/i")))) ; //new MongoRegex("/".$search."/i") )));
+        	// $query = array( "tags" => array('$in' => array(new MongoRegex("/".$search."/i")))) ; //new MongoRegex("/".$search."/i") )));
+        	$tmpTags[] = new MongoRegex("/".$search."/i");
   		}
+  		if($searchTag)foreach ($searchTag as $value) {
+  			$tmpTags[] = new MongoRegex("/".$value."/i");
+  		}
+  		if(count($tmpTags)){
+  			$query = array('$and' => array( $query , array("tags" => array('$in' => $tmpTags)))) ;
+  		}
+  		unset($tmpTags);
 
   		$query = array('$and' => array( $query , array("state" => array('$ne' => "uncomplete")) ));
+
+  		/***********************************  SOURCEKEY   *****************************************/
+         if($sourceKey != null && $sourceKey != ""){
+        	$sourceKeyQuery = array( "source.key" => array('$in' => array(new MongoRegex("/".$sourceKey."/i")))) ; //new MongoRegex("/".$search."/i") )));
+        	$query = array('$and' => array( $query ,$sourceKeyQuery));
+  		}
+
+  		
 
   		/***********************************  DEFINE LOCALITY QUERY   *****************************************/
         if($locality != null && $locality != ""){
@@ -96,7 +119,7 @@ class GlobalAutoCompleteAction extends CAction
 	    $allRes = array();
 
         /***********************************  PERSONS   *****************************************/
-        if(strcmp($filter, Person::COLLECTION) != 0 && $this->typeWanted("persons", $searchType)){
+        if(strcmp($filter, "sourceKey") != 0){
 
         	$allCitoyen = PHDB::find ( Person::COLLECTION , $query, array("name", "address", "shortDescription", "description"));
 
@@ -118,6 +141,7 @@ class GlobalAutoCompleteAction extends CAction
 	  		$allOrganizations = PHDB::find ( Organization::COLLECTION ,$query ,array("name", "address", "shortDescription", "description"));
 	  		foreach ($allOrganizations as $key => $value) {
 	  			$orga = Organization::getSimpleOrganizationById($key);
+
 	  			$followers = Organization::getFollowersByOrganizationId($key);
 	  			if(@$followers[Yii::app()->session["userId"]]){
 		  			$orga["isFollowed"] = true;
@@ -262,9 +286,6 @@ class GlobalAutoCompleteAction extends CAction
 		  		}
 		  		//$res["cities"] = $allCitiesRes;  		
 	  		}
-
-	  		
-
 	  	}
 
 	  	//trie les éléments dans l'ordre alphabetique par name
@@ -287,16 +308,42 @@ class GlobalAutoCompleteAction extends CAction
 	  		if(isset($allCitiesRes)) 
 	  			$allRes = array_merge($allRes, $allCitiesRes);
 
-	  	$limitRes = array();
+	  	$limitRes = $filters = array();
 	  	$index = 0;
 	  	foreach ($allRes as $key => $value) {
-	  		if($index < $indexMax && $index >= $indexMin){ $limitRes[] = $value;
+	  		if($index < $indexMax && $index >= $indexMin){ 
+	  			$limitRes[] = $value;
 		  	}//else{ break; }
+
+		  	//filter tag
+		  	if(isset($value['tags']))foreach ($value['tags'] as $key => $value) {
+		  		if(isset($filters['tags'][$value])){
+		  			$filters['tags'][$value] +=1;
+		  		}
+		  		else{
+		  			$filters['tags'][$value] = 1;
+		  		}
+		  		arsort($filters['tags']);
+		  	}
+
+		  	//filter type
+	  		if(isset($value['type'])){
+	  			if(isset($filters['types'][$value['type']])){
+	  				$filters['types'][$value['type']] +=1;
+	  			}
+	  			else{
+	  				$filters['types'][$value['type']] = 1;
+	  			}
+	  			arsort($filters['types']);
+	  		}
 		  	$index++;
 	  	}
 
-	  	
-  		//Rest::json($res);
+	  	// $res['res'] = $limitRes;
+	  	// $res['filters'] = $filters;
+	  	// Rest::json($res);
+  		// Rest::json($res);
+  		// Rest::json($filters);
 		Rest::json($limitRes);
 		Yii::app()->end();
     }
