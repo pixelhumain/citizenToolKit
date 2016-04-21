@@ -4,16 +4,16 @@ class EditEntryAction extends CAction
     public function run( $survey,$id=null )
     {
         $controller=$this->getController();
-        $surveyObj = PHDB::findOne (Survey::PARENT_COLLECTION, array("_id"=>new MongoId ( $survey ) ) );
+        $parentSurvey = PHDB::findOne (Survey::PARENT_COLLECTION, array("_id"=>new MongoId ( $survey ) ) );
+        $params = array( "parentSurvey" => $parentSurvey );
         if($id)
         {
             $entry = PHDB::findOne (Survey::COLLECTION, array("_id"=>new MongoId ( $id ) ) );
-            $params = array( 
-                "title" => $entry["name"] ,
-                "content" => $controller->renderPartial( "entry", array( "survey" => $entry ), true),
-                "contentBrut" => $entry["message"],
-                "survey" => $entry,
-                 ) ;
+            $params ["title"] = $entry["name"];
+            $params ["content"] = $controller->renderPartial( "entry", array( "survey" => $entry ), true);
+            $params ["contentBrut"] = $entry["message"];
+            $params ["survey"] = $entry;
+                 
 
           if( isset($entry["organizerType"]) )
           {
@@ -36,7 +36,7 @@ class EditEntryAction extends CAction
           $params["images"] = $images;
           $params["contentKeyBase"] = $contentKeyBase;
         }
-        $params = array( "survey" => $surveyObj );
+        
         echo $controller->renderPartial("editEntrySV" , $params,true);
     }
 }
