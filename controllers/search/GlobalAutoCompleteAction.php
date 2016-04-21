@@ -8,7 +8,7 @@ class GlobalAutoCompleteAction extends CAction
 		// echo file_get_contents($pathParams."simply.json");
 		// die();
 
-        $search = trim(urldecode($_POST['name']));
+        $search = isset($_POST['name']) ? trim(urldecode($_POST['name'])) : null;
         $locality = isset($_POST['locality']) ? trim(urldecode($_POST['locality'])) : null;
         $searchType = isset($_POST['searchType']) ? $_POST['searchType'] : null;
         $searchTag = isset($_POST['searchTag']) ? $_POST['searchTag'] : null;
