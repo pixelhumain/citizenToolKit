@@ -808,7 +808,16 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 			//$newOrganization["warnings"][] = "212" ;
 			
 		}else{
-			$newOrganization["type"] = $organization['type'];
+			//$newOrganization["type"] = $organization['type'];
+			if(trim($organization['type']) == "Association")
+				$newOrganization["type"] = Organization::TYPE_NGO ;
+			else if(trim($organization['type']) == "Groupe gouvernemental")
+				$newOrganization["type"] = Organization::TYPE_GOV ;
+			else if(trim($organization['type']) == "Entreprise")
+				$newOrganization["type"] = Organization::TYPE_BUSINESS ;
+			else
+				$newOrganization["type"] = Organization::TYPE_GROUP ;
+
 		}
 			
 		
@@ -846,7 +855,7 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 				foreach ($organization['telephone']["fixe"] as $key => $value) {
 					$trimValue=trim($value);
 					if(!empty($trimValue))
-						$fixe[] = $trimValue;
+						$fixe[] = "0".$trimValue;
 				}
 			}
 			if(!empty($organization['telephone']["mobile"]))
@@ -854,7 +863,7 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 				foreach ($organization['telephone']["mobile"] as $key => $value) {
 					$trimValue=trim($value);
 					if(!empty($trimValue))
-						$mobile[] = $trimValue;
+						$mobile[] = "0".$trimValue;
 				}
 			}
 
@@ -863,7 +872,7 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 				foreach ($organization['telephone']["fax"] as $key => $value) {
 					$trimValue=trim($value);
 					if(!empty($trimValue))
-						$fax[] = $trimValue;
+						$fax[] = "0".$trimValue;
 				}
 			}
 			if(count($mobile) != 0)
@@ -909,15 +918,10 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 		if(!empty($organization['source']))
 			$newOrganization["source"] = $organization["source"];
 		
-		/*if(!empty($organization['geo']['latitude']))
-			$newOrganization['geo']['latitude'] = $organization['geo']['latitude'];
-
-		if(!empty($organization['geo']['longitude']))
-			$newOrganization['geo']['longitude'] = $organization['geo']['longitude'];*/
-
-		//if(!empty($organization['address'])){
+		
 		$address = (empty($organization['address']) ? null : $organization['address']);
 		$geo = (empty($organization['geo']) ? null : $organization['geo']);
+		//var_dump($newOrganization['name']);
 		$details = Import::getAndCheckAddressForEntity($address, $geo, $warnings) ;
 		$newOrganization['address'] = $details['address'];
 
@@ -929,10 +933,11 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 		else
 			$newOrganization['warnings'] = $details['warnings'];
 
-		//}
-		$newOrganization["image"] = "r8HE2Uzi.jpg";
-		/*if(!empty($organization['image']))
-			$newOrganization["image"] = "r8HE2Uzi.jpg";*/
+		$newOrganization["image"] = "nuit-debout-dijon.jpg";
+
+		$newOrganization["citizenType"] = "citizenAssembly";
+
+		$newOrganization["tags"][] = "NuitDebout";
 
 		return $newOrganization;
 	}
@@ -956,11 +961,7 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 		}else
 			$newOrganization['name'] = $organization['name'];
 		
-		// Is There a association with the same name ?
-	    /*$organizationSameName = PHDB::findOne( Organization::COLLECTION,array( "name" => $organization["name"]));      
-	    if($organizationSameName) { 
-	      throw new CTKException(Yii::t("organization","An organization with the same name already exist in the plateform"));
-	    }*/
+		
 
 
 		$newEvent['created'] = new MongoDate(time()) ;
@@ -1104,6 +1105,9 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 		if(!empty($organization['details'])){
 			$newOrganization["details"] = $organization['details'];
 		}
+		if(!empty($organization['citizenType'])){
+			$newOrganization["citizenType"] = $organization['citizenType'];
+		}
 
 		//url by ImportData
 		if(!empty($organization['url'])){
@@ -1135,7 +1139,12 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 				throw new CTKException(Yii::t("organization","Projet ImaginationForPeople"));
 			}
 		}*/
-		
+
+		// Is There a association with the same name ?
+	    $organizationSameName = PHDB::findOne( Organization::COLLECTION,array( "name" => $organization["name"], "address.codeInsee" => $newOrganization["address"]["codeInsee"]));      
+	    if($organizationSameName) { 
+	      throw new CTKException(Yii::t("organization","An organization with the same name already exist in the plateform"));
+	    }
 		return $newOrganization;
 	}
 
@@ -1147,7 +1156,7 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 	 * @param String $adminId : can be ommited. user id representing the administrator of the organization
 	 * @return array result as an array. 
 	 */
-	public static function insertOrganizationFromImportData($organization, $creatorId, $warnings = null, $pathFolderImage = null, $moduleId = null){
+	public static function insertOrganizationFromImportData($organization, $creatorId, $warnings = null, $pathFolderImage = null, $moduleId = null, $paramsLink = null){
 	    
 	    $newOrganization = Organization::getAndCheckOrganizationFromImportData($organization, true, null, $warnings);
 		
@@ -1200,6 +1209,16 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 				throw new CTKException($e);
 			}	
 		}
+
+
+		if(!empty($paramsLink) && $paramsLink["link"] == true){
+			if($paramsLink["typeLink"] == "Organization")
+				Link::addMember($paramsLink["idLink"], Organization::COLLECTION, $newOrganizationId, Organization::COLLECTION, $creatorId, $paramsLink["isAdmin"]);
+
+			if($paramsLink["typeLink"] == "Person")
+				Link::addMember($newOrganizationId, Organization::COLLECTION, $paramsLink["idLink"], Person::COLLECTION, $creatorId, $paramsLink["isAdmin"]);
+		}
+
 
 		$newOrganization = Organization::getById($newOrganizationId);
 	    return array("result"=>true,
