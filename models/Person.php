@@ -690,10 +690,10 @@ class Person {
      * Login with email and password. Check if the email and password match on db.
      * @param  [string] $email   email connected to the citizen account
      * @param  [string] $pwd   pwd connected to the citizen account
-     * @param  [string] $publicPage is the page requested public or not. If true, the betaTest option will not be ignored
+     * @param  [boolean] $isRegisterProcess Are we trying to login during the register process
      * @return [array] array of result as (result => boolean, msg => string)
      */
-    public static function login($email, $pwd, $publicPage) 
+    public static function login($email, $pwd, $isRegisterProcess) 
     {
         if (empty($email) || empty($pwd)) {
         	return array("result"=>false, "msg"=>"Cette requête ne peut aboutir. Merci de bien vouloir réessayer en complétant les champs nécessaires");
@@ -710,12 +710,12 @@ class Person {
         }
         
         //Roles validation
-        $res = Role::canUserLogin($account, $publicPage);
+        $res = Role::canUserLogin($account, $isRegisterProcess);
         if ($res["result"]) {
 	        //Check the password
 	        if (self::checkPassword($pwd, $account)) {
 	            Person::saveUserSessionData($account);
-	            $res = array("result"=>true, "id"=>$account["_id"],"isCommunected"=>isset($account["cp"]));
+	            $res = array("result"=>true, "id"=>$account["_id"], "isCommunected"=>isset($account["cp"]), "msg" => $res["msg"]);
 	        } else {
 	            $res = array("result"=>false, "msg"=>"Email ou Mot de Passe ne correspondent pas, rééssayez.");
 	        }

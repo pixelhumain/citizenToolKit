@@ -44,7 +44,7 @@ class RegisterAction extends CAction
 				Rest::json($res);
 				exit;
 			} 
-
+		//New user
 		} else {
 			try {
 				$newPerson['email'] = $email;
@@ -56,11 +56,21 @@ class RegisterAction extends CAction
 				exit;
 			}
 		}
+		
+		//send validation mail to the user
+		$newPerson["_id"] = $res["id"];
+		$newPerson['email'] = $email;
+		$newPerson["inviteCode"] = $inviteCode;
+		Mail::validatePerson($newPerson);
 
 		//Try to login with the user
-		$res = Person::login($email,$pwd,false);
+		$res = Person::login($email,$pwd,true);
 		if ($res["result"]) {
-			$controller->redirect(array("person/login"));
+			if ($res["msg"] == "notValidatedEmail") {
+				//The user is automatically logued even if he has not validated his email.
+				//As it's his first login. Next time, he couldn't login.
+				$res = array("result"=>true, "msg"=> Yii::t("login","You are now communnected !")."<br>".Yii::t("login","Check your mailbox you'll receive soon a mail to validate your email address."), "id"=>$pendingUserId);
+			} 
 		} else if ($res["msg"] == "betaTestNotOpen") {
 			$newPerson["_id"] = $pendingUserId;
 			$newPerson['email'] = $email;
@@ -68,16 +78,7 @@ class RegisterAction extends CAction
 			//send communecter overview mail
 			//Mail::communecterOverview($newPerson);
 			$res = array("result"=>true, "msg"=> Yii::t("login","You are now communnected !")."<br>".Yii::t("login","Our developpers are fighting to open soon ! Check your mail that will happen soon !"), "id"=>$pendingUserId); 
-		} else if ($res["msg"] == "notValidatedEmail") {
-			$newPerson["_id"] = $res["id"];
-			$newPerson['email'] = $email;
-			$newPerson["inviteCode"] = $inviteCode;
-
-			//send validation mail if the user is not validated
-			Mail::validatePerson($newPerson);
-			$res = array("result"=>true, "msg"=> Yii::t("login","You are now communnected !")."<br>".Yii::t("login","Check your mailbox you'll receive soon a mail to validate your email address."), "id"=>$pendingUserId); 
-		}
-
+		} 
 		Rest::json($res);
 		exit;
     }
