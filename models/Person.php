@@ -493,7 +493,7 @@ class Person {
 	  	$person["preferences"] = array("seeExplanations"=> true);
 	  	
 	  	if (@Yii::app()->params['betaTest'])
-	  		$person["numberOfInvit"] = Yii::app()->params['numberOfInvitByPerson'];
+	  		$person["numberOfInvit"] = empty(Yii::app()->params['numberOfInvitByPerson']) ? 0 : Yii::app()->params['numberOfInvitByPerson'];
 
 	  	PHDB::insert( Person::COLLECTION , $person);
  
