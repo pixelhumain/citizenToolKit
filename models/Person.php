@@ -491,6 +491,9 @@ class Person {
 
 	  	$person["created"] = new mongoDate(time());
 	  	$person["preferences"] = array("seeExplanations"=> true);
+	  	
+	  	if (@Yii::app()->params['betaTest'])
+	  		$person["numberOfInvit"] = Yii::app()->params['numberOfInvitByPerson'];
 
 	  	PHDB::insert( Person::COLLECTION , $person);
  
