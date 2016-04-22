@@ -106,11 +106,11 @@ class Link {
     }
 
     private static function checkIdAndType($id, $type) {
-        /*echo "ici";
-        var_dump($type);
-        var_dump($id);*/
 		if ($type == Organization::COLLECTION) {
         	$res = Organization::getById($id); 
+            if (@$res["disabled"]) {
+                throw new CTKException("Impossible to link something on a disabled organization");    
+            }
         } else if ($type == Person::COLLECTION) {
         	$res = Person::getById($id);
         } else if ($type== Event::COLLECTION){
