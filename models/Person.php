@@ -359,15 +359,22 @@ class Person {
 	 */
 	public static function createAndInvite($param, $msg = null) {
 	  	try {
-	  		$res = self::insert($param, self::REGISTER_MODE_MINIMAL);
-	  		//send invitation mail
-			Mail::invitePerson($res["person"], $msg);
+	  		//Check if the person can still invite : has he got enought invitations left
+	  		$invitor = self::getById($param["invitedBy"]);
+	  		if (@$invitor["numberOfInvit"] > 0 || Role::isSuperAdmin($invitor["roles"])) {
+	  			$res = self::insert($param, self::REGISTER_MODE_MINIMAL);
+		  		//Decrease number of invitations left for the invitor
+		  		PHDB::update(self::COLLECTION, array("_id" => new MongoId($param["invitedBy"])), 
+		  			array('$inc' => array("numberOfInvit" => -1)));
+		  		//send invitation mail
+				Mail::invitePerson($res["person"], $msg);
+		  	} else {
+		  		$res = array("result"=>false, "msg"=> "Sorry, you can't invite more person to join the platform. You do not have enough invitations left.");
+		  	}
+	  		
 	  	} catch (CTKException $e) {
 	  		$res = array("result"=>false, "msg"=> $e->getMessage());
 	  	}
-        //TODO TIB : mail Notification 
-        //for the organisation owner to subscribe to the network 
-        //and complete the Organisation Profile
         return $res;
 	}
 
@@ -469,8 +476,12 @@ class Person {
 	/**
 	 * Insert a new person from the minimal information inside the parameter
 	 * @param array $person Minimal information to create a person.
-	 * @param boolean $minimal : true : a person can be created using only "name" and "email". Else : "postalCode" and "pwd" are also requiered
-	 * @return array result, msg and id
+	 * @param string $mode : insert mode type. 
+	 * REGISTER_MODE_MINIMAL : a person can be created using only name and email. 
+	 * REGISTER_MODE_NORMAL : name, email, username, password, postalCode, city
+	 * REGISTER_MODE_TWO_STEPS : name, username, email, password
+	 * @param string $inviteCode : invitation code
+	 * @return array result : msg and id
 	 */
 	public static function insert($person, $mode = self::REGISTER_MODE_NORMAL, $inviteCode = null) {
 
@@ -482,7 +493,12 @@ class Person {
 
 	  	$person["roles"] = Role::getDefaultRoles();
 
-	  	//if valid invite code , user is automatically geta tester
+	  	//if we are in mode minimal it's an invitation. The invited user is then betaTester by default
+	  	if( @Yii::app()->params['betaTest'] && $mode ==self::REGISTER_MODE_MINIMAL) {
+	  		$person["roles"]['betaTester'] = true;
+	  	}
+
+	  	//if valid invite code , user is automatically beta tester
 	  	//inviteCodes are server configs 
 	  	if( @Yii::app()->params['betaTest'] && $inviteCode && in_array( $inviteCode , Yii::app()->params['validInviteCodes'] )) {
 	  		$person["roles"]['betaTester'] = true;
@@ -859,14 +875,12 @@ class Person {
 		if (! @$account["pending"]) {
 			throw new CTKException("Impossible to update an account not pending !");
 		} else {
-			$person["email"] = $account["email"];
+			//$person["email"] = $account["email"];
 			//Update des infos minimal
 			$personToUpdate = self::getAndcheckPersonData($person, self::REGISTER_MODE_TWO_STEPS, false);
 
 			PHDB::update(Person::COLLECTION, array("_id" => new MongoId($personId)), 
-			                          array('$set' => $personToUpdate, '$unset' => array("pending" => ""
-			                          	// Jusqu'à l'ouverture les personnes ne sont pas validées lorsqu'elles sont invitées
-			                          	//,"roles.tobeactivated"=>""
+			                          array('$set' => $personToUpdate, '$unset' => array("pending" => "" ,"roles.tobeactivated"=>""
 			                          	)));
 			
 			//Send Notification to Invitor

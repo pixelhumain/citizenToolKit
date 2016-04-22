@@ -18,6 +18,7 @@ class RegisterAction extends CAction
 
 		$newPerson = array(
 			'name'=> $name,
+			'email'=> $email,
 			'username'=> $username,
 			'pwd'=>$pwd
 		);
@@ -37,7 +38,7 @@ class RegisterAction extends CAction
 			$newPerson['geoPosLongitude'] = @$_POST['geoPosLongitude'];
 		}
 
-		//The user already exist in the db : the data should be updated
+		//The user already exist in the db (invitation process) : the data should be updated
 		if ($pendingUserId != "") {
 			$res = Person::updateMinimalData($pendingUserId, $newPerson);
 			if (! $res["result"]) {
@@ -50,18 +51,16 @@ class RegisterAction extends CAction
 				$newPerson['email'] = $email;
 				$res = Person::insert($newPerson, $mode,$inviteCode);
 				$newPerson["_id"]=$res["id"];
+				//send validation mail to the user
+				$newPerson['email'] = $email;
+				$newPerson["inviteCode"] = $inviteCode;
+				Mail::validatePerson($newPerson);
 			} catch (CTKException $e) {
 				$res = array("result" => false, "msg"=>$e->getMessage());
 				Rest::json($res);
 				exit;
 			}
 		}
-		
-		//send validation mail to the user
-		$newPerson["_id"] = $res["id"];
-		$newPerson['email'] = $email;
-		$newPerson["inviteCode"] = $inviteCode;
-		Mail::validatePerson($newPerson);
 
 		//Try to login with the user
 		$res = Person::login($email,$pwd,true);
