@@ -59,6 +59,22 @@ class NewsTranslator {
 			  		$params["text"]=trim(preg_replace('/<[^>]*>/', ' ',(substr(isset($params["text"]) ? $params["text"] : "",0 ,500 ))))."<span class='removeReadNews'> ...<br><a href='javascript:;' onclick='blankNews(\"".(string) $params["_id"]."\")'>Lire la suite</a></span>";
 		  	}
 		}
+		//print_r($params);
+		if(@$params["media"] && !is_string(@$params["media"]) && $params["media"]["type"]=="galery_images"){
+			$images=array();
+			$limit=5;
+			$i=0;
+			foreach($params["media"]["images"] as $data){
+				if($i<$limit){
+					
+					$image=Document::getById($data);
+					array_push($images,$image);
+				} else {
+					exit;
+				}
+			}
+			$params["media"]["images"]=$images;
+		}
 	  	$params["author"] = Person::getSimpleUserById($params["author"]);
 		return $params;
 	}

@@ -34,7 +34,6 @@ class UploadAction extends CAction {
     	    echo json_encode(array('result'=>false,'error'=>Yii::t("document","Error! Wrong HTTP method!")));
 	        exit;
         }
-
         if(array_key_exists($input,$_FILES) && $_FILES[$input]['error'] == 0 )
         {
         	
