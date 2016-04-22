@@ -185,11 +185,11 @@ class Action
         //votes cannot be changed, link become spans
         if( !empty($voteUpActive) || !empty($voteAbstainActive) || !empty($voteDownActive) || !empty($voteUnclearActive) || !empty($voteMoreInfoActive))
         {
-            $linkVoteUp = ($logguedAndValid && !empty($voteUpActive) ) ? "<span class='".$classUp."' >Voted <i class='fa $iconUp' ></i></span>" : "";
-            $linkVoteAbstain = ($logguedAndValid && !empty($voteAbstainActive)) ? "<span class='".$classAbstain."'>Voted <i class='fa $iconAbstain'></i></span>" : "";
-            $linkVoteUnclear = ($logguedAndValid && !empty($voteUnclearActive)) ? "<span class='".$classUnclear."'>Voted <i class='fa  $iconUnclear'></i></span>" : "";
-            $linkVoteMoreInfo = ($logguedAndValid && !empty($voteMoreInfoActive)) ? "<span class='".$classMoreInfo."'>Voted <i class='fa  $iconMoreInfo'></i></span>" : "";
-            $linkVoteDown = ($logguedAndValid && !empty($voteDownActive)) ? "<span class='".$classDown."' >Voted <i class='fa $iconDown'></i></span>" : "";
+            $linkVoteUp = ($logguedAndValid && !empty($voteUpActive) ) ? "<span class='".$classUp."' ><i class='fa fa-caret-right'></i> ".Yii::t("survey","Voted", null, Yii::app()->controller->module->id)." <i class='fa $iconUp color-btnvote-green' ></i></span>" : "";
+            $linkVoteAbstain = ($logguedAndValid && !empty($voteAbstainActive)) ? "<span class='".$classAbstain."'><i class='fa fa-caret-right'></i> ".Yii::t("survey","Voted", null, Yii::app()->controller->module->id)." <i class='fa $iconAbstain color-btnvote-white'></i></span>" : "";
+            $linkVoteUnclear = ($logguedAndValid && !empty($voteUnclearActive)) ? "<span class='".$classUnclear."'><i class='fa fa-caret-right'></i> ".Yii::t("survey","Voted", null, Yii::app()->controller->module->id)." <i class='fa  $iconUnclear color-btnvote-yellow'></i></span>" : "";
+            $linkVoteMoreInfo = ($logguedAndValid && !empty($voteMoreInfoActive)) ? "<span class='".$classMoreInfo."'><i class='fa fa-caret-right'></i> ".Yii::t("survey","Voted", null, Yii::app()->controller->module->id)." <i class='fa  $iconMoreInfo color-btnvote-purple'></i></span>" : "";
+            $linkVoteDown = ($logguedAndValid && !empty($voteDownActive)) ? "<span class='".$classDown."' ><i class='fa fa-caret-right'></i> ".Yii::t("survey","Voted", null, Yii::app()->controller->module->id)." <i class='fa $iconDown color-btnvote-red'></i></span>" : "";
         }
         else
         {
@@ -205,7 +205,7 @@ class Action
 
         $res["totalVote"] = $voteUpCount+$voteAbstainCount+$voteDownCount+$voteUnclearCount+$voteMoreInfoCount;
         $res["ordre"] = $voteUpCount+$voteDownCount;
-        $res["links"] = ($value["type"]==Survey::TYPE_ENTRY) ? "<span class='text-red text-bold'>CLOSED</span>" : "";
+        $res["links"] = ($value["type"]==Survey::TYPE_ENTRY) ? "<span class='text-red text-bold active'><i class='fa fa-caret-right'></i> ".Yii::t("survey","Closed", null, Yii::app()->controller->module->id)."</span>" : "";
         //$res["links"] = ($res["totalVote"]) ? "<span class='text-red text-bold'>RESULT</span>" : $res["links"];
         if($value["type"]==Survey::TYPE_ENTRY && (!isset($value["dateEnd"]) || $value["dateEnd"] > time() ) )
             $res["links"] = "<div class='leftlinks'>".$linkVoteUp." ".$linkVoteUnclear." ".$linkVoteAbstain." ".$linkVoteMoreInfo." ".$linkVoteDown."</div>";
