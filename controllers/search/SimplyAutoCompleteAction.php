@@ -145,20 +145,13 @@ class SimplyAutoCompleteAction extends CAction
 	  			// if(@$followers[Yii::app()->session["userId"]]){
 		  		// 	$orga["isFollowed"] = true;
 	  			// }
-	  	// 		$profil = Document::getLastImageByKey($value["_id"], @$value["type"], Document::IMG_PROFIL);
-				// $allOrganizations[$key]["profilImageUrl"] = $profil;
 
-	  			// $profilThumb = Document::getGeneratedImageUrl($value["_id"], @$value["type"], Document::GENERATED_THUMB_PROFIL);
 	  			$allOrganizations[$key]["profilThumbImageUrl"] = "";
-
-	  			// $marker = Document::getGeneratedImageUrl($value["_id"], @$value["type"], Document::GENERATED_MARKER);
-				$allOrganizations[$key]["profilMarkerImageUrl"] = "//com/assets/dad45ab2/images/sig/markers/icons_carto/";
-	  			//	$allOrganizations[$key] = array_merge($value, Document::retrieveAllImagesUrl($value['_id'], Document::COLLECTION, @$value["type"]));
-		
+				$allOrganizations[$key]["profilMarkerImageUrl"] = "//com/assets/dad45ab2/images/sig/markers/icons_carto/";		
 				$logo = Document::getLastImageByKey($value['_id'], Document::COLLECTION, Document::IMG_LOGO);
 				$allOrganizations[$key]["logoImageUrl"] = $logo;
 				
-				$allOrganizations[$key]["address"] = empty($orga["address"]) ? array("addressLocality" => "Unknown") : $orga["address"];
+				$allOrganizations[$key]["address"] = empty($value["address"]) ? array("addressLocality" => "Unknown") : $value["address"];
 				$$allOrganizations[$key]["type"] = "organization";
 				$allOrganizations[$key]["typeSig"] = "organizations";
 				// $allOrganizations[$key] = $orga;
@@ -237,54 +230,54 @@ class SimplyAutoCompleteAction extends CAction
 			    	$query["country"] = $country;
 			    }
 
-	  		//$allCities = PHDB::find(City::COLLECTION, $query, array("name", "alternateName", "cp", "insee", "regionName", "country", "geo", "geoShape","postalCodes"));
-	  		// $allCities = PHDB::find(City::COLLECTION, $query);
-	  		// $allCitiesRes = array();
-	  		// $nbMaxCities = 20;
-	  		// $nbCities = 0;
-	  		// foreach($allCities as $data){
-		  	// 	$countPostalCodeByInsee = count($data["postalCodes"]);
-		  	// 	foreach ($data["postalCodes"] as $val){
-			  // 		if($nbCities < $nbMaxCities){
-			  // 		$newCity = array();
-			  // 		//$regionName = 
-			  // 		$newCity = array(
-			  // 						"_id"=>$data["_id"],
-			  // 						"insee" => $data["insee"], 
-			  // 						"regionName" => isset($data["regionName"]) ? $data["regionName"] : "", 
-			  // 						"country" => $data["country"],
-			  // 						"geoShape" => isset($data["geoShape"]) ? $data["geoShape"] : "",
-			  // 						"cp" => $val["postalCode"],
-			  // 						"geo" => $val["geo"],
-			  // 						"geoPosition" => $val["geoPosition"],
-			  // 						"name" => ucwords(strtolower($val["name"])),
-			  // 						"alternateName" => ucwords(strtolower($val["name"])),
-			  // 						"type"=>"city",
-			  // 						"typeSig" => "city");
-			  // 		if($countPostalCodeByInsee > 1){
-			  // 			$newCity["countCpByInsee"] = $countPostalCodeByInsee;
-			  // 			$newCity["cityInsee"] = ucwords(strtolower($data["alternateName"]));
-			  // 		}
-			  // 		$allCitiesRes[]=$newCity;
-			  // 		} $nbCities++;
-		  	// 	}
-	  		// }
+	  		$allCities = PHDB::find(City::COLLECTION, $query, array("name", "alternateName", "cp", "insee", "regionName", "country", "geo", "geoShape","postalCodes"));
+	  		$allCities = PHDB::find(City::COLLECTION, $query);
+	  		$allCitiesRes = array();
+	  		$nbMaxCities = 20;
+	  		$nbCities = 0;
+	  		foreach($allCities as $data){
+		  		$countPostalCodeByInsee = count($data["postalCodes"]);
+		  		foreach ($data["postalCodes"] as $val){
+			  		if($nbCities < $nbMaxCities){
+			  		$newCity = array();
+			  		//$regionName = 
+			  		$newCity = array(
+			  						"_id"=>$data["_id"],
+			  						"insee" => $data["insee"], 
+			  						"regionName" => isset($data["regionName"]) ? $data["regionName"] : "", 
+			  						"country" => $data["country"],
+			  						"geoShape" => isset($data["geoShape"]) ? $data["geoShape"] : "",
+			  						"cp" => $val["postalCode"],
+			  						"geo" => $val["geo"],
+			  						"geoPosition" => $val["geoPosition"],
+			  						"name" => ucwords(strtolower($val["name"])),
+			  						"alternateName" => ucwords(strtolower($val["name"])),
+			  						"type"=>"city",
+			  						"typeSig" => "city");
+			  		if($countPostalCodeByInsee > 1){
+			  			$newCity["countCpByInsee"] = $countPostalCodeByInsee;
+			  			$newCity["cityInsee"] = ucwords(strtolower($data["alternateName"]));
+			  		}
+			  		$allCitiesRes[]=$newCity;
+			  		} $nbCities++;
+		  		}
+	  		}
 	  		
 
-	  		// if(empty($allCitiesRes)){
-	  		// 	$query = array( "cp" => $search);
-		  	// 	$allCities = PHDB::find(City::COLLECTION, $query, array("name", "cp", "insee", "geo", "geoShape"));
-		  	// 	$nbCities = 0;
-	  		// 	foreach ($allCities as $key => $value) {
-		  	// 		if($nbCities < $nbMaxCities){
-			  // 			$city = City::getSimpleCityById($key);
-					// 	$city["type"] = "city";
-					// 	$city["typeSig"] = "city";
-					// 	$allCitiesRes[$key] = $city;
-					// } $nbCities++;
-		  	// 	}
-		  	// 	//$res["cities"] = $allCitiesRes;  		
-	  		// }
+	  		if(empty($allCitiesRes)){
+	  			$query = array( "cp" => $search);
+		  		$allCities = PHDB::find(City::COLLECTION, $query, array("name", "cp", "insee", "geo", "geoShape"));
+		  		$nbCities = 0;
+	  			foreach ($allCities as $key => $value) {
+		  			if($nbCities < $nbMaxCities){
+			  			$city = City::getSimpleCityById($key);
+						$city["type"] = "city";
+						$city["typeSig"] = "city";
+						$allCitiesRes[$key] = $city;
+					} $nbCities++;
+		  		}
+		  		//$res["cities"] = $allCitiesRes;  		
+	  		}
 	  	}
 
 	  	//trie les éléments dans l'ordre alphabetique par name
