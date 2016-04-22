@@ -9,6 +9,13 @@ class EditEntryAction extends CAction
         if($id)
         {
             $entry = PHDB::findOne (Survey::COLLECTION, array("_id"=>new MongoId ( $id ) ) );
+            
+            //TKA BUG : organizerId can be an organisation 
+            //we need a person
+            //to test with organization as organizer  
+            if($entry['organizerId'] != Yii::app()->session["userId"] )
+              return array('result' => false , 'msg'=>'Access Denied');
+
             $params ["title"] = $entry["name"];
             $params ["content"] = $controller->renderPartial( "entry", array( "survey" => $entry ), true);
             $params ["contentBrut"] = $entry["message"];
@@ -36,7 +43,6 @@ class EditEntryAction extends CAction
           $params["images"] = $images;
           $params["contentKeyBase"] = $contentKeyBase;
         }
-        
         echo $controller->renderPartial("editEntrySV" , $params,true);
     }
 }

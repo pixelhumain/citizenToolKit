@@ -77,12 +77,14 @@ class SaveSessionAction extends CAction
                     }else
                         $res['applicationExist'] = false;
                 }
-
-                $result = PHDB::updateWithOptions( Survey::COLLECTION,  array( "name" => $name ), 
+                $where = array();
+                if( isset( $_POST['id'] ) )
+                    $where["_id"] = new MongoId($_POST['id']);
+                $result = PHDB::updateWithOptions( Survey::COLLECTION,  $where, 
                                                    array('$set' => $entryInfos ) ,
                                                    array('upsert' => true ) );
                 
-                $surveyId = PHDB::getIdFromUpsertResult($result);
+                $surveyId = ( isset( $_POST['id'] ) ) ? $_POST['id'] : PHDB::getIdFromUpsertResult($result);
                 //Save the comment options
                 if (@$_POST["commentOptions"]) {
                     Comment::saveCommentOptions( $surveyId ,Survey::COLLECTION, $_POST["commentOptions"]);
