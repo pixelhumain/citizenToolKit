@@ -19,7 +19,7 @@ class DisableAction extends CAction
 				//add notification to all members 
 				$organization["id"] = $id;
 				Notification::actionOnPerson ( ActStr::VERB_CLOSE, ActStr::ICON_CLOSE, $organization, array("type"=>Organization::COLLECTION,"id"=> $id,"name"=>$organization["name"]) ) ;
-				$result = array("result"=>true,"msg" => Yii::t("common", "Organization Disabled") );
+				$result = array("result"=>true,"msg" => Yii::t("organization", "Organization disabled !") );
 			}
 		}
 		Rest::json($result);
