@@ -105,10 +105,11 @@ class Person {
 
 	/**
 	 * get a Person By Id
-	 * @param type $id : is the mongoId of the person
+	 * @param String $id : is the mongoId of the person
+	 * @param boolean $clearAttribute : by default true. Will clear the confidential attributes
 	 * @return type
 	 */
-	public static function getById($id) { 
+	public static function getById($id, $clearAttribute = true) { 
 		/*echo "yoyo";
 		var_dump($id);*/
 	  	$person = PHDB::findOneById( self::COLLECTION ,$id );
@@ -133,7 +134,9 @@ class Person {
 			
         }
         
-        $person = self::clearAttributesByConfidentiality($person);
+        if ($clearAttribute) {
+        	$person = self::clearAttributesByConfidentiality($person);
+        }
 	  	return $person;
 	}
 
@@ -871,11 +874,11 @@ class Person {
 	public static function updateMinimalData($personId, $person) {
 
 		//Check if it's a minimal user
-		$account = self::getById($personId);
+		$account = self::getById($personId, false);
 		if (! @$account["pending"]) {
 			throw new CTKException("Impossible to update an account not pending !");
 		} else {
-			//$person["email"] = $account["email"];
+			$person["email"] = $account["email"];
 			//Update des infos minimal
 			$personToUpdate = self::getAndcheckPersonData($person, self::REGISTER_MODE_TWO_STEPS, false);
 

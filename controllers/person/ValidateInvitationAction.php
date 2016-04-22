@@ -18,7 +18,7 @@ class ValidateInvitationAction extends CAction {
         
         if ($res==true) {
 	    	//Get the invited user in the db
-            $account = PHDB::findOneById(Person::COLLECTION, $user);
+            $account = Person::getById($user, false);
             $error="";
 
             if(!empty($account)) {

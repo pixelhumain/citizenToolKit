@@ -18,7 +18,6 @@ class RegisterAction extends CAction
 
 		$newPerson = array(
 			'name'=> $name,
-			'email'=> $email,
 			'username'=> $username,
 			'pwd'=>$pwd
 		);
