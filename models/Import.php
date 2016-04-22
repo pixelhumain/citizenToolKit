@@ -437,9 +437,6 @@ class Import
         if(!empty($post['key']))
             $data["source"]['key'] = $post['key'];
 
-        $data["tags"][] = "Alternative";
-        $data["tags"][] = "Alternatiba";
-
         if(!empty($post["warnings"]) && $post["warnings"] == "true")
             $warnings = true ;
         else
@@ -1132,25 +1129,29 @@ class Import
         }
             
         
-        if(!empty($country))
-           // $url .= "&countrycodes=".$country;
+        /*if(!empty($country))
+            $url .= "&countrycodes=".$country;*/
         
+        //
         if(!empty($polygon_geojson)){
             $url .= "&polygon_geojson=1";
         }
 
-        $options = array(
+        /*$options = array(
             "http"=>array(
                 "header"=>"User-Agent: Mozilla/5.0 (iPad; U; CPU OS 3_2 like Mac OS X; en-us) AppleWebKit/531.21.10 (KHTML, like Gecko) Version/4.0.4 Mobile/7B334b Safari/531.21.102011-10-16 20:23:10\r\n" // i.e. An iPad
             )
         );
 
         $context = stream_context_create($options);
-        $result = file_get_contents($url, false, $context);
-        //var_dump($url) ;
+        $result = file_get_contents($url, false, $context);*/
+        var_dump($url);
+        $result = Import::getUrl($url);
         
         return $result;
     }
+
+
 
     public static function getGeoByAddressMinimunNominatim($cp = null, $city = null, $country = null, $polygon_geojson = null){
         
@@ -1168,7 +1169,7 @@ class Import
         if(!empty($polygon_geojson)){
             $urlminimiun .= "&polygon_geojson=1";
         }
-        $options = array(
+        /*$options = array(
             "http"=>array(
                 "header"=>"User-Agent: Mozilla/5.0 (iPad; U; CPU OS 3_2 like Mac OS X; en-us) AppleWebKit/531.21.10 (KHTML, like Gecko) Version/4.0.4 Mobile/7B334b Safari/531.21.102011-10-16 20:23:10\r\n" // i.e. An iPad
             )
@@ -1176,8 +1177,8 @@ class Import
 
         $context = stream_context_create($options);
         $result = file_get_contents($urlminimiun, false, $context);
-        //var_dump($urlminimiun) ;
-        return $result;
+        //var_dump($urlminimiun) ;*/
+        return Import::getUrl($urlminimiun) ;
     }    
 
 
@@ -1205,7 +1206,7 @@ class Import
         $url = $url . "&key=".Yii::app()->params['google']['keyMaps'] ;
         //var_dump($url);
         
-        $options = array(
+        /*$options = array(
             "http"=>array(
                 "header"=>"User-Agent: Mozilla/5.0 (iPad; U; CPU OS 3_2 like Mac OS X; en-us) AppleWebKit/531.21.10 (KHTML, like Gecko) Version/4.0.4 Mobile/7B334b Safari/531.21.102011-10-16 20:23:10\r\n" // i.e. An iPad
             )
@@ -1214,9 +1215,9 @@ class Import
         $context = stream_context_create($options);
         $result = file_get_contents($url, false, $context);
         //var_dump($url) ;
-        //$json = file_get_contents($url);
+        //$json = file_get_contents($url);*/
 
-        return $result ;
+        return Import::getUrl($url) ;
     }
 
     public static function getGeoByAddressMinimunGoogleMap($cp = null, $city = null, $country = null){
@@ -1236,17 +1237,17 @@ class Import
         }
 
         $urlminimiun = $urlminimiun . "&key=".Yii::app()->params['google']['keyMaps'] ;
-        $options = array(
+        /*$options = array(
             "http"=>array(
                 "header"=>"User-Agent: Mozilla/5.0 (iPad; U; CPU OS 3_2 like Mac OS X; en-us) AppleWebKit/531.21.10 (KHTML, like Gecko) Version/4.0.4 Mobile/7B334b Safari/531.21.102011-10-16 20:23:10\r\n" // i.e. An iPad
             )
         );
 
         $context = stream_context_create($options);
-        $result = file_get_contents($urlminimiun, false, $context);
+        $result = file_get_contents($urlminimiun, false, $context);*/
         //$result = file_get_contents($urlminimiun);  
         //var_dump($urlminimiun) ;
-        return $result ;
+        return Import::getUrl($urlminimiun) ;
     }
 
 
@@ -1266,6 +1267,22 @@ class Import
         }
         $url .= "&type=street";   
         
+        /*$ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_PROXYPORT, 3128);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
+        $result = curl_exec($ch);
+        curl_close($ch);
+        //var_dump($url) ;*/
+
+        
+        return Import::getUrl($url) ;
+    }
+
+
+    public static function getUrl($url){
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
@@ -1274,7 +1291,6 @@ class Import
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
         $result = curl_exec($ch);
         curl_close($ch);
-        //var_dump($url) ;
         return $result ;
     }
 
@@ -1796,5 +1812,98 @@ class Import
 
         return $details;
     } 
+
+
+    public static function checkGeoShape(){
+        $res = array();
+        $where = array("geoShape" => array('$exists' => false) );
+        $cities = PHDB::find(City::COLLECTION, $where);
+        
+        foreach ($cities as $key => $city) {
+            
+            $idCity = (String)$city["_id"];
+            //var_dump($idCity);
+
+
+            foreach ($city["postalCodes"] as $key => $value) {
+                if($value["name"] == $city["alternateName"])
+                    $cp = $value["postalCode"];
+            }
+        
+
+            $resultNominatim = json_decode(Import::getGeoByAddressNominatim(null, $cp, $city["name"], null, true),true);
+
+            $find = false;
+            //var_dump($city["name"]);
+            //var_dump($resultNominatim);
+            if(!empty($resultNominatim)){
+                foreach ($resultNominatim as $key => $cityNominatim){
+                    //var_dump($cityNominatim);
+                    if(!empty($cityNominatim["geojson"])){
+                        //var_dump("etat 1");
+                        if($find == false){
+                             //var_dump("etat 2");
+                            if($cityNominatim["geojson"]["type"] == "Polygon"){
+                                var_dump("etat 3");
+                                $city["geoShape"] = $cityNominatim["geojson"];
+                                $find = true;
+                            }else if($cityNominatim["geojson"]["type"] == "MultiPolygon"){
+                                var_dump("etat 3");
+                                $city["geoShape"] = $cityNominatim["geojson"];
+                                $city["geoShape"]["type"] = "Polygon";
+                                $find = true;
+                            }
+                        }
+                    }
+                }
+            }else{
+
+                $resultNominatim = json_decode(Import::getGeoByAddressNominatimGEOSHAPE($city["name"]),true);
+                if(!empty($resultNominatim)){
+                    foreach ($resultNominatim as $key => $cityNominatim){
+                        if(!empty($cityNominatim["geojson"])){
+                            if($find == false && $cityNominatim["address"]["country_code"] == "fr" ){
+                                if($cityNominatim["geojson"]["type"] == "Polygon"){
+                                    var_dump("etat 3");
+                                    $city["geoShape"] = $cityNominatim["geojson"];
+                                    $find = true;
+                                }else if($cityNominatim["geojson"]["type"] == "MultiPolygon"){
+                                    var_dump("etat 3");
+                                    $city["geoShape"] = $cityNominatim["geojson"];
+                                    $city["geoShape"]["type"] = "Polygon";
+                                    $find = true;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            //$res[$city["name"]] = $find ;
+            if($find == true){
+                $res[$city["name"]] = PHDB::update(City::COLLECTION,
+                                array("_id"=>new MongoId($idCity)),
+                                array('$set' => $city),
+                                array('upsert' => true));
+            }
+            
+
+        }
+
+        return $res ;
+
+    }
+
+
+
+    public static function getGeoByAddressNominatimGEOSHAPE( $city = null ){
+        
+        $url = "http://nominatim.openstreetmap.org/search?format=json&addressdetails=1&city=".str_replace(" ", "+", $city);
+        $url .= "&polygon_geojson=1";
+        //var_dump($url);
+        $result = Import::getUrl($url);
+        
+        return $result;
+    }
 }
 

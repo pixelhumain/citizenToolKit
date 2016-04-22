@@ -884,7 +884,7 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 			if(count($tel) != 0)	
 				$newOrganization['telephone'] = $tel;
 		}
-
+		
 		if(!empty($organization['contacts'])){
 			$contact = array();
 			foreach ($organization['contacts'] as $keyContact => $valueContact) {
@@ -893,7 +893,7 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 					if(is_array($value)){
 						$arrayName = array();
 						foreach ($value as $keyArray => $valueArray) {
-							$trimValue=trim($value);
+							$trimValue=trim($valueArray);
 							if(!empty($trimValue))
 								$arrayName[] = $trimValue ;
 						}
@@ -1050,9 +1050,15 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 		
 		if (isset($organization['tags'])) {
 			if ( gettype($organization['tags']) == "array" ) {
-				$tags = $organization['tags'];
+				//$tags = TextHelper::createHashTag($organization['tags']);
+				foreach ($organization['tags'] as $key => $tag) {
+					$tags[] = TextHelper::createHashTag($tag);
+				}
 			} else if ( gettype($organization['tags']) == "string" ) {
-				$tags = explode(",", $organization['tags']);
+				$arrayTags = explode(",", $organization['tags']);
+				foreach ($arrayTags as $key => $tag) {
+					$tags[] = TextHelper::createHashTag($tag);
+				}
 			}
 			$newOrganization["tags"] = $tags;
 		}
