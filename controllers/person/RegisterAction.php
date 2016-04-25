@@ -75,7 +75,9 @@ class RegisterAction extends CAction
 			//TODO
 			//send communecter overview mail
 			//Mail::communecterOverview($newPerson);
-			$res = array("result"=>true, "msg"=> Yii::t("login","You are now communnected !")."<br>".Yii::t("login","Our developpers are fighting to open soon ! Check your mail that will happen soon !"), "id"=>$pendingUserId); 
+			$res = array("result"=>true, 
+				"msg"=> Yii::t("login","You are now communnected !")."<br>".Yii::t("login","Our developpers are fighting to open soon ! Check your mail that will happen soon !")."<br>".Yii::t("login","If you really want to start testing the platform before, send us an email and we'll consider your demand :)"), 
+				"id"=>$pendingUserId); 
 		} 
 		Rest::json($res);
 		exit;
