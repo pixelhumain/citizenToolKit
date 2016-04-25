@@ -55,7 +55,12 @@ class IndexAction extends CAction
             $rooms = ActionRoom::getWhereSortLimit( $where, array("date"=>1), 15);
 
         error_log("count rooms : ".count($rooms));
-        $params = array( "rooms" => $rooms, "nameParentTitle" => $nameParentTitle );
+
+        $params = array(    "rooms" => $rooms, 
+                            "nameParentTitle" => $nameParentTitle, 
+                            "parentId" => $id, 
+                            "parentType" => $type );
+
         if( isset($actions) )
             $params["actions"] = $actions;
 
