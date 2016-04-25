@@ -370,8 +370,9 @@ class City {
 	}
 
 	
-	public static function getCitizenAssemblyByInsee($insee){
+	public static function getCitizenAssemblyByInsee($insee, $cp){
 		$where = array("address.codeInsee" => $insee,
+						"address.postalCode" => $cp,
 						"citizenType" => "citizenAssembly");
 
 		$fields = array("_id");
@@ -380,17 +381,96 @@ class City {
 	}
 
 
-	public static function createCitizenAssembly(){
-		$params = array("habitants" => array('$gt' => 20000));
-		$limit = 400;
-		$sort = array("habitants" => 1);
+	public static function createCitizenAssemblies(){
+		$params = array("habitants" => array('$gt' => 5000));
+		$limit = 1000;
+		$sort = array("habitants" => -1);
 		$cityData = PHDB::findAndSort( self::COLLECTION, $params, $sort, $limit);
 		foreach ($cityData as $key => $value) {
 			$cityData[$key]["typeSig"] = "city";
 			$cityData[$key]["cp"] = $value["postalCodes"][0]["postalCode"];
+			//self::createCitizenAssembly($value["insee"]);
 		}
 		error_log("createCitizenAssembly ".count($cityData));
 		return $cityData;
+	}
+
+
+	public static function createCitizenAssembly($insee, $cp){
+		//$params = array("address.codeInsee" => $insee, "address.postalCode" => $cp);
+		$CTZAssembly = self::getCitizenAssemblyByInsee($insee, $cp);//PHDB::findOne( Organization::COLLECTION, $params);
+
+		if($CTZAssembly == null){
+
+			$params = array("insee" => $insee);
+			$cityData = PHDB::findOne( self::COLLECTION, $params);
+			$cityAddress = array();
+			foreach ($cityData["postalCodes"] as $key => $value) {
+				if($value["postalCode"] == $cp){
+					$cityAddress = $value;
+				} 	
+			}
+
+			echo "L'assemblée n'existe pas<br>";
+			echo "Création en cours<br>";
+
+			$time = time();
+
+			$CTZAssembly = array(
+					"name" => "Assemblée Citoyenne - ". $cityAddress["name"],
+					"created" => $time,
+					"type" => "group",
+					"citizenType" => "citizenAssembly",
+					"address" => array(
+								"@type"=>"PostalAddress",
+								"codeInsee"=>$insee,
+								"addresscountry"=>$cityData["country"],
+								"postalCode"=>$cityAddress["postalCode"],
+								"addressLocality"=>$cityData["name"],
+								"streetAddress"=>"",
+								),
+					"geo" => $cityAddress["geo"],
+					"tags" => array("AssembléeCitoyenne"),
+					"description" => "L'assemblée citoyenne est un lieu de discussion et d'échange, où vous pouvez aborder tous les sujets concernant la vie commune des citoyens. Vous pouvez également y soumettre des propositions qui seront soumise au vote citoyen.",
+					"links" => array(),
+					);
+
+			$newAssembly = PHDB::insert( Organization::COLLECTION, $CTZAssembly);
+
+			// foreach ($CTZAssembly as $key => $value) {
+			// 	echo "<br><br>[".$key."] <br>";
+			// 	var_dump($value);
+			// }
+			// echo "<br><br><br>";
+			
+			//$params = array("name" => "Assemblée Citoyenne - ". $cityAddress["name"], "created" => $time);
+			//$cityData = PHDB::findOne( self::COLLECTION, $params);
+
+			$actionRoom = array(
+					"name" => "Assemblée Citoyenne - ".$cityAddress["name"],
+					"type" => "vote",
+					"parentType" => Organization::COLLECTION,
+					"parentId"=> (string)$CTZAssembly["_id"],
+					"tag" => array(),
+					"created" => $time);
+
+			$newActionRoom = PHDB::insert( ActionRoom::COLLECTION, $actionRoom);
+
+			return $CTZAssembly;
+			//var_dump($CTZAssembly);
+			
+		}else{
+			return $CTZAssembly;
+		}
+		//$limit = 1000;
+		//$sort = array("habitants" => -1);
+		// $cityData = PHDB::findOne( self::COLLECTION, $params);
+		// foreach ($cityData["postalCode"] as $key => $value) {
+		// 	if($value["postalCode"] == $cp){
+
+		// 	}
+		// }
+		return $CTZAssembly;
 	}
 
 
