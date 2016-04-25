@@ -4,14 +4,8 @@ class EntryAction extends CAction
     public function run($id)
     {
       $controller=$this->getController();
-      $where = array("survey"=>$id);
       $survey = PHDB::findOne (Survey::COLLECTION, array("_id"=>new MongoId ( $id ) ) );
-      $where["survey"] = $survey;
-      
-      $controller->title = "Sondages : ".$survey["name"];
-      $controller->subTitle = "Décision démocratiquement simple";
-      $controller->pageTitle = "Communecter - Sondages : ".$survey["name"];
-
+     
       $pageView = ActivityStream::getWhere(array("verb"=>ActStr::VERB_VIEW,
                                                  "author.ip"=>$_SERVER['REMOTE_ADDR'],
                                                  "object.objectType" => ActStr::TYPE_URL,

@@ -38,6 +38,7 @@ class SaveSessionAction extends CAction
                 $entryInfos['organizerType'] = $organizerType;
                 if( isset($_POST['survey']) ){
                     $entryInfos['survey'] = $_POST['survey'];
+                    $res['parentId'] = $_POST['survey'];
                     //this might not be necessary , since the information is on the parent survey
                     $surveyRoom = PHDB::findOne (Survey::PARENT_COLLECTION, array( "_id" => new MongoId($_POST['survey']) ) );
                     if( isset( $surveyRoom["parentType"] ) && isset($_POST['parentType']) ) 
@@ -54,7 +55,7 @@ class SaveSessionAction extends CAction
                     $entryInfos['tags'] = $_POST['tags'];
                 if( isset($_POST['cp']) )
                     $entryInfos['cp'] = explode(",",$_POST['cp']);
-                if( isset($_POST['urls']) && count($_POST['urls']) )
+                if( isset($_POST['urls']) && count($_POST['urls'])>0 )
                     $entryInfos['urls'] = $_POST['urls'];
                 if( isset($_POST['dateEnd']) && count($_POST['dateEnd']) )
                     $entryInfos['dateEnd'] = strtotime( str_replace("/", "-", $_POST['dateEnd']) );
@@ -77,6 +78,7 @@ class SaveSessionAction extends CAction
                     }else
                         $res['applicationExist'] = false;
                 }
+
                 $where = array();
                 if( isset( $_POST['id'] ) )
                     $where["_id"] = new MongoId($_POST['id']);
