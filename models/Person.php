@@ -737,7 +737,7 @@ class Person {
 	        //Check the password
 	        if (self::checkPassword($pwd, $account)) {
 	            Person::saveUserSessionData($account);
-	            $res = array("result"=>true, "id"=>$account["_id"], "isCommunected"=>isset($account["cp"]), "msg" => $res["msg"]);
+	            $res = array("result"=>true, "id"=>$account["_id"], "isCommunected"=>isset($account["cp"]), "msg" => "Vous êtes maintenant identifié : bienvenue sur communecter.");
 	        } else {
 	            $res = array("result"=>false, "msg"=>"Email ou Mot de Passe ne correspondent pas, rééssayez.");
 	        }
