@@ -74,6 +74,8 @@ class SimplyAutoCompleteAction extends CAction
 		        				
 					        }
 	        			}
+	        		}elseif($key == "DEPARTEMENT") {
+	        			$queryLocality = array($value => new MongoRegex("/^".$locality."/i"));
 		        	}//OneLocality
 		        	else{
 	  					$queryLocality = array($value => new MongoRegex("/".$locality."/i"));
