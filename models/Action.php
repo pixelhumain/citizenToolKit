@@ -220,7 +220,7 @@ class Action
 
         $res["totalVote"] = $voteUpCount+$voteAbstainCount+$voteDownCount+$voteUnclearCount+$voteMoreInfoCount;
         $res["ordre"] = $voteUpCount+$voteDownCount;
-        $res["links"] = ($value["type"]==Survey::TYPE_ENTRY) ? "<span class='text-red text-bold active'><i class='fa fa-caret-right'></i> ".Yii::t("survey","Closed", null, Yii::app()->controller->module->id)."</span>" : "";
+        $res["links"] = ($value["type"]==Survey::TYPE_ENTRY) ? "<span class='text-bold active'><span class='text-bold active btnvote color-btnvote-red'><i class='fa fa-clock-o'></i> ".Yii::t("survey","Closed", null, Yii::app()->controller->module->id)."</span></span>" : "";
         //$res["links"] = ($res["totalVote"]) ? "<span class='text-red text-bold'>RESULT</span>" : $res["links"];
         if($value["type"]==Survey::TYPE_ENTRY && (!isset($value["dateEnd"]) || $value["dateEnd"] > time() ) )
             $res["links"] = "<div class='leftlinks'>".$linkVoteUp." ".$linkVoteUnclear." ".$linkVoteAbstain." ".$linkVoteMoreInfo." ".$linkVoteDown."</div>";
