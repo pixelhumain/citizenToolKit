@@ -1128,7 +1128,11 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 			}else{
 				$newOrganization["warnings"] = $organization['warnings'];
 			}
-			$newOrganization["state"] = "uncomplete";
+
+			if(count($newOrganization["warnings"]) == 1 && in_array("212", $newOrganization["warnings"]))
+				$newOrganization["state"] = "";
+			else
+				$newOrganization["state"] = "uncomplete";
 		}
 
 		if (!empty($organization['image']))
