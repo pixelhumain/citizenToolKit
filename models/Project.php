@@ -225,17 +225,18 @@ class Project {
 	 * @return array as result type
 	 */
 	public static function insert($params, $parentId,$parentType){
-	    $newProject = self::getAndCheckProject($params, $parentId);
+	    $newProject = self::getAndCheckProject($params, Yii::app() -> session["userId"]);
 	    if (isset($newProject["tags"]))
 			$newProject["tags"] = Tags::filterAndSaveNewTags($newProject["tags"]);
 
 	    // TODO SBAR - If a Link::connect is used why add a link hard coded
-	    $newProject["links"] = array( "contributors" => 
-	    								array($parentId =>array("type" => $parentType,"isAdmin" => true)));
+
+	   // $newProject["links"] = array( "contributors" => 
+	    //								array($parentId =>array("type" => $parentType,"isAdmin" => true)));
 
 	    PHDB::insert(self::COLLECTION,$newProject);
-
-	    Link::connect($parentId, $parentType, $newProject["_id"], self::COLLECTION, $parentId, "projects", true );
+		Link::addContributor(Yii::app() -> session["userId"],Person::COLLECTION,$parentId,$parentType,$newProject["_id"]);
+	   // Link::connect($parentId, $parentType, $newProject["_id"], self::COLLECTION, $parentId, "projects", true );
 
 	    Notification::createdObjectAsParam(Person::COLLECTION,Yii::app() -> session["userId"],Project::COLLECTION, (String)$newProject["_id"], $parentType, $parentId, $newProject["geo"], (isset($newProject["tags"])) ? $newProject["tags"]:null ,$newProject["address"]);
 	    return array("result"=>true, "msg"=>"Votre projet est communecté.", "id" => $newProject["_id"]);	

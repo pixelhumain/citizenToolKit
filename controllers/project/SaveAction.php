@@ -5,16 +5,16 @@ class SaveAction extends CAction
 		$controller=$this->getController();
 
 		try {
-			if($id == null || $type == "citoyen"){
-				$id = Yii::app()->session['userId'];
-				$type = Person::COLLECTION;
-			} else if( isset($_POST['type']) && $_POST['type'] == Organization::COLLECTION ){
-				$type = Organization::COLLECTION;
-				$id = $_POST['organizationId'];
-			} 
-			else {
-				$type = Organization::COLLECTION;
-			} 
+			//if($id == null || $type == Person::COLLECTION){
+			//	$id = Yii::app()->session['userId'];
+			//	$type = Person::COLLECTION;
+			//if( isset($_POST['parentType']) && $_POST['parentType'] == Organization::COLLECTION ){
+				$type = $_POST['parentType'];
+				$id = $_POST['parentId'];
+			//} 
+			//else {
+			//	$type = Organization::COLLECTION;
+			//} 
 
 			$res = Project::insert($_POST, $id,$type);
 		} catch (CTKException $e) {
