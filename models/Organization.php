@@ -1129,7 +1129,6 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 				$newOrganization["warnings"] = $organization['warnings'];
 			}
 			$newOrganization["state"] = "uncomplete";
-
 		}
 
 		if (!empty($organization['image']))
@@ -1149,10 +1148,13 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 		}*/
 
 		// Is There a association with the same name ?
-	    $organizationSameName = PHDB::findOne( Organization::COLLECTION,array( "name" => $organization["name"], "address.codeInsee" => $newOrganization["address"]["codeInsee"]));      
-	    if($organizationSameName) { 
-	      throw new CTKException(Yii::t("organization","An organization with the same name already exist in the plateform"));
-	    }
+		if(!empty($newOrganization["address"]["codeInsee"])){
+			$organizationSameName = PHDB::findOne( Organization::COLLECTION,array( "name" => $organization["name"], "address.codeInsee" => $newOrganization["address"]["codeInsee"]));      
+		    if($organizationSameName) { 
+		      throw new CTKException(Yii::t("organization","An organization with the same name already exist in the plateform"));
+		    }
+		}
+	    
 		return $newOrganization;
 	}
 

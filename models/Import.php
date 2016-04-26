@@ -1145,7 +1145,7 @@ class Import
 
         $context = stream_context_create($options);
         $result = file_get_contents($url, false, $context);*/
-        var_dump($url);
+        //var_dump($url);
         $result = Import::getUrl($url);
         
         return $result;
@@ -1630,7 +1630,7 @@ class Import
             }
             
 
-        } // Cas 4 Il y a les 2
+        } // Cas 4 : Il y a les 2
         else if(!empty($address) && !empty($geo)){
             $newGeo["geo"]["latitude"] = (empty($geo["latitude"])?"":$geo["latitude"]) ;
             $newGeo["geo"]["longitude"] = (empty($geo["longitude"])?"":$geo["longitude"]) ;
@@ -1669,8 +1669,8 @@ class Import
             $newGeo["geoPosition"] = array("type"=>"Point",
                                                 "coordinates" =>
                                                     array(
-                                                        floatval($newGeo["geo"]['latitude']),
-                                                        floatval($newGeo["geo"]['longitude'])));
+                                                        floatval($newGeo["geo"]['longitude']),
+                                                        floatval($newGeo["geo"]['latitude'])));
             $details["geo"] = $newGeo["geo"];
             $details["geoPosition"] = $newGeo["geoPosition"];
         }
