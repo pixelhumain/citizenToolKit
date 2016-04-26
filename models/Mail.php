@@ -219,4 +219,24 @@ class Mail
         }
     }
 
+    /**
+     * Send an email with beta test information
+     * @return null
+     */
+    public static function betaTestInformation($person) {
+		$email = $person['email'];
+
+		$params = array (
+			"type" => Cron::TYPE_MAIL,
+			"tpl"=>'betaTest',
+			"subject" => "[".Yii::app()->name."] - Plateforme en cours de test",
+			"from"=>Yii::app()->params['adminEmail'],
+			"to" => $email,
+			"tplParams" => array(   "logo"=> "/images/logo-communecter.png",
+			                        "logo2" => "/images/logoLTxt.jpg")
+		);   
+
+		Mail::schedule($params);
+    }
+
 }

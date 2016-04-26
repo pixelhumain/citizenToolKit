@@ -50,10 +50,6 @@ class RegisterAction extends CAction
 				$newPerson['email'] = $email;
 				$res = Person::insert($newPerson, $mode,$inviteCode);
 				$newPerson["_id"]=$res["id"];
-				//send validation mail to the user
-				$newPerson['email'] = $email;
-				$newPerson["inviteCode"] = $inviteCode;
-				Mail::validatePerson($newPerson);
 			} catch (CTKException $e) {
 				$res = array("result" => false, "msg"=>$e->getMessage());
 				Rest::json($res);
@@ -65,6 +61,10 @@ class RegisterAction extends CAction
 		$res = Person::login($email,$pwd,true);
 		if ($res["result"]) {
 			if ($res["msg"] == "notValidatedEmail") {
+				//send validation mail to the user
+				$newPerson['email'] = $email;
+				$newPerson["inviteCode"] = $inviteCode;
+				Mail::validatePerson($newPerson);
 				//The user is automatically logued even if he has not validated his email.
 				//As it's his first login. Next time, he couldn't login.
 				$res = array("result"=>true, "msg"=> Yii::t("login","You are now communnected !")."<br>".Yii::t("login","Check your mailbox you'll receive soon a mail to validate your email address."), "id"=>$pendingUserId);
@@ -72,9 +72,8 @@ class RegisterAction extends CAction
 		} else if ($res["msg"] == "betaTestNotOpen") {
 			$newPerson["_id"] = $pendingUserId;
 			$newPerson['email'] = $email;
-			//TODO
-			//send communecter overview mail
-			//Mail::communecterOverview($newPerson);
+			//send betatest information mail
+			Mail::betaTestInformation($newPerson);
 			$res = array("result"=>true, 
 				"msg"=> Yii::t("login","You are now communnected !")."<br>".Yii::t("login","Our developpers are fighting to open soon ! Check your mail that will happen soon !")."<br>".Yii::t("login","If you really want to start testing the platform before, send us an email and we'll consider your demand :)"), 
 				"id"=>$pendingUserId); 
