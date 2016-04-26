@@ -1609,7 +1609,13 @@ class Import
                             
                             $newAddress['postalCode'] = $arrayCP[0];
                             foreach ($city["postalCodes"] as $keyCp => $valueCp){
-                                if($valueCp["postalCode"] == $arrayCP[0]){
+                                if(empty($cp)){
+                                    if($valueCp["name"] == $city["alternateName"]){
+                                        $newAddress['addressLocality'] = $valueCp["name"];
+                                        $newAddress['postalCode'] = $valueCp["postalCode"];
+                                    }
+                                }
+                                else if($valueCp["postalCode"] == $cp){
                                     $newAddress['addressLocality'] = $valueCp["name"];
                                 }
                             }
@@ -1626,65 +1632,36 @@ class Import
 
         } // Cas 4 Il y a les 2
         else if(!empty($address) && !empty($geo)){
-            /*$newAddress["streetAddress"] = (empty($address["streetAddress"])?"":$address["streetAddress"]) ;
-            $newAddress["postalCode"] = (empty($address["postalCode"])?"":$address["postalCode"]) ;
-            $newAddress["addressLocality"] = (empty($address["addressLocality"])?"":$address["addressLocality"]) ;
-            $newAddress["addressCountry"] = (empty($address["addressCountry"])?"":$address["addressCountry"]) ;
-            $newAddress["codeInsee"] = (empty($address["codeInsee"])?"":$address["codeInsee"]) ;*/
-           
             $newGeo["geo"]["latitude"] = (empty($geo["latitude"])?"":$geo["latitude"]) ;
             $newGeo["geo"]["longitude"] = (empty($geo["longitude"])?"":$geo["longitude"]) ;
 
-
-            if(!empty($address["streetAddress"])){
-                $street = $address["streetAddress"] ;
-                $newAddress["streetAddress"] = $address["streetAddress"];
-            }  
-            else
-                $street = null ;
-
+            if(!empty($address["streetAddress"]))
+                $newAddress["streetAddress"] = $address["streetAddress"];          
+            
             if(!empty($address["postalCode"])){
                 $cp = $address["postalCode"] ;
                 $newAddress["postalCode"] = $cp ;
             } 
             else
                 $cp = null ;
-            if(!empty($address["addressCountry"]))
-                $country = $address["addressCountry"] ;
-            else
-                $country = null ;
-            if(!empty($address["addressLocality"]))
-                $city = $address["addressLocality"] ;
-            else
-                $city = null ;
 
-            $resultNominatim = json_decode(self::getGeoByAddressNominatim($street, $cp, $city, $country), true);
-            
-            if(!empty($resultNominatim[0])){
-                
-                //Comparer la geo avec nominatim
-                
-
-                //
-                //var_dump($cp);
-
-            }
             $city = SIG::getCityByLatLngGeoShape($newGeo["geo"]["latitude"], $newGeo["geo"]["longitude"],(empty($cp) ? null : $cp) );
             
             if(!empty($city)){
-                //foreach ($city as $key => $value){
-                    $newAddress["codeInsee"] = $city["insee"];
-                    $newAddress['addressCountry'] = $city["country"];
-                    foreach ($city["postalCodes"] as $keyCp => $valueCp){
-                        if($valueCp["postalCode"] == $cp){
+                $newAddress["codeInsee"] = $city["insee"];
+                $newAddress['addressCountry'] = $city["country"];
+                foreach ($city["postalCodes"] as $keyCp => $valueCp){
+                    if(empty($cp)){
+                        if($valueCp["name"] == $city["alternateName"]){
                             $newAddress['addressLocality'] = $valueCp["name"];
-                        }
+                            $newAddress['postalCode'] = $valueCp["postalCode"];
+                        }   
                     }
-                //    break;
-                //}
+                    else if($valueCp["postalCode"] == $cp){
+                        $newAddress['addressLocality'] = $valueCp["name"];
+                    }
+                }
             }
-            
-        
         }
 
         if(!empty($newGeo["geo"]["latitude"]) && !empty($newGeo["geo"]["longitude"])){
@@ -1697,119 +1674,8 @@ class Import
             $details["geo"] = $newGeo["geo"];
             $details["geoPosition"] = $newGeo["geoPosition"];
         }
-        
-                                                   
-        
-        /*//On test si le code postal est dans la BD
-        if(!empty($address['postalCode'])){
-             $cityByCp = PHDB::find(City::COLLECTION, array("cp"=>$address['postalCode']));
-             //var_dump($cityByCp);
-             if(empty($cityByCp)){
-                 if($warnings)
-                     $details["warnings"][] = "106";
-                 else
-                     throw new CTKException(Yii::t("import","106", null, Yii::app()->controller->module->id));
- 
-             }
-                 
-         }
-         //On a besoin de récupere la locality, la country, l'insee
-         //Si on a la latitude et la longitude 
-         if(!empty($geo["latitude"]) && !empty($geo["longitude"])){
-             //On récupere la city correspondant a la latitude, la longitude et le code postal
-             $city = SIG::getInseeByLatLngCp($geo["latitude"], $geo["longitude"],(empty($address['postalCode']) ? null : $address['postalCode']) );
-             if(!empty($city)){
-                 foreach ($city as $key => $value){
-                     $insee = $value["insee"];
-                    $cp = $value["cp"];
-                     $newAddress['addressCountry'] = $value["country"];
-                     $newAddress['addressLocality'] = $value["alternateName"];
-                     break;
-                 }
-             }
-             else{
-                 //On va parcourir les cities récuperer via le cp
-                 if(!empty($cityByCp)) {
-                     $find = false ;
-                     foreach ($cityByCp as $key => $value){
-                         //On test si l'alternateName ou le name corresponds à la Locality se trouvant dans $address
-                         if($value["alternateName"] == $address['addressLocality'] || $value["name"] == $address['addressLocality']){
-                             $insee = $value["insee"];
-                             $cp = $value["cp"];
-                             $newAddress['addressCountry'] = $value["country"];
-                             $newAddress['addressLocality'] = $value["alternateName"];
-                             $find = true ;
-                             break;
-                         }
-                     }
-                if($find == false){
-                         if($warnings)
-                             $details["warnings"][] = "110";
-                         else
-                             throw new CTKException(Yii::t("import","110", null, Yii::app()->controller->module->id));
-                     } 
-                         
-                 }
-                 $newProject['warnings'][] = "170";
-             }   
-         }else{
-            $find = false;
-             foreach ($cityByCp as $key => $value){
-                 //On test si l'alternateName ou le name corresponds à la Locality se trouvant dans $address
-                 if($value["alternateName"] == $address['addressLocality'] || $value["name"] == $address['addressLocality']){
-                     $insee = $value["insee"];
-                     $cp = $value["cp"];
-                     $newAddress['addressCountry'] = $value["country"];
-                     $newAddress['addressLocality'] = $value["alternateName"];
-                     $find = true ;
-                     break;
-                 }
-             }
-             if($find == false){
-                 if($warnings)
-                     $details["warnings"][] = "110";
-                 else
-                     throw new CTKException(Yii::t("import","110", null, Yii::app()->controller->module->id));
-             }
-         }   
- 
-         //Afin d'éviter des incohérences, on test si l'insee fournir par $address et l'insee sont identique
-         if(!empty($insee) && !empty($address['codeInsee']) ){
-             if($insee == $address['codeInsee'])
-                 $newAddress['codeInsee'] = $insee ;
-             else{
-                 if($warnings)
-                     $details["warnings"][] = "171";
-                 else
-                     throw new CTKException(Yii::t("import","171", null, Yii::app()->controller->module->id));
-             }}else if(!empty($insee)){
-             $newAddress['codeInsee'] = $insee ;
-         }else if(!empty($address['codeInsee'])){
-             $newAddress['codeInsee'] = $address['codeInsee'];
-         }
- 
-         //Même chose pour le code postal
-         if(!empty($address['postalCode']) && !empty($cp)){
-             if($cp == $address['postalCode'])
-                 $newAddress['postalCode'] = $cp ;
-             else{
-                 if($warnings)
-                     $detail["warnings"][] = "172";
-                 else
-                     throw new CTKException(Yii::t("import","172", null, Yii::app()->controller->module->id));
-             }
-                 
-         }else if(!empty($cp)){
-             $newAddress['postalCode'] = $cp ;
-         }else if(!empty($address['postalCode'])){
-             $newAddress['postalCode'] = $address['postalCode'];
-         }
- 
-         if(!empty($address['streetAddress']))
-             $newAddress['streetAddress'] = $address['streetAddress'];
-        */
         $details["address"] = $newAddress;
-
+        //var_dump($details);
         return $details;
     } 
 
@@ -1904,6 +1770,91 @@ class Import
         $result = Import::getUrl($url);
         
         return $result;
+    }
+
+
+    public static function checkCedex($post){
+
+        //var_dump($post);
+        $res = array();
+        
+        foreach($post["params"]["file"] as $keyCSV => $lineCSV){
+            $new = [];
+            if(!empty($lineCSV[9]) && !empty($lineCSV[10]) ){
+                $lat = $lineCSV[9];
+                $lon = $lineCSV[10];
+                if(strlen($lineCSV[1]) > 5 ){
+                    $cp = substr($lineCSV[1],0,5);
+                    $complement = substr($lineCSV[1],5,strlen($lineCSV[1]));
+                    $city = SIG::getCityByLatLngGeoShape($lat, $lon, null);
+
+                    if(!empty($city)){
+                        $idCity = (String)$city["_id"];
+                        $newCP["postalCode"] = $cp;
+                        $newCP["complementPC"] = $complement;
+                        $newCP["name"] = $lineCSV[2];
+                        $newCP["geo"]["@type"] = "GeoCoordinates";
+                        $newCP["geo"]["latitude"] = $lat;
+                        $newCP["geo"]["longitude"] = $lon;
+                        $newCP["geoPosition"] = array("type"=>"Point",
+                                                                    "coordinates" =>
+                                                                        array(
+                                                                            floatval($lon),
+                                                                            floatval($lat)));
+                        $city["postalCodes"][] = $newCP;
+                        //$new["city"] = $city["name"];
+                        //$new["name"] = $lineCSV[2];
+                        PHDB::update(City::COLLECTION,
+                                    array("_id"=>new MongoId($idCity)),
+                                    array('$set' => $city),
+                                    array('upsert' => true));
+
+                        //var_dump($new);
+                        //$res[] = $new ;
+                    }
+
+                }
+                else{
+                    /// Appliquer Similar_text
+                    $cp = $lineCSV[1];
+                    $city = SIG::getCityByLatLngGeoShape($lat, $lon, $cp);
+                    if(!empty($city)){
+                        $idCity = (String)$city["_id"];
+                        foreach ($city["postalCodes"] as $key => $value) {
+                            if($value["postalCode"] == $cp){
+                                similar_text($lineCSV[2], self::nameCities($value["name"]), $percent);
+                                if(preg_match('#^[A-Z ]$#',$value["name"]) && $percent >= 97){ 
+                                    $value["name"] = $lineCSV[2];
+                                }
+                            }
+                        }
+                        PHDB::update(City::COLLECTION,
+                                    array("_id"=>new MongoId($idCity)),
+                                    array('$set' => $city),
+                                    array('upsert' => true));
+                        //var_dump($new );
+                        //$res[] = $new ;
+                    }else{
+                        $new["cp"] = $lineCSV[1];
+                        $new["name"] = $lineCSV[2];
+                        $res[] = $new ;
+                    } 
+                }
+
+            }
+            
+        }
+        return $res ;
+
+    }
+
+
+    public static function nameCities( $name ){ 
+        $newName = "";
+        $search = array("-");
+        $name = strip_tags (str_replace($search, " ", $name));
+        $newName = strtoupper($name);
+        return $newName;
     }
 }
 

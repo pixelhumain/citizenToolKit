@@ -7,7 +7,7 @@ class CheckCitiesAction extends CAction
 
         
         //$params['cities'] = json_encode(City::getCitiesForcheck());
-        $params['cities'] = Import::checkGeoShape();
+        $params['cities'] = array();
     	if(Yii::app()->request->isAjaxRequest)
             echo $controller->renderPartial("checkcities",$params,true);
         else 

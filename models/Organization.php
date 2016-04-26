@@ -928,6 +928,9 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 		if(!empty($details['geo']))
 			$newOrganization['geo'] = $details['geo'] ;
 
+		if(!empty($details['geoPosition']))
+			$newOrganization['geoPosition'] = $details['geoPosition'] ;
+
 		if(!empty($newOrganization['warnings']))
 			$newOrganization['warnings'] = array_merge($newOrganization['warnings'], $details['warnings']);
 		else
@@ -1035,8 +1038,8 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 			$newOrganization["geoPosition"] = array("type"=>"Point",
 													"coordinates" =>
 														array(
-															floatval($organization["geo"]['latitude']),
-															floatval($organization["geo"]['longitude']))
+															floatval($organization["geo"]['longitude']),
+															floatval($organization["geo"]['latitude']))
 												 	  	);
 		}
 		else if($insert){
