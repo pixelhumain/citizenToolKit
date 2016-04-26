@@ -1,5 +1,5 @@
 <?php
-class GlobalAutoCompleteAction extends CAction
+class SimplyAutoCompleteAction extends CAction
 {
     public function run($filter = null)
     {
@@ -48,70 +48,112 @@ class GlobalAutoCompleteAction extends CAction
          if($sourceKey != null && $sourceKey != ""){
         	$sourceKeyQuery = array( "source.key" => array('$in' => array(new MongoRegex("/".$sourceKey."/i")))) ; //new MongoRegex("/".$search."/i") )));
         	$query = array('$and' => array( $query ,$sourceKeyQuery));
-  		}
-
-  		
+  		}	
 
   		/***********************************  DEFINE LOCALITY QUERY   *****************************************/
-        if($locality != null && $locality != ""){
+  		$localityReferences['NAME'] = "address.addressLocality";
+  		$localityReferences['CODE_POSTAL_INSEE'] = "address.postalCode";
+  		$localityReferences['DEPARTEMENT'] = "address.postalCode";
+  		$localityReferences['REGION'] = ""; //Spécifique
+  		$localityReferences['INSEE'] = "address.codeInsee";
 
-        	//$type = $this->getTypeOfLocalisation($locality);
-        	//if($searchBy == "INSEE") 
-        	$type = $searchBy;
+  		foreach ($localityReferences as $key => $value) {
+  			if(isset($_POST["searchLocality".$key]) && is_array($_POST["searchLocality".$key])){
+  				foreach ($_POST["searchLocality".$key] as $locality) {
 
-        	$queryLocality = array();
+  					//OneRegion
+  					if($key == "REGION") {
+	        			$deps = PHDB::find( City::COLLECTION, array("regionName" => $locality), array("dep"));
+	        			$departements = array();
+	        			$inQuest = array();
+	        			if(is_array($deps))foreach($deps as $index => $value){
+	        				if(!in_array($value["dep"], $departements)){
+		        				$departements[] = $value["dep"];
+		        				$inQuest[] = new MongoRegex("/^".$value["dep"]."/i");
+					        	$queryLocality = array("address.postalCode" => array('$in' => $inQuest));
+		        				
+					        }
+	        			}
+	        		}elseif($key == "DEPARTEMENT") {
+	        			$queryLocality = array($value => new MongoRegex("/^".$locality."/i"));
+		        	}//OneLocality
+		        	else{
+	  					$queryLocality = array($value => new MongoRegex("/".$locality."/i"));
+	  				}
+
+  					//Consolidate Queries
+  					if(isset($allQueryLocality)){
+  						$allQueryLocality = array('$or' => array( $allQueryLocality ,$queryLocality));
+  					}else{
+  						$allQueryLocality = $queryLocality;
+  					}
+  					unset($queryLocality);
+  				}
+  			}
+  		}
+  		if(isset($allQueryLocality) && is_array($allQueryLocality))$query = array('$and' => array($query, $allQueryLocality));
+  		// print_r($query);
+  		// $query = array('$and' => array($query, $queryLocality));
+
+    //     if($locality != null && $locality != ""){
+
+    //     	//$type = $this->getTypeOfLocalisation($locality);
+    //     	//if($searchBy == "INSEE") 
+    //     	$type = $searchBy;
+
+    //     	$queryLocality = array();
         	
-        	if($type == "NAME"){ 
-        		$queryLocality = array("address.addressLocality" => new MongoRegex("/".$locality."/i"));
-        	}
-        	if($type == "CODE_POSTAL_INSEE") {
-        		$queryLocality = array("address.postalCode" => $locality );
-        	}
-        	if($type == "DEPARTEMENT") {
-        		$queryLocality = array("address.postalCode" 
-						=> new MongoRegex("/^".$locality."/i"));
-        	}
-        	if($type == "REGION") {
-        		//#TODO GET REGION NAME | CITIES.DEP = myDep
-        		$regionName = PHDB::findOne( City::COLLECTION, array("insee" => $locality), array("regionName", "dep"));
+    //     	if($type == "NAME"){ 
+    //     		$queryLocality = array("address.addressLocality" => new MongoRegex("/".$locality."/i"));
+    //     	}
+    //     	if($type == "CODE_POSTAL_INSEE") {
+    //     		$queryLocality = array("address.postalCode" => $locality );
+    //     	}
+    //     	if($type == "DEPARTEMENT") {
+    //     		$queryLocality = array("address.postalCode" 
+				// 		=> new MongoRegex("/^".$locality."/i"));
+    //     	}
+    //     	if($type == "REGION") {
+    //     		//#TODO GET REGION NAME | CITIES.DEP = myDep
+    //     		$regionName = PHDB::findOne( City::COLLECTION, array("insee" => $locality), array("regionName", "dep"));
         		
-				if(isset($regionName["regionName"])){ //quand la city a bien la donnée "regionName"
-        			$regionName = $regionName["regionName"];
-        			//#TODO GET ALL DEPARTMENT BY REGION
-        			$deps = PHDB::find( City::COLLECTION, array("regionName" => $regionName), array("dep"));
-        			$departements = array();
-        			$inQuest = array();
-        			foreach($deps as $index => $value){
-        				if(!in_array($value["dep"], $departements)){
-	        				$departements[] = $value["dep"];
-	        				$inQuest[] = new MongoRegex("/^".$value["dep"]."/i");
-				        	$queryLocality = array("address.postalCode" => array('$in' => $inQuest));
+				// if(isset($regionName["regionName"])){ //quand la city a bien la donnée "regionName"
+    //     			$regionName = $regionName["regionName"];
+    //     			//#TODO GET ALL DEPARTMENT BY REGION
+    //     			$deps = PHDB::find( City::COLLECTION, array("regionName" => $regionName), array("dep"));
+    //     			$departements = array();
+    //     			$inQuest = array();
+    //     			foreach($deps as $index => $value){
+    //     				if(!in_array($value["dep"], $departements)){
+	   //      				$departements[] = $value["dep"];
+	   //      				$inQuest[] = new MongoRegex("/^".$value["dep"]."/i");
+				//         	$queryLocality = array("address.postalCode" => array('$in' => $inQuest));
 	        				
-				        }
-        			}
-        			//$queryLocality = array('$or' => $orQuest);
-        			//error_log("queryLocality : " . print_R($queryLocality, true));
+				//         }
+    //     			}
+    //     			//$queryLocality = array('$or' => $orQuest);
+    //     			//error_log("queryLocality : " . print_R($queryLocality, true));
         			
-        		}else{ //quand la city communectée n'a pas la donnée "regionName", on prend son département à la place
-        			$regionName = isset($regionName["dep"]) ? $regionName["dep"] : "";
-        			$queryLocality = array("address.postalCode" 
-						=> new MongoRegex("/^".$regionName."/i"));
-        		}
+    //     		}else{ //quand la city communectée n'a pas la donnée "regionName", on prend son département à la place
+    //     			$regionName = isset($regionName["dep"]) ? $regionName["dep"] : "";
+    //     			$queryLocality = array("address.postalCode" 
+				// 		=> new MongoRegex("/^".$regionName."/i"));
+    //     		}
         		
 
-        		//$str = implode(",", $regionName);
-        		error_log("regionName : ".$regionName );
+    //     		//$str = implode(",", $regionName);
+    //     		error_log("regionName : ".$regionName );
 
-        		//#TODO CREATE REQUEST CITIES.POSTALCODE IN (LIST_DEPARTMENT)" 
-      //   		$queryLocality = array("address.postalCode" 
-						// => new MongoRegex("/^".$locality."/i"));
-        	}
-        	if($type == "INSEE") {
-        		$queryLocality = array("address.codeInsee" => $locality );
-        	}
+    //     		//#TODO CREATE REQUEST CITIES.POSTALCODE IN (LIST_DEPARTMENT)" 
+    //   //   		$queryLocality = array("address.postalCode" 
+				// 		// => new MongoRegex("/^".$locality."/i"));
+    //     	}
+    //     	if($type == "INSEE") {
+    //     		$queryLocality = array("address.codeInsee" => $locality );
+    //     	}
         	
-        	$query = array('$and' => array($query, $queryLocality ) );
-	    }
+    //     	$query = array('$and' => array($query, $queryLocality ) );
+	   //  }
 
 
 
@@ -119,7 +161,7 @@ class GlobalAutoCompleteAction extends CAction
 	    $allRes = array();
 
         /***********************************  PERSONS   *****************************************/
-        if(strcmp($filter, "sourceKey") != 0){
+       if(strcmp($filter, Person::COLLECTION) != 0 && $this->typeWanted("citoyen", $searchType)){
 
         	$allCitoyen = PHDB::find ( Person::COLLECTION , $query, array("name", "address", "shortDescription", "description"));
 
@@ -137,19 +179,28 @@ class GlobalAutoCompleteAction extends CAction
 
 	  	/***********************************  ORGANISATIONS   *****************************************/
         if(strcmp($filter, Organization::COLLECTION) != 0 && $this->typeWanted("organizations", $searchType)){
-        	$queryDisabled = array("disabled" => array('$exists' => false));
-        	$queryOrganization = array('$and' => array($query, $queryDisabled));
-	  		$allOrganizations = PHDB::find ( Organization::COLLECTION ,$queryOrganization ,array("name", "address", "shortDescription", "description"));
-	  		foreach ($allOrganizations as $key => $value) {
-	  			$orga = Organization::getSimpleOrganizationById($key);
 
-	  			$followers = Organization::getFollowersByOrganizationId($key);
-	  			if(@$followers[Yii::app()->session["userId"]]){
-		  			$orga["isFollowed"] = true;
-	  			}
-				$orga["type"] = "organization";
-				$orga["typeSig"] = "organizations";
-				$allOrganizations[$key] = $orga;
+	  		$allOrganizations = PHDB::find ( Organization::COLLECTION ,$query ,array("id" => 1, "name" => 1, "type" => 1, "email" => 1,  "shortDescription" => 1, "description" => 1,
+													 			"address" => 1, "pending" => 1, "tags" => 1, "geo" => 1));
+	  		foreach ($allOrganizations as $key => $value) {
+	  			// $orga = Organization::getSimpleOrganizationById($key);
+
+	  			// $followers = Organization::getFollowersByOrganizationId($key);
+	  			// if(@$followers[Yii::app()->session["userId"]]){
+		  		// 	$orga["isFollowed"] = true;
+	  			// }
+
+	  			$allOrganizations[$key]["profilThumbImageUrl"] = "";
+				$allOrganizations[$key]["profilMarkerImageUrl"] = "//com/assets/dad45ab2/images/sig/markers/icons_carto/";		
+				$allOrganizations[$key]["logoImageUrl"] = "";
+				
+				$allOrganizations[$key]["address"] = empty($value["address"]) ? array("addressLocality" => "Unknown") : $value["address"];
+
+				// $allOrganizations[$key] = Organization::getSimpleOrganizationById($key);
+
+				$$allOrganizations[$key]["type"] = "organization";
+				$allOrganizations[$key]["typeSig"] = "organizations";
+				// $allOrganizations[$key] = $orga;
 	  		}
 
 	  		//$res["organization"] = $allOrganizations;
@@ -225,7 +276,7 @@ class GlobalAutoCompleteAction extends CAction
 			    	$query["country"] = $country;
 			    }
 
-	  		//$allCities = PHDB::find(City::COLLECTION, $query, array("name", "alternateName", "cp", "insee", "regionName", "country", "geo", "geoShape","postalCodes"));
+	  		$allCities = PHDB::find(City::COLLECTION, $query, array("name", "alternateName", "cp", "insee", "regionName", "country", "geo", "geoShape","postalCodes"));
 	  		$allCities = PHDB::find(City::COLLECTION, $query);
 	  		$allCitiesRes = array();
 	  		$nbMaxCities = 20;
@@ -257,21 +308,7 @@ class GlobalAutoCompleteAction extends CAction
 			  		} $nbCities++;
 		  		}
 	  		}
-	  		/*$allCitiesRes = array();
-	  		$nbMaxCities = 20;
-	  		$nbCities = 0;
-	  		foreach ($allCities as $key => $value) {
-	  			if($nbCities < $nbMaxCities){
-		  			$city = $value; // City::getSimpleCityById($key);
-		  			$city["type"] = "city";
-					$city["typeSig"] = "city";
-					//error_log("found city : " . $value["alternateName"]." ".$locality);
-					if($value["alternateName"] == strtoupper($locality))  $city["name"] = ucwords(strtolower($value["alternateName"])) ;
-					else $city["name"] = ucwords(strtolower($value["name"])) ;
-				$allCitiesRes[$key] = $city;
-				} $nbCities++;
-	  		}*/
-	  		//$res["cities"] = $allCitiesRes;
+	  		
 
 	  		if(empty($allCitiesRes)){
 	  			$query = array( "cp" => $search);

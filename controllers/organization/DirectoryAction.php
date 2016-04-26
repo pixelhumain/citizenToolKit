@@ -47,7 +47,10 @@ class DirectoryAction extends CAction
           if(@$value["isAdmin"] && $value["isAdmin"]==1){
 	            $newOrga["isAdmin"]=$value["isAdmin"];
         	} 
-          array_push($params["organizations"], $newOrga);
+          //Do not add organization if it is disabled
+          if (!@$newOrga["disabled"]) {
+            array_push($params["organizations"], $newOrga);
+          }
         }
 
         /* **************************************
