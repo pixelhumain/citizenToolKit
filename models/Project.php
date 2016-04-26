@@ -10,6 +10,7 @@ class Project {
 	private static $dataBinding = array(
 	    "name" => array("name" => "name", "rules" => array("required")),
 	    "address" => array("name" => "address"),
+	    "streetAddress" => array("name" => "address.streetAddress"),
 	    "postalCode" => array("name" => "address.postalCode"),
 	    "city" => array("name" => "address.codeInsee"),
 	    "addressCountry" => array("name" => "address.addressCountry"),
@@ -158,7 +159,8 @@ class Project {
 		if(!empty($project['postalCode'])) {
 			if (!empty($project['city'])) {
 				$insee = $project['city'];
-				$address = SIG::getAdressSchemaLikeByCodeInsee($insee);
+				$cityName= $project['cityName'];
+				$address = SIG::getAdressSchemaLikeByCodeInsee($insee,$project['postalCode'],$cityName);
 				//$address["addressCountry"] = $project["addressCountry"];
 				$newProject["address"] = $address;
 				if( !empty($project['streetAddress'])) 
@@ -323,8 +325,12 @@ class Project {
 		if ($dataFieldName == "address") {
 			if(!empty($projectFieldValue["postalCode"]) && !empty($projectFieldValue["codeInsee"])) {
 				$insee = $projectFieldValue["codeInsee"];
-				$address = SIG::getAdressSchemaLikeByCodeInsee($insee);
-				$set = array("address" => $address, "geo" => SIG::getGeoPositionByInseeCode($insee));
+				$postalCode = $projectFieldValue["postalCode"];
+				$cityName = $projectFieldValue["addressLocality"];
+				$address = SIG::getAdressSchemaLikeByCodeInsee($insee,$postalCode,$cityName);
+				$set = array("address" => $address, "geo" => SIG::getGeoPositionByInseeCode($insee,$postalCode,$cityName));
+				if (!empty($projectFieldValue["streetAddress"]))
+					$set["address"]["streetAddress"] = $projectFieldValue["streetAddress"];
 			} else {
 				throw new CTKException("Error updating the Project : address is not well formated !");			
 			}
@@ -513,7 +519,7 @@ class Project {
 	*   return String ("Add", "Update" or "Delete")
 	*/
 	public static function createProjectFromImportData($projectImportData, $key=null, $warnings = null) {
-		//var_dump($projectImportData);
+		
 		if(!empty($projectImportData['name']))
 			$newProject["name"] = $projectImportData["name"];
 
@@ -545,27 +551,18 @@ class Project {
 		if(!empty($projectImportData['warnings']))
 			$newProject["warnings"] = $projectImportData["warnings"];
 
+		$address = (empty($projectImportData['address']) ? null : $projectImportData['address']);
+		$geo = (empty($projectImportData['geo']) ? null : $projectImportData['geo']);
+		$details = Import::getAndCheckAddressForEntity($address, $geo, $warnings) ;
+		$newProject['address'] = $details['address'];
 
-		
-		
-		if(!empty($projectImportData['geo']['latitude']))
-			$newProject['geo']['latitude'] = $projectImportData['geo']['latitude'];
+		if(!empty($details['geo']))
+			$newProject['geo'] = $details['geo'] ;
 
-		if(!empty($projectImportData['geo']['longitude']))
-			$newProject['geo']['longitude'] = $projectImportData['geo']['longitude'];
-
-
-
-		if(!empty($projectImportData['address'])){
-			$details = Import::getAndCheckAddressForEntity($projectImportData['address'], (empty($newProject['geo']) ? null : $newProject['geo']), true) ;
-			$newProject['address'] = $details['address'];
-
-			if(!empty($newProject['warnings']))
-				$newProject['warnings'] = array_merge($newProject['warnings'], $details['warnings']);
-			else
-				$newProject['warnings'] = $details['warnings'];
-
-		}
+		if(!empty($newProject['warnings']))
+			$newProject['warnings'] = array_merge($newProject['warnings'], $details['warnings']);
+		else
+			$newProject['warnings'] = $details['warnings'];
 			
 		return $newProject;
 	}
@@ -712,19 +709,6 @@ class Project {
 			$newProject["state"] = "uncomplete";
 		}
 
-		if(!empty($project['source']['sourceId']) ){
-			$id = $project['source']['sourceId'] ;
-			if($id >= "8025" &&  $id <= "8152"){
-				throw new CTKException(Yii::t("project","Projet Amaury"));
-			}
-			if($id >= "8169" &&  $id <= "11686"){
-				throw new CTKException(Yii::t("project","Projet ImaginationForPeople"));
-			}
-		}
-
-
-		
-
 		return $newProject;
 	}
 
@@ -745,13 +729,8 @@ class Project {
 	    if(isset($newProject["tags"]))
 			$newProject["tags"] = Tags::filterAndSaveNewTags($newProject["tags"]);
 
-	    /*$newProject["links"] = array( "contributors" => 
-	    								array($parentId =>array("type" => $parentType,"isAdmin" => true)));*/
-
 	    PHDB::insert(self::COLLECTION,$newProject);
-	    /*Link::connect($parentId, $parentType, $newProject["_id"], self::COLLECTION, $parentId, "projects", true );*/
-
-	    //Notification::createdObjectAsParam(Person::COLLECTION,Yii::app() -> session["userId"],Project::COLLECTION, (String)$newProject["_id"], $parentType, $parentId, $newProject["geo"], (isset($newProject["tags"])) ? $newProject["tags"]:null ,$newProject["address"]["codeInsee"]);
+	    
 	    return array("result"=>true, "msg"=>"Votre projet est communecté.", "id" => $newProject["_id"]);	
 	}
 
@@ -762,7 +741,6 @@ class Project {
 			if(in_array("commun", $project['tags']) || in_array("fabmob", $project['tags'])){
 				$url = "http://data.patapouf.org".$project["source"]["url"];
 				
-
 				$res = Import::getDataByUrl($url);
 
 				$json = json_decode($res, true);

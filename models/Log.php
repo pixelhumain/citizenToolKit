@@ -34,8 +34,8 @@ class Log {
     	//Data by default
 	    $logs =array(
 			"userId" => @Yii::app()->session['userId'],
-			"browser" => $_SERVER["HTTP_USER_AGENT"],
-			"ipAddress" => $_SERVER["REMOTE_ADDR"],
+			"browser" => @$_SERVER["HTTP_USER_AGENT"],
+			"ipAddress" => @$_SERVER["REMOTE_ADDR"],
 			"created" => new MongoDate(time()),
 			"action" => $libAction
 	    );

@@ -88,7 +88,7 @@ class Event {
 		$simpleEvent = array();
 		$event = PHDB::findOneById( self::COLLECTION ,$id, array("id" => 1, "name" => 1, "type" => 1,  "shortDescription" => 1, "description" => 1,
 																 "address" => 1, "geo" => 1, "tags" => 1) );
-
+		if(!empty($event)){
 		$simpleEvent["id"] = $id;
 		$simpleEvent["name"] = @$event["name"];
 		$simpleEvent["type"] = @$event["type"];
@@ -100,8 +100,8 @@ class Event {
 		$simpleEvent = array_merge($simpleEvent, Document::retrieveAllImagesUrl($id, self::COLLECTION));
 		
 		$simpleEvent["address"] = empty($event["address"]) ? array("addressLocality" => "Unknown") : $event["address"];
-		
-		return $simpleEvent;
+		}
+		return @$simpleEvent;
 	}
 
 	public static function getWhere($params) 
@@ -197,7 +197,9 @@ class Event {
 	    if(!empty($params['postalCode'])) {
 			if (!empty($params['city'])) {
 				$insee = $params['city'];
-				$address = SIG::getAdressSchemaLikeByCodeInsee($insee);
+				$postalCode=$params['postalCode'];
+				$cityName= $params['cityName'];
+				$address = SIG::getAdressSchemaLikeByCodeInsee($insee,$postalCode,$cityName);
 				$newEvent["address"] = $address;
 			}
 
@@ -425,13 +427,15 @@ class Event {
 		if ($dataFieldName == "address") {
 			if(!empty($eventFieldValue["postalCode"]) && !empty($eventFieldValue["codeInsee"])) {
 				$insee = $eventFieldValue["codeInsee"];
-				$address = SIG::getAdressSchemaLikeByCodeInsee($insee);
+				$postalCode = $eventFieldValue["postalCode"];
+				$cityName = $eventFieldValue["addressLocality"];
+				$address = SIG::getAdressSchemaLikeByCodeInsee($insee,$postalCode,$cityName);
 				
 				if(!empty( $eventFieldValue["streetAddress"] ))
 					$address[ "streetAddress" ] = $eventFieldValue["streetAddress"];
 
 				$set = array("address" => $address, 
-							 "geo" => SIG::getGeoPositionByInseeCode($insee));
+							 "geo" => SIG::getGeoPositionByInseeCode($insee,$postalCode,$cityName));
 			} else {
 				throw new CTKException("Error updating the Event : address is not well formated !");			
 			}
@@ -852,6 +856,319 @@ class Event {
 		
 		return $newEvent;
 	}
+
+
+
+
+	public static function newEventFromImportData($event, $emailCreator=null, $warnings=null) {
+		
+		$newEvent = array();
+		/*if(!empty($event['email']))
+			$newEvent["email"] = $event['email'];*/
+
+		$newEvent["email"] = empty($event["email"]) ? $emailCreator : $event["email"];
+
+		if(!empty($event['name']))
+			$newEvent["name"] = $event['name'];
+		else
+			$newEvent["name"] = "Nuit Debout";
+
+		if(!empty($event['source'])){
+			if(!empty($event['source']['id']))
+				$newEvent["source"]['id'] = $event["source"]['id'];
+			if(!empty($event['source']['url']))
+				$newEvent["source"]['url'] = $event["source"]['url'];
+			if(!empty($event['source']['key']))
+				$newEvent["source"]['key'] = $event["source"]['key'];
+		}
+
+		if(!empty($event['warnings']))
+			$newEvent["warnings"] = $event["warnings"];
+
+		if(!empty($event['type'])) {
+			$newEvent["type"] = $event['type'];
+		}else{
+			$newEvent["type"] = "other";
+		}
+			
+		
+		
+		$newEvent["description"] = empty($event['description']) ? "" : $event['description'];
+		$newEvent["shortDescription"] = empty($event['shortDescription']) ? "" : $event['shortDescription'];
+		$newEvent["role"] = empty($event['role']) ? "" : $event['role'];
+		$newEvent["creator"] = empty($event['creator']) ? "" : $event['creator'];
+		$newEvent["url"] = empty($event['url']) ? "" : $event['url'];
+
+
+		if(!empty($event['tags']))
+		{	
+			$tags = array();
+			foreach ($event['tags'] as $key => $value) {
+				$trimValue=trim($value);
+				if(!empty($trimValue))
+					$tags[] = $trimValue;
+			}
+			$newEvent["tags"] = $tags;
+		}
+
+		if(!empty($event['telephone']))
+		{
+			$tel = array();
+			$fixe = array();
+			$mobile = array();
+			$fax = array();
+			if(!empty($event['telephone']["fixe"]))
+			{
+				foreach ($event['telephone']["fixe"] as $key => $value) {
+					$trimValue=trim($value);
+					if(!empty($trimValue))
+						$fixe[] = $trimValue;
+				}
+			}
+			if(!empty($event['telephone']["mobile"]))
+			{
+				foreach ($event['telephone']["mobile"] as $key => $value) {
+					$trimValue=trim($value);
+					if(!empty($trimValue))
+						$mobile[] = $trimValue;
+				}
+			}
+
+			if(!empty($event['telephone']["fax"]))
+			{
+				foreach ($event['telephone']["fax"] as $key => $value) {
+					$trimValue=trim($value);
+					if(!empty($trimValue))
+						$fax[] = $trimValue;
+				}
+			}
+			if(count($mobile) != 0)
+				$tel["mobile"] = $mobile ;
+			if(count($fixe) != 0)
+				$tel["fixe"] = $fixe ;
+			if(count($fax) != 0)
+				$tel["fax"] = $fax ;
+			if(count($tel) != 0)	
+				$newEvent['telephone'] = $tel;
+		}
+
+		if(!empty($event['source']))
+			$newEvent["source"] = $event["source"];
+		
+
+		$address = (empty($event['address']) ? null : $event['address']);
+		$geo = (empty($event['geo']) ? null : $event['geo']);
+		$details = Import::getAndCheckAddressForEntity($address, $geo, $warnings) ;
+		$newEvent['address'] = $details['address'];
+
+		if(!empty($details['geo']))
+			$newEvent['geo'] = $details['geo'] ;
+
+		if(!empty($newEvent['warnings']))
+			$newEvent['warnings'] = array_merge($newEvent['warnings'], $details['warnings']);
+		else
+			$newEvent['warnings'] = $details['warnings'];
+
+
+		return $newEvent;
+	}
+
+
+	/**
+	 * Apply event checks and business rules before inserting
+	 * @param array $event : array with the data of the event to check
+	 * @return array Organization well format : ready to be inserted
+	 */
+	public static function getAndCheckEventFromImportData($event, $insert=null, $update=null, $warnings = null) {
+		$newEvent = array();
+		
+		
+		if (empty($event['name'])) {
+			if($warnings)
+				$newEvent["warnings"][] = "001" ;
+			else
+				throw new CTKException(Yii::t("import","001"));
+		}else
+			$newEvent['name'] = $event['name'];
+		
+		
+
+		$newEvent['created'] = new MongoDate(time()) ;
+		
+		
+		/*if(!empty($event['email'])) {
+			if (! preg_match('#^[\w.-]+@[\w.-]+\.[a-zA-Z]{2,6}$#',$event['email'])) { 
+				if($warnings)
+					$newEvent["warnings"][] = "205" ;
+				else
+					throw new CTKException(Yii::t("import","205", null, Yii::app()->controller->module->id));
+			}
+			$newEvent["email"] = $event['email'];
+		}*/
+
+		if(empty($event['type'])) {
+			if($warnings)
+			{
+				$newEvent["warnings"][] = "208" ;
+				//$newEvent["type"] = self::TYPE_GROUP ;
+			}	
+			else
+				throw new CTKException(Yii::t("import","208", null, Yii::app()->controller->module->id));
+		}else{
+			$newEvent["type"] = $event['type'];
+		}
+			  
+		
+		if(!empty($event['address'])) {
+			if(empty($event['address']['postalCode']) /*&& $insert*/){
+				if($warnings)
+					$newEvent["warnings"][] = "101" ;
+				else
+					throw new CTKException(Yii::t("import","101", null, Yii::app()->controller->module->id));
+			}
+			if(empty($event['address']['codeInsee'])/*&& $insert*/){
+				if($warnings)
+					$newEvent["warnings"][] = "102" ;
+				else{
+					throw new CTKException(Yii::t("import","102", null, Yii::app()->controller->module->id));
+				}
+					
+			}
+			if(empty($event['address']['addressCountry']) /*&& $insert*/){
+				if($warnings)
+					$newEvent["warnings"][] = "104" ;
+				else
+					throw new CTKException(Yii::t("import","104", null, Yii::app()->controller->module->id));
+			}
+			if(empty($event['address']['addressLocality']) /*&& $insert*/){
+				if($warnings)
+					$newEvent["warnings"][] = "105" ;
+				else
+					throw new CTKException(Yii::t("import","105", null, Yii::app()->controller->module->id));
+			}
+			$newEvent['address'] = $event['address'] ;
+
+		}else {
+			if($warnings)
+				$newEvent["warnings"][] = "100" ;
+			else
+				throw new CTKException(Yii::t("import","100", null, Yii::app()->controller->module->id));
+		}
+		
+		if(!empty($event['geo']) && !empty($event["geoPosition"])){
+			$newEvent["geo"] = $event['geo'];
+			$newEvent["geoPosition"] = $event['geoPosition'];
+
+		}else if(!empty($event["geo"]['latitude']) && !empty($event["geo"]["longitude"])){
+			$newEvent["geo"] = 	array(	"@type"=>"GeoCoordinates",
+						"latitude" => $event["geo"]['latitude'],
+						"longitude" => $event["geo"]["longitude"]);
+
+			$newEvent["geoPosition"] = array("type"=>"Point",
+													"coordinates" =>
+														array(
+															floatval($event["geo"]['latitude']),
+															floatval($event["geo"]['longitude']))
+												 	  	);
+		}
+		else if($insert){
+			if($warnings)
+				$newEvent["warnings"][] = "150" ;
+			else
+				throw new CTKException(Yii::t("import","150", null, Yii::app()->controller->module->id));
+		}else if($warnings)
+			$newEvent["warnings"][] = "150" ;
+			
+		
+		if (isset($event['tags'])) {
+			if ( gettype($event['tags']) == "array" ) {
+				$tags = $event['tags'];
+			} else if ( gettype($event['tags']) == "string" ) {
+				$tags = explode(",", $event['tags']);
+			}
+			$newEvent["tags"] = $tags;
+		}
+		
+		if (!empty($event['description']))
+			$newEvent["description"] = $event['description'];
+
+		if (!empty($event['shortDescription']))
+			$newEvent["shortDescription"] = $event['shortDescription'];
+
+		if(!empty($event['creator'])){
+			$newEvent["creator"] = $event['creator'];
+		}
+
+		if(!empty($event['source'])){
+			$newEvent["source"] = $event['source'];
+		}
+
+		//url by ImportData
+		if(!empty($event['url'])){
+			$newEvent["url"] = $event['url'];
+		}
+
+		if(!empty($event['allDay'])){
+			$newEvent["allDay"] = $event['allDay'];
+		}
+
+		if(!empty($event['startDate'])){	
+			$newEvent['startDate'] = new MongoDate(time());
+		}else{
+			$newEvent['startDate'] = new MongoDate(time());
+		}	
+		if(!empty($event['image'])){
+			$newEvent["image"] = $event['image'];
+		}
+
+		if(!empty($event['endDate'])){
+			$newEvent['endDate'] = new MongoDate(time() + (7 * 24 * 60 * 60));
+		}else{
+			$newEvent['endDate'] = new MongoDate(time() + (7 * 24 * 60 * 60));
+		}
+		
+		return $newEvent;
+	}
+
+
+	public static function insertEventFromImportData($event, $warnings = null){
+	    
+	    $newEvent = self::getAndCheckEventFromImportData($event, true, null, $warnings);
+		
+		if (isset($newEvent["tags"]))
+			$newEvent["tags"] = Tags::filterAndSaveNewTags($newEvent["tags"]);
+
+		//Add the user creator of the event in the system
+		/*if (empty($creatorId)) {
+			//throw new CTKException("The creator of the event is required.");
+		} else {
+			$newEvent["creator"] = $creatorId;	
+		}*/
+		$newEvent["creator"] = "56eff58e94ef47451c7b23d6";
+		$newEvent["organizerId"] = "56eff58e94ef47451c7b23d6";
+		$newEvent["organizerType"] = Person::COLLECTION ;	
+		//Insert the event
+	    PHDB::insert( self::COLLECTION, $newEvent);
+
+	    if (isset($newEvent["_id"])) {
+	    	$newEventId = (String) $newEvent["_id"];
+	    } else {
+	    	throw new CTKException(Yii::t("event","Problem inserting the new event"));
+	    }
+	    
+		$isAdmin = true;
+		Link::attendee($newEvent["_id"], $newEvent["creator"], $isAdmin, $newEvent["creator"]);
+	    Link::addOrganizer($newEvent["organizerId"],$newEvent["organizerType"], $newEvent["_id"], $newEvent["creator"]);
+	    
+	    
+
+		$newEvent = self::getById($newEventId);
+	    return array("result"=>true,
+		    			"msg"=>"Votre event est communectée.", 
+		    			"id"=>$newEventId, 
+		    			"newOrganization"=> $newEvent);
+	}
+
 
 
 	

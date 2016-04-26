@@ -10,8 +10,7 @@ things like :
 */
 class Cron {
 
-	const COLLECTION = "cron";																																																																																																				
-	
+	const COLLECTION = "cron";																					
 	const TYPE_MAIL = "mail";
 
 	const STATUS_PENDING = "pending";

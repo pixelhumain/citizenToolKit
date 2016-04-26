@@ -40,7 +40,7 @@ class DetailAction extends CAction
 	  		$params = array();
 	  		// Get people or orga who contribute to the project 
 	  		// Get image for each contributors														
-	  		if(isset($project["links"])){
+	  		if(isset($project["links"]) && isset($project["links"]["contributors"])){
 	  			foreach ($project["links"]["contributors"] as $uid => $e) {
 	  				if($e["type"]== Organization::COLLECTION){
 	  					$organization = Organization::getSimpleOrganizationById($uid);
@@ -58,8 +58,14 @@ class DetailAction extends CAction
 	  						array_push($people, $citoyen);
 	  						$citoyen["type"]=Person::COLLECTION;
 							if(@$e["isAdmin"]){
+								if(@$e["isAdminPending"])
+									$citoyen["isAdminPending"]=true;
 		  						$citoyen["isAdmin"]=true;  				
 	  						}
+	  						if(@$e["toBeValidated"]){
+	  							$citoyen["toBeValidated"]=true;  
+							}	
+
 	  						array_push($contributors, $citoyen);
 	  					}
 	  				}
@@ -86,13 +92,17 @@ class DetailAction extends CAction
 		  		$tasks=$project["tasks"];
 	  		}
 	  		//Need keep on
-	  		$whereNeed = array("created"=>array('$exists'=>1) ) ;
+	  		//$whereNeed = array("created"=>array('$exists'=>1) ) ;
 	  		//if(isset($type))
-        	$whereNeed["parentType"] = Project::COLLECTION;
+        	//$whereNeed["parentType"] = Project::COLLECTION;
 			//if(isset($id))
-        	$whereNeed["parentId"] = (string)$project["_id"];
+        	//$whereNeed["parentId"] = (string)$project["_id"];
 			//var_dump($where);
-			$needs = Need::getWhereSortLimit( $whereNeed, array("date"=>1) ,30);
+			//$needs = Need::getWhereSortLimit( $whereNeed, array("date"=>1) ,30);
+
+			//$needs = Need::listNeeds($id, Project::COLLECTION);
+			//echo "need"; var_dump($needs);
+	  	
 	  	}
 	  	//Gestion de l'admin - true or false
 	  	// First find if user session is directly link to project
@@ -119,10 +129,18 @@ class DetailAction extends CAction
 	  	$params["people"] = $people;
 	  	$params["properties"] = $properties;
 	  	$params["tasks"]=$tasks;
-	  	$params["needs"]=$needs;
+	  	//$params["needs"]=$needs;
 	  	$params["admin"]=$isProjectAdmin;
 	  	$params["admins"]=$admins;
-		$page = "detail";
+
+		//Display different for simplyDirectory
+		if($controller->action->id == 'simply'){
+			$page = "simplyDetail";
+		}else{
+			$page = "detail";
+		}
+
+
 		if(Yii::app()->request->isAjaxRequest)
             echo $controller->renderPartial($page,$params,true);
         else 
