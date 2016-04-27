@@ -61,32 +61,23 @@ class SaveSessionAction extends CAction
                     $entryInfos['dateEnd'] = strtotime( str_replace("/", "-", $_POST['dateEnd']) );
 
                 $entryInfos['created'] = time();
-                //specific application routines
-                if( isset( $_POST["app"] ) )
-                {
-                    $appKey = $_POST["app"];
-                    if($app = PHDB::findOne (PHType::TYPE_APPLICATIONS,  array( "key"=> $appKey ) ))
-                    {
-                        //when registration is done for an application it must be registered
-                    	$entryInfos['applications'] = array( $appKey => array( "usertype"=> (isset($_POST['type']) ) ? $_POST['type']:$_POST['app']  ));
-                        //check for application specifics defined in DBs application entry
-                    	if( isset( $app["moderation"] ) ){
-                    		$newInfos['applications'][$appKey][Survey::STATUS_CLEARED] = false;
-                            //TODO : set a Notification for admin moderation 
-                        }
-                        $res['applicationExist'] = true;
-                    }else
-                        $res['applicationExist'] = false;
-                }
+                
 
                 $where = array();
-                if( isset( $_POST['id'] ) )
+                if( isset( $_POST['id'] ) ){
                     $where["_id"] = new MongoId($_POST['id']);
-                $result = PHDB::updateWithOptions( Survey::COLLECTION,  $where, 
-                                                   array('$set' => $entryInfos ) ,
-                                                   array('upsert' => true ) );
+                    $result = PHDB::update( Survey::COLLECTION,  $where, 
+                                                   array('$set' => $entryInfos ));
+                    $surveyId = $_POST['id'];
+                } else {
+                    $surveyId = new MongoId();
+                    $entryInfos["_id"] = $surveyId;
+                    $result = PHDB::insert( Survey::COLLECTION,$entryInfos );
+                }
                 
-                $surveyId = ( isset( $_POST['id'] ) ) ? $_POST['id'] : PHDB::getIdFromUpsertResult($result);
+                /*$result = PHDB::updateWithOptions( Survey::COLLECTION,  $where, 
+                                                   array('$set' => $entryInfos ) ,
+                                                   array('upsert' => true ) ); */
                 //Save the comment options
                 if (@$_POST["commentOptions"]) {
                     Comment::saveCommentOptions( $surveyId ,Survey::COLLECTION, $_POST["commentOptions"]);
