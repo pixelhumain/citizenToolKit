@@ -855,7 +855,7 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 				foreach ($organization['telephone']["fixe"] as $key => $value) {
 					$trimValue=trim($value);
 					if(!empty($trimValue))
-						$fixe[] = "0".$trimValue;
+						$fixe[] = $trimValue;
 				}
 			}
 			if(!empty($organization['telephone']["mobile"]))
@@ -863,7 +863,7 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 				foreach ($organization['telephone']["mobile"] as $key => $value) {
 					$trimValue=trim($value);
 					if(!empty($trimValue))
-						$mobile[] = "0".$trimValue;
+						$mobile[] = $trimValue;
 				}
 			}
 
@@ -872,7 +872,7 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 				foreach ($organization['telephone']["fax"] as $key => $value) {
 					$trimValue=trim($value);
 					if(!empty($trimValue))
-						$fax[] = "0".$trimValue;
+						$fax[] = $trimValue;
 				}
 			}
 			if(count($mobile) != 0)
@@ -884,16 +884,16 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 			if(count($tel) != 0)	
 				$newOrganization['telephone'] = $tel;
 		}
-
-		if(!empty($organization['contact'])){
+		
+		if(!empty($organization['contacts'])){
 			$contact = array();
-			foreach ($organization['contact'] as $keyContact => $valueContact) {
+			foreach ($organization['contacts'] as $keyContact => $valueContact) {
 				$unContact = array();
 				foreach ($valueContact as $key => $value) {
 					if(is_array($value)){
 						$arrayName = array();
 						foreach ($value as $keyArray => $valueArray) {
-							$trimValue=trim($value);
+							$trimValue=trim($valueArray);
 							if(!empty($trimValue))
 								$arrayName[] = $trimValue ;
 						}
@@ -910,7 +910,7 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 					$contact[] = $unContact;
 			}
 			if(count($contact) != 0)	
-				$newOrganization['contact'] = $contact;
+				$newOrganization['contacts'] = $contact;
 		}
 
 		
@@ -928,16 +928,18 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 		if(!empty($details['geo']))
 			$newOrganization['geo'] = $details['geo'] ;
 
+		if(!empty($details['geoPosition']))
+			$newOrganization['geoPosition'] = $details['geoPosition'] ;
+
 		if(!empty($newOrganization['warnings']))
 			$newOrganization['warnings'] = array_merge($newOrganization['warnings'], $details['warnings']);
 		else
 			$newOrganization['warnings'] = $details['warnings'];
 
-		$newOrganization["image"] = "nuit-debout-dijon.jpg";
+		if(!empty($organization['citizenType']))
+			$newOrganization["citizenType"] = $organization['citizenType'];
 
-		$newOrganization["citizenType"] = "citizenAssembly";
-
-		$newOrganization["tags"][] = "NuitDebout";
+		
 
 		return $newOrganization;
 	}
@@ -1036,8 +1038,8 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 			$newOrganization["geoPosition"] = array("type"=>"Point",
 													"coordinates" =>
 														array(
-															floatval($organization["geo"]['latitude']),
-															floatval($organization["geo"]['longitude']))
+															floatval($organization["geo"]['longitude']),
+															floatval($organization["geo"]['latitude']))
 												 	  	);
 		}
 		else if($insert){
@@ -1051,9 +1053,15 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 		
 		if (isset($organization['tags'])) {
 			if ( gettype($organization['tags']) == "array" ) {
-				$tags = $organization['tags'];
+				//$tags = TextHelper::createHashTag($organization['tags']);
+				foreach ($organization['tags'] as $key => $tag) {
+					$tags[] = TextHelper::createHashTag($tag);
+				}
 			} else if ( gettype($organization['tags']) == "string" ) {
-				$tags = explode(",", $organization['tags']);
+				$arrayTags = explode(",", $organization['tags']);
+				foreach ($arrayTags as $key => $tag) {
+					$tags[] = TextHelper::createHashTag($tag);
+				}
 			}
 			$newOrganization["tags"] = $tags;
 		}
@@ -1074,8 +1082,8 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 		if (!empty($organization['telephone']))
 			$newOrganization["telephone"] = $organization['telephone'];
 
-		if(!empty($organization['contact'])){
-			foreach ($organization['contact'] as $key => $valueContactPoint) {
+		if(!empty($organization['contacts'])){
+			foreach ($organization['contacts'] as $key => $valueContactPoint) {
 				if(!empty($valueContactPoint['email'])){
 					//validate Email
 					if (! preg_match('#^[\w.-]+@[\w.-]+\.[a-zA-Z]{2,6}$#',$valueContactPoint['email'])) { 
@@ -1086,7 +1094,7 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 					}
 				}
 			}
-			$newOrganization["contact"] = $organization['contact'];
+			$newOrganization["contacts"] = $organization['contacts'];
 		}
 
 		if(!empty($organization['creator'])){
@@ -1120,8 +1128,11 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 			}else{
 				$newOrganization["warnings"] = $organization['warnings'];
 			}
-			$newOrganization["state"] = "uncomplete";
 
+			if(count($newOrganization["warnings"]) == 1 && in_array("212", $newOrganization["warnings"]))
+				$newOrganization["state"] = "";
+			else
+				$newOrganization["state"] = "uncomplete";
 		}
 
 		if (!empty($organization['image']))
@@ -1141,10 +1152,13 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 		}*/
 
 		// Is There a association with the same name ?
-	    $organizationSameName = PHDB::findOne( Organization::COLLECTION,array( "name" => $organization["name"], "address.codeInsee" => $newOrganization["address"]["codeInsee"]));      
-	    if($organizationSameName) { 
-	      throw new CTKException(Yii::t("organization","An organization with the same name already exist in the plateform"));
-	    }
+		if(!empty($newOrganization["address"]["codeInsee"])){
+			$organizationSameName = PHDB::findOne( Organization::COLLECTION,array( "name" => $organization["name"], "address.codeInsee" => $newOrganization["address"]["codeInsee"]));      
+		    if($organizationSameName) { 
+		      throw new CTKException(Yii::t("organization","An organization with the same name already exist in the plateform"));
+		    }
+		}
+	    
 		return $newOrganization;
 	}
 

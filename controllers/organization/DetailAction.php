@@ -111,7 +111,14 @@ class DetailAction extends CAction
 		$params["alone"] = (isset($alone) && $alone == "true");
 
 		$controller->title = (isset($organization["name"])) ? $organization["name"] : "";
-		$page = "detail";
+		
+		//Display different for simplyDirectory
+		if($controller->action->id == 'simply'){
+			$page = "simplyDetail";
+		}else{
+			$page = "detail";
+		}
+		
 		if(Yii::app()->request->isAjaxRequest)
             echo $controller->renderPartial($page,$params,true);
         else 

@@ -591,23 +591,21 @@ class Event {
 			$state = "Add";
 		}else{
 			foreach ($event as $key => $value) {
-				$arrayTimeEnd = explode(":", $endDateOpenAgende[0]["dates"][0]["timeEnd"]);
-				$arrayDate = explode("-", $endDateOpenAgende[0]["dates"][0]["date"]);
-				$end = mktime($arrayTimeEnd[0], $arrayTimeEnd[1], $arrayTimeEnd[2], $arrayDate[1]  , $arrayDate[2], $arrayDate[0]);
-				$endDateEvents = date('Y-m-d H:i:s', $end);
-				$today = mktime(date("H"), date("i"), date("s"), date("m")  , date("d")-1, date("Y"));
-				
-				if(!empty($value["modified"]->sec))
-					$lastUpDate = $value["modified"]->sec ;
-				else
-					$lastUpDate = $value["created"]->sec ;
-				
-				if($today > strtotime($endDateEvents)){
-					$state = "Delete";
-				}else if(strtotime($dateUpdate) > $lastUpDate ){
+				if(!empty($endDateOpenAgende[0]["dates"])){
+					$arrayTimeEnd = explode(":", $endDateOpenAgende[0]["dates"][0]["timeEnd"]);
+					$arrayDate = explode("-", $endDateOpenAgende[0]["dates"][0]["date"]);
+					$end = mktime($arrayTimeEnd[0], $arrayTimeEnd[1], $arrayTimeEnd[2], $arrayDate[1]  , $arrayDate[2], $arrayDate[0]);
+					$endDateEvents = date('Y-m-d H:i:s', $end);
+					$today = mktime(date("H"), date("i"), date("s"), date("m")  , date("d")-1, date("Y"));
 					
-					//var_dump("HERE");
-					$state = "Update";
+					if(!empty($value["modified"]->sec))
+						$lastUpDate = $value["modified"]->sec ;
+					else
+						$lastUpDate = $value["created"]->sec ;
+					
+					if(strtotime($dateUpdate) > $lastUpDate ){
+						$state = "Update";
+					}
 				}
 				break;
 			}
@@ -650,11 +648,25 @@ class Event {
 		}
 
 
-		$newEvents["geo"]["latitude"] = empty($eventOpenAgenda["locations"][0]["latitude"]) ? "" : $eventOpenAgenda["locations"][0]["latitude"];
-		$newEvents["geo"]["longitude"] = empty($eventOpenAgenda["locations"][0]["longitude"]) ? "" : $eventOpenAgenda["locations"][0]["longitude"];
+		$geo["latitude"] = (empty($eventOpenAgenda["locations"][0]["latitude"]) ? "" : $eventOpenAgenda["locations"][0]["latitude"]);
+		$geo["longitude"] = (empty($eventOpenAgenda["locations"][0]["longitude"]) ? "" : $eventOpenAgenda["locations"][0]["longitude"]);
+		$address['postalCode'] =  (empty($eventOpenAgenda["locations"][0]["postalCode"])? "" : $eventOpenAgenda["locations"][0]["postalCode"]);
+		$address['streetAddress'] = (empty($eventOpenAgenda["locations"][0]["address"]) ? "" : $eventOpenAgenda["locations"][0]["address"]);
+		$address['addressLocality'] = (empty($eventOpenAgenda["locations"][0]["city"]) ? "" : $eventOpenAgenda["locations"][0]["city"]);
 
+		/*$address = (empty($organization['address']) ? null : $organization['address']);
+		$geo = (empty($newEvents["geo"]) ? null : $newEvents["geo"]);*/
+		//var_dump($newOrganization['name']);
+		$details = Import::getAndCheckAddressForEntity($address, $geo, null) ;
+		$newEvents['address'] = $details['address'];
 
-		if(!empty($newEvents["geo"]["latitude"]) && !empty($newEvents["geo"]["longitude"]))
+		if(!empty($details['geo']))
+			$newEvents['geo'] = $details['geo'] ;
+
+		if(!empty($details['geoPosition']))
+			$newEvents['geoPosition'] = $details['geoPosition'] ;
+
+		/*if(!empty($newEvents["geo"]["latitude"]) && !empty($newEvents["geo"]["longitude"]))
 		{
 			$newEvents['address']['@type'] = "PostalAddress" ;
 			$newEvents['address']['postalCode'] = empty($eventOpenAgenda["locations"][0]["postalCode"]) ? "" : $eventOpenAgenda["locations"][0]["postalCode"];
@@ -664,7 +676,8 @@ class Event {
 	        if(empty($option))
 	        	throw new CTKException("Ce code postal n'existe pas.");	
 
-			$city = SIG::getInseeByLatLngCp($newEvents["geo"]["latitude"], $newEvents["geo"]["longitude"],  (empty($eventOpenAgenda["locations"][0]["postalCode"]) ? null : $eventOpenAgenda["locations"][0]["postalCode"]) );
+	        $city = SIG::getCityByLatLngGeoShape($newEvents["geo"]["latitude"], $newEvents["geo"]["longitude"],  (empty($eventOpenAgenda["locations"][0]["postalCode"]) ? null : $eventOpenAgenda["locations"][0]["postalCode"]) );
+			
 			if(!empty($city)){
 				foreach ($city as $key => $value) {
 					if($eventOpenAgenda["locations"][0]["postalCode"] == $value["cp"])
@@ -682,9 +695,9 @@ class Event {
 				throw new CTKException("Erreur: On n'a pu récupérer la commune associé.");
 			}		
 	
-		}
+		}*/
 
-		$newEvents["tags"] = empty($eventOpenAgenda["freeText"]["fr"]) ? "" : explode(",", $eventOpenAgenda["freeText"]["fr"]);
+		$newEvents["tags"] = empty($eventOpenAgenda["tags"]["fr"]) ? "" : explode(",", $eventOpenAgenda["tags"]["fr"]);
 
 		$newEvents["creator"] = Yii::app()->params['idOpenAgenda'];
 		$newEvents["type"] = "other";
@@ -698,29 +711,40 @@ class Event {
 		return $newEvents;
 	}
 
-	public static function saveEventFromOpenAgenda($params) {
+	public static function saveEventFromOpenAgenda($params, $moduleId) {
 		$newEvent = self::getAndCheckEventOpenAgenda($params);
-		/*if(!empty($newEvent["image"])){
-			$nameImage = $newEvent["image"];
+		
+
+		if(!empty($newEvent["image"])){
+			$arrrayNameImage = explode("/", $newEvent["image"]);
+			$nameImage = $arrrayNameImage[count($arrrayNameImage)-1];
+			$pathFolderImage = "https://cibul.s3.amazonaws.com/";
 			unset($newEvent["image"]);
-		}*/
+		}
+	    
+
+
 	    PHDB::insert(self::COLLECTION,$newEvent);
+	    if (isset($newEvent["_id"]))
+	    	$newEventId = (String) $newEvent["_id"];
+	    else
+	    	throw new CTKException("Problem inserting the new event");
 	    
 		$creator = true;
 		$isAdmin = true;
 		Link::attendee($newEvent["_id"], Yii::app()->params['idOpenAgenda'], $isAdmin, $creator);
 	    Link::addOrganizer($params["organizerId"],$params["organizerType"], $newEvent["_id"], Yii::app()->params['idOpenAgenda']);
 
-
-	     /*if(!empty($nameImage)){
+	    $msgErrorImage = "" ;
+	    if(!empty($nameImage)){
 			try{
-				$res = Document::uploadDocument($moduleId, self::COLLECTION, $newpersonId, "avatar", false, $pathFolderImage, $nameImage);
+				$res = Document::uploadDocument($moduleId, self::COLLECTION, $newEventId, "avatar", false, $pathFolderImage, $nameImage);
 				if(!empty($res["result"]) && $res["result"] == true){
 					$params = array();
-					$params['id'] = $newpersonId;
+					$params['id'] = $newEventId;
 					$params['type'] = self::COLLECTION;
 					$params['moduleId'] = $moduleId;
-					$params['folder'] = self::COLLECTION."/".$newpersonId;
+					$params['folder'] = self::COLLECTION."/".$newEventId;
 					$params['name'] = $res['name'];
 					$params['author'] = Yii::app()->session["userId"] ;
 					$params['size'] = $res["size"];
@@ -730,15 +754,15 @@ class Event {
 						throw new CTKException("Impossible de save.");
 
 				}else{
-					throw new CTKException("Impossible uploader le document.");
+					$msgErrorImage = "Impossible uploader le document." ; 
 				}
 			}catch (CTKException $e){
 				throw new CTKException($e);
 			}
-		}*/
+		}
 
 				
-		return array("result"=>true, "msg"=>Yii::t("event","Your event has been connected."), "id"=>$newEvent["_id"], "event" => $newEvent );
+		return array("result"=>true, "msg"=>Yii::t("event","Your event has been connected.")." ".$msgErrorImage, "id"=>$newEvent["_id"], "event" => $newEvent );
 	
 
 	}
@@ -991,8 +1015,6 @@ class Event {
 		}else
 			$newEvent['name'] = $event['name'];
 		
-		
-
 		$newEvent['created'] = new MongoDate(time()) ;
 		
 		

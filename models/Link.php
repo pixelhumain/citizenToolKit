@@ -60,8 +60,28 @@ class Link {
 
         return array("result"=>true, "msg"=>"The member has been added with success", "memberOfId"=>$memberOfId, "memberId"=>$memberId,"notification" => $notification);
     }
-
     /**
+	 * Add a contributor when a project is created
+	 * Create a link between the creator person and project. The link will be typed contributors and projects
+	 * The parent could be an organization then creation of link between organization and project
+	 * Only creator is declare as admin of the project 
+	 * @param String $creatorId - The creator Id to add. It will be the contributor added to the contributors as admin
+	 * @param String $creatorType - The creator is a person (session)
+	 * @param String $parentId - The id of the context. Could be the session user or an organization
+	 * @param String $parentType - The type of the context. Could be the session user or an organization
+     * @param String $projectId - Id of project linked to creator and parent if organization type
+	 * @return result array with the result of the operation
+	 */ 
+	public static function addContributor($creatorId, $creatorType, $parentId, $parentType, $projectId){
+		if($parentType==Organization::COLLECTION){
+			$res=self::connect($parentId, $parentType, $projectId, Project::COLLECTION, $creatorId, "projects");
+			$res=self::connect($projectId, Project::COLLECTION, $parentId, $parentType, $creatorId, "contributors");
+		}
+		$res=self::connect($creatorId, $creatorType, $projectId, Project::COLLECTION, $creatorId, "projects", true );
+		$res=self::connect($projectId, Project::COLLECTION, $creatorId, $creatorType, $creatorId, "contributors", true );
+		return array("result"=>true);
+	}
+    /** TODO BOUBOULE- PLUS UTILISER ?? A SUPPRIMER
      * Remove a member of an organization
      * Delete a link between the 2 actors.
      * The memberOf should be an organization
@@ -106,11 +126,11 @@ class Link {
     }
 
     private static function checkIdAndType($id, $type) {
-        /*echo "ici";
-        var_dump($type);
-        var_dump($id);*/
 		if ($type == Organization::COLLECTION) {
         	$res = Organization::getById($id); 
+            if (@$res["disabled"]) {
+                throw new CTKException("Impossible to link something on a disabled organization");    
+            }
         } else if ($type == Person::COLLECTION) {
         	$res = Person::getById($id);
         } else if ($type== Event::COLLECTION){
@@ -321,7 +341,7 @@ class Link {
    	}
 
     /**
-	* Link a person to an event
+	* Link a person to an event when an event is create
 	* Create a link between the 2 actors. The link will be typed event and organizer
 	* @param type $eventId The Id (event) where a person will be linked. 
 	* @param type $userId The user (person) Id who want to be link to the event
