@@ -17,6 +17,7 @@ class Document {
 	const DOC_TYPE_CSV		= "text/csv";
 
 	const GENERATED_IMAGES_FOLDER 		= "thumb";
+	const GENERATED_ALBUM_FOLDER		= "album";
 	const FILENAME_PROFIL_RESIZED 	  	= "profil-resized.png";
 	const FILENAME_PROFIL_MARKER 	  	= "profil-marker.png";
 	const GENERATED_THUMB_PROFIL 	  	= "thumb-profil";
@@ -97,6 +98,9 @@ class Document {
 	    //Generate image profil if necessary
 	    if (substr_count(@$new["contentKey"], self::IMG_PROFIL)) {
 	    	self::generateProfilImages($new);
+	    }
+	    if (substr_count(@$new["contentKey"], self::IMG_SLIDER)) {
+	    	self::generateAlbumImages($new, self::GENERATED_IMAGES_FOLDER);
 	    }
 	    return array("result"=>true, "msg"=>Yii::t('document','Document saved successfully',null,Yii::app()->controller->module->id), "id"=>$new["_id"]);	
 	}
@@ -340,7 +344,33 @@ class Document {
         //Remove the bck directory
         CFileHelper::removeDirectory($upload_dir."bck");
 	}
-
+	// Resize initial image for album size 
+	// param type array $document
+	// param string $folderAlbum where Image is upload
+	public static function generateAlbumImages($document,$folderAlbum=null) {
+    	$dir = $document["moduleId"];
+    	$folder = $document["folder"];
+		if($folderAlbum==self::GENERATED_IMAGES_FOLDER){
+			$destination='/'.self::GENERATED_IMAGES_FOLDER;
+			$width=150;
+			$height=150;
+		} else{
+			$destination="";
+			$width=1100;
+			$height=700;
+		}
+		//The images will be stored in the /uploadDir/moduleId/ownerType/ownerId/thumb (ex : /upload/communecter/citoyen/1242354235435/thumb)
+		$upload_dir = Yii::app()->params['uploadDir'].$dir.'/'.$folder.$destination; 
+		if($folderAlbum==self::GENERATED_IMAGES_FOLDER){       
+		//mkdir($upload_dir, 0777);
+		}
+		//echo "iciiiiiii/////////////".$upload_dir;
+     	$imageUtils = new ImagesUtils(self::getDocumentPath($document));
+    	$destPathThumb = $upload_dir."/".$document["name"];
+    	//echo $destPathThumb;
+    	$imageUtils->resizePropertionalyImage($width,$height)->save($destPathThumb);
+	}
+	
 	/**
 	 * Return the url of the generated image 
 	 * @param String $id Identifier of the object to retrieve the generated image

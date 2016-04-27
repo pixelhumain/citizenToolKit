@@ -123,7 +123,77 @@ class ImagesUtils {
 		
 		return $this;
 	}
+	/**
+	 * Resize the image a newWidth and a newHeight
+	 * If the image is a png with transparency, the background will be filled with white color
+	 * @param int $newwidth 
+	 * @param int $newheight 
+	 * @return this
+	 */
+	public function resizePropertionalyImage($newwidth, $newheight) {
+		$width = $this->source_width;
+	    $height = $this->source_height;
+	
+	    # taller
+	    if ($height > $newheight) {
+	        $width = ($newheight / $height) * $width;
+	        $height = $newheight;
+	    }
+	
+	    # wider
+	    if ($width > $newwidth) {
+	        $height = ($newwidth / $width) * $height;
+	        $width = $newwidth;
+	    }
+	    $temp_width = $width;
+		$temp_height =$height;
+		/*$source_aspect_ratio = $this->source_width / $this->source_height;
+		$desired_aspect_ratio = $newwidth / $newheight;
 
+		if ($source_aspect_ratio > $desired_aspect_ratio) {
+		    // Triggered when source image is wider
+		    $temp_height = $newheight;
+		    $temp_width = ( int ) ($newheight * $source_aspect_ratio);
+		} else {
+		    // Triggered otherwise (i.e. source image is similar or taller)
+		    $temp_width = $newwidth;
+		    $temp_height = ( int ) ($newwidth / $source_aspect_ratio);
+		}*/
+		//echo $temp_width."///".$temp_height;
+		/*
+		 * Resize the image into a temporary GD image
+		 */
+		$temp_gdim = imagecreatetruecolor($temp_width, $temp_height);
+		imagecopyresampled(
+		    $temp_gdim,
+		    $this->srcImage,
+		    0, 0,
+		    0, 0,
+		    $temp_width, $temp_height,
+		    $this->source_width, $this->source_height
+		);
+		$this->destImage = $temp_gdim;
+		/*
+		 * Copy cropped region from temporary image into the desired GD image
+		 */
+		/*$x0 = ($temp_width - $newwidth) / 2;
+		$y0 = ($temp_height - $newheight) / 2;
+		$desired_gdim = imagecreatetruecolor($newwidth, $newheight);
+
+		imagecopy(
+		    $desired_gdim,
+		    $temp_gdim,
+		    0, 0,
+		    $x0, $y0,
+		    $newwidth, $newheight
+		);
+
+		$this->destImage = $desired_gdim;
+		imagedestroy($temp_gdim);
+		//imagedestroy($desired_gdim);*/
+		
+		return $this;
+	}
 	public function createCircleImage($newwidth, $newheight) {
 		//There will be transparency around the circle so dest Type is png
 		$this->dest_type = IMAGETYPE_PNG;
