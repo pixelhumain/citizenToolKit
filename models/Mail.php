@@ -55,12 +55,13 @@ class Mail
         $params = array(
             "type" => Cron::TYPE_MAIL,
             "tpl"=>'invitation',
-            "subject" => 'You have been invited to '.Yii::app()->name.' by '.$invitor["name"],
+            "subject" => '['.Yii::app()->name.'] - Vous avez été invité(e) par '.$invitor["name"],
             "from"=>Yii::app()->params['adminEmail'],
             "to" => $person["email"],
             "tplParams" => array(   "invitorName"   => $invitor["name"],
                                     "title" => Yii::app()->name ,
-                                    "logo"  => "/images/logo.png",
+                                    "logo"=> "/images/logo-communecter.png",
+                                    "logo2" => "/images/logoLTxt.jpg",
                                     "invitedUserId" => $person["_id"],
                                     "message" => $msg)
         );

@@ -741,9 +741,12 @@ class Person {
         $res = Role::canUserLogin($account, $isRegisterProcess);
         if ($res["result"]) {
 	        //Check the password
-	        if (self::checkPassword($pwd, $account)) {
+        	if (self::checkPassword($pwd, $account)) {
 	            Person::saveUserSessionData($account);
-	            $res = array("result"=>true, "id"=>$account["_id"], "isCommunected"=>isset($account["cp"]), "msg" => "Vous êtes maintenant identifié : bienvenue sur communecter.");
+	            if ($res["msg"] == "notValidatedEmail") 
+	        		return $res;
+	        	else
+	            	$res = array("result"=>true, "id"=>$account["_id"], "isCommunected"=>isset($account["cp"]), "msg" => "Vous êtes maintenant identifié : bienvenue sur communecter.");
 	        } else {
 	            $res = array("result"=>false, "msg"=>"Email ou Mot de Passe ne correspondent pas, rééssayez.");
 	        }
