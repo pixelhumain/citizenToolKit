@@ -1151,7 +1151,7 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 
 		// Is There a association with the same name ?
 		if(!empty($newOrganization["address"]["codeInsee"]) && $update == null){
-			$organizationSameName = PHDB::findOne( Organization::COLLECTION,array( "name" => $organization["name"], "address.codeInsee" => $newOrganization["address"]["codeInsee"]));      
+			$organizationSameName = PHDB::findOne( Organization::COLLECTION,array( "name" => trim($organization["name"]), "address.codeInsee" => $newOrganization["address"]["codeInsee"]));      
 		    if($organizationSameName) { 
 		      throw new CTKException(Yii::t("organization","An organization with the same name already exist in the plateform"));
 		    }
