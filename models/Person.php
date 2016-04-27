@@ -45,7 +45,7 @@ class Person {
     	if (isset(Yii::app()->session["userId"])) {
 	    	$user = PHDB::findOneById( self::COLLECTION ,Yii::app()->session["userId"]);
 	    	
-	    	$valid = Role::canUserLogin($user);
+	    	$valid = Role::canUserLogin($user, Yii::app()->session["isRegisterProcess"]);
 	    	$isLogguedAndValid = (isset( Yii::app()->session["userId"]) && $valid["result"]);
     	} else {
     		$isLogguedAndValid = false;
@@ -56,8 +56,9 @@ class Person {
 	 * used to save any user session data 
 	 * good practise shouldn't be to heavy
 	 * user = array("name"=>$username)
+	 * $isRegisterProcess => save in the session if it's the first time a he is connected
 	 */
-	public static function saveUserSessionData($account)
+	public static function saveUserSessionData($account, $isRegisterProcess = false)
     {
 	  	Yii::app()->session["userId"] = (string)$account["_id"];
 	  	Yii::app()->session["userEmail"] = $account["email"];
@@ -85,6 +86,7 @@ class Person {
 	     	$user ["profilImageUrl"] = $simpleUser["profilImageUrl"];
 
 	    Yii::app()->session["user"] = $user;
+	    Yii::app()->session["isRegisterProcess"] = $isRegisterProcess;
 
         Yii::app()->session["userIsAdmin"] = Role::isUserSuperAdmin(@$account["roles"]); 
 
@@ -742,7 +744,7 @@ class Person {
         if ($res["result"]) {
 	        //Check the password
         	if (self::checkPassword($pwd, $account)) {
-	            Person::saveUserSessionData($account);
+	            Person::saveUserSessionData($account, $isRegisterProcess);
 	            if ($res["msg"] == "notValidatedEmail") 
 	        		return $res;
 	        	else
