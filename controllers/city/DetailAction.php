@@ -2,7 +2,7 @@
 
 class DetailAction extends CAction
 {
-	public function run( $insee, $postalCode )
+	public function run( $insee, $postalCode=null )
     {
         $controller = $this->getController();
         //echo $insee;

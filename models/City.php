@@ -411,8 +411,8 @@ class City {
 				} 	
 			}
 
-			echo "L'assemblée n'existe pas<br>";
-			echo "Création en cours<br>";
+			//echo "L'assemblée n'existe pas<br>";
+			//echo "Création en cours<br>";
 
 			$time = time();
 
