@@ -3,10 +3,11 @@ class ActionRoom {
 
 	const COLLECTION 		= "actionRooms";
 	
-	const TYPE_SURVEY 		= "survey";
-	const TYPE_DISCUSS 		= "discuss";
-	const TYPE_BRAINSTORM 	= "brainstorm";
-	const TYPE_VOTE 		= "vote";
+	const TYPE_SURVEY 		= "survey"; //sondage à la Google Forms
+	const TYPE_DISCUSS 		= "discuss"; // systeme de discussioin voir avec dialoguea
+	const TYPE_BRAINSTORM 	= "proposals"; //systeme de rpopositions pour prendre des décision
+	const TYPE_VOTE 		= "vote"; //vote
+	const TYPE_DISTRIBUTE	= "distribute"; //vote par distribution sur des proposition
 	
 	/**
 	 * get a action room By Id
