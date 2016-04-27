@@ -45,7 +45,7 @@ class Person {
     	if (isset(Yii::app()->session["userId"])) {
 	    	$user = PHDB::findOneById( self::COLLECTION ,Yii::app()->session["userId"]);
 	    	
-	    	$valid = Role::canUserLogin($user);
+	    	$valid = Role::canUserLogin($user, Yii::app()->session["isRegisterProcess"]);
 	    	$isLogguedAndValid = (isset( Yii::app()->session["userId"]) && $valid["result"]);
     	} else {
     		$isLogguedAndValid = false;
@@ -56,8 +56,9 @@ class Person {
 	 * used to save any user session data 
 	 * good practise shouldn't be to heavy
 	 * user = array("name"=>$username)
+	 * $isRegisterProcess => save in the session if it's the first time a he is connected
 	 */
-	public static function saveUserSessionData($account)
+	public static function saveUserSessionData($account, $isRegisterProcess = false)
     {
 	  	Yii::app()->session["userId"] = (string)$account["_id"];
 	  	Yii::app()->session["userEmail"] = $account["email"];
@@ -85,6 +86,7 @@ class Person {
 	     	$user ["profilImageUrl"] = $simpleUser["profilImageUrl"];
 
 	    Yii::app()->session["user"] = $user;
+	    Yii::app()->session["isRegisterProcess"] = $isRegisterProcess;
 
         Yii::app()->session["userIsAdmin"] = Role::isUserSuperAdmin(@$account["roles"]); 
 
@@ -105,10 +107,11 @@ class Person {
 
 	/**
 	 * get a Person By Id
-	 * @param type $id : is the mongoId of the person
+	 * @param String $id : is the mongoId of the person
+	 * @param boolean $clearAttribute : by default true. Will clear the confidential attributes
 	 * @return type
 	 */
-	public static function getById($id) { 
+	public static function getById($id, $clearAttribute = true) { 
 		/*echo "yoyo";
 		var_dump($id);*/
 	  	$person = PHDB::findOneById( self::COLLECTION ,$id );
@@ -133,7 +136,9 @@ class Person {
 			
         }
         
-        $person = self::clearAttributesByConfidentiality($person);
+        if ($clearAttribute) {
+        	$person = self::clearAttributesByConfidentiality($person);
+        }
 	  	return $person;
 	}
 
@@ -365,15 +370,22 @@ class Person {
 	 */
 	public static function createAndInvite($param, $msg = null) {
 	  	try {
-	  		$res = self::insert($param, self::REGISTER_MODE_MINIMAL);
-	  		//send invitation mail
-			Mail::invitePerson($res["person"], $msg);
+	  		//Check if the person can still invite : has he got enought invitations left
+	  		$invitor = self::getById($param["invitedBy"]);
+	  		if (@$invitor["numberOfInvit"] > 0 || Role::isSuperAdmin($invitor["roles"])) {
+	  			$res = self::insert($param, self::REGISTER_MODE_MINIMAL);
+		  		//Decrease number of invitations left for the invitor
+		  		PHDB::update(self::COLLECTION, array("_id" => new MongoId($param["invitedBy"])), 
+		  			array('$inc' => array("numberOfInvit" => -1)));
+		  		//send invitation mail
+				Mail::invitePerson($res["person"], $msg);
+		  	} else {
+		  		$res = array("result"=>false, "msg"=> "Sorry, you can't invite more person to join the platform. You do not have enough invitations left.");
+		  	}
+	  		
 	  	} catch (CTKException $e) {
 	  		$res = array("result"=>false, "msg"=> $e->getMessage());
 	  	}
-        //TODO TIB : mail Notification 
-        //for the organisation owner to subscribe to the network 
-        //and complete the Organisation Profile
         return $res;
 	}
 
@@ -475,8 +487,12 @@ class Person {
 	/**
 	 * Insert a new person from the minimal information inside the parameter
 	 * @param array $person Minimal information to create a person.
-	 * @param boolean $minimal : true : a person can be created using only "name" and "email". Else : "postalCode" and "pwd" are also requiered
-	 * @return array result, msg and id
+	 * @param string $mode : insert mode type. 
+	 * REGISTER_MODE_MINIMAL : a person can be created using only name and email. 
+	 * REGISTER_MODE_NORMAL : name, email, username, password, postalCode, city
+	 * REGISTER_MODE_TWO_STEPS : name, username, email, password
+	 * @param string $inviteCode : invitation code
+	 * @return array result : msg and id
 	 */
 	public static function insert($person, $mode = self::REGISTER_MODE_NORMAL, $inviteCode = null) {
 
@@ -488,7 +504,12 @@ class Person {
 
 	  	$person["roles"] = Role::getDefaultRoles();
 
-	  	//if valid invite code , user is automatically geta tester
+	  	//if we are in mode minimal it's an invitation. The invited user is then betaTester by default
+	  	if( @Yii::app()->params['betaTest'] && $mode ==self::REGISTER_MODE_MINIMAL) {
+	  		$person["roles"]['betaTester'] = true;
+	  	}
+
+	  	//if valid invite code , user is automatically beta tester
 	  	//inviteCodes are server configs 
 	  	if( @Yii::app()->params['betaTest'] && $inviteCode && in_array( $inviteCode , Yii::app()->params['validInviteCodes'] )) {
 	  		$person["roles"]['betaTester'] = true;
@@ -497,6 +518,9 @@ class Person {
 
 	  	$person["created"] = new mongoDate(time());
 	  	$person["preferences"] = array("seeExplanations"=> true);
+	  	
+	  	if (@Yii::app()->params['betaTest'])
+	  		$person["numberOfInvit"] = empty(Yii::app()->params['numberOfInvitByPerson']) ? 0 : Yii::app()->params['numberOfInvitByPerson'];
 
 	  	PHDB::insert( Person::COLLECTION , $person);
  
@@ -696,10 +720,10 @@ class Person {
      * Login with email and password. Check if the email and password match on db.
      * @param  [string] $email   email connected to the citizen account
      * @param  [string] $pwd   pwd connected to the citizen account
-     * @param  [string] $publicPage is the page requested public or not. If true, the betaTest option will not be ignored
+     * @param  [boolean] $isRegisterProcess Are we trying to login during the register process
      * @return [array] array of result as (result => boolean, msg => string)
      */
-    public static function login($email, $pwd, $publicPage) 
+    public static function login($email, $pwd, $isRegisterProcess) 
     {
         if (empty($email) || empty($pwd)) {
         	return array("result"=>false, "msg"=>"Cette requête ne peut aboutir. Merci de bien vouloir réessayer en complétant les champs nécessaires");
@@ -716,12 +740,15 @@ class Person {
         }
         
         //Roles validation
-        $res = Role::canUserLogin($account, $publicPage);
+        $res = Role::canUserLogin($account, $isRegisterProcess);
         if ($res["result"]) {
 	        //Check the password
-	        if (self::checkPassword($pwd, $account)) {
-	            Person::saveUserSessionData($account);
-	            $res = array("result"=>true, "id"=>$account["_id"],"isCommunected"=>isset($account["cp"]));
+        	if (self::checkPassword($pwd, $account)) {
+	            Person::saveUserSessionData($account, $isRegisterProcess);
+	            if ($res["msg"] == "notValidatedEmail") 
+	        		return $res;
+	        	else
+	            	$res = array("result"=>true, "id"=>$account["_id"], "isCommunected"=>isset($account["cp"]), "msg" => "Vous êtes maintenant identifié : bienvenue sur communecter.");
 	        } else {
 	            $res = array("result"=>false, "msg"=>"Email ou Mot de Passe ne correspondent pas, rééssayez.");
 	        }
@@ -858,7 +885,7 @@ class Person {
 	public static function updateMinimalData($personId, $person) {
 
 		//Check if it's a minimal user
-		$account = self::getById($personId);
+		$account = self::getById($personId, false);
 		if (! @$account["pending"]) {
 			throw new CTKException("Impossible to update an account not pending !");
 		} else {
@@ -867,9 +894,7 @@ class Person {
 			$personToUpdate = self::getAndcheckPersonData($person, self::REGISTER_MODE_TWO_STEPS, false);
 
 			PHDB::update(Person::COLLECTION, array("_id" => new MongoId($personId)), 
-			                          array('$set' => $personToUpdate, '$unset' => array("pending" => ""
-			                          	// Jusqu'à l'ouverture les personnes ne sont pas validées lorsqu'elles sont invitées
-			                          	//,"roles.tobeactivated"=>""
+			                          array('$set' => $personToUpdate, '$unset' => array("pending" => "" ,"roles.tobeactivated"=>""
 			                          	)));
 			
 			//Send Notification to Invitor

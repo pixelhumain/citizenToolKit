@@ -22,7 +22,7 @@ class CTKAction extends CAction {
         if (isset(Yii::app()->session["userId"])) {
             $user = Person::getById(Yii::app()->session["userId"]);
             
-            $valid = Role::canUserLogin($user);
+            $valid = Role::canUserLogin($user, Yii::app()->session["isRegisterProcess"]);
             $isLogguedAndValid = (isset( Yii::app()->session["userId"]) && $valid["result"]);
         } else {
             $isLogguedAndValid = false;
