@@ -1856,5 +1856,52 @@ class Import
         $newName = strtoupper($name);
         return $newName;
     }
+
+
+
+    public static function isUncomplete($idEntity, $typeEntity){
+        $res = false ;
+        $entity = PHDB::findOne($typeEntity,array("_id"=>new MongoId($idEntity)));
+        
+        if(!empty($entity["warnings"]) || (!empty($entity["state"]) && $entity["state"] == "uncomplete"))
+            $res = true;
+        return $res ;
+    }
+
+    public static function checkWarning($idEntity, $typeEntity ,$userId){
+        $entity = PHDB::findOne($typeEntity,array("_id"=>new MongoId($idEntity)));
+        unset($entity["warnings"]);
+
+        if($typeEntity == Project::COLLECTION){
+            $newEntity = Project::getAndCheckProjectFromImportData($entity, $userId, null, true, true);
+            if(!empty($newEntity["warnings"]))
+                Project::updateProjectField($idEntity, "warnings", $newEntity["warnings"], $userId );
+            else
+                Project::updateProjectField($idEntity, "state", true, $userId ); 
+        }
+
+        if($typeEntity == Organization::COLLECTION){
+            $newEntity = Organization::getAndCheckOrganizationFromImportData($entity, null, true, true);
+            if(!empty($newEntity["warnings"])){
+                Organization::updateOrganizationField($idEntity, "warnings", $newEntity["warnings"], $userId );
+            }
+            else{
+                Organization::updateOrganizationField($idEntity, "state", true, $userId );
+                Organization::updateOrganizationField($idEntity, "warnings", array(), $userId ); 
+            }
+                
+        }
+
+        if($typeEntity == Event::COLLECTION){
+            $newEntity = Event::getAndCheckOrganizationFromImportData($entity, $userId, null, true, true);
+            if(!empty($newEntity["warnings"]))
+                Event::updateOrganizationField($idEntity, "warnings", $newEntity["warnings"], $userId );
+            else
+                Event::updateOrganizationField($idEntity, "state", true, $userId ); 
+        }
+        
+        
+            
+    }
 }
 

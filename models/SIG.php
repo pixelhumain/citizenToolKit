@@ -86,15 +86,15 @@ class SIG
 			error_log("update TYPE_PROJECTS");
 			Project::updateProjectField($entityId, "geo", $geo, Yii::app()->session['userId'] );
 			Project::updateProjectField($entityId, "geoPosition", $geoPosition, Yii::app()->session['userId'] );
-			if(Project::isUncomplete($entityId))
-				Project::checkWarning($entityId, Yii::app()->session['userId'] );
-				
 		}
 		if($entityType == PHType::TYPE_EVENTS){
 			error_log("update TYPE_EVENTS");
 			Event::updateEventField($entityId, "geo", $geo, Yii::app()->session['userId'] );
 			Event::updateEventField($entityId, "geoPosition", $geoPosition, Yii::app()->session['userId'] );
 		}
+
+		if(Import::isUncomplete($entityId, $entityType))
+			Import::checkWarning($entityId, $entityType, Yii::app()->session['userId']);
 		error_log("updateEntity OK");
 	}
 

@@ -461,15 +461,19 @@ class Authorisation {
         $res=false;
     	if($type == Event::COLLECTION) {
     		$res = Authorisation::isEventAdmin($itemId, $userId);
+            if(self::isSourceAdmin($itemId, $type, $userId) && $res==false)
+                $res = true ;
     	} else if($type == Project::COLLECTION) {
     		$res = Authorisation::isProjectAdmin($itemId, $userId);
             /*if(Role::isSuperAdmin(Role::getRolesUserId($userId)) && $res==false)
                 $res = true ;*/
-            if(Project::isSourceAdmin($itemId, $userId) && $res==false)
+            if(self::isSourceAdmin($itemId, $type, $userId) && $res==false)
                 $res = true ;
     	} else if($type == Organization::COLLECTION) {
     		$res = Authorisation::isOrganizationAdmin($userId, $itemId);
             if(Role::isSuperAdmin(Role::getRolesUserId($userId)) && $res==false)
+                $res = true ;
+            if(self::isSourceAdmin($itemId, $type, $userId) && $res==false)
                 $res = true ; 
 
     	} else if($type == Person::COLLECTION) {
@@ -539,6 +543,26 @@ class Authorisation {
             }
         }
 
+        return $res;
+    }
+
+
+    /**
+     * Return true if the user is source admin of the entity(organization, event, project)
+     * @param String the id of the entity
+     * @param String the type of the entity
+     * @param String the id of the user
+     * @return bool 
+     */
+    public static function isSourceAdmin($idEntity, $typeEntity ,$idUser){
+        $res = false ;
+        $entity = PHDB::findOne($typeEntity,array("_id"=>new MongoId($idEntity)));
+        if(!empty($project["source"]["sourceKey"])){
+            $user = PHDB::findOne(Person::COLLECTION,array("_id"=>new MongoId($idUser),
+                                                        "sourceAdmin" => $entity["source"]["sourceKey"]));
+        }
+        if(!empty($user))
+            $res = true ;
         return $res;
     }
 } 

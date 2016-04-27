@@ -763,37 +763,7 @@ class Project {
 		return $project ;
 	}
 
-	public static function isSourceAdmin($idProject, $idUser){
-		$res = false ;
-		$project = PHDB::findOne(self::COLLECTION,array("_id"=>new MongoId($idProject)));
-		if(!empty($project["source"]["sourceKey"])){
-			$user = PHDB::findOne(Person::COLLECTION,array("_id"=>new MongoId($idUser),
-														"sourceAdmin" => $project["source"]["sourceKey"]));
-		}
-
-		if(!empty($user))
-			$res = true ;
-		return $res;
-	}
-
-	public static function isUncomplete($idProject){
-		$res = false ;
-		$project = PHDB::findOne(self::COLLECTION,array("_id"=>new MongoId($idProject), "state" => "uncomplete"));
-		if(!empty($project))
-			$res = true;
-
-		return $res ;
-	}
-
-	public static function checkWarning($idProject, $userId){
-		$project = PHDB::findOne(self::COLLECTION,array("_id"=>new MongoId($idProject)));
-		unset($project["warnings"]);
-		$newproject = self::getAndCheckProjectFromImportData($project, $userId, null, true, true);
-		if(!empty($newproject["warnings"]))
-			Project::updateProjectField($idProject, "warnings", $newproject["warnings"], $userId );
-		else
-			Project::updateProjectField($idProject, "state", true, $userId );
-	}
+	
 
 
 }
