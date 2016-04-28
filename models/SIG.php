@@ -339,4 +339,56 @@ class SIG
 		return $oneCity;
 	}
 
+
+
+	/**
+	 * get all entity(persons, organizations, projects, events) badly geoLocalited
+	 * @return Array
+	 * @author Raphael RIVIERE
+	 */
+    public static function getEntityBadlyGeoLocalited() {
+    	$res = array() ;
+       	$entities[Person::COLLECTION] = PHDB::find(Person::COLLECTION);
+       	$entities[Organization::COLLECTION] = PHDB::find(Organization::COLLECTION);
+       	$entities[Event::COLLECTION] = PHDB::find(Event::COLLECTION);
+       	$entities[Project::COLLECTION] = PHDB::find(Project::COLLECTION);
+       	foreach ($entities as $type => $typeEntities) {
+	       	foreach ($typeEntities as $key => $entity) {
+	       		if(!empty($entity['address'])){
+	       			if(!empty($entity['address']["codeInsee"]) && !empty($entity['address']["postalCode"])){
+	       				$insee = $entity['address']["codeInsee"];
+	       				if(!empty($entity['geo'])){
+	       					$find = false;
+	       					$city = SIG::getCityByLatLngGeoShape($entity['geo']["latitude"], $entity['geo']["longitude"], $entity['address']["postalCode"]);
+	     					if(!empty($city)){
+	       						if($city["insee"] != $insee){
+		       						$result["id"] = (String)$entity["_id"];
+	       							$result["name"] = $entity["name"];
+			       					$result["error"] = "Cette entité est mal géolocalisé";
+			       					$res[$type][]= $result ;
+		       					}
+	       					}else{
+	       						$result["id"] = (String)$entity["_id"];
+	       						$result["name"] = $entity["name"];
+		       					$result["error"] = "Nous n'avons pas trouver de commune";
+		       					$res[$type][]= $result ;
+	       					}
+	       				}else{
+		       				$result["id"] = (String)$entity["_id"];
+	       					$result["name"] = $entity["name"];
+		       				$result["error"] = "Cette entité n'a pas de géolocalisation";
+		       				$res[$type][]= $result ;
+		       			}
+	       			}else{
+	       				$result["id"] = (String)$entity["_id"];
+	       				$result["name"] = $entity["name"];
+	       				$result["error"] = "Cette entité n'a pas de code Insee et/ou de code postal";
+	       				$res[$type][]= $result ;
+	       			}	
+	       		}
+	       	}
+       	}	
+        return $res;
+    }
+
 }

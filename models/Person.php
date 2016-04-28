@@ -952,53 +952,6 @@ class Person {
     }
 
     /**
-	 * get all person badly geoLocalited
-	 * @return Array
-	 * @author Raphael RIVIERE
-	 */
-    public static function getPersonBadlyGeoLocalited() {
-    	$res = array() ;
-       	$persons = PHDB::find(self::COLLECTION);
-       	foreach ($persons as $key => $person) {
-       		if(!empty($person['address'])){
-       			if(!empty($person['address']["codeInsee"]) && !empty($person['address']["postalCode"])){
-       				$insee = $person['address']["codeInsee"];
-       				if(!empty($person['geo'])){
-       					$find = false;
-       					$city = SIG::getInseeByLatLngCp($person['geo']["latitude"], $person['geo']["longitude"], $person['address']["postalCode"]);
-     					if(!empty($city)){
-       						
-       						foreach ($city as $key => $value) {
-       							if($value["insee"] == $insee)
-       								$find = true;
-       						}
-       						if($find == false){
-	       						$result["person"] = $person;
-		       					$result["error"] = "Cette entité est mal géolocalisé";
-		       					$res[]= $result ;
-	       					}
-       					}else{
-       						$result["person"] = $person;
-	       					$result["error"] = "Nous n'avons pas trouver de commune";
-	       					$res[]= $result ;
-       					}
-       					
-       				}else{
-	       				$result["person"] = $person;
-	       				$result["error"] = "Cette entité n'a pas de géolocalisation";
-	       				$res[]= $result ;
-	       			}
-       			}else{
-       				$result["citoyen"] = $person;
-       				$result["error"] = "Cette entité n'a pas de code Insee et/ou de code postal";
-       				$res[]= $result ;
-       			}	
-       		}
-       	}
-        return $res;
-    }
-
-    /**
 	 * getPersonFollowsByUser
 	 * @return Array<Person>
 	 * @author Raphael RIVIERE

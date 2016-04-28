@@ -1253,52 +1253,6 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 		    			"newOrganization"=> $newOrganization);
 	}
 
-
-	/**
-	 * get all Organizations badly geoLocalited
-	 * @return Array
-	 */
-    public static function getOrganizationsBadlyGeoLocalited() {
-    	$res = array() ;
-       	$organizations = PHDB::find(self::COLLECTION);
-       	foreach ($organizations as $key => $organization) {
-       		if(!empty($organization['address'])){
-       			if(!empty($organization['address']["codeInsee"]) && !empty($organization['address']["postalCode"])){
-       				$insee = $organization['address']["codeInsee"];
-       				if(!empty($organization['geo'])){
-       					$find = false;
-       					$city = SIG::getInseeByLatLngCp($organization['geo']["latitude"], $organization['geo']["longitude"], null);
-     					if(!empty($city)){
-       						//var_dump($city);
-       						foreach ($city as $key => $value) {
-       						//var_dump($value["insee"]);
-       						if($value["insee"] == $insee)
-       							$find = true;
-       						}
-       					}
-       					if($find == false){
-       						//var_dump("here");
-       						$result["organization"] = $organization;
-	       					$result["error"] = "Cette entité est mal géolocalisé";
-	       					$res[]= $result ;
-       					}
-       				}else{
-	       				$result["organization"] = $organization;
-	       				$result["error"] = "Cette entité n'a pas de géolocalisation";
-	       				$res[]= $result ;
-	       			}
-       			}else{
-       				$result["organization"] = $organization;
-       				$result["error"] = "Cette entité n'a pas de code Insee et/ou de code postal";
-       				$res[]= $result ;
-       			}	
-       		}
-       	}
-        return $res;
-    }
-
-
-
     public static function getFollowsByOrganizationId($id) {
 	  	$res = array();
 	  	$organization = Organization::getById($id);
@@ -1315,9 +1269,6 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 	  	}
 	  	return $res;
 	}
-
-
-
 
 	public static function getQuestionAnwser($organization){
 		if(!empty($organization["tags"])){
