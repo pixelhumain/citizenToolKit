@@ -42,6 +42,8 @@ class Organization {
 	    "video" => array("name" => "video"),
 	    "state" => array("name" => "state"),
 	    "warnings" => array("name" => "warnings"),
+	    "urlFacebook" => array("name" => "urlFacebook"),
+	    "urlTwitter" => array("name" => "urlTwitter"),
 	);
 	
 	//See findOrganizationByCriterias...
@@ -933,6 +935,12 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 		if(!empty($details['geoPosition']))
 			$newOrganization['geoPosition'] = $details['geoPosition'] ;
 
+		if(!empty($organization['urlFacebook']))
+			$newOrganization['urlFacebook'] = $organization['urlFacebook'] ;
+
+		if(!empty($organization['urlTwitter']))
+			$newOrganization['urlTwitter'] = $organization['urlTwitter'] ;
+
 		if(!empty($newOrganization['warnings']))
 			$newOrganization['warnings'] = array_merge($newOrganization['warnings'], $details['warnings']);
 		else
@@ -1119,6 +1127,12 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 		if(!empty($organization['url'])){
 			$newOrganization["url"] = $organization['url'];
 		}
+		
+		if(!empty($organization['urlFacebook']))
+			$newOrganization['urlFacebook'] = $organization['urlFacebook'] ;
+
+		if(!empty($organization['urlTwitter']))
+			$newOrganization['urlTwitter'] = $organization['urlTwitter'] ;
 
 		if (!empty($organization['warnings'])){
 			if (!empty($newOrganization['warnings'])){
