@@ -17,8 +17,8 @@ class ValidateInvitationAction extends CAction {
     	$res = Person::isRightValidationKey($user, $validationKey);
         
         if ($res==true) {
-	    	//Get the invites user in the db
-            $account = Person::getById($user);
+	    	//Get the invited user in the db
+            $account = Person::getById($user, false);
             $error="";
 
             if(!empty($account)) {
