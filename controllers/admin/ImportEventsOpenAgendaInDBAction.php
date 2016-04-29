@@ -24,7 +24,7 @@ class ImportEventsOpenAgendaInDBAction extends CAction
                     $event = Event::getEventsOpenAgenda($eventOpenAgenda["uid"]);
                     $eventOpenAgenda = Event::createEventsFromOpenAgenda($eventOpenAgenda);
                     foreach ($event as $key => $value) {
-                        $params["result"][] = Event::updateEvent($value["_id"], $event, "5694ea2a94ef47ad1c8b456d");
+                        $params["result"][] = Event::updateEvent($value["_id"], $event, Yii::app()->params['idOpenAgenda']);
                     }
                     
                 }
