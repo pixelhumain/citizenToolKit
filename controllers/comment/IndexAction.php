@@ -37,10 +37,17 @@ class IndexAction extends CAction
         	throw new CTKException("Error : the type is unknown ".$type);
         }
         
-		if(Yii::app()->request->isAjaxRequest)
-	        echo $controller->renderPartial("commentPod" , $params, true);
-	    else
-  			$controller->renderPartial("commentPod" , $params, true);
+		if(Yii::app()->request->isAjaxRequest){
+	        if($type != "actionRooms")
+                echo $controller->renderPartial("commentPod" , $params, true);
+            else
+                echo $controller->renderPartial("commentPodActionRooms" , $params, true);
+	    }else{
+            if($type != "actionRooms")
+                $controller->renderPartial("commentPod" , $params, true);
+            else
+                $controller->renderPartial("commentPodActionRooms" , $params, true);
+        }
     }
 
  
