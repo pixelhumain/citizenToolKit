@@ -1166,8 +1166,8 @@ class Event {
 		} else {
 			$newEvent["creator"] = $creatorId;	
 		}*/
-		$newEvent["creator"] = "56eff58e94ef47451c7b23d6";
-		$newEvent["organizerId"] = "56eff58e94ef47451c7b23d6";
+		$newEvent["creator"] = Yii::app()->session['userId'];
+		$newEvent["organizerId"] = Yii::app()->session['userId'];
 		$newEvent["organizerType"] = Person::COLLECTION ;	
 		//Insert the event
 	    PHDB::insert( self::COLLECTION, $newEvent);
