@@ -46,13 +46,15 @@ class IndexAction extends CAction
         if(isset($id))
         	$where["parentId"] = $id;
 
-        if( $type == Person::COLLECTION ){
+        if( $type == Person::COLLECTION )
             $roomsActions = Person::getActionRoomsByPersonId($id);
-            $rooms   = $roomsActions["rooms"];
-            $actions = $roomsActions["actions"];
-        }
-        else
+        else if( isset( Yii::app()->session['userId'] ))
+            $roomsActions = Person::getActionRoomsByPersonIdByType(Yii::app()->session['userId'],$type,$id);
+         else 
             $rooms = ActionRoom::getWhereSortLimit( $where, array("date"=>1), 15);
+        
+        $rooms   = $roomsActions["rooms"];
+        $actions = $roomsActions["actions"];
 
         error_log("count rooms : ".count($rooms));
 
