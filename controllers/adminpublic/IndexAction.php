@@ -12,8 +12,7 @@ class IndexAction extends CAction
                 $page = "index";
             }
         }
-
-
+        
         if(Yii::app()->request->isAjaxRequest)
                 echo $controller->renderPartial("index",$params,true);
             else 

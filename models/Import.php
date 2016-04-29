@@ -1802,19 +1802,14 @@ class Import
                                                                             floatval($lon),
                                                                             floatval($lat)));
                         $city["postalCodes"][] = $newCP;
-                        //$new["city"] = $city["name"];
-                        //$new["name"] = $lineCSV[2];
                         PHDB::update(City::COLLECTION,
                                     array("_id"=>new MongoId($idCity)),
                                     array('$set' => $city),
                                     array('upsert' => true));
-
-                        //var_dump($new);
-                        //$res[] = $new ;
                     }
 
                 }
-                else{
+                /*else{
                     /// Appliquer Similar_text
                     $cp = $lineCSV[1];
                     $city = SIG::getCityByLatLngGeoShape($lat, $lon, $cp);
@@ -1832,14 +1827,12 @@ class Import
                                     array("_id"=>new MongoId($idCity)),
                                     array('$set' => $city),
                                     array('upsert' => true));
-                        //var_dump($new );
-                        //$res[] = $new ;
                     }else{
                         $new["cp"] = $lineCSV[1];
                         $new["name"] = $lineCSV[2];
                         $res[] = $new ;
-                    } 
-                }
+                    }
+                }*/
 
             }
             
