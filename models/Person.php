@@ -58,8 +58,7 @@ class Person {
 	 * user = array("name"=>$username)
 	 * $isRegisterProcess => save in the session if it's the first time a he is connected
 	 */
-	public static function saveUserSessionData($account, $isRegisterProcess = false)
-    {
+	public static function saveUserSessionData($account, $isRegisterProcess = false) {
 	  	Yii::app()->session["userId"] = (string)$account["_id"];
 	  	Yii::app()->session["userEmail"] = $account["email"];
 
