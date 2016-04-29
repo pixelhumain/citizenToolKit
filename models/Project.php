@@ -225,17 +225,18 @@ class Project {
 	 * @return array as result type
 	 */
 	public static function insert($params, $parentId,$parentType){
-	    $newProject = self::getAndCheckProject($params, $parentId);
+	    $newProject = self::getAndCheckProject($params, Yii::app() -> session["userId"]);
 	    if (isset($newProject["tags"]))
 			$newProject["tags"] = Tags::filterAndSaveNewTags($newProject["tags"]);
 
 	    // TODO SBAR - If a Link::connect is used why add a link hard coded
-	    $newProject["links"] = array( "contributors" => 
-	    								array($parentId =>array("type" => $parentType,"isAdmin" => true)));
+
+	   // $newProject["links"] = array( "contributors" => 
+	    //								array($parentId =>array("type" => $parentType,"isAdmin" => true)));
 
 	    PHDB::insert(self::COLLECTION,$newProject);
-
-	    Link::connect($parentId, $parentType, $newProject["_id"], self::COLLECTION, $parentId, "projects", true );
+		Link::addContributor(Yii::app() -> session["userId"],Person::COLLECTION,$parentId,$parentType,$newProject["_id"]);
+	   // Link::connect($parentId, $parentType, $newProject["_id"], self::COLLECTION, $parentId, "projects", true );
 
 	    Notification::createdObjectAsParam(Person::COLLECTION,Yii::app() -> session["userId"],Project::COLLECTION, (String)$newProject["_id"], $parentType, $parentId, $newProject["geo"], (isset($newProject["tags"])) ? $newProject["tags"]:null ,$newProject["address"]);
 	    return array("result"=>true, "msg"=>"Votre projet est communecté.", "id" => $newProject["_id"]);	
@@ -519,7 +520,7 @@ class Project {
 	*   return String ("Add", "Update" or "Delete")
 	*/
 	public static function createProjectFromImportData($projectImportData, $key=null, $warnings = null) {
-		//var_dump($projectImportData);
+		
 		if(!empty($projectImportData['name']))
 			$newProject["name"] = $projectImportData["name"];
 
@@ -551,27 +552,18 @@ class Project {
 		if(!empty($projectImportData['warnings']))
 			$newProject["warnings"] = $projectImportData["warnings"];
 
+		$address = (empty($projectImportData['address']) ? null : $projectImportData['address']);
+		$geo = (empty($projectImportData['geo']) ? null : $projectImportData['geo']);
+		$details = Import::getAndCheckAddressForEntity($address, $geo, $warnings) ;
+		$newProject['address'] = $details['address'];
 
-		
-		
-		if(!empty($projectImportData['geo']['latitude']))
-			$newProject['geo']['latitude'] = $projectImportData['geo']['latitude'];
+		if(!empty($details['geo']))
+			$newProject['geo'] = $details['geo'] ;
 
-		if(!empty($projectImportData['geo']['longitude']))
-			$newProject['geo']['longitude'] = $projectImportData['geo']['longitude'];
-
-
-
-		if(!empty($projectImportData['address'])){
-			$details = Import::getAndCheckAddressForEntity($projectImportData['address'], (empty($newProject['geo']) ? null : $newProject['geo']), true) ;
-			$newProject['address'] = $details['address'];
-
-			if(!empty($newProject['warnings']))
-				$newProject['warnings'] = array_merge($newProject['warnings'], $details['warnings']);
-			else
-				$newProject['warnings'] = $details['warnings'];
-
-		}
+		if(!empty($newProject['warnings']))
+			$newProject['warnings'] = array_merge($newProject['warnings'], $details['warnings']);
+		else
+			$newProject['warnings'] = $details['warnings'];
 			
 		return $newProject;
 	}
@@ -718,19 +710,6 @@ class Project {
 			$newProject["state"] = "uncomplete";
 		}
 
-		if(!empty($project['source']['sourceId']) ){
-			$id = $project['source']['sourceId'] ;
-			if($id >= "8025" &&  $id <= "8152"){
-				throw new CTKException(Yii::t("project","Projet Amaury"));
-			}
-			if($id >= "8169" &&  $id <= "11686"){
-				throw new CTKException(Yii::t("project","Projet ImaginationForPeople"));
-			}
-		}
-
-
-		
-
 		return $newProject;
 	}
 
@@ -751,13 +730,8 @@ class Project {
 	    if(isset($newProject["tags"]))
 			$newProject["tags"] = Tags::filterAndSaveNewTags($newProject["tags"]);
 
-	    /*$newProject["links"] = array( "contributors" => 
-	    								array($parentId =>array("type" => $parentType,"isAdmin" => true)));*/
-
 	    PHDB::insert(self::COLLECTION,$newProject);
-	    /*Link::connect($parentId, $parentType, $newProject["_id"], self::COLLECTION, $parentId, "projects", true );*/
-
-	    //Notification::createdObjectAsParam(Person::COLLECTION,Yii::app() -> session["userId"],Project::COLLECTION, (String)$newProject["_id"], $parentType, $parentId, $newProject["geo"], (isset($newProject["tags"])) ? $newProject["tags"]:null ,$newProject["address"]["codeInsee"]);
+	    
 	    return array("result"=>true, "msg"=>"Votre projet est communecté.", "id" => $newProject["_id"]);	
 	}
 
@@ -768,7 +742,6 @@ class Project {
 			if(in_array("commun", $project['tags']) || in_array("fabmob", $project['tags'])){
 				$url = "http://data.patapouf.org".$project["source"]["url"];
 				
-
 				$res = Import::getDataByUrl($url);
 
 				$json = json_decode($res, true);
@@ -790,37 +763,7 @@ class Project {
 		return $project ;
 	}
 
-	public static function isSourceAdmin($idProject, $idUser){
-		$res = false ;
-		$project = PHDB::findOne(self::COLLECTION,array("_id"=>new MongoId($idProject)));
-		if(!empty($project["source"]["sourceKey"])){
-			$user = PHDB::findOne(Person::COLLECTION,array("_id"=>new MongoId($idUser),
-														"sourceAdmin" => $project["source"]["sourceKey"]));
-		}
-
-		if(!empty($user))
-			$res = true ;
-		return $res;
-	}
-
-	public static function isUncomplete($idProject){
-		$res = false ;
-		$project = PHDB::findOne(self::COLLECTION,array("_id"=>new MongoId($idProject), "state" => "uncomplete"));
-		if(!empty($project))
-			$res = true;
-
-		return $res ;
-	}
-
-	public static function checkWarning($idProject, $userId){
-		$project = PHDB::findOne(self::COLLECTION,array("_id"=>new MongoId($idProject)));
-		unset($project["warnings"]);
-		$newproject = self::getAndCheckProjectFromImportData($project, $userId, null, true, true);
-		if(!empty($newproject["warnings"]))
-			Project::updateProjectField($idProject, "warnings", $newproject["warnings"], $userId );
-		else
-			Project::updateProjectField($idProject, "state", true, $userId );
-	}
+	
 
 
 }

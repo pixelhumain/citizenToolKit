@@ -68,7 +68,9 @@ class DirectoryAction extends CAction
                   $profil = Document::getLastImageByKey($key, Organization::COLLECTION, Document::IMG_PROFIL);
                   if($profil !="")
                     $organization["imagePath"]= $profil;
-                  array_push($organizations, $organization );
+                  if (!@$organization["disabled"]) {
+                    array_push($organizations, $organization );
+                  }
               }
          
             if(isset($organization["links"]["events"]))

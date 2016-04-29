@@ -515,11 +515,11 @@ class Document {
         
         $allowed_ext = array('jpg','jpeg','png','gif',"pdf","xls","xlsx","doc","docx","ppt","pptx","odt");
         
-        if(strtolower($_SERVER['REQUEST_METHOD']) != 'post')
+        /*if(strtolower($_SERVER['REQUEST_METHOD']) != 'post')
         {
     	    return array('result'=>false,'error'=>Yii::t("document","Error! Wrong HTTP method!"));
 
-        }
+        }*/
         
 
         $file_headers = @get_headers($pathFile.$nameFile);
@@ -532,7 +532,7 @@ class Document {
 
         if(!empty($pathFile) && $file_headers[0] != 'HTTP/1.1 404 Not Found'){
         	
-        	$pic = file_get_contents($pathFile.$nameFile, FILE_USE_INCLUDE_PATH);
+        	
         	
         	$ext = strtolower(pathinfo($nameFile, PATHINFO_EXTENSION));
         	if(!in_array($ext,$allowed_ext)){
@@ -549,18 +549,16 @@ class Document {
             if( file_exists ( $upload_dir.$name ) )
                 $name = time()."_".$name;
 
-            /*var_dump(Yii::app()->session["userId"]);
-            var_dump($name);
-            var_dump(file_put_contents($upload_dir.$name , $pic));*/
-
-        	if(isset(Yii::app()->session["userId"]) && $name && file_put_contents($upload_dir.$name , $pic))
-            {   
+            
+            $pic = file_get_contents($pathFile.$nameFile, FILE_USE_INCLUDE_PATH);
+            
+            
+        	if(isset(Yii::app()->session["userId"]) && $name && file_put_contents($upload_dir.$name , $pic)){   
         		return array('result'=>true,
                                         "success"=>true,
                                         'name'=>$name,
                                         'dir'=> $upload_dir,
                                         'size'=> Document::getHumanFileSize( filesize ( $upload_dir.$name ) ) );
-    	        
         	}
         }
         return array('result'=>false,'error'=>Yii::t("document","Something went wrong with your upload!"));

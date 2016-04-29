@@ -9,7 +9,7 @@ class ImportEventsOpenAgendaInDBAction extends CAction
         	foreach (json_decode($_POST["jsonEventsAdd"], true) as $key => $eventOpenAgenda) {
         		try{
                     $event = Event::createEventsFromOpenAgenda($eventOpenAgenda);
-                    $params["result"][] = Event::saveEventFromOpenAgenda($event);
+                    $params["result"][] = Event::saveEventFromOpenAgenda($event, $controller->moduleId);
                 }
                 catch (CTKException $e){
                     $params["error"][] = $e->getMessage();
