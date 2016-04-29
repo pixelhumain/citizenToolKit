@@ -8,7 +8,13 @@ class NewsTranslator {
 	const NEWS_CREATE_ORGANIZATION = "newsCreateOrganization";
 	const NEWS_CREATE_TASK = "newsCreateTask";
 	const NEWS_JOIN_ORGANIZATION = "newsMemberJoinOrganization";
-
+	/**
+		*get news well formated 
+		*	@param string author become an object, 
+		*	@param object object (if type=="activityStream") become object with informations, 
+		*	@param object target, 
+		*	@param object media (if type=="gallery_images") become of object with document,
+	**/
 	public static function convertParamsForNews($params,$readOne=false){
 		if(@$params["object"]){
 			if($params["object"]["objectType"]==Event::COLLECTION){
@@ -60,7 +66,7 @@ class NewsTranslator {
 		  	}
 		}
 		//print_r($params);
-		if(@$params["media"] && !is_string(@$params["media"]) && $params["media"]["type"]=="galery_images"){
+		if(@$params["media"] && !is_string(@$params["media"]) && $params["media"]["type"]=="gallery_images"){
 			$images=array();
 			$limit=5;
 			$i=0;

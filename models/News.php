@@ -3,9 +3,9 @@ class News {
 
 	const COLLECTION = "news";
 	/**
-	 * get an project By Id
-	 * @param type $id : is the mongoId of the project
-	 * @return type
+	 * get an news By Id
+	 * @param type $id : is the mongoId of the news
+	 * @return object
 	 */
 	public static function getById($id) {
 	  	$news = PHDB::findOne( self::COLLECTION,array("_id"=>new MongoId($id)));
@@ -15,7 +15,8 @@ class News {
 		return $news;
 	}
 
-	public static function getWhere($params) {
+	/* DEAD CODE - TO TEST BEFORE DELETE
+		public static function getWhere($params) {
 	  	return PHDB::findAndSort( self::COLLECTION,$params);
 	}
 	public static function getAuthor($id){
@@ -29,7 +30,14 @@ class News {
 	  		$res[$key]["author"] = Person::getById($news["author"]);
 	  	}
 	  	return $res;
-	}
+	}*/
+	
+	/**
+	 * get news 
+	 * @param type $params : is the condition of news generated
+	 * @param type sort
+	 * News limited to 15
+	 */
 	public static function getNewsForObjectId($param,$sort=array("created"=>-1),$type)
 	{
 	    $res = PHDB::findAndSort(self::COLLECTION, $param,$sort,15);
@@ -40,6 +48,13 @@ class News {
 	  	}
 	  	return $res;
 	}
+	/**
+	 * Insert a new news, checking if the news is well formated
+	 * @param array $params Array with all fields for a project - TODO
+	 * @param string $author author id doing the insertion
+	 * @param object $target defined the target of the news - wall where news is created
+	 * @return array as result type
+	 */
 	public static function save($params)
 	{
 		//check a user is loggued 
@@ -125,6 +140,7 @@ class News {
 			}
 		 	
 			PHDB::insert(self::COLLECTION,$news);
+			$news=NewsTranslator::convertParamsForNews($news);			  		
 		    $news["author"] = Person::getSimpleUserById(Yii::app()->session["userId"]);
 		    
 		    /* Send email alert to contact@pixelhumain.com */
@@ -136,32 +152,54 @@ class News {
 			return array("result"=>false, "msg"=>"Please Fill required Fields.");	
 		}
 	}
+	/**
+	 * delete a news in database
+	 * @param String $id : id to delete
+	*/
 	public static function delete($id) {
 		return PHDB::remove(self::COLLECTION,array("_id"=>new MongoId($id)));
 	}
+	/**
+	 * update a news in database
+	 * @param String $newsId : 
+	 * @param string $name fields to update
+	 * @param String $value : new value of the field
+	 * @return array of result (result => boolean, msg => string)
+	 */
 	public static function updateField($newsId, $name, $value, $userId){
-		//if (!Authorisation::canEditItem($userId, self::COLLECTION, $projectId)) {
-		//	throw new CTKException(Yii::t("project", "Can not update this project : you are not authorized to update that project !"));	
-		//}
-		/*		A rajouter vérification auteur !!!!!! */
-		//$dataFieldName = self::getCollectionFieldNameAndValidate($projectFieldName, $projectFieldValue, $projectId);
-	
-		//Specific case : 
-		//Tags
-		//if ($dataFieldName == "tags") {
-		//	$projectFieldValue = Tags::filterAndSaveNewTags($projectFieldValue);
-		//}
-
-		//address
-
 		$set = array($name => $value);	
-
-
 		//update the project
 		PHDB::update( self::COLLECTION, array("_id" => new MongoId($newsId)), 
 		                          array('$set' => $set));
 	                  
 	    return array("result"=>true, "msg"=>Yii::t("common","News well updated"), "id"=>$newsId);
+	}
+	/**
+	* Get array of news order by date of creation
+	* @param array $array is the array of news to return well order
+	* @param array $cols is the array indicated on which column of $array it is sorted
+	**/
+	public static function sortNews($array, $cols){
+		$colarr = array();
+			    foreach ($cols as $col => $order) {
+			        $colarr[$col] = array();
+			        foreach ($array as $k => $row) { $colarr[$col]['_'.$k] = strtolower($row[$col]); }
+			    }
+			    $eval = 'array_multisort(';
+			    foreach ($cols as $col => $order) {
+			        $eval .= '$colarr[\''.$col.'\'],'.$order.',';
+			    }
+			    $eval = substr($eval,0,-1).');';
+			    eval($eval);
+			    $ret = array();
+			    foreach ($colarr as $col => $arr) {
+			        foreach ($arr as $k => $v) {
+			            $k = substr($k,1);
+			            if (!isset($ret[$k])) $ret[$k] = $array[$k];
+			            $ret[$k][$col] = $array[$k][$col];
+			        }
+			    }
+			    return $ret;
 	}
 }
 ?>

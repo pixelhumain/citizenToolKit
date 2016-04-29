@@ -8,33 +8,6 @@ class IndexAction extends CAction
         $controller->subTitle = "NEWS comes from everywhere, and from anyone.";
         $controller->pageTitle = "Communecter - Timeline Globale";
         $news = array(); 
-        if(!function_exists("array_msort")){
-			function array_msort($array, $cols)
-			{
-			    $colarr = array();
-			    foreach ($cols as $col => $order) {
-			        $colarr[$col] = array();
-			        foreach ($array as $k => $row) { $colarr[$col]['_'.$k] = strtolower($row[$col]); }
-			    }
-			    $eval = 'array_multisort(';
-			    foreach ($cols as $col => $order) {
-			        $eval .= '$colarr[\''.$col.'\'],'.$order.',';
-			    }
-			    $eval = substr($eval,0,-1).');';
-			    eval($eval);
-			    $ret = array();
-			    foreach ($colarr as $col => $arr) {
-			        foreach ($arr as $k => $v) {
-			            $k = substr($k,1);
-			            if (!isset($ret[$k])) $ret[$k] = $array[$k];
-			            $ret[$k][$col] = $array[$k][$col];
-			        }
-			    }
-			    return $ret;
-			
-			}
-		}
-        //mongo search cmd : db.news.find({created:{'$exists':1}})	
 		$params = array();
 		if (!isset($id)){
 			if($type!="pixels"){
@@ -231,8 +204,10 @@ class IndexAction extends CAction
 	        	)	
 			);
 		}
-		$news=News::getNewsForObjectId($where,array("created"=>-1),$type);
-		$news = array_msort($news, array('created'=>SORT_DESC));
+		
+		$news= News::getNewsForObjectId($where,array("created"=>-1),$type);
+		// Sort news order by created 
+		$news = News::sortNews($news, array('created'=>SORT_DESC));
         //TODO : reorganise by created date
 		$params["news"] = $news; 
 		$params["tags"] = Tags::getActiveTags();

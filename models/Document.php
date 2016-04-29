@@ -102,7 +102,7 @@ class Document {
 	    if (substr_count(@$new["contentKey"], self::IMG_SLIDER)) {
 	    	self::generateAlbumImages($new, self::GENERATED_IMAGES_FOLDER);
 	    }
-	    return array("result"=>true, "msg"=>Yii::t('document','Document saved successfully',null,Yii::app()->controller->module->id), "id"=>$new["_id"]);	
+	    return array("result"=>true, "msg"=>Yii::t('document','Document saved successfully',null,Yii::app()->controller->module->id), "id"=>$new["_id"],"name"=>$new["name"]);	
 	}
 
 	/**
@@ -352,23 +352,28 @@ class Document {
     	$folder = $document["folder"];
 		if($folderAlbum==self::GENERATED_IMAGES_FOLDER){
 			$destination='/'.self::GENERATED_IMAGES_FOLDER;
-			$width=150;
-			$height=150;
+			$maxWidth=150;
+			$maxHeight=150;
+			$quality=100;
 		} else{
 			$destination="";
-			$width=1100;
-			$height=700;
+			$maxWidth=1100;
+			$maxHeight=700;
+			$quality=50;
 		}
 		//The images will be stored in the /uploadDir/moduleId/ownerType/ownerId/thumb (ex : /upload/communecter/citoyen/1242354235435/thumb)
 		$upload_dir = Yii::app()->params['uploadDir'].$dir.'/'.$folder.$destination; 
-		if($folderAlbum==self::GENERATED_IMAGES_FOLDER){       
-		//mkdir($upload_dir, 0777);
+		if(!file_exists ( $upload_dir )) {       
+			mkdir($upload_dir, 0777);
 		}
 		//echo "iciiiiiii/////////////".$upload_dir;
-     	$imageUtils = new ImagesUtils(self::getDocumentPath($document));
-    	$destPathThumb = $upload_dir."/".$document["name"];
-    	//echo $destPathThumb;
-    	$imageUtils->resizePropertionalyImage($width,$height)->save($destPathThumb);
+		$path=self::getDocumentPath($document);
+		list($width, $height) = getimagesize($path);
+		if ($width > $maxWidth || $height >  $maxHeight){
+     		$imageUtils = new ImagesUtils($path);
+    		$destPathThumb = $upload_dir."/".$document["name"];
+    		$imageUtils->resizePropertionalyImage($maxWidth,$maxHeight)->save($destPathThumb,$quality);
+    	}
 	}
 	
 	/**

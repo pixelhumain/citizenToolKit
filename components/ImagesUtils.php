@@ -52,17 +52,19 @@ class ImagesUtils {
 		imagepng($this->destImage);
 	}
 
-	public function save($destImagePath) {
+	public function save($destImagePath, $quality="100") {
 		//Save Image
 		switch ($this->dest_type) {
 		    case IMAGETYPE_GIF:
-		        imagegif($this->destImage, $destImagePath);
+		        imagegif($this->destImage, $destImagePath,$quality);
 		        break;
 		    case IMAGETYPE_JPEG:
-		        imagejpeg($this->destImage, $destImagePath);
+		        imagejpeg($this->destImage, $destImagePath,$quality);
 		        break;
 		    case IMAGETYPE_PNG:
-		        imagepng($this->destImage, $destImagePath);
+		    	$q=9/100;
+				$quality*=$q;
+		        imagepng($this->destImage, $destImagePath,$quality);
 		        break;
 		}
 	}
@@ -138,13 +140,16 @@ class ImagesUtils {
 	    if ($height > $newheight) {
 	        $width = ($newheight / $height) * $width;
 	        $height = $newheight;
+	        $resized=true;
 	    }
 	
 	    # wider
 	    if ($width > $newwidth) {
 	        $height = ($newwidth / $width) * $height;
 	        $width = $newwidth;
+			$resized=true;
 	    }
+
 	    $temp_width = $width;
 		$temp_height =$height;
 		/*$source_aspect_ratio = $this->source_width / $this->source_height;
@@ -173,6 +178,7 @@ class ImagesUtils {
 		    $this->source_width, $this->source_height
 		);
 		$this->destImage = $temp_gdim;
+		imagedestroy($this->srcImage);
 		/*
 		 * Copy cropped region from temporary image into the desired GD image
 		 */
@@ -191,7 +197,6 @@ class ImagesUtils {
 		$this->destImage = $desired_gdim;
 		imagedestroy($temp_gdim);
 		//imagedestroy($desired_gdim);*/
-		
 		return $this;
 	}
 	public function createCircleImage($newwidth, $newheight) {
