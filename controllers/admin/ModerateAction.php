@@ -18,6 +18,12 @@ class ModerateAction extends CAction
       *  NEWS
       ***************************************** */
       $params["news"] =  PHDB::find('news',array( "reportAbuse"=> array('$exists'=>1)));
+
+
+      /* **************************************
+      *  COMMENTS
+      ***************************************** */
+      $params["comments"] =  PHDB::find('comments',array( "reportAbuse"=> array('$exists'=>1)));
       // $params["path"] = "../default/";
 
       //$page = $params["path"]."directoryTable";
