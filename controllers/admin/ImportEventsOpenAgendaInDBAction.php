@@ -29,12 +29,17 @@ class ImportEventsOpenAgendaInDBAction extends CAction
                     $event = Event::getEventsOpenAgenda($eventOpenAgenda["uid"]);
                     $eventOpenAgenda = Event::createEventsFromOpenAgenda($eventOpenAgenda);
                     foreach ($event as $key => $value) {
-                        $params["result"][] = Event::updateEvent($value["_id"], $event, Yii::app()->params['idOpenAgenda']);
+                        Event::updateEvent($value["_id"], $event, Yii::app()->params['idOpenAgenda']);
                     }
+                    $eventGood["name"] = $eventOpenAgenda["name"];
+                    $eventGood["msg"] = "L'événement a été mis a jours";
+                    $params["result"][] = $eventGood;
                     
                 }
                 catch (CTKException $e){
-                    $params["error"][] = $e->getMessage();
+                    $eventError["name"] = $eventOpenAgenda["title"];
+                    $eventError["msg"] = $e->getMessage();
+                    $params["error"][] = $eventError;
                 }
                 
             }

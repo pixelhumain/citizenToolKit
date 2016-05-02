@@ -736,11 +736,9 @@ class Event {
 	    Link::addOrganizer($params["organizerId"],$params["organizerType"], $newEvent["_id"], Yii::app()->params['idOpenAgenda']);
 
 	    $msgErrorImage = "" ;
-	    var_dump($nameImage);
 	    if(!empty($nameImage)){
 			try{
 				$res = Document::uploadDocument($moduleId, self::COLLECTION, $newEventId, "avatar", false, $pathFolderImage, $nameImage);
-				var_dump($res);
 				if(!empty($res["result"]) && $res["result"] == true){
 					$params = array();
 					$params['id'] = $newEventId;
