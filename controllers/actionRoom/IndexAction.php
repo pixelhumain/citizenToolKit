@@ -14,17 +14,19 @@ class IndexAction extends CAction
         //$controller->toolbarMBZ = array();
         
         $nameParentTitle = "";
-
+        $parent = null;
         if( $type == Project::COLLECTION ) {
             //$controller->toolbarMBZ = array("<a href='".Yii::app()->createUrl("/".$controller->module->id."/project/dashboard/id/".$id)."'><i class='fa fa-lightbulb-o'></i>Project</a>");
             $project = Project::getById($id);
+            $parent = $project;
             $nameParentTitle = $project["name"];
             $controller->title = $project["name"]."'s Rooms";
             $controller->subTitle = "Every Project thinks, talks & decides.";
             $controller->pageTitle = "Communecter - ".$controller->title;
-        } else if( $type == Person::COLLECTION ) {
+        } else if( $type == Person::CONTROLLER ) {
             //$controller->toolbarMBZ = array("<a href='".Yii::app()->createUrl("/".$controller->module->id."/person/dashboard/id/".$id)."'><i class='fa fa-user'></i>Person</a>");
             $person = Person::getById($id);
+            $parent = $person;
             $nameParentTitle = $person["name"];
             $controller->title = $person["name"]."'s Rooms";
             $controller->subTitle = "Everyone thinks, talks & decides.";
@@ -32,6 +34,7 @@ class IndexAction extends CAction
         } else if( $type == Organization::COLLECTION ) {
             //$controller->toolbarMBZ = array("<a href='".Yii::app()->createUrl("/".$controller->module->id."/organization/dashboard/id/".$id)."'><i class='fa fa-group'></i>Organization</a>");
             $organization = Organization::getById($id);
+            $parent = $organization;
             $nameParentTitle = $organization["name"];
             $controller->title = $organization["name"]."'s Rooms";
             $controller->subTitle = "Every Organization thinks, talks & decides.";
@@ -60,6 +63,7 @@ class IndexAction extends CAction
 
         $params = array(    "rooms" => $rooms, 
                             "nameParentTitle" => $nameParentTitle, 
+                            "parent" => $parent, 
                             "parentId" => $id, 
                             "parentType" => $type );
 

@@ -37,6 +37,13 @@ class EntryAction extends CAction
             $params["organizer"] = array(  "name" => $organizer["name"],
                                            "link" => "loadByHash('#organization.detail.id.".$survey["organizerId"]."')");
           }
+          else if( $survey["organizerType"] == Project::COLLECTION ){
+            $organizer = Project::getById( $survey["organizerId"] );
+            $params["organizer"] = array(  "name" => $organizer["name"],
+                                           "link" => "loadByHash('#project.detail.id.".$survey["organizerId"]."')");
+          }
+
+          $params["parentType"] = $survey["organizerType"];
       }
 
       //Images

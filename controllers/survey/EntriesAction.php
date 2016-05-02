@@ -36,22 +36,28 @@ class EntriesAction extends CAction
       //   '<a href="#voterloiDescForm" role="button" data-toggle="modal" title="lexique pour compendre" ><i class="fa fa-question-circle"></i> AIDE</a>',
       //   );
      
-      $nameParentTitle = "";
+      $parent = array();
       if( $survey["parentType"] == Organization::COLLECTION ) {
-        //$controller->toolbarMBZ = array("<a href='".Yii::app()->createUrl("/".$controller->module->id."/organization/dashboard/id/".$id)."'><i class='fa fa-group'></i>Organization</a>");
-        $organization = Organization::getById($survey["parentId"]);
-        $nameParentTitle = $organization["name"];
+        $parent = Organization::getById($survey["parentId"]);
+      }
+      if( $survey["parentType"] == Person::COLLECTION ) {
+        $parent = Person::getById($survey["parentId"]);
+      }
+      if( $survey["parentType"] == Project::COLLECTION ) {
+        $parent = Project::getById($survey["parentId"]);
       }
 
       $tpl = ( isset($_GET['tpl']) ) ? $_GET['tpl'] : "index";
 
+      //error_log($parentType);
 
       $controller->layout = "//layouts/mainSearch";
       $controller->renderPartial( $tpl, array( "list" => $list,
                                        "where"=>$where,
                                        "isModerator"=>$isModerator,
                                        "uniqueVoters"=>$uniqueVoters,
-                                       "nameParentTitle"=>$nameParentTitle,
+                                       "parent"=>$parent,
+                                       "parentType" => $parentType,
                                        "surveyLoadByHash" => $surveyLoadByHash
                                         )  );
       

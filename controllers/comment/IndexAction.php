@@ -1,4 +1,4 @@
-<?php
+ <?php
 class IndexAction extends CAction
 {
     public function run($type, $id)
@@ -30,7 +30,12 @@ class IndexAction extends CAction
         } else if($type == Survey::COLLECTION) {
             $params["context"] = Survey::getById($id);
         } else if($type == ActionRoom::COLLECTION) {
-            $params["context"] = ActionRoom::getById($id);
+            $actionRoom = ActionRoom::getById($id);
+            $params["context"] = $actionRoom;
+            if($actionRoom["parentType"] == Person::CONTROLLER) $params["parent"] = Person::getById($actionRoom["parentId"]);   
+            if($actionRoom["parentType"] == Organization::COLLECTION) $params["parent"] = Organization::getById($actionRoom["parentId"]);   
+            if($actionRoom["parentType"] == Project::COLLECTION) $params["parent"] = Project::getById($actionRoom["parentId"]);   
+            $params["parentType"] = $actionRoom["parentType"];
         } else if($type == Need::COLLECTION) {
             $params["context"] = Need::getById($id);
         } else {
