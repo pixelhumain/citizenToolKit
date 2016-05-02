@@ -77,7 +77,7 @@ class UploadAction extends CAction {
     	        exit;
         	}
         }
-        echo json_encode(array('result'=>false,'error'=>Yii::t("document","Something went wrong with your upload!")));
+        echo json_encode(array('result'=>false,'msg'=>Yii::t("document","Something went wrong with your upload!")));
     	exit;
 	}
 
