@@ -37,7 +37,7 @@ class ImportEventsOpenAgendaInDBAction extends CAction
                     
                 }
                 catch (CTKException $e){
-                    $eventError["name"] = $eventOpenAgenda["title"];
+                    $eventError["name"] = $eventOpenAgenda["name"];
                     $eventError["msg"] = $e->getMessage();
                     $params["error"][] = $eventError;
                 }
