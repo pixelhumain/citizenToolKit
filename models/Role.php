@@ -45,7 +45,7 @@ class Role {
 		return $roles;
 	}
 
-	public static function canUserLogin($person, $publicPage=false) {
+	public static function canUserLogin($person, $isRegisterProcess=false) {
 		$res = array("result"=>true, 
                     "msg"=>"Everything is ok : user can login !");
 
@@ -56,26 +56,18 @@ class Role {
 
 		$roles = self::checkUserRoles($person);
 		
-        //BetaTest mode only when not on publicPage
-        if (!$publicPage) {
-	        if (@Yii::app()->params['betaTest']) {
-	        	if (isset($roles["betaTester"])) {
-	        		if (! $roles["betaTester"]) {
-						return array("result"=>false, 
-							"msg" => "betaTestNotOpen");
-					}
+        if (@Yii::app()->params['betaTest']) {
+        	if (isset($roles["betaTester"])) {
+        		if (! $roles["betaTester"]) {
+					return array("result"=>false, 
+						"msg" => "betaTestNotOpen");
 				}
-	    	}    
-	    } else {
-	    	if (! @$roles["standalonePageAccess"]) {
-	    		$res = array("result"=>false, 
-	                    "msg"=>"You do not have access to this page.");
-	    	}
-	    }
+			}
+    	}    
 
-	    //The account is not validated
-        if (isset($roles["tobeactivated"]) && @$roles["tobeactivated"] ) {
-            return array("result"=>false, "id" => @$person[_id], "msg"=>"notValidatedEmail");
+	    //The account is not validated. If we are just after the register process the user can navigate on the platform
+        if (isset($roles["tobeactivated"]) && @$roles["tobeactivated"]) {
+            return array("result"=>$isRegisterProcess, "id" => @$person[_id], "msg"=>"notValidatedEmail");
         }
         
         return $res;

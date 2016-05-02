@@ -12,7 +12,11 @@ class ActivateAction extends CAction
 
     	$controller=$this->getController();
     	$params = array();
-    	//Validate email
+
+        //remove logued user to prevent incoherent action
+        Person::clearUserSessionData();
+    	
+        //Validate email
     	$res = Person::validateEmailAccount($user, $validationKey);
     	if ($res["result"]) {
     		$params["userValidated"] = 1;

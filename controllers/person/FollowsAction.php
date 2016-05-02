@@ -9,6 +9,7 @@ class FollowsAction extends CTKAction {
 
         if (! $this->userLogguedAndValid()) {
         	Rest::json(array("result" => false, "msg" => "The current user is not valid : please login."));
+        	die();
         }
 
         //Case spécial : Vérifie si l'email existe et retourne l'id de l'utilisateur

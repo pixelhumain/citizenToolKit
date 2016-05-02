@@ -17,6 +17,7 @@ class Document {
 	const DOC_TYPE_CSV		= "text/csv";
 
 	const GENERATED_IMAGES_FOLDER 		= "thumb";
+	const GENERATED_ALBUM_FOLDER		= "album";
 	const FILENAME_PROFIL_RESIZED 	  	= "profil-resized.png";
 	const FILENAME_PROFIL_MARKER 	  	= "profil-marker.png";
 	const GENERATED_THUMB_PROFIL 	  	= "thumb-profil";
@@ -98,7 +99,10 @@ class Document {
 	    if (substr_count(@$new["contentKey"], self::IMG_PROFIL)) {
 	    	self::generateProfilImages($new);
 	    }
-	    return array("result"=>true, "msg"=>Yii::t('document','Document saved successfully',null,Yii::app()->controller->module->id), "id"=>$new["_id"]);	
+	    if (substr_count(@$new["contentKey"], self::IMG_SLIDER)) {
+	    	self::generateAlbumImages($new, self::GENERATED_IMAGES_FOLDER);
+	    }
+	    return array("result"=>true, "msg"=>Yii::t('document','Document saved successfully',null,Yii::app()->controller->module->id), "id"=>$new["_id"],"name"=>$new["name"]);	
 	}
 
 	/**
@@ -340,7 +344,38 @@ class Document {
         //Remove the bck directory
         CFileHelper::removeDirectory($upload_dir."bck");
 	}
-
+	// Resize initial image for album size 
+	// param type array $document
+	// param string $folderAlbum where Image is upload
+	public static function generateAlbumImages($document,$folderAlbum=null) {
+    	$dir = $document["moduleId"];
+    	$folder = $document["folder"];
+		if($folderAlbum==self::GENERATED_IMAGES_FOLDER){
+			$destination='/'.self::GENERATED_IMAGES_FOLDER;
+			$maxWidth=150;
+			$maxHeight=150;
+			$quality=100;
+		} else{
+			$destination="";
+			$maxWidth=1100;
+			$maxHeight=700;
+			$quality=50;
+		}
+		//The images will be stored in the /uploadDir/moduleId/ownerType/ownerId/thumb (ex : /upload/communecter/citoyen/1242354235435/thumb)
+		$upload_dir = Yii::app()->params['uploadDir'].$dir.'/'.$folder.$destination; 
+		if(!file_exists ( $upload_dir )) {       
+			mkdir($upload_dir, 0777);
+		}
+		//echo "iciiiiiii/////////////".$upload_dir;
+		$path=self::getDocumentPath($document);
+		list($width, $height) = getimagesize($path);
+		if ($width > $maxWidth || $height >  $maxHeight){
+     		$imageUtils = new ImagesUtils($path);
+    		$destPathThumb = $upload_dir."/".$document["name"];
+    		$imageUtils->resizePropertionalyImage($maxWidth,$maxHeight)->save($destPathThumb,$quality);
+    	}
+	}
+	
 	/**
 	 * Return the url of the generated image 
 	 * @param String $id Identifier of the object to retrieve the generated image

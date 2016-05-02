@@ -37,14 +37,14 @@ class RegisterAction extends CAction
 			$newPerson['geoPosLongitude'] = @$_POST['geoPosLongitude'];
 		}
 
-		//The user already exist in the db : the data should be updated
+		//The user already exist in the db (invitation process) : the data should be updated
 		if ($pendingUserId != "") {
 			$res = Person::updateMinimalData($pendingUserId, $newPerson);
 			if (! $res["result"]) {
 				Rest::json($res);
 				exit;
 			} 
-
+		//New user
 		} else {
 			try {
 				$newPerson['email'] = $email;
@@ -58,26 +58,26 @@ class RegisterAction extends CAction
 		}
 
 		//Try to login with the user
-		$res = Person::login($email,$pwd,false);
+		$res = Person::login($email,$pwd,true);
 		if ($res["result"]) {
-			$controller->redirect(array("person/login"));
+			if ($res["msg"] == "notValidatedEmail") {
+				//send validation mail to the user
+				$newPerson['email'] = $email;
+				$newPerson["inviteCode"] = $inviteCode;
+				Mail::validatePerson($newPerson);
+				//The user is automatically logued even if he has not validated his email.
+				//As it's his first login. Next time, he couldn't login.
+				$res = array("result"=>true, "msg"=> Yii::t("login","You are now communnected !")."<br>".Yii::t("login","Check your mailbox you'll receive soon a mail to validate your email address."), "id"=>$pendingUserId);
+			} 
 		} else if ($res["msg"] == "betaTestNotOpen") {
 			$newPerson["_id"] = $pendingUserId;
 			$newPerson['email'] = $email;
-			//TODO
-			//send communecter overview mail
-			//Mail::communecterOverview($newPerson);
-			$res = array("result"=>true, "msg"=> Yii::t("login","You are now communnected !")."<br>".Yii::t("login","Our developpers are fighting to open soon ! Check your mail that will happen soon !"), "id"=>$pendingUserId); 
-		} else if ($res["msg"] == "notValidatedEmail") {
-			$newPerson["_id"] = $res["id"];
-			$newPerson['email'] = $email;
-			$newPerson["inviteCode"] = $inviteCode;
-
-			//send validation mail if the user is not validated
-			Mail::validatePerson($newPerson);
-			$res = array("result"=>true, "msg"=> Yii::t("login","You are now communnected !")."<br>".Yii::t("login","Check your mailbox you'll receive soon a mail to validate your email address."), "id"=>$pendingUserId); 
-		}
-
+			//send betatest information mail
+			Mail::betaTestInformation($newPerson);
+			$res = array("result"=>true, 
+				"msg"=> Yii::t("login","You are now communnected !")."<br>".Yii::t("login","Our developpers are fighting to open soon ! Check your mail that will happen soon !")."<br>".Yii::t("login","If you really want to start testing the platform before, send us an email and we'll consider your demand :)"), 
+				"id"=>$pendingUserId); 
+		} 
 		Rest::json($res);
 		exit;
     }

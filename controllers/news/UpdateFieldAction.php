@@ -22,6 +22,6 @@ class UpdateFieldAction extends CAction
 		} else {
           return Rest::json(array("result"=>false,"msg"=>Yii::t("common","Invalid request")));
         }
-        return Rest::json(array("result"=>true, "msg"=>Yii::t("common","News well updated"),$_POST["name"]=> $_POST["value"]));
+        return Rest::json(array("result"=>true, "msg"=>Yii::t("common","News well updated"),$_POST["name"]=> $_POST["value"],"id"=>$newsId));
     }
 }

@@ -1145,7 +1145,7 @@ class Import
 
         $context = stream_context_create($options);
         $result = file_get_contents($url, false, $context);*/
-        var_dump($url);
+        //var_dump($url);
         $result = Import::getUrl($url);
         
         return $result;
@@ -1630,7 +1630,7 @@ class Import
             }
             
 
-        } // Cas 4 Il y a les 2
+        } // Cas 4 : Il y a les 2
         else if(!empty($address) && !empty($geo)){
             $newGeo["geo"]["latitude"] = (empty($geo["latitude"])?"":$geo["latitude"]) ;
             $newGeo["geo"]["longitude"] = (empty($geo["longitude"])?"":$geo["longitude"]) ;
@@ -1669,8 +1669,8 @@ class Import
             $newGeo["geoPosition"] = array("type"=>"Point",
                                                 "coordinates" =>
                                                     array(
-                                                        floatval($newGeo["geo"]['latitude']),
-                                                        floatval($newGeo["geo"]['longitude'])));
+                                                        floatval($newGeo["geo"]['longitude']),
+                                                        floatval($newGeo["geo"]['latitude'])));
             $details["geo"] = $newGeo["geo"];
             $details["geoPosition"] = $newGeo["geoPosition"];
         }
@@ -1802,19 +1802,14 @@ class Import
                                                                             floatval($lon),
                                                                             floatval($lat)));
                         $city["postalCodes"][] = $newCP;
-                        //$new["city"] = $city["name"];
-                        //$new["name"] = $lineCSV[2];
                         PHDB::update(City::COLLECTION,
                                     array("_id"=>new MongoId($idCity)),
                                     array('$set' => $city),
                                     array('upsert' => true));
-
-                        //var_dump($new);
-                        //$res[] = $new ;
                     }
 
                 }
-                else{
+                /*else{
                     /// Appliquer Similar_text
                     $cp = $lineCSV[1];
                     $city = SIG::getCityByLatLngGeoShape($lat, $lon, $cp);
@@ -1832,14 +1827,12 @@ class Import
                                     array("_id"=>new MongoId($idCity)),
                                     array('$set' => $city),
                                     array('upsert' => true));
-                        //var_dump($new );
-                        //$res[] = $new ;
                     }else{
                         $new["cp"] = $lineCSV[1];
                         $new["name"] = $lineCSV[2];
                         $res[] = $new ;
-                    } 
-                }
+                    }
+                }*/
 
             }
             
@@ -1855,6 +1848,53 @@ class Import
         $name = strip_tags (str_replace($search, " ", $name));
         $newName = strtoupper($name);
         return $newName;
+    }
+
+
+
+    public static function isUncomplete($idEntity, $typeEntity){
+        $res = false ;
+        $entity = PHDB::findOne($typeEntity,array("_id"=>new MongoId($idEntity)));
+        
+        if(!empty($entity["warnings"]) || (!empty($entity["state"]) && $entity["state"] == "uncomplete"))
+            $res = true;
+        return $res ;
+    }
+
+    public static function checkWarning($idEntity, $typeEntity ,$userId){
+        $entity = PHDB::findOne($typeEntity,array("_id"=>new MongoId($idEntity)));
+        unset($entity["warnings"]);
+
+        if($typeEntity == Project::COLLECTION){
+            $newEntity = Project::getAndCheckProjectFromImportData($entity, $userId, null, true, true);
+            if(!empty($newEntity["warnings"]))
+                Project::updateProjectField($idEntity, "warnings", $newEntity["warnings"], $userId );
+            else
+                Project::updateProjectField($idEntity, "state", true, $userId ); 
+        }
+
+        if($typeEntity == Organization::COLLECTION){
+            $newEntity = Organization::getAndCheckOrganizationFromImportData($entity, null, true, true);
+            if(!empty($newEntity["warnings"])){
+                Organization::updateOrganizationField($idEntity, "warnings", $newEntity["warnings"], $userId );
+            }
+            else{
+                Organization::updateOrganizationField($idEntity, "state", true, $userId );
+                Organization::updateOrganizationField($idEntity, "warnings", array(), $userId ); 
+            }
+                
+        }
+
+        if($typeEntity == Event::COLLECTION){
+            $newEntity = Event::getAndCheckOrganizationFromImportData($entity, $userId, null, true, true);
+            if(!empty($newEntity["warnings"]))
+                Event::updateOrganizationField($idEntity, "warnings", $newEntity["warnings"], $userId );
+            else
+                Event::updateOrganizationField($idEntity, "state", true, $userId ); 
+        }
+        
+        
+            
     }
 }
 

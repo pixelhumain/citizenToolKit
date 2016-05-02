@@ -8,6 +8,7 @@ class InviteAction extends CTKAction
         $params = array();
         $params['currentUser'] = Person::getById($this->currentUserId);
         $params['follows'] = array();
+        $params['listFollowsId'] = array();
         $follows = Person::getPersonFollowsByUser($this->currentUserId);
         foreach ($follows as $key => $value) {
             if(!empty($value["email"]) && $value["email"] != "")
