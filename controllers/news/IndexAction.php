@@ -221,7 +221,7 @@ class IndexAction extends CAction
 								//print_r($params["news"]);
 								
 		if(Yii::app()->request->isAjaxRequest){
-			if (!@$_GET["isFirst"]){
+			if (@$_GET["isFirst"]){
 				 echo $controller->renderPartial("index", $params,true);
 	       } else{
 				//
