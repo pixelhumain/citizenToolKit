@@ -7,27 +7,19 @@ class ModerateAction extends CAction
 
       $controller = $this->getController();
 
-      /* **************************************
-      *  PERSON
-      ***************************************** */
-      $controller->title = "Admin Directory Restricted Zone";
-      $controller->subTitle = "This is a restricted zone";
-      $controller->pageTitle = ucfirst($controller->module->id)." - ".$controller->title;
 
-      /* **************************************
-      *  NEWS
-      ***************************************** */
-      $params["news"] =  PHDB::find('news',array( "reportAbuse"=> array('$exists'=>1)));
-
-
-      /* **************************************
-      *  COMMENTS
-      ***************************************** */
-      $params["comments"] =  PHDB::find('comments',array( "reportAbuse"=> array('$exists'=>1)));
-      // $params["path"] = "../default/";
-
-      //$page = $params["path"]."directoryTable";
-      $page =  "moderate";
+      $params = array();
+      if(isset($_REQUEST['all'])){
+        $page =  "moderateAll";
+        $params["news"] =  PHDB::find('news',array( "reportAbuse"=> array('$exists'=>1), "moderate.isAnAbuse" => array('$exists'=>0)));
+        $params["comments"] =  PHDB::find('comments',array( "reportAbuse"=> array('$exists'=>1),"moderate.isAnAbuse" => array('$exists'=>0)));
+      }
+      elseif(isset($_REQUEST['one'])){
+        $page =  "moderateOne"; 
+      }
+      else{
+        $page =  "moderate";
+      }
 
       if(Yii::app()->request->isAjaxRequest){
         echo $controller->renderPartial($page,$params,true);

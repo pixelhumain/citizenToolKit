@@ -61,7 +61,17 @@ class ModerateAction extends CAction
             }
             else{
                 Rest::json(array("result"=>false, "msg"=>"Erreur Paramètre manquant"));  
-            }       
+            }
+        }
+        elseif(isset($_REQUEST['subAction']) && $_REQUEST['subAction'] == "getNextIdToModerate"){
+            $params =  PHDB::find('news',array( "reportAbuse"=> array('$exists'=>1),"moderate.isAnAbuse" => array('$exists'=>0)), array("_id" => 1), 1);
+            if(isset($params) && count($params)){
+              $params = array_pop($params);
+              Rest::json(array("result"=>true, "msg"=>"il y a des news à modérer", "newsId" => (string)@$params['_id']));  
+            }
+            else{
+                Rest::json(array("result"=>false, "msg"=>"Plus aucune news à modérer"));  
+            }
         }//nothing
         else{
             Rest::json(array("result"=>false, "msg"=>"Erreur Paramètre manquant"));  
