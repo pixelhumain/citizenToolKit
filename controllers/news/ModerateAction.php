@@ -6,7 +6,7 @@ class ModerateAction extends CAction
 	    $controller=$this->getController();
 
         //Detail moderate one news
-        if(isset($_REQUEST['consolidateModerateNews']) && $_REQUEST['consolidateModerateNews'] == true){
+        if(isset($_REQUEST['subAction']) && $_REQUEST['subAction'] == "consolidateModerateNews"){
             if(isset($_REQUEST['id'])){
                 $news = News::getById($_REQUEST['id']);
                 $tmp = array();
@@ -15,12 +15,18 @@ class ModerateAction extends CAction
                     foreach ($news['reportAbuseReason'] as $listReason) {
                         foreach ($listReason as $user => $reason) {
                             if(isset($reason)){
-                                if(isset($tmp[$reason])){
-                                    $tmp[$reason] = $tmp[$reason] + 1;
+
+                                //Consolidate reason
+                                if(isset($tmp['reason'][$reason])){
+                                    $tmp['reason'][$reason] = $tmp['reason'][$reason] + 1;
                                 }
                                 else{
-                                    $tmp[$reason] = 1;
+                                    $tmp['reason'][$reason] = 1;
                                 }
+
+                                //details
+                                $reporter = Person::getById($user);
+                                $tmp['detail'][$user] = $reason." - Par ".@$reporter['name'].'('.@$reporter['email'].')';
                             }
                         }
                     }
@@ -31,19 +37,26 @@ class ModerateAction extends CAction
                 Rest::json(array("result"=>false, "msg"=>"Erreur Paramètre manquant"));  
             }
         } //Save moderate Action
-        elseif(isset($_REQUEST['saveModerate']) && $_REQUEST['saveModerate'] == true){
+        elseif(isset($_REQUEST['subAction']) && $_REQUEST['subAction'] == "saveModerate"){
             if(isset($_REQUEST['id']) && isset($_REQUEST['isAnAbuse'])){
-                $moderate = array(
-                    'isAnAbuse' => $_REQUEST['isAnAbuse'],
-                    'moderatedBy' => Yii::app()->session["userId"],
-                    'date' => new MongoDate(time())
-                );
-                $res = News::updateField($_REQUEST['id'], "moderate", $moderate, Yii::app()->session["userId"]);
-                if(@$res["result"]){
-                    Rest::json(array("result"=>true, "msg"=>"Ok, Moderation enregistrée"));  
+                //Test exist
+                $news = News::getById($_REQUEST['id']);
+                if($news){
+                    $moderate = array(
+                        'isAnAbuse' => $_REQUEST['isAnAbuse'],
+                        'moderatedBy' => Yii::app()->session["userId"],
+                        'date' => new MongoDate(time())
+                    );
+                    $res = News::updateField($_REQUEST['id'], "moderate", $moderate, Yii::app()->session["userId"]);
+                    if(@$res["result"]){
+                        Rest::json(array("result"=>true, "msg"=>"Ok, Moderation enregistrée"));  
+                    }
+                    else{
+                        Rest::json(array("result"=>false, "msg"=>"Erreur dans l'enregistrement de la modération"));  
+                    }
                 }
                 else{
-                    Rest::json(array("result"=>false, "msg"=>"Erreur dans l'enregistrement de la modération"));  
+                    Rest::json(array("result"=>false, "msg"=>"Erreur news inexistante"));  
                 }
             }
             else{

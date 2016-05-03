@@ -363,4 +363,20 @@ class Comment {
     }
 
 
+    /**
+	 * update a comment in database
+	 * @param String $commentId : 
+	 * @param string $name fields to update
+	 * @param String $value : new value of the field
+	 * @return array of result (result => boolean, msg => string)
+	 */
+	public static function updateField($commentId, $name, $value, $userId){
+		$set = array($name => $value);	
+		//update the project
+		PHDB::update( self::COLLECTION, array("_id" => new MongoId($commentId)), 
+		                          array('$set' => $set));
+	                  
+	    return array("result"=>true, "msg"=>Yii::t("common","Comment well updated"), "id"=>$commentId);
+	}
+
 }
