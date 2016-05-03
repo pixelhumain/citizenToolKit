@@ -204,7 +204,7 @@ class Notification{
 	    }
 		else if($verb == ActStr::VERB_JOIN){
 		    $label = Yii::app()->session['user']['name']." ".Yii::t("common","participates to the event")." ".$target["name"];
-		    $url = 'news/detail/id/'.$targetId;
+		    $url = $ctrls[ $target["type"] ].'/detail/id/'.$targetId;
 	    }
 	    else if($verb == ActStr::VERB_COMMENT){
 		    $label = Yii::app()->session['user']['name']." ".Yii::t("common","has commented your post");
