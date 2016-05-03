@@ -36,6 +36,7 @@ class IndexAction extends CAction
             if($actionRoom["parentType"] == Organization::COLLECTION) $params["parent"] = Organization::getById($actionRoom["parentId"]);   
             if($actionRoom["parentType"] == Project::COLLECTION) $params["parent"] = Project::getById($actionRoom["parentId"]);   
             $params["parentType"] = $actionRoom["parentType"];
+            $params["parentId"] = $actionRoom["parentId"];
         } else if($type == Need::COLLECTION) {
             $params["context"] = Need::getById($id);
         } else {
