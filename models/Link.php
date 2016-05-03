@@ -628,8 +628,13 @@ class Link {
 				$typeOfDemand = "contributor";
 		} 
 		else if ($parentType == Event::COLLECTION){
-			$parentData = Event::getById($parentId);			
-			$usersAdmin = Authorisation::listOfEventAdmins($parentId);
+			$parentData = Event::getById($parentId);	
+			$usersAdmin=array();		
+			$attendees = Event::getAttendeesByEventId( $parentId ,"all", null );
+			foreach ($attendees as $key => $value) 
+			{
+			   array_push( $usersAdmin, $key);
+			}
 			$parentController = Event::CONTROLLER;
 			$parentConnectAs="attendees";
 			$childConnectAs="events";
