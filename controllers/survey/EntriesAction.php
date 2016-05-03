@@ -28,6 +28,8 @@ class EntriesAction extends CAction
       $parentType = $survey["parentType"] == "organizations" ? "organization" : "";
       if( $parentType == "" )
       $parentType = $survey["parentType"] == "projects" ? "project" : "";
+      if( $parentType == "" )
+      $parentType = $survey["parentType"] == "person" ? "person" : "";
 
       $surveyLoadByHash = ( isset( $survey["parentType"] ) && isset( $survey["parentId"] ) ) ? "#".$parentType.".detail.id.".$survey["parentId"] : "#rooms"; 
       // $controller->toolbarMBZ = array(
@@ -36,11 +38,12 @@ class EntriesAction extends CAction
       //   '<a href="#voterloiDescForm" role="button" data-toggle="modal" title="lexique pour compendre" ><i class="fa fa-question-circle"></i> AIDE</a>',
       //   );
      
-      $parent = array();
+      $parent = array("name"=>"_");
+      //error_log("parentType : ".$survey["parentType"]);
       if( $survey["parentType"] == Organization::COLLECTION ) {
         $parent = Organization::getById($survey["parentId"]);
       }
-      if( $survey["parentType"] == Person::COLLECTION ) {
+      if( $survey["parentType"] == Person::CONTROLLER ) {
         $parent = Person::getById($survey["parentId"]);
       }
       if( $survey["parentType"] == Project::COLLECTION ) {
@@ -49,15 +52,13 @@ class EntriesAction extends CAction
 
       $tpl = ( isset($_GET['tpl']) ) ? $_GET['tpl'] : "index";
 
-      //error_log($parentType);
-
       $controller->layout = "//layouts/mainSearch";
       $controller->renderPartial( $tpl, array( "list" => $list,
                                        "where"=>$where,
                                        "isModerator"=>$isModerator,
                                        "uniqueVoters"=>$uniqueVoters,
                                        "parent"=>$parent,
-                                       "parentType" => $parentType,
+                                       "parentType" => $survey["parentType"],
                                        "surveyLoadByHash" => $surveyLoadByHash
                                         )  );
       
