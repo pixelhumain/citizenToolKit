@@ -798,6 +798,45 @@ class Person {
 	}
 
 	/**
+	 * get actionRooms for a certain type and it's actions by personId
+	 * @param type $uid : is the mongoId (String) of the person
+	 * @param type $type : is the type of the parent element
+	 * @param type $id : is the mongoId (String) of the parent Element
+	 * @return person document as in db
+	*/
+	public static function getActionRoomsByPersonIdByType($uid,$type,$id) 
+	{
+		if(isset($type))
+        	$where["parentType"] = $type;
+        if(isset($id))
+        	$where["parentId"] = $id;
+
+        $actionRooms = ActionRoom::getWhereSortLimit( $where, array("date"=>1), 15);
+
+	  	$actions = array();
+	  	$person = self::getById($uid);
+
+	  	if (empty($person)) {
+            throw new CTKException("The person id is unkown : contact your admin");
+        }
+
+	  	if ( isset($person) && isset($person["actions"]) && isset($person["actions"]["surveys"])) 
+	  	{
+	  		foreach ( $person["actions"]["surveys"] as $entryId => $action) 
+	  		{
+	  			$entry = Survey::getById( $entryId );
+	  			if( isset( $entry['survey'] ) && isset( $actionRooms[ $entry['survey'] ] ) ){
+		  			$entry ['action'] = $action;
+		  			$actions[ $entryId ] = $entry;
+		  		}
+	  		}
+	  	}
+
+	  	return array( "rooms"	=> $actionRooms , 
+	  				  "actions" => $actions );
+	}
+
+	/**
 	 * Change the password of the user
 	 * @param String $oldPassword 
 	 * @param String $newPassword 

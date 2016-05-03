@@ -66,8 +66,8 @@ class ActStr {
             );
         }
 
-        if( isset( $params["ip"] ))
-        	$action["author"]["ip"] = $params["ip"];
+        //if( isset( $action["author"] ) && isset( $params["ip"] ))
+        //	$action["author"]["ip"] = $params["ip"];
         	
 		if($params["type"]==ActivityStream::COLLECTION){
 			$action["scope.type"]="public";
