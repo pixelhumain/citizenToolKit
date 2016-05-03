@@ -32,9 +32,12 @@ class IndexAction extends CAction
         } else if($type == ActionRoom::COLLECTION) {
             $actionRoom = ActionRoom::getById($id);
             $params["context"] = $actionRoom;
-            if($actionRoom["parentType"] == Person::CONTROLLER) $params["parent"] = Person::getById($actionRoom["parentId"]);   
-            if($actionRoom["parentType"] == Organization::COLLECTION) $params["parent"] = Organization::getById($actionRoom["parentId"]);   
-            if($actionRoom["parentType"] == Project::COLLECTION) $params["parent"] = Project::getById($actionRoom["parentId"]);   
+            if($actionRoom["parentType"] == Person::CONTROLLER) 
+                $params["parent"] = Person::getById($actionRoom["parentId"]);   
+            if($actionRoom["parentType"] == Organization::COLLECTION) 
+                $params["parent"] = Organization::getById($actionRoom["parentId"]);   
+            if($actionRoom["parentType"] == Project::COLLECTION) 
+                $params["parent"] = Project::getById($actionRoom["parentId"]);   
             $params["parentType"] = $actionRoom["parentType"];
             $params["parentId"] = $actionRoom["parentId"];
         } else if($type == Need::COLLECTION) {
