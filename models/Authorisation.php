@@ -314,6 +314,22 @@ class Authorisation {
        	} 
        	return $res;
     }
+
+    /**
+     * Return true if the user is member of the project
+     * @param String the id of the user
+     * @param String the id of the project
+     * @return array of Project (simple)
+     */
+    public static function isProjectMember($userId, $projectId) {
+        $res = false;
+        
+        //Get the members of the project : if there is no member then it's a new organization
+        //We are in a creation process
+        $projectMembers = Project::getContributorsByProjectId($projectId);
+        $res = array_key_exists((string)$userId, $projectMembers);    
+        return $res;
+    }
     
 	public static function listProjectsIamAdminOf($userId) {
         $projectList = array();
