@@ -49,6 +49,9 @@ class ModerateAction extends CAction
                     );
                     $res = News::updateField($_REQUEST['id'], "moderate", $moderate, Yii::app()->session["userId"]);
                     if(@$res["result"]){
+
+                        Notification::moderateNews(Yii::app()->session["userId"],$news['author']);
+
                         Rest::json(array("result"=>true, "msg"=>"Ok, Moderation enregistrée"));  
                     }
                     else{
@@ -64,7 +67,14 @@ class ModerateAction extends CAction
             }
         }
         elseif(isset($_REQUEST['subAction']) && $_REQUEST['subAction'] == "getNextIdToModerate"){
-            $params =  PHDB::find('news',array( "reportAbuse"=> array('$exists'=>1),"moderate.isAnAbuse" => array('$exists'=>0)), array("_id" => 1), 1);
+            $where = array(
+                "reportAbuse"=> array('$exists'=>1)
+                ,"moderate.isAnAbuse" => array('$exists'=>0)
+                ,"target.id" => array('$exists'=>1)
+                ,"target.type" => array('$exists'=>1)
+                ,"scope.type" => array('$exists'=>1)
+            );
+            $params =  PHDB::find('news',$where, array('_id' => 1), 1);
             if(isset($params) && count($params)){
               $params = array_pop($params);
               Rest::json(array("result"=>true, "msg"=>"il y a des news à modérer", "newsId" => (string)@$params['_id']));  
