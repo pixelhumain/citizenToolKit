@@ -27,17 +27,20 @@ class EntryAction extends CAction
 
       if( isset($survey["organizerType"]) )
       {
-          if( $survey["organizerType"] == Person::COLLECTION ){
+          if( $survey["organizerType"] == Person::COLLECTION )
+          {
             $organizer = Person::getById( $survey["organizerId"] );
             $params["organizer"] = array(  "name" => $organizer["name"],
                                            "link" => "loadByHash('#person.detail.id.".$survey["organizerId"]."')");
           }
-          else if( $survey["organizerType"] == Organization::COLLECTION ){
+          else if( $survey["organizerType"] == Organization::COLLECTION )
+          {
             $organizer = Organization::getById( $survey["organizerId"] );
             $params["organizer"] = array(  "name" => $organizer["name"],
                                            "link" => "loadByHash('#organization.detail.id.".$survey["organizerId"]."')");
           }
-          else if( $survey["organizerType"] == Project::COLLECTION ){
+          else if( $survey["organizerType"] == Project::COLLECTION )
+          {
             $organizer = Project::getById( $survey["organizerId"] );
             $params["organizer"] = array(  "name" => $organizer["name"],
                                            "link" => "loadByHash('#project.detail.id.".$survey["organizerId"]."')");

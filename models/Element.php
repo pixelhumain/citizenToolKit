@@ -11,5 +11,17 @@ class Element {
 		Project::COLLECTION => Project::CONTROLLER,
 		Organization::COLLECTION => Organization::CONTROLLER
 	);
+	public static function getControlerByCollection ($type) { 
 
+		if($type == Person::COLLECTION)
+	        $type = Person::CONTROLLER;
+	    else if($type == Organization::COLLECTION)
+	        $type = Organization::CONTROLLER;
+	    else if($type == Project::COLLECTION)
+	        $type = Project::CONTROLLER;
+	    else if($type == Event::COLLECTION)
+	        $type = Event::CONTROLLER;
+	    
+    	return $type;
+    }
 }

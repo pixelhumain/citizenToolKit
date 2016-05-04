@@ -219,6 +219,21 @@ class Authorisation {
        	} 
        	return $res;
     }
+    /**
+     * Return true if the user is member of the event
+     * @param String the id of the user
+     * @param String the id of the event
+     * @return array of event (simple)
+     */
+    public static function isEventMember($userId, $eventId) {
+        $res = false;
+        
+        //Get the members of the event : if there is no member then it's a new organization
+        //We are in a creation process
+        $eventMembers = Event::getAttendeesByEventId($eventId);
+        $res = array_key_exists((string)$userId, $eventMembers);    
+        return $res;
+    }
 
     /**
      * List all the event the userId is adminOf

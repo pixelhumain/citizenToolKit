@@ -37,6 +37,7 @@ class Organization {
 	    "typeOfPublic" => array("name" => "typeOfPublic"),
 	    "url"=>array("name" => "url"),
 	    "telephone" => array("name" => "telephone"),
+	    "modules" => array("name" => "modules"),
 	    //"fixe" => array("name" => "telephone.fixe"),
 	    //"mobile" => array("name" => "telephone.mobile"),
 	    "video" => array("name" => "video")

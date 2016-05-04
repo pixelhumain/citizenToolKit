@@ -26,6 +26,7 @@ class Project {
 	    "avancement" => array("name" => "properties.avancement"),
 	    "state" => array("name" => "state"),
 	    "warnings" => array("name" => "warnings"),
+	    "modules" => array("name" => "modules"),
 	);
 
 	private static function getCollectionFieldNameAndValidate($projectFieldName, $projectFieldValue, $projectId) {
