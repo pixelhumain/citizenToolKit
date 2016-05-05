@@ -55,10 +55,12 @@ class IndexAction extends CAction
             $roomsActions = Person::getActionRoomsByPersonIdByType(Yii::app()->session['userId'],$type,$id);
          else 
             $rooms = ActionRoom::getWhereSortLimit( $where, array("date"=>1), 15);
-        
-        $rooms   = $roomsActions["rooms"];
-        $actions = $roomsActions["actions"];
 
+        if( isset($roomsActions) && isset($roomsActions["rooms"]) && isset($roomsActions["actions"])  ){
+            $rooms   = $roomsActions["rooms"];
+            $actions = $roomsActions["actions"];
+        }
+        
         error_log("count rooms : ".count($rooms));
 
         $params = array(    "rooms" => $rooms, 
