@@ -83,38 +83,48 @@ class IndexAction extends CAction
 		}
 
 		if($type == "citoyens") {
-			if (@$viewer && $viewer != null){
+			if (!@Yii::app()->session["userId"] || (@Yii::app()->session["userId"] && Yii::app()->session["userId"]!=$id) || (@$viewer && $viewer != null)){
 				$scope=array(
 					array("scope.type"=> "public"),
 					array("scope.type"=> "restricted")
 				);
 				if (@$params["canManageNews"] && $params["canManageNews"])
 					array_push($scope,array("scope.type"=>"private"));
-				$where = array('$and' => array(
-					array('$or' => 
-						array(
-							array("author"=> $id), 
-							array('$and' => 
-								array(
-									array("target.id"=> $id), 
-									array("target.type" => "citoyens")
+				if(@$viewer || @Yii::app()->session["userId"]){
+					array_push($scope,
+								array("author"=> Yii::app()->session["userId"],
+										"target.id"=> $id,
+										"target.type" => Person::COLLECTION)
+							);
+				}
+				$where = array('$and' => 
+					array(
+						array('$or' => 
+							array(
+								array("author"=> $id), 
+								array('$and' => 
+									array(
+										array("target.id"=> $id), 
+										array("target.type" => Person::COLLECTION)
+									) 
 								) 
-							) 
-						)
-					),
-					array('$or' => 
-						$scope
-					),
-					array('created' => array(
-							'$lt' => $date
-						)
-					),
+							)
+						),
+						array('$or' => 
+							$scope
+						),
+						array('created' => array(
+								'$lt' => $date
+							)
+						),
 					)	
 				);
 			}
 			else{
 				$authorFollowedAndMe=[];
 				array_push($authorFollowedAndMe,array("author"=>$id));
+				array_push($authorFollowedAndMe,array("target.id"=> $id, 
+													"target.type" => Person::COLLECTION));
 				if(@$person["links"]["memberOf"] && !empty($person["links"]["memberOf"])){
 					foreach ($person["links"]["memberOf"] as $key => $data){
 						array_push($authorFollowedAndMe,array("target.id"=>$key, "target.type" => "organizations"));
@@ -218,8 +228,7 @@ class IndexAction extends CAction
 		if(@$viewer && $viewer != null){
 			$params["viewer"]=$viewer;
 		}
-								//print_r($params["news"]);
-								
+							
 		if(Yii::app()->request->isAjaxRequest){
 			if (@$_GET["isFirst"]){
 				 echo $controller->renderPartial("index", $params,true);
