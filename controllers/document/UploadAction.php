@@ -26,6 +26,11 @@ class UploadAction extends CAction {
             if( !file_exists ( $upload_dir ) )
                 mkdir ( $upload_dir,0775 );
         }
+        if( isset($input) && $input=="newsImage"){
+	        $upload_dir .= Document::GENERATED_ALBUM_FOLDER.'/';
+            if( !file_exists ( $upload_dir ) )
+                mkdir ( $upload_dir,0775 );
+        }
         
         $allowed_ext = array('jpg','jpeg','png','gif',"pdf","xls","xlsx","doc","docx","ppt","pptx","odt");
         
@@ -34,7 +39,6 @@ class UploadAction extends CAction {
     	    echo json_encode(array('result'=>false,'error'=>Yii::t("document","Error! Wrong HTTP method!")));
 	        exit;
         }
-
         if(array_key_exists($input,$_FILES) && $_FILES[$input]['error'] == 0 )
         {
         	
@@ -57,6 +61,14 @@ class UploadAction extends CAction {
         	if( isset(Yii::app()->session["userId"]) && $name && 
                 move_uploaded_file($pic['tmp_name'], $upload_dir.$name))
             {   
+	            if(@$input && $input=="newsImage"){
+		            $document=array(
+			            "moduleId"=>$dir,
+			            "folder"=> $folder."/".$ownerId."/".Document::GENERATED_ALBUM_FOLDER,
+			            "name"=>$name
+		            );
+	           		Document::generateAlbumImages($document);
+			   	}
         		echo json_encode(array('result'=>true,
                                         "success"=>true,
                                         'name'=>$name,

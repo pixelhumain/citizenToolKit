@@ -47,6 +47,8 @@ class ActivityStream {
 	{
 		if($param["type"]==self::COLLECTION){
 			$news=$param;
+			$news["target"]["type"]=$param["target"]["objectType"];
+			unset($news["target"]["objectType"]);
 		    PHDB::insert(News::COLLECTION, $news);
 		}
 	    $param["timestamp"] = new MongoDate(time());

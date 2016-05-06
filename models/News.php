@@ -3,32 +3,20 @@ class News {
 
 	const COLLECTION = "news";
 	/**
-	 * get an project By Id
-	 * @param type $id : is the mongoId of the project
-	 * @return type
+	 * get an news By Id
+	 * @param type $id : is the mongoId of the news
+	 * @return object
 	 */
 	public static function getById($id) {
 	  	$news = PHDB::findOne( self::COLLECTION,array("_id"=>new MongoId($id)));
 	  	if(@$news["type"]){
-		    if($news["type"]==ActivityStream::COLLECTION){
-			    if($news["object"]["objectType"]!="needs" && $news["object"]["objectType"]!="gantts")
-		  			$news=NewsTranslator::convertParamsForNews($news);
-		  	}
-	  		if($news["type"]==Project::COLLECTION)
-		  		$news["postOn"]=Project::getSimpleProjectById($news["id"]);
-	  		if ($news["type"]==Organization::COLLECTION)
-		  		$news["postOn"]=Organization::getSimpleOrganizationById($news["id"]);
-	  		if ($news["type"]==Event::COLLECTION)
-		  		$news["postOn"]=Event::getSimpleEventById($news["id"]);
-	  		if ($news["type"]==Person::COLLECTION)
-		  		$news["postOn"]=Person::getSimpleUserById($news["id"]);		  		
-  		}
-  		$news["author"] = Person::getSimpleUserById($news["author"]);
-  		return $news;
-
+			$news=NewsTranslator::convertParamsForNews($news,true);
+		}
+		return $news;
 	}
 
-	public static function getWhere($params) {
+	/* DEAD CODE - TO TEST BEFORE DELETE
+		public static function getWhere($params) {
 	  	return PHDB::findAndSort( self::COLLECTION,$params);
 	}
 	public static function getAuthor($id){
@@ -42,38 +30,31 @@ class News {
 	  		$res[$key]["author"] = Person::getById($news["author"]);
 	  	}
 	  	return $res;
-	}
+	}*/
+	
+	/**
+	 * get news 
+	 * @param type $params : is the condition of news generated
+	 * @param type sort
+	 * News limited to 15
+	 */
 	public static function getNewsForObjectId($param,$sort=array("created"=>-1),$type)
 	{
-	    $res = PHDB::findAndSort(self::COLLECTION, $param,$sort,5);
-	    //print_r($res);
+	    $res = PHDB::findAndSort(self::COLLECTION, $param,$sort,15);
 	    foreach ($res as $key => $news) {
 		    if(@$news["type"]){
-			    if($news["type"]==ActivityStream::COLLECTION){
-				    if($news["object"]["objectType"]!="needs" && $news["object"]["objectType"]!="gantts")
-			  			$res[$key]=NewsTranslator::convertParamsForNews($news);
-			  	}
-		  		if($news["type"]==Person::COLLECTION)
-			  		$res[$key]["postOn"]=Person::getSimpleUserById($news["id"]);
-		  		if($news["type"]==Project::COLLECTION)
-			  		$res[$key]["postOn"]=Project::getSimpleProjectById($news["id"]);
-		  		if ($news["type"]==Organization::COLLECTION)
-			  		$res[$key]["postOn"]=Organization::getSimpleOrganizationById($news["id"]);
-			  	if ($news["type"]==Event::COLLECTION){
-				  	$event=Event::getSimpleEventById($news["id"]);
-					  	if(!empty($event)){
-				  		$res[$key]["postOn"]=$event;
-				  		}
-			  		}
-			  		
+				$res[$key]=NewsTranslator::convertParamsForNews($news);			  		
 	  		}
-	  		if(@$news["text"] && strlen ($news["text"]) > 500){
-		  		$res[$key]["text"]=trim(preg_replace('/<[^>]*>/', ' ',(substr(isset($news["text"]) ? $news["text"] : "",0 ,500 ))))."<span class='removeReadNews'> ...<br><a href='javascript:;' onclick='blankNews(\"".(string) $news["_id"]."\")'>Lire la suite</a></span>";
-	  		}
-	  		$res[$key]["author"] = Person::getSimpleUserById($news["author"]);
 	  	}
 	  	return $res;
 	}
+	/**
+	 * Insert a new news, checking if the news is well formated
+	 * @param array $params Array with all fields for a project - TODO
+	 * @param string $author author id doing the insertion
+	 * @param object $target defined the target of the news - wall where news is created
+	 * @return array as result type
+	 */
 	public static function save($params)
 	{
 		//check a user is loggued 
@@ -83,11 +64,12 @@ class News {
 	 	if(empty($user))
 	 		throw new CTKException("You must be loggued in to add a news entry.");
 
-	 	if((isset($_POST["text"]) && !empty($_POST["text"])) || (isset($_POST["mediaContent"]) && !empty($_POST["mediaContent"])))
+	 	if((isset($_POST["text"]) && !empty($_POST["text"])) || (isset($_POST["media"]) && !empty($_POST["media"])))
 	 	{
 		 	$codeInsee=$user["address"]["codeInsee"];
 		 	$postalCode=$user["address"]["postalCode"];
-			$news = array("text" => $_POST["text"],
+			$news = array("type" => "news",
+							"text" => $_POST["text"],
 						  "author" => Yii::app()->session["userId"],
 						  "date"=>new MongoDate(time()),
 						  "created"=>new MongoDate(time()));
@@ -95,26 +77,26 @@ class News {
 			if(isset($_POST["date"])){
 				$news["date"] = new MongoDate(strtotime(str_replace('/', '-', $_POST["date"])));
 			}
-			if (isset($_POST["mediaContent"])){
-				$news["media"] = $_POST["mediaContent"];
+			if (isset($_POST["media"])){
+				$news["media"] = $_POST["media"];
 			}
 			if(isset($_POST["tags"]))
 				$news["tags"] = $_POST["tags"];
-		 	if(isset($_POST["typeId"]))
-				$news["id"] = $_POST["typeId"];
-		 	if(isset($_POST["type"]))
+		 	if(isset($_POST["parentId"]))
+				$news["target"]["id"] = $_POST["parentId"];
+		 	if(isset($_POST["parentType"]))
 		 	{
-				$type=$_POST["type"];
-				$news["type"] = $type;
+				$type=$_POST["parentType"];
+				$news["target"]["type"] = $type;
 				$from="";
 				if($type == Person::COLLECTION ){
-					$person = Person::getById($_POST["typeId"]);
+					$person = Person::getById($_POST["parentId"]);
 					if( isset( $person['geo'] ) )
 						$from = $person['geo'];
 					$codeInsee=$person["address"]["codeInsee"];
 					$postalCode=$person["address"]["postalCode"];
 				}else if($type == Organization::COLLECTION ){
-					$organization = Organization::getById($_POST["typeId"]);
+					$organization = Organization::getById($_POST["parentId"]);
 					if( isset( $organization['geo'] ) )
 						$from = $organization['geo'];
 					$codeInsee=$organization["address"]["codeInsee"];
@@ -123,7 +105,7 @@ class News {
 					Notification::actionOnPerson ( ActStr::VERB_POST, ActStr::ICON_COMMENT, null , $organization )  ;
 				}
 				else if($type == Event::COLLECTION ){
-					$event = Event::getById($_POST["typeId"]);
+					$event = Event::getById($_POST["parentId"]);
 					if( isset( $event['geo'] ) )
 						$from = $event['geo'];
 					$codeInsee=$event["address"]["codeInsee"];
@@ -131,7 +113,7 @@ class News {
 					//Notification::actionOnEvent ( ActStr::VERB_POST, ActStr::ICON_COMMENT, null , $event )  ;
 				}
 				else if($type == Project::COLLECTION ){
-					$project = Project::getById($_POST["typeId"]);
+					$project = Project::getById($_POST["parentId"]);
 					if( isset( $project['geo'] ) )
 						$from = $project['geo'];
 					$codeInsee=$project["address"]["codeInsee"];
@@ -139,28 +121,26 @@ class News {
 					$project["type"] = Project::COLLECTION; 
 					Notification::actionOnPerson ( ActStr::VERB_POST, ActStr::ICON_COMMENT, null , $project )  ;
 				}
-
-				/*if( $_POST["type"] == Organization::COLLECTION && Authorisation::isOrganizationAdmin( Yii::app()->session["userId"], $_POST["typeId"]) )
-	 				throw new CTKException("You must be admin of this organization to post.");*/
-			}
-		 	if( isset($_POST["scope"]) || $_POST["type"]=="city") {
-			 	if($_POST["type"]=="city"){
-			 		$news["scope"]["type"]="public";
-			 		$news["scope"]["cities"][] = array("codeInsee"=>$_POST["codeInsee"], "postalCode"=>$_POST["postalCode"]);
+				if( isset($_POST["scope"])) {
+					if(@$_POST["codeInsee"]){
+						$news["scope"]["type"]="public";
+						$news["scope"]["cities"][] = array("codeInsee"=>$_POST["codeInsee"], "postalCode"=>$_POST["postalCode"]);
+					}
+					else {
+						$scope = $_POST["scope"];
+						$news["scope"]["type"]=$scope;
+						if($scope== "public"){
+							$news["scope"]["cities"][] = array("codeInsee"=>$codeInsee,
+																"postalCode"=>$postalCode,
+																"geo" => $from
+															);
+						}
+					}		
 				}
-			 	else {
-			 		$scope = $_POST["scope"];
-			 		if($scope== "public" && Yii::app()->session["userId"] != $news["author"]) $scope== "private";
-			 		$news["scope"]["type"]= $scope;
-			 		if($scope== "public")
-			 		$news["scope"]["cities"][] = array("codeInsee"=>$codeInsee,
-		 											"postalCode"=>$postalCode,
-		 											"geo" => $from
-		 										);
-			 	}
-		 			
 			}
+		 	
 			PHDB::insert(self::COLLECTION,$news);
+			$news=NewsTranslator::convertParamsForNews($news);			  		
 		    $news["author"] = Person::getSimpleUserById(Yii::app()->session["userId"]);
 		    
 		    /* Send email alert to contact@pixelhumain.com */
@@ -172,32 +152,54 @@ class News {
 			return array("result"=>false, "msg"=>"Please Fill required Fields.");	
 		}
 	}
+	/**
+	 * delete a news in database
+	 * @param String $id : id to delete
+	*/
 	public static function delete($id) {
 		return PHDB::remove(self::COLLECTION,array("_id"=>new MongoId($id)));
 	}
+	/**
+	 * update a news in database
+	 * @param String $newsId : 
+	 * @param string $name fields to update
+	 * @param String $value : new value of the field
+	 * @return array of result (result => boolean, msg => string)
+	 */
 	public static function updateField($newsId, $name, $value, $userId){
-		//if (!Authorisation::canEditItem($userId, self::COLLECTION, $projectId)) {
-		//	throw new CTKException(Yii::t("project", "Can not update this project : you are not authorized to update that project !"));	
-		//}
-		/*		A rajouter vérification auteur !!!!!! */
-		//$dataFieldName = self::getCollectionFieldNameAndValidate($projectFieldName, $projectFieldValue, $projectId);
-	
-		//Specific case : 
-		//Tags
-		//if ($dataFieldName == "tags") {
-		//	$projectFieldValue = Tags::filterAndSaveNewTags($projectFieldValue);
-		//}
-
-		//address
-
 		$set = array($name => $value);	
-
-
 		//update the project
 		PHDB::update( self::COLLECTION, array("_id" => new MongoId($newsId)), 
 		                          array('$set' => $set));
 	                  
 	    return array("result"=>true, "msg"=>Yii::t("common","News well updated"), "id"=>$newsId);
+	}
+	/**
+	* Get array of news order by date of creation
+	* @param array $array is the array of news to return well order
+	* @param array $cols is the array indicated on which column of $array it is sorted
+	**/
+	public static function sortNews($array, $cols){
+		$colarr = array();
+			    foreach ($cols as $col => $order) {
+			        $colarr[$col] = array();
+			        foreach ($array as $k => $row) { $colarr[$col]['_'.$k] = strtolower($row[$col]); }
+			    }
+			    $eval = 'array_multisort(';
+			    foreach ($cols as $col => $order) {
+			        $eval .= '$colarr[\''.$col.'\'],'.$order.',';
+			    }
+			    $eval = substr($eval,0,-1).');';
+			    eval($eval);
+			    $ret = array();
+			    foreach ($colarr as $col => $arr) {
+			        foreach ($arr as $k => $v) {
+			            $k = substr($k,1);
+			            if (!isset($ret[$k])) $ret[$k] = $array[$k];
+			            $ret[$k][$col] = $array[$k][$col];
+			        }
+			    }
+			    return $ret;
 	}
 }
 ?>

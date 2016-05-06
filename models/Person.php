@@ -672,7 +672,7 @@ class Person {
 				}
 
 				PHDB::update( self::COLLECTION, array("_id" => new MongoId($personId)), 
-		                          		array('$unset' => array("two_steps_register"=>"")));
+		                        array('$unset' => array("two_steps_register"=>"")));
 
 			} else 
 				throw new CTKException("Error updating the Person : address is not well formated !");			
