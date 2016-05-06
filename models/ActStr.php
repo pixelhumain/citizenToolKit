@@ -7,6 +7,7 @@ class ActStr {
     const ICON_SHARE = "fa-share-alt";
     const ICON_COMMENT = "fa-comment";
     const ICON_CLOSE = "fa-times";
+    const ICON_ADD = "fa-plus";
 
     const VIEW_PAGE = "viewPage";
 
@@ -30,6 +31,9 @@ class ActStr {
     const VERB_AUTHORIZE = "authorize";
     const VERB_ATTEND = "attend";
     const VERB_COMMENT = "comment";
+
+    const VERB_ADDROOM = "addactionroom";
+    const VERB_ADD_PROPOSAL = "addproposal";
     
     const VERB_POST = "post";
 
@@ -96,5 +100,41 @@ class ActStr {
         $action = self::buildEntry($asParam);
         ActivityStream::addEntry($action);
     }
-    
+
+
+    public static function getParamsByVerb($verb,$ctrl,$target,$currentUser)
+    {
+        $res = false;
+        $verbParams = array(
+            ActStr::VERB_CLOSE => array("label" => $target["name"]." ".Yii::t("common","has been disabled by")." ".$currentUser['name'],
+                                        "url"   => $ctrl.'/detail/id/'.$target["id"]), 
+            ActStr::VERB_POST => array("label"  => $target["name"]." : ".Yii::t("common","new post by")." ".$currentUser['name'],
+                                        "url"   => 'news/index/type/'.$target["type"].'/id/'.$target["id"].'?isSearchDesign=1'), 
+            ActStr::VERB_FOLLOW => array("label" => $currentUser['name'],
+                                        "url"   => Person::CONTROLLER.'/detail/id/'.Yii::app()->session['userId']), 
+            ActStr::VERB_WAIT => array("label" => $currentUser['name']." ".Yii::t("common","wants to join")." ".$target["name"],
+                                        "url"   => $ctrl.'/directory/id/'.$target["id"].'?tpl=directory2'), 
+            ActStr::VERB_AUTHORIZE => array("label" => $currentUser['name']." ".Yii::t("common","wants to administrate")." ".$target["name"],
+                                        "url"   => $ctrl.'/directory/id/'.$target["id"].'?tpl=directory2'), 
+            ActStr::VERB_JOIN => array("label" => $currentUser['name']." ".Yii::t("common","participates to the event")." ".$target["name"],
+                                        "url"   => 'news/detail/id/'.$target["id"]), 
+            ActStr::VERB_COMMENT => array("label" => $currentUser['name']." ".Yii::t("common","has commented your post"),
+                                            "url"   => $ctrl.'/detail/id/'.$target["id"])
+        );
+        
+        if( isset( $verbParams[$verb]) ) 
+        {
+            $res = $verbParams[$verb];
+            if( $verb == ActStr::VERB_FOLLOW )
+            {
+                $specificLab = Yii::t("common","is following")." ".$target["name"];
+                if($target["type"]==Person::COLLECTION)
+                    $specificLab = Yii::t("common","is following you");
+                
+                $res["label"] = $res["label"]." ".$specificLab;
+            }
+        }
+
+        return $res;
+    }
 }

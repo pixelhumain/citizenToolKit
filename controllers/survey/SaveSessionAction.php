@@ -86,6 +86,9 @@ class SaveSessionAction extends CAction
                 $res['result'] = true;
                 $res['msg'] = "surveySaved";
                 $res['surveyId'] = $surveyId;
+
+                //Notify Element participants 
+                Notification::actionOnPerson ( ActStr::VERB_ADD_PROPOSAL, ActStr::ICON_ADD, "", array( "type" => Survey::COLLECTION , "id" => $surveyId ));
                 
             } else
                 $res = array('result' => false , 'msg'=>"user doen't exist");

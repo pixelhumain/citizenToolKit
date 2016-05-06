@@ -2,6 +2,7 @@
 class ActionRoom {
 
 	const COLLECTION 		= "actionRooms";
+	const CONTROLLER 		= "rooms";
 	
 	const TYPE_SURVEY 		= "survey"; //sondage à la Google Forms
 	const TYPE_DISCUSS 		= "discuss"; // systeme de discussioin voir avec dialoguea
@@ -31,5 +32,14 @@ class ActionRoom {
 											  //"type" => "vote"
 											  ));
 	  	return $actionRoom;
+	}
+
+	public static function canParticipate($userId,$id=null,$type=null) {
+		$showAddBtn = false;
+        if( ( $type == Organization::COLLECTION && Authorisation::isOrganizationMember( $userId , $id ) )
+            || ( $type == Project::COLLECTION && Authorisation::isProjectMember( $userId , $id ) )
+            || ( $type == Event::COLLECTION && Authorisation::isEventMember( $userId , $id ) ) )
+            $showAddBtn = true;
+	  	return $showAddBtn;
 	}
 }

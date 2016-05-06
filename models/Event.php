@@ -21,6 +21,7 @@ class Event {
 	    "description" => array("name" => "description"),
 	    "shortDescription" => array("name" => "shortDescription"),
 	    "allDay" => array("name" => "allDay"),
+	    "modules" => array("name" => "modules"),
 	    "startDate" => array("name" => "startDate", "rules" => array("eventStartDate")),
 	    "endDate" => array("name" => "endDate", "rules" => array("eventEndDate"))
 	);
