@@ -151,6 +151,23 @@ class Notification{
 		else if($target["type"] == News::COLLECTION){
 			$author=News::getAuthor($target["id"]);
 			$people = array($author["author"]);
+		} 
+		else if( $target["type"] == Survey::COLLECTION){
+			$entry = Survey::getById( $target["id"] );
+			$room = ActionRoom::getById( (string)$entry["_id"] );
+			if( $target["type"] == Project::COLLECTION ) {
+		    	$members = Project::getContributorsByProjectId( $room["parentId"] ,"all", null ) ;
+				$typeOfConnect="contributor";
+		    }
+		    else if( $target["type"] == Organization::COLLECTION) {
+		    	$members = Organization::getMembersByOrganizationId( $room["parentId"] ,"all", null ) ;
+		    	$typeOfConnect="member";
+		    }
+		    else if( $target["type"] == Event::COLLECTION ) {
+		    	//TODO notify only the admin of the event
+		    	$members = Event::getAttendeesByEventId( $room["parentId"],"all", null ) ;
+		    	$typeOfConnect="attendee";
+		    }
 		}
 	    foreach ($members as $key => $value) 
 	    {
@@ -160,12 +177,13 @@ class Notification{
 
 	    $ctrl = Element::getControlerByCollection($target["type"]);
 	    $url = $ctrl.'/detail/id/'.$targetId;
+
 	    if( $verb == ActStr::VERB_CLOSE ){
 		    $label = $target["name"]." ".Yii::t("common","has been disabled by")." ".Yii::app()->session['user']['name'];
 	    }
 	    else if( $verb == ActStr::VERB_POST ){
 		    $label = $target["name"]." : ".Yii::t("common","new post by")." ".Yii::app()->session['user']['name'];
-	    	$url = 'news/index/type/'.$target["type"].'/id/'.$targetId.'?isSearchDesign=1';
+	    	$url = 'news/index/type/'.$target["type"].'/id/'.$target["id"].'?isSearchDesign=1';
 	    }
 		else if( $verb == ActStr::VERB_FOLLOW ){
 			if($target["type"]==Person::COLLECTION)
@@ -177,32 +195,36 @@ class Notification{
 	    }
 	    else if($verb == ActStr::VERB_WAIT){
 		    $label = Yii::app()->session['user']['name']." ".Yii::t("common","wants to join")." ".$target["name"];
-		    $url = $ctrl.'/directory/id/'.$targetId.'?tpl=directory2';
+		    $url = $ctrl.'/directory/id/'.$target["id"].'?tpl=directory2';
 	    }
 	    else if($verb == ActStr::VERB_AUTHORIZE){
 		    $label = Yii::app()->session['user']['name']." ".Yii::t("common","wants to administrate")." ".$target["name"];
-		    $url = $ctrl.'/directory/id/'.$targetId.'?tpl=directory2';
+		    $url = $ctrl.'/directory/id/'.$target["id"].'?tpl=directory2';
 	    }
+	    else if($verb == ActStr::VERB_JOIN){
+		    $label = Yii::app()->session['user']['name']." ".Yii::t("common","participates to the event")." ".$target["name"];
+		    $url = 'news/detail/id/'.$target["id"];
+	    }
+	    else if($verb == ActStr::VERB_COMMENT){
+		    $label = Yii::app()->session['user']['name']." ".Yii::t("common","has commented your post");
+		    $url = $ctrl.'/detail/id/'.$target["id"];
+	    } 
+	    /*if( $res = ActStr::getParamsByVerb($verb,$ctrl,$target,Yii::app()->session["user"]){
+	    	$label = $res['label'];
+	    	$url = $res['url']; 
+	    } */
 		else if($verb == ActStr::VERB_CONFIRM){
 		    $label = Yii::app()->session['user']['name']." ".Yii::t("common","just added")." ".$member["name"]." ".Yii::t("common","as admin of")." ".$target["name"];
-		    $url = $ctrl.'/directory/id/'.$targetId.'?tpl=directory2';
+		    $url = $ctrl.'/directory/id/'.$target["id"].'?tpl=directory2';
 	    }
 	    else if($verb == ActStr::VERB_ACCEPT){
 		    $label = Yii::app()->session['user']['name']." ".Yii::t("common","just added")." ".$member["name"]." ".Yii::t("common","as ".$typeOfConnect." of")." ".$target["name"];
 		    // No directory for event but detail page
 		    if ($target["type"] == Event::COLLECTION)
-		    	$url = $ctrl.'/detail/id/'.$targetId;
+		    	$url = $ctrl.'/detail/id/'.$target["id"];
 		    else 
-		    	$url = $ctrl.'/directory/id/'.$targetId.'?tpl=directory2';
+		    	$url = $ctrl.'/directory/id/'.$target["id"].'?tpl=directory2';
 	    }
-		else if($verb == ActStr::VERB_JOIN){
-		    $label = Yii::app()->session['user']['name']." ".Yii::t("common","participates to the event")." ".$target["name"];
-		    $url = 'news/detail/id/'.$targetId;
-	    }
-	    else if($verb == ActStr::VERB_COMMENT){
-		    $label = Yii::app()->session['user']['name']." ".Yii::t("common","has commented your post");
-		    $url = $ctrl.'/detail/id/'.$targetId;
-	    } 
 	    else if($verb == ActStr::VERB_SIGNIN){
 			 $label = $member["name"]." ".Yii::t("common","confirms your invitation and create an account.");
 			 $url = $ctrl.'/detail/id/'.$memberId;
@@ -212,8 +234,9 @@ class Notification{
 
 		if($invitation == ActStr::VERB_INVITE){
 			 $label = Yii::app()->session['user']['name']." ".Yii::t("common","has invited")." ".$member["name"]." ".Yii::t("common","to join")." ".$target["name"];
-			 $url = $ctrl.'/directory/id/'.$targetId.'?tpl=directory2';
+			 $url = $ctrl.'/directory/id/'.$target["id"].'?tpl=directory2';
 		}
+
 		
 	    $notif = array( 
 	    	"persons" => $people,
