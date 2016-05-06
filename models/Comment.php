@@ -79,7 +79,7 @@ class Comment {
 		
 		$newComment["author"] = self::getCommentAuthor($newComment, $options);
 		$res = array("result"=>true, "msg"=>Yii::t("comment","The comment has been posted"), "newComment" => $newComment, "id"=>$newComment["_id"]);
-		$notificationContexts = array("news"); //, "actionRooms","surveys"
+		$notificationContexts = array("news", "actionRooms","surveys");
 		if( in_array( $comment["contextType"] , $notificationContexts) ){
 			Notification::actionOnPerson ( ActStr::VERB_COMMENT, ActStr::ICON_SHARE, "", array("type"=>$comment["contextType"],"id"=> $comment["contextId"]));
 		}

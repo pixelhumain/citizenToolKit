@@ -10,7 +10,8 @@ class Element {
 	    	Project::COLLECTION => Project::CONTROLLER,
 			News::COLLECTION => News::COLLECTION,
 	    	Need::COLLECTION => Need::CONTROLLER,
-	    	City::COLLECTION => City::CONTROLLER
+	    	City::COLLECTION => City::CONTROLLER,
+	    	Survey::COLLECTION => Survey::CONTROLLER
 	    );
 
 	    

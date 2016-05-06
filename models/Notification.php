@@ -79,7 +79,7 @@ class Notification{
 	*/
 	public static function actionOnPerson ( $verb, $icon, $member, $target, $invitation=false) 
 	{
-		$target["id"] = ( isset( $target["id"] ) ) ? $target["id"] : (string)$target["_id"] ;
+		$targetId = ( isset( $target["id"] ) ) ? $target["id"] : (string)$target["_id"] ;
 		if( $member )
 			$memberId = ( isset( $member["id"] ) ) ? $member["id"] : (string)$member["_id"] ;
 	    $asParam = array(
@@ -95,7 +95,7 @@ class Notification{
             ),
             "target"=>array(
 	            "type" => $target["type"],
-	            "id"   => $target["id"]
+	            "id"   => $targetId
             )
         );
 
@@ -134,50 +134,75 @@ class Notification{
 	    //inform the projects members of the new member
 	    $members = array();
 	    if( $target["type"] == Project::COLLECTION ) {
-	    	$members = Project::getContributorsByProjectId( $target["id"] ,"all", null ) ;
+	    	$members = Project::getContributorsByProjectId( $targetId ,"all", null ) ;
 			$typeOfConnect="contributor";
 	    }
 	    else if( $target["type"] == Organization::COLLECTION) {
-	    	$members = Organization::getMembersByOrganizationId( $target["id"] ,"all", null ) ;
+	    	$members = Organization::getMembersByOrganizationId( $targetId ,"all", null ) ;
 	    	$typeOfConnect="member";
 	    }
 	    else if( $target["type"] == Event::COLLECTION ) {
 	    	//TODO notify only the admin of the event
-	    	$members = Event::getAttendeesByEventId( $target["id"] ,"all", null ) ;
+	    	$members = Event::getAttendeesByEventId( $targetId ,"all", null ) ;
 	    	$typeOfConnect="attendee";
 	    }
 		else if($target["type"] == Person::COLLECTION)
-			$people = array($target["id"]);
+			$people = array($targetId);
 		else if($target["type"] == News::COLLECTION){
 			$author=News::getAuthor($target["id"]);
 			$people = array($author["author"]);
 		}
 	    foreach ($members as $key => $value) 
 	    {
-	    	//LIMITING THE NUMBER OF PEOPLE NOTIFIED
 	    	if( $key != Yii::app()->session['userId'] && !in_array($key, $people) && count($people) < self::PEOPLE_NOTIFY_LIMIT )
 	    		array_push( $people, $key);
 	    }
 
 	    $ctrl = Element::getControlerByCollection($target["type"]);
-	    $url = $ctrl.'/detail/id/'.$target["id"];
-	    
-	    if( $res = ActStr::getParamsByVerb($verb,$ctrl,$target,$currentUser) ){
-	    	$label = $res['label'];
-	    	$url = $res['url']; 
-	    } 
+	    $url = $ctrl.'/detail/id/'.$targetId;
+	    if( $verb == ActStr::VERB_CLOSE ){
+		    $label = $target["name"]." ".Yii::t("common","has been disabled by")." ".Yii::app()->session['user']['name'];
+	    }
+	    else if( $verb == ActStr::VERB_POST ){
+		    $label = $target["name"]." : ".Yii::t("common","new post by")." ".Yii::app()->session['user']['name'];
+	    	$url = 'news/index/type/'.$target["type"].'/id/'.$targetId.'?isSearchDesign=1';
+	    }
+		else if( $verb == ActStr::VERB_FOLLOW ){
+			if($target["type"]==Person::COLLECTION)
+				$specificLab = Yii::t("common","is following you");
+			else
+				$specificLab = Yii::t("common","is following")." ".$target["name"];
+		    $label = Yii::app()->session['user']['name']." ".$specificLab;
+	    	$url = Person::CONTROLLER.'/detail/id/'.Yii::app()->session['userId'];
+	    }
+	    else if($verb == ActStr::VERB_WAIT){
+		    $label = Yii::app()->session['user']['name']." ".Yii::t("common","wants to join")." ".$target["name"];
+		    $url = $ctrl.'/directory/id/'.$targetId.'?tpl=directory2';
+	    }
+	    else if($verb == ActStr::VERB_AUTHORIZE){
+		    $label = Yii::app()->session['user']['name']." ".Yii::t("common","wants to administrate")." ".$target["name"];
+		    $url = $ctrl.'/directory/id/'.$targetId.'?tpl=directory2';
+	    }
 		else if($verb == ActStr::VERB_CONFIRM){
 		    $label = Yii::app()->session['user']['name']." ".Yii::t("common","just added")." ".$member["name"]." ".Yii::t("common","as admin of")." ".$target["name"];
-		    $url = $ctrl.'/directory/id/'.$target["id"].'?tpl=directory2';
+		    $url = $ctrl.'/directory/id/'.$targetId.'?tpl=directory2';
 	    }
 	    else if($verb == ActStr::VERB_ACCEPT){
 		    $label = Yii::app()->session['user']['name']." ".Yii::t("common","just added")." ".$member["name"]." ".Yii::t("common","as ".$typeOfConnect." of")." ".$target["name"];
 		    // No directory for event but detail page
 		    if ($target["type"] == Event::COLLECTION)
-		    	$url = $ctrl.'/detail/id/'.$target["id"];
+		    	$url = $ctrl.'/detail/id/'.$targetId;
 		    else 
-		    	$url = $ctrl.'/directory/id/'.$target["id"].'?tpl=directory2';
+		    	$url = $ctrl.'/directory/id/'.$targetId.'?tpl=directory2';
 	    }
+		else if($verb == ActStr::VERB_JOIN){
+		    $label = Yii::app()->session['user']['name']." ".Yii::t("common","participates to the event")." ".$target["name"];
+		    $url = 'news/detail/id/'.$targetId;
+	    }
+	    else if($verb == ActStr::VERB_COMMENT){
+		    $label = Yii::app()->session['user']['name']." ".Yii::t("common","has commented your post");
+		    $url = $ctrl.'/detail/id/'.$targetId;
+	    } 
 	    else if($verb == ActStr::VERB_SIGNIN){
 			 $label = $member["name"]." ".Yii::t("common","confirms your invitation and create an account.");
 			 $url = $ctrl.'/detail/id/'.$memberId;
@@ -187,7 +212,7 @@ class Notification{
 
 		if($invitation == ActStr::VERB_INVITE){
 			 $label = Yii::app()->session['user']['name']." ".Yii::t("common","has invited")." ".$member["name"]." ".Yii::t("common","to join")." ".$target["name"];
-			 $url = $ctrl.'/directory/id/'.$target["id"].'?tpl=directory2';
+			 $url = $ctrl.'/directory/id/'.$targetId.'?tpl=directory2';
 		}
 		
 	    $notif = array( 
@@ -243,7 +268,7 @@ class Notification{
 	// => advanced notification to add if one user wants to be notified for all news projects in certain field (Tags)
 	*/
 
-	public static function createdObjectAsParam($authorType, $authorId, $objectType, $objectId, $targetType, $target["id"], $geo, $tags, $address, $verb="create"){
+	public static function createdObjectAsParam($authorType, $authorId, $objectType, $objectId, $targetType, $targetId, $geo, $tags, $address, $verb="create"){
 		$param=array("type" => ActivityStream::COLLECTION, "verb" => ActStr::VERB_CREATE);
 		if (!empty($objectType)){
 			$param["object"] = array(
@@ -254,7 +279,7 @@ class Notification{
 		if (!empty($targetType)){
 			$param["target"] = array(
 				"type" => $targetType, 
-				"id" => $target["id"]
+				"id" => $targetId
 				);
 		}
 

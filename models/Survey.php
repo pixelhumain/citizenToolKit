@@ -9,7 +9,8 @@ class Survey
 
 	const COLLECTION = "surveys";
 	const PARENT_COLLECTION = "actionRooms";
-
+	const CONTROLLER = "survey";
+	
 	public static function getById($id) {
 		$survey = PHDB::findOneById( self::COLLECTION ,$id );
 		return $survey;
