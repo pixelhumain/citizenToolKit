@@ -158,8 +158,8 @@ class Notification{
 				$entryId = (string)$entry["survey"];
 			}
 			$room = ActionRoom::getById( $entryId );
-			$target["parentType"] = $room["parentType"];
-			
+			$target["room"] = $room;
+
 			if( $room["parentType"] == Project::COLLECTION ) {
 		    	$members = Project::getContributorsByProjectId( $room["parentId"] ,"all", null ) ;
 				$typeOfConnect="contributor";
@@ -214,8 +214,13 @@ class Notification{
 		    $label = Yii::app()->session['user']['name']." ".Yii::t("common","has commented your post");
 		    $url = $ctrl.'/detail/id/'.$target["id"];
 	    } else if($verb == ActStr::VERB_ADDROOM){
-		    $label = Yii::app()->session['user']['name']." ".Yii::t("common","added a new Action Room on ".$target["parentType"]);
+		    $label = Yii::app()->session['user']['name']." ".Yii::t("common","added a new Voting Room on ".$target['room']["parentType"]);
 		    $url = 'survey/entries/id/'.$target["id"];
+		    if( $target['room']["type"] == ActionRoom::TYPE_DISCUSS ){
+		    	$label = Yii::app()->session['user']['name']." ".Yii::t("common","added a new Discussion Room on ".$target['room']["parentType"]);
+		    	$url = 'comment/index/type/actionRooms/id/'.$target["id"];
+
+		    }
 	    }
 	    else if($verb == ActStr::VERB_ADD_PROPOSAL){
 		    $label = Yii::app()->session['user']['name']." ".Yii::t("common","added a new Proposal");

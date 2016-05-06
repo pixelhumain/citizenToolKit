@@ -15,31 +15,18 @@ class IndexAction extends CAction
         
         $nameParentTitle = "";
         $parent = null;
-        if( $type == Project::COLLECTION ) {
-            //$controller->toolbarMBZ = array("<a href='".Yii::app()->createUrl("/".$controller->module->id."/project/dashboard/id/".$id)."'><i class='fa fa-lightbulb-o'></i>Project</a>");
-            $project = Project::getById($id);
-            $parent = $project;
-            $nameParentTitle = $project["name"];
-            $controller->title = $project["name"]."'s Rooms";
-            $controller->subTitle = "Every Project thinks, talks & decides.";
-            $controller->pageTitle = "Communecter - ".$controller->title;
-        } else if( $type == Person::CONTROLLER ) {
-            //$controller->toolbarMBZ = array("<a href='".Yii::app()->createUrl("/".$controller->module->id."/person/dashboard/id/".$id)."'><i class='fa fa-user'></i>Person</a>");
-            $person = Person::getById($id);
-            $parent = $person;
-            $nameParentTitle = $person["name"];
-            $controller->title = $person["name"]."'s Rooms";
-            $controller->subTitle = "Everyone thinks, talks & decides.";
-            $controller->pageTitle = "Communecter - ".$controller->title;
-        } else if( $type == Organization::COLLECTION ) {
-            //$controller->toolbarMBZ = array("<a href='".Yii::app()->createUrl("/".$controller->module->id."/organization/dashboard/id/".$id)."'><i class='fa fa-group'></i>Organization</a>");
-            $organization = Organization::getById($id);
-            $parent = $organization;
-            $nameParentTitle = $organization["name"];
-            $controller->title = $organization["name"]."'s Rooms";
-            $controller->subTitle = "Every Organization thinks, talks & decides.";
-            $controller->pageTitle = "Communecter - ".$controller->title;
-        }
+        if( $type == Project::COLLECTION ) 
+            $parent = Project::getById($id);
+        else if( $type == Person::CONTROLLER ) 
+            $parent = Person::getById($id);
+        else if( $type == Organization::COLLECTION ) 
+            $parent = Organization::getById($id);
+        else if( $type == Event::COLLECTION ) 
+            $parent = Event::getById($id);
+        
+        if($parent)
+            $nameParentTitle = $parent['name'];
+
         $urlParams = ( isset($type) && isset($id)) ? "/type/".$type."/id/".$id : "";
         //array_push( $controller->toolbarMBZ, '<a href="#" onclick="openSubView(\'Add a Room\', \'/communecter/rooms/editroom'.$urlParams.'\',null,function(){editRoomSV ();})" title="proposer une " ><i class="fa fa-plus"></i> Room </a>');
 
