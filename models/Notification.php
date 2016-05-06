@@ -119,7 +119,6 @@ class Notification{
 			    		array_push( $people, $key);
 			    }
         	} 
-
         	else 
         	{ 
 	        	$asParam["object"] = array(
@@ -131,7 +130,7 @@ class Notification{
         }
 
 	    $stream = ActStr::buildEntry($asParam);
-	    //inform the projects members of the new member
+	    //inform the entities members of the new member
 	    $members = array();
 	    if( $target["type"] == Project::COLLECTION ) {
 	    	$members = Project::getContributorsByProjectId( $targetId ,"all", null ) ;
@@ -152,18 +151,24 @@ class Notification{
 			$author=News::getAuthor($target["id"]);
 			$people = array($author["author"]);
 		} 
-		else if( $target["type"] == Survey::COLLECTION){
-			$entry = Survey::getById( $target["id"] );
-			$room = ActionRoom::getById( (string)$entry["_id"] );
-			if( $target["type"] == Project::COLLECTION ) {
+		else if( $target["type"] == Survey::COLLECTION || $target["type"] == ActionRoom::COLLECTION ){
+			$entryId = $target["id"];
+			if($target["type"] == Survey::COLLECTION ){
+				$entry = Survey::getById( $target["id"] );
+				$entryId = (string)$entry["survey"];
+			}
+			$room = ActionRoom::getById( $entryId );
+			$target["parentType"] = $room["parentType"];
+			
+			if( $room["parentType"] == Project::COLLECTION ) {
 		    	$members = Project::getContributorsByProjectId( $room["parentId"] ,"all", null ) ;
 				$typeOfConnect="contributor";
 		    }
-		    else if( $target["type"] == Organization::COLLECTION) {
+		    else if( $room["parentType"] == Organization::COLLECTION) {
 		    	$members = Organization::getMembersByOrganizationId( $room["parentId"] ,"all", null ) ;
 		    	$typeOfConnect="member";
 		    }
-		    else if( $target["type"] == Event::COLLECTION ) {
+		    else if( $room["parentType"] == Event::COLLECTION ) {
 		    	//TODO notify only the admin of the event
 		    	$members = Event::getAttendeesByEventId( $room["parentId"],"all", null ) ;
 		    	$typeOfConnect="attendee";
@@ -208,7 +213,14 @@ class Notification{
 	    else if($verb == ActStr::VERB_COMMENT){
 		    $label = Yii::app()->session['user']['name']." ".Yii::t("common","has commented your post");
 		    $url = $ctrl.'/detail/id/'.$target["id"];
-	    } 
+	    } else if($verb == ActStr::VERB_ADDROOM){
+		    $label = Yii::app()->session['user']['name']." ".Yii::t("common","added a new Action Room on ".$target["parentType"]);
+		    $url = 'survey/entries/id/'.$target["id"];
+	    }
+	    else if($verb == ActStr::VERB_ADD_PROPOSAL){
+		    $label = Yii::app()->session['user']['name']." ".Yii::t("common","added a new Proposal");
+		    $url = 'survey/entry/id/'.$target["id"];
+	    }
 	    /*if( $res = ActStr::getParamsByVerb($verb,$ctrl,$target,Yii::app()->session["user"]){
 	    	$label = $res['label'];
 	    	$url = $res['url']; 

@@ -2,6 +2,7 @@
 class ActionRoom {
 
 	const COLLECTION 		= "actionRooms";
+	const CONTROLLER 		= "rooms";
 	
 	const TYPE_SURVEY 		= "survey"; //sondage à la Google Forms
 	const TYPE_DISCUSS 		= "discuss"; // systeme de discussioin voir avec dialoguea

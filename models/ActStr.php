@@ -7,6 +7,7 @@ class ActStr {
     const ICON_SHARE = "fa-share-alt";
     const ICON_COMMENT = "fa-comment";
     const ICON_CLOSE = "fa-times";
+    const ICON_ADD = "fa-plus";
 
     const VIEW_PAGE = "viewPage";
 
@@ -30,6 +31,9 @@ class ActStr {
     const VERB_AUTHORIZE = "authorize";
     const VERB_ATTEND = "attend";
     const VERB_COMMENT = "comment";
+
+    const VERB_ADDROOM = "addactionroom";
+    const VERB_ADD_PROPOSAL = "addproposal";
     
     const VERB_POST = "post";
 

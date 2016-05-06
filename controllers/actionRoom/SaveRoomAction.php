@@ -37,6 +37,9 @@ class SaveRoomAction extends CAction
                 $res['msg'] = "survey Room Saved";
                 $res["savingTo"] = Survey::PARENT_COLLECTION;
                 $res["newInfos"] = $newInfos;
+
+                //Notify Element participants 
+                Notification::actionOnPerson ( ActStr::VERB_ADDROOM, ActStr::ICON_ADD, "", array( "type" => ActionRoom::COLLECTION , "id" => (string)$newInfos["_id"] ));
             }else
                 $res = array('result' => false , 'msg'=>"user doen't exist");
         } else

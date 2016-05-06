@@ -11,7 +11,8 @@ class Element {
 			News::COLLECTION => News::COLLECTION,
 	    	Need::COLLECTION => Need::CONTROLLER,
 	    	City::COLLECTION => City::CONTROLLER,
-	    	Survey::COLLECTION => Survey::CONTROLLER
+	    	Survey::COLLECTION => Survey::CONTROLLER,
+	    	ActionRoom::COLLECTION => ActionRoom::CONTROLLER,
 	    );
 
 	    
