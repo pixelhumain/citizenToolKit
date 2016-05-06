@@ -43,8 +43,8 @@ class Document {
 		$listDocuments = PHDB::findAndSort( self::COLLECTION,$params, $sort);
 		return $listDocuments;
 	}
-
-	protected static function listMyDocumentByContentKey($userId, $contentKey, $docType = null, $sort=null){	
+	// TODO BOUBOULE - TO DELETE ONLY ONE DEPENDENCE WITH getListDocumentsByContentKey
+	protected static function listMyDocumentByContentKey($userId, $contentKey, $docType = null, $sort=null)	{	
 		$params = array("id"=> $userId,
 						"contentKey" => new MongoRegex("/".$contentKey."/i"));
 		
@@ -128,7 +128,10 @@ class Document {
 		return $doctype;
 	}
 
-	/**
+	/** TODO BOUBOULE 
+	*	TO DELETE --- NOT CORRECT BECAUSE OF CONTENTKEY WHICH IS A COMPLEX SEARCH WHEN IT COULD SIMPLE
+	* 	Still present in city/detailAction, and survey/entryAction then impact on the rest of documents !!!
+	* END TODO
 	 * get the list of documents depending on the id of the owner, the contentKey and the docType
 	 * @param String $id The id of the owner of the image could be an organization, an event, a person, a project... 
 	 * @param String $contentKey The content key is composed with the controllerId, the action where the document is used and a type
@@ -178,7 +181,53 @@ class Document {
 
 		return $listDocuments;
 	}
+	
+	protected static function listMyDocumentByIdAndType($userId, $type, $contentKey= null, $docType = null, $sort=null)	{	
+		$params = array("id"=> $userId,
+						"type" => $type);
+		if (isset($contentKey) && $contentKey != null) 
+			$params["contentKey"] = new MongoRegex("/".$contentKey."/i");
+		if (isset($docType)) 
+			$params["doctype"] = $docType;
+		$listDocuments = PHDB::findAndSort( self::COLLECTION,$params, $sort);
+		return $listDocuments;
+	}
 
+	public static function getListDocumentsByIdAndType($id, $type, $contentKey=null, $docType=null, $limit=null){
+		$listDocuments = array();
+		$sort = array( 'created' => -1 );
+		//$explodeContentKey = explode(".", $contentKey);
+		$listDocumentsofType = Document::listMyDocumentByIdAndType($id, $type, $contentKey, $docType, $sort);
+		foreach ($listDocumentsofType as $key => $value) {
+			$toPush = false;
+			if(isset($value["contentKey"]) && $value["contentKey"] != ""){
+				$currentContentKey = $value["contentKey"];
+				if (! isset($limit)) {
+					$toPush = true;
+				} else {
+					if (isset($limit[$currentContentKey])) {
+						$limitByType = $limit[$currentContentKey];
+						$actuelNbCurrentType = isset($listDocuments[$currentContentKey]) ? count($listDocuments[$currentContentKey]) : 0;
+						if ($actuelNbCurrentType < $limitByType)
+							$toPush = true;
+					} else {
+						$toPush = true;
+					}
+				}
+			} else {
+					$toPush = true;
+			}
+			if ($toPush) {
+				$imageUrl = Document::getDocumentUrl($value);
+				if (! isset($listDocuments[$currentContentKey])) {
+					$listDocuments[$currentContentKey] = array();
+				} 
+				$value['imageUrl'] = $imageUrl;
+				array_push($listDocuments[$currentContentKey], $value);
+			}
+		}
+		return $listDocuments;
+	}
 	/**
 	 * @See getListDocumentsByContentKey. 
 	 * @return array Return only the Url of the documents ordered by contentkey type
@@ -352,8 +401,8 @@ class Document {
     	$folder = $document["folder"];
 		if($folderAlbum==self::GENERATED_IMAGES_FOLDER){
 			$destination='/'.self::GENERATED_IMAGES_FOLDER;
-			$maxWidth=150;
-			$maxHeight=150;
+			$maxWidth=200;
+			$maxHeight=200;
 			$quality=100;
 		} else{
 			$destination="";
@@ -372,7 +421,10 @@ class Document {
 		if ($width > $maxWidth || $height >  $maxHeight){
      		$imageUtils = new ImagesUtils($path);
     		$destPathThumb = $upload_dir."/".$document["name"];
-    		$imageUtils->resizePropertionalyImage($maxWidth,$maxHeight)->save($destPathThumb,$quality);
+    		if($folderAlbum==self::GENERATED_IMAGES_FOLDER)
+    			$imageUtils->resizeImage($maxWidth,$maxHeight)->save($destPathThumb);
+    		else
+    			$imageUtils->resizePropertionalyImage($maxWidth,$maxHeight)->save($destPathThumb,$quality);
     	}
 	}
 	
