@@ -695,6 +695,93 @@ class Import
         }
         
     }
+
+    public static function createZipForImport($post){
+
+        $jsonImport = json_decode($post['jsonImport'], true);
+        $jsonError = json_decode($post['jsonError'], true);
+
+        //Good
+        $objects = array();
+        $arrayNameFile = array();
+        $nbFile = 1 ;
+
+        foreach ($jsonImport as $key => $value) {
+            $objects[] = $value ;
+            if(count($objects) >= 5000 ){
+                //create file in tmp
+                file_put_contents(sys_get_temp_dir()."/entityImport".$nbFile.".json", json_encode($objects));
+                $arrayNameFile[] = "entityImport".$nbFile.".json" ;
+                $objects = array();
+                $nbFile++;
+            }
+        }
+        file_put_contents(sys_get_temp_dir()."/entityImport".$nbFile.".json", json_encode($objects));
+        $arrayNameFile[] = "entityImport".$nbFile.".json" ;
+        
+
+        //Error
+        $objects = array();
+        $nbFile = 1 ;
+        foreach ($jsonError as $key => $value) {
+            $objects[] = $value ;
+            if(count($objects) >= 5000 ){
+                //create file in tmp
+                file_put_contents(sys_get_temp_dir()."/entityError".$nbFile.".json", json_encode($objects));
+                $arrayNameFile[] = "entityError".$nbFile.".json" ;
+                $objects = array();
+                $nbFile++;
+            }
+        }
+        file_put_contents(sys_get_temp_dir()."/entityError".$nbFile.".json", json_encode($objects));
+        $arrayNameFile[] = "entityError".$nbFile.".json" ;
+
+        //File Import.sh
+        $fileImportMongo = "";
+        foreach ($arrayNameFile as $key => $value) {
+            $fileImportMongo .= "mongoimport --db pixelhumain --collection ".$post['collection']." ".$value." --jsonArray;\n";
+        }
+        file_put_contents(sys_get_temp_dir()."/importMongo.sh", $fileImportMongo);
+
+        $zip = new ZipArchive();
+        $filename = sys_get_temp_dir()."/import.zip";
+
+        if ($zip->open($filename, ZipArchive::CREATE)!==TRUE) {
+            echo "Impossible d'ouvrir le fichier" ;
+        }
+        foreach ($arrayNameFile as $key => $value) {
+            $zip->addFile(sys_get_temp_dir()."/".$value, $value);        
+        }
+        $zip->close();
+
+       // $files1 = scandir(sys_get_temp_dir());
+        // var_dump($files1);
+        header('Content-Type: application/zip');
+        header('Content-disposition: attachment; filename=import.zip');
+        header('Content-Length: ' . filesize(sys_get_temp_dir()."/import.zip"));
+
+
+        readfile(sys_get_temp_dir()."/import.zip", true);
+
+
+        /*header('Pragma: public');
+        header('Cache-Control: must-revalidate, pre-check=0, post-check=0, max-age=0');
+         
+        header('Content-Tranfer-Encoding: none');
+        header('Content-Length: '.filesize(sys_get_temp_dir()."/import.zip"));
+        header('Content-MD5: '.base64_encode(md5_file(sys_get_temp_dir()."/import.zip")));
+        header('Content-Type: application/zip');
+        header('Content-disposition: attachment; filename=import.zip');
+         
+        //header('Date: '.date());
+        header('Expires: '.gmdate(DATE_RFC1123, time()+1));
+        header('Last-Modified: '.gmdate(DATE_RFC1123, filemtime(sys_get_temp_dir()."/import.zip")));
+        readfile(sys_get_temp_dir()."/import.zip", true);*/
+        //$path_parts = pathinfo(sys_get_temp_dir()."/import.zip");
+        //return $path_parts['dirname'].$path_parts['basename'];
+
+        //exit;
+    }
     
     public static function importOrganizationsInMongo($post)
     {
@@ -815,8 +902,7 @@ class Import
         else
             $textImportMongoAll = "" ;
 
-        if($newFolder)
-        {
+        if($newFolder){
             $textImportMongoAll = $textImportMongoAll."cd ".$post['nameFile'].";\n";
             $textImportMongoAll = $textImportMongoAll."sh importMongo.sh;\n";
             $textImportMongoAll = $textImportMongoAll."cd .. ;\n";
@@ -1895,6 +1981,19 @@ class Import
         
         
             
+    }
+
+
+
+    public static function createSubFile(){
+        if($type == "csv"){
+            
+            
+
+            
+        }
+
+
     }
 }
 
