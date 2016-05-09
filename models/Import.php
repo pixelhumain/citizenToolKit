@@ -1983,7 +1983,22 @@ class Import
             
     }
 
+    $arrayMicroformat = self::getMicroformat($post['idMicroformat']);
 
+        if($post['idMapping'] != "-1"){
+            $where = array("_id" => new MongoId($post['idMapping']));
+            $fields = array("fields");
+            $mapping = self::getMappings($where, $fields);
+            $arrayMapping = $mapping[$post['idMapping']]["fields"];
+        }
+        else
+            $arrayMapping = array();
+
+        $params = array("createLink"=>true,
+                        "arrayMicroformat"=>$arrayMicroformat,
+                        "arrayMapping"=>$arrayMapping,
+                        "typeFile"=>$post['typeFile']);
+        return $params ;
 
     public static function createSubFile(){
         if($type == "csv"){
