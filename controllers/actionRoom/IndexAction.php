@@ -17,7 +17,7 @@ class IndexAction extends CAction
         $parent = null;
         if( $type == Project::COLLECTION ) 
             $parent = Project::getById($id);
-        else if( $type == Person::CONTROLLER ) 
+        else if( $type == Person::COLLECTION ) 
             $parent = Person::getById($id);
         else if( $type == Organization::COLLECTION ) 
             $parent = Organization::getById($id);

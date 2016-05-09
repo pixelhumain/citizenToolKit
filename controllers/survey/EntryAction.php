@@ -7,7 +7,7 @@ class EntryAction extends CAction
       $survey = PHDB::findOne (Survey::COLLECTION, array("_id"=>new MongoId ( $id ) ) );
      
       $pageView = ActivityStream::getWhere(array("verb"=>ActStr::VERB_VIEW,
-                                                 "author.ip"=>$_SERVER['REMOTE_ADDR'],
+                                                 "ip"=>$_SERVER['REMOTE_ADDR'],
                                                  "object.objectType" => ActStr::TYPE_URL,
                                                  "object.id"=>$controller->id."/".$controller->action->id."/id/".$id));
 
