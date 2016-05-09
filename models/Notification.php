@@ -171,7 +171,7 @@ class Notification{
 		    $label = $target["name"]." ".Yii::t("common","has been disabled by")." ".Yii::app()->session['user']['name'];
 	    else if( $verb == ActStr::VERB_POST ){
 		    $label = $target["name"]." : ".Yii::t("common","new post by")." ".Yii::app()->session['user']['name'];
-	    	$url = 'news/index/type/'.$target["type"].'/id/'.$targetId.'?isSearchDesign=1';
+	    	$url = 'news/index/type/'.$target["type"].'/id/'.$targetId.'?isFisrt=1';
 	    }
 		else if( $verb == ActStr::VERB_FOLLOW ){
 			if($target["type"]==Person::COLLECTION)
