@@ -22,6 +22,7 @@ class Gamification {
 	//platefrom actions
 	const POINTS_USER_LOGIN = 5;
 	const POINTS_USER_REGISTRATION = 15;
+
 	//const POINTS_SEARCH = 1;
 	const POINTS_ADD_POST = 0.5;
 	const POINTS_ANSWER_POST = 0.1;
@@ -63,6 +64,14 @@ class Gamification {
 	const BADGE_PLANET_LIMIT = 100000;
 	//points if profile is filled above 80%
 
+	//actions (like/dislike/abuse)
+	const POINTS_VOTEUP = 1;
+	const POINTS_VOTEDOWN = 1;
+	const POINTS_REPORTABUSE = 2;
+
+	//Moderate
+	const POINTS_MODERATE = 10;
+
 	//city actions
 	//a city feed url
 	//a new place to discover
@@ -74,9 +83,66 @@ class Gamification {
 	//creating a common task
 	//adding a new open data source or entry (interface add/propose an open data entry)
 
+
 	/*
-	Calculate Gamification points based on gamifaication rules 
-	
+	Calculate Gamification points based on gamifaication rules 	
+	*/
+	public static function addEntry($userId, $action, $contextId, $contextType){
+		if($userId != "" && $action != ""){
+			$action = strtoupper($action);
+			if(defined("self::POINTS_".$action)){
+
+				//We check if exist
+				if(self::isEntryExist($userId, $action, (string)$contextId, $contextType)){
+					$res = array( "result"=>false,"msg"=>"Already exist");
+				}
+				else{
+					$param = array(
+				    	"userId" => $userId,
+				    	"action" => $action,
+				    	"contextId" => (string)$contextId,
+				    	"contextType" => $contextType,
+					    "date" => new MongoDate(time()),
+					    "points" => constant("self::POINTS_".$action)
+				    );
+
+					$res = PHDB::insert(self::COLLECTION, $param);
+					if($res['ok']){
+						$res = array( "result"=>true,"msg"=>"OK");
+					}
+					else{
+						$res = array( "result"=>false,"msg"=>"Error occured");
+					}
+				}
+				
+			}
+			else{
+				$res = array( "result"=>false,"msg"=>"Action not defined");
+			}    
+		}
+		else{
+			$res = array( "result"=>false,"msg"=>"Parameters missing");
+		}
+	    return $res;
+	}
+
+	/*
+	Check in Database if already exist
+	*/
+	public static function isEntryExist($userId, $action, $contextId, $contextType){
+		$entry = PHDB::count(self::COLLECTION,
+				array(
+					"userId"=>$userId,
+					"action"=>$action,
+					"contextId"=>$contextId,
+					"contextType"=>$contextType
+				));
+	  	return $entry;
+	}
+
+
+	/*
+	Calculate Gamification points based on gamifaication rules 	
 	*/
 	public static function calcPoints($userId, $filter=null) {
 		

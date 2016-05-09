@@ -207,5 +207,24 @@ class News {
 			    }
 			    return $ret;
 	}
+
+	public static function getNewsToModerate($whereAdditional = null, $limit = 0) {
+		
+		$where = array(
+          "reportAbuse"=> array('$exists'=>1)
+          ,"moderate.isAnAbuse" => array('$exists'=>0)
+          ,"target.id" => array('$exists'=>1)
+          ,"target.type" => array('$exists'=>1)
+          ,"scope.type" => array('$exists'=>1)
+          //One news has to be moderated X times
+          ,"reportAbuseCount" => array('$lt' => 5)
+          //One moderator can't moderate 2 times a news
+          ,"moderate.".Yii::app()->session["userId"] => array('$exists'=>0)
+        );
+        if(count($whereAdditional)){
+        	$where = array_merge($where,$whereAdditional);
+        }
+        return PHDB::findAndSort(self::COLLECTION, $where, array("date" =>1), $limit);
+	}
 }
 ?>

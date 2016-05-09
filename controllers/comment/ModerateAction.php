@@ -39,13 +39,16 @@ class ModerateAction extends CAction
             if(isset($_REQUEST['id']) && isset($_REQUEST['isAnAbuse'])){
                 $comment = Comment::getById($_REQUEST['id']);
                 if($comment){
-                    $moderate = array(
+                   $details = array(
                         'isAnAbuse' => $_REQUEST['isAnAbuse'],
-                        'moderatedBy' => Yii::app()->session["userId"],
                         'date' => new MongoDate(time())
                     );
-                    $res = Comment::updateField($_REQUEST['id'], "moderate", $moderate, Yii::app()->session["userId"]);
-                    if(@$res["result"]){
+                    // $map["moderate".".".Yii::app()->session["userId"]] = $addToMap ;
+                    // $map["moderateCount"] = @$news["moderateCount"]+1;
+                    // $res = PHDB::update ( Comment::COLLECTION , array( "_id" => new MongoId($_REQUEST["id"])), array( '$set' => $map));
+                    $res = Action::addAction(Yii::app()->session["userId"] , $_REQUEST['id'], Comment::COLLECTION, Action::ACTION_MODERATE, false, false, $details);
+                    
+                    if($res['userActionSaved']){
                         Rest::json(array("result"=>true, "msg"=>"Ok, Modération enregistrée"));  
                     }
                     else{

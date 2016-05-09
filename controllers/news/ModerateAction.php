@@ -11,11 +11,15 @@ class ModerateAction extends CAction
                 $news = News::getById($_REQUEST['id']);
                 $tmp = array();
                 $tmp['text'] = @$news['text'];
-                if(isset($news['reportAbuseReason']) && is_array($news['reportAbuseReason'])){
-                    foreach ($news['reportAbuseReason'] as $listReason) {
-                        foreach ($listReason as $user => $reason) {
-                            if(isset($reason)){
-
+                $tmp['reason'] = array();
+                if(isset($news['reportAbuse']) && is_array($news['reportAbuse'])){
+                    foreach ($news['reportAbuse'] as $user => $detailReason) {
+                        // foreach ($listReason as $user => $reason) {
+                            if(isset($detailReason['reason'])){
+                                $reason = $detailReason['reason'];
+                                $comment = "";
+                                if(isset($detailReason['comment']))$comment = " (".$detailReason['comment']." )";
+                                
                                 //Consolidate reason
                                 if(isset($tmp['reason'][$reason])){
                                     $tmp['reason'][$reason] = $tmp['reason'][$reason] + 1;
@@ -26,9 +30,9 @@ class ModerateAction extends CAction
 
                                 //details
                                 $reporter = Person::getById($user);
-                                $tmp['detail'][$user] = $reason." - Par ".@$reporter['name'].'('.@$reporter['email'].')';
+                                $tmp['detail'][$user] = date('Y-m-d h:i:s', $detailReason['date']->sec)." - ".@$reporter['name'].' : '.$reason.$comment;
                             }
-                        }
+                        // }
                     }
                 }
                 Rest::json(array("result"=>true, "result"=>$tmp));
@@ -42,17 +46,40 @@ class ModerateAction extends CAction
                 //Test exist
                 $news = News::getById($_REQUEST['id']);
                 if($news){
-                    $moderate = array(
-                        'isAnAbuse' => $_REQUEST['isAnAbuse'],
-                        'moderatedBy' => Yii::app()->session["userId"],
-                        'date' => new MongoDate(time())
+                    /**** SAVE ACTION ****/
+                    $details = array(
+                                'isAnAbuse' => $_REQUEST['isAnAbuse']
                     );
-                    $res = News::updateField($_REQUEST['id'], "moderate", $moderate, Yii::app()->session["userId"]);
-                    if(@$res["result"]){
 
-                        Notification::moderateNews(Yii::app()->session["userId"],$news['author']);
+                    $resAction = Action::addAction(Yii::app()->session["userId"] , $_REQUEST['id'], "news", Action::ACTION_MODERATE, false, false, $details);
 
-                        Rest::json(array("result"=>true, "msg"=>"Ok, Moderation enregistrée"));  
+                    //Save => OK
+                    if($resAction['userActionSaved']){
+
+                        /**** NOTIFICATION ****/
+                        Notification::moderateNews($news);
+
+                        /**** ISANABUSE ? ****/
+                        if(@$news["moderateCount"]+$resAction['inc'] >= 3){
+                            //Cosolidate all moderation of this news
+                            $totalAbuse = 0;
+                            if($_REQUEST['isAnAbuse'] == "true")$totalAbuse = 1;
+                            if(isset($news['moderate']))foreach ($news['moderate'] as $user => $oneModeration) {
+                                if($oneModeration['isAnAbuse'] == "true")$totalAbuse += 1;
+                            }
+
+                            //Answer
+                            if($totalAbuse == 0){
+                                $pourcentage = 0;
+                            }else{
+                                $pourcentage = round(($totalAbuse / @$news["moderateCount"]+$resAction['inc'])*100);
+                            }
+                            $isAnAbuse["isAnAbuse"] = false;
+                            if($pourcentage > 49)$isAnAbuse["isAnAbuse"] = true;
+                            $res = PHDB::update ( News::COLLECTION , array( "_id" => new MongoId($_REQUEST["id"])), array( '$set' => $isAnAbuse));
+                        }
+
+                        Rest::json(array("result"=>true, "msg"=>"Ok, Moderation enregistrée")); 
                     }
                     else{
                         Rest::json(array("result"=>false, "msg"=>"Erreur dans l'enregistrement de la modération"));  
@@ -67,14 +94,7 @@ class ModerateAction extends CAction
             }
         }
         elseif(isset($_REQUEST['subAction']) && $_REQUEST['subAction'] == "getNextIdToModerate"){
-            $where = array(
-                "reportAbuse"=> array('$exists'=>1)
-                ,"moderate.isAnAbuse" => array('$exists'=>0)
-                ,"target.id" => array('$exists'=>1)
-                ,"target.type" => array('$exists'=>1)
-                ,"scope.type" => array('$exists'=>1)
-            );
-            $params =  PHDB::find('news',$where, array('_id' => 1), 1);
+            $params = News::getNewsToModerate(null,1);
             if(isset($params) && count($params)){
               $params = array_pop($params);
               Rest::json(array("result"=>true, "msg"=>"il y a des news à modérer", "newsId" => (string)@$params['_id']));  

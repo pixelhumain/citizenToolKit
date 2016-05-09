@@ -306,29 +306,31 @@ class Notification{
 	When a moderate is occured, is create notification for author and superadmin
 	notify the moderate
 	*/
-	public static function moderateNews ( $superadmin, $moderator ) 
+	public static function moderateNews ($news) 
 	{
 	    $asParam = array(
 	    	"type" => ActStr::TEST, 
-            "verb" => ActStr::VERB_FOLLOW,
+            "verb" => ActStr::VERB_MODERATE,
             "author"=>array(
             	"type" => Person::COLLECTION,
             	"id"   => ( isset(Yii::app()->session["userId"]) ) ? Yii::app()->session["userId"] : null
             ),
             "object"=>array(
-	            "type" => Person::COLLECTION,
-	            "id"   => $superadmin
+	            "type" => News::COLLECTION,
+	            "id"   => (string)$news['_id']
             )
         );
+
 	    $stream = ActStr::buildEntry($asParam);
 
 	    // $actionMsg = ($actionType == ActStr::VERB_INVITE ) ? " invited you" : " is following you";
 		$notif = array( 
-	    	"persons" => array($superadmin),
+	    	"persons" => array($news['author']),
             "label"   => "Nouvelle modération" , 
             "icon"    => ActStr::ICON_SHARE ,
-            "url"     => Yii::app()->createUrl('/'.Yii::app()->controller->module->id.'/person/detail/id/')
+            "url"     => Yii::app()->createUrl('/'.Yii::app()->controller->module->id.'/#news.index.type.'.@$news['target']['type'].'.id.'.@$news['target']['id'])
         );
+
 	    $stream["notify"] = ActivityStream::addNotification( $notif );
 	    ActivityStream::addEntry($stream);
 	    
