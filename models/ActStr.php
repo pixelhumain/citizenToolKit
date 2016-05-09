@@ -49,12 +49,9 @@ class ActStr {
             "created" => new MongoDate(time())
         );
 
-      /*  if( isset( $params["author"] )){
-            $action["author"] = array( 
-                "objectType" => $params["author"]['type'],
-                "id" => $params["author"]['id']
-            );
-        }*/
+        
+        if( isset( $params["ip"] ))
+            $action["ip"] = $params["ip"];
 
         if( isset( $params["object"] )){
             $action["object"] = array( 
@@ -69,9 +66,6 @@ class ActStr {
                 "id" => $params["target"]['id']
             );
         }
-
-        //if( isset( $action["author"] ) && isset( $params["ip"] ))
-        //	$action["author"]["ip"] = $params["ip"];
         	
 		if($params["type"]==ActivityStream::COLLECTION){
 			$action["scope.type"]="public";
@@ -93,8 +87,8 @@ class ActStr {
             "type" => ActStr::VIEW_PAGE, 
             "verb" => ActStr::VERB_VIEW,
             "actorType" => Person::COLLECTION,
-            "objectType" => ActStr::TYPE_URL,
-            "id" => $url,
+            "object" => array(  "type"=>ActStr::TYPE_URL,
+                                "id" => $url),
             "ip" => $_SERVER['REMOTE_ADDR']
         );
         $action = self::buildEntry($asParam);
