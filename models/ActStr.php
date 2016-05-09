@@ -30,6 +30,8 @@ class ActStr {
     const VERB_AUTHORIZE = "authorize";
     const VERB_ATTEND = "attend";
     const VERB_COMMENT = "comment";
+
+    const VERB_MODERATE = "moderate";
     
     const VERB_POST = "post";
 
