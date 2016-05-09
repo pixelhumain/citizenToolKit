@@ -240,7 +240,11 @@ class Notification{
 		    if ($target["type"] == Event::COLLECTION)
 		    	$url = $ctrl.'/detail/id/'.$target["id"];
 		    else 
-		    	$url = $ctrl.'/directory/id/'.$target["id"].'?tpl=directory2';
+		    	$url = $ctrls[ $target["type"] ].'/directory/id/'.$targetId.'?tpl=directory2';
+	    }
+		else if($verb == ActStr::VERB_JOIN){
+		    $label = Yii::app()->session['user']['name']." ".Yii::t("common","participates to the event")." ".$target["name"];
+		    $url = $ctrls[ $target["type"] ].'/detail/id/'.$targetId;
 	    }
 	    else if($verb == ActStr::VERB_SIGNIN){
 			 $label = $member["name"]." ".Yii::t("common","confirms your invitation and create an account.");

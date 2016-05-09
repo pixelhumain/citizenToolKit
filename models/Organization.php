@@ -132,7 +132,7 @@ class Organization {
 	    else
 	    	$orgaCodeInsee="";
 	    
-		Notification::createdObjectAsParam(Person::COLLECTION,$creatorId,Organization::COLLECTION, $newOrganizationId, null, null, $orgaGeo,$orgaTags,$orgaCodeInsee);
+		Notification::createdObjectAsParam(Person::COLLECTION,$creatorId,Organization::COLLECTION, $newOrganizationId, Person::COLLECTION,$creatorId, $orgaGeo,$orgaTags,$orgaCodeInsee);
 
 	    $newOrganization = Organization::getById($newOrganizationId);
 	    return array("result"=>true,

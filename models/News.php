@@ -18,12 +18,12 @@ class News {
 	/* DEAD CODE - TO TEST BEFORE DELETE
 		public static function getWhere($params) {
 	  	return PHDB::findAndSort( self::COLLECTION,$params);
-	}
+	}*/
 	public static function getAuthor($id){
 		return PHDB::findOneById( self::COLLECTION ,$id, 
 				array("author" => 1));
 	}
-	public static function getWhereSortLimit($params,$sort=array("created"=>-1),$limit=1) {
+	/*public static function getWhereSortLimit($params,$sort=array("created"=>-1),$limit=1) {
 	  	$res = PHDB::findAndSort( self::COLLECTION,$params,$sort,$limit);
 
 	  	foreach ($res as $key => $news) {

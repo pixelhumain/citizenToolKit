@@ -506,12 +506,9 @@ class Authorisation {
                 $res = true ;
             if(self::isSourceAdmin($itemId, $type, $userId) && $res==false)
                 $res = true ; 
-
     	} else if($type == Person::COLLECTION) {
             if($userId==$itemId || Role::isSuperAdmin(Role::getRolesUserId($userId)) == true )
                 $res = true;
-            else
-                $res = false ;
     	} else if($type == Survey::COLLECTION) {
             $res = Authorisation::canEditEntry($userId, $itemId);
         }
