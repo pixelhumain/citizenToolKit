@@ -226,6 +226,7 @@ class IndexAction extends CAction
 		$news = News::sortNews($news, array('created'=>SORT_DESC));
         //TODO : reorganise by created date
 		$params["news"] = $news; 
+		$params["storageSpace"] = Document::storageSpaceByIdAndType($id, $type,Document::DOC_TYPE_IMAGE);
 		$params["tags"] = Tags::getActiveTags();
 		$params["contextParentType"] = $type; 
 		$params["contextParentId"] = $id;
