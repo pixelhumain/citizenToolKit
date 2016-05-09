@@ -151,8 +151,8 @@ class Event {
 			throw new CTKException("The organizer does not exist. Please check the organizer.");
 		}*/
 
-		if(empty($event['startDate']) || empty($event['endDate'])) {
-			throw new CTKException("The start and end date of an event are required.");
+		if(empty($event['startDate']) ) { //|| empty($event['endDate'])
+			throw new CTKException("The start  date of an event are required.");
 		}
 		
 		if (! empty($event['allDay'])) {
