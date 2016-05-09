@@ -78,7 +78,9 @@ class NewsTranslator {
 							array_push($images,$image);
 						}
 					}else{
-						$params["media"]["countImages"]--;
+						$countImages=intval($params["media"]["countImages"]);
+						$countImages--;
+						$params["media"]["countImages"]=$countImages;
 					}
 				} else {
 					exit;
