@@ -186,7 +186,7 @@ class Document {
 		$params = array("id"=> $userId,
 						"type" => $type);
 		if (isset($contentKey) && $contentKey != null) 
-			$params["contentKey"] = new MongoRegex("/".$contentKey."/i");
+			$params["contentKey"] = $contentKey;
 		if (isset($docType)) 
 			$params["doctype"] = $docType;
 		$listDocuments = PHDB::findAndSort( self::COLLECTION,$params, $sort);
