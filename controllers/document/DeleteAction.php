@@ -12,13 +12,7 @@ class DeleteAction extends CAction {
 		$filepathThumb = Yii::app()->params['uploadDir'].$dir.DIRECTORY_SEPARATOR.$type.DIRECTORY_SEPARATOR.$_POST['parentId'].DIRECTORY_SEPARATOR;
 		if(!empty($_POST["path"]))
 				$filepathThumb.=$_POST["path"].DIRECTORY_SEPARATOR.Document::GENERATED_IMAGES_FOLDER.DIRECTORY_SEPARATOR.$_POST['name'];
-		else{
-			$pathThumbProfil=Document::GENERATED_IMAGES_FOLDER.DIRECTORY_SEPARATOR.IMG_PROFIL_RESIZED;
-			$pathThumbMarker=Document::GENERATED_IMAGES_FOLDER.DIRECTORY_SEPARATOR.IMG_PROFIL_MARKER;
-			$filepathThumbProfil=$filepathThumb.$pathThumbProfil;
-			$filepathThumbMarker=$filepathThumb.$pathThumbMarker;
-		}
-		
+				
         if(isset(Yii::app()->session["userId"]) && file_exists ( $filepath ))
         {
             if (unlink($filepath))
@@ -27,13 +21,8 @@ class DeleteAction extends CAction {
 	           	if(!empty($_POST["path"])){
 	            	if(file_exists ( $filepathThumb ))
 	            		unlink($filepathThumb);
-	            }else{
-		            if(file_exists ( $filepathThumbProfil ))
-	            		unlink($filepathThumbProfil);
-	            	if(file_exists ( $filepathThumbMarker ))
-	            		unlink($filepathThumbMarker);
 	            }
-                Document::removeDocumentById($documentId);
+	            Document::removeDocumentById($documentId);
                 echo json_encode(array('result'=>true, "msg" => Yii::t("document","Document deleted"), "id" => $documentId));
             }
             else
