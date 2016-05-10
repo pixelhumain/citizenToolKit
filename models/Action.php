@@ -96,7 +96,6 @@ class Action
                                        array( $dbMethod => $mapObject,
                                                 '$inc'=>array( $action."Count" => $inc)));
 
-                    Gamification::addEntry((string)$user["_id"], $action, $element["_id"], $collection);
                 }
                 
                 
