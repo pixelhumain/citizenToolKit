@@ -182,11 +182,11 @@ class Document {
 		return $listDocuments;
 	}
 	
-	protected static function listMyDocumentByIdAndType($userId, $type, $contentKey= null, $docType = null, $sort=null)	{	
-		$params = array("id"=> $userId,
+	protected static function listMyDocumentByIdAndType($id, $type, $contentKey= null, $docType = null, $sort=null)	{	
+		$params = array("id"=> $id,
 						"type" => $type);
 		if (isset($contentKey) && $contentKey != null) 
-			$params["contentKey"] = new MongoRegex("/".$contentKey."/i");
+			$params["contentKey"] = $contentKey;
 		if (isset($docType)) 
 			$params["doctype"] = $docType;
 		$listDocuments = PHDB::findAndSort( self::COLLECTION,$params, $sort);
@@ -228,6 +228,32 @@ class Document {
 		}
 		return $listDocuments;
 	}
+	/**
+	 * Controle space storage of each entity
+	 * @param string $id The id of the owner of document
+	 * @param string $type The type of the owner of document
+	 * @param string $docType The kind of document research
+	 * @return size of storage used to stock
+	 */
+	public static function storageSpaceByIdAndType($id, $type,$docType){
+		$params = array("id"=> $id,
+						"type" => $type);
+		if (isset($docType)) 
+			$params["doctype"] = $docType;
+		$sizeDocuments = PHDB::find( self::COLLECTION,$params,array("size" => 1));
+		$spaceUsed=0;
+		foreach ($sizeDocuments as $data){
+			if (strstr($data["size"], 'M', true)){
+				$size=((float)$data["size"])*1024;
+				$spaceUsed += $size;					
+			} else 
+				$spaceUsed += intval($data["size"]);
+		}
+		$spaceUsed=$spaceUsed/1024;
+		return $spaceUsed;
+
+	}
+
 	/**
 	 * @See getListDocumentsByContentKey. 
 	 * @return array Return only the Url of the documents ordered by contentkey type

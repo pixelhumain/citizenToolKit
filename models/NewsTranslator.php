@@ -76,9 +76,15 @@ class NewsTranslator {
 						$image=Document::getById($data);
 						if(@$image){
 							array_push($images,$image);
+						}else{
+						$countImages=intval($params["media"]["countImages"]);
+						$countImages--;
+						$params["media"]["countImages"]=$countImages;
 						}
 					}else{
-						$params["media"]["countImages"]--;
+						$countImages=intval($params["media"]["countImages"]);
+						$countImages--;
+						$params["media"]["countImages"]=$countImages;
 					}
 				} else {
 					exit;

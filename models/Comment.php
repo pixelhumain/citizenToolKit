@@ -364,4 +364,37 @@ class Comment {
     }
 
 
+    /**
+	 * update a comment in database
+	 * @param String $commentId : 
+	 * @param string $name fields to update
+	 * @param String $value : new value of the field
+	 * @return array of result (result => boolean, msg => string)
+	 */
+	public static function updateField($commentId, $name, $value, $userId){
+		$set = array($name => $value);	
+		//update the project
+		PHDB::update( self::COLLECTION, array("_id" => new MongoId($commentId)), 
+		                          array('$set' => $set));
+	                  
+	    return array("result"=>true, "msg"=>Yii::t("common","Comment well updated"), "id"=>$commentId);
+	}
+
+	public static function getCommentsToModerate($whereAdditional = null, $limit = 0) {
+
+
+		$where = array( 
+			"reportAbuse"=> array('$exists'=>1)
+			,"moderate.isAnAbuse" => array('$exists'=>0)
+			//One news has to be moderated X times
+			,"reportAbuseCount" => array('$lt' => 5)
+			//One moderator can't moderate 2 times a news
+			,"moderate.".Yii::app()->session["userId"] => array('$exists'=>0)
+		);
+        if(count($whereAdditional)){
+        	$where = array_merge($where,$whereAdditional);
+        }
+        return PHDB::findAndSort(self::COLLECTION, $where, array("date" =>1), $limit);
+	}
+
 }

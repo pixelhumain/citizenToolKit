@@ -188,7 +188,7 @@ class Notification{
 	    }
 	    else if( $verb == ActStr::VERB_POST ){
 		    $label = $target["name"]." : ".Yii::t("common","new post by")." ".Yii::app()->session['user']['name'];
-	    	$url = 'news/index/type/'.$target["type"].'/id/'.$target["id"].'?isSearchDesign=1';
+	    	$url = 'news/index/type/'.$target["type"].'/id/'.$targetId.'?isFisrt=1';
 	    }
 		else if( $verb == ActStr::VERB_FOLLOW ){
 			if($target["type"]==Person::COLLECTION)
@@ -336,5 +336,42 @@ class Notification{
 		$stream = ActivityStream::buildEntry($param);
 	    ActivityStream::addEntry($stream);
 
+	}
+
+
+	/*
+	When a moderate is occured, is create notification for author and superadmin
+	notify the moderate
+	*/
+	public static function moderateNews ($news) 
+	{
+	    $asParam = array(
+	    	"type" => ActStr::TEST, 
+            "verb" => ActStr::VERB_MODERATE,
+            "author"=>array(
+            	"type" => Person::COLLECTION,
+            	"id"   => ( isset(Yii::app()->session["userId"]) ) ? Yii::app()->session["userId"] : null
+            ),
+            "object"=>array(
+	            "type" => News::COLLECTION,
+	            "id"   => (string)$news['_id']
+            )
+        );
+
+	    $stream = ActStr::buildEntry($asParam);
+
+	    // $actionMsg = ($actionType == ActStr::VERB_INVITE ) ? " invited you" : " is following you";
+		$notif = array( 
+	    	"persons" => array($news['author']),
+            "label"   => "Nouvelle modération" , 
+            "icon"    => ActStr::ICON_SHARE ,
+            "url"     => Yii::app()->createUrl('/'.Yii::app()->controller->module->id.'/#news.index.type.'.@$news['target']['type'].'.id.'.@$news['target']['id'])
+        );
+
+	    $stream["notify"] = ActivityStream::addNotification( $notif );
+	    ActivityStream::addEntry($stream);
+	    
+	    //TODO mail::following
+	    //add a link to follow back easily
 	}
 }

@@ -39,6 +39,7 @@ class IndexAction extends CAction
 		$params['controllerId'] = $controllerId;
 		$contentKey=null;
 		//$params['images'] = Document::getListDocumentsByContentKey($id, $controllerId, Document::DOC_TYPE_IMAGE);
+		$params["storageSpace"] = Document::storageSpaceByIdAndType($id, $type,Document::DOC_TYPE_IMAGE);
 		$params['images'] = Document::getListDocumentsByIdAndType($id, $type, $contentKey, Document::DOC_TYPE_IMAGE);
 		//$controller->title = $item["name"]."'s Gallery";
 		$controller->subTitle = "";

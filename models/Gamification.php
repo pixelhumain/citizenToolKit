@@ -22,6 +22,7 @@ class Gamification {
 	//platefrom actions
 	const POINTS_USER_LOGIN = 5;
 	const POINTS_USER_REGISTRATION = 15;
+
 	//const POINTS_SEARCH = 1;
 	const POINTS_ADD_POST = 0.5;
 	const POINTS_ANSWER_POST = 0.1;
@@ -63,6 +64,14 @@ class Gamification {
 	const BADGE_PLANET_LIMIT = 100000;
 	//points if profile is filled above 80%
 
+	//actions (like/dislike/abuse)
+	const POINTS_VOTEUP = 1;
+	const POINTS_VOTEDOWN = 1;
+	const POINTS_REPORTABUSE = 2;
+
+	//Moderate
+	const POINTS_MODERATE = 10;
+
 	//city actions
 	//a city feed url
 	//a new place to discover
@@ -74,9 +83,9 @@ class Gamification {
 	//creating a common task
 	//adding a new open data source or entry (interface add/propose an open data entry)
 
+
 	/*
-	Calculate Gamification points based on gamifaication rules 
-	
+	Calculate Gamification points based on gamifaication rules 	
 	*/
 	public static function calcPoints($userId, $filter=null) {
 		

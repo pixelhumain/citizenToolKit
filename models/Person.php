@@ -380,7 +380,7 @@ class Person {
 		  		//send invitation mail
 				Mail::invitePerson($res["person"], $msg);
 		  	} else {
-		  		$res = array("result"=>false, "msg"=> "Sorry, you can't invite more person to join the platform. You do not have enough invitations left.");
+		  		$res = array("result"=>false, "msg"=> Yii::t("person","Sorry, you can't invite more people to join the platform. You do not have enough invitations left."));
 		  	}
 	  		
 	  	} catch (CTKException $e) {

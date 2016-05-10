@@ -10,6 +10,7 @@ class Action
     const ACTION_ROOMS          = "actionRooms";
     const ACTION_ROOMS_TYPE_SURVEY = "survey";
 
+    const ACTION_MODERATE       = "moderate";
     const ACTION_VOTE_UP        = "voteUp";
     const ACTION_VOTE_ABSTAIN   = "voteAbstain";
     const ACTION_VOTE_UNCLEAR   = "voteUnclear";
@@ -37,62 +38,66 @@ class Action
      * @param boolean $multiple : true : the user can do multiple action, else can not.
      * @return array result (result, msg)
      */
-        public static function addAction( $userId=null , $id=null, $collection=null, $action=null, $unset=false, $multiple=false, $reason="")
-    {
+        public static function addAction( $userId=null , $id=null, $collection=null, $action=null, $unset=false, $multiple=false, $details=null){
+       
         $user = Person::getById($userId);
         $element = ($id) ? PHDB::findOne ($collection, array("_id" => new MongoId($id) )) : null;
         $res = array('result' => false , 'msg'=>'something somewhere went terribly wrong');
-        
-        if($user && $element)
-        {
-            //check user hasn't allready done the action
+
+        if($user && $element){
+            //check user hasn't allready done the action or if it's allowed
             if( $unset 
                 || !isset( $element[ $action ] ) 
                 || ( !$multiple && isset( $element[ $action ] ) && !in_array( (string)$user["_id"] , $element[ $action ] )
-                || $multiple ) )
-            {
-                if($unset)
-                    $dbMethod = '$unset';
-                else
-                    $dbMethod = '$set';
+                || $multiple ) ){
+                
 
-                // "actions": { "groups": { "538c5918f6b95c800400083f": { "voted": "voteUp" }, "538cb7f5f6b95c80040018b1": { "voted": "voteUp" } } } }
-                if (!empty($reason))
-	                $addToMap = $reason ; 
-                else 
-                	$addToMap = $action;
-                $map[ self::NODE_ACTIONS.".".$collection.".".(string)$element["_id"].".".$action ] = $addToMap ;
-
-                //update the user table 
-                //adds or removes an action
-                PHDB::update ( Person::COLLECTION , array( "_id" => $user["_id"]), 
-                                                    array( $dbMethod => $map));
+                //Add or remove
+                $dbMethod = '$set';
                 if($unset){
-                    $dbMethod = '$pull';
-                    //decrement when removing an action instance
-                    $inc = -1;
+                    $dbMethod = '$unset';
                 }
+
+                // Additional info
+                if (!empty($details) && is_array($details))
+	                $details = array_merge($details, array('date' => new MongoDate(time()))) ; 
                 else 
+                	$details = array('date' => new MongoDate(time()));
+                $mapUser[ self::NODE_ACTIONS.".".$collection.".".$action.".".(string)$element["_id"] ] = $details ;
+               
+                //update the user table => adds or removes an action
+                PHDB::update ( Person::COLLECTION , array( "_id" => $user["_id"]), 
+                                                    array( $dbMethod => $mapUser));
+
+                //Decrement when removing an action instance
+                if($unset){
+                    $dbMethod = '$unset';
+                    $inc = -1;
+                }//Push unique user Ids into action node list + increment
+                elseif($multiple == true)
                 {
-                    //push unique user Ids into action node list
                     $dbMethod = '$addToSet';
-                    //increment according to specifications
+                    $inc = 1;
+                }//Save unique user Id and details into action + increment
+                else{
+                    $dbMethod = '$set';
                     $inc = 1;
                 }
                 
-                if(isset($reason)){
+                if($unset){
                     PHDB::update ($collection, array("_id" => new MongoId($element["_id"])), 
-                                           array( $dbMethod => array( 
-                                                    $action => (string)$user["_id"],
-                                                    $action."Reason" => array((string)$user["_id"] => $reason)),
-                                                    '$inc'=>array( $action."Count" => $inc)));
+                                       array( $dbMethod => array( 
+                                                    $action.".".Yii::app()->session["userId"] => 1),
+                                                '$inc'=>array( $action."Count" => $inc)));
                 }
                 else{
+                    $mapObject[$action.".".(string)$user["_id"]] = $details ;
                     PHDB::update ($collection, array("_id" => new MongoId($element["_id"])), 
-                                           array( $dbMethod => array( 
-                                                    $action => (string)$user["_id"]),
-                                                    '$inc'=>array( $action."Count" => $inc)));
+                                       array( $dbMethod => $mapObject,
+                                                '$inc'=>array( $action."Count" => $inc)));
+
                 }
+                
                 
                 self::addActionHistory( $userId , $id, $collection, $action);
                 
@@ -103,8 +108,9 @@ class Action
                               "inc"			=> $inc,
                               "msg"             => "Ok !"
                                );
-            } else 
+            } else {
                 $res = array( "result" => true,  "userAllreadyDidAction" => true, "msg" => Yii::t("common","You have already made this action" ));
+            }
         }
         return $res;
     }
