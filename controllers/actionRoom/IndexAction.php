@@ -39,8 +39,8 @@ class IndexAction extends CAction
         if( $type == Person::COLLECTION )
             $roomsActions = Person::getActionRoomsByPersonId($id);
         else if( isset( Yii::app()->session['userId'] ))
-            $roomsActions = Person::getActionRoomsByPersonIdByType(Yii::app()->session['userId'],$type,$id);
-         else 
+            $roomsActions = Person::getActionRoomsByPersonIdByType( Yii::app()->session['userId'] ,$type ,$id );
+        else 
             $rooms = ActionRoom::getWhereSortLimit( $where, array("date"=>1), 15);
 
         if( isset($roomsActions) && isset($roomsActions["rooms"]) && isset($roomsActions["actions"])  ){
