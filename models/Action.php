@@ -97,10 +97,18 @@ class Action
                                                 '$inc'=>array( $action."Count" => $inc)));
 
                 }
-                
-                
+
                 self::addActionHistory( $userId , $id, $collection, $action);
                 
+                //We update the points of the user
+                if(isset($user['gamification']['actions'][$action])){
+                    Gamification::incrementUser($userId, $action);
+                }
+                else{
+                    Gamification::updateUser($userId);
+                }
+               
+
                 $res = array( "result"          => true,  
                               "userActionSaved" => true,
                               "user"            => PHDB::findOne ( Person::COLLECTION , array("_id" => new MongoId( $userId ) ),array("actions")),
