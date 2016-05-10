@@ -128,8 +128,9 @@ class Comment {
 				$comment["replies"] = array();
 			}
 			$comment["author"] = self::getCommentAuthor($comment, $options);
+			
 			//Manage comment declared as abused
-			if (@$comment["status"] == self::STATUS_DELETED) {
+			if (@$comment["status"] == self::STATUS_DELETED || @$comment["status"] == self::STATUS_DECLARED_ABUSED) {
 				$comment["text"] = Yii::t("comment","This comment has been deleted because of his content.");
 			}
 			$commentTree[$commentId] = $comment;
@@ -246,7 +247,7 @@ class Comment {
 					"contextId" => $contextId, 
 					"contextType" => $contextType,
 					"status" => self::STATUS_DECLARED_ABUSED,
-					"reportAbuseCount" => array('$gt' => 0));
+					"reportAbuseCount" => array('$gte' => 0));
 		$sort = array("created" => -1);
 		$comments = PHDB::findAndSort(Comment::COLLECTION, $whereContext, $sort);
 		

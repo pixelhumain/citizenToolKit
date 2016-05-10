@@ -107,6 +107,16 @@ class Action
                 else{
                     Gamification::updateUser($userId);
                 }
+
+                //Moderate automatic 
+                if($collection == Comment::COLLECTION && $action == "reportAbuse"){
+                    $element = ($id) ? PHDB::findOne ($collection, array("_id" => new MongoId($id) )) : null;
+                    if(isset($element[$action."Count"]) && $element[$action."Count"] >= 1){
+                        PHDB::update($collection, array("_id" => new MongoId($element["_id"])), 
+                                                                            array('$set' => array( "isAnAbuse" => true, "status"=>"declaredAbused"))
+                        );
+                    }
+                }
                
 
                 $res = array( "result"          => true,  
