@@ -61,14 +61,17 @@ class UploadAction extends CAction {
         	if( isset(Yii::app()->session["userId"]) && $name && 
                 move_uploaded_file($pic['tmp_name'], $upload_dir.$name))
             {   
+	            $dirAlbum="";
 	            if(@$input && $input=="newsImage"){
-		            $document=array(
+		            $dirAlbum="/".Document::GENERATED_ALBUM_FOLDER;
+	           		//Document::generateAlbumImages($document);
+			   	}
+			   	$document=array(
 			            "moduleId"=>$dir,
-			            "folder"=> $folder."/".$ownerId."/".Document::GENERATED_ALBUM_FOLDER,
+			            "folder"=> $folder."/".$ownerId.$dirAlbum,
 			            "name"=>$name
 		            );
-	           		Document::generateAlbumImages($document);
-			   	}
+			   	Document::generateAlbumImages($document);
         		echo json_encode(array('result'=>true,
                                         "success"=>true,
                                         'name'=>$name,
