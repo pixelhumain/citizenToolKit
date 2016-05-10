@@ -33,6 +33,7 @@ class Person {
 	    "gpplusAccount" => array("name" => "socialNetwork.googleplus"),
 	    "gitHubAccount" => array("name" => "socialNetwork.github"),
 	    "skypeAccount" => array("name" => "socialNetwork.skype"),
+	    "telegramAccount" => array("name" => "socialNetwork.telegram"),
 	    "bgClass" => array("name" => "preferences.bgClass"),
 	    "bgUrl" => array("name" => "preferences.bgUrl"),
 	    "roles" => array("name" => "roles"),
@@ -650,6 +651,8 @@ class Person {
 		if ($dataFieldName == "tags") 
 			$personFieldValue = Tags::filterAndSaveNewTags($personFieldValue);
 
+		error_log($dataFieldName);
+
 		//address
 		$user = null;
 		$thisUser = self::getById($personId);
@@ -688,6 +691,13 @@ class Person {
 			$newMongoDate = new MongoDate($dt->getTimestamp());
 			$set = array($dataFieldName => $newMongoDate);
 		} 
+		else if($dataFieldName == "socialNetwork.telegram") {
+			if(strpos($personFieldValue, "http")==false || strpos($personFieldValue, "http")>0) 
+				if($personFieldValue != "")
+					$personFieldValue = "https://web.telegram.org/#/im?p=@".$personFieldValue;
+
+			$set = array($dataFieldName => $personFieldValue);
+		}
 		else {
 			$set = array($dataFieldName => $personFieldValue);	
 			if ( $personFieldName == "bgClass") {
