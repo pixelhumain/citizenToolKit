@@ -221,6 +221,13 @@ class IndexAction extends CAction
 												array("reportAbuseCount" => array('$exists'=>0))
 											))
 		);
+
+		//Exclude => If isAnAbuse
+		$where = array_merge($where,  array(
+												'isAnAbuse' => array('$ne' => true)
+											)
+		);
+
 		$news= News::getNewsForObjectId($where,array("created"=>-1),$type);
 		// Sort news order by created 
 		$news = News::sortNews($news, array('created'=>SORT_DESC));
