@@ -97,10 +97,28 @@ class Action
                                                 '$inc'=>array( $action."Count" => $inc)));
 
                 }
-                
-                
+
                 self::addActionHistory( $userId , $id, $collection, $action);
                 
+                //We update the points of the user
+                if(isset($user['gamification']['actions'][$action])){
+                    Gamification::incrementUser($userId, $action);
+                }
+                else{
+                    Gamification::updateUser($userId);
+                }
+
+                //Moderate automatic 
+                if($collection == Comment::COLLECTION && $action == "reportAbuse"){
+                    $element = ($id) ? PHDB::findOne ($collection, array("_id" => new MongoId($id) )) : null;
+                    if(isset($element[$action."Count"]) && $element[$action."Count"] >= 1){
+                        PHDB::update($collection, array("_id" => new MongoId($element["_id"])), 
+                                                                            array('$set' => array( "isAnAbuse" => true, "status"=>"declaredAbused"))
+                        );
+                    }
+                }
+               
+
                 $res = array( "result"          => true,  
                               "userActionSaved" => true,
                               "user"            => PHDB::findOne ( Person::COLLECTION , array("_id" => new MongoId( $userId ) ),array("actions")),

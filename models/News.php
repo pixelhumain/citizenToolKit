@@ -217,7 +217,7 @@ class News {
           ,"target.type" => array('$exists'=>1)
           ,"scope.type" => array('$exists'=>1)
           //One news has to be moderated X times
-          ,"reportAbuseCount" => array('$lt' => 5)
+          ,"reportAbuseCount" => array('$gt' => 0)
           //One moderator can't moderate 2 times a news
           ,"moderate.".Yii::app()->session["userId"] => array('$exists'=>0)
         );
