@@ -111,7 +111,7 @@ class Action
                 //Moderate automatic 
                 if($collection == Comment::COLLECTION && $action == "reportAbuse"){
                     $element = ($id) ? PHDB::findOne ($collection, array("_id" => new MongoId($id) )) : null;
-                    if(isset($element[$action."Count"]) && $element[$action."Count"] >= 1){
+                    if(isset($element[$action."Count"]) && $element[$action."Count"] >= 3){
                         PHDB::update($collection, array("_id" => new MongoId($element["_id"])), 
                                                                             array('$set' => array( "isAnAbuse" => true, "status"=>"declaredAbused"))
                         );

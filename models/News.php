@@ -212,7 +212,7 @@ class News {
 		
 		$where = array(
           "reportAbuse"=> array('$exists'=>1)
-          ,"moderate.isAnAbuse" => array('$exists'=>0)
+          ,"isAnAbuse" => array('$exists'=>0)
           ,"target.id" => array('$exists'=>1)
           ,"target.type" => array('$exists'=>1)
           ,"scope.type" => array('$exists'=>1)
