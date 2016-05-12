@@ -83,7 +83,7 @@ class Document {
 	  		"doctype" => Document::getDoctype($params['name']),	
 	  		"author" => $params['author'],
 	  		"name" => $params['name'],
-	  		"size" => $params['size'],
+	  		"size" => (int) $params['size'],
 	  		'created' => time()
 	    );
 
@@ -223,12 +223,13 @@ class Document {
 					$listDocuments[$currentContentKey] = array();
 				} 
 				$value['imageUrl'] = $imageUrl;
+				$value['size'] = self::getHumanFileSize($value["size"]);
 				array_push($listDocuments[$currentContentKey], $value);
 			}
 		}
 		return $listDocuments;
 	}
-	/**
+	/** author clement.damiens@gmail.com
 	 * Controle space storage of each entity
 	 * @param string $id The id of the owner of document
 	 * @param string $type The type of the owner of document
@@ -240,20 +241,32 @@ class Document {
 						"type" => $type);
 		if (isset($docType)) 
 			$params["doctype"] = $docType;
-		$sizeDocuments = PHDB::find( self::COLLECTION,$params,array("size" => 1));
-		$spaceUsed=0;
-		foreach ($sizeDocuments as $data){
-			if (strstr($data["size"], 'M', true)){
-				$size=((float)$data["size"])*1024;
-				$spaceUsed += $size;					
-			} else 
-				$spaceUsed += intval($data["size"]);
-		}
-		$spaceUsed=$spaceUsed/1024;
+		$c = Yii::app()->mongodb->selectCollection(self::COLLECTION);
+		$result = $c->aggregate( array(
+						array('$match' => $params),
+						array('$group' => array(
+							'_id' => $params,
+							'sumDocSpace' => array('$sum' => '$size')))
+						));
+		if (@$result["ok"]) 
+			$spaceUsed = @$result["result"][0]["sumDocSpace"];
 		return $spaceUsed;
 
 	}
-
+	/** author clement.damiens@gmail.com
+	 * Return boolean if entity is authorized to stock
+	 * @param string $id The id of the owner of document
+	 * @param string $type The type of the owner of document
+	 * @param string $docType The kind of document research
+	 * @return size of storage used to stock
+	 */
+	public static function authorizedToStock($id, $type,$docType){
+		$storageSpace = self::storageSpaceByIdAndType($id, $type,self::DOC_TYPE_IMAGE);
+		$authorizedToStock=true;
+		if($storageSpace > (20*1048576))
+			$authorizedToStock=false;
+		return $authorizedToStock;
+	}
 	/**
 	 * @See getListDocumentsByContentKey. 
 	 * @return array Return only the Url of the documents ordered by contentkey type
@@ -278,6 +291,16 @@ class Document {
 	*/
 	public static function removeDocumentById($id){
 		return PHDB::remove(self::COLLECTION, array("_id"=>new MongoId($id)));
+	}
+	/**
+	* remove a document from communevent by objid
+	* @return
+	*/
+	public static function removeDocumentCommuneventByObjId($id){
+		//Suppression de l'image dans la collection cfs.photosimg.filerecord
+		PHDB::remove("cfs.photosimg.filerecord", array("_id"=>$id));
+		//Suppression du document
+		return PHDB::remove(self::COLLECTION, array("objId"=>$id));
 	}
 
 	/**
@@ -382,7 +405,12 @@ class Document {
     }
 
     public static function getDocumentFolderUrl($document){
-    	return "/".Yii::app()->params['uploadUrl'].$document["moduleId"]."/".$document["folder"];
+	    if ($document["moduleId"]=="communevent")
+		    $folderUrl = Yii::app()->params['communeventUrl'];
+		else
+			$folderUrl = "/".Yii::app()->params['uploadUrl'].$document["moduleId"];
+    	$folderUrl .= "/".$document["folder"];
+    	return $folderUrl;
     }
 
     public static function getDocumentPath($document){
