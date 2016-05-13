@@ -16,17 +16,17 @@ class SimplyAutoCompleteAction extends CAction
         $indexMin = isset($_POST['indexMin']) ? $_POST['indexMin'] : 0;
         $indexMax = isset($_POST['indexMax']) ? $_POST['indexMax'] : 100;
         $country = isset($_POST['country']) ? $_POST['country'] : "";
-        $sourceKey = isset($_POST['sourceKey']) ? $_POST['sourceKey'] : "";
+        $sourceKey = isset($_POST['sourceKey']) ? $_POST['sourceKey'] : null;
 
-        error_log("global search " . $search . " - searchBy : ". $searchBy. " & locality : ". $locality. " & country : ". $country." & sourceKey : ".$sourceKey);
-	    
-        if($search == "" && $locality == "" && $sourceKey == "") {
+
+        if($search == null && $locality == null && $sourceKey == null) {
         	Rest::json(array());
 			Yii::app()->end();
         }
         /***********************************  DEFINE GLOBAL QUERY   *****************************************/
         $query = array( "name" => new MongoRegex("/".$search."/i"));		
 
+        
         /***********************************  TAGS   *****************************************/
         $tmpTags = array();
         if(strpos($search, "#") > -1){
@@ -42,15 +42,29 @@ class SimplyAutoCompleteAction extends CAction
   		}
   		unset($tmpTags);
 
+  		/***********************************  COMPLETED   *****************************************/
   		$query = array('$and' => array( $query , array("state" => array('$ne' => "uncomplete")) ));
 
+  		
   		/***********************************  SOURCEKEY   *****************************************/
-         if($sourceKey != null && $sourceKey != ""){
-        	$sourceKeyQuery = array( "source.key" => array('$in' => array(new MongoRegex("/".$sourceKey."/i")))) ; //new MongoRegex("/".$search."/i") )));
-        	$query = array('$and' => array( $query ,$sourceKeyQuery));
-  		}	
+  		$tmpSourceKey = array();
+  		if($sourceKey != null && $sourceKey != ""){
+  			//Several Sourcekey
+	  		if(is_array($sourceKey)){
+	  			foreach ($sourceKey as $value) {
+	  				$tmpSourceKey[] = new MongoRegex("/".$value."/i");
+	  			}
+	  		}//One Sourcekey
+	  		else{
+	  			$tmpSourceKey[] = new MongoRegex("/".$sourceKey."/i");
+	  		}
+	  		if(count($tmpSourceKey)){
+	  			$query = array('$and' => array( $query , array("source.key" => array('$in' => $tmpSourceKey))));
+	  		}
+	  		unset($tmpSourceKey);
+	  	}
 
-  		/***********************************  DEFINE LOCALITY QUERY   *****************************************/
+  		/***********************************  DEFINE LOCALITY QUERY   ***************************************/
   		$localityReferences['NAME'] = "address.addressLocality";
   		$localityReferences['CODE_POSTAL_INSEE'] = "address.postalCode";
   		$localityReferences['DEPARTEMENT'] = "address.postalCode";
@@ -181,7 +195,7 @@ class SimplyAutoCompleteAction extends CAction
         if(strcmp($filter, Organization::COLLECTION) != 0 && $this->typeWanted("organizations", $searchType)){
 
 	  		$allOrganizations = PHDB::find ( Organization::COLLECTION ,$query ,array("id" => 1, "name" => 1, "type" => 1, "email" => 1,  "shortDescription" => 1, "description" => 1,
-													 			"address" => 1, "pending" => 1, "tags" => 1, "geo" => 1));
+													 			"address" => 1, "pending" => 1, "tags" => 1, "geo" => 1, "source.key" => 1));
 	  		foreach ($allOrganizations as $key => $value) {
 	  			// $orga = Organization::getSimpleOrganizationById($key);
 
@@ -349,17 +363,18 @@ class SimplyAutoCompleteAction extends CAction
 	  	$limitRes = $filters = array();
 	  	$index = 0;
 	  	foreach ($allRes as $key => $value) {
+	  		//Limit <pagination
 	  		if($index < $indexMax && $index >= $indexMin){ 
 	  			$limitRes[] = $value;
-		  	}//else{ break; }
+		  	}
 
 		  	//filter tag
-		  	if(isset($value['tags']))foreach ($value['tags'] as $key => $value) {
-		  		if(isset($filters['tags'][$value])){
-		  			$filters['tags'][$value] +=1;
+		  	if(isset($value['tags']))foreach ($value['tags'] as $keyTag => $valueTag) {
+		  		if(isset($filters['tags'][$valueTag])){
+		  			$filters['tags'][$valueTag] +=1;
 		  		}
 		  		else{
-		  			$filters['tags'][$value] = 1;
+		  			$filters['tags'][$valueTag] = 1;
 		  		}
 		  		arsort($filters['tags']);
 		  	}
@@ -374,15 +389,35 @@ class SimplyAutoCompleteAction extends CAction
 	  			}
 	  			arsort($filters['types']);
 	  		}
+
+	  		//filter sourcekey
+		  	if(isset($value['source']['key'])){
+		  		if(is_array($value['source']['key'])){
+			  		foreach ($value['source']['key'] as $keySource => $valueSource) {
+				  		if(isset($filters['sourceKey'][$valueSource])){
+				  			$filters['sourceKey'][$valueSource] +=1;
+				  		}
+				  		else{
+				  			$filters['sourceKey'][$valueSource] = 1;
+				  		}
+				  	}
+				}
+				else{
+					if(isset($filters['sourceKey'][$value['source']['key']])){
+			  			$filters['sourceKey'][$value['source']['key']] += 1;
+			  		}
+			  		else{
+			  			$filters['sourceKey'][$value['source']['key']] = 1;
+			  		}
+				}
+		  		arsort($filters['sourceKey']);
+		  	}
 		  	$index++;
 	  	}
 
-	  	// $res['res'] = $limitRes;
-	  	// $res['filters'] = $filters;
-	  	// Rest::json($res);
-  		// Rest::json($res);
-  		// Rest::json($filters);
-		Rest::json($limitRes);
+	  	$res['res'] = $limitRes;
+	  	$res['filters'] = $filters;
+	  	Rest::json($res);
 		Yii::app()->end();
     }
 

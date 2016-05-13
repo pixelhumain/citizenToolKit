@@ -22,6 +22,7 @@ class Gamification {
 	//platefrom actions
 	const POINTS_USER_LOGIN = 5;
 	const POINTS_USER_REGISTRATION = 15;
+
 	//const POINTS_SEARCH = 1;
 	const POINTS_ADD_POST = 0.5;
 	const POINTS_ANSWER_POST = 0.1;
@@ -63,6 +64,14 @@ class Gamification {
 	const BADGE_PLANET_LIMIT = 100000;
 	//points if profile is filled above 80%
 
+	//actions (like/dislike/abuse)
+	const POINTS_VOTEUP = 0.1;
+	const POINTS_VOTEDOWN = 0.1;
+	const POINTS_REPORTABUSE = 0.2;
+
+	//Moderate
+	const POINTS_MODERATE = 3;
+
 	//city actions
 	//a city feed url
 	//a new place to discover
@@ -74,9 +83,9 @@ class Gamification {
 	//creating a common task
 	//adding a new open data source or entry (interface add/propose an open data entry)
 
+
 	/*
-	Calculate Gamification points based on gamifaication rules 
-	
+	Calculate Gamification points based on gamifaication rules
 	*/
 	public static function calcPoints($userId, $filter=null) {
 		
@@ -107,9 +116,75 @@ class Gamification {
 				}
 			}
 		}
-		
+
 		return $res;
 	}
+
+	public static function insertGamificationUser($userId){
+		$entry = array('_id' => new MongoId($userId));
+		$entry[time()] = self::consolidatePoints($userId);
+		self::save($entry);
+	}
+
+	public static function calcPointsAction($userId) {
+		$total = array();
+		$total['total'] = 0;
+
+		//We take action to consolidate
+		$actions = ActivityStream::getWhere(array("who" => (string)$userId));
+		foreach ($actions as $key => $action) {
+			if(isset($action['self'])){
+				//if action is defined => We aggregate the points
+				if(defined("self::POINTS_".strtoupper($action['self']))){
+					/******* ATTENTION ********/
+					//Choix prix de comptabiliser toutes les actions même s'il en y a plusieurs
+					//Une regle de gestion devra être ajoutée pour éviter plusieurs like/dislike/...
+					if(isset($total[$action['self']])){
+						$total[$action['self']] += constant("self::POINTS_".strtoupper($action['self']));
+					}
+					else{
+						$total[$action['self']] = constant("self::POINTS_".strtoupper($action['self']));
+					}
+					$total['total'] += constant("self::POINTS_".strtoupper($action['self']));
+				}
+			}
+		}
+
+		return $total;
+	}
+
+
+	public static function consolidatePoints($userId, $filter=null) {
+		$points = array();
+		$points['created'] = new MongoDate(time());
+		$points['total'] = 0;
+
+		/***** ACTIONS ******/
+		$points['actions'] = self::calcPointsAction($userId);
+		$points['total'] += $points['actions']['total'];	
+
+		/***** LINKS ******/
+		$points['links']['total'] = self::calcPoints($userId);
+		$points['total'] += $points['links']['total'];
+
+		//Format double in Integer
+		// foreach ($points as $key1 => $value) {
+		// 	if(is_array($value)){
+		// 		foreach ($value as $key2 => $value2) {
+		// 			if(is_numeric($value2)){
+		// 				$points[$key1][$key2] = $value2;
+		// 			}
+		// 		}
+		// 	}
+		// 	elseif(is_numeric($value)){
+		// 		$points[$key1]= $value;
+		// 	}
+		// }
+
+		return $points;
+	}
+
+
 
 	public static function badge($userId) {
 		
@@ -152,5 +227,62 @@ class Gamification {
 
 	    PHDB::insert(self::COLLECTION,$new);
 	}
+
+
+	public static function save($entry){
+
+		//Update
+		if(isset($entry['_id'])){
+			$id = $entry['_id'];
+			unset($entry['_id']);
+			PHDB::update(  self::COLLECTION, 
+		     								    array("_id"=>new MongoId($id)),
+		     									array('$set' => $entry)
+		     								);
+		}//Insert
+		else{
+			PHDB::insert(self::COLLECTION,$entry);
+		}
+	}
+
+
+	/**
+     * set the points of a person
+     * @param type $id : is the mongoId of the person
+     * @return nothing
+     */
+    public static function updateUser($id){
+    	$gamification = self::consolidatePoints($id);
+        PHDB::update(Person::COLLECTION,
+                            array("_id"=>new MongoId($id)), 
+                            array('$set' => array('gamification' => $gamification)),
+                            array("upsert" => true));
+    }
+
+	/**
+     * set the points of a person
+     * @param type $id : is the mongoId of the person
+     * @return nothing
+     */
+    public static function incrementUser($id, $action){
+    	if($id != "" && $action != ""){
+    		if(defined("self::POINTS_".strtoupper($action))){
+				$toAdd = constant("self::POINTS_".strtoupper($action));
+    		
+		        PHDB::update(Person::COLLECTION,
+	                            array("_id"=>new MongoId($id)), 
+	                            array('$inc' => 
+	                            	array(
+	                            		'gamification.actions.'.$action => $toAdd,
+	                            		'gamification.actions.total' => $toAdd,
+	                            		'gamification.total' => $toAdd
+	                            	)
+	                            )
+	            );
+		    }
+    	}
+    }
+
+    
 }
 ?>

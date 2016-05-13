@@ -36,6 +36,7 @@ class Person {
 	    "gpplusAccount" => array("name" => "socialNetwork.googleplus"),
 	    "gitHubAccount" => array("name" => "socialNetwork.github"),
 	    "skypeAccount" => array("name" => "socialNetwork.skype"),
+	    "telegramAccount" => array("name" => "socialNetwork.telegram"),
 	    "bgClass" => array("name" => "preferences.bgClass"),
 	    "bgUrl" => array("name" => "preferences.bgUrl"),
 	    "roles" => array("name" => "roles"),
@@ -653,9 +654,12 @@ class Person {
 		if ($dataFieldName == "tags") 
 			$personFieldValue = Tags::filterAndSaveNewTags($personFieldValue);
 
+
 		if ( ($personFieldName == "mobile"|| $personFieldName == "fixe" || $personFieldName == "fax") && $personFieldValue ==null  ) 
 			$personFieldValue = array();
 
+		error_log($dataFieldName);
+		
 		//address
 		$user = null;
 		$thisUser = self::getById($personId);
@@ -694,6 +698,13 @@ class Person {
 			$newMongoDate = new MongoDate($dt->getTimestamp());
 			$set = array($dataFieldName => $newMongoDate);
 		} 
+		else if($dataFieldName == "socialNetwork.telegram") {
+			if(strpos($personFieldValue, "http")==false || strpos($personFieldValue, "http")>0) 
+				if($personFieldValue != "")
+					$personFieldValue = "https://web.telegram.org/#/im?p=@".$personFieldValue;
+
+			$set = array($dataFieldName => $personFieldValue);
+		}
 		else {
 			$set = array($dataFieldName => $personFieldValue);	
 			if ( $personFieldName == "bgClass") {
@@ -796,6 +807,45 @@ class Person {
 	  				$actionRoom = ActionRoom::getById( $entry['survey'] );
 	  				$actionRooms[ $entry['survey'] ] = $actionRoom;
 	  			}
+	  		}
+	  	}
+
+	  	return array( "rooms"	=> $actionRooms , 
+	  				  "actions" => $actions );
+	}
+
+	/**
+	 * get actionRooms for a certain type and it's actions by personId
+	 * @param type $uid : is the mongoId (String) of the person
+	 * @param type $type : is the type of the parent element
+	 * @param type $id : is the mongoId (String) of the parent Element
+	 * @return person document as in db
+	*/
+	public static function getActionRoomsByPersonIdByType($uid,$type,$id) 
+	{
+		if(isset($type))
+        	$where["parentType"] = $type;
+        if(isset($id))
+        	$where["parentId"] = $id;
+
+        $actionRooms = ActionRoom::getWhereSortLimit( $where, array("date"=>1), 15);
+
+	  	$actions = array();
+	  	$person = self::getById($uid);
+
+	  	if (empty($person)) {
+            throw new CTKException("The person id is unkown : contact your admin");
+        }
+
+	  	if ( isset($person) && isset($person["actions"]) && isset($person["actions"]["surveys"])) 
+	  	{
+	  		foreach ( $person["actions"]["surveys"] as $entryId => $action) 
+	  		{
+	  			$entry = Survey::getById( $entryId );
+	  			if( isset( $entry['survey'] ) && isset( $actionRooms[ $entry['survey'] ] ) ){
+		  			$entry ['action'] = $action;
+		  			$actions[ $entryId ] = $entry;
+		  		}
 	  		}
 	  	}
 

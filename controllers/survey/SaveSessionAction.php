@@ -10,6 +10,7 @@ class SaveSessionAction extends CAction
 {
     public function run()
     {
+        error_log("saveSession");
         $res = array();
         if( Yii::app()->session["userId"] )
         {
@@ -37,6 +38,7 @@ class SaveSessionAction extends CAction
                 $entryInfos['organizerType'] = $organizerType;
                 if( isset($_POST['survey']) ){
                     $entryInfos['survey'] = $_POST['survey'];
+                    $res['parentId'] = $_POST['survey'];
                     //this might not be necessary , since the information is on the parent survey
                     $surveyRoom = PHDB::findOne (Survey::PARENT_COLLECTION, array( "_id" => new MongoId($_POST['survey']) ) );
                     if( isset( $surveyRoom["parentType"] ) && isset($_POST['parentType']) ) 
@@ -53,35 +55,29 @@ class SaveSessionAction extends CAction
                     $entryInfos['tags'] = $_POST['tags'];
                 if( isset($_POST['cp']) )
                     $entryInfos['cp'] = explode(",",$_POST['cp']);
-                if( isset($_POST['urls']) && count($_POST['urls']) )
+                if( isset($_POST['urls']) && count($_POST['urls'])>0 )
                     $entryInfos['urls'] = $_POST['urls'];
-                if( isset($_POST['dateEnd']) && count($_POST['dateEnd']) )
+                if( isset($_POST['dateEnd']) && $_POST['dateEnd'] != "" )
                     $entryInfos['dateEnd'] = strtotime( str_replace("/", "-", $_POST['dateEnd']) );
 
                 $entryInfos['created'] = time();
-                //specific application routines
-                if( isset( $_POST["app"] ) )
-                {
-                    $appKey = $_POST["app"];
-                    if($app = PHDB::findOne (PHType::TYPE_APPLICATIONS,  array( "key"=> $appKey ) ))
-                    {
-                        //when registration is done for an application it must be registered
-                    	$entryInfos['applications'] = array( $appKey => array( "usertype"=> (isset($_POST['type']) ) ? $_POST['type']:$_POST['app']  ));
-                        //check for application specifics defined in DBs application entry
-                    	if( isset( $app["moderation"] ) ){
-                    		$newInfos['applications'][$appKey][Survey::STATUS_CLEARED] = false;
-                            //TODO : set a Notification for admin moderation 
-                        }
-                        $res['applicationExist'] = true;
-                    }else
-                        $res['applicationExist'] = false;
-                }
-
-                $result = PHDB::updateWithOptions( Survey::COLLECTION,  array( "name" => $name ), 
-                                                   array('$set' => $entryInfos ) ,
-                                                   array('upsert' => true ) );
                 
-                $surveyId = PHDB::getIdFromUpsertResult($result);
+
+                $where = array();
+                if( isset( $_POST['id'] ) ){
+                    $where["_id"] = new MongoId($_POST['id']);
+                    $result = PHDB::update( Survey::COLLECTION,  $where, 
+                                                   array('$set' => $entryInfos ));
+                    $surveyId = $_POST['id'];
+                } else {
+                    $surveyId = new MongoId();
+                    $entryInfos["_id"] = $surveyId;
+                    $result = PHDB::insert( Survey::COLLECTION,$entryInfos );
+                }
+                
+                /*$result = PHDB::updateWithOptions( Survey::COLLECTION,  $where, 
+                                                   array('$set' => $entryInfos ) ,
+                                                   array('upsert' => true ) ); */
                 //Save the comment options
                 if (@$_POST["commentOptions"]) {
                     Comment::saveCommentOptions( $surveyId ,Survey::COLLECTION, $_POST["commentOptions"]);
@@ -90,6 +86,9 @@ class SaveSessionAction extends CAction
                 $res['result'] = true;
                 $res['msg'] = "surveySaved";
                 $res['surveyId'] = $surveyId;
+
+                //Notify Element participants 
+                Notification::actionOnPerson ( ActStr::VERB_ADD_PROPOSAL, ActStr::ICON_ADD, "", array( "type" => Survey::COLLECTION , "id" => $surveyId ));
                 
             } else
                 $res = array('result' => false , 'msg'=>"user doen't exist");

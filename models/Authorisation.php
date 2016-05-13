@@ -219,6 +219,21 @@ class Authorisation {
        	} 
        	return $res;
     }
+    /**
+     * Return true if the user is member of the event
+     * @param String the id of the user
+     * @param String the id of the event
+     * @return array of event (simple)
+     */
+    public static function isEventMember($userId, $eventId) {
+        $res = false;
+        
+        //Get the members of the event : if there is no member then it's a new organization
+        //We are in a creation process
+        $eventMembers = Event::getAttendeesByEventId($eventId);
+        $res = array_key_exists((string)$userId, $eventMembers);    
+        return $res;
+    }
 
     /**
      * List all the event the userId is adminOf
@@ -313,6 +328,22 @@ class Authorisation {
        		$res=true;
        	} 
        	return $res;
+    }
+
+    /**
+     * Return true if the user is member of the project
+     * @param String the id of the user
+     * @param String the id of the project
+     * @return array of Project (simple)
+     */
+    public static function isProjectMember($userId, $projectId) {
+        $res = false;
+        
+        //Get the members of the project : if there is no member then it's a new organization
+        //We are in a creation process
+        $projectMembers = Project::getContributorsByProjectId($projectId);
+        $res = array_key_exists((string)$userId, $projectMembers);    
+        return $res;
     }
     
 	public static function listProjectsIamAdminOf($userId) {
@@ -475,12 +506,9 @@ class Authorisation {
                 $res = true ;
             if(self::isSourceAdmin($itemId, $type, $userId) && $res==false)
                 $res = true ; 
-
     	} else if($type == Person::COLLECTION) {
             if($userId==$itemId || Role::isSuperAdmin(Role::getRolesUserId($userId)) == true )
                 $res = true;
-            else
-                $res = false ;
     	} else if($type == Survey::COLLECTION) {
             $res = Authorisation::canEditEntry($userId, $itemId);
         }

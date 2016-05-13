@@ -9,7 +9,8 @@ class Survey
 
 	const COLLECTION = "surveys";
 	const PARENT_COLLECTION = "actionRooms";
-
+	const CONTROLLER = "survey";
+	
 	public static function getById($id) {
 		$survey = PHDB::findOneById( self::COLLECTION ,$id );
 		return $survey;
@@ -65,12 +66,9 @@ class Survey
      	{ 
      		if( $survey = PHDB::findOne( PHType::TYPE_SURVEYS, array("_id"=>new MongoId($params["survey"])) ) ) 
      		{
-	     		if(Citoyen::isAppAdmin( Yii::app()->session["userId"] , $params["app"] ))
+	     		if(Person::isAppAdmin( Yii::app()->session["userId"] , $params["app"] ))
 	     		{
 			     	
-			     	/*if( isset($survey["applications"][$params["app"]] ))
-			     	{*/
-
 	     			//first remove all children 
 			     	$count = PHDB::count( PHType::TYPE_SURVEYS , array("survey" => $params["survey"]) );
 			     	if( $count > 0){
@@ -83,9 +81,6 @@ class Survey
 	     			$res["msg"] = "Deleted";
 	     			$res["result"] = true;
 
-			     	/*} else {
-			     		$res["msg"] = "Nothing to clear on this entry";
-			     	}*/
 			     } else 
 			     	$res["msg"] = "restrictedAccess";
 		     } else

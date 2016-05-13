@@ -215,12 +215,25 @@ class IndexAction extends CAction
 			);
 		}
 		
+		//Exclude => If there is more than 5 reportAbuse
+		$where = array_merge($where,  array('$or' => array(
+												array("reportAbuseCount" => array('$lt' => 5)),
+												array("reportAbuseCount" => array('$exists'=>0))
+											))
+		);
+
+		//Exclude => If isAnAbuse
+		$where = array_merge($where,  array(
+												'isAnAbuse' => array('$ne' => true)
+											)
+		);
+
 		$news= News::getNewsForObjectId($where,array("created"=>-1),$type);
 		// Sort news order by created 
 		$news = News::sortNews($news, array('created'=>SORT_DESC));
         //TODO : reorganise by created date
 		$params["news"] = $news; 
-		$params["tags"] = Tags::getActiveTags();
+		$params["authorizedToStock"]= Document::authorizedToStock($id, $type,Document::DOC_TYPE_IMAGE);			$params["tags"] = Tags::getActiveTags();
 		$params["contextParentType"] = $type; 
 		$params["contextParentId"] = $id;
 		$params["userCP"] = Yii::app()->session['userCP'];
