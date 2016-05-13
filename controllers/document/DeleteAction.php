@@ -5,6 +5,8 @@ class DeleteAction extends CAction {
 	public function run($dir,$type) {
 		if ($_POST["path"]=="communevent"){
 			Document::removeDocumentCommuneventByObjId($_POST["docId"]);
+			if(@$_POST["source"] && $_POST["source"]=="gallery")
+				News::removeNewsByImageId($_POST["docId"]);
 			echo json_encode(array('result'=>true, "msg" => Yii::t("document","Image deleted")));
 		} 
 		else {
