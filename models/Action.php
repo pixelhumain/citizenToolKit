@@ -154,7 +154,7 @@ class Action
    */
     public static function isUserFollowing( $value, $actionType )
     {
-        return ( isset($value[ $actionType ]) && is_array($value[ $actionType ]) && in_array(Yii::app()->session["userId"], $value[ $actionType ]) );
+        return ( isset($value[ $actionType ]) && is_array($value[ $actionType ]) && array_key_exists(Yii::app()->session["userId"], $value[ $actionType ]) );
     }
 
     /**
