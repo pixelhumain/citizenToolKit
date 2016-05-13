@@ -26,6 +26,9 @@ class Person {
 	    "geo" => array("name" => "geo"),
 	    "geoPosition" => array("name" => "geoPosition"),
 	    "telephone" => array("name" => "telephone"),
+	    "mobile" => array("name" => "telephone.mobile"),
+	    "fixe" => array("name" => "telephone.fixe"),
+	    "fax" => array("name" => "telephone.fax"),
 	    "tags" => array("name" => "tags"),
 	    "shortDescription" => array("name" => "shortDescription"),
 	    "facebookAccount" => array("name" => "socialNetwork.facebook"),
@@ -649,6 +652,9 @@ class Person {
 		//Tags
 		if ($dataFieldName == "tags") 
 			$personFieldValue = Tags::filterAndSaveNewTags($personFieldValue);
+
+		if ( ($personFieldName == "mobile"|| $personFieldName == "fixe" || $personFieldName == "fax") && $personFieldValue ==null  ) 
+			$personFieldValue = array();
 
 		//address
 		$user = null;
