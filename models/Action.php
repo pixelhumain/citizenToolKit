@@ -63,8 +63,8 @@ class Action
 	                $details = array_merge($details, array('date' => new MongoDate(time()))) ; 
                 else 
                 	$details = array('date' => new MongoDate(time()));
-                $mapUser[ self::NODE_ACTIONS.".".$collection.".".$action.".".(string)$element["_id"] ] = $details ;
-               
+                //$mapUser[ self::NODE_ACTIONS.".".$collection.".".$action.".".(string)$element["_id"] ] = $details ;
+                $mapUser[self::NODE_ACTIONS.".".$collection.".".(string)$element["_id"].".".$action ] = $action ;
                 //update the user table => adds or removes an action
                 PHDB::update ( Person::COLLECTION , array( "_id" => $user["_id"]), 
                                                     array( $dbMethod => $mapUser));
