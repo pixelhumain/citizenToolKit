@@ -20,8 +20,10 @@ class ActionRoom {
 	 * @return array Document of the action room
 	 */
 	public static function getById($id) {
-	  	$actionRoom = PHDB::findOne( self::COLLECTION,array("_id"=>new MongoId($id)));
-	  	return $actionRoom;
+	  	return PHDB::findOne( self::COLLECTION,array("_id"=>new MongoId($id)));
+	}
+	public static function getActionById($id) {
+	  	return PHDB::findOne( self::COLLECTION_ACTIONS,array("_id"=>new MongoId($id)));
 	}
 
 	public static function getWhereSortLimit($params,$sort,$limit=1) {
@@ -30,12 +32,11 @@ class ActionRoom {
 
 	public static function getSingleActionRoomByOrgaParent($idOrga){
 		error_log("idOrga " . $idOrga);
-		$actionRoom = PHDB::findOne( self::COLLECTION, 
+		return PHDB::findOne( self::COLLECTION, 
 										array("parentId"=> $idOrga, 
 											  //"parentType" => "organizations",
 											  //"type" => "vote"
 											  ));
-	  	return $actionRoom;
 	}
 
 	public static function canParticipate($userId,$id=null,$type=null) {

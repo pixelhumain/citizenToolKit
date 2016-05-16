@@ -13,6 +13,7 @@ class Element {
 	    	City::COLLECTION => City::CONTROLLER,
 	    	Survey::COLLECTION => Survey::CONTROLLER,
 	    	ActionRoom::COLLECTION => ActionRoom::CONTROLLER,
+	    	ActionRoom::COLLECTION_ACTIONS => ActionRoom::CONTROLLER,
 	    );
 
 	    
