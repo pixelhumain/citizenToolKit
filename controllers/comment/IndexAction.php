@@ -14,7 +14,7 @@ class IndexAction extends CAction
         
         $params['options'] = $res["options"];
         $params['canComment'] = $res["canComment"];
-        $params["contextType"] = "$type";
+        $params["contextType"] = $type;
         $params["nbComment"] = $res["nbComment"];
 
         if($type == Event::COLLECTION) {
@@ -29,7 +29,7 @@ class IndexAction extends CAction
             $params["context"] = News::getById($id);
         } else if($type == Survey::COLLECTION) {
             $params["context"] = Survey::getById($id);
-        } else if($type == ActionRoom::COLLECTION) {
+        } else if($type == ActionRoom::COLLECTION || $type == ActionRoom::TYPE_ACTIONS) {
             $actionRoom = ActionRoom::getById($id);
             $params["context"] = $actionRoom;
             if($actionRoom["parentType"] == Person::CONTROLLER) 

@@ -7,7 +7,7 @@ class EntriesAction extends CAction
       $where = array( "type"=>Survey::TYPE_ENTRY, "survey"=>$id );
 
       //check if is moderated in which the proper filter will be added to the where clause
-      $moduleId = "pppm";//$this->moduleId
+      $moduleId = "communecter";//$this->moduleId
       $app = PHDB::findOne (PHType::TYPE_APPLICATIONS, array("key" => $moduleId  ) );
       $isModerator = Survey::isModerator(Yii::app()->session["userId"], $moduleId);
 
@@ -20,10 +20,7 @@ class EntriesAction extends CAction
 
       $uniqueVoters = PHDB::count( Person::COLLECTION, array("applications.survey"=>array('$exists'=>true)) );
 
-      $controller->title = "Sondages : ".$survey["name"] ;
-      $controller->subTitle = "Nombres de votants inscrit : ".$uniqueVoters;
-      $controller->pageTitle = "Communecter - Sondages";
-      $surveyLink = ( isset( $survey["parentType"] ) && isset( $survey["parentId"] ) ) ? Yii::app()->createUrl("/communecter/rooms/index/type/".$survey["parentType"]."/id/".$survey["parentId"]) : Yii::app()->createUrl("/communecter/rooms"); 
+
       
       $parentType = ($survey["parentType"] == "organizations") ? "organization" : "";
       if( $parentType == "" )

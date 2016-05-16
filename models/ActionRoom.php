@@ -10,6 +10,10 @@ class ActionRoom {
 	const TYPE_VOTE 		= "vote"; //vote
 	const TYPE_DISTRIBUTE	= "distribute"; //vote par distribution sur des proposition
 	
+	const TYPE_ACTIONS 		= "actions"; //things to do 
+	const TYPE_ACTION 		= "action"; //things to do 
+	const COLLECTION_ACTIONS= "actions";
+	const ACTIONS_PARENT	= "rooms";
 	/**
 	 * get a action room By Id
 	 * @param String $id : is the mongoId of the action room
@@ -42,4 +46,12 @@ class ActionRoom {
             $showAddBtn = true;
 	  	return $showAddBtn;
 	}
+
+	public static function isModerator($userId,$app) {
+     	$app = PHDB::findOne(PHType::TYPE_APPLICATIONS, array("key"=> $app ) );
+     	$res = false;
+     	if( isset($app["moderator"] ))
+    		$res = ( isset( $userId ) && in_array(Yii::app()->session["userId"], $app["moderator"]) ) ? true : false;
+    	return $res;
+     }
 }
