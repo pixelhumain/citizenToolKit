@@ -43,8 +43,8 @@ class Document {
 		$listDocuments = PHDB::findAndSort( self::COLLECTION,$params, $sort);
 		return $listDocuments;
 	}
-
-	protected static function listMyDocumentByContentKey($userId, $contentKey, $docType = null, $sort=null){	
+	// TODO BOUBOULE - TO DELETE ONLY ONE DEPENDENCE WITH getListDocumentsByContentKey
+	protected static function listMyDocumentByContentKey($userId, $contentKey, $docType = null, $sort=null)	{	
 		$params = array("id"=> $userId,
 						"contentKey" => new MongoRegex("/".$contentKey."/i"));
 		
@@ -81,7 +81,7 @@ class Document {
 	  		"doctype" => Document::getDoctype($params['name']),	
 	  		"author" => $params['author'],
 	  		"name" => $params['name'],
-	  		"size" => $params['size'],
+	  		"size" => (int) $params['size'],
 	  		'created' => time()
 	    );
 
@@ -99,7 +99,7 @@ class Document {
 	    if (substr_count(@$new["contentKey"], self::IMG_SLIDER)) {
 	    	self::generateAlbumImages($new, self::GENERATED_IMAGES_FOLDER);
 	    }
-	    return array("result"=>true, "msg"=>Yii::t('document','Document saved successfully',null,Yii::app()->controller->module->id), "id"=>$new["_id"],"name"=>$new["name"]);	
+	    return array("result"=>true, "msg"=>Yii::t('document','Document saved successfully'), "id"=>$new["_id"],"name"=>$new["name"]);	
 	}
 
 	/**
@@ -125,7 +125,10 @@ class Document {
 		return $doctype;
 	}
 
-	/**
+	/** TODO BOUBOULE 
+	*	TO DELETE --- NOT CORRECT BECAUSE OF CONTENTKEY WHICH IS A COMPLEX SEARCH WHEN IT COULD SIMPLE
+	* 	Still present in city/detailAction, and survey/entryAction then impact on the rest of documents !!!
+	* END TODO
 	 * get the list of documents depending on the id of the owner, the contentKey and the docType
 	 * @param String $id The id of the owner of the image could be an organization, an event, a person, a project... 
 	 * @param String $contentKey The content key is composed with the controllerId, the action where the document is used and a type
@@ -175,7 +178,92 @@ class Document {
 
 		return $listDocuments;
 	}
+	
+	protected static function listMyDocumentByIdAndType($id, $type, $contentKey= null, $docType = null, $sort=null)	{	
+		$params = array("id"=> $id,
+						"type" => $type);
+		if (isset($contentKey) && $contentKey != null) 
+			$params["contentKey"] = $contentKey;
+		if (isset($docType)) 
+			$params["doctype"] = $docType;
+		$listDocuments = PHDB::findAndSort( self::COLLECTION,$params, $sort);
+		return $listDocuments;
+	}
 
+	public static function getListDocumentsByIdAndType($id, $type, $contentKey=null, $docType=null, $limit=null){
+		$listDocuments = array();
+		$sort = array( 'created' => -1 );
+		//$explodeContentKey = explode(".", $contentKey);
+		$listDocumentsofType = Document::listMyDocumentByIdAndType($id, $type, $contentKey, $docType, $sort);
+		foreach ($listDocumentsofType as $key => $value) {
+			$toPush = false;
+			if(isset($value["contentKey"]) && $value["contentKey"] != ""){
+				$currentContentKey = $value["contentKey"];
+				if (! isset($limit)) {
+					$toPush = true;
+				} else {
+					if (isset($limit[$currentContentKey])) {
+						$limitByType = $limit[$currentContentKey];
+						$actuelNbCurrentType = isset($listDocuments[$currentContentKey]) ? count($listDocuments[$currentContentKey]) : 0;
+						if ($actuelNbCurrentType < $limitByType)
+							$toPush = true;
+					} else {
+						$toPush = true;
+					}
+				}
+			} else {
+					$toPush = true;
+			}
+			if ($toPush) {
+				$imageUrl = Document::getDocumentUrl($value);
+				if (! isset($listDocuments[$currentContentKey])) {
+					$listDocuments[$currentContentKey] = array();
+				} 
+				$value['imageUrl'] = $imageUrl;
+				$value['size'] = self::getHumanFileSize($value["size"]);
+				array_push($listDocuments[$currentContentKey], $value);
+			}
+		}
+		return $listDocuments;
+	}
+	/** author clement.damiens@gmail.com
+	 * Controle space storage of each entity
+	 * @param string $id The id of the owner of document
+	 * @param string $type The type of the owner of document
+	 * @param string $docType The kind of document research
+	 * @return size of storage used to stock
+	 */
+	public static function storageSpaceByIdAndType($id, $type,$docType){
+		$params = array("id"=> $id,
+						"type" => $type);
+		if (isset($docType)) 
+			$params["doctype"] = $docType;
+		$c = Yii::app()->mongodb->selectCollection(self::COLLECTION);
+		$result = $c->aggregate( array(
+						array('$match' => $params),
+						array('$group' => array(
+							'_id' => $params,
+							'sumDocSpace' => array('$sum' => '$size')))
+						));
+		if (@$result["ok"]) 
+			$spaceUsed = @$result["result"][0]["sumDocSpace"];
+		return $spaceUsed;
+
+	}
+	/** author clement.damiens@gmail.com
+	 * Return boolean if entity is authorized to stock
+	 * @param string $id The id of the owner of document
+	 * @param string $type The type of the owner of document
+	 * @param string $docType The kind of document research
+	 * @return size of storage used to stock
+	 */
+	public static function authorizedToStock($id, $type,$docType){
+		$storageSpace = self::storageSpaceByIdAndType($id, $type,self::DOC_TYPE_IMAGE);
+		$authorizedToStock=true;
+		if($storageSpace > (20*1048576))
+			$authorizedToStock=false;
+		return $authorizedToStock;
+	}
 	/**
 	 * @See getListDocumentsByContentKey. 
 	 * @return array Return only the Url of the documents ordered by contentkey type
@@ -200,6 +288,16 @@ class Document {
 	*/
 	public static function removeDocumentById($id){
 		return PHDB::remove(self::COLLECTION, array("_id"=>new MongoId($id)));
+	}
+	/**
+	* remove a document from communevent by objid
+	* @return
+	*/
+	public static function removeDocumentCommuneventByObjId($id){
+		//Suppression de l'image dans la collection cfs.photosimg.filerecord
+		PHDB::remove("cfs.photosimg.filerecord", array("_id"=>$id));
+		//Suppression du document
+		return PHDB::remove(self::COLLECTION, array("objId"=>$id));
 	}
 
 	/**
@@ -304,7 +402,12 @@ class Document {
     }
 
     public static function getDocumentFolderUrl($document){
-    	return "/".Yii::app()->params['uploadUrl'].$document["moduleId"]."/".$document["folder"];
+	    if ($document["moduleId"]=="communevent")
+		    $folderUrl = Yii::app()->params['communeventUrl'];
+		else
+			$folderUrl = "/".Yii::app()->params['uploadUrl'].$document["moduleId"];
+    	$folderUrl .= "/".$document["folder"];
+    	return $folderUrl;
     }
 
     public static function getDocumentPath($document){
@@ -364,8 +467,8 @@ class Document {
     	$folder = $document["folder"];
 		if($folderAlbum==self::GENERATED_IMAGES_FOLDER){
 			$destination='/'.self::GENERATED_IMAGES_FOLDER;
-			$maxWidth=150;
-			$maxHeight=150;
+			$maxWidth=200;
+			$maxHeight=200;
 			$quality=100;
 		} else{
 			$destination="";
@@ -384,7 +487,10 @@ class Document {
 		if ($width > $maxWidth || $height >  $maxHeight){
      		$imageUtils = new ImagesUtils($path);
     		$destPathThumb = $upload_dir."/".$document["name"];
-    		$imageUtils->resizePropertionalyImage($maxWidth,$maxHeight)->save($destPathThumb,$quality);
+    		if($folderAlbum==self::GENERATED_IMAGES_FOLDER)
+    			$imageUtils->resizeImage($maxWidth,$maxHeight)->save($destPathThumb);
+    		else
+    			$imageUtils->resizePropertionalyImage($maxWidth,$maxHeight)->save($destPathThumb,$quality);
     	}
 	}
 	

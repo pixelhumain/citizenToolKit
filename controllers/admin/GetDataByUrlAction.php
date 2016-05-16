@@ -11,8 +11,6 @@ class GetDataByUrlAction extends CAction
         }catch (CTKException $e){
             $params["error"][] = $e->getMessage();
         }
-        
-
     	return Rest::json($params);   
     }
 }

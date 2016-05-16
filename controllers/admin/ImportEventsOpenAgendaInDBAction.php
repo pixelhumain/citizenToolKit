@@ -9,10 +9,15 @@ class ImportEventsOpenAgendaInDBAction extends CAction
         	foreach (json_decode($_POST["jsonEventsAdd"], true) as $key => $eventOpenAgenda) {
         		try{
                     $event = Event::createEventsFromOpenAgenda($eventOpenAgenda);
-                    $params["result"][] = Event::saveEventFromOpenAgenda($event, $controller->moduleId);
+                    $resEvent = Event::saveEventFromOpenAgenda($event, $controller->moduleId) ;
+                    $eventGood["name"] = $resEvent["event"]["name"];
+                    $eventGood["msg"] = $resEvent["msg"];
+                    $params["result"][] = $eventGood;
                 }
                 catch (CTKException $e){
-                    $params["error"][] = $e->getMessage();
+                    $eventError["name"] = $eventOpenAgenda["title"];
+                    $eventError["msg"] = $e->getMessage();
+                    $params["error"][] = $eventError;
                 }
 
         	}
@@ -24,12 +29,17 @@ class ImportEventsOpenAgendaInDBAction extends CAction
                     $event = Event::getEventsOpenAgenda($eventOpenAgenda["uid"]);
                     $eventOpenAgenda = Event::createEventsFromOpenAgenda($eventOpenAgenda);
                     foreach ($event as $key => $value) {
-                        $params["result"][] = Event::updateEvent($value["_id"], $event, "5694ea2a94ef47ad1c8b456d");
+                        Event::updateEvent($value["_id"], $event, Yii::app()->params['idOpenAgenda']);
                     }
+                    $eventGood["name"] = $eventOpenAgenda["name"];
+                    $eventGood["msg"] = "L'événement a été mis a jours";
+                    $params["result"][] = $eventGood;
                     
                 }
                 catch (CTKException $e){
-                    $params["error"][] = $e->getMessage();
+                    $eventError["name"] = $eventOpenAgenda["name"];
+                    $eventError["msg"] = $e->getMessage();
+                    $params["error"][] = $eventError;
                 }
                 
             }

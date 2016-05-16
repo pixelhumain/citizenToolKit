@@ -9,7 +9,6 @@ class DetailAction extends CAction
     	$controller=$this->getController();
 		
         //get The person Id
-
         if (empty($id)) {
             if (empty(Yii::app()->session["userId"])) {
                 $controller->redirect(Yii::app()->homeUrl);
@@ -17,6 +16,10 @@ class DetailAction extends CAction
                 $id = Yii::app()->session["userId"];
             }
         }
+
+        //We update the points of the user 
+        Gamification::updateUser($id);
+        
         $me = ( $id == Yii::app()->session["userId"] ) ? true : false;
         $person = Person::getPublicData($id);
         $contentKeyBase = "Yii::app()->controller->id.".".dashboard";

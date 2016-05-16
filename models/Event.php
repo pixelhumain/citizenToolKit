@@ -21,6 +21,7 @@ class Event {
 	    "description" => array("name" => "description"),
 	    "shortDescription" => array("name" => "shortDescription"),
 	    "allDay" => array("name" => "allDay"),
+	    "modules" => array("name" => "modules"),
 	    "startDate" => array("name" => "startDate", "rules" => array("eventStartDate")),
 	    "endDate" => array("name" => "endDate", "rules" => array("eventEndDate"))
 	);
@@ -150,8 +151,8 @@ class Event {
 			throw new CTKException("The organizer does not exist. Please check the organizer.");
 		}*/
 
-		if(empty($event['startDate']) || empty($event['endDate'])) {
-			throw new CTKException("The start and end date of an event are required.");
+		if(empty($event['startDate']) ) { //|| empty($event['endDate'])
+			throw new CTKException("The start  date of an event are required.");
 		}
 		
 		if (! empty($event['allDay'])) {
@@ -751,7 +752,7 @@ class Event {
 					$params["contentKey"] = "profil";
 					$res2 = Document::save($params);
 					if($res2["result"] == false)
-						throw new CTKException("Impossible de save.");
+						throw new CTKException("Impossible de d'enregistrer le fichier.");
 
 				}else{
 					$msgErrorImage = "Impossible uploader le document." ; 
@@ -1166,8 +1167,8 @@ class Event {
 		} else {
 			$newEvent["creator"] = $creatorId;	
 		}*/
-		$newEvent["creator"] = "56eff58e94ef47451c7b23d6";
-		$newEvent["organizerId"] = "56eff58e94ef47451c7b23d6";
+		$newEvent["creator"] = Yii::app()->session['userId'];
+		$newEvent["organizerId"] = Yii::app()->session['userId'];
 		$newEvent["organizerType"] = Person::COLLECTION ;	
 		//Insert the event
 	    PHDB::insert( self::COLLECTION, $newEvent);

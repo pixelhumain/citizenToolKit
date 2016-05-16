@@ -2,6 +2,12 @@
 class News {
 
 	const COLLECTION = "news";
+	const CONTROLLER = "news";
+	const ICON = "fa-users";
+	const ICON_BIZ = "fa-industry";
+	const ICON_GROUP = "fa-circle-o";
+	const ICON_GOV = "fa-circle-o";
+	const COLOR = "#93C020";
 	/**
 	 * get an news By Id
 	 * @param type $id : is the mongoId of the news
@@ -160,6 +166,14 @@ class News {
 		return PHDB::remove(self::COLLECTION,array("_id"=>new MongoId($id)));
 	}
 	/**
+	 * delete a news in database from communevent with imageId
+	 * @param String $id : imageId in media.content to delete
+	*/
+
+	public static function removeNewsByImageId($imageId){
+		return PHDB::remove(self::COLLECTION,array("media.content.imageId"=>$imageId));
+	}
+	/**
 	 * update a news in database
 	 * @param String $newsId : 
 	 * @param string $name fields to update
@@ -200,6 +214,25 @@ class News {
 			        }
 			    }
 			    return $ret;
+	}
+
+	public static function getNewsToModerate($whereAdditional = null, $limit = 0) {
+		
+		$where = array(
+          "reportAbuse"=> array('$exists'=>1)
+          ,"isAnAbuse" => array('$exists'=>0)
+          ,"target.id" => array('$exists'=>1)
+          ,"target.type" => array('$exists'=>1)
+          ,"scope.type" => array('$exists'=>1)
+          //One news has to be moderated X times
+          ,"reportAbuseCount" => array('$gt' => 0)
+          //One moderator can't moderate 2 times a news
+          ,"moderate.".Yii::app()->session["userId"] => array('$exists'=>0)
+        );
+        if(count($whereAdditional)){
+        	$where = array_merge($where,$whereAdditional);
+        }
+        return PHDB::findAndSort(self::COLLECTION, $where, array("date" =>1), $limit);
 	}
 }
 ?>

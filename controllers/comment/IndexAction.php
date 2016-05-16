@@ -1,4 +1,4 @@
-<?php
+ <?php
 class IndexAction extends CAction
 {
     public function run($type, $id)
@@ -30,17 +30,33 @@ class IndexAction extends CAction
         } else if($type == Survey::COLLECTION) {
             $params["context"] = Survey::getById($id);
         } else if($type == ActionRoom::COLLECTION) {
-            $params["context"] = ActionRoom::getById($id);
+            $actionRoom = ActionRoom::getById($id);
+            $params["context"] = $actionRoom;
+            if($actionRoom["parentType"] == Person::CONTROLLER) 
+                $params["parent"] = Person::getById($actionRoom["parentId"]);   
+            if($actionRoom["parentType"] == Organization::COLLECTION) 
+                $params["parent"] = Organization::getById($actionRoom["parentId"]);   
+            if($actionRoom["parentType"] == Project::COLLECTION) 
+                $params["parent"] = Project::getById($actionRoom["parentId"]);   
+            $params["parentType"] = $actionRoom["parentType"];
+            $params["parentId"] = $actionRoom["parentId"];
         } else if($type == Need::COLLECTION) {
             $params["context"] = Need::getById($id);
         } else {
         	throw new CTKException("Error : the type is unknown ".$type);
         }
         
-		if(Yii::app()->request->isAjaxRequest)
-	        echo $controller->renderPartial("commentPod" , $params, true);
-	    else
-  			$controller->renderPartial("commentPod" , $params, true);
+		if(Yii::app()->request->isAjaxRequest){
+	        if($type != "actionRooms")
+                echo $controller->renderPartial("commentPod" , $params, true);
+            else
+                echo $controller->renderPartial("commentPodActionRooms" , $params, true);
+	    }else{
+            if($type != "actionRooms")
+                $controller->renderPartial("commentPod" , $params, true);
+            else
+                $controller->renderPartial("commentPodActionRooms" , $params, true);
+        }
     }
 
  

@@ -79,11 +79,12 @@ class Comment {
 		
 		$newComment["author"] = self::getCommentAuthor($newComment, $options);
 		$res = array("result"=>true, "msg"=>Yii::t("comment","The comment has been posted"), "newComment" => $newComment, "id"=>$newComment["_id"]);
-		if($comment["contextType"]=="news"){
+		$notificationContexts = array("news","surveys");
+		if( in_array( $comment["contextType"] , $notificationContexts) ){
 			Notification::actionOnPerson ( ActStr::VERB_COMMENT, ActStr::ICON_SHARE, "", array("type"=>$comment["contextType"],"id"=> $comment["contextId"]));
 		}
 		//Increment comment count (can have multiple comment by user)
-		$resAction = Action::addAction($userId , $comment["contextId"], $newComment["contextType"], Action::ACTION_COMMENT, false, true) ;
+		$resAction = Action::addAction($userId , $comment["contextId"], $comment["contextType"], Action::ACTION_COMMENT, false, true) ;
 		if (! $resAction["result"]) {
 			$res = array("result"=>false, "msg"=> Yii::t("comment","Something went really bad"));
 		}
@@ -128,8 +129,9 @@ class Comment {
 				$comment["replies"] = array();
 			}
 			$comment["author"] = self::getCommentAuthor($comment, $options);
+			
 			//Manage comment declared as abused
-			if (@$comment["status"] == self::STATUS_DELETED) {
+			if (@$comment["status"] == self::STATUS_DELETED || @$comment["status"] == self::STATUS_DECLARED_ABUSED) {
 				$comment["text"] = Yii::t("comment","This comment has been deleted because of his content.");
 			}
 			$commentTree[$commentId] = $comment;
@@ -246,7 +248,7 @@ class Comment {
 					"contextId" => $contextId, 
 					"contextType" => $contextType,
 					"status" => self::STATUS_DECLARED_ABUSED,
-					"reportAbuseCount" => array('$gt' => 0));
+					"reportAbuseCount" => array('$gte' => 0));
 		$sort = array("created" => -1);
 		$comments = PHDB::findAndSort(Comment::COLLECTION, $whereContext, $sort);
 		
@@ -362,5 +364,38 @@ class Comment {
     	return $res;
     }
 
+
+    /**
+	 * update a comment in database
+	 * @param String $commentId : 
+	 * @param string $name fields to update
+	 * @param String $value : new value of the field
+	 * @return array of result (result => boolean, msg => string)
+	 */
+	public static function updateField($commentId, $name, $value, $userId){
+		$set = array($name => $value);	
+		//update the project
+		PHDB::update( self::COLLECTION, array("_id" => new MongoId($commentId)), 
+		                          array('$set' => $set));
+	                  
+	    return array("result"=>true, "msg"=>Yii::t("common","Comment well updated"), "id"=>$commentId);
+	}
+
+	public static function getCommentsToModerate($whereAdditional = null, $limit = 0) {
+
+
+		$where = array( 
+			"reportAbuse"=> array('$exists'=>1)
+			,"moderate.isAnAbuse" => array('$exists'=>0)
+			//One news has to be moderated X times
+			,"reportAbuseCount" => array('$lt' => 5)
+			//One moderator can't moderate 2 times a news
+			,"moderate.".Yii::app()->session["userId"] => array('$exists'=>0)
+		);
+        if(count($whereAdditional)){
+        	$where = array_merge($where,$whereAdditional);
+        }
+        return PHDB::findAndSort(self::COLLECTION, $where, array("date" =>1), $limit);
+	}
 
 }

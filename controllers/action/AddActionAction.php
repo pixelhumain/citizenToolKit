@@ -10,12 +10,18 @@ class AddActionAction extends CAction
     {
         //User must be login to do action
         $userId = Yii::app()->session["userId"];
-        if ( Person::logguedAndValid() ) { 
-        		        if (@$_POST["reason"])
-	        	$reason=$_POST["reason"];
-	        else
-	        	$reason="";
-	        $res = Action::addAction($userId , $_POST['id'], $_POST['collection'],$_POST['action'], isset($_POST['unset']), isset($_POST["multiple"]), $reason );        
+        if ( Person::logguedAndValid() ) {
+            $detail = null;
+            //Reason
+        	if (@$_POST["reason"]){
+	        	$detail['reason']=$_POST["reason"];
+            }
+            //Comment
+            if (@$_POST["comment"]){
+                $detail['comment']=$_POST["comment"];
+            }
+
+	        $res = Action::addAction($userId , $_POST['id'], $_POST['collection'],$_POST['action'], isset($_POST['unset']), isset($_POST["multiple"]), $detail );        
         } else {
         	$res = array("result" => false, "msg" => "Please Log in order to vote ! ");
         }
