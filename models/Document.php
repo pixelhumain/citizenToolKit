@@ -196,7 +196,6 @@ class Document {
 	public static function getListDocumentsByIdAndType($id, $type, $contentKey=null, $docType=null, $limit=null){
 		$listDocuments = array();
 		$sort = array( 'created' => -1 );
-		//$explodeContentKey = explode(".", $contentKey);
 		$listDocumentsofType = Document::listMyDocumentByIdAndType($id, $type, $contentKey, $docType, $sort);
 		foreach ($listDocumentsofType as $key => $value) {
 			$toPush = false;
@@ -218,7 +217,15 @@ class Document {
 					$toPush = true;
 			}
 			if ($toPush) {
-				$imageUrl = Document::getDocumentUrl($value);
+				if ($document["moduleId"]=="communevent"){
+					$pathImage = Yii::app()->params['communeventBaseUrl']."/".$document["folder"];
+					
+				}
+				else{
+					$imageUrl = "/".Yii::app()->params['uploadUrl'].$document["moduleId"]."/".$document["folder"];
+				}
+				$imageUrl .= "/".$document["name"];
+
 				if (! isset($listDocuments[$currentContentKey])) {
 					$listDocuments[$currentContentKey] = array();
 				} 
@@ -293,7 +300,7 @@ class Document {
 		return PHDB::remove(self::COLLECTION, array("_id"=>new MongoId($id)));
 	}
 	/**
-	* remove a document from communevent by objid
+	* remove a document from communevent by objId
 	* @return
 	*/
 	public static function removeDocumentCommuneventByObjId($id){
