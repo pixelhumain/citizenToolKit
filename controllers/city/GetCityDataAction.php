@@ -6,7 +6,7 @@ class GetCityDataAction extends CAction
 	public function run($insee, $typeData, $typeZone=null, $option=null)
     {
         
-
+        $insee = 59350;
     	$where = array("insee"=>$insee, $typeData => array( '$exists' => 1 ));
 
         if(isset($_POST['optionData']))
@@ -36,10 +36,14 @@ class GetCityDataAction extends CAction
         }	
     	else{
     			$cityData = City::getWhereData($where, $fields);
+                // print_r($cityData);
     			$where = array("insee" => $insee);
     			$fields = array("name");
                 //var_dump($cityData);
-    			$city = City::getWhere($where, $fields);
+                // print_r($where);
+    			$city = City::getWhere(array("insee"=>'59350'), $fields);
+                // print_r($city);
+                // die();
     			foreach ($city as $key => $value) {
     				$name = $value["name"];
     			}
