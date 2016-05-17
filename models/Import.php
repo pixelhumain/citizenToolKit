@@ -1983,7 +1983,7 @@ class Import
             
     }
 
-    $arrayMicroformat = self::getMicroformat($post['idMicroformat']);
+   /* $arrayMicroformat = self::getMicroformat($post['idMicroformat']);
 
         if($post['idMapping'] != "-1"){
             $where = array("_id" => new MongoId($post['idMapping']));
@@ -2009,6 +2009,6 @@ class Import
         }
 
 
-    }
+    }*/
 }
 
