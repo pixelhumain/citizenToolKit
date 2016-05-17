@@ -17,7 +17,7 @@ class SaveActionAction extends CAction
             $email = $_POST["email"];
             $name  = $_POST['name'];
 
-            //Organizer of the survey
+            //Organizer of the action
             if ($_POST['organizer'] == "currentUser") {
                 $organizerId = Yii::app()->session["userId"];
                 $organizerType = Person::COLLECTION;
@@ -36,16 +36,16 @@ class SaveActionAction extends CAction
                 $entryInfos['name'] = (string)$name;
                 $entryInfos['organizerId'] = $organizerId;
                 $entryInfos['organizerType'] = $organizerType;
-                if( isset($_POST['room']) ){
+                if( isset($_POST['room']) )
+                {
                     $entryInfos['room'] = $_POST['room'];
                     $res['parentId'] = $_POST['room'];
-                    //this might not be necessary , since the information is on the parent survey
+                    //this might not be necessary , since the information is on the parent action
                     $room = PHDB::findOne (ActionRoom::COLLECTION, array( "_id" => new MongoId($_POST['room']) ) );
-                    if( isset( $room["parentType"] ) && isset($_POST['parentType']) ) 
-                        $entryInfos['parentType'] = $_POST['parentType'];
-                    if( isset( $room["parentId"] ) && isset($_POST['parentId']) ) 
-                        $entryInfos['parentId'] = $_POST['parentId'];
-                        
+                    if( isset( $room["parentType"] ) ) 
+                        $entryInfos['parentType'] = $room['parentType'];
+                    if( isset( $room["parentId"] )  ) 
+                        $entryInfos['parentId'] = $room['parentId'];
                 }
                 if( isset($_POST['message']) )
                     $entryInfos['message'] = (string)$_POST['message'];

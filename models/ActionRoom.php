@@ -14,6 +14,12 @@ class ActionRoom {
 	const TYPE_ACTION 		= "action"; //things to do 
 	const COLLECTION_ACTIONS= "actions";
 	const ACTIONS_PARENT	= "rooms";
+
+	//ACTION STATES
+	const ACTION_TODO = "todo";
+	const ACTION_INPROGRESS = "inprogress";
+	const ACTION_LATE = "late";	
+	const ACTION_CLOSED = "closed";	
 	/**
 	 * get a action room By Id
 	 * @param String $id : is the mongoId of the action room
@@ -54,5 +60,76 @@ class ActionRoom {
      	if( isset($app["moderator"] ))
     		$res = ( isset( $userId ) && in_array(Yii::app()->session["userId"], $app["moderator"]) ) ? true : false;
     	return $res;
+     }
+
+     public static function deleteAction($params){
+     	$res = array( "result" => false );
+     	if( isset( Yii::app()->session["userId"] ))
+     	{ 
+     		if( $survey = PHDB::findOne( PHType::TYPE_SURVEYS, array("_id"=>new MongoId($params["survey"])) ) ) 
+     		{
+	     		if(Person::isAppAdmin( Yii::app()->session["userId"] , $params["app"] ))
+	     		{
+			     	
+	     			//first remove all children 
+			     	$count = PHDB::count( PHType::TYPE_SURVEYS , array("survey" => $params["survey"]) );
+			     	if( $count > 0){
+				     	PHDB::remove( PHType::TYPE_SURVEYS, array("survey"=>$params["survey"]));
+				     	$res["msg2"] = "Deleted ".$count." children entries" ;
+					}
+
+			     	//then remove the parent survey
+	     			PHDB::remove( PHType::TYPE_SURVEYS,array("_id"=>new MongoId($params["survey"])));
+	     			$res["msg"] = "Deleted";
+	     			$res["result"] = true;
+
+			     } else 
+			     	$res["msg"] = "restrictedAccess";
+		     } else
+		     	$res["msg"] = "SurveydoesntExist";
+	     } else 
+	     	$res["msg"] = "mustBeLoggued";
+		return $res;
+     }
+
+    public static function closeAction($params){
+     	$res = array( "result" => false );
+     	if( isset( Yii::app()->session["userId"] ))
+     	{ 
+     		if( $action = PHDB::findOne( self::COLLECTION_ACTIONS, array("_id"=>new MongoId($params["id"])) ) ) 
+     		{
+	     		if( Yii::app()->session["userEmail"] == $action["email"] ) 
+	     		{
+			     	//then remove the parent survey
+			     	$status = ( @$action["status"] == self::ACTION_CLOSED) ? self::ACTION_INPROGRESS : self::ACTION_CLOSED; 
+	     			PHDB::update( self::COLLECTION_ACTIONS,
+	     							array("_id" => $action["_id"]), 
+                          			array('$set' => array("status"=> $status )));
+	     			$res["result"] = true;
+			     } else 
+			     	$res["msg"] = "restrictedAccess";
+		     } else
+		     	$res["msg"] = "SurveydoesntExist";
+	     } else 
+	     	$res["msg"] = "mustBeLoggued";
+		return $res;
+    }
+
+    public static function assignMe($params){
+     	$res = array( "result" => false );
+     	if( isset( Yii::app()->session["userId"] ))
+     	{ 
+     		if( $action = PHDB::findOne( self::COLLECTION_ACTIONS, array("_id"=>new MongoId($params["id"])) ) ) 
+     		{
+	     		if( Yii::app()->session["userEmail"] == $action["email"] ) 
+	     		{
+			     	$res = Link::connect($params["id"], self::COLLECTION_ACTIONS,Yii::app()->session["userId"], Person::COLLECTION, Yii::app()->session["userId"], "contributors", true );
+			     } else 
+			     	$res["msg"] = "restrictedAccess";
+		     } else
+		     	$res["msg"] = "SurveydoesntExist";
+	     } else 
+	     	$res["msg"] = "mustBeLoggued";
+		return $res;
      }
 }

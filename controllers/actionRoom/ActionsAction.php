@@ -47,7 +47,7 @@ class ActionsAction extends CAction
                                              "isModerator"=>false,//$isModerator,
                                              "uniqueVoters"=>$uniqueVoters,
                                              "parent"=>$parent,
-                                             "surveyLoadByHash" => $roomLoadByHash
+                                             "surveyLoadByHash" => $roomLoadByHash,
                                               )  );
     }
 }
