@@ -192,7 +192,14 @@ class Document {
 		$listDocuments = PHDB::findAndSort( self::COLLECTION,$params, $sort);
 		return $listDocuments;
 	}
-
+	/* @Author Bouboule (clement.damiens@gmail.com)
+	* get the list of documents depending on the id of the owner, the contentKey and the docType
+	 * @param String $id The id of the owner of the image could be an organization, an event, a person, a project... 
+	 * @param String $contentKey 
+	* @param String $docType The docType represent the type of document (see DOC_TYPE_* constant)
+	 * @param array $limit represent the number of document by type that will be return. If not set, everything will be return
+	 * @return array a list of documents + URL sorted by contentkey type (IMG_PROFIL, IMG_SLIDER...)
+	 */
 	public static function getListDocumentsByIdAndType($id, $type, $contentKey=null, $docType=null, $limit=null){
 		$listDocuments = array();
 		$sort = array( 'created' => -1 );
@@ -217,21 +224,32 @@ class Document {
 					$toPush = true;
 			}
 			if ($toPush) {
-				if ($document["moduleId"]=="communevent"){
-					$pathImage = Yii::app()->params['communeventBaseUrl']."/".$document["folder"];
-					
+				$pushImage = array();
+				if ($value["moduleId"]=="communevent"){
+					$pushImage['id'] = $value["objId"];
+					$imagePath = Yii::app()->params['communeventBaseUrl']."/".$value["folder"]."/".$value["name"];
+					$imageThumbPath = $imagePath."?store=photosLarge";
 				}
 				else{
-					$imageUrl = "/".Yii::app()->params['uploadUrl'].$document["moduleId"]."/".$document["folder"];
+					$pushImage['id'] = (string)$value["_id"];
+					$imagePath = Yii::app()->baseUrl."/".Yii::app()->params['uploadUrl'].$value["moduleId"]."/".$value["folder"];
+					if($value["contentKey"]=="profil")
+						$imageThumbPath = $imagePath;
+					else
+						$imageThumbPath = $imagePath."/".self::GENERATED_IMAGES_FOLDER;
+					$imagePath .= "/".$value["name"];
+					$imageThumbPath .= "/".$value["name"];
 				}
-				$imageUrl .= "/".$document["name"];
-
 				if (! isset($listDocuments[$currentContentKey])) {
 					$listDocuments[$currentContentKey] = array();
 				} 
-				$value['imageUrl'] = $imageUrl;
-				$value['size'] = self::getHumanFileSize($value["size"]);
-				array_push($listDocuments[$currentContentKey], $value);
+				$pushImage['moduleId'] = $value["moduleId"];
+				$pushImage['contentKey'] = $value["contentKey"];
+				$pushImage['imagePath'] = $imagePath;
+				$pushImage['imageThumbPath'] = $imageThumbPath;
+				$pushImage['name'] = $value["name"];
+				$pushImage['size'] = self::getHumanFileSize($value["size"]);
+				array_push($listDocuments[$currentContentKey], $pushImage);
 			}
 		}
 		return $listDocuments;
