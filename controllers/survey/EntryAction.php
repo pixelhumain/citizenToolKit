@@ -56,6 +56,8 @@ class EntryAction extends CAction
       $params["images"] = $images;
       $params["contentKeyBase"] = $contentKeyBase;
       
+      $params["parentSpace"] = ActionRoom::getById( $survey["survey"] );
+
       if(Yii::app()->request->isAjaxRequest)
         echo $controller->renderPartial("entryStandalone",$params,true);
       else if( !Yii::app()->request->isAjaxRequest ){
