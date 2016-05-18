@@ -38,7 +38,7 @@ class NewsTranslator {
 			$params["name"] = $object["name"];
 			echo @utf8_encode ($object["description"]);
 			echo "<br/> après transfo";
-			$params["text"] = trim(substr(isset($object["description"]) ? utf8_encode ($object["description"]) : "",0 ,100 ));
+			$params["text"] = trim(substr(isset($object["description"]) ? $object["description"] : "",0 ,100 ));
 			echo $params["text"];
 			$params["scope"]["address"]=$object["address"];
 			print_r($params);
