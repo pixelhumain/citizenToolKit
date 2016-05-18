@@ -45,6 +45,7 @@ class Organization {
 	    "warnings" => array("name" => "warnings"),
 	    "urlFacebook" => array("name" => "urlFacebook"),
 	    "urlTwitter" => array("name" => "urlTwitter"),
+	    "isOpenData" => array("name" => "isOpenData"),
 	);
 	
 	//See findOrganizationByCriterias...

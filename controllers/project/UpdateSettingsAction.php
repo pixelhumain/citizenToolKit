@@ -10,9 +10,9 @@ class UpdateSettingsAction extends CAction
     {
         $controller=$this->getController();
         if(isset($_POST["type"])){
-          $res=Preference::updateConfidentiality(Yii::app()->session["userId"],Person::COLLECTION,$_POST);
-        } else{
-        	$res=Preference::updatePreferences(Yii::app()->session["userId"],Person::COLLECTION);
+          $res=Preference::updateConfidentiality(Yii::app()->session["userId"],Project::COLLECTION,$_POST);
+        }else{
+        	$res=Preference::updatePreferences(Yii::app()->session["userId"],Project::COLLECTION);
         }
 		Rest::json($res);
 		exit;

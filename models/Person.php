@@ -43,6 +43,7 @@ class Person {
 	    "two_steps_register" => array("name" => "two_steps_register"),
 	    "source" => array("name" => "source"),
 	    "warnings" => array("name" => "warnings"),
+	    "isOpenData" => array("name" => "isOpenData"),
 	);
 
 	public static function logguedAndValid() {
