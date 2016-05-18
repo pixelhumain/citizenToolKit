@@ -36,7 +36,7 @@ class NewsTranslator {
 			if(!empty($object)){
 			$params["imageBackground"] = Document::getLastImageByKey((string) $params["object"]["id"],$params["object"]["objectType"] , $docImg);
 			$params["name"] = $object["name"];
-			$params["text"] = trim(preg_replace('/<[^>]*>/', ' ',(substr(isset($object["description"]) ? $object["description"] : "",0 ,100 ))));
+			$params["text"] = trim(preg_replace('/<[^>]*>/', ' ',(substr(isset($object["shortDescription"]) ? $object["shortDescription"] : "",0 ,100 ))));
 			$params["scope"]["address"]=$object["address"];
 			} else{
 				$params["name"] = "";
