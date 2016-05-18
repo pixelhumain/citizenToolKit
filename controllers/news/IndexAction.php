@@ -17,10 +17,7 @@ class IndexAction extends CAction
 		}
 		$date=new MongoDate($date);
 		$news=array();
-		// Actions done at first loading of the page
-		// perform time of wall loading
-		if (@$_GET["isFirst"]){
-			if (!isset($id)){
+		if (!isset($id)){
 				if($type!="pixels"){
 					if($type=="city"){
 						$id=$_GET["insee"];
@@ -35,47 +32,50 @@ class IndexAction extends CAction
 					$id="";
 				}
 			}
+		// Actions done at first loading of the page
+		// perform time of wall loading
+		if (@$_GET["isFirst"]){
+			
 			if(!@$type || empty($type))
 				$type = Person::COLLECTION;
 			$params["type"] = $type; 
 			// Define parent and authorizations to manage and post news on wall's entity
 	        if( $type == Project::COLLECTION ) {
-	            $project = Project::getById($id);
+	            $parent = Project::getById($id);
 	            if(@Yii::app()->session["userId"]){
 	            	$params["canPostNews"] = true;
-	                if(@$project["links"]["contributors"][Yii::app()->session["userId"]] && !@$project["links"]["contributors"][Yii::app()->session["userId"]][TO_BE_VALIDATED])
+	                if(@$parent["links"]["contributors"][Yii::app()->session["userId"]] && !@$parent["links"]["contributors"][Yii::app()->session["userId"]][TO_BE_VALIDATED])
 	            	$params["canManageNews"] = true;
 	            }
-	            $params["project"] = $project; 
+
 	        } 
 	        else if( $type == Person::COLLECTION ) {
-	            $person = Person::getById($id);
+	            $parent = Person::getById($id);
 	            if (@Yii::app()->session["userId"]){
 					$params["canPostNews"] = true;
 					if (Yii::app()->session["userId"]==$id){
 						$params["canManageNews"]=true;
 					}
 				}
-	            $params["person"] = $person; 
+
 	        } 
 	        else if( $type == Organization::COLLECTION) {
-	            $organization = Organization::getById($id);
+	            $parent = Organization::getById($id);
 	            if(@Yii::app()->session["userId"]){
 					$params["canPostNews"] = true;
-	            	if (@$organization["links"]["members"][Yii::app()->session["userId"]] && !@$organization["links"]["members"][Yii::app()->session["userId"]][Link::TO_BE_VALIDATED])
+	            	if (@$parent["links"]["members"][Yii::app()->session["userId"]] && !@$parent["links"]["members"][Yii::app()->session["userId"]][Link::TO_BE_VALIDATED])
 	            		$params["canManageNews"] = true;
 				}	
-	            $params["organization"] = $organization; 
+
 	        }
 	        else if( $type == Event::COLLECTION ) {
-	            $event = Event::getById($id);
-	            if((@Yii::app()->session["userId"] && @$event["links"]["attendees"][Yii::app()->session["userId"]] && !@$event["links"]["attendees"][Yii::app()->session["userId"]][Link::TO_BE_VALIDATED]) ||
-	            	(@Yii::app()->session["userId"] && @$event["links"]["organizer"][Yii::app()->session["userId"]] && !@$event["links"]["organizer"][Yii::app()->session["userId"]][Link::TO_BE_VALIDATED])){
+	            $parent = Event::getById($id);
+	            if((@Yii::app()->session["userId"] && @$parent["links"]["attendees"][Yii::app()->session["userId"]] && !@$parent["links"]["attendees"][Yii::app()->session["userId"]][Link::TO_BE_VALIDATED]) ||
+	            	(@Yii::app()->session["userId"] && @$parent["links"]["organizer"][Yii::app()->session["userId"]] && !@$parent["links"]["organizer"][Yii::app()->session["userId"]][Link::TO_BE_VALIDATED])){
 	            	$params["canPostNews"] = true;
 					$params["canManageNews"] = true;
 	            }
-	            
-	            $params["event"] = $event; 
+	         
 	        }
 	        else if ($type=="city"){
 		        if (@Yii::app()->session["userId"])
@@ -84,9 +84,19 @@ class IndexAction extends CAction
 			else if ($type=="pixels"){
 				$params["canPostNews"] = true;
 			}
+			$params["authorizedToStock"]= Document::authorizedToStock($id, $type,Document::DOC_TYPE_IMAGE);
+			$params["contextParentType"] = $type; 
+			$params["contextParentId"] = $id;
+			//$params["condition"]=$where;
+			$params["parent"]=$parent;
+		}
+		else{
+			$parent=$_POST["parent"];
+		}
 			//Define condition of each wall generated datas
 			if($type == "citoyens") {
 				if (!@Yii::app()->session["userId"] || (@Yii::app()->session["userId"] && Yii::app()->session["userId"]!=$id) || (@$viewer && $viewer != null)){
+
 					$scope=array(
 						array("scope.type"=> "public"),
 						array("scope.type"=> "restricted")
@@ -116,10 +126,6 @@ class IndexAction extends CAction
 							array('$or' => 
 								$scope
 							),
-							/*array('created' => array(
-									'$lt' => $date
-								)
-							),*/
 						)	
 					);
 				}
@@ -128,18 +134,18 @@ class IndexAction extends CAction
 					array_push($authorFollowedAndMe,array("author"=>$id));
 					array_push($authorFollowedAndMe,array("target.id"=> $id, 
 														"target.type" => Person::COLLECTION));
-					if(@$person["links"]["memberOf"] && !empty($person["links"]["memberOf"])){
-						foreach ($person["links"]["memberOf"] as $key => $data){
+					if(@$parent["links"]["memberOf"] && !empty($parent["links"]["memberOf"])){
+						foreach ($parent["links"]["memberOf"] as $key => $data){
 							array_push($authorFollowedAndMe,array("target.id"=>$key, "target.type" => "organizations"));
 						}
 					}
-					if(@$person["links"]["projects"] && !empty($person["links"]["projects"])){
-						foreach ($person["links"]["projects"] as $key => $data){
+					if(@$parent["links"]["projects"] && !empty($parent["links"]["projects"])){
+						foreach ($parent["links"]["projects"] as $key => $data){
 							array_push($authorFollowedAndMe,array("target.id"=>$key, "target.type" => "projects"));
 						}
 					}
-					if(@$person["links"]["follows"] && !empty($person["links"]["follows"])){
-						foreach ($person["links"]["follows"] as $key => $data){
+					if(@$parent["links"]["follows"] && !empty($parent["links"]["follows"])){
+						foreach ($parent["links"]["follows"] as $key => $data){
 							$followNews=array('$and'=>array(
 													array("target.id"=>$key, "target.type" => $data["type"]),
 													array('$or'=>
@@ -153,8 +159,8 @@ class IndexAction extends CAction
 							array_push($authorFollowedAndMe,$followNews);
 						}
 					}
-					if(@$person["address"]["codeInsee"])
-						array_push($authorFollowedAndMe, array("scope.cities." => $person["address"]["codeInsee"],"type" => "activityStream"));
+					if(@$parent["address"]["codeInsee"])
+						array_push($authorFollowedAndMe, array("scope.cities." => $parent["address"]["codeInsee"],"type" => "activityStream"));
 			    
 			        $where = array(
 			        	'$and' => array(
@@ -162,10 +168,6 @@ class IndexAction extends CAction
 									$authorFollowedAndMe
 							),
 							array("type" => array('$ne' => "pixels")),
-							/*array('created' => array(
-									'$lt' => $date
-								)
-							),*/
 			        	)	
 			        );
 				}
@@ -186,10 +188,6 @@ class IndexAction extends CAction
 								array("target.type"=> $type,"target.id"=> $id),
 							)),
 						$whereScope,
-						/*array('created' => array(
-								'$lt' => $date
-							)
-						),*/
 		        	)	
 				);
 			}
@@ -197,10 +195,6 @@ class IndexAction extends CAction
 				$where = array('$and' => array(
 						array("text" => array('$exists'=>1)),
 						array("target.type"=> $type),
-						/*array('created' => array(
-								'$lt' => $date
-							)
-						),*/
 		        	)	
 				);
 			}
@@ -208,10 +202,6 @@ class IndexAction extends CAction
 				$where = array('$and' => array(
 						array("scope.cities.codeInsee" => $id, "scope.type" => "public" ),
 						array("target.type" => array('$ne' => "pixels")),
-						/*array('created' => array(
-								'$lt' => $date
-							)
-						),*/
 		        	)	
 				);
 			}
@@ -234,17 +224,17 @@ class IndexAction extends CAction
 												)
 			);
 
-			$params["authorizedToStock"]= Document::authorizedToStock($id, $type,Document::DOC_TYPE_IMAGE);
-			$params["contextParentType"] = $type; 
-			$params["contextParentId"] = $id;
-			$params["condition"]=$where;
-		}
+			
+		/*}
 		else{
 			$where=$_POST["condition"];
 			$where["created"]=array('$lt' => $date);
-		}
-
-		$news= News::getNewsForObjectId($where,array("created"=>-1),$type);
+		}*/
+		//print_r($where);
+		if(!empty($where))
+			$news= News::getNewsForObjectId($where,array("created"=>-1),$type);
+		
+		
 		// Sort news order by created 
 		$news = News::sortNews($news, array('created'=>SORT_DESC));
         //TODO : reorganise by created date
