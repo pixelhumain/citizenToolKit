@@ -35,8 +35,12 @@ class NewsTranslator {
 			}
 			$params["imageBackground"] = Document::getLastImageByKey((string) $params["object"]["id"],$params["object"]["objectType"] , $docImg);
 			$params["name"] = $object["name"];
+			echo $object["description"];
+			echo "<br/> après transfo";
 			$params["text"] = trim(substr(isset($object["description"]) ? preg_replace('/<[^>]*>/', ' ',$object["description"]) : "",0 ,100 ));
+			echo $params["text"];
 			$params["scope"]["address"]=$object["address"];
+			print_r($params);
 		}
 		if(@$params["target"]["type"]){
 			if ($params["target"]["type"] == Organization::COLLECTION){
