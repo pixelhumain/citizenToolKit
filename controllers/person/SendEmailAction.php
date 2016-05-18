@@ -14,8 +14,9 @@ class SendEmailAction extends CAction {
         //Check user existance
         $user = PHDB::findOne(PHType::TYPE_CITOYEN,array( "email" => $email));
         if (!$user) {
-            return array("result"=>false, "errId" => "UNKNOWN_ACCOUNT_ID", 
-                         "msg"=>"Cet email n'existe pas dans notre base. Voulez vous créer un compte ?");
+            Rest::json(array("result"=>false, "errId" => "UNKNOWN_ACCOUNT_ID", 
+                         "msg"=>"Cet email n'existe pas dans notre base. Voulez vous créer un compte ?"));
+            die();
         }
 
         // Forgot my password Mail

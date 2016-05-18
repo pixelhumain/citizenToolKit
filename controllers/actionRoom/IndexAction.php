@@ -45,13 +45,14 @@ class IndexAction extends CAction
 
         if( isset($roomsActions) && isset($roomsActions["rooms"]) && isset($roomsActions["actions"])  ){
             $rooms   = $roomsActions["rooms"];
-            $actions = $roomsActions["actions"];
+            $actionHistory = $roomsActions["actions"];
         }
         
         error_log("count rooms : ".count($rooms));
 
         $discussions = array();
         $votes = array();
+        $actions = array();
         foreach ($rooms as $e) 
         { 
             if( $e["type"] == ActionRoom::TYPE_DISCUSS ){
@@ -59,18 +60,21 @@ class IndexAction extends CAction
             }
             else if ( $e["type"] == ActionRoom::TYPE_VOTE ){
                 array_push($votes, $e);
+            } else if ( $e["type"] == ActionRoom::TYPE_ACTIONS ){
+                array_push($actions, $e);
             }
         }
 
         $params = array(    "discussions" => $discussions, 
                             "votes" => $votes, 
+                            "actions" => $actions, 
                             "nameParentTitle" => $nameParentTitle, 
                             "parent" => $parent, 
                             "parentId" => $id, 
                             "parentType" => $type );
 
-        if( isset($actions) )
-            $params["actions"] = $actions;
+        if( isset($actionHistory) )
+            $params["history"] = $actionHistory;
 
 		if(Yii::app()->request->isAjaxRequest)
 	        echo $controller->renderPartial("index" , $params,true);
