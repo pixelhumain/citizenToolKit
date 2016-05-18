@@ -17,6 +17,7 @@ class NewsTranslator {
 	**/
 	public static function convertParamsForNews($params,$readOne=false){
 		if(@$params["object"]){
+			$docImg="";
 			if($params["object"]["objectType"]==Event::COLLECTION){
 				$object=Event::getById((string)$params["object"]["id"]);
 				$docImg = Document::IMG_PROFIL;
@@ -77,9 +78,9 @@ class NewsTranslator {
 						if(@$image){
 							array_push($images,$image);
 						}else{
-						$countImages=intval($params["media"]["countImages"]);
-						$countImages--;
-						$params["media"]["countImages"]=$countImages;
+							$countImages=intval($params["media"]["countImages"]);
+							$countImages--;
+							$params["media"]["countImages"]=$countImages;
 						}
 					}else{
 						$countImages=intval($params["media"]["countImages"]);
