@@ -33,16 +33,10 @@ class NewsTranslator {
 				$docImg = Document::IMG_SLIDER;
 				$params["icon"]="fa-lightbulb-o";
 			}
-			if(!empty($object)){
 			$params["imageBackground"] = Document::getLastImageByKey((string) $params["object"]["id"],$params["object"]["objectType"] , $docImg);
 			$params["name"] = $object["name"];
-			$params["text"] = trim(preg_replace('/<[^>]*>/', ' ',(substr(isset($object["shortDescription"]) ? $object["shortDescription"] : "",0 ,100 ))));
+			$params["text"] = trim(preg_replace('/<[^>]*>/', ' ',(substr(isset($object["description"]) ? strip_tags ($object["description"]) : "",0 ,100 ))));
 			$params["scope"]["address"]=$object["address"];
-			} else{
-				$params["name"] = "";
-			$params["text"] = "";
-			$params["scope"]["address"]="";
-			}
 		}
 		if(@$params["target"]["type"]){
 			if ($params["target"]["type"] == Organization::COLLECTION){
