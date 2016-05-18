@@ -14,7 +14,7 @@ class IndexAction extends CAction
         
         $params['options'] = $res["options"];
         $params['canComment'] = $res["canComment"];
-        $params["contextType"] = "$type";
+        $params["contextType"] = $type;
         $params["nbComment"] = $res["nbComment"];
 
         if($type == Event::COLLECTION) {
@@ -40,6 +40,8 @@ class IndexAction extends CAction
                 $params["parent"] = Project::getById($actionRoom["parentId"]);   
             $params["parentType"] = $actionRoom["parentType"];
             $params["parentId"] = $actionRoom["parentId"];
+        }else if($type == ActionRoom::COLLECTION_ACTIONS) {
+            $params["context"] = ActionRoom::getActionById($id);
         } else if($type == Need::COLLECTION) {
             $params["context"] = Need::getById($id);
         } else {
@@ -47,12 +49,12 @@ class IndexAction extends CAction
         }
         
 		if(Yii::app()->request->isAjaxRequest){
-	        if($type != "actionRooms")
+	        if($type != ActionRoom::COLLECTION || $type != ActionRoom::COLLECTION_ACTIONS)
                 echo $controller->renderPartial("commentPod" , $params, true);
             else
                 echo $controller->renderPartial("commentPodActionRooms" , $params, true);
 	    }else{
-            if($type != "actionRooms")
+            if($type != ActionRoom::COLLECTION || $type != ActionRoom::COLLECTION_ACTIONS)
                 $controller->renderPartial("commentPod" , $params, true);
             else
                 $controller->renderPartial("commentPodActionRooms" , $params, true);
