@@ -191,7 +191,7 @@ class City {
 
         $totalPop = 1;
         foreach ($cityData as $key => $valueCity) {
-				$totalPop = $valueCity['population'][$years]['total']['value'];
+				$totalPop = $valueCity['population'][$years]['total'];
 			}
 		return $totalPop;
 	}
@@ -203,7 +203,7 @@ class City {
 
         $totalPop = 1;
         foreach ($cityData as $key => $valueCity) {
-				$totalPop = $valueCity['population'][$years]['hommes']['total']['value'];
+				$totalPop = $valueCity['population'][$years]['hommes']['total'];
 			}
 		return $totalPop;
 	}
@@ -215,7 +215,7 @@ class City {
 
         $totalPop = 1;
         foreach ($cityData as $key => $valueCity) {
-				$totalPop = $valueCity['population'][$years]['femmes']['total']['value'];
+				$totalPop = $valueCity['population'][$years]['femmes']['total'];
 			}
 		return $totalPop;
 	}
