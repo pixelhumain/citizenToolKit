@@ -1514,5 +1514,23 @@ class Person {
         return $person;
     }
 
+    /**
+     * Check if the user with the email exists on db and is pending
+     * @param string $email the email of the user
+     * @return string : id of the user with this email and pending else empty string
+     */
+    public static function getPendingUserByEmail($email) {
+		$res = "";
+		if ($email){
+		  	$account = PHDB::findOne(Person::COLLECTION,array("email"=>$email));
+		  	if ($account && @$account["pending"]) {
+		  		return (String) $account["_id"];
+		  	}
+		} else {
+			throw new CTKException("Please fill the email of the user");
+		}
+		return $res;
+    }
+
 }
 ?>
