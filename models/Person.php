@@ -1515,5 +1515,50 @@ class Person {
         return $person;
     }
 
+
+     public static function updateWithJson($json) { 
+        $data = json_decode($json, true);
+        $user = self::getById(Yii::app()->session['userId']);
+        $res = array();
+        if(!empty($data["identity"]["name"]) && $data["identity"]["name"] != $user["name"])
+        	$res[] = Person::updatePersonField(Yii::app()->session['userId'], "name", $data["identity"]["name"], Yii::app()->session["userId"]);
+
+        if(!empty($data["identity"]["email"]) && $data["identity"]["email"] != $user["email"])
+        	$res[] = Person::updatePersonField(Yii::app()->session['userId'], "email", $data["identity"]["email"], Yii::app()->session["userId"]);
+
+        if(!empty($data["identity"]["username"]) && $data["identity"]["username"] != $user["username"])
+        	$res[] = Person::updatePersonField(Yii::app()->session['userId'], "username", $data["identity"]["username"], Yii::app()->session["userId"]);
+
+        if(!empty($data["identity"]["geo"]) && $data["identity"]["geo"] != $user["geo"]){
+        	$res[] = Person::updatePersonField(Yii::app()->session['userId'], "geo", $data["identity"]["geo"], Yii::app()->session["userId"]);
+        }
+
+        if(!empty($data["identity"]["address"]) && $data["identity"]["address"] != $user["address"]){
+        	$res[] = Person::updatePersonField(Yii::app()->session['userId'], "address", $data["identity"]["address"], Yii::app()->session["userId"]);
+        }
+
+        /*if(!empty($data["identity"]["birthDate"]) && $data["identity"]["birthDate"] != $user["birthDate"]){
+        	$res[] = Person::updatePersonField(Yii::app()->session['userId'], "birthDate", $data["identity"]["birthDate"], Yii::app()->session["userId"]);
+        }*/
+       	
+        if(!empty($data["identity"]["telephone"]) && $data["identity"]["telephone"] != $user["telephone"]){
+        	$res[] = Person::updatePersonField(Yii::app()->session['userId'], "telephone", $data["identity"]["telephone"], Yii::app()->session["userId"]);
+        }
+
+        if(!empty($data["identity"]["tags"]) && $data["identity"]["tags"] != $user["tags"]){
+        	$res[] = Person::updatePersonField(Yii::app()->session['userId'], "tags", $data["identity"]["tags"], Yii::app()->session["userId"]);
+        }
+       	
+       	if(!empty($data["identity"]["shortDescription"]) && $data["identity"]["shortDescription"] != $user["shortDescription"]){
+        	$res[] = Person::updatePersonField(Yii::app()->session['userId'], "shortDescription", $data["identity"]["shortDescription"], Yii::app()->session["userId"]);
+        }
+	    
+	    if(!empty($data["identity"]["socialNetwork"]) && $data["identity"]["socialNetwork"] != $user["socialNetwork"]){
+        	$res[] = Person::updatePersonField(Yii::app()->session['userId'], "socialNetwork", $data["identity"]["socialNetwork"], Yii::app()->session["userId"]);
+        }
+
+       	return $res;
+    }
+
 }
 ?>
