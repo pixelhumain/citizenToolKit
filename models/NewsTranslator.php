@@ -38,7 +38,8 @@ class NewsTranslator {
 			$params["name"] = $object["name"];
 			echo @$object["description"];
 			echo "<br/> après transfo";
-			$params["text"] = trim(substr(isset($object["description"]) ? $object["description"] : "",0 ,100 ));
+			//trim(preg_replace('/<[^>]*>/', ' ',(substr(isset($object["description"]) ? $object["description"] : "",0 ,100 )));
+			$params["text"] = $object["description"] ;
 			echo $params["text"];
 			$params["scope"]["address"]=$object["address"];
 			print_r($params);
