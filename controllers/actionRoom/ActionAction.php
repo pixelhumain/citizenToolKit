@@ -51,15 +51,18 @@ class ActionAction extends CAction
       }
 
         $params["contributors"] = array();
-        foreach ($action["links"]["contributors"] as $uid => $e) 
+        if(@$action["links"]["contributors"])
         {
-            $citoyen = Person::getPublicData($uid);
-            if(!empty($citoyen)){
-                $citoyen["type"]=Person::COLLECTION;
-                $profil = Document::getLastImageByKey($uid, Person::COLLECTION, Document::IMG_PROFIL);
-                if($profil !="")
-                    $citoyen["imagePath"] = $profil;
-                array_push( $params["contributors"] , $citoyen);
+            foreach ($action["links"]["contributors"] as $uid => $e) 
+            {
+                $citoyen = Person::getPublicData($uid);
+                if(!empty($citoyen)){
+                    $citoyen["type"]=Person::COLLECTION;
+                    $profil = Document::getLastImageByKey($uid, Person::COLLECTION, Document::IMG_PROFIL);
+                    if($profil !="")
+                        $citoyen["imagePath"] = $profil;
+                    array_push( $params["contributors"] , $citoyen);
+                }
             }
         }
 

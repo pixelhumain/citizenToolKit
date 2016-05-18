@@ -58,7 +58,9 @@ class SaveActionAction extends CAction
                 if( isset($_POST['urls']) && count($_POST['urls'])>0 )
                     $entryInfos['urls'] = $_POST['urls'];
                 if( isset($_POST['dateEnd']) && $_POST['dateEnd'] != "" )
-                    $entryInfos['dateEnd'] = strtotime( str_replace("/", "-", $_POST['dateEnd']) );
+                    $entryInfos['dateEnd'] = round(strtotime( str_replace("/", "-", $_POST['dateEnd']) ));
+                if( isset($_POST['startDate']) && $_POST['startDate'] != "" )
+                    $entryInfos['startDate'] = round(strtotime( str_replace("/", "-", $_POST['startDate']) ));
 
                 $entryInfos['created'] = time();
                 
