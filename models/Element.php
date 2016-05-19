@@ -14,9 +14,19 @@ class Element {
 	    	Survey::COLLECTION => Survey::CONTROLLER,
 	    	ActionRoom::COLLECTION => ActionRoom::CONTROLLER,
 	    	ActionRoom::COLLECTION_ACTIONS => ActionRoom::CONTROLLER,
-	    );
+	    );	    
+    	return @$ctrls[$type];
+    }
 
-	    
-    	return $ctrls[$type];
+    public static function getLink( $type, $id )
+    {	    
+    	$link = "";
+    	if(@$type && @$id){
+	    	$el = PHDB::findOne ( $type , array( "_id" => new MongoId($id) ) );
+	    	$ctrl = self::getControlerByCollection($type);
+	    	if( @$el && @$ctrl )
+	    		$link = "<a href='javascript:;' onclick='loadByHash(\"#".$ctrl.".detail.id.".$id."\")'>".$el['name']."</a>";
+	    }
+    	return $link;
     }
 }
