@@ -4,6 +4,7 @@ class EditActionAction extends CAction
     public function run( $room,$id=null )
     {
         $controller=$this->getController();
+        
         $params = array( 
           "parentRoom" => PHDB::findOne (ActionRoom::COLLECTION, array("_id"=>new MongoId ( $room ) ) )
         );

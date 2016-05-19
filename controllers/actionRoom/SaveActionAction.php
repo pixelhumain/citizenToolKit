@@ -51,7 +51,7 @@ class SaveActionAction extends CAction
                     $entryInfos['message'] = (string)$_POST['message'];
                 if( isset($_POST['type']) )
                     $entryInfos['type'] = $_POST['type'];
-                if( isset($_POST['tags']) && count($_POST['tags']) )
+                if( isset($_POST['tags']) && count($_POST['tags'])>0 )
                     $entryInfos['tags'] = $_POST['tags'];
                 if( isset($_POST['cp']) )
                     $entryInfos['cp'] = explode(",",$_POST['cp']);
