@@ -3,7 +3,7 @@ class IndexAction extends CAction
 {
 
     //http://127.0.0.1/ph/communecter/rooms/index/type/citoyens/id/xxxxxx
-    public function run( $type=null, $id= null )
+    public function run( $type=null, $id= null, $view=null )
     {
         error_log("room index Action ".$type);
         $controller=$this->getController();
@@ -76,9 +76,15 @@ class IndexAction extends CAction
         if( isset($actionHistory) )
             $params["history"] = $actionHistory;
 
-		if(Yii::app()->request->isAjaxRequest)
-	        echo $controller->renderPartial("index" , $params,true);
-	    else
-  			$controller->render( "index" , $params );
+		if(Yii::app()->request->isAjaxRequest){
+            if($view == "pod"){
+                echo $controller->renderPartial("../pod/roomsList" , $params, true);
+            }else{
+                echo $controller->renderPartial("index" , $params,true);
+            }
+        }
+        else{
+            $controller->render( "index" , $params );
+        }
     }
 }
