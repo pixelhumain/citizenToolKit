@@ -43,6 +43,7 @@ class Person {
 	    "two_steps_register" => array("name" => "two_steps_register"),
 	    "source" => array("name" => "source"),
 	    "warnings" => array("name" => "warnings"),
+	    "modules" => array("name" => "modules"),
 	);
 
 	public static function logguedAndValid() {
@@ -724,7 +725,7 @@ class Person {
 		PHDB::update( self::COLLECTION, array("_id" => new MongoId($personId)), 
 		                          		array('$set' => $set));
 	              
-	    return array("result"=>true,"user"=>$user,"personFieldName"=>$personFieldName);
+	    return array("result"=>true,"user"=>$user,"personFieldName"=>$personFieldName, "msg"=> Yii::t("person", "The person has been updated"));
 	}
 
 	//Test and Valide a field name using the data validator
