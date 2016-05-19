@@ -13,7 +13,7 @@ class ChartGlobalAction extends CAction
 		$params = array();
 
 		//We have to send data names to group to the charts
-		$params['groups'] = Lists::get(array('organisationTypes', 'eventTypes'));
+		$params['groups'] = Lists::get(array('organisationTypes', 'eventTypes', 'actionRoomsTypes'));
 		$page =  "chartGlobal";
 
 		if(Yii::app()->request->isAjaxRequest){

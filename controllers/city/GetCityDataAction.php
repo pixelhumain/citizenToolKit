@@ -21,10 +21,11 @@ class GetCityDataAction extends CAction
 
     	if(isset($typeZone) && strcmp($typeZone, City::REGION)==0)
     	{
-            if(isset($_POST['optionCities']) && $_POST['optionCities'] != null)
+            if(isset($_POST['optionCities']) && $_POST['optionCities'] != null){
                 $cityData = City::getRegionByInsee($insee,$fields, $typeData, $option, $_POST['optionCities']);
-            else
+            }else{
                 $cityData = City::getRegionByInsee($insee,$fields, $typeData, $option);
+            }
         }	
     	else if(isset($typeZone) && strcmp($typeZone, City::DEPARTEMENT)==0)
     	{

@@ -141,10 +141,17 @@ class City {
 		/*$fields = array("insee", $typeData.$option) ;
 		$sort = array($typeData.$option => -1);*/
         $fields[] = "insee" ;
-		foreach ($option as $key => $value) {
-			$fields[] = $typeData.$value;
-			$sort[] = array($typeData.$value => -1);
+        if(!empty($option))
+		{
+			foreach ($option as $key => $value) {
+				$fields[] = $typeData.$value;
+				$sort[] = array($typeData.$value => -1);
+			}
+		}else{
+			$fields[] = $typeData;
+			$sort = array($typeData => -1);
 		}
+
 		$cityData = City::getWhereData($where, $fields, 30, $sort);
 		foreach ($cityData as $key => $value) {
 			foreach ($cities as $k => $v) {

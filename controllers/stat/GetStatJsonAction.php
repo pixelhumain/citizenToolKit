@@ -15,7 +15,7 @@ class GetStatJsonAction extends CAction
                 case 'citoyens':
                     switch ($chart) {
                         case 'global':
-                            $data = PHDB::find('stats');
+                            $data = PHDB::find('stats', array('global.citoyens.total' => array('$exists' => 1)));
                             foreach ($data as $key => $value) {
                                 $res['x'][] = date("d/m/Y",$value['created']->sec);
                                 $res['citoyens'][] = $value['global']['citoyens']['total'];
@@ -40,7 +40,7 @@ class GetStatJsonAction extends CAction
                 case 'organizations':
                     switch ($chart) {
                         case 'global':
-                            $data = PHDB::find('stats');
+                            $data = PHDB::find('stats', array('global.organizations' => array('$exists' => 1)));
                             foreach ($data as $key => $value) {
                                 $res['x'][] = date("d/m/Y",$value['created']->sec);
                                 foreach($value['global']['organizations'] as $name => $number){
@@ -65,7 +65,7 @@ class GetStatJsonAction extends CAction
                    
                 break;
                 case 'events':
-                    $data = PHDB::find('stats');
+                    $data = PHDB::find('stats', array('global.events' => array('$exists' => 1)));
                     foreach ($data as $key => $value) {
                         $res['x'][] = date("d/m/Y",$value['created']->sec);
                         foreach($value['global']['events'] as $name => $number){
@@ -74,15 +74,31 @@ class GetStatJsonAction extends CAction
                     }
                  break;
                  case 'projects':
-                    $data = PHDB::find('stats');
+                    $data = PHDB::find('stats', array('global.projects.total' => array('$exists' => 1)));
                     foreach ($data as $key => $value) {
                         $res['x'][] = date("d/m/Y",$value['created']->sec);
                         $res['projects'][] = $value['global']['projects']['total'];
                     }
                  break;
+                 case 'actionRooms':
+                    $data = PHDB::find('stats', array('global.actionRooms' => array('$exists' => 1)));
+                    foreach ($data as $key => $value) {
+                        $res['x'][] = date("d/m/Y",$value['created']->sec);
+                        foreach($value['global']['actionRooms'] as $name => $number){
+                            if($name != 'total')$res[$name][] = $number;
+                        }
+                    };
+                 break;
+                 case 'survey':
+                    $data = PHDB::find('stats', array('global.survey' => array('$exists' => 1)));
+                    foreach ($data as $key => $value) {
+                        $res['x'][] = date("d/m/Y",$value['created']->sec);
+                        $res['survey'][] = $value['global']['survey']['total'];
+                    };
+                 break;
                  default:
                      # code...
-                     break;
+                    break;
             }
         }
        
