@@ -31,9 +31,14 @@ class Translate {
 					if( isset($bindPath["object"]) )
 					{
 						//if dots are specified , we adapt the valueData map by focusing on a subpart of it
+						//var_dump($bindPath["object"]);
 						$currentValue = ( strpos( $bindPath["object"], "." ) > 0 ) ? self::getValueByPath( $bindPath["object"] ,$data ) : $data[$bindPath["object"]];
 						$newData[$key] = array();
-						//parse each entry of the list 
+						//parse each entry of the list
+						//var_dump(strpos( $bindPath["object"], "." ));
+						//var_dump($currentValue);
+						if($currentValue == "")
+							$currentValue = array();
 						foreach ( $currentValue as $dataKey => $dataValue) 
 						{
 							$refData = $dataValue;
@@ -88,12 +93,17 @@ class Translate {
 		//follow path until the leaf value
 		foreach ($path as $pathKey) 
 		{	
-			if( is_object($currentValue[ $pathKey ]) && get_class( $currentValue[ $pathKey ] ) == "MongoId" ){
-				$currentValue = (string)$currentValue[ $pathKey ];
-				break;
-			} 
-			else
-				$currentValue = $currentValue[ $pathKey ];
+			if(!empty($currentValue[ $pathKey ])){
+				if( is_object($currentValue[ $pathKey ]) && get_class( $currentValue[ $pathKey ] ) == "MongoId" ){
+					$currentValue = (string)$currentValue[ $pathKey ];
+					break;
+				} 
+				else
+					$currentValue = $currentValue[ $pathKey ];
+			}else{
+				$currentValue = "" ;
+			}
+			
 		}
 		return $currentValue;
 	}
