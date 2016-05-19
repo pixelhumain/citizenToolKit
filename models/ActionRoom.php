@@ -61,7 +61,30 @@ class ActionRoom {
     		$res = ( isset( $userId ) && in_array(Yii::app()->session["userId"], $app["moderator"]) ) ? true : false;
     	return $res;
      }
-
+     /**
+        *
+        * @return [json Map] list
+        */
+     	public static function insert($parentRoom,$type,$copyOf=null)
+     	{
+     	    /*if (! Authorisation::canParticipate(Yii::app()->session['userId'],$parentRoom['parentType'],$parentRoom['parentId']) ) {
+				throw new CTKException("Can not update the event : you are not authorized to update that event!");	
+			}*/
+     	    
+            $newInfos = array();
+            $newInfos['email'] = Yii::app()->session['userEmail'];
+            $newInfos['name'] = $parentRoom['name'];
+            $newInfos['type'] = $type;
+            if( @$copyOf )
+            	$newInfos['copyOf'] = $copyOf;
+            $newInfos['parentType'] = $parentRoom['parentType'];
+            $newInfos['parentId'] = $parentRoom['parentId'];
+            if( count(@$parentRoom['tags'])>0 )
+                $newInfos['tags'] = $parentRoom['tags'];
+            $newInfos['created'] = time();
+            PHDB::insert( ActionRoom::COLLECTION, $newInfos );
+            return $newInfos;
+     	}
      public static function deleteAction($params){
      	$res = array( "result" => false );
      	if( isset( Yii::app()->session["userId"] ))
