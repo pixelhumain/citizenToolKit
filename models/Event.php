@@ -265,15 +265,6 @@ class Event {
 				
 		Notification::createdObjectAsParam( Person::COLLECTION, Yii::app()->session['userId'],Event::COLLECTION, (String)$newEvent["_id"], $params["organizerType"], $params["organizerId"], $newEvent["geo"], array($newEvent["type"]),$newEvent["address"]);
 
-	    //send validation mail
-	    //TODO : make emails as cron events
-	    /*$message = new YiiMailMessage; 
-	    $message->view = 'validation';
-	    $message->setSubject('Confirmer votre compte Pixel Humain');
-	    $message->setBody(array("user"=>$new["_id"]), 'text/html');
-	    $message->addTo("oceatoon@gmail.com");//$params['registerEmail']
-	    $message->from = Yii::app()->params['adminEmail'];
-	    Yii::app()->mail->send($message);*/
 	    $creator = Person::getById(Yii::app()->session['userId']);
 	    Mail::newEvent($creator,$newEvent);
 	    
