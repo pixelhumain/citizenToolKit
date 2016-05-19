@@ -47,14 +47,14 @@ class IndexAction extends CAction
         } else {
         	throw new CTKException("Error : the type is unknown ".$type);
         }
-        
-		if(Yii::app()->request->isAjaxRequest){
-	        if($type != ActionRoom::COLLECTION || $type != ActionRoom::COLLECTION_ACTIONS)
+
+        if(Yii::app()->request->isAjaxRequest){
+	        if($type != ActionRoom::COLLECTION && $type != ActionRoom::COLLECTION_ACTIONS)
                 echo $controller->renderPartial("commentPod" , $params, true);
             else
                 echo $controller->renderPartial("commentPodActionRooms" , $params, true);
 	    }else{
-            if($type != ActionRoom::COLLECTION || $type != ActionRoom::COLLECTION_ACTIONS)
+            if($type != ActionRoom::COLLECTION && $type != ActionRoom::COLLECTION_ACTIONS)
                 $controller->renderPartial("commentPod" , $params, true);
             else
                 $controller->renderPartial("commentPodActionRooms" , $params, true);
