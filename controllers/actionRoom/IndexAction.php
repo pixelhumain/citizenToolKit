@@ -27,6 +27,16 @@ class IndexAction extends CAction
         if($parent)
             $nameParentTitle = $parent['name'];
 
+        if(!isset($parent["modules"]) || !in_array("survey", $parent["modules"])){
+            echo $controller->renderPartial("../pod/roomsList" , 
+                                            array(  "empty"=>true, 
+                                                    "parent" => $parent, 
+                                                    "parentId" => $id, 
+                                                    "parentType" => $type,
+                                                    "type"=>$type), true);
+            return;
+        }
+
         $urlParams = ( isset($type) && isset($id)) ? "/type/".$type."/id/".$id : "";
         //array_push( $controller->toolbarMBZ, '<a href="#" onclick="openSubView(\'Add a Room\', \'/communecter/rooms/editroom'.$urlParams.'\',null,function(){editRoomSV ();})" title="proposer une " ><i class="fa fa-plus"></i> Room </a>');
 
