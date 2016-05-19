@@ -19,24 +19,34 @@ class NewsTranslator {
 		if(@$params["object"]){
 			$docImg="";
 			if($params["object"]["objectType"]==Event::COLLECTION){
-				$object=Event::getById((string)$params["object"]["id"]);
+				$object=Event::getSimpleEventById((string)$params["object"]["id"]);
 				$docImg = Document::IMG_PROFIL;
 				$params["icon"] = "fa-calendar";
 			} 
 			else if ($params["object"]["objectType"]==Organization::COLLECTION){
-				$object=Organization::getById((string)$params["object"]["id"]);
+				$object=Organization::getSimpleOrganizationById((string)$params["object"]["id"]);
 				$docImg = Document::IMG_PROFIL;
 				$params["icon"] = "fa-group";
 			} 
 			else if ($params["object"]["objectType"]==Project::COLLECTION){
-				$object=Project::getById((string)$params["object"]["id"]);
+				$object=Project::getSimpleProjectById((string)$params["object"]["id"]);
 				$docImg = Document::IMG_SLIDER;
 				$params["icon"]="fa-lightbulb-o";
 			}
+			if(!empty($object)){
 			$params["imageBackground"] = Document::getLastImageByKey((string) $params["object"]["id"],$params["object"]["objectType"] , $docImg);
 			$params["name"] = $object["name"];
-			$params["text"] = trim(preg_replace('/<[^>]*>/', ' ',(substr(isset($object["description"]) ? $object["description"] : "",0 ,100 ))));
+			//echo @$object["description"];
+			//echo "<br/> après transfo";
+			//trim(preg_replace('/<[^>]*>/', ' ',(substr(isset($object["description"]) ? $object["description"] : "",0 ,100 )));
+			$params["text"] = isset($object["shortDescription"]) ? $object["shortDescription"] : "";
+			//echo $params["text"];
 			$params["scope"]["address"]=$object["address"];
+			//print_r($params);
+			}
+			else {
+				
+			}
 		}
 		if(@$params["target"]["type"]){
 			if ($params["target"]["type"] == Organization::COLLECTION){
