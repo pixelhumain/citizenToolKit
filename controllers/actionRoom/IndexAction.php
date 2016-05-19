@@ -50,7 +50,20 @@ class IndexAction extends CAction
         
         error_log("count rooms : ".count($rooms));
 
-        $params = array(    "rooms" => $rooms, 
+        $discussions = array();
+        $votes = array();
+        foreach ($rooms as $e) 
+        { 
+            if( $e["type"] == ActionRoom::TYPE_DISCUSS ){
+                array_push($discussions, $e);
+            }
+            else if ( $e["type"] == ActionRoom::TYPE_VOTE ){
+                array_push($votes, $e);
+            }
+        }
+
+        $params = array(    "discussions" => $discussions, 
+                            "votes" => $votes, 
                             "nameParentTitle" => $nameParentTitle, 
                             "parent" => $parent, 
                             "parentId" => $id, 

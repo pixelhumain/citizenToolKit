@@ -83,7 +83,7 @@ class Document {
 	  		"doctype" => Document::getDoctype($params['name']),	
 	  		"author" => $params['author'],
 	  		"name" => $params['name'],
-	  		"size" => $params['size'],
+	  		"size" => (int) $params['size'],
 	  		'created' => time()
 	    );
 
@@ -102,7 +102,7 @@ class Document {
 	    if (substr_count(@$new["contentKey"], self::IMG_SLIDER)) {
 	    	self::generateAlbumImages($new, self::GENERATED_IMAGES_FOLDER);
 	    }
-	    return array("result"=>true, "msg"=>Yii::t('document','Document saved successfully',null,Yii::app()->controller->module->id), "id"=>$new["_id"],"name"=>$new["name"]);	
+	    return array("result"=>true, "msg"=>Yii::t('document','Document saved successfully'), "id"=>$new["_id"],"name"=>$new["name"]);	
 	}
 
 	/**
@@ -192,11 +192,17 @@ class Document {
 		$listDocuments = PHDB::findAndSort( self::COLLECTION,$params, $sort);
 		return $listDocuments;
 	}
-
+	/* @Author Bouboule (clement.damiens@gmail.com)
+	* get the list of documents depending on the id of the owner, the contentKey and the docType
+	 * @param String $id The id of the owner of the image could be an organization, an event, a person, a project... 
+	 * @param String $contentKey 
+	* @param String $docType The docType represent the type of document (see DOC_TYPE_* constant)
+	 * @param array $limit represent the number of document by type that will be return. If not set, everything will be return
+	 * @return array a list of documents + URL sorted by contentkey type (IMG_PROFIL, IMG_SLIDER...)
+	 */
 	public static function getListDocumentsByIdAndType($id, $type, $contentKey=null, $docType=null, $limit=null){
 		$listDocuments = array();
 		$sort = array( 'created' => -1 );
-		//$explodeContentKey = explode(".", $contentKey);
 		$listDocumentsofType = Document::listMyDocumentByIdAndType($id, $type, $contentKey, $docType, $sort);
 		foreach ($listDocumentsofType as $key => $value) {
 			$toPush = false;
@@ -218,17 +224,37 @@ class Document {
 					$toPush = true;
 			}
 			if ($toPush) {
-				$imageUrl = Document::getDocumentUrl($value);
+				$pushImage = array();
+				if ($value["moduleId"]=="communevent"){
+					$pushImage['id'] = $value["objId"];
+					$imagePath = Yii::app()->params['communeventBaseUrl']."/".$value["folder"]."/".$value["name"];
+					$imageThumbPath = $imagePath."?store=photosLarge";
+				}
+				else{
+					$pushImage['id'] = (string)$value["_id"];
+					$imagePath = Yii::app()->baseUrl."/".Yii::app()->params['uploadUrl'].$value["moduleId"]."/".$value["folder"];
+					if($value["contentKey"]=="profil")
+						$imageThumbPath = $imagePath;
+					else
+						$imageThumbPath = $imagePath."/".self::GENERATED_IMAGES_FOLDER;
+					$imagePath .= "/".$value["name"];
+					$imageThumbPath .= "/".$value["name"];
+				}
 				if (! isset($listDocuments[$currentContentKey])) {
 					$listDocuments[$currentContentKey] = array();
 				} 
-				$value['imageUrl'] = $imageUrl;
-				array_push($listDocuments[$currentContentKey], $value);
+				$pushImage['moduleId'] = $value["moduleId"];
+				$pushImage['contentKey'] = $value["contentKey"];
+				$pushImage['imagePath'] = $imagePath;
+				$pushImage['imageThumbPath'] = $imageThumbPath;
+				$pushImage['name'] = $value["name"];
+				$pushImage['size'] = self::getHumanFileSize($value["size"]);
+				array_push($listDocuments[$currentContentKey], $pushImage);
 			}
 		}
 		return $listDocuments;
 	}
-	/**
+	/** author clement.damiens@gmail.com
 	 * Controle space storage of each entity
 	 * @param string $id The id of the owner of document
 	 * @param string $type The type of the owner of document
@@ -240,20 +266,32 @@ class Document {
 						"type" => $type);
 		if (isset($docType)) 
 			$params["doctype"] = $docType;
-		$sizeDocuments = PHDB::find( self::COLLECTION,$params,array("size" => 1));
-		$spaceUsed=0;
-		foreach ($sizeDocuments as $data){
-			if (strstr($data["size"], 'M', true)){
-				$size=((float)$data["size"])*1024;
-				$spaceUsed += $size;					
-			} else 
-				$spaceUsed += intval($data["size"]);
-		}
-		$spaceUsed=$spaceUsed/1024;
+		$c = Yii::app()->mongodb->selectCollection(self::COLLECTION);
+		$result = $c->aggregate( array(
+						array('$match' => $params),
+						array('$group' => array(
+							'_id' => $params,
+							'sumDocSpace' => array('$sum' => '$size')))
+						));
+		if (@$result["ok"]) 
+			$spaceUsed = @$result["result"][0]["sumDocSpace"];
 		return $spaceUsed;
 
 	}
-
+	/** author clement.damiens@gmail.com
+	 * Return boolean if entity is authorized to stock
+	 * @param string $id The id of the owner of document
+	 * @param string $type The type of the owner of document
+	 * @param string $docType The kind of document research
+	 * @return size of storage used to stock
+	 */
+	public static function authorizedToStock($id, $type,$docType){
+		$storageSpace = self::storageSpaceByIdAndType($id, $type,self::DOC_TYPE_IMAGE);
+		$authorizedToStock=true;
+		if($storageSpace > (20*1048576))
+			$authorizedToStock=false;
+		return $authorizedToStock;
+	}
 	/**
 	 * @See getListDocumentsByContentKey. 
 	 * @return array Return only the Url of the documents ordered by contentkey type
@@ -278,6 +316,16 @@ class Document {
 	*/
 	public static function removeDocumentById($id){
 		return PHDB::remove(self::COLLECTION, array("_id"=>new MongoId($id)));
+	}
+	/**
+	* remove a document from communevent by objId
+	* @return
+	*/
+	public static function removeDocumentCommuneventByObjId($id){
+		//Suppression de l'image dans la collection cfs.photosimg.filerecord
+		PHDB::remove("cfs.photosimg.filerecord", array("_id"=>$id));
+		//Suppression du document
+		return PHDB::remove(self::COLLECTION, array("objId"=>$id));
 	}
 
 	/**
@@ -382,7 +430,12 @@ class Document {
     }
 
     public static function getDocumentFolderUrl($document){
-    	return "/".Yii::app()->params['uploadUrl'].$document["moduleId"]."/".$document["folder"];
+	    if ($document["moduleId"]=="communevent")
+		    $folderUrl = Yii::app()->params['communeventUrl'];
+		else
+			$folderUrl = "/".Yii::app()->params['uploadUrl'].$document["moduleId"];
+    	$folderUrl .= "/".$document["folder"];
+    	return $folderUrl;
     }
 
     public static function getDocumentPath($document){

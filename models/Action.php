@@ -63,8 +63,8 @@ class Action
 	                $details = array_merge($details, array('date' => new MongoDate(time()))) ; 
                 else 
                 	$details = array('date' => new MongoDate(time()));
-                $mapUser[ self::NODE_ACTIONS.".".$collection.".".$action.".".(string)$element["_id"] ] = $details ;
-               
+                //$mapUser[ self::NODE_ACTIONS.".".$collection.".".$action.".".(string)$element["_id"] ] = $details ;
+                $mapUser[self::NODE_ACTIONS.".".$collection.".".(string)$element["_id"].".".$action ] = $action ;
                 //update the user table => adds or removes an action
                 PHDB::update ( Person::COLLECTION , array( "_id" => $user["_id"]), 
                                                     array( $dbMethod => $mapUser));
@@ -111,7 +111,7 @@ class Action
                 //Moderate automatic 
                 if($collection == Comment::COLLECTION && $action == "reportAbuse"){
                     $element = ($id) ? PHDB::findOne ($collection, array("_id" => new MongoId($id) )) : null;
-                    if(isset($element[$action."Count"]) && $element[$action."Count"] >= 1){
+                    if(isset($element[$action."Count"]) && $element[$action."Count"] >= 3){
                         PHDB::update($collection, array("_id" => new MongoId($element["_id"])), 
                                                                             array('$set' => array( "isAnAbuse" => true, "status"=>"declaredAbused"))
                         );
@@ -154,7 +154,7 @@ class Action
    */
     public static function isUserFollowing( $value, $actionType )
     {
-        return ( isset($value[ $actionType ]) && is_array($value[ $actionType ]) && in_array(Yii::app()->session["userId"], $value[ $actionType ]) );
+        return ( isset($value[ $actionType ]) && is_array($value[ $actionType ]) && array_key_exists(Yii::app()->session["userId"], $value[ $actionType ]) );
     }
 
     /**
