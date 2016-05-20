@@ -630,6 +630,7 @@ class Organization {
 				 }	 
 			}
 		}
+		return $projects;
 	}
 
 	/**
