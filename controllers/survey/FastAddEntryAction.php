@@ -28,7 +28,7 @@ class FastAddEntryAction extends CAction
                     $parentRoom = PHDB::findOne ( ActionRoom::COLLECTION, array("_id"=>new MongoId ( $_POST['discussionId']) ) );
                     $canAdd = Authorisation::canParticipate($organizerId, $parentRoom['parentType'], $parentRoom['parentId']);
                     if( $canAdd )
-                        $parentRoom = ActionRoom::insert($parentRoom,ActionRoom::TYPE_SURVEY,$_POST['discussionId']);
+                        $parentRoom = ActionRoom::insert($parentRoom,ActionRoom::TYPE_VOTE,$_POST['discussionId']);
                 }
             } else
                 $parentRoom = PHDB::findOne ( ActionRoom::COLLECTION, array( "room" => $room ) );
