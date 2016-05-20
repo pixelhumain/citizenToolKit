@@ -360,16 +360,17 @@ class Notification{
 
 	    $stream = ActStr::buildEntry($asParam);
 
-	    // $actionMsg = ($actionType == ActStr::VERB_INVITE ) ? " invited you" : " is following you";
+	    $actionMsg = ($news['isAnAbuse'] == true ) ? "Modération : Votre news postée le ".date('d-m-Y à H:i', $news['created']->sec)." ne sera plus affichée" : "Modération : Votre news postée le ".date('d-m-Y à H:i', $news['created']->sec)." restera affichée";
+
 		$notif = array( 
-	    	"persons" => array($news['author']),
-            "label"   => "Nouvelle modération" , 
-            "icon"    => ActStr::ICON_SHARE ,
-            "url"     => Yii::app()->createUrl('/'.Yii::app()->controller->module->id.'/#news.index.type.'.@$news['target']['type'].'.id.'.@$news['target']['id'])
+	    	"persons" => array($news['author']['id']),
+            "label"   => $actionMsg , 
+            "icon"    => "fa-rss" ,
+            "url"     => Yii::app()->createUrl('/'.Yii::app()->controller->module->id.'/news/detail/id/'.@(string)$news['_id'])
         );
 
 	    $stream["notify"] = ActivityStream::addNotification( $notif );
-	    ActivityStream::addEntry($stream);
+    	ActivityStream::addEntry($stream);
 	    
 	    //TODO mail::following
 	    //add a link to follow back easily

@@ -14,17 +14,6 @@ class ChartGlobalAction extends CAction
 
 		//We have to send data names to group to the charts
 		$params['groups'] = Lists::get(array('organisationTypes', 'eventTypes', 'listRoomTypes'));
-
-		$params['groups']['linkTypes'] = array(
-			"memberOf" => "Personne à organisation",
-            "projects" => "Personne à projet",
-            "events" => "Personne à événement",
-            "followers" => "Personne suivi par personne",
-            "follows" => "Personne à personne",
-            "undefined" => "undefined",
-            "needs" => "Besoin sur entité",
-		);
-
 		$page =  "chartGlobal";
 
 		if(Yii::app()->request->isAjaxRequest){

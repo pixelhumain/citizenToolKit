@@ -186,6 +186,7 @@ class Event {
 			'type' => $params['type'],
 			"allDay" => $allDay
 		);
+		date_default_timezone_set('UTC');
 		if(!$update)
 			$newEvent = array_merge( $newEvent , array( 'public' => true,
 														'created' => new MongoDate(time()),
