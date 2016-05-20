@@ -517,12 +517,15 @@ class Authorisation {
     */
     public static function canParticipate($userId, $type, $itemId){
         $res=false;
-        if( $type == Organization::COLLECTION )
-            $res = Authorisation::isOrganizationMember($userId, $itemId);
-        if( $type == Project::COLLECTION )
-            $res = Authorisation::isProjectMember($userId, $itemId);
-        if( $type == Event::COLLECTION )
-            $res = Authorisation::isEventMember($userId, $itemId);
+        if( $userId )
+        {
+            if( $type == Organization::COLLECTION )
+                $res = Authorisation::isOrganizationMember($userId, $itemId);
+            if( $type == Project::COLLECTION )
+                $res = Authorisation::isProjectMember($userId, $itemId);
+            if( $type == Event::COLLECTION )
+                $res = Authorisation::isEventMember($userId, $itemId);
+        }
         return $res;
     }
 

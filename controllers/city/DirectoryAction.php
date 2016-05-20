@@ -45,7 +45,6 @@ class DirectoryAction extends CAction
           }
       }
       
-      
       $allPeople = array();
       $people = PHDB::find(Person::COLLECTION, array( "address.codeInsee" => $insee, "address.postalCode" => $postalCode ) );
       
