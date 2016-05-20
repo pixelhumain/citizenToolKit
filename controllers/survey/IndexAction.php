@@ -49,10 +49,6 @@ class IndexAction extends CAction
         $user = ( isset( Yii::app()->session["userId"])) ? PHDB::findOne (Person::COLLECTION, array("_id"=>new MongoId ( Yii::app()->session["userId"] ) ) ) : null;
         $uniqueVoters = PHDB::count( Person::COLLECTION, array( "applications.survey" => array('$exists'=>true) ) );
 
-        $controller->title = $parentTitle."Surveys";
-        $controller->subTitle = "Nombres de votants inscrit : ".$uniqueVoters;
-        $controller->pageTitle = "Communecter - Surveys ".$name;
-
         $urlParams = ( isset($type) && isset($id)) ? "/type/".$type."/id/".$id : "";
         $controller->toolbarMBZ = array(
             '<a href="#" onclick="openSubView(\'Add a Room\', \'/communecter/rooms/editroom'.$urlParams.'\',null,function(){editRoomSV ();})" title="proposer une " ><i class="fa fa-plus"></i> Action Room </a>',
