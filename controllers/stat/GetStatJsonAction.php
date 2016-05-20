@@ -37,6 +37,16 @@ class GetStatJsonAction extends CAction
                    
                 break;
 
+                case 'links':
+                    $data = PHDB::find('stats', array('global.links' => array('$exists' => 1)));
+                    foreach ($data as $key => $value) {
+                        $res['x'][] = date("d/m/Y",$value['created']->sec);
+                        foreach($value['global']['links'] as $name => $number){
+                            if($name != 'total')$res[$name][] = $number;
+                        }
+                    };
+                break;
+
                 case 'organizations':
                     switch ($chart) {
                         case 'global':
