@@ -43,6 +43,8 @@ class EntriesAction extends CAction
         $parent = Project::getById($survey["parentId"]);
       }
 
+      $canParticipate = Authorisation::canParticipate( Yii::app()->session['userId'],$survey["parentType"],$survey["parentId"] );
+
       $tpl = ( isset($_GET['tpl']) ) ? $_GET['tpl'] : "index";
 
       $controller->renderPartial( $tpl, array( "list" => $list,
@@ -52,6 +54,7 @@ class EntriesAction extends CAction
                                              "parent"=>$parent,
                                              "parentType" => $survey["parentType"],
                                              "parentId" => $survey["parentId"],
+                                             "canParticipate"=>$canParticipate,
                                              "surveyLoadByHash" => $surveyLoadByHash
                                               )  );
     }

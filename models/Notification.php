@@ -352,7 +352,6 @@ class Notification{
 	*/
 	public static function moderateNews ($news) 
 	{
-
 	    $asParam = array(
 	    	"type" => ActStr::TEST, 
             "verb" => ActStr::VERB_MODERATE,
@@ -379,7 +378,6 @@ class Notification{
 
 	    $stream["notify"] = ActivityStream::addNotification( $notif );
     	ActivityStream::addEntry($stream);
-	    
 	    
 	    //TODO mail::following
 	    //add a link to follow back easily

@@ -6,7 +6,6 @@ class GetCityDataAction extends CAction
 	public function run($insee, $typeData, $typeZone=null, $option=null)
     {
         
-
     	$where = array("insee"=>$insee, $typeData => array( '$exists' => 1 ));
 
         if(isset($_POST['optionData']))
@@ -22,10 +21,11 @@ class GetCityDataAction extends CAction
 
     	if(isset($typeZone) && strcmp($typeZone, City::REGION)==0)
     	{
-            if(isset($_POST['optionCities']) && $_POST['optionCities'] != null)
+            if(isset($_POST['optionCities']) && $_POST['optionCities'] != null){
                 $cityData = City::getRegionByInsee($insee,$fields, $typeData, $option, $_POST['optionCities']);
-            else
+            }else{
                 $cityData = City::getRegionByInsee($insee,$fields, $typeData, $option);
+            }
         }	
     	else if(isset($typeZone) && strcmp($typeZone, City::DEPARTEMENT)==0)
     	{
@@ -36,10 +36,14 @@ class GetCityDataAction extends CAction
         }	
     	else{
     			$cityData = City::getWhereData($where, $fields);
+                // print_r($cityData);
     			$where = array("insee" => $insee);
     			$fields = array("name");
                 //var_dump($cityData);
+                // print_r($where);
     			$city = City::getWhere($where, $fields);
+                // print_r($city);
+                // die();
     			foreach ($city as $key => $value) {
     				$name = $value["name"];
     			}

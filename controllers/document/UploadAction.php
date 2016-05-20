@@ -76,7 +76,7 @@ class UploadAction extends CAction {
                                         "success"=>true,
                                         'name'=>$name,
                                         'dir'=> $upload_dir,
-                                        'size'=> (int)filesize ($upload_dir.$name) ));
+                                        'size'=> Document::getHumanFileSize ( filesize ( $upload_dir.$name ) ) ));
     	        exit;
         	}
         }

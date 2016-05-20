@@ -7,8 +7,7 @@
   */
 class DirectoryAction extends CAction
 {
-    public function run( $insee=null )
-    {
+    public function run( $insee=null ) {
       $controller=$this->getController();
 
 
@@ -39,9 +38,6 @@ class DirectoryAction extends CAction
       $organizations = array();
       foreach ($organizationsBd as $key => $orga) {
           $orga = Organization::getPublicData((string)$orga["_id"]);
-          $profil = Document::getLastImageByKey((string)$orga["_id"], Organization::COLLECTION, Document::IMG_PROFIL);
-          if($profil !="")
-              $orga["imagePath"]= $profil;
           if (!@$orga["disabled"]) {
             array_push($organizations, $orga);
           }
@@ -51,25 +47,11 @@ class DirectoryAction extends CAction
       $allPeople = array();
       $people = PHDB::find(Person::COLLECTION, array( "address.codeInsee" => $insee ) );
       
-     // if( isset($person["links"]) && isset($person["links"]["knows"])) {
-          foreach ($people as $key => $onePerson) {
-              $citoyen = Person::getPublicData( $key );
-              $profil = Document::getLastImageByKey($key, Person::COLLECTION, Document::IMG_PROFIL);
-              if($profil !="")
-                 $citoyen["imagePath"]= $profil;
-              array_push($allPeople, $citoyen);
-              
-          }
-      /*
-  		$where = array("address.codeInsee"=>$insee);
-  		$params["events"] = Event::getWhere( $where );
-  		$params["organizations"] = Organization::getWhere( $where );
-  		$params["people"] = Person::getWhere( $where );
-      $params["projects"] = Project::getWhere( $where );
-      $params["type"] = City::CONTROLLER;
-      $params["city"] = $city;
-      */
-
+      foreach ($people as $key => $onePerson) {
+          $citoyen = Person::getPublicData( $key );
+          array_push($allPeople, $citoyen);
+      }
+      
       $params["organizations"] = $organizations;
       $params["projects"] = $projects;
       $params["events"] = $events;
