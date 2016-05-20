@@ -599,11 +599,6 @@ class Organization {
 				 }	 
 			}
 		}
-		foreach ($events as $key => $value) {
-        	$profil = Document::getLastImageByKey($key, PHType::TYPE_EVENTS, Document::IMG_PROFIL);
-        	if($profil!="")
-        		$value['imagePath']=$profil;
-        }
 		return $events;
 	}
 	/**
@@ -635,12 +630,6 @@ class Organization {
 				 }	 
 			}
 		}
-		foreach ($projects as $key => $value) {
-        	$profil = Document::getLastImageByKey($key, PHType::TYPE_PROJECTS, Document::IMG_PROFIL);
-        	if($profil!="")
-        		$value['imagePath']=$profil;
-        }
-		return $projects;
 	}
 
 	/**
