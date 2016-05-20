@@ -78,16 +78,15 @@ class Person {
 	     	$user ["postalCode"] = $account["address"]["postalCode"];
 	    if( isset( $account["address"]) && isset( $account["address"]["codeInsee"]) )
 	     	$user ["codeInsee"] = $account["address"]["codeInsee"];
-	    if( isset( $account["profilImageUrl"]))
-	     	$user ["profilImageUrl"] = $account["profilImageUrl"];
 		if( isset( $account["roles"]))
 	     	$user ["roles"] = $account["roles"];
 
 		//Image profil
-	    //TODO SBAR : c'est plus bon ça. A refaire. Le profil ImageUrl n'est plus utilisé.
+	    
 	    $simpleUser = self::getSimpleUserById((string)$account["_id"]);
-	    if( isset( $simpleUser["profilImageUrl"]))
-	     	$user ["profilImageUrl"] = $simpleUser["profilImageUrl"];
+	    $user ["profilImageUrl"] = $simpleUser["profilImageUrl"];
+	    $user ["profilThumbImageUrl"] = $simpleUser["profilThumbImageUrl"];
+	    $user ["profilMarkerImageUrl"] = $simpleUser["profilMarkerImageUrl"];
 
 	    Yii::app()->session["user"] = $user;
 	    Yii::app()->session["isRegisterProcess"] = $isRegisterProcess;
