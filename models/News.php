@@ -46,7 +46,8 @@ class News {
 	 */
 	public static function getNewsForObjectId($param,$sort=array("created"=>-1),$type)
 	{
-	    $res = PHDB::findAndSort(self::COLLECTION, $param,$sort,15);
+		//$param=array();
+	    $res = PHDB::findAndSort(self::COLLECTION, $param,$sort,5);
 	    foreach ($res as $key => $news) {
 		    if(@$news["type"]){
 				$res[$key]=NewsTranslator::convertParamsForNews($news);			  		

@@ -20,27 +20,21 @@ class NewsTranslator {
 			$docImg="";
 			if($params["object"]["objectType"]==Event::COLLECTION){
 				$object=Event::getSimpleEventById((string)$params["object"]["id"]);
-				$docImg = Document::IMG_PROFIL;
 				$params["icon"] = "fa-calendar";
 			} 
 			else if ($params["object"]["objectType"]==Organization::COLLECTION){
 				$object=Organization::getSimpleOrganizationById((string)$params["object"]["id"]);
-				$docImg = Document::IMG_PROFIL;
 				$params["icon"] = "fa-group";
 			} 
 			else if ($params["object"]["objectType"]==Project::COLLECTION){
 				$object=Project::getSimpleProjectById((string)$params["object"]["id"]);
-				$docImg = Document::IMG_SLIDER;
 				$params["icon"]="fa-lightbulb-o";
 			}
-			if(!empty($object)){
-			$params["imageBackground"] = Document::getLastImageByKey((string) $params["object"]["id"],$params["object"]["objectType"] , $docImg);
+			$params["imageBackground"] = $object["profilImageUrl"];
 			$params["name"] = $object["name"];
-			//echo @$object["description"];
-			//echo "<br/> après transfo";
-			//trim(preg_replace('/<[^>]*>/', ' ',(substr(isset($object["description"]) ? $object["description"] : "",0 ,100 )));
-			$params["text"] = isset($object["shortDescription"]) ? $object["shortDescription"] : "";
-			//echo $params["text"];
+			$params["text"] = preg_replace('/<[^>]*>/', '', (isset($object["shortDescription"]) ? $object["shortDescription"] : "" ));
+			if (empty($params["text"]))
+				$params["text"] =(isset($object["description"]) ? preg_replace('/<[^>]*>/', '',$object["description"]) : "");
 			$params["scope"]["address"]=$object["address"];
 			//print_r($params);
 			}
@@ -63,17 +57,15 @@ class NewsTranslator {
 				$params["target"]["type"]=Person::COLLECTION;
 			}
 			else if ($params["target"]["type"]==Event::COLLECTION){
-				
-				//if(!empty($event)){
-					$params["target"] = Event::getSimpleEventById($params["target"]["id"]);
-					$params["target"]["type"]=Event::COLLECTION;
-				//}
+				$params["target"] = Event::getSimpleEventById($params["target"]["id"]);
+				$params["target"]["type"]=Event::COLLECTION;
 			}
 				
 		}
-		if($params["type"]=="news" && $readOne==false){
-			if(@$params["text"] && strlen ($params["text"]) > 500){
-			  		$params["text"]=trim(preg_replace('/<[^>]*>/', ' ',(substr(isset($params["text"]) ? $params["text"] : "",0 ,500 ))))."<span class='removeReadNews'> ...<br><a href='javascript:;' onclick='blankNews(\"".(string) $params["_id"]."\")'>Lire la suite</a></span>";
+		if($params["type"]=="news"){
+			if(@$params["text"]){
+				$params["text"]=preg_replace('/<[^>]*>/', '',(isset($params["text"]) ? $params["text"] : ""));
+			//."<span class='removeReadNews'> ...<br><a href='javascript:;' onclick='blankNews(\"".(string) $params["_id"]."\")'>Lire la suite</a></span>";
 		  	}
 		}
 		//print_r($params);
