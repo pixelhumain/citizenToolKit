@@ -47,7 +47,31 @@ class ActionAction extends CAction
                                            "link" => "loadByHash('#project.detail.id.".$action["organizerId"]."')");
           }
 
-          $params["parentType"] = $action["organizerType"];
+          $params["organizerType"] = $action["organizerType"];
+      }
+
+      if( isset($action["parentType"]) )
+      { 
+         if( $action["parentType"] == Person::COLLECTION )
+          {
+            $parent = Person::getById( $action["parentId"] );
+            $params["parent"] = array(  "name" => $parent["name"],
+                                           "link" => "loadByHash('#person.detail.id.".$action["parentId"]."')");
+          }
+          else if( $action["parentType"] == Organization::COLLECTION )
+          {
+            $parent = Organization::getById( $action["parentId"] );
+            $params["parent"] = array(  "name" => $parent["name"],
+                                           "link" => "loadByHash('#organization.detail.id.".$action["parentId"]."')");
+          }
+          else if( $action["parentType"] == Project::COLLECTION )
+          {
+            $parent = Project::getById( $action["parentId"] );
+            $params["parent"] = array(  "name" => $parent["name"],
+                                           "link" => "loadByHash('#project.detail.id.".$action["parentId"]."')");
+          }
+
+          $params["parentType"] = $action["parentType"];
       }
 
         $params["contributors"] = array();
@@ -65,6 +89,8 @@ class ActionAction extends CAction
                 }
             }
         }
+
+        $params["parentSpace"] = ActionRoom::getById( $action["room"] );
 
       if(Yii::app()->request->isAjaxRequest)
         echo $controller->renderPartial("actionStandalone",$params,true);

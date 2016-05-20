@@ -50,14 +50,14 @@ class IndexAction extends CAction
 
         if(Yii::app()->request->isAjaxRequest){
 	        if($type != ActionRoom::COLLECTION && $type != ActionRoom::COLLECTION_ACTIONS)
-                echo $controller->renderPartial("commentPod" , $params, true);
+                echo $controller->renderPartial("../comment/commentPod" , $params, true);
             else
-                echo $controller->renderPartial("commentPodActionRooms" , $params, true);
+                echo $controller->renderPartial("../comment/commentPodActionRooms" , $params, true);
 	    }else{
             if($type != ActionRoom::COLLECTION && $type != ActionRoom::COLLECTION_ACTIONS)
-                $controller->renderPartial("commentPod" , $params, true);
+                $controller->renderPartial("../comment/commentPod" , $params, true);
             else
-                $controller->renderPartial("commentPodActionRooms" , $params, true);
+                $controller->renderPartial("../comment/commentPodActionRooms" , $params, true);
         }
     }
 
