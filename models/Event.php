@@ -73,8 +73,8 @@ class Event {
 			}
 		}
 		if(!empty($event)){
-		$event = array_merge($event, Document::retrieveAllImagesUrl($id, self::COLLECTION));
-		$event["typeSig"] = "events";
+			$event = array_merge($event, Document::retrieveAllImagesUrl($id, self::COLLECTION));
+			$event["typeSig"] = "events";
 	  	}
 	  	return $event;
 	}
@@ -384,10 +384,7 @@ class Event {
 		$listEventAttending= array();
 		$eventsAttending = PHDB::find(PHType::TYPE_EVENTS, $where);
 		foreach ($eventsAttending as $key => $value) {
-        	$profil = Document::getLastImageByKey($key, PHType::TYPE_EVENTS, Document::IMG_PROFIL);
-        	if(strcmp($profil, "")!= 0){
-        		$value['imagePath']=$profil;
-        	}
+        	$value = array_merge($value, Document::retrieveAllImagesUrl($key, self::COLLECTION, $value));
         	$listEventAttending[$key] = $value;
         }
         return $listEventAttending;
@@ -512,8 +509,7 @@ class Event {
 		  			}
 		  		}
 		  	}
- 	  		$imageUrl= Document::getLastImageByKey($key, self::COLLECTION, '');
- 	  		$events[$key]["imageUrl"] = $imageUrl;
+ 	  		$events[$key] = array_merge($events[$key], Document::retrieveAllImagesUrl($id, self::COLLECTION));
 	  	}
 	  	return $events;
 	}

@@ -269,12 +269,6 @@ class Authorisation {
                 $eventList[$eventId] = $eventValue;
             }
 		}
-        foreach ($eventList as $key => $value) {
-        	$profil = Document::getLastImageByKey($key, Event::COLLECTION, Document::IMG_PROFIL);
-        	if($profil!="")
-        		$value['imagePath']=$profil;
-        	$eventListFinal[$key] = $value;
-        }
         return $eventListFinal;
     }
     public static function listOfEventAdmins($eventId) {

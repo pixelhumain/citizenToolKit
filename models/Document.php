@@ -39,14 +39,14 @@ class Document {
 	protected static function listMyDocumentByType($userId, $type, $contentKey, $sort=null){
 		$params = array("id"=> $userId,
 						"type" => $type,
-						"contentKey" => new MongoRegex("/".$contentKey."/i"));
+						"contentKey" => $contentKey);
 		$listDocuments = PHDB::findAndSort( self::COLLECTION,$params, $sort);
 		return $listDocuments;
 	}
 	// TODO BOUBOULE - TO DELETE ONLY ONE DEPENDENCE WITH getListDocumentsByContentKey
 	protected static function listMyDocumentByContentKey($userId, $contentKey, $docType = null, $sort=null)	{	
 		$params = array("id"=> $userId,
-						"contentKey" => new MongoRegex("/".$contentKey."/i"));
+						"contentKey" => $contentKey);
 		
 		if (isset($docType)) {
 			$params["doctype"] = $docType;
@@ -358,7 +358,7 @@ class Document {
 			$sort = array( 'created' => -1 );
 			$params = array("id"=> $itemId,
 						"type" => $itemType,
-						"contentKey" => new MongoRegex("/".$key."/i"));
+						"contentKey" => $key);
 			$listImagesofType = PHDB::findAndSort( self::COLLECTION,$params, $sort, $aLimit);
 
 			$arrayOfImagesPath = array();
@@ -384,7 +384,7 @@ class Document {
 		$sort = array( 'created' => -1 );
 		$params = array("id"=> $itemId,
 						"type" => $itemType,
-						"contentKey" => new MongoRegex("/".$key."/i"));
+						"contentKey" => $key);
 		
 		$listImagesofType = PHDB::findAndSort( self::COLLECTION,$params, $sort, 1);
 		
@@ -531,7 +531,7 @@ class Document {
 		$sort = array( 'created' => -1 );
 		$params = array("id"=> $id,
 						"type" => $type,
-						"contentKey" => new MongoRegex("/".self::IMG_PROFIL."/i"));
+						"contentKey" => self::IMG_PROFIL);
 		$listDocuments = PHDB::findAndSort( self::COLLECTION,$params, $sort, 1);
 
 		$generatedImageExist = false;
