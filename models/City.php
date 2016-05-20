@@ -141,7 +141,7 @@ class City {
 		/*$fields = array("insee", $typeData.$option) ;
 		$sort = array($typeData.$option => -1);*/
         $fields[] = "insee" ;
-        if(!empty($option))
+		if(!empty($option))
 		{
 			foreach ($option as $key => $value) {
 				$fields[] = $typeData.$value;
@@ -151,7 +151,6 @@ class City {
 			$fields[] = $typeData;
 			$sort = array($typeData => -1);
 		}
-
 		$cityData = City::getWhereData($where, $fields, 30, $sort);
 		foreach ($cityData as $key => $value) {
 			foreach ($cities as $k => $v) {
@@ -198,7 +197,7 @@ class City {
 
         $totalPop = 1;
         foreach ($cityData as $key => $valueCity) {
-				$totalPop = $valueCity['population'][$years]['total'];
+				$totalPop = $valueCity['population'][$years]['total']['value'];
 			}
 		return $totalPop;
 	}
@@ -210,7 +209,7 @@ class City {
 
         $totalPop = 1;
         foreach ($cityData as $key => $valueCity) {
-				$totalPop = $valueCity['population'][$years]['hommes']['total'];
+				$totalPop = $valueCity['population'][$years]['hommes']['total']['value'];
 			}
 		return $totalPop;
 	}
@@ -222,7 +221,7 @@ class City {
 
         $totalPop = 1;
         foreach ($cityData as $key => $valueCity) {
-				$totalPop = $valueCity['population'][$years]['femmes']['total'];
+				$totalPop = $valueCity['population'][$years]['femmes']['total']['value'];
 			}
 		return $totalPop;
 	}

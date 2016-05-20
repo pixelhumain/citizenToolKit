@@ -167,6 +167,14 @@ class News {
 		return PHDB::remove(self::COLLECTION,array("_id"=>new MongoId($id)));
 	}
 	/**
+	 * delete a news in database from communevent with imageId
+	 * @param String $id : imageId in media.content to delete
+	*/
+
+	public static function removeNewsByImageId($imageId){
+		return PHDB::remove(self::COLLECTION,array("media.content.imageId"=>$imageId));
+	}
+	/**
 	 * update a news in database
 	 * @param String $newsId : 
 	 * @param string $name fields to update
@@ -213,7 +221,7 @@ class News {
 		
 		$where = array(
           "reportAbuse"=> array('$exists'=>1)
-          ,"moderate.isAnAbuse" => array('$exists'=>0)
+          ,"isAnAbuse" => array('$exists'=>0)
           ,"target.id" => array('$exists'=>1)
           ,"target.type" => array('$exists'=>1)
           ,"scope.type" => array('$exists'=>1)
