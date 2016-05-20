@@ -65,4 +65,3 @@ class IndexAction extends CAction
   			$controller->render( "index" , $params );
     }
 }
->>>>>>> parent of af269bc... Merge remote-tracking branch 'origin/master' into Graphique

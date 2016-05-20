@@ -672,4 +672,3 @@ class Document {
 
 }
 ?>
->>>>>>> parent of af269bc... Merge remote-tracking branch 'origin/master' into Graphique

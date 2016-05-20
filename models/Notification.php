@@ -375,4 +375,3 @@ class Notification{
 	    //add a link to follow back easily
 	}
 }
->>>>>>> parent of af269bc... Merge remote-tracking branch 'origin/master' into Graphique
