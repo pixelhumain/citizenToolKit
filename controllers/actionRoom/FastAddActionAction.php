@@ -32,10 +32,6 @@ class FastAddActionAction extends CAction
                 }
             } else
                 $parentRoom = PHDB::findOne ( ActionRoom::COLLECTION, array( "room" => $room ) );
-
-
-            
-
             
             //check if user is Member of Element
             if(!@$canAdd)
@@ -65,6 +61,7 @@ class FastAddActionAction extends CAction
                 $res['result'] = true;
                 $res['msg'] = Yii::t("rooms","action Saved",null,Yii::app()->controller->module->id);
                 $res['actionId'] = $actionId;
+                $res['hash'] = "#rooms.action.id.".$actionId;
 
                 //Notify Element participants 
                 Notification::actionOnPerson ( ActStr::VERB_ADD_ACTION, ActStr::ICON_ADD, "", array( "type" => ActionRoom::COLLECTION_ACTIONS , "id" => $actionId ));

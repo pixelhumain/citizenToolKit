@@ -28,7 +28,7 @@ class FastAddEntryAction extends CAction
                     $parentRoom = PHDB::findOne ( ActionRoom::COLLECTION, array("_id"=>new MongoId ( $_POST['discussionId']) ) );
                     $canAdd = Authorisation::canParticipate($organizerId, $parentRoom['parentType'], $parentRoom['parentId']);
                     if( $canAdd )
-                        $parentRoom = ActionRoom::insert($parentRoom,$_POST['discussionId'],ActionRoom::TYPE_SURVEY);
+                        $parentRoom = ActionRoom::insert($parentRoom,ActionRoom::TYPE_SURVEY,$_POST['discussionId']);
                 }
             } else
                 $parentRoom = PHDB::findOne ( ActionRoom::COLLECTION, array( "room" => $room ) );
@@ -61,6 +61,7 @@ class FastAddEntryAction extends CAction
                 $res['result'] = true;
                 $res['msg'] = "surveySaved";
                 $res['surveyId'] = $entryInfos["_id"];
+                $res['hash'] = "#survey.entry.id.".$entryInfos["_id"];
 
                 //Notify Element participants 
                 Notification::actionOnPerson ( ActStr::VERB_ADD_PROPOSAL, ActStr::ICON_ADD, "", array( "type" => Survey::COLLECTION , "id" => $entryInfos["_id"] ));
