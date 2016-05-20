@@ -69,9 +69,10 @@ class Document {
 	 * @param $params : a set of information for the document (?to define)
 	*/
 	public static function save($params){
-		if(!isset($params["contentKey"])){
-			$params["contentKey"] = "";
-		}
+		
+		//check content key
+		if (in_array(@$params["contentKey"], array(self::IMG_BANNIERE,self::IMG_PROFIL,self::IMG_LOGO,self::IMG_SLIDER,self::IMG_MEDIA)))
+			throw new CTKException("Unknown contentKey ".$params["contentKey"]." for the document !");
 		
 	    $new = array(
 			"id" => $params['id'],
@@ -82,14 +83,12 @@ class Document {
 	  		"author" => $params['author'],
 	  		"name" => $params['name'],
 	  		"size" => (int) $params['size'],
+	  		"contentKey" => $params["contentKey"],
 	  		'created' => time()
 	    );
 
 	    if(isset($params["category"]) && !empty($params["category"]))
 	    	$new["category"] = $params["category"];
-	    if(isset($params["contentKey"]) && !empty($params["contentKey"])){
-	    	$new["contentKey"] = $params["contentKey"];
-	    }
 
 	    PHDB::insert(self::COLLECTION, $new);
 	    
