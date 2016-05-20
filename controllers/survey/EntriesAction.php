@@ -43,7 +43,7 @@ class EntriesAction extends CAction
         $parent = Project::getById($survey["parentId"]);
       }
 
-      $canParticipate = Authorisation::canParticipate( Yii::app()->session['userId'],$survey["parentType"],$survey["parentId"] );
+      $canParticipate = Authorisation::canParticipate( Yii::app()->session['userId'], $survey["parentType"], $survey["parentId"] );
 
       $tpl = ( isset($_GET['tpl']) ) ? $_GET['tpl'] : "index";
 
