@@ -88,7 +88,7 @@ class IndexAction extends CAction
 			$params["contextParentType"] = $type; 
 			$params["contextParentId"] = $id;
 			//$params["condition"]=$where;
-			$params["parent"]=$parent;
+			$params["parent"]=@$parent;
 		}
 		else{
 			$parent=$_POST["parent"];
