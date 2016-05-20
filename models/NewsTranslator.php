@@ -36,11 +36,6 @@ class NewsTranslator {
 			if (empty($params["text"]))
 				$params["text"] =(isset($object["description"]) ? preg_replace('/<[^>]*>/', '',$object["description"]) : "");
 			$params["scope"]["address"]=$object["address"];
-			//print_r($params);
-			}
-			else {
-				
-			}
 		}
 		if(@$params["target"]["type"]){
 			if ($params["target"]["type"] == Organization::COLLECTION){
