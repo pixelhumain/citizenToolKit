@@ -60,10 +60,8 @@ class NewsTranslator {
 		if($params["type"]=="news"){
 			if(@$params["text"]){
 				$params["text"]=preg_replace('/<[^>]*>/', '',(isset($params["text"]) ? $params["text"] : ""));
-			//."<span class='removeReadNews'> ...<br><a href='javascript:;' onclick='blankNews(\"".(string) $params["_id"]."\")'>Lire la suite</a></span>";
 		  	}
 		}
-		//print_r($params);
 		if(@$params["media"] && !is_string(@$params["media"]) && $params["media"]["type"]=="gallery_images"){
 			$images=array();
 			$limit=5;
