@@ -106,5 +106,4 @@ class NewsTranslator {
 	  	$params["author"] = Person::getSimpleUserById($params["author"]);
 		return $params;
 	}
-	
 }

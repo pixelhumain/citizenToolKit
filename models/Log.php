@@ -42,9 +42,6 @@ class Log {
 
 	    //POST or GET
     	if(!empty($_REQUEST)) $logs['params'] = $_REQUEST;
-
-    	//To avoid the clear password storage
-    	if(isset($logs['params']['pwd'])) unset($logs['params']['pwd']);
 	    return $logs;
 	}
 
