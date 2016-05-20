@@ -58,7 +58,7 @@ class IndexAction extends CAction
             $actionHistory = $roomsActions["actions"];
         }
         
-        error_log("count rooms : ".count($rooms));
+        //error_log("count rooms : ".count($rooms));
 
         $discussions = array();
         $votes = array();
