@@ -45,6 +45,15 @@ class ActionRoom {
 											  ));
 	}
 
+	public static function canParticipate($userId,$id=null,$type=null) {
+		$showAddBtn = false;
+        if( ( $type == Organization::COLLECTION && Authorisation::isOrganizationMember( $userId , $id ) )
+            || ( $type == Project::COLLECTION && Authorisation::isProjectMember( $userId , $id ) )
+            || ( $type == Event::COLLECTION && Authorisation::isEventMember( $userId , $id ) ) )
+            $showAddBtn = true;
+	  	return $showAddBtn;
+	}
+
 	public static function isModerator($userId,$app) {
      	$app = PHDB::findOne(PHType::TYPE_APPLICATIONS, array("key"=> $app ) );
      	$res = false;

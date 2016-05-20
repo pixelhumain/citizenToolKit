@@ -56,11 +56,8 @@ class ModerateAction extends CAction
                     //Save => OK
                     if($resAction['userActionSaved']){
 
-                        /**** NOTIFICATION ****/
-                        Notification::moderateNews($news);
-
                         /**** ISANABUSE ? ****/
-                        if(@$news["moderateCount"]+$resAction['inc'] >= 3){
+                        if((@$news["moderateCount"]+$resAction['inc']) >= 3){
                             //Cosolidate all moderation of this news
                             $totalAbuse = 0;
                             if($_REQUEST['isAnAbuse'] == "true")$totalAbuse = 1;
@@ -72,11 +69,14 @@ class ModerateAction extends CAction
                             if($totalAbuse == 0){
                                 $pourcentage = 0;
                             }else{
-                                $pourcentage = round(($totalAbuse / @$news["moderateCount"]+$resAction['inc'])*100);
+                                $pourcentage = round(($totalAbuse / (@$news["moderateCount"]+$resAction['inc']))*100);
                             }
-                            $isAnAbuse["isAnAbuse"] = false;
+                            $news["isAnAbuse"] = $isAnAbuse["isAnAbuse"] = false;
                             if($pourcentage > 49)$isAnAbuse["isAnAbuse"] = true;
                             $res = PHDB::update ( News::COLLECTION , array( "_id" => new MongoId($_REQUEST["id"])), array( '$set' => $isAnAbuse));
+
+                            /**** NOTIFICATION ****/
+                            Notification::moderateNews($news);
                         }
 
                         Rest::json(array("result"=>true, "msg"=>"Ok, Moderation enregistrée")); 
