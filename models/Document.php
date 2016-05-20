@@ -92,6 +92,9 @@ class Document {
 	    }
 
 	    PHDB::insert(self::COLLECTION, $new);
+	    
+	    //Generate small image
+	   	self::generateAlbumImages($new);
 	    //Generate image profil if necessary
 	    if (substr_count(@$new["contentKey"], self::IMG_PROFIL)) {
 	    	self::generateProfilImages($new);
@@ -99,6 +102,7 @@ class Document {
 	    if (substr_count(@$new["contentKey"], self::IMG_SLIDER)) {
 	    	self::generateAlbumImages($new, self::GENERATED_IMAGES_FOLDER);
 	    }
+
 	    return array("result"=>true, "msg"=>Yii::t('document','Document saved successfully'), "id"=>$new["_id"],"name"=>$new["name"]);	
 	}
 
@@ -503,6 +507,7 @@ class Document {
 		}
 		//The images will be stored in the /uploadDir/moduleId/ownerType/ownerId/thumb (ex : /upload/communecter/citoyen/1242354235435/thumb)
 		$upload_dir = Yii::app()->params['uploadDir'].$dir.'/'.$folder.$destination; 
+		
 		if(!file_exists ( $upload_dir )) {       
 			mkdir($upload_dir, 0777);
 		}
@@ -652,8 +657,59 @@ class Document {
 		file_put_contents($file, $current);
 	}
 
+	public static function uploadDocumentFromURL($dir,$folder=null,$ownerId=null,$input,$rename=false, $pathFile, $nameFile) {
+		//Check if the file exists on that URL
+		$file_headers = @get_headers($pathFile.$nameFile);
+		if($file_headers[0] == 'HTTP/1.1 404 Not Found') {
+		    $exists = false;
+		} else {
+		    $exists = true;
+		}
 
-	public static function uploadDocument($dir,$folder=null,$ownerId=null,$input,$rename=false, $pathFile, $nameFile) {
+		if ($exists) {
+			$file = file_get_contents($pathFile.$nameFile, FILE_USE_INCLUDE_PATH);
+			$res = self::checkFileRequirements($file, $dir, $folder, $ownerId, $input);
+			if ($res["result"]) {
+				self::uploadDocument($file, $res["uploadDir"], $input, $rename);
+			} else {
+				return $res;
+			}
+		}
+	}
+
+	public static function uploadDocument($file, $uploadDir,$input,$rename=false) {
+    	$uploadedFile = @$file['tmp_name'] ? true : false;
+		$nameFile = $file["name"];
+
+    	// Move the uploaded file from the temporary 
+    	// directory to the uploads folder:
+    	// we use a unique Id for the image name Yii::app()->session["userId"].'.'.$ext
+        // renaming file
+        $cleanfileName = Document::clean(pathinfo($nameFile, PATHINFO_FILENAME)).".".pathinfo($nameFile, PATHINFO_EXTENSION);
+    	$name = ($rename) ? Yii::app()->session["userId"].'.'.$ext : $cleanfileName;
+        if( file_exists ( $uploadDir.$name ) )
+            $name = time()."_".$name;        
+            
+    	if(isset(Yii::app()->session["userId"]) && $name) {
+    		if ($uploadedFile) {
+    			move_uploaded_file($file['tmp_name'], $uploadDir.$name);
+    		} else {
+    			file_put_contents($uploadDir.$name , $file);
+			}
+
+    		return array('result'=>true,
+                        "success"=>true,
+                        'name'=>$name,
+                        'uploadDir'=> $uploadDir,
+                        'size'=> (int) filesize ($uploadDir.$name) );
+    	}
+
+        return array('result'=>false,'error'=>Yii::t("document","Something went wrong with your upload!"));
+	}
+			
+	public static function checkFileRequirements($file, $dir, $folder, $ownerId, $input) {
+		//TODO SBAR
+		//$dir devrait être calculé : sinon on peut facilement enregistrer des fichiers n'importe où
 		$upload_dir = Yii::app()->params['uploadUrl'];
         if(!file_exists ( $upload_dir ))
             mkdir ( $upload_dir,0775 );
@@ -671,58 +727,32 @@ class Document {
         }
 
         //ex: upload/communecter/person/userId
-        if( isset( $ownerId ))
-        {
+        if( isset( $ownerId )) {
             $upload_dir .= $ownerId.'/';
             if( !file_exists ( $upload_dir ) )
                 mkdir ( $upload_dir,0775 );
         }
-        
-        $allowed_ext = array('jpg','jpeg','png','gif',"pdf","xls","xlsx","doc","docx","ppt","pptx","odt");
-        
-        /*if(strtolower($_SERVER['REQUEST_METHOD']) != 'post')
-        {
-    	    return array('result'=>false,'error'=>Yii::t("document","Error! Wrong HTTP method!"));
 
-        }*/
-        
-
-        $file_headers = @get_headers($pathFile.$nameFile);
-		if($file_headers[0] == 'HTTP/1.1 404 Not Found') {
-		    $exists = false;
-		} else {
-		    $exists = true;
-		}
-
-        if (!empty($pathFile) && $file_headers[0] != 'HTTP/1.1 404 Not Found') {
-        	$ext = strtolower(pathinfo($nameFile, PATHINFO_EXTENSION));
-        	if(!in_array($ext,$allowed_ext)){
-        		return array('result'=>false,'error'=>Yii::t("document","Only").implode(',',$allowed_ext).Yii::t("document","files are allowed!"));
-    	    
-        	}	
-        
-        	// Move the uploaded file from the temporary 
-        	// directory to the uploads folder:
-        	// we use a unique Id for the iamge name Yii::app()->session["userId"].'.'.$ext
-            // renaming file
-            $cleanfileName = Document::clean(pathinfo($nameFile, PATHINFO_FILENAME)).".".pathinfo($nameFile, PATHINFO_EXTENSION);
-        	$name = ($rename) ? Yii::app()->session["userId"].'.'.$ext : $cleanfileName;
-            if( file_exists ( $upload_dir.$name ) )
-                $name = time()."_".$name;
-
-            
-            $pic = file_get_contents($pathFile.$nameFile, FILE_USE_INCLUDE_PATH);
-            
-            
-        	if(isset(Yii::app()->session["userId"]) && $name && file_put_contents($upload_dir.$name , $pic)){   
-        		return array('result'=>true,
-                                        "success"=>true,
-                                        'name'=>$name,
-                                        'dir'=> $upload_dir,
-                                        'size'=> Document::getHumanFileSize( filesize ( $upload_dir.$name ) ) );
-        	}
+        if( @$input=="newsImage"){
+	        $upload_dir .= Document::GENERATED_ALBUM_FOLDER.'/';
+            if( !file_exists ( $upload_dir ) )
+                mkdir ( $upload_dir,0775 );
         }
-        return array('result'=>false,'error'=>Yii::t("document","Something went wrong with your upload!"));
+
+        //Check extension
+        $allowed_ext = array('jpg','jpeg','png','gif',"pdf","xls","xlsx","doc","docx","ppt","pptx","odt");
+        $nameFile = $file["name"];
+    	$ext = strtolower(pathinfo($nameFile, PATHINFO_EXTENSION));
+    	if(!in_array($ext,$allowed_ext)) {
+    		return array('result'=>false,'error'=>Yii::t("document","Only").implode(',',$allowed_ext).Yii::t("document","files are allowed!"));
+    	}
+
+    	//Check size
+    	if ($file["size"] > 4000000 ) {
+    		return array('result'=>false,'error'=>"The file size should not be over 4 Mo");
+    	}
+
+    	return array('result' => true, 'msg'=>'Files requirements meet', 'uploadDir' => $upload_dir);
 	}
 
 }

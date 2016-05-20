@@ -82,7 +82,6 @@ class Person {
 	     	$user ["roles"] = $account["roles"];
 
 		//Image profil
-	    
 	    $simpleUser = self::getSimpleUserById((string)$account["_id"]);
 	    $user ["profilImageUrl"] = $simpleUser["profilImageUrl"];
 	    $user ["profilThumbImageUrl"] = $simpleUser["profilThumbImageUrl"];
