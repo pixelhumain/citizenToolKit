@@ -30,12 +30,18 @@ class NewsTranslator {
 				$object=Project::getSimpleProjectById((string)$params["object"]["id"]);
 				$params["icon"]="fa-lightbulb-o";
 			}
-			$params["imageBackground"] = $object["profilImageUrl"];
-			$params["name"] = $object["name"];
-			$params["text"] = preg_replace('/<[^>]*>/', '', (isset($object["shortDescription"]) ? $object["shortDescription"] : "" ));
-			if (empty($params["text"]))
-				$params["text"] =(isset($object["description"]) ? preg_replace('/<[^>]*>/', '',$object["description"]) : "");
-			$params["scope"]["address"]=$object["address"];
+			if(!empty($object)){
+				$params["imageBackground"] = $object["profilImageUrl"];
+				$params["name"] = $object["name"];
+				$params["text"] = preg_replace('/<[^>]*>/', '', (isset($object["shortDescription"]) ? $object["shortDescription"] : "" ));
+				if (empty($params["text"]))
+					$params["text"] =(isset($object["description"]) ? preg_replace('/<[^>]*>/', '',$object["description"]) : "");
+				$params["scope"]["address"]=$object["address"];
+			}else{
+				$params["name"] = "";
+				$params["text"] = "";
+				$params["scope"] = "";
+			}
 		}
 		if(@$params["target"]["type"]){
 			if ($params["target"]["type"] == Organization::COLLECTION){
@@ -60,10 +66,8 @@ class NewsTranslator {
 		if($params["type"]=="news"){
 			if(@$params["text"]){
 				$params["text"]=preg_replace('/<[^>]*>/', '',(isset($params["text"]) ? $params["text"] : ""));
-			//."<span class='removeReadNews'> ...<br><a href='javascript:;' onclick='blankNews(\"".(string) $params["_id"]."\")'>Lire la suite</a></span>";
 		  	}
 		}
-		//print_r($params);
 		if(@$params["media"] && !is_string(@$params["media"]) && $params["media"]["type"]=="gallery_images"){
 			$images=array();
 			$limit=5;

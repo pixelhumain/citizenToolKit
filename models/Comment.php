@@ -194,8 +194,6 @@ class Comment {
 			if ($nbComments > 0) 
 				$canComment = false;
 		}
-		if ( !Authorisation::canParticipate( $userId , $contextType, $contextId) )
-			$canComment = false;
 		return $canComment;
 	}
 

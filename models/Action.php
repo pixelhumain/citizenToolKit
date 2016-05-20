@@ -60,11 +60,11 @@ class Action
 
                 // Additional info
                 if (!empty($details) && is_array($details))
-	                $details = array_merge($details, array('date' => new MongoDate(time()))) ; 
+                    $details = array_merge($details, array('date' => new MongoDate(time()))) ; 
                 else 
-                	$details = array('date' => new MongoDate(time()));
-                $mapUser[ self::NODE_ACTIONS.".".$collection.".".$action.".".(string)$element["_id"] ] = $details ;
-               
+                    $details = array('date' => new MongoDate(time()));
+                //$mapUser[ self::NODE_ACTIONS.".".$collection.".".$action.".".(string)$element["_id"] ] = $details ;
+                $mapUser[self::NODE_ACTIONS.".".$collection.".".(string)$element["_id"].".".$action ] = $action ;
                 //update the user table => adds or removes an action
                 PHDB::update ( Person::COLLECTION , array( "_id" => $user["_id"]), 
                                                     array( $dbMethod => $mapUser));
@@ -111,7 +111,7 @@ class Action
                 //Moderate automatic 
                 if($collection == Comment::COLLECTION && $action == "reportAbuse"){
                     $element = ($id) ? PHDB::findOne ($collection, array("_id" => new MongoId($id) )) : null;
-                    if(isset($element[$action."Count"]) && $element[$action."Count"] >= 1){
+                    if(isset($element[$action."Count"]) && $element[$action."Count"] >= 3){
                         PHDB::update($collection, array("_id" => new MongoId($element["_id"])), 
                                                                             array('$set' => array( "isAnAbuse" => true, "status"=>"declaredAbused"))
                         );
@@ -123,7 +123,7 @@ class Action
                               "userActionSaved" => true,
                               "user"            => PHDB::findOne ( Person::COLLECTION , array("_id" => new MongoId( $userId ) ),array("actions")),
                               "element"         => PHDB::findOne ($collection,array("_id" => new MongoId($id) ),array( $action)),
-                              "inc"			=> $inc,
+                              "inc"         => $inc,
                               "msg"             => "Ok !"
                                );
             } else {
@@ -139,12 +139,12 @@ class Action
     in time we could also use it as a base for undoing tasks
      */
     public static function addActionHistory($userId=null , $id=null, $collection=null, $action=null){
-    	$currentAction = array( "who"=> $userId,
-        						"self" => $action,
-        						"collection" => $collection,
-        						"objectId" => $id,
-        						"created"=>time()
-                				);
+        $currentAction = array( "who"=> $userId,
+                                "self" => $action,
+                                "collection" => $collection,
+                                "objectId" => $id,
+                                "created"=>time()
+                                );
         PHDB::insert( ActivityStream::COLLECTION, $currentAction );
     }
     

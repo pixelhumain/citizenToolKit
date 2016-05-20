@@ -7,9 +7,8 @@ class IndexAction extends CAction
         $controller->title = "Timeline";
         $controller->subTitle = "NEWS comes from everywhere, and from anyone.";
         $controller->pageTitle = "Communecter - Timeline Globale";
-        $news = array(); 
-		$params = array();
-		if(@$date && $date != null){
+        $news = array();
+        if(@$date && $date != null){
 			$date = $date;
 		}
 		else{
@@ -17,6 +16,7 @@ class IndexAction extends CAction
 		}
 		$date=new MongoDate($date);
 		$news=array();
+		$params = array();
 		if (!isset($id)){
 				if($type!="pixels"){
 					if($type=="city"){
@@ -234,8 +234,11 @@ class IndexAction extends CAction
 		// Sort news order by created 
 		$news = News::sortNews($news, array('created'=>SORT_DESC));
         //TODO : reorganise by created date
-		$params["news"] = $news; 
+		$params["news"] = $news;
 		$params["tags"] = Tags::getActiveTags();
+		$params["authorizedToStock"]= Document::authorizedToStock($id, $type,Document::DOC_TYPE_IMAGE);			$params["tags"] = Tags::getActiveTags();
+		$params["contextParentType"] = $type; 
+		$params["contextParentId"] = $id;
 		$params["userCP"] = Yii::app()->session['userCP'];
 		$params["limitDate"] = end($news);
 		if(@$viewer && $viewer != null){
