@@ -46,7 +46,34 @@ class EntryAction extends CAction
                                            "link" => "loadByHash('#project.detail.id.".$survey["organizerId"]."')");
           }
 
-          $params["parentType"] = $survey["organizerType"];
+          $params["organizerType"] = $survey["organizerType"];
+      }
+
+      if( isset($survey["survey"]) )
+      { 
+         $parentRoom = ActionRoom::getById( $survey["survey"] );
+         $params["parentSpace"] = $parentRoom;
+
+         if( $parentRoom["parentType"] == Person::COLLECTION )
+          {
+            $parent = Person::getById( $parentRoom["parentId"] );
+            $params["parent"] = array(  "name" => $parent["name"],
+                                           "link" => "loadByHash('#person.detail.id.".$parentRoom["parentId"]."')");
+          }
+          else if( $parentRoom["parentType"] == Organization::COLLECTION )
+          {
+            $parent = Organization::getById( $parentRoom["parentId"] );
+            $params["parent"] = array(  "name" => $parent["name"],
+                                           "link" => "loadByHash('#organization.detail.id.".$parentRoom["parentId"]."')");
+          }
+          else if( $parentRoom["parentType"] == Project::COLLECTION )
+          {
+            $parent = Project::getById( $parentRoom["parentId"] );
+            $params["parent"] = array(  "name" => $parent["name"],
+                                           "link" => "loadByHash('#project.detail.id.".$parentRoom["parentId"]."')");
+          }
+
+          $params["parentType"] = $parentRoom["parentType"];
       }
 
       //Images
@@ -55,6 +82,7 @@ class EntryAction extends CAction
       $images = Document::getListDocumentsURLByContentKey($id, $contentKeyBase, Document::DOC_TYPE_IMAGE, $limit);
       $params["images"] = $images;
       $params["contentKeyBase"] = $contentKeyBase;
+      
       
       if(Yii::app()->request->isAjaxRequest)
         echo $controller->renderPartial("entryStandalone",$params,true);

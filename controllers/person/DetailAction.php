@@ -22,17 +22,12 @@ class DetailAction extends CAction
         
         $me = ( $id == Yii::app()->session["userId"] ) ? true : false;
         $person = Person::getPublicData($id);
-        $contentKeyBase = "Yii::app()->controller->id.".".dashboard";
-        
+        $params = array( "person" => $person, "me" => $me);
+
+        //TODO SBAR : L'image de profil est maintenant stocké dans l'entité. L'appel peut être supprimé
         $limit = array(Document::IMG_PROFIL => 1);
         $images = Document::getImagesByKey($id, Person::COLLECTION, $limit);
-		
-        $params = array( "person" => $person, "me" => $me);
         $params['images'] = $images;
-        $params["contentKeyBase"] = $contentKeyBase;
-        $controller->sidebar1 = array(
-          array('label' => "ACCUEIL", "key"=>"home","iconClass"=>"fa fa-home","href"=>"communecter/person/dashboard/id/".$id),
-        );
 
         $controller->title = ((isset($person["name"])) ? $person["name"] : "")."'s Dashboard";
         $controller->subTitle = (isset($person["description"])) ? $person["description"] : "";
@@ -71,10 +66,6 @@ class DetailAction extends CAction
                 {
                     $organization = Organization::getPublicData( $key );
                     if (!empty($organization) && !isset($organization["disabled"])) {
-                        $profil = Document::getLastImageByKey($key, Organization::COLLECTION, Document::IMG_PROFIL);
-                        if($profil !="")
-                            $organization["imagePath"]= $profil;
-
                         array_push($organizations, $organization);
                     }
                 }
@@ -83,14 +74,10 @@ class DetailAction extends CAction
                     foreach ($organization["links"]["events"] as $keyEv => $valueEv) {
                         $event = Event::getPublicData($keyEv);
                         $events[$keyEv] = $event;
-                //array_push($events, $event);
+                        //array_push($events, $event);
                     }
+                }
             }
-            }
-            //$randomOrganizationId = array_rand($subOrganizationIds);
-            //$randomOrganization = Organization::getById( $subOrganizationIds[$randomOrganizationId] );
-            //$params["randomOrganization"] = $randomOrganization;
-
         }
         $people = array();
         if( isset($person["links"]) && isset($person["links"]["follows"])) {
@@ -100,9 +87,6 @@ class DetailAction extends CAction
                 {
                     $citoyen = Person::getPublicData( $key );
                     if (!empty($citoyen)) {
-                        $profil = Document::getLastImageByKey($key, Person::COLLECTION, Document::IMG_PROFIL);
-                        if($profil !="")
-                            $citoyen["imagePath"]= $profil;
                         array_push($people, $citoyen);
                     }
                 }
@@ -114,7 +98,7 @@ class DetailAction extends CAction
         foreach($events as $key => $event){
             array_push($cleanEvents, $event);
         }
-      //var_dump($cleanEvents); die();
+
         $params["countries"] = OpenData::getCountriesList();
         $params["listCodeOrga"] = Lists::get(array("organisationTypes"));
         $params["tags"] = Tags::getActiveTags();
@@ -124,11 +108,10 @@ class DetailAction extends CAction
         $params["events"] = $cleanEvents;
         $params["people"] = $people;
         
-        
 		$page = "detail";
-		if(Yii::app()->request->isAjaxRequest)
+		if(Yii::app()->request->isAjaxRequest) {
             echo $controller->renderPartial($page,$params,true);
-        else 
+        } else 
 			$controller->render( $page , $params );
     }
 

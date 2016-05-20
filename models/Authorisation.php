@@ -269,12 +269,6 @@ class Authorisation {
                 $eventList[$eventId] = $eventValue;
             }
 		}
-        foreach ($eventList as $key => $value) {
-        	$profil = Document::getLastImageByKey($key, Event::COLLECTION, Document::IMG_PROFIL);
-        	if($profil!="")
-        		$value['imagePath']=$profil;
-        	$eventListFinal[$key] = $value;
-        }
         return $eventListFinal;
     }
     public static function listOfEventAdmins($eventId) {
@@ -513,6 +507,23 @@ class Authorisation {
             $res = Authorisation::canEditEntry($userId, $itemId);
         }
     	return $res;
+    }
+
+    /**
+    * check for any element if a user is either member, contributor, attendee
+    * @param type is the type of item, (organization or event or person or project)
+    * @param itemId id of the item we want to edits
+    * @return a boolean
+    */
+    public static function canParticipate($userId, $type, $itemId){
+        $res=false;
+        if( $type == Organization::COLLECTION )
+            $res = Authorisation::isOrganizationMember($userId, $itemId);
+        if( $type == Project::COLLECTION )
+            $res = Authorisation::isProjectMember($userId, $itemId);
+        if( $type == Event::COLLECTION )
+            $res = Authorisation::isEventMember($userId, $itemId);
+        return $res;
     }
 
     /**

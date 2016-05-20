@@ -156,6 +156,9 @@ class Notification{
 			if($target["type"] == Survey::COLLECTION ){
 				$entry = Survey::getById( $target["id"] );
 				$entryId = (string)$entry["survey"];
+			}else if($target["type"] == ActionRoom::COLLECTION_ACTIONS ){
+				$entry = ActionRoom::getActionById( $target["id"] );
+				$entryId = (string)$entry["survey"];
 			}
 			$room = ActionRoom::getById( $entryId );
 			$target["room"] = $room;
@@ -226,6 +229,10 @@ class Notification{
 		    $label = Yii::app()->session['user']['name']." ".Yii::t("common","added a new Proposal");
 		    $url = 'survey/entry/id/'.$target["id"];
 	    }
+	    else if($verb == ActStr::VERB_ADD_ACTION){
+		    $label = Yii::app()->session['user']['name']." ".Yii::t("common","added a new Action");
+		    $url = 'rooms/action/id/'.$target["id"];
+	    }
 	    /*if( $res = ActStr::getParamsByVerb($verb,$ctrl,$target,Yii::app()->session["user"]){
 	    	$label = $res['label'];
 	    	$url = $res['url']; 
@@ -240,11 +247,11 @@ class Notification{
 		    if ($target["type"] == Event::COLLECTION)
 		    	$url = $ctrl.'/detail/id/'.$target["id"];
 		    else 
-		    	$url = $ctrls[ $target["type"] ].'/directory/id/'.$targetId.'?tpl=directory2';
+		    	$url = $ctrl.'/directory/id/'.$targetId.'?tpl=directory2';
 	    }
 		else if($verb == ActStr::VERB_JOIN){
 		    $label = Yii::app()->session['user']['name']." ".Yii::t("common","participates to the event")." ".$target["name"];
-		    $url = $ctrls[ $target["type"] ].'/detail/id/'.$targetId;
+		    $url = $ctrl.'/detail/id/'.$targetId;
 	    }
 	    else if($verb == ActStr::VERB_SIGNIN){
 			 $label = $member["name"]." ".Yii::t("common","confirms your invitation and create an account.");

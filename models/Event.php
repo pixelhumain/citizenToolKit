@@ -73,8 +73,8 @@ class Event {
 			}
 		}
 		if(!empty($event)){
-		$event = array_merge($event, Document::retrieveAllImagesUrl($id, self::COLLECTION));
-		$event["typeSig"] = "events";
+			$event = array_merge($event, Document::retrieveAllImagesUrl($id, self::COLLECTION));
+			$event["typeSig"] = "events";
 	  	}
 	  	return $event;
 	}
@@ -87,20 +87,20 @@ class Event {
 	public static function getSimpleEventById($id) {
 		
 		$simpleEvent = array();
-		$event = PHDB::findOneById( self::COLLECTION ,$id, array("id" => 1, "name" => 1, "type" => 1,  "shortDescription" => 1, "description" => 1,
-																 "address" => 1, "geo" => 1, "tags" => 1) );
+		$event = PHDB::findOneById( self::COLLECTION ,$id, array("id" => 1, "name" => 1, "type" => 1,  "shortDescription" => 1, "description" => 1, "address" => 1, "geo" => 1, "tags" => 1, "profilImageUrl" => 1, "profilThumbImageUrl" => 1, "profilMarkerImageUrl" => 1));
+
 		if(!empty($event)){
-		$simpleEvent["id"] = $id;
-		$simpleEvent["name"] = @$event["name"];
-		$simpleEvent["type"] = @$event["type"];
-		$simpleEvent["geo"] = @$event["geo"];
-		$simpleEvent["tags"] = @$event["tags"];
-		$simpleEvent["shortDescription"] = @$event["shortDescription"];
-		$simpleEvent["description"] = @$event["description"];
-		
-		$simpleEvent = array_merge($simpleEvent, Document::retrieveAllImagesUrl($id, self::COLLECTION));
-		
-		$simpleEvent["address"] = empty($event["address"]) ? array("addressLocality" => "Unknown") : $event["address"];
+			$simpleEvent["id"] = $id;
+			$simpleEvent["name"] = @$event["name"];
+			$simpleEvent["type"] = @$event["type"];
+			$simpleEvent["geo"] = @$event["geo"];
+			$simpleEvent["tags"] = @$event["tags"];
+			$simpleEvent["shortDescription"] = @$event["shortDescription"];
+			$simpleEvent["description"] = @$event["description"];
+			
+			$simpleEvent = array_merge($simpleEvent, Document::retrieveAllImagesUrl($id, self::COLLECTION, $simpleEvent["type"], $event));
+			
+			$simpleEvent["address"] = empty($event["address"]) ? array("addressLocality" => "Unknown") : $event["address"];
 		}
 		return @$simpleEvent;
 	}
@@ -266,15 +266,6 @@ class Event {
 				
 		Notification::createdObjectAsParam( Person::COLLECTION, Yii::app()->session['userId'],Event::COLLECTION, (String)$newEvent["_id"], $params["organizerType"], $params["organizerId"], $newEvent["geo"], array($newEvent["type"]),$newEvent["address"]);
 
-	    //send validation mail
-	    //TODO : make emails as cron events
-	    /*$message = new YiiMailMessage; 
-	    $message->view = 'validation';
-	    $message->setSubject('Confirmer votre compte Pixel Humain');
-	    $message->setBody(array("user"=>$new["_id"]), 'text/html');
-	    $message->addTo("oceatoon@gmail.com");//$params['registerEmail']
-	    $message->from = Yii::app()->params['adminEmail'];
-	    Yii::app()->mail->send($message);*/
 	    $creator = Person::getById(Yii::app()->session['userId']);
 	    Mail::newEvent($creator,$newEvent);
 	    
@@ -393,10 +384,7 @@ class Event {
 		$listEventAttending= array();
 		$eventsAttending = PHDB::find(PHType::TYPE_EVENTS, $where);
 		foreach ($eventsAttending as $key => $value) {
-        	$profil = Document::getLastImageByKey($key, PHType::TYPE_EVENTS, Document::IMG_PROFIL);
-        	if(strcmp($profil, "")!= 0){
-        		$value['imagePath']=$profil;
-        	}
+        	$value = array_merge($value, Document::retrieveAllImagesUrl($key, self::COLLECTION, $value));
         	$listEventAttending[$key] = $value;
         }
         return $listEventAttending;
@@ -521,8 +509,7 @@ class Event {
 		  			}
 		  		}
 		  	}
- 	  		$imageUrl= Document::getLastImageByKey($key, self::COLLECTION, '');
- 	  		$events[$key]["imageUrl"] = $imageUrl;
+ 	  		$events[$key] = array_merge($events[$key], Document::retrieveAllImagesUrl($id, self::COLLECTION));
 	  	}
 	  	return $events;
 	}

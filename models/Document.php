@@ -39,14 +39,14 @@ class Document {
 	protected static function listMyDocumentByType($userId, $type, $contentKey, $sort=null){
 		$params = array("id"=> $userId,
 						"type" => $type,
-						"contentKey" => new MongoRegex("/".$contentKey."/i"));
+						"contentKey" => $contentKey);
 		$listDocuments = PHDB::findAndSort( self::COLLECTION,$params, $sort);
 		return $listDocuments;
 	}
 	// TODO BOUBOULE - TO DELETE ONLY ONE DEPENDENCE WITH getListDocumentsByContentKey
 	protected static function listMyDocumentByContentKey($userId, $contentKey, $docType = null, $sort=null)	{	
 		$params = array("id"=> $userId,
-						"contentKey" => new MongoRegex("/".$contentKey."/i"));
+						"contentKey" => $contentKey);
 		
 		if (isset($docType)) {
 			$params["doctype"] = $docType;
@@ -69,12 +69,10 @@ class Document {
 	 * @param $params : a set of information for the document (?to define)
 	*/
 	public static function save($params){
-		//$id = Yii::app()->session["userId"];
 		if(!isset($params["contentKey"])){
 			$params["contentKey"] = "";
 		}
 		
-
 	    $new = array(
 			"id" => $params['id'],
 	  		"type" => $params['type'],
@@ -87,14 +85,13 @@ class Document {
 	  		'created' => time()
 	    );
 
-
 	    if(isset($params["category"]) && !empty($params["category"]))
 	    	$new["category"] = $params["category"];
 	    if(isset($params["contentKey"]) && !empty($params["contentKey"])){
 	    	$new["contentKey"] = $params["contentKey"];
 	    }
 
-	    PHDB::insert(self::COLLECTION,$new);
+	    PHDB::insert(self::COLLECTION, $new);
 	    //Generate image profil if necessary
 	    if (substr_count(@$new["contentKey"], self::IMG_PROFIL)) {
 	    	self::generateProfilImages($new);
@@ -361,7 +358,7 @@ class Document {
 			$sort = array( 'created' => -1 );
 			$params = array("id"=> $itemId,
 						"type" => $itemType,
-						"contentKey" => new MongoRegex("/".$key."/i"));
+						"contentKey" => $key);
 			$listImagesofType = PHDB::findAndSort( self::COLLECTION,$params, $sort, $aLimit);
 
 			$arrayOfImagesPath = array();
@@ -387,7 +384,7 @@ class Document {
 		$sort = array( 'created' => -1 );
 		$params = array("id"=> $itemId,
 						"type" => $itemType,
-						"contentKey" => new MongoRegex("/".$key."/i"));
+						"contentKey" => $key);
 		
 		$listImagesofType = PHDB::findAndSort( self::COLLECTION,$params, $sort, 1);
 		
@@ -446,6 +443,12 @@ class Document {
     	return Yii::app()->params['uploadDir'].$document["moduleId"]."/".$document["folder"]."/";
     }
 
+    /**
+     * This function will generate the thumb and the marker link to a profil image.
+     * It will as well update the entity linked to the document and update the path to the images
+     * @param array $document will content a well formated document
+     * @return array result => booleant, msg => String
+     */
     public static function generateProfilImages($document) {
     	$dir = $document["moduleId"];
     	$folder = $document["folder"];
@@ -458,7 +461,8 @@ class Document {
         }
         mkdir($upload_dir, 0775);
         
-     	$imageUtils = new ImagesUtils(self::getDocumentPath($document));
+        $profilUrl = self::getDocumentPath($document);
+     	$imageUtils = new ImagesUtils($profilUrl);
     	$destPathThumb = $upload_dir."/".self::FILENAME_PROFIL_RESIZED;
     	$imageUtils->resizeImage(50,50)->save($destPathThumb);
 		
@@ -469,9 +473,17 @@ class Document {
     		$imageUtils->createMarkerFromImage($srcEmptyMarker)->save($destPathMarker);
     	}
         
+        //Update the entity collection to store the path of the profil images
+        if (in_array($document["type"], array(Person::COLLECTION, Organization::COLLECTION, Project::COLLECTION, Event::COLLECTION))) {
+	        PHDB::update($document["type"], array("_id" => new MongoId($document["id"])), array('$set' => array("profilImageUrl" => $profilUrl, "profilThumbImageUrl" => $destPathThumb, "profilMarkerImageUrl" =>  $destPathMarker)));
+	        error_log("The entity ".$document["type"]." and id ". $document["id"] ." has been updated with the URL of the profil images.");
+		}
+
         //Remove the bck directory
         CFileHelper::removeDirectory($upload_dir."bck");
+        return array("result" => true, "msg" => "Thumb and markers have been generated");
 	}
+
 	// Resize initial image for album size 
 	// param type array $document
 	// param string $folderAlbum where Image is upload
@@ -519,7 +531,7 @@ class Document {
 		$sort = array( 'created' => -1 );
 		$params = array("id"=> $id,
 						"type" => $type,
-						"contentKey" => new MongoRegex("/".self::IMG_PROFIL."/i"));
+						"contentKey" => self::IMG_PROFIL);
 		$listDocuments = PHDB::findAndSort( self::COLLECTION,$params, $sort, 1);
 
 		$generatedImageExist = false;
@@ -593,29 +605,51 @@ class Document {
 				"icons_carto".DIRECTORY_SEPARATOR;
 	}
 
-	public static function retrieveAllImagesUrl($id, $type, $subType = null) {
+	public static function retrieveAllImagesUrl($id, $type, $subType = null, $entity = null) {
 		$res = array();
-		//images
-		$profil = self::getLastImageByKey($id, $type, self::IMG_PROFIL);
-		$profilThumb = self::getGeneratedImageUrl($id, $type, self::GENERATED_THUMB_PROFIL);
-		$marker = self::getGeneratedImageUrl($id, $type, self::GENERATED_MARKER);
-		$res["profilImageUrl"] = $profil;
-		$res["profilThumbImageUrl"] = $profilThumb;
-		$res["profilMarkerImageUrl"] = $marker;
+		
+		//The profil image URL should be stored in the entity collection 
+		if (isset($entity["profilImageUrl"])) {
+			$res["profilImageUrl"] = $entity["profilImageUrl"];
+			$res["profilThumbImageUrl"] = @$entity["profilThumbImageUrl"];
+			$res["profilMarkerImageUrl"] = @$entity["profilMarkerImageUrl"];
+		//If empty than retrieve the URLs from document and store them in the entity for next time
+		} else {
+			$profil = self::getLastImageByKey($id, $type, self::IMG_PROFIL);
+			$profilThumb = self::getGeneratedImageUrl($id, $type, self::GENERATED_THUMB_PROFIL);
+			
+			if ($profil != "") {
+				$marker = self::getGeneratedImageUrl($id, $type, self::GENERATED_MARKER);
+			} else {
+				$marker = "";
+			} 
+	
+			$res["profilImageUrl"] = $profil;
+			$res["profilThumbImageUrl"] = $profilThumb;
+			$res["profilMarkerImageUrl"] = $marker;
+
+			PHDB::update($type, array("_id" => new MongoId($id)), array('$set' => array("profilImageUrl" => $profil, "profilThumbImageUrl" => $profilThumb, "profilMarkerImageUrl" =>  $marker)));
+		}
+
+		//If empty marker return default marker
+		if ($res["profilMarkerImageUrl"] == "") {
+			$markerDefaultName = str_replace("empty", "default", self::getEmptyMarkerFileName($type, $subType));
+			//$res = "/communecter/assets/images/sig/markers/icons_carto/".$markerDefaultName;
+			//remove the "/ph/" on the assersUrl if there
+			$homeUrlRegEx = "/".str_replace("/", "\/", Yii::app()->homeUrl)."/";
+			$assetsUrl = preg_replace($homeUrlRegEx, "", @Yii::app()->controller->module->assetsUrl,1);
+			$res["profilMarkerImageUrl"] = "/".$assetsUrl."/images/sig/markers/icons_carto/".$markerDefaultName;
+		}
+
 		return $res;
 	}
 
-
-
 	public static function getImageByUrl($urlImage, $path, $nameImage) {
-		
 		// Ouvre un fichier pour lire un contenu existant
 		$current = file_get_contents($urlImage);
 		// Écrit le résultat dans le fichier
 		$file = "../../modules/cityData/".$nameImage;
 		file_put_contents($file, $current);
-
-		
 	}
 
 
@@ -654,17 +688,13 @@ class Document {
         
 
         $file_headers = @get_headers($pathFile.$nameFile);
-			if($file_headers[0] == 'HTTP/1.1 404 Not Found') {
-			    $exists = false;
-			}
-			else {
-			    $exists = true;
-			}
+		if($file_headers[0] == 'HTTP/1.1 404 Not Found') {
+		    $exists = false;
+		} else {
+		    $exists = true;
+		}
 
-        if(!empty($pathFile) && $file_headers[0] != 'HTTP/1.1 404 Not Found'){
-        	
-        	
-        	
+        if (!empty($pathFile) && $file_headers[0] != 'HTTP/1.1 404 Not Found') {
         	$ext = strtolower(pathinfo($nameFile, PATHINFO_EXTENSION));
         	if(!in_array($ext,$allowed_ext)){
         		return array('result'=>false,'error'=>Yii::t("document","Only").implode(',',$allowed_ext).Yii::t("document","files are allowed!"));
@@ -694,34 +724,6 @@ class Document {
         }
         return array('result'=>false,'error'=>Yii::t("document","Something went wrong with your upload!"));
 	}
-
-
-	/*public static function saveDocument($newpersonId, $moduleId, $pathFile, $nameFile, $dir,$folder=null,$ownerId=null,$input,$rename=false, $pathFolderImage=false) {
-		if(!empty($nameImage)){
-			try{
-				$res = Document::uploadDocument($moduleId, self::COLLECTION, $newpersonId, "avatar", false, $pathFolderImage, $nameImage);
-				if(!empty($res["result"]) && $res["result"] == true){
-					$params = array();
-					$params['id'] = $newpersonId;
-					$params['type'] = self::COLLECTION;
-					$params['moduleId'] = $moduleId;
-					$params['folder'] = self::COLLECTION."/".$newpersonId;
-					$params['name'] = $res['name'];
-					$params['author'] = Yii::app()->session["userId"] ;
-					$params['size'] = $res["size"];
-					$params["contentKey"] = "profil";
-					$res2 = Document::save($params);
-					if($res2["result"] == false)
-						throw new CTKException("Impossible de save.");
-
-				}else{
-					throw new CTKException("Impossible uploader le document.");
-				}
-			}catch (CTKException $e){
-				throw new CTKException($e);
-			}	
-		}
-	}*/
 
 }
 ?>

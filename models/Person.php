@@ -43,6 +43,7 @@ class Person {
 	    "two_steps_register" => array("name" => "two_steps_register"),
 	    "source" => array("name" => "source"),
 	    "warnings" => array("name" => "warnings"),
+	    "modules" => array("name" => "modules"),
 	);
 
 	public static function logguedAndValid() {
@@ -155,7 +156,7 @@ class Person {
 		
 		$simplePerson = array();
 		$person = PHDB::findOneById( self::COLLECTION ,$id, 
-				array("id" => 1, "name" => 1, "username" => 1, "email" => 1,  "shortDescription" => 1, "description" => 1, "address" => 1, "geo" => 1, "roles" => 1, "tags" => 1, "pending" => 1));
+				array("id" => 1, "name" => 1, "username" => 1, "email" => 1,  "shortDescription" => 1, "description" => 1, "address" => 1, "geo" => 1, "roles" => 1, "tags" => 1, "pending" => 1, "profilImageUrl" => 1, "profilThumbImageUrl" => 1, "profilMarkerImageUrl" => 1));
 		$simplePerson["id"] = $id;
 		$simplePerson["name"] = @$person["name"];
 		$simplePerson["username"] = @$person["username"];
@@ -168,7 +169,7 @@ class Person {
 		$simplePerson["pending"] = @$person["pending"];
 		
 		//images
-		$simplePerson = array_merge($simplePerson, Document::retrieveAllImagesUrl($id, self::COLLECTION));
+		$simplePerson = array_merge($simplePerson, Document::retrieveAllImagesUrl($id, self::COLLECTION, null, $person));
 
 		$simplePerson["address"] = empty($person["address"]) ? array("addressLocality" => "Unknown") : $person["address"];
 		
@@ -724,7 +725,7 @@ class Person {
 		PHDB::update( self::COLLECTION, array("_id" => new MongoId($personId)), 
 		                          		array('$set' => $set));
 	              
-	    return array("result"=>true,"user"=>$user,"personFieldName"=>$personFieldName);
+	    return array("result"=>true,"user"=>$user,"personFieldName"=>$personFieldName, "msg"=> Yii::t("person", "The person has been updated"));
 	}
 
 	//Test and Valide a field name using the data validator
@@ -1512,6 +1513,24 @@ class Person {
     public static function getEmailById($id) { 
         $person = PHDB::findOneById( self::COLLECTION ,$id, array("email"=>1));
         return $person;
+    }
+
+    /**
+     * Check if the user with the email exists on db and is pending
+     * @param string $email the email of the user
+     * @return string : id of the user with this email and pending else empty string
+     */
+    public static function getPendingUserByEmail($email) {
+		$res = "";
+		if ($email){
+		  	$account = PHDB::findOne(Person::COLLECTION,array("email"=>$email));
+		  	if ($account && @$account["pending"]) {
+		  		return (String) $account["_id"];
+		  	}
+		} else {
+			throw new CTKException("Please fill the email of the user");
+		}
+		return $res;
     }
 
 }
