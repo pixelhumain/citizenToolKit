@@ -20,12 +20,18 @@ class Element {
 
     public static function getLink( $type, $id )
     {	    
-    	$link = "";
-    	if(@$type && @$id){
-	    	$el = PHDB::findOne ( $type , array( "_id" => new MongoId($id) ) );
+    	$link = ""; 
+    	if(@$type && @$id && $type != City::COLLECTION){
+    		$el = PHDB::findOne ( $type , array( "_id" => new MongoId($id) ) );
 	    	$ctrl = self::getControlerByCollection($type);
 	    	if( @$el && @$ctrl )
 	    		$link = "<a href='javascript:;' onclick='loadByHash(\"#".$ctrl.".detail.id.".$id."\")'>".$el['name']."</a>";
+	    }
+	    else if($type == City::COLLECTION){
+	    	$el = City::getByUnikey($id);
+	    	$ctrl = self::getControlerByCollection($type);
+	    	if( @$el && @$ctrl )
+	    		$link = "<a href='javascript:;' onclick='loadByHash(\"#".$ctrl.".detail.insee.".$el['insee'].".cp.".$el['cp']."\")'>".$el['name']."</a>";
 	    }
     	return $link;
     }

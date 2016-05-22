@@ -27,6 +27,8 @@ class EntriesAction extends CAction
         $parentType = ($survey["parentType"] == "projects") ? "project" : "";
       if( $parentType == "" )
         $parentType = ($survey["parentType"] == "person") ? "person" : "";
+      if( $parentType == "" )
+        $parentType = ($survey["parentType"] == "cities") ? "city" : "";
 
       $surveyLoadByHash = ( isset( $survey["parentType"] ) && isset( $survey["parentId"] ) ) ? "#".$parentType.".detail.id.".$survey["parentId"] : "#rooms"; 
 
@@ -42,8 +44,13 @@ class EntriesAction extends CAction
       if( $survey["parentType"] == Project::COLLECTION ) {
         $parent = Project::getById($survey["parentId"]);
       }
+      if( $survey["parentType"] == City::COLLECTION ) {
+        $parent = City::getByUnikey($survey["parentId"]);
+      }
 
       $canParticipate = Authorisation::canParticipate( Yii::app()->session['userId'], $survey["parentType"], $survey["parentId"] );
+
+      //if($survey["parentType"] == City::COLLECTION) $canParticipate = $canParticipate && true;
 
       $tpl = ( isset($_GET['tpl']) ) ? $_GET['tpl'] : "index";
 

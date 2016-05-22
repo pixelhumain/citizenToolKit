@@ -526,6 +526,7 @@ class Authorisation {
             if( $type == Event::COLLECTION )
                 $res = Authorisation::isEventMember($userId, $itemId);
         }
+        if($type == City::COLLECTION) $res = true;
         return $res;
     }
 

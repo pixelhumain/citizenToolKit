@@ -24,6 +24,8 @@ class ActionsAction extends CAction
         $parentType = ($room["parentType"] == "projects") ? "project" : "";
       if( $parentType == "" )
         $parentType = ($room["parentType"] == "person") ? "person" : "";
+      if( $parentType == "" )
+        $parentType = ($room["parentType"] == "cities") ? "cities" : "";
 
       $roomLoadByHash = ( isset( $room["parentType"] ) && isset( $room["parentId"] ) ) ? "#".$parentType.".detail.id.".$room["parentId"] : "#rooms"; 
 
@@ -38,6 +40,9 @@ class ActionsAction extends CAction
       }
       if( $room["parentType"] == Project::COLLECTION ) {
         $parent = Project::getById($room["parentId"]);
+      }
+      if( $room["parentType"] == City::COLLECTION ) {
+        $parent = City::getByUnikey($room["parentId"]);
       }
 
       $tpl = ( isset($_GET['tpl']) ) ? $_GET['tpl'] : "actionList";

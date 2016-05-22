@@ -20,7 +20,7 @@ class EntryAction extends CAction
 
       $params = array( 
             "title" => $survey["name"] ,
-            "content" => $controller->renderPartial( "entry", array( "survey" => $survey ), true),
+            //"content" => $controller->renderPartial( "entry", array( "survey" => $survey ), true),
             "contentBrut" => $survey["message"],
             "survey" => $survey,
              ) ;
@@ -71,6 +71,14 @@ class EntryAction extends CAction
             $parent = Project::getById( $parentRoom["parentId"] );
             $params["parent"] = array(  "name" => $parent["name"],
                                            "link" => "loadByHash('#project.detail.id.".$parentRoom["parentId"]."')");
+          }
+          else if( $parentRoom["parentType"] == City::COLLECTION )
+          {
+            $parent = City::getByUnikey( $parentRoom["parentId"] );
+            $params["parent"] = array(  "name" => $parent["name"],
+                                        "insee" => $parent["insee"],
+                                        "cp" => $parent["cp"],
+                                        "link" => "loadByHash('#city.detail.insee.".$parent["insee"].".postalCode.".$parent["cp"]."')");
           }
 
           $params["parentType"] = $parentRoom["parentType"];

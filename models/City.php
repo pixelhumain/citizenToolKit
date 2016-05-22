@@ -46,6 +46,26 @@ class City {
 		return $id;
 	}
 
+	/* format unikey : COUNTRY_insee-cp */
+	public static function getByUnikey($unikey){
+		$country = substr($unikey, 0, strpos($unikey, "_"));
+		$insee = substr($unikey,  strpos($unikey, "_")+1,  strpos($unikey, "-")-strpos($unikey, "_")-1);
+		$cp = substr($unikey, strpos($unikey, "-")+1,  strlen($unikey));
+
+		$city = PHDB::findOne( self::COLLECTION , array("insee"=>$insee, "country"=>$country) );// self::getWhere(array("insee"=>$insee, "country"=>$country));
+		foreach ($city["postalCodes"] as $key => $value) {
+			if($value["postalCode"] == $cp){
+				$city["name"] = $value["name"];
+				$city["cp"] = $value["postalCode"];
+				$city["geo"] = $value["geo"];
+				$city["geoPosition"] = $value["geoPosition"];
+				return $city;
+			}
+		}
+		return $city;
+		//return array("country" => $country, "insee" => $insee, "cp" => $cp);
+	}
+
 	/* Retourne le code de la region d'une commune par rapport a son code insee */
 	public static function getCodeRegion($insee){
 		$where = array("insee" => $insee);
@@ -277,17 +297,6 @@ class City {
 		error_log("START update geoPosition Cities : ".count($allCities). " trouvées");
 		error_log("------------------------------------------------------------");
 		error_log("L'opération peut durer entre 5 et 10 minutes");
-		error_log("------------------------------------------------------------");
-		error_log("Sûrement plus si vous êtes sous Windows ;)");
-		error_log("------------------------------------------------------------");
-		error_log("Vous avez le droit de prendre un café et de garder le silence");
-		error_log("Tout ce que vous direz ne sera pas retenu contre vous");
-		error_log("------------------------------------------------------------");
-		error_log("Nous vous souhaitons un agréable vol sur notre compagnie");
-		error_log("En cas de bug intepestif, merci de le signaler à votre commandant de bord");
-		error_log("Ou à l'une de nos charmantes hotesses");
-		error_log("Les issus de secours se situent à l'avant et à l'arrière de votre navigateur");
-		error_log("$*^!! @?? !!! ! **`+!!");
 		error_log("------------------------------------------------------------");
 		
 		for($i=0; $i<40 && count($allCities)>0; $i++){

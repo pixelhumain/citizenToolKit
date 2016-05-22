@@ -23,17 +23,21 @@ class IndexAction extends CAction
             $parent = Organization::getById($id);
         else if( $type == Event::COLLECTION ) 
             $parent = Event::getById($id);
+        else if( $type == City::COLLECTION ) {
+            $parent = City::getByUnikey($id);
+        }
         
         if($parent)
             $nameParentTitle = $parent['name'];
 
-        if(!isset($parent["modules"]) || !in_array("survey", $parent["modules"])){
+        if((!isset($parent["modules"]) || !in_array("survey", $parent["modules"])) && $type != City::COLLECTION){ error_log($type);
             echo $controller->renderPartial("../pod/roomsList" , 
                                             array(  "empty"=>true, 
                                                     "parent" => $parent, 
                                                     "parentId" => $id, 
                                                     "parentType" => $type,
-                                                    "type"=>$type), true);
+                                                    "type"=>$type,
+                                                    ), true);
             return;
         }
 
@@ -53,6 +57,7 @@ class IndexAction extends CAction
         else 
             $rooms = ActionRoom::getWhereSortLimit( $where, array("date"=>1), 15);
 
+        $actionHistory = array();
         if( isset($roomsActions) && isset($roomsActions["rooms"]) && isset($roomsActions["actions"])  ){
             $rooms   = $roomsActions["rooms"];
             $actionHistory = $roomsActions["actions"];

@@ -68,8 +68,17 @@ class ActionAction extends CAction
           {
             $parent = Project::getById( $action["parentId"] );
             $params["parent"] = array(  "name" => $parent["name"],
-                                           "link" => "loadByHash('#project.detail.id.".$action["parentId"]."')");
+                                        "link" => "loadByHash('#project.detail.id.".$action["parentId"]."')");
           }
+          else if( $action["parentType"] == City::COLLECTION )
+          { 
+            $parent = City::getByUnikey( $action["parentId"] );
+            $params["parent"] = array(  "name" => $parent["name"],
+                                        "insee" => $parent["insee"],
+                                        "cp" => $parent["cp"],
+                                        "link" => "loadByHash('#city.detail.insee.".$parent["insee"].".postalCode.".$parent["cp"]."')");
+          }
+
 
           $params["parentType"] = $action["parentType"];
       }

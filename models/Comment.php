@@ -194,6 +194,7 @@ class Comment {
 			if ($nbComments > 0) 
 				$canComment = false;
 		}
+
 		return $canComment;
 	}
 
