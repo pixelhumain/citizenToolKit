@@ -52,6 +52,18 @@ class Comment {
 	  	return PHDB::findAndSort( self::COLLECTION,$params);
 	}
 
+	public static function countFrom($from,$type,$id) {
+		if( @$from && @$type && @$id ){
+			$params = array(
+				"contextType"=>$type,
+				"contextId"=>$id,
+				"created" => array( '$gt' => intval( $from ) )
+			);
+		  	return PHDB::count( self::COLLECTION,$params);
+		} else 
+			return 0;
+	}
+
 	public static function getWhereSortLimit($params,$sort,$limit=1) {
 	  	return PHDB::findAndSort( self::COLLECTION,$params,$sort,$limit);
 	}
