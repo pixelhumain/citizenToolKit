@@ -71,7 +71,7 @@ class Document {
 	public static function save($params){
 		
 		//check content key
-		if (in_array(@$params["contentKey"], array(self::IMG_BANNIERE,self::IMG_PROFIL,self::IMG_LOGO,self::IMG_SLIDER,self::IMG_MEDIA)))
+		if (! in_array(@$params["contentKey"], array(self::IMG_BANNIERE,self::IMG_PROFIL,self::IMG_LOGO,self::IMG_SLIDER,self::IMG_MEDIA)))
 			throw new CTKException("Unknown contentKey ".$params["contentKey"]." for the document !");
 		
 	    $new = array(
@@ -709,12 +709,12 @@ class Document {
 	public static function checkFileRequirements($file, $dir, $folder, $ownerId, $input) {
 		//TODO SBAR
 		//$dir devrait être calculé : sinon on peut facilement enregistrer des fichiers n'importe où
-		$upload_dir = Yii::app()->params['uploadUrl'];
+		$upload_dir = Yii::app()->params['uploadDir'];
         if(!file_exists ( $upload_dir ))
             mkdir ( $upload_dir,0775 );
         
         //ex: upload/communecter
-        $upload_dir = Yii::app()->params['uploadUrl'].$dir.'/';
+        $upload_dir = Yii::app()->params['uploadDir'].$dir.'/';
         if(!file_exists ( $upload_dir ))
             mkdir ( $upload_dir,0775 );
 
@@ -729,6 +729,7 @@ class Document {
         if( isset( $ownerId )) {
             $upload_dir .= $ownerId.'/';
             if( !file_exists ( $upload_dir ) )
+            	error_log($upload_dir);
                 mkdir ( $upload_dir,0775 );
         }
 
