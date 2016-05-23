@@ -4,13 +4,15 @@ class Translate {
 	const FORMAT_SCHEMA = "schema";
 	const FORMAT_PLP = "plp";
 	const FORMAT_AS = "activityStream";
+	const FORMAT_COMMUNECTER = "communecter";
 
 	public static function convert($data,$bindMap)
 	{
 		$newData = array();
-		foreach ($data as $keyID => $data) {
-			if ( isset($data) ) {
-				$newData[$keyID] = self::bindData($data,$bindMap);
+		foreach ($data as $keyID => $valueData) {
+			if ( isset($valueData) ) {
+
+				$newData[$keyID] = self::bindData($valueData,$bindMap);
 			}
 		}
 		return $newData;
@@ -19,20 +21,25 @@ class Translate {
 	private static function bindData ( $data, $bindMap )
 	{
 		$newData = array();
+
 		foreach ( $bindMap as $key => $bindPath ) 
 		{
+
 			if ( is_array( $bindPath ) && isset( $bindPath["valueOf"] ) ) 
 			{
 				/*if( $key == "@id")
 					$newData["debug"] = strpos( $bindPath["valueOf"], ".");*/
+
 				if( is_array( $bindPath["valueOf"] ))
 				{
+					//var_dump($bindPath["valueOf"]);
 					//parse recursively for objects value types , ex links.projects
 					if( isset($bindPath["object"]) )
 					{
 						//if dots are specified , we adapt the valueData map by focusing on a subpart of it
 						//var_dump($bindPath["object"]);
 						$currentValue = ( strpos( $bindPath["object"], "." ) > 0 ) ? self::getValueByPath( $bindPath["object"] ,$data ) : $data[$bindPath["object"]];
+						//var_dump($currentValue);
 						$newData[$key] = array();
 						//parse each entry of the list
 						//var_dump(strpos( $bindPath["object"], "." ));
@@ -117,7 +124,8 @@ class Translate {
 		if( isset( $bindPath["type"] ) && $bindPath["type"] == "url" )
 		{
 			$server = ((isset($_SERVER['HTTPS']) AND (!empty($_SERVER['HTTPS'])) AND strtolower($_SERVER['HTTPS'])!='off') ? 'https://' : 'http://').$_SERVER['HTTP_HOST'];
-			$val = $server.Yii::app()->createUrl(Yii::app()->controller->module->id.$prefix.$val.$suffix);
+			$val = $server.Yii::app()->createUrl($prefix.$val.$suffix);
+			//$val = $server.Yii::app()->createUrl(Yii::app()->controller->module->id.$prefix.$val.$suffix);
 		} 
 		else if( isset( $bindPath["prefix"] ) || isset( $bindPath["suffix"] ) )
 		{

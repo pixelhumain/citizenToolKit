@@ -9,6 +9,7 @@ class Api {
         $typeResult = "entities";
 
         if($type == Person::COLLECTION && @$id && $id == Yii::app()->session["userId"]){
+          
           $params["_id"] = new MongoId($id);
           $index = 0 ;
           $limit = 1 ;
@@ -42,7 +43,7 @@ class Api {
         }
 
         $data = PHDB::findAndLimitAndIndex($type , $params, $limit, $index);
-        
+        //var_dump($data);
         if(empty($id)){
         	$meta["limit"] = $limit;
         	$meta["next"] = "/ph/communecter/data/get/type/".$type."/limit/".$limit."/index/".($index+$limit);
@@ -58,12 +59,19 @@ class Api {
         	}
         }else{
         	$meta["limit"] = 1;
+
         }
 
         $result["meta"] = $meta ;
         
-        if($typeResult == "identity")
-        	$result[$typeResult] = $data[Yii::app()->session["userId"]] ;
+        if($typeResult == "identity"){
+            /*if($link == true){
+                $data[$id]["links"] = self::getNewFormatLink($data[$id]["links"]);
+            }*/
+            //var_dump($data);
+            $result[$typeResult] = $data ;
+            
+        }
         else{
         	$val = array();
         	foreach ($data as $key => $value) {
@@ -85,16 +93,14 @@ class Api {
           $result[$typeResult] = $val;
         }  
 
-        if($link == true){
-        	$result["links"] = self::getNewFormatLink($data[$id]["links"]);
-        	unset($result[$typeResult][$id]["links"]);
-          
-        }
-
+        
+        
         //var_dump($data);
         //var_dump($result[$typeResult]);
         if($result[$typeResult] && $bindMap )
           	$result[$typeResult] = Translate::convert($result[$typeResult] , $bindMap);
+
+        //var_dump($result[$typeResult]);
         return $result;
   }
 
@@ -108,7 +114,7 @@ class Api {
 				$dataLink = PHDB::findOne($valueLink["type"], array("_id"=>new MongoId($keyLink)), $fieldsLink);
 				if(!empty($dataLink)){
 					$newFormatData["name"] = $dataLink["name"];
-					$newFormatData["url"] = "/ph/communecter/data/get/type/".$valueLink["type"]."/id/".$keyLink ;
+					$newFormatData["url"] = "/data/get/type/".$valueLink["type"]."/id/".$keyLink ;
 
 					if(!empty($valueLink["isAdmin"]))
                   		$newFormatData["isAdmin"] = $valueLink["isAdmin"] ;
