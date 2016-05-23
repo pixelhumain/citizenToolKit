@@ -1196,47 +1196,53 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 		
 	    if (isset($newOrganization["_id"])) {
 	    	$newOrganizationId = (String) $newOrganization["_id"];
+
+	    	if(!empty($nameImage)){
+		    	try{
+					$res = Document::uploadDocumentFromURL($moduleId, self::COLLECTION, $newOrganizationId, "avatar", false, $pathFolderImage, $nameImage);
+					if(!empty($res["result"]) && $res["result"] == true){
+						$params = array();
+						$params['id'] = $newOrganizationId;
+						$params['type'] = self::COLLECTION;
+						$params['moduleId'] = $moduleId;
+						$params['folder'] = self::COLLECTION."/".$newOrganizationId;
+						$params['name'] = $res['name'];
+						$params['author'] = Yii::app()->session["userId"] ;
+						$params['size'] = $res["size"];
+						$params["contentKey"] = "profil";
+						$res2 = Document::save($params);
+						if($res2["result"] == false)
+							throw new CTKException("Impossible de sauvegarder l'image.");
+
+					}else{
+						throw new CTKException("Impossible uploader l'image.");
+					}
+				}catch (CTKException $e){
+					throw new CTKException($e);
+				}	
+			}
+
+			if(!empty($paramsLink) && $paramsLink["link"] == true){
+				if($paramsLink["typeLink"] == "Organization")
+					Link::addMember($paramsLink["idLink"], Organization::COLLECTION, $newOrganizationId, Organization::COLLECTION, $creatorId, $paramsLink["isAdmin"]);
+
+				if($paramsLink["typeLink"] == "Person")
+					Link::addMember($newOrganizationId, Organization::COLLECTION, $paramsLink["idLink"], Person::COLLECTION, $creatorId, $paramsLink["isAdmin"]);
+			}
+
+
+			$newOrganization = Organization::getById($newOrganizationId);
+
+
+
+
+
 	    } else {
 	    	throw new CTKException(Yii::t("organization","Problem inserting the new organization"));
 	    }
 
 
-	    if(!empty($nameImage)){
-	    	try{
-				$res = Document::uploadDocument($moduleId, self::COLLECTION, $newOrganizationId, "avatar", false, $pathFolderImage, $nameImage);
-				if(!empty($res["result"]) && $res["result"] == true){
-					$params = array();
-					$params['id'] = $newOrganizationId;
-					$params['type'] = self::COLLECTION;
-					$params['moduleId'] = $moduleId;
-					$params['folder'] = self::COLLECTION."/".$newOrganizationId;
-					$params['name'] = $res['name'];
-					$params['author'] = Yii::app()->session["userId"] ;
-					$params['size'] = $res["size"];
-					$params["contentKey"] = "profil";
-					$res2 = Document::save($params);
-					if($res2["result"] == false)
-						throw new CTKException("Impossible de save.");
-
-				}else{
-					throw new CTKException("Impossible uploader le document.");
-				}
-			}catch (CTKException $e){
-				throw new CTKException($e);
-			}	
-		}
-
-
-		if(!empty($paramsLink) && $paramsLink["link"] == true){
-			if($paramsLink["typeLink"] == "Organization")
-				Link::addMember($paramsLink["idLink"], Organization::COLLECTION, $newOrganizationId, Organization::COLLECTION, $creatorId, $paramsLink["isAdmin"]);
-
-			if($paramsLink["typeLink"] == "Person")
-				Link::addMember($newOrganizationId, Organization::COLLECTION, $paramsLink["idLink"], Person::COLLECTION, $creatorId, $paramsLink["isAdmin"]);
-		}
-
-
-		$newOrganization = Organization::getById($newOrganizationId);
+	    
 	    return array("result"=>true,
 		    			"msg"=>"Votre organisation est communectée.", 
 		    			"id"=>$newOrganizationId, 

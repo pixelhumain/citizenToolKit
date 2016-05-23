@@ -71,7 +71,7 @@ class Document {
 	public static function save($params){
 		
 		//check content key
-		if (in_array(@$params["contentKey"], array(self::IMG_BANNIERE,self::IMG_PROFIL,self::IMG_LOGO,self::IMG_SLIDER,self::IMG_MEDIA)))
+		if (!in_array(@$params["contentKey"], array(self::IMG_BANNIERE,self::IMG_PROFIL,self::IMG_LOGO,self::IMG_SLIDER,self::IMG_MEDIA)))
 			throw new CTKException("Unknown contentKey ".$params["contentKey"]." for the document !");
 		
 	    $new = array(
@@ -656,6 +656,19 @@ class Document {
 		file_put_contents($file, $current);
 	}
 
+	public static function urlGetContents ($url) {
+	    if (!function_exists('curl_init')){ 
+	        die('CURL is not installed!');
+	    }
+	    $ch = curl_init();
+	    curl_setopt($ch, CURLOPT_URL, $url);
+	    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+	    $output["file"] = curl_exec($ch);
+	    $output["size"] = curl_getinfo($ch, CURLINFO_CONTENT_LENGTH_DOWNLOAD);
+	    curl_close($ch);
+	    return $output;
+	}
+
 	public static function uploadDocumentFromURL($dir,$folder=null,$ownerId=null,$input,$rename=false, $pathFile, $nameFile) {
 		//Check if the file exists on that URL
 		$file_headers = @get_headers($pathFile.$nameFile);
@@ -666,19 +679,19 @@ class Document {
 		}
 
 		if ($exists) {
-			$file = file_get_contents($pathFile.$nameFile, FILE_USE_INCLUDE_PATH);
-			$res = self::checkFileRequirements($file, $dir, $folder, $ownerId, $input);
+			//$file = file_get_contents($pathFile.$nameFile, FILE_USE_INCLUDE_PATH);
+			$file = self::urlGetContents($pathFile.$nameFile);
+			$res = self::checkFileRequirements($file["file"], $dir, $folder, $ownerId, $input, $nameFile, $file["size"] );
 			if ($res["result"]) {
-				self::uploadDocument($file, $res["uploadDir"], $input, $rename);
-			} else {
-				return $res;
+				$res = self::uploadDocument($file, $res["uploadDir"], $input, $rename, $nameFile, $file["size"]);
 			}
+			return $res;
 		}
 	}
 
-	public static function uploadDocument($file, $uploadDir,$input,$rename=false) {
-    	$uploadedFile = @$file['tmp_name'] ? true : false;
-		$nameFile = $file["name"];
+	public static function uploadDocument($file, $uploadDir,$input,$rename=false, $nameUrl = null, $sizeUrl=null) {
+    	$uploadedFile = (!empty($file['tmp_name']) ? true : false);
+    	$nameFile = (!empty($nameUrl) ? $nameUrl : $file["name"] );
 
     	// Move the uploaded file from the temporary 
     	// directory to the uploads folder:
@@ -706,15 +719,15 @@ class Document {
         return array('result'=>false,'error'=>Yii::t("document","Something went wrong with your upload!"));
 	}
 			
-	public static function checkFileRequirements($file, $dir, $folder, $ownerId, $input) {
+	public static function checkFileRequirements($file, $dir, $folder, $ownerId, $input, $nameUrl = null, $sizeUrl=null) {
 		//TODO SBAR
 		//$dir devrait être calculé : sinon on peut facilement enregistrer des fichiers n'importe où
-		$upload_dir = Yii::app()->params['uploadUrl'];
+		$upload_dir = Yii::app()->params['uploadDir'];
         if(!file_exists ( $upload_dir ))
             mkdir ( $upload_dir,0775 );
         
         //ex: upload/communecter
-        $upload_dir = Yii::app()->params['uploadUrl'].$dir.'/';
+        $upload_dir = Yii::app()->params['uploadDir'].$dir.'/';
         if(!file_exists ( $upload_dir ))
             mkdir ( $upload_dir,0775 );
 
@@ -729,9 +742,9 @@ class Document {
         if( isset( $ownerId )) {
             $upload_dir .= $ownerId.'/';
             if( !file_exists ( $upload_dir ) )
-                mkdir ( $upload_dir,0775 );
+            	mkdir ( $upload_dir,0775 );
         }
-
+       
         if( @$input=="newsImage"){
 	        $upload_dir .= Document::GENERATED_ALBUM_FOLDER.'/';
             if( !file_exists ( $upload_dir ) )
@@ -740,16 +753,19 @@ class Document {
 
         //Check extension
         $allowed_ext = array('jpg','jpeg','png','gif',"pdf","xls","xlsx","doc","docx","ppt","pptx","odt");
-        $nameFile = $file["name"];
+        
+        $nameFile = (!empty($nameUrl) ? $nameUrl : $file["name"] );
+        
     	$ext = strtolower(pathinfo($nameFile, PATHINFO_EXTENSION));
     	if(!in_array($ext,$allowed_ext)) {
     		return array('result'=>false,'error'=>Yii::t("document","Only").implode(',',$allowed_ext).Yii::t("document","files are allowed!"));
     	}
 
     	//Check size
-    	if ($file["size"] > 4000000 ) {
-    		return array('result'=>false,'error'=>"The file size should not be over 4 Mo");
-    	}
+    	$size = (!empty($sizeUrl) ? $sizeUrl : $file["size"] );
+    	if ($size > 4000000 ) {
+	    	return array('result'=>false,'error'=>"The file size should not be over 4 Mo");
+	    }
 
     	return array('result' => true, 'msg'=>'Files requirements meet', 'uploadDir' => $upload_dir);
 	}

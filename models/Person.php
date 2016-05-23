@@ -1412,7 +1412,7 @@ class Person {
 
 	    if(!empty($nameImage)){
 			try{
-				$res = Document::uploadDocument($moduleId, self::COLLECTION, $newpersonId, "avatar", false, $pathFolderImage, $nameImage);
+				$res = Document::uploadDocumentFromURL($moduleId, self::COLLECTION, $newpersonId, "avatar", false, $pathFolderImage, $nameImage);
 				if(!empty($res["result"]) && $res["result"] == true){
 					$params = array();
 					$params['id'] = $newpersonId;
