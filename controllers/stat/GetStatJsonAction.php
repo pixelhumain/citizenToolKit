@@ -104,6 +104,15 @@ class GetStatJsonAction extends CAction
                         $res['survey'][] = $value['global']['survey']['total'];
                     };
                  break;
+                 case 'modules':
+                    $data = PHDB::find('stats', array('global.modules' => array('$exists' => 1)));
+                    foreach ($data as $key => $value) {
+                        $res['x'][] = date("d/m/Y",$value['created']->sec);
+                        foreach($value['global']['modules'] as $name => $number){
+                            if($name != 'total')$res[$name][] = $number;
+                        }
+                    }
+                 break;
 
                  //Log is a bit different because it's not included in global values
                  case 'logs':

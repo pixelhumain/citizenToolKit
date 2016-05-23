@@ -30,6 +30,7 @@ class Stat {
 		$stat['global']['actionRooms'] = self::consolidateFromListAndCollection('listRoomTypes', ActionRoom::COLLECTION);
 		$stat['global']['links'] = self::consolidateLinksCitoyen();
 		$stat['global']['survey'] = self::consolidateSurveys();
+		$stat['global']['modules'] = self::consolidateModules();
 		echo date('Y-m-d H:i:s')." - Enregistrement<br/>";
 		self::save($stat);
 		unset($stat['global']);
@@ -40,6 +41,7 @@ class Stat {
 		$stat['cities']['events'] = self::consolidateEventsByCity();
 		$stat['cities']['projects'] = self::consolidateProjectsByCity();
 		$stat['cities']['links'] = self::consolidateLinksCitoyenByCity();
+		$stat['cities']['modules'] = self::consolidateModulesOrgaByCity();
 
 		echo date('Y-m-d H:i:s')." - Calcul Logs<br/>";
 		$stat['logs'] = self::consolidateLogs();
@@ -216,6 +218,25 @@ class Stat {
 		return $datas;
 	}
 
+	/**
+	 * Consolidate all the modules of organizations by cities
+	*/
+	public static function consolidateModulesOrgaByCity(){
+		echo date('Y-m-d H:i:s')." - consolidateModulesOrgaByCity<br/>";
+
+		$result = PHDB::find(Organization::COLLECTION, array('address.codeInsee' => array('$exists' => 1), 'modules' => array('$exists' => 1)));
+		$aggregate = array();
+		foreach ($result as $key => $value) {
+			$insee = self::checkAndGetInsee(@$value['address']['codeInsee']);
+			foreach ($value['modules'] as $idModule => $moduleName) {
+				$aggregate[$insee][$moduleName] = @$aggregate[$insee][$moduleName] + 1;
+			}
+		}
+		ksort($aggregate);
+		return $aggregate;
+	}
+
+
 
 	/**
 	 * create data statistics for surveys
@@ -228,6 +249,26 @@ class Stat {
 		$surveys['total'] = $countSurvey;
 
 		return $surveys;
+	}
+
+	/**
+	 * create data statistics for modules
+	*/
+	public static function consolidateModules(){
+		echo date('Y-m-d H:i:s')." - consolidateModules<br/>";
+		$datas = array();
+		$datas['total'] = 0;
+		$organizations = PHDB::find(organization::COLLECTION, array("modules" => array('$exists' => 1)));
+		foreach ($organizations as $key => $value) {
+			if(is_array($value['modules'])){
+				foreach ($value['modules'] as $keyModule => $nameModule) {
+					if(!isset($datas[$nameModule]))$datas[$nameModule] = 0;
+					$datas[$nameModule] +=1;
+					$datas['total'] += 1;
+				}
+			}
+		}
+		return $datas;
 	}
 
 	/**

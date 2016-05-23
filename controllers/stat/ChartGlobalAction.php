@@ -25,6 +25,10 @@ class ChartGlobalAction extends CAction
             "needs" => "Besoin sur entité",
 		);
 
+		$params['groups']['moduleTypes'] = array(
+			"survey" => "Espace coopératif"
+		);
+
 		
 		$page =  "chartGlobal";
 
