@@ -44,13 +44,14 @@ class Api {
 
         $data = PHDB::findAndLimitAndIndex($type , $params, $limit, $index);
         //var_dump($data);
+        self::getUrlImage($data, $type);
+
         if(empty($id)){
         	$meta["limit"] = $limit;
         	$meta["next"] = "/ph/communecter/data/get/type/".$type."/limit/".$limit."/index/".($index+$limit);
 
         	if(@$format)
         		$meta["next"] .= "/format/".$format ;
-
         	if($index != 0){
         		$newIndex = $index - $limit;
         		if($newIndex < 0)
@@ -124,6 +125,14 @@ class Api {
             }
         }
         return $allData ;
+    }
+
+    
+    public static function getUrlImage($data, $type){
+        foreach ($data as $keyEntities => $valueEntities) {
+            /*$doc = Document::listMyDocumentByType($keyEntities, $type, "profil");
+            var_dump($doc);*/
+        }
     }
 	
 
