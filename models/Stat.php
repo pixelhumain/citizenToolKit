@@ -81,7 +81,7 @@ class Stat {
 					$datas[$action][$res_res] += 1 ;
 				} 
 				else{
-					if(!isset($datas[$action][$res_res])) $datas[$action] = 0;
+					if(!isset($datas[$action])) $datas[$action] = 0;
 					$datas[$action] += 1;
 				}
 			}
