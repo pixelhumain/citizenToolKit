@@ -68,7 +68,7 @@ class IndexAction extends CAction
         	throw new CTKException("Error : the type is unknown ".$type);
         }
 
-        if($params["parentType"] == City::COLLECTION) $params['canComment'] = true;
+        if(@$params["parentType"] == City::COLLECTION) $params['canComment'] = true;
 
         if(Yii::app()->request->isAjaxRequest){
 	        if($type != ActionRoom::COLLECTION && $type != ActionRoom::COLLECTION_ACTIONS)
