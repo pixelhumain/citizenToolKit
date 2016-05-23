@@ -104,6 +104,46 @@ class GetStatJsonAction extends CAction
                         $res['survey'][] = $value['global']['survey']['total'];
                     };
                  break;
+
+                 //Log is a bit different because it's not included in global values
+                 case 'logs':
+                    switch ($chart) {
+                        case 'global':
+                            $data = PHDB::find('stats', array('logs' => array('$exists' => 1)));
+                            if(is_array($data))foreach ($data as $key => $stat) {
+                                $res['x'][] = date("d/m/Y",$stat['created']->sec);
+                                $total = 0;
+                                if(is_array($stat['logs']))foreach ($stat['logs'] as $action => $listResult) {
+                                    if(is_array($listResult)){
+                                        foreach ($listResult as $value => $total) {
+                                            $total += $total;
+                                        }
+                                    }
+                                    else{
+                                        $total += $listResult;
+                                    } 
+                                }
+                                $res['logs'][] = $total; 
+                            }
+                        break;
+                        case 'action':
+                            $paramAction = str_replace("_", "/", $_REQUEST['action']);
+                            $data = PHDB::find('stats', array('logs.'.$paramAction => array('$exists' => 1)));
+                            if(is_array($data))foreach ($data as $key => $stat) {
+                                $total = 0;
+                                $res['x'][] = date("d/m/Y",$stat['created']->sec);
+                                if(is_array($stat['logs'][$paramAction])){
+                                    foreach ($stat['logs'][$paramAction] as $result => $count) {
+                                        $res[$result][] = $count;
+                                    }
+                                }
+                                else{
+                                    $res['logs'][] = $stat['logs'][$paramAction];
+                                }
+                                
+                            }
+                         break;
+                    }
                  default:
                      # code...
                     break;

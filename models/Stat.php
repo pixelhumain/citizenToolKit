@@ -41,11 +41,52 @@ class Stat {
 		$stat['cities']['projects'] = self::consolidateProjectsByCity();
 		$stat['cities']['links'] = self::consolidateLinksCitoyenByCity();
 
+		echo date('Y-m-d H:i:s')." - Calcul Logs<br/>";
+		$stat['logs'] = self::consolidateLogs();
+
 		echo date('Y-m-d H:i:s')." - Enregistrement<br/>";
 		$res = self::save($stat);
 		
 	}
 
+	/**
+	 * Consolidate all the citoyens by cities
+	*/
+	public static function consolidateLogs(){
+		echo date('Y-m-d H:i:s')." - consolidateLogs<br/>";
+		$datas = array();
+
+		//We took the last log consolidate
+		$lastLogStat = self::getWhere(array('logs' => array('$exists' => 1)),array('created'), 1);
+		if(count($lastLogStat)){
+			$lastLogStat = array_pop($lastLogStat);
+			$where = array('created' => array('$gt' => $lastLogStat['created']));
+		}
+		else{
+			$where = array();
+		}
+		
+		$allLogs = Log::getWhere($where);
+		if(is_array($allLogs))foreach ($allLogs as $key => $value) {
+
+			$action = @$value['action'];
+
+			//If result => Consolidate by result
+			if(!empty($action)){
+				if(isset($value['result'])){
+					$res_res = @$value['result']['result'];
+					if(!isset($datas[$action][$res_res])) $datas[$action][$res_res] = 0;
+					$datas[$action][$res_res] += 1 ;
+				} 
+				else{
+					if(!isset($datas[$action][$res_res])) $datas[$action] = 0;
+					$datas[$action] += 1;
+				}
+			}
+		}
+		ksort($datas);
+		return $datas;
+	}
 
 	/**
 	 * Consolidate all the citoyens by cities

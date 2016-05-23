@@ -85,6 +85,13 @@ class Log {
 	}
 
 	/**
+	 * List the log in the collection logs depends Where
+	*/
+	public static function getWhere($where = array()){
+		return PHDB::find(self::COLLECTION, $where);
+	}
+
+	/**
 	 * Give a lift of IpAdress to block
 	*/
 	public static function getSummaryByAction(){
