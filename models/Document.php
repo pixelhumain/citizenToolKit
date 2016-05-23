@@ -743,6 +743,7 @@ class Document {
             $upload_dir .= $ownerId.'/';
             if( !file_exists ( $upload_dir ) )
             	mkdir ( $upload_dir,0775 );
+
         }
        
         if( @$input=="newsImage"){
