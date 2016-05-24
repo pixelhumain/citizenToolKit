@@ -46,6 +46,13 @@ class IndexAction extends CAction
                 $params["parent"] = Organization::getById($actionRoom["parentId"]);   
             if($actionRoom["parentType"] == Project::COLLECTION) 
                 $params["parent"] = Project::getById($actionRoom["parentId"]);   
+            if($actionRoom["parentType"] == City::COLLECTION) {
+                $parent = City::getByUnikey($actionRoom["parentId"]);   
+                $params["parent"] = array(  "name" => $parent["name"],
+                                        "insee" => $parent["insee"],
+                                        "cp" => $parent["cp"],
+                                        "link" => "loadByHash('#city.detail.insee.".$parent["insee"].".postalCode.".$parent["cp"]."')");
+            }
 
             $params["parentType"] = $actionRoom["parentType"];
             $params["parentId"] = $actionRoom["parentId"];

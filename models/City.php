@@ -53,6 +53,7 @@ class City {
 		$cp = substr($unikey, strpos($unikey, "-")+1,  strlen($unikey));
 
 		$city = PHDB::findOne( self::COLLECTION , array("insee"=>$insee, "country"=>$country) );// self::getWhere(array("insee"=>$insee, "country"=>$country));
+		if(isset($city["postalCodes"]))
 		foreach ($city["postalCodes"] as $key => $value) {
 			if($value["postalCode"] == $cp){
 				$city["name"] = $value["name"];
@@ -273,6 +274,7 @@ class City {
 		$simpleCity["name"] = @$city["name"];
 		$simpleCity["insee"] = @$city["insee"];
 		$simpleCity["cp"] = @$city["cp"];
+		$simpleCity["country"] = @$city["country"];
 		$simpleCity["geo"] = @$city["geo"];
 		$simpleCity["type"] = "city";
 		
@@ -385,14 +387,23 @@ class City {
 	}
 
 	
-	public static function getCitizenAssemblyByInsee($insee, $cp){
-		$where = array("address.codeInsee" => $insee,
-						"address.postalCode" => $cp,
-						"citizenType" => "citizenAssembly");
+	public static function getCityByInseeCp($insee, $cp){
+		$where = array("insee" => $insee,
+					   "postalCodes.postalCode" => $cp);
 
-		$fields = array("_id");
-		$CTZAssembly = PHDB::findOne( Organization::COLLECTION, $where ,$fields);
-		return $CTZAssembly;
+		//$fields = array("_id");
+		$city = PHDB::findOne( City::COLLECTION, $where);// ,$fields);
+
+		foreach ($city["postalCodes"] as $key => $value) {
+			if($value["postalCode"] == $cp){
+				$city["name"] = $value["name"];
+				$city["cp"] = $value["postalCode"];
+				$city["geo"] = $value["geo"];
+				$city["geoPosition"] = $value["geoPosition"];
+				return $city;
+			}
+		}
+		return $city;
 	}
 
 
@@ -411,7 +422,7 @@ class City {
 	}
 
 
-	public static function createCitizenAssembly($insee, $cp){
+	/*public static function createCitizenAssembly($insee, $cp){
 		//$params = array("address.codeInsee" => $insee, "address.postalCode" => $cp);
 		$CTZAssembly = self::getCitizenAssemblyByInsee($insee, $cp);//PHDB::findOne( Organization::COLLECTION, $params);
 
@@ -486,7 +497,7 @@ class City {
 		// 	}
 		// }
 		return $CTZAssembly;
-	}
+	}*/
 
 
 
