@@ -681,6 +681,11 @@ class Document {
 		file_put_contents($file, $current);
 	}
 
+	/**
+	 * Get a file from an URL using curl
+	 * @param String $url the complete URL of the file to get
+	 * @return file a pointer on the file
+	 */
 	public static function urlGetContents ($url) {
 	    if (!function_exists('curl_init')){ 
 	        die('CURL is not installed!');
@@ -694,6 +699,17 @@ class Document {
 	    return $output;
 	}
 
+	/**
+	 * Description
+	 * @param type $dir 
+	 * @param type|null $folder 
+	 * @param type|null $ownerId 
+	 * @param type $input 
+	 * @param type|bool $rename 
+	 * @param type $pathFile 
+	 * @param type $nameFile 
+	 * @return type
+	 */
 	public static function uploadDocumentFromURL($dir,$folder=null,$ownerId=null,$input,$rename=false, $pathFile, $nameFile) {
 		//Check if the file exists on that URL
 		$file_headers = @get_headers($pathFile.$nameFile);
@@ -744,6 +760,17 @@ class Document {
         return array('result'=>false,'error'=>Yii::t("document","Something went wrong with your upload!"));
 	}
 			
+	/**
+	 * Check if the file can be uploaded and prepare the folders tree to 
+	 * @param file $file a file to upload
+	 * @param string $dir the moduleId
+	 * @param string $folder the type of the entity linked to the document
+	 * @param String $ownerId the Id of the entity linked to the document
+	 * @param type $input : ?????
+	 * @param String|null $nameUrl The name of the file (not mandatory : could be retrieve from the file when it's not an URL file)
+	 * @param type|null $sizeUrl The size of the file (not mandatory : could be retrieve from the file when it's not an URL file)
+	 * @return array result => boolean, msg => String, uploadDir => where the file is stored
+	 */
 	public static function checkFileRequirements($file, $dir, $folder, $ownerId, $input, $nameUrl = null, $sizeUrl=null) {
 		//TODO SBAR
 		//$dir devrait être calculé : sinon on peut facilement enregistrer des fichiers n'importe où
