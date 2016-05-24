@@ -489,12 +489,15 @@ class Document {
         }
         mkdir($upload_dir, 0775);
         
-        $profilUrl = self::getDocumentPath($document);
-     	$imageUtils = new ImagesUtils($profilUrl);
+        $profilUrl = self::getDocumentUrl($document);
+        $profilPath = self::getDocumentPath($document);
+     	$imageUtils = new ImagesUtils($profilPath);
     	$destPathThumb = $upload_dir."/".self::FILENAME_PROFIL_RESIZED;
+    	$profilThumbUrl = self::getDocumentFolderUrl($document)."/".self::FILENAME_PROFIL_RESIZED;
     	$imageUtils->resizeImage(50,50)->save($destPathThumb);
 		
 		$destPathMarker = $upload_dir."/".self::FILENAME_PROFIL_MARKER;
+		$profilMarkerImageUrl = self::getDocumentFolderUrl($document)."/".self::FILENAME_PROFIL_MARKER;
     	$markerFileName = self::getEmptyMarkerFileName(@$document["type"], @$document["subType"]);
     	if ($markerFileName) {
     		$srcEmptyMarker = self::getPathToMarkersAsset().$markerFileName;
@@ -503,7 +506,7 @@ class Document {
         
         //Update the entity collection to store the path of the profil images
         if (in_array($document["type"], array(Person::COLLECTION, Organization::COLLECTION, Project::COLLECTION, Event::COLLECTION))) {
-	        PHDB::update($document["type"], array("_id" => new MongoId($document["id"])), array('$set' => array("profilImageUrl" => $profilUrl, "profilThumbImageUrl" => $destPathThumb, "profilMarkerImageUrl" =>  $destPathMarker)));
+	        PHDB::update($document["type"], array("_id" => new MongoId($document["id"])), array('$set' => array("profilImageUrl" => $profilUrl, "profilThumbImageUrl" => $profilThumbUrl, "profilMarkerImageUrl" =>  $profilMarkerImageUrl)));
 	        error_log("The entity ".$document["type"]." and id ". $document["id"] ." has been updated with the URL of the profil images.");
 		}
 
@@ -636,7 +639,7 @@ class Document {
 
 	public static function retrieveAllImagesUrl($id, $type, $subType = null, $entity = null) {
 		$res = array();
-		
+		error_log("Entity Profil image url for the ".$type." with the id ".$id." : ".@$entity["profilImageUrl"] );
 		//The profil image URL should be stored in the entity collection 
 		if (isset($entity["profilImageUrl"])) {
 			$res["profilImageUrl"] = $entity["profilImageUrl"];
@@ -658,6 +661,7 @@ class Document {
 			$res["profilMarkerImageUrl"] = $marker;
 
 			PHDB::update($type, array("_id" => new MongoId($id)), array('$set' => array("profilImageUrl" => $profil, "profilThumbImageUrl" => $profilThumb, "profilMarkerImageUrl" =>  $marker)));
+			error_log("Add Profil image url for the ".$type." with the id ".$id);
 		}
 
 		//If empty marker return default marker

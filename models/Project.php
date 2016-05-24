@@ -70,7 +70,7 @@ class Project {
 		}
 
 		if (!empty($project)) {
-			$project = array_merge($project, Document::retrieveAllImagesUrl($id, self::COLLECTION));
+			$project = array_merge($project, Document::retrieveAllImagesUrl($id, self::COLLECTION, null, $project));
 			$project["typeSig"] = "projects";
 		}
 	  	return $project;

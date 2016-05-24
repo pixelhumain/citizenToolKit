@@ -73,7 +73,7 @@ class Event {
 			}
 		}
 		if(!empty($event)){
-			$event = array_merge($event, Document::retrieveAllImagesUrl($id, self::COLLECTION));
+			$event = array_merge($event, Document::retrieveAllImagesUrl($id, self::COLLECTION, @$event["type"], $event));
 			$event["typeSig"] = "events";
 	  	}
 	  	return $event;

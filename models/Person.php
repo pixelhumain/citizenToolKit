@@ -126,7 +126,7 @@ class Person {
 				date_default_timezone_set('UTC');
 				$person["birthDate"] = date('Y-m-d H:i:s', $person["birthDate"]->sec);
 			}
-			$person = array_merge($person, Document::retrieveAllImagesUrl($id, self::COLLECTION));
+			$person = array_merge($person, Document::retrieveAllImagesUrl($id, self::COLLECTION, null, $person));
 			$person["typeSig"] = "people";
 			if(!isset($person["address"])) 
 				$person["address"] = array( "codeInsee" => "", 
