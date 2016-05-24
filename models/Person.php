@@ -1496,8 +1496,12 @@ class Person {
 		  		|| ( $isLinked && isset($entity["preferences"]) && isset($entity["preferences"]["privateFields"]) && in_array( $fieldName, $entity["preferences"]["privateFields"]))  )
 			{}
 			else{
-				if($fieldName == "locality")  { $entity["address"]["streetAddress"] = ""; }
-				else if($fieldName == "phone"){ $entity["telephone"] = ""; }
+				if($fieldName == "locality")  { 
+					$entity["address"]["streetAddress"] = ""; 
+				}
+				else if($fieldName == "phone"){ 
+					$entity["telephone"] = ""; 
+				}
 				else{
 					$entity[$fieldName] = "";
 				}

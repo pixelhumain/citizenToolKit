@@ -90,5 +90,8 @@ class Preference {
 		$res = array("result" => true, "msg" => Yii::t("common","Confidentiality param well updated"));
 		return $res;
 	}
+
+
+	
 	
 }

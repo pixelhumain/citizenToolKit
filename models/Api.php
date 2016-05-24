@@ -43,8 +43,17 @@ class Api {
         }
 
         $data = PHDB::findAndLimitAndIndex($type , $params, $limit, $index);
-        //var_dump($data);
-        self::getUrlImage($data, $type);
+        
+        $data = self::getUrlImage($data, $type);
+       
+
+        if(Person::COLLECTION == $type){
+            foreach ($data as $key => $value) {
+                $person = Person::clearAttributesByConfidentiality($value);
+                $data[$key] = $person ;
+            }
+        }
+        
 
         if(empty($id)){
         	$meta["limit"] = $limit;
@@ -91,13 +100,14 @@ class Api {
             		
             }
           }
-          $result[$typeResult] = $val;
+          //$result[$typeResult] = $val;
+          $result[$typeResult] = $data ;
         }  
 
         
         
-        //var_dump($data);
-        //var_dump($result[$typeResult]);
+        
+        //var_dump(json_encode($result[$typeResult]));
         if($result[$typeResult] && $bindMap )
           	$result[$typeResult] = Translate::convert($result[$typeResult] , $bindMap);
 
@@ -130,9 +140,10 @@ class Api {
     
     public static function getUrlImage($data, $type){
         foreach ($data as $keyEntities => $valueEntities) {
-            /*$doc = Document::listMyDocumentByType($keyEntities, $type, "profil");
-            var_dump($doc);*/
+            $doc = Document::getLastImageByKey($keyEntities, $type, Document::IMG_PROFIL) ;
+            $data[$keyEntities]["image"] = $doc ;
         }
+        return $data;
     }
 	
 

@@ -10,15 +10,19 @@ class TranslateCommunecter {
 	public static $dataBinding_person = array(
 	    "@context"  => "",
 		"@type"		=> "Person",
-		"id" 		=> array("valueOf"  	=> '_id.$id', 
-							 "type" 	=> "url", 
-							 "prefix"   => "/data/get/type/citoyens/id/",
-							 "suffix"   => "/format/communecter" ),
 	    "name" 		=> array("valueOf" => "name"),
-	    /*"image"		=> array("valueOf" => "img",
+	    "image"		=> array("valueOf" => "image",
+							 "type" 	=> "url"),
+	    "urlCommunecter" 	=> array(
+	    						"valueOf" => '_id.$id',
+				   				"type" 	=> "url", 
+								"prefix"   => "/#person.detail.id.",
+								"suffix"   => ""),
+	    "urlApi" 		=> array("valueOf"  	=> '_id.$id', 
 							 "type" 	=> "url", 
-							 "prefix"  => "/upload/communecter/citoyens/55e042ffe41d754428848363/zhq91z.jpg"),
-	    "birthDate" => array("valueOf" => "bitrh"),*/
+							 "prefix"   => "/communecter/data/get/type/citoyens/id/",
+							 "suffix"   => "" ),
+	    /*"birthDate" => array("valueOf" => "bitrh"),*/
 	    "address" 	=> array("parentKey"=>"address", 
 	    					 "valueOf" => array(
 									"@type" 			=> "PostalAddress", 
@@ -43,7 +47,7 @@ class TranslateCommunecter {
 	   	"shortDescription"		=> array("valueOf" => "shortDescription"),
 	   	"description"		=> array("valueOf" => "description"),
 	   	"email"		=> array("valueOf" => "email"),
-	   	"telephone" 	=> array("parentKey"=>"phone", 
+	   	"phone" 	=> array("parentKey"=>"telephone", 
 	    					 "valueOf" => array(
 									"fixe" 			=> array("parentKey"=>"fixe",
 															 "valueOf" => "fixe"), 
@@ -67,7 +71,7 @@ class TranslateCommunecter {
 	    					 "valueOf" => array(
 									"memberOf" => array( 
 										"object" => "memberOf",
-										"collection" => "organizations" , 
+										"collection" => Organization::COLLECTION , 
 										"valueOf" => array (
 									   		"type" => "Organization",
 									   		"name" => array("valueOf" => "name"),
@@ -79,12 +83,12 @@ class TranslateCommunecter {
 									   		"urlApi" => array(
 									   			"valueOf" => '_id.$id',
 									   			"type" 	=> "url", 
-												"prefix"   => "/data/get/type/organizations/id/",
-												"suffix"   => "/format/communecter")
+												"prefix"   => "/communecter/data/get/type/organizations/id/",
+												"suffix"   => "")
 									   	) ),
 									"projects" => array( 
 										"object" => "projects",
-										"collection" => "projects" , 
+										"collection" => Project::COLLECTION, 
 										"valueOf" => array (
 									   		"type" => "Project",
 									   		"name" => array("valueOf" => "name"),
@@ -97,10 +101,10 @@ class TranslateCommunecter {
 									   			"valueOf" => '_id.$id',
 									   			"type" 	=> "url",
 									   			"prefix"   => "/communecter/data/get/type/projects/id/",
-												"suffix"   => "/format/communecter"))),
+												"suffix"   => ""))),
 									"events" => array( 
 										"object" => "events",
-										"collection" => "events" , 
+										"collection" => Event::COLLECTION , 
 										"valueOf" => array (
 									   		"type" => "Event",
 									   		"name" => array("valueOf" => "name"),
@@ -112,10 +116,424 @@ class TranslateCommunecter {
 									   		"urlApi" => array(
 									   			"valueOf" => '_id.$id',
 									   			"type" 	=> "url", 
-												"prefix"   => "/data/get/type/events/id/",
-												"suffix"   => "/format/communecter")))
+												"prefix"   => "/communecter/data/get/type/events/id/",
+												"suffix"   => "")))
 				 					)),
 	);
 
-	
+	public static $dataBinding_organization = array(
+	    /*"@context"  => "",
+		"@type"		=> "Organization",
+		
+	    "name" 		=> array("valueOf" => "name"),
+	    "typeCommunecter" 		=> array("valueOf" => "type"),
+	    "image"		=> array("valueOf" => "image",
+							 "type" 	=> "url"),
+	    "urlCommunecter" 	=> array(
+	    					"valueOf" => '_id.$id',
+				   			"type" 	=> "url", 
+							"prefix"   => "/#organization.detail.id.",
+							"suffix"   => ""),
+	    "urlApi" 	=> array("valueOf"  => '_id.$id', 
+							 "type" 	=> "url", 
+							 "prefix"   => "/communecter/data/get/type/organizations/id/",
+							 "suffix"   => "" ),
+	    "address" 	=> array("parentKey"=>"address", 
+	    					 "valueOf" => array(
+									"@type" 			=> "PostalAddress", 
+									"streetAddress" 	=> array("valueOf" => "streetAddress"),
+									"postalCode" 		=> array("valueOf" => "postalCode"),
+									"addressLocality"   => array("valueOf" => "addressLocality"),
+									"codeInsee" 		=> array("valueOf" => "codeInsee"),
+									"addressRegion" 	=> array("valueOf" => "addressRegion"),
+									"addressCountry" 	=> array("valueOf" => "addressCountry")
+				 					)),
+	   	"geo" 	=> array("parentKey"=>"geo", 
+	    					 "valueOf" => array(
+									"@type" 			=> "GeoCoordinates", 
+									"latitude" 			=> array("valueOf" => "latitude"),
+									"longitude" 		=> array("valueOf" => "longitude")
+				 					)),
+	   	"geoPosition" 	=> array("parentKey"=>"geoPosition", 
+	    					 "valueOf" => array(
+									"@type" 			=> "Point", 
+									"coordinates" 			=> array("valueOf" => "coordinates")
+				 					)),
+	   	"shortDescription"		=> array("valueOf" => "shortDescription"),
+	   	"description"		=> array("valueOf" => "description"),
+	   	"email"		=> array("valueOf" => "email"),
+	   	"phone" 	=> array("parentKey"=>"telephone", 
+	    					 "valueOf" => array(
+									"fixe" 			=> array("parentKey"=>"fixe",
+															 "valueOf" => "fixe"), 
+									"mobile" 		=> array("parentKey"=>"mobile",
+															 "valueOf" => "mobile"), 
+									"fax" 			=> array("parentKey"=>"fax",
+															 "valueOf" => "fax"), 
+				 					)),
+
+		"socialNetwork" 	=> array("parentKey"=>"socialNetwork", 
+	    					 "valueOf" => array(
+									"github" 		=> array("valueOf" => "github"),
+									"twitter" 		=> array("valueOf" => "twitter"),
+									"facebook" 		=> array("valueOf" => "facebook"),
+									"googleplus" 	=> array("valueOf" => "googleplus"),
+									"linkedin" 		=> array("valueOf" => "linkedin"),
+									"skype" 		=> array("valueOf" => "skype")
+				 					)),
+		"tags"		=> array("valueOf" => "tags"),*/
+		"links" 	=> array("parentKey"=>"links", 
+	    					 "valueOf" => array(
+									/*"followers" => array( 
+										"object" => "followers",
+										"collection" => Person::COLLECTION , 
+										"valueOf" => array (
+									   		"@type"		=> "Person",
+									   		"name" => array("valueOf" => "name"),
+									   		"url" => array(
+									   			"valueOf" => '_id.$id',
+									   			"type" 	=> "url", 
+												"prefix"   => "/#citoyens.detail.id.",
+												"suffix"   => ""),
+									   		"urlApi" => array(
+									   			"valueOf" => '_id.$id',
+									   			"type" 	=> "url", 
+												"prefix"   => "/communecter/data/get/type/citoyens/id/",
+												"suffix"   => "")
+									   	) ),
+									"members" => array( 
+										"object" => "members",
+										"collection" => Person::COLLECTION , 
+										"valueOf" => array (
+									   		"type" => "Person",
+									   		"name" => array("valueOf" => "name"),
+									   		"url" => array(
+									   			"valueOf" => '_id.$id',
+									   			"type" 	=> "url", 
+												"prefix"   => "/#person.detail.id.",
+												"suffix"   => ""),
+									   		"urlApi" => array(
+									   			"valueOf" => '_id.$id',
+									   			"type" 	=> "url", 
+												"prefix"   => "/communecter/data/get/type/citoyens/id/",
+												"suffix"   => "")
+									   	) ),
+									"projects" => array( 
+										"object" => "projects",
+										"collection" => Project::COLLECTION , 
+										"valueOf" => array (
+									   		"type" => "Project",
+									   		"name" => array("valueOf" => "name"),
+									   		"url" => array(
+									   			"valueOf" => '_id.$id',
+									   			"type" 	=> "url", 
+												"prefix"   => "/#project.detail.id.",
+												"suffix"   => ""),
+											"urlApi" => array(
+									   			"valueOf" => '_id.$id',
+									   			"type" 	=> "url",
+									   			"prefix"   => "/communecter/data/get/type/projects/id/",
+												"suffix"   => ""))),
+									"events" => array( 
+										"object" => "events",
+										"collection" => Event::COLLECTION  , 
+										"valueOf" => array (
+									   		"type" => "Event",
+									   		"name" => array("valueOf" => "name"),
+									   		"url" => array(
+									   			"valueOf" => '_id.$id',
+									   			"type" 	=> "url", 
+												"prefix"   => "/#event.detail.id.",
+												"suffix"   => ""),
+									   		"urlApi" => array(
+									   			"valueOf" => '_id.$id',
+									   			"type" 	=> "url", 
+												"prefix"   => "/communecter/data/get/type/events/id/",
+												"suffix"   => ""))),*/
+									"needs" => array( 
+										"object" => "needs",
+										"collection" => Event::COLLECTION  , 
+										"valueOf" => array (
+									   		"type" => "Need",
+									   		"name" => array("valueOf" => "name"),
+									   		"url" => array(
+									   			"valueOf" => '_id.$id',
+									   			"type" 	=> "url", 
+												"prefix"   => "/#need.detail.id.",
+												"suffix"   => ""),
+									   		"urlApi" => array(
+									   			"valueOf" => '_id.$id',
+									   			"type" 	=> "url", 
+												"prefix"   => "/communecter/data/get/type/needs/id/",
+												"suffix"   => "")))
+				 					)),
+	);
+
+
+	public static $dataBinding_event = array(
+	    "@context"  => "",
+		"@type"		=> "Event",
+		
+	    "name" 		=> array("valueOf" => "name"),
+	    "typeCommunecter" 		=> array("valueOf" => "type"),
+	    "image"		=> array("valueOf" => "image",
+							 "type" 	=> "url"),
+	    "urlCommunecter" 	=> array(
+	    					"valueOf" => '_id.$id',
+				   			"type" 	=> "url", 
+							"prefix"   => "/#event.detail.id.",
+							"suffix"   => ""),
+	    "urlApi" 	=> array("valueOf"  => '_id.$id', 
+							 "type" 	=> "url", 
+							 "prefix"   => "/communecter/data/get/type/events/id/",
+							 "suffix"   => "" ),
+	    "address" 	=> array("parentKey"=>"address", 
+	    					 "valueOf" => array(
+									"@type" 			=> "PostalAddress", 
+									"streetAddress" 	=> array("valueOf" => "streetAddress"),
+									"postalCode" 		=> array("valueOf" => "postalCode"),
+									"addressLocality"   => array("valueOf" => "addressLocality"),
+									"codeInsee" 		=> array("valueOf" => "codeInsee"),
+									"addressRegion" 	=> array("valueOf" => "addressRegion"),
+									"addressCountry" 	=> array("valueOf" => "addressCountry")
+				 					)),
+	   	"geo" 	=> array("parentKey"=>"geo", 
+	    					 "valueOf" => array(
+									"@type" 			=> "GeoCoordinates", 
+									"latitude" 			=> array("valueOf" => "latitude"),
+									"longitude" 		=> array("valueOf" => "longitude")
+				 					)),
+	   	"geoPosition" 	=> array("parentKey"=>"geoPosition", 
+	    					 "valueOf" => array(
+									"@type" 			=> "Point", 
+									"coordinates" 			=> array("valueOf" => "coordinates")
+				 					)),
+	   	"shortDescription"		=> array("valueOf" => "shortDescription"),
+	   	"description"		=> array("valueOf" => "description"),
+	   	"allDay"		=> array("valueOf" => "allDay"),
+	   	"startDate"		=> array("valueOf" => "startDate"),
+	   	"endDate"		=> array("valueOf" => "endDate"),
+	   	"email"		=> array("valueOf" => "email"),
+	   	"phone" 	=> array("parentKey"=>"telephone", 
+	    					 "valueOf" => array(
+									"fixe" 			=> array("parentKey"=>"fixe",
+															 "valueOf" => "fixe"), 
+									"mobile" 		=> array("parentKey"=>"mobile",
+															 "valueOf" => "mobile"), 
+									"fax" 			=> array("parentKey"=>"fax",
+															 "valueOf" => "fax"), 
+				 					)),
+
+		"socialNetwork" 	=> array("parentKey"=>"socialNetwork", 
+	    					 "valueOf" => array(
+									"github" 		=> array("valueOf" => "github"),
+									"twitter" 		=> array("valueOf" => "twitter"),
+									"facebook" 		=> array("valueOf" => "facebook"),
+									"googleplus" 	=> array("valueOf" => "googleplus"),
+									"linkedin" 		=> array("valueOf" => "linkedin"),
+									"skype" 		=> array("valueOf" => "skype")
+				 					)),
+		"tags"		=> array("valueOf" => "tags"),
+		"links" 	=> array("parentKey"=>"links", 
+	    					 "valueOf" => array(
+									"attendees" => array( 
+										"object" => "attendees",
+										"collection" => Person::COLLECTION , 
+										"valueOf" => array (
+									   		"@type"		=> "Person",
+									   		"name" => array("valueOf" => "name"),
+									   		"url" => array(
+									   			"valueOf" => '_id.$id',
+									   			"type" 	=> "url", 
+												"prefix"   => "/#citoyens.detail.id.",
+												"suffix"   => ""),
+									   		"urlApi" => array(
+									   			"valueOf" => '_id.$id',
+									   			"type" 	=> "url", 
+												"prefix"   => "/communecter/data/get/type/citoyens/id/",
+												"suffix"   => "")
+									   	) ),
+									"needs" => array( 
+										"object" => "needs",
+										"collection" => Event::COLLECTION  , 
+										"valueOf" => array (
+									   		"type" => "Need",
+									   		"name" => array("valueOf" => "name"),
+									   		"url" => array(
+									   			"valueOf" => '_id.$id',
+									   			"type" 	=> "url", 
+												"prefix"   => "/#need.detail.id.",
+												"suffix"   => ""),
+									   		"urlApi" => array(
+									   			"valueOf" => '_id.$id',
+									   			"type" 	=> "url", 
+												"prefix"   => "/communecter/data/get/type/needs/id/",
+												"suffix"   => "")))
+				 					))
+	);
+
+	public static $dataBinding_project = array(
+	    "@context"  => "",
+		"@type"		=> "Project",
+		
+	    "name" 		=> array("valueOf" => "name"),
+	    "typeCommunecter" 		=> array("valueOf" => "type"),
+	    "image"		=> array("valueOf" => "image",
+							 "type" 	=> "url"),
+	    "urlCommunecter" 	=> array(
+	    					"valueOf" => '_id.$id',
+				   			"type" 	=> "url", 
+							"prefix"   => "/#project.detail.id.",
+							"suffix"   => ""),
+	    "urlApi" 	=> array("valueOf"  => '_id.$id', 
+							 "type" 	=> "url", 
+							 "prefix"   => "/communecter/data/get/type/projects/id/",
+							 "suffix"   => "" ),
+	    "address" 	=> array("parentKey"=>"address", 
+	    					 "valueOf" => array(
+									"@type" 			=> "PostalAddress", 
+									"streetAddress" 	=> array("valueOf" => "streetAddress"),
+									"postalCode" 		=> array("valueOf" => "postalCode"),
+									"addressLocality"   => array("valueOf" => "addressLocality"),
+									"codeInsee" 		=> array("valueOf" => "codeInsee"),
+									"addressRegion" 	=> array("valueOf" => "addressRegion"),
+									"addressCountry" 	=> array("valueOf" => "addressCountry")
+				 					)),
+	   	"geo" 	=> array("parentKey"=>"geo", 
+	    					 "valueOf" => array(
+									"@type" 			=> "GeoCoordinates", 
+									"latitude" 			=> array("valueOf" => "latitude"),
+									"longitude" 		=> array("valueOf" => "longitude")
+				 					)),
+	   	"geoPosition" 	=> array("parentKey"=>"geoPosition", 
+	    					 "valueOf" => array(
+									"@type" 			=> "Point", 
+									"coordinates" 			=> array("valueOf" => "coordinates")
+				 					)),
+	   	"shortDescription"		=> array("valueOf" => "shortDescription"),
+	   	"description"		=> array("valueOf" => "description"),
+	   	"allDay"		=> array("valueOf" => "allDay"),
+	   	"startDate"		=> array("valueOf" => "startDate"),
+	   	"endDate"		=> array("valueOf" => "endDate"),
+	   	"email"		=> array("valueOf" => "email"),
+	   	"phone" 	=> array("parentKey"=>"telephone", 
+	    					 "valueOf" => array(
+									"fixe" 			=> array("parentKey"=>"fixe",
+															 "valueOf" => "fixe"), 
+									"mobile" 		=> array("parentKey"=>"mobile",
+															 "valueOf" => "mobile"), 
+									"fax" 			=> array("parentKey"=>"fax",
+															 "valueOf" => "fax"), 
+				 					)),
+
+		"socialNetwork" 	=> array("parentKey"=>"socialNetwork", 
+	    					 "valueOf" => array(
+									"github" 		=> array("valueOf" => "github"),
+									"twitter" 		=> array("valueOf" => "twitter"),
+									"facebook" 		=> array("valueOf" => "facebook"),
+									"googleplus" 	=> array("valueOf" => "googleplus"),
+									"linkedin" 		=> array("valueOf" => "linkedin"),
+									"skype" 		=> array("valueOf" => "skype")
+				 					)),
+		"tags"		=> array("valueOf" => "tags"),
+		"links" 	=> array("parentKey"=>"links", 
+	    					 "valueOf" => array(
+									"contributors" => array( 
+										"object" => "contributors",
+										"collection" => Person::COLLECTION , 
+										"valueOf" => array (
+									   		"@type"		=> "Person",
+									   		"name" => array("valueOf" => "name"),
+									   		"url" => array(
+									   			"valueOf" => '_id.$id',
+									   			"type" 	=> "url", 
+												"prefix"   => "/#citoyens.detail.id.",
+												"suffix"   => ""),
+									   		"urlApi" => array(
+									   			"valueOf" => '_id.$id',
+									   			"type" 	=> "url", 
+												"prefix"   => "/communecter/data/get/type/citoyens/id/",
+												"suffix"   => "")
+									   	) )))
+	);
+
+
+	public static $dataBinding_need = array(
+	    "@context"  => "",
+		"@type"		=> "Project",
+		
+	    "name" 		=> array("valueOf" => "name"),
+	    "typeCommunecter" 		=> array("valueOf" => "type"),
+	    "duration"		=> array("valueOf" => "duration"),
+	    "quantity"		=> array("valueOf" => "quantity"),
+	    "benefits"		=> array("valueOf" => "benefits"),
+	    "urlCommunecter" 	=> array(
+	    					"valueOf" => '_id.$id',
+				   			"type" 	=> "url", 
+							"prefix"   => "/#need.detail.id.",
+							"suffix"   => ""),
+	    "urlApi" 	=> array("valueOf"  => '_id.$id', 
+							 "type" 	=> "url", 
+							 "prefix"   => "/communecter/data/get/type/needs/id/",
+							 "suffix"   => "" ),
+	   	/*"parent"		=> array(	"object" => "parentId",
+								 	"collection" => array("valueOf" => "parentType")  , 
+									"valueOf" => array(
+								   		"type" => array("valueOf" => "parentType"),
+								   		"name" => array("valueOf" => "name"),
+								   		"url" => array(
+								   			"valueOf" => '_id.$id',
+								   			"type" 	=> "url", 
+											"prefix"   => "/#need.detail.id.",
+											"suffix"   => ""),
+								   		"urlApi" => array(
+								   			"valueOf" => '_id.$id',
+								   			"type" 	=> "url", 
+											"prefix"   => "/communecter/data/get/type/needs/id/",
+											"suffix"   => "")))*/
+		"description"	=> array("valueOf" => "description"),
+	   	"allDay"		=> array("valueOf" => "allDay"),
+	   	"startDate"		=> array("valueOf" => "startDate"),
+	   	"endDate"		=> array("valueOf" => "endDate"),
+	   	"email"		=> array("valueOf" => "email"),
+	   	"phone" 	=> array("parentKey"=>"telephone", 
+	    					 "valueOf" => array(
+									"fixe" 			=> array("parentKey"=>"fixe",
+															 "valueOf" => "fixe"), 
+									"mobile" 		=> array("parentKey"=>"mobile",
+															 "valueOf" => "mobile"), 
+									"fax" 			=> array("parentKey"=>"fax",
+															 "valueOf" => "fax"), 
+				 					)),
+
+		"socialNetwork" 	=> array("parentKey"=>"socialNetwork", 
+	    					 "valueOf" => array(
+									"github" 		=> array("valueOf" => "github"),
+									"twitter" 		=> array("valueOf" => "twitter"),
+									"facebook" 		=> array("valueOf" => "facebook"),
+									"googleplus" 	=> array("valueOf" => "googleplus"),
+									"linkedin" 		=> array("valueOf" => "linkedin"),
+									"skype" 		=> array("valueOf" => "skype")
+				 					)),
+		"tags"		=> array("valueOf" => "tags"),
+		"links" 	=> array("parentKey"=>"links", 
+	    					 "valueOf" => array(
+									"contributors" => array( 
+										"object" => "contributors",
+										"collection" => Person::COLLECTION , 
+										"valueOf" => array (
+									   		"@type"		=> "Person",
+									   		"name" => array("valueOf" => "name"),
+									   		"url" => array(
+									   			"valueOf" => '_id.$id',
+									   			"type" 	=> "url", 
+												"prefix"   => "/#citoyens.detail.id.",
+												"suffix"   => ""),
+									   		"urlApi" => array(
+									   			"valueOf" => '_id.$id',
+									   			"type" 	=> "url", 
+												"prefix"   => "/communecter/data/get/type/citoyens/id/",
+												"suffix"   => "")
+									   	) )))
+	);
 }

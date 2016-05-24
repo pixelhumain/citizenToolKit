@@ -34,11 +34,12 @@ class Translate {
 				{
 					//var_dump($bindPath["valueOf"]);
 					//parse recursively for objects value types , ex links.projects
-					if( isset($bindPath["object"]) )
+					if(isset($bindPath["object"]) )
 					{
 						//if dots are specified , we adapt the valueData map by focusing on a subpart of it
 						//var_dump($bindPath["object"]);
-						$currentValue = ( strpos( $bindPath["object"], "." ) > 0 ) ? self::getValueByPath( $bindPath["object"] ,$data ) : $data[$bindPath["object"]];
+
+						$currentValue = ( strpos( $bindPath["object"], "." ) > 0 ) ? self::getValueByPath( $bindPath["object"] ,$data ) : (!empty($data[$bindPath["object"]])?$data[$bindPath["object"]] : "" );
 						//var_dump($currentValue);
 						$newData[$key] = array();
 						//parse each entry of the list
@@ -115,8 +116,7 @@ class Translate {
 		return $currentValue;
 	}
 
-	private static function formatValueByType($val, $bindPath )
-	{	
+	private static function formatValueByType($val, $bindPath ){	
 		//prefix and suffix can be added to anything
 		$prefix = ( isset( $bindPath["prefix"] ) ) ? $bindPath["prefix"] : "";
 		$suffix = ( isset( $bindPath["suffix"] ) ) ? $bindPath["suffix"] : "";
