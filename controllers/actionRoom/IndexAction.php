@@ -30,7 +30,9 @@ class IndexAction extends CAction
         if($parent)
             $nameParentTitle = $parent['name'];
 
-        if((!isset($parent["modules"]) || !in_array("survey", $parent["modules"])) && $type != City::COLLECTION){ error_log($type);
+        if((!isset($parent["modules"]) || !in_array("survey", $parent["modules"])) 
+            && $type != City::COLLECTION 
+            && $type != Person::COLLECTION ){ 
             echo $controller->renderPartial("../pod/roomsList" , 
                                             array(  "empty"=>true, 
                                                     "parent" => $parent, 

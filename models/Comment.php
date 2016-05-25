@@ -71,12 +71,16 @@ class Comment {
 	public static function insert($comment, $userId) {
 		$options = self::getCommentOptions($comment["contextId"], $comment["contextType"]);
 
+		$content = trim($comment["content"]);
+		if (empty($content))
+			return array("result"=>false, "msg"=> Yii::t("comment","Please add content to your comment !"));
+
 		//TODO SBAR - add check
 		$newComment = array(
 			"contextId" => $comment["contextId"],
 			"contextType" => $comment["contextType"],
 			"parentId" => @$comment["parentCommentId"],
-			"text" => $comment["content"],
+			"text" => $content,
 			"created" => time(),
 			"author" => $userId,
 			"tags" => @$comment["tags"],
