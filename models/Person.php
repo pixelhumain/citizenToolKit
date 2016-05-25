@@ -652,8 +652,8 @@ class Person {
 		//Tags
 		if ($dataFieldName == "tags") 
 			$personFieldValue = Tags::filterAndSaveNewTags($personFieldValue);
-
-		if ($dataFieldName == "email" && empty($personFieldValue)) 
+		
+		if($dataFieldName == "email" && empty(trim($personFieldValue))) 
 			throw new CTKException("L'email ".Yii::t("person", "is missing"));
 
 

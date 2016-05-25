@@ -88,7 +88,7 @@ class News {
 				$news["media"] = $_POST["media"];
 				if(@$_POST["media"]["content"] && @$_POST["media"]["content"]["image"] && !@$_POST["media"]["content"]["imageId"]){
 					$urlImage = Document::uploadNewsImage($_POST["media"]["content"]["image"],$_POST["media"]["content"]["imageSize"],Yii::app()->session["userId"]);
-					$news["media"]["content"]["image"]=	$urlImage;
+					$news["media"]["content"]["image"]=	Yii::app()->baseUrl."/".$urlImage;
 				}
 			}
 			if(isset($_POST["tags"]))

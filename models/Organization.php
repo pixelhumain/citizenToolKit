@@ -70,7 +70,7 @@ class Organization {
 		
 
 		//Manage tags : save any inexistant tag to DB 
-		if (isset($newOrganization["tags"]))
+		if (!empty($newOrganization["tags"]))
 			$newOrganization["tags"] = Tags::filterAndSaveNewTags($newOrganization["tags"]);
 
 		//Add the user creator of the organization in the system
@@ -122,11 +122,9 @@ class Organization {
 	    }
 	    else
 	    	$orgaGeo="";
-	    if (@$newOrganization["tags"] && !empty($newOrganization["tags"])){
-		    $orgaTags=$newOrganization["tags"];
-	    }
-	    else	
-	    	$orgaTags="";
+	    
+	    $orgaTags= ((@$newOrganization["tags"] && !empty($newOrganization["tags"]))?$newOrganization["tags"]:null);
+	    
 	    if (@$newOrganization["address"]["codeInsee"] && !empty($newOrganization["address"]["codeInsee"]))
 	    	$orgaCodeInsee=$newOrganization["address"];
 	    else
@@ -279,7 +277,7 @@ class Organization {
 
 				  
 		//Tags
-		if (isset($organization['tags'])) {
+		if (!empty($organization['tags'])) {
 			if ( gettype($organization['tags']) == "array" ) {
 				$tags = $organization['tags'];
 			} else if ( gettype($organization['tags']) == "string" ) {
