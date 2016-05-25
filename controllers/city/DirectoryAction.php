@@ -7,12 +7,8 @@
   */
 class DirectoryAction extends CAction
 {
-<<<<<<< HEAD
+
     public function run( $insee=null, $postalCode=null ) {
-=======
-    public function run( $insee=null )
-    {
->>>>>>> parent of e2537fa... merge
       $controller=$this->getController();
 
 

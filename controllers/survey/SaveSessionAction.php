@@ -58,7 +58,7 @@ class SaveSessionAction extends CAction
                 if( isset($_POST['urls']) && count($_POST['urls'])>0 )
                     $entryInfos['urls'] = $_POST['urls'];
                 if( isset($_POST['dateEnd']) && $_POST['dateEnd'] != "" )
-                    $entryInfos['dateEnd'] = strtotime( str_replace("/", "-", $_POST['dateEnd']) );
+                    $entryInfos['dateEnd'] = strtotime( str_replace("/", "-", $_POST['dateEnd']).' 23:59:59' );
 
                 $entryInfos['created'] = time();
                 

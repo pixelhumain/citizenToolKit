@@ -372,7 +372,7 @@ class Organization {
             //TODO Sylvain - Find a way to manage inconsistent data
             //throw new CommunecterException("The organization id ".$id." is unkown : contact your admin");
         } else {
-			$organization = array_merge($organization, Document::retrieveAllImagesUrl($id, self::COLLECTION));
+			$organization = array_merge($organization, Document::retrieveAllImagesUrl($id, self::COLLECTION, null, $organization));
 			$organization["typeSig"] = "organizations";
         }
 	  	return $organization;
