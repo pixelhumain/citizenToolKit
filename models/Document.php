@@ -105,31 +105,7 @@ class Document {
 	    return array("result"=>true, "msg"=>Yii::t('document','Document saved successfully'), "id"=>$new["_id"],"name"=>$new["name"]);	
 	}
 	
-	public static function uploadNewsImage($urlImage,$size,$authorId){
-		$allowed_ext = array('jpg','jpeg','png','gif'); 
-    	$ext = strtolower(pathinfo($urlImage, PATHINFO_EXTENSION));
-		$dir="communecter";
-		$folder="news";
-		$upload_dir = Yii::app()->params['uploadUrl'].$dir.'/'.$folder; 
-		//echo $upload_dir;
-		$name=time()."_".$authorId.".".$ext;        
-		if(!file_exists ( $upload_dir )) {       
-			mkdir($upload_dir, 0777);
-		}
-		if($size="large"){
-			$maxWidth=500;
-			$maxHeight=500;
-		}else{
-			$maxWidth=100;
-			$maxHeight=100;
-		}
-		$quality=100;
- 		$imageUtils = new ImagesUtils($urlImage);
-		$destPathThumb = $upload_dir."/".$name;
-		$imageUtils->resizePropertionalyImage($maxWidth,$maxHeight)->save($destPathThumb,$quality);
-		return $destPathThumb;
-	}
-
+	
 	/**
 	* get the type of a document
 	* @param strname : the name of the document
