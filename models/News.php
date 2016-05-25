@@ -87,7 +87,7 @@ class News {
 			if (isset($_POST["media"])){
 				$news["media"] = $_POST["media"];
 				if(@$_POST["media"]["content"] && @$_POST["media"]["content"]["image"] && !@$_POST["media"]["content"]["imageId"]){
-					$urlImage = Document::uploadNewsImage($_POST["media"]["content"]["image"],$_POST["media"]["content"]["imageSize"],Yii::app()->session["userId"]);
+					$urlImage = self::uploadNewsImage($_POST["media"]["content"]["image"],$_POST["media"]["content"]["imageSize"],Yii::app()->session["userId"]);
 					$news["media"]["content"]["image"]=	Yii::app()->baseUrl."/".$urlImage;
 				}
 			}
@@ -168,6 +168,13 @@ class News {
 	 * @param String $id : id to delete
 	*/
 	public static function delete($id) {
+		$news=self::getById($id);
+		if(@$news["media"] && @$news["media"]["content"] && @$news["media"]["content"]["image"] && !@$news["media"]["content"]["imageId"]){
+			$endPath=explode(Yii::app()->params['uploadUrl'],$news["media"]["content"]["image"]);
+			//print_r($endPath);
+			$pathFileDelete= Yii::app()->params['uploadDir'].$endPath[1];
+			unlink($pathFileDelete);
+		}
 		return PHDB::remove(self::COLLECTION,array("_id"=>new MongoId($id)));
 	}
 	/**
@@ -239,5 +246,44 @@ class News {
         }
         return PHDB::findAndSort(self::COLLECTION, $where, array("date" =>1), $limit);
 	}
+	/*
+	* Upload image from media url content if image is not from communevent
+	* Image stock in folder ph/upload/news
+	* @param string $urlImage, image url to upload
+	* @param string $size, defines image size for resizing
+	* @param string $authorId, defines name of img
+	*/
+	public static function uploadNewsImage($urlImage,$size,$authorId){
+		$allowed_ext = array('jpg','jpeg','png','gif'); 
+    	$ext = strtolower(pathinfo($urlImage, PATHINFO_EXTENSION));
+    	if(empty($ext))
+    		$ext="png";
+    	/*if(strstr($ext,"?") || strstr($ext,"?")){
+    		$ext = preg_split( "/ (?|&) /", $ext );
+    		print_r($ext);
+    		$ext = $ext[0];
+    	}*/
+		$dir=Yii::app()->params['defaultController'];
+		$folder="news";
+		$upload_dir = Yii::app()->params['uploadUrl'].$dir.'/'.$folder; 
+		//echo $upload_dir;
+		$name=time()."_".$authorId.".".$ext;        
+		if(!file_exists ( $upload_dir )) {       
+			mkdir($upload_dir, 0777);
+		}
+		if($size="large"){
+			$maxWidth=500;
+			$maxHeight=500;
+		}else{
+			$maxWidth=100;
+			$maxHeight=100;
+		}
+		$quality=100;
+ 		$imageUtils = new ImagesUtils($urlImage);
+		$destPathThumb = $upload_dir."/".$name;
+		$imageUtils->resizePropertionalyImage($maxWidth,$maxHeight)->save($destPathThumb,$quality);
+		return $destPathThumb;
+	}
+
 }
 ?>
