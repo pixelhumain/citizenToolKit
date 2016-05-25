@@ -140,6 +140,11 @@ class IndexAction extends CAction
 							array_push($authorFollowedAndMe,array("target.id"=>$key, "target.type" => "projects"));
 						}
 					}
+					if(@$parent["links"]["events"] && !empty($parent["links"]["events"])){
+						foreach ($parent["links"]["events"] as $key => $data){
+							array_push($authorFollowedAndMe,array("target.id"=>$key, "target.type" => "events"));
+						}
+					}
 					if(@$parent["links"]["follows"] && !empty($parent["links"]["follows"])){
 						foreach ($parent["links"]["follows"] as $key => $data){
 							$followNews=array('$and'=>array(
