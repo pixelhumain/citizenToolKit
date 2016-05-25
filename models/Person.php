@@ -646,14 +646,14 @@ class Person {
 			throw new CTKException("Can not update the person : you are not authorized to update that person !");
 		}		
 
-
+		$personFieldValue = trim($personFieldValue);
 		$dataFieldName = Person::getCollectionFieldNameAndValidate($personFieldName, $personFieldValue);
 		//Specific case : 
 		//Tags
 		if ($dataFieldName == "tags") 
 			$personFieldValue = Tags::filterAndSaveNewTags($personFieldValue);
 		
-		if($dataFieldName == "email" && empty(trim($personFieldValue))) 
+		if($dataFieldName == "email" && empty($personFieldValue))
 			throw new CTKException("L'email ".Yii::t("person", "is missing"));
 
 
