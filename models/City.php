@@ -393,7 +393,8 @@ class City {
 
 		//$fields = array("_id");
 		$city = PHDB::findOne( City::COLLECTION, $where);// ,$fields);
-
+	
+		if(isset($city["postalCodes"]))
 		foreach ($city["postalCodes"] as $key => $value) {
 			if($value["postalCode"] == $cp){
 				$city["name"] = $value["name"];
