@@ -59,6 +59,8 @@ class Action
                 }
 
                 // Additional info
+                // can contain a 
+                // comment, date
                 if (!empty($details) && is_array($details))
                     $details = array_merge($details, array('date' => new MongoDate(time()))) ; 
                 else 

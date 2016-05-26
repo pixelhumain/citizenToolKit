@@ -12,7 +12,7 @@ class AddActionAction extends CAction
         $userId = Yii::app()->session["userId"];
         if ( Person::logguedAndValid() ) {
             $detail = null;
-            //Reason
+            //Reason 
         	if (@$_POST["reason"]){
 	        	$detail['reason']=$_POST["reason"];
             }
@@ -21,7 +21,18 @@ class AddActionAction extends CAction
                 $detail['comment']=$_POST["comment"];
             }
 
-	        $res = Action::addAction($userId , $_POST['id'], $_POST['collection'],$_POST['action'], isset($_POST['unset']), isset($_POST["multiple"]), $detail );        
+	        $res = Action::addAction($userId , $_POST['id'], $_POST['collection'],$_POST['action'], isset($_POST['unset']), isset($_POST["multiple"]), $detail );  
+
+            //Notification situations
+            if( stripos($_POST['action'], "vote") !== false && $_POST['collection'] == Survey::COLLECTION ){
+                //get survey parentType if Orga, Project or Event
+                $survey = Survey::getById( $_POST['id'] );
+                if( @$survey ){
+                    $room = ActionRoom::getById( $survey['survey'] );
+                    if( in_array( $room["parentType"], array( Organization::COLLECTION, Project::COLLECTION  ) ) )
+                        Notification::actionOnPerson ( ActStr::VERB_VOTE, ActStr::ICON_VOTE, "", array( "type"=>Survey::COLLECTION,"id"=> $_POST['id'] ) );
+                }
+            }      
         } else {
         	$res = array("result" => false, "msg" => "Please Log in order to vote ! ");
         }

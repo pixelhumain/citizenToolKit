@@ -8,6 +8,7 @@ class ActStr {
     const ICON_COMMENT = "fa-comment";
     const ICON_CLOSE = "fa-times";
     const ICON_ADD = "fa-plus";
+    const ICON_VOTE = "fa-gavel";
 
     const VIEW_PAGE = "viewPage";
 
@@ -37,7 +38,7 @@ class ActStr {
     const VERB_MODERATE = "moderate";
 
     const VERB_ADD_ACTION = "addaction";
-
+    const VERB_VOTE = "vote";
     
     const VERB_POST = "post";
 
