@@ -13,16 +13,28 @@ class TranslateCommunecter {
 	    "name" 		=> array("valueOf" => "name"),
 	    "image"		=> array("valueOf" => "image",
 							 "type" 	=> "url"),
-	    "urlCommunecter" 	=> array(
-	    						"valueOf" => '_id.$id',
-				   				"type" 	=> "url", 
-								"prefix"   => "/#person.detail.id.",
-								"suffix"   => ""),
-	    "urlApi" 		=> array("valueOf"  	=> '_id.$id', 
-							 "type" 	=> "url", 
-							 "prefix"   => "/communecter/data/get/type/citoyens/id/",
-							 "suffix"   => "" ),
-	    /*"birthDate" => array("valueOf" => "bitrh"),*/
+	  
+	    "url" 	=> array("valueOf" => array(
+	    					"website" 		=> array(	"valueOf" => 'url'),
+							"communecter" 	=> array(	"valueOf" => '_id.$id',
+									   						"type" 	=> "url", 
+															"prefix"   => "/#person.detail.id.",
+															"suffix"   => ""),
+						    "api" 			=> array(	"valueOf"  	=> '_id.$id', 
+															"type" 	=> "url", 
+															"prefix"   => "/communecter/data/get/type/citoyens/id/",
+															"suffix"   => "" ),
+						    "osm" 			=> array(	"valueOf"  	=> 'geo', 
+															"type" 	=> "urlOsm", 
+															"prefix"   => "http://www.openstreetmap.org/#map=16/",
+															"suffix"   => "" ),
+						    "city" 			=> array(	"valueOf"  	=> 'address.codeInsee', 
+															"type" 	=> "url", 
+															"prefix"   => "/communecter/data/get/type/cities/insee/",
+															"suffix"   => "" )
+						    
+				 		)),
+		/*"birthDate" => array("valueOf" => "bitrh"),*/
 	    "address" 	=> array("parentKey"=>"address", 
 	    					 "valueOf" => array(
 									"@type" 			=> "PostalAddress", 
@@ -122,7 +134,7 @@ class TranslateCommunecter {
 	);
 
 	public static $dataBinding_organization = array(
-	    /*"@context"  => "",
+	    "@context"  => "",
 		"@type"		=> "Organization",
 		
 	    "name" 		=> array("valueOf" => "name"),
@@ -181,10 +193,10 @@ class TranslateCommunecter {
 									"linkedin" 		=> array("valueOf" => "linkedin"),
 									"skype" 		=> array("valueOf" => "skype")
 				 					)),
-		"tags"		=> array("valueOf" => "tags"),*/
+		"tags"		=> array("valueOf" => "tags"),
 		"links" 	=> array("parentKey"=>"links", 
 	    					 "valueOf" => array(
-									/*"followers" => array( 
+									"followers" => array( 
 										"object" => "followers",
 										"collection" => Person::COLLECTION , 
 										"valueOf" => array (
@@ -249,10 +261,10 @@ class TranslateCommunecter {
 									   			"valueOf" => '_id.$id',
 									   			"type" 	=> "url", 
 												"prefix"   => "/communecter/data/get/type/events/id/",
-												"suffix"   => ""))),*/
+												"suffix"   => ""))),
 									"needs" => array( 
 										"object" => "needs",
-										"collection" => Event::COLLECTION  , 
+										"collection" => Need::COLLECTION  , 
 										"valueOf" => array (
 									   		"type" => "Need",
 									   		"name" => array("valueOf" => "name"),
@@ -536,4 +548,69 @@ class TranslateCommunecter {
 												"suffix"   => "")
 									   	) )))
 	);
+
+	
+
+	public static $dataBinding_city = array(
+		"@type"		=> "City",
+		"@id" 		=> array("valueOf"  => 'insee', 
+							 "type" 	=> "url", 
+							 "prefix"   => "/communecter/data/get/type/cities/insee/",
+							 "suffix"   => "" ),
+	    "name" 		=> array("valueOf" => "name"),
+	    "alternateName" => array("valueOf" => "alternateName"),
+	    "url" 	=> array("valueOf" => array(
+	    					/*"communecter" 	=> array(	"valueOf" => '_id.$id',
+									   						"type" 	=> "url", 
+															"prefix"   => "/#person.detail.id.",
+															"suffix"   => ""),*/
+						    "apiCitoyens" 			=> array(	"valueOf"  	=> 'insee', 
+															"type" 	=> "url", 
+															"prefix"   => "/communecter/data/get/type/citoyens/insee/",
+															"suffix"   => "" ),
+						    "apiOrganizations" 			=> array(	"valueOf"  	=> 'insee', 
+															"type" 	=> "url", 
+															"prefix"   => "/communecter/data/get/type/organizations/insee/",
+															"suffix"   => "" ),
+						    "apiProjects" 			=> array(	"valueOf"  	=> 'insee', 
+															"type" 	=> "url", 
+															"prefix"   => "/communecter/data/get/type/projects/insee/",
+															"suffix"   => "" ),
+						    "apiEvents" 			=> array(	"valueOf"  	=> 'insee', 
+															"type" 	=> "url", 
+															"prefix"   => "/communecter/data/get/type/events/insee/",
+															"suffix"   => "" ),
+						    
+				 		)),
+		"postalCodes" 	=> array("valueOf"=>"postalCodes"),
+	    /*"postalCodes" 	=> array("parentKey"=>"postalCodes", 
+	    					 	"valueOf" => array(
+									"postalCode" 	=> array("parentKey"=>"postalCode", "valueOf" => "postalCode"), 
+									"name" 			=> array(	"valueOf" => "name"),
+									"geo" 			=> array(	"parentKey"=>"geo", 
+							    					 			"valueOf" => array(
+																	"@type" 			=> "GeoCoordinates", 
+																	"latitude" 			=> array("valueOf" => "latitude"),
+																	"longitude" 		=> array("valueOf" => "longitude"))),
+							   		"geoPosition" 	=> array(	"parentKey"=>"geoPosition", 
+							    					 			"valueOf" => array(
+																	"@type" 			=> "Point", 
+																	"coordinates" 		=> array("valueOf" => "coordinates")
+										 						)),
+				 					)),*/
+	    "geo" 	=> array("parentKey"=>"geo", 
+	    					 "valueOf" => array(
+									"@type" 			=> "GeoCoordinates", 
+									"latitude" 			=> array("valueOf" => "latitude"),
+									"longitude" 		=> array("valueOf" => "longitude")
+				 					)),
+	   	"geoPosition" 	=> array("parentKey"=>"geoPosition", 
+	    					 "valueOf" => array(
+									"@type" 			=> "Point", 
+									"coordinates" 			=> array("valueOf" => "coordinates")
+				 					)),
+	   	"geoShape" 	=> array("valueOf"=>"geoShape"),
+	    
+	);
+
 }

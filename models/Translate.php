@@ -126,6 +126,10 @@ class Translate {
 			$server = ((isset($_SERVER['HTTPS']) AND (!empty($_SERVER['HTTPS'])) AND strtolower($_SERVER['HTTPS'])!='off') ? 'https://' : 'http://').$_SERVER['HTTP_HOST'];
 			$val = $server.Yii::app()->createUrl($prefix.$val.$suffix);
 			//$val = $server.Yii::app()->createUrl(Yii::app()->controller->module->id.$prefix.$val.$suffix);
+		}
+		else if( isset( $bindPath["type"] ) && $bindPath["type"] == "urlOsm" )
+		{
+			$val = $prefix.$val["latitude"]."/".$val["longitude"].$suffix;
 		} 
 		else if( isset( $bindPath["prefix"] ) || isset( $bindPath["suffix"] ) )
 		{

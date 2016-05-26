@@ -20,8 +20,13 @@ class Api {
         	$params = array();
 			if( @$id ) 
             	$params["_id"] =  new MongoId($id);
-          	if($type == City::COLLECTION && @$_GET["insee"])
-            	$params["insee"] = $_GET["insee"];
+            	
+            if( @$insee ){
+                if($type == City::COLLECTION)
+                    $params["insee"] = $insee;
+                else
+                    $params["address.codeInsee"] = $insee ;
+            }
 
             if( @$tags ){
             	$tagsArray = explode(",", $tags);
@@ -30,8 +35,8 @@ class Api {
 
 			if( @$key )
             	$params["source.key"] = $key ;
-            if( @$insee )
-            	$params["address.codeInsee"] = $insee ;
+            
+            	
 
             if($limit > 500)
             	$limit = 500 ;
@@ -41,7 +46,7 @@ class Api {
           	if($index < 0)
             	$index = 0 ;
         }
-
+        
         $data = PHDB::findAndLimitAndIndex($type , $params, $limit, $index);
         
         $data = self::getUrlImage($data, $type);
