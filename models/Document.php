@@ -615,7 +615,7 @@ class Document {
 
 	public static function retrieveAllImagesUrl($id, $type, $subType = null, $entity = null) {
 		$res = array();
-		error_log("Entity Profil image url for the ".$type." with the id ".$id." : ".@$entity["profilImageUrl"] );
+		//error_log("Entity Profil image url for the ".$type." with the id ".$id." : ".@$entity["profilImageUrl"] );
 		//The profil image URL should be stored in the entity collection 
 		if (isset($entity["profilImageUrl"])) {
 			$res["profilImageUrl"] = $entity["profilImageUrl"];

@@ -18,21 +18,26 @@ class Element {
     	return @$ctrls[$type];
     }
 
-    public static function getLink( $type, $id )
+    public static function getLink( $type, $id, $loadByHashOnly=null )
     {	    
     	$link = ""; 
     	if(@$type && @$id && $type != City::COLLECTION){
     		$el = PHDB::findOne ( $type , array( "_id" => new MongoId($id) ) );
 	    	$ctrl = self::getControlerByCollection($type);
 	    	if( @$el && @$ctrl )
-	    		$link = "<a href='javascript:;' onclick='loadByHash(\"#".$ctrl.".detail.id.".$id."\")'>".$el['name']."</a>";
+	    		$link = "loadByHash('#".$ctrl.".detail.id.".$id."')";
 	    }
 	    else if($type == City::COLLECTION){
 	    	$el = City::getByUnikey($id);
 	    	$ctrl = self::getControlerByCollection($type);
 	    	if( @$el && @$ctrl )
-	    		$link = "<a href='javascript:;' onclick='loadByHash(\"#".$ctrl.".detail.insee.".$el['insee'].".cp.".$el['cp']."\")'>".$el['name']."</a>";
+	    		$link = "loadByHash('#".$ctrl.".detail.insee.".$el['insee'].".cp.".$el['cp']."')";
 	    }
+	    
+	    if (! $loadByHashOnly) {
+	    	$link = "<a href='javascript:;' onclick=\"".$link."\">".$el['name']."</a>";
+	    }
+	    
     	return $link;
     }
 }
