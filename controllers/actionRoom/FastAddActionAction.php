@@ -38,17 +38,21 @@ class FastAddActionAction extends CAction
                 $canAdd = Authorisation::canParticipate($organizerId, $parentRoom['parentType'], $parentRoom['parentId']);
             if( $canAdd )
             {
+                $txt = $_POST['txt'];
+                $title = $_POST['txt'];
+                if( strlen( $title ) > 60 )
+                    $title = substr($_POST['txt'], 0 , 60)."...";
                 //udate the new app specific fields
                 $entryInfos = array();
                 $entryInfos['email'] = Yii::app()->session["userEmail"];
-                $entryInfos['name'] = $_POST['txt'];
+                $entryInfos['name'] = $title;
                 $entryInfos['organizerId'] = $organizerId;
                 $entryInfos['organizerType'] = $organizerType;
                 $entryInfos['room'] = (string)$parentRoom["_id"];
                 $res['parentId'] = (string)$parentRoom["_id"];
                 $entryInfos['parentType'] = $parentRoom['parentType'];
                 $entryInfos['parentId'] = $parentRoom['parentId'];
-                $entryInfos['message'] = Yii::t("rooms","Copied from a discussion :",null,Yii::app()->controller->module->id)."<br/>".$_POST['txt'];
+                $entryInfos['message'] = Yii::t("rooms","Copied from a discussion :",null,Yii::app()->controller->module->id)."<br/>".$txt;
                 $entryInfos['type'] = ActionRoom::TYPE_ACTION;
                 $entryInfos['created'] = time();
                 

@@ -125,7 +125,8 @@ class SIG
 		
 	}
 
-	//récupère la ville qui correspond à une position géographique
+	////récupère la ville qui correspond à une position géographique
+	//récupère les villes qui se trouvent dans un rayon de 50km d'un position geo
 	//https://docs.mongodb.org/manual/reference/operator/query/near/#op._S_near
 	public static function getCityByLatLng($lat, $lng, $cp){
 
@@ -143,8 +144,8 @@ class SIG
 		//City::updateGeoPositions();
 		//error_log($lng." - ".$lat);
 		if($oneCity == null){
-			$request = array("geoPosition" => array( '$exists' => true ),
-							 "geoPosition.coordinates"  => 
+			$request = array("postalCodes.geoPosition" => array( '$exists' => true ),
+							 "postalCodes.geoPosition.coordinates"  => 
 							  array('$near'  => 
 								  	array(	'$geometry' => 
 								  			array("type" 	    => "Point", 
@@ -159,14 +160,27 @@ class SIG
 				
 			if($cp != null){ $request = array_merge(array("postalCodes.postalCode" => array('$in' => array($cp))), $request); }
 
-			$oneCity =	PHDB::findAndSort(City::COLLECTION, $request, array());
+			$cities =	PHDB::findAndSort(City::COLLECTION, $request, array());
+			$allCities = array();
+			foreach ($cities as $key => $value) {
+				foreach ($value["postalCodes"] as $keyCP => $valueCP) {
+					$city = $value;
+					$city["typeSig"] = "city";
+					$city["cp"] = $valueCP["postalCode"];
+					$city["name"] = $valueCP["name"];
+					$city["geo"] = $valueCP["geo"];
+					$city["geoPosition"] = $valueCP["geoPosition"];
+					$allCities[] = $city;
+
+				}	
+			}
 			//var_dump($oneCity);
 		}
 
 		// var_dump($request);	
 		// var_dump($oneCity);	
 		//var_dump($oneCity);
-		return $oneCity;
+		return $allCities;
 	}
 
 	//récupère le code insee d'une position geographique

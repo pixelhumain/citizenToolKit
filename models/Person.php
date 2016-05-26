@@ -20,7 +20,7 @@ class Person {
 	    "address" => array("name" => "address"),
 	    "streetAddress" => array("name" => "address.streetAddress"),
 	    "postalCode" => array("name" => "address.postalCode"),
-	    "city" => array("name" => "address.codeInsee"),
+	    "codeInsee" => array("name" => "address.codeInsee"),
 	    "addressLocality" => array("name" => "address.addressLocality"), 
 	    "addressCountry" => array("name" => "address.addressCountry"),
 	    "geo" => array("name" => "geo"),
@@ -645,7 +645,7 @@ class Person {
 		if (!Authorisation::canEditItem($userId, self::COLLECTION, $personId)) {
 			throw new CTKException("Can not update the person : you are not authorized to update that person !");
 		}		
-
+		
 		$personFieldValue = trim($personFieldValue);
 		$dataFieldName = Person::getCollectionFieldNameAndValidate($personFieldName, $personFieldValue);
 		//Specific case : 
@@ -796,20 +796,39 @@ class Person {
             throw new CTKException("The person id is unkown : contact your admin");
         }
 
-	  	if ( isset($person) && isset($person["actions"]) && isset($person["actions"]["surveys"])) 
+	  	if ( isset($person) && isset($person["actions"]) ) 
 	  	{
-	  		foreach ( $person["actions"]["surveys"] as $entryId => $action) 
+	  		if(isset($person["actions"]["surveys"]))
 	  		{
-	  			$entry = Survey::getById( $entryId );
-	  			$entry ['action'] = $action;
-	  			$actions[ $entryId ] = $entry;
+		  		foreach ( $person["actions"]["surveys"] as $entryId => $action) 
+		  		{
+		  			$entry = Survey::getById( $entryId );
+		  			$entry ['action'] = $action;
+		  			$actions[ $entryId ] = $entry;
 
-	  			if( isset( $entry['survey'] ) && !isset( $actionRooms[ $entry['survey'] ] ) )
-	  			{
-	  				$actionRoom = ActionRoom::getById( $entry['survey'] );
-	  				$actionRooms[ $entry['survey'] ] = $actionRoom;
-	  			}
-	  		}
+		  			if( isset( $entry['survey'] ) && !isset( $actionRooms[ $entry['survey'] ] ) )
+		  			{
+		  				$actionRoom = ActionRoom::getById( $entry['survey'] );
+		  				$actionRooms[ $entry['survey'] ] = $actionRoom;
+		  			}
+		  		}
+		  	}
+		  	/*
+		  	if(isset($person["actions"]["actions"]))
+	  		{
+		  		foreach ( $person["actions"]["actions"] as $entryId => $action) 
+		  		{
+		  			$entry = ActionRoom::getByActionId( $entryId );
+		  			$entry ['action'] = $action;
+		  			$actions[ $entryId ] = $entry;
+
+		  			if( isset( $entry['room'] ) && !isset( $actionRooms[ $entry['room'] ] ) )
+		  			{
+		  				$actionRoom = ActionRoom::getById( $entry['room'] );
+		  				$actionRooms[ $entry['room'] ] = $actionRoom;
+		  			}
+		  		}
+		  	}*/
 	  	}
 
 	  	return array( "rooms"	=> $actionRooms , 
@@ -1061,7 +1080,14 @@ class Person {
 
 		foreach ($personChangedFields as $fieldName => $fieldValue) {
 			//if( $project[ $fieldName ] != $fieldValue)
-				self::updatePersonField($personId, $fieldName, $fieldValue, $userId);
+			//var_dump($fieldValue);
+				if(is_array($fieldValue)){
+					foreach ($fieldValue as $fieldName2 => $fieldValue2) {
+						self::updatePersonField($personId, $fieldName2, $fieldValue2, $userId);
+					}
+				}else{
+					self::updatePersonField($personId, $fieldName, $fieldValue, $userId);
+				}
 		}
 
 	    return array("result"=>true, "msg"=>Yii::t("person", "The person has been updated"), "id"=>$personId);

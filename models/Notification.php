@@ -72,7 +72,7 @@ class Notification{
 	the action/verb can be done by the person or by an admin (remove from project)
 	$verb can be join, leave
 	$icon : anicon to show
-	$member : a map of the object member 
+	$member : a map of the object member , 
 		should contain : id ,type, name of the member (person or Orga)
 	$target : context of the action (project, orga,event)
 	$invitation : adapt notification's text if it's an invitation from someone
@@ -151,15 +151,17 @@ class Notification{
 			$author=News::getAuthor($target["id"]);
 			$people = array($author["author"]);
 		} 
-		else if( $target["type"] == Survey::COLLECTION || $target["type"] == ActionRoom::COLLECTION ){
+		else if( in_array($target["type"], array( Survey::COLLECTION, ActionRoom::COLLECTION, ActionRoom::COLLECTION_ACTIONS) ) )
+		{
 			$entryId = $target["id"];
-			if($target["type"] == Survey::COLLECTION ){
-				$entry = Survey::getById( $target["id"] );
-				$entryId = (string)$entry["survey"];
-			}else if($target["type"] == ActionRoom::COLLECTION_ACTIONS ){
-				$entry = ActionRoom::getActionById( $target["id"] );
-				$entryId = (string)$entry["survey"];
+			if( $target["type"] == Survey::COLLECTION ){
+				$target["entry"] = Survey::getById( $target["id"] );
+				$entryId = (string)$target["entry"]["survey"];
+			} else if( $target["type"] == ActionRoom::COLLECTION_ACTIONS ){
+				$target["entry"] = ActionRoom::getActionById( $target["id"] );
+				$entryId = (string)$target["entry"]["room"];
 			}
+
 			$room = ActionRoom::getById( $entryId );
 			$target["room"] = $room;
 
@@ -214,23 +216,42 @@ class Notification{
 		    $url = 'news/detail/id/'.$target["id"];
 	    }
 	    else if($verb == ActStr::VERB_COMMENT){
-		    $label = Yii::app()->session['user']['name']." ".Yii::t("common","has commented your post");
+		    $label = Yii::t("common","{who} commented your post", array("{who}"=>Yii::app()->session['user']['name']));
 		    $url = $ctrl.'/detail/id/'.$target["id"];
-	    } else if($verb == ActStr::VERB_ADDROOM){
-		    $label = Yii::app()->session['user']['name']." ".Yii::t("common","added a new Voting Room on ".$target['room']["parentType"]);
+		    if( in_array( $target["type"], array( Survey::COLLECTION, ActionRoom::COLLECTION_ACTIONS) ) ){
+		    	$label = Yii::t("common","{who} commented on {what}", array("{who}"=>Yii::app()->session['user']['name'],
+		    																"{what}"=>$target["entry"]["name"]));
+		    	$base = 'survey/entry';
+		    	if($target["type"] == ActionRoom::COLLECTION_ACTIONS)
+		    		$base = 'rooms/action';
+		    	$url = $base.'/id/'.$target["id"];
+		    }
+	    } 
+	    else if($verb == ActStr::VERB_ADDROOM){
+		    $label = Yii::t("rooms","{who} added a new Voting Room on {where}",array("{who}"=>Yii::app()->session['user']['name'],
+		    																					"{where}"=>$target['room']["name"]),Yii::app()->controller->module->id);
 		    $url = 'survey/entries/id/'.$target["id"];
 		    if( $target['room']["type"] == ActionRoom::TYPE_DISCUSS ){
-		    	$label = Yii::app()->session['user']['name']." ".Yii::t("common","added a new Discussion Room on ".$target['room']["parentType"]);
+		    	$label = Yii::t("rooms","{who} added a new Discussion Room on {where}",array("{who}"=>Yii::app()->session['user']['name'],
+		    																						"{where}"=>$target['room']["name"]),Yii::app()->controller->module->id);
 		    	$url = 'comment/index/type/actionRooms/id/'.$target["id"];
 
+		    }else if( $target['room']["type"] == ActionRoom::TYPE_ACTIONS ){
+		    	$label = Yii::t("rooms","{who} added a new Actions List on {where}",array("{who}"=>Yii::app()->session['user']['name'],
+		    																					"{where}"=>$target['room']["name"]),Yii::app()->controller->module->id);
+		    	$url = 'rooms/actions/id/'.$target["id"];
 		    }
 	    }
 	    else if($verb == ActStr::VERB_ADD_PROPOSAL){
-		    $label = Yii::app()->session['user']['name']." ".Yii::t("common","added a new Proposal");
+		    $label = Yii::t("rooms","{who} added a new Proposal {what} in {where}", array("{who}" => Yii::app()->session['user']['name'],
+		    																	"{what}"=>$target['entry']["name"],
+		    																	"{where}"=>$target['room']["name"]),Yii::app()->controller->module->id);
 		    $url = 'survey/entry/id/'.$target["id"];
 	    }
 	    else if($verb == ActStr::VERB_ADD_ACTION){
-		    $label = Yii::app()->session['user']['name']." ".Yii::t("common","added a new Action");
+		    $label = Yii::t("rooms","{who} added a new Action {what} in {where}", array("{who}" => Yii::app()->session['user']['name'],
+		    																"{what}"=>$target["entry"]["name"],
+		    																"{where}"=>$target['room']["name"]),Yii::app()->controller->module->id);
 		    $url = 'rooms/action/id/'.$target["id"];
 	    }
 	    /*if( $res = ActStr::getParamsByVerb($verb,$ctrl,$target,Yii::app()->session["user"]){

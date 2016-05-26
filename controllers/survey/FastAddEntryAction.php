@@ -42,17 +42,22 @@ class FastAddEntryAction extends CAction
             if( $canAdd )
             {
                 //udate the new app specific fields
+                $txt = $_POST['txt'];
+                $title = $_POST['txt'];
+                if( strlen( $title ) > 60 )
+                    $title = substr($_POST['txt'], 0 , 60)."...";
+                
                 $entryInfos = array();
                 $entryInfos['email'] = Yii::app()->session["userEmail"];
-                $entryInfos['name'] = $_POST['txt'];
+                $entryInfos['name'] = $title;
                 $entryInfos['organizerId'] = $organizerId;
                 $entryInfos['organizerType'] = $organizerType;
                 $entryInfos['survey'] = (string)$parentRoom["_id"];
                 $entryInfos['parentType'] = $parentRoom['parentType'];
                 $entryInfos['parentId'] = (string)$parentRoom["_id"];
-                $entryInfos['message'] = Yii::t("rooms","Copied from a discussion :",null,Yii::app()->controller->module->id)."<br/>".$_POST['txt'];;
+                $entryInfos['message'] = Yii::t("rooms","Copied from a discussion :",null,Yii::app()->controller->module->id)."<br/>".$txt;
                 $entryInfos['type'] = Survey::TYPE_ENTRY;
-                $entryInfos['dateEnd'] = time()+(10*24*60*60*1000); //10j plus tard
+                $entryInfos['dateEnd'] = time()+(10*24*60*60); //10j plus tard
                 $entryInfos['created'] = time();
                 
                 $entryInfos["_id"] = new MongoId();
