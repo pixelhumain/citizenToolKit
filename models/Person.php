@@ -796,20 +796,39 @@ class Person {
             throw new CTKException("The person id is unkown : contact your admin");
         }
 
-	  	if ( isset($person) && isset($person["actions"]) && isset($person["actions"]["surveys"])) 
+	  	if ( isset($person) && isset($person["actions"]) ) 
 	  	{
-	  		foreach ( $person["actions"]["surveys"] as $entryId => $action) 
+	  		if(isset($person["actions"]["surveys"]))
 	  		{
-	  			$entry = Survey::getById( $entryId );
-	  			$entry ['action'] = $action;
-	  			$actions[ $entryId ] = $entry;
+		  		foreach ( $person["actions"]["surveys"] as $entryId => $action) 
+		  		{
+		  			$entry = Survey::getById( $entryId );
+		  			$entry ['action'] = $action;
+		  			$actions[ $entryId ] = $entry;
 
-	  			if( isset( $entry['survey'] ) && !isset( $actionRooms[ $entry['survey'] ] ) )
-	  			{
-	  				$actionRoom = ActionRoom::getById( $entry['survey'] );
-	  				$actionRooms[ $entry['survey'] ] = $actionRoom;
-	  			}
-	  		}
+		  			if( isset( $entry['survey'] ) && !isset( $actionRooms[ $entry['survey'] ] ) )
+		  			{
+		  				$actionRoom = ActionRoom::getById( $entry['survey'] );
+		  				$actionRooms[ $entry['survey'] ] = $actionRoom;
+		  			}
+		  		}
+		  	}
+		  	/*
+		  	if(isset($person["actions"]["actions"]))
+	  		{
+		  		foreach ( $person["actions"]["actions"] as $entryId => $action) 
+		  		{
+		  			$entry = ActionRoom::getByActionId( $entryId );
+		  			$entry ['action'] = $action;
+		  			$actions[ $entryId ] = $entry;
+
+		  			if( isset( $entry['room'] ) && !isset( $actionRooms[ $entry['room'] ] ) )
+		  			{
+		  				$actionRoom = ActionRoom::getById( $entry['room'] );
+		  				$actionRooms[ $entry['room'] ] = $actionRoom;
+		  			}
+		  		}
+		  	}*/
 	  	}
 
 	  	return array( "rooms"	=> $actionRooms , 

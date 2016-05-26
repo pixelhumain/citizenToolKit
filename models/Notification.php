@@ -217,20 +217,26 @@ class Notification{
 		    $label = Yii::app()->session['user']['name']." ".Yii::t("common","has commented your post");
 		    $url = $ctrl.'/detail/id/'.$target["id"];
 	    } else if($verb == ActStr::VERB_ADDROOM){
-		    $label = Yii::app()->session['user']['name']." ".Yii::t("common","added a new Voting Room on ".$target['room']["parentType"]);
+		    $label = Yii::t("rooms","{who} added a new Voting Room on {elementName}",array("{who}"=>Yii::app()->session['user']['name'],
+		    																					"{elementName}"=>$target['room']["name"]),Yii::app()->controller->module->id);
 		    $url = 'survey/entries/id/'.$target["id"];
 		    if( $target['room']["type"] == ActionRoom::TYPE_DISCUSS ){
-		    	$label = Yii::app()->session['user']['name']." ".Yii::t("common","added a new Discussion Room on ".$target['room']["parentType"]);
+		    	$label = Yii::t("rooms","{who} added a new Discussion Room on {elementName}",array("{who}"=>Yii::app()->session['user']['name'],
+		    																						"{elementName}"=>$target['room']["name"]),Yii::app()->controller->module->id);
 		    	$url = 'comment/index/type/actionRooms/id/'.$target["id"];
 
+		    }else if( $target['room']["type"] == ActionRoom::TYPE_ACTIONS ){
+		    	$label = Yii::t("rooms","{who} added a new Actions List on {elementName}",array("{who}"=>Yii::app()->session['user']['name'],
+		    																					"{elementName}"=>$target['room']["name"]),Yii::app()->controller->module->id);
+		    	$url = 'comment/index/type/actionRooms/id/'.$target["id"];
 		    }
 	    }
 	    else if($verb == ActStr::VERB_ADD_PROPOSAL){
-		    $label = Yii::app()->session['user']['name']." ".Yii::t("common","added a new Proposal");
+		    $label = Yii::t("rooms","{who} added a new Proposal",array("{who}"=>Yii::app()->session['user']['name']),Yii::app()->controller->module->id);
 		    $url = 'survey/entry/id/'.$target["id"];
 	    }
 	    else if($verb == ActStr::VERB_ADD_ACTION){
-		    $label = Yii::app()->session['user']['name']." ".Yii::t("common","added a new Action");
+		    $label = Yii::t("rooms","{who} added a new Action",array("{who}"=>Yii::app()->session['user']['name']),Yii::app()->controller->module->id);
 		    $url = 'rooms/action/id/'.$target["id"];
 	    }
 	    /*if( $res = ActStr::getParamsByVerb($verb,$ctrl,$target,Yii::app()->session["user"]){
