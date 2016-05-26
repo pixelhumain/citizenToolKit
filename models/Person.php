@@ -20,7 +20,7 @@ class Person {
 	    "address" => array("name" => "address"),
 	    "streetAddress" => array("name" => "address.streetAddress"),
 	    "postalCode" => array("name" => "address.postalCode"),
-	    "city" => array("name" => "address.codeInsee"),
+	    "codeInsee" => array("name" => "address.codeInsee"),
 	    "addressLocality" => array("name" => "address.addressLocality"), 
 	    "addressCountry" => array("name" => "address.addressCountry"),
 	    "geo" => array("name" => "geo"),
@@ -645,7 +645,7 @@ class Person {
 		if (!Authorisation::canEditItem($userId, self::COLLECTION, $personId)) {
 			throw new CTKException("Can not update the person : you are not authorized to update that person !");
 		}		
-
+		
 		$personFieldValue = trim($personFieldValue);
 		$dataFieldName = Person::getCollectionFieldNameAndValidate($personFieldName, $personFieldValue);
 		//Specific case : 
@@ -1061,7 +1061,14 @@ class Person {
 
 		foreach ($personChangedFields as $fieldName => $fieldValue) {
 			//if( $project[ $fieldName ] != $fieldValue)
-				self::updatePersonField($personId, $fieldName, $fieldValue, $userId);
+			//var_dump($fieldValue);
+				if(is_array($fieldValue)){
+					foreach ($fieldValue as $fieldName2 => $fieldValue2) {
+						self::updatePersonField($personId, $fieldName2, $fieldValue2, $userId);
+					}
+				}else{
+					self::updatePersonField($personId, $fieldName, $fieldValue, $userId);
+				}
 		}
 
 	    return array("result"=>true, "msg"=>Yii::t("person", "The person has been updated"), "id"=>$personId);
