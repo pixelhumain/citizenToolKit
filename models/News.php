@@ -135,14 +135,18 @@ class News {
 				if( isset($_POST["scope"])) {
 					if(@$_POST["codeInsee"]){
 						$news["scope"]["type"]="public";
-						$news["scope"]["cities"][] = array("codeInsee"=>$_POST["codeInsee"], "postalCode"=>$_POST["postalCode"]);
+						$address=SIG::getAdressSchemaLikeByCodeInsee($_POST["codeInsee"],$_POST["postalCode"]);
+
+						$news["scope"]["cities"][] = array("codeInsee"=>$_POST["codeInsee"], "postalCode"=>$_POST["postalCode"], "addressLocality"=>$address["addressLocality"]);
 					}
 					else {
 						$scope = $_POST["scope"];
 						$news["scope"]["type"]=$scope;
 						if($scope== "public"){
+							$address=SIG::getAdressSchemaLikeByCodeInsee($codeInsee,$postalCode);
 							$news["scope"]["cities"][] = array("codeInsee"=>$codeInsee,
 																"postalCode"=>$postalCode,
+																"addressLocality"=>$address["addressLocality"],
 																"geo" => $from
 															);
 						}
