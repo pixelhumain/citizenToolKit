@@ -20,10 +20,10 @@ class DetailAction extends CAction
 		  //"organizations"=>array()
 		);
 
-		$controller->title = (isset($organization["name"])) ? $organization["name"] : "";
-		$controller->subTitle = (isset($organization["shortDescripion"])) ? $organization["shortDescripion"] : "";
-		$controller->pageTitle = "Organization ".$controller->title." - ".$controller->subTitle;
-		$limit = array(Document::IMG_PROFIL => 1, Document::IMG_MEDIA => 5);
+		//$controller->title = (isset($organization["name"])) ? $organization["name"] : "";
+		//$controller->subTitle = (isset($organization["shortDescripion"])) ? $organization["shortDescripion"] : "";
+		//$controller->pageTitle = "Organization ".$controller->title." - ".$controller->subTitle;
+		$limit = array(Document::IMG_PROFIL => 1);
 		$images = Document::getImagesByKey((string)$organization["_id"],Organization::COLLECTION, $limit);
 		$params = array( "organization" => $organization);
 		$params["images"] = $images;
@@ -53,12 +53,12 @@ class DetailAction extends CAction
 			}
 		}
 		foreach ($events as $key => $value) {
-			$newEvent = Event::getById($key);
+			$newEvent = Event::getSimpleEventById($key);
 			array_push($contextMap["events"], $newEvent);
 		}
 		
 		foreach ($projects as $key => $value) {
-			$newProject = Project::getById($key);
+			$newProject = Project::getSimpleProjectById($key);
 			array_push($contextMap["projects"], $newProject);
 		}
 		

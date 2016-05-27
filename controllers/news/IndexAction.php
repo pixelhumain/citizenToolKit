@@ -81,7 +81,8 @@ class IndexAction extends CAction
 					$params["canPostNews"] = true;
 	        }
 			else if ($type=="pixels"){
-				$params["canPostNews"] = true;
+				if (@Yii::app()->session["userId"])
+					$params["canPostNews"] = true;
 			}
 			$params["authorizedToStock"]= Document::authorizedToStock($id, $type,Document::DOC_TYPE_IMAGE);
 			$params["contextParentType"] = $type; 
