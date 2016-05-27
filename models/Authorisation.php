@@ -411,7 +411,7 @@ class Authorisation {
     */
     public static function canEditEvent($userId, $eventId){
     	$res = false;
-    	$event = EventId::getById($eventId);
+    	$event = Event::getById($eventId);
     	if(!empty($event)){
 
     		// case 1
@@ -427,7 +427,7 @@ class Authorisation {
     		// case 2 and 3
     		if(isset($event["links"]["organizer"])){
     			foreach ($event["links"]["organizer"] as $key => $value) {
-    				if( Authorisation::canEditOrganisation($userId, $key)){
+    				if( Authorisation::isOrganizationAdmin($userId, $key)){
     					$res = true;
     				}
     			}
@@ -485,9 +485,9 @@ class Authorisation {
     public static function canEditItem($userId, $type, $itemId){
         $res=false;
     	if($type == Event::COLLECTION) {
-    		$res = Authorisation::isEventAdmin($itemId, $userId);
-            if(self::isSourceAdmin($itemId, $type, $userId) && $res==false)
-                $res = true ;
+    		$res = Authorisation::canEditEvent($userId,$itemId);
+            //if(self::isSourceAdmin($itemId, $type, $userId) && $res==false)
+              //  $res = true ;
     	} else if($type == Project::COLLECTION) {
     		$res = Authorisation::isProjectAdmin($itemId, $userId);
             /*if(Role::isSuperAdmin(Role::getRolesUserId($userId)) && $res==false)

@@ -39,20 +39,20 @@ class DetailAction extends CAction {
 	            		if($organizer["type"] == Project::COLLECTION ){
 	                		$iconNav="fa-lightbulb-o";
 	                		$urlType="project";
-	                		$organizerInfo = Project::getById($uid);
+	                		$organizerInfo = Project::getSimpleProjectById($uid);
 	                		$organizer["type"]=$urlType;
                 		}
 	            		else if($organizer["type"] == Organization::COLLECTION ){
 			                $iconNav="fa-group";
 			                $urlType="organization";	
-			                $organizerInfo = Organization::getById($uid);  
+			                $organizerInfo = Organization::getSimpleOrganizationById($uid);  
 							$organizer["type"]=$urlType;
 							$organizer["typeOrga"]=$organizerInfo["type"];              
                 		}
 						else{
 							$iconNav="fa-user";
 			                $urlType="person";	
-			                $organizerInfo = Person::getById($uid);  
+			                $organizerInfo = Person::getSimpleUserById($uid);  
 							$organizer["type"]=$urlType;
 						}
                 		$organizer["id"] = $uid;
@@ -67,7 +67,7 @@ class DetailAction extends CAction {
               		}
             	} else if(isset($event["links"]["creator"])) {
 	                foreach ($event["links"]["creator"] as $uid => $e) {
-	                    $citoyen = Person::getById($uid);
+	                    $citoyen = Person::getSimpleUserById($uid);
 	                    $organizer["id"] = $uid;
 	                    $organizer["type"] = "person";
 	                    $organizer["name"] = $citoyen["name"];
