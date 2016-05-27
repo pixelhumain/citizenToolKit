@@ -646,6 +646,7 @@ class Person {
 			throw new CTKException("Can not update the person : you are not authorized to update that person !");
 		}		
 		
+		if(is_string($personFieldValue))
 		$personFieldValue = trim($personFieldValue);
 		$dataFieldName = Person::getCollectionFieldNameAndValidate($personFieldName, $personFieldValue);
 		//Specific case : 

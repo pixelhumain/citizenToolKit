@@ -40,4 +40,22 @@ class Element {
 	    
     	return $link;
     }
+
+    public static function getLoadByHash( $type, $id )
+    {	    
+    	$link = ""; 
+    	if(@$type && @$id && $type != City::COLLECTION){
+    		$el = PHDB::findOne ( $type , array( "_id" => new MongoId($id) ) );
+	    	$ctrl = self::getControlerByCollection($type);
+	    	if( @$el && @$ctrl )
+	    		$link = 'loadByHash("#'.$ctrl.".detail.id.".$id."\")";
+	    }
+	    else if($type == City::COLLECTION){
+	    	$el = City::getByUnikey($id);
+	    	$ctrl = self::getControlerByCollection($type);
+	    	if( @$el && @$ctrl )
+	    		$link = 'loadByHash("#'.$ctrl.".detail.insee.".$el['insee'].".cp.".$el['cp']."\")";
+	    }
+    	return $link;
+    }
 }

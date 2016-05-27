@@ -215,7 +215,7 @@ class Notification{
 		    $label = Yii::app()->session['user']['name']." ".Yii::t("common","participates to the event")." ".$target["name"];
 		    $url = 'news/detail/id/'.$target["id"];
 	    }
-	    else if($verb == ActStr::VERB_COMMENT){
+	    else if($verb == ActStr::VERB_COMMENT ){
 		    $label = Yii::t("common","{who} commented your post", array("{who}"=>Yii::app()->session['user']['name']));
 		    $url = $ctrl.'/detail/id/'.$target["id"];
 		    if( in_array( $target["type"], array( Survey::COLLECTION, ActionRoom::COLLECTION_ACTIONS) ) ){
@@ -253,6 +253,11 @@ class Notification{
 		    																"{what}"=>$target["entry"]["name"],
 		    																"{where}"=>$target['room']["name"]),Yii::app()->controller->module->id);
 		    $url = 'rooms/action/id/'.$target["id"];
+	    } else if( $verb == ActStr::VERB_VOTE ){
+		    $label = Yii::t("rooms","{who} voted on {what} in {where}", array("{who}" => Yii::app()->session['user']['name'],
+		    																"{what}"=>$target["entry"]["name"],
+		    																"{where}"=>$target['room']["name"]),Yii::app()->controller->module->id);
+		    $url = 'survey/entry/id/'.$target["id"];
 	    }
 	    /*if( $res = ActStr::getParamsByVerb($verb,$ctrl,$target,Yii::app()->session["user"]){
 	    	$label = $res['label'];
