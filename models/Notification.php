@@ -193,7 +193,7 @@ class Notification{
 	    }
 	    else if( $verb == ActStr::VERB_POST ){
 		    $label = $target["name"]." : ".Yii::t("common","new post by")." ".Yii::app()->session['user']['name'];
-	    	$url = 'news/index/type/'.$target["type"].'/id/'.$targetId.'?isFisrt=1';
+	    	$url = 'news/index/type/'.$target["type"].'/id/'.$targetId;
 	    }
 		else if( $verb == ActStr::VERB_FOLLOW ){
 			if($target["type"]==Person::COLLECTION)
