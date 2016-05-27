@@ -67,7 +67,7 @@ class NewsTranslator {
 			if(@$params["text"]){
 				$params["text"]=preg_replace('/<[^>]*>/', '',(isset($params["text"]) ? $params["text"] : ""));
 			}
-			if($params["scope"]["type"]=="public" && !@$params["scope"]["cities"][0]["addressLocality"]){
+			if($params["scope"]["type"]=="public" && !@$params["scope"]["cities"][0]["addressLocality"] && @$params["scope"]["cities"][0]["postalCode"]){
 				$address=SIG::getAdressSchemaLikeByCodeInsee($params["scope"]["cities"][0]["codeInsee"],$params["scope"]["cities"][0]["postalCode"]);
 				$params["scope"]["cities"][0]["addressLocality"]=$address["addressLocality"];
 			}
