@@ -354,7 +354,7 @@ class Person {
 																array(
 																	floatval($person['geoPosLongitude']),
 																	floatval($person['geoPosLatitude']))
-														 	  	);
+			);
 		}
 		
 		return $newPerson;
@@ -680,8 +680,8 @@ class Person {
 				$set = array("address" => $address);
 
 				if(empty($thisUser["geo"])){
-					$geo = SIG::getGeoPositionByInseeCode($insee,$postalCode);
-					$set["geo"] = $geo;
+					$geo = SIG::getGeoPositionByInseeCode($insee,$postalCode);	
+					SIG::updateEntityGeoposition(Person::COLLECTION,$personId,$geo["latitude"],$geo["longitude"]);
 				}
 
 				PHDB::update( self::COLLECTION, array("_id" => new MongoId($personId)), 
@@ -1080,9 +1080,7 @@ class Person {
 		}
 
 		foreach ($personChangedFields as $fieldName => $fieldValue) {
-			//if( $project[ $fieldName ] != $fieldValue)
-			//var_dump($fieldValue);
-				if(is_array($fieldValue)){
+				if(is_array($fieldValue) && $fieldName != "address"){
 					foreach ($fieldValue as $fieldName2 => $fieldValue2) {
 						self::updatePersonField($personId, $fieldName2, $fieldValue2, $userId);
 					}
