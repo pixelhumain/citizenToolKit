@@ -69,12 +69,12 @@ class IndexAction extends CAction
 	        }
 	        else if( $type == Event::COLLECTION ) {
 	            $parent = Event::getById($id);
-	            if((@Yii::app()->session["userId"] && @$parent["links"]["attendees"][Yii::app()->session["userId"]] && !@$parent["links"]["attendees"][Yii::app()->session["userId"]][Link::TO_BE_VALIDATED]) ||
+	            if((@Yii::app()->session["userId"] && @$parent["links"]["attendees"][Yii::app()->session["userId"]]) ||
 	            	(@Yii::app()->session["userId"] && @$parent["links"]["organizer"][Yii::app()->session["userId"]] && !@$parent["links"]["organizer"][Yii::app()->session["userId"]][Link::TO_BE_VALIDATED])){
 	            	$params["canPostNews"] = true;
-					$params["canManageNews"] = true;
+	            	if(@$parent["links"]["attendees"][Yii::app()->session["userId"]]["isAdmin"])
+						$params["canManageNews"] = true;
 	            }
-	         
 	        }
 	        else if ($type=="city"){
 		        if (@Yii::app()->session["userId"])
@@ -87,7 +87,6 @@ class IndexAction extends CAction
 			$params["authorizedToStock"]= Document::authorizedToStock($id, $type,Document::DOC_TYPE_IMAGE);
 			$params["contextParentType"] = $type; 
 			$params["contextParentId"] = $id;
-			//$params["condition"]=$where;
 			$params["parent"]=@$parent;
 		}
 			//Define condition of each wall generated datas
