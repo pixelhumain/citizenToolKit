@@ -50,9 +50,6 @@ class DirectoryAction extends CAction
 						      array_push($organizations, $organization);
                 }
 						    $organization["type"]="organization";
-						    $profil = Document::getLastImageByKey($uid, Organization::COLLECTION, Document::IMG_PROFIL);
-						    if($profil !="")
-						      $organization["imagePath"]= $profil;
 						    if(@$e["isAdmin"] && $e["isAdmin"]==1)
 						    	$organization["isAdmin"]= $e["isAdmin"];
                 if (!@$organization["disabled"]) {
@@ -72,9 +69,6 @@ class DirectoryAction extends CAction
 								} 
 								array_push($people, $citoyen);
 								$citoyen["type"]="citoyen";
-								$profil = Document::getLastImageByKey($uid, Person::COLLECTION, Document::IMG_PROFIL);
-								if($profil !="")
-									$citoyen["imagePath"]= $profil;
 								array_push($contributors, $citoyen);
 							}
 						}
@@ -85,11 +79,7 @@ class DirectoryAction extends CAction
             	foreach ($project["links"]["followers"] as $uid => $e){
     				$citoyen = Person::getSimpleUserById($uid);
 					if(!empty($citoyen)){
-						//array_push($people, $citoyen);
 						$citoyen["type"]="citoyen";
-						$profil = Document::getLastImageByKey($uid, Person::COLLECTION, Document::IMG_PROFIL);
-						if($profil !="")
-							$citoyen["imagePath"]= $profil;
 						array_push($followers, $citoyen);
 					}
 				}

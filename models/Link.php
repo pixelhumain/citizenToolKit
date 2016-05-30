@@ -139,6 +139,8 @@ class Link {
         	$res = Project:: getById($id);
         } else if ($type== Need::COLLECTION){
         	$res = Need:: getById($id);
+        } else if ($type== ActionRoom::COLLECTION_ACTIONS){
+            $res = ActionRoom:: getActionById($id);
         } else {
         	throw new CTKException("Can not manage this type of MemberOf : ".$type);
         }

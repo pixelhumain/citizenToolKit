@@ -22,12 +22,7 @@ class AddHelperValidationAction extends CAction
 				$msg = Yii::t("need","Congrats, help is succesfully validated",null,Yii::app()->controller->module->id);
 			}
 			$helperType = "citoyen";
-			$helper=Person::getById($helperId);
-			if (!empty($helper)) {
-            	$profil = Document::getLastImageByKey($helperId, Person::COLLECTION, Document::IMG_PROFIL);
-				if($profil !="")
-					$helper["imagePath"]= $profil;
-		    }
+			$helper = Person::getById($helperId);
 			if($helper){
 				try {
 					Link::addHelper($needId, $helperId, $helperType, $booleanState);

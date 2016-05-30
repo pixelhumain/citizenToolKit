@@ -21,6 +21,7 @@ class Event {
 	    "description" => array("name" => "description"),
 	    "shortDescription" => array("name" => "shortDescription"),
 	    "allDay" => array("name" => "allDay"),
+	    "modules" => array("name" => "modules"),
 	    "startDate" => array("name" => "startDate", "rules" => array("eventStartDate")),
 	    "endDate" => array("name" => "endDate", "rules" => array("eventEndDate"))
 	);
@@ -72,8 +73,8 @@ class Event {
 			}
 		}
 		if(!empty($event)){
-		$event = array_merge($event, Document::retrieveAllImagesUrl($id, self::COLLECTION));
-		$event["typeSig"] = "events";
+			$event = array_merge($event, Document::retrieveAllImagesUrl($id, self::COLLECTION, @$event["type"], $event));
+			$event["typeSig"] = "events";
 	  	}
 	  	return $event;
 	}
@@ -86,20 +87,20 @@ class Event {
 	public static function getSimpleEventById($id) {
 		
 		$simpleEvent = array();
-		$event = PHDB::findOneById( self::COLLECTION ,$id, array("id" => 1, "name" => 1, "type" => 1,  "shortDescription" => 1, "description" => 1,
-																 "address" => 1, "geo" => 1, "tags" => 1) );
+		$event = PHDB::findOneById( self::COLLECTION ,$id, array("id" => 1, "name" => 1, "type" => 1,  "shortDescription" => 1, "description" => 1, "address" => 1, "geo" => 1, "tags" => 1, "profilImageUrl" => 1, "profilThumbImageUrl" => 1, "profilMarkerImageUrl" => 1));
+
 		if(!empty($event)){
-		$simpleEvent["id"] = $id;
-		$simpleEvent["name"] = @$event["name"];
-		$simpleEvent["type"] = @$event["type"];
-		$simpleEvent["geo"] = @$event["geo"];
-		$simpleEvent["tags"] = @$event["tags"];
-		$simpleEvent["shortDescription"] = @$event["shortDescription"];
-		$simpleEvent["description"] = @$event["description"];
-		
-		$simpleEvent = array_merge($simpleEvent, Document::retrieveAllImagesUrl($id, self::COLLECTION));
-		
-		$simpleEvent["address"] = empty($event["address"]) ? array("addressLocality" => "Unknown") : $event["address"];
+			$simpleEvent["id"] = $id;
+			$simpleEvent["name"] = @$event["name"];
+			$simpleEvent["type"] = @$event["type"];
+			$simpleEvent["geo"] = @$event["geo"];
+			$simpleEvent["tags"] = @$event["tags"];
+			$simpleEvent["shortDescription"] = @$event["shortDescription"];
+			$simpleEvent["description"] = @$event["description"];
+			
+			$simpleEvent = array_merge($simpleEvent, Document::retrieveAllImagesUrl($id, self::COLLECTION, $simpleEvent["type"], $event));
+			
+			$simpleEvent["address"] = empty($event["address"]) ? array("addressLocality" => "Unknown") : $event["address"];
 		}
 		return @$simpleEvent;
 	}
@@ -150,8 +151,8 @@ class Event {
 			throw new CTKException("The organizer does not exist. Please check the organizer.");
 		}*/
 
-		if(empty($event['startDate']) || empty($event['endDate'])) {
-			throw new CTKException("The start and end date of an event are required.");
+		if(empty($event['startDate']) ) { //|| empty($event['endDate'])
+			throw new CTKException("The start  date of an event are required.");
 		}
 		
 		if (! empty($event['allDay'])) {
@@ -185,6 +186,7 @@ class Event {
 			'type' => $params['type'],
 			"allDay" => $allDay
 		);
+		date_default_timezone_set('UTC');
 		if(!$update)
 			$newEvent = array_merge( $newEvent , array( 'public' => true,
 														'created' => new MongoDate(time()),
@@ -264,15 +266,6 @@ class Event {
 				
 		Notification::createdObjectAsParam( Person::COLLECTION, Yii::app()->session['userId'],Event::COLLECTION, (String)$newEvent["_id"], $params["organizerType"], $params["organizerId"], $newEvent["geo"], array($newEvent["type"]),$newEvent["address"]);
 
-	    //send validation mail
-	    //TODO : make emails as cron events
-	    /*$message = new YiiMailMessage; 
-	    $message->view = 'validation';
-	    $message->setSubject('Confirmer votre compte Pixel Humain');
-	    $message->setBody(array("user"=>$new["_id"]), 'text/html');
-	    $message->addTo("oceatoon@gmail.com");//$params['registerEmail']
-	    $message->from = Yii::app()->params['adminEmail'];
-	    Yii::app()->mail->send($message);*/
 	    $creator = Person::getById(Yii::app()->session['userId']);
 	    Mail::newEvent($creator,$newEvent);
 	    
@@ -391,10 +384,7 @@ class Event {
 		$listEventAttending= array();
 		$eventsAttending = PHDB::find(PHType::TYPE_EVENTS, $where);
 		foreach ($eventsAttending as $key => $value) {
-        	$profil = Document::getLastImageByKey($key, PHType::TYPE_EVENTS, Document::IMG_PROFIL);
-        	if(strcmp($profil, "")!= 0){
-        		$value['imagePath']=$profil;
-        	}
+        	$value = array_merge($value, Document::retrieveAllImagesUrl($key, self::COLLECTION, $value));
         	$listEventAttending[$key] = $value;
         }
         return $listEventAttending;
@@ -519,8 +509,7 @@ class Event {
 		  			}
 		  		}
 		  	}
- 	  		$imageUrl= Document::getLastImageByKey($key, self::COLLECTION, '');
- 	  		$events[$key]["imageUrl"] = $imageUrl;
+ 	  		$events[$key] = array_merge($events[$key], Document::retrieveAllImagesUrl($id, self::COLLECTION));
 	  	}
 	  	return $events;
 	}
@@ -751,7 +740,7 @@ class Event {
 					$params["contentKey"] = "profil";
 					$res2 = Document::save($params);
 					if($res2["result"] == false)
-						throw new CTKException("Impossible de save.");
+						throw new CTKException("Impossible de d'enregistrer le fichier.");
 
 				}else{
 					$msgErrorImage = "Impossible uploader le document." ; 
@@ -1166,8 +1155,8 @@ class Event {
 		} else {
 			$newEvent["creator"] = $creatorId;	
 		}*/
-		$newEvent["creator"] = "56eff58e94ef47451c7b23d6";
-		$newEvent["organizerId"] = "56eff58e94ef47451c7b23d6";
+		$newEvent["creator"] = Yii::app()->session['userId'];
+		$newEvent["organizerId"] = Yii::app()->session['userId'];
 		$newEvent["organizerType"] = Person::COLLECTION ;	
 		//Insert the event
 	    PHDB::insert( self::COLLECTION, $newEvent);

@@ -17,25 +17,31 @@ class NewsTranslator {
 	**/
 	public static function convertParamsForNews($params,$readOne=false){
 		if(@$params["object"]){
+			$docImg="";
 			if($params["object"]["objectType"]==Event::COLLECTION){
-				$object=Event::getById((string)$params["object"]["id"]);
-				$docImg = Document::IMG_PROFIL;
+				$object=Event::getSimpleEventById((string)$params["object"]["id"]);
 				$params["icon"] = "fa-calendar";
 			} 
 			else if ($params["object"]["objectType"]==Organization::COLLECTION){
-				$object=Organization::getById((string)$params["object"]["id"]);
-				$docImg = Document::IMG_PROFIL;
+				$object=Organization::getSimpleOrganizationById((string)$params["object"]["id"]);
 				$params["icon"] = "fa-group";
 			} 
 			else if ($params["object"]["objectType"]==Project::COLLECTION){
-				$object=Project::getById((string)$params["object"]["id"]);
-				$docImg = Document::IMG_SLIDER;
+				$object=Project::getSimpleProjectById((string)$params["object"]["id"]);
 				$params["icon"]="fa-lightbulb-o";
 			}
-			$params["imageBackground"] = Document::getLastImageByKey((string) $params["object"]["id"],$params["object"]["objectType"] , $docImg);
-			$params["name"] = $object["name"];
-			$params["text"] = trim(preg_replace('/<[^>]*>/', ' ',(substr(isset($object["description"]) ? $object["description"] : "",0 ,100 ))));
-			$params["scope"]["address"]=$object["address"];
+			if(!empty($object)){
+				$params["imageBackground"] = $object["profilImageUrl"];
+				$params["name"] = $object["name"];
+				$params["text"] = preg_replace('/<[^>]*>/', '', (isset($object["shortDescription"]) ? $object["shortDescription"] : "" ));
+				if (empty($params["text"]))
+					$params["text"] =(isset($object["description"]) ? preg_replace('/<[^>]*>/', '',$object["description"]) : "");
+				$params["scope"]["address"]=$object["address"];
+			}else{
+				$params["name"] = "";
+				$params["text"] = "";
+				$params["scope"] = "";
+			}
 		}
 		if(@$params["target"]["type"]){
 			if ($params["target"]["type"] == Organization::COLLECTION){
@@ -52,20 +58,20 @@ class NewsTranslator {
 				$params["target"]["type"]=Person::COLLECTION;
 			}
 			else if ($params["target"]["type"]==Event::COLLECTION){
-				
-				//if(!empty($event)){
-					$params["target"] = Event::getSimpleEventById($params["target"]["id"]);
-					$params["target"]["type"]=Event::COLLECTION;
-				//}
+				$params["target"] = Event::getSimpleEventById($params["target"]["id"]);
+				$params["target"]["type"]=Event::COLLECTION;
 			}
 				
 		}
-		if($params["type"]=="news" && $readOne==false){
-			if(@$params["text"] && strlen ($params["text"]) > 500){
-			  		$params["text"]=trim(preg_replace('/<[^>]*>/', ' ',(substr(isset($params["text"]) ? $params["text"] : "",0 ,500 ))))."<span class='removeReadNews'> ...<br><a href='javascript:;' onclick='blankNews(\"".(string) $params["_id"]."\")'>Lire la suite</a></span>";
-		  	}
+		if($params["type"]=="news"){
+			if(@$params["text"]){
+				$params["text"]=preg_replace('/<[^>]*>/', '',(isset($params["text"]) ? $params["text"] : ""));
+			}
+			if($params["scope"]["type"]=="public" && !@$params["scope"]["cities"][0]["addressLocality"] && @$params["scope"]["cities"][0]["postalCode"]){
+				$address=SIG::getAdressSchemaLikeByCodeInsee($params["scope"]["cities"][0]["codeInsee"],$params["scope"]["cities"][0]["postalCode"]);
+				$params["scope"]["cities"][0]["addressLocality"]=$address["addressLocality"];
+			}
 		}
-		//print_r($params);
 		if(@$params["media"] && !is_string(@$params["media"]) && $params["media"]["type"]=="gallery_images"){
 			$images=array();
 			$limit=5;
@@ -76,9 +82,15 @@ class NewsTranslator {
 						$image=Document::getById($data);
 						if(@$image){
 							array_push($images,$image);
+						}else{
+							$countImages=intval($params["media"]["countImages"]);
+							$countImages--;
+							$params["media"]["countImages"]=$countImages;
 						}
 					}else{
-						$params["media"]["countImages"]--;
+						$countImages=intval($params["media"]["countImages"]);
+						$countImages--;
+						$params["media"]["countImages"]=$countImages;
 					}
 				} else {
 					exit;
@@ -89,5 +101,4 @@ class NewsTranslator {
 	  	$params["author"] = Person::getSimpleUserById($params["author"]);
 		return $params;
 	}
-	
 }

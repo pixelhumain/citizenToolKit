@@ -20,18 +20,12 @@ class DetailAction extends CAction
 		  //"organizations"=>array()
 		);
 
-		$controller->title = (isset($organization["name"])) ? $organization["name"] : "";
-		$controller->subTitle = (isset($organization["shortDescripion"])) ? $organization["shortDescripion"] : "";
-		$controller->pageTitle = "Organization ".$controller->title." - ".$controller->subTitle;
-		$contentKeyBase = "Yii::app()->controller->id.".".dashboard";
-		$limit = array(Document::IMG_PROFIL => 1, Document::IMG_MEDIA => 5);
+		//$controller->title = (isset($organization["name"])) ? $organization["name"] : "";
+		//$controller->subTitle = (isset($organization["shortDescripion"])) ? $organization["shortDescripion"] : "";
+		//$controller->pageTitle = "Organization ".$controller->title." - ".$controller->subTitle;
+		$limit = array(Document::IMG_PROFIL => 1);
 		$images = Document::getImagesByKey((string)$organization["_id"],Organization::COLLECTION, $limit);
-		/*Vérifier son comportement si réintégration du slider
-		$contentKeyBase = Yii::app()->controller->id.".dashboard";
-		$limit = array(Document::IMG_PROFIL => 1, Document::IMG_MEDIA => 5);
-		$images = Document::getListDocumentsURLByContentKey((string)$organization["_id"], $contentKeyBase, Document::DOC_TYPE_IMAGE, $limit);*/
 		$params = array( "organization" => $organization);
-		$params["contentKeyBase"] = $contentKeyBase;
 		$params["images"] = $images;
 		$list = Lists::get(array("eventTypes"));
         $params["eventTypes"] = $list["eventTypes"];
@@ -59,12 +53,12 @@ class DetailAction extends CAction
 			}
 		}
 		foreach ($events as $key => $value) {
-			$newEvent = Event::getById($key);
+			$newEvent = Event::getSimpleEventById($key);
 			array_push($contextMap["events"], $newEvent);
 		}
 		
 		foreach ($projects as $key => $value) {
-			$newProject = Project::getById($key);
+			$newProject = Project::getSimpleProjectById($key);
 			array_push($contextMap["projects"], $newProject);
 		}
 		

@@ -37,6 +37,7 @@ class Organization {
 	    "typeOfPublic" => array("name" => "typeOfPublic"),
 	    "url"=>array("name" => "url"),
 	    "telephone" => array("name" => "telephone"),
+	    "modules" => array("name" => "modules"),
 	    //"fixe" => array("name" => "telephone.fixe"),
 	    //"mobile" => array("name" => "telephone.mobile"),
 	    "video" => array("name" => "video"),
@@ -69,7 +70,7 @@ class Organization {
 		
 
 		//Manage tags : save any inexistant tag to DB 
-		if (isset($newOrganization["tags"]))
+		if (!empty($newOrganization["tags"]))
 			$newOrganization["tags"] = Tags::filterAndSaveNewTags($newOrganization["tags"]);
 
 		//Add the user creator of the organization in the system
@@ -121,11 +122,9 @@ class Organization {
 	    }
 	    else
 	    	$orgaGeo="";
-	    if (@$newOrganization["tags"] && !empty($newOrganization["tags"])){
-		    $orgaTags=$newOrganization["tags"];
-	    }
-	    else	
-	    	$orgaTags="";
+	    
+	    $orgaTags= ((@$newOrganization["tags"] && !empty($newOrganization["tags"]))?$newOrganization["tags"]:null);
+	    
 	    if (@$newOrganization["address"]["codeInsee"] && !empty($newOrganization["address"]["codeInsee"]))
 	    	$orgaCodeInsee=$newOrganization["address"];
 	    else
@@ -278,7 +277,7 @@ class Organization {
 
 				  
 		//Tags
-		if (isset($organization['tags'])) {
+		if (!empty($organization['tags'])) {
 			if ( gettype($organization['tags']) == "array" ) {
 				$tags = $organization['tags'];
 			} else if ( gettype($organization['tags']) == "string" ) {
@@ -371,7 +370,7 @@ class Organization {
             //TODO Sylvain - Find a way to manage inconsistent data
             //throw new CommunecterException("The organization id ".$id." is unkown : contact your admin");
         } else {
-			$organization = array_merge($organization, Document::retrieveAllImagesUrl($id, self::COLLECTION));
+			$organization = array_merge($organization, Document::retrieveAllImagesUrl($id, self::COLLECTION, null, $organization));
 			$organization["typeSig"] = "organizations";
         }
 	  	return $organization;
@@ -385,8 +384,7 @@ class Organization {
 	public static function getSimpleOrganizationById($id) {
 
 		$simpleOrganization = array();
-		$orga = PHDB::findOneById( self::COLLECTION ,$id, array("id" => 1, "name" => 1, "type" => 1, "email" => 1,  "shortDescription" => 1, "description" => 1,
-													 			"address" => 1, "pending" => 1, "tags" => 1, "geo" => 1) );
+		$orga = PHDB::findOneById( self::COLLECTION ,$id, array("id" => 1, "name" => 1, "type" => 1, "email" => 1,  "shortDescription" => 1, "description" => 1, "address" => 1, "pending" => 1, "tags" => 1, "geo" => 1, "profilImageUrl" => 1, "profilThumbImageUrl" => 1, "profilMarkerImageUrl" => 1) );
 
 		$simpleOrganization["id"] = $id;
 		$simpleOrganization["name"] = @$orga["name"];
@@ -397,7 +395,7 @@ class Organization {
 		$simpleOrganization["geo"] = @$orga["geo"];
 		$simpleOrganization["shortDescription"] = @$orga["shortDescription"];
 		$simpleOrganization["description"] = @$orga["description"];
-		$simpleOrganization = array_merge($simpleOrganization, Document::retrieveAllImagesUrl($id, self::COLLECTION, @$orga["type"]));
+		$simpleOrganization = array_merge($simpleOrganization, Document::retrieveAllImagesUrl($id, self::COLLECTION, @$orga["type"], $orga));
 		
 		$logo = Document::getLastImageByKey($id, self::COLLECTION, Document::IMG_LOGO);
 		$simpleOrganization["logoImageUrl"] = $logo;
@@ -599,11 +597,6 @@ class Organization {
 				 }	 
 			}
 		}
-		foreach ($events as $key => $value) {
-        	$profil = Document::getLastImageByKey($key, PHType::TYPE_EVENTS, Document::IMG_PROFIL);
-        	if($profil!="")
-        		$value['imagePath']=$profil;
-        }
 		return $events;
 	}
 	/**
@@ -635,11 +628,6 @@ class Organization {
 				 }	 
 			}
 		}
-		foreach ($projects as $key => $value) {
-        	$profil = Document::getLastImageByKey($key, PHType::TYPE_PROJECTS, Document::IMG_PROFIL);
-        	if($profil!="")
-        		$value['imagePath']=$profil;
-        }
 		return $projects;
 	}
 
@@ -1206,47 +1194,53 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 		
 	    if (isset($newOrganization["_id"])) {
 	    	$newOrganizationId = (String) $newOrganization["_id"];
+
+	    	if(!empty($nameImage)){
+		    	try{
+					$res = Document::uploadDocumentFromURL($moduleId, self::COLLECTION, $newOrganizationId, "avatar", false, $pathFolderImage, $nameImage);
+					if(!empty($res["result"]) && $res["result"] == true){
+						$params = array();
+						$params['id'] = $newOrganizationId;
+						$params['type'] = self::COLLECTION;
+						$params['moduleId'] = $moduleId;
+						$params['folder'] = self::COLLECTION."/".$newOrganizationId;
+						$params['name'] = $res['name'];
+						$params['author'] = Yii::app()->session["userId"] ;
+						$params['size'] = $res["size"];
+						$params["contentKey"] = "profil";
+						$res2 = Document::save($params);
+						if($res2["result"] == false)
+							throw new CTKException("Impossible de sauvegarder l'image.");
+
+					}else{
+						throw new CTKException("Impossible uploader l'image.");
+					}
+				}catch (CTKException $e){
+					throw new CTKException($e);
+				}	
+			}
+
+			if(!empty($paramsLink) && $paramsLink["link"] == true){
+				if($paramsLink["typeLink"] == "Organization")
+					Link::addMember($paramsLink["idLink"], Organization::COLLECTION, $newOrganizationId, Organization::COLLECTION, $creatorId, $paramsLink["isAdmin"]);
+
+				if($paramsLink["typeLink"] == "Person")
+					Link::addMember($newOrganizationId, Organization::COLLECTION, $paramsLink["idLink"], Person::COLLECTION, $creatorId, $paramsLink["isAdmin"]);
+			}
+
+
+			$newOrganization = Organization::getById($newOrganizationId);
+
+
+
+
+
 	    } else {
 	    	throw new CTKException(Yii::t("organization","Problem inserting the new organization"));
 	    }
 
 
-	    if(!empty($nameImage)){
-	    	try{
-				$res = Document::uploadDocument($moduleId, self::COLLECTION, $newOrganizationId, "avatar", false, $pathFolderImage, $nameImage);
-				if(!empty($res["result"]) && $res["result"] == true){
-					$params = array();
-					$params['id'] = $newOrganizationId;
-					$params['type'] = self::COLLECTION;
-					$params['moduleId'] = $moduleId;
-					$params['folder'] = self::COLLECTION."/".$newOrganizationId;
-					$params['name'] = $res['name'];
-					$params['author'] = Yii::app()->session["userId"] ;
-					$params['size'] = $res["size"];
-					$params["contentKey"] = "profil";
-					$res2 = Document::save($params);
-					if($res2["result"] == false)
-						throw new CTKException("Impossible de save.");
-
-				}else{
-					throw new CTKException("Impossible uploader le document.");
-				}
-			}catch (CTKException $e){
-				throw new CTKException($e);
-			}	
-		}
-
-
-		if(!empty($paramsLink) && $paramsLink["link"] == true){
-			if($paramsLink["typeLink"] == "Organization")
-				Link::addMember($paramsLink["idLink"], Organization::COLLECTION, $newOrganizationId, Organization::COLLECTION, $creatorId, $paramsLink["isAdmin"]);
-
-			if($paramsLink["typeLink"] == "Person")
-				Link::addMember($newOrganizationId, Organization::COLLECTION, $paramsLink["idLink"], Person::COLLECTION, $creatorId, $paramsLink["isAdmin"]);
-		}
-
-
-		$newOrganization = Organization::getById($newOrganizationId);
+	    
 	    return array("result"=>true,
 		    			"msg"=>"Votre organisation est communectée.", 
 		    			"id"=>$newOrganizationId, 

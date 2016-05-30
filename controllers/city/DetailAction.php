@@ -2,7 +2,7 @@
 
 class DetailAction extends CAction
 {
-	public function run( $insee=null )
+	public function run( $insee, $postalCode=null )
     {
         $controller = $this->getController();
         //echo $insee;
@@ -14,6 +14,19 @@ class DetailAction extends CAction
         $city = PHDB::findOne(City::COLLECTION, array( "insee" => $insee ) );
         //si la city n'est pas trouvé par son code insee, on cherche avec le code postal
         if($city == NULL) $city = PHDB::findOne(City::COLLECTION, array( "cp" => $insee ) );
+        
+        $city["typeSig"] = "city";
+        $city["cp"] = $postalCode;
+
+        $cityName = "";
+        foreach ($city["postalCodes"] as $key => $value) {
+            if($value["postalCode"] == $postalCode){
+                $city["name"] = $value["name"];
+                $city["cp"] = $value["postalCode"];
+                $city["geo"] = $value["geo"];
+                $city["geoPosition"] = $value["geoPosition"];
+            }
+        }
 
         //si la city n'a pas de position geo OU que les lat/lng ne sont pas définit (==0)
         if( !isset($city["geo"]) ||
@@ -55,14 +68,6 @@ class DetailAction extends CAction
         $controller->pageTitle = ucfirst($controller->module->id)." - Informations publiques de ".$controller->title;
 
         //Get Projects
-        // $projects = array();
-        // if(isset($person["links"]["projects"])){
-        //     foreach ($person["links"]["projects"] as $key => $value) {
-        //         $project = Project::getPublicData($key);
-        //         array_push($projects, $project);
-        //     }
-        // }
-
         $projectsBd = PHDB::find(Project::COLLECTION, array( "address.codeInsee" => $insee ) );
         $projects = array();
         foreach ($projectsBd as $key => $project) {
@@ -71,77 +76,29 @@ class DetailAction extends CAction
         }
         
         //Get the Events
-        // $events = Authorisation::listEventsIamAdminOf($id);
-        // $eventsAttending = Event::listEventAttending($id);
-        // foreach ($eventsAttending as $key => $value) {
-        //     $eventId = (string)$value["_id"];
-        //     if(!isset($events[$eventId])){
-        //         $events[$eventId] = $value;
-        //     }
-        // }
         $eventsBd = PHDB::find(Event::COLLECTION, array( "address.codeInsee" => $insee ) );
         $events = array();
         foreach ($eventsBd as $key => $event) {
-            //$event = Event::getPublicData((string)$event["_id"]);
+            $event = Event::getPublicData((string)$event["_id"]);
             array_push($events, $event);
         }
         
-        
-
-        $tags = PHDB::findOne( PHType::TYPE_LISTS,array("name"=>"tags"), array('list'));
-        //TODO - SBAR : Pour le dashboard person, affiche t-on les événements des associations dont je suis memebre ?
-        //Get the organization where i am member of;
-        // $organizations = array();
-        // if( isset($person["links"]) && isset($person["links"]["memberOf"])) {
-            
-        //     foreach ($person["links"]["memberOf"] as $key => $member) {
-        //         $organization;
-        //         if( $member['type'] == Organization::COLLECTION )
-        //         {
-        //             $organization = Organization::getPublicData( $key );
-        //             $profil = Document::getLastImageByKey($key, Organization::COLLECTION, Document::IMG_PROFIL);
-        //             if($profil !="")
-        //                 $organization["imagePath"]= $profil;
-        //             array_push($organizations, $organization );
-        //         }
-           
-        //         if(isset($organization["links"]["events"])){
-        //             foreach ($organization["links"]["events"] as $keyEv => $valueEv) {
-        //                 $event = Event::getPublicData($keyEv);
-        //                 $events[$keyEv] = $event;   
-        //             }
-                    
-        //         }
-        //     }        
-        //     //$randomOrganizationId = array_rand($subOrganizationIds);
-        //     //$randomOrganization = Organization::getById( $subOrganizationIds[$randomOrganizationId] );
-        //     //$params["randomOrganization"] = $randomOrganization;
-            
-        // }
         $organizationsBd = PHDB::find(Organization::COLLECTION, array( "address.codeInsee" => $insee ) );
         $organizations = array();
         foreach ($organizationsBd as $key => $orga) {
             $orga = Organization::getPublicData((string)$orga["_id"]);
-            $profil = Document::getLastImageByKey((string)$orga["_id"], Organization::COLLECTION, Document::IMG_PROFIL);
-                if($profil !="")
-                    $orga["imagePath"]= $profil;
             array_push($organizations, $orga);
         }
         
         
         $allPeople = array();
         $people = PHDB::find(Person::COLLECTION, array( "address.codeInsee" => $insee ) );
-        
-       // if( isset($person["links"]) && isset($person["links"]["knows"])) {
-            foreach ($people as $key => $onePerson) {
-                $citoyen = Person::getPublicData( $key );
-                $profil = Document::getLastImageByKey($key, Person::COLLECTION, Document::IMG_PROFIL);
-                if($profil !="")
-                   $citoyen["imagePath"]= $profil;
-                array_push($allPeople, $citoyen);
-                
-            }
-        //}
+        foreach ($people as $key => $onePerson) {
+            $citoyen = Person::getPublicData( $key );
+            array_push($allPeople, $citoyen);
+        }
+
+        $tags = PHDB::findOne( PHType::TYPE_LISTS,array("name"=>"tags"), array('list'));
 
         $params["tags"] = $tags;
         $params["organizations"] = $organizations;

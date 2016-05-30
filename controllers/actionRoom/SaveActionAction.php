@@ -6,7 +6,7 @@
  * else simply adds the watcher app the users profile ]
  * @return [json] 
  */
-class SaveSessionAction extends CAction
+class SaveActionAction extends CAction
 {
     public function run()
     {
@@ -17,7 +17,7 @@ class SaveSessionAction extends CAction
             $email = $_POST["email"];
             $name  = $_POST['name'];
 
-            //Organizer of the survey
+            //Organizer of the action
             if ($_POST['organizer'] == "currentUser") {
                 $organizerId = Yii::app()->session["userId"];
                 $organizerType = Person::COLLECTION;
@@ -36,29 +36,31 @@ class SaveSessionAction extends CAction
                 $entryInfos['name'] = (string)$name;
                 $entryInfos['organizerId'] = $organizerId;
                 $entryInfos['organizerType'] = $organizerType;
-                if( isset($_POST['survey']) ){
-                    $entryInfos['survey'] = $_POST['survey'];
-                    $res['parentId'] = $_POST['survey'];
-                    //this might not be necessary , since the information is on the parent survey
-                    $surveyRoom = PHDB::findOne (Survey::PARENT_COLLECTION, array( "_id" => new MongoId($_POST['survey']) ) );
-                    if( isset( $surveyRoom["parentType"] ) && isset($_POST['parentType']) ) 
-                        $entryInfos['parentType'] = $_POST['parentType'];
-                    if( isset( $surveyRoom["parentId"] ) && isset($_POST['parentId']) ) 
-                        $entryInfos['parentId'] = $_POST['parentId'];
-                        
+                if( isset($_POST['room']) )
+                {
+                    $entryInfos['room'] = $_POST['room'];
+                    $res['parentId'] = $_POST['room'];
+                    //this might not be necessary , since the information is on the parent action
+                    $room = PHDB::findOne (ActionRoom::COLLECTION, array( "_id" => new MongoId($_POST['room']) ) );
+                    if( isset( $room["parentType"] ) ) 
+                        $entryInfos['parentType'] = $room['parentType'];
+                    if( isset( $room["parentId"] )  ) 
+                        $entryInfos['parentId'] = $room['parentId'];
                 }
                 if( isset($_POST['message']) )
                     $entryInfos['message'] = (string)$_POST['message'];
                 if( isset($_POST['type']) )
                     $entryInfos['type'] = $_POST['type'];
-                if( isset($_POST['tags']) && count($_POST['tags']) )
+                if( isset($_POST['tags']) && count($_POST['tags'])>0 )
                     $entryInfos['tags'] = $_POST['tags'];
                 if( isset($_POST['cp']) )
                     $entryInfos['cp'] = explode(",",$_POST['cp']);
                 if( isset($_POST['urls']) && count($_POST['urls'])>0 )
                     $entryInfos['urls'] = $_POST['urls'];
                 if( isset($_POST['dateEnd']) && $_POST['dateEnd'] != "" )
-                    $entryInfos['dateEnd'] = strtotime( str_replace("/", "-", $_POST['dateEnd']).' 23:59:59' );
+                    $entryInfos['dateEnd'] = round(strtotime( str_replace("/", "-", $_POST['dateEnd']) ));
+                if( isset($_POST['startDate']) && $_POST['startDate'] != "" )
+                    $entryInfos['startDate'] = round(strtotime( str_replace("/", "-", $_POST['startDate']) ));
 
                 $entryInfos['created'] = time();
                 
@@ -66,29 +68,22 @@ class SaveSessionAction extends CAction
                 $where = array();
                 if( isset( $_POST['id'] ) ){
                     $where["_id"] = new MongoId($_POST['id']);
-                    $result = PHDB::update( Survey::COLLECTION,  $where, 
+                    $result = PHDB::update( ActionRoom::COLLECTION_ACTIONS,  $where, 
                                                    array('$set' => $entryInfos ));
-                    $surveyId = $_POST['id'];
+                    $actionId = $_POST['id'];
                 } else {
-                    $surveyId = new MongoId();
-                    $entryInfos["_id"] = $surveyId;
-                    $result = PHDB::insert( Survey::COLLECTION,$entryInfos );
+                    $actionId = new MongoId();
+                    $entryInfos["_id"] = $actionId;
+                    $result = PHDB::insert( ActionRoom::COLLECTION_ACTIONS,$entryInfos );
                 }
                 
-                /*$result = PHDB::updateWithOptions( Survey::COLLECTION,  $where, 
-                                                   array('$set' => $entryInfos ) ,
-                                                   array('upsert' => true ) ); */
-                //Save the comment options
-                if (@$_POST["commentOptions"]) {
-                    Comment::saveCommentOptions( $surveyId ,Survey::COLLECTION, $_POST["commentOptions"]);
-                }
 
                 $res['result'] = true;
-                $res['msg'] = "surveySaved";
-                $res['surveyId'] = $surveyId;
+                $res['msg'] = "actionSaved";
+                $res['actionId'] = $actionId;
 
                 //Notify Element participants 
-                Notification::actionOnPerson ( ActStr::VERB_ADD_PROPOSAL, ActStr::ICON_ADD, "", array( "type" => Survey::COLLECTION , "id" => $surveyId ));
+                Notification::actionOnPerson ( ActStr::VERB_ADD_ACTION, ActStr::ICON_ADD, "", array( "type" => ActionRoom::COLLECTION_ACTIONS , "id" => $actionId ));
                 
             } else
                 $res = array('result' => false , 'msg'=>"user doen't exist");

@@ -2,6 +2,12 @@
 class News {
 
 	const COLLECTION = "news";
+	const CONTROLLER = "news";
+	const ICON = "fa-users";
+	const ICON_BIZ = "fa-industry";
+	const ICON_GROUP = "fa-circle-o";
+	const ICON_GOV = "fa-circle-o";
+	const COLOR = "#93C020";
 	/**
 	 * get an news By Id
 	 * @param type $id : is the mongoId of the news
@@ -40,7 +46,8 @@ class News {
 	 */
 	public static function getNewsForObjectId($param,$sort=array("created"=>-1),$type)
 	{
-	    $res = PHDB::findAndSort(self::COLLECTION, $param,$sort,15);
+		//$param=array();
+	    $res = PHDB::findAndSort(self::COLLECTION, $param,$sort,5);
 	    foreach ($res as $key => $news) {
 		    if(@$news["type"]){
 				$res[$key]=NewsTranslator::convertParamsForNews($news);			  		
@@ -62,7 +69,7 @@ class News {
 	 	//TODO : if type is Organization check the connected user isAdmin
 	 	
 	 	if(empty($user))
-	 		throw new CTKException("You must be loggued in to add a news entry.");
+	 		return array("result"=>false, "msg"=>Yii::t("common","You must be logged in to add a news entry !"));	
 
 	 	if((isset($_POST["text"]) && !empty($_POST["text"])) || (isset($_POST["media"]) && !empty($_POST["media"])))
 	 	{
@@ -79,6 +86,10 @@ class News {
 			}
 			if (isset($_POST["media"])){
 				$news["media"] = $_POST["media"];
+				if(@$_POST["media"]["content"] && @$_POST["media"]["content"]["image"] && !@$_POST["media"]["content"]["imageId"]){
+					$urlImage = self::uploadNewsImage($_POST["media"]["content"]["image"],$_POST["media"]["content"]["imageSize"],Yii::app()->session["userId"]);
+					$news["media"]["content"]["image"]=	Yii::app()->baseUrl."/".$urlImage;
+				}
 			}
 			if(isset($_POST["tags"]))
 				$news["tags"] = $_POST["tags"];
@@ -124,14 +135,18 @@ class News {
 				if( isset($_POST["scope"])) {
 					if(@$_POST["codeInsee"]){
 						$news["scope"]["type"]="public";
-						$news["scope"]["cities"][] = array("codeInsee"=>$_POST["codeInsee"], "postalCode"=>$_POST["postalCode"]);
+						$address=SIG::getAdressSchemaLikeByCodeInsee($_POST["codeInsee"],$_POST["postalCode"]);
+
+						$news["scope"]["cities"][] = array("codeInsee"=>$_POST["codeInsee"], "postalCode"=>$_POST["postalCode"], "addressLocality"=>$address["addressLocality"]);
 					}
 					else {
 						$scope = $_POST["scope"];
 						$news["scope"]["type"]=$scope;
 						if($scope== "public"){
+							$address=SIG::getAdressSchemaLikeByCodeInsee($codeInsee,$postalCode);
 							$news["scope"]["cities"][] = array("codeInsee"=>$codeInsee,
 																"postalCode"=>$postalCode,
+																"addressLocality"=>$address["addressLocality"],
 																"geo" => $from
 															);
 						}
@@ -157,7 +172,22 @@ class News {
 	 * @param String $id : id to delete
 	*/
 	public static function delete($id) {
+		$news=self::getById($id);
+		if(@$news["media"] && @$news["media"]["content"] && @$news["media"]["content"]["image"] && !@$news["media"]["content"]["imageId"]){
+			$endPath=explode(Yii::app()->params['uploadUrl'],$news["media"]["content"]["image"]);
+			//print_r($endPath);
+			$pathFileDelete= Yii::app()->params['uploadDir'].$endPath[1];
+			unlink($pathFileDelete);
+		}
 		return PHDB::remove(self::COLLECTION,array("_id"=>new MongoId($id)));
+	}
+	/**
+	 * delete a news in database from communevent with imageId
+	 * @param String $id : imageId in media.content to delete
+	*/
+
+	public static function removeNewsByImageId($imageId){
+		return PHDB::remove(self::COLLECTION,array("media.content.imageId"=>$imageId));
 	}
 	/**
 	 * update a news in database
@@ -201,5 +231,63 @@ class News {
 			    }
 			    return $ret;
 	}
+
+	public static function getNewsToModerate($whereAdditional = null, $limit = 0) {
+		
+		$where = array(
+          "reportAbuse"=> array('$exists'=>1)
+          ,"isAnAbuse" => array('$exists'=>0)
+          ,"target.id" => array('$exists'=>1)
+          ,"target.type" => array('$exists'=>1)
+          ,"scope.type" => array('$exists'=>1)
+          //One news has to be moderated X times
+          ,"reportAbuseCount" => array('$gt' => 0)
+          //One moderator can't moderate 2 times a news
+          ,"moderate.".Yii::app()->session["userId"] => array('$exists'=>0)
+        );
+        if(count($whereAdditional)){
+        	$where = array_merge($where,$whereAdditional);
+        }
+        return PHDB::findAndSort(self::COLLECTION, $where, array("date" =>1), $limit);
+	}
+	/*
+	* Upload image from media url content if image is not from communevent
+	* Image stock in folder ph/upload/news
+	* @param string $urlImage, image url to upload
+	* @param string $size, defines image size for resizing
+	* @param string $authorId, defines name of img
+	*/
+	public static function uploadNewsImage($urlImage,$size,$authorId){
+		$allowed_ext = array('jpg','jpeg','png','gif'); 
+    	$ext = strtolower(pathinfo($urlImage, PATHINFO_EXTENSION));
+    	if(empty($ext))
+    		$ext="png";
+    	/*if(strstr($ext,"?") || strstr($ext,"?")){
+    		$ext = preg_split( "/ (?|&) /", $ext );
+    		print_r($ext);
+    		$ext = $ext[0];
+    	}*/
+		$dir=Yii::app()->params['defaultController'];
+		$folder="news";
+		$upload_dir = Yii::app()->params['uploadUrl'].$dir.'/'.$folder; 
+		//echo $upload_dir;
+		$name=time()."_".$authorId.".".$ext;        
+		if(!file_exists ( $upload_dir )) {       
+			mkdir($upload_dir, 0777);
+		}
+		if($size="large"){
+			$maxWidth=500;
+			$maxHeight=500;
+		}else{
+			$maxWidth=100;
+			$maxHeight=100;
+		}
+		$quality=100;
+ 		$imageUtils = new ImagesUtils($urlImage);
+		$destPathThumb = $upload_dir."/".$name;
+		$imageUtils->resizePropertionalyImage($maxWidth,$maxHeight)->save($destPathThumb,$quality);
+		return $destPathThumb;
+	}
+
 }
 ?>

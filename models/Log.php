@@ -42,6 +42,9 @@ class Log {
 
 	    //POST or GET
     	if(!empty($_REQUEST)) $logs['params'] = $_REQUEST;
+
+    	//To avoid the clear password storage
+    	if(isset($logs['params']['pwd'])) unset($logs['params']['pwd']);
 	    return $logs;
 	}
 
@@ -79,6 +82,13 @@ class Log {
 	*/
 	public static function getAll(){
 		return PHDB::find(self::COLLECTION);
+	}
+
+	/**
+	 * List the log in the collection logs depends Where
+	*/
+	public static function getWhere($where = array()){
+		return PHDB::find(self::COLLECTION, $where);
 	}
 
 	/**

@@ -219,6 +219,21 @@ class Authorisation {
        	} 
        	return $res;
     }
+    /**
+     * Return true if the user is member of the event
+     * @param String the id of the user
+     * @param String the id of the event
+     * @return array of event (simple)
+     */
+    public static function isEventMember($userId, $eventId) {
+        $res = false;
+        
+        //Get the members of the event : if there is no member then it's a new organization
+        //We are in a creation process
+        $eventMembers = Event::getAttendeesByEventId($eventId);
+        $res = array_key_exists((string)$userId, $eventMembers);    
+        return $res;
+    }
 
     /**
      * List all the event the userId is adminOf
@@ -254,12 +269,6 @@ class Authorisation {
                 $eventList[$eventId] = $eventValue;
             }
 		}
-        foreach ($eventList as $key => $value) {
-        	$profil = Document::getLastImageByKey($key, Event::COLLECTION, Document::IMG_PROFIL);
-        	if($profil!="")
-        		$value['imagePath']=$profil;
-        	$eventListFinal[$key] = $value;
-        }
         return $eventListFinal;
     }
     public static function listOfEventAdmins($eventId) {
@@ -313,6 +322,22 @@ class Authorisation {
        		$res=true;
        	} 
        	return $res;
+    }
+
+    /**
+     * Return true if the user is member of the project
+     * @param String the id of the user
+     * @param String the id of the project
+     * @return array of Project (simple)
+     */
+    public static function isProjectMember($userId, $projectId) {
+        $res = false;
+        
+        //Get the members of the project : if there is no member then it's a new organization
+        //We are in a creation process
+        $projectMembers = Project::getContributorsByProjectId($projectId);
+        $res = array_key_exists((string)$userId, $projectMembers);    
+        return $res;
     }
     
 	public static function listProjectsIamAdminOf($userId) {
@@ -386,7 +411,7 @@ class Authorisation {
     */
     public static function canEditEvent($userId, $eventId){
     	$res = false;
-    	$event = EventId::getById($eventId);
+    	$event = Event::getById($eventId);
     	if(!empty($event)){
 
     		// case 1
@@ -402,7 +427,7 @@ class Authorisation {
     		// case 2 and 3
     		if(isset($event["links"]["organizer"])){
     			foreach ($event["links"]["organizer"] as $key => $value) {
-    				if( Authorisation::canEditOrganisation($userId, $key)){
+    				if( Authorisation::isOrganizationAdmin($userId, $key)){
     					$res = true;
     				}
     			}
@@ -460,9 +485,9 @@ class Authorisation {
     public static function canEditItem($userId, $type, $itemId){
         $res=false;
     	if($type == Event::COLLECTION) {
-    		$res = Authorisation::isEventAdmin($itemId, $userId);
-            if(self::isSourceAdmin($itemId, $type, $userId) && $res==false)
-                $res = true ;
+    		$res = Authorisation::canEditEvent($userId,$itemId);
+            //if(self::isSourceAdmin($itemId, $type, $userId) && $res==false)
+              //  $res = true ;
     	} else if($type == Project::COLLECTION) {
     		$res = Authorisation::isProjectAdmin($itemId, $userId);
             /*if(Role::isSuperAdmin(Role::getRolesUserId($userId)) && $res==false)
@@ -475,16 +500,34 @@ class Authorisation {
                 $res = true ;
             if(self::isSourceAdmin($itemId, $type, $userId) && $res==false)
                 $res = true ; 
-
     	} else if($type == Person::COLLECTION) {
             if($userId==$itemId || Role::isSuperAdmin(Role::getRolesUserId($userId)) == true )
                 $res = true;
-            else
-                $res = false ;
     	} else if($type == Survey::COLLECTION) {
             $res = Authorisation::canEditEntry($userId, $itemId);
         }
     	return $res;
+    }
+
+    /**
+    * check for any element if a user is either member, contributor, attendee
+    * @param type is the type of item, (organization or event or person or project)
+    * @param itemId id of the item we want to edits
+    * @return a boolean
+    */
+    public static function canParticipate($userId, $type, $itemId){
+        $res=false;
+        if( $userId )
+        {
+            if( $type == Organization::COLLECTION )
+                $res = Authorisation::isOrganizationMember($userId, $itemId);
+            if( $type == Project::COLLECTION )
+                $res = Authorisation::isProjectMember($userId, $itemId);
+            if( $type == Event::COLLECTION )
+                $res = Authorisation::isEventMember($userId, $itemId);
+            if($type == City::COLLECTION) $res = true;
+        }
+        return $res;
     }
 
     /**
