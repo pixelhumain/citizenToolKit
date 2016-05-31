@@ -180,6 +180,9 @@ class Notification{
 		    	$target["parent"] = Event::getById( $room["parentId"]);
 		    	$members = Event::getAttendeesByEventId( $room["parentId"],"all", null ) ;
 		    	$typeOfConnect="attendee";
+		    } else if( $room["parentType"] == City::COLLECTION ) {
+		    	//TODO notify only the admin of the event
+		    	$target["parent"] = City::getByUnikey( $room["parentId"]);
 		    }
 		}
 	    foreach ($members as $key => $value) 
