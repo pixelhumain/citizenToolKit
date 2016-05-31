@@ -38,9 +38,8 @@ class NewsTranslator {
 					$params["text"] =(isset($object["description"]) ? preg_replace('/<[^>]*>/', '',$object["description"]) : "");
 				$params["scope"]["address"]=$object["address"];
 			}else{
-				$params["name"] = "";
-				$params["text"] = "";
-				$params["scope"] = "";
+				$params="";
+				return $params;
 			}
 		}
 		if(@$params["target"]["type"]){
@@ -69,6 +68,10 @@ class NewsTranslator {
 			}
 			if($params["scope"]["type"]=="public" && !@$params["scope"]["cities"][0]["addressLocality"] && @$params["scope"]["cities"][0]["postalCode"]){
 				$address=SIG::getAdressSchemaLikeByCodeInsee($params["scope"]["cities"][0]["codeInsee"],$params["scope"]["cities"][0]["postalCode"]);
+				if(empty($address)){
+					$params="";
+					return $params;
+				}
 				$params["scope"]["cities"][0]["addressLocality"]=$address["addressLocality"];
 			}
 		}
