@@ -385,23 +385,23 @@ class Organization {
 
 		$simpleOrganization = array();
 		$orga = PHDB::findOneById( self::COLLECTION ,$id, array("id" => 1, "name" => 1, "type" => 1, "email" => 1,  "shortDescription" => 1, "description" => 1, "address" => 1, "pending" => 1, "tags" => 1, "geo" => 1, "profilImageUrl" => 1, "profilThumbImageUrl" => 1, "profilMarkerImageUrl" => 1) );
-
-		$simpleOrganization["id"] = $id;
-		$simpleOrganization["name"] = @$orga["name"];
-		$simpleOrganization["type"] = @$orga["type"];
-		$simpleOrganization["email"] = @$orga["email"];
-		$simpleOrganization["pending"] = @$orga["pending"];
-		$simpleOrganization["tags"] = @$orga["tags"];
-		$simpleOrganization["geo"] = @$orga["geo"];
-		$simpleOrganization["shortDescription"] = @$orga["shortDescription"];
-		$simpleOrganization["description"] = @$orga["description"];
-		$simpleOrganization = array_merge($simpleOrganization, Document::retrieveAllImagesUrl($id, self::COLLECTION, @$orga["type"], $orga));
-		
-		$logo = Document::getLastImageByKey($id, self::COLLECTION, Document::IMG_LOGO);
-		$simpleOrganization["logoImageUrl"] = $logo;
-		
-		$simpleOrganization["address"] = empty($orga["address"]) ? array("addressLocality" => "Unknown") : $orga["address"];
-		
+		if(!empty($orga)){
+			$simpleOrganization["id"] = $id;
+			$simpleOrganization["name"] = @$orga["name"];
+			$simpleOrganization["type"] = @$orga["type"];
+			$simpleOrganization["email"] = @$orga["email"];
+			$simpleOrganization["pending"] = @$orga["pending"];
+			$simpleOrganization["tags"] = @$orga["tags"];
+			$simpleOrganization["geo"] = @$orga["geo"];
+			$simpleOrganization["shortDescription"] = @$orga["shortDescription"];
+			$simpleOrganization["description"] = @$orga["description"];
+			$simpleOrganization = array_merge($simpleOrganization, Document::retrieveAllImagesUrl($id, self::COLLECTION, @$orga["type"], $orga));
+			
+			$logo = Document::getLastImageByKey($id, self::COLLECTION, Document::IMG_LOGO);
+			$simpleOrganization["logoImageUrl"] = $logo;
+			
+			$simpleOrganization["address"] = empty($orga["address"]) ? array("addressLocality" => "Unknown") : $orga["address"];
+		}
 		return $simpleOrganization;
 	}
 
