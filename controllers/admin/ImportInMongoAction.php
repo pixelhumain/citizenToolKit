@@ -23,9 +23,9 @@ class ImportInMongoAction extends CAction
                             "nameFile" => $_POST["nameFile"],
                             "collection" => $collection);
 
-        //Import::createOrUpdateJsonForImport($paramsForJson);
-        $params["url"] = Import::createZipForImport($paramsForJson);
-
+        Import::createOrUpdateJsonForImport($paramsForJson);
+        //$params["url"] = Import::createZipForImport($paramsForJson);
+        $params["result"] = true ;
         //$params = array();
         return Rest::json($params);
     }

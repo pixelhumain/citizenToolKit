@@ -52,12 +52,12 @@ class Link {
                 }
             }
         }
+
         // Create link between both entity
 		$res=self::connect($memberOfId, $memberOfType, $memberId, $memberType, $userId,"members",$userAdmin,$pendingAdmin, $toBeValidated, $userRole);
-		$res=self::connect($memberId, $memberType, $memberOfId, $memberOfType, $userId,"memberOf",$userAdmin,$pendingAdmin, $toBeValidated, $userRole);
+        $res=self::connect($memberId, $memberType, $memberOfId, $memberOfType, $userId,"memberOf",$userAdmin,$pendingAdmin, $toBeValidated, $userRole);
         //3. Send Notifications
 	    //TODO - Send email to the member
-
         return array("result"=>true, "msg"=>"The member has been added with success", "memberOfId"=>$memberOfId, "memberId"=>$memberId,"notification" => $notification);
     }
     /**
@@ -142,6 +142,7 @@ class Link {
         } else if ($type== ActionRoom::COLLECTION_ACTIONS){
             $res = ActionRoom:: getActionById($id);
         } else {
+
         	throw new CTKException("Can not manage this type of MemberOf : ".$type);
         }
         if (empty($res)) throw new CTKException("The actor (".$id." / ".$type.") is unknown");
@@ -180,6 +181,8 @@ class Link {
         if ($role != ""){
         	$links["links.".$connectType.".".$targetId.".roles"] = $role;
         }
+
+        
         //0. Check if the $originId and the $targetId exists
         $origin = Link::checkIdAndType($originId, $originType);
 		$target = Link::checkIdAndType($targetId, $targetType);

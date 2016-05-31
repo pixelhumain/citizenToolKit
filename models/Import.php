@@ -435,7 +435,10 @@ class Import
         $res = array() ;
 
         if(!empty($post['key']))
-            $data["source"]['key'] = $post['key'];
+            $data["source"]['key'][] = $post['key'];
+
+        if(!empty($post['badge']))
+            $data["badges"][] = $post['badge'];
 
         if(!empty($post["warnings"]) && $post["warnings"] == "true")
             $warnings = true ;
@@ -474,6 +477,7 @@ class Import
             }
         } else if($keyCollection == "Person"){
             try{
+
                 $invite = false ;
                 if(!empty($post["invite"])){
                     $invite = true ;
@@ -994,6 +998,8 @@ class Import
         $typeEntity = $post["chooseEntity"];
         $pathFolderImage = $post["pathFolderImage"];
 
+        $sendMail = ($post["sendMail"] == "false"?null:true);
+        
         if(substr($jsonString, 0,1) == "{")
             $jsonArray[] = json_decode($jsonString, true) ;
         else
@@ -1024,16 +1030,18 @@ class Import
                     else if($typeEntity == "person")
                         $res = Person::insertPersonFromImportData($value,null, true, $pathFolderImage, $moduleId, $paramsLink) ;
                     else if($typeEntity == "invite")
-                        $res = Person::insertPersonFromImportData($value,true, true, $pathFolderImage, $moduleId, $paramsLink) ;
+                        $res = Person::insertPersonFromImportData($value,true, true, $pathFolderImage, $moduleId, $paramsLink,  $sendMail) ;
                     else if($typeEntity == "event")
                         $res = Event::insertEventFromImportData($value,true, $post["link"]);
 
+
+                    //var_dump($res);
                     if($res["result"] == true){
                         $entite["name"] =  $value["name"];
                         $entite["info"] = "Success";
                     }else{
                         $entite["name"] =  $value["name"];
-                        $entite["info"] = "Error";
+                        $entite["info"] = $res["msg"];
                     }
                     $resData[] = $entite;
                 }
