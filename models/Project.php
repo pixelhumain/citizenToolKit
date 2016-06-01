@@ -27,6 +27,7 @@ class Project {
 	    "state" => array("name" => "state"),
 	    "warnings" => array("name" => "warnings"),
 	    "modules" => array("name" => "modules"),
+	    "source" => array("name" => "source")
 	);
 
 	private static function getCollectionFieldNameAndValidate($projectFieldName, $projectFieldValue, $projectId) {

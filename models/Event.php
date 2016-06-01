@@ -23,7 +23,8 @@ class Event {
 	    "allDay" => array("name" => "allDay"),
 	    "modules" => array("name" => "modules"),
 	    "startDate" => array("name" => "startDate", "rules" => array("eventStartDate")),
-	    "endDate" => array("name" => "endDate", "rules" => array("eventEndDate"))
+	    "endDate" => array("name" => "endDate", "rules" => array("eventEndDate")),
+	    "source" => array("name" => "source")
 	);
 
 	//TODO SBAR - First test to validate data. Move it to DataValidator

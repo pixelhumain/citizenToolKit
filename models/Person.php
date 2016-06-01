@@ -45,6 +45,7 @@ class Person {
 	    "warnings" => array("name" => "warnings"),
 	    "modules" => array("name" => "modules"),
 	    "badges" => array("name" => "badges"),
+	    "source" => array("name" => "source")
 	);
 
 	public static function logguedAndValid() {
@@ -650,6 +651,7 @@ class Person {
 		if(is_string($personFieldValue))
 		$personFieldValue = trim($personFieldValue);
 		$dataFieldName = Person::getCollectionFieldNameAndValidate($personFieldName, $personFieldValue);
+		//var_dump($dataFieldName);
 		//Specific case : 
 		//Tags
 		if ($dataFieldName == "tags") 
@@ -711,6 +713,7 @@ class Person {
 		}
 		else {
 			$set = array($dataFieldName => $personFieldValue);	
+			//var_dump($set);
 			if ( $personFieldName == "bgClass") {
 				//save to session for all page reuse
 				$user = Yii::app()->session["user"];
@@ -1139,8 +1142,10 @@ class Person {
 		if(!empty($personImportData['warnings']))
 			$newPerson["warnings"] = $personImportData["warnings"];
 
-		if (!empty($personImportData['badges']))
+		if (!empty($personImportData['badges'])){
 			$newPerson["badges"] = $personImportData['badges'];
+		}
+			
 
 
 		if(!empty($personImportData['image']))
@@ -1432,6 +1437,10 @@ class Person {
 	    	//var_dump($newPerson);
 		    if(!empty($newPerson["warnings"]) && $warnings == true)
 		    	$newPerson["warnings"] = Import::getAndCheckWarnings($newPerson["warnings"]);
+		    if(!empty($newPerson["badges"])){
+		    	$newPerson["badges"] = Badge::conformeBadges($newPerson["badges"]);
+		    }
+		    
 		    
 		    $newPerson["@context"] = array("@vocab"=>"http://schema.org",
 	            "ph"=>"http://pixelhumain.com/ph/ontology/");
@@ -1485,18 +1494,11 @@ class Person {
 
 			if(!empty($paramsLink) && $paramsLink["link"] == true){
 
-				//try{
-				//var_dump($newpersonId);
-					if($paramsLink["typeLink"] == "Organization")
+				if($paramsLink["typeLink"] == "Organization")
 						$resLink = Link::addMember( $paramsLink["idLink"], Organization::COLLECTION, $newpersonId, Person::COLLECTION, Yii::app()->session['userId'], $paramsLink["isAdmin"]);
-				//var_dump("here");	
-
-					if($paramsLink["typeLink"] == "Person")
-						Link::addMember($paramsLink["idLink"], Person::COLLECTION, $newpersonId, Person::COLLECTION,  Yii::app()->session['userId'], $paramsLink["isAdmin"]);
-				/*}catch (CTKException $e){
-					throw new CTKException($e);
-				}*/
-
+				
+				if($paramsLink["typeLink"] == "Person")
+					Link::addMember($paramsLink["idLink"], Person::COLLECTION, $newpersonId, Person::COLLECTION,  Yii::app()->session['userId'], $paramsLink["isAdmin"]);
 			}
 
 			if(!empty($invite) && $sendMail == true){
@@ -1505,11 +1507,8 @@ class Person {
 			return array("result"=>true, "msg"=>"Cette personne est communecté.", "id" => $newPerson["_id"]);	
 
 		}catch (CTKException $e){
-	    	/*if(Yii::t("import","206", null, Yii::app()->controller->module->id) == $e){
-	    		self::updatePersonFromImportData($person);
-	    	}*/
-
-	    	return array("result"=>false, "msg"=>$e, "id" => $newPerson["_id"]);
+			$res = self::updatePersonFromImportData($person, $e, $paramsLink);
+	    	return array("result"=>false, "msg"=>$res["msg"]);
 		}
 		
 	}
@@ -1603,9 +1602,49 @@ class Person {
 		return $res;
     }
 
-    public static function updatePersonFromImportData($person){
-    	$account = PHDB::findOne(Person::COLLECTION,array("email"=>$person["email"]));
-	  	var_dump($account);
+    public static function updatePersonFromImportData($person, $e, $paramsLink = null){
+    	$res = array("result"=>false, "msg"=>$e->getMessage());
+
+    	if(Yii::t("import","206", null, Yii::app()->controller->module->id) == $e->getMessage()){
+    		$account = PHDB::findOne(Person::COLLECTION,array("email"=>$person["email"]));
+    		/*if(!empty($person["source"]["key"]) ){
+    			if(!empty($account["source"]["key"])){
+    				if(is_array($account["source"]["key"]))
+    					$account["source"]["key"] = array_merge($account["source"]["key"], $person["source"]["key"]);
+    				else if(is_string($account["source"]["key"])){
+    					$account["source"]["key"] = array_merge(array($account["source"]["key"]), $person["source"]["key"]);
+    				}
+    			}
+    			else
+    				$account["source"]["key"] = $person["source"]["key"];
+
+    			PHDB::update(Person::COLLECTION,
+							array("_id" => new MongoId((String)$account["_id"])),
+            				array('$set' => array("source.key"	=> $account["source"]["key"])),
+            				array('upsert' => true ));
+    		}else
+    			$account["source"]["key"] = array();*/
+    		if(!empty($person["source"]["key"]) )
+    			$resSourceKey = Import::addAndUpdateSourceKey($person["source"]["key"], (String)$account["_id"], self::COLLECTION);
+    		if(!empty($person["badges"]) )
+    			$resBadge = Badge::AddAndUpdateBadges($person["badges"], (String)$account["_id"], self::COLLECTION);
+
+
+    		if(!empty($paramsLink) && $paramsLink["link"] == true){
+				if($paramsLink["typeLink"] == "Organization")
+					Link::addMember( $paramsLink["idLink"], Organization::COLLECTION, (String)$account["_id"], Person::COLLECTION, Yii::app()->session['userId'], $paramsLink["isAdmin"]);
+			
+				if($paramsLink["typeLink"] == "Person")
+					Link::addMember($paramsLink["idLink"], Person::COLLECTION, (String)$account["_id"], Person::COLLECTION,  Yii::app()->session['userId'], $paramsLink["isAdmin"]);
+			}
+    		$res = array("result"=>true, "msg"=>Yii::t("import","250", null, Yii::app()->controller->module->id));
+
+    	}
+    		
+
+	  	//var_dump($account);
+
+	  	return $res;
     }
 
 }

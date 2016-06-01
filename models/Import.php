@@ -2018,5 +2018,81 @@ class Import
 
 
     }*/
+
+
+    public static function getSource($idItem, $typeItem) {
+        $source = array();
+        $account = PHDB::findOneById($typeItem ,$idItem, array("source"));
+        if(!empty($account["source"]))
+            $source = $account["source"];
+        return $source;
+    }
+
+    public static function checkSourceKeyInSource($key, $source) {
+        $res = false ;
+        
+        if(!empty($source["key"])){
+            if(is_array($source["key"])){
+               foreach ($source["key"] as $k => $value) {
+                    if($key == $value){
+                        $res = true ;
+                        break;
+                    }
+                } 
+            }else if(is_string($source["key"]) && $key == $source["key"]){
+                $res = true ;
+            }  
+        }
+        return $res;
+    }
+
+    public static function addSourceKeyInSource($key, $source) {
+        $res = array(   "result" => false, 
+                        "source" => $source, 
+                        "msg" => Yii::t("import","Le key est déjà dans la liste"));
+        if(is_array($key)){
+            foreach($key as $k => $value) {
+                if(!self::checkSourceKeyInSource($value, $source))
+                    $source["key"][] = $value;  
+            }
+            $res = array("result" => true, "source" => $source);
+        }else if(is_string($key)){
+            if(!self::checkSourceKeyInSource($key, $source))
+                $source["key"][] = $key;
+            $res = array("result" => true, "source" => $source); 
+        }
+        return $res;
+    }
+
+    public static function updateSourceKey($source, $idItem, $typeItem) {
+        $res = array("result" => false, "msg" => Yii::t("import","La mise à jour a échoué."));
+        if($typeItem == Person::COLLECTION)
+            $res = Person::updatePersonField($idItem, "source", $source, Yii::app()->session["userId"]);
+        else if($typeItem == Organization::COLLECTION)
+            $res = Organization::updateOrganizationField($idItem, "source", $source, Yii::app()->session["userId"]);
+        else if($typeItem == Person::COLLECTION)
+            $res = Event::updateEventField($idItem, "source", $source, Yii::app()->session["userId"]);
+        else if($typeItem == Person::COLLECTION)
+            $res = Project::updateProjectField($idItem, "source", $source, Yii::app()->session["userId"]);
+        return $res;
+    }
+
+    public static function addAndUpdateSourceKey($key, $idItem, $typeItem) {
+        
+        $source = self::getSource($idItem, $typeItem);
+        $source["key"] = self::changeFormatSourceKeyInArray($source["key"]);
+        $resAddSource = self::addSourceKeyInSource($key, $source);
+        
+        if($resAddSource["result"] == true){
+            $res = self::updateSourceKey($resAddSource["source"], $idItem, $typeItem);
+        }else
+            $res = array("result" => false, "msg" => $resAddSource["msg"]);
+
+        return $res;
+    }
+
+    public static function changeFormatSourceKeyInArray($keys) {
+        return (is_string($keys))?array($keys):$keys;
+    }
 }
 
