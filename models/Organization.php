@@ -244,7 +244,7 @@ class Organization {
 		}
 		$newOrganization["type"] = $organization['type'];
 		
-		if (empty($organization['city'])) {
+		if (!@$organization["invitedBy"] && empty($organization['city'])) {
 			throw new CTKException(Yii::t("organization", "You have to fill the city of your organization"));
 		}
 
@@ -264,7 +264,7 @@ class Organization {
 				else
 					$newOrganization["geo"] = $organization["geo"];
 			}
-		}else{
+		}else if(!@$organization["invitedBy"]){
 			throw new CTKException(Yii::t("organization", "You have to fill the postal codes of your organization"));
 		}
 
