@@ -50,7 +50,12 @@ class News {
 	    $res = PHDB::findAndSort(self::COLLECTION, $param,$sort,5);
 	    foreach ($res as $key => $news) {
 		    if(@$news["type"]){
-				$res[$key]=NewsTranslator::convertParamsForNews($news);			  		
+			    $newNews=NewsTranslator::convertParamsForNews($news);
+			    if(!empty($newNews)){			  		
+					$res[$key]=$newNews;
+				}else{
+					unset($res[$key]);
+				}
 	  		}
 	  	}
 	  	return $res;

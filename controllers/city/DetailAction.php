@@ -11,22 +11,23 @@ class DetailAction extends CAction
         if (!empty($id)) 
             $id = Yii::app()->session["userId"];
 
-        $city = PHDB::findOne(City::COLLECTION, array( "insee" => $insee ) );
+        //$city = PHDB::findOne(City::COLLECTION, array( "insee" => $insee,  "postalCodes.postalCode" => $postalCode ) );
+        $city = City::getCityByInseeCp($insee, $postalCode);
         //si la city n'est pas trouvé par son code insee, on cherche avec le code postal
-        if($city == NULL) $city = PHDB::findOne(City::COLLECTION, array( "cp" => $insee ) );
+        //if($city == NULL) $city = PHDB::findOne(City::COLLECTION, array( "cp" => $insee ) );
         
         $city["typeSig"] = "city";
-        $city["cp"] = $postalCode;
+        // $city["cp"] = $postalCode;
 
-        $cityName = "";
-        foreach ($city["postalCodes"] as $key => $value) {
-            if($value["postalCode"] == $postalCode){
-                $city["name"] = $value["name"];
-                $city["cp"] = $value["postalCode"];
-                $city["geo"] = $value["geo"];
-                $city["geoPosition"] = $value["geoPosition"];
-            }
-        }
+        // $cityName = "";
+        // foreach ($city["postalCodes"] as $key => $value) {
+        //     if($value["postalCode"] == $postalCode){
+        //         $city["name"] = $value["name"];
+        //         $city["cp"] = $value["postalCode"];
+        //         $city["geo"] = $value["geo"];
+        //         $city["geoPosition"] = $value["geoPosition"];
+        //     }
+        // }
 
         //si la city n'a pas de position geo OU que les lat/lng ne sont pas définit (==0)
         if( !isset($city["geo"]) ||

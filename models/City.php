@@ -46,6 +46,10 @@ class City {
 		return $id;
 	}
 
+	public static function getUnikey($city){
+		return $city["country"]."_".$city["insee"]."-".$city["cp"];
+	}
+
 	/* format unikey : COUNTRY_insee-cp */
 	public static function getByUnikey($unikey){
 		$country = substr($unikey, 0, strpos($unikey, "_"));
