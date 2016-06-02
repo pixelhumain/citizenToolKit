@@ -5,6 +5,8 @@ class Event {
 	const ICON = "fa-calendar";
 	const COLOR = "#F9B21A";
 
+	const NO_ORGANISER = "dontKnow";
+
 
 	//From Post/Form name to database field name
 	private static $dataBinding = array(
@@ -252,6 +254,7 @@ class Event {
 	    PHDB::insert(self::COLLECTION,$newEvent);
 	    
 	    /*
+	    * except if organiser type is dontKnow
 		*   Add the creator as the first attendee
 		*	He is admin because he is admin of organizer
 		*/
@@ -261,8 +264,14 @@ class Event {
 		if($params["organizerType"] == Person::COLLECTION )
 			$isAdmin=true;
 
-	    Link::attendee($newEvent["_id"], Yii::app()->session['userId'], $isAdmin, $creator);
-	    Link::addOrganizer($params["organizerId"],$params["organizerType"], $newEvent["_id"], Yii::app()->session['userId']);
+	    
+	    if($params["organizerType"] != self::NO_ORGANISER ){
+	    	Link::attendee($newEvent["_id"], Yii::app()->session['userId'], $isAdmin, $creator);
+	    	Link::addOrganizer($params["organizerId"],$params["organizerType"], $newEvent["_id"], Yii::app()->session['userId']);
+	    } else {
+	    	$params["organizerType"] = Person::COLLECTION;
+	    	$params["organizerId"] = Yii::app()->session['userId'];
+	    }
 				
 		Notification::createdObjectAsParam( Person::COLLECTION, Yii::app()->session['userId'],Event::COLLECTION, (String)$newEvent["_id"], $params["organizerType"], $params["organizerId"], $newEvent["geo"], array($newEvent["type"]),$newEvent["address"]);
 
