@@ -84,11 +84,12 @@ class Person {
 	     	$user ["roles"] = $account["roles"];
 
 		//Image profil
-	    $simpleUser = self::getSimpleUserById((string)$account["_id"]);
+	    $simpleUser = self::getById((string)$account["_id"]);
 	    $user ["profilImageUrl"] = $simpleUser["profilImageUrl"];
 	    $user ["profilThumbImageUrl"] = $simpleUser["profilThumbImageUrl"];
 	    $user ["profilMarkerImageUrl"] = $simpleUser["profilMarkerImageUrl"];
-
+	    $user ["gamification"]['total'] = $simpleUser["gamification"]['total'];
+	    
 	    Yii::app()->session["user"] = $user;
 	    Yii::app()->session["isRegisterProcess"] = $isRegisterProcess;
 
@@ -1342,7 +1343,7 @@ class Person {
 					//var_dump($resLocality);
 					if(!empty($resLocality["address"])){
 						
-						$newPerson['address']['addressCountry'] = "FR";
+						
 						$city = SIG::getCityByLatLngGeoShape($newPerson["geo"]["latitude"], $newPerson["geo"]["longitude"], (empty($resLocality["address"]["postcode"])?null:$resLocality["address"]["postcode"]));
 						/*if($city != null){
 							foreach ($city as $key => $value) {
@@ -1355,18 +1356,20 @@ class Person {
 							$newPerson['address']['addressLocality'] = $locality['alternateName'];
 							
 						}*/
-
 						if(!empty($city)){
-		                    $newAddress["codeInsee"] = $city["insee"];
-	                        $newAddress['addressCountry'] = $city["country"];
 	                        foreach ($city["postalCodes"] as $keyCp => $valueCp){
-	                            if($valueCp["postalCode"] == $resLocality["address"]["postcode"]){
+								if(!empty($resLocality["address"]["postcode"]) && $valueCp["postalCode"] == $resLocality["address"]["postcode"]){
+	                            	$newPerson['address']['addressCountry'] = "FR";
+	                            	$newAddress["codeInsee"] = $city["insee"];
+	                        		$newAddress['addressCountry'] = $city["country"];
 	                                $newAddress['addressLocality'] = $valueCp["name"];
 	                                $newAddress['postalCode'] = $valueCp["postalCode"];
 	                                $erreur = false ;
+	                                break;
 	                            }
 	                        }
-	                        $newPerson['address'] = $newAddress;
+	                        if(!empty($newAddress))
+	                        	$newPerson['address'] = $newAddress;
 	               	 	}
 						
 					}
