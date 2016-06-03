@@ -207,7 +207,7 @@ class Mail
            $params = array (
                 "type" => Cron::TYPE_MAIL,
                 "tpl"=>'askToBecomeAdmin',
-                "subject" => "[".Yii::app()->name."]".Yii::t("organization","A citizen ask to become ".$typeOfDemand." of ".$parent["name"]),
+                "subject" => "[".Yii::app()->name."] ".Yii::t("organization","A citizen ask to become ".$typeOfDemand." of")." ".$parent["name"],
                 "from"=>Yii::app()->params['adminEmail'],
                 "to" => $currentAdminEmail,
                 "tplParams" => array(  "newPendingAdmin"=> $newPendingAdmin ,
