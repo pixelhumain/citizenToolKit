@@ -1355,15 +1355,15 @@ class Person {
 							$newPerson['address']['addressLocality'] = $locality['alternateName'];
 							
 						}*/
-
 						if(!empty($city)){
-		                    $newAddress["codeInsee"] = $city["insee"];
-	                        $newAddress['addressCountry'] = $city["country"];
 	                        foreach ($city["postalCodes"] as $keyCp => $valueCp){
 	                            if($valueCp["postalCode"] == $resLocality["address"]["postcode"]){
+	                            	$newAddress["codeInsee"] = $city["insee"];
+	                        		$newAddress['addressCountry'] = $city["country"];
 	                                $newAddress['addressLocality'] = $valueCp["name"];
 	                                $newAddress['postalCode'] = $valueCp["postalCode"];
 	                                $erreur = false ;
+	                                break;
 	                            }
 	                        }
 	                        $newPerson['address'] = $newAddress;
