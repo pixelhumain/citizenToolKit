@@ -184,9 +184,16 @@ class ActivityStream {
 	        if( isset( $params["address"] )){
 	        	$insee=$params["address"]["codeInsee"];
 	        	$cp=$params["address"]["postalCode"];
-	        }
-			if( isset( $params["geo"] ))
+	        } 
+	        if( isset( $params["geo"] ))
 				$geo = $params["geo"];
+			if(!@$insee && !@$cp){
+		        $author=Person::getSimpleUserById(Yii::app()->session["userId"]);
+		        $insee=$author["address"]["codeInsee"];
+	        	$cp=$author["address"]["postalCode"];
+	        	if(!@$geo)
+	        		$geo = $author["geo"];
+			}
 			$action["scope"]["cities"][] = array("codeInsee" => $insee, "postalCode" => $cp,"geo"=> $geo);
 		}
 		

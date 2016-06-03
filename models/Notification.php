@@ -345,8 +345,8 @@ class Notification{
 	    //add a link to follow back easily
 	}
 	/*
-	When a project is create 
-	The project is inject to activity stream
+	inject to activity stream
+	When a project, or event is create 
 	It will appear for person or organization
 	// => advanced notification to add if one user wants to be notified for all news projects in certain field (Tags)
 	*/

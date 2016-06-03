@@ -51,11 +51,11 @@ class News {
 	    foreach ($res as $key => $news) {
 		    if(@$news["type"]){
 			    $newNews=NewsTranslator::convertParamsForNews($news);
-			    if(!empty($newNews)){			  		
-					$res[$key]=$newNews;
-				}else{
-					unset($res[$key]);
-				}
+			    //if(empty($newNews)){			  		
+				$res[$key]=$newNews;
+				//}else{
+				//	$res[$key]=array();
+				//}
 	  		}
 	  	}
 	  	return $res;
