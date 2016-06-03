@@ -2080,7 +2080,7 @@ class Import
     public static function addAndUpdateSourceKey($key, $idItem, $typeItem) {
         
         $source = self::getSource($idItem, $typeItem);
-        $source["key"] = self::changeFormatSourceKeyInArray($source["key"]);
+        $source["key"] = (empty($source["key"])?array():self::changeFormatSourceKeyInArray($source["key"]));
         $resAddSource = self::addSourceKeyInSource($key, $source);
         
         if($resAddSource["result"] == true){
