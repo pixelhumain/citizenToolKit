@@ -8,16 +8,10 @@ class DetailAction extends CAction {
     	$controller=$this->getController();
 		$event = Event::getPublicData($id);
         Menu::event($event);
-        $controller->title = (isset($event["name"])) ? $event["name"] : "";
-        $controller->subTitle = (isset($event["description"])) ? $event["description"] : "";
-        $controller->pageTitle = ucfirst($controller->module->id)." - ".Yii::t("event","Event's informations")." ".$controller->title;
-		$contentKeyBase = "Yii::app()->controller->id.".".dashboard";
+        $contentKeyBase = "Yii::app()->controller->id.".".dashboard";
 		$limit = array(Document::IMG_PROFIL => 1, Document::IMG_MEDIA => 5);
 		$images = Document::getImagesByKey((string)$event["_id"], Event::COLLECTION, $limit);
-        /* Vérifier comportement si réintégration
-	        $contentKeyBase = $controller->id.".dashboard";
-        $images = Document::getListDocumentsURLByContentKey((string)$event["_id"], $contentKeyBase, Document::DOC_TYPE_IMAGE);*/
-
+       
         $organizer = array();
         $people = array();
         $attending =array();
@@ -75,7 +69,10 @@ class DetailAction extends CAction {
             	}
           	}
         }
-
+        //events can have sub evnets
+        $subEvents = PHDB::find(Event::COLLECTION,array("parentId"=>$id));
+        $params["subEvents"] = $subEvents;
+        
         $params["images"] = $images;
         $params["contentKeyBase"] = $contentKeyBase;
         $params["attending"] = $attending;

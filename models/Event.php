@@ -25,7 +25,8 @@ class Event {
 	    "allDay" => array("name" => "allDay"),
 	    "modules" => array("name" => "modules"),
 	    "startDate" => array("name" => "startDate", "rules" => array("eventStartDate")),
-	    "endDate" => array("name" => "endDate", "rules" => array("eventEndDate"))
+	    "endDate" => array("name" => "endDate", "rules" => array("eventEndDate")),
+	    "parentId" => array("name" => "parentId"),
 	);
 
 	//TODO SBAR - First test to validate data. Move it to DataValidator
@@ -223,9 +224,8 @@ class Event {
 		}
 		
 		
-		if(!empty($params['geoPosLatitude']) && !empty($params["geoPosLongitude"])){
-			
-
+		if(!empty($params['geoPosLatitude']) && !empty($params["geoPosLongitude"]))
+		{
 			$newEvent["geo"] = 	array(	"@type"=>"GeoCoordinates",
 						"latitude" => $params['geoPosLatitude'],
 						"longitude" => $params['geoPosLongitude']);
@@ -244,6 +244,8 @@ class Event {
 	    if(!empty($params['description']))
 	         $newEvent["description"] = $params['description'];
 
+	    if(!empty($params['parentId']))
+	        $newEvent["parentId"] = $params['parentId'];
 
 	    return $newEvent;
 	}

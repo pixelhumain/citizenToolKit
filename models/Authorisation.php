@@ -250,7 +250,7 @@ class Authorisation {
 
         //event i'am admin 
         $where = array("links.attendees.".$userId.".isAdmin" => true);
-        $eventList = PHDB::find(Event::COLLECTION, $where);
+        $eventListFinal = PHDB::find(Event::COLLECTION, $where);
 
 
         //events of organization i'am admin 
@@ -258,7 +258,7 @@ class Authorisation {
         foreach ($listOrganizationAdmin as $organizationId => $organization) {
             $eventOrganizationAsOrganizer = Event::listEventByOrganizerId($organizationId, Organization::COLLECTION);
             foreach ($eventOrganizationAsOrganizer as $eventId => $eventValue) {
-                $eventList[$eventId] = $eventValue;
+                $eventListFinal[$eventId] = $eventValue;
             }
         }
 		//events of project i'am admin 
@@ -266,11 +266,12 @@ class Authorisation {
         foreach ($listProjectAdmin as $projectId => $project) {
             $eventProjectAsOrganizer = Event::listEventByOrganizerId($projectId, Project::COLLECTION);
             foreach ($eventProjectAsOrganizer as $eventId => $eventValue) {
-                $eventList[$eventId] = $eventValue;
+                $eventListFinal[$eventId] = $eventValue;
             }
 		}
         return $eventListFinal;
     }
+    
     public static function listOfEventAdmins($eventId) {
         $res = array();
         $event = Event::getById($eventId);
