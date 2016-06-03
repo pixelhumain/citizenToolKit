@@ -94,6 +94,7 @@ class Event {
 
 		if(!empty($event)){
 			$simpleEvent["id"] = $id;
+			$simpleEvent["_id"] = $event["_id"];
 			$simpleEvent["name"] = @$event["name"];
 			$simpleEvent["type"] = @$event["type"];
 			$simpleEvent["geo"] = @$event["geo"];
