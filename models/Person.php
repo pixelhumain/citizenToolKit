@@ -1342,7 +1342,7 @@ class Person {
 					//var_dump($resLocality);
 					if(!empty($resLocality["address"])){
 						
-						$newPerson['address']['addressCountry'] = "FR";
+						
 						$city = SIG::getCityByLatLngGeoShape($newPerson["geo"]["latitude"], $newPerson["geo"]["longitude"], (empty($resLocality["address"]["postcode"])?null:$resLocality["address"]["postcode"]));
 						/*if($city != null){
 							foreach ($city as $key => $value) {
@@ -1357,7 +1357,8 @@ class Person {
 						}*/
 						if(!empty($city)){
 	                        foreach ($city["postalCodes"] as $keyCp => $valueCp){
-	                            if($valueCp["postalCode"] == $resLocality["address"]["postcode"]){
+								if(!empty($resLocality["address"]["postcode"]) && $valueCp["postalCode"] == $resLocality["address"]["postcode"]){
+	                            	$newPerson['address']['addressCountry'] = "FR";
 	                            	$newAddress["codeInsee"] = $city["insee"];
 	                        		$newAddress['addressCountry'] = $city["country"];
 	                                $newAddress['addressLocality'] = $valueCp["name"];
@@ -1366,7 +1367,8 @@ class Person {
 	                                break;
 	                            }
 	                        }
-	                        $newPerson['address'] = $newAddress;
+	                        if(!empty($newAddress))
+	                        	$newPerson['address'] = $newAddress;
 	               	 	}
 						
 					}
