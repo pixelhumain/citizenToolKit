@@ -266,20 +266,19 @@ class Event {
 		if($params["organizerType"] == Person::COLLECTION )
 			$isAdmin=true;
 
-	    
 	    if($params["organizerType"] != self::NO_ORGANISER ){
 	    	Link::attendee($newEvent["_id"], Yii::app()->session['userId'], $isAdmin, $creator);
 	    	Link::addOrganizer($params["organizerId"],$params["organizerType"], $newEvent["_id"], Yii::app()->session['userId']);
-	    	//if it's a subevent, add the organiser to the parent user Organiser list 
-	    	/*
-	    	ajouter le nouveau sub user dans organiser ?
-	    	if(@$newEvent["parentId"])
-	    		Link::addOrganizer($params["organizerId"],$params["organizerType"], $newEvent["parentId"], Yii::app()->session['userId']);*/
 	    } else {
 	    	$params["organizerType"] = Person::COLLECTION;
 	    	$params["organizerId"] = Yii::app()->session['userId'];
 	    }
-				
+
+	    //if it's a subevent, add the organiser to the parent user Organiser list 
+    	//ajouter le nouveau sub user dans organiser ?
+    	if( @$newEvent["parentId"] )
+			Link::connect( $newEvent["parentId"], Event::COLLECTION,$newEvent["_id"], Event::COLLECTION, Yii::app()->session["userId"], "subEvents");	
+
 		Notification::createdObjectAsParam( Person::COLLECTION, Yii::app()->session['userId'],Event::COLLECTION, (String)$newEvent["_id"], $params["organizerType"], $params["organizerId"], $newEvent["geo"], array($newEvent["type"]),$newEvent["address"]);
 
 	    $creator = Person::getById(Yii::app()->session['userId']);

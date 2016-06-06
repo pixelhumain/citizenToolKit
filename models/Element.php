@@ -30,7 +30,7 @@ class Element {
     public static function getLink( $type, $id, $loadByHashOnly=null ) {	    
     	$link = ""; 
     	if(@$type && @$id && $type != City::COLLECTION){
-    		$el = PHDB::findOne ( $type , array( "_id" => new MongoId($id) ) );
+    		$el = PHDB::findOne ( $type , array( "_id" => new MongoId($id) ),array('name') );
 	    	$ctrl = self::getControlerByCollection($type);
 	    	if( @$el && @$ctrl )
 	    		$link = "loadByHash('#".$ctrl.".detail.id.".$id."')";
@@ -53,7 +53,7 @@ class Element {
     	$link = ""; 
     	$name = ""; 
     	if(@$type && @$id && $type != City::COLLECTION){
-    		$el = PHDB::findOne ( $type , array( "_id" => new MongoId($id) ) );
+    		$el = PHDB::findOne ( $type , array( "_id" => new MongoId($id) ) ,array('name') );
 	    	$ctrl = self::getControlerByCollection($type);
 	    	if( @$el && @$ctrl )
 	    		$link = "loadByHash('#".$ctrl.".detail.id.".$id."')";

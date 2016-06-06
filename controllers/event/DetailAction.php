@@ -7,11 +7,13 @@ class DetailAction extends CAction {
     public function run($id) { 
     	$controller=$this->getController();
 		$event = Event::getPublicData($id);
-		Menu::event($event,true);
-        $contentKeyBase = "profil";
-		$limit = array(Document::IMG_PROFIL => 1);
-		$images = Document::getImagesByKey((string)$event["_id"], Event::COLLECTION, $limit);
-       
+
+		if( !is_array( Yii::app()->controller->toolbarMBZ ))
+            Yii::app()->controller->toolbarMBZ = array();
+        $contentKeyBase = "Yii::app()->controller->id.".".dashboard";
+		$limit = array(Document::IMG_PROFIL => 1, Document::IMG_MEDIA => 5);
+		$images = Document::getImagesByKey((string)$event["_id"], Event::COLLECTION, $limit);    
+		   
         $organizer = array();
         $people = array();
         $attending =array();
@@ -95,6 +97,7 @@ class DetailAction extends CAction {
         		}
         	}
         }
+        Menu::event($event,$hasSubEvents);
         $params["images"] = $images;
         $params["contentKeyBase"] = $contentKeyBase;
         $params["attending"] = $attending;
