@@ -229,11 +229,6 @@ class Project {
 	    if (isset($newProject["tags"]))
 			$newProject["tags"] = Tags::filterAndSaveNewTags($newProject["tags"]);
 
-	    // TODO SBAR - If a Link::connect is used why add a link hard coded
-
-	   // $newProject["links"] = array( "contributors" => 
-	    //								array($parentId =>array("type" => $parentType,"isAdmin" => true)));
-
 	    PHDB::insert(self::COLLECTION,$newProject);
 		Link::addContributor(Yii::app() -> session["userId"],Person::COLLECTION,$parentId,$parentType,$newProject["_id"]);
 	   // Link::connect($parentId, $parentType, $newProject["_id"], self::COLLECTION, $parentId, "projects", true );
@@ -362,7 +357,7 @@ class Project {
 	    return array("result"=>true, "msg"=>Yii::t("project","Your project is updated"), "id"=>$projectId);
 	}
 
- 	/**
+ 	/** TODO CDA -- TO DELETE
     *	- check if project exists
 	*   - according to type of added contributor : Person or Organization
 	*   - check existence based on new contributor Id 
@@ -374,7 +369,7 @@ class Project {
 		*	 	send Notifications
     * @return [json Map] list
     */
-	public static function addContributor( $projectId )
+	/*public static function addContributor( $projectId )
 	{
 	    $res = array( "result" => false , "content" => Yii::t("common", "Something went wrong!") );
 		if(isset( $projectId) )
@@ -452,7 +447,7 @@ class Project {
 			}
 		}
 		return $res;
-	}
+	}*/
 	/**
 	 * get contributors for a Project By an project Id
 	 * @param String $id : is the mongoId (String) of the project

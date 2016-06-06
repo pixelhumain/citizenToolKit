@@ -111,7 +111,10 @@ class Organization {
 		}
 		
 		if ($isToLink) {
-		    Link::addMember($newOrganizationId, Organization::COLLECTION, $memberId, Person::COLLECTION, $creatorId, $isAdmin);
+			//Create link in both entity person and organization 
+			Link::connect($newOrganizationId, Organization::COLLECTION, $memberId, Person::COLLECTION, $creatorId,"members",$isAdmin);
+			Link::connect($memberId, Person::COLLECTION, $newOrganizationId, Organization::COLLECTION, $creatorId,"memberOf",$isAdmin);
+		   // Link::addMember($newOrganizationId, Organization::COLLECTION, $memberId, Person::COLLECTION, $creatorId, $isAdmin);
 		}
 
 	    //send Notification Email
@@ -529,7 +532,7 @@ class Organization {
 		return $organization;
 	}
 
-	/**
+	/** TODO CDA -- FUNCTION NOT EXIST -- TAKE IN CHARGE IN LINK::CONNECTPARENTTOCHILD
 	 * When an initation to join an organization network is sent :
 	 * this method will :
 	 * 1. Create a new person and organization.
@@ -540,7 +543,7 @@ class Organization {
 	 * @param type $parentOrganizationId the organization Id to join the network of
 	 * @return newPersonId ans newOrganizationId
 	 */
-	public static function createPersonOrganizationAndAddMember($person, $organization, $parentOrganizationId) {
+	/*public static function createPersonOrganizationAndAddMember($person, $organization, $parentOrganizationId) {
 		//The data check is normaly done before inserting but the both data (organization and person)  
 		//must be ok before inserting
 		//Check person datas 
@@ -565,7 +568,7 @@ class Organization {
 						$newPerson["id"], $isParentOrganizationAdmin);
 		
 		return array("result"=>true, "msg"=>Yii::t("organization", "The invitation process completed with success"), "id"=>$newOrganization["id"]);;
-	}
+	}*/
 
 
 	/**
@@ -720,7 +723,7 @@ class Organization {
 		return true;
 	}
 
-	/**
+	/** TODO CDA -- TO DELETE Link::ConnectPArentToChild do it
 	 * Add someone as admin of an organization.
 	 * If there are already admins of the organization, they will receive a notification and email to 
 	 * accept or not the new admin
@@ -729,7 +732,7 @@ class Organization {
 	 * @param String $userId The userId doing the action
 	 * @return array of result (result => bool, msg => string)
 	 */
-	public static function addPersonAsAdmin($idOrganization, $idPerson, $userId) {
+	/*public static function addPersonAsAdmin($idOrganization, $idPerson, $userId) {
 		$res = array("result" => true, "msg" => "You are now admin of the organization");
 
 		$organization = self::getById($idOrganization);
@@ -764,7 +767,7 @@ class Organization {
 		}
 
 		return $res;
-	}
+	}*/
 
 
 
