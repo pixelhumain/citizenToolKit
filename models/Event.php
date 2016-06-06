@@ -271,8 +271,10 @@ class Event {
 	    	Link::attendee($newEvent["_id"], Yii::app()->session['userId'], $isAdmin, $creator);
 	    	Link::addOrganizer($params["organizerId"],$params["organizerType"], $newEvent["_id"], Yii::app()->session['userId']);
 	    	//if it's a subevent, add the organiser to the parent user Organiser list 
+	    	/*
+	    	ajouter le nouveau sub user dans organiser ?
 	    	if(@$newEvent["parentId"])
-	    		Link::addOrganizer($params["organizerId"],$params["organizerType"], $newEvent["parentId"], Yii::app()->session['userId']);
+	    		Link::addOrganizer($params["organizerId"],$params["organizerType"], $newEvent["parentId"], Yii::app()->session['userId']);*/
 	    } else {
 	    	$params["organizerType"] = Person::COLLECTION;
 	    	$params["organizerId"] = Yii::app()->session['userId'];
