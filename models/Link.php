@@ -15,7 +15,7 @@ class Link {
     const IS_ADMIN = "isAdmin";
     const IS_ADMIN_PENDING = "isAdminPending";
 
-	/**
+	/** TODO CDA ----- TO DELETE ConnectParentToChild do it
 	 * Add a member to an organization
 	 * Create a link between the 2 actors. The link will be typed members and memberOf
 	 * The memberOf should be an organization
@@ -32,7 +32,7 @@ class Link {
      * @param Boolean $pendingAdmin if true the member will be added as a pending admin 
 	 * @return result array with the result of the operation
 	 */ 
-    public static function addMember($memberOfId, $memberOfType, $memberId, $memberType, 
+   /* public static function addMember($memberOfId, $memberOfType, $memberId, $memberType, 
                         $userId, $userAdmin = false, $userRole = "", $pendingAdmin=false) {
         
         $organization=Organization::getById($memberOfId);
@@ -59,7 +59,7 @@ class Link {
 	    //TODO - Send email to the member
 
         return array("result"=>true, "msg"=>"The member has been added with success", "memberOfId"=>$memberOfId, "memberId"=>$memberId,"notification" => $notification);
-    }
+    }*/
     /**
 	 * Add a contributor when a project is created
 	 * Create a link between the creator person and project. The link will be typed contributors and projects
@@ -354,8 +354,8 @@ class Link {
 	* Creator is automatically attendee but stays admin if he is parent admin 
 	*/
     public static function attendee($eventId, $userId, $isAdmin = false, $creator = true){
-   		Link::addLink($userId, Person::COLLECTION, $eventId, PHType::TYPE_EVENTS, $userId, "events");
-   		Link::addLink($eventId, PHType::TYPE_EVENTS, $userId, Person::COLLECTION, $userId, "attendees");
+   		//Link::addLink($userId, Person::COLLECTION, $eventId, PHType::TYPE_EVENTS, $userId, "events");
+   		//Link::addLink($eventId, PHType::TYPE_EVENTS, $userId, Person::COLLECTION, $userId, "attendees");
    		$userType=Person::COLLECTION;
    		$link2person="links.events.".$eventId;
    		$link2event="links.attendees.".$userId;
@@ -613,7 +613,7 @@ class Link {
 
 		if($parentType == Organization::COLLECTION){
 			$parentData = Organization::getById($parentId);
-			$usersAdmin = Authorisation::listOrganizationAdmins($parentId, false);
+			$usersAdmin = Authorisation::listAdmins($parentId,  $parentType, false);
 			$parentController = Organization::CONTROLLER;
 			$parentConnectAs = "members";
 			$childConnectAs = "memberOf";
@@ -631,12 +631,7 @@ class Link {
 		} 
 		else if ($parentType == Event::COLLECTION){
 			$parentData = Event::getById($parentId);	
-			$usersAdmin=array();		
-			$attendees = Event::getAttendeesByEventId( $parentId ,"all", null );
-			foreach ($attendees as $key => $value) 
-			{
-			   array_push( $usersAdmin, $key);
-			}
+			$usersAdmin = Authorisation::listAdmins($parentId,  $parentType, false);
 			$parentController = Event::CONTROLLER;
 			$parentConnectAs="attendees";
 			$childConnectAs="events";
@@ -788,7 +783,7 @@ class Link {
             $parent = Organization::getById( $parentId );
             $connectTypeOf="memberOf";
             $connectType="members";
-            $usersAdmin = Authorisation::listOrganizationAdmins($parentId, false);
+            $usersAdmin = Authorisation::listAdmins($parentId,  $parentType, false);
         } else if ($parentType==Project::COLLECTION) {
             $parent = Project::getById( $parentId );            
             $connectTypeOf = "projects";

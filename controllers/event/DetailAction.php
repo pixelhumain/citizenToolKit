@@ -8,26 +8,36 @@ class DetailAction extends CAction {
     	$controller=$this->getController();
 		$event = Event::getPublicData($id);
 		Menu::event($event,true);
-        $contentKeyBase = "Yii::app()->controller->id.".".dashboard";
-		$limit = array(Document::IMG_PROFIL => 1, Document::IMG_MEDIA => 5);
+        $contentKeyBase = "profil";
+		$limit = array(Document::IMG_PROFIL => 1);
 		$images = Document::getImagesByKey((string)$event["_id"], Event::COLLECTION, $limit);
        
         $organizer = array();
         $people = array();
         $attending =array();
-
+		$openEdition = true;
         if(!empty($event)){
 			$params = array();
 			if(isset($event["links"])){
-            	foreach ($event["links"]["attendees"] as $uid => $e) {
-					$citoyen = Person::getPublicData($uid);
-					if(!empty($citoyen)){
-						$citoyen["type"]=Person::COLLECTION;
-						array_push($people, $citoyen);
-						array_push($attending, $citoyen);
-					}
+				if(@$event["links"]["attendees"]){
+	            	foreach ($event["links"]["attendees"] as $uid => $e) {
+						$citoyen = Person::getPublicData($uid);
+						if(@$e["isAdmin"] && $e["isAdmin"]==true)
+							$openEdition = false;
+						if(!empty($citoyen)){
+							$citoyen["type"]=Person::COLLECTION;
+							if(@$e["isAdmin"]){
+								if(@$e["isAdminPending"])
+									$citoyen["isAdminPending"]=true;
+		  						$citoyen["isAdmin"]=true;  				
+	  						}
+							array_push($people, $citoyen);
+							array_push($attending, $citoyen);
+						}
+            		}
             	}
-				if(isset($event["links"]["organizer"])){
+				if(@$event["links"]["organizer"]){
+					$openEdition=false;
 					foreach ($event["links"]["organizer"] as $uid => $e) {
 	            		$organizer["type"] = $e["type"];
 	            		if($organizer["type"] == Project::COLLECTION ){
@@ -52,12 +62,12 @@ class DetailAction extends CAction {
                 		$organizer["id"] = $uid;
                 		$organizer["name"] = $organizerInfo["name"];
                 		$organizer["profilImageUrl"] = $organizerInfo["profilImageUrl"];
-                		array_push($controller->toolbarMBZ, array('position' => 'right', 
+                		/*array_push($controller->toolbarMBZ, array('position' => 'right', 
                                                           'label'=> Yii::t("common","Organizator detail"), 
                                                           'tooltip' => Yii::t("common","Back to")." ".$urlType, 
                                                           "iconClass"=>"fa ".$iconNav,
 														  "parent"=>"span",
-                                                          "href"=>'<a href="javascript:;" onclick="loadByHash( \'#'.$urlType.'.detail.id.'.$uid.'\')" class="tooltips btn btn-default"'));
+                                                          "href"=>'<a href="javascript:;" onclick="loadByHash( \'#'.$urlType.'.detail.id.'.$uid.'\')" class="tooltips btn btn-default"'));*/
               		}
             	} else if(isset($event["links"]["creator"])) {
 	                foreach ($event["links"]["creator"] as $uid => $e) {
@@ -91,6 +101,7 @@ class DetailAction extends CAction {
         $params["event"] = $event;
         $params["organizer"] = $organizer;
         $params["people"] = $people;
+        $params["openEdition"] = $openEdition;
         $params["countries"] = OpenData::getCountriesList();
 
         $list = Lists::get(array("eventTypes"));
