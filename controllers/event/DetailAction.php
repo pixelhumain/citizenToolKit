@@ -7,7 +7,7 @@ class DetailAction extends CAction {
     public function run($id) { 
     	$controller=$this->getController();
 		$event = Event::getPublicData($id);
-        Menu::event($event);
+		Menu::event($event,true);
         $contentKeyBase = "Yii::app()->controller->id.".".dashboard";
 		$limit = array(Document::IMG_PROFIL => 1, Document::IMG_MEDIA => 5);
 		$images = Document::getImagesByKey((string)$event["_id"], Event::COLLECTION, $limit);
@@ -70,9 +70,21 @@ class DetailAction extends CAction {
           	}
         }
         //events can have sub evnets
-        $subEvents = PHDB::find(Event::COLLECTION,array("parentId"=>$id));
-        $params["subEvents"] = $subEvents;
-        
+        $params["subEvents"] = PHDB::find(Event::COLLECTION,array("parentId"=>$id));
+        $params["subEventsOrganiser"] = array();
+        $hasSubEvents = false;
+        if(@$params["subEvents"]){
+        	$hasSubEvents = true;
+        	foreach ($params["subEvents"] as $key => $value) {
+        		if( @$value["links"]["organizer"] )
+        		{
+	        		foreach ($value["links"]["organizer"] as $key => $value) {
+	        			if( !@$params["subEventsOrganiser"][$key])
+	        				$params["subEventsOrganiser"][$key] = Element::getInfos( $value["type"], $key);
+	        		}
+        		}
+        	}
+        }
         $params["images"] = $images;
         $params["contentKeyBase"] = $contentKeyBase;
         $params["attending"] = $attending;
@@ -84,6 +96,7 @@ class DetailAction extends CAction {
         $list = Lists::get(array("eventTypes"));
         $params["eventTypes"] = $list["eventTypes"];
         
+
 		$page = "detail";
 		    if(Yii::app()->request->isAjaxRequest)
           echo $controller->renderPartial($page,$params,true);

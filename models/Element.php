@@ -48,4 +48,30 @@ class Element {
 	    
     	return $link;
     }
+
+    public static function getInfos( $type, $id, $loadByHashOnly=null ) {	    
+    	$link = ""; 
+    	$name = ""; 
+    	if(@$type && @$id && $type != City::COLLECTION){
+    		$el = PHDB::findOne ( $type , array( "_id" => new MongoId($id) ) );
+	    	$ctrl = self::getControlerByCollection($type);
+	    	if( @$el && @$ctrl )
+	    		$link = "loadByHash('#".$ctrl.".detail.id.".$id."')";
+	    }
+	    else if($type == City::COLLECTION){
+	    	$el = City::getByUnikey($id);
+	    	$ctrl = self::getControlerByCollection($type);
+	    	if( @$el && @$ctrl )
+	    		$link = "loadByHash('#".$ctrl.".detail.insee.".$el['insee'].".cp.".$el['cp']."')";
+	    }
+	    
+	    if (! $loadByHashOnly) {
+	    	$link = "<a href='javascript:;' onclick=\"".$link."\">".$el['name']."</a>";
+	    }
+	    
+    	return array( "link" => $link , 
+    					"name" => $el['name'], 
+    					"type"=>$type,
+    					"id"=> $id);
+    }
 }
