@@ -29,8 +29,9 @@ class IndexAction extends CAction
 		}
         $controller=$this->getController();
         
-        
+        $podtitle = '';
         if( $type == Project::COLLECTION ) {
+        	$podtitle = Yii::t("gantt","PROJECT TIMELINE",null,Yii::app()->controller->module->id);
             $controller->toolbarMBZ = array("<a href='".Yii::app()->createUrl("/".$controller->module->id."/project/dashboard/id/".$id)."'><i class='fa fa-lightbulb-o'></i>Project</a>");
             $project = Project::getById($id);
 
@@ -74,6 +75,7 @@ class IndexAction extends CAction
 			}
         } 
         else if( $type == Event::COLLECTION ) {
+        	$podtitle = Yii::t("gantt","EVENT PROGRAM",null,Yii::app()->controller->module->id);
             $controller->toolbarMBZ = array("<a href='".Yii::app()->createUrl("/".$controller->module->id."/event/dashboard/id/".$id)."'><i class='fa fa-lightbulb-o'></i>Event</a>");
             $event = Event::getById($id);
             $subEvents = PHDB::find(Event::COLLECTION,array("parentId"=>$id));
@@ -114,7 +116,7 @@ class IndexAction extends CAction
 				$taskEvent=$newArrayEvent;
 			}
         } 
-        
+
         $where = array(
                 "_id"=>new MongoId($id),
                 "tasks" =>  array('$exists' => 1));
@@ -158,7 +160,10 @@ class IndexAction extends CAction
 		$tasks2 = array_msort($tasksFinal, array('startDate'=>SORT_ASC, 'endDate'=>SORT_ASC));
 // Trie les données par volume décroissant, edition croissant
 // Ajoute $data en tant que dernier paramètre, pour trier par la clé commune
-		$params = array("tasks" => $tasks2,  "period" => $period, "edit" => $isAdmin);
+		$params = array("tasks" => $tasks2,  
+						"period" => $period, 
+						"edit" => $isAdmin,
+						"podtitle"=>$podtitle);
 		if(Yii::app()->request->isAjaxRequest)
 	        echo $controller->renderPartial("index", $params,true);
 	    else
