@@ -537,7 +537,7 @@ class Authorisation {
      * @param boolean $pending : true include the pending admins. By default no.
      * @return type array of person Id
      */
-    public static function listOrganizationAdmins($organizationId, $pending=false) {
+    /*public static function listOrganizationAdmins($organizationId, $pending=false) {
         $res = array();
         $organization = Organization::getById($organizationId);
         
@@ -557,7 +557,7 @@ class Authorisation {
         }
 
         return $res;
-    }
+    }*/
     /**
      * List the user that are admin of the organization
      * @param string $organizationId The organization Id to look for
@@ -573,16 +573,23 @@ class Authorisation {
 		else if ($parentType == Project::COLLECTION){     
 	        $parent = Project::getById($parentId);
 	        $link="contributors";
+		} else if ($parentType == Event::COLLECTION){     
+	        $parent = Event::getById($parentId);
+	        $link="attendees";
 		}
+		
 
         if ($users = @$parent["links"][$link]) {
             foreach ($users as $personId => $linkDetail) {
                 if (@$linkDetail["isAdmin"] == true) {
-                    if ($pending) {
-                        array_push($res, $personId);
-                    } else if (@$linkDetail["isAdminPending"] == null || @$linkDetail["isAdminPending"] == false) {
-                        array_push($res, $personId); 
-                    }
+	                $userActivated = Role::isUserActivated($personId);
+	                if($userActivated){
+	                    if ($pending) {
+	                        array_push($res, $personId);
+	                    } else if (@$linkDetail["isAdminPending"] == null || @$linkDetail["isAdminPending"] == false) {
+	                        array_push($res, $personId); 
+	                    }
+	                }
                 }
             }
         }
