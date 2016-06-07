@@ -6,17 +6,23 @@ class EventSVAction extends CAction
     	$controller = $this->getController();
     	$params = array();
     	if(@$_GET["contextType"]){
+	    	$params["parentType"] = $_GET["contextType"];
 	    	if( $_GET["contextType"] == "organization" ){
-	    		$params["organizationId"] = $_GET["contextId"];
-	    		$params["organization"] = Organization::getPublicData($_GET["contextId"]);
+	    		$params["parentId"] = $_GET["contextId"];
+	    		$params["parent"] = Organization::getSimpleOrganizationById($_GET["contextId"]);
 			}
 	    	else if( $_GET["contextType"] == "project" ){
-	    		$params["projectId"] = $_GET["contextId"];
-	    		$params["project"] = Project::getPublicData($_GET["contextId"]);
+	    		$params["parentId"] = $_GET["contextId"];
+	    		$params["parent"] = Project::getSimpleProjectById($_GET["contextId"]);
 			}
+			else if( $_GET["contextType"] == "event" ){
+	    		$params["parentId"] = $_GET["contextId"];
+	    		$params["parent"] = Event::getSimpleEventById($_GET["contextId"]);
+			}
+
 		}
 		else {
-			$params["person"] = Person::getPublicData(Yii::app() -> session['userId']);
+			$params["person"] = Person::getSimpleUserById(Yii::app() -> session['userId']);
 		}
     	$lists = Lists::get(array("eventTypes"));
     	$params["lists"] = $lists;
