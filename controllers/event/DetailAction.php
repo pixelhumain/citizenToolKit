@@ -23,7 +23,7 @@ class DetailAction extends CAction {
 			if(isset($event["links"])){
 				if(@$event["links"]["attendees"]){
 	            	foreach ($event["links"]["attendees"] as $uid => $e) {
-						$citoyen = Person::getPublicData($uid);
+						$citoyen = Person::getSimpleUserById($uid);
 						if(@$e["isAdmin"] && $e["isAdmin"]==true)
 							$openEdition = false;
 						if(!empty($citoyen)){

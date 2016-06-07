@@ -117,7 +117,7 @@ class News {
 						$from = $organization['geo'];
 					$codeInsee=$organization["address"]["codeInsee"];
 					$postalCode=$organization["address"]["postalCode"];
-						$organization["type"]=Organization::COLLECTION;
+					$organization["type"]=Organization::COLLECTION;
 					Notification::actionOnPerson ( ActStr::VERB_POST, ActStr::ICON_COMMENT, null , $organization )  ;
 				}
 				else if($type == Event::COLLECTION ){
@@ -126,7 +126,8 @@ class News {
 						$from = $event['geo'];
 					$codeInsee=$event["address"]["codeInsee"];
 					$postalCode=$event["address"]["postalCode"];
-					//Notification::actionOnEvent ( ActStr::VERB_POST, ActStr::ICON_COMMENT, null , $event )  ;
+					$event["type"]=Event::COLLECTION;
+					Notification::actionOnPerson ( ActStr::VERB_POST, ActStr::ICON_COMMENT, null , $event )  ;
 				}
 				else if($type == Project::COLLECTION ){
 					$project = Project::getById($_POST["parentId"]);

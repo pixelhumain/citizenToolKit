@@ -81,7 +81,7 @@ class Link {
 		$res=self::connect($projectId, Project::COLLECTION, $creatorId, $creatorType, $creatorId, "contributors", true );
 		return array("result"=>true);
 	}
-    /** TODO BOUBOULE- PLUS UTILISER ?? A SUPPRIMER
+    /** TODO CDA - PLUS UTILISER ?? A SUPPRIMER
      * Remove a member of an organization
      * Delete a link between the 2 actors.
      * The memberOf should be an organization
@@ -96,7 +96,7 @@ class Link {
      * @param type $userId $userId The userId doing the action
      * @return result array with the result of the operation
      */
-    public static function removeMember($memberOfId, $memberOfType, $memberId, $memberType, $userId) {
+    /*public static function removeMember($memberOfId, $memberOfType, $memberId, $memberType, $userId) {
         
         //0. Check if the $memberOfId and the $memberId exists
         $memberOf = Link::checkIdAndType($memberOfId, $memberOfType);
@@ -123,8 +123,8 @@ class Link {
         //TODO - Send email to the member
 
         return array("result"=>true, "msg"=>"The member has been removed with success", "memberOfid"=>$memberOfId, "memberid"=>$memberId);
-    }
-
+    }*/
+    
     private static function checkIdAndType($id, $type) {
 		if ($type == Organization::COLLECTION) {
         	$res = Organization::getById($id); 
@@ -614,6 +614,7 @@ class Link {
 		if($parentType == Organization::COLLECTION){
 			$parentData = Organization::getById($parentId);
 			$usersAdmin = Authorisation::listAdmins($parentId,  $parentType, false);
+			$parentUsersList = Organization::getMembersByOrganizationId($parentId,  "all", null);
 			$parentController = Organization::CONTROLLER;
 			$parentConnectAs = "members";
 			$childConnectAs = "memberOf";
@@ -623,6 +624,7 @@ class Link {
 		else if ($parentType == Project::COLLECTION){
 			$parentData = Project::getById($parentId);			
 			$usersAdmin = Authorisation::listAdmins($parentId,  $parentType, false);
+			$parentUsersList = Project::getContributorsByProjectId( $parentId ,"all", null ) ;
 			$parentController=Project::CONTROLLER;
 			$parentConnectAs="contributors";
 			$childConnectAs="projects";
@@ -632,6 +634,7 @@ class Link {
 		else if ($parentType == Event::COLLECTION){
 			$parentData = Event::getById($parentId);	
 			$usersAdmin = Authorisation::listAdmins($parentId,  $parentType, false);
+			$parentUsersList = Event::getAttendeesByEventId( $parentId ,"all", null);
 			$parentController = Event::CONTROLLER;
 			$parentConnectAs="attendees";
 			$childConnectAs="events";
@@ -685,10 +688,22 @@ class Link {
         if (!$pendingChild) {
             return array("result" => true, "msg" => "Something went wrong ! Impossible to find the children ".$childId);
         }
-		
+		//Check if the child is already link to the parent with the connectType
+
+		$alreadyLink=false;
+		if($typeOfDemand != "admin"){
+			if(@$parentUsersList[$childId])
+				$alreadyLink=true;
+		}else{
+			if(@$parentUsersList[$childId] && @$parentUsersList[$childId]["isAdmin"])
+				$alreadyLink=true;
+		}
+		if($alreadyLink)
+			return array("result" => false, "type"=>"info", "msg" => $pendingChild["name"]." ".Yii::t("common", "is already ".$typeOfDemand." of")." ".Yii::t("common","this ".$parentController)." !");
+			
         //Check : You are already member or admin
 		if ($actionFromAdmin && $userId == $childId) 
-			return array("result" => false, "msg" => Yii::t("common", "Your are already admin of")." ".Yii::t("common","this ".$parentController)." !");
+			return array("result" => false, "type"=>"info", "msg" => Yii::t("common", "Your are already admin of")." ".Yii::t("common","this ".$parentController)." !");
 		
 
         //First case : The parent doesn't have an admin yet or it is an action from an admin or it is an event: 
@@ -705,10 +720,12 @@ class Link {
 				}
 			} else{
 				$verb = ActStr::VERB_JOIN;
-				if($childId==Yii::app()->session["userId"] )
+				if($childId==Yii::app()->session["userId"] ){
 					$msg= Yii::t("common", "You are now ".$typeOfDemand." of")." ".Yii::t("common","this ".$parentController);
-				else
+				}else{
+					$invitation = ActStr::VERB_INVITE;
 					$msg= $pendingChild["name"]." ".Yii::t("common","is now ".$typeOfDemand." of")." ".$parentData["name"];
+				}
 			}
 			// Check if links follows exists than if true, remove of follows and followers links
 			self::checkAndRemoveFollowLink($parentId,$parentType,$childId,$childType);
