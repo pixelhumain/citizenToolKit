@@ -315,6 +315,20 @@ class Event {
 	    return array("result"=>true, "msg"=>Yii::t("event", "The event has been updated"), "id"=>$eventId);
 	}
 	/**
+	 * Retrieve the list of events, for a given event 
+	 * @param String event Id
+	 * @return array list of the event and it's subevents
+	 */
+	public static function getListEventsById($id) {
+		$event = self::getById($id);
+		$listEvent = array($id => $event);
+        $subEvents = PHDB::findAndSort(self::COLLECTION, array 	('parentId' => $id ), array('startDate' => 1));
+        $listEvent = array_merge($listEvent,$subEvents);
+
+        return Event::addInfoEvents($listEvent);
+	}
+
+	/**
 	 * Retrieve the list of events, the organization is organizer
 	 * Special case : when the organization can edit member data : retireve the events of the members
 	 * The event should not be over
@@ -502,32 +516,34 @@ class Event {
 	public static function addInfoEvents($events){
 		foreach ($events as $key => $value) {
 
-	  		if (!empty($value["startDate"]) && !empty($value["endDate"])) {
-				if (gettype($value["startDate"]) == "object" && gettype($value["endDate"]) == "object") {
+	  		if (!empty($value["startDate"]) && !empty($value["endDate"])) 
+	  		{
+				if (gettype($value["startDate"]) == "object" && gettype($value["endDate"]) == "object") 
+				{
 					$events[$key]["startDate"] = date('Y-m-d H:i:s', $value["startDate"]->sec);
 					$events[$key]["endDate"] = date('Y-m-d H:i:s', $value["endDate"]->sec);
-				} else {
+				} 
+				else 
+				{
 					//Manage old date with string on date value
 					$now = time();
 					$yesterday = mktime(0, 0, 0, date("m")  , date("d")-1, date("Y"));
 					$yester2day = mktime(0, 0, 0, date("m")  , date("d")-2, date("Y"));
 					$events[$key]["endDate"] = date('Y-m-d H:i:s', $yesterday);
-					$events[$key]["startDate"] = date('Y-m-d H:i:s',$yester2day);;
+					$events[$key]["startDate"] = date('Y-m-d H:i:s',$yester2day);
 				}
 			}
 
 	  		$events[$key]["organizer"] = "";
-	  		if(isset( $value["links"] )){
-		  		foreach ( $value["links"] as $k => $v ) {
-		  			if($k == "organizer"){
-		  				foreach ($v as $organizerId => $val) {
-		  					$organization = Organization::getById($organizerId);
-		  					$events[$key]["organizer"] = $organization["name"];
-		  				}
-		  			}
+	  		if( @$value["links"]["organizer"] )
+	  		{
+		  		foreach ( $value["links"]["organizer"] as $organizerId => $val ) 
+		  		{
+  					$organization = Organization::getById($organizerId);
+  					$events[$key]["organizer"] = $organization["name"];
 		  		}
 		  	}
- 	  		$events[$key] = array_merge($events[$key], Document::retrieveAllImagesUrl($id, self::COLLECTION));
+ 	  		$events[$key] = array_merge($events[$key], Document::retrieveAllImagesUrl($key, self::COLLECTION));
 	  	}
 	  	return $events;
 	}
