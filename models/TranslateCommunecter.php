@@ -2,11 +2,8 @@
 class TranslateCommunecter {
 /*
 
-	----------------- PLP ----------------- 
-
-	https://github.com/hackers4peace/plp-test-data/blob/master/graph.jsonld
-	*/
-	//http://127.0.0.1/ph/communecter/data/get/type/citoyens/id/520931e2f6b95c5cd3003d6c/format/plp
+	----------------- COMMUNECTER ----------------- 
+*/
 	public static $dataBinding_person = array(
 	    "@context"  => "",
 		"@type"		=> "Person",
@@ -34,7 +31,6 @@ class TranslateCommunecter {
 															"suffix"   => "" )
 						    
 				 		)),
-		/*"birthDate" => array("valueOf" => "bitrh"),*/
 	    "address" 	=> array("parentKey"=>"address", 
 	    					 "valueOf" => array(
 									"@type" 			=> "PostalAddress", 
