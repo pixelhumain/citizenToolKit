@@ -118,7 +118,7 @@ class News {
 					$codeInsee=$organization["address"]["codeInsee"];
 					$postalCode=$organization["address"]["postalCode"];
 					$organization["type"]=Organization::COLLECTION;
-					Notification::actionOnPerson ( ActStr::VERB_POST, ActStr::ICON_COMMENT, null , $organization )  ;
+					Notification::actionOnPerson ( ActStr::VERB_POST, ActStr::ICON_RSS, null , $organization )  ;
 				}
 				else if($type == Event::COLLECTION ){
 					$event = Event::getById($_POST["parentId"]);
@@ -127,7 +127,7 @@ class News {
 					$codeInsee=$event["address"]["codeInsee"];
 					$postalCode=$event["address"]["postalCode"];
 					$event["type"]=Event::COLLECTION;
-					Notification::actionOnPerson ( ActStr::VERB_POST, ActStr::ICON_COMMENT, null , $event )  ;
+					Notification::actionOnPerson ( ActStr::VERB_POST, ActStr::ICON_RSS, null , $event )  ;
 				}
 				else if($type == Project::COLLECTION ){
 					$project = Project::getById($_POST["parentId"]);
@@ -136,7 +136,7 @@ class News {
 					$codeInsee=$project["address"]["codeInsee"];
 					$postalCode=$project["address"]["postalCode"];
 					$project["type"] = Project::COLLECTION; 
-					Notification::actionOnPerson ( ActStr::VERB_POST, ActStr::ICON_COMMENT, null , $project )  ;
+					Notification::actionOnPerson ( ActStr::VERB_POST, ActStr::ICON_RSS, null , $project )  ;
 				}
 				if( isset($_POST["scope"])) {
 					if(@$_POST["codeInsee"]){

@@ -9,6 +9,7 @@ class ActStr {
     const ICON_CLOSE = "fa-times";
     const ICON_ADD = "fa-plus";
     const ICON_VOTE = "fa-gavel";
+    const ICON_RSS = "fa-rss";
 
     const VIEW_PAGE = "viewPage";
 
