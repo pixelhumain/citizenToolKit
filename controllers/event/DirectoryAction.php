@@ -18,16 +18,14 @@ class DirectoryAction extends CAction
           $event = Event::getPublicData($id);
           Menu::event($event,true);
           $params = array(
+            "event" => $event,
+            "type" => Event::CONTROLLER,
             "events" => array(),
             "people" => array(),
             "organizations" => array()
             );
 
          
-          /* **************************************
-          *  PEOPLE
-          ***************************************** */
-       $people = array();
         //$admins = array();
         if(!empty($event)){
 
@@ -65,7 +63,8 @@ class DirectoryAction extends CAction
                 $organization = Organization::getById($id);
                 array_push($params["organizations"], $organization);
               }
-            }else if(isset($event["links"]["creator"])){
+            }
+            else if(isset($event["links"]["creator"])){
               foreach ($event["links"]["creator"] as $id => $e) {
                 $citoyen = Person::getById($id);
                 array_push($params["people"], $citoyen);
