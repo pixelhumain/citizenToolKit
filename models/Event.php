@@ -250,8 +250,11 @@ class Event {
 	    return $newEvent;
 	}
 
-	public static function saveEvent($params) {
-		$newEvent = self::getAndCheckEvent($params);
+	public static function saveEvent($params, $import = false, $warnings = null) {
+		if($import == false)
+			$newEvent = self::getAndCheckEvent($params);
+		else
+			$newEvent = self::getAndCheckEventFromImportData($params, true, null, $warnings);
 
 	    PHDB::insert(self::COLLECTION,$newEvent);
 	    
@@ -982,6 +985,9 @@ class Event {
 
 		if(!empty($event['source']))
 			$newEvent["source"] = $event["source"];
+
+		if(!empty($event['parentId']))
+	        $newEvent["parentId"] = $event['parentId'];
 		
 
 		$address = (empty($event['address']) ? null : $event['address']);
@@ -1020,18 +1026,11 @@ class Event {
 			$newEvent['name'] = $event['name'];
 		
 		$newEvent['created'] = new MongoDate(time()) ;
-		
-		
-		/*if(!empty($event['email'])) {
-			if (! preg_match('#^[\w.-]+@[\w.-]+\.[a-zA-Z]{2,6}$#',$event['email'])) { 
-				if($warnings)
-					$newEvent["warnings"][] = "205" ;
-				else
-					throw new CTKException(Yii::t("import","205", null, Yii::app()->controller->module->id));
-			}
-			$newEvent["email"] = $event['email'];
-		}*/
+		$newEvent['creator'] = (empty($event["creator"]) ? Yii::app()->session['userId'] : $event["creator"] );
+		$newEvent['organizerType'] = (empty($event["organizerType"]) ? self::NO_ORGANISER: $event["organizerType"] );
+		$newEvent['organizerId'] = (empty($event["organizerId"]) ? Yii::app()->session['userId']: $event["organizerId"] );
 
+		
 		if(empty($event['type'])) {
 			if($warnings)
 			{
@@ -1152,6 +1151,9 @@ class Event {
 		}else{
 			$newEvent['endDate'] = new MongoDate(time() + (7 * 24 * 60 * 60));
 		}
+
+		if(!empty($event['parentId']))
+	        $newEvent["parentId"] = $event['parentId'];
 		
 		return $newEvent;
 	}
@@ -1163,13 +1165,6 @@ class Event {
 		
 		if (isset($newEvent["tags"]))
 			$newEvent["tags"] = Tags::filterAndSaveNewTags($newEvent["tags"]);
-
-		//Add the user creator of the event in the system
-		/*if (empty($creatorId)) {
-			//throw new CTKException("The creator of the event is required.");
-		} else {
-			$newEvent["creator"] = $creatorId;	
-		}*/
 		$newEvent["creator"] = Yii::app()->session['userId'];
 		$newEvent["organizerId"] = Yii::app()->session['userId'];
 		$newEvent["organizerType"] = Person::COLLECTION ;	
@@ -1193,6 +1188,52 @@ class Event {
 		    			"msg"=>"Votre event est communectée.", 
 		    			"id"=>$newEventId, 
 		    			"newOrganization"=> $newEvent);
+	
+
+
+	    $newEvent = self::getAndCheckEvent($params);
+
+	    PHDB::insert(self::COLLECTION,$newEvent);
+	    $creator = true;
+		$isAdmin = false;
+		
+		if($params["organizerType"] == Person::COLLECTION )
+			$isAdmin=true;
+
+	    if($params["organizerType"] != self::NO_ORGANISER ){
+	    	Link::attendee($newEvent["_id"], Yii::app()->session['userId'], $isAdmin, $creator);
+	    	Link::addOrganizer($params["organizerId"],$params["organizerType"], $newEvent["_id"], Yii::app()->session['userId']);
+	    } else {
+	    	$params["organizerType"] = Person::COLLECTION;
+	    	$params["organizerId"] = Yii::app()->session['userId'];
+	    }
+
+	    //if it's a subevent, add the organiser to the parent user Organiser list 
+    	//ajouter le nouveau sub user dans organiser ?
+    	if( @$newEvent["parentId"] )
+			Link::connect( $newEvent["parentId"], Event::COLLECTION,$newEvent["_id"], Event::COLLECTION, Yii::app()->session["userId"], "subEvents");	
+
+		Notification::createdObjectAsParam( Person::COLLECTION, Yii::app()->session['userId'],Event::COLLECTION, (String)$newEvent["_id"], $params["organizerType"], $params["organizerId"], $newEvent["geo"], array($newEvent["type"]),$newEvent["address"]);
+
+	    $creator = Person::getById(Yii::app()->session['userId']);
+	    Mail::newEvent($creator,$newEvent);
+	    
+	    //TODO : add an admin notification
+	    //Notification::saveNotification(array("type"=>NotificationType::ASSOCIATION_SAVED,"user"=>$new["_id"]));
+	    
+	    return array("result"=>true, "msg"=>Yii::t("event","Your event has been connected."), "id"=>$newEvent["_id"], "event" => $newEvent );
+	
+
+
+
+
+
+
+
+
+
+
+
 	}
 
 

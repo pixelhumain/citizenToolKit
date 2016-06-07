@@ -940,7 +940,8 @@ class Import
                     else if($typeEntity == "invite")
                         $res = Person::insertPersonFromImportData($value,true, true, $pathFolderImage, $moduleId, $paramsLink) ;
                     else if($typeEntity == "event")
-                        $res = Event::insertEventFromImportData($value,true, $post["link"]);
+                        $res = Event::saveEvent($value, true);
+                        //$res = Event::insertEventFromImportData($value,true, $post["link"]);
 
                     if($res["result"] == true){
                         $entite["name"] =  $value["name"];
