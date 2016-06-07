@@ -703,7 +703,7 @@ class Link {
 			
         //Check : You are already member or admin
 		if ($actionFromAdmin && $userId == $childId) 
-			return array("result" => false, "type"=>"info", "msg" => Yii::t("common", "Your are already admin of")." ".Yii::t("common","this ".$parentController)." !");
+			return array("result" => false, "type"=>"info", "msg" => Yii::t("common", "You are already admin of")." ".Yii::t("common","this ".$parentController)." !");
 		
 
         //First case : The parent doesn't have an admin yet or it is an action from an admin or it is an event: 
