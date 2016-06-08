@@ -26,11 +26,8 @@ class Event {
 	    "modules" => array("name" => "modules"),
 	    "startDate" => array("name" => "startDate", "rules" => array("eventStartDate")),
 	    "endDate" => array("name" => "endDate", "rules" => array("eventEndDate")),
-<<<<<<< HEAD
 	    "parentId" => array("name" => "parentId"),
-=======
 	    "source" => array("name" => "source")
->>>>>>> f037a14c4e2da8e4377955415774f66e7f93153c
 	);
 
 	//TODO SBAR - First test to validate data. Move it to DataValidator
