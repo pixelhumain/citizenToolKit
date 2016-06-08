@@ -1411,17 +1411,23 @@ class Person {
 	 * @param string $userId UserId doing the insertion
 	 * @return array as result type
 	 */
-	public static function insertPersonFromImportData($person, $warnings, $invite=null, $pathFolderImage = null, $moduleId = null){
+	public static function insertPersonFromImportData($person, $warnings, $invite=null, $isKissKiss = null, $pathFolderImage = null, $moduleId = null){
 	    
 		$account = PHDB::findOne(Person::COLLECTION,array("email"=>$person["email"]));
 		if($account){
-			if(!empty($account["roles"]["tobeactivated"]) && $account["roles"]["tobeactivated"] == true){
-
+			if(!empty($account["roles"]["tobeactivated"]) && $account["roles"]["tobeactivated"] == false){
+				if(!empty($invite)){
+					if(!empty($isKissKiss))
+						Mail::inviteKKBB($person, false);
+				}
 			}else{
-
+				if(!empty($invite)){
+					if(empty($isKissKiss))
+						Mail::invitePerson($account, $person["msgInvite"], $person["nameInvitor"]);
+					else
+						Mail::inviteKKBB($person, true);
+				}
 			}
-
-		  	
 		}else{
 			$newPerson = self::getAndCheckPersonFromImportData($person, $invite, null, null, $warnings);
 	    
@@ -1482,9 +1488,11 @@ class Person {
 			}
 
 			if(!empty($invite)){
-				Mail::invitePerson($newPerson, $msgMail, $nameInvitor);
+				if(empty($isKissKiss))
+					Mail::invitePerson($newPerson, $msgMail, $nameInvitor);
+				else
+					Mail::inviteKKBB($newPerson, true);
 			}
-
 			return array("result"=>true, "msg"=>"Cette personne est communecté.", "id" => $newPerson["_id"]);
 
 		}  	
