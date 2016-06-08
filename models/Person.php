@@ -1494,6 +1494,21 @@ class Person {
 				}	
 			}
 
+
+			if(!empty($paramsLink) && $paramsLink["link"] == true){
+				if($paramsLink["typeLink"] == "Organization"){
+					Link::connect($paramsLink["idLink"], Organization::COLLECTION, $newpersonId, self::COLLECTION, $creatorId,"members", false);
+					Link::connect($newpersonId, self::COLLECTION, $paramsLink["idLink"], Organization::COLLECTION, $creatorId,"memberOf",false);
+					//Link::addMember($paramsLink["idLink"], Organization::COLLECTION, $newOrganizationId, Organization::COLLECTION, $creatorId, $paramsLink["isAdmin"]);
+				}
+				if($paramsLink["typeLink"] == "Person"){
+					//Link::connect($newOrganizationId, Organization::COLLECTION, $paramsLink["idLink"], Person::COLLECTION, $creatorId,"members",$paramsLink["isAdmin"]);
+					//Link::connect($paramsLink["idLink"], Person::COLLECTION, $newOrganizationId, Organization::COLLECTION, $creatorId,"memberOf",$paramsLink["isAdmin"]);
+				   //Link::addMember($newOrganizationId, Organization::COLLECTION, $paramsLink["idLink"], Person::COLLECTION, $creatorId, $paramsLink["isAdmin"]);
+				}
+		
+			}
+
 			if(!empty($invite)){
 				if(empty($isKissKiss))
 					Mail::invitePerson($newPerson, $msgMail, $nameInvitor);
