@@ -18,10 +18,10 @@
 		  				$params['events'] = Event::getListCurrentEventsByOrganizationId($id);
 		  		}else{
 		  			//means we are showing details of an events
-		  			$params['events'] = Event::getListEventsById($id);
+		  			
 		  			$event = Event::getById($id);
 		  			$params['event'] = $event;
-		  			
+		  			$params['events'] = Event::getListEventsById($id);
 		  			if( @$event['startDate'] ){
 		  				//focus on the start date of the event 
 		  				$params['defaultDate'] = date("Y-m-d", strtotime($event["startDate"]) );

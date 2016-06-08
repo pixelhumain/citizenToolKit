@@ -30,7 +30,7 @@ class Element {
     public static function getLink( $type, $id, $loadByHashOnly=null ) {	    
     	$link = ""; 
     	if(@$type && @$id && $type != City::COLLECTION){
-    		$el = PHDB::findOne ( $type , array( "_id" => new MongoId($id) ),array('name') );
+    		$el = PHDB::findOne ( $type , array( "_id" => new MongoId($id) ) );
 	    	$ctrl = self::getControlerByCollection($type);
 	    	if( @$el && @$ctrl )
 	    		$link = "loadByHash('#".$ctrl.".detail.id.".$id."')";
@@ -53,7 +53,7 @@ class Element {
     	$link = ""; 
     	$name = ""; 
     	if(@$type && @$id && $type != City::COLLECTION){
-    		$el = PHDB::findOne ( $type , array( "_id" => new MongoId($id) ) ,array('name') );
+    		$el = PHDB::findOne ( $type , array( "_id" => new MongoId($id) ) );
 	    	$ctrl = self::getControlerByCollection($type);
 	    	if( @$el && @$ctrl )
 	    		$link = "loadByHash('#".$ctrl.".detail.id.".$id."')";
@@ -71,6 +71,7 @@ class Element {
 	    
     	return array( "link" => $link , 
     					"name" => $el['name'], 
+    					"profilThumbImageUrl" => @$el['profilThumbImageUrl'], 
     					"type"=>$type,
     					"id"=> $id);
     }
