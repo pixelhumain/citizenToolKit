@@ -21,6 +21,7 @@
 		  			$params['events'] = Event::getListEventsById($id);
 		  			$event = Event::getById($id);
 		  			$params['event'] = $event;
+		  			
 		  			if( @$event['startDate'] ){
 		  				//focus on the start date of the event 
 		  				$params['defaultDate'] = date("Y-m-d", strtotime($event["startDate"]) );

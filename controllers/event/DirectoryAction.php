@@ -16,6 +16,7 @@ class DirectoryAction extends CAction
           *  PERSON
           ***************************************** */
           $event = Event::getPublicData($id);
+          
           $params = array(
             "event" => $event,
             "type" => Event::CONTROLLER,
