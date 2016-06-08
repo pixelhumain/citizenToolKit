@@ -86,7 +86,6 @@ class Person {
 	    $user ["profilImageUrl"] = $simpleUser["profilImageUrl"];
 	    $user ["profilThumbImageUrl"] = $simpleUser["profilThumbImageUrl"];
 	    $user ["profilMarkerImageUrl"] = $simpleUser["profilMarkerImageUrl"];
-	    $user ["gamification"]['total'] = $simpleUser["gamification"]['total'];
 	    
 	    Yii::app()->session["user"] = $user;
 	    Yii::app()->session["isRegisterProcess"] = $isRegisterProcess;
