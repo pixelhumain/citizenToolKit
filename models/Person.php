@@ -44,8 +44,6 @@ class Person {
 	    "source" => array("name" => "source"),
 	    "warnings" => array("name" => "warnings"),
 	    "modules" => array("name" => "modules"),
-	    "badges" => array("name" => "badges"),
-	    "source" => array("name" => "source")
 	);
 
 	public static function logguedAndValid() {
@@ -657,7 +655,6 @@ class Person {
 		if(is_string($personFieldValue))
 		$personFieldValue = trim($personFieldValue);
 		$dataFieldName = Person::getCollectionFieldNameAndValidate($personFieldName, $personFieldValue);
-		//var_dump($dataFieldName);
 		//Specific case : 
 		//Tags
 		if ($dataFieldName == "tags") 
@@ -719,7 +716,6 @@ class Person {
 		}
 		else {
 			$set = array($dataFieldName => $personFieldValue);	
-			//var_dump($set);
 			if ( $personFieldName == "bgClass") {
 				//save to session for all page reuse
 				$user = Yii::app()->session["user"];
@@ -985,10 +981,13 @@ class Person {
 			                          	)));
 			
 			//Send Notification to Invitor
-			Notification::actionOnPerson(
-				ActStr::VERB_SIGNIN, ActStr::ICON_SHARE, 
-				array("type"=>self::COLLECTION,"id"=> $account["_id"],"name"=>$account["name"]),
-				array("type"=>self::COLLECTION, "id"=> $account["invitedBy"],"name"=>"", ));
+			if(!empty($account["invitedBy"])){
+				Notification::actionOnPerson(
+					ActStr::VERB_SIGNIN, ActStr::ICON_SHARE, 
+						array("type"=>self::COLLECTION,"id"=> $account["_id"],"name"=>$account["name"]),
+						array("type"=>self::COLLECTION, "id"=> $account["invitedBy"],"name"=>"", ));
+			}
+			
 			$res = array("result" => true, "msg" => "The pending user has been updated and is now complete");
 		}
 		return $res;
@@ -1148,12 +1147,6 @@ class Person {
 		if(!empty($personImportData['warnings']))
 			$newPerson["warnings"] = $personImportData["warnings"];
 
-		if (!empty($personImportData['badges'])){
-			$newPerson["badges"] = $personImportData['badges'];
-		}
-			
-
-
 		if(!empty($personImportData['image']))
 			$newPerson["image"] = $personImportData["image"];
 
@@ -1203,16 +1196,9 @@ class Person {
 		}
 		//var_dump($personImportData['address']);
 		if(!empty($personImportData['address'])){
-			
 			$details = Import::getAndCheckAddressForEntity($personImportData['address'], (empty($newPerson['geo']) ? null : $newPerson['geo']), $warnings) ;
-			$newOrganization['address'] = $details['address'];
-
-			if(!empty($details['geo']))
-				$newPerson['geo'] = $details['geo'] ;
-			
-			if(!empty($details['geoPosition']))
-				$newPerson['geoPosition'] = $details['geoPosition'] ;
-
+			$newPerson['address'] = $details['address'];
+			//var_dump($newPerson['address']);
 			if(!empty($newPerson['warnings']))
 				$newPerson['warnings'] = array_merge($newPerson['warnings'], $details['warnings']);
 			else
@@ -1281,7 +1267,7 @@ class Person {
 					throw new CTKException(Yii::t("import","204", null, Yii::app()->controller->module->id));
 			}else
 				$newPerson['pwd'] = $person['pwd'];
-		}
+		
 			if(!empty($person['geo']) && !empty($person["geoPosition"])){
 				$newPerson["geo"] = $person['geo'];
 				$newPerson["geoPosition"] = $person['geoPosition'];
@@ -1343,8 +1329,8 @@ class Person {
 					//var_dump($resLocality);
 					if(!empty($resLocality["address"])){
 						
-						
-						$city = SIG::getCityByLatLngGeoShape($newPerson["geo"]["latitude"], $newPerson["geo"]["longitude"], (empty($resLocality["address"]["postcode"])?null:$resLocality["address"]["postcode"]));
+						$newPerson['address']['addressCountry'] = "FR";
+						$city = SIG::getInseeByLatLngCp($newPerson["geo"]["latitude"], $newPerson["geo"]["longitude"], (empty($resLocality["address"]["postcode"])?null:$resLocality["address"]["postcode"]));
 						/*if($city != null){
 							foreach ($city as $key => $value) {
 								$insee = $value["insee"];
@@ -1355,6 +1341,7 @@ class Person {
 							$locality = City::getAlternateNameByInseeAndCP($newPerson['address']['codeInsee'], $newPerson['address']['postalCode']);
 							$newPerson['address']['addressLocality'] = $locality['alternateName'];
 							
+
 						}*/
 						if(!empty($city)){
 	                        foreach ($city["postalCodes"] as $keyCp => $valueCp){
@@ -1371,7 +1358,15 @@ class Person {
 	                        if(!empty($newAddress))
 	                        	$newPerson['address'] = $newAddress;
 	               	 	}
-						
+
+
+						//Result DataGouv
+						/*$newPerson['address']['addressCountry'] = "FR";
+						$newPerson['address']['codeInsee'] = $resLocality["features"][0]["properties"]["citycode"];
+						$newPerson['address']['postalCode'] = $resLocality["features"][0]["properties"]["postcode"];
+						$newPerson['address']['streetAddress'] = $resLocality["features"][0]["properties"]["street"];
+						$newPerson['address']['addressLocality'] = City::getAlternateNameByInseeAndCP($newPerson['address']['codeInsee'], $newPerson['address']['postalCode']);
+						*/
 					}
 					else if($warnings)
 						$newPerson["warnings"][] = "100" ;
@@ -1383,12 +1378,12 @@ class Person {
 				else
 					throw new CTKException(Yii::t("import","100", null, Yii::app()->controller->module->id));
 			}
-		//}else{
+		}else{
 			if (!empty($person['msgInvite']))
 				$newPerson["msgInvite"] = $person['msgInvite'];
 			if (!empty($person['nameInvitor']))
 				$newPerson["nameInvitor"] = $person['nameInvitor'];
-		//}
+		}
 			
 		
 		
@@ -1426,9 +1421,6 @@ class Person {
 		if (!empty($person['source']))
 			$newPerson["source"] = $person['source'];
 
-		if (!empty($person['badges']))
-			$newPerson["badges"] = $person['badges'];
-
 		return $newPerson;
 	}
 
@@ -1438,87 +1430,143 @@ class Person {
 	 * @param string $userId UserId doing the insertion
 	 * @return array as result type
 	 */
-	public static function insertPersonFromImportData($person, $warnings, $invite=null, $pathFolderImage = null, $moduleId = null, $paramsLink = null, $sendMail = null){
+	public static function insertPersonFromImportData($person, $warnings, $invite=null, $pathFolderImage = null, $moduleId = null){
 	    
-	    try{
-	    	$newPerson = self::getAndCheckPersonFromImportData($person, $invite, null, null, $warnings);
-	    	//var_dump($newPerson);
-		    if(!empty($newPerson["warnings"]) && $warnings == true)
-		    	$newPerson["warnings"] = Import::getAndCheckWarnings($newPerson["warnings"]);
-		    if(!empty($newPerson["badges"])){
-		    	$newPerson["badges"] = Badge::conformeBadges($newPerson["badges"]);
-		    }
-		    
-		    
-		    $newPerson["@context"] = array("@vocab"=>"http://schema.org",
-	            "ph"=>"http://pixelhumain.com/ph/ontology/");
-		    $newPerson["roles"] = Role::getDefaultRoles();
-		  	$newPerson["created"] = new mongoDate(time());
-		  	$newPerson["preferences"] = array("seeExplanations"=> true);
+	    $newPerson = self::getAndCheckPersonFromImportData($person, $invite, null, null, $warnings);
+	    
+	    
+	    if(!empty($newPerson["warnings"]) && $warnings == true)
+	    	$newPerson["warnings"] = Import::getAndCheckWarnings($newPerson["warnings"]);
+	    
+	    $newPerson["@context"] = array("@vocab"=>"http://schema.org",
+            "ph"=>"http://pixelhumain.com/ph/ontology/");
+	    $newPerson["roles"] = Role::getDefaultRoles();
+	  	$newPerson["created"] = new mongoDate(time());
+	  	$newPerson["preferences"] = array("seeExplanations"=> true);	  		
 
-		  	if(!empty($newPerson["image"])){
-				$nameImage = $newPerson["image"];
-				unset($newPerson["image"]);
-			}
-			
-			if(!empty($invite) && $sendMail == true ){
-				$msgMail = $person["msgInvite"];
-				$nameInvitor = $person["nameInvitor"];
-	        	unset($person["msgInvite"]);
-	        	unset($person["nameInvitor"]);
-			}
-
-			PHDB::insert(Person::COLLECTION , $newPerson);
-
-		    if (isset($newPerson["_id"]))
-		    	$newpersonId = (String) $newPerson["_id"];
-		    else
-		    	throw new CTKException("Problem inserting the new person");
-
-		    if(!empty($nameImage)){
-				try{
-					$res = Document::uploadDocumentFromURL($moduleId, self::COLLECTION, $newpersonId, "avatar", false, $pathFolderImage, $nameImage);
-					if(!empty($res["result"]) && $res["result"] == true){
-						$params = array();
-						$params['id'] = $newpersonId;
-						$params['type'] = self::COLLECTION;
-						$params['moduleId'] = $moduleId;
-						$params['folder'] = self::COLLECTION."/".$newpersonId;
-						$params['name'] = $res['name'];
-						$params['author'] = Yii::app()->session["userId"] ;
-						$params['size'] = $res["size"];
-						$params["contentKey"] = "profil";
-						$res2 = Document::save($params);
-						if($res2["result"] == false)
-							throw new CTKException("Impossible de save.");
-
-					}else{
-						throw new CTKException("Impossible uploader le document.");
-					}
-				}catch (CTKException $e){
-					throw new CTKException($e);
-				}	
-			}
-
-			if(!empty($paramsLink) && $paramsLink["link"] == true){
-
-				if($paramsLink["typeLink"] == "Organization")
-						$resLink = Link::addMember( $paramsLink["idLink"], Organization::COLLECTION, $newpersonId, Person::COLLECTION, Yii::app()->session['userId'], $paramsLink["isAdmin"]);
-				
-				if($paramsLink["typeLink"] == "Person")
-					Link::addMember($paramsLink["idLink"], Person::COLLECTION, $newpersonId, Person::COLLECTION,  Yii::app()->session['userId'], $paramsLink["isAdmin"]);
-			}
-
-			if(!empty($invite) && $sendMail == true){
-				//Mail::invitePerson($newPerson, $msgMail, $nameInvitor);
-			}
-			return array("result"=>true, "msg"=>"Cette personne est communecté.", "id" => $newPerson["_id"]);	
-
-		}catch (CTKException $e){
-			$res = self::updatePersonFromImportData($person, $e, $paramsLink);
-	    	return array("result"=>false, "msg"=>$res["msg"]);
+	  	if(!empty($newPerson["image"])){
+			$nameImage = $newPerson["image"];
+			unset($newPerson["image"]);
 		}
-		
+
+		if(!empty($invite)){
+			$msgMail = $person["msgInvite"];
+			$nameInvitor = $person["nameInvitor"];
+			$newPerson["roles"]['betaTester'] = true;
+			$newPerson["pending"] = true;
+			$person["numberOfInvit"] = 10 ;
+        	unset($newPerson["msgInvite"]);
+        	unset($newPerson["nameInvitor"]);
+		}
+
+		PHDB::insert(Person::COLLECTION , $newPerson);
+
+	    if (isset($newPerson["_id"]))
+	    	$newpersonId = (String) $newPerson["_id"];
+	    else
+	    	throw new CTKException("Problem inserting the new person");
+
+	    if(!empty($nameImage)){
+			try{
+				$res = Document::uploadDocumentFromURL($moduleId, self::COLLECTION, $newpersonId, "avatar", false, $pathFolderImage, $nameImage);
+				if(!empty($res["result"]) && $res["result"] == true){
+					$params = array();
+					$params['id'] = $newpersonId;
+					$params['type'] = self::COLLECTION;
+					$params['moduleId'] = $moduleId;
+					$params['folder'] = self::COLLECTION."/".$newpersonId;
+					$params['name'] = $res['name'];
+					$params['author'] = Yii::app()->session["userId"] ;
+					$params['size'] = $res["size"];
+					$params["contentKey"] = "profil";
+					$res2 = Document::save($params);
+					if($res2["result"] == false)
+						throw new CTKException("Impossible de save.");
+
+				}else{
+					throw new CTKException("Impossible uploader le document.");
+				}
+			}catch (CTKException $e){
+				throw new CTKException($e);
+			}	
+		}
+
+		if(!empty($invite)){
+			Mail::invitePerson($newPerson, $msgMail, $nameInvitor);
+		}
+
+		return array("result"=>true, "msg"=>"Cette personne est communecté.", "id" => $newPerson["_id"]);	
+
+
+
+
+
+
+
+
+		//Check Person data + business rules
+	  	$person = self::getAndcheckPersonData($person, $mode);
+	  	
+	  	$person["@context"] = array("@vocab"=>"http://schema.org",
+            "ph"=>"http://pixelhumain.com/ph/ontology/");
+
+	  	$person["roles"] = Role::getDefaultRoles();
+
+	  	//if we are in mode minimal it's an invitation. The invited user is then betaTester by default
+	  	if( @Yii::app()->params['betaTest'] && $mode ==self::REGISTER_MODE_MINIMAL) {
+	  		$person["roles"]['betaTester'] = true;
+	  	}
+
+	  	//if valid invite code , user is automatically beta tester
+	  	//inviteCodes are server configs 
+	  	if( @Yii::app()->params['betaTest'] && $inviteCode && in_array( $inviteCode , Yii::app()->params['validInviteCodes'] )) {
+	  		$person["roles"]['betaTester'] = true;
+	  		$person["inviteCode"] = $inviteCode;
+	  	}
+
+	  	$person["created"] = new mongoDate(time());
+	  	$person["preferences"] = array("seeExplanations"=> true);
+	  	
+	  	if (@Yii::app()->params['betaTest'])
+	  		$person["numberOfInvit"] = empty(Yii::app()->params['numberOfInvitByPerson']) ? 0 : Yii::app()->params['numberOfInvitByPerson'];
+
+	  	PHDB::insert( Person::COLLECTION , $person);
+ 
+        if (isset($person["_id"])) {
+	    	$newpersonId = (String) $person["_id"];
+	    } else {
+	    	throw new CTKException("Problem inserting the new person");
+	    }
+
+		//A mail is sent to the admin
+		Mail::notifAdminNewUser($person);
+	    return array("result"=>true, "msg"=>"You are now communnected", "id"=>$newpersonId, "person"=>$person);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 	}
 
 
@@ -1608,51 +1656,6 @@ class Person {
 			throw new CTKException("Please fill the email of the user");
 		}
 		return $res;
-    }
-
-    public static function updatePersonFromImportData($person, $e, $paramsLink = null){
-    	$res = array("result"=>false, "msg"=>$e->getMessage());
-
-    	if(Yii::t("import","206", null, Yii::app()->controller->module->id) == $e->getMessage()){
-    		$account = PHDB::findOne(Person::COLLECTION,array("email"=>$person["email"]));
-    		/*if(!empty($person["source"]["key"]) ){
-    			if(!empty($account["source"]["key"])){
-    				if(is_array($account["source"]["key"]))
-    					$account["source"]["key"] = array_merge($account["source"]["key"], $person["source"]["key"]);
-    				else if(is_string($account["source"]["key"])){
-    					$account["source"]["key"] = array_merge(array($account["source"]["key"]), $person["source"]["key"]);
-    				}
-    			}
-    			else
-    				$account["source"]["key"] = $person["source"]["key"];
-
-    			PHDB::update(Person::COLLECTION,
-							array("_id" => new MongoId((String)$account["_id"])),
-            				array('$set' => array("source.key"	=> $account["source"]["key"])),
-            				array('upsert' => true ));
-    		}else
-    			$account["source"]["key"] = array();*/
-    		if(!empty($person["source"]["key"]) )
-    			$resSourceKey = Import::addAndUpdateSourceKey($person["source"]["key"], (String)$account["_id"], self::COLLECTION);
-    		if(!empty($person["badges"]) )
-    			$resBadge = Badge::AddAndUpdateBadges($person["badges"], (String)$account["_id"], self::COLLECTION);
-
-
-    		if(!empty($paramsLink) && $paramsLink["link"] == true){
-				if($paramsLink["typeLink"] == "Organization")
-					Link::addMember( $paramsLink["idLink"], Organization::COLLECTION, (String)$account["_id"], Person::COLLECTION, Yii::app()->session['userId'], $paramsLink["isAdmin"]);
-			
-				if($paramsLink["typeLink"] == "Person")
-					Link::addMember($paramsLink["idLink"], Person::COLLECTION, (String)$account["_id"], Person::COLLECTION,  Yii::app()->session['userId'], $paramsLink["isAdmin"]);
-			}
-    		$res = array("result"=>true, "msg"=>Yii::t("import","250", null, Yii::app()->controller->module->id));
-
-    	}
-    		
-
-	  	//var_dump($account);
-
-	  	return $res;
     }
 
 }
