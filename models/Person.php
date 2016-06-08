@@ -1247,7 +1247,10 @@ class Person {
 			}
 		}else{
 			if ( !self::isUniqueUsername($person["username"]) ) {
-				throw new CTKException(Yii::t("import","207", null, Yii::app()->controller->module->id));
+				if(!empty($invite))
+					$newPerson['username'] = self::generedUserNameByEmail($person['email'], true) ;
+				else
+					throw new CTKException(Yii::t("import","207", null, Yii::app()->controller->module->id));
 		  	}
 		  	$newPerson['username'] = $person['username'];
 		}
@@ -1410,141 +1413,81 @@ class Person {
 	 */
 	public static function insertPersonFromImportData($person, $warnings, $invite=null, $pathFolderImage = null, $moduleId = null){
 	    
-	    $newPerson = self::getAndCheckPersonFromImportData($person, $invite, null, null, $warnings);
+		$account = PHDB::findOne(Person::COLLECTION,array("email"=>$person["email"]));
+		if($account){
+			if(!empty($account["roles"]["tobeactivated"]) && $account["roles"]["tobeactivated"] == true){
+
+			}else{
+
+			}
+
+		  	
+		}else{
+			$newPerson = self::getAndCheckPersonFromImportData($person, $invite, null, null, $warnings);
 	    
-	    
-	    if(!empty($newPerson["warnings"]) && $warnings == true)
-	    	$newPerson["warnings"] = Import::getAndCheckWarnings($newPerson["warnings"]);
-	    
-	    $newPerson["@context"] = array("@vocab"=>"http://schema.org",
-            "ph"=>"http://pixelhumain.com/ph/ontology/");
-	    $newPerson["roles"] = Role::getDefaultRoles();
-	  	$newPerson["created"] = new mongoDate(time());
-	  	$newPerson["preferences"] = array("seeExplanations"=> true);	  		
+		    if(!empty($newPerson["warnings"]) && $warnings == true)
+		    	$newPerson["warnings"] = Import::getAndCheckWarnings($newPerson["warnings"]);
+		    
+		    $newPerson["@context"] = array("@vocab"=>"http://schema.org",
+	            							"ph"=>"http://pixelhumain.com/ph/ontology/");
+		    $newPerson["roles"] = Role::getDefaultRoles();
+		  	$newPerson["created"] = new mongoDate(time());
+		  	$newPerson["preferences"] = array("seeExplanations"=> true);	  		
 
-	  	if(!empty($newPerson["image"])){
-			$nameImage = $newPerson["image"];
-			unset($newPerson["image"]);
-		}
+		  	if(!empty($newPerson["image"])){
+				$nameImage = $newPerson["image"];
+				unset($newPerson["image"]);
+			}
 
-		if(!empty($invite)){
-			$msgMail = $person["msgInvite"];
-			$nameInvitor = $person["nameInvitor"];
-			$newPerson["roles"]['betaTester'] = true;
-			$newPerson["pending"] = true;
-			$person["numberOfInvit"] = 10 ;
-        	unset($newPerson["msgInvite"]);
-        	unset($newPerson["nameInvitor"]);
-		}
+			if(!empty($invite)){
+				$msgMail = $person["msgInvite"];
+				$nameInvitor = $person["nameInvitor"];
+				$newPerson["roles"]['betaTester'] = true;
+				$newPerson["pending"] = true;
+				$person["numberOfInvit"] = 10 ;
+	        	unset($newPerson["msgInvite"]);
+	        	unset($newPerson["nameInvitor"]);
+			}
 
-		PHDB::insert(Person::COLLECTION , $newPerson);
+			PHDB::insert(Person::COLLECTION , $newPerson);
 
-	    if (isset($newPerson["_id"]))
-	    	$newpersonId = (String) $newPerson["_id"];
-	    else
-	    	throw new CTKException("Problem inserting the new person");
+		    if (isset($newPerson["_id"]))
+		    	$newpersonId = (String) $newPerson["_id"];
+		    else
+		    	throw new CTKException("Problem inserting the new person");
 
-	    if(!empty($nameImage)){
-			try{
-				$res = Document::uploadDocumentFromURL($moduleId, self::COLLECTION, $newpersonId, "avatar", false, $pathFolderImage, $nameImage);
-				if(!empty($res["result"]) && $res["result"] == true){
-					$params = array();
-					$params['id'] = $newpersonId;
-					$params['type'] = self::COLLECTION;
-					$params['moduleId'] = $moduleId;
-					$params['folder'] = self::COLLECTION."/".$newpersonId;
-					$params['name'] = $res['name'];
-					$params['author'] = Yii::app()->session["userId"] ;
-					$params['size'] = $res["size"];
-					$params["contentKey"] = "profil";
-					$res2 = Document::save($params);
-					if($res2["result"] == false)
-						throw new CTKException("Impossible de save.");
+		    if(!empty($nameImage)){
+				try{
+					$res = Document::uploadDocumentFromURL($moduleId, self::COLLECTION, $newpersonId, "avatar", false, $pathFolderImage, $nameImage);
+					if(!empty($res["result"]) && $res["result"] == true){
+						$params = array();
+						$params['id'] = $newpersonId;
+						$params['type'] = self::COLLECTION;
+						$params['moduleId'] = $moduleId;
+						$params['folder'] = self::COLLECTION."/".$newpersonId;
+						$params['name'] = $res['name'];
+						$params['author'] = Yii::app()->session["userId"] ;
+						$params['size'] = $res["size"];
+						$params["contentKey"] = "profil";
+						$res2 = Document::save($params);
+						if($res2["result"] == false)
+							throw new CTKException("Impossible de save.");
 
-				}else{
-					throw new CTKException("Impossible uploader le document.");
-				}
-			}catch (CTKException $e){
-				throw new CTKException($e);
-			}	
-		}
+					}else{
+						throw new CTKException("Impossible uploader le document.");
+					}
+				}catch (CTKException $e){
+					throw new CTKException($e);
+				}	
+			}
 
-		if(!empty($invite)){
-			Mail::invitePerson($newPerson, $msgMail, $nameInvitor);
-		}
+			if(!empty($invite)){
+				Mail::invitePerson($newPerson, $msgMail, $nameInvitor);
+			}
 
-		return array("result"=>true, "msg"=>"Cette personne est communecté.", "id" => $newPerson["_id"]);	
+			return array("result"=>true, "msg"=>"Cette personne est communecté.", "id" => $newPerson["_id"]);
 
-
-
-
-
-
-
-
-		//Check Person data + business rules
-	  	$person = self::getAndcheckPersonData($person, $mode);
-	  	
-	  	$person["@context"] = array("@vocab"=>"http://schema.org",
-            "ph"=>"http://pixelhumain.com/ph/ontology/");
-
-	  	$person["roles"] = Role::getDefaultRoles();
-
-	  	//if we are in mode minimal it's an invitation. The invited user is then betaTester by default
-	  	if( @Yii::app()->params['betaTest'] && $mode ==self::REGISTER_MODE_MINIMAL) {
-	  		$person["roles"]['betaTester'] = true;
-	  	}
-
-	  	//if valid invite code , user is automatically beta tester
-	  	//inviteCodes are server configs 
-	  	if( @Yii::app()->params['betaTest'] && $inviteCode && in_array( $inviteCode , Yii::app()->params['validInviteCodes'] )) {
-	  		$person["roles"]['betaTester'] = true;
-	  		$person["inviteCode"] = $inviteCode;
-	  	}
-
-	  	$person["created"] = new mongoDate(time());
-	  	$person["preferences"] = array("seeExplanations"=> true);
-	  	
-	  	if (@Yii::app()->params['betaTest'])
-	  		$person["numberOfInvit"] = empty(Yii::app()->params['numberOfInvitByPerson']) ? 0 : Yii::app()->params['numberOfInvitByPerson'];
-
-	  	PHDB::insert( Person::COLLECTION , $person);
- 
-        if (isset($person["_id"])) {
-	    	$newpersonId = (String) $person["_id"];
-	    } else {
-	    	throw new CTKException("Problem inserting the new person");
-	    }
-
-		//A mail is sent to the admin
-		Mail::notifAdminNewUser($person);
-	    return array("result"=>true, "msg"=>"You are now communnected", "id"=>$newpersonId, "person"=>$person);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+		}  	
 	}
 
 
