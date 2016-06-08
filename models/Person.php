@@ -1428,6 +1428,13 @@ class Person {
 						Mail::inviteKKBB($person, true);
 				}
 			}
+
+
+			if(!empty($person["badges"])){
+				$badges = Badge::conformeBadges($person["badges"]);
+				$res = Badge::addAndUpdateBadges($badges, (String)$account["_id"], Person::COLLECTION);
+			}
+
 		}else{
 			$newPerson = self::getAndCheckPersonFromImportData($person, $invite, null, null, $warnings);
 	    
