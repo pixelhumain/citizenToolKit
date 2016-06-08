@@ -169,6 +169,9 @@ class Link {
      * @return result array with the result of the operation
      */
     public static function connect($originId, $originType, $targetId, $targetType, $userId, $connectType,$isAdmin=false,$pendingAdmin=false,$isPending=false, $role="") {
+	    //0. Check if the $originId and the $targetId exists
+        $origin = Link::checkIdAndType($originId, $originType);
+		$target = Link::checkIdAndType($targetId, $targetType);
         $links=array("links.".$connectType.".".$targetId.".type" => $targetType);
 	    if($isPending){
 		    //If event, refers has been invited by and user as to confirm its attendee to the event
@@ -177,6 +180,10 @@ class Link {
 				$links["links.".$connectType.".".$targetId.".".Link::INVITED_BY_NAME] = Yii::app()->session["user"]["name"];
 		    }else
 		    	$links["links.".$connectType.".".$targetId.".".Link::TO_BE_VALIDATED] = $isPending;
+	    }else if($targetType==Event::COLLECTION || $originType==Event::COLLECTION){
+		    PHDB::update($originType, 
+                       array("_id" => $origin["_id"]) , 
+                       array('$unset' => array("links.".$connectType.".".$targetId => "")));
 	    }
         if($isAdmin){
         	$links["links.".$connectType.".".$targetId.".".Link::IS_ADMIN]=$isAdmin;
@@ -187,10 +194,8 @@ class Link {
         if ($role != ""){
         	$links["links.".$connectType.".".$targetId.".roles"] = $role;
         }
-        //0. Check if the $originId and the $targetId exists
-        $origin = Link::checkIdAndType($originId, $originType);
-		$target = Link::checkIdAndType($targetId, $targetType);
-	    //2. Create the links
+        
+        	    //2. Create the links
         PHDB::update($originType, 
                        array("_id" => $origin["_id"]) , 
                        array('$set' => $links));
@@ -699,7 +704,7 @@ class Link {
 
 		$alreadyLink=false;
 		if($typeOfDemand != "admin"){
-			if(@$parentUsersList[$childId])
+			if(@$parentUsersList[$childId] && $userId != $childId)
 				$alreadyLink=true;
 		}else{
 			if(@$parentUsersList[$childId] && @$parentUsersList[$childId]["isAdmin"])
