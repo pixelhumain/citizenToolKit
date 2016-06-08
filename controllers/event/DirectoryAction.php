@@ -16,20 +16,18 @@ class DirectoryAction extends CAction
           *  PERSON
           ***************************************** */
           $event = Event::getPublicData($id);
-          Menu::event($event,true);
           $params = array(
             "event" => $event,
             "type" => Event::CONTROLLER,
-            "events" => array(),
-            "people" => array(),
-            "organizations" => array()
+            "attendees" => array(),
+            "guests" => array(),
             );
 
          
         //$admins = array();
         if(!empty($event)){
 
-          $params["subEvents"] = PHDB::find(Event::COLLECTION,array( "parentId" => $id));
+          /*$params["subEvents"] = PHDB::find(Event::COLLECTION,array( "parentId" => $id));
           if(@$params["subEvents"]){
             foreach ($params["subEvents"] as $key => $value) {
               array_push($params["events"], $value);
@@ -43,14 +41,17 @@ class DirectoryAction extends CAction
                 }
               }
             }
-          }
+          }*/
 
           if(isset($event["links"])){
             foreach ($event["links"]["attendees"] as $id => $e) {
 
-              $citoyen = Person::getPublicData($id);
+              $citoyen = Person::getSimpleUserById($id);
               if(!empty($citoyen)){
-                array_push($params["people"], $citoyen);
+	            if(@$event["links"]["attendees"][$id]["invitorId"])  
+                	array_push($params["guests"], $citoyen);
+                else
+                	array_push($params["attendees"], $citoyen);
               }
 
               /*if(isset($e["isAdmin"]) && $e["isAdmin"]==true){
@@ -58,7 +59,7 @@ class DirectoryAction extends CAction
               }*/
             }
 
-            if(isset($event["links"]["organizer"])){
+           /* if(isset($event["links"]["organizer"])){
               foreach ($event["links"]["organizer"] as $id => $e) {
                 $organization = Organization::getById($id);
                 array_push($params["organizations"], $organization);
@@ -69,7 +70,7 @@ class DirectoryAction extends CAction
                 $citoyen = Person::getById($id);
                 array_push($params["people"], $citoyen);
               }
-            }
+            }*/
           }
         }
 

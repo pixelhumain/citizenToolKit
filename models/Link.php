@@ -430,7 +430,9 @@ class Link {
     	if(isset($item["links"]) && isset($item["links"][$linkType])){
             foreach ($item["links"][$linkType] as $key => $value) {
                 if( $key == $userId) {
-    				$res = true;
+	                //exception for event when attendee is invited
+	                if(!@$value["invitorId"])
+    					$res = true;
     			}
     		}
     	}
