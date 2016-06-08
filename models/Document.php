@@ -619,8 +619,8 @@ class Document {
 		//The profil image URL should be stored in the entity collection 
 		if (isset($entity["profilImageUrl"])) {
 			$res["profilImageUrl"] = $entity["profilImageUrl"];
-			$res["profilThumbImageUrl"] = @$entity["profilThumbImageUrl"];
-			$res["profilMarkerImageUrl"] = @$entity["profilMarkerImageUrl"];
+			$res["profilThumbImageUrl"] = !empty($entity["profilThumbImageUrl"]) ? $entity["profilThumbImageUrl"]."?_=".time() : "";
+			$res["profilMarkerImageUrl"] = !empty($entity["profilMarkerImageUrl"]) ? $entity["profilMarkerImageUrl"]."?_=".time() : ""; 
 		//If empty than retrieve the URLs from document and store them in the entity for next time
 		} else {
 			$profil = self::getLastImageByKey($id, $type, self::IMG_PROFIL);
@@ -633,8 +633,9 @@ class Document {
 			} 
 	
 			$res["profilImageUrl"] = $profil;
-			$res["profilThumbImageUrl"] = $profilThumb;
-			$res["profilMarkerImageUrl"] = $marker;
+			//Add a time to force relaod of generated images
+			$res["profilThumbImageUrl"] = !empty($profilThumb) ? empty($profilThumb)."?_=".time() : "";
+			$res["profilMarkerImageUrl"] = !empty($marker) ? empty($marker)."?_=".time() : "";
 
 			PHDB::update($type, array("_id" => new MongoId($id)), array('$set' => array("profilImageUrl" => $profil, "profilThumbImageUrl" => $profilThumb, "profilMarkerImageUrl" =>  $marker)));
 			error_log("Add Profil image url for the ".$type." with the id ".$id);

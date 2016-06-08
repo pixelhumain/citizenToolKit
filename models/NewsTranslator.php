@@ -38,7 +38,7 @@ class NewsTranslator {
 					$params["text"] =(isset($object["description"]) ? preg_replace('/<[^>]*>/', '',$object["description"]) : "");
 				$params["scope"]["address"]=$object["address"];
 			}else{
-				$params="";
+				$params=array("created"=>$params["created"]);
 				return $params;
 			}
 		}
@@ -69,7 +69,7 @@ class NewsTranslator {
 			if($params["scope"]["type"]=="public" && !@$params["scope"]["cities"][0]["addressLocality"] && @$params["scope"]["cities"][0]["postalCode"]){
 				$address=SIG::getAdressSchemaLikeByCodeInsee($params["scope"]["cities"][0]["codeInsee"],$params["scope"]["cities"][0]["postalCode"]);
 				if(empty($address)){
-					$params="";
+					$params=array("created"=>$params["created"]);
 					return $params;
 				}
 				$params["scope"]["cities"][0]["addressLocality"]=$address["addressLocality"];

@@ -82,11 +82,11 @@ class Person {
 	     	$user ["roles"] = $account["roles"];
 
 		//Image profil
-	    $simpleUser = self::getSimpleUserById((string)$account["_id"]);
+	    $simpleUser = self::getById((string)$account["_id"]);
 	    $user ["profilImageUrl"] = $simpleUser["profilImageUrl"];
 	    $user ["profilThumbImageUrl"] = $simpleUser["profilThumbImageUrl"];
 	    $user ["profilMarkerImageUrl"] = $simpleUser["profilMarkerImageUrl"];
-
+	    
 	    Yii::app()->session["user"] = $user;
 	    Yii::app()->session["isRegisterProcess"] = $isRegisterProcess;
 
@@ -155,6 +155,11 @@ class Person {
 		$simplePerson = array();
 		$person = PHDB::findOneById( self::COLLECTION ,$id, 
 				array("id" => 1, "name" => 1, "username" => 1, "email" => 1,  "shortDescription" => 1, "description" => 1, "address" => 1, "geo" => 1, "roles" => 1, "tags" => 1, "pending" => 1, "profilImageUrl" => 1, "profilThumbImageUrl" => 1, "profilMarkerImageUrl" => 1));
+		
+		if (empty($person)) {
+			return $simplePerson;
+		}
+
 		$simplePerson["id"] = $id;
 		$simplePerson["name"] = @$person["name"];
 		$simplePerson["username"] = @$person["username"];
@@ -975,10 +980,13 @@ class Person {
 			                          	)));
 			
 			//Send Notification to Invitor
-			Notification::actionOnPerson(
-				ActStr::VERB_SIGNIN, ActStr::ICON_SHARE, 
-				array("type"=>self::COLLECTION,"id"=> $account["_id"],"name"=>$account["name"]),
-				array("type"=>self::COLLECTION, "id"=> $account["invitedBy"],"name"=>"", ));
+			if(!empty($account["invitedBy"])){
+				Notification::actionOnPerson(
+					ActStr::VERB_SIGNIN, ActStr::ICON_SHARE, 
+						array("type"=>self::COLLECTION,"id"=> $account["_id"],"name"=>$account["name"]),
+						array("type"=>self::COLLECTION, "id"=> $account["invitedBy"],"name"=>"", ));
+			}
+			
 			$res = array("result" => true, "msg" => "The pending user has been updated and is now complete");
 		}
 		return $res;
@@ -1322,7 +1330,7 @@ class Person {
 						
 						$newPerson['address']['addressCountry'] = "FR";
 						$city = SIG::getInseeByLatLngCp($newPerson["geo"]["latitude"], $newPerson["geo"]["longitude"], (empty($resLocality["address"]["postcode"])?null:$resLocality["address"]["postcode"]));
-						if($city != null){
+						/*if($city != null){
 							foreach ($city as $key => $value) {
 								$insee = $value["insee"];
 							}
@@ -1332,8 +1340,24 @@ class Person {
 							$locality = City::getAlternateNameByInseeAndCP($newPerson['address']['codeInsee'], $newPerson['address']['postalCode']);
 							$newPerson['address']['addressLocality'] = $locality['alternateName'];
 							
-						}
-						
+
+						}*/
+						if(!empty($city)){
+	                        foreach ($city["postalCodes"] as $keyCp => $valueCp){
+								if(!empty($resLocality["address"]["postcode"]) && $valueCp["postalCode"] == $resLocality["address"]["postcode"]){
+	                            	$newPerson['address']['addressCountry'] = "FR";
+	                            	$newAddress["codeInsee"] = $city["insee"];
+	                        		$newAddress['addressCountry'] = $city["country"];
+	                                $newAddress['addressLocality'] = $valueCp["name"];
+	                                $newAddress['postalCode'] = $valueCp["postalCode"];
+	                                $erreur = false ;
+	                                break;
+	                            }
+	                        }
+	                        if(!empty($newAddress))
+	                        	$newPerson['address'] = $newAddress;
+	               	 	}
+
 
 						//Result DataGouv
 						/*$newPerson['address']['addressCountry'] = "FR";
@@ -1417,7 +1441,7 @@ class Person {
             "ph"=>"http://pixelhumain.com/ph/ontology/");
 	    $newPerson["roles"] = Role::getDefaultRoles();
 	  	$newPerson["created"] = new mongoDate(time());
-	  	$newPerson["preferences"] = array("seeExplanations"=> true);
+	  	$newPerson["preferences"] = array("seeExplanations"=> true);	  		
 
 	  	if(!empty($newPerson["image"])){
 			$nameImage = $newPerson["image"];
@@ -1427,8 +1451,11 @@ class Person {
 		if(!empty($invite)){
 			$msgMail = $person["msgInvite"];
 			$nameInvitor = $person["nameInvitor"];
-        	unset($person["msgInvite"]);
-        	unset($person["nameInvitor"]);
+			$newPerson["roles"]['betaTester'] = true;
+			$newPerson["pending"] = true;
+			$person["numberOfInvit"] = 10 ;
+        	unset($newPerson["msgInvite"]);
+        	unset($newPerson["nameInvitor"]);
 		}
 
 		PHDB::insert(Person::COLLECTION , $newPerson);
