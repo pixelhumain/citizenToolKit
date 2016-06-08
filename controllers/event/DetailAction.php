@@ -18,6 +18,8 @@ class DetailAction extends CAction {
         $people = array();
         $attending =array();
 		$openEdition = true;
+		$invitedNumber=0;
+		$attendeeNumber=0;
         if(!empty($event)){
 			$params = array();
 			if(isset($event["links"])){
@@ -33,13 +35,21 @@ class DetailAction extends CAction {
 									$citoyen["isAdminPending"]=true;
 		  						$citoyen["isAdmin"]=true;  				
 	  						}
+	  						if(@$e["invitorId"]){
+		  						if($uid==Yii::app()->session["userId"])
+		  							$params["invitedMe"]=array("invitorId"=>$e["invitorId"],"invitorName"=>$e["invitorName"]);
+		  						$invitedNumber++;
+		  						$citoyen["invitorId"]=$e["invitorId"]; 
+		  						$citoyen["invitorName"]=$e["invitorName"];  				
+	  						} else
+	  							$attendeeNumber++;
 							array_push($people, $citoyen);
 							array_push($attending, $citoyen);
 						}
             		}
             	}
 				if(@$event["links"]["organizer"]){
-					$openEdition=false;
+					//$openEdition=false;
 					foreach ($event["links"]["organizer"] as $uid => $e) {
 	            		$organizer["type"] = $e["type"];
 	            		if($organizer["type"] == Project::COLLECTION ){
@@ -98,6 +108,8 @@ class DetailAction extends CAction {
         	}
         }
         Menu::event($event,$hasSubEvents);
+        $params["invitedNumber"]=$invitedNumber;
+        $params["attendeeNumber"]= $attendeeNumber;
         $params["images"] = $images;
         $params["contentKeyBase"] = $contentKeyBase;
         $params["attending"] = $attending;

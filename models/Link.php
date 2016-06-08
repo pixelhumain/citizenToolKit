@@ -14,6 +14,8 @@ class Link {
     const TO_BE_VALIDATED = "toBeValidated";
     const IS_ADMIN = "isAdmin";
     const IS_ADMIN_PENDING = "isAdminPending";
+    const INVITED_BY_ID = "invitorId";
+    const INVITED_BY_NAME = "invitorName";
 
 	/** TODO CDA ----- TO DELETE ConnectParentToChild do it
 	 * Add a member to an organization
@@ -169,7 +171,12 @@ class Link {
     public static function connect($originId, $originType, $targetId, $targetType, $userId, $connectType,$isAdmin=false,$pendingAdmin=false,$isPending=false, $role="") {
         $links=array("links.".$connectType.".".$targetId.".type" => $targetType);
 	    if($isPending){
-		    $links["links.".$connectType.".".$targetId.".".Link::TO_BE_VALIDATED] = $isPending;
+		    //If event, refers has been invited by and user as to confirm its attendee to the event
+		    if($targetType==Event::COLLECTION || $originType==Event::COLLECTION){
+		    	$links["links.".$connectType.".".$targetId.".".Link::INVITED_BY_ID] = $userId;
+				$links["links.".$connectType.".".$targetId.".".Link::INVITED_BY_NAME] = Yii::app()->session["user"]["name"];
+		    }else
+		    	$links["links.".$connectType.".".$targetId.".".Link::TO_BE_VALIDATED] = $isPending;
 	    }
         if($isAdmin){
         	$links["links.".$connectType.".".$targetId.".".Link::IS_ADMIN]=$isAdmin;
@@ -709,7 +716,7 @@ class Link {
         //First case : The parent doesn't have an admin yet or it is an action from an admin or it is an event: 
 		if (count($usersAdmin) == 0 || $actionFromAdmin || $parentType == Event::COLLECTION) {
             //the person is automatically added as member (admin or not) of the parent
-            if ($actionFromAdmin) {
+            if ($actionFromAdmin &&  $parentType != Event::COLLECTION) {
 	            //If admin add as admin or member 
 	            if($isConnectingAdmin==true){
 					$verb = ActStr::VERB_CONFIRM;
@@ -718,19 +725,24 @@ class Link {
 					$verb = ActStr::VERB_ACCEPT;
 					$msg=$pendingChild["name"]." ".Yii::t("common","is now ".$typeOfDemand." of")." ".$parentData["name"];
 				}
+				$toBeValidated=false;
 			} else{
 				$verb = ActStr::VERB_JOIN;
-				if($childId==Yii::app()->session["userId"] ){
+				$toBeValidated=false;
+				if($childId==Yii::app()->session["userId"]){
 					$msg= Yii::t("common", "You are now ".$typeOfDemand." of")." ".Yii::t("common","this ".$parentController);
 				}else{
 					$invitation = ActStr::VERB_INVITE;
+					if($typeOfDemand != "admin")
+						$toBeValidated=true;
+					else 
+						$verb = ActStr::VERB_CONFIRM;
 					$msg= $pendingChild["name"]." ".Yii::t("common","is now ".$typeOfDemand." of")." ".$parentData["name"];
 				}
 			}
 			// Check if links follows exists than if true, remove of follows and followers links
 			self::checkAndRemoveFollowLink($parentId,$parentType,$childId,$childType);
 			$toBeValidatedAdmin=false;
-			$toBeValidated=false;
            
 		//Second case : Not an admin doing the action.
         } else {

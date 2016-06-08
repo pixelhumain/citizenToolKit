@@ -426,13 +426,13 @@ class Authorisation {
     			}
     		}
     		// case 2 and 3
-    		if(isset($event["links"]["organizer"])){
+    		/*if(isset($event["links"]["organizer"])){
     			foreach ($event["links"]["organizer"] as $key => $value) {
     				if( Authorisation::isOrganizationAdmin($userId, $key)){
     					$res = true;
     				}
     			}
-    		}	
+    		}*/	
     	}
     	return $res;
     }
