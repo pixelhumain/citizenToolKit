@@ -11,26 +11,17 @@ class DetailAction extends CAction
 		  throw new CTKException(Yii::t("organization","The organization id is mandatory to retrieve the organization !"));
 		}
 
-		$organization = Organization::getPublicData($id);
-		$events = Organization::listEventsPublicAgenda($id);
-		$projects = Organization::listProjects($id);
-		$needs = Need::listNeeds($id, Organization::COLLECTION);
-		$members = array(
-		  //"citoyens"=> array(),
-		  //"organizations"=>array()
-		);
-
-		//$controller->title = (isset($organization["name"])) ? $organization["name"] : "";
-		//$controller->subTitle = (isset($organization["shortDescripion"])) ? $organization["shortDescripion"] : "";
-		//$controller->pageTitle = "Organization ".$controller->title." - ".$controller->subTitle;
+		$organization = Organization::getById($id);
+		$events = array();
+		$projects = array();
+		$needs = array(); 
+		$members = array();
 		$limit = array(Document::IMG_PROFIL => 1);
 		$images = Document::getImagesByKey((string)$organization["_id"],Organization::COLLECTION, $limit);
 		$params = array( "organization" => $organization);
 		$params["images"] = $images;
 		$list = Lists::get(array("eventTypes"));
         $params["eventTypes"] = $list["eventTypes"];
-		$params["events"] = $events;
-		$params["needs"] = $needs;
 		$contextMap = array();
 		$contextMap["organization"] = array($organization);
 		$contextMap["people"] = array();
@@ -38,55 +29,71 @@ class DetailAction extends CAction
 		$contextMap["projects"] = array();
 		$contextMap["events"] = array();
 		
-		$organizations = Organization::getMembersByOrganizationId($id, Organization::COLLECTION);
-		$people = Organization::getMembersByOrganizationId($id, Person::COLLECTION);
-		$followers = Organization::getFollowersByOrganizationId($id);
-		foreach ($organizations as $key => $value) {
-			$newOrga = Organization::getSimpleOrganizationById($key);
-			if(!empty($newOrga)){
-				if (@$organization["links"]["members"][$key] && $organization["links"]["members"][$key]["type"] == Organization::COLLECTION && @$organization["links"]["members"][$key]["isAdmin"]){
-					$newOrga["isAdmin"]=true;  				
+		if(isset($organization["links"]["members"])){
+			foreach ($organization["links"]["members"] as $key => $aMember) {
+				if($aMember["type"]==Organization::COLLECTION){
+					$newOrga = Organization::getSimpleOrganizationById($key);
+					if(!empty($newOrga)){
+						if ($aMember["type"] == Organization::COLLECTION && @$aMember["isAdmin"]){
+							$newOrga["isAdmin"]=true;  				
+						}
+						$newOrga["type"]=Organization::COLLECTION;
+						array_push($contextMap["organizations"], $newOrga);
+						array_push($members, $newOrga);
+					}
+				} else if($aMember["type"]==Person::COLLECTION){
+					$newCitoyen = Person::getSimpleUserById($key);
+					if (!empty($newCitoyen)) {
+						if (@$aMember["type"] == Person::COLLECTION) {
+							if(@$aMember["isAdmin"]){
+								if(@$aMember["isAdminPending"])
+									$newCitoyen["isAdminPending"]=true;  
+									$newCitoyen["isAdmin"]=true;  	
+							}			
+							if(@$aMember["toBeValidated"]){
+								$newCitoyen["toBeValidated"]=true;  
+							}		
+		  				
+						}
+						$newCitoyen["type"]=Person::COLLECTION;
+						array_push($contextMap["people"], $newCitoyen);
+						array_push($members, $newCitoyen);
+					}
 				}
-				$newOrga["type"]=Organization::COLLECTION;
-				array_push($contextMap["organizations"], $newOrga);
-				array_push($members, $newOrga);
 			}
 		}
-		foreach ($events as $key => $value) {
-			$newEvent = Event::getSimpleEventById($key);
-			array_push($contextMap["events"], $newEvent);
-		}
-		
-		foreach ($projects as $key => $value) {
-			$newProject = Project::getSimpleProjectById($key);
-			array_push($contextMap["projects"], $newProject);
-		}
-		
-		foreach ($people as $key => $value) {
-			$newCitoyen = Person::getSimpleUserById($key);
-			if (!empty($newCitoyen)) {
-				if (@$organization["links"]["members"][$key] && $organization["links"]["members"][$key]["type"] == Person::COLLECTION) {
-					if(@$organization["links"]["members"][$key]["isAdmin"]){
-						if(@$organization["links"]["members"][$key]["isAdminPending"])
-							$newCitoyen["isAdminPending"]=true;  
-							$newCitoyen["isAdmin"]=true;  	
-					}			
-					if(@$organization["links"]["members"][$key]["toBeValidated"]){
-						$newCitoyen["toBeValidated"]=true;  
-					}		
-  				
-				}
-				$newCitoyen["type"]=Person::COLLECTION;
-				array_push($contextMap["people"], $newCitoyen);
-				array_push($members, $newCitoyen);
+		// Link with events
+		if(isset($organization["links"]["events"])){
+			foreach ($organization["links"]["events"] as $keyEv => $valueEv) {
+				 $event = Event::getSimpleEventById($keyEv);
+				 array_push($contextMap["events"], $event);
+           		 $events[$keyEv] = $event;
 			}
 		}
 
-	    $params["organization"] = $organization;
+		// Link with projects
+		if(isset($organization["links"]["projects"])){
+			foreach ($organization["links"]["projects"] as $keyProj => $valueProj) {
+				 $project = Project::getPublicData($keyProj);
+           		 $projects[$keyProj] = $project;
+           		 array_push($contextMap["projects"], $project);
+			}
+		}
+		// Link with needs
+		if(isset($organization["links"]["needs"])){
+			foreach ($organization["links"]["needs"] as $key => $value){
+				$need = Need::getSimpleNeedById($key);
+           		$needs[$key] = $need;
+			}
+		}
+
+		$params["organization"] = $organization;
 		$params["members"] = $members;
 		$params["projects"] = $projects;
+		$params["events"] = $events;
 		$params["contextMap"] = $contextMap;
-		$params["followers"] = count($followers);
+		$params["needs"] = $needs;
+		$params["followers"] = count(@$organization["links"]["followers"]);
 		//list
 		$params["tags"] = Tags::getActiveTags();
 		$listsToRetrieve = array("public", "typeIntervention", "organisationTypes", "NGOCategories", "localBusinessCategories");
@@ -96,7 +103,6 @@ class DetailAction extends CAction
 		$params["typeIntervention"]  = isset($lists["typeIntervention"])  ? $lists["typeIntervention"] : null;
 		$params["NGOCategories"] 	 = isset($lists["NGOCategories"]) 	  ? $lists["NGOCategories"] : null;
 		$params["localBusinessCategories"] = isset($lists["localBusinessCategories"]) ? $lists["localBusinessCategories"] : null;
-		
 		$params["countries"] = OpenData::getCountriesList();
 		//Plaquette de présentation
 		$listPlaquette = Document::listDocumentByCategory($id, Organization::COLLECTION, Document::CATEGORY_PLAQUETTE, array( 'created' => 1 ));
