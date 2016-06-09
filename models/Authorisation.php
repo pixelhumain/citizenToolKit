@@ -213,10 +213,22 @@ class Authorisation {
      */
     public static function isEventAdmin($eventId, $userId) {
     	$res = false;
-        $listEvent = Authorisation::listEventsIamAdminOf($userId);
-        if(isset($listEvent[(string)$eventId])){
-       		$res=true;
-       	} 
+    	$event=Event::getById($eventId);
+        if(@$event["links"] && @$event["links"]["attendees"]){
+	        if(@$event["links"]["attendees"][$userId] && @$event["links"]["attendees"][$userId]["isAdmin"])
+       			$res=true;
+       		else{
+	       		$res="openEdition";
+	       		foreach($event["links"]["attendees"] as $value){
+		       		if(@$value["isAdmin"] && $value["isAdmin"]==true){
+		       			$res=false;
+		       			break;
+		       		}	
+	       		}
+       		}
+       	} else {
+	       $res="openEdition";
+       	}	
        	return $res;
     }
     /**
@@ -254,7 +266,7 @@ class Authorisation {
 
 
         //events of organization i'am admin 
-        $listOrganizationAdmin = Authorisation::listUserOrganizationAdmin($userId);
+       /* $listOrganizationAdmin = Authorisation::listUserOrganizationAdmin($userId);
         foreach ($listOrganizationAdmin as $organizationId => $organization) {
             $eventOrganizationAsOrganizer = Event::listEventByOrganizerId($organizationId, Organization::COLLECTION);
             foreach ($eventOrganizationAsOrganizer as $eventId => $eventValue) {
@@ -268,7 +280,7 @@ class Authorisation {
             foreach ($eventProjectAsOrganizer as $eventId => $eventValue) {
                 $eventListFinal[$eventId] = $eventValue;
             }
-		}
+		}*/
         return $eventListFinal;
     }
     

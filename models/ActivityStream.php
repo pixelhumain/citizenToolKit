@@ -2,6 +2,10 @@
 
 /*
 Activity Streams are made to keep track of activity inside any environment 
+- ActivityStream aims to register all modification on open-editing entity 
+- It builds also array of notification which is register in activityStream Collection with a param type array @notify 
+- It builds news too
+
 
 ACtivity stream sample
 {
@@ -53,6 +57,14 @@ class ActivityStream {
 		}
 	    $param["timestamp"] = new MongoDate(time());
 	    PHDB::insert(self::COLLECTION, $param);
+	}
+	/*
+	* Get activities on entity which is in openEdition
+	* @param type string $id defines id of modified entity
+	* @param type string $type defines type of modified entity
+	*/	
+	public static function activityHistory($id,$type){
+		return PHDB::find( self::COLLECTION,array("target.id"=>$id, "target.objectType"=>$type, "type"=>"openEdition"),null,null);
 	}
 	public static function getWhere($params) {
 	  	 return PHDB::find( self::COLLECTION,$params,null,null);
@@ -199,6 +211,11 @@ class ActivityStream {
 		
         if( isset( $params["label"] ))
         	$action["object"]["displayName"] = $params["label"];
+		if( isset( $params["value"] ))
+        	$action["object"]["displayValue"] = preg_replace('/<[^>]*>/', '',$params["value"]);
+		if( isset( $params["author"] ))
+        	$action["author"] = $params["author"];
+
 		if (isset ($params["tags"]))
 			$action["tags"] = $params["tags"];
       return $action;

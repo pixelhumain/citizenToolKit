@@ -439,8 +439,8 @@ class Event {
 
 
 	public static function updateEventField($eventId, $eventFieldName, $eventFieldValue, $userId){
-
-		if (! Authorisation::isEventAdmin($eventId, $userId)) {
+		$authorization=Authorisation::isEventAdmin($eventId, $userId);
+		if (! $authorization) {
 			throw new CTKException("Can not update the event : you are not authorized to update that event!");	
 		}
 
@@ -474,18 +474,25 @@ class Event {
 		} else {
 			$set = array($dataFieldName => $eventFieldValue);
 		}
-		
 		$res = Event::updateEvent($eventId, $set, $userId);
+		if($authorization == "openEdition"){
+			$buildArray = array("type" => $authorization,
+							"verb" => ActStr::VERB_UPDATE,
+							"target" => array("id" => $eventId,
+											"type"=> Event::COLLECTION),
+							"author" => array("id"=>Yii::app()->session["userId"],
+											"name"=>Yii::app()->session["user"]["name"]),
+							"label" =>  $dataFieldName,
+							"value" => $eventFieldValue
+						);
+			$params=ActivityStream::buildEntry($buildArray);
+			ActivityStream::addEntry($params);
+		}	
 		return $res;
 	}
 
 
 	public static function updateEvent($eventId, $event, $userId) {  
-		
-		if (! Authorisation::isEventAdmin($eventId, $userId)) {
-			throw new CTKException("Can not update the event : you are not authorized to update that event!");	
-		}
-
 		if (isset($event["tags"]))
 			$event["tags"] = Tags::filterAndSaveNewTags($event["tags"]);
 		
@@ -493,7 +500,7 @@ class Event {
 		PHDB::update( Event::COLLECTION, array("_id" => new MongoId($eventId)), 
 		                          array('$set' => $event));
 	                  
-	    return array("result"=>true, "msg"=>"Votre evenement a été modifié avec succes", "id"=>$eventId);
+	    return array("result"=>true, "msg"=>"Votre événement a été modifié avec succès", "id"=>$eventId);
 
 	}
 
