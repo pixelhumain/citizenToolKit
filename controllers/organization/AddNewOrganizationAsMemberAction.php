@@ -2,7 +2,7 @@
 
 class AddNewOrganizationAsMemberAction extends CAction
 {
-	/**
+	/** TODO CDA -- TO DELETE NON ???
 	* Update an information field for an organization
 	*/
     public function run() {

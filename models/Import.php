@@ -1032,7 +1032,8 @@ class Import
                     else if($typeEntity == "invite")
                         $res = Person::insertPersonFromImportData($value,true, true, $pathFolderImage, $moduleId, $paramsLink,  $sendMail) ;
                     else if($typeEntity == "event")
-                        $res = Event::insertEventFromImportData($value,true, $post["link"]);
+                        $res = Event::saveEvent($value, true);
+                        //$res = Event::insertEventFromImportData($value,true, $post["link"]);
 
 
                     //var_dump($res);

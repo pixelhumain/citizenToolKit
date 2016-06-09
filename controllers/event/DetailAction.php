@@ -7,33 +7,49 @@ class DetailAction extends CAction {
     public function run($id) { 
     	$controller=$this->getController();
 		$event = Event::getPublicData($id);
-        Menu::event($event);
-        $controller->title = (isset($event["name"])) ? $event["name"] : "";
-        $controller->subTitle = (isset($event["description"])) ? $event["description"] : "";
-        $controller->pageTitle = ucfirst($controller->module->id)." - ".Yii::t("event","Event's informations")." ".$controller->title;
-		$contentKeyBase = "Yii::app()->controller->id.".".dashboard";
-		$limit = array(Document::IMG_PROFIL => 1, Document::IMG_MEDIA => 5);
-		$images = Document::getImagesByKey((string)$event["_id"], Event::COLLECTION, $limit);
-        /* Vérifier comportement si réintégration
-	        $contentKeyBase = $controller->id.".dashboard";
-        $images = Document::getListDocumentsURLByContentKey((string)$event["_id"], $contentKeyBase, Document::DOC_TYPE_IMAGE);*/
 
+		if( !is_array( Yii::app()->controller->toolbarMBZ ))
+            Yii::app()->controller->toolbarMBZ = array();
+        $contentKeyBase = "Yii::app()->controller->id.".".dashboard";
+		$limit = array(Document::IMG_PROFIL => 1, Document::IMG_MEDIA => 5);
+		$images = Document::getImagesByKey((string)$event["_id"], Event::COLLECTION, $limit);    
+		   
         $organizer = array();
         $people = array();
         $attending =array();
-
+		$openEdition = true;
+		$invitedNumber=0;
+		$attendeeNumber=0;
         if(!empty($event)){
 			$params = array();
 			if(isset($event["links"])){
-            	foreach ($event["links"]["attendees"] as $uid => $e) {
-					$citoyen = Person::getPublicData($uid);
-					if(!empty($citoyen)){
-						$citoyen["type"]=Person::COLLECTION;
-						array_push($people, $citoyen);
-						array_push($attending, $citoyen);
-					}
+				if(@$event["links"]["attendees"]){
+	            	foreach ($event["links"]["attendees"] as $uid => $e) {
+						$citoyen = Person::getSimpleUserById($uid);
+						if(@$e["isAdmin"] && $e["isAdmin"]==true)
+							$openEdition = false;
+						if(!empty($citoyen)){
+							$citoyen["type"]=Person::COLLECTION;
+							if(@$e["isAdmin"]){
+								if(@$e["isAdminPending"])
+									$citoyen["isAdminPending"]=true;
+		  						$citoyen["isAdmin"]=true;  				
+	  						}
+	  						if(@$e["invitorId"]){
+		  						if($uid==Yii::app()->session["userId"])
+		  							$params["invitedMe"]=array("invitorId"=>$e["invitorId"],"invitorName"=>$e["invitorName"]);
+		  						$invitedNumber++;
+		  						$citoyen["invitorId"]=$e["invitorId"]; 
+		  						$citoyen["invitorName"]=$e["invitorName"];  				
+	  						} else
+	  							$attendeeNumber++;
+							array_push($people, $citoyen);
+							array_push($attending, $citoyen);
+						}
+            		}
             	}
-				if(isset($event["links"]["organizer"])){
+				if(@$event["links"]["organizer"]){
+					//$openEdition=false;
 					foreach ($event["links"]["organizer"] as $uid => $e) {
 	            		$organizer["type"] = $e["type"];
 	            		if($organizer["type"] == Project::COLLECTION ){
@@ -58,12 +74,12 @@ class DetailAction extends CAction {
                 		$organizer["id"] = $uid;
                 		$organizer["name"] = $organizerInfo["name"];
                 		$organizer["profilImageUrl"] = $organizerInfo["profilImageUrl"];
-                		array_push($controller->toolbarMBZ, array('position' => 'right', 
+                		/*array_push($controller->toolbarMBZ, array('position' => 'right', 
                                                           'label'=> Yii::t("common","Organizator detail"), 
                                                           'tooltip' => Yii::t("common","Back to")." ".$urlType, 
                                                           "iconClass"=>"fa ".$iconNav,
 														  "parent"=>"span",
-                                                          "href"=>'<a href="javascript:;" onclick="loadByHash( \'#'.$urlType.'.detail.id.'.$uid.'\')" class="tooltips btn btn-default"'));
+                                                          "href"=>'<a href="javascript:;" onclick="loadByHash( \'#'.$urlType.'.detail.id.'.$uid.'\')" class="tooltips btn btn-default"'));*/
               		}
             	} else if(isset($event["links"]["creator"])) {
 	                foreach ($event["links"]["creator"] as $uid => $e) {
@@ -75,18 +91,38 @@ class DetailAction extends CAction {
             	}
           	}
         }
-
+        //events can have sub evnets
+        $params["subEvents"] = PHDB::find(Event::COLLECTION,array("parentId"=>$id));
+        $params["subEventsOrganiser"] = array();
+        $hasSubEvents = false;
+        if(@$params["subEvents"]){
+        	$hasSubEvents = true;
+        	foreach ($params["subEvents"] as $key => $value) {
+        		if( @$value["links"]["organizer"] )
+        		{
+	        		foreach ($value["links"]["organizer"] as $key => $value) {
+	        			if( !@$params["subEventsOrganiser"][$key])
+	        				$params["subEventsOrganiser"][$key] = Element::getInfos( $value["type"], $key);
+	        		}
+        		}
+        	}
+        }
+        Menu::event($event,$hasSubEvents);
+        $params["invitedNumber"]=$invitedNumber;
+        $params["attendeeNumber"]= $attendeeNumber;
         $params["images"] = $images;
         $params["contentKeyBase"] = $contentKeyBase;
         $params["attending"] = $attending;
         $params["event"] = $event;
         $params["organizer"] = $organizer;
         $params["people"] = $people;
+        $params["openEdition"] = $openEdition;
         $params["countries"] = OpenData::getCountriesList();
 
         $list = Lists::get(array("eventTypes"));
         $params["eventTypes"] = $list["eventTypes"];
         
+
 		$page = "detail";
 		    if(Yii::app()->request->isAjaxRequest)
           echo $controller->renderPartial($page,$params,true);

@@ -250,7 +250,7 @@ class Authorisation {
 
         //event i'am admin 
         $where = array("links.attendees.".$userId.".isAdmin" => true);
-        $eventList = PHDB::find(Event::COLLECTION, $where);
+        $eventListFinal = PHDB::find(Event::COLLECTION, $where);
 
 
         //events of organization i'am admin 
@@ -258,7 +258,7 @@ class Authorisation {
         foreach ($listOrganizationAdmin as $organizationId => $organization) {
             $eventOrganizationAsOrganizer = Event::listEventByOrganizerId($organizationId, Organization::COLLECTION);
             foreach ($eventOrganizationAsOrganizer as $eventId => $eventValue) {
-                $eventList[$eventId] = $eventValue;
+                $eventListFinal[$eventId] = $eventValue;
             }
         }
 		//events of project i'am admin 
@@ -266,11 +266,12 @@ class Authorisation {
         foreach ($listProjectAdmin as $projectId => $project) {
             $eventProjectAsOrganizer = Event::listEventByOrganizerId($projectId, Project::COLLECTION);
             foreach ($eventProjectAsOrganizer as $eventId => $eventValue) {
-                $eventList[$eventId] = $eventValue;
+                $eventListFinal[$eventId] = $eventValue;
             }
 		}
         return $eventListFinal;
     }
+    
     public static function listOfEventAdmins($eventId) {
         $res = array();
         $event = Event::getById($eventId);
@@ -425,13 +426,13 @@ class Authorisation {
     			}
     		}
     		// case 2 and 3
-    		if(isset($event["links"]["organizer"])){
+    		/*if(isset($event["links"]["organizer"])){
     			foreach ($event["links"]["organizer"] as $key => $value) {
     				if( Authorisation::isOrganizationAdmin($userId, $key)){
     					$res = true;
     				}
     			}
-    		}	
+    		}*/	
     	}
     	return $res;
     }
@@ -536,7 +537,7 @@ class Authorisation {
      * @param boolean $pending : true include the pending admins. By default no.
      * @return type array of person Id
      */
-    public static function listOrganizationAdmins($organizationId, $pending=false) {
+    /*public static function listOrganizationAdmins($organizationId, $pending=false) {
         $res = array();
         $organization = Organization::getById($organizationId);
         
@@ -556,7 +557,7 @@ class Authorisation {
         }
 
         return $res;
-    }
+    }*/
     /**
      * List the user that are admin of the organization
      * @param string $organizationId The organization Id to look for
@@ -572,16 +573,23 @@ class Authorisation {
 		else if ($parentType == Project::COLLECTION){     
 	        $parent = Project::getById($parentId);
 	        $link="contributors";
+		} else if ($parentType == Event::COLLECTION){     
+	        $parent = Event::getById($parentId);
+	        $link="attendees";
 		}
+		
 
         if ($users = @$parent["links"][$link]) {
             foreach ($users as $personId => $linkDetail) {
                 if (@$linkDetail["isAdmin"] == true) {
-                    if ($pending) {
-                        array_push($res, $personId);
-                    } else if (@$linkDetail["isAdminPending"] == null || @$linkDetail["isAdminPending"] == false) {
-                        array_push($res, $personId); 
-                    }
+	                $userActivated = Role::isUserActivated($personId);
+	                if($userActivated){
+	                    if ($pending) {
+	                        array_push($res, $personId);
+	                    } else if (@$linkDetail["isAdminPending"] == null || @$linkDetail["isAdminPending"] == false) {
+	                        array_push($res, $personId); 
+	                    }
+	                }
                 }
             }
         }

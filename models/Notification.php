@@ -141,8 +141,16 @@ class Notification{
 	    	$typeOfConnect="member";
 	    }
 	    else if( $target["type"] == Event::COLLECTION ) {
-	    	//TODO notify only the admin of the event
-	    	$members = Event::getAttendeesByEventId( $targetId ,"all", null ) ;
+	    	/**
+		    * Notify only the admin of the event
+	    	*	- if new attendee or new admin
+	    	* Notify all
+	    	*	- if a post in event wall
+	    	*/
+	    	if($verb == ActStr::VERB_POST)
+	    		$members = Event::getAttendeesByEventId( $targetId , "all", null ) ;
+	    	else
+	    		$members = Event::getAttendeesByEventId( $targetId , "admin", "isAdmin" ) ;
 	    	$typeOfConnect="attendee";
 	    }
 		else if($target["type"] == Person::COLLECTION)
@@ -178,7 +186,12 @@ class Notification{
 		    else if( $room["parentType"] == Event::COLLECTION ) {
 		    	//TODO notify only the admin of the event
 		    	$target["parent"] = Event::getById( $room["parentId"]);
-		    	$members = Event::getAttendeesByEventId( $room["parentId"],"all", null ) ;
+		    	if($verb == ActStr::VERB_POST)
+	    			$members = Event::getAttendeesByEventId( $room["parentId"] , "all", null ) ;
+				else
+	    			$members = Event::getAttendeesByEventId( $room["parentId"] , "admin", "isAdmin" ) ;
+
+		    	//$members = Event::getAttendeesByEventId( $room["parentId"],"admin", "isAdmin" ) ;
 		    	$typeOfConnect="attendee";
 		    } else if( $room["parentType"] == City::COLLECTION ) {
 		    	//TODO notify only the admin of the event
@@ -292,7 +305,7 @@ class Notification{
 		else
 	    	$label = Yii::app()->session['user']['name']." ".$verb." you to ".$target["name"] ;
 
-		if($invitation == ActStr::VERB_INVITE){
+		if($invitation == ActStr::VERB_INVITE && $verb != ActStr::VERB_CONFIRM){
 			 $label = Yii::app()->session['user']['name']." ".Yii::t("common","has invited")." ".$member["name"]." ".Yii::t("common","to join")." ".$target["name"];
 			 $url = $ctrl.'/directory/id/'.$target["id"].'?tpl=directory2';
 		}

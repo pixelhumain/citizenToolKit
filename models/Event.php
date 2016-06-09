@@ -26,6 +26,7 @@ class Event {
 	    "modules" => array("name" => "modules"),
 	    "startDate" => array("name" => "startDate", "rules" => array("eventStartDate")),
 	    "endDate" => array("name" => "endDate", "rules" => array("eventEndDate")),
+	    "parentId" => array("name" => "parentId"),
 	    "source" => array("name" => "source")
 	);
 
@@ -225,9 +226,8 @@ class Event {
 		}
 		
 		
-		if(!empty($params['geoPosLatitude']) && !empty($params["geoPosLongitude"])){
-			
-
+		if(!empty($params['geoPosLatitude']) && !empty($params["geoPosLongitude"]))
+		{
 			$newEvent["geo"] = 	array(	"@type"=>"GeoCoordinates",
 						"latitude" => $params['geoPosLatitude'],
 						"longitude" => $params['geoPosLongitude']);
@@ -246,12 +246,17 @@ class Event {
 	    if(!empty($params['description']))
 	         $newEvent["description"] = $params['description'];
 
+	    if(!empty($params['parentId']))
+	        $newEvent["parentId"] = $params['parentId'];
 
 	    return $newEvent;
 	}
 
-	public static function saveEvent($params) {
-		$newEvent = self::getAndCheckEvent($params);
+	public static function saveEvent($params, $import = false, $warnings = null) {
+		if($import == false)
+			$newEvent = self::getAndCheckEvent($params);
+		else
+			$newEvent = self::getAndCheckEventFromImportData($params, true, null, $warnings);
 
 	    PHDB::insert(self::COLLECTION,$newEvent);
 	    
@@ -266,7 +271,6 @@ class Event {
 		if($params["organizerType"] == Person::COLLECTION )
 			$isAdmin=true;
 
-	    
 	    if($params["organizerType"] != self::NO_ORGANISER ){
 	    	Link::attendee($newEvent["_id"], Yii::app()->session['userId'], $isAdmin, $creator);
 	    	Link::addOrganizer($params["organizerId"],$params["organizerType"], $newEvent["_id"], Yii::app()->session['userId']);
@@ -274,7 +278,12 @@ class Event {
 	    	$params["organizerType"] = Person::COLLECTION;
 	    	$params["organizerId"] = Yii::app()->session['userId'];
 	    }
-				
+
+	    //if it's a subevent, add the organiser to the parent user Organiser list 
+    	//ajouter le nouveau sub user dans organiser ?
+    	if( @$newEvent["parentId"] )
+			Link::connect( $newEvent["parentId"], Event::COLLECTION,$newEvent["_id"], Event::COLLECTION, Yii::app()->session["userId"], "subEvents");	
+
 		Notification::createdObjectAsParam( Person::COLLECTION, Yii::app()->session['userId'],Event::COLLECTION, (String)$newEvent["_id"], $params["organizerType"], $params["organizerId"], $newEvent["geo"], array($newEvent["type"]),$newEvent["address"]);
 
 	    $creator = Person::getById(Yii::app()->session['userId']);
@@ -307,6 +316,20 @@ class Event {
 
 	    return array("result"=>true, "msg"=>Yii::t("event", "The event has been updated"), "id"=>$eventId);
 	}
+	/**
+	 * Retrieve the list of events, for a given event 
+	 * @param String event Id
+	 * @return array list of the event and it's subevents
+	 */
+	public static function getListEventsById($id) {
+		$event = self::getById($id);
+		$listEvent = array($id => $event);
+        $subEvents = PHDB::findAndSort(self::COLLECTION, array 	('parentId' => $id ), array('startDate' => 1));
+        $listEvent = array_merge($listEvent,$subEvents);
+
+        return Event::addInfoEvents($listEvent);
+	}
+
 	/**
 	 * Retrieve the list of events, the organization is organizer
 	 * Special case : when the organization can edit member data : retireve the events of the members
@@ -495,32 +518,34 @@ class Event {
 	public static function addInfoEvents($events){
 		foreach ($events as $key => $value) {
 
-	  		if (!empty($value["startDate"]) && !empty($value["endDate"])) {
-				if (gettype($value["startDate"]) == "object" && gettype($value["endDate"]) == "object") {
+	  		if (!empty($value["startDate"]) && !empty($value["endDate"])) 
+	  		{
+				if (gettype($value["startDate"]) == "object" && gettype($value["endDate"]) == "object") 
+				{
 					$events[$key]["startDate"] = date('Y-m-d H:i:s', $value["startDate"]->sec);
 					$events[$key]["endDate"] = date('Y-m-d H:i:s', $value["endDate"]->sec);
-				} else {
+				} 
+				else 
+				{
 					//Manage old date with string on date value
 					$now = time();
 					$yesterday = mktime(0, 0, 0, date("m")  , date("d")-1, date("Y"));
 					$yester2day = mktime(0, 0, 0, date("m")  , date("d")-2, date("Y"));
 					$events[$key]["endDate"] = date('Y-m-d H:i:s', $yesterday);
-					$events[$key]["startDate"] = date('Y-m-d H:i:s',$yester2day);;
+					$events[$key]["startDate"] = date('Y-m-d H:i:s',$yester2day);
 				}
 			}
 
 	  		$events[$key]["organizer"] = "";
-	  		if(isset( $value["links"] )){
-		  		foreach ( $value["links"] as $k => $v ) {
-		  			if($k == "organizer"){
-		  				foreach ($v as $organizerId => $val) {
-		  					$organization = Organization::getById($organizerId);
-		  					$events[$key]["organizer"] = $organization["name"];
-		  				}
-		  			}
+	  		if( @$value["links"]["organizer"] )
+	  		{
+		  		foreach ( $value["links"]["organizer"] as $organizerId => $val ) 
+		  		{
+  					$organization = Organization::getById($organizerId);
+  					$events[$key]["organizer"] = $organization["name"];
 		  		}
 		  	}
- 	  		$events[$key] = array_merge($events[$key], Document::retrieveAllImagesUrl($id, self::COLLECTION));
+ 	  		$events[$key] = array_merge($events[$key], Document::retrieveAllImagesUrl($key, self::COLLECTION));
 	  	}
 	  	return $events;
 	}
@@ -978,6 +1003,9 @@ class Event {
 
 		if(!empty($event['source']))
 			$newEvent["source"] = $event["source"];
+
+		if(!empty($event['parentId']))
+	        $newEvent["parentId"] = $event['parentId'];
 		
 
 		$address = (empty($event['address']) ? null : $event['address']);
@@ -1016,18 +1044,11 @@ class Event {
 			$newEvent['name'] = $event['name'];
 		
 		$newEvent['created'] = new MongoDate(time()) ;
-		
-		
-		/*if(!empty($event['email'])) {
-			if (! preg_match('#^[\w.-]+@[\w.-]+\.[a-zA-Z]{2,6}$#',$event['email'])) { 
-				if($warnings)
-					$newEvent["warnings"][] = "205" ;
-				else
-					throw new CTKException(Yii::t("import","205", null, Yii::app()->controller->module->id));
-			}
-			$newEvent["email"] = $event['email'];
-		}*/
+		$newEvent['creator'] = (empty($event["creator"]) ? Yii::app()->session['userId'] : $event["creator"] );
+		$newEvent['organizerType'] = (empty($event["organizerType"]) ? self::NO_ORGANISER: $event["organizerType"] );
+		$newEvent['organizerId'] = (empty($event["organizerId"]) ? Yii::app()->session['userId']: $event["organizerId"] );
 
+		
 		if(empty($event['type'])) {
 			if($warnings)
 			{
@@ -1148,6 +1169,9 @@ class Event {
 		}else{
 			$newEvent['endDate'] = new MongoDate(time() + (7 * 24 * 60 * 60));
 		}
+
+		if(!empty($event['parentId']))
+	        $newEvent["parentId"] = $event['parentId'];
 		
 		return $newEvent;
 	}
@@ -1159,13 +1183,6 @@ class Event {
 		
 		if (isset($newEvent["tags"]))
 			$newEvent["tags"] = Tags::filterAndSaveNewTags($newEvent["tags"]);
-
-		//Add the user creator of the event in the system
-		/*if (empty($creatorId)) {
-			//throw new CTKException("The creator of the event is required.");
-		} else {
-			$newEvent["creator"] = $creatorId;	
-		}*/
 		$newEvent["creator"] = Yii::app()->session['userId'];
 		$newEvent["organizerId"] = Yii::app()->session['userId'];
 		$newEvent["organizerType"] = Person::COLLECTION ;	
@@ -1189,6 +1206,52 @@ class Event {
 		    			"msg"=>"Votre event est communectée.", 
 		    			"id"=>$newEventId, 
 		    			"newOrganization"=> $newEvent);
+	
+
+
+	    $newEvent = self::getAndCheckEvent($params);
+
+	    PHDB::insert(self::COLLECTION,$newEvent);
+	    $creator = true;
+		$isAdmin = false;
+		
+		if($params["organizerType"] == Person::COLLECTION )
+			$isAdmin=true;
+
+	    if($params["organizerType"] != self::NO_ORGANISER ){
+	    	Link::attendee($newEvent["_id"], Yii::app()->session['userId'], $isAdmin, $creator);
+	    	Link::addOrganizer($params["organizerId"],$params["organizerType"], $newEvent["_id"], Yii::app()->session['userId']);
+	    } else {
+	    	$params["organizerType"] = Person::COLLECTION;
+	    	$params["organizerId"] = Yii::app()->session['userId'];
+	    }
+
+	    //if it's a subevent, add the organiser to the parent user Organiser list 
+    	//ajouter le nouveau sub user dans organiser ?
+    	if( @$newEvent["parentId"] )
+			Link::connect( $newEvent["parentId"], Event::COLLECTION,$newEvent["_id"], Event::COLLECTION, Yii::app()->session["userId"], "subEvents");	
+
+		Notification::createdObjectAsParam( Person::COLLECTION, Yii::app()->session['userId'],Event::COLLECTION, (String)$newEvent["_id"], $params["organizerType"], $params["organizerId"], $newEvent["geo"], array($newEvent["type"]),$newEvent["address"]);
+
+	    $creator = Person::getById(Yii::app()->session['userId']);
+	    Mail::newEvent($creator,$newEvent);
+	    
+	    //TODO : add an admin notification
+	    //Notification::saveNotification(array("type"=>NotificationType::ASSOCIATION_SAVED,"user"=>$new["_id"]));
+	    
+	    return array("result"=>true, "msg"=>Yii::t("event","Your event has been connected."), "id"=>$newEvent["_id"], "event" => $newEvent );
+	
+
+
+
+
+
+
+
+
+
+
+
 	}
 
 
