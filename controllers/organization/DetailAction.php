@@ -30,27 +30,27 @@ class DetailAction extends CAction
 		$contextMap["events"] = array();
 		
 		if(isset($organization["links"]["members"])){
-			foreach ($organization["links"]["members"] as $key => $value) {
-				if($value["type"]==Organization::COLLECTION){
+			foreach ($organization["links"]["members"] as $key => $aMember) {
+				if($aMember["type"]==Organization::COLLECTION){
 					$newOrga = Organization::getSimpleOrganizationById($key);
 					if(!empty($newOrga)){
-						if (@$organization["links"]["members"][$key] && $organization["links"]["members"][$key]["type"] == Organization::COLLECTION && @$organization["links"]["members"][$key]["isAdmin"]){
+						if ($aMember["type"] == Organization::COLLECTION && @$aMember["isAdmin"]){
 							$newOrga["isAdmin"]=true;  				
 						}
 						$newOrga["type"]=Organization::COLLECTION;
 						array_push($contextMap["organizations"], $newOrga);
 						array_push($members, $newOrga);
 					}
-				} else if($value["type"]==Person::COLLECTION){
+				} else if($aMember["type"]==Person::COLLECTION){
 					$newCitoyen = Person::getSimpleUserById($key);
 					if (!empty($newCitoyen)) {
-						if (@$organization["links"]["members"][$key] && $organization["links"]["members"][$key]["type"] == Person::COLLECTION) {
-							if(@$organization["links"]["members"][$key]["isAdmin"]){
-								if(@$organization["links"]["members"][$key]["isAdminPending"])
+						if (@$aMember["type"] == Person::COLLECTION) {
+							if(@$aMember["isAdmin"]){
+								if(@$aMember["isAdminPending"])
 									$newCitoyen["isAdminPending"]=true;  
 									$newCitoyen["isAdmin"]=true;  	
 							}			
-							if(@$organization["links"]["members"][$key]["toBeValidated"]){
+							if(@$aMember["toBeValidated"]){
 								$newCitoyen["toBeValidated"]=true;  
 							}		
 		  				
