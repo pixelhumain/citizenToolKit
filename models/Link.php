@@ -17,7 +17,7 @@ class Link {
     const INVITED_BY_ID = "invitorId";
     const INVITED_BY_NAME = "invitorName";
 
-	/** TODO CDA ----- TO DELETE ConnectParentToChild do it
+	/** TODO BOUBOULE  ----- TO DELETE ConnectParentToChild do it
 	 * Add a member to an organization
 	 * Create a link between the 2 actors. The link will be typed members and memberOf
 	 * The memberOf should be an organization
@@ -83,7 +83,7 @@ class Link {
 		$res=self::connect($projectId, Project::COLLECTION, $creatorId, $creatorType, $creatorId, "contributors", true );
 		return array("result"=>true);
 	}
-    /** TODO CDA - PLUS UTILISER ?? A SUPPRIMER
+    /** TODO BOUBOULE  - PLUS UTILISER ?? A SUPPRIMER
      * Remove a member of an organization
      * Delete a link between the 2 actors.
      * The memberOf should be an organization
@@ -258,7 +258,7 @@ class Link {
         return $res;
     }
 
-    /** 
+    /** TODO BOUBOULE - OK TO DELETE ????
 	 * 1 invitor invite a guest. The guest is not yet in the application
 	 * Create a link between the invitor and the guest with the status toBeValidated
 	 * The guest will receive a mail inviting him to create a ph account
@@ -378,10 +378,11 @@ class Link {
    		$link2event="links.attendees.".$userId;
    		$where2person=array($link2person.".type"=>Event::COLLECTION, $link2person.".isAdmin" => $isAdmin);
    		$where2event=array($link2event.".type" => $userType, $link2event.".isAdmin" => $isAdmin);
-   		if($creator) {
+   		// TODO BOUBOULE - REMOVE THIS LINKS 
+   		/*if($creator) {
 	   		$where2person[$link2person.".isCreator"] = true;
 	   		$where2event[$link2event.".isCreator"] = true;
-   		}
+   		}*/
 		PHDB::update(Person::COLLECTION, 
           		array("_id" => new MongoId($userId)), 
                 array('$set' => $where2person)
@@ -393,7 +394,7 @@ class Link {
         );
     }
 
-    /**
+    /** TODO BOUBOULE - TO DELETE (NOT USED ANYMORE)
      * Connect 2 actors : Event, Person, Organization or Project
 	 * Create a link between the 2 actors. The link will be typed as knows, attendee, event, project or contributor
 	 * 1 entry will be added for example :
@@ -406,7 +407,7 @@ class Link {
      * @param type $connectType The link between the two actors
      * @return result array with the result of the operation
      */
-    private static function addLink($originId, $originType, $targetId, $targetType, $userId= null, $connectType){
+   /* private static function addLink($originId, $originType, $targetId, $targetType, $userId= null, $connectType){
 
     	//0. Check if the $originId and the $targetId exists
         $origin = Link::checkIdAndType($originId, $originType);
@@ -421,8 +422,15 @@ class Link {
         //TODO - Send email to the member
 
         return array("result"=>true, "msg"=>"The link ".$connectType." has been added with success", "originId"=>$originId, "targetId"=>$targetId);
-    }
-
+    }*/
+    
+	/*
+	* function isLinked is generally called on Communecter and two times in models/Person.php
+	* it permits to return true if a link between an entity(Person/Orga/Project/Event) and a person exists
+	* @param type string $itemId is the id of the entity checked
+	* @param type string $itemType is the type of the entity checked
+	* @param type string $userId is the id of the user logged
+	*/
     public static function isLinked($itemId, $itemType, $userId) {
     	$res = false;
         if ($itemType == Person::COLLECTION) $linkType = self::person2person;
@@ -443,7 +451,9 @@ class Link {
     	}
     	return $res;
     }
-
+	
+	///// TODO BOUBOULE - AN ORGANIZER COULD BE A PROJECT OR AN ORGA OR A PERSON
+	//// DOCUMENT THIS FUNCTION 
     public static function removeEventLinks($eventId){
     	$events = Event::getById($eventId);
     	foreach ($events["links"] as $type => $item) {
@@ -461,7 +471,8 @@ class Link {
     	}
     	return $res;
     }
-
+	
+	// TODO BOUBOULE - COULD BE DELETED FOR A BETTER INTERPRETATION OF ROLE
     public static function removeRole($memberOfId, $memberOfType, $memberId, $memberType, $role, $userId) {
         
         //0. Check if the $memberOfId and the $memberId exists
@@ -489,7 +500,7 @@ class Link {
         return array("result"=>true, "msg"=>Yii::t("link","The member's role has been removed with success",null,Yii::app()->controller->module->id), "memberOfid"=>$memberOfId, "memberid"=>$memberId);
     }
 
-    /**
+    /** TODO BOUBOULE - TO DELETE WITH CTK/CONTROLLERS/PERSON/DISCONNECTACTION.PHP
      * Delete a link between the 2 actors.
      * @param $ownerId is the person who want to remowe a link
      * @param $targetId is the id of item we want to be unlink with
@@ -520,7 +531,7 @@ class Link {
     }
 
 
-     /**
+     /** TODO BOUBOULE - NOT USE ANYMORE === TO DELETE 
      * Add a link between the 2 actors.
      * @param $ownerId is the person who want to add a link
      * @param $targetId is the id of item we want to be link with
@@ -528,7 +539,7 @@ class Link {
      * @param $targetLink is the type of link between the target and the owner
      * @return result array with the result of the operation
      */
-    public static function connectPerson($ownerId, $ownerType, $targetId, $targetType, $ownerLink, $targetLink = null){
+    /*public static function connectPerson($ownerId, $ownerType, $targetId, $targetType, $ownerLink, $targetLink = null){
     	 //0. Check if the $owner and the $target exists
         $owner = Link::checkIdAndType($ownerId, $ownerType);
         $target = Link::checkIdAndType($targetId, $targetType);
@@ -547,7 +558,7 @@ class Link {
 	    }
 
         return array("result"=>true, "msg"=>"The link has been added with success");
-    }
+    }*/
     
      /**
      * Add a link between the 2 entity (person to an entity).
@@ -880,10 +891,5 @@ class Link {
                 );
 		return array("result"=>true, "msg"=>"The link has been added with success");
 	}
-
-
-
-    
-
 } 
 ?>
