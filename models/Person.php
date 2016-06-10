@@ -44,6 +44,7 @@ class Person {
 	    "source" => array("name" => "source"),
 	    "warnings" => array("name" => "warnings"),
 	    "modules" => array("name" => "modules"),
+	    "badges" => array("name" => "badges"),
 	);
 
 	public static function logguedAndValid() {
@@ -1149,6 +1150,9 @@ class Person {
 		if(!empty($personImportData['image']))
 			$newPerson["image"] = $personImportData["image"];
 
+		if(!empty($personImportData["badges"]))
+			$newPerson["badges"] = $personImportData["badges"];
+
 		if(!empty($personImportData['shortDescription']))
 			$newPerson["shortDescription"] = $personImportData["shortDescription"];
 
@@ -1252,10 +1256,16 @@ class Person {
 			}
 		}else{
 			if ( !self::isUniqueUsername($person["username"]) ) {
-				throw new CTKException(Yii::t("import","207", null, Yii::app()->controller->module->id));
+				if(!empty($invite))
+					$newPerson['username'] = self::generedUserNameByEmail($person['email'], true) ;
+				else
+					throw new CTKException(Yii::t("import","207", null, Yii::app()->controller->module->id));
 		  	}
 		  	$newPerson['username'] = $person['username'];
 		}
+
+		if(!empty($person["badges"]))
+			$newPerson["badges"] = Badge::conformeBadges($person["badges"]);
 
 		if(empty($invite)){
 
@@ -1429,72 +1439,130 @@ class Person {
 	 * @param string $userId UserId doing the insertion
 	 * @return array as result type
 	 */
-	public static function insertPersonFromImportData($person, $warnings, $invite=null, $pathFolderImage = null, $moduleId = null){
+	public static function insertPersonFromImportData($person, $warnings, $invite=null, $isKissKiss = null, $pathFolderImage = null, $moduleId = null, $paramsLink,  $sendMail){
 	    
-	    $newPerson = self::getAndCheckPersonFromImportData($person, $invite, null, null, $warnings);
-	    
-	    
-	    if(!empty($newPerson["warnings"]) && $warnings == true)
-	    	$newPerson["warnings"] = Import::getAndCheckWarnings($newPerson["warnings"]);
-	    
-	    $newPerson["@context"] = array("@vocab"=>"http://schema.org",
-            "ph"=>"http://pixelhumain.com/ph/ontology/");
-	    $newPerson["roles"] = Role::getDefaultRoles();
-	  	$newPerson["created"] = new mongoDate(time());
-	  	$newPerson["preferences"] = array("seeExplanations"=> true);	  		
-
-	  	if(!empty($newPerson["image"])){
-			$nameImage = $newPerson["image"];
-			unset($newPerson["image"]);
-		}
-
-		if(!empty($invite)){
-			$msgMail = $person["msgInvite"];
-			$nameInvitor = $person["nameInvitor"];
-			$newPerson["roles"]['betaTester'] = true;
-			$newPerson["pending"] = true;
-			$person["numberOfInvit"] = 10 ;
-        	unset($newPerson["msgInvite"]);
-        	unset($newPerson["nameInvitor"]);
-		}
-
-		PHDB::insert(Person::COLLECTION , $newPerson);
-
-	    if (isset($newPerson["_id"]))
-	    	$newpersonId = (String) $newPerson["_id"];
-	    else
-	    	throw new CTKException("Problem inserting the new person");
-
-	    if(!empty($nameImage)){
-			try{
-				$res = Document::uploadDocumentFromURL($moduleId, self::COLLECTION, $newpersonId, "avatar", false, $pathFolderImage, $nameImage);
-				if(!empty($res["result"]) && $res["result"] == true){
-					$params = array();
-					$params['id'] = $newpersonId;
-					$params['type'] = self::COLLECTION;
-					$params['moduleId'] = $moduleId;
-					$params['folder'] = self::COLLECTION."/".$newpersonId;
-					$params['name'] = $res['name'];
-					$params['author'] = Yii::app()->session["userId"] ;
-					$params['size'] = $res["size"];
-					$params["contentKey"] = "profil";
-					$res2 = Document::save($params);
-					if($res2["result"] == false)
-						throw new CTKException("Impossible de save.");
-
+		$account = PHDB::findOne(Person::COLLECTION,array("email"=>$person["email"]));
+		if($account){
+			$msg = "" ;
+			if(!empty($sendMail)){
+				$personmail["_id"] = (String)$account["_id"];
+				$personmail["email"] = $account["email"];
+				if(!empty($account["roles"]["tobeactivated"]) && $account["roles"]["tobeactivated"] == false){
+					if(!empty($invite)){
+						if(!empty($isKissKiss))
+							Mail::inviteKKBB($personmail, false);
+					}
 				}else{
-					throw new CTKException("Impossible uploader le document.");
+					if(!empty($invite)){
+						if(empty($isKissKiss) && !empty($account["roles"]["tobeactivated"]) && $account["roles"]["tobeactivated"] == true){
+							Mail::invitePerson($personmail, $person["msgInvite"], $person["nameInvitor"]);
+						}
+						else if(!empty($isKissKiss))
+							Mail::inviteKKBB($personmail, true);
+					}
 				}
-			}catch (CTKException $e){
-				throw new CTKException($e);
-			}	
-		}
 
-		if(!empty($invite)){
-			Mail::invitePerson($newPerson, $msgMail, $nameInvitor);
-		}
+			}
+			
+			if(!empty($person["badges"])){
+				$badges = Badge::conformeBadges($person["badges"]);
+				$res = Badge::addAndUpdateBadges($badges, (String)$account["_id"], Person::COLLECTION);
+				$msg +=" "+$res["msg"];
+			}
 
-		return array("result"=>true, "msg"=>"Cette personne est communecté.", "id" => $newPerson["_id"]);	
+			if(!empty($person["source"]["key"])){
+				//var_dump($person["source"]["key"]);
+				$res = Import::addAndUpdateSourceKey($person["source"]["key"], (String)$account["_id"], Person::COLLECTION);
+				$msg +=" "+$res["msg"];
+			}
+
+			return array("result"=>true, "msg"=>$msg, "id" => $personmail["_id"]);
+
+		}else{
+			$newPerson = self::getAndCheckPersonFromImportData($person, $invite, null, null, $warnings);
+	    
+		    if(!empty($newPerson["warnings"]) && $warnings == true)
+		    	$newPerson["warnings"] = Import::getAndCheckWarnings($newPerson["warnings"]);
+		    
+		    $newPerson["@context"] = array("@vocab"=>"http://schema.org",
+	            							"ph"=>"http://pixelhumain.com/ph/ontology/");
+		    $newPerson["roles"] = Role::getDefaultRoles();
+		  	$newPerson["created"] = new mongoDate(time());
+		  	$newPerson["preferences"] = array("seeExplanations"=> true);	  		
+
+		  	if(!empty($newPerson["image"])){
+				$nameImage = $newPerson["image"];
+				unset($newPerson["image"]);
+			}
+
+			if(!empty($invite)){
+				$msgMail = $person["msgInvite"];
+				$nameInvitor = (empty($person["nameInvitor"])?"Communecter":$person["nameInvitor"]);
+				$newPerson["roles"]['betaTester'] = true;
+				$newPerson["pending"] = true;
+				$person["numberOfInvit"] = 10 ;
+	        	unset($newPerson["msgInvite"]);
+	        	unset($newPerson["nameInvitor"]);
+			}
+
+			PHDB::insert(Person::COLLECTION , $newPerson);
+
+		    if (isset($newPerson["_id"]))
+		    	$newpersonId = (String) $newPerson["_id"];
+		    else
+		    	throw new CTKException("Problem inserting the new person");
+
+		    if(!empty($nameImage)){
+				try{
+					$res = Document::uploadDocumentFromURL($moduleId, self::COLLECTION, $newpersonId, "avatar", false, $pathFolderImage, $nameImage);
+					if(!empty($res["result"]) && $res["result"] == true){
+						$params = array();
+						$params['id'] = $newpersonId;
+						$params['type'] = self::COLLECTION;
+						$params['moduleId'] = $moduleId;
+						$params['folder'] = self::COLLECTION."/".$newpersonId;
+						$params['name'] = $res['name'];
+						$params['author'] = Yii::app()->session["userId"] ;
+						$params['size'] = $res["size"];
+						$params["contentKey"] = "profil";
+						$res2 = Document::save($params);
+						if($res2["result"] == false)
+							throw new CTKException("Impossible de save.");
+
+					}else{
+						throw new CTKException("Impossible uploader le document.");
+					}
+				}catch (CTKException $e){
+					throw new CTKException($e);
+				}	
+			}
+
+
+			if(!empty($paramsLink) && $paramsLink["link"] == true){
+				if($paramsLink["typeLink"] == "Organization"){
+					//Link::connect($paramsLink["idLink"], Organization::COLLECTION, $newpersonId, self::COLLECTION, $creatorId,"members", false);
+					//Link::connect($newpersonId, self::COLLECTION, $paramsLink["idLink"], Organization::COLLECTION, $creatorId,"memberOf",false);
+					Link::addMember($paramsLink["idLink"], Organization::COLLECTION, $newpersonId, self::COLLECTION, Yii::app()->session["userId"], $paramsLink["isAdmin"]);
+				}
+				if($paramsLink["typeLink"] == "Person"){
+					//Link::connect($newOrganizationId, Organization::COLLECTION, $paramsLink["idLink"], Person::COLLECTION, $creatorId,"members",$paramsLink["isAdmin"]);
+					//Link::connect($paramsLink["idLink"], Person::COLLECTION, $newOrganizationId, Organization::COLLECTION, $creatorId,"memberOf",$paramsLink["isAdmin"]);
+				   //Link::addMember($newOrganizationId, Organization::COLLECTION, $paramsLink["idLink"], Person::COLLECTION, $creatorId, $paramsLink["isAdmin"]);
+				}
+		
+			}
+			if(!empty($sendMail)){
+				if(!empty($invite)){
+					if(empty($isKissKiss))
+						Mail::invitePerson($newPerson, $msgMail, $nameInvitor);
+					else
+						Mail::inviteKKBB($newPerson, true);
+				}
+			}
+			return array("result"=>true, "msg"=>"Cette personne est communecté.", "id" => $newPerson["_id"]);
+
+		}  	
+>>>>>>> importModif
 	}
 
 

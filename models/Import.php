@@ -999,6 +999,7 @@ class Import
         $pathFolderImage = $post["pathFolderImage"];
 
         $sendMail = ($post["sendMail"] == "false"?null:true);
+        $isKissKiss = ($post["isKissKiss"] == "false"?null:true);
         
         if(substr($jsonString, 0,1) == "{")
             $jsonArray[] = json_decode($jsonString, true) ;
@@ -1028,9 +1029,9 @@ class Import
                     else if($typeEntity == "organization")
                         $res = Organization::insertOrganizationFromImportData($value, $post['creatorID'],true,$pathFolderImage, $moduleId, $paramsLink) ;
                     else if($typeEntity == "person")
-                        $res = Person::insertPersonFromImportData($value,null, true, $pathFolderImage, $moduleId, $paramsLink) ;
+                        $res = Person::insertPersonFromImportData($value,null, true, $isKissKiss, $pathFolderImage, $moduleId, $paramsLink) ;
                     else if($typeEntity == "invite")
-                        $res = Person::insertPersonFromImportData($value,true, true, $pathFolderImage, $moduleId, $paramsLink,  $sendMail) ;
+                        $res = Person::insertPersonFromImportData($value,true, true, $isKissKiss, $pathFolderImage, $moduleId, $paramsLink,  $sendMail) ;
                     else if($typeEntity == "event")
                         $res = Event::saveEvent($value, true);
                         //$res = Event::insertEventFromImportData($value,true, $post["link"]);
@@ -2081,7 +2082,11 @@ class Import
     public static function addAndUpdateSourceKey($key, $idItem, $typeItem) {
         
         $source = self::getSource($idItem, $typeItem);
-        $source["key"] = (empty($source["key"])?array():self::changeFormatSourceKeyInArray($source["key"]));
+        if(!empty($source["key"]))
+            $source["key"] = self::changeFormatSourceKeyInArray($source["key"]);
+        else
+            $source["key"] = array();
+
         $resAddSource = self::addSourceKeyInSource($key, $source);
         
         if($resAddSource["result"] == true){
