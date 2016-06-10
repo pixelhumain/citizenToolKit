@@ -1470,11 +1470,11 @@ class Person {
 				$msg +=" "+$res["msg"];
 			}
 
-			if(!empty($person["source"]["key"])){
+			/*if(!empty($person["source"]["key"])){
 				//var_dump($person["source"]["key"]);
 				$res = Import::addAndUpdateSourceKey($person["source"]["key"], (String)$account["_id"], Person::COLLECTION);
 				$msg +=" "+$res["msg"];
-			}
+			}*/
 
 			return array("result"=>true, "msg"=>$msg, "id" => $personmail["_id"]);
 
