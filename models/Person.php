@@ -44,6 +44,7 @@ class Person {
 	    "source" => array("name" => "source"),
 	    "warnings" => array("name" => "warnings"),
 	    "modules" => array("name" => "modules"),
+	    "badges" => array("name" => "badges"),
 	);
 
 	public static function logguedAndValid() {
@@ -1144,6 +1145,9 @@ class Person {
 		if(!empty($personImportData['image']))
 			$newPerson["image"] = $personImportData["image"];
 
+		if(!empty($personImportData["badges"]))
+			$newPerson["badges"] = $personImportData["badges"];
+
 		if(!empty($personImportData['shortDescription']))
 			$newPerson["shortDescription"] = $personImportData["shortDescription"];
 
@@ -1254,6 +1258,9 @@ class Person {
 		  	}
 		  	$newPerson['username'] = $person['username'];
 		}
+
+		if(!empty($person["badges"]))
+			$newPerson["badges"] = Badge::conformeBadges($person["badges"]);
 
 		if(empty($invite)){
 
@@ -1411,29 +1418,43 @@ class Person {
 	 * @param string $userId UserId doing the insertion
 	 * @return array as result type
 	 */
-	public static function insertPersonFromImportData($person, $warnings, $invite=null, $isKissKiss = null, $pathFolderImage = null, $moduleId = null){
+	public static function insertPersonFromImportData($person, $warnings, $invite=null, $isKissKiss = null, $pathFolderImage = null, $moduleId = null, $paramsLink,  $sendMail){
 	    
 		$account = PHDB::findOne(Person::COLLECTION,array("email"=>$person["email"]));
 		if($account){
-			if(!empty($account["roles"]["tobeactivated"]) && $account["roles"]["tobeactivated"] == false){
-				if(!empty($invite)){
-					if(!empty($isKissKiss))
-						Mail::inviteKKBB($person, false);
-				}
-			}else{
-				if(!empty($invite)){
-					if(empty($isKissKiss))
-						Mail::invitePerson($account, $person["msgInvite"], $person["nameInvitor"]);
-					else
-						Mail::inviteKKBB($person, true);
+			$msg = "" ;
+			if(!empty($sendMail)){
+				$personmail["_id"] = (String)$account["_id"];
+				$personmail["email"] = $account["email"];
+				if(!empty($account["roles"]["tobeactivated"]) && $account["roles"]["tobeactivated"] == false){
+					if(!empty($invite)){
+						if(!empty($isKissKiss))
+							Mail::inviteKKBB($personmail, false);
+					}
+				}else{
+					if(!empty($invite)){
+						if(empty($isKissKiss) && !empty($account["roles"]["tobeactivated"]) && $account["roles"]["tobeactivated"] == true){
+							Mail::invitePerson($personmail, $person["msgInvite"], $person["nameInvitor"]);
+						}
+						else if(!empty($isKissKiss))
+							Mail::inviteKKBB($personmail, true);
+					}
 				}
 			}
-
-
+			
 			if(!empty($person["badges"])){
 				$badges = Badge::conformeBadges($person["badges"]);
 				$res = Badge::addAndUpdateBadges($badges, (String)$account["_id"], Person::COLLECTION);
+				$msg +=" "+$res["msg"];
 			}
+
+			if(!empty($person["source"]["key"])){
+				//var_dump($person["source"]["key"]);
+				$res = Import::addAndUpdateSourceKey($person["source"]["key"], (String)$account["_id"], Person::COLLECTION);
+				$msg +=" "+$res["msg"];
+			}
+
+			return array("result"=>true, "msg"=>$msg, "id" => $personmail["_id"]);
 
 		}else{
 			$newPerson = self::getAndCheckPersonFromImportData($person, $invite, null, null, $warnings);
@@ -1454,7 +1475,7 @@ class Person {
 
 			if(!empty($invite)){
 				$msgMail = $person["msgInvite"];
-				$nameInvitor = $person["nameInvitor"];
+				$nameInvitor = (empty($person["nameInvitor"])?"Communecter":$person["nameInvitor"]);
 				$newPerson["roles"]['betaTester'] = true;
 				$newPerson["pending"] = true;
 				$person["numberOfInvit"] = 10 ;
@@ -1497,9 +1518,9 @@ class Person {
 
 			if(!empty($paramsLink) && $paramsLink["link"] == true){
 				if($paramsLink["typeLink"] == "Organization"){
-					Link::connect($paramsLink["idLink"], Organization::COLLECTION, $newpersonId, self::COLLECTION, $creatorId,"members", false);
-					Link::connect($newpersonId, self::COLLECTION, $paramsLink["idLink"], Organization::COLLECTION, $creatorId,"memberOf",false);
-					//Link::addMember($paramsLink["idLink"], Organization::COLLECTION, $newOrganizationId, Organization::COLLECTION, $creatorId, $paramsLink["isAdmin"]);
+					//Link::connect($paramsLink["idLink"], Organization::COLLECTION, $newpersonId, self::COLLECTION, $creatorId,"members", false);
+					//Link::connect($newpersonId, self::COLLECTION, $paramsLink["idLink"], Organization::COLLECTION, $creatorId,"memberOf",false);
+					Link::addMember($paramsLink["idLink"], Organization::COLLECTION, $newpersonId, self::COLLECTION, Yii::app()->session["userId"], $paramsLink["isAdmin"]);
 				}
 				if($paramsLink["typeLink"] == "Person"){
 					//Link::connect($newOrganizationId, Organization::COLLECTION, $paramsLink["idLink"], Person::COLLECTION, $creatorId,"members",$paramsLink["isAdmin"]);
@@ -1508,12 +1529,13 @@ class Person {
 				}
 		
 			}
-
-			if(!empty($invite)){
-				if(empty($isKissKiss))
-					Mail::invitePerson($newPerson, $msgMail, $nameInvitor);
-				else
-					Mail::inviteKKBB($newPerson, true);
+			if(!empty($sendMail)){
+				if(!empty($invite)){
+					if(empty($isKissKiss))
+						Mail::invitePerson($newPerson, $msgMail, $nameInvitor);
+					else
+						Mail::inviteKKBB($newPerson, true);
+				}
 			}
 			return array("result"=>true, "msg"=>"Cette personne est communecté.", "id" => $newPerson["_id"]);
 
