@@ -1561,8 +1561,7 @@ class Person {
 			}
 			return array("result"=>true, "msg"=>"Cette personne est communecté.", "id" => $newPerson["_id"]);
 
-		}  	
->>>>>>> importModif
+		} 
 	}
 
 
