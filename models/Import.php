@@ -1210,8 +1210,7 @@ class Import
 
 
     public static function getGeoByAddressNominatim($street = null, $cp = null, $city = null, $country = null, $polygon_geojson = null){
-        
-        $url = "http://nominatim.openstreetmap.org/search?format=json&addressdetails=1" ;
+         $url = "http://nominatim.openstreetmap.org/search?format=json&city=Nouméa&countrycodes=FR" ;
         //$urlminimiun = "http://nominatim.openstreetmap.org/search?format=json&addressdetails=1" ;
         if(!empty($street))
             $url .= "&street=".str_replace(" ", "+", $street);
