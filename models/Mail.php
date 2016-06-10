@@ -68,6 +68,29 @@ class Mail
         Mail::schedule($params);
     }
 
+    /**
+     * Invite bankers
+     * @param array $person A well format person
+     * @param boolean $isInvited : if the person is already in the db and already use the platform we adapt the mail
+     * @return nothing
+     */
+    public static function inviteKKBB($person, $isInvited) {
+
+        $params = array(
+            "type" => Cron::TYPE_MAIL,
+            "tpl"=>'inviteKKBB',
+            "subject" => '['.Yii::app()->name.'] - Venez rejoindre le réseau social citoyen',
+            "from"=>Yii::app()->params['adminEmail'],
+            "to" => $person["email"],
+            "tplParams" => array(   "title" => Yii::app()->name ,
+                                    "logo"=> "/images/logo-communecter.png",
+                                    "logo2" => "/images/logoLTxt.jpg",
+                                    "invitedUserId" => $person["_id"],
+                                    "isInvited" => $isInvited)
+        );
+        Mail::schedule($params);
+    }
+
     //TODO SBAR - Do the template
     public static function newConnection($name, $mail, $newConnectionUserId) {
         $params = array(

@@ -12,6 +12,7 @@ class Badge {
 	}
 
 	public static function checkBadgeInListBadges($badge, $badges) {
+		
 		$res = false ;
 		foreach ($badges as $key => $value) {
 			if($badge == $value["name"]){
@@ -33,10 +34,10 @@ class Badge {
 					$newBadge["name"] = (empty($value["name"])?$value:$value["name"]);
 					$newBadge["date"] = (empty($value["date"])?new mongoDate(time()):$value["date"]);
 					$newListBadges[] = $newBadge;
-					$res = array("result" => true, "badges" => $badges);
 				}
 			}
 			$badges = array_merge($badges, $newListBadges);
+			$res = array("result" => true, "badges" => $badges);
 
 		}else if(is_string($badge)){
 			if(!self::checkBadgeInListBadges($badge, $badges)){
@@ -57,10 +58,11 @@ class Badge {
 	}
 
 	public static function addAndUpdateBadges($badge, $idItem, $typeItem) {
-		
 		$badges = self::getBagdes($idItem, $typeItem);
-		$resAddBadge = self::addBadgeInListBadges($badge, $badges);
-		//var_dump($resAddBadge);
+		if(empty($badges))
+           $badges = array();
+
+       	$resAddBadge = self::addBadgeInListBadges($badge, $badges);
 		if($resAddBadge["result"] == true){
 			$res = self::updateBadges($resAddBadge["badges"], $idItem, $typeItem);
 		}else
