@@ -68,7 +68,12 @@ class Mail
         Mail::schedule($params);
     }
 
-    
+    /**
+     * Invite bankers
+     * @param array $person A well format person
+     * @param boolean $isInvited : if the person is already in the db and already use the platform we adapt the mail
+     * @return nothing
+     */
     public static function inviteKKBB($person, $isInvited) {
 
         $params = array(
