@@ -477,17 +477,8 @@ class Event {
 		}
 		$res = Event::updateEvent($eventId, $set, $userId);
 		if($authorization == "openEdition"){
-			$buildArray = array("type" => $authorization,
-							"verb" => ActStr::VERB_UPDATE,
-							"target" => array("id" => $eventId,
-											"type"=> Event::COLLECTION),
-							"author" => array("id"=>Yii::app()->session["userId"],
-											"name"=>Yii::app()->session["user"]["name"]),
-							"label" =>  $dataFieldName,
-							"value" => $eventFieldValue
-						);
-			$params=ActivityStream::buildEntry($buildArray);
-			ActivityStream::addEntry($params);
+			// Add in activity to show each modification added to this entity
+			ActivityStream::saveActivityHistory(ActStr::VERB_UPDATE, $eventId, Event::COLLECTION, $dataFieldName, $eventFieldValue);
 		}	
 		return $res;
 	}

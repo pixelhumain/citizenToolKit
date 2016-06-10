@@ -1,45 +1,13 @@
 <?php
 
-/*
+/* @author Bouboule (CDA) && ??
 Activity Streams are made to keep track of activity inside any environment 
 - ActivityStream aims to register all modification on open-editing entity 
 - It builds also array of notification which is register in activityStream Collection with a param type array @notify 
 - It builds news too
 
-
-ACtivity stream sample
-{
-    "_id" : ObjectId("54b2a914f6b95c500b005f1f"),
-    "type" : "esoModified",
-    "groupId" : "126",
-    "perimeterId" : "54895c3cf6b95c6c17003cd7",
-    "verb" : "update",
-    "date" : "2015-01-11 17:47:16",
-    "timestamp" : 1420994836,
-    "actor" : {
-        "objectType" : "persons",
-        "id" : "520931e2f6b95c5cd3003d6c"
-    },
-    "object" : {
-        "objectType" : "eso",
-        "displayName" : "Création d'un rapport SIGE automatisé"
-    },
-    "target" : {
-        "objectType" : "perimeter",
-        "id" : "54895c3cf6b95c6c17003cd7"
-    },
-    "notify" : {
-        "objectType" : "persons",
-        "id" : [ 
-            "548ec7bbf6b95c8c23004b44"
-        ],
-        "displayName" : "Project Modified",
-        "icon" : "fa-file",
-        "url" : "javascript:editProject( projects[ \"548eb4c4f6b95c8823004296\" ] );"
-    }
-}
-
  */
+ 
 class ActivityStream {
 
 	const COLLECTION = "activityStream";
@@ -58,14 +26,6 @@ class ActivityStream {
 	    $param["timestamp"] = new MongoDate(time());
 	    PHDB::insert(self::COLLECTION, $param);
 	}
-	/*
-	* Get activities on entity which is in openEdition
-	* @param type string $id defines id of modified entity
-	* @param type string $type defines type of modified entity
-	*/	
-	public static function activityHistory($id,$type){
-		return PHDB::find( self::COLLECTION,array("target.id"=>$id, "target.objectType"=>$type, "type"=>"openEdition"),null,null);
-	}
 	public static function getWhere($params) {
 	  	 return PHDB::find( self::COLLECTION,$params,null,null);
 	}
@@ -77,8 +37,47 @@ class ActivityStream {
 	{
 	    return PHDB::findAndSort(self::COLLECTION, $param,$sort,5);
 	}
-	
-	
+	/*
+	* Get activities on entity which is in openEdition
+	* @param type string $id defines id of modified entity
+	* @param type string $type defines type of modified entity
+	*/	
+	public static function activityHistory($id,$type){
+		$where = array("target.id"=>$id, 
+					"target.objectType"=>$type, 
+					"type"=>ActStr::TYPE_ACTIVITY_HISTORY);
+		$sort = array("date"=>-1);
+		return PHDB::findAndSort( self::COLLECTION,$where,$sort,null);
+	}
+	/*
+	* SaveActivityHistory aims to insert in collecion ActivityStream 
+	* Each modification, add, each activity done on an entity
+	* @param type string $verb defines action realized
+	* @param type string $targetId is the id of the entity where action is done
+	* @param type string $targetType is the type of the entity where action is done
+	* @param type string $activityName is to precise which label is modified (ex name, image, etc)
+	*	=> [optional] ex: creation of the event
+	* @param type string $activityValue is to precise the value of the activity
+	*	=> [optional] ex: creation of the event
+	*/
+	public static function saveActivityHistory($verb, $targetId, $targetType, $activityName=null, $activityValue=null){
+		$buildArray = array(
+			"type" => ActStr::TYPE_ACTIVITY_HISTORY,
+			"verb" => $verb,
+			"target" => array("id" => $targetId,
+							"type"=> $targetType),
+			"author" => array("id"=>Yii::app()->session["userId"],
+							"name"=>Yii::app()->session["user"]["name"])
+		);
+		if($activityName != null)
+			$buildArray["label"] = $activityName;
+		if($activityValue != null)
+			$buildArray["value"] = $activityValue;
+		$params=self::buildEntry($buildArray);
+		self::addEntry($params);
+		return true;
+	}
+
 	public static function removeNotifications($id)
 	{
 	    $notif = PHDB::findOne(self::COLLECTION, array("_id"=> new MongoId($id) ) );
