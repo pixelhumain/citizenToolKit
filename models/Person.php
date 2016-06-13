@@ -1448,6 +1448,14 @@ class Person {
 				$msg +=" "+$res["msg"];
 			}
 
+			if(!empty($paramsLink) && $paramsLink["link"] == true){
+				if($paramsLink["typeLink"] == "Organization"){
+					Link::connect($paramsLink["idLink"], Organization::COLLECTION, $personmail["_id"], self::COLLECTION, Yii::app()->session["userId"],"members", false);
+					Link::connect($personmail["_id"], self::COLLECTION, $paramsLink["idLink"], Organization::COLLECTION, Yii::app()->session["userId"],"memberOf",false);
+					//Link::addMember($paramsLink["idLink"], Organization::COLLECTION, $newpersonId, self::COLLECTION, Yii::app()->session["userId"], $paramsLink["isAdmin"]);
+				}
+			}
+
 			/*if(!empty($person["source"]["key"])){
 				//var_dump($person["source"]["key"]);
 				$res = Import::addAndUpdateSourceKey($person["source"]["key"], (String)$account["_id"], Person::COLLECTION);
@@ -1518,8 +1526,8 @@ class Person {
 
 			if(!empty($paramsLink) && $paramsLink["link"] == true){
 				if($paramsLink["typeLink"] == "Organization"){
-					Link::connect($paramsLink["idLink"], Organization::COLLECTION, $newpersonId, self::COLLECTION, $creatorId,"members", false);
-					Link::connect($newpersonId, self::COLLECTION, $paramsLink["idLink"], Organization::COLLECTION, $creatorId,"memberOf",false);
+					Link::connect($paramsLink["idLink"], Organization::COLLECTION, $newpersonId, self::COLLECTION, Yii::app()->session["userId"],"members", false);
+					Link::connect($newpersonId, self::COLLECTION, $paramsLink["idLink"], Organization::COLLECTION, Yii::app()->session["userId"],"memberOf",false);
 					//Link::addMember($paramsLink["idLink"], Organization::COLLECTION, $newpersonId, self::COLLECTION, Yii::app()->session["userId"], $paramsLink["isAdmin"]);
 				}
 				if($paramsLink["typeLink"] == "Person"){
