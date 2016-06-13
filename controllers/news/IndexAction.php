@@ -52,9 +52,9 @@ class IndexAction extends CAction
 	            $parent = Person::getById($id);
 	            if (@Yii::app()->session["userId"]){
 					$params["canPostNews"] = true;
-					if (Yii::app()->session["userId"]==$id){
-						$params["canManageNews"]=true;
-					}
+					//if (Yii::app()->session["userId"]==$id){
+					//	$params["canManageNews"]=false;
+					//}
 				}
 
 	        } 
@@ -88,6 +88,8 @@ class IndexAction extends CAction
 			$params["contextParentType"] = $type; 
 			$params["contextParentId"] = $id;
 			$params["parent"]=@$parent;
+		} else{
+			$parent=$_POST["parent"];
 		}
 			//Define condition of each wall generated datas
 			if($type == "citoyens") {
