@@ -1447,7 +1447,7 @@ class Person {
 			if(!empty($sendMail)){
 				$personmail["_id"] = (String)$account["_id"];
 				$personmail["email"] = $account["email"];
-				if(!empty($account["roles"]["tobeactivated"]) && $account["roles"]["tobeactivated"] == false){
+				if(empty($account["roles"]["tobeactivated"]) || $account["roles"]["tobeactivated"] == false){
 					if(!empty($invite)){
 						if(!empty($isKissKiss))
 							Mail::inviteKKBB($personmail, false);
