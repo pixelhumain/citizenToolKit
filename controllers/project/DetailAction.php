@@ -24,7 +24,7 @@ class DetailAction extends CAction
 	  	$organizations = array();
 	  	$people = array();
 	  	$contributors =array();
-	  	$followers = array();
+	  	$followers = 0;
 	  	$properties = array();
 	  	$tasks = array();
 	  	$needs = array();
@@ -41,34 +41,41 @@ class DetailAction extends CAction
 	  		// Get people or orga who contribute to the project 
 	  		// Get image for each contributors														
 	  		if(isset($project["links"]) && isset($project["links"]["contributors"])){
+		  		$countStrongLinks=count($project["links"]["contributors"]);
+		  		$nbContributors=0;
 	  			foreach ($project["links"]["contributors"] as $uid => $e) {
-	  				if($e["type"]== Organization::COLLECTION){
-	  					$organization = Organization::getSimpleOrganizationById($uid);
-	  					if (!empty($organization)) {
-	  						array_push($organizations, $organization);
-	  						$organization["type"]=Organization::COLLECTION;
-							if(@$e["isAdmin"]){
-		  						$organization["isAdmin"]=true;  				
-	  						}
-	  						array_push($contributors, $organization);
-	  					}
-	  				}else if($e["type"]== Person::COLLECTION){
-	  					$citoyen = Person::getSimpleUserById($uid);
-	  					if(!empty($citoyen)){
-	  						array_push($people, $citoyen);
-	  						$citoyen["type"]=Person::COLLECTION;
-							if(@$e["isAdmin"]){
-								if(@$e["isAdminPending"])
-									$citoyen["isAdminPending"]=true;
-		  						$citoyen["isAdmin"]=true;  				
-	  						}
-	  						if(@$e["toBeValidated"]){
-	  							$citoyen["toBeValidated"]=true;  
-							}	
-
-	  						array_push($contributors, $citoyen);
-	  					}
-	  				}
+		  			if($nbContributors < 11){
+		  				if($e["type"]== Organization::COLLECTION){
+		  					$organization = Organization::getSimpleOrganizationById($uid);
+		  					if (!empty($organization)) {
+		  						array_push($organizations, $organization);
+		  						$organization["type"]=Organization::COLLECTION;
+								if(@$e["isAdmin"]){
+			  						$organization["isAdmin"]=true;  				
+		  						}
+		  						array_push($contributors, $organization);
+		  					}
+		  				}else if($e["type"]== Person::COLLECTION){
+		  					$citoyen = Person::getSimpleUserById($uid);
+		  					if(!empty($citoyen)){
+		  						array_push($people, $citoyen);
+		  						$citoyen["type"]=Person::COLLECTION;
+								if(@$e["isAdmin"]){
+									if(@$e["isAdminPending"])
+										$citoyen["isAdminPending"]=true;
+			  						$citoyen["isAdmin"]=true;  				
+		  						}
+		  						if(@$e["toBeValidated"]){
+		  							$citoyen["toBeValidated"]=true;  
+								}	
+	
+		  						array_push($contributors, $citoyen);
+		  					}
+		  				}
+		  				$nbContributors++;
+		  			} else {
+						break;
+					}
 	  			}
 	  		}
 	  		
@@ -112,9 +119,9 @@ class DetailAction extends CAction
 	  	$params["tags"] = Tags::getActiveTags();
 		$params["organizationTypes"] = $lists["organisationTypes"];
 	  	$params["images"] = $images;
-	  	//$params["contentKeyBase"] = $contentKeyBase;
 	  	$params["contributors"] = $contributors;
-	  	$params["followers"] = $followers;
+	  	$params["countStrongLinks"]= $countStrongLinks;
+	  	$params["countLowLinks"] = $followers;
 	  	$params["project"] = $project;
 	  	$params["organizations"] = $organizations;
 	  	$listEvent = Lists::get(array("eventTypes"));

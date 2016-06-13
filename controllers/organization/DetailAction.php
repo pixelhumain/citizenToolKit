@@ -30,35 +30,42 @@ class DetailAction extends CAction
 		$contextMap["events"] = array();
 		
 		if(isset($organization["links"]["members"])){
+			$countStrongLinks=count($organization["links"]["members"]);
+			$nbMembers=0;
 			foreach ($organization["links"]["members"] as $key => $aMember) {
-				if($aMember["type"]==Organization::COLLECTION){
-					$newOrga = Organization::getSimpleOrganizationById($key);
-					if(!empty($newOrga)){
-						if ($aMember["type"] == Organization::COLLECTION && @$aMember["isAdmin"]){
-							$newOrga["isAdmin"]=true;  				
+				if($nbMembers < 11){
+					if($aMember["type"]==Organization::COLLECTION){
+						$newOrga = Organization::getSimpleOrganizationById($key);
+						if(!empty($newOrga)){
+							if ($aMember["type"] == Organization::COLLECTION && @$aMember["isAdmin"]){
+								$newOrga["isAdmin"]=true;  				
+							}
+							$newOrga["type"]=Organization::COLLECTION;
+							array_push($contextMap["organizations"], $newOrga);
+							array_push($members, $newOrga);
 						}
-						$newOrga["type"]=Organization::COLLECTION;
-						array_push($contextMap["organizations"], $newOrga);
-						array_push($members, $newOrga);
-					}
-				} else if($aMember["type"]==Person::COLLECTION){
-					$newCitoyen = Person::getSimpleUserById($key);
-					if (!empty($newCitoyen)) {
-						if (@$aMember["type"] == Person::COLLECTION) {
-							if(@$aMember["isAdmin"]){
-								if(@$aMember["isAdminPending"])
-									$newCitoyen["isAdminPending"]=true;  
-									$newCitoyen["isAdmin"]=true;  	
-							}			
-							if(@$aMember["toBeValidated"]){
-								$newCitoyen["toBeValidated"]=true;  
-							}		
-		  				
+					} else if($aMember["type"]==Person::COLLECTION){
+						$newCitoyen = Person::getSimpleUserById($key);
+						if (!empty($newCitoyen)) {
+							if (@$aMember["type"] == Person::COLLECTION) {
+								if(@$aMember["isAdmin"]){
+									if(@$aMember["isAdminPending"])
+										$newCitoyen["isAdminPending"]=true;  
+										$newCitoyen["isAdmin"]=true;  	
+								}			
+								if(@$aMember["toBeValidated"]){
+									$newCitoyen["toBeValidated"]=true;  
+								}		
+			  				
+							}
+							$newCitoyen["type"]=Person::COLLECTION;
+							array_push($contextMap["people"], $newCitoyen);
+							array_push($members, $newCitoyen);
 						}
-						$newCitoyen["type"]=Person::COLLECTION;
-						array_push($contextMap["people"], $newCitoyen);
-						array_push($members, $newCitoyen);
 					}
+					$nbMembers++;
+				} else {
+					break;
 				}
 			}
 		}
@@ -93,7 +100,8 @@ class DetailAction extends CAction
 		$params["events"] = $events;
 		$params["contextMap"] = $contextMap;
 		$params["needs"] = $needs;
-		$params["followers"] = count(@$organization["links"]["followers"]);
+		$params["countStrongLinks"]= $countStrongLinks;
+		$params["countLowLinks"] = count(@$organization["links"]["followers"]);
 		//list
 		$params["tags"] = Tags::getActiveTags();
 		$listsToRetrieve = array("public", "typeIntervention", "organisationTypes", "NGOCategories", "localBusinessCategories");
