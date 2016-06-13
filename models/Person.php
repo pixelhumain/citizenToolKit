@@ -1451,8 +1451,9 @@ class Person {
 			if(!empty($paramsLink) && $paramsLink["link"] == true){
 				if($paramsLink["typeLink"] == "Organization"){
 					if(Link::isLinked($paramsLink["idLink"],  Organization::COLLECTION, $personmail["_id"]) == false){
-						Link::connect($paramsLink["idLink"], Organization::COLLECTION, $personmail["_id"], self::COLLECTION, Yii::app()->session["userId"],"members", false);
-						Link::connect($personmail["_id"], self::COLLECTION, $paramsLink["idLink"], Organization::COLLECTION, Yii::app()->session["userId"],"memberOf",false);
+						//Link::connect($paramsLink["idLink"], Organization::COLLECTION, $personmail["_id"], self::COLLECTION, Yii::app()->session["userId"],"members", false);
+						//Link::connect($personmail["_id"], self::COLLECTION, $paramsLink["idLink"], Organization::COLLECTION, Yii::app()->session["userId"],"memberOf",false);
+						Link::addMember($paramsLink["idLink"], Organization::COLLECTION, $personmail["_id"], self::COLLECTION, Yii::app()->session["userId"], $paramsLink["isAdmin"]);
 					}
 						
 					//Link::addMember($paramsLink["idLink"], Organization::COLLECTION, $newpersonId, self::COLLECTION, Yii::app()->session["userId"], $paramsLink["isAdmin"]);
