@@ -44,6 +44,7 @@ class ActStr {
     const VERB_POST = "post";
 
     const TYPE_URL = "url";
+    const TYPE_ACTIVITY_HISTORY = "history";
 	
 	public static function buildEntry($params)
     {
