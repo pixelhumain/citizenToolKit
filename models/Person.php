@@ -1447,7 +1447,7 @@ class Person {
 			if(!empty($sendMail)){
 				$personmail["_id"] = (String)$account["_id"];
 				$personmail["email"] = $account["email"];
-				if(!empty($account["roles"]["tobeactivated"]) && $account["roles"]["tobeactivated"] == false){
+				if(empty($account["roles"]["tobeactivated"]) || $account["roles"]["tobeactivated"] == false){
 					if(!empty($invite)){
 						if(!empty($isKissKiss))
 							Mail::inviteKKBB($personmail, false);
@@ -1468,6 +1468,17 @@ class Person {
 				$badges = Badge::conformeBadges($person["badges"]);
 				$res = Badge::addAndUpdateBadges($badges, (String)$account["_id"], Person::COLLECTION);
 				$msg +=" "+$res["msg"];
+			}
+
+			if(!empty($paramsLink) && $paramsLink["link"] == true){
+				if($paramsLink["typeLink"] == "Organization"){
+					if(Link::isLinked($paramsLink["idLink"],  Organization::COLLECTION, $personmail["_id"]) == false){
+						Link::connect($paramsLink["idLink"], Organization::COLLECTION, $personmail["_id"], self::COLLECTION, Yii::app()->session["userId"],"members", false);
+						Link::connect($personmail["_id"], self::COLLECTION, $paramsLink["idLink"], Organization::COLLECTION, Yii::app()->session["userId"],"memberOf",false);
+					}
+						
+					//Link::addMember($paramsLink["idLink"], Organization::COLLECTION, $newpersonId, self::COLLECTION, Yii::app()->session["userId"], $paramsLink["isAdmin"]);
+				}
 			}
 
 			/*if(!empty($person["source"]["key"])){
@@ -1540,9 +1551,11 @@ class Person {
 
 			if(!empty($paramsLink) && $paramsLink["link"] == true){
 				if($paramsLink["typeLink"] == "Organization"){
-					//Link::connect($paramsLink["idLink"], Organization::COLLECTION, $newpersonId, self::COLLECTION, $creatorId,"members", false);
-					//Link::connect($newpersonId, self::COLLECTION, $paramsLink["idLink"], Organization::COLLECTION, $creatorId,"memberOf",false);
-					Link::addMember($paramsLink["idLink"], Organization::COLLECTION, $newpersonId, self::COLLECTION, Yii::app()->session["userId"], $paramsLink["isAdmin"]);
+					if(Link::isLinked($paramsLink["idLink"], Organization::COLLECTION, $newpersonId) == false){
+						Link::connect($paramsLink["idLink"], Organization::COLLECTION, $newpersonId, self::COLLECTION, Yii::app()->session["userId"],"members", false);
+						Link::connect($newpersonId, self::COLLECTION, $paramsLink["idLink"], Organization::COLLECTION, Yii::app()->session["userId"],"memberOf",false);
+						//Link::addMember($paramsLink["idLink"], Organization::COLLECTION, $newpersonId, self::COLLECTION, Yii::app()->session["userId"], $paramsLink["isAdmin"]);
+					}
 				}
 				if($paramsLink["typeLink"] == "Person"){
 					//Link::connect($newOrganizationId, Organization::COLLECTION, $paramsLink["idLink"], Person::COLLECTION, $creatorId,"members",$paramsLink["isAdmin"]);
