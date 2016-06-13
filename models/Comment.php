@@ -400,7 +400,18 @@ class Comment {
 	                  
 	    return array("result"=>true, "msg"=>Yii::t("common","Comment well updated"), "id"=>$commentId);
 	}
-
+	/**
+	 * delete a comment in database
+	 * @param String $id : id to delete
+	*/
+	public static function delete($id) {
+		$comment=self::getById($id);
+		if($comment["author"]["id"]==Yii::app()->session["userId"]){
+			PHDB::remove(self::COLLECTION,array("_id"=>new MongoId($id)));
+			return array("result"=>true, "msg"=>Yii::t("common","you are not the author of the comment"),"comment"=>$comment);
+		} else
+			return array("result"=>false, "msg"=>Yii::t("common","you are not the author of the comment"));
+	}
 	public static function getCommentsToModerate($whereAdditional = null, $limit = 0) {
 
 
@@ -417,5 +428,6 @@ class Comment {
         }
         return PHDB::findAndSort(self::COLLECTION, $where, array("date" =>1), $limit);
 	}
+
 
 }
