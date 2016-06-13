@@ -1221,11 +1221,14 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 			}
 
 			if(!empty($paramsLink) && $paramsLink["link"] == true){
-				if($paramsLink["typeLink"] == "Organization")
-					Link::addMember($paramsLink["idLink"], Organization::COLLECTION, $newOrganizationId, Organization::COLLECTION, $creatorId, $paramsLink["isAdmin"]);
-
-				if($paramsLink["typeLink"] == "Person")
-					Link::addMember($newOrganizationId, Organization::COLLECTION, $paramsLink["idLink"], Person::COLLECTION, $creatorId, $paramsLink["isAdmin"]);
+				if($paramsLink["typeLink"] == "Organization"){
+					Link::connect($paramsLink["idLink"], Organization::COLLECTION, $newOrganizationId, self::COLLECTION, $creatorId,"members", false);
+					Link::connect($newOrganizationId, self::COLLECTION, $paramsLink["idLink"], Organization::COLLECTION, $creatorId,"memberOf",false);
+				}
+				if($paramsLink["typeLink"] == "Person"){
+					Link::connect($newOrganizationId, Organization::COLLECTION, $paramsLink["idLink"], Person::COLLECTION, $creatorId,"members",$paramsLink["isAdmin"]);
+					Link::connect($paramsLink["idLink"], Person::COLLECTION, $newOrganizationId, Organization::COLLECTION, $creatorId,"memberOf",$paramsLink["isAdmin"]);
+				}
 			}
 
 
