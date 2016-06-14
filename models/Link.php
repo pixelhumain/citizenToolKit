@@ -461,11 +461,11 @@ class Link {
 				if($type == "organizer"){
 					$res = PHDB::update( Organization::COLLECTION, 
                   			array("_id" => new MongoId($id)) , 
-                  			array('$unset' => array( "links.events.".$eventId => "") ));
+                  			array('$unset' => array( "links.events.".$eventId => "") ) );
 				}else{
 					$res = PHDB::update( Person::COLLECTION, 
                   			array("_id" => new MongoId($id)) , 
-                  			array('$unset' => array( "links.events.".$eventId => "") ));
+                  			array('$unset' => array( "links.events.".$eventId => "") ) );
 				}
 			}
     	}

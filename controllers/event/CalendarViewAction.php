@@ -7,7 +7,6 @@
 		  	$params = array(
 		  		"events" => array()
 		  	);
-		  	$events = array();
 		  	if( @$id )
 		  	{
 		  		if( @$type )
@@ -46,7 +45,7 @@
 		  	if(Yii::app()->request->isAjaxRequest)
 	            echo $controller->renderPartial($tpl, $params);
 	        else 
-		  		$controller->render( $tpl , array("events" => $events));
+		  		$controller->render( $tpl , $params);
 		}
 	}
 ?>
