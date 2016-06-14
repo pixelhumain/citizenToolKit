@@ -307,7 +307,10 @@ class Notification{
 
 		if($invitation == ActStr::VERB_INVITE && $verb != ActStr::VERB_CONFIRM){
 			 $label = Yii::app()->session['user']['name']." ".Yii::t("common","has invited")." ".$member["name"]." ".Yii::t("common","to join")." ".$target["name"];
-			 $url = $ctrl.'/directory/id/'.$target["id"].'?tpl=directory2';
+			 if ($target["type"] == Event::COLLECTION)
+		    	$url = $ctrl.'/detail/id/'.$target["id"];
+		    else 
+			 	$url = $ctrl.'/directory/id/'.$target["id"].'?tpl=directory2';
 		}
 
 		
