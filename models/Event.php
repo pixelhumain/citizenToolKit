@@ -323,8 +323,11 @@ class Event {
 	 */
 	public static function getListEventsById($id) {
 		$event = self::getById($id);
-		$listEvent = array($id => $event);
-        $subEvents = PHDB::findAndSort(self::COLLECTION, array 	('parentId' => $id ), array('startDate' => 1));
+		$listEvent = array();
+        $subEvents = PHDB::findAndSort(self::COLLECTION, array('$or' => array(
+        																	array('_id' => new MongoId($id) ),
+        																	array('parentId' => $id )
+        																	)) , array('startDate' => 1) );
         $listEvent = array_merge($listEvent,$subEvents);
 
         return Event::addInfoEvents($listEvent);
@@ -539,8 +542,12 @@ class Event {
 	  		{
 		  		foreach ( $value["links"]["organizer"] as $organizerId => $val ) 
 		  		{
-  					$organization = Organization::getById($organizerId);
-  					$events[$key]["organizer"] = $organization["name"];
+		  			$name = "";
+  					if(@$val["type"]){
+  						$organization = Element::getInfos( $val["type"], $organizerId );
+  						$name = $organization["name"];
+  					}
+  					$events[$key]["organizer"] = $name;
 		  		}
 		  	}
  	  		$events[$key] = array_merge($events[$key], Document::retrieveAllImagesUrl($key, self::COLLECTION));
