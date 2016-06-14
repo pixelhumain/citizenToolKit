@@ -407,6 +407,7 @@ class Comment {
 	public static function delete($id) {
 		$comment=self::getById($id);
 		if($comment["author"]["id"]==Yii::app()->session["userId"]){
+			Action::addAction(Yii::app()->session["userId"] , $comment["contextId"], $comment["contextType"], Action::ACTION_COMMENT, true, false) ;
 			PHDB::remove(self::COLLECTION,array("_id"=>new MongoId($id)));
 			return array("result"=>true, "msg"=>Yii::t("common","you are not the author of the comment"),"comment"=>$comment);
 		} else
