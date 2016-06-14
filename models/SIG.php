@@ -389,7 +389,8 @@ class SIG
 	       					}
 	       				}else{
 		       				$result["id"] = (String)$entity["_id"];
-	       					$result["name"] = $entity["name"];
+		       				$result["name"] = (String)$entity["_id"];
+	       					//$result["name"] = $entity["name"];
 		       				$result["error"] = "Cette entité n'a pas de géolocalisation";
 		       				$res[$type][]= $result ;
 		       			}
