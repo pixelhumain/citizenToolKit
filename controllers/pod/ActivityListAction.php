@@ -6,9 +6,9 @@ class ActivityListAction extends CAction
 	    $controller=$this->getController();
 	    $params["activities"]=ActivityStream::activityHistory($id,$type);
 		if(Yii::app()->request->isAjaxRequest)
-	        echo $controller->renderPartial("activitylist", $params,true);
+	        echo $controller->renderPartial("activityList", $params,true);
 	    else
-  			$controller->render( "activitylist" , $params );
+  			$controller->render( "activityList" , $params );
     }
     
     
