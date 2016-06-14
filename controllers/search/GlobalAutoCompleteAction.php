@@ -170,7 +170,7 @@ class GlobalAutoCompleteAction extends CAction
 		    
 	  	/***********************************  CITIES   *****************************************/
         if(strcmp($filter, City::COLLECTION) != 0 && $this->typeWanted("cities", $searchType)){
-	  		$query = array( "name" => new MongoRegex("/".self::wd_remove_accents($search)."/i"));//array('$text' => array('$search' => $search));//
+	  		$query = array( "name" => new MongoRegex("/".City::wd_remove_accents($search)."/i"));//array('$text' => array('$search' => $search));//
 	  		
 	  		/***********************************  DEFINE LOCALITY QUERY   *****************************************/
 	        	if($locality == null || $locality == ""){
@@ -180,11 +180,11 @@ class GlobalAutoCompleteAction extends CAction
 		    	if($searchBy == "INSEE") $type = $searchBy;
 	        	error_log("type " . $type);
 	    		if($type == "NAME"){ 
-	        		$query = array('$or' => array( array( "name" => new MongoRegex("/".self::wd_remove_accents($locality)."/i")),
-	        									   array( "alternateName" => new MongoRegex("/".self::wd_remove_accents($locality)."/i")),
-	        									   array("postalCodes.name" => array('$in' => array(new MongoRegex("/".self::wd_remove_accents($locality)."/i"))))
+	        		$query = array('$or' => array( array( "name" => new MongoRegex("/".City::wd_remove_accents($locality)."/i")),
+	        									   array( "alternateName" => new MongoRegex("/".City::wd_remove_accents($locality)."/i")),
+	        									   array("postalCodes.name" => array('$in' => array(new MongoRegex("/".City::wd_remove_accents($locality)."/i"))))
 	        					));
-	        		//error_log("search city with : " . self::wd_remove_accents($locality));
+	        		//error_log("search city with : " . City::wd_remove_accents($locality));
 	        	}
 	        	if($type == "CODE_POSTAL_INSEE") {
 	        		$query = array("postalCodes.postalCode" => array('$in' => array($locality)));
@@ -302,18 +302,6 @@ class GlobalAutoCompleteAction extends CAction
 		Yii::app()->end();
     }
 
-    //supprime les accents (utilisé pour la recherche de ville pour améliorer les résultats)
-    private function wd_remove_accents($str, $charset='utf-8')
-	{
-		return $str;
-	    $str = htmlentities($str, ENT_NOQUOTES, $charset);
-	    
-	    $str = preg_replace('#&([A-za-z])(?:acute|cedil|caron|circ|grave|orn|ring|slash|th|tilde|uml);#', '\1', $str);
-	    $str = preg_replace('#&([A-za-z]{2})(?:lig);#', '\1', $str); // pour les ligatures e.g. '&oelig;'
-	    $str = preg_replace('#&[^;]+;#', '', $str); // supprime les autres caractères
-	    
-	    return $str;
-	}
 
 	private function getTypeOfLocalisation($locStr){
 		//le cas des localisation intégralement numérique (code postal, insee, departement)

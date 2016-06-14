@@ -412,6 +412,50 @@ class City {
 	}
 
 
+	public static function getInternationalCity($cp, $insee, $country=null, $name=null){
+		$where = array();//"postalCodes.postalCode" => $cp);
+
+		if($cp != null)
+			$where["postalCodes.postalCode"] = $cp;
+		if($insee != null)
+			$where["insee"] = $insee;
+		if($country != null)
+			$where["country"] = $country;
+		if($name != null){
+			$where["postalCodes.name"] = new MongoRegex("/^".(City::wd_remove_accents($name))."/i");
+			error_log(new MongoRegex("/^".(City::wd_remove_accents($name))."/i"));
+		}
+		//$fields = array("_id");
+		$city = PHDB::findOne( City::COLLECTION, $where);// ,$fields);
+	
+		if(isset($city["postalCodes"]))
+		foreach ($city["postalCodes"] as $key => $value) {
+			if($value["postalCode"] == $cp){
+				$city["name"] = $value["name"];
+				$city["cp"] = $value["postalCode"];
+				$city["geo"] = $value["geo"];
+				$city["geoPosition"] = $value["geoPosition"];
+				error_log("found : ".$city["name"]);
+				return $city;
+			}
+		}
+		return $city;
+	}
+
+
+    //supprime les accents (utilisé pour la recherche de ville pour améliorer les résultats)
+    public static function wd_remove_accents($str, $charset='utf-8')
+	{
+		// return $str;
+	    $str = htmlentities($str, ENT_NOQUOTES, $charset);
+	    
+	    $str = preg_replace('#&([A-za-z])(?:acute|cedil|caron|circ|grave|orn|ring|slash|th|tilde|uml);#', '\1', $str);
+	    $str = preg_replace('#&([A-za-z]{2})(?:lig);#', '\1', $str); // pour les ligatures e.g. '&oelig;'
+	    $str = preg_replace('#&[^;]+;#', '', $str); // supprime les autres caractères
+	    
+	    return $str;
+	}
+	/*
 	public static function createCitizenAssemblies(){
 		$params = array("habitants" => array('$gt' => 5000));
 		$limit = 1000;
@@ -425,7 +469,7 @@ class City {
 		error_log("createCitizenAssembly ".count($cityData));
 		return $cityData;
 	}
-
+*/
 
 	/*public static function createCitizenAssembly($insee, $cp){
 		//$params = array("address.codeInsee" => $insee, "address.postalCode" => $cp);
