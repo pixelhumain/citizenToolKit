@@ -120,7 +120,7 @@ class DetailAction extends CAction
 		$params["organizationTypes"] = $lists["organisationTypes"];
 	  	$params["images"] = $images;
 	  	$params["contributors"] = $contributors;
-	  	$params["countStrongLinks"]= $countStrongLinks;
+	  	$params["countStrongLinks"]= @$countStrongLinks;
 	  	$params["countLowLinks"] = $followers;
 	  	$params["project"] = $project;
 	  	$params["organizations"] = $organizations;
