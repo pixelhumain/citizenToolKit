@@ -100,7 +100,7 @@ class DetailAction extends CAction
 		$params["events"] = $events;
 		$params["contextMap"] = $contextMap;
 		$params["needs"] = $needs;
-		$params["countStrongLinks"]= $countStrongLinks;
+		$params["countStrongLinks"]= @$countStrongLinks;
 		$params["countLowLinks"] = count(@$organization["links"]["followers"]);
 		//list
 		$params["tags"] = Tags::getActiveTags();

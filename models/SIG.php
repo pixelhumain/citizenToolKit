@@ -373,24 +373,34 @@ class SIG
 	       				$insee = $entity['address']["codeInsee"];
 	       				if(!empty($entity['geo'])){
 	       					$find = false;
-	       					$city = SIG::getCityByLatLngGeoShape($entity['geo']["latitude"], $entity['geo']["longitude"], $entity['address']["postalCode"]);
-	     					if(!empty($city)){
-	       						if($city["insee"] != $insee){
+	       					if( ($entity['geo']["latitude"]>= -90 && $entity['geo']["latitude"]<= 90) && ($entity['geo']["longitude"]>= -180 && $entity['geo']["longitude"]<= 180) ){ 
+
+	       						$city = SIG::getCityByLatLngGeoShape($entity['geo']["latitude"], $entity['geo']["longitude"], $entity['address']["postalCode"]);
+		     					if(!empty($city)){
+		       						if($city["insee"] != $insee){
+			       						$result["id"] = (String)$entity["_id"];
+		       							$result["name"] = $entity["name"];
+				       					$result["error"] = "Cette entité est mal géolocalisé";
+				       					$res[$type][]= $result ;
+			       					}
+		       					}else{
 		       						$result["id"] = (String)$entity["_id"];
-	       							$result["name"] = $entity["name"];
-			       					$result["error"] = "Cette entité est mal géolocalisé";
+		       						$result["name"] = $entity["name"];
+			       					$result["error"] = "Nous n'avons pas trouver de commune";
 			       					$res[$type][]= $result ;
-		       					}
-	       					}else{
-	       						$result["id"] = (String)$entity["_id"];
+		       					} 
+				                
+				            }else{
+				            	$result["id"] = (String)$entity["_id"];
 	       						$result["name"] = $entity["name"];
-		       					$result["error"] = "Nous n'avons pas trouver de commune";
+		       					$result["error"] = "Cette entité a une mauvaise géolocalisation";
 		       					$res[$type][]= $result ;
-	       					}
+				            }
+	       					
 	       				}else{
 		       				$result["id"] = (String)$entity["_id"];
-		       				$result["name"] = (String)$entity["_id"];
-	       					//$result["name"] = $entity["name"];
+		       				//$result["name"] = (String)$entity["_id"];
+	       					$result["name"] = $entity["name"];
 		       				$result["error"] = "Cette entité n'a pas de géolocalisation";
 		       				$res[$type][]= $result ;
 		       			}
