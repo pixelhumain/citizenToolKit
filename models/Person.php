@@ -1515,7 +1515,7 @@ class Person {
 				$nameInvitor = (empty($person["nameInvitor"])?"Communecter":$person["nameInvitor"]);
 				$newPerson["roles"]['betaTester'] = true;
 				$newPerson["pending"] = true;
-				$person["numberOfInvit"] = 10 ;
+				$newPerson["numberOfInvit"] = 10 ;
 	        	unset($newPerson["msgInvite"]);
 	        	unset($newPerson["nameInvitor"]);
 			}
