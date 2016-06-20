@@ -110,7 +110,7 @@ class ActStr {
             ActStr::VERB_CLOSE => array("label" => $target["name"]." ".Yii::t("common","has been disabled by")." ".$currentUser['name'],
                                         "url"   => $ctrl.'/detail/id/'.$target["id"]), 
             ActStr::VERB_POST => array("label"  => $target["name"]." : ".Yii::t("common","new post by")." ".$currentUser['name'],
-                                        "url"   => 'news/index/type/'.$target["type"].'/id/'.$target["id"].'?isSearchDesign=1'), 
+                                        "url"   => 'news/index/type/'.$target["type"].'/id/'.$target["id"]), 
             ActStr::VERB_FOLLOW => array("label" => $currentUser['name'],
                                         "url"   => Person::CONTROLLER.'/detail/id/'.Yii::app()->session['userId']), 
             ActStr::VERB_WAIT => array("label" => $currentUser['name']." ".Yii::t("common","wants to join")." ".$target["name"],
