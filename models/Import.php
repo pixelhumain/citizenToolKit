@@ -1000,6 +1000,7 @@ class Import
 
         $sendMail = ($post["sendMail"] == "false"?null:true);
         $isKissKiss = ($post["isKissKiss"] == "false"?null:true);
+        $invitorUrl = (trim($post["invitorUrl"]) == ""?null:$post["invitorUrl"]);
         
         if(substr($jsonString, 0,1) == "{")
             $jsonArray[] = json_decode($jsonString, true) ;
@@ -1029,9 +1030,9 @@ class Import
                     else if($typeEntity == "organization")
                         $res = Organization::insertOrganizationFromImportData($value, $post['creatorID'],true,$pathFolderImage, $moduleId, $paramsLink) ;
                     else if($typeEntity == "person")
-                        $res = Person::insertPersonFromImportData($value,null, true, $isKissKiss, $pathFolderImage, $moduleId, $paramsLink) ;
+                        $res = Person::insertPersonFromImportData($value,null, true, $isKissKiss, $invitorUrl, $pathFolderImage, $moduleId, $paramsLink) ;
                     else if($typeEntity == "invite")
-                        $res = Person::insertPersonFromImportData($value,true, true, $isKissKiss, $pathFolderImage, $moduleId, $paramsLink,  $sendMail) ;
+                        $res = Person::insertPersonFromImportData($value,true, true, $isKissKiss, $invitorUrl, $pathFolderImage, $moduleId, $paramsLink,  $sendMail) ;
                     else if($typeEntity == "event")
                         $res = Event::saveEvent($value, true);
                         //$res = Event::insertEventFromImportData($value,true, $post["link"]);

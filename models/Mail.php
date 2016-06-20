@@ -43,7 +43,7 @@ class Mail
         Mail::schedule($params);
     }
 
-    public static function invitePerson($person, $msg = null, $nameInvitor = null) {
+    public static function invitePerson($person, $msg = null, $nameInvitor = null, $invitorUrl = null) {
         if(isset($person["invitedBy"]))
             $invitor = Person::getSimpleUserById($person["invitedBy"]);
         else if(isset($nameInvitor))
@@ -51,6 +51,8 @@ class Mail
 
         if(empty($msg))
             $msg = $invitor["name"]. " vous invite à rejoindre Communecter.";
+
+        
 
         $params = array(
             "type" => Cron::TYPE_MAIL,
@@ -65,6 +67,10 @@ class Mail
                                     "invitedUserId" => $person["_id"],
                                     "message" => $msg)
         );
+
+        if(!empty($invitorUrl))
+            $params["tplParams"]["invitorUrl"] = $invitorUrl;
+        
         Mail::schedule($params);
     }
 

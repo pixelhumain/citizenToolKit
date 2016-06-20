@@ -1442,7 +1442,7 @@ class Person {
 	 * @param string $userId UserId doing the insertion
 	 * @return array as result type
 	 */
-	public static function insertPersonFromImportData($person, $warnings, $invite=null, $isKissKiss = null, $pathFolderImage = null, $moduleId = null, $paramsLink,  $sendMail){
+	public static function insertPersonFromImportData($person, $warnings, $invite=null, $isKissKiss = null, $invitorUrl=null, $pathFolderImage = null, $moduleId = null, $paramsLink,  $sendMail){
 	    
 		$account = PHDB::findOne(Person::COLLECTION,array("email"=>$person["email"]));
 		if($account){
@@ -1458,7 +1458,7 @@ class Person {
 				}else{
 					if(!empty($invite)){
 						if(empty($isKissKiss) && !empty($account["roles"]["tobeactivated"]) && $account["roles"]["tobeactivated"] == true){
-							Mail::invitePerson($personmail, $person["msgInvite"], $person["nameInvitor"]);
+							Mail::invitePerson($personmail, $person["msgInvite"], $person["nameInvitor"], $invitorUrl);
 						}
 						else if(!empty($isKissKiss))
 							Mail::inviteKKBB($personmail, true);
@@ -1571,7 +1571,7 @@ class Person {
 			if(!empty($sendMail)){
 				if(!empty($invite)){
 					if(empty($isKissKiss))
-						Mail::invitePerson($newPerson, $msgMail, $nameInvitor);
+						Mail::invitePerson($newPerson, $msgMail, $nameInvitor, $invitorUrl);
 					else
 						Mail::inviteKKBB($newPerson, true);
 				}
