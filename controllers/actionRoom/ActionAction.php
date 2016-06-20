@@ -86,6 +86,7 @@ class ActionAction extends CAction
         $params["contributors"] = array();
         if(@$action["links"]["contributors"])
         {
+            $countStrongLinks=count($project["links"]["contributors"]);
             foreach ($action["links"]["contributors"] as $uid => $e) 
             {
                 $citoyen = Person::getPublicData($uid);
@@ -100,6 +101,7 @@ class ActionAction extends CAction
         }
 
         $params["parentSpace"] = ActionRoom::getById( $action["room"] );
+        $params["countStrongLinks"]= $countStrongLinks;
 
       if(Yii::app()->request->isAjaxRequest)
         echo $controller->renderPartial("actionStandalone",$params,true);
