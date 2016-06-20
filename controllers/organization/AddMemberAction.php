@@ -10,7 +10,10 @@ class AddMemberAction extends CAction
 		$lists = Lists::get(array("public", "typeIntervention", "organisationTypes"));
 		$params["organizationTypes"] = $lists["organisationTypes"];
 		$params["typeIntervention"] = $lists["typeIntervention"];
-		
+		if (@Yii::app()->params['betaTest']) { 
+			$user = Person::getSimpleUserById(Yii::app()->session["userId"]);
+			$params['numberOfInvit'] = $user["numberOfInvit"];
+		}
 		$controller->renderPartial( "addMembers" , $params );
     }
 }
