@@ -4,7 +4,7 @@ class SimplyAutoCompleteAction extends CAction
     public function run($filter = null)
     {
 
-  //   	$pathParams = Yii::app()->controller->module->viewPath.'/default/dir/';
+  		// $pathParams = Yii::app()->controller->module->viewPath.'/default/dir/';
 		// echo file_get_contents($pathParams."simply.json");
 		// die();
 
@@ -197,24 +197,24 @@ class SimplyAutoCompleteAction extends CAction
 	  		$allOrganizations = PHDB::find ( Organization::COLLECTION ,$query ,array("id" => 1, "name" => 1, "type" => 1, "email" => 1,  "shortDescription" => 1, "description" => 1,
 													 			"address" => 1, "pending" => 1, "tags" => 1, "geo" => 1, "source.key" => 1));
 	  		foreach ($allOrganizations as $key => $value) {
-	  			// $orga = Organization::getSimpleOrganizationById($key);
+	  			$orga = Organization::getSimpleOrganizationById($key);
 
 	  			// $followers = Organization::getFollowersByOrganizationId($key);
 	  			// if(@$followers[Yii::app()->session["userId"]]){
 		  		// 	$orga["isFollowed"] = true;
 	  			// }
 
-	  			$allOrganizations[$key]["profilThumbImageUrl"] = "";
-				$allOrganizations[$key]["profilMarkerImageUrl"] = "//com/assets/dad45ab2/images/sig/markers/icons_carto/";		
-				$allOrganizations[$key]["logoImageUrl"] = "";
+	  	// 		$allOrganizations[$key]["profilThumbImageUrl"] = "";
+				// $allOrganizations[$key]["profilMarkerImageUrl"] = "//com/assets/dad45ab2/images/sig/markers/icons_carto/";		
+				// $allOrganizations[$key]["logoImageUrl"] = "";
 				
-				$allOrganizations[$key]["address"] = empty($value["address"]) ? array("addressLocality" => "Unknown") : $value["address"];
+				// $allOrganizations[$key]["address"] = empty($value["address"]) ? array("addressLocality" => "Unknown") : $value["address"];
 
 				// $allOrganizations[$key] = Organization::getSimpleOrganizationById($key);
 
-				$$allOrganizations[$key]["type"] = "organization";
+				$allOrganizations[$key] = $orga;
+				$allOrganizations[$key]["type"] = "organization";
 				$allOrganizations[$key]["typeSig"] = "organizations";
-				// $allOrganizations[$key] = $orga;
 	  		}
 
 	  		//$res["organization"] = $allOrganizations;
