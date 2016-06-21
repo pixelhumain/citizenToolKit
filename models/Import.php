@@ -1041,7 +1041,7 @@ class Import
                     //var_dump($res);
                     if($res["result"] == true){
                         $entite["name"] =  $value["name"];
-                        $entite["info"] = "Success";
+                        $entite["info"] = $res["msg"];
                     }else{
                         $entite["name"] =  $value["name"];
                         $entite["info"] = $res["msg"];

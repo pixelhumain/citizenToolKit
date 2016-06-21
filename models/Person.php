@@ -1454,7 +1454,7 @@ class Person {
 	    
 		$account = PHDB::findOne(Person::COLLECTION,array("email"=>$person["email"]));
 		if($account){
-			$msg = "" ;
+			$msg = "Déja inscrits :" ;
 			if(!empty($sendMail)){
 				$personmail["_id"] = (String)$account["_id"];
 				$personmail["email"] = $account["email"];
@@ -1463,6 +1463,7 @@ class Person {
 						if(!empty($isKissKiss))
 							Mail::inviteKKBB($personmail, false);
 					}
+					$msg .="Compte déjà activé";
 				}else{
 					if(!empty($invite)){
 						if(empty($isKissKiss) && !empty($account["roles"]["tobeactivated"]) && $account["roles"]["tobeactivated"] == true){
@@ -1478,7 +1479,7 @@ class Person {
 			if(!empty($person["badges"])){
 				$badges = Badge::conformeBadges($person["badges"]);
 				$res = Badge::addAndUpdateBadges($badges, (String)$account["_id"], Person::COLLECTION);
-				$msg +=" "+$res["msg"];
+				$msg .=" ".$res["msg"];
 			}
 
 			if(!empty($paramsLink) && $paramsLink["link"] == true){
