@@ -6,6 +6,10 @@ class EntryAction extends CAction
       $controller=$this->getController();
       $survey = PHDB::findOne (Survey::COLLECTION, array("_id"=>new MongoId ( $id ) ) );
      
+      if(!isset($survey)){
+        throw new CTKException("Impossible to find this survey entry");
+      }
+
       $pageView = ActivityStream::getWhere(array("verb"=>ActStr::VERB_VIEW,
                                                  "ip"=>$_SERVER['REMOTE_ADDR'],
                                                  "object.objectType" => ActStr::TYPE_URL,

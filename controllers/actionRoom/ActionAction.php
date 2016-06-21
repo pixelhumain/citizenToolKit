@@ -10,6 +10,10 @@ class ActionAction extends CAction
                                                  "ip"=>$_SERVER['REMOTE_ADDR'],
                                                  "object.objectType" => ActStr::TYPE_URL,
                                                  "object.id"=>$controller->id."/".$controller->action->id."/id/".$id));
+      if(!isset($action)) {
+          throw new CTKException("Impossible to find this action");
+          //return;
+      }
 
       if( !count($pageView) )
       {
@@ -84,6 +88,7 @@ class ActionAction extends CAction
       }
 
         $params["contributors"] = array();
+        $countStrongLinks = 0;
         if(@$action["links"]["contributors"])
         {
             $countStrongLinks=count($project["links"]["contributors"]);

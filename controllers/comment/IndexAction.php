@@ -54,6 +54,11 @@ class IndexAction extends CAction
                                         "link" => "loadByHash('#city.detail.insee.".$parent["insee"].".postalCode.".$parent["cp"]."')");
             }
 
+            if(!isset($params["parent"])) {
+                throw new CTKException("Impossible to find this actionRoom");
+                //return;
+            }
+            
             $params["parentType"] = $actionRoom["parentType"];
             $params["parentId"] = $actionRoom["parentId"];
             /*AUTH*/

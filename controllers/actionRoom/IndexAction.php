@@ -26,10 +26,17 @@ class IndexAction extends CAction
         else if( $type == City::COLLECTION ) {
             $parent = City::getByUnikey($id);
         }
-        
-        if($parent)
+                
+    
+        if($parent != null && isset($parent['name'])){
+            error_log("test ok ? ".$parent['name']);
             $nameParentTitle = $parent['name'];
+        }
+        else{
+            throw new CTKException("Impossible to find this DDA");
+        }
 
+        //gère l'activation du DDA sur project et orga
         if((!isset($parent["modules"]) || !in_array("survey", $parent["modules"])) 
             && $type != City::COLLECTION 
             && $type != Person::COLLECTION ){ 

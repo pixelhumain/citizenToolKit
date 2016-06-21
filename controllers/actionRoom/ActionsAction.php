@@ -17,6 +17,11 @@ class ActionsAction extends CAction
       $list = PHDB::find(ActionRoom::COLLECTION_ACTIONS, $where );
       $room = PHDB::findOne (ActionRoom::COLLECTION, array("_id"=>new MongoId ( $id ) ) );
 
+      if(!isset($room)) {
+          throw new CTKException("Impossible to find this room");
+          //return;
+      }
+
       $uniqueVoters = PHDB::count( Person::COLLECTION, array("applications.actions"=>array('$exists'=>true)) );
 
       $parentType = ($room["parentType"] == "organizations") ? "organization" : "";

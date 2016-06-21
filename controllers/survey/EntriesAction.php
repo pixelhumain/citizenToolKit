@@ -16,6 +16,11 @@ class EntriesAction extends CAction
 
       $list = PHDB::find(Survey::COLLECTION, $where );
       $survey = PHDB::findOne (Survey::PARENT_COLLECTION, array("_id"=>new MongoId ( $id ) ) );
+
+      if(!isset($survey)){
+        throw new CTKException("Impossible to find this survey");
+      }
+
       $where["survey"] = $survey;
 
       $uniqueVoters = PHDB::count( Person::COLLECTION, array("applications.survey"=>array('$exists'=>true)) );

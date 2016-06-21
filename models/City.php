@@ -67,7 +67,7 @@ class City {
 				return $city;
 			}
 		}
-		return $city;
+		return null;
 		//return array("country" => $country, "insee" => $insee, "cp" => $cp);
 	}
 
