@@ -1261,9 +1261,8 @@ class Person {
 				else
 					throw new CTKException(Yii::t("import","210", null, Yii::app()->controller->module->id));
 			}
-		}else{
-			
-			if ( !self::isUniqueUsername($person["username"]) ) {
+		}else{	
+			if(!self::isUniqueUsername($person["username"]) ) {
 				if(!empty($invite)){
 					$newPerson['username'] = self::generedUserNameByEmail($person['email'], true) ;
 				}
