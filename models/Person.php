@@ -1262,14 +1262,19 @@ class Person {
 					throw new CTKException(Yii::t("import","210", null, Yii::app()->controller->module->id));
 			}
 		}else{
+			
 			if ( !self::isUniqueUsername($person["username"]) ) {
-				if(!empty($invite))
+				if(!empty($invite)){
 					$newPerson['username'] = self::generedUserNameByEmail($person['email'], true) ;
+				}
 				else
 					throw new CTKException(Yii::t("import","207", null, Yii::app()->controller->module->id));
+		  	}else{
+		  		$newPerson['username'] = $person['username'];
 		  	}
-		  	$newPerson['username'] = $person['username'];
 		}
+
+
 
 		if(!empty($person["badges"]))
 			$newPerson["badges"] = Badge::conformeBadges($person["badges"]);
