@@ -20,7 +20,7 @@ class IndexAction extends CAction
 		if (!isset($id)){
 				if($type!="pixels"){
 					if($type=="city"){
-						$id=$_GET["insee"];
+						$id="";//$_GET["insee"];
 					}
 					else{
 						if(@$_GET["id"])
@@ -77,6 +77,13 @@ class IndexAction extends CAction
 	            }
 	        }
 	        else if ($type=="city"){
+		        $locality = isset($_POST['locality']) ? trim(urldecode($_POST['locality'])) : null;
+				//$searchType = isset($_POST['searchType']) ? $_POST['searchType'] : null;
+				$searchBy = isset($_POST['searchBy']) ? $_POST['searchBy'] : "INSEE";
+				$tagSearch = isset($_POST['tagSearch']) ? $_POST['tagSearch'] : "";
+				$params["locality"] = $locality;
+				$params["searchBy"] = $searchBy;
+				$params["tagSearch"] = $tagSearch;
 		        if (@Yii::app()->session["userId"])
 					$params["canPostNews"] = true;
 	        }
@@ -202,13 +209,76 @@ class IndexAction extends CAction
 				);
 			}
 			else if($type == "city"){
+
+				if(!empty($_POST['locality'])){
+					$locality = isset($_POST['locality']) ? trim(urldecode($_POST['locality'])) : null;
+					//$searchType = isset($_POST['searchType']) ? $_POST['searchType'] : null;
+					$searchBy = isset($_POST['searchBy']) ? $_POST['searchBy'] : "INSEE";
+					
+			        if($searchBy == "CODE_POSTAL_INSEE") {
+			        	$queryLocality = array("scope.cities.postalCode" => $locality );
+		        	}
+		        	if($searchBy == "DEPARTEMENT") {
+		        		$queryLocality = array("scope.cities.postalCode" 
+								=> new MongoRegex("/^".$locality."/i"));
+		        	}
+		        	if($searchBy == "REGION") {
+		        		//#TODO GET REGION NAME | CITIES.DEP = myDep
+		        		$regionName = PHDB::findOne( City::COLLECTION, array("insee" => $locality), array("regionName", "dep"));
+		        		
+						if(isset($regionName["regionName"])){ //quand la city a bien la donnée "regionName"
+		        			$regionName = $regionName["regionName"];
+		        			//#TODO GET ALL DEPARTMENT BY REGION
+		        			$deps = PHDB::find( City::COLLECTION, array("regionName" => $regionName), array("dep"));
+		        			$departements = array();
+		        			$inQuest = array();
+		        			foreach($deps as $index => $value){
+		        				if(!in_array($value["dep"], $departements)){
+			        				$departements[] = $value["dep"];
+			        				$inQuest[] = new MongoRegex("/^".$value["dep"]."/i");
+						        	$queryLocality = array("scope.cities.postalCode" => array('$in' => $inQuest));
+			        				
+						        }
+		        			}
+		        			//$queryLocality = array('$or' => $orQuest);
+		        			//error_log("queryLocality : " . print_R($queryLocality, true));
+		        			
+		        		}else{ //quand la city communectée n'a pas la donnée "regionName", on prend son département à la place
+		        			$regionName = isset($regionName["dep"]) ? $regionName["dep"] : "";
+		        			$queryLocality = array("scope.cities.postalCode" 
+								=> new MongoRegex("/^".$regionName."/i"));
+		        		}
+		        		
+		
+		        		//$str = implode(",", $regionName);
+		        		error_log("regionName : ".$regionName );
+		
+		        		//#TODO CREATE REQUEST CITIES.POSTALCODE IN (LIST_DEPARTMENT)" 
+		      //   		$queryLocality = array("address.postalCode" 
+								// => new MongoRegex("/^".$locality."/i"));
+		        	}
+		        	if($searchBy == "INSEE") {
+		        		$queryLocality = array("scope.cities.codeInsee" => $locality );
+		        	}
+	        	}
 				$where = array('$and' => array(
-						array("scope.cities.codeInsee" => $id, "scope.type" => "public" ),
+						array("scope.type" => "public" ),
 						array("target.type" => array('$ne' => "pixels")),
 		        	)	
 				);
+				if(@$queryLocality){
+					$where = array_merge($where,$queryLocality);
+				}
+				/*$where = array('$and' => array(
+						array("scope.cities.codeInsee" => $id, "scope.type" => "public" ),
+						array("target.type" => array('$ne' => "pixels")),
+		        	)	
+				);*/
 			}
-			
+			if(@$_POST["tagSearch"] && !empty($_POST["tagSearch"])){
+					$querySearch = array( "tags" => array('$in' => array(new MongoRegex("/".$_POST["tagSearch"]."/i")))) ;
+					$where = array_merge($where,$querySearch); 			
+			}
 			//Exclude => If there is more than 5 reportAbuse
 			$where = array_merge($where,  array('$or' => array(
 													array("reportAbuseCount" => array('$lt' => 5)),
