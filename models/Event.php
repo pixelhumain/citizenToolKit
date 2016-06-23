@@ -91,12 +91,14 @@ class Event {
 	public static function getSimpleEventById($id) {
 		
 		$simpleEvent = array();
-		$event = PHDB::findOneById( self::COLLECTION ,$id, array("id" => 1, "name" => 1, "type" => 1,  "shortDescription" => 1, "description" => 1, "address" => 1, "geo" => 1, "tags" => 1, "profilImageUrl" => 1, "profilThumbImageUrl" => 1, "profilMarkerImageUrl" => 1));
+		$event = PHDB::findOneById( self::COLLECTION ,$id, array("id" => 1, "name" => 1, "type" => 1,  "shortDescription" => 1, "description" => 1, "startDate" => 1,"endDate" => 1,"address" => 1, "geo" => 1, "tags" => 1, "profilImageUrl" => 1, "profilThumbImageUrl" => 1, "profilMarkerImageUrl" => 1));
 
 		if(!empty($event)){
 			$simpleEvent["id"] = $id;
 			$simpleEvent["_id"] = $event["_id"];
 			$simpleEvent["name"] = @$event["name"];
+			$simpleEvent["startDate"] = @$event["startDate"];
+			$simpleEvent["endDate"] = @$event["endDate"];
 			$simpleEvent["type"] = @$event["type"];
 			$simpleEvent["geo"] = @$event["geo"];
 			$simpleEvent["tags"] = @$event["tags"];

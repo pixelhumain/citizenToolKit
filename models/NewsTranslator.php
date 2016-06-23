@@ -36,6 +36,11 @@ class NewsTranslator {
 				$params["text"] = preg_replace('/<[^>]*>/', '', (isset($object["shortDescription"]) ? $object["shortDescription"] : "" ));
 				if (empty($params["text"]))
 					$params["text"] =(isset($object["description"]) ? preg_replace('/<[^>]*>/', '',$object["description"]) : "");
+				if($params["object"]["objectType"]==Event::COLLECTION || $params["object"]["objectType"]==Need::COLLECTION){
+					$params["startDate"]=@$object["startDate"];
+					$params["endDate"]=@$object["endDate"];
+					
+				}
 				$params["scope"]["address"]=$object["address"];
 			}else{
 				$params=array("created"=>$params["created"]);
