@@ -71,15 +71,15 @@ class Person {
 	  	$name = (isset($account["name"])) ? $account["name"] : "Anonymous" ;
 	    $user = array("name"=>$name);
 		
-		if(isset( $account["username"] )) 
+		if(	@$account["username"] ) 
 	      	$user ["username"] = $account["username"];
-	    if(isset( $account["cp"] )) 
+	    if( @$account["cp"] ) 
 	      	$user ["postalCode"] = $account["cp"];
-	    if( isset( $account["address"]) && isset( $account["address"]["postalCode"]) )
+	    if( @$account["address"] && @$account["address"]["postalCode"] )
 	     	$user ["postalCode"] = $account["address"]["postalCode"];
-	    if( isset( $account["address"]) && isset( $account["address"]["codeInsee"]) )
+	    if( @$account["address"] && @$account["address"]["codeInsee"] )
 	     	$user ["codeInsee"] = $account["address"]["codeInsee"];
-		if( isset( $account["roles"]))
+		if( @$account["roles"])
 	     	$user ["roles"] = $account["roles"];
 
 		//Image profil
@@ -87,7 +87,6 @@ class Person {
 	    $user ["profilImageUrl"] = $simpleUser["profilImageUrl"];
 	    $user ["profilThumbImageUrl"] = $simpleUser["profilThumbImageUrl"];
 	    $user ["profilMarkerImageUrl"] = $simpleUser["profilMarkerImageUrl"];
-	    
 	    Yii::app()->session["user"] = $user;
 	    Yii::app()->session["isRegisterProcess"] = $isRegisterProcess;
 
@@ -155,7 +154,7 @@ class Person {
 		
 		$simplePerson = array();
 		$person = PHDB::findOneById( self::COLLECTION ,$id, 
-				array("id" => 1, "name" => 1, "username" => 1, "email" => 1,  "shortDescription" => 1, "description" => 1, "address" => 1, "geo" => 1, "roles" => 1, "tags" => 1, "pending" => 1, "profilImageUrl" => 1, "profilThumbImageUrl" => 1, "profilMarkerImageUrl" => 1));
+				array("id" => 1, "name" => 1, "username" => 1, "email" => 1,  "shortDescription" => 1, "description" => 1, "address" => 1, "geo" => 1, "roles" => 1, "tags" => 1, "pending" => 1, "profilImageUrl" => 1, "profilThumbImageUrl" => 1, "profilMarkerImageUrl" => 1,"numberOfInvit" => 1));
 		
 		if (empty($person)) {
 			return $simplePerson;
@@ -171,7 +170,9 @@ class Person {
 		$simplePerson["shortDescription"] = @$person["shortDescription"];
 		$simplePerson["description"] = @$person["description"];
 		$simplePerson["pending"] = @$person["pending"];
-		
+		if (@Yii::app()->params['betaTest']) { 
+			$simplePerson["numberOfInvit"] = @$person["numberOfInvit"];
+		}
 		//images
 		$simplePerson = array_merge($simplePerson, Document::retrieveAllImagesUrl($id, self::COLLECTION, null, $person));
 
@@ -382,9 +383,12 @@ class Person {
 	  		$invitor = self::getById($param["invitedBy"]);
 	  		if (@$invitor["numberOfInvit"] > 0 || Role::isSuperAdmin($invitor["roles"])) {
 	  			$res = self::insert($param, self::REGISTER_MODE_MINIMAL);
+		  		
 		  		//Decrease number of invitations left for the invitor
-		  		PHDB::update(self::COLLECTION, array("_id" => new MongoId($param["invitedBy"])), 
-		  			array('$inc' => array("numberOfInvit" => -1)));
+		  		if (@Yii::app()->params['betaTest']){
+			  		PHDB::update(self::COLLECTION, array("_id" => new MongoId($param["invitedBy"])), 
+			  			array('$inc' => array("numberOfInvit" => -1)));
+			  	}
 		  		//send invitation mail
 				Mail::invitePerson($res["person"], $msg);
 		  	} else {
@@ -527,7 +531,7 @@ class Person {
 	  	$person["created"] = new mongoDate(time());
 	  	$person["preferences"] = array("seeExplanations"=> true);
 	  	
-	  	if (@Yii::app()->params['betaTest'])
+	  	if (@Yii::app()->params['betaTest'] || $person["roles"]["betaTester"]==true)
 	  		$person["numberOfInvit"] = empty(Yii::app()->params['numberOfInvitByPerson']) ? 0 : Yii::app()->params['numberOfInvitByPerson'];
 
 	  	PHDB::insert( Person::COLLECTION , $person);
@@ -1257,15 +1261,19 @@ class Person {
 				else
 					throw new CTKException(Yii::t("import","210", null, Yii::app()->controller->module->id));
 			}
-		}else{
-			if ( !self::isUniqueUsername($person["username"]) ) {
-				if(!empty($invite))
+		}else{	
+			if(!self::isUniqueUsername($person["username"]) ) {
+				if(!empty($invite)){
 					$newPerson['username'] = self::generedUserNameByEmail($person['email'], true) ;
+				}
 				else
 					throw new CTKException(Yii::t("import","207", null, Yii::app()->controller->module->id));
+		  	}else{
+		  		$newPerson['username'] = $person['username'];
 		  	}
-		  	$newPerson['username'] = $person['username'];
 		}
+
+
 
 		if(!empty($person["badges"]))
 			$newPerson["badges"] = Badge::conformeBadges($person["badges"]);
@@ -1446,7 +1454,7 @@ class Person {
 	    
 		$account = PHDB::findOne(Person::COLLECTION,array("email"=>$person["email"]));
 		if($account){
-			$msg = "" ;
+			$msg = "Déja inscrits :" ;
 			if(!empty($sendMail)){
 				$personmail["_id"] = (String)$account["_id"];
 				$personmail["email"] = $account["email"];
@@ -1455,6 +1463,7 @@ class Person {
 						if(!empty($isKissKiss))
 							Mail::inviteKKBB($personmail, false);
 					}
+					$msg .="Compte déjà activé";
 				}else{
 					if(!empty($invite)){
 						if(empty($isKissKiss) && !empty($account["roles"]["tobeactivated"]) && $account["roles"]["tobeactivated"] == true){
@@ -1470,7 +1479,7 @@ class Person {
 			if(!empty($person["badges"])){
 				$badges = Badge::conformeBadges($person["badges"]);
 				$res = Badge::addAndUpdateBadges($badges, (String)$account["_id"], Person::COLLECTION);
-				$msg +=" "+$res["msg"];
+				$msg .=" ".$res["msg"];
 			}
 
 			if(!empty($paramsLink) && $paramsLink["link"] == true){
