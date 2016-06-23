@@ -461,11 +461,11 @@ class Person {
 	  	
 	  	$newPerson["name"] = $person["name"];
 
-	  	if(! preg_match('#^[\w.-]+@[\w.-]+\.[a-zA-Z]{2,6}$#',$person["email"])) { 
-	  		throw new CTKException(Yii::t("person","Problem inserting the new person : email is not well formated"));
-        } else {
-        	$newPerson["email"] = $person["email"];
-        }
+	  	//Check email
+	  	$checkEmail = DataValidator::email($person["email"]);
+	  	if ($checkEmail != "") {
+	  		throw new CTKException(Yii::t("common",$checkEmail));
+	  	}
 
 		//Check if the email of the person is already in the database
 	  	if ($uniqueEmail) {
@@ -1256,14 +1256,16 @@ class Person {
 			$newPerson['name'] = $person['name'];
 
 
+	  	
 
 		if (empty($person['email'])) {
 			throw new CTKException(Yii::t("import","203"));
 		}else{
-			if(! preg_match('#^[\w.-]+@[\w.-]+\.[a-zA-Z]{2,6}$#',$person["email"])){
-				throw new CTKException(Yii::t("import","205", null, Yii::app()->controller->module->id));
-	        }
-
+			//Check email
+		  	$checkEmail = DataValidator::email($person["email"]);
+		  	if ($checkEmail != "") {
+		  		throw new CTKException(Yii::t("import","205", null, Yii::app()->controller->module->id));
+		  	}
 			//Check if the email of the person is already in the database
 		  	$account = PHDB::findOne(Person::COLLECTION,array("email"=>$person["email"]));
 		  	if($account){
