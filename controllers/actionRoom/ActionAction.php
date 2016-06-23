@@ -91,7 +91,7 @@ class ActionAction extends CAction
         $countStrongLinks = 0;
         if(@$action["links"]["contributors"])
         {
-            $countStrongLinks=count($project["links"]["contributors"]);
+            $countStrongLinks=count($action["links"]["contributors"]);
             foreach ($action["links"]["contributors"] as $uid => $e) 
             {
                 $citoyen = Person::getPublicData($uid);
