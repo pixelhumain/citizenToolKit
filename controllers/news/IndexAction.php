@@ -239,45 +239,36 @@ class IndexAction extends CAction
 						        	$queryLocality = array("scope.cities.postalCode" => array('$in' => $inQuest));
 			        				
 						        }
-		        			}
-		        			//$queryLocality = array('$or' => $orQuest);
-		        			//error_log("queryLocality : " . print_R($queryLocality, true));
-		        			
+		        			}	
 		        		}else{ //quand la city communectée n'a pas la donnée "regionName", on prend son département à la place
 		        			$regionName = isset($regionName["dep"]) ? $regionName["dep"] : "";
 		        			$queryLocality = array("scope.cities.postalCode" 
 								=> new MongoRegex("/^".$regionName."/i"));
 		        		}
-		        		
-		
-		        		//$str = implode(",", $regionName);
 		        		error_log("regionName : ".$regionName );
-		
-		        		//#TODO CREATE REQUEST CITIES.POSTALCODE IN (LIST_DEPARTMENT)" 
-		      //   		$queryLocality = array("address.postalCode" 
-								// => new MongoRegex("/^".$locality."/i"));
 		        	}
 		        	if($searchBy == "INSEE") {
 		        		$queryLocality = array("scope.cities.codeInsee" => $locality );
 		        	}
 	        	}
-				$where = array('$and' => array(
-						array("scope.type" => "public" ),
-						array("target.type" => array('$ne' => "pixels")),
-		        	)	
-				);
+				$where = array("scope.type" => "public","target.type" => array('$ne' => "pixels"));
 				if(@$queryLocality){
 					$where = array_merge($where,$queryLocality);
 				}
-				/*$where = array('$and' => array(
-						array("scope.cities.codeInsee" => $id, "scope.type" => "public" ),
-						array("target.type" => array('$ne' => "pixels")),
-		        	)	
-				);*/
 			}
 			if(@$_POST["tagSearch"] && !empty($_POST["tagSearch"])){
 					$querySearch = array( "tags" => array('$in' => array(new MongoRegex("/".$_POST["tagSearch"]."/i")))) ;
 					$where = array_merge($where,$querySearch); 			
+			}
+			if(@$_POST['searchType']){
+				$searchType=array();
+				foreach($_POST['searchType'] as $data){
+					if($data == "news")
+						$searchType[]=array("type" => "news");
+					else
+						$searchType[]=array("object.objectType" => $data);
+				}
+				$where = array_merge($where,array('$and' => array(array('$or' =>$searchType))));
 			}
 			//Exclude => If there is more than 5 reportAbuse
 			$where = array_merge($where,  array('$or' => array(

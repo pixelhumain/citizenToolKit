@@ -30,8 +30,14 @@ class NewsTranslator {
 				$object=Project::getSimpleProjectById((string)$params["object"]["id"]);
 				$params["icon"]="fa-lightbulb-o";
 			}
+			else if ($params["object"]["objectType"]==Need::COLLECTION){
+				$object=Need::getSimpleNeedById((string)$params["object"]["id"]);
+				$params["icon"]="fa-cubes";
+			}
+
 			if(!empty($object)){
-				$params["imageBackground"] = $object["profilImageUrl"];
+				if($params["object"]["objectType"]!=Need::COLLECTION)
+					$params["imageBackground"] = $object["profilImageUrl"];
 				$params["name"] = $object["name"];
 				$params["text"] = preg_replace('/<[^>]*>/', '', (isset($object["shortDescription"]) ? $object["shortDescription"] : "" ));
 				if (empty($params["text"]))
@@ -41,7 +47,8 @@ class NewsTranslator {
 					$params["endDate"]=@$object["endDate"];
 					
 				}
-				$params["scope"]["address"]=$object["address"];
+				if(@$object["address"])
+					$params["scope"]["address"]=$object["address"];
 			}else{
 				$params=array("created"=>$params["created"]);
 				return $params;
