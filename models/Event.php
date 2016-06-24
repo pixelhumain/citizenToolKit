@@ -483,6 +483,7 @@ class Event {
 		$res = Event::updateEvent($eventId, $set, $userId);
 		if($authorization == "openEdition"){
 			// Add in activity to show each modification added to this entity
+					//echo $dataFieldName;
 			ActivityStream::saveActivityHistory(ActStr::VERB_UPDATE, $eventId, Event::COLLECTION, $dataFieldName, $eventFieldValue);
 		}	
 		return $res;
