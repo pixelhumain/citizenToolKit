@@ -7,7 +7,10 @@ class CheckEventsOpenAgendaInDBAction extends CAction
         $params["Add"] = array();
         $params["Update"] = array();
         $params["Delete"] = array();
-        if(!empty($_POST["events"]["data"])){
+        $bindMap = TranslateOpenAgenda::$dataBinding_event;
+        $data = Translate::convert($_POST["events"]["data"], $bindMap );
+        var_dump($data);
+        /*if(!empty($_POST["events"]["data"])){
             foreach ($_POST["events"]["data"] as $key => $value) {
         
                 if(!empty($value["locations"]) && !empty($value["uid"])){
@@ -15,7 +18,7 @@ class CheckEventsOpenAgendaInDBAction extends CAction
                     $params[$state][] = $value; 
                 }
             }
-        }
+        }*/
 		return Rest::json($params);   
     }
 }

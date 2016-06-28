@@ -653,7 +653,7 @@ class Event {
 	*	@param string Date Update openAgenda
 	*   return String ("Add", "Update" or "Delete")
 	*/
-	public static function createEventsFromOpenAgenda($eventOpenAgenda) {
+	public static function createEventsFromOpenAgenda2($eventOpenAgenda) {
 		$newEvents["name"] = empty($eventOpenAgenda["title"]["fr"]) ? "" : $eventOpenAgenda["title"]["fr"];
 		$newEvents["description"] = empty($eventOpenAgenda["description"]["fr"]) ? "" : $eventOpenAgenda["description"]["fr"];
 		$newEvents["shortDescription"] = empty($eventOpenAgenda["freeText"]["fr"]) ? "" : $eventOpenAgenda["freeText"]["fr"];
@@ -740,6 +740,12 @@ class Event {
 		$newEvents['source']["id"] = $eventOpenAgenda["uid"] ;
 		$newEvents['source']["url"] = $eventOpenAgenda["link"] ;
 		$newEvents['source']["key"] = "openagenda" ;
+
+		return $newEvents;
+	}
+
+	public static function createEventsFromOpenAgenda2($eventOpenAgenda) {
+		
 
 		return $newEvents;
 	}
