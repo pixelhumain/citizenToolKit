@@ -381,20 +381,45 @@ class Person {
 	  	try {
 	  		//Check if the person can still invite : has he got enought invitations left
 	  		$invitor = self::getById($param["invitedBy"]);
-	  		if (@$invitor["numberOfInvit"] > 0 || Role::isSuperAdmin($invitor["roles"])) {
-	  			$res = self::insert($param, self::REGISTER_MODE_MINIMAL);
-		  		
-		  		//Decrease number of invitations left for the invitor
-		  		if (@Yii::app()->params['betaTest']){
+	  		if (@Yii::app()->params['betaTest']){
+		  		if (@$invitor["numberOfInvit"] > 0 
+	  				|| Role::isSuperAdmin($invitor["roles"])) {
 			  		PHDB::update(self::COLLECTION, array("_id" => new MongoId($param["invitedBy"])), 
 			  			array('$inc' => array("numberOfInvit" => -1)));
-			  	}
-		  		//send invitation mail
-				Mail::invitePerson($res["person"], $msg);
-		  	} else {
-		  		$res = array("result"=>false, "msg"=> Yii::t("person","Sorry, you can't invite more people to join the platform. You do not have enough invitations left."));
+				} else {
+		  			return array("result"=>false, "msg"=> Yii::t("person","Sorry, you can't invite more people to join the platform. You do not have enough invitations left."));
+		  		}
 		  	}
-	  		
+	  		//Check if it is not robot or a curl 
+	  		$nbInvitation = 3;
+	  		$limit = 15;
+	  		if(@$invitor["invitationDate"] && count($invitor["invitationDate"]) >= $nbInvitation){
+		  		rsort($invitor["invitationDate"]);
+		  		$lastDate=0;
+		  		$amountDelay = 0;
+		  		foreach($invitor["invitationDate"] as $data){
+			  		if($lastDate != 0){
+				  		$step=$lastDate- $data;
+			  			$amountDelay += $step; 
+			  			if($step < 5)
+					  		return array("result"=>false, "msg"=> "You're so fast for us. Take a breath Lucky Luke");
+			  		}
+		  			$lastDate=$data;
+		  		}
+		  		if($amountDelay < $limit){
+			  		return array("result"=>false, "msg"=> "You're so fast for us. Take a breath Lucky Luke");
+		  		} else{
+			  		PHDB::update(self::COLLECTION, array("_id" => new MongoId($param["invitedBy"])), 
+		  				array('$set' => array('invitationDate' => array())));
+		  		}
+	  		}
+	  		$res = self::insert($param, self::REGISTER_MODE_MINIMAL);
+	  		PHDB::update(self::COLLECTION, array("_id" => new MongoId($param["invitedBy"])), 
+		  			array('$push' => array('invitationDate' => time())));
+
+	  				  		//send invitation mail
+			Mail::invitePerson($res["person"], $msg);
+		  		  		
 	  	} catch (CTKException $e) {
 	  		$res = array("result"=>false, "msg"=> $e->getMessage());
 	  	}
@@ -436,11 +461,11 @@ class Person {
 	  	
 	  	$newPerson["name"] = $person["name"];
 
-	  	if(! preg_match('#^[\w.-]+@[\w.-]+\.[a-zA-Z]{2,6}$#',$person["email"])) { 
-	  		throw new CTKException(Yii::t("person","Problem inserting the new person : email is not well formated"));
-        } else {
-        	$newPerson["email"] = $person["email"];
-        }
+	  	//Check email
+	  	$checkEmail = DataValidator::email($person["email"]);
+	  	if ($checkEmail != "") {
+	  		throw new CTKException(Yii::t("common",$checkEmail));
+	  	}
 
 		//Check if the email of the person is already in the database
 	  	if ($uniqueEmail) {
@@ -449,7 +474,8 @@ class Person {
 		  		throw new CTKException(Yii::t("person","Problem inserting the new person : a person with this email already exists in the plateform"));
 		  	}
 	  	}
-
+	  	$newPerson["email"] = $person["email"];
+	  	
 	  	if (!empty($person["invitedBy"])) {
 	  		$newPerson["invitedBy"] = $person["invitedBy"];
 	  	}
@@ -1231,14 +1257,16 @@ class Person {
 			$newPerson['name'] = $person['name'];
 
 
+	  	
 
 		if (empty($person['email'])) {
 			throw new CTKException(Yii::t("import","203"));
 		}else{
-			if(! preg_match('#^[\w.-]+@[\w.-]+\.[a-zA-Z]{2,6}$#',$person["email"])){
-				throw new CTKException(Yii::t("import","205", null, Yii::app()->controller->module->id));
-	        }
-
+			//Check email
+		  	$checkEmail = DataValidator::email($person["email"]);
+		  	if ($checkEmail != "") {
+		  		throw new CTKException(Yii::t("import","205", null, Yii::app()->controller->module->id));
+		  	}
 			//Check if the email of the person is already in the database
 		  	$account = PHDB::findOne(Person::COLLECTION,array("email"=>$person["email"]));
 		  	if($account){
