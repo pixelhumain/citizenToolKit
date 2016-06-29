@@ -474,7 +474,8 @@ class Person {
 		  		throw new CTKException(Yii::t("person","Problem inserting the new person : a person with this email already exists in the plateform"));
 		  	}
 	  	}
-
+	  	$newPerson["email"] = $person["email"];
+	  	
 	  	if (!empty($person["invitedBy"])) {
 	  		$newPerson["invitedBy"] = $person["invitedBy"];
 	  	}
