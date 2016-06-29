@@ -7,6 +7,21 @@ class Mail
     
     public static function send( $params, $force = false ) {
         
+        //Check if the user has the not valid email flag
+        if (! empty($params['to'])) {
+            $account = PHDB::findOne(array(Person::COLLECTION,array("email"=>$params['to'])));
+            if (!empty($account)) {
+                if (@$account["isNotValidEmail"]) {
+                    error_log("Try to send an email to a not valid email user : ".$params['to']);
+                    return false;
+                }
+            } else {
+                error_log("Try to send an email to an unknown email user : ".$params['to']);
+            }
+        } else {
+            return false;
+        }
+        
         if( PH::notlocalServer() || $force ){
             $message = new YiiMailMessage;
             $message->view =  $params['tpl'];
