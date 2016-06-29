@@ -23,7 +23,10 @@ class Role {
 	  	$roles = array();
 	  	$roles["tobeactivated"] = true;
 	  	//By default no one is beta tester in a betaTest mode
-	  	$roles["betaTester"] = true;
+	  	if (@Yii::app()->params['betaTest'])
+		  	$roles["betaTester"] = true;
+	  	else	
+	  		$roles["betaTester"] = true;
 	  	//Can access standalone Pages : true
 	  	$roles["standalonePageAccess"] = true;
 	  	//Not a super admin

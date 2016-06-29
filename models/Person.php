@@ -381,45 +381,45 @@ class Person {
 	  	try {
 	  		//Check if the person can still invite : has he got enought invitations left
 	  		$invitor = self::getById($param["invitedBy"]);
-	  		if ((@Yii::app()->params['betaTest'] && @$invitor["numberOfInvit"] > 0) 
+	  		if (@Yii::app()->params['betaTest']){
+		  		if (@$invitor["numberOfInvit"] > 0 
 	  				|| Role::isSuperAdmin($invitor["roles"])) {
-		  		//Check if it is not robot or a curl 
-		  		$nbInvitation = 3;
-		  		$limit = 30;
-		  		if(@$invitor["invitationDate"] && count($invitor["invitationDate"]) >= $nbInvitation){
-			  		rsort($invitor["invitationDate"]);
-			  		$lastDate=0;
-			  		$amountDelay = 0;
-			  		foreach($invitor["invitationDate"] as $data){
-				  		if($lastDate != 0){
-					  		$step=$lastDate- $data;
-				  			$amountDelay += $step; 
-				  			if($step < 15)
-						  		return array("result"=>false, "msg"=> "You're so fast for us. Take a breath Lucky Luke");
-				  		}
-			  			$lastDate=$data;
-			  		}
-			  		if($amountDelay < $limit){
-				  		return array("result"=>false, "msg"=> "You're so fast for us. Take a breath Lucky Luke");
-			  		} else{
-				  		PHDB::update(self::COLLECTION, array("_id" => new MongoId($param["invitedBy"])), 
-			  				array('$set' => array('invitationDate' => array())));
-			  		}
-		  		}
-		  		$res = self::insert($param, self::REGISTER_MODE_MINIMAL);
-		  		PHDB::update(self::COLLECTION, array("_id" => new MongoId($param["invitedBy"])), 
-			  			array('$push' => array('invitationDate' => time())));
-
-		  		if (@Yii::app()->params['betaTest']){
 			  		PHDB::update(self::COLLECTION, array("_id" => new MongoId($param["invitedBy"])), 
 			  			array('$inc' => array("numberOfInvit" => -1)));
-			  	}
-		  		//send invitation mail
-				Mail::invitePerson($res["person"], $msg);
-		  	} else {
-		  		$res = array("result"=>false, "msg"=> Yii::t("person","Sorry, you can't invite more people to join the platform. You do not have enough invitations left."));
+				} else {
+		  			return array("result"=>false, "msg"=> Yii::t("person","Sorry, you can't invite more people to join the platform. You do not have enough invitations left."));
+		  		}
 		  	}
-	  		
+	  		//Check if it is not robot or a curl 
+	  		$nbInvitation = 3;
+	  		$limit = 15;
+	  		if(@$invitor["invitationDate"] && count($invitor["invitationDate"]) >= $nbInvitation){
+		  		rsort($invitor["invitationDate"]);
+		  		$lastDate=0;
+		  		$amountDelay = 0;
+		  		foreach($invitor["invitationDate"] as $data){
+			  		if($lastDate != 0){
+				  		$step=$lastDate- $data;
+			  			$amountDelay += $step; 
+			  			if($step < 5)
+					  		return array("result"=>false, "msg"=> "You're so fast for us. Take a breath Lucky Luke");
+			  		}
+		  			$lastDate=$data;
+		  		}
+		  		if($amountDelay < $limit){
+			  		return array("result"=>false, "msg"=> "You're so fast for us. Take a breath Lucky Luke");
+		  		} else{
+			  		PHDB::update(self::COLLECTION, array("_id" => new MongoId($param["invitedBy"])), 
+		  				array('$set' => array('invitationDate' => array())));
+		  		}
+	  		}
+	  		$res = self::insert($param, self::REGISTER_MODE_MINIMAL);
+	  		PHDB::update(self::COLLECTION, array("_id" => new MongoId($param["invitedBy"])), 
+		  			array('$push' => array('invitationDate' => time())));
+
+	  				  		//send invitation mail
+			Mail::invitePerson($res["person"], $msg);
+		  		  		
 	  	} catch (CTKException $e) {
 	  		$res = array("result"=>false, "msg"=> $e->getMessage());
 	  	}
