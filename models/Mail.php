@@ -2,21 +2,23 @@
 /*
 Contains anything generix for the site 
  */
-class Mail
-{
+class Mail {
     
     public static function send( $params, $force = false ) {
         
         //Check if the user has the not valid email flag
         if (! empty($params['to'])) {
-            $account = PHDB::findOne(array(Person::COLLECTION,array("email"=>$params['to'])));
-            if (!empty($account)) {
-                if (@$account["isNotValidEmail"]) {
-                    error_log("Try to send an email to a not valid email user : ".$params['to']);
-                    return false;
+            if ($params['to'] != Yii::app()->params['adminEmail']) {
+                $account = PHDB::findOne(Person::COLLECTION,array("email"=>$params['to']));
+                if (!empty($account)) {
+                    if (@$account["isNotValidEmail"]) {
+                        $msg = "Try to send an email to a not valid email user : ".$params['to'];
+                        return array("result" => false, "msg" => $msg);
+                    }
+                } else {
+                    $msg = "Try to send an email to an unknown email user : ".$params['to'];
+                    return array("result" => false, "msg" => $msg);
                 }
-            } else {
-                error_log("Try to send an email to an unknown email user : ".$params['to']);
             }
         } else {
             return false;
