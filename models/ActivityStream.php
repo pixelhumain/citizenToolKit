@@ -73,6 +73,8 @@ class ActivityStream {
 			$buildArray["label"] = $activityName;
 		if($activityValue != null)
 			$buildArray["value"] = $activityValue;
+		if($activityName=="geo")
+			$buildArray["value"] = "geoposition";
 		$params=self::buildEntry($buildArray);
 		self::addEntry($params);
 		return true;

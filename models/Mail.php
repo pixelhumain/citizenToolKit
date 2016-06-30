@@ -2,11 +2,28 @@
 /*
 Contains anything generix for the site 
  */
-class Mail
-{
+class Mail {
     
-    public static function send( $params, $force = false )
-    {
+    public static function send( $params, $force = false ) {
+        
+        //Check if the user has the not valid email flag
+        if (! empty($params['to'])) {
+            if ($params['to'] != Yii::app()->params['adminEmail']) {
+                $account = PHDB::findOne(Person::COLLECTION,array("email"=>$params['to']));
+                if (!empty($account)) {
+                    if (@$account["isNotValidEmail"]) {
+                        $msg = "Try to send an email to a not valid email user : ".$params['to'];
+                        return array("result" => false, "msg" => $msg);
+                    }
+                } else {
+                    $msg = "Try to send an email to an unknown email user : ".$params['to'];
+                    return array("result" => false, "msg" => $msg);
+                }
+            }
+        } else {
+            return false;
+        }
+        
         if( PH::notlocalServer() || $force ){
             $message = new YiiMailMessage;
             $message->view =  $params['tpl'];
@@ -20,12 +37,11 @@ class Mail
             return false;
     }
 
-    public static function notlocalServer(){
+    public static function notlocalServer() {
     	return (stripos($_SERVER['SERVER_NAME'], "127.0.0.1") === false && stripos($_SERVER['SERVER_NAME'], "localhost:8080") === false );
     }
 
-    public static function schedule( $params )
-    {
+    public static function schedule( $params ) {
         Cron::save($params);
     }
 
