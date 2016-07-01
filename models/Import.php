@@ -430,6 +430,8 @@ class Import
         return $params;
     }
 
+    
+
 
     public static function checkData($keyCollection, $data, $post){
         $res = array() ;

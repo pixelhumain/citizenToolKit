@@ -19,23 +19,19 @@ class Translate {
 	private static function bindData ( $data, $bindMap )
 	{
 		$newData = array();
-		foreach ( $bindMap as $key => $bindPath ) 
-		{
-			if ( is_array( $bindPath ) && isset( $bindPath["valueOf"] ) ) 
-			{
+		foreach ( $bindMap as $key => $bindPath ){
+
+			if ( is_array( $bindPath ) && isset( $bindPath["valueOf"] ) ){
 				/*if( $key == "@id")
 					$newData["debug"] = strpos( $bindPath["valueOf"], ".");*/
-				if( is_array( $bindPath["valueOf"] ))
-				{
+				if( is_array( $bindPath["valueOf"] )){
 					//parse recursively for objects value types , ex links.projects
-					if( isset($bindPath["object"]) )
-					{
+					if( isset($bindPath["object"]) ){
 						//if dots are specified , we adapt the valueData map by focusing on a subpart of it
 						$currentValue = ( strpos( $bindPath["object"], "." ) > 0 ) ? self::getValueByPath( $bindPath["object"] ,$data ) : $data[$bindPath["object"]];
 						$newData[$key] = array();
 						//parse each entry of the list 
-						foreach ( $currentValue as $dataKey => $dataValue) 
-						{
+						foreach ( $currentValue as $dataKey => $dataValue){
 							$refData = $dataValue;
 							//if "collection" field  is set , we'll be fetching the data source of a reference object
 							//we consider the key as the dataKey if no "refId" is set
@@ -46,7 +42,7 @@ class Translate {
 							}
 							array_push( $newData[$key] , self::bindData( $refData, $bindPath["valueOf"] ) );
 						}
-					} 
+					}
 					//parse recursively for array value types, ex : address
 					else if( isset($bindPath["parentKey"]) && isset( $data[ $bindPath["parentKey"] ] ) )
 						$newData[$key] = self::bindData( $data[ $bindPath["parentKey"] ], $bindPath["valueOf"] );
@@ -65,7 +61,10 @@ class Translate {
 					$newData[$key] = $data[ $bindPath["valueOf"] ];
 				} 
 
-			}  else if( is_array( $bindPath ))
+			}else if( isset($bindPath["function"])){
+						$newData[$key] = self::getValueByFunction($bindPath["function"], $data);
+			}
+			else if( is_array( $bindPath ))
 				// there can be a first level with a simple key value
 				// but can have following more than a single level 
 				$newData[$key] = self::bindData( $data, $bindPath ) ;
@@ -88,12 +87,18 @@ class Translate {
 		//follow path until the leaf value
 		foreach ($path as $pathKey) 
 		{	
-			if( is_object($currentValue[ $pathKey ]) && get_class( $currentValue[ $pathKey ] ) == "MongoId" ){
-				$currentValue = (string)$currentValue[ $pathKey ];
+			if(!empty($currentValue[ $pathKey ])){
+				if( is_object($currentValue[ $pathKey ]) && get_class( $currentValue[ $pathKey ] ) == "MongoId" ){
+					$currentValue = (string)$currentValue[ $pathKey ];
+					break;
+				} 
+				else
+					$currentValue = $currentValue[ $pathKey ];
+			}else{
+				$currentValue = null;
 				break;
-			} 
-			else
-				$currentValue = $currentValue[ $pathKey ];
+			}
+			
 		}
 		return $currentValue;
 	}
@@ -114,6 +119,30 @@ class Translate {
 			$val = $prefix.$val.$suffix;
 		}
 		return $val;
+	}
+
+
+	private static function getValueByFunction($function, $data){
+		try{
+			$params = array();
+			foreach ($function["params"] as $key => $value) {
+				if(  isset($value["valueOf"]) && is_array($value["valueOf"]) ){
+					$params[] = self::bindData($data, $value["valueOf"]);
+				}
+				else if( strpos( $value["valueOf"], ".") > 0 )
+					$params[] = self::getValueByPath($value["valueOf"], $data);
+				else if( isset($data[$value["valueOf"]]))
+					$params[] = $data[$value["valueOf"]] ;
+			}
+			$currentValue = call_user_func_array($function["model"]."::".$function["name"], $params);
+			if(!empty($function["result"]))
+				$currentValue = $currentValue[$function["result"]];
+
+		}catch (CTKException $e){
+            $currentValue = null ;
+        }
+		
+		return $currentValue;
 	}
 
 }

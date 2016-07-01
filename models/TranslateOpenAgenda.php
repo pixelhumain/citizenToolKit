@@ -2,84 +2,80 @@
 class TranslateOpenAgenda {
 
 	public static $dataBinding_event = array(
-		"name" 				=> array(	"parentKey"=>"name"
-										"valueOf" => "fr"),
-		"description" 		=> array(	"parentKey"=>"description"
-										"valueOf" => "fr"),
-		"shortDescription" 	=> array(	"parentKey"=>"freeText"
-										"valueOf" => "fr"),
-		"address" 			=> array(	"object"=>"location.0.",
-										"valueOf" => array(
-											"@type" 			=> "PostalAddress", 
-											"addressLocality"   => array("valueOf" => "city"),
-											"postalCode" 		=> array("valueOf" => "postalCode"),
-							 				"streetAddress" 	=> array("valueOf" => "address"))),
+		"name" 				=> array(	"valueOf" => "title.fr"),
+		"type" 				=> "other",
+		"description" 		=> array(	"valueOf"=>"description.fr"),
+		"shortDescription" 	=> array(	"valueOf"=>"freeText.fr"),
+		"image" 			=> array(	"valueOf" => "image"),
+		"tags" 				=> array(	"valueOf" => "tags.fr"),
+		"allDay" 			=> "false",
+		"public" 			=> true,
+		"organizerType" 	=> Event::NO_ORGANISER,
+		"source" 			=> array(	"valueOf" => array(
+											"id" 	=> array("valueOf" => "uid"), 
+											"url" 	=> array("valueOf" => "link"),
+							 				"key" 	=> "openagenda")),
+		"dates" 			=> array(	"valueOf" => "locations.0.dates"),
+		"startDate" 		=> array(	"function" => array(
+											"model" 		=> "Event",
+											"name" 		=> "getStartDateByListDate",
+											"params"	=> array(
+												"dates" => array("valueOf" => "locations.0.dates")))),
+		"endDate" 			=> array(	"function" => array(
+											"model" 		=> "Event",
+											"name" 		=> "getEndDateByListDate",
+											"params"	=> array(
+												"dates" => array("valueOf" => "locations.0.dates")))),
 
-		"geo" 				=> array(	"object"=>"location.0.",
-										"valueOf" => array(
-											"@type" 			=> "GeoCoordinates", 
-											"latitude" 		=> array("valueOf" => "latitude"),
-							 				"longitude" 	=> array("valueOf" => "longitude"))),
+		"address" 			=> array(	"function" => array(
+											"model" 		=> "Import",
+											"name" 		=> "getAndCheckAddressForEntity",
+											"params"	=> array(
+												"address" 	=> array(
+													"valueOf" => array(
+														"@type" 			=> "PostalAddress", 
+														"addressLocality"   => array("valueOf" => "locations.0.city"),
+														"postalCode" 		=> array("valueOf" => "locations.0.postalCode"),
+							 							"streetAddress" 	=> array("valueOf" => "locations.0.address"))),
+												"geo" 		=> array(	
+													"valueOf" => array(
+														"@type" 		=> "GeoCoordinates", 
+														"latitude" 		=> array("valueOf" => "locations.0.latitude"),
+										 				"longitude" 	=> array("valueOf" => "locations.0.longitude")))),
+											"result"	=> "address")),
+
+		"geo" 			=> array(	"function" => array(
+											"model" 		=> "Import",
+											"name" 		=> "getAndCheckAddressForEntity",
+											"params"	=> array(
+												"address" 	=> array(
+													"valueOf" => array(
+														"@type" 			=> "PostalAddress", 
+														"addressLocality"   => array("valueOf" => "locations.0.city"),
+														"postalCode" 		=> array("valueOf" => "locations.0.postalCode"),
+							 							"streetAddress" 	=> array("valueOf" => "locations.0.address"))),
+												"geo" 		=> array(	
+													"valueOf" => array(
+														"@type" 		=> "GeoCoordinates", 
+														"latitude" 		=> array("valueOf" => "locations.0.latitude"),
+										 				"longitude" 	=> array("valueOf" => "locations.0.longitude")))),
+											"result"	=> "geo")),
+		"geoPosition" 			=> array(	"function" => array(
+											"model" 		=> "Import",
+											"name" 		=> "getAndCheckAddressForEntity",
+											"params"	=> array(
+												"address" 	=> array(
+													"valueOf" => array(
+														"@type" 			=> "PostalAddress", 
+														"addressLocality"   => array("valueOf" => "locations.0.city"),
+														"postalCode" 		=> array("valueOf" => "locations.0.postalCode"),
+							 							"streetAddress" 	=> array("valueOf" => "locations.0.address"))),
+												"geo" 		=> array(	
+													"valueOf" => array(
+														"@type" 		=> "GeoCoordinates", 
+														"latitude" 		=> array("valueOf" => "locations.0.latitude"),
+										 				"longitude" 	=> array("valueOf" => "locations.0.longitude")))),
+											"result"	=> "geoPosition")),
 		
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-		//-----------------------------------------------------------------
-	    /*"address" 	=> array("parentKey"=>"address", 
-	    					 "valueOf" => array(
-								"@type" 			=> "PostalAddress", 
-								"@id" 				=> array("valueOf"  	=> 'codeInsee', 
-															 "type" 	=> "url", 
-															 "prefix"   => "/data/get/type/city/insee/",
-															 "suffix"   => "/format/schema" ),
-								"addressLocality"   => array("valueOf" => "addressLocality"),
-								"addressRegion" 	=> array("valueOf" => "region"),
-								"postalCode" 		=> array("valueOf" => "postalCode"),
-				 				"streetAddress" 	=> array("valueOf" => "streetAddress")) ),
-	    "email"		=> array("valueOf" => "email"),
-		"image"		=> array("valueOf" => "img","type" 	=> "url", 
-							 "prefix"   => "/communecter/"),
-		"telephone"	=> array("valueOf" => "phoneNumber"),
-		"url"		=> array("valueOf" => "url"),
-		"startDate" => array("valueOf" => "startDate"),
-		"endDate" 	=> array("valueOf" => "endDate"),
-		"eventStatus" => array("valueOf" => "eventStatus"),
-		"organizers" => array ( 
-						"object" => "links.organizer",
-						"collection" => "organizations" , 
-						"valueOf" => array (
-					   		"@type" => "Organization",
-					   		"@id" => array (
-					   			"valueOf"   => '_id.$id',
-					   			"type" 		=> "url", 
-								"prefix"    => "/data/get/type/organizations/id/",
-								"suffix"    => "/format/schema"),
-					   		"name" => array("valueOf" => "name")) 
-					   	),
-		"attendees" => array ( 
-						"object" => "links.attendees",
-						"collection" => "citoyens" , 
-						"valueOf" => array (
-					   		"@type" => "Person",
-					   		"@id" => array(
-					   			"valueOf"   => '_id.$id',
-					   			"type" 		=> "url", 
-								"prefix"    => "/data/get/type/citoyens/id/",
-								"suffix"    => "/format/schema"),
-					   		"name" => array("valueOf" => "name"))
-					   	 ),*/
 	);
-
 }

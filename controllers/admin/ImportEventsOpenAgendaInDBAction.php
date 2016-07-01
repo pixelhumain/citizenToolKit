@@ -6,16 +6,24 @@ class ImportEventsOpenAgendaInDBAction extends CAction
         $controller = $this->getController();
         $params = array();
         if(!empty($_POST["jsonEventsAdd"])){
-        	foreach (json_decode($_POST["jsonEventsAdd"], true) as $key => $eventOpenAgenda) {
+            $bindMap = TranslateOpenAgenda::$dataBinding_event;
+            $data = Translate::convert(json_decode($_POST["jsonEventsAdd"], true), $bindMap );
+        	foreach ($data  as $key => $eventOpenAgenda) {
         		try{
-                    $event = Event::createEventsFromOpenAgenda($eventOpenAgenda);
-                    $resEvent = Event::saveEventFromOpenAgenda($event, $controller->moduleId) ;
+                    //$event = $eventOpenAgenda ;
+
+                    //$event = Event::createEventsFromOpenAgenda($eventOpenAgenda);
+                    //$event = Event::createEventsFromOpenAgenda($eventOpenAgenda);
+                    //$resEvent = Event::saveEventFromOpenAgenda($event, $controller->moduleId) ;
+                    $resEvent = Event::saveEvent($eventOpenAgenda, true, null);
                     $eventGood["name"] = $resEvent["event"]["name"];
                     $eventGood["msg"] = $resEvent["msg"];
                     $params["result"][] = $eventGood;
+                    //$params["result"][] = $event;
+                    
                 }
                 catch (CTKException $e){
-                    $eventError["name"] = $eventOpenAgenda["title"];
+                    $eventError["name"] = $eventOpenAgenda["name"];
                     $eventError["msg"] = $e->getMessage();
                     $params["error"][] = $eventError;
                 }
@@ -23,18 +31,17 @@ class ImportEventsOpenAgendaInDBAction extends CAction
         	}
         }
 
-        if(!empty($_POST["jsonEventsUpdate"])){
-            foreach (json_decode($_POST["jsonEventsUpdate"], true) as $key => $eventOpenAgenda) {
+        /*if(!empty($_POST["jsonEventsUpdate"])){
+            $bindMap = TranslateOpenAgenda::$dataBinding_event;
+            $data = Translate::convert(json_decode($_POST["jsonEventsAdd"], true), $bindMap );
+            foreach ($data as $key => $eventOpenAgenda){
                 try{
-                    $event = Event::getEventsOpenAgenda($eventOpenAgenda["uid"]);
-                    $eventOpenAgenda = Event::createEventsFromOpenAgenda($eventOpenAgenda);
-                    foreach ($event as $key => $value) {
+                    foreach ($eventOpenAgenda as $key => $value) {
                         Event::updateEvent($value["_id"], $event, Yii::app()->params['idOpenAgenda']);
                     }
                     $eventGood["name"] = $eventOpenAgenda["name"];
                     $eventGood["msg"] = "L'événement a été mis a jours";
-                    $params["result"][] = $eventGood;
-                    
+                    $params["result"][] = $eventGood;                    
                 }
                 catch (CTKException $e){
                     $eventError["name"] = $eventOpenAgenda["name"];
@@ -43,7 +50,7 @@ class ImportEventsOpenAgendaInDBAction extends CAction
                 }
                 
             }
-        }
+        }*/
 
         /*if(!empty($_POST["jsonEventsDelete"])){
             foreach (json_decode($_POST["jsonEventsDelete"], true) as $key => $eventOpenAgenda) {

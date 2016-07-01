@@ -653,7 +653,7 @@ class Event {
 	*	@param string Date Update openAgenda
 	*   return String ("Add", "Update" or "Delete")
 	*/
-	public static function createEventsFromOpenAgenda2($eventOpenAgenda) {
+	/*public static function createEventsFromOpenAgenda2($eventOpenAgenda) {
 		$newEvents["name"] = empty($eventOpenAgenda["title"]["fr"]) ? "" : $eventOpenAgenda["title"]["fr"];
 		$newEvents["description"] = empty($eventOpenAgenda["description"]["fr"]) ? "" : $eventOpenAgenda["description"]["fr"];
 		$newEvents["shortDescription"] = empty($eventOpenAgenda["freeText"]["fr"]) ? "" : $eventOpenAgenda["freeText"]["fr"];
@@ -690,7 +690,7 @@ class Event {
 		/*$address = (empty($organization['address']) ? null : $organization['address']);
 		$geo = (empty($newEvents["geo"]) ? null : $newEvents["geo"]);*/
 		//var_dump($newOrganization['name']);
-		$details = Import::getAndCheckAddressForEntity($address, $geo, null) ;
+		/*$details = Import::getAndCheckAddressForEntity($address, $geo, null) ;
 		$newEvents['address'] = $details['address'];
 
 		if(!empty($details['geo']))
@@ -699,36 +699,7 @@ class Event {
 		if(!empty($details['geoPosition']))
 			$newEvents['geoPosition'] = $details['geoPosition'] ;
 
-		/*if(!empty($newEvents["geo"]["latitude"]) && !empty($newEvents["geo"]["longitude"]))
-		{
-			$newEvents['address']['@type'] = "PostalAddress" ;
-			$newEvents['address']['postalCode'] = empty($eventOpenAgenda["locations"][0]["postalCode"]) ? "" : $eventOpenAgenda["locations"][0]["postalCode"];
-			
-			$where = array("cp"=>$newEvents['address']['postalCode']);
-			$option = City::getWhere($where);
-	        if(empty($option))
-	        	throw new CTKException("Ce code postal n'existe pas.");	
-
-	        $city = SIG::getCityByLatLngGeoShape($newEvents["geo"]["latitude"], $newEvents["geo"]["longitude"],  (empty($eventOpenAgenda["locations"][0]["postalCode"]) ? null : $eventOpenAgenda["locations"][0]["postalCode"]) );
-			
-			if(!empty($city)){
-				foreach ($city as $key => $value) {
-					if($eventOpenAgenda["locations"][0]["postalCode"] == $value["cp"])
-					{
-						$newEvents['address']['postalCode'] = $eventOpenAgenda["locations"][0]["postalCode"] ;
-						$newEvents['address']['streetAddress'] = $eventOpenAgenda["locations"][0]["address"];
-						$newEvents['address']['addressCountry'] =  $value["country"];
-						$newEvents['address']['addressLocality'] = $value["alternateName"];
-						$newEvents['address']['codeInsee'] = $value["insee"];
-					}	
-					else
-						throw new CTKException("Erreur: le code postal ne correspond pas à la city retourné.");
-				}
-			}else{
-				throw new CTKException("Erreur: On n'a pu récupérer la commune associé.");
-			}		
-	
-		}*/
+		
 
 		$newEvents["tags"] = empty($eventOpenAgenda["tags"]["fr"]) ? "" : explode(",", $eventOpenAgenda["tags"]["fr"]);
 
@@ -742,15 +713,81 @@ class Event {
 		$newEvents['source']["key"] = "openagenda" ;
 
 		return $newEvents;
-	}
+	}*/
 
-	public static function createEventsFromOpenAgenda2($eventOpenAgenda) {
+
+	public static function getStartDateByListDate($dates){
+		$startDate = null;
+        if(!empty($dates)){
+			if(!empty($dates["timeStart"])){
+				$arrayTimeStart = explode(":", $dates["timeStart"]);
+				$arrayDateStart = explode("-", $dates["date"]);
+				$start = mktime($arrayTimeStart[0], $arrayTimeStart[1], $arrayTimeStart[2], $arrayDateStart[1]  , $arrayDateStart[2], $arrayDateStart[0]);
+				$startDate = date('Y-m-d H:i:s', $start);
+			}else if(!empty($dates[0]["timeStart"])){
+				$arrayTimeStart = explode(":", $dates[0]["timeStart"]);
+				$arrayDateStart = explode("-", $dates[0]["date"]);
+				$start = mktime($arrayTimeStart[0], $arrayTimeStart[1], $arrayTimeStart[2], $arrayDateStart[1]  , $arrayDateStart[2], $arrayDateStart[0]);
+				$startDate = date('Y-m-d H:i:s', $start);
+			}
+		}
+		return $startDate ;
+    }
+
+    public static function getEndDateByListDate($dates){
+		$endDate = null;
+        if(!empty($dates)){
+        	if(is_array($dates))
+				$nbDates = count($dates);
+			if(!empty($dates["timeEnd"])){
+				$arrayTimeEnd = explode(":", $dates["timeEnd"]);
+				$arrayDateEnd = explode("-", $dates["date"]);
+				$end = mktime($arrayTimeEnd[0], $arrayTimeEnd[1], $arrayTimeEnd[2], $arrayDateEnd[1]  , $arrayDateEnd[2], $arrayDateEnd[0]);
+				$endDate = date('Y-m-d H:i:s', $end);
+			}else if(!empty($dates[$nbDates-1]["timeEnd"])){
+				$arrayTimeEnd = explode(":", $dates[$nbDates-1]["timeEnd"]);	
+				$arrayDateEnd = explode("-", $dates[$nbDates-1]["date"]);
+				$end = mktime($arrayTimeEnd[0], $arrayTimeEnd[1], $arrayTimeEnd[2], $arrayDateEnd[1]  , $arrayDateEnd[2], $arrayDateEnd[0]);
+				$endDate = date('Y-m-d H:i:s', $end);
+			}
+		}
 		
+		return $endDate ;
+    }
 
+	/*public static function createEventsFromOpenAgenda($eventOpenAgenda) {
+	
+		$newEvents = $eventOpenAgenda; 
+		if(!empty($eventOpenAgenda["dates"])){
+			$nbDates = count($eventOpenAgenda["dates"]);
+			if(!empty($eventOpenAgenda["dates"][0]["timeStart"]) && !empty($eventOpenAgenda["dates"][$nbDates-1]["timeEnd"])){
+				$arrayTimeStart = explode(":", $eventOpenAgenda["dates"][0]["timeStart"]);
+				$arrayTimeEnd = explode(":", $eventOpenAgenda["dates"][$nbDates-1]["timeEnd"]);
+				
+				$arrayDateStart = explode("-", $eventOpenAgenda["dates"][0]["date"]);
+				$arrayDateEnd = explode("-", $eventOpenAgenda["dates"][$nbDates-1]["date"]);
+
+				$start = mktime($arrayTimeStart[0], $arrayTimeStart[1], $arrayTimeStart[2], $arrayDateStart[1]  , $arrayDateStart[2], $arrayDateStart[0]);
+				$end = mktime($arrayTimeEnd[0], $arrayTimeEnd[1], $arrayTimeEnd[2], $arrayDateEnd[1]  , $arrayDateEnd[2], $arrayDateEnd[0]);
+
+				$newEvents["startDate"] = date('Y-m-d H:i:s', $start);
+				$newEvents["endDate"] = date('Y-m-d H:i:s', $end);
+			}
+			//$newEvents["dates"] = $eventOpenAgenda["locations"][0]["dates"];
+		}
+		
+		$details = Import::getAndCheckAddressForEntity($eventOpenAgenda["address"], $eventOpenAgenda["geo"], null) ;
+		$newEvents['address'] = $details['address'];
+		if(!empty($details['geo']))
+			$newEvents['geo'] = $details['geo'] ;
+		if(!empty($details['geoPosition']))
+			$newEvents['geoPosition'] = $details['geoPosition'] ;
+
+		$newEvents["tags"] = empty($newEvents["tags"]) ? "" : explode(",", $newEvents["tags"]);
 		return $newEvents;
-	}
+	}*/
 
-	public static function saveEventFromOpenAgenda($params, $moduleId) {
+	/*public static function saveEventFromOpenAgenda($params, $moduleId) {
 		$newEvent = self::getAndCheckEventOpenAgenda($params);
 		
 
@@ -804,10 +841,10 @@ class Event {
 		return array("result"=>true, "msg"=>Yii::t("event","Your event has been connected.")." ".$msgErrorImage, "id"=>$newEvent["_id"], "event" => $newEvent );
 	
 
-	}
+	}*/
 
 	
-	public static function getAndCheckEventOpenAgenda($event) {
+	/*public static function getAndCheckEventOpenAgenda($event) {
 		$newEvent = array();
 		
 		if (empty($event['name'])) {
@@ -904,7 +941,10 @@ class Event {
 			$newEvent["allDay"] = $event['allDay'];
 		}
 
-		if(!empty($event['startDate'])){	
+
+		date_default_timezone_set('UTC');
+		if(!empty($event['startDate'])){
+			var_dump($event['startDate']);
 			$m = new MongoDate(strtotime($event['startDate']));
 			$newEvent['startDate'] = $m;
 		}	
@@ -918,7 +958,7 @@ class Event {
 		}		
 		
 		return $newEvent;
-	}
+	}*/
 
 
 
@@ -1169,19 +1209,21 @@ class Event {
 			$newEvent["allDay"] = $event['allDay'];
 		}
 
+		date_default_timezone_set('UTC');
 		if(!empty($event['startDate'])){	
-			$newEvent['startDate'] = new MongoDate(time());
+			$newEvent['startDate'] = new MongoDate(strtotime($event['startDate']));
 		}else{
 			$newEvent['startDate'] = new MongoDate(time());
-		}	
-		if(!empty($event['image'])){
-			$newEvent["image"] = $event['image'];
 		}
 
 		if(!empty($event['endDate'])){
-			$newEvent['endDate'] = new MongoDate(time() + (7 * 24 * 60 * 60));
+			$newEvent['endDate'] = new MongoDate(strtotime($event['endDate']));
 		}else{
 			$newEvent['endDate'] = new MongoDate(time() + (7 * 24 * 60 * 60));
+		}
+
+		if(!empty($event['image'])){
+			$newEvent["image"] = $event['image'];
 		}
 
 		if(!empty($event['parentId']))
