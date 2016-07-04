@@ -139,19 +139,26 @@ class IndexAction extends CAction
 					array_push($authorFollowedAndMe,array("author"=>$id));
 					array_push($authorFollowedAndMe,array("target.id"=> $id, 
 														"target.type" => Person::COLLECTION));
+					array_push($authorFollowedAndMe,array("mentions.id" => $id, 
+															"mentions.type" => Person::COLLECTION));
 					if(@$parent["links"]["memberOf"] && !empty($parent["links"]["memberOf"])){
 						foreach ($parent["links"]["memberOf"] as $key => $data){
-							array_push($authorFollowedAndMe,array("target.id"=>$key, "target.type" => "organizations"));
+							array_push($authorFollowedAndMe,array("target.id"=>$key, "target.type" => Organization::COLLECTION));
+							array_push($authorFollowedAndMe,array("mentions.id" => $key, "mentions.type" => Organization::COLLECTION));
 						}
 					}
 					if(@$parent["links"]["projects"] && !empty($parent["links"]["projects"])){
 						foreach ($parent["links"]["projects"] as $key => $data){
-							array_push($authorFollowedAndMe,array("target.id"=>$key, "target.type" => "projects"));
+							array_push($authorFollowedAndMe,array("target.id"=>$key, "target.type" => Project::COLLECTION));
+							array_push($authorFollowedAndMe,array("mentions.id" => $key, "mentions.type" => Project::COLLECTION));
+
 						}
 					}
 					if(@$parent["links"]["events"] && !empty($parent["links"]["events"])){
 						foreach ($parent["links"]["events"] as $key => $data){
-							array_push($authorFollowedAndMe,array("target.id"=>$key, "target.type" => "events"));
+							array_push($authorFollowedAndMe,array("target.id" => $key, "target.type" => Event::COLLECTION));
+							array_push($authorFollowedAndMe,array("mentions.id" => $key, "mentions.type" => Event::COLLECTION));
+
 						}
 					}
 					if(@$parent["links"]["follows"] && !empty($parent["links"]["follows"])){
