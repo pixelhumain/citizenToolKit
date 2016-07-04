@@ -203,6 +203,7 @@ class IndexAction extends CAction
 				$where = array('$and' => array(
 							array('$or'=>array(
 								array("target.type"=> $type,"target.id"=> $id),
+								array("mentions.type"=> $type,"mentions.id"=> $id)
 							)),
 						$whereScope,
 		        	)	
