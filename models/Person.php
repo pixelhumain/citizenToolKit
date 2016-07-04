@@ -741,9 +741,9 @@ class Person {
 			$set = array($dataFieldName => $newMongoDate);
 		} 
 		else if($dataFieldName == "socialNetwork.telegram") {
-			if(strpos($personFieldValue, "http")==false || strpos($personFieldValue, "http")>0) 
-				if($personFieldValue != "")
-					$personFieldValue = "https://web.telegram.org/#/im?p=@".$personFieldValue;
+			//if(strpos($personFieldValue, "http")==false || strpos($personFieldValue, "http")>0) 
+			//	if($personFieldValue != "")
+			//		$personFieldValue = "https://web.telegram.org/#/im?p=@".$personFieldValue;
 
 			$set = array($dataFieldName => $personFieldValue);
 		}
