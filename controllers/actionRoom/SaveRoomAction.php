@@ -19,12 +19,15 @@ class SaveRoomAction extends CAction
                 $newInfos['email'] = (string)$email;
                 $newInfos['name'] = (string)$name;
                 $newInfos['type'] = $_POST['type'];
-                if( isset( $_POST["parentType"] ) ) 
+                if( @$_POST["type"] == ActionRoom::TYPE_FRAMAPAD ) 
+                    $newInfos['url'] = "https://annuel.framapad.org/p/".InflectorHelper::slugify( $newInfos['name'] );
+
+                if( @$_POST["parentType"] ) 
                     $newInfos['parentType'] = $_POST['parentType'];
-                if( isset( $_POST["parentId"] ) ) 
+                if( @$_POST["parentId"] ) 
                     $newInfos['parentId'] = $_POST['parentId'];
                 
-                if( isset($_POST['tags']) && count($_POST['tags']) )
+                if( @$_POST['tags'] && count($_POST['tags']) )
                     $newInfos['tags'] = $_POST['tags'];
                 
                 $newInfos['created'] = time();

@@ -79,7 +79,7 @@ class IndexAction extends CAction
         $actions = array();
         foreach ($rooms as $e) 
         { 
-            if( $e["type"] == ActionRoom::TYPE_DISCUSS ){
+            if( in_array($e["type"], array(ActionRoom::TYPE_DISCUSS, ActionRoom::TYPE_FRAMAPAD) )  ){
                 array_push($discussions, $e);
             }
             else if ( $e["type"] == ActionRoom::TYPE_VOTE ){
