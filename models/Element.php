@@ -75,4 +75,60 @@ class Element {
     					"type"=>$type,
     					"id"=> $id);
     }
+
+
+    public static function updateField($collection, $id, $fieldName, $fieldValue) {
+		//$fieldName = Organization::getCollectionFieldNameAndValidate($fieldName, $fieldValue, $id);
+		$verb = ($fieldValue == "" || $fieldValue == null ) ? '$unset' : '$set';
+		$set = array($fieldName => $fieldValue);
+
+		//Specific case : 
+		//Tags
+		if ($fieldName == "tags") {
+			$fieldValue = Tags::filterAndSaveNewTags($fieldValue);
+			$set = array($fieldName => $fieldValue);
+		} 
+		else if ($fieldName == "telephone") {
+			//Telephone
+			$tel = array();
+			$fixe = array();
+			$mobile = array();
+			
+			if(!empty($fieldValue))
+			{
+				foreach ($fieldValue as $key => $value) {
+					if(substr($value, 0, 2) == "02")
+						$fixe[] = $value ;
+					else
+						$mobile[] = $value ;
+
+					if(!empty($fixe))
+						$tel["fixe"] = $fixe;
+					if(!empty($mobile))
+						$tel["mobile"] = $mobile;
+				}
+			}
+			$set = array($fieldName => $tel);
+		}
+		else if ($fieldName == "address") {
+		//address
+			if(!empty($fieldValue["postalCode"]) && !empty($fieldValue["codeInsee"])) {
+				$insee = $fieldValue["codeInsee"];
+				$postalCode = $fieldValue["postalCode"];
+				$cityName = $fieldValue["addressLocality"];
+				$address = SIG::getAdressSchemaLikeByCodeInsee($insee, $postalCode,$cityName);
+				$set = array("address" => $address);
+				if (!empty($fieldValue["streetAddress"]))
+					$set["address"]["streetAddress"] = $fieldValue["streetAddress"];
+				if(empty($fieldValue["geo"]))
+					$set["geo"] = SIG::getGeoPositionByInseeCode($insee, $postalCode,$cityName);
+			} else 
+				throw new CTKException("Error updating  : address is not well formated !");			
+		}
+
+		//update 
+		PHDB::update( $collection, array("_id" => new MongoId($id)), 
+		                          array($verb => $set));
+		return true;
+	}
 }
