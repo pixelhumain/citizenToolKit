@@ -943,7 +943,7 @@ class Event {
 			$newEvent["warnings"] = $event["warnings"];
 
 		if(!empty($event['type'])) {
-			$newEvent["type"] = $event['type'];
+			$newEvent["type"] = strtolower($event['type']);
 		}else{
 			$newEvent["type"] = "other";
 		}
@@ -1028,7 +1028,20 @@ class Event {
 			$newEvent['warnings'] = array_merge($newEvent['warnings'], $details['warnings']);
 		else
 			$newEvent['warnings'] = $details['warnings'];
+		date_default_timezone_set('UTC');
+		if(!empty($event['startDate'])){	
+			$newEvent['startDate'] = strtotime($event['startDate']);
+		}
 
+		if(!empty($event['endDate'])){
+			$newEvent['endDate'] = strtotime($event['endDate']);
+		}else if(!empty($event['duree'])){
+				$newEvent['endDate'] = strtotime($event['startDate']) + ($event['duree'] * 60);	
+		}
+
+		if(!empty($event['image'])){
+			$newEvent["image"] = $event['image'];
+		}
 
 		return $newEvent;
 	}
@@ -1054,7 +1067,9 @@ class Event {
 		$newEvent['created'] = new MongoDate(time()) ;
 		$newEvent['creator'] = (empty($event["creator"]) ? Yii::app()->session['userId'] : $event["creator"] );
 		$newEvent['organizerType'] = (empty($event["organizerType"]) ? self::NO_ORGANISER: $event["organizerType"] );
-		$newEvent['organizerId'] = (empty($event["organizerId"]) ? Yii::app()->session['userId']: $event["organizerId"] );
+
+		if($newEvent['organizerType'] != self::NO_ORGANISER)
+			$newEvent['organizerId'] = (empty($event["organizerId"]) ? Yii::app()->session['userId']: $event["organizerId"] );
 
 		
 		if(empty($event['type'])) {
@@ -1163,17 +1178,26 @@ class Event {
 			$newEvent["allDay"] = $event['allDay'];
 		}
 
-		if(!empty($event['startDate'])){	
-			$newEvent['startDate'] = new MongoDate(time());
-		}else{
-			$newEvent['startDate'] = new MongoDate(time());
-		}	
 		if(!empty($event['image'])){
 			$newEvent["image"] = $event['image'];
 		}
 
+		date_default_timezone_set('UTC');
+		if(!empty($event['startDate'])){
+			if(!empty($event['startDate']["sec"]))
+				$newEvent['startDate'] = new MongoDate($event['startDate']["sec"]);
+			else
+				$newEvent['startDate'] = new MongoDate($event['startDate']);
+		}else{
+			$newEvent['startDate'] = new MongoDate(time());
+		}
+
+		
 		if(!empty($event['endDate'])){
-			$newEvent['endDate'] = new MongoDate(time() + (7 * 24 * 60 * 60));
+			if(!empty($event['endDate']["sec"]))
+				$newEvent['endDate'] = new MongoDate($event['endDate']["sec"]);
+			else
+				$newEvent['endDate'] = new MongoDate($event['endDate']);
 		}else{
 			$newEvent['endDate'] = new MongoDate(time() + (7 * 24 * 60 * 60));
 		}

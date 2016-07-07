@@ -505,6 +505,8 @@ class Import
                 $newEvent["creator"] = $post["creatorID"];
 
                 $res = Event::getAndCheckEventFromImportData($newEvent, null, null, $warnings) ;
+
+                
             }
             catch (CTKException $e){
                 if(empty($newEvent))
@@ -1013,14 +1015,18 @@ class Import
                 try{
                     
                     if($post["link"] == "true"){
-                        $paramsLink = array();
-                        $paramsLink["link"] = true;
-                        $paramsLink["idLink"] = $post["idLink"];
-                        $paramsLink["typeLink"] = $post["typeLink"];
-                        if($post["isAdmin"] == "true")
-                            $paramsLink["isAdmin"] = true;
-                        else
-                            $paramsLink["isAdmin"] = false;
+                        if($post["typeLink"] == "Event"){
+                            $value["parentId"] = $post["idLink"];
+                        }else{
+                            $paramsLink = array();
+                            $paramsLink["link"] = true;
+                            $paramsLink["idLink"] = $post["idLink"];
+                            $paramsLink["typeLink"] = $post["typeLink"];
+                            if($post["isAdmin"] == "true")
+                                $paramsLink["isAdmin"] = true;
+                            else
+                                $paramsLink["isAdmin"] = false;
+                        }
                     }else{
                         $paramsLink = null;
                     }
