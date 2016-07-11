@@ -694,11 +694,14 @@ class Person {
 		if($dataFieldName == "email" && (empty($personFieldValue) || strlen($personFieldValue) == 0)){
 			throw new CTKException("L'email ".Yii::t("person", "is missing"));
 		}
+
+		if ( ($personFieldName == "mobile"|| $personFieldName == "fixe" || $personFieldName == "fax")){
+			if($personFieldValue ==null)
+				$personFieldValue = array();
+			else
+				$personFieldValue = explode(",", $personFieldValue);
+		}
 			
-
-
-		if ( ($personFieldName == "mobile"|| $personFieldName == "fixe" || $personFieldName == "fax") && $personFieldValue ==null  ) 
-			$personFieldValue = array();
 
 		error_log($dataFieldName);
 		

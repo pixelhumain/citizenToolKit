@@ -37,6 +37,9 @@ class Organization {
 	    "typeOfPublic" => array("name" => "typeOfPublic"),
 	    "url"=>array("name" => "url"),
 	    "telephone" => array("name" => "telephone"),
+	    "mobile" => array("name" => "telephone.mobile"),
+	    "fixe" => array("name" => "telephone.fixe"),
+	    "fax" => array("name" => "telephone.fax"),
 	    "modules" => array("name" => "modules"),
 	    //"fixe" => array("name" => "telephone.fixe"),
 	    //"mobile" => array("name" => "telephone.mobile"),
@@ -671,34 +674,19 @@ class Organization {
 
 		//Specific case : 
 		//Tags
+		
 
 		if ($dataFieldName == "tags") {
 			$organizationFieldValue = Tags::filterAndSaveNewTags($organizationFieldValue);
 			$set = array($dataFieldName => $organizationFieldValue);
-		} else if ($dataFieldName == "telephone") {
-			//Telephone
-			$tel = array();
-			$fixe = array();
-			$mobile = array();
-			
-			if(!empty($organizationFieldValue))
-			{
-				foreach ($organizationFieldValue as $key => $value) {
-					if(substr($value, 0, 2) == "02")
-						$fixe[] = $value ;
-					else
-						$mobile[] = $value ;
+		}
+		else if ( ($organizationFieldName == "mobile"|| $organizationFieldName == "fixe" || $organizationFieldName == "fax")){
+			if($organizationFieldValue ==null)
+				$organizationFieldValue = array();
+			else
+				$organizationFieldValue = explode(",", $organizationFieldValue);
 
-					if(!empty($fixe))
-						$tel["fixe"] = $fixe;
-					if(!empty($mobile))
-						$tel["mobile"] = $mobile;
-				}
-			}
-			
-
-			$set = array($dataFieldName => $tel);
-
+			$set = array($dataFieldName => $organizationFieldValue);
 		}
 		else if ($dataFieldName == "address") {
 		//address
