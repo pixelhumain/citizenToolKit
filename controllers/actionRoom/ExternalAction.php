@@ -10,8 +10,9 @@ class ExternalAction extends CAction
           throw new CTKException("Impossible to find this room");
 
       $controller->renderPartial( "iframe", array( "name" => @$room['name'],
-      												"parentId" => @$room['parentId'],
-      												"parentType" => @$room['parentType'],
-      												 "url" => @$room['url'] )  );
+                                  "room"=>$room,
+          												"parentId" => @$room['parentId'],
+          												"parentType" => @$room['parentType'],
+          												 "url" => @$room['url'] )  );
     }
 }
