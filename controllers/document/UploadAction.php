@@ -18,7 +18,6 @@ class UploadAction extends CAction {
         }
         
         $res = Document::checkFileRequirements($file, $dir, $folder, $ownerId, $input);
-        
         if ($res["result"]) {
             $res = Document::uploadDocument($file, $res["uploadDir"],$input,$rename);
             if ($res["result"]) {
