@@ -83,22 +83,22 @@ class TranslatePlp {
 		    	"id" => array("valueOf" => "url")),
 	    	array(
 	    	 	"name" => "Github",
-		    	"id" => array("valueOf" => "socialNetwork.gitHubAccount")),
+		    	"id" => array("valueOf" => "socialNetwork.github")),
 	    	array(
 	    		"name" => "Twitter",
-		    	"id" => array("valueOf" => "socialNetwork.twitterAccount")),
+		    	"id" => array("valueOf" => "socialNetwork.twitter")),
 	    	array(
 	    		"name" => "Facebook",
-		    	"id" => array("valueOf" => "socialNetwork.facebookAccount")),
+		    	"id" => array("valueOf" => "socialNetwork.facebook")),
 	    	array(
 	    		"name" => "Google+",
-		    	"id" => array("valueOf" => "socialNetwork.gplusAccount")),
+		    	"id" => array("valueOf" => "socialNetwork.googleplus")),
 	    	array(
 	    		"name" => "LinkedIn",
-		    	"id" => array("valueOf" => "socialNetwork.linkedInAccount")),
+		    	"id" => array("valueOf" => "socialNetwork.linkedin")),
 	    	array(
 	    		"name" => "Skype",
-		    	"id" => array("valueOf" => "socialNetwork.skypeAccount"))
+		    	"id" => array("valueOf" => "socialNetwork.skype"))
 	    ),
 	    "cco:skill" => array("valueOf" => "positions"),
 	    //"cco:habit" => array(),

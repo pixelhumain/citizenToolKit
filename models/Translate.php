@@ -4,13 +4,15 @@ class Translate {
 	const FORMAT_SCHEMA = "schema";
 	const FORMAT_PLP = "plp";
 	const FORMAT_AS = "activityStream";
+	const FORMAT_COMMUNECTER = "communecter";
 
 	public static function convert($data,$bindMap)
 	{
 		$newData = array();
-		foreach ($data as $keyID => $data) {
-			if ( isset($data) ) {
-				$newData[$keyID] = self::bindData($data,$bindMap);
+		foreach ($data as $keyID => $valueData) {
+			if ( isset($valueData) ) {
+
+				$newData[$keyID] = self::bindData($valueData,$bindMap);
 			}
 		}
 		return $newData;
@@ -19,21 +21,32 @@ class Translate {
 	private static function bindData ( $data, $bindMap )
 	{
 		$newData = array();
+
 		foreach ( $bindMap as $key => $bindPath ) 
 		{
+
 			if ( is_array( $bindPath ) && isset( $bindPath["valueOf"] ) ) 
 			{
 				/*if( $key == "@id")
 					$newData["debug"] = strpos( $bindPath["valueOf"], ".");*/
+
 				if( is_array( $bindPath["valueOf"] ))
 				{
+					//var_dump($bindPath["valueOf"]);
 					//parse recursively for objects value types , ex links.projects
-					if( isset($bindPath["object"]) )
+					if(isset($bindPath["object"]) )
 					{
 						//if dots are specified , we adapt the valueData map by focusing on a subpart of it
-						$currentValue = ( strpos( $bindPath["object"], "." ) > 0 ) ? self::getValueByPath( $bindPath["object"] ,$data ) : $data[$bindPath["object"]];
+						//var_dump($bindPath["object"]);
+
+						$currentValue = ( strpos( $bindPath["object"], "." ) > 0 ) ? self::getValueByPath( $bindPath["object"] ,$data ) : (!empty($data[$bindPath["object"]])?$data[$bindPath["object"]] : "" );
+						//var_dump($currentValue);
 						$newData[$key] = array();
-						//parse each entry of the list 
+						//parse each entry of the list
+						//var_dump(strpos( $bindPath["object"], "." ));
+						//var_dump($currentValue);
+						if($currentValue == "")
+							$currentValue = array();
 						foreach ( $currentValue as $dataKey => $dataValue) 
 						{
 							$refData = $dataValue;
@@ -44,31 +57,47 @@ class Translate {
 									$dataKey = $bindPath["refId"];
 								$refData = PHDB::findOne( $bindPath["collection"], array( "_id" => new MongoId( $dataKey ) ) );
 							}
-							array_push( $newData[$key] , self::bindData( $refData, $bindPath["valueOf"] ) );
+							$valByPath = self::bindData( $refData, $bindPath["valueOf"]);
+							if(!empty($valByPath))
+								array_push( $newData[$key] , $valByPath );
 						}
 					} 
 					//parse recursively for array value types, ex : address
-					else if( isset($bindPath["parentKey"]) && isset( $data[ $bindPath["parentKey"] ] ) )
-						$newData[$key] = self::bindData( $data[ $bindPath["parentKey"] ], $bindPath["valueOf"] );
-					//resulting array has more than one level 
-					else
-						$newData[$key] = self::bindData( $data, $bindPath["valueOf"] );
+					else if( isset($bindPath["parentKey"]) && isset( $data[ $bindPath["parentKey"] ] ) ){
+						$valByPath = self::bindData( $data[ $bindPath["parentKey"] ], $bindPath["valueOf"] );
+						if(!empty($valByPath))
+							$newData[$key] = $valByPath;
+						//resulting array has more than one level 
+					}
+					else{
+						$valByPath = self::bindData( $data, $bindPath["valueOf"] );
+						if(!empty($valByPath))
+							$newData[$key] = $valByPath;
+					}
+						
 				} 
 				else if( strpos( $bindPath["valueOf"], ".") > 0 )
 				{
 					//the value is fetched deeply in the source data map
-					$newData[$key] = self::getValueByPath( $bindPath["valueOf"] ,$data );
+					$valByPath = self::getValueByPath( $bindPath["valueOf"] ,$data );
+					if(!empty($valByPath))
+						$newData[$key] = $valByPath;
 				}
 				else if( isset( $data[ $bindPath[ "valueOf" ] ] )  )
 				{
 					//otherwise simply get the value of the requested element
-					$newData[$key] = $data[ $bindPath["valueOf"] ];
+					$valByPath = $data[ $bindPath["valueOf"] ];
+					if(!empty($valByPath))
+						$newData[$key] = $valByPath;
 				} 
 
-			}  else if( is_array( $bindPath ))
+			}  else if( is_array( $bindPath )){
 				// there can be a first level with a simple key value
 				// but can have following more than a single level 
-				$newData[$key] = self::bindData( $data, $bindPath ) ;
+				$valByPath = self::bindData( $data, $bindPath ) ;
+				if(!empty($valByPath))
+						$newData[$key] = $valByPath;
+			}	
 			else
 				// otherwise it's just a simple label element 
 				$newData[$key] = $bindPath;
@@ -88,18 +117,22 @@ class Translate {
 		//follow path until the leaf value
 		foreach ($path as $pathKey) 
 		{	
-			if( is_object($currentValue[ $pathKey ]) && get_class( $currentValue[ $pathKey ] ) == "MongoId" ){
-				$currentValue = (string)$currentValue[ $pathKey ];
-				break;
-			} 
-			else
-				$currentValue = $currentValue[ $pathKey ];
+			if(!empty($currentValue[ $pathKey ])){
+				if( is_object($currentValue[ $pathKey ]) && get_class( $currentValue[ $pathKey ] ) == "MongoId" ){
+					$currentValue = (string)$currentValue[ $pathKey ];
+					break;
+				} 
+				else
+					$currentValue = $currentValue[ $pathKey ];
+			}else{
+				$currentValue = "" ;
+			}
+			
 		}
 		return $currentValue;
 	}
 
-	private static function formatValueByType($val, $bindPath )
-	{	
+	private static function formatValueByType($val, $bindPath ){	
 		//prefix and suffix can be added to anything
 		$prefix = ( isset( $bindPath["prefix"] ) ) ? $bindPath["prefix"] : "";
 		$suffix = ( isset( $bindPath["suffix"] ) ) ? $bindPath["suffix"] : "";
@@ -107,7 +140,12 @@ class Translate {
 		if( isset( $bindPath["type"] ) && $bindPath["type"] == "url" )
 		{
 			$server = ((isset($_SERVER['HTTPS']) AND (!empty($_SERVER['HTTPS'])) AND strtolower($_SERVER['HTTPS'])!='off') ? 'https://' : 'http://').$_SERVER['HTTP_HOST'];
-			$val = $server.Yii::app()->createUrl(Yii::app()->controller->module->id.$prefix.$val.$suffix);
+			$val = $server.Yii::app()->createUrl($prefix.$val.$suffix);
+			//$val = $server.Yii::app()->createUrl(Yii::app()->controller->module->id.$prefix.$val.$suffix);
+		}
+		else if( isset( $bindPath["type"] ) && $bindPath["type"] == "urlOsm" )
+		{
+			$val = $prefix.$val["latitude"]."/".$val["longitude"].$suffix;
 		} 
 		else if( isset( $bindPath["prefix"] ) || isset( $bindPath["suffix"] ) )
 		{
