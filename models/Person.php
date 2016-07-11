@@ -20,7 +20,7 @@ class Person {
 	    "address" => array("name" => "address"),
 	    "streetAddress" => array("name" => "address.streetAddress"),
 	    "postalCode" => array("name" => "address.postalCode"),
-	    "city" => array("name" => "address.codeInsee"),
+	    "codeInsee" => array("name" => "address.codeInsee"),
 	    "addressLocality" => array("name" => "address.addressLocality"), 
 	    "addressCountry" => array("name" => "address.addressCountry"),
 	    "geo" => array("name" => "geo"),
@@ -44,6 +44,9 @@ class Person {
 	    "source" => array("name" => "source"),
 	    "warnings" => array("name" => "warnings"),
 	    "isOpenData" => array("name" => "isOpenData"),
+	    "modules" => array("name" => "modules"),
+	    "badges" => array("name" => "badges"),
+
 	);
 
 	public static function logguedAndValid() {
@@ -70,25 +73,22 @@ class Person {
 	  	$name = (isset($account["name"])) ? $account["name"] : "Anonymous" ;
 	    $user = array("name"=>$name);
 		
-		if(isset( $account["username"] )) 
+		if(	@$account["username"] ) 
 	      	$user ["username"] = $account["username"];
-	    if(isset( $account["cp"] )) 
+	    if( @$account["cp"] ) 
 	      	$user ["postalCode"] = $account["cp"];
-	    if( isset( $account["address"]) && isset( $account["address"]["postalCode"]) )
+	    if( @$account["address"] && @$account["address"]["postalCode"] )
 	     	$user ["postalCode"] = $account["address"]["postalCode"];
-	    if( isset( $account["address"]) && isset( $account["address"]["codeInsee"]) )
+	    if( @$account["address"] && @$account["address"]["codeInsee"] )
 	     	$user ["codeInsee"] = $account["address"]["codeInsee"];
-	    if( isset( $account["profilImageUrl"]))
-	     	$user ["profilImageUrl"] = $account["profilImageUrl"];
-		if( isset( $account["roles"]))
+		if( @$account["roles"])
 	     	$user ["roles"] = $account["roles"];
 
 		//Image profil
-	    //TODO SBAR : c'est plus bon ça. A refaire. Le profil ImageUrl n'est plus utilisé.
-	    $simpleUser = self::getSimpleUserById((string)$account["_id"]);
-	    if( isset( $simpleUser["profilImageUrl"]))
-	     	$user ["profilImageUrl"] = $simpleUser["profilImageUrl"];
-
+	    $simpleUser = self::getById((string)$account["_id"]);
+	    $user ["profilImageUrl"] = $simpleUser["profilImageUrl"];
+	    $user ["profilThumbImageUrl"] = $simpleUser["profilThumbImageUrl"];
+	    $user ["profilMarkerImageUrl"] = $simpleUser["profilMarkerImageUrl"];
 	    Yii::app()->session["user"] = $user;
 	    Yii::app()->session["isRegisterProcess"] = $isRegisterProcess;
 
@@ -128,7 +128,7 @@ class Person {
 				date_default_timezone_set('UTC');
 				$person["birthDate"] = date('Y-m-d H:i:s', $person["birthDate"]->sec);
 			}
-			$person = array_merge($person, Document::retrieveAllImagesUrl($id, self::COLLECTION));
+			$person = array_merge($person, Document::retrieveAllImagesUrl($id, self::COLLECTION, null, $person));
 			$person["typeSig"] = "people";
 			if(!isset($person["address"])) 
 				$person["address"] = array( "codeInsee" => "", 
@@ -156,7 +156,12 @@ class Person {
 		
 		$simplePerson = array();
 		$person = PHDB::findOneById( self::COLLECTION ,$id, 
-				array("id" => 1, "name" => 1, "username" => 1, "email" => 1,  "shortDescription" => 1, "description" => 1, "address" => 1, "geo" => 1, "roles" => 1, "tags" => 1, "pending" => 1));
+				array("id" => 1, "name" => 1, "username" => 1, "email" => 1,  "shortDescription" => 1, "description" => 1, "address" => 1, "geo" => 1, "roles" => 1, "tags" => 1, "pending" => 1, "profilImageUrl" => 1, "profilThumbImageUrl" => 1, "profilMarkerImageUrl" => 1,"numberOfInvit" => 1));
+		
+		if (empty($person)) {
+			return $simplePerson;
+		}
+
 		$simplePerson["id"] = $id;
 		$simplePerson["name"] = @$person["name"];
 		$simplePerson["username"] = @$person["username"];
@@ -167,9 +172,11 @@ class Person {
 		$simplePerson["shortDescription"] = @$person["shortDescription"];
 		$simplePerson["description"] = @$person["description"];
 		$simplePerson["pending"] = @$person["pending"];
-		
+		if (@Yii::app()->params['betaTest']) { 
+			$simplePerson["numberOfInvit"] = @$person["numberOfInvit"];
+		}
 		//images
-		$simplePerson = array_merge($simplePerson, Document::retrieveAllImagesUrl($id, self::COLLECTION));
+		$simplePerson = array_merge($simplePerson, Document::retrieveAllImagesUrl($id, self::COLLECTION, null, $person));
 
 		$simplePerson["address"] = empty($person["address"]) ? array("addressLocality" => "Unknown") : $person["address"];
 		
@@ -356,7 +363,7 @@ class Person {
 																array(
 																	floatval($person['geoPosLongitude']),
 																	floatval($person['geoPosLatitude']))
-														 	  	);
+			);
 		}
 		
 		return $newPerson;
@@ -376,17 +383,45 @@ class Person {
 	  	try {
 	  		//Check if the person can still invite : has he got enought invitations left
 	  		$invitor = self::getById($param["invitedBy"]);
-	  		if (@$invitor["numberOfInvit"] > 0 || Role::isSuperAdmin($invitor["roles"])) {
-	  			$res = self::insert($param, self::REGISTER_MODE_MINIMAL);
-		  		//Decrease number of invitations left for the invitor
-		  		PHDB::update(self::COLLECTION, array("_id" => new MongoId($param["invitedBy"])), 
-		  			array('$inc' => array("numberOfInvit" => -1)));
-		  		//send invitation mail
-				Mail::invitePerson($res["person"], $msg);
-		  	} else {
-		  		$res = array("result"=>false, "msg"=> Yii::t("person","Sorry, you can't invite more people to join the platform. You do not have enough invitations left."));
+	  		if (@Yii::app()->params['betaTest']){
+		  		if (@$invitor["numberOfInvit"] > 0 
+	  				|| Role::isSuperAdmin($invitor["roles"])) {
+			  		PHDB::update(self::COLLECTION, array("_id" => new MongoId($param["invitedBy"])), 
+			  			array('$inc' => array("numberOfInvit" => -1)));
+				} else {
+		  			return array("result"=>false, "msg"=> Yii::t("person","Sorry, you can't invite more people to join the platform. You do not have enough invitations left."));
+		  		}
 		  	}
-	  		
+	  		//Check if it is not robot or a curl 
+	  		$nbInvitation = 3;
+	  		$limit = 15;
+	  		if(@$invitor["invitationDate"] && count($invitor["invitationDate"]) >= $nbInvitation){
+		  		rsort($invitor["invitationDate"]);
+		  		$lastDate=0;
+		  		$amountDelay = 0;
+		  		foreach($invitor["invitationDate"] as $data){
+			  		if($lastDate != 0){
+				  		$step=$lastDate- $data;
+			  			$amountDelay += $step; 
+			  			if($step < 5)
+					  		return array("result"=>false, "msg"=> "You're so fast for us. Take a breath Lucky Luke");
+			  		}
+		  			$lastDate=$data;
+		  		}
+		  		if($amountDelay < $limit){
+			  		return array("result"=>false, "msg"=> "You're so fast for us. Take a breath Lucky Luke");
+		  		} else{
+			  		PHDB::update(self::COLLECTION, array("_id" => new MongoId($param["invitedBy"])), 
+		  				array('$set' => array('invitationDate' => array())));
+		  		}
+	  		}
+	  		$res = self::insert($param, self::REGISTER_MODE_MINIMAL);
+	  		PHDB::update(self::COLLECTION, array("_id" => new MongoId($param["invitedBy"])), 
+		  			array('$push' => array('invitationDate' => time())));
+
+	  				  		//send invitation mail
+			Mail::invitePerson($res["person"], $msg);
+		  		  		
 	  	} catch (CTKException $e) {
 	  		$res = array("result"=>false, "msg"=> $e->getMessage());
 	  	}
@@ -428,11 +463,11 @@ class Person {
 	  	
 	  	$newPerson["name"] = $person["name"];
 
-	  	if(! preg_match('#^[\w.-]+@[\w.-]+\.[a-zA-Z]{2,6}$#',$person["email"])) { 
-	  		throw new CTKException(Yii::t("person","Problem inserting the new person : email is not well formated"));
-        } else {
-        	$newPerson["email"] = $person["email"];
-        }
+	  	//Check email
+	  	$checkEmail = DataValidator::email($person["email"]);
+	  	if ($checkEmail != "") {
+	  		throw new CTKException(Yii::t("common",$checkEmail));
+	  	}
 
 		//Check if the email of the person is already in the database
 	  	if ($uniqueEmail) {
@@ -441,7 +476,8 @@ class Person {
 		  		throw new CTKException(Yii::t("person","Problem inserting the new person : a person with this email already exists in the plateform"));
 		  	}
 	  	}
-
+	  	$newPerson["email"] = $person["email"];
+	  	
 	  	if (!empty($person["invitedBy"])) {
 	  		$newPerson["invitedBy"] = $person["invitedBy"];
 	  	}
@@ -523,7 +559,7 @@ class Person {
 	  	$person["created"] = new mongoDate(time());
 	  	$person["preferences"] = array("seeExplanations"=> true);
 	  	
-	  	if (@Yii::app()->params['betaTest'])
+	  	if (@Yii::app()->params['betaTest'] || $person["roles"]["betaTester"]==true)
 	  		$person["numberOfInvit"] = empty(Yii::app()->params['numberOfInvitByPerson']) ? 0 : Yii::app()->params['numberOfInvitByPerson'];
 
 	  	PHDB::insert( Person::COLLECTION , $person);
@@ -647,13 +683,20 @@ class Person {
 		if (!Authorisation::canEditItem($userId, self::COLLECTION, $personId)) {
 			throw new CTKException("Can not update the person : you are not authorized to update that person !");
 		}		
-
-
+		
+		if(is_string($personFieldValue))
+		$personFieldValue = trim($personFieldValue);
 		$dataFieldName = Person::getCollectionFieldNameAndValidate($personFieldName, $personFieldValue);
 		//Specific case : 
 		//Tags
 		if ($dataFieldName == "tags") 
 			$personFieldValue = Tags::filterAndSaveNewTags($personFieldValue);
+		
+	
+		if($dataFieldName == "email" && (empty($personFieldValue) || strlen($personFieldValue) == 0)){
+			throw new CTKException("L'email ".Yii::t("person", "is missing"));
+		}
+			
 
 
 		if ( ($personFieldName == "mobile"|| $personFieldName == "fixe" || $personFieldName == "fax") && $personFieldValue ==null  ) 
@@ -678,8 +721,8 @@ class Person {
 				$set = array("address" => $address);
 
 				if(empty($thisUser["geo"])){
-					$geo = SIG::getGeoPositionByInseeCode($insee,$postalCode);
-					$set["geo"] = $geo;
+					$geo = SIG::getGeoPositionByInseeCode($insee,$postalCode);	
+					SIG::updateEntityGeoposition(Person::COLLECTION,$personId,$geo["latitude"],$geo["longitude"]);
 				}
 
 				PHDB::update( self::COLLECTION, array("_id" => new MongoId($personId)), 
@@ -725,7 +768,7 @@ class Person {
 		PHDB::update( self::COLLECTION, array("_id" => new MongoId($personId)), 
 		                          		array('$set' => $set));
 	              
-	    return array("result"=>true,"user"=>$user,"personFieldName"=>$personFieldName);
+	    return array("result"=>true,"user"=>$user,"personFieldName"=>$personFieldName, "msg"=> Yii::t("person", "The person has been updated"));
 	}
 
 	//Test and Valide a field name using the data validator
@@ -795,20 +838,39 @@ class Person {
             throw new CTKException("The person id is unkown : contact your admin");
         }
 
-	  	if ( isset($person) && isset($person["actions"]) && isset($person["actions"]["surveys"])) 
+	  	if ( isset($person) && isset($person["actions"]) ) 
 	  	{
-	  		foreach ( $person["actions"]["surveys"] as $entryId => $action) 
+	  		if(isset($person["actions"]["surveys"]))
 	  		{
-	  			$entry = Survey::getById( $entryId );
-	  			$entry ['action'] = $action;
-	  			$actions[ $entryId ] = $entry;
+		  		foreach ( $person["actions"]["surveys"] as $entryId => $action) 
+		  		{
+		  			$entry = Survey::getById( $entryId );
+		  			$entry ['action'] = $action;
+		  			$actions[ $entryId ] = $entry;
 
-	  			if( isset( $entry['survey'] ) && !isset( $actionRooms[ $entry['survey'] ] ) )
-	  			{
-	  				$actionRoom = ActionRoom::getById( $entry['survey'] );
-	  				$actionRooms[ $entry['survey'] ] = $actionRoom;
-	  			}
-	  		}
+		  			if( isset( $entry['survey'] ) && !isset( $actionRooms[ $entry['survey'] ] ) )
+		  			{
+		  				$actionRoom = ActionRoom::getById( $entry['survey'] );
+		  				$actionRooms[ $entry['survey'] ] = $actionRoom;
+		  			}
+		  		}
+		  	}
+		  	/*
+		  	if(isset($person["actions"]["actions"]))
+	  		{
+		  		foreach ( $person["actions"]["actions"] as $entryId => $action) 
+		  		{
+		  			$entry = ActionRoom::getByActionId( $entryId );
+		  			$entry ['action'] = $action;
+		  			$actions[ $entryId ] = $entry;
+
+		  			if( isset( $entry['room'] ) && !isset( $actionRooms[ $entry['room'] ] ) )
+		  			{
+		  				$actionRoom = ActionRoom::getById( $entry['room'] );
+		  				$actionRooms[ $entry['room'] ] = $actionRoom;
+		  			}
+		  		}
+		  	}*/
 	  	}
 
 	  	return array( "rooms"	=> $actionRooms , 
@@ -954,10 +1016,13 @@ class Person {
 			                          	)));
 			
 			//Send Notification to Invitor
-			Notification::actionOnPerson(
-				ActStr::VERB_SIGNIN, ActStr::ICON_SHARE, 
-				array("type"=>self::COLLECTION,"id"=> $account["_id"],"name"=>$account["name"]),
-				array("type"=>self::COLLECTION, "id"=> $account["invitedBy"],"name"=>"", ));
+			if(!empty($account["invitedBy"])){
+				Notification::actionOnPerson(
+					ActStr::VERB_SIGNIN, ActStr::ICON_SHARE, 
+						array("type"=>self::COLLECTION,"id"=> $account["_id"],"name"=>$account["name"]),
+						array("type"=>self::COLLECTION, "id"=> $account["invitedBy"],"name"=>"", ));
+			}
+			
 			$res = array("result" => true, "msg" => "The pending user has been updated and is now complete");
 		}
 		return $res;
@@ -1059,8 +1124,13 @@ class Person {
 		}
 
 		foreach ($personChangedFields as $fieldName => $fieldValue) {
-			//if( $project[ $fieldName ] != $fieldValue)
-				self::updatePersonField($personId, $fieldName, $fieldValue, $userId);
+				if(is_array($fieldValue) && $fieldName != "address"){
+					foreach ($fieldValue as $fieldName2 => $fieldValue2) {
+						self::updatePersonField($personId, $fieldName2, $fieldValue2, $userId);
+					}
+				}else{
+					self::updatePersonField($personId, $fieldName, $fieldValue, $userId);
+				}
 		}
 
 	    return array("result"=>true, "msg"=>Yii::t("person", "The person has been updated"), "id"=>$personId);
@@ -1114,6 +1184,9 @@ class Person {
 
 		if(!empty($personImportData['image']))
 			$newPerson["image"] = $personImportData["image"];
+
+		if(!empty($personImportData["badges"]))
+			$newPerson["badges"] = $personImportData["badges"];
 
 		if(!empty($personImportData['shortDescription']))
 			$newPerson["shortDescription"] = $personImportData["shortDescription"];
@@ -1186,14 +1259,16 @@ class Person {
 			$newPerson['name'] = $person['name'];
 
 
+	  	
 
 		if (empty($person['email'])) {
 			throw new CTKException(Yii::t("import","203"));
 		}else{
-			if(! preg_match('#^[\w.-]+@[\w.-]+\.[a-zA-Z]{2,6}$#',$person["email"])){
-				throw new CTKException(Yii::t("import","205", null, Yii::app()->controller->module->id));
-	        }
-
+			//Check email
+		  	$checkEmail = DataValidator::email($person["email"]);
+		  	if ($checkEmail != "") {
+		  		throw new CTKException(Yii::t("import","205", null, Yii::app()->controller->module->id));
+		  	}
 			//Check if the email of the person is already in the database
 		  	$account = PHDB::findOne(Person::COLLECTION,array("email"=>$person["email"]));
 		  	if($account){
@@ -1216,12 +1291,22 @@ class Person {
 				else
 					throw new CTKException(Yii::t("import","210", null, Yii::app()->controller->module->id));
 			}
-		}else{
-			if ( !self::isUniqueUsername($person["username"]) ) {
-				throw new CTKException(Yii::t("import","207", null, Yii::app()->controller->module->id));
+		}else{	
+			if(!self::isUniqueUsername($person["username"]) ) {
+				if(!empty($invite)){
+					$newPerson['username'] = self::generedUserNameByEmail($person['email'], true) ;
+				}
+				else
+					throw new CTKException(Yii::t("import","207", null, Yii::app()->controller->module->id));
+		  	}else{
+		  		$newPerson['username'] = $person['username'];
 		  	}
-		  	$newPerson['username'] = $person['username'];
 		}
+
+
+
+		if(!empty($person["badges"]))
+			$newPerson["badges"] = Badge::conformeBadges($person["badges"]);
 
 		if(empty($invite)){
 
@@ -1296,7 +1381,7 @@ class Person {
 						
 						$newPerson['address']['addressCountry'] = "FR";
 						$city = SIG::getInseeByLatLngCp($newPerson["geo"]["latitude"], $newPerson["geo"]["longitude"], (empty($resLocality["address"]["postcode"])?null:$resLocality["address"]["postcode"]));
-						if($city != null){
+						/*if($city != null){
 							foreach ($city as $key => $value) {
 								$insee = $value["insee"];
 							}
@@ -1306,8 +1391,24 @@ class Person {
 							$locality = City::getAlternateNameByInseeAndCP($newPerson['address']['codeInsee'], $newPerson['address']['postalCode']);
 							$newPerson['address']['addressLocality'] = $locality['alternateName'];
 							
-						}
-						
+
+						}*/
+						if(!empty($city)){
+	                        foreach ($city["postalCodes"] as $keyCp => $valueCp){
+								if(!empty($resLocality["address"]["postcode"]) && $valueCp["postalCode"] == $resLocality["address"]["postcode"]){
+	                            	$newPerson['address']['addressCountry'] = "FR";
+	                            	$newAddress["codeInsee"] = $city["insee"];
+	                        		$newAddress['addressCountry'] = $city["country"];
+	                                $newAddress['addressLocality'] = $valueCp["name"];
+	                                $newAddress['postalCode'] = $valueCp["postalCode"];
+	                                $erreur = false ;
+	                                break;
+	                            }
+	                        }
+	                        if(!empty($newAddress))
+	                        	$newPerson['address'] = $newAddress;
+	               	 	}
+
 
 						//Result DataGouv
 						/*$newPerson['address']['addressCountry'] = "FR";
@@ -1379,69 +1480,144 @@ class Person {
 	 * @param string $userId UserId doing the insertion
 	 * @return array as result type
 	 */
-	public static function insertPersonFromImportData($person, $warnings, $invite=null, $pathFolderImage = null, $moduleId = null){
+	public static function insertPersonFromImportData($person, $warnings, $invite=null, $isKissKiss = null, $invitorUrl=null, $pathFolderImage = null, $moduleId = null, $paramsLink,  $sendMail){
 	    
-	    $newPerson = self::getAndCheckPersonFromImportData($person, $invite, null, null, $warnings);
-	    
-	    
-	    if(!empty($newPerson["warnings"]) && $warnings == true)
-	    	$newPerson["warnings"] = Import::getAndCheckWarnings($newPerson["warnings"]);
-	    
-	    $newPerson["@context"] = array("@vocab"=>"http://schema.org",
-            "ph"=>"http://pixelhumain.com/ph/ontology/");
-	    $newPerson["roles"] = Role::getDefaultRoles();
-	  	$newPerson["created"] = new mongoDate(time());
-	  	$newPerson["preferences"] = array("seeExplanations"=> true);
-
-	  	if(!empty($newPerson["image"])){
-			$nameImage = $newPerson["image"];
-			unset($newPerson["image"]);
-		}
-
-		if(!empty($invite)){
-			$msgMail = $person["msgInvite"];
-			$nameInvitor = $person["nameInvitor"];
-        	unset($person["msgInvite"]);
-        	unset($person["nameInvitor"]);
-		}
-
-		PHDB::insert(Person::COLLECTION , $newPerson);
-
-	    if (isset($newPerson["_id"]))
-	    	$newpersonId = (String) $newPerson["_id"];
-	    else
-	    	throw new CTKException("Problem inserting the new person");
-
-	    if(!empty($nameImage)){
-			try{
-				$res = Document::uploadDocument($moduleId, self::COLLECTION, $newpersonId, "avatar", false, $pathFolderImage, $nameImage);
-				if(!empty($res["result"]) && $res["result"] == true){
-					$params = array();
-					$params['id'] = $newpersonId;
-					$params['type'] = self::COLLECTION;
-					$params['moduleId'] = $moduleId;
-					$params['folder'] = self::COLLECTION."/".$newpersonId;
-					$params['name'] = $res['name'];
-					$params['author'] = Yii::app()->session["userId"] ;
-					$params['size'] = $res["size"];
-					$params["contentKey"] = "profil";
-					$res2 = Document::save($params);
-					if($res2["result"] == false)
-						throw new CTKException("Impossible de save.");
-
+		$account = PHDB::findOne(Person::COLLECTION,array("email"=>$person["email"]));
+		if($account){
+			$msg = "Déja inscrits :" ;
+			if(!empty($sendMail)){
+				$personmail["_id"] = (String)$account["_id"];
+				$personmail["email"] = $account["email"];
+				if(empty($account["roles"]["tobeactivated"]) || $account["roles"]["tobeactivated"] == false){
+					if(!empty($invite)){
+						if(!empty($isKissKiss))
+							Mail::inviteKKBB($personmail, false);
+					}
+					$msg .="Compte déjà activé";
 				}else{
-					throw new CTKException("Impossible uploader le document.");
+					if(!empty($invite)){
+						if(empty($isKissKiss) && !empty($account["roles"]["tobeactivated"]) && $account["roles"]["tobeactivated"] == true){
+							Mail::invitePerson($personmail, $person["msgInvite"], $person["nameInvitor"], $invitorUrl);
+						}
+						else if(!empty($isKissKiss))
+							Mail::inviteKKBB($personmail, true);
+					}
 				}
-			}catch (CTKException $e){
-				throw new CTKException($e);
-			}	
-		}
 
-		if(!empty($invite)){
-			Mail::invitePerson($newPerson, $msgMail, $nameInvitor);
-		}
+			}
+			
+			if(!empty($person["badges"])){
+				$badges = Badge::conformeBadges($person["badges"]);
+				$res = Badge::addAndUpdateBadges($badges, (String)$account["_id"], Person::COLLECTION);
+				$msg .=" ".$res["msg"];
+			}
 
-		return array("result"=>true, "msg"=>"Cette personne est communecté.", "id" => $newPerson["_id"]);	
+			if(!empty($paramsLink) && $paramsLink["link"] == true){
+				if($paramsLink["typeLink"] == "Organization"){
+					if(Link::isLinked($paramsLink["idLink"],  Organization::COLLECTION, $personmail["_id"]) == false){
+						Link::connect($paramsLink["idLink"], Organization::COLLECTION, $personmail["_id"], self::COLLECTION, Yii::app()->session["userId"],"members", false);
+						Link::connect($personmail["_id"], self::COLLECTION, $paramsLink["idLink"], Organization::COLLECTION, Yii::app()->session["userId"],"memberOf",false);
+						//Link::addMember($paramsLink["idLink"], Organization::COLLECTION, $personmail["_id"], self::COLLECTION, Yii::app()->session["userId"], $paramsLink["isAdmin"]);
+					}
+						
+					//Link::addMember($paramsLink["idLink"], Organization::COLLECTION, $newpersonId, self::COLLECTION, Yii::app()->session["userId"], $paramsLink["isAdmin"]);
+				}
+			}
+
+			/*if(!empty($person["source"]["key"])){
+				//var_dump($person["source"]["key"]);
+				$res = Import::addAndUpdateSourceKey($person["source"]["key"], (String)$account["_id"], Person::COLLECTION);
+				$msg +=" "+$res["msg"];
+			}*/
+
+			return array("result"=>true, "msg"=>$msg, "id" => $personmail["_id"]);
+
+		}else{
+			$newPerson = self::getAndCheckPersonFromImportData($person, $invite, null, null, $warnings);
+	    
+		    if(!empty($newPerson["warnings"]) && $warnings == true)
+		    	$newPerson["warnings"] = Import::getAndCheckWarnings($newPerson["warnings"]);
+		    
+		    $newPerson["@context"] = array("@vocab"=>"http://schema.org",
+	            							"ph"=>"http://pixelhumain.com/ph/ontology/");
+		    $newPerson["roles"] = Role::getDefaultRoles();
+		  	$newPerson["created"] = new mongoDate(time());
+		  	$newPerson["preferences"] = array("seeExplanations"=> true);	  		
+
+		  	if(!empty($newPerson["image"])){
+				$nameImage = $newPerson["image"];
+				unset($newPerson["image"]);
+			}
+
+			if(!empty($invite)){
+				$msgMail = $person["msgInvite"];
+				$nameInvitor = (empty($person["nameInvitor"])?"Communecter":$person["nameInvitor"]);
+				$newPerson["roles"]['betaTester'] = true;
+				$newPerson["pending"] = true;
+				$newPerson["numberOfInvit"] = 10 ;
+	        	unset($newPerson["msgInvite"]);
+	        	unset($newPerson["nameInvitor"]);
+			}
+
+			PHDB::insert(Person::COLLECTION , $newPerson);
+
+		    if (isset($newPerson["_id"]))
+		    	$newpersonId = (String) $newPerson["_id"];
+		    else
+		    	throw new CTKException("Problem inserting the new person");
+
+		    if(!empty($nameImage)){
+				try{
+					$res = Document::uploadDocumentFromURL($moduleId, self::COLLECTION, $newpersonId, "avatar", false, $pathFolderImage, $nameImage);
+					if(!empty($res["result"]) && $res["result"] == true){
+						$params = array();
+						$params['id'] = $newpersonId;
+						$params['type'] = self::COLLECTION;
+						$params['moduleId'] = $moduleId;
+						$params['folder'] = self::COLLECTION."/".$newpersonId;
+						$params['name'] = $res['name'];
+						$params['author'] = Yii::app()->session["userId"] ;
+						$params['size'] = $res["size"];
+						$params["contentKey"] = "profil";
+						$res2 = Document::save($params);
+						if($res2["result"] == false)
+							throw new CTKException("Impossible de save.");
+
+					}else{
+						throw new CTKException("Impossible uploader le document.");
+					}
+				}catch (CTKException $e){
+					throw new CTKException($e);
+				}	
+			}
+
+
+			if(!empty($paramsLink) && $paramsLink["link"] == true){
+				if($paramsLink["typeLink"] == "Organization"){
+					if(Link::isLinked($paramsLink["idLink"], Organization::COLLECTION, $newpersonId) == false){
+						Link::connect($paramsLink["idLink"], Organization::COLLECTION, $newpersonId, self::COLLECTION, Yii::app()->session["userId"],"members", false);
+						Link::connect($newpersonId, self::COLLECTION, $paramsLink["idLink"], Organization::COLLECTION, Yii::app()->session["userId"],"memberOf",false);
+						//Link::addMember($paramsLink["idLink"], Organization::COLLECTION, $newpersonId, self::COLLECTION, Yii::app()->session["userId"], $paramsLink["isAdmin"]);
+					}
+				}
+				if($paramsLink["typeLink"] == "Person"){
+					//Link::connect($newOrganizationId, Organization::COLLECTION, $paramsLink["idLink"], Person::COLLECTION, $creatorId,"members",$paramsLink["isAdmin"]);
+					//Link::connect($paramsLink["idLink"], Person::COLLECTION, $newOrganizationId, Organization::COLLECTION, $creatorId,"memberOf",$paramsLink["isAdmin"]);
+				   //Link::addMember($newOrganizationId, Organization::COLLECTION, $paramsLink["idLink"], Person::COLLECTION, $creatorId, $paramsLink["isAdmin"]);
+				}
+		
+			}
+			if(!empty($sendMail)){
+				if(!empty($invite)){
+					if(empty($isKissKiss))
+						Mail::invitePerson($newPerson, $msgMail, $nameInvitor, $invitorUrl);
+					else
+						Mail::inviteKKBB($newPerson, true);
+				}
+			}
+			return array("result"=>true, "msg"=>"Cette personne est communecté.", "id" => $newPerson["_id"]);
+
+		} 
 	}
 
 
@@ -1520,6 +1696,7 @@ class Person {
     }
 
 
+
      public static function updateWithJson($json) { 
         $data = json_decode($json, true);
         $user = self::getById(Yii::app()->session['userId']);
@@ -1562,6 +1739,25 @@ class Person {
         }
 
        	return $res;
+    }
+
+    /**
+     * Check if the user with the email exists on db and is pending
+     * @param string $email the email of the user
+     * @return string : id of the user with this email and pending else empty string
+     */
+    public static function getPendingUserByEmail($email) {
+		$res = "";
+		if ($email){
+		  	$account = PHDB::findOne(Person::COLLECTION,array("email"=>$email));
+		  	if ($account && @$account["pending"]) {
+		  		return (String) $account["_id"];
+		  	}
+		} else {
+			throw new CTKException("Please fill the email of the user");
+		}
+		return $res;
+
     }
 
 }

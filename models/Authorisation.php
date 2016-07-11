@@ -213,10 +213,22 @@ class Authorisation {
      */
     public static function isEventAdmin($eventId, $userId) {
     	$res = false;
-        $listEvent = Authorisation::listEventsIamAdminOf($userId);
-        if(isset($listEvent[(string)$eventId])){
-       		$res=true;
-       	} 
+    	$event=Event::getById($eventId);
+        if(@$event["links"] && @$event["links"]["attendees"]){
+	        if(@$event["links"]["attendees"][$userId] && @$event["links"]["attendees"][$userId]["isAdmin"])
+       			$res=true;
+       		else{
+	       		$res="openEdition";
+	       		foreach($event["links"]["attendees"] as $value){
+		       		if(@$value["isAdmin"] && $value["isAdmin"]==true){
+		       			$res=false;
+		       			break;
+		       		}	
+	       		}
+       		}
+       	} else {
+	       $res="openEdition";
+       	}	
        	return $res;
     }
     /**
@@ -250,15 +262,15 @@ class Authorisation {
 
         //event i'am admin 
         $where = array("links.attendees.".$userId.".isAdmin" => true);
-        $eventList = PHDB::find(Event::COLLECTION, $where);
+        $eventListFinal = PHDB::find(Event::COLLECTION, $where);
 
 
         //events of organization i'am admin 
-        $listOrganizationAdmin = Authorisation::listUserOrganizationAdmin($userId);
+       /* $listOrganizationAdmin = Authorisation::listUserOrganizationAdmin($userId);
         foreach ($listOrganizationAdmin as $organizationId => $organization) {
             $eventOrganizationAsOrganizer = Event::listEventByOrganizerId($organizationId, Organization::COLLECTION);
             foreach ($eventOrganizationAsOrganizer as $eventId => $eventValue) {
-                $eventList[$eventId] = $eventValue;
+                $eventListFinal[$eventId] = $eventValue;
             }
         }
 		//events of project i'am admin 
@@ -266,17 +278,12 @@ class Authorisation {
         foreach ($listProjectAdmin as $projectId => $project) {
             $eventProjectAsOrganizer = Event::listEventByOrganizerId($projectId, Project::COLLECTION);
             foreach ($eventProjectAsOrganizer as $eventId => $eventValue) {
-                $eventList[$eventId] = $eventValue;
+                $eventListFinal[$eventId] = $eventValue;
             }
-		}
-        foreach ($eventList as $key => $value) {
-        	$profil = Document::getLastImageByKey($key, Event::COLLECTION, Document::IMG_PROFIL);
-        	if($profil!="")
-        		$value['imagePath']=$profil;
-        	$eventListFinal[$key] = $value;
-        }
+		}*/
         return $eventListFinal;
     }
+    
     public static function listOfEventAdmins($eventId) {
         $res = array();
         $event = Event::getById($eventId);
@@ -417,7 +424,7 @@ class Authorisation {
     */
     public static function canEditEvent($userId, $eventId){
     	$res = false;
-    	$event = EventId::getById($eventId);
+    	$event = Event::getById($eventId);
     	if(!empty($event)){
 
     		// case 1
@@ -431,13 +438,13 @@ class Authorisation {
     			}
     		}
     		// case 2 and 3
-    		if(isset($event["links"]["organizer"])){
+    		/*if(isset($event["links"]["organizer"])){
     			foreach ($event["links"]["organizer"] as $key => $value) {
-    				if( Authorisation::canEditOrganisation($userId, $key)){
+    				if( Authorisation::isOrganizationAdmin($userId, $key)){
     					$res = true;
     				}
     			}
-    		}	
+    		}*/	
     	}
     	return $res;
     }
@@ -491,9 +498,9 @@ class Authorisation {
     public static function canEditItem($userId, $type, $itemId){
         $res=false;
     	if($type == Event::COLLECTION) {
-    		$res = Authorisation::isEventAdmin($itemId, $userId);
-            if(self::isSourceAdmin($itemId, $type, $userId) && $res==false)
-                $res = true ;
+    		$res = Authorisation::canEditEvent($userId,$itemId);
+            //if(self::isSourceAdmin($itemId, $type, $userId) && $res==false)
+              //  $res = true ;
     	} else if($type == Project::COLLECTION) {
     		$res = Authorisation::isProjectAdmin($itemId, $userId);
             /*if(Role::isSuperAdmin(Role::getRolesUserId($userId)) && $res==false)
@@ -516,12 +523,33 @@ class Authorisation {
     }
 
     /**
+    * check for any element if a user is either member, contributor, attendee
+    * @param type is the type of item, (organization or event or person or project)
+    * @param itemId id of the item we want to edits
+    * @return a boolean
+    */
+    public static function canParticipate($userId, $type, $itemId){
+        $res=false;
+        if( $userId )
+        {
+            if( $type == Organization::COLLECTION )
+                $res = Authorisation::isOrganizationMember($userId, $itemId);
+            if( $type == Project::COLLECTION )
+                $res = Authorisation::isProjectMember($userId, $itemId);
+            if( $type == Event::COLLECTION )
+                $res = Authorisation::isEventMember($userId, $itemId);
+            if($type == City::COLLECTION) $res = true;
+        }
+        return $res;
+    }
+
+    /**
      * List the user that are admin of the organization
      * @param string $organizationId The organization Id to look for
      * @param boolean $pending : true include the pending admins. By default no.
      * @return type array of person Id
      */
-    public static function listOrganizationAdmins($organizationId, $pending=false) {
+    /*public static function listOrganizationAdmins($organizationId, $pending=false) {
         $res = array();
         $organization = Organization::getById($organizationId);
         
@@ -541,7 +569,7 @@ class Authorisation {
         }
 
         return $res;
-    }
+    }*/
     /**
      * List the user that are admin of the organization
      * @param string $organizationId The organization Id to look for
@@ -557,16 +585,23 @@ class Authorisation {
 		else if ($parentType == Project::COLLECTION){     
 	        $parent = Project::getById($parentId);
 	        $link="contributors";
+		} else if ($parentType == Event::COLLECTION){     
+	        $parent = Event::getById($parentId);
+	        $link="attendees";
 		}
+		
 
         if ($users = @$parent["links"][$link]) {
             foreach ($users as $personId => $linkDetail) {
                 if (@$linkDetail["isAdmin"] == true) {
-                    if ($pending) {
-                        array_push($res, $personId);
-                    } else if (@$linkDetail["isAdminPending"] == null || @$linkDetail["isAdminPending"] == false) {
-                        array_push($res, $personId); 
-                    }
+	                $userActivated = Role::isUserActivated($personId);
+	                if($userActivated){
+	                    if ($pending) {
+	                        array_push($res, $personId);
+	                    } else if (@$linkDetail["isAdminPending"] == null || @$linkDetail["isAdminPending"] == false) {
+	                        array_push($res, $personId); 
+	                    }
+	                }
                 }
             }
         }

@@ -50,7 +50,18 @@ class Need {
 
 	  	return $need;
 	}
-	
+	public static function getSimpleNeedById($id) {
+		$simpleNeed = array();
+		$need = PHDB::findOneById( self::COLLECTION ,$id, array("id" => 1, "name" => 1, "type" => 1) );
+		//$need = PHDB::find( self::COLLECTION,array("_id"=>new MongoId($id)));
+		if (!empty($need)) {
+			$simpleNeed["_id"]=$need["_id"];
+			$simpleNeed["name"]=@$need["name"];
+			$simpleNeed["type"]=@$need["type"];
+		}
+
+	  	return $simpleNeed;
+	}
 	public static function listNeeds($id, $type){
 		$needs=array();
 		if($type==Organization::COLLECTION){

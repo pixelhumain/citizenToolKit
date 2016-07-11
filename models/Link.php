@@ -14,8 +14,10 @@ class Link {
     const TO_BE_VALIDATED = "toBeValidated";
     const IS_ADMIN = "isAdmin";
     const IS_ADMIN_PENDING = "isAdminPending";
+    const INVITED_BY_ID = "invitorId";
+    const INVITED_BY_NAME = "invitorName";
 
-	/**
+	/** TODO BOUBOULE  ----- TO DELETE ConnectParentToChild do it
 	 * Add a member to an organization
 	 * Create a link between the 2 actors. The link will be typed members and memberOf
 	 * The memberOf should be an organization
@@ -32,7 +34,7 @@ class Link {
      * @param Boolean $pendingAdmin if true the member will be added as a pending admin 
 	 * @return result array with the result of the operation
 	 */ 
-    public static function addMember($memberOfId, $memberOfType, $memberId, $memberType, 
+   /* public static function addMember($memberOfId, $memberOfType, $memberId, $memberType, 
                         $userId, $userAdmin = false, $userRole = "", $pendingAdmin=false) {
         
         $organization=Organization::getById($memberOfId);
@@ -52,14 +54,14 @@ class Link {
                 }
             }
         }
+
         // Create link between both entity
 		$res=self::connect($memberOfId, $memberOfType, $memberId, $memberType, $userId,"members",$userAdmin,$pendingAdmin, $toBeValidated, $userRole);
-		$res=self::connect($memberId, $memberType, $memberOfId, $memberOfType, $userId,"memberOf",$userAdmin,$pendingAdmin, $toBeValidated, $userRole);
+        $res=self::connect($memberId, $memberType, $memberOfId, $memberOfType, $userId,"memberOf",$userAdmin,$pendingAdmin, $toBeValidated, $userRole);
         //3. Send Notifications
 	    //TODO - Send email to the member
-
         return array("result"=>true, "msg"=>"The member has been added with success", "memberOfId"=>$memberOfId, "memberId"=>$memberId,"notification" => $notification);
-    }
+    }*/
     /**
 	 * Add a contributor when a project is created
 	 * Create a link between the creator person and project. The link will be typed contributors and projects
@@ -81,7 +83,7 @@ class Link {
 		$res=self::connect($projectId, Project::COLLECTION, $creatorId, $creatorType, $creatorId, "contributors", true );
 		return array("result"=>true);
 	}
-    /** TODO BOUBOULE- PLUS UTILISER ?? A SUPPRIMER
+    /** TODO BOUBOULE  - PLUS UTILISER ?? A SUPPRIMER
      * Remove a member of an organization
      * Delete a link between the 2 actors.
      * The memberOf should be an organization
@@ -96,7 +98,7 @@ class Link {
      * @param type $userId $userId The userId doing the action
      * @return result array with the result of the operation
      */
-    public static function removeMember($memberOfId, $memberOfType, $memberId, $memberType, $userId) {
+    /*public static function removeMember($memberOfId, $memberOfType, $memberId, $memberType, $userId) {
         
         //0. Check if the $memberOfId and the $memberId exists
         $memberOf = Link::checkIdAndType($memberOfId, $memberOfType);
@@ -123,8 +125,8 @@ class Link {
         //TODO - Send email to the member
 
         return array("result"=>true, "msg"=>"The member has been removed with success", "memberOfid"=>$memberOfId, "memberid"=>$memberId);
-    }
-
+    }*/
+    
     private static function checkIdAndType($id, $type) {
 		if ($type == Organization::COLLECTION) {
         	$res = Organization::getById($id); 
@@ -139,7 +141,10 @@ class Link {
         	$res = Project:: getById($id);
         } else if ($type== Need::COLLECTION){
         	$res = Need:: getById($id);
+        } else if ($type== ActionRoom::COLLECTION_ACTIONS){
+            $res = ActionRoom:: getActionById($id);
         } else {
+
         	throw new CTKException("Can not manage this type of MemberOf : ".$type);
         }
         if (empty($res)) throw new CTKException("The actor (".$id." / ".$type.") is unknown");
@@ -165,9 +170,21 @@ class Link {
      * @return result array with the result of the operation
      */
     public static function connect($originId, $originType, $targetId, $targetType, $userId, $connectType,$isAdmin=false,$pendingAdmin=false,$isPending=false, $role="") {
+	    //0. Check if the $originId and the $targetId exists
+        $origin = Link::checkIdAndType($originId, $originType);
+		$target = Link::checkIdAndType($targetId, $targetType);
         $links=array("links.".$connectType.".".$targetId.".type" => $targetType);
 	    if($isPending){
-		    $links["links.".$connectType.".".$targetId.".".Link::TO_BE_VALIDATED] = $isPending;
+		    //If event, refers has been invited by and user as to confirm its attendee to the event
+		    if($targetType==Event::COLLECTION || $originType==Event::COLLECTION){
+		    	$links["links.".$connectType.".".$targetId.".".Link::INVITED_BY_ID] = $userId;
+				$links["links.".$connectType.".".$targetId.".".Link::INVITED_BY_NAME] = Yii::app()->session["user"]["name"];
+		    }else
+		    	$links["links.".$connectType.".".$targetId.".".Link::TO_BE_VALIDATED] = $isPending;
+	    }else if($targetType==Event::COLLECTION || $originType==Event::COLLECTION){
+		    PHDB::update($originType, 
+                       array("_id" => $origin["_id"]) , 
+                       array('$unset' => array("links.".$connectType.".".$targetId => "")));
 	    }
         if($isAdmin){
         	$links["links.".$connectType.".".$targetId.".".Link::IS_ADMIN]=$isAdmin;
@@ -178,6 +195,8 @@ class Link {
         if ($role != ""){
         	$links["links.".$connectType.".".$targetId.".roles"] = $role;
         }
+
+        
         //0. Check if the $originId and the $targetId exists
         $origin = Link::checkIdAndType($originId, $originType);
 		$target = Link::checkIdAndType($targetId, $targetType);
@@ -239,7 +258,7 @@ class Link {
         return $res;
     }
 
-    /** 
+    /** TODO BOUBOULE - OK TO DELETE ????
 	 * 1 invitor invite a guest. The guest is not yet in the application
 	 * Create a link between the invitor and the guest with the status toBeValidated
 	 * The guest will receive a mail inviting him to create a ph account
@@ -352,17 +371,18 @@ class Link {
 	* Creator is automatically attendee but stays admin if he is parent admin 
 	*/
     public static function attendee($eventId, $userId, $isAdmin = false, $creator = true){
-   		Link::addLink($userId, Person::COLLECTION, $eventId, PHType::TYPE_EVENTS, $userId, "events");
-   		Link::addLink($eventId, PHType::TYPE_EVENTS, $userId, Person::COLLECTION, $userId, "attendees");
+   		//Link::addLink($userId, Person::COLLECTION, $eventId, PHType::TYPE_EVENTS, $userId, "events");
+   		//Link::addLink($eventId, PHType::TYPE_EVENTS, $userId, Person::COLLECTION, $userId, "attendees");
    		$userType=Person::COLLECTION;
    		$link2person="links.events.".$eventId;
    		$link2event="links.attendees.".$userId;
    		$where2person=array($link2person.".type"=>Event::COLLECTION, $link2person.".isAdmin" => $isAdmin);
    		$where2event=array($link2event.".type" => $userType, $link2event.".isAdmin" => $isAdmin);
-   		if($creator) {
+   		// TODO BOUBOULE - REMOVE THIS LINKS 
+   		/*if($creator) {
 	   		$where2person[$link2person.".isCreator"] = true;
 	   		$where2event[$link2event.".isCreator"] = true;
-   		}
+   		}*/
 		PHDB::update(Person::COLLECTION, 
           		array("_id" => new MongoId($userId)), 
                 array('$set' => $where2person)
@@ -374,7 +394,7 @@ class Link {
         );
     }
 
-    /**
+    /** TODO BOUBOULE - TO DELETE (NOT USED ANYMORE)
      * Connect 2 actors : Event, Person, Organization or Project
 	 * Create a link between the 2 actors. The link will be typed as knows, attendee, event, project or contributor
 	 * 1 entry will be added for example :
@@ -387,7 +407,7 @@ class Link {
      * @param type $connectType The link between the two actors
      * @return result array with the result of the operation
      */
-    private static function addLink($originId, $originType, $targetId, $targetType, $userId= null, $connectType){
+   /* private static function addLink($originId, $originType, $targetId, $targetType, $userId= null, $connectType){
 
     	//0. Check if the $originId and the $targetId exists
         $origin = Link::checkIdAndType($originId, $originType);
@@ -402,8 +422,15 @@ class Link {
         //TODO - Send email to the member
 
         return array("result"=>true, "msg"=>"The link ".$connectType." has been added with success", "originId"=>$originId, "targetId"=>$targetId);
-    }
-
+    }*/
+    
+	/*
+	* function isLinked is generally called on Communecter and two times in models/Person.php
+	* it permits to return true if a link between an entity(Person/Orga/Project/Event) and a person exists
+	* @param type string $itemId is the id of the entity checked
+	* @param type string $itemType is the type of the entity checked
+	* @param type string $userId is the id of the user logged
+	*/
     public static function isLinked($itemId, $itemType, $userId) {
     	$res = false;
         if ($itemType == Person::COLLECTION) $linkType = self::person2person;
@@ -416,13 +443,17 @@ class Link {
     	if(isset($item["links"]) && isset($item["links"][$linkType])){
             foreach ($item["links"][$linkType] as $key => $value) {
                 if( $key == $userId) {
-    				$res = true;
+	                //exception for event when attendee is invited
+	                if(!@$value["invitorId"])
+    					$res = true;
     			}
     		}
     	}
     	return $res;
     }
-
+	
+	///// TODO BOUBOULE - AN ORGANIZER COULD BE A PROJECT OR AN ORGA OR A PERSON
+	//// DOCUMENT THIS FUNCTION 
     public static function removeEventLinks($eventId){
     	$events = Event::getById($eventId);
     	foreach ($events["links"] as $type => $item) {
@@ -430,17 +461,18 @@ class Link {
 				if($type == "organizer"){
 					$res = PHDB::update( Organization::COLLECTION, 
                   			array("_id" => new MongoId($id)) , 
-                  			array('$unset' => array( "links.events.".$eventId => "") ));
+                  			array('$unset' => array( "links.events.".$eventId => "") ) );
 				}else{
 					$res = PHDB::update( Person::COLLECTION, 
                   			array("_id" => new MongoId($id)) , 
-                  			array('$unset' => array( "links.events.".$eventId => "") ));
+                  			array('$unset' => array( "links.events.".$eventId => "") ) );
 				}
 			}
     	}
     	return $res;
     }
-
+	
+	// TODO BOUBOULE - COULD BE DELETED FOR A BETTER INTERPRETATION OF ROLE
     public static function removeRole($memberOfId, $memberOfType, $memberId, $memberType, $role, $userId) {
         
         //0. Check if the $memberOfId and the $memberId exists
@@ -468,7 +500,7 @@ class Link {
         return array("result"=>true, "msg"=>Yii::t("link","The member's role has been removed with success",null,Yii::app()->controller->module->id), "memberOfid"=>$memberOfId, "memberid"=>$memberId);
     }
 
-    /**
+    /** TODO BOUBOULE - TO DELETE WITH CTK/CONTROLLERS/PERSON/DISCONNECTACTION.PHP
      * Delete a link between the 2 actors.
      * @param $ownerId is the person who want to remowe a link
      * @param $targetId is the id of item we want to be unlink with
@@ -499,7 +531,7 @@ class Link {
     }
 
 
-     /**
+     /** TODO BOUBOULE - NOT USE ANYMORE === TO DELETE 
      * Add a link between the 2 actors.
      * @param $ownerId is the person who want to add a link
      * @param $targetId is the id of item we want to be link with
@@ -507,7 +539,7 @@ class Link {
      * @param $targetLink is the type of link between the target and the owner
      * @return result array with the result of the operation
      */
-    public static function connectPerson($ownerId, $ownerType, $targetId, $targetType, $ownerLink, $targetLink = null){
+    /*public static function connectPerson($ownerId, $ownerType, $targetId, $targetType, $ownerLink, $targetLink = null){
     	 //0. Check if the $owner and the $target exists
         $owner = Link::checkIdAndType($ownerId, $ownerType);
         $target = Link::checkIdAndType($targetId, $targetType);
@@ -526,7 +558,7 @@ class Link {
 	    }
 
         return array("result"=>true, "msg"=>"The link has been added with success");
-    }
+    }*/
     
      /**
      * Add a link between the 2 entity (person to an entity).
@@ -611,7 +643,8 @@ class Link {
 
 		if($parentType == Organization::COLLECTION){
 			$parentData = Organization::getById($parentId);
-			$usersAdmin = Authorisation::listOrganizationAdmins($parentId, false);
+			$usersAdmin = Authorisation::listAdmins($parentId,  $parentType, false);
+			$parentUsersList = Organization::getMembersByOrganizationId($parentId,  "all", null);
 			$parentController = Organization::CONTROLLER;
 			$parentConnectAs = "members";
 			$childConnectAs = "memberOf";
@@ -621,6 +654,7 @@ class Link {
 		else if ($parentType == Project::COLLECTION){
 			$parentData = Project::getById($parentId);			
 			$usersAdmin = Authorisation::listAdmins($parentId,  $parentType, false);
+			$parentUsersList = Project::getContributorsByProjectId( $parentId ,"all", null ) ;
 			$parentController=Project::CONTROLLER;
 			$parentConnectAs="contributors";
 			$childConnectAs="projects";
@@ -629,12 +663,8 @@ class Link {
 		} 
 		else if ($parentType == Event::COLLECTION){
 			$parentData = Event::getById($parentId);	
-			$usersAdmin=array();		
-			$attendees = Event::getAttendeesByEventId( $parentId ,"all", null );
-			foreach ($attendees as $key => $value) 
-			{
-			   array_push( $usersAdmin, $key);
-			}
+			$usersAdmin = Authorisation::listAdmins($parentId,  $parentType, false);
+			$parentUsersList = Event::getAttendeesByEventId( $parentId ,"all", null);
 			$parentController = Event::CONTROLLER;
 			$parentConnectAs="attendees";
 			$childConnectAs="events";
@@ -688,16 +718,28 @@ class Link {
         if (!$pendingChild) {
             return array("result" => true, "msg" => "Something went wrong ! Impossible to find the children ".$childId);
         }
-		
+		//Check if the child is already link to the parent with the connectType
+
+		$alreadyLink=false;
+		if($typeOfDemand != "admin"){
+			if(@$parentUsersList[$childId] && $userId != $childId)
+				$alreadyLink=true;
+		}else{
+			if(@$parentUsersList[$childId] && @$parentUsersList[$childId]["isAdmin"])
+				$alreadyLink=true;
+		}
+		if($alreadyLink)
+			return array("result" => false, "type"=>"info", "msg" => $pendingChild["name"]." ".Yii::t("common", "is already ".$typeOfDemand." of")." ".Yii::t("common","this ".$parentController)." !");
+			
         //Check : You are already member or admin
 		if ($actionFromAdmin && $userId == $childId) 
-			return array("result" => false, "msg" => Yii::t("common", "Your are already admin of")." ".Yii::t("common","this ".$parentController)." !");
+			return array("result" => false, "type"=>"info", "msg" => Yii::t("common", "You are already admin of")." ".Yii::t("common","this ".$parentController)." !");
 		
 
         //First case : The parent doesn't have an admin yet or it is an action from an admin or it is an event: 
 		if (count($usersAdmin) == 0 || $actionFromAdmin || $parentType == Event::COLLECTION) {
             //the person is automatically added as member (admin or not) of the parent
-            if ($actionFromAdmin) {
+            if ($actionFromAdmin &&  $parentType != Event::COLLECTION) {
 	            //If admin add as admin or member 
 	            if($isConnectingAdmin==true){
 					$verb = ActStr::VERB_CONFIRM;
@@ -706,17 +748,24 @@ class Link {
 					$verb = ActStr::VERB_ACCEPT;
 					$msg=$pendingChild["name"]." ".Yii::t("common","is now ".$typeOfDemand." of")." ".$parentData["name"];
 				}
+				$toBeValidated=false;
 			} else{
 				$verb = ActStr::VERB_JOIN;
-				if($childId==Yii::app()->session["userId"] )
+				$toBeValidated=false;
+				if($childId==Yii::app()->session["userId"]){
 					$msg= Yii::t("common", "You are now ".$typeOfDemand." of")." ".Yii::t("common","this ".$parentController);
-				else
+				}else{
+					$invitation = ActStr::VERB_INVITE;
+					if($typeOfDemand != "admin")
+						$toBeValidated=true;
+					else 
+						$verb = ActStr::VERB_CONFIRM;
 					$msg= $pendingChild["name"]." ".Yii::t("common","is now ".$typeOfDemand." of")." ".$parentData["name"];
+				}
 			}
 			// Check if links follows exists than if true, remove of follows and followers links
 			self::checkAndRemoveFollowLink($parentId,$parentType,$childId,$childType);
 			$toBeValidatedAdmin=false;
-			$toBeValidated=false;
            
 		//Second case : Not an admin doing the action.
         } else {
@@ -786,7 +835,7 @@ class Link {
             $parent = Organization::getById( $parentId );
             $connectTypeOf="memberOf";
             $connectType="members";
-            $usersAdmin = Authorisation::listOrganizationAdmins($parentId, false);
+            $usersAdmin = Authorisation::listAdmins($parentId,  $parentType, false);
         } else if ($parentType==Project::COLLECTION) {
             $parent = Project::getById( $parentId );            
             $connectTypeOf = "projects";
@@ -842,10 +891,5 @@ class Link {
                 );
 		return array("result"=>true, "msg"=>"The link has been added with success");
 	}
-
-
-
-    
-
 } 
 ?>

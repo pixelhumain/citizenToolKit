@@ -5,6 +5,8 @@ class Event {
 	const ICON = "fa-calendar";
 	const COLOR = "#F9B21A";
 
+	const NO_ORGANISER = "dontKnow";
+
 
 	//From Post/Form name to database field name
 	private static $dataBinding = array(
@@ -23,7 +25,9 @@ class Event {
 	    "allDay" => array("name" => "allDay"),
 	    "modules" => array("name" => "modules"),
 	    "startDate" => array("name" => "startDate", "rules" => array("eventStartDate")),
-	    "endDate" => array("name" => "endDate", "rules" => array("eventEndDate"))
+	    "endDate" => array("name" => "endDate", "rules" => array("eventEndDate")),
+	    "parentId" => array("name" => "parentId"),
+	    "source" => array("name" => "source")
 	);
 
 	//TODO SBAR - First test to validate data. Move it to DataValidator
@@ -73,8 +77,8 @@ class Event {
 			}
 		}
 		if(!empty($event)){
-		$event = array_merge($event, Document::retrieveAllImagesUrl($id, self::COLLECTION));
-		$event["typeSig"] = "events";
+			$event = array_merge($event, Document::retrieveAllImagesUrl($id, self::COLLECTION, @$event["type"], $event));
+			$event["typeSig"] = "events";
 	  	}
 	  	return $event;
 	}
@@ -87,20 +91,23 @@ class Event {
 	public static function getSimpleEventById($id) {
 		
 		$simpleEvent = array();
-		$event = PHDB::findOneById( self::COLLECTION ,$id, array("id" => 1, "name" => 1, "type" => 1,  "shortDescription" => 1, "description" => 1,
-																 "address" => 1, "geo" => 1, "tags" => 1) );
+		$event = PHDB::findOneById( self::COLLECTION ,$id, array("id" => 1, "name" => 1, "type" => 1,  "shortDescription" => 1, "description" => 1, "address" => 1, "geo" => 1, "tags" => 1, "profilImageUrl" => 1, "profilThumbImageUrl" => 1, "profilMarkerImageUrl" => 1, "startDate" => 1, "endDate" => 1));
+
 		if(!empty($event)){
-		$simpleEvent["id"] = $id;
-		$simpleEvent["name"] = @$event["name"];
-		$simpleEvent["type"] = @$event["type"];
-		$simpleEvent["geo"] = @$event["geo"];
-		$simpleEvent["tags"] = @$event["tags"];
-		$simpleEvent["shortDescription"] = @$event["shortDescription"];
-		$simpleEvent["description"] = @$event["description"];
-		
-		$simpleEvent = array_merge($simpleEvent, Document::retrieveAllImagesUrl($id, self::COLLECTION));
-		
-		$simpleEvent["address"] = empty($event["address"]) ? array("addressLocality" => "Unknown") : $event["address"];
+			$simpleEvent["id"] = $id;
+			$simpleEvent["_id"] = $event["_id"];
+			$simpleEvent["name"] = @$event["name"];
+			$simpleEvent["type"] = @$event["type"];
+			$simpleEvent["geo"] = @$event["geo"];
+			$simpleEvent["tags"] = @$event["tags"];
+			$simpleEvent["shortDescription"] = @$event["shortDescription"];
+			$simpleEvent["description"] = @$event["description"];
+			$simpleEvent["startDate"] = @$event["startDate"];
+			$simpleEvent["endDate"] = @$event["endDate"];
+			
+			$simpleEvent = array_merge($simpleEvent, Document::retrieveAllImagesUrl($id, self::COLLECTION, $simpleEvent["type"], $event));
+			
+			$simpleEvent["address"] = empty($event["address"]) ? array("addressLocality" => "Unknown") : $event["address"];
 		}
 		return @$simpleEvent;
 	}
@@ -221,9 +228,8 @@ class Event {
 		}
 		
 		
-		if(!empty($params['geoPosLatitude']) && !empty($params["geoPosLongitude"])){
-			
-
+		if(!empty($params['geoPosLatitude']) && !empty($params["geoPosLongitude"]))
+		{
 			$newEvent["geo"] = 	array(	"@type"=>"GeoCoordinates",
 						"latitude" => $params['geoPosLatitude'],
 						"longitude" => $params['geoPosLongitude']);
@@ -242,16 +248,22 @@ class Event {
 	    if(!empty($params['description']))
 	         $newEvent["description"] = $params['description'];
 
+	    if(!empty($params['parentId']))
+	        $newEvent["parentId"] = $params['parentId'];
 
 	    return $newEvent;
 	}
 
-	public static function saveEvent($params) {
-		$newEvent = self::getAndCheckEvent($params);
+	public static function saveEvent($params, $import = false, $warnings = null) {
+		if($import == false)
+			$newEvent = self::getAndCheckEvent($params);
+		else
+			$newEvent = self::getAndCheckEventFromImportData($params, true, null, $warnings);
 
 	    PHDB::insert(self::COLLECTION,$newEvent);
 	    
 	    /*
+	    * except if organiser type is dontKnow
 		*   Add the creator as the first attendee
 		*	He is admin because he is admin of organizer
 		*/
@@ -261,20 +273,21 @@ class Event {
 		if($params["organizerType"] == Person::COLLECTION )
 			$isAdmin=true;
 
-	    Link::attendee($newEvent["_id"], Yii::app()->session['userId'], $isAdmin, $creator);
-	    Link::addOrganizer($params["organizerId"],$params["organizerType"], $newEvent["_id"], Yii::app()->session['userId']);
-				
+	    if($params["organizerType"] != self::NO_ORGANISER ){
+	    	Link::attendee($newEvent["_id"], Yii::app()->session['userId'], $isAdmin, $creator);
+	    	Link::addOrganizer($params["organizerId"],$params["organizerType"], $newEvent["_id"], Yii::app()->session['userId']);
+	    } else {
+	    	$params["organizerType"] = Person::COLLECTION;
+	    	$params["organizerId"] = Yii::app()->session['userId'];
+	    }
+
+	    //if it's a subevent, add the organiser to the parent user Organiser list 
+    	//ajouter le nouveau sub user dans organiser ?
+    	if( @$newEvent["parentId"] )
+			Link::connect( $newEvent["parentId"], Event::COLLECTION,$newEvent["_id"], Event::COLLECTION, Yii::app()->session["userId"], "subEvents");	
+
 		Notification::createdObjectAsParam( Person::COLLECTION, Yii::app()->session['userId'],Event::COLLECTION, (String)$newEvent["_id"], $params["organizerType"], $params["organizerId"], $newEvent["geo"], array($newEvent["type"]),$newEvent["address"]);
 
-	    //send validation mail
-	    //TODO : make emails as cron events
-	    /*$message = new YiiMailMessage; 
-	    $message->view = 'validation';
-	    $message->setSubject('Confirmer votre compte Pixel Humain');
-	    $message->setBody(array("user"=>$new["_id"]), 'text/html');
-	    $message->addTo("oceatoon@gmail.com");//$params['registerEmail']
-	    $message->from = Yii::app()->params['adminEmail'];
-	    Yii::app()->mail->send($message);*/
 	    $creator = Person::getById(Yii::app()->session['userId']);
 	    Mail::newEvent($creator,$newEvent);
 	    
@@ -305,6 +318,23 @@ class Event {
 
 	    return array("result"=>true, "msg"=>Yii::t("event", "The event has been updated"), "id"=>$eventId);
 	}
+	/**
+	 * Retrieve the list of events, for a given event 
+	 * @param String event Id
+	 * @return array list of the event and it's subevents
+	 */
+	public static function getListEventsById($id) {
+		$event = self::getById($id);
+		$listEvent = array();
+        $subEvents = PHDB::findAndSort(self::COLLECTION, array('$or' => array(
+        																	array('_id' => new MongoId($id) ),
+        																	array('parentId' => $id )
+        																	)) , array('startDate' => 1) );
+        $listEvent = array_merge($listEvent,$subEvents);
+
+        return Event::addInfoEvents($listEvent);
+	}
+
 	/**
 	 * Retrieve the list of events, the organization is organizer
 	 * Special case : when the organization can edit member data : retireve the events of the members
@@ -393,10 +423,7 @@ class Event {
 		$listEventAttending= array();
 		$eventsAttending = PHDB::find(PHType::TYPE_EVENTS, $where);
 		foreach ($eventsAttending as $key => $value) {
-        	$profil = Document::getLastImageByKey($key, PHType::TYPE_EVENTS, Document::IMG_PROFIL);
-        	if(strcmp($profil, "")!= 0){
-        		$value['imagePath']=$profil;
-        	}
+        	$value = array_merge($value, Document::retrieveAllImagesUrl($key, self::COLLECTION, $value));
         	$listEventAttending[$key] = $value;
         }
         return $listEventAttending;
@@ -418,8 +445,8 @@ class Event {
 
 
 	public static function updateEventField($eventId, $eventFieldName, $eventFieldValue, $userId){
-
-		if (! Authorisation::isEventAdmin($eventId, $userId)) {
+		$authorization=Authorisation::isEventAdmin($eventId, $userId);
+		if (! $authorization) {
 			throw new CTKException("Can not update the event : you are not authorized to update that event!");	
 		}
 
@@ -453,18 +480,17 @@ class Event {
 		} else {
 			$set = array($dataFieldName => $eventFieldValue);
 		}
-		
 		$res = Event::updateEvent($eventId, $set, $userId);
+		if($authorization == "openEdition"){
+			// Add in activity to show each modification added to this entity
+					//echo $dataFieldName;
+			ActivityStream::saveActivityHistory(ActStr::VERB_UPDATE, $eventId, Event::COLLECTION, $dataFieldName, $eventFieldValue);
+		}	
 		return $res;
 	}
 
 
 	public static function updateEvent($eventId, $event, $userId) {  
-		
-		if (! Authorisation::isEventAdmin($eventId, $userId)) {
-			throw new CTKException("Can not update the event : you are not authorized to update that event!");	
-		}
-
 		if (isset($event["tags"]))
 			$event["tags"] = Tags::filterAndSaveNewTags($event["tags"]);
 		
@@ -472,7 +498,7 @@ class Event {
 		PHDB::update( Event::COLLECTION, array("_id" => new MongoId($eventId)), 
 		                          array('$set' => $event));
 	                  
-	    return array("result"=>true, "msg"=>"Votre evenement a été modifié avec succes", "id"=>$eventId);
+	    return array("result"=>true, "msg"=>"Votre événement a été modifié avec succès", "id"=>$eventId);
 
 	}
 
@@ -496,33 +522,38 @@ class Event {
 	public static function addInfoEvents($events){
 		foreach ($events as $key => $value) {
 
-	  		if (!empty($value["startDate"]) && !empty($value["endDate"])) {
-				if (gettype($value["startDate"]) == "object" && gettype($value["endDate"]) == "object") {
+	  		if (!empty($value["startDate"]) && !empty($value["endDate"])) 
+	  		{
+				if (gettype($value["startDate"]) == "object" && gettype($value["endDate"]) == "object") 
+				{
 					$events[$key]["startDate"] = date('Y-m-d H:i:s', $value["startDate"]->sec);
 					$events[$key]["endDate"] = date('Y-m-d H:i:s', $value["endDate"]->sec);
-				} else {
+				} 
+				else 
+				{
 					//Manage old date with string on date value
 					$now = time();
 					$yesterday = mktime(0, 0, 0, date("m")  , date("d")-1, date("Y"));
 					$yester2day = mktime(0, 0, 0, date("m")  , date("d")-2, date("Y"));
 					$events[$key]["endDate"] = date('Y-m-d H:i:s', $yesterday);
-					$events[$key]["startDate"] = date('Y-m-d H:i:s',$yester2day);;
+					$events[$key]["startDate"] = date('Y-m-d H:i:s',$yester2day);
 				}
 			}
 
 	  		$events[$key]["organizer"] = "";
-	  		if(isset( $value["links"] )){
-		  		foreach ( $value["links"] as $k => $v ) {
-		  			if($k == "organizer"){
-		  				foreach ($v as $organizerId => $val) {
-		  					$organization = Organization::getById($organizerId);
-		  					$events[$key]["organizer"] = $organization["name"];
-		  				}
-		  			}
+	  		if( @$value["links"]["organizer"] )
+	  		{
+		  		foreach ( $value["links"]["organizer"] as $organizerId => $val ) 
+		  		{
+		  			$name = "";
+  					if(@$val["type"]){
+  						$organization = Element::getInfos( $val["type"], $organizerId );
+  						$name = $organization["name"];
+  					}
+  					$events[$key]["organizer"] = $name;
 		  		}
 		  	}
- 	  		$imageUrl= Document::getLastImageByKey($key, self::COLLECTION, '');
- 	  		$events[$key]["imageUrl"] = $imageUrl;
+ 	  		$events[$key] = array_merge($events[$key], Document::retrieveAllImagesUrl($key, self::COLLECTION));
 	  	}
 	  	return $events;
 	}
@@ -980,6 +1011,9 @@ class Event {
 
 		if(!empty($event['source']))
 			$newEvent["source"] = $event["source"];
+
+		if(!empty($event['parentId']))
+	        $newEvent["parentId"] = $event['parentId'];
 		
 
 		$address = (empty($event['address']) ? null : $event['address']);
@@ -1018,18 +1052,11 @@ class Event {
 			$newEvent['name'] = $event['name'];
 		
 		$newEvent['created'] = new MongoDate(time()) ;
-		
-		
-		/*if(!empty($event['email'])) {
-			if (! preg_match('#^[\w.-]+@[\w.-]+\.[a-zA-Z]{2,6}$#',$event['email'])) { 
-				if($warnings)
-					$newEvent["warnings"][] = "205" ;
-				else
-					throw new CTKException(Yii::t("import","205", null, Yii::app()->controller->module->id));
-			}
-			$newEvent["email"] = $event['email'];
-		}*/
+		$newEvent['creator'] = (empty($event["creator"]) ? Yii::app()->session['userId'] : $event["creator"] );
+		$newEvent['organizerType'] = (empty($event["organizerType"]) ? self::NO_ORGANISER: $event["organizerType"] );
+		$newEvent['organizerId'] = (empty($event["organizerId"]) ? Yii::app()->session['userId']: $event["organizerId"] );
 
+		
 		if(empty($event['type'])) {
 			if($warnings)
 			{
@@ -1150,6 +1177,9 @@ class Event {
 		}else{
 			$newEvent['endDate'] = new MongoDate(time() + (7 * 24 * 60 * 60));
 		}
+
+		if(!empty($event['parentId']))
+	        $newEvent["parentId"] = $event['parentId'];
 		
 		return $newEvent;
 	}
@@ -1161,13 +1191,6 @@ class Event {
 		
 		if (isset($newEvent["tags"]))
 			$newEvent["tags"] = Tags::filterAndSaveNewTags($newEvent["tags"]);
-
-		//Add the user creator of the event in the system
-		/*if (empty($creatorId)) {
-			//throw new CTKException("The creator of the event is required.");
-		} else {
-			$newEvent["creator"] = $creatorId;	
-		}*/
 		$newEvent["creator"] = Yii::app()->session['userId'];
 		$newEvent["organizerId"] = Yii::app()->session['userId'];
 		$newEvent["organizerType"] = Person::COLLECTION ;	
@@ -1191,6 +1214,52 @@ class Event {
 		    			"msg"=>"Votre event est communectée.", 
 		    			"id"=>$newEventId, 
 		    			"newOrganization"=> $newEvent);
+	
+
+
+	    $newEvent = self::getAndCheckEvent($params);
+
+	    PHDB::insert(self::COLLECTION,$newEvent);
+	    $creator = true;
+		$isAdmin = false;
+		
+		if($params["organizerType"] == Person::COLLECTION )
+			$isAdmin=true;
+
+	    if($params["organizerType"] != self::NO_ORGANISER ){
+	    	Link::attendee($newEvent["_id"], Yii::app()->session['userId'], $isAdmin, $creator);
+	    	Link::addOrganizer($params["organizerId"],$params["organizerType"], $newEvent["_id"], Yii::app()->session['userId']);
+	    } else {
+	    	$params["organizerType"] = Person::COLLECTION;
+	    	$params["organizerId"] = Yii::app()->session['userId'];
+	    }
+
+	    //if it's a subevent, add the organiser to the parent user Organiser list 
+    	//ajouter le nouveau sub user dans organiser ?
+    	if( @$newEvent["parentId"] )
+			Link::connect( $newEvent["parentId"], Event::COLLECTION,$newEvent["_id"], Event::COLLECTION, Yii::app()->session["userId"], "subEvents");	
+
+		Notification::createdObjectAsParam( Person::COLLECTION, Yii::app()->session['userId'],Event::COLLECTION, (String)$newEvent["_id"], $params["organizerType"], $params["organizerId"], $newEvent["geo"], array($newEvent["type"]),$newEvent["address"]);
+
+	    $creator = Person::getById(Yii::app()->session['userId']);
+	    Mail::newEvent($creator,$newEvent);
+	    
+	    //TODO : add an admin notification
+	    //Notification::saveNotification(array("type"=>NotificationType::ASSOCIATION_SAVED,"user"=>$new["_id"]));
+	    
+	    return array("result"=>true, "msg"=>Yii::t("event","Your event has been connected."), "id"=>$newEvent["_id"], "event" => $newEvent );
+	
+
+
+
+
+
+
+
+
+
+
+
 	}
 
 

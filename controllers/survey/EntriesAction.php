@@ -7,7 +7,7 @@ class EntriesAction extends CAction
       $where = array( "type"=>Survey::TYPE_ENTRY, "survey"=>$id );
 
       //check if is moderated in which the proper filter will be added to the where clause
-      $moduleId = "pppm";//$this->moduleId
+      $moduleId = "communecter";//$this->moduleId
       $app = PHDB::findOne (PHType::TYPE_APPLICATIONS, array("key" => $moduleId  ) );
       $isModerator = Survey::isModerator(Yii::app()->session["userId"], $moduleId);
 
@@ -20,16 +20,15 @@ class EntriesAction extends CAction
 
       $uniqueVoters = PHDB::count( Person::COLLECTION, array("applications.survey"=>array('$exists'=>true)) );
 
-      $controller->title = "Sondages : ".$survey["name"] ;
-      $controller->subTitle = "Nombres de votants inscrit : ".$uniqueVoters;
-      $controller->pageTitle = "Communecter - Sondages";
-      $surveyLink = ( isset( $survey["parentType"] ) && isset( $survey["parentId"] ) ) ? Yii::app()->createUrl("/communecter/rooms/index/type/".$survey["parentType"]."/id/".$survey["parentId"]) : Yii::app()->createUrl("/communecter/rooms"); 
+
       
       $parentType = ($survey["parentType"] == "organizations") ? "organization" : "";
       if( $parentType == "" )
         $parentType = ($survey["parentType"] == "projects") ? "project" : "";
       if( $parentType == "" )
         $parentType = ($survey["parentType"] == "person") ? "person" : "";
+      if( $parentType == "" )
+        $parentType = ($survey["parentType"] == "cities") ? "city" : "";
 
       $surveyLoadByHash = ( isset( $survey["parentType"] ) && isset( $survey["parentId"] ) ) ? "#".$parentType.".detail.id.".$survey["parentId"] : "#rooms"; 
 
@@ -45,6 +44,13 @@ class EntriesAction extends CAction
       if( $survey["parentType"] == Project::COLLECTION ) {
         $parent = Project::getById($survey["parentId"]);
       }
+      if( $survey["parentType"] == City::COLLECTION ) {
+        $parent = City::getByUnikey($survey["parentId"]);
+      }
+
+      $canParticipate = Authorisation::canParticipate( Yii::app()->session['userId'], $survey["parentType"], $survey["parentId"] );
+
+      //if($survey["parentType"] == City::COLLECTION) $canParticipate = $canParticipate && true;
 
       $tpl = ( isset($_GET['tpl']) ) ? $_GET['tpl'] : "index";
 
@@ -55,6 +61,7 @@ class EntriesAction extends CAction
                                              "parent"=>$parent,
                                              "parentType" => $survey["parentType"],
                                              "parentId" => $survey["parentId"],
+                                             "canParticipate"=>$canParticipate,
                                              "surveyLoadByHash" => $surveyLoadByHash
                                               )  );
     }

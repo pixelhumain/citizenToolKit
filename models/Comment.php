@@ -52,6 +52,18 @@ class Comment {
 	  	return PHDB::findAndSort( self::COLLECTION,$params);
 	}
 
+	public static function countFrom($from,$type,$id) {
+		if( @$from && @$type && @$id ){
+			$params = array(
+				"contextType"=>$type,
+				"contextId"=>$id,
+				"created" => array( '$gt' => intval( $from ) )
+			);
+		  	return PHDB::count( self::COLLECTION,$params);
+		} else 
+			return 0;
+	}
+
 	public static function getWhereSortLimit($params,$sort,$limit=1) {
 	  	return PHDB::findAndSort( self::COLLECTION,$params,$sort,$limit);
 	}
@@ -59,12 +71,16 @@ class Comment {
 	public static function insert($comment, $userId) {
 		$options = self::getCommentOptions($comment["contextId"], $comment["contextType"]);
 
+		$content = trim($comment["content"]);
+		if (empty($content))
+			return array("result"=>false, "msg"=> Yii::t("comment","Please add content to your comment !"));
+
 		//TODO SBAR - add check
 		$newComment = array(
 			"contextId" => $comment["contextId"],
 			"contextType" => $comment["contextType"],
 			"parentId" => @$comment["parentCommentId"],
-			"text" => $comment["content"],
+			"text" => $content,
 			"created" => time(),
 			"author" => $userId,
 			"tags" => @$comment["tags"],
@@ -79,10 +95,12 @@ class Comment {
 		
 		$newComment["author"] = self::getCommentAuthor($newComment, $options);
 		$res = array("result"=>true, "msg"=>Yii::t("comment","The comment has been posted"), "newComment" => $newComment, "id"=>$newComment["_id"]);
-		$notificationContexts = array("news","surveys");
+		
+		$notificationContexts = array(News::COLLECTION, ActionRoom::COLLECTION_ACTIONS, Survey::COLLECTION);
 		if( in_array( $comment["contextType"] , $notificationContexts) ){
-			Notification::actionOnPerson ( ActStr::VERB_COMMENT, ActStr::ICON_SHARE, "", array("type"=>$comment["contextType"],"id"=> $comment["contextId"]));
+			Notification::actionOnPerson ( ActStr::VERB_COMMENT, ActStr::ICON_COMMENT, "", array("type"=>$comment["contextType"],"id"=> $comment["contextId"]));
 		}
+		
 		//Increment comment count (can have multiple comment by user)
 		$resAction = Action::addAction($userId , $comment["contextId"], $comment["contextType"], Action::ACTION_COMMENT, false, true) ;
 		if (! $resAction["result"]) {
@@ -191,8 +209,10 @@ class Comment {
 					"contextType" => $contextType,
 					"author" => $userId);
 			$nbComments = PHDB::count(self::COLLECTION, $where);
-			if ($nbComments > 0) $canComment = false;
+			if ($nbComments > 0) 
+				$canComment = false;
 		}
+
 		return $canComment;
 	}
 
@@ -380,7 +400,19 @@ class Comment {
 	                  
 	    return array("result"=>true, "msg"=>Yii::t("common","Comment well updated"), "id"=>$commentId);
 	}
-
+	/**
+	 * delete a comment in database
+	 * @param String $id : id to delete
+	*/
+	public static function delete($id) {
+		$comment=self::getById($id);
+		if($comment["author"]["id"]==Yii::app()->session["userId"]){
+			Action::addAction(Yii::app()->session["userId"] , $comment["contextId"], $comment["contextType"], Action::ACTION_COMMENT, true, false) ;
+			PHDB::remove(self::COLLECTION,array("_id"=>new MongoId($id)));
+			return array("result"=>true, "msg"=>Yii::t("common","you are not the author of the comment"),"comment"=>$comment);
+		} else
+			return array("result"=>false, "msg"=>Yii::t("common","you are not the author of the comment"));
+	}
 	public static function getCommentsToModerate($whereAdditional = null, $limit = 0) {
 
 
@@ -397,5 +429,6 @@ class Comment {
         }
         return PHDB::findAndSort(self::COLLECTION, $where, array("date" =>1), $limit);
 	}
+
 
 }

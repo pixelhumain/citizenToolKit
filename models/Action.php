@@ -59,10 +59,12 @@ class Action
                 }
 
                 // Additional info
+                // can contain a 
+                // comment, date
                 if (!empty($details) && is_array($details))
-	                $details = array_merge($details, array('date' => new MongoDate(time()))) ; 
+                    $details = array_merge($details, array('date' => new MongoDate(time()))) ; 
                 else 
-                	$details = array('date' => new MongoDate(time()));
+                    $details = array('date' => new MongoDate(time()));
                 //$mapUser[ self::NODE_ACTIONS.".".$collection.".".$action.".".(string)$element["_id"] ] = $details ;
                 $mapUser[self::NODE_ACTIONS.".".$collection.".".(string)$element["_id"].".".$action ] = $action ;
                 //update the user table => adds or removes an action
@@ -123,7 +125,7 @@ class Action
                               "userActionSaved" => true,
                               "user"            => PHDB::findOne ( Person::COLLECTION , array("_id" => new MongoId( $userId ) ),array("actions")),
                               "element"         => PHDB::findOne ($collection,array("_id" => new MongoId($id) ),array( $action)),
-                              "inc"			=> $inc,
+                              "inc"         => $inc,
                               "msg"             => "Ok !"
                                );
             } else {
@@ -139,12 +141,12 @@ class Action
     in time we could also use it as a base for undoing tasks
      */
     public static function addActionHistory($userId=null , $id=null, $collection=null, $action=null){
-    	$currentAction = array( "who"=> $userId,
-        						"self" => $action,
-        						"collection" => $collection,
-        						"objectId" => $id,
-        						"created"=>time()
-                				);
+        $currentAction = array( "who"=> $userId,
+                                "self" => $action,
+                                "collection" => $collection,
+                                "objectId" => $id,
+                                "created"=>time()
+                                );
         PHDB::insert( ActivityStream::COLLECTION, $currentAction );
     }
     
@@ -154,7 +156,12 @@ class Action
    */
     public static function isUserFollowing( $value, $actionType )
     {
-        return ( isset($value[ $actionType ]) && is_array($value[ $actionType ]) && array_key_exists(Yii::app()->session["userId"], $value[ $actionType ]) );
+        //return ( isset($value[ $actionType ]) && is_array($value[ $actionType ]) && in_array(Yii::app()->session["userId"], $value[ $actionType ]) );
+        $userId = Yii::app()->session["userId"];
+        return ( isset($value[ $actionType ]) && 
+                 is_array($value[ $actionType ]) && 
+                (isset($value[ $actionType ][$userId]) || in_array(Yii::app()->session["userId"], $value[ $actionType ])) 
+               );
     }
 
     /**

@@ -27,6 +27,7 @@ class Project {
 	    "state" => array("name" => "state"),
 	    "warnings" => array("name" => "warnings"),
 	    "modules" => array("name" => "modules"),
+	    "source" => array("name" => "source")
 	);
 
 	private static function getCollectionFieldNameAndValidate($projectFieldName, $projectFieldValue, $projectId) {
@@ -70,7 +71,7 @@ class Project {
 		}
 
 		if (!empty($project)) {
-			$project = array_merge($project, Document::retrieveAllImagesUrl($id, self::COLLECTION));
+			$project = array_merge($project, Document::retrieveAllImagesUrl($id, self::COLLECTION, null, $project));
 			$project["typeSig"] = "projects";
 		}
 	  	return $project;
@@ -84,18 +85,17 @@ class Project {
 	public static function getSimpleProjectById($id) {
 		
 		$simpleProject = array();
-		$project = PHDB::findOneById( self::COLLECTION ,$id, array("id" => 1, "name" => 1, "shortDescription" => 1, "description" => 1,
-																   "address" => 1, "geo" => 1, "tags" => 1) );
-
-		$simpleProject["id"] = $id;
-		$simpleProject["name"] = @$project["name"];
-		$simpleProject = array_merge($simpleProject, Document::retrieveAllImagesUrl($id, self::COLLECTION));
-		$simpleProject["address"] = empty($project["address"]) ? array("addressLocality" => "Unknown") : $project["address"];
-		$simpleProject["geo"] = @$project["geo"];
-		$simpleProject["tags"] = @$project["tags"];
-		$simpleProject["shortDescription"] = @$project["shortDescription"];
-		$simpleProject["description"] = @$project["description"];
-		
+		$project = PHDB::findOneById( self::COLLECTION ,$id, array("id" => 1, "name" => 1, "shortDescription" => 1, "description" => 1, "address" => 1, "geo" => 1, "tags" => 1, "profilImageUrl" => 1, "profilThumbImageUrl" => 1, "profilMarkerImageUrl" => 1) );
+		if(!empty($project)){
+			$simpleProject["id"] = $id;
+			$simpleProject["name"] = @$project["name"];
+			$simpleProject = array_merge($simpleProject, Document::retrieveAllImagesUrl($id, self::COLLECTION, null, $project));
+			$simpleProject["address"] = empty($project["address"]) ? array("addressLocality" => "Unknown") : $project["address"];
+			$simpleProject["geo"] = @$project["geo"];
+			$simpleProject["tags"] = @$project["tags"];
+			$simpleProject["shortDescription"] = @$project["shortDescription"];
+			$simpleProject["description"] = @$project["description"];
+		}
 		return $simpleProject;
 	}
 	
@@ -230,11 +230,6 @@ class Project {
 	    if (isset($newProject["tags"]))
 			$newProject["tags"] = Tags::filterAndSaveNewTags($newProject["tags"]);
 
-	    // TODO SBAR - If a Link::connect is used why add a link hard coded
-
-	   // $newProject["links"] = array( "contributors" => 
-	    //								array($parentId =>array("type" => $parentType,"isAdmin" => true)));
-
 	    PHDB::insert(self::COLLECTION,$newProject);
 		Link::addContributor(Yii::app() -> session["userId"],Person::COLLECTION,$parentId,$parentType,$newProject["_id"]);
 	   // Link::connect($parentId, $parentType, $newProject["_id"], self::COLLECTION, $parentId, "projects", true );
@@ -363,7 +358,7 @@ class Project {
 	    return array("result"=>true, "msg"=>Yii::t("project","Your project is updated"), "id"=>$projectId);
 	}
 
- 	/**
+ 	/** TODO CDA -- TO DELETE
     *	- check if project exists
 	*   - according to type of added contributor : Person or Organization
 	*   - check existence based on new contributor Id 
@@ -375,7 +370,7 @@ class Project {
 		*	 	send Notifications
     * @return [json Map] list
     */
-	public static function addContributor( $projectId )
+	/*public static function addContributor( $projectId )
 	{
 	    $res = array( "result" => false , "content" => Yii::t("common", "Something went wrong!") );
 		if(isset( $projectId) )
@@ -453,7 +448,7 @@ class Project {
 			}
 		}
 		return $res;
-	}
+	}*/
 	/**
 	 * get contributors for a Project By an project Id
 	 * @param String $id : is the mongoId (String) of the project
@@ -504,11 +499,6 @@ class Project {
            		 $events[$keyEv] = $event;
 			}
 		}
-		foreach ($events as $key => $value) {
-        	$profil = Document::getLastImageByKey($key, PHType::TYPE_EVENTS, Document::IMG_PROFIL);
-        	if($profil!="")
-        		$value['imagePath']=$profil;
-        }
 		return $events;
 	}
 

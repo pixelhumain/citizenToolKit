@@ -41,16 +41,6 @@ class DirectoryAction extends CAction
                 $events[$keyEv] = $event; 
               }
        }
-      /*$events = Authorisation::listEventsIamAdminOf($id);
-      $eventsAttending = Event::listEventAttending($id);
-      foreach ($eventsAttending as $key => $value) {
-        $eventId = (string)$value["_id"];
-        if(!isset($events[$eventId])){
-          $events[$eventId] = $value;
-        }
-      }*/
-      //TODO - SBAR : Pour le dashboard person, affiche t-on les événements des associations dont je suis memebre ?
-      //Get the organization where i am member of;
 
       /* **************************************
       *  ORGANIZATIONS
@@ -65,9 +55,6 @@ class DirectoryAction extends CAction
               if( $member['type'] == Organization::COLLECTION )
               {
                   $organization = Organization::getPublicData( $key );
-                  $profil = Document::getLastImageByKey($key, Organization::COLLECTION, Document::IMG_PROFIL);
-                  if($profil !="")
-                    $organization["imagePath"]= $profil;
                   if (!@$organization["disabled"]) {
                     array_push($organizations, $organization );
                   }
@@ -82,10 +69,6 @@ class DirectoryAction extends CAction
               }
             }
           }        
-          //$randomOrganizationId = array_rand($subOrganizationIds);
-          //$randomOrganization = Organization::getById( $subOrganizationIds[$randomOrganizationId] );
-          //$params["randomOrganization"] = $randomOrganization;
-          
       }
 
       /* **************************************
@@ -98,9 +81,6 @@ class DirectoryAction extends CAction
               {
                 $citoyen = Person::getPublicData( $key );
 				if(!empty($citoyen)){
-	                $profil = Document::getLastImageByKey( $key, Person::COLLECTION, Document::IMG_PROFIL );
-	                if($profil !="" )
-	                    $citoyen["imagePath"]= $profil;
 	                array_push( $people, $citoyen );
                 }
               }
@@ -114,9 +94,6 @@ class DirectoryAction extends CAction
       if(isset($person["links"]["projects"])){
         foreach ($person["links"]["projects"] as $key => $value) {
           $project = Project::getPublicData($key);
-          $profil = Document::getLastImageByKey($key, Project::COLLECTION, Document::IMG_SLIDER);
-           if($profil !="")
-                $project["imagePath"]= $profil;
           array_push( $projects, $project );
         }
       }
@@ -131,27 +108,17 @@ class DirectoryAction extends CAction
 	              if( $member['type'] == Person::COLLECTION )
 	              {
 	                $citoyen = Person::getPublicData( $key );
-					if(!empty($citoyen)){
-		                $profil = Document::getLastImageByKey( $key, Person::COLLECTION, Document::IMG_PROFIL );
-		                if($profil !="" )
-		                    $citoyen["imagePath"]= $profil;
+					        if(!empty($citoyen)){
 		                array_push( $follows[Person::COLLECTION], $citoyen );
 	                }
 	              }
 	              if( $member['type'] == Organization::COLLECTION )
 	              {
-						$organization = Organization::getPublicData( $key );
-						$profil = Document::getLastImageByKey($key, Organization::COLLECTION, Document::IMG_PROFIL);
-						if($profil !="")
-							$organization["imagePath"]= $profil;
-						array_push($follows[Organization::COLLECTION], $organization );
+						    array_push($follows[Organization::COLLECTION], $organization );
 					}
 	              if( $member['type'] == Project::COLLECTION )
 	              {
 						$project = Project::getPublicData($key);
-						$profil = Document::getLastImageByKey($key, Project::COLLECTION, Document::IMG_SLIDER);
-						if($profil !="")
-							$project["imagePath"]= $profil;
 						array_push( $follows[Project::COLLECTION], $project );
 	              }
 	            $countFollows++;
@@ -165,9 +132,6 @@ class DirectoryAction extends CAction
 	              {
 	                $citoyen = Person::getPublicData( $key );
 					if(!empty($citoyen)){
-		                $profil = Document::getLastImageByKey( $key, Person::COLLECTION, Document::IMG_PROFIL );
-		                if($profil !="" )
-		                    $citoyen["imagePath"]= $profil;
 		                array_push( $followers, $citoyen );
 	                }
 	              }

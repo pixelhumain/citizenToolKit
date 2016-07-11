@@ -16,65 +16,71 @@ class DirectoryAction extends CAction
           *  PERSON
           ***************************************** */
           $event = Event::getPublicData($id);
-
-          $controller->title = ((isset($event["name"])) ? $event["name"] : "")."'s Directory";
-          $controller->subTitle = (isset($event["description"])) ? $event["description"] : "";
-          $controller->pageTitle = ucfirst($controller->module->id)." - ".$controller->title;
-
+          
           $params = array(
-            "events" => array(),
-            "people" => array(),
-            "organizations" => array()
+            "event" => $event,
+            "type" => Event::CONTROLLER,
+            "attendees" => array(),
+            "guests" => array(),
             );
 
          
-          /* **************************************
-          *  PEOPLE
-          ***************************************** */
-       $people = array();
         //$admins = array();
         if(!empty($event)){
+
+          /*$params["subEvents"] = PHDB::find(Event::COLLECTION,array( "parentId" => $id));
+          if(@$params["subEvents"]){
+            foreach ($params["subEvents"] as $key => $value) {
+              array_push($params["events"], $value);
+              if( @$value["links"]["organizer"] )
+              {
+                foreach ($value["links"]["organizer"] as $organiserId => $organiser) {
+                  if( @$organiser["type"] == Organization::COLLECTION )
+                    array_push($params["organizations"], Element::getInfos( $organiser["type"], $organiserId));
+                  else if( @$organiser["type"] == Person::COLLECTION )
+                    array_push($params["people"], Element::getInfos( $organiser["type"], $organiserId));
+                }
+              }
+            }
+          }*/
+
           if(isset($event["links"])){
             foreach ($event["links"]["attendees"] as $id => $e) {
 
-              $citoyen = Person::getPublicData($id);
+              $citoyen = Person::getSimpleUserById($id);
               if(!empty($citoyen)){
-                array_push($params["people"], $citoyen);
+	            if(@$event["links"]["attendees"][$id]["invitorId"])  
+                	array_push($params["guests"], $citoyen);
+                else
+                	array_push($params["attendees"], $citoyen);
               }
 
               /*if(isset($e["isAdmin"]) && $e["isAdmin"]==true){
                 array_push($admins, $e);
               }*/
             }
-            if(isset($event["links"]["organizer"])){
+
+           /* if(isset($event["links"]["organizer"])){
               foreach ($event["links"]["organizer"] as $id => $e) {
-                $organization = Organization::getBYId($id);
+                $organization = Organization::getById($id);
                 array_push($params["organizations"], $organization);
               }
-            }else if(isset($event["links"]["creator"])){
+            }
+            else if(isset($event["links"]["creator"])){
               foreach ($event["links"]["creator"] as $id => $e) {
-                $citoyen = Person::getBYId($id);
+                $citoyen = Person::getById($id);
                 array_push($params["people"], $citoyen);
               }
-            }
+            }*/
           }
         }
 
-          /* **************************************
-          *  PROJECTS
-          ***************************************** */
-        /*$projects = array();
-        if(isset($organization["links"]["projects"])){
-            foreach ($organization["links"]["projects"] as $key => $value) {
-              $project = Project::getPublicData($key);
-              array_push( $params["projects"], $project );
-            }
-        }*/
 
             
 
       $page = "../default/directory";
-
+      if( isset($_GET[ "tpl" ]) )
+          $page = "../default/".$_GET[ "tpl" ];
         if(Yii::app()->request->isAjaxRequest){
             echo $controller->renderPartial($page,$params,true);
         }

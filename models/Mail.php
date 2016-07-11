@@ -2,11 +2,28 @@
 /*
 Contains anything generix for the site 
  */
-class Mail
-{
+class Mail {
     
-    public static function send( $params, $force = false )
-    {
+    public static function send( $params, $force = false ) {
+        
+        //Check if the user has the not valid email flag
+        if (! empty($params['to'])) {
+            if ($params['to'] != Yii::app()->params['adminEmail']) {
+                $account = PHDB::findOne(Person::COLLECTION,array("email"=>$params['to']));
+                if (!empty($account)) {
+                    if (@$account["isNotValidEmail"]) {
+                        $msg = "Try to send an email to a not valid email user : ".$params['to'];
+                        return array("result" => false, "msg" => $msg);
+                    }
+                } else {
+                    $msg = "Try to send an email to an unknown email user : ".$params['to'];
+                    return array("result" => false, "msg" => $msg);
+                }
+            }
+        } else {
+            return false;
+        }
+        
         if( PH::notlocalServer() || $force ){
             $message = new YiiMailMessage;
             $message->view =  $params['tpl'];
@@ -20,12 +37,11 @@ class Mail
             return false;
     }
 
-    public static function notlocalServer(){
+    public static function notlocalServer() {
     	return (stripos($_SERVER['SERVER_NAME'], "127.0.0.1") === false && stripos($_SERVER['SERVER_NAME'], "localhost:8080") === false );
     }
 
-    public static function schedule( $params )
-    {
+    public static function schedule( $params ) {
         Cron::save($params);
     }
 
@@ -43,7 +59,7 @@ class Mail
         Mail::schedule($params);
     }
 
-    public static function invitePerson($person, $msg = null, $nameInvitor = null) {
+    public static function invitePerson($person, $msg = null, $nameInvitor = null, $invitorUrl = null) {
         if(isset($person["invitedBy"]))
             $invitor = Person::getSimpleUserById($person["invitedBy"]);
         else if(isset($nameInvitor))
@@ -51,6 +67,8 @@ class Mail
 
         if(empty($msg))
             $msg = $invitor["name"]. " vous invite à rejoindre Communecter.";
+
+        
 
         $params = array(
             "type" => Cron::TYPE_MAIL,
@@ -64,6 +82,33 @@ class Mail
                                     "logo2" => "/images/logoLTxt.jpg",
                                     "invitedUserId" => $person["_id"],
                                     "message" => $msg)
+        );
+
+        if(!empty($invitorUrl))
+            $params["tplParams"]["invitorUrl"] = $invitorUrl;
+        
+        Mail::schedule($params);
+    }
+
+    /**
+     * Invite bankers
+     * @param array $person A well format person
+     * @param boolean $isInvited : if the person is already in the db and already use the platform we adapt the mail
+     * @return nothing
+     */
+    public static function inviteKKBB($person, $isInvited) {
+
+        $params = array(
+            "type" => Cron::TYPE_MAIL,
+            "tpl"=>'inviteKKBB',
+            "subject" => '['.Yii::app()->name.'] - Venez rejoindre le réseau social citoyen',
+            "from"=>Yii::app()->params['adminEmail'],
+            "to" => $person["email"],
+            "tplParams" => array(   "title" => Yii::app()->name ,
+                                    "logo"=> "/images/logo-communecter.png",
+                                    "logo2" => "/images/logoLTxt.jpg",
+                                    "invitedUserId" => $person["_id"],
+                                    "isInvited" => $isInvited)
         );
         Mail::schedule($params);
     }
@@ -207,7 +252,7 @@ class Mail
            $params = array (
                 "type" => Cron::TYPE_MAIL,
                 "tpl"=>'askToBecomeAdmin',
-                "subject" => "[".Yii::app()->name."]".Yii::t("organization","A citizen ask to become ".$typeOfDemand." of ".$parent["name"]),
+                "subject" => "[".Yii::app()->name."] ".Yii::t("organization","A citizen ask to become ".$typeOfDemand." of")." ".$parent["name"],
                 "from"=>Yii::app()->params['adminEmail'],
                 "to" => $currentAdminEmail,
                 "tplParams" => array(  "newPendingAdmin"=> $newPendingAdmin ,

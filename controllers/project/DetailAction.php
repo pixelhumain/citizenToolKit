@@ -19,19 +19,19 @@ class DetailAction extends CAction
 		$roomCount = PHDB::count(ActionRoom::COLLECTION, array("parentType"=>Project::COLLECTION , "parentId"=>$id));
 	    
 	    Menu::project($project);
-	    $controller->subTitle = ( isset($project["description"])) ? ( ( strlen( $project["description"] ) > 120 ) ? substr($project["description"], 0, 120)."..." : $project["description"]) : "";
-	    $controller->pageTitle = "Communecter - Informations sur le projet ".$controller->title;
+	    //$controller->subTitle = ( isset($project["description"])) ? ( ( strlen( $project["description"] ) > 120 ) ? substr($project["description"], 0, 120)."..." : $project["description"]) : "";
+	    //$controller->pageTitle = "Communecter - Informations sur le projet ".$controller->title;
 	  	$organizations = array();
 	  	$people = array();
 	  	$contributors =array();
-	  	$followers = array();
+	  	$followers = 0;
 	  	$properties = array();
 	  	$tasks = array();
 	  	$needs = array();
 	  	$events=array();
 	  	$needs = Need::listNeeds($id, Project::COLLECTION);
-	  	$contentKeyBase = "Yii::app()->controller->id.".".dashboard";
-		$limit = array(Document::IMG_PROFIL => 1, Document::IMG_MEDIA => 5);
+	  //	$contentKeyBase = "Yii::app()->controller->id.".".dashboard";
+		$limit = array(Document::IMG_PROFIL => 1);
 		$images = Document::getImagesByKey((string)$project["_id"], Project::COLLECTION, $limit);
 	  	/*$contentKeyBase = Yii::app()->controller->id.".dashboard";
 	  	$limit = array(Document::IMG_PROFIL => 1, Document::IMG_MEDIA => 5);
@@ -41,34 +41,41 @@ class DetailAction extends CAction
 	  		// Get people or orga who contribute to the project 
 	  		// Get image for each contributors														
 	  		if(isset($project["links"]) && isset($project["links"]["contributors"])){
+		  		$countStrongLinks=count($project["links"]["contributors"]);
+		  		$nbContributors=0;
 	  			foreach ($project["links"]["contributors"] as $uid => $e) {
-	  				if($e["type"]== Organization::COLLECTION){
-	  					$organization = Organization::getSimpleOrganizationById($uid);
-	  					if (!empty($organization)) {
-	  						array_push($organizations, $organization);
-	  						$organization["type"]=Organization::COLLECTION;
-							if(@$e["isAdmin"]){
-		  						$organization["isAdmin"]=true;  				
-	  						}
-	  						array_push($contributors, $organization);
-	  					}
-	  				}else if($e["type"]== Person::COLLECTION){
-	  					$citoyen = Person::getSimpleUserById($uid);
-	  					if(!empty($citoyen)){
-	  						array_push($people, $citoyen);
-	  						$citoyen["type"]=Person::COLLECTION;
-							if(@$e["isAdmin"]){
-								if(@$e["isAdminPending"])
-									$citoyen["isAdminPending"]=true;
-		  						$citoyen["isAdmin"]=true;  				
-	  						}
-	  						if(@$e["toBeValidated"]){
-	  							$citoyen["toBeValidated"]=true;  
-							}	
-
-	  						array_push($contributors, $citoyen);
-	  					}
-	  				}
+		  			if($nbContributors < 11){
+		  				if($e["type"]== Organization::COLLECTION){
+		  					$organization = Organization::getSimpleOrganizationById($uid);
+		  					if (!empty($organization)) {
+		  						array_push($organizations, $organization);
+		  						$organization["type"]=Organization::COLLECTION;
+								if(@$e["isAdmin"]){
+			  						$organization["isAdmin"]=true;  				
+		  						}
+		  						array_push($contributors, $organization);
+		  					}
+		  				}else if($e["type"]== Person::COLLECTION){
+		  					$citoyen = Person::getSimpleUserById($uid);
+		  					if(!empty($citoyen)){
+		  						array_push($people, $citoyen);
+		  						$citoyen["type"]=Person::COLLECTION;
+								if(@$e["isAdmin"]){
+									if(@$e["isAdminPending"])
+										$citoyen["isAdminPending"]=true;
+			  						$citoyen["isAdmin"]=true;  				
+		  						}
+		  						if(@$e["toBeValidated"]){
+		  							$citoyen["toBeValidated"]=true;  
+								}	
+	
+		  						array_push($contributors, $citoyen);
+		  					}
+		  				}
+		  				$nbContributors++;
+		  			} else {
+						break;
+					}
 	  			}
 	  		}
 	  		
@@ -91,18 +98,13 @@ class DetailAction extends CAction
 	  		if (isset($project["tasks"])){
 		  		$tasks=$project["tasks"];
 	  		}
-	  		//Need keep on
-	  		//$whereNeed = array("created"=>array('$exists'=>1) ) ;
-	  		//if(isset($type))
-        	//$whereNeed["parentType"] = Project::COLLECTION;
-			//if(isset($id))
-        	//$whereNeed["parentId"] = (string)$project["_id"];
-			//var_dump($where);
-			//$needs = Need::getWhereSortLimit( $whereNeed, array("date"=>1) ,30);
-
-			//$needs = Need::listNeeds($id, Project::COLLECTION);
-			//echo "need"; var_dump($needs);
-	  	
+	  		// Link with needs
+			if(isset($project["links"]["needs"])){
+				foreach ($project["links"]["needs"] as $key => $value){
+					$need = Need::getSimpleNeedById($key);
+	           		$needs[$key] = $need;
+				}
+			}
 	  	}
 	  	//Gestion de l'admin - true or false
 	  	// First find if user session is directly link to project
@@ -117,9 +119,9 @@ class DetailAction extends CAction
 	  	$params["tags"] = Tags::getActiveTags();
 		$params["organizationTypes"] = $lists["organisationTypes"];
 	  	$params["images"] = $images;
-	  	$params["contentKeyBase"] = $contentKeyBase;
 	  	$params["contributors"] = $contributors;
-	  	$params["followers"] = $followers;
+	  	$params["countStrongLinks"]= @$countStrongLinks;
+	  	$params["countLowLinks"] = $followers;
 	  	$params["project"] = $project;
 	  	$params["organizations"] = $organizations;
 	  	$listEvent = Lists::get(array("eventTypes"));

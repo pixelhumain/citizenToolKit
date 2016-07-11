@@ -435,7 +435,10 @@ class Import
         $res = array() ;
 
         if(!empty($post['key']))
-            $data["source"]['key'] = $post['key'];
+            $data["source"]['key'][] = $post['key'];
+
+        if(!empty($post['badge']))
+            $data["badges"][] = $post['badge'];
 
         if(!empty($post["warnings"]) && $post["warnings"] == "true")
             $warnings = true ;
@@ -474,6 +477,7 @@ class Import
             }
         } else if($keyCollection == "Person"){
             try{
+
                 $invite = false ;
                 if(!empty($post["invite"])){
                     $invite = true ;
@@ -695,6 +699,93 @@ class Import
         }
         
     }
+
+    public static function createZipForImport($post){
+
+        $jsonImport = json_decode($post['jsonImport'], true);
+        $jsonError = json_decode($post['jsonError'], true);
+
+        //Good
+        $objects = array();
+        $arrayNameFile = array();
+        $nbFile = 1 ;
+
+        foreach ($jsonImport as $key => $value) {
+            $objects[] = $value ;
+            if(count($objects) >= 5000 ){
+                //create file in tmp
+                file_put_contents(sys_get_temp_dir()."/entityImport".$nbFile.".json", json_encode($objects));
+                $arrayNameFile[] = "entityImport".$nbFile.".json" ;
+                $objects = array();
+                $nbFile++;
+            }
+        }
+        file_put_contents(sys_get_temp_dir()."/entityImport".$nbFile.".json", json_encode($objects));
+        $arrayNameFile[] = "entityImport".$nbFile.".json" ;
+        
+
+        //Error
+        $objects = array();
+        $nbFile = 1 ;
+        foreach ($jsonError as $key => $value) {
+            $objects[] = $value ;
+            if(count($objects) >= 5000 ){
+                //create file in tmp
+                file_put_contents(sys_get_temp_dir()."/entityError".$nbFile.".json", json_encode($objects));
+                $arrayNameFile[] = "entityError".$nbFile.".json" ;
+                $objects = array();
+                $nbFile++;
+            }
+        }
+        file_put_contents(sys_get_temp_dir()."/entityError".$nbFile.".json", json_encode($objects));
+        $arrayNameFile[] = "entityError".$nbFile.".json" ;
+
+        //File Import.sh
+        $fileImportMongo = "";
+        foreach ($arrayNameFile as $key => $value) {
+            $fileImportMongo .= "mongoimport --db pixelhumain --collection ".$post['collection']." ".$value." --jsonArray;\n";
+        }
+        file_put_contents(sys_get_temp_dir()."/importMongo.sh", $fileImportMongo);
+
+        $zip = new ZipArchive();
+        $filename = sys_get_temp_dir()."/import.zip";
+
+        if ($zip->open($filename, ZipArchive::CREATE)!==TRUE) {
+            echo "Impossible d'ouvrir le fichier" ;
+        }
+        foreach ($arrayNameFile as $key => $value) {
+            $zip->addFile(sys_get_temp_dir()."/".$value, $value);        
+        }
+        $zip->close();
+
+       // $files1 = scandir(sys_get_temp_dir());
+        // var_dump($files1);
+        header('Content-Type: application/zip');
+        header('Content-disposition: attachment; filename=import.zip');
+        header('Content-Length: ' . filesize(sys_get_temp_dir()."/import.zip"));
+
+
+        readfile(sys_get_temp_dir()."/import.zip", true);
+
+
+        /*header('Pragma: public');
+        header('Cache-Control: must-revalidate, pre-check=0, post-check=0, max-age=0');
+         
+        header('Content-Tranfer-Encoding: none');
+        header('Content-Length: '.filesize(sys_get_temp_dir()."/import.zip"));
+        header('Content-MD5: '.base64_encode(md5_file(sys_get_temp_dir()."/import.zip")));
+        header('Content-Type: application/zip');
+        header('Content-disposition: attachment; filename=import.zip');
+         
+        //header('Date: '.date());
+        header('Expires: '.gmdate(DATE_RFC1123, time()+1));
+        header('Last-Modified: '.gmdate(DATE_RFC1123, filemtime(sys_get_temp_dir()."/import.zip")));
+        readfile(sys_get_temp_dir()."/import.zip", true);*/
+        //$path_parts = pathinfo(sys_get_temp_dir()."/import.zip");
+        //return $path_parts['dirname'].$path_parts['basename'];
+
+        //exit;
+    }
     
     public static function importOrganizationsInMongo($post)
     {
@@ -815,8 +906,7 @@ class Import
         else
             $textImportMongoAll = "" ;
 
-        if($newFolder)
-        {
+        if($newFolder){
             $textImportMongoAll = $textImportMongoAll."cd ".$post['nameFile'].";\n";
             $textImportMongoAll = $textImportMongoAll."sh importMongo.sh;\n";
             $textImportMongoAll = $textImportMongoAll."cd .. ;\n";
@@ -908,6 +998,10 @@ class Import
         $typeEntity = $post["chooseEntity"];
         $pathFolderImage = $post["pathFolderImage"];
 
+        $sendMail = ($post["sendMail"] == "false"?null:true);
+        $isKissKiss = ($post["isKissKiss"] == "false"?null:true);
+        $invitorUrl = (trim($post["invitorUrl"]) == ""?null:$post["invitorUrl"]);
+        
         if(substr($jsonString, 0,1) == "{")
             $jsonArray[] = json_decode($jsonString, true) ;
         else
@@ -936,18 +1030,21 @@ class Import
                     else if($typeEntity == "organization")
                         $res = Organization::insertOrganizationFromImportData($value, $post['creatorID'],true,$pathFolderImage, $moduleId, $paramsLink) ;
                     else if($typeEntity == "person")
-                        $res = Person::insertPersonFromImportData($value,null, true, $pathFolderImage, $moduleId, $paramsLink) ;
+                        $res = Person::insertPersonFromImportData($value,null, true, $isKissKiss, $invitorUrl, $pathFolderImage, $moduleId, $paramsLink) ;
                     else if($typeEntity == "invite")
-                        $res = Person::insertPersonFromImportData($value,true, true, $pathFolderImage, $moduleId, $paramsLink) ;
+                        $res = Person::insertPersonFromImportData($value,true, true, $isKissKiss, $invitorUrl, $pathFolderImage, $moduleId, $paramsLink,  $sendMail) ;
                     else if($typeEntity == "event")
-                        $res = Event::insertEventFromImportData($value,true, $post["link"]);
+                        $res = Event::saveEvent($value, true);
+                        //$res = Event::insertEventFromImportData($value,true, $post["link"]);
 
+
+                    //var_dump($res);
                     if($res["result"] == true){
                         $entite["name"] =  $value["name"];
-                        $entite["info"] = "Success";
+                        $entite["info"] = $res["msg"];
                     }else{
                         $entite["name"] =  $value["name"];
-                        $entite["info"] = "Error";
+                        $entite["info"] = $res["msg"];
                     }
                     $resData[] = $entite;
                 }
@@ -1114,8 +1211,7 @@ class Import
 
 
     public static function getGeoByAddressNominatim($street = null, $cp = null, $city = null, $country = null, $polygon_geojson = null){
-        
-        $url = "http://nominatim.openstreetmap.org/search?format=json&addressdetails=1" ;
+         $url = "http://nominatim.openstreetmap.org/search?format=json&city=Nouméa&countrycodes=FR" ;
         //$urlminimiun = "http://nominatim.openstreetmap.org/search?format=json&addressdetails=1" ;
         if(!empty($street))
             $url .= "&street=".str_replace(" ", "+", $street);
@@ -1895,6 +1991,114 @@ class Import
         
         
             
+    }
+
+   /* $arrayMicroformat = self::getMicroformat($post['idMicroformat']);
+
+        if($post['idMapping'] != "-1"){
+            $where = array("_id" => new MongoId($post['idMapping']));
+            $fields = array("fields");
+            $mapping = self::getMappings($where, $fields);
+            $arrayMapping = $mapping[$post['idMapping']]["fields"];
+        }
+        else
+            $arrayMapping = array();
+
+        $params = array("createLink"=>true,
+                        "arrayMicroformat"=>$arrayMicroformat,
+                        "arrayMapping"=>$arrayMapping,
+                        "typeFile"=>$post['typeFile']);
+        return $params ;
+
+    public static function createSubFile(){
+        if($type == "csv"){
+            
+            
+
+            
+        }
+
+
+    }*/
+
+
+    public static function getSource($idItem, $typeItem) {
+        $source = array();
+        $account = PHDB::findOneById($typeItem ,$idItem, array("source"));
+        if(!empty($account["source"]))
+            $source = $account["source"];
+        return $source;
+    }
+
+    public static function checkSourceKeyInSource($key, $source) {
+        $res = false ;
+        
+        if(!empty($source["key"])){
+            if(is_array($source["key"])){
+               foreach ($source["key"] as $k => $value) {
+                    if($key == $value){
+                        $res = true ;
+                        break;
+                    }
+                } 
+            }else if(is_string($source["key"]) && $key == $source["key"]){
+                $res = true ;
+            }  
+        }
+        return $res;
+    }
+
+    public static function addSourceKeyInSource($key, $source) {
+        $res = array(   "result" => false, 
+                        "source" => $source, 
+                        "msg" => Yii::t("import","Le key est déjà dans la liste"));
+        if(is_array($key)){
+            foreach($key as $k => $value) {
+                if(!self::checkSourceKeyInSource($value, $source))
+                    $source["key"][] = $value;  
+            }
+            $res = array("result" => true, "source" => $source);
+        }else if(is_string($key)){
+            if(!self::checkSourceKeyInSource($key, $source))
+                $source["key"][] = $key;
+            $res = array("result" => true, "source" => $source); 
+        }
+        return $res;
+    }
+
+    public static function updateSourceKey($source, $idItem, $typeItem) {
+        $res = array("result" => false, "msg" => Yii::t("import","La mise à jour a échoué."));
+        if($typeItem == Person::COLLECTION)
+            $res = Person::updatePersonField($idItem, "source", $source, Yii::app()->session["userId"]);
+        else if($typeItem == Organization::COLLECTION)
+            $res = Organization::updateOrganizationField($idItem, "source", $source, Yii::app()->session["userId"]);
+        else if($typeItem == Person::COLLECTION)
+            $res = Event::updateEventField($idItem, "source", $source, Yii::app()->session["userId"]);
+        else if($typeItem == Person::COLLECTION)
+            $res = Project::updateProjectField($idItem, "source", $source, Yii::app()->session["userId"]);
+        return $res;
+    }
+
+    public static function addAndUpdateSourceKey($key, $idItem, $typeItem) {
+        
+        $source = self::getSource($idItem, $typeItem);
+        if(!empty($source["key"]))
+            $source["key"] = self::changeFormatSourceKeyInArray($source["key"]);
+        else
+            $source["key"] = array();
+
+        $resAddSource = self::addSourceKeyInSource($key, $source);
+        
+        if($resAddSource["result"] == true){
+            $res = self::updateSourceKey($resAddSource["source"], $idItem, $typeItem);
+        }else
+            $res = array("result" => false, "msg" => $resAddSource["msg"]);
+
+        return $res;
+    }
+
+    public static function changeFormatSourceKeyInArray($keys) {
+        return (is_string($keys))?array($keys):$keys;
     }
 }
 

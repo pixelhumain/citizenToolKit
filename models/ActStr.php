@@ -8,6 +8,8 @@ class ActStr {
     const ICON_COMMENT = "fa-comment";
     const ICON_CLOSE = "fa-times";
     const ICON_ADD = "fa-plus";
+    const ICON_VOTE = "fa-gavel";
+    const ICON_RSS = "fa-rss";
 
     const VIEW_PAGE = "viewPage";
 
@@ -36,10 +38,13 @@ class ActStr {
     const VERB_ADD_PROPOSAL = "addproposal";
     const VERB_MODERATE = "moderate";
 
+    const VERB_ADD_ACTION = "addaction";
+    const VERB_VOTE = "vote";
     
     const VERB_POST = "post";
 
     const TYPE_URL = "url";
+    const TYPE_ACTIVITY_HISTORY = "history";
 	
 	public static function buildEntry($params)
     {
@@ -105,7 +110,7 @@ class ActStr {
             ActStr::VERB_CLOSE => array("label" => $target["name"]." ".Yii::t("common","has been disabled by")." ".$currentUser['name'],
                                         "url"   => $ctrl.'/detail/id/'.$target["id"]), 
             ActStr::VERB_POST => array("label"  => $target["name"]." : ".Yii::t("common","new post by")." ".$currentUser['name'],
-                                        "url"   => 'news/index/type/'.$target["type"].'/id/'.$target["id"].'?isSearchDesign=1'), 
+                                        "url"   => 'news/index/type/'.$target["type"].'/id/'.$target["id"]), 
             ActStr::VERB_FOLLOW => array("label" => $currentUser['name'],
                                         "url"   => Person::CONTROLLER.'/detail/id/'.Yii::app()->session['userId']), 
             ActStr::VERB_WAIT => array("label" => $currentUser['name']." ".Yii::t("common","wants to join")." ".$target["name"],

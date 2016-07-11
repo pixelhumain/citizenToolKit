@@ -12,9 +12,13 @@ class UpdateFieldAction extends CAction
         {
             if (! empty($_POST["name"])) 
             {
-                $res = Person::updatePersonField($_POST["pk"], $_POST["name"], @$_POST["value"], Yii::app()->session["userId"] );
-                if( @$_POST["value"] == "bgCustom" && isset( $_POST["url"] ))
-                    Person::updatePersonField($_POST["pk"], "bgUrl", $_POST["url"], Yii::app()->session["userId"] );
+                try{
+                    $res = Person::updatePersonField($_POST["pk"], $_POST["name"], @$_POST["value"], Yii::app()->session["userId"] );
+                    if( @$_POST["value"] == "bgCustom" && isset( $_POST["url"] ))
+                        Person::updatePersonField($_POST["pk"], "bgUrl", $_POST["url"], Yii::app()->session["userId"] );
+                } catch (CTKException $e) {
+                    $res = array("result"=>false, "msg"=>$e->getMessage(), $_POST["name"]=>$_POST["value"]);
+                }
             }
         } 
         echo Rest::json($res);
