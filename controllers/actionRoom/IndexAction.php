@@ -104,7 +104,7 @@ class IndexAction extends CAction
             if($view == "pod"){
                 echo $controller->renderPartial("../pod/roomsList" , $params, true);
             }else{
-                echo $controller->renderPartial("index" , $params,true);
+                echo $controller->renderPartial("../dda/index" , $params,true);
             }
         }
         else{
