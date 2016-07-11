@@ -249,17 +249,19 @@ class Action
             $linkVoteDown = ($logguedAndValid) ? "<a class='btn ".$classDown." voteIcon' data-vote='".Action::ACTION_VOTE_DOWN."' href=\"".$hrefDown."\" title='Voter Contre'><i class='fa $iconDown'></i></a>" : "";
         }
 
+        //default Values are hasn't voted
         $res["totalVote"] = $voteUpCount+$voteAbstainCount+$voteDownCount+$voteUnclearCount+$voteMoreInfoCount;
         $res["ordre"] = $voteUpCount+$voteDownCount;
-        $res["links"] = ($value["type"]==Survey::TYPE_ENTRY) ? "<span class='text-bold active'><span class='text-bold active btnvote color-btnvote-red'><i class='fa fa-clock-o'></i> ".Yii::t("survey","You did not vote", null, Yii::app()->controller->module->id)."</span></span>" : "";
+        $res["links"] = ( $value["type"] == Survey::TYPE_ENTRY ) ? "<span class='text-bold active btnvote color-btnvote-red'><i class='fa fa-clock-o'></i> ".Yii::t("survey","You did not vote", null, Yii::app()->controller->module->id)."</span>" : "";
+
         //$res["links"] = ($res["totalVote"]) ? "<span class='text-red text-bold'>RESULT</span>" : $res["links"];
-        if( ($value["type"]==Survey::TYPE_ENTRY && 
-            ( !isset($value["dateEnd"]) || $value["dateEnd"] > time() ) 
-            ) ||
-            ($res["hasVoted"])
+        if( ($value["type"]==Survey::TYPE_ENTRY 
+                && ( !isset($value["dateEnd"]) || $value["dateEnd"] > time() ) 
+            ) || ($res["hasVoted"])
           )
             $res["links"] = "<div class='leftlinks'>".$linkVoteUp." ".$linkVoteUnclear." ".$linkVoteAbstain." ".$linkVoteMoreInfo." ".$linkVoteDown."</div>";
-
+        else
+            $res["avoter"] = "closed";
         
         return $res;
     }

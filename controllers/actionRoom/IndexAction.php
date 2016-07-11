@@ -3,15 +3,10 @@ class IndexAction extends CAction
 {
 
     //http://127.0.0.1/ph/communecter/rooms/index/type/citoyens/id/xxxxxx
-    public function run( $type=null, $id= null, $view=null )
+    public function run( $type=null, $id= null, $view=null, $archived=null )
     {
         error_log("room index Action ".$type);
         $controller=$this->getController();
-        
-        $controller->title = "Action Rooms";
-        $controller->subTitle = "Rooms to think, talk, decide in a group";
-        $controller->pageTitle = "Communecter - Action Rooms";
-        //$controller->toolbarMBZ = array();
         
         $nameParentTitle = "";
         $parent = null;
@@ -89,7 +84,8 @@ class IndexAction extends CAction
             }
         }
 
-        $params = array(    "discussions" => $discussions, 
+        $params = array(    
+                            "discussions" => $discussions, 
                             "votes" => $votes, 
                             "actions" => $actions, 
                             "nameParentTitle" => $nameParentTitle, 
