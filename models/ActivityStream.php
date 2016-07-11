@@ -73,7 +73,7 @@ class ActivityStream {
 			$buildArray["label"] = $activityName;
 		if($activityValue != null)
 			$buildArray["value"] = $activityValue;
-		if($activityName=="geo")
+		if($activityName=="geo" || $activityName=="geoPosition")
 			$buildArray["value"] = "geoposition";
 		$params=self::buildEntry($buildArray);
 		self::addEntry($params);
@@ -212,8 +212,9 @@ class ActivityStream {
 		
         if( isset( $params["label"] ))
         	$action["object"]["displayName"] = $params["label"];
-		if( isset( $params["value"] ))
+		if( isset( $params["value"] )){
         	$action["object"]["displayValue"] = preg_replace('/<[^>]*>/', '',$params["value"]);
+        }
 		if( isset( $params["author"] ))
         	$action["author"] = $params["author"];
 
