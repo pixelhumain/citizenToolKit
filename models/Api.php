@@ -97,23 +97,23 @@ class Api {
             
         }
         else{
-        	$val = array();
+        	/*$val = array();
         	foreach ($data as $key => $value) {
             	if(!empty($value["preferences"]["publicFields"]) && in_array("isOpenData", $value["preferences"]["publicFields"])){
               		if($format == null || $format == "json"){
                 		$value["links"] = self::getNewFormatLink($value["links"]);
               		}
-              $val[$key] = $value ;
-            }else{
-            	//var_dump($value);
-            	if(!empty($value["name"])){
-					if($format != null && $format != "json")
-            			$val[$key]["_id"] = $value["_id"];
-              		$val[$key]["name"] = $value["name"];
-            	}
-            		
-            }
-          }
+                    $val[$key] = $value ;
+                }else{
+                	//var_dump($value);
+                	if(!empty($value["name"])){
+    					if($format != null && $format != "json")
+                			$val[$key]["_id"] = $value["_id"];
+                  		$val[$key]["name"] = $value["name"];
+                	}
+                		
+                }
+          }*/
           //$result[$typeResult] = $val;
           $result[$typeResult] = $data ;
         }  
