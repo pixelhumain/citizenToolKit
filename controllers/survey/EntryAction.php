@@ -89,11 +89,9 @@ class EntryAction extends CAction
       }
 
       //Images
-      $contentKeyBase = Yii::app()->controller->id.".".Yii::app()->controller->action->id;
-      $limit = array(Document::IMG_PROFIL => 1);
-      $images = Document::getListDocumentsURLByContentKey($id, $contentKeyBase, Document::DOC_TYPE_IMAGE, $limit);
-      $params["images"] = $images;
-      $params["contentKeyBase"] = $contentKeyBase;
+	  $limit = array(Document::IMG_PROFIL => 1);
+	  $images = Document::getImagesByKey($id,Survey::COLLECTION, $limit);
+	  $params["images"] = $images;
       
       
       if(Yii::app()->request->isAjaxRequest)
