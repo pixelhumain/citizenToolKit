@@ -92,6 +92,23 @@ class Preference {
 	}
 
 
+	public static function isOpenData($preferences) {
+		$isOpenData = false ;
+		if(@$preferences["publicFields"] && !empty($preferences["publicFields"])){
+			$publicFields=$preferences["publicFields"];
+			
+			foreach ($publicFields as $key => $value) {
+			    if ("isOpenData" === $value) {
+			    	$isOpenData = true ;
+			    	break;
+			    }
+			}	
+		}
+
+		return $isOpenData;
+	}
+
+
 	
 	
 }

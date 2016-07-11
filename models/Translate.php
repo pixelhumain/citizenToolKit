@@ -57,31 +57,47 @@ class Translate {
 									$dataKey = $bindPath["refId"];
 								$refData = PHDB::findOne( $bindPath["collection"], array( "_id" => new MongoId( $dataKey ) ) );
 							}
-							array_push( $newData[$key] , self::bindData( $refData, $bindPath["valueOf"] ) );
+							$valByPath = self::bindData( $refData, $bindPath["valueOf"]);
+							if(!empty($valByPath))
+								array_push( $newData[$key] , $valByPath );
 						}
 					} 
 					//parse recursively for array value types, ex : address
-					else if( isset($bindPath["parentKey"]) && isset( $data[ $bindPath["parentKey"] ] ) )
-						$newData[$key] = self::bindData( $data[ $bindPath["parentKey"] ], $bindPath["valueOf"] );
-					//resulting array has more than one level 
-					else
-						$newData[$key] = self::bindData( $data, $bindPath["valueOf"] );
+					else if( isset($bindPath["parentKey"]) && isset( $data[ $bindPath["parentKey"] ] ) ){
+						$valByPath = self::bindData( $data[ $bindPath["parentKey"] ], $bindPath["valueOf"] );
+						if(!empty($valByPath))
+							$newData[$key] = $valByPath;
+						//resulting array has more than one level 
+					}
+					else{
+						$valByPath = self::bindData( $data, $bindPath["valueOf"] );
+						if(!empty($valByPath))
+							$newData[$key] = $valByPath;
+					}
+						
 				} 
 				else if( strpos( $bindPath["valueOf"], ".") > 0 )
 				{
 					//the value is fetched deeply in the source data map
-					$newData[$key] = self::getValueByPath( $bindPath["valueOf"] ,$data );
+					$valByPath = self::getValueByPath( $bindPath["valueOf"] ,$data );
+					if(!empty($valByPath))
+						$newData[$key] = $valByPath;
 				}
 				else if( isset( $data[ $bindPath[ "valueOf" ] ] )  )
 				{
 					//otherwise simply get the value of the requested element
-					$newData[$key] = $data[ $bindPath["valueOf"] ];
+					$valByPath = $data[ $bindPath["valueOf"] ];
+					if(!empty($valByPath))
+						$newData[$key] = $valByPath;
 				} 
 
-			}  else if( is_array( $bindPath ))
+			}  else if( is_array( $bindPath )){
 				// there can be a first level with a simple key value
 				// but can have following more than a single level 
-				$newData[$key] = self::bindData( $data, $bindPath ) ;
+				$valByPath = self::bindData( $data, $bindPath ) ;
+				if(!empty($valByPath))
+						$newData[$key] = $valByPath;
+			}	
 			else
 				// otherwise it's just a simple label element 
 				$newData[$key] = $bindPath;

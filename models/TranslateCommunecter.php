@@ -5,7 +5,6 @@ class TranslateCommunecter {
 	----------------- COMMUNECTER ----------------- 
 */
 	public static $dataBinding_person = array(
-	    "@context"  => "",
 		"@type"		=> "Person",
 	    "name" 		=> array("valueOf" => "name"),
 	    "image"		=> array("valueOf" => "image",
@@ -21,14 +20,14 @@ class TranslateCommunecter {
 															"type" 	=> "url", 
 															"prefix"   => "/communecter/data/get/type/citoyens/id/",
 															"suffix"   => "" ),
-						    "osm" 			=> array(	"valueOf"  	=> 'geo', 
+						    /*"osm" 			=> array(	"valueOf"  	=> 'geo', 
 															"type" 	=> "urlOsm", 
 															"prefix"   => "http://www.openstreetmap.org/#map=16/",
-															"suffix"   => "" ),
-						    "city" 			=> array(	"valueOf"  	=> 'address.codeInsee', 
+															"suffix"   => "" ),*/
+						    /*"city" 			=> array(	"valueOf"  	=> 'address.codeInsee', 
 															"type" 	=> "url", 
 															"prefix"   => "/communecter/data/get/type/cities/insee/",
-															"suffix"   => "" )
+															"suffix"   => "" )*/
 						    
 				 		)),
 	    "address" 	=> array("parentKey"=>"address", 
@@ -130,22 +129,31 @@ class TranslateCommunecter {
 	);
 
 	public static $dataBinding_organization = array(
-	    "@context"  => "",
 		"@type"		=> "Organization",
 		
 	    "name" 		=> array("valueOf" => "name"),
 	    "typeCommunecter" 		=> array("valueOf" => "type"),
 	    "image"		=> array("valueOf" => "image",
 							 "type" 	=> "url"),
-	    "urlCommunecter" 	=> array(
-	    					"valueOf" => '_id.$id',
-				   			"type" 	=> "url", 
-							"prefix"   => "/#organization.detail.id.",
-							"suffix"   => ""),
-	    "urlApi" 	=> array("valueOf"  => '_id.$id', 
-							 "type" 	=> "url", 
-							 "prefix"   => "/communecter/data/get/type/organizations/id/",
-							 "suffix"   => "" ),
+	    "url" 		=> array("valueOf" => array(
+		    					"website" 		=> array(	"valueOf" => 'url'),
+								"communecter" 	=> array(	"valueOf" => '_id.$id',
+										   						"type" 	=> "url", 
+																"prefix"   => "/#organization.detail.id.",
+																"suffix"   => ""),
+							    "api" 			=> array(	"valueOf"  	=> '_id.$id', 
+																"type" 	=> "url", 
+																"prefix"   => "/communecter/data/get/type/organizations/id/",
+																"suffix"   => "" ),
+							    )),
+							    /*"osm" 			=> array(	"valueOf"  	=> 'geo', 
+																"type" 	=> "urlOsm", 
+																"prefix"   => "http://www.openstreetmap.org/#map=16/",
+																"suffix"   => "" ),*/
+							    /*"city" 			=> array(	"valueOf"  	=> 'address.codeInsee', 
+																"type" 	=> "url", 
+																"prefix"   => "/communecter/data/get/type/cities/insee/",
+																"suffix"   => "" )*/
 	    "address" 	=> array("parentKey"=>"address", 
 	    					 "valueOf" => array(
 									"@type" 			=> "PostalAddress", 
@@ -279,22 +287,30 @@ class TranslateCommunecter {
 
 
 	public static $dataBinding_event = array(
-	    "@context"  => "",
 		"@type"		=> "Event",
 		
 	    "name" 		=> array("valueOf" => "name"),
 	    "typeCommunecter" 		=> array("valueOf" => "type"),
 	    "image"		=> array("valueOf" => "image",
 							 "type" 	=> "url"),
-	    "urlCommunecter" 	=> array(
-	    					"valueOf" => '_id.$id',
-				   			"type" 	=> "url", 
-							"prefix"   => "/#event.detail.id.",
-							"suffix"   => ""),
-	    "urlApi" 	=> array("valueOf"  => '_id.$id', 
-							 "type" 	=> "url", 
-							 "prefix"   => "/communecter/data/get/type/events/id/",
-							 "suffix"   => "" ),
+	    "url" 		=> array("valueOf" => array(
+		    					"website" 		=> array(	"valueOf" => 'url'),
+								"communecter" 	=> array(	"valueOf" => '_id.$id',
+										   						"type" 	=> "url", 
+																"prefix"   => "/#event.detail.id.",
+																"suffix"   => ""),
+							    "api" 			=> array(	"valueOf"  	=> '_id.$id', 
+																"type" 	=> "url", 
+																"prefix"   => "/communecter/data/get/type/events/id/",
+																"suffix"   => "" ))),
+							    /*"osm" 			=> array(	"valueOf"  	=> 'geo', 
+																"type" 	=> "urlOsm", 
+																"prefix"   => "http://www.openstreetmap.org/#map=16/",
+																"suffix"   => "" ),*/
+							    /*"city" 			=> array(	"valueOf"  	=> 'address.codeInsee', 
+																"type" 	=> "url", 
+																"prefix"   => "/communecter/data/get/type/cities/insee/",
+																"suffix"   => "" )*/
 	    "address" 	=> array("parentKey"=>"address", 
 	    					 "valueOf" => array(
 									"@type" 			=> "PostalAddress", 
@@ -381,22 +397,30 @@ class TranslateCommunecter {
 	);
 
 	public static $dataBinding_project = array(
-	    "@context"  => "",
 		"@type"		=> "Project",
 		
 	    "name" 		=> array("valueOf" => "name"),
 	    "typeCommunecter" 		=> array("valueOf" => "type"),
 	    "image"		=> array("valueOf" => "image",
 							 "type" 	=> "url"),
-	    "urlCommunecter" 	=> array(
-	    					"valueOf" => '_id.$id',
-				   			"type" 	=> "url", 
-							"prefix"   => "/#project.detail.id.",
-							"suffix"   => ""),
-	    "urlApi" 	=> array("valueOf"  => '_id.$id', 
-							 "type" 	=> "url", 
-							 "prefix"   => "/communecter/data/get/type/projects/id/",
-							 "suffix"   => "" ),
+	    "url" 		=> array("valueOf" => array(
+		    					"website" 		=> array(	"valueOf" => 'url'),
+								"communecter" 	=> array(	"valueOf" => '_id.$id',
+										   						"type" 	=> "url", 
+																"prefix"   => "/#project.detail.id.",
+																"suffix"   => ""),
+							    "api" 			=> array(	"valueOf"  	=> '_id.$id', 
+																"type" 	=> "url", 
+																"prefix"   => "/communecter/data/get/type/projects/id/",
+																"suffix"   => "" ))),
+							    /*"osm" 			=> array(	"valueOf"  	=> 'geo', 
+																"type" 	=> "urlOsm", 
+																"prefix"   => "http://www.openstreetmap.org/#map=16/",
+																"suffix"   => "" ),*/
+							    /*"city" 			=> array(	"valueOf"  	=> 'address.codeInsee', 
+																"type" 	=> "url", 
+																"prefix"   => "/communecter/data/get/type/cities/insee/",
+																"suffix"   => "" )*/
 	    "address" 	=> array("parentKey"=>"address", 
 	    					 "valueOf" => array(
 									"@type" 			=> "PostalAddress", 
@@ -467,7 +491,6 @@ class TranslateCommunecter {
 
 
 	public static $dataBinding_need = array(
-	    "@context"  => "",
 		"@type"		=> "Project",
 		
 	    "name" 		=> array("valueOf" => "name"),
@@ -475,15 +498,16 @@ class TranslateCommunecter {
 	    "duration"		=> array("valueOf" => "duration"),
 	    "quantity"		=> array("valueOf" => "quantity"),
 	    "benefits"		=> array("valueOf" => "benefits"),
-	    "urlCommunecter" 	=> array(
-	    					"valueOf" => '_id.$id',
-				   			"type" 	=> "url", 
-							"prefix"   => "/#need.detail.id.",
-							"suffix"   => ""),
-	    "urlApi" 	=> array("valueOf"  => '_id.$id', 
-							 "type" 	=> "url", 
-							 "prefix"   => "/communecter/data/get/type/needs/id/",
-							 "suffix"   => "" ),
+	    "url" 		=> array("valueOf" => array(
+		    					"website" 		=> array(	"valueOf" => 'url'),
+								"communecter" 	=> array(	"valueOf" => '_id.$id',
+										   						"type" 	=> "url", 
+																"prefix"   => "/#need.detail.id.",
+																"suffix"   => ""),
+							    "api" 			=> array(	"valueOf"  	=> '_id.$id', 
+																"type" 	=> "url", 
+																"prefix"   => "/communecter/data/get/type/needs/id/",
+																"suffix"   => "" ))),
 	   	/*"parent"		=> array(	"object" => "parentId",
 								 	"collection" => array("valueOf" => "parentType")  , 
 									"valueOf" => array(

@@ -51,6 +51,15 @@ class Api {
         
         $data = self::getUrlImage($data, $type);
        
+        
+        foreach ($data as $key => $value) {
+            $isOpenData = ((empty($value["preferences"]))?false:Preference::isOpenData($value["preferences"]));  
+            if($isOpenData == false){
+                $newData["name"] = ((empty($value["name"]))?"":$value["name"]);
+                $data[$key] = $newData ;
+            }
+        }
+
 
         if(Person::COLLECTION == $type){
             foreach ($data as $key => $value) {
