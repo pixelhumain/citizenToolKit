@@ -51,6 +51,9 @@ class ActionsAction extends CAction
       }
 
       $tpl = ( isset($_GET['tpl']) ) ? $_GET['tpl'] : "actionList";
+	  //Images
+	  $limit = array(Document::IMG_PROFIL => 1);
+	  $images = Document::getImagesByKey($id, ActionRoom::COLLECTION, $limit);
 
       $controller->renderPartial( $tpl, array( "list" => $list,
                                              "room"=>$room,
@@ -58,6 +61,7 @@ class ActionsAction extends CAction
                                              "uniqueVoters"=>$uniqueVoters,
                                              "parent"=>$parent,
                                              "surveyLoadByHash" => $roomLoadByHash,
+                                             "images" => $images
                                               )  );
     }
 }
