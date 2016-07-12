@@ -481,7 +481,7 @@ class Document {
     	}
         
         //Update the entity collection to store the path of the profil images
-        if (in_array($document["type"], array(Person::COLLECTION, Organization::COLLECTION, Project::COLLECTION, Event::COLLECTION, Survey::COLLECTION, ActionRoom::COLLECTION_ACTIONS, ActionRoom::TYPE_DISCUSS))) {
+        if (in_array($document["type"], array(Person::COLLECTION, Organization::COLLECTION, Project::COLLECTION, Event::COLLECTION, Survey::COLLECTION, ActionRoom::COLLECTION_ACTIONS, ActionRoom::COLLECTION))) {
 	        $varToSet = array("profilImageUrl" => $profilUrl, "profilThumbImageUrl" => $profilThumbUrl);
 	        if (in_array($document["type"], array(Person::COLLECTION, Organization::COLLECTION, Project::COLLECTION, Event::COLLECTION)))
 	        	$varToSet["profilMarkerImageUrl"] = $profilMarkerImageUrl;

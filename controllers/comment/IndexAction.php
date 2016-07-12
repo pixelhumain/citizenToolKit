@@ -42,7 +42,7 @@ class IndexAction extends CAction
             $params["context"] = $actionRoom;
             //Images
 			$limit = array(Document::IMG_PROFIL => 1);
-			$images = Document::getImagesByKey($id, ActionRoom::TYPE_DISCUSS, $limit);
+			$images = Document::getImagesByKey($id, ActionRoom::COLLECTION, $limit);
 			$params["images"] = $images;
 
             if($actionRoom["parentType"] == Person::CONTROLLER) 
