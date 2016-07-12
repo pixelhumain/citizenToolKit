@@ -82,7 +82,7 @@ class TranslateCommunecter {
 										"valueOf" => array (
 									   		"type" => "Organization",
 									   		"name" => array("valueOf" => "name"),
-									   		"url" => array(
+									   		/*"url" => array(
 									   			"valueOf" => '_id.$id',
 									   			"type" 	=> "url", 
 												"prefix"   => "/#organization.detail.id.",
@@ -91,15 +91,25 @@ class TranslateCommunecter {
 									   			"valueOf" => '_id.$id',
 									   			"type" 	=> "url", 
 												"prefix"   => "/communecter/data/get/type/organizations/id/",
-												"suffix"   => "")
-									   	) ),
+												"suffix"   => "")*/
+									   		"url" 	=> array("valueOf" => array(
+									    					"communecter" 	=> array(	"valueOf" => '_id.$id',
+																	   						"type" 	=> "url", 
+																							"prefix"   => "/#organization.detail.id.",
+																							"suffix"   => ""),
+														    "api" 			=> array(	"valueOf"  	=> '_id.$id', 
+																							"type" 	=> "url", 
+																							"prefix"   => "/communecter/data/get/type/organizations/id/",
+																							"suffix"   => "" ),
+												 		))
+									   	)),
 									"projects" => array( 
 										"object" => "projects",
 										"collection" => Project::COLLECTION, 
 										"valueOf" => array (
 									   		"type" => "Project",
 									   		"name" => array("valueOf" => "name"),
-									   		"url" => array(
+									   		/*"url" => array(
 									   			"valueOf" => '_id.$id',
 									   			"type" 	=> "url", 
 												"prefix"   => "/#project.detail.id.",
@@ -108,14 +118,25 @@ class TranslateCommunecter {
 									   			"valueOf" => '_id.$id',
 									   			"type" 	=> "url",
 									   			"prefix"   => "/communecter/data/get/type/projects/id/",
-												"suffix"   => ""))),
+												"suffix"   => ""))),*/
+											"url" 	=> array("valueOf" => array(
+									    					"communecter" 	=> array(	"valueOf" => '_id.$id',
+																	   						"type" 	=> "url", 
+																							"prefix"   => "/#project.detail.id.",
+																							"suffix"   => ""),
+														    "api" 			=> array(	"valueOf"  	=> '_id.$id', 
+																							"type" 	=> "url", 
+																							"prefix"   => "/communecter/data/get/type/projects/id/",
+																							"suffix"   => "" ),
+												 		))
+											)),
 									"events" => array( 
 										"object" => "events",
 										"collection" => Event::COLLECTION , 
 										"valueOf" => array (
 									   		"type" => "Event",
 									   		"name" => array("valueOf" => "name"),
-									   		"url" => array(
+									   		/*"url" => array(
 									   			"valueOf" => '_id.$id',
 									   			"type" 	=> "url", 
 												"prefix"   => "/#event.detail.id.",
@@ -124,8 +145,19 @@ class TranslateCommunecter {
 									   			"valueOf" => '_id.$id',
 									   			"type" 	=> "url", 
 												"prefix"   => "/communecter/data/get/type/events/id/",
-												"suffix"   => "")))
+												"suffix"   => "")))*/
+											"url" 	=> array("valueOf" => array(
+									    					"communecter" 	=> array(	"valueOf" => '_id.$id',
+																	   						"type" 	=> "url", 
+																							"prefix"   => "/#event.detail.id.",
+																							"suffix"   => ""),
+														    "api" 			=> array(	"valueOf"  	=> '_id.$id', 
+																							"type" 	=> "url", 
+																							"prefix"   => "/communecter/data/get/type/events/id/",
+																							"suffix"   => "" ),
+												 		))
 				 					)),
+								))
 	);
 
 	public static $dataBinding_organization = array(
@@ -206,7 +238,7 @@ class TranslateCommunecter {
 										"valueOf" => array (
 									   		"@type"		=> "Person",
 									   		"name" => array("valueOf" => "name"),
-									   		"url" => array(
+									   		/*"url" => array(
 									   			"valueOf" => '_id.$id',
 									   			"type" 	=> "url", 
 												"prefix"   => "/#citoyens.detail.id.",
@@ -215,15 +247,25 @@ class TranslateCommunecter {
 									   			"valueOf" => '_id.$id',
 									   			"type" 	=> "url", 
 												"prefix"   => "/communecter/data/get/type/citoyens/id/",
-												"suffix"   => "")
-									   	) ),
+												"suffix"   => "")*/
+									   		"url" 	=> array("valueOf" => array(
+									    					"communecter" 	=> array(	"valueOf" => '_id.$id',
+																	   						"type" 	=> "url", 
+																							"prefix"   => "/#person.detail.id.",
+																							"suffix"   => ""),
+														    "api" 			=> array(	"valueOf"  	=> '_id.$id', 
+																							"type" 	=> "url", 
+																							"prefix"   => "/communecter/data/get/type/citoyens/id/",
+																							"suffix"   => "" ),
+												 		))
+											)),
 									"members" => array( 
 										"object" => "members",
 										"collection" => Person::COLLECTION , 
 										"valueOf" => array (
 									   		"type" => "Person",
 									   		"name" => array("valueOf" => "name"),
-									   		"url" => array(
+									   		/*"url" => array(
 									   			"valueOf" => '_id.$id',
 									   			"type" 	=> "url", 
 												"prefix"   => "/#person.detail.id.",
@@ -232,7 +274,17 @@ class TranslateCommunecter {
 									   			"valueOf" => '_id.$id',
 									   			"type" 	=> "url", 
 												"prefix"   => "/communecter/data/get/type/citoyens/id/",
-												"suffix"   => "")
+												"suffix"   => "")*/
+									   		"url" 	=> array("valueOf" => array(
+									    					"communecter" 	=> array(	"valueOf" => '_id.$id',
+																	   						"type" 	=> "url", 
+																							"prefix"   => "/#person.detail.id.",
+																							"suffix"   => ""),
+														    "api" 			=> array(	"valueOf"  	=> '_id.$id', 
+																							"type" 	=> "url", 
+																							"prefix"   => "/communecter/data/get/type/citoyens/id/",
+																							"suffix"   => "" ),
+												 		))
 									   	) ),
 									"projects" => array( 
 										"object" => "projects",
@@ -240,7 +292,7 @@ class TranslateCommunecter {
 										"valueOf" => array (
 									   		"type" => "Project",
 									   		"name" => array("valueOf" => "name"),
-									   		"url" => array(
+									   		/*"url" => array(
 									   			"valueOf" => '_id.$id',
 									   			"type" 	=> "url", 
 												"prefix"   => "/#project.detail.id.",
@@ -249,14 +301,25 @@ class TranslateCommunecter {
 									   			"valueOf" => '_id.$id',
 									   			"type" 	=> "url",
 									   			"prefix"   => "/communecter/data/get/type/projects/id/",
-												"suffix"   => ""))),
+												"suffix"   => "")*/
+											"url" 	=> array("valueOf" => array(
+									    					"communecter" 	=> array(	"valueOf" => '_id.$id',
+																	   						"type" 	=> "url", 
+																							"prefix"   => "/#project.detail.id.",
+																							"suffix"   => ""),
+														    "api" 			=> array(	"valueOf"  	=> '_id.$id', 
+																							"type" 	=> "url", 
+																							"prefix"   => "/communecter/data/get/type/projects/id/",
+																							"suffix"   => "" ),
+												 		))
+											)),
 									"events" => array( 
 										"object" => "events",
 										"collection" => Event::COLLECTION  , 
 										"valueOf" => array (
 									   		"type" => "Event",
 									   		"name" => array("valueOf" => "name"),
-									   		"url" => array(
+									   		/*"url" => array(
 									   			"valueOf" => '_id.$id',
 									   			"type" 	=> "url", 
 												"prefix"   => "/#event.detail.id.",
@@ -265,14 +328,26 @@ class TranslateCommunecter {
 									   			"valueOf" => '_id.$id',
 									   			"type" 	=> "url", 
 												"prefix"   => "/communecter/data/get/type/events/id/",
-												"suffix"   => ""))),
+												"suffix"   => "")*/
+									   		"url" 	=> array("valueOf" => array(
+									    					"communecter" 	=> array(	"valueOf" => '_id.$id',
+																	   						"type" 	=> "url", 
+																							"prefix"   => "/#event.detail.id.",
+																							"suffix"   => ""),
+														    "api" 			=> array(	"valueOf"  	=> '_id.$id', 
+																							"type" 	=> "url", 
+																							"prefix"   => "/communecter/data/get/type/events/id/",
+																							"suffix"   => "" ),
+												 		))
+
+									   		)),
 									"needs" => array( 
 										"object" => "needs",
 										"collection" => Need::COLLECTION  , 
 										"valueOf" => array (
 									   		"type" => "Need",
 									   		"name" => array("valueOf" => "name"),
-									   		"url" => array(
+									   		/*"url" => array(
 									   			"valueOf" => '_id.$id',
 									   			"type" 	=> "url", 
 												"prefix"   => "/#need.detail.id.",
@@ -281,7 +356,19 @@ class TranslateCommunecter {
 									   			"valueOf" => '_id.$id',
 									   			"type" 	=> "url", 
 												"prefix"   => "/communecter/data/get/type/needs/id/",
-												"suffix"   => "")))
+												"suffix"   => "")*/
+									   		"url" 	=> array("valueOf" => array(
+									    					"communecter" 	=> array(	"valueOf" => '_id.$id',
+																	   						"type" 	=> "url", 
+																							"prefix"   => "/#need.detail.id.",
+																							"suffix"   => ""),
+														    "api" 			=> array(	"valueOf"  	=> '_id.$id', 
+																							"type" 	=> "url", 
+																							"prefix"   => "/communecter/data/get/type/needs/id/",
+																							"suffix"   => "" ),
+												 		))
+									   		))
+
 				 					)),
 	);
 
@@ -366,7 +453,7 @@ class TranslateCommunecter {
 										"valueOf" => array (
 									   		"@type"		=> "Person",
 									   		"name" => array("valueOf" => "name"),
-									   		"url" => array(
+									   		/*"url" => array(
 									   			"valueOf" => '_id.$id',
 									   			"type" 	=> "url", 
 												"prefix"   => "/#citoyens.detail.id.",
@@ -375,7 +462,17 @@ class TranslateCommunecter {
 									   			"valueOf" => '_id.$id',
 									   			"type" 	=> "url", 
 												"prefix"   => "/communecter/data/get/type/citoyens/id/",
-												"suffix"   => "")
+												"suffix"   => "")*/
+									   		"url" 	=> array("valueOf" => array(
+									    					"communecter" 	=> array(	"valueOf" => '_id.$id',
+																	   						"type" 	=> "url", 
+																							"prefix"   => "/#person.detail.id.",
+																							"suffix"   => ""),
+														    "api" 			=> array(	"valueOf"  	=> '_id.$id', 
+																							"type" 	=> "url", 
+																							"prefix"   => "/communecter/data/get/type/citoyens/id/",
+																							"suffix"   => "" ),
+												 		))
 									   	) ),
 									"needs" => array( 
 										"object" => "needs",
@@ -383,7 +480,7 @@ class TranslateCommunecter {
 										"valueOf" => array (
 									   		"type" => "Need",
 									   		"name" => array("valueOf" => "name"),
-									   		"url" => array(
+									   		/*"url" => array(
 									   			"valueOf" => '_id.$id',
 									   			"type" 	=> "url", 
 												"prefix"   => "/#need.detail.id.",
@@ -392,8 +489,20 @@ class TranslateCommunecter {
 									   			"valueOf" => '_id.$id',
 									   			"type" 	=> "url", 
 												"prefix"   => "/communecter/data/get/type/needs/id/",
-												"suffix"   => "")))
+												"suffix"   => "")*/
+									   		"url" 	=> array("valueOf" => array(
+									    					"communecter" 	=> array(	"valueOf" => '_id.$id',
+																	   						"type" 	=> "url", 
+																							"prefix"   => "/#need.detail.id.",
+																							"suffix"   => ""),
+														    "api" 			=> array(	"valueOf"  	=> '_id.$id', 
+																							"type" 	=> "url", 
+																							"prefix"   => "/communecter/data/get/type/needs/id/",
+																							"suffix"   => "" ),
+
+									   		))
 				 					))
+								))
 	);
 
 	public static $dataBinding_project = array(
@@ -476,7 +585,7 @@ class TranslateCommunecter {
 										"valueOf" => array (
 									   		"@type"		=> "Person",
 									   		"name" => array("valueOf" => "name"),
-									   		"url" => array(
+									   		/*"url" => array(
 									   			"valueOf" => '_id.$id',
 									   			"type" 	=> "url", 
 												"prefix"   => "/#citoyens.detail.id.",
@@ -485,7 +594,17 @@ class TranslateCommunecter {
 									   			"valueOf" => '_id.$id',
 									   			"type" 	=> "url", 
 												"prefix"   => "/communecter/data/get/type/citoyens/id/",
-												"suffix"   => "")
+												"suffix"   => "")*/
+									   		"url" 	=> array("valueOf" => array(
+									    					"communecter" 	=> array(	"valueOf" => '_id.$id',
+																	   						"type" 	=> "url", 
+																							"prefix"   => "/#person.detail.id.",
+																							"suffix"   => ""),
+														    "api" 			=> array(	"valueOf"  	=> '_id.$id', 
+																							"type" 	=> "url", 
+																							"prefix"   => "/communecter/data/get/type/citoyens/id/",
+																							"suffix"   => "" ),
+												 		))
 									   	) )))
 	);
 
@@ -556,7 +675,7 @@ class TranslateCommunecter {
 										"valueOf" => array (
 									   		"@type"		=> "Person",
 									   		"name" => array("valueOf" => "name"),
-									   		"url" => array(
+									   		/*"url" => array(
 									   			"valueOf" => '_id.$id',
 									   			"type" 	=> "url", 
 												"prefix"   => "/#citoyens.detail.id.",
@@ -565,7 +684,17 @@ class TranslateCommunecter {
 									   			"valueOf" => '_id.$id',
 									   			"type" 	=> "url", 
 												"prefix"   => "/communecter/data/get/type/citoyens/id/",
-												"suffix"   => "")
+												"suffix"   => "")*/
+									   		"url" 	=> array("valueOf" => array(
+									    					"communecter" 	=> array(	"valueOf" => '_id.$id',
+																	   						"type" 	=> "url", 
+																							"prefix"   => "/#person.detail.id.",
+																							"suffix"   => ""),
+														    "api" 			=> array(	"valueOf"  	=> '_id.$id', 
+																							"type" 	=> "url", 
+																							"prefix"   => "/communecter/data/get/type/citoyens/id/",
+																							"suffix"   => "" ),
+												 		))
 									   	) )))
 	);
 

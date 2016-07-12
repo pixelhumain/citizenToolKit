@@ -13,6 +13,7 @@ class Translate {
 			if ( isset($valueData) ) {
 
 				$newData[$keyID] = self::bindData($valueData,$bindMap);
+				break;
 			}
 		}
 		return $newData;
@@ -40,26 +41,26 @@ class Translate {
 						//var_dump($bindPath["object"]);
 
 						$currentValue = ( strpos( $bindPath["object"], "." ) > 0 ) ? self::getValueByPath( $bindPath["object"] ,$data ) : (!empty($data[$bindPath["object"]])?$data[$bindPath["object"]] : "" );
-						//var_dump($currentValue);
-						$newData[$key] = array();
+						
 						//parse each entry of the list
 						//var_dump(strpos( $bindPath["object"], "." ));
-						//var_dump($currentValue);
-						if($currentValue == "")
-							$currentValue = array();
-						foreach ( $currentValue as $dataKey => $dataValue) 
-						{
-							$refData = $dataValue;
-							//if "collection" field  is set , we'll be fetching the data source of a reference object
-							//we consider the key as the dataKey if no "refId" is set
-							if( isset( $bindPath["collection"] ) ){
-								if ( isset( $bindPath["refId"] ) ) 
-									$dataKey = $bindPath["refId"];
-								$refData = PHDB::findOne( $bindPath["collection"], array( "_id" => new MongoId( $dataKey ) ) );
+						if(!empty($currentValue)){
+							$newData[$key] = array();
+							foreach ( $currentValue as $dataKey => $dataValue) 
+							{
+
+								$refData = $dataValue;
+								//if "collection" field  is set , we'll be fetching the data source of a reference object
+								//we consider the key as the dataKey if no "refId" is set
+								if( isset( $bindPath["collection"] ) ){
+									if ( isset( $bindPath["refId"] ) ) 
+										$dataKey = $bindPath["refId"];
+									$refData = PHDB::findOne( $bindPath["collection"], array( "_id" => new MongoId( $dataKey ) ) );
+								}
+								$valByPath = self::bindData( $refData, $bindPath["valueOf"]);
+								if(!empty($valByPath))
+									array_push( $newData[$key] , $valByPath );
 							}
-							$valByPath = self::bindData( $refData, $bindPath["valueOf"]);
-							if(!empty($valByPath))
-								array_push( $newData[$key] , $valByPath );
 						}
 					} 
 					//parse recursively for array value types, ex : address
@@ -70,7 +71,8 @@ class Translate {
 						//resulting array has more than one level 
 					}
 					else{
-						$valByPath = self::bindData( $data, $bindPath["valueOf"] );
+						$valByPath = self::checkAndGetArray(self::bindData( $data, $bindPath["valueOf"]));
+
 						if(!empty($valByPath))
 							$newData[$key] = $valByPath;
 					}
@@ -95,6 +97,7 @@ class Translate {
 				// there can be a first level with a simple key value
 				// but can have following more than a single level 
 				$valByPath = self::bindData( $data, $bindPath ) ;
+
 				if(!empty($valByPath))
 						$newData[$key] = $valByPath;
 			}	
@@ -151,6 +154,15 @@ class Translate {
 		{
 			$val = $prefix.$val.$suffix;
 		}
+		return $val;
+	}
+
+
+	private static function checkAndGetArray($array){	
+		$val = $array ;
+		if(count($array) == 0 || (count($array) == 1 && !empty($array["@type"])))
+			$val = null ;
+
 		return $val;
 	}
 
