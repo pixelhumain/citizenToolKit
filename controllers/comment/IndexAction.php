@@ -16,7 +16,7 @@ class IndexAction extends CAction
         $params["contextType"] = $type;
         $params["nbComment"] = $res["nbComment"];
         $params['canComment'] = $res["canComment"] ;
-
+		
         if($type == Event::COLLECTION) {
             $params["context"] = Event::getById($id);
         } else if($type == Project::COLLECTION) {
@@ -40,6 +40,11 @@ class IndexAction extends CAction
         } else if($type == ActionRoom::COLLECTION) {
             $actionRoom = ActionRoom::getById($id);
             $params["context"] = $actionRoom;
+            //Images
+			$limit = array(Document::IMG_PROFIL => 1);
+			$images = Document::getImagesByKey($id, ActionRoom::TYPE_DISCUSS, $limit);
+			$params["images"] = $images;
+
             if($actionRoom["parentType"] == Person::CONTROLLER) 
                 $params["parent"] = Person::getById($actionRoom["parentId"]);   
             if($actionRoom["parentType"] == Organization::COLLECTION) 
@@ -69,6 +74,9 @@ class IndexAction extends CAction
         }else if($type == ActionRoom::COLLECTION_ACTIONS) {
             $params["context"] = ActionRoom::getActionById($id);
             /*AUTH*/
+            $limit = array(Document::IMG_PROFIL => 1);
+			$images = Document::getImagesByKey($id, ActionRoom::COLLECTION_ACTIONS, $limit);
+			$params["images"] = $images;
             $actionRoom = ActionRoom::getById($params["context"]["room"]);
             $canParticipate = Authorisation::canParticipate(Yii::app()->session["userId"], $actionRoom["parentType"], $actionRoom["parentId"]);
             $canComment = $params["canComment"] && $canParticipate;

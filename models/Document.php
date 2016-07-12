@@ -481,11 +481,13 @@ class Document {
     	}
         
         //Update the entity collection to store the path of the profil images
-        if (in_array($document["type"], array(Person::COLLECTION, Organization::COLLECTION, Project::COLLECTION, Event::COLLECTION))) {
-	        PHDB::update($document["type"], array("_id" => new MongoId($document["id"])), array('$set' => array("profilImageUrl" => $profilUrl, "profilThumbImageUrl" => $profilThumbUrl, "profilMarkerImageUrl" =>  $profilMarkerImageUrl)));
+        if (in_array($document["type"], array(Person::COLLECTION, Organization::COLLECTION, Project::COLLECTION, Event::COLLECTION, Survey::COLLECTION, ActionRoom::COLLECTION_ACTIONS, ActionRoom::TYPE_DISCUSS))) {
+	        $varToSet = array("profilImageUrl" => $profilUrl, "profilThumbImageUrl" => $profilThumbUrl);
+	        if (in_array($document["type"], array(Person::COLLECTION, Organization::COLLECTION, Project::COLLECTION, Event::COLLECTION)))
+	        	$varToSet["profilMarkerImageUrl"] = $profilMarkerImageUrl;
+	        PHDB::update($document["type"], array("_id" => new MongoId($document["id"])), array('$set' => $varToSet));
 	        error_log("The entity ".$document["type"]." and id ". $document["id"] ." has been updated with the URL of the profil images.");
 		}
-
         //Remove the bck directory
         CFileHelper::removeDirectory($upload_dir."bck");
         return array("result" => true, "msg" => "Thumb and markers have been generated");

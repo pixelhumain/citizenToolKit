@@ -104,10 +104,12 @@ class ActionAction extends CAction
                 }
             }
         }
-
+		$limit = array(Document::IMG_PROFIL => 1);
+		$images = Document::getImagesByKey($id, ActionRoom::COLLECTION_ACTIONS, $limit);
+		$params["images"] = $images;
         $params["parentSpace"] = ActionRoom::getById( $action["room"] );
         $params["countStrongLinks"]= $countStrongLinks;
-
+		//$params["countLowLinks"] = @$followers;
       if(Yii::app()->request->isAjaxRequest)
         echo $controller->renderPartial("actionStandalone",$params,true);
       else if( !Yii::app()->request->isAjaxRequest ){
