@@ -12,6 +12,7 @@ class DisableAction extends CAction
     	$result = array("result"=>false, "msg"=>Yii::t("common", "Incorrect request"));
 		if(Yii::app()->session["userId"] || Yii::app()->session["userIsAdmin"] ) {
 			$organization = Organization::getById( $id );
+			$result = array("result"=>false, "msg"=>Yii::t("common", "You are not the creator. Please contact the administrator"));
 			if( $organization && Yii::app()->session["userId"] == $organization['creator'] ) {
 				
 				PHDB::update( Organization::COLLECTION, array("_id"=>new MongoId($id)) , 
@@ -20,7 +21,8 @@ class DisableAction extends CAction
 				$organization["id"] = $id;
 				Notification::actionOnPerson ( ActStr::VERB_CLOSE, ActStr::ICON_CLOSE, $organization, array("type"=>Organization::COLLECTION,"id"=> $id,"name"=>$organization["name"]) ) ;
 				$result = array("result"=>true,"msg" => Yii::t("organization", "Organization disabled !") );
-			}
+			}  
+				
 		}
 		Rest::json($result);
     }
