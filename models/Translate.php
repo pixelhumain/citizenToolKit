@@ -11,9 +11,7 @@ class Translate {
 		$newData = array();
 		foreach ($data as $keyID => $valueData) {
 			if ( isset($valueData) ) {
-
 				$newData[$keyID] = self::bindData($valueData,$bindMap);
-				break;
 			}
 		}
 		return $newData;
