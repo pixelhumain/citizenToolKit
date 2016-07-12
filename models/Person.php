@@ -824,10 +824,14 @@ class Person {
 	 * @param type $id : is the mongoId (String) of the person
 	 * @return person document as in db
 	 */
-	public static function getActionRoomsByPersonId($id) 
+	public static function getActionRoomsByPersonId($id,$archived=null) 
 	{
 		//get action Rooms I created
 		$where = array( "email"=> Yii::app()->session['userEmail'] ) ;
+		if(isset($archived))
+			$where['status'] = ActionRoom::STATE_ARCHIVED;
+		else 
+			$where['status'] = array('$exists' => 0 );
 	  	$actionRooms = PHDB::find(ActionRoom::COLLECTION,$where);//array();//ActionRoom::getWhereSortLimit( $where, array("created"=>1) ,1000);
 	  	$actions = array();
 	  	$person = self::getById($id);
@@ -882,13 +886,16 @@ class Person {
 	 * @param type $id : is the mongoId (String) of the parent Element
 	 * @return person document as in db
 	*/
-	public static function getActionRoomsByPersonIdByType($uid,$type,$id) 
+	public static function getActionRoomsByPersonIdByType($uid,$type,$id,$archived=null) 
 	{
 		if(isset($type))
         	$where["parentType"] = $type;
         if(isset($id))
         	$where["parentId"] = $id;
-
+        if(isset($archived))
+			$where['status'] = ActionRoom::STATE_ARCHIVED;
+		else
+			$where['status'] = array('$exists' => 0 );
         $actionRooms = ActionRoom::getWhereSortLimit( $where, array("date"=>1), 15);
 
 	  	$actions = array();
