@@ -28,8 +28,7 @@ class Preference {
 			$id = $param["idEntity"];
 			$context = Project::getById($id);
 		}
-			
-			
+
 		$setType = $param["type"]; 
 		$setValue = $param["value"];
 		$res = array();
@@ -53,20 +52,35 @@ class Preference {
 			    	unset($privateFields[$key]);
 			    }
 			}		
-		} 
+		}
+
+
 		if($setValue=="public"){
 			$publicFields[]=$setType;
 		}
 		if($setValue=="private"){
 			$privateFields[]=$setType;
 		}
+		if($setValue=="true"){
+			$setValue =true;
+		}
+		else if($setValue=="false"){
+			$setValue=false;
+		}
 
 		$preferences["privateFields"] = $privateFields;
 		$preferences["publicFields"] = $publicFields;
 
-		if(isOpenData($preferences)){
-			
+		if($setType == "isOpenData"){
+			$preferences["isOpenData"] = $setValue;
+		}else if($setType == "isOpenEdition"){
+			$preferences["isOpenEdition"] = $setValue;
 		}
+
+		if(self::isOpenData($preferences))
+			Badge::addAndUpdateBadges("opendata", $id, $type);
+		else
+			Badge::delete("opendata", $id, $type);
 		
 		/*PHDB::update($type, array("_id" => new MongoId($id)), 
 		    array('$set' => array("preferences.privateFields" => $privateFields, "preferences.publicFields" => $publicFields)));*/		
@@ -80,17 +94,8 @@ class Preference {
 
 	public static function isOpenData($preferences) {
 		$isOpenData = false ;
-		if(@$preferences["publicFields"] && !empty($preferences["publicFields"])){
-			$publicFields=$preferences["publicFields"];
-			
-			foreach ($publicFields as $key => $value) {
-			    if ("isOpenData" === $value) {
-			    	$isOpenData = true ;
-			    	break;
-			    }
-			}	
-		}
-
+		if(!empty($preferences["isOpenData"]))
+			$isOpenData = true ;
 		return $isOpenData;
 	}
 

@@ -54,15 +54,22 @@ class Badge {
 		$res = array("result" => false, "msg" => Yii::t("import","La mise à jour a échoué."));
 		if($typeItem == Person::COLLECTION)
 			$res = Person::updatePersonField($idItem, "badges", $badges, Yii::app()->session["userId"]);
+		else if($typeItem == Organisation::COLLECTION)
+			$res = Organisation::updateOrganizationField($idItem, "badges", $badges, Yii::app()->session["userId"]);
+		else if($typeItem == Event::COLLECTION)
+			$res = Event::updateEventField($idItem, "badges", $badges, Yii::app()->session["userId"]);
+		else if($typeItem == Projet::COLLECTION)
+			$res = Projet::updateProjectField($idItem, "badges", $badges, Yii::app()->session["userId"]);
+
 		return $res;
 	}
 
-	public static function addAndUpdateBadges($badge, $idItem, $typeItem) {
+	public static function addAndUpdateBadges($nameBadge, $idItem, $typeItem) {
 		$badges = self::getBagdes($idItem, $typeItem);
 		if(empty($badges))
            $badges = array();
 
-       	$resAddBadge = self::addBadgeInListBadges($badge, $badges);
+       	$resAddBadge = self::addBadgeInListBadges($nameBadge, $badges);
 		if($resAddBadge["result"] == true){
 			$res = self::updateBadges($resAddBadge["badges"], $idItem, $typeItem);
 		}else
@@ -89,9 +96,15 @@ class Badge {
 	}
 
 
-	public static function insert($nameBadge, $idItem, $typeItem) {
+	public static function delete($nameBadge, $idItem, $typeItem) {
 		$badges = self::getBagdes($idItem, $typeItem);
-		
+		$newBadges = array();
+		foreach ($badges as $key => $badge) {
+			if($badge["name"] != $nameBadge)
+				$newBadges[] = $badge;
+		}
+		$res = self::updateBadges($newBadges, $idItem, $typeItem);
+		return $res ;
 	}
 
 }
