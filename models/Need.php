@@ -52,12 +52,15 @@ class Need {
 	}
 	public static function getSimpleNeedById($id) {
 		$simpleNeed = array();
-		$need = PHDB::findOneById( self::COLLECTION ,$id, array("id" => 1, "name" => 1, "type" => 1) );
+		$need = PHDB::findOneById( self::COLLECTION ,$id, array("id" => 1, "name" => 1, "description" => 1, "type" => 1, "startDate" => 1, "endDate" => 1) );
 		//$need = PHDB::find( self::COLLECTION,array("_id"=>new MongoId($id)));
 		if (!empty($need)) {
 			$simpleNeed["_id"]=$need["_id"];
 			$simpleNeed["name"]=@$need["name"];
 			$simpleNeed["type"]=@$need["type"];
+			$simpleNeed["description"]=@$need["description"];
+			$simpleNeed["startDate"] = @$need["startDate"];
+			$simpleNeed["endDate"] = @$need["endDate"];
 		}
 
 	  	return $simpleNeed;
@@ -81,21 +84,41 @@ class Need {
 	public static function getWhereSortLimit($params,$sort=array("created"=>-1),$limit=1) {
 	  	return PHDB::findAndSort( self::COLLECTION,$params,$sort,$limit);
 	}
-	
+	public static function getAndCheck($params){
+	    $newNeed = array(
+			"name" => $params['name'],
+			'type' => $params['type'],
+			"duration" => $params["duration"],
+			"quantity" => $params["quantity"],
+			"benefits" => $params["benefits"]
+		);
+		date_default_timezone_set('UTC');
+		if(@$params["duration"] && $params["duration"]=="ponctuel"){
+			$newNeed["startDate"] = new MongoDate(strtotime($params['startDate']));
+			$newNeed["endDate"] = new MongoDate(strtotime($params['endDate']));
+		}
+		$newNeed = array_merge( $newNeed , array( 'public' => true,
+								'created' => new MongoDate(time()),
+						        'creator' => Yii::app()->session['userId'] ) );	
+		return $newNeed;
+	}					
 	public static function insert($params, $context){
-		PHDB::insert(self::COLLECTION,$params);
+		$newNeed = self::getAndCheck($params);
+		PHDB::insert(self::COLLECTION,$newNeed);
 		if($context["parentType"]==Project::COLLECTION){
 			$parent = Project::getById($context["parentId"]);
 		}
 		if($context["parentType"]==Organization::COLLECTION){
 			$parent = Organization::getById($context["parentId"]);
 		}
-		Link::connect($params["_id"],self::COLLECTION,$context["parentId"],$context["parentType"],Yii::app() -> session["userId"],$context["parentType"]);
-		Link::connect($context["parentId"],$context["parentType"],$params["_id"],self::COLLECTION,Yii::app() -> session["userId"],self::COLLECTION);
+		Link::connect($newNeed["_id"],self::COLLECTION,$context["parentId"],$context["parentType"],Yii::app() -> session["userId"],$context["parentType"]);
+		Link::connect($context["parentId"],$context["parentType"],$newNeed["_id"],self::COLLECTION,Yii::app() -> session["userId"],self::COLLECTION);
 		//$parent = $class::getById($params["parentId"]);
-		//Notification::createdObjectAsParam(Person::COLLECTION,Yii::app()-> session["userId"],Need::COLLECTION, $params["_id"], $params["parentType"], $params["parentId"],null, null, $parent["address"]["codeInsee"]);
+		//Notification::createdObjectAsParam( Person::COLLECTION, Yii::app()->session['userId'],Event::COLLECTION, (String)$newEvent["_id"], $params["organizerType"], $params["organizerId"], $newEvent["geo"], array($newEvent["type"]),$newEvent["address"]);
 
-		return array("result"=>true, "msg"=>"Votre besoin est communecté.","idNeed"=>$params["_id"]);
+		Notification::createdObjectAsParam(Person::COLLECTION,Yii::app()-> session["userId"], Need::COLLECTION, (String)$newNeed["_id"], $context["parentType"], $context["parentId"], $parent["geo"], array($newNeed["type"]), $parent["address"]);
+
+		return array("result"=>true, "msg"=>"Votre besoin est communecté.","idNeed"=>$newNeed["_id"]);
 	}
 	
 	public static function updateNeedField($needId, $needFieldName, $needFieldValue, $userId) {  

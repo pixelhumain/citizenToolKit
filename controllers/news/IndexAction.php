@@ -20,7 +20,7 @@ class IndexAction extends CAction
 		if (!isset($id)){
 				if($type!="pixels"){
 					if($type=="city"){
-						$id=$_GET["insee"];
+						$id="";//$_GET["insee"];
 					}
 					else{
 						if(@$_GET["id"])
@@ -77,6 +77,13 @@ class IndexAction extends CAction
 	            }
 	        }
 	        else if ($type=="city"){
+		        $locality = isset($_POST['locality']) ? trim(urldecode($_POST['locality'])) : null;
+				//$searchType = isset($_POST['searchType']) ? $_POST['searchType'] : null;
+				$searchBy = isset($_POST['searchBy']) ? $_POST['searchBy'] : "INSEE";
+				$tagSearch = isset($_POST['tagSearch']) ? $_POST['tagSearch'] : "";
+				$params["locality"] = $locality;
+				$params["searchBy"] = $searchBy;
+				$params["tagSearch"] = $tagSearch;
 		        if (@Yii::app()->session["userId"])
 					$params["canPostNews"] = true;
 	        }
@@ -132,19 +139,26 @@ class IndexAction extends CAction
 					array_push($authorFollowedAndMe,array("author"=>$id));
 					array_push($authorFollowedAndMe,array("target.id"=> $id, 
 														"target.type" => Person::COLLECTION));
+					array_push($authorFollowedAndMe,array("mentions.id" => $id, 
+															"mentions.type" => Person::COLLECTION));
 					if(@$parent["links"]["memberOf"] && !empty($parent["links"]["memberOf"])){
 						foreach ($parent["links"]["memberOf"] as $key => $data){
-							array_push($authorFollowedAndMe,array("target.id"=>$key, "target.type" => "organizations"));
+							array_push($authorFollowedAndMe,array("target.id"=>$key, "target.type" => Organization::COLLECTION));
+							array_push($authorFollowedAndMe,array("mentions.id" => $key, "mentions.type" => Organization::COLLECTION));
 						}
 					}
 					if(@$parent["links"]["projects"] && !empty($parent["links"]["projects"])){
 						foreach ($parent["links"]["projects"] as $key => $data){
-							array_push($authorFollowedAndMe,array("target.id"=>$key, "target.type" => "projects"));
+							array_push($authorFollowedAndMe,array("target.id"=>$key, "target.type" => Project::COLLECTION));
+							array_push($authorFollowedAndMe,array("mentions.id" => $key, "mentions.type" => Project::COLLECTION));
+
 						}
 					}
 					if(@$parent["links"]["events"] && !empty($parent["links"]["events"])){
 						foreach ($parent["links"]["events"] as $key => $data){
-							array_push($authorFollowedAndMe,array("target.id"=>$key, "target.type" => "events"));
+							array_push($authorFollowedAndMe,array("target.id" => $key, "target.type" => Event::COLLECTION));
+							array_push($authorFollowedAndMe,array("mentions.id" => $key, "mentions.type" => Event::COLLECTION));
+
 						}
 					}
 					if(@$parent["links"]["follows"] && !empty($parent["links"]["follows"])){
@@ -189,6 +203,7 @@ class IndexAction extends CAction
 				$where = array('$and' => array(
 							array('$or'=>array(
 								array("target.type"=> $type,"target.id"=> $id),
+								array("mentions.type"=> $type,"mentions.id"=> $id)
 							)),
 						$whereScope,
 		        	)	
@@ -202,13 +217,67 @@ class IndexAction extends CAction
 				);
 			}
 			else if($type == "city"){
-				$where = array('$and' => array(
-						array("scope.cities.codeInsee" => $id, "scope.type" => "public" ),
-						array("target.type" => array('$ne' => "pixels")),
-		        	)	
-				);
+
+				if(!empty($_POST['locality'])){
+					$locality = isset($_POST['locality']) ? trim(urldecode($_POST['locality'])) : null;
+					//$searchType = isset($_POST['searchType']) ? $_POST['searchType'] : null;
+					$searchBy = isset($_POST['searchBy']) ? $_POST['searchBy'] : "INSEE";
+					
+			        if($searchBy == "CODE_POSTAL_INSEE") {
+			        	$queryLocality = array("scope.cities.postalCode" => $locality );
+		        	}
+		        	if($searchBy == "DEPARTEMENT") {
+		        		$queryLocality = array("scope.cities.postalCode" 
+								=> new MongoRegex("/^".$locality."/i"));
+		        	}
+		        	if($searchBy == "REGION") {
+		        		//#TODO GET REGION NAME | CITIES.DEP = myDep
+		        		$regionName = PHDB::findOne( City::COLLECTION, array("insee" => $locality), array("regionName", "dep"));
+		        		
+						if(isset($regionName["regionName"])){ //quand la city a bien la donnée "regionName"
+		        			$regionName = $regionName["regionName"];
+		        			//#TODO GET ALL DEPARTMENT BY REGION
+		        			$deps = PHDB::find( City::COLLECTION, array("regionName" => $regionName), array("dep"));
+		        			$departements = array();
+		        			$inQuest = array();
+		        			foreach($deps as $index => $value){
+		        				if(!in_array($value["dep"], $departements)){
+			        				$departements[] = $value["dep"];
+			        				$inQuest[] = new MongoRegex("/^".$value["dep"]."/i");
+						        	$queryLocality = array("scope.cities.postalCode" => array('$in' => $inQuest));
+			        				
+						        }
+		        			}	
+		        		}else{ //quand la city communectée n'a pas la donnée "regionName", on prend son département à la place
+		        			$regionName = isset($regionName["dep"]) ? $regionName["dep"] : "";
+		        			$queryLocality = array("scope.cities.postalCode" 
+								=> new MongoRegex("/^".$regionName."/i"));
+		        		}
+		        		error_log("regionName : ".$regionName );
+		        	}
+		        	if($searchBy == "INSEE") {
+		        		$queryLocality = array("scope.cities.codeInsee" => $locality );
+		        	}
+	        	}
+				$where = array("scope.type" => "public","target.type" => array('$ne' => "pixels"));
+				if(@$queryLocality){
+					$where = array_merge($where,$queryLocality);
+				}
 			}
-			
+			if(@$_POST["tagSearch"] && !empty($_POST["tagSearch"])){
+					$querySearch = array( "tags" => array('$in' => array(new MongoRegex("/".$_POST["tagSearch"]."/i")))) ;
+					$where = array_merge($where,$querySearch); 			
+			}
+			if(@$_POST['searchType']){
+				$searchType=array();
+				foreach($_POST['searchType'] as $data){
+					if($data == "news")
+						$searchType[]=array("type" => "news");
+					else
+						$searchType[]=array("object.objectType" => $data);
+				}
+				$where = array_merge($where,array('$and' => array(array('$or' =>$searchType))));
+			}
 			//Exclude => If there is more than 5 reportAbuse
 			$where = array_merge($where,  array('$or' => array(
 													array("reportAbuseCount" => array('$lt' => 5)),

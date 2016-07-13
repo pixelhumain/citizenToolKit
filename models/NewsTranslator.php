@@ -30,13 +30,25 @@ class NewsTranslator {
 				$object=Project::getSimpleProjectById((string)$params["object"]["id"]);
 				$params["icon"]="fa-lightbulb-o";
 			}
+			else if ($params["object"]["objectType"]==Need::COLLECTION){
+				$object=Need::getSimpleNeedById((string)$params["object"]["id"]);
+				$params["icon"]="fa-cubes";
+			}
+
 			if(!empty($object)){
-				$params["imageBackground"] = $object["profilImageUrl"];
+				if($params["object"]["objectType"]!=Need::COLLECTION)
+					$params["imageBackground"] = $object["profilImageUrl"];
 				$params["name"] = $object["name"];
 				$params["text"] = preg_replace('/<[^>]*>/', '', (isset($object["shortDescription"]) ? $object["shortDescription"] : "" ));
 				if (empty($params["text"]))
 					$params["text"] =(isset($object["description"]) ? preg_replace('/<[^>]*>/', '',$object["description"]) : "");
-				$params["scope"]["address"]=$object["address"];
+				if($params["object"]["objectType"]==Event::COLLECTION || $params["object"]["objectType"]==Need::COLLECTION){
+					$params["startDate"]=@$object["startDate"];
+					$params["endDate"]=@$object["endDate"];
+					
+				}
+				if(@$object["address"])
+					$params["scope"]["address"]=$object["address"];
 			}else{
 				$params=array("created"=>$params["created"]);
 				return $params;
