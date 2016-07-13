@@ -54,8 +54,8 @@ class Badge {
 		$res = array("result" => false, "msg" => Yii::t("import","La mise à jour a échoué."));
 		if($typeItem == Person::COLLECTION)
 			$res = Person::updatePersonField($idItem, "badges", $badges, Yii::app()->session["userId"]);
-		else if($typeItem == Organisation::COLLECTION)
-			$res = Organisation::updateOrganizationField($idItem, "badges", $badges, Yii::app()->session["userId"]);
+		else if($typeItem == Organization::COLLECTION)
+			$res = Organization::updateOrganizationField($idItem, "badges", $badges, Yii::app()->session["userId"]);
 		else if($typeItem == Event::COLLECTION)
 			$res = Event::updateEventField($idItem, "badges", $badges, Yii::app()->session["userId"]);
 		else if($typeItem == Projet::COLLECTION)

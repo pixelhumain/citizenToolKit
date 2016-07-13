@@ -41,7 +41,7 @@ class Organization {
 	    "fixe" => array("name" => "telephone.fixe"),
 	    "fax" => array("name" => "telephone.fax"),
 	    "modules" => array("name" => "modules"),
-	    //"fixe" => array("name" => "telephone.fixe"),
+	    "preferences" => array("name" => "preferences"),
 	    //"mobile" => array("name" => "telephone.mobile"),
 	    "video" => array("name" => "video"),
 	    "state" => array("name" => "state"),
@@ -49,6 +49,7 @@ class Organization {
 	    "urlFacebook" => array("name" => "urlFacebook"),
 	    "urlTwitter" => array("name" => "urlTwitter"),
 	    "isOpenData" => array("name" => "isOpenData"),
+	    "badges" => array("name" => "badges"),
 	);
 	
 	//See findOrganizationByCriterias...
@@ -85,7 +86,7 @@ class Organization {
 		}
 
 		if(empty($newOrganization["preferences"])){
-			$newOrganization["preferences"] = array("publicFields" => array("isOpenData"), "privateFields" => array());
+			$newOrganization["preferences"] = array("publicFields" => array(), "privateFields" => array(), "isOpenData"=>true);
 		}
 	
 		//Insert the organization
@@ -1181,7 +1182,7 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 		}
 		
 		if(empty($newOrganization["preferences"])){
-			$newOrganization["preferences"] = array("publicFields" => array("isOpenData"), "privateFields" => array());
+			$newOrganization["preferences"] = array("publicFields" => array(), "privateFields" => array(), "isOpenData"=>true);
 		}
 
 		if(!empty($newOrganization["image"])){

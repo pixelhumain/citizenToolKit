@@ -73,8 +73,13 @@ class Preference {
 
 		if($setType == "isOpenData"){
 			$preferences["isOpenData"] = $setValue;
-		}else if($setType == "isOpenEdition"){
+		}else{
+			$preferences["isOpenData"] = $context["preferences"]["isOpenData"];
+		}
+		if($setType == "isOpenEdition"){
 			$preferences["isOpenEdition"] = $setValue;
+		}else{
+			$preferences["isOpenEdition"] = $context["preferences"]["isOpenEdition"];
 		}
 
 		if(self::isOpenData($preferences))
@@ -95,6 +100,13 @@ class Preference {
 	public static function isOpenData($preferences) {
 		$isOpenData = false ;
 		if(!empty($preferences["isOpenData"]))
+			$isOpenData = true ;
+		return $isOpenData;
+	}
+
+	public static function isOpenEdition($preferences) {
+		$isOpenData = false ;
+		if(!empty($preferences["isOpenEdition"]))
 			$isOpenData = true ;
 		return $isOpenData;
 	}
