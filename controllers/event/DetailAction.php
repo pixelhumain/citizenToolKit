@@ -17,7 +17,7 @@ class DetailAction extends CAction {
         $organizer = array();
         $people = array();
         $attending =array();
-		$openEdition = true;
+		$openEdition = @$event["preferences"]["isOpenEdition"];
 		$invitedNumber=0;
 		$attendeeNumber=0;
         if(!empty($event)){
@@ -26,8 +26,6 @@ class DetailAction extends CAction {
 				if(@$event["links"]["attendees"]){
 	            	foreach ($event["links"]["attendees"] as $uid => $e) {
 						$citoyen = Person::getSimpleUserById($uid);
-						if(@$e["isAdmin"] && $e["isAdmin"]==true)
-							$openEdition = false;
 						if(!empty($citoyen)){
 							$citoyen["type"]=Person::COLLECTION;
 							if(@$e["isAdmin"]){

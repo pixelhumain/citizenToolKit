@@ -262,7 +262,7 @@ class Event {
 			$newEvent = self::getAndCheckEventFromImportData($params, true, null, $warnings);
 
 		if(empty($newEvent["preferences"])){
-			$newEvent["preferences"] = array("publicFields" => array("isOpenData"), "privateFields" => array());
+			$newEvent["preferences"] = array("publicFields" => array("isOpenData"), "privateFields" => array(), "isOpenEdition"=>true);
 		}
 	    PHDB::insert(self::COLLECTION,$newEvent);
 	    
