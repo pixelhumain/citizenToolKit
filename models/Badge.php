@@ -88,6 +88,12 @@ class Badge {
 		return $newListBadges;
 	}
 
+
+	public static function insert($nameBadge, $idItem, $typeItem) {
+		$badges = self::getBagdes($idItem, $typeItem);
+		
+	}
+
 }
 
 ?>
