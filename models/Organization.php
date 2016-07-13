@@ -464,7 +464,7 @@ class Organization {
 	  	}
 	  	return $res;
 	}
-	/**
+	/** TODO BOUBOULE - CDA : PLUS UTILISER A SUPPRIMER 
 	 * update an organization in database
 	 * @param String $organizationId : 
 	 * @param array $organization organization fields to update
@@ -474,16 +474,22 @@ class Organization {
 	public static function update($organizationId, $newOrganization, $userId) 
 	{
 		//Check if user is authorized to update
-		if (! Authorisation::isOrganizationAdmin($userId, $organizationId)) {
-			return Rest::json(array("result"=>false, "msg"=>Yii::t("organization", "Unauthorized Access.")));
+		$organization = self::getById($organizationId);
+		if(@$organization["preferences"]["isOpenEdition"] && $organization["preferences"]["isOpenEdition"]){
+			$authorization="openEdition";
+		}
+		else{
+			if (! Authorisation::isOrganizationAdmin($userId, $organizationId)) 
+				return Rest::json(array("result"=>false, "msg"=>Yii::t("organization", "Unauthorized Access.")));
+			else 
+				$authorization=true;
 		}
 		$countUpdated = 0;
-		$organization = self::getById($organizationId);
 		foreach ($newOrganization as $fieldName => $fieldValue) 
 		{
 			//TKA : optim, ne marche pas quand les fieldnames sont en profondeur ex : postalCode
 			//if( @$organization[$fieldName] && $organization[$fieldName] != $fieldValue){
-				self::updateField($organizationId, $fieldName, $fieldValue);
+				self::updateField($organizationId, $fieldName, $fieldValue,$authorization);
 				$countUpdated++;
 			//}
 		}
@@ -665,15 +671,14 @@ class Organization {
 	 public static function updateOrganizationField($organizationId, $organizationFieldName, $organizationFieldValue, $userId){
 	 	
 	 	if (!Authorisation::canEditItem($userId, self::COLLECTION, $organizationId)) {
-			//throw new CTKException(Yii::t("organization", "Can not update this organization : you are not authorized to update that organization !"));	
+			return Rest::json(array("result"=>false, "msg"=>Yii::t("organization", "Unauthorized Access.")));
 		}
-		
 		$res = self::updateField($organizationId, $organizationFieldName, $organizationFieldValue);
 	                  
 	    return $res;
 	}
 
-	private static function updateField($organizationId, $organizationFieldName, $organizationFieldValue) {
+	private static function updateField($organizationId, $organizationFieldName, $organizationFieldValue, $authorization=false) {
 		$dataFieldName = Organization::getCollectionFieldNameAndValidate($organizationFieldName, $organizationFieldValue, $organizationId);
 		$set = array($dataFieldName => $organizationFieldValue);
 
@@ -709,10 +714,15 @@ class Organization {
 				throw new CTKException("Error updating the Organization : address is not well formated !");			
 			}
 		}
-
 		//update the organization
 		PHDB::update( Organization::COLLECTION, array("_id" => new MongoId($organizationId)), 
 		                          array('$set' => $set));
+		if($authorization == "openEdition"){
+			// Add in activity to show each modification added to this entity
+			//echo $dataFieldName;
+			ActivityStream::saveActivityHistory(ActStr::VERB_UPDATE, $organizationId, Organization::COLLECTION, $dataFieldName, $organizationFieldValue);
+		}	
+
 		return true;
 	}
 

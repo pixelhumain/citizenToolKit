@@ -102,6 +102,8 @@ class DetailAction extends CAction
 		$params["needs"] = $needs;
 		$params["countStrongLinks"]= @$countStrongLinks;
 		$params["countLowLinks"] = count(@$organization["links"]["followers"]);
+		//Preferences
+		$params["openEdition"] = @$organization["preferences"]["isOpenEdition"];
 		//list
 		$params["tags"] = Tags::getActiveTags();
 		$listsToRetrieve = array("public", "typeIntervention", "organisationTypes", "NGOCategories", "localBusinessCategories");

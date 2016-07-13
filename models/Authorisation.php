@@ -98,8 +98,13 @@ class Authorisation {
      */
     public static function isOrganizationAdmin($userId, $organizationId) {
         $res = false;
-        $myOrganizations = Authorisation::listUserOrganizationAdmin($userId);
-        $res = array_key_exists((string)$organizationId, $myOrganizations);
+        $organization=Organization::getById($organizationId);
+		if(@$organization["preferences"]["isOpenEdition"] && $organization["preferences"]["isOpenEdition"]){
+			$res="openEdition";
+		} else {
+	    	$myOrganizations = Authorisation::listUserOrganizationAdmin($userId);
+			$res = array_key_exists((string)$organizationId, $myOrganizations);
+		}
         return $res;
     }
 
@@ -214,7 +219,7 @@ class Authorisation {
     public static function isEventAdmin($eventId, $userId) {
     	$res = false;
     	$event=Event::getById($eventId);
-        if(@$event["links"] && @$event["links"]["attendees"]){
+        if(@$event["links"] && @$event["links"]["attendees"] && (@$event["preferences"]["isOpenEdtion"] && $event["preferences"]["isOpenEdtion"] !=true)){
 	        if(@$event["links"]["attendees"][$userId] && @$event["links"]["attendees"][$userId]["isAdmin"])
        			$res=true;
        		else{

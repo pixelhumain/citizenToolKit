@@ -291,8 +291,9 @@ class Event {
 			Link::connect( $newEvent["parentId"], Event::COLLECTION,$newEvent["_id"], Event::COLLECTION, Yii::app()->session["userId"], "subEvents");	
 
 		Notification::createdObjectAsParam( Person::COLLECTION, Yii::app()->session['userId'],Event::COLLECTION, (String)$newEvent["_id"], $params["organizerType"], $params["organizerId"], $newEvent["geo"], array($newEvent["type"]),$newEvent["address"]);
-
 	    $creator = Person::getById(Yii::app()->session['userId']);
+	    // Add in activity, person who's created the event
+	    ActivityStream::saveActivityHistory(ActStr::VERB_CREATE, (String)$newEvent["_id"], Event::COLLECTION, "event", $newEvent["name"]);
 	    Mail::newEvent($creator,$newEvent);
 	    
 	    //TODO : add an admin notification
