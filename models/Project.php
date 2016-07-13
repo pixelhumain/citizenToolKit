@@ -230,6 +230,10 @@ class Project {
 	    if (isset($newProject["tags"]))
 			$newProject["tags"] = Tags::filterAndSaveNewTags($newProject["tags"]);
 
+		if(empty($newProject["preferences"])){
+			$newProject["preferences"] = array("publicFields" => array("isOpenData"), "privateFields" => array());
+		}
+
 	    PHDB::insert(self::COLLECTION,$newProject);
 		Link::addContributor(Yii::app() -> session["userId"],Person::COLLECTION,$parentId,$parentType,$newProject["_id"]);
 	   // Link::connect($parentId, $parentType, $newProject["_id"], self::COLLECTION, $parentId, "projects", true );
@@ -721,6 +725,10 @@ class Project {
 	    if(isset($newProject["tags"]))
 			$newProject["tags"] = Tags::filterAndSaveNewTags($newProject["tags"]);
 
+		if(empty($newProject["preferences"])){
+			$newProject["preferences"] = array("publicFields" => array("isOpenData"), "privateFields" => array());
+		}
+		
 	    PHDB::insert(self::COLLECTION,$newProject);
 	    
 	    return array("result"=>true, "msg"=>"Votre projet est communecté.", "id" => $newProject["_id"]);	

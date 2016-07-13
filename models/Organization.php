@@ -83,6 +83,10 @@ class Organization {
 		} else {
 			$newOrganization["creator"] = $creatorId;	
 		}
+
+		if(empty($newOrganization["preferences"])){
+			$newOrganization["preferences"] = array("publicFields" => array("isOpenData"), "privateFields" => array());
+		}
 	
 		//Insert the organization
 	    PHDB::insert( Organization::COLLECTION, $newOrganization);
@@ -1176,6 +1180,10 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 			$newOrganization["creator"] = $creatorId;	
 		}
 		
+		if(empty($newOrganization["preferences"])){
+			$newOrganization["preferences"] = array("publicFields" => array("isOpenData"), "privateFields" => array());
+		}
+
 		if(!empty($newOrganization["image"])){
 			$nameImage = $newOrganization["image"];
 			unset($newOrganization["image"]);
