@@ -86,7 +86,7 @@ class Organization {
 		}
 
 		if(empty($newOrganization["preferences"])){
-			$newOrganization["preferences"] = array("publicFields" => array(), "privateFields" => array(), "isOpenData"=>true);
+			$newOrganization["preferences"] = array("publicFields" => array(), "privateFields" => array(), "isOpenData"=>true,"isOpenEdition"=>true);
 		}
 	
 		//Insert the organization
@@ -143,7 +143,7 @@ class Organization {
 	    	$orgaCodeInsee="";
 	    
 		Notification::createdObjectAsParam(Person::COLLECTION,$creatorId,Organization::COLLECTION, $newOrganizationId, Person::COLLECTION,$creatorId, $orgaGeo,$orgaTags,$orgaCodeInsee);
-
+		ActivityStream::saveActivityHistory(ActStr::VERB_CREATE, $newOrganizationId, Organization::COLLECTION, "organization", $newOrganization["name"]);
 	    $newOrganization = Organization::getById($newOrganizationId);
 	    return array("result"=>true,
 		    			"msg"=>"Votre organisation est communectée.", 
@@ -670,11 +670,11 @@ class Organization {
 	 * @return boolean True if the update has been done correctly. Can throw CTKException on error.
 	 */
 	 public static function updateOrganizationField($organizationId, $organizationFieldName, $organizationFieldValue, $userId){
-	 	
-	 	if (!Authorisation::canEditItem($userId, self::COLLECTION, $organizationId)) {
+	 	$authorization=Authorisation::canEditItem($userId, self::COLLECTION, $organizationId);
+	 	if (!$authorization) {
 			return Rest::json(array("result"=>false, "msg"=>Yii::t("organization", "Unauthorized Access.")));
 		}
-		$res = self::updateField($organizationId, $organizationFieldName, $organizationFieldValue);
+		$res = self::updateField($organizationId, $organizationFieldName, $organizationFieldValue, $authorization);
 	                  
 	    return $res;
 	}
@@ -1192,7 +1192,7 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 		}
 		
 		if(empty($newOrganization["preferences"])){
-			$newOrganization["preferences"] = array("publicFields" => array(), "privateFields" => array(), "isOpenData"=>true);
+			$newOrganization["preferences"] = array("publicFields" => array(), "privateFields" => array(), "isOpenData"=>true, "isOpenEdition"=>true);
 		}
 
 		if(!empty($newOrganization["image"])){
