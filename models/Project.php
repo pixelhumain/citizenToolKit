@@ -27,6 +27,7 @@ class Project {
 	    "state" => array("name" => "state"),
 	    "warnings" => array("name" => "warnings"),
 	    "modules" => array("name" => "modules"),
+	    "badges" => array("name" => "badges"),
 	    "source" => array("name" => "source")
 	);
 
@@ -231,7 +232,7 @@ class Project {
 			$newProject["tags"] = Tags::filterAndSaveNewTags($newProject["tags"]);
 
 		if(empty($newProject["preferences"])){
-			$newProject["preferences"] = array("publicFields" => array("isOpenData"), "privateFields" => array());
+			$newProject["preferences"] = array("publicFields" => array(), "privateFields" => array(), "isOpenData" => true);
 		}
 
 	    PHDB::insert(self::COLLECTION,$newProject);
@@ -726,7 +727,7 @@ class Project {
 			$newProject["tags"] = Tags::filterAndSaveNewTags($newProject["tags"]);
 
 		if(empty($newProject["preferences"])){
-			$newProject["preferences"] = array("publicFields" => array("isOpenData"), "privateFields" => array());
+			$newProject["preferences"] = $newProject["preferences"] = array("publicFields" => array(), "privateFields" => array(), "isOpenData" => true);
 		}
 		
 	    PHDB::insert(self::COLLECTION,$newProject);

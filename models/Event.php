@@ -27,7 +27,8 @@ class Event {
 	    "startDate" => array("name" => "startDate", "rules" => array("eventStartDate")),
 	    "endDate" => array("name" => "endDate", "rules" => array("eventEndDate")),
 	    "parentId" => array("name" => "parentId"),
-	    "source" => array("name" => "source")
+	    "source" => array("name" => "source"),
+	    "badges" => array("name" => "badges"),
 	);
 
 	//TODO SBAR - First test to validate data. Move it to DataValidator
@@ -262,7 +263,7 @@ class Event {
 			$newEvent = self::getAndCheckEventFromImportData($params, true, null, $warnings);
 
 		if(empty($newEvent["preferences"])){
-			$newEvent["preferences"] = array("publicFields" => array("isOpenData"), "privateFields" => array(), "isOpenEdition"=>true);
+			$newEvent["preferences"] = array("publicFields" => array(), "privateFields" => array(), "isOpenEdition"=>true, "isOpenData"=>true);
 		}
 	    PHDB::insert(self::COLLECTION,$newEvent);
 	    
