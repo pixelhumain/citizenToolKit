@@ -53,45 +53,16 @@ class IndexAction extends CAction
         $urlParams = ( isset($type) && isset($id)) ? "/type/".$type."/id/".$id : "";
         //array_push( $controller->toolbarMBZ, '<a href="#" onclick="openSubView(\'Add a Room\', \'/communecter/rooms/editroom'.$urlParams.'\',null,function(){editRoomSV ();})" title="proposer une " ><i class="fa fa-plus"></i> Room </a>');
 
-        $where = array("created"=>array('$exists'=>1) ) ;
-        if(isset($type))
-        	$where["parentType"] = $type;
-        if(isset($id))
-        	$where["parentId"] = $id;
-
-        if( $type == Person::COLLECTION )
-            $roomsActions = Person::getActionRoomsByPersonId($id);
-        else if( isset( Yii::app()->session['userId'] ))
-            $roomsActions = Person::getActionRoomsByPersonIdByType( Yii::app()->session['userId'] ,$type ,$id );
-        else 
-            $rooms = ActionRoom::getWhereSortLimit( $where, array("date"=>1), 15);
-
-        $actionHistory = array();
-        if( isset($roomsActions) && isset($roomsActions["rooms"]) && isset($roomsActions["actions"])  ){
-            $rooms   = $roomsActions["rooms"];
-            $actionHistory = $roomsActions["actions"];
-        }
-        
-        //error_log("count rooms : ".count($rooms));
-
-        $discussions = array();
-        $votes = array();
-        $actions = array();
-        foreach ($rooms as $e) 
-        { 
-            if( in_array($e["type"], array(ActionRoom::TYPE_DISCUSS, ActionRoom::TYPE_FRAMAPAD) )  ){
-                array_push($discussions, $e);
-            }
-            else if ( $e["type"] == ActionRoom::TYPE_VOTE ){
-                array_push($votes, $e);
-            } else if ( $e["type"] == ActionRoom::TYPE_ACTIONS ){
-                array_push($actions, $e);
-            }
-        }
+        $rooms = ActionRoom::getAllRoomsByTypeId($type, $id);
+        $discussions = $rooms["discussions"];
+        $votes = $rooms["votes"];
+        $actions = $rooms["actions"];
+        $history = $rooms["history"];
 
         $params = array(    "discussions" => $discussions, 
                             "votes" => $votes, 
                             "actions" => $actions, 
+                            "history" => $history, 
                             "nameParentTitle" => $nameParentTitle, 
                             "parent" => $parent, 
                             "parentId" => $id, 

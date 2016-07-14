@@ -86,6 +86,8 @@ class EntryAction extends CAction
           }
 
           $params["parentType"] = $parentRoom["parentType"];
+          if(@$parent["profilImageUrl"]) 
+              $params["parent"]["profilImageUrl"] = $parent["profilImageUrl"];
       }
 
       //Images
