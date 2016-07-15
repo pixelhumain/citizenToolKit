@@ -892,10 +892,12 @@ class Person {
         	$where["parentType"] = $type;
         if(isset($id))
         	$where["parentId"] = $id;
+        
         if(isset($archived))
 			$where['status'] = ActionRoom::STATE_ARCHIVED;
 		else
 			$where['status'] = array('$exists' => 0 );
+
         $actionRooms = ActionRoom::getWhereSortLimit( $where, array("date"=>1), 15);
 
 	  	$actions = array();

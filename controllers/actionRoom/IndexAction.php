@@ -58,8 +58,6 @@ class IndexAction extends CAction
 
         if( $type == Person::COLLECTION )
             $roomsActions = Person::getActionRoomsByPersonId($id,$archived);
-        else if( isset( Yii::app()->session['userId'] ) && $type != City::COLLECTION )
-            $roomsActions = Person::getActionRoomsByPersonIdByType( Yii::app()->session['userId'], $type, $id, $archived );
         else 
             $rooms = ActionRoom::getWhereSortLimit( $where, array("date"=>1), 15);
 
@@ -99,7 +97,9 @@ class IndexAction extends CAction
 		if(Yii::app()->request->isAjaxRequest){
             if($view == "pod"){
                 echo $controller->renderPartial("../pod/roomsList" , $params, true);
-            }else{
+            }else if($view == "data"){
+                Rest::json( $params );
+            }else {
                 echo $controller->renderPartial("index" , $params,true);
             }
         }
