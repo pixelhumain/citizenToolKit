@@ -361,7 +361,7 @@ class Project {
 		$set = array_merge($set , array("modified" => new MongoDate(time())));
 		PHDB::update( self::COLLECTION, array("_id" => new MongoId($projectId)), 
 		                        array('$set' => $set));
-	    if($authorization == "openEdition"){
+	    if($authorization == "openEdition" && $dataFieldName != "badges"){
 			// Add in activity to show each modification added to this entity
 			//echo $dataFieldName;
 			ActivityStream::saveActivityHistory(ActStr::VERB_UPDATE, $projectId, Project::COLLECTION, $dataFieldName, $projectFieldValue);

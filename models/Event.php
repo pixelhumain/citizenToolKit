@@ -487,7 +487,7 @@ class Event {
 			$set = array($dataFieldName => $eventFieldValue);
 		}
 		$res = Event::updateEvent($eventId, $set, $userId);
-		if($authorization == "openEdition"){
+		if($authorization == "openEdition" && $dataFieldName != "badges"){
 			// Add in activity to show each modification added to this entity
 					//echo $dataFieldName;
 			ActivityStream::saveActivityHistory(ActStr::VERB_UPDATE, $eventId, Event::COLLECTION, $dataFieldName, $eventFieldValue);

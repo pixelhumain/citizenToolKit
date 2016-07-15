@@ -718,7 +718,7 @@ class Organization {
 		//update the organization
 		PHDB::update( Organization::COLLECTION, array("_id" => new MongoId($organizationId)), 
 		                          array('$set' => $set));
-		if($authorization == "openEdition"){
+		if($authorization == "openEdition" && $dataFieldName != "badges"){
 			// Add in activity to show each modification added to this entity
 			//echo $dataFieldName;
 			ActivityStream::saveActivityHistory(ActStr::VERB_UPDATE, $organizationId, Organization::COLLECTION, $dataFieldName, $organizationFieldValue);
