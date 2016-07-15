@@ -508,12 +508,14 @@ class Authorisation {
         $res=false;
     	if($type == Event::COLLECTION) {
     		$res = Authorisation::canEditEvent($userId,$itemId);
+            if(Role::isSuperAdmin(Role::getRolesUserId($userId)) && $res==false)
+                $res = true ;
             //if(self::isSourceAdmin($itemId, $type, $userId) && $res==false)
               //  $res = true ;
     	} else if($type == Project::COLLECTION) {
     		$res = Authorisation::isProjectAdmin($itemId, $userId);
-            /*if(Role::isSuperAdmin(Role::getRolesUserId($userId)) && $res==false)
-                $res = true ;*/
+            if(Role::isSuperAdmin(Role::getRolesUserId($userId)) && $res==false)
+                $res = true ;
             if(self::isSourceAdmin($itemId, $type, $userId) && $res==false)
                 $res = true ;
     	} else if($type == Organization::COLLECTION) {

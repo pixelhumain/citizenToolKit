@@ -365,7 +365,7 @@ class Project {
 			// Add in activity to show each modification added to this entity
 			//echo $dataFieldName;
 			ActivityStream::saveActivityHistory(ActStr::VERB_UPDATE, $projectId, Project::COLLECTION, $dataFieldName, $projectFieldValue);
-		}	
+		}
 	    return array("result"=>true, "msg"=>Yii::t("project","Your project is updated"), "id"=>$projectId);
 	}
 
