@@ -232,7 +232,7 @@ class Project {
 			$newProject["tags"] = Tags::filterAndSaveNewTags($newProject["tags"]);
 
 		if(empty($newProject["preferences"])){
-			$newProject["preferences"] = array("publicFields" => array(), "privateFields" => array(), "isOpenData" => true);
+			$newProject["preferences"] = array("publicFields" => array(), "privateFields" => array(), "isOpenData" => true, "isOpenEdition" => true);
 		}
 
 	    PHDB::insert(self::COLLECTION,$newProject);
@@ -240,6 +240,7 @@ class Project {
 	   // Link::connect($parentId, $parentType, $newProject["_id"], self::COLLECTION, $parentId, "projects", true );
 
 	    Notification::createdObjectAsParam(Person::COLLECTION,Yii::app() -> session["userId"],Project::COLLECTION, (String)$newProject["_id"], $parentType, $parentId, $newProject["geo"], (isset($newProject["tags"])) ? $newProject["tags"]:null ,$newProject["address"]);
+	    ActivityStream::saveActivityHistory(ActStr::VERB_CREATE, (String)$newProject["_id"], Project::COLLECTION, "project", $newProject["name"]);
 	    return array("result"=>true, "msg"=>"Votre projet est communecté.", "id" => $newProject["_id"]);	
 	}
 
@@ -312,7 +313,8 @@ class Project {
 	 * @return boolean True if the update has been done correctly. Can throw CTKException on error.
 	 */
 	public static function updateProjectField($projectId, $projectFieldName, $projectFieldValue, $userId) {  
-		if (!Authorisation::canEditItem($userId, self::COLLECTION, $projectId)) {
+		$authorization = Authorisation::canEditItem($userId, self::COLLECTION, $projectId);
+		if (!$authorization) {
 			throw new CTKException(Yii::t("project", "Can not update this project : you are not authorized to update that project !"));	
 		}
 		$dataFieldName = self::getCollectionFieldNameAndValidate($projectFieldName, $projectFieldValue, $projectId);
@@ -359,7 +361,11 @@ class Project {
 		$set = array_merge($set , array("modified" => new MongoDate(time())));
 		PHDB::update( self::COLLECTION, array("_id" => new MongoId($projectId)), 
 		                        array('$set' => $set));
-	                  
+	    if($authorization == "openEdition"){
+			// Add in activity to show each modification added to this entity
+			//echo $dataFieldName;
+			ActivityStream::saveActivityHistory(ActStr::VERB_UPDATE, $projectId, Project::COLLECTION, $dataFieldName, $projectFieldValue);
+		}	
 	    return array("result"=>true, "msg"=>Yii::t("project","Your project is updated"), "id"=>$projectId);
 	}
 

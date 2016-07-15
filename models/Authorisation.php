@@ -335,9 +335,13 @@ class Authorisation {
 
     public static function isProjectAdmin($projectId, $userId) {
     	$res = false;
-        $listProject = Authorisation::listProjectsIamAdminOf($userId);
-        if(isset($listProject[(string)$projectId])){
-       		$res=true;
+    	$project=Project::getById($projectId);
+    	if(@$project["preferences"]["isOpenEdition"] && $project["preferences"]["isOpenEdition"]){
+	    	$res = "openEdition";
+    	} else {
+	        $listProject = Authorisation::listProjectsIamAdminOf($userId);
+			if(isset($listProject[(string)$projectId]))
+       			$res=true;
        	} 
        	return $res;
     }
