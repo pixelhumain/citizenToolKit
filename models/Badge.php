@@ -58,8 +58,8 @@ class Badge {
 			$res = Organization::updateOrganizationField($idItem, "badges", $badges, Yii::app()->session["userId"]);
 		else if($typeItem == Event::COLLECTION)
 			$res = Event::updateEventField($idItem, "badges", $badges, Yii::app()->session["userId"]);
-		else if($typeItem == Projet::COLLECTION)
-			$res = Projet::updateProjectField($idItem, "badges", $badges, Yii::app()->session["userId"]);
+		else if($typeItem == Project::COLLECTION)
+			$res = Project::updateProjectField($idItem, "badges", $badges, Yii::app()->session["userId"]);
 
 		return $res;
 	}
