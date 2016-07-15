@@ -46,50 +46,22 @@ class IndexAction extends CAction
         }
 
         $urlParams = ( @$type && @$id ) ? "/type/".$type."/id/".$id : "";
-        //array_push( $controller->toolbarMBZ, '<a href="#" onclick="openSubView(\'Add a Room\', \'/communecter/rooms/editroom'.$urlParams.'\',null,function(){editRoomSV ();})" title="proposer une " ><i class="fa fa-plus"></i> Room </a>');
-        $rooms = array();
-        $where = array("created"=>array('$exists'=>1),"status" => array('$ne' => ActionRoom::STATE_ARCHIVED ) ) ;
-        if(@$type)
-        	$where["parentType"] = $type;
-        if(@$id)
-        	$where["parentId"] = $id;
 
-        $where["status"] = ($archived) ? ActionRoom::STATE_ARCHIVED : array('$exists' => 0 );
+        $rooms = ActionRoom::getAllRoomsByTypeId($type, $id);
+        $discussions = $rooms["discussions"];
+        $votes = $rooms["votes"];
+        $actions = $rooms["actions"];
+        $history = $rooms["history"];
 
-        if( $type == Person::COLLECTION )
-            $roomsActions = Person::getActionRoomsByPersonId($id,$archived);
-        else 
-            $rooms = ActionRoom::getWhereSortLimit( $where, array("date"=>1), 15);
+        $params = array(    "discussions" => $discussions, 
+                            "votes" => $votes, 
+                            "actions" => $actions, 
+                            "history" => $history, 
+                            "nameParentTitle" => $nameParentTitle, 
+                            "parent" => $parent, 
+                            "parentId" => $id, 
+                            "parentType" => $type );
 
-        $actionHistory = array();
-        if( @$roomsActions && @$roomsActions["rooms"] && @$roomsActions["actions"] ){
-            $rooms   = $roomsActions["rooms"];
-            $actionHistory = $roomsActions["actions"];
-        }
-        
-        $discussions = array();
-        $votes = array();
-        $actions = array();
-        foreach ($rooms as $e) 
-        { 
-            if( in_array($e["type"], array(ActionRoom::TYPE_DISCUSS, ActionRoom::TYPE_FRAMAPAD) )  ){
-                array_push($discussions, $e);
-            }
-            else if ( $e["type"] == ActionRoom::TYPE_VOTE ){
-                array_push($votes, $e);
-            } else if ( $e["type"] == ActionRoom::TYPE_ACTIONS ){
-                array_push($actions, $e);
-            }
-        }
-
-        $params = array(    
-                    "discussions" => $discussions, 
-                    "votes" => $votes, 
-                    "actions" => $actions, 
-                    "nameParentTitle" => $nameParentTitle, 
-                    "parent" => $parent, 
-                    "parentId" => $id, 
-                    "parentType" => $type );
 
         if( isset($actionHistory) )
             $params["history"] = $actionHistory;
@@ -100,7 +72,7 @@ class IndexAction extends CAction
             }else if($view == "data"){
                 Rest::json( $params );
             }else {
-                echo $controller->renderPartial("index" , $params,true);
+                echo $controller->renderPartial("../dda/index" , $params,true);
             }
         }
         else{

@@ -85,6 +85,8 @@ class ActionAction extends CAction
 
 
           $params["parentType"] = $action["parentType"];
+          if(@$parent["profilImageUrl"]) 
+              $params["parent"]["profilImageUrl"] = $parent["profilImageUrl"];
       }
 
         $params["contributors"] = array();
