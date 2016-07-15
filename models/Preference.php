@@ -79,7 +79,8 @@ class Preference {
 		if($setType == "isOpenEdition"){
 			$preferences["isOpenEdition"] = $setValue;
 		}else{
-			$preferences["isOpenEdition"] = $context["preferences"]["isOpenEdition"];
+			if($type != Person::COLLECTION)
+				$preferences["isOpenEdition"] = (empty($context["preferences"]["isOpenEdition"])?false:$context["preferences"]["isOpenEdition"]);
 		}
 
 		if(self::isOpenData($preferences))
