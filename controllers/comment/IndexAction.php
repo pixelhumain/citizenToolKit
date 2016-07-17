@@ -82,6 +82,7 @@ class IndexAction extends CAction
             $canComment = $params["canComment"] && $canParticipate;
             $params['canComment'] = $canComment;
             $params["parentType"] = $actionRoom["parentType"];
+            $params["parentId"] = $actionRoom["parentId"];
         } else if($type == Need::COLLECTION) {
             $params["context"] = Need::getById($id);
         } else {
