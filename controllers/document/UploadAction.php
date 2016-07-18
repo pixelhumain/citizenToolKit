@@ -31,7 +31,7 @@ class UploadAction extends CAction {
             }
         }
         
-        echo json_encode(array('result'=>false,'msg'=>Yii::t("document","Something went wrong with your upload!")));
+        Rest::json(array('result'=>false,'msg'=>Yii::t("document","Something went wrong with your upload!")));
     	exit;
 	}
 
