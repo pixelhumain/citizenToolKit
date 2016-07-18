@@ -17,6 +17,7 @@ class Document {
 	const DOC_TYPE_CSV		= "text/csv";
 
 	const GENERATED_IMAGES_FOLDER 		= "thumb";
+	const GENERATED_MEDIUM_FOLDER 		= "medium";
 	const GENERATED_ALBUM_FOLDER		= "album";
 	const FILENAME_PROFIL_RESIZED 	  	= "profil-resized.png";
 	const FILENAME_PROFIL_MARKER 	  	= "profil-marker.png";
@@ -459,18 +460,28 @@ class Document {
 
 		//The images will be stored in the /uploadDir/moduleId/ownerType/ownerId/thumb (ex : /upload/communecter/citoyen/1242354235435/thumb)
 		$upload_dir = Yii::app()->params['uploadDir'].$dir.'/'.$folder.'/'.self::GENERATED_IMAGES_FOLDER;
+		$upload_dir_medium = Yii::app()->params['uploadDir'].$dir.'/'.$folder.'/'.self::GENERATED_MEDIUM_FOLDER;
         if(file_exists ( $upload_dir )) {
             CFileHelper::removeDirectory($upload_dir."bck");
             rename($upload_dir, $upload_dir."bck");
         }
         mkdir($upload_dir, 0775);
-        
+        // Medium Image
+        if(!file_exists ( $upload_dir_medium )) {       
+			mkdir($upload_dir_medium, 0777);
+		}
+   		//GET THUMB IMAGE
         $profilUrl = self::getDocumentUrl($document);
         $profilPath = self::getDocumentPath($document);
      	$imageUtils = new ImagesUtils($profilPath);
     	$destPathThumb = $upload_dir."/".self::FILENAME_PROFIL_RESIZED;
     	$profilThumbUrl = self::getDocumentFolderUrl($document)."/thumb/".self::FILENAME_PROFIL_RESIZED;
     	$imageUtils->resizeImage(50,50)->save($destPathThumb);
+    	//GET MEDIUM IMAGE
+    	$imageMediumUtils = new ImagesUtils($profilPath);
+		$destPathMedium = $upload_dir_medium."/".$document["name"];
+    	$profilMediumUrl = self::getDocumentFolderUrl($document)."/".self::GENERATED_MEDIUM_FOLDER."/".$document["name"];
+    	$imageMediumUtils->resizePropertionalyImage(400,400)->save($destPathMedium,100);
 		
 		$destPathMarker = $upload_dir."/".self::FILENAME_PROFIL_MARKER;
 		$profilMarkerImageUrl = self::getDocumentFolderUrl($document)."/thumb/".self::FILENAME_PROFIL_MARKER;
@@ -482,7 +493,7 @@ class Document {
         
         //Update the entity collection to store the path of the profil images
         if (in_array($document["type"], array(Person::COLLECTION, Organization::COLLECTION, Project::COLLECTION, Event::COLLECTION))) {
-	        PHDB::update($document["type"], array("_id" => new MongoId($document["id"])), array('$set' => array("profilImageUrl" => $profilUrl, "profilThumbImageUrl" => $profilThumbUrl, "profilMarkerImageUrl" =>  $profilMarkerImageUrl)));
+	        PHDB::update($document["type"], array("_id" => new MongoId($document["id"])), array('$set' => array("profilImageUrl" => $profilUrl, "profilMediumUrl" => $profilMediumUrl,"profilThumbImageUrl" => $profilThumbUrl, "profilMarkerImageUrl" =>  $profilMarkerImageUrl)));
 	        error_log("The entity ".$document["type"]." and id ". $document["id"] ." has been updated with the URL of the profil images.");
 		}
 
