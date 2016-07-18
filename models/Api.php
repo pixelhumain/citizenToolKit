@@ -5,7 +5,6 @@ class Api {
 	
 	public static function getData($bindMap, $format = null, $type, $id = null, $limit=50, $index=0, $tags = null, $multiTags=null , $key = null, $insee = null){
     	$data = null;
-		$link = false ;
         $typeResult = "entities";
 
         if($type == Person::COLLECTION && @$id && $id == Yii::app()->session["userId"]){
@@ -13,7 +12,6 @@ class Api {
           $params["_id"] = new MongoId($id);
           $index = 0 ;
           $limit = 1 ;
-          $link = true ;
           $typeResult = "identity";
 
         }else{
@@ -36,8 +34,6 @@ class Api {
 			if( @$key )
             	$params["source.key"] = $key ;
             
-            	
-
             if($limit > 500)
             	$limit = 500 ;
             else if($limit < 1)
@@ -51,17 +47,18 @@ class Api {
         
         $data = self::getUrlImage($data, $type);
        
-        
-        foreach ($data as $key => $value) {
-            $isOpenData = ((empty($value["preferences"]))?false:Preference::isOpenData($value["preferences"]));  
-            if($isOpenData == false){
-                $newData["name"] = ((empty($value["name"]))?"":$value["name"]);
-                $data[$key] = $newData ;
+        if($typeResult != "identity"){
+            foreach ($data as $key => $value) {
+                $isOpenData = ((empty($value["preferences"]))?false:Preference::isOpenData($value["preferences"]));  
+                if($isOpenData == false){
+                    $newData["name"] = ((empty($value["name"]))?"":$value["name"]);
+                    $data[$key] = $newData ;
+                }
             }
         }
 
 
-        if(Person::COLLECTION == $type){
+        if(Person::COLLECTION == $type && $typeResult != "identity"){
             foreach ($data as $key => $value) {
                 $person = Person::clearAttributesByConfidentiality($value);
                 $data[$key] = $person ;
