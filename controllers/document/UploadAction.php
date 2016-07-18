@@ -22,7 +22,7 @@ class UploadAction extends CAction {
         if ($res["result"]) {
             $res = Document::uploadDocument($file, $res["uploadDir"],$input,$rename);
             if ($res["result"]) {
-                echo json_encode(array('result'=>true,
+                Rest::json(array('result'=>true,
                                         "success"=>true,
                                         'name'=>$res["name"],
                                         'dir'=> $res["uploadDir"],
