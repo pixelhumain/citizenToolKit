@@ -86,7 +86,7 @@ class Project {
 	public static function getSimpleProjectById($id) {
 		
 		$simpleProject = array();
-		$project = PHDB::findOneById( self::COLLECTION ,$id, array("id" => 1, "name" => 1, "shortDescription" => 1, "description" => 1, "address" => 1, "geo" => 1, "tags" => 1, "profilImageUrl" => 1, "profilThumbImageUrl" => 1, "profilMarkerImageUrl" => 1) );
+		$project = PHDB::findOneById( self::COLLECTION ,$id, array("id" => 1, "name" => 1, "shortDescription" => 1, "description" => 1, "address" => 1, "geo" => 1, "tags" => 1, "profilImageUrl" => 1, "profilThumbImageUrl" => 1, "profilMarkerImageUrl" => 1, "profilMediumImageUrl" => 1) );
 		if(!empty($project)){
 			$simpleProject["id"] = $id;
 			$simpleProject["name"] = @$project["name"];

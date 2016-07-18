@@ -493,7 +493,7 @@ class Document {
         
         //Update the entity collection to store the path of the profil images
         if (in_array($document["type"], array(Person::COLLECTION, Organization::COLLECTION, Project::COLLECTION, Event::COLLECTION))) {
-	        PHDB::update($document["type"], array("_id" => new MongoId($document["id"])), array('$set' => array("profilImageUrl" => $profilUrl, "profilMediumUrl" => $profilMediumUrl,"profilThumbImageUrl" => $profilThumbUrl, "profilMarkerImageUrl" =>  $profilMarkerImageUrl)));
+	        PHDB::update($document["type"], array("_id" => new MongoId($document["id"])), array('$set' => array("profilImageUrl" => $profilUrl, "profilMediumImageUrl" => $profilMediumUrl,"profilThumbImageUrl" => $profilThumbUrl, "profilMarkerImageUrl" =>  $profilMarkerImageUrl)));
 	        error_log("The entity ".$document["type"]." and id ". $document["id"] ." has been updated with the URL of the profil images.");
 		}
 
@@ -566,12 +566,17 @@ class Document {
 
 		//If there is an existing profil image
 		if ($generatedImageExist) {
-			$documentUrl = self::getDocumentFolderUrl($lastProfilImage).'/thumb/';
+			$documentUrl = self::getDocumentFolderUrl($lastProfilImage);
+			$documentThumb=$documentUrl.'/thumb/';
+			$documentMedium=$documentUrl.'/'.self::GENERATED_MEDIUM_PROFIL.'/';
 			if ($generatedImageType == self::GENERATED_THUMB_PROFIL) {
 				$res = $documentUrl.self::FILENAME_PROFIL_RESIZED;
 			} else if ($generatedImageType == self::GENERATED_MARKER) {
 				$res = $documentUrl.self::FILENAME_PROFIL_MARKER;
+			}else if ($generatedImageType == self::GENERATED_MEDIUM_PROFIL) {
+				$res = $documentUrl.$lastProfilImage["name"];
 			}
+
 		//Else the default image is returned
 		} else {
 			if ($generatedImageType == self::GENERATED_MARKER) {
@@ -632,11 +637,13 @@ class Document {
 			$res["profilImageUrl"] = $entity["profilImageUrl"];
 			$res["profilThumbImageUrl"] = !empty($entity["profilThumbImageUrl"]) ? $entity["profilThumbImageUrl"]."?_=".time() : "";
 			$res["profilMarkerImageUrl"] = !empty($entity["profilMarkerImageUrl"]) ? $entity["profilMarkerImageUrl"]."?_=".time() : ""; 
+			$res["profilMediumImageUrl"] = !empty($entity["profilMediumImageUrl"]) ? $entity["profilMediumImageUrl"]."?_=".time() : ""; 
+
 		//If empty than retrieve the URLs from document and store them in the entity for next time
 		} else {
 			$profil = self::getLastImageByKey($id, $type, self::IMG_PROFIL);
 			$profilThumb = self::getGeneratedImageUrl($id, $type, self::GENERATED_THUMB_PROFIL);
-			
+			$profilThumb = self::getGeneratedImageUrl($id, $type, self::GENERATED_MEDIUM_PROFIL);
 			if ($profil != "") {
 				$marker = self::getGeneratedImageUrl($id, $type, self::GENERATED_MARKER);
 			} else {
@@ -647,8 +654,9 @@ class Document {
 			//Add a time to force relaod of generated images
 			$res["profilThumbImageUrl"] = !empty($profilThumb) ? empty($profilThumb)."?_=".time() : "";
 			$res["profilMarkerImageUrl"] = !empty($marker) ? empty($marker)."?_=".time() : "";
+			$res["profilMediumImageUrl"] = !empty($profilMedium) ? empty($profilMedium)."?_=".time() : "";
 
-			PHDB::update($type, array("_id" => new MongoId($id)), array('$set' => array("profilImageUrl" => $profil, "profilThumbImageUrl" => $profilThumb, "profilMarkerImageUrl" =>  $marker)));
+			PHDB::update($type, array("_id" => new MongoId($id)), array('$set' => array("profilImageUrl" => $profil, "profilThumbImageUrl" => $profilThumb, "profilMarkerImageUrl" =>  $marker,"profilMediumImageUrl" =>  $profilMedium)));
 			error_log("Add Profil image url for the ".$type." with the id ".$id);
 		}
 
