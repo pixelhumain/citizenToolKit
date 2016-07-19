@@ -555,11 +555,13 @@ class Document {
 
 		$generatedImageExist = false;
 		if ($lastProfilImage = reset($listDocuments)) {
-			$documentPath = self::getDocumentFolderPath($lastProfilImage).'/thumb/';
+			$documentPath = self::getDocumentFolderPath($lastProfilImage);
 			if ($generatedImageType == self::GENERATED_THUMB_PROFIL) {
-				$documentPath = $documentPath.self::FILENAME_PROFIL_RESIZED;
+				$documentPath = $documentPath.'/'.self::GENERATED_THUMB_PROFIL.'/'.self::FILENAME_PROFIL_RESIZED;
 			} else if ($generatedImageType == self::GENERATED_MARKER) {
-				$documentPath = $documentPath.self::FILENAME_PROFIL_MARKER;
+				$documentPath = $documentPath.'/'.self::GENERATED_THUMB_PROFIL.'/'.self::FILENAME_PROFIL_MARKER;
+			} else if ($generatedImageType == self::GENERATED_MEDIUM_FOLDER){
+				$documentPath = $documentPath.'/'.self::GENERATED_MEDIUM_FOLDER.'/'.$lastProfilImage["name"];
 			}
 			$generatedImageExist = file_exists($documentPath);
 		}
@@ -568,12 +570,12 @@ class Document {
 		if ($generatedImageExist) {
 			$documentUrl = self::getDocumentFolderUrl($lastProfilImage);
 			$documentThumb=$documentUrl.'/thumb/';
-			$documentMedium=$documentUrl.'/'.self::GENERATED_MEDIUM_PROFIL.'/';
+			$documentMedium=$documentUrl.'/'.self::GENERATED_MEDIUM_FOLDER.'/';
 			if ($generatedImageType == self::GENERATED_THUMB_PROFIL) {
 				$res = $documentUrl.self::FILENAME_PROFIL_RESIZED;
 			} else if ($generatedImageType == self::GENERATED_MARKER) {
 				$res = $documentUrl.self::FILENAME_PROFIL_MARKER;
-			}else if ($generatedImageType == self::GENERATED_MEDIUM_PROFIL) {
+			}else if ($generatedImageType == self::GENERATED_MEDIUM_FOLDER) {
 				$res = $documentUrl.$lastProfilImage["name"];
 			}
 
@@ -643,7 +645,7 @@ class Document {
 		} else {
 			$profil = self::getLastImageByKey($id, $type, self::IMG_PROFIL);
 			$profilThumb = self::getGeneratedImageUrl($id, $type, self::GENERATED_THUMB_PROFIL);
-			$profilThumb = self::getGeneratedImageUrl($id, $type, self::GENERATED_MEDIUM_PROFIL);
+			$profilMedium = self::getGeneratedImageUrl($id, $type, self::GENERATED_MEDIUM_FOLDER);
 			if ($profil != "") {
 				$marker = self::getGeneratedImageUrl($id, $type, self::GENERATED_MARKER);
 			} else {
