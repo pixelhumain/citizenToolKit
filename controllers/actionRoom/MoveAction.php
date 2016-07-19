@@ -9,7 +9,7 @@ class MoveAction extends CAction
         $id = $_POST['id'];
         $destId = $_POST['destId'];
         
-        //type is the type of the original element
+        //type is the type of the original elementActionRoom
         if($type == ActionRoom::TYPE_SURVEY )
         {
         	$survey = Survey::getById($id);
@@ -33,12 +33,11 @@ class MoveAction extends CAction
 	            {
 	            	$entryInfos = array();
 		        	$res['destRoom'] = $destRoom;
-		        	$res['_POST'] = $_POST;
 	                $res['result'] = true;
 
 		        	if( in_array($destRoom['type'], array( ActionRoom::TYPE_ACTIONS )))
 		        	{
-		        		if( $type == ActionRoom::TYPE_SURVEY && @$survey )
+		        		if( $type == ActionRoom::TYPE_SURVEY )
 		        		{
 			        		//use case 2 : converting a survey to an action
 				        	// - remove the survey attribute and add the room attribute
@@ -90,7 +89,7 @@ class MoveAction extends CAction
 			            	// switching the survey attribute
 				        	$entryInfos["survey"] = $destId;
 		                	$result = PHDB::update( $collection,  array("_id" => new MongoId($_POST['id'])), 
-		                                               array('$set' => $entryInfos ));
+		                                                		  array('$set' => $entryInfos ));
 
 		                	$res['url'] = "#survey.entries.id.".$destId;
 		                	$res['msg'] = Yii::t("rooms","Moved Succesfully to ",null,Yii::app()->controller->module->id).$destRoom["name"];
