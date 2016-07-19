@@ -111,5 +111,157 @@ class Survey
 	     	$res["msg"] = "mustBeLoggued";
 		return $res;
      }
+
+     public static function getChartBarResult($survey){
+
+      $voteDownCount      = (isset($survey[Action::ACTION_VOTE_DOWN."Count"])) ? $survey[Action::ACTION_VOTE_DOWN."Count"] : 0;
+      $voteAbstainCount   = (isset($survey[Action::ACTION_VOTE_ABSTAIN."Count"])) ? $survey[Action::ACTION_VOTE_ABSTAIN."Count"] : 0;
+      $voteUnclearCount   = (isset($survey[Action::ACTION_VOTE_UNCLEAR."Count"])) ? $survey[Action::ACTION_VOTE_UNCLEAR."Count"] : 0;
+      $voteMoreInfoCount  = (isset($survey[Action::ACTION_VOTE_MOREINFO."Count"])) ? $survey[Action::ACTION_VOTE_MOREINFO."Count"] : 0;
+      $voteUpCount        = (isset($survey[Action::ACTION_VOTE_UP."Count"])) ? $survey[Action::ACTION_VOTE_UP."Count"] : 0;
+      
+      $totalVotes = $voteDownCount+$voteAbstainCount+$voteUpCount+$voteUnclearCount+$voteMoreInfoCount;
+      
+      $oneVote = ($totalVotes!=0) ? 100/$totalVotes:1;
+      
+      $percentVoteDownCount     = $voteDownCount    * $oneVote;
+      $percentVoteAbstainCount  = $voteAbstainCount * $oneVote;
+      $percentVoteUpCount       = $voteUpCount      * $oneVote;
+      $percentVoteUnclearCount  = $voteUnclearCount * $oneVote;
+      $percentVoteMoreInfoCount = $voteMoreInfoCount * $oneVote;
+
+  //     	$percentVoteUpCount = 10;
+		// $percentVoteUnclearCount = 30;
+		// $percentVoteAbstainCount = 40;
+		// $percentVoteMoreInfoCount = 20;
+		// $percentVoteDownCount = 0;
+		
+		// $voteUpCount = 1;
+		// $voteUnclearCount = 5;
+		// $voteAbstainCount = 4;
+		// $voteMoreInfoCount = 2;
+		// $voteDownCount = 0;
+
+      $html = "";
+
+      $percentNoVote = "0";
+      if($totalVotes == 0) $percentNoVote = "100";
+
+      if($totalVotes > 1) $msgVote = "votes exprimés";
+      else                $msgVote = "vote exprimé"; 
+
+      $html .=  "<div class='col-md-12 no-padding'>".
+
+                  "<div class='pull-left text-dark' style='margin-top:5px; margin-left:5px; font-size:13px;'>".
+                      $totalVotes." ".$msgVote.
+                  "</div>".
+
+                  "<div class='space1'></div>";
+        
+      $html .=    '<div class="progress">'.
+                    '<div class="progress-bar progress-bar-green progress-bar-striped" style="width: '.$percentVoteUpCount.'%">'.
+                      $voteUpCount.' <i class="fa fa-thumbs-up"></i> ('.$percentVoteUpCount.'%)'.
+                    '</div>'.
+                    '<div class="progress-bar progress-bar-blue progress-bar-striped" style="width: '.$percentVoteUnclearCount.'%">'.
+                      $voteUnclearCount.' <i class="fa fa-pencil"></i> ('.$percentVoteUnclearCount.'%)'.
+                    '</div>'.
+                    '<div class="progress-bar progress-bar-white progress-bar-striped" style="width: '.$percentVoteAbstainCount.'%">'.
+                      $voteAbstainCount.' <i class="fa fa-circle"></i> ('.$percentVoteAbstainCount.'%)'.
+                    '</div>'.
+                    '<div class="progress-bar progress-bar-purple progress-bar-striped" style="width: '.$percentVoteMoreInfoCount.'%">'.
+                      $voteMoreInfoCount.' <i class="fa fa-question-circle"></i> ('.$percentVoteMoreInfoCount.'%)'.
+                    '</div>'.
+                    '<div class="progress-bar progress-bar-red progress-bar-striped" style="width: '.$percentVoteDownCount.'%">'.
+                      $voteDownCount.' <i class="fa fa-thumbs-down"></i> ('.$percentVoteDownCount.'%)'.
+                    '</div>'.
+                    '<div class="progress-bar progress-bar-white progress-bar-striped" style="width: '.$percentNoVote.'%">'.
+                     // $percentNoVote.' '.
+                    '</div>'.
+                  '</div>'.
+                '</div>'; 
+
+      return $html;
+    }
+
+
+    public static function getChartCircle($survey, $voteLinksAndInfos, $parentType,$parentId){
+    	$voteDownCount      = (isset($survey[Action::ACTION_VOTE_DOWN."Count"])) ? $survey[Action::ACTION_VOTE_DOWN."Count"] : 0;
+		$voteAbstainCount   = (isset($survey[Action::ACTION_VOTE_ABSTAIN."Count"])) ? $survey[Action::ACTION_VOTE_ABSTAIN."Count"] : 0;
+		$voteUnclearCount   = (isset($survey[Action::ACTION_VOTE_UNCLEAR."Count"])) ? $survey[Action::ACTION_VOTE_UNCLEAR."Count"] : 0;
+		$voteMoreInfoCount  = (isset($survey[Action::ACTION_VOTE_MOREINFO."Count"])) ? $survey[Action::ACTION_VOTE_MOREINFO."Count"] : 0;
+		$voteUpCount        = (isset($survey[Action::ACTION_VOTE_UP."Count"])) ? $survey[Action::ACTION_VOTE_UP."Count"] : 0;
+
+		$totalVotes = $voteDownCount+$voteAbstainCount+$voteUpCount+$voteUnclearCount+$voteMoreInfoCount;
+
+		$oneVote = ($totalVotes!=0) ? 100/$totalVotes:1;
+
+		$percentVoteDown     = $voteDownCount    * $oneVote;
+		$percentVoteAbstain  = $voteAbstainCount * $oneVote;
+		$percentVoteUp       = $voteUpCount      * $oneVote;
+		$percentVoteUnclear  = $voteUnclearCount * $oneVote;
+		$percentVoteMoreInfo = $voteMoreInfoCount * $oneVote;
+
+
+		// $percentVoteUp = 40;
+		// $percentVoteUnclear = 25;
+		// $percentVoteAbstain = 35;
+		// $percentVoteMoreInfo = 65;
+		// $percentVoteDown = 15;
+
+		$actionUp 		= "javascript:addaction('".(string)$survey["_id"]."','".Action::ACTION_VOTE_UP."')";
+		$actionAbstain 	= "javascript:addaction('".(string)$survey["_id"]."','".Action::ACTION_VOTE_ABSTAIN."')";
+		$actionUnclear 	= "javascript:addaction('".(string)$survey["_id"]."','".Action::ACTION_VOTE_UNCLEAR."')";
+		$actionMoreInfo = "javascript:addaction('".(string)$survey["_id"]."','".Action::ACTION_VOTE_MOREINFO."')";
+		$actionDown 	= "javascript:addaction('".(string)$survey["_id"]."','".Action::ACTION_VOTE_DOWN."')";
+		
+		$hasVoted = $voteLinksAndInfos["hasVoted"];
+		$isAuth =  Authorisation::canParticipate(Yii::app()->session['userId'],$parentType,$parentId);
+
+		$hasVoted = !$isAuth || $hasVoted;
+
+		$html = '<div class="col-md-1"></div>';
+		$html .= Self::getOneChartCirle($percentVoteUp, 		$voteUpCount,		$actionUp, 		"Pour", 		"green", 	"thumbs-up", 		$hasVoted);
+		$html .= Self::getOneChartCirle($percentVoteUnclear, 	$voteUnclearCount,	$actionUnclear, "Incomplet",	"blue", 	"pencil", 			$hasVoted);
+		$html .= Self::getOneChartCirle($percentVoteAbstain,	$voteAbstainCount,	$actionAbstain, "Blanc", 		"white", 	"circle", 			$hasVoted);
+		$html .= Self::getOneChartCirle($percentVoteMoreInfo,  	$voteMoreInfoCount,	$actionMoreInfo,"Incompris", 	"purple", 	"question-circle", 	$hasVoted);
+		$html .= Self::getOneChartCirle($percentVoteDown, 		$voteDownCount,		$actionDown, 	"Contre", 		"red", 		"thumbs-down", 		$hasVoted);
+		$html .= '<div class="col-md-1"></div>';
+		return $html;
+	}
+
+	private static function getOneChartCirle($percent, $voteCount, $action, $label, $color, $icon, $hasVoted){
+		$colorTxt = ($color=="white") ? "black" : $color;
+		$colXS = ($color=="white") ? "col-xs-12" : "col-xs-6";
+
+		$tooltips = array("green"=>"Je suis favorable à cette proposition",
+						"blue"=>"Je pense que cette proposition n'est pas complète",
+						"white"=>"Je n'ai pas d'avis",
+						"purple"=>"Je n'ai pas compris, il manque des informations",
+						"red"=>"Je suis contre à cette proposition",
+						);
+		
+		$tooltip = $tooltips[$color];
+
+		$html = '<div class="col-md-2 col-sm-2 '.$colXS.' center">
+		  		  <div class="col-md-12 no-padding">
+		  			<div class="c100 p'.$percent.' '.$color.' small center">
+					  <span>'.$percent.'%</span>
+					  <div class="slice"> <div class="bar"></div> <div class="fill"></div>
+					</div>
+				  </div>
+				  <div class="col-md-12 no-padding">
+		  			<h4 class="text-'.$colorTxt.' bold"><i class="fa fa-'.$icon.'"></i> '.$label.' ('.$voteCount.')</h4>'.
+		  		  '</div>'.
+		  		'</div>';
+
+		if(!$hasVoted)
+		$html .=	'<button onclick="'.$action.'" data-original-title="'.$tooltip.'" data-toggle="tooltip" data-placement="bottom" '.
+							'class="btn btn-default tooltips btn-sm text-'.$colorTxt.'">Voter</button>';
+		
+		$html .=  '</div>';
+		
+		return $html;
+	}
+
 }
 ?>

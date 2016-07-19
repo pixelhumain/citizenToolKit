@@ -274,6 +274,7 @@ class Document {
 							'_id' => $params,
 							'sumDocSpace' => array('$sum' => '$size')))
 						));
+		$spaceUsed="";
 		if (@$result["ok"]) 
 			$spaceUsed = @$result["result"][0]["sumDocSpace"];
 		return $spaceUsed;
