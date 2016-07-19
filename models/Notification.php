@@ -64,7 +64,123 @@ class Notification{
 
 	    //TODO mail::invited
 	}
-
+	public static function actionOnNews ( $verb, $icon, $author, $target, $mentions) 
+	{
+		$notification=array();
+		$url = Yii::app()->createUrl('/'.Yii::app()->controller->module->id.'/'.'news/index/type/'.$target["type"].'/id/'.$target["id"]);
+		foreach ($mentions as $data){
+			if($data["type"]==Person::COLLECTION){
+				if(!empty($notification) && array_search($data["id"], array_column($notification, 'persons'))){
+			    	foreach($notications as $i => $list){
+				    	foreach($list["persons"] as $id){
+					    	if($id==$data["id"]){
+						    	if($list["type"]==Organization::COLLECTION){
+							    	$nameOrga = $list["name"];
+							    	$pushNotif=array(
+										"type"=> Organization::COLLECTION,
+										"nameOrganization"=>$list["name"],
+										"nbMention"=>2,
+										"persons"=>array($data["id"]),
+										"label"=> $author["name"]." vous a mentionné avec ".$data["name"]." dans un post",
+										"url"=> $url,
+										"icon" => $icon
+									);
+									unset($notication[$i]);
+									array_push($notification, $pushNotif);
+						    	}
+					    	}
+				    	}
+			    	}
+		    	}else{
+	    			$people=array($data["id"]);
+	    			$pushNotif=array(
+							    "type"=> Person::COLLECTION,
+							    "persons"=>$people,
+							    "label"=> $author["name"]." vous a mentionné dans un post",
+							    "url"=> $url,
+							    "icon" => $icon
+								);
+					array_push($notification, $pushNotif);
+			    }
+				
+				
+			}
+			if($data["type"]==Organization::COLLECTION){
+				$admins = Organization::getMembersByOrganizationId( $data["id"], Person::COLLECTION , "isAdmin" );
+				$people=array();
+			    foreach ($admins as $key => $value) 
+			    {
+			    	if( $key != Yii::app()->session['userId'] && !in_array($key, $people) && count($people) < self::PEOPLE_NOTIFY_LIMIT ){
+				    	if(!empty($notification)){
+					    	foreach($notification as $i => $list){
+						    	foreach($list["persons"] as $id){
+							    	if($id==$key){
+								    	if($list["type"]==Organization::COLLECTION && $list["nbMention"]!=2){
+									    	$nameOrga = $list["name"];
+									    	$pushNotif=array(
+												"type"=> Organization::COLLECTION,
+												"nameOrganization"=>$list["name"],
+												"nbMention"=>2,
+												"persons"=>array($key),
+												"label"=> $author["name"]." a mentionné ".$data["name"]." et ".$nameOrga." dans un post",
+												"icon" => $icon,
+												"url"=> $url
+											);
+											array_push($notification, $pushNotif);
+								    	}
+										if($list["type"]==Person::COLLECTION){
+									    	$nameOrga = @$list["name"];
+									    	$pushNotif=array(
+												"type"=> Person::COLLECTION,
+												"nameOrganization"=>$data["name"],
+												"nbMention"=>2,
+												"persons"=> array($key),
+												"label"=> $author["name"]." vous a mentionné ainsi que ".$data["name"]." dans un post",
+												"icon" => $icon,
+												"url"=> $url
+											);
+											unset($notification[$i]);
+											array_push($notification, $pushNotif);
+								    	}
+							    	}
+						    	}
+					    	}
+					    }else{
+			    			array_push($people, $key);
+		    			}
+			    	}	
+			    }
+			    $pushNotif=array(
+							    "type"=> Organization::COLLECTION,
+							    "nameOrganization"=>$data["name"],
+							    "persons"=>$people,
+							    "label"=> $author["name"]." a mentioné ".$data["name"]." dans un post",
+							    "url"=> $url,
+							    "icon" => $icon 
+				);
+				array_push($notification, $pushNotif);
+			}
+		}
+		foreach($notification as $notif){
+			$asParam = array(
+		    	"type" => ActStr::TEST, 
+	            "verb" => $verb,
+	            "author"=>array(
+	            	"type" => Person::COLLECTION,
+	            	"id"   => $author["id"]
+	            ),
+	            "object"=>array(
+	            	"type" => Person::COLLECTION,
+	            	"id"   => $author["id"]
+	            ),
+	        );
+		    $stream = ActStr::buildEntry($asParam);
+		    $stream["notify"] = ActivityStream::addNotification( $notif );
+		    ActivityStream::addEntry($stream);
+		}
+		// Verbe ActStr::VERB_POST || ActStr::VERB_MENTION
+		
+	}
 	/*
 	when someone joins or leaves or disables a project / organization / event
 	notify all contributors
@@ -98,7 +214,7 @@ class Notification{
 	            "id"   => $targetId
             )
         );
-
+		
         //build list of people to notify
         $people = array();
         //when admin makes the change

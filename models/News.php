@@ -98,8 +98,6 @@ class News {
 			}
 			if(isset($_POST["tags"]))
 				$news["tags"] = $_POST["tags"];
-			if(isset($_POST["mentions"]))
-				$news["mentions"] = $_POST["mentions"];
 		 	if(isset($_POST["parentId"]))
 				$news["target"]["id"] = $_POST["parentId"];
 		 	if(isset($_POST["parentType"]))
@@ -161,7 +159,15 @@ class News {
 					}		
 				}
 			}
-		 	
+		 	if(isset($_POST["mentions"])){
+				$news["mentions"] = $_POST["mentions"];
+				$target="";
+				if(@$_POST["parentType"]){
+					$target=array("id"=>$_POST["parentId"],"type"=>$_POST["parentType"]);
+				}
+				Notification::actionOnNews ( ActStr::VERB_MENTION, ActStr::ICON_RSS, array("id" => Yii::app()->session["userId"],"name" => Yii::app()->session["user"]["name"]) , $target, $news["mentions"] )  ;
+			}
+
 			PHDB::insert(self::COLLECTION,$news);
 			$news=NewsTranslator::convertParamsForNews($news);			  		
 		    $news["author"] = Person::getSimpleUserById(Yii::app()->session["userId"]);
