@@ -13,19 +13,21 @@ class MoveAction extends CAction
         if($type == ActionRoom::TYPE_SURVEY )
         {
         	$survey = Survey::getById($id);
-        	$room = ActionRoom::getById($survey["survey"]);
+        	$roomId = $survey["survey"];
+        	$room = ActionRoom::getById($roomId);
         	$collection = Survey::COLLECTION;
         } 
         else if($type == ActionRoom::TYPE_ACTION )
         {
         	$action = ActionRoom::getActionById($id);
-        	$room = ActionRoom::getById($destId);
+        	$roomId = $action["room"];
+        	$room = ActionRoom::getById($roomId);
         	$collection = ActionRoom::TYPE_ACTIONS;
         }
 
         $res = array();
         if( Yii::app()->session["userId"] ){
-	        if( $room && Authorisation::canParticipate( Yii::app()->session['userId'], $room["parentType"], $room["parentId"] )  )
+	        if( $room  && Authorisation::canParticipate( Yii::app()->session['userId'], $room["parentType"], $room["parentId"] )  )
 	        {
 	            
 	        	$destRoom = ActionRoom::getById($destId);
