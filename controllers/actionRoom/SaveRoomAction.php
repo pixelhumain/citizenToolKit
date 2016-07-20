@@ -42,7 +42,12 @@ class SaveRoomAction extends CAction
                 $res["newInfos"] = $newInfos;
 
                 //Notify Element participants 
-                Notification::actionOnPerson ( ActStr::VERB_ADDROOM, ActStr::ICON_ADD, "", array( "type" => ActionRoom::COLLECTION , "id" => (string)$newInfos["_id"] ));
+                Notification::actionOnPerson ( ActStr::VERB_ADDROOM, ActStr::ICON_ADD, "", 
+                                                array( "type" => ActionRoom::COLLECTION , 
+                                                       "id" => (string)$newInfos["_id"], 
+                                                       "parentId" => @$newInfos['parentId'] ? $newInfos['parentId'] : "", 
+                                                       "parentType" => @$newInfos['parentType'] ? $newInfos['parentType'] : "", 
+                                                       "name" => (string)$name ));
             }else
                 $res = array('result' => false , 'msg'=>"user doen't exist");
         } else

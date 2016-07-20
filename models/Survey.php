@@ -256,7 +256,7 @@ class Survey
 
 		if(!$hasVoted)
 		$html .=	'<button onclick="'.$action.'" data-original-title="'.$tooltip.'" data-toggle="tooltip" data-placement="bottom" '.
-							'class="btn btn-default tooltips btn-sm text-'.$colorTxt.'">Voter</button>';
+							'class="btn btn-default tooltips btn-sm text-'.$colorTxt.'"><i class="fa fa-gavel"></i> Voter</button>';
 		
 		$html .=  '</div>';
 		

@@ -173,30 +173,32 @@ class Notification{
 			$room = ActionRoom::getById( $entryId );
 			$target["room"] = $room;
 
-			if( $room["parentType"] == Project::COLLECTION ) {
-				$target["parent"] = Project::getById( $room["parentId"]);
-		    	$members = Project::getContributorsByProjectId( $room["parentId"] ,"all", null ) ;
-				$typeOfConnect="contributor";
-		    }
-		    else if( $room["parentType"] == Organization::COLLECTION) {
-		    	$target["parent"] = Organization::getById( $room["parentId"]);
-		    	$members = Organization::getMembersByOrganizationId( $room["parentId"] ,"all", null ) ;
-		    	$typeOfConnect="member";
-		    }
-		    else if( $room["parentType"] == Event::COLLECTION ) {
-		    	//TODO notify only the admin of the event
-		    	$target["parent"] = Event::getById( $room["parentId"]);
-		    	if($verb == ActStr::VERB_POST)
-	    			$members = Event::getAttendeesByEventId( $room["parentId"] , "all", null ) ;
-				else
-	    			$members = Event::getAttendeesByEventId( $room["parentId"] , "admin", "isAdmin" ) ;
+			if( @$room["parentType"] ){
+				if( $room["parentType"] == Project::COLLECTION ) {
+					$target["parent"] = Project::getById( $room["parentId"]);
+			    	$members = Project::getContributorsByProjectId( $room["parentId"] ,"all", null ) ;
+					$typeOfConnect="contributor";
+			    }
+			    else if( $room["parentType"] == Organization::COLLECTION) {
+			    	$target["parent"] = Organization::getById( $room["parentId"]);
+			    	$members = Organization::getMembersByOrganizationId( $room["parentId"] ,"all", null ) ;
+			    	$typeOfConnect="member";
+			    }
+			    else if( $room["parentType"] == Event::COLLECTION ) {
+			    	//TODO notify only the admin of the event
+			    	$target["parent"] = Event::getById( $room["parentId"]);
+			    	if($verb == ActStr::VERB_POST)
+		    			$members = Event::getAttendeesByEventId( $room["parentId"] , "all", null ) ;
+					else
+		    			$members = Event::getAttendeesByEventId( $room["parentId"] , "admin", "isAdmin" ) ;
 
-		    	//$members = Event::getAttendeesByEventId( $room["parentId"],"admin", "isAdmin" ) ;
-		    	$typeOfConnect="attendee";
-		    } else if( $room["parentType"] == City::COLLECTION ) {
-		    	//TODO notify only the admin of the event
-		    	$target["parent"] = City::getByUnikey( $room["parentId"]);
-		    }
+			    	//$members = Event::getAttendeesByEventId( $room["parentId"],"admin", "isAdmin" ) ;
+			    	$typeOfConnect="attendee";
+			    } else if( $room["parentType"] == City::COLLECTION ) {
+			    	//TODO notify only the admin of the event
+			    	$target["parent"] = City::getByUnikey( $room["parentId"]);
+			    }
+			}
 		}
 	    foreach ($members as $key => $value) 
 	    {
@@ -246,7 +248,7 @@ class Notification{
 		    	$url = $base.'/id/'.$target["id"];
 		    }
 	    } 
-	    else if($verb == ActStr::VERB_ADDROOM){
+	    else if($verb == ActStr::VERB_ADDROOM && @$target["parent"]){
 		    $label = Yii::t("rooms","{who} added a new Voting Room on {where}",array("{who}"=>Yii::app()->session['user']['name'],
 		    																					"{where}"=>$target["parent"]["name"]),Yii::app()->controller->module->id);
 		    $url = 'survey/entries/id/'.$target["id"];
