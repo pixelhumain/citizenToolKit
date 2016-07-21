@@ -36,7 +36,7 @@ class SaveSessionAction extends CAction
                 $entryInfos['name'] = (string)$name;
                 $entryInfos['organizerId'] = $organizerId;
                 $entryInfos['organizerType'] = $organizerType;
-                if( isset($_POST['survey']) ){
+                if( isset($_POST['survey']) && !empty($_POST['survey']) ){
                     $entryInfos['survey'] = $_POST['survey'];
                     $res['parentId'] = $_POST['survey'];
                     //this might not be necessary , since the information is on the parent survey
@@ -64,6 +64,7 @@ class SaveSessionAction extends CAction
                 
 
                 $where = array();
+                //echo "_POST"; var_dump($_POST); return;
                 if( isset( $_POST['id'] ) ){
                     $where["_id"] = new MongoId($_POST['id']);
                     $result = PHDB::update( Survey::COLLECTION,  $where, 

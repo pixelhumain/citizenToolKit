@@ -6,8 +6,10 @@ class EditActionAction extends CAction
         $controller=$this->getController();
         
         $params = array( 
-          "parentRoom" => PHDB::findOne (ActionRoom::COLLECTION, array("_id"=>new MongoId ( $room ) ) )
+          "parentRoom" => PHDB::findOne (ActionRoom::COLLECTION, array("_id"=>new MongoId ( $room ) ) ),
+          "parentRoomId" => $room
         );
+
         if($id)
         {
             $entry = PHDB::findOne (ActionRoom::COLLECTION_ACTIONS, array("_id"=>new MongoId ( $id ) ) );
@@ -34,6 +36,7 @@ class EditActionAction extends CAction
               }
           }
         }
+        //var_dump($params);
         echo $controller->renderPartial("editAction" , $params,true);
     }
 }

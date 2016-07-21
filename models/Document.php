@@ -275,6 +275,7 @@ class Document {
 							'_id' => $params,
 							'sumDocSpace' => array('$sum' => '$size')))
 						));
+		$spaceUsed="";
 		if (@$result["ok"]) 
 			$spaceUsed = @$result["result"][0]["sumDocSpace"];
 		return $spaceUsed;
@@ -494,9 +495,9 @@ class Document {
         //Update the entity collection to store the path of the profil images
         if (in_array($document["type"], array(Person::COLLECTION, Organization::COLLECTION, Project::COLLECTION, Event::COLLECTION))) {
 	        PHDB::update($document["type"], array("_id" => new MongoId($document["id"])), array('$set' => array("profilImageUrl" => $profilUrl, "profilMediumImageUrl" => $profilMediumUrl,"profilThumbImageUrl" => $profilThumbUrl, "profilMarkerImageUrl" =>  $profilMarkerImageUrl)));
+
 	        error_log("The entity ".$document["type"]." and id ". $document["id"] ." has been updated with the URL of the profil images.");
 		}
-
         //Remove the bck directory
         CFileHelper::removeDirectory($upload_dir."bck");
         return array("result" => true, "msg" => "Thumb and markers have been generated");

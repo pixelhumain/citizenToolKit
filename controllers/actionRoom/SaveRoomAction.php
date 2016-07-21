@@ -19,12 +19,15 @@ class SaveRoomAction extends CAction
                 $newInfos['email'] = (string)$email;
                 $newInfos['name'] = (string)$name;
                 $newInfos['type'] = $_POST['type'];
-                if( isset( $_POST["parentType"] ) ) 
+                if( @$_POST["type"] == ActionRoom::TYPE_FRAMAPAD ) 
+                    $newInfos['url'] = "https://annuel.framapad.org/p/".InflectorHelper::slugify( $newInfos['name'] );
+
+                if( @$_POST["parentType"] ) 
                     $newInfos['parentType'] = $_POST['parentType'];
-                if( isset( $_POST["parentId"] ) ) 
+                if( @$_POST["parentId"] ) 
                     $newInfos['parentId'] = $_POST['parentId'];
                 
-                if( isset($_POST['tags']) && count($_POST['tags']) )
+                if( @$_POST['tags'] && count($_POST['tags']) )
                     $newInfos['tags'] = $_POST['tags'];
                 
                 $newInfos['created'] = time();
@@ -39,7 +42,12 @@ class SaveRoomAction extends CAction
                 $res["newInfos"] = $newInfos;
 
                 //Notify Element participants 
-                Notification::actionOnPerson ( ActStr::VERB_ADDROOM, ActStr::ICON_ADD, "", array( "type" => ActionRoom::COLLECTION , "id" => (string)$newInfos["_id"] ));
+                Notification::actionOnPerson ( ActStr::VERB_ADDROOM, ActStr::ICON_ADD, "", 
+                                                array( "type" => ActionRoom::COLLECTION , 
+                                                       "id" => (string)$newInfos["_id"], 
+                                                       "parentId" => @$newInfos['parentId'] ? $newInfos['parentId'] : "", 
+                                                       "parentType" => @$newInfos['parentType'] ? $newInfos['parentType'] : "", 
+                                                       "name" => (string)$name ));
             }else
                 $res = array('result' => false , 'msg'=>"user doen't exist");
         } else

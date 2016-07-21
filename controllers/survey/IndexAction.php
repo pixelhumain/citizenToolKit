@@ -57,14 +57,13 @@ class IndexAction extends CAction
         $controller->toolbarMBZ = array(
             '<a href="#" onclick="openSubView(\'Add a Room\', \'/communecter/rooms/editroom'.$urlParams.'\',null,function(){editRoomSV ();})" title="proposer une " ><i class="fa fa-plus"></i> Action Room </a>',
         );
-
         $tpl = ( isset($_GET['tpl']) ) ? $_GET['tpl'] : "index";
         $params = array( "list" => $list,
                           "where"=>$where,
                           "user"=>$user,
                           "type"=>$type,
                           "id"=>$id,
-                          "uniqueVoters"=>$uniqueVoters,
+                          "uniqueVoters"=>$uniqueVoters
                           );
         if(Yii::app()->request->isAjaxRequest)
             echo $controller->renderPartial( $tpl, $params,true );

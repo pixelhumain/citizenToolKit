@@ -219,23 +219,23 @@ class Action
             $linkVoteUp = ($logguedAndValid && !empty($voteUpActive) ) ? 
                             "<span class='".$classUp." ' ><i class='fa fa-caret-bottom'></i> ".
                                 Yii::t("survey","Voted", null, Yii::app()->controller->module->id).
-                                " <span class='btnvote color-btnvote-green'><i class='fa $iconUp' ></i> favorable</span></span>" : "";
+                                " <span class='btnvote color-btnvote-green'><i class='fa $iconUp' ></i> Pour</span></span>" : "";
             $linkVoteAbstain = ($logguedAndValid && !empty($voteAbstainActive)) ? 
                             "<span class='".$classAbstain." '><i class='fa fa-caret-bottom'></i> ".
                                 Yii::t("survey","Voted", null, Yii::app()->controller->module->id).
-                                " <span class='btnvote color-btnvote-white'><i class='fa $iconAbstain'></i> blanc</span></span>" : "";
+                                " <span class='btnvote color-btnvote-white'><i class='fa $iconAbstain'></i> Blanc</span></span>" : "";
             $linkVoteUnclear = ($logguedAndValid && !empty($voteUnclearActive)) ? 
                             "<span class='".$classUnclear." '><i class='fa fa-caret-bottom'></i> ".
                                 Yii::t("survey","Voted", null, Yii::app()->controller->module->id).
-                                " <span class='btnvote color-btnvote-yellow'><i class='fa  $iconUnclear'></i> à terminer</span></span>" : "";
+                                " <span class='btnvote color-btnvote-blue'><i class='fa  $iconUnclear'></i> Incomplet</span></span>" : "";
             $linkVoteMoreInfo = ($logguedAndValid && !empty($voteMoreInfoActive)) ? 
                             "<span class='".$classMoreInfo." '><i class='fa fa-caret-bottom'></i> ".
                                 Yii::t("survey","Voted", null, Yii::app()->controller->module->id).
-                                " <span class='btnvote color-btnvote-purple'><i class='fa  $iconMoreInfo'></i> + d'infos</span></span>" : "";
+                                " <span class='btnvote color-btnvote-purple'><i class='fa  $iconMoreInfo'></i> Incompris</span></span>" : "";
             $linkVoteDown = ($logguedAndValid && !empty($voteDownActive)) ? 
                             "<span class='".$classDown." '><i class='fa fa-caret-bottom'></i> ".
                                 Yii::t("survey","Voted", null, Yii::app()->controller->module->id).
-                                " <span class='btnvote color-btnvote-red'><i class='fa $iconDown'></i> défavorable</span></span>" : "";
+                                " <span class='btnvote color-btnvote-red'><i class='fa $iconDown'></i> Contre</span></span>" : "";
         }
         else
         {
@@ -249,17 +249,19 @@ class Action
             $linkVoteDown = ($logguedAndValid) ? "<a class='btn ".$classDown." voteIcon' data-vote='".Action::ACTION_VOTE_DOWN."' href=\"".$hrefDown."\" title='Voter Contre'><i class='fa $iconDown'></i></a>" : "";
         }
 
+        //default Values are hasn't voted
         $res["totalVote"] = $voteUpCount+$voteAbstainCount+$voteDownCount+$voteUnclearCount+$voteMoreInfoCount;
         $res["ordre"] = $voteUpCount+$voteDownCount;
-        $res["links"] = ($value["type"]==Survey::TYPE_ENTRY) ? "<span class='text-bold active'><span class='text-bold active btnvote color-btnvote-red'><i class='fa fa-clock-o'></i> ".Yii::t("survey","You did not vote", null, Yii::app()->controller->module->id)."</span></span>" : "";
+        $res["links"] = ( $value["type"] == Survey::TYPE_ENTRY ) ? "<span class='text-bold active btnvote color-btnvote-red'><i class='fa fa-clock-o'></i> ".Yii::t("survey","You did not vote", null, Yii::app()->controller->module->id)."</span>" : "";
+
         //$res["links"] = ($res["totalVote"]) ? "<span class='text-red text-bold'>RESULT</span>" : $res["links"];
-        if( ($value["type"]==Survey::TYPE_ENTRY && 
-            ( !isset($value["dateEnd"]) || $value["dateEnd"] > time() ) 
-            ) ||
-            ($res["hasVoted"])
+        if( ($value["type"]==Survey::TYPE_ENTRY 
+                && ( !isset($value["dateEnd"]) || $value["dateEnd"] > time() ) 
+            ) || ($res["hasVoted"])
           )
             $res["links"] = "<div class='leftlinks'>".$linkVoteUp." ".$linkVoteUnclear." ".$linkVoteAbstain." ".$linkVoteMoreInfo." ".$linkVoteDown."</div>";
-
+        else
+            $res["avoter"] = "closed";
         
         return $res;
     }

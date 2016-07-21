@@ -14,6 +14,8 @@ class SaveActionAction extends CAction
         $res = array();
         if( Yii::app()->session["userId"] )
         {
+            //var_dump($_POST);
+            //echo "heheo"; return;
             $email = $_POST["email"];
             $name  = $_POST['name'];
 
@@ -41,6 +43,7 @@ class SaveActionAction extends CAction
                     $entryInfos['room'] = $_POST['room'];
                     $res['parentId'] = $_POST['room'];
                     //this might not be necessary , since the information is on the parent action
+                    //var_dump($_POST['room'])); return;
                     $room = PHDB::findOne (ActionRoom::COLLECTION, array( "_id" => new MongoId($_POST['room']) ) );
                     if( isset( $room["parentType"] ) ) 
                         $entryInfos['parentType'] = $room['parentType'];
@@ -81,7 +84,7 @@ class SaveActionAction extends CAction
                 $res['result'] = true;
                 $res['msg'] = "actionSaved";
                 $res['actionId'] = $actionId;
-
+                //echo "actionId :".$actionId; return;
                 //Notify Element participants 
                 Notification::actionOnPerson ( ActStr::VERB_ADD_ACTION, ActStr::ICON_ADD, "", array( "type" => ActionRoom::COLLECTION_ACTIONS , "id" => $actionId ));
                 
