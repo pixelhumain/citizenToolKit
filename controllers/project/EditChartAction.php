@@ -3,26 +3,25 @@ class EditChartAction extends CAction
 {
     public function run() {
 		$controller=$this->getController();
-		$parentId=$_POST["key"];
+		$parentId=$_POST["parentId"];
 		//echo $idProject;
-		if(!empty($_POST["description"]) || !empty($_POST["value"]))
-			$newProperties=$_POST["chart"];
+		if(!empty($_POST["properties"]))
+			$newProperties=$_POST["properties"];
 		else
 			$newProperties=[];
-		$propertiesList=[];
-		if(!empty($newProperties)){
+		/*if(!empty($newProperties)){
 			foreach ($newProperties as $data){
 				$propertiesList[$data["label"]]=$data["value"];
 			}
-		}
+		}*/
 
 		if (!empty($newProperties)){
-        	$res = Project::saveChart($parentId,$propertiesList);
+        	$res = Project::saveChart($parentId,$newProperties);
         }
         else
         	$res = Project::removeChart($parentId);
 
-  		echo json_encode(array("result"=>true, "properties"=>$propertiesList, "msg"=>"Ce projet a de nouvelle propriétés"));
+  		echo json_encode(array("result"=>true, "properties"=>$newProperties, "msg"=>"Ce projet a de nouvelle propriétés"));
         exit;
 	}
 }
