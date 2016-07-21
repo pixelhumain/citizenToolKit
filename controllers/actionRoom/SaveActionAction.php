@@ -43,6 +43,7 @@ class SaveActionAction extends CAction
                     $entryInfos['room'] = $_POST['room'];
                     $res['parentId'] = $_POST['room'];
                     //this might not be necessary , since the information is on the parent action
+                    //var_dump($_POST['room'])); return;
                     $room = PHDB::findOne (ActionRoom::COLLECTION, array( "_id" => new MongoId($_POST['room']) ) );
                     if( isset( $room["parentType"] ) ) 
                         $entryInfos['parentType'] = $room['parentType'];
