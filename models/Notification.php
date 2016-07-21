@@ -164,15 +164,18 @@ class Notification{
 			$entryId = $target["id"];
 			if( $target["type"] == Survey::COLLECTION ){
 				$target["entry"] = Survey::getById( $target["id"] );
+				//var_dump($target); echo (string)$target["entry"]["_id"]; return;
 				$entryId = (string)$target["entry"]["survey"];
 			} else if( $target["type"] == ActionRoom::COLLECTION_ACTIONS ){
 				$target["entry"] = ActionRoom::getActionById( $target["id"] );
-				$entryId = (string)$target["entry"]["room"];
+				//echo "tageettttt ". var_dump($target["entry"]); //return;
+				$entryId = $target["entry"]["room"];
+				//echo "entryId : ".$entryId;return;
 			}
 
 			$room = ActionRoom::getById( $entryId );
 			$target["room"] = $room;
-
+			//echo "target : ".$entryId; var_dump($target); return;
 			if( @$room["parentType"] ){
 				if( $room["parentType"] == Project::COLLECTION ) {
 					$target["parent"] = Project::getById( $room["parentId"]);
@@ -270,7 +273,7 @@ class Notification{
 		    $url = 'survey/entry/id/'.$target["id"];
 	    }
 	    else if($verb == ActStr::VERB_ADD_ACTION){
-		    $label = Yii::t("rooms","{who} added a new Action {what} in {where}", array("{who}" => Yii::app()->session['user']['name'],
+	    	$label = Yii::t("rooms","{who} added a new Action {what} in {where}", array("{who}" => Yii::app()->session['user']['name'],
 		    																"{what}"=>$target["entry"]["name"],
 		    																"{where}"=>$target['parent']["name"]),Yii::app()->controller->module->id);
 		    $url = 'rooms/action/id/'.$target["id"];

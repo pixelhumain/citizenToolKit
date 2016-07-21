@@ -14,6 +14,8 @@ class SaveActionAction extends CAction
         $res = array();
         if( Yii::app()->session["userId"] )
         {
+            //var_dump($_POST);
+            //echo "heheo"; return;
             $email = $_POST["email"];
             $name  = $_POST['name'];
 
@@ -81,7 +83,7 @@ class SaveActionAction extends CAction
                 $res['result'] = true;
                 $res['msg'] = "actionSaved";
                 $res['actionId'] = $actionId;
-
+                //echo "actionId :".$actionId; return;
                 //Notify Element participants 
                 Notification::actionOnPerson ( ActStr::VERB_ADD_ACTION, ActStr::ICON_ADD, "", array( "type" => ActionRoom::COLLECTION_ACTIONS , "id" => $actionId ));
                 
