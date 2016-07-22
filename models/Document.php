@@ -87,6 +87,10 @@ class Document {
 	  		'created' => time()
 	    );
 
+	    if (! Authorisation::canEditItem($new['author'], $new['type'], $new['id'])) {
+	    	throw new CTKException("You are not allowed to modify the document of this item !");
+	    }
+
 	    if(isset($params["category"]) && !empty($params["category"]))
 	    	$new["category"] = $params["category"];
 
