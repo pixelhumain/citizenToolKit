@@ -401,7 +401,7 @@ class City {
 		if(isset($city["postalCodes"]))
 		foreach ($city["postalCodes"] as $key => $value) {
 			if($value["postalCode"] == $cp){
-				$city["name"] = $value["name"];
+				$city["namePc"] = $value["name"];
 				$city["cp"] = $value["postalCode"];
 				$city["geo"] = $value["geo"];
 				$city["geoPosition"] = $value["geoPosition"];

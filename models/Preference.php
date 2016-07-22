@@ -108,7 +108,7 @@ class Preference {
 	public static function isOpenEdition($preferences) {
 		$isOpenData = false ;
 		if(@$preferences["isOpenEdition"])
-			$isOpenData = 1 ;
+			$isOpenData = true ;
 		return $isOpenData;
 	}
 

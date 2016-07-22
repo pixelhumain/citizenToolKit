@@ -98,7 +98,6 @@ class DetailAction extends CAction
             $citoyen = Person::getPublicData( $key );
             array_push($allPeople, $citoyen);
         }
-
         $tags = PHDB::findOne( PHType::TYPE_LISTS,array("name"=>"tags"), array('list'));
 
         $params["tags"] = $tags;
