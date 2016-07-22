@@ -903,7 +903,7 @@ class Person {
 		else
 			$where['status'] = array('$exists' => 0 );
 
-        $actionRooms = ActionRoom::getWhereSortLimit( $where, array("date"=>1), 15);
+        $actionRooms = ActionRoom::getWhereSortLimit( $where, array("date"=>1), 0);
 
 	  	$actions = array();
 	  	$person = self::getById($uid);

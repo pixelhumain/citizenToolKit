@@ -7,7 +7,7 @@ class SaveRoomAction extends CAction
     public function run()
     {
         $res = array();
-        if( Yii::app()->session["userId"] )
+        if( Yii::app()->session["userId"] && @$_POST['name'] )
         {
             $email = $_POST["email"];
             $name  = $_POST['name'];
