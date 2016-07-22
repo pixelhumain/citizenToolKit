@@ -316,21 +316,50 @@ class Document {
 	}
 	
 	/**
-	* remove a document by id
+	* remove a document by id and delete the file on the filesystem
 	* @return
 	*/
-	public static function removeDocumentById($id){
-		return PHDB::remove(self::COLLECTION, array("_id"=>new MongoId($id)));
+	public static function removeDocumentById($id, $userId){
+		//TODO SBAR - Generate new thumbs if the image is the current image
+		$doc = Document::getById($id);
+		if ($doc) {
+			if (Authorisation::canEditItem($userId, $doc["type"], $doc["id"])) {
+				$filepath = self::getDocumentPath($doc);
+				if(file_exists ( $filepath )) {
+		            if (unlink($filepath)) {
+		                PHDB::remove(self::COLLECTION, array("_id"=>new MongoId($id)));
+		                $res = array('result'=>true, "msg" => Yii::t("document","Document deleted"), "id" => $id);
+		            } else
+		                $res = array('result'=>false,'msg'=>Yii::t("common","Something went wrong!"), "filepath" => $filepath);
+		        } else {
+		        	//even if The file does not exists on the filesystem : we try to delete the document on mongo
+		            PHDB::remove(self::COLLECTION, array("_id"=>new MongoId($id)));
+		            $res = array('result'=>false,'error'=>Yii::t("common","Something went wrong!"),"filepath"=>$filepath);
+		        }
+		    } else {
+		    	$res = array('result'=>false, "msg" => Yii::t("document","You are not allowed to delete this document !"), "id" => $id);
+		    }
+		}
+
+		return $res;
 	}
 	/**
 	* remove a document from communevent by objId
 	* @return
 	*/
-	public static function removeDocumentCommuneventByObjId($id){
-		//Suppression de l'image dans la collection cfs.photosimg.filerecord
-		PHDB::remove("cfs.photosimg.filerecord", array("_id"=>$id));
-		//Suppression du document
-		return PHDB::remove(self::COLLECTION, array("objId"=>$id));
+	public static function removeDocumentCommuneventByObjId($id, $userId){
+		$doc = Document::getById($id);
+		if ($doc) {
+			if (Authorisation::canEditItem($userId, $doc["type"], $doc["id"])) {
+				//Suppression de l'image dans la collection cfs.photosimg.filerecord
+				PHDB::remove("cfs.photosimg.filerecord", array("_id"=>$id));
+				//Suppression du document
+				$res = PHDB::remove(self::COLLECTION, array("objId"=>$id));
+			} else {
+				$res = array('result'=>false, "msg" => Yii::t("document","You are not allowed to delete this document !"), "id" => $id);
+			}
+		}
+		return $res;
 	}
 
 	/**
@@ -473,11 +502,11 @@ class Document {
         $profilPath = self::getDocumentPath($document);
      	$imageUtils = new ImagesUtils($profilPath);
     	$destPathThumb = $upload_dir."/".self::FILENAME_PROFIL_RESIZED;
-    	$profilThumbUrl = self::getDocumentFolderUrl($document)."/thumb/".self::FILENAME_PROFIL_RESIZED;
+    	$profilThumbUrl = self::getDocumentFolderUrl($document).self::GENERATED_IMAGES_FOLDER."/".self::FILENAME_PROFIL_RESIZED;
     	$imageUtils->resizeImage(50,50)->save($destPathThumb);
 		
 		$destPathMarker = $upload_dir."/".self::FILENAME_PROFIL_MARKER;
-		$profilMarkerImageUrl = self::getDocumentFolderUrl($document)."/thumb/".self::FILENAME_PROFIL_MARKER;
+		$profilMarkerImageUrl = self::getDocumentFolderUrl($document).self::GENERATED_IMAGES_FOLDER."/".self::FILENAME_PROFIL_MARKER;
     	$markerFileName = self::getEmptyMarkerFileName(@$document["type"], @$document["subType"]);
     	if ($markerFileName) {
     		$srcEmptyMarker = self::getPathToMarkersAsset().$markerFileName;

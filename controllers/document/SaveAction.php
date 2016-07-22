@@ -17,7 +17,7 @@ class SaveAction extends CAction {
 		    );
 		    $res = Document::save($params);
 		} else {
-			$res = array("result" => false, "msg" => "Please Log in order to update document ! ");
+			$res = array("result" => false, "msg" => Yii::t("common","Please Log in order to update document !"));
 		}
 
 		return Rest::json($res);
