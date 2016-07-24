@@ -220,11 +220,11 @@ class Survey
 		$hasVoted = !$isAuth || $hasVoted;
 
 		$html = '<div class="col-md-1"></div>';
-		$html .= Self::getOneChartCirle($percentVoteUp, 		$voteUpCount,		$actionUp, 		"Pour", 		"green", 	"thumbs-up", 		$hasVoted);
-		$html .= Self::getOneChartCirle($percentVoteUnclear, 	$voteUnclearCount,	$actionUnclear, "Incomplet",	"blue", 	"pencil", 			$hasVoted);
-		$html .= Self::getOneChartCirle($percentVoteAbstain,	$voteAbstainCount,	$actionAbstain, "Blanc", 		"white", 	"circle", 			$hasVoted);
-		$html .= Self::getOneChartCirle($percentVoteMoreInfo,  	$voteMoreInfoCount,	$actionMoreInfo,"Incompris", 	"purple", 	"question-circle", 	$hasVoted);
-		$html .= Self::getOneChartCirle($percentVoteDown, 		$voteDownCount,		$actionDown, 	"Contre", 		"red", 		"thumbs-down", 		$hasVoted);
+$html .= Self::getOneChartCirle($percentVoteUp, 		$voteUpCount,		$actionUp, 		"Pour", 	"green", 	"thumbs-up", 		$hasVoted);
+$html .= Self::getOneChartCirle($percentVoteMoreInfo,  	$voteMoreInfoCount,	$actionMoreInfo,"Incomplet","blue", 	"pencil", 			$hasVoted);
+$html .= Self::getOneChartCirle($percentVoteAbstain,	$voteAbstainCount,	$actionAbstain, "Blanc", 	"white", 	"circle", 			$hasVoted);
+$html .= Self::getOneChartCirle($percentVoteUnclear, 	$voteUnclearCount,	$actionUnclear, "Incompris","purple", 	"question-circle", 	$hasVoted);
+$html .= Self::getOneChartCirle($percentVoteDown, 		$voteDownCount,		$actionDown, 	"Contre", 	"red", 		"thumbs-down", 		$hasVoted);
 		$html .= '<div class="col-md-1"></div>';
 		return $html;
 	}
