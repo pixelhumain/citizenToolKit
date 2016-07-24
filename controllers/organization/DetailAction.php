@@ -120,6 +120,8 @@ class DetailAction extends CAction
 		
 		$params["alone"] = (isset($alone) && $alone == "true");
 
+		$params["openEdition"] = false;
+
 		$controller->title = (isset($organization["name"])) ? $organization["name"] : "";
 		
 		//Display different for simplyDirectory
