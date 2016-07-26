@@ -473,27 +473,26 @@ class Authorisation {
     * @param String $eventId event to get authorisation of
     * @return a boolean True if the user can edit and false else
     */
-    public static function canEditEntry($userId, $voteEntry){
+    public static function canEditSurvey($userId, $surveyId,$parentType=null,$parentId=null){
         $res = false;
-        $entry = Survey::getById($voteEntry);
+        $survey = Survey::getById($surveyId);
 
-        if(!empty($entry) && !empty($userId)) {
+        if(!empty($survey) && !empty($userId)) {
             // case 1 : superAdmin
             if (self::isUserSuperAdmin($userId)) {
                 return true;
             }
-
-            //Organizer of the Entry
-            if (@$entry["organizerType"] == Person::COLLECTION && 
-                @$entry["organizerId"] == $userId) {
-                return true;
-            }
-            // case 2 and 3
-            if (@$entry["organizerType"] == Organization::COLLECTION) {
-                if( Authorisation::canEditOrganisation($userId, @$entry["organizerId"])){
-                    return true;
-                }
-            }
+			$hasVote = (@$survey["voteUpCount"] 
+							|| @$survey["voteAbstainCount"]  
+							|| @$survey["voteUnclearCount"] 
+							|| @$survey["voteMoreInfoCount"] 
+							|| @$survey["voteDownCount"] ) ? true : false;
+            if ( !$hasVote && Authorisation::canEditItem($userId, $parentId, $parentType) )  {
+	            return true;
+	         }
+        } else {
+	        //RAJOUTER UN LOG
+			error_log("Problem with survey authorization, surveyId:".@$surveyId." & userId:".@$userId);
         }
         return $res;
     }
@@ -505,8 +504,12 @@ class Authorisation {
     * @param itemId id of the item we want to edits
     * @return a boolean
     */
-    public static function canEditItem($userId, $type, $itemId){
+    public static function canEditItem($userId, $type, $itemId,$parentType=null,$parentId=null){
         $res=false;
+        if($type == ActionRoom::COLLECTION || $type == ActionRoom::COLLECTION_ACTIONS) {
+			$type= $parentType;
+			$itemId= $parentId;
+		}
     	if($type == Event::COLLECTION) {
     		$res = Authorisation::canEditEvent($userId,$itemId);
             if(Role::isSuperAdmin(Role::getRolesUserId($userId)) && $res==false)
@@ -528,8 +531,11 @@ class Authorisation {
     	} else if($type == Person::COLLECTION) {
             if($userId==$itemId || Role::isSuperAdmin(Role::getRolesUserId($userId)) == true )
                 $res = true;
-    	} else if($type == Survey::COLLECTION) {
-            $res = Authorisation::canEditEntry($userId, $itemId);
+    	} else if($type == City::COLLECTION){
+	    	$res = true;
+    	} 
+    	else if($type == Survey::COLLECTION) {
+            $res = Authorisation::canEditSurvey($userId, $itemId,$parentType,$parentId);
         }
     	return $res;
     }

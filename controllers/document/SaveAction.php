@@ -15,6 +15,10 @@ class SaveAction extends CAction {
 		  		"contentKey" => $_POST["contentKey"],
 		  		"author" => Yii::app()->session["userId"]
 		    );
+		    if(@$_POST["parentType"])
+			    $params["parentType"] = $_POST["parentType"];
+		    if(@$_POST["parentId"])
+			    $params["parentId"] = $_POST["parentId"];			
 		    $res = Document::save($params);
 		} else {
 			$res = array("result" => false, "msg" => Yii::t("common","Please Log in order to update document !"));

@@ -92,9 +92,8 @@ class EntryAction extends CAction
 
       //Images
 	  $limit = array(Document::IMG_PROFIL => 1);
-	  $images = Document::getImagesByKey($id,Survey::COLLECTION, $limit);
+	  $images = Document::getImagesByKey($id, Survey::COLLECTION, $limit);
 	  $params["images"] = $images;
-      
       
       if(Yii::app()->request->isAjaxRequest)
         echo $controller->renderPartial("entryStandalone",$params,true);

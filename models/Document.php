@@ -74,7 +74,6 @@ class Document {
 		//check content key
 		if (!in_array(@$params["contentKey"], array(self::IMG_BANNIERE,self::IMG_PROFIL,self::IMG_LOGO,self::IMG_SLIDER,self::IMG_MEDIA)))
 			throw new CTKException("Unknown contentKey ".$params["contentKey"]." for the document !");
-		
 	    $new = array(
 			"id" => $params['id'],
 	  		"type" => $params['type'],
@@ -87,9 +86,14 @@ class Document {
 	  		"contentKey" => $params["contentKey"],
 	  		'created' => time()
 	    );
-
-	    if (! Authorisation::canEditItem($new['author'], $new['type'], $new['id'])) {
-	    	throw new CTKException("You are not allowed to modify the document of this item !");
+		if (in_array($new["type"], array(Survey::COLLECTION, ActionRoom::COLLECTION, ActionRoom::COLLECTION_ACTIONS))) {
+			 if (! Authorisation::canEditItem($new['author'], $new['type'], $new['id'], @$params["parentType"],@$params["parentId"])) {
+		    	throw new CTKException("You are not allowed to modify the document of this item !");
+		    }
+		}else{
+		    if (! Authorisation::canEditItem($new['author'], $new['type'], $new['id'])) {
+		    	throw new CTKException("You are not allowed to modify the document of this item !");
+		    }
 	    }
 
 	    if(isset($params["category"]) && !empty($params["category"]))
