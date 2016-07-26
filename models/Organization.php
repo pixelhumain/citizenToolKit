@@ -670,9 +670,13 @@ class Organization {
 	 * @return boolean True if the update has been done correctly. Can throw CTKException on error.
 	 */
 	 public static function updateOrganizationField($organizationId, $organizationFieldName, $organizationFieldValue, $userId){
-	 	$authorization=Authorisation::canEditItem($userId, self::COLLECTION, $organizationId);
-	 	if (!$authorization) {
-			return Rest::json(array("result"=>false, "msg"=>Yii::t("organization", "Unauthorized Access.")));
+	 	$pref = Preference::getPreferencesByTypeId($organizationId, self::COLLECTION);
+	 	$authorization = Preference::isOpenEdition($pref);
+	 	if($authorization == false){
+		 	$authorization=Authorisation::canEditItem($userId, self::COLLECTION, $organizationId);
+		 	if (!$authorization) {
+				return Rest::json(array("result"=>false, "msg"=>Yii::t("organization", "Unauthorized Access.")));
+			}
 		}
 		$res = self::updateField($organizationId, $organizationFieldName, $organizationFieldValue, $authorization);
 	                  

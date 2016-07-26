@@ -451,9 +451,13 @@ class Event {
 
 
 	public static function updateEventField($eventId, $eventFieldName, $eventFieldValue, $userId){
-		$authorization=Authorisation::isEventAdmin($eventId, $userId);
-		if (! $authorization) {
-			throw new CTKException("Can not update the event : you are not authorized to update that event!");	
+		$pref = Preference::getPreferencesByTypeId($eventId, self::COLLECTION);
+	 	$authorization = Preference::isOpenEdition($pref);
+	 	if($authorization == false){
+			$authorization=Authorisation::isEventAdmin($eventId, $userId);
+			if (! $authorization) {
+				throw new CTKException("Can not update the event : you are not authorized to update that event!");	
+			}
 		}
 
 		$dataFieldName = self::getCollectionFieldNameAndValidate($eventFieldName, $eventFieldValue, $eventId);

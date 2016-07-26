@@ -17,7 +17,7 @@ class DetailAction extends CAction {
         $organizer = array();
         $people = array();
         $attending =array();
-		$openEdition = @$event["preferences"]["isOpenEdition"];
+		$openEdition = Preference::isOpenEdition($event["preferences"]);
 		$invitedNumber=0;
 		$attendeeNumber=0;
         if(!empty($event)){

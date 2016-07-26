@@ -135,7 +135,7 @@ class DetailAction extends CAction
 	  	$params["admin"]=$isProjectAdmin;
 	  	$params["admins"]=$admins;
 	  	//Preferences
-		$params["openEdition"] = @$project["preferences"]["isOpenEdition"];
+		$params["openEdition"] = Preference::isOpenEdition($project["preferences"]);
 
 		//Display different for simplyDirectory
 		if($controller->action->id == 'simply'){
