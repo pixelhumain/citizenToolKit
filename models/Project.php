@@ -313,9 +313,13 @@ class Project {
 	 * @return boolean True if the update has been done correctly. Can throw CTKException on error.
 	 */
 	public static function updateProjectField($projectId, $projectFieldName, $projectFieldValue, $userId) {  
-		$authorization = Authorisation::canEditItem($userId, self::COLLECTION, $projectId);
-		if (!$authorization) {
-			throw new CTKException(Yii::t("project", "Can not update this project : you are not authorized to update that project !"));	
+		$pref = Preference::getPreferencesByTypeId($projectId, self::COLLECTION);
+	 	$authorization = Preference::isOpenEdition($pref);
+	 	if($authorization == false){
+			$authorization = Authorisation::canEditItem($userId, self::COLLECTION, $projectId);
+			if (!$authorization) {
+				throw new CTKException(Yii::t("project", "Can not update this project : you are not authorized to update that project !"));	
+			}
 		}
 		$dataFieldName = self::getCollectionFieldNameAndValidate($projectFieldName, $projectFieldValue, $projectId);
 	

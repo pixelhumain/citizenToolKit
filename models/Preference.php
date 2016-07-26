@@ -1,7 +1,8 @@
 <?php 
 class Preference {
 	public static function getPreferencesByTypeId($id, $type){
-		$preferences = PHDB::findOneById( $type ,$id, array("preferences" => 1));
+		$entity = PHDB::findOneById( $type ,$id, array("preferences" => 1));
+		$preferences = (empty($entity["preferences"])?array():$entity["preferences"]);
 		return $preferences;
 	}
 	

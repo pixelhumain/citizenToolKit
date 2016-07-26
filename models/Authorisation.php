@@ -98,13 +98,10 @@ class Authorisation {
      */
     public static function isOrganizationAdmin($userId, $organizationId) {
         $res = false;
-        $organization=Organization::getById($organizationId);
-		if(@$organization["preferences"]["isOpenEdition"] && $organization["preferences"]["isOpenEdition"]){
-			$res="openEdition";
-		} else {
-	    	$myOrganizations = Authorisation::listUserOrganizationAdmin($userId);
-			$res = array_key_exists((string)$organizationId, $myOrganizations);
-		}
+        $myOrganizations = Authorisation::listUserOrganizationAdmin($userId);
+        if(!empty($myOrganizations))
+		  $res = array_key_exists((string)$organizationId, $myOrganizations);
+
         return $res;
     }
 
@@ -216,7 +213,15 @@ class Authorisation {
      * @param String $userId The userId to get the authorisation of
      * @return boolean True if the user isAdmin, False else
      */
-    public static function isEventAdmin($eventId, $userId) {
+    public static function isEventAdmin($eventId, $userId){
+        $res = false;
+        $listEvent = Authorisation::listEventsIamAdminOf($userId);
+        if(isset($listEvent[(string)$eventId])){
+            $res=true;
+        } 
+        return $res;
+    }
+    /*public static function isEventAdmin($eventId, $userId) {
     	$res = false;
     	$event=Event::getById($eventId);
         if(@$event["links"] && @$event["links"]["attendees"] && (@$event["preferences"]["isOpenEdtion"] && $event["preferences"]["isOpenEdtion"] !=true)){
@@ -235,7 +240,7 @@ class Authorisation {
 	       $res="openEdition";
        	}	
        	return $res;
-    }
+    }*/
     /**
      * Return true if the user is member of the event
      * @param String the id of the user
@@ -335,14 +340,10 @@ class Authorisation {
 
     public static function isProjectAdmin($projectId, $userId) {
     	$res = false;
-    	$project=Project::getById($projectId);
-    	if(@$project["preferences"]["isOpenEdition"] && $project["preferences"]["isOpenEdition"]){
-	    	$res = "openEdition";
-    	} else {
-	        $listProject = Authorisation::listProjectsIamAdminOf($userId);
-			if(isset($listProject[(string)$projectId]))
-       			$res=true;
-       	} 
+    	$listProject = Authorisation::listProjectsIamAdminOf($userId);
+		if(isset($listProject[(string)$projectId]))
+       		$res=true;
+       	
        	return $res;
     }
 
