@@ -227,11 +227,11 @@ class Action
             $linkVoteUnclear = ($logguedAndValid && !empty($voteUnclearActive)) ? 
                             "<span class='".$classUnclear." '><i class='fa fa-caret-bottom'></i> ".
                                 Yii::t("survey","Voted", null, Yii::app()->controller->module->id).
-                                " <span class='btnvote color-btnvote-blue'><i class='fa  $iconUnclear'></i> Incomplet</span></span>" : "";
+                                " <span class='btnvote color-btnvote-blue'><i class='fa  $iconUnclear'></i> Incompris</span></span>" : "";
             $linkVoteMoreInfo = ($logguedAndValid && !empty($voteMoreInfoActive)) ? 
                             "<span class='".$classMoreInfo." '><i class='fa fa-caret-bottom'></i> ".
                                 Yii::t("survey","Voted", null, Yii::app()->controller->module->id).
-                                " <span class='btnvote color-btnvote-purple'><i class='fa  $iconMoreInfo'></i> Incompris</span></span>" : "";
+                                " <span class='btnvote color-btnvote-purple'><i class='fa  $iconMoreInfo'></i> Incomplet</span></span>" : "";
             $linkVoteDown = ($logguedAndValid && !empty($voteDownActive)) ? 
                             "<span class='".$classDown." '><i class='fa fa-caret-bottom'></i> ".
                                 Yii::t("survey","Voted", null, Yii::app()->controller->module->id).

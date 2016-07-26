@@ -220,16 +220,16 @@ class Survey
 		$hasVoted = !$isAuth || $hasVoted;
 
 		$html = '<div class="col-md-1"></div>';
-$html .= self::getOneChartCirle($percentVoteUp, 		$voteUpCount,		$actionUp, 		"Pour", 	"green", 	"thumbs-up", 		$hasVoted);
-$html .= self::getOneChartCirle($percentVoteMoreInfo,  	$voteMoreInfoCount,	$actionMoreInfo,"Incomplet","blue", 	"pencil", 			$hasVoted);
-$html .= self::getOneChartCirle($percentVoteAbstain,	$voteAbstainCount,	$actionAbstain, "Blanc", 	"white", 	"circle", 			$hasVoted);
-$html .= self::getOneChartCirle($percentVoteUnclear, 	$voteUnclearCount,	$actionUnclear, "Incompris","purple", 	"question-circle", 	$hasVoted);
-$html .= self::getOneChartCirle($percentVoteDown, 		$voteDownCount,		$actionDown, 	"Contre", 	"red", 		"thumbs-down", 		$hasVoted);
+		$html .= self::getOneChartCirle($percentVoteUp, 		$voteUpCount,		$actionUp, 		"Pour", 	"green", 	"thumbs-up", 		$hasVoted);
+		$html .= self::getOneChartCirle($percentVoteMoreInfo,  	$voteMoreInfoCount,	$actionMoreInfo,"Incomplet","blue", 	"pencil", 			$hasVoted);
+		$html .= self::getOneChartCirle($percentVoteAbstain,	$voteAbstainCount,	$actionAbstain, "Blanc", 	"white", 	"circle", 			$hasVoted);
+		$html .= self::getOneChartCirle($percentVoteUnclear, 	$voteUnclearCount,	$actionUnclear, "Incompris","purple", 	"question-circle", 	$hasVoted);
+		$html .= self::getOneChartCirle($percentVoteDown, 		$voteDownCount,		$actionDown, 	"Contre", 	"red", 		"thumbs-down", 		$hasVoted);
 		$html .= '<div class="col-md-1"></div>';
 		return $html;
 	}
 
-	private static function getOneChartCirle($percent, $voteCount, $action, $label, $color, $icon, $hasVoted){
+	private static function getOneChartCircle($percent, $voteCount, $action, $label, $color, $icon, $hasVoted){
 		$colorTxt = ($color=="white") ? "black" : $color;
 		$colXS = ($color=="white") ? "col-xs-12" : "col-xs-6";
 

@@ -549,8 +549,8 @@ class Authorisation {
     public static function canParticipate($userId, $type, $itemId){
         $res=false;
         if( $userId )
-        {   /*$res = Preference::isOpenEdition(Preference::getPreferencesByTypeId($itemId, $type));
-            if($res != true){*/
+        {   $res = Preference::isOpenEdition(Preference::getPreferencesByTypeId($itemId, $type));
+            if($res != true){
                 if( $type == Organization::COLLECTION )
                     $res = Authorisation::isOrganizationMember($userId, $itemId);
                 if( $type == Project::COLLECTION )
@@ -558,7 +558,7 @@ class Authorisation {
                 if( $type == Event::COLLECTION )
                     $res = Authorisation::isEventMember($userId, $itemId);
                 if($type == City::COLLECTION) $res = true;
-            //}
+            }
             
         }
         return $res;
