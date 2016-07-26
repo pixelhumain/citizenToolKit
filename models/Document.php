@@ -509,7 +509,7 @@ class Document {
         $profilPath = self::getDocumentPath($document);
      	$imageUtils = new ImagesUtils($profilPath);
     	$destPathThumb = $upload_dir."/".self::FILENAME_PROFIL_RESIZED;
-    	$profilThumbUrl = self::getDocumentFolderUrl($document).self::GENERATED_IMAGES_FOLDER."/".self::FILENAME_PROFIL_RESIZED;
+    	$profilThumbUrl = self::getDocumentFolderUrl($document)."/".self::GENERATED_IMAGES_FOLDER."/".self::FILENAME_PROFIL_RESIZED;
     	$imageUtils->resizeImage(50,50)->save($destPathThumb);
     	//GET MEDIUM IMAGE
     	$imageMediumUtils = new ImagesUtils($profilPath);
@@ -518,7 +518,7 @@ class Document {
     	$imageMediumUtils->resizePropertionalyImage(400,400)->save($destPathMedium,100);
 		
 		$destPathMarker = $upload_dir."/".self::FILENAME_PROFIL_MARKER;
-		$profilMarkerImageUrl = self::getDocumentFolderUrl($document).self::GENERATED_IMAGES_FOLDER."/".self::FILENAME_PROFIL_MARKER;
+		$profilMarkerImageUrl = self::getDocumentFolderUrl($document)."/".self::GENERATED_IMAGES_FOLDER."/".self::FILENAME_PROFIL_MARKER;
     	$markerFileName = self::getEmptyMarkerFileName(@$document["type"], @$document["subType"]);
     	if ($markerFileName) {
     		$srcEmptyMarker = self::getPathToMarkersAsset().$markerFileName;
