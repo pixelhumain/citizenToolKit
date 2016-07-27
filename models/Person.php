@@ -1104,7 +1104,7 @@ class Person {
 	  					if($follow["type"] == "citoyens")
 	  						$entity = PHDB::findOneById( self::COLLECTION ,$key );
 	  					else if($follow["type"] == "organizations")
-	  						$entity = PHDB::findOneById(ORGANIZATION::COLLECTION ,$key );
+	  						$entity = PHDB::findOneById(Organization::COLLECTION ,$key );
 
 		                $res[$key] = $entity;
 	  		}
@@ -1770,6 +1770,16 @@ class Person {
 		}
 		return $res;
 
+    }
+
+    public static function getImgProfil($person, $imgName, $assetUrl){
+    	if (isset($person) && !empty($person)) {
+	        if(!empty($person[$imgName]))
+	          return Yii::app()->getRequest()->getBaseUrl(true).$person[$imgName];
+	        else
+	          return $assetUrl.'/images/news/profile_default_l.png';
+	    }
+	    return $assetUrl.'/images/news/profile_default_l.png';
     }
 
 }
