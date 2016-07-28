@@ -1,6 +1,12 @@
 <?php 
 class Preference {
 	public static function getPreferencesByTypeId($id, $type){
+
+		if($type == City::COLLECTION){
+			$city = City::getByUnikey($id);
+			$id = $city["_id"];
+		}
+
 		$entity = PHDB::findOneById( $type ,$id, array("preferences" => 1));
 		$preferences = (empty($entity["preferences"])?array():$entity["preferences"]);
 		return $preferences;
