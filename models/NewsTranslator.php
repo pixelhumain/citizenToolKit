@@ -113,7 +113,13 @@ class NewsTranslator {
 			}
 			$params["media"]["images"]=$images;
 		}
-	  	$params["author"] = Person::getSimpleUserById($params["author"]);
+	  	$author =  Person::getSimpleUserById($params["author"]);
+	  	if (!empty($author))
+	  		$params["author"] = $author;
+	  	else{
+		  	$params=array("created"=>$params["created"]);
+			return $params;
+	  	}
 		return $params;
 	}
 }
