@@ -159,17 +159,19 @@ class ActionRoom {
 		return $res;
      }
 
-     public static function getAllRoomsByTypeId($type, $id){
+     public static function getAllRoomsByTypeId($type, $id, $archived=null){
      	$where = array("created"=>array('$exists'=>1) ) ;
+     	$where["status"] = ($archived) ? ActionRoom::STATE_ARCHIVED : array('$exists' => 0 );
+        
         if(isset($type))
         	$where["parentType"] = $type;
         if(isset($id))
         	$where["parentId"] = $id;
 
         if( $type == Person::COLLECTION )
-            $roomsActions = Person::getActionRoomsByPersonId($id);
+            $roomsActions = Person::getActionRoomsByPersonId($id, $archived);
         else if( isset( Yii::app()->session['userId'] ))
-            $roomsActions = Person::getActionRoomsByPersonIdByType( Yii::app()->session['userId'] ,$type ,$id );
+            $roomsActions = Person::getActionRoomsByPersonIdByType( Yii::app()->session['userId'] ,$type ,$id, $archived );
         else 
             $rooms = ActionRoom::getWhereSortLimit( $where, array("date"=>1), 0);
 

@@ -47,7 +47,7 @@ class IndexAction extends CAction
 
         $urlParams = ( @$type && @$id ) ? "/type/".$type."/id/".$id : "";
 
-        $rooms = ActionRoom::getAllRoomsByTypeId($type, $id);
+        $rooms = ActionRoom::getAllRoomsByTypeId($type, $id, $archived);
         $discussions = $rooms["discussions"];
         $votes = $rooms["votes"];
         $actions = $rooms["actions"];
