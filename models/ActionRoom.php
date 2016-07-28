@@ -141,13 +141,18 @@ class ActionRoom {
 		return $res;
     }
 
+     /**
+        * must be part of the organisation or project to take action 
+        * on city actions anyone can participate
+        * @return [json Map] list
+        */
     public static function assignMe($params){
      	$res = array( "result" => false );
      	if( isset( Yii::app()->session["userId"] ))
      	{ 
      		if( $action = PHDB::findOne( self::COLLECTION_ACTIONS, array("_id"=>new MongoId($params["id"])) ) ) 
      		{
-	     		if( Yii::app()->session["userEmail"] == $action["email"] ) 
+	     		if( Authorisation::canParticipate(Yii::app()->session["userId"], $action["parentType"], $action["parentId"]) ) 
 	     		{
 			     	$res = Link::connect($params["id"], self::COLLECTION_ACTIONS,Yii::app()->session["userId"], Person::COLLECTION, Yii::app()->session["userId"], "contributors", true );
 			     } else 
