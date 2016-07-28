@@ -1772,15 +1772,7 @@ class Person {
 
     }
 
-    public static function getImgProfil($person, $imgName, $assetUrl){
-    	if (isset($person) && !empty($person)) {
-	        if(!empty($person[$imgName]))
-	          return Yii::app()->getRequest()->getBaseUrl(true).$person[$imgName];
-	        else
-	          return $assetUrl.'/images/thumbnail-default.jpg';
-	    }
-	    return $assetUrl.'/images/thumbnail-default.jpg';
-    }
+    
 
 }
 ?>

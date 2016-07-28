@@ -131,4 +131,17 @@ class Element {
 		                          array($verb => $set));
 		return true;
 	}
+
+	public static function getImgProfil($person, $imgName, $assetUrl){
+    	$url = "";
+    	if (isset($person) && !empty($person)) {
+	        if(!empty($person[$imgName]))
+	          $url = Yii::app()->getRequest()->getBaseUrl(true).$person[$imgName];
+	        else
+	          $url = $assetUrl.'/images/thumbnail-default.jpg';
+	    }
+
+	    if(file_exists($url)) return $url;
+	    else return $assetUrl.'/images/thumbnail-default.jpg';
+    }
 }
