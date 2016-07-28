@@ -1777,9 +1777,9 @@ class Person {
 	        if(!empty($person[$imgName]))
 	          return Yii::app()->getRequest()->getBaseUrl(true).$person[$imgName];
 	        else
-	          return $assetUrl.'/images/news/profile_default_l.png';
+	          return $assetUrl.'/images/thumbnail-default.jpg';
 	    }
-	    return $assetUrl.'/images/news/profile_default_l.png';
+	    return $assetUrl.'/images/thumbnail-default.jpg';
     }
 
 }
