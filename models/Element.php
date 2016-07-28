@@ -1,6 +1,8 @@
 <?php 
 class Element {
 
+
+
 	public static function getControlerByCollection ($type) { 
 
 		$ctrls = array(
@@ -16,6 +18,21 @@ class Element {
 	    	ActionRoom::COLLECTION_ACTIONS => ActionRoom::CONTROLLER,
 	    );	    
     	return @$ctrls[$type];
+    }
+
+    public static function getFaIcon ($type) { 
+
+		$fas = array(
+	    	Organization::COLLECTION 	=> "group",
+	    	Person::COLLECTION 			=> "user",
+	    	Event::COLLECTION 			=> "calendar",
+	    	Project::COLLECTION 		=> "lightbulb-o",
+			News::COLLECTION 			=> "rss",
+	    	Need::COLLECTION 			=> "cubes",
+	    	City::COLLECTION 			=> "university",
+	    );	
+	    
+	    return $fas[$type];
     }
 
     /**
@@ -134,14 +151,22 @@ class Element {
 
 	public static function getImgProfil($person, $imgName, $assetUrl){
     	$url = "";
+    	$testUrl = "";
     	if (isset($person) && !empty($person)) {
-	        if(!empty($person[$imgName]))
+	        if(!empty($person[$imgName])){
 	          $url = Yii::app()->getRequest()->getBaseUrl(true).$person[$imgName];
-	        else
+	          $end = strpos($person[$imgName], "?");
+	          if($end<0) $end = strlen($person[$imgName]);
+	          $testUrl = substr($person[$imgName], 1, $end-1);
+	        }
+	        else{
 	          $url = $assetUrl.'/images/thumbnail-default.jpg';
+	          $testUrl = substr($url, 1);
+	        }
 	    }
-
-	    if(file_exists($url)) return $url;
+	    
+	    //echo $testUrl;
+	    if(file_exists($testUrl)) return $url;
 	    else return $assetUrl.'/images/thumbnail-default.jpg';
     }
 }
