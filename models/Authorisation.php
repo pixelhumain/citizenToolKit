@@ -506,6 +506,8 @@ class Authorisation {
     */
     public static function canEditItem($userId, $type, $itemId,$parentType=null,$parentId=null){
         $res=false;
+        error_log("canEditItem type : ".$type);
+            
         if($type == ActionRoom::COLLECTION || $type == ActionRoom::COLLECTION_ACTIONS) {
 			$type= $parentType;
 			$itemId= $parentId;
@@ -531,8 +533,8 @@ class Authorisation {
     	} else if($type == Person::COLLECTION) {
             if($userId==$itemId || Role::isSuperAdmin(Role::getRolesUserId($userId)) == true )
                 $res = true;
-    	} else if($type == City::COLLECTION){
-	    	$res = true;
+    	} else if($type == City::CONTROLLER){
+            $res = true;
     	} 
     	else if($type == Survey::COLLECTION) {
             $res = Authorisation::canEditSurvey($userId, $itemId,$parentType,$parentId);
