@@ -505,9 +505,7 @@ class Authorisation {
     * @return a boolean
     */
     public static function canEditItem($userId, $type, $itemId,$parentType=null,$parentId=null){
-        $res=false;
-        error_log("canEditItem type : ".$type);
-            
+        $res=false;    
         if($type == ActionRoom::COLLECTION || $type == ActionRoom::COLLECTION_ACTIONS) {
 			$type= $parentType;
 			$itemId= $parentId;
