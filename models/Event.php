@@ -454,7 +454,8 @@ class Event {
 		$pref = Preference::getPreferencesByTypeId($eventId, self::COLLECTION);
 	 	$authorization = Preference::isOpenEdition($pref);
 	 	if($authorization == false){
-			$authorization=Authorisation::isEventAdmin($eventId, $userId);
+	 		$authorization=Authorisation::canEditItem($userId, self::COLLECTION, $eventId);
+			//$authorization=Authorisation::isEventAdmin($eventId, $userId);
 			if (! $authorization) {
 				throw new CTKException("Can not update the event : you are not authorized to update that event!");	
 			}
