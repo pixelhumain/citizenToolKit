@@ -99,10 +99,13 @@ class Preference {
 		    array('$set' => array("preferences.privateFields" => $privateFields, "preferences.publicFields" => $publicFields)));*/		
 		PHDB::update($type, array("_id" => new MongoId($id)), 
 		    array('$set' => array("preferences" => $preferences)));
-		
+
+		ActivityStream::saveActivityHistory(ActStr::VERB_UPDATE, $id, $type, $setType, self::valueActivityStream($setValue));
 		$res = array("result" => true, "msg" => Yii::t("common","Confidentiality param well updated"));
 		return $res;
 	}
+
+	
 
 
 	public static function isOpenData($preferences) {
@@ -117,6 +120,18 @@ class Preference {
 		if(@$preferences["isOpenEdition"])
 			$isOpenData = true ;
 		return $isOpenData;
+	}
+
+	public static function valueActivityStream($setValue) {
+		$value = "";
+		if($setValue == true)
+			$value = Yii::t("common","True");
+		else if($setValue == false)
+			$value = Yii::t("common","False");
+		else 
+			$value = $setValue;
+
+		return $value;
 	}
 
 
