@@ -892,7 +892,7 @@ class Person {
 	 * @return person document as in db
 	*/
 	public static function getActionRoomsByPersonIdByType($uid,$type,$id,$archived=null) 
-	{
+	{ 
 		if(isset($type))
         	$where["parentType"] = $type;
         if(isset($id))

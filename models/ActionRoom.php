@@ -165,7 +165,8 @@ class ActionRoom {
      }
 
      public static function getAllRoomsByTypeId($type, $id, $archived=null){
-     	$where = array("created"=>array('$exists'=>1) ) ;
+
+        $where = array("created"=>array('$exists'=>1) ) ;
      	$where["status"] = ($archived) ? ActionRoom::STATE_ARCHIVED : array('$exists' => 0 );
         
         if(isset($type))
