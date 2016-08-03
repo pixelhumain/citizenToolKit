@@ -31,6 +31,7 @@ class SaveRoomAction extends CAction
                     $newInfos['tags'] = $_POST['tags'];
                 
                 $newInfos['created'] = time();
+                $newInfos['updated'] = time();
                 PHDB::insert( Survey::PARENT_COLLECTION, $newInfos );
                 /*PHDB::updateWithOptions( Survey::PARENT_COLLECTION,  array( "name" => $name ), 
                                                    array('$set' => $newInfos ) ,

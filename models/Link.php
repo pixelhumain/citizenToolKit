@@ -173,7 +173,7 @@ class Link {
 	    //0. Check if the $originId and the $targetId exists
         $origin = Link::checkIdAndType($originId, $originType);
 		$target = Link::checkIdAndType($targetId, $targetType);
-        $links=array("links.".$connectType.".".$targetId.".type" => $targetType);
+        $links=array("links.".$connectType.".".$targetId.".type" => $targetType,"updated"=>time());
 	    if($isPending){
 		    //If event, refers has been invited by and user as to confirm its attendee to the event
 		    if($targetType==Event::COLLECTION || $originType==Event::COLLECTION){
@@ -184,7 +184,10 @@ class Link {
 	    }else if($targetType==Event::COLLECTION || $originType==Event::COLLECTION){
 		    PHDB::update($originType, 
                        array("_id" => $origin["_id"]) , 
-                       array('$unset' => array("links.".$connectType.".".$targetId => "")));
+                       array(
+                        '$unset' => array("links.".$connectType.".".$targetId => ""),
+                        '$set' => array( "updated"=>time() )
+                        ));
 	    }
         if($isAdmin){
         	$links["links.".$connectType.".".$targetId.".".Link::IS_ADMIN]=$isAdmin;

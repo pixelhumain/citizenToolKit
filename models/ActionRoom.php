@@ -209,4 +209,50 @@ class ActionRoom {
                             "history" => $actionHistory );
        	return $params;
      }
+
+     public static function getAllRoomsActivityByTypeId($type, $id, $archived=null){
+
+        $where = array("created"=>array('$exists'=>1) ) ;
+        $where["status"] = ($archived) ? ActionRoom::STATE_ARCHIVED : array('$exists' => 0 );
+        
+        if(isset($type))
+            $where["parentType"] = $type;
+        if(isset($id))
+            $where["parentId"] = $id;
+
+        if( $type == Person::COLLECTION )
+            $roomsActions = Person::getActionRoomsByPersonId($id, $archived);
+        else if( isset( Yii::app()->session['userId'] ))
+            $roomsActions = Person::getActionRoomsByPersonIdByType( Yii::app()->session['userId'] ,$type ,$id, $archived );
+        else 
+            $rooms = ActionRoom::getWhereSortLimit( $where, array("date"=>1), 0);
+
+        $actionHistory = array();
+        if( isset($roomsActions) && isset($roomsActions["rooms"]) && isset($roomsActions["actions"])  ){
+            $rooms   = $roomsActions["rooms"];
+            $actionHistory = $roomsActions["actions"];
+        }
+        
+        //error_log("count rooms : ".count($rooms));
+
+        $discussions = array();
+        $votes = array();
+        $actions = array();
+        foreach ($rooms as $e) 
+        { 
+            if( in_array($e["type"], array(ActionRoom::TYPE_DISCUSS, ActionRoom::TYPE_FRAMAPAD) )  ){
+                array_push($discussions, $e);
+            }
+            else if ( $e["type"] == ActionRoom::TYPE_VOTE ){
+                array_push($votes, $e);
+            } else if ( $e["type"] == ActionRoom::TYPE_ACTIONS ){
+                array_push($actions, $e);
+            }
+        }
+        $params = array(    "discussions" => $discussions, 
+                            "votes" => $votes, 
+                            "actions" => $actions, 
+                            "history" => $actionHistory );
+        return $params;
+     }
 }
