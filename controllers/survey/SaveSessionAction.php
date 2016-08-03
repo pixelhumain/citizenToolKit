@@ -60,7 +60,7 @@ class SaveSessionAction extends CAction
                 if( isset($_POST['dateEnd']) && $_POST['dateEnd'] != "" )
                     $entryInfos['dateEnd'] = strtotime( str_replace("/", "-", $_POST['dateEnd']).' 23:59:59' );
 
-                $entryInfos['created'] = time();
+                $entryInfos['updated'] = time();
                 
 
                 $where = array();
@@ -73,6 +73,7 @@ class SaveSessionAction extends CAction
                 } else {
                     $surveyId = new MongoId();
                     $entryInfos["_id"] = $surveyId;
+                    $entryInfos['created'] = time();
                     $result = PHDB::insert( Survey::COLLECTION,$entryInfos );
                 }
                 

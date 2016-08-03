@@ -32,20 +32,20 @@ class IndexAction extends CAction
         }
 
         //gère l'activation du DDA sur project et orga
-        if((!isset($parent["modules"]) || !in_array("survey", $parent["modules"])) 
-            && $type != City::COLLECTION 
-            && $type != Person::COLLECTION ){ 
-            echo $controller->renderPartial("../pod/roomsList" , 
-                                            array(  "empty"=>true, 
-                                                    "parent" => $parent, 
-                                                    "parentId" => $id, 
-                                                    "parentType" => $type,
-                                                    "type"=>$type,
-                                                    ), true);
-            return;
-        }
+        // if((!isset($parent["modules"]) || !in_array("survey", $parent["modules"])) 
+        //     && $type != City::COLLECTION 
+        //     && $type != Person::COLLECTION ){ 
+        //     echo $controller->renderPartial("../pod/roomsList" , 
+        //                                     array(  "empty"=>true, 
+        //                                             "parent" => $parent, 
+        //                                             "parentId" => $id, 
+        //                                             "parentType" => $type,
+        //                                             "type"=>$type,
+        //                                             ), true);
+        //     return;
+        // }
 
-        $urlParams = ( @$type && @$id ) ? "/type/".$type."/id/".$id : "";
+        //$urlParams = ( @$type && @$id ) ? "/type/".$type."/id/".$id : "";
 
         $rooms = ActionRoom::getAllRoomsByTypeId($type, $id, $archived);
         $discussions = $rooms["discussions"];

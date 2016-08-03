@@ -316,8 +316,8 @@ class Person {
 			}
 		}
 
-		//trie les éléments dans l'ordre alphabetique par name
-	  	function mySort($a, $b){ 
+	//trie les éléments dans l'ordre alphabetique par name
+  	function mySort($a, $b){ 
 		  	if( isset($a['name']) && isset($b['name']) ){
 		    	return (strtolower($b['name']) < strtolower($a['name']));
 			}else{
@@ -892,7 +892,7 @@ class Person {
 	 * @return person document as in db
 	*/
 	public static function getActionRoomsByPersonIdByType($uid,$type,$id,$archived=null) 
-	{
+	{ 
 		if(isset($type))
         	$where["parentType"] = $type;
         if(isset($id))
