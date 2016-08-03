@@ -6,10 +6,10 @@ class DetailAction extends CAction {
 */
     public function run($type, $id) { 
     	$controller=$this->getController();
-		$element = $type::getById($id);
 		$members=array();
 		$list = Lists::get(array("eventTypes"));
 		if($type == Organization::CONTROLLER){
+			$element = Organization::getById($id);
 			$params["listTypes"] = isset($lists["organisationTypes"]) ? $lists["organisationTypes"] : null;
 			$params["eventTypes"] = $list["eventTypes"];
 			$params["public"] 			 = isset($lists["public"]) 			  ? $lists["public"] : null;
@@ -21,10 +21,12 @@ class DetailAction extends CAction {
 			$connectType = "members";
 
 		} else if ($type == Project::COLLECTION){
+			$element = Project::getById($id);
 			$params["eventTypes"] = $listEvent["eventTypes"];
 			$params["organizationTypes"] = $lists["organisationTypes"];
 			$connectType = "contributors";
 		} else if ($type == Event::COLLECTION){
+			$element = Event::getById($id);
 			$params["eventTypes"] = $list["eventTypes"];
 			$connectType = "attendees";
 		}
