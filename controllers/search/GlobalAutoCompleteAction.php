@@ -39,16 +39,18 @@ class GlobalAutoCompleteAction extends CAction
         	$queryLocality = array();
         	
         	if($type == "NAME"){ 
-        		$queryLocality = array("address.addressLocality" => new MongoRegex("/".$locality."/i"));
+        		$queryLocality = array("address.addressLocality" => new MongoRegex("/".$locality." /"));
         	}
         	if($type == "CODE_POSTAL_INSEE") {
         		$queryLocality = array("address.postalCode" => $locality );
         	}
         	if($type == "DEPARTEMENT") {
-        		/*$queryLocality = array("address.postalCode" 
-						=> new MongoRegex("/^".$locality."/i"));*/
+        		$queryLocality = array("address.postalCode" 
+						=> new MongoRegex("/^".$locality."/i"));
 
-				$dep = PHDB::findOne( City::COLLECTION, array("insee" => $locality), array("depName", "dep"));
+				//$queryLocality = array("address.postalCode" => new MongoRegex("/[^".$locality."]/i"));
+				/*	
+				$dep = PHDB::findOne( City::COLLECTION, array("dep" => $locality), array("depName", "dep"));
         		
 				if(isset($dep["depName"])){ //quand la city a bien la donnée "depName"
         			/*$depName = $dep["depName"];
@@ -63,7 +65,7 @@ class GlobalAutoCompleteAction extends CAction
 				        	$queryLocality = array("address.postalCode" => array('$in' => $inQuest));
 	        				
 				        }
-        			}*/
+        			}* /
 
         			$depId = $dep["dep"];
         			$cities = PHDB::find( City::COLLECTION, array("dep" => $depId), array("postalCodes"));
@@ -73,15 +75,16 @@ class GlobalAutoCompleteAction extends CAction
 		        			$inQuest[] = $postalCodes["postalCode"];
 					    }
         			}
-        			$queryLocality = array("address.postalCode" => array('$in' => $inQuest));
+        			$queryLocality = array("address.postalCode" => new MongoRegex("/[^".$locality."]/i"); //array('$in' => $inQuest));
         			
         		}else{ //quand la city communectée n'a pas la donnée "depName", on prend son département à la place
         			/*$depId = isset($depId["dep"]) ? $depId["dep"] : "";
         			$queryLocality = array("address.postalCode" 
-						=> new MongoRegex("/^".$depId."/i"));*/
+						=> new MongoRegex("/^".$depId."/i"));* /
         		}
         		//$str = implode(",", $regionName);
-        		error_log("depName : ".$depId );
+        		*/
+        		//error_log("depName : ".$depId );
         	}
         	if($type == "REGION") {
         		//#TODO GET REGION NAME | CITIES.DEP = myDep
@@ -117,6 +120,7 @@ class GlobalAutoCompleteAction extends CAction
         		$queryLocality = array("address.codeInsee" => $locality );
         	}
         	
+        	if(!empty($queryLocality))
         	$query = array('$and' => array($query, $queryLocality ) );
 	    }
 
