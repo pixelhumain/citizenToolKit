@@ -13,6 +13,7 @@ class GetAllLinksAction extends CAction {
 		$contextMap["organizations"] = array();
 		$contextMap["projects"] = array();
 		$contextMap["events"] = array();
+		$contextMap["followers"] = array();
 		if(!empty($links)){
 			if(isset($links["members"])){
 				foreach ($links["members"] as $key => $aMember) {
@@ -23,9 +24,12 @@ class GetAllLinksAction extends CAction {
 								$newOrga["isAdmin"]=true;  				
 							}
 							$newOrga["type"]=Organization::COLLECTION;
-							array_push($contextMap["organizations"], $newOrga);
+							if (!@$newOrga["disabled"]) {
+								array_push($contextMap["organizations"], $newOrga);
+							}
 						}
-					} else if($aMember["type"]==Person::COLLECTION){
+					} 
+					else if($aMember["type"]==Person::COLLECTION){
 						$newCitoyen = Person::getSimpleUserById($key);
 						if (!empty($newCitoyen)) {
 							if (@$aMember["type"] == Person::COLLECTION) {
@@ -49,27 +53,40 @@ class GetAllLinksAction extends CAction {
 			if(isset($links["events"])){
 				foreach ($links["events"] as $keyEv => $valueEv) {
 					 $event = Event::getSimpleEventById($keyEv);
-					 array_push($contextMap["events"], $event);
+					 if(!empty($event))
+					 	array_push($contextMap["events"], $event);
 				}
 			}
 	
 			// Link with projects
 			if(isset($links["projects"])){
 				foreach ($links["projects"] as $keyProj => $valueProj) {
-					 $project = Project::getPublicData($keyProj);
+					 $project = Project::getSimpleProjectById($keyProj);
+					 if (!empty($project))
 	           		 array_push($contextMap["projects"], $project);
 				}
 			}
+
+			if(isset($links["followers"])){
+				foreach ($links["followers"] as $key => $value) {
+					$newCitoyen = Person::getSimpleUserById($key);
+					if (!empty($newCitoyen))
+					array_push($contextMap["followers"], $newCitoyen);
+				}
+			}
+
+
 			// Link with needs
-			if(isset($organization["links"]["needs"])){
+			/*if(isset($organization["links"]["needs"])){
 				foreach ($organization["links"]["needs"] as $key => $value){
 					$need = Need::getSimpleNeedById($key);
 					//array_push($contextMap["projects"], $project);
 				}
-			}
+			}*/
 		}	
 		return Rest::json($contextMap);
 		Yii::app()->end();
 	}
 }
+
 ?>
