@@ -8,7 +8,7 @@ class DetailAction extends CAction {
     	$controller=$this->getController();
 		$members=array();
 		$list = Lists::get(array("eventTypes"));
-		if($type == Organization::CONTROLLER){
+		if($type == Organization::COLLECTION){
 			$element = Organization::getById($id);
 			$params["listTypes"] = isset($lists["organisationTypes"]) ? $lists["organisationTypes"] : null;
 			$params["eventTypes"] = $list["eventTypes"];
@@ -16,20 +16,38 @@ class DetailAction extends CAction {
 			$params["typeIntervention"]  = isset($lists["typeIntervention"])  ? $lists["typeIntervention"] : null;
 			$params["NGOCategories"] 	 = isset($lists["NGOCategories"]) 	  ? $lists["NGOCategories"] : null;
 			$params["localBusinessCategories"] = isset($lists["localBusinessCategories"]) ? $lists["localBusinessCategories"] : null;
-			$params["type"] = Organization::COLLECTION;
-			$params["controller"] = $type;
+			$params["controller"] = Organization::CONTROLLER;
 			$connectType = "members";
 
 		} else if ($type == Project::COLLECTION){
 			$element = Project::getById($id);
-			$params["eventTypes"] = $listEvent["eventTypes"];
-			$params["organizationTypes"] = $lists["organisationTypes"];
+			$params["eventTypes"] = $list["eventTypes"];
+			$params["listTypes"] = @$lists["organisationTypes"];
 			$connectType = "contributors";
+			$params["controller"] = Project::CONTROLLER;
 		} else if ($type == Event::COLLECTION){
 			$element = Event::getById($id);
 			$params["eventTypes"] = $list["eventTypes"];
 			$connectType = "attendees";
+			$params["controller"] = Event::CONTROLLER;
+			$invitedNumber=0;
+			$attendeeNumber=0;
+			if(@$element["links"][$connectType]){
+				foreach ($element["links"][$connectType] as $uid => $e) {
+					if(@$e["invitorId"]){
+		  				if(@Yii::app()->session["userId"] && $uid==Yii::app()->session["userId"])
+		  					$params["invitedMe"]=array("invitorId"=>$e["invitorId"],"invitorName"=>$e["invitorName"]);
+		  				$invitedNumber++;
+			  		} else
+	  					$attendeeNumber++;
+
+				}
+			}
+		} else if ($type == Person::COLLECTION){
+			$element = Person::getById($id);
+			$params["controller"] = Person::CONTROLLER;
 		}
+
 		if(isset($element["links"][$connectType])){
 			$countStrongLinks=count($element["links"][$connectType]);
 			$nbMembers=0;
@@ -73,13 +91,20 @@ class DetailAction extends CAction {
 		$params["tags"] = Tags::getActiveTags();
 		$params["element"] = $element;
 		$params["members"] = $members;
-		$params["countStrongLinks"]= @$countStrongLinks;
-		$params["countLowLinks"] = count(@$element["links"]["followers"]);
+		$params["type"] = $type;
+		if($type==Event::COLLECTION){
+			$params["countStrongLinks"]= @$attendeeNumber;
+			$params["countLowLinks"] = @$invitedNumber;
+		}
+		else{
+			$params["countStrongLinks"]= @$countStrongLinks;
+			$params["countLowLinks"] = count(@$element["links"]["followers"]);
+		}
 		$params["countries"] = OpenData::getCountriesList();
 		$page = "detail";
 		if(Yii::app()->request->isAjaxRequest)
           echo $controller->renderPartial($page,$params,true);
         else 
-			    $controller->render( $page , $params );
+			$controller->render( $page , $params );
     }
 }

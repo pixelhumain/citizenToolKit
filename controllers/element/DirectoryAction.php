@@ -10,7 +10,13 @@ class DirectoryAction extends CAction
     public function run( $type=null, $id=null )
     {
         $controller = $this->getController();
-		$links=@$_POST["links"];
+		if(@$_POST["element"]){
+			$element = $_POST["element"];
+			$links = $_POST["links"];
+		}else{
+			$element = Element::getByTypeAndId($type,$id);
+			$links = Element::getAllLinks($element["links"],$type);
+		}
 		$params = array(
             "organizations" => @$links["organizations"],
             "events" => @$links["events"],
@@ -22,9 +28,10 @@ class DirectoryAction extends CAction
         $params["type"] = Organization::CONTROLLER;
         $params["parentType"] = $type;
         $params["parentId"] = $id;
-    	$page = "../element/directory";
-        if( isset($_GET[ "tpl" ]) )
-          $page = "../element/directory2";
+        $params["element"] = $element;
+    	//$page = "element/directory";
+        //if( isset($_GET[ "tpl" ]) )
+        $page = "directory2";
         if(Yii::app()->request->isAjaxRequest){
             echo $controller->renderPartial($page,$params,true);
         }
