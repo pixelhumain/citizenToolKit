@@ -65,7 +65,8 @@ class SaveActionAction extends CAction
                 if( isset($_POST['startDate']) && $_POST['startDate'] != "" )
                     $entryInfos['startDate'] = round(strtotime( str_replace("/", "-", $_POST['startDate']) ));
 
-                $entryInfos['created'] = time();
+                
+                $entryInfos['updated'] = time();
                 
 
                 $where = array();
@@ -76,6 +77,7 @@ class SaveActionAction extends CAction
                     $actionId = $_POST['id'];
                 } else {
                     $actionId = new MongoId();
+                    $entryInfos['created'] = time();
                     $entryInfos["_id"] = $actionId;
                     $result = PHDB::insert( ActionRoom::COLLECTION_ACTIONS,$entryInfos );
                 }

@@ -87,16 +87,18 @@ class Action
                 }
                 
                 if($unset){
-                    PHDB::update ($collection, array("_id" => new MongoId($element["_id"])), 
-                                       array( $dbMethod => array( 
-                                                    $action.".".Yii::app()->session["userId"] => 1),
-                                                '$inc'=>array( $action."Count" => $inc)));
+                    PHDB::update ( $collection, array( "_id" => new MongoId($element["_id"]) ), 
+                                                array( $dbMethod => array(  $action.".".Yii::app()->session["userId"] => 1),
+                                                       '$inc'=>array( $action."Count" => $inc),
+                                                       '$set'=>array( "updated" => time())
+                                                       ));
                 }
                 else{
-                    $mapObject[$action.".".(string)$user["_id"]] = $details ;
+                    $mapObject[ $action.".".(string)$user["_id"] ] = $details ;
                     PHDB::update ($collection, array("_id" => new MongoId($element["_id"])), 
                                        array( $dbMethod => $mapObject,
-                                                '$inc'=>array( $action."Count" => $inc)));
+                                              '$set'=>array( "updated" => time()),
+                                              '$inc'=>array( $action."Count" => $inc)));
 
                 }
 
