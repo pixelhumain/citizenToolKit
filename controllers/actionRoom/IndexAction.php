@@ -24,7 +24,7 @@ class IndexAction extends CAction
                 
     
         if($parent != null && isset($parent['name'])){
-            error_log("test ok ? ".$parent['name']);
+            //error_log("test ok ? ".$parent['name']);
             $nameParentTitle = $parent['name'];
         }
         else{
