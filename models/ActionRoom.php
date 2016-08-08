@@ -9,6 +9,7 @@ class ActionRoom {
 	const TYPE_FRAMAPAD 	= "framapad"; // systeme de discussioin voir avec dialoguea
 	const TYPE_BRAINSTORM 	= "proposals"; //systeme de rpopositions pour prendre des décision
 	const TYPE_VOTE 		= "vote"; //vote
+    const TYPE_ENTRY        = "entry"; //vote
 	const TYPE_DISTRIBUTE	= "distribute"; //vote par distribution sur des proposition
 	
 	const STATE_ARCHIVED 		= "archived";
@@ -65,29 +66,29 @@ class ActionRoom {
     	return $res;
      }
      /**
-        *
-        * @return [json Map] list
-        */
-     	public static function insert($parentRoom,$type,$copyOf=null)
-     	{
-     	    /*if (! Authorisation::canParticipate(Yii::app()->session['userId'],$parentRoom['parentType'],$parentRoom['parentId']) ) {
-				throw new CTKException("Can not update the event : you are not authorized to update that event!");	
-			}*/
-     	    
-            $newInfos = array();
-            $newInfos['email'] = Yii::app()->session['userEmail'];
-            $newInfos['name'] = $parentRoom['name'];
-            $newInfos['type'] = $type;
-            if( @$copyOf )
-            	$newInfos['copyOf'] = $copyOf;
-            $newInfos['parentType'] = $parentRoom['parentType'];
-            $newInfos['parentId'] = $parentRoom['parentId'];
-            if( count(@$parentRoom['tags'])>0 )
-                $newInfos['tags'] = $parentRoom['tags'];
-            $newInfos['created'] = time();
-            PHDB::insert( ActionRoom::COLLECTION, $newInfos );
-            return $newInfos;
-     	}
+    *
+    * @return [json Map] list
+    */
+ 	public static function insert($parentRoom,$type,$copyOf=null)
+ 	{
+ 	    /*if (! Authorisation::canParticipate(Yii::app()->session['userId'],$parentRoom['parentType'],$parentRoom['parentId']) ) {
+			throw new CTKException("Can not update the event : you are not authorized to update that event!");	
+		}*/
+ 	    
+        $newInfos = array();
+        $newInfos['email'] = Yii::app()->session['userEmail'];
+        $newInfos['name'] = $parentRoom['name'];
+        $newInfos['type'] = $type;
+        if( @$copyOf )
+        	$newInfos['copyOf'] = $copyOf;
+        $newInfos['parentType'] = $parentRoom['parentType'];
+        $newInfos['parentId'] = $parentRoom['parentId'];
+        if( count(@$parentRoom['tags'])>0 )
+            $newInfos['tags'] = $parentRoom['tags'];
+        $newInfos['created'] = time();
+        PHDB::insert( ActionRoom::COLLECTION, $newInfos );
+        return $newInfos;
+ 	}
      public static function deleteAction($params){
      	$res = array( "result" => false );
      	if( isset( Yii::app()->session["userId"] ))
@@ -131,6 +132,7 @@ class ActionRoom {
 	     			PHDB::update( self::COLLECTION_ACTIONS,
 	     							array("_id" => $action["_id"]), 
                           			array('$set' => array("status"=> $status )));
+                    Action::updateParent($_POST['id'], self::COLLECTION_ACTIONS);
 	     			$res["result"] = true;
 			     } else 
 			     	$res["msg"] = "restrictedAccess";
@@ -155,6 +157,7 @@ class ActionRoom {
 	     		if( Authorisation::canParticipate(Yii::app()->session["userId"], $action["parentType"], $action["parentId"]) ) 
 	     		{
 			     	$res = Link::connect($params["id"], self::COLLECTION_ACTIONS,Yii::app()->session["userId"], Person::COLLECTION, Yii::app()->session["userId"], "contributors", true );
+                    Action::updateParent($_POST['id'], self::COLLECTION_ACTIONS);
 			     } else 
 			     	$res["msg"] = "restrictedAccess";
 		     } else
@@ -244,14 +247,14 @@ class ActionRoom {
             }
             else if ( $e["type"] == self::TYPE_VOTE ){
                 //get all survey for this room by sorting
-                $surveys = PHDB::findAndSort( Survey::COLLECTION,array("survey"=>(string)$e["_id"]),array("updated"=>1), 10);
+                $surveys = PHDB::findAndSort( Survey::COLLECTION,array("survey"=>(string)$e["_id"],"updated"=>array('$exists'=>1)),array("updated"=>1), 10);
                 foreach ($surveys as $s) 
                 { 
                     array_push($proposals, $s);
                 }
             } else if ( $e["type"] == self::TYPE_ACTIONS ){
                 //get all survey for this room by sorting
-                $actionElements = PHDB::findAndSort( self::TYPE_ACTIONS,array("room"=>(string)$e["_id"]),array("updated"=>1), 10);
+                $actionElements = PHDB::findAndSort( self::TYPE_ACTIONS,array("room"=>(string)$e["_id"],"updated"=>array('$exists'=>1)),array("updated"=>1), 10);
                 foreach ($actionElements as $a) 
                 { 
                     array_push($actions, $a);
@@ -261,22 +264,16 @@ class ActionRoom {
         
         function mySort($a, $b){ 
             if( isset($a['updated']) && isset($b['updated']) ){
-                return (strtolower($b['updated']) < strtolower($a['updated']));
+                return (strtolower(@$b['updated']) > strtolower(@$a['updated']));
             }else{
                 return false;
             }
         }
         
-        $params = array(    "discussions" => $discussions, 
-                            "votes" => $proposals, 
-                            "actions" =>  $actions );
+        $list = array_merge($discussions,$proposals,$actions);
+        usort($list,"mySort");
 
-        /*
-        $params = array(    "discussions" => usort($discussions,"mySort", 
-                            "votes" => usort($proposals,"mySort"), 
-                            "actions" =>  usort($actions,"mySort") );
-        */
-        return $params;
+        return $list;
      }
      
 }

@@ -29,7 +29,37 @@ class Element {
 	    	Project::COLLECTION 		=> "lightbulb-o",
 			News::COLLECTION 			=> "rss",
 	    	Need::COLLECTION 			=> "cubes",
-	    	City::COLLECTION 			=> "university"
+	    	City::COLLECTION 			=> "university",
+	    	ActionRoom::TYPE_ACTION		=> "cog",
+	    	ActionRoom::TYPE_ENTRY		=> "archive",
+	    	ActionRoom::TYPE_DISCUSS	=> "comment",
+	    );	
+	    
+	    if(isset($fas[$type])) return $fas[$type];
+	    else return false;
+    }
+    public static function getElementSpecsByType ($type) { 
+    	$ctrler = self::getControlerByCollection ($type);
+    	$prefix = "#".$ctrler;
+		$fas = array(
+	    	Organization::COLLECTION 	=> array("icon"=>"group",
+	    										 "hash"=> $prefix.".detail.id."),
+	    	Person::COLLECTION 			=> array("icon"=>"user",
+	    										 "hash"=> $prefix.".detail.id."),
+	    	Project::COLLECTION 		=> array("icon"=>"lightbulb-o",
+	    										 "hash"=> $prefix.".detail.id."),
+			News::COLLECTION 			=> array("icon"=>"rss",
+												 "hash"=> $prefix.""),
+	    	Need::COLLECTION 			=> array("icon"=>"cubes",
+	    										 "hash"=> $prefix.""),
+	    	City::COLLECTION 			=> array("icon"=>"university",
+	    										 "hash"=> $prefix.""),
+	    	ActionRoom::TYPE_ACTION		=> array("icon"=>"cog",
+	    		 								 "hash"=> "#rooms.action.id."),
+	    	ActionRoom::TYPE_ENTRY		=> array("icon"=>"archive",
+	    										 "hash"=> "#survey.entry.id."),
+	    	ActionRoom::TYPE_DISCUSS	=> array("icon"=>"comment",
+	    										 "hash"=> "#comment.index.type.actionRooms.id."),
 	    );	
 	    
 	    if(isset($fas[$type])) return $fas[$type];
