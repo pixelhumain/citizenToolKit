@@ -9,6 +9,7 @@ class ActionRoom {
 	const TYPE_FRAMAPAD 	= "framapad"; // systeme de discussioin voir avec dialoguea
 	const TYPE_BRAINSTORM 	= "proposals"; //systeme de rpopositions pour prendre des décision
 	const TYPE_VOTE 		= "vote"; //vote
+    const TYPE_ENTRY        = "entry"; //vote
 	const TYPE_DISTRIBUTE	= "distribute"; //vote par distribution sur des proposition
 	
 	const STATE_ARCHIVED 		= "archived";
@@ -244,14 +245,14 @@ class ActionRoom {
             }
             else if ( $e["type"] == self::TYPE_VOTE ){
                 //get all survey for this room by sorting
-                $surveys = PHDB::findAndSort( Survey::COLLECTION,array("survey"=>(string)$e["_id"]),array("updated"=>1), 10);
+                $surveys = PHDB::findAndSort( Survey::COLLECTION,array("survey"=>(string)$e["_id"],"updated"=>array('$exists'=>1)),array("updated"=>1), 10);
                 foreach ($surveys as $s) 
                 { 
                     array_push($proposals, $s);
                 }
             } else if ( $e["type"] == self::TYPE_ACTIONS ){
                 //get all survey for this room by sorting
-                $actionElements = PHDB::findAndSort( self::TYPE_ACTIONS,array("room"=>(string)$e["_id"]),array("updated"=>1), 10);
+                $actionElements = PHDB::findAndSort( self::TYPE_ACTIONS,array("room"=>(string)$e["_id"],"updated"=>array('$exists'=>1)),array("updated"=>1), 10);
                 foreach ($actionElements as $a) 
                 { 
                     array_push($actions, $a);
@@ -261,22 +262,16 @@ class ActionRoom {
         
         function mySort($a, $b){ 
             if( isset($a['updated']) && isset($b['updated']) ){
-                return (strtolower($b['updated']) < strtolower($a['updated']));
+                return (strtolower(@$b['updated']) > strtolower(@$a['updated']));
             }else{
                 return false;
             }
         }
         
-        $params = array(    "discussions" => $discussions, 
-                            "votes" => $proposals, 
-                            "actions" =>  $actions );
+        $list = array_merge($discussions,$proposals,$actions);
+        usort($list,"mySort");
 
-        /*
-        $params = array(    "discussions" => usort($discussions,"mySort", 
-                            "votes" => usort($proposals,"mySort"), 
-                            "actions" =>  usort($actions,"mySort") );
-        */
-        return $params;
+        return $list;
      }
      
 }
