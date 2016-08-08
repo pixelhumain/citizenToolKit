@@ -64,22 +64,24 @@ class DetailAction extends CAction {
 							array_push($members, $newOrga);
 						}
 					} else if($aMember["type"]==Person::COLLECTION){
-						$newCitoyen = Person::getSimpleUserById($key);
-						if (!empty($newCitoyen)) {
-							if (@$aMember["type"] == Person::COLLECTION) {
-								if(@$aMember["isAdmin"]){
-									if(@$aMember["isAdminPending"])
-										$newCitoyen["isAdminPending"]=true;  
-										$newCitoyen["isAdmin"]=true;  	
-								}			
-								if(@$aMember["toBeValidated"]){
-									$newCitoyen["toBeValidated"]=true;  
-								}		
-			  				
+						if(!@$aMember["invitorId"]){
+							$newCitoyen = Person::getSimpleUserById($key);
+							if (!empty($newCitoyen)) {
+								if (@$aMember["type"] == Person::COLLECTION) {
+									if(@$aMember["isAdmin"]){
+										if(@$aMember["isAdminPending"])
+											$newCitoyen["isAdminPending"]=true;  
+											$newCitoyen["isAdmin"]=true;  	
+									}			
+									if(@$aMember["toBeValidated"]){
+										$newCitoyen["toBeValidated"]=true;  
+									}		
+				  				
+								}
+								$newCitoyen["type"]=Person::COLLECTION;
+								//array_push($contextMap["people"], $newCitoyen);
+								array_push($members, $newCitoyen);
 							}
-							$newCitoyen["type"]=Person::COLLECTION;
-							//array_push($contextMap["people"], $newCitoyen);
-							array_push($members, $newCitoyen);
 						}
 					}
 					$nbMembers++;

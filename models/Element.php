@@ -29,10 +29,11 @@ class Element {
 	    	Project::COLLECTION 		=> "lightbulb-o",
 			News::COLLECTION 			=> "rss",
 	    	Need::COLLECTION 			=> "cubes",
-	    	City::COLLECTION 			=> "university",
+	    	City::COLLECTION 			=> "university"
 	    );	
 	    
-	    return $fas[$type];
+	    if(isset($fas[$type])) return $fas[$type];
+	    else return false;
     }
 
     /**
