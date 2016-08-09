@@ -3,7 +3,7 @@ class Api {
 
 	const COLLECTION = "gantts";
 	
-	public static function getData($bindMap, $format = null, $type, $id = null, $limit=50, $index=0, $tags = null, $multiTags=null , $key = null, $insee = null){
+	public static function getData($bindMap, $format = null, $type, $id = null, $limit=50, $index=0, $tags = null, $multiTags=null , $key = null, $insee = null, $typeNews = null){
     	$data = null;
         $typeResult = "entities";
 
