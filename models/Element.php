@@ -188,6 +188,9 @@ class Element {
 		    $connectAs="contributors";
 		else if ($type == Event::COLLECTION)
 			$connectAs="attendees";
+		else if ($type == Person::COLLECTION)
+			$connectAs="knows";
+
 	    $contextMap = array();
 		$contextMap["organization"] = array();
 		$contextMap["people"] = array();
@@ -253,6 +256,13 @@ class Element {
 					$newCitoyen = Person::getSimpleUserById($key);
 					if (!empty($newCitoyen))
 					array_push($contextMap["followers"], $newCitoyen);
+				}
+			}
+			if(isset($links["membersOf"])){
+				foreach ($links["membersOf"] as $key => $value) {
+					$newOrga = Organization::getSimpleOrganizationById($key);
+					if (!empty($newOrga))
+					array_push($contextMap["membersOf"], $newOrga);
 				}
 			}
 

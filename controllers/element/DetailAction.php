@@ -46,6 +46,7 @@ class DetailAction extends CAction {
 		} else if ($type == Person::COLLECTION){
 			$element = Person::getById($id);
 			$params["controller"] = Person::CONTROLLER;
+			$connectType = "attendees";
 		}
 
 		if(isset($element["links"][$connectType])){
