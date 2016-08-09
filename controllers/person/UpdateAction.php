@@ -6,7 +6,7 @@ class UpdateAction extends CAction
 	* Update an information field for an organization
 	*/
     public function run() {
-		assert('!empty($_POST["personId"]) != ""; //The person Id is mandatory');
+		assert(!empty($_POST["personId"]) != ""); //The person Id is mandatory');
 		if ( ! Person::logguedAndValid() ) {
 			return Rest::json(array("result"=>false, "msg"=>"You are not loggued with a valid user !"));
 		}
