@@ -105,7 +105,8 @@ class SimplyAutoCompleteAction extends CAction
   				}
   			}
   		}
-  		if(isset($allQueryLocality) && is_array($allQueryLocality))$query = array('$and' => array($query, $allQueryLocality));
+  		if(isset($allQueryLocality) && is_array($allQueryLocality))
+  			$query = array('$and' => array($query, $allQueryLocality));
   		// print_r($query);
   		// $query = array('$and' => array($query, $queryLocality));
 
