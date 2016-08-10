@@ -6,6 +6,7 @@ class GlobalAutoCompleteAction extends CAction
         $search = trim(urldecode($_POST['name']));
         $locality = isset($_POST['locality']) ? trim(urldecode($_POST['locality'])) : null;
         $searchType = isset($_POST['searchType']) ? $_POST['searchType'] : null;
+        $searchTag = isset($_POST['searchTag']) ? $_POST['searchTag'] : null;
         $searchBy = isset($_POST['searchBy']) ? $_POST['searchBy'] : "INSEE";
         $indexMin = isset($_POST['indexMin']) ? $_POST['indexMin'] : 0;
         $indexMax = isset($_POST['indexMax']) ? $_POST['indexMax'] : 100;
@@ -22,11 +23,20 @@ class GlobalAutoCompleteAction extends CAction
   		
 
         /***********************************  TAGS   *****************************************/
+        $tmpTags = array();
         if(strpos($search, "#") > -1){
         	$search = substr($search, 1, strlen($search));
         	$query = array( "tags" => array('$in' => array(new MongoRegex("/".$search."/i")))) ; //new MongoRegex("/".$search."/i") )));
+        	$tmpTags[] = new MongoRegex("/".$search."/i");
   		}
-
+  		if($searchTag)foreach ($searchTag as $value) {
+  			$tmpTags[] = new MongoRegex("/".$value."/i");
+  		}
+  		if(count($tmpTags)){
+  			$query = array('$and' => array( $query , array("tags" => array('$in' => $tmpTags)))) ;
+  		}
+  		unset($tmpTags);
+  		
   		$query = array('$and' => array( $query , array("state" => array('$ne' => "uncomplete")) ));
 
   		/***********************************  DEFINE LOCALITY QUERY   *****************************************/
