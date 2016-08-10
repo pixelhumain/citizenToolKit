@@ -36,105 +36,58 @@ class GlobalAutoCompleteAction extends CAction
   			$query = array('$and' => array( $query , array("tags" => array('$in' => $tmpTags)))) ;
   		}
   		unset($tmpTags);
-  		
   		$query = array('$and' => array( $query , array("state" => array('$ne' => "uncomplete")) ));
 
-  		/***********************************  DEFINE LOCALITY QUERY   *****************************************/
-        if($locality != null && $locality != ""){
+  		/***********************************  DEFINE LOCALITY QUERY   ***************************************/
+  		$localityReferences['NAME'] = "address.addressLocality";
+  		$localityReferences['CODE_POSTAL_INSEE'] = "address.postalCode";
+  		$localityReferences['DEPARTEMENT'] = "address.postalCode";
+  		$localityReferences['REGION'] = ""; //Spécifique
+  		$localityReferences['INSEE'] = "address.codeInsee";
 
-        	//$type = $this->getTypeOfLocalisation($locality);
-        	//if($searchBy == "INSEE") 
-        	$type = $searchBy;
+  		foreach ($localityReferences as $key => $value) 
+  		{
+  			if(isset($_POST["searchLocality".$key]) 
+  				&& is_array($_POST["searchLocality".$key])
+  				&& count($_POST["searchLocality".$key])>0)
+  			{
+  				foreach ($_POST["searchLocality".$key] as $locality) 
+  				{
 
-        	$queryLocality = array();
-        	
-        	if($type == "NAME"){ 
-        		$queryLocality = array("address.addressLocality" => new MongoRegex("/".$locality." /"));
-        	}
-        	if($type == "CODE_POSTAL_INSEE") {
-        		$queryLocality = array("address.postalCode" => $locality );
-        	}
-        	if($type == "DEPARTEMENT") {
-        		$queryLocality = array("address.postalCode" 
-						=> new MongoRegex("/^".$locality."/i"));
+  					//OneRegion
+  					if($key == "REGION") 
+  					{
+	        			$deps = PHDB::find( City::COLLECTION, array("regionName" => $locality), array("dep"));
+	        			$departements = array();
+	        			$inQuest = array();
+	        			if(is_array($deps))foreach($deps as $index => $value)
+	        			{
+	        				if(!in_array($value["dep"], $departements))
+	        				{
+		        				$departements[] = $value["dep"];
+		        				$inQuest[] = new MongoRegex("/^".$value["dep"]."/i");
+					        	$queryLocality = array("address.postalCode" => array('$in' => $inQuest));
+					        }
+	        			}
+	        		}elseif($key == "DEPARTEMENT") {
+	        			$queryLocality = array($value => new MongoRegex("/^".$locality."/i"));
+		        	}//OneLocality
+		        	else{
+	  					$queryLocality = array($value => new MongoRegex("/".$locality."/i"));
+	  				}
 
-				//$queryLocality = array("address.postalCode" => new MongoRegex("/[^".$locality."]/i"));
-				/*	
-				$dep = PHDB::findOne( City::COLLECTION, array("dep" => $locality), array("depName", "dep"));
-        		
-				if(isset($dep["depName"])){ //quand la city a bien la donnée "depName"
-        			/*$depName = $dep["depName"];
-        			//#TODO GET ALL DEPARTMENT BY REGION
-        			$deps = PHDB::find( City::COLLECTION, array("depName" => $depName), array("dep"));
-        			$departements = array();
-        			$inQuest = array();
-        			foreach($deps as $index => $value){
-        				if(!in_array($value["dep"], $departements)){
-	        				$departements[] = $value["dep"];
-	        				$inQuest[] = new MongoRegex("/^".$value["dep"]."/i");
-				        	$queryLocality = array("address.postalCode" => array('$in' => $inQuest));
-	        				
-				        }
-        			}* /
-
-        			$depId = $dep["dep"];
-        			$cities = PHDB::find( City::COLLECTION, array("dep" => $depId), array("postalCodes"));
-        			$inQuest = array();
-        			foreach($cities as $keyCity => $city){
-        				foreach($city["postalCodes"] as $keyCP => $postalCodes){
-		        			$inQuest[] = $postalCodes["postalCode"];
-					    }
-        			}
-        			$queryLocality = array("address.postalCode" => new MongoRegex("/[^".$locality."]/i"); //array('$in' => $inQuest));
-        			
-        		}else{ //quand la city communectée n'a pas la donnée "depName", on prend son département à la place
-        			/*$depId = isset($depId["dep"]) ? $depId["dep"] : "";
-        			$queryLocality = array("address.postalCode" 
-						=> new MongoRegex("/^".$depId."/i"));* /
-        		}
-        		//$str = implode(",", $regionName);
-        		*/
-        		//error_log("depName : ".$depId );
-        	}
-        	if($type == "REGION") {
-        		//#TODO GET REGION NAME | CITIES.DEP = myDep
-        		$region = PHDB::findOne( City::COLLECTION, array("insee" => $locality), array("regionName", "region"));
-        		
-				if(!empty($region["region"])){ //quand la city a bien la donnée "regionName"
-        			$idRegion = $region["region"];
-        			$cities = PHDB::find( City::COLLECTION, array("region" => $idRegion), array("postalCodes"));
-        			$inQuest = array();
-        			foreach($cities as $keyCity => $city){
-        				foreach($city["postalCodes"] as $keyCP => $postalCodes){
-		        			$inQuest[] = $postalCodes["postalCode"];
-					    }
-        			}
-        			$queryLocality = array("address.postalCode" => array('$in' => $inQuest));
-        			//$queryLocality = array('$or' => $orQuest);
-        			//error_log("queryLocality : " . print_R($queryLocality, true));
-        			
-        		}else{ //quand la city communectée n'a pas la donnée "regionName", on prend son département à la place
-        			/*$idRegion = isset($idRegion["region"]) ? $idRegion["region"] : "";
-        			$queryLocality = array("address.postalCode" 
-						=> new MongoRegex("/^".$idRegion."/i"));*/
-        		}
-
-        		//$str = implode(",", $regionName);
-        		error_log("regionName : ".$idRegion );
-
-        		//#TODO CREATE REQUEST CITIES.POSTALCODE IN (LIST_DEPARTMENT)" 
-      //   		$queryLocality = array("address.postalCode" 
-						// => new MongoRegex("/^".$locality."/i"));
-        	}
-        	if($type == "INSEE") {
-        		$queryLocality = array("address.codeInsee" => $locality );
-        	}
-        	
-        	if(!empty($queryLocality))
-        	$query = array('$and' => array($query, $queryLocality ) );
-	    }
-
-
+  					//Consolidate Queries
+  					if(isset($allQueryLocality)){
+  						$allQueryLocality = array('$or' => array( $allQueryLocality ,$queryLocality));
+  					}else{
+  						$allQueryLocality = $queryLocality;
+  					}
+  					unset($queryLocality);
+  				}
+  			}
+  		}
+  		if(isset($allQueryLocality) && is_array($allQueryLocality))
+  			$query = array('$and' => array($query, $allQueryLocality));
 
 	    //$res = array();
 	    $allRes = array();
