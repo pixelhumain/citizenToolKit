@@ -53,35 +53,38 @@ class GlobalAutoCompleteAction extends CAction
   			{
   				foreach ($_POST["searchLocality".$key] as $locality) 
   				{
-  					//OneRegion
-  					if($key == "REGION") 
-  					{
-	        			$deps = PHDB::find( City::COLLECTION, array("regionName" => $locality), array("dep"));
-	        			$departements = array();
-	        			$inQuest = array();
-	        			if(is_array($deps))foreach($deps as $index => $value)
-	        			{
-	        				if(!in_array($value["dep"], $departements))
-	        				{
-		        				$departements[] = $value["dep"];
-		        				$inQuest[] = new MongoRegex("/^".$value["dep"]."/i");
-					        	$queryLocality = array("address.postalCode" => array('$in' => $inQuest));
-					        }
-	        			}
-	        		}elseif($key == "DEPARTEMENT") {
-	        			$queryLocality = array($value => new MongoRegex("/^".$locality."/i"));
-		        	}//OneLocality
-		        	else{
-	  					$queryLocality = array($value => new MongoRegex("/".$locality."/i"));
-	  				}
+  					if(isset($locality) && $locality != ""){
+	  					error_log("locality :  ".$locality. " - " .$key);
+	  					//OneRegion
+	  					if($key == "REGION") 
+	  					{
+		        			$deps = PHDB::find( City::COLLECTION, array("regionName" => $locality), array("dep"));
+		        			$departements = array();
+		        			$inQuest = array();
+		        			if(is_array($deps))foreach($deps as $index => $value)
+		        			{
+		        				if(!in_array($value["dep"], $departements))
+		        				{
+			        				$departements[] = $value["dep"];
+			        				$inQuest[] = new MongoRegex("/^".$value["dep"]."/i");
+						        	$queryLocality = array("address.postalCode" => array('$in' => $inQuest));
+						        }
+		        			}
+		        		}elseif($key == "DEPARTEMENT") {
+		        			$queryLocality = array($value => new MongoRegex("/^".$locality."/i"));
+			        	}//OneLocality
+			        	else{
+		  					$queryLocality = array($value => new MongoRegex("/".$locality."/i"));
+		  				}
 
-  					//Consolidate Queries
-  					if(isset($allQueryLocality) && isset($queryLocality)){
-  						$allQueryLocality = array('$or' => array( $allQueryLocality ,$queryLocality));
-  					}else if(isset($queryLocality)){
-  						$allQueryLocality = $queryLocality;
-  					}
-  					unset($queryLocality);
+	  					//Consolidate Queries
+	  					if(isset($allQueryLocality) && isset($queryLocality)){
+	  						$allQueryLocality = array('$or' => array( $allQueryLocality ,$queryLocality));
+	  					}else if(isset($queryLocality)){
+	  						$allQueryLocality = $queryLocality;
+	  					}
+	  					unset($queryLocality);
+	  				}
   				}
   			}
   		}

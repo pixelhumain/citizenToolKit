@@ -207,6 +207,7 @@ class Element {
 	    }
 	    
 	    //echo $testUrl;
+	    //error_log($testUrl);
 	    if(file_exists($testUrl)) return $url;
 	    else return $assetUrl.'/images/thumbnail-default.jpg';
     }
