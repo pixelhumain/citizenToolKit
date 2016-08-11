@@ -9,7 +9,7 @@ class GlobalAutoCompleteAction extends CAction
         $searchTag = isset($_POST['searchTag']) ? $_POST['searchTag'] : null;
         $searchBy = isset($_POST['searchBy']) ? $_POST['searchBy'] : "INSEE";
         $indexMin = isset($_POST['indexMin']) ? $_POST['indexMin'] : 0;
-        $indexMax = isset($_POST['indexMax']) ? $_POST['indexMax'] : 100;
+        $indexMax = isset($_POST['indexMax']) ? $_POST['indexMax'] : 30;
         $country = isset($_POST['country']) ? $_POST['country'] : "";
 
         error_log("global search " . $search . " - searchBy : ". $searchBy. " & locality : ". $locality. " & country : ". $country);
@@ -53,7 +53,6 @@ class GlobalAutoCompleteAction extends CAction
   			{
   				foreach ($_POST["searchLocality".$key] as $locality) 
   				{
-
   					//OneRegion
   					if($key == "REGION") 
   					{
@@ -77,9 +76,9 @@ class GlobalAutoCompleteAction extends CAction
 	  				}
 
   					//Consolidate Queries
-  					if(isset($allQueryLocality)){
+  					if(isset($allQueryLocality) && isset($queryLocality)){
   						$allQueryLocality = array('$or' => array( $allQueryLocality ,$queryLocality));
-  					}else{
+  					}else if(isset($queryLocality)){
   						$allQueryLocality = $queryLocality;
   					}
   					unset($queryLocality);
@@ -91,7 +90,7 @@ class GlobalAutoCompleteAction extends CAction
 
 	    //$res = array();
 	    $allRes = array();
-
+	    //var_dump($query); return;
         /***********************************  PERSONS   *****************************************/
         if(strcmp($filter, Person::COLLECTION) != 0 && $this->typeWanted("persons", $searchType)){
 
@@ -137,7 +136,7 @@ class GlobalAutoCompleteAction extends CAction
         		$queryEvent['$and'] = array();
         	
         	array_push( $queryEvent[ '$and' ], array( "endDate" => array( '$gte' => new MongoDate( time() ) ) ) );
-	  		$allEvents = PHDB::findAndSort( PHType::TYPE_EVENTS, $queryEvent, array("startDate" => 1), 100, array("name", "address", "startDate", "endDate", "shortDescription", "description"));
+	  		$allEvents = PHDB::findAndSort( PHType::TYPE_EVENTS, $queryEvent, array("startDate" => 1), 30, array("name", "address", "startDate", "endDate", "shortDescription", "description"));
 	  		foreach ($allEvents as $key => $value) {
 	  			$event = Event::getById($key);
 				$event["type"] = "event";
