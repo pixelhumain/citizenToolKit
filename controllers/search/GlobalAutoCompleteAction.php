@@ -14,24 +14,30 @@ class GlobalAutoCompleteAction extends CAction
 
         error_log("global search " . $search . " - searchBy : ". $searchBy. " & locality : ". $locality. " & country : ". $country);
 	    
-        if($search == "" && $locality == "") {
-        	Rest::json(array());
-			Yii::app()->end();
-        }
+   //      if($search == "" && $locality == "") {
+   //      	Rest::json(array());
+			// Yii::app()->end();
+   //      }
+
         /***********************************  DEFINE GLOBAL QUERY   *****************************************/
+        $query = array();
+        
+       // if(isset($search) && $search != "")
         $query = array( "name" => new MongoRegex("/".$search."/i"));
   		
 
         /***********************************  TAGS   *****************************************/
         $tmpTags = array();
         if(strpos($search, "#") > -1){
-        	$search = substr($search, 1, strlen($search));
-        	$query = array( "tags" => array('$in' => array(new MongoRegex("/".$search."/i")))) ; //new MongoRegex("/".$search."/i") )));
+        	$search = substr($search, 1, strlen($search)); 
+        	$query = array( "tags" => array('$in' => array(new MongoRegex("/".$search."/i")))) ; 
         	$tmpTags[] = new MongoRegex("/".$search."/i");
   		}
-  		if($searchTag)foreach ($searchTag as $value) {
-  			$tmpTags[] = new MongoRegex("/".$value."/i");
-  		}
+  		if(!empty($searchTag))
+  			foreach ($searchTag as $value) { 
+  				if($value != "")
+	  			$tmpTags[] = new MongoRegex("/".$value."/i");
+	  		}
   		if(count($tmpTags)){
   			$query = array('$and' => array( $query , array("tags" => array('$in' => $tmpTags)))) ;
   		}
@@ -51,14 +57,14 @@ class GlobalAutoCompleteAction extends CAction
   				&& is_array($_POST["searchLocality".$key])
   				&& count($_POST["searchLocality".$key])>0)
   			{
-  				foreach ($_POST["searchLocality".$key] as $locality) 
+  				foreach ($_POST["searchLocality".$key] as $localityRef) 
   				{
-  					if(isset($locality) && $locality != ""){
-	  					error_log("locality :  ".$locality. " - " .$key);
+  					if(isset($localityRef) && $localityRef != ""){
+	  					error_log("locality :  ".$localityRef. " - " .$key);
 	  					//OneRegion
 	  					if($key == "REGION") 
 	  					{
-		        			$deps = PHDB::find( City::COLLECTION, array("regionName" => $locality), array("dep"));
+		        			$deps = PHDB::find( City::COLLECTION, array("regionName" => $localityRef), array("dep"));
 		        			$departements = array();
 		        			$inQuest = array();
 		        			if(is_array($deps))foreach($deps as $index => $value)
@@ -71,10 +77,10 @@ class GlobalAutoCompleteAction extends CAction
 						        }
 		        			}
 		        		}elseif($key == "DEPARTEMENT") {
-		        			$queryLocality = array($value => new MongoRegex("/^".$locality."/i"));
+		        			$queryLocality = array($value => new MongoRegex("/^".$localityRef."/i"));
 			        	}//OneLocality
 			        	else{
-		  					$queryLocality = array($value => new MongoRegex("/".$locality."/i"));
+		  					$queryLocality = array($value => new MongoRegex("/".$localityRef."/i"));
 		  				}
 
 	  					//Consolidate Queries
@@ -137,14 +143,16 @@ class GlobalAutoCompleteAction extends CAction
         	$queryEvent = $query;
         	if( !isset( $queryEvent['$and'] ) ) 
         		$queryEvent['$and'] = array();
-        	
+        	//error_log("searching for events");
         	array_push( $queryEvent[ '$and' ], array( "endDate" => array( '$gte' => new MongoDate( time() ) ) ) );
+        	//var_dump($queryEvent); return;
 	  		$allEvents = PHDB::findAndSort( PHType::TYPE_EVENTS, $queryEvent, array("startDate" => 1), 30, array("name", "address", "startDate", "endDate", "shortDescription", "description"));
 	  		foreach ($allEvents as $key => $value) {
 	  			$event = Event::getById($key);
 				$event["type"] = "event";
 				$event["typeSig"] = "events";
 				$allEvents[$key] = $event;
+				error_log("event fount : ".$event["name"]);
 	  		}
 	  		
 	  		//$res["event"] = $allEvents;
