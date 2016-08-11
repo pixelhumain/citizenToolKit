@@ -74,16 +74,19 @@ class GlobalAutoCompleteAction extends CAction
         		//$str = implode(",", $regionName);
         		*/
         		//error_log("depName : ".$depId );
-        		$dep = PHDB::findOne( City::COLLECTION, array("dep" => $locality), array("depName", "dep"));
-        		$depId = $dep["dep"];
-    			$cities = PHDB::find( City::COLLECTION, array("dep" => $depId), array("postalCodes"));
-    			$inQuest = array();
-    			foreach($cities as $keyCity => $city){
-    				foreach($city["postalCodes"] as $keyCP => $postalCodes){
-	        			$inQuest[] = $postalCodes["postalCode"];
-				    }
-    			}
-    			$queryLocality = array("address.postalCode" => new MongoRegex("/[^".$locality."]/i")); //array('$in' => $inQuest));
+        		$dep = PHDB::findOne( City::COLLECTION, array("insee" => $locality), array("depName", "dep"));
+        		if(!empty($dep["dep"])){
+	        		$depId = $dep["dep"];
+	    			$cities = PHDB::find( City::COLLECTION, array("dep" => $depId), array("insee"));
+	    			$inQuest = array();
+	    			foreach($cities as $keyCity => $city){
+	    				$inQuest[] = $city["insee"];
+	    			}
+	    			$queryLocality = array("address.codeInsee" => array('$in' => $inQuest));
+	    		}
+	    		error_log("depName : ".$dep["dep"] );
+    			//$queryLocality = array("address.postalCode" => new MongoRegex("/[^".$locality."]/i")); //array('$in' => $inQuest));
+        		
         	}
         	if($type == "REGION") {
         		//#TODO GET REGION NAME | CITIES.DEP = myDep
@@ -91,14 +94,12 @@ class GlobalAutoCompleteAction extends CAction
         		
 				if(!empty($region["region"])){ //quand la city a bien la donnée "regionName"
         			$idRegion = $region["region"];
-        			$cities = PHDB::find( City::COLLECTION, array("region" => $idRegion), array("postalCodes"));
+        			$cities = PHDB::find( City::COLLECTION, array("region" => $idRegion), array("insee"));
         			$inQuest = array();
         			foreach($cities as $keyCity => $city){
-        				foreach($city["postalCodes"] as $keyCP => $postalCodes){
-		        			$inQuest[] = $postalCodes["postalCode"];
-					    }
+        				$inQuest[] = $city["insee"];
         			}
-        			$queryLocality = array("address.postalCode" => array('$in' => $inQuest));
+        			$queryLocality = array("address.codeInsee" => array('$in' => $inQuest));
         			//$queryLocality = array('$or' => $orQuest);
         			//error_log("queryLocality : " . print_R($queryLocality, true));
         			
