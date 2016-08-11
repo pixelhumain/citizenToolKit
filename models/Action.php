@@ -95,11 +95,19 @@ class Action
                 }
                 else{
                     $mapObject[ $action.".".(string)$user["_id"] ] = $details ;
-                    $mapObject["updated"] = time();
-                    PHDB::update ($collection, array("_id" => new MongoId($element["_id"])), 
-                                       array( $dbMethod => $mapObject,
-                                              //'$set'=>array( "updated" => time()),
-                                              '$inc'=>array( $action."Count" => $inc)));
+                    $params = array();
+
+                    if( $dbMethod == '$set')
+                        $mapObject["updated"] = time();
+                    else
+                        $params['$set'] = array( "updated" => time());
+
+                    $params[$dbMethod] = $mapObject;
+                    $params['$inc'] = array( $action."Count" => $inc);
+
+                    PHDB::update ($collection, 
+                                    array("_id" => new MongoId($element["_id"])), 
+                                    $params);
 
                 }
 
