@@ -120,57 +120,7 @@ class GlobalAutoCompleteAction extends CAction
   		}
   		if(isset($allQueryLocality) && is_array($allQueryLocality))
   			$query = array('$and' => array($query, $allQueryLocality));
-
-  		/***********************************  DEFINE LOCALITY QUERY   *****************************************/
-        /*if($locality != null && $locality != ""){
-
-        	$type = $searchBy;
-
-        	$queryLocality = array();
-        	
-        	if($type == "NAME"){ 
-        		$queryLocality = array("address.addressLocality" => new MongoRegex("/".$locality." /"));
-        	}
-        	if($type == "CODE_POSTAL_INSEE") {
-        		$queryLocality = array("address.postalCode" => $locality );
-        	}
-        	if($type == "DEPARTEMENT") {
-        		
-        		$dep = PHDB::findOne( City::COLLECTION, array("insee" => $locality), array("depName", "dep"));
-        		if(!empty($dep["dep"])){
-	        		$depId = $dep["dep"];
-	    			$cities = PHDB::find( City::COLLECTION, array("dep" => $depId), array("insee"));
-	    			$inQuest = array();
-	    			foreach($cities as $keyCity => $city){
-	    				$inQuest[] = $city["insee"];
-	    			}
-	    			$queryLocality = array("address.codeInsee" => array('$in' => $inQuest));
-	    		}
-        		
-        	}
-        	if($type == "REGION") {
-        		//#TODO GET REGION NAME | CITIES.DEP = myDep
-        		$region = PHDB::findOne( City::COLLECTION, array("insee" => $locality), array("regionName", "region"));
-				if(!empty($region["region"])){ //quand la city a bien la donnée "regionName"
-        			$idRegion = $region["region"];
-        			$cities = PHDB::find( City::COLLECTION, array("region" => $idRegion), array("insee"));
-        			$inQuest = array();
-        			foreach($cities as $keyCity => $city){
-        				$inQuest[] = $city["insee"];
-        			}
-        			$queryLocality = array("address.codeInsee" => array('$in' => $inQuest));	
-        		}
-
-        	}
-        	if($type == "INSEE") {
-        		$queryLocality = array("address.codeInsee" => $locality );
-        	}
-        	
-        	if(!empty($queryLocality))
-        	$query = array('$and' => array($query, $queryLocality ) );
-	    }
-
-*/
+  		
 	    //$res = array();
 	    $allRes = array();
 	    //var_dump($query); return;
