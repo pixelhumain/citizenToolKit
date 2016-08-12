@@ -8,16 +8,43 @@ class DetailAction extends CAction {
     	$controller=$this->getController();
 		$members=array();
 		$list = Lists::get(array("eventTypes"));
+		$events=array();
+		$projects=array();
+		$needs=array();
 		if($type == Organization::COLLECTION){
 			$element = Organization::getById($id);
 			$params["listTypes"] = isset($lists["organisationTypes"]) ? $lists["organisationTypes"] : null;
-			$params["eventTypes"] = $list["eventTypes"];
 			$params["public"] 			 = isset($lists["public"]) 			  ? $lists["public"] : null;
 			$params["typeIntervention"]  = isset($lists["typeIntervention"])  ? $lists["typeIntervention"] : null;
 			$params["NGOCategories"] 	 = isset($lists["NGOCategories"]) 	  ? $lists["NGOCategories"] : null;
 			$params["localBusinessCategories"] = isset($lists["localBusinessCategories"]) ? $lists["localBusinessCategories"] : null;
 			$params["controller"] = Organization::CONTROLLER;
 			$connectType = "members";
+			// Link with events
+			if(isset($element["links"]["events"])){
+				foreach ($element["links"]["events"] as $keyEv => $valueEv) {
+					 $event = Event::getSimpleEventById($keyEv);
+	           		 $events[$keyEv] = $event;
+				}
+				$params["events"]=$events;
+			}
+
+			// Link with projects
+			if(isset($element["links"]["projects"])){
+				foreach ($element["links"]["projects"] as $keyProj => $valueProj) {
+					 $project = Project::getPublicData($keyProj);
+	           		 $projects[$keyProj] = $project;
+				}
+				$params["projects"]=$projects;
+			}
+			// Link with needs
+			if(isset($element["links"]["needs"])){
+				foreach ($element["links"]["needs"] as $key => $value){
+					$need = Need::getSimpleNeedById($key);
+	           		$needs[$key] = $need;
+				}
+				$params["needs"]=$projects;
+			}
 
 		} else if ($type == Project::COLLECTION){
 			$element = Project::getById($id);
@@ -25,6 +52,14 @@ class DetailAction extends CAction {
 			$params["listTypes"] = @$lists["eventTypes"];
 			$connectType = "contributors";
 			$params["controller"] = Project::CONTROLLER;
+			// Link with events
+			if(isset($element["links"]["events"])){
+				foreach ($element["links"]["events"] as $keyEv => $valueEv) {
+					 $event = Event::getSimpleEventById($keyEv);
+	           		 $events[$keyEv] = $event;
+				}
+				$params["events"]=$events;
+			}
 		} else if ($type == Event::COLLECTION){
 			$element = Event::getById($id);
 			$params["listTypes"] = $list["eventTypes"];
@@ -74,7 +109,7 @@ class DetailAction extends CAction {
               		
             }
 			//events can have sub evnets
-	        $params["subEvents"] = PHDB::find(Event::COLLECTION,array("parentId"=>$id));
+	        $params["events"] = PHDB::find(Event::COLLECTION,array("parentId"=>$id));
 	        $params["subEventsOrganiser"] = array();
 	        $hasSubEvents = false;
 	        if(@$params["subEvents"]){
@@ -138,6 +173,7 @@ class DetailAction extends CAction {
 				}
 			}
 		}
+		$params["eventTypes"] = $list["eventTypes"];
 		$params["tags"] = Tags::getActiveTags();
 		$params["element"] = $element;
 		$params["members"] = $members;
