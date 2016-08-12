@@ -60,10 +60,10 @@ class GlobalAutoCompleteAction extends CAction
   				foreach ($_POST["searchLocality".$key] as $localityRef) 
   				{
   					if(isset($localityRef) && $localityRef != ""){
-	  					error_log("locality :  ".$localityRef. " - " .$key);
+	  					//error_log("locality :  ".$localityRef. " - " .$key);
 	  					//OneRegion
 	  					if($key == "REGION") 
-	  					{
+	  					{ 
 		        			$deps = PHDB::find( City::COLLECTION, array("regionName" => $localityRef), array("dep"));
 		        			$departements = array();
 		        			$inQuest = array();
@@ -77,7 +77,8 @@ class GlobalAutoCompleteAction extends CAction
 						        }
 		        			}
 		        		}elseif($key == "DEPARTEMENT") {
-		        			$queryLocality = array($value => new MongoRegex("/^".$localityRef."/i"));
+		        			$dep = PHDB::findOne( City::COLLECTION, array("depName" => $localityRef), array("dep"));	
+		        			$queryLocality = array($value => new MongoRegex("/^".$dep["dep"]."/i"));
 			        	}//OneLocality
 			        	else{
 		  					$queryLocality = array($value => new MongoRegex("/".$localityRef."/i"));
@@ -103,7 +104,8 @@ class GlobalAutoCompleteAction extends CAction
         /***********************************  PERSONS   *****************************************/
         if(strcmp($filter, Person::COLLECTION) != 0 && $this->typeWanted("persons", $searchType)){
 
-        	$allCitoyen = PHDB::find ( Person::COLLECTION , $query, array("name", "address", "shortDescription", "description"));
+        	$allCitoyen = PHDB::findAndSort ( Person::COLLECTION , $query, 
+	  										  array("updated" => 1, "name" => 1), 30, array("name", "address", "shortDescription", "description"));
 
 	  		foreach ($allCitoyen as $key => $value) {
 	  			$person = Person::getSimpleUserById($key);
@@ -121,7 +123,8 @@ class GlobalAutoCompleteAction extends CAction
         if(strcmp($filter, Organization::COLLECTION) != 0 && $this->typeWanted("organizations", $searchType)){
         	$queryDisabled = array("disabled" => array('$exists' => false));
         	$queryOrganization = array('$and' => array($query, $queryDisabled));
-	  		$allOrganizations = PHDB::find ( Organization::COLLECTION ,$queryOrganization ,array("name", "address", "shortDescription", "description"));
+	  		$allOrganizations = PHDB::findAndSort ( Organization::COLLECTION ,$queryOrganization, 
+	  												array("updated" => 1, "name" => 1), 30, array("name", "address", "shortDescription", "description"));
 	  		foreach ($allOrganizations as $key => $value) {
 	  			$orga = Organization::getSimpleOrganizationById($key);
 	  			$followers = Organization::getFollowersByOrganizationId($key);
@@ -161,7 +164,8 @@ class GlobalAutoCompleteAction extends CAction
 
 	  	/***********************************  PROJECTS   *****************************************/
         if(strcmp($filter, Project::COLLECTION) != 0 && $this->typeWanted("projects", $searchType)){
-	  		$allProject = PHDB::find(Project::COLLECTION, $query, array("name", "address", "shortDescription", "description"));
+	  		$allProject = PHDB::findAndSort(Project::COLLECTION, $query, 
+	  												array("updated" => 1, "name" => 1), 30, array("name", "address", "shortDescription", "description"));
 	  		foreach ($allProject as $key => $value) {
 	  			$project = Project::getById($key);
 	  			if(@$project["links"]["followers"][Yii::app()->session["userId"]]){
@@ -276,19 +280,37 @@ class GlobalAutoCompleteAction extends CAction
 	  	}
 
 	  	//trie les éléments dans l'ordre alphabetique par name
-	  	function mySort($a, $b){
-	  		if(isset($a['name']) && isset($b['name'])){
-		    	return ( strtolower($b['name']) < strtolower($a['name']) );
-			}else{
+	  	function mySortByName($a, $b){ // error_log("sort : ");//.$a['name']);
+	  		if(isset($a["_id"]) && isset($b["_id"])){
+		   		return ( strtolower($b["_id"]) < strtolower($a["_id"]) );
+		    } else{
 				return false;
 			}
 		}
 	  	
-	  	if(isset($allRes)) //si on a des resultat dans la liste
-	  		if(!$this->typeWanted("events", $searchType)) //si on n'est pas en mode "event" (les event sont classé par date)
-	  			usort($allRes, "mySort"); //on tri les éléments par ordre alphabetique sur le name
+	  	//trie les éléments dans l'ordre alphabetique par name
+	  	function mySortByUpdated($a, $b){ // error_log("sort : ");//.$a['name']);
+	  		if(isset($a["updated"]) && isset($b["updated"])){
+		   		return ( strtolower($b["updated"]) < strtolower($a["updated"]) );
+		    } else{
+				return false;
+			}
+		}
+	  	
+	  	// foreach ($allRes as $key => $value) {
+	  	// 	if(!isset($value["updated"])){ 
+	  	// 		//error_log(strtotime("-1 month"));
+	  	// 		$allRes[$key]["updated"] = strtotime("-1 month");
+		  // 	}else error_log("updated : ".$value["updated"]);
+	  	// }
 
-	  	if(isset($allCitiesRes)) usort($allCitiesRes, "mySort");
+	  	// if(isset($allRes)) //si on a des resultat dans la liste
+	  	// 	if(!$this->typeWanted("events", $searchType) || count($searchType)>1) //si on n'est pas en mode "calendar" (les event sont classés par date)
+	  	// 		usort($allRes, "mySortByName"); //on tri les éléments par ordre alphabetique sur le name
+
+	  	if(isset($allRes)) usort($allRes, "mySortByName");
+
+	  	if(isset($allCitiesRes)) usort($allCitiesRes, "mySortByName");
 
 	  	//error_log("count : " . count($allRes));
 	  	if(count($allRes) < $indexMax) 
