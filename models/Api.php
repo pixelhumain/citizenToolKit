@@ -3,7 +3,8 @@ class Api {
 
 	const COLLECTION = "gantts";
 	
-	public static function getData($bindMap, $format = null, $type, $id = null, $limit=50, $index=0, $tags = null, $multiTags=null , $key = null, $insee = null, $typeNews = null){
+	public static function getData2($bindMap, $format = null, $type, $id = null, $limit=50, $index=0, $tags = null, $multiTags=null , $key = null, $insee = null){
+
     	$data = null;
         $typeResult = "entities";
 
@@ -155,6 +156,72 @@ class Api {
             $data[$keyEntities]["image"] = $doc ;
         }
         return $data;
+    }
+
+
+    public static function getData($bindMap, $format = null, $type, $id = null, $limit=50, $index=0, $tags = null, $multiTags=null , $key = null, $insee = null){
+        
+        // Create params for request
+        $params = array();
+        if( @$id ) 
+            $params["_id"] =  new MongoId($id);
+            
+        if( @$insee ){
+            if($type == City::COLLECTION)
+                $params["insee"] = $insee;
+            else
+                $params["address.codeInsee"] = $insee ;
+        }
+
+        if( @$tags ){
+            $tagsArray = explode(",", $tags);
+            $params["tags"] =  (($multiTags == true)?array('$eq' => $tagsArray):array('$in' => $tagsArray));
+        }
+
+        if( @$key )
+            $params["source.key"] = $key ;
+        
+        if($limit > 500)
+            $limit = 500 ;
+        else if($limit < 1)
+            $limit = 50 ;
+
+        if($index < 0)
+            $index = 0 ;
+
+        //Get data
+        $data = PHDB::findAndLimitAndIndex($type , $params, $limit, $index);
+        $data = self::getUrlImage($data, $type);
+
+        if(Person::COLLECTION == $type){
+            foreach ($data as $key => $value) {
+                $person = Person::clearAttributesByConfidentiality($value);
+                $data[$key] = $person ;
+            }
+        }
+
+        // create JSON
+        if(empty($id)){
+            $meta["limit"] = $limit;
+            $meta["next"] = "/ph/communecter/data/get/type/".$type."/limit/".$limit."/index/".($index+$limit);
+
+            if(@$format)
+                $meta["format"] .= "/format/".$format ;
+            if($index != 0){
+                $newIndex = $index - $limit;
+                if($newIndex < 0)
+                    $newIndex = 0 ;
+                $meta["previous"] = "/ph/communecter/data/get/type/".$type."/limit/".$limit."/index/".$newIndex ;
+            }
+        }else{
+            $meta["limit"] = 1;
+
+        }
+
+        $result["meta"] = $meta ;
+        $result["entities"] = ((!empty($data) && !empty($bindMap) )?Translate::convert($data , $bindMap):$data);
+
+        return $result;
     }
 	
 
