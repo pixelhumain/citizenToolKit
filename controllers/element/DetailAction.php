@@ -130,7 +130,7 @@ class DetailAction extends CAction {
 			$params["controller"] = Person::CONTROLLER;
 			$connectType = "attendees";
 		}
-
+		if(	@$element["links"] ) {
 		if(isset($element["links"][$connectType])){
 			$countStrongLinks=count($element["links"][$connectType]);
 			$nbMembers=0;
@@ -172,6 +172,7 @@ class DetailAction extends CAction {
 					break;
 				}
 			}
+		}
 		}
 		$params["eventTypes"] = $list["eventTypes"];
 		$params["tags"] = Tags::getActiveTags();
