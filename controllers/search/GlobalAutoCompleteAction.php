@@ -46,7 +46,7 @@ class GlobalAutoCompleteAction extends CAction
 
 
   		/***********************************  DEFINE LOCALITY QUERY   ***************************************/
-  		$localityReferences['NAME'] = "address.addressLocality";
+  		$localityReferences['NAME'] = "";
   		$localityReferences['CODE_POSTAL_INSEE'] = "address.postalCode";
   		$localityReferences['DEPARTEMENT'] = "address.postalCode";
   		$localityReferences['REGION'] = ""; //Spécifique
@@ -65,7 +65,7 @@ class GlobalAutoCompleteAction extends CAction
 	  					//OneRegion
 	  					if($key == "REGION") 
 	  					{ 
-		        			/*$deps = PHDB::find( City::COLLECTION, array("regionName" => $localityRef), array("dep"));
+		        			$deps = PHDB::find( City::COLLECTION, array("regionName" => $localityRef), array("dep"));
 		        			$departements = array();
 		        			$inQuest = array();
 		        			if(is_array($deps))foreach($deps as $index => $value)
@@ -76,34 +76,22 @@ class GlobalAutoCompleteAction extends CAction
 			        				$inQuest[] = new MongoRegex("/^".$value["dep"]."/i");
 						        	$queryLocality = array("address.postalCode" => array('$in' => $inQuest));
 						        }
-		        			}*/
-		        			
-		        			$cities = PHDB::find( City::COLLECTION, array("regionName" => $localityRef), array("insee"));
-		        			$inQuest = array();
-		        			if(!empty($cities)){
-		        				foreach($cities as $keyCity => $city){
-			        				$inQuest[] = $city["insee"];
-			        			}
-			        			$queryLocality = array("address.codeInsee" => array('$in' => $inQuest));
-		        			}
-		        				
-			        		
+		        			}		        		
 		        		}elseif($key == "DEPARTEMENT") {
-		        			/*$dep = PHDB::findOne( City::COLLECTION, array("depName" => $localityRef), array("dep"));	
-		        			$queryLocality = array($value => new MongoRegex("/^".$dep["dep"]."/i"));*/
-
-		        			$cities = PHDB::find( City::COLLECTION, array("depName" => $localityRef), array("insee"));
-				    		$inQuest = array();
-				    		if(!empty($cities)){
-		        				foreach($cities as $keyCity => $city){
-			        				$inQuest[] = $city["insee"];
-			        			}
-			        			$queryLocality = array("address.codeInsee" => array('$in' => $inQuest));
-		        			}
-				    		
-
-			        	}//OneLocality
-			        	else{
+		        			$dep = PHDB::findOne( City::COLLECTION, array("depName" => $localityRef), array("dep"));	
+		        			$queryLocality = array($value => new MongoRegex("/^".$dep["dep"]."/i"));
+						}//OneLocality
+			        	elseif($key == "NAME"){
+			        		//value.country + "_" + value.insee + "-" + value.postalCodes[0].postalCode; 
+			        		error_log("NAME " .$localityRef );
+			        		$city = City::getByUnikey($localityRef);
+			        		$queryLocality = array(
+			        				"address.addressCountry" => new MongoRegex("/".$city["country"]."/i"),
+			        				"address.codeInsee" => new MongoRegex("/".$city["insee"]."/i"),
+			        				"address.postalCode" => new MongoRegex("/".$city["cp"]."/i"),
+			        		);
+		  				}
+		  				else{
 			        		$queryLocality = array($value => new MongoRegex("/".$localityRef."/i"));
 		  				}
 
@@ -128,7 +116,8 @@ class GlobalAutoCompleteAction extends CAction
         if(strcmp($filter, Person::COLLECTION) != 0 && $this->typeWanted("persons", $searchType)){
 
         	$allCitoyen = PHDB::findAndSort ( Person::COLLECTION , $query, 
-	  										  array("updated" => 1, "name" => 1), 30, array("name", "address", "shortDescription", "description"));
+	  										  array("name" => 1), 30, 
+	  										  array("name", "address", "shortDescription", "description"));
 
 	  		foreach ($allCitoyen as $key => $value) {
 	  			$person = Person::getSimpleUserById($key);
@@ -147,7 +136,8 @@ class GlobalAutoCompleteAction extends CAction
         	$queryDisabled = array("disabled" => array('$exists' => false));
         	$queryOrganization = array('$and' => array($query, $queryDisabled));
 	  		$allOrganizations = PHDB::findAndSort ( Organization::COLLECTION ,$queryOrganization, 
-	  												array("updated" => 1, "name" => 1), 30, array("name", "address", "shortDescription", "description"));
+	  												array("updated" => 1, "name" => 1), 30, 
+	  												array("name", "address", "shortDescription", "description"));
 	  		foreach ($allOrganizations as $key => $value) {
 	  			$orga = Organization::getSimpleOrganizationById($key);
 	  			$followers = Organization::getFollowersByOrganizationId($key);
@@ -172,7 +162,9 @@ class GlobalAutoCompleteAction extends CAction
         	//error_log("searching for events");
         	array_push( $queryEvent[ '$and' ], array( "endDate" => array( '$gte' => new MongoDate( time() ) ) ) );
         	//var_dump($queryEvent); return;
-	  		$allEvents = PHDB::findAndSort( PHType::TYPE_EVENTS, $queryEvent, array("startDate" => 1), 30, array("name", "address", "startDate", "endDate", "shortDescription", "description"));
+	  		$allEvents = PHDB::findAndSort( PHType::TYPE_EVENTS, $queryEvent, 
+	  										array("startDate" => 1), 30, 
+	  										array("name", "address", "startDate", "endDate", "shortDescription", "description"));
 	  		foreach ($allEvents as $key => $value) {
 	  			$event = Event::getById($key);
 				$event["type"] = "event";
@@ -188,7 +180,8 @@ class GlobalAutoCompleteAction extends CAction
 	  	/***********************************  PROJECTS   *****************************************/
         if(strcmp($filter, Project::COLLECTION) != 0 && $this->typeWanted("projects", $searchType)){
 	  		$allProject = PHDB::findAndSort(Project::COLLECTION, $query, 
-	  												array("updated" => 1, "name" => 1), 30, array("name", "address", "shortDescription", "description"));
+	  												array("updated" => 1, "name" => 1), 30, 
+	  												array("name", "address", "shortDescription", "description"));
 	  		foreach ($allProject as $key => $value) {
 	  			$project = Project::getById($key);
 	  			if(@$project["links"]["followers"][Yii::app()->session["userId"]]){

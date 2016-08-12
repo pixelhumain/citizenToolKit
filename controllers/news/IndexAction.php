@@ -77,7 +77,7 @@ class IndexAction extends CAction
 	            }
 	        }
 	        else if ($type=="city"){
-		        $locality = isset($_POST['locality']) ? trim(urldecode($_POST['locality'])) : null;
+	        	$locality = isset($_POST['locality']) ? trim(urldecode($_POST['locality'])) : null;
 				//$searchType = isset($_POST['searchType']) ? $_POST['searchType'] : null;
 				$searchBy = isset($_POST['searchBy']) ? $_POST['searchBy'] : "INSEE";
 				$tagSearch = isset($_POST['tagSearch']) ? $_POST['tagSearch'] : "";
@@ -217,8 +217,84 @@ class IndexAction extends CAction
 				);
 			}
 			else if($type == "city"){
+				/***********************************  DEFINE LOCALITY QUERY   ***************************************/
+		  		$localityReferences['NAME'] = "scope.cities.codeInsee";
+		  		$localityReferences['CODE_POSTAL_INSEE'] = "scope.cities.postalCode";
+		  		$localityReferences['DEPARTEMENT'] = "scope.cities.postalCode";//Spécifique
+		  		$localityReferences['REGION'] = ""; //Spécifique
+		  		$localityReferences['INSEE'] = "scope.cities.codeInsee";
 
-				if(!empty($_POST['locality'])){
+		  		foreach ($localityReferences as $key => $value) 
+		  		{
+		  			if(isset($_POST["searchLocality".$key]) 
+		  				&& is_array($_POST["searchLocality".$key])
+		  				&& count($_POST["searchLocality".$key])>0)
+		  			{
+		  				foreach ($_POST["searchLocality".$key] as $localityRef) 
+		  				{
+		  					if(isset($localityRef) && $localityRef != ""){
+			  					error_log("locality :  ".$localityRef. " - " .$key);
+			  					//OneRegion
+			  					if($key == "REGION") 
+			  					{ 
+				        			$deps = PHDB::find( City::COLLECTION, array("regionName" => $localityRef), array("dep"));
+				        			$departements = array();
+				        			$inQuest = array();
+				        			if(is_array($deps))foreach($deps as $index => $value)
+				        			{
+				        				if(!in_array($value["dep"], $departements))
+				        				{
+					        				$departements[] = $value["dep"];
+					        				$inQuest[] = new MongoRegex("/^".$value["dep"]."/i");
+								        	$queryLocality = array("scope.cities.postalCode" => array('$in' => $inQuest));
+								        }
+				        			}
+				        		}elseif($key == "NAME"){
+					        		//value.country + "_" + value.insee + "-" + value.postalCodes[0].postalCode; 
+					        		error_log("NAME " .$localityRef );
+					        		$city = City::getByUnikey($localityRef);
+					        		$queryLocality = array(
+					        				//"address.addressCountry" => new MongoRegex("/".$city["country"]."/i"),
+					        				"scope.cities.codeInsee" => new MongoRegex("/".$city["insee"]."/i"),
+					        				"scope.cities.postalCode" => new MongoRegex("/".$city["cp"]."/i"),
+					        		);
+				  				}elseif($key == "DEPARTEMENT") {
+				        			$dep = PHDB::findOne( City::COLLECTION, array("depName" => $localityRef), array("dep"));	
+				        			$queryLocality = array($value => new MongoRegex("/^".$dep["dep"]."/i"));
+								}//OneLocality
+					        	else{
+					        		$queryLocality = array($value => new MongoRegex("/^".$localityRef."/i"));
+				  				}
+
+			  					//Consolidate Queries
+			  					if(isset($allQueryLocality) && isset($queryLocality)){
+			  						$allQueryLocality = array('$or' => array( $allQueryLocality ,$queryLocality));
+			  					}else if(isset($queryLocality)){
+			  						$allQueryLocality = $queryLocality;
+			  					}
+			  					unset($queryLocality);
+			  				}
+		  				}
+		  			}
+		  		}
+		  		$where = array( "scope.type" => "public",
+		  						"target.type" => array('$ne' => "pixels"),
+		  						);
+				if(@$allQueryLocality){
+					$where = array_merge($where, $allQueryLocality);
+				}
+		  		// if(isset($allQueryLocality) && is_array($allQueryLocality))
+		  		// 	$where = array('$and' => array($where, $allQueryLocality));
+
+		  		//$where = array("scope.type" => "public","target.type" => array('$ne' => "pixels"), $allQueryLocality);
+				//if(@$allQueryLocality){
+					//$where = array_merge($where,$allQueryLocality);
+		  			//$where = array('$and' => array($where, ));
+				//}
+		  		/***********************************  DEFINE LOCALITY QUERY   ***************************************/
+		  		//echo '<pre>';var_dump($where);echo '</pre>';
+		        /*
+				/*if(!empty($_POST['locality'])){
 					$locality = isset($_POST['locality']) ? trim(urldecode($_POST['locality'])) : null;
 					//$searchType = isset($_POST['searchType']) ? $_POST['searchType'] : null;
 					$searchBy = isset($_POST['searchBy']) ? $_POST['searchBy'] : "INSEE";
@@ -258,11 +334,8 @@ class IndexAction extends CAction
 		        	if($searchBy == "INSEE") {
 		        		$queryLocality = array("scope.cities.codeInsee" => $locality );
 		        	}
-	        	}
-				$where = array("scope.type" => "public","target.type" => array('$ne' => "pixels"));
-				if(@$queryLocality){
-					$where = array_merge($where,$queryLocality);
-				}
+	        	}*/
+				
 			}
 			if(@$_POST["tagSearch"] && !empty($_POST["tagSearch"])){
 					$querySearch = array( "tags" => array('$in' => array(new MongoRegex("/".$_POST["tagSearch"]."/i")))) ;
@@ -276,14 +349,14 @@ class IndexAction extends CAction
 					else
 						$searchType[]=array("object.objectType" => $data);
 				}
-				$where = array_merge($where,array('$and' => array(array('$or' =>$searchType))));
+				$where = array_merge($where, array('$and' => array(array('$or' =>$searchType))));
 			}
 			//Exclude => If there is more than 5 reportAbuse
-			$where = array_merge($where,  array('$or' => array(
-													array("reportAbuseCount" => array('$lt' => 5)),
-													array("reportAbuseCount" => array('$exists'=>0))
-												))
-			);
+			// $where = array_merge($where,  array('$or' => array(
+			// 										array("reportAbuseCount" => array('$lt' => 5)),
+			// 										array("reportAbuseCount" => array('$exists'=>0))
+			// 									))
+			// );
 	
 			//Exclude => If isAnAbuse
 			$where = array_merge($where,  array(
@@ -296,7 +369,7 @@ class IndexAction extends CAction
 												)
 			);
 
-			
+			echo '<pre>';var_dump($where);echo '</pre>';
 		/*}
 		else{
 			$where=$_POST["condition"];

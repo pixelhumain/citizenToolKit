@@ -17,7 +17,7 @@ class AutocompleteMultiScopeAction extends CAction
         if($type == "region")   $where = array("regionName" => new MongoRegex("/^".$scopeValue."/i"));
                        
         if($type != "dep" && $type != "region")
-            $cities = PHDB::findAndSort( City::COLLECTION, $where, array(), 15 ,array("insee", "postalCodes", "name", "depName", "regionName"));
+            $cities = PHDB::findAndSort( City::COLLECTION, $where, array(), 15 ,array("insee", "postalCodes", "country", "name", "depName", "regionName"));
         else if($type == "dep")
             $cities = PHDB::distinct( City::COLLECTION, "depName", $where);
         else if($type == "region")
