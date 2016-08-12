@@ -47,6 +47,7 @@ class Person {
 	    "modules" => array("name" => "modules"),
 	    "badges" => array("name" => "badges"),
 	    "multitags" => array("name" => "multitags"),
+	    "multiscopes" => array("name" => "multiscopes"),
 
 	);
 

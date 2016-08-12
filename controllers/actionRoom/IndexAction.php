@@ -53,6 +53,18 @@ class IndexAction extends CAction
         $actions = $rooms["actions"];
         $history = $rooms["history"];
 
+        function mySort($a, $b){ 
+            if( isset($a['updated']) && isset($b['updated']) ){
+                return (strtolower(@$b['updated']) > strtolower(@$a['updated']));
+            }else{
+                return false;
+            }
+        }
+        
+       usort($discussions,"mySort");
+       usort($votes,"mySort");
+       usort($actions,"mySort");
+
         $params = array(    "discussions" => $discussions, 
                             "votes" => $votes, 
                             "actions" => $actions, 
