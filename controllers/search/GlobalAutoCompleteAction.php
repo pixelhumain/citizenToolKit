@@ -65,7 +65,7 @@ class GlobalAutoCompleteAction extends CAction
 	  					//OneRegion
 	  					if($key == "REGION") 
 	  					{ 
-		        			$deps = PHDB::find( City::COLLECTION, array("regionName" => $localityRef), array("dep"));
+		        			/*$deps = PHDB::find( City::COLLECTION, array("regionName" => $localityRef), array("dep"));
 		        			$departements = array();
 		        			$inQuest = array();
 		        			if(is_array($deps))foreach($deps as $index => $value)
@@ -76,13 +76,35 @@ class GlobalAutoCompleteAction extends CAction
 			        				$inQuest[] = new MongoRegex("/^".$value["dep"]."/i");
 						        	$queryLocality = array("address.postalCode" => array('$in' => $inQuest));
 						        }
+		        			}*/
+		        			
+		        			$cities = PHDB::find( City::COLLECTION, array("regionName" => $localityRef), array("insee"));
+		        			$inQuest = array();
+		        			if(!empty($cities)){
+		        				foreach($cities as $keyCity => $city){
+			        				$inQuest[] = $city["insee"];
+			        			}
+			        			$queryLocality = array("address.codeInsee" => array('$in' => $inQuest));
 		        			}
+		        				
+			        		
 		        		}elseif($key == "DEPARTEMENT") {
-		        			$dep = PHDB::findOne( City::COLLECTION, array("depName" => $localityRef), array("dep"));	
-		        			$queryLocality = array($value => new MongoRegex("/^".$dep["dep"]."/i"));
+		        			/*$dep = PHDB::findOne( City::COLLECTION, array("depName" => $localityRef), array("dep"));	
+		        			$queryLocality = array($value => new MongoRegex("/^".$dep["dep"]."/i"));*/
+
+		        			$cities = PHDB::find( City::COLLECTION, array("depName" => $localityRef), array("insee"));
+				    		$inQuest = array();
+				    		if(!empty($cities)){
+		        				foreach($cities as $keyCity => $city){
+			        				$inQuest[] = $city["insee"];
+			        			}
+			        			$queryLocality = array("address.codeInsee" => array('$in' => $inQuest));
+		        			}
+				    		
+
 			        	}//OneLocality
 			        	else{
-		  					$queryLocality = array($value => new MongoRegex("/".$localityRef."/i"));
+			        		$queryLocality = array($value => new MongoRegex("/".$localityRef."/i"));
 		  				}
 
 	  					//Consolidate Queries
