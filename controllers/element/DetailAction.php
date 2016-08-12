@@ -22,12 +22,12 @@ class DetailAction extends CAction {
 		} else if ($type == Project::COLLECTION){
 			$element = Project::getById($id);
 			$params["eventTypes"] = $list["eventTypes"];
-			$params["listTypes"] = @$lists["organisationTypes"];
+			$params["listTypes"] = @$lists["eventTypes"];
 			$connectType = "contributors";
 			$params["controller"] = Project::CONTROLLER;
 		} else if ($type == Event::COLLECTION){
 			$element = Event::getById($id);
-			$params["eventTypes"] = $list["eventTypes"];
+			$params["listTypes"] = $list["eventTypes"];
 			$connectType = "attendees";
 			$params["controller"] = Event::CONTROLLER;
 			$invitedNumber=0;
@@ -43,9 +43,57 @@ class DetailAction extends CAction {
 
 				}
 			}
+			//EventOrganizer
+			if(@$element["links"]["organizer"]){
+				foreach ($element["links"]["organizer"] as $uid => $e) {
+            		$organizer["type"] = $e["type"];
+            		if($organizer["type"] == Project::COLLECTION ){
+                		$iconNav="fa-lightbulb-o";
+                		$urlType="project";
+                		$organizerInfo = Project::getSimpleProjectById($uid);
+                		$organizer["type"]=$urlType;
+            		}
+            		else if($organizer["type"] == Organization::COLLECTION ){
+		                $iconNav="fa-group";
+		                $urlType="organization";	
+		                $organizerInfo = Organization::getSimpleOrganizationById($uid);  
+						$organizer["type"]=$urlType;
+						$organizer["typeOrga"]=$organizerInfo["type"];              
+            		}
+					else{
+						$iconNav="fa-user";
+		                $urlType="person";	
+		                $organizerInfo = Person::getSimpleUserById($uid);  
+						$organizer["type"]=$urlType;
+					}
+            		$organizer["id"] = $uid;
+            		$organizer["name"] = $organizerInfo["name"];
+            		$organizer["profilImageUrl"] = $organizerInfo["profilImageUrl"];
+          		}
+		  		$params["organizer"] = $organizer;
+              		
+            }
+			//events can have sub evnets
+	        $params["subEvents"] = PHDB::find(Event::COLLECTION,array("parentId"=>$id));
+	        $params["subEventsOrganiser"] = array();
+	        $hasSubEvents = false;
+	        if(@$params["subEvents"]){
+	        	$hasSubEvents = true;
+	        	foreach ($params["subEvents"] as $key => $value) {
+	        		if( @$value["links"]["organizer"] )
+	        		{
+		        		foreach ($value["links"]["organizer"] as $key => $value) {
+		        			if( !@$params["subEventsOrganiser"][$key])
+		        				$params["subEventsOrganiser"][$key] = Element::getInfos( $value["type"], $key);
+		        		}
+	        		}
+	        	}
+	        }
+
 		} else if ($type == Person::COLLECTION){
 			$element = Person::getById($id);
 			$params["controller"] = Person::CONTROLLER;
+			$connectType = "attendees";
 		}
 
 		if(isset($element["links"][$connectType])){

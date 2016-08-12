@@ -46,6 +46,8 @@ class Person {
 	    "isOpenData" => array("name" => "isOpenData"),
 	    "modules" => array("name" => "modules"),
 	    "badges" => array("name" => "badges"),
+	    "multitags" => array("name" => "multitags"),
+	    "multiscopes" => array("name" => "multiscopes"),
 
 	);
 
