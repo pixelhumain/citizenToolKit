@@ -369,7 +369,7 @@ class IndexAction extends CAction
 												)
 			);
 
-			echo '<pre>';var_dump($where);echo '</pre>';
+			//echo '<pre>';var_dump($where);echo '</pre>';
 		/*}
 		else{
 			$where=$_POST["condition"];
