@@ -81,17 +81,17 @@ class Element {
     		$el = PHDB::findOne ( $type , array( "_id" => new MongoId($id) ) );
 	    	$ctrl = self::getControlerByCollection($type);
 	    	if( @$el && @$ctrl )
-	    		$link = "loadByHash('#".$ctrl.".detail.id.".$id."')";
+	    		$link = "#".$ctrl.".detail.id.".$id;
 	    }
 	    else if($type == City::COLLECTION){
 	    	$el = City::getByUnikey($id);
 	    	$ctrl = self::getControlerByCollection($type);
 	    	if( @$el && @$ctrl )
-	    		$link = "loadByHash('#".$ctrl.".detail.insee.".$el['insee'].".cp.".$el['cp']."')";
+	    		$link = "#".$ctrl.".detail.insee.".$el['insee'].".postalCode.".$el['cp'];
 	    }
 	    
 	    if (! $loadByHashOnly) {
-	    	$link = "<a href='javascript:;' onclick=\"".$link."\">".$el['name']."</a>";
+	    	$link = '<a href="'.$link.'" class="lbh">'.$el['name'].'</a>';
 	    }
 	    
     	return $link;
