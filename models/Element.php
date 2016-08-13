@@ -53,13 +53,16 @@ class Element {
 	    	Need::COLLECTION 			=> array("icon"=>"cubes",
 	    										 "hash"=> $prefix.""),
 	    	City::COLLECTION 			=> array("icon"=>"university",
-	    										 "hash"=> $prefix.""),
+	    										 "hash"=> $prefix.".detail.insee."),
 	    	ActionRoom::TYPE_ACTION		=> array("icon"=>"cog",
-	    		 								 "hash"=> "#rooms.action.id."),
+	    		 								 "hash"=> "#rooms.action.id.",
+	    		 								 "collection"=>ActionRoom::COLLECTION_ACTIONS),
 	    	ActionRoom::TYPE_ENTRY		=> array("icon"=>"archive",
-	    										 "hash"=> "#survey.entry.id."),
+	    										 "hash"=> "#survey.entry.id.",
+	    										 "collection"=>Survey::COLLECTION ),
 	    	ActionRoom::TYPE_DISCUSS	=> array("icon"=>"comment",
-	    										 "hash"=> "#comment.index.type.actionRooms.id."),
+	    										 "hash"=> "#comment.index.type.actionRooms.id.",
+	    										 "collection"=>ActionRoom::COLLECTION)
 	    );	
 	    
 	    if(isset($fas[$type])) return $fas[$type];
@@ -75,22 +78,24 @@ class Element {
      * @param type|null $loadByHashOnly if true, will return only the loadbyhash not surounded by the html link
      * @return String the link on the loaByHash to display the detail of the element
      */
-    public static function getLink( $type, $id, $loadByHashOnly=null ) {	    
+    public static function getLink( $type, $id, $hashOnly=null ) {	    
     	$link = ""; 
+    	$specs = self::getElementSpecsByType ($type);
+    	if(@$specs["collection"] )
+    		$type = $specs["collection"];
+
     	if(@$type && @$id && $type != City::COLLECTION){
-    		$el = PHDB::findOne ( $type , array( "_id" => new MongoId($id) ) );
-	    	$ctrl = self::getControlerByCollection($type);
-	    	if( @$el && @$ctrl )
-	    		$link = "#".$ctrl.".detail.id.".$id;
+    		if (!$hashOnly)
+    			$el = PHDB::findOne ( $type , array( "_id" => new MongoId($id) ) );
+	    	
+	    	$link = $specs["hash"].$id;
 	    }
 	    else if($type == City::COLLECTION){
 	    	$el = City::getByUnikey($id);
-	    	$ctrl = self::getControlerByCollection($type);
-	    	if( @$el && @$ctrl )
-	    		$link = "#".$ctrl.".detail.insee.".$el['insee'].".postalCode.".$el['cp'];
+	    	$link = $specs["hash"].$el['insee'].".postalCode.".$el['cp'];
 	    }
 	    
-	    if (! $loadByHashOnly) {
+	    if (! $hashOnly && @$el) {
 	    	$link = '<a href="'.$link.'" class="lbh">'.$el['name'].'</a>';
 	    }
 	    
