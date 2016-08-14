@@ -353,23 +353,17 @@ class IndexAction extends CAction
 			}
 			//Exclude => If there is more than 5 reportAbuse
 			// $where = array_merge($where,  array('$or' => array(
-			// 										array("reportAbuseCount" => array('$lt' => 5)),
-			// 										array("reportAbuseCount" => array('$exists'=>0))
-			// 									))
-			// );
-	
+			// 											array("reportAbuseCount" => array('$lt' => 5)),
+			// 											array("reportAbuseCount" => array('$exists'=>0))
+			// 										)));
+			
 			//Exclude => If isAnAbuse
-			$where = array_merge($where,  array(
-													'isAnAbuse' => array('$ne' => true)
-												)
-			);
-			$where = array_merge($where,  array('created' => array(
-													'$lt' => $date
-													)
-												)
-			);
+			$where = array_merge($where,  array( 'isAnAbuse' => array('$ne' => true) ) );
+			
+			$where = array_merge($where,  array('created' => array( '$lt' => $date ) ) );
 
-			//echo '<pre>';var_dump($where);echo '</pre>';
+			//echo '<pre>';var_dump($_POST);echo '</pre>';
+			echo '<pre>';var_dump($where);echo '</pre>';
 		/*}
 		else{
 			$where=$_POST["condition"];
