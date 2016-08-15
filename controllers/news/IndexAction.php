@@ -363,7 +363,7 @@ class IndexAction extends CAction
 			$where = array_merge($where,  array('created' => array( '$lt' => $date ) ) );
 
 			//echo '<pre>';var_dump($_POST);echo '</pre>';
-			echo '<pre>';var_dump($where);echo '</pre>';
+			//echo '<pre>';var_dump($where);echo '</pre>';
 		/*}
 		else{
 			$where=$_POST["condition"];
