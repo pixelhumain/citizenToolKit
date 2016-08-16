@@ -5,11 +5,11 @@ class GetAction extends CAction {
 		$controller=$this->getController();
 		// Get format
 		if( $format == Translate::FORMAT_SCHEMA)
-        	$bindMap = TranslateSchema::$dataBinding_event;
+        	$bindMap = TranslateSchema::$dataBinding_project;
       	else
-        	$bindMap = TranslateCommunecter::$dataBinding_event;
+        	$bindMap = TranslateCommunecter::$dataBinding_project;
 
-      	$result = Api::getData($bindMap, $format, Person::COLLECTION, $id,$limit, $index, $tags, $multiTags, $key, $insee);
+      	$result = Api::getData($bindMap, $format, Project::COLLECTION, $id,$limit, $index, $tags, $multiTags, $key, $insee);
 
 		Rest::json($result);
 		Yii::app()->end();
