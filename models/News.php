@@ -138,25 +138,49 @@ class News {
 					$project["type"] = Project::COLLECTION; 
 					Notification::actionOnPerson ( ActStr::VERB_POST, ActStr::ICON_RSS, null , $project )  ;
 				}
-				if( isset($_POST["scope"])) {
-					if(@$_POST["codeInsee"]){
-						$news["scope"]["type"]="public";
-						$address=SIG::getAdressSchemaLikeByCodeInsee($_POST["codeInsee"],$_POST["postalCode"]);
+				// if( isset($_POST["scope"])) {
+				// 	if(@$_POST["codeInsee"]){
+				// 		$news["scope"]["type"]="public";
+				// 		$address=SIG::getAdressSchemaLikeByCodeInsee($_POST["codeInsee"],$_POST["postalCode"]);
 
-						$news["scope"]["cities"][] = array("codeInsee"=>$_POST["codeInsee"], "postalCode"=>$_POST["postalCode"], "addressLocality"=>$address["addressLocality"]);
-					}
-					else {
-						$scope = $_POST["scope"];
-						$news["scope"]["type"]=$scope;
-						if($scope== "public"){
-							$address=SIG::getAdressSchemaLikeByCodeInsee($codeInsee,$postalCode);
-							$news["scope"]["cities"][] = array("codeInsee"=>$codeInsee,
-																"postalCode"=>$postalCode,
-																"addressLocality"=>$address["addressLocality"],
-																"geo" => $from
+				// 		$news["scope"]["cities"][] = array("codeInsee"=>$_POST["codeInsee"], "postalCode"=>$_POST["postalCode"], "addressLocality"=>$address["addressLocality"]);
+				// 	}
+				// 	else {
+				// 		$scope = $_POST["scope"];
+				// 		$news["scope"]["type"]=$scope;
+				// 		if($scope== "public"){
+				// 			$address=SIG::getAdressSchemaLikeByCodeInsee($codeInsee,$postalCode);
+				// 			$news["scope"]["cities"][] = array("codeInsee"=>$codeInsee,
+				// 												"postalCode"=>$postalCode,
+				// 												"addressLocality"=>$address["addressLocality"],
+				// 												"geo" => $from
+				// 											);
+				// 		}
+				// 	}		
+				// }
+				if( isset($_POST["searchLocalityNAME"]) && !empty($_POST["searchLocalityNAME"]) && $_POST["searchLocalityNAME"] != "") {
+					$news["scope"]["type"]="public";
+					foreach($_POST["searchLocalityNAME"] as $key => $value){ if(!empty($value)){
+						$city = City::getByUnikey($value); error_log("save news searchLocalityNAME");
+						$news["scope"]["cities"][] = array( "codeInsee"=>$city["insee"],
+															"postalCode"=>$city["cp"],
+															"addressLocality"=>$city["name"],
+															"geo" => $city["geo"]
+														);
+					}}
+					foreach($_POST["searchLocalityCODE_POSTAL_INSEE"] as $key => $value){ if(!empty($value)){
+						$cities = City::getWhere(array("postalCodes.postalCode"=>$value), array("insee", "postalCodes.postalCode", "geo"), 1);
+						if(!empty($cities)){
+							//$city=$city[0];
+							error_log("save news searchLocalityCODE_POSTAL_INSEE");
+							foreach($cities as $key=>$city) //var_dump($city); return;
+							$news["scope"]["cities"][] = array( "codeInsee"=>$city["insee"],
+																"postalCode"=>$city["postalCodes"][0]["postalCode"],
+																"addressLocality"=>"", //$city["name"],
+																"geo" => $city["geo"]
 															);
-						}
-					}		
+						}	
+					}}
 				}
 			}
 		 	if(isset($_POST["mentions"])){
