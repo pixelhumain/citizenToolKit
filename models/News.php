@@ -181,6 +181,33 @@ class News {
 															);
 						}	
 					}}
+					foreach($_POST["searchLocalityDEPARTEMENT"] as $key => $value){ if(!empty($value)){
+						// $cities = City::getWhere(array("postalCodes.postalCode"=>$value), array("insee", "postalCodes.postalCode", "geo"), 1);
+						// if(!empty($cities)){
+						// 	//$city=$city[0];
+						// 	error_log("save news searchLocalityCODE_POSTAL_INSEE");
+						// 	foreach($cities as $key=>$city) //var_dump($city); return;
+						// 	$news["scope"]["cities"][] = array( "codeInsee"=>$city["insee"],
+						// 										"postalCode"=>$city["postalCodes"][0]["postalCode"],
+						// 										"addressLocality"=>"", //$city["name"],
+						// 										"geo" => $city["geo"]
+						// 									);
+						// }	
+					}}
+
+					foreach($_POST["searchLocalityREGION"] as $key => $value){ if(!empty($value)){
+						// $cities = City::getWhere(array("postalCodes.postalCode"=>$value), array("insee", "postalCodes.postalCode", "geo"), 1);
+						// if(!empty($cities)){
+						// 	//$city=$city[0];
+						// 	error_log("save news searchLocalityCODE_POSTAL_INSEE");
+						// 	foreach($cities as $key=>$city) //var_dump($city); return;
+						// 	$news["scope"]["cities"][] = array( "codeInsee"=>$city["insee"],
+						// 										"postalCode"=>$city["postalCodes"][0]["postalCode"],
+						// 										"addressLocality"=>"", //$city["name"],
+						// 										"geo" => $city["geo"]
+						// 									);
+						// }	
+					}}
 				}
 			}
 		 	if(isset($_POST["mentions"])){
