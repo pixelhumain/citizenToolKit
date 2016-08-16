@@ -234,7 +234,7 @@ class Project {
 		if(empty($newProject["preferences"])){
 			$newProject["preferences"] = array("publicFields" => array(), "privateFields" => array(), "isOpenData" => true, "isOpenEdition" => true);
 		}
-
+		$newProject["updated"] = time();
 	    PHDB::insert(self::COLLECTION,$newProject);
 		Link::addContributor(Yii::app() -> session["userId"],Person::COLLECTION,$parentId,$parentType,$newProject["_id"]);
 	   // Link::connect($parentId, $parentType, $newProject["_id"], self::COLLECTION, $parentId, "projects", true );
@@ -362,7 +362,8 @@ class Project {
 		}
 
 		//update the project
-		$set = array_merge($set , array("modified" => new MongoDate(time())));
+		$set["modified"] = new MongoDate(time());
+		$set["updated"] = time();
 		PHDB::update( self::COLLECTION, array("_id" => new MongoId($projectId)), 
 		                        array('$set' => $set));
 	    if($authorization == "openEdition" && $dataFieldName != "badges"){

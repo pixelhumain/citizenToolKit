@@ -88,7 +88,8 @@ class Organization {
 		if(empty($newOrganization["preferences"])){
 			$newOrganization["preferences"] = array("publicFields" => array(), "privateFields" => array(), "isOpenData"=>true,"isOpenEdition"=>true);
 		}
-	
+		
+		$newOrganization["updated"] = time();	
 		//Insert the organization
 	    PHDB::insert( Organization::COLLECTION, $newOrganization);
 		
@@ -720,8 +721,11 @@ class Organization {
 			}
 		}
 		//update the organization
+		$set["modified"] = new MongoDate(time());
+		$set["updated"] = time();
 		PHDB::update( Organization::COLLECTION, array("_id" => new MongoId($organizationId)), 
 		                          array('$set' => $set));
+
 		if($authorization == "openEdition" && $dataFieldName != "badges"){
 			// Add in activity to show each modification added to this entity
 			//echo $dataFieldName;

@@ -11,6 +11,7 @@ class GlobalAutoCompleteAction extends CAction
         $indexMin = isset($_POST['indexMin']) ? $_POST['indexMin'] : 0;
         $indexMax = isset($_POST['indexMax']) ? $_POST['indexMax'] : 30;
         $country = isset($_POST['country']) ? $_POST['country'] : "";
+        $latest = isset($_POST['latest']) ? $_POST['latest'] : null;
 
         error_log("global search " . $search . " - searchBy : ". $searchBy. " & locality : ". $locality. " & country : ". $country);
 	    
@@ -24,8 +25,8 @@ class GlobalAutoCompleteAction extends CAction
         
        // if(isset($search) && $search != "")
         $query = array( "name" => new MongoRegex("/".$search."/i"));
-  		
 
+        
         /***********************************  TAGS   *****************************************/
         $tmpTags = array();
         if(strpos($search, "#") > -1){
@@ -43,8 +44,8 @@ class GlobalAutoCompleteAction extends CAction
   		}
   		unset($tmpTags);
   		$query = array('$and' => array( $query , array("state" => array('$ne' => "uncomplete")) ));
-
-
+  		if($latest)
+  			$query = array('$and' => array($query, array("updated"=>array('$exists'=>1))));
   		/***********************************  DEFINE LOCALITY QUERY   ***************************************/
   		$localityReferences['NAME'] = "";
   		$localityReferences['CODE_POSTAL_INSEE'] = "address.postalCode";
@@ -109,6 +110,7 @@ class GlobalAutoCompleteAction extends CAction
   		if(isset($allQueryLocality) && is_array($allQueryLocality))
   			$query = array('$and' => array($query, $allQueryLocality));
   		
+
 	    //$res = array();
 	    $allRes = array();
 	    //var_dump($query); return;
@@ -304,7 +306,7 @@ class GlobalAutoCompleteAction extends CAction
 			}
 		}
 	  	
-	  	//trie les éléments dans l'ordre alphabetique par name
+	  	//trie les éléments dans l'ordre alphabetique par updated
 	  	function mySortByUpdated($a, $b){ // error_log("sort : ");//.$a['name']);
 	  		if(isset($a["updated"]) && isset($b["updated"])){
 		   		return ( strtolower($b["updated"]) < strtolower($a["updated"]) );
@@ -324,7 +326,12 @@ class GlobalAutoCompleteAction extends CAction
 	  	// 	if(!$this->typeWanted("events", $searchType) || count($searchType)>1) //si on n'est pas en mode "calendar" (les event sont classés par date)
 	  	// 		usort($allRes, "mySortByName"); //on tri les éléments par ordre alphabetique sur le name
 
-	  	if(isset($allRes)) usort($allRes, "mySortByName");
+	  	if(isset($allRes)) {
+	  		if($latest)
+	  			usort($allRes, "mySortByUpdated");
+	  		else
+	  			usort($allRes, "mySortByName");
+	  	}
 
 	  	if(isset($allCitiesRes)) usort($allCitiesRes, "mySortByName");
 
@@ -341,9 +348,11 @@ class GlobalAutoCompleteAction extends CAction
 		  	$index++;
 	  	}
 
-	  	
   		//Rest::json($res);
-		Rest::json($limitRes);
+  		if($_POST['tpl'])
+  			echo $this->getController()->renderPartial($_POST['tpl'], array("result"=>$limitRes));
+  		else
+			Rest::json($limitRes);
 		Yii::app()->end();
     }
 

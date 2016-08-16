@@ -98,7 +98,6 @@ class Element {
 	    if (! $hashOnly && @$el) {
 	    	$link = '<a href="'.$link.'" class="lbh">'.$el['name'].'</a>';
 	    }
-	    
     	return $link;
     }
 	public static function getByTypeAndId($type, $id){
@@ -313,4 +312,11 @@ class Element {
 		}
 		return $contextMap;	
     }
+
+    public static function getActive($type){
+
+        $list = PHDB::findAndSort( $type ,array("updated"=>array('$exists'=>1)),array("updated"=>1), 4);
+        
+        return $list;
+     }
 }
