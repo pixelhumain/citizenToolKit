@@ -136,6 +136,8 @@ class GlobalAutoCompleteAction extends CAction
 	  	/***********************************  ORGANISATIONS   *****************************************/
         if(strcmp($filter, Organization::COLLECTION) != 0 && $this->typeWanted("organizations", $searchType)){
         	$queryDisabled = array("disabled" => array('$exists' => false));
+        	if($latest)
+  				$queryDisabled["updated"] = array('$exists'=>1);
         	$queryOrganization = array('$and' => array($query, $queryDisabled));
 	  		$allOrganizations = PHDB::findAndSort ( Organization::COLLECTION ,$queryOrganization, 
 	  												array("updated" => 1, "name" => 1), 30, 
@@ -147,7 +149,7 @@ class GlobalAutoCompleteAction extends CAction
 		  			$orga["isFollowed"] = true;
 	  			}
 				$orga["type"] = "organization";
-				$orga["typeSig"] = "organizations";
+				$orga["typeSig"] = Organization::COLLECTION;
 				$allOrganizations[$key] = $orga;
 	  		}
 
@@ -159,10 +161,13 @@ class GlobalAutoCompleteAction extends CAction
         if(strcmp($filter, Event::COLLECTION) != 0 && $this->typeWanted("events", $searchType)){
         	
         	$queryEvent = $query;
+
         	if( !isset( $queryEvent['$and'] ) ) 
         		$queryEvent['$and'] = array();
         	//error_log("searching for events");
         	array_push( $queryEvent[ '$and' ], array( "endDate" => array( '$gte' => new MongoDate( time() ) ) ) );
+        	if($latest)
+  				array_push( $queryEvent[ '$and' ], array( "updated" => array( '$exists'=>1 ) ) );
         	//var_dump($queryEvent); return;
 	  		$allEvents = PHDB::findAndSort( PHType::TYPE_EVENTS, $queryEvent, 
 	  										array("startDate" => 1), 30, 
@@ -170,7 +175,7 @@ class GlobalAutoCompleteAction extends CAction
 	  		foreach ($allEvents as $key => $value) {
 	  			$event = Event::getById($key);
 				$event["type"] = "event";
-				$event["typeSig"] = "events";
+				$event["typeSig"] = Event::COLLECTION;
 				$allEvents[$key] = $event;
 				error_log("event fount : ".$event["name"]);
 	  		}
@@ -181,6 +186,12 @@ class GlobalAutoCompleteAction extends CAction
 
 	  	/***********************************  PROJECTS   *****************************************/
         if(strcmp($filter, Project::COLLECTION) != 0 && $this->typeWanted("projects", $searchType)){
+        	$queryProject = $query;
+
+        	if( !isset( $queryProject['$and'] ) ) 
+        		$queryProject['$and'] = array();
+        	if($latest)
+  				array_push( $queryProject[ '$and' ], array( "updated" => array( '$exists'=>1 ) ) );
 	  		$allProject = PHDB::findAndSort(Project::COLLECTION, $query, 
 	  												array("updated" => 1, "name" => 1), 30, 
 	  												array("name", "address", "shortDescription", "description"));
@@ -190,7 +201,7 @@ class GlobalAutoCompleteAction extends CAction
 		  			$orga["isFollowed"] = true;
 	  			}
 				$project["type"] = "project";
-				$project["typeSig"] = "projects";
+				$project["typeSig"] = Project::COLLECTION;
 				$allProject[$key] = $project;
 	  		}
 	  		//$res["project"] = $allProject;
