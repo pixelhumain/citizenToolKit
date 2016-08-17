@@ -280,6 +280,9 @@ class IndexAction extends CAction
 		  		$where = array( "scope.type" => "public",
 		  						"target.type" => array('$ne' => "pixels"),
 		  						);
+
+		  		if(@$_POST["typeNews"]) $where["type"] = $_POST["typeNews"];
+		  			//error_log("typeNews : ".@$_POST["typeNews"]);			
 				if(@$allQueryLocality){
 					$where = array_merge($where, $allQueryLocality);
 				}
@@ -344,13 +347,26 @@ class IndexAction extends CAction
 			if(@$_POST['searchType']){
 				$searchType=array();
 				foreach($_POST['searchType'] as $data){
-					if($data == "news")
-						$searchType[]=array("type" => "news");
+					if($data == "news" || $data == "idea" || $data == "question" || $data == "announce" || $data == "information")
+						$searchType[]=array("type" => $data);
 					else
 						$searchType[]=array("object.objectType" => $data);
 				}
 				$where = array_merge($where, array('$and' => array(array('$or' =>$searchType))));
 			}
+
+			// if(@$_POST['searchType']){
+			// 	$searchType=array();
+			// 	foreach($_POST['searchType'] as $data){
+			// 		if($data == "activityStream")
+			// 			$searchType[]=array("object.objectType" => $data);
+			// 		else if(@$_POST["typeNews"])
+			// 			$searchType[]=array("type" => $_POST["typeNews"]);
+			// 		else 
+			// 	}
+			// 	if(!empty($searchType))
+			// 	$where = array_merge($where, array('$and' => array(array('$or' =>$searchType))));
+			// }
 			//Exclude => If there is more than 5 reportAbuse
 			// $where = array_merge($where,  array('$or' => array(
 			// 											array("reportAbuseCount" => array('$lt' => 5)),

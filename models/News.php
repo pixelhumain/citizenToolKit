@@ -80,8 +80,9 @@ class News {
 	 	{
 		 	$codeInsee=$user["address"]["codeInsee"];
 		 	$postalCode=$user["address"]["postalCode"];
-			$news = array("type" => "news",
-							"text" => $_POST["text"],
+		 	$typeNews=@$_POST["type"] ? $_POST["type"] : "news";
+			$news = array("type" => $typeNews, //"news",
+						  "text" => $_POST["text"],
 						  "author" => Yii::app()->session["userId"],
 						  "date"=>new MongoDate(time()),
 						  "created"=>new MongoDate(time()));
