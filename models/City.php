@@ -158,10 +158,10 @@ class City {
 				array_push($tabInsee, $value["insee"]);
 			}
 
-			$where = array("insee"=>array('$in' =>$tabInsee) , $typeData => array( '$exists' => 1 ));
+			$where = array("insee"=>array('$in' =>$tabInsee), $typeData => array( '$exists' => 1 ));
 		}
 		else
-			$where = array("insee"=>array('$in' =>$inseeCities) , $typeData => array( '$exists' => 1 ));
+			$where = array("insee"=>array('$in' =>$inseeCities), $typeData => array( '$exists' => 1 ));
 
 		/*$fields = array("insee", $typeData.$option) ;
 		$sort = array($typeData.$option => -1);*/
