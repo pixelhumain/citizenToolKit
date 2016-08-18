@@ -46,6 +46,8 @@ class Element {
 	    										 "hash"=> $prefix.".detail.id."),
 	    	Person::COLLECTION 			=> array("icon"=>"user",
 	    										 "hash"=> $prefix.".detail.id."),
+	    	Event::COLLECTION 			=> array("icon"=>"calendar",
+	    										 "hash"=> $prefix.".detail.id."),
 	    	Project::COLLECTION 		=> array("icon"=>"lightbulb-o",
 	    										 "hash"=> $prefix.".detail.id."),
 			News::COLLECTION 			=> array("icon"=>"rss",

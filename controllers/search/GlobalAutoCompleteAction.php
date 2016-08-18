@@ -118,7 +118,7 @@ class GlobalAutoCompleteAction extends CAction
         if(strcmp($filter, Person::COLLECTION) != 0 && $this->typeWanted("persons", $searchType)){
 
         	$allCitoyen = PHDB::findAndSort ( Person::COLLECTION , $query, 
-	  										  array("name" => 1), 30, 
+	  										  array("name" => 1), 100, 
 	  										  array("name", "address", "shortDescription", "description"));
 
 	  		foreach ($allCitoyen as $key => $value) {
@@ -135,14 +135,16 @@ class GlobalAutoCompleteAction extends CAction
 
 	  	/***********************************  ORGANISATIONS   *****************************************/
         if(strcmp($filter, Organization::COLLECTION) != 0 && $this->typeWanted("organizations", $searchType)){
-        	$queryDisabled = array("disabled" => array('$exists' => false));
-        	if($latest)
-  				$queryDisabled["updated"] = array('$exists'=>1);
-        	$queryOrganization = array('$and' => array($query, $queryDisabled));
+        	$queryOrganization = $query;
+        	if( !isset( $queryOrganization['$and'] ) ) 
+        		$queryOrganization['$and'] = array();
+        	array_push( $queryOrganization[ '$and' ], array( "disabled" => array('$exists' => false) ) );
 	  		$allOrganizations = PHDB::findAndSort ( Organization::COLLECTION ,$queryOrganization, 
-	  												array("updated" => 1, "name" => 1), 30, 
-	  												array("name", "address", "shortDescription", "description"));
-	  		foreach ($allOrganizations as $key => $value) {
+	  												array("updated" => -1, "name" => 1), 100, 
+	  												array("name", "address", "shortDescription", "description","updated"));
+	  		foreach ($allOrganizations as $key => $value) 
+	  		{
+	  			//@Kgneo : pourquoi on va chercher le get simple alors qu'on vient de recup l'orga ?
 	  			$orga = Organization::getSimpleOrganizationById($key);
 	  			$followers = Organization::getFollowersByOrganizationId($key);
 	  			if(@$followers[Yii::app()->session["userId"]]){
@@ -166,12 +168,11 @@ class GlobalAutoCompleteAction extends CAction
         		$queryEvent['$and'] = array();
         	//error_log("searching for events");
         	array_push( $queryEvent[ '$and' ], array( "endDate" => array( '$gte' => new MongoDate( time() ) ) ) );
-        	if($latest)
-  				array_push( $queryEvent[ '$and' ], array( "updated" => array( '$exists'=>1 ) ) );
+        	
         	//var_dump($queryEvent); return;
 	  		$allEvents = PHDB::findAndSort( PHType::TYPE_EVENTS, $queryEvent, 
-	  										array("startDate" => 1), 30, 
-	  										array("name", "address", "startDate", "endDate", "shortDescription", "description"));
+	  										array("updated" => -1,"startDate" => 1), 100, 
+	  										array("name", "address", "startDate", "endDate", "shortDescription", "description","updated"));
 	  		foreach ($allEvents as $key => $value) {
 	  			$event = Event::getById($key);
 				$event["type"] = "event";
@@ -188,13 +189,9 @@ class GlobalAutoCompleteAction extends CAction
         if(strcmp($filter, Project::COLLECTION) != 0 && $this->typeWanted("projects", $searchType)){
         	$queryProject = $query;
 
-        	if( !isset( $queryProject['$and'] ) ) 
-        		$queryProject['$and'] = array();
-        	if($latest)
-  				array_push( $queryProject[ '$and' ], array( "updated" => array( '$exists'=>1 ) ) );
-	  		$allProject = PHDB::findAndSort(Project::COLLECTION, $query, 
-	  												array("updated" => 1, "name" => 1), 30, 
-	  												array("name", "address", "shortDescription", "description"));
+        	$allProject = PHDB::findAndSort(Project::COLLECTION, $query, 
+	  												array("updated" => -1, "name" => 1), 30, 
+	  												array("name", "address", "shortDescription", "description","updated"));
 	  		foreach ($allProject as $key => $value) {
 	  			$project = Project::getById($key);
 	  			if(@$project["links"]["followers"][Yii::app()->session["userId"]]){
@@ -320,7 +317,7 @@ class GlobalAutoCompleteAction extends CAction
 	  	//trie les éléments dans l'ordre alphabetique par updated
 	  	function mySortByUpdated($a, $b){ // error_log("sort : ");//.$a['name']);
 	  		if(isset($a["updated"]) && isset($b["updated"])){
-		   		return ( strtolower($b["updated"]) < strtolower($a["updated"]) );
+		   		return ( strtolower($b["updated"]) > strtolower($a["updated"]) );
 		    } else{
 				return false;
 			}
@@ -337,12 +334,14 @@ class GlobalAutoCompleteAction extends CAction
 	  	// 	if(!$this->typeWanted("events", $searchType) || count($searchType)>1) //si on n'est pas en mode "calendar" (les event sont classés par date)
 	  	// 		usort($allRes, "mySortByName"); //on tri les éléments par ordre alphabetique sur le name
 
+	  	
 	  	if(isset($allRes)) {
 	  		if($latest)
 	  			usort($allRes, "mySortByUpdated");
 	  		else
 	  			usort($allRes, "mySortByName");
 	  	}
+
 
 	  	if(isset($allCitiesRes)) usort($allCitiesRes, "mySortByName");
 
@@ -360,7 +359,7 @@ class GlobalAutoCompleteAction extends CAction
 	  	}
 
   		//Rest::json($res);
-  		if($_POST['tpl'])
+  		if(@$_POST['tpl'])
   			echo $this->getController()->renderPartial($_POST['tpl'], array("result"=>$limitRes));
   		else
 			Rest::json($limitRes);
