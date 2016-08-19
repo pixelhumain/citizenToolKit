@@ -11,6 +11,7 @@ class DetailAction extends CAction {
 		$events=array();
 		$projects=array();
 		$needs=array();
+
 		if($type == Organization::COLLECTION){
 			$element = Organization::getById($id);
 			$params["listTypes"] = isset($lists["organisationTypes"]) ? $lists["organisationTypes"] : null;
@@ -26,25 +27,24 @@ class DetailAction extends CAction {
 					 $event = Event::getSimpleEventById($keyEv);
 	           		 $events[$keyEv] = $event;
 				}
-				$params["events"]=$events;
 			}
-
+			
 			// Link with projects
 			if(isset($element["links"]["projects"])){
 				foreach ($element["links"]["projects"] as $keyProj => $valueProj) {
 					 $project = Project::getPublicData($keyProj);
 	           		 $projects[$keyProj] = $project;
 				}
-				$params["projects"]=$projects;
 			}
+			
 			// Link with needs
 			if(isset($element["links"]["needs"])){
 				foreach ($element["links"]["needs"] as $key => $value){
 					$need = Need::getSimpleNeedById($key);
 	           		$needs[$key] = $need;
 				}
-				$params["needs"]=$projects;
 			}
+			
 
 		} else if ($type == Project::COLLECTION){
 			$element = Project::getById($id);
@@ -58,8 +58,15 @@ class DetailAction extends CAction {
 					 $event = Event::getSimpleEventById($keyEv);
 	           		 $events[$keyEv] = $event;
 				}
-				$params["events"]=$events;
 			}
+
+			if(isset($element["links"]["needs"])){
+				foreach ($element["links"]["needs"] as $key => $value){
+					$need = Need::getSimpleNeedById($key);
+	           		$needs[$key] = $need;
+				}
+			}
+
 		} else if ($type == Event::COLLECTION){
 			$element = Event::getById($id);
 			$params["listTypes"] = $list["eventTypes"];
@@ -109,7 +116,8 @@ class DetailAction extends CAction {
               		
             }
 			//events can have sub evnets
-	        $params["events"] = PHDB::find(Event::COLLECTION,array("parentId"=>$id));
+
+	        $params["subEvents"] = PHDB::find(Event::COLLECTION,array("parentId"=>$id));
 	        $params["subEventsOrganiser"] = array();
 	        $hasSubEvents = false;
 	        if(@$params["subEvents"]){
@@ -131,54 +139,61 @@ class DetailAction extends CAction {
 			$connectType = "attendees";
 		}
 		if(	@$element["links"] ) {
-		if(isset($element["links"][$connectType])){
-			$countStrongLinks=count($element["links"][$connectType]);
-			$nbMembers=0;
-			foreach ($element["links"][$connectType] as $key => $aMember) {
-				if($nbMembers < 11){
-					if($aMember["type"]==Organization::COLLECTION){
-						$newOrga = Organization::getSimpleOrganizationById($key);
-						if(!empty($newOrga)){
-							if ($aMember["type"] == Organization::COLLECTION && @$aMember["isAdmin"]){
-								$newOrga["isAdmin"]=true;  				
-							}
-							$newOrga["type"]=Organization::COLLECTION;
-							//array_push($contextMap["organizations"], $newOrga);
-							array_push($members, $newOrga);
-						}
-					} else if($aMember["type"]==Person::COLLECTION){
-						if(!@$aMember["invitorId"]){
-							$newCitoyen = Person::getSimpleUserById($key);
-							if (!empty($newCitoyen)) {
-								if (@$aMember["type"] == Person::COLLECTION) {
-									if(@$aMember["isAdmin"]){
-										if(@$aMember["isAdminPending"])
-											$newCitoyen["isAdminPending"]=true;  
-											$newCitoyen["isAdmin"]=true;  	
-									}			
-									if(@$aMember["toBeValidated"]){
-										$newCitoyen["toBeValidated"]=true;  
-									}		
-				  				
+			if(isset($element["links"][$connectType])){
+				$countStrongLinks=count($element["links"][$connectType]);
+				$nbMembers=0;
+				foreach ($element["links"][$connectType] as $key => $aMember) {
+					if($nbMembers < 11){
+						if($aMember["type"]==Organization::COLLECTION){
+							$newOrga = Organization::getSimpleOrganizationById($key);
+							if(!empty($newOrga)){
+								if ($aMember["type"] == Organization::COLLECTION && @$aMember["isAdmin"]){
+									$newOrga["isAdmin"]=true;  				
 								}
-								$newCitoyen["type"]=Person::COLLECTION;
-								//array_push($contextMap["people"], $newCitoyen);
-								array_push($members, $newCitoyen);
+								$newOrga["type"]=Organization::COLLECTION;
+								//array_push($contextMap["organizations"], $newOrga);
+								//array_push($members, $newOrga);
+								$members[$key] = $newOrga ;
+							}
+						} else if($aMember["type"]==Person::COLLECTION){
+							if(!@$aMember["invitorId"]){
+								$newCitoyen = Person::getSimpleUserById($key);
+								if (!empty($newCitoyen)) {
+									if (@$aMember["type"] == Person::COLLECTION) {
+										if(@$aMember["isAdmin"]){
+											if(@$aMember["isAdminPending"])
+												$newCitoyen["isAdminPending"]=true;  
+												$newCitoyen["isAdmin"]=true;  	
+										}			
+										if(@$aMember["toBeValidated"]){
+											$newCitoyen["toBeValidated"]=true;  
+										}		
+					  				
+									}
+									$newCitoyen["type"]=Person::COLLECTION;
+									//array_push($contextMap["people"], $newCitoyen);
+									//array_push($members, $newCitoyen);
+									$members[$key] = $newCitoyen ;
+								}
 							}
 						}
+						$nbMembers++;
+					} else {
+						break;
 					}
-					$nbMembers++;
-				} else {
-					break;
 				}
 			}
 		}
-		}
+
 		$params["eventTypes"] = $list["eventTypes"];
 		$params["tags"] = Tags::getActiveTags();
 		$params["element"] = $element;
 		$params["members"] = $members;
 		$params["type"] = $type;
+		$params["events"]=$events;
+		$params["projects"]=$projects;
+		$params["needs"]=$needs;
+		$params["admin"] = Authorisation::canEditItem(Yii::app()->session["userId"], $type, $element["_id"]);
 		if($type==Event::COLLECTION){
 			$params["countStrongLinks"]= @$attendeeNumber;
 			$params["countLowLinks"] = @$invitedNumber;
