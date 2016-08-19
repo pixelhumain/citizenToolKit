@@ -266,6 +266,7 @@ class Event {
 			$newEvent["preferences"] = array("publicFields" => array(), "privateFields" => array(), "isOpenEdition"=>true, "isOpenData"=>true);
 		}
 		$newEvent['updated'] = time();
+		$newEvent["modified"] = new MongoDate(time());
 	    PHDB::insert(self::COLLECTION,$newEvent);
 	    
 	    /*

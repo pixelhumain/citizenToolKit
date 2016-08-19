@@ -24,12 +24,24 @@ class SaveSurveyAction extends CAction
                     $newInfos['parentType'] = $_POST['parentType'];
                 if( isset( $_POST["parentId"] ) ) 
                     $newInfos['parentId'] = $_POST['parentId'];
+
+                //these fields are necessary for multi scoping search features
+                if(@$_POST["parentType"] && @$_POST["parentId"]){
+                    $parent = Element::getByTypeAndId(@$_POST["parentType"], @$_POST["parentId"]);
+                    if(@$parent["address"])
+                        $newInfos['address'] = $parent["address"];
+                    if(@$parent["geo"])
+                        $newInfos['geo'] = $parent["geo"];
+                    if(@$parent["geoPosition"])
+                        $newInfos['geoPosition'] = $parent["geoPosition"];
+                }
                 
                 if( isset($_POST['tags']) && count($_POST['tags']) )
                     $newInfos['tags'] = $_POST['tags'];
                 
                 $newInfos['created'] = time();
                 $newInfos['updated'] = time();
+                $newInfos["modified"] = new MongoDate(time());
                 PHDB::insert( Survey::PARENT_COLLECTION, $newInfos );
                 /*PHDB::updateWithOptions( Survey::PARENT_COLLECTION,  array( "name" => $name ), 
                                                    array('$set' => $newInfos ) ,

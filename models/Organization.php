@@ -88,7 +88,7 @@ class Organization {
 		if(empty($newOrganization["preferences"])){
 			$newOrganization["preferences"] = array("publicFields" => array(), "privateFields" => array(), "isOpenData"=>true,"isOpenEdition"=>true);
 		}
-		
+		$newOrganization["modified"] = new MongoDate(time());
 		$newOrganization["updated"] = time();	
 		//Insert the organization
 	    PHDB::insert( Organization::COLLECTION, $newOrganization);

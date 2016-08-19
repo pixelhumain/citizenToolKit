@@ -33,6 +33,8 @@ class Element {
 	    	ActionRoom::TYPE_ACTION		=> "cog",
 	    	ActionRoom::TYPE_ENTRY		=> "archive",
 	    	ActionRoom::TYPE_DISCUSS	=> "comment",
+	    	ActionRoom::TYPE_VOTE		=> "archive",
+	    	ActionRoom::TYPE_ACTIONS	=> "cogs",
 	    );	
 	    
 	    if(isset($fas[$type])) return $fas[$type];
@@ -56,6 +58,12 @@ class Element {
 	    										 "hash"=> $prefix.""),
 	    	City::COLLECTION 			=> array("icon"=>"university",
 	    										 "hash"=> $prefix.".detail.insee."),
+	    	ActionRoom::TYPE_VOTE		=> array("icon"=>"archive",
+	    		 								 "hash"=> "#survey.entries.id.",
+	    		 								 "collection"=>ActionRoom::COLLECTION),
+	    	ActionRoom::TYPE_ACTIONS	=> array("icon"=>"cogs",
+	    		 								 "hash"=> "#rooms.actions.id.",
+	    		 								 "collection"=>ActionRoom::COLLECTION),
 	    	ActionRoom::TYPE_ACTION		=> array("icon"=>"cog",
 	    		 								 "hash"=> "#rooms.action.id.",
 	    		 								 "collection"=>ActionRoom::COLLECTION_ACTIONS),
@@ -67,8 +75,10 @@ class Element {
 	    										 "collection"=>ActionRoom::COLLECTION)
 	    );	
 	    
-	    if(isset($fas[$type])) return $fas[$type];
-	    else return false;
+	    if( isset($fas[$type]) ) 
+	    	return $fas[$type];
+	    else 
+	    	return false;
     }
 
     /**
@@ -83,12 +93,12 @@ class Element {
     public static function getLink( $type, $id, $hashOnly=null ) {	    
     	$link = ""; 
     	$specs = self::getElementSpecsByType ($type);
-    	if(@$specs["collection"] )
+    	if( @$specs["collection"] )
     		$type = $specs["collection"];
 
     	if(@$type && @$id && $type != City::COLLECTION){
     		if (!$hashOnly)
-    			$el = PHDB::findOne ( $type , array( "_id" => new MongoId($id) ) );
+    			$el = PHDB::findOne ( $type , array( "_id" => new MongoId($id) ),array("name") );
 	    	
 	    	$link = $specs["hash"].$id;
 	    }
@@ -97,11 +107,12 @@ class Element {
 	    	$link = $specs["hash"].$el['insee'].".postalCode.".$el['cp'];
 	    }
 	    
-	    if (! $hashOnly && @$el) {
-	    	$link = '<a href="'.$link.'" class="lbh">'.$el['name'].'</a>';
-	    }
+	    //if ( !$hashOnly && @$el ) 
+	    $link = '<a href="'.$link.'" class="lbh">'.@$el['name'].'</a>';
+	    
     	return $link;
     }
+
 	public static function getByTypeAndId($type, $id){
 		if($type == Person::COLLECTION)
 			$element = Person::getById($id);
@@ -113,6 +124,7 @@ class Element {
 			$element = Event::getById($id);	
 		return $element;
 	}
+
     public static function getInfos( $type, $id, $loadByHashOnly=null ) {	    
     	$link = ""; 
     	$name = ""; 

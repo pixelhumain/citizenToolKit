@@ -133,7 +133,7 @@ class GlobalAutoCompleteAction extends CAction
 	  	}
 
 	  	/***********************************  ORGANISATIONS   *****************************************/
-        if(strcmp($filter, Organization::COLLECTION) != 0 && $this->typeWanted("organizations", $searchType)){
+        if(strcmp($filter, Organization::COLLECTION) != 0 && $this->typeWanted(Organization::COLLECTION, $searchType)){
         	$queryOrganization = $query;
         	if( !isset( $queryOrganization['$and'] ) ) 
         		$queryOrganization['$and'] = array();
@@ -159,7 +159,7 @@ class GlobalAutoCompleteAction extends CAction
 	  	date_default_timezone_set('UTC');
 				
 	  	/***********************************  EVENT   *****************************************/
-        if(strcmp($filter, Event::COLLECTION) != 0 && $this->typeWanted("events", $searchType)){
+        if(strcmp($filter, Event::COLLECTION) != 0 && $this->typeWanted(Event::COLLECTION, $searchType)){
         	
         	$queryEvent = $query;
 
@@ -184,9 +184,7 @@ class GlobalAutoCompleteAction extends CAction
 	  	}
 
 	  	/***********************************  PROJECTS   *****************************************/
-        if(strcmp($filter, Project::COLLECTION) != 0 && $this->typeWanted("projects", $searchType)){
-        	$queryProject = $query;
-
+        if(strcmp($filter, Project::COLLECTION) != 0 && $this->typeWanted(Project::COLLECTION, $searchType)){
         	$allProject = PHDB::findAndSort(Project::COLLECTION, $query, 
 	  												array("updated" => -1, "name" => 1), $indexMax);
 	  		foreach ($allProject as $key => $value) {
@@ -204,15 +202,44 @@ class GlobalAutoCompleteAction extends CAction
 	  		//$res["project"] = $allProject;
 	  		$allRes = array_merge($allRes, $allProject);
 	  	}
+
+	  	/***********************************  DDA   *****************************************/
+        if(strcmp($filter, ActionRoom::COLLECTION) != 0 && $this->typeWanted(ActionRoom::COLLECTION, $searchType))
+        {
+        	$queryDiscuss = $query;
+        	if( !isset( $queryDiscuss['$and'] ) ) 
+        		$queryDiscuss['$and'] = array();
+        	array_push( $queryDiscuss[ '$and' ], array( "type" => ActionRoom::TYPE_DISCUSS ) );
+        	$allFound = PHDB::findAndSort(ActionRoom::COLLECTION, $queryDiscuss, array("updated" => -1), $indexMax);
+	  		foreach ($allFound as $key => $value) {
+				$allFound[$key]["type"] = $value["type"];
+				$allFound[$key]["typeSig"] = ActionRoom::COLLECTION;
+	  		}
+	  		$allRes = array_merge($allRes, $allFound);
+	  		
+        	$allFound = PHDB::findAndSort(ActionRoom::COLLECTION_ACTIONS, $query, array("updated" => -1), $indexMax);
+	  		foreach ($allFound as $key => $value) {
+				$allFound[$key]["type"] = $value["type"];
+				$allFound[$key]["typeSig"] = ActionRoom::COLLECTION_ACTIONS;
+	  		}
+	  		$allRes = array_merge($allRes, $allFound);
+
+        	$allFound = PHDB::findAndSort(Survey::COLLECTION, $query, array("updated" => -1), $indexMax);
+	  		foreach ($allFound as $key => $value) {
+				$allFound[$key]["type"] = $value["type"];
+				$allFound[$key]["typeSig"] = Survey::COLLECTION;
+	  		}
+	  		//$res["project"] = $allProject;
+	  		$allRes = array_merge($allRes, $allFound);
+	  	}
 		    
 	  	/***********************************  CITIES   *****************************************/
-        if(strcmp($filter, City::COLLECTION) != 0 && $this->typeWanted("cities", $searchType)){
+        if(strcmp($filter, City::COLLECTION) != 0 && $this->typeWanted(City::COLLECTION, $searchType)){
 	  		$query = array( "name" => new MongoRegex("/".self::wd_remove_accents($search)."/i"));//array('$text' => array('$search' => $search));//
 	  		
 	  		/***********************************  DEFINE LOCALITY QUERY   *****************************************/
-	        	if($locality == null || $locality == ""){
+	        	if($locality == null || $locality == "")
 		    		$locality = $search;
-		    	}
 		    	$type = $this->getTypeOfLocalisation($locality);
 		    	if($searchBy == "INSEE") $type = $searchBy;
 	        	error_log("type " . $type);
