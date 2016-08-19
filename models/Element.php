@@ -211,11 +211,11 @@ class Element {
 	          $testUrl = substr($url, 1);
 	        }
 	    }
-	    
+	    return $url;
 	    //echo $testUrl;
 	    //error_log($testUrl);
-	    if(file_exists($testUrl)) return $url;
-	    else return $assetUrl.'/images/thumbnail-default.jpg';
+	    //if(file_exists($testUrl)) return $url;
+	    //else return $assetUrl.'/images/thumbnail-default.jpg';
     }
      
     public static function getAllLinks($links,$type){
