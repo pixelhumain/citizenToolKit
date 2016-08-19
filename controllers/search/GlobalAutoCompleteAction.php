@@ -141,18 +141,20 @@ class GlobalAutoCompleteAction extends CAction
         	array_push( $queryOrganization[ '$and' ], array( "disabled" => array('$exists' => false) ) );
 	  		$allOrganizations = PHDB::findAndSort ( Organization::COLLECTION ,$queryOrganization, 
 	  												array("updated" => -1, "name" => 1), 100, 
-	  												array("name", "address", "shortDescription", "description","updated"));
+	  												array("name", "address", "shortDescription", "description","updated", "geo", "tags"));
 	  		foreach ($allOrganizations as $key => $value) 
 	  		{
 	  			//@Kgneo : pourquoi on va chercher le get simple alors qu'on vient de recup l'orga ?
-	  			$orga = Organization::getSimpleOrganizationById($key);
-	  			$followers = Organization::getFollowersByOrganizationId($key);
-	  			if(@$followers[Yii::app()->session["userId"]]){
-		  			$orga["isFollowed"] = true;
-	  			}
-				$orga["type"] = "organization";
-				$orga["typeSig"] = Organization::COLLECTION;
-				$allOrganizations[$key] = $orga;
+	  			if(!empty($value)){
+		  			$orga = Organization::getSimpleOrganizationById($key);
+		  			$followers = Organization::getFollowersByOrganizationId($key);
+		  			if(@$followers[Yii::app()->session["userId"]]){
+			  			$orga["isFollowed"] = true;
+		  			}
+					$orga["type"] = "organization";
+					$orga["typeSig"] = Organization::COLLECTION;
+					$allOrganizations[$key] = $orga;
+				}
 	  		}
 
 	  		//$res["organization"] = $allOrganizations;
