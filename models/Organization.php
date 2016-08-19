@@ -394,10 +394,11 @@ class Organization {
 	 * @param String $id of the organization
 	 * @return array with data id, name, profilImageUrl, logoImageUrl
 	 */
-	public static function getSimpleOrganizationById($id) {
+	public static function getSimpleOrganizationById($id,$orga=null) {
 
 		$simpleOrganization = array();
-		$orga = PHDB::findOneById( self::COLLECTION ,$id, array("id" => 1, "name" => 1, "type" => 1, "email" => 1,  "shortDescription" => 1, "description" => 1, "address" => 1, "pending" => 1, "tags" => 1, "geo" => 1, "updated" => 1, "profilImageUrl" => 1, "profilThumbImageUrl" => 1, "profilMarkerImageUrl" => 1,"profilMediumImageUrl" => 1) );
+		if(!$orga)
+			$orga = PHDB::findOneById( self::COLLECTION ,$id, array("id" => 1, "name" => 1, "type" => 1, "email" => 1,  "shortDescription" => 1, "description" => 1, "address" => 1, "pending" => 1, "tags" => 1, "geo" => 1, "updated" => 1, "profilImageUrl" => 1, "profilThumbImageUrl" => 1, "profilMarkerImageUrl" => 1,"profilMediumImageUrl" => 1) );
 		if(!empty($orga)){
 			$simpleOrganization["id"] = $id;
 			$simpleOrganization["name"] = @$orga["name"];
@@ -451,9 +452,10 @@ class Organization {
 	  	}
 	  	return $res;
 	}
-	public static function getFollowersByOrganizationId($id) {
+	public static function getFollowersByOrganizationId($id,$organization=null) {
 	  	$res = array();
-	  	$organization = Organization::getById($id);
+	  	if(!$organization)
+	  		$organization = Organization::getById($id);
 	  	
 	  	if (empty($organization)) {
             throw new CTKException(Yii::t("organization", "The organization id is unkown : contact your admin"));

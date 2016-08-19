@@ -118,11 +118,10 @@ class GlobalAutoCompleteAction extends CAction
         if(strcmp($filter, Person::COLLECTION) != 0 && $this->typeWanted("persons", $searchType)){
 
         	$allCitoyen = PHDB::findAndSort ( Person::COLLECTION , $query, 
-	  										  array("name" => 1), 100, 
-	  										  array("name", "address", "shortDescription", "description"));
+	  										  array("name" => 1), $indexMax);
 
 	  		foreach ($allCitoyen as $key => $value) {
-	  			$person = Person::getSimpleUserById($key);
+	  			$person = Person::getSimpleUserById($key,$value);
 	  			$person["type"] = "citoyen";
 				$person["typeSig"] = "citoyens";
 				$allCitoyen[$key] = $person;
@@ -140,17 +139,13 @@ class GlobalAutoCompleteAction extends CAction
         		$queryOrganization['$and'] = array();
         	array_push( $queryOrganization[ '$and' ], array( "disabled" => array('$exists' => false) ) );
 	  		$allOrganizations = PHDB::findAndSort ( Organization::COLLECTION ,$queryOrganization, 
-	  												array("updated" => -1, "name" => 1), 100, 
-	  												array("name", "address", "shortDescription", "description","updated", "geo", "tags"));
+	  												array("updated" => -1, "name" => 1), $indexMax);
 	  		foreach ($allOrganizations as $key => $value) 
 	  		{
-	  			//@Kgneo : pourquoi on va chercher le get simple alors qu'on vient de recup l'orga ?
 	  			if(!empty($value)){
-		  			$orga = Organization::getSimpleOrganizationById($key);
-		  			$followers = Organization::getFollowersByOrganizationId($key);
-		  			if(@$followers[Yii::app()->session["userId"]]){
+		  			$orga = Organization::getSimpleOrganizationById($key,$value);
+		  			if( @$value["links"]["followers"][Yii::app()->session["userId"]] )
 			  			$orga["isFollowed"] = true;
-		  			}
 					$orga["type"] = "organization";
 					$orga["typeSig"] = Organization::COLLECTION;
 					$allOrganizations[$key] = $orga;
@@ -173,14 +168,11 @@ class GlobalAutoCompleteAction extends CAction
         	
         	//var_dump($queryEvent); return;
 	  		$allEvents = PHDB::findAndSort( PHType::TYPE_EVENTS, $queryEvent, 
-	  										array("updated" => -1,"startDate" => 1), 100, 
-	  										array("name", "address", "startDate", "endDate", "shortDescription", "description","updated"));
+	  										array("updated" => -1,"startDate" => 1), $indexMax);
 	  		foreach ($allEvents as $key => $value) {
-	  			$event = Event::getById($key);
-				$event["type"] = "event";
-				$event["typeSig"] = Event::COLLECTION;
-				$allEvents[$key] = $event;
-				error_log("event fount : ".$event["name"]);
+	  			$allEvents[$key]["type"] = "event";
+				$allEvents[$key]["typeSig"] = Event::COLLECTION;
+				//error_log("event fount : ".$event["name"]);
 	  		}
 	  		
 	  		//$res["event"] = $allEvents;
@@ -192,16 +184,13 @@ class GlobalAutoCompleteAction extends CAction
         	$queryProject = $query;
 
         	$allProject = PHDB::findAndSort(Project::COLLECTION, $query, 
-	  												array("updated" => -1, "name" => 1), 30, 
-	  												array("name", "address", "shortDescription", "description","updated"));
+	  												array("updated" => -1, "name" => 1), $indexMax);
 	  		foreach ($allProject as $key => $value) {
-	  			$project = Project::getById($key);
 	  			if(@$project["links"]["followers"][Yii::app()->session["userId"]]){
-		  			$orga["isFollowed"] = true;
+		  			$allProject[$key]["isFollowed"] = true;
 	  			}
-				$project["type"] = "project";
-				$project["typeSig"] = Project::COLLECTION;
-				$allProject[$key] = $project;
+				$allProject[$key]["type"] = "project";
+				$allProject[$key]["typeSig"] = Project::COLLECTION;
 	  		}
 	  		//$res["project"] = $allProject;
 	  		$allRes = array_merge($allRes, $allProject);

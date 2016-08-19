@@ -154,10 +154,11 @@ class Person {
 	 * @param String $id of the person
 	 * @return array with data id, name, profilImageUrl
 	 */
-	public static function getSimpleUserById($id) {
+	public static function getSimpleUserById($id,$person=null) {
 		
 		$simplePerson = array();
-		$person = PHDB::findOneById( self::COLLECTION ,$id, 
+		if($person)
+			$person = PHDB::findOneById( self::COLLECTION ,$id, 
 				array("id" => 1, "name" => 1, "username" => 1, "email" => 1,  "shortDescription" => 1, "description" => 1, "address" => 1, "geo" => 1, "roles" => 1, "tags" => 1, "pending" => 1, "profilImageUrl" => 1, "profilThumbImageUrl" => 1, "profilMarkerImageUrl" => 1, "profilMediumImageUrl" => 1,"numberOfInvit" => 1));
 		
 		if (empty($person)) {
