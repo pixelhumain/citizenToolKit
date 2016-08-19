@@ -96,7 +96,7 @@ class IndexAction extends CAction
 			$params["contextParentId"] = $id;
 			$params["parent"]=@$parent;
 		} else{
-			$parent=$_POST["parent"];
+			$parent=@$_POST["parent"];
 		}
 			//Define condition of each wall generated datas
 			if($type == "citoyens") {
