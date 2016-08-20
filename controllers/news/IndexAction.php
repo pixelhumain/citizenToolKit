@@ -218,25 +218,44 @@ class IndexAction extends CAction
 			}
 			else if($type == "city"){
 				/***********************************  DEFINE LOCALITY QUERY   ***************************************/
-		  		$localityReferences['NAME'] = "scope.cities.codeInsee";
-		  		$localityReferences['CODE_POSTAL_INSEE'] = "scope.cities.postalCode";
+		  		$localityReferences['CITYKEY'] = "scope.cities.codeInsee";
+		  		$localityReferences['CODE_POSTAL'] = "scope.cities.postalCode";
 		  		$localityReferences['DEPARTEMENT'] = "scope.cities.postalCode";//Spécifique
 		  		$localityReferences['REGION'] = ""; //Spécifique
-		  		$localityReferences['INSEE'] = "scope.cities.codeInsee";
 
 		  		foreach ($localityReferences as $key => $value) 
 		  		{
 		  			if(isset($_POST["searchLocality".$key]) 
-		  				&& is_array($_POST["searchLocality".$key])
-		  				&& count($_POST["searchLocality".$key])>0)
+	  				&& is_array($_POST["searchLocality".$key])
+	  				&& count($_POST["searchLocality".$key])>0)
 		  			{
 		  				foreach ($_POST["searchLocality".$key] as $localityRef) 
 		  				{
 		  					if(isset($localityRef) && $localityRef != ""){
 			  					error_log("locality :  ".$localityRef. " - " .$key);
 			  					//OneRegion
-			  					if($key == "REGION") 
-			  					{ 
+			  					if($key == "CITYKEY"){
+					        		//value.country + "_" + value.insee + "-" + value.postalCodes[0].postalCode; 
+					        		error_log("CITYKEY " .$localityRef );
+					        		$city = City::getByUnikey($localityRef);
+					        		$queryLocality = array(
+					        				//"address.addressCountry" => new MongoRegex("/".$city["country"]."/i"),
+					        				"scope.cities.codeInsee" => new MongoRegex("/".$city["insee"]."/i"),
+					        				"scope.cities.postalCode" => new MongoRegex("/".$city["cp"]."/i"),
+					        		);
+				  				}
+				  				elseif($key == "CODE_POSTAL") {
+					        		$queryLocality = array($value => new MongoRegex("/^".$localityRef."/i"));
+				  				}
+				  				elseif($key == "DEPARTEMENT") {
+				        			$dep = PHDB::findOne( City::COLLECTION, array("depName" => $localityRef), array("dep"));	
+				        			$queryLocality = array($value => new MongoRegex("/^".$dep["dep"]."/i"));
+				        			$queryLocality = array('$or' => array(
+								        						array($value => new MongoRegex("/^".$dep["dep"]."/i")),
+								        						array("scope.departement.name" => $localityRef)
+								        						));
+								}
+					        	elseif($key == "REGION") { 
 				        			$deps = PHDB::find( City::COLLECTION, array("regionName" => $localityRef), array("dep"));
 				        			$departements = array();
 				        			$inQuest = array();
@@ -246,26 +265,12 @@ class IndexAction extends CAction
 				        				{
 					        				$departements[] = $value["dep"];
 					        				$inQuest[] = new MongoRegex("/^".$value["dep"]."/i");
-								        	$queryLocality = array("scope.cities.postalCode" => array('$in' => $inQuest));
+								        	$queryLocality = array('$or' => array(								        						array("scope.cities.postalCode" => array('$in' => $inQuest)),
+								        						array("scope.regions.name" => $localityRef)
+								        						));
 								        }
 				        			}
-				        		}elseif($key == "NAME"){
-					        		//value.country + "_" + value.insee + "-" + value.postalCodes[0].postalCode; 
-					        		error_log("NAME " .$localityRef );
-					        		$city = City::getByUnikey($localityRef);
-					        		$queryLocality = array(
-					        				//"address.addressCountry" => new MongoRegex("/".$city["country"]."/i"),
-					        				"scope.cities.codeInsee" => new MongoRegex("/".$city["insee"]."/i"),
-					        				"scope.cities.postalCode" => new MongoRegex("/".$city["cp"]."/i"),
-					        		);
-				  				}elseif($key == "DEPARTEMENT") {
-				        			$dep = PHDB::findOne( City::COLLECTION, array("depName" => $localityRef), array("dep"));	
-				        			$queryLocality = array($value => new MongoRegex("/^".$dep["dep"]."/i"));
-								}//OneLocality
-					        	else{
-					        		$queryLocality = array($value => new MongoRegex("/^".$localityRef."/i"));
-				  				}
-
+				        		}
 			  					//Consolidate Queries
 			  					if(isset($allQueryLocality) && isset($queryLocality)){
 			  						$allQueryLocality = array('$or' => array( $allQueryLocality ,$queryLocality));
@@ -379,7 +384,7 @@ class IndexAction extends CAction
 			$where = array_merge($where,  array('created' => array( '$lt' => $date ) ) );
 
 			//echo '<pre>';var_dump($_POST);echo '</pre>';
-			//echo '<pre>';var_dump($where);echo '</pre>';
+			//echo '<pre>';var_dump($where);echo '</pre>'; return;
 		/*}
 		else{
 			$where=$_POST["condition"];

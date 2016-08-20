@@ -47,11 +47,10 @@ class GlobalAutoCompleteAction extends CAction
   		if($latest)
   			$query = array('$and' => array($query, array("updated"=>array('$exists'=>1))));
   		/***********************************  DEFINE LOCALITY QUERY   ***************************************/
-  		$localityReferences['NAME'] = "";
-  		$localityReferences['CODE_POSTAL_INSEE'] = "address.postalCode";
+  		$localityReferences['CITYKEY'] = "";
+  		$localityReferences['CODE_POSTAL'] = "address.postalCode";
   		$localityReferences['DEPARTEMENT'] = "address.postalCode";
   		$localityReferences['REGION'] = ""; //Spécifique
-  		$localityReferences['INSEE'] = "address.codeInsee";
 
   		foreach ($localityReferences as $key => $value) 
   		{
@@ -64,7 +63,24 @@ class GlobalAutoCompleteAction extends CAction
   					if(isset($localityRef) && $localityRef != ""){
 	  					//error_log("locality :  ".$localityRef. " - " .$key);
 	  					//OneRegion
-	  					if($key == "REGION") 
+	  					if($key == "CITYKEY"){
+			        		//value.country + "_" + value.insee + "-" + value.postalCodes[0].postalCode; 
+			        		error_log("CITYKEY " .$localityRef );
+			        		$city = City::getByUnikey($localityRef);
+			        		$queryLocality = array(
+			        				"address.addressCountry" => new MongoRegex("/".$city["country"]."/i"),
+			        				"address.codeInsee" => new MongoRegex("/".$city["insee"]."/i"),
+			        				"address.postalCode" => new MongoRegex("/".$city["cp"]."/i"),
+			        		);
+		  				}
+		  				elseif($key == "CODE_POSTAL"){
+			        		$queryLocality = array($value => new MongoRegex("/".$localityRef."/i"));
+		  				}
+		  				elseif($key == "DEPARTEMENT") {
+		        			$dep = PHDB::findOne( City::COLLECTION, array("depName" => $localityRef), array("dep"));	
+		        			$queryLocality = array($value => new MongoRegex("/^".$dep["dep"]."/i"));
+						}
+			        	elseif($key == "REGION") 
 	  					{ 
 		        			$deps = PHDB::find( City::COLLECTION, array("regionName" => $localityRef), array("dep"));
 		        			$departements = array();
@@ -78,23 +94,7 @@ class GlobalAutoCompleteAction extends CAction
 						        	$queryLocality = array("address.postalCode" => array('$in' => $inQuest));
 						        }
 		        			}		        		
-		        		}elseif($key == "DEPARTEMENT") {
-		        			$dep = PHDB::findOne( City::COLLECTION, array("depName" => $localityRef), array("dep"));	
-		        			$queryLocality = array($value => new MongoRegex("/^".$dep["dep"]."/i"));
-						}//OneLocality
-			        	elseif($key == "NAME"){
-			        		//value.country + "_" + value.insee + "-" + value.postalCodes[0].postalCode; 
-			        		error_log("NAME " .$localityRef );
-			        		$city = City::getByUnikey($localityRef);
-			        		$queryLocality = array(
-			        				"address.addressCountry" => new MongoRegex("/".$city["country"]."/i"),
-			        				"address.codeInsee" => new MongoRegex("/".$city["insee"]."/i"),
-			        				"address.postalCode" => new MongoRegex("/".$city["cp"]."/i"),
-			        		);
-		  				}
-		  				else{
-			        		$queryLocality = array($value => new MongoRegex("/".$localityRef."/i"));
-		  				}
+		        		}
 
 	  					//Consolidate Queries
 	  					if(isset($allQueryLocality) && isset($queryLocality)){
@@ -156,6 +156,8 @@ class GlobalAutoCompleteAction extends CAction
 	  		$allRes = array_merge($allRes, $allOrganizations);
 	  	}
 
+	  	date_default_timezone_set('UTC');
+				
 	  	/***********************************  EVENT   *****************************************/
         if(strcmp($filter, Event::COLLECTION) != 0 && $this->typeWanted("events", $searchType)){
         	
@@ -163,19 +165,21 @@ class GlobalAutoCompleteAction extends CAction
 
         	if( !isset( $queryEvent['$and'] ) ) 
         		$queryEvent['$and'] = array();
-        	//error_log("searching for events");
+        	
         	array_push( $queryEvent[ '$and' ], array( "endDate" => array( '$gte' => new MongoDate( time() ) ) ) );
         	
-        	//var_dump($queryEvent); return;
-	  		$allEvents = PHDB::findAndSort( PHType::TYPE_EVENTS, $queryEvent, 
+        	$allEvents = PHDB::findAndSort( PHType::TYPE_EVENTS, $queryEvent, 
 	  										array("updated" => -1,"startDate" => 1), $indexMax);
 	  		foreach ($allEvents as $key => $value) {
 	  			$allEvents[$key]["type"] = "event";
 				$allEvents[$key]["typeSig"] = Event::COLLECTION;
-				//error_log("event fount : ".$event["name"]);
+				
+				if(@$allEvents[$key]["startDate"])
+				$allEvents[$key]["startDate"] = date('Y-m-d H:i:s', $allEvents[$key]["startDate"]->sec);
+				if(@$allEvents[$key]["endDate"])
+				$allEvents[$key]["endDate"] = date('Y-m-d H:i:s', $allEvents[$key]["endDate"]->sec);
 	  		}
 	  		
-	  		//$res["event"] = $allEvents;
 	  		$allRes = array_merge($allRes, $allEvents);
 	  	}
 
@@ -191,6 +195,11 @@ class GlobalAutoCompleteAction extends CAction
 	  			}
 				$allProject[$key]["type"] = "project";
 				$allProject[$key]["typeSig"] = Project::COLLECTION;
+				
+				if(@$allProject[$key]["startDate"])
+				$allProject[$key]["startDate"] = date('Y-m-d H:i:s', $allProject[$key]["startDate"]->sec);
+				if(@$allProject[$key]["endDate"])
+				$allProject[$key]["endDate"] = date('Y-m-d H:i:s', $allProject[$key]["endDate"]->sec);
 	  		}
 	  		//$res["project"] = $allProject;
 	  		$allRes = array_merge($allRes, $allProject);
