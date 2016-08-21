@@ -270,7 +270,7 @@ class IndexAction extends CAction
 								        						));
 								        }
 				        			}
-				        		}
+				        		} //error_log("HEEEEEEEEEEEEEEEEEEEee");
 			  					//Consolidate Queries
 			  					if(isset($allQueryLocality) && isset($queryLocality)){
 			  						$allQueryLocality = array('$or' => array( $allQueryLocality ,$queryLocality));
@@ -287,68 +287,25 @@ class IndexAction extends CAction
 		  						);
 
 		  		if(@$_POST["typeNews"]) $where["type"] = $_POST["typeNews"];
-		  			//error_log("typeNews : ".@$_POST["typeNews"]);			
+
+		  		if(@$_POST["tagSearch"] && !empty($_POST["tagSearch"])){
+					$queryTag = array();
+					foreach ($_POST["tagSearch"] as $key => $tag) {
+						if($tag != "")
+						$queryTag[] = new MongoRegex("/".$tag."/i");
+					}
+					//$querySearch = array( "tags" => array('$in' => $queryTag)) ;
+					if(!empty($queryTag))
+					$where["tags"] = array('$in' => $queryTag); 			
+				}
+					//error_log("typeNews : ".@$_POST["typeNews"]);			
 				if(@$allQueryLocality){
 					$where = array_merge($where, $allQueryLocality);
 				}
-		  		// if(isset($allQueryLocality) && is_array($allQueryLocality))
-		  		// 	$where = array('$and' => array($where, $allQueryLocality));
-
-		  		//$where = array("scope.type" => "public","target.type" => array('$ne' => "pixels"), $allQueryLocality);
-				//if(@$allQueryLocality){
-					//$where = array_merge($where,$allQueryLocality);
-		  			//$where = array('$and' => array($where, ));
-				//}
-		  		/***********************************  DEFINE LOCALITY QUERY   ***************************************/
-		  		//echo '<pre>';var_dump($where);echo '</pre>';
-		        /*
-				/*if(!empty($_POST['locality'])){
-					$locality = isset($_POST['locality']) ? trim(urldecode($_POST['locality'])) : null;
-					//$searchType = isset($_POST['searchType']) ? $_POST['searchType'] : null;
-					$searchBy = isset($_POST['searchBy']) ? $_POST['searchBy'] : "INSEE";
-					
-			        if($searchBy == "CODE_POSTAL_INSEE") {
-			        	$queryLocality = array("scope.cities.postalCode" => $locality );
-		        	}
-		        	if($searchBy == "DEPARTEMENT") {
-		        		$queryLocality = array("scope.cities.postalCode" 
-								=> new MongoRegex("/^".$locality."/i"));
-		        	}
-		        	if($searchBy == "REGION") {
-		        		//#TODO GET REGION NAME | CITIES.DEP = myDep
-		        		$regionName = PHDB::findOne( City::COLLECTION, array("insee" => $locality), array("regionName", "dep"));
-		        		
-						if(isset($regionName["regionName"])){ //quand la city a bien la donnée "regionName"
-		        			$regionName = $regionName["regionName"];
-		        			//#TODO GET ALL DEPARTMENT BY REGION
-		        			$deps = PHDB::find( City::COLLECTION, array("regionName" => $regionName), array("dep"));
-		        			$departements = array();
-		        			$inQuest = array();
-		        			foreach($deps as $index => $value){
-		        				if(!in_array($value["dep"], $departements)){
-			        				$departements[] = $value["dep"];
-			        				$inQuest[] = new MongoRegex("/^".$value["dep"]."/i");
-						        	$queryLocality = array("scope.cities.postalCode" => array('$in' => $inQuest));
-			        				
-						        }
-		        			}	
-		        		}else{ //quand la city communectée n'a pas la donnée "regionName", on prend son département à la place
-		        			$regionName = isset($regionName["dep"]) ? $regionName["dep"] : "";
-		        			$queryLocality = array("scope.cities.postalCode" 
-								=> new MongoRegex("/^".$regionName."/i"));
-		        		}
-		        		error_log("regionName : ".$regionName );
-		        	}
-		        	if($searchBy == "INSEE") {
-		        		$queryLocality = array("scope.cities.codeInsee" => $locality );
-		        	}
-	        	}*/
-				
-			}
-			if(@$_POST["tagSearch"] && !empty($_POST["tagSearch"])){
-					$querySearch = array( "tags" => array('$in' => array(new MongoRegex("/".$_POST["tagSearch"]."/i")))) ;
-					$where = array_merge($where,$querySearch); 			
-			}
+				//echo '<pre>';var_dump($where);echo '</pre>'; return;
+		  		
+		  	}
+			
 			if(@$_POST['searchType']){
 				$searchType=array();
 				foreach($_POST['searchType'] as $data){
@@ -372,6 +329,7 @@ class IndexAction extends CAction
 			// 	if(!empty($searchType))
 			// 	$where = array_merge($where, array('$and' => array(array('$or' =>$searchType))));
 			// }
+
 			//Exclude => If there is more than 5 reportAbuse
 			// $where = array_merge($where,  array('$or' => array(
 			// 											array("reportAbuseCount" => array('$lt' => 5)),
@@ -400,7 +358,8 @@ class IndexAction extends CAction
         //TODO : reorganise by created date
 		$params["news"] = $news;
 		$params["tags"] = Tags::getActiveTags();
-		$params["authorizedToStock"]= Document::authorizedToStock($id, $type,Document::DOC_TYPE_IMAGE);			$params["tags"] = Tags::getActiveTags();
+		$params["authorizedToStock"]= Document::authorizedToStock($id, $type,Document::DOC_TYPE_IMAGE);			
+		$params["tags"] = Tags::getActiveTags();
 		$params["contextParentType"] = $type; 
 		$params["contextParentId"] = $id;
 		$params["userCP"] = Yii::app()->session['userCP'];
