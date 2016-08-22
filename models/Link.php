@@ -179,7 +179,7 @@ class Link {
 		    if($targetType==Event::COLLECTION || $originType==Event::COLLECTION){
 		    	$links["links.".$connectType.".".$targetId.".".Link::INVITED_BY_ID] = $userId;
 				$links["links.".$connectType.".".$targetId.".".Link::INVITED_BY_NAME] = Yii::app()->session["user"]["name"];
-		    }else
+		    }//else
 		    	$links["links.".$connectType.".".$targetId.".".Link::TO_BE_VALIDATED] = $isPending;
 	    }else if($targetType==Event::COLLECTION || $originType==Event::COLLECTION){
 		    PHDB::update($originType, 
