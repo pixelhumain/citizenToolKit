@@ -40,17 +40,18 @@ class Element {
 	    if(isset($fas[$type])) return $fas[$type];
 	    else return false;
     }
+    
     public static function getElementSpecsByType ($type) { 
     	$ctrler = self::getControlerByCollection ($type);
     	$prefix = "#".$ctrler;
 		$fas = array(
-	    	Organization::COLLECTION 	=> array("icon"=>"group",
+	    	Organization::COLLECTION 	=> array("icon"=>"group", "color"=>"#93C020",
 	    										 "hash"=> $prefix.".detail.id."),
-	    	Person::COLLECTION 			=> array("icon"=>"user",
+	    	Person::COLLECTION 			=> array("icon"=>"user","color"=>"#FFC600",
 	    										 "hash"=> $prefix.".detail.id."),
-	    	Event::COLLECTION 			=> array("icon"=>"calendar",
+	    	Event::COLLECTION 			=> array("icon"=>"calendar","color"=>"#FFA200",
 	    										 "hash"=> $prefix.".detail.id."),
-	    	Project::COLLECTION 		=> array("icon"=>"lightbulb-o",
+	    	Project::COLLECTION 		=> array("icon"=>"lightbulb-o","color"=>"#8C5AA1",
 	    										 "hash"=> $prefix.".detail.id."),
 			News::COLLECTION 			=> array("icon"=>"rss",
 												 "hash"=> $prefix.""),
