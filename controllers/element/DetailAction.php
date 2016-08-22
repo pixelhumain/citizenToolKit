@@ -184,7 +184,6 @@ class DetailAction extends CAction {
 				}
 			}
 		}
-
 		$params["eventTypes"] = $list["eventTypes"];
 		$params["tags"] = Tags::getActiveTags();
 		$params["element"] = $element;
@@ -204,6 +203,10 @@ class DetailAction extends CAction {
 		}
 		$params["countries"] = OpenData::getCountriesList();
 		$page = "detail";
+		if(@$_POST["edit"]){
+			$params["edit"]=$_POST["edit"];
+		}
+		
 		if(Yii::app()->request->isAjaxRequest)
           echo $controller->renderPartial($page,$params,true);
         else 
