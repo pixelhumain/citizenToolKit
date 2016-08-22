@@ -80,8 +80,9 @@ class News {
 	 	{
 		 	$codeInsee=$user["address"]["codeInsee"];
 		 	$postalCode=$user["address"]["postalCode"];
-			$news = array("type" => "news",
-							"text" => $_POST["text"],
+		 	$typeNews=@$_POST["type"] ? $_POST["type"] : "news";
+			$news = array("type" => $typeNews, //"news",
+						  "text" => $_POST["text"],
 						  "author" => Yii::app()->session["userId"],
 						  "date"=>new MongoDate(time()),
 						  "created"=>new MongoDate(time()));
@@ -158,21 +159,21 @@ class News {
 				// 		}
 				// 	}		
 				// }
-				if( isset($_POST["searchLocalityNAME"]) && !empty($_POST["searchLocalityNAME"]) && $_POST["searchLocalityNAME"] != "") {
+				if( isset($_POST["searchLocalityCITYKEY"]) && !empty($_POST["searchLocalityCITYKEY"]) && $_POST["searchLocalityCITYKEY"] != "") {
 					$news["scope"]["type"]="public";
-					foreach($_POST["searchLocalityNAME"] as $key => $value){ if(!empty($value)){
-						$city = City::getByUnikey($value); error_log("save news searchLocalityNAME");
+					foreach($_POST["searchLocalityCITYKEY"] as $key => $value){ if(!empty($value)){
+						$city = City::getByUnikey($value); error_log("save news searchLocalityCITYKEY");
 						$news["scope"]["cities"][] = array( "codeInsee"=>$city["insee"],
 															"postalCode"=>$city["cp"],
 															"addressLocality"=>$city["name"],
 															"geo" => $city["geo"]
 														);
 					}}
-					foreach($_POST["searchLocalityCODE_POSTAL_INSEE"] as $key => $value){ if(!empty($value)){
+					foreach($_POST["searchLocalityCODE_POSTAL"] as $key => $value){ if(!empty($value)){
 						$cities = City::getWhere(array("postalCodes.postalCode"=>$value), array("insee", "postalCodes.postalCode", "geo"), 1);
 						if(!empty($cities)){
 							//$city=$city[0];
-							error_log("save news searchLocalityCODE_POSTAL_INSEE");
+							error_log("save news searchLocalityCODE_POSTAL");
 							foreach($cities as $key=>$city) //var_dump($city); return;
 							$news["scope"]["cities"][] = array( "codeInsee"=>$city["insee"],
 																"postalCode"=>$city["postalCodes"][0]["postalCode"],
@@ -182,33 +183,25 @@ class News {
 						}	
 					}}
 					foreach($_POST["searchLocalityDEPARTEMENT"] as $key => $value){ if(!empty($value)){
-						// $cities = City::getWhere(array("postalCodes.postalCode"=>$value), array("insee", "postalCodes.postalCode", "geo"), 1);
-						// if(!empty($cities)){
-						// 	//$city=$city[0];
-						// 	error_log("save news searchLocalityCODE_POSTAL_INSEE");
-						// 	foreach($cities as $key=>$city) //var_dump($city); return;
-						// 	$news["scope"]["cities"][] = array( "codeInsee"=>$city["insee"],
-						// 										"postalCode"=>$city["postalCodes"][0]["postalCode"],
-						// 										"addressLocality"=>"", //$city["name"],
-						// 										"geo" => $city["geo"]
-						// 									);
-						// }	
+						$news["scope"]["departements"][] = array( "name"=>$value );
 					}}
 
 					foreach($_POST["searchLocalityREGION"] as $key => $value){ if(!empty($value)){
-						// $cities = City::getWhere(array("postalCodes.postalCode"=>$value), array("insee", "postalCodes.postalCode", "geo"), 1);
-						// if(!empty($cities)){
-						// 	//$city=$city[0];
-						// 	error_log("save news searchLocalityCODE_POSTAL_INSEE");
-						// 	foreach($cities as $key=>$city) //var_dump($city); return;
-						// 	$news["scope"]["cities"][] = array( "codeInsee"=>$city["insee"],
-						// 										"postalCode"=>$city["postalCodes"][0]["postalCode"],
-						// 										"addressLocality"=>"", //$city["name"],
-						// 										"geo" => $city["geo"]
-						// 									);
-						// }	
+						$news["scope"]["regions"][] = array( "name"=>$value );
 					}}
 				}
+				else {
+						$scope = $_POST["scope"];
+						$news["scope"]["type"]=$scope;
+						if($scope== "public"){
+							$address=SIG::getAdressSchemaLikeByCodeInsee($codeInsee,$postalCode);
+							$news["scope"]["cities"][] = array("codeInsee"=>$codeInsee,
+																"postalCode"=>$postalCode,
+																"addressLocality"=>$address["addressLocality"],
+																"geo" => $from
+															);
+						}
+					}		
 			}
 		 	if(isset($_POST["mentions"])){
 				$news["mentions"] = $_POST["mentions"];

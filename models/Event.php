@@ -265,6 +265,7 @@ class Event {
 		if(empty($newEvent["preferences"])){
 			$newEvent["preferences"] = array("publicFields" => array(), "privateFields" => array(), "isOpenEdition"=>true, "isOpenData"=>true);
 		}
+		$newEvent['updated'] = time();
 	    PHDB::insert(self::COLLECTION,$newEvent);
 	    
 	    /*
@@ -506,6 +507,7 @@ class Event {
 			$event["tags"] = Tags::filterAndSaveNewTags($event["tags"]);
 		
 		$event["modified"] = new MongoDate(time());
+		$event['updated'] = time();
 		PHDB::update( Event::COLLECTION, array("_id" => new MongoId($eventId)), 
 		                          array('$set' => $event));
 	                  
