@@ -217,6 +217,7 @@ class GlobalAutoCompleteAction extends CAction
 	  		}
 	  		$allRes = array_merge($allRes, $allFound);
 	  		
+
         	$allFound = PHDB::findAndSort(ActionRoom::COLLECTION_ACTIONS, $query, array("updated" => -1), $indexMax);
 	  		foreach ($allFound as $key => $value) {
 				$allFound[$key]["type"] = $value["type"];
