@@ -37,7 +37,9 @@ class DirectoryAction extends CAction {
               foreach ($person["links"]["events"] as $keyEv => $valueEv) 
               {
                 $event = Event::getPublicData($keyEv);
-                $events[$keyEv] = $event; 
+                if(!empty($event)) {
+                  $events[$keyEv] = $event; 
+                }
               }
        }
 
@@ -50,15 +52,19 @@ class DirectoryAction extends CAction {
           $organization;
           if( $member['type'] == Organization::COLLECTION ) {
               $organization = Organization::getPublicData( $key );
-              if (!@$organization["disabled"]) {
-                array_push($organizations, $organization );
+              if(!empty($organization)) {
+                if (!@$organization["disabled"]) {
+                  array_push($organizations, $organization );
+                }
               }
           }
          
           if(isset($organization["links"]["events"])) {
             foreach ($organization["links"]["events"] as $keyEv => $valueEv) {
               $event = Event::getPublicData($keyEv);
-              $events[$keyEv] = $event; 
+              if(!empty($event)) {
+                $events[$keyEv] = $event; 
+              }
             }
           }
         }        
@@ -71,7 +77,9 @@ class DirectoryAction extends CAction {
       if(isset($person["links"]["projects"])){
         foreach ($person["links"]["projects"] as $key => $value) {
           $project = Project::getPublicData($key);
-          array_push( $projects, $project );
+          if(!empty($project)) {
+            array_push( $projects, $project );
+          }
         }
       }
 
