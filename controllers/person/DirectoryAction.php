@@ -97,11 +97,15 @@ class DirectoryAction extends CAction {
           }
           if( $member['type'] == Organization::COLLECTION ) {
             $organization = Organization::getPublicData($key);
-  		      array_push($follows[Organization::COLLECTION], $organization );
+  		      if(!empty($organization)) {
+              array_push($follows[Organization::COLLECTION], $organization );
+            }
           }
           if( $member['type'] == Project::COLLECTION ) {
   		      $project = Project::getPublicData($key);
-  		      array_push( $follows[Project::COLLECTION], $project );
+  		      if(!empty($project)) {
+              array_push( $follows[Project::COLLECTION], $project );
+            }
           }
           $countFollows++;
         }
