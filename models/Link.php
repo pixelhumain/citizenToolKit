@@ -186,7 +186,7 @@ class Link {
                        array("_id" => $origin["_id"]) , 
                        array(
                         '$unset' => array("links.".$connectType.".".$targetId => ""),
-                        '$set' => array( "updated"=>time() )
+                        '$set' => array( "updated"=>time(),"modified" => new MongoDate(time()) )
                         ));
 	    }
         if($isAdmin){

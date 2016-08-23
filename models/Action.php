@@ -90,17 +90,20 @@ class Action
                     PHDB::update ( $collection, array( "_id" => new MongoId($element["_id"]) ), 
                                                 array( $dbMethod => array(  $action.".".Yii::app()->session["userId"] => 1),
                                                        '$inc'=>array( $action."Count" => $inc),
-                                                       '$set'=>array( "updated" => time())
+                                                       '$set'=>array( "updated" => time(),
+                                                                      "modified" => new MongoDate(time()))
                                                        ));
                 }
                 else{
                     $mapObject[ $action.".".(string)$user["_id"] ] = $details ;
                     $params = array();
 
-                    if( $dbMethod == '$set')
+                    if( $dbMethod == '$set'){
                         $mapObject["updated"] = time();
+                        $mapObject["modified"] = new MongoDate(time());
+                    }
                     else
-                        $params['$set'] = array( "updated" => time());
+                        $params['$set'] = array( "updated" => time(), "modified" => new MongoDate(time()) );
 
                     $params[$dbMethod] = $mapObject;
                     $params['$inc'] = array( $action."Count" => $inc);

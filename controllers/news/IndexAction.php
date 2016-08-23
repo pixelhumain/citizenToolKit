@@ -18,20 +18,20 @@ class IndexAction extends CAction
 		$news=array();
 		$params = array();
 		if (!isset($id)){
-				if($type!="pixels"){
-					if($type=="city"){
-						$id="";//$_GET["insee"];
-					}
-					else{
-						if(@$_GET["id"])
-							$id=$_GET["id"];
-						else 
-							$id = Yii::app() -> session["userId"] ;
-					}
-				} else {
-					$id="";
+			if($type!="pixels"){
+				if($type=="city"){
+					$id="";//$_GET["insee"];
 				}
+				else{
+					if(@$_GET["id"])
+						$id=$_GET["id"];
+					else 
+						$id = Yii::app() -> session["userId"] ;
+				}
+			} else {
+				$id="";
 			}
+		}
 		// Actions done at first loading of the page
 		// perform time of wall loading
 		if (@$_GET["isFirst"]){
@@ -98,10 +98,11 @@ class IndexAction extends CAction
 		} else{
 			$parent=@$_POST["parent"];
 		}
+			//error_log("le type :". $type);
 			//Define condition of each wall generated datas
 			if($type == "citoyens") {
 				if (!@Yii::app()->session["userId"] || (@Yii::app()->session["userId"] && Yii::app()->session["userId"]!=$id) || (@$viewer && $viewer != null)){
-
+					//error_log("message 1");
 					$scope=array(
 						array("scope.type"=> "public"),
 						array("scope.type"=> "restricted")
@@ -133,8 +134,10 @@ class IndexAction extends CAction
 							),
 						)	
 					);
+					//echo '<pre>';var_dump($where);echo '</pre>'; return;
 				}
 				else{
+					//error_log("message 2");
 					$authorFollowedAndMe=[];
 					array_push($authorFollowedAndMe,array("author"=>$id));
 					array_push($authorFollowedAndMe,array("target.id"=> $id, 
@@ -178,7 +181,8 @@ class IndexAction extends CAction
 					}
 					if(@$parent["address"]["codeInsee"])
 						array_push($authorFollowedAndMe, array("scope.cities." => $parent["address"]["codeInsee"],"type" => "activityStream"));
-			    
+			    	//error_log("message 3");
+					
 			        $where = array(
 			        	'$and' => array(
 							array('$or'=> 
@@ -187,6 +191,7 @@ class IndexAction extends CAction
 							array("type" => array('$ne' => "pixels")),
 			        	)	
 			        );
+			        //echo '<pre>';var_dump($where);echo '</pre>'; return;
 				}
 			}
 			else if($type == "organizations" || $type == "projects" || $type == "events"){
@@ -232,11 +237,11 @@ class IndexAction extends CAction
 		  				foreach ($_POST["searchLocality".$key] as $localityRef) 
 		  				{
 		  					if(isset($localityRef) && $localityRef != ""){
-			  					error_log("locality :  ".$localityRef. " - " .$key);
+			  					//error_log("locality :  ".$localityRef. " - " .$key);
 			  					//OneRegion
 			  					if($key == "CITYKEY"){
 					        		//value.country + "_" + value.insee + "-" + value.postalCodes[0].postalCode; 
-					        		error_log("CITYKEY " .$localityRef );
+					        		//error_log("CITYKEY " .$localityRef );
 					        		$city = City::getByUnikey($localityRef);
 					        		$queryLocality = array(
 					        				//"address.addressCountry" => new MongoRegex("/".$city["country"]."/i"),
@@ -288,7 +293,15 @@ class IndexAction extends CAction
 
 		  		if(@$_POST["typeNews"]) $where["type"] = $_POST["typeNews"];
 
-		  		if(@$_POST["tagSearch"] && !empty($_POST["tagSearch"])){
+		  		
+					//error_log("typeNews : ".@$_POST["typeNews"]);			
+				if(@$allQueryLocality){
+					$where = array_merge($where, $allQueryLocality);
+				}
+				//echo '<pre>';var_dump($where);echo '</pre>'; return;
+		  		
+		  	}
+			if(@$_POST["tagSearch"] && !empty($_POST["tagSearch"])){
 					$queryTag = array();
 					foreach ($_POST["tagSearch"] as $key => $tag) {
 						if($tag != "")
@@ -298,14 +311,6 @@ class IndexAction extends CAction
 					if(!empty($queryTag))
 					$where["tags"] = array('$in' => $queryTag); 			
 				}
-					//error_log("typeNews : ".@$_POST["typeNews"]);			
-				if(@$allQueryLocality){
-					$where = array_merge($where, $allQueryLocality);
-				}
-				//echo '<pre>';var_dump($where);echo '</pre>'; return;
-		  		
-		  	}
-			
 			if(@$_POST['searchType']){
 				$searchType=array();
 				foreach($_POST['searchType'] as $data){
@@ -314,7 +319,14 @@ class IndexAction extends CAction
 					else
 						$searchType[]=array("object.objectType" => $data);
 				}
-				$where = array_merge($where, array('$and' => array(array('$or' =>$searchType))));
+				
+				//
+				if(isset($where['$and']) && isset($searchType)){
+					$where['$and'][] = array('$or' =>$searchType);
+				}else if(isset($searchType)){
+					$where = array_merge($where, array('$and' => array(array('$or' =>$searchType))));
+				}
+				//echo '<pre>';var_dump($where);echo '</pre>'; return;
 			}
 
 			// if(@$_POST['searchType']){
