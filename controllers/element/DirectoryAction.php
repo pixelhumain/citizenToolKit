@@ -40,7 +40,7 @@ class DirectoryAction extends CAction
             $connectAs="attendees";
 
         $params["manage"] = ( @$connectAs && @$element["links"][$connectAs][Yii::app()->session["userId"]])?1:0;
-
+        
         $page = "directory2";
         if(Yii::app()->request->isAjaxRequest){
             echo $controller->renderPartial($page,$params,true);
