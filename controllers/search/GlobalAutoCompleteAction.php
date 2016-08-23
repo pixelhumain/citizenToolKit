@@ -13,7 +13,7 @@ class GlobalAutoCompleteAction extends CAction
         $country = isset($_POST['country']) ? $_POST['country'] : "";
         $latest = isset($_POST['latest']) ? $_POST['latest'] : null;
 
-        error_log("global search " . $search . " - searchBy : ". $searchBy. " & locality : ". $locality. " & country : ". $country);
+        //error_log("global search " . $search . " - searchBy : ". $searchBy. " & locality : ". $locality. " & country : ". $country);
 	    
    //      if($search == "" && $locality == "") {
    //      	Rest::json(array());
@@ -65,7 +65,7 @@ class GlobalAutoCompleteAction extends CAction
 	  					//OneRegion
 	  					if($key == "CITYKEY"){
 			        		//value.country + "_" + value.insee + "-" + value.postalCodes[0].postalCode; 
-			        		error_log("CITYKEY " .$localityRef );
+			        		//error_log("CITYKEY " .$localityRef );
 			        		$city = City::getByUnikey($localityRef);
 			        		$queryLocality = array(
 			        				"address.addressCountry" => new MongoRegex("/".$city["country"]."/i"),
