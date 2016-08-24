@@ -45,32 +45,31 @@ class Element {
     	$ctrler = self::getControlerByCollection ($type);
     	$prefix = "#".$ctrler;
 		$fas = array(
-	    	Organization::COLLECTION 	=> array("icon"=>"group", "color"=>"#93C020",
-	    										 "hash"=> $prefix.".detail.id."),
-	    	Organization::CONTROLLER 	=> array("icon"=>"group", "color"=>"#93C020",
-	    										 "hash"=> $prefix.".detail.id."),
+
 	    	Person::COLLECTION 			=> array("icon"=>"user","color"=>"#FFC600",
 	    										 "hash"=> $prefix.".detail.id."),
-	    	Person::CONTROLLER 			=> array("icon"=>"user","color"=>"#FFC600",
-	    										 "hash"=> $prefix.".detail.id."),
+
+	    	Organization::COLLECTION 	=> array("icon"=>"group", "color"=>"#93C020",
+	    										 "hash"=> Organization::CONTROLLER.".detail.id."),
+	    	Organization::CONTROLLER 	=> array("icon"=>"group", "color"=>"#93C020",
+	    										 "hash"=> Organization::CONTROLLER.".detail.id.",
+	    										 "collection"=>Organization::COLLECTION),
+
+	    	
 	    	Event::COLLECTION 			=> array("icon"=>"calendar","color"=>"#FFA200",
-	    										 "hash"=> $prefix.".detail.id."),
+	    										 "hash"=> Event::CONTROLLER.".detail.id."),
 	    	Event::CONTROLLER 			=> array("icon"=>"calendar","color"=>"#FFA200",
-	    										 "hash"=> $prefix.".detail.id."),
+	    										 "hash"=> Event::CONTROLLER.".detail.id.",
+	    										 "collection"=>Event::COLLECTION),
+
 	    	Project::COLLECTION 		=> array("icon"=>"lightbulb-o","color"=>"#8C5AA1",
-	    										 "hash"=> $prefix.".detail.id."),
-			Project::CONTROLLER 		=> array("icon"=>"lightbulb-o","color"=>"#8C5AA1",
-	    										 "hash"=> $prefix.".detail.id."),
-			News::COLLECTION 			=> array("icon"=>"rss","color"=>"#2BB0C6",
-												 "hash"=> $prefix.""),
-	    	News::CONTROLLER 			=> array("icon"=>"rss","color"=>"#2BB0C6",
-												 "hash"=> $prefix.""),
-	    	Need::COLLECTION 			=> array("icon"=>"cubes","color"=>"#3C5665",
-	    										 "hash"=> $prefix.""),
-	    	Need::CONTROLLER 			=> array("icon"=>"cubes","color"=>"#3C5665",
-	    										 "hash"=> $prefix.""),
-	    	City::COLLECTION 			=> array("icon"=>"university","color"=>"#E33551",
-	    										 "hash"=> $prefix.".detail.insee."),
+	    										 "hash"=> Project::CONTROLLER.".detail.id."),
+	    	Project::CONTROLLER 		=> array("icon"=>"lightbulb-o","color"=>"#8C5AA1",
+	    										 "hash"=> Project::CONTROLLER.".detail.id.",
+	    										 "collection"=>Project::COLLECTION),
+
+			News::COLLECTION 			=> array("icon"=>"rss",
+
 	    	City::CONTROLLER 			=> array("icon"=>"university","color"=>"#E33551",
 	    										 "hash"=> $prefix.".detail.insee."),
 	    	ActionRoom::TYPE_VOTE		=> array("icon"=>"archive","color"=>"#3C5665",
@@ -104,7 +103,7 @@ class Element {
 	    										 "hash"=> "#comment.index.type.actionRooms.id.",
 	    										 "collection"=>ActionRoom::COLLECTION)
 	    );	
-	    
+	    //echo $type.Project::COLLECTION;
 	    if( isset($fas[$type]) ) 
 	    	return $fas[$type];
 	    else 
