@@ -68,7 +68,7 @@ class Element {
 	    										 "hash"=> Project::CONTROLLER.".detail.id.",
 	    										 "collection"=>Project::COLLECTION),
 
-			News::COLLECTION 			=> array("icon"=>"rss",
+			News::COLLECTION 			=> array("icon"=>"rss","hash"=> $prefix.""),
 
 	    	City::CONTROLLER 			=> array("icon"=>"university","color"=>"#E33551",
 	    										 "hash"=> $prefix.".detail.insee."),
