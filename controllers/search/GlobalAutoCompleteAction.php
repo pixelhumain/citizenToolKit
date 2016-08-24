@@ -228,7 +228,7 @@ class GlobalAutoCompleteAction extends CAction
         	$allFound = PHDB::findAndSort(Survey::COLLECTION, $query, array("updated" => -1), $indexMax);
 	  		foreach ($allFound as $key => $value) {
 				$allFound[$key]["type"] = $value["type"];
-				$allFound[$key]["typeSig"] = Survey::COLLECTION;
+				$allFound[$key]["typeSig"] = Survey::CONTROLLER;
 	  		}
 	  		//$res["project"] = $allProject;
 	  		$allRes = array_merge($allRes, $allFound);
