@@ -12,7 +12,12 @@ class DetailAction extends CAction
             $id = Yii::app()->session["userId"];
 
         //$city = PHDB::findOne(City::COLLECTION, array( "insee" => $insee,  "postalCodes.postalCode" => $postalCode ) );
+
+        //if(!empty($postalCode))
         $city = City::getCityByInseeCp($insee, $postalCode);
+        /*else
+            $city = City::getWhere(array(insee => $insee),null, 1); */
+
         //si la city n'est pas trouvé par son code insee, on cherche avec le code postal
         //if($city == NULL) $city = PHDB::findOne(City::COLLECTION, array( "cp" => $insee ) );
         
@@ -107,7 +112,7 @@ class DetailAction extends CAction
         $params["people"] = $allPeople;
         $params["insee"] = $insee;
         $params["city"] = $city;
-        
+        $params["cityGlobal"] = (empty($postalcode)?true:flase);
         $page = "detail2";
         if(Yii::app()->request->isAjaxRequest)
             echo $controller->renderPartial($page,$params,true);

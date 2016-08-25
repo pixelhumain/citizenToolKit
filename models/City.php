@@ -391,21 +391,43 @@ class City {
 	}
 
 	
-	public static function getCityByInseeCp($insee, $cp){
-		$where = array("insee" => $insee,
-					   "postalCodes.postalCode" => $cp);
+	public static function getCityByInseeCp($insee, $cp == null){
+		$where = array("insee" => $insee)
+
+		if(!empty($cp))
+			$where["postalCodes.postalCode"] = $cp;
 
 		//$fields = array("_id");
 		$city = PHDB::findOne( City::COLLECTION, $where);// ,$fields);
 	
 		if(isset($city["postalCodes"]))
 		foreach ($city["postalCodes"] as $key => $value) {
-			if($value["postalCode"] == $cp){
+			if(!empty($cp) && $value["postalCode"] == $cp){
 				$city["namePc"] = $value["name"];
 				$city["cp"] = $value["postalCode"];
 				$city["geo"] = $value["geo"];
 				$city["geoPosition"] = $value["geoPosition"];
 				return $city;
+			}else{
+				$city["namePc"][] = $value["name"];
+				$city["cp"][] = $value["postalCode"];
+			}
+		}
+		return $city;
+	}
+
+	public static function getCityByInsee($insee){
+		$where = array("insee" => $insee);
+		//$fields = array("_id");
+		$city = PHDB::findOne( City::COLLECTION, $where);// ,$fields);
+		$city["geo"] = $value["geo"];
+		$city["geoPosition"] = $value["geoPosition"];
+		if(isset($city["postalCodes"]))
+		foreach ($city["postalCodes"] as $key => $value) {
+			if($value["postalCode"] == $cp){
+				$city["namePc"][] = $value["name"];
+				$city["cp"][] = $value["postalCode"];
+				//return $city;
 			}
 		}
 		return $city;
