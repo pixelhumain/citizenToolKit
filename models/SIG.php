@@ -72,7 +72,6 @@ class SIG
 		//PH::update($entityType,array("geo" => $geo));
 
 		if($entityType == PHType::TYPE_CITOYEN || $entityType == PHType::TYPE_PERSON ){
-			var_dump($entityType);
 			error_log("update TYPE_CITOYEN");
 			Person::updatePersonField($entityId, "geo", $geo, Yii::app()->session['userId'] );
 			Person::updatePersonField($entityId, "geoPosition", $geoPosition, Yii::app()->session['userId'] );
