@@ -265,8 +265,24 @@ class Event {
 		if(empty($newEvent["preferences"])){
 			$newEvent["preferences"] = array("publicFields" => array(), "privateFields" => array(), "isOpenEdition"=>true, "isOpenData"=>true);
 		}
+
 		$newEvent['updated'] = time();
 		$newEvent["modified"] = new MongoDate(time());
+		
+		//SubEvent authorization
+		//check if the parent event exists and the user can add subevent
+		if( @$newEvent["parentId"] ) {
+			$parentEvent = self::getPublicData($newEvent["parentId"]);
+			if (empty($parentEvent)) {
+				return array("result"=>false, "msg"=>"The parent event does not exist !");
+			} else {
+				//Check if the user can edit the parent event ou open Edition				
+				if (!(Authorisation::canEditItem(Yii::app()->session["userId"], Event::COLLECTION, (string)$parentEvent["_id"]) || (!empty($parentEvent["preferences"]["isOpenEdition"]) && $parentEvent["preferences"]["isOpenEdition"] == true))) {
+					return array("result"=>false, "msg"=>"Your are not authorized to add sub envent on this parent event !");
+				}
+			}
+		}
+
 	    PHDB::insert(self::COLLECTION,$newEvent);
 	    
 	    /*
@@ -1286,22 +1302,7 @@ class Event {
 	    //Notification::saveNotification(array("type"=>NotificationType::ASSOCIATION_SAVED,"user"=>$new["_id"]));
 	    
 	    return array("result"=>true, "msg"=>Yii::t("event","Your event has been connected."), "id"=>$newEvent["_id"], "event" => $newEvent );
-	
-
-
-
-
-
-
-
-
-
-
 
 	}
-
-
-
-	
 }
 ?>

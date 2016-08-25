@@ -108,7 +108,7 @@ class DetailAction extends CAction
         $params["insee"] = $insee;
         $params["city"] = $city;
         
-        $page = "detail";
+        $page = "detail2";
         if(Yii::app()->request->isAjaxRequest)
             echo $controller->renderPartial($page,$params,true);
         else 

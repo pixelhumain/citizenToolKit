@@ -195,9 +195,9 @@ class GlobalAutoCompleteAction extends CAction
 				$allProject[$key]["typeSig"] = Project::COLLECTION;
 				
 				if(@$allProject[$key]["startDate"])
-				$allProject[$key]["startDate"] = date('Y-m-d H:i:s', $allProject[$key]["startDate"]->sec);
+					$allProject[$key]["startDate"] = date('Y-m-d H:i:s', @$allProject[$key]["startDate"]->sec);
 				if(@$allProject[$key]["endDate"])
-				$allProject[$key]["endDate"] = date('Y-m-d H:i:s', $allProject[$key]["endDate"]->sec);
+					$allProject[$key]["endDate"] = date('Y-m-d H:i:s', @$allProject[$key]["endDate"]->sec);
 	  		}
 	  		//$res["project"] = $allProject;
 	  		$allRes = array_merge($allRes, $allProject);
@@ -228,7 +228,7 @@ class GlobalAutoCompleteAction extends CAction
         	$allFound = PHDB::findAndSort(Survey::COLLECTION, $query, array("updated" => -1), $indexMax);
 	  		foreach ($allFound as $key => $value) {
 				$allFound[$key]["type"] = $value["type"];
-				$allFound[$key]["typeSig"] = Survey::COLLECTION;
+				$allFound[$key]["typeSig"] = Survey::CONTROLLER;
 	  		}
 	  		//$res["project"] = $allProject;
 	  		$allRes = array_merge($allRes, $allFound);

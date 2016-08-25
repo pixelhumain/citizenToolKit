@@ -56,7 +56,6 @@ class IndexAction extends CAction
 					//	$params["canManageNews"]=false;
 					//}
 				}
-
 	        } 
 	        else if( $type == Organization::COLLECTION) {
 	            $parent = Organization::getById($id);
