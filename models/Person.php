@@ -493,8 +493,9 @@ class Person {
 		  		throw new CTKException(Yii::t("person","Problem inserting the new person : a person with this username already exists in the plateform"));
 		  	}
 
-		  	//Encode the password
-		  	$newPerson["pwd"] = hash('sha256', $person["email"].$person["pwd"]);
+		  	//Password is mandatory : it will be encoded later
+		  	if (empty($person["pwd"])) 
+		  		throw new CTKException(Yii::t("person","The password could not be empty on this register mode !"));
 		}
 
 		if ($mode == self::REGISTER_MODE_NORMAL) {
@@ -536,6 +537,8 @@ class Person {
 	 * @return array result : msg and id
 	 */
 	public static function insert($person, $mode = self::REGISTER_MODE_NORMAL, $inviteCode = null) {
+		//Keep the password
+		$pwd = $person["pwd"];
 
 	  	//Check Person data + business rules
 	  	$person = self::getAndcheckPersonData($person, $mode);
@@ -545,7 +548,37 @@ class Person {
 
 	  	$person["roles"] = Role::getDefaultRoles();
 
-	  	//if we are in mode minimal it's an invitation. The invited user is then betaTester by default
+	  	Person::addPersonDataForBetaTest($person, $mode, $inviteCode);
+	  	
+	  	$person["created"] = new mongoDate(time());
+	  	$person["preferences"] = array("seeExplanations"=> true);
+	  	
+	  	PHDB::insert(Person::COLLECTION , $person);
+        if (isset($person["_id"])) {
+        	$newpersonId = (String) $person["_id"];
+        	if (! empty($pwd)) {
+	        	//Encode the password
+			  	$encodedpwd = hash('sha256', $newpersonId.$pwd);
+			  	self::updatePersonField($newpersonId, "pwd", $encodedpwd, $newpersonId);
+			} 
+	    } else {
+	    	throw new CTKException("Problem inserting the new person");
+	    }
+
+		//A mail is sent to the admin
+		Mail::notifAdminNewUser($person);
+	    return array("result"=>true, "msg"=>"You are now communnected", "id"=>$newpersonId, "person"=>$person);
+	}
+
+	/**
+	 * In betaTest mode, manage roles, invitation code, and invitation numbers on person data
+	 * @param array $person A person ready to insert
+	 * @param String $mode Register mode
+	 * @param String $inviteCode Invitation code
+	 * @return void
+	 */
+	private static function addPersonDataForBetaTest($person, $mode, $inviteCode) {
+		//if we are in mode minimal it's an invitation. The invited user is then betaTester by default
 	  	if( @Yii::app()->params['betaTest'] && $mode ==self::REGISTER_MODE_MINIMAL) {
 	  		$person["roles"]['betaTester'] = true;
 	  	}
@@ -556,24 +589,9 @@ class Person {
 	  		$person["roles"]['betaTester'] = true;
 	  		$person["inviteCode"] = $inviteCode;
 	  	}
-
-	  	$person["created"] = new mongoDate(time());
-	  	$person["preferences"] = array("seeExplanations"=> true);
-	  	
-	  	if (@Yii::app()->params['betaTest'] || $person["roles"]["betaTester"]==true)
+		if (@Yii::app()->params['betaTest'] || $person["roles"]["betaTester"]==true)
 	  		$person["numberOfInvit"] = empty(Yii::app()->params['numberOfInvitByPerson']) ? 0 : Yii::app()->params['numberOfInvitByPerson'];
-
-	  	PHDB::insert( Person::COLLECTION , $person);
- 
-        if (isset($person["_id"])) {
-	    	$newpersonId = (String) $person["_id"];
-	    } else {
-	    	throw new CTKException("Problem inserting the new person");
-	    }
-
-		//A mail is sent to the admin
-		Mail::notifAdminNewUser($person);
-	    return array("result"=>true, "msg"=>"You are now communnected", "id"=>$newpersonId, "person"=>$person);
+	  	return;
 	}
 
 	/**
@@ -787,16 +805,16 @@ class Person {
      * @param  [boolean] $isRegisterProcess Are we trying to login during the register process
      * @return [array] array of result as (result => boolean, msg => string)
      */
-    public static function login($email, $pwd, $isRegisterProcess) 
+    public static function login($emailOrUsername, $pwd, $isRegisterProcess) 
     {
-        if (empty($email) || empty($pwd)) {
+        if (empty($emailOrUsername) || empty($pwd)) {
         	return array("result"=>false, "msg"=>"Cette requête ne peut aboutir. Merci de bien vouloir réessayer en complétant les champs nécessaires");
         }
 
         Person::clearUserSessionData();
         $account = PHDB::findOne(self::COLLECTION, array( '$or' => array( 
-        															array("email" => new MongoRegex('/^'.preg_quote($email).'$/i')),
-        															array("username" => $email) ) ));
+        															array("email" => new MongoRegex('/^'.preg_quote($emailOrUsername).'$/i')),
+        															array("username" => $emailOrUsername) ) ));
         
         //return an error when email does not exist
         if ($account == null) {
@@ -821,8 +839,35 @@ class Person {
         return $res;
     }
 
+    /**
+     * Check if the password is valid
+     * /!\ Change the salt from email to id after login success /!\
+     * @param String $pwd The password typed
+     * @param array $account The account retrieve from 
+     * @return boolean : true if password match
+     */
     private static function checkPassword($pwd, $account) {
-    	return ($account && @$account["pwd"] == hash('sha256', @$account["email"].$pwd)) ;
+    	$res = false;
+    	if ($account) {
+    		if (@$account["pwd"] == hash('sha256', @$account["email"].$pwd)) {
+    			//the password match with an "email" as salt => change the password to salt with the "id"
+    			$newPassword = hash('sha256', (String) $account["_id"].$pwd);
+				self::updatePersonField(@$account["_id"], "pwd", $newPassword, @$account["_id"]);
+				//add a log on logs collection
+				Log::save($logs =array(
+					"userId" => $account["_id"],
+					"browser" => @$_SERVER["HTTP_USER_AGENT"],
+					"ipAddress" => @$_SERVER["REMOTE_ADDR"],
+					"created" => new MongoDate(time()),
+					"action" => "person/newsaltpassword"
+			    ));
+				$res = true;
+    		//Second test : maybe the salt is already with the id
+    		} else if (@$account["pwd"] == hash('sha256', (String) @$account["_id"].$pwd)) {
+    			$res = true;
+    		}
+    	}
+    	return $res;
     }
 
 	/**
@@ -948,7 +993,7 @@ class Person {
 			return array("result" => false, "msg" => Yii::t("person","The new password should be 8 caracters long"));
 		}
 		
-		$encodedPwd = hash('sha256', $person["email"].$newPassword);
+		$encodedPwd = hash('sha256', (String) $person["_id"].$newPassword);
 		self::updatePersonField($userId, "pwd", $encodedPwd, $userId);
 		
 		return array("result" => true, "msg" => Yii::t("person","Your password has been changed with success !"));
