@@ -52,6 +52,7 @@ class Preference {
 			    }
 			}	
 		}
+
 		if(@$context["preferences"]["privateFields"] && !empty($context["preferences"]["privateFields"]))			{
 			$privateFields=$context["preferences"]["privateFields"];
 			foreach ($privateFields as $key => $value) {
@@ -65,7 +66,7 @@ class Preference {
 		if($setValue=="public"){
 			$publicFields[]=$setType;
 		}
-		if($setValue=="private"){
+		if($setValue=="hide"){
 			$privateFields[]=$setType;
 		}
 		if($setValue=="true"){

@@ -195,9 +195,9 @@ class GlobalAutoCompleteAction extends CAction
 				$allProject[$key]["typeSig"] = Project::COLLECTION;
 				
 				if(@$allProject[$key]["startDate"])
-				$allProject[$key]["startDate"] = date('Y-m-d H:i:s', $allProject[$key]["startDate"]->sec);
+					$allProject[$key]["startDate"] = date('Y-m-d H:i:s', @$allProject[$key]["startDate"]->sec);
 				if(@$allProject[$key]["endDate"])
-				$allProject[$key]["endDate"] = date('Y-m-d H:i:s', $allProject[$key]["endDate"]->sec);
+					$allProject[$key]["endDate"] = date('Y-m-d H:i:s', @$allProject[$key]["endDate"]->sec);
 	  		}
 	  		//$res["project"] = $allProject;
 	  		$allRes = array_merge($allRes, $allProject);

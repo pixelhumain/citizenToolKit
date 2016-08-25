@@ -752,4 +752,29 @@ class TranslateCommunecter {
 	    
 	);
 
+
+	public static $dataBinding_news = array(
+		"@type"		=> "News",
+		
+	    "text" 		=> array("valueOf" => "text"),
+	   	"date"		=> array("valueOf" => "startDate"),
+	   	"created"		=> array("valueOf" => "endDate"),
+	 	"scope" 	=> array("parentKey"=>"scope", 
+	    					 "valueOf" => array(
+									"type" 		=> array("valueOf" => "type")
+				 					)),
+		"target" 	=> array(	"communecter" 	=> array(	"valueOf" => 'id',
+										   						"type" 	=> "url", 
+																"prefix"   => "/#person.detail.id.",
+																"suffix"   => ""),
+							    "api" 			=> array(	"valueOf"  	=> 'id', 
+																"type" 	=> "url", 
+																"prefix"   => "/api/person/get/id/",
+																"suffix"   => "" )),
+		"author" 	=> array(	"valueOf" => '_id.$id',
+			   						"type" 	=> "url", 
+									"prefix"   => "/#person.detail.id.",
+									"suffix"   => "")				   	
+	);
+
 }

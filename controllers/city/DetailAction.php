@@ -12,7 +12,12 @@ class DetailAction extends CAction
             $id = Yii::app()->session["userId"];
 
         //$city = PHDB::findOne(City::COLLECTION, array( "insee" => $insee,  "postalCodes.postalCode" => $postalCode ) );
+
+        //if(!empty($postalCode))
         $city = City::getCityByInseeCp($insee, $postalCode);
+        /*else
+            $city = City::getWhere(array(insee => $insee),null, 1); */
+
         //si la city n'est pas trouvé par son code insee, on cherche avec le code postal
         //if($city == NULL) $city = PHDB::findOne(City::COLLECTION, array( "cp" => $insee ) );
         
@@ -69,7 +74,11 @@ class DetailAction extends CAction
         $controller->pageTitle = ucfirst($controller->module->id)." - Informations publiques de ".$controller->title;
 
         //Get Projects
-        $projectsBd = PHDB::find(Project::COLLECTION, array( "address.codeInsee" => $insee ) );
+        $whereElement = array( "address.codeInsee" => $insee ) ;
+        if (!empty($postalCode))
+            $whereElement["address.postalCode"] = $postalCode;
+
+        $projectsBd = PHDB::find(Project::COLLECTION, $whereElement /*array( "address.codeInsee" => $insee )*/ );
         $projects = array();
         foreach ($projectsBd as $key => $project) {
             $project = Project::getPublicData((string)$project["_id"]);
@@ -77,14 +86,14 @@ class DetailAction extends CAction
         }
         
         //Get the Events
-        $eventsBd = PHDB::find(Event::COLLECTION, array( "address.codeInsee" => $insee ) );
+        $eventsBd = PHDB::find(Event::COLLECTION, $whereElement /*array( "address.codeInsee" => $insee )*/ );
         $events = array();
         foreach ($eventsBd as $key => $event) {
             $event = Event::getPublicData((string)$event["_id"]);
             array_push($events, $event);
         }
         
-        $organizationsBd = PHDB::find(Organization::COLLECTION, array( "address.codeInsee" => $insee ) );
+        $organizationsBd = PHDB::find(Organization::COLLECTION, $whereElement /*array( "address.codeInsee" => $insee )*/ );
         $organizations = array();
         foreach ($organizationsBd as $key => $orga) {
             $orga = Organization::getPublicData((string)$orga["_id"]);
@@ -93,7 +102,7 @@ class DetailAction extends CAction
         
         
         $allPeople = array();
-        $people = PHDB::find(Person::COLLECTION, array( "address.codeInsee" => $insee ) );
+        $people = PHDB::find(Person::COLLECTION, $whereElement /*array( "address.codeInsee" => $insee )*/ );
         foreach ($people as $key => $onePerson) {
             $citoyen = Person::getPublicData( $key );
             array_push($allPeople, $citoyen);
@@ -107,7 +116,10 @@ class DetailAction extends CAction
         $params["people"] = $allPeople;
         $params["insee"] = $insee;
         $params["city"] = $city;
-        
+        if(!empty($postalCode))
+            $params["cityGlobal"] = false;
+        else
+            $params["cityGlobal"] = true;
         $page = "detail";
         if(Yii::app()->request->isAjaxRequest)
             echo $controller->renderPartial($page,$params,true);

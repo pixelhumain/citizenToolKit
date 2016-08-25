@@ -31,6 +31,16 @@ class DirectoryAction extends CAction
         $params["element"] = $element;
     	//$page = "element/directory";
         //if( isset($_GET[ "tpl" ]) )
+
+        if($type == Organization::COLLECTION)
+           $connectAs="members";
+        else if($type == Project::COLLECTION)
+            $connectAs="contributors";
+        else if($type == Event::COLLECTION)
+            $connectAs="attendees";
+
+        $params["manage"] = ( @$connectAs && @$element["links"][$connectAs][Yii::app()->session["userId"]])?1:0;
+        
         $page = "directory2";
         if(Yii::app()->request->isAjaxRequest){
             echo $controller->renderPartial($page,$params,true);
