@@ -77,10 +77,11 @@ class Person {
 	      	$user ["username"] = $account["username"];
 	    if( @$account["cp"] ) 
 	      	$user ["postalCode"] = $account["cp"];
-	    if( @$account["address"] && @$account["address"]["postalCode"] )
-	     	$user ["postalCode"] = $account["address"]["postalCode"];
-	    if( @$account["address"] && @$account["address"]["codeInsee"] )
-	     	$user ["codeInsee"] = $account["address"]["codeInsee"];
+	    if( @$account["address"]) {
+	    	if ( @$account["address"]["postalCode"] ) $user ["postalCode"] = $account["address"]["postalCode"];
+	    	if ( @$account["address"]["codeInsee"] ) $user ["codeInsee"] = $account["address"]["codeInsee"];
+	    	if ( @$account["address"]["addressCountry"] ) $user ["addressCountry"] = $account["address"]["addressCountry"];
+	    }
 		if( @$account["roles"])
 	     	$user ["roles"] = $account["roles"];
 
