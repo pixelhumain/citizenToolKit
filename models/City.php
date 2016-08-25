@@ -391,8 +391,8 @@ class City {
 	}
 
 	
-	public static function getCityByInseeCp($insee, $cp == null){
-		$where = array("insee" => $insee)
+	public static function getCityByInseeCp($insee, $cp = null){
+		$where = array("insee" => $insee);
 
 		if(!empty($cp))
 			$where["postalCodes.postalCode"] = $cp;
@@ -410,9 +410,16 @@ class City {
 				return $city;
 			}else{
 				$city["namePc"][] = $value["name"];
-				$city["cp"][] = $value["postalCode"];
+				$city["cpArray"][] = $value["postalCode"];
+
+				if($value["name"] == $city["name"])
+					$city["cp"] = $value["postalCode"];
 			}
 		}
+
+		if(empty($city["cp"]))
+			$city["cp"] = $city["cpArray"][0];
+		
 		return $city;
 	}
 
