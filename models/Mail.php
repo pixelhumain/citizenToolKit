@@ -138,7 +138,8 @@ class Mail {
             "to" => $email,
             "tplParams" => array(   "pwd"   => $pwd ,
                                     "title" => Yii::app()->name ,
-                                     "logo"  => "/images/logo.png" )
+                                    "logo"  => "/images/logo-communecter.png",
+                                    "logo2" => "/images/logoLTxt.jpg")
         );
         Mail::schedule($params);
     }
