@@ -1,7 +1,7 @@
 <?php
 class IndexAction extends CAction
 {
-    public function run($type=null, $id= null, $date = null, $viewer=null,$streamType="news")
+    public function run($type=null, $id= null, $date = null, $viewer=null,$streamType="news", $textSearch=null)
     {
     	$controller=$this->getController();
         $controller->title = "Timeline";
@@ -352,8 +352,11 @@ class IndexAction extends CAction
 			
 			$where = array_merge($where,  array('created' => array( '$lt' => $date ) ) );
 
+			if(@$_POST["textSearch"] && $_POST["textSearch"]!="")
+			$where = array_merge($where,  array('text' => new MongoRegex("/".$_POST["textSearch"]."/i") ) );
+
 			//echo '<pre>';var_dump($_POST);echo '</pre>';
-			//echo '<pre>';var_dump($where);echo '</pre>'; return;
+			//echo $_POST["textSearch"].'<pre>';var_dump($where);echo '</pre>'; return;
 		/*}
 		else{
 			$where=$_POST["condition"];

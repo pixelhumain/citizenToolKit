@@ -159,7 +159,8 @@ class News {
 				// 		}
 				// 	}		
 				// }
-				if( isset($_POST["searchLocalityCITYKEY"]) && !empty($_POST["searchLocalityCITYKEY"]) && $_POST["searchLocalityCITYKEY"] != "") {
+				if( $_POST["scope"] != "restricted" && $_POST["scope"] != "private" &&
+					isset($_POST["searchLocalityCITYKEY"]) && !empty($_POST["searchLocalityCITYKEY"]) && $_POST["searchLocalityCITYKEY"] != "") {
 					$news["scope"]["type"]="public";
 					foreach($_POST["searchLocalityCITYKEY"] as $key => $value){ if(!empty($value)){
 						$city = City::getByUnikey($value); error_log("save news searchLocalityCITYKEY");
@@ -190,18 +191,18 @@ class News {
 						$news["scope"]["regions"][] = array( "name"=>$value );
 					}}
 				}
-				else {
-						$scope = $_POST["scope"];
-						$news["scope"]["type"]=$scope;
-						if($scope== "public"){
-							$address=SIG::getAdressSchemaLikeByCodeInsee($codeInsee,$postalCode);
-							$news["scope"]["cities"][] = array("codeInsee"=>$codeInsee,
-																"postalCode"=>$postalCode,
-																"addressLocality"=>$address["addressLocality"],
-																"geo" => $from
-															);
-						}
-					}		
+				else{
+					$scope = $_POST["scope"];
+					$news["scope"]["type"]=$scope;
+					if($scope== "public"){
+						$address=SIG::getAdressSchemaLikeByCodeInsee($codeInsee,$postalCode);
+						$news["scope"]["cities"][] = array("codeInsee"=>$codeInsee,
+															"postalCode"=>$postalCode,
+															"addressLocality"=>$address["addressLocality"],
+															"geo" => $from
+														);
+					}
+				}		
 			}
 		 	if(isset($_POST["mentions"])){
 				$news["mentions"] = $_POST["mentions"];
