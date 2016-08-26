@@ -48,6 +48,7 @@ class Person {
 	    "badges" => array("name" => "badges"),
 	    "multitags" => array("name" => "multitags"),
 	    "multiscopes" => array("name" => "multiscopes"),
+	    "url" => array("name" => "url"),
 
 	);
 
@@ -712,6 +713,7 @@ class Person {
 		//address
 		$user = null;
 		$thisUser = self::getById($personId);
+
 		if ($dataFieldName == "address") 
 		{
 			error_log(implode(",", $personFieldValue));
@@ -755,7 +757,7 @@ class Person {
 			$set = array($dataFieldName => $personFieldValue);
 		}
 		else {
-			$set = array($dataFieldName => $personFieldValue);	
+			$set = array($dataFieldName => $personFieldValue);
 			if ( $personFieldName == "bgClass") {
 				//save to session for all page reuse
 				$user = Yii::app()->session["user"];
