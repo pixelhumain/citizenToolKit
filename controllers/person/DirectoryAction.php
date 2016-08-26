@@ -5,11 +5,10 @@
   * Else will get the id of the person logged
   * @return type
   */
-class DirectoryAction extends CAction
-{
-    public function run( $id=null )
-    {
-        $controller = $this->getController();
+class DirectoryAction extends CAction {
+
+    public function run( $id=null ) {
+      $controller = $this->getController();
 
       //get The person Id
       if (empty($id)) {
@@ -20,7 +19,7 @@ class DirectoryAction extends CAction
           }
       }
 
-      /* **************************************
+      /***************************************
       *  PERSON
       ***************************************** */
       $person = Person::getPublicData($id);
@@ -29,16 +28,18 @@ class DirectoryAction extends CAction
       $controller->subTitle = (isset($person["description"])) ? $person["description"] : "";
       $controller->pageTitle = ucfirst($controller->module->id)." - ".$controller->title;
 
-      /* **************************************
+      /***************************************
       *  EVENTS
-      ***************************************** */
+      ******************************************/
       $events=array();
       if(isset($person["links"]["events"]))
         {
               foreach ($person["links"]["events"] as $keyEv => $valueEv) 
               {
                 $event = Event::getPublicData($keyEv);
-                $events[$keyEv] = $event; 
+                if(!empty($event)) {
+                  $events[$keyEv] = $event; 
+                }
               }
        }
 
@@ -46,45 +47,27 @@ class DirectoryAction extends CAction
       *  ORGANIZATIONS
       ***************************************** */
       $organizations = array();
-      if( isset($person["links"]) && isset($person["links"]["memberOf"])) 
-      {
-        
-          foreach ($person["links"]["memberOf"] as $key => $member) 
-          {
-              $organization;
-              if( $member['type'] == Organization::COLLECTION )
-              {
-                  $organization = Organization::getPublicData( $key );
-                  if (!@$organization["disabled"]) {
-                    array_push($organizations, $organization );
-                  }
+      if( isset($person["links"]) && isset($person["links"]["memberOf"])) {
+        foreach ($person["links"]["memberOf"] as $key => $member) {
+          $organization;
+          if( $member['type'] == Organization::COLLECTION ) {
+              $organization = Organization::getPublicData( $key );
+              if(!empty($organization)) {
+                if (!@$organization["disabled"]) {
+                  array_push($organizations, $organization );
+                }
               }
+          }
          
-            if(isset($organization["links"]["events"]))
-            {
-              foreach ($organization["links"]["events"] as $keyEv => $valueEv) 
-              {
-                $event = Event::getPublicData($keyEv);
+          if(isset($organization["links"]["events"])) {
+            foreach ($organization["links"]["events"] as $keyEv => $valueEv) {
+              $event = Event::getPublicData($keyEv);
+              if(!empty($event)) {
                 $events[$keyEv] = $event; 
               }
             }
-          }        
-      }
-
-      /* **************************************
-      *  PEOPLE
-      ***************************************** */
-    $people = array();
-      if( isset( $person["links"] ) && isset( $person["links"]["knows"] )) {
-        foreach ( $person["links"]["knows"] as $key => $member ) {
-              if( $member['type'] == Person::COLLECTION )
-              {
-                $citoyen = Person::getPublicData( $key );
-				if(!empty($citoyen)){
-	                array_push( $people, $citoyen );
-                }
-              }
-        }
+          }
+        }        
       }
 
       /* **************************************
@@ -94,68 +77,100 @@ class DirectoryAction extends CAction
       if(isset($person["links"]["projects"])){
         foreach ($person["links"]["projects"] as $key => $value) {
           $project = Project::getPublicData($key);
-          array_push( $projects, $project );
+          if(!empty($project)) {
+            array_push( $projects, $project );
+          }
         }
       }
-      $follows = array("citoyens"=>array(),
+
+       /* **************************************
+      *  FOLLOWS
+      ***************************************** */
+      $follows = 
+            array("citoyens"=>array(),
       					"projects"=>array(),
       					"organizations"=>array(),
       					"count" => 0
       			);
-	  if (isset($person["links"]["follows"])){
-		  $countFollows=0;
-		   foreach ( $person["links"]["follows"] as $key => $member ) {
-	              if( $member['type'] == Person::COLLECTION )
-	              {
-	                $citoyen = Person::getPublicData( $key );
-					        if(!empty($citoyen)){
-		                array_push( $follows[Person::COLLECTION], $citoyen );
-	                }
-	              }
-	              if( $member['type'] == Organization::COLLECTION )
-	              {
-						    array_push($follows[Organization::COLLECTION], $organization );
-					}
-	              if( $member['type'] == Project::COLLECTION )
-	              {
-						$project = Project::getPublicData($key);
-						array_push( $follows[Project::COLLECTION], $project );
-	              }
-	            $countFollows++;
-        	}
-			$follows["count"]= $countFollows;
-	  }
-      $followers = array();
-	  if (isset($person["links"]["followers"])){
-		   foreach ( $person["links"]["followers"] as $key => $member ) {
-	              if( $member['type'] == Person::COLLECTION )
-	              {
-	                $citoyen = Person::getPublicData( $key );
-					if(!empty($citoyen)){
-		                array_push( $followers, $citoyen );
-	                }
-	              }
-        	}
 
-	  }
+      $countFollows=0;
+
+      if (@$person["links"]["follows"]) {
+        foreach ( @$person["links"]["follows"] as $key => $member ) {
+          if( $member['type'] == Person::COLLECTION ) {
+            $citoyen = Person::getPublicData( $key );
+  	        if(!empty($citoyen)) {
+              array_push( $follows[Person::COLLECTION], $citoyen );
+            }
+          }
+          if( $member['type'] == Organization::COLLECTION ) {
+            $organization = Organization::getPublicData($key);
+  		      if(!empty($organization)) {
+              array_push($follows[Organization::COLLECTION], $organization );
+            }
+          }
+          if( $member['type'] == Project::COLLECTION ) {
+  		      $project = Project::getPublicData($key);
+  		      if(!empty($project)) {
+              array_push( $follows[Project::COLLECTION], $project );
+            }
+          }
+          $countFollows++;
+        }
+      }
+			
+      $follows["count"]= $countFollows;
+      
+      /* **************************************
+      *  FOLLOWERS
+      ***************************************** */
+      $followers = array();
+      if (@$person["links"]["followers"]) {
+  	    foreach ( @$person["links"]["followers"] as $key => $member ) {
+          if( $member['type'] == Person::COLLECTION ) {
+            $citoyen = Person::getPublicData( $key );
+            if(!empty($citoyen)){
+              array_push( $followers, $citoyen );
+            }
+          }
+      	}
+      }
+
+      uasort($organizations, array("DirectoryAction", 'compareByName'));
       $params["organizations"] = $organizations;
+      uasort($projects, array("DirectoryAction", 'compareByName'));
       $params["projects"] = $projects;
+      uasort($events, array("DirectoryAction", 'compareByName'));
       $params["events"] = $events;
-      $params["people"] = $people;
       $params["type"] = Person::CONTROLLER;
       $params["person"] = $person;
+      uasort($followers, array("DirectoryAction", 'compareByName'));
       $params["followers"] = $followers;
+
+      //Sort Follows
+      if (@$follows[Person::COLLECTION])
+        uasort($follows[Person::COLLECTION], array("DirectoryAction", 'compareByName'));
+      if (@$follows[Organization::COLLECTION])
+        uasort($follows[Organization::COLLECTION], array("DirectoryAction", 'compareByName'));
+      if (@$follows[Project::COLLECTION])
+        uasort($follows[Project::COLLECTION], array("DirectoryAction", 'compareByName'));
       $params["follows"] = $follows;
 
 		  $page = "../default/directory";
       if( isset($_GET[ "tpl" ]) )
         $page = "../default/".$_GET[ "tpl" ];
       
-      if(Yii::app()->request->isAjaxRequest){
+      if(Yii::app()->request->isAjaxRequest) {
         echo $controller->renderPartial($page,$params,true);
-      }
-      else {
+      } else {
         $controller->render($page,$params);
       }
     }
+
+    // Fonction de comparaison
+    public static function compareByName($entityA, $entityB) {
+        return strcasecmp(@$entityA["name"],@$entityB["name"]);
+    }
 }
+
+
