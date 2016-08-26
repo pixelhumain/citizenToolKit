@@ -13,10 +13,12 @@ class UpdateAction extends CAction
 
 		$personId = $_POST["personId"];
 		$person = Person::newPersonFromPost($_POST);
-
+		
 		$res = array("result"=>false, "msg"=>Yii::t("common", "Something went wrong!"));
 		try {
 			$res = Person::update($personId, $person, Yii::app()->session["userId"]);
+			
+		
 		} catch (CTKException $e) {
 			$res = array("result"=>false, "msg"=>$e->getMessage());
 		}
