@@ -558,7 +558,7 @@ class Person {
         	$newpersonId = (String) $person["_id"];
         	if (! empty($pwd)) {
 	        	//Encode the password
-			  	$encodedpwd = hash('sha256', $newpersonId.$pwd);
+			  	$encodedpwd = self::hashPassword($newpersonId, $pwd);
 			  	self::updatePersonField($newpersonId, "pwd", $encodedpwd, $newpersonId);
 			} 
 	    } else {
@@ -851,7 +851,7 @@ class Person {
     	if ($account) {
     		if (@$account["pwd"] == hash('sha256', @$account["email"].$pwd)) {
     			//the password match with an "email" as salt => change the password to salt with the "id"
-    			$newPassword = hash('sha256', (String) $account["_id"].$pwd);
+    			$newPassword = self::hashPassword((String) $account["_id"],$pwd);
 				self::updatePersonField(@$account["_id"], "pwd", $newPassword, @$account["_id"]);
 				//add a log on logs collection
 				Log::save($logs =array(
@@ -863,7 +863,7 @@ class Person {
 			    ));
 				$res = true;
     		//Second test : maybe the salt is already with the id
-    		} else if (@$account["pwd"] == hash('sha256', (String) @$account["_id"].$pwd)) {
+    		} else if (@$account["pwd"] == self::hashPassword((String) $account["_id"],$pwd)) {
     			$res = true;
     		}
     	}
@@ -993,7 +993,7 @@ class Person {
 			return array("result" => false, "msg" => Yii::t("person","The new password should be 8 caracters long"));
 		}
 		
-		$encodedPwd = hash('sha256', (String) $person["_id"].$newPassword);
+		$encodedPwd = self::hashPassword((String) $person["_id"],$newPassword);
 		self::updatePersonField($userId, "pwd", $encodedPwd, $userId);
 		
 		return array("result" => true, "msg" => Yii::t("person","Your password has been changed with success !"));
@@ -1066,8 +1066,11 @@ class Person {
 			throw new CTKException("Impossible to update an account not pending !");
 		} else {
 			$person["email"] = $account["email"];
-			//Update des infos minimal
+			$pwd = self::hashPassword($personId, $person["pwd"]);
+
+			//Update des infos minimales
 			$personToUpdate = self::getAndcheckPersonData($person, self::REGISTER_MODE_TWO_STEPS, false);
+			$personToUpdate["pwd"] = $pwd;
 
 			PHDB::update(Person::COLLECTION, array("_id" => new MongoId($personId)), 
 			                          array('$set' => $personToUpdate, '$unset' => array("pending" => "" ,"roles.tobeactivated"=>""
@@ -1084,6 +1087,10 @@ class Person {
 			$res = array("result" => true, "msg" => "The pending user has been updated and is now complete");
 		}
 		return $res;
+	}
+	
+	private static function hashPassword($personId, $pwd) {
+		return hash('sha256', $personId.$pwd);
 	}
 
 	public static function isUniqueUsername($username) {
