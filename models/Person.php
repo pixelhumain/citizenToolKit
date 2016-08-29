@@ -1147,12 +1147,12 @@ class Person {
 	  	if (isset($person) && isset($person["links"]) && isset($person["links"]["follows"])) {
 	  		foreach ($person["links"]["follows"] as $key => $follow) {
 
-	  					if($follow["type"] == "citoyens")
-	  						$entity = PHDB::findOneById( self::COLLECTION ,$key );
-	  					else if($follow["type"] == "organizations")
-	  						$entity = PHDB::findOneById(Organization::COLLECTION ,$key );
-
-		                $res[$key] = $entity;
+				if($follow["type"] == "citoyens" || $follow["type"] == "organizations" || $follow["type"] == "projects") {
+					$entity = PHDB::findOneById( $follow["type"] ,$key );
+					$res[$key] = $entity;
+				} else {
+					error_log("[DATA-INCORRECT] - Impossible to find the ".$follow["type"]. " with the id ".$key." ! Link follow on the person id : ".$id);
+				}
 	  		}
 	  	}
 	  	return $res;
