@@ -10,6 +10,7 @@ class GetDataSwaggerAction extends CAction
         header('Access-Control-Allow-Origin: *');
         $docsJSON = file_get_contents("../../modules/api/data/api.json", FILE_USE_INCLUDE_PATH);
         $docs = json_decode($docsJSON,true);
+        $docs["host"] = $_SERVER['HTTP_HOST'];
         Rest::json($docs); 
         //Yii::app()->end();
         //echo file_get_contents("../../modules/api/data/docs.json");
