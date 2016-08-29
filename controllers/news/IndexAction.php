@@ -14,6 +14,17 @@ class IndexAction extends CAction
 		else{
 			$date=time();
 		}
+
+		//bloque l'acces a la page 'my network'
+		//si le views n'est pas renseigné
+		if($type == "citoyens" 
+		&& Yii::app()->session["userId"] != $id 
+		&& (!@$viewer || $viewer == null || $viewer == "")){
+			$viewer = Yii::app()->session["userId"];
+			//throw new CTKException("Impossible to access this stream");
+		}
+
+
 		$date=new MongoDate($date);
 		$news=array();
 		$params = array();
@@ -34,7 +45,7 @@ class IndexAction extends CAction
 		}
 		// Actions done at first loading of the page
 		// perform time of wall loading
-		if (@$_GET["isFirst"]){
+	//	if (@$_GET["isFirst"]){
 			
 			if(!@$type || empty($type))
 				$type = Person::COLLECTION;
@@ -94,14 +105,14 @@ class IndexAction extends CAction
 			$params["contextParentType"] = $type; 
 			$params["contextParentId"] = $id;
 			$params["parent"]=@$parent;
-		} else{
-			$parent=@$_POST["parent"];
-		}
+		//} else{
+		//	$parent=@$_POST["parent"];
+		//}
 			//error_log("le type :". $type);
 			//Define condition of each wall generated datas
 			if($type == "citoyens") {
 				if (!@Yii::app()->session["userId"] || (@Yii::app()->session["userId"] && Yii::app()->session["userId"]!=$id) || (@$viewer && $viewer != null)){
-					//error_log("message 1");
+					error_log("message 1");
 					$scope=array(
 						array("scope.type"=> "public"),
 						array("scope.type"=> "restricted")
@@ -136,13 +147,15 @@ class IndexAction extends CAction
 					//echo '<pre>';var_dump($where);echo '</pre>'; return;
 				}
 				else{
-					//error_log("message 2");
+					error_log("message 2");
 					$authorFollowedAndMe=[];
 					array_push($authorFollowedAndMe,array("author"=>$id));
 					array_push($authorFollowedAndMe,array("target.id"=> $id, 
 														"target.type" => Person::COLLECTION));
 					array_push($authorFollowedAndMe,array("mentions.id" => $id, 
 															"mentions.type" => Person::COLLECTION));
+
+					//echo '<pre>';var_dump($parent);echo '</pre>'; return;
 					if(@$parent["links"]["memberOf"] && !empty($parent["links"]["memberOf"])){
 						foreach ($parent["links"]["memberOf"] as $key => $data){
 							array_push($authorFollowedAndMe,array("target.id"=>$key, "target.type" => Organization::COLLECTION));
@@ -356,7 +369,7 @@ class IndexAction extends CAction
 			$where = array_merge($where,  array('text' => new MongoRegex("/".$_POST["textSearch"]."/i") ) );
 
 			//echo '<pre>';var_dump($_POST);echo '</pre>';
-			//echo $_POST["textSearch"].'<pre>';var_dump($where);echo '</pre>'; return;
+			//echo '<pre>';var_dump($where);echo '</pre>'; return;
 		/*}
 		else{
 			$where=$_POST["condition"];

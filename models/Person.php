@@ -123,7 +123,7 @@ class Person {
 		/*echo "yoyo";
 		var_dump($id);*/
 	  	$person = PHDB::findOneById( self::COLLECTION ,$id );
-	  	
+	  	//echo $id; var_dump($person); exit;
 	  	if (empty($person)) {
 	  		//TODO Sylvain - Find a way to manage inconsistente data
             //throw new CTKException("The person id ".$id." is unkown : contact your admin");
@@ -285,7 +285,7 @@ class Person {
 	  				 "projects" => array(), "events" => array());
 
 	  	$person = self::getById($id);
-	  	
+	  	//error_log($id);
 	  	if (empty($person)) {
             throw new CTKException("The person id is unkown : contact your admin");
         }
