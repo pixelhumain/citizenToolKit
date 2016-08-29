@@ -542,7 +542,7 @@ class Person {
 	 */
 	public static function insert($person, $mode = self::REGISTER_MODE_NORMAL, $inviteCode = null) {
 		//Keep the password
-		$pwd = $person["pwd"];
+		$pwd = @$person["pwd"];
 
 	  	//Check Person data + business rules
 	  	$person = self::getAndcheckPersonData($person, $mode);
