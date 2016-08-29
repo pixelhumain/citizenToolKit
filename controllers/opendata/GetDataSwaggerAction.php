@@ -14,7 +14,7 @@ class GetDataSwaggerAction extends CAction
         $docs["host"] = $_SERVER['HTTP_HOST'];
         $docs["basePath"] = Yii::app()->baseUrl."/api" ;
         //$docs["schemes"][] = "http";
-        if($_SERVER['HTTPS'] != "on")
+        if(empty($_SERVER['HTTPS']) || (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != "on"))
         	$docs["schemes"][0] = "http";
         Rest::json($docs); 
         //Yii::app()->end();
