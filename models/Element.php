@@ -151,6 +151,8 @@ class Element {
 			$element = Project::getById($id);	
 		else if($type == Event::COLLECTION)
 			$element = Event::getById($id);	
+		else if($type == City::COLLECTION)
+			$element = City::getIdByInsee($id);
 		return $element;
 	}
 
