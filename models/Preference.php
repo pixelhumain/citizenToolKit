@@ -66,7 +66,7 @@ class Preference {
 		if($setValue=="public"){
 			$publicFields[]=$setType;
 		}
-		if($setValue=="hide"){
+		if($setValue=="private"){
 			$privateFields[]=$setType;
 		}
 		if($setValue=="true"){
