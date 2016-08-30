@@ -213,12 +213,23 @@ class Authorisation {
      * @param String $userId The userId to get the authorisation of
      * @return boolean True if the user isAdmin, False else
      */
-    public static function isEventAdmin($eventId, $userId){
+    public static function isEventAdmin($eventId, $userId, $attendees = null){
         $res = false;
-        $listEvent = Authorisation::listEventsIamAdminOf($userId);
-        if(isset($listEvent[(string)$eventId])){
+        if(!empty($attendees) && @$attendees[$userId]["isAdmin"] == true){
             $res=true;
-        } 
+        }else{
+            $where = array("_id"=>new MongoId($eventId),
+                            "links.attendees.".$userId.".isAdmin" => true,
+                            "links.attendees.".$userId.".isAdminPending" => array('$exists' => false));
+            $event = PHDB::findOne(Event::COLLECTION, $where);
+            if(!empty($event))
+                $res=true;
+            /*$listEvent = Authorisation::listEventsIamAdminOf($userId);
+            if(isset($listEvent[(string)$eventId])){
+                $res=true;
+            }*/   
+        }
+        
         return $res;
     }
     /*public static function isEventAdmin($eventId, $userId) {
@@ -441,7 +452,7 @@ class Authorisation {
     		if(isset($event["links"]["attendees"])){
     			foreach ($event["links"]["attendees"] as $key => $value) {
     				if($key ==  $userId){
-	    				if(isset($value["isAdmin"]) && $value["isAdmin"]==true){
+	    				if(isset($value["isAdmin"]) && $value["isAdmin"]==true && empty($value["isAdminPending"])){
 	    					$res = true;
 	    				}
 	    			}

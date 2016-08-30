@@ -106,6 +106,13 @@ class DetailAction extends CAction {
         	}
         }
         Menu::event($event,$hasSubEvents);
+
+        $admin = false;
+		if(isset(Yii::app()->session["userId"]) && isset($id)){
+			$admin = Authorisation::canEditItem(Yii::app()->session["userId"], Event::COLLECTION, (string)$event["_id"]);
+		}
+
+
         $params["invitedNumber"]=$invitedNumber;
         $params["attendeeNumber"]= $attendeeNumber;
         $params["images"] = $images;
@@ -116,6 +123,8 @@ class DetailAction extends CAction {
         $params["people"] = $people;
         $params["openEdition"] = $openEdition;
         $params["countries"] = OpenData::getCountriesList();
+		$params["admin"] = $admin ;
+
 
         $list = Lists::get(array("eventTypes"));
         $params["eventTypes"] = $list["eventTypes"];
