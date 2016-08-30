@@ -49,7 +49,7 @@ class Person {
 	    "multitags" => array("name" => "multitags"),
 	    "multiscopes" => array("name" => "multiscopes"),
 	    "url" => array("name" => "url"),
-
+	    "lastLoginDate" => array("name" => "lastLoginDate"),
 	);
 
 	public static function logguedAndValid() {
@@ -87,12 +87,15 @@ class Person {
 	    }
 		if( @$account["roles"])
 	     	$user ["roles"] = $account["roles"];
-
+	    //Last login date
+	    $user ["lastLoginDate"] = @$account["lastLoginDate"] ? $account["lastLoginDate"] : time();
+	    
 		//Image profil
 	    $simpleUser = self::getById((string)$account["_id"]);
 	    $user ["profilImageUrl"] = $simpleUser["profilImageUrl"];
 	    $user ["profilThumbImageUrl"] = $simpleUser["profilThumbImageUrl"];
 	    $user ["profilMarkerImageUrl"] = $simpleUser["profilMarkerImageUrl"];
+
 	    Yii::app()->session["user"] = $user;
 	    Yii::app()->session["isRegisterProcess"] = $isRegisterProcess;
 
@@ -725,17 +728,13 @@ class Person {
 			else
 				$personFieldValue = explode(",", $personFieldValue);
 		}
-			
 
-		error_log($dataFieldName);
-		
 		//address
 		$user = null;
 		$thisUser = self::getById($personId);
 
 		if ($dataFieldName == "address") 
 		{
-			error_log(implode(",", $personFieldValue));
 			if(!empty($personFieldValue["postalCode"]) && !empty($personFieldValue["codeInsee"])) 
 			{
 				$insee = $personFieldValue["codeInsee"];
@@ -831,6 +830,8 @@ class Person {
 	        //Check the password
         	if (self::checkPassword($pwd, $account)) {
 	            Person::saveUserSessionData($account, $isRegisterProcess);
+	            //Update login history
+	            self::updateLoginHistory((String) $account["_id"]);
 	            if ($res["msg"] == "notValidatedEmail") 
 	        		return $res;
 	        	else
@@ -841,6 +842,15 @@ class Person {
 	    }
         
         return $res;
+    }
+
+    /**
+     * Update the last login date on person document
+     * @param String $accountId an existing account id
+     * @return boolean True if the update goes well, false else
+     */
+    private static function updateLoginHistory($accountId) {
+    	return self::updatePersonField($accountId, "lastLoginDate", time(), $accountId);
     }
 
     /**
