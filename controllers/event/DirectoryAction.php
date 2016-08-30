@@ -59,7 +59,7 @@ class DirectoryAction extends CAction
                   }
                   array_push($params["attendees"], $citoyen);
                 }
-                	
+                
               }
               /*if(isset($e["isAdmin"]) && $e["isAdmin"]==true){
                 array_push($admins, $e);

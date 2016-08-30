@@ -91,7 +91,7 @@ class Document {
 		    	throw new CTKException("You are not allowed to modify the document of this item !");
 		    }
 		}else{
-		    if (! Authorisation::canEditItem($new['author'], $new['type'], $new['id'])) {
+		    if (! Authorisation::canEditItem($new['author'], $new['type'], $new['id']) && !Authorisation::isOpenEdition($new['id'], $new['type'])) {
 		    	throw new CTKException("You are not allowed to modify the document of this item !");
 		    }
 	    }
