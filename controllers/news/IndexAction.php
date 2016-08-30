@@ -256,9 +256,9 @@ class IndexAction extends CAction
 					        		//error_log("CITYKEY " .$localityRef );
 					        		$city = City::getByUnikey($localityRef);
 					        		$queryLocality = array(
-					        				//"address.addressCountry" => new MongoRegex("/".$city["country"]."/i"),
-					        				"scope.cities.codeInsee" => new MongoRegex("/".$city["insee"]."/i"),
-					        				"scope.cities.postalCode" => new MongoRegex("/".$city["cp"]."/i"),
+					        				"scope.cities.codeInsee" => $localityRef
+					        				//"scope.cities.codeInsee" => new MongoRegex("/".$city["insee"]."/i"),
+					        				//"scope.cities.postalCode" => new MongoRegex("/".$city["cp"]."/i"),
 					        		);
 				  				}
 				  				elseif($key == "CODE_POSTAL") {

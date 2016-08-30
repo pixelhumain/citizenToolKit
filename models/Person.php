@@ -143,8 +143,6 @@ class Person {
 											"addressLocality" => "",
 											"streetAddress" => "",
 											"addressCountry" => "");
-        
-			
         }
         
         if ($clearAttribute) {
