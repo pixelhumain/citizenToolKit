@@ -12,7 +12,8 @@ class AutocompleteMultiScopeAction extends CAction
             return Rest::json( array("res"=>false, "msg" => "error with type or scopeValue" ));
        
         if($type == "city")     $where = array('$or'=> array(array("name" => new MongoRegex("/^".$scopeValue."/i")),
-                                                            array("alternateName" => new MongoRegex("/^".$scopeValue."/i") )
+                                                             array("alternateName" => new MongoRegex("/^".$scopeValue."/i") ),
+                                                             array("postalCodes.name" => new MongoRegex("/^".$scopeValue."/i") )
                                                             ));
                                               
         if($type == "cp")       $where = array("postalCodes.postalCode" =>new MongoRegex("/^".$scopeValue."/i"));
