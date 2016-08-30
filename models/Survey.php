@@ -2,15 +2,15 @@
 
 class Survey
 {
+	const COLLECTION = "surveys";
+	const PARENT_COLLECTION = "actionRooms";
+	const CONTROLLER = "survey";
+
 	const TYPE_SURVEY = 'survey';
 	const TYPE_ENTRY  = 'entry';
   	const STATUS_CLEARED 	= "cleared";
   	const STATUS_REFUSED 	= "refused";
 
-	const COLLECTION = "surveys";
-	const PARENT_COLLECTION = "actionRooms";
-	const CONTROLLER = "survey";
-	
 	public static function getById($id) {
 		$survey = PHDB::findOneById( self::COLLECTION ,$id );
 		return $survey;
@@ -23,18 +23,18 @@ class Survey
      	{ 
      		if(self::isModerator(Yii::app()->session["userId"],$params["app"]))
      		{
-		     	$survey = PHDB::findOne( PHType::TYPE_SURVEYS, array("_id"=>new MongoId($params["survey"])) );
+		     	$survey = PHDB::findOne( self::COLLECTION, array("_id"=>new MongoId($params["survey"])) );
 		     	if( isset($survey["applications"][$params["app"]]["cleared"] ))
 		     	{
 		     		if($params["action"]){
-		     			PHDB::update( PHType::TYPE_SURVEYS, 
+		     			PHDB::update( self::COLLECTION, 
 		     									array("_id"=>new MongoId($params["survey"])),
 		     									array('$unset' => array('applications.'.$params["app"].'.cleared' => true))
 		     								);
 		     			$res["msg"] = "EntryCleared";
 		     			$res["result"] = true;
 		     		} else {
-		     			PHDB::update(  PHType::TYPE_SURVEYS, 
+		     			PHDB::update(  self::COLLECTION, 
 		     								    array("_id"=>new MongoId($params["survey"])),
 		     									array('$set' => array('applications.'.$params["app"].'.cleared' => "refused"))
 		     								);
@@ -44,7 +44,7 @@ class Survey
 		     		$res["msg"] = "Nothing to clear on this entry";
 		     	
 
-		     	$res["survey"] = PHDB::findOne( PHType::TYPE_SURVEYS, array("_id"=>new MongoId($params["survey"])) );
+		     	$res["survey"] = PHDB::findOne( self::COLLECTION, array("_id"=>new MongoId($params["survey"])) );
 		     } else 
 		     	$res["msg"] = "mustBeModerator";
 	     } else 
@@ -64,20 +64,20 @@ class Survey
      	$res = array( "result" => false );
      	if( isset( Yii::app()->session["userId"] ))
      	{ 
-     		if( $survey = PHDB::findOne( PHType::TYPE_SURVEYS, array("_id"=>new MongoId($params["survey"])) ) ) 
+     		if( $survey = PHDB::findOne( self::COLLECTION, array("_id"=>new MongoId($params["survey"])) ) ) 
      		{
 	     		if(Person::isAppAdmin( Yii::app()->session["userId"] , $params["app"] ))
 	     		{
 			     	
 	     			//first remove all children 
-			     	$count = PHDB::count( PHType::TYPE_SURVEYS , array("survey" => $params["survey"]) );
+			     	$count = PHDB::count( self::COLLECTION , array("survey" => $params["survey"]) );
 			     	if( $count > 0){
-				     	PHDB::remove( PHType::TYPE_SURVEYS, array("survey"=>$params["survey"]));
+				     	PHDB::remove( self::COLLECTION, array("survey"=>$params["survey"]));
 				     	$res["msg2"] = "Deleted ".$count." children entries" ;
 					}
 
 			     	//then remove the parent survey
-	     			PHDB::remove( PHType::TYPE_SURVEYS,array("_id"=>new MongoId($params["survey"])));
+	     			PHDB::remove( self::COLLECTION,array("_id"=>new MongoId($params["survey"])));
 	     			$res["msg"] = "Deleted";
 	     			$res["result"] = true;
 
