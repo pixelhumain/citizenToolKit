@@ -53,19 +53,29 @@ class City {
 	/* format unikey : COUNTRY_insee-cp */
 	public static function getByUnikey($unikey){
 		$country = substr($unikey, 0, strpos($unikey, "_"));
-		$insee = substr($unikey,  strpos($unikey, "_")+1,  strpos($unikey, "-")-strpos($unikey, "_")-1);
-		$cp = substr($unikey, strpos($unikey, "-")+1,  strlen($unikey));
-
+		//No cp for the unikey
+		if (! strpos($unikey, "-")) {
+			$insee = substr($unikey,  strpos($unikey, "_")+1,  5);
+		} else {
+			$insee = substr($unikey,  strpos($unikey, "_")+1,  strpos($unikey, "-")-strpos($unikey, "_")-1);
+			$cp = substr($unikey, strpos($unikey, "-")+1,  strlen($unikey));
+		}
+		error_log("INSEE : ".$insee);
 		$city = PHDB::findOne( self::COLLECTION , array("insee"=>$insee, "country"=>$country) );// self::getWhere(array("insee"=>$insee, "country"=>$country));
-		if(isset($city["postalCodes"]))
-		foreach ($city["postalCodes"] as $key => $value) {
-			if($value["postalCode"] == $cp){
-				$city["name"] = $value["name"];
-				$city["cp"] = $value["postalCode"];
-				$city["geo"] = $value["geo"];
-				$city["geoPosition"] = $value["geoPosition"];
-				return $city;
-			}
+		if (isset($cp)) {
+			if(isset($city["postalCodes"]))
+				foreach ($city["postalCodes"] as $key => $value) {
+					if($value["postalCode"] == $cp){
+						$city["name"] = $value["name"];
+						$city["cp"] = $value["postalCode"];
+						$city["geo"] = $value["geo"];
+						$city["geoPosition"] = $value["geoPosition"];
+						return $city;
+					}
+				}
+		//If look for a city with only the insee code and without the cp
+		} else if (!empty($city)) {
+			return $city;
 		}
 		return null;
 		//return array("country" => $country, "insee" => $insee, "cp" => $cp);
@@ -427,16 +437,6 @@ class City {
 		$where = array("insee" => $insee);
 		//$fields = array("_id");
 		$city = PHDB::findOne( City::COLLECTION, $where);// ,$fields);
-		$city["geo"] = $value["geo"];
-		$city["geoPosition"] = $value["geoPosition"];
-		if(isset($city["postalCodes"]))
-		foreach ($city["postalCodes"] as $key => $value) {
-			if($value["postalCode"] == $cp){
-				$city["namePc"][] = $value["name"];
-				$city["cp"][] = $value["postalCode"];
-				//return $city;
-			}
-		}
 		return $city;
 	}
 

@@ -256,10 +256,13 @@ class IndexAction extends CAction
 					        		//error_log("CITYKEY " .$localityRef );
 					        		$city = City::getByUnikey($localityRef);
 					        		$queryLocality = array(
-					        				"scope.cities.codeInsee" => $localityRef
+					        				"scope.cities.codeInsee" => $city["insee"]
 					        				//"scope.cities.codeInsee" => new MongoRegex("/".$city["insee"]."/i"),
 					        				//"scope.cities.postalCode" => new MongoRegex("/".$city["cp"]."/i"),
 					        		);
+					        		if (isset($city["cp"])) {
+					        			$queryLocality["scope.cities.postalCode"] = $city["cp"];
+					        		}
 				  				}
 				  				elseif($key == "CODE_POSTAL") {
 					        		$queryLocality = array($value => new MongoRegex("/^".$localityRef."/i"));

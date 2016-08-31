@@ -805,6 +805,9 @@ class Person {
      * @param  [string] $pwd   pwd connected to the citizen account
      * @param  [boolean] $isRegisterProcess Are we trying to login during the register process
      * @return [array] array of result as (result => boolean, msg => string)
+     * msg possibles :  - accountPending => le user a été invité et il faut qu'il finisse son process de register
+						- betaTestNotOpen => si la plateforme est en mode Beta Test et que le user n'est pas beta tester
+						- notValidatedEmail => il a pas validé son email
      */
     public static function login($emailOrUsername, $pwd, $isRegisterProcess) 
     {

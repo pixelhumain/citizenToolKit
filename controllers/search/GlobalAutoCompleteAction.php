@@ -70,10 +70,13 @@ class GlobalAutoCompleteAction extends CAction
 			        		//error_log("CITYKEY " .$localityRef );
 			        		$city = City::getByUnikey($localityRef);
 			        		$queryLocality = array(
-			        				"address.addressCountry" => new MongoRegex("/".$city["country"]."/i"),
-			        				"address.codeInsee" => new MongoRegex("/".$city["insee"]."/i"),
-			        				"address.postalCode" => new MongoRegex("/".$city["cp"]."/i"),
+			        				"address.addressCountry" => $city["country"],
+			        				"address.codeInsee" => $city["insee"],
+			        				//"address.postalCode" => new MongoRegex("/".$city["cp"]."/i"),
 			        		);
+			        		if (! empty($city["cp"])) {
+			        			$queryLocality["address.postalCode"] = $city["cp"];	
+			        		}
 		  				}
 		  				elseif($key == "CODE_POSTAL"){
 			        		$queryLocality = array($value => new MongoRegex("/".$localityRef."/i"));

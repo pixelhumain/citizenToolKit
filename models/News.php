@@ -163,12 +163,16 @@ class News {
 					isset($_POST["searchLocalityCITYKEY"]) && !empty($_POST["searchLocalityCITYKEY"]) && $_POST["searchLocalityCITYKEY"] != "") {
 					$news["scope"]["type"]="public";
 					foreach($_POST["searchLocalityCITYKEY"] as $key => $value){ if(!empty($value)){
-						$city = City::getByUnikey($value); error_log("save news searchLocalityCITYKEY");
-						$news["scope"]["cities"][] = array( "codeInsee"=>$city["insee"],
-															"postalCode"=>$city["cp"],
-															"addressLocality"=>$city["name"],
-															"geo" => $city["geo"]
-														);
+						$city = City::getByUnikey($value); error_log("save news searchLocalityCITYKEY ".$value);
+						$scope = array( "codeInsee"=>$city["insee"],
+									"addressLocality"=>$city["name"],
+									"geo" => $city["geo"]
+								);
+						//If no cp => on the whole city
+						if (!(empty($city["cp"]))) {
+							$scope["postalCode"] = $city["cp"];
+						}
+						$news["scope"]["cities"][] = $scope;
 					}}
 					foreach($_POST["searchLocalityCODE_POSTAL"] as $key => $value){ if(!empty($value)){
 						$cities = City::getWhere(array("postalCodes.postalCode"=>$value), array("insee", "postalCodes.postalCode", "geo"), 1);
