@@ -68,9 +68,9 @@ class Role {
 			}
     	}    
 
-	    //The account is not validated. If we are just after the register process the user can navigate on the platform
+	    //The account is not validated.
         if (isset($roles["tobeactivated"]) && @$roles["tobeactivated"]) {
-            return array("result"=>$isRegisterProcess, "id" => @$person[_id], "msg"=>"notValidatedEmail");
+            return array("result"=>false, "id" => @$person[_id], "msg"=>"notValidatedEmail");
         }
         
         return $res;
