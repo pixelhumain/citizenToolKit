@@ -44,8 +44,10 @@ class GlobalAutoCompleteAction extends CAction
   		}
   		unset($tmpTags);
   		$query = array('$and' => array( $query , array("state" => array('$ne' => "uncomplete")) ));
+  		
   		if($latest)
   			$query = array('$and' => array($query, array("updated"=>array('$exists'=>1))));
+
   		/***********************************  DEFINE LOCALITY QUERY   ***************************************/
   		$localityReferences['CITYKEY'] = "";
   		$localityReferences['CODE_POSTAL'] = "address.postalCode";
@@ -173,7 +175,9 @@ class GlobalAutoCompleteAction extends CAction
 	  		foreach ($allEvents as $key => $value) {
 	  			$allEvents[$key]["type"] = "event";
 				$allEvents[$key]["typeSig"] = Event::COLLECTION;
-				
+				if(@$value["links"]["attendees"][Yii::app()->session["userId"]]){
+		  			$allEvents[$key]["isFollowed"] = true;
+	  			}
 				if(@$allEvents[$key]["startDate"])
 				$allEvents[$key]["startDate"] = date('Y-m-d H:i:s', $allEvents[$key]["startDate"]->sec);
 				if(@$allEvents[$key]["endDate"])

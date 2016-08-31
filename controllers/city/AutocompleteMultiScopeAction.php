@@ -11,12 +11,16 @@ class AutocompleteMultiScopeAction extends CAction
         if($type == null || $scopeValue == null) 
             return Rest::json( array("res"=>false, "msg" => "error with type or scopeValue" ));
        
+        //Look for Insee code on city collection
         if($type == "city")     $where = array('$or'=> array(array("name" => new MongoRegex("/^".$scopeValue."/i")),
                                                              array("alternateName" => new MongoRegex("/^".$scopeValue."/i") ),
-                                                             array("postalCodes.name" => new MongoRegex("/^".$scopeValue."/i") )
+                                                             //array("postalCodes.name" => new MongoRegex("/^".$scopeValue."/i") )
                                                             ));
-                                              
+        
+        //Look for postal code on city collection
         if($type == "cp")       $where = array("postalCodes.postalCode" =>new MongoRegex("/^".$scopeValue."/i"));
+        
+        //Look for departement or region 
         if($type == "dep")      $where = array("depName" => new MongoRegex("/^".$scopeValue."/i"));
         if($type == "region")   $where = array("regionName" => new MongoRegex("/^".$scopeValue."/i"));
         
