@@ -735,12 +735,20 @@ class Person {
 		{
 			if(!empty($personFieldValue["postalCode"]) && !empty($personFieldValue["codeInsee"])) 
 			{
+				$user = Yii::app()->session["user"];
 				$insee = $personFieldValue["codeInsee"];
+				$user["codeInsee"] = $insee;
 				$postalCode = $personFieldValue["postalCode"];
+				$user["postalCode"] = $postalCode;
+
 				$address = SIG::getAdressSchemaLikeByCodeInsee($insee,$postalCode);
-				if (!empty($personFieldValue["streetAddress"])) $address["streetAddress"] = $personFieldValue["streetAddress"];
-				if (!empty($personFieldValue["addressCountry"])) $address["addressCountry"] = $personFieldValue["addressCountry"];
-				
+				if (!empty($personFieldValue["streetAddress"])) 
+					$address["streetAddress"] = $personFieldValue["streetAddress"];
+				if (!empty($personFieldValue["addressCountry"])) {
+					$address["addressCountry"] = $personFieldValue["addressCountry"];
+					$user["addressCountry"] = $personFieldValue["addressCountry"];
+				}
+				Yii::app()->session["user"] = $user;
 				$set = array("address" => $address);
 
 				if(empty($thisUser["geo"])){
@@ -748,13 +756,12 @@ class Person {
 					SIG::updateEntityGeoposition(Person::COLLECTION,$personId,$geo["latitude"],$geo["longitude"]);
 				}
 
-
-				PHDB::update( self::COLLECTION, array("_id" => new MongoId($personId)), 
-		                        array('$unset' => array("two_steps_register"=>"")));
 				$user["address"] = $address;
+				/*PHDB::update( self::COLLECTION, array("_id" => new MongoId($personId)), 
+		                        array('$unset' => array("two_steps_register"=>"")));*/
+
 			} else 
 				throw new CTKException("Error updating the Person : address is not well formated !");			
-
 		} 
 		else if ($dataFieldName == "birthDate") 
 		{
