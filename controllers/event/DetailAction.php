@@ -112,7 +112,7 @@ class DetailAction extends CAction {
 			$admin = Authorisation::canEditItem(Yii::app()->session["userId"], Event::COLLECTION, (string)$event["_id"]);
 		}
 
-
+		$params["tags"] = Tags::getActiveTags();
         $params["invitedNumber"]=$invitedNumber;
         $params["attendeeNumber"]= $attendeeNumber;
         $params["images"] = $images;

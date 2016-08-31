@@ -29,6 +29,7 @@ class Event {
 	    "parentId" => array("name" => "parentId"),
 	    "source" => array("name" => "source"),
 	    "badges" => array("name" => "badges"),
+	    "tags" => array("name" => "tags"),
 	);
 
 	//TODO SBAR - First test to validate data. Move it to DataValidator
@@ -480,9 +481,11 @@ class Event {
 		}
 
 		$dataFieldName = self::getCollectionFieldNameAndValidate($eventFieldName, $eventFieldValue, $eventId);
+		if ($dataFieldName == "tags") {
+			$eventFieldValue = Tags::filterAndSaveNewTags($eventFieldValue);
+			$set = array($dataFieldName => $eventFieldValue);
 
-		//address
-		if ($dataFieldName == "address") {
+		}else if ($dataFieldName == "address") { //address
 			if(!empty($eventFieldValue["postalCode"]) && !empty($eventFieldValue["codeInsee"])) {
 				$insee = $eventFieldValue["codeInsee"];
 				$postalCode = $eventFieldValue["postalCode"];
