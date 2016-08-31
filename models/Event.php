@@ -254,6 +254,16 @@ class Event {
 	    if(!empty($params['parentId']))
 	        $newEvent["parentId"] = $params['parentId'];
 
+	    //Tags
+		if (isset($params['tags']) ) {
+			if ( is_array( $params['tags'] ) ) {
+				$tags = $params['tags'];
+			} else if ( is_string($params['tags']) ) {
+				$tags = explode(",", $params['tags']);
+			}
+			$newEvent["tags"] = $tags;
+		}
+	    
 	    return $newEvent;
 	}
 
@@ -262,6 +272,9 @@ class Event {
 			$newEvent = self::getAndCheckEvent($params);
 		else
 			$newEvent = self::getAndCheckEventFromImportData($params, true, null, $warnings);
+
+		if (isset($newEvent["tags"]))
+			$newEvent["tags"] = Tags::filterAndSaveNewTags($newEvent["tags"]);
 
 		if(empty($newEvent["preferences"])){
 			$newEvent["preferences"] = array("publicFields" => array(), "privateFields" => array(), "isOpenEdition"=>true, "isOpenData"=>true);
