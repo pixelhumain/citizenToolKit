@@ -315,6 +315,8 @@ class SIG
 		$address["@type"] = "PostalAddress";
 		$address["codeInsee"] = isset($city['insee']) ? $city['insee'] : "" ;
 		$address["addressCountry"] = isset($city['country']) ? $city['country'] : "";
+		$address["depName"] = isset($city['depName']) ? $city['depName'] : "";
+		$address["regionName"] = isset($city['regionName']) ? $city['regionName'] : "";
 		if($postalCode != null){
 			foreach ($city["postalCodes"] as $data){
 				if ($data["postalCode"]==$postalCode){

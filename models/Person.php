@@ -748,9 +748,10 @@ class Person {
 					SIG::updateEntityGeoposition(Person::COLLECTION,$personId,$geo["latitude"],$geo["longitude"]);
 				}
 
+
 				PHDB::update( self::COLLECTION, array("_id" => new MongoId($personId)), 
 		                        array('$unset' => array("two_steps_register"=>"")));
-
+				$user["address"] = $address;
 			} else 
 				throw new CTKException("Error updating the Person : address is not well formated !");			
 
