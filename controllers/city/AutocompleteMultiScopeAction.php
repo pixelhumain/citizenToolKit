@@ -34,14 +34,14 @@ class AutocompleteMultiScopeAction extends CAction
         else if($type == "dep"){
             $cities = array();
             foreach (OpenData::$dep as $key => $value) {
-                if ( count( preg_grep ( '/^'.$scopeValue.'/i', $value ) ) ) 
+                if ( count( preg_grep ( '/'.$scopeValue.'/i', $value ) ) ) 
                     array_push($cities, $key);
             }
         }
         else if($type == "region"){
             $cities = array();
             foreach (OpenData::$region as $key => $value) {
-                if ( count( preg_grep ( '/^'.$scopeValue.'/i', $value ) ) ) 
+                if ( count( preg_grep ( '/'.$scopeValue.'/i', $value ) ) ) 
                     array_push($cities, $key);
             }
         }
