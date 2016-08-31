@@ -20,21 +20,34 @@ class AutocompleteMultiScopeAction extends CAction
         //Look for postal code on city collection
         if($type == "cp")       $where = array("postalCodes.postalCode" =>new MongoRegex("/^".$scopeValue."/i"));
         
-        //Look for departement or region 
-        if($type == "dep")      $where = array("depName" => new MongoRegex("/^".$scopeValue."/i"));
-        if($type == "region")   $where = array("regionName" => new MongoRegex("/^".$scopeValue."/i"));
+        
+        if($type == "region")   $where = array('$or' => array(
+                                                array("regionName" => new MongoRegex("/^".$scopeValue."/i")),
+                                                array("region" => new MongoRegex("/^".$scopeValue."/i"))
+                                                ));
         
         //var_dump($where); return;
         if($type != "dep" && $type != "region")
             $cities = PHDB::findAndSort( City::COLLECTION, $where, 
                                         array(), 15 ,
                                         array("insee", "postalCodes", "country", "name", "alternateName", "depName", "regionName"));
-        else if($type == "dep")
-            $cities = PHDB::distinct( City::COLLECTION, "depName", $where);
-        else if($type == "region")
-            $cities = PHDB::distinct( City::COLLECTION, "regionName", $where);
+        else if($type == "dep"){
+            $cities = array();
+            foreach (OpenData::$dep as $key => $value) {
+                if ( count( preg_grep ( '/^'.$scopeValue.'/i', $value ) ) ) 
+                    array_push($cities, $key);
+            }
+        }
+        else if($type == "region"){
+            $cities = array();
+            foreach (OpenData::$region as $key => $value) {
+                if ( count( preg_grep ( '/^'.$scopeValue.'/i', $value ) ) ) 
+                    array_push($cities, $key);
+            }
+        }
         
         return Rest::json( array("res"=>true, "cities" => $cities ));
        
     }
-}
+} 
+
