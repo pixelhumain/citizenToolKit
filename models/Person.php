@@ -806,8 +806,10 @@ class Person {
      * @param  [boolean] $isRegisterProcess Are we trying to login during the register process
      * @return [array] array of result as (result => boolean, msg => string)
      * msg possibles :  - accountPending => le user a été invité et il faut qu'il finisse son process de register
-						- betaTestNotOpen => si la plateforme est en mode Beta Test et que le user n'est pas beta tester
-						- notValidatedEmail => il a pas validé son email
+	 *					- betaTestNotOpen => si la plateforme est en mode Beta Test et que le user n'est pas beta tester
+	 *					- notValidatedEmail => il a pas validé son email
+	 * 					- emailNotFound => l'email n'a pas été trouvé en base de données
+	 * 					- emailAndPassNotMatch => l'email et le password ne match pas
      */
     public static function login($emailOrUsername, $pwd, $isRegisterProcess) 
     {
@@ -822,7 +824,7 @@ class Person {
         
         //return an error when email does not exist
         if ($account == null) {
-        	return array("result"=>false, "msg"=>"Erreur : impossible de trouver un compte avec ce nom d'utilisateur ou cet email.");
+        	return array("result"=>false, "msg"=>"emailNotFound");
         }
         
         //Roles validation
@@ -838,7 +840,7 @@ class Person {
 	        	else
 	            	$res = array("result"=>true, "id"=>$account["_id"], "isCommunected"=>isset($account["cp"]), "msg" => "Vous êtes maintenant identifié : bienvenue sur communecter.");
 	        } else {
-	            $res = array("result"=>false, "msg"=>"Email ou Mot de Passe ne correspondent pas, rééssayez.");
+	            $res = array("result"=>false, "msg"=>"emailAndPassNotMatch");
 	        }
 	    }
         
