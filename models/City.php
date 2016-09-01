@@ -53,10 +53,9 @@ class City {
 	public static function getUnikeyMap($key){
 		$keyStr = str_replace("-", "_", $key);
 		$keyT = explode("_", $keyStr);
+		$res = array("country" => $keyT[0] , "insee" => $keyT[1] );
 		if( strpos($key, "-") )
-			$res = array("country" => $keyT[0] , "insee" => $keyT[1], "cp" => $keyT[2] );
-		else 
-			$res = array("country" => $keyT[0] , "insee" => $keyT[1] );
+			$res["cp"] = $keyT[2];
 		return $res;
 	}
 
