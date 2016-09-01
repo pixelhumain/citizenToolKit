@@ -12,8 +12,9 @@ class AutocompleteMultiScopeAction extends CAction
             return Rest::json( array("res"=>false, "msg" => "error with type or scopeValue" ));
        
         //Look for Insee code on city collection
-        if($type == "city")     $where = array('$or'=> array(array("name" => new MongoRegex("/^".$scopeValue."/i")),
-                                                             array("alternateName" => new MongoRegex("/^".$scopeValue."/i") ),
+        if($type == "city")     $where = array('$or'=> 
+                                            array(array("name" => new MongoRegex("/^".$scopeValue."/i")),
+                                                         array("alternateName" => new MongoRegex("/^".$scopeValue."/i") ),
                                                              //array("postalCodes.name" => new MongoRegex("/^".$scopeValue."/i") )
                                                             ));
         
@@ -21,16 +22,17 @@ class AutocompleteMultiScopeAction extends CAction
         if($type == "cp")       $where = array("postalCodes.postalCode" =>new MongoRegex("/^".$scopeValue."/i"));
         
         
-        if($type == "region")   $where = array('$or' => array(
-                                                array("regionName" => new MongoRegex("/^".$scopeValue."/i")),
-                                                array("region" => new MongoRegex("/^".$scopeValue."/i"))
-                                                ));
+        // if($type == "region")   $where = array('$or' => array(
+        //                                         array("regionName" => new MongoRegex("/^".$scopeValue."/i")),
+        //                                         array("region" => new MongoRegex("/^".$scopeValue."/i"))
+        //                                         ));
         
         //var_dump($where); return;
-        if($type != "dep" && $type != "region")
+        if($type != "dep" && $type != "region"){
             $cities = PHDB::findAndSort( City::COLLECTION, $where, 
                                         array(), 15 ,
                                         array("insee", "postalCodes", "country", "name", "alternateName", "depName", "regionName"));
+        }
         else if($type == "dep"){
             $cities = array();
             foreach (OpenData::$dep as $key => $value) {
