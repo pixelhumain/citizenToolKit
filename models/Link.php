@@ -434,7 +434,7 @@ class Link {
 	* @param type string $itemType is the type of the entity checked
 	* @param type string $userId is the id of the user logged
 	*/
-    public static function isLinked($itemId, $itemType, $userId) {
+    public static function isLinked($itemId, $itemType, $userId, $links=null) {
     	$res = false;
         if ($itemType == Person::COLLECTION) $linkType = self::person2person;
         elseif ($itemType == Organization::COLLECTION) $linkType = self::organization2person;
@@ -442,9 +442,12 @@ class Link {
         elseif ($itemType == Project::COLLECTION) $linkType = self::project2person;
         else $linkType = "unknown";
 
-    	$item = PHDB::findOne( $itemType ,array("_id"=>new MongoId($itemId)));
-    	if(isset($item["links"]) && isset($item["links"][$linkType])){
-            foreach ($item["links"][$linkType] as $key => $value) {
+        if(empty($links)){
+           $item = PHDB::findOne( $itemType ,array("_id"=>new MongoId($itemId)));
+           $links = $item["links"] ;
+        }
+    	if(isset($links) && isset($links[$linkType])){
+            foreach ($links[$linkType] as $key => $value) {
                 if( $key == $userId) {
 	                //exception for event when attendee is invited
 	                if(!@$value["invitorId"])

@@ -364,4 +364,29 @@ class Element {
         
         return $list;
      }
+
+    /**
+	 * answers to show or not to show a field by it's name
+	 * @param String $id : is the mongoId of the action room
+	 * @param String $person : is the mongoId of the action room
+	 * @return "" or the value to be shown
+	 */
+	public static function showField($fieldName,$element, $isLinked) {
+	  	
+	  	$res = null;
+
+	  	$attConfName = $fieldName;
+	  	if($fieldName == "address.streetAddress") 	$attConfName = "locality";
+	  	if($fieldName == "telephone") 				$attConfName =  "phone";
+
+	  	if( Yii::app()->session['userId'] == (string)$element["_id"]
+	  		||  ( isset($element["preferences"]) && isset($element["preferences"]["publicFields"]) && in_array( $attConfName, $element["preferences"]["publicFields"]) )  
+	  		|| ( $isLinked && isset($element["preferences"]) && isset($element["preferences"]["privateFields"]) && in_array( $attConfName, $element["preferences"]["privateFields"]))  )
+	  	{
+	  		$res = ArrayHelper::getValueByDotPath($element,$fieldName);
+	  	
+	  	}
+	  	
+	  	return $res;
+	}
 }
