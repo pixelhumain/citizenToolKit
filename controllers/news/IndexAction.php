@@ -248,6 +248,7 @@ class IndexAction extends CAction
 		  			{
 		  				foreach ($_POST["searchLocality".$key] as $localityRef) 
 		  				{
+		  					$locality = utf8_encode($locality);
 		  					if(isset($localityRef) && $localityRef != ""){
 			  					//error_log("locality :  ".$localityRef. " - " .$key);
 			  					//OneRegion
@@ -267,29 +268,42 @@ class IndexAction extends CAction
 				  				elseif($key == "CODE_POSTAL") {
 					        		$queryLocality = array($value => new MongoRegex("/^".$localityRef."/i"));
 				  				}
-				  				elseif($key == "DEPARTEMENT") {
+				  				elseif($key == "DEPARTEMENT") { error_log("DEPARTEMENT : " . $localityRef);
 				        			$dep = PHDB::findOne( City::COLLECTION, array("depName" => $localityRef), array("dep"));	
-				        			$queryLocality = array($value => new MongoRegex("/^".$dep["dep"]."/i"));
-				        			$queryLocality = array('$or' => array(
-								        						array($value => new MongoRegex("/^".$dep["dep"]."/i")),
-								        						array("scope.departement.name" => $localityRef)
-								        						));
-								}
-					        	elseif($key == "REGION") { 
-				        			$deps = PHDB::find( City::COLLECTION, array("regionName" => $localityRef), array("dep"));
-				        			$departements = array();
-				        			$inQuest = array();
-				        			if(is_array($deps))foreach($deps as $index => $value)
-				        			{
-				        				if(!in_array($value["dep"], $departements))
-				        				{
-					        				$departements[] = $value["dep"];
-					        				$inQuest[] = new MongoRegex("/^".$value["dep"]."/i");
-								        	$queryLocality = array('$or' => array(								        						array("scope.cities.postalCode" => array('$in' => $inQuest)),
-								        						array("scope.regions.name" => $localityRef)
-								        						));
-								        }
+				        			if(isset($dep["dep"])){
+					        			//$queryLocality = array($value => new MongoRegex("/^".$dep["dep"]."/i"));
+					        			$queryLocality = array('$or' => array(
+									        						array($value => new MongoRegex("/^".$dep["dep"]."/i")),
+									        						array("scope.departements.name" => $localityRef)
+									        						));
 				        			}
+								}
+					        	elseif($key == "REGION") {
+				        			$deps = PHDB::find( City::COLLECTION, array("regionName" => $localityRef), array("dep", "depName"));
+				        			$departements = array();
+				        			$departementsName = array();
+				        			$inQuestCp = array();
+				        			$inQuestName = array();
+				        			if(is_array($deps))
+				        				foreach($deps as $index => $value)
+					        			{
+					        				if(!in_array($value["dep"], $departements))
+					        				{   error_log("depppppp :".@$value["depName"]);
+						        				$departements[] = $value["dep"];
+						        				if(@$value["dep"])
+						        				$inQuestCp[] = new MongoRegex("/^".$value["dep"]."/i");
+						        				if(@$value["depName"] && !in_array($value["depName"], $departementsName))
+									        	$inQuestName[] = $value["depName"];
+									        	
+									        	$departementsName[] = @$value["depName"];
+						        				
+									        }
+					        			}
+					        			$queryLocality = array('$or' => array(								        							
+					        								array("scope.cities.postalCode" => array('$in' => $inQuestCp)),
+									        				array("scope.departements.name" => array('$in' => $inQuestName)),
+									        				array("scope.regions.name" => $localityRef)
+									        						));
 				        		} //error_log("HEEEEEEEEEEEEEEEEEEEee");
 			  					//Consolidate Queries
 			  					if(isset($allQueryLocality) && isset($queryLocality)){
