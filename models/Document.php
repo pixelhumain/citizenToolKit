@@ -87,12 +87,12 @@ class Document {
 	  		'created' => time()
 	    );
 		if (in_array($new["type"], array(Survey::COLLECTION, ActionRoom::COLLECTION, ActionRoom::COLLECTION_ACTIONS))) {
-			 if (! Authorisation::canEditItem($new['author'], $new['type'], $new['id'], @$params["parentType"],@$params["parentId"])) {
-		    	throw new CTKException("You are not allowed to modify the document of this item !");
+			 if (!Authorisation::canEditItem( $new['author'], $new['type'], $new['id'], @$params["parentType"],@$params["parentId"])) {
+		    	return array("result"=>false, "msg"=>Yii::t('document',"You are not allowed to modify the document of this item !") );
 		    }
-		}else{
-		    if (! Authorisation::canEditItem($new['author'], $new['type'], $new['id'])) {
-		    	throw new CTKException("You are not allowed to modify the document of this item !");
+		} else {
+		    if (! Authorisation::canEditItem($new['author'], $new['type'], $new['id']) && !Authorisation::isOpenEdition($new['id'], $new['type'])) {
+		    	return array("result"=>false, "msg"=>Yii::t('document',"You are not allowed to modify the document of this item !") );
 		    }
 	    }
 

@@ -46,7 +46,10 @@ class Person {
 	    "isOpenData" => array("name" => "isOpenData"),
 	    "modules" => array("name" => "modules"),
 	    "badges" => array("name" => "badges"),
-
+	    "multitags" => array("name" => "multitags"),
+	    "multiscopes" => array("name" => "multiscopes"),
+	    "url" => array("name" => "url"),
+	    "lastLoginDate" => array("name" => "lastLoginDate"),
 	);
 
 	public static function logguedAndValid() {
@@ -84,12 +87,15 @@ class Person {
 	    }
 		if( @$account["roles"])
 	     	$user ["roles"] = $account["roles"];
-
+	    //Last login date
+	    $user ["lastLoginDate"] = @$account["lastLoginDate"] ? $account["lastLoginDate"] : time();
+	    
 		//Image profil
 	    $simpleUser = self::getById((string)$account["_id"]);
 	    $user ["profilImageUrl"] = $simpleUser["profilImageUrl"];
 	    $user ["profilThumbImageUrl"] = $simpleUser["profilThumbImageUrl"];
 	    $user ["profilMarkerImageUrl"] = $simpleUser["profilMarkerImageUrl"];
+
 	    Yii::app()->session["user"] = $user;
 	    Yii::app()->session["isRegisterProcess"] = $isRegisterProcess;
 
@@ -120,7 +126,7 @@ class Person {
 		/*echo "yoyo";
 		var_dump($id);*/
 	  	$person = PHDB::findOneById( self::COLLECTION ,$id );
-	  	
+	  	//echo $id; var_dump($person); exit;
 	  	if (empty($person)) {
 	  		//TODO Sylvain - Find a way to manage inconsistente data
             //throw new CTKException("The person id ".$id." is unkown : contact your admin");
@@ -137,8 +143,6 @@ class Person {
 											"addressLocality" => "",
 											"streetAddress" => "",
 											"addressCountry" => "");
-        
-			
         }
         
         if ($clearAttribute) {
@@ -153,10 +157,11 @@ class Person {
 	 * @param String $id of the person
 	 * @return array with data id, name, profilImageUrl
 	 */
-	public static function getSimpleUserById($id) {
+	public static function getSimpleUserById($id,$person=null) {
 		
 		$simplePerson = array();
-		$person = PHDB::findOneById( self::COLLECTION ,$id, 
+		if(!$person)
+			$person = PHDB::findOneById( self::COLLECTION ,$id, 
 				array("id" => 1, "name" => 1, "username" => 1, "email" => 1,  "shortDescription" => 1, "description" => 1, "address" => 1, "geo" => 1, "roles" => 1, "tags" => 1, "pending" => 1, "profilImageUrl" => 1, "profilThumbImageUrl" => 1, "profilMarkerImageUrl" => 1, "profilMediumImageUrl" => 1,"numberOfInvit" => 1));
 		
 		if (empty($person)) {
@@ -281,7 +286,7 @@ class Person {
 	  				 "projects" => array(), "events" => array());
 
 	  	$person = self::getById($id);
-	  	
+	  	//error_log($id);
 	  	if (empty($person)) {
             throw new CTKException("The person id is unkown : contact your admin");
         }
@@ -538,7 +543,7 @@ class Person {
 	 */
 	public static function insert($person, $mode = self::REGISTER_MODE_NORMAL, $inviteCode = null) {
 		//Keep the password
-		$pwd = $person["pwd"];
+		$pwd = @$person["pwd"];
 
 	  	//Check Person data + business rules
 	  	$person = self::getAndcheckPersonData($person, $mode);
@@ -558,7 +563,7 @@ class Person {
         	$newpersonId = (String) $person["_id"];
         	if (! empty($pwd)) {
 	        	//Encode the password
-			  	$encodedpwd = hash('sha256', $newpersonId.$pwd);
+			  	$encodedpwd = self::hashPassword($newpersonId, $pwd);
 			  	self::updatePersonField($newpersonId, "pwd", $encodedpwd, $newpersonId);
 			} 
 	    } else {
@@ -697,7 +702,6 @@ class Person {
 	 */
 	public static function updatePersonField($personId, $personFieldName, $personFieldValue, $userId) {  
 		//var_dump(Role::isSuperAdmin(Role::getRolesUserId($userId)) == true);
-		
 		//if ($personId != $userId){
 		if (!Authorisation::canEditItem($userId, self::COLLECTION, $personId)) {
 			throw new CTKException("Can not update the person : you are not authorized to update that person !");
@@ -722,24 +726,29 @@ class Person {
 			else
 				$personFieldValue = explode(",", $personFieldValue);
 		}
-			
 
-		error_log($dataFieldName);
-		
 		//address
 		$user = null;
 		$thisUser = self::getById($personId);
+
 		if ($dataFieldName == "address") 
 		{
-			error_log(implode(",", $personFieldValue));
 			if(!empty($personFieldValue["postalCode"]) && !empty($personFieldValue["codeInsee"])) 
 			{
+				$user = Yii::app()->session["user"];
 				$insee = $personFieldValue["codeInsee"];
+				$user["codeInsee"] = $insee;
 				$postalCode = $personFieldValue["postalCode"];
+				$user["postalCode"] = $postalCode;
+
 				$address = SIG::getAdressSchemaLikeByCodeInsee($insee,$postalCode);
-				if (!empty($personFieldValue["streetAddress"])) $address["streetAddress"] = $personFieldValue["streetAddress"];
-				if (!empty($personFieldValue["addressCountry"])) $address["addressCountry"] = $personFieldValue["addressCountry"];
-				
+				if (!empty($personFieldValue["streetAddress"])) 
+					$address["streetAddress"] = $personFieldValue["streetAddress"];
+				if (!empty($personFieldValue["addressCountry"])) {
+					$address["addressCountry"] = $personFieldValue["addressCountry"];
+					$user["addressCountry"] = $personFieldValue["addressCountry"];
+				}
+				Yii::app()->session["user"] = $user;
 				$set = array("address" => $address);
 
 				if(empty($thisUser["geo"])){
@@ -747,12 +756,12 @@ class Person {
 					SIG::updateEntityGeoposition(Person::COLLECTION,$personId,$geo["latitude"],$geo["longitude"]);
 				}
 
-				PHDB::update( self::COLLECTION, array("_id" => new MongoId($personId)), 
-		                        array('$unset' => array("two_steps_register"=>"")));
+				$user["address"] = $address;
+				/*PHDB::update( self::COLLECTION, array("_id" => new MongoId($personId)), 
+		                        array('$unset' => array("two_steps_register"=>"")));*/
 
 			} else 
 				throw new CTKException("Error updating the Person : address is not well formated !");			
-
 		} 
 		else if ($dataFieldName == "birthDate") 
 		{
@@ -772,7 +781,7 @@ class Person {
 			$set = array($dataFieldName => $personFieldValue);
 		}
 		else {
-			$set = array($dataFieldName => $personFieldValue);	
+			$set = array($dataFieldName => $personFieldValue);
 			if ( $personFieldName == "bgClass") {
 				//save to session for all page reuse
 				$user = Yii::app()->session["user"];
@@ -804,6 +813,11 @@ class Person {
      * @param  [string] $pwd   pwd connected to the citizen account
      * @param  [boolean] $isRegisterProcess Are we trying to login during the register process
      * @return [array] array of result as (result => boolean, msg => string)
+     * msg possibles :  - accountPending => le user a été invité et il faut qu'il finisse son process de register
+	 *					- betaTestNotOpen => si la plateforme est en mode Beta Test et que le user n'est pas beta tester
+	 *					- notValidatedEmail => il a pas validé son email
+	 * 					- emailNotFound => l'email n'a pas été trouvé en base de données
+	 * 					- emailAndPassNotMatch => l'email et le password ne match pas
      */
     public static function login($emailOrUsername, $pwd, $isRegisterProcess) 
     {
@@ -818,7 +832,7 @@ class Person {
         
         //return an error when email does not exist
         if ($account == null) {
-        	return array("result"=>false, "msg"=>"Erreur : impossible de trouver un compte avec ce nom d'utilisateur ou cet email.");
+        	return array("result"=>false, "msg"=>"emailNotFound");
         }
         
         //Roles validation
@@ -827,16 +841,27 @@ class Person {
 	        //Check the password
         	if (self::checkPassword($pwd, $account)) {
 	            Person::saveUserSessionData($account, $isRegisterProcess);
+	            //Update login history
+	            self::updateLoginHistory((String) $account["_id"]);
 	            if ($res["msg"] == "notValidatedEmail") 
 	        		return $res;
 	        	else
 	            	$res = array("result"=>true, "id"=>$account["_id"], "isCommunected"=>isset($account["cp"]), "msg" => "Vous êtes maintenant identifié : bienvenue sur communecter.");
 	        } else {
-	            $res = array("result"=>false, "msg"=>"Email ou Mot de Passe ne correspondent pas, rééssayez.");
+	            $res = array("result"=>false, "msg"=>"emailAndPassNotMatch");
 	        }
 	    }
         
         return $res;
+    }
+
+    /**
+     * Update the last login date on person document
+     * @param String $accountId an existing account id
+     * @return boolean True if the update goes well, false else
+     */
+    private static function updateLoginHistory($accountId) {
+    	return self::updatePersonField($accountId, "lastLoginDate", time(), $accountId);
     }
 
     /**
@@ -851,7 +876,7 @@ class Person {
     	if ($account) {
     		if (@$account["pwd"] == hash('sha256', @$account["email"].$pwd)) {
     			//the password match with an "email" as salt => change the password to salt with the "id"
-    			$newPassword = hash('sha256', (String) $account["_id"].$pwd);
+    			$newPassword = self::hashPassword((String) $account["_id"],$pwd);
 				self::updatePersonField(@$account["_id"], "pwd", $newPassword, @$account["_id"]);
 				//add a log on logs collection
 				Log::save($logs =array(
@@ -863,7 +888,7 @@ class Person {
 			    ));
 				$res = true;
     		//Second test : maybe the salt is already with the id
-    		} else if (@$account["pwd"] == hash('sha256', (String) @$account["_id"].$pwd)) {
+    		} else if (@$account["pwd"] == self::hashPassword((String) $account["_id"],$pwd)) {
     			$res = true;
     		}
     	}
@@ -993,7 +1018,7 @@ class Person {
 			return array("result" => false, "msg" => Yii::t("person","The new password should be 8 caracters long"));
 		}
 		
-		$encodedPwd = hash('sha256', (String) $person["_id"].$newPassword);
+		$encodedPwd = self::hashPassword((String) $person["_id"],$newPassword);
 		self::updatePersonField($userId, "pwd", $encodedPwd, $userId);
 		
 		return array("result" => true, "msg" => Yii::t("person","Your password has been changed with success !"));
@@ -1066,8 +1091,11 @@ class Person {
 			throw new CTKException("Impossible to update an account not pending !");
 		} else {
 			$person["email"] = $account["email"];
-			//Update des infos minimal
+			$pwd = self::hashPassword($personId, $person["pwd"]);
+
+			//Update des infos minimales
 			$personToUpdate = self::getAndcheckPersonData($person, self::REGISTER_MODE_TWO_STEPS, false);
+			$personToUpdate["pwd"] = $pwd;
 
 			PHDB::update(Person::COLLECTION, array("_id" => new MongoId($personId)), 
 			                          array('$set' => $personToUpdate, '$unset' => array("pending" => "" ,"roles.tobeactivated"=>""
@@ -1084,6 +1112,10 @@ class Person {
 			$res = array("result" => true, "msg" => "The pending user has been updated and is now complete");
 		}
 		return $res;
+	}
+	
+	private static function hashPassword($personId, $pwd) {
+		return hash('sha256', $personId.$pwd);
 	}
 
 	public static function isUniqueUsername($username) {
@@ -1147,12 +1179,12 @@ class Person {
 	  	if (isset($person) && isset($person["links"]) && isset($person["links"]["follows"])) {
 	  		foreach ($person["links"]["follows"] as $key => $follow) {
 
-	  					if($follow["type"] == "citoyens")
-	  						$entity = PHDB::findOneById( self::COLLECTION ,$key );
-	  					else if($follow["type"] == "organizations")
-	  						$entity = PHDB::findOneById(Organization::COLLECTION ,$key );
-
-		                $res[$key] = $entity;
+				if($follow["type"] == "citoyens" || $follow["type"] == "organizations" || $follow["type"] == "projects") {
+					$entity = PHDB::findOneById( $follow["type"] ,$key );
+					$res[$key] = $entity;
+				} else {
+					error_log("[DATA-INCORRECT] - Impossible to find the ".$follow["type"]. " with the id ".$key." ! Link follow on the person id : ".$id);
+				}
 	  		}
 	  	}
 	  	return $res;

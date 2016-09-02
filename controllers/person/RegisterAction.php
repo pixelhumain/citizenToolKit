@@ -61,15 +61,13 @@ class RegisterAction extends CAction
 		//Try to login with the user
 		$res = Person::login($email,$pwd,true);
 		if ($res["result"]) {
-			if ($res["msg"] == "notValidatedEmail") {
-				//send validation mail to the user
-				$newPerson['email'] = $email;
-				$newPerson["inviteCode"] = $inviteCode;
-				Mail::validatePerson($newPerson);
-				//The user is automatically logued even if he has not validated his email.
-				//As it's his first login. Next time, he couldn't login.
-				$res = array("result"=>true, "msg"=> Yii::t("login","You are now communnected !")."<br>".Yii::t("login","Check your mailbox you'll receive soon a mail to validate your email address."), "id"=>$pendingUserId);
-			} 
+			
+		} else if ($res["msg"] == "notValidatedEmail") {
+			//send validation mail to the user
+			$newPerson['email'] = $email;
+			$newPerson["inviteCode"] = $inviteCode;
+			Mail::validatePerson($newPerson);
+			$res = array("result"=>true, "msg"=> Yii::t("login","Congratulation your account is created !")."<br>".Yii::t("login","Last step to enter : we sent you an email, click on the link to validate your mail address."), "id"=>$pendingUserId);
 		} else if ($res["msg"] == "betaTestNotOpen") {
 			$newPerson["_id"] = $pendingUserId;
 			$newPerson['email'] = $email;

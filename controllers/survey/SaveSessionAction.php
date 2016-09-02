@@ -45,7 +45,17 @@ class SaveSessionAction extends CAction
                         $entryInfos['parentType'] = $_POST['parentType'];
                     if( isset( $surveyRoom["parentId"] ) && isset($_POST['parentId']) ) 
                         $entryInfos['parentId'] = $_POST['parentId'];
-                        
+                    
+                    //these fields are necessary for multi scoping search features
+                    if(@$surveyRoom["parentType"] && @$surveyRoom["parentId"]){
+                        $parent = Element::getByTypeAndId(@$surveyRoom["parentType"], @$surveyRoom["parentId"]);
+                        if(@$parent["address"])
+                            $entryInfos['address'] = $parent["address"];
+                        if(@$parent["geo"])
+                            $entryInfos['geo'] = $parent["geo"];
+                        if(@$parent["geoPosition"])
+                            $entryInfos['geoPosition'] = $parent["geoPosition"];
+                    }
                 }
                 if( isset($_POST['message']) )
                     $entryInfos['message'] = (string)$_POST['message'];
@@ -60,6 +70,7 @@ class SaveSessionAction extends CAction
                 if( isset($_POST['dateEnd']) && $_POST['dateEnd'] != "" )
                     $entryInfos['dateEnd'] = strtotime( str_replace("/", "-", $_POST['dateEnd']).' 23:59:59' );
 
+                $entryInfos["modified"] = new MongoDate(time());
                 $entryInfos['updated'] = time();
                 
 

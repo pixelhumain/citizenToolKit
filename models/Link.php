@@ -179,19 +179,19 @@ class Link {
 		    if($targetType==Event::COLLECTION || $originType==Event::COLLECTION){
 		    	$links["links.".$connectType.".".$targetId.".".Link::INVITED_BY_ID] = $userId;
 				$links["links.".$connectType.".".$targetId.".".Link::INVITED_BY_NAME] = Yii::app()->session["user"]["name"];
-		    }else
+		    }//else
 		    	$links["links.".$connectType.".".$targetId.".".Link::TO_BE_VALIDATED] = $isPending;
 	    }else if($targetType==Event::COLLECTION || $originType==Event::COLLECTION){
 		    PHDB::update($originType, 
                        array("_id" => $origin["_id"]) , 
                        array(
                         '$unset' => array("links.".$connectType.".".$targetId => ""),
-                        '$set' => array( "updated"=>time() )
+                        '$set' => array( "updated"=>time(),"modified" => new MongoDate(time()) )
                         ));
 	    }
         if($isAdmin){
         	$links["links.".$connectType.".".$targetId.".".Link::IS_ADMIN]=$isAdmin;
-			if ($pendingAdmin) {
+            if ($pendingAdmin) {
                 $links["links.".$connectType.".".$targetId.".".Link::IS_ADMIN_PENDING] = true;
             }
         }
@@ -638,7 +638,6 @@ class Link {
      * @return array of result ()
      */
 	public static function connectParentToChild($parentId, $parentType, $child, $isConnectingAdmin, $userId, $userRole="") {
-		
         $typeOfDemand="admin";
         $childId = @$child["childId"];
         $childType = $child["childType"];
@@ -740,7 +739,7 @@ class Link {
 		
 
         //First case : The parent doesn't have an admin yet or it is an action from an admin or it is an event: 
-		if (count($usersAdmin) == 0 || $actionFromAdmin || $parentType == Event::COLLECTION) {
+		if (count($usersAdmin) == 0 || $actionFromAdmin /*|| $parentType == Event::COLLECTION*/) {
             //the person is automatically added as member (admin or not) of the parent
             if ($actionFromAdmin &&  $parentType != Event::COLLECTION) {
 	            //If admin add as admin or member 
@@ -772,7 +771,7 @@ class Link {
            
 		//Second case : Not an admin doing the action.
         } else {
-            //Someone ask to become an admin 
+            //Someone ask to become an admin
             if ($isConnectingAdmin) {
     			//Admin validation process
                 $verb = ActStr::VERB_AUTHORIZE;
@@ -794,7 +793,6 @@ class Link {
             $msg = Yii::t("common","Your request has been sent to other admins.");
             // After : the 1rst existing Admin to take the decision will remove the "pending" to make a real admin
         } 
-			
 		Link::connect($parentId, $parentType, $childId, $childType,Yii::app()->session["userId"], $parentConnectAs, $isConnectingAdmin, $toBeValidatedAdmin, $toBeValidated, $userRole);
 		Link::connect($childId, $childType, $parentId, $parentType, Yii::app()->session["userId"], $childConnectAs, $isConnectingAdmin, $toBeValidatedAdmin, $toBeValidated, $userRole);
 		Notification::actionOnPerson($verb, ActStr::ICON_SHARE, $pendingChild , array("type"=>$parentType,"id"=> $parentId,"name"=>$parentData["name"]), $invitation);
@@ -843,6 +841,11 @@ class Link {
             $parent = Project::getById( $parentId );            
             $connectTypeOf = "projects";
             $connectType = "contributors";
+            $usersAdmin = Authorisation::listAdmins($parentId,  $parentType, false);
+        } else if ($parentType==Event::COLLECTION) {
+            $parent = Event::getById( $parentId );            
+            $connectTypeOf = "events";
+            $connectType = "attendees";
             $usersAdmin = Authorisation::listAdmins($parentId,  $parentType, false);
         } else {
             throw new CTKException(Yii::t("common","Can not manage the type ").$parentType);

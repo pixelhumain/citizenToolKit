@@ -24,7 +24,7 @@ class IndexAction extends CAction
                 
     
         if($parent != null && isset($parent['name'])){
-            error_log("test ok ? ".$parent['name']);
+            //error_log("test ok ? ".$parent['name']);
             $nameParentTitle = $parent['name'];
         }
         else{
@@ -52,6 +52,39 @@ class IndexAction extends CAction
         $votes = $rooms["votes"];
         $actions = $rooms["actions"];
         $history = $rooms["history"];
+        
+        if( $type == City::COLLECTION && count($rooms["votes"]) < 10) 
+        {
+            foreach ( OpenData::$categ as $key => $c) 
+            {
+                PHDB::insert( Survey::PARENT_COLLECTION, array("email" => "contact@communecter.org",
+                                                                "name" => $c["name"],
+                                                                "type" => ActionRoom::TYPE_VOTE ,
+                                                                "parentType" => City::COLLECTION,
+                                                                "parentId" => $id,
+                                                                "created" => time(),
+                                                                "updated" => time(),
+                                                                "tags" => $c["tags"],
+                                                                "modified" => new MongoDate(time()) ) );
+            }
+            $rooms = ActionRoom::getAllRoomsByTypeId($type, $id, $archived);
+            $discussions = $rooms["discussions"];
+            $votes = $rooms["votes"];
+            $actions = $rooms["actions"];
+            $history = $rooms["history"];
+        }
+
+        function mySort($a, $b){ 
+            if( isset($a['updated']) && isset($b['updated']) ){
+                return (strtolower(@$b['updated']) > strtolower(@$a['updated']));
+            }else{
+                return false;
+            }
+        }
+        
+       usort($discussions,"mySort");
+       usort($votes,"mySort");
+       usort($actions,"mySort");
 
         $params = array(    "discussions" => $discussions, 
                             "votes" => $votes, 

@@ -234,13 +234,13 @@ class Project {
 		if(empty($newProject["preferences"])){
 			$newProject["preferences"] = array("publicFields" => array(), "privateFields" => array(), "isOpenData" => true, "isOpenEdition" => true);
 		}
-
+		$newProject["updated"] = time();
 	    PHDB::insert(self::COLLECTION,$newProject);
 		Link::addContributor(Yii::app() -> session["userId"],Person::COLLECTION,$parentId,$parentType,$newProject["_id"]);
 	   // Link::connect($parentId, $parentType, $newProject["_id"], self::COLLECTION, $parentId, "projects", true );
 
 	    Notification::createdObjectAsParam(Person::COLLECTION,Yii::app() -> session["userId"],Project::COLLECTION, (String)$newProject["_id"], $parentType, $parentId, $newProject["geo"], (isset($newProject["tags"])) ? $newProject["tags"]:null ,$newProject["address"]);
-	    ActivityStream::saveActivityHistory(ActStr::VERB_CREATE, (String)$newProject["_id"], Project::COLLECTION, "project", $newProject["name"]);
+	    //ActivityStream::saveActivityHistory(ActStr::VERB_CREATE, (String)$newProject["_id"], Project::COLLECTION, "project", $newProject["name"]);
 	    return array("result"=>true, "msg"=>"Votre projet est communecté.", "id" => $newProject["_id"]);	
 	}
 
@@ -362,7 +362,8 @@ class Project {
 		}
 
 		//update the project
-		$set = array_merge($set , array("modified" => new MongoDate(time())));
+		$set["modified"] = new MongoDate(time());
+		$set["updated"] = time();
 		PHDB::update( self::COLLECTION, array("_id" => new MongoId($projectId)), 
 		                        array('$set' => $set));
 	    if($authorization == "openEdition" && $dataFieldName != "badges"){

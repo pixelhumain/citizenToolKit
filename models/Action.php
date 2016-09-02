@@ -90,17 +90,20 @@ class Action
                     PHDB::update ( $collection, array( "_id" => new MongoId($element["_id"]) ), 
                                                 array( $dbMethod => array(  $action.".".Yii::app()->session["userId"] => 1),
                                                        '$inc'=>array( $action."Count" => $inc),
-                                                       '$set'=>array( "updated" => time())
+                                                       '$set'=>array( "updated" => time(),
+                                                                      "modified" => new MongoDate(time()))
                                                        ));
                 }
                 else{
                     $mapObject[ $action.".".(string)$user["_id"] ] = $details ;
                     $params = array();
 
-                    if( $dbMethod == '$set')
+                    if( $dbMethod == '$set'){
                         $mapObject["updated"] = time();
+                        $mapObject["modified"] = new MongoDate(time());
+                    }
                     else
-                        $params['$set'] = array( "updated" => time());
+                        $params['$set'] = array( "updated" => time(), "modified" => new MongoDate(time()) );
 
                     $params[$dbMethod] = $mapObject;
                     $params['$inc'] = array( $action."Count" => $inc);
@@ -113,6 +116,8 @@ class Action
 
                 self::addActionHistory( $userId , $id, $collection, $action);
                 
+                self::updateParent( $id, $collection);
+
                 //We update the points of the user
                 if(isset($user['gamification']['actions'][$action])){
                     Gamification::incrementUser($userId, $action);
@@ -161,6 +166,28 @@ class Action
         PHDB::insert( ActivityStream::COLLECTION, $currentAction );
     }
     
+    /*
+    update the updated date on a parent entity
+     */
+    public static function updateParent($id=null, $collection=null)
+    {
+        $updatableParentTypes = array(
+            ActionRoom::TYPE_ACTIONS    => array("parentCollection" => ActionRoom::COLLECTION,
+                                                 "parentField"=>"room"),
+            Survey::COLLECTION          => array("parentCollection" => ActionRoom::COLLECTION,
+                                                 "parentField"=>"survey"),
+        );
+        if( $obj = @$updatableParentTypes[$collection] )
+        {
+            $element = ($id) ? PHDB::findOne ($collection, array("_id" => new MongoId($id) )) : null;
+            if( isset($element) && $parentId = @$element[ $obj["parentField"] ] ) 
+            {
+                PHDB::update ( $obj["parentCollection"], array("_id" => new MongoId( $parentId )), 
+                                           array( '$set'=>array( "updated" => time())
+                                                  ));
+            }
+        }
+    }
     /**
    * check if loggued in user is in the "follow" field array for an entry
    * @return Boolean

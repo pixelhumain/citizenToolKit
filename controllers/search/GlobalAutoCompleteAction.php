@@ -6,136 +6,127 @@ class GlobalAutoCompleteAction extends CAction
         $search = trim(urldecode($_POST['name']));
         $locality = isset($_POST['locality']) ? trim(urldecode($_POST['locality'])) : null;
         $searchType = isset($_POST['searchType']) ? $_POST['searchType'] : null;
+        $searchTag = isset($_POST['searchTag']) ? $_POST['searchTag'] : null;
         $searchBy = isset($_POST['searchBy']) ? $_POST['searchBy'] : "INSEE";
         $indexMin = isset($_POST['indexMin']) ? $_POST['indexMin'] : 0;
-        $indexMax = isset($_POST['indexMax']) ? $_POST['indexMax'] : 100;
+        $indexMax = isset($_POST['indexMax']) ? $_POST['indexMax'] : 30;
         $country = isset($_POST['country']) ? $_POST['country'] : "";
+        $latest = isset($_POST['latest']) ? $_POST['latest'] : null;
 
-        error_log("global search " . $search . " - searchBy : ". $searchBy. " & locality : ". $locality. " & country : ". $country);
+        //error_log("global search " . $search . " - searchBy : ". $searchBy. " & locality : ". $locality. " & country : ". $country);
 	    
-        if($search == "" && $locality == "") {
-        	Rest::json(array());
-			Yii::app()->end();
-        }
+   //      if($search == "" && $locality == "") {
+   //      	Rest::json(array());
+			// Yii::app()->end();
+   //      }
+
         /***********************************  DEFINE GLOBAL QUERY   *****************************************/
+        $query = array();
+        
+       // if(isset($search) && $search != "")
         $query = array( "name" => new MongoRegex("/".$search."/i"));
-  		
 
+        
         /***********************************  TAGS   *****************************************/
+        $tmpTags = array();
         if(strpos($search, "#") > -1){
-        	$search = substr($search, 1, strlen($search));
-        	$query = array( "tags" => array('$in' => array(new MongoRegex("/".$search."/i")))) ; //new MongoRegex("/".$search."/i") )));
+        	$search = substr($search, 1, strlen($search)); 
+        	$query = array( "tags" => array('$in' => array(new MongoRegex("/".$search."/i")))) ; 
+        	$tmpTags[] = new MongoRegex("/".$search."/i");
   		}
-
+  		if(!empty($searchTag))
+  			foreach ($searchTag as $value) { 
+  				if($value != "")
+	  			$tmpTags[] = new MongoRegex("/".$value."/i");
+	  		}
+  		if(count($tmpTags)){
+  			$query = array('$and' => array( $query , array("tags" => array('$in' => $tmpTags)))) ;
+  		}
+  		unset($tmpTags);
   		$query = array('$and' => array( $query , array("state" => array('$ne' => "uncomplete")) ));
+  		
+  		if($latest)
+  			$query = array('$and' => array($query, array("updated"=>array('$exists'=>1))));
 
-  		/***********************************  DEFINE LOCALITY QUERY   *****************************************/
-        if($locality != null && $locality != ""){
+  		/***********************************  DEFINE LOCALITY QUERY   ***************************************/
+  		$localityReferences['CITYKEY'] = "";
+  		$localityReferences['CODE_POSTAL'] = "address.postalCode";
+  		$localityReferences['DEPARTEMENT'] = "address.postalCode";
+  		$localityReferences['REGION'] = ""; //Spécifique
 
-        	//$type = $this->getTypeOfLocalisation($locality);
-        	//if($searchBy == "INSEE") 
-        	$type = $searchBy;
+  		foreach ($localityReferences as $key => $value) 
+  		{
+  			if(isset($_POST["searchLocality".$key]) 
+  				&& is_array($_POST["searchLocality".$key])
+  				&& count($_POST["searchLocality".$key])>0)
+  			{
+  				foreach ($_POST["searchLocality".$key] as $localityRef) 
+  				{
+  					if(isset($localityRef) && $localityRef != ""){
+	  					//error_log("locality :  ".$localityRef. " - " .$key);
+	  					//OneRegion
+	  					if($key == "CITYKEY"){
+			        		//value.country + "_" + value.insee + "-" + value.postalCodes[0].postalCode; 
+			        		//error_log("CITYKEY " .$localityRef );
+			        		$city = City::getByUnikey($localityRef);
+			        		$queryLocality = array(
+			        				"address.addressCountry" => $city["country"],
+			        				"address.codeInsee" => $city["insee"],
+			        				//"address.postalCode" => new MongoRegex("/".$city["cp"]."/i"),
+			        		);
+			        		if (! empty($city["cp"])) {
+			        			$queryLocality["address.postalCode"] = $city["cp"];	
+			        		}
+		  				}
+		  				elseif($key == "CODE_POSTAL"){
+			        		$queryLocality = array($value => new MongoRegex("/".$localityRef."/i"));
+		  				}
+		  				elseif($key == "DEPARTEMENT") {
+		        			$dep = PHDB::findOne( City::COLLECTION, array("depName" => $localityRef), array("dep"));	
+		        			$queryLocality = array($value => new MongoRegex("/^".$dep["dep"]."/i"));
+						}
+			        	elseif($key == "REGION") 
+	  					{ 
+		        			$deps = PHDB::find( City::COLLECTION, array("regionName" => $localityRef), array("dep"));
+		        			$departements = array();
+		        			$inQuest = array();
+		        			if(is_array($deps))foreach($deps as $index => $value)
+		        			{
+		        				if(!in_array($value["dep"], $departements))
+		        				{
+			        				$departements[] = $value["dep"];
+			        				$inQuest[] = new MongoRegex("/^".$value["dep"]."/i");
+						        	$queryLocality = array("address.postalCode" => array('$in' => $inQuest));
+						        }
+		        			}		        		
+		        		}
 
-        	$queryLocality = array();
-        	
-        	if($type == "NAME"){ 
-        		$queryLocality = array("address.addressLocality" => new MongoRegex("/".$locality." /"));
-        	}
-        	if($type == "CODE_POSTAL_INSEE") {
-        		$queryLocality = array("address.postalCode" => $locality );
-        	}
-        	if($type == "DEPARTEMENT") {
-        		/*$queryLocality = array("address.postalCode" 
-						=> new MongoRegex("/^".$locality."/i"));
-
-				//$queryLocality = array("address.postalCode" => new MongoRegex("/[^".$locality."]/i"));
-					
-				$dep = PHDB::findOne( City::COLLECTION, array("dep" => $locality), array("depName", "dep"));
-        		
-				if(isset($dep["depName"])){ //quand la city a bien la donnée "depName"
-        			/*$depName = $dep["depName"];
-        			//#TODO GET ALL DEPARTMENT BY REGION
-        			$deps = PHDB::find( City::COLLECTION, array("depName" => $depName), array("dep"));
-        			$departements = array();
-        			$inQuest = array();
-        			foreach($deps as $index => $value){
-        				if(!in_array($value["dep"], $departements)){
-	        				$departements[] = $value["dep"];
-	        				$inQuest[] = new MongoRegex("/^".$value["dep"]."/i");
-				        	$queryLocality = array("address.postalCode" => array('$in' => $inQuest));
-	        				
-				        }
-        			}* /
-        		}else{ //quand la city communectée n'a pas la donnée "depName", on prend son département à la place
-        			$depId = isset($depId["dep"]) ? $depId["dep"] : "";
-        			$queryLocality = array("address.postalCode" 
-						=> new MongoRegex("/^".$depId."/i"));
-        		}
-        		//$str = implode(",", $regionName);
-        		*/
-        		//error_log("depName : ".$depId );
-        		$dep = PHDB::findOne( City::COLLECTION, array("insee" => $locality), array("depName", "dep"));
-        		if(!empty($dep["dep"])){
-	        		$depId = $dep["dep"];
-	    			$cities = PHDB::find( City::COLLECTION, array("dep" => $depId), array("insee"));
-	    			$inQuest = array();
-	    			foreach($cities as $keyCity => $city){
-	    				$inQuest[] = $city["insee"];
-	    			}
-	    			$queryLocality = array("address.codeInsee" => array('$in' => $inQuest));
-	    		}
-	    		error_log("depName : ".$dep["dep"] );
-    			//$queryLocality = array("address.postalCode" => new MongoRegex("/[^".$locality."]/i")); //array('$in' => $inQuest));
-        		
-        	}
-        	if($type == "REGION") {
-        		//#TODO GET REGION NAME | CITIES.DEP = myDep
-        		$region = PHDB::findOne( City::COLLECTION, array("insee" => $locality), array("regionName", "region"));
-        		
-				if(!empty($region["region"])){ //quand la city a bien la donnée "regionName"
-        			$idRegion = $region["region"];
-        			$cities = PHDB::find( City::COLLECTION, array("region" => $idRegion), array("insee"));
-        			$inQuest = array();
-        			foreach($cities as $keyCity => $city){
-        				$inQuest[] = $city["insee"];
-        			}
-        			$queryLocality = array("address.codeInsee" => array('$in' => $inQuest));
-        			//$queryLocality = array('$or' => $orQuest);
-        			//error_log("queryLocality : " . print_R($queryLocality, true));
-        			
-        		}else{ //quand la city communectée n'a pas la donnée "regionName", on prend son département à la place
-        			/*$idRegion = isset($idRegion["region"]) ? $idRegion["region"] : "";
-        			$queryLocality = array("address.postalCode" 
-						=> new MongoRegex("/^".$idRegion."/i"));*/
-        		}
-
-        		//$str = implode(",", $regionName);
-        		error_log("regionName : ".$idRegion );
-
-        		//#TODO CREATE REQUEST CITIES.POSTALCODE IN (LIST_DEPARTMENT)" 
-      //   		$queryLocality = array("address.postalCode" 
-						// => new MongoRegex("/^".$locality."/i"));
-        	}
-        	if($type == "INSEE") {
-        		$queryLocality = array("address.codeInsee" => $locality );
-        	}
-        	
-        	if(!empty($queryLocality))
-        	$query = array('$and' => array($query, $queryLocality ) );
-	    }
-
-
+	  					//Consolidate Queries
+	  					if(isset($allQueryLocality) && isset($queryLocality)){
+	  						$allQueryLocality = array('$or' => array( $allQueryLocality ,$queryLocality));
+	  					}else if(isset($queryLocality)){
+	  						$allQueryLocality = $queryLocality;
+	  					}
+	  					unset($queryLocality);
+	  				}
+  				}
+  			}
+  		}
+  		if(isset($allQueryLocality) && is_array($allQueryLocality))
+  			$query = array('$and' => array($query, $allQueryLocality));
+  		
 
 	    //$res = array();
 	    $allRes = array();
-
+	    //var_dump($query); return;
         /***********************************  PERSONS   *****************************************/
         if(strcmp($filter, Person::COLLECTION) != 0 && $this->typeWanted("persons", $searchType)){
 
-        	$allCitoyen = PHDB::find ( Person::COLLECTION , $query, array("name", "address", "shortDescription", "description"));
+        	$allCitoyen = PHDB::findAndSort ( Person::COLLECTION , $query, 
+	  										  array("name" => 1), $indexMax);
 
 	  		foreach ($allCitoyen as $key => $value) {
-	  			$person = Person::getSimpleUserById($key);
+	  			$person = Person::getSimpleUserById($key,$value);
 	  			$person["type"] = "citoyen";
 				$person["typeSig"] = "citoyens";
 				$allCitoyen[$key] = $person;
@@ -147,69 +138,116 @@ class GlobalAutoCompleteAction extends CAction
 	  	}
 
 	  	/***********************************  ORGANISATIONS   *****************************************/
-        if(strcmp($filter, Organization::COLLECTION) != 0 && $this->typeWanted("organizations", $searchType)){
-        	$queryDisabled = array("disabled" => array('$exists' => false));
-        	$queryOrganization = array('$and' => array($query, $queryDisabled));
-	  		$allOrganizations = PHDB::find ( Organization::COLLECTION ,$queryOrganization ,array("name", "address", "shortDescription", "description"));
-	  		foreach ($allOrganizations as $key => $value) {
-	  			$orga = Organization::getSimpleOrganizationById($key);
-	  			$followers = Organization::getFollowersByOrganizationId($key);
-	  			if(@$followers[Yii::app()->session["userId"]]){
-		  			$orga["isFollowed"] = true;
-	  			}
-				$orga["type"] = "organization";
-				$orga["typeSig"] = "organizations";
-				$allOrganizations[$key] = $orga;
+        if(strcmp($filter, Organization::COLLECTION) != 0 && $this->typeWanted(Organization::COLLECTION, $searchType)){
+        	$queryOrganization = $query;
+        	if( !isset( $queryOrganization['$and'] ) ) 
+        		$queryOrganization['$and'] = array();
+        	array_push( $queryOrganization[ '$and' ], array( "disabled" => array('$exists' => false) ) );
+	  		$allOrganizations = PHDB::findAndSort ( Organization::COLLECTION ,$queryOrganization, 
+	  												array("updated" => -1, "name" => 1), $indexMax);
+	  		foreach ($allOrganizations as $key => $value) 
+	  		{
+	  			if(!empty($value)){
+		  			$orga = Organization::getSimpleOrganizationById($key,$value);
+		  			if( @$value["links"]["followers"][Yii::app()->session["userId"]] )
+			  			$orga["isFollowed"] = true;
+					$orga["type"] = "organization";
+					$orga["typeSig"] = Organization::COLLECTION;
+					$allOrganizations[$key] = $orga;
+				}
 	  		}
 
 	  		//$res["organization"] = $allOrganizations;
 	  		$allRes = array_merge($allRes, $allOrganizations);
 	  	}
 
+	  	date_default_timezone_set('UTC');
+				
 	  	/***********************************  EVENT   *****************************************/
-        if(strcmp($filter, Event::COLLECTION) != 0 && $this->typeWanted("events", $searchType)){
+        if(strcmp($filter, Event::COLLECTION) != 0 && $this->typeWanted(Event::COLLECTION, $searchType)){
         	
         	$queryEvent = $query;
+
         	if( !isset( $queryEvent['$and'] ) ) 
         		$queryEvent['$and'] = array();
         	
         	array_push( $queryEvent[ '$and' ], array( "endDate" => array( '$gte' => new MongoDate( time() ) ) ) );
-	  		$allEvents = PHDB::findAndSort( PHType::TYPE_EVENTS, $queryEvent, array("startDate" => 1), 100, array("name", "address", "startDate", "endDate", "shortDescription", "description"));
+        	
+        	$allEvents = PHDB::findAndSort( PHType::TYPE_EVENTS, $queryEvent, 
+	  										array("updated" => -1,"startDate" => 1), $indexMax);
 	  		foreach ($allEvents as $key => $value) {
-	  			$event = Event::getById($key);
-				$event["type"] = "event";
-				$event["typeSig"] = "events";
-				$allEvents[$key] = $event;
+	  			$allEvents[$key]["type"] = "event";
+				$allEvents[$key]["typeSig"] = Event::COLLECTION;
+				if(@$value["links"]["attendees"][Yii::app()->session["userId"]]){
+		  			$allEvents[$key]["isFollowed"] = true;
+	  			}
+				if(@$allEvents[$key]["startDate"])
+				$allEvents[$key]["startDate"] = date('Y-m-d H:i:s', $allEvents[$key]["startDate"]->sec);
+				if(@$allEvents[$key]["endDate"])
+				$allEvents[$key]["endDate"] = date('Y-m-d H:i:s', $allEvents[$key]["endDate"]->sec);
 	  		}
 	  		
-	  		//$res["event"] = $allEvents;
 	  		$allRes = array_merge($allRes, $allEvents);
 	  	}
 
 	  	/***********************************  PROJECTS   *****************************************/
-        if(strcmp($filter, Project::COLLECTION) != 0 && $this->typeWanted("projects", $searchType)){
-	  		$allProject = PHDB::find(Project::COLLECTION, $query, array("name", "address", "shortDescription", "description"));
+        if(strcmp($filter, Project::COLLECTION) != 0 && $this->typeWanted(Project::COLLECTION, $searchType)){
+        	$allProject = PHDB::findAndSort(Project::COLLECTION, $query, 
+	  												array("updated" => -1, "name" => 1), $indexMax);
 	  		foreach ($allProject as $key => $value) {
-	  			$project = Project::getById($key);
 	  			if(@$project["links"]["followers"][Yii::app()->session["userId"]]){
-		  			$orga["isFollowed"] = true;
+		  			$allProject[$key]["isFollowed"] = true;
 	  			}
-				$project["type"] = "project";
-				$project["typeSig"] = "projects";
-				$allProject[$key] = $project;
+				$allProject[$key]["type"] = "project";
+				$allProject[$key]["typeSig"] = Project::COLLECTION;
+				
+				if(@$allProject[$key]["startDate"])
+					$allProject[$key]["startDate"] = date('Y-m-d H:i:s', @$allProject[$key]["startDate"]->sec);
+				if(@$allProject[$key]["endDate"])
+					$allProject[$key]["endDate"] = date('Y-m-d H:i:s', @$allProject[$key]["endDate"]->sec);
 	  		}
 	  		//$res["project"] = $allProject;
 	  		$allRes = array_merge($allRes, $allProject);
 	  	}
+
+	  	/***********************************  DDA   *****************************************/
+        if(strcmp($filter, ActionRoom::COLLECTION) != 0 && $this->typeWanted(ActionRoom::COLLECTION, $searchType))
+        {
+        	$queryDiscuss = $query;
+        	if( !isset( $queryDiscuss['$and'] ) ) 
+        		$queryDiscuss['$and'] = array();
+        	array_push( $queryDiscuss[ '$and' ], array( "type" => ActionRoom::TYPE_DISCUSS ) );
+        	$allFound = PHDB::findAndSort(ActionRoom::COLLECTION, $queryDiscuss, array("updated" => -1), $indexMax);
+	  		foreach ($allFound as $key => $value) {
+				$allFound[$key]["type"] = $value["type"];
+				$allFound[$key]["typeSig"] = ActionRoom::COLLECTION;
+	  		}
+	  		$allRes = array_merge($allRes, $allFound);
+	  		
+
+        	$allFound = PHDB::findAndSort(ActionRoom::COLLECTION_ACTIONS, $query, array("updated" => -1), $indexMax);
+	  		foreach ($allFound as $key => $value) {
+				$allFound[$key]["type"] = $value["type"];
+				$allFound[$key]["typeSig"] = ActionRoom::COLLECTION_ACTIONS;
+	  		}
+	  		$allRes = array_merge($allRes, $allFound);
+
+        	$allFound = PHDB::findAndSort(Survey::COLLECTION, $query, array("updated" => -1), $indexMax);
+	  		foreach ($allFound as $key => $value) {
+				$allFound[$key]["type"] = $value["type"];
+				$allFound[$key]["typeSig"] = Survey::CONTROLLER;
+	  		}
+	  		//$res["project"] = $allProject;
+	  		$allRes = array_merge($allRes, $allFound);
+	  	}
 		    
 	  	/***********************************  CITIES   *****************************************/
-        if(strcmp($filter, City::COLLECTION) != 0 && $this->typeWanted("cities", $searchType)){
+        if(strcmp($filter, City::COLLECTION) != 0 && $this->typeWanted(City::COLLECTION, $searchType)){
 	  		$query = array( "name" => new MongoRegex("/".self::wd_remove_accents($search)."/i"));//array('$text' => array('$search' => $search));//
 	  		
 	  		/***********************************  DEFINE LOCALITY QUERY   *****************************************/
-	        	if($locality == null || $locality == ""){
+	        	if($locality == null || $locality == "")
 		    		$locality = $search;
-		    	}
 		    	$type = $this->getTypeOfLocalisation($locality);
 		    	if($searchBy == "INSEE") $type = $searchBy;
 	        	error_log("type " . $type);
@@ -303,19 +341,44 @@ class GlobalAutoCompleteAction extends CAction
 	  	}
 
 	  	//trie les éléments dans l'ordre alphabetique par name
-	  	function mySort($a, $b){
-	  		if(isset($a['name']) && isset($b['name'])){
-		    	return ( strtolower($b['name']) < strtolower($a['name']) );
-			}else{
+	  	function mySortByName($a, $b){ // error_log("sort : ");//.$a['name']);
+	  		if(isset($a["_id"]) && isset($b["name"])){
+		   		return ( strtolower($b["name"]) < strtolower($a["name"]) );
+		    } else{
 				return false;
 			}
 		}
 	  	
-	  	if(isset($allRes)) //si on a des resultat dans la liste
-	  		if(!$this->typeWanted("events", $searchType)) //si on n'est pas en mode "event" (les event sont classé par date)
-	  			usort($allRes, "mySort"); //on tri les éléments par ordre alphabetique sur le name
+	  	//trie les éléments dans l'ordre alphabetique par updated
+	  	function mySortByUpdated($a, $b){ // error_log("sort : ");//.$a['name']);
+	  		if(isset($a["updated"]) && isset($b["updated"])){
+		   		return ( strtolower($b["updated"]) > strtolower($a["updated"]) );
+		    } else{
+				return false;
+			}
+		}
+	  	
+	  	// foreach ($allRes as $key => $value) {
+	  	// 	if(!isset($value["updated"])){ 
+	  	// 		//error_log(strtotime("-1 month"));
+	  	// 		$allRes[$key]["updated"] = strtotime("-1 month");
+		  // 	}else error_log("updated : ".$value["updated"]);
+	  	// }
 
-	  	if(isset($allCitiesRes)) usort($allCitiesRes, "mySort");
+	  	// if(isset($allRes)) //si on a des resultat dans la liste
+	  	// 	if(!$this->typeWanted("events", $searchType) || count($searchType)>1) //si on n'est pas en mode "calendar" (les event sont classés par date)
+	  	// 		usort($allRes, "mySortByName"); //on tri les éléments par ordre alphabetique sur le name
+
+	  	
+	  	if(isset($allRes)) {
+	  		if($latest)
+	  			usort($allRes, "mySortByUpdated");
+	  		else
+	  			usort($allRes, "mySortByName");
+	  	}
+
+
+	  	if(isset($allCitiesRes)) usort($allCitiesRes, "mySortByName");
 
 	  	//error_log("count : " . count($allRes));
 	  	if(count($allRes) < $indexMax) 
@@ -330,9 +393,11 @@ class GlobalAutoCompleteAction extends CAction
 		  	$index++;
 	  	}
 
-	  	
   		//Rest::json($res);
-		Rest::json($limitRes);
+  		if(@$_POST['tpl'])
+  			echo $this->getController()->renderPartial($_POST['tpl'], array("result"=>$limitRes));
+  		else
+			Rest::json($limitRes);
 		Yii::app()->end();
     }
 

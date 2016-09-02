@@ -88,7 +88,8 @@ class Organization {
 		if(empty($newOrganization["preferences"])){
 			$newOrganization["preferences"] = array("publicFields" => array(), "privateFields" => array(), "isOpenData"=>true,"isOpenEdition"=>true);
 		}
-	
+		$newOrganization["modified"] = new MongoDate(time());
+		$newOrganization["updated"] = time();	
 		//Insert the organization
 	    PHDB::insert( Organization::COLLECTION, $newOrganization);
 		
@@ -393,10 +394,11 @@ class Organization {
 	 * @param String $id of the organization
 	 * @return array with data id, name, profilImageUrl, logoImageUrl
 	 */
-	public static function getSimpleOrganizationById($id) {
+	public static function getSimpleOrganizationById($id,$orga=null) {
 
 		$simpleOrganization = array();
-		$orga = PHDB::findOneById( self::COLLECTION ,$id, array("id" => 1, "name" => 1, "type" => 1, "email" => 1,  "shortDescription" => 1, "description" => 1, "address" => 1, "pending" => 1, "tags" => 1, "geo" => 1, "profilImageUrl" => 1, "profilThumbImageUrl" => 1, "profilMarkerImageUrl" => 1,"profilMediumImageUrl" => 1) );
+		if(!$orga)
+			$orga = PHDB::findOneById( self::COLLECTION ,$id, array("id" => 1, "name" => 1, "type" => 1, "email" => 1,  "shortDescription" => 1, "description" => 1, "address" => 1, "pending" => 1, "tags" => 1, "geo" => 1, "updated" => 1, "profilImageUrl" => 1, "profilThumbImageUrl" => 1, "profilMarkerImageUrl" => 1,"profilMediumImageUrl" => 1) );
 		if(!empty($orga)){
 			$simpleOrganization["id"] = $id;
 			$simpleOrganization["name"] = @$orga["name"];
@@ -407,6 +409,7 @@ class Organization {
 			$simpleOrganization["geo"] = @$orga["geo"];
 			$simpleOrganization["shortDescription"] = @$orga["shortDescription"];
 			$simpleOrganization["description"] = @$orga["description"];
+			$simpleOrganization["updated"] = @$orga["updated"];
 			$simpleOrganization = array_merge($simpleOrganization, Document::retrieveAllImagesUrl($id, self::COLLECTION, @$orga["type"], $orga));
 			
 			$logo = Document::getLastImageByKey($id, self::COLLECTION, Document::IMG_LOGO);
@@ -449,9 +452,10 @@ class Organization {
 	  	}
 	  	return $res;
 	}
-	public static function getFollowersByOrganizationId($id) {
+	public static function getFollowersByOrganizationId($id,$organization=null) {
 	  	$res = array();
-	  	$organization = Organization::getById($id);
+	  	if(!$organization)
+	  		$organization = Organization::getById($id);
 	  	
 	  	if (empty($organization)) {
             throw new CTKException(Yii::t("organization", "The organization id is unkown : contact your admin"));
@@ -720,8 +724,11 @@ class Organization {
 			}
 		}
 		//update the organization
+		$set["modified"] = new MongoDate(time());
+		$set["updated"] = time();
 		PHDB::update( Organization::COLLECTION, array("_id" => new MongoId($organizationId)), 
 		                          array('$set' => $set));
+
 		if($authorization == "openEdition" && $dataFieldName != "badges"){
 			// Add in activity to show each modification added to this entity
 			//echo $dataFieldName;

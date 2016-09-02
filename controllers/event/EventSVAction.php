@@ -24,6 +24,8 @@ class EventSVAction extends CAction
 		else {
 			$params["person"] = Person::getSimpleUserById(Yii::app() -> session['userId']);
 		}
+
+		$params["tags"] = json_encode(Tags::getActiveTags());
     	$lists = Lists::get(array("eventTypes"));
     	$params["lists"] = $lists;
     	if(Yii::app()->request->isAjaxRequest)

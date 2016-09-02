@@ -29,6 +29,7 @@ class Event {
 	    "parentId" => array("name" => "parentId"),
 	    "source" => array("name" => "source"),
 	    "badges" => array("name" => "badges"),
+	    "tags" => array("name" => "tags"),
 	);
 
 	//TODO SBAR - First test to validate data. Move it to DataValidator
@@ -253,6 +254,16 @@ class Event {
 	    if(!empty($params['parentId']))
 	        $newEvent["parentId"] = $params['parentId'];
 
+	    //Tags
+		if (isset($params['tags']) ) {
+			if ( is_array( $params['tags'] ) ) {
+				$tags = $params['tags'];
+			} else if ( is_string($params['tags']) ) {
+				$tags = explode(",", $params['tags']);
+			}
+			$newEvent["tags"] = $tags;
+		}
+	    
 	    return $newEvent;
 	}
 
@@ -262,9 +273,15 @@ class Event {
 		else
 			$newEvent = self::getAndCheckEventFromImportData($params, true, null, $warnings);
 
+		if (isset($newEvent["tags"]))
+			$newEvent["tags"] = Tags::filterAndSaveNewTags($newEvent["tags"]);
+
 		if(empty($newEvent["preferences"])){
 			$newEvent["preferences"] = array("publicFields" => array(), "privateFields" => array(), "isOpenEdition"=>true, "isOpenData"=>true);
 		}
+
+		$newEvent['updated'] = time();
+		$newEvent["modified"] = new MongoDate(time());
 		
 		//SubEvent authorization
 		//check if the parent event exists and the user can add subevent
@@ -477,9 +494,11 @@ class Event {
 		}
 
 		$dataFieldName = self::getCollectionFieldNameAndValidate($eventFieldName, $eventFieldValue, $eventId);
+		if ($dataFieldName == "tags") {
+			$eventFieldValue = Tags::filterAndSaveNewTags($eventFieldValue);
+			$set = array($dataFieldName => $eventFieldValue);
 
-		//address
-		if ($dataFieldName == "address") {
+		}else if ($dataFieldName == "address") { //address
 			if(!empty($eventFieldValue["postalCode"]) && !empty($eventFieldValue["codeInsee"])) {
 				$insee = $eventFieldValue["codeInsee"];
 				$postalCode = $eventFieldValue["postalCode"];
@@ -521,6 +540,7 @@ class Event {
 			$event["tags"] = Tags::filterAndSaveNewTags($event["tags"]);
 		
 		$event["modified"] = new MongoDate(time());
+		$event['updated'] = time();
 		PHDB::update( Event::COLLECTION, array("_id" => new MongoId($eventId)), 
 		                          array('$set' => $event));
 	                  

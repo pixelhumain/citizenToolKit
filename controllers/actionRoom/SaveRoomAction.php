@@ -11,7 +11,8 @@ class SaveRoomAction extends CAction
         {
             $email = $_POST["email"];
             $name  = $_POST['name'];
-            //if exists login else create the new user
+
+            //check if owner of the proposal exists login else create the new user
             if(PHDB::findOne (Person::COLLECTION, array( "email" => $email ) ))
             {
                 //udate the new app specific fields
@@ -26,12 +27,23 @@ class SaveRoomAction extends CAction
                     $newInfos['parentType'] = $_POST['parentType'];
                 if( @$_POST["parentId"] ) 
                     $newInfos['parentId'] = $_POST['parentId'];
-                
+
+                //these fields are necessary for multi scoping search features
+                if(@$_POST["parentType"] && @$_POST["parentId"]){
+                    $parent = Element::getByTypeAndId(@$_POST["parentType"], @$_POST["parentId"]);
+                    if(@$parent["address"])
+                        $newInfos['address'] = $parent["address"];
+                    if(@$parent["geo"])
+                        $newInfos['geo'] = $parent["geo"];
+                    if(@$parent["geoPosition"])
+                        $newInfos['geoPosition'] = $parent["geoPosition"];
+                }
                 if( @$_POST['tags'] && count($_POST['tags']) )
                     $newInfos['tags'] = $_POST['tags'];
                 
                 $newInfos['created'] = time();
                 $newInfos['updated'] = time();
+                $newInfos["modified"] = new MongoDate(time());
                 PHDB::insert( Survey::PARENT_COLLECTION, $newInfos );
                 /*PHDB::updateWithOptions( Survey::PARENT_COLLECTION,  array( "name" => $name ), 
                                                    array('$set' => $newInfos ) ,

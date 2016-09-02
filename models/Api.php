@@ -4,6 +4,7 @@ class Api {
 	const COLLECTION = "gantts";
 	
 	public static function getData2($bindMap, $format = null, $type, $id = null, $limit=50, $index=0, $tags = null, $multiTags=null , $key = null, $insee = null){
+
     	$data = null;
         $typeResult = "entities";
 

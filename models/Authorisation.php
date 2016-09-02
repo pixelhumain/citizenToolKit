@@ -213,12 +213,23 @@ class Authorisation {
      * @param String $userId The userId to get the authorisation of
      * @return boolean True if the user isAdmin, False else
      */
-    public static function isEventAdmin($eventId, $userId){
+    public static function isEventAdmin($eventId, $userId, $attendees = null){
         $res = false;
-        $listEvent = Authorisation::listEventsIamAdminOf($userId);
-        if(isset($listEvent[(string)$eventId])){
+        if(!empty($attendees) && @$attendees[$userId]["isAdmin"] == true){
             $res=true;
-        } 
+        }else{
+            $where = array("_id"=>new MongoId($eventId),
+                            "links.attendees.".$userId.".isAdmin" => true,
+                            "links.attendees.".$userId.".isAdminPending" => array('$exists' => false));
+            $event = PHDB::findOne(Event::COLLECTION, $where);
+            if(!empty($event))
+                $res=true;
+            /*$listEvent = Authorisation::listEventsIamAdminOf($userId);
+            if(isset($listEvent[(string)$eventId])){
+                $res=true;
+            }*/   
+        }
+        
         return $res;
     }
     /*public static function isEventAdmin($eventId, $userId) {
@@ -441,7 +452,7 @@ class Authorisation {
     		if(isset($event["links"]["attendees"])){
     			foreach ($event["links"]["attendees"] as $key => $value) {
     				if($key ==  $userId){
-	    				if(isset($value["isAdmin"]) && $value["isAdmin"]==true){
+	    				if(isset($value["isAdmin"]) && $value["isAdmin"]==true && empty($value["isAdminPending"])){
 	    					$res = true;
 	    				}
 	    			}
@@ -506,36 +517,53 @@ class Authorisation {
     */
     public static function canEditItem($userId, $type, $itemId,$parentType=null,$parentId=null){
         $res=false;    
-        if($type == ActionRoom::COLLECTION || $type == ActionRoom::COLLECTION_ACTIONS) {
-			$type= $parentType;
-			$itemId= $parentId;
+        $check = false;
+        if($type == ActionRoom::COLLECTION || $type == ActionRoom::COLLECTION_ACTIONS) 
+        {
+			$type = $parentType;
+			$itemId = $parentId;
+            $check = true;
 		}
-    	if($type == Event::COLLECTION) {
-    		$res = Authorisation::canEditEvent($userId,$itemId);
+
+    	if($type == Event::COLLECTION) 
+        {
+    		$res = self::canEditEvent($userId,$itemId);
             if(Role::isSuperAdmin(Role::getRolesUserId($userId)) && $res==false)
                 $res = true ;
             if(self::isSourceAdmin($itemId, $type, $userId) && $res==false)
                 $res = true ;
-    	} else if($type == Project::COLLECTION) {
-    		$res = Authorisation::isProjectAdmin($itemId, $userId);
+    	} 
+        else if($type == Project::COLLECTION) 
+        {
+    		$res = self::isProjectAdmin($itemId, $userId);
             if(Role::isSuperAdmin(Role::getRolesUserId($userId)) && $res==false)
                 $res = true ;
             if(self::isSourceAdmin($itemId, $type, $userId) && $res==false)
                 $res = true ;
-    	} else if($type == Organization::COLLECTION) {
-    		$res = Authorisation::isOrganizationAdmin($userId, $itemId);
+    	} 
+        else if($type == Organization::COLLECTION) 
+        {
+    		$res = self::isOrganizationAdmin($userId, $itemId);
             if(Role::isSuperAdmin(Role::getRolesUserId($userId)) && $res==false)
                 $res = true ;
             if(self::isSourceAdmin($itemId, $type, $userId) && $res==false)
                 $res = true ; 
-    	} else if($type == Person::COLLECTION) {
+    	} 
+        else if($type == Person::COLLECTION) 
+        {
             if($userId==$itemId || Role::isSuperAdmin(Role::getRolesUserId($userId)) == true )
                 $res = true;
-    	} else if($type == City::CONTROLLER){
-            $res = true;
     	} 
-    	else if($type == Survey::COLLECTION) {
-            $res = Authorisation::canEditSurvey($userId, $itemId,$parentType,$parentId);
+        else if($type == City::COLLECTION )
+        {
+            if($check)
+                $res = self::isLocalCitizen( $userId, ($parentType == City::CONTROLLER) ? $parentId : $itemId ); 
+            else 
+                $res = true;
+    	} 
+    	else if($type == Survey::COLLECTION) 
+        {
+            $res = self::canEditSurvey($userId, $itemId,$parentType,$parentId);
         }
     	return $res;
     }
@@ -552,16 +580,28 @@ class Authorisation {
         {   $res = Preference::isOpenEdition(Preference::getPreferencesByTypeId($itemId, $type));
             if($res != true){
                 if( $type == Organization::COLLECTION )
-                    $res = Authorisation::isOrganizationMember($userId, $itemId);
+                    $res = self::isOrganizationMember($userId, $itemId);
                 if( $type == Project::COLLECTION )
-                    $res = Authorisation::isProjectMember($userId, $itemId);
+                    $res = self::isProjectMember($userId, $itemId);
                 if( $type == Event::COLLECTION )
-                    $res = Authorisation::isEventMember($userId, $itemId);
-                if($type == City::COLLECTION) $res = true;
+                    $res = self::isEventMember($userId, $itemId);
+                if($type == City::COLLECTION) 
+                    $res = self::isLocalCitizen($userId, $itemId);
             }
             
         }
         return $res;
+    }
+
+    /**
+    * check if a user is a local citizen
+    * @param cityId is a unique  city Id
+    * @return a boolean
+    */
+    public static function isLocalCitizen($userId, $cityId) {
+        $cityMap = City::getUnikeyMap($cityId);
+        //echo Yii::app()->session["user"]["codeInsee"] ."==". $cityMap["insee"];
+        return (Yii::app()->session["user"]["codeInsee"] == $cityMap["insee"] ) ? true : false;
     }
 
     /**
@@ -647,6 +687,24 @@ class Authorisation {
         }
         if(!empty($user))
             $res = true ;
+        return $res;
+    }
+
+
+    
+    /**
+     * Return true if the entity is in openEdition
+     * @param String the id of the entity
+     * @param String the type of the entity
+     * @return bool 
+     */
+    public static function isOpenEdition($idEntity, $typeEntity){
+        $res = false ;
+        $entity = PHDB::findOne($typeEntity,array("_id"=>new MongoId($idEntity)),array('preferences'));
+        if(!empty($entity["preferences"])){
+           $res = Preference::isOpenEdition($entity["preferences"]);
+        }
+
         return $res;
     }
 } 

@@ -72,7 +72,6 @@ class SIG
 		//PH::update($entityType,array("geo" => $geo));
 
 		if($entityType == PHType::TYPE_CITOYEN || $entityType == PHType::TYPE_PERSON ){
-			var_dump($entityType);
 			error_log("update TYPE_CITOYEN");
 			Person::updatePersonField($entityId, "geo", $geo, Yii::app()->session['userId'] );
 			Person::updatePersonField($entityId, "geoPosition", $geoPosition, Yii::app()->session['userId'] );
@@ -316,6 +315,8 @@ class SIG
 		$address["@type"] = "PostalAddress";
 		$address["codeInsee"] = isset($city['insee']) ? $city['insee'] : "" ;
 		$address["addressCountry"] = isset($city['country']) ? $city['country'] : "";
+		$address["depName"] = isset($city['depName']) ? $city['depName'] : "";
+		$address["regionName"] = isset($city['regionName']) ? $city['regionName'] : "";
 		if($postalCode != null){
 			foreach ($city["postalCodes"] as $data){
 				if ($data["postalCode"]==$postalCode){

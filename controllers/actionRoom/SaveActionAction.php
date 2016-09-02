@@ -49,6 +49,16 @@ class SaveActionAction extends CAction
                         $entryInfos['parentType'] = $room['parentType'];
                     if( isset( $room["parentId"] )  ) 
                         $entryInfos['parentId'] = $room['parentId'];
+                    //these fields are necessary for multi scoping search features
+                    if(@$room["parentType"] && @$room["parentId"]){
+                        $parent = Element::getByTypeAndId(@$room["parentType"], @$room["parentId"]);
+                        if(@$parent["address"])
+                            $entryInfos['address'] = $parent["address"];
+                        if(@$parent["geo"])
+                            $entryInfos['geo'] = $parent["geo"];
+                        if(@$parent["geoPosition"])
+                            $entryInfos['geoPosition'] = $parent["geoPosition"];
+                    }
                 }
                 if( isset($_POST['message']) )
                     $entryInfos['message'] = (string)$_POST['message'];
@@ -65,7 +75,7 @@ class SaveActionAction extends CAction
                 if( isset($_POST['startDate']) && $_POST['startDate'] != "" )
                     $entryInfos['startDate'] = round(strtotime( str_replace("/", "-", $_POST['startDate']) ));
 
-                
+                $entryInfos["modified"] = new MongoDate(time());
                 $entryInfos['updated'] = time();
                 
 

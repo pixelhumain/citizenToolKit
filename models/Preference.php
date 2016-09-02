@@ -52,6 +52,7 @@ class Preference {
 			    }
 			}	
 		}
+
 		if(@$context["preferences"]["privateFields"] && !empty($context["preferences"]["privateFields"]))			{
 			$privateFields=$context["preferences"]["privateFields"];
 			foreach ($privateFields as $key => $value) {

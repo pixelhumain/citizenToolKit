@@ -50,22 +50,46 @@ class City {
 		return $city["country"]."_".$city["insee"]."-".$city["cp"];
 	}
 
+	public static function getUnikeyMap($key){
+		$keyStr = str_replace("-", "_", $key);
+		$keyT = explode("_", $keyStr);
+		$res = array("country" => $keyT[0] , "insee" => $keyT[1] );
+		if( strpos($key, "-") )
+			$res["cp"] = $keyT[2];
+		return $res;
+	}
+
 	/* format unikey : COUNTRY_insee-cp */
 	public static function getByUnikey($unikey){
 		$country = substr($unikey, 0, strpos($unikey, "_"));
-		$insee = substr($unikey,  strpos($unikey, "_")+1,  strpos($unikey, "-")-strpos($unikey, "_")-1);
-		$cp = substr($unikey, strpos($unikey, "-")+1,  strlen($unikey));
-
+		//No cp for the unikey
+		if (! strpos($unikey, "-")) {
+			$insee = substr($unikey,  strpos($unikey, "_")+1,  5);
+		} else {
+			$insee = substr($unikey,  strpos($unikey, "_")+1,  strpos($unikey, "-")-strpos($unikey, "_")-1);
+			$cp = substr($unikey, strpos($unikey, "-")+1,  strlen($unikey));
+		}
+		error_log("INSEE : ".$insee);
 		$city = PHDB::findOne( self::COLLECTION , array("insee"=>$insee, "country"=>$country) );// self::getWhere(array("insee"=>$insee, "country"=>$country));
-		if(isset($city["postalCodes"]))
-		foreach ($city["postalCodes"] as $key => $value) {
-			if($value["postalCode"] == $cp){
-				$city["name"] = $value["name"];
-				$city["cp"] = $value["postalCode"];
-				$city["geo"] = $value["geo"];
-				$city["geoPosition"] = $value["geoPosition"];
-				return $city;
+		if (isset($cp)) 
+		{
+			if(isset($city["postalCodes"]))
+			{
+				foreach ($city["postalCodes"] as $key => $value) 
+				{
+					if($value["postalCode"] == $cp)
+					{
+						$city["name"] = $value["name"];
+						$city["cp"] = $value["postalCode"];
+						$city["geo"] = $value["geo"];
+						$city["geoPosition"] = $value["geoPosition"];
+						return $city;
+					}
+				}
 			}
+		//If look for a city with only the insee code and without the cp
+		} else if (!empty($city)) {
+			return $city;
 		}
 		return null;
 		//return array("country" => $country, "insee" => $insee, "cp" => $cp);
@@ -391,23 +415,42 @@ class City {
 	}
 
 	
-	public static function getCityByInseeCp($insee, $cp){
-		$where = array("insee" => $insee,
-					   "postalCodes.postalCode" => $cp);
+	public static function getCityByInseeCp($insee, $cp = null){
+		$where = array("insee" => $insee);
+
+		if(!empty($cp))
+			$where["postalCodes.postalCode"] = $cp;
 
 		//$fields = array("_id");
 		$city = PHDB::findOne( City::COLLECTION, $where);// ,$fields);
 	
 		if(isset($city["postalCodes"]))
 		foreach ($city["postalCodes"] as $key => $value) {
-			if($value["postalCode"] == $cp){
+			if(!empty($cp) && $value["postalCode"] == $cp){
 				$city["namePc"] = $value["name"];
 				$city["cp"] = $value["postalCode"];
 				$city["geo"] = $value["geo"];
 				$city["geoPosition"] = $value["geoPosition"];
 				return $city;
+			}else{
+				$city["namePc"][] = $value["name"];
+				$city["cpArray"][] = $value["postalCode"];
+
+				if($value["name"] == $city["name"])
+					$city["cp"] = $value["postalCode"];
 			}
 		}
+
+		if(empty($city["cp"]))
+			$city["cp"] = $city["cpArray"][0];
+		
+		return $city;
+	}
+
+	public static function getCityByInsee($insee){
+		$where = array("insee" => $insee);
+		//$fields = array("_id");
+		$city = PHDB::findOne( City::COLLECTION, $where);// ,$fields);
 		return $city;
 	}
 

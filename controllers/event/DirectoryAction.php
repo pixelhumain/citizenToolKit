@@ -44,17 +44,23 @@ class DirectoryAction extends CAction
             }
           }*/
 
-          if(isset($event["links"])){
+          if(@$event["links"]["attendees"]){
             foreach ($event["links"]["attendees"] as $id => $e) {
 
               $citoyen = Person::getSimpleUserById($id);
               if(!empty($citoyen)){
-	            if(@$event["links"]["attendees"][$id]["invitorId"])  
+                if(@$event["links"]["attendees"][$id]["invitorId"])  
                 	array_push($params["guests"], $citoyen);
-                else
-                	array_push($params["attendees"], $citoyen);
+                else{
+                  if(@$e["isAdmin"]){
+                    if(@$e["isAdminPending"])
+                      $citoyen["isAdminPending"]=true;
+                    $citoyen["isAdmin"]=true;         
+                  }
+                  array_push($params["attendees"], $citoyen);
+                }
+                
               }
-
               /*if(isset($e["isAdmin"]) && $e["isAdmin"]==true){
                 array_push($admins, $e);
               }*/
