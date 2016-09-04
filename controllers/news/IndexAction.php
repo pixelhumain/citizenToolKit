@@ -288,7 +288,7 @@ class IndexAction extends CAction
 				        				foreach($deps as $index => $value)
 					        			{
 					        				if(!in_array($value["dep"], $departements))
-					        				{   error_log("depppppp :".@$value["depName"]);
+					        				{   //error_log("depppppp :".@$value["depName"]);
 						        				$departements[] = $value["dep"];
 						        				if(@$value["dep"])
 						        				$inQuestCp[] = new MongoRegex("/^".$value["dep"]."/i");
