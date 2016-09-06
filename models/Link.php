@@ -321,6 +321,9 @@ class Link {
 		$res = array("result"=>false, "msg"=>"You can't add this event to this organization");
 		if ($organizerType=="organizations"){
 	   		$isUserAdmin = Authorisation::isOrganizationAdmin($userId, $organizerId);
+            if($isUserAdmin != true)
+                $isUserAdmin = Authorisation::isOpenEdition($organizerId, $organizerType);
+
 	   		if($isUserAdmin){
 	   			PHDB::update(Organization::COLLECTION,
 	   						array("_id" => new MongoId($organizerId)),
@@ -335,6 +338,8 @@ class Link {
 	   	}
 	   	else if ($organizerType=="projects"){
 		   	$isUserAdmin = Authorisation::isProjectAdmin($organizerId,$userId);
+            if($isUserAdmin != true)
+                $isUserAdmin = Authorisation::isOpenEdition($organizerId, $organizerType);
 	   		if($isUserAdmin){
 	   			PHDB::update(Project::COLLECTION,
 	   						array("_id" => new MongoId($organizerId)),

@@ -263,6 +263,11 @@ class Event {
 			}
 			$newEvent["tags"] = $tags;
 		}
+
+		$newEvent["organizerType"] = $params["organizerType"] ;
+
+		if(!empty($params["organizerId"]))
+	    	$newEvent["organizerId"] = $params["organizerId"];
 	    
 	    return $newEvent;
 	}
@@ -296,7 +301,6 @@ class Event {
 				}
 			}
 		}
-
 	    PHDB::insert(self::COLLECTION,$newEvent);
 	    
 	    /*
