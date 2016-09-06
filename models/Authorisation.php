@@ -707,5 +707,16 @@ class Authorisation {
 
         return $res;
     }
+
+
+    public static function canEditItemOrOpenEdition($idEntity, $typeEntity, $userId, $parentType=null,$parentId=null){
+        $res = false ;
+        
+        $res = self::isOpenEdition($idEntity, $typeEntity);
+        if($res != true)
+            $res = self::canEditItem($userId, $typeEntity, $idEntity, $parentType, $parentId);
+
+        return $res;
+    }
 } 
 ?>

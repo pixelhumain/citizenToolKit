@@ -183,42 +183,53 @@ class Element {
     					"id"=> $id);
     }
 
+    private static function getDataBinding($collection) {
+		if($collection == Person::COLLECTION)
+			return Person::$dataBinding ;
+		else if($collection == Organization::COLLECTION)
+			return Organization::$dataBinding ;
+		else if($collection == Event::COLLECTION)
+			return Event::$dataBinding ;
+		else if($collection == Project::COLLECTION)
+			return Project::$dataBinding ;
+		else
+			return array();
+	}
+
+    private static function getCollectionFieldNameAndValidate($collection, $elementFieldName, $elementFieldValue, $elementId) {
+		return DataValidator::getCollectionFieldNameAndValidate(self::getDataBinding($collection), $elementFieldName, $elementFieldValue, $elementId);
+	}
+
+
 
     public static function updateField($collection, $id, $fieldName, $fieldValue) {
-		//$fieldName = Organization::getCollectionFieldNameAndValidate($fieldName, $fieldValue, $id);
-		$verb = ($fieldValue == "" || $fieldValue == null ) ? '$unset' : '$set';
-		$set = array($fieldName => $fieldValue);
+
+    	if (!Authorisation::canEditItemOrOpenEdition($collection, $id, Yii::app()->session['userId'])) {
+			throw new CTKException("Can not update the element : you are not authorized to update that element !");
+		}
+		if(is_string($fieldValue))
+			$fieldValue = trim($fieldValue);
+
+		$dataFieldName = self::getCollectionFieldNameAndValidate($collection, $fieldName, $fieldValue, $id);
+		
+		//$verb = ($fieldValue == "" || $fieldValue == null ) ? '$unset' : '$set';
+		$verb = '$set' ;
+		//$set = array($fieldName => $fieldValue);
 
 		//Specific case : 
 		//Tags
-		if ($fieldName == "tags") {
+		if ($dataFieldName == "tags") {
 			$fieldValue = Tags::filterAndSaveNewTags($fieldValue);
-			$set = array($fieldName => $fieldValue);
-		} 
-		else if ($fieldName == "telephone") {
-			//Telephone
-			$tel = array();
-			$fixe = array();
-			$mobile = array();
-			
-			if(!empty($fieldValue))
-			{
-				foreach ($fieldValue as $key => $value) {
-					if(substr($value, 0, 2) == "02")
-						$fixe[] = $value ;
-					else
-						$mobile[] = $value ;
-
-					if(!empty($fixe))
-						$tel["fixe"] = $fixe;
-					if(!empty($mobile))
-						$tel["mobile"] = $mobile;
-				}
-			}
-			$set = array($fieldName => $tel);
+			//$set = array($fieldName => $fieldValue);
+		}
+		else if ( ($dataFieldName == "mobile"|| $dataFieldName == "fixe" || $dataFieldName == "fax")){
+			if($fieldValue ==null)
+				$fieldValue = array();
+			else
+				$fieldValue = explode(",", $fieldValue);
 		}
 		else if ($fieldName == "address") {
-		//address
+			//address
 			if(!empty($fieldValue["postalCode"]) && !empty($fieldValue["codeInsee"])) {
 				$insee = $fieldValue["codeInsee"];
 				$postalCode = $fieldValue["postalCode"];
@@ -227,15 +238,73 @@ class Element {
 				$set = array("address" => $address);
 				if (!empty($fieldValue["streetAddress"]))
 					$set["address"]["streetAddress"] = $fieldValue["streetAddress"];
-				if(empty($fieldValue["geo"]))
+				if(empty($fieldValue["geo"])){
 					$set["geo"] = SIG::getGeoPositionByInseeCode($insee, $postalCode,$cityName);
+					SIG::updateEntityGeoposition($collection,$id,$geo["latitude"],$geo["longitude"]);
+				}
+				if($collection == Person::COLLECTION){
+					$user = Yii::app()->session["user"];
+					$user["codeInsee"] = $insee;
+					$user["postalCode"] = $postalCode;
+					$user["address"] = $address;
+					Yii::app()->session["user"] = $user;
+				}
 			} else 
 				throw new CTKException("Error updating  : address is not well formated !");			
 		}
+		else if ($dataFieldName == "birthDate") 
+		{
+			date_default_timezone_set('UTC');
+			$dt = DateTime::createFromFormat('Y-m-d H:i', $fieldValue);
+			if (empty($dt)) {
+				$dt = DateTime::createFromFormat('Y-m-d', $fieldValue);
+			}
+			$newMongoDate = new MongoDate($dt->getTimestamp());
+			$set = array($dataFieldName => $newMongoDate);
+		//Date format
+		} else if ($dataFieldName == "startDate" || $dataFieldName == "endDate") {
+			date_default_timezone_set('UTC');
+			if( !is_string( $fieldValue ) && get_class( $fieldValue ) == "MongoDate"){
+				$newMongoDate = $fieldValue;
+			}else{
+				$dt = DateTime::createFromFormat('Y-m-d H:i', $fieldValue);
+				if (empty($dt)) {
+					$dt = DateTime::createFromFormat('Y-m-d', $fieldValue);
+				}
+				$newMongoDate = new MongoDate($dt->getTimestamp());
+			}
+			$set = array($dataFieldName => $newMongoDate);	
+		}
+		else
+			$set = array($dataFieldName => $fieldValue);
 
+		if(Person::COLLECTION == $collection){
+			if ( $fieldValue == "bgClass") {
+				//save to session for all page reuse
+				$user = Yii::app()->session["user"];
+				$user["bg"] = $fieldValue;
+				Yii::app()->session["user"] = $user;
+			} else if ( $fieldName == "bgUrl") {
+				//save to session for all page reuse
+				$user = Yii::app()->session["user"];
+				$user["bgUrl"] = $fieldValue;
+				Yii::app()->session["user"] = $user;
+			} 
+		}else{
+			$set["modified"] = new MongoDate(time());
+			$set["updated"] = time();
+		}
+		
 		//update 
 		PHDB::update( $collection, array("_id" => new MongoId($id)), 
 		                          array($verb => $set));
+
+		if( $collection != Person::COLLECTION && Authorisation::isOpenEdition($collection, $id) && $dataFieldName != "badges"){
+			// Add in activity to show each modification added to this entity
+					//echo $dataFieldName;
+			ActivityStream::saveActivityHistory(ActStr::VERB_UPDATE, $id, $collection, $dataFieldName, $fieldValue);
+		}
+
 		return true;
 	}
 

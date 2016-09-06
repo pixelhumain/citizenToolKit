@@ -733,7 +733,8 @@ class Organization {
 			// Add in activity to show each modification added to this entity
 			//echo $dataFieldName;
 			ActivityStream::saveActivityHistory(ActStr::VERB_UPDATE, $organizationId, Organization::COLLECTION, $dataFieldName, $organizationFieldValue);
-		}	
+		}
+			
 
 		return true;
 	}
