@@ -199,10 +199,6 @@ class Link {
         	$links["links.".$connectType.".".$targetId.".roles"] = $role;
         }
 
-        
-        //0. Check if the $originId and the $targetId exists
-        $origin = Link::checkIdAndType($originId, $originType);
-		$target = Link::checkIdAndType($targetId, $targetType);
 	    //2. Create the links
         PHDB::update($originType, 
                        array("_id" => $origin["_id"]) , 
@@ -726,7 +722,6 @@ class Link {
             return array("result" => true, "msg" => "Something went wrong ! Impossible to find the children ".$childId);
         }
 		//Check if the child is already link to the parent with the connectType
-
 		$alreadyLink=false;
 		if($typeOfDemand != "admin"){
 			if(@$parentUsersList[$childId] && $userId != $childId)
