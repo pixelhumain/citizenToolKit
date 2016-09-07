@@ -90,18 +90,18 @@ class DetailAction extends CAction {
             	}
           	}
         }
-        //events can have sub evnets
+        //events can have sub events
         $params["subEvents"] = PHDB::find(Event::COLLECTION,array("parentId"=>$id));
         $params["subEventsOrganiser"] = array();
         $hasSubEvents = false;
         if(@$params["subEvents"]){
         	$hasSubEvents = true;
-        	foreach ($params["subEvents"] as $key => $value) {
-        		if( @$value["links"]["organizer"] )
+        	foreach ($params["subEvents"] as $idSubEvent => $subEvent) {
+        		if( @$subEvent["links"]["organizer"] )
         		{
-	        		foreach ($value["links"]["organizer"] as $key => $value) {
-	        			if( !@$params["subEventsOrganiser"][$key])
-	        				$params["subEventsOrganiser"][$key] = Element::getInfos( $value["type"], $key);
+	        		foreach ($subEvent["links"]["organizer"] as $idOrganizer => $value) {
+	        			if( !@$params["subEventsOrganiser"][$idOrganizer])
+	        				$params["subEventsOrganiser"][$idOrganizer] = Element::getInfos( $value["type"], $idOrganizer);
 	        		}
         		}
         	}

@@ -603,7 +603,7 @@ class Event {
   					$events[$key]["organizer"] = $name;
 		  		}
 		  	}
- 	  		$events[$key] = array_merge($events[$key], Document::retrieveAllImagesUrl($key, self::COLLECTION));
+ 	  		$events[$key] = array_merge($events[$key], Document::retrieveAllImagesUrl($key, self::COLLECTION, $value["type"], $value));
 	  	}
 	  	return $events;
 	}
