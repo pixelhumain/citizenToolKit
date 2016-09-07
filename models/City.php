@@ -69,7 +69,7 @@ class City {
 			$insee = substr($unikey,  strpos($unikey, "_")+1,  strpos($unikey, "-")-strpos($unikey, "_")-1);
 			$cp = substr($unikey, strpos($unikey, "-")+1,  strlen($unikey));
 		}
-		error_log("INSEE : ".$insee);
+		//error_log("INSEE : ".$insee);
 		$city = PHDB::findOne( self::COLLECTION , array("insee"=>$insee, "country"=>$country) );// self::getWhere(array("insee"=>$insee, "country"=>$country));
 		if (isset($cp)) 
 		{
