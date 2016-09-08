@@ -116,6 +116,10 @@ class DetailAction extends CAction
         $params["people"] = $allPeople;
         $params["insee"] = $insee;
         $params["city"] = $city;
+
+        
+        //$page = "detail2";
+
         if(!empty($postalCode))
             $params["cityGlobal"] = false;
         else

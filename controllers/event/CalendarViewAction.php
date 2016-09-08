@@ -17,7 +17,6 @@
 		  				$params['events'] = Event::getListCurrentEventsByOrganizationId($id);
 		  		}else{
 		  			//means we are showing details of an events
-		  			
 		  			$event = Event::getById($id);
 		  			$params['event'] = $event;
 		  			$params['events'] = Event::getListEventsById($id);
