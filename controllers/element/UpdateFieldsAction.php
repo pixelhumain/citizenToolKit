@@ -7,7 +7,7 @@ class UpdateFieldsAction extends CAction
     public function run($type)
     {
         $controller=$this->getController();
-        if (!empty($_POST["pk"]) && ! empty($_POST["name"]) && ! empty($_POST["value"])) {
+        if (!empty($_POST["pk"]) && ! empty($_POST["name"]) && isset($_POST["value"])) {
 			$elementId = $_POST["pk"];
 			$elementFieldName = $_POST["name"];
 			$elementFieldValue = $_POST["value"];
