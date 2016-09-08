@@ -467,7 +467,7 @@ class Person {
 	  			throw new CTKException(Yii::t("person","Problem inserting the new person : ").$data.Yii::t("person"," is missing"));
 	  	}
 	  	
-	  	$newPerson["name"] = $person["name"];
+	  	$newPerson["name"] = trim($person["name"]);
 
 	  	//Check email
 	  	$checkEmail = DataValidator::email($person["email"]);
@@ -477,12 +477,12 @@ class Person {
 
 		//Check if the email of the person is already in the database
 	  	if ($uniqueEmail) {
-		  	$account = PHDB::findOne(Person::COLLECTION,array("email"=>$person["email"]));
+		  	$account = PHDB::findOne(Person::COLLECTION,array("email"=> new MongoRegex('/^' . preg_quote(trim($person["email"])) . '$/i')));
 		  	if ($account) {
 		  		throw new CTKException(Yii::t("person","Problem inserting the new person : a person with this email already exists in the plateform"));
 		  	}
 	  	}
-	  	$newPerson["email"] = $person["email"];
+	  	$newPerson["email"] = trim($person["email"]);
 	  	
 	  	if (!empty($person["invitedBy"])) {
 	  		$newPerson["invitedBy"] = $person["invitedBy"];
@@ -490,7 +490,7 @@ class Person {
 
 	  	if ($mode == self::REGISTER_MODE_NORMAL || $mode == self::REGISTER_MODE_TWO_STEPS) {
 		  	//user name
-		  	$newPerson["username"] = $person["username"];
+		  	$newPerson["username"] = trim($person["username"]);
 		  	if (strlen($newPerson["username"]) < 4 || strlen($newPerson["username"]) > 32) {
 		  		throw new CTKException(Yii::t("person","The username length should be between 4 and 32 characters"));
 		  	} 
@@ -827,7 +827,7 @@ class Person {
 
         Person::clearUserSessionData();
         $account = PHDB::findOne(self::COLLECTION, array( '$or' => array( 
-        															array("email" => new MongoRegex('/^'.preg_quote($emailOrUsername).'$/i')),
+        															array("email" => new MongoRegex('/^'.preg_quote(trim($emailOrUsername)).'$/i')),
         															array("username" => $emailOrUsername) ) ));
         
         //return an error when email does not exist
@@ -1360,7 +1360,8 @@ class Person {
 		  		throw new CTKException(Yii::t("import","205", null, Yii::app()->controller->module->id));
 		  	}
 			//Check if the email of the person is already in the database
-		  	$account = PHDB::findOne(Person::COLLECTION,array("email"=>$person["email"]));
+		  	$account = PHDB::findOne(Person::COLLECTION,array("email"=> new MongoRegex('/^' . preg_quote(trim($person["email"])) . '$/i')));
+		  	//$account = PHDB::findOne(Person::COLLECTION,array("email"=>$person["email"]));
 		  	if($account){
 		  		throw new CTKException(Yii::t("import","206", null, Yii::app()->controller->module->id));
 		  	}

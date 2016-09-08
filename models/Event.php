@@ -263,6 +263,11 @@ class Event {
 			}
 			$newEvent["tags"] = $tags;
 		}
+
+		$newEvent["organizerType"] = $params["organizerType"] ;
+
+		if(!empty($params["organizerId"]))
+	    	$newEvent["organizerId"] = $params["organizerId"];
 	    
 	    return $newEvent;
 	}
@@ -296,7 +301,6 @@ class Event {
 				}
 			}
 		}
-
 	    PHDB::insert(self::COLLECTION,$newEvent);
 	    
 	    /*
@@ -599,7 +603,7 @@ class Event {
   					$events[$key]["organizer"] = $name;
 		  		}
 		  	}
- 	  		$events[$key] = array_merge($events[$key], Document::retrieveAllImagesUrl($key, self::COLLECTION));
+ 	  		$events[$key] = array_merge($events[$key], Document::retrieveAllImagesUrl($key, self::COLLECTION, $value["type"], $value));
 	  	}
 	  	return $events;
 	}

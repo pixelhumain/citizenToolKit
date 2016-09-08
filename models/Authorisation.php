@@ -698,11 +698,17 @@ class Authorisation {
      * @param String the type of the entity
      * @return bool 
      */
-    public static function isOpenEdition($idEntity, $typeEntity){
+    public static function isOpenEdition($idEntity, $typeEntity, $preferences=null){
         $res = false ;
-        $entity = PHDB::findOne($typeEntity,array("_id"=>new MongoId($idEntity)),array('preferences'));
-        if(!empty($entity["preferences"])){
-           $res = Preference::isOpenEdition($entity["preferences"]);
+        if(!empty(Yii::app()->session["userId"])){
+            if(empty($preferences)){
+                $entity = PHDB::findOne($typeEntity,array("_id"=>new MongoId($idEntity)),array('preferences'));
+                $preferences = $entity["preferences"];
+            }
+            
+            if(!empty($entity["preferences"])){
+               $res = Preference::isOpenEdition($preferences);
+            }
         }
 
         return $res;

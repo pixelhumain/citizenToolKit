@@ -217,6 +217,12 @@ class Project {
 			$newProject["tags"] = $tags;
 		}
 
+		if(!empty($params['parentId']))
+	        $newEvent["parentId"] = $params['parentId'];
+
+	    if(!empty($params['parentType']))
+	        $newEvent["parentType"] = $params['parentType'];
+
 		return $newProject;
 	}
 
