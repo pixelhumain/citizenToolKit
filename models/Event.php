@@ -1324,5 +1324,9 @@ class Event {
 	    return array("result"=>true, "msg"=>Yii::t("event","Your event has been connected."), "id"=>$newEvent["_id"], "event" => $newEvent );
 
 	}
+
+	public static function getDataBinding() {
+	  	return self::$dataBinding;
+	}
 }
 ?>

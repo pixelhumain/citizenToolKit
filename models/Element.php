@@ -20,6 +20,24 @@ class Element {
     	return @$ctrls[$type];
     }
 
+
+    public static function getCommonByCollection ($type) { 
+
+		$commons = array(
+	    	Organization::COLLECTION => "organisation",
+	    	Event::COLLECTION => "event",
+	    	/*Person::COLLECTION => Person::CONTROLLER,
+	    	Project::COLLECTION => Project::CONTROLLER,
+			News::COLLECTION => News::COLLECTION,
+	    	Need::COLLECTION => Need::CONTROLLER,
+	    	City::COLLECTION => City::CONTROLLER,
+	    	Survey::COLLECTION => Survey::CONTROLLER,
+	    	ActionRoom::COLLECTION => ActionRoom::CONTROLLER,
+	    	ActionRoom::COLLECTION_ACTIONS => ActionRoom::CONTROLLER,*/
+	    );	    
+    	return @$commons[$type];
+    }
+
     public static function getFaIcon ($type) { 
 
 		$fas = array(
@@ -185,13 +203,13 @@ class Element {
 
     private static function getDataBinding($collection) {
 		if($collection == Person::COLLECTION)
-			return Person::$dataBinding ;
+			return Person::getDataBinding();
 		else if($collection == Organization::COLLECTION)
-			return Organization::$dataBinding ;
+			return Organization::getDataBinding();
 		else if($collection == Event::COLLECTION)
-			return Event::$dataBinding ;
+			return Event::getDataBinding();
 		else if($collection == Project::COLLECTION)
-			return Project::$dataBinding ;
+			return Project::getDataBinding();
 		else
 			return array();
 	}
@@ -204,7 +222,7 @@ class Element {
 
     public static function updateField($collection, $id, $fieldName, $fieldValue) {
 
-    	if (!Authorisation::canEditItemOrOpenEdition($collection, $id, Yii::app()->session['userId'])) {
+    	if (!Authorisation::canEditItemOrOpenEdition($id, $collection, Yii::app()->session['userId'])) {
 			throw new CTKException("Can not update the element : you are not authorized to update that element !");
 		}
 		if(is_string($fieldValue))
@@ -220,7 +238,7 @@ class Element {
 		//Tags
 		if ($dataFieldName == "tags") {
 			$fieldValue = Tags::filterAndSaveNewTags($fieldValue);
-			//$set = array($fieldName => $fieldValue);
+			$set = array($fieldName => $fieldValue);
 		}
 		else if ( ($dataFieldName == "mobile"|| $dataFieldName == "fixe" || $dataFieldName == "fax")){
 			if($fieldValue ==null)
@@ -296,16 +314,23 @@ class Element {
 		}
 		
 		//update 
-		PHDB::update( $collection, array("_id" => new MongoId($id)), 
+		$resUpdate = PHDB::update( $collection, array("_id" => new MongoId($id)), 
 		                          array($verb => $set));
+		$res = array("result"=>false,"msg"=>"");
 
-		if( $collection != Person::COLLECTION && Authorisation::isOpenEdition($collection, $id) && $dataFieldName != "badges"){
-			// Add in activity to show each modification added to this entity
-					//echo $dataFieldName;
-			ActivityStream::saveActivityHistory(ActStr::VERB_UPDATE, $id, $collection, $dataFieldName, $fieldValue);
+		if($resUpdate["ok"]==1){
+			if( $collection != Person::COLLECTION && Authorisation::isOpenEdition($id, $collection) && $dataFieldName != "badges"){
+				// Add in activity to show each modification added to this entity
+						//echo $dataFieldName;
+				ActivityStream::saveActivityHistory(ActStr::VERB_UPDATE, $id, $collection, $dataFieldName, $fieldValue);
+			}
+			$res = array("result"=>true,"msg"=>Yii::t(Element::getControlerByCollection($collection),"The ".Element::getControlerByCollection($collection)." has been updated"));
+		}else{
+			throw new CTKException("Can not update the element!");
 		}
+		
 
-		return true;
+		return $res;
 	}
 
 	public static function getImgProfil($person, $imgName, $assetUrl){

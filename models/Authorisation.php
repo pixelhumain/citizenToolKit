@@ -702,11 +702,11 @@ class Authorisation {
         $res = false ;
         if(!empty(Yii::app()->session["userId"])){
             if(empty($preferences)){
-                $entity = PHDB::findOne($typeEntity,array("_id"=>new MongoId($idEntity)),array('preferences'));
-                $preferences = $entity["preferences"];
+                $entity = PHDB::find($typeEntity, array( "_id" => new MongoId($idEntity) ), array('preferences'));
+                $preferences = $entity[$idEntity]["preferences"];
             }
             
-            if(!empty($entity["preferences"])){
+            if(!empty($preferences)){
                $res = Preference::isOpenEdition($preferences);
             }
         }

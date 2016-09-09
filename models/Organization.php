@@ -1313,6 +1313,11 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 	}
 
 
+	public static function getDataBinding() {
+	  	return self::$dataBinding;
+	}
+
+
 
 }
 ?>

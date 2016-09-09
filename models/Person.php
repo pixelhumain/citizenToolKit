@@ -1851,6 +1851,10 @@ class Person {
 
     }
 
+    public static function getDataBinding() {
+	  	return self::$dataBinding;
+	}
+
     
 
 }

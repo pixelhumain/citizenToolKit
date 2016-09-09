@@ -780,6 +780,10 @@ class Project {
 		return $project ;
 	}
 
+	public static function getDataBinding() {
+	  	return self::$dataBinding;
+	}
+
 	
 
 

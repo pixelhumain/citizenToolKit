@@ -193,7 +193,7 @@ class DetailAction extends CAction {
 		$params["projects"]=$projects;
 		$params["needs"]=$needs;
 		$params["admin"] = Authorisation::canEditItem(Yii::app()->session["userId"], $type, $element["_id"]);
-		$params["openEdition"] = Preference::isOpenEdition($element["preferences"]);
+		$params["openEdition"] = Authorisation::isOpenEdition($element["_id"], $type, $element["preferences"]);
 		$params["isLinked"] = Link::isLinked((string)$element["_id"],$type, Yii::app()->session['userId'], @$element["links"]);
 		if($type==Event::COLLECTION){
 			$params["countStrongLinks"]= @$attendeeNumber;
