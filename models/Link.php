@@ -199,10 +199,6 @@ class Link {
         	$links["links.".$connectType.".".$targetId.".roles"] = $role;
         }
 
-        
-        //0. Check if the $originId and the $targetId exists
-        $origin = Link::checkIdAndType($originId, $originType);
-		$target = Link::checkIdAndType($targetId, $targetType);
 	    //2. Create the links
         PHDB::update($originType, 
                        array("_id" => $origin["_id"]) , 
@@ -321,6 +317,9 @@ class Link {
 		$res = array("result"=>false, "msg"=>"You can't add this event to this organization");
 		if ($organizerType=="organizations"){
 	   		$isUserAdmin = Authorisation::isOrganizationAdmin($userId, $organizerId);
+            if($isUserAdmin != true)
+                $isUserAdmin = Authorisation::isOpenEdition($organizerId, $organizerType);
+
 	   		if($isUserAdmin){
 	   			PHDB::update(Organization::COLLECTION,
 	   						array("_id" => new MongoId($organizerId)),
@@ -335,6 +334,8 @@ class Link {
 	   	}
 	   	else if ($organizerType=="projects"){
 		   	$isUserAdmin = Authorisation::isProjectAdmin($organizerId,$userId);
+            if($isUserAdmin != true)
+                $isUserAdmin = Authorisation::isOpenEdition($organizerId, $organizerType);
 	   		if($isUserAdmin){
 	   			PHDB::update(Project::COLLECTION,
 	   						array("_id" => new MongoId($organizerId)),
@@ -721,7 +722,6 @@ class Link {
             return array("result" => true, "msg" => "Something went wrong ! Impossible to find the children ".$childId);
         }
 		//Check if the child is already link to the parent with the connectType
-
 		$alreadyLink=false;
 		if($typeOfDemand != "admin"){
 			if(@$parentUsersList[$childId] && $userId != $childId)
