@@ -242,6 +242,8 @@ class Project {
 		}
 		$newProject["updated"] = time();
 	    PHDB::insert(self::COLLECTION,$newProject);
+
+	    Badge::addAndUpdateBadges("opendata",(String)$newProject["_id"], Project::COLLECTION);
 		Link::addContributor(Yii::app() -> session["userId"],Person::COLLECTION,$parentId,$parentType,$newProject["_id"]);
 	   // Link::connect($parentId, $parentType, $newProject["_id"], self::COLLECTION, $parentId, "projects", true );
 
