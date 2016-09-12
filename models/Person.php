@@ -1851,7 +1851,33 @@ class Person {
 
     }
 
-    
+    /**
+     * Delete an existing person.
+     * With current version : Can be used only for person with links but no news/vote/comments
+     * @param string $id : id of the person you want to be deleted
+     * @param string $userId : id of the user making the action. Can be done only with super admins user
+     * @return array res : boolean, msg : string
+     */
+    public static function deletePerson($id, $userId) {
+		//Only super admin can delete a person
+
+		//Check if the person got news/comments/votes
+		//Comments => author
+		//news => author ou target (type = citoyens && id = $id) ou mentions.id contient $id
+		//surveys => VoteUp, VoteMoreInfo, VoteDown...
+		//Return error : impossible to delete (todo)
+
+    	//Delete links on elements collections
+    	//Person => Followers
+    	//Organization => members, followers
+    	//Projects => contibutors
+    	//Events => attendees
+    	//Needs => links/helpers
+
+    	//TODO
+    	//Documents => Profil Images
+
+    }
 
 }
 ?>
