@@ -445,7 +445,7 @@ class Link {
 
         if(empty($links)){
            $item = PHDB::findOne( $itemType ,array("_id"=>new MongoId($itemId)));
-           $links = $item["links"] ;
+           $links = @$item["links"] ;
         }
     	if(isset($links) && isset($links[$linkType])){
             foreach ($links[$linkType] as $key => $value) {
