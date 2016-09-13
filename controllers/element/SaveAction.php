@@ -22,17 +22,18 @@ class SaveAction extends CAction {
             if( $_POST['collection'] == PHType::TYPE_MICROFORMATS){
                 $_POST['collection'] = $_POST['MFcollection'];
                 unset( $_POST['MFcollection'] );
-            }else {
+            } else {
                 unset($_POST['collection']);
                 unset($_POST['key']);
             }
-            
+
+
             //empty fields aren't properly validated and must be removed
-            /*foreach ($_POST as $k => $v) {
-                echo $k." => ".$v."\n";
-                if(empty($v))
-                    unset($_POST[$k]);
-            }*/
+            foreach ($_POST as $key => $value) {
+                if($value == "")
+                    unset($_POST[$key]);
+            }
+
             $microformat = PHDB::findOne(PHType::TYPE_MICROFORMATS, array( "key"=> $key));
             $validate = ( !isset($microformat )  || !isset($microformat["jsonSchema"])) ? false : true;
             //validation process based on microformat defeinition of the form
@@ -41,6 +42,7 @@ class SaveAction extends CAction {
             if($validate)
                 $valid = PHDB::validate( $key, json_decode (json_encode ($_POST), FALSE) );
             
+
             if( $valid["result"] )
             {
                 if($id)
