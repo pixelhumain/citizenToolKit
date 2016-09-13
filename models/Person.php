@@ -1851,7 +1851,88 @@ class Person {
 
     }
 
-    
+    /**
+     * Delete an existing person.
+     * With current version : Can be used only for person with links but no news/vote/comments
+     * @param string $id : id of the person you want to be deleted
+     * @param string $userId : id of the user making the action. Can be done only with super admins user
+     * @return array res : boolean, msg : string
+     */
+    public static function deletePerson($id, $userId) {
+		//Only super admin can delete a person
+    	if (! Authorisation::isUserSuperAdmin($userId)) {
+    		return array("result" => false, "msg" => "You must be a superadmin to delete a person");
+    	}
+
+		$person = self::getById($id);
+		//Check if the user got activity (news, comments, votes)
+		$res = self::checkActivity($id);
+		if ($res["result"]) {
+			$res["msg"] = $res["msg"]." : impossible to delete";
+			return $res;
+		}
+
+		$links2collection = array(
+			//Person => Person that follows the user we want to delete and the 
+			self::COLLECTION => array("follows","followers"),
+			//Organization => members, followers
+			Organization::COLLECTION => array("followers","members"),
+			//Projects => contibutors
+			Project::COLLECTION => array("contributors"),
+			//Events => attendees / organizer
+			Event::COLLECTION => array("attendees", "organizer"),
+			//Needs => links/helpers
+			Need::COLLECTION => array("helpers"));
+
+    	//Delete links on elements collections
+    	foreach ($links2collection as $collection => $linkTypes) {
+    		foreach ($linkTypes as $linkType) {    		
+	    		error_log("Remove link ".$linkType." on collection ".$collection);
+	    		$where = array("links.".$linkType.".".$id => array('$exists' => true));
+	    		$action = array('$unset' => array("links.".$linkType.".".$id => ""));
+	    		PHDB::update($collection, $where, $action);
+	    	}
+    	}
+
+    	//Delete the person
+		$where = array("_id" => new MongoId($id));
+    	PHDB::remove(self::COLLECTION, $where);
+
+    	//TODO
+    	//Documents => Profil Images
+
+    	return array("result" => true, "msg" => "The person has been deleted succesfully");
+    }
+
+    private static function checkActivity($id) {
+    	//Check if the person got news/comments/votes
+		//Comments => author
+		$where = array("author" => $id);
+		$count = PHDB::count(Comment::COLLECTION, $where);
+		if ($count > 0) return array("result" => true, "msg" => "This person had made comments");
+		//news => author ou target (type = citoyens && id = $id) ou mentions.id contient $id
+		$where = array('$or' => array(
+							array("author" => $id), 
+							array("mentions.id" => $id), 
+							array('$and' => array(
+								array("target.type" => self::COLLECTION), 
+								array("target.id" => $id))
+							)));
+		$count = PHDB::count(News::COLLECTION, $where);
+		if ($count > 0) return array("result" => true, "msg" => "This person had made news");
+		//surveys => VoteUp, VoteMoreInfo, VoteDown...
+		$where = array('$or' => array(
+						array("vote.".Action::ACTION_VOTE_UP.".".$id => array('$exists'=>1)),
+						array("vote.".Action::ACTION_VOTE_ABSTAIN.".".$id => array('$exists'=>1)),
+						array("vote.".Action::ACTION_VOTE_UNCLEAR.".".$id => array('$exists'=>1)),
+						array("vote.".Action::ACTION_VOTE_MOREINFO.".".$id => array('$exists'=>1)),
+						array("vote.".Action::ACTION_VOTE_DOWN.".".$id => array('$exists'=>1)))
+					);
+		$count = PHDB::count(Survey::COLLECTION, $where);
+		if ($count > 0) return array("result" => true, "msg" => "This person had made votes");
+
+		return array("result" => false, "msg" => "No activity");
+    }
 
 }
 ?>
