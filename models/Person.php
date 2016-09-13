@@ -1872,48 +1872,34 @@ class Person {
 			return $res;
 		}
 
-    	//Delete links on elements collections
-    	//Person => Person that follows the user we want to delete and the 
-		$where = array("links.follows.".$id => array('$exists' => true));
-		$action = array('$unset' => array("links.follows.".$id => ""));
-		PHDB::update(self::COLLECTION, $where, $action);
-		$where = array("links.followers.".$id => array('$exists' => true));
-		$action = array('$unset' => array("links.followers.".$id => ""));
-		PHDB::update(self::COLLECTION, $where, $action);
-    	
-    	//Organization => members, followers
-    	$where = array("links.followers.".$id => array('$exists' => true));
-    	$action = array('$unset' => array("links.followers.".$id => ""));
-    	PHDB::update(Organization::COLLECTION, $where, $action);
-    	$where = array("links.members.".$id => array('$exists' => true));
-    	$action = array('$unset' => array("links.members.".$id => ""));
-    	PHDB::update(Organization::COLLECTION, $where, $action);
-    	
-    	//Projects => contibutors
-    	$where = array("links.contributors.".$id => array('$exists' => true));
-    	$action = array('$unset' => array("links.contributors.".$id => ""));
-    	PHDB::update(Project::COLLECTION, $where, $action);
-    	
-    	//Events => attendees / organizer
-    	$where = array("links.attendees.".$id => array('$exists' => true));
-    	$action = array('$unset' => array("links.attendees.".$id => ""));
-    	PHDB::update(Event::COLLECTION, $where, $action);
-    	$where = array("links.organizer.".$id => array('$exists' => true));
-    	$action = array('$unset' => array("links.organizer.".$id => ""));
-    	PHDB::update(Event::COLLECTION, $where, $action);
-    	
-    	//Needs => links/helpers
-		$where = array("links.helpers.".$id => array('$exists' => true));
-    	$action = array('$unset' => array("links.helpers.".$id => ""));
-    	PHDB::update(Need::COLLECTION, $where, $action);
+		$links2collection = array(
+			//Person => Person that follows the user we want to delete and the 
+			self::COLLECTION => "follows",
+			self::COLLECTION => "followers",
+			//Organization => members, followers
+			Organization::COLLECTION => "followers",
+			Organization::COLLECTION => "members",
+			//Projects => contibutors
+			Project::COLLECTION => "contributors",
+			//Events => attendees / organizer
+			Event::COLLECTION => "attendees",
+			Event::COLLECTION => "organizer",
+			//Needs => links/helpers
+			Need::COLLECTION => "helpers");
 
-		//Delete the person
+    	//Delete links on elements collections
+    	foreach ($links2collection as $collection => $linkType) {
+    		$where = array("links.".$linkType.".".$id => array('$exists' => true));
+    		$action = array('$unset' => array("links.".$linkType.".".$id => ""));
+    		PHDB::update($collection, $where, $action);
+    	}
+
+    	//Delete the person
 		$where = array("_id" => new MongoId($id));
     	PHDB::remove(self::COLLECTION, $where);
 
     	//TODO
     	//Documents => Profil Images
-
 
     	return array("result" => true, "msg" => "The person has been deleted succesfully");
     }
