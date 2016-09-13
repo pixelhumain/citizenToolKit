@@ -10,28 +10,28 @@ class IndexAction extends CAction
 		
 		//TODO SBAR - it's not beautifull. Refactor soon
 		if($type == Person::COLLECTION){
-			$controllerId = "person";
- -			$params["person"] = Person::getPublicData($id);
-			/*$params["parent"] = Person::getPublicData($id);
-			$params["controller"] = Person::CONTROLLER;*/
+			/*$controllerId = "person";
+ -			$params["person"] = Person::getPublicData($id);*/
+			$params["parent"] = Person::getPublicData($id);
+			$params["controller"] = Person::CONTROLLER;
 		}
 		else if ($type == Organization::COLLECTION){
-			$controllerId = "organization";
-			$params["organization"] = Organization::getPublicData($id);
-			/*$params["parent"] = Organization::getPublicData($id);
-			$params["controller"] = Organization::CONTROLLER;*/
+			/*$controllerId = "organization";
+			$params["organization"] = Organization::getPublicData($id);*/
+			$params["parent"] = Organization::getPublicData($id);
+			$params["controller"] = Organization::CONTROLLER;
 		}
 		else if ($type == Project::COLLECTION){
-			$controllerId = "project";
- -			$params["project"] = Project::getPublicData($id);
-			/*$params["parent"] = Project::getPublicData($id);
-			$params["controller"] = Project::CONTROLLER;*/
+			/*$controllerId = "project";
+ -			$params["project"] = Project::getPublicData($id);*/
+			$params["parent"] = Project::getPublicData($id);
+			$params["controller"] = Project::CONTROLLER;
 		}
 		else if ($type == Event::COLLECTION){
-			$controllerId = "event";
- -			$params["event"] = Event::getPublicData($id);
-			/*$params["parent"] = Event::getPublicData($id);
-			$params["controller"] = Event::CONTROLLER;*/
+			/*$controllerId = "event";
+ -			$params["event"] = Event::getPublicData($id);*/
+			$params["parent"] = Event::getPublicData($id);
+			$params["controller"] = Event::CONTROLLER;
 		}
 		else{
 			throw new CTKException("Impossible to manage this type ".$type);
@@ -40,10 +40,13 @@ class IndexAction extends CAction
 		if(isset(Yii::app()->session["userId"]))
 			$params["canEdit"] = Authorisation::canEditItem(Yii::app()->session["userId"], $type, $id);
 
-		$params['controllerId'] = $controllerId;
+		//$params['controllerId'] = $controllerId;
 		$contentKey=null;
 		$params["authorizedToStock"]= Document::authorizedToStock($id, $type,Document::DOC_TYPE_IMAGE);
 		$params['images'] = Document::getListDocumentsByIdAndType($id, $type, $contentKey, Document::DOC_TYPE_IMAGE);
+		$params["admin"] = Authorisation::canEditItem(Yii::app()->session["userId"], $type, $params["parent"]["_id"]);
+        $params["openEdition"] = Authorisation::isOpenEdition($params["parent"]["_id"], $type, @$params["parent"]["preferences"]);
+        
 		$controller->subTitle = "";
 		echo $controller->renderPartial("gallery", $params);
     }

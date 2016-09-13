@@ -25,7 +25,8 @@ class DirectoryAction extends CAction
             "followers" => @$links["followers"]
         );  
        // $params["organization"] = $organization;
-        $params["type"] = Organization::CONTROLLER;
+        $params["type"] = $type;
+        //$params["type"] = Organization::CONTROLLER;
         $params["parentType"] = $type;
         $params["parentId"] = $id;
         $params["element"] = $element;
@@ -40,7 +41,9 @@ class DirectoryAction extends CAction
             $connectAs="attendees";
 
         $params["manage"] = ( @$connectAs && @$element["links"][$connectAs][Yii::app()->session["userId"]])?1:0;
-        
+        $params["admin"] = Authorisation::canEditItem(Yii::app()->session["userId"], $type, $element["_id"]);
+        $params["openEdition"] = Authorisation::isOpenEdition($element["_id"], $type, @$element["preferences"]);
+
         $page = "directory2";
         if(Yii::app()->request->isAjaxRequest){
             echo $controller->renderPartial($page,$params,true);
