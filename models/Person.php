@@ -1874,24 +1874,24 @@ class Person {
 
 		$links2collection = array(
 			//Person => Person that follows the user we want to delete and the 
-			self::COLLECTION => "follows",
-			self::COLLECTION => "followers",
+			self::COLLECTION => array("follows","followers"),
 			//Organization => members, followers
-			Organization::COLLECTION => "followers",
-			Organization::COLLECTION => "members",
+			Organization::COLLECTION => array("followers","members"),
 			//Projects => contibutors
-			Project::COLLECTION => "contributors",
+			Project::COLLECTION => array("contributors"),
 			//Events => attendees / organizer
-			Event::COLLECTION => "attendees",
-			Event::COLLECTION => "organizer",
+			Event::COLLECTION => array("attendees", "organizer"),
 			//Needs => links/helpers
-			Need::COLLECTION => "helpers");
+			Need::COLLECTION => array("helpers"));
 
     	//Delete links on elements collections
-    	foreach ($links2collection as $collection => $linkType) {
-    		$where = array("links.".$linkType.".".$id => array('$exists' => true));
-    		$action = array('$unset' => array("links.".$linkType.".".$id => ""));
-    		PHDB::update($collection, $where, $action);
+    	foreach ($links2collection as $collection => $linkTypes) {
+    		foreach ($linkTypes as $linkType) {    		
+	    		error_log("Remove link ".$linkType." on collection ".$collection);
+	    		$where = array("links.".$linkType.".".$id => array('$exists' => true));
+	    		$action = array('$unset' => array("links.".$linkType.".".$id => ""));
+	    		PHDB::update($collection, $where, $action);
+	    	}
     	}
 
     	//Delete the person
