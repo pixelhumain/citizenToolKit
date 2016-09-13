@@ -7,18 +7,30 @@ class DetailAction extends CAction {
     public function run($type, $id) { 
     	$controller=$this->getController();
 		$members=array();
-		$list = Lists::get(array("eventTypes"));
+		//$list = Lists::get(array("eventTypes"));
+
 		$events=array();
 		$projects=array();
 		$needs=array();
 
+		if($type != Person::COLLECTION){
+			$listsToRetrieveOrga = array("public", "typeIntervention", "organisationTypes", "NGOCategories", "localBusinessCategories");
+			$listsOrga = Lists::get($listsToRetrieveOrga);
+
+			$listsToRetrieveEvent = array("eventTypes");
+			$listsEvent = Lists::get($listsToRetrieveEvent);
+		}
+		
+
+
 		if($type == Organization::COLLECTION){
 			$element = Organization::getById($id);
-			$params["listTypes"] = isset($lists["organisationTypes"]) ? $lists["organisationTypes"] : null;
-			$params["public"] 			 = isset($lists["public"]) 			  ? $lists["public"] : null;
-			$params["typeIntervention"]  = isset($lists["typeIntervention"])  ? $lists["typeIntervention"] : null;
-			$params["NGOCategories"] 	 = isset($lists["NGOCategories"]) 	  ? $lists["NGOCategories"] : null;
-			$params["localBusinessCategories"] = isset($lists["localBusinessCategories"]) ? $lists["localBusinessCategories"] : null;
+			$params["listTypes"] = isset($listsOrga["organisationTypes"]) ? $listsOrga["organisationTypes"] : null;
+			//$params["orgaTypes"] = isset($listsOrga["organisationTypes"]) ? $listsOrga["organisationTypes"] : null;
+			$params["public"] 			 = isset($listsOrga["public"]) 			  ? $listsOrga["public"] : null;
+			$params["typeIntervention"]  = isset($listsOrga["typeIntervention"])  ? $listsOrga["typeIntervention"] : null;
+			$params["NGOCategories"] 	 = isset($listsOrga["NGOCategories"]) 	  ? $listsOrga["NGOCategories"] : null;
+			$params["localBusinessCategories"] = isset($listsOrga["localBusinessCategories"]) ? $listsOrga["localBusinessCategories"] : null;
 			$params["controller"] = Organization::CONTROLLER;
 			$connectType = "members";
 			// Link with events
@@ -48,8 +60,8 @@ class DetailAction extends CAction {
 
 		} else if ($type == Project::COLLECTION){
 			$element = Project::getById($id);
-			$params["eventTypes"] = $list["eventTypes"];
-			$params["listTypes"] = @$lists["eventTypes"];
+			$params["eventTypes"] = $listsEvent["eventTypes"];
+			$params["listTypes"] = @$listsEvent["eventTypes"];
 			$connectType = "contributors";
 			$params["controller"] = Project::CONTROLLER;
 			// Link with events
@@ -69,7 +81,7 @@ class DetailAction extends CAction {
 
 		} else if ($type == Event::COLLECTION){
 			$element = Event::getById($id);
-			$params["listTypes"] = $list["eventTypes"];
+			$params["listTypes"] = $listsEvent["eventTypes"];
 			$connectType = "attendees";
 			$params["controller"] = Event::CONTROLLER;
 			$invitedNumber=0;
@@ -184,7 +196,8 @@ class DetailAction extends CAction {
 				}
 			}
 		}
-		$params["eventTypes"] = $list["eventTypes"];
+		//$lists = Lists::get($listsToRetrieve);
+		//$params["eventTypes"] = $list["eventTypes"];
 		$params["tags"] = Tags::getActiveTags();
 		$params["element"] = $element;
 		$params["members"] = $members;
@@ -193,8 +206,10 @@ class DetailAction extends CAction {
 		$params["projects"]=$projects;
 		$params["needs"]=$needs;
 		$params["admin"] = Authorisation::canEditItem(Yii::app()->session["userId"], $type, $element["_id"]);
-		$params["openEdition"] = Authorisation::isOpenEdition($element["_id"], $type, $element["preferences"]);
+		$params["openEdition"] = Authorisation::isOpenEdition($element["_id"], $type, @$element["preferences"]);
+		
 		$params["isLinked"] = Link::isLinked((string)$element["_id"],$type, Yii::app()->session['userId'], @$element["links"]);
+		
 		if($type==Event::COLLECTION){
 			$params["countStrongLinks"]= @$attendeeNumber;
 			$params["countLowLinks"] = @$invitedNumber;

@@ -303,6 +303,7 @@ class Event {
 		}
 	    PHDB::insert(self::COLLECTION,$newEvent);
 	    
+	    Badge::addAndUpdateBadges("opendata",(String)$newEvent["_id"], Event::COLLECTION);
 	    /*
 	    * except if organiser type is dontKnow
 		*   Add the creator as the first attendee

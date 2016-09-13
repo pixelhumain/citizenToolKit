@@ -98,6 +98,8 @@ class Organization {
 	    } else {
 	    	throw new CTKException(Yii::t("organization","Problem inserting the new organization"));
 	    }
+
+	    Badge::addAndUpdateBadges("opendata", $newOrganizationId, Organization::COLLECTION);
 		
 		//Manage link with the creator depending of the role selected
 		if (@$organization["role"] == "admin") {

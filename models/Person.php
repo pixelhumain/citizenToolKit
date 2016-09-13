@@ -31,6 +31,7 @@ class Person {
 	    "fax" => array("name" => "telephone.fax"),
 	    "tags" => array("name" => "tags"),
 	    "shortDescription" => array("name" => "shortDescription"),
+	    "description" => array("name" => "description"),
 	    "facebookAccount" => array("name" => "socialNetwork.facebook"),
 	    "twitterAccount" => array("name" => "socialNetwork.twitter"),
 	    "gpplusAccount" => array("name" => "socialNetwork.googleplus"),
