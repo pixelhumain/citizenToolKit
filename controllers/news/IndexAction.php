@@ -265,8 +265,13 @@ class IndexAction extends CAction
 					        			$queryLocality["scope.cities.postalCode"] = $city["cp"];
 					        		}
 				  				}
-				  				elseif($key == "CODE_POSTAL") {
-					        		$queryLocality = array($value => new MongoRegex("/^".$localityRef."/i"));
+				  				elseif($key == "CODE_POSTAL") { //error_log($localityRef);
+				  					$cities = PHDB::find( City::COLLECTION, array("postalCodes.postalCode" => $localityRef), array("insee"));
+				  					$inQuestInsee = array();
+				  					foreach($cities as $key => $val){ $inQuestInsee[] = $val["insee"]; error_log($val["insee"]); }
+					        		$queryLocality = array('$or' => array( array($value => new MongoRegex("/^".$localityRef."/i")),
+					        												array("scope.cities.codeInsee" => array('$in' => $inQuestInsee)) )
+					        							 );
 				  				}
 				  				elseif($key == "DEPARTEMENT") { error_log("DEPARTEMENT : " . $localityRef);
 				        			$dep = PHDB::findOne( City::COLLECTION, array("depName" => $localityRef), array("dep"));	
@@ -274,6 +279,7 @@ class IndexAction extends CAction
 					        			//$queryLocality = array($value => new MongoRegex("/^".$dep["dep"]."/i"));
 					        			$queryLocality = array('$or' => array(
 									        						array($value => new MongoRegex("/^".$dep["dep"]."/i")),
+									        						array("scope.cities.codeInsee" => new MongoRegex("/^".$dep["dep"]."/i")),
 									        						array("scope.departements.name" => $localityRef)
 									        						));
 				        			}
@@ -301,6 +307,7 @@ class IndexAction extends CAction
 					        			}
 					        			$queryLocality = array('$or' => array(								        							
 					        								array("scope.cities.postalCode" => array('$in' => $inQuestCp)),
+									        				array("scope.cities.codeInsee" => array('$in' => $inQuestCp)),
 									        				array("scope.departements.name" => array('$in' => $inQuestName)),
 									        				array("scope.regions.name" => $localityRef)
 									        						));
