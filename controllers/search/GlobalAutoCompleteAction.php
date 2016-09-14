@@ -13,6 +13,8 @@ class GlobalAutoCompleteAction extends CAction
         $country = isset($_POST['country']) ? $_POST['country'] : "";
         $latest = isset($_POST['latest']) ? $_POST['latest'] : null;
 
+        $indexStep = $indexMax - $indexMin;
+        
         //error_log("global search " . $search . " - searchBy : ". $searchBy. " & locality : ". $locality. " & country : ". $country);
 	    
    //      if($search == "" && $locality == "") {
@@ -121,11 +123,9 @@ class GlobalAutoCompleteAction extends CAction
 	    //var_dump($query); return;
         /***********************************  PERSONS   *****************************************/
         if(strcmp($filter, Person::COLLECTION) != 0 && $this->typeWanted("persons", $searchType)){
-	        $allCitoyen = PHDB::findAndSortAndLimitAndIndex( Person::COLLECTION , $query, 
-	  										  array("name" => 1), 30, $indexMin);
 
-        	//$allCitoyen = PHDB::findAndSort ( Person::COLLECTION , $query, 
-	  		//								  array("name" => 1), $indexMax);
+        	$allCitoyen = PHDB::findAndSortAndLimitAndIndex ( Person::COLLECTION , $query, 
+	  										  array("updated" => -1), $indexStep, $indexMin);
 
 	  		foreach ($allCitoyen as $key => $value) {
 	  			$person = Person::getSimpleUserById($key,$value);
@@ -145,12 +145,8 @@ class GlobalAutoCompleteAction extends CAction
         	if( !isset( $queryOrganization['$and'] ) ) 
         		$queryOrganization['$and'] = array();
         	array_push( $queryOrganization[ '$and' ], array( "disabled" => array('$exists' => false) ) );
-	  		/*$allOrganizations = PHDB::findAndSort ( Organization::COLLECTION ,$queryOrganization, 
-	  												array("updated" => -1, "name" => 1), $indexMax);*/
-
-	  		$allOrganizations = PHDB::findAndSortAndLimitAndIndex( Organization::COLLECTION , $queryOrganization, 
-	  										  array("updated" => -1, "name" => 1), 30, $indexMin);
-
+	  		$allOrganizations = PHDB::findAndSortAndLimitAndIndex ( Organization::COLLECTION ,$queryOrganization, 
+	  												array("updated" => -1), $indexStep, $indexMin);
 	  		foreach ($allOrganizations as $key => $value) 
 	  		{
 	  			if(!empty($value)){
@@ -179,12 +175,8 @@ class GlobalAutoCompleteAction extends CAction
         	
         	array_push( $queryEvent[ '$and' ], array( "endDate" => array( '$gte' => new MongoDate( time() ) ) ) );
         	
-        	/*$allEvents = PHDB::findAndSort( PHType::TYPE_EVENTS, $queryEvent, 
-	  										array("updated" => -1,"startDate" => 1), $indexMax);*/
-
-        	$allEvents = PHDB::findAndSortAndLimitAndIndex( PHType::TYPE_EVENTS , $queryEvent, 
-	  										  array("updated" => -1, "startDate" => 1), 30, $indexMin);
-
+        	$allEvents = PHDB::findAndSortAndLimitAndIndex( PHType::TYPE_EVENTS, $queryEvent, 
+	  										array("startDate" => 1), $indexStep, $indexMin);
 	  		foreach ($allEvents as $key => $value) {
 	  			$allEvents[$key]["type"] = "event";
 				$allEvents[$key]["typeSig"] = Event::COLLECTION;
@@ -199,14 +191,11 @@ class GlobalAutoCompleteAction extends CAction
 	  		
 	  		$allRes = array_merge($allRes, $allEvents);
 	  	}
-
+	  	error_log("recherche - indexMin : ".$indexMin." - "." indexMax : ".$indexMax);
 	  	/***********************************  PROJECTS   *****************************************/
         if(strcmp($filter, Project::COLLECTION) != 0 && $this->typeWanted(Project::COLLECTION, $searchType)){
-        	/*$allProject = PHDB::findAndSort(Project::COLLECTION, $query, 
-	  												array("updated" => -1, "name" => 1), $indexMax);*/
-
-        	$allProject = PHDB::findAndSortAndLimitAndIndex( Project::COLLECTION , $query, 
-	  										  array("updated" => -1, "name" => 1), 30, $indexMin);
+        	$allProject = PHDB::findAndSortAndLimitAndIndex(Project::COLLECTION, $query, 
+	  												array("updated" => -1), $indexStep, $indexMin);
 	  		foreach ($allProject as $key => $value) {
 	  			if(@$project["links"]["followers"][Yii::app()->session["userId"]]){
 		  			$allProject[$key]["isFollowed"] = true;
@@ -221,6 +210,7 @@ class GlobalAutoCompleteAction extends CAction
 	  		}
 	  		//$res["project"] = $allProject;
 	  		$allRes = array_merge($allRes, $allProject);
+	  		error_log(sizeof($allProject));
 	  	}
 
 	  	/***********************************  DDA   *****************************************/
@@ -383,13 +373,13 @@ class GlobalAutoCompleteAction extends CAction
 	  	// 		usort($allRes, "mySortByName"); //on tri les éléments par ordre alphabetique sur le name
 
 	  	
-	  	if(isset($allRes)) {
+	  	/*if(isset($allRes)) {
 	  		if($latest)
 	  			usort($allRes, "mySortByUpdated");
 	  		else
 	  			usort($allRes, "mySortByName");
-	  	}
-	  	
+	  	}*/
+
 
 	  	if(isset($allCitiesRes)) usort($allCitiesRes, "mySortByName");
 
@@ -398,15 +388,17 @@ class GlobalAutoCompleteAction extends CAction
 	  		if(isset($allCitiesRes)) 
 	  			$allRes = array_merge($allRes, $allCitiesRes);
 
+	  	$limitRes = $allRes;
+	  	/*
 	  	$limitRes = array();
 	  	$index = 0;
-	  
 	  	foreach ($allRes as $key => $value) {
-	  		//if($index < $indexMax && $index >= $indexMin){ 
-	  			$limitRes[] = $value;
-		  	//}//else{ break; }
+	  		if($index < $indexMax && $index >= $indexMin){ $limitRes[] = $value;
+		  	}//else{ break; }
 		  	$index++;
 	  	}
+		*/
+
   		//Rest::json($res);
   		if(@$_POST['tpl'])
   			echo $this->getController()->renderPartial($_POST['tpl'], array("result"=>$limitRes));
