@@ -54,7 +54,7 @@ class Role {
 
 		//check if the user has been created with minimal data
 		if (@$person["pending"]) {
-			return array("result"=>false, "pendingUserId" => (String) $person["_id"], "msg"=>"accountPending");
+			return array("result"=>false, "pendingUserId" => (String) $person["_id"], "pendingUserEmail" => $person["email"], "msg"=>"accountPending");
 		}
 
 		$roles = self::checkUserRoles($person);

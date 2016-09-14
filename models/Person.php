@@ -1094,7 +1094,13 @@ class Person {
 			$pwd = self::hashPassword($personId, $person["pwd"]);
 
 			//Update des infos minimales
-			$personToUpdate = self::getAndcheckPersonData($person, self::REGISTER_MODE_TWO_STEPS, false);
+			try {
+				$personToUpdate = self::getAndcheckPersonData($person, self::REGISTER_MODE_TWO_STEPS, false);
+			} catch (CTKException $e) {
+				Rest::json(array("result" => false, "msg" => $e->getMessage()));
+				die;
+			}
+
 			$personToUpdate["pwd"] = $pwd;
 
 			PHDB::update(Person::COLLECTION, array("_id" => new MongoId($personId)), 
