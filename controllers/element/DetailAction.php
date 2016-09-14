@@ -8,7 +8,6 @@ class DetailAction extends CAction {
     	$controller=$this->getController();
 		$members=array();
 		//$list = Lists::get(array("eventTypes"));
-
 		$events=array();
 		$projects=array();
 		$needs=array();
@@ -135,8 +134,7 @@ class DetailAction extends CAction {
 	        if(@$params["subEvents"]){
 	        	$hasSubEvents = true;
 	        	foreach ($params["subEvents"] as $key => $value) {
-	        		if( @$value["links"]["organizer"] )
-	        		{
+	        		if( @$value["links"]["organizer"] ){
 		        		foreach ($value["links"]["organizer"] as $key => $value) {
 		        			if( !@$params["subEventsOrganiser"][$key])
 		        				$params["subEventsOrganiser"][$key] = Element::getInfos( $value["type"], $key);
