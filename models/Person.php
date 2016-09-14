@@ -1853,7 +1853,10 @@ class Person {
 
     /**
      * Delete an existing person.
-     * With current version : Can be used only for person with links but no news/vote/comments
+     * - remove links on person/orga/events/projects/needs
+     * - if no activity (news/cote/comments) => delete the user
+     * - else anonymize the user (remove all identity field) but keep the document in person collection
+     * like that the activity of element is kept.
      * @param string $id : id of the person you want to be deleted
      * @param string $userId : id of the user making the action. Can be done only with super admins user
      * @return array res : boolean, msg : string
@@ -1865,13 +1868,9 @@ class Person {
     	}
 
 		$person = self::getById($id);
-		//Check if the user got activity (news, comments, votes)
-		$res = self::checkActivity($id);
-		if ($res["result"]) {
-			$res["msg"] = $res["msg"]." : impossible to delete";
-			return $res;
-		}
+		if (empty($person)) return array("result" => false, "msg" => "Unknown person id");
 
+    	//Delete links on elements collections		
 		$links2collection = array(
 			//Person => Person that follows the user we want to delete and the 
 			self::COLLECTION => array("follows","followers"),
@@ -1884,19 +1883,27 @@ class Person {
 			//Needs => links/helpers
 			Need::COLLECTION => array("helpers"));
 
-    	//Delete links on elements collections
     	foreach ($links2collection as $collection => $linkTypes) {
     		foreach ($linkTypes as $linkType) {    		
-	    		error_log("Remove link ".$linkType." on collection ".$collection);
 	    		$where = array("links.".$linkType.".".$id => array('$exists' => true));
 	    		$action = array('$unset' => array("links.".$linkType.".".$id => ""));
 	    		PHDB::update($collection, $where, $action);
 	    	}
     	}
 
-    	//Delete the person
-		$where = array("_id" => new MongoId($id));
-    	PHDB::remove(self::COLLECTION, $where);
+    	//Check if the user got activity (news, comments, votes)
+		$res = self::checkActivity($id);
+		if ($res["result"]) {
+			//Anonymize the user : Remove all fields from the person
+			$where = array("_id" => new MongoId($id));
+			$action = array("username" => $id, "name" => "Citoyen supprimé", "deletedDate" => new mongoDate(time()), "status" => "deleted");
+			PHDB::update(self::COLLECTION, $where, $action);
+			Log::save(array("userId" => $userId, "browser" => @$_SERVER["HTTP_USER_AGENT"], "ipAddress" => @$_SERVER["REMOTE_ADDR"], "created" => new MongoDate(time()), "action" => "deleteUser", "params" => array("id" => $id)));
+		} else {
+			//Delete the person
+			$where = array("_id" => new MongoId($id));
+	    	PHDB::remove(self::COLLECTION, $where);
+		}
 
     	//TODO
     	//Documents => Profil Images

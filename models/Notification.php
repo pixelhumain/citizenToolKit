@@ -551,4 +551,16 @@ class Notification{
 	    //TODO mail::following
 	    //add a link to follow back easily
 	}
+
+	/**
+	 * Notification for the super admin
+	 * @param String $verb Can be find on const of the ActStr class
+	 * @param type $actor the one making the action
+	 * @param type $object the object 
+	 * @return array : result : boolean / msg : string
+	 */
+	public static function actionToAdmin ( $verb, $actor, $object)  {
+
+	}
+
 }
