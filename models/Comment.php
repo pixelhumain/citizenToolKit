@@ -53,15 +53,16 @@ class Comment {
 	}
 
 	public static function countFrom($from,$type,$id) {
+		$res = 0;
 		if( @$from && @$type && @$id ){
 			$params = array(
 				"contextType"=>$type,
 				"contextId"=>$id,
 				"created" => array( '$gt' => intval( $from ) )
 			);
-		  	return PHDB::count( self::COLLECTION,$params);
-		} else 
-			return 0;
+		  	$res = PHDB::count( self::COLLECTION,$params);
+		} 
+		return $res;
 	}
 
 	public static function getWhereSortLimit($params,$sort,$limit=1) {
@@ -94,7 +95,7 @@ class Comment {
 		}
 		
 		$newComment["author"] = self::getCommentAuthor($newComment, $options);
-		$res = array("result"=>true, "msg"=>Yii::t("comment","The comment has been posted"), "newComment" => $newComment, "id"=>$newComment["_id"]);
+		$res = array("result"=>true, "time"=>time(), "msg"=>Yii::t("comment","The comment has been posted"), "newComment" => $newComment, "id"=>$newComment["_id"]);
 		
 		$notificationContexts = array(News::COLLECTION, ActionRoom::COLLECTION_ACTIONS, Survey::COLLECTION);
 		if( in_array( $comment["contextType"] , $notificationContexts) ){
