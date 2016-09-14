@@ -739,9 +739,10 @@ class Link {
 		
 
         //First case : The parent doesn't have an admin yet or it is an action from an admin or it is an event: 
-		if (count($usersAdmin) == 0 || $actionFromAdmin /*|| $parentType == Event::COLLECTION*/) {
+		if (count($usersAdmin) == 0 || $actionFromAdmin || $parentType == Event::COLLECTION) {
             //the person is automatically added as member (admin or not) of the parent
-            if ($actionFromAdmin &&  $parentType != Event::COLLECTION) {
+            //var_dump("here");
+            if ($actionFromAdmin /*&&  $parentType != Event::COLLECTION*/) {
 	            //If admin add as admin or member 
 	            if($isConnectingAdmin==true){
 					$verb = ActStr::VERB_CONFIRM;
@@ -756,7 +757,7 @@ class Link {
 				$toBeValidated=false;
 				if($childId==Yii::app()->session["userId"]){
 					$msg= Yii::t("common", "You are now ".$typeOfDemand." of")." ".Yii::t("common","this ".$parentController);
-				}else{
+                }else{
 					$invitation = ActStr::VERB_INVITE;
 					if($typeOfDemand != "admin")
 						$toBeValidated=true;
@@ -768,9 +769,16 @@ class Link {
 			// Check if links follows exists than if true, remove of follows and followers links
 			self::checkAndRemoveFollowLink($parentId,$parentType,$childId,$childType);
 			$toBeValidatedAdmin=false;
+
+            if ($isConnectingAdmin && $parentType == Event::COLLECTION) {
+                $verb = ActStr::VERB_AUTHORIZE;
+                $toBeValidatedAdmin=true;
+                $toBeValidated=false;
+            }
            
 		//Second case : Not an admin doing the action.
         } else {
+            
             //Someone ask to become an admin
             if ($isConnectingAdmin) {
     			//Admin validation process
@@ -788,7 +796,8 @@ class Link {
                 $currentAdmin = Person::getEmailById($adminId);
                 array_push($listofAdminsEmail, $currentAdmin["email"]);
             }
-            Mail::someoneDemandToBecome($parentData, $parentType, $pendingChild, $listofAdminsEmail, $typeOfDemand);
+            if (count($listofAdminsEmail))
+                Mail::someoneDemandToBecome($parentData, $parentType, $pendingChild, $listofAdminsEmail, $typeOfDemand);
             //TODO - Notification
             $msg = Yii::t("common","Your request has been sent to other admins.");
             // After : the 1rst existing Admin to take the decision will remove the "pending" to make a real admin
