@@ -739,7 +739,7 @@ class Link {
 		
 
         //First case : The parent doesn't have an admin yet or it is an action from an admin or it is an event: 
-		if (count($usersAdmin) == 0 || $actionFromAdmin /*|| $parentType == Event::COLLECTION*/) {
+		if (count($usersAdmin) == 0 || $actionFromAdmin || $parentType == Event::COLLECTION) {
             //the person is automatically added as member (admin or not) of the parent
             if ($actionFromAdmin &&  $parentType != Event::COLLECTION) {
 	            //If admin add as admin or member 
@@ -756,7 +756,7 @@ class Link {
 				$toBeValidated=false;
 				if($childId==Yii::app()->session["userId"]){
 					$msg= Yii::t("common", "You are now ".$typeOfDemand." of")." ".Yii::t("common","this ".$parentController);
-				}else{
+                }else{
 					$invitation = ActStr::VERB_INVITE;
 					if($typeOfDemand != "admin")
 						$toBeValidated=true;
@@ -771,6 +771,7 @@ class Link {
            
 		//Second case : Not an admin doing the action.
         } else {
+            
             //Someone ask to become an admin
             if ($isConnectingAdmin) {
     			//Admin validation process
