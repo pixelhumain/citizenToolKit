@@ -121,9 +121,11 @@ class GlobalAutoCompleteAction extends CAction
 	    //var_dump($query); return;
         /***********************************  PERSONS   *****************************************/
         if(strcmp($filter, Person::COLLECTION) != 0 && $this->typeWanted("persons", $searchType)){
+	        $allCitoyen = PHDB::findAndSortAndLimitAndIndex( Person::COLLECTION , $query, 
+	  										  array("name" => 1), 30, $indexMin);
 
-        	$allCitoyen = PHDB::findAndSort ( Person::COLLECTION , $query, 
-	  										  array("name" => 1), $indexMax);
+        	//$allCitoyen = PHDB::findAndSort ( Person::COLLECTION , $query, 
+	  		//								  array("name" => 1), $indexMax);
 
 	  		foreach ($allCitoyen as $key => $value) {
 	  			$person = Person::getSimpleUserById($key,$value);
@@ -143,8 +145,12 @@ class GlobalAutoCompleteAction extends CAction
         	if( !isset( $queryOrganization['$and'] ) ) 
         		$queryOrganization['$and'] = array();
         	array_push( $queryOrganization[ '$and' ], array( "disabled" => array('$exists' => false) ) );
-	  		$allOrganizations = PHDB::findAndSort ( Organization::COLLECTION ,$queryOrganization, 
-	  												array("updated" => -1, "name" => 1), $indexMax);
+	  		/*$allOrganizations = PHDB::findAndSort ( Organization::COLLECTION ,$queryOrganization, 
+	  												array("updated" => -1, "name" => 1), $indexMax);*/
+
+	  		$allOrganizations = PHDB::findAndSortAndLimitAndIndex( Organization::COLLECTION , $queryOrganization, 
+	  										  array("updated" => -1, "name" => 1), 30, $indexMin);
+
 	  		foreach ($allOrganizations as $key => $value) 
 	  		{
 	  			if(!empty($value)){
@@ -173,8 +179,12 @@ class GlobalAutoCompleteAction extends CAction
         	
         	array_push( $queryEvent[ '$and' ], array( "endDate" => array( '$gte' => new MongoDate( time() ) ) ) );
         	
-        	$allEvents = PHDB::findAndSort( PHType::TYPE_EVENTS, $queryEvent, 
-	  										array("updated" => -1,"startDate" => 1), $indexMax);
+        	/*$allEvents = PHDB::findAndSort( PHType::TYPE_EVENTS, $queryEvent, 
+	  										array("updated" => -1,"startDate" => 1), $indexMax);*/
+
+        	$allEvents = PHDB::findAndSortAndLimitAndIndex( PHType::TYPE_EVENTS , $queryEvent, 
+	  										  array("updated" => -1, "startDate" => 1), 30, $indexMin);
+
 	  		foreach ($allEvents as $key => $value) {
 	  			$allEvents[$key]["type"] = "event";
 				$allEvents[$key]["typeSig"] = Event::COLLECTION;
@@ -192,8 +202,11 @@ class GlobalAutoCompleteAction extends CAction
 
 	  	/***********************************  PROJECTS   *****************************************/
         if(strcmp($filter, Project::COLLECTION) != 0 && $this->typeWanted(Project::COLLECTION, $searchType)){
-        	$allProject = PHDB::findAndSort(Project::COLLECTION, $query, 
-	  												array("updated" => -1, "name" => 1), $indexMax);
+        	/*$allProject = PHDB::findAndSort(Project::COLLECTION, $query, 
+	  												array("updated" => -1, "name" => 1), $indexMax);*/
+
+        	$allProject = PHDB::findAndSortAndLimitAndIndex( Project::COLLECTION , $query, 
+	  										  array("updated" => -1, "name" => 1), 30, $indexMin);
 	  		foreach ($allProject as $key => $value) {
 	  			if(@$project["links"]["followers"][Yii::app()->session["userId"]]){
 		  			$allProject[$key]["isFollowed"] = true;
@@ -376,7 +389,7 @@ class GlobalAutoCompleteAction extends CAction
 	  		else
 	  			usort($allRes, "mySortByName");
 	  	}
-
+	  	
 
 	  	if(isset($allCitiesRes)) usort($allCitiesRes, "mySortByName");
 
@@ -387,12 +400,13 @@ class GlobalAutoCompleteAction extends CAction
 
 	  	$limitRes = array();
 	  	$index = 0;
+	  
 	  	foreach ($allRes as $key => $value) {
-	  		if($index < $indexMax && $index >= $indexMin){ $limitRes[] = $value;
-		  	}//else{ break; }
+	  		//if($index < $indexMax && $index >= $indexMin){ 
+	  			$limitRes[] = $value;
+		  	//}//else{ break; }
 		  	$index++;
 	  	}
-
   		//Rest::json($res);
   		if(@$_POST['tpl'])
   			echo $this->getController()->renderPartial($_POST['tpl'], array("result"=>$limitRes));
