@@ -121,9 +121,11 @@ class GlobalAutoCompleteAction extends CAction
 	    //var_dump($query); return;
         /***********************************  PERSONS   *****************************************/
         if(strcmp($filter, Person::COLLECTION) != 0 && $this->typeWanted("persons", $searchType)){
+	        $allCitoyen = PHDB::findAndLimitAndIndex( Person::COLLECTION , $query, 
+	  										  array("name" => 1), 30, $indexMin);
 
-        	$allCitoyen = PHDB::findAndSort ( Person::COLLECTION , $query, 
-	  										  array("name" => 1), $indexMax);
+        	//$allCitoyen = PHDB::findAndSort ( Person::COLLECTION , $query, 
+	  		//								  array("name" => 1), $indexMax);
 
 	  		foreach ($allCitoyen as $key => $value) {
 	  			$person = Person::getSimpleUserById($key,$value);
@@ -392,7 +394,6 @@ class GlobalAutoCompleteAction extends CAction
 		  	}//else{ break; }
 		  	$index++;
 	  	}
-
   		//Rest::json($res);
   		if(@$_POST['tpl'])
   			echo $this->getController()->renderPartial($_POST['tpl'], array("result"=>$limitRes));
