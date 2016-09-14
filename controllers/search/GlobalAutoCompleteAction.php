@@ -121,7 +121,7 @@ class GlobalAutoCompleteAction extends CAction
 	    //var_dump($query); return;
         /***********************************  PERSONS   *****************************************/
         if(strcmp($filter, Person::COLLECTION) != 0 && $this->typeWanted("persons", $searchType)){
-	        $allCitoyen = PHDB::findAndLimitAndIndex( Person::COLLECTION , $query, 
+	        $allCitoyen = PHDB::findAndSortAndLimitAndIndex( Person::COLLECTION , $query, 
 	  										  array("name" => 1), 30, $indexMin);
 
         	//$allCitoyen = PHDB::findAndSort ( Person::COLLECTION , $query, 
