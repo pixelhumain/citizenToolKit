@@ -64,15 +64,15 @@ class DetailAction extends CAction {
 							$organizer["type"]=$urlType;
 							$organizer["typeOrga"]=$organizerInfo["type"];              
                 		}
-						else{
+						else {
 							$iconNav="fa-user";
 			                $urlType="person";	
 			                $organizerInfo = Person::getSimpleUserById($uid);  
 							$organizer["type"]=$urlType;
 						}
                 		$organizer["id"] = $uid;
-                		$organizer["name"] = $organizerInfo["name"];
-                		$organizer["profilImageUrl"] = $organizerInfo["profilImageUrl"];
+                		$organizer["name"] = @$organizerInfo["name"];
+                		$organizer["profilImageUrl"] = @$organizerInfo["profilImageUrl"];
                 		/*array_push($controller->toolbarMBZ, array('position' => 'right', 
                                                           'label'=> Yii::t("common","Organizator detail"), 
                                                           'tooltip' => Yii::t("common","Back to")." ".$urlType, 

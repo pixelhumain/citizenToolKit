@@ -335,6 +335,8 @@ class Element {
 		return $res;
 	}
 
+=======
+>>>>>>> development
 	public static function getImgProfil($person, $imgName, $assetUrl){
     	$url = "";
     	$testUrl = "";
@@ -461,6 +463,7 @@ class Element {
         return $list;
      }
 
+<<<<<<< HEAD
     /**
 	 * answers to show or not to show a field by it's name
 	 * @param String $id : is the mongoId of the action room

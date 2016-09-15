@@ -156,23 +156,23 @@ class Organization {
 	
 	public static function newOrganizationFromPost($organization) {
 		$newOrganization = array();
-		if (isset($organization['organizationEmail'])) $newOrganization["email"] = trim($organization['organizationEmail']);
-		if (isset($organization['organizationName'])) $newOrganization["name"] = rtrim($organization['organizationName']);
-		if (isset($organization['type'])) $newOrganization["type"] = $organization['type'];
+		if (@$organization['organizationEmail']) $newOrganization["email"] = trim($organization['organizationEmail']);
+		if (@$organization['organizationName']) $newOrganization["name"] = rtrim($organization['organizationName']);
+		if (@$organization['type']) $newOrganization["type"] = $organization['type'];
 		
 		//Location
-		if (isset($organization['streetAddress'])) $newOrganization["streetAddress"] = rtrim($organization['streetAddress']);
-		if (isset($organization['postalCode'])) $newOrganization["postalCode"] = $organization['postalCode'];
-		if (isset($organization['city'])) $newOrganization["city"] = $organization['city'];
-		if (isset($organization['cityName'])) $newOrganization["cityName"] = $organization['cityName'];
-		if (isset($organization['organizationCountry'])) $newOrganization["addressCountry"] = $organization['organizationCountry'];
+		if (@$organization['streetAddress']) $newOrganization["streetAddress"] = rtrim($organization['streetAddress']);
+		if (@$organization['postalCode']) $newOrganization["postalCode"] = $organization['postalCode'];
+		if (@$organization['city']) $newOrganization["city"] = $organization['city'];
+		if (@$organization['cityName']) $newOrganization["cityName"] = $organization['cityName'];
+		if (@$organization['organizationCountry']) $newOrganization["addressCountry"] = $organization['organizationCountry'];
 
-		if (isset($organization['description'])) $newOrganization["description"] = rtrim($organization['description']);
-		if (isset($organization['tagsOrganization'])) $newOrganization["tags"] = $organization['tagsOrganization'];
-		if (isset($organization['typeIntervention'])) $newOrganization["typeIntervention"] = $organization['typeIntervention'];
-		if (isset($organization['typeOfPublic'])) $newOrganization["typeOfPublic"] = $organization['typeOfPublic'];
-		if (isset($organization['category'])) $newOrganization["category"] = $organization['category'];
-		if (isset($organization['role'])) $newOrganization["role"] = $organization['role'];
+		if (@$organization['description']) $newOrganization["description"] = rtrim($organization['description']);
+		if (@$organization['tagsOrganization']) $newOrganization["tags"] = $organization['tagsOrganization'];
+		if (@$organization['typeIntervention']) $newOrganization["typeIntervention"] = $organization['typeIntervention'];
+		if (@$organization['typeOfPublic']) $newOrganization["typeOfPublic"] = $organization['typeOfPublic'];
+		if (@$organization['category']) $newOrganization["category"] = $organization['category'];
+		if (@$organization['role']) $newOrganization["role"] = $organization['role'];
 
 		//error_log("latitude : ".$organization['geoPosLatitude']);
 		if(!empty($organization['geoPosLatitude']) && !empty($organization["geoPosLongitude"])){

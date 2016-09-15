@@ -24,12 +24,13 @@ class Mail {
             return false;
         }
         
+        $nameTo = $account["name"];
         if( PH::notlocalServer() || $force ){
             $message = new YiiMailMessage;
             $message->view =  $params['tpl'];
             $message->setSubject($params['subject']);
             $message->setBody($params['tplParams'], 'text/html');
-            $message->addTo($params['to']);
+            $message->addTo(array($params['to'] => $nameTo));
             $message->from = array($params['from'] => "Communecter");
 
             return Yii::app()->mail->send($message);

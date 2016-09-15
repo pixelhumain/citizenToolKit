@@ -13,10 +13,12 @@ class DirectoryAction extends CAction
         // Vérifier si utile cette condition
 		if(@$_POST["element"]){
 			$element = $_POST["element"];
-			$links = $_POST["links"];
+			if(@$_POST["links"])
+				$links = $_POST["links"];
 		}else{
 			$element = Element::getByTypeAndId($type,$id);
-			$links = Element::getAllLinks($element["links"],$type);
+			if(@$element["links"])
+				$links = Element::getAllLinks($element["links"],$type);
 		}
         //$params["organization"] = $organization;
         //$params["type"] = Organization::CONTROLLER;
