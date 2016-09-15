@@ -34,13 +34,13 @@ class GlobalAutoCompleteAction extends CAction
         $tmpTags = array();
         if(strpos($search, "#") > -1){
         	$search = substr($search, 1, strlen($search)); 
-        	$query = array( "tags" => array('$in' => array(new MongoRegex("/".$search."/i")))) ; 
-        	$tmpTags[] = new MongoRegex("/".$search."/i");
+        	$query = array( "tags" => array('$in' => array(new MongoRegex("/^".$search."$/i")))) ; 
+        	$tmpTags[] = new MongoRegex("/^".$search."$/i");
   		}
   		if(!empty($searchTag))
   			foreach ($searchTag as $value) { 
   				if($value != "")
-	  			$tmpTags[] = new MongoRegex("/".$value."/i");
+	  				$tmpTags[] = new MongoRegex("/^".$value."$/i");
 	  		}
   		if(count($tmpTags)){
   			$query = array('$and' => array( $query , array("tags" => array('$in' => $tmpTags)))) ;
