@@ -14,6 +14,13 @@ class Organization {
 	const TYPE_GROUP = "Group";
 	const TYPE_GOV = "GovernmentOrganization";
 
+	public static $types = array(
+        "NGO" => "Association",
+        "LocalBusiness" => "Entreprise",
+        "Group" => "Groupe",
+        "GovernmentOrganization" => "Organisation Gouvernementale"
+	); 
+
 	//From Post/Form name to database field name
 	private static $dataBinding = array(
 	    "name" => array("name" => "name", "rules" => array("required", "organizationSameName")),

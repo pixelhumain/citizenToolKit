@@ -7,7 +7,17 @@ class Event {
 
 	const NO_ORGANISER = "dontKnow";
 
-
+	public static $types = array(
+        "competition" => "Compétition",
+        "concert" => "Concert",
+        "concours" => "Concours",
+        "exposition" => "Exposition",
+        "festival" => "Festival",
+        "getTogether" => "Rencontre",
+        "market" => "Marché",
+	    "meeting" => "Réunion"
+	);  
+	      
 	//From Post/Form name to database field name
 	private static $dataBinding = array(
 	    "name" => array("name" => "name", "rules" => array("required")),
