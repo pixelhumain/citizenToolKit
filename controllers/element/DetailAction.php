@@ -203,7 +203,7 @@ class DetailAction extends CAction {
 		$params["events"]=$events;
 		$params["projects"]=$projects;
 		$params["needs"]=$needs;
-		$params["admin"] = Authorisation::canEditItem(Yii::app()->session["userId"], $type, $element["_id"]);
+		$params["edit"] = Authorisation::canEditItem(Yii::app()->session["userId"], $type, $element["_id"]);
 		$params["openEdition"] = Authorisation::isOpenEdition($element["_id"], $type, @$element["preferences"]);
 		
 		$params["isLinked"] = Link::isLinked((string)$element["_id"],$type, Yii::app()->session['userId'], @$element["links"]);
