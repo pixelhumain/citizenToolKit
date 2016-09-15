@@ -44,7 +44,7 @@ class IndexAction extends CAction
 		$contentKey=null;
 		$params["authorizedToStock"]= Document::authorizedToStock($id, $type,Document::DOC_TYPE_IMAGE);
 		$params['images'] = Document::getListDocumentsByIdAndType($id, $type, $contentKey, Document::DOC_TYPE_IMAGE);
-		$params["admin"] = Authorisation::canEditItem(Yii::app()->session["userId"], $type, $params["parent"]["_id"]);
+		$params["edit"] = Authorisation::canEditItem(Yii::app()->session["userId"], $type, $params["parent"]["_id"]);
         $params["openEdition"] = Authorisation::isOpenEdition($params["parent"]["_id"], $type, @$params["parent"]["preferences"]);
         
 		$controller->subTitle = "";

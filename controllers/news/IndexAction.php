@@ -408,6 +408,9 @@ class IndexAction extends CAction
 		$params["contextParentId"] = $id;
 		$params["userCP"] = Yii::app()->session['userCP'];
 		$params["limitDate"] = end($news);
+		$params["edit"] = Authorisation::canEditItem(Yii::app()->session["userId"], $type, $parent["_id"]);
+		$params["openEdition"] = Authorisation::isOpenEdition($parent["_id"], $type, @$parent["preferences"]);
+
 		if(@$viewer && $viewer != null){
 			$params["viewer"]=$viewer;
 		}

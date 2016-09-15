@@ -217,11 +217,12 @@ class DetailAction extends CAction {
 			$params["countLowLinks"] = count(@$element["links"]["followers"]);
 		}
 		$params["countries"] = OpenData::getCountriesList();
-		$page = "detail";
-		if(@$_POST["edit"]){
-			$params["edit"]=$_POST["edit"];
+
+		if(@$_POST["modeEdit"]){
+			$params["modeEdit"]=$_POST["modeEdit"];
 		}
 		
+		$page = "detail";
 		if(Yii::app()->request->isAjaxRequest)
           echo $controller->renderPartial($page,$params,true);
         else 
