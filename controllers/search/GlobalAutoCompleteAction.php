@@ -128,6 +128,7 @@ class GlobalAutoCompleteAction extends CAction
 	  		//								  array("name" => 1), $indexMax);
 
 	  		foreach ($allCitoyen as $key => $value) {
+	  			var_dump($value["name"]);
 	  			$person = Person::getSimpleUserById($key,$value);
 	  			$person["type"] = "citoyen";
 				$person["typeSig"] = "citoyens";

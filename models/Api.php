@@ -206,7 +206,7 @@ class Api {
             $meta["next"] = "/ph/communecter/data/get/type/".$type."/limit/".$limit."/index/".($index+$limit);
 
             if(@$format)
-                $meta["format"] .= "/format/".$format ;
+                $meta["format"] = "/format/".$format ;
             if($index != 0){
                 $newIndex = $index - $limit;
                 if($newIndex < 0)
