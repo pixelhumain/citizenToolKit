@@ -107,6 +107,7 @@ class Event {
 			$simpleEvent["description"] = @$event["description"];
 			$simpleEvent["startDate"] = @$event["startDate"];
 			$simpleEvent["endDate"] = @$event["endDate"];
+			$simpleEvent["typeSig"] = Event::COLLECTION;
 			
 			$simpleEvent = array_merge($simpleEvent, Document::retrieveAllImagesUrl($id, self::COLLECTION, $simpleEvent["type"], $event));
 			
