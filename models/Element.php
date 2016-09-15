@@ -236,15 +236,17 @@ class Element {
 
 		//Specific case : 
 		//Tags
+		//var_dump($dataFieldName);
 		if ($dataFieldName == "tags") {
 			$fieldValue = Tags::filterAndSaveNewTags($fieldValue);
-			$set = array($fieldName => $fieldValue);
+			$set = array($dataFieldName => $fieldValue);
 		}
-		else if ( ($dataFieldName == "mobile"|| $dataFieldName == "fixe" || $dataFieldName == "fax")){
+		else if ( ($dataFieldName == "telephone.mobile"|| $dataFieldName == "telephone.fixe" || $dataFieldName == "telephone.fax")){
 			if($fieldValue ==null)
 				$fieldValue = array();
 			else
 				$fieldValue = explode(",", $fieldValue);
+			$set = array($dataFieldName => $fieldValue);
 		}
 		else if ($fieldName == "address") {
 			//address
