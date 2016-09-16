@@ -7,7 +7,7 @@ class Project {
 	const COLOR = "#8C5AA1";
 	
 	//From Post/Form name to database field name
-	private static $dataBinding = array(
+	public static $dataBinding = array(
 	    "name" => array("name" => "name", "rules" => array("required")),
 	    "address" => array("name" => "address"),
 	    "streetAddress" => array("name" => "address.streetAddress"),
@@ -28,7 +28,8 @@ class Project {
 	    "warnings" => array("name" => "warnings"),
 	    "modules" => array("name" => "modules"),
 	    "badges" => array("name" => "badges"),
-	    "source" => array("name" => "source")
+	    "source" => array("name" => "source"),
+	    "preferences" => array("name" => "preferences")
 	);
 
 	private static function getCollectionFieldNameAndValidate($projectFieldName, $projectFieldValue, $projectId) {

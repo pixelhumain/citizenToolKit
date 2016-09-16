@@ -10,7 +10,7 @@ class SaveAction extends CAction {
         {
             //var_dump($_POST);
             $id = null;
-            
+            //var_dump($_POST);
             $data = null;
             $collection = $_POST["collection"];
             if( !empty($_POST["id"]) ){
@@ -18,32 +18,24 @@ class SaveAction extends CAction {
             }
             $key = $_POST["key"];
 
-            unset($_POST['id']);
-            if( $_POST['collection'] == PHType::TYPE_MICROFORMATS){
-                $_POST['collection'] = $_POST['MFcollection'];
-                unset( $_POST['MFcollection'] );
-            } else {
-                unset($_POST['collection']);
-                unset($_POST['key']);
-            }
+            
+            unset($_POST['collection']);
+            unset($_POST['key']);
 
 
             //empty fields aren't properly validated and must be removed
-            foreach ($_POST as $key => $value) {
-                if($value == "")
-                    unset($_POST[$key]);
+            foreach ($_POST as $k => $v) {
+                if($v== "")
+                    unset($_POST[$k]);
             }
 
-            $microformat = PHDB::findOne(PHType::TYPE_MICROFORMATS, array( "key"=> $key));
+            /*$microformat = PHDB::findOne(PHType::TYPE_MICROFORMATS, array( "key"=> $key));
             $validate = ( !isset($microformat )  || !isset($microformat["jsonSchema"])) ? false : true;
             //validation process based on microformat defeinition of the form
-            //by default dont perform validation test
-            $valid = array("result"=>true);
-            if($validate)
-                $valid = PHDB::validate( $key, json_decode (json_encode ($_POST), FALSE) );
+            */
+            $valid = DataValidator::validate( ucfirst($key), json_decode (json_encode ($_POST)) );
             
-
-            if( $valid["result"] )
+            if( $valid )
             {
                 if($id)
                 {
@@ -68,7 +60,7 @@ class SaveAction extends CAction {
                                  "id"=>(string)$_POST["_id"]);
                 }
             } else 
-                $res = $valid;
+                $res = array("result"=>false, "msg"=>Yii::t("comment","Something went really bad") );
             echo json_encode( $res );  
         }
     }

@@ -22,7 +22,7 @@ class Organization {
 	); 
 
 	//From Post/Form name to database field name
-	private static $dataBinding = array(
+	public static $dataBinding = array(
 	    "name" => array("name" => "name", "rules" => array("required", "organizationSameName")),
 	    "email" => array("name" => "email", "rules" => array("email")),
 	    "created" => array("name" => "created"),
