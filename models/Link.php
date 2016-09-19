@@ -667,6 +667,7 @@ class Link {
 		else if ($parentType == Event::COLLECTION){
 			$parentData = Event::getById($parentId);	
 			$usersAdmin = Authorisation::listAdmins($parentId,  $parentType, false);
+			//print_r($usersAdmin);
 			$parentUsersList = Event::getAttendeesByEventId( $parentId ,"all", null);
 			$parentController = Event::CONTROLLER;
 			$parentConnectAs="attendees";
@@ -742,7 +743,7 @@ class Link {
 		if (count($usersAdmin) == 0 || $actionFromAdmin || $parentType == Event::COLLECTION) {
             //the person is automatically added as member (admin or not) of the parent
             //var_dump("here");
-            if ($actionFromAdmin /*&&  $parentType != Event::COLLECTION*/) {
+            if ($actionFromAdmin && $parentType != Event::COLLECTION) {
 	            //If admin add as admin or member 
 	            if($isConnectingAdmin==true){
 					$verb = ActStr::VERB_CONFIRM;
@@ -770,11 +771,11 @@ class Link {
 			self::checkAndRemoveFollowLink($parentId,$parentType,$childId,$childType);
 			$toBeValidatedAdmin=false;
 
-            if ($isConnectingAdmin && $parentType == Event::COLLECTION) {
+            /*if ($isConnectingAdmin && $parentType == Event::COLLECTION) {
                 $verb = ActStr::VERB_AUTHORIZE;
                 $toBeValidatedAdmin=true;
                 $toBeValidated=false;
-            }
+            }*/
            
 		//Second case : Not an admin doing the action.
         } else {
@@ -802,6 +803,7 @@ class Link {
             $msg = Yii::t("common","Your request has been sent to other admins.");
             // After : the 1rst existing Admin to take the decision will remove the "pending" to make a real admin
         } 
+		ECHO $toBeValidated;
 		Link::connect($parentId, $parentType, $childId, $childType,Yii::app()->session["userId"], $parentConnectAs, $isConnectingAdmin, $toBeValidatedAdmin, $toBeValidated, $userRole);
 		Link::connect($childId, $childType, $parentId, $parentType, Yii::app()->session["userId"], $childConnectAs, $isConnectingAdmin, $toBeValidatedAdmin, $toBeValidated, $userRole);
 		Notification::actionOnPerson($verb, ActStr::ICON_SHARE, $pendingChild , array("type"=>$parentType,"id"=> $parentId,"name"=>$parentData["name"]), $invitation);
