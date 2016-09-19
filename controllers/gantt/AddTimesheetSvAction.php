@@ -22,6 +22,8 @@ class AddTimesheetSvAction extends CAction
 			}
 			$params["tasks"] = $tasks;
             $params["project"]  = Project::getPublicData($id);
+			$params["edit"] = Authorisation::canEditItem(Yii::app()->session["userId"], Project::COLLECTION, $id);
+			$params["openEdition"] = Authorisation::isOpenEdition($id, Project::COLLECTION, @$params["project"]["preferences"]);
 
         if(Yii::app()->request->isAjaxRequest){
 			echo $controller->renderPartial("addTimesheetSV", $params, true);

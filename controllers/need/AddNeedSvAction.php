@@ -17,6 +17,8 @@ class AddNeedSvAction extends CAction
             echo Rest::json(array("error" => array("msg" => "Invalid call to AddNeedSvAction", "params" => array("id" => $id, "type" => $type))));
             exit;
         }
+        $params["edit"] = Authorisation::canEditItem(Yii::app()->session["userId"], $type, $id);
+		$params["openEdition"] = Authorisation::isOpenEdition($id, $type, @$params["element"]["preferences"]);
         //TODO : add a else to fallback and display error
 
         if(Yii::app()->request->isAjaxRequest)

@@ -15,6 +15,9 @@ class AddContributorSvAction extends CAction
 			$user=Person::getSimpleUserById(Yii::app()->session["userId"]);
 			$params['numberOfInvit'] = $user["numberOfInvit"];
 		}
+		$params["edit"] = Authorisation::canEditItem(Yii::app()->session["userId"], Project::COLLECTION, $_GET["projectId"]);
+		$params["openEdition"] = Authorisation::isOpenEdition($_GET["projectId"], Project::COLLECTION, @$params["project"]["preferences"]);
+
         if(Yii::app()->request->isAjaxRequest)
 			echo $controller->renderPartial("addContributorSV", $params, true);
     }
