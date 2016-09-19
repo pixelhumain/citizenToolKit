@@ -101,7 +101,7 @@ class DirectoryAction extends CAction
         $params["contextTitle"] = $contextTitle ;
         $params["contextIconTitle"] = $contextIconTitle ;
         $params["manage"] = ( @$connectType && @$element["links"][$connectType][Yii::app()->session["userId"]])?1:0;
-        $params["edit"] = Authorisation::canEditItem(Yii::app()->session["userId"], $type, $element["_id"]);
+        $params["edit"] = Authorisation::canEditItem(Yii::app()->session["userId"], $type, $id);
         $params["openEdition"] = Authorisation::isOpenEdition($element["_id"], $type, @$element["preferences"]);
 
 

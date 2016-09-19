@@ -7,11 +7,11 @@ class AddNeedSvAction extends CAction
 
     	$controller=$this->getController();
     	$params = array();
-    	
+    	$params["type"]  = $type;
         if( $type == Project::COLLECTION )
-            $params["project"]  = Project::getPublicData($id);
+            $params["element"]  = Project::getPublicData($id);
         else if( $type == Organization::COLLECTION )
-            $params["organization"]  = Organization::getPublicData($id);
+            $params["element"]  = Organization::getPublicData($id);
         else {
             error_log("Invalid call to AddNeedSvAction ".$id."/".$type);
             echo Rest::json(array("error" => array("msg" => "Invalid call to AddNeedSvAction", "params" => array("id" => $id, "type" => $type))));
