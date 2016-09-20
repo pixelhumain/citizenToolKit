@@ -20,18 +20,8 @@ class DirectoryAction extends CAction
 			if(@$element["links"])
 				$links = Element::getAllLinks($element["links"],$type);
 		}
-        //$params["organization"] = $organization;
-        //$params["type"] = Organization::CONTROLLER;
-        //$params["parentType"] = $type;
-    	//$page = "element/directory";
-        //if( isset($_GET[ "tpl" ]) )
-
-        /*if($type == Organization::COLLECTION)
-           $connectAs="members";
-        else if($type == Project::COLLECTION)
-            $connectAs="contributors";
-        else if($type == Event::COLLECTION)
-            $connectAs="attendees";*/
+        
+        $show = Preference::showPreference($element, $type, "directory", Yii::app()->session["userId"]);
 
         $contextIcon = "connectdevelop";
         $contextTitle = "";
@@ -57,32 +47,33 @@ class DirectoryAction extends CAction
             $contextIconTitle = "circle text-purple";
         }
 
-
-
         $countPeople = 0; $countOrga = 0; $countProject = 0; $countEvent = 0; $countFollowers = 0; $countAttendees = 0; $countGuests = 0;
-        if (@$people)
-            foreach ($people as $key => $onePeople) { if( @$onePeople["name"]) $countPeople++;}
-        if (@$organizations)
-            foreach ($organizations as $key => $orga) { if( @$orga["name"]) $countOrga++;  }
-        if (@$projects)
-            foreach ($projects as $key => $project) { if( @$project["name"]) $countProject++;  }
-        if (@$events)
-            foreach ($events as $key => $event) { if( @$event["name"]) $countEvent++;  }
-        if (@$followers)
-            foreach ($followers as $key => $follower) { if( @$follower["name"]) $countFollowers++;}
-        if (@$attendees)
-            foreach ($attendees as $key => $attendee) { if( @$attendee["name"]) $countAttendees++;}
-        if (@$guests)
-            foreach ($guests as $key => $guest) { if( @$guest["name"]) $countGuests++;}
+        if($show == true){
+            if (@$people)
+                foreach ($people as $key => $onePeople) { if( @$onePeople["name"]) $countPeople++;}
+            if (@$organizations)
+                foreach ($organizations as $key => $orga) { if( @$orga["name"]) $countOrga++;  }
+            if (@$projects)
+                foreach ($projects as $key => $project) { if( @$project["name"]) $countProject++;  }
+            if (@$events)
+                foreach ($events as $key => $event) { if( @$event["name"]) $countEvent++;  }
+            if (@$followers)
+                foreach ($followers as $key => $follower) { if( @$follower["name"]) $countFollowers++;}
+            if (@$attendees)
+                foreach ($attendees as $key => $attendee) { if( @$attendee["name"]) $countAttendees++;}
+            if (@$guests)
+                foreach ($guests as $key => $guest) { if( @$guest["name"]) $countGuests++;}
+        }
+        
         // Est-ce vraiment utiliser
         $followsProject = 0; $followsPeople = 0 ; $followsOrga = 0;
 
         $params = array(
-            "organizations" => @$links["organizations"],
-            "events" => @$links["events"],
-            "people" => @$links["people"],
-            "projects" => @$links["projects"],
-            "followers" => @$links["followers"],
+            "organizations" => (($show == true)?@$links["organizations"]:null),
+            "events" => (($show == true)?@$links["events"]:null),
+            "people" => (($show == true)?@$links["people"]:null),
+            "projects" => (($show == true)?@$links["projects"]:null),
+            "followers" => (($show == true)?@$links["followers"]:null),
             "countPeople" => @$countPeople,
             "countOrga" => @$countOrga,
             "countProject" => @$countProject,
@@ -93,7 +84,8 @@ class DirectoryAction extends CAction
             "followsProject" => @$followsProject,
             "followsPeople" => @$followsPeople,
             "followsOrga" => @$followsOrga
-        ); 
+        );
+        $params["show"] = $show;
         $params["type"] = $type;
         $params["elementId"] = $id;
         $params["element"] = $element;
@@ -103,13 +95,6 @@ class DirectoryAction extends CAction
         $params["manage"] = ( @$connectType && @$element["links"][$connectType][Yii::app()->session["userId"]])?1:0;
         $params["edit"] = Authorisation::canEditItem(Yii::app()->session["userId"], $type, $id);
         $params["openEdition"] = Authorisation::isOpenEdition($element["_id"], $type, @$element["preferences"]);
-
-
-
-
-
-
-
         $page = "directory2";
         if(Yii::app()->request->isAjaxRequest){
             echo $controller->renderPartial($page,$params,true);
