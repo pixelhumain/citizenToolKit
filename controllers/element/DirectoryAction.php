@@ -20,8 +20,9 @@ class DirectoryAction extends CAction
 			if(@$element["links"])
 				$links = Element::getAllLinks($element["links"],$type);
 		}
-        
-        $show = Preference::showPreference($element, $type, "directory", Yii::app()->session["userId"]);
+		$show=true;
+        if($type==Person::COLLECTION)
+        	$show = Preference::showPreference($element, $type, "directory", Yii::app()->session["userId"]);
 
         $contextIcon = "connectdevelop";
         $contextTitle = "";
