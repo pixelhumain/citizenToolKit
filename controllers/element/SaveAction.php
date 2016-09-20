@@ -62,7 +62,8 @@ class SaveAction extends CAction {
                                  "id"=>(string)$_POST["_id"]);
                 }
             } else 
-                $res = array("result"=>false, "msg"=>Yii::t("comment","Something went really bad") );
+                $res = array( "result" => false, 
+                              "msg" => Yii::t("common","Something went really bad : Invalid Content") );
             echo json_encode( $res );  
         }
     }
