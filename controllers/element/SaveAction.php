@@ -33,6 +33,8 @@ class SaveAction extends CAction {
             $validate = ( !isset($microformat )  || !isset($microformat["jsonSchema"])) ? false : true;
             //validation process based on microformat defeinition of the form
             */
+            //validation process based on databind on each Elemnt Model
+            
             $valid = DataValidator::validate( ucfirst($key), json_decode (json_encode ($_POST)) );
             
             if( $valid )
