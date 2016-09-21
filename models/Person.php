@@ -757,6 +757,8 @@ class Person {
 				}
 
 				$user["address"] = $address;
+				if($userId == $personId)
+					self::updateCookieCommunexion($userId, $user["address"]["codeInsee"], $user["address"]["postalCode"], $user["address"]["addressLocality"]);
 				/*PHDB::update( self::COLLECTION, array("_id" => new MongoId($personId)), 
 		                        array('$unset' => array("two_steps_register"=>"")));*/
 
@@ -1938,6 +1940,23 @@ class Person {
 		if ($count > 0) return array("result" => true, "msg" => "This person had made votes");
 
 		return array("result" => false, "msg" => "No activity");
+    }
+
+
+    public static function updateCookieCommunexion($userId, $insee, $cp, $cityName) {
+    	$result = array("result" => false, "msg" => "User not connected");
+    	if(!empty($userId)){
+    		try{
+				CookieHelper::setCookie("inseeCommunexion", $insee);
+	    		CookieHelper::setCookie("cpCommunexion", $cp);
+	    		CookieHelper::setCookie("cityNameCommunexion", $cityName);
+	    		$result = array("result" => true, "msg" => "Cookies is updated");
+			}catch (CTKException $e) {
+				$result = array("result" => false, "msg" => $e->getMessage());
+			}
+    	}
+
+    	return $result ;
     }
 
 }
