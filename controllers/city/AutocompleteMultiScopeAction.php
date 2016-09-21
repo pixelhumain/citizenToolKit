@@ -5,7 +5,8 @@ class AutocompleteMultiScopeAction extends CAction
     public function run( )
     {
         
-        $type      = isset($_POST["type"])        ? $_POST["type"] : null;
+        $type       = isset($_POST["type"])         ? $_POST["type"] : null;
+        $geoShape   = isset($_POST["geoShape"])     ? true : false;
         $scopeValue = isset($_POST["scopeValue"])   ? $_POST["scopeValue"] : null;
 
         if($type == null || $scopeValue == null) 
@@ -27,9 +28,10 @@ class AutocompleteMultiScopeAction extends CAction
         //                                         ));
         //var_dump($where); return;
         if($type != "dep" && $type != "region"){
-            $cities = PHDB::findAndSort( City::COLLECTION, $where, 
-                                        array(), 40 ,
-                                        array("insee", "postalCodes", "country", "name", "alternateName", "depName", "regionName"));
+            $att = array("insee", "postalCodes", "country", "name", "alternateName", "depName", "regionName");
+            if($geoShape) $att[] =  "geoShape";
+
+            $cities = PHDB::findAndSort( City::COLLECTION, $where, array(), 40, $att);
         }
         else if($type == "dep"){
             $cities = array();
