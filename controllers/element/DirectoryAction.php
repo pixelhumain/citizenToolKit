@@ -50,20 +50,20 @@ class DirectoryAction extends CAction
 
         $countPeople = 0; $countOrga = 0; $countProject = 0; $countEvent = 0; $countFollowers = 0; $countAttendees = 0; $countGuests = 0;
         if($show == true){
-            if (@$people)
-                foreach ($people as $key => $onePeople) { if( @$onePeople["name"]) $countPeople++;}
-            if (@$organizations)
-                foreach ($organizations as $key => $orga) { if( @$orga["name"]) $countOrga++;  }
-            if (@$projects)
-                foreach ($projects as $key => $project) { if( @$project["name"]) $countProject++;  }
-            if (@$events)
-                foreach ($events as $key => $event) { if( @$event["name"]) $countEvent++;  }
-            if (@$followers)
-                foreach ($followers as $key => $follower) { if( @$follower["name"]) $countFollowers++;}
-            if (@$attendees)
-                foreach ($attendees as $key => $attendee) { if( @$attendee["name"]) $countAttendees++;}
-            if (@$guests)
-                foreach ($guests as $key => $guest) { if( @$guest["name"]) $countGuests++;}
+            if (@$links["people"])
+                foreach ($links["people"] as $key => $onePeople) { if( @$onePeople["name"]) $countPeople++;}
+            if (@$links["organizations"])
+                foreach ($links["organizations"] as $key => $orga) { if( @$orga["name"]) $countOrga++;  }
+            if (@$links["projects"])
+                foreach ($links["projects"] as $key => $project) { if( @$project["name"]) $countProject++;  }
+            if (@$links["events"])
+                foreach ($links["events"] as $key => $event) { if( @$event["name"]) $countEvent++;  }
+            if (@$links["followers"])
+                foreach ($links["followers"] as $key => $follower) { if( @$follower["name"]) $countFollowers++;}
+            if (@$links["attendees"])
+                foreach ($links["attendees"] as $key => $attendee) { if( @$attendee["name"]) $countAttendees++;}
+            if (@$links["guests"])
+                foreach (@$links["guests"] as $key => $guest) { if( @$guest["name"]) $countGuests++;}
         }
         
         // Est-ce vraiment utiliser
@@ -90,12 +90,13 @@ class DirectoryAction extends CAction
         $params["type"] = $type;
         $params["elementId"] = $id;
         $params["element"] = $element;
+        $params["links"] = $links;
         $params["contextIcon"] = $contextIcon ;
         $params["contextTitle"] = $contextTitle ;
         $params["contextIconTitle"] = $contextIconTitle ;
         $params["manage"] = ( @$connectType && @$element["links"][$connectType][Yii::app()->session["userId"]])?1:0;
         $params["edit"] = Authorisation::canEditItem(Yii::app()->session["userId"], $type, $id);
-        $params["openEdition"] = Authorisation::isOpenEdition($element["_id"], $type, @$element["preferences"]);
+        $params["openEdition"] = Authorisation::isOpenEdition($id, $type, @$element["preferences"]);
         $page = "directory2";
         if(Yii::app()->request->isAjaxRequest){
             echo $controller->renderPartial($page,$params,true);
