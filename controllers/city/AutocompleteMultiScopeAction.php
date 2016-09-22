@@ -8,6 +8,7 @@ class AutocompleteMultiScopeAction extends CAction
         $type       = isset($_POST["type"])         ? $_POST["type"] : null;
         $geoShape   = isset($_POST["geoShape"])     ? true : false;
         $scopeValue = isset($_POST["scopeValue"])   ? $_POST["scopeValue"] : null;
+        $countryCode = isset($_POST["countryCode"])   ? $_POST["countryCode"] : null;
 
         if($type == null || $scopeValue == null) 
             return Rest::json( array("res"=>false, "msg" => "error with type or scopeValue" ));
@@ -21,6 +22,7 @@ class AutocompleteMultiScopeAction extends CAction
         //Look for postal code on city collection
         if($type == "cp")       $where = array("postalCodes.postalCode" =>new MongoRegex("/^".$scopeValue."/i"));
         
+        if($countryCode != null) $where[] = array("country" => strtoupper($countryCode));
         
         // if($type == "region")   $where = array('$or' => array(
         //                                         array("regionName" => new MongoRegex("/^".$scopeValue."/i")),
