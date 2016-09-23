@@ -11,19 +11,20 @@ class DirectoryAction extends CAction
     {
         $controller = $this->getController();
         // Vérifier si utile cette condition
-		if(@$_POST["element"]){
-			$element = $_POST["element"];
-			if(@$_POST["links"])
-				$links = $_POST["links"];
-		}else{
-			$element = Element::getByTypeAndId($type,$id);
-			if(@$element["links"])
-				$links = Element::getAllLinks($element["links"],$type);
-		}
+		
+		$element = Element::getByTypeAndId($type,$id);
+        if(@$_POST["links"]){
+            $links = $_POST["links"];
+        }else{
+            if(@$element["links"]){
+                $links = Element::getAllLinks($element["links"],$type);
+            }
+        }
+
 		$show=true;
         if($type==Person::COLLECTION)
-        	$show = Preference::showPreference($element, $type, "directory", Yii::app()->session["userId"]);
-
+            $show = Preference::showPreference($element, $type, "directory", Yii::app()->session["userId"]);
+        
         $contextIcon = "connectdevelop";
         $contextTitle = "";
         $contextIconTitle = "connectdevelop";

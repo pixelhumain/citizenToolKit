@@ -148,16 +148,18 @@ class Preference {
 	public static function showPreference($element, $elementType, $namePref, $userId) {
 		//$status = self::getStatusPreference($element["preferences"], $namePref);
 		$result = false;
+		
+		//mask
+		if($elementType==Person::COLLECTION && $element["_id"] == $userId){
+			$result = true;
+		}
 		//public
-		if(@$element["preferences"]["publicFields"] && in_array($namePref, $element["preferences"]["publicFields"]))
+		else if(@$element["preferences"]["publicFields"] && in_array($namePref, $element["preferences"]["publicFields"]))
 			$result = true;
 		//private
 		else if(@$element["preferences"]["privateFields"] && 
 				in_array($namePref, $element["preferences"]["privateFields"]) && 
 				($element["_id"] == $userId || Link::isLinked($element["_id"], $elementType, $userId, @$element["links"])))
-			$result = true;
-		//mask
-		else if($element["_id"] == $userId )
 			$result = true;
 
 		return $result;
