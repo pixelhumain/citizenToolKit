@@ -722,8 +722,9 @@ class Link {
 
         //Retrieve the child info
         $pendingChild = $class::getById($childId);
+
         if (!$pendingChild) {
-            return array("result" => true, "msg" => "Something went wrong ! Impossible to find the children ".$childId);
+            return array("result" => false, "msg" => "Something went wrong ! Impossible to find the children ".$childId);
         }
 		//Check if the child is already link to the parent with the connectType
 		$alreadyLink=false;
@@ -751,6 +752,7 @@ class Link {
 	            if($isConnectingAdmin==true){
 					$verb = ActStr::VERB_CONFIRM;
 					$msg=$pendingChild["name"]." ".Yii::t("common","is now admin of")." ".$parentData["name"];
+					$pendingChild["isAdmin"]=true;
 				} else {
 					$verb = ActStr::VERB_ACCEPT;
 					$msg=$pendingChild["name"]." ".Yii::t("common","is now ".$typeOfDemand." of")." ".$parentData["name"];
@@ -763,9 +765,10 @@ class Link {
 					$msg= Yii::t("common", "You are now ".$typeOfDemand." of")." ".Yii::t("common","this ".$parentController);
                 }else{
 					$invitation = ActStr::VERB_INVITE;
-					if($typeOfDemand != "admin")
+					if($typeOfDemand != "admin"){
 						$toBeValidated=true;
-					else 
+						$pendingChild["toBeValidated"]=true;
+					}else 
 						$verb = ActStr::VERB_CONFIRM;
 					$msg= $pendingChild["name"]." ".Yii::t("common","is now ".$typeOfDemand." of")." ".$parentData["name"];
 				}
@@ -789,10 +792,13 @@ class Link {
                 $verb = ActStr::VERB_AUTHORIZE;
     			$toBeValidatedAdmin=true;
     			$toBeValidated=false;
+    			$pendingChild["isAdminPending"]=true;
+    			
             } else {
                 $verb = ActStr::VERB_WAIT;
                 $toBeValidatedAdmin=false;
                 $toBeValidated=true;
+                $pendingChild["toBeValidated"]=true;
             }
             //Notification and email are sent to the admin(s)
             $listofAdminsEmail = array();
@@ -806,11 +812,10 @@ class Link {
             $msg = Yii::t("common","Your request has been sent to other admins.");
             // After : the 1rst existing Admin to take the decision will remove the "pending" to make a real admin
         } 
-		ECHO $toBeValidated;
 		Link::connect($parentId, $parentType, $childId, $childType,Yii::app()->session["userId"], $parentConnectAs, $isConnectingAdmin, $toBeValidatedAdmin, $toBeValidated, $userRole);
 		Link::connect($childId, $childType, $parentId, $parentType, Yii::app()->session["userId"], $childConnectAs, $isConnectingAdmin, $toBeValidatedAdmin, $toBeValidated, $userRole);
 		Notification::actionOnPerson($verb, ActStr::ICON_SHARE, $pendingChild , array("type"=>$parentType,"id"=> $parentId,"name"=>$parentData["name"]), $invitation);
-		$res = array("result" => true, "msg" => $msg, "parent" => $parentData,"parentType"=>$parentType);
+		$res = array("result" => true, "msg" => $msg, "parent" => $parentData,"parentType"=>$parentType,"newElement"=>$pendingChild, "newElementType"=> $childType );
 		return $res;
 	}
 	

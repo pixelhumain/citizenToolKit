@@ -378,12 +378,12 @@ class Element {
 			$connectAs="knows";
 
 	    $contextMap = array();
-		$contextMap["organization"] = array();
 		$contextMap["people"] = array();
 		$contextMap["organizations"] = array();
 		$contextMap["projects"] = array();
 		$contextMap["events"] = array();
 		$contextMap["followers"] = array();
+		$contextMap["membersOf"] = array();
 		if(!empty($links)){
 			if(isset($links[$connectAs])){
 				foreach ($links[$connectAs] as $key => $aMember) {
