@@ -10,26 +10,18 @@ class IndexAction extends CAction
 		
 		//TODO SBAR - it's not beautifull. Refactor soon
 		if($type == Person::COLLECTION){
-			/*$controllerId = "person";
- -			$params["person"] = Person::getPublicData($id);*/
 			$params["parent"] = Person::getPublicData($id);
 			$params["controller"] = Person::CONTROLLER;
 		}
 		else if ($type == Organization::COLLECTION){
-			/*$controllerId = "organization";
-			$params["organization"] = Organization::getPublicData($id);*/
 			$params["parent"] = Organization::getPublicData($id);
 			$params["controller"] = Organization::CONTROLLER;
 		}
 		else if ($type == Project::COLLECTION){
-			/*$controllerId = "project";
- -			$params["project"] = Project::getPublicData($id);*/
 			$params["parent"] = Project::getPublicData($id);
 			$params["controller"] = Project::CONTROLLER;
 		}
 		else if ($type == Event::COLLECTION){
-			/*$controllerId = "event";
- -			$params["event"] = Event::getPublicData($id);*/
 			$params["parent"] = Event::getPublicData($id);
 			$params["controller"] = Event::CONTROLLER;
 		}

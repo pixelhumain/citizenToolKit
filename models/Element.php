@@ -155,7 +155,7 @@ class Element {
 	    }
 	    
 	    //if ( !$hashOnly && @$el ) 
-	    $link = '<a href="#'.$link.'" class="lbh">'.@$el['name'].'</a>';
+	    $link = '<a href="#'.$link.'" class="lbh">'.htmlspecialchars(@$el['name']).'</a>';
 	    
     	return $link;
     }
