@@ -28,7 +28,8 @@ class SaveAction extends CAction {
                 if($v== "")
                     unset($_POST[$k]);
             }
-
+            $_POST["creator"] = Yii::app()->session["userId"];
+            $_POST["created"] = time();
             /*$microformat = PHDB::findOne(PHType::TYPE_MICROFORMATS, array( "key"=> $key));
             $validate = ( !isset($microformat )  || !isset($microformat["jsonSchema"])) ? false : true;
             //validation process based on microformat defeinition of the form
