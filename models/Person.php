@@ -51,6 +51,7 @@ class Person {
 	    "multiscopes" => array("name" => "multiscopes"),
 	    "url" => array("name" => "url"),
 	    "lastLoginDate" => array("name" => "lastLoginDate"),
+	    "seePreferences" => array("name" => "seePreferences"),
 	);
 
 	public static function logguedAndValid() {
@@ -558,6 +559,7 @@ class Person {
 	  	
 	  	$person["created"] = new mongoDate(time());
 	  	$person["preferences"] = array("seeExplanations"=> true);
+	  	$person["seePreferences"] = true;
 	  	
 	  	PHDB::insert(Person::COLLECTION , $person);
         if (isset($person["_id"])) {

@@ -295,6 +295,16 @@ class Element {
 			}
 			$set = array($dataFieldName => $newMongoDate);	
 		}
+		else if ($dataFieldName == "seePreferences") {
+			//var_dump($fieldValue);
+			if($fieldValue == "false"){
+				//$verb = "$unset";
+				$verb = '$unset' ;
+				$set = array($dataFieldName => "");
+			}else{
+				$set = array($dataFieldName => $fieldValue);
+			}
+		}
 		else
 			$set = array($dataFieldName => $fieldValue);
 

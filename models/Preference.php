@@ -135,25 +135,31 @@ class Preference {
 		return $value;
 	}
 
-	public static function getStatusPreference($preferences, $namePref) {
+	/*public static function getStatusPreference($preferences, $namePref) {
 		$result = "mask";
 		if(@$preferences["publicFields"] && in_array($namePref, $preferences["publicFields"]))
 			$result = "public";
 		else if(@$preferences["privateFields"] &&  in_array($namePref, $preferences["privateFields"]))
 			$result = "private";
 		return $result;
-	}
+	}*/
 
 
 	public static function showPreference($element, $elementType, $namePref, $userId) {
-		$statu = self::getStatusPreference($element["preferences"], $namePref);
+		//$status = self::getStatusPreference($element["preferences"], $namePref);
 		$result = false;
-
-		if($statu == "public")
+		
+		//mask
+		if($elementType==Person::COLLECTION && $element["_id"] == $userId){
 			$result = true;
-		else if($statu == "mask" && $element["_id"] == $userId )
+		}
+		//public
+		else if(@$element["preferences"]["publicFields"] && in_array($namePref, $element["preferences"]["publicFields"]))
 			$result = true;
-		else if($statu == "private" && ($element["_id"] == $userId || Link::isLinked($element["_id"], $elementType, $userId, @$element["links"]) ) )
+		//private
+		else if(@$element["preferences"]["privateFields"] && 
+				in_array($namePref, $element["preferences"]["privateFields"]) && 
+				($element["_id"] == $userId || Link::isLinked($element["_id"], $elementType, $userId, @$element["links"])))
 			$result = true;
 
 		return $result;
