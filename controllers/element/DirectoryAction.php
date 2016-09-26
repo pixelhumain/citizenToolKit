@@ -11,12 +11,12 @@ class DirectoryAction extends CAction
     {
         $controller = $this->getController();
         // Vérifier si utile cette condition
-		if(@$_POST["element"]){
-			$element = $_POST["element"];
-			if(@$_POST["links"])
-				$links = $_POST["links"];
-		}else{
-			$element = Element::getByTypeAndId($type,$id);
+        $element = Element::getByTypeAndId($type,$id);
+		//if(@$_POST["element"]){
+		//	$element = $_POST["element"];
+		if(@$_POST["links"])
+			$links = $_POST["links"];
+		else{
 			if(@$element["links"])
 				$links = Element::getAllLinks($element["links"],$type);
 		}
@@ -75,6 +75,8 @@ class DirectoryAction extends CAction
             "people" => (($show == true)?@$links["people"]:null),
             "projects" => (($show == true)?@$links["projects"]:null),
             "followers" => (($show == true)?@$links["followers"]:null),
+            "attendees" => (($show == true)?@$links["attendees"]:null),
+            "guests" => (($show == true)?@$links["guests"]:null),
             "countPeople" => @$countPeople,
             "countOrga" => @$countOrga,
             "countProject" => @$countProject,
