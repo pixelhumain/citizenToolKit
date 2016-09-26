@@ -10,7 +10,7 @@ class AddMembersAction extends CAction
 			$element = Organization::getPublicData($id);
 		}else if($type==Project::COLLECTION){
 			$element = Project::getPublicData($id);
-		} else if ($tpe==Event::COLLECTION){
+		} else if ($type==Event::COLLECTION){
 			$element = Event::getPublicData($id);
 		}
 		$params["element"]=$element;

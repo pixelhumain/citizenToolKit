@@ -380,6 +380,8 @@ class Element {
 
 	    $contextMap = array();
 		$contextMap["people"] = array();
+		$contextMap["guests"] = array();
+		$contextMap["attendees"] = array();
 		$contextMap["organizations"] = array();
 		$contextMap["projects"] = array();
 		$contextMap["events"] = array();
@@ -388,34 +390,52 @@ class Element {
 		if(!empty($links)){
 			if(isset($links[$connectAs])){
 				foreach ($links[$connectAs] as $key => $aMember) {
-					if($aMember["type"]==Organization::COLLECTION){
-						$newOrga = Organization::getSimpleOrganizationById($key);
-						if(!empty($newOrga)){
-							if ($aMember["type"] == Organization::COLLECTION && @$aMember["isAdmin"]){
-								$newOrga["isAdmin"]=true;  				
+					if($type==EVENT::COLLECTION){
+						$citoyen = Person::getSimpleUserById($key);
+						if(!empty($citoyen)){
+							echo $key;
+							if(@$aMember["invitorId"])  {
+								array_push($contextMap["guests"], $citoyen);
 							}
-							$newOrga["type"]=Organization::COLLECTION;
-							if (!@$newOrga["disabled"]) {
-								array_push($contextMap["organizations"], $newOrga);
+							else{
+				                  if(@$e["isAdmin"]){
+				                    if(@$e["isAdminPending"])
+				                      $citoyen["isAdminPending"]=true;
+				                    $citoyen["isAdmin"]=true;         
+				                  }
+								  array_push($contextMap["attendees"], $citoyen);
 							}
-						}
-					} 
-					else if($aMember["type"]==Person::COLLECTION){
-						$newCitoyen = Person::getSimpleUserById($key);
-						if (!empty($newCitoyen)) {
-							if (@$aMember["type"] == Person::COLLECTION) {
-								if(@$aMember["isAdmin"]){
-									if(@$aMember["isAdminPending"])
-										$newCitoyen["isAdminPending"]=true;  
-										$newCitoyen["isAdmin"]=true;  	
-								}			
-								if(@$aMember["toBeValidated"]){
-									$newCitoyen["toBeValidated"]=true;  
-								}		
-			  				
+              			}
+					}else{
+						if($aMember["type"]==Organization::COLLECTION){
+							$newOrga = Organization::getSimpleOrganizationById($key);
+							if(!empty($newOrga)){
+								if ($aMember["type"] == Organization::COLLECTION && @$aMember["isAdmin"]){
+									$newOrga["isAdmin"]=true;  				
+								}
+								$newOrga["type"]=Organization::COLLECTION;
+								if (!@$newOrga["disabled"]) {
+									array_push($contextMap["organizations"], $newOrga);
+								}
 							}
-							$newCitoyen["type"]=Person::COLLECTION;
-							array_push($contextMap["people"], $newCitoyen);
+						} 
+						else if($aMember["type"]==Person::COLLECTION){
+							$newCitoyen = Person::getSimpleUserById($key);
+							if (!empty($newCitoyen)) {
+								if (@$aMember["type"] == Person::COLLECTION) {
+									if(@$aMember["isAdmin"]){
+										if(@$aMember["isAdminPending"])
+											$newCitoyen["isAdminPending"]=true;  
+											$newCitoyen["isAdmin"]=true;  	
+									}			
+									if(@$aMember["toBeValidated"]){
+										$newCitoyen["toBeValidated"]=true;  
+									}		
+				  				
+								}
+								$newCitoyen["type"]=Person::COLLECTION;
+								array_push($contextMap["people"], $newCitoyen);
+							}
 						}
 					}
 				}

@@ -6,6 +6,7 @@ class GetAllLinksAction extends CAction {
 */
     public function run($type, $id) { 
     	//$controller=$this->getController();
+
 		$links=$_POST["links"];
 		$contextMap = Element::getAllLinks($links,$type);
 		return Rest::json($contextMap);

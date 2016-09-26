@@ -11,7 +11,6 @@ class DirectoryAction extends CAction
     {
         $controller = $this->getController();
         // Vérifier si utile cette condition
-		
 		$element = Element::getByTypeAndId($type,$id);
         if(@$_POST["links"]){
             $links = $_POST["links"];
@@ -20,7 +19,6 @@ class DirectoryAction extends CAction
                 $links = Element::getAllLinks($element["links"],$type);
             }
         }
-
 		$show=true;
         if($type==Person::COLLECTION)
             $show = Preference::showPreference($element, $type, "directory", Yii::app()->session["userId"]);
@@ -76,6 +74,8 @@ class DirectoryAction extends CAction
             "people" => (($show == true)?@$links["people"]:null),
             "projects" => (($show == true)?@$links["projects"]:null),
             "followers" => (($show == true)?@$links["followers"]:null),
+            "attendees" => (($show == true)?@$links["attendees"]:null),
+            "guests" => (($show == true)?@$links["guests"]:null),
             "countPeople" => @$countPeople,
             "countOrga" => @$countOrga,
             "countProject" => @$countProject,
