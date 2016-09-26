@@ -393,7 +393,6 @@ class Element {
 					if($type==EVENT::COLLECTION){
 						$citoyen = Person::getSimpleUserById($key);
 						if(!empty($citoyen)){
-							echo $key;
 							if(@$aMember["invitorId"])  {
 								array_push($contextMap["guests"], $citoyen);
 							}
