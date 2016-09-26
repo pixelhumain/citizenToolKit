@@ -18,7 +18,8 @@ class SaveAction extends CAction {
             }
             $key = $_POST["key"];
 
-            
+            $url = ( @$_POST["parentType"] && @$_POST["parentId"] && in_array($collection, array("poi"))) ? "#".$_POST["parentType"].".detail.id.".$_POST["parentId"] : null; 
+
             unset($_POST['collection']);
             unset($_POST['key']);
 
@@ -60,8 +61,11 @@ class SaveAction extends CAction {
                                  "msg"=>"Vos données ont bien été enregistré.",
                                  "reload"=>true,
                                  "map"=>$_POST,
-                                 "id"=>(string)$_POST["_id"]);
+                                 "id"=>(string)$_POST["_id"]);    
                 }
+                if(@$url)
+                    $res["url"] = $url;
+
             } else 
                 $res = array( "result" => false, 
                               "msg" => Yii::t("common","Something went really bad : Invalid Content") );
