@@ -260,7 +260,8 @@ class Element {
 					$set["address"]["streetAddress"] = $fieldValue["streetAddress"];
 				if(empty($fieldValue["geo"])){
 					$set["geo"] = SIG::getGeoPositionByInseeCode($insee, $postalCode,$cityName);
-					SIG::updateEntityGeoposition($collection,$id,$geo["latitude"],$geo["longitude"]);
+					//SIG::updateEntityGeoposition($collection,$id,$geo["latitude"],$geo["longitude"]);
+					SIG::updateEntityGeoposition($collection,$id,$set["geo"]["latitude"],$set["geo"]["longitude"]);
 				}
 				if($collection == Person::COLLECTION){
 					$user = Yii::app()->session["user"];
