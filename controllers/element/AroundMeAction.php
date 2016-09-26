@@ -27,7 +27,6 @@ class AroundMeAction extends CAction {
     		$lat = $element["geo"]["latitude"] ? $element["geo"]["latitude"] : null;
     		$lng = $element["geo"]["longitude"] ? $element["geo"]["longitude"] : null;
 
-
     		if($lat!=null && $lng!=null){
     			$request = array("geoPosition" => array( '$exists' => true ),
 								 "geoPosition"  => 
@@ -42,7 +41,6 @@ class AroundMeAction extends CAction {
 								  			 ),
 							  	 		)
 						   		);
-
 				
 				$orgas 	  =	PHDB::findAndSort(Organization::COLLECTION, $request, array("updated"), 125);
 				$projects =	PHDB::findAndSort(Project::COLLECTION, 		$request, array("updated"), 125);
