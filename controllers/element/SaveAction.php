@@ -10,7 +10,6 @@ class SaveAction extends CAction {
         {
             //var_dump($_POST);
             $id = null;
-            
             $data = null;
             $collection = $_POST["collection"];
             if( !empty($_POST["id"]) ){
@@ -18,7 +17,8 @@ class SaveAction extends CAction {
             }
             $key = $_POST["key"];
 
-            unset($_POST['id']);
+
+            /*unset($_POST['id']);
             if( $_POST['collection'] == PHType::TYPE_MICROFORMATS){
                 $_POST['collection'] = $_POST['MFcollection'];
                 unset( $_POST['MFcollection'] );
@@ -43,7 +43,28 @@ class SaveAction extends CAction {
                 $valid = PHDB::validate( $key, json_decode (json_encode ($_POST), FALSE) );
             
 
-            if( $valid["result"] )
+            if( $valid["result"] )*/
+
+            
+            unset($_POST['collection']);
+            unset($_POST['key']);
+
+
+            //empty fields aren't properly validated and must be removed
+            foreach ($_POST as $k => $v) {
+                if($v== "")
+                    unset($_POST[$k]);
+            }
+
+            /*$microformat = PHDB::findOne(PHType::TYPE_MICROFORMATS, array( "key"=> $key));
+            $validate = ( !isset($microformat )  || !isset($microformat["jsonSchema"])) ? false : true;
+            //validation process based on microformat defeinition of the form
+            */
+            //validation process based on databind on each Elemnt Model
+            
+            $valid = DataValidator::validate( ucfirst($key), json_decode (json_encode ($_POST)) );
+            
+            if( $valid )
             {
                 if($id)
                 {
@@ -68,7 +89,9 @@ class SaveAction extends CAction {
                                  "id"=>(string)$_POST["_id"]);
                 }
             } else 
-                $res = $valid;
+                $res = array( "result" => false, 
+                              "msg" => Yii::t("common","Something went really bad : Invalid Content") );
+
             echo json_encode( $res );  
         }
     }
