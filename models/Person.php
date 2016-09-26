@@ -617,7 +617,7 @@ class Person {
 		);
 		
 		//TODO SBAR = filter data to retrieve only publi data	
-		$person = self::getById($id);
+		$person = self::getById($id, true);
 		if (empty($person)) {
 			//throw new CTKException("The person id is unknown ! Check your URL");
 		}
@@ -1782,6 +1782,9 @@ class Person {
 				}
 			}
 	  	}	
+
+	  	if(!empty($entity["pwd"]))
+	  		unset($entity["pwd"]);
 		return $entity;
 	}
 	/**
