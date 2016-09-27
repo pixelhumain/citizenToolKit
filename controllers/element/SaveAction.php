@@ -18,34 +18,8 @@ class SaveAction extends CAction {
             $key = $_POST["key"];
 
 
-            /*unset($_POST['id']);
-            if( $_POST['collection'] == PHType::TYPE_MICROFORMATS){
-                $_POST['collection'] = $_POST['MFcollection'];
-                unset( $_POST['MFcollection'] );
-            } else {
-                unset($_POST['collection']);
-                unset($_POST['key']);
-            }
+            $url = ( @$_POST["parentType"] && @$_POST["parentId"] && in_array($collection, array("poi"))) ? "#".$_POST["parentType"].".detail.id.".$_POST["parentId"] : null; 
 
-
-            //empty fields aren't properly validated and must be removed
-            foreach ($_POST as $key => $value) {
-                if($value == "")
-                    unset($_POST[$key]);
-            }
-
-            $microformat = PHDB::findOne(PHType::TYPE_MICROFORMATS, array( "key"=> $key));
-            $validate = ( !isset($microformat )  || !isset($microformat["jsonSchema"])) ? false : true;
-            //validation process based on microformat defeinition of the form
-            //by default dont perform validation test
-            $valid = array("result"=>true);
-            if($validate)
-                $valid = PHDB::validate( $key, json_decode (json_encode ($_POST), FALSE) );
-            
-
-            if( $valid["result"] )*/
-
-            
             unset($_POST['collection']);
             unset($_POST['key']);
 
@@ -55,7 +29,8 @@ class SaveAction extends CAction {
                 if($v== "")
                     unset($_POST[$k]);
             }
-
+            $_POST["creator"] = Yii::app()->session["userId"];
+            $_POST["created"] = time();
             /*$microformat = PHDB::findOne(PHType::TYPE_MICROFORMATS, array( "key"=> $key));
             $validate = ( !isset($microformat )  || !isset($microformat["jsonSchema"])) ? false : true;
             //validation process based on microformat defeinition of the form
@@ -86,8 +61,11 @@ class SaveAction extends CAction {
                                  "msg"=>"Vos données ont bien été enregistré.",
                                  "reload"=>true,
                                  "map"=>$_POST,
-                                 "id"=>(string)$_POST["_id"]);
+                                 "id"=>(string)$_POST["_id"]);    
                 }
+                if(@$url)
+                    $res["url"] = $url;
+
             } else 
                 $res = array( "result" => false, 
                               "msg" => Yii::t("common","Something went really bad : Invalid Content") );
