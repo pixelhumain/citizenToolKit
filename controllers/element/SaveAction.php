@@ -39,7 +39,7 @@ class SaveAction extends CAction {
             
             $valid = DataValidator::validate( ucfirst($key), json_decode (json_encode ($_POST)) );
             
-            if( $valid )
+            if( $valid["result"] )
             {
                 if($id)
                 {
