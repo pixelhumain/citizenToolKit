@@ -190,7 +190,7 @@ class Comment {
 	}
 
 	private static function getCommentAuthor($comment, $options) {
-		$author = Person::getSimpleUserById($comment["author"]);
+		$author = Person::getMinimalUserById($comment["author"]);
 		
 		//If anonymous option is set the author of the comment will not displayed
 		if (@$options[self::COMMENT_ANONYMOUS] == true) {

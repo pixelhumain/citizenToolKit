@@ -91,9 +91,11 @@ class IndexAction extends CAction
 
         if(@$params["parentType"] == City::COLLECTION) $params['canComment'] = true;
 
+        $params["idComment"] = $id;
+
         if(Yii::app()->request->isAjaxRequest){
 	        if($type != ActionRoom::COLLECTION && $type != ActionRoom::COLLECTION_ACTIONS)
-                echo $controller->renderPartial("../comment/commentPod" , $params, true);
+                echo $controller->renderPartial("../comment/commentPodSimple" , $params, true);
             else
                 echo $controller->renderPartial("../comment/commentPodActionRooms" , $params, true);
 	    }else{
