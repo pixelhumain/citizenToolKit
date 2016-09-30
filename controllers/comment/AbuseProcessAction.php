@@ -13,7 +13,7 @@ class AbuseProcessAction extends CAction
                 $res = Comment::changeStatus($userId , $_POST['id'], $_POST['action']);
             }
         } else {
-            $res = array("result" => false, "msg" => "Please Log in order to vote ! ");
+            $res = array("result" => false, "msg" => Yii::t("common","Please Log in order to vote !"));
         }
         Rest::json( $res );
         Yii::app()->end();

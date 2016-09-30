@@ -159,6 +159,38 @@ class Person {
 	 * @param String $id of the person
 	 * @return array with data id, name, profilImageUrl
 	 */
+	public static function getMinimalUserById($id,$person=null) {
+		
+		$simplePerson = array();
+		if(!$person)
+			$person = PHDB::findOneById( self::COLLECTION ,$id, 
+				array("id" => 1, "name" => 1, "username" => 1, "email" => 1, "roles" => 1, "tags" => 1, "profilImageUrl" => 1, "profilThumbImageUrl" => 1, "profilMarkerImageUrl" => 1));
+		
+		if (empty($person)) {
+			return $simplePerson;
+		}
+
+		$simplePerson["id"] = $id;
+		$simplePerson["name"] = @$person["name"];
+		$simplePerson["username"] = @$person["username"];
+		$simplePerson["email"] = @$person["email"];
+		$simplePerson["tags"] = @$person["tags"];
+		
+		//images
+		$simplePerson = array_merge($simplePerson, Document::retrieveAllImagesUrl($id, self::COLLECTION, null, $person));
+
+		$simplePerson["address"] = empty($person["address"]) ? array("addressLocality" => "Unknown") : $person["address"];
+		
+		$simplePerson = self::clearAttributesByConfidentiality($simplePerson);
+	  	return $simplePerson;
+
+	}
+
+	/**
+	 * Retrieve a simple user (id, name, profilImageUrl) by id from DB
+	 * @param String $id of the person
+	 * @return array with data id, name, profilImageUrl
+	 */
 	public static function getSimpleUserById($id,$person=null) {
 		
 		$simplePerson = array();
