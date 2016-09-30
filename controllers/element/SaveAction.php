@@ -61,7 +61,12 @@ class SaveAction extends CAction {
                                  "msg"=>"Vos données ont bien été enregistré.",
                                  "reload"=>true,
                                  "map"=>$_POST,
-                                 "id"=>(string)$_POST["_id"]);    
+                                 "id"=>(string)$_POST["_id"]);  
+
+                    if( @$_POST["parentType"] && @$_POST["parentId"] ){
+                        //createdObjectAsParam($authorType, $authorId, $objectType, $objectId, $targetType, $targetId, $geo, $tags, $address, $verb="create")
+                        Notification::createdObjectAsParam(Person::COLLECTION,Yii::app()->session["userId"],$class::COLLECTION, (String)$_POST["parentId"], $_POST["parentType"], $_POST["parentId"], $newProject["geo"], (isset($newProject["tags"])) ? $newProject["tags"]:null ,$newProject["address"]);  
+                    }
                 }
                 if(@$url)
                     $res["url"] = $url;
