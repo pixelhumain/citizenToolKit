@@ -127,10 +127,10 @@ class Link {
         return array("result"=>true, "msg"=>"The member has been removed with success", "memberOfid"=>$memberOfId, "memberid"=>$memberId);
     }*/
     
-    private static function checkIdAndType($id, $type) {
+    private static function checkIdAndType($id, $type, $actionType=null) {
 		if ($type == Organization::COLLECTION) {
         	$res = Organization::getById($id); 
-            if (@$res["disabled"]) {
+            if (@$res["disabled"] && $actionType != "disconnect") {
                 throw new CTKException("Impossible to link something on a disabled organization");    
             }
         } else if ($type == Person::COLLECTION) {
@@ -222,8 +222,8 @@ class Link {
     public static function disconnect($originId, $originType, $targetId, $targetType, $userId, $connectType) {
         
         //0. Check if the $originId and the $targetId exists
-        $origin = Link::checkIdAndType($originId, $originType);
-        $target = Link::checkIdAndType($targetId, $targetType);
+        $origin = Link::checkIdAndType($originId, $originType, "disconnect");
+        $target = Link::checkIdAndType($targetId, $targetType, "disconnect");
 
         //2. Remove the links
         PHDB::update( $originType, 

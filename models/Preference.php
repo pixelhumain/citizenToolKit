@@ -150,7 +150,7 @@ class Preference {
 		$result = false;
 		
 		//mask
-		if($elementType==Person::COLLECTION && $element["_id"] == $userId){
+		if($elementType==Person::COLLECTION && (string)$element["_id"] == $userId){
 			$result = true;
 		}
 		//public

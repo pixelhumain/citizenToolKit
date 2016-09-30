@@ -386,7 +386,6 @@ class Element {
 		$contextMap["projects"] = array();
 		$contextMap["events"] = array();
 		$contextMap["followers"] = array();
-		$contextMap["membersOf"] = array();
 		if(!empty($links)){
 			if(isset($links[$connectAs])){
 				foreach ($links[$connectAs] as $key => $aMember) {
@@ -464,22 +463,48 @@ class Element {
 					array_push($contextMap["followers"], $newCitoyen);
 				}
 			}
-			if(isset($links["membersOf"])){
-				foreach ($links["membersOf"] as $key => $value) {
+			if(isset($links["memberOf"])){
+				foreach ($links["memberOf"] as $key => $value) {
 					$newOrga = Organization::getSimpleOrganizationById($key);
 					if (!empty($newOrga))
-					array_push($contextMap["membersOf"], $newOrga);
+					array_push($contextMap["organizations"], $newOrga);
 				}
 			}
-
-
-			// Link with needs
-			/*if(isset($organization["links"]["needs"])){
-				foreach ($organization["links"]["needs"] as $key => $value){
-					$need = Need::getSimpleNeedById($key);
-					//array_push($contextMap["projects"], $project);
-				}
-			}*/
+			$follows = array("citoyens"=>array(),
+  					"projects"=>array(),
+  					"organizations"=>array(),
+  					"count" => 0
+  			);
+  			if ($type == Person::COLLECTION){
+	  			$contextMap["follows"] = array();
+				$countFollows=0;
+			    if (@$links["follows"]) {
+			        foreach ( @$links["follows"] as $key => $member ) {
+			          	if( $member['type'] == Person::COLLECTION ) {
+				            $citoyen = Person::getPublicData( $key );
+				  	        if(!empty($citoyen)) {
+				              array_push( $follows[Person::COLLECTION], $citoyen );
+				            }
+			        	}
+						if( $member['type'] == Organization::COLLECTION ) {
+							$organization = Organization::getPublicData($key);
+							if(!empty($organization)) {
+								array_push($follows[Organization::COLLECTION], $organization );
+							}
+						}
+						if( $member['type'] == Project::COLLECTION ) {
+						    $project = Project::getPublicData($key);
+						    if(!empty($project)) {
+								array_push( $follows[Project::COLLECTION], $project );
+							}
+						}
+						$countFollows++;
+		        	}
+				}	
+				$follows["count"]= $countFollows;
+				$contextMap["follows"] = $follows;
+			}
+			
 		}
 		return $contextMap;	
     }

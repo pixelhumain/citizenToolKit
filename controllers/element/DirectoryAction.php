@@ -47,7 +47,7 @@ class DirectoryAction extends CAction
             $contextIconTitle = "circle text-purple";
         }
 
-        $countPeople = 0; $countOrga = 0; $countProject = 0; $countEvent = 0; $countFollowers = 0; $countAttendees = 0; $countGuests = 0;
+        $countPeople = 0; $countOrga = 0; $countProject = 0; $countEvent = 0; $countFollowers = 0; $countAttendees = 0; $countGuests = 0; $followsPeople = 0; $followsOrga = 0; $followsProject = 0;
         if($show == true){
             if (@$links["people"])
                 foreach ($links["people"] as $key => $onePeople) { if( @$onePeople["name"]) $countPeople++;}
@@ -63,6 +63,27 @@ class DirectoryAction extends CAction
                 foreach ($links["attendees"] as $key => $attendee) { if( @$attendee["name"]) $countAttendees++;}
             if (@$links["guests"])
                 foreach (@$links["guests"] as $key => $guest) { if( @$guest["name"]) $countGuests++;}
+            if (@$links["follows"]){
+				if(@$links["follows"][Person::COLLECTION]){ 
+					foreach ($links["follows"][Person::COLLECTION] as $e) {
+						$followsPeople++;
+						$countPeople++;
+					}
+				}
+				if(@$links["follows"][Organization::COLLECTION]){ 
+					foreach ($links["follows"][Organization::COLLECTION] as $e) {
+						$followsOrga++;
+						$countOrga++;
+					}
+				}
+				if(@$links["follows"][Project::COLLECTION]){ 
+					foreach ($links["follows"][Project::COLLECTION] as $e) {
+						$followsProject++;
+						$countProject++;
+					}
+				}
+			
+			}
         }
         
         // Est-ce vraiment utiliser
@@ -76,6 +97,7 @@ class DirectoryAction extends CAction
             "followers" => (($show == true)?@$links["followers"]:null),
             "attendees" => (($show == true)?@$links["attendees"]:null),
             "guests" => (($show == true)?@$links["guests"]:null),
+            "follows" => (($show == true)?@$links["follows"]:null),
             "countPeople" => @$countPeople,
             "countOrga" => @$countOrga,
             "countProject" => @$countProject,
@@ -95,8 +117,10 @@ class DirectoryAction extends CAction
         $params["contextIcon"] = $contextIcon ;
         $params["contextTitle"] = $contextTitle ;
         $params["contextIconTitle"] = $contextIconTitle ;
-        $params["manage"] = ( @$connectType && @$element["links"][$connectType][Yii::app()->session["userId"]])?1:0;
-        $params["edit"] = Authorisation::canEditItem(Yii::app()->session["userId"], $type, $id);
+        $params["manage"] = ( @$connectType && @$element["links"][$connectType][Yii::app()->session["userId"]] )?1:0;
+        if($type == Person::COLLECTION && @Yii::app()->session["userId"] && $id==Yii::app()->session["userId"])
+       		$params["manage"] = 1;        	
+        $params["edit"] = Authorisation::canEditItem(@Yii::app()->session["userId"], $type, $id);
         $params["openEdition"] = Authorisation::isOpenEdition($id, $type, @$element["preferences"]);
         $page = "directory2";
         if(Yii::app()->request->isAjaxRequest){
