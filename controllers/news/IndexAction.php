@@ -428,6 +428,12 @@ class IndexAction extends CAction
 		if(@$viewer && $viewer != null){
 			$params["viewer"]=$viewer;
 		}
+
+		if(sizeOf($_POST['searchType'])==1){
+			$params["filterTypeNews"]=$_POST['searchType'][0];
+		}
+
+		$params["firstView"] = "news";
 							
 		if(Yii::app()->request->isAjaxRequest){
 			if (@$_GET["isFirst"]){
