@@ -60,14 +60,45 @@ class Mail {
         Mail::schedule($params);
     }
 
-    public static function invitePerson($person, $msg = null, $nameInvitor = null, $invitorUrl = null) {
+    public static function invitePerson($person, $msg = null, $nameInvitor = null, $invitorUrl = null, $subject=null) {
         if(isset($person["invitedBy"]))
             $invitor = Person::getSimpleUserById($person["invitedBy"]);
         else if(isset($nameInvitor))
             $invitor["name"] = $nameInvitor ;
-
+		
         if(empty($msg))
             $msg = $invitor["name"]. " vous invite à rejoindre Communecter.";
+		if(empty($subject))
+            $subject = $invitor["name"]. " vous invite à rejoindre Communecter.";
+
+        
+
+        $params = array(
+            "type" => Cron::TYPE_MAIL,
+            "tpl"=>'invitation',
+            "subject" => $subject,
+            "from"=>Yii::app()->params['adminEmail'],
+            "to" => $person["email"],
+            "tplParams" => array(   "invitorName"   => $invitor["name"],
+                                    "title" => Yii::app()->name ,
+                                    "logo"=> "/images/logo-communecter.png",
+                                    "logo2" => "/images/logoLTxt.jpg",
+                                    "invitedUserId" => $person["_id"],
+                                    "message" => $msg)
+        );
+
+        if(!empty($invitorUrl))
+            $params["tplParams"]["invitorUrl"] = $invitorUrl;
+        
+        Mail::schedule($params);
+    }
+	/*public static function invitePersonAgain($person, $msg = null, $nameInvitor = null, $invitorUrl = null) {
+        $invitor = Person::getSimpleUserById(Yii::app()->session["userId"]);
+        
+            $invitor["name"] = $nameInvitor ;
+
+        if(empty($msg))
+            $msg = $invitor["name"]. " vous relance pour rejoindre Communecter.";
 
         
 
@@ -89,8 +120,7 @@ class Mail {
             $params["tplParams"]["invitorUrl"] = $invitorUrl;
         
         Mail::schedule($params);
-    }
-
+    }*/
     /**
      * Invite bankers
      * @param array $person A well format person
