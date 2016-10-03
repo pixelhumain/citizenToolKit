@@ -542,6 +542,17 @@ class Element {
 	  	return $res;
      
 	}
+	/**
+		* Put last timestamp on element label 
+		* label ex: update, lastInvitation
+	**/
+	public static function updateTimeElementByLabel($elementType,$elementId, $label) {
+		PHDB::update($elementType, 
+			array("_id" => $elementId) , 
+            array('$set' => array( $label =>time()))
+		);
+		return true;
+	}
 
     /*public static function updateField($collection, $id, $fieldName, $fieldValue) {
 		//$fieldName = Organization::getCollectionFieldNameAndValidate($fieldName, $fieldValue, $id);
