@@ -543,6 +543,29 @@ class Element {
      
 	}
 
+
+	public static function getWhere($type, $params) {
+		$res = null ;
+		if(in_array($type, self::TYPES))
+	  		$res = PHDB::findAndSort($type,$params,array("created"),null);
+	  	return $res ;
+	}
+
+	public static function getAllEntitiesByKey($key){
+        $result = array();
+        foreach (self::TYPES as $key => $type) {
+        	$res = self::getWhere($type, array("source.key"=>$key, "state" => "uncomplete"));
+	        foreach ($res as $key => $value) {
+	            $element = array();
+	            $element["id"] = $key;
+	            $element["name"] = $value["name"];
+	            $element["warnings"] = (empty($value["warnings"])?array():$value["warnings"]);
+	            $result[$type][] = $element;
+	        }
+        }
+		return $result ;
+    }
+
     /*public static function updateField($collection, $id, $fieldName, $fieldValue) {
 		//$fieldName = Organization::getCollectionFieldNameAndValidate($fieldName, $fieldValue, $id);
 		$verb = ($fieldValue == "" || $fieldValue == null ) ? '$unset' : '$set';
