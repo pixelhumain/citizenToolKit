@@ -18,11 +18,15 @@ class Poi {
 	    "addresses" => array("name" => "addresses"),
 	    "parentId" => array("name" => "parentId"),
 	    "parentType" => array("name" => "parentType"),
-	    "creator" => array("name" => "creator"),
-	    "created" => array("name" => "created"),
+	    
 	    "addresses" => array("name" => "addresses"),
 	    "urls" => array("name" => "urls"),
 	    "tags" => array("name" => "tags"),
+
+	    "modified" => array("name" => "modified"),
+	    "updated" => array("name" => "updated"),
+	    "creator" => array("name" => "creator"),
+	    "created" => array("name" => "created"),
 	    );
 }
 ?>

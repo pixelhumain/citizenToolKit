@@ -40,6 +40,11 @@ class Event {
 	    "source" => array("name" => "source"),
 	    "badges" => array("name" => "badges"),
 	    "tags" => array("name" => "tags"),
+
+	    "modified" => array("name" => "modified"),
+	    "updated" => array("name" => "updated"),
+	    "creator" => array("name" => "creator"),
+	    "created" => array("name" => "created"),
 	);
 
 	//TODO SBAR - First test to validate data. Move it to DataValidator

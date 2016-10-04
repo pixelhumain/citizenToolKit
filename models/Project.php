@@ -29,7 +29,12 @@ class Project {
 	    "modules" => array("name" => "modules"),
 	    "badges" => array("name" => "badges"),
 	    "source" => array("name" => "source"),
-	    "preferences" => array("name" => "preferences")
+	    "preferences" => array("name" => "preferences"),
+		
+		"modified" => array("name" => "modified"),
+	    "updated" => array("name" => "updated"),
+	    "creator" => array("name" => "creator"),
+	    "created" => array("name" => "created"),
 	);
 
 	private static function getCollectionFieldNameAndValidate($projectFieldName, $projectFieldValue, $projectId) {

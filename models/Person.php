@@ -652,7 +652,7 @@ class Person {
 		);
 		
 		//TODO SBAR = filter data to retrieve only publi data	
-		$person = self::getById($id);
+		$person = self::getById($id, true);
 		if (empty($person)) {
 			//throw new CTKException("The person id is unknown ! Check your URL");
 		}
@@ -1045,7 +1045,7 @@ class Person {
 	 */
 	public static function changePassword($oldPassword, $newPassword, $userId) {
 		
-		$person = Person::getById($userId);
+		$person = Person::getById($userId, false);
 
 		if (! self::checkPassword($oldPassword, $person)) {
 			return array("result" => false, "msg" => Yii::t("person","Your current password is incorrect"));
@@ -1817,6 +1817,9 @@ class Person {
 				}
 			}
 	  	}	
+
+	  	if(!empty($entity["pwd"]))
+	  		unset($entity["pwd"]);
 		return $entity;
 	}
 	/**
