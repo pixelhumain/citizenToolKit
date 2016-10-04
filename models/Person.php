@@ -1010,7 +1010,7 @@ class Person {
 	 */
 	public static function changePassword($oldPassword, $newPassword, $userId) {
 		
-		$person = Person::getById($userId);
+		$person = Person::getById($userId, false);
 
 		if (! self::checkPassword($oldPassword, $person)) {
 			return array("result" => false, "msg" => Yii::t("person","Your current password is incorrect"));
