@@ -578,6 +578,12 @@ class Element {
                 if($v== "")
                     unset($params[$k]);
             }
+            //save any new tags to DB
+            if (!empty($params["tags"]))
+				$params["tags"] = Tags::filterAndSaveNewTags($params["tags"]);
+
+			$params["modified"] = new MongoDate(time());
+			$params["updated"] = time();
             $params["creator"] = Yii::app()->session["userId"];
             $params["created"] = time();
             /*$microformat = PHDB::findOne(PHType::TYPE_MICROFORMATS, array( "key"=> $key));
@@ -611,10 +617,18 @@ class Element {
                                  "reload"=>true,
                                  "map"=>$params,
                                  "id"=>(string)$params["_id"]);  
+                    
+                    //TODO
+                    //self::afterSave();
+                    
+                    //TODO : post process for specific actions
+                    if( $collection == Organization::COLLECTION )
+                    	$res["afterSave"] = Organization::afterSave($params, Yii::app()->session["userId"]);
 
-                    if( @$params["parentType"] && @$params["parentId"] ){
+                    if( false && @$params["parentType"] && @$params["parentId"] ){
                         //createdObjectAsParam($authorType, $authorId, $objectType, $objectId, $targetType, $targetId, $geo, $tags, $address, $verb="create")
-                        Notification::createdObjectAsParam(Person::COLLECTION,Yii::app()->session["userId"],$class::COLLECTION, (String)$params["parentId"], $params["parentType"], $params["parentId"], $newProject["geo"], (isset($newProject["tags"])) ? $newProject["tags"]:null ,$newProject["address"]);  
+                        //TODO
+                        //Notification::createdObjectAsParam($authorType[Person::COLLECTION],$userId,$elementType, $elementType, $parentType[projet crée par une orga => orga est parent], $parentId, $params["geo"], (isset($params["tags"])) ? $params["tags"]:null ,$params["address"]);  
                     }
                 }
                 if(@$url)
@@ -622,7 +636,7 @@ class Element {
 
             } else 
                 $res = array( "result" => false, 
-                              "msg" => Yii::t("common","Something went really bad : Invalid Content") );
+                              "msg" => Yii::t("common","Something went really bad : Invalid Content ".$valid['msg']) );
 
         return $res;
      }
