@@ -429,7 +429,7 @@ class IndexAction extends CAction
 			$params["viewer"]=$viewer;
 		}
 
-		if(sizeOf($_POST['searchType'])==1){
+		if(sizeOf(@$_POST['searchType'])==1){
 			$params["filterTypeNews"]=$_POST['searchType'][0];
 		}
 

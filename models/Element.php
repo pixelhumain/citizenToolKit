@@ -64,60 +64,60 @@ class Element {
     	$prefix = "#".$ctrler;
 		$fas = array(
 
-	    	Person::COLLECTION 			=> array("icon"=>"user","color"=>"#FFC600",
+	    	Person::COLLECTION 			=> array("icon"=>"user","color"=>"#FFC600","text-color"=>"yellow",
 	    										 "hash"=> $prefix.".detail.id."),
 
-	    	Organization::COLLECTION 	=> array("icon"=>"group", "color"=>"#93C020",
+	    	Organization::COLLECTION 	=> array("icon"=>"group", "color"=>"#93C020","text-color"=>"green",
 	    										 "hash"=> Organization::CONTROLLER.".detail.id."),
-	    	Organization::CONTROLLER 	=> array("icon"=>"group", "color"=>"#93C020",
+	    	Organization::CONTROLLER 	=> array("icon"=>"group", "color"=>"#93C020","text-color"=>"green",
 	    										 "hash"=> Organization::CONTROLLER.".detail.id.",
 	    										 "collection"=>Organization::COLLECTION),
 
 	    	
-	    	Event::COLLECTION 			=> array("icon"=>"calendar","color"=>"#FFA200",
+	    	Event::COLLECTION 			=> array("icon"=>"calendar","color"=>"#FFA200","text-color"=>"orange",
 	    										 "hash"=> Event::CONTROLLER.".detail.id."),
-	    	Event::CONTROLLER 			=> array("icon"=>"calendar","color"=>"#FFA200",
+	    	Event::CONTROLLER 			=> array("icon"=>"calendar","color"=>"#FFA200","text-color"=>"orange",
 	    										 "hash"=> Event::CONTROLLER.".detail.id.",
 	    										 "collection"=>Event::COLLECTION),
 
-	    	Project::COLLECTION 		=> array("icon"=>"lightbulb-o","color"=>"#8C5AA1",
+	    	Project::COLLECTION 		=> array("icon"=>"lightbulb-o","color"=>"#8C5AA1","text-color"=>"purple",
 	    										 "hash"=> Project::CONTROLLER.".detail.id."),
-	    	Project::CONTROLLER 		=> array("icon"=>"lightbulb-o","color"=>"#8C5AA1",
+	    	Project::CONTROLLER 		=> array("icon"=>"lightbulb-o","color"=>"#8C5AA1","text-color"=>"purple",
 	    										 "hash"=> Project::CONTROLLER.".detail.id.",
 	    										 "collection"=>Project::COLLECTION),
 
 			News::COLLECTION 			=> array("icon"=>"rss","hash"=> $prefix.""),
 
-	    	City::CONTROLLER 			=> array("icon"=>"university","color"=>"#E33551",
+	    	City::CONTROLLER 			=> array("icon"=>"university","color"=>"#E33551","text-color"=>"red",
 	    										 "hash"=> $prefix.".detail.insee."),
-	    	ActionRoom::TYPE_VOTE		=> array("icon"=>"archive","color"=>"#3C5665",
+	    	ActionRoom::TYPE_VOTE		=> array("icon"=>"archive","color"=>"#3C5665", "text-color"=>"dark",
 	    		 								 "hash"=> "survey.entries.id.",
 	    		 								 "collection"=>ActionRoom::COLLECTION),
-	    	ActionRoom::TYPE_VOTE."s"	=> array("icon"=>"archive","color"=>"#3C5665",
+	    	ActionRoom::TYPE_VOTE."s"	=> array("icon"=>"archive","color"=>"#3C5665", "text-color"=>"dark",
 	    		 								 "hash"=> "survey.entries.id.",
 	    		 								 "collection"=>ActionRoom::COLLECTION),
-	    	ActionRoom::TYPE_ACTIONS	=> array("icon"=>"cogs","color"=>"#3C5665",
+	    	ActionRoom::TYPE_ACTIONS	=> array("icon"=>"cogs","color"=>"#3C5665", "text-color"=>"dark",
 	    		 								 "hash"=> "rooms.actions.id.",
 	    		 								 "collection"=>ActionRoom::COLLECTION),
-	    	ActionRoom::TYPE_ACTIONS."s"=> array("icon"=>"cogs","color"=>"#3C5665",
+	    	ActionRoom::TYPE_ACTIONS."s"=> array("icon"=>"cogs","color"=>"#3C5665", "text-color"=>"dark",
 	    		 								 "hash"=> "rooms.actions.id.",
 	    		 								 "collection"=>ActionRoom::COLLECTION),
-	    	ActionRoom::TYPE_ACTION		=> array("icon"=>"cog","color"=>"#3C5665",
+	    	ActionRoom::TYPE_ACTION		=> array("icon"=>"cog","color"=>"#3C5665", "text-color"=>"dark",
 	    		 								 "hash"=> "rooms.action.id.",
 	    		 								 "collection"=>ActionRoom::COLLECTION_ACTIONS),
-	    	ActionRoom::TYPE_ACTION."s"	=> array("icon"=>"cog","color"=>"#3C5665",
+	    	ActionRoom::TYPE_ACTION."s"	=> array("icon"=>"cog","color"=>"#3C5665", "text-color"=>"dark",
 	    		 								 "hash"=> "rooms.action.id.",
 	    		 								 "collection"=>ActionRoom::COLLECTION_ACTIONS),
-	    	ActionRoom::TYPE_ENTRY		=> array("icon"=>"archive","color"=>"#3C5665",
+	    	ActionRoom::TYPE_ENTRY		=> array("icon"=>"archive","color"=>"#3C5665", "text-color"=>"dark",
 	    										 "hash"=> "survey.entry.id.",
 	    										 "collection"=>Survey::COLLECTION ),
-	    	ActionRoom::TYPE_ENTRY."s"	=> array("icon"=>"archive","color"=>"#3C5665",
+	    	ActionRoom::TYPE_ENTRY."s"	=> array("icon"=>"archive","color"=>"#3C5665", "text-color"=>"dark",
 	    										 "hash"=> "survey.entry.id.",
 	    										 "collection"=>Survey::COLLECTION ),
-	    	ActionRoom::TYPE_DISCUSS	=> array("icon"=>"comment","color"=>"#3C5665",
+	    	ActionRoom::TYPE_DISCUSS	=> array("icon"=>"comment","color"=>"#3C5665", "text-color"=>"dark",
 	    										 "hash"=> "comment.index.type.actionRooms.id.",
 	    										 "collection"=>ActionRoom::COLLECTION),
-	    	ActionRoom::TYPE_DISCUSS."s"=> array("icon"=>"comment","color"=>"#3C5665",
+	    	ActionRoom::TYPE_DISCUSS."s"=> array("icon"=>"comment","color"=>"#3C5665", "text-color"=>"dark",
 	    										 "hash"=> "comment.index.type.actionRooms.id.",
 	    										 "collection"=>ActionRoom::COLLECTION)
 	    );	
@@ -542,6 +542,18 @@ class Element {
 	  	return $res;
      
 	}
+	/**
+		* Put last timestamp on element label 
+		* label ex: update, lastInvitation
+	**/
+	public static function updateTimeElementByLabel($elementType,$elementId, $label) {
+		PHDB::update($elementType, 
+			array("_id" => $elementId) , 
+            array('$set' => array( $label =>time()))
+		);
+		return true;
+	}
+
 
 
 	public static function getWhere($type, $params) {
@@ -566,58 +578,76 @@ class Element {
 		return $result ;
     }
 
-    /*public static function updateField($collection, $id, $fieldName, $fieldValue) {
-		//$fieldName = Organization::getCollectionFieldNameAndValidate($fieldName, $fieldValue, $id);
-		$verb = ($fieldValue == "" || $fieldValue == null ) ? '$unset' : '$set';
-		$set = array($fieldName => $fieldValue);
 
-		//Specific case : 
-		//Tags
-		if ($fieldName == "tags") {
-			$fieldValue = Tags::filterAndSaveNewTags($fieldValue);
-			$set = array($fieldName => $fieldValue);
-		} 
-		else if ($fieldName == "telephone") {
-			//Telephone
-			$tel = array();
-			$fixe = array();
-			$mobile = array();
-			
-			if(!empty($fieldValue))
-			{
-				foreach ($fieldValue as $key => $value) {
-					if(substr($value, 0, 2) == "02")
-						$fixe[] = $value ;
-					else
-						$mobile[] = $value ;
+	public static function save($params){
 
-					if(!empty($fixe))
-						$tel["fixe"] = $fixe;
-					if(!empty($mobile))
-						$tel["mobile"] = $mobile;
-				}
-			}
-			$set = array($fieldName => $tel);
-		}
-		else if ($fieldName == "address") {
-		//address
-			if(!empty($fieldValue["postalCode"]) && !empty($fieldValue["codeInsee"])) {
-				$insee = $fieldValue["codeInsee"];
-				$postalCode = $fieldValue["postalCode"];
-				$cityName = $fieldValue["addressLocality"];
-				$address = SIG::getAdressSchemaLikeByCodeInsee($insee, $postalCode,$cityName);
-				$set = array("address" => $address);
-				if (!empty($fieldValue["streetAddress"]))
-					$set["address"]["streetAddress"] = $fieldValue["streetAddress"];
-				if(empty($fieldValue["geo"]))
-					$set["geo"] = SIG::getGeoPositionByInseeCode($insee, $postalCode,$cityName);
-			} else 
-				throw new CTKException("Error updating  : address is not well formated !");			
-		}
+        //var_dump($params);
+            $id = null;
+            //var_dump($params);
+            $data = null;
+            $collection = $params["collection"];
+            if( !empty($params["id"]) ){
+                $id = $params["id"];
+            }
+            $key = $params["key"];
 
-		//update 
-		PHDB::update( $collection, array("_id" => new MongoId($id)), 
-		                          array($verb => $set));
-		return true;
-	}*/
+            $url = ( @$params["parentType"] && @$params["parentId"] && in_array($collection, array("poi"))) ? "#".$params["parentType"].".detail.id.".$params["parentId"] : null; 
+
+            unset($params['collection']);
+            unset($params['key']);
+
+
+            //empty fields aren't properly validated and must be removed
+            foreach ($params as $k => $v) {
+                if($v== "")
+                    unset($params[$k]);
+            }
+            $params["creator"] = Yii::app()->session["userId"];
+            $params["created"] = time();
+            /*$microformat = PHDB::findOne(PHType::TYPE_MICROFORMATS, array( "key"=> $key));
+            $validate = ( !isset($microformat )  || !isset($microformat["jsonSchema"])) ? false : true;
+            //validation process based on microformat defeinition of the form
+            */
+            //validation process based on databind on each Elemnt Model
+            
+            $valid = DataValidator::validate( ucfirst($key), json_decode (json_encode ($params)) );
+            
+            if( $valid["result"] )
+            {
+                if($id)
+                {
+                    //update a single field
+                    //else update whole map
+                    $changeMap = ( !$microformat && isset( $key )) ? array('$set' => array( $key => $params[ $key ] ) ) : array('$set' => $params );
+                    PHDB::update($collection,array("_id"=>new MongoId($id)), $changeMap);
+                    $res = array("result"=>true,
+                                 "msg"=>"Vos données ont été mise à jour.",
+                                 "reload"=>true,
+                                 "map"=>$params,
+                                 "id"=>(string)$params["_id"]);
+                } 
+                else 
+                {
+                    $params["created"] = time();
+                    PHDB::insert($collection, $params );
+                    $res = array("result"=>true,
+                                 "msg"=>"Vos données ont bien été enregistré.",
+                                 "reload"=>true,
+                                 "map"=>$params,
+                                 "id"=>(string)$params["_id"]);  
+
+                    if( @$params["parentType"] && @$params["parentId"] ){
+                        //createdObjectAsParam($authorType, $authorId, $objectType, $objectId, $targetType, $targetId, $geo, $tags, $address, $verb="create")
+                        Notification::createdObjectAsParam(Person::COLLECTION,Yii::app()->session["userId"],$class::COLLECTION, (String)$params["parentId"], $params["parentType"], $params["parentId"], $newProject["geo"], (isset($newProject["tags"])) ? $newProject["tags"]:null ,$newProject["address"]);  
+                    }
+                }
+                if(@$url)
+                    $res["url"] = $url;
+
+            } else 
+                $res = array( "result" => false, 
+                              "msg" => Yii::t("common","Something went really bad : Invalid Content") );
+
+        return $res;
+     }
 }

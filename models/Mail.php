@@ -71,7 +71,10 @@ class Mail {
 		if(empty($subject))
             $subject = $invitor["name"]. " vous invite à rejoindre Communecter.";
 
-        
+        if(!@$person["email"] || empty($person["email"])){
+        	$getEmail=Person::getEmailById((string)$person["_id"]);
+        	$person["email"]=$getEmail["email"];
+        }
 
         $params = array(
             "type" => Cron::TYPE_MAIL,
@@ -80,7 +83,7 @@ class Mail {
             "from"=>Yii::app()->params['adminEmail'],
             "to" => $person["email"],
             "tplParams" => array(   "invitorName"   => $invitor["name"],
-                                    "title" => Yii::app()->name ,
+                                    "title" => Yii::app()-> name ,
                                     "logo"=> "/images/logo-communecter.png",
                                     "logo2" => "/images/logoLTxt.jpg",
                                     "invitedUserId" => $person["_id"],

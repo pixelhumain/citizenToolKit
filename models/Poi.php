@@ -14,7 +14,15 @@ class Poi {
 	    "addressCountry" => array("name" => "address.addressCountry"),
 	    "geo" => array("name" => "geo"),
 	    "geoPosition" => array("name" => "geoPosition"),
-	    "description" => array("name" => "description")
+	    "description" => array("name" => "description"),
+	    "addresses" => array("name" => "addresses"),
+	    "parentId" => array("name" => "parentId"),
+	    "parentType" => array("name" => "parentType"),
+	    "creator" => array("name" => "creator"),
+	    "created" => array("name" => "created"),
+	    "addresses" => array("name" => "addresses"),
+	    "urls" => array("name" => "urls"),
+	    "tags" => array("name" => "tags"),
 	    );
 }
 ?>
