@@ -96,6 +96,7 @@ class SaveActionAction extends CAction
                 $res['result'] = true;
                 $res['msg'] = "actionSaved";
                 $res['actionId'] = $actionId;
+                $res['url'] = "#rooms.action.id.".$actionId;
                 //echo "actionId :".$actionId; return;
                 //Notify Element participants 
                 Notification::actionOnPerson ( ActStr::VERB_ADD_ACTION, ActStr::ICON_ADD, "", array( "type" => ActionRoom::COLLECTION_ACTIONS , "id" => $actionId ));

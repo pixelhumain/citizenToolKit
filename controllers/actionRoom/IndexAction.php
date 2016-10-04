@@ -3,7 +3,7 @@ class IndexAction extends CAction
 {
 
     //http://127.0.0.1/ph/communecter/rooms/index/type/citoyens/id/xxxxxx
-    public function run( $type=null, $id= null, $view=null, $archived=null )
+    public function run( $type=null, $id= null, $view=null, $archived=null,$fields=null )
     {
         error_log("room index Action ".$type);
         $controller=$this->getController();
@@ -55,6 +55,7 @@ class IndexAction extends CAction
         
         if( $type == City::COLLECTION && count($rooms["votes"]) < 10) 
         {
+            //initialisze les premiere category sur un DDA city
             foreach ( OpenData::$categ as $key => $c) 
             {
                 PHDB::insert( Survey::PARENT_COLLECTION, array("email" => "contact@communecter.org",
@@ -103,13 +104,34 @@ class IndexAction extends CAction
             if($view == "pod"){
                 echo $controller->renderPartial("../pod/roomsList" , $params, true);
             }else if($view == "data"){
-                Rest::json( $params );
+                $res = array();
+                if(@$fields){
+                    foreach (explode(",", $fields) as $key => $value) {
+                        if(@$params[$value])
+                            $res[$value] = $params[$value];
+                    }
+                }
+                else
+                    $res = $params;
+                Rest::json( $res );
             }else {
                 echo $controller->renderPartial("../dda/index" , $params,true);
             }
         }
         else{
-            $controller->render( "index" , $params );
+            if($view == "data"){
+                $res = array();
+                if(@$fields){
+                    foreach (explode(",", $fields) as $key => $value) {
+                        if(@$params[$value])
+                            $res[$value] = $params[$value];
+                    }
+                }
+                else
+                    $res = $params;
+                Rest::json( $res );
+            } else
+                $controller->render( "index" , $params );
         }
     }
 }
