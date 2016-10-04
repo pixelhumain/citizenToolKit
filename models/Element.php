@@ -366,4 +366,76 @@ class Element {
 		                          array($verb => $set));
 		return true;
 	}
+
+	public static function save($params){
+
+        //var_dump($params);
+            $id = null;
+            //var_dump($params);
+            $data = null;
+            $collection = $params["collection"];
+            if( !empty($params["id"]) ){
+                $id = $params["id"];
+            }
+            $key = $params["key"];
+
+            $url = ( @$params["parentType"] && @$params["parentId"] && in_array($collection, array("poi"))) ? "#".$params["parentType"].".detail.id.".$params["parentId"] : null; 
+
+            unset($params['collection']);
+            unset($params['key']);
+
+
+            //empty fields aren't properly validated and must be removed
+            foreach ($params as $k => $v) {
+                if($v== "")
+                    unset($params[$k]);
+            }
+            $params["creator"] = Yii::app()->session["userId"];
+            $params["created"] = time();
+            /*$microformat = PHDB::findOne(PHType::TYPE_MICROFORMATS, array( "key"=> $key));
+            $validate = ( !isset($microformat )  || !isset($microformat["jsonSchema"])) ? false : true;
+            //validation process based on microformat defeinition of the form
+            */
+            //validation process based on databind on each Elemnt Model
+            
+            $valid = DataValidator::validate( ucfirst($key), json_decode (json_encode ($params)) );
+            
+            if( $valid["result"] )
+            {
+                if($id)
+                {
+                    //update a single field
+                    //else update whole map
+                    $changeMap = ( !$microformat && isset( $key )) ? array('$set' => array( $key => $params[ $key ] ) ) : array('$set' => $params );
+                    PHDB::update($collection,array("_id"=>new MongoId($id)), $changeMap);
+                    $res = array("result"=>true,
+                                 "msg"=>"Vos données ont été mise à jour.",
+                                 "reload"=>true,
+                                 "map"=>$params,
+                                 "id"=>(string)$params["_id"]);
+                } 
+                else 
+                {
+                    $params["created"] = time();
+                    PHDB::insert($collection, $params );
+                    $res = array("result"=>true,
+                                 "msg"=>"Vos données ont bien été enregistré.",
+                                 "reload"=>true,
+                                 "map"=>$params,
+                                 "id"=>(string)$params["_id"]);  
+
+                    if( @$params["parentType"] && @$params["parentId"] ){
+                        //createdObjectAsParam($authorType, $authorId, $objectType, $objectId, $targetType, $targetId, $geo, $tags, $address, $verb="create")
+                        Notification::createdObjectAsParam(Person::COLLECTION,Yii::app()->session["userId"],$class::COLLECTION, (String)$params["parentId"], $params["parentType"], $params["parentId"], $newProject["geo"], (isset($newProject["tags"])) ? $newProject["tags"]:null ,$newProject["address"]);  
+                    }
+                }
+                if(@$url)
+                    $res["url"] = $url;
+
+            } else 
+                $res = array( "result" => false, 
+                              "msg" => Yii::t("common","Something went really bad : Invalid Content") );
+
+        return $res;
+     }
 }
