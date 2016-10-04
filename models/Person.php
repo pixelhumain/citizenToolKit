@@ -1877,7 +1877,7 @@ class Person {
 			//Organization => members, followers
 			Organization::COLLECTION => array("followers","members"),
 			//Projects => contibutors
-			Project::COLLECTION => array("contributors"),
+			Project::COLLECTION => array("contributors", "followers"),
 			//Events => attendees / organizer
 			Event::COLLECTION => array("attendees", "organizer"),
 			//Needs => links/helpers
@@ -1888,6 +1888,7 @@ class Person {
 	    		$where = array("links.".$linkType.".".$id => array('$exists' => true));
 	    		$action = array('$unset' => array("links.".$linkType.".".$id => ""));
 	    		PHDB::update($collection, $where, $action);
+	    		error_log("delete links type ".$linkType." on collection ".$collection." for user ".$id);
 	    	}
     	}
 
