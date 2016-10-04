@@ -389,7 +389,7 @@ class Element {
 		if(!empty($links)){
 			if(isset($links[$connectAs])){
 				foreach ($links[$connectAs] as $key => $aMember) {
-					if($type==EVENT::COLLECTION){
+					if($type==Event::COLLECTION){
 						$citoyen = Person::getSimpleUserById($key);
 						if(!empty($citoyen)){
 							if(@$aMember["invitorId"])  {
