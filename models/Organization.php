@@ -49,7 +49,6 @@ class Organization {
 	    "fax" => array("name" => "telephone.fax"),
 	    "modules" => array("name" => "modules"),
 	    "preferences" => array("name" => "preferences"),
-	    //"mobile" => array("name" => "telephone.mobile"),
 	    "video" => array("name" => "video"),
 	    "state" => array("name" => "state"),
 	    "warnings" => array("name" => "warnings"),
@@ -57,6 +56,7 @@ class Organization {
 	    "urlTwitter" => array("name" => "urlTwitter"),
 	    "isOpenData" => array("name" => "isOpenData"),
 	    "badges" => array("name" => "badges"),
+	    "source" => array("name" => "source", "rules" => array("source")),
 	);
 	
 	//See findOrganizationByCriterias...
