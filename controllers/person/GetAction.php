@@ -13,7 +13,7 @@ class GetAction extends CAction {
     else 
       $bindMap = TranslateCommunecter::$dataBinding_person;
 
-      	$result = Api::getData($bindMap, $format, Person::COLLECTION, $id,$limit, $index, $tags, $multiTags, $key, $insee);
+    $result = Api::getData($bindMap, $format, Person::COLLECTION, $id,$limit, $index, $tags, $multiTags, $key, $insee);
 
 		Rest::json($result);
 		Yii::app()->end();

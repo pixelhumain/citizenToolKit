@@ -181,7 +181,7 @@ class Api {
         if( @$key )
             $params["source.key"] = $key ;
         
-        if($limit > 500)
+        if( $limit > 500)
             $limit = 500 ;
         else if($limit < 1)
             $limit = 50 ;
@@ -189,14 +189,15 @@ class Api {
         if($index < 0)
             $index = 0 ;
 
-        //Get data
+        $params["preferences.isOpenData"] = true ;
+
         $data = PHDB::findAndLimitAndIndex($type , $params, $limit, $index);
         $data = self::getUrlImage($data, $type);
 
         if(Person::COLLECTION == $type){
             foreach ($data as $key => $value) {
                 $person = Person::clearAttributesByConfidentiality($value);
-                $data[$key] = $person ;
+                $data[$key] = $person ; 
             }
         }
 
