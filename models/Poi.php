@@ -7,6 +7,7 @@ class Poi {
 	public static $dataBinding = array (
 	    "name" => array("name" => "name", "rules" => array("required")),
 	    "address" => array("name" => "address"),
+	    "addresses" => array("name" => "addresses"),
 	    "streetAddress" => array("name" => "address.streetAddress"),
 	    "postalCode" => array("name" => "address.postalCode"),
 	    "city" => array("name" => "address.codeInsee"),
@@ -19,7 +20,6 @@ class Poi {
 	    "parentId" => array("name" => "parentId"),
 	    "parentType" => array("name" => "parentType"),
 	    
-	    "addresses" => array("name" => "addresses"),
 	    "urls" => array("name" => "urls"),
 	    "tags" => array("name" => "tags"),
 
