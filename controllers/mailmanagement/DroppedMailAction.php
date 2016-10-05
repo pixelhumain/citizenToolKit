@@ -1,5 +1,7 @@
 <?php
+
 class DroppedMailAction extends CAction {
+    
     public function run() {
         $controller=$this->getController();
         error_log(explode($_POST));
@@ -11,7 +13,7 @@ class DroppedMailAction extends CAction {
                 //Set invalid flag on the person
                 Person::updatePersonField($account["id"],"isNotValidEmail", false);
             } else {
-                error_log("Webhook : unknown user with that email ".$email);
+                error_log("Webhook : unknown user with that email : ".$email);
             }
         }
     }
