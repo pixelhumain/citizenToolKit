@@ -346,5 +346,71 @@ class NewImport
             PHDB::insert( NewImport::MAPPINGS, $value );
         }
     }
+
+     public static function addDataInDb($post)
+    {
+        $jsonString = $post["file"];
+        $typeElement = $post["typeElement"];
+        /*$pathFolderImage = $post["pathFolderImage"];
+
+        $sendMail = ($post["sendMail"] == "false"?null:true);
+        $isKissKiss = ($post["isKissKiss"] == "false"?null:true);
+        $invitorUrl = (trim($post["invitorUrl"]) == ""?null:$post["invitorUrl"]);*/
+        
+        if(substr($jsonString, 0,1) == "{")
+            $jsonArray[] = json_decode($jsonString, true) ;
+        else
+            $jsonArray = json_decode($jsonString, true) ;
+
+        if(isset($jsonArray)){
+            $resData =  array();
+            foreach ($jsonArray as $key => $value){
+                try{
+                    $value["collection"] = $typeElement ;
+                    $value["key"] = Element::getControlerByCollection($typeElement);
+
+                    //preferences
+                    $value["preferences"] = array(  "isOpenData"=>true, 
+                                                    "isOpenEdition"=>true);
+
+                   
+
+                    if($post["isLink"] == "true"){
+                        $paramsLink["idLink"] = $post["idLink"];
+                        $paramsLink["typeLink"] = $post["typeLink"];
+                        $paramsLink["role"] = $post["roleLink"];
+                        $value["paramsLink"] = $paramsLink;
+                    }
+
+                    if($typeElement == Organization::COLLECTION)
+                        $value["role"] = "creator";
+                    
+                    $entite = array();
+                    $res = Element::save($value);
+                    if($res["result"] == true){
+                        $entite["name"] =  $value["name"];
+                        $entite["info"] = $res["msg"];
+                    }else{
+                        $entite["name"] =  $value["name"];
+                        $entite["info"] = $res["msg"];
+                    }
+                    $resData[] = $entite;
+                }
+                catch (CTKException $e){
+                    $entite["name"] =  $value["name"];
+                    $entite["info"] = $e->getMessage();
+                    $resData[] = $entite;
+                }        
+            }
+            $params = array("result" => true, 
+                            "resData" => $resData);
+        }
+        else
+        {
+            $params = array("result" => false); 
+        }
+      
+        return $params;
+    }
 }
 

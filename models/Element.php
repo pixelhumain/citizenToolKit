@@ -592,11 +592,13 @@ class Element {
             $key = $params["key"];
 
             $url = ( @$params["parentType"] && @$params["parentId"] && in_array($collection, array("poi"))) ? "#".$params["parentType"].".detail.id.".$params["parentId"] : null; 
-
+            $paramsLinkImport = (empty($params["paramsLink"])?null:$params["paramsLink"]);
+            
             unset($params['collection']);
             unset($params['key']);
-
-
+            unset($params["paramsLink"]);
+            
+            
             //empty fields aren't properly validated and must be removed
             foreach ($params as $k => $v) {
                 if($v== "")
@@ -647,7 +649,7 @@ class Element {
                     
                     //TODO : post process for specific actions
                     if( $collection == Organization::COLLECTION )
-                    	$res["afterSave"] = Organization::afterSave($params, Yii::app()->session["userId"]);
+                    	$res["afterSave"] = Organization::afterSave($params, Yii::app()->session["userId"], $paramsLinkImport);
 
                     if( false && @$params["parentType"] && @$params["parentId"] ){
                         //createdObjectAsParam($authorType, $authorId, $objectType, $objectId, $targetType, $targetId, $geo, $tags, $address, $verb="create")
