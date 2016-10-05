@@ -18,6 +18,7 @@ class Poi {
 	    "addresses" => array("name" => "addresses"),
 	    "parentId" => array("name" => "parentId"),
 	    "parentType" => array("name" => "parentType"),
+	     "media" => array("name" => "media"),
 	    "creator" => array("name" => "creator"),
 	    "created" => array("name" => "created"),
 	    "addresses" => array("name" => "addresses"),
