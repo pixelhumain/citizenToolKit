@@ -579,8 +579,14 @@ class Element {
         //validation process based on microformat defeinition of the form
         */
         //validation process based on databind on each Elemnt Model
+        if( $collection == Event::COLLECTION ){
+            $valid = Event::validateFirstAndFormat($params);
+            if( $valid["result"] )
+            	$params = $valid["params"];
+        }
         
-        $valid = DataValidator::validate( ucfirst($key), json_decode (json_encode ($params)) );
+        if( $valid["result"] )
+        	$valid = DataValidator::validate( ucfirst($key), json_decode (json_encode ($params)) );
         
         if( $valid["result"] )
         {
@@ -625,7 +631,7 @@ class Element {
                     //Notification::createdObjectAsParam($authorType[Person::COLLECTION],$userId,$elementType, $elementType, $parentType[projet crée par une orga => orga est parent], $parentId, $params["geo"], (isset($params["tags"])) ? $params["tags"]:null ,$params["address"]);  
                 }
             }
-            if(@$url = ( @$params["parentType"] && @$params["parentId"] && in_array($collection, array("poi"))) ? "#".$params["parentType"].".detail.id.".$params["parentId"] : null )
+            if(@$url = ( @$params["parentType"] && @$params["parentId"] && in_array($collection, array("poi"))) ? "#".self::getControlerByCollection($params["parentType"]).".detail.id.".$params["parentId"] : null )
                 $res["url"] = $url;
 
         } else 
@@ -642,12 +648,12 @@ class Element {
                 unset($params[$k]);
         }
 
-     	if(!empty($params['startDate']) )
-					$params['startDate'] = new MongoDate( strtotime( $params['startDate'] ));//$project['startDate'];
+     	/*if(!empty($params['startDate']) )
+			$params['startDate'] = new MongoDate( strtotime( $params['startDate'] ));//$project['startDate'];
 			
 		if(!empty($params['endDate'])) 
 			$params['endDate'] = new MongoDate( strtotime( $params['endDate'] ));//$project['endDate']
-		
+		*/
 		if (!empty($params["tags"]))
 			$params["tags"] = Tags::filterAndSaveNewTags($params["tags"]);
         
