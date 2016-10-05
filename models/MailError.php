@@ -19,7 +19,7 @@ class MailError {
         $manageableEvent = array(self::EVENT_DROPPED_EMAIL, self::EVENT_SPAM_COMPLAINTS, self::EVENT_BOUNCED_EMAIL);
         $this->event = @$params["event"];
         
-        if (empty($this->event) || !in_array($$this->event, $manageableEvent)) {
+        if (empty($this->event) || !in_array($this->event, $manageableEvent)) {
             throw new CTKExeception("Unknown Event in in mail error : ".$event);
         }
 
