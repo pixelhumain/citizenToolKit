@@ -1881,7 +1881,8 @@ class Person {
 			//Events => attendees / organizer
 			Event::COLLECTION => array("attendees", "organizer"),
 			//Needs => links/helpers
-			Need::COLLECTION => array("helpers"));
+			Need::COLLECTION => array("helpers")
+		);
 
     	foreach ($links2collection as $collection => $linkTypes) {
     		foreach ($linkTypes as $linkType) {    		
@@ -1892,12 +1893,15 @@ class Person {
 	    	}
     	}
 
+    	//Delete Notifications
+    	ActivityStream::removeNotificationsByUser($id);
+
     	//Check if the user got activity (news, comments, votes)
 		$res = self::checkActivity($id);
 		if ($res["result"]) {
 			//Anonymize the user : Remove all fields from the person
 			$where = array("_id" => new MongoId($id));
-			$action = array("username" => $id, "name" => "Citoyen supprimé", "deletedDate" => new mongoDate(time()), "status" => "deleted");
+			$action = array("username" => $id, "email" => $id."@communecter.org", "name" => "Citoyen supprimé", "deletedDate" => new mongoDate(time()), "status" => "deleted");
 			PHDB::update(self::COLLECTION, $where, $action);
 			Log::save(array("userId" => $userId, "browser" => @$_SERVER["HTTP_USER_AGENT"], "ipAddress" => @$_SERVER["REMOTE_ADDR"], "created" => new MongoDate(time()), "action" => "deleteUser", "params" => array("id" => $id)));
 		} else {
@@ -1906,9 +1910,14 @@ class Person {
 	    	PHDB::remove(self::COLLECTION, $where);
 		}
 
-    	//TODO
     	//Documents => Profil Images
-
+    	$profilImages = Document::listMyDocumentByIdAndType($id, self::COLLECTION, Document::IMG_PROFIL, Document::DOC_TYPE_IMAGE, array( 'created' => -1 ));
+    	foreach ($profilImages as $docId => $document) {
+    		Document::removeDocumentById($docId, $userId);
+    		error_log("delete document id ".$docId);
+    	}
+    	//TODO SBAR : remove thumb and medium
+    	
     	return array("result" => true, "msg" => "The person has been deleted succesfully");
     }
 
