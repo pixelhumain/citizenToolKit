@@ -10,13 +10,13 @@ class DroppedMailAction extends CAction {
             $account = PHDB::findOne(Person::COLLECTION,array("email"=>$mailError->recipient));
             if (!empty($account)) {
                 //Set invalid flag on the person
-                Person::updatePersonField($account["id"],"isNotValidEmail", false);
+                Person::updatePersonField((String) $account["_id"],"isNotValidEmail", false);
                 $mailError->save();
             } else {
-                throw new CHttpException(500, "Webhook : unknown user with that email : ".$mailError->recipient);
+                throw new CHttpException(450, "Webhook : unknown user with that email : ".$mailError->recipient);
             }
         } else {
-            throw new CHttpException(500, "No email specified on the post !");
+            throw new CHttpException(450, "No email specified on the post !");
         }
     }
 }
