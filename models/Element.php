@@ -578,7 +578,8 @@ class Element {
         $validate = ( !isset($microformat )  || !isset($microformat["jsonSchema"])) ? false : true;
         //validation process based on microformat defeinition of the form
         */
-        //validation process based on databind on each Elemnt Model
+        //validation process based on databind on each Elemnt Mode
+        $valid = array("result"=>true);
         if( $collection == Event::COLLECTION ){
             $valid = Event::validateFirstAndFormat($params);
             if( $valid["result"] )
