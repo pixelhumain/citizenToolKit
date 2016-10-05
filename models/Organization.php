@@ -26,13 +26,12 @@ class Organization {
 	public static $dataBinding = array(
 	    "name" => array("name" => "name", "rules" => array("required", "organizationSameName")),
 	    "email" => array("name" => "email", "rules" => array("email")),
-	    "created" => array("name" => "created"),
-	    "creator" => array("name" => "creator"),
 	    "type" => array("name" => "type"),
 	    "shortDescription" => array("name" => "shortDescription"),
 	    "description" => array("name" => "description"),
 	    "category" => array("name" => "category"),
 	    "address" => array("name" => "address"),
+	    "addresses" => array("name" => "addresses"),
 	    "streetAddress" => array("name" => "address.streetAddress"),
 	    "postalCode" => array("name" => "address.postalCode"),
 	    "city" => array("name" => "address.codeInsee"),
@@ -59,8 +58,11 @@ class Organization {
 	    "isOpenData" => array("name" => "isOpenData"),
 	    "badges" => array("name" => "badges"),
 	    "role" => array("name" => "role"),
+
 	    "modified" => array("name" => "modified"),
 	    "updated" => array("name" => "updated"),
+	    "creator" => array("name" => "creator"),
+	    "created" => array("name" => "created"),
 	);
 	
 	//See findOrganizationByCriterias...
@@ -172,7 +174,7 @@ class Organization {
 	 * @param String $adminId : can be ommited. user id representing the administrator of the organization
 	 * @return array result as an array. 
 	 */
-	public static function afterSave($organization, $creatorId) {
+	public static function afterSave($organization, $creatorId,$paramLinkImport=null) {
 	    $newOrganizationId = (string)$organization['_id'];
 		Badge::addAndUpdateBadges("opendata", $newOrganizationId, Organization::COLLECTION);
 		
@@ -197,6 +199,24 @@ class Organization {
 		   // Link::addMember($newOrganizationId, Organization::COLLECTION, $memberId, Person::COLLECTION, $creatorId, $isAdmin);
 		}
 
+		if (@$paramLinkImport) {
+			$idLink = $paramLinkImport["idLink"];
+			$typeLink = $paramLinkImport["typeLink"];
+			if (@$paramLinkImport["role"] == "admin"){
+				$isAdmin = true;
+			}else{
+				$isAdmin = false;
+			}
+
+			if($typeLink == Organization::COLLECTION){
+				Link::connect($idLink, $typeLink, $newOrganizationId, self::COLLECTION, $creatorId,"members", false);
+				Link::connect($newOrganizationId, self::COLLECTION, $idLink, $typeLink, $creatorId,"memberOf",false);
+			}
+			else if($typeLink == Person::COLLECTION){
+				Link::connect($newOrganizationId, self::COLLECTION, $idLink, Person::COLLECTION, $creatorId,"members",$isAdmin);
+				Link::connect($idLink, $typeLink, $newOrganizationId, self::COLLECTION, $creatorId,"memberOf",$isAdmin);
+			}
+		} 
 	    //send Notification Email
 	    $creator = Person::getById($creatorId);
 	    //Mail::organization($creator,$organization);

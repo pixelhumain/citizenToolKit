@@ -500,7 +500,7 @@ class Notification{
 			$param["target"] = array(
 				"type" => $targetType, 
 				"id" => $targetId
-				);
+			);
 		}
 
 		if (!empty($tags))
