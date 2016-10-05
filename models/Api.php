@@ -1,11 +1,11 @@
 <?php 
 class Api {
 
-	const COLLECTION = "gantts";
-	
-	public static function getData2($bindMap, $format = null, $type, $id = null, $limit=50, $index=0, $tags = null, $multiTags=null , $key = null, $insee = null){
+    const COLLECTION = "gantts";
+    
+    public static function getData2($bindMap, $format = null, $type, $id = null, $limit=50, $index=0, $tags = null, $multiTags=null , $key = null, $insee = null){
 
-    	$data = null;
+        $data = null;
         $typeResult = "entities";
 
         if($type == Person::COLLECTION && @$id && $id == Yii::app()->session["userId"]){
@@ -16,10 +16,10 @@ class Api {
           $typeResult = "identity";
 
         }else{
-        	$params = array();
-			if( @$id ) 
-            	$params["_id"] =  new MongoId($id);
-            	
+            $params = array();
+            if( @$id ) 
+                $params["_id"] =  new MongoId($id);
+                
             if( @$insee ){
                 if($type == City::COLLECTION)
                     $params["insee"] = $insee;
@@ -28,20 +28,20 @@ class Api {
             }
 
             if( @$tags ){
-            	$tagsArray = explode(",", $tags);
-				$params["tags"] =  (($multiTags == true)?array('$eq' => $tagsArray):array('$in' => $tagsArray));
-			}
+                $tagsArray = explode(",", $tags);
+                $params["tags"] =  (($multiTags == true)?array('$eq' => $tagsArray):array('$in' => $tagsArray));
+            }
 
-			if( @$key )
-            	$params["source.key"] = $key ;
+            if( @$key )
+                $params["source.key"] = $key ;
             
             if($limit > 500)
-            	$limit = 500 ;
+                $limit = 500 ;
             else if($limit < 1)
-            	$limit = 50 ;
+                $limit = 50 ;
 
-          	if($index < 0)
-            	$index = 0 ;
+            if($index < 0)
+                $index = 0 ;
         }
         
         $data = PHDB::findAndLimitAndIndex($type , $params, $limit, $index);
@@ -68,19 +68,19 @@ class Api {
         
 
         if(empty($id)){
-        	$meta["limit"] = $limit;
-        	$meta["next"] = "/ph/communecter/data/get/type/".$type."/limit/".$limit."/index/".($index+$limit);
+            $meta["limit"] = $limit;
+            $meta["next"] = "/ph/communecter/data/get/type/".$type."/limit/".$limit."/index/".($index+$limit);
 
-        	if(@$format)
-        		$meta["next"] .= "/format/".$format ;
-        	if($index != 0){
-        		$newIndex = $index - $limit;
-        		if($newIndex < 0)
-        			$newIndex = 0 ;
-        		$meta["previous"] = "/ph/communecter/data/get/type/".$type."/limit/".$limit."/index/".$newIndex ;
-        	}
+            if(@$format)
+                $meta["next"] .= "/format/".$format ;
+            if($index != 0){
+                $newIndex = $index - $limit;
+                if($newIndex < 0)
+                    $newIndex = 0 ;
+                $meta["previous"] = "/ph/communecter/data/get/type/".$type."/limit/".$limit."/index/".$newIndex ;
+            }
         }else{
-        	$meta["limit"] = 1;
+            $meta["limit"] = 1;
 
         }
 
@@ -95,21 +95,21 @@ class Api {
             
         }
         else{
-        	/*$val = array();
-        	foreach ($data as $key => $value) {
-            	if(!empty($value["preferences"]["publicFields"]) && in_array("isOpenData", $value["preferences"]["publicFields"])){
-              		if($format == null || $format == "json"){
-                		$value["links"] = self::getNewFormatLink($value["links"]);
-              		}
+            /*$val = array();
+            foreach ($data as $key => $value) {
+                if(!empty($value["preferences"]["publicFields"]) && in_array("isOpenData", $value["preferences"]["publicFields"])){
+                    if($format == null || $format == "json"){
+                        $value["links"] = self::getNewFormatLink($value["links"]);
+                    }
                     $val[$key] = $value ;
                 }else{
-                	//var_dump($value);
-                	if(!empty($value["name"])){
-    					if($format != null && $format != "json")
-                			$val[$key]["_id"] = $value["_id"];
-                  		$val[$key]["name"] = $value["name"];
-                	}
-                		
+                    //var_dump($value);
+                    if(!empty($value["name"])){
+                        if($format != null && $format != "json")
+                            $val[$key]["_id"] = $value["_id"];
+                        $val[$key]["name"] = $value["name"];
+                    }
+                        
                 }
           }*/
           //$result[$typeResult] = $val;
@@ -121,28 +121,28 @@ class Api {
         
         //var_dump(json_encode($result[$typeResult]));
         if($result[$typeResult] && $bindMap )
-          	$result[$typeResult] = Translate::convert($result[$typeResult] , $bindMap);
+            $result[$typeResult] = Translate::convert($result[$typeResult] , $bindMap);
 
         //var_dump($result[$typeResult]);
         return $result;
   }
 
-	
-	public static function getNewFormatLink($link){
-		$fieldsLink = array("name");
-		$allData = array();
-		foreach ($link as $typeLinks => $valueLinks){
-			foreach ($valueLinks as $keyLink => $valueLink){
-				$paramsLink = array() ;
-				$dataLink = PHDB::findOne($valueLink["type"], array("_id"=>new MongoId($keyLink)), $fieldsLink);
-				if(!empty($dataLink)){
-					$newFormatData["name"] = $dataLink["name"];
-					$newFormatData["url"] = "/data/get/type/".$valueLink["type"]."/id/".$keyLink ;
+    
+    public static function getNewFormatLink($link){
+        $fieldsLink = array("name");
+        $allData = array();
+        foreach ($link as $typeLinks => $valueLinks){
+            foreach ($valueLinks as $keyLink => $valueLink){
+                $paramsLink = array() ;
+                $dataLink = PHDB::findOne($valueLink["type"], array("_id"=>new MongoId($keyLink)), $fieldsLink);
+                if(!empty($dataLink)){
+                    $newFormatData["name"] = $dataLink["name"];
+                    $newFormatData["url"] = "/data/get/type/".$valueLink["type"]."/id/".$keyLink ;
 
-					if(!empty($valueLink["isAdmin"]))
-                  		$newFormatData["isAdmin"] = $valueLink["isAdmin"] ;
-                	
-                	$allData[$typeLinks][] = $newFormatData;
+                    if(!empty($valueLink["isAdmin"]))
+                        $newFormatData["isAdmin"] = $valueLink["isAdmin"] ;
+                    
+                    $allData[$typeLinks][] = $newFormatData;
                 }
             }
         }
@@ -224,6 +224,6 @@ class Api {
 
         return $result;
     }
-	
+    
 
 }

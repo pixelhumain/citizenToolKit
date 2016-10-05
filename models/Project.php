@@ -10,6 +10,7 @@ class Project {
 	public static $dataBinding = array(
 	    "name" => array("name" => "name", "rules" => array("required")),
 	    "address" => array("name" => "address"),
+	    "addresses" => array("name" => "addresses"),
 	    "streetAddress" => array("name" => "address.streetAddress"),
 	    "postalCode" => array("name" => "address.postalCode"),
 	    "city" => array("name" => "address.codeInsee"),
@@ -31,6 +32,9 @@ class Project {
 	    "source" => array("name" => "source"),
 	    "preferences" => array("name" => "preferences"),
 		
+		"parentId" => array("name" => "parentId"),
+		"parentType" => array("name" => "parentType"),
+
 		"modified" => array("name" => "modified"),
 	    "updated" => array("name" => "updated"),
 	    "creator" => array("name" => "creator"),
@@ -256,6 +260,23 @@ class Project {
 	    Notification::createdObjectAsParam(Person::COLLECTION,Yii::app() -> session["userId"],Project::COLLECTION, (String)$newProject["_id"], $parentType, $parentId, $newProject["geo"], (isset($newProject["tags"])) ? $newProject["tags"]:null ,$newProject["address"]);
 	    //ActivityStream::saveActivityHistory(ActStr::VERB_CREATE, (String)$newProject["_id"], Project::COLLECTION, "project", $newProject["name"]);
 	    return array("result"=>true, "msg"=>"Votre projet est communecté.", "id" => $newProject["_id"]);	
+	}
+
+	public static function afterSave($params){
+	    
+	    Badge::addAndUpdateBadges("opendata",(String)$params["_id"], Project::COLLECTION);
+	    if( !@$params['parentType'] && !@$params['parentId'] ){
+			$params['parentType'] = Person::COLLECTION; 
+			$params['parentId'] = Yii::app() -> session["userId"];
+		}
+
+		Link::addContributor(Yii::app() -> session["userId"],Person::COLLECTION,$params['parentId'], $params['parentType'],$params["_id"]);
+	   // Link::connect($parentId, $parentType, $params["_id"], self::COLLECTION, $parentId, "projects", true );
+
+	    Notification::createdObjectAsParam(Person::COLLECTION,Yii::app() -> session["userId"],Project::COLLECTION, (String)$params["_id"], $params['parentType'], $params['parentId'], @$params["geo"], @$params["tags"] ,@$params["address"]);
+	    //ActivityStream::saveActivityHistory(ActStr::VERB_CREATE, (String)$params["_id"], Project::COLLECTION, "project", $params["name"]);
+	    return array("result"=>true, "msg"=>"Votre projet est communecté.", "id" => $params["_id"]);	
+		
 	}
 
 	/**

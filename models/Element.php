@@ -582,88 +582,171 @@ class Element {
 	public static function save($params){
 
         //var_dump($params);
-            $id = null;
-            //var_dump($params);
-            $data = null;
-            $collection = $params["collection"];
-            if( !empty($params["id"]) ){
-                $id = $params["id"];
-            }
-            $key = $params["key"];
 
-            $url = ( @$params["parentType"] && @$params["parentId"] && in_array($collection, array("poi"))) ? "#".$params["parentType"].".detail.id.".$params["parentId"] : null; 
-            $paramsLinkImport = (empty($params["paramsLink"])?null:$params["paramsLink"]);
-            
-            unset($params['collection']);
-            unset($params['key']);
-            unset($params["paramsLink"]);
-            
-            
-            //empty fields aren't properly validated and must be removed
-            foreach ($params as $k => $v) {
-                if($v== "")
-                    unset($params[$k]);
-            }
-            //save any new tags to DB
-            if (!empty($params["tags"]))
-				$params["tags"] = Tags::filterAndSaveNewTags($params["tags"]);
+        $id = null;
+        //var_dump($params);
+        $data = null;
+        $collection = $params["collection"];
+        if( !empty($params["id"]) ){
+            $id = $params["id"];
+        }
+        $key = $params["key"];
+		$paramsImport = (empty($params["paramsImport"])?null:$params["paramsImport"]);
 
-			$params["modified"] = new MongoDate(time());
-			$params["updated"] = time();
-            $params["creator"] = Yii::app()->session["userId"];
-            $params["created"] = time();
-            /*$microformat = PHDB::findOne(PHType::TYPE_MICROFORMATS, array( "key"=> $key));
-            $validate = ( !isset($microformat )  || !isset($microformat["jsonSchema"])) ? false : true;
-            //validation process based on microformat defeinition of the form
-            */
-            //validation process based on databind on each Elemnt Model
-            
-            $valid = DataValidator::validate( ucfirst($key), json_decode (json_encode ($params)) );
-            
-            if( $valid["result"] )
+		unset($params["paramsImport"]);
+        unset($params['collection']);
+        unset($params['key']);
+
+        $params = self::prepData( $params );
+
+        /*$microformat = PHDB::findOne(PHType::TYPE_MICROFORMATS, array( "key"=> $key));
+        $validate = ( !isset($microformat )  || !isset($microformat["jsonSchema"])) ? false : true;
+        //validation process based on microformat defeinition of the form
+        */
+        //validation process based on databind on each Elemnt Model
+        
+        $valid = DataValidator::validate( ucfirst($key), json_decode (json_encode ($params)) );
+        
+        if( $valid["result"] )
+        {
+            if($id)
             {
-                if($id)
-                {
-                    //update a single field
-                    //else update whole map
-                    $changeMap = ( !$microformat && isset( $key )) ? array('$set' => array( $key => $params[ $key ] ) ) : array('$set' => $params );
-                    PHDB::update($collection,array("_id"=>new MongoId($id)), $changeMap);
-                    $res = array("result"=>true,
-                                 "msg"=>"Vos données ont été mise à jour.",
-                                 "reload"=>true,
-                                 "map"=>$params,
-                                 "id"=>(string)$params["_id"]);
-                } 
-                else 
-                {
-                    $params["created"] = time();
-                    PHDB::insert($collection, $params );
-                    $res = array("result"=>true,
-                                 "msg"=>"Vos données ont bien été enregistré.",
-                                 "reload"=>true,
-                                 "map"=>$params,
-                                 "id"=>(string)$params["_id"]);  
-                    
+                //update a single field
+                //else update whole map
+                $changeMap = ( !$microformat && isset( $key )) ? array('$set' => array( $key => $params[ $key ] ) ) : array('$set' => $params );
+                PHDB::update($collection,array("_id"=>new MongoId($id)), $changeMap);
+                $res = array("result"=>true,
+                             "msg"=>"Vos données ont été mise à jour.",
+                             "reload"=>true,
+                             "map"=>$params,
+                             "id"=>(string)$params["_id"]);
+            } 
+            else 
+            {
+                $params["created"] = time();
+                PHDB::insert($collection, $params );
+                $res = array("result"=>true,
+                             "msg"=>"Vos données ont bien été enregistré.",
+                             "reload"=>true,
+                             "map"=>$params,
+                             "id"=>(string)$params["_id"]);  
+                
+                //TODO
+                //self::afterSave();
+                
+                // ***********************************
+                //post process for specific actions
+                // ***********************************
+                if( $collection == Organization::COLLECTION )
+                	$res["afterSave"] = Organization::afterSave($params, Yii::app()->session["userId"], $paramsImport );
+                else if( $collection == Event::COLLECTION )
+                	$res["afterSave"] = Event::afterSave($params, $import = false, $warnings = null);
+                else if( $collection == Project::COLLECTION )
+                	$res["afterSave"] = Project::afterSave($params, @$params["parentId"] , @$params["parentType"] );
+
+                if( false && @$params["parentType"] && @$params["parentId"] ){
+                    //createdObjectAsParam($authorType, $authorId, $objectType, $objectId, $targetType, $targetId, $geo, $tags, $address, $verb="create")
                     //TODO
-                    //self::afterSave();
-                    
-                    //TODO : post process for specific actions
-                    if( $collection == Organization::COLLECTION )
-                    	$res["afterSave"] = Organization::afterSave($params, Yii::app()->session["userId"], $paramsLinkImport);
-
-                    if( false && @$params["parentType"] && @$params["parentId"] ){
-                        //createdObjectAsParam($authorType, $authorId, $objectType, $objectId, $targetType, $targetId, $geo, $tags, $address, $verb="create")
-                        //TODO
-                        //Notification::createdObjectAsParam($authorType[Person::COLLECTION],$userId,$elementType, $elementType, $parentType[projet crée par une orga => orga est parent], $parentId, $params["geo"], (isset($params["tags"])) ? $params["tags"]:null ,$params["address"]);  
-                    }
+                    //Notification::createdObjectAsParam($authorType[Person::COLLECTION],$userId,$elementType, $elementType, $parentType[projet crée par une orga => orga est parent], $parentId, $params["geo"], (isset($params["tags"])) ? $params["tags"]:null ,$params["address"]);  
                 }
-                if(@$url)
-                    $res["url"] = $url;
+            }
+            if(@$url = ( @$params["parentType"] && @$params["parentId"] && in_array($collection, array("poi"))) ? "#".$params["parentType"].".detail.id.".$params["parentId"] : null )
+                $res["url"] = $url;
 
-            } else 
-                $res = array( "result" => false, 
-                              "msg" => Yii::t("common","Something went really bad : Invalid Content ".$valid['msg']) );
+        } else 
+            $res = array( "result" => false, 
+                          "msg" => Yii::t("common","Something went really bad : Invalid Content ".$valid['msg']) );
 
         return $res;
+     }
+    public static function prepData ($params) { 
+
+        //empty fields aren't properly validated and must be removed
+        foreach ($params as $k => $v) {
+            if($v== "")
+                unset($params[$k]);
+        }
+
+     	if(!empty($params['startDate']) )
+					$params['startDate'] = new MongoDate( strtotime( $params['startDate'] ));//$project['startDate'];
+			
+		if(!empty($params['endDate'])) 
+			$params['endDate'] = new MongoDate( strtotime( $params['endDate'] ));//$project['endDate']
+		
+		if (!empty($params["tags"]))
+			$params["tags"] = Tags::filterAndSaveNewTags($params["tags"]);
+        
+		$params["modified"] = new MongoDate(time());
+		$params["updated"] = time();
+        $params["creator"] = Yii::app()->session["userId"];
+        $params["created"] = time();
+
+        return $params;
+     }
+
+	public static function alreadyExists ($params, $collection) {
+		$result = array("result" => false);
+		$where = array(	"name" => $params["name"],
+						"address.codeInsee" => $params["address"]["codeInsee"]);
+		$element = PHDB::findOne($collection, $where);
+		if(!empty($element))
+			$result = array("result" => true ,
+							"element" => $element);
+		return $result;
+    }
+
+
+     public static function afterSaveImport ($params) { 
+     	$elementId = (string)$params['_id'];
+        if (@$paramsImport) {
+			if(!empty($paramsImport["link"])){
+				$idLink = $paramsImport["link"]["idLink"];
+				$typeLink = $paramsImport["link"]["typeLink"];
+				if (@$paramsImport["link"]["role"] == "admin"){
+					$isAdmin = true;
+				}else{
+					$isAdmin = false;
+				}
+
+				if($typeLink == Organization::COLLECTION){
+					Link::connect($idLink, $typeLink, $elementId, self::COLLECTION, $creatorId,"members", false);
+					Link::connect($elementId, self::COLLECTION, $idLink, $typeLink, $creatorId,"memberOf",false);
+				}
+				else if($typeLink == Person::COLLECTION){
+					Link::connect($elementId, self::COLLECTION, $idLink, Person::COLLECTION, $creatorId,"members",$isAdmin);
+					Link::connect($idLink, $typeLink, $elementId, self::COLLECTION, $creatorId,"memberOf",$isAdmin);
+				}
+			}
+
+			if(!empty($paramsImport["img"])){
+		    	try{
+		    		$paramsImg = $paramsImport["img"] ;
+					$resUpload = Document::uploadDocumentFromURL(	$paramsImg["module"], self::COLLECTION, 
+																	$elementId, "avatar", false, 
+																	$paramsImg["url"], $paramsImg["name"]);
+					if(!empty($resUpload["result"]) && $resUpload["result"] == true){
+						$params = array();
+						$params['id'] = $elementId;
+						$params['type'] = self::COLLECTION;
+						$params['moduleId'] = $paramsImg["module"];
+						$params['folder'] = self::COLLECTION."/".$elementId;
+						$params['name'] = $resUpload['name'];
+						$params['author'] = Yii::app()->session["userId"] ;
+						$params['size'] = $resUpload["size"];
+						$params["contentKey"] = "profil";
+						$resImgSave = Document::save($params);
+						if($resImgSave["result"] == false)
+							throw new CTKException("Impossible de sauvegarder l'image.");
+					}else{
+						throw new CTKException("Impossible uploader l'image.");
+					}
+				}catch (CTKException $e){
+					throw new CTKException($e);
+				}	
+			}
+			
+		}
+
+        return $params;
      }
 }

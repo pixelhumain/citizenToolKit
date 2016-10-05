@@ -26,13 +26,12 @@ class Organization {
 	public static $dataBinding = array(
 	    "name" => array("name" => "name", "rules" => array("required", "organizationSameName")),
 	    "email" => array("name" => "email", "rules" => array("email")),
-	    "created" => array("name" => "created"),
-	    "creator" => array("name" => "creator"),
 	    "type" => array("name" => "type"),
 	    "shortDescription" => array("name" => "shortDescription"),
 	    "description" => array("name" => "description"),
 	    "category" => array("name" => "category"),
 	    "address" => array("name" => "address"),
+	    "addresses" => array("name" => "addresses"),
 	    "streetAddress" => array("name" => "address.streetAddress"),
 	    "postalCode" => array("name" => "address.postalCode"),
 	    "city" => array("name" => "address.codeInsee"),
@@ -61,6 +60,8 @@ class Organization {
 		"role" => array("name" => "role"),
 	    "modified" => array("name" => "modified"),
 	    "updated" => array("name" => "updated"),
+	    "creator" => array("name" => "creator"),
+	    "created" => array("name" => "created"),
 	);
 	
 	//See findOrganizationByCriterias...
@@ -172,7 +173,9 @@ class Organization {
 	 * @param String $adminId : can be ommited. user id representing the administrator of the organization
 	 * @return array result as an array. 
 	 */
-	public static function afterSave($organization, $creatorId, $paramLinkImport = null) {
+
+	public static function afterSave($organization, $creatorId,$paramsImport=null) {
+
 	    $newOrganizationId = (string)$organization['_id'];
 		Badge::addAndUpdateBadges("opendata", $newOrganizationId, Organization::COLLECTION);
 		
@@ -198,24 +201,53 @@ class Organization {
 		   // Link::addMember($newOrganizationId, Organization::COLLECTION, $memberId, Person::COLLECTION, $creatorId, $isAdmin);
 		}
 
+		if (@$paramsImport) {
+			if(!empty($paramsImport["link"])){
+				$idLink = $paramsImport["link"]["idLink"];
+				$typeLink = $paramsImport["link"]["typeLink"];
+				if (@$paramsImport["link"]["role"] == "admin"){
+					$isAdmin = true;
+				}else{
+					$isAdmin = false;
+				}
 
-		if ($paramLinkImport) {
-			$idLink = $paramLinkImport["idLink"];
-			$typeLink = $paramLinkImport["typeLink"];
-			if (@$paramLinkImport["role"] == "admin"){
-				$isAdmin = true;
-			}else{
-				$isAdmin = false;
+				if($typeLink == Organization::COLLECTION){
+					Link::connect($idLink, $typeLink, $newOrganizationId, self::COLLECTION, $creatorId,"members", false);
+					Link::connect($newOrganizationId, self::COLLECTION, $idLink, $typeLink, $creatorId,"memberOf",false);
+				}
+				else if($typeLink == Person::COLLECTION){
+					Link::connect($newOrganizationId, self::COLLECTION, $idLink, Person::COLLECTION, $creatorId,"members",$isAdmin);
+					Link::connect($idLink, $typeLink, $newOrganizationId, self::COLLECTION, $creatorId,"memberOf",$isAdmin);
+				}
 			}
 
-			if($typeLink == Organization::COLLECTION){
-				Link::connect($idLink, $typeLink, $newOrganizationId, self::COLLECTION, $creatorId,"members", false);
-				Link::connect($newOrganizationId, self::COLLECTION, $idLink, $typeLink, $creatorId,"memberOf",false);
+			if(!empty($paramsImport["img"])){
+		    	try{
+		    		$paramsImg = $paramsImport["img"] ;
+					$resUpload = Document::uploadDocumentFromURL(	$paramsImg["module"], self::COLLECTION, 
+																	$newOrganizationId, "avatar", false, 
+																	$paramsImg["url"], $paramsImg["name"]);
+					if(!empty($resUpload["result"]) && $resUpload["result"] == true){
+						$params = array();
+						$params['id'] = $newOrganizationId;
+						$params['type'] = self::COLLECTION;
+						$params['moduleId'] = $paramsImg["module"];
+						$params['folder'] = self::COLLECTION."/".$newOrganizationId;
+						$params['name'] = $resUpload['name'];
+						$params['author'] = Yii::app()->session["userId"] ;
+						$params['size'] = $resUpload["size"];
+						$params["contentKey"] = "profil";
+						$resImgSave = Document::save($params);
+						if($resImgSave["result"] == false)
+							throw new CTKException("Impossible de sauvegarder l'image.");
+					}else{
+						throw new CTKException("Impossible uploader l'image.");
+					}
+				}catch (CTKException $e){
+					throw new CTKException($e);
+				}	
 			}
-			else if($typeLink == Person::COLLECTION){
-				Link::connect($newOrganizationId, self::COLLECTION, $idLink, Person::COLLECTION, $creatorId,"members",$isAdmin);
-				Link::connect($idLink, $typeLink, $newOrganizationId, self::COLLECTION, $creatorId,"memberOf",$isAdmin);
-			}	
+			
 		}
 
 	    //send Notification Email

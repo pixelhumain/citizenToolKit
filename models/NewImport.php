@@ -347,7 +347,7 @@ class NewImport
         }
     }
 
-     public static function addDataInDb($post)
+     public static function addDataInDb($post, $moduleId = null)
     {
         $jsonString = $post["file"];
         $typeElement = $post["typeElement"];
@@ -366,41 +366,54 @@ class NewImport
             $resData =  array();
             foreach ($jsonArray as $key => $value){
                 try{
-                    $value["collection"] = $typeElement ;
-                    $value["key"] = Element::getControlerByCollection($typeElement);
+                    if(@$value["address"]){
+                        $exist = Element::alreadyExists($value, $typeElement);
+                        if(!$exist["result"]) {
+                            if($post["isLink"] == "true"){
+                                $paramsLink["idLink"] = $post["idLink"];
+                                $paramsLink["typeLink"] = $post["typeLink"];
+                                $paramsLink["role"] = $post["roleLink"];
+                            }
 
-                    //preferences
-                    $value["preferences"] = array(  "isOpenData"=>true, 
-                                                    "isOpenEdition"=>true);
+                            if(!empty($value["urlImg"])){
+                                $paramsImg["url"] =$value["urlImg"];
+                                $paramsImg["module"] = $moduleId;
+                                $split = explode("/", $value["urlImg"]);
+                                $paramsImg["name"] =$split[count($split)-1];
 
-                   
+                            }
 
-                    if($post["isLink"] == "true"){
-                        $paramsLink["idLink"] = $post["idLink"];
-                        $paramsLink["typeLink"] = $post["typeLink"];
-                        $paramsLink["role"] = $post["roleLink"];
-                        $value["paramsLink"] = $paramsLink;
-                    }
+                            $value["collection"] = $typeElement ;
+                            $value["key"] = Element::getControlerByCollection($typeElement);
+                            $value["paramsImport"] = array( "link" => (empty($paramsLink)?null:$paramsLink),
+                                                            "img" => (empty($paramsImg)?null:$paramsImg ));
+                            $value["preferences"] = array(  "isOpenData"=>true, 
+                                                            "isOpenEdition"=>true);
 
-                    if($typeElement == Organization::COLLECTION)
-                        $value["role"] = "creator";
-                    
-                    $entite = array();
-                    $res = Element::save($value);
-                    if($res["result"] == true){
-                        $entite["name"] =  $value["name"];
-                        $entite["info"] = $res["msg"];
+                            if($typeElement == Organization::COLLECTION)
+                                $value["role"] = "creator";
+                            
+                            $element = array();
+                            $res = Element::save($value);
+                            $element["name"] =  $value["name"];
+                            $element["info"] = $res["msg"];
+                            $element["url"] = "/#".Element::getControlerByCollection($typeElement).".detail.id.".(String)$exist["element"]["_id"] ;
+                        }else{
+                           $element["name"] = $exist["element"]["name"];
+                           $element["info"] = "L'élément existes déjà";
+                           $element["url"] = "/#".Element::getControlerByCollection($typeElement).".detail.id.".(String)$exist["element"]["_id"] ;
+                        }
+                        
                     }else{
-                        $entite["name"] =  $value["name"];
-                        $entite["info"] = $res["msg"];
+                        $element["name"] = $exist["element"]["name"];
+                        $element["info"] = "L'élément n'a pas d'adresse.";  
                     }
-                    $resData[] = $entite;
                 }
                 catch (CTKException $e){
-                    $entite["name"] =  $value["name"];
-                    $entite["info"] = $e->getMessage();
-                    $resData[] = $entite;
-                }        
+                    $element["name"] =  $value["name"];
+                    $element["info"] = $e->getMessage();
+                }
+                $resData[] = $element;     
             }
             $params = array("result" => true, 
                             "resData" => $resData);

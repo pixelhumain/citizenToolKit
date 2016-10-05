@@ -23,6 +23,7 @@ class Event {
 	    "name" => array("name" => "name", "rules" => array("required")),
 	    "type" => array("name" => "type"),
 	    "address" => array("name" => "address"),
+	    "addresses" => array("name" => "addresses"),
 	    "streetAddress" => array("name" => "address.streetAddress"),
 	    "postalCode" => array("name" => "address.postalCode"),
 	    "city" => array("name" => "address.codeInsee"),
@@ -289,6 +290,74 @@ class Event {
 	}
 
 	public static function saveEvent($params, $import = false, $warnings = null) {
+		if($import == false)
+			$newEvent = self::getAndCheckEvent($params);
+		else
+			$newEvent = self::getAndCheckEventFromImportData($params, true, null, $warnings);
+
+		if (isset($newEvent["tags"]))
+			$newEvent["tags"] = Tags::filterAndSaveNewTags($newEvent["tags"]);
+
+		if(empty($newEvent["preferences"])){
+			$newEvent["preferences"] = array("publicFields" => array(), "privateFields" => array(), "isOpenEdition"=>true, "isOpenData"=>true);
+		}
+
+		$newEvent['updated'] = time();
+		$newEvent["modified"] = new MongoDate(time());
+		
+		//SubEvent authorization
+		//check if the parent event exists and the user can add subevent
+		if( @$newEvent["parentId"] ) {
+			$parentEvent = self::getPublicData($newEvent["parentId"]);
+			if (empty($parentEvent)) {
+				return array("result"=>false, "msg"=>"The parent event does not exist !");
+			} else {
+				//Check if the user can edit the parent event ou open Edition				
+				if (!(Authorisation::canEditItem(Yii::app()->session["userId"], Event::COLLECTION, (string)$parentEvent["_id"]) || (!empty($parentEvent["preferences"]["isOpenEdition"]) && $parentEvent["preferences"]["isOpenEdition"] == true))) {
+					return array("result"=>false, "msg"=>"Your are not authorized to add sub envent on this parent event !");
+				}
+			}
+		}
+	    PHDB::insert(self::COLLECTION,$newEvent);
+	    
+	    Badge::addAndUpdateBadges("opendata",(String)$newEvent["_id"], Event::COLLECTION);
+	    /*
+	    * except if organiser type is dontKnow
+		*   Add the creator as the first attendee
+		*	He is admin because he is admin of organizer
+		*/
+		$creator = true;
+		$isAdmin = false;
+		
+		if($params["organizerType"] == Person::COLLECTION )
+			$isAdmin=true;
+
+	    if($params["organizerType"] != self::NO_ORGANISER ){
+	    	Link::attendee($newEvent["_id"], Yii::app()->session['userId'], $isAdmin, $creator);
+	    	Link::addOrganizer($params["organizerId"],$params["organizerType"], $newEvent["_id"], Yii::app()->session['userId']);
+	    } else {
+	    	$params["organizerType"] = Person::COLLECTION;
+	    	$params["organizerId"] = Yii::app()->session['userId'];
+	    }
+
+	    //if it's a subevent, add the organiser to the parent user Organiser list 
+    	//ajouter le nouveau sub user dans organiser ?
+    	if( @$newEvent["parentId"] )
+			Link::connect( $newEvent["parentId"], Event::COLLECTION,$newEvent["_id"], Event::COLLECTION, Yii::app()->session["userId"], "subEvents");	
+
+		Notification::createdObjectAsParam( Person::COLLECTION, Yii::app()->session['userId'],Event::COLLECTION, (String)$newEvent["_id"], $params["organizerType"], $params["organizerId"], $newEvent["geo"], array($newEvent["type"]),$newEvent["address"]);
+	    $creator = Person::getById(Yii::app()->session['userId']);
+	    // Add in activity, person who's created the event
+	    ActivityStream::saveActivityHistory(ActStr::VERB_CREATE, (String)$newEvent["_id"], Event::COLLECTION, "event", $newEvent["name"]);
+	    Mail::newEvent($creator,$newEvent);
+	    
+	    //TODO : add an admin notification
+	    //Notification::saveNotification(array("type"=>NotificationType::ASSOCIATION_SAVED,"user"=>$new["_id"]));
+	    
+	    return array("result"=>true, "msg"=>Yii::t("event","Your event has been connected."), "id"=>$newEvent["_id"], "event" => $newEvent );
+	}
+
+	public static function afterSave($params, $import = false, $warnings = null) {
 		if($import == false)
 			$newEvent = self::getAndCheckEvent($params);
 		else
