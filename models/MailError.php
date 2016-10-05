@@ -30,6 +30,6 @@ class MailError {
     }
 
     public function save() {
-        PHDB::insert(_self::COLLECTION, array("event" => $this->event, "recipient"=> $this->recipient, "reason"=> $this->reason, "description"=> $this->description, "timestamp"=> new MongoDate($this->timestamp)));
+        PHDB::insert(self::COLLECTION, array("event" => $this->event, "recipient"=> $this->recipient, "reason"=> $this->reason, "description"=> $this->description, "timestamp"=> new MongoDate($this->timestamp)));
     }
 }
