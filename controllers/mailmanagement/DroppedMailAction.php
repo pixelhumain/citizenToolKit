@@ -4,17 +4,19 @@ class DroppedMailAction extends CAction {
     
     public function run() {
         $controller=$this->getController();
-        error_log(implode(" , ", $_POST));
+        $mailError = new MailError($_POST);
 
-        $email = @$_POST["recipient"];
-        if (!empty($email)) {
+        if (!empty($mailError->email)) {
             $account = PHDB::findOne(array(Person::COLLECTION,array("email"=>$email)));
             if (!empty($account)) {
                 //Set invalid flag on the person
                 Person::updatePersonField($account["id"],"isNotValidEmail", false);
+                $mailError->save();
             } else {
-                error_log("Webhook : unknown user with that email : ".$email);
+                $this->_sendResponse(500, CJSON::encode("Webhook : unknown user with that email : ".$email));
             }
+        } else {
+            $this->_sendResponse(500, CJSON::encode("No email specified on the post !"));
         }
     }
 }
