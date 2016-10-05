@@ -4,7 +4,7 @@ class DroppedMailAction extends CAction {
     
     public function run() {
         $controller=$this->getController();
-        error_log(explode($_POST));
+        error_log(implode(" , ", $_POST));
 
         $email = @$_POST["recipient"];
         if (!empty($email)) {
