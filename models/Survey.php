@@ -124,11 +124,11 @@ class Survey
       
       $oneVote = ($totalVotes!=0) ? 100/$totalVotes:1;
       
-      $percentVoteDownCount     = $voteDownCount    * $oneVote;
-      $percentVoteAbstainCount  = $voteAbstainCount * $oneVote;
-      $percentVoteUpCount       = $voteUpCount      * $oneVote;
-      $percentVoteUnclearCount  = $voteUnclearCount * $oneVote;
-      $percentVoteMoreInfoCount = $voteMoreInfoCount * $oneVote;
+      $percentVoteDownCount     = round($voteDownCount    * $oneVote);
+      $percentVoteAbstainCount  = round($voteAbstainCount * $oneVote);
+      $percentVoteUpCount       = round($voteUpCount      * $oneVote);
+      $percentVoteUnclearCount  = round($voteUnclearCount * $oneVote);
+      $percentVoteMoreInfoCount = round($voteMoreInfoCount * $oneVote);
 
   //     	$percentVoteUpCount = 10;
 		// $percentVoteUnclearCount = 30;

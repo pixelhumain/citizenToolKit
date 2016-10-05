@@ -14,6 +14,9 @@ class Mail {
                     if (@$account["isNotValidEmail"]) {
                         $msg = "Try to send an email to a not valid email user : ".$params['to'];
                         return array("result" => false, "msg" => $msg);
+                    } else if (@$account["status"] == "deleted") {
+                        $msg = "Try to send an email to a deleted user : ".$params['to'];
+                        return array("result" => false, "msg" => $msg);
                     }
                 } else {
                     $msg = "Try to send an email to an unknown email user : ".$params['to'];
