@@ -16,7 +16,7 @@ class MailError {
     public $timestamp = "";
 
     public function __construct( $params ) {
-        $manageableEvent = array(_self::EVENT_DROPPED_EMAIL, _self::EVENT_SPAM_COMPLAINTS, _self::EVENT_BOUNCED_EMAIL);
+        $manageableEvent = array(self::EVENT_DROPPED_EMAIL, self::EVENT_SPAM_COMPLAINTS, self::EVENT_BOUNCED_EMAIL);
         $this->event = @$params["event"];
         
         if (empty($this->event) || !in_array($$this->event, $manageableEvent)) {
