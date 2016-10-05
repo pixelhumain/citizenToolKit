@@ -22,16 +22,16 @@ class Organization {
 	); 
 
 	//From Post/Form name to database field name
+	//TODO : remove name
 	public static $dataBinding = array(
 	    "name" => array("name" => "name", "rules" => array("required", "organizationSameName")),
 	    "email" => array("name" => "email", "rules" => array("email")),
-	    "created" => array("name" => "created"),
-	    "creator" => array("name" => "creator"),
 	    "type" => array("name" => "type"),
 	    "shortDescription" => array("name" => "shortDescription"),
 	    "description" => array("name" => "description"),
 	    "category" => array("name" => "category"),
 	    "address" => array("name" => "address"),
+	    "addresses" => array("name" => "addresses"),
 	    "streetAddress" => array("name" => "address.streetAddress"),
 	    "postalCode" => array("name" => "address.postalCode"),
 	    "city" => array("name" => "address.codeInsee"),
@@ -57,6 +57,12 @@ class Organization {
 	    "urlTwitter" => array("name" => "urlTwitter"),
 	    "isOpenData" => array("name" => "isOpenData"),
 	    "badges" => array("name" => "badges"),
+	    "role" => array("name" => "role"),
+
+	    "modified" => array("name" => "modified"),
+	    "updated" => array("name" => "updated"),
+	    "creator" => array("name" => "creator"),
+	    "created" => array("name" => "created"),
 	);
 	
 	//See findOrganizationByCriterias...
@@ -69,7 +75,7 @@ class Organization {
 		return DataValidator::getCollectionFieldNameAndValidate(self::$dataBinding, $organizationFieldName, $organizationFieldValue, $organizationId);
 	}
 
-	/**
+	/** TODO : REOMVE DEPRECATED with ELement refactor
 	 * insert a new organization in database
 	 * @param array A well format organization 
 	 * @param String $creatorId : an existing user id representing the creator of the organization
@@ -161,6 +167,81 @@ class Organization {
 		    			"newOrganization"=> $newOrganization);
 	}
 	
+	/**
+	 * insert a new organization in database
+	 * @param array A well format organization 
+	 * @param String $creatorId : an existing user id representing the creator of the organization
+	 * @param String $adminId : can be ommited. user id representing the administrator of the organization
+	 * @return array result as an array. 
+	 */
+	public static function afterSave($organization, $creatorId,$paramLinkImport=null) {
+	    $newOrganizationId = (string)$organization['_id'];
+		Badge::addAndUpdateBadges("opendata", $newOrganizationId, Organization::COLLECTION);
+		
+		//Manage link with the creator depending of the role selected
+		if (@$organization["role"] == "admin") {
+			$isToLink = true;
+			$memberId = $creatorId;
+			$isAdmin = true;
+		} else if (@$organization["role"] == "member") {
+			$isToLink = true;
+			$memberId = $creatorId;
+			$isAdmin = false;
+		} else if (@$organization["role"] == "creator") {
+			$isToLink = false;
+		}
+		unset($organization["role"]);
+		
+		if ($isToLink) {
+			//Create link in both entity person and organization 
+			Link::connect($newOrganizationId, Organization::COLLECTION, $memberId, Person::COLLECTION, $creatorId,"members",$isAdmin);
+			Link::connect($memberId, Person::COLLECTION, $newOrganizationId, Organization::COLLECTION, $creatorId,"memberOf",$isAdmin);
+		   // Link::addMember($newOrganizationId, Organization::COLLECTION, $memberId, Person::COLLECTION, $creatorId, $isAdmin);
+		}
+
+		if (@$paramLinkImport) {
+			$idLink = $paramLinkImport["idLink"];
+			$typeLink = $paramLinkImport["typeLink"];
+			if (@$paramLinkImport["role"] == "admin"){
+				$isAdmin = true;
+			}else{
+				$isAdmin = false;
+			}
+
+			if($typeLink == Organization::COLLECTION){
+				Link::connect($idLink, $typeLink, $newOrganizationId, self::COLLECTION, $creatorId,"members", false);
+				Link::connect($newOrganizationId, self::COLLECTION, $idLink, $typeLink, $creatorId,"memberOf",false);
+			}
+			else if($typeLink == Person::COLLECTION){
+				Link::connect($newOrganizationId, self::COLLECTION, $idLink, Person::COLLECTION, $creatorId,"members",$isAdmin);
+				Link::connect($idLink, $typeLink, $newOrganizationId, self::COLLECTION, $creatorId,"memberOf",$isAdmin);
+			}
+		} 
+	    //send Notification Email
+	    $creator = Person::getById($creatorId);
+	    //Mail::organization($creator,$organization);
+	    if(isset($organization["geo"]) && !empty($organization["geo"])){
+		    $orgaGeo=$organization["geo"];
+	    }
+	    else
+	    	$orgaGeo="";
+	    
+	    $orgaTags= ((@$organization["tags"] && !empty($organization["tags"]))?$organization["tags"]:null);
+	    
+	    if (@$organization["address"]["codeInsee"] && !empty($organization["address"]["codeInsee"]))
+	    	$orgaCodeInsee=$organization["address"];
+	    else
+	    	$orgaCodeInsee="";
+	    
+		Notification::createdObjectAsParam(Person::COLLECTION,$creatorId,Organization::COLLECTION, $newOrganizationId, Person::COLLECTION,$creatorId, $orgaGeo,$orgaTags,$orgaCodeInsee);
+		ActivityStream::saveActivityHistory(ActStr::VERB_CREATE, $newOrganizationId, Organization::COLLECTION, "organization", $organization["name"]);
+	    $organization = Organization::getById($newOrganizationId);
+	    return array("result"=>true,
+		    			"msg"=>"Votre organisation est communectée.", 
+		    			"id"=>$newOrganizationId, 
+		    			"organization"=> $organization);
+	}
+
 	public static function newOrganizationFromPost($organization) {
 		$newOrganization = array();
 		if (@$organization['organizationEmail']) $newOrganization["email"] = trim($organization['organizationEmail']);
@@ -231,7 +312,7 @@ class Organization {
 		return $organization ;
 	}
 
-	/**
+	/** TODO : REOMVE DEPRECATED with ELement refactor
 	 * Apply organization checks and business rules before inserting
 	 * @param array $organization : array with the data of the organization to check
 	 * @return array Organization well format : ready to be inserted

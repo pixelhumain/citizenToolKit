@@ -107,11 +107,15 @@ class ActivityStream {
 		return Rest::json($res);
 	}
 
-	public static function removeNotificationsByUser()
-	{
+	/**
+	 * Remove all notification of a user
+	 * @param type $userId the userId
+	 * @return array of result (result => boolean, msg => String)
+	 */
+	public static function removeNotificationsByUser($userId) {
 		try{
 		    
-		    $userNotifcations = PHDB::find( self::COLLECTION,array("notify.id"  => Yii::app()->session["userId"] ));
+		    $userNotifcations = PHDB::find( self::COLLECTION,array("notify.id"  => $userId ));
 		    
 		    foreach ($userNotifcations as $key => $value) 
 		    {
@@ -122,7 +126,7 @@ class ActivityStream {
 		    	else
 		    		PHDB::update( self::COLLECTION,
 			                  	  array("_id"  => $value["_id"] ), 
-			                  	  array('$pull' => array( "notify.id" => Yii::app()->session["userId"] )));
+			                  	  array('$pull' => array( "notify.id" => $userId )));
 		    	
 		    }
 		    /*PHDB::updateWithOptions( self::COLLECTION,
