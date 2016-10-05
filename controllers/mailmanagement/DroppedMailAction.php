@@ -7,7 +7,7 @@ class DroppedMailAction extends CAction {
         $mailError = new MailError($_POST);
 
         if (!empty($mailError->recipient)) {
-            $account = PHDB::findOne(array(Person::COLLECTION,array("email"=>$mailError->recipient)));
+            $account = PHDB::findOne(Person::COLLECTION,array("email"=>$mailError->recipient));
             if (!empty($account)) {
                 //Set invalid flag on the person
                 Person::updatePersonField($account["id"],"isNotValidEmail", false);
