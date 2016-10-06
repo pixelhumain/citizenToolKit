@@ -22,6 +22,9 @@ class Event {
 	public static $dataBinding = array (
 	    "name" => array("name" => "name", "rules" => array("required")),
 	    "type" => array("name" => "type"),
+	    "parentId" => array("name" => "parentId"),
+	    "parentType" => array("name" => "parentId"),
+
 	    "address" => array("name" => "address"),
 	    "addresses" => array("name" => "addresses"),
 	    "streetAddress" => array("name" => "address.streetAddress"),
@@ -31,13 +34,15 @@ class Event {
 	    "addressCountry" => array("name" => "address.addressCountry"),
 	    "geo" => array("name" => "geo"),
 	    "geoPosition" => array("name" => "geoPosition"),
+	    
 	    "description" => array("name" => "description"),
 	    "shortDescription" => array("name" => "shortDescription"),
 	    "allDay" => array("name" => "allDay"),
 	    "modules" => array("name" => "modules"),
 	    "startDate" => array("name" => "startDate", "rules" => array("eventStartDate")),
 	    "endDate" => array("name" => "endDate", "rules" => array("eventEndDate")),
-	    "parentId" => array("name" => "parentId"),
+	    "preferences" => array("name" => "preferences"),
+
 	    "source" => array("name" => "source"),
 	    "badges" => array("name" => "badges"),
 	    "tags" => array("name" => "tags"),
@@ -357,26 +362,18 @@ class Event {
 	    return array("result"=>true, "msg"=>Yii::t("event","Your event has been connected."), "id"=>$newEvent["_id"], "event" => $newEvent );
 	}
 
-	public static function afterSave($params, $import = false, $warnings = null) {
-		if($import == false)
-			$newEvent = self::getAndCheckEvent($params);
-		else
-			$newEvent = self::getAndCheckEventFromImportData($params, true, null, $warnings);
+	public static function validateFirstAndFormat ($params){
 
-		if (isset($newEvent["tags"]))
-			$newEvent["tags"] = Tags::filterAndSaveNewTags($newEvent["tags"]);
-
-		if(empty($newEvent["preferences"])){
-			$newEvent["preferences"] = array("publicFields" => array(), "privateFields" => array(), "isOpenEdition"=>true, "isOpenData"=>true);
+		//The end datetime must be after start datetime
+		$startDate = strtotime( $params['startDate'] );
+		$endDate = strtotime( $params['endDate'] );
+		if ($startDate >= $endDate) {
+			return array("result"=>false, "msg"=>"The start date must be before the end date.");
 		}
-
-		$newEvent['updated'] = time();
-		$newEvent["modified"] = new MongoDate(time());
-		
 		//SubEvent authorization
 		//check if the parent event exists and the user can add subevent
-		if( @$newEvent["parentId"] ) {
-			$parentEvent = self::getPublicData($newEvent["parentId"]);
+		if( @$params["parentId"] ) {
+			$parentEvent = self::getPublicData($params["parentId"]);
 			if (empty($parentEvent)) {
 				return array("result"=>false, "msg"=>"The parent event does not exist !");
 			} else {
@@ -386,8 +383,19 @@ class Event {
 				}
 			}
 		}
-	    PHDB::insert(self::COLLECTION,$newEvent);
-	    
+		
+		/*
+		date_default_timezone_set('UTC');
+		$params["startDate"] = new MongoDate(strtotime($params['startDate']));
+		$params["endDate"]   = new MongoDate(strtotime($params['endDate']));
+		*/
+		return array('result' => true, "params"=>$params );
+	}
+
+	public static function afterSave($params, $import = false, $warnings = null) {
+		if($import == false)
+			$newEvent = self::getAndCheckEvent($params);
+		
 	    Badge::addAndUpdateBadges("opendata",(String)$newEvent["_id"], Event::COLLECTION);
 	    /*
 	    * except if organiser type is dontKnow

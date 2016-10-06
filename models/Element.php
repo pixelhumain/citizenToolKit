@@ -90,22 +90,22 @@ class Element {
 
 	    	City::CONTROLLER 			=> array("icon"=>"university","color"=>"#E33551","text-color"=>"red",
 	    										 "hash"=> $prefix.".detail.insee."),
-	    	ActionRoom::TYPE_VOTE		=> array("icon"=>"archive","color"=>"#3C5665", "text-color"=>"dark",
+	    	ActionRoom::TYPE_VOTE		=> array("icon"=>"archive","color"=>"#3C5665", "text-color"=>"azure",
 	    		 								 "hash"=> "survey.entries.id.",
 	    		 								 "collection"=>ActionRoom::COLLECTION),
-	    	ActionRoom::TYPE_VOTE."s"	=> array("icon"=>"archive","color"=>"#3C5665", "text-color"=>"dark",
+	    	ActionRoom::TYPE_VOTE."s"	=> array("icon"=>"archive","color"=>"#3C5665", "text-color"=>"azure",
 	    		 								 "hash"=> "survey.entries.id.",
 	    		 								 "collection"=>ActionRoom::COLLECTION),
-	    	ActionRoom::TYPE_ACTIONS	=> array("icon"=>"cogs","color"=>"#3C5665", "text-color"=>"dark",
+	    	ActionRoom::TYPE_ACTIONS	=> array("icon"=>"cogs","color"=>"#3C5665", "text-color"=>"lightblue2",
 	    		 								 "hash"=> "rooms.actions.id.",
 	    		 								 "collection"=>ActionRoom::COLLECTION),
-	    	ActionRoom::TYPE_ACTIONS."s"=> array("icon"=>"cogs","color"=>"#3C5665", "text-color"=>"dark",
+	    	ActionRoom::TYPE_ACTIONS."s"=> array("icon"=>"cogs","color"=>"#3C5665", "text-color"=>"lightblue2",
 	    		 								 "hash"=> "rooms.actions.id.",
 	    		 								 "collection"=>ActionRoom::COLLECTION),
-	    	ActionRoom::TYPE_ACTION		=> array("icon"=>"cog","color"=>"#3C5665", "text-color"=>"dark",
+	    	ActionRoom::TYPE_ACTION		=> array("icon"=>"cog","color"=>"#3C5665", "text-color"=>"lightblue2",
 	    		 								 "hash"=> "rooms.action.id.",
 	    		 								 "collection"=>ActionRoom::COLLECTION_ACTIONS),
-	    	ActionRoom::TYPE_ACTION."s"	=> array("icon"=>"cog","color"=>"#3C5665", "text-color"=>"dark",
+	    	ActionRoom::TYPE_ACTION."s"	=> array("icon"=>"cog","color"=>"#3C5665", "text-color"=>"lightblue2",
 	    		 								 "hash"=> "rooms.action.id.",
 	    		 								 "collection"=>ActionRoom::COLLECTION_ACTIONS),
 	    	ActionRoom::TYPE_ENTRY		=> array("icon"=>"archive","color"=>"#3C5665", "text-color"=>"dark",
@@ -578,9 +578,16 @@ class Element {
         $validate = ( !isset($microformat )  || !isset($microformat["jsonSchema"])) ? false : true;
         //validation process based on microformat defeinition of the form
         */
-        //validation process based on databind on each Elemnt Model
+        //validation process based on databind on each Elemnt Mode
+        $valid = array("result"=>true);
+        if( $collection == Event::COLLECTION ){
+            $valid = Event::validateFirstAndFormat($params);
+            if( $valid["result"] )
+            	$params = $valid["params"];
+        }
         
-        $valid = DataValidator::validate( ucfirst($key), json_decode (json_encode ($params)) );
+        if( $valid["result"] )
+        	$valid = DataValidator::validate( ucfirst($key), json_decode (json_encode ($params)) );
         
         if( $valid["result"] )
         {
@@ -625,7 +632,7 @@ class Element {
                     //Notification::createdObjectAsParam($authorType[Person::COLLECTION],$userId,$elementType, $elementType, $parentType[projet crée par une orga => orga est parent], $parentId, $params["geo"], (isset($params["tags"])) ? $params["tags"]:null ,$params["address"]);  
                 }
             }
-            if(@$url = ( @$params["parentType"] && @$params["parentId"] && in_array($collection, array("poi"))) ? "#".$params["parentType"].".detail.id.".$params["parentId"] : null )
+            if(@$url = ( @$params["parentType"] && @$params["parentId"] && in_array($collection, array("poi"))) ? "#".self::getControlerByCollection($params["parentType"]).".detail.id.".$params["parentId"] : null )
                 $res["url"] = $url;
 
         } else 
@@ -642,12 +649,12 @@ class Element {
                 unset($params[$k]);
         }
 
-     	if(!empty($params['startDate']) )
-					$params['startDate'] = new MongoDate( strtotime( $params['startDate'] ));//$project['startDate'];
+     	/*if(!empty($params['startDate']) )
+			$params['startDate'] = new MongoDate( strtotime( $params['startDate'] ));//$project['startDate'];
 			
 		if(!empty($params['endDate'])) 
 			$params['endDate'] = new MongoDate( strtotime( $params['endDate'] ));//$project['endDate']
-		
+		*/
 		if (!empty($params["tags"]))
 			$params["tags"] = Tags::filterAndSaveNewTags($params["tags"]);
         
