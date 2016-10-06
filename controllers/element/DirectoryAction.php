@@ -15,6 +15,7 @@ class DirectoryAction extends CAction
         if(@$_POST["links"]){
             $links = $_POST["links"];
         }else{
+	        $links=array();
             if(@$element["links"]){
                 $links = Element::getAllLinks($element["links"],$type);
             }
