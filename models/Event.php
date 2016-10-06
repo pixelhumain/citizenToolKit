@@ -23,10 +23,13 @@ class Event {
 	    "name" => array("name" => "name", "rules" => array("required")),
 	    "type" => array("name" => "type"),
 	    "parentId" => array("name" => "parentId"),
-	    "parentType" => array("name" => "parentId"),
+	    "parentType" => array("name" => "parentType"),
+	    "organizerId" => array("name" => "organizerId"),
+	    "organizerType" => array("name" => "organizerType"),
 
-	    "address" => array("name" => "address"),
-	    "addresses" => array("name" => "addresses"),
+
+	    "address" => array("name" => "address")
+,	    "addresses" => array("name" => "addresses"),
 	    "streetAddress" => array("name" => "address.streetAddress"),
 	    "postalCode" => array("name" => "address.postalCode"),
 	    "city" => array("name" => "address.codeInsee"),
@@ -39,8 +42,8 @@ class Event {
 	    "shortDescription" => array("name" => "shortDescription"),
 	    "allDay" => array("name" => "allDay"),
 	    "modules" => array("name" => "modules"),
-	    "startDate" => array("name" => "startDate", "rules" => array("eventStartDate")),
-	    "endDate" => array("name" => "endDate", "rules" => array("eventEndDate")),
+	    "startDate" => array("name" => "startDate"), //"rules" => array("eventStartDate")),
+	    "endDate" => array("name" => "endDate"), //"rules" => array("eventEndDate")),
 	    "preferences" => array("name" => "preferences"),
 
 	    "source" => array("name" => "source"),
@@ -163,7 +166,7 @@ class Event {
 		return $event;
 	}
 
-	/**
+	/** DEPRECATED
 	 * Check the data of an event
 	 * @param array $event array of event data
 	 * @return true if the event is well format else throw exception if not
@@ -204,7 +207,7 @@ class Event {
 		}
 	}
 
-	/**
+	/** DEPRECATED
 	 * Save an event from Post. Check if it is well format.
 	 * @param type POST
 	 * @return save the event
@@ -293,7 +296,7 @@ class Event {
 	    
 	    return $newEvent;
 	}
-
+	//DEPRECATED
 	public static function saveEvent($params, $import = false, $warnings = null) {
 		if($import == false)
 			$newEvent = self::getAndCheckEvent($params);
@@ -365,9 +368,10 @@ class Event {
 	public static function validateFirstAndFormat ($params){
 
 		//The end datetime must be after start datetime
-		$startDate = strtotime( $params['startDate'] );
-		$endDate = strtotime( $params['endDate'] );
-		if ($startDate >= $endDate) {
+		$startDate = strtotime( str_replace("/", "-", $params['startDate']) );
+		$endDate = strtotime( str_replace("/", "-", $params['endDate']) );
+		if ($startDate > $endDate) 
+		{
 			return array("result"=>false, "msg"=>"The start date must be before the end date.");
 		}
 		//SubEvent authorization
@@ -384,19 +388,17 @@ class Event {
 			}
 		}
 		
-		/*
 		date_default_timezone_set('UTC');
 		$params["startDate"] = new MongoDate(strtotime($params['startDate']));
 		$params["endDate"]   = new MongoDate(strtotime($params['endDate']));
-		*/
+		
+		
 		return array('result' => true, "params"=>$params );
 	}
 
 	public static function afterSave($params, $import = false, $warnings = null) {
-		if($import == false)
-			$newEvent = self::getAndCheckEvent($params);
 		
-	    Badge::addAndUpdateBadges("opendata",(String)$newEvent["_id"], Event::COLLECTION);
+	    Badge::addAndUpdateBadges("opendata",(String)$params["_id"], Event::COLLECTION);
 	    /*
 	    * except if organiser type is dontKnow
 		*   Add the creator as the first attendee
@@ -405,12 +407,12 @@ class Event {
 		$creator = true;
 		$isAdmin = false;
 		
-		if($params["organizerType"] == Person::COLLECTION )
+		if( $params["organizerType"] == Person::COLLECTION )
 			$isAdmin=true;
 
 	    if($params["organizerType"] != self::NO_ORGANISER ){
-	    	Link::attendee($newEvent["_id"], Yii::app()->session['userId'], $isAdmin, $creator);
-	    	Link::addOrganizer($params["organizerId"],$params["organizerType"], $newEvent["_id"], Yii::app()->session['userId']);
+	    	Link::attendee($params["_id"], Yii::app()->session['userId'], $isAdmin, $creator);
+	    	Link::addOrganizer($params["organizerId"],$params["organizerType"], $params["_id"], Yii::app()->session['userId']);
 	    } else {
 	    	$params["organizerType"] = Person::COLLECTION;
 	    	$params["organizerId"] = Yii::app()->session['userId'];
@@ -418,19 +420,19 @@ class Event {
 
 	    //if it's a subevent, add the organiser to the parent user Organiser list 
     	//ajouter le nouveau sub user dans organiser ?
-    	if( @$newEvent["parentId"] )
-			Link::connect( $newEvent["parentId"], Event::COLLECTION,$newEvent["_id"], Event::COLLECTION, Yii::app()->session["userId"], "subEvents");	
+    	if( @$params["parentId"] )
+			Link::connect( $params["parentId"], Event::COLLECTION,$params["_id"], Event::COLLECTION, Yii::app()->session["userId"], "subEvents");	
 
-		Notification::createdObjectAsParam( Person::COLLECTION, Yii::app()->session['userId'],Event::COLLECTION, (String)$newEvent["_id"], $params["organizerType"], $params["organizerId"], $newEvent["geo"], array($newEvent["type"]),$newEvent["address"]);
+		Notification::createdObjectAsParam( Person::COLLECTION, Yii::app()->session['userId'],Event::COLLECTION, (String)$params["_id"], $params["organizerType"], $params["organizerId"], @$params["geo"], array($params["type"]),@$params["address"]);
 	    $creator = Person::getById(Yii::app()->session['userId']);
 	    // Add in activity, person who's created the event
-	    ActivityStream::saveActivityHistory(ActStr::VERB_CREATE, (String)$newEvent["_id"], Event::COLLECTION, "event", $newEvent["name"]);
-	    Mail::newEvent($creator,$newEvent);
+	    ActivityStream::saveActivityHistory(ActStr::VERB_CREATE, (String)$params["_id"], Event::COLLECTION, "event", $params["name"]);
+	    Mail::newEvent($creator,$params);
 	    
 	    //TODO : add an admin notification
 	    //Notification::saveNotification(array("type"=>NotificationType::ASSOCIATION_SAVED,"user"=>$new["_id"]));
 	    
-	    return array("result"=>true, "msg"=>Yii::t("event","Your event has been connected."), "id"=>$newEvent["_id"], "event" => $newEvent );
+	    return array("result"=>true, "msg"=>Yii::t("event","Your event has been connected."), "id"=>$params["_id"], "event" => $params );
 	}
 
 	/**
