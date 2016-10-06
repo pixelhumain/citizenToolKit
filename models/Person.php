@@ -630,7 +630,7 @@ class Person {
 	  		$person["roles"]['betaTester'] = true;
 	  		$person["inviteCode"] = $inviteCode;
 	  	}
-		if (@Yii::app()->params['betaTest'] || $person["roles"]["betaTester"]==true)
+		if (@Yii::app()->params['betaTest'] || @$person["roles"]["betaTester"]==true)
 	  		$person["numberOfInvit"] = empty(Yii::app()->params['numberOfInvitByPerson']) ? 0 : Yii::app()->params['numberOfInvitByPerson'];
 	  	return;
 	}
