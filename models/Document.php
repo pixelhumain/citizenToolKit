@@ -682,22 +682,25 @@ class Document {
 		//If empty than retrieve the URLs from document and store them in the entity for next time
 		} else {
 			$profil = self::getLastImageByKey($id, $type, self::IMG_PROFIL);
-			$profilThumb = self::getGeneratedImageUrl($id, $type, self::GENERATED_THUMB_PROFIL);
-			$profilMedium = self::getGeneratedImageUrl($id, $type, self::GENERATED_MEDIUM_FOLDER);
-			if ($profil != "") {
-				$marker = self::getGeneratedImageUrl($id, $type, self::GENERATED_MARKER);
-			} else {
-				$marker = "";
-			} 
-	
+			
+			if (!empty($profil)) {
+				$profilThumb = self::getGeneratedImageUrl($id, $type, self::GENERATED_THUMB_PROFIL);
+				$profilMedium = self::getGeneratedImageUrl($id, $type, self::GENERATED_MEDIUM_FOLDER);
+				if ($profil != "") {
+					$marker = self::getGeneratedImageUrl($id, $type, self::GENERATED_MARKER);
+				} else {
+					$marker = "";
+				} 
+
+				PHDB::update($type, array("_id" => new MongoId($id)), array('$set' => array("profilImageUrl" => $profil, "profilThumbImageUrl" => $profilThumb, "profilMarkerImageUrl" =>  $marker,"profilMediumImageUrl" =>  $profilMedium)));
+				error_log("Add Profil image url for the ".$type." with the id ".$id);
+			}
+			
 			$res["profilImageUrl"] = $profil;
 			//Add a time to force relaod of generated images
-			$res["profilThumbImageUrl"] = !empty($profilThumb) ? empty($profilThumb)."?_=".time() : "";
-			$res["profilMarkerImageUrl"] = !empty($marker) ? empty($marker)."?_=".time() : "";
-			$res["profilMediumImageUrl"] = !empty($profilMedium) ? empty($profilMedium)."?_=".time() : "";
-
-			PHDB::update($type, array("_id" => new MongoId($id)), array('$set' => array("profilImageUrl" => $profil, "profilThumbImageUrl" => $profilThumb, "profilMarkerImageUrl" =>  $marker,"profilMediumImageUrl" =>  $profilMedium)));
-			error_log("Add Profil image url for the ".$type." with the id ".$id);
+			$res["profilThumbImageUrl"] = !empty($profilThumb) ? $profilThumb."?_=".time() : "";
+			$res["profilMarkerImageUrl"] = !empty($marker) ? $marker."?_=".time() : "";
+			$res["profilMediumImageUrl"] = !empty($profilMedium) ? $profilMedium."?_=".time() : "";
 		}
 
 		//If empty marker return default marker

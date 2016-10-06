@@ -611,6 +611,7 @@ class Element {
             	$params = $valid["params"];
         }
         
+        
         if( $valid["result"] )
         	$valid = DataValidator::validate( ucfirst($key), json_decode (json_encode ($params)) );
         
@@ -647,7 +648,7 @@ class Element {
                 if( $collection == Organization::COLLECTION )
                 	$res["afterSave"] = Organization::afterSave($params, Yii::app()->session["userId"]);
                 else if( $collection == Event::COLLECTION )
-                	$res["afterSave"] = Event::afterSave($params, $import = false, $warnings = null);
+                	$res["afterSave"] = Event::afterSave($params);
                 else if( $collection == Project::COLLECTION )
                 	$res["afterSave"] = Project::afterSave($params, @$params["parentId"] , @$params["parentType"] );
 
@@ -662,7 +663,7 @@ class Element {
 
         } else 
             $res = array( "result" => false, 
-                          "msg" => Yii::t("common","Something went really bad : Invalid Content ".$valid['msg']) );
+                          "msg" => Yii::t("common","Something went really bad : ".$valid['msg']) );
 
         return $res;
      }
