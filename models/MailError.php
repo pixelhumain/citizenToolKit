@@ -20,21 +20,33 @@ class MailError {
     public $timestamp = "";
 
     public function __construct( $params, $from = "hook" ) {
-        //Construct from mongo : get the id and transform the mongoDate
-        if ($from == "mongo") {
-            if (@$params["id"]) $this->id = $params["id"];
-            if (@$params["_id"]) $this->id = (String) $params["_id"];
-            $this->timestamp = @$params["timestamp"]->sec;
-        } else {
-            $this->timestamp = @$params["timestamp"];
-        }
-
         //Check the event
         $manageableEvent = array(self::EVENT_DROPPED_EMAIL, self::EVENT_SPAM_COMPLAINTS, self::EVENT_BOUNCED_EMAIL);
         $this->event = @$params["event"];
         
         if (empty($this->event) || !in_array($this->event, $manageableEvent)) {
             throw new CTKException("Unknown Event in mail error : ".$event);
+        }
+
+        //Construct from mongo : get the id and transform the mongoDate
+        if ($from == "mongo") {
+            if (@$params["id"]) $this->id = $params["id"];
+            if (@$params["_id"]) $this->id = (String) $params["_id"];
+            $this->timestamp = @$params["timestamp"]->sec;
+            $this->reason = @$params["reason"];
+            $this->description = @$params["description"];   
+        } else if ($from == "hook") {
+            $this->timestamp = @$params["timestamp"];
+            if ($this->event == self::EVENT_DROPPED_EMAIL ) {
+                $this->reason = @$params["reason"];
+                $this->description = @$params["description"];    
+            } else if ($this->event == self::EVENT_BOUNCED_EMAIL ) {
+                $this->reason = @$params["code"];
+                $this->description = @$params["error"];    
+            } else if ($this->event == self::EVENT_SPAM_COMPLAINTS ) {
+                $this->reason = "user complained";
+                $this->description = "user click on spam complain";    
+            }
         }
 
         //recipient and account
@@ -46,13 +58,10 @@ class MailError {
             throw new CTKException("unknown user with that email : ".$this->recipient);
         else 
             $this->personId = (String) $account["_id"];
-
-        $this->reason = @$params["reason"];
-        $this->description = @$params["description"];
     }
 
     public function actionOnEvent() {
-        if ($this->event == self::EVENT_DROPPED_EMAIL) {
+        if ($this->event == self::EVENT_DROPPED_EMAIL || $this->event == self::EVENT_BOUNCED_EMAIL || $this->event == self::EVENT_SPAM_COMPLAINTS) {
             //Set invalid email flag on the person
             PHDB::update( Person::COLLECTION, array("_id" => $this->personId), array('$set' => array("isNotValidEmail" => true)));
             $this->save();
