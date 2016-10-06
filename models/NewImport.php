@@ -115,7 +115,6 @@ class NewImport
                             $element = ArrayHelper::setValueByDotPath($element , $value["valueAttributeElt"], $valueData, $typeValue);
                         }
                     }
-
                 }
                 $element['source']['insertOrign'] = "import";
                 if(!empty($post['key'])){
@@ -146,13 +145,10 @@ class NewImport
     public static function createArrayList($list) {
         $head = array("name", "warnings", "msgError") ;
         $tableau = array($head);
-        //$tableau[] = $head ;
-        //var_dump($list);
         foreach ($list as $keyList => $valueList){
             $ligne = array();
             $ligne[] = (empty($valueList["name"])? "" : $valueList["name"]);
             $ligne[] = (empty($valueList["warnings"])? "" : self::getMessagesWarnings($valueList["warnings"]));
-            //$ligne[] = (empty($valueList["msgWarnings"])? "" : $valueList["msgWarnings"]);
             $ligne[] = (empty($valueList["msgError"])? "" : $valueList["msgError"]);
             $tableau[] = $ligne ;
         }
@@ -193,11 +189,12 @@ class NewImport
         }
         
         $element = self::getWarnings($element, $typeElement, true) ;
-        $resDataValidator = DataValidator::validate(Element::getControlerByCollection($typeElement), $element);
 
+        $resDataValidator = DataValidator::validate(Element::getControlerByCollection($typeElement), $element);
         if($resDataValidator["result"] != true){
-            $element["msgError"] = $resDataValidator["msg"];
+            $element["msgError"] = $resDataValidator["msg"]->getMessage();
         }
+        
         return $element;
     }
 

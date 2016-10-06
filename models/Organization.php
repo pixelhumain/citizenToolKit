@@ -22,11 +22,11 @@ class Organization {
 	); 
 
 	//From Post/Form name to database field name
-	//TODO : remove name
+	//TODO : remove name   
 	public static $dataBinding = array(
 	    "name" => array("name" => "name", "rules" => array("required", "organizationSameName")),
 	    "email" => array("name" => "email", "rules" => array("email")),
-	    "type" => array("name" => "type"),
+	    "type" => array("name" => "type", "rules" => array("typeOrganization")),
 	    "shortDescription" => array("name" => "shortDescription"),
 	    "description" => array("name" => "description"),
 	    "category" => array("name" => "category"),
@@ -1440,7 +1440,25 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 	  	return self::$dataBinding;
 	}
 
+	public static function checkType($type) {
+		$type = self::translateType($type);
+		$types = array(self::TYPE_NGO, self::TYPE_BUSINESS, self::TYPE_GROUP, self::TYPE_GOV);
+		$result = (in_array($type, $types)?true:false);
+	  	return $result;
+	}
 
+	public static function translateType($type) {
+		if(trim($type) == "Association")
+			$type = self::TYPE_NGO ;
+		else if(trim($type) == "Groupe gouvernemental")
+			$type = self::TYPE_GOV ;
+		else if(trim($type) == "Entreprise")
+			$type = self::TYPE_BUSINESS ;
+		else if(trim($type) == "Groupe")
+			$type = self::TYPE_GROUP ;
+		return $type;
+	}
+	
 
 }
 ?>
