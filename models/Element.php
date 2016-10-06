@@ -254,10 +254,12 @@ class Element {
 				$address = array(
 			        "@type" => "PostalAddress",
 			        "codeInsee" => $fieldValue["address"]["codeInsee"],
-			        //"addressCountry" => $fieldValue["address"]["addressCountry"],
+			        "addressCountry" => $fieldValue["address"]["addressCountry"],
 			        "postalCode" => $fieldValue["address"]["postalCode"],
 			        "addressLocality" => $fieldValue["address"]["addressLocality"],
-			        "streetAddress" => $fieldValue["address"]["streetAddress"]
+			        "streetAddress" => trim($fieldValue["address"]["streetAddress"]),
+			        "depName" => $fieldValue["address"]["depName"],
+			        "regionName" => $fieldValue["address"]["regionName"],
 			    	);
 
 				SIG::updateEntityGeoposition($collection, $id, $fieldValue["geo"]["latitude"], $fieldValue["geo"]["longitude"]);
