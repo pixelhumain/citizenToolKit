@@ -52,6 +52,7 @@ class Person {
 	    "url" => array("name" => "url"),
 	    "lastLoginDate" => array("name" => "lastLoginDate"),
 	    "seePreferences" => array("name" => "seePreferences"),
+	    "locality" => array("name" => "address"),
 	);
 
 	public static function logguedAndValid() {

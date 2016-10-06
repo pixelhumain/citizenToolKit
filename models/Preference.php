@@ -166,6 +166,14 @@ class Preference {
 	}
 
 
+	public static function isPublic($element, $namePref) {
+		$result = false;
+		if(@$element["preferences"]["publicFields"] && in_array($namePref, $element["preferences"]["publicFields"]))
+			$result = true;
+		return $result;
+	}
+
+
 	
 	
 }

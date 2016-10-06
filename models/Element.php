@@ -248,6 +248,31 @@ class Element {
 				$fieldValue = explode(",", $fieldValue);
 			$set = array($dataFieldName => $fieldValue);
 		}
+		else if ($fieldName == "locality") {
+			//address
+			try{
+				$address = array(
+			        "@type" => "PostalAddress",
+			        "codeInsee" => $fieldValue["address"]["codeInsee"],
+			        //"addressCountry" => $fieldValue["address"]["addressCountry"],
+			        "postalCode" => $fieldValue["address"]["postalCode"],
+			        "addressLocality" => $fieldValue["address"]["addressLocality"],
+			        "streetAddress" => $fieldValue["address"]["streetAddress"]
+			    	);
+
+				SIG::updateEntityGeoposition($collection, $id, $fieldValue["geo"]["latitude"], $fieldValue["geo"]["longitude"]);
+				if($collection == Person::COLLECTION){
+					$user = Yii::app()->session["user"];
+					$user["codeInsee"] = $address["codeInsee"];
+					$user["postalCode"] = $address["postalCode"];
+					$user["address"] = $address;
+					Yii::app()->session["user"] = $user;
+				}
+				$set = array("address" => $address);
+			}catch (Exception $e) {  
+				throw new CTKException("Error updating  : address is not well formated !");		
+			}
+		}
 		else if ($fieldName == "address") {
 			//address
 			if(!empty($fieldValue["postalCode"]) && !empty($fieldValue["codeInsee"])) {
