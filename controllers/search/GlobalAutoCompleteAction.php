@@ -3,6 +3,7 @@ class GlobalAutoCompleteAction extends CAction
 {
     public function run($filter = null)
     {
+
         $search = trim(urldecode($_POST['name']));
         $locality = isset($_POST['locality']) ? trim(urldecode($_POST['locality'])) : null;
         $searchType = isset($_POST['searchType']) ? $_POST['searchType'] : null;
@@ -45,7 +46,7 @@ class GlobalAutoCompleteAction extends CAction
   		if(count($tmpTags)){
   			$query = array('$and' => array( $query , array("tags" => array('$in' => $tmpTags)))) ;
   		}
-  		unset($tmpTags);
+  		//unset($tmpTags);
   		$query = array('$and' => array( $query , array("state" => array('$ne' => "uncomplete")) ));
   		
   		if($latest)
@@ -192,7 +193,7 @@ class GlobalAutoCompleteAction extends CAction
 	  		
 	  		$allRes = array_merge($allRes, $allEvents);
 	  	}
-	  	error_log("recherche - indexMin : ".$indexMin." - "." indexMax : ".$indexMax);
+	  	//error_log("recherche - indexMin : ".$indexMin." - "." indexMax : ".$indexMax);
 	  	/***********************************  PROJECTS   *****************************************/
         if(strcmp($filter, Project::COLLECTION) != 0 && $this->typeWanted(Project::COLLECTION, $searchType)){
         	$allProject = PHDB::findAndSortAndLimitAndIndex(Project::COLLECTION, $query, 
@@ -244,7 +245,140 @@ class GlobalAutoCompleteAction extends CAction
 	  		//$res["project"] = $allProject;
 	  		$allRes = array_merge($allRes, $allFound);
 	  	}
-		    
+		
+		
+
+		/***********************************  VOTES / propositions   *****************************************/
+        if(strcmp($filter, ActionRoom::TYPE_VOTE) != 0 && $this->typeWanted(ActionRoom::TYPE_VOTE, $searchType) ||
+        	strcmp($filter, ActionRoom::TYPE_ACTIONS) != 0 && $this->typeWanted(ActionRoom::TYPE_ACTIONS, $searchType) )
+        {    
+        	$myLinks = Person::getPersonLinksByPersonId(Yii::app()->session["userId"]);
+        	
+        	//créer un array avec uniquement les id de mes orgas
+        	$orgasId = array();
+        	foreach ($myLinks["organizations"] as $key => $link) {
+        		if($this->checkScopeParent($link) == true)//en vérifiant si l'orga correspond aux scopes demandés
+        			$orgasId[] = (string)$link["_id"];
+        	}
+        	     
+        	//créer un array avec uniquement les id de mes projets
+        	$projectsId = array();
+        	foreach ($myLinks["projects"] as $key => $link) {
+        		if($this->checkScopeParent($link) == true)//en vérifiant si le projet correspond aux scopes demandés
+        			$projectsId[] = (string)$link["_id"];
+        	}
+        	
+        	$query = array( '$or' => array( array("parentType"=>"organizations", "parentId" => array('$in' => $orgasId) ),
+        									array("parentType"=>"projects", "parentId" => array('$in' => $projectsId) )
+        							 )
+        				  );
+
+        	//rajoute les résultats pour mon conseil citoyen
+        	$me = Person::getSimpleUserById(Yii::app()->session["userId"]);
+        	$myCityKey = @$me["address"]["addressCountry"] ? $me["address"]["addressCountry"] : false;
+        	if($myCityKey!=false){
+        		$myCityKey .= @$me["address"]["codeInsee"] ? "_".$me["address"]["codeInsee"] : false;
+        		if($myCityKey!=false){
+        			$myCityKey .= @$me["address"]["postalCode"] ? "-".$me["address"]["postalCode"] : "";
+	        		error_log($myCityKey);
+	        		$query['$or'][] = array("parentType"=>"cities", "parentId" => $myCityKey);
+	        	}
+        	}
+        	
+
+        	$allRooms = PHDB::find(ActionRoom::COLLECTION, $query);
+        	
+        	//crée une array avec uniquement les id des rooms
+        	$allRoomsId = array();
+        	foreach ($allRooms as $key => $room) {
+        		$allRoomsId[] = (string)$room["_id"];
+        	}
+
+        	if($this->typeWanted(ActionRoom::TYPE_VOTE, $searchType)){
+				$collection = Survey::COLLECTION;
+				$parentRow = "survey";
+			}
+        	if($this->typeWanted(ActionRoom::TYPE_ACTIONS, $searchType)){ 
+        		$collection = Action::NODE_ACTIONS;
+        		$parentRow = "room";
+        	}
+
+        	$query = array($parentRow => array('$in' => $allRoomsId) );
+        	
+        	if(count($tmpTags))
+        	$query = array('$and' => array( $query , array("tags" => array('$in' => $tmpTags)))) ;
+        	
+
+        	//error_log("collection : ".$collection);
+        	//récupère toutes les propositions ou actions qui correspondent aux rooms trouvées précédement
+        	$allFound = PHDB::findAndSortAndLimitAndIndex($collection, $query, array("updated" => -1), $indexStep, $indexMin);
+
+        	foreach ($allRooms as $keyR => $room) {
+        		//pour chaque room des orga, on ajoute quelques info sur le parentObj
+        		foreach ($myLinks["organizations"] as $keyL => $orga) {
+        			//error_log("orga " . (string)$orga['_id'] ."==". (string)$room['parentId']);
+        			if((string)$orga['_id'] == (string)$room['parentId'] && $room['parentType'] == "organizations"){
+        				$allRooms[$keyR]["parentObj"]["_id"] = $orga["_id"];
+        				$allRooms[$keyR]["parentObj"]["name"] = $orga["name"];
+        				$allRooms[$keyR]["parentObj"]["address"] = $orga["address"];
+        				$allRooms[$keyR]["parentObj"]["typeSig"] = $orga["typeSig"];
+        				break;
+        			}
+        		}
+        		//pour chaque room des projets, on ajoute les infos du parentObj
+        		foreach ($myLinks["projects"] as $keyL => $project) {
+        			//error_log("project " . (string)$project['_id'] ."==". (string)$room['parentId']);
+        			if((string)$project['_id'] == (string)$room['parentId'] && $room['parentType'] == "projects"){
+        				$allRooms[$keyR]["parentObj"]["_id"] = $project["_id"];
+        				$allRooms[$keyR]["parentObj"]["name"] = $project["name"];
+        				$allRooms[$keyR]["parentObj"]["address"] = $project["address"];
+        				$allRooms[$keyR]["parentObj"]["typeSig"] = $project["typeSig"];
+        				break;
+        			}
+        		}
+        		//les conseils citoyens
+        		if($myCityKey!=false && $room["parentType"] == "cities"){
+        			$myCity = City::getByUnikey($myCityKey); 			
+    				$cityCheck["name"] = $myCity["name"];
+    				$cityCheck["address"] = array("postalCode" => $myCity["cp"], "countryCode" => $myCity["country"]);
+    				$cityCheck["codeInsee"] = $myCity["insee"];
+    				$cityCheck["typeSig"] = "city";
+
+    				if($this->checkScopeParent($cityCheck) == true){
+	    				$allRooms[$keyR]["parentObj"]["name"] = $cityCheck["name"];
+	    				$allRooms[$keyR]["parentObj"]["address"] = $cityCheck["address"];
+	    				$allRooms[$keyR]["parentObj"]["typeSig"] = $cityCheck["typeSig"];
+	    			}else{
+	    				//array_splice($allRooms, $keyR, 1);
+	    				//unset($allRooms[$keyR]);
+	    				$allRooms[$keyR] = array();
+	    			}
+        		}
+        	}
+        	
+        	//pour chaque resultat, on ajoute les infos du parentRoom
+        	foreach ($allFound as $keyS => $survey) {
+        		foreach ($allRooms as $keyR => $room) {
+        			if((string)$survey[$parentRow] == (string)@$room['_id']){
+        				$allFound[$keyS]["parentRoom"] = $room;
+        				break;
+        			}else if(!isset($room['_id'])){
+        				unset($allFound[$keyS]);
+        				//$allFound[$keyS] = array();
+        				//break;
+        			}
+        		}
+        		
+        		if(@$allFound[$keyS]["dateEnd"]) $allFound[$keyS]["dateEnd"] =  date("Y-m-d H:i:s", $allFound[$keyS]["dateEnd"]);
+				if(@$allFound[$keyS]["endDate"]) $allFound[$keyS]["endDate"] =  date("Y-m-d H:i:s", $allFound[$keyS]["endDate"]);
+				if(@$allFound[$keyS]["startDate"]) $allFound[$keyS]["startDate"] =  date("Y-m-d H:i:s", $allFound[$keyS]["startDate"]);
+				if(@$allFound[$keyS]["created"]) $allFound[$keyS]["created"] =  date("Y-m-d H:i:s", $allFound[$keyS]["created"]);
+        	}
+        	
+        	$allRes = array_merge($allRes, $allFound);
+        }
+
+
 	  	/***********************************  CITIES   *****************************************/
         if(strcmp($filter, City::COLLECTION) != 0 && $this->typeWanted(City::COLLECTION, $searchType)){
 	  		$query = array( "name" => new MongoRegex("/".self::wd_remove_accents($search)."/i"));//array('$text' => array('$search' => $search));//
@@ -254,7 +388,7 @@ class GlobalAutoCompleteAction extends CAction
 		    		$locality = $search;
 		    	$type = $this->getTypeOfLocalisation($locality);
 		    	if($searchBy == "INSEE") $type = $searchBy;
-	        	error_log("type " . $type);
+	        	//error_log("type " . $type);
 	    		if($type == "NAME"){ 
 	        		$query = array('$or' => array( array( "name" => new MongoRegex("/".self::wd_remove_accents($locality)."/i")),
 	        									   array( "alternateName" => new MongoRegex("/".self::wd_remove_accents($locality)."/i")),
@@ -476,4 +610,86 @@ class GlobalAutoCompleteAction extends CAction
 		}
 		return utf8_encode($text);
 	}
+
+	private function checkScopeParent($parentObj){ //error_log("checkScopeParent");
+			$localityReferences['CITYKEY'] = "";
+	  		$localityReferences['CODE_POSTAL'] = "address.postalCode";
+	  		$localityReferences['DEPARTEMENT'] = "address.postalCode";
+	  		$localityReferences['REGION'] = ""; //Spécifique
+
+	  		$countScope = 0;
+	  		foreach ($localityReferences as $key => $value){
+	  			if(isset($_POST["searchLocality".$key]) && count($_POST["searchLocality".$key])>0 && $_POST["searchLocality".$key][0] != "" ){ 
+	  				$countScope++; 
+	  			}
+	  		}
+	  		if($countScope==0){ error_log("return true EMPTY"); return true; }
+	  		
+			foreach ($localityReferences as $key => $value) 
+	  		{
+	  			if(isset($_POST["searchLocality".$key]) 
+	  				&& is_array($_POST["searchLocality".$key])
+	  				&& count($_POST["searchLocality".$key])>0)
+	  			{
+	  				foreach ($_POST["searchLocality".$key] as $localityRef) 
+	  				{
+	  					if(isset($localityRef) && $localityRef != ""){
+		  					//OneRegion
+		  					if($key == "CITYKEY"){
+		  						
+		  						$city = City::getByUnikey($localityRef);
+				        		if (empty($city["cp"])) {
+					        		if(@$parentObj["address"]["addressCountry"] == $city["country"] &&
+					        		   @$parentObj["address"]["codeInsee"] == $city["insee"]) return true;
+				        		}else{
+				        			if(@$parentObj["address"]["addressCountry"] == $city["country"] &&
+					        		   @$parentObj["address"]["codeInsee"] == $city["insee"] &&
+					        		   @$parentObj["address"]["postalCode"] == $city["cp"]) return true;
+				        		}
+				        		
+			  				}
+			  				elseif($key == "CODE_POSTAL"){
+			  					if(@$parentObj["address"]["postalCode"] == $localityRef) return true;
+				        		//$queryLocality = array($value => new MongoRegex("/".$localityRef."/i"));
+			  				}
+			  				elseif($key == "DEPARTEMENT"){
+			  					$dep = PHDB::findOne( City::COLLECTION, array("depName" => $localityRef), array("dep"));	
+			        			if(preg_match("/^{$dep['dep']}/i", $parentObj["address"]["postalCode"])) return true;
+			  				}
+			  				elseif($key == "REGION"){
+			  					$deps = PHDB::find( City::COLLECTION, array("regionName" => $localityRef), array("dep"));
+			        			$departements = array();
+			        			$inQuest = array();
+			        			if(is_array($deps))foreach($deps as $index => $value)
+			        			{
+			        				if(!in_array($value["dep"], $departements))
+			        				{
+				        				$departements[] = $value["dep"];
+				        				if(preg_match("/^{$value['dep']}/i", $parentObj["address"]["postalCode"])) return true;
+							        }
+			        			}		        		
+			  				}
+			  			}
+	  				}
+	  			}
+	  		}
+	  		return false;
+		}
+
+		private function checkTagsParent($parentObj, $tags){ //return true;
+			
+			if(count($tags)<=0) return true;
+			foreach ($tags as $key => $tag) { error_log("checkTagsParent tag : " .$tag);
+				if(@$parentObj["tags"]){
+					foreach ($parentObj["tags"] as $key => $parentTag) { error_log("checkTagsParent parentTag : " .$parentTag);
+						if(preg_match("/.*{$tag}.*/i", $parentTag)){
+							error_log("checkTagsParent return true");
+							return true;
+						}
+					}
+				}
+			}error_log("checkTagsParent return false");
+							
+			return false;
+		}
 }
