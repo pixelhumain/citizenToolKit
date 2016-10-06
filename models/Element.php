@@ -359,7 +359,7 @@ class Element {
 		$res = array("result"=>false,"msg"=>"");
 
 		if($resUpdate["ok"]==1){
-			if( $collection != Person::COLLECTION && Authorisation::isOpenEdition($id, $collection) && $dataFieldName != "badges"){
+			if( $collection != Person::COLLECTION && $dataFieldName != "badges"){
 				// Add in activity to show each modification added to this entity
 						//echo $dataFieldName;
 				ActivityStream::saveActivityHistory(ActStr::VERB_UPDATE, $id, $collection, $dataFieldName, $fieldValue);
