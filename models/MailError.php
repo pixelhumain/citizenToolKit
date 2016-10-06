@@ -32,7 +32,7 @@ class MailError {
         if (!$account) 
             throw new CTKExeception("unknown user with that email : ".$this->recipient);
         else 
-            $personId = (String) $account["_id"];
+            $this->personId = (String) $account["_id"];
 
         $this->reason = @$params["reason"];
         $this->description = @$params["description"];
