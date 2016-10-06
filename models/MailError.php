@@ -61,11 +61,15 @@ class MailError {
     }
 
     public function actionOnEvent() {
-        if ($this->event == self::EVENT_DROPPED_EMAIL || $this->event == self::EVENT_BOUNCED_EMAIL || $this->event == self::EVENT_SPAM_COMPLAINTS) {
+        //Spam ou drop : suspension account
+        if ($this->event == self::EVENT_DROPPED_EMAIL || $this->event == self::EVENT_SPAM_COMPLAINTS) {
             //Set invalid email flag on the person
             PHDB::update( Person::COLLECTION, array("_id" => $this->personId), array('$set' => array("isNotValidEmail" => true)));
-            $this->save();
-        } 
+        //Hard bounce => TODO : try to delete the account
+        } else if ($this->event == self::EVENT_BOUNCED_EMAIL) {
+            PHDB::update( Person::COLLECTION, array("_id" => $this->personId), array('$set' => array("isNotValidEmail" => true, "hardbounced" => true)));
+        }
+        $this->save();
     }
 
     public function save() {
