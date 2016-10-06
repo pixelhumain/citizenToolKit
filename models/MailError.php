@@ -40,11 +40,11 @@ class MailError {
     }
 
     public function actionOnEvent() {
-        if ($event == self::EVENT_DROPPED_EMAIL) {
+        if ($this->event == self::EVENT_DROPPED_EMAIL) {
             //Set invalid email flag on the person
-            PHDB::update( Person::COLLECTION, array("_id" => $account["_id"]), array('$set' => array("isNotValidEmail" => true)));
+            PHDB::update( Person::COLLECTION, array("_id" => $this->personId), array('$set' => array("isNotValidEmail" => true)));
             $this->save();
-        }
+        } 
     }
 
     public function save() {
