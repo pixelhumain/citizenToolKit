@@ -34,9 +34,9 @@ class GlobalAutoCompleteAction extends CAction
         /***********************************  TAGS   *****************************************/
         $tmpTags = array();
         if(strpos($search, "#") > -1){
-        	$search = substr($search, 1, strlen($search)); 
-        	$query = array( "tags" => array('$in' => array(new MongoRegex("/^".$search."$/i")))) ; 
-        	$tmpTags[] = new MongoRegex("/^".$search."$/i");
+        	$searchTagText = substr($search, 1, strlen($search)); 
+        	$query = array( "tags" => array('$in' => array(new MongoRegex("/^".$searchTagText."$/i")))) ; 
+        	$tmpTags[] = new MongoRegex("/^".$searchTagText."$/i");
   		}
   		if(!empty($searchTag))
   			foreach ($searchTag as $value) { 
@@ -308,17 +308,30 @@ class GlobalAutoCompleteAction extends CAction
         	if(count($tmpTags))
         	$query = array('$and' => array( $query , array("tags" => array('$in' => $tmpTags)))) ;
         	
-        	//echo "search : ". $search." - ".(string)intval(strpos($search, "#"));
-        	if($search != "" && strpos($search, "#") == false){
+        	//echo "search : ". $search." - ".(string)strpos($search, "#");
+        	if($search != "" && strpos($search, "#") === false){
 	        	$searchRegExp = self::accentToRegex($search);
 	        	$queryFullTxt = array( '$or' => array( array("name" => new MongoRegex("/.*{$searchRegExp}.*/i")),
 	        						   				   array("message" => new MongoRegex("/.*{$searchRegExp}.*/i")))
 	        						);
-	        	if(isset($query['$and']))
-	        	$query['$and'][] = $queryFullTxt;
-	        	else
-	        	$query = array('$and' => array( $query , $queryFullTxt)) ;
+	        	if(isset($query['$and'])) $query['$and'][] = $queryFullTxt;
+	        	else $query = array('$and' => array( $query , $queryFullTxt)) ;
 	        }
+
+	        /* //requete pour masquer les actions / votes fermés = date dépassé
+	           //ne marche pas, mais pas util, puisque les resultats sont affichés par date updated, 
+	           //les vieux resultats seront automatiquement en derniers
+	           
+	        if(isset($query['$and'])) 
+	        	$query['$and'][] =  array( '$or' => array( array( "dateEnd" => array( '$gte' => new MongoDate( time() ) ) )),
+	        						   				   	   array('dateEnd' => array('$exists'=>false))
+	        						);
+	        	//array( "dateEnd" => array( '$gte' => new MongoDate( time() ) ) );
+	        else $query = array('$and' => array( $query , array( '$or' => array( array( "dateEnd" => array( '$gte' => new MongoDate( time() ) ) )),
+	        						   				   	   array('dateEnd' => array('$exists'=>false))
+	        						) ) ) ;
+			*/
+
 	        //var_dump($query); exit;
         	//error_log("collection : ".$collection);
         	//récupère toutes les propositions ou actions qui correspondent aux rooms trouvées précédement

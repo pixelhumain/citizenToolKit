@@ -7,16 +7,13 @@ class AroundMeAction extends CAction {
 */
     public function run($type, $id, $radius=5000, $manual=false) {
     	//trie les éléments dans l'ordre alphabetique par updated
-	  	function mySortByUpdated($a, $b){ // error_log("sort : ");//.$a['name']);
+	  	function mySortByUpdated($a, $b){ 
 	  		if(isset($a["updated"]) && isset($b["updated"])){
 		   		return ( ($b["updated"]) > ($a["updated"]) );
 		    } else{
 				return false;
 			}
 		}
-
-		//error_log("----------------------------------------");
-		
 		$all = $this->loadElements($radius, $type, $id);
 		while(sizeOf($all) < 1 && $radius > 0 && !$manual){ 
 			$all = $this->loadElements($radius, $type, $id);
@@ -82,11 +79,15 @@ class AroundMeAction extends CAction {
 				$all = array_merge($all, $orgas);
 				$all = array_merge($all, $projects);
 				$all = array_merge($all, $events);
-				//$all = array_merge($all, $persons);
 
+				foreach ($all as $keyS => $value) {
+					if(@$all[$keyS]["endDate"]) $all[$keyS]["endDate"] =  date("Y-m-d H:i:s", $all[$keyS]["endDate"]->sec);
+					if(@$all[$keyS]["startDate"]) $all[$keyS]["startDate"] =  date("Y-m-d H:i:s", $all[$keyS]["startDate"]->sec);
+				}
+				
+				//$all = array_merge($all, $persons);
 	  			//$all = usort($all, "mySortByUpdated");
 	  	
-
 				return $all;
     		}
     	}
