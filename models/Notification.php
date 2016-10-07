@@ -515,10 +515,12 @@ class Notification{
 	}
 
 
-	/*
-	When a moderate is occured, is create notification for author and superadmin
+	/**
+	 * When a moderate is occured, is create notification for author and superadmin
 	notify the moderate
-	*/
+	 * @param type $news the news moderated
+	 * @return type
+	 */
 	public static function moderateNews ($news) 
 	{
 	    $asParam = array(
@@ -553,14 +555,53 @@ class Notification{
 	}
 
 	/**
-	 * Notification for the super admin
+	 * Notification for the super admins.
+	 * Exemple : The cron return a mail error caused by alice@example.com
+	 * => The cron is the author
+	 * => return is the verb
+	 * => A mail error is the object
+	 * => alice@example.com is the target
 	 * @param String $verb Can be find on const of the ActStr class
-	 * @param type $actor the one making the action
-	 * @param type $object the object 
+	 * @param array $author the one making the action array(type, id)
+	 * @param array $object the object. array(type, id, event)
+	 * @param array $target the target. array(type, id, email)
 	 * @return array : result : boolean / msg : string
 	 */
-	public static function actionToAdmin ( $verb, $actor, $object)  {
+	public static function actionToAdmin ( $verb, $author, $object, $target)  {
+ 		//Retrieve all super admins of the plateform
+ 		//TODO SBAR => superAdmins ID should be cached in order to make this request quicker ?
+ 		$superAdmins = Person::getCurrentSuperAdmins();
 
+ 		$asParam = array(
+	    	"type" => ActStr::TEST, 
+            "verb" => $verb,
+            "author"=>$author,
+            "object"=>$object,
+ 			"target"=>$target
+        );
+
+ 		//Error 
+ 		if ($verb == ActStr::VERB_RETURN) {
+ 			if (@$object["event"] == MailError::EVENT_BOUNCED_EMAIL) {
+ 				$actionMsg = "Fatal error sending an email to ".$target["email"].". User should be deleted.";	
+ 			} else if (@$object["event"] == MailError::EVENT_DROPPED_EMAIL || @$object["event"] == MailError::EVENT_SPAM_COMPLAINTS) {
+ 				$actionMsg = "Error sending an email to ".$target["email"].". User is flagged and will not receive a mail anymore.";	
+ 			} else {
+ 				error_log("Unknown event in Mail Error : no notification generated.");
+ 			}
+ 			
+ 		}
+	    $stream = ActStr::buildEntry($asParam);
+
+		$notif = array( 
+	    	"persons" => array_keys($superAdmins),
+            "label"   => $actionMsg , 
+            "icon"    => "fa-cog" ,
+            "url"     => Yii::app()->createUrl('/'.Yii::app()->controller->module->id.'/#admin.mailerrordashboard')
+        );
+
+	    $stream["notify"] = ActivityStream::addNotification( $notif );
+    	ActivityStream::addEntry($stream);
 	}
 
 }

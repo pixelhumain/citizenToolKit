@@ -2020,5 +2020,11 @@ class Person {
     	return $result ;
     }
 
+    public static function getCurrentSuperAdmins() {
+    	$superAdmins = array();
+    	$superAdmins = PHDB::find(self::COLLECTION, array('roles.superAdmin' => true), array("_id"));
+    	return $superAdmins;
+    }
+
 }
 ?>
