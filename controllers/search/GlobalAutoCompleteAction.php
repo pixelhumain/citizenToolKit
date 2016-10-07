@@ -411,7 +411,7 @@ class GlobalAutoCompleteAction extends CAction
 	        	if($locality == null || $locality == "")
 		    		$locality = $search;
 		    	$type = $this->getTypeOfLocalisation($locality);
-		    	if($searchBy == "INSEE") $type = $searchBy;
+		    	//if($searchBy == "INSEE") $type = $searchBy;
 	        	//error_log("type " . $type);
 	    		if($type == "NAME"){ 
 	        		$query = array('$or' => array( array( "name" => new MongoRegex("/".self::wd_remove_accents($locality)."/i")),
