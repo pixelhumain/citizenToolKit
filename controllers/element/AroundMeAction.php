@@ -5,7 +5,7 @@ class AroundMeAction extends CAction {
 * Around Me
 * Find all element around my position (5km => 5000m)
 */
-    public function run($type, $id) {
+    public function run($type, $id, $radius=5000, $manual=false) {
     	//trie les éléments dans l'ordre alphabetique par updated
 	  	function mySortByUpdated($a, $b){ // error_log("sort : ");//.$a['name']);
 	  		if(isset($a["updated"]) && isset($b["updated"])){
@@ -15,8 +15,34 @@ class AroundMeAction extends CAction {
 			}
 		}
 
-    	$controller = $this->getController();
+		//error_log("----------------------------------------");
+		
+		$all = $this->loadElements($radius, $type, $id);
+		while(sizeOf($all) < 1 && $radius > 0 && !$manual){ 
+			$all = $this->loadElements($radius, $type, $id);
+			if(sizeOf($all) < 1) $radius = $this->getNextRadius($radius);
+		}
+	
 
+		$controller = $this->getController();
+
+    	$res["all"] = $all;
+    	$res["radius"] = $radius;
+    	$res["type"] = $type;
+		$res["id"] = $id;
+		$controller->renderPartial("/default/aroundMe", $res);
+    }
+
+    private function getNextRadius($radius){
+    	$radiusSteps = array(2000, 5000, 10000, 25000, 50000, 0);
+		foreach ($radiusSteps as $key => $value) {
+			if($value == $radius) return @$radiusSteps[$key+1] ? $radiusSteps[$key+1] : $radius;
+		}
+		return 0;
+    }
+
+    private function loadElements($radius, $type, $id){
+    	error_log("startSearch with : ".$radius);
     	if($type == Person::CONTROLLER){
 
     		$elementsMap = Person::getPersonMap($id);
@@ -36,7 +62,7 @@ class AroundMeAction extends CAction {
 									  			   	  "coordinates" => array( floatval($lng),
 									  			  						   	  floatval($lat) )
 												  			 		),
-								  		 		'$maxDistance' => 30000,
+								  		 		'$maxDistance' => intval($radius),
 								  		 		'$minDistance' => 10
 								  			 ),
 							  	 		)
@@ -61,13 +87,11 @@ class AroundMeAction extends CAction {
 	  			//$all = usort($all, "mySortByUpdated");
 	  	
 
-				$res["all"] = $all;
+				return $all;
     		}
     	}
-
-		$controller->renderPartial("/default/aroundMe", $res);
+    	return null;
     }
-
     
 
 }
