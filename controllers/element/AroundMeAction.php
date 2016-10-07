@@ -36,7 +36,7 @@ class AroundMeAction extends CAction {
 									  			   	  "coordinates" => array( floatval($lng),
 									  			  						   	  floatval($lat) )
 												  			 		),
-								  		 		'$maxDistance' => 150000,
+								  		 		'$maxDistance' => 30000,
 								  		 		'$minDistance' => 10
 								  			 ),
 							  	 		)
