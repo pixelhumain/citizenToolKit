@@ -308,7 +308,18 @@ class GlobalAutoCompleteAction extends CAction
         	if(count($tmpTags))
         	$query = array('$and' => array( $query , array("tags" => array('$in' => $tmpTags)))) ;
         	
-
+        	//echo "search : ". $search." - ".(string)intval(strpos($search, "#"));
+        	if($search != "" && strpos($search, "#") == false){
+	        	$searchRegExp = self::accentToRegex($search);
+	        	$queryFullTxt = array( '$or' => array( array("name" => new MongoRegex("/.*{$searchRegExp}.*/i")),
+	        						   				   array("message" => new MongoRegex("/.*{$searchRegExp}.*/i")))
+	        						);
+	        	if(isset($query['$and']))
+	        	$query['$and'][] = $queryFullTxt;
+	        	else
+	        	$query = array('$and' => array( $query , $queryFullTxt)) ;
+	        }
+	        //var_dump($query); exit;
         	//error_log("collection : ".$collection);
         	//récupère toutes les propositions ou actions qui correspondent aux rooms trouvées précédement
         	$allFound = PHDB::findAndSortAndLimitAndIndex($collection, $query, array("updated" => -1), $indexStep, $indexMin);
