@@ -662,10 +662,9 @@ class GlobalAutoCompleteAction extends CAction
 			        			$inQuest = array();
 			        			if(is_array($deps))foreach($deps as $index => $value)
 			        			{
-			        				if(!in_array($value["dep"], $departements))
-			        				{
+			        				if(!in_array($value["dep"], $departements)){
 				        				$departements[] = $value["dep"];
-				        				if(preg_match("/^{$value['dep']}/i", $parentObj["address"]["postalCode"])) return true;
+				        				if(preg_match("/^{$value['dep']}/i", @$parentObj["address"]["postalCode"])) return true;
 							        }
 			        			}		        		
 			  				}
