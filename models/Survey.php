@@ -226,6 +226,8 @@ class Survey
 		$html .= self::getOneChartCircle($percentVoteUnclear, 	$voteUnclearCount,	$actionUnclear, "Incompris","purple", 	"question-circle", 	$hasVoted);
 		$html .= self::getOneChartCircle($percentVoteDown, 		$voteDownCount,		$actionDown, 	"Contre", 	"red", 		"thumbs-down", 		$hasVoted);
 		$html .= '<div class="col-md-1"></div>';
+		if(!$isAuth)
+			$html .= '<div class="col-md-12 center text-red"><br/> Vous n&apos;avez pas les droits pour voter. </div>';
 		return $html;
 	}
 

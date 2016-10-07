@@ -58,6 +58,16 @@ class Element {
 	    if(isset($fas[$type])) return $fas[$type];
 	    else return false;
     }
+    public static function getColorIcon ($type) { 
+    	$colors = array(
+	    	Organization::COLLECTION 	=> "green",
+	    	Person::COLLECTION 			=> "yellow",
+	    	Event::COLLECTION 			=> "orange",
+	    	Project::COLLECTION 		=> "purple",
+	    );	
+	    if(isset($colors[$type])) return $colors[$type];
+	    else return false;
+     }
     
     public static function getElementSpecsByType ($type) { 
     	$ctrler = self::getControlerByCollection ($type);
@@ -693,4 +703,7 @@ class Element {
 
         return $params;
      }
+
+
+    
 }
