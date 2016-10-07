@@ -267,7 +267,10 @@ class Authorisation {
         //Get the members of the event : if there is no member then it's a new organization
         //We are in a creation process
         $eventMembers = Event::getAttendeesByEventId($eventId);
-        $res = array_key_exists((string)$userId, $eventMembers);    
+        if( array_key_exists((string)$userId, $eventMembers) && (
+            empty($eventMembers[(string)$userId]["toBeValidated"]) || 
+            $eventMembers[(string)$userId]["toBeValidated"] == false)) 
+        $res = true;    
         return $res;
     }
 
@@ -373,7 +376,10 @@ class Authorisation {
         //Get the members of the project : if there is no member then it's a new organization
         //We are in a creation process
         $projectMembers = Project::getContributorsByProjectId($projectId);
-        $res = array_key_exists((string)$userId, $projectMembers);    
+        if( array_key_exists((string)$userId, $projectMembers) && (
+            empty($projectMembers[(string)$userId]["toBeValidated"]) || 
+            $projectMembers[(string)$userId]["toBeValidated"] == false)) 
+        $res = true);    
         return $res;
     }
     
