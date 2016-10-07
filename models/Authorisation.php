@@ -379,7 +379,7 @@ class Authorisation {
         if( array_key_exists((string)$userId, $projectMembers) && (
             empty($projectMembers[(string)$userId]["toBeValidated"]) || 
             $projectMembers[(string)$userId]["toBeValidated"] == false)) 
-        $res = true);    
+        $res = true;    
         return $res;
     }
     
