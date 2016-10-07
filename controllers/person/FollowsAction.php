@@ -30,11 +30,8 @@ class FollowsAction extends CTKAction {
 		} else if (empty($_POST["invitedUserId"])) {
 			$newPerson = array("name" => $_POST["invitedUserName"], "email" => $_POST["invitedUserEmail"], "invitedBy" => $this->currentUserId);
 			
-			if(!empty($_POST["msgEmail"]))
-				$res = Person::createAndInvite($newPerson, $_POST["msgEmail"]);
-			else
-				$res = Person::createAndInvite($newPerson);
-
+			$res = Person::createAndInvite($newPerson, @$_POST["msgEmail"]);
+			
             $actionType = ActStr::VERB_INVITE;
             if ($res["result"]) {
             	$invitedUserId = $res["id"];
@@ -46,7 +43,7 @@ class FollowsAction extends CTKAction {
 		
         if (@$res["result"] == true) {
             $person = Person::getSimpleUserById($invitedUserId);
-            $res = array("result" => true, "invitedUser" => $person);
+            $res = array("result" => true, "map" => $person, "id" => (string)$person['_id']);
         } else {
             $res = array("result" => false, "msg" => $res["msg"]);
         }
