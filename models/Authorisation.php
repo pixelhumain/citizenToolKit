@@ -117,7 +117,10 @@ class Authorisation {
         //Get the members of the organization : if there is no member then it's a new organization
         //We are in a creation process
         $organizationMembers = Organization::getMembersByOrganizationId($organizationId);
-        $res = array_key_exists((string)$userId, $organizationMembers);    
+        if( array_key_exists((string)$userId, $organizationMembers) && (
+            empty($organizationMembers[(string)$userId]["toBeValidated"]) || 
+            $organizationMembers[(string)$userId]["toBeValidated"] == false)) 
+            $res = true;    
         return $res;
     }
 
