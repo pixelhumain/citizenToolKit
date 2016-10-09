@@ -49,6 +49,8 @@ class Event {
 	    "source" => array("name" => "source"),
 	    "badges" => array("name" => "badges"),
 	    "tags" => array("name" => "tags"),
+	    "medias" => array("name" => "medias"),
+	    "urls" => array("name" => "urls"),
 
 	    "modified" => array("name" => "modified"),
 	    "updated" => array("name" => "updated"),
