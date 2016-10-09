@@ -5,7 +5,7 @@ class AroundMeAction extends CAction {
 * Around Me
 * Find all element around my position (5km => 5000m)
 */
-    public function run($type, $id, $radius=5000, $manual=false) {
+    public function run($type, $id, $radius=5000, $manual=false, $json=false) {
     	//trie les éléments dans l'ordre alphabetique par updated
 	  	function mySortByUpdated($a, $b){ 
 	  		if(isset($a["updated"]) && isset($b["updated"])){
@@ -27,7 +27,14 @@ class AroundMeAction extends CAction {
     	$res["radius"] = $radius;
     	$res["type"] = $type;
 		$res["id"] = $id;
-		$controller->renderPartial("/default/aroundMe", $res);
+
+		if($json){
+			$res["result"] = true;
+            Rest::json($res);
+        }
+        else {
+           $controller->renderPartial("/default/aroundMe", $res);
+        }
     }
 
     private function getNextRadius($radius){
