@@ -14,9 +14,17 @@ class AroundMeAction extends CAction {
 				return false;
 			}
 		}
-		$all = $this->loadElements($radius, $type, $id);
+		$res = array();
+		$elementsMap = array();
+		if($type == Person::CONTROLLER){
+			$elementsMap = Person::getPersonMap($id);
+			//var_dump($elementsMap["person"]); exit;
+			$res["lat"] = @$elementsMap["person"]["geo"]["latitude"] ? $elementsMap["person"]["geo"]["latitude"] : null;
+    		$res["lng"] = @$elementsMap["person"]["geo"]["longitude"] ? $elementsMap["person"]["geo"]["longitude"] : null;
+    	}	
+		$all = $this->loadElements($elementsMap, $radius, $type, $id);
 		while(sizeOf($all) < 1 && $radius > 0 && !$manual){ 
-			$all = $this->loadElements($radius, $type, $id);
+			$all = $this->loadElements($elementsMap, $radius, $type, $id);
 			if(sizeOf($all) < 1) $radius = $this->getNextRadius($radius);
 		}
 	
@@ -45,17 +53,17 @@ class AroundMeAction extends CAction {
 		return 0;
     }
 
-    private function loadElements($radius, $type, $id){
+    private function loadElements($elementsMap, $radius, $type, $id){
     	error_log("startSearch with : ".$radius);
-    	if($type == Person::CONTROLLER){
+    	//if($type == Person::CONTROLLER){
 
-    		$elementsMap = Person::getPersonMap($id);
+    		//$elementsMap = Person::getPersonMap($id);
     		$res = array('network' => $elementsMap);
 
     		$element = $elementsMap["person"];
 
-    		$lat = $element["geo"]["latitude"] ? $element["geo"]["latitude"] : null;
-    		$lng = $element["geo"]["longitude"] ? $element["geo"]["longitude"] : null;
+    		$lat = @$element["geo"]["latitude"] ? $element["geo"]["latitude"] : null;
+    		$lng = @$element["geo"]["longitude"] ? $element["geo"]["longitude"] : null;
 
     		if($lat!=null && $lng!=null){
     			$request = array("geoPosition" => array( '$exists' => true ),
@@ -97,7 +105,7 @@ class AroundMeAction extends CAction {
 	  	
 				return $all;
     		}
-    	}
+    	//}
     	return null;
     }
     
