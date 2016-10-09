@@ -184,7 +184,10 @@ class Element {
 			$element = Event::getById($id);	
 		else if($type == City::COLLECTION)
 			$element = City::getIdByInsee($id);
-		return $element;
+		else 
+			$element = PHDB::findOne($type,array("_id"=>new MongoId($id)));
+	  	
+	  	return $element;
 	}
 
     public static function getInfos( $type, $id, $loadByHashOnly=null ) {	    
@@ -213,6 +216,8 @@ class Element {
     					"type"=>$type,
     					"id"=> $id);
     }
+
+
 
     private static function getDataBinding($collection) {
 		if($collection == Person::COLLECTION)
@@ -594,6 +599,25 @@ class Element {
 		return true;
 	}
 
+	public static function delete($elementType,$elementId,$userId) {
+		
+		if ($elementType != Poi::COLLECTION && $elementType != Poi::CONTROLLER) {
+            return array( "result" => false, "msg" => "For now you can only delete Points of interest" );   
+        }
+
+		if ( !@$userId) {
+            return array( "result" => false, "msg" => "You must be loggued to delete something" );
+        }
+        
+        $el = self::getByTypeAndId($elementType, $elementId);
+        //TODO : we could also allow admins
+        if ( $userId != $el['creator']) {
+            return array( "result" => false, "msg" => "You must be owner to delete something" );    
+        }
+        
+		PHDB::remove($elementType, array("_id"=>new MongoId($elementId)));
+		return array("result" => true, "msg" => "The element has been deleted succesfully");
+	}
 
 	public static function save($params){
 
