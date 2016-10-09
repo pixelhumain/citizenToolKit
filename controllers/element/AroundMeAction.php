@@ -98,16 +98,43 @@ class AroundMeAction extends CAction {
 				foreach ($all as $keyS => $value) {
 					if(@$all[$keyS]["endDate"]) $all[$keyS]["endDate"] =  date("Y-m-d H:i:s", $all[$keyS]["endDate"]->sec);
 					if(@$all[$keyS]["startDate"]) $all[$keyS]["startDate"] =  date("Y-m-d H:i:s", $all[$keyS]["startDate"]->sec);
+					if(@$all[$keyS]["updated"]){
+					 	$all[$keyS]["updatedLbl"] = Translate::pastTime($all[$keyS]["updated"],"timestamp");
+					 	$all[$keyS]["updated"] =  date("Y-m-d H:i:s", $all[$keyS]["updated"]);
+					 	
+					}
 				}
 				
+
+				
+				usort($all, "mySortByUpdated");
+				/*
+				if(sizeOf($all)>0){
+					$allSorted = array($all[0]);
+					foreach ($all as $keyS => $value) {
+						if(isset($allSorted[0])){
+							if($value["updated"] > @$allSorted[0]["updated"]){
+								$allSorted = array_merge($allSorted, array($keyS=>$value));
+							}
+						}else{
+							
+						}
+					}
+				}*/
 				//$all = array_merge($all, $persons);
 	  			//$all = usort($all, "mySortByUpdated");
-	  	
+	  			//$all = $allSorted;
 				return $all;
     		}
     	//}
     	return null;
     }
-    
+     private function mySortByUpdated($a, $b){ // error_log("sort : ");//.$a['name']);
+  		if(isset($a["updated"]) && isset($b["updated"])){
+	   		return ( strtolower($b["updated"]) > strtolower($a["updated"]) );
+	    } else{
+			return false;
+		}
+	}
 
 }

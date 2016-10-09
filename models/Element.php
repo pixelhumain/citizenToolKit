@@ -98,8 +98,11 @@ class Element {
 
 			News::COLLECTION 			=> array("icon"=>"rss","hash"=> $prefix.""),
 
+	    	City::COLLECTION 			=> array("icon"=>"university","color"=>"#E33551","text-color"=>"red",
+	    										 "hash"=> $prefix.".detail.insee."),
 	    	City::CONTROLLER 			=> array("icon"=>"university","color"=>"#E33551","text-color"=>"red",
 	    										 "hash"=> $prefix.".detail.insee."),
+	    	
 	    	ActionRoom::TYPE_VOTE		=> array("icon"=>"archive","color"=>"#3C5665", "text-color"=>"azure",
 	    		 								 "hash"=> "survey.entries.id.",
 	    		 								 "collection"=>ActionRoom::COLLECTION),

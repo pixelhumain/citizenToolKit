@@ -397,6 +397,8 @@ class GlobalAutoCompleteAction extends CAction
 				if(@$allFound[$keyS]["endDate"]) $allFound[$keyS]["endDate"] =  date("Y-m-d H:i:s", $allFound[$keyS]["endDate"]);
 				if(@$allFound[$keyS]["startDate"]) $allFound[$keyS]["startDate"] =  date("Y-m-d H:i:s", $allFound[$keyS]["startDate"]);
 				if(@$allFound[$keyS]["created"]) $allFound[$keyS]["created"] =  date("Y-m-d H:i:s", $allFound[$keyS]["created"]);
+				if(@$allFound[$keyS]["updated"]) $allFound[$keyS]["updatedLbl"] =  Translate::pastTime($allFound[$keyS]["updated"],"timestamp");
+				if(@$allFound[$keyS]["updated"]) $allFound[$keyS]["updated"] =  date("Y-m-d H:i:s", $allFound[$keyS]["updated"]);
         	}
         	
         	$allRes = array_merge($allRes, $allFound);
