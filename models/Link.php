@@ -722,7 +722,7 @@ class Link {
 
         //Retrieve the child info
         $pendingChild = $class::getById($childId);
-
+		$pendingChild["id"] = $childId;
         if (!$pendingChild) {
             return array("result" => false, "msg" => "Something went wrong ! Impossible to find the children ".$childId);
         }
