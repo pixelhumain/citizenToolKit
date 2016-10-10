@@ -249,8 +249,10 @@ class GlobalAutoCompleteAction extends CAction
 		
 
 		/***********************************  VOTES / propositions   *****************************************/
-        if(strcmp($filter, ActionRoom::TYPE_VOTE) != 0 && $this->typeWanted(ActionRoom::TYPE_VOTE, $searchType) ||
-        	strcmp($filter, ActionRoom::TYPE_ACTIONS) != 0 && $this->typeWanted(ActionRoom::TYPE_ACTIONS, $searchType) )
+        if(isset(Yii::app()->session["userId"]) && 
+        	(strcmp($filter, ActionRoom::TYPE_VOTE) != 0 && $this->typeWanted(ActionRoom::TYPE_VOTE, $searchType)) ||
+        	(strcmp($filter, ActionRoom::TYPE_ACTIONS) != 0 && $this->typeWanted(ActionRoom::TYPE_ACTIONS, $searchType))
+        	 )
         {    
         	$myLinks = Person::getPersonLinksByPersonId(Yii::app()->session["userId"]);
         	
@@ -280,7 +282,6 @@ class GlobalAutoCompleteAction extends CAction
         		$myCityKey .= @$me["address"]["codeInsee"] ? "_".$me["address"]["codeInsee"] : false;
         		if($myCityKey!=false){
         			$myCityKey .= @$me["address"]["postalCode"] ? "-".$me["address"]["postalCode"] : "";
-	        		error_log($myCityKey);
 	        		$query['$or'][] = array("parentType"=>"cities", "parentId" => $myCityKey);
 	        	}
         	}
@@ -548,7 +549,9 @@ class GlobalAutoCompleteAction extends CAction
 	  		if(isset($allCitiesRes)) 
 	  			$allRes = array_merge($allRes, $allCitiesRes);
 
-	  	
+	  	if($_POST['tpl'] == "/pod/nowList"){
+	  		usort($allRes, "mySortByUpdated");
+	  	}
 	  	/*
 	  	$limitRes = array();
 	  	$index = 0;
