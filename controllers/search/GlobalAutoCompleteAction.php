@@ -549,7 +549,7 @@ class GlobalAutoCompleteAction extends CAction
 	  		if(isset($allCitiesRes)) 
 	  			$allRes = array_merge($allRes, $allCitiesRes);
 
-	  	if($_POST['tpl'] == "/pod/nowList"){
+	  	if(@$_POST['tpl'] == "/pod/nowList"){
 	  		usort($allRes, "mySortByUpdated");
 	  	}
 	  	/*
