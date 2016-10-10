@@ -660,8 +660,8 @@ class Element {
             {
                 //update a single field
                 //else update whole map
-                $changeMap = ( !$microformat && isset( $key )) ? array('$set' => array( $key => $params[ $key ] ) ) : array('$set' => $params );
-                PHDB::update($collection,array("_id"=>new MongoId($id)), $changeMap);
+                //$changeMap = ( !$microformat && isset( $key )) ? array('$set' => array( $key => $params[ $key ] ) ) : array('$set' => $params );
+                PHDB::update($collection,array("_id"=>new MongoId($id)), array('$set' => $params ));
                 $res = array("result"=>true,
                              "msg"=>"Vos données ont été mise à jour.",
                              "reload"=>true,
@@ -725,8 +725,10 @@ class Element {
         
 		$params["modified"] = new MongoDate(time());
 		$params["updated"] = time();
-        $params["creator"] = Yii::app()->session["userId"];
-        $params["created"] = time();
+		if( !empty($params["id"]) ){
+	        $params["creator"] = Yii::app()->session["userId"];
+	        $params["created"] = time();
+	    }
 
         return $params;
      }
