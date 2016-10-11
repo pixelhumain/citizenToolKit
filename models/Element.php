@@ -635,7 +635,8 @@ class Element {
 		unset($params["paramsLink"]);
         unset($params['collection']);
         unset($params['key']);
-
+        unset($params['id']);
+        
         $params = self::prepData( $params );
 
         /*$microformat = PHDB::findOne(PHType::TYPE_MICROFORMATS, array( "key"=> $key));
@@ -666,7 +667,7 @@ class Element {
                              "msg"=>"Vos données ont été mise à jour.",
                              "reload"=>true,
                              "map"=>$params,
-                             "id"=>(string)$params["_id"]);
+                             "id"=>$id);
             } 
             else 
             {
