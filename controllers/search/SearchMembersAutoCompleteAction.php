@@ -9,7 +9,8 @@ class SearchMembersAutoCompleteAction extends CAction {
 		//$search = str_replace(" ", "\\s",urldecode($_POST['search']));
 		$search = trim(urldecode($_POST['search']));
 		$query = array( '$or' => 	array( array("email" => new MongoRegex("/".$search."/i")),
-									array("name" => new MongoRegex("/".$search."/i"))));
+									array("name" => new MongoRegex("/".$search."/i"))),
+						"_id" => array('$ne' => new MongoId($_POST['elementId'])));
 
 		$limitSearchPerson = 0;
 		$limitSearchOrganization = 0;
