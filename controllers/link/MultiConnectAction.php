@@ -23,30 +23,33 @@ class MultiConnectAction extends CAction
     	$isConnectingAdmin = @$_POST["connectType"];
 		$newMembers = array();
 		$msg=false;
+		$finalResult = false;
 		foreach($_POST["childs"] as $key => $contact){
-		    $roles="";
-		    $child = array(
-				"childId" => @$contact["childId"],
-		    	"childType" => @$contact["childType"] == "people" ? "citoyens" : @$contact["childType"],
-		    	"childName" => @$contact["childName"],
-	            "childEmail" => @$contact["childEmail"]
-		    );
-	    	    	
-	    	$isConnectingAdmin= ($isConnectingAdmin=="admin") ? true : false;
-	    	
-	    	$res = Link::connectParentToChild($parentId, $parentType, $child, $isConnectingAdmin, Yii::app()->session["userId"], $roles);
-	    	if($res["result"] == true){
-		    	if($msg != 2)
-		    		$msg=1;
-				$newMember = $res["newElement"];
-		    	$newMember["childType"] = $res["newElementType"];
-		    	array_push($newMembers, $newMember);
-		    	$finalResult=true; 
-			} else {
-				if($msg==1){
-					$msg=2;
-				}else if($msg != 2){
-					$msg=false;
+			if(@$contact["childId"] != $parentId ){
+				$roles="";
+			    $child = array(
+					"childId" => @$contact["childId"],
+			    	"childType" => @$contact["childType"] == "people" ? "citoyens" : @$contact["childType"],
+			    	"childName" => @$contact["childName"],
+		            "childEmail" => @$contact["childEmail"]
+			    );
+		    	    	
+		    	$isConnectingAdmin= ($isConnectingAdmin=="admin") ? true : false;
+		    	
+		    	$res = Link::connectParentToChild($parentId, $parentType, $child, $isConnectingAdmin, Yii::app()->session["userId"], $roles);
+		    	if($res["result"] == true){
+			    	if($msg != 2)
+			    		$msg=1;
+					$newMember = $res["newElement"];
+			    	$newMember["childType"] = $res["newElementType"];
+			    	array_push($newMembers, $newMember);
+			    	$finalResult=true; 
+				} else {
+					if($msg==1){
+						$msg=2;
+					}else if($msg != 2){
+						$msg=false;
+					}
 				}
 			}
 	 	}
