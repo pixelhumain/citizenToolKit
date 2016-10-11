@@ -31,6 +31,8 @@ class Project {
 	    "badges" => array("name" => "badges"),
 	    "source" => array("name" => "source"),
 	    "preferences" => array("name" => "preferences"),
+	    "medias" => array("name" => "medias"),
+	    "urls" => array("name" => "urls"),
 		
 		"parentId" => array("name" => "parentId"),
 		"parentType" => array("name" => "parentType"),

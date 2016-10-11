@@ -5,7 +5,7 @@ class AroundMeAction extends CAction {
 * Around Me
 * Find all element around my position (5km => 5000m)
 */
-    public function run($type, $id, $radius=5000, $manual=false) {
+    public function run($type, $id, $radius=5000, $manual=false, $json=false) {
     	//trie les éléments dans l'ordre alphabetique par updated
 	  	function mySortByUpdated($a, $b){ 
 	  		if(isset($a["updated"]) && isset($b["updated"])){
@@ -14,9 +14,17 @@ class AroundMeAction extends CAction {
 				return false;
 			}
 		}
-		$all = $this->loadElements($radius, $type, $id);
+		$res = array();
+		$elementsMap = array();
+		if($type == Person::CONTROLLER){
+			$elementsMap = Person::getPersonMap($id);
+			//var_dump($elementsMap["person"]); exit;
+			$res["lat"] = @$elementsMap["person"]["geo"]["latitude"] ? $elementsMap["person"]["geo"]["latitude"] : null;
+    		$res["lng"] = @$elementsMap["person"]["geo"]["longitude"] ? $elementsMap["person"]["geo"]["longitude"] : null;
+    	}	
+		$all = $this->loadElements($elementsMap, $radius, $type, $id);
 		while(sizeOf($all) < 1 && $radius > 0 && !$manual){ 
-			$all = $this->loadElements($radius, $type, $id);
+			$all = $this->loadElements($elementsMap, $radius, $type, $id);
 			if(sizeOf($all) < 1) $radius = $this->getNextRadius($radius);
 		}
 	
@@ -27,7 +35,14 @@ class AroundMeAction extends CAction {
     	$res["radius"] = $radius;
     	$res["type"] = $type;
 		$res["id"] = $id;
-		$controller->renderPartial("/default/aroundMe", $res);
+
+		if($json){
+			$res["result"] = true;
+            Rest::json($res);
+        }
+        else {
+           $controller->renderPartial("/default/aroundMe", $res);
+        }
     }
 
     private function getNextRadius($radius){
@@ -38,17 +53,17 @@ class AroundMeAction extends CAction {
 		return 0;
     }
 
-    private function loadElements($radius, $type, $id){
+    private function loadElements($elementsMap, $radius, $type, $id){
     	error_log("startSearch with : ".$radius);
-    	if($type == Person::CONTROLLER){
+    	//if($type == Person::CONTROLLER){
 
-    		$elementsMap = Person::getPersonMap($id);
+    		//$elementsMap = Person::getPersonMap($id);
     		$res = array('network' => $elementsMap);
 
     		$element = $elementsMap["person"];
 
-    		$lat = $element["geo"]["latitude"] ? $element["geo"]["latitude"] : null;
-    		$lng = $element["geo"]["longitude"] ? $element["geo"]["longitude"] : null;
+    		$lat = @$element["geo"]["latitude"] ? $element["geo"]["latitude"] : null;
+    		$lng = @$element["geo"]["longitude"] ? $element["geo"]["longitude"] : null;
 
     		if($lat!=null && $lng!=null){
     			$request = array("geoPosition" => array( '$exists' => true ),
@@ -83,16 +98,43 @@ class AroundMeAction extends CAction {
 				foreach ($all as $keyS => $value) {
 					if(@$all[$keyS]["endDate"]) $all[$keyS]["endDate"] =  date("Y-m-d H:i:s", $all[$keyS]["endDate"]->sec);
 					if(@$all[$keyS]["startDate"]) $all[$keyS]["startDate"] =  date("Y-m-d H:i:s", $all[$keyS]["startDate"]->sec);
+					if(@$all[$keyS]["updated"]){
+					 	$all[$keyS]["updatedLbl"] = Translate::pastTime($all[$keyS]["updated"],"timestamp");
+					 	$all[$keyS]["updated"] =  date("Y-m-d H:i:s", $all[$keyS]["updated"]);
+					 	
+					}
 				}
 				
+
+				
+				usort($all, "mySortByUpdated");
+				/*
+				if(sizeOf($all)>0){
+					$allSorted = array($all[0]);
+					foreach ($all as $keyS => $value) {
+						if(isset($allSorted[0])){
+							if($value["updated"] > @$allSorted[0]["updated"]){
+								$allSorted = array_merge($allSorted, array($keyS=>$value));
+							}
+						}else{
+							
+						}
+					}
+				}*/
 				//$all = array_merge($all, $persons);
 	  			//$all = usort($all, "mySortByUpdated");
-	  	
+	  			//$all = $allSorted;
 				return $all;
     		}
-    	}
+    	//}
     	return null;
     }
-    
+     private function mySortByUpdated($a, $b){ // error_log("sort : ");//.$a['name']);
+  		if(isset($a["updated"]) && isset($b["updated"])){
+	   		return ( strtolower($b["updated"]) > strtolower($a["updated"]) );
+	    } else{
+			return false;
+		}
+	}
 
 }

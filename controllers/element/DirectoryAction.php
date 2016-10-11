@@ -118,10 +118,12 @@ class DirectoryAction extends CAction
         $params["contextIcon"] = $contextIcon ;
         $params["contextTitle"] = $contextTitle ;
         $params["contextIconTitle"] = $contextIconTitle ;
-        $params["manage"] = ( @$connectType && @$element["links"][$connectType][Yii::app()->session["userId"]] )?1:0;
-        if($type == Person::COLLECTION && @Yii::app()->session["userId"] && $id==Yii::app()->session["userId"])
-       		$params["manage"] = 1;        	
+        //$params["manage"] = ( @$connectType && @$element["links"][$connectType][Yii::app()->session["userId"]] )?1:0;
         $params["edit"] = Authorisation::canEditItem(@Yii::app()->session["userId"], $type, $id);
+        $params["manage"] = $params["edit"];
+       // if($type == Person::COLLECTION && @Yii::app()->session["userId"] && $id==Yii::app()->session["userId"])
+       	//	$params["manage"] = 1;        	
+
         $params["openEdition"] = Authorisation::isOpenEdition($id, $type, @$element["preferences"]);
         $page = "directory2";
         if(Yii::app()->request->isAjaxRequest){

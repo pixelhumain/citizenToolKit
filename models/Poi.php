@@ -21,7 +21,9 @@ class Poi {
 	    "parentType" => array("name" => "parentType"),
 	    "media" => array("name" => "media"),
 	    "urls" => array("name" => "urls"),
+	    "medias" => array("name" => "medias"),
 	    "tags" => array("name" => "tags"),
+
 	    "modified" => array("name" => "modified"),
 	    "updated" => array("name" => "updated"),
 	    "creator" => array("name" => "creator"),
