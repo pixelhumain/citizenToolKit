@@ -23,6 +23,7 @@ class MultiConnectAction extends CAction
     	$isConnectingAdmin = @$_POST["connectType"];
 		$newMembers = array();
 		$msg=false;
+		$finalResult = false;
 		foreach($_POST["childs"] as $key => $contact){
 			if(@$contact["childId"] != $parentId ){
 				$roles="";
