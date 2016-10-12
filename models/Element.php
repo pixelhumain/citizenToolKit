@@ -620,8 +620,7 @@ class Element {
 	}
 
 	public static function save($params){
-
-        //var_dump($params);
+		//var_dump($params);
         $id = null;
         //var_dump($params);
         $data = null;
@@ -635,10 +634,9 @@ class Element {
 		unset($params["paramsLink"]);
         unset($params['collection']);
         unset($params['key']);
+        $params = self::prepData( $params );
         unset($params['id']);
         
-        $params = self::prepData( $params );
-
         /*$microformat = PHDB::findOne(PHType::TYPE_MICROFORMATS, array( "key"=> $key));
         $validate = ( !isset($microformat )  || !isset($microformat["jsonSchema"])) ? false : true;
         //validation process based on microformat defeinition of the form
@@ -651,10 +649,9 @@ class Element {
             	$params = $valid["params"];
         }
         
-        
         if( $valid["result"] )
         	$valid = DataValidator::validate( ucfirst($key), json_decode (json_encode ($params)) );
-        
+
         if( $valid["result"] )
         {
             if($id)
@@ -726,7 +723,7 @@ class Element {
         
 		$params["modified"] = new MongoDate(time());
 		$params["updated"] = time();
-		if( !empty($params["id"]) ){
+		if( empty($params["id"]) ){
 	        $params["creator"] = Yii::app()->session["userId"];
 	        $params["created"] = time();
 	    }
