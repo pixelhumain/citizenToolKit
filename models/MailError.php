@@ -82,8 +82,13 @@ class MailError {
     }
 
     public function save() {
-        $mailError = PHDB::insert(self::COLLECTION, array("event" => $this->event, "recipient"=> $this->recipient, "personId" => $this->personId, "reason"=> $this->reason, "description"=> $this->description, "timestamp"=> new MongoDate($this->timestamp)));
-        $this->id = $mailError["_id"];
+        $mailError = array("event" => $this->event, "recipient"=> $this->recipient, "personId" => $this->personId, "reason"=> $this->reason, "description"=> $this->description, "timestamp"=> new MongoDate($this->timestamp));
+        
+        if (PHDB::insert(self::COLLECTION, $mailError)) {
+            $this->id = $mailError["_id"];
+        } else {
+            throw new CTKException("Error inserting a MailError ! ");
+        }
     }
 
     public static function getMailErrorSince($sinceTS) {
