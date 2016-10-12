@@ -526,19 +526,19 @@ class Element {
 			    if (@$links["follows"]) {
 			        foreach ( @$links["follows"] as $key => $member ) {
 			          	if( $member['type'] == Person::COLLECTION ) {
-				            $citoyen = Person::getPublicData( $key );
+				            $citoyen = Person::getSimpleUserById( $key );
 				  	        if(!empty($citoyen)) {
 				              array_push( $follows[Person::COLLECTION], $citoyen );
 				            }
 			        	}
 						if( $member['type'] == Organization::COLLECTION ) {
-							$organization = Organization::getPublicData($key);
+							$organization = Organization::getSimpleOrganizationById($key);
 							if(!empty($organization)) {
 								array_push($follows[Organization::COLLECTION], $organization );
 							}
 						}
 						if( $member['type'] == Project::COLLECTION ) {
-						    $project = Project::getPublicData($key);
+						    $project = Project::getSimpleProjectById($key);
 						    if(!empty($project)) {
 								array_push( $follows[Project::COLLECTION], $project );
 							}
