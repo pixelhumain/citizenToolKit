@@ -25,12 +25,10 @@ class DetailAction extends CAction {
 		if($type == Organization::COLLECTION){
 			$element = Organization::getById($id);
 			$params["listTypes"] = isset($listsOrga["organisationTypes"]) ? $listsOrga["organisationTypes"] : null;
-			//$params["orgaTypes"] = isset($listsOrga["organisationTypes"]) ? $listsOrga["organisationTypes"] : null;
 			$params["public"] 			 = isset($listsOrga["public"]) 			  ? $listsOrga["public"] : null;
 			$params["typeIntervention"]  = isset($listsOrga["typeIntervention"])  ? $listsOrga["typeIntervention"] : null;
 			$params["NGOCategories"] 	 = isset($listsOrga["NGOCategories"]) 	  ? $listsOrga["NGOCategories"] : null;
 			$params["localBusinessCategories"] = isset($listsOrga["localBusinessCategories"]) ? $listsOrga["localBusinessCategories"] : null;
-			$params["controller"] = Organization::CONTROLLER;
 			$connectType = "members";
 			// Link with events
 			if(isset($element["links"]["events"])){
@@ -62,7 +60,6 @@ class DetailAction extends CAction {
 			$params["eventTypes"] = $listsEvent["eventTypes"];
 			$params["listTypes"] = @$listsEvent["eventTypes"];
 			$connectType = "contributors";
-			$params["controller"] = Project::CONTROLLER;
 			// Link with events
 			if(isset($element["links"]["events"])){
 				foreach ($element["links"]["events"] as $keyEv => $valueEv) {
@@ -82,7 +79,6 @@ class DetailAction extends CAction {
 			$element = Event::getById($id);
 			$params["listTypes"] = $listsEvent["eventTypes"];
 			$connectType = "attendees";
-			$params["controller"] = Event::CONTROLLER;
 			$invitedNumber=0;
 			$attendeeNumber=0;
 			if(@$element["links"][$connectType]){
@@ -145,9 +141,9 @@ class DetailAction extends CAction {
 
 		} else if ($type == Person::COLLECTION){
 			$element = Person::getById($id);
-			$params["controller"] = Person::CONTROLLER;
 			$connectType = "attendees";
 		}
+		$params["controller"] = Element::getControlerByCollection($type);
 		if(	@$element["links"] ) {
 			if(isset($element["links"][$connectType])){
 				$countStrongLinks=count($element["links"][$connectType]);
@@ -205,7 +201,6 @@ class DetailAction extends CAction {
 		$params["needs"]=$needs;
 		$params["edit"] = Authorisation::canEditItem(Yii::app()->session["userId"], $type, $element["_id"]);
 		$params["openEdition"] = Authorisation::isOpenEdition($element["_id"], $type, @$element["preferences"]);
-		
 		$params["isLinked"] = Link::isLinked((string)$element["_id"],$type, Yii::app()->session['userId'], @$element["links"]);
 		
 		if($type==Event::COLLECTION){

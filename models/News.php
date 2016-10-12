@@ -101,6 +101,8 @@ class News {
 				$news["tags"] = $_POST["tags"];
 		 	if(isset($_POST["parentId"]))
 				$news["target"]["id"] = $_POST["parentId"];
+			if(isset($_POST["targetIsAuthor"]))
+				$news["targetIsAuthor"] = $_POST["targetIsAuthor"];
 		 	if(isset($_POST["parentType"]))
 		 	{
 				$type=$_POST["parentType"];

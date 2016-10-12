@@ -58,6 +58,8 @@ class Organization {
 	    "isOpenData" => array("name" => "isOpenData"),
 	    "badges" => array("name" => "badges"),
 	    "role" => array("name" => "role"),
+	    "medias" => array("name" => "medias"),
+	    "urls" => array("name" => "urls"),
 
 	    "modified" => array("name" => "modified"),
 	    "updated" => array("name" => "updated"),

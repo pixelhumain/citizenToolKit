@@ -13,17 +13,6 @@ class UpdateFieldsAction extends CAction
 			$elementFieldValue = $_POST["value"];
 			try {
 				$res = Element::updateField($type, $elementId, $elementFieldName, $elementFieldValue);
-				/*if($type==Organization::COLLECTION)
-					$res = Organization::updateOrganizationField($elementId, $elementFieldName, $elementFieldValue, Yii::app()->session["userId"] );
-				else if ($type==Project::COLLECTION)
-					$res = Project::updateProjectField($elementId, $elementFieldName, $elementFieldValue, Yii::app()->session["userId"] );
-				else if ($type==Event::COLLECTION)
-					$res = Event::updateEventField($elementId, $elementFieldName, $elementFieldValue, Yii::app()->session["userId"]);
-				else if ($type==Person::COLLECTION){
-					$res = Person::updatePersonField($elementId, $elementFieldName, $elementFieldValue, Yii::app()->session["userId"] );
-                    if( @$elementFieldValue == "bgCustom" && isset( $_POST["url"] ))
-                        Person::updatePersonField($_POST["pk"], "bgUrl", $_POST["url"], Yii::app()->session["userId"] );
-				}*/
 				if(Import::isUncomplete($elementId, $type)){
 					Import::checkWarning($elementId, $type, Yii::app()->session['userId'] );
 				}

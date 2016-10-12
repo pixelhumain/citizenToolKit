@@ -64,13 +64,18 @@ class Notification{
 
 	    //TODO mail::invited
 	}
+	private static function array_column($array,$column_name)
+    {
+        return array_map(function($element) use($column_name){return $element[$column_name];}, $array);
+
+    }
 	public static function actionOnNews ( $verb, $icon, $author, $target, $mentions) 
 	{
 		$notification=array();
 		$url = Yii::app()->createUrl('/'.Yii::app()->controller->module->id.'/'.'news/index/type/'.$target["type"].'/id/'.$target["id"]);
 		foreach ($mentions as $data){
 			if($data["type"]==Person::COLLECTION){
-				if(!empty($notification) && array_search($data["id"], array_column($notification, 'persons'))){
+				if(!empty($notification) && array_search($data["id"], self::array_column($notification, 'persons'))){
 			    	foreach($notications as $i => $list){
 				    	foreach($list["persons"] as $id){
 					    	if($id==$data["id"]){
@@ -78,7 +83,7 @@ class Notification{
 							    	$nameOrga = $list["name"];
 							    	$pushNotif=array(
 										"type"=> Organization::COLLECTION,
-										"nameOrganization"=>$list["name"],
+										"nameOrganization"=>@$nameOrga,
 										"nbMention"=>2,
 										"persons"=>array($data["id"]),
 										"label"=> $author["name"]." vous a mentionné avec ".$data["name"]." dans un post",
@@ -115,11 +120,11 @@ class Notification{
 					    	foreach($notification as $i => $list){
 						    	foreach($list["persons"] as $id){
 							    	if($id==$key){
-								    	if($list["type"]==Organization::COLLECTION && $list["nbMention"]!=2){
-									    	$nameOrga = $list["name"];
+								    	if($list["type"]==Organization::COLLECTION && @$list["nbMention"]!=2){
+									    	$nameOrga = @$list["nameOrganization"];
 									    	$pushNotif=array(
 												"type"=> Organization::COLLECTION,
-												"nameOrganization"=>$list["name"],
+												"nameOrganization"=>$nameOrga,
 												"nbMention"=>2,
 												"persons"=>array($key),
 												"label"=> $author["name"]." a mentionné ".$data["name"]." et ".$nameOrga." dans un post",
@@ -603,5 +608,4 @@ class Notification{
 	    $stream["notify"] = ActivityStream::addNotification( $notif );
     	ActivityStream::addEntry($stream);
 	}
-
 }
