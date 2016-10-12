@@ -603,7 +603,7 @@ class Notification{
 	    	"persons" => array_keys($superAdmins),
             "label"   => $actionMsg , 
             "icon"    => "fa-cog" ,
-            "url"     => Yii::app()->createUrl('/'.Yii::app()->controller->module->id.'/#admin.mailerrordashboard')
+            "url"     => Yii::app()->createUrl('/'.Yii::app()->controller->module->id.'/admin/mailerrordashboard')
         );
 
 	    $stream["notify"] = ActivityStream::addNotification( $notif );
