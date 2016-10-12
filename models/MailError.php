@@ -75,7 +75,7 @@ class MailError {
         Notification::actionToAdmin(
             ActStr::VERB_RETURN, 
             array("type" => Cron::COLLECTION), 
-            array("id" => $this->id, "type"=>self::COLLECTION),
+            array("id" => $this->id, "type"=>self::COLLECTION, "event" => $this->event),
             array("id" => $this->personId, "type"=>Person::COLLECTION, "email"=>$this->recipient)
         );
 
@@ -83,7 +83,7 @@ class MailError {
 
     public function save() {
         $mailError = array("event" => $this->event, "recipient"=> $this->recipient, "personId" => $this->personId, "reason"=> $this->reason, "description"=> $this->description, "timestamp"=> new MongoDate($this->timestamp));
-        
+
         if (PHDB::insert(self::COLLECTION, $mailError)) {
             $this->id = $mailError["_id"];
         } else {

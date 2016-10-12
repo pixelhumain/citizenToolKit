@@ -593,6 +593,7 @@ class Notification{
  				$actionMsg = "Error sending an email to ".$target["email"].". User is flagged and will not receive a mail anymore.";	
  			} else {
  				error_log("Unknown event in Mail Error : no notification generated.");
+ 				return(array("result" => false, "msg" => "Unknown event in Mail Error : no notification generated."));
  			}
  			
  		}
