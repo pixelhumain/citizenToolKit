@@ -275,7 +275,7 @@ class Element {
 			        "addressCountry" => $fieldValue["address"]["addressCountry"],
 			        "postalCode" => $fieldValue["address"]["postalCode"],
 			        "addressLocality" => $fieldValue["address"]["addressLocality"],
-			        "streetAddress" => trim($fieldValue["address"]["streetAddress"]),
+			        "streetAddress" => ((@$fieldValue["address"]["streetAddress"])?trim(@$fieldValue["address"]["streetAddress"]):""),
 			        "depName" => $fieldValue["address"]["depName"],
 			        "regionName" => $fieldValue["address"]["regionName"],
 			    	);
