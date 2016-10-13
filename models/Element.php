@@ -416,7 +416,7 @@ class Element {
 	    //else return $assetUrl.'/images/thumbnail-default.jpg';
     }
      
-    public static function getAllLinks($links,$type){
+    public static function getAllLinks($links,$type, $id){
 	    if($type == Organization::COLLECTION)
 		    $connectAs="members";
 	    else if($type == Project::COLLECTION)
@@ -529,19 +529,19 @@ class Element {
 			    if (@$links["follows"]) {
 			        foreach ( @$links["follows"] as $key => $member ) {
 			          	if( $member['type'] == Person::COLLECTION ) {
-				            $citoyen = Person::getPublicData( $key );
+				            $citoyen = Person::getSimpleUserById( $key );
 				  	        if(!empty($citoyen)) {
 				              array_push( $follows[Person::COLLECTION], $citoyen );
 				            }
 			        	}
 						if( $member['type'] == Organization::COLLECTION ) {
-							$organization = Organization::getPublicData($key);
+							$organization = Organization::getSimpleOrganizationById($key);
 							if(!empty($organization)) {
 								array_push($follows[Organization::COLLECTION], $organization );
 							}
 						}
 						if( $member['type'] == Project::COLLECTION ) {
-						    $project = Project::getPublicData($key);
+						    $project = Project::getSimpleProjectById($key);
 						    if(!empty($project)) {
 								array_push( $follows[Project::COLLECTION], $project );
 							}
@@ -554,6 +554,20 @@ class Element {
 			}
 			
 		}
+		error_log("get POI for id : ".$id." - type : ".$type);
+		$pois = PHDB::find(Poi::COLLECTION,array("parentId"=>$id,"parentType"=>$type));
+		if(!empty($pois)) {
+			$allPois = array();
+			if(!is_array($pois)) $pois = array($pois);
+			foreach ($pois as $key => $value) {
+				$value["typeSig"] = "POI";
+				$allPois[] = $value;
+			}
+			$contextMap["pois"] = $allPois;
+		}else{
+			$contextMap["pois"] = array();
+		}
+
 		return $contextMap;	
     }
 
@@ -623,8 +637,7 @@ class Element {
 	}
 
 	public static function save($params){
-
-        //var_dump($params);
+		//var_dump($params);
         $id = null;
         //var_dump($params);
         $data = null;
@@ -638,10 +651,9 @@ class Element {
 		unset($params["paramsLink"]);
         unset($params['collection']);
         unset($params['key']);
+        $params = self::prepData( $params );
         unset($params['id']);
         
-        $params = self::prepData( $params );
-
         /*$microformat = PHDB::findOne(PHType::TYPE_MICROFORMATS, array( "key"=> $key));
         $validate = ( !isset($microformat )  || !isset($microformat["jsonSchema"])) ? false : true;
         //validation process based on microformat defeinition of the form
@@ -654,10 +666,9 @@ class Element {
             	$params = $valid["params"];
         }
         
-        
         if( $valid["result"] )
         	$valid = DataValidator::validate( ucfirst($key), json_decode (json_encode ($params)) );
-        
+
         if( $valid["result"] )
         {
             if($id)
@@ -729,7 +740,7 @@ class Element {
         
 		$params["modified"] = new MongoDate(time());
 		$params["updated"] = time();
-		if( !empty($params["id"]) ){
+		if( empty($params["id"]) ){
 	        $params["creator"] = Yii::app()->session["userId"];
 	        $params["created"] = time();
 	    }

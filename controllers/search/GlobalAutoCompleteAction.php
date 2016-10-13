@@ -688,7 +688,7 @@ class GlobalAutoCompleteAction extends CAction
 			  				}
 			  				elseif($key == "DEPARTEMENT"){
 			  					$dep = PHDB::findOne( City::COLLECTION, array("depName" => $localityRef), array("dep"));	
-			        			if(preg_match("/^{$dep['dep']}/i", $parentObj["address"]["postalCode"])) return true;
+			        			if(preg_match("/^{$dep['dep']}/i", @$parentObj["address"]["postalCode"])) return true;
 			  				}
 			  				elseif($key == "REGION"){
 			  					$deps = PHDB::find( City::COLLECTION, array("regionName" => $localityRef), array("dep"));

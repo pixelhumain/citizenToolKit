@@ -2,9 +2,27 @@
 
 class Poi {
 	const COLLECTION = "poi";
+	
+	//TODO Translate
+	public static $types = array (
+		"compostPickup" => "récolte de composte",
+		"video" => "video",
+		"sharedLibrary" => "bibliothèque partagée",
+		"artPiece" => "oeuvres",
+		"recoveryCenter" => "ressourcerie",
+		"trash" => "poubelle",
+		"history" => "histoire",
+		"something2See" => "chose a voir",
+		"funPlace" => "endroit Sympas (skatepark, vue...)",
+		"place" => "place publique",
+		"streetArts" => "arts de rue",
+		"openScene" => "scène ouverte",
+		"stand" => "stand"
+	);
 
 	//From Post/Form name to database field name
 	public static $dataBinding = array (
+	    "type" => array("name" => "type"),
 	    "name" => array("name" => "name", "rules" => array("required")),
 	    "address" => array("name" => "address"),
 	    "addresses" => array("name" => "addresses"),

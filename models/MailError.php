@@ -70,10 +70,25 @@ class MailError {
             PHDB::update( Person::COLLECTION, array("_id" => $this->personId), array('$set' => array("isNotValidEmail" => true, "hardbounced" => true)));
         }
         $this->save();
+        
+        //add a Notification to Super Admins
+        Notification::actionToAdmin(
+            ActStr::VERB_RETURN, 
+            array("type" => Cron::COLLECTION), 
+            array("id" => $this->id, "type"=>self::COLLECTION, "event" => $this->event),
+            array("id" => $this->personId, "type"=>Person::COLLECTION, "email"=>$this->recipient)
+        );
+
     }
 
     public function save() {
-        PHDB::insert(self::COLLECTION, array("event" => $this->event, "recipient"=> $this->recipient, "personId" => $this->personId, "reason"=> $this->reason, "description"=> $this->description, "timestamp"=> new MongoDate($this->timestamp)));
+        $mailError = array("event" => $this->event, "recipient"=> $this->recipient, "personId" => $this->personId, "reason"=> $this->reason, "description"=> $this->description, "timestamp"=> new MongoDate($this->timestamp));
+
+        if (PHDB::insert(self::COLLECTION, $mailError)) {
+            $this->id = $mailError["_id"];
+        } else {
+            throw new CTKException("Error inserting a MailError ! ");
+        }
     }
 
     public static function getMailErrorSince($sinceTS) {
