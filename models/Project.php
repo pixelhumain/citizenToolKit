@@ -41,6 +41,7 @@ class Project {
 	    "updated" => array("name" => "updated"),
 	    "creator" => array("name" => "creator"),
 	    "created" => array("name" => "created"),
+	    "locality" => array("name" => "address"),
 	);
 
 	private static function getCollectionFieldNameAndValidate($projectFieldName, $projectFieldValue, $projectId) {

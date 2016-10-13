@@ -56,6 +56,7 @@ class Event {
 	    "updated" => array("name" => "updated"),
 	    "creator" => array("name" => "creator"),
 	    "created" => array("name" => "created"),
+	    "locality" => array("name" => "address"),
 	);
 
 	//TODO SBAR - First test to validate data. Move it to DataValidator

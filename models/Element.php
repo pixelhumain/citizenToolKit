@@ -289,6 +289,9 @@ class Element {
 					Yii::app()->session["user"] = $user;
 				}
 				$set = array("address" => $address);
+
+				
+				
 			}catch (Exception $e) {  
 				throw new CTKException("Error updating  : address is not well formated !");		
 			}
@@ -377,9 +380,9 @@ class Element {
 		$res = array("result"=>false,"msg"=>"");
 
 		if($resUpdate["ok"]==1){
-			if( $collection != Person::COLLECTION && $dataFieldName != "badges"){
+			$fieldNames = array("badges", "geo", "geoPosition");
+			if( $collection != Person::COLLECTION && !in_array($dataFieldName, $fieldNames)){
 				// Add in activity to show each modification added to this entity
-						//echo $dataFieldName;
 				ActivityStream::saveActivityHistory(ActStr::VERB_UPDATE, $id, $collection, $dataFieldName, $fieldValue);
 			}
 			$res = array("result"=>true,"msg"=>Yii::t(Element::getControlerByCollection($collection),"The ".Element::getControlerByCollection($collection)." has been updated"));

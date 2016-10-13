@@ -71,7 +71,7 @@ class SIG
 
 		//PH::update($entityType,array("geo" => $geo));
 
-		if($entityType == PHType::TYPE_CITOYEN || $entityType == PHType::TYPE_PERSON ){
+		/*if($entityType == PHType::TYPE_CITOYEN || $entityType == PHType::TYPE_PERSON ){
 			error_log("update TYPE_CITOYEN");
 			Person::updatePersonField($entityId, "geo", $geo, Yii::app()->session['userId'] );
 			Person::updatePersonField($entityId, "geoPosition", $geoPosition, Yii::app()->session['userId'] );
@@ -90,6 +90,12 @@ class SIG
 			error_log("update TYPE_EVENTS");
 			Event::updateEventField($entityId, "geo", $geo, Yii::app()->session['userId'] );
 			Event::updateEventField($entityId, "geoPosition", $geoPosition, Yii::app()->session['userId'] );
+		}*/
+
+		$types = array(Person::COLLECTION, Event::COLLECTION, Organization::COLLECTION, Project::COLLECTION);
+		if(in_array($entityType, $types)){
+		 	Element::updateField($entityType, $entityId, "geo", $geo);
+		 	Element::updateField($entityType, $entityId, "geoPosition", $geoPosition);
 		}
 
 		if(Import::isUncomplete($entityId, $entityType))

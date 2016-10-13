@@ -69,12 +69,14 @@ class ActivityStream {
 			"author" => array("id"=>Yii::app()->session["userId"],
 							"name"=>Yii::app()->session["user"]["name"])
 		);
+
 		if($activityName != null)
 			$buildArray["label"] = $activityName;
 		if($activityValue != null)
 			$buildArray["value"] = $activityValue;
 		if($activityName=="geo" || $activityName=="geoPosition")
 			$buildArray["value"] = "geoposition";
+
 		$params=self::buildEntry($buildArray);
 		self::addEntry($params);
 		return true;
@@ -171,7 +173,7 @@ class ActivityStream {
 	}
 	public static function buildEntry($params)
     {
-        $action = array(
+    	$action = array(
             "type" => $params["type"],
             "verb" => $params["verb"],
             "author" => Yii::app()->session["userId"],
@@ -218,7 +220,9 @@ class ActivityStream {
         if( isset( $params["label"] ))
         	$action["object"]["displayName"] = $params["label"];
 		if( isset( $params["value"] )){
-        	$action["object"]["displayValue"] = preg_replace('/<[^>]*>/', '',$params["value"]);
+			$action["object"]["displayValue"] = ((isset( $params["label"] ) && $params["label"] = "address")?$params["value"]:preg_replace('/<[^>]*>/', '',$params["value"]));
+
+        	//$action["object"]["displayValue"] = preg_replace('/<[^>]*>/', '',$params["value"]);
         }
 		if( isset( $params["author"] ))
         	$action["author"] = $params["author"];
