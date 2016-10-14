@@ -749,5 +749,24 @@ class Element {
      }
 
 
+    /**
+	 * Retrieve a element by id from DB
+	 * @param String $id of the event
+	 * @return array with data id, name, type profilImageUrl
+	 */
+	public static function getElementById($id, $collection, $where=null, $fields=null){
+		$where["_id"] = new MongoId($id) ;
+		$element = PHDB::findOne($collection, $where ,$fields) ;
+		return @$element;
+	}
+
+
+	public static function getElementSimpleById($id, $collection){
+		$fields = array("_id", "name");
+		$element = self::getElementById($id, $collection, $where ,$fields) ;
+		return @$element;
+	}
+
+
     
 }
