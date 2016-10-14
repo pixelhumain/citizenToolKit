@@ -124,19 +124,19 @@ class Survey
       
       $oneVote = ($totalVotes!=0) ? 100/$totalVotes:1;
       
-
+/*
       $percentVoteDownCount     = round($voteDownCount    * $oneVote);
       $percentVoteAbstainCount  = round($voteAbstainCount * $oneVote);
       $percentVoteUpCount       = round($voteUpCount      * $oneVote);
       $percentVoteUnclearCount  = round($voteUnclearCount * $oneVote);
       $percentVoteMoreInfoCount = round($voteMoreInfoCount * $oneVote);
-     /* == master
+*/   
       $percentVoteDownCount     = round($voteDownCount    * $oneVote, 2);
       $percentVoteAbstainCount  = round($voteAbstainCount * $oneVote, 2);
       $percentVoteUpCount       = round($voteUpCount      * $oneVote, 2);
       $percentVoteUnclearCount  = round($voteUnclearCount * $oneVote, 2);
       $percentVoteMoreInfoCount = round($voteMoreInfoCount * $oneVote, 2);
-	*/
+	
 
   //     	$percentVoteUpCount = 10;
 		// $percentVoteUnclearCount = 30;
