@@ -30,7 +30,7 @@ class AutocompleteMultiScopeAction extends CAction
         //var_dump($where); return;
         if($type != "dep" && $type != "region"){
             $cities = PHDB::findAndSort( City::COLLECTION, $where, 
-                                        array(), 15 ,
+                                        array(), /*15*/0 ,
                                         array("insee", "postalCodes", "country", "name", "alternateName", "depName", "regionName"));
         }
         else if($type == "dep"){
