@@ -17,7 +17,8 @@ class Poi {
 		"place" => "place publique",
 		"streetArts" => "arts de rue",
 		"openScene" => "scène ouverte",
-		"stand" => "stand"
+		"stand" => "stand",
+		"parking" => "Parking"
 	);
 
 	//From Post/Form name to database field name
