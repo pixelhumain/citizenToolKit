@@ -554,20 +554,21 @@ class Element {
 			}
 			
 		}
-		error_log("get POI for id : ".$id." - type : ".$type);
-		$pois = PHDB::find(Poi::COLLECTION,array("parentId"=>$id,"parentType"=>$type));
-		if(!empty($pois)) {
-			$allPois = array();
-			if(!is_array($pois)) $pois = array($pois);
-			foreach ($pois as $key => $value) {
-				$value["typeSig"] = "POI";
-				$allPois[] = $value;
+		//error_log("get POI for id : ".$id." - type : ".$type);
+		if(isset($id)){
+			$pois = PHDB::find(Poi::COLLECTION,array("parentId"=>$id,"parentType"=>$type));
+			if(!empty($pois)) {
+				$allPois = array();
+				if(!is_array($pois)) $pois = array($pois);
+				foreach ($pois as $key => $value) {
+					$value["typeSig"] = "POI";
+					$allPois[] = $value;
+				}
+				$contextMap["pois"] = $allPois;
+			}else{
+				$contextMap["pois"] = array();
 			}
-			$contextMap["pois"] = $allPois;
-		}else{
-			$contextMap["pois"] = array();
 		}
-
 		return $contextMap;	
     }
 
