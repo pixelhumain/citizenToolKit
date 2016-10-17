@@ -761,7 +761,7 @@ class Element {
 	}
 
 
-	public static function getElementSimpleById($id, $collection){
+	public static function getElementSimpleById($id, $collection,$where=null, $fields=null){
 		$fields = array("_id", "name");
 		$element = self::getElementById($id, $collection, $where ,$fields) ;
 		return @$element;
