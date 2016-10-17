@@ -17,7 +17,7 @@ class DirectoryAction extends CAction
         }else{
 	        $links=array();
             if(@$element["links"]){
-                $links = Element::getAllLinks($element["links"],$type, $id);
+                $links = Element::getAllLinks($element["links"],$type,$id);
             }
         }
 		$show=true;
