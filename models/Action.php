@@ -59,7 +59,7 @@ class Action
                     if(($action=="voteUp" || $action=="voteDown") && (!isset( $element[$action][$userId])))
     	                throw new CTKException("Well done ! Stop playing and join us to help the construction of this common!");
                 }else{
-	            	if(($action=="voteUp" || $action=="voteDown") && (isset($element[$action][$userId])))
+	            	if(($action=="voteUp" || $action=="voteDown" || $action=="reportAbuse") && (isset($element[$action][$userId])))
     	                throw new CTKException("Well done ! Stop playing and join us to help the construction of this common!");
                 }
 
