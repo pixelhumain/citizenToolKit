@@ -5,6 +5,7 @@ class Poi {
 	
 	//TODO Translate
 	public static $types = array (
+		"link" => "Lien, Url",
 		"compostPickup" => "récolte de composte",
 		"video" => "video",
 		"sharedLibrary" => "bibliothèque partagée",
