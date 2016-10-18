@@ -11,15 +11,14 @@ class GetMyPositionAction extends CAction
     	foreach($user as $me){
             $type = (isset($me["type"]) && $me["type"]!="") ? $me["type"] : Person::COLLECTION;
             //error_log("MODULE type : " . $type);
-            if(isset(Yii::app()->session['user']['profilImageUrl']) && Yii::app()->session['user']['profilImageUrl'] != ""){
+            if($me['profilImageUrl'] && $me['profilImageUrl'] != ""){
                 $profilMarkerImageUrl = "/". $type . "/" . Yii::app()->session["userId"] . "/thumb/profil-marker.png";
                 $profilMarkerExists = true;
             }else{
                 $doc = new Document();
-                //$markerDefaultName = ;//$doc->getEmptyMarkerFileName($type);
-                $assetsUrl = substr(Yii::app()->controller->module->assetsUrl, 3, 
-                                    strlen(Yii::app()->controller->module->assetsUrl));
-                $profilMarkerImageUrl = $assetsUrl."/images/sig/markers/icons_carto/citizen-marker-default.png";
+				$homeUrlRegEx = "/".str_replace("/", "\/", Yii::app()->homeUrl)."/";
+				$assetsUrl = preg_replace($homeUrlRegEx, "", @Yii::app()->controller->module->assetsUrl,1);
+                $profilMarkerImageUrl = "/".$assetsUrl."/images/sig/markers/icons_carto/citizen-marker-default.png";
                 $profilMarkerExists = false;
             }
 
