@@ -12,14 +12,16 @@ class DirectoryAction extends CAction
         $controller = $this->getController();
         // Vérifier si utile cette condition
 		$element = Element::getByTypeAndId($type,$id);
-        if(@$_POST["links"]){
+		$links=array();
+		$links = Element::getAllLinks($element["links"],$type,$id);
+        /*if(@$_POST["links"]){
             $links = $_POST["links"];
         }else{
 	        $links=array();
             if(@$element["links"]){
                 $links = Element::getAllLinks($element["links"],$type,$id);
             }
-        }
+        }*/
 		$show=true;
         if($type==Person::COLLECTION)
             $show = Preference::showPreference($element, $type, "directory", Yii::app()->session["userId"]);
