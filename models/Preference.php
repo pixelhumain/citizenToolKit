@@ -82,7 +82,7 @@ class Preference {
 		if($setType == "isOpenData"){
 			$preferences["isOpenData"] = $setValue;
 		}else{
-			$preferences["isOpenData"] = $context["preferences"]["isOpenData"];
+			$preferences["isOpenData"] = ((empty($context["preferences"]["isOpenData"]))?false:true);
 		}
 		if($setType == "isOpenEdition"){
 			$preferences["isOpenEdition"] = $setValue;
