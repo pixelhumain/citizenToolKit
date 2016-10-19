@@ -11,7 +11,7 @@ class GetMyPositionAction extends CAction
     	foreach($user as $me){
             $type = (isset($me["type"]) && $me["type"]!="") ? $me["type"] : Person::COLLECTION;
             //error_log("MODULE type : " . $type);
-            if($me['profilImageUrl'] && $me['profilImageUrl'] != ""){
+            if(@$me['profilImageUrl'] && $me['profilImageUrl'] != ""){
                 $profilMarkerImageUrl = "/". $type . "/" . Yii::app()->session["userId"] . "/thumb/profil-marker.png";
                 $profilMarkerExists = true;
             }else{
