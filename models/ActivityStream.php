@@ -202,12 +202,13 @@ class ActivityStream {
 		if($params["type"]==ActivityStream::COLLECTION){
 			$action["scope"]["type"]="public";
 	        if( isset( $params["address"] )){
-	        	$insee=$params["address"]["codeInsee"];
-	        	$cp=$params["address"]["postalCode"];
+	        	$insee = $params["address"]["codeInsee"];
+	        	$cp = $params["address"]["postalCode"];
 	        } 
 	        if( isset( $params["geo"] ))
 				$geo = $params["geo"];
 			if(!@$insee && !@$cp){
+
 		        $author=Person::getSimpleUserById(Yii::app()->session["userId"]);
 		        
 		        if(@$author["address"] && @$author["address"]["codeInsee"]){
@@ -225,6 +226,7 @@ class ActivityStream {
 				"geo"=> ((@$geo) ? $geo : "")
 			);
 			//$action["scope"]["cities"][] = array("codeInsee" => $insee, "postalCode" => $cp,"geo"=> $geo);
+
 		}
 		
         if( isset( $params["label"] ))
