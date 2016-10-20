@@ -713,7 +713,7 @@ class Authorisation {
         $res = false ;
         if(empty($preferences)){
             $entity = PHDB::findOne($typeEntity,array("_id"=>new MongoId($idEntity)),array('preferences'));
-            $preferences = $entity["preferences"];
+            $preferences = @$entity["preferences"];
         }
         if(!empty($preferences)){
            $res = Preference::isOpenEdition($preferences);
