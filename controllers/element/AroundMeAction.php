@@ -19,6 +19,13 @@ class AroundMeAction extends CAction {
 		if($type == Person::CONTROLLER){
 			$elementsMap = Person::getPersonMap($id);
 			//var_dump($elementsMap["person"]); exit;
+			if(!isset($elementsMap["person"]["geo"])) {
+				$res["result"] = false;
+            	$res["msg"] = "Vous n'êtes pas géolocalisé";
+            	Rest::json($res);
+            	return;
+			}
+
 			$res["lat"] = @$elementsMap["person"]["geo"]["latitude"] ? $elementsMap["person"]["geo"]["latitude"] : null;
     		$res["lng"] = @$elementsMap["person"]["geo"]["longitude"] ? $elementsMap["person"]["geo"]["longitude"] : null;
     	}	
@@ -54,7 +61,7 @@ class AroundMeAction extends CAction {
     }
 
     private function loadElements($elementsMap, $radius, $type, $id){
-    	error_log("startSearch with : ".$radius);
+    	//error_log("startSearch with : ".$radius);
     	//if($type == Person::CONTROLLER){
 
     		//$elementsMap = Person::getPersonMap($id);
