@@ -209,12 +209,22 @@ class ActivityStream {
 				$geo = $params["geo"];
 			if(!@$insee && !@$cp){
 		        $author=Person::getSimpleUserById(Yii::app()->session["userId"]);
-		        $insee=$author["address"]["codeInsee"];
-	        	$cp=$author["address"]["postalCode"];
-	        	if(!@$geo)
-	        		$geo = $author["geo"];
+		        
+		        if(@$author["address"] && @$author["address"]["codeInsee"]){
+			        $insee=$author["address"]["codeInsee"];
+		        	$cp=$author["address"]["postalCode"];
+		        	if(!@$geo)
+		        		$geo = $author["geo"];
+	        	} else {
+		        	$action["scope"]["type"]="restricted";
+	        	}
 			}
-			$action["scope"]["cities"][] = array("codeInsee" => $insee, "postalCode" => $cp,"geo"=> $geo);
+			$action["scope"]["cities"][] = array(
+				"codeInsee" => ((@$insee) ? $insee : ""), 
+				"postalCode" => ((@$cp) ? $cp : ""),
+				"geo"=> ((@$geo) ? $geo : "")
+			);
+			//$action["scope"]["cities"][] = array("codeInsee" => $insee, "postalCode" => $cp,"geo"=> $geo);
 		}
 		
         if( isset( $params["label"] ))
