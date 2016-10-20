@@ -11,8 +11,7 @@ class DetailAction extends CAction {
 		$events=array();
 		$projects=array();
 		$needs=array();
-		$elementAuthorizationId=$id;
-		$elementAuthorizationType=$type;
+
 		if($type != Person::COLLECTION){
 			$listsToRetrieveOrga = array("public", "typeIntervention", "organisationTypes", "NGOCategories", "localBusinessCategories");
 			$listsOrga = Lists::get($listsToRetrieveOrga);
@@ -143,11 +142,6 @@ class DetailAction extends CAction {
 		} else if ($type == Person::COLLECTION){
 			$element = Person::getById($id);
 			$connectType = "attendees";
-		} else if ($type == Poi::COLLECTION){
-			$element = Poi::getById($id);
-			$connectType = "attendees";
-			$elementAuthorizationId=$element["parentId"];
-			$elementAuthorizationType=$element["parentType"];
 		}
 		$params["controller"] = Element::getControlerByCollection($type);
 		if(	@$element["links"] ) {
@@ -205,9 +199,9 @@ class DetailAction extends CAction {
 		$params["events"]=$events;
 		$params["projects"]=$projects;
 		$params["needs"]=$needs;
-		$params["edit"] = Authorisation::canEditItem(Yii::app()->session["userId"], $elementAuthorizationType, $elementAuthorizationId);
-		$params["openEdition"] = Authorisation::isOpenEdition($elementAuthorizationId, $elementAuthorizationType, @$element["preferences"]);
-		$params["isLinked"] = Link::isLinked($elementAuthorizationId,$elementAuthorizationType, Yii::app()->session['userId'], @$element["links"]);
+		$params["edit"] = Authorisation::canEditItem(Yii::app()->session["userId"], $type, $element["_id"]);
+		$params["openEdition"] = Authorisation::isOpenEdition($element["_id"], $type, @$element["preferences"]);
+		$params["isLinked"] = Link::isLinked((string)$element["_id"],$type, Yii::app()->session['userId'], @$element["links"]);
 		
 		if($type==Event::COLLECTION){
 			$params["countStrongLinks"]= @$attendeeNumber;

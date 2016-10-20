@@ -713,8 +713,8 @@ class Element {
                     //Notification::createdObjectAsParam($authorType[Person::COLLECTION],$userId,$elementType, $elementType, $parentType[projet crée par une orga => orga est parent], $parentId, $params["geo"], (isset($params["tags"])) ? $params["tags"]:null ,$params["address"]);  
                 }
             }
-            if(@$url = ( @$params["parentType"] && @$params["parentId"] && in_array($collection, array("poi"))) ? "#".self::getControlerByCollection($params["parentType"]).".detail.id.".$params["parentId"] : null )
-                $res["url"] = $url;
+            //if(@$url = ( @$params["parentType"] && @$params["parentId"] && in_array($collection, array("poi"))) ? "#".self::getControlerByCollection($params["parentType"]).".detail.id.".$params["parentId"] : null )
+               // $res["url"] = $url;
 
         } else 
             $res = array( "result" => false, 

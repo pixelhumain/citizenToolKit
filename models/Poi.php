@@ -49,5 +49,26 @@ class Poi {
 	    "creator" => array("name" => "creator"),
 	    "created" => array("name" => "created"),
 	    );
+	/**
+	 * get all poi details of an element
+	 * @param type $id : is the mongoId (String) of the parent
+	 * @param type $type : is the type of the parent
+	 * @return list of pois
+	 */
+	public static function getPoiByIdAndTypeOfParent($id, $type){
+		$pois = PHDB::find(self::COLLECTION,array("parentId"=>$id,"parentType"=>$type));
+	   	return $pois;
+	}
+	/**
+	 * get a Poi By Id
+	 * @param String $id : is the mongoId of the poi
+	 * @return poi
+	 */
+	public static function getById($id) { 
+	  	$poi = PHDB::findOneById( self::COLLECTION ,$id );
+	  	$poi = array_merge($poi, Document::retrieveAllImagesUrl($id, self::COLLECTION, null, $poi));
+
+	  	return $poi;
+	}
 }
 ?>
