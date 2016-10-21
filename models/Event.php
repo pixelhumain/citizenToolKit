@@ -28,8 +28,8 @@ class Event {
 	    "organizerType" => array("name" => "organizerType"),
 
 
-	    "address" => array("name" => "address")
-,	    "addresses" => array("name" => "addresses"),
+	    "address" => array("name" => "address", "rules" => array("addressValid")),
+	    "addresses" => array("name" => "addresses"),
 	    "streetAddress" => array("name" => "address.streetAddress"),
 	    "postalCode" => array("name" => "address.postalCode"),
 	    "city" => array("name" => "address.codeInsee"),

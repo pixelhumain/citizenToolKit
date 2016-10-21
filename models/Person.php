@@ -17,7 +17,7 @@ class Person {
 	    "birthDate" => array("name" => "birthDate", "rules" => array("required")),
 	    "email" => array("name" => "email", "rules" => array("email")),
 	    "pwd" => array("name" => "pwd"),
-	    "address" => array("name" => "address"),
+	    "address" => array("name" => "address", "rules" => array("addressValid")),
 	    "streetAddress" => array("name" => "address.streetAddress"),
 	    "postalCode" => array("name" => "address.postalCode"),
 	    "codeInsee" => array("name" => "address.codeInsee"),

@@ -9,7 +9,7 @@ class Project {
 	//From Post/Form name to database field name
 	public static $dataBinding = array(
 	    "name" => array("name" => "name", "rules" => array("required")),
-	    "address" => array("name" => "address"),
+	    "address" => array("name" => "address", "rules" => array("addressValid")),
 	    "addresses" => array("name" => "addresses"),
 	    "streetAddress" => array("name" => "address.streetAddress"),
 	    "postalCode" => array("name" => "address.postalCode"),

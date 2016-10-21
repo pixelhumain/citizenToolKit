@@ -26,7 +26,7 @@ class Poi {
 	public static $dataBinding = array (
 	    "type" => array("name" => "type"),
 	    "name" => array("name" => "name", "rules" => array("required")),
-	    "address" => array("name" => "address"),
+	    "address" => array("name" => "address", "rules" => array("addressValid")),
 	    "addresses" => array("name" => "addresses"),
 	    "streetAddress" => array("name" => "address.streetAddress"),
 	    "postalCode" => array("name" => "address.postalCode"),
