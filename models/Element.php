@@ -279,6 +279,9 @@ class Element {
 			        "depName" => $fieldValue["address"]["depName"],
 			        "regionName" => $fieldValue["address"]["regionName"],
 			    	);
+				//Check address is well formated
+				$valid = DataValidator::addressValid($address);
+				if ( $valid != "") throw new CTKException($valid);
 
 				SIG::updateEntityGeoposition($collection, $id, $fieldValue["geo"]["latitude"], $fieldValue["geo"]["longitude"]);
 				if($collection == Person::COLLECTION && Yii::app()->session['userId'] == $id){
@@ -638,13 +641,11 @@ class Element {
 	}
 
 	public static function save($params){
-		//var_dump($params);
         $id = null;
-        //var_dump($params);
         $data = null;
         $collection = $params["collection"];
         if( !empty($params["id"]) ){
-            $id = $params["id"];
+        	$id = $params["id"];
         }
         $key = $params["key"];
 		$paramsLinkImport = (empty($params["paramsLink"])?null:$params["paramsLink"]);
@@ -668,12 +669,13 @@ class Element {
         }
         
         if( $valid["result"] )
-        	$valid = DataValidator::validate( ucfirst($key), json_decode (json_encode ($params)) );
-
-        if( $valid["result"] )
-        {
-            if($id)
-            {
+        	try {
+        		$valid = DataValidator::validate( ucfirst($key), json_decode (json_encode ($params), true) );
+        	} catch (CTKException $e) {
+        		$valid = array("result"=>false, "msg" => $e->message);
+        	}
+        if( $valid["result"]) {
+            if($id) {
                 //update a single field
                 //else update whole map
                 //$changeMap = ( !$microformat && isset( $key )) ? array('$set' => array( $key => $params[ $key ] ) ) : array('$set' => $params );
@@ -683,9 +685,7 @@ class Element {
                              "reload"=>true,
                              "map"=>$params,
                              "id"=>$id);
-            } 
-            else 
-            {
+            } else {
                 $params["created"] = time();
                 PHDB::insert($collection, $params );
                 $res = array("result"=>true,
@@ -721,7 +721,8 @@ class Element {
                           "msg" => Yii::t("common","Something went really bad : ".$valid['msg']) );
 
         return $res;
-     }
+    }
+
     public static function prepData ($params) { 
 
         //empty fields aren't properly validated and must be removed

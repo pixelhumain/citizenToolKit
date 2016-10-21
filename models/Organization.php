@@ -30,7 +30,7 @@ class Organization {
 	    "shortDescription" => array("name" => "shortDescription"),
 	    "description" => array("name" => "description"),
 	    "category" => array("name" => "category"),
-	    "address" => array("name" => "address"),
+	    "address" => array("name" => "address", "rules" => array("addressValid")),
 	    "addresses" => array("name" => "addresses"),
 	    "streetAddress" => array("name" => "address.streetAddress"),
 	    "postalCode" => array("name" => "address.postalCode"),
