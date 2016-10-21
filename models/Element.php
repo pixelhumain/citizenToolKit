@@ -281,16 +281,16 @@ class Element {
 			    	);
 
 				SIG::updateEntityGeoposition($collection, $id, $fieldValue["geo"]["latitude"], $fieldValue["geo"]["longitude"]);
-				if($collection == Person::COLLECTION){
+				if($collection == Person::COLLECTION && Yii::app()->session['userId'] == $id){
 					$user = Yii::app()->session["user"];
 					$user["codeInsee"] = $address["codeInsee"];
 					$user["postalCode"] = $address["postalCode"];
 					$user["address"] = $address;
 					Yii::app()->session["user"] = $user;
+					Person::updateCookieCommunexion($id, $address);
 				}
 				$set = array("address" => $address);
-
-				
+					
 				
 			}catch (Exception $e) {  
 				throw new CTKException("Error updating  : address is not well formated !");		

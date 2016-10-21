@@ -800,7 +800,7 @@ class Person {
 
 				$user["address"] = $address;
 				if($userId == $personId)
-					self::updateCookieCommunexion($userId, $user["address"]["codeInsee"], $user["address"]["postalCode"], $user["address"]["addressLocality"]);
+					self::updateCookieCommunexion($userId, @$user["address"]);
 				/*PHDB::update( self::COLLECTION, array("_id" => new MongoId($personId)), 
 		                        array('$unset' => array("two_steps_register"=>"")));*/
 
@@ -2010,13 +2010,19 @@ class Person {
     }
 
 
-    public static function updateCookieCommunexion($userId, $insee, $cp, $cityName) {
+    public static function updateCookieCommunexion($userId, $address) {
     	$result = array("result" => false, "msg" => "User not connected");
     	if(!empty($userId)){
     		try{
-				CookieHelper::setCookie("inseeCommunexion", $insee);
-	    		CookieHelper::setCookie("cpCommunexion", $cp);
-	    		CookieHelper::setCookie("cityNameCommunexion", $cityName);
+    			if(!empty($address)){
+    				CookieHelper::setCookie("inseeCommunexion", $address["codeInsee"]);
+		    		CookieHelper::setCookie("cpCommunexion", $address["postalCode"]);
+		    		CookieHelper::setCookie("cityNameCommunexion", $address["addressLocality"]);
+    			}else{
+    				CookieHelper::removeCookie("inseeCommunexion");
+		    		CookieHelper::removeCookie("cpCommunexion");
+		    		CookieHelper::removeCookie("cityNameCommunexion");
+    			}
 	    		$result = array("result" => true, "msg" => "Cookies is updated");
 			}catch (CTKException $e) {
 				$result = array("result" => false, "msg" => $e->getMessage());
