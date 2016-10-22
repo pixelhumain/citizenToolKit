@@ -148,6 +148,11 @@ class DetailAction extends CAction {
 			$connectType = "attendees";
 			$elementAuthorizationId=$element["parentId"];
 			$elementAuthorizationType=$element["parentType"];
+			if($element["parentType"]==Organization::COLLECTION){
+				$params["parent"] = Organization::getSimpleOrganizationById($element["parentId"]);
+			}else{
+				$params["parent"] = Project::getSimpleProjectById($element["parentId"]); 
+			}
 		}
 		$params["controller"] = Element::getControlerByCollection($type);
 		if(	@$element["links"] ) {
