@@ -648,7 +648,7 @@ class Element {
         	$id = $params["id"];
         }
         $key = $params["key"];
-		$paramsLinkImport = (empty($params["paramsLink"])?null:$params["paramsLink"]);
+		$paramsLinkImport = ( empty($params["paramsLink"] ) ? null : $params["paramsLink"]);
 
 		unset($params["paramsLink"]);
         unset($params['collection']);

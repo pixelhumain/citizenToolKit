@@ -6,6 +6,7 @@ class Poi {
 	//TODO Translate
 	public static $types = array (
 		"link" => "Lien, Url",
+		"geoJson" => "Url au format geojson ou vers une umap",
 		"compostPickup" => "récolte de composte",
 		"video" => "video",
 		"sharedLibrary" => "bibliothèque partagée",
