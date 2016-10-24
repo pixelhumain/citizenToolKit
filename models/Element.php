@@ -730,6 +730,9 @@ class Element {
             if($v== "")
                 unset($params[$k]);
         }
+        $coordinates = @$params["geoPosition"]["coordinates"] ;
+        if(@$coordinates && (is_string($coordinates[0]) || is_string($coordinates[1])))
+			$params["geoPosition"]["coordinates"] = array(floatval($coordinates[0]), floatval($coordinates[1]));
 
      	/*if(!empty($params['startDate']) )
 			$params['startDate'] = new MongoDate( strtotime( $params['startDate'] ));//$project['startDate'];
