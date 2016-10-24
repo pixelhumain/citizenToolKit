@@ -296,7 +296,7 @@ class Element {
 					
 				
 			}catch (Exception $e) {  
-				throw new CTKException("Error updating  : address is not well formated !");		
+				throw new CTKException("Error updating  : ".$e->getMessage());		
 			}
 		}
 		else if ($fieldName == "address") {
