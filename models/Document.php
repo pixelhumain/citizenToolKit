@@ -91,8 +91,11 @@ class Document {
 		    	return array("result"=>false, "msg"=>Yii::t('document',"You are not allowed to modify the document of this item !") );
 		    }
 		} else {
-		    if (! Authorisation::canEditItem($new['author'], $new['type'], $new['id']) && !Authorisation::isOpenEdition($new['id'], $new['type'])) {
-		    	return array("result"=>false, "msg"=>Yii::t('document',"You are not allowed to modify the document of this item !") );
+		    if (! Authorisation::canEditItem($new['author'], $new['type'], $new['id']) && !Authorisation::isOpenEdition($new['id'], $new['type']) && (!@$params["formOrigin"] || !Link::isLinked($new['id'], $new['type'], $new['author']))) {
+			    if(@$params["formOrigin"] && $params["formOrigin"]=="news")
+					return array("result"=>false, "msg"=>Yii::t('document',"You have no rights upload document on this item, just write a message !") );
+			    else
+		    		return array("result"=>false, "msg"=>Yii::t('document',"You are not allowed to modify the document of this item !") );
 		    }
 	    }
 
