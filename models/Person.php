@@ -597,7 +597,8 @@ class Person {
 	  	Person::addPersonDataForBetaTest($person, $mode, $inviteCode);
 	  	
 	  	$person["created"] = new mongoDate(time());
-	  	$person["preferences"] = array("seeExplanations"=> true);
+	  	//$person["preferences"] = array("seeExplanations"=> true);
+	  	$person["preferences"] = Preference::initPreferences(self::COLLECTION);
 	  	$person["seePreferences"] = true;
 	  	
 	  	PHDB::insert(Person::COLLECTION , $person);

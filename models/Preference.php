@@ -174,6 +174,16 @@ class Preference {
 	}
 
 
-	
+	public static function initPreferences($type) {
+		$preferences = array();
+		$preferences["isOpenData"] = true;
+		if($type == Person::COLLECTION){
+			$preferences["publicFields"] = array("locality", "directory");
+			$preferences["privateFields"] = array("birthDate", "email", "phone");
+		}else{
+			$preferences["isOpenEdition"] = true;
+		}
+		return $preferences;
+	}
 	
 }
