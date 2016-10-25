@@ -420,15 +420,6 @@ class Element {
     }
      
     public static function getAllLinks($links,$type, $id){
-	    if($type == Organization::COLLECTION)
-		    $connectAs="members";
-	    else if($type == Project::COLLECTION)
-		    $connectAs="contributors";
-		else if ($type == Event::COLLECTION)
-			$connectAs="attendees";
-		else if ($type == Person::COLLECTION)
-			$connectAs="knows";
-
 	    $contextMap = array();
 		$contextMap["people"] = array();
 		$contextMap["guests"] = array();
@@ -437,6 +428,28 @@ class Element {
 		$contextMap["projects"] = array();
 		$contextMap["events"] = array();
 		$contextMap["followers"] = array();
+
+
+	    if($type == Organization::COLLECTION){
+	    	$connectAs="members";
+	    	$elt = Organization::getSimpleOrganizationById($id);
+			$newOrga["type"]=Organization::COLLECTION;
+			array_push($contextMap["organizations"], $elt);
+	    }
+	    else if($type == Project::COLLECTION){
+	    	$connectAs="contributors";
+	    	$elt = Project::getSimpleProjectById($id);
+			array_push($contextMap["projects"], $elt);
+	    }
+		else if ($type == Event::COLLECTION){
+			$connectAs="attendees";
+			$elt = Event::getSimpleEventById($id);
+			array_push($contextMap["events"], $elt);
+		}
+		else if ($type == Person::COLLECTION)
+			$connectAs="knows";
+
+	    
 		if(!empty($links)){
 			if(isset($links[$connectAs])){
 				foreach ($links[$connectAs] as $key => $aMember) {
