@@ -87,8 +87,10 @@ class Mail {
             "to" => $person["email"],
             "tplParams" => array(   "invitorName"   => $invitor["name"],
                                     "title" => Yii::app()-> name ,
-                                    "logo"=> "/images/logo-communecter.png",
-                                    "logo2" => "/images/logoLTxt.jpg",
+                                    "logo" => Yii::app()->params["logoUrl"],
+                                    "logo2" => Yii::app()->params["logoUrl"],
+                                    //"logo"=> "/images/logo-communecter.png",
+                                    //"logo2" => "/images/logoLTxt.jpg",
                                     "invitedUserId" => $person["_id"],
                                     "message" => $msg)
         );
@@ -191,7 +193,10 @@ class Mail {
             "to" => $person["email"],
             "tplParams" => array( "user"  => $person["_id"] ,
                                   "title" => Yii::app()->name ,
-                                  "logo"  => "/images/logoLTxt.jpg" ) );
+                                  //"logo"  => "/images/logoLTxt.jpg" 
+                                  "logo" => Yii::app()->params["logoUrl"],
+                                  //"urlRedirect" => Yii::app()->getRequest()->getBaseUrl(true);
+                                  ) );
         Mail::schedule($params);
     }
 
