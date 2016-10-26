@@ -212,19 +212,21 @@ class GlobalAutoCompleteAction extends CAction
 	  		}
 	  		//$res["project"] = $allProject;
 	  		$allRes = array_merge($allRes, $allProject);
-	  		error_log(sizeof($allProject));
+	  		//error_log(sizeof($allProject));
 	  	}
 	/***********************************  PROJECTS   *****************************************/
         if(strcmp($filter, Poi::COLLECTION) != 0 && $this->typeWanted(Poi::COLLECTION, $searchType)){
         	$allPoi = PHDB::findAndSortAndLimitAndIndex(Poi::COLLECTION, $query, 
 	  												array("updated" => -1), $indexStep, $indexMin);
 	  		foreach ($allPoi as $key => $value) {
+	  			$parent = Element::getElementSimpleById($value["parentId"], $value["parentType"]);
+				$allPoi[$key]["parent"] = $parent;
 				$allPoi[$key]["type"] = "poi";
 				$allPoi[$key]["typeSig"] = Poi::COLLECTION;
 	  		}
 	  		//$res["project"] = $allProject;
 	  		$allRes = array_merge($allRes, $allPoi);
-	  		error_log(sizeof($allPoi));
+	  		//error_log(sizeof($allPoi));
 	  	}
 	  	/***********************************  DDA   *****************************************/
         if(strcmp($filter, ActionRoom::COLLECTION) != 0 && $this->typeWanted(ActionRoom::COLLECTION, $searchType))
