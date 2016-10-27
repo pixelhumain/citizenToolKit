@@ -67,7 +67,7 @@ class SIG
 
 		error_log("updateEntity Start");
 		$geo = array("@type"=>"GeoCoordinates", "latitude" => $latitude, "longitude" => $longitude);
-		$geoPosition = array("@type"=>"Point", "coordinates" => array(floatval($longitude), floatval($latitude)));
+		$geoPosition = array("type"=>"Point", "coordinates" => array(floatval($longitude), floatval($latitude)));
 
 		//PH::update($entityType,array("geo" => $geo));
 
