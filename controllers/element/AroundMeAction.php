@@ -28,6 +28,10 @@ class AroundMeAction extends CAction {
 
 			$res["lat"] = @$elementsMap["person"]["geo"]["latitude"] ? $elementsMap["person"]["geo"]["latitude"] : null;
     		$res["lng"] = @$elementsMap["person"]["geo"]["longitude"] ? $elementsMap["person"]["geo"]["longitude"] : null;
+    		
+    		$parent = Element::getElementSimpleById($id, Person::COLLECTION);
+			$res["parentName"] = @$parent["name"];
+		
     	}	
 		$all = $this->loadElements($elementsMap, $radius, $type, $id);
 		while(sizeOf($all) < 1 && $radius > 0 && !$manual){ 
@@ -41,7 +45,12 @@ class AroundMeAction extends CAction {
     	$res["all"] = $all;
     	$res["radius"] = $radius;
     	$res["type"] = $type;
-		$res["id"] = $id;
+    	$res["id"] = $id;
+
+		$parentType = Element::getElementSpecsByType($type);
+		error_log("type : ".$type);
+
+		
 
 		if($json){
 			$res["result"] = true;
