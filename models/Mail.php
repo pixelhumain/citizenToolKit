@@ -70,9 +70,9 @@ class Mail {
             $invitor["name"] = $nameInvitor ;
 		
         if(empty($msg))
-            $msg = $invitor["name"]. " vous invite à rejoindre Communecter.";
+            $msg = $invitor["name"]. " vous invite à rejoindre ".Yii::app()-> name.".";
 		if(empty($subject))
-            $subject = $invitor["name"]. " vous invite à rejoindre Communecter.";
+            $subject = $invitor["name"]. " vous invite à rejoindre ".Yii::app()-> name.".";
 
         if(!@$person["email"] || empty($person["email"])){
         	$getEmail=Person::getEmailById((string)$person["_id"]);
