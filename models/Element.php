@@ -785,6 +785,76 @@ class Element {
 		return @$element;
 	}
 
+	public static function followPerson($params, $gmail=null){
+		
+		$invitedUserId = "";
+
+        if (empty(Yii::app()->session["userId"])) {
+        	Rest::json(array("result" => false, "msg" => "The current user is not valid : please login."));
+        	die();
+        }
+        
+        //Case spécial : Vérifie si l'email existe et retourne l'id de l'utilisateur
+        if (!empty($params["invitedUserEmail"]))
+        	$invitedUserId = Person::getPersonIdByEmail($params["invitedUserEmail"]) ;
+
+        //Case 1 : the person invited exists in the db
+        if (!empty($params["connectUserId"]) || !empty($invitedUserId)) {
+        	if (!empty($params["connectUserId"]))
+        		$invitedUserId = $params["connectUserId"];
+
+        	$child["childId"] = Yii::app()->session["userId"] ;
+        	$child["childType"] = Person::COLLECTION;
+
+        	$res = Link::follow($invitedUserId, Person::COLLECTION, $child);
+            $actionType = ActStr::VERB_FOLLOW;
+		//Case 2 : the person invited does not exist in the db
+		} else if (empty($params["invitedUserId"])) {
+			$newPerson = array("name" => $params["invitedUserName"], "email" => $params["invitedUserEmail"], "invitedBy" => Yii::app()->session["userId"]);
+			
+			//if(!empty($params["msgEmail"]))
+				$res = Person::createAndInvite($newPerson, @$params["msgEmail"], $gmail);
+			//else
+				//$res = Person::createAndInvite($newPerson);
+
+            $actionType = ActStr::VERB_INVITE;
+            if ($res["result"]) {
+            	$invitedUserId = $res["id"];
+                $child["childId"] = Yii::app()->session["userId"];
+    			$child["childType"] = Person::COLLECTION;
+                $res = Link::follow($invitedUserId, Person::COLLECTION, $child);
+            }
+		}
+		
+        if (@$res["result"] == true) {
+            $person = Person::getSimpleUserById($invitedUserId);
+            $res = array("result" => true, "invitedUser" => $person);
+        } else {
+            $res = array("result" => false, "msg" => $res["msg"]);
+        }
+
+		return $res;
+	}
+
+	public static function followPersonByListMails($listMails, $msgEmail=null, $gmail=null){
+		$result = array("result" => false);
+		$params["msgEmail"] = (empty($msgEmail)?null:$msgEmail) ;
+		foreach ($listMails as $key => $value) {
+			$result["result"] = true ;
+			if(!empty($value["mail"])){
+				$params["invitedUserEmail"] = $value["mail"] ;
+
+				if(empty($value["name"])){
+					$split = explode("@", $value["mail"]);
+					$params["invitedUserName"] = $split[0];
+				}else
+					$params["invitedUserName"] = $value["name"] ;
+				$result["data"][] = Element::followPerson($params, $gmail);
+			}
+		}
+		return $result;
+	}
+
 
     
 }
