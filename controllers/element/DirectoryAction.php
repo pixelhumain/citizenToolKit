@@ -38,6 +38,7 @@ class DirectoryAction extends CAction
             $contextTitle = Yii::t("common", "Visualize Event Communauty");
             $parentType=Event::COLLECTION;
             $contextIconTitle = "circle text-orange";
+            $connectType="attendees";
         }
         else if( @$type == Person::COLLECTION){
             $contextTitle =  Yii::t("common", "DIRECTORY of")." ".$element["name"];
@@ -116,6 +117,7 @@ class DirectoryAction extends CAction
         $params["type"] = $type;
         $params["elementId"] = $id;
         $params["element"] = $element;
+        $params["connectType"] = @$connectType;
         $params["links"] = $links;
         $params["contextIcon"] = $contextIcon ;
         $params["contextTitle"] = $contextTitle ;
