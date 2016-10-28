@@ -726,9 +726,18 @@ class Element {
                     //Notification::createdObjectAsParam($authorType[Person::COLLECTION],$userId,$elementType, $elementType, $parentType[projet crée par une orga => orga est parent], $parentId, $params["geo"], (isset($params["tags"])) ? $params["tags"]:null ,$params["address"]);  
                 }
             }
-            //if(@$url = ( @$params["parentType"] && @$params["parentId"] && in_array($collection, array("poi"))) ? "#".self::getControlerByCollection($params["parentType"]).".detail.id.".$params["parentId"] : null )
-               // $res["url"] = $url;
-
+          //  if(@$url = ( @$params["parentType"] && @$params["parentId"] && in_array($collection, array("poi") && Yii::app()->theme != "notragora")) ? "#".self::getControlerByCollection($params["parentType"]).".detail.id.".$params["parentId"] : null )
+	        //    $res["url"] = $url;
+	        if(@$params["parentType"] && @$params["parentId"] && in_array($collection, array("poi"))){
+		        if(Yii::app()->params["theme"] != "notragora")
+		        	$url="#".self::getControlerByCollection($params["parentType"]).".detail.id.".$params["parentId"];
+		        else
+		        	$url="#poi.detail.id.".$res["id"];
+	        } else{
+		        $url=false;
+	        }
+             
+			$res["url"]=$url;
         } else 
             $res = array( "result" => false, 
                           "msg" => Yii::t("common","Something went really bad : ".$valid['msg']) );
