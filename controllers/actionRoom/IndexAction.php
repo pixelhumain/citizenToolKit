@@ -115,7 +115,7 @@ class IndexAction extends CAction
                     $res = $params;
                 Rest::json( $res );
             }else {
-                echo $controller->renderPartial("../dda/index" , $params,true);
+                echo $controller->renderPartial("indexDDA" , $params,true);
             }
         }
         else{
