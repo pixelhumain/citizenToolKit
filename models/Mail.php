@@ -88,7 +88,7 @@ class Mail {
             "tplParams" => array(   "invitorName"   => $invitor["name"],
                                     "title" => Yii::app()-> name ,
                                     "logo" => Yii::app()->params["logoUrl"],
-                                    "logo2" => Yii::app()->params["logoUrl"],
+                                    "logo2" => Yii::app()->params["logoUrl2"],
                                     //"logo"=> "/images/logo-communecter.png",
                                     //"logo2" => "/images/logoLTxt.jpg",
                                     "invitedUserId" => $person["_id"],

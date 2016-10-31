@@ -35,7 +35,7 @@ class DirectoryAction extends CAction
             $contextIconTitle = "group text-green";
         }
         else if(@$type == Event::COLLECTION){
-            $contextTitle = Yii::t("common", "Visualize Event Communauty");
+            $contextTitle = Yii::t("common", "Community of event");
             $parentType=Event::COLLECTION;
             $contextIconTitle = "circle text-orange";
             $connectType="attendees";
