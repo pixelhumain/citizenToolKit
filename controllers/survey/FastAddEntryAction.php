@@ -64,7 +64,7 @@ class FastAddEntryAction extends CAction
                 PHDB::insert( Survey::COLLECTION,$entryInfos );
                 
                 $res['result'] = true;
-                $res['msg'] = "surveySaved";
+                $res['msg'] = "Proposition bien enregistré";
                 $res['surveyId'] = $entryInfos["_id"];
                 $res['hash'] = "#survey.entry.id.".$entryInfos["_id"];
 
