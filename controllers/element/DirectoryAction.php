@@ -13,7 +13,7 @@ class DirectoryAction extends CAction
         // Vérifier si utile cette condition
 		$element = Element::getByTypeAndId($type,$id);
 		$links=array();
-		$links = Element::getAllLinks($element["links"],$type,$id);
+		$links = (!empty($element["links"])?Element::getAllLinks($element["links"],$type,$id):array());
         /*if(@$_POST["links"]){
             $links = $_POST["links"];
         }else{
