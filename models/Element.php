@@ -248,8 +248,8 @@ class Element {
 
 		$dataFieldName = self::getCollectionFieldNameAndValidate($collection, $fieldName, $fieldValue, $id);
 		
-		//$verb = ($fieldValue == "" || $fieldValue == null ) ? '$unset' : '$set';
-		$verb = '$set' ;
+		$verb = (empty($fieldValue) ? '$unset' : '$set');
+		//$verb = '$set' ;
 		//$set = array($fieldName => $fieldValue);
 
 		//Specific case : 
@@ -269,29 +269,44 @@ class Element {
 		else if ($fieldName == "locality") {
 			//address
 			try{
-				$address = array(
-			        "@type" => "PostalAddress",
-			        "codeInsee" => $fieldValue["address"]["codeInsee"],
-			        "addressCountry" => $fieldValue["address"]["addressCountry"],
-			        "postalCode" => $fieldValue["address"]["postalCode"],
-			        "addressLocality" => $fieldValue["address"]["addressLocality"],
-			        "streetAddress" => ((@$fieldValue["address"]["streetAddress"])?trim(@$fieldValue["address"]["streetAddress"]):""),
-			        "depName" => $fieldValue["address"]["depName"],
-			        "regionName" => $fieldValue["address"]["regionName"],
-			    	);
-				//Check address is well formated
-				$valid = DataValidator::addressValid($address);
-				if ( $valid != "") throw new CTKException($valid);
+				if(!empty($fieldValue)){
+					$address = array(
+				        "@type" => "PostalAddress",
+				        "codeInsee" => $fieldValue["address"]["codeInsee"],
+				        "addressCountry" => $fieldValue["address"]["addressCountry"],
+				        "postalCode" => $fieldValue["address"]["postalCode"],
+				        "addressLocality" => $fieldValue["address"]["addressLocality"],
+				        "streetAddress" => ((@$fieldValue["address"]["streetAddress"])?trim(@$fieldValue["address"]["streetAddress"]):""),
+				        "depName" => $fieldValue["address"]["depName"],
+				        "regionName" => $fieldValue["address"]["regionName"],
+				    	);
+					//Check address is well formated
+					$valid = DataValidator::addressValid($address);
+					if ( $valid != "") throw new CTKException($valid);
 
-				SIG::updateEntityGeoposition($collection, $id, $fieldValue["geo"]["latitude"], $fieldValue["geo"]["longitude"]);
-				if($collection == Person::COLLECTION && Yii::app()->session['userId'] == $id){
-					$user = Yii::app()->session["user"];
-					$user["codeInsee"] = $address["codeInsee"];
-					$user["postalCode"] = $address["postalCode"];
-					$user["address"] = $address;
-					Yii::app()->session["user"] = $user;
-					Person::updateCookieCommunexion($id, $address);
+					SIG::updateEntityGeoposition($collection, $id, $fieldValue["geo"]["latitude"], $fieldValue["geo"]["longitude"]);
+					if($collection == Person::COLLECTION && Yii::app()->session['userId'] == $id){
+						$user = Yii::app()->session["user"];
+						$user["codeInsee"] = $address["codeInsee"];
+						$user["postalCode"] = $address["postalCode"];
+						$user["address"] = $address;
+						Yii::app()->session["user"] = $user;
+						Person::updateCookieCommunexion($id, $address);
+					}
+				}else{
+					$address = null ;
+					self::updateField($collection, $id, "geo", null);
+					self::updateField($collection, $id, "geoPosition", null);
+					if($collection == Person::COLLECTION && Yii::app()->session['userId'] == $id){
+						$user = Yii::app()->session["user"];
+						unset($user["codeInsee"]);
+						unset($user["postalCode"]);
+						unset($user["address"]);
+						Yii::app()->session["user"] = $user;
+						Person::updateCookieCommunexion($id, null);
+					}
 				}
+				
 				$set = array("address" => $address);
 					
 				
@@ -861,6 +876,17 @@ class Element {
 				$result["data"][] = Element::followPerson($params, $gmail);
 			}
 		}
+		return $result;
+	}
+
+
+	public static function RemoveLocality($id, $collection){
+		if (!Authorisation::canEditItemOrOpenEdition($id, $collection, Yii::app()->session['userId'])) {
+			throw new CTKException("Can not update the element : you are not authorized to update that element !");
+		}
+
+
+		
 		return $result;
 	}
 
