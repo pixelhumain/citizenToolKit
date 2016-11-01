@@ -71,7 +71,7 @@ class AroundMeAction extends CAction {
     private function getNextRadius($radius){
     	$radiusSteps = array(2000, 5000, 10000, 25000, 50000, 0);
 		foreach ($radiusSteps as $key => $value) {
-			if($value == $radius) return @$radiusSteps[$key+1] ? $radiusSteps[$key+1] : $radius;
+			if($value == $radius) return isset($radiusSteps[$key+1]) ? $radiusSteps[$key+1] : $radius;
 		}
 		return 0;
     }
