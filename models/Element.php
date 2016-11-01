@@ -75,7 +75,11 @@ class Element {
 		$fas = array(
 
 	    	Person::COLLECTION 			=> array("icon"=>"user","color"=>"#FFC600","text-color"=>"yellow",
-	    										 "hash"=> $prefix.".detail.id."),
+	    										 "hash"=> $prefix.".detail.id.",
+	    										 "collection"=>Person::COLLECTION),
+	    	Person::CONTROLLER 			=> array("icon"=>"user","color"=>"#FFC600","text-color"=>"yellow",
+	    										 "hash"=> $prefix.".detail.id.",
+	    										 "collection"=>Person::COLLECTION),
 
 	    	Organization::COLLECTION 	=> array("icon"=>"group", "color"=>"#93C020","text-color"=>"green",
 	    										 "hash"=> Organization::CONTROLLER.".detail.id."),
