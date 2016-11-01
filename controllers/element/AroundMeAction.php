@@ -16,24 +16,46 @@ class AroundMeAction extends CAction {
 		}
 		$res = array();
 		$elementsMap = array();
-		if($type == Person::CONTROLLER){
-			$elementsMap = Person::getPersonMap($id);
-			//var_dump($elementsMap["person"]); exit;
-			if(!isset($elementsMap["person"]["geo"])) {
+
+		$spec = Element::getElementSpecsByType($type);
+		$collection = isset($spec["collection"]) ? $spec["collection"] : $type;
+		if($collection == "") {
 				$res["result"] = false;
-            	$res["msg"] = "Vous n'êtes pas géolocalisé";
+            	$res["msg"] = "Collection not found : ".$type;
             	Rest::json($res);
             	return;
 			}
 
-			$res["lat"] = @$elementsMap["person"]["geo"]["latitude"] ? $elementsMap["person"]["geo"]["latitude"] : null;
-    		$res["lng"] = @$elementsMap["person"]["geo"]["longitude"] ? $elementsMap["person"]["geo"]["longitude"] : null;
+		$element = Element::getElementById($id, $collection);
+
+		$res["lat"] = @$element["geo"]["latitude"]  ? $element["geo"]["latitude"]  : null;
+    	$res["lng"] = @$element["geo"]["longitude"] ? $element["geo"]["longitude"] : null;
+
+		$elementsMap = Element::getAllLinks(null, $type, $id);
+
+		$element["typeSig"] = $collection;
+		$res["parentName"] = @$element["name"];
+		$res["parent"] = @$element;
+
+		// if($type == Person::CONTROLLER){
+		// 	$elementsMap = Person::getPersonMap($id);
+		// 	//var_dump($elementsMap["person"]); exit;
+		// 	if(!isset($elementsMap["person"]["geo"])) {
+		// 		$res["result"] = false;
+  //           	$res["msg"] = "Vous n'êtes pas géolocalisé";
+  //           	Rest::json($res);
+  //           	return;
+		// 	}
+
+		// 	$res["lat"] = @$elementsMap["person"]["geo"]["latitude"] ? $elementsMap["person"]["geo"]["latitude"] : null;
+  //   		$res["lng"] = @$elementsMap["person"]["geo"]["longitude"] ? $elementsMap["person"]["geo"]["longitude"] : null;
     		
-    		$parent = Element::getElementSimpleById($id, Person::COLLECTION);
-			$res["parentName"] = @$parent["name"];
+  //   		$parent = Element::getElementSimpleById($id, Person::COLLECTION);
+		// 	$res["parentName"] = @$parent["name"];
 		
-    	}	
-		$all = $this->loadElements($elementsMap, $radius, $type, $id);
+  //   	}
+
+		$all = $this->loadElements($element, $radius, $type, $id);
 		while(sizeOf($all) < 1 && $radius > 0 && !$manual){ 
 			$all = $this->loadElements($elementsMap, $radius, $type, $id);
 			if(sizeOf($all) < 1) $radius = $this->getNextRadius($radius);
@@ -69,14 +91,12 @@ class AroundMeAction extends CAction {
 		return 0;
     }
 
-    private function loadElements($elementsMap, $radius, $type, $id){
+    private function loadElements($element, $radius, $type, $id){
     	//error_log("startSearch with : ".$radius);
     	//if($type == Person::CONTROLLER){
 
     		//$elementsMap = Person::getPersonMap($id);
-    		$res = array('network' => $elementsMap);
-
-    		$element = $elementsMap["person"];
+    		$res = array(); //'network' => $elementsMap);
 
     		$lat = @$element["geo"]["latitude"] ? $element["geo"]["latitude"] : null;
     		$lng = @$element["geo"]["longitude"] ? $element["geo"]["longitude"] : null;
@@ -99,17 +119,18 @@ class AroundMeAction extends CAction {
 				$orgas 	  =	PHDB::findAndSort(Organization::COLLECTION, $request, array("updated"), 125);
 				$projects =	PHDB::findAndSort(Project::COLLECTION, 		$request, array("updated"), 125);
 				$events   =	PHDB::findAndSort(Event::COLLECTION, 		$request, array("updated"), 125);
-				//$persons  =	PHDB::findAndSort(Person::COLLECTION, 		$request, array("updated"), 125);
+				$persons  =	PHDB::findAndSort(Person::COLLECTION, 		$request, array("updated"), 125);
 
 				foreach ($orgas 	as $key => $value) { $orgas[$key]["type"] = "organization"; $orgas[$key]["typeSig"] = "organization"; }
-				foreach ($projects 	as $key => $value) { $projects[$key]["type"] = "project"; $projects[$key]["typeSig"] = "project"; }
-				foreach ($events 	as $key => $value) { $events[$key]["type"] = "event"; $events[$key]["typeSig"] = "event"; }
-				//foreach ($persons 	as $key => $value) { $persons[$key]["typeSig"] = "citoyen"; }
+				foreach ($projects 	as $key => $value) { $projects[$key]["type"] = "project"; 	$projects[$key]["typeSig"] = "project"; }
+				foreach ($events 	as $key => $value) { $events[$key]["type"] = "event"; 		$events[$key]["typeSig"] = "event"; }
+				foreach ($persons 	as $key => $value) { $persons[$key]["type"] = "citoyen"; 	$persons[$key]["typeSig"] = "citoyen"; }
 
 				$all = array();
 				$all = array_merge($all, $orgas);
 				$all = array_merge($all, $projects);
 				$all = array_merge($all, $events);
+				$all = array_merge($all, $persons);
 
 				foreach ($all as $keyS => $value) {
 					if(@$all[$keyS]["endDate"]) $all[$keyS]["endDate"] =  date("Y-m-d H:i:s", $all[$keyS]["endDate"]->sec);
