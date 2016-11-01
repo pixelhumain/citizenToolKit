@@ -6,6 +6,9 @@ class AroundMeAction extends CAction {
 * Find all element around my position (5km => 5000m)
 */
     public function run($type, $id, $radius=5000, $manual=false, $json=false) {
+
+    	$controller = $this->getController();
+
     	//trie les éléments dans l'ordre alphabetique par updated
 	  	function mySortByUpdated($a, $b){ 
 	  		if(isset($a["updated"]) && isset($b["updated"])){
@@ -20,16 +23,18 @@ class AroundMeAction extends CAction {
 		$spec = Element::getElementSpecsByType($type);
 		$collection = isset($spec["collection"]) ? $spec["collection"] : $type;
 		if($collection == "") {
-				$res["result"] = false;
-            	$res["msg"] = "Collection not found : ".$type;
-            	Rest::json($res);
-            	return;
-			}
+			$res["result"] = false;
+        	$res["msg"] = "Collection not found : ".$type;
+        	Rest::json($res);
+        	return;
+		}
 
 		$element = Element::getElementById($id, $collection);
 
 		$res["lat"] = @$element["geo"]["latitude"]  ? $element["geo"]["latitude"]  : null;
     	$res["lng"] = @$element["geo"]["longitude"] ? $element["geo"]["longitude"] : null;
+
+    	
 
 		$elementsMap = Element::getAllLinks(null, $type, $id);
 
@@ -37,42 +42,22 @@ class AroundMeAction extends CAction {
 		$res["parentName"] = @$element["name"];
 		$res["parent"] = @$element;
 
-		// if($type == Person::CONTROLLER){
-		// 	$elementsMap = Person::getPersonMap($id);
-		// 	//var_dump($elementsMap["person"]); exit;
-		// 	if(!isset($elementsMap["person"]["geo"])) {
-		// 		$res["result"] = false;
-  //           	$res["msg"] = "Vous n'êtes pas géolocalisé";
-  //           	Rest::json($res);
-  //           	return;
-		// 	}
+		$all = array();
 
-		// 	$res["lat"] = @$elementsMap["person"]["geo"]["latitude"] ? $elementsMap["person"]["geo"]["latitude"] : null;
-  //   		$res["lng"] = @$elementsMap["person"]["geo"]["longitude"] ? $elementsMap["person"]["geo"]["longitude"] : null;
-    		
-  //   		$parent = Element::getElementSimpleById($id, Person::COLLECTION);
-		// 	$res["parentName"] = @$parent["name"];
-		
-  //   	}
-
-		$all = $this->loadElements($element, $radius, $type, $id);
-		while(sizeOf($all) < 1 && $radius > 0 && !$manual){ 
-			$all = $this->loadElements($elementsMap, $radius, $type, $id);
-			if(sizeOf($all) < 1) $radius = $this->getNextRadius($radius);
+		if($res["lat"] != null && $res["lng"] != null) {			
+			$all = $this->loadElements($element, $radius, $type, $id);
+			while(sizeOf($all) < 1 && $radius > 0 && !$manual){ 
+				$all = $this->loadElements($elementsMap, $radius, $type, $id);
+				if(sizeOf($all) < 1) $radius = $this->getNextRadius($radius);
+			}
 		}
-	
-
-		$controller = $this->getController();
-
+		
     	$res["all"] = $all;
     	$res["radius"] = $radius;
     	$res["type"] = $type;
     	$res["id"] = $id;
 
 		$parentType = Element::getElementSpecsByType($type);
-		error_log("type : ".$type);
-
-		
 
 		if($json){
 			$res["result"] = true;
