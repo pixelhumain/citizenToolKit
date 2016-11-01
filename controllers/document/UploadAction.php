@@ -18,11 +18,10 @@ class UploadAction extends CAction {
         }
         
         $res = Document::checkFileRequirements($file, $dir, $folder, $ownerId, $input);
-        
         if ($res["result"]) {
             $res = Document::uploadDocument($file, $res["uploadDir"],$input,$rename);
             if ($res["result"]) {
-                echo json_encode(array('result'=>true,
+                Rest::json(array('result'=>true,
                                         "success"=>true,
                                         'name'=>$res["name"],
                                         'dir'=> $res["uploadDir"],
@@ -31,7 +30,7 @@ class UploadAction extends CAction {
             }
         }
         
-        echo json_encode(array('result'=>false,'msg'=>Yii::t("document","Something went wrong with your upload!")));
+        Rest::json(array('result'=>false,'msg'=>Yii::t("document","Something went wrong with your upload!")));
     	exit;
 	}
 

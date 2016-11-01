@@ -17,6 +17,7 @@ class Document {
 	const DOC_TYPE_CSV		= "text/csv";
 
 	const GENERATED_IMAGES_FOLDER 		= "thumb";
+	const GENERATED_MEDIUM_FOLDER 		= "medium";
 	const GENERATED_ALBUM_FOLDER		= "album";
 	const FILENAME_PROFIL_RESIZED 	  	= "profil-resized.png";
 	const FILENAME_PROFIL_MARKER 	  	= "profil-marker.png";
@@ -73,7 +74,6 @@ class Document {
 		//check content key
 		if (!in_array(@$params["contentKey"], array(self::IMG_BANNIERE,self::IMG_PROFIL,self::IMG_LOGO,self::IMG_SLIDER,self::IMG_MEDIA)))
 			throw new CTKException("Unknown contentKey ".$params["contentKey"]." for the document !");
-		
 	    $new = array(
 			"id" => $params['id'],
 	  		"type" => $params['type'],
@@ -86,6 +86,18 @@ class Document {
 	  		"contentKey" => $params["contentKey"],
 	  		'created' => time()
 	    );
+		if (in_array($new["type"], array(Survey::COLLECTION, ActionRoom::COLLECTION, ActionRoom::COLLECTION_ACTIONS))) {
+			 if (!Authorisation::canEditItem( $new['author'], $new['type'], $new['id'], @$params["parentType"],@$params["parentId"])) {
+		    	return array("result"=>false, "msg"=>Yii::t('document',"You are not allowed to modify the document of this item !") );
+		    }
+		} else {
+		    if (! Authorisation::canEditItem($new['author'], $new['type'], $new['id']) && !Authorisation::isOpenEdition($new['id'], $new['type']) && (!@$params["formOrigin"] || !Link::isLinked($new['id'], $new['type'], $new['author']))) {
+			    if(@$params["formOrigin"] && $params["formOrigin"]=="news")
+					return array("result"=>false, "msg"=>Yii::t('document',"You have no rights upload document on this item, just write a message !") );
+			    else
+		    		return array("result"=>false, "msg"=>Yii::t('document',"You are not allowed to modify the document of this item !") );
+		    }
+	    }
 
 	    if(isset($params["category"]) && !empty($params["category"]))
 	    	$new["category"] = $params["category"];
@@ -183,7 +195,7 @@ class Document {
 		return $listDocuments;
 	}
 	
-	protected static function listMyDocumentByIdAndType($id, $type, $contentKey= null, $docType = null, $sort=null)	{	
+	public static function listMyDocumentByIdAndType($id, $type, $contentKey= null, $docType = null, $sort=null)	{	
 		$params = array("id"=> $id,
 						"type" => $type);
 		if (isset($contentKey) && $contentKey != null) 
@@ -274,6 +286,7 @@ class Document {
 							'_id' => $params,
 							'sumDocSpace' => array('$sum' => '$size')))
 						));
+		$spaceUsed="";
 		if (@$result["ok"]) 
 			$spaceUsed = @$result["result"][0]["sumDocSpace"];
 		return $spaceUsed;
@@ -312,21 +325,50 @@ class Document {
 	}
 	
 	/**
-	* remove a document by id
+	* remove a document by id and delete the file on the filesystem
 	* @return
 	*/
-	public static function removeDocumentById($id){
-		return PHDB::remove(self::COLLECTION, array("_id"=>new MongoId($id)));
+	public static function removeDocumentById($id, $userId){
+		//TODO SBAR - Generate new thumbs if the image is the current image
+		$doc = Document::getById($id);
+		if ($doc) {
+			if (Authorisation::canEditItem($userId, $doc["type"], $doc["id"])) {
+				$filepath = self::getDocumentPath($doc);
+				if(file_exists ( $filepath )) {
+		            if (unlink($filepath)) {
+		                PHDB::remove(self::COLLECTION, array("_id"=>new MongoId($id)));
+		                $res = array('result'=>true, "msg" => Yii::t("document","Document deleted"), "id" => $id);
+		            } else
+		                $res = array('result'=>false,'msg'=>Yii::t("common","Something went wrong!"), "filepath" => $filepath);
+		        } else {
+		        	//even if The file does not exists on the filesystem : we try to delete the document on mongo
+		            PHDB::remove(self::COLLECTION, array("_id"=>new MongoId($id)));
+		            $res = array('result'=>false,'error'=>Yii::t("common","Something went wrong!"),"filepath"=>$filepath);
+		        }
+		    } else {
+		    	$res = array('result'=>false, "msg" => Yii::t("document","You are not allowed to delete this document !"), "id" => $id);
+		    }
+		}
+
+		return $res;
 	}
 	/**
 	* remove a document from communevent by objId
 	* @return
 	*/
-	public static function removeDocumentCommuneventByObjId($id){
-		//Suppression de l'image dans la collection cfs.photosimg.filerecord
-		PHDB::remove("cfs.photosimg.filerecord", array("_id"=>$id));
-		//Suppression du document
-		return PHDB::remove(self::COLLECTION, array("objId"=>$id));
+	public static function removeDocumentCommuneventByObjId($id, $userId){
+		$doc = Document::getById($id);
+		if ($doc) {
+			if (Authorisation::canEditItem($userId, $doc["type"], $doc["id"])) {
+				//Suppression de l'image dans la collection cfs.photosimg.filerecord
+				PHDB::remove("cfs.photosimg.filerecord", array("_id"=>$id));
+				//Suppression du document
+				$res = PHDB::remove(self::COLLECTION, array("objId"=>$id));
+			} else {
+				$res = array('result'=>false, "msg" => Yii::t("document","You are not allowed to delete this document !"), "id" => $id);
+			}
+		}
+		return $res;
 	}
 
 	/**
@@ -459,21 +501,31 @@ class Document {
 
 		//The images will be stored in the /uploadDir/moduleId/ownerType/ownerId/thumb (ex : /upload/communecter/citoyen/1242354235435/thumb)
 		$upload_dir = Yii::app()->params['uploadDir'].$dir.'/'.$folder.'/'.self::GENERATED_IMAGES_FOLDER;
+		$upload_dir_medium = Yii::app()->params['uploadDir'].$dir.'/'.$folder.'/'.self::GENERATED_MEDIUM_FOLDER;
         if(file_exists ( $upload_dir )) {
             CFileHelper::removeDirectory($upload_dir."bck");
             rename($upload_dir, $upload_dir."bck");
         }
         mkdir($upload_dir, 0775);
-        
+        // Medium Image
+        if(!file_exists ( $upload_dir_medium )) {       
+			mkdir($upload_dir_medium, 0777);
+		}
+   		//GET THUMB IMAGE
         $profilUrl = self::getDocumentUrl($document);
         $profilPath = self::getDocumentPath($document);
      	$imageUtils = new ImagesUtils($profilPath);
     	$destPathThumb = $upload_dir."/".self::FILENAME_PROFIL_RESIZED;
-    	$profilThumbUrl = self::getDocumentFolderUrl($document)."/thumb/".self::FILENAME_PROFIL_RESIZED;
+    	$profilThumbUrl = self::getDocumentFolderUrl($document)."/".self::GENERATED_IMAGES_FOLDER."/".self::FILENAME_PROFIL_RESIZED;
     	$imageUtils->resizeImage(50,50)->save($destPathThumb);
+    	//GET MEDIUM IMAGE
+    	$imageMediumUtils = new ImagesUtils($profilPath);
+		$destPathMedium = $upload_dir_medium."/".$document["name"];
+    	$profilMediumUrl = self::getDocumentFolderUrl($document)."/".self::GENERATED_MEDIUM_FOLDER."/".$document["name"];
+    	$imageMediumUtils->resizePropertionalyImage(400,400)->save($destPathMedium,100);
 		
 		$destPathMarker = $upload_dir."/".self::FILENAME_PROFIL_MARKER;
-		$profilMarkerImageUrl = self::getDocumentFolderUrl($document)."/thumb/".self::FILENAME_PROFIL_MARKER;
+		$profilMarkerImageUrl = self::getDocumentFolderUrl($document)."/".self::GENERATED_IMAGES_FOLDER."/".self::FILENAME_PROFIL_MARKER;
     	$markerFileName = self::getEmptyMarkerFileName(@$document["type"], @$document["subType"]);
     	if ($markerFileName) {
     		$srcEmptyMarker = self::getPathToMarkersAsset().$markerFileName;
@@ -482,10 +534,10 @@ class Document {
         
         //Update the entity collection to store the path of the profil images
         if (in_array($document["type"], array(Person::COLLECTION, Organization::COLLECTION, Project::COLLECTION, Event::COLLECTION))) {
-	        PHDB::update($document["type"], array("_id" => new MongoId($document["id"])), array('$set' => array("profilImageUrl" => $profilUrl, "profilThumbImageUrl" => $profilThumbUrl, "profilMarkerImageUrl" =>  $profilMarkerImageUrl)));
+	        PHDB::update($document["type"], array("_id" => new MongoId($document["id"])), array('$set' => array("profilImageUrl" => $profilUrl, "profilMediumImageUrl" => $profilMediumUrl,"profilThumbImageUrl" => $profilThumbUrl, "profilMarkerImageUrl" =>  $profilMarkerImageUrl)));
+
 	        error_log("The entity ".$document["type"]." and id ". $document["id"] ." has been updated with the URL of the profil images.");
 		}
-
         //Remove the bck directory
         CFileHelper::removeDirectory($upload_dir."bck");
         return array("result" => true, "msg" => "Thumb and markers have been generated");
@@ -544,23 +596,30 @@ class Document {
 
 		$generatedImageExist = false;
 		if ($lastProfilImage = reset($listDocuments)) {
-			$documentPath = self::getDocumentFolderPath($lastProfilImage).'/thumb/';
+			$documentPath = self::getDocumentFolderPath($lastProfilImage);
 			if ($generatedImageType == self::GENERATED_THUMB_PROFIL) {
-				$documentPath = $documentPath.self::FILENAME_PROFIL_RESIZED;
+				$documentPath = $documentPath.'/'.self::GENERATED_THUMB_PROFIL.'/'.self::FILENAME_PROFIL_RESIZED;
 			} else if ($generatedImageType == self::GENERATED_MARKER) {
-				$documentPath = $documentPath.self::FILENAME_PROFIL_MARKER;
+				$documentPath = $documentPath.'/'.self::GENERATED_THUMB_PROFIL.'/'.self::FILENAME_PROFIL_MARKER;
+			} else if ($generatedImageType == self::GENERATED_MEDIUM_FOLDER){
+				$documentPath = $documentPath.'/'.self::GENERATED_MEDIUM_FOLDER.'/'.$lastProfilImage["name"];
 			}
 			$generatedImageExist = file_exists($documentPath);
 		}
 
 		//If there is an existing profil image
 		if ($generatedImageExist) {
-			$documentUrl = self::getDocumentFolderUrl($lastProfilImage).'/thumb/';
+			$documentUrl = self::getDocumentFolderUrl($lastProfilImage);
+			$documentThumb=$documentUrl.'/thumb/';
+			$documentMedium=$documentUrl.'/'.self::GENERATED_MEDIUM_FOLDER.'/';
 			if ($generatedImageType == self::GENERATED_THUMB_PROFIL) {
 				$res = $documentUrl.self::FILENAME_PROFIL_RESIZED;
 			} else if ($generatedImageType == self::GENERATED_MARKER) {
 				$res = $documentUrl.self::FILENAME_PROFIL_MARKER;
+			}else if ($generatedImageType == self::GENERATED_MEDIUM_FOLDER) {
+				$res = $documentUrl.$lastProfilImage["name"];
 			}
+
 		//Else the default image is returned
 		} else {
 			if ($generatedImageType == self::GENERATED_MARKER) {
@@ -621,24 +680,30 @@ class Document {
 			$res["profilImageUrl"] = $entity["profilImageUrl"];
 			$res["profilThumbImageUrl"] = !empty($entity["profilThumbImageUrl"]) ? $entity["profilThumbImageUrl"]."?_=".time() : "";
 			$res["profilMarkerImageUrl"] = !empty($entity["profilMarkerImageUrl"]) ? $entity["profilMarkerImageUrl"]."?_=".time() : ""; 
+			$res["profilMediumImageUrl"] = !empty($entity["profilMediumImageUrl"]) ? $entity["profilMediumImageUrl"]."?_=".time() : ""; 
+
 		//If empty than retrieve the URLs from document and store them in the entity for next time
 		} else {
 			$profil = self::getLastImageByKey($id, $type, self::IMG_PROFIL);
-			$profilThumb = self::getGeneratedImageUrl($id, $type, self::GENERATED_THUMB_PROFIL);
 			
-			if ($profil != "") {
-				$marker = self::getGeneratedImageUrl($id, $type, self::GENERATED_MARKER);
-			} else {
-				$marker = "";
-			} 
-	
+			if (!empty($profil)) {
+				$profilThumb = self::getGeneratedImageUrl($id, $type, self::GENERATED_THUMB_PROFIL);
+				$profilMedium = self::getGeneratedImageUrl($id, $type, self::GENERATED_MEDIUM_FOLDER);
+				if ($profil != "") {
+					$marker = self::getGeneratedImageUrl($id, $type, self::GENERATED_MARKER);
+				} else {
+					$marker = "";
+				} 
+
+				PHDB::update($type, array("_id" => new MongoId($id)), array('$set' => array("profilImageUrl" => $profil, "profilThumbImageUrl" => $profilThumb, "profilMarkerImageUrl" =>  $marker,"profilMediumImageUrl" =>  $profilMedium)));
+				error_log("Add Profil image url for the ".$type." with the id ".$id);
+			}
+			
 			$res["profilImageUrl"] = $profil;
 			//Add a time to force relaod of generated images
-			$res["profilThumbImageUrl"] = !empty($profilThumb) ? empty($profilThumb)."?_=".time() : "";
-			$res["profilMarkerImageUrl"] = !empty($marker) ? empty($marker)."?_=".time() : "";
-
-			PHDB::update($type, array("_id" => new MongoId($id)), array('$set' => array("profilImageUrl" => $profil, "profilThumbImageUrl" => $profilThumb, "profilMarkerImageUrl" =>  $marker)));
-			error_log("Add Profil image url for the ".$type." with the id ".$id);
+			$res["profilThumbImageUrl"] = !empty($profilThumb) ? $profilThumb."?_=".time() : "";
+			$res["profilMarkerImageUrl"] = !empty($marker) ? $marker."?_=".time() : "";
+			$res["profilMediumImageUrl"] = !empty($profilMedium) ? $profilMedium."?_=".time() : "";
 		}
 
 		//If empty marker return default marker

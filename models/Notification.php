@@ -64,7 +64,128 @@ class Notification{
 
 	    //TODO mail::invited
 	}
+	private static function array_column($array,$column_name)
+    {
+        return array_map(function($element) use($column_name){return $element[$column_name];}, $array);
 
+    }
+	public static function actionOnNews ( $verb, $icon, $author, $target, $mentions) 
+	{
+		$notification=array();
+		$url = Yii::app()->createUrl('/'.Yii::app()->controller->module->id.'/'.'news/index/type/'.$target["type"].'/id/'.$target["id"]);
+		foreach ($mentions as $data){
+			if($data["type"]==Person::COLLECTION){
+				if(!empty($notification) && array_search($data["id"], self::array_column($notification, 'persons'))){
+			    	foreach($notications as $i => $list){
+				    	foreach($list["persons"] as $id){
+					    	if($id==$data["id"]){
+						    	if($list["type"]==Organization::COLLECTION){
+							    	$nameOrga = $list["name"];
+							    	$pushNotif=array(
+										"type"=> Organization::COLLECTION,
+										"nameOrganization"=>@$nameOrga,
+										"nbMention"=>2,
+										"persons"=>array($data["id"]),
+										"label"=> $author["name"]." vous a mentionné avec ".$data["name"]." dans un post",
+										"url"=> $url,
+										"icon" => $icon
+									);
+									unset($notication[$i]);
+									array_push($notification, $pushNotif);
+						    	}
+					    	}
+				    	}
+			    	}
+		    	}else{
+	    			$people=array($data["id"]);
+	    			$pushNotif=array(
+							    "type"=> Person::COLLECTION,
+							    "persons"=>$people,
+							    "label"=> $author["name"]." vous a mentionné dans un post",
+							    "url"=> $url,
+							    "icon" => $icon
+								);
+					array_push($notification, $pushNotif);
+			    }
+				
+				
+			}
+			if($data["type"]==Organization::COLLECTION){
+				$admins = Organization::getMembersByOrganizationId( $data["id"], Person::COLLECTION , "isAdmin" );
+				$people=array();
+			    foreach ($admins as $key => $value) 
+			    {
+			    	if( $key != Yii::app()->session['userId'] && !in_array($key, $people) && count($people) < self::PEOPLE_NOTIFY_LIMIT ){
+				    	if(!empty($notification)){
+					    	foreach($notification as $i => $list){
+						    	foreach($list["persons"] as $id){
+							    	if($id==$key){
+								    	if($list["type"]==Organization::COLLECTION && @$list["nbMention"]!=2){
+									    	$nameOrga = @$list["nameOrganization"];
+									    	$pushNotif=array(
+												"type"=> Organization::COLLECTION,
+												"nameOrganization"=>$nameOrga,
+												"nbMention"=>2,
+												"persons"=>array($key),
+												"label"=> $author["name"]." a mentionné ".$data["name"]." et ".$nameOrga." dans un post",
+												"icon" => $icon,
+												"url"=> $url
+											);
+											array_push($notification, $pushNotif);
+								    	}
+										if($list["type"]==Person::COLLECTION){
+									    	$nameOrga = @$list["name"];
+									    	$pushNotif=array(
+												"type"=> Person::COLLECTION,
+												"nameOrganization"=>$data["name"],
+												"nbMention"=>2,
+												"persons"=> array($key),
+												"label"=> $author["name"]." vous a mentionné ainsi que ".$data["name"]." dans un post",
+												"icon" => $icon,
+												"url"=> $url
+											);
+											unset($notification[$i]);
+											array_push($notification, $pushNotif);
+								    	}
+							    	}
+						    	}
+					    	}
+					    }else{
+			    			array_push($people, $key);
+		    			}
+			    	}	
+			    }
+			    $pushNotif=array(
+							    "type"=> Organization::COLLECTION,
+							    "nameOrganization"=>$data["name"],
+							    "persons"=>$people,
+							    "label"=> $author["name"]." a mentioné ".$data["name"]." dans un post",
+							    "url"=> $url,
+							    "icon" => $icon 
+				);
+				array_push($notification, $pushNotif);
+			}
+		}
+		foreach($notification as $notif){
+			$asParam = array(
+		    	"type" => ActStr::TEST, 
+	            "verb" => $verb,
+	            "author"=>array(
+	            	"type" => Person::COLLECTION,
+	            	"id"   => $author["id"]
+	            ),
+	            "object"=>array(
+	            	"type" => Person::COLLECTION,
+	            	"id"   => $author["id"]
+	            ),
+	        );
+		    $stream = ActStr::buildEntry($asParam);
+		    $stream["notify"] = ActivityStream::addNotification( $notif );
+		    ActivityStream::addEntry($stream);
+		}
+		// Verbe ActStr::VERB_POST || ActStr::VERB_MENTION
+		
+	}
 	/*
 	when someone joins or leaves or disables a project / organization / event
 	notify all contributors
@@ -98,7 +219,7 @@ class Notification{
 	            "id"   => $targetId
             )
         );
-
+		
         //build list of people to notify
         $people = array();
         //when admin makes the change
@@ -164,39 +285,44 @@ class Notification{
 			$entryId = $target["id"];
 			if( $target["type"] == Survey::COLLECTION ){
 				$target["entry"] = Survey::getById( $target["id"] );
+				//var_dump($target); echo (string)$target["entry"]["_id"]; return;
 				$entryId = (string)$target["entry"]["survey"];
 			} else if( $target["type"] == ActionRoom::COLLECTION_ACTIONS ){
 				$target["entry"] = ActionRoom::getActionById( $target["id"] );
-				$entryId = (string)$target["entry"]["room"];
+				//echo "tageettttt ". var_dump($target["entry"]); //return;
+				$entryId = $target["entry"]["room"];
+				//echo "entryId : ".$entryId;return;
 			}
 
 			$room = ActionRoom::getById( $entryId );
 			$target["room"] = $room;
+			//echo "target : ".$entryId; var_dump($target); return;
+			if( @$room["parentType"] ){
+				if( $room["parentType"] == Project::COLLECTION ) {
+					$target["parent"] = Project::getById( $room["parentId"]);
+			    	$members = Project::getContributorsByProjectId( $room["parentId"] ,"all", null ) ;
+					$typeOfConnect="contributor";
+			    }
+			    else if( $room["parentType"] == Organization::COLLECTION) {
+			    	$target["parent"] = Organization::getById( $room["parentId"]);
+			    	$members = Organization::getMembersByOrganizationId( $room["parentId"] ,"all", null ) ;
+			    	$typeOfConnect="member";
+			    }
+			    else if( $room["parentType"] == Event::COLLECTION ) {
+			    	//TODO notify only the admin of the event
+			    	$target["parent"] = Event::getById( $room["parentId"]);
+			    	if($verb == ActStr::VERB_POST)
+		    			$members = Event::getAttendeesByEventId( $room["parentId"] , "all", null ) ;
+					else
+		    			$members = Event::getAttendeesByEventId( $room["parentId"] , "admin", "isAdmin" ) ;
 
-			if( $room["parentType"] == Project::COLLECTION ) {
-				$target["parent"] = Project::getById( $room["parentId"]);
-		    	$members = Project::getContributorsByProjectId( $room["parentId"] ,"all", null ) ;
-				$typeOfConnect="contributor";
-		    }
-		    else if( $room["parentType"] == Organization::COLLECTION) {
-		    	$target["parent"] = Organization::getById( $room["parentId"]);
-		    	$members = Organization::getMembersByOrganizationId( $room["parentId"] ,"all", null ) ;
-		    	$typeOfConnect="member";
-		    }
-		    else if( $room["parentType"] == Event::COLLECTION ) {
-		    	//TODO notify only the admin of the event
-		    	$target["parent"] = Event::getById( $room["parentId"]);
-		    	if($verb == ActStr::VERB_POST)
-	    			$members = Event::getAttendeesByEventId( $room["parentId"] , "all", null ) ;
-				else
-	    			$members = Event::getAttendeesByEventId( $room["parentId"] , "admin", "isAdmin" ) ;
-
-		    	//$members = Event::getAttendeesByEventId( $room["parentId"],"admin", "isAdmin" ) ;
-		    	$typeOfConnect="attendee";
-		    } else if( $room["parentType"] == City::COLLECTION ) {
-		    	//TODO notify only the admin of the event
-		    	$target["parent"] = City::getByUnikey( $room["parentId"]);
-		    }
+			    	//$members = Event::getAttendeesByEventId( $room["parentId"],"admin", "isAdmin" ) ;
+			    	$typeOfConnect="attendee";
+			    } else if( $room["parentType"] == City::COLLECTION ) {
+			    	//TODO notify only the admin of the event
+			    	$target["parent"] = City::getByUnikey( $room["parentId"]);
+			    }
+			}
 		}
 	    foreach ($members as $key => $value) 
 	    {
@@ -246,7 +372,7 @@ class Notification{
 		    	$url = $base.'/id/'.$target["id"];
 		    }
 	    } 
-	    else if($verb == ActStr::VERB_ADDROOM){
+	    else if($verb == ActStr::VERB_ADDROOM && @$target["parent"]){
 		    $label = Yii::t("rooms","{who} added a new Voting Room on {where}",array("{who}"=>Yii::app()->session['user']['name'],
 		    																					"{where}"=>$target["parent"]["name"]),Yii::app()->controller->module->id);
 		    $url = 'survey/entries/id/'.$target["id"];
@@ -268,7 +394,7 @@ class Notification{
 		    $url = 'survey/entry/id/'.$target["id"];
 	    }
 	    else if($verb == ActStr::VERB_ADD_ACTION){
-		    $label = Yii::t("rooms","{who} added a new Action {what} in {where}", array("{who}" => Yii::app()->session['user']['name'],
+	    	$label = Yii::t("rooms","{who} added a new Action {what} in {where}", array("{who}" => Yii::app()->session['user']['name'],
 		    																"{what}"=>$target["entry"]["name"],
 		    																"{where}"=>$target['parent']["name"]),Yii::app()->controller->module->id);
 		    $url = 'rooms/action/id/'.$target["id"];
@@ -379,7 +505,7 @@ class Notification{
 			$param["target"] = array(
 				"type" => $targetType, 
 				"id" => $targetId
-				);
+			);
 		}
 
 		if (!empty($tags))
@@ -394,10 +520,12 @@ class Notification{
 	}
 
 
-	/*
-	When a moderate is occured, is create notification for author and superadmin
+	/**
+	 * When a moderate is occured, is create notification for author and superadmin
 	notify the moderate
-	*/
+	 * @param type $news the news moderated
+	 * @return type
+	 */
 	public static function moderateNews ($news) 
 	{
 	    $asParam = array(
@@ -429,5 +557,56 @@ class Notification{
 	    
 	    //TODO mail::following
 	    //add a link to follow back easily
+	}
+
+	/**
+	 * Notification for the super admins.
+	 * Exemple : The cron return a mail error caused by alice@example.com
+	 * => The cron is the author
+	 * => return is the verb
+	 * => A mail error is the object
+	 * => alice@example.com is the target
+	 * @param String $verb Can be find on const of the ActStr class
+	 * @param array $author the one making the action array(type, id)
+	 * @param array $object the object. array(type, id, event)
+	 * @param array $target the target. array(type, id, email)
+	 * @return array : result : boolean / msg : string
+	 */
+	public static function actionToAdmin ( $verb, $author, $object, $target)  {
+ 		//Retrieve all super admins of the plateform
+ 		//TODO SBAR => superAdmins ID should be cached in order to make this request quicker ?
+ 		$superAdmins = Person::getCurrentSuperAdmins();
+
+ 		$asParam = array(
+	    	"type" => ActStr::TEST, 
+            "verb" => $verb,
+            "author"=>$author,
+            "object"=>$object,
+ 			"target"=>$target
+        );
+
+ 		//Error 
+ 		if ($verb == ActStr::VERB_RETURN) {
+ 			if (@$object["event"] == MailError::EVENT_BOUNCED_EMAIL) {
+ 				$actionMsg = "Fatal error sending an email to ".$target["email"].". User should be deleted.";	
+ 			} else if (@$object["event"] == MailError::EVENT_DROPPED_EMAIL || @$object["event"] == MailError::EVENT_SPAM_COMPLAINTS) {
+ 				$actionMsg = "Error sending an email to ".$target["email"].". User is flagged and will not receive a mail anymore.";	
+ 			} else {
+ 				error_log("Unknown event in Mail Error : no notification generated.");
+ 				return(array("result" => false, "msg" => "Unknown event in Mail Error : no notification generated."));
+ 			}
+ 			
+ 		}
+	    $stream = ActStr::buildEntry($asParam);
+
+		$notif = array( 
+	    	"persons" => array_keys($superAdmins),
+            "label"   => $actionMsg , 
+            "icon"    => "fa-cog" ,
+            "url"     => Yii::app()->createUrl('/'.Yii::app()->controller->module->id.'/admin/mailerrordashboard')
+        );
+
+	    $stream["notify"] = ActivityStream::addNotification( $notif );
+    	ActivityStream::addEntry($stream);
 	}
 }

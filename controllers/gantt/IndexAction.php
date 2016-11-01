@@ -31,7 +31,7 @@ class IndexAction extends CAction
         
         $podtitle = '';
         if( $type == Project::COLLECTION ) {
-        	$podtitle = Yii::t("gantt","PROJECT TIMELINE",null,Yii::app()->controller->module->id);
+        	$podtitle = Yii::t("gantt","Project timeline",null,Yii::app()->controller->module->id);
             $controller->toolbarMBZ = array("<a href='".Yii::app()->createUrl("/".$controller->module->id."/project/dashboard/id/".$id)."'><i class='fa fa-lightbulb-o'></i>Project</a>");
             $project = Project::getById($id);
 

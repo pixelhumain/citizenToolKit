@@ -7,11 +7,12 @@ class SaveRoomAction extends CAction
     public function run()
     {
         $res = array();
-        if( Yii::app()->session["userId"] )
+        if( Yii::app()->session["userId"] && @$_POST['name'] )
         {
             $email = $_POST["email"];
             $name  = $_POST['name'];
-            //if exists login else create the new user
+
+            //check if owner of the proposal exists login else create the new user
             if(PHDB::findOne (Person::COLLECTION, array( "email" => $email ) ))
             {
                 //udate the new app specific fields
@@ -19,15 +20,30 @@ class SaveRoomAction extends CAction
                 $newInfos['email'] = (string)$email;
                 $newInfos['name'] = (string)$name;
                 $newInfos['type'] = $_POST['type'];
-                if( isset( $_POST["parentType"] ) ) 
+                if( @$_POST["type"] == ActionRoom::TYPE_FRAMAPAD ) 
+                    $newInfos['url'] = "https://annuel.framapad.org/p/".InflectorHelper::slugify( $newInfos['name'] );
+
+                if( @$_POST["parentType"] ) 
                     $newInfos['parentType'] = $_POST['parentType'];
-                if( isset( $_POST["parentId"] ) ) 
+                if( @$_POST["parentId"] ) 
                     $newInfos['parentId'] = $_POST['parentId'];
-                
-                if( isset($_POST['tags']) && count($_POST['tags']) )
+
+                //these fields are necessary for multi scoping search features
+                if(@$_POST["parentType"] && @$_POST["parentId"]){
+                    $parent = Element::getByTypeAndId(@$_POST["parentType"], @$_POST["parentId"]);
+                    if(@$parent["address"])
+                        $newInfos['address'] = $parent["address"];
+                    if(@$parent["geo"])
+                        $newInfos['geo'] = $parent["geo"];
+                    if(@$parent["geoPosition"])
+                        $newInfos['geoPosition'] = $parent["geoPosition"];
+                }
+                if( @$_POST['tags'] && count($_POST['tags']) )
                     $newInfos['tags'] = $_POST['tags'];
                 
                 $newInfos['created'] = time();
+                $newInfos['updated'] = time();
+                $newInfos["modified"] = new MongoDate(time());
                 PHDB::insert( Survey::PARENT_COLLECTION, $newInfos );
                 /*PHDB::updateWithOptions( Survey::PARENT_COLLECTION,  array( "name" => $name ), 
                                                    array('$set' => $newInfos ) ,
@@ -39,7 +55,12 @@ class SaveRoomAction extends CAction
                 $res["newInfos"] = $newInfos;
 
                 //Notify Element participants 
-                Notification::actionOnPerson ( ActStr::VERB_ADDROOM, ActStr::ICON_ADD, "", array( "type" => ActionRoom::COLLECTION , "id" => (string)$newInfos["_id"] ));
+                Notification::actionOnPerson ( ActStr::VERB_ADDROOM, ActStr::ICON_ADD, "", 
+                                                array( "type" => ActionRoom::COLLECTION , 
+                                                       "id" => (string)$newInfos["_id"], 
+                                                       "parentId" => @$newInfos['parentId'] ? $newInfos['parentId'] : "", 
+                                                       "parentType" => @$newInfos['parentType'] ? $newInfos['parentType'] : "", 
+                                                       "name" => (string)$name ));
             }else
                 $res = array('result' => false , 'msg'=>"user doen't exist");
         } else

@@ -17,6 +17,8 @@ class SimplyAutoCompleteAction extends CAction
         $indexMax = isset($_POST['indexMax']) ? $_POST['indexMax'] : 100;
         $country = isset($_POST['country']) ? $_POST['country'] : "";
         $sourceKey = isset($_POST['sourceKey']) ? $_POST['sourceKey'] : null;
+        $mainTag = isset($_POST['mainTag']) ? $_POST['mainTag'] : null;
+
 
 
         if($search == null && $locality == null && $sourceKey == null) {
@@ -24,9 +26,9 @@ class SimplyAutoCompleteAction extends CAction
 			Yii::app()->end();
         }
         /***********************************  DEFINE GLOBAL QUERY   *****************************************/
-        $query = array( "name" => new MongoRegex("/".$search."/i"));		
+        $query = array( "name" => new MongoRegex("/".$search."/i"));
 
-        
+
         /***********************************  TAGS   *****************************************/
         $tmpTags = array();
         if(strpos($search, "#") > -1){
@@ -45,7 +47,24 @@ class SimplyAutoCompleteAction extends CAction
   		/***********************************  COMPLETED   *****************************************/
   		$query = array('$and' => array( $query , array("state" => array('$ne' => "uncomplete")) ));
 
-  		
+      /***********************************   MAINTAG    *****************************************/
+      $tmpmainTag = array();
+      if($mainTag != null && $mainTag != ""){
+          //Several Sourcekey
+  	  		if(is_array($mainTag)){
+  	  			foreach ($mainTag as $value) {
+  	  				$tmpMainTag[] = new MongoRegex("/".$value."/i");
+  	  			}
+  	  		}//One Sourcekey
+  	  		else{
+  	  			$tmpMainTag[] = new MongoRegex("/".$mainTag."/i");
+  	  		}
+	  		if(count($tmpMainTag)){
+	  			$query = array('$and' => array( $query , array("tags" => array('$in' => $tmpMainTag))));
+	  		}
+	  		unset($tmpMainTag);
+	  	}
+
   		/***********************************  SOURCEKEY   *****************************************/
   		$tmpSourceKey = array();
   		if($sourceKey != null && $sourceKey != ""){
@@ -85,7 +104,7 @@ class SimplyAutoCompleteAction extends CAction
 		        				$departements[] = $value["dep"];
 		        				$inQuest[] = new MongoRegex("/^".$value["dep"]."/i");
 					        	$queryLocality = array("address.postalCode" => array('$in' => $inQuest));
-		        				
+
 					        }
 	        			}
 	        		}elseif($key == "DEPARTEMENT") {
@@ -105,32 +124,33 @@ class SimplyAutoCompleteAction extends CAction
   				}
   			}
   		}
-  		if(isset($allQueryLocality) && is_array($allQueryLocality))$query = array('$and' => array($query, $allQueryLocality));
+  		if(isset($allQueryLocality) && is_array($allQueryLocality))
+  			$query = array('$and' => array($query, $allQueryLocality));
   		// print_r($query);
   		// $query = array('$and' => array($query, $queryLocality));
 
     //     if($locality != null && $locality != ""){
 
     //     	//$type = $this->getTypeOfLocalisation($locality);
-    //     	//if($searchBy == "INSEE") 
+    //     	//if($searchBy == "INSEE")
     //     	$type = $searchBy;
 
     //     	$queryLocality = array();
-        	
-    //     	if($type == "NAME"){ 
+
+    //     	if($type == "NAME"){
     //     		$queryLocality = array("address.addressLocality" => new MongoRegex("/".$locality."/i"));
     //     	}
     //     	if($type == "CODE_POSTAL_INSEE") {
     //     		$queryLocality = array("address.postalCode" => $locality );
     //     	}
     //     	if($type == "DEPARTEMENT") {
-    //     		$queryLocality = array("address.postalCode" 
+    //     		$queryLocality = array("address.postalCode"
 				// 		=> new MongoRegex("/^".$locality."/i"));
     //     	}
     //     	if($type == "REGION") {
     //     		//#TODO GET REGION NAME | CITIES.DEP = myDep
     //     		$regionName = PHDB::findOne( City::COLLECTION, array("insee" => $locality), array("regionName", "dep"));
-        		
+
 				// if(isset($regionName["regionName"])){ //quand la city a bien la donnée "regionName"
     //     			$regionName = $regionName["regionName"];
     //     			//#TODO GET ALL DEPARTMENT BY REGION
@@ -142,30 +162,30 @@ class SimplyAutoCompleteAction extends CAction
 	   //      				$departements[] = $value["dep"];
 	   //      				$inQuest[] = new MongoRegex("/^".$value["dep"]."/i");
 				//         	$queryLocality = array("address.postalCode" => array('$in' => $inQuest));
-	        				
+
 				//         }
     //     			}
     //     			//$queryLocality = array('$or' => $orQuest);
     //     			//error_log("queryLocality : " . print_R($queryLocality, true));
-        			
+
     //     		}else{ //quand la city communectée n'a pas la donnée "regionName", on prend son département à la place
     //     			$regionName = isset($regionName["dep"]) ? $regionName["dep"] : "";
-    //     			$queryLocality = array("address.postalCode" 
+    //     			$queryLocality = array("address.postalCode"
 				// 		=> new MongoRegex("/^".$regionName."/i"));
     //     		}
-        		
+
 
     //     		//$str = implode(",", $regionName);
     //     		error_log("regionName : ".$regionName );
 
-    //     		//#TODO CREATE REQUEST CITIES.POSTALCODE IN (LIST_DEPARTMENT)" 
-    //   //   		$queryLocality = array("address.postalCode" 
+    //     		//#TODO CREATE REQUEST CITIES.POSTALCODE IN (LIST_DEPARTMENT)"
+    //   //   		$queryLocality = array("address.postalCode"
 				// 		// => new MongoRegex("/^".$locality."/i"));
     //     	}
     //     	if($type == "INSEE") {
     //     		$queryLocality = array("address.codeInsee" => $locality );
     //     	}
-        	
+
     //     	$query = array('$and' => array($query, $queryLocality ) );
 	   //  }
 
@@ -205,9 +225,9 @@ class SimplyAutoCompleteAction extends CAction
 	  			// }
 
 	  	// 		$allOrganizations[$key]["profilThumbImageUrl"] = "";
-				// $allOrganizations[$key]["profilMarkerImageUrl"] = "//com/assets/dad45ab2/images/sig/markers/icons_carto/";		
+				// $allOrganizations[$key]["profilMarkerImageUrl"] = "//com/assets/dad45ab2/images/sig/markers/icons_carto/";
 				// $allOrganizations[$key]["logoImageUrl"] = "";
-				
+
 				// $allOrganizations[$key]["address"] = empty($value["address"]) ? array("addressLocality" => "Unknown") : $value["address"];
 
 				// $allOrganizations[$key] = Organization::getSimpleOrganizationById($key);
@@ -223,11 +243,11 @@ class SimplyAutoCompleteAction extends CAction
 
 	  	/***********************************  EVENT   *****************************************/
         if(strcmp($filter, Event::COLLECTION) != 0 && $this->typeWanted("events", $searchType)){
-        	
+
         	$queryEvent = $query;
-        	if( !isset( $queryEvent['$and'] ) ) 
+        	if( !isset( $queryEvent['$and'] ) )
         		$queryEvent['$and'] = array();
-        	
+
         	array_push( $queryEvent[ '$and' ], array( "endDate" => array( '$gte' => new MongoDate( time() ) ) ) );
 	  		$allEvents = PHDB::findAndSort( PHType::TYPE_EVENTS, $queryEvent, array("startDate" => 1), 100, array("name", "address", "startDate", "endDate", "shortDescription", "description"));
 	  		foreach ($allEvents as $key => $value) {
@@ -236,7 +256,7 @@ class SimplyAutoCompleteAction extends CAction
 				$event["typeSig"] = "events";
 				$allEvents[$key] = $event;
 	  		}
-	  		
+
 	  		//$res["event"] = $allEvents;
 	  		$allRes = array_merge($allRes, $allEvents);
 	  	}
@@ -256,11 +276,11 @@ class SimplyAutoCompleteAction extends CAction
 	  		//$res["project"] = $allProject;
 	  		$allRes = array_merge($allRes, $allProject);
 	  	}
-		    
+
 	  	/***********************************  CITIES   *****************************************/
         if(strcmp($filter, City::COLLECTION) != 0 && $this->typeWanted("cities", $searchType)){
 	  		$query = array( "name" => new MongoRegex("/".self::wd_remove_accents($search)."/i"));//array('$text' => array('$search' => $search));//
-	  		
+
 	  		/***********************************  DEFINE LOCALITY QUERY   *****************************************/
 	        	if($locality == null || $locality == ""){
 		    		$locality = $search;
@@ -268,7 +288,7 @@ class SimplyAutoCompleteAction extends CAction
 		    	$type = $this->getTypeOfLocalisation($locality);
 		    	if($searchBy == "INSEE") $type = $searchBy;
 	        	error_log("type " . $type);
-	    		if($type == "NAME"){ 
+	    		if($type == "NAME"){
 	        		$query = array('$or' => array( array( "name" => new MongoRegex("/".self::wd_remove_accents($locality)."/i")),
 	        									   array( "alternateName" => new MongoRegex("/".self::wd_remove_accents($locality)."/i")),
 	        									   array("postalCodes.name" => array('$in' => array(new MongoRegex("/".self::wd_remove_accents($locality)."/i"))))
@@ -300,11 +320,11 @@ class SimplyAutoCompleteAction extends CAction
 		  		foreach ($data["postalCodes"] as $val){
 			  		if($nbCities < $nbMaxCities){
 			  		$newCity = array();
-			  		//$regionName = 
+			  		//$regionName =
 			  		$newCity = array(
 			  						"_id"=>$data["_id"],
-			  						"insee" => $data["insee"], 
-			  						"regionName" => isset($data["regionName"]) ? $data["regionName"] : "", 
+			  						"insee" => $data["insee"],
+			  						"regionName" => isset($data["regionName"]) ? $data["regionName"] : "",
 			  						"country" => $data["country"],
 			  						"geoShape" => isset($data["geoShape"]) ? $data["geoShape"] : "",
 			  						"cp" => $val["postalCode"],
@@ -322,7 +342,7 @@ class SimplyAutoCompleteAction extends CAction
 			  		} $nbCities++;
 		  		}
 	  		}
-	  		
+
 
 	  		if(empty($allCitiesRes)){
 	  			$query = array( "cp" => $search);
@@ -336,7 +356,7 @@ class SimplyAutoCompleteAction extends CAction
 						$allCitiesRes[$key] = $city;
 					} $nbCities++;
 		  		}
-		  		//$res["cities"] = $allCitiesRes;  		
+		  		//$res["cities"] = $allCitiesRes;
 	  		}
 	  	}
 
@@ -348,7 +368,7 @@ class SimplyAutoCompleteAction extends CAction
 				return false;
 			}
 		}
-	  	
+
 	  	if(isset($allRes)) //si on a des resultat dans la liste
 	  		if(!$this->typeWanted("events", $searchType)) //si on n'est pas en mode "event" (les event sont classé par date)
 	  			usort($allRes, "mySort"); //on tri les éléments par ordre alphabetique sur le name
@@ -356,15 +376,15 @@ class SimplyAutoCompleteAction extends CAction
 	  	if(isset($allCitiesRes)) usort($allCitiesRes, "mySort");
 
 	  	//error_log("count : " . count($allRes));
-	  	if(count($allRes) < $indexMax) 
-	  		if(isset($allCitiesRes)) 
+	  	if(count($allRes) < $indexMax)
+	  		if(isset($allCitiesRes))
 	  			$allRes = array_merge($allRes, $allCitiesRes);
 
 	  	$limitRes = $filters = array();
 	  	$index = 0;
 	  	foreach ($allRes as $key => $value) {
 	  		//Limit <pagination
-	  		if($index < $indexMax && $index >= $indexMin){ 
+	  		if($index < $indexMax && $index >= $indexMin){
 	  			$limitRes[] = $value;
 		  	}
 
@@ -426,11 +446,11 @@ class SimplyAutoCompleteAction extends CAction
 	{
 		return $str;
 	    $str = htmlentities($str, ENT_NOQUOTES, $charset);
-	    
+
 	    $str = preg_replace('#&([A-za-z])(?:acute|cedil|caron|circ|grave|orn|ring|slash|th|tilde|uml);#', '\1', $str);
 	    $str = preg_replace('#&([A-za-z]{2})(?:lig);#', '\1', $str); // pour les ligatures e.g. '&oelig;'
 	    $str = preg_replace('#&[^;]+;#', '', $str); // supprime les autres caractères
-	    
+
 	    return $str;
 	}
 

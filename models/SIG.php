@@ -1,6 +1,6 @@
 <?php
 /*
-Contains anything generix for the site 
+Contains anything generix for the site
  */
 class SIG
 {
@@ -23,7 +23,7 @@ class SIG
 		$cs->registerScriptFile(Yii::app()->theme->baseUrl.'/assets/js/leaflet.markercluster-src.js' , CClientScript::POS_END);
 		return $cs;
     }
-    
+
 
 
     public static function geoCodage($organization){
@@ -43,11 +43,11 @@ class SIG
 					$newOrganization['address']['geo']['longitude'] = $valueAdress['lon'] ;
 				}
 
-			}	
+			}
 			curl_close($curl);
 		}
     }
-	
+
 	//ajoute la position géographique d'une donnée si elle contient un Code Postal
 	//add geographical position to a data if it contains Postal Code
 	public static function addGeoPositionToEntity($entity){
@@ -56,23 +56,22 @@ class SIG
 			if($geoPos != false){
 				$entity["geo"] = $geoPos;
 			}
-			
-		} 
+
+		}
 		return $entity;
 	}
 
 	//ajoute la position géographique d'une donnée si elle contient un Code Postal
 	//add geographical position to a data if it contains Postal Code
 	public static function updateEntityGeoposition($entityType, $entityId, $latitude, $longitude){
-		
+
 		error_log("updateEntity Start");
 		$geo = array("@type"=>"GeoCoordinates", "latitude" => $latitude, "longitude" => $longitude);
 		$geoPosition = array("type"=>"Point", "coordinates" => array(floatval($longitude), floatval($latitude)));
 
 		//PH::update($entityType,array("geo" => $geo));
 
-		if($entityType == PHType::TYPE_CITOYEN || $entityType == PHType::TYPE_PERSON ){
-			var_dump($entityType);
+		/*if($entityType == PHType::TYPE_CITOYEN || $entityType == PHType::TYPE_PERSON ){
 			error_log("update TYPE_CITOYEN");
 			Person::updatePersonField($entityId, "geo", $geo, Yii::app()->session['userId'] );
 			Person::updatePersonField($entityId, "geoPosition", $geoPosition, Yii::app()->session['userId'] );
@@ -91,6 +90,12 @@ class SIG
 			error_log("update TYPE_EVENTS");
 			Event::updateEventField($entityId, "geo", $geo, Yii::app()->session['userId'] );
 			Event::updateEventField($entityId, "geoPosition", $geoPosition, Yii::app()->session['userId'] );
+		}*/
+
+		$types = array(Person::COLLECTION, Event::COLLECTION, Organization::COLLECTION, Project::COLLECTION);
+		if(in_array($entityType, $types)){
+		 	Element::updateField($entityType, $entityId, "geo", $geo);
+		 	Element::updateField($entityType, $entityId, "geoPosition", $geoPosition);
 		}
 
 		if(Import::isUncomplete($entityId, $entityType))
@@ -109,7 +114,7 @@ class SIG
 									"longitude" => $data["geo"]["longitude"]);
 				}
 			}
-		}						
+		}
 		return $geopos;
 	}
 
@@ -122,7 +127,7 @@ class SIG
 							"latitude" => $city["geo"]["latitude"],
 							"longitude" => $city["geo"]["longitude"]);
 		} return false;
-		
+
 	}
 
 	////récupère la ville qui correspond à une position géographique
@@ -130,14 +135,14 @@ class SIG
 	//https://docs.mongodb.org/manual/reference/operator/query/near/#op._S_near
 	public static function getCityByLatLng($lat, $lng, $cp){
 
-		// $request = array("geoShape"  => 
-		// 				  array('$geoIntersects'  => 
-		// 				  	array('$geometry' => 
-		// 				  		array("type" 	    => "Point", 
+		// $request = array("geoShape"  =>
+		// 				  array('$geoIntersects'  =>
+		// 				  	array('$geometry' =>
+		// 				  		array("type" 	    => "Point",
 		// 				  			  "coordinates" => array(floatval($lng), floatval($lat)))
 		// 				  		)));
 		// if($cp != null){ $request = array_merge(array("cp"  => $cp), $request); }
-		
+
 		// $oneCity =	PHDB::findOne(City::COLLECTION, $request);
 
 		$oneCity = null;
@@ -145,11 +150,11 @@ class SIG
 		//error_log($lng." - ".$lat);
 		if($oneCity == null){
 			$request = array("postalCodes.geoPosition" => array( '$exists' => true ),
-							 "postalCodes.geoPosition.coordinates"  => 
-							  array('$near'  => 
-								  	array(	'$geometry' => 
-								  			array("type" 	    => "Point", 
-								  			   	  "coordinates" => array( floatval($lng), 
+							 "postalCodes.geoPosition"  => 
+							  array('$near'  =>
+								  	array(	'$geometry' =>
+								  			array("type" 	    => "Point",
+								  			   	  "coordinates" => array( floatval($lng),
 								  			  						   	  floatval($lat) )
 											  			 		),
 							  		 		'$maxDistance' => 50000,
@@ -157,7 +162,7 @@ class SIG
 							  			 ),
 						  	 		)
 					   		);
-				
+
 			if($cp != null){ $request = array_merge(array("postalCodes.postalCode" => array('$in' => array($cp))), $request); }
 
 			$cities =	PHDB::findAndSort(City::COLLECTION, $request, array());
@@ -172,13 +177,13 @@ class SIG
 					$city["geoPosition"] = $valueCP["geoPosition"];
 					$allCities[] = $city;
 
-				}	
+				}
 			}
 			//var_dump($oneCity);
 		}
 
-		// var_dump($request);	
-		// var_dump($oneCity);	
+		// var_dump($request);
+		// var_dump($oneCity);
 		//var_dump($oneCity);
 		return $allCities;
 	}
@@ -241,7 +246,7 @@ class SIG
 					if ($data["postalCode"]==$postalCode){
 						$position = isset($data["geo"]) ? array("geo" => $data["geo"]) : "";
 						if($position == ""){
-							$position = isset($data["geoPosition"]) ? array("geoPosition" => $data["geoPosition"]) : "";	
+							$position = isset($data["geoPosition"]) ? array("geoPosition" => $data["geoPosition"]) : "";
 						}
 						if(isset($data["name"]))	{ $position["name"] 	= $data["name"]; }
 						break;
@@ -251,13 +256,13 @@ class SIG
 			else{
 				$position = isset($city["geo"]) ? array("geo" => $city["geo"]) : "";
 				if($position == ""){
-					$position = isset($city["geoPosition"]) ? array("geoPosition" => $city["geoPosition"]) : "";	
+					$position = isset($city["geoPosition"]) ? array("geoPosition" => $city["geoPosition"]) : "";
 				}
 				if(isset($city["name"]))	{ $position["name"] 	= $city["name"]; }
 			}
 			if(isset($city["geoShape"])){ $position["geoShape"] = $city["geoShape"]; }
 			//var_dump($position); die();
-			
+
 			return $position;
 		}
 	}
@@ -301,13 +306,13 @@ class SIG
 					$newCity["postalCode"] = $data["postalCode"];
 					$newCity["geo"] = $data["geo"];
 					$newCity["geoPosition"] = $data["geoPosition"];
-					$cities[]=$newCity;	
+					$cities[]=$newCity;
 				}
-		
-			}		
+
+			}
 		}
 		return $cities;
-		
+
 	}
 
 	public static function getAdressSchemaLikeByCodeInsee($codeInsee, $postalCode = null, $cityName = null) {
@@ -316,14 +321,16 @@ class SIG
 		$address["@type"] = "PostalAddress";
 		$address["codeInsee"] = isset($city['insee']) ? $city['insee'] : "" ;
 		$address["addressCountry"] = isset($city['country']) ? $city['country'] : "";
+		$address["depName"] = isset($city['depName']) ? $city['depName'] : "";
+		$address["regionName"] = isset($city['regionName']) ? $city['regionName'] : "";
 		if($postalCode != null){
 			foreach ($city["postalCodes"] as $data){
 				if ($data["postalCode"]==$postalCode){
 					if ($cityName == null || $data["name"] == $cityName){
 					$address["postalCode"] = $data["postalCode"];
-					$address["addressLocality"] = $data["name"]; 
+					$address["addressLocality"] = $data["name"];
 					}
-					
+
 				}
 			}
 		}
@@ -340,14 +347,14 @@ class SIG
 
 
 	public static function getCityByLatLngGeoShape($lat, $lng, $cp){
-		$request = array("geoShape"  => 
-		 				  array('$geoIntersects'  => 
-		 				  	array('$geometry' => 
-		 				  		array("type" 	    => "Point", 
+		$request = array("geoShape"  =>
+		 				  array('$geoIntersects'  =>
+		 				  	array('$geometry' =>
+		 				  		array("type" 	    => "Point",
 	 				  			  	"coordinates" => array(floatval($lng), floatval($lat)))
 		 				  		)));
 		if($cp != null){ $request = array_merge(array("postalCodes.postalCode" => array('$in' => array($cp))), $request); }
-		
+
 		$oneCity =	PHDB::findOne(City::COLLECTION, $request);
 
 		return $oneCity;
@@ -373,7 +380,7 @@ class SIG
 	       				$insee = $entity['address']["codeInsee"];
 	       				if(!empty($entity['geo'])){
 	       					$find = false;
-	       					if( ($entity['geo']["latitude"]>= -90 && $entity['geo']["latitude"]<= 90) && ($entity['geo']["longitude"]>= -180 && $entity['geo']["longitude"]<= 180) ){ 
+	       					if( ($entity['geo']["latitude"]>= -90 && $entity['geo']["latitude"]<= 90) && ($entity['geo']["longitude"]>= -180 && $entity['geo']["longitude"]<= 180) ){
 
 	       						$city = SIG::getCityByLatLngGeoShape($entity['geo']["latitude"], $entity['geo']["longitude"], $entity['address']["postalCode"]);
 		     					if(!empty($city)){
@@ -388,15 +395,15 @@ class SIG
 		       						$result["name"] = $entity["name"];
 			       					$result["error"] = "Nous n'avons pas trouver de commune";
 			       					$res[$type][]= $result ;
-		       					} 
-				                
+		       					}
+
 				            }else{
 				            	$result["id"] = (String)$entity["_id"];
 	       						$result["name"] = $entity["name"];
 		       					$result["error"] = "Cette entité a une mauvaise géolocalisation";
 		       					$res[$type][]= $result ;
 				            }
-	       					
+
 	       				}else{
 		       				$result["id"] = (String)$entity["_id"];
 		       				//$result["name"] = (String)$entity["_id"];
@@ -409,10 +416,10 @@ class SIG
 	       				$result["name"] = $entity["name"];
 	       				$result["error"] = "Cette entité n'a pas de code Insee et/ou de code postal";
 	       				$res[$type][]= $result ;
-	       			}	
+	       			}
 	       		}
 	       	}
-       	}	
+       	}
         return $res;
     }
 

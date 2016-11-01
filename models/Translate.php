@@ -5,6 +5,7 @@ class Translate {
 	const FORMAT_PLP = "plp";
 	const FORMAT_AS = "activityStream";
 	const FORMAT_COMMUNECTER = "communecter";
+	const FORMAT_RSS = "rss";
 
 	public static function convert($data,$bindMap)
 	{
@@ -164,4 +165,39 @@ class Translate {
 		return $val;
 	}
 
+
+	public static function pastTime($date,$type) {
+	    if($type == "timestamp") {
+	        $date2 = $date; // depuis cette date
+	    } elseif($type == "date") {
+	        $date2 = strtotime($date); // depuis cette date
+	    } else {
+	        return "Non reconnu";
+	    }
+	    $Ecart = time()-$date2;
+	    $Annees = date('Y',$Ecart)-1970;
+	    $Mois = date('m',$Ecart)-1;
+	    $Jours = date('d',$Ecart)-1;
+	    $Heures = date('H',$Ecart)-1;
+	    $Minutes = date('i',$Ecart);
+	    $Secondes = date('s',$Ecart);
+	    if($Annees > 0) {
+	        return "il y a ".$Annees." an".($Annees>1?"s":"")." et ".$Jours." jour".($Jours>1?"s":""); // on indique les jours avec les année pour être un peu plus précis
+	    }
+	    if($Mois > 0) {
+	        return "il y a ".$Mois." mois et ".$Jours." jour".($Jours>1?"s":""); // on indique les jours aussi
+	    }
+	    if($Jours > 0) {
+	        return "il y a ".$Jours." jour".($Jours>1?"s":"");
+	    }
+	    if($Heures > 0) {
+	        return "il y a ".$Heures." heure".($Heures>1?"s":"");
+	    }
+	    if($Minutes > 0) {
+	        return "il y a ".$Minutes." minute".($Minutes>1?"s":"");
+	    }
+	    if($Secondes > 0) {
+	        return "il y a ".$Secondes." seconde".($Secondes>1?"s":"");
+	    }
+	}
 }

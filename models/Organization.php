@@ -14,24 +14,31 @@ class Organization {
 	const TYPE_GROUP = "Group";
 	const TYPE_GOV = "GovernmentOrganization";
 
+	public static $types = array(
+        "NGO" => "Association",
+        "LocalBusiness" => "Entreprise",
+        "Group" => "Groupe",
+        "GovernmentOrganization" => "Organisation Gouvernementale"
+	); 
+
 	//From Post/Form name to database field name
-	private static $dataBinding = array(
+	//TODO : remove name
+	public static $dataBinding = array(
 	    "name" => array("name" => "name", "rules" => array("required", "organizationSameName")),
 	    "email" => array("name" => "email", "rules" => array("email")),
-	    "created" => array("name" => "created"),
-	    "creator" => array("name" => "creator"),
 	    "type" => array("name" => "type"),
 	    "shortDescription" => array("name" => "shortDescription"),
 	    "description" => array("name" => "description"),
 	    "category" => array("name" => "category"),
-	    "address" => array("name" => "address"),
+	    "address" => array("name" => "address", "rules" => array("addressValid")),
+	    "addresses" => array("name" => "addresses"),
 	    "streetAddress" => array("name" => "address.streetAddress"),
 	    "postalCode" => array("name" => "address.postalCode"),
 	    "city" => array("name" => "address.codeInsee"),
 	    "addressLocality" => array("name" => "address.addressLocality"),
 	    "addressCountry" => array("name" => "address.addressCountry"),
-	    "geo" => array("name" => "geo"),
-	    "geoPosition" => array("name" => "geoPosition"),
+	    "geo" => array("name" => "geo", "rules" => array("geoValid")),
+	    "geoPosition" => array("name" => "geoPosition", "rules" => array("geoPositionValid")),
 	    "tags" => array("name" => "tags"),
 	    "typeIntervention" => array("name" => "typeIntervention"),
 	    "typeOfPublic" => array("name" => "typeOfPublic"),
@@ -50,6 +57,16 @@ class Organization {
 	    "urlTwitter" => array("name" => "urlTwitter"),
 	    "isOpenData" => array("name" => "isOpenData"),
 	    "badges" => array("name" => "badges"),
+	    "role" => array("name" => "role"),
+	    "medias" => array("name" => "medias"),
+	    "urls" => array("name" => "urls"),
+
+	    "modified" => array("name" => "modified"),
+	    "updated" => array("name" => "updated"),
+	    "creator" => array("name" => "creator"),
+	    "created" => array("name" => "created"),
+
+	    "locality" => array("name" => "address"),
 	);
 	
 	//See findOrganizationByCriterias...
@@ -62,7 +79,7 @@ class Organization {
 		return DataValidator::getCollectionFieldNameAndValidate(self::$dataBinding, $organizationFieldName, $organizationFieldValue, $organizationId);
 	}
 
-	/**
+	/** TODO : REOMVE DEPRECATED with ELement refactor
 	 * insert a new organization in database
 	 * @param array A well format organization 
 	 * @param String $creatorId : an existing user id representing the creator of the organization
@@ -88,7 +105,8 @@ class Organization {
 		if(empty($newOrganization["preferences"])){
 			$newOrganization["preferences"] = array("publicFields" => array(), "privateFields" => array(), "isOpenData"=>true,"isOpenEdition"=>true);
 		}
-	
+		$newOrganization["modified"] = new MongoDate(time());
+		$newOrganization["updated"] = time();	
 		//Insert the organization
 	    PHDB::insert( Organization::COLLECTION, $newOrganization);
 		
@@ -97,6 +115,8 @@ class Organization {
 	    } else {
 	    	throw new CTKException(Yii::t("organization","Problem inserting the new organization"));
 	    }
+
+	    Badge::addAndUpdateBadges("opendata", $newOrganizationId, Organization::COLLECTION);
 		
 		//Manage link with the creator depending of the role selected
 		if (@$organization["role"] == "admin") {
@@ -151,25 +171,100 @@ class Organization {
 		    			"newOrganization"=> $newOrganization);
 	}
 	
+	/**
+	 * insert a new organization in database
+	 * @param array A well format organization 
+	 * @param String $creatorId : an existing user id representing the creator of the organization
+	 * @param String $adminId : can be ommited. user id representing the administrator of the organization
+	 * @return array result as an array. 
+	 */
+	public static function afterSave($organization, $creatorId,$paramLinkImport=null) {
+	    $newOrganizationId = (string)$organization['_id'];
+		Badge::addAndUpdateBadges("opendata", $newOrganizationId, Organization::COLLECTION);
+		
+		//Manage link with the creator depending of the role selected
+		if (@$organization["role"] == "admin") {
+			$isToLink = true;
+			$memberId = $creatorId;
+			$isAdmin = true;
+		} else if (@$organization["role"] == "member") {
+			$isToLink = true;
+			$memberId = $creatorId;
+			$isAdmin = false;
+		} else if (@$organization["role"] == "creator") {
+			$isToLink = false;
+		}
+		unset($organization["role"]);
+		
+		if ($isToLink) {
+			//Create link in both entity person and organization 
+			Link::connect($newOrganizationId, Organization::COLLECTION, $memberId, Person::COLLECTION, $creatorId,"members",$isAdmin);
+			Link::connect($memberId, Person::COLLECTION, $newOrganizationId, Organization::COLLECTION, $creatorId,"memberOf",$isAdmin);
+		   // Link::addMember($newOrganizationId, Organization::COLLECTION, $memberId, Person::COLLECTION, $creatorId, $isAdmin);
+		}
+
+		if (@$paramLinkImport) {
+			$idLink = $paramLinkImport["idLink"];
+			$typeLink = $paramLinkImport["typeLink"];
+			if (@$paramLinkImport["role"] == "admin"){
+				$isAdmin = true;
+			}else{
+				$isAdmin = false;
+			}
+
+			if($typeLink == Organization::COLLECTION){
+				Link::connect($idLink, $typeLink, $newOrganizationId, self::COLLECTION, $creatorId,"members", false);
+				Link::connect($newOrganizationId, self::COLLECTION, $idLink, $typeLink, $creatorId,"memberOf",false);
+			}
+			else if($typeLink == Person::COLLECTION){
+				Link::connect($newOrganizationId, self::COLLECTION, $idLink, Person::COLLECTION, $creatorId,"members",$isAdmin);
+				Link::connect($idLink, $typeLink, $newOrganizationId, self::COLLECTION, $creatorId,"memberOf",$isAdmin);
+			}
+		} 
+	    //send Notification Email
+	    $creator = Person::getById($creatorId);
+	    //Mail::organization($creator,$organization);
+	    if(isset($organization["geo"]) && !empty($organization["geo"])){
+		    $orgaGeo=$organization["geo"];
+	    }
+	    else
+	    	$orgaGeo="";
+	    
+	    $orgaTags= ((@$organization["tags"] && !empty($organization["tags"]))?$organization["tags"]:null);
+	    
+	    if (@$organization["address"]["codeInsee"] && !empty($organization["address"]["codeInsee"]))
+	    	$orgaCodeInsee=$organization["address"];
+	    else
+	    	$orgaCodeInsee="";
+	    
+		Notification::createdObjectAsParam(Person::COLLECTION,$creatorId,Organization::COLLECTION, $newOrganizationId, Person::COLLECTION,$creatorId, $orgaGeo,$orgaTags,$orgaCodeInsee);
+		ActivityStream::saveActivityHistory(ActStr::VERB_CREATE, $newOrganizationId, Organization::COLLECTION, "organization", $organization["name"]);
+	    $organization = Organization::getById($newOrganizationId);
+	    return array("result"=>true,
+		    			"msg"=>"Votre organisation est communectée.", 
+		    			"id"=>$newOrganizationId, 
+		    			"organization"=> $organization);
+	}
+
 	public static function newOrganizationFromPost($organization) {
 		$newOrganization = array();
-		if (isset($organization['organizationEmail'])) $newOrganization["email"] = trim($organization['organizationEmail']);
-		if (isset($organization['organizationName'])) $newOrganization["name"] = rtrim($organization['organizationName']);
-		if (isset($organization['type'])) $newOrganization["type"] = $organization['type'];
+		if (@$organization['organizationEmail']) $newOrganization["email"] = trim($organization['organizationEmail']);
+		if (@$organization['organizationName']) $newOrganization["name"] = rtrim($organization['organizationName']);
+		if (@$organization['type']) $newOrganization["type"] = $organization['type'];
 		
 		//Location
-		if (isset($organization['streetAddress'])) $newOrganization["streetAddress"] = rtrim($organization['streetAddress']);
-		if (isset($organization['postalCode'])) $newOrganization["postalCode"] = $organization['postalCode'];
-		if (isset($organization['city'])) $newOrganization["city"] = $organization['city'];
-		if (isset($organization['cityName'])) $newOrganization["cityName"] = $organization['cityName'];
-		if (isset($organization['organizationCountry'])) $newOrganization["addressCountry"] = $organization['organizationCountry'];
+		if (@$organization['streetAddress']) $newOrganization["streetAddress"] = rtrim($organization['streetAddress']);
+		if (@$organization['postalCode']) $newOrganization["postalCode"] = $organization['postalCode'];
+		if (@$organization['city']) $newOrganization["city"] = $organization['city'];
+		if (@$organization['cityName']) $newOrganization["cityName"] = $organization['cityName'];
+		if (@$organization['organizationCountry']) $newOrganization["addressCountry"] = $organization['organizationCountry'];
 
-		if (isset($organization['description'])) $newOrganization["description"] = rtrim($organization['description']);
-		if (isset($organization['tagsOrganization'])) $newOrganization["tags"] = $organization['tagsOrganization'];
-		if (isset($organization['typeIntervention'])) $newOrganization["typeIntervention"] = $organization['typeIntervention'];
-		if (isset($organization['typeOfPublic'])) $newOrganization["typeOfPublic"] = $organization['typeOfPublic'];
-		if (isset($organization['category'])) $newOrganization["category"] = $organization['category'];
-		if (isset($organization['role'])) $newOrganization["role"] = $organization['role'];
+		if (@$organization['description']) $newOrganization["description"] = rtrim($organization['description']);
+		if (@$organization['tagsOrganization']) $newOrganization["tags"] = $organization['tagsOrganization'];
+		if (@$organization['typeIntervention']) $newOrganization["typeIntervention"] = $organization['typeIntervention'];
+		if (@$organization['typeOfPublic']) $newOrganization["typeOfPublic"] = $organization['typeOfPublic'];
+		if (@$organization['category']) $newOrganization["category"] = $organization['category'];
+		if (@$organization['role']) $newOrganization["role"] = $organization['role'];
 
 		//error_log("latitude : ".$organization['geoPosLatitude']);
 		if(!empty($organization['geoPosLatitude']) && !empty($organization["geoPosLongitude"])){
@@ -221,7 +316,7 @@ class Organization {
 		return $organization ;
 	}
 
-	/**
+	/** TODO : REOMVE DEPRECATED with ELement refactor
 	 * Apply organization checks and business rules before inserting
 	 * @param array $organization : array with the data of the organization to check
 	 * @return array Organization well format : ready to be inserted
@@ -393,10 +488,11 @@ class Organization {
 	 * @param String $id of the organization
 	 * @return array with data id, name, profilImageUrl, logoImageUrl
 	 */
-	public static function getSimpleOrganizationById($id) {
+	public static function getSimpleOrganizationById($id,$orga=null) {
 
 		$simpleOrganization = array();
-		$orga = PHDB::findOneById( self::COLLECTION ,$id, array("id" => 1, "name" => 1, "type" => 1, "email" => 1,  "shortDescription" => 1, "description" => 1, "address" => 1, "pending" => 1, "tags" => 1, "geo" => 1, "profilImageUrl" => 1, "profilThumbImageUrl" => 1, "profilMarkerImageUrl" => 1) );
+		if(!$orga)
+			$orga = PHDB::findOneById( self::COLLECTION ,$id, array("id" => 1, "name" => 1, "type" => 1, "email" => 1,  "shortDescription" => 1, "description" => 1, "address" => 1, "pending" => 1, "tags" => 1, "geo" => 1, "updated" => 1, "profilImageUrl" => 1, "profilThumbImageUrl" => 1, "profilMarkerImageUrl" => 1,"profilMediumImageUrl" => 1) );
 		if(!empty($orga)){
 			$simpleOrganization["id"] = $id;
 			$simpleOrganization["name"] = @$orga["name"];
@@ -407,6 +503,7 @@ class Organization {
 			$simpleOrganization["geo"] = @$orga["geo"];
 			$simpleOrganization["shortDescription"] = @$orga["shortDescription"];
 			$simpleOrganization["description"] = @$orga["description"];
+			$simpleOrganization["updated"] = @$orga["updated"];
 			$simpleOrganization = array_merge($simpleOrganization, Document::retrieveAllImagesUrl($id, self::COLLECTION, @$orga["type"], $orga));
 			
 			$logo = Document::getLastImageByKey($id, self::COLLECTION, Document::IMG_LOGO);
@@ -449,9 +546,10 @@ class Organization {
 	  	}
 	  	return $res;
 	}
-	public static function getFollowersByOrganizationId($id) {
+	public static function getFollowersByOrganizationId($id,$organization=null) {
 	  	$res = array();
-	  	$organization = Organization::getById($id);
+	  	if(!$organization)
+	  		$organization = Organization::getById($id);
 	  	
 	  	if (empty($organization)) {
             throw new CTKException(Yii::t("organization", "The organization id is unkown : contact your admin"));
@@ -670,9 +768,13 @@ class Organization {
 	 * @return boolean True if the update has been done correctly. Can throw CTKException on error.
 	 */
 	 public static function updateOrganizationField($organizationId, $organizationFieldName, $organizationFieldValue, $userId){
-	 	$authorization=Authorisation::canEditItem($userId, self::COLLECTION, $organizationId);
-	 	if (!$authorization) {
-			return Rest::json(array("result"=>false, "msg"=>Yii::t("organization", "Unauthorized Access.")));
+	 	$pref = Preference::getPreferencesByTypeId($organizationId, self::COLLECTION);
+	 	$authorization = Preference::isOpenEdition($pref);
+	 	if($authorization == false){
+		 	$authorization=Authorisation::canEditItem($userId, self::COLLECTION, $organizationId);
+		 	if (!$authorization) {
+				return Rest::json(array("result"=>false, "msg"=>Yii::t("organization", "Unauthorized Access.")));
+			}
 		}
 		$res = self::updateField($organizationId, $organizationFieldName, $organizationFieldValue, $authorization);
 	                  
@@ -716,13 +818,17 @@ class Organization {
 			}
 		}
 		//update the organization
+		$set["modified"] = new MongoDate(time());
+		$set["updated"] = time();
 		PHDB::update( Organization::COLLECTION, array("_id" => new MongoId($organizationId)), 
 		                          array('$set' => $set));
+
 		if($authorization == "openEdition" && $dataFieldName != "badges"){
 			// Add in activity to show each modification added to this entity
 			//echo $dataFieldName;
 			ActivityStream::saveActivityHistory(ActStr::VERB_UPDATE, $organizationId, Organization::COLLECTION, $dataFieldName, $organizationFieldValue);
-		}	
+		}
+			
 
 		return true;
 	}
@@ -1298,6 +1404,11 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 
 
 		return $organization ;
+	}
+
+
+	public static function getDataBinding() {
+	  	return self::$dataBinding;
 	}
 
 

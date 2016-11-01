@@ -17,7 +17,8 @@ class DetailAction extends CAction {
         $organizer = array();
         $people = array();
         $attending =array();
-		$openEdition = @$event["preferences"]["isOpenEdition"];
+		//$openEdition = Preference::isOpenEdition($event["preferences"]);
+		$openEdition = Authorisation::isOpenEdition((string)$event["_id"], Event::COLLECTION, @$event["preferences"]);
 		$invitedNumber=0;
 		$attendeeNumber=0;
         if(!empty($event)){
@@ -63,15 +64,15 @@ class DetailAction extends CAction {
 							$organizer["type"]=$urlType;
 							$organizer["typeOrga"]=$organizerInfo["type"];              
                 		}
-						else{
+						else {
 							$iconNav="fa-user";
 			                $urlType="person";	
 			                $organizerInfo = Person::getSimpleUserById($uid);  
 							$organizer["type"]=$urlType;
 						}
                 		$organizer["id"] = $uid;
-                		$organizer["name"] = $organizerInfo["name"];
-                		$organizer["profilImageUrl"] = $organizerInfo["profilImageUrl"];
+                		$organizer["name"] = @$organizerInfo["name"];
+                		$organizer["profilImageUrl"] = @$organizerInfo["profilImageUrl"];
                 		/*array_push($controller->toolbarMBZ, array('position' => 'right', 
                                                           'label'=> Yii::t("common","Organizator detail"), 
                                                           'tooltip' => Yii::t("common","Back to")." ".$urlType, 
@@ -89,23 +90,30 @@ class DetailAction extends CAction {
             	}
           	}
         }
-        //events can have sub evnets
+        //events can have sub events
         $params["subEvents"] = PHDB::find(Event::COLLECTION,array("parentId"=>$id));
         $params["subEventsOrganiser"] = array();
         $hasSubEvents = false;
         if(@$params["subEvents"]){
         	$hasSubEvents = true;
-        	foreach ($params["subEvents"] as $key => $value) {
-        		if( @$value["links"]["organizer"] )
+        	foreach ($params["subEvents"] as $idSubEvent => $subEvent) {
+        		if( @$subEvent["links"]["organizer"] )
         		{
-	        		foreach ($value["links"]["organizer"] as $key => $value) {
-	        			if( !@$params["subEventsOrganiser"][$key])
-	        				$params["subEventsOrganiser"][$key] = Element::getInfos( $value["type"], $key);
+	        		foreach ($subEvent["links"]["organizer"] as $idOrganizer => $value) {
+	        			if( !@$params["subEventsOrganiser"][$idOrganizer])
+	        				$params["subEventsOrganiser"][$idOrganizer] = Element::getInfos( $value["type"], $idOrganizer);
 	        		}
         		}
         	}
         }
         Menu::event($event,$hasSubEvents);
+
+        $admin = false;
+		if(isset(Yii::app()->session["userId"]) && isset($id)){
+			$admin = Authorisation::canEditItem(Yii::app()->session["userId"], Event::COLLECTION, (string)$event["_id"]);
+		}
+
+		$params["tags"] = Tags::getActiveTags();
         $params["invitedNumber"]=$invitedNumber;
         $params["attendeeNumber"]= $attendeeNumber;
         $params["images"] = $images;
@@ -116,6 +124,8 @@ class DetailAction extends CAction {
         $params["people"] = $people;
         $params["openEdition"] = $openEdition;
         $params["countries"] = OpenData::getCountriesList();
+		$params["admin"] = $admin ;
+
 
         $list = Lists::get(array("eventTypes"));
         $params["eventTypes"] = $list["eventTypes"];

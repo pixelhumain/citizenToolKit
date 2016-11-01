@@ -36,16 +36,26 @@ class SaveSessionAction extends CAction
                 $entryInfos['name'] = (string)$name;
                 $entryInfos['organizerId'] = $organizerId;
                 $entryInfos['organizerType'] = $organizerType;
-                if( isset($_POST['survey']) ){
+                if( isset($_POST['survey']) && !empty($_POST['survey']) ){
                     $entryInfos['survey'] = $_POST['survey'];
                     $res['parentId'] = $_POST['survey'];
                     //this might not be necessary , since the information is on the parent survey
-                    $surveyRoom = PHDB::findOne (Survey::PARENT_COLLECTION, array( "_id" => new MongoId($_POST['survey']) ) );
+                    $surveyRoom = PHDB::findOne (Survey::PARENT_COLLECTION, array( "_id" => new MongoId($_POST['survey']) ) ); 
                     if( isset( $surveyRoom["parentType"] ) && isset($_POST['parentType']) ) 
                         $entryInfos['parentType'] = $_POST['parentType'];
                     if( isset( $surveyRoom["parentId"] ) && isset($_POST['parentId']) ) 
                         $entryInfos['parentId'] = $_POST['parentId'];
-                        
+                    
+                    //these fields are necessary for multi scoping search features
+                    if(@$surveyRoom["parentType"] && @$surveyRoom["parentId"]){
+                        $parent = Element::getByTypeAndId(@$surveyRoom["parentType"], @$surveyRoom["parentId"]);
+                        if(@$parent["address"])
+                            $entryInfos['address'] = $parent["address"];
+                        if(@$parent["geo"])
+                            $entryInfos['geo'] = $parent["geo"];
+                        if(@$parent["geoPosition"])
+                            $entryInfos['geoPosition'] = $parent["geoPosition"];
+                    }
                 }
                 if( isset($_POST['message']) )
                     $entryInfos['message'] = (string)$_POST['message'];
@@ -60,10 +70,12 @@ class SaveSessionAction extends CAction
                 if( isset($_POST['dateEnd']) && $_POST['dateEnd'] != "" )
                     $entryInfos['dateEnd'] = strtotime( str_replace("/", "-", $_POST['dateEnd']).' 23:59:59' );
 
-                $entryInfos['created'] = time();
+                $entryInfos["modified"] = new MongoDate(time());
+                $entryInfos['updated'] = time();
                 
 
                 $where = array();
+                //echo "_POST"; var_dump($_POST); return;
                 if( isset( $_POST['id'] ) ){
                     $where["_id"] = new MongoId($_POST['id']);
                     $result = PHDB::update( Survey::COLLECTION,  $where, 
@@ -72,6 +84,7 @@ class SaveSessionAction extends CAction
                 } else {
                     $surveyId = new MongoId();
                     $entryInfos["_id"] = $surveyId;
+                    $entryInfos['created'] = time();
                     $result = PHDB::insert( Survey::COLLECTION,$entryInfos );
                 }
                 
@@ -84,11 +97,13 @@ class SaveSessionAction extends CAction
                 }
 
                 $res['result'] = true;
-                $res['msg'] = "surveySaved";
+                $res['msg'] = "Proposition bien enregistré";
                 $res['surveyId'] = $surveyId;
+                $res['url'] = "#survey.entry.id.".$surveyId;
 
                 //Notify Element participants 
-                Notification::actionOnPerson ( ActStr::VERB_ADD_PROPOSAL, ActStr::ICON_ADD, "", array( "type" => Survey::COLLECTION , "id" => $surveyId ));
+                Notification::actionOnPerson ( ActStr::VERB_ADD_PROPOSAL, ActStr::ICON_ADD, "", 
+                                                array( "type" => Survey::COLLECTION , "id" => $surveyId ));
                 
             } else
                 $res = array('result' => false , 'msg'=>"user doen't exist");

@@ -17,7 +17,6 @@
 		  				$params['events'] = Event::getListCurrentEventsByOrganizationId($id);
 		  		}else{
 		  			//means we are showing details of an events
-		  			
 		  			$event = Event::getById($id);
 		  			$params['event'] = $event;
 		  			$params['events'] = Event::getListEventsById($id);
@@ -41,6 +40,8 @@
 		  			}
 		  		}
 		  	}
+		  	$params["edit"] = Authorisation::canEditItem(@Yii::app()->session["userId"], $type, $id);
+		  	$params["openEdition"] = Authorisation::isOpenEdition($id, $type, @$event["preferences"]);
 		  	$tpl = ( $pod ) ? "../pod/calendarPod" : "calendarView";
 		  	if(Yii::app()->request->isAjaxRequest)
 	            echo $controller->renderPartial($tpl, $params);

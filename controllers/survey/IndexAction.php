@@ -49,22 +49,13 @@ class IndexAction extends CAction
         $user = ( isset( Yii::app()->session["userId"])) ? PHDB::findOne (Person::COLLECTION, array("_id"=>new MongoId ( Yii::app()->session["userId"] ) ) ) : null;
         $uniqueVoters = PHDB::count( Person::COLLECTION, array( "applications.survey" => array('$exists'=>true) ) );
 
-        $controller->title = $parentTitle."Surveys";
-        $controller->subTitle = "Nombres de votants inscrit : ".$uniqueVoters;
-        $controller->pageTitle = "Communecter - Surveys ".$name;
-
-        $urlParams = ( isset($type) && isset($id)) ? "/type/".$type."/id/".$id : "";
-        $controller->toolbarMBZ = array(
-            '<a href="#" onclick="openSubView(\'Add a Room\', \'/communecter/rooms/editroom'.$urlParams.'\',null,function(){editRoomSV ();})" title="proposer une " ><i class="fa fa-plus"></i> Action Room </a>',
-        );
-
         $tpl = ( isset($_GET['tpl']) ) ? $_GET['tpl'] : "index";
         $params = array( "list" => $list,
                           "where"=>$where,
                           "user"=>$user,
                           "type"=>$type,
                           "id"=>$id,
-                          "uniqueVoters"=>$uniqueVoters,
+                          "uniqueVoters"=>$uniqueVoters
                           );
         if(Yii::app()->request->isAjaxRequest)
             echo $controller->renderPartial( $tpl, $params,true );

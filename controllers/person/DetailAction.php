@@ -32,7 +32,7 @@ class DetailAction extends CAction
         $params["countries"] = OpenData::getCountriesList();
         $params["listCodeOrga"] = Lists::get(array("organisationTypes"));
         $params["tags"] = Tags::getActiveTags();
-        $params["preferences"] =  Preference::getPreferencesByTypeId($id, Person::COLLECTION);
+        //$params["preferences"] =  Preference::getPreferencesByTypeId($id, Person::COLLECTION);
 		$page = "detail";
 		if(Yii::app()->request->isAjaxRequest) {
             echo $controller->renderPartial($page,$params,true);

@@ -81,7 +81,7 @@ class DetailAction extends CAction
 	  		
 	  		if( isset($project["links"]["events"])) {
 	    		foreach ($project["links"]["events"] as $key => $event) {
-	    			$newEvent = Event::getById( $key );
+	    			$newEvent = Event::getSimpleEventById( $key );
 	            	if (!empty($newEvent)) {
 		            	array_push($events, $newEvent);
 		            }
@@ -135,7 +135,8 @@ class DetailAction extends CAction
 	  	$params["admin"]=$isProjectAdmin;
 	  	$params["admins"]=$admins;
 	  	//Preferences
-		$params["openEdition"] = @$project["preferences"]["isOpenEdition"];
+		//$params["openEdition"] = Preference::isOpenEdition(@$project["preferences"]);
+		$params["openEdition"] = Authorisation::isOpenEdition((string)$project["_id"], Project::COLLECTION, @$project["preferences"]);
 
 		//Display different for simplyDirectory
 		if($controller->action->id == 'simply'){

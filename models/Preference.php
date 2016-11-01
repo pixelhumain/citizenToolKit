@@ -1,7 +1,14 @@
 <?php 
 class Preference {
 	public static function getPreferencesByTypeId($id, $type){
-		$preferences = PHDB::findOneById( $type ,$id, array("preferences" => 1));
+
+		if($type == City::COLLECTION){
+			$city = City::getByUnikey($id);
+			$id = $city["_id"];
+		}
+
+		$entity = PHDB::findOneById( $type ,$id, array("preferences" => 1));
+		$preferences = (empty($entity["preferences"])?array():$entity["preferences"]);
 		return $preferences;
 	}
 	
@@ -45,6 +52,7 @@ class Preference {
 			    }
 			}	
 		}
+
 		if(@$context["preferences"]["privateFields"] && !empty($context["preferences"]["privateFields"]))			{
 			$privateFields=$context["preferences"]["privateFields"];
 			foreach ($privateFields as $key => $value) {
@@ -74,7 +82,7 @@ class Preference {
 		if($setType == "isOpenData"){
 			$preferences["isOpenData"] = $setValue;
 		}else{
-			$preferences["isOpenData"] = $context["preferences"]["isOpenData"];
+			$preferences["isOpenData"] = ((empty($context["preferences"]["isOpenData"]))?false:true);
 		}
 		if($setType == "isOpenEdition"){
 			$preferences["isOpenEdition"] = $setValue;
@@ -92,10 +100,13 @@ class Preference {
 		    array('$set' => array("preferences.privateFields" => $privateFields, "preferences.publicFields" => $publicFields)));*/		
 		PHDB::update($type, array("_id" => new MongoId($id)), 
 		    array('$set' => array("preferences" => $preferences)));
-		
+
+		ActivityStream::saveActivityHistory(ActStr::VERB_UPDATE, $id, $type, $setType, self::valueActivityStream($setValue));
 		$res = array("result" => true, "msg" => Yii::t("common","Confidentiality param well updated"));
 		return $res;
 	}
+
+	
 
 
 	public static function isOpenData($preferences) {
@@ -108,11 +119,71 @@ class Preference {
 	public static function isOpenEdition($preferences) {
 		$isOpenData = false ;
 		if(@$preferences["isOpenEdition"])
-			$isOpenData = 1 ;
+			$isOpenData = true ;
 		return $isOpenData;
 	}
 
+	public static function valueActivityStream($setValue) {
+		$value = "";
+		if($setValue == true)
+			$value = Yii::t("common","True");
+		else if($setValue == false)
+			$value = Yii::t("common","False");
+		else 
+			$value = $setValue;
 
-	
+		return $value;
+	}
+
+	/*public static function getStatusPreference($preferences, $namePref) {
+		$result = "mask";
+		if(@$preferences["publicFields"] && in_array($namePref, $preferences["publicFields"]))
+			$result = "public";
+		else if(@$preferences["privateFields"] &&  in_array($namePref, $preferences["privateFields"]))
+			$result = "private";
+		return $result;
+	}*/
+
+
+	public static function showPreference($element, $elementType, $namePref, $userId) {
+		//$status = self::getStatusPreference($element["preferences"], $namePref);
+		$result = false;
+		
+		//mask
+		if($elementType==Person::COLLECTION && (string)$element["_id"] == $userId){
+			$result = true;
+		}
+		//public
+		else if(@$element["preferences"]["publicFields"] && in_array($namePref, $element["preferences"]["publicFields"]))
+			$result = true;
+		//private
+		else if(@$element["preferences"]["privateFields"] && 
+				in_array($namePref, $element["preferences"]["privateFields"]) && 
+				($element["_id"] == $userId || Link::isLinked($element["_id"], $elementType, $userId, @$element["links"])))
+			$result = true;
+
+		return $result;
+	}
+
+
+	public static function isPublic($element, $namePref) {
+		$result = false;
+		if(@$element["preferences"]["publicFields"] && in_array($namePref, $element["preferences"]["publicFields"]))
+			$result = true;
+		return $result;
+	}
+
+
+	public static function initPreferences($type) {
+		$preferences = array();
+		$preferences["isOpenData"] = true;
+		if($type == Person::COLLECTION){
+			$preferences["publicFields"] = array("locality", "directory");
+			$preferences["privateFields"] = array("birthDate", "email", "phone");
+		}else{
+			$preferences["isOpenEdition"] = true;
+		}
+		return $preferences;
+	}
 	
 }

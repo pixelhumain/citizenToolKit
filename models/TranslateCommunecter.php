@@ -18,7 +18,7 @@ class TranslateCommunecter {
 															"suffix"   => ""),
 						    "api" 			=> array(	"valueOf"  	=> '_id.$id', 
 															"type" 	=> "url", 
-															"prefix"   => "/communecter/data/get/type/citoyens/id/",
+															"prefix"   => "/api/person/get/id/",
 															"suffix"   => "" ),
 						    /*"osm" 			=> array(	"valueOf"  	=> 'geo', 
 															"type" 	=> "urlOsm", 
@@ -26,7 +26,7 @@ class TranslateCommunecter {
 															"suffix"   => "" ),*/
 						    /*"city" 			=> array(	"valueOf"  	=> 'address.codeInsee', 
 															"type" 	=> "url", 
-															"prefix"   => "/communecter/data/get/type/cities/insee/",
+															"prefix"   => "/api/data/get/type/cities/insee/",
 															"suffix"   => "" )*/
 						    
 				 		)),
@@ -82,16 +82,6 @@ class TranslateCommunecter {
 										"valueOf" => array (
 									   		"type" => "Organization",
 									   		"name" => array("valueOf" => "name"),
-									   		/*"url" => array(
-									   			"valueOf" => '_id.$id',
-									   			"type" 	=> "url", 
-												"prefix"   => "/#organization.detail.id.",
-												"suffix"   => ""),
-									   		"urlApi" => array(
-									   			"valueOf" => '_id.$id',
-									   			"type" 	=> "url", 
-												"prefix"   => "/communecter/data/get/type/organizations/id/",
-												"suffix"   => "")*/
 									   		"url" 	=> array("valueOf" => array(
 									    					"communecter" 	=> array(	"valueOf" => '_id.$id',
 																	   						"type" 	=> "url", 
@@ -99,7 +89,7 @@ class TranslateCommunecter {
 																							"suffix"   => ""),
 														    "api" 			=> array(	"valueOf"  	=> '_id.$id', 
 																							"type" 	=> "url", 
-																							"prefix"   => "/communecter/data/get/type/organizations/id/",
+																							"prefix"   => "/api/organization/get/id/",
 																							"suffix"   => "" ),
 												 		))
 									   	)),
@@ -117,7 +107,7 @@ class TranslateCommunecter {
 											"urlApi" => array(
 									   			"valueOf" => '_id.$id',
 									   			"type" 	=> "url",
-									   			"prefix"   => "/communecter/data/get/type/projects/id/",
+									   			"prefix"   => "/api/data/get/type/projects/id/",
 												"suffix"   => ""))),*/
 											"url" 	=> array("valueOf" => array(
 									    					"communecter" 	=> array(	"valueOf" => '_id.$id',
@@ -126,7 +116,7 @@ class TranslateCommunecter {
 																							"suffix"   => ""),
 														    "api" 			=> array(	"valueOf"  	=> '_id.$id', 
 																							"type" 	=> "url", 
-																							"prefix"   => "/communecter/data/get/type/projects/id/",
+																							"prefix"   => "/api/project/get/id/",
 																							"suffix"   => "" ),
 												 		))
 											)),
@@ -144,7 +134,7 @@ class TranslateCommunecter {
 									   		"urlApi" => array(
 									   			"valueOf" => '_id.$id',
 									   			"type" 	=> "url", 
-												"prefix"   => "/communecter/data/get/type/events/id/",
+												"prefix"   => "/api/data/get/type/events/id/",
 												"suffix"   => "")))*/
 											"url" 	=> array("valueOf" => array(
 									    					"communecter" 	=> array(	"valueOf" => '_id.$id',
@@ -153,7 +143,7 @@ class TranslateCommunecter {
 																							"suffix"   => ""),
 														    "api" 			=> array(	"valueOf"  	=> '_id.$id', 
 																							"type" 	=> "url", 
-																							"prefix"   => "/communecter/data/get/type/events/id/",
+																							"prefix"   => "/api/event/get/id/",
 																							"suffix"   => "" ),
 												 		))
 				 					)),
@@ -175,7 +165,7 @@ class TranslateCommunecter {
 																"suffix"   => ""),
 							    "api" 			=> array(	"valueOf"  	=> '_id.$id', 
 																"type" 	=> "url", 
-																"prefix"   => "/communecter/data/get/type/organizations/id/",
+																"prefix"   => "/api/organization/get/id/",
 																"suffix"   => "" ),
 							    )),
 							    /*"osm" 			=> array(	"valueOf"  	=> 'geo', 
@@ -184,7 +174,7 @@ class TranslateCommunecter {
 																"suffix"   => "" ),*/
 							    /*"city" 			=> array(	"valueOf"  	=> 'address.codeInsee', 
 																"type" 	=> "url", 
-																"prefix"   => "/communecter/data/get/type/cities/insee/",
+																"prefix"   => "/api/data/get/type/cities/insee/",
 																"suffix"   => "" )*/
 	    "address" 	=> array("parentKey"=>"address", 
 	    					 "valueOf" => array(
@@ -246,7 +236,7 @@ class TranslateCommunecter {
 									   		"urlApi" => array(
 									   			"valueOf" => '_id.$id',
 									   			"type" 	=> "url", 
-												"prefix"   => "/communecter/data/get/type/citoyens/id/",
+												"prefix"   => "/api/data/get/type/citoyens/id/",
 												"suffix"   => "")*/
 									   		"url" 	=> array("valueOf" => array(
 									    					"communecter" 	=> array(	"valueOf" => '_id.$id',
@@ -255,7 +245,7 @@ class TranslateCommunecter {
 																							"suffix"   => ""),
 														    "api" 			=> array(	"valueOf"  	=> '_id.$id', 
 																							"type" 	=> "url", 
-																							"prefix"   => "/communecter/data/get/type/citoyens/id/",
+																							"prefix"   => "/api/person/get/id/",
 																							"suffix"   => "" ),
 												 		))
 											)),
@@ -273,7 +263,7 @@ class TranslateCommunecter {
 									   		"urlApi" => array(
 									   			"valueOf" => '_id.$id',
 									   			"type" 	=> "url", 
-												"prefix"   => "/communecter/data/get/type/citoyens/id/",
+												"prefix"   => "/api/data/get/type/citoyens/id/",
 												"suffix"   => "")*/
 									   		"url" 	=> array("valueOf" => array(
 									    					"communecter" 	=> array(	"valueOf" => '_id.$id',
@@ -282,7 +272,7 @@ class TranslateCommunecter {
 																							"suffix"   => ""),
 														    "api" 			=> array(	"valueOf"  	=> '_id.$id', 
 																							"type" 	=> "url", 
-																							"prefix"   => "/communecter/data/get/type/citoyens/id/",
+																							"prefix"   => "/api/person/get/id/",
 																							"suffix"   => "" ),
 												 		))
 									   	) ),
@@ -300,7 +290,7 @@ class TranslateCommunecter {
 											"urlApi" => array(
 									   			"valueOf" => '_id.$id',
 									   			"type" 	=> "url",
-									   			"prefix"   => "/communecter/data/get/type/projects/id/",
+									   			"prefix"   => "/api/data/get/type/projects/id/",
 												"suffix"   => "")*/
 											"url" 	=> array("valueOf" => array(
 									    					"communecter" 	=> array(	"valueOf" => '_id.$id',
@@ -309,7 +299,7 @@ class TranslateCommunecter {
 																							"suffix"   => ""),
 														    "api" 			=> array(	"valueOf"  	=> '_id.$id', 
 																							"type" 	=> "url", 
-																							"prefix"   => "/communecter/data/get/type/projects/id/",
+																							"prefix"   => "/api/project/get/id/",
 																							"suffix"   => "" ),
 												 		))
 											)),
@@ -327,7 +317,7 @@ class TranslateCommunecter {
 									   		"urlApi" => array(
 									   			"valueOf" => '_id.$id',
 									   			"type" 	=> "url", 
-												"prefix"   => "/communecter/data/get/type/events/id/",
+												"prefix"   => "/api/data/get/type/events/id/",
 												"suffix"   => "")*/
 									   		"url" 	=> array("valueOf" => array(
 									    					"communecter" 	=> array(	"valueOf" => '_id.$id',
@@ -336,7 +326,7 @@ class TranslateCommunecter {
 																							"suffix"   => ""),
 														    "api" 			=> array(	"valueOf"  	=> '_id.$id', 
 																							"type" 	=> "url", 
-																							"prefix"   => "/communecter/data/get/type/events/id/",
+																							"prefix"   => "/api/event/get/id/",
 																							"suffix"   => "" ),
 												 		))
 
@@ -355,7 +345,7 @@ class TranslateCommunecter {
 									   		"urlApi" => array(
 									   			"valueOf" => '_id.$id',
 									   			"type" 	=> "url", 
-												"prefix"   => "/communecter/data/get/type/needs/id/",
+												"prefix"   => "/api/data/get/type/needs/id/",
 												"suffix"   => "")*/
 									   		"url" 	=> array("valueOf" => array(
 									    					"communecter" 	=> array(	"valueOf" => '_id.$id',
@@ -364,7 +354,7 @@ class TranslateCommunecter {
 																							"suffix"   => ""),
 														    "api" 			=> array(	"valueOf"  	=> '_id.$id', 
 																							"type" 	=> "url", 
-																							"prefix"   => "/communecter/data/get/type/needs/id/",
+																							"prefix"   => "/api/need/get/id/",
 																							"suffix"   => "" ),
 												 		))
 									   		))
@@ -388,7 +378,7 @@ class TranslateCommunecter {
 																"suffix"   => ""),
 							    "api" 			=> array(	"valueOf"  	=> '_id.$id', 
 																"type" 	=> "url", 
-																"prefix"   => "/communecter/data/get/type/events/id/",
+																"prefix"   => "/api/event/get/id/",
 																"suffix"   => "" ))),
 							    /*"osm" 			=> array(	"valueOf"  	=> 'geo', 
 																"type" 	=> "urlOsm", 
@@ -396,7 +386,7 @@ class TranslateCommunecter {
 																"suffix"   => "" ),*/
 							    /*"city" 			=> array(	"valueOf"  	=> 'address.codeInsee', 
 																"type" 	=> "url", 
-																"prefix"   => "/communecter/data/get/type/cities/insee/",
+																"prefix"   => "/api/data/get/type/cities/insee/",
 																"suffix"   => "" )*/
 	    "address" 	=> array("parentKey"=>"address", 
 	    					 "valueOf" => array(
@@ -461,7 +451,7 @@ class TranslateCommunecter {
 									   		"urlApi" => array(
 									   			"valueOf" => '_id.$id',
 									   			"type" 	=> "url", 
-												"prefix"   => "/communecter/data/get/type/citoyens/id/",
+												"prefix"   => "/api/data/get/type/citoyens/id/",
 												"suffix"   => "")*/
 									   		"url" 	=> array("valueOf" => array(
 									    					"communecter" 	=> array(	"valueOf" => '_id.$id',
@@ -470,7 +460,7 @@ class TranslateCommunecter {
 																							"suffix"   => ""),
 														    "api" 			=> array(	"valueOf"  	=> '_id.$id', 
 																							"type" 	=> "url", 
-																							"prefix"   => "/communecter/data/get/type/citoyens/id/",
+																							"prefix"   => "/api/person/get/id/",
 																							"suffix"   => "" ),
 												 		))
 									   	) ),
@@ -488,7 +478,7 @@ class TranslateCommunecter {
 									   		"urlApi" => array(
 									   			"valueOf" => '_id.$id',
 									   			"type" 	=> "url", 
-												"prefix"   => "/communecter/data/get/type/needs/id/",
+												"prefix"   => "/api/data/get/type/needs/id/",
 												"suffix"   => "")*/
 									   		"url" 	=> array("valueOf" => array(
 									    					"communecter" 	=> array(	"valueOf" => '_id.$id',
@@ -497,7 +487,7 @@ class TranslateCommunecter {
 																							"suffix"   => ""),
 														    "api" 			=> array(	"valueOf"  	=> '_id.$id', 
 																							"type" 	=> "url", 
-																							"prefix"   => "/communecter/data/get/type/needs/id/",
+																							"prefix"   => "/api/need/get/id/",
 																							"suffix"   => "" ),
 
 									   		))
@@ -520,7 +510,7 @@ class TranslateCommunecter {
 																"suffix"   => ""),
 							    "api" 			=> array(	"valueOf"  	=> '_id.$id', 
 																"type" 	=> "url", 
-																"prefix"   => "/communecter/data/get/type/projects/id/",
+																"prefix"   => "/api/project/get/id/",
 																"suffix"   => "" ))),
 							    /*"osm" 			=> array(	"valueOf"  	=> 'geo', 
 																"type" 	=> "urlOsm", 
@@ -528,7 +518,7 @@ class TranslateCommunecter {
 																"suffix"   => "" ),*/
 							    /*"city" 			=> array(	"valueOf"  	=> 'address.codeInsee', 
 																"type" 	=> "url", 
-																"prefix"   => "/communecter/data/get/type/cities/insee/",
+																"prefix"   => "/api/data/get/type/cities/insee/",
 																"suffix"   => "" )*/
 	    "address" 	=> array("parentKey"=>"address", 
 	    					 "valueOf" => array(
@@ -593,7 +583,7 @@ class TranslateCommunecter {
 									   		"urlApi" => array(
 									   			"valueOf" => '_id.$id',
 									   			"type" 	=> "url", 
-												"prefix"   => "/communecter/data/get/type/citoyens/id/",
+												"prefix"   => "/api/data/get/type/citoyens/id/",
 												"suffix"   => "")*/
 									   		"url" 	=> array("valueOf" => array(
 									    					"communecter" 	=> array(	"valueOf" => '_id.$id',
@@ -602,7 +592,7 @@ class TranslateCommunecter {
 																							"suffix"   => ""),
 														    "api" 			=> array(	"valueOf"  	=> '_id.$id', 
 																							"type" 	=> "url", 
-																							"prefix"   => "/communecter/data/get/type/citoyens/id/",
+																							"prefix"   => "/api/person/get/id/",
 																							"suffix"   => "" ),
 												 		))
 									   	) )))
@@ -625,7 +615,7 @@ class TranslateCommunecter {
 																"suffix"   => ""),
 							    "api" 			=> array(	"valueOf"  	=> '_id.$id', 
 																"type" 	=> "url", 
-																"prefix"   => "/communecter/data/get/type/needs/id/",
+																"prefix"   => "/api/need/get/id/",
 																"suffix"   => "" ))),
 	   	/*"parent"		=> array(	"object" => "parentId",
 								 	"collection" => array("valueOf" => "parentType")  , 
@@ -640,7 +630,7 @@ class TranslateCommunecter {
 								   		"urlApi" => array(
 								   			"valueOf" => '_id.$id',
 								   			"type" 	=> "url", 
-											"prefix"   => "/communecter/data/get/type/needs/id/",
+											"prefix"   => "/api/data/get/type/needs/id/",
 											"suffix"   => "")))*/
 		"description"	=> array("valueOf" => "description"),
 	   	"allDay"		=> array("valueOf" => "allDay"),
@@ -683,7 +673,7 @@ class TranslateCommunecter {
 									   		"urlApi" => array(
 									   			"valueOf" => '_id.$id',
 									   			"type" 	=> "url", 
-												"prefix"   => "/communecter/data/get/type/citoyens/id/",
+												"prefix"   => "/api/data/get/type/citoyens/id/",
 												"suffix"   => "")*/
 									   		"url" 	=> array("valueOf" => array(
 									    					"communecter" 	=> array(	"valueOf" => '_id.$id',
@@ -692,7 +682,7 @@ class TranslateCommunecter {
 																							"suffix"   => ""),
 														    "api" 			=> array(	"valueOf"  	=> '_id.$id', 
 																							"type" 	=> "url", 
-																							"prefix"   => "/communecter/data/get/type/citoyens/id/",
+																							"prefix"   => "/api/person/get/id/",
 																							"suffix"   => "" ),
 												 		))
 									   	) )))
@@ -704,7 +694,7 @@ class TranslateCommunecter {
 		"@type"		=> "City",
 		"@id" 		=> array("valueOf"  => 'insee', 
 							 "type" 	=> "url", 
-							 "prefix"   => "/communecter/data/get/type/cities/insee/",
+							 "prefix"   => "/api/data/get/type/cities/insee/",
 							 "suffix"   => "" ),
 	    "name" 		=> array("valueOf" => "name"),
 	    "alternateName" => array("valueOf" => "alternateName"),
@@ -715,19 +705,19 @@ class TranslateCommunecter {
 															"suffix"   => ""),*/
 						    "apiCitoyens" 			=> array(	"valueOf"  	=> 'insee', 
 															"type" 	=> "url", 
-															"prefix"   => "/communecter/data/get/type/citoyens/insee/",
+															"prefix"   => "/api/person/get/insee/",
 															"suffix"   => "" ),
 						    "apiOrganizations" 			=> array(	"valueOf"  	=> 'insee', 
 															"type" 	=> "url", 
-															"prefix"   => "/communecter/data/get/type/organizations/insee/",
+															"prefix"   => "/api/organization/get/insee/",
 															"suffix"   => "" ),
 						    "apiProjects" 			=> array(	"valueOf"  	=> 'insee', 
 															"type" 	=> "url", 
-															"prefix"   => "/communecter/data/get/type/projects/insee/",
+															"prefix"   => "/api/project/get/insee/",
 															"suffix"   => "" ),
 						    "apiEvents" 			=> array(	"valueOf"  	=> 'insee', 
 															"type" 	=> "url", 
-															"prefix"   => "/communecter/data/get/type/events/insee/",
+															"prefix"   => "/api/event/get/insee/",
 															"suffix"   => "" ),
 						    
 				 		)),
@@ -760,6 +750,31 @@ class TranslateCommunecter {
 				 					)),
 	   	"geoShape" 	=> array("valueOf"=>"geoShape"),
 	    
+	);
+
+
+	public static $dataBinding_news = array(
+		"@type"		=> "News",
+		
+	    "text" 		=> array("valueOf" => "text"),
+	   	"date"		=> array("valueOf" => "startDate"),
+	   	"created"		=> array("valueOf" => "endDate"),
+	 	"scope" 	=> array("parentKey"=>"scope", 
+	    					 "valueOf" => array(
+									"type" 		=> array("valueOf" => "type")
+				 					)),
+		"target" 	=> array(	"communecter" 	=> array(	"valueOf" => 'id',
+										   						"type" 	=> "url", 
+																"prefix"   => "/#person.detail.id.",
+																"suffix"   => ""),
+							    "api" 			=> array(	"valueOf"  	=> 'id', 
+																"type" 	=> "url", 
+																"prefix"   => "/api/person/get/id/",
+																"suffix"   => "" )),
+		"author" 	=> array(	"valueOf" => '_id.$id',
+			   						"type" 	=> "url", 
+									"prefix"   => "/#person.detail.id.",
+									"suffix"   => "")				   	
 	);
 
 }

@@ -11,7 +11,7 @@ class RemoveAllAction extends CAction
         $res = array();
         if( Yii::app()->session["userId"] )
         {
-            $res = ActivityStream::removeNotificationsByUser();
+            $res = ActivityStream::removeNotificationsByUser(Yii::app()->session["userId"]);
         } else
             $res = array('result' => false , 'msg'=>'something somewhere went terribly wrong');
             

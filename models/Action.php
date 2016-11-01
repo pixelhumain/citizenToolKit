@@ -56,6 +56,11 @@ class Action
                 $dbMethod = '$set';
                 if($unset){
                     $dbMethod = '$unset';
+                    if(($action=="voteUp" || $action=="voteDown") && (!isset( $element[$action][$userId])))
+    	                throw new CTKException("Well done ! Stop playing and join us to help the construction of this common!");
+                }else{
+	            	if(($action=="voteUp" || $action=="voteDown" || $action=="reportAbuse") && (isset($element[$action][$userId])))
+    	                throw new CTKException("Well done ! Stop playing and join us to help the construction of this common!");
                 }
 
                 // Additional info
@@ -87,21 +92,37 @@ class Action
                 }
                 
                 if($unset){
-                    PHDB::update ($collection, array("_id" => new MongoId($element["_id"])), 
-                                       array( $dbMethod => array( 
-                                                    $action.".".Yii::app()->session["userId"] => 1),
-                                                '$inc'=>array( $action."Count" => $inc)));
+                    PHDB::update ( $collection, array( "_id" => new MongoId($element["_id"]) ), 
+                                                array( $dbMethod => array(  $action.".".Yii::app()->session["userId"] => 1),
+                                                       '$inc'=>array( $action."Count" => $inc),
+                                                       '$set'=>array( "updated" => time(),
+                                                                      "modified" => new MongoDate(time()))
+                                                       ));
                 }
                 else{
-                    $mapObject[$action.".".(string)$user["_id"]] = $details ;
-                    PHDB::update ($collection, array("_id" => new MongoId($element["_id"])), 
-                                       array( $dbMethod => $mapObject,
-                                                '$inc'=>array( $action."Count" => $inc)));
+                    $mapObject[ $action.".".(string)$user["_id"] ] = $details ;
+                    $params = array();
+
+                    if( $dbMethod == '$set'){
+                        $mapObject["updated"] = time();
+                        $mapObject["modified"] = new MongoDate(time());
+                    }
+                    else
+                        $params['$set'] = array( "updated" => time(), "modified" => new MongoDate(time()) );
+
+                    $params[$dbMethod] = $mapObject;
+                    $params['$inc'] = array( $action."Count" => $inc);
+
+                    PHDB::update ($collection, 
+                                    array("_id" => new MongoId($element["_id"])), 
+                                    $params);
 
                 }
 
                 self::addActionHistory( $userId , $id, $collection, $action);
                 
+                self::updateParent( $id, $collection);
+
                 //We update the points of the user
                 if(isset($user['gamification']['actions'][$action])){
                     Gamification::incrementUser($userId, $action);
@@ -150,6 +171,28 @@ class Action
         PHDB::insert( ActivityStream::COLLECTION, $currentAction );
     }
     
+    /*
+    update the updated date on a parent entity
+     */
+    public static function updateParent($id=null, $collection=null)
+    {
+        $updatableParentTypes = array(
+            ActionRoom::TYPE_ACTIONS    => array("parentCollection" => ActionRoom::COLLECTION,
+                                                 "parentField"=>"room"),
+            Survey::COLLECTION          => array("parentCollection" => ActionRoom::COLLECTION,
+                                                 "parentField"=>"survey"),
+        );
+        if( $obj = @$updatableParentTypes[$collection] )
+        {
+            $element = ($id) ? PHDB::findOne ($collection, array("_id" => new MongoId($id) )) : null;
+            if( isset($element) && $parentId = @$element[ $obj["parentField"] ] ) 
+            {
+                PHDB::update ( $obj["parentCollection"], array("_id" => new MongoId( $parentId )), 
+                                           array( '$set'=>array( "updated" => time())
+                                                  ));
+            }
+        }
+    }
     /**
    * check if loggued in user is in the "follow" field array for an entry
    * @return Boolean
@@ -219,23 +262,23 @@ class Action
             $linkVoteUp = ($logguedAndValid && !empty($voteUpActive) ) ? 
                             "<span class='".$classUp." ' ><i class='fa fa-caret-bottom'></i> ".
                                 Yii::t("survey","Voted", null, Yii::app()->controller->module->id).
-                                " <span class='btnvote color-btnvote-green'><i class='fa $iconUp' ></i> favorable</span></span>" : "";
+                                " <span class='btnvote color-btnvote-green'><i class='fa $iconUp' ></i> Pour</span></span>" : "";
             $linkVoteAbstain = ($logguedAndValid && !empty($voteAbstainActive)) ? 
                             "<span class='".$classAbstain." '><i class='fa fa-caret-bottom'></i> ".
                                 Yii::t("survey","Voted", null, Yii::app()->controller->module->id).
-                                " <span class='btnvote color-btnvote-white'><i class='fa $iconAbstain'></i> blanc</span></span>" : "";
+                                " <span class='btnvote color-btnvote-white'><i class='fa $iconAbstain'></i> Blanc</span></span>" : "";
             $linkVoteUnclear = ($logguedAndValid && !empty($voteUnclearActive)) ? 
                             "<span class='".$classUnclear." '><i class='fa fa-caret-bottom'></i> ".
                                 Yii::t("survey","Voted", null, Yii::app()->controller->module->id).
-                                " <span class='btnvote color-btnvote-yellow'><i class='fa  $iconUnclear'></i> à terminer</span></span>" : "";
+                                " <span class='btnvote color-btnvote-blue'><i class='fa  $iconUnclear'></i> Incompris</span></span>" : "";
             $linkVoteMoreInfo = ($logguedAndValid && !empty($voteMoreInfoActive)) ? 
                             "<span class='".$classMoreInfo." '><i class='fa fa-caret-bottom'></i> ".
                                 Yii::t("survey","Voted", null, Yii::app()->controller->module->id).
-                                " <span class='btnvote color-btnvote-purple'><i class='fa  $iconMoreInfo'></i> + d'infos</span></span>" : "";
+                                " <span class='btnvote color-btnvote-purple'><i class='fa  $iconMoreInfo'></i> Incomplet</span></span>" : "";
             $linkVoteDown = ($logguedAndValid && !empty($voteDownActive)) ? 
                             "<span class='".$classDown." '><i class='fa fa-caret-bottom'></i> ".
                                 Yii::t("survey","Voted", null, Yii::app()->controller->module->id).
-                                " <span class='btnvote color-btnvote-red'><i class='fa $iconDown'></i> défavorable</span></span>" : "";
+                                " <span class='btnvote color-btnvote-red'><i class='fa $iconDown'></i> Contre</span></span>" : "";
         }
         else
         {
@@ -249,17 +292,19 @@ class Action
             $linkVoteDown = ($logguedAndValid) ? "<a class='btn ".$classDown." voteIcon' data-vote='".Action::ACTION_VOTE_DOWN."' href=\"".$hrefDown."\" title='Voter Contre'><i class='fa $iconDown'></i></a>" : "";
         }
 
+        //default Values are hasn't voted
         $res["totalVote"] = $voteUpCount+$voteAbstainCount+$voteDownCount+$voteUnclearCount+$voteMoreInfoCount;
         $res["ordre"] = $voteUpCount+$voteDownCount;
-        $res["links"] = ($value["type"]==Survey::TYPE_ENTRY) ? "<span class='text-bold active'><span class='text-bold active btnvote color-btnvote-red'><i class='fa fa-clock-o'></i> ".Yii::t("survey","You did not vote", null, Yii::app()->controller->module->id)."</span></span>" : "";
+        $res["links"] = ( $value["type"] == Survey::TYPE_ENTRY ) ? "<span class='text-bold active btnvote color-btnvote-red'><i class='fa fa-clock-o'></i> ".Yii::t("survey","You did not vote", null, Yii::app()->controller->module->id)."</span>" : "";
+
         //$res["links"] = ($res["totalVote"]) ? "<span class='text-red text-bold'>RESULT</span>" : $res["links"];
-        if( ($value["type"]==Survey::TYPE_ENTRY && 
-            ( !isset($value["dateEnd"]) || $value["dateEnd"] > time() ) 
-            ) ||
-            ($res["hasVoted"])
+        if( ($value["type"]==Survey::TYPE_ENTRY 
+                && ( !isset($value["dateEnd"]) || $value["dateEnd"] > time() ) 
+            ) || ($res["hasVoted"])
           )
             $res["links"] = "<div class='leftlinks'>".$linkVoteUp." ".$linkVoteUnclear." ".$linkVoteAbstain." ".$linkVoteMoreInfo." ".$linkVoteDown."</div>";
-
+        else
+            $res["avoter"] = "closed";
         
         return $res;
     }

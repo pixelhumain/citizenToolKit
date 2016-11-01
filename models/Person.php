@@ -11,26 +11,27 @@ class Person {
 	const REGISTER_MODE_TWO_STEPS 	= "two_steps_register";
 
 	//From Post/Form name to database field name with rules
-	private static $dataBinding = array(
+	public static $dataBinding = array(
 	    "name" => array("name" => "name", "rules" => array("required")),
 	    "username" => array("name" => "username", "rules" => array("required", "checkUsername")),
 	    "birthDate" => array("name" => "birthDate", "rules" => array("required")),
 	    "email" => array("name" => "email", "rules" => array("email")),
 	    "pwd" => array("name" => "pwd"),
-	    "address" => array("name" => "address"),
+	    "address" => array("name" => "address", "rules" => array("addressValid")),
 	    "streetAddress" => array("name" => "address.streetAddress"),
 	    "postalCode" => array("name" => "address.postalCode"),
 	    "codeInsee" => array("name" => "address.codeInsee"),
 	    "addressLocality" => array("name" => "address.addressLocality"), 
 	    "addressCountry" => array("name" => "address.addressCountry"),
-	    "geo" => array("name" => "geo"),
-	    "geoPosition" => array("name" => "geoPosition"),
+	    "geo" => array("name" => "geo", "rules" => array("geoValid")),
+	    "geoPosition" => array("name" => "geoPosition", "rules" => array("geoPositionValid")),
 	    "telephone" => array("name" => "telephone"),
 	    "mobile" => array("name" => "telephone.mobile"),
 	    "fixe" => array("name" => "telephone.fixe"),
 	    "fax" => array("name" => "telephone.fax"),
 	    "tags" => array("name" => "tags"),
 	    "shortDescription" => array("name" => "shortDescription"),
+	    "description" => array("name" => "description"),
 	    "facebookAccount" => array("name" => "socialNetwork.facebook"),
 	    "twitterAccount" => array("name" => "socialNetwork.twitter"),
 	    "gpplusAccount" => array("name" => "socialNetwork.googleplus"),
@@ -46,7 +47,17 @@ class Person {
 	    "isOpenData" => array("name" => "isOpenData"),
 	    "modules" => array("name" => "modules"),
 	    "badges" => array("name" => "badges"),
+	    "multitags" => array("name" => "multitags"),
+	    "multiscopes" => array("name" => "multiscopes"),
+	    "url" => array("name" => "url"),
+	    "lastLoginDate" => array("name" => "lastLoginDate"),
+	    "seePreferences" => array("name" => "seePreferences"),
+	    "locality" => array("name" => "address"),
 
+	    "modified" => array("name" => "modified"),
+	    "updated" => array("name" => "updated"),
+	    "creator" => array("name" => "creator"),
+	    "created" => array("name" => "created"),
 	);
 
 	public static function logguedAndValid() {
@@ -77,18 +88,22 @@ class Person {
 	      	$user ["username"] = $account["username"];
 	    if( @$account["cp"] ) 
 	      	$user ["postalCode"] = $account["cp"];
-	    if( @$account["address"] && @$account["address"]["postalCode"] )
-	     	$user ["postalCode"] = $account["address"]["postalCode"];
-	    if( @$account["address"] && @$account["address"]["codeInsee"] )
-	     	$user ["codeInsee"] = $account["address"]["codeInsee"];
+	    if( @$account["address"]) {
+	    	if ( @$account["address"]["postalCode"] ) $user ["postalCode"] = $account["address"]["postalCode"];
+	    	if ( @$account["address"]["codeInsee"] ) $user ["codeInsee"] = $account["address"]["codeInsee"];
+	    	if ( @$account["address"]["addressCountry"] ) $user ["addressCountry"] = $account["address"]["addressCountry"];
+	    }
 		if( @$account["roles"])
 	     	$user ["roles"] = $account["roles"];
-
+	    //Last login date
+	    $user ["lastLoginDate"] = @$account["lastLoginDate"] ? $account["lastLoginDate"] : time();
+	    
 		//Image profil
 	    $simpleUser = self::getById((string)$account["_id"]);
 	    $user ["profilImageUrl"] = $simpleUser["profilImageUrl"];
 	    $user ["profilThumbImageUrl"] = $simpleUser["profilThumbImageUrl"];
 	    $user ["profilMarkerImageUrl"] = $simpleUser["profilMarkerImageUrl"];
+
 	    Yii::app()->session["user"] = $user;
 	    Yii::app()->session["isRegisterProcess"] = $isRegisterProcess;
 
@@ -119,7 +134,7 @@ class Person {
 		/*echo "yoyo";
 		var_dump($id);*/
 	  	$person = PHDB::findOneById( self::COLLECTION ,$id );
-	  	
+	  	//echo $id; var_dump($person); exit;
 	  	if (empty($person)) {
 	  		//TODO Sylvain - Find a way to manage inconsistente data
             //throw new CTKException("The person id ".$id." is unkown : contact your admin");
@@ -136,8 +151,6 @@ class Person {
 											"addressLocality" => "",
 											"streetAddress" => "",
 											"addressCountry" => "");
-        
-			
         }
         
         if ($clearAttribute) {
@@ -152,11 +165,44 @@ class Person {
 	 * @param String $id of the person
 	 * @return array with data id, name, profilImageUrl
 	 */
-	public static function getSimpleUserById($id) {
+	public static function getMinimalUserById($id,$person=null) {
 		
 		$simplePerson = array();
-		$person = PHDB::findOneById( self::COLLECTION ,$id, 
-				array("id" => 1, "name" => 1, "username" => 1, "email" => 1,  "shortDescription" => 1, "description" => 1, "address" => 1, "geo" => 1, "roles" => 1, "tags" => 1, "pending" => 1, "profilImageUrl" => 1, "profilThumbImageUrl" => 1, "profilMarkerImageUrl" => 1,"numberOfInvit" => 1));
+		if(!$person)
+			$person = PHDB::findOneById( self::COLLECTION ,$id, 
+				array("id" => 1, "name" => 1, "username" => 1, "email" => 1, "roles" => 1, "tags" => 1, "profilImageUrl" => 1, "profilThumbImageUrl" => 1, "profilMarkerImageUrl" => 1));
+		
+		if (empty($person)) {
+			return $simplePerson;
+		}
+
+		$simplePerson["id"] = $id;
+		$simplePerson["name"] = @$person["name"];
+		$simplePerson["username"] = @$person["username"];
+		$simplePerson["email"] = @$person["email"];
+		$simplePerson["tags"] = @$person["tags"];
+		
+		//images
+		$simplePerson = array_merge($simplePerson, Document::retrieveAllImagesUrl($id, self::COLLECTION, null, $person));
+
+		$simplePerson["address"] = empty($person["address"]) ? array("addressLocality" => "Unknown") : $person["address"];
+		
+		$simplePerson = self::clearAttributesByConfidentiality($simplePerson);
+	  	return $simplePerson;
+
+	}
+
+	/**
+	 * Retrieve a simple user (id, name, profilImageUrl) by id from DB
+	 * @param String $id of the person
+	 * @return array with data id, name, profilImageUrl
+	 */
+	public static function getSimpleUserById($id,$person=null) {
+		
+		$simplePerson = array();
+		if(!$person)
+			$person = PHDB::findOneById( self::COLLECTION ,$id, 
+				array("id" => 1, "name" => 1, "username" => 1, "email" => 1,  "shortDescription" => 1, "description" => 1, "address" => 1, "geo" => 1, "roles" => 1, "tags" => 1, "pending" => 1, "profilImageUrl" => 1, "profilThumbImageUrl" => 1, "profilMarkerImageUrl" => 1, "profilMediumImageUrl" => 1,"numberOfInvit" => 1,"updated" => 1));
 		
 		if (empty($person)) {
 			return $simplePerson;
@@ -172,6 +218,7 @@ class Person {
 		$simplePerson["shortDescription"] = @$person["shortDescription"];
 		$simplePerson["description"] = @$person["description"];
 		$simplePerson["pending"] = @$person["pending"];
+		$simplePerson["updated"] = @$person["updated"];
 		if (@Yii::app()->params['betaTest']) { 
 			$simplePerson["numberOfInvit"] = @$person["numberOfInvit"];
 		}
@@ -280,7 +327,7 @@ class Person {
 	  				 "projects" => array(), "events" => array());
 
 	  	$person = self::getById($id);
-	  	
+	  	//error_log($id);
 	  	if (empty($person)) {
             throw new CTKException("The person id is unkown : contact your admin");
         }
@@ -316,8 +363,8 @@ class Person {
 			}
 		}
 
-		//trie les éléments dans l'ordre alphabetique par name
-	  	function mySort($a, $b){ 
+	//trie les éléments dans l'ordre alphabetique par name
+  	function mySort($a, $b){ 
 		  	if( isset($a['name']) && isset($b['name']) ){
 		    	return (strtolower($b['name']) < strtolower($a['name']));
 			}else{
@@ -379,7 +426,7 @@ class Person {
 	 * @param STRING $msg Message that will be sent by mail to user invited
 	 * @return type
 	 */
-	public static function createAndInvite($param, $msg = null) {
+	public static function createAndInvite($param, $msg = null, $gmail =null) {
 	  	try {
 	  		//Check if the person can still invite : has he got enought invitations left
 	  		$invitor = self::getById($param["invitedBy"]);
@@ -392,32 +439,36 @@ class Person {
 		  			return array("result"=>false, "msg"=> Yii::t("person","Sorry, you can't invite more people to join the platform. You do not have enough invitations left."));
 		  		}
 		  	}
-	  		//Check if it is not robot or a curl 
-	  		$nbInvitation = 3;
-	  		$limit = 15;
-	  		if(@$invitor["invitationDate"] && count($invitor["invitationDate"]) >= $nbInvitation){
-		  		rsort($invitor["invitationDate"]);
-		  		$lastDate=0;
-		  		$amountDelay = 0;
-		  		foreach($invitor["invitationDate"] as $data){
-			  		if($lastDate != 0){
-				  		$step=$lastDate- $data;
-			  			$amountDelay += $step; 
-			  			if($step < 5)
-					  		return array("result"=>false, "msg"=> "You're so fast for us. Take a breath Lucky Luke");
+	  		//Check if it is not robot or a curl
+	  		if($gmail != true){
+		  		$nbInvitation = 3;
+		  		$limit = 15;
+		  		if(@$invitor["invitationDate"] && count($invitor["invitationDate"]) >= $nbInvitation){
+			  		rsort($invitor["invitationDate"]);
+			  		$lastDate=0;
+			  		$amountDelay = 0;
+			  		foreach($invitor["invitationDate"] as $data){
+				  		if($lastDate != 0){
+					  		$step=$lastDate- $data;
+				  			$amountDelay += $step; 
+				  			if($step < 5)
+						  		return array("result"=>false, "msg"=> "You're so fast for us. Take a breath Lucky Luke");
+				  		}
+			  			$lastDate=$data;
 			  		}
-		  			$lastDate=$data;
+			  		if($amountDelay < $limit){
+				  		return array("result"=>false, "msg"=> "You're so fast for us. Take a breath Lucky Luke");
+			  		}else{
+				  		PHDB::update(self::COLLECTION, array("_id" => new MongoId($param["invitedBy"])), 
+			  				array('$set' => array('invitationDate' => array())));
+			  		}
 		  		}
-		  		if($amountDelay < $limit){
-			  		return array("result"=>false, "msg"=> "You're so fast for us. Take a breath Lucky Luke");
-		  		} else{
-			  		PHDB::update(self::COLLECTION, array("_id" => new MongoId($param["invitedBy"])), 
-		  				array('$set' => array('invitationDate' => array())));
-		  		}
-	  		}
+		  	}
 	  		$res = self::insert($param, self::REGISTER_MODE_MINIMAL);
-	  		PHDB::update(self::COLLECTION, array("_id" => new MongoId($param["invitedBy"])), 
-		  			array('$push' => array('invitationDate' => time())));
+	  		if($gmail != true){
+	  			PHDB::update(self::COLLECTION, array("_id" => new MongoId($param["invitedBy"])), 
+		  			array('$push' => array('invitationDate' => time())));	
+	  		}
 
 	  				  		//send invitation mail
 			Mail::invitePerson($res["person"], $msg);
@@ -461,7 +512,7 @@ class Person {
 	  			throw new CTKException(Yii::t("person","Problem inserting the new person : ").$data.Yii::t("person"," is missing"));
 	  	}
 	  	
-	  	$newPerson["name"] = $person["name"];
+	  	$newPerson["name"] = trim($person["name"]);
 
 	  	//Check email
 	  	$checkEmail = DataValidator::email($person["email"]);
@@ -471,12 +522,12 @@ class Person {
 
 		//Check if the email of the person is already in the database
 	  	if ($uniqueEmail) {
-		  	$account = PHDB::findOne(Person::COLLECTION,array("email"=>$person["email"]));
+		  	$account = PHDB::findOne(Person::COLLECTION,array("email"=> new MongoRegex('/^' . preg_quote(trim($person["email"])) . '$/i')));
 		  	if ($account) {
 		  		throw new CTKException(Yii::t("person","Problem inserting the new person : a person with this email already exists in the plateform"));
 		  	}
 	  	}
-	  	$newPerson["email"] = $person["email"];
+	  	$newPerson["email"] = trim($person["email"]);
 	  	
 	  	if (!empty($person["invitedBy"])) {
 	  		$newPerson["invitedBy"] = $person["invitedBy"];
@@ -484,7 +535,7 @@ class Person {
 
 	  	if ($mode == self::REGISTER_MODE_NORMAL || $mode == self::REGISTER_MODE_TWO_STEPS) {
 		  	//user name
-		  	$newPerson["username"] = $person["username"];
+		  	$newPerson["username"] = trim($person["username"]);
 		  	if (strlen($newPerson["username"]) < 4 || strlen($newPerson["username"]) > 32) {
 		  		throw new CTKException(Yii::t("person","The username length should be between 4 and 32 characters"));
 		  	} 
@@ -492,8 +543,9 @@ class Person {
 		  		throw new CTKException(Yii::t("person","Problem inserting the new person : a person with this username already exists in the plateform"));
 		  	}
 
-		  	//Encode the password
-		  	$newPerson["pwd"] = hash('sha256', $person["email"].$person["pwd"]);
+		  	//Password is mandatory : it will be encoded later
+		  	if (empty($person["pwd"])) 
+		  		throw new CTKException(Yii::t("person","The password could not be empty on this register mode !"));
 		}
 
 		if ($mode == self::REGISTER_MODE_NORMAL) {
@@ -535,6 +587,8 @@ class Person {
 	 * @return array result : msg and id
 	 */
 	public static function insert($person, $mode = self::REGISTER_MODE_NORMAL, $inviteCode = null) {
+		//Keep the password
+		$pwd = @$person["pwd"];
 
 	  	//Check Person data + business rules
 	  	$person = self::getAndcheckPersonData($person, $mode);
@@ -544,7 +598,39 @@ class Person {
 
 	  	$person["roles"] = Role::getDefaultRoles();
 
-	  	//if we are in mode minimal it's an invitation. The invited user is then betaTester by default
+	  	Person::addPersonDataForBetaTest($person, $mode, $inviteCode);
+	  	
+	  	$person["created"] = new mongoDate(time());
+	  	//$person["preferences"] = array("seeExplanations"=> true);
+	  	$person["preferences"] = Preference::initPreferences(self::COLLECTION);
+	  	$person["seePreferences"] = true;
+	  	
+	  	PHDB::insert(Person::COLLECTION , $person);
+        if (isset($person["_id"])) {
+        	$newpersonId = (String) $person["_id"];
+        	if (! empty($pwd)) {
+	        	//Encode the password
+			  	$encodedpwd = self::hashPassword($newpersonId, $pwd);
+			  	self::updatePersonField($newpersonId, "pwd", $encodedpwd, $newpersonId);
+			} 
+	    } else {
+	    	throw new CTKException("Problem inserting the new person");
+	    }
+
+		//A mail is sent to the admin
+		Mail::notifAdminNewUser($person);
+	    return array("result"=>true, "msg"=>"You are now communnected", "id"=>$newpersonId, "person"=>$person);
+	}
+
+	/**
+	 * In betaTest mode, manage roles, invitation code, and invitation numbers on person data
+	 * @param array $person A person ready to insert
+	 * @param String $mode Register mode
+	 * @param String $inviteCode Invitation code
+	 * @return void
+	 */
+	private static function addPersonDataForBetaTest($person, $mode, $inviteCode) {
+		//if we are in mode minimal it's an invitation. The invited user is then betaTester by default
 	  	if( @Yii::app()->params['betaTest'] && $mode ==self::REGISTER_MODE_MINIMAL) {
 	  		$person["roles"]['betaTester'] = true;
 	  	}
@@ -555,24 +641,9 @@ class Person {
 	  		$person["roles"]['betaTester'] = true;
 	  		$person["inviteCode"] = $inviteCode;
 	  	}
-
-	  	$person["created"] = new mongoDate(time());
-	  	$person["preferences"] = array("seeExplanations"=> true);
-	  	
-	  	if (@Yii::app()->params['betaTest'] || $person["roles"]["betaTester"]==true)
+		if (@Yii::app()->params['betaTest'] || @$person["roles"]["betaTester"]==true)
 	  		$person["numberOfInvit"] = empty(Yii::app()->params['numberOfInvitByPerson']) ? 0 : Yii::app()->params['numberOfInvitByPerson'];
-
-	  	PHDB::insert( Person::COLLECTION , $person);
- 
-        if (isset($person["_id"])) {
-	    	$newpersonId = (String) $person["_id"];
-	    } else {
-	    	throw new CTKException("Problem inserting the new person");
-	    }
-
-		//A mail is sent to the admin
-		Mail::notifAdminNewUser($person);
-	    return array("result"=>true, "msg"=>"You are now communnected", "id"=>$newpersonId, "person"=>$person);
+	  	return;
 	}
 
 	/**
@@ -593,7 +664,7 @@ class Person {
 		);
 		
 		//TODO SBAR = filter data to retrieve only publi data	
-		$person = self::getById($id);
+		$person = self::getById($id, true);
 		if (empty($person)) {
 			//throw new CTKException("The person id is unknown ! Check your URL");
 		}
@@ -678,7 +749,6 @@ class Person {
 	 */
 	public static function updatePersonField($personId, $personFieldName, $personFieldValue, $userId) {  
 		//var_dump(Role::isSuperAdmin(Role::getRolesUserId($userId)) == true);
-		
 		//if ($personId != $userId){
 		if (!Authorisation::canEditItem($userId, self::COLLECTION, $personId)) {
 			throw new CTKException("Can not update the person : you are not authorized to update that person !");
@@ -703,24 +773,29 @@ class Person {
 			else
 				$personFieldValue = explode(",", $personFieldValue);
 		}
-			
 
-		error_log($dataFieldName);
-		
 		//address
 		$user = null;
 		$thisUser = self::getById($personId);
+
 		if ($dataFieldName == "address") 
 		{
-			error_log(implode(",", $personFieldValue));
 			if(!empty($personFieldValue["postalCode"]) && !empty($personFieldValue["codeInsee"])) 
 			{
+				$user = Yii::app()->session["user"];
 				$insee = $personFieldValue["codeInsee"];
+				$user["codeInsee"] = $insee;
 				$postalCode = $personFieldValue["postalCode"];
+				$user["postalCode"] = $postalCode;
+
 				$address = SIG::getAdressSchemaLikeByCodeInsee($insee,$postalCode);
-				if (!empty($personFieldValue["streetAddress"])) $address["streetAddress"] = $personFieldValue["streetAddress"];
-				if (!empty($personFieldValue["addressCountry"])) $address["addressCountry"] = $personFieldValue["addressCountry"];
-				
+				if (!empty($personFieldValue["streetAddress"])) 
+					$address["streetAddress"] = $personFieldValue["streetAddress"];
+				if (!empty($personFieldValue["addressCountry"])) {
+					$address["addressCountry"] = $personFieldValue["addressCountry"];
+					$user["addressCountry"] = $personFieldValue["addressCountry"];
+				}
+				Yii::app()->session["user"] = $user;
 				$set = array("address" => $address);
 
 				if(empty($thisUser["geo"])){
@@ -728,12 +803,14 @@ class Person {
 					SIG::updateEntityGeoposition(Person::COLLECTION,$personId,$geo["latitude"],$geo["longitude"]);
 				}
 
-				PHDB::update( self::COLLECTION, array("_id" => new MongoId($personId)), 
-		                        array('$unset' => array("two_steps_register"=>"")));
+				$user["address"] = $address;
+				if($userId == $personId)
+					self::updateCookieCommunexion($userId, @$user["address"]);
+				/*PHDB::update( self::COLLECTION, array("_id" => new MongoId($personId)), 
+		                        array('$unset' => array("two_steps_register"=>"")));*/
 
 			} else 
 				throw new CTKException("Error updating the Person : address is not well formated !");			
-
 		} 
 		else if ($dataFieldName == "birthDate") 
 		{
@@ -746,14 +823,14 @@ class Person {
 			$set = array($dataFieldName => $newMongoDate);
 		} 
 		else if($dataFieldName == "socialNetwork.telegram") {
-			if(strpos($personFieldValue, "http")==false || strpos($personFieldValue, "http")>0) 
-				if($personFieldValue != "")
-					$personFieldValue = "https://web.telegram.org/#/im?p=@".$personFieldValue;
+			//if(strpos($personFieldValue, "http")==false || strpos($personFieldValue, "http")>0) 
+			//	if($personFieldValue != "")
+			//		$personFieldValue = "https://web.telegram.org/#/im?p=@".$personFieldValue;
 
 			$set = array($dataFieldName => $personFieldValue);
 		}
 		else {
-			$set = array($dataFieldName => $personFieldValue);	
+			$set = array($dataFieldName => $personFieldValue);
 			if ( $personFieldName == "bgClass") {
 				//save to session for all page reuse
 				$user = Yii::app()->session["user"];
@@ -785,21 +862,26 @@ class Person {
      * @param  [string] $pwd   pwd connected to the citizen account
      * @param  [boolean] $isRegisterProcess Are we trying to login during the register process
      * @return [array] array of result as (result => boolean, msg => string)
+     * msg possibles :  - accountPending => le user a été invité et il faut qu'il finisse son process de register
+	 *					- betaTestNotOpen => si la plateforme est en mode Beta Test et que le user n'est pas beta tester
+	 *					- notValidatedEmail => il a pas validé son email
+	 * 					- emailNotFound => l'email n'a pas été trouvé en base de données
+	 * 					- emailAndPassNotMatch => l'email et le password ne match pas
      */
-    public static function login($email, $pwd, $isRegisterProcess) 
+    public static function login($emailOrUsername, $pwd, $isRegisterProcess) 
     {
-        if (empty($email) || empty($pwd)) {
+        if (empty($emailOrUsername) || empty($pwd)) {
         	return array("result"=>false, "msg"=>"Cette requête ne peut aboutir. Merci de bien vouloir réessayer en complétant les champs nécessaires");
         }
 
         Person::clearUserSessionData();
         $account = PHDB::findOne(self::COLLECTION, array( '$or' => array( 
-        															array("email" => new MongoRegex('/^'.preg_quote($email).'$/i')),
-        															array("username" => $email) ) ));
+        															array("email" => new MongoRegex('/^'.preg_quote(trim($emailOrUsername)).'$/i')),
+        															array("username" => $emailOrUsername) ) ));
         
         //return an error when email does not exist
         if ($account == null) {
-        	return array("result"=>false, "msg"=>"Erreur : impossible de trouver un compte avec ce nom d'utilisateur ou cet email.");
+        	return array("result"=>false, "msg"=>"emailNotFound");
         }
         
         //Roles validation
@@ -808,20 +890,58 @@ class Person {
 	        //Check the password
         	if (self::checkPassword($pwd, $account)) {
 	            Person::saveUserSessionData($account, $isRegisterProcess);
+	            //Update login history
+	            self::updateLoginHistory((String) $account["_id"]);
 	            if ($res["msg"] == "notValidatedEmail") 
 	        		return $res;
 	        	else
 	            	$res = array("result"=>true, "id"=>$account["_id"], "isCommunected"=>isset($account["cp"]), "msg" => "Vous êtes maintenant identifié : bienvenue sur communecter.");
 	        } else {
-	            $res = array("result"=>false, "msg"=>"Email ou Mot de Passe ne correspondent pas, rééssayez.");
+	            $res = array("result"=>false, "msg"=>"emailAndPassNotMatch");
 	        }
 	    }
         
         return $res;
     }
 
+    /**
+     * Update the last login date on person document
+     * @param String $accountId an existing account id
+     * @return boolean True if the update goes well, false else
+     */
+    private static function updateLoginHistory($accountId) {
+    	return self::updatePersonField($accountId, "lastLoginDate", time(), $accountId);
+    }
+
+    /**
+     * Check if the password is valid
+     * /!\ Change the salt from email to id after login success /!\
+     * @param String $pwd The password typed
+     * @param array $account The account retrieve from 
+     * @return boolean : true if password match
+     */
     private static function checkPassword($pwd, $account) {
-    	return ($account && @$account["pwd"] == hash('sha256', @$account["email"].$pwd)) ;
+    	$res = false;
+    	if ($account) {
+    		if (@$account["pwd"] == hash('sha256', @$account["email"].$pwd)) {
+    			//the password match with an "email" as salt => change the password to salt with the "id"
+    			$newPassword = self::hashPassword((String) $account["_id"],$pwd);
+				self::updatePersonField(@$account["_id"], "pwd", $newPassword, @$account["_id"]);
+				//add a log on logs collection
+				Log::save($logs =array(
+					"userId" => $account["_id"],
+					"browser" => @$_SERVER["HTTP_USER_AGENT"],
+					"ipAddress" => @$_SERVER["REMOTE_ADDR"],
+					"created" => new MongoDate(time()),
+					"action" => "person/newsaltpassword"
+			    ));
+				$res = true;
+    		//Second test : maybe the salt is already with the id
+    		} else if (@$account["pwd"] == self::hashPassword((String) $account["_id"],$pwd)) {
+    			$res = true;
+    		}
+    	}
+    	return $res;
     }
 
 	/**
@@ -829,10 +949,14 @@ class Person {
 	 * @param type $id : is the mongoId (String) of the person
 	 * @return person document as in db
 	 */
-	public static function getActionRoomsByPersonId($id) 
+	public static function getActionRoomsByPersonId($id,$archived=null) 
 	{
 		//get action Rooms I created
 		$where = array( "email"=> Yii::app()->session['userEmail'] ) ;
+		if(isset($archived))
+			$where['status'] = ActionRoom::STATE_ARCHIVED;
+		else 
+			$where['status'] = array('$exists' => 0 );
 	  	$actionRooms = PHDB::find(ActionRoom::COLLECTION,$where);//array();//ActionRoom::getWhereSortLimit( $where, array("created"=>1) ,1000);
 	  	$actions = array();
 	  	$person = self::getById($id);
@@ -887,14 +1011,19 @@ class Person {
 	 * @param type $id : is the mongoId (String) of the parent Element
 	 * @return person document as in db
 	*/
-	public static function getActionRoomsByPersonIdByType($uid,$type,$id) 
-	{
+	public static function getActionRoomsByPersonIdByType($uid,$type,$id,$archived=null) 
+	{ 
 		if(isset($type))
         	$where["parentType"] = $type;
         if(isset($id))
         	$where["parentId"] = $id;
+        
+        if(isset($archived))
+			$where['status'] = ActionRoom::STATE_ARCHIVED;
+		else
+			$where['status'] = array('$exists' => 0 );
 
-        $actionRooms = ActionRoom::getWhereSortLimit( $where, array("date"=>1), 15);
+        $actionRooms = ActionRoom::getWhereSortLimit( $where, array("date"=>1), 0);
 
 	  	$actions = array();
 	  	$person = self::getById($uid);
@@ -928,7 +1057,7 @@ class Person {
 	 */
 	public static function changePassword($oldPassword, $newPassword, $userId) {
 		
-		$person = Person::getById($userId);
+		$person = Person::getById($userId, false);
 
 		if (! self::checkPassword($oldPassword, $person)) {
 			return array("result" => false, "msg" => Yii::t("person","Your current password is incorrect"));
@@ -938,7 +1067,7 @@ class Person {
 			return array("result" => false, "msg" => Yii::t("person","The new password should be 8 caracters long"));
 		}
 		
-		$encodedPwd = hash('sha256', $person["email"].$newPassword);
+		$encodedPwd = self::hashPassword((String) $person["_id"],$newPassword);
 		self::updatePersonField($userId, "pwd", $encodedPwd, $userId);
 		
 		return array("result" => true, "msg" => Yii::t("person","Your password has been changed with success !"));
@@ -1011,8 +1140,17 @@ class Person {
 			throw new CTKException("Impossible to update an account not pending !");
 		} else {
 			$person["email"] = $account["email"];
-			//Update des infos minimal
-			$personToUpdate = self::getAndcheckPersonData($person, self::REGISTER_MODE_TWO_STEPS, false);
+			$pwd = self::hashPassword($personId, $person["pwd"]);
+
+			//Update des infos minimales
+			try {
+				$personToUpdate = self::getAndcheckPersonData($person, self::REGISTER_MODE_TWO_STEPS, false);
+			} catch (CTKException $e) {
+				Rest::json(array("result" => false, "msg" => $e->getMessage()));
+				die;
+			}
+
+			$personToUpdate["pwd"] = $pwd;
 
 			PHDB::update(Person::COLLECTION, array("_id" => new MongoId($personId)), 
 			                          array('$set' => $personToUpdate, '$unset' => array("pending" => "" ,"roles.tobeactivated"=>""
@@ -1029,6 +1167,10 @@ class Person {
 			$res = array("result" => true, "msg" => "The pending user has been updated and is now complete");
 		}
 		return $res;
+	}
+	
+	private static function hashPassword($personId, $pwd) {
+		return hash('sha256', $personId.$pwd);
 	}
 
 	public static function isUniqueUsername($username) {
@@ -1092,12 +1234,12 @@ class Person {
 	  	if (isset($person) && isset($person["links"]) && isset($person["links"]["follows"])) {
 	  		foreach ($person["links"]["follows"] as $key => $follow) {
 
-	  					if($follow["type"] == "citoyens")
-	  						$entity = PHDB::findOneById( self::COLLECTION ,$key );
-	  					else if($follow["type"] == "organizations")
-	  						$entity = PHDB::findOneById(ORGANIZATION::COLLECTION ,$key );
-
-		                $res[$key] = $entity;
+				if($follow["type"] == "citoyens" || $follow["type"] == "organizations" || $follow["type"] == "projects") {
+					$entity = PHDB::findOneById( $follow["type"] ,$key );
+					$res[$key] = $entity;
+				} else {
+					error_log("[DATA-INCORRECT] - Impossible to find the ".$follow["type"]. " with the id ".$key." ! Link follow on the person id : ".$id);
+				}
 	  		}
 	  	}
 	  	return $res;
@@ -1273,7 +1415,8 @@ class Person {
 		  		throw new CTKException(Yii::t("import","205", null, Yii::app()->controller->module->id));
 		  	}
 			//Check if the email of the person is already in the database
-		  	$account = PHDB::findOne(Person::COLLECTION,array("email"=>$person["email"]));
+		  	$account = PHDB::findOne(Person::COLLECTION,array("email"=> new MongoRegex('/^' . preg_quote(trim($person["email"])) . '$/i')));
+		  	//$account = PHDB::findOne(Person::COLLECTION,array("email"=>$person["email"]));
 		  	if($account){
 		  		throw new CTKException(Yii::t("import","206", null, Yii::app()->controller->module->id));
 		  	}
@@ -1686,6 +1829,9 @@ class Person {
 				}
 			}
 	  	}	
+
+	  	if(!empty($entity["pwd"]))
+	  		unset($entity["pwd"]);
 		return $entity;
 	}
 	/**
@@ -1761,6 +1907,140 @@ class Person {
 		}
 		return $res;
 
+    }
+
+
+    public static function getDataBinding() {
+	  	return self::$dataBinding;
+	}
+
+    /**
+     * Delete an existing person.
+     * - remove links on person/orga/events/projects/needs
+     * - if no activity (news/cote/comments) => delete the user
+     * - else anonymize the user (remove all identity field) but keep the document in person collection
+     * like that the activity of element is kept.
+     * @param string $id : id of the person you want to be deleted
+     * @param string $userId : id of the user making the action. Can be done only with super admins user
+     * @return array res : boolean, msg : string
+     */
+    public static function deletePerson($id, $userId) {
+		//Only super admin can delete a person
+    	if (! Authorisation::isUserSuperAdmin($userId)) {
+    		return array("result" => false, "msg" => "You must be a superadmin to delete a person");
+    	}
+
+		$person = self::getById($id);
+		if (empty($person)) return array("result" => false, "msg" => "Unknown person id");
+
+    	//Delete links on elements collections		
+		$links2collection = array(
+			//Person => Person that follows the user we want to delete and the 
+			self::COLLECTION => array("follows","followers"),
+			//Organization => members, followers
+			Organization::COLLECTION => array("followers","members"),
+			//Projects => contibutors
+			Project::COLLECTION => array("contributors", "followers"),
+			//Events => attendees / organizer
+			Event::COLLECTION => array("attendees", "organizer"),
+			//Needs => links/helpers
+			Need::COLLECTION => array("helpers")
+		);
+
+    	foreach ($links2collection as $collection => $linkTypes) {
+    		foreach ($linkTypes as $linkType) {    		
+	    		$where = array("links.".$linkType.".".$id => array('$exists' => true));
+	    		$action = array('$unset' => array("links.".$linkType.".".$id => ""));
+	    		PHDB::update($collection, $where, $action);
+	    		error_log("delete links type ".$linkType." on collection ".$collection." for user ".$id);
+	    	}
+    	}
+
+    	//Delete Notifications
+    	ActivityStream::removeNotificationsByUser($id);
+
+    	//Check if the user got activity (news, comments, votes)
+		$res = self::checkActivity($id);
+		if ($res["result"]) {
+			//Anonymize the user : Remove all fields from the person
+			$where = array("_id" => new MongoId($id));
+			$action = array("username" => $id, "email" => $id."@communecter.org", "name" => "Citoyen supprimé", "deletedDate" => new mongoDate(time()), "status" => "deleted");
+			PHDB::update(self::COLLECTION, $where, $action);
+			Log::save(array("userId" => $userId, "browser" => @$_SERVER["HTTP_USER_AGENT"], "ipAddress" => @$_SERVER["REMOTE_ADDR"], "created" => new MongoDate(time()), "action" => "deleteUser", "params" => array("id" => $id)));
+		} else {
+			//Delete the person
+			$where = array("_id" => new MongoId($id));
+	    	PHDB::remove(self::COLLECTION, $where);
+		}
+
+    	//Documents => Profil Images
+    	$profilImages = Document::listMyDocumentByIdAndType($id, self::COLLECTION, Document::IMG_PROFIL, Document::DOC_TYPE_IMAGE, array( 'created' => -1 ));
+    	foreach ($profilImages as $docId => $document) {
+    		Document::removeDocumentById($docId, $userId);
+    		error_log("delete document id ".$docId);
+    	}
+    	//TODO SBAR : remove thumb and medium
+    	
+    	return array("result" => true, "msg" => "The person has been deleted succesfully");
+    }
+
+    private static function checkActivity($id) {
+    	//Check if the person got news/comments/votes
+		//Comments => author
+		$where = array("author" => $id);
+		$count = PHDB::count(Comment::COLLECTION, $where);
+		if ($count > 0) return array("result" => true, "msg" => "This person had made comments");
+		//news => author ou target (type = citoyens && id = $id) ou mentions.id contient $id
+		$where = array('$or' => array(
+							array("author" => $id), 
+							array("mentions.id" => $id), 
+							array('$and' => array(
+								array("target.type" => self::COLLECTION), 
+								array("target.id" => $id))
+							)));
+		$count = PHDB::count(News::COLLECTION, $where);
+		if ($count > 0) return array("result" => true, "msg" => "This person had made news");
+		//surveys => VoteUp, VoteMoreInfo, VoteDown...
+		$where = array('$or' => array(
+						array("vote.".Action::ACTION_VOTE_UP.".".$id => array('$exists'=>1)),
+						array("vote.".Action::ACTION_VOTE_ABSTAIN.".".$id => array('$exists'=>1)),
+						array("vote.".Action::ACTION_VOTE_UNCLEAR.".".$id => array('$exists'=>1)),
+						array("vote.".Action::ACTION_VOTE_MOREINFO.".".$id => array('$exists'=>1)),
+						array("vote.".Action::ACTION_VOTE_DOWN.".".$id => array('$exists'=>1)))
+					);
+		$count = PHDB::count(Survey::COLLECTION, $where);
+		if ($count > 0) return array("result" => true, "msg" => "This person had made votes");
+
+		return array("result" => false, "msg" => "No activity");
+    }
+
+
+    public static function updateCookieCommunexion($userId, $address) {
+    	$result = array("result" => false, "msg" => "User not connected");
+    	if(!empty($userId)){
+    		try{
+    			if(!empty($address)){
+    				CookieHelper::setCookie("inseeCommunexion", $address["codeInsee"]);
+		    		CookieHelper::setCookie("cpCommunexion", $address["postalCode"]);
+		    		CookieHelper::setCookie("cityNameCommunexion", $address["addressLocality"]);
+    			}else{
+    				CookieHelper::removeCookie("inseeCommunexion");
+		    		CookieHelper::removeCookie("cpCommunexion");
+		    		CookieHelper::removeCookie("cityNameCommunexion");
+    			}
+	    		$result = array("result" => true, "msg" => "Cookies is updated");
+			}catch (CTKException $e) {
+				$result = array("result" => false, "msg" => $e->getMessage());
+			}
+    	}
+
+    	return $result ;
+    }
+
+    public static function getCurrentSuperAdmins() {
+    	$superAdmins = array();
+    	$superAdmins = PHDB::find(self::COLLECTION, array('roles.superAdmin' => true), array("_id"));
+    	return $superAdmins;
     }
 
 }

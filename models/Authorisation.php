@@ -98,13 +98,10 @@ class Authorisation {
      */
     public static function isOrganizationAdmin($userId, $organizationId) {
         $res = false;
-        $organization=Organization::getById($organizationId);
-		if(@$organization["preferences"]["isOpenEdition"] && $organization["preferences"]["isOpenEdition"]){
-			$res="openEdition";
-		} else {
-	    	$myOrganizations = Authorisation::listUserOrganizationAdmin($userId);
-			$res = array_key_exists((string)$organizationId, $myOrganizations);
-		}
+        $myOrganizations = Authorisation::listUserOrganizationAdmin($userId);
+        if(!empty($myOrganizations))
+		  $res = array_key_exists((string)$organizationId, $myOrganizations);
+
         return $res;
     }
 
@@ -120,7 +117,10 @@ class Authorisation {
         //Get the members of the organization : if there is no member then it's a new organization
         //We are in a creation process
         $organizationMembers = Organization::getMembersByOrganizationId($organizationId);
-        $res = array_key_exists((string)$userId, $organizationMembers);    
+        if( array_key_exists((string)$userId, $organizationMembers) && (
+            empty($organizationMembers[(string)$userId]["toBeValidated"]) || 
+            $organizationMembers[(string)$userId]["toBeValidated"] == false)) 
+            $res = true;    
         return $res;
     }
 
@@ -216,7 +216,26 @@ class Authorisation {
      * @param String $userId The userId to get the authorisation of
      * @return boolean True if the user isAdmin, False else
      */
-    public static function isEventAdmin($eventId, $userId) {
+    public static function isEventAdmin($eventId, $userId, $attendees = null){
+        $res = false;
+        if(!empty($attendees) && @$attendees[$userId]["isAdmin"] == true){
+            $res=true;
+        }else{
+            $where = array("_id"=>new MongoId($eventId),
+                            "links.attendees.".$userId.".isAdmin" => true,
+                            "links.attendees.".$userId.".isAdminPending" => array('$exists' => false));
+            $event = PHDB::findOne(Event::COLLECTION, $where);
+            if(!empty($event))
+                $res=true;
+            /*$listEvent = Authorisation::listEventsIamAdminOf($userId);
+            if(isset($listEvent[(string)$eventId])){
+                $res=true;
+            }*/   
+        }
+        
+        return $res;
+    }
+    /*public static function isEventAdmin($eventId, $userId) {
     	$res = false;
     	$event=Event::getById($eventId);
         if(@$event["links"] && @$event["links"]["attendees"] && (@$event["preferences"]["isOpenEdtion"] && $event["preferences"]["isOpenEdtion"] !=true)){
@@ -235,7 +254,7 @@ class Authorisation {
 	       $res="openEdition";
        	}	
        	return $res;
-    }
+    }*/
     /**
      * Return true if the user is member of the event
      * @param String the id of the user
@@ -248,7 +267,10 @@ class Authorisation {
         //Get the members of the event : if there is no member then it's a new organization
         //We are in a creation process
         $eventMembers = Event::getAttendeesByEventId($eventId);
-        $res = array_key_exists((string)$userId, $eventMembers);    
+        if( array_key_exists((string)$userId, $eventMembers) && (
+            empty($eventMembers[(string)$userId]["toBeValidated"]) || 
+            $eventMembers[(string)$userId]["toBeValidated"] == false)) 
+        $res = true;    
         return $res;
     }
 
@@ -335,14 +357,10 @@ class Authorisation {
 
     public static function isProjectAdmin($projectId, $userId) {
     	$res = false;
-    	$project=Project::getById($projectId);
-    	if(@$project["preferences"]["isOpenEdition"] && $project["preferences"]["isOpenEdition"]){
-	    	$res = "openEdition";
-    	} else {
-	        $listProject = Authorisation::listProjectsIamAdminOf($userId);
-			if(isset($listProject[(string)$projectId]))
-       			$res=true;
-       	} 
+    	$listProject = Authorisation::listProjectsIamAdminOf($userId);
+		if(isset($listProject[(string)$projectId]))
+       		$res=true;
+       	
        	return $res;
     }
 
@@ -358,7 +376,10 @@ class Authorisation {
         //Get the members of the project : if there is no member then it's a new organization
         //We are in a creation process
         $projectMembers = Project::getContributorsByProjectId($projectId);
-        $res = array_key_exists((string)$userId, $projectMembers);    
+        if( array_key_exists((string)$userId, $projectMembers) && (
+            empty($projectMembers[(string)$userId]["toBeValidated"]) || 
+            $projectMembers[(string)$userId]["toBeValidated"] == false)) 
+        $res = true;    
         return $res;
     }
     
@@ -440,7 +461,7 @@ class Authorisation {
     		if(isset($event["links"]["attendees"])){
     			foreach ($event["links"]["attendees"] as $key => $value) {
     				if($key ==  $userId){
-	    				if(isset($value["isAdmin"]) && $value["isAdmin"]==true){
+	    				if(isset($value["isAdmin"]) && $value["isAdmin"]==true && empty($value["isAdminPending"])){
 	    					$res = true;
 	    				}
 	    			}
@@ -472,27 +493,26 @@ class Authorisation {
     * @param String $eventId event to get authorisation of
     * @return a boolean True if the user can edit and false else
     */
-    public static function canEditEntry($userId, $voteEntry){
+    public static function canEditSurvey($userId, $surveyId,$parentType=null,$parentId=null){
         $res = false;
-        $entry = Survey::getById($voteEntry);
+        $survey = Survey::getById($surveyId);
 
-        if(!empty($entry) && !empty($userId)) {
+        if(!empty($survey) && !empty($userId)) {
             // case 1 : superAdmin
             if (self::isUserSuperAdmin($userId)) {
                 return true;
             }
-
-            //Organizer of the Entry
-            if (@$entry["organizerType"] == Person::COLLECTION && 
-                @$entry["organizerId"] == $userId) {
-                return true;
-            }
-            // case 2 and 3
-            if (@$entry["organizerType"] == Organization::COLLECTION) {
-                if( Authorisation::canEditOrganisation($userId, @$entry["organizerId"])){
-                    return true;
-                }
-            }
+			$hasVote = (@$survey["voteUpCount"] 
+							|| @$survey["voteAbstainCount"]  
+							|| @$survey["voteUnclearCount"] 
+							|| @$survey["voteMoreInfoCount"] 
+							|| @$survey["voteDownCount"] ) ? true : false;
+            if ( !$hasVote && Authorisation::canEditItem($userId, $parentId, $parentType) )  {
+	            return true;
+	         }
+        } else {
+	        //RAJOUTER UN LOG
+			error_log("Problem with survey authorization, surveyId:".@$surveyId." & userId:".@$userId);
         }
         return $res;
     }
@@ -504,31 +524,55 @@ class Authorisation {
     * @param itemId id of the item we want to edits
     * @return a boolean
     */
-    public static function canEditItem($userId, $type, $itemId){
-        $res=false;
-    	if($type == Event::COLLECTION) {
-    		$res = Authorisation::canEditEvent($userId,$itemId);
-            if(Role::isSuperAdmin(Role::getRolesUserId($userId)) && $res==false)
-                $res = true ;
-            //if(self::isSourceAdmin($itemId, $type, $userId) && $res==false)
-              //  $res = true ;
-    	} else if($type == Project::COLLECTION) {
-    		$res = Authorisation::isProjectAdmin($itemId, $userId);
+    public static function canEditItem($userId, $type, $itemId,$parentType=null,$parentId=null){
+        $res=false;    
+        $check = false;
+        if($type == ActionRoom::COLLECTION || $type == ActionRoom::COLLECTION_ACTIONS) 
+        {
+			$type = $parentType;
+			$itemId = $parentId;
+            $check = true;
+		}
+
+    	if($type == Event::COLLECTION) 
+        {
+    		$res = self::canEditEvent($userId,$itemId);
             if(Role::isSuperAdmin(Role::getRolesUserId($userId)) && $res==false)
                 $res = true ;
             if(self::isSourceAdmin($itemId, $type, $userId) && $res==false)
                 $res = true ;
-    	} else if($type == Organization::COLLECTION) {
-    		$res = Authorisation::isOrganizationAdmin($userId, $itemId);
+    	} 
+        else if($type == Project::COLLECTION) 
+        {
+    		$res = self::isProjectAdmin($itemId, $userId);
+            if(Role::isSuperAdmin(Role::getRolesUserId($userId)) && $res==false)
+                $res = true ;
+            if(self::isSourceAdmin($itemId, $type, $userId) && $res==false)
+                $res = true ;
+    	} 
+        else if($type == Organization::COLLECTION) 
+        {
+    		$res = self::isOrganizationAdmin($userId, $itemId);
             if(Role::isSuperAdmin(Role::getRolesUserId($userId)) && $res==false)
                 $res = true ;
             if(self::isSourceAdmin($itemId, $type, $userId) && $res==false)
                 $res = true ; 
-    	} else if($type == Person::COLLECTION) {
+    	} 
+        else if($type == Person::COLLECTION) 
+        {
             if($userId==$itemId || Role::isSuperAdmin(Role::getRolesUserId($userId)) == true )
                 $res = true;
-    	} else if($type == Survey::COLLECTION) {
-            $res = Authorisation::canEditEntry($userId, $itemId);
+    	} 
+        else if($type == City::COLLECTION )
+        {
+            if($check)
+                $res = self::isLocalCitizen( $userId, ($parentType == City::CONTROLLER) ? $parentId : $itemId ); 
+            else 
+                $res = true;
+    	} 
+    	else if($type == Survey::COLLECTION) 
+        {
+            $res = self::canEditSurvey($userId, $itemId,$parentType,$parentId);
         }
     	return $res;
     }
@@ -542,16 +586,33 @@ class Authorisation {
     public static function canParticipate($userId, $type, $itemId){
         $res=false;
         if( $userId )
-        {
-            if( $type == Organization::COLLECTION )
-                $res = Authorisation::isOrganizationMember($userId, $itemId);
-            if( $type == Project::COLLECTION )
-                $res = Authorisation::isProjectMember($userId, $itemId);
-            if( $type == Event::COLLECTION )
-                $res = Authorisation::isEventMember($userId, $itemId);
-            if($type == City::COLLECTION) $res = true;
+        {   $res = Preference::isOpenEdition(Preference::getPreferencesByTypeId($itemId, $type));
+            //var_dump($res);
+            if($res != true){
+                if( $type == Organization::COLLECTION )
+                    $res = self::isOrganizationMember($userId, $itemId);
+                if( $type == Project::COLLECTION )
+                    $res = self::isProjectMember($userId, $itemId);
+                if( $type == Event::COLLECTION )
+                    $res = self::isEventMember($userId, $itemId);
+                if($type == City::COLLECTION) 
+                    $res = self::isLocalCitizen($userId, $itemId);
+            }
+            
         }
+        //var_dump($res);
         return $res;
+    }
+
+    /**
+    * check if a user is a local citizen
+    * @param cityId is a unique  city Id
+    * @return a boolean
+    */
+    public static function isLocalCitizen($userId, $cityId) {
+        $cityMap = City::getUnikeyMap($cityId);
+        //echo Yii::app()->session["user"]["codeInsee"] ."==". $cityMap["insee"];
+        return (Yii::app()->session["user"]["codeInsee"] == $cityMap["insee"] ) ? true : false;
     }
 
     /**
@@ -637,6 +698,40 @@ class Authorisation {
         }
         if(!empty($user))
             $res = true ;
+        return $res;
+    }
+
+
+    
+    /**
+     * Return true if the entity is in openEdition
+     * @param String the id of the entity
+     * @param String the type of the entity
+     * @return bool 
+     */
+    public static function isOpenEdition($idEntity, $typeEntity, $preferences=null){
+        $res = false ;
+        if(empty($preferences)){
+            $entity = PHDB::findOne($typeEntity,array("_id"=>new MongoId($idEntity)),array('preferences'));
+            $preferences = @$entity["preferences"];
+        }
+        if(!empty($preferences)){
+           $res = Preference::isOpenEdition($preferences);
+
+        }
+        
+
+        return $res;
+    }
+
+
+    public static function canEditItemOrOpenEdition($idEntity, $typeEntity, $userId, $parentType=null,$parentId=null){
+        $res = false ;
+        
+        $res = self::isOpenEdition($idEntity, $typeEntity);
+        if($res != true)
+            $res = self::canEditItem($userId, $typeEntity, $idEntity, $parentType, $parentId);
+
         return $res;
     }
 } 

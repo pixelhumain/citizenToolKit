@@ -78,14 +78,14 @@ class NewsTranslator {
 			if(@$params["text"]){
 				$params["text"]=preg_replace('/<[^>]*>/', '',(isset($params["text"]) ? $params["text"] : ""));
 			}
-			if($params["scope"]["type"]=="public" && !@$params["scope"]["cities"][0]["addressLocality"] && @$params["scope"]["cities"][0]["postalCode"]){
-				$address=SIG::getAdressSchemaLikeByCodeInsee($params["scope"]["cities"][0]["codeInsee"],$params["scope"]["cities"][0]["postalCode"]);
-				if(empty($address)){
-					$params=array("created"=>$params["created"]);
-					return $params;
-				}
-				$params["scope"]["cities"][0]["addressLocality"]=$address["addressLocality"];
-			}
+			// if($params["scope"]["type"]=="public" && !@$params["scope"]["cities"][0]["addressLocality"] && @$params["scope"]["cities"][0]["postalCode"]){
+			// 	$address=SIG::getAdressSchemaLikeByCodeInsee($params["scope"]["cities"][0]["codeInsee"],$params["scope"]["cities"][0]["postalCode"]);
+			// 	if(empty($address)){
+			// 		$params=array("created"=>$params["created"]);
+			// 		return $params;
+			// 	}
+			// 	$params["scope"]["cities"][0]["addressLocality"]=$address["addressLocality"];
+			// }
 		}
 		if(@$params["media"] && !is_string(@$params["media"]) && $params["media"]["type"]=="gallery_images"){
 			$images=array();
@@ -113,7 +113,13 @@ class NewsTranslator {
 			}
 			$params["media"]["images"]=$images;
 		}
-	  	$params["author"] = Person::getSimpleUserById($params["author"]);
+	  	$author =  Person::getSimpleUserById($params["author"]);
+	  	if (!empty($author))
+	  		$params["author"] = $author;
+	  	else{
+		  	$params=array("created"=>$params["created"]);
+			return $params;
+	  	}
 		return $params;
 	}
 }

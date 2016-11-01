@@ -16,7 +16,7 @@ class IndexAction extends CAction
         $params["contextType"] = $type;
         $params["nbComment"] = $res["nbComment"];
         $params['canComment'] = $res["canComment"] ;
-
+		
         if($type == Event::COLLECTION) {
             $params["context"] = Event::getById($id);
         } else if($type == Project::COLLECTION) {
@@ -27,6 +27,9 @@ class IndexAction extends CAction
             $params["context"] = Person::getById($id);
         } else if($type == News::COLLECTION) {
             $params["context"] = News::getById($id);
+		} else if($type == Poi::COLLECTION) {
+            $params["context"] = Poi::getById($id);
+
         } else if($type == Survey::COLLECTION) {
             $params["context"] = Survey::getById($id);
             /*AUTH*/
@@ -40,6 +43,11 @@ class IndexAction extends CAction
         } else if($type == ActionRoom::COLLECTION) {
             $actionRoom = ActionRoom::getById($id);
             $params["context"] = $actionRoom;
+            //Images
+			$limit = array(Document::IMG_PROFIL => 1);
+			$images = Document::getImagesByKey($id, ActionRoom::COLLECTION, $limit);
+			$params["images"] = $images;
+
             if($actionRoom["parentType"] == Person::CONTROLLER) 
                 $params["parent"] = Person::getById($actionRoom["parentId"]);   
             if($actionRoom["parentType"] == Organization::COLLECTION) 
@@ -69,11 +77,15 @@ class IndexAction extends CAction
         }else if($type == ActionRoom::COLLECTION_ACTIONS) {
             $params["context"] = ActionRoom::getActionById($id);
             /*AUTH*/
+            $limit = array(Document::IMG_PROFIL => 1);
+			$images = Document::getImagesByKey($id, ActionRoom::COLLECTION_ACTIONS, $limit);
+			$params["images"] = $images;
             $actionRoom = ActionRoom::getById($params["context"]["room"]);
             $canParticipate = Authorisation::canParticipate(Yii::app()->session["userId"], $actionRoom["parentType"], $actionRoom["parentId"]);
             $canComment = $params["canComment"] && $canParticipate;
             $params['canComment'] = $canComment;
             $params["parentType"] = $actionRoom["parentType"];
+            $params["parentId"] = $actionRoom["parentId"];
         } else if($type == Need::COLLECTION) {
             $params["context"] = Need::getById($id);
         } else {
@@ -82,9 +94,11 @@ class IndexAction extends CAction
 
         if(@$params["parentType"] == City::COLLECTION) $params['canComment'] = true;
 
+        $params["idComment"] = $id;
+
         if(Yii::app()->request->isAjaxRequest){
 	        if($type != ActionRoom::COLLECTION && $type != ActionRoom::COLLECTION_ACTIONS)
-                echo $controller->renderPartial("../comment/commentPod" , $params, true);
+                echo $controller->renderPartial("../comment/commentPodSimple" , $params, true);
             else
                 echo $controller->renderPartial("../comment/commentPodActionRooms" , $params, true);
 	    }else{

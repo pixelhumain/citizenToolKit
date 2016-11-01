@@ -69,12 +69,14 @@ class ActivityStream {
 			"author" => array("id"=>Yii::app()->session["userId"],
 							"name"=>Yii::app()->session["user"]["name"])
 		);
+
 		if($activityName != null)
 			$buildArray["label"] = $activityName;
 		if($activityValue != null)
 			$buildArray["value"] = $activityValue;
 		if($activityName=="geo" || $activityName=="geoPosition")
 			$buildArray["value"] = "geoposition";
+
 		$params=self::buildEntry($buildArray);
 		self::addEntry($params);
 		return true;
@@ -107,11 +109,15 @@ class ActivityStream {
 		return Rest::json($res);
 	}
 
-	public static function removeNotificationsByUser()
-	{
+	/**
+	 * Remove all notification of a user
+	 * @param type $userId the userId
+	 * @return array of result (result => boolean, msg => String)
+	 */
+	public static function removeNotificationsByUser($userId) {
 		try{
 		    
-		    $userNotifcations = PHDB::find( self::COLLECTION,array("notify.id"  => Yii::app()->session["userId"] ));
+		    $userNotifcations = PHDB::find( self::COLLECTION,array("notify.id"  => $userId ));
 		    
 		    foreach ($userNotifcations as $key => $value) 
 		    {
@@ -122,7 +128,7 @@ class ActivityStream {
 		    	else
 		    		PHDB::update( self::COLLECTION,
 			                  	  array("_id"  => $value["_id"] ), 
-			                  	  array('$pull' => array( "notify.id" => Yii::app()->session["userId"] )));
+			                  	  array('$pull' => array( "notify.id" => $userId )));
 		    	
 		    }
 		    /*PHDB::updateWithOptions( self::COLLECTION,
@@ -167,7 +173,7 @@ class ActivityStream {
 	}
 	public static function buildEntry($params)
     {
-        $action = array(
+    	$action = array(
             "type" => $params["type"],
             "verb" => $params["verb"],
             "author" => Yii::app()->session["userId"],
@@ -191,29 +197,44 @@ class ActivityStream {
 
         if( isset( $params["ip"] ))
         	$action["author"]["ip"] = $params["ip"];
+
         	
 		if($params["type"]==ActivityStream::COLLECTION){
 			$action["scope"]["type"]="public";
 	        if( isset( $params["address"] )){
-	        	$insee=$params["address"]["codeInsee"];
-	        	$cp=$params["address"]["postalCode"];
+	        	$insee = $params["address"]["codeInsee"];
+	        	$cp = $params["address"]["postalCode"];
 	        } 
 	        if( isset( $params["geo"] ))
 				$geo = $params["geo"];
 			if(!@$insee && !@$cp){
+
 		        $author=Person::getSimpleUserById(Yii::app()->session["userId"]);
-		        $insee=$author["address"]["codeInsee"];
-	        	$cp=$author["address"]["postalCode"];
-	        	if(!@$geo)
-	        		$geo = $author["geo"];
+		        
+		        if(@$author["address"] && @$author["address"]["codeInsee"]){
+			        $insee=$author["address"]["codeInsee"];
+		        	$cp=$author["address"]["postalCode"];
+		        	if(!@$geo)
+		        		$geo = $author["geo"];
+	        	} else {
+		        	$action["scope"]["type"]="restricted";
+	        	}
 			}
-			$action["scope"]["cities"][] = array("codeInsee" => $insee, "postalCode" => $cp,"geo"=> $geo);
+			$action["scope"]["cities"][] = array(
+				"codeInsee" => ((@$insee) ? $insee : ""), 
+				"postalCode" => ((@$cp) ? $cp : ""),
+				"geo"=> ((@$geo) ? $geo : "")
+			);
+			//$action["scope"]["cities"][] = array("codeInsee" => $insee, "postalCode" => $cp,"geo"=> $geo);
+
 		}
 		
         if( isset( $params["label"] ))
         	$action["object"]["displayName"] = $params["label"];
 		if( isset( $params["value"] )){
-        	$action["object"]["displayValue"] = preg_replace('/<[^>]*>/', '',$params["value"]);
+			$action["object"]["displayValue"] = ((isset( $params["label"] ) && $params["label"] = "address")?$params["value"]:preg_replace('/<[^>]*>/', '',$params["value"]));
+
+        	//$action["object"]["displayValue"] = preg_replace('/<[^>]*>/', '',$params["value"]);
         }
 		if( isset( $params["author"] ))
         	$action["author"] = $params["author"];

@@ -58,6 +58,10 @@ class EntriesAction extends CAction
       //if($survey["parentType"] == City::COLLECTION) $canParticipate = $canParticipate && true;
 
       $tpl = ( isset($_GET['tpl']) ) ? $_GET['tpl'] : "index";
+	  //Images
+	  $limit = array(Document::IMG_PROFIL => 1);
+	  $images = Document::getImagesByKey($id, ActionRoom::COLLECTION, $limit);
+
 
       $controller->renderPartial( $tpl, array( "list" => $list,
                                              "where"=>$where,
@@ -67,7 +71,8 @@ class EntriesAction extends CAction
                                              "parentType" => $survey["parentType"],
                                              "parentId" => $survey["parentId"],
                                              "canParticipate"=>$canParticipate,
-                                             "surveyLoadByHash" => $surveyLoadByHash
+                                             "surveyLoadByHash" => $surveyLoadByHash,
+                                             "images"=> $images
                                               )  );
     }
 }

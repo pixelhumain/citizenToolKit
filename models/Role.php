@@ -24,13 +24,13 @@ class Role {
 	  	$roles["tobeactivated"] = true;
 	  	//By default no one is beta tester in a betaTest mode
 	  	if (@Yii::app()->params['betaTest'])
-		  	$roles["betaTester"] = true;
-	  	else	
-	  		$roles["betaTester"] = true;
+		  	$roles["betaTester"] = false;
+	  	
 	  	//Can access standalone Pages : true
 	  	$roles["standalonePageAccess"] = true;
-	  	//Not a super admin
-	  	$roles["superAdmin"] = false;
+	  	
+	  	//Not a super admin => No flag
+	  	//$roles["superAdmin"] = false;
 
 	  	return $roles;  	
 	}
@@ -54,7 +54,7 @@ class Role {
 
 		//check if the user has been created with minimal data
 		if (@$person["pending"]) {
-			return array("result"=>false, "pendingUserId" => (String) $person["_id"], "msg"=>"accountPending");
+			return array("result"=>false, "pendingUserId" => (String) $person["_id"], "pendingUserEmail" => $person["email"], "msg"=>"accountPending");
 		}
 
 		$roles = self::checkUserRoles($person);
@@ -68,9 +68,9 @@ class Role {
 			}
     	}    
 
-	    //The account is not validated. If we are just after the register process the user can navigate on the platform
+	    //The account is not validated.
         if (isset($roles["tobeactivated"]) && @$roles["tobeactivated"]) {
-            return array("result"=>$isRegisterProcess, "id" => @$person[_id], "msg"=>"notValidatedEmail");
+            return array("result"=>false, "id" => @$person[_id], "msg"=>"notValidatedEmail");
         }
         
         return $res;

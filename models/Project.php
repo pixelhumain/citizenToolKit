@@ -7,15 +7,16 @@ class Project {
 	const COLOR = "#8C5AA1";
 	
 	//From Post/Form name to database field name
-	private static $dataBinding = array(
+	public static $dataBinding = array(
 	    "name" => array("name" => "name", "rules" => array("required")),
-	    "address" => array("name" => "address"),
+	    "address" => array("name" => "address", "rules" => array("addressValid")),
+	    "addresses" => array("name" => "addresses"),
 	    "streetAddress" => array("name" => "address.streetAddress"),
 	    "postalCode" => array("name" => "address.postalCode"),
 	    "city" => array("name" => "address.codeInsee"),
 	    "addressCountry" => array("name" => "address.addressCountry"),
-	    "geo" => array("name" => "geo"),
-	    "geoPosition" => array("name" => "geoPosition"),
+	    "geo" => array("name" => "geo", "rules" => array("geoValid")),
+	    "geoPosition" => array("name" => "geoPosition", "rules" => array("geoPositionValid")),
 	    "description" => array("name" => "description"),
 	    "shortDescription" => array("name" => "shortDescription"),
 	    "startDate" => array("name" => "startDate" ),
@@ -28,7 +29,19 @@ class Project {
 	    "warnings" => array("name" => "warnings"),
 	    "modules" => array("name" => "modules"),
 	    "badges" => array("name" => "badges"),
-	    "source" => array("name" => "source")
+	    "source" => array("name" => "source"),
+	    "preferences" => array("name" => "preferences"),
+	    "medias" => array("name" => "medias"),
+	    "urls" => array("name" => "urls"),
+		
+		"parentId" => array("name" => "parentId"),
+		"parentType" => array("name" => "parentType"),
+
+		"modified" => array("name" => "modified"),
+	    "updated" => array("name" => "updated"),
+	    "creator" => array("name" => "creator"),
+	    "created" => array("name" => "created"),
+	    "locality" => array("name" => "address"),
 	);
 
 	private static function getCollectionFieldNameAndValidate($projectFieldName, $projectFieldValue, $projectId) {
@@ -86,7 +99,7 @@ class Project {
 	public static function getSimpleProjectById($id) {
 		
 		$simpleProject = array();
-		$project = PHDB::findOneById( self::COLLECTION ,$id, array("id" => 1, "name" => 1, "shortDescription" => 1, "description" => 1, "address" => 1, "geo" => 1, "tags" => 1, "profilImageUrl" => 1, "profilThumbImageUrl" => 1, "profilMarkerImageUrl" => 1) );
+		$project = PHDB::findOneById( self::COLLECTION ,$id, array("id" => 1, "name" => 1, "shortDescription" => 1, "description" => 1, "address" => 1, "geo" => 1, "tags" => 1, "profilImageUrl" => 1, "profilThumbImageUrl" => 1, "profilMarkerImageUrl" => 1, "profilMediumImageUrl" => 1) );
 		if(!empty($project)){
 			$simpleProject["id"] = $id;
 			$simpleProject["name"] = @$project["name"];
@@ -217,6 +230,12 @@ class Project {
 			$newProject["tags"] = $tags;
 		}
 
+		if(!empty($params['parentId']))
+	        $newEvent["parentId"] = $params['parentId'];
+
+	    if(!empty($params['parentType']))
+	        $newEvent["parentType"] = $params['parentType'];
+
 		return $newProject;
 	}
 
@@ -227,21 +246,48 @@ class Project {
 	 * @return array as result type
 	 */
 	public static function insert($params, $parentId,$parentType){
+		//var_dump($params);
+		//var_dump("-------------------------------------------");
 	    $newProject = self::getAndCheckProject($params, Yii::app() -> session["userId"]);
+	    //var_dump($newProject);
+	    //var_dump("-------------------------------------------");
 	    if (isset($newProject["tags"]))
 			$newProject["tags"] = Tags::filterAndSaveNewTags($newProject["tags"]);
 
 		if(empty($newProject["preferences"])){
 			$newProject["preferences"] = array("publicFields" => array(), "privateFields" => array(), "isOpenData" => true, "isOpenEdition" => true);
 		}
-
+		$newProject["updated"] = time();
+		//var_dump($newProject);
+	    //var_dump("-------------------------------------------");
 	    PHDB::insert(self::COLLECTION,$newProject);
+	    var_dump($newProject);
+	    var_dump("-------------------------------------------");
+
+	    Badge::addAndUpdateBadges("opendata",(String)$newProject["_id"], Project::COLLECTION);
 		Link::addContributor(Yii::app() -> session["userId"],Person::COLLECTION,$parentId,$parentType,$newProject["_id"]);
 	   // Link::connect($parentId, $parentType, $newProject["_id"], self::COLLECTION, $parentId, "projects", true );
 
 	    Notification::createdObjectAsParam(Person::COLLECTION,Yii::app() -> session["userId"],Project::COLLECTION, (String)$newProject["_id"], $parentType, $parentId, $newProject["geo"], (isset($newProject["tags"])) ? $newProject["tags"]:null ,$newProject["address"]);
-	    ActivityStream::saveActivityHistory(ActStr::VERB_CREATE, (String)$newProject["_id"], Project::COLLECTION, "project", $newProject["name"]);
+	    //ActivityStream::saveActivityHistory(ActStr::VERB_CREATE, (String)$newProject["_id"], Project::COLLECTION, "project", $newProject["name"]);
 	    return array("result"=>true, "msg"=>"Votre projet est communecté.", "id" => $newProject["_id"]);	
+	}
+
+	public static function afterSave($params){
+	    
+	    Badge::addAndUpdateBadges("opendata",(String)$params["_id"], Project::COLLECTION);
+	    if( !@$params['parentType'] && !@$params['parentId'] ){
+			$params['parentType'] = Person::COLLECTION; 
+			$params['parentId'] = Yii::app() -> session["userId"];
+		}
+
+		Link::addContributor(Yii::app() -> session["userId"],Person::COLLECTION,$params['parentId'], $params['parentType'],$params["_id"]);
+	   // Link::connect($parentId, $parentType, $params["_id"], self::COLLECTION, $parentId, "projects", true );
+
+	    Notification::createdObjectAsParam(Person::COLLECTION,Yii::app() -> session["userId"],Project::COLLECTION, (String)$params["_id"], $params['parentType'], $params['parentId'], @$params["geo"], @$params["tags"] ,@$params["address"]);
+	    //ActivityStream::saveActivityHistory(ActStr::VERB_CREATE, (String)$params["_id"], Project::COLLECTION, "project", $params["name"]);
+	    return array("result"=>true, "msg"=>"Votre projet est communecté.", "id" => $params["_id"]);	
+		
 	}
 
 	/**
@@ -313,9 +359,13 @@ class Project {
 	 * @return boolean True if the update has been done correctly. Can throw CTKException on error.
 	 */
 	public static function updateProjectField($projectId, $projectFieldName, $projectFieldValue, $userId) {  
-		$authorization = Authorisation::canEditItem($userId, self::COLLECTION, $projectId);
-		if (!$authorization) {
-			throw new CTKException(Yii::t("project", "Can not update this project : you are not authorized to update that project !"));	
+		$pref = Preference::getPreferencesByTypeId($projectId, self::COLLECTION);
+	 	$authorization = Preference::isOpenEdition($pref);
+	 	if($authorization == false){
+			$authorization = Authorisation::canEditItem($userId, self::COLLECTION, $projectId);
+			if (!$authorization) {
+				throw new CTKException(Yii::t("project", "Can not update this project : you are not authorized to update that project !"));	
+			}
 		}
 		$dataFieldName = self::getCollectionFieldNameAndValidate($projectFieldName, $projectFieldValue, $projectId);
 	
@@ -358,7 +408,8 @@ class Project {
 		}
 
 		//update the project
-		$set = array_merge($set , array("modified" => new MongoDate(time())));
+		$set["modified"] = new MongoDate(time());
+		$set["updated"] = time();
 		PHDB::update( self::COLLECTION, array("_id" => new MongoId($projectId)), 
 		                        array('$set' => $set));
 	    if($authorization == "openEdition" && $dataFieldName != "badges"){
@@ -767,6 +818,10 @@ class Project {
 
 
 		return $project ;
+	}
+
+	public static function getDataBinding() {
+	  	return self::$dataBinding;
 	}
 
 	

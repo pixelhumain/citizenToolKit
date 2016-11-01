@@ -22,11 +22,12 @@ class ActionAction extends CAction
         PHDB::update ( ActionRoom::COLLECTION_ACTIONS , array("_id" => new MongoId($id)) , array('$inc'=>array( "viewCount" => 1 ) ));
       }
 
+      $room = ActionRoom::getById($action["room"]);
       $params = array( 
             /*"title" => $action["name"] ,
             "content" => $controller->renderPartial( "entry", array( "action" => $action ), true),
             "contentBrut" => $action["message"],*/
-            "room" => ActionRoom::getById($action["room"]),
+            "room" => $room,
             "action" => $action,
              ) ;
 
@@ -54,29 +55,29 @@ class ActionAction extends CAction
           $params["organizerType"] = $action["organizerType"];
       }
 
-      if( isset($action["parentType"]) )
+      if( isset($room) )
       { 
-         if( $action["parentType"] == Person::COLLECTION )
+         if( $room["parentType"] == Person::COLLECTION )
           {
-            $parent = Person::getById( $action["parentId"] );
-            $params["parent"] = array(  "name" => $parent["name"],
-                                           "link" => "loadByHash('#person.detail.id.".$action["parentId"]."')");
+            $parent = Person::getById( $room["parentId"] );
+            $params["parent"] = array(  "name" => $room["name"],
+                                           "link" => "loadByHash('#person.detail.id.".$room["parentId"]."')");
           }
-          else if( $action["parentType"] == Organization::COLLECTION )
+          else if( $room["parentType"] == Organization::COLLECTION )
           {
-            $parent = Organization::getById( $action["parentId"] );
+            $parent = Organization::getById( $room["parentId"] );
             $params["parent"] = array(  "name" => $parent["name"],
-                                           "link" => "loadByHash('#organization.detail.id.".$action["parentId"]."')");
+                                           "link" => "loadByHash('#organization.detail.id.".$room["parentId"]."')");
           }
-          else if( $action["parentType"] == Project::COLLECTION )
+          else if( $room["parentType"] == Project::COLLECTION )
           {
-            $parent = Project::getById( $action["parentId"] );
+            $parent = Project::getById( $room["parentId"] );
             $params["parent"] = array(  "name" => $parent["name"],
-                                        "link" => "loadByHash('#project.detail.id.".$action["parentId"]."')");
+                                        "link" => "loadByHash('#project.detail.id.".$room["parentId"]."')");
           }
-          else if( $action["parentType"] == City::COLLECTION )
+          else if( $room["parentType"] == City::COLLECTION )
           { 
-            $parent = City::getByUnikey( $action["parentId"] );
+            $parent = City::getByUnikey( $room["parentId"] );
             $params["parent"] = array(  "name" => $parent["name"],
                                         "insee" => $parent["insee"],
                                         "cp" => $parent["cp"],
@@ -84,7 +85,9 @@ class ActionAction extends CAction
           }
 
 
-          $params["parentType"] = $action["parentType"];
+          $params["parentType"] = $room["parentType"];
+          if(@$parent["profilImageUrl"]) 
+              $params["parent"]["profilImageUrl"] = $parent["profilImageUrl"];
       }
 
         $params["contributors"] = array();
@@ -104,10 +107,12 @@ class ActionAction extends CAction
                 }
             }
         }
-
+		$limit = array(Document::IMG_PROFIL => 1);
+		$images = Document::getImagesByKey($id, ActionRoom::COLLECTION_ACTIONS, $limit);
+		$params["images"] = $images;
         $params["parentSpace"] = ActionRoom::getById( $action["room"] );
         $params["countStrongLinks"]= $countStrongLinks;
-
+		//$params["countLowLinks"] = @$followers;
       if(Yii::app()->request->isAjaxRequest)
         echo $controller->renderPartial("actionStandalone",$params,true);
       else if( !Yii::app()->request->isAjaxRequest ){

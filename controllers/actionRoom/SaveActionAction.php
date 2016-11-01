@@ -14,6 +14,8 @@ class SaveActionAction extends CAction
         $res = array();
         if( Yii::app()->session["userId"] )
         {
+            //var_dump($_POST);
+            //echo "heheo"; return;
             $email = $_POST["email"];
             $name  = $_POST['name'];
 
@@ -41,11 +43,22 @@ class SaveActionAction extends CAction
                     $entryInfos['room'] = $_POST['room'];
                     $res['parentId'] = $_POST['room'];
                     //this might not be necessary , since the information is on the parent action
+                    //var_dump($_POST['room'])); return;
                     $room = PHDB::findOne (ActionRoom::COLLECTION, array( "_id" => new MongoId($_POST['room']) ) );
                     if( isset( $room["parentType"] ) ) 
                         $entryInfos['parentType'] = $room['parentType'];
                     if( isset( $room["parentId"] )  ) 
                         $entryInfos['parentId'] = $room['parentId'];
+                    //these fields are necessary for multi scoping search features
+                    if(@$room["parentType"] && @$room["parentId"]){
+                        $parent = Element::getByTypeAndId(@$room["parentType"], @$room["parentId"]);
+                        if(@$parent["address"])
+                            $entryInfos['address'] = $parent["address"];
+                        if(@$parent["geo"])
+                            $entryInfos['geo'] = $parent["geo"];
+                        if(@$parent["geoPosition"])
+                            $entryInfos['geoPosition'] = $parent["geoPosition"];
+                    }
                 }
                 if( isset($_POST['message']) )
                     $entryInfos['message'] = (string)$_POST['message'];
@@ -62,7 +75,8 @@ class SaveActionAction extends CAction
                 if( isset($_POST['startDate']) && $_POST['startDate'] != "" )
                     $entryInfos['startDate'] = round(strtotime( str_replace("/", "-", $_POST['startDate']) ));
 
-                $entryInfos['created'] = time();
+                $entryInfos["modified"] = new MongoDate(time());
+                $entryInfos['updated'] = time();
                 
 
                 $where = array();
@@ -73,6 +87,7 @@ class SaveActionAction extends CAction
                     $actionId = $_POST['id'];
                 } else {
                     $actionId = new MongoId();
+                    $entryInfos['created'] = time();
                     $entryInfos["_id"] = $actionId;
                     $result = PHDB::insert( ActionRoom::COLLECTION_ACTIONS,$entryInfos );
                 }
@@ -81,7 +96,8 @@ class SaveActionAction extends CAction
                 $res['result'] = true;
                 $res['msg'] = "actionSaved";
                 $res['actionId'] = $actionId;
-
+                $res['url'] = "#rooms.action.id.".$actionId;
+                //echo "actionId :".$actionId; return;
                 //Notify Element participants 
                 Notification::actionOnPerson ( ActStr::VERB_ADD_ACTION, ActStr::ICON_ADD, "", array( "type" => ActionRoom::COLLECTION_ACTIONS , "id" => $actionId ));
                 
