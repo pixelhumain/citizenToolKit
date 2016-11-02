@@ -507,6 +507,11 @@ class Authorisation {
 							|| @$survey["voteUnclearCount"] 
 							|| @$survey["voteMoreInfoCount"] 
 							|| @$survey["voteDownCount"] ) ? true : false;
+            // case 2 : organiser of Survey
+            if ( @$survey["organizerType"] == Person::COLLECTION && @$survey["organizerId"] == $userId )  {
+                return true;
+             }
+            // case 3 : superAdmin of parent
             if ( !$hasVote && Authorisation::canEditItem($userId, $parentId, $parentType) )  {
 	            return true;
 	         }
