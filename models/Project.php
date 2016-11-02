@@ -99,17 +99,20 @@ class Project {
 	public static function getSimpleProjectById($id) {
 		
 		$simpleProject = array();
-		$project = PHDB::findOneById( self::COLLECTION ,$id, array("id" => 1, "name" => 1, "shortDescription" => 1, "description" => 1, "address" => 1, "geo" => 1, "tags" => 1, "profilImageUrl" => 1, "profilThumbImageUrl" => 1, "profilMarkerImageUrl" => 1, "profilMediumImageUrl" => 1) );
+		$project = PHDB::findOneById( self::COLLECTION ,$id, array("id" => 1, "name" => 1, "shortDescription" => 1, "description" => 1, "address" => 1, "geo" => 1, "tags" => 1, "profilImageUrl" => 1, "profilThumbImageUrl" => 1, "profilMarkerImageUrl" => 1, "profilMediumImageUrl" => 1, "addresses"=>1) );
 		if(!empty($project)){
 			$simpleProject["id"] = $id;
 			$simpleProject["name"] = @$project["name"];
 			$simpleProject = array_merge($simpleProject, Document::retrieveAllImagesUrl($id, self::COLLECTION, null, $project));
 			$simpleProject["address"] = empty($project["address"]) ? array("addressLocality" => "Unknown") : $project["address"];
+			$simpleProject["addresses"] = @$project["addresses"];
 			$simpleProject["geo"] = @$project["geo"];
 			$simpleProject["tags"] = @$project["tags"];
 			$simpleProject["shortDescription"] = @$project["shortDescription"];
 			$simpleProject["description"] = @$project["description"];
+			$simpleProject["typeSig"] = "projects";
 		}
+
 		return $simpleProject;
 	}
 	
