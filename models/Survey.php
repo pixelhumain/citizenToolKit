@@ -222,24 +222,23 @@ class Survey
 		$actionMoreInfo = "javascript:addaction('".(string)$survey["_id"]."','".Action::ACTION_VOTE_MOREINFO."')";
 		$actionDown 	= "javascript:addaction('".(string)$survey["_id"]."','".Action::ACTION_VOTE_DOWN."')";
 		
-		$hasVoted = $voteLinksAndInfos["hasVoted"];
 		$isAuth =  Authorisation::canParticipate(Yii::app()->session['userId'],$parentType,$parentId);
 
-		$hasVoted = !$isAuth || $hasVoted;
+		$canVote = !$isAuth || $voteLinksAndInfos["hasVoted"] || ($voteLinksAndInfos["avoter"]=="closed");
 
 		$html = '<div class="col-md-1"></div>';
-		$html .= self::getOneChartCircle($percentVoteUp, 		$voteUpCount,		$actionUp, 		"Pour", 	"green", 	"thumbs-up", 		$hasVoted);
-		$html .= self::getOneChartCircle($percentVoteMoreInfo,  	$voteMoreInfoCount,	$actionMoreInfo,"Incomplet","blue", 	"pencil", 			$hasVoted);
-		$html .= self::getOneChartCircle($percentVoteAbstain,	$voteAbstainCount,	$actionAbstain, "Blanc", 	"white", 	"circle", 			$hasVoted);
-		$html .= self::getOneChartCircle($percentVoteUnclear, 	$voteUnclearCount,	$actionUnclear, "Incompris","purple", 	"question-circle", 	$hasVoted);
-		$html .= self::getOneChartCircle($percentVoteDown, 		$voteDownCount,		$actionDown, 	"Contre", 	"red", 		"thumbs-down", 		$hasVoted);
+		$html .= self::getOneChartCircle($percentVoteUp, 		$voteUpCount,		$actionUp, 		"Pour", 	"green", 	"thumbs-up", 		$canVote);
+		$html .= self::getOneChartCircle($percentVoteMoreInfo,  	$voteMoreInfoCount,	$actionMoreInfo,"Incomplet","blue", 	"pencil", 			$canVote);
+		$html .= self::getOneChartCircle($percentVoteAbstain,	$voteAbstainCount,	$actionAbstain, "Blanc", 	"white", 	"circle", 			$canVote);
+		$html .= self::getOneChartCircle($percentVoteUnclear, 	$voteUnclearCount,	$actionUnclear, "Incompris","purple", 	"question-circle", 	$canVote);
+		$html .= self::getOneChartCircle($percentVoteDown, 		$voteDownCount,		$actionDown, 	"Contre", 	"red", 		"thumbs-down", 		$canVote);
 		$html .= '<div class="col-md-1"></div>';
 		if(!$isAuth)
 			$html .= '<div class="col-md-12 center text-red"><br/> Vous n&apos;avez pas les droits pour voter. </div>';
 		return $html;
 	}
 
-	private static function getOneChartCircle($percent, $voteCount, $action, $label, $color, $icon, $hasVoted){
+	private static function getOneChartCircle($percent, $voteCount, $action, $label, $color, $icon, $canVote){
 		$colorTxt = ($color=="white") ? "black" : $color;
 		$colXS = ($color=="white") ? "col-xs-12" : "col-xs-6";
 
@@ -264,9 +263,9 @@ class Survey
 		  		  '</div>'.
 		  		'</div>';
 
-		if(!$hasVoted)
-		$html .=	'<button onclick="'.$action.'" data-original-title="'.$tooltip.'" data-toggle="tooltip" data-placement="bottom" '.
-							'class="btn btn-default tooltips btn-sm text-'.$colorTxt.'"><i class="fa fa-gavel"></i> Voter</button>';
+		if(!$canVote)
+			$html .=	'<button onclick="'.$action.'" data-original-title="'.$tooltip.'" data-toggle="tooltip" data-placement="bottom" '.
+							'class="btn btn-default tooltips btn-sm text-'.$colorTxt.'"><i class="fa fa-gavel"></i> Voter'.@$voteLinksAndInfos["avoter"].'</button>';
 		
 		$html .=  '</div>';
 		
