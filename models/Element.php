@@ -290,8 +290,8 @@ class Element {
 
 					$valid = DataValidator::addressValid($address);
 					if ( $valid != "") throw new CTKException($valid);
-
-					if(!empty($fieldValue["addressesIndex"])){
+					$elt = self::getElementById($id, $collection, null, array("addresses"));
+					if(!empty($fieldValue["addressesIndex"]) && $fieldValue["addressesIndex"] >= count($elt["addresses"]) ){
 						$geo = array("@type"=>"GeoCoordinates", "latitude" => $fieldValue["geo"]["latitude"], "longitude" => $fieldValue["geo"]["longitude"]);
 						$geoPosition = array("type"=>"Point", "coordinates" => array(floatval($fieldValue["geo"]["longitude"]), floatval($fieldValue["geo"]["latitude"])));
 						$locality = array(	"address" => $address,
@@ -366,7 +366,7 @@ class Element {
 				throw new CTKException("Error updating  : ".$e->getMessage());		
 			}
 		}
-		else if ($fieldName == "address") {
+		/*else if ($fieldName == "address") {
 			//address
 			if(!empty($fieldValue["postalCode"]) && !empty($fieldValue["codeInsee"])) {
 				$insee = $fieldValue["codeInsee"];
@@ -390,7 +390,7 @@ class Element {
 				}
 			} else 
 				throw new CTKException("Error updating  : address is not well formated !");			
-		}
+		}*/
 		else if ($dataFieldName == "birthDate") 
 		{
 			date_default_timezone_set('UTC');
@@ -947,16 +947,6 @@ class Element {
 		return $result;
 	}
 
-
-	public static function RemoveLocality($id, $collection){
-		if (!Authorisation::canEditItemOrOpenEdition($id, $collection, Yii::app()->session['userId'])) {
-			throw new CTKException("Can not update the element : you are not authorized to update that element !");
-		}
-
-
-		
-		return $result;
-	}
 
 
     
