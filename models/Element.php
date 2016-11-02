@@ -802,7 +802,7 @@ class Element {
 	 */
 	public static function getElementById($id, $collection, $where=null, $fields=null){
 		$where["_id"] = new MongoId($id) ;
-		$element = PHDB::findOne($collection, $where ,$fields) ;
+		$element = PHDB::findOne($collection, $where ,$fields);
 		return @$element;
 	}
 
