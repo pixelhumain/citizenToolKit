@@ -275,6 +275,7 @@ class Element {
 			try{
 				if(!empty($fieldValue) && !empty($fieldValue["address"])){
 					$verb = '$set';
+					//$verb = (empty($fieldValue["addressesIndex"])?'$set':'$addToSet');
 					$address = array(
 				        "@type" => "PostalAddress",
 				        "codeInsee" => $fieldValue["address"]["codeInsee"],
@@ -290,7 +291,19 @@ class Element {
 					$valid = DataValidator::addressValid($address);
 					if ( $valid != "") throw new CTKException($valid);
 
-					SIG::updateEntityGeoposition($collection, $id, $fieldValue["geo"]["latitude"], $fieldValue["geo"]["longitude"], @$fieldValue["addressesIndex"]);
+					if(!empty($fieldValue["addressesIndex"])){
+						$geo = array("@type"=>"GeoCoordinates", "latitude" => $fieldValue["geo"]["latitude"], "longitude" => $fieldValue["geo"]["longitude"]);
+						$geoPosition = array("type"=>"Point", "coordinates" => array(floatval($fieldValue["geo"]["longitude"]), floatval($fieldValue["geo"]["latitude"])));
+						$locality = array(	"address" => $address,
+											"geo" => $geo,
+											"geoPosition" => $geoPosition);
+
+						$addToSet = array("addresses" => $locality);
+					}
+					else{
+						SIG::updateEntityGeoposition($collection, $id, $fieldValue["geo"]["latitude"], $fieldValue["geo"]["longitude"], @$fieldValue["addressesIndex"]);
+					}
+
 					if($collection == Person::COLLECTION && Yii::app()->session['userId'] == $id){
 						$user = Yii::app()->session["user"];
 						$user["codeInsee"] = $address["codeInsee"];
@@ -300,8 +313,8 @@ class Element {
 						Person::updateCookieCommunexion($id, $address);
 					}
 				}else{
-					$verb = '$unset';
-					$address = null ;
+					//$verb = (empty($fieldValue["addressesIndex"])?'$unset':'$pull');
+					$verb = '$unset' ;
 					SIG::updateEntityGeoposition($collection, $id, null, null, @$fieldValue["addressesIndex"]);
 					//self::updateField($collection, $id, "geo", null, @$fieldValue["addressesIndex"]);
 					//self::updateField($collection, $id, "geoPosition", null, @$fieldValue["addressesIndex"]);
@@ -313,26 +326,26 @@ class Element {
 						Yii::app()->session["user"] = $user;
 						Person::updateCookieCommunexion($id, null);
 					}
+					$address = null ;
 				}
 				
 				if(!empty($fieldValue["addressesIndex"])){
-					if($verb == '$set')
-						$set = array("addresses.".$fieldValue["addressesIndex"].".address" => $address);
-					else
-						$set = array("addresses.".$fieldValue["addressesIndex"] => $address);
 
+					if($verb == '$set' && empty($addToSet))
+						$set = array("addresses.".$fieldValue["addressesIndex"].".address" => $address);
+					else if($verb == '$unset'){
+						$set = array("addresses.".$fieldValue["addressesIndex"] => $address);
+						$updatePull = true ;
+					}
 				}
 				else
 					$set = array("address" => $address);
-					
 				
 			}catch (Exception $e) {  
 				throw new CTKException("Error updating  : ".$e->getMessage());		
 			}
 		}else if ($fieldName == "geo" || $fieldName == "geoPosition") {
 			try{
-				
-				
 				if(!empty($fieldValue["addressesIndex"])){
 					$headSet = "addresses.".$fieldValue["addressesIndex"].".".$fieldName ;
 					unset($fieldValue["addressesIndex"]);
@@ -432,11 +445,27 @@ class Element {
 		}
 		
 		//update 
+
+
+
+		if(!empty($addToSet)){
+			$resAddToSet = PHDB::update( $collection, array("_id" => new MongoId($id)), 
+	                          array('$addToSet' => $addToSet));
+		}
+
+
 		$resUpdate = PHDB::update( $collection, array("_id" => new MongoId($id)), 
 		                          array($verb => $set));
+
 		$res = array("result"=>false,"msg"=>"");
 
 		if($resUpdate["ok"]==1){
+
+			if(!empty($updatePull)){
+				$resPull = PHDB::update( $collection, array("_id" => new MongoId($id)), 
+		                          array('$pull' => array('addresses' => null)));
+			}
+
 			$fieldNames = array("badges", "geo", "geoPosition");
 			if( $collection != Person::COLLECTION && !in_array($dataFieldName, $fieldNames)){
 				// Add in activity to show each modification added to this entity
