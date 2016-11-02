@@ -273,7 +273,8 @@ class Element {
 		else if ($fieldName == "locality") {
 			//address
 			try{
-				if(!empty($fieldValue)){
+				if(!empty($fieldValue) && !empty($fieldValue["address"])){
+					$verb = '$set';
 					$address = array(
 				        "@type" => "PostalAddress",
 				        "codeInsee" => $fieldValue["address"]["codeInsee"],
@@ -285,10 +286,11 @@ class Element {
 				        "regionName" => $fieldValue["address"]["regionName"],
 				    	);
 					//Check address is well formated
+
 					$valid = DataValidator::addressValid($address);
 					if ( $valid != "") throw new CTKException($valid);
 
-					SIG::updateEntityGeoposition($collection, $id, $fieldValue["geo"]["latitude"], $fieldValue["geo"]["longitude"]);
+					SIG::updateEntityGeoposition($collection, $id, $fieldValue["geo"]["latitude"], $fieldValue["geo"]["longitude"], @$fieldValue["addressesIndex"]);
 					if($collection == Person::COLLECTION && Yii::app()->session['userId'] == $id){
 						$user = Yii::app()->session["user"];
 						$user["codeInsee"] = $address["codeInsee"];
@@ -298,10 +300,12 @@ class Element {
 						Person::updateCookieCommunexion($id, $address);
 					}
 				}else{
+					$verb = '$unset';
 					$address = null ;
-					self::updateField($collection, $id, "geo", null);
-					self::updateField($collection, $id, "geoPosition", null);
-					if($collection == Person::COLLECTION && Yii::app()->session['userId'] == $id){
+					SIG::updateEntityGeoposition($collection, $id, null, null, @$fieldValue["addressesIndex"]);
+					//self::updateField($collection, $id, "geo", null, @$fieldValue["addressesIndex"]);
+					//self::updateField($collection, $id, "geoPosition", null, @$fieldValue["addressesIndex"]);
+					if($collection == Person::COLLECTION && Yii::app()->session['userId'] == $id && empty($fieldValue["addressesIndex"])){
 						$user = Yii::app()->session["user"];
 						unset($user["codeInsee"]);
 						unset($user["postalCode"]);
@@ -311,9 +315,40 @@ class Element {
 					}
 				}
 				
-				$set = array("address" => $address);
+				if(!empty($fieldValue["addressesIndex"])){
+					if($verb == '$set')
+						$set = array("addresses.".$fieldValue["addressesIndex"].".address" => $address);
+					else
+						$set = array("addresses.".$fieldValue["addressesIndex"] => $address);
+
+				}
+				else
+					$set = array("address" => $address);
 					
 				
+			}catch (Exception $e) {  
+				throw new CTKException("Error updating  : ".$e->getMessage());		
+			}
+		}else if ($fieldName == "geo" || $fieldName == "geoPosition") {
+			try{
+				
+				
+				if(!empty($fieldValue["addressesIndex"])){
+					$headSet = "addresses.".$fieldValue["addressesIndex"].".".$fieldName ;
+					unset($fieldValue["addressesIndex"]);
+				}
+				else
+					$headSet = $fieldName ;
+
+				$verb = (!empty($fieldValue)?'$set':'$unset');
+				$geo = (!empty($fieldValue)?$fieldValue:null);
+
+				$valid = (($fieldName == "geo")?DataValidator::geoValid($geo):DataValidator::geoPositionValid($geo));
+				if ( $valid != "") throw new CTKException($valid);
+
+				
+				$set = array($headSet => $geo);
+
 			}catch (Exception $e) {  
 				throw new CTKException("Error updating  : ".$e->getMessage());		
 			}

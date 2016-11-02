@@ -63,11 +63,18 @@ class SIG
 
 	//ajoute la position géographique d'une donnée si elle contient un Code Postal
 	//add geographical position to a data if it contains Postal Code
-	public static function updateEntityGeoposition($entityType, $entityId, $latitude, $longitude){
+	public static function updateEntityGeoposition($entityType, $entityId, $latitude, $longitude, $addressIndex=null){
 
 		error_log("updateEntity Start");
-		$geo = array("@type"=>"GeoCoordinates", "latitude" => $latitude, "longitude" => $longitude);
-		$geoPosition = array("type"=>"Point", "coordinates" => array(floatval($longitude), floatval($latitude)));
+		if(!empty($latitude) && !empty($latitude) ){
+			$geo = array("@type"=>"GeoCoordinates", "latitude" => $latitude, "longitude" => $longitude);
+			$geoPosition = array("type"=>"Point", "coordinates" => array(floatval($longitude), floatval($latitude)));
+		}
+
+		if(!empty($addressIndex)){
+			$geo["addressesIndex"] = $addressIndex ;
+			$geoPosition["addressesIndex"] = $addressIndex ;
+		}
 
 		//PH::update($entityType,array("geo" => $geo));
 
