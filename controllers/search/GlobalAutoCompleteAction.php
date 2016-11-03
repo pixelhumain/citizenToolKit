@@ -219,10 +219,16 @@ class GlobalAutoCompleteAction extends CAction
         	$allPoi = PHDB::findAndSortAndLimitAndIndex(Poi::COLLECTION, $query, 
 	  												array("updated" => -1), $indexStep, $indexMin);
 	  		foreach ($allPoi as $key => $value) {
-	  			$parent = Element::getElementSimpleById($value["parentId"], $value["parentType"]);
+		  		if(@$value["parentId"] && @$value["parentType"])
+		  			$parent = Element::getElementSimpleById(@$value["parentId"], @$value["parentType"]);
+		  		else
+		  			$parent=array();
 				$allPoi[$key]["parent"] = $parent;
-				$allPoi[$key]["type"] = "poi";
-				$allPoi[$key]["typeSig"] = Poi::COLLECTION;
+				//$allPoi[$key]["type"] = "poi";
+				if(@$value["type"])
+					$allPoi[$key]["typeSig"] = Poi::COLLECTION.".".$value["type"];
+				else
+					$allPoi[$key]["typeSig"] = Poi::COLLECTION;
 	  		}
 	  		//$res["project"] = $allProject;
 	  		$allRes = array_merge($allRes, $allPoi);
