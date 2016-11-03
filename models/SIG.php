@@ -69,6 +69,9 @@ class SIG
 		if(!empty($latitude) && !empty($latitude) ){
 			$geo = array("@type"=>"GeoCoordinates", "latitude" => $latitude, "longitude" => $longitude);
 			$geoPosition = array("type"=>"Point", "coordinates" => array(floatval($longitude), floatval($latitude)));
+		}else{
+			$geo = null;
+			$geoPosition = null;
 		}
 
 		if(!empty($addressIndex)){
