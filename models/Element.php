@@ -660,7 +660,10 @@ class Element {
 				$allPois = array();
 				if(!is_array($pois)) $pois = array($pois);
 				foreach ($pois as $key => $value) {
-					$value["typeSig"] = "POI";
+					if(@$value["type"])
+						$value["typeSig"] = Poi::COLLECTION.".".$value["type"];
+					else
+						$value["typeSig"] = Poi::COLLECTION;
 					$allPois[] = $value;
 				}
 				$contextMap["pois"] = $allPois;
