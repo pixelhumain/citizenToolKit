@@ -87,7 +87,11 @@ class Poi {
 	 */
 	public static function getById($id) { 
 	  	$poi = PHDB::findOneById( self::COLLECTION ,$id );
-	  	$poi = array_merge($poi, Document::retrieveAllImagesUrl($id, self::COLLECTION, null, $poi));
+	  	if(@$poi["type"])
+		  	$poi["typeSig"] = self::COLLECTION.".".$poi["type"];
+	  	else
+		  	$poi["typeSig"] = self::COLLECTION;
+	  	$poi = array_merge($poi, Document::retrieveAllImagesUrl($id, self::COLLECTION, $poi["type"], $poi));
 
 	  	return $poi;
 	}
