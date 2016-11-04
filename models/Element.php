@@ -273,9 +273,8 @@ class Element {
 		else if ($fieldName == "locality") {
 			//address
 			try{
-				if(!empty($fieldValue) && !empty($fieldValue["address"])){
+				if(!empty($fieldValue)){
 					$verb = '$set';
-					//$verb = (empty($fieldValue["addressesIndex"])?'$set':'$addToSet');
 					$address = array(
 				        "@type" => "PostalAddress",
 				        "codeInsee" => $fieldValue["address"]["codeInsee"],
@@ -290,20 +289,9 @@ class Element {
 
 					$valid = DataValidator::addressValid($address);
 					if ( $valid != "") throw new CTKException($valid);
-					$elt = self::getElementById($id, $collection, null, array("addresses"));
-					if(!empty($fieldValue["addressesIndex"]) && $fieldValue["addressesIndex"] >= count($elt["addresses"]) ){
-						$geo = array("@type"=>"GeoCoordinates", "latitude" => $fieldValue["geo"]["latitude"], "longitude" => $fieldValue["geo"]["longitude"]);
-						$geoPosition = array("type"=>"Point", "coordinates" => array(floatval($fieldValue["geo"]["longitude"]), floatval($fieldValue["geo"]["latitude"])));
-						$locality = array(	"address" => $address,
-											"geo" => $geo,
-											"geoPosition" => $geoPosition);
 
-						$addToSet = array("addresses" => $locality);
-					}
-					else{
-						SIG::updateEntityGeoposition($collection, $id, $fieldValue["geo"]["latitude"], $fieldValue["geo"]["longitude"], @$fieldValue["addressesIndex"]);
-					}
-
+					SIG::updateEntityGeoposition($collection, $id, $fieldValue["geo"]["latitude"], $fieldValue["geo"]["longitude"]);
+					
 					if($collection == Person::COLLECTION && Yii::app()->session['userId'] == $id){
 						$user = Yii::app()->session["user"];
 						$user["codeInsee"] = $address["codeInsee"];
@@ -313,12 +301,9 @@ class Element {
 						Person::updateCookieCommunexion($id, $address);
 					}
 				}else{
-					//$verb = (empty($fieldValue["addressesIndex"])?'$unset':'$pull');
 					$verb = '$unset' ;
-					SIG::updateEntityGeoposition($collection, $id, null, null, @$fieldValue["addressesIndex"]);
-					//self::updateField($collection, $id, "geo", null, @$fieldValue["addressesIndex"]);
-					//self::updateField($collection, $id, "geoPosition", null, @$fieldValue["addressesIndex"]);
-					if($collection == Person::COLLECTION && Yii::app()->session['userId'] == $id && empty($fieldValue["addressesIndex"])){
+					SIG::updateEntityGeoposition($collection, $id, null, null);
+					if($collection == Person::COLLECTION && Yii::app()->session['userId'] == $id){
 						$user = Yii::app()->session["user"];
 						unset($user["codeInsee"]);
 						unset($user["postalCode"]);
@@ -328,19 +313,60 @@ class Element {
 					}
 					$address = null ;
 				}
+				$set = array("address" => $address);
 				
-				if(!empty($fieldValue["addressesIndex"])){
+			}catch (Exception $e) {  
+				throw new CTKException("Error updating  : ".$e->getMessage());		
+			}
+		}else if ($fieldName == "addresses") {
+			//address
+			try{
+				if(isset($fieldValue["addressesIndex"])){
+					if(!empty($fieldValue["address"])){
+						$verb = '$set';
+						$address = array(
+					        "@type" => "PostalAddress",
+					        "codeInsee" => $fieldValue["address"]["codeInsee"],
+					        "addressCountry" => $fieldValue["address"]["addressCountry"],
+					        "postalCode" => $fieldValue["address"]["postalCode"],
+					        "addressLocality" => $fieldValue["address"]["addressLocality"],
+					        "streetAddress" => ((@$fieldValue["address"]["streetAddress"])?trim(@$fieldValue["address"]["streetAddress"]):""),
+					        "depName" => $fieldValue["address"]["depName"],
+					        "regionName" => $fieldValue["address"]["regionName"],
+					    	);
+						//Check address is well formated
 
-					if($verb == '$set' && empty($addToSet))
-						$set = array("addresses.".$fieldValue["addressesIndex"].".address" => $address);
-					else if($verb == '$unset'){
-						$set = array("addresses.".$fieldValue["addressesIndex"] => $address);
+						$valid = DataValidator::addressValid($address);
+						if ( $valid != "") throw new CTKException($valid);
+
+						$elt = self::getElementById($id, $collection, null, array("addresses"));
+						if(!empty($fieldValue["addressesIndex"]) && $fieldValue["addressesIndex"] >= count($elt["addresses"]) ){
+							$geo = array("@type"=>"GeoCoordinates", "latitude" => $fieldValue["geo"]["latitude"], "longitude" => $fieldValue["geo"]["longitude"]);
+							$geoPosition = array("type"=>"Point", "coordinates" => array(floatval($fieldValue["geo"]["longitude"]), floatval($fieldValue["geo"]["latitude"])));
+							$locality = array(	"address" => $address,
+												"geo" => $geo,
+												"geoPosition" => $geoPosition);
+
+							$addToSet = array("addresses" => $locality);
+						}
+						else{
+							SIG::updateEntityGeoposition($collection, $id, $fieldValue["geo"]["latitude"], $fieldValue["geo"]["longitude"], $fieldValue["addressesIndex"]);
+							$headSet = "addresses.".$fieldValue["addressesIndex"].".address" ;
+						}
+
+					}else{
+						$verb = '$unset' ;
+						SIG::updateEntityGeoposition($collection, $id, null, null, $fieldValue["addressesIndex"]);
+						$address = null ;
+						$headSet = "addresses.".$fieldValue["addressesIndex"] ;
 						$updatePull = true ;
 					}
+
+					if(!empty($headSet))
+						$set = array($headSet => $address);
+				}else{
+					throw new CTKException("Error updating  : addressesIndex ");	
 				}
-				else
-					$set = array("address" => $address);
-				
 			}catch (Exception $e) {  
 				throw new CTKException("Error updating  : ".$e->getMessage());		
 			}
