@@ -17,6 +17,9 @@ class AroundMeAction extends CAction {
 				return false;
 			}
 		}
+
+		//Yii::app()->theme =
+
 		$res = array();
 		$elementsMap = array();
 
