@@ -232,6 +232,8 @@ class Element {
 			return Event::getDataBinding();
 		else if($collection == Project::COLLECTION)
 			return Project::getDataBinding();
+		else if($collection == Survey::COLLECTION)
+			return Survey::getDataBinding();
 		else
 			return array();
 	}
@@ -245,7 +247,7 @@ class Element {
     public static function updateField($collection, $id, $fieldName, $fieldValue) {
 
     	if (!Authorisation::canEditItemOrOpenEdition($id, $collection, Yii::app()->session['userId'])) {
-			throw new CTKException("Can not update the element : you are not authorized to update that element !");
+			throw new CTKException(Yii::t("common","Can not update the element : you are not authorized to update that element !"));
 		}
 		if(is_string($fieldValue))
 			$fieldValue = trim($fieldValue);
@@ -472,10 +474,13 @@ class Element {
 		
 		//Manage dateEnd field for survey
 		if ($collection == Survey::COLLECTION) {
-			if ($dataFieldName == "dateEnd") {
-				$myDate = new Date($fieldValue);
-				error_log("Date end : ".$myDate->format("U"));
-				$set = array($dataFieldName => $myDate->format("U"));
+			$canUpdate = Survey::canUpdateSurvey($id, $dataFieldName, $fieldValue);
+			if ($canUpdate["result"]) {
+				if ($dataFieldName == "dateEnd") {
+					$set = array($dataFieldName => strtotime($fieldValue));
+				}
+			} else {
+				throw new CTKException($canUpdate["msg"]);
 			}
 		}
 

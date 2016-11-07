@@ -502,19 +502,16 @@ class Authorisation {
             if (self::isUserSuperAdmin($userId)) {
                 return true;
             }
-			$hasVote = (@$survey["voteUpCount"] 
-							|| @$survey["voteAbstainCount"]  
-							|| @$survey["voteUnclearCount"] 
-							|| @$survey["voteMoreInfoCount"] 
-							|| @$survey["voteDownCount"] ) ? true : false;
+
             // case 2 : organiser of Survey
-            if ( @$survey["organizerType"] == Person::COLLECTION && @$survey["organizerId"] == $userId )  {
+            if ( @$survey["organizerType"] == Person::COLLECTION && @$survey["organizerId"] == $userId ) {
                 return true;
-             }
-            // case 3 : superAdmin of parent
-            if ( !$hasVote && Authorisation::canEditItem($userId, $parentId, $parentType) )  {
+            }
+
+            // case 3 : admin of parent
+            if ( Authorisation::canEditItem($userId, $parentId, $parentType) )  {
 	            return true;
-	         }
+	       }
         } else {
 	        //RAJOUTER UN LOG
 			error_log("Problem with survey authorization, surveyId:".@$surveyId." & userId:".@$userId);

@@ -16,9 +16,40 @@ class Survey
 	    "endDate" => array("name" => "dateEnd", "rules" => array("required"))
 	);
 
+	public static function getDataBinding() {
+	  	return self::$dataBinding;
+	}
+
 	public static function getById($id) {
 		$survey = PHDB::findOneById( self::COLLECTION ,$id );
 		return $survey;
+	}
+
+	public static function canUpdateSurvey($id, $fieldName, $fieldValue) {
+		error_log("canUpdateSurvey !!!!! ".$fieldName."/".$fieldValue."/".strtotime($fieldValue));
+		$res = array("result" => true);
+		$survey = PHDB::findOneById( self::COLLECTION ,$id );
+
+        $hasVote = (@$survey["voteUpCount"] 
+                        || @$survey["voteAbstainCount"]  
+                        || @$survey["voteUnclearCount"] 
+                        || @$survey["voteMoreInfoCount"] 
+                        || @$survey["voteDownCount"] ) ? true : false;
+
+        //the survey has vote. Only can modify the endDate field
+        if ($hasVote && $fieldName == "dateEnd") {
+            //If the endDate is modified after votes, the new end date should be after the previous
+            //Surveys can be only delayed
+        	if (@$survey["dateEnd"] > strtotime($fieldValue)) {
+        		$res = array("result" => false, "msg" => Yii::t("survey","The end date can only be delayed after votes has been done"));
+        		return $res;
+        	}
+        } else {
+        	$res = array("result" => false, "msg" => Yii::t("survey","Can not update the survey after votes has been done."));
+        	return $res;
+        }
+
+        return $res;
 	}
 
     public static function moderateEntry($params) {
