@@ -324,6 +324,7 @@ class Element {
 			//address
 			try{
 				if(isset($fieldValue["addressesIndex"])){
+					$elt = self::getElementById($id, $collection, null, array("addresses"));
 					if(!empty($fieldValue["address"])){
 						$verb = '$set';
 						$address = array(
@@ -341,14 +342,13 @@ class Element {
 						$valid = DataValidator::addressValid($address);
 						if ( $valid != "") throw new CTKException($valid);
 
-						$elt = self::getElementById($id, $collection, null, array("addresses"));
-						if(!empty($fieldValue["addressesIndex"]) && $fieldValue["addressesIndex"] >= count($elt["addresses"]) ){
+						
+						if(empty($elt["addresses"]) || $fieldValue["addressesIndex"] >= count($elt["addresses"]) ){
 							$geo = array("@type"=>"GeoCoordinates", "latitude" => $fieldValue["geo"]["latitude"], "longitude" => $fieldValue["geo"]["longitude"]);
 							$geoPosition = array("type"=>"Point", "coordinates" => array(floatval($fieldValue["geo"]["longitude"]), floatval($fieldValue["geo"]["latitude"])));
 							$locality = array(	"address" => $address,
 												"geo" => $geo,
 												"geoPosition" => $geoPosition);
-
 							$addToSet = array("addresses" => $locality);
 						}
 						else{
@@ -358,10 +358,14 @@ class Element {
 
 					}else{
 						$verb = '$unset' ;
-						SIG::updateEntityGeoposition($collection, $id, null, null, $fieldValue["addressesIndex"]);
+						//SIG::updateEntityGeoposition($collection, $id, null, null, $fieldValue["addressesIndex"]);
 						$address = null ;
-						$headSet = "addresses.".$fieldValue["addressesIndex"] ;
-						$updatePull = true ;
+						if(count($elt["addresses"]) == 1){
+							$headSet = "addresses";
+						}else{
+							$headSet = "addresses.".$fieldValue["addressesIndex"] ;
+							$updatePull = true ;
+						}
 					}
 
 					if(!empty($headSet))
@@ -498,7 +502,7 @@ class Element {
 
 		if($resUpdate["ok"]==1){
 
-			if(!empty($updatePull)){
+			if(!empty($updatePull) && $updatePull == true){
 				$resPull = PHDB::update( $collection, array("_id" => new MongoId($id)), 
 		                          array('$pull' => array('addresses' => null)));
 			}
