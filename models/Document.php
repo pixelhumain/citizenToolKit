@@ -660,6 +660,12 @@ class Document {
 			case City::COLLECTION :
 				$markerFileName = "city-marker-empty.png";
 				break;
+			case Poi::COLLECTION :
+				if($subType!=null)
+					$markerFileName = "poi-".$subType."-marker-empty.png";
+				else
+					$markerFileName = "poi-marker-empty.png";
+				break;
 		}
 
 		return $markerFileName;
