@@ -474,10 +474,16 @@ class Element {
 			$set["updated"] = time();
 		}
 		
+		//Manage dateEnd field for survey
+		if ($collection == Survey::COLLECTION) {
+			if ($dataFieldName == "dateEnd") {
+				$myDate = new Date($fieldValue);
+				error_log("Date end : ".$myDate->format("U"));
+				$set = array($dataFieldName => $myDate->format("U"));
+			}
+		}
+
 		//update 
-
-
-
 		if(!empty($addToSet)){
 			$resAddToSet = PHDB::update( $collection, array("_id" => new MongoId($id)), 
 	                          array('$addToSet' => $addToSet));

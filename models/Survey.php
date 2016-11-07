@@ -11,6 +11,11 @@ class Survey
   	const STATUS_CLEARED 	= "cleared";
   	const STATUS_REFUSED 	= "refused";
 
+	public static $dataBinding = array (
+		//TODO : make field name as event endDate + make it as mongoDate
+	    "endDate" => array("name" => "dateEnd", "rules" => array("required"))
+	);
+
 	public static function getById($id) {
 		$survey = PHDB::findOneById( self::COLLECTION ,$id );
 		return $survey;
