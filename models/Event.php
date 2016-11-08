@@ -371,13 +371,29 @@ class Event {
 
 	public static function validateFirstAndFormat ($params){
 
+		//Try to convert the startDate
+		$startDate = DateTime::createFromFormat('d/m/Y H:i', $params['startDate']);
+		if (empty($startDate)) {
+			$startDate = DateTime::createFromFormat('d/m/Y', $params['startDate']);
+		} 
+		if (empty($startDate)) {
+			return array("result"=>false, "msg"=>"The start date is not well formated");
+		}
+
+		//Try to convert the endDate
+		$endDate = DateTime::createFromFormat('d/m/Y H:i', $params['endDate']);
+	    if (empty($endDate)) {
+			$endDate = DateTime::createFromFormat('d/m/Y', $params['endDate']);
+		} 
+	    if (empty($endDate)) {
+			return array("result"=>false, "msg"=>"The end date is not well formated");
+		}
+		
 		//The end datetime must be after start datetime
-		$startDate = strtotime( str_replace("/", "-", $params['startDate']) );
-		$endDate = strtotime( str_replace("/", "-", $params['endDate']) );
-		if ($startDate > $endDate) 
-		{
+		if ($startDate > $endDate) {
 			return array("result"=>false, "msg"=>"The start date must be before the end date.");
 		}
+
 		//SubEvent authorization
 		//check if the parent event exists and the user can add subevent
 		if( @$params["parentId"] ) {
@@ -393,9 +409,8 @@ class Event {
 		}
 		
 		date_default_timezone_set('UTC');
-		$params["startDate"] = new MongoDate(strtotime($params['startDate']));
-		$params["endDate"]   = new MongoDate(strtotime($params['endDate']));
-		
+		$params["startDate"] = new MongoDate($startDate->getTimestamp());
+		$params["endDate"]   = new MongoDate($endDate->getTimestamp());
 		
 		return array('result' => true, "params"=>$params );
 	}

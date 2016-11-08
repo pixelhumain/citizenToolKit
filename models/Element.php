@@ -826,7 +826,7 @@ class Element {
                 //$changeMap = ( !$microformat && isset( $key )) ? array('$set' => array( $key => $params[ $key ] ) ) : array('$set' => $params );
                 PHDB::update($collection,array("_id"=>new MongoId($id)), array('$set' => $params ));
                 $res = array("result"=>true,
-                             "msg"=>"Vos données ont été mise à jour.",
+                             "msg"=>"Vos données ont été mises à jour.",
                              "reload"=>true,
                              "map"=>$params,
                              "id"=>$id);
@@ -834,7 +834,7 @@ class Element {
                 $params["created"] = time();
                 PHDB::insert($collection, $params );
                 $res = array("result"=>true,
-                             "msg"=>"Vos données ont bien été enregistré.",
+                             "msg"=>"Vos données ont bien été enregistrées.",
                              "reload"=>true,
                              "map"=>$params,
                              "id"=>(string)$params["_id"]);  
