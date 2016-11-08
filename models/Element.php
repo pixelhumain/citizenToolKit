@@ -800,6 +800,14 @@ class Element {
         unset($params['key']);
         $params = self::prepData( $params );
         unset($params['id']);
+
+        $postParams = array();
+        if( !in_array($collection, array("poi")) && @$params["urls"] && @$params["medias"] ){
+        	$postParams["medias"] = $params["medias"];
+        	unset($params['medias']);
+        	$postParams["urls"] = $params["urls"];
+        	unset($params['urls']);
+        }
         
         /*$microformat = PHDB::findOne(PHType::TYPE_MICROFORMATS, array( "key"=> $key));
         $validate = ( !isset($microformat )  || !isset($microformat["jsonSchema"])) ? false : true;
@@ -852,6 +860,8 @@ class Element {
                 else if( $collection == Project::COLLECTION )
                 	$res["afterSave"] = Project::afterSave($params, @$params["parentId"] , @$params["parentType"] );
 
+                $res["afterSaveGbl"] = self::afterSave((string)$params["_id"],$collection,$params,$postParams);
+
                 if( false && @$params["parentType"] && @$params["parentId"] ){
                     //createdObjectAsParam($authorType, $authorId, $objectType, $objectId, $targetType, $targetId, $geo, $tags, $address, $verb="create")
                     //TODO
@@ -877,6 +887,23 @@ class Element {
         return $res;
     }
 
+    public static function afterSave ($id, $collection, $params,$postParams) {
+    	$res = array();
+    	if( @$postParams["medias"] ){
+    		//create POI for medias connected to the parent
+    		unset($params['_id']);
+    		$poiParams["parentType"] = $collection;
+    		$poiParams["parentId"] = $id;
+    		$poiParams["name"] = "liens";
+    		$poiParams["type"] = "link";
+    		$poiParams["key"] = Poi::COLLECTION;
+    		$poiParams["collection"] = Poi::COLLECTION;
+    		$poiParams["medias"] = $postParams['medias'];
+    		$poiParams["urls"] = $postParams['urls'];
+    		$res["medias"] = self::save($poiParams);
+    	}
+    	return $res;
+    }
     public static function prepData ($params) { 
 
         //empty fields aren't properly validated and must be removed
