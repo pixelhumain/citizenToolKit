@@ -350,14 +350,17 @@ class Element {
 												"geo" => $geo,
 												"geoPosition" => $geoPosition);
 							$addToSet = array("addresses" => $locality);
+							$verbActivity = ActStr::VERB_ADD ;
 						}
 						else{
+
 							SIG::updateEntityGeoposition($collection, $id, $fieldValue["geo"]["latitude"], $fieldValue["geo"]["longitude"], $fieldValue["addressesIndex"]);
 							$headSet = "addresses.".$fieldValue["addressesIndex"].".address" ;
 						}
 
 					}else{
 						$verb = '$unset' ;
+						$verbActivity = ActStr::VERB_DELETE ;
 						//SIG::updateEntityGeoposition($collection, $id, null, null, $fieldValue["addressesIndex"]);
 						$address = null ;
 						if(count($elt["addresses"]) == 1){
@@ -510,7 +513,9 @@ class Element {
 			$fieldNames = array("badges", "geo", "geoPosition");
 			if( $collection != Person::COLLECTION && !in_array($dataFieldName, $fieldNames)){
 				// Add in activity to show each modification added to this entity
-				ActivityStream::saveActivityHistory(ActStr::VERB_UPDATE, $id, $collection, $dataFieldName, $fieldValue);
+				if(empty($verbActivity))
+					$verbActivity = ActStr::VERB_UPDATE ;
+				ActivityStream::saveActivityHistory($verbActivity, $id, $collection, $dataFieldName, $fieldValue);
 			}
 			$res = array("result"=>true,"msg"=>Yii::t(Element::getControlerByCollection($collection),"The ".Element::getControlerByCollection($collection)." has been updated"));
 		}else{
