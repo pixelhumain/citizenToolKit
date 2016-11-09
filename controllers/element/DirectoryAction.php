@@ -56,11 +56,11 @@ class DirectoryAction extends CAction
             if (@$links["people"])
                 foreach ($links["people"] as $key => $onePeople) { if( @$onePeople["name"]) $countPeople++;}
             if (@$links["organizations"])
-                foreach ($links["organizations"] as $key => $orga) { if( @$orga["name"]) $countOrga++;  }
+                foreach ($links["organizations"] as $key => $orga) { if( @$orga["name"]&& ($type != Organization::COLLECTION || $id!=$orga["id"])) $countOrga++;  }
             if (@$links["projects"])
-                foreach ($links["projects"] as $key => $project) { if( @$project["name"]) $countProject++;  }
+                foreach ($links["projects"] as $key => $project) { if( @$project["name"] && ($type != Project::COLLECTION || $id!=$project["id"])) $countProject++;  }
             if (@$links["events"])
-                foreach ($links["events"] as $key => $event) { if( @$event["name"]) $countEvent++;  }
+                foreach ($links["events"] as $key => $event) { if( @$event["name"] && ($type != Event::COLLECTION || $id!=$event["id"])) $countEvent++;  }
             if (@$links["followers"])
                 foreach ($links["followers"] as $key => $follower) { if( @$follower["name"]) $countFollowers++;}
             if (@$links["attendees"])
