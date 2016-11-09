@@ -40,10 +40,10 @@ class Event {
 	    
 	    "description" => array("name" => "description"),
 	    "shortDescription" => array("name" => "shortDescription"),
-	    "allDay" => array("name" => "allDay"),
+	    "allDay" => array("name" => "allDay", "rules" => array("boolean")),
 	    "modules" => array("name" => "modules"),
-	    "startDate" => array("name" => "startDate"), //"rules" => array("eventStartDate")),
-	    "endDate" => array("name" => "endDate"), //"rules" => array("eventEndDate")),
+	    "startDate" => array("name" => "startDate", "rules" => array("eventStartDate")),
+	    "endDate" => array("name" => "endDate", "rules" => array("eventEndDate")),
 	    "preferences" => array("name" => "preferences"),
 
 	    "source" => array("name" => "source"),
@@ -372,26 +372,40 @@ class Event {
 	public static function validateFirstAndFormat ($params){
 
 		//Try to convert the startDate
-		$startDate = DateTime::createFromFormat('d/m/Y H:i', $params['startDate']);
-		if (empty($startDate)) {
-			$startDate = DateTime::createFromFormat('d/m/Y', $params['startDate']);
-		} 
-		if (empty($startDate)) {
-			return array("result"=>false, "msg"=>"The start date is not well formated");
+		if (@$params['startDate']) {
+			$startDate = DateTime::createFromFormat('d/m/Y H:i', $params['startDate']);
+			if (empty($startDate)) {
+				$startDate = DateTime::createFromFormat('d/m/Y', $params['startDate']);
+			} 
+			if (empty($startDate)) {
+				return array("result"=>false, "msg"=>"The start date is not well formated");
+			}
+		} else {
+			return array("result"=>false, "msg"=>"The start date is mandotory");
 		}
 
 		//Try to convert the endDate
-		$endDate = DateTime::createFromFormat('d/m/Y H:i', $params['endDate']);
-	    if (empty($endDate)) {
-			$endDate = DateTime::createFromFormat('d/m/Y', $params['endDate']);
-		} 
-	    if (empty($endDate)) {
-			return array("result"=>false, "msg"=>"The end date is not well formated");
+		if (@$params['endDate']) {
+			$endDate = DateTime::createFromFormat('d/m/Y H:i', $params['endDate']);
+		    if (empty($endDate)) {
+				$endDate = DateTime::createFromFormat('d/m/Y', $params['endDate']);
+			} 
+		    if (empty($endDate)) {
+				return array("result"=>false, "msg"=>"The end date is not well formated");
+			}
+		} else {
+			return array("result"=>false, "msg"=>"The end date is mandotory");
 		}
 		
 		//The end datetime must be after start datetime
 		if ($startDate > $endDate) {
 			return array("result"=>false, "msg"=>"The start date must be before the end date.");
+		}
+
+		if (@$params["allDay"] == "true") {
+			$params["allDay"] = true;
+		} else {
+			$params["allDay"] = false;
 		}
 
 		//SubEvent authorization
@@ -900,7 +914,7 @@ class Event {
 		$newEvents["creator"] = Yii::app()->params['idOpenAgenda'];
 		$newEvents["type"] = "other";
 		$newEvents["public"] = true;
-		$newEvents['allDay'] = 'true' ;
+		$newEvents['allDay'] = true;
 
 		$newEvents['source']["id"] = $eventOpenAgenda["uid"] ;
 		$newEvents['source']["url"] = $eventOpenAgenda["link"] ;

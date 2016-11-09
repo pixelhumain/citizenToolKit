@@ -245,13 +245,22 @@ class Element {
 
 
     public static function updateField($collection, $id, $fieldName, $fieldValue) {
-
+    	error_log("updateField : ".$fieldName." with value :".$fieldValue);
     	if (!Authorisation::canEditItemOrOpenEdition($id, $collection, Yii::app()->session['userId'])) {
 			throw new CTKException(Yii::t("common","Can not update the element : you are not authorized to update that element !"));
 		}
+
 		if(is_string($fieldValue))
 			$fieldValue = trim($fieldValue);
 
+		//Manage boolean allDay. TODO SBAR - Trouver un autre moyen que de le mettre ici
+		if ($fieldName == "allDay") {
+			if ($fieldValue == "true") 
+				$fieldValue = true;
+			else
+				$fieldValue = false;
+		}
+		
 		$dataFieldName = self::getCollectionFieldNameAndValidate($collection, $fieldName, $fieldValue, $id);
 		
 		$verb = (empty($fieldValue) ? '$unset' : '$set');
@@ -426,8 +435,7 @@ class Element {
 			} else 
 				throw new CTKException("Error updating  : address is not well formated !");			
 		}*/
-		else if ($dataFieldName == "birthDate") 
-		{
+		else if ($dataFieldName == "birthDate") {
 			date_default_timezone_set('UTC');
 			$dt = DateTime::createFromFormat('Y-m-d H:i', $fieldValue);
 			if (empty($dt)) {
@@ -448,8 +456,7 @@ class Element {
 				$newMongoDate = new MongoDate($dt->getTimestamp());
 			}
 			$set = array($dataFieldName => $newMongoDate);	
-		}
-		else if ($dataFieldName == "seePreferences") {
+		} else if ($dataFieldName == "seePreferences") {
 			//var_dump($fieldValue);
 			if($fieldValue == "false"){
 				//$verb = "$unset";
@@ -474,9 +481,15 @@ class Element {
 				$user["bgUrl"] = $fieldValue;
 				Yii::app()->session["user"] = $user;
 			} 
-		}else{
-			$set["modified"] = new MongoDate(time());
-			$set["updated"] = time();
+		} else {
+			if ($verb == '$set') {
+				$set["modified"] = new MongoDate(time());
+				$set["updated"] = time();
+			} else {
+				$setModified = array();
+				$setModified["modified"] = new MongoDate(time());
+				$setModified["updated"] = time();
+			}
 		}
 		
 		//Manage dateEnd field for survey
@@ -497,10 +510,13 @@ class Element {
 	                          array('$addToSet' => $addToSet));
 		}
 
-
-		$resUpdate = PHDB::update( $collection, array("_id" => new MongoId($id)), 
-		                          array($verb => $set));
-
+		if ($verb == '$set') {
+			$resUpdate = PHDB::update( $collection, array("_id" => new MongoId($id)), 
+			                          array($verb => $set));
+		} else {
+			$resUpdate = PHDB::update( $collection, array("_id" => new MongoId($id)), 
+			                          array($verb => $set, '$set' => $setModified));
+		}
 		$res = array("result"=>false,"msg"=>"");
 
 		if($resUpdate["ok"]==1){
