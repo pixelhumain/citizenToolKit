@@ -422,16 +422,9 @@ class Element {
 		//Date format
 		} else if ($dataFieldName == "startDate" || $dataFieldName == "endDate") {
 			date_default_timezone_set('UTC');
-			if( !is_string( $fieldValue ) && get_class( $fieldValue ) == "MongoDate"){
-				$newMongoDate = $fieldValue;
-			}else{
-				$dt = DateTime::createFromFormat('Y-m-d H:i', $fieldValue);
-				if (empty($dt)) {
-					$dt = DateTime::createFromFormat('Y-m-d', $fieldValue);
-				}
-				$newMongoDate = new MongoDate($dt->getTimestamp());
-			}
-			$set = array($dataFieldName => $newMongoDate);	
+			$dt = DataValidator::getDateTimeFromString($fieldValue, $dataFieldName);
+			$newMongoDate = new MongoDate($dt->getTimestamp());
+			$set = array($dataFieldName => $newMongoDate);
 		} else if ($dataFieldName == "seePreferences") {
 			//var_dump($fieldValue);
 			if($fieldValue == "false"){
@@ -808,18 +801,24 @@ class Element {
         //validation process based on databind on each Elemnt Mode
         $valid = array("result"=>true);
         if( $collection == Event::COLLECTION ){
-            $valid = Event::validateFirstAndFormat($params);
-            if( $valid["result"] )
-            	$params = $valid["params"];
+            $valid = Event::validateFirst($params);
         }
-        
         if( $valid["result"] )
         	try {
         		$valid = DataValidator::validate( ucfirst($key), json_decode (json_encode ($params), true) );
         	} catch (CTKException $e) {
-        		$valid = array("result"=>false, "msg" => $e->message);
+        		$valid = array("result"=>false, "msg" => $e->getMessage());
         	}
+
         if( $valid["result"]) {
+			if( $collection == Event::COLLECTION ){
+            	 $res = Event::formatBeforeSaving($params);
+            	 if ($res["result"]) 
+            	 	$params = $res["params"];
+            	 else
+            	 	throw new CTKException("Error processing the before saving on event");
+            }
+
             if($id) {
                 //update a single field
                 //else update whole map
@@ -896,6 +895,7 @@ class Element {
     	}
     	return $res;
     }
+
     public static function prepData ($params) { 
 
         //empty fields aren't properly validated and must be removed
@@ -907,21 +907,43 @@ class Element {
         if(@$coordinates && (is_string($coordinates[0]) || is_string($coordinates[1])))
 			$params["geoPosition"]["coordinates"] = array(floatval($coordinates[0]), floatval($coordinates[1]));
 
-     	/*if(!empty($params['startDate']) )
-			$params['startDate'] = new MongoDate( strtotime( $params['startDate'] ));//$project['startDate'];
-			
-		if(!empty($params['endDate'])) 
-			$params['endDate'] = new MongoDate( strtotime( $params['endDate'] ));//$project['endDate']
-		*/
 		if (!empty($params["tags"]))
 			$params["tags"] = Tags::filterAndSaveNewTags($params["tags"]);
         
 		$params["modified"] = new MongoDate(time());
 		$params["updated"] = time();
+		
 		if( empty($params["id"]) ){
 	        $params["creator"] = Yii::app()->session["userId"];
 	        $params["created"] = time();
 	    }
+
+	    if (@$params["allDay"] == "true") {
+			$params["allDay"] = true;
+		} else {
+			$params["allDay"] = false;
+		}
+
+		//TODO SBAR - Manage elsewhere (maybe in the view)
+		//Manage the event startDate and endDate format : 
+		//it comes with the format DD/MM/YYYY HH:ii or DD/MM/YYYY 
+		//and must me transform in YYYY-MM-DD HH:ii
+		if (@$params["startDate"]) {
+			$startDate = DateTime::createFromFormat('d/m/Y', $params["startDate"]);
+			if (empty($startDate)) {
+				$startDate = DateTime::createFromFormat('d/m/Y H:i', $params["startDate"]);
+				$params["startDate"] = $startDate->format('Y-m-d H:i');
+			} else 
+				$params["startDate"] = $startDate->format('Y-m-d');
+		}
+		if (@$params["endDate"]) {
+			$endDate = DateTime::createFromFormat('d/m/Y', $params["endDate"]);
+			if (empty($endDate)) {
+				$endDate = DateTime::createFromFormat('d/m/Y H:i', $params["endDate"]);
+				$params["endDate"] = $endDate->format('Y-m-d H:i');
+			} else 
+				$params["endDate"] = $endDate->format('Y-m-d');
+		}
 
         return $params;
      }
