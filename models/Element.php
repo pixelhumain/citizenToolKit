@@ -410,31 +410,7 @@ class Element {
 				throw new CTKException("Error updating  : ".$e->getMessage());		
 			}
 		}
-		/*else if ($fieldName == "address") {
-			//address
-			if(!empty($fieldValue["postalCode"]) && !empty($fieldValue["codeInsee"])) {
-				$insee = $fieldValue["codeInsee"];
-				$postalCode = $fieldValue["postalCode"];
-				$cityName = $fieldValue["addressLocality"];
-				$address = SIG::getAdressSchemaLikeByCodeInsee($insee, $postalCode,$cityName);
-				$set = array("address" => $address);
-				if (!empty($fieldValue["streetAddress"]))
-					$set["address"]["streetAddress"] = $fieldValue["streetAddress"];
-				if(empty($fieldValue["geo"])){
-					$set["geo"] = SIG::getGeoPositionByInseeCode($insee, $postalCode,$cityName);
-					//SIG::updateEntityGeoposition($collection,$id,$geo["latitude"],$geo["longitude"]);
-					SIG::updateEntityGeoposition($collection,$id,$set["geo"]["latitude"],$set["geo"]["longitude"]);
-				}
-				if($collection == Person::COLLECTION){
-					$user = Yii::app()->session["user"];
-					$user["codeInsee"] = $insee;
-					$user["postalCode"] = $postalCode;
-					$user["address"] = $address;
-					Yii::app()->session["user"] = $user;
-				}
-			} else 
-				throw new CTKException("Error updating  : address is not well formated !");			
-		}*/
+		
 		else if ($dataFieldName == "birthDate") {
 			date_default_timezone_set('UTC');
 			$dt = DateTime::createFromFormat('Y-m-d H:i', $fieldValue);
