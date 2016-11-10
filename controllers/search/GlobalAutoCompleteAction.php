@@ -29,6 +29,15 @@ class GlobalAutoCompleteAction extends CAction
        // if(isset($search) && $search != "")
         $searchRegExp = self::accentToRegex($search);
         $query = array( "name" => new MongoRegex("/.*{$searchRegExp}.*/i"));
+        //implode $search
+        $explodeSearchRegExp = explode(" ", $searchRegExp);
+        if(count($explodeSearchRegExp)>1){
+	        $andArray=array();
+	        foreach($explodeSearchRegExp as $data){
+		        array_push($andArray,array("name" => new MongoRegex("/.*{$data}.*/i")));
+	        }
+	        $query = array('$or' => array($query,array('$and'=> $andArray)));
+        }
 
         
         /***********************************  TAGS   *****************************************/
