@@ -918,16 +918,18 @@ class Element {
 	        $params["created"] = time();
 	    }
 
-	    if (@$params["allDay"] == "true") {
-			$params["allDay"] = true;
-		} else {
-			$params["allDay"] = false;
+	    if (isset($params["allDay"])) {
+	    	if ($params["allDay"] == "true") {
+				$params["allDay"] = true;
+			} else {
+				$params["allDay"] = false;
+			}
 		}
 
 		//TODO SBAR - Manage elsewhere (maybe in the view)
 		//Manage the event startDate and endDate format : 
 		//it comes with the format DD/MM/YYYY HH:ii or DD/MM/YYYY 
-		//and must me transform in YYYY-MM-DD HH:ii
+		//and must be transform in YYYY-MM-DD HH:ii
 		if (@$params["startDate"]) {
 			$startDate = DateTime::createFromFormat('d/m/Y', $params["startDate"]);
 			if (empty($startDate)) {
