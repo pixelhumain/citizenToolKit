@@ -82,7 +82,7 @@ class Preference {
 		if($setType == "isOpenData"){
 			$preferences["isOpenData"] = $setValue;
 		}else{
-			$preferences["isOpenData"] = $context["preferences"]["isOpenData"];
+			$preferences["isOpenData"] = ((empty($context["preferences"]["isOpenData"]))?false:true);
 		}
 		if($setType == "isOpenEdition"){
 			$preferences["isOpenEdition"] = $setValue;
@@ -166,6 +166,24 @@ class Preference {
 	}
 
 
-	
+	public static function isPublic($element, $namePref) {
+		$result = false;
+		if(@$element["preferences"]["publicFields"] && in_array($namePref, $element["preferences"]["publicFields"]))
+			$result = true;
+		return $result;
+	}
+
+
+	public static function initPreferences($type) {
+		$preferences = array();
+		$preferences["isOpenData"] = true;
+		if($type == Person::COLLECTION){
+			$preferences["publicFields"] = array("locality", "directory");
+			$preferences["privateFields"] = array("birthDate", "email", "phone");
+		}else{
+			$preferences["isOpenEdition"] = true;
+		}
+		return $preferences;
+	}
 	
 }

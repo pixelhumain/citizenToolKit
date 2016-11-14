@@ -150,17 +150,17 @@ class Import
                 $json_objet = ArrayHelper::getValueJson($obj, $map);
                 //var_dump($json_objet);
                 foreach ($json_objet as $key => $value) {
-                    $chaine .= ArrayHelper::getAllBranchsJSON($value);
+                    $chaine .= ArrayHelper::getAllPath($value);
                 }
             }else{
                 //var_dump($json);
                 $json_objet = json_decode($json, true);
                 if(substr($json, 0,1) == "{")
-                    $chaine .= ArrayHelper::getAllBranchsJSON($json_objet);
+                    $chaine .= ArrayHelper::getAllPath($json_objet);
                 else{
                     
                     foreach ($json_objet as $key => $value) {
-                        $chaine .= ArrayHelper::getAllBranchsJSON($value);
+                        $chaine .= ArrayHelper::getAllPath($value);
                     }
                 }
             }
@@ -180,7 +180,7 @@ class Import
             $arrayMicroformat = array();
             foreach ($fieldsCollection as $key => $value) 
             {
-                $pathMapping = ArrayHelper::getAllBranchsJSON($value['mappingFields'], "", "");
+                $pathMapping = ArrayHelper::getAllPath($value['mappingFields'], "", "");
                 $arrayPathMapping = explode(";",  $pathMapping);
                 foreach ($arrayPathMapping as $keyPathMapping => $valuePathMapping) 
                 {
@@ -242,7 +242,7 @@ class Import
         $arrayPathMapping2 = array();
         foreach ($fieldsCollection as $key => $value) 
         {
-            $pathMapping = ArrayHelper::getAllBranchsJSON($value['mappingFields']);
+            $pathMapping = ArrayHelper::getAllPath($value['mappingFields']);
             $arrayPathMapping = explode(";",  $pathMapping);
             foreach ($arrayPathMapping as $keyPathMapping => $valuePathMapping) 
             {
@@ -1792,7 +1792,7 @@ class Import
             $idCity = (String)$city["_id"];
             //var_dump($idCity);
 
-
+            $cp = null ;
             foreach ($city["postalCodes"] as $key => $value) {
                 if($value["name"] == $city["alternateName"])
                     $cp = $value["postalCode"];
@@ -1866,9 +1866,9 @@ class Import
 
     public static function getGeoByAddressNominatimGEOSHAPE( $city = null ){
         
-        $url = "http://nominatim.openstreetmap.org/search?format=json&addressdetails=1&city=".str_replace(" ", "+", $city);
+        $url = "http://nominatim.openstreetmap.org/search?format=json&addressdetails=1&city=".str_replace(" ", "+", $city)."&countrycodes=be";
         $url .= "&polygon_geojson=1";
-        //var_dump($url);
+        var_dump($url);
         $result = Import::getUrl($url);
         
         return $result;
@@ -2105,6 +2105,275 @@ class Import
 
     public static function changeFormatSourceKeyInArray($keys) {
         return (is_string($keys))?array($keys):$keys;
+    }
+
+    public static function belgique($post){
+        //var_dump($post);
+        $arrayCSV = $post['file'];
+        $arrayHeadCSV = $arrayCSV[0];
+
+        unset($arrayCSV[0]);
+        $res = array();
+        $i = 0 ;
+        $j = 0 ;
+        foreach ($arrayCSV as $key => $value) {
+           // var_dump($value);
+            if(!empty($value)){
+                //$j++;
+                $where = array("insee" => $value[0], "country" => "BEL");
+                $cities = City::getWhere($where, null, 1);
+                if(!empty($cities)){
+                    foreach ($cities as $keyCity => $city) {
+                        if(!empty( $city["region"]) && !empty( $city["regionName"])){
+                            $city["regionBel"] =  $city["region"];
+                            $city["regionNameBel"] = $city["regionName"];
+                        }
+                        //var_dump($value);
+                        if(!empty($value[4]) 
+                            && !empty($value[5])
+                            && !empty($value[2])
+                            && !empty($value[3])){
+                            //var_dump($value[4]);
+                            $city["dep"] = $value[4]."BEL";
+                            $city["depName"] = $value[5];
+                            $city["region"] = $value[2]."BEL";
+                            $city["regionName"] = $value[3];
+                        }
+
+                        //var_dump("---------------------------");
+                        //unset($city["geoShape"]);
+
+                       
+                        
+
+                        $res[$city["name"]] = PHDB::update(City::COLLECTION,
+                                    array("_id"=>new MongoId($keyCity)),
+                                    array('$set' => $city),
+                                    array('upsert' => true));
+
+                        
+
+                    }
+                } 
+            }else{
+               $i++;
+            }
+            
+            
+        }
+
+        /*$newCity = $data ;
+        $newCity["name"] = ucfirst(strtolower($data["alternateName"]));
+        $newCity["country"] = "BEL";
+
+        $address = array(    'streetAddress' =>  '', 
+                                 'postalCode' =>  $data["postalCodes"][0]["postalCode"],
+                                 'addressLocality' =>  $data["postalCodes"][0]["name"],
+                                 'addressCountry' =>  'BEL',
+                                 'codeInsee' =>  $data["insee"]);
+
+
+        $address2 = array(    'streetAddress' =>  '', 
+                                 'postalCode' =>  $data["postalCodes"][0]["postalCode"],
+                                 'addressLocality' =>  $newCity["name"],
+                                 'addressCountry' =>  'BEL',
+                                 'codeInsee' =>  $data["insee"]);
+
+        
+        $details = Import::getAndCheckAddressForEntity($address, null, true) ;
+
+        if(!empty($details['geo']))
+            $newCity["postalCodes"][0]['geo'] = $details['geo'] ;
+
+        if(!empty($details['geoPosition']))
+            $newCity["postalCodes"][0]['geoPosition'] = $details['geoPosition'] ;
+
+        if(!empty($details['warnings']))
+            $newCity['warnings'] = $details['warnings'];
+
+
+        $details2 = Import::getAndCheckAddressForEntity($address2, null, true) ;
+
+        if(!empty($details2['geo']))
+            $newCity['geo'] = $details2['geo'] ;
+
+        if(!empty($details2['geoPosition']))
+            $newCity['geoPosition'] = $details2['geoPosition'] ;
+
+        if(!empty($newCity['warnings']))
+            $newCity['warnings'] = array_merge($newCity['warnings'], $details2['warnings']);
+        else if(!empty($details2['warnings']))
+            $newCity['warnings'] = $details2['warnings'];
+
+
+        $nominatim = json_decode(Import::getGeoByAddressNominatimGEOSHAPE($newCity["name"]), true);
+        if(!empty($nominatim)){
+            foreach ($nominatim as $key => $value) {
+                if(!empty($value['geojson']) && $value["type"] == "city"){
+                    $newCity['geoShape'] = $value["geojson"];
+                    break;
+                }
+            }
+
+            if(empty($newCity['geoShape'])){
+                foreach ($nominatim as $key => $value) {
+                    if(!empty($value['geojson']) && $value["type"] == "administrative"){
+                        $newCity['geoShape'] = $value["geojson"];
+                        break;
+                    }
+                }
+            }
+        }
+        */
+        $res = array($i, $j);
+        return $res;
+    }
+
+
+
+    public static function checkGeo(){
+        $res = array();
+        $where = array("geo" => array('$exists' => false) );
+        $cities = PHDB::find(City::COLLECTION, $where);
+        
+        foreach ($cities as $key => $city) {
+            
+            $idCity = (String)$city["_id"];
+            //var_dump($idCity);
+
+            $cp = null ;
+            foreach ($city["postalCodes"] as $key => $value) {
+                if($value["name"] == $city["alternateName"])
+                    $cp = $value["postalCode"];
+            }
+        
+
+            $resultNominatim = json_decode(Import::getGeoByAddressNominatim(null, $cp, $city["name"], null, true),true);
+
+            $find = false;
+            //var_dump($city["name"]);
+            //var_dump($resultNominatim);
+            if(!empty($resultNominatim)){
+                foreach ($resultNominatim as $key => $cityNominatim){
+                    //var_dump($cityNominatim);
+                    if(!empty($cityNominatim["lat"]) && !empty($cityNominatim["lon"])){
+                        //var_dump("etat 1");
+                        if($find == false){
+                            $city["geo"] = array("@type"=>"GeoCoordinates", "latitude" => $cityNominatim["lat"], "longitude" => $cityNominatim["lon"]);
+                            $city["geoPosition"] = array("type"=>"Point", "coordinates" => array(floatval($cityNominatim["lon"]), floatval($cityNominatim["lat"])));
+                            $find = true;
+                            
+                        }
+                    }
+                }
+            }else{
+
+                $resultNominatim = json_decode(Import::getGeoByAddressNominatimGEOSHAPE($city["name"]),true);
+                if(!empty($resultNominatim)){
+                    foreach ($resultNominatim as $key => $cityNominatim){
+                        if(!empty($cityNominatim["lat"]) && !empty($cityNominatim["lon"])){
+                            if($find == false && $cityNominatim["address"]["country_code"] == "be" ){
+                                if($find == false){
+                                    $city["geo"] = array("@type"=>"GeoCoordinates", "latitude" => $cityNominatim["lat"], "longitude" => $cityNominatim["lon"]);
+                                    $city["geoPosition"] = array("type"=>"Point", "coordinates" => array(floatval($cityNominatim["lon"]), floatval($cityNominatim["lat"])));
+                                    $find = true;
+                                    
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            //$res[$city["name"]] = $find ;
+            if($find == true){
+                $res[$city["name"]] = PHDB::update(City::COLLECTION,
+                                array("_id"=>new MongoId($idCity)),
+                                array('$set' => $city),
+                                array('upsert' => true));
+            }
+            
+
+        }
+
+        return $res ;
+
+    }
+
+
+    public static function checkGeoPostalCode(){
+        $res = array();
+        //$where = array("postalCodes.geo" => array('$exists' => -1) );
+        $where = array("country" => "BEL");
+        $cities = PHDB::find(City::COLLECTION, $where);
+        
+        foreach ($cities as $key => $city) {
+            
+            $idCity = (String)$city["_id"];
+            //var_dump($idCity);
+
+            $cp = null ;
+            $update = false ;
+            foreach ($city["postalCodes"] as $key => $value) {
+
+                if(empty($value["geo"])){
+                    //if($value["name"] == $city["alternateName"])
+                    $cp = $value["postalCode"];
+                    $resultNominatim = json_decode(Import::getGeoByAddressNominatim(null, $cp, $city["name"], null, true),true);
+                    $update = true ;
+                    $find = false;
+                    //var_dump($city["name"]);
+                    //var_dump($resultNominatim);
+                    if(!empty($resultNominatim)){
+                        foreach ($resultNominatim as $key => $cityNominatim){
+                            //var_dump($cityNominatim);
+                            if(!empty($cityNominatim["lat"]) && !empty($cityNominatim["lon"])){
+                                //var_dump("etat 1");
+                                if($find == false){
+                                    $city["postalCodes"][$key]["geo"] = array("@type"=>"GeoCoordinates", "latitude" => $cityNominatim["lat"], "longitude" => $cityNominatim["lon"]);
+                                    $city["postalCodes"][$key]["geoPosition"] = array("type"=>"Point", "coordinates" => array(floatval($cityNominatim["lon"]), floatval($cityNominatim["lat"])));
+                                    
+                                }
+                            }
+                        }
+                    }else{
+
+                        $resultNominatim = json_decode(Import::getGeoByAddressNominatimGEOSHAPE($value["name"]),true);
+                        if(!empty($resultNominatim)){
+                            foreach ($resultNominatim as $key => $cityNominatim){
+                                if(!empty($cityNominatim["lat"]) && !empty($cityNominatim["lon"])){
+                                    if($find == false && $cityNominatim["address"]["country_code"] == "be" ){
+                                        if($find == false){
+                                            $city["postalCodes"][$key]["geo"] = array("@type"=>"GeoCoordinates", "latitude" => $cityNominatim["lat"], "longitude" => $cityNominatim["lon"]);
+                                            $city["postalCodes"][$key]["geoPosition"] = array("type"=>"Point", "coordinates" => array(floatval($cityNominatim["lon"]), floatval($cityNominatim["lat"])));
+                                            $find = true;
+                                            
+                                        }
+                                    }
+                                }
+                            }
+                        }else{
+                            $city["postalCodes"][$key]["geo"] = $city["geo"];
+                            $city["postalCodes"][$key]["geoPosition"] = $city["geoPosition"];
+                        }
+                    }
+                }
+                
+
+                //$newCity = $city
+            
+            }
+            if($update == true){
+                $res[$city["name"]] = PHDB::update(City::COLLECTION,
+                                    array("_id"=>new MongoId($idCity)),
+                                    array('$set' => $city),
+                                    array('upsert' => true)); 
+            }
+            
+        }
+
+        return $res ;
+
     }
 }
 

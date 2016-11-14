@@ -27,6 +27,9 @@ class IndexAction extends CAction
             $params["context"] = Person::getById($id);
         } else if($type == News::COLLECTION) {
             $params["context"] = News::getById($id);
+		} else if($type == Poi::COLLECTION) {
+            $params["context"] = Poi::getById($id);
+
         } else if($type == Survey::COLLECTION) {
             $params["context"] = Survey::getById($id);
             /*AUTH*/

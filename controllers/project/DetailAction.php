@@ -81,7 +81,7 @@ class DetailAction extends CAction
 	  		
 	  		if( isset($project["links"]["events"])) {
 	    		foreach ($project["links"]["events"] as $key => $event) {
-	    			$newEvent = Event::getById( $key );
+	    			$newEvent = Event::getSimpleEventById( $key );
 	            	if (!empty($newEvent)) {
 		            	array_push($events, $newEvent);
 		            }

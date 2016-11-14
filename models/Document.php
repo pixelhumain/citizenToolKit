@@ -91,8 +91,11 @@ class Document {
 		    	return array("result"=>false, "msg"=>Yii::t('document',"You are not allowed to modify the document of this item !") );
 		    }
 		} else {
-		    if (! Authorisation::canEditItem($new['author'], $new['type'], $new['id']) && !Authorisation::isOpenEdition($new['id'], $new['type'])) {
-		    	return array("result"=>false, "msg"=>Yii::t('document',"You are not allowed to modify the document of this item !") );
+		    if (! Authorisation::canEditItem($new['author'], $new['type'], $new['id']) && !Authorisation::isOpenEdition($new['id'], $new['type']) && (!@$params["formOrigin"] || !Link::isLinked($new['id'], $new['type'], $new['author']))) {
+			    if(@$params["formOrigin"] && $params["formOrigin"]=="news")
+					return array("result"=>false, "msg"=>Yii::t('document',"You have no rights upload document on this item, just write a message !") );
+			    else
+		    		return array("result"=>false, "msg"=>Yii::t('document',"You are not allowed to modify the document of this item !") );
 		    }
 	    }
 
@@ -192,7 +195,7 @@ class Document {
 		return $listDocuments;
 	}
 	
-	protected static function listMyDocumentByIdAndType($id, $type, $contentKey= null, $docType = null, $sort=null)	{	
+	public static function listMyDocumentByIdAndType($id, $type, $contentKey= null, $docType = null, $sort=null)	{	
 		$params = array("id"=> $id,
 						"type" => $type);
 		if (isset($contentKey) && $contentKey != null) 
@@ -657,6 +660,12 @@ class Document {
 			case City::COLLECTION :
 				$markerFileName = "city-marker-empty.png";
 				break;
+			case Poi::COLLECTION :
+				if($subType!=null)
+					$markerFileName = "poi-".$subType."-marker-empty.png";
+				else
+					$markerFileName = "poi-marker-empty.png";
+				break;
 		}
 
 		return $markerFileName;
@@ -682,22 +691,25 @@ class Document {
 		//If empty than retrieve the URLs from document and store them in the entity for next time
 		} else {
 			$profil = self::getLastImageByKey($id, $type, self::IMG_PROFIL);
-			$profilThumb = self::getGeneratedImageUrl($id, $type, self::GENERATED_THUMB_PROFIL);
-			$profilMedium = self::getGeneratedImageUrl($id, $type, self::GENERATED_MEDIUM_FOLDER);
-			if ($profil != "") {
-				$marker = self::getGeneratedImageUrl($id, $type, self::GENERATED_MARKER);
-			} else {
-				$marker = "";
-			} 
-	
+			
+			if (!empty($profil)) {
+				$profilThumb = self::getGeneratedImageUrl($id, $type, self::GENERATED_THUMB_PROFIL);
+				$profilMedium = self::getGeneratedImageUrl($id, $type, self::GENERATED_MEDIUM_FOLDER);
+				if ($profil != "") {
+					$marker = self::getGeneratedImageUrl($id, $type, self::GENERATED_MARKER);
+				} else {
+					$marker = "";
+				} 
+
+				PHDB::update($type, array("_id" => new MongoId($id)), array('$set' => array("profilImageUrl" => $profil, "profilThumbImageUrl" => $profilThumb, "profilMarkerImageUrl" =>  $marker,"profilMediumImageUrl" =>  $profilMedium)));
+				error_log("Add Profil image url for the ".$type." with the id ".$id);
+			}
+			
 			$res["profilImageUrl"] = $profil;
 			//Add a time to force relaod of generated images
-			$res["profilThumbImageUrl"] = !empty($profilThumb) ? empty($profilThumb)."?_=".time() : "";
-			$res["profilMarkerImageUrl"] = !empty($marker) ? empty($marker)."?_=".time() : "";
-			$res["profilMediumImageUrl"] = !empty($profilMedium) ? empty($profilMedium)."?_=".time() : "";
-
-			PHDB::update($type, array("_id" => new MongoId($id)), array('$set' => array("profilImageUrl" => $profil, "profilThumbImageUrl" => $profilThumb, "profilMarkerImageUrl" =>  $marker,"profilMediumImageUrl" =>  $profilMedium)));
-			error_log("Add Profil image url for the ".$type." with the id ".$id);
+			$res["profilThumbImageUrl"] = !empty($profilThumb) ? $profilThumb."?_=".time() : "";
+			$res["profilMarkerImageUrl"] = !empty($marker) ? $marker."?_=".time() : "";
+			$res["profilMediumImageUrl"] = !empty($profilMedium) ? $profilMedium."?_=".time() : "";
 		}
 
 		//If empty marker return default marker

@@ -43,6 +43,7 @@ class ActStr {
     const VERB_VOTE = "vote";
     
     const VERB_POST = "post";
+    const VERB_RETURN = "return";
 
     const TYPE_URL = "url";
     const TYPE_ACTIVITY_HISTORY = "history";

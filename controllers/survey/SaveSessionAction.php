@@ -97,7 +97,7 @@ class SaveSessionAction extends CAction
                 }
 
                 $res['result'] = true;
-                $res['msg'] = "surveySaved";
+                $res['msg'] = "Proposition bien enregistré";
                 $res['surveyId'] = $surveyId;
                 $res['url'] = "#survey.entry.id.".$surveyId;
 

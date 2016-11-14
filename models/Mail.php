@@ -14,6 +14,9 @@ class Mail {
                     if (@$account["isNotValidEmail"]) {
                         $msg = "Try to send an email to a not valid email user : ".$params['to'];
                         return array("result" => false, "msg" => $msg);
+                    } else if (@$account["status"] == "deleted") {
+                        $msg = "Try to send an email to a deleted user : ".$params['to'];
+                        return array("result" => false, "msg" => $msg);
                     }
                 } else {
                     $msg = "Try to send an email to an unknown email user : ".$params['to'];
@@ -30,7 +33,7 @@ class Mail {
             $message->view =  $params['tpl'];
             $message->setSubject($params['subject']);
             $message->setBody($params['tplParams'], 'text/html');
-            $message->addTo(array($params['to'] => $nameTo));
+            $message->addTo($params['to'], $nameTo);
             $message->from = array($params['from'] => "Communecter");
 
             return Yii::app()->mail->send($message);
@@ -67,9 +70,9 @@ class Mail {
             $invitor["name"] = $nameInvitor ;
 		
         if(empty($msg))
-            $msg = $invitor["name"]. " vous invite à rejoindre Communecter.";
+            $msg = $invitor["name"]. " vous invite à rejoindre ".Yii::app()-> name.".";
 		if(empty($subject))
-            $subject = $invitor["name"]. " vous invite à rejoindre Communecter.";
+            $subject = $invitor["name"]. " vous invite à rejoindre ".Yii::app()-> name.".";
 
         if(!@$person["email"] || empty($person["email"])){
         	$getEmail=Person::getEmailById((string)$person["_id"]);
@@ -84,8 +87,10 @@ class Mail {
             "to" => $person["email"],
             "tplParams" => array(   "invitorName"   => $invitor["name"],
                                     "title" => Yii::app()-> name ,
-                                    "logo"=> "/images/logo-communecter.png",
-                                    "logo2" => "/images/logoLTxt.jpg",
+                                    "logo" => Yii::app()->params["logoUrl"],
+                                    "logo2" => Yii::app()->params["logoUrl2"],
+                                    //"logo"=> "/images/logo-communecter.png",
+                                    //"logo2" => "/images/logoLTxt.jpg",
                                     "invitedUserId" => $person["_id"],
                                     "message" => $msg)
         );
@@ -188,7 +193,10 @@ class Mail {
             "to" => $person["email"],
             "tplParams" => array( "user"  => $person["_id"] ,
                                   "title" => Yii::app()->name ,
-                                  "logo"  => "/images/logoLTxt.jpg" ) );
+                                  //"logo"  => "/images/logoLTxt.jpg" 
+                                  "logo" => Yii::app()->params["logoUrl"],
+                                  //"urlRedirect" => Yii::app()->getRequest()->getBaseUrl(true);
+                                  ) );
         Mail::schedule($params);
     }
 

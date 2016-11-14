@@ -108,7 +108,8 @@ class SimplyAutoCompleteAction extends CAction
 					        }
 	        			}
 	        		}elseif($key == "DEPARTEMENT") {
-	        			$queryLocality = array($value => new MongoRegex("/^".$locality."/i"));
+	        			$dep = PHDB::findOne( City::COLLECTION, array("depName" => $locality), array("dep"));	
+		        		$queryLocality = array($value => new MongoRegex("/^".$dep["dep"]."/i"));
 		        	}//OneLocality
 		        	else{
 	  					$queryLocality = array($value => new MongoRegex("/".$locality."/i"));

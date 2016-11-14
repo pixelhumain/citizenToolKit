@@ -15,14 +15,15 @@ class AutocompleteMultiScopeAction extends CAction
        
         //Look for Insee code on city collection
         if($type == "city")     $where = array('$or'=> 
-                                            array(array("name" => new MongoRegex("/^".$scopeValue."/i")),
-                                                  array("alternateName" => new MongoRegex("/^".$scopeValue."/i")),
+                                            array(array("name" => new MongoRegex("/".$scopeValue."/i")),
+                                                  array("alternateName" => new MongoRegex("/".$scopeValue."/i")),
                                                  ));
         
         //Look for postal code on city collection
         if($type == "cp")       $where = array("postalCodes.postalCode" =>new MongoRegex("/^".$scopeValue."/i"));
-        
-        if($countryCode != null) $where[] = array("country" => strtoupper($countryCode));
+        //if($countryCode != null) $where = array("country" => strtoupper($countryCode));
+
+        if($countryCode != null)  $where = array_merge($where, array("country" => strtoupper($countryCode)));
         
         // if($type == "region")   $where = array('$or' => array(
         //                                         array("regionName" => new MongoRegex("/^".$scopeValue."/i")),
@@ -32,8 +33,8 @@ class AutocompleteMultiScopeAction extends CAction
         if($type != "dep" && $type != "region"){
             $att = array("insee", "postalCodes", "country", "name", "alternateName", "depName", "regionName");
             if($geoShape) $att[] =  "geoShape";
-
-            $cities = PHDB::findAndSort( City::COLLECTION, $where, array(), 40, $att);
+            //var_dump($where);
+            $cities = PHDB::findAndSort( City::COLLECTION, $where, $att, 40, $att);
         }
         else if($type == "dep"){
             $cities = array();

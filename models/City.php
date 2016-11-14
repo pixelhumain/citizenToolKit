@@ -64,7 +64,7 @@ class City {
 		$country = substr($unikey, 0, strpos($unikey, "_"));
 		//No cp for the unikey
 		if (! strpos($unikey, "-")) {
-			$insee = substr($unikey,  strpos($unikey, "_")+1,  5);
+			$insee = substr($unikey,  strpos($unikey, "_")+1);
 		} else {
 			$insee = substr($unikey,  strpos($unikey, "_")+1,  strpos($unikey, "-")-strpos($unikey, "_")-1);
 			$cp = substr($unikey, strpos($unikey, "-")+1,  strlen($unikey));

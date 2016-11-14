@@ -8,8 +8,13 @@ class SearchMembersAutoCompleteAction extends CAction {
 	public function run() {
 		//$search = str_replace(" ", "\\s",urldecode($_POST['search']));
 		$search = trim(urldecode($_POST['search']));
+		if(@$_POST['elementId'])
+			$elementId=$_POST['elementId'];
+		else
+			$elementId=Yii::app()->session["userId"];
 		$query = array( '$or' => 	array( array("email" => new MongoRegex("/".$search."/i")),
-									array("name" => new MongoRegex("/".$search."/i"))));
+									array("name" => new MongoRegex("/".$search."/i"))),
+						"_id" => array('$ne' => new MongoId($elementId)));
 
 		$limitSearchPerson = 0;
 		$limitSearchOrganization = 0;

@@ -6,9 +6,9 @@ class GetAllLinksAction extends CAction {
 */
     public function run($type, $id) { 
     	//$controller=$this->getController();
-
-		$links=$_POST["links"];
-		$contextMap = Element::getAllLinks($links,$type);
+		$element = Element::getByTypeAndId($type, $id);
+		$links=@$element["links"];
+		$contextMap = Element::getAllLinks($links,$type, $id);
 		return Rest::json($contextMap);
 		Yii::app()->end();
 	}

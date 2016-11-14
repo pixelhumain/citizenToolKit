@@ -12,13 +12,16 @@ class DirectoryAction extends CAction
         $controller = $this->getController();
         // Vérifier si utile cette condition
 		$element = Element::getByTypeAndId($type,$id);
-        if(@$_POST["links"]){
+		$links=array();
+		$links = (!empty($element["links"])?Element::getAllLinks($element["links"],$type,$id):array());
+        /*if(@$_POST["links"]){
             $links = $_POST["links"];
         }else{
+	        $links=array();
             if(@$element["links"]){
-                $links = Element::getAllLinks($element["links"],$type);
+                $links = Element::getAllLinks($element["links"],$type,$id);
             }
-        }
+        }*/
 		$show=true;
         if($type==Person::COLLECTION)
             $show = Preference::showPreference($element, $type, "directory", Yii::app()->session["userId"]);
@@ -32,9 +35,10 @@ class DirectoryAction extends CAction
             $contextIconTitle = "group text-green";
         }
         else if(@$type == Event::COLLECTION){
-            $contextTitle = Yii::t("common", "Visualize Event Communauty");
+            $contextTitle = Yii::t("common", "Community of event");
             $parentType=Event::COLLECTION;
             $contextIconTitle = "circle text-orange";
+            $connectType="attendees";
         }
         else if( @$type == Person::COLLECTION){
             $contextTitle =  Yii::t("common", "DIRECTORY of")." ".$element["name"];
@@ -52,11 +56,11 @@ class DirectoryAction extends CAction
             if (@$links["people"])
                 foreach ($links["people"] as $key => $onePeople) { if( @$onePeople["name"]) $countPeople++;}
             if (@$links["organizations"])
-                foreach ($links["organizations"] as $key => $orga) { if( @$orga["name"]) $countOrga++;  }
+                foreach ($links["organizations"] as $key => $orga) { if( @$orga["name"]&& ($type != Organization::COLLECTION || $id!=$orga["id"])) $countOrga++;  }
             if (@$links["projects"])
-                foreach ($links["projects"] as $key => $project) { if( @$project["name"]) $countProject++;  }
+                foreach ($links["projects"] as $key => $project) { if( @$project["name"] && ($type != Project::COLLECTION || $id!=$project["id"])) $countProject++;  }
             if (@$links["events"])
-                foreach ($links["events"] as $key => $event) { if( @$event["name"]) $countEvent++;  }
+                foreach ($links["events"] as $key => $event) { if( @$event["name"] && ($type != Event::COLLECTION || $id!=$event["id"])) $countEvent++;  }
             if (@$links["followers"])
                 foreach ($links["followers"] as $key => $follower) { if( @$follower["name"]) $countFollowers++;}
             if (@$links["attendees"])
@@ -113,14 +117,17 @@ class DirectoryAction extends CAction
         $params["type"] = $type;
         $params["elementId"] = $id;
         $params["element"] = $element;
+        $params["connectType"] = @$connectType;
         $params["links"] = $links;
         $params["contextIcon"] = $contextIcon ;
         $params["contextTitle"] = $contextTitle ;
         $params["contextIconTitle"] = $contextIconTitle ;
-        $params["manage"] = ( @$connectType && @$element["links"][$connectType][Yii::app()->session["userId"]] )?1:0;
-        if($type == Person::COLLECTION && @Yii::app()->session["userId"] && $id==Yii::app()->session["userId"])
-       		$params["manage"] = 1;        	
+        //$params["manage"] = ( @$connectType && @$element["links"][$connectType][Yii::app()->session["userId"]] )?1:0;
         $params["edit"] = Authorisation::canEditItem(@Yii::app()->session["userId"], $type, $id);
+        $params["manage"] = $params["edit"];
+       // if($type == Person::COLLECTION && @Yii::app()->session["userId"] && $id==Yii::app()->session["userId"])
+       	//	$params["manage"] = 1;        	
+
         $params["openEdition"] = Authorisation::isOpenEdition($id, $type, @$element["preferences"]);
         $page = "directory2";
         if(Yii::app()->request->isAjaxRequest){
