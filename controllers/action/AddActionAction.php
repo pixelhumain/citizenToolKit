@@ -34,7 +34,7 @@ class AddActionAction extends CAction
                 }
             }      
         } else {
-        	$res = array("result" => false, "msg" => "Please Log in order to vote ! ");
+        	$res = array("result" => false, "msg" => Yii::t("common","Please Log in order to vote !"));
         }
         Rest::json( $res );
         Yii::app()->end();

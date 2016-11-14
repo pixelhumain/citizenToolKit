@@ -14,6 +14,9 @@ class Mail {
                     if (@$account["isNotValidEmail"]) {
                         $msg = "Try to send an email to a not valid email user : ".$params['to'];
                         return array("result" => false, "msg" => $msg);
+                    } else if (@$account["status"] == "deleted") {
+                        $msg = "Try to send an email to a deleted user : ".$params['to'];
+                        return array("result" => false, "msg" => $msg);
                     }
                 } else {
                     $msg = "Try to send an email to an unknown email user : ".$params['to'];
@@ -24,12 +27,13 @@ class Mail {
             return false;
         }
         
+        $nameTo = $account["name"];
         if( PH::notlocalServer() || $force ){
             $message = new YiiMailMessage;
             $message->view =  $params['tpl'];
             $message->setSubject($params['subject']);
             $message->setBody($params['tplParams'], 'text/html');
-            $message->addTo($params['to']);
+            $message->addTo($params['to'], $nameTo);
             $message->from = array($params['from'] => "Communecter");
 
             return Yii::app()->mail->send($message);
@@ -59,14 +63,50 @@ class Mail {
         Mail::schedule($params);
     }
 
-    public static function invitePerson($person, $msg = null, $nameInvitor = null, $invitorUrl = null) {
+    public static function invitePerson($person, $msg = null, $nameInvitor = null, $invitorUrl = null, $subject=null) {
         if(isset($person["invitedBy"]))
             $invitor = Person::getSimpleUserById($person["invitedBy"]);
         else if(isset($nameInvitor))
             $invitor["name"] = $nameInvitor ;
+		
+        if(empty($msg))
+            $msg = $invitor["name"]. " vous invite à rejoindre ".Yii::app()-> name.".";
+		if(empty($subject))
+            $subject = $invitor["name"]. " vous invite à rejoindre ".Yii::app()-> name.".";
+
+        if(!@$person["email"] || empty($person["email"])){
+        	$getEmail=Person::getEmailById((string)$person["_id"]);
+        	$person["email"]=$getEmail["email"];
+        }
+
+        $params = array(
+            "type" => Cron::TYPE_MAIL,
+            "tpl"=>'invitation',
+            "subject" => $subject,
+            "from"=>Yii::app()->params['adminEmail'],
+            "to" => $person["email"],
+            "tplParams" => array(   "invitorName"   => $invitor["name"],
+                                    "title" => Yii::app()-> name ,
+                                    "logo" => Yii::app()->params["logoUrl"],
+                                    "logo2" => Yii::app()->params["logoUrl2"],
+                                    //"logo"=> "/images/logo-communecter.png",
+                                    //"logo2" => "/images/logoLTxt.jpg",
+                                    "invitedUserId" => $person["_id"],
+                                    "message" => $msg)
+        );
+
+        if(!empty($invitorUrl))
+            $params["tplParams"]["invitorUrl"] = $invitorUrl;
+        
+        Mail::schedule($params);
+    }
+	/*public static function invitePersonAgain($person, $msg = null, $nameInvitor = null, $invitorUrl = null) {
+        $invitor = Person::getSimpleUserById(Yii::app()->session["userId"]);
+        
+            $invitor["name"] = $nameInvitor ;
 
         if(empty($msg))
-            $msg = $invitor["name"]. " vous invite à rejoindre Communecter.";
+            $msg = $invitor["name"]. " vous relance pour rejoindre Communecter.";
 
         
 
@@ -88,8 +128,7 @@ class Mail {
             $params["tplParams"]["invitorUrl"] = $invitorUrl;
         
         Mail::schedule($params);
-    }
-
+    }*/
     /**
      * Invite bankers
      * @param array $person A well format person
@@ -154,7 +193,10 @@ class Mail {
             "to" => $person["email"],
             "tplParams" => array( "user"  => $person["_id"] ,
                                   "title" => Yii::app()->name ,
-                                  "logo"  => "/images/logoLTxt.jpg" ) );
+                                  //"logo"  => "/images/logoLTxt.jpg" 
+                                  "logo" => Yii::app()->params["logoUrl"],
+                                  //"urlRedirect" => Yii::app()->getRequest()->getBaseUrl(true);
+                                  ) );
         Mail::schedule($params);
     }
 

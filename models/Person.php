@@ -11,26 +11,27 @@ class Person {
 	const REGISTER_MODE_TWO_STEPS 	= "two_steps_register";
 
 	//From Post/Form name to database field name with rules
-	private static $dataBinding = array(
+	public static $dataBinding = array(
 	    "name" => array("name" => "name", "rules" => array("required")),
 	    "username" => array("name" => "username", "rules" => array("required", "checkUsername")),
 	    "birthDate" => array("name" => "birthDate", "rules" => array("required")),
 	    "email" => array("name" => "email", "rules" => array("email")),
 	    "pwd" => array("name" => "pwd"),
-	    "address" => array("name" => "address"),
+	    "address" => array("name" => "address", "rules" => array("addressValid")),
 	    "streetAddress" => array("name" => "address.streetAddress"),
 	    "postalCode" => array("name" => "address.postalCode"),
 	    "codeInsee" => array("name" => "address.codeInsee"),
 	    "addressLocality" => array("name" => "address.addressLocality"), 
 	    "addressCountry" => array("name" => "address.addressCountry"),
-	    "geo" => array("name" => "geo"),
-	    "geoPosition" => array("name" => "geoPosition"),
+	    "geo" => array("name" => "geo", "rules" => array("geoValid")),
+	    "geoPosition" => array("name" => "geoPosition", "rules" => array("geoPositionValid")),
 	    "telephone" => array("name" => "telephone"),
 	    "mobile" => array("name" => "telephone.mobile"),
 	    "fixe" => array("name" => "telephone.fixe"),
 	    "fax" => array("name" => "telephone.fax"),
 	    "tags" => array("name" => "tags"),
 	    "shortDescription" => array("name" => "shortDescription"),
+	    "description" => array("name" => "description"),
 	    "facebookAccount" => array("name" => "socialNetwork.facebook"),
 	    "twitterAccount" => array("name" => "socialNetwork.twitter"),
 	    "gpplusAccount" => array("name" => "socialNetwork.googleplus"),
@@ -50,6 +51,13 @@ class Person {
 	    "multiscopes" => array("name" => "multiscopes"),
 	    "url" => array("name" => "url"),
 	    "lastLoginDate" => array("name" => "lastLoginDate"),
+	    "seePreferences" => array("name" => "seePreferences"),
+	    "locality" => array("name" => "address"),
+
+	    "modified" => array("name" => "modified"),
+	    "updated" => array("name" => "updated"),
+	    "creator" => array("name" => "creator"),
+	    "created" => array("name" => "created"),
 	);
 
 	public static function logguedAndValid() {
@@ -157,12 +165,46 @@ class Person {
 	 * @param String $id of the person
 	 * @return array with data id, name, profilImageUrl
 	 */
+	public static function getMinimalUserById($id,$person=null) {
+		
+		$simplePerson = array();
+		if(!$person)
+			$person = PHDB::findOneById( self::COLLECTION ,$id, 
+				array("id" => 1, "name" => 1, "username" => 1, "email" => 1, "roles" => 1, "tags" => 1, "profilImageUrl" => 1, "profilThumbImageUrl" => 1, "profilMarkerImageUrl" => 1));
+		
+		if (empty($person)) {
+			return $simplePerson;
+		}
+
+		$simplePerson["id"] = $id;
+		$simplePerson["name"] = @$person["name"];
+		$simplePerson["username"] = @$person["username"];
+		$simplePerson["email"] = @$person["email"];
+		$simplePerson["tags"] = @$person["tags"];
+		
+		//images
+		$simplePerson = array_merge($simplePerson, Document::retrieveAllImagesUrl($id, self::COLLECTION, null, $person));
+
+		$simplePerson["address"] = empty($person["address"]) ? array("addressLocality" => "Unknown") : $person["address"];
+		
+		$simplePerson = self::clearAttributesByConfidentiality($simplePerson);
+
+		$simplePerson["typeSig"] = "people";
+	  	return $simplePerson;
+
+	}
+
+	/**
+	 * Retrieve a simple user (id, name, profilImageUrl) by id from DB
+	 * @param String $id of the person
+	 * @return array with data id, name, profilImageUrl
+	 */
 	public static function getSimpleUserById($id,$person=null) {
 		
 		$simplePerson = array();
 		if(!$person)
 			$person = PHDB::findOneById( self::COLLECTION ,$id, 
-				array("id" => 1, "name" => 1, "username" => 1, "email" => 1,  "shortDescription" => 1, "description" => 1, "address" => 1, "geo" => 1, "roles" => 1, "tags" => 1, "pending" => 1, "profilImageUrl" => 1, "profilThumbImageUrl" => 1, "profilMarkerImageUrl" => 1, "profilMediumImageUrl" => 1,"numberOfInvit" => 1));
+				array("id" => 1, "name" => 1, "username" => 1, "email" => 1,  "shortDescription" => 1, "description" => 1, "address" => 1, "geo" => 1, "roles" => 1, "tags" => 1, "pending" => 1, "profilImageUrl" => 1, "profilThumbImageUrl" => 1, "profilMarkerImageUrl" => 1, "profilMediumImageUrl" => 1,"numberOfInvit" => 1,"updated" => 1,"addresses" => 1));
 		
 		if (empty($person)) {
 			return $simplePerson;
@@ -178,6 +220,10 @@ class Person {
 		$simplePerson["shortDescription"] = @$person["shortDescription"];
 		$simplePerson["description"] = @$person["description"];
 		$simplePerson["pending"] = @$person["pending"];
+		$simplePerson["updated"] = @$person["updated"];
+		$simplePerson["addresses"] = @$person["addresses"];
+		$simplePerson["typeSig"] = "people";
+	  	
 		if (@Yii::app()->params['betaTest']) { 
 			$simplePerson["numberOfInvit"] = @$person["numberOfInvit"];
 		}
@@ -385,7 +431,7 @@ class Person {
 	 * @param STRING $msg Message that will be sent by mail to user invited
 	 * @return type
 	 */
-	public static function createAndInvite($param, $msg = null) {
+	public static function createAndInvite($param, $msg = null, $gmail =null) {
 	  	try {
 	  		//Check if the person can still invite : has he got enought invitations left
 	  		$invitor = self::getById($param["invitedBy"]);
@@ -398,32 +444,36 @@ class Person {
 		  			return array("result"=>false, "msg"=> Yii::t("person","Sorry, you can't invite more people to join the platform. You do not have enough invitations left."));
 		  		}
 		  	}
-	  		//Check if it is not robot or a curl 
-	  		$nbInvitation = 3;
-	  		$limit = 15;
-	  		if(@$invitor["invitationDate"] && count($invitor["invitationDate"]) >= $nbInvitation){
-		  		rsort($invitor["invitationDate"]);
-		  		$lastDate=0;
-		  		$amountDelay = 0;
-		  		foreach($invitor["invitationDate"] as $data){
-			  		if($lastDate != 0){
-				  		$step=$lastDate- $data;
-			  			$amountDelay += $step; 
-			  			if($step < 5)
-					  		return array("result"=>false, "msg"=> "You're so fast for us. Take a breath Lucky Luke");
+	  		//Check if it is not robot or a curl
+	  		if($gmail != true){
+		  		$nbInvitation = 3;
+		  		$limit = 15;
+		  		if(@$invitor["invitationDate"] && count($invitor["invitationDate"]) >= $nbInvitation){
+			  		rsort($invitor["invitationDate"]);
+			  		$lastDate=0;
+			  		$amountDelay = 0;
+			  		foreach($invitor["invitationDate"] as $data){
+				  		if($lastDate != 0){
+					  		$step=$lastDate- $data;
+				  			$amountDelay += $step; 
+				  			if($step < 5)
+						  		return array("result"=>false, "msg"=> "You're so fast for us. Take a breath Lucky Luke");
+				  		}
+			  			$lastDate=$data;
 			  		}
-		  			$lastDate=$data;
+			  		if($amountDelay < $limit){
+				  		return array("result"=>false, "msg"=> "You're so fast for us. Take a breath Lucky Luke");
+			  		}else{
+				  		PHDB::update(self::COLLECTION, array("_id" => new MongoId($param["invitedBy"])), 
+			  				array('$set' => array('invitationDate' => array())));
+			  		}
 		  		}
-		  		if($amountDelay < $limit){
-			  		return array("result"=>false, "msg"=> "You're so fast for us. Take a breath Lucky Luke");
-		  		} else{
-			  		PHDB::update(self::COLLECTION, array("_id" => new MongoId($param["invitedBy"])), 
-		  				array('$set' => array('invitationDate' => array())));
-		  		}
-	  		}
+		  	}
 	  		$res = self::insert($param, self::REGISTER_MODE_MINIMAL);
-	  		PHDB::update(self::COLLECTION, array("_id" => new MongoId($param["invitedBy"])), 
-		  			array('$push' => array('invitationDate' => time())));
+	  		if($gmail != true){
+	  			PHDB::update(self::COLLECTION, array("_id" => new MongoId($param["invitedBy"])), 
+		  			array('$push' => array('invitationDate' => time())));	
+	  		}
 
 	  				  		//send invitation mail
 			Mail::invitePerson($res["person"], $msg);
@@ -556,7 +606,9 @@ class Person {
 	  	Person::addPersonDataForBetaTest($person, $mode, $inviteCode);
 	  	
 	  	$person["created"] = new mongoDate(time());
-	  	$person["preferences"] = array("seeExplanations"=> true);
+	  	//$person["preferences"] = array("seeExplanations"=> true);
+	  	$person["preferences"] = Preference::initPreferences(self::COLLECTION);
+	  	$person["seePreferences"] = true;
 	  	
 	  	PHDB::insert(Person::COLLECTION , $person);
         if (isset($person["_id"])) {
@@ -594,7 +646,7 @@ class Person {
 	  		$person["roles"]['betaTester'] = true;
 	  		$person["inviteCode"] = $inviteCode;
 	  	}
-		if (@Yii::app()->params['betaTest'] || $person["roles"]["betaTester"]==true)
+		if (@Yii::app()->params['betaTest'] || @$person["roles"]["betaTester"]==true)
 	  		$person["numberOfInvit"] = empty(Yii::app()->params['numberOfInvitByPerson']) ? 0 : Yii::app()->params['numberOfInvitByPerson'];
 	  	return;
 	}
@@ -758,7 +810,7 @@ class Person {
 
 				$user["address"] = $address;
 				if($userId == $personId)
-					self::updateCookieCommunexion($userId, $user["address"]["codeInsee"], $user["address"]["postalCode"], $user["address"]["addressLocality"]);
+					self::updateCookieCommunexion($userId, @$user["address"]);
 				/*PHDB::update( self::COLLECTION, array("_id" => new MongoId($personId)), 
 		                        array('$unset' => array("two_steps_register"=>"")));*/
 
@@ -1862,9 +1914,17 @@ class Person {
 
     }
 
+
+    public static function getDataBinding() {
+	  	return self::$dataBinding;
+	}
+
     /**
      * Delete an existing person.
-     * With current version : Can be used only for person with links but no news/vote/comments
+     * - remove links on person/orga/events/projects/needs
+     * - if no activity (news/cote/comments) => delete the user
+     * - else anonymize the user (remove all identity field) but keep the document in person collection
+     * like that the activity of element is kept.
      * @param string $id : id of the person you want to be deleted
      * @param string $userId : id of the user making the action. Can be done only with super admins user
      * @return array res : boolean, msg : string
@@ -1876,42 +1936,56 @@ class Person {
     	}
 
 		$person = self::getById($id);
-		//Check if the user got activity (news, comments, votes)
-		$res = self::checkActivity($id);
-		if ($res["result"]) {
-			$res["msg"] = $res["msg"]." : impossible to delete";
-			return $res;
-		}
+		if (empty($person)) return array("result" => false, "msg" => "Unknown person id");
 
+    	//Delete links on elements collections		
 		$links2collection = array(
 			//Person => Person that follows the user we want to delete and the 
 			self::COLLECTION => array("follows","followers"),
 			//Organization => members, followers
 			Organization::COLLECTION => array("followers","members"),
 			//Projects => contibutors
-			Project::COLLECTION => array("contributors"),
+			Project::COLLECTION => array("contributors", "followers"),
 			//Events => attendees / organizer
 			Event::COLLECTION => array("attendees", "organizer"),
 			//Needs => links/helpers
-			Need::COLLECTION => array("helpers"));
+			Need::COLLECTION => array("helpers")
+		);
 
-    	//Delete links on elements collections
     	foreach ($links2collection as $collection => $linkTypes) {
     		foreach ($linkTypes as $linkType) {    		
-	    		error_log("Remove link ".$linkType." on collection ".$collection);
 	    		$where = array("links.".$linkType.".".$id => array('$exists' => true));
 	    		$action = array('$unset' => array("links.".$linkType.".".$id => ""));
 	    		PHDB::update($collection, $where, $action);
+	    		error_log("delete links type ".$linkType." on collection ".$collection." for user ".$id);
 	    	}
     	}
 
-    	//Delete the person
-		$where = array("_id" => new MongoId($id));
-    	PHDB::remove(self::COLLECTION, $where);
+    	//Delete Notifications
+    	ActivityStream::removeNotificationsByUser($id);
 
-    	//TODO
+    	//Check if the user got activity (news, comments, votes)
+		$res = self::checkActivity($id);
+		if ($res["result"]) {
+			//Anonymize the user : Remove all fields from the person
+			$where = array("_id" => new MongoId($id));
+			$action = array("username" => $id, "email" => $id."@communecter.org", "name" => "Citoyen supprimé", "deletedDate" => new mongoDate(time()), "status" => "deleted");
+			PHDB::update(self::COLLECTION, $where, $action);
+			Log::save(array("userId" => $userId, "browser" => @$_SERVER["HTTP_USER_AGENT"], "ipAddress" => @$_SERVER["REMOTE_ADDR"], "created" => new MongoDate(time()), "action" => "deleteUser", "params" => array("id" => $id)));
+		} else {
+			//Delete the person
+			$where = array("_id" => new MongoId($id));
+	    	PHDB::remove(self::COLLECTION, $where);
+		}
+
     	//Documents => Profil Images
-
+    	$profilImages = Document::listMyDocumentByIdAndType($id, self::COLLECTION, Document::IMG_PROFIL, Document::DOC_TYPE_IMAGE, array( 'created' => -1 ));
+    	foreach ($profilImages as $docId => $document) {
+    		Document::removeDocumentById($docId, $userId);
+    		error_log("delete document id ".$docId);
+    	}
+    	//TODO SBAR : remove thumb and medium
+    	
     	return array("result" => true, "msg" => "The person has been deleted succesfully");
     }
 
@@ -1946,13 +2020,19 @@ class Person {
     }
 
 
-    public static function updateCookieCommunexion($userId, $insee, $cp, $cityName) {
+    public static function updateCookieCommunexion($userId, $address) {
     	$result = array("result" => false, "msg" => "User not connected");
     	if(!empty($userId)){
     		try{
-				CookieHelper::setCookie("inseeCommunexion", $insee);
-	    		CookieHelper::setCookie("cpCommunexion", $cp);
-	    		CookieHelper::setCookie("cityNameCommunexion", $cityName);
+    			if(!empty($address)){
+    				CookieHelper::setCookie("inseeCommunexion", $address["codeInsee"]);
+		    		CookieHelper::setCookie("cpCommunexion", $address["postalCode"]);
+		    		CookieHelper::setCookie("cityNameCommunexion", $address["addressLocality"]);
+    			}else{
+    				CookieHelper::removeCookie("inseeCommunexion");
+		    		CookieHelper::removeCookie("cpCommunexion");
+		    		CookieHelper::removeCookie("cityNameCommunexion");
+    			}
 	    		$result = array("result" => true, "msg" => "Cookies is updated");
 			}catch (CTKException $e) {
 				$result = array("result" => false, "msg" => $e->getMessage());
@@ -1960,6 +2040,12 @@ class Person {
     	}
 
     	return $result ;
+    }
+
+    public static function getCurrentSuperAdmins() {
+    	$superAdmins = array();
+    	$superAdmins = PHDB::find(self::COLLECTION, array('roles.superAdmin' => true), array("_id"));
+    	return $superAdmins;
     }
 
 }

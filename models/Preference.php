@@ -135,7 +135,55 @@ class Preference {
 		return $value;
 	}
 
+	/*public static function getStatusPreference($preferences, $namePref) {
+		$result = "mask";
+		if(@$preferences["publicFields"] && in_array($namePref, $preferences["publicFields"]))
+			$result = "public";
+		else if(@$preferences["privateFields"] &&  in_array($namePref, $preferences["privateFields"]))
+			$result = "private";
+		return $result;
+	}*/
 
-	
+
+	public static function showPreference($element, $elementType, $namePref, $userId) {
+		//$status = self::getStatusPreference($element["preferences"], $namePref);
+		$result = false;
+		
+		//mask
+		if($elementType==Person::COLLECTION && (string)$element["_id"] == $userId){
+			$result = true;
+		}
+		//public
+		else if(@$element["preferences"]["publicFields"] && in_array($namePref, $element["preferences"]["publicFields"]))
+			$result = true;
+		//private
+		else if(@$element["preferences"]["privateFields"] && 
+				in_array($namePref, $element["preferences"]["privateFields"]) && 
+				($element["_id"] == $userId || Link::isLinked($element["_id"], $elementType, $userId, @$element["links"])))
+			$result = true;
+
+		return $result;
+	}
+
+
+	public static function isPublic($element, $namePref) {
+		$result = false;
+		if(@$element["preferences"]["publicFields"] && in_array($namePref, $element["preferences"]["publicFields"]))
+			$result = true;
+		return $result;
+	}
+
+
+	public static function initPreferences($type) {
+		$preferences = array();
+		$preferences["isOpenData"] = true;
+		if($type == Person::COLLECTION){
+			$preferences["publicFields"] = array("locality", "directory");
+			$preferences["privateFields"] = array("birthDate", "email", "phone");
+		}else{
+			$preferences["isOpenEdition"] = true;
+		}
+		return $preferences;
+	}
 	
 }

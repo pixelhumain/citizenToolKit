@@ -127,10 +127,10 @@ class Link {
         return array("result"=>true, "msg"=>"The member has been removed with success", "memberOfid"=>$memberOfId, "memberid"=>$memberId);
     }*/
     
-    private static function checkIdAndType($id, $type) {
+    private static function checkIdAndType($id, $type, $actionType=null) {
 		if ($type == Organization::COLLECTION) {
         	$res = Organization::getById($id); 
-            if (@$res["disabled"]) {
+            if (@$res["disabled"] && $actionType != "disconnect") {
                 throw new CTKException("Impossible to link something on a disabled organization");    
             }
         } else if ($type == Person::COLLECTION) {
@@ -222,8 +222,8 @@ class Link {
     public static function disconnect($originId, $originType, $targetId, $targetType, $userId, $connectType) {
         
         //0. Check if the $originId and the $targetId exists
-        $origin = Link::checkIdAndType($originId, $originType);
-        $target = Link::checkIdAndType($targetId, $targetType);
+        $origin = Link::checkIdAndType($originId, $originType, "disconnect");
+        $target = Link::checkIdAndType($targetId, $targetType, "disconnect");
 
         //2. Remove the links
         PHDB::update( $originType, 
@@ -435,7 +435,7 @@ class Link {
 	* @param type string $itemType is the type of the entity checked
 	* @param type string $userId is the id of the user logged
 	*/
-    public static function isLinked($itemId, $itemType, $userId) {
+    public static function isLinked($itemId, $itemType, $userId, $links=null) {
     	$res = false;
         if ($itemType == Person::COLLECTION) $linkType = self::person2person;
         elseif ($itemType == Organization::COLLECTION) $linkType = self::organization2person;
@@ -443,9 +443,12 @@ class Link {
         elseif ($itemType == Project::COLLECTION) $linkType = self::project2person;
         else $linkType = "unknown";
 
-    	$item = PHDB::findOne( $itemType ,array("_id"=>new MongoId($itemId)));
-    	if(isset($item["links"]) && isset($item["links"][$linkType])){
-            foreach ($item["links"][$linkType] as $key => $value) {
+        if(empty($links)){
+           $item = PHDB::findOne( $itemType ,array("_id"=>new MongoId($itemId)));
+           $links = @$item["links"] ;
+        }
+    	if(isset($links) && isset($links[$linkType])){
+            foreach ($links[$linkType] as $key => $value) {
                 if( $key == $userId) {
 	                //exception for event when attendee is invited
 	                if(!@$value["invitorId"])
@@ -719,8 +722,9 @@ class Link {
 
         //Retrieve the child info
         $pendingChild = $class::getById($childId);
+		$pendingChild["id"] = $childId;
         if (!$pendingChild) {
-            return array("result" => true, "msg" => "Something went wrong ! Impossible to find the children ".$childId);
+            return array("result" => false, "msg" => "Something went wrong ! Impossible to find the children ".$childId);
         }
 		//Check if the child is already link to the parent with the connectType
 		$alreadyLink=false;
@@ -748,6 +752,7 @@ class Link {
 	            if($isConnectingAdmin==true){
 					$verb = ActStr::VERB_CONFIRM;
 					$msg=$pendingChild["name"]." ".Yii::t("common","is now admin of")." ".$parentData["name"];
+					$pendingChild["isAdmin"]=true;
 				} else {
 					$verb = ActStr::VERB_ACCEPT;
 					$msg=$pendingChild["name"]." ".Yii::t("common","is now ".$typeOfDemand." of")." ".$parentData["name"];
@@ -760,9 +765,10 @@ class Link {
 					$msg= Yii::t("common", "You are now ".$typeOfDemand." of")." ".Yii::t("common","this ".$parentController);
                 }else{
 					$invitation = ActStr::VERB_INVITE;
-					if($typeOfDemand != "admin")
+					if($typeOfDemand != "admin"){
 						$toBeValidated=true;
-					else 
+						$pendingChild["toBeValidated"]=true;
+					}else 
 						$verb = ActStr::VERB_CONFIRM;
 					$msg= $pendingChild["name"]." ".Yii::t("common","is now ".$typeOfDemand." of")." ".$parentData["name"];
 				}
@@ -786,10 +792,13 @@ class Link {
                 $verb = ActStr::VERB_AUTHORIZE;
     			$toBeValidatedAdmin=true;
     			$toBeValidated=false;
+    			$pendingChild["isAdminPending"]=true;
+    			
             } else {
                 $verb = ActStr::VERB_WAIT;
                 $toBeValidatedAdmin=false;
                 $toBeValidated=true;
+                $pendingChild["toBeValidated"]=true;
             }
             //Notification and email are sent to the admin(s)
             $listofAdminsEmail = array();
@@ -803,11 +812,11 @@ class Link {
             $msg = Yii::t("common","Your request has been sent to other admins.");
             // After : the 1rst existing Admin to take the decision will remove the "pending" to make a real admin
         } 
-		//ECHO $toBeValidated;
+        
 		Link::connect($parentId, $parentType, $childId, $childType,Yii::app()->session["userId"], $parentConnectAs, $isConnectingAdmin, $toBeValidatedAdmin, $toBeValidated, $userRole);
 		Link::connect($childId, $childType, $parentId, $parentType, Yii::app()->session["userId"], $childConnectAs, $isConnectingAdmin, $toBeValidatedAdmin, $toBeValidated, $userRole);
 		Notification::actionOnPerson($verb, ActStr::ICON_SHARE, $pendingChild , array("type"=>$parentType,"id"=> $parentId,"name"=>$parentData["name"]), $invitation);
-		$res = array("result" => true, "msg" => $msg, "parent" => $parentData,"parentType"=>$parentType);
+		$res = array("result" => true, "msg" => $msg, "parent" => $parentData,"parentType"=>$parentType,"newElement"=>$pendingChild, "newElementType"=> $childType );
 		return $res;
 	}
 	

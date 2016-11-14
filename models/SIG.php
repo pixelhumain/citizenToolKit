@@ -63,15 +63,25 @@ class SIG
 
 	//ajoute la position géographique d'une donnée si elle contient un Code Postal
 	//add geographical position to a data if it contains Postal Code
-	public static function updateEntityGeoposition($entityType, $entityId, $latitude, $longitude){
+	public static function updateEntityGeoposition($entityType, $entityId, $latitude, $longitude, $addressIndex=null){
 
 		error_log("updateEntity Start");
-		$geo = array("@type"=>"GeoCoordinates", "latitude" => $latitude, "longitude" => $longitude);
-		$geoPosition = array("type"=>"Point", "coordinates" => array(floatval($longitude), floatval($latitude)));
+		if(!empty($latitude) && !empty($latitude) ){
+			$geo = array("@type"=>"GeoCoordinates", "latitude" => $latitude, "longitude" => $longitude);
+			$geoPosition = array("type"=>"Point", "coordinates" => array(floatval($longitude), floatval($latitude)));
+		}else{
+			$geo = null;
+			$geoPosition = null;
+		}
+
+		if(!empty($addressIndex)){
+			$geo["addressesIndex"] = $addressIndex ;
+			$geoPosition["addressesIndex"] = $addressIndex ;
+		}
 
 		//PH::update($entityType,array("geo" => $geo));
 
-		if($entityType == PHType::TYPE_CITOYEN || $entityType == PHType::TYPE_PERSON ){
+		/*if($entityType == PHType::TYPE_CITOYEN || $entityType == PHType::TYPE_PERSON ){
 			error_log("update TYPE_CITOYEN");
 			Person::updatePersonField($entityId, "geo", $geo, Yii::app()->session['userId'] );
 			Person::updatePersonField($entityId, "geoPosition", $geoPosition, Yii::app()->session['userId'] );
@@ -90,6 +100,12 @@ class SIG
 			error_log("update TYPE_EVENTS");
 			Event::updateEventField($entityId, "geo", $geo, Yii::app()->session['userId'] );
 			Event::updateEventField($entityId, "geoPosition", $geoPosition, Yii::app()->session['userId'] );
+		}*/
+
+		$types = array(Person::COLLECTION, Event::COLLECTION, Organization::COLLECTION, Project::COLLECTION);
+		if(in_array($entityType, $types)){
+		 	Element::updateField($entityType, $entityId, "geo", $geo);
+		 	Element::updateField($entityType, $entityId, "geoPosition", $geoPosition);
 		}
 
 		if(Import::isUncomplete($entityId, $entityType))

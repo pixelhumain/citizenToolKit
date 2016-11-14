@@ -5,7 +5,7 @@
 class FollowsAction extends CTKAction {
     public function run($id = null,$type = null, $ownerLink = null, $targetLink = null) {
 
-    	$invitedUserId = "";
+    	/*$invitedUserId = "";
 
         if (! $this->userLogguedAndValid()) {
         	Rest::json(array("result" => false, "msg" => "The current user is not valid : please login."));
@@ -49,7 +49,13 @@ class FollowsAction extends CTKAction {
             $res = array("result" => true, "invitedUser" => $person);
         } else {
             $res = array("result" => false, "msg" => $res["msg"]);
-        }
+        }*/
+
+        if(empty($_POST["listMails"]))
+            $res = Element::followPerson($_POST);
+        else
+            $res = Element::followPersonByListMails($_POST["listMails"], $_POST["msgEmail"], (empty($_POST["gmail"])?false:true));
+        
 
 		Rest::json($res);
     }

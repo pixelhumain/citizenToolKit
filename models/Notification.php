@@ -64,13 +64,18 @@ class Notification{
 
 	    //TODO mail::invited
 	}
+	private static function array_column($array,$column_name)
+    {
+        return array_map(function($element) use($column_name){return $element[$column_name];}, $array);
+
+    }
 	public static function actionOnNews ( $verb, $icon, $author, $target, $mentions) 
 	{
 		$notification=array();
 		$url = Yii::app()->createUrl('/'.Yii::app()->controller->module->id.'/'.'news/index/type/'.$target["type"].'/id/'.$target["id"]);
 		foreach ($mentions as $data){
 			if($data["type"]==Person::COLLECTION){
-				if(!empty($notification) && array_search($data["id"], array_column($notification, 'persons'))){
+				if(!empty($notification) && array_search($data["id"], self::array_column($notification, 'persons'))){
 			    	foreach($notications as $i => $list){
 				    	foreach($list["persons"] as $id){
 					    	if($id==$data["id"]){
@@ -78,7 +83,7 @@ class Notification{
 							    	$nameOrga = $list["name"];
 							    	$pushNotif=array(
 										"type"=> Organization::COLLECTION,
-										"nameOrganization"=>$list["name"],
+										"nameOrganization"=>@$nameOrga,
 										"nbMention"=>2,
 										"persons"=>array($data["id"]),
 										"label"=> $author["name"]." vous a mentionné avec ".$data["name"]." dans un post",
@@ -115,11 +120,11 @@ class Notification{
 					    	foreach($notification as $i => $list){
 						    	foreach($list["persons"] as $id){
 							    	if($id==$key){
-								    	if($list["type"]==Organization::COLLECTION && $list["nbMention"]!=2){
-									    	$nameOrga = $list["name"];
+								    	if($list["type"]==Organization::COLLECTION && @$list["nbMention"]!=2){
+									    	$nameOrga = @$list["nameOrganization"];
 									    	$pushNotif=array(
 												"type"=> Organization::COLLECTION,
-												"nameOrganization"=>$list["name"],
+												"nameOrganization"=>$nameOrga,
 												"nbMention"=>2,
 												"persons"=>array($key),
 												"label"=> $author["name"]." a mentionné ".$data["name"]." et ".$nameOrga." dans un post",
@@ -500,7 +505,7 @@ class Notification{
 			$param["target"] = array(
 				"type" => $targetType, 
 				"id" => $targetId
-				);
+			);
 		}
 
 		if (!empty($tags))
@@ -515,10 +520,12 @@ class Notification{
 	}
 
 
-	/*
-	When a moderate is occured, is create notification for author and superadmin
+	/**
+	 * When a moderate is occured, is create notification for author and superadmin
 	notify the moderate
-	*/
+	 * @param type $news the news moderated
+	 * @return type
+	 */
 	public static function moderateNews ($news) 
 	{
 	    $asParam = array(
@@ -550,5 +557,56 @@ class Notification{
 	    
 	    //TODO mail::following
 	    //add a link to follow back easily
+	}
+
+	/**
+	 * Notification for the super admins.
+	 * Exemple : The cron return a mail error caused by alice@example.com
+	 * => The cron is the author
+	 * => return is the verb
+	 * => A mail error is the object
+	 * => alice@example.com is the target
+	 * @param String $verb Can be find on const of the ActStr class
+	 * @param array $author the one making the action array(type, id)
+	 * @param array $object the object. array(type, id, event)
+	 * @param array $target the target. array(type, id, email)
+	 * @return array : result : boolean / msg : string
+	 */
+	public static function actionToAdmin ( $verb, $author, $object, $target)  {
+ 		//Retrieve all super admins of the plateform
+ 		//TODO SBAR => superAdmins ID should be cached in order to make this request quicker ?
+ 		$superAdmins = Person::getCurrentSuperAdmins();
+
+ 		$asParam = array(
+	    	"type" => ActStr::TEST, 
+            "verb" => $verb,
+            "author"=>$author,
+            "object"=>$object,
+ 			"target"=>$target
+        );
+
+ 		//Error 
+ 		if ($verb == ActStr::VERB_RETURN) {
+ 			if (@$object["event"] == MailError::EVENT_BOUNCED_EMAIL) {
+ 				$actionMsg = "Fatal error sending an email to ".$target["email"].". User should be deleted.";	
+ 			} else if (@$object["event"] == MailError::EVENT_DROPPED_EMAIL || @$object["event"] == MailError::EVENT_SPAM_COMPLAINTS) {
+ 				$actionMsg = "Error sending an email to ".$target["email"].". User is flagged and will not receive a mail anymore.";	
+ 			} else {
+ 				error_log("Unknown event in Mail Error : no notification generated.");
+ 				return(array("result" => false, "msg" => "Unknown event in Mail Error : no notification generated."));
+ 			}
+ 			
+ 		}
+	    $stream = ActStr::buildEntry($asParam);
+
+		$notif = array( 
+	    	"persons" => array_keys($superAdmins),
+            "label"   => $actionMsg , 
+            "icon"    => "fa-cog" ,
+            "url"     => Yii::app()->createUrl('/'.Yii::app()->controller->module->id.'/admin/mailerrordashboard')
+        );
+
+	    $stream["notify"] = ActivityStream::addNotification( $notif );
+    	ActivityStream::addEntry($stream);
 	}
 }

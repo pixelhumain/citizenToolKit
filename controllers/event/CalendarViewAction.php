@@ -40,6 +40,8 @@
 		  			}
 		  		}
 		  	}
+		  	$params["edit"] = Authorisation::canEditItem(@Yii::app()->session["userId"], $type, $id);
+		  	$params["openEdition"] = Authorisation::isOpenEdition($id, $type, @$event["preferences"]);
 		  	$tpl = ( $pod ) ? "../pod/calendarPod" : "calendarView";
 		  	if(Yii::app()->request->isAjaxRequest)
 	            echo $controller->renderPartial($tpl, $params);

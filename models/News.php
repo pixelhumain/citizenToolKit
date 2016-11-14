@@ -101,6 +101,8 @@ class News {
 				$news["tags"] = $_POST["tags"];
 		 	if(isset($_POST["parentId"]))
 				$news["target"]["id"] = $_POST["parentId"];
+			if(isset($_POST["targetIsAuthor"]))
+				$news["targetIsAuthor"] = $_POST["targetIsAuthor"];
 		 	if(isset($_POST["parentType"]))
 		 	{
 				$type=$_POST["parentType"];
@@ -110,14 +112,18 @@ class News {
 					$person = Person::getById($_POST["parentId"]);
 					if( isset( $person['geo'] ) )
 						$from = $person['geo'];
-					$codeInsee=$person["address"]["codeInsee"];
-					$postalCode=$person["address"]["postalCode"];
+					if(@$person["address"]){
+						$codeInsee=$person["address"]["codeInsee"];
+						$postalCode=$person["address"]["postalCode"];
+					}
 				}else if($type == Organization::COLLECTION ){
 					$organization = Organization::getById($_POST["parentId"]);
 					if( isset( $organization['geo'] ) )
 						$from = $organization['geo'];
-					$codeInsee=$organization["address"]["codeInsee"];
-					$postalCode=$organization["address"]["postalCode"];
+					if(@$organization["address"]){
+						$codeInsee=$organization["address"]["codeInsee"];
+						$postalCode=$organization["address"]["postalCode"];
+					}
 					$organization["type"]=Organization::COLLECTION;
 					Notification::actionOnPerson ( ActStr::VERB_POST, ActStr::ICON_RSS, null , $organization )  ;
 				}
@@ -125,8 +131,10 @@ class News {
 					$event = Event::getById($_POST["parentId"]);
 					if( isset( $event['geo'] ) )
 						$from = $event['geo'];
-					$codeInsee=$event["address"]["codeInsee"];
-					$postalCode=$event["address"]["postalCode"];
+					if(@$event["address"]){
+						$codeInsee=$event["address"]["codeInsee"];
+						$postalCode=$event["address"]["postalCode"];
+					}
 					$event["type"]=Event::COLLECTION;
 					Notification::actionOnPerson ( ActStr::VERB_POST, ActStr::ICON_RSS, null , $event )  ;
 				}
@@ -134,8 +142,10 @@ class News {
 					$project = Project::getById($_POST["parentId"]);
 					if( isset( $project['geo'] ) )
 						$from = $project['geo'];
-					$codeInsee=$project["address"]["codeInsee"];
-					$postalCode=$project["address"]["postalCode"];
+					if(@$project["address"]){
+						$codeInsee=$project["address"]["codeInsee"];
+						$postalCode=$project["address"]["postalCode"];
+					}
 					$project["type"] = Project::COLLECTION; 
 					Notification::actionOnPerson ( ActStr::VERB_POST, ActStr::ICON_RSS, null , $project )  ;
 				}

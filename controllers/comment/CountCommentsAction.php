@@ -13,3 +13,4 @@ class CountCommentsAction extends CAction
         Yii::app()->end();
     }
 }
+

@@ -7,29 +7,56 @@ class Event {
 
 	const NO_ORGANISER = "dontKnow";
 
-
+	public static $types = array(
+        "competition" => "Compétition",
+        "concert" => "Concert",
+        "concours" => "Concours",
+        "exposition" => "Exposition",
+        "festival" => "Festival",
+        "getTogether" => "Rencontre",
+        "market" => "Marché",
+	    "meeting" => "Réunion"
+	);  
+	      
 	//From Post/Form name to database field name
-	private static $dataBinding = array(
+	public static $dataBinding = array (
 	    "name" => array("name" => "name", "rules" => array("required")),
 	    "type" => array("name" => "type"),
-	    "address" => array("name" => "address"),
+	    "parentId" => array("name" => "parentId"),
+	    "parentType" => array("name" => "parentType"),
+	    "organizerId" => array("name" => "organizerId"),
+	    "organizerType" => array("name" => "organizerType"),
+
+
+	    "address" => array("name" => "address", "rules" => array("addressValid")),
+	    "addresses" => array("name" => "addresses"),
 	    "streetAddress" => array("name" => "address.streetAddress"),
 	    "postalCode" => array("name" => "address.postalCode"),
 	    "city" => array("name" => "address.codeInsee"),
 	    "addressLocality" => array("name" => "address.addressLocality"),
 	    "addressCountry" => array("name" => "address.addressCountry"),
-	    "geo" => array("name" => "geo"),
-	    "geoPosition" => array("name" => "geoPosition"),
+	    "geo" => array("name" => "geo", "rules" => array("geoValid")),
+	    "geoPosition" => array("name" => "geoPosition", "rules" => array("geoPositionValid")),
+	    
 	    "description" => array("name" => "description"),
 	    "shortDescription" => array("name" => "shortDescription"),
-	    "allDay" => array("name" => "allDay"),
+	    "allDay" => array("name" => "allDay", "rules" => array("boolean")),
 	    "modules" => array("name" => "modules"),
 	    "startDate" => array("name" => "startDate", "rules" => array("eventStartDate")),
 	    "endDate" => array("name" => "endDate", "rules" => array("eventEndDate")),
-	    "parentId" => array("name" => "parentId"),
+	    "preferences" => array("name" => "preferences"),
+
 	    "source" => array("name" => "source"),
 	    "badges" => array("name" => "badges"),
 	    "tags" => array("name" => "tags"),
+	    "medias" => array("name" => "medias"),
+	    "urls" => array("name" => "urls"),
+
+	    "modified" => array("name" => "modified"),
+	    "updated" => array("name" => "updated"),
+	    "creator" => array("name" => "creator"),
+	    "created" => array("name" => "created"),
+	    "locality" => array("name" => "address"),
 	);
 
 	//TODO SBAR - First test to validate data. Move it to DataValidator
@@ -93,7 +120,7 @@ class Event {
 	public static function getSimpleEventById($id) {
 		
 		$simpleEvent = array();
-		$event = PHDB::findOneById( self::COLLECTION ,$id, array("id" => 1, "name" => 1, "type" => 1,  "shortDescription" => 1, "description" => 1, "address" => 1, "geo" => 1, "tags" => 1, "profilImageUrl" => 1, "profilThumbImageUrl" => 1, "profilMarkerImageUrl" => 1, "profilMediumImageUrl" => 1, "startDate" => 1, "endDate" => 1));
+		$event = PHDB::findOneById( self::COLLECTION ,$id, array("id" => 1, "name" => 1, "type" => 1,  "shortDescription" => 1, "description" => 1, "address" => 1, "geo" => 1, "tags" => 1, "profilImageUrl" => 1, "profilThumbImageUrl" => 1, "profilMarkerImageUrl" => 1, "profilMediumImageUrl" => 1, "startDate" => 1, "endDate" => 1, "addresses"=>1));
 		if(!empty($event)){
 			$simpleEvent["id"] = $id;
 			$simpleEvent["_id"] = $event["_id"];
@@ -107,11 +134,12 @@ class Event {
 			$simpleEvent["description"] = @$event["description"];
 			$simpleEvent["startDate"] = @$event["startDate"];
 			$simpleEvent["endDate"] = @$event["endDate"];
-			$simpleEvent["typeSig"] = Event::COLLECTION;
+			$simpleEvent["addresses"] = @$event["addresses"];
 			
 			$simpleEvent = array_merge($simpleEvent, Document::retrieveAllImagesUrl($id, self::COLLECTION, $simpleEvent["type"], $event));
 			
 			$simpleEvent["address"] = empty($event["address"]) ? array("addressLocality" => "Unknown") : $event["address"];
+			$simpleEvent["typeSig"] = Event::COLLECTION;
 		}
 		return @$simpleEvent;
 	}
@@ -142,7 +170,7 @@ class Event {
 		return $event;
 	}
 
-	/**
+	/** DEPRECATED
 	 * Check the data of an event
 	 * @param array $event array of event data
 	 * @return true if the event is well format else throw exception if not
@@ -183,7 +211,7 @@ class Event {
 		}
 	}
 
-	/**
+	/** DEPRECATED
 	 * Save an event from Post. Check if it is well format.
 	 * @param type POST
 	 * @return save the event
@@ -272,7 +300,7 @@ class Event {
 	    
 	    return $newEvent;
 	}
-
+	//DEPRECATED
 	public static function saveEvent($params, $import = false, $warnings = null) {
 		if($import == false)
 			$newEvent = self::getAndCheckEvent($params);
@@ -304,6 +332,7 @@ class Event {
 		}
 	    PHDB::insert(self::COLLECTION,$newEvent);
 	    
+	    Badge::addAndUpdateBadges("opendata",(String)$newEvent["_id"], Event::COLLECTION);
 	    /*
 	    * except if organiser type is dontKnow
 		*   Add the creator as the first attendee
@@ -338,6 +367,74 @@ class Event {
 	    //Notification::saveNotification(array("type"=>NotificationType::ASSOCIATION_SAVED,"user"=>$new["_id"]));
 	    
 	    return array("result"=>true, "msg"=>Yii::t("event","Your event has been connected."), "id"=>$newEvent["_id"], "event" => $newEvent );
+	}
+
+	public static function formatBeforeSaving($params) {
+		$startDate = DataValidator::getDateTimeFromString($params['startDate'], "start date");
+		$endDate = DataValidator::getDateTimeFromString($params['endDate'], "end date");
+	    
+		$params["startDate"] = new MongoDate($startDate->getTimestamp());
+		$params["endDate"]   = new MongoDate($endDate->getTimestamp());
+
+		return array('result' => true, "params"=>$params );
+	}
+
+	public static function validateFirst($params){
+
+		//SubEvent authorization
+		//check if the parent event exists and the user can add subevent
+		if( @$params["parentId"] ) {
+			$parentEvent = self::getPublicData($params["parentId"]);
+			if (empty($parentEvent)) {
+				return array("result"=>false, "msg"=>"The parent event does not exist !");
+			} else {
+				//Check if the user can edit the parent event ou open Edition				
+				if (!(Authorisation::canEditItem(Yii::app()->session["userId"], Event::COLLECTION, (string)$parentEvent["_id"]) || (!empty($parentEvent["preferences"]["isOpenEdition"]) && $parentEvent["preferences"]["isOpenEdition"] == true))) {
+					return array("result"=>false, "msg"=>"Your are not authorized to add sub envent on this parent event !");
+				}
+			}
+		}
+		
+		return array('result' => true, "params"=>$params );
+	}
+
+	public static function afterSave($params, $import = false, $warnings = null) {
+		
+	    Badge::addAndUpdateBadges("opendata",(String)$params["_id"], Event::COLLECTION);
+	    /*
+	    * except if organiser type is dontKnow
+		*   Add the creator as the first attendee
+		*	He is admin because he is admin of organizer
+		*/
+		$creator = true;
+		$isAdmin = false;
+		
+		if( $params["organizerType"] == Person::COLLECTION )
+			$isAdmin=true;
+
+	    if($params["organizerType"] != self::NO_ORGANISER ){
+	    	Link::attendee($params["_id"], Yii::app()->session['userId'], $isAdmin, $creator);
+	    	Link::addOrganizer($params["organizerId"],$params["organizerType"], $params["_id"], Yii::app()->session['userId']);
+	    } else {
+	    	$params["organizerType"] = Person::COLLECTION;
+	    	$params["organizerId"] = Yii::app()->session['userId'];
+	    }
+
+	    //if it's a subevent, add the organiser to the parent user Organiser list 
+    	//ajouter le nouveau sub user dans organiser ?
+    	if( @$params["parentId"] )
+			Link::connect( $params["parentId"], Event::COLLECTION,$params["_id"], Event::COLLECTION, Yii::app()->session["userId"], "subEvents");	
+
+		Notification::createdObjectAsParam( Person::COLLECTION, Yii::app()->session['userId'],Event::COLLECTION, (String)$params["_id"], $params["organizerType"], $params["organizerId"], @$params["geo"], array($params["type"]),@$params["address"]);
+	    $creator = Person::getById(Yii::app()->session['userId']);
+	    // Add in activity, person who's created the event
+	    ActivityStream::saveActivityHistory(ActStr::VERB_CREATE, (String)$params["_id"], Event::COLLECTION, "event", $params["name"]);
+	    Mail::newEvent($creator,$params);
+	    
+	    //TODO : add an admin notification
+	    //Notification::saveNotification(array("type"=>NotificationType::ASSOCIATION_SAVED,"user"=>$new["_id"]));
+	    
+	    return array("result"=>true, "msg"=>Yii::t("event","Your event has been connected."), "id"=>$params["_id"], "event" => $params );
 	}
 
 	/**
@@ -604,7 +701,7 @@ class Event {
   					$events[$key]["organizer"] = $name;
 		  		}
 		  	}
- 	  		$events[$key] = array_merge($events[$key], Document::retrieveAllImagesUrl($key, self::COLLECTION, $value["type"], $value));
+ 	  		$events[$key] = array_merge($events[$key], Document::retrieveAllImagesUrl($key, self::COLLECTION, @$value["type"], $value));
 	  	}
 	  	return $events;
 	}
@@ -786,7 +883,7 @@ class Event {
 		$newEvents["creator"] = Yii::app()->params['idOpenAgenda'];
 		$newEvents["type"] = "other";
 		$newEvents["public"] = true;
-		$newEvents['allDay'] = 'true' ;
+		$newEvents['allDay'] = true;
 
 		$newEvents['source']["id"] = $eventOpenAgenda["uid"] ;
 		$newEvents['source']["url"] = $eventOpenAgenda["link"] ;
@@ -1324,6 +1421,10 @@ class Event {
 	    
 	    return array("result"=>true, "msg"=>Yii::t("event","Your event has been connected."), "id"=>$newEvent["_id"], "event" => $newEvent );
 
+	}
+
+	public static function getDataBinding() {
+	  	return self::$dataBinding;
 	}
 }
 ?>

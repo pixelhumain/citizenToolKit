@@ -2,6 +2,7 @@
 class Lists {
   const COLLECTION = "lists";
 	
+  
   /**
    * checks the existence of an entry in a list collection 
    * if doesn't exist create it 

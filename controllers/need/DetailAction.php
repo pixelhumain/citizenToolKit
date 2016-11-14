@@ -18,6 +18,7 @@ class DetailAction extends CAction
 	        }
         }
         $parent=array();
+        $params=array();
         if( $parentType == Project::COLLECTION ) {
             $parent = Project::getById($parentId);
         } 
@@ -46,6 +47,8 @@ class DetailAction extends CAction
 			$admin = Authorisation::canEditItem(Yii::app()->session["userId"], $parentType, $parentId);
 
         $params = array( "need" => $need, "description" => $description, "helpers" => $helpers, "isAdmin" => $admin, "parentType" => $parentType, "parentId" => $parentId, "parent" => $parent, "images" => $images);
+        $params["edit"] = Authorisation::canEditItem(Yii::app()->session["userId"], $parentType, $parentId);
+		$params["openEdition"] = Authorisation::isOpenEdition($parentId, $parentType, @$parent["preferences"]);
         $page = "detail";
         if(Yii::app()->request->isAjaxRequest)
             echo $controller->renderPartial($page,$params,true);

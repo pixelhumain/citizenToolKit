@@ -117,7 +117,10 @@ class Authorisation {
         //Get the members of the organization : if there is no member then it's a new organization
         //We are in a creation process
         $organizationMembers = Organization::getMembersByOrganizationId($organizationId);
-        $res = array_key_exists((string)$userId, $organizationMembers);    
+        if( array_key_exists((string)$userId, $organizationMembers) && (
+            empty($organizationMembers[(string)$userId]["toBeValidated"]) || 
+            $organizationMembers[(string)$userId]["toBeValidated"] == false)) 
+            $res = true;    
         return $res;
     }
 
@@ -264,7 +267,10 @@ class Authorisation {
         //Get the members of the event : if there is no member then it's a new organization
         //We are in a creation process
         $eventMembers = Event::getAttendeesByEventId($eventId);
-        $res = array_key_exists((string)$userId, $eventMembers);    
+        if( array_key_exists((string)$userId, $eventMembers) && (
+            empty($eventMembers[(string)$userId]["toBeValidated"]) || 
+            $eventMembers[(string)$userId]["toBeValidated"] == false)) 
+        $res = true;    
         return $res;
     }
 
@@ -370,7 +376,10 @@ class Authorisation {
         //Get the members of the project : if there is no member then it's a new organization
         //We are in a creation process
         $projectMembers = Project::getContributorsByProjectId($projectId);
-        $res = array_key_exists((string)$userId, $projectMembers);    
+        if( array_key_exists((string)$userId, $projectMembers) && (
+            empty($projectMembers[(string)$userId]["toBeValidated"]) || 
+            $projectMembers[(string)$userId]["toBeValidated"] == false)) 
+        $res = true;    
         return $res;
     }
     
@@ -493,14 +502,16 @@ class Authorisation {
             if (self::isUserSuperAdmin($userId)) {
                 return true;
             }
-			$hasVote = (@$survey["voteUpCount"] 
-							|| @$survey["voteAbstainCount"]  
-							|| @$survey["voteUnclearCount"] 
-							|| @$survey["voteMoreInfoCount"] 
-							|| @$survey["voteDownCount"] ) ? true : false;
-            if ( !$hasVote && Authorisation::canEditItem($userId, $parentId, $parentType) )  {
+
+            // case 2 : organiser of Survey
+            if ( @$survey["organizerType"] == Person::COLLECTION && @$survey["organizerId"] == $userId ) {
+                return true;
+            }
+
+            // case 3 : admin of parent
+            if ( Authorisation::canEditItem($userId, $parentId, $parentType) )  {
 	            return true;
-	         }
+	       }
         } else {
 	        //RAJOUTER UN LOG
 			error_log("Problem with survey authorization, surveyId:".@$surveyId." & userId:".@$userId);
@@ -702,15 +713,26 @@ class Authorisation {
      */
     public static function isOpenEdition($idEntity, $typeEntity, $preferences=null){
         $res = false ;
-        
         if(empty($preferences)){
             $entity = PHDB::findOne($typeEntity,array("_id"=>new MongoId($idEntity)),array('preferences'));
-            $preferences = $entity["preferences"];
+            $preferences = @$entity["preferences"];
         }
         if(!empty($preferences)){
            $res = Preference::isOpenEdition($preferences);
+
         }
         
+
+        return $res;
+    }
+
+
+    public static function canEditItemOrOpenEdition($idEntity, $typeEntity, $userId, $parentType=null,$parentId=null){
+        $res = false ;
+        
+        $res = self::isOpenEdition($idEntity, $typeEntity);
+        if($res != true)
+            $res = self::canEditItem($userId, $typeEntity, $idEntity, $parentType, $parentId);
 
         return $res;
     }
