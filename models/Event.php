@@ -51,6 +51,7 @@ class Event {
 	    "tags" => array("name" => "tags"),
 	    "medias" => array("name" => "medias"),
 	    "urls" => array("name" => "urls"),
+	    "url" => array("name" => "url"),
 
 	    "modified" => array("name" => "modified"),
 	    "updated" => array("name" => "updated"),
