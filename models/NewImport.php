@@ -192,7 +192,8 @@ class NewImport
 
         $resDataValidator = DataValidator::validate(Element::getControlerByCollection($typeElement), $element);
         if($resDataValidator["result"] != true){
-            $element["msgError"] = $resDataValidator["msg"]->getMessage();
+            //$element["msgError"] = ((empty($resDataValidator["msg"]->getMessage()))?$resDataValidator["msg"]:$resDataValidator["msg"]->getMessage());
+            $element["msgError"] = $resDataValidator["msg"];
         }
         
         return $element;
@@ -216,7 +217,7 @@ class NewImport
         $street = (empty($address["streetAddress"])?null:$address["streetAddress"]);
         $cp = (empty($address["postalCode"])?null:$address["postalCode"]);
         $nameCity = (empty($address["addressLocality"])?null:$address["addressLocality"]);
-        $country = (empty($address["addressLocality"])?null:$address["addressLocality"]);
+        $country = (empty($address["addressCountry"])?null:$address["addressCountry"]);
         $lat = (empty($geo["latitude"])?null:$geo["latitude"]);
         $lon = (empty($geo["longitude"])?null:$geo["longitude"]);
 
@@ -228,30 +229,31 @@ class NewImport
                 $newGeo["geo"]["latitude"] = $resultNominatim[0]["lat"];
                 $newGeo["geo"]["longitude"] = $resultNominatim[0]["lon"];
             }else{
-                $resultDataGouv = json_decode(SIG::getGeoByAddressDataGouv($street, $cp, $nameCity), true);
+                $resultDataGouv = (empty($cp)?null:json_decode(SIG::getGeoByAddressDataGouv($street, $cp, $nameCity), true));
                 if(!empty($resultDataGouv["features"])){
-                    $newGeo["geo"]["latitude"] = $resultDataGouv["features"][0]["geometry"]["coordinates"][1];
-                    $newGeo["geo"]["longitude"] = $resultDataGouv["features"][0]["geometry"]["location"][0];
+                    $newGeo["geo"]["latitude"] = strval($resultDataGouv["features"][0]["geometry"]["coordinates"][1]);
+                    $newGeo["geo"]["longitude"] = strval($resultDataGouv["features"][0]["geometry"]["coordinates"][0]);
                 }else{
                     $resultGoogle = json_decode(SIG::getGeoByAddressGoogleMap($street, $cp, $nameCity, $country), true);
                     if(!empty($resultGoogle["results"])){
-                        $newGeo["geo"]["latitude"] = $resultGoogle["results"][0]["geometry"]["location"]["lat"];
-                        $newGeo["geo"]["longitude"] = $resultGoogle["results"][0]["geometry"]["location"]["lng"];
+                        $newGeo["geo"]["latitude"] = strval($resultGoogle["results"][0]["geometry"]["location"]["lat"]);
+                        $newGeo["geo"]["longitude"] = strval($resultGoogle["results"][0]["geometry"]["location"]["lng"]);
                     }else{
-                        $resultNominatim = json_decode(SIG::getGeoByAddressDataGouv(null, $cp, $nameCity, $country), true);
+                        $resultNominatim = json_decode(SIG::getGeoByAddressNominatim(null, $cp, $nameCity, $country), true);
                         if(!empty($resultNominatim[0])){
                             $newGeo["geo"]["latitude"] = $resultNominatim[0]["lat"];
                             $newGeo["geo"]["longitude"] = $resultNominatim[0]["lon"];
                         }else{
-                            $resultDataGouv = json_decode(SIG::getGeoByAddressDataGouv(null, $cp, $nameCity), true);
+                            $resultDataGouv = (empty($cp)?null:json_decode(SIG::getGeoByAddressDataGouv(null, $cp, $nameCity), true));
+                           // $resultDataGouv = json_decode(SIG::getGeoByAddressDataGouv(null, $cp, $nameCity), true);
                             if(!empty($resultDataGouv["features"])){
-                                $newGeo["geo"]["latitude"] = $resultDataGouv["features"][0]["geometry"]["coordinates"][1];
-                                $newGeo["geo"]["longitude"] = $resultDataGouv["features"][0]["geometry"]["location"][0];
+                                $newGeo["geo"]["latitude"] = strval($resultDataGouv["features"][0]["geometry"]["coordinates"][1]);
+                                $newGeo["geo"]["longitude"] = strval($resultDataGouv["features"][0]["geometry"]["coordinates"][0]);
                             }else{
                                 $resultGoogle = json_decode(SIG::getGeoByAddressGoogleMap(null,$cp, $nameCity, $country), true);
                                 if(!empty($resultGoogle["results"])){
-                                    $newGeo["geo"]["latitude"] = $resultGoogle["results"][0]["geometry"]["location"]["lat"];
-                                    $newGeo["geo"]["longitude"] = $resultGoogle["results"][0]["geometry"]["location"]["lng"];
+                                    $newGeo["geo"]["latitude"] = strval($resultGoogle["results"][0]["geometry"]["location"]["lat"]);
+                                    $newGeo["geo"]["longitude"] = strval($resultGoogle["results"][0]["geometry"]["location"]["lng"]);
                                 }
                             }
                         }

@@ -436,7 +436,8 @@ class SIG
     // Nominatim
     public static function getLocalityByLatLonNominatim($lat, $lon){
         $url = "http://nominatim.openstreetmap.org/reverse?format=json&lat=".$lat."&lon=".$lon."&zoom=18&addressdetails=1" ;
-        return self::getUrl($url);
+        return file_get_contents($url);
+        //return self::getUrl($url);
     }
 
 
@@ -452,14 +453,27 @@ class SIG
         if(!empty($city)){
             $url .= "&city=".str_replace(" ", "+", $city);
         }
-        /*if(!empty($country))
-            $url .= "&countrycodes=".$country;*/
+
+        if(!empty($country))
+            $url .= "&countrycodes=".self::changeCountryForNominatim($country);
+
         if(!empty($polygon_geojson)){
             $url .= "&polygon_geojson=1";
         }
-
-        return self::getUrl($url);
+        //var_dump($url);
+        return file_get_contents($url);
+		//return self::getUrl($url);
     }
+
+    public static function changeCountryForNominatim($country){
+		$codeCountry = array("FR" => array("RE")) ;
+		foreach ($codeCountry as $key => $value) {
+			if(in_array($country, $value))
+				$country = $key ;
+		}
+		return $country ;
+	}
+
     // GoogleMap
     public static function getGeoByAddressGoogleMap($street = null, $cp = null, $city = null, $country = null, $polygon_geojson = null){
         $url = "https://maps.googleapis.com/maps/api/geocode/json?address=" ;
@@ -479,12 +493,14 @@ class SIG
             $url .= "+".$country;
         }
         $url .= "&key=".Yii::app()->params['google']['keyMaps'] ;
-        return self::getUrl($url) ;
+        //var_dump($url);
+        return file_get_contents($url);
+        //return self::getUrl($url) ;
     }
 
     // DataGouv
     public static function getGeoByAddressDataGouv($street = null, $cp = null, $city = null, $polygon_geojson = null){
-        $url = "http 'http://api-adresse.data.gouv.fr/search/?q=" ;
+        $url = "http://api-adresse.data.gouv.fr/search/?q=" ;
         if(!empty($street))
             $url .= str_replace(" ", "+", $street);
         
@@ -495,15 +511,15 @@ class SIG
         if(!empty($cp)){
             $url .= "&postcode=".$cp;
         }
-        $url .= "&type=street";   
-        
-        return self::getUrl($url) ;
+        $url .= "&type=street";
+        //var_dump($url);
+        return file_get_contents($url);
+        //return self::getUrl($url) ;
     }
 
     public static function getLocalityByLatLonDataGouv($lat, $lon){
         $url = "http://api-adresse.data.gouv.fr/reverse/?lon=".$lon."&lat=".$lat."&zoom=18&addressdetails=1" ;
-        $json = file_get_contents($url);
-        return $json ;
+        return file_get_contents($url);
     }
 
     public static function getUrl($url){
@@ -515,6 +531,7 @@ class SIG
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
         $result = curl_exec($ch);
         curl_close($ch);
+        //var_dump($result);
         return $result ;
     }
 
