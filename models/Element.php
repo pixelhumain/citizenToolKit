@@ -428,7 +428,6 @@ class Element {
 		} else if ($dataFieldName == "seePreferences") {
 			//var_dump($fieldValue);
 			if($fieldValue == "false"){
-				//$verb = "$unset";
 				$verb = '$unset' ;
 				$set = array($dataFieldName => "");
 			}else{
@@ -450,16 +449,16 @@ class Element {
 				$user["bgUrl"] = $fieldValue;
 				Yii::app()->session["user"] = $user;
 			} 
+		} //else {
+		if ($verb == '$set') {
+			$set["modified"] = new MongoDate(time());
+			$set["updated"] = time();
 		} else {
-			if ($verb == '$set') {
-				$set["modified"] = new MongoDate(time());
-				$set["updated"] = time();
-			} else {
-				$setModified = array();
-				$setModified["modified"] = new MongoDate(time());
-				$setModified["updated"] = time();
-			}
+			$setModified = array();
+			$setModified["modified"] = new MongoDate(time());
+			$setModified["updated"] = time();
 		}
+		//}
 		
 		//Manage dateEnd field for survey
 		if ($collection == Survey::COLLECTION) {
