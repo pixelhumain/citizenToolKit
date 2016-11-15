@@ -307,7 +307,8 @@ class Element {
 						$user = Yii::app()->session["user"];
 						$user["codeInsee"] = $address["codeInsee"];
 						$user["postalCode"] = $address["postalCode"];
-						$user["address"] = $address;
+						$user["addressCountry"] = $address["addressCountry"];
+						//$user["address"] = $address;
 						Yii::app()->session["user"] = $user;
 						Person::updateCookieCommunexion($id, $address);
 					}
@@ -318,7 +319,8 @@ class Element {
 						$user = Yii::app()->session["user"];
 						unset($user["codeInsee"]);
 						unset($user["postalCode"]);
-						unset($user["address"]);
+						unset($user["addressCountry"]);
+						//unset($user["address"]);
 						Yii::app()->session["user"] = $user;
 						Person::updateCookieCommunexion($id, null);
 					}
@@ -428,7 +430,6 @@ class Element {
 		} else if ($dataFieldName == "seePreferences") {
 			//var_dump($fieldValue);
 			if($fieldValue == "false"){
-				//$verb = "$unset";
 				$verb = '$unset' ;
 				$set = array($dataFieldName => "");
 			}else{
@@ -438,27 +439,13 @@ class Element {
 		else
 			$set = array($dataFieldName => $fieldValue);
 
-		if(Person::COLLECTION == $collection){
-			if ( $fieldValue == "bgClass") {
-				//save to session for all page reuse
-				$user = Yii::app()->session["user"];
-				$user["bg"] = $fieldValue;
-				Yii::app()->session["user"] = $user;
-			} else if ( $fieldName == "bgUrl") {
-				//save to session for all page reuse
-				$user = Yii::app()->session["user"];
-				$user["bgUrl"] = $fieldValue;
-				Yii::app()->session["user"] = $user;
-			} 
+		if ($verb == '$set') {
+			$set["modified"] = new MongoDate(time());
+			$set["updated"] = time();
 		} else {
-			if ($verb == '$set') {
-				$set["modified"] = new MongoDate(time());
-				$set["updated"] = time();
-			} else {
-				$setModified = array();
-				$setModified["modified"] = new MongoDate(time());
-				$setModified["updated"] = time();
-			}
+			$setModified = array();
+			$setModified["modified"] = new MongoDate(time());
+			$setModified["updated"] = time();
 		}
 		
 		//Manage dateEnd field for survey
