@@ -307,7 +307,8 @@ class Element {
 						$user = Yii::app()->session["user"];
 						$user["codeInsee"] = $address["codeInsee"];
 						$user["postalCode"] = $address["postalCode"];
-						$user["address"] = $address;
+						$user["addressCountry"] = $address["addressCountry"];
+						//$user["address"] = $address;
 						Yii::app()->session["user"] = $user;
 						Person::updateCookieCommunexion($id, $address);
 					}
@@ -318,7 +319,8 @@ class Element {
 						$user = Yii::app()->session["user"];
 						unset($user["codeInsee"]);
 						unset($user["postalCode"]);
-						unset($user["address"]);
+						unset($user["addressCountry"]);
+						//unset($user["address"]);
 						Yii::app()->session["user"] = $user;
 						Person::updateCookieCommunexion($id, null);
 					}
