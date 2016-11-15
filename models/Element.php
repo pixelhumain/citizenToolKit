@@ -437,19 +437,6 @@ class Element {
 		else
 			$set = array($dataFieldName => $fieldValue);
 
-		if(Person::COLLECTION == $collection){
-			if ( $fieldValue == "bgClass") {
-				//save to session for all page reuse
-				$user = Yii::app()->session["user"];
-				$user["bg"] = $fieldValue;
-				Yii::app()->session["user"] = $user;
-			} else if ( $fieldName == "bgUrl") {
-				//save to session for all page reuse
-				$user = Yii::app()->session["user"];
-				$user["bgUrl"] = $fieldValue;
-				Yii::app()->session["user"] = $user;
-			} 
-		} //else {
 		if ($verb == '$set') {
 			$set["modified"] = new MongoDate(time());
 			$set["updated"] = time();
@@ -458,7 +445,6 @@ class Element {
 			$setModified["modified"] = new MongoDate(time());
 			$setModified["updated"] = time();
 		}
-		//}
 		
 		//Manage dateEnd field for survey
 		if ($collection == Survey::COLLECTION) {
