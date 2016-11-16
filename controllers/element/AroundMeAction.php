@@ -109,10 +109,10 @@ class AroundMeAction extends CAction {
 				$events   =	PHDB::findAndSort(Event::COLLECTION, 		$request, array("updated"), 125);
 				$persons  =	PHDB::findAndSort(Person::COLLECTION, 		$request, array("updated"), 125);
 
-				foreach ($orgas 	as $key => $value) { $orgas[$key]["type"] = "organization"; $orgas[$key]["typeSig"] = "organization"; }
-				foreach ($projects 	as $key => $value) { $projects[$key]["type"] = "project"; 	$projects[$key]["typeSig"] = "project"; }
-				foreach ($events 	as $key => $value) { $events[$key]["type"] = "event"; 		$events[$key]["typeSig"] = "event"; }
-				foreach ($persons 	as $key => $value) { $persons[$key]["type"] = "citoyen"; 	$persons[$key]["typeSig"] = "citoyen"; }
+				foreach ($orgas 	as $key => $value) { $orgas[$key]["type"] = "organization"; $orgas[$key]["typeSig"] = "organizations"; }
+				foreach ($projects 	as $key => $value) { $projects[$key]["type"] = "project"; 	$projects[$key]["typeSig"] = "projects"; }
+				foreach ($events 	as $key => $value) { $events[$key]["type"] = "event"; 		$events[$key]["typeSig"] = "events"; }
+				foreach ($persons 	as $key => $value) { $persons[$key]["type"] = "citoyen"; 	$persons[$key]["typeSig"] = "citoyens"; }
 
 				$all = array();
 				$all = array_merge($all, $orgas);
