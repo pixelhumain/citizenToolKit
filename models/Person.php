@@ -221,7 +221,7 @@ class Person {
 		$simplePerson["description"] = @$person["description"];
 		$simplePerson["pending"] = @$person["pending"];
 		$simplePerson["updated"] = @$person["updated"];
-		$simplePerson["addresses"] = @$person["addresses"];
+		
 		$simplePerson["typeSig"] = "people";
 	  	
 		if (@Yii::app()->params['betaTest']) { 
@@ -229,8 +229,13 @@ class Person {
 		}
 		//images
 		$simplePerson = array_merge($simplePerson, Document::retrieveAllImagesUrl($id, self::COLLECTION, null, $person));
-
-		$simplePerson["address"] = empty($person["address"]) ? array("addressLocality" => "Unknown") : $person["address"];
+		if(Preference::showPreference($element, $type, "locality", Yii::app()->session["userId"])){
+			$simplePerson["address"] = empty($person["address"]) ? array("addressLocality" => "Unknown") : $person["address"];
+			$simplePerson["addresses"] = @$person["addresses"];
+		}else{
+			
+		}
+		
 		
 		$simplePerson = self::clearAttributesByConfidentiality($simplePerson);
 	  	return $simplePerson;

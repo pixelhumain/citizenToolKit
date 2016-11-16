@@ -154,7 +154,8 @@ class Preference {
 			$result = true;
 		}
 		//public
-		else if(@$element["preferences"]["publicFields"] && in_array($namePref, $element["preferences"]["publicFields"]))
+		//else if(@$element["preferences"]["publicFields"] && in_array($namePref, $element["preferences"]["publicFields"]))
+		else if(self::isPublic($element, $namePref))
 			$result = true;
 		//private
 		else if(@$element["preferences"]["privateFields"] && 
