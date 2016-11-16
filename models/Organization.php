@@ -511,7 +511,7 @@ class Organization {
 			$logo = Document::getLastImageByKey($id, self::COLLECTION, Document::IMG_LOGO);
 			$simpleOrganization["logoImageUrl"] = $logo;
 			
-			$simpleOrganization["address"] = empty($orga["address"]) ? array("addressLocality" => "Unknown") : $orga["address"];
+			$simpleOrganization["address"] = empty($orga["address"]) ? array("addressLocality" => Yii::t("common","Unknown Locality")) : $orga["address"];
 		}
 		return $simpleOrganization;
 	}

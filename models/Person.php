@@ -229,11 +229,11 @@ class Person {
 		}
 		//images
 		$simplePerson = array_merge($simplePerson, Document::retrieveAllImagesUrl($id, self::COLLECTION, null, $person));
-		if(Preference::showPreference($element, $type, "locality", Yii::app()->session["userId"])){
-			$simplePerson["address"] = empty($person["address"]) ? array("addressLocality" => "Unknown") : $person["address"];
+		if(Preference::showPreference($person, self::COLLECTION, "locality", Yii::app()->session["userId"])){
+			$simplePerson["address"] = empty($person["address"]) ? array("addressLocality" => Yii::t("common","Unknown Locality")) : $person["address"];
 			$simplePerson["addresses"] = @$person["addresses"];
 		}else{
-			
+			$simplePerson["address"] = array("addressLocality" => Yii::t("common","Unknown Locality"));
 		}
 		
 		
