@@ -277,11 +277,11 @@ class Survey
 		$colorTxt = ($color=="white") ? "black" : $color;
 		$colXS = ($color=="white") ? "col-xs-12" : "col-xs-6";
 
-		$tooltips = array("green"=>"Je suis favorable à cette proposition",
-						"blue"=>"Je pense que cette proposition n'est pas complète",
-						"white"=>"Je n'ai pas d'avis",
-						"purple"=>"Je n'ai pas compris, il manque des informations",
-						"red"=>"Je suis contre à cette proposition",
+		$tooltips = array("green"=>Yii::t("common","I am in favor of this proposal"),
+						"blue"=>Yii::t("common","I think that this proposal is not complete"),
+						"white"=>Yii::t("common","I have not reviews"),
+						"purple"=>Yii::t("common","I don't understand, it miss informations"),
+						"red"=>Yii::t("common","I am not in favor of this proposal"),
 						);
 		
 		$tooltip = $tooltips[$color];

@@ -104,7 +104,7 @@ class Project {
 			$simpleProject["id"] = $id;
 			$simpleProject["name"] = @$project["name"];
 			$simpleProject = array_merge($simpleProject, Document::retrieveAllImagesUrl($id, self::COLLECTION, null, $project));
-			$simpleProject["address"] = empty($project["address"]) ? array("addressLocality" => "Unknown") : $project["address"];
+			$simpleProject["address"] = empty($project["address"]) ? array("addressLocality" => Yii::t("common","Unknown Locality")) : $project["address"];
 			$simpleProject["addresses"] = @$project["addresses"];
 			$simpleProject["geo"] = @$project["geo"];
 			$simpleProject["tags"] = @$project["tags"];
