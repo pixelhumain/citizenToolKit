@@ -36,16 +36,18 @@ class Survey
                         || @$survey["voteDownCount"] ) ? true : false;
 
         //the survey has vote. Only can modify the endDate field
-        if ($hasVote && $fieldName == "dateEnd") {
-            //If the endDate is modified after votes, the new end date should be after the previous
-            //Surveys can be only delayed
-        	if (@$survey["dateEnd"] > strtotime($fieldValue)) {
-        		$res = array("result" => false, "msg" => Yii::t("survey","The end date can only be delayed after votes have been done."));
-        		return $res;
+        if ($hasVote) {
+        	if ($fieldName == "dateEnd") {
+	            //If the endDate is modified after votes, the new end date should be after the previous
+	            //Surveys can be only delayed
+	        	if (@$survey["dateEnd"] > strtotime($fieldValue)) {
+	        		$res = array("result" => false, "msg" => Yii::t("survey","The end date can only be delayed after votes have been done."));
+	        		return $res;
+	        	}
+        	} else {
+	        	$res = array("result" => false, "msg" => Yii::t("survey","Can not update the survey after votes have been done."));
+	        	return $res;
         	}
-        } else {
-        	$res = array("result" => false, "msg" => Yii::t("survey","Can not update the survey after votes have been done."));
-        	return $res;
         }
 
         return $res;
