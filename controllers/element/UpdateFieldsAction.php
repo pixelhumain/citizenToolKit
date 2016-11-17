@@ -16,8 +16,13 @@ class UpdateFieldsAction extends CAction
 				if(Import::isUncomplete($elementId, $type)){
 					Import::checkWarning($elementId, $type, Yii::app()->session['userId'] );
 				}
-				if($res["result"] == true)
-					return Rest::json(array("result"=>true, "msg"=>Yii::t(Element::getControlerByCollection($type),"The ".Element::getControlerByCollection($type)." has been updated"), $elementFieldName=>$elementFieldValue));
+				if($res["result"] == true){
+					$result = array("result"=>true, "msg"=>Yii::t(Element::getControlerByCollection($type),"The ".Element::getControlerByCollection($type)." has been updated"), $elementFieldName=>$elementFieldValue);
+					//var_dump($res);
+					if(isset($res["firstCitizen"]))
+						$result["firstCitizen"] = $res["firstCitizen"] ;
+					return Rest::json($result);
+				}
 				else
 					return $res ;
 

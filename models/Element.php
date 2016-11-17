@@ -312,6 +312,8 @@ class Element {
 						Yii::app()->session["user"] = $user;
 						Person::updateCookieCommunexion($id, $address);
 					}
+					$firstCitizen = Person::isFirstCitizen($fieldValue["address"]["codeInsee"]) ;
+
 				}else{
 					$verb = '$unset' ;
 					SIG::updateEntityGeoposition($collection, $id, null, null);
@@ -490,6 +492,9 @@ class Element {
 				ActivityStream::saveActivityHistory($verbActivity, $id, $collection, $dataFieldName, $fieldValue);
 			}
 			$res = array("result"=>true,"msg"=>Yii::t(Element::getControlerByCollection($collection),"The ".Element::getControlerByCollection($collection)." has been updated"));
+
+			if(isset($firstCitizen))
+				$res["firstCitizen"] = $firstCitizen ;
 		}else{
 			throw new CTKException("Can not update the element!");
 		}
