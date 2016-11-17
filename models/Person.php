@@ -1192,6 +1192,14 @@ class Person {
 		return $res;
 	}
 
+	public static function isFirstCitizen($insee) {
+		$res = false;
+		$checkUsername = PHDB::findOne(Person::COLLECTION,array("address.codeInsee"=>$insee));
+		if(empty($checkUsername))
+			$res = true;
+		return $res;
+	}
+
 
 
 	public static function getPersonIdByEmail($email) {
