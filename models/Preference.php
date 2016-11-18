@@ -154,24 +154,18 @@ class Preference {
 		if(empty($element["preferences"])){
 			$element["preferences"] = self::getPreferencesByTypeId($eltId, $elementType) ;
 		}
-		
 		//mask
 		if($elementType==Person::COLLECTION && $eltId == $userId){
 			$result = true;
-		}
-		//public
-		//else if(@$element["preferences"]["publicFields"] && in_array($namePref, $element["preferences"]["publicFields"]))
-		if($result == false && self::isPublic($element, $namePref)){
+		}//public
+		else if($result == false && self::isPublic($element, $namePref)){
 			$result = true;
-		}
-		//private
-		//else 
-		//var_dump($result);
-		if($result == false && @$element["preferences"]["privateFields"] && 
+		}//private
+		else if( $result == false && 
+				@$element["preferences"]["privateFields"] && 
 				in_array($namePref, $element["preferences"]["privateFields"]) && 
-				($eltId == $userId || Link::isLinked($eltId, $elementType, $userId, @$element["links"])))
+				( $eltId == $userId || Link::isLinked($eltId, $elementType, $userId, @$element["links"]) ) )
 			$result = true;
-		//var_dump($result);
 		return $result;
 	}
 
