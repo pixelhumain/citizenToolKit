@@ -245,7 +245,7 @@ class Element {
 
 
     public static function updateField($collection, $id, $fieldName, $fieldValue) {
-    	error_log("updateField : ".$fieldName." with value :".$fieldValue);
+    	//error_log("updateField : ".$fieldName." with value :".$fieldValue);
     	if (!Authorisation::canEditItemOrOpenEdition($id, $collection, Yii::app()->session['userId'])) {
 			throw new CTKException(Yii::t("common","Can not update the element : you are not authorized to update that element !"));
 		}
