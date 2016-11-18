@@ -125,6 +125,8 @@ class SIG
 				}
 			}
 		}
+		if (empty($geopos)) throw new CTKException("Impossible to find a postalCode for insee :".$inseeCode." and cp : ".$postalCode);
+		
 		return $geopos;
 	}
 
@@ -314,11 +316,10 @@ class SIG
 					$newCity["insee"] = $value["insee"];
 					$newCity["name"] = $data["name"];
 					$newCity["postalCode"] = $data["postalCode"];
-					$newCity["geo"] = $data["geo"];
-					$newCity["geoPosition"] = $data["geoPosition"];
+					$newCity["geo"] = @$data["geo"];
+					$newCity["geoPosition"] = @$data["geoPosition"];
 					$cities[]=$newCity;
 				}
-
 			}
 		}
 		return $cities;

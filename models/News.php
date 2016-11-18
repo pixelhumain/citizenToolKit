@@ -116,6 +116,11 @@ class News {
 						$codeInsee=$person["address"]["codeInsee"];
 						$postalCode=$person["address"]["postalCode"];
 					}
+					if($_POST["parentId"] != Yii::app()->session["userId"]){
+						$person["type"]=Person::COLLECTION;
+						Notification::actionOnPerson ( ActStr::VERB_POST, ActStr::ICON_RSS, null , $person )  ;
+					}
+						
 				}else if($type == Organization::COLLECTION ){
 					$organization = Organization::getById($_POST["parentId"]);
 					if( isset( $organization['geo'] ) )

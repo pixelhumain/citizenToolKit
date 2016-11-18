@@ -307,10 +307,13 @@ class Element {
 						$user = Yii::app()->session["user"];
 						$user["codeInsee"] = $address["codeInsee"];
 						$user["postalCode"] = $address["postalCode"];
-						$user["address"] = $address;
+						$user["addressCountry"] = $address["addressCountry"];
+						//$user["address"] = $address;
 						Yii::app()->session["user"] = $user;
 						Person::updateCookieCommunexion($id, $address);
 					}
+					$firstCitizen = Person::isFirstCitizen($fieldValue["address"]["codeInsee"]) ;
+
 				}else{
 					$verb = '$unset' ;
 					SIG::updateEntityGeoposition($collection, $id, null, null);
@@ -318,7 +321,8 @@ class Element {
 						$user = Yii::app()->session["user"];
 						unset($user["codeInsee"]);
 						unset($user["postalCode"]);
-						unset($user["address"]);
+						unset($user["addressCountry"]);
+						//unset($user["address"]);
 						Yii::app()->session["user"] = $user;
 						Person::updateCookieCommunexion($id, null);
 					}
@@ -428,7 +432,6 @@ class Element {
 		} else if ($dataFieldName == "seePreferences") {
 			//var_dump($fieldValue);
 			if($fieldValue == "false"){
-				//$verb = "$unset";
 				$verb = '$unset' ;
 				$set = array($dataFieldName => "");
 			}else{
@@ -438,27 +441,13 @@ class Element {
 		else
 			$set = array($dataFieldName => $fieldValue);
 
-		if(Person::COLLECTION == $collection){
-			if ( $fieldValue == "bgClass") {
-				//save to session for all page reuse
-				$user = Yii::app()->session["user"];
-				$user["bg"] = $fieldValue;
-				Yii::app()->session["user"] = $user;
-			} else if ( $fieldName == "bgUrl") {
-				//save to session for all page reuse
-				$user = Yii::app()->session["user"];
-				$user["bgUrl"] = $fieldValue;
-				Yii::app()->session["user"] = $user;
-			} 
+		if ($verb == '$set') {
+			$set["modified"] = new MongoDate(time());
+			$set["updated"] = time();
 		} else {
-			if ($verb == '$set') {
-				$set["modified"] = new MongoDate(time());
-				$set["updated"] = time();
-			} else {
-				$setModified = array();
-				$setModified["modified"] = new MongoDate(time());
-				$setModified["updated"] = time();
-			}
+			$setModified = array();
+			$setModified["modified"] = new MongoDate(time());
+			$setModified["updated"] = time();
 		}
 		
 		//Manage dateEnd field for survey
@@ -503,6 +492,9 @@ class Element {
 				ActivityStream::saveActivityHistory($verbActivity, $id, $collection, $dataFieldName, $fieldValue);
 			}
 			$res = array("result"=>true,"msg"=>Yii::t(Element::getControlerByCollection($collection),"The ".Element::getControlerByCollection($collection)." has been updated"));
+
+			if(isset($firstCitizen))
+				$res["firstCitizen"] = $firstCitizen ;
 		}else{
 			throw new CTKException("Can not update the element!");
 		}
@@ -560,11 +552,15 @@ class Element {
 			$elt = Event::getSimpleEventById($id);
 			array_push($contextMap["events"], $elt);
 		}
-		else if ($type == Person::COLLECTION)
+		else if ($type == Person::COLLECTION){
 			$connectAs="knows";
-
+			$elt = Person::getSimpleUserById($id);
+			array_push($contextMap["people"], $elt);
+		}
 	    
-		if(!empty($links)){
+		if(!empty($links) && 
+			( (Preference::showPreference($elt, $type, "directory", Yii::app()->session["userId"]) && $type == Person::COLLECTION) || 
+			$type != Person::COLLECTION) ) {
 			if(isset($links[$connectAs])){
 				foreach ($links[$connectAs] as $key => $aMember) {
 					if($type==Event::COLLECTION){

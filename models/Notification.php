@@ -337,7 +337,10 @@ class Notification{
 		    $label = $target["name"]." ".Yii::t("common","has been disabled by")." ".Yii::app()->session['user']['name'];
 	    }
 	    else if( $verb == ActStr::VERB_POST ){
-		    $label = $target["name"]." : ".Yii::t("common","new post by")." ".Yii::app()->session['user']['name'];
+		    if($target["type"] == Person::COLLECTION)
+			    $label = Yii::app()->session['user']['name']." ".Yii::t("common","wrote a message on your wall");
+			else	
+				$label = $target["name"]." : ".Yii::t("common","new post by")." ".Yii::app()->session['user']['name'];
 	    	$url = 'news/index/type/'.$target["type"].'/id/'.$targetId;
 	    }
 		else if( $verb == ActStr::VERB_FOLLOW ){

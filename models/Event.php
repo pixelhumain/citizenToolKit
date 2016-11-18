@@ -51,6 +51,7 @@ class Event {
 	    "tags" => array("name" => "tags"),
 	    "medias" => array("name" => "medias"),
 	    "urls" => array("name" => "urls"),
+	    "url" => array("name" => "url"),
 
 	    "modified" => array("name" => "modified"),
 	    "updated" => array("name" => "updated"),
@@ -138,7 +139,7 @@ class Event {
 			
 			$simpleEvent = array_merge($simpleEvent, Document::retrieveAllImagesUrl($id, self::COLLECTION, $simpleEvent["type"], $event));
 			
-			$simpleEvent["address"] = empty($event["address"]) ? array("addressLocality" => "Unknown") : $event["address"];
+			$simpleEvent["address"] = empty($event["address"]) ? array("addressLocality" => Yii::t("common","Unknown Locality")) : $event["address"];
 			$simpleEvent["typeSig"] = Event::COLLECTION;
 		}
 		return @$simpleEvent;

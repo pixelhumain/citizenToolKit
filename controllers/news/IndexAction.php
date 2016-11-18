@@ -1,7 +1,7 @@
 <?php
 class IndexAction extends CAction
 {
-    public function run($type=null, $id= null, $date = null, $viewer=null,$streamType="news", $textSearch=null)
+    public function run($type=null, $id= null, $date = null, $isLive = null,$streamType="news", $textSearch=null)
     {
     	$controller=$this->getController();
         $controller->title = "Timeline";
@@ -55,7 +55,7 @@ class IndexAction extends CAction
 	            $parent = Project::getById($id);
 	            if(@Yii::app()->session["userId"]){
 	            	$params["canPostNews"] = true;
-	                if(@$parent["links"]["contributors"][Yii::app()->session["userId"]] && !@$parent["links"]["contributors"][Yii::app()->session["userId"]][TO_BE_VALIDATED])
+	                if(@$parent["links"]["contributors"][Yii::app()->session["userId"]] && !@$parent["links"]["contributors"][Yii::app()->session["userId"]][Link::TO_BE_VALIDATED])
 	            	$params["canManageNews"] = true;
 	            }
 	        } 
@@ -63,9 +63,9 @@ class IndexAction extends CAction
 	            $parent = Person::getById($id);
 	            if (@Yii::app()->session["userId"]){
 					$params["canPostNews"] = true;
-					//if (Yii::app()->session["userId"]==$id){
-					//	$params["canManageNews"]=false;
-					//}
+					if (Yii::app()->session["userId"]==$id){
+						$params["canManageNews"]=true;
+					}
 				}
 	        } 
 	        else if( $type == Organization::COLLECTION) {
@@ -96,6 +96,7 @@ class IndexAction extends CAction
 				$params["tagSearch"] = $tagSearch;
 		        if (@Yii::app()->session["userId"])
 					$params["canPostNews"] = true;
+				$isLive=true;
 	        }
 			else if ($type=="pixels"){
 				if (@Yii::app()->session["userId"])
@@ -111,7 +112,8 @@ class IndexAction extends CAction
 			//error_log("le type :". $type);
 			//Define condition of each wall generated datas
 			if($type == "citoyens") {
-				if (!@Yii::app()->session["userId"] || (@Yii::app()->session["userId"] && Yii::app()->session["userId"]!=$id) || (@$viewer && $viewer != null)){
+				//if (!@Yii::app()->session["userId"] || (@Yii::app()->session["userId"] && Yii::app()->session["userId"]!=$id) || (!@$isLive)){
+				if(!@$isLive){
 					error_log("message 1");
 					$scope=array(
 						array("scope.type"=> "public"),
@@ -119,7 +121,7 @@ class IndexAction extends CAction
 					);
 					if (@$params["canManageNews"] && $params["canManageNews"])
 						array_push($scope,array("scope.type"=>"private"));
-					if(@$viewer || @Yii::app()->session["userId"]){
+					if(@Yii::app()->session["userId"]){
 						array_push($scope,
 									array("author"=> Yii::app()->session["userId"],
 											"target.id"=> $id,
@@ -130,13 +132,8 @@ class IndexAction extends CAction
 						array(
 							array('$or' => 
 								array(
-									array("author"=> $id), 
-									array('$and' => 
-										array(
-											array("target.id"=> $id), 
-											array("target.type" => Person::COLLECTION)
-										) 
-									) 
+									array("author"=> $id,"targetIsAuthor"=>array('$exists'=>false),"type"=>"news"), 
+									array("target.id"=> $id, "target.type" => Person::COLLECTION)  
 								)
 							),
 							array('$or' => 
@@ -425,8 +422,10 @@ class IndexAction extends CAction
 		}
 		
 
-		if(@$viewer && $viewer != null){
-			$params["viewer"]=$viewer;
+		if(@$isLive && $isLive != null){
+			$params["isLive"]=$isLive;
+		} else {
+			$params["isLive"]=false;
 		}
 
 		if(sizeOf(@$_POST['searchType'])==1){

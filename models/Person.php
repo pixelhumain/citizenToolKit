@@ -214,14 +214,13 @@ class Person {
 		$simplePerson["name"] = @$person["name"];
 		$simplePerson["username"] = @$person["username"];
 		$simplePerson["email"] = @$person["email"];
-		$simplePerson["geo"] = @$person["geo"];
 		$simplePerson["tags"] = @$person["tags"];
 		$simplePerson["tobeactivated"] = @$person["roles"]["tobeactivated"];
 		$simplePerson["shortDescription"] = @$person["shortDescription"];
 		$simplePerson["description"] = @$person["description"];
 		$simplePerson["pending"] = @$person["pending"];
 		$simplePerson["updated"] = @$person["updated"];
-		$simplePerson["addresses"] = @$person["addresses"];
+		
 		$simplePerson["typeSig"] = "people";
 	  	
 		if (@Yii::app()->params['betaTest']) { 
@@ -229,8 +228,14 @@ class Person {
 		}
 		//images
 		$simplePerson = array_merge($simplePerson, Document::retrieveAllImagesUrl($id, self::COLLECTION, null, $person));
-
-		$simplePerson["address"] = empty($person["address"]) ? array("addressLocality" => "Unknown") : $person["address"];
+		if(Preference::showPreference($person, self::COLLECTION, "locality", Yii::app()->session["userId"])){
+			$simplePerson["address"] = empty($person["address"]) ? array("addressLocality" => Yii::t("common","Unknown Locality")) : $person["address"];
+			$simplePerson["geo"] = @$person["geo"];
+			$simplePerson["addresses"] = @$person["addresses"];
+		}else{
+			$simplePerson["address"] = array("addressLocality" => Yii::t("common","Unknown Locality"));
+		}
+		
 		
 		$simplePerson = self::clearAttributesByConfidentiality($simplePerson);
 	  	return $simplePerson;
@@ -1184,6 +1189,14 @@ class Person {
 		if ($checkUsername) {
 			$res = false;	
 		}
+		return $res;
+	}
+
+	public static function isFirstCitizen($insee) {
+		$res = false;
+		$checkUsername = PHDB::findOne(Person::COLLECTION,array("address.codeInsee"=>$insee));
+		if(empty($checkUsername))
+			$res = true;
 		return $res;
 	}
 
