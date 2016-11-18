@@ -557,9 +557,10 @@ class Element {
 			$elt = Person::getSimpleUserById($id);
 			array_push($contextMap["people"], $elt);
 		}
-
 	    
-		if(!empty($links) && Preference::showPreference($elt, $type, "directory", Yii::app()->session["userId"])){
+		if(!empty($links) && 
+			( (Preference::showPreference($elt, $type, "directory", Yii::app()->session["userId"]) && $type == Person::COLLECTION) || 
+			$type != Person::COLLECTION) ) {
 			if(isset($links[$connectAs])){
 				foreach ($links[$connectAs] as $key => $aMember) {
 					if($type==Event::COLLECTION){
