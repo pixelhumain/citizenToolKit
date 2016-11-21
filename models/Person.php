@@ -975,9 +975,23 @@ class Person {
             throw new CTKException("The person id is unkown : contact your admin");
         }
 
-	  	if ( isset($person) && isset($person["actions"]) ) 
+
+	  	if ( isset($person) ) 
 	  	{
-	  		if(isset($person["actions"]["surveys"]))
+	  		//get rooms connected to user communected city
+	  		if( @$person["address"] && @$person["address"]["postalCode"] && @$person["address"]["codeInsee"] && @$person["address"]["addressCountry"] )
+	  		{
+	  			$myCityRooms = PHDB::find( ActionRoom::COLLECTION,
+  										   array( 'parentType' => City::COLLECTION,
+  												  'parentId' => $person["address"]["addressCountry"].'_'.$person["address"]["codeInsee"].'-'.$person["address"]["postalCode"] ) );
+		  		foreach ( $myCityRooms as $roomId => $room) 
+		  		{
+		  			if( !isset( $actionRooms[ $roomId ] ) )
+		  				$actionRooms[ $roomId ] = $room;
+		  		}
+		  	}
+		  	//get rooms connected to all users actions
+	  		if( @$person["actions"] && @$person["actions"]["surveys"] )
 	  		{
 		  		foreach ( $person["actions"]["surveys"] as $entryId => $action) 
 		  		{
