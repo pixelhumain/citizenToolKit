@@ -236,7 +236,6 @@ class Person {
 			$simplePerson["address"] = array("addressLocality" => Yii::t("common","Unknown Locality"));
 		}
 		
-		
 		$simplePerson = self::clearAttributesByConfidentiality($simplePerson);
 	  	return $simplePerson;
 
@@ -337,6 +336,7 @@ class Person {
 	  				 "projects" => array(), "events" => array());
 
 	  	$person = self::getById($id);
+
 	  	//error_log($id);
 	  	if (empty($person)) {
             throw new CTKException("The person id is unkown : contact your admin");
@@ -354,7 +354,10 @@ class Person {
 			  		//error_log(var_dump($contact));
 			  		$type = isset($contact["type"]) ? $contact["type"] : "";
 			  		$contactComplet = null;
-					if($type == "citoyens")		{ $contactComplet = self::getById($key); $type = "people"; }
+					if($type == "citoyens")		{ 
+						$contactComplet = self::getSimpleUserById($key); 
+						$type = "people"; 
+					}
 					//if ($link != "follows"){
 					if($type == "organizations"){ 
 						$contactComplet = Organization::getById($key);
