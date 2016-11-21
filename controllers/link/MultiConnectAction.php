@@ -20,7 +20,7 @@ class MultiConnectAction extends CAction
 	
 		$parentId = $_POST["parentId"];
     	$parentType = $_POST["parentType"];
-    	$isConnectingAdmin = @$_POST["connectType"];
+    	//$isConnectingAdmin = @$_POST["connectType"];
 		$newMembers = array();
 		$msg=false;
 		$finalResult = false;
@@ -31,10 +31,10 @@ class MultiConnectAction extends CAction
 					"childId" => @$contact["childId"],
 			    	"childType" => @$contact["childType"] == "people" ? "citoyens" : @$contact["childType"],
 			    	"childName" => @$contact["childName"],
-		            "childEmail" => @$contact["childEmail"]
+		            "childEmail" => @$contact["childEmail"],
 			    );
 		    	    	
-		    	$isConnectingAdmin= ($isConnectingAdmin=="admin") ? true : false;
+		    	$isConnectingAdmin= (@$contact["connectType"]=="admin") ? true : false;
 		    	
 		    	$res = Link::connectParentToChild($parentId, $parentType, $child, $isConnectingAdmin, Yii::app()->session["userId"], $roles);
 		    	if($res["result"] == true){
