@@ -355,7 +355,7 @@ class Person {
 			  		$type = isset($contact["type"]) ? $contact["type"] : "";
 			  		$contactComplet = null;
 					if($type == "citoyens")		{ 
-						$contactComplet = self::getSimpleUserById($key); 
+						$contactComplet = self::getById($key); 
 						$type = "people"; 
 					}
 					//if ($link != "follows"){
