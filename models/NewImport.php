@@ -179,17 +179,18 @@ class NewImport
             }
         }
 
-        if($typeElement == Event::COLLECTION && $typeElement == Project::COLLECTION){
+        if($typeElement == Event::COLLECTION || $typeElement == Project::COLLECTION){
             date_default_timezone_set('UTC');
-            if(!empty($event['startDate']))
-                $element['startDate'] = new MongoDate($element['startDate']);
+            if(!empty($element['startDate']))
+                $element['startDate'] = strtotime($element['startDate']);
+                //$element['startDate'] = new MongoDate(strtotime($element['startDate']));
             
-            if(!empty($event['endDate']))
-                $element['endDate'] = new MongoDate($element['endDate']);
+            if(!empty($element['endDate']))
+                $element['endDate'] = strtotime($element['endDate']);
+                //$element['endDate'] = new MongoDate(strtotime($element['endDate']));
         }
         
         $element = self::getWarnings($element, $typeElement, true) ;
-
         $resDataValidator = DataValidator::validate(Element::getControlerByCollection($typeElement), $element);
         if($resDataValidator["result"] != true){
             //$element["msgError"] = ((empty($resDataValidator["msg"]->getMessage()))?$resDataValidator["msg"]:$resDataValidator["msg"]->getMessage());
@@ -229,7 +230,7 @@ class NewImport
                 $newGeo["geo"]["latitude"] = $resultNominatim[0]["lat"];
                 $newGeo["geo"]["longitude"] = $resultNominatim[0]["lon"];
             }else{
-                $resultDataGouv = (empty($cp)?null:json_decode(SIG::getGeoByAddressDataGouv($street, $cp, $nameCity), true));
+                $resultDataGouv = ( ( !empty($address["addressCountry"]) && $address["addressCountry"] == "FR" ) ? ( empty($cp)?null:json_decode(SIG::getGeoByAddressDataGouv($street, $cp, $nameCity), true) ) : null ) ;
                 if(!empty($resultDataGouv["features"])){
                     $newGeo["geo"]["latitude"] = strval($resultDataGouv["features"][0]["geometry"]["coordinates"][1]);
                     $newGeo["geo"]["longitude"] = strval($resultDataGouv["features"][0]["geometry"]["coordinates"][0]);
@@ -244,8 +245,7 @@ class NewImport
                             $newGeo["geo"]["latitude"] = $resultNominatim[0]["lat"];
                             $newGeo["geo"]["longitude"] = $resultNominatim[0]["lon"];
                         }else{
-                            $resultDataGouv = (empty($cp)?null:json_decode(SIG::getGeoByAddressDataGouv(null, $cp, $nameCity), true));
-                           // $resultDataGouv = json_decode(SIG::getGeoByAddressDataGouv(null, $cp, $nameCity), true);
+                            $resultDataGouv = ( ( !empty($address["addressCountry"]) && $address["addressCountry"] == "FR" ) ? ( empty($cp)?null:json_decode(SIG::getGeoByAddressDataGouv(null, $cp, $nameCity), true) ) : null ) ;
                             if(!empty($resultDataGouv["features"])){
                                 $newGeo["geo"]["latitude"] = strval($resultDataGouv["features"][0]["geometry"]["coordinates"][1]);
                                 $newGeo["geo"]["longitude"] = strval($resultDataGouv["features"][0]["geometry"]["coordinates"][0]);
