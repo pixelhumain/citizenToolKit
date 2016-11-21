@@ -68,6 +68,15 @@ class IndexAction extends CAction
                                                                 "tags" => $c["tags"],
                                                                 "modified" => new MongoDate(time()) ) );
             }
+            PHDB::insert( Survey::PARENT_COLLECTION, array("email" => "contact@communecter.org",
+                                                            "name" => "Actions divers",
+                                                            "type" => ActionRoom::TYPE_ACTIONS ,
+                                                            "parentType" => City::COLLECTION,
+                                                            "parentId" => $id,
+                                                            "created" => time(),
+                                                            "updated" => time(),
+                                                            "modified" => new MongoDate(time()) ) );
+            
             $rooms = ActionRoom::getAllRoomsByTypeId($type, $id, $archived);
             $discussions = $rooms["discussions"];
             $votes = $rooms["votes"];

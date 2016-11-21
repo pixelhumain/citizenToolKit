@@ -614,7 +614,7 @@ class Authorisation {
     public static function isLocalCitizen($userId, $cityId) {
         $cityMap = City::getUnikeyMap($cityId);
         //echo Yii::app()->session["user"]["codeInsee"] ."==". $cityMap["insee"];
-        return (Yii::app()->session["user"]["codeInsee"] == $cityMap["insee"] ) ? true : false;
+        return (@Yii::app()->session["user"]["codeInsee"] && Yii::app()->session["user"]["codeInsee"] == $cityMap["insee"] ) ? true : false;
     }
 
     /**
