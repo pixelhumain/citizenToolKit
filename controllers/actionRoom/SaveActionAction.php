@@ -94,7 +94,7 @@ class SaveActionAction extends CAction
                 
 
                 $res['result'] = true;
-                $res['msg'] = "actionSaved";
+                $res['msg'] = Yii::t("rooms","Your action has been Saved",null,Yii::app()->controller->module->id);
                 $res['actionId'] = $actionId;
                 $res['url'] = "#rooms.action.id.".$actionId;
                 //echo "actionId :".$actionId; return;
