@@ -96,6 +96,7 @@ class DetailAction extends CAction {
 			//EventOrganizer
 			if(@$element["links"]["organizer"]){
 				foreach ($element["links"]["organizer"] as $uid => $e) {
+					var_dump($uid);
             		$organizer["type"] = $e["type"];
             		if($organizer["type"] == Project::COLLECTION ){
                 		$iconNav="fa-lightbulb-o";
@@ -116,9 +117,12 @@ class DetailAction extends CAction {
 		                $organizerInfo = Person::getSimpleUserById($uid);  
 						$organizer["type"]=$urlType;
 					}
+					var_dump($organizerInfo);
             		$organizer["id"] = $uid;
-            		$organizer["name"] = $organizerInfo["name"];
-            		$organizer["profilImageUrl"] = $organizerInfo["profilImageUrl"];
+            		//$organizer["name"] = $organizerInfo["name"];
+            		$organizer["name"] = "azzzzzzzzzz";
+            		//$organizer["profilImageUrl"] = $organizerInfo["profilImageUrl"];
+            		$organizer["profilImageUrl"] = "";
           		}
 		  		$params["organizer"] = $organizer;
               		
