@@ -182,11 +182,12 @@ class NewImport
         if($typeElement == Event::COLLECTION || $typeElement == Project::COLLECTION){
             date_default_timezone_set('UTC');
             if(!empty($element['startDate']))
-                $element['startDate'] = strtotime($element['startDate']);
+                $element['startDate'] = date('Y-m-d H:i:s', strtotime($element['startDate']));
                 //$element['startDate'] = new MongoDate(strtotime($element['startDate']));
             
             if(!empty($element['endDate']))
-                $element['endDate'] = strtotime($element['endDate']);
+                $element['endDate'] = date('Y-m-d H:i:s', strtotime($element['endDate']));
+                //$element['endDate'] = strtotime($element['endDate']);
                 //$element['endDate'] = new MongoDate(strtotime($element['endDate']));
         }
         
@@ -368,7 +369,7 @@ class NewImport
                     if(@$value["address"]){
                         $exist = Element::alreadyExists($value, $typeElement);
                         if(!$exist["result"]) {
-                            if($post["isLink"] == "true"){
+                            if(!empty($post["isLink"]) && $post["isLink"] == "true"){
                                 $paramsLink["idLink"] = $post["idLink"];
                                 $paramsLink["typeLink"] = $post["typeLink"];
                                 $paramsLink["role"] = $post["roleLink"];

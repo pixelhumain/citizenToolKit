@@ -806,7 +806,7 @@ class Element {
         $key = $params["key"];
 
 		//$paramsImport = (empty($params["paramsImport"])?null:$params["paramsImport"]);
-		$paramsLinkImport = ( empty($params["paramsLink"] ) ? null : $params["paramsLink"]);
+		$paramsLinkImport = ( empty($params["paramsImport"] ) ? null : $params["paramsImport"]);
 
 		unset($params["paramsImport"]);
         unset($params['collection']);
@@ -873,7 +873,7 @@ class Element {
                 //post process for specific actions
                 // ***********************************
                 if( $collection == Organization::COLLECTION )
-                	$res["afterSave"] = Organization::afterSave($params, Yii::app()->session["userId"], $paramsImport );
+                	$res["afterSave"] = Organization::afterSave($params, Yii::app()->session["userId"], $paramsLinkImport);
                 else if( $collection == Event::COLLECTION )
                 	$res["afterSave"] = Event::afterSave($params);
                 else if( $collection == Project::COLLECTION )
@@ -990,61 +990,6 @@ class Element {
     }
 
 
-     public static function afterSaveImport ($params) { 
-     	$elementId = (string)$params['_id'];
-        if (@$paramsImport) {
-			if(!empty($paramsImport["link"])){
-				$idLink = $paramsImport["link"]["idLink"];
-				$typeLink = $paramsImport["link"]["typeLink"];
-				if (@$paramsImport["link"]["role"] == "admin"){
-					$isAdmin = true;
-				}else{
-					$isAdmin = false;
-				}
-
-				if($typeLink == Organization::COLLECTION){
-					Link::connect($idLink, $typeLink, $elementId, self::COLLECTION, $creatorId,"members", false);
-					Link::connect($elementId, self::COLLECTION, $idLink, $typeLink, $creatorId,"memberOf",false);
-				}
-				else if($typeLink == Person::COLLECTION){
-					Link::connect($elementId, self::COLLECTION, $idLink, Person::COLLECTION, $creatorId,"members",$isAdmin);
-					Link::connect($idLink, $typeLink, $elementId, self::COLLECTION, $creatorId,"memberOf",$isAdmin);
-				}
-			}
-
-			if(!empty($paramsImport["img"])){
-		    	try{
-		    		$paramsImg = $paramsImport["img"] ;
-					$resUpload = Document::uploadDocumentFromURL(	$paramsImg["module"], self::COLLECTION, 
-																	$elementId, "avatar", false, 
-																	$paramsImg["url"], $paramsImg["name"]);
-					if(!empty($resUpload["result"]) && $resUpload["result"] == true){
-						$params = array();
-						$params['id'] = $elementId;
-						$params['type'] = self::COLLECTION;
-						$params['moduleId'] = $paramsImg["module"];
-						$params['folder'] = self::COLLECTION."/".$elementId;
-						$params['name'] = $resUpload['name'];
-						$params['author'] = Yii::app()->session["userId"] ;
-						$params['size'] = $resUpload["size"];
-						$params["contentKey"] = "profil";
-						$resImgSave = Document::save($params);
-						if($resImgSave["result"] == false)
-							throw new CTKException("Impossible de sauvegarder l'image.");
-					}else{
-						throw new CTKException("Impossible uploader l'image.");
-					}
-				}catch (CTKException $e){
-					throw new CTKException($e);
-				}	
-			}
-			
-		}
-
-        return $params;
-     }
-
-
     /**
 	 * Retrieve a element by id from DB
 	 * @param String $id of the event
@@ -1131,6 +1076,104 @@ class Element {
 			}
 		}
 		return $result;
+	}
+
+
+
+	public static function afterSaveImport($eltId, $eltType, $paramsImport){
+		if (@$paramsImport) {
+			if(!empty($paramsImport["link"])){
+				$idLink = $paramsImport["link"]["idLink"];
+				$typeLink = $paramsImport["link"]["typeLink"];
+				if (@$paramsImport["link"]["role"] == "admin"){
+					$isAdmin = true;
+				}else{
+					$isAdmin = false;
+				}
+
+
+				/*const person2person = "follows";
+			    const person2organization = "memberOf";
+			    const organization2person = "members";
+			    const person2events = "events";
+			    const person2projects = "projects";
+			    const event2person = "attendees";
+			    const project2person = "contributors";
+			    const need2Item = "needs";*/
+				if($eltType == Organization::COLLECTION){
+					if($typeLink == Organization::COLLECTION){
+						$connectType1 = "members";
+						$connectType2 = "memberOf";
+						//Link::connect($idLink, $typeLink, $eltId, $eltType, $creatorId,"members", false);
+						//Link::connect($eltId, $eltType, $idLink, $typeLink, $creatorId,"memberOf",false);
+					}
+					else if($typeLink == Person::COLLECTION){
+						$connectType1 = "members";
+						$connectType2 = "memberOf";
+						//Link::connect($eltId, $eltType, $idLink, $typeLink, $creatorId,"members",$isAdmin);
+						//Link::connect($idLink, $typeLink, $eltId, $eltType, $creatorId,"memberOf",$isAdmin);
+					}
+				}else if($eltType == Person::COLLECTION){
+					if($typeLink == Organization::COLLECTION){
+						$connectType1 = "memberOf";
+						$connectType2 = "members";
+					}else if($typeLink == Person::COLLECTION){
+						$connectType1 = "followers";
+						$connectType2 = "follows";
+					}
+				}else if($eltType == Project::COLLECTION){
+					if($typeLink == Organization::COLLECTION){
+						$connectType1 = "contributors";
+						$connectType2 = "projects";
+					}else if($typeLink == Person::COLLECTION){
+						$connectType1 = "contributors";
+						$connectType2 = "projects";
+					}
+				}else if($eltType == Event::COLLECTION){
+					if($typeLink == Organization::COLLECTION){
+						//$connectType1 = "memberOf";
+						//$connectType2 = "members";
+					}else if($typeLink == Person::COLLECTION){
+						$connectType1 = "attendees";
+						$connectType2 = "events";
+					}
+				}
+
+				if(!empty($connectType1) && !empty($connectType2)){
+					Link::connect($eltId, $eltType, $idLink, $typeLink, $creatorId, $connectType1,$isAdmin);
+					Link::connect($idLink, $typeLink, $eltId, $eltType, $creatorId, $connectType2,$isAdmin);
+				}
+				
+				
+			}
+
+			if(!empty($paramsImport["img"])){
+		    	try{
+		    		$paramsImg = $paramsImport["img"] ;
+					$resUpload = Document::uploadDocumentFromURL(	$paramsImg["module"], $eltType, 
+																	$eltId, "avatar", false, 
+																	$paramsImg["url"], $paramsImg["name"]);
+					if(!empty($resUpload["result"]) && $resUpload["result"] == true){
+						$params = array();
+						$params['id'] = $eltId;
+						$params['type'] = $eltType;
+						$params['moduleId'] = $paramsImg["module"];
+						$params['folder'] = $eltType."/".$eltId;
+						$params['name'] = $resUpload['name'];
+						$params['author'] = Yii::app()->session["userId"] ;
+						$params['size'] = $resUpload["size"];
+						$params["contentKey"] = "profil";
+						$resImgSave = Document::save($params);
+						if($resImgSave["result"] == false)
+							throw new CTKException("Impossible de sauvegarder l'image.");
+					}else{
+						throw new CTKException("Impossible uploader l'image.");
+					}
+				}catch (CTKException $e){
+					throw new CTKException($e);
+				}	
+			}
+		}
 	}
 
 }
