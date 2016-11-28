@@ -770,6 +770,7 @@ class Element {
         $id = null;
         $data = null;
         $collection = $params["collection"];
+        
         if( !empty($params["id"]) ){
         	$id = $params["id"];
         }
