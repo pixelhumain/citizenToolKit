@@ -30,7 +30,9 @@ class SaveReferencementAction extends CAction
 	                        "categories" 	=> @$_POST["categories"],
 	                        "authorId" 		=> $authorId,
 	                        "status" 		=> $status,
-	                        "dateRef"		=> new MongoDate(time())
+	                        "dateRef"		=> new MongoDate(time()),
+	                        "nbClick"		=> 0,
+	                        "typeSig"		=> "siteurl"
     						);
 
     	if($address != false) 		$newSiteurl["address"] = $address;
