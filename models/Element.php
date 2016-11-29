@@ -1110,8 +1110,6 @@ class Element {
 					else if($typeLink == Person::COLLECTION){
 						$connectType1 = "members";
 						$connectType2 = "memberOf";
-						//Link::connect($eltId, $eltType, $idLink, $typeLink, $creatorId,"members",$isAdmin);
-						//Link::connect($idLink, $typeLink, $eltId, $eltType, $creatorId,"memberOf",$isAdmin);
 					}
 				}else if($eltType == Person::COLLECTION){
 					if($typeLink == Organization::COLLECTION){
@@ -1134,6 +1132,9 @@ class Element {
 						//$connectType1 = "memberOf";
 						//$connectType2 = "members";
 					}else if($typeLink == Person::COLLECTION){
+						$connectType1 = "attendees";
+						$connectType2 = "events";
+					}else if($typeLink == Event::COLLECTION){
 						$connectType1 = "attendees";
 						$connectType2 = "events";
 					}

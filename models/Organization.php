@@ -1455,7 +1455,7 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 	public static function translateType($type) {
 		if(trim($type) == "Association")
 			$type = self::TYPE_NGO ;
-		else if(trim($type) == "Groupe gouvernemental")
+		else if(trim($type) == "Groupe Gouvernemental")
 			$type = self::TYPE_GOV ;
 		else if(trim($type) == "Entreprise")
 			$type = self::TYPE_BUSINESS ;

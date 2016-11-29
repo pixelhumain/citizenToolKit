@@ -236,7 +236,6 @@ class Person {
 			$simplePerson["address"] = array("addressLocality" => Yii::t("common","Unknown Locality"));
 		}
 		$simplePerson = self::clearAttributesByConfidentiality($simplePerson);
-		var_dump($simplePerson);
 	  	return $simplePerson;
 
 	}

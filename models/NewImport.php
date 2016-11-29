@@ -99,40 +99,42 @@ class NewImport
             }
             
             foreach ($file as $keyFile => $valueFile){
-                $element = array();
-                foreach ($post['infoCreateData'] as $key => $value) {
-                    $valueData = null;
-                    if($post['typeFile'] == "csv" && in_array($value["idHeadCSV"], $headFile)){
-                        $idValueFile = array_search($value["idHeadCSV"], $headFile);
-                        $valFile =  (!empty($valueFile[$idValueFile])?$valueFile[$idValueFile]:null);
-                    }else{
-                        $valFile =  (!empty($valueFile[$value["idHeadCSV"]])?$valueFile[$value["idHeadCSV"]]:null);
-                    }
-                    if(!empty($valFile)){
-                        $valueData = (is_string($valFile)?trim($valFile):$valFile);
-                        if(!empty($valueData)){
-                            $typeValue = ArrayHelper::getValueByDotPath($mapping , $value["valueAttributeElt"]);
-                            $element = ArrayHelper::setValueByDotPath($element , $value["valueAttributeElt"], $valueData, $typeValue);
+                if(!empty($valueFile)){
+                    $element = array();
+                    foreach ($post['infoCreateData'] as $key => $value) {
+                        $valueData = null;
+                        if($post['typeFile'] == "csv" && in_array($value["idHeadCSV"], $headFile)){
+                            $idValueFile = array_search($value["idHeadCSV"], $headFile);
+                            $valFile =  (!empty($valueFile[$idValueFile])?$valueFile[$idValueFile]:null);
+                        }else{
+                            $valFile =  (!empty($valueFile[$value["idHeadCSV"]])?$valueFile[$value["idHeadCSV"]]:null);
+                        }
+                        if(!empty($valFile)){
+                            $valueData = (is_string($valFile)?trim($valFile):$valFile);
+                            if(!empty($valueData)){
+                                $typeValue = ArrayHelper::getValueByDotPath($mapping , $value["valueAttributeElt"]);
+                                $element = ArrayHelper::setValueByDotPath($element , $value["valueAttributeElt"], $valueData, $typeValue);
+                            }
                         }
                     }
-                }
-                $element['source']['insertOrign'] = "import";
-                if(!empty($post['key'])){
-                    $element['source']['keys'][] = $post['key'];
-                    $element['source']['key'] = $post['key'];
-                }
+                    $element['source']['insertOrign'] = "import";
+                    if(!empty($post['key'])){
+                        $element['source']['keys'][] = $post['key'];
+                        $element['source']['key'] = $post['key'];
+                    }
 
-                $element = self::checkElement($element, $post['typeElement']);
+                    $element = self::checkElement($element, $post['typeElement']);
 
-                if($post['typeElement'] == Person::COLLECTION){
-                    $element['msgInvite'] = $post['msgInvite'];
-                    $element['nameInvitor'] = $post['nameInvitor'];
+                    if($post['typeElement'] == Person::COLLECTION){
+                        $element['msgInvite'] = $post['msgInvite'];
+                        $element['nameInvitor'] = $post['nameInvitor'];
+                    }
+
+                    if(!empty($element['msgError']) || ($post['warnings'] == "false" && !empty($element['warnings'])))
+                        $elementsWarnings[] = $element;
+                    else
+                        $elements[] = $element;
                 }
-
-                if(!empty($element['msgError']) || ($post['warnings'] == "false" && !empty($element['warnings'])))
-                    $elementsWarnings[] = $element;
-                else
-                    $elements[] = $element;
             }
             $params = array("result"=>true,
                             "elements"=>json_encode($elements),
@@ -225,31 +227,30 @@ class NewImport
 
         //Cas 1 On a que l'addresse
         if(!empty($address) && empty($geo)){
-            $resultNominatim = json_decode(SIG::getGeoByAddressNominatim($street, $cp, $nameCity, $country), true);
-            $erreur = true ;
-            if(!empty($resultNominatim[0])){
-                $newGeo["geo"]["latitude"] = $resultNominatim[0]["lat"];
-                $newGeo["geo"]["longitude"] = $resultNominatim[0]["lon"];
+            $resultDataGouv = ( ( !empty($address["addressCountry"]) && $address["addressCountry"] == "FR" ) ? ( empty($cp)?null:json_decode(SIG::getGeoByAddressDataGouv($street, $cp, $nameCity), true) ) : null ) ;
+            if(!empty($resultDataGouv["features"])){
+                $newGeo["geo"]["latitude"] = strval($resultDataGouv["features"][0]["geometry"]["coordinates"][1]);
+                $newGeo["geo"]["longitude"] = strval($resultDataGouv["features"][0]["geometry"]["coordinates"][0]);
             }else{
-                $resultDataGouv = ( ( !empty($address["addressCountry"]) && $address["addressCountry"] == "FR" ) ? ( empty($cp)?null:json_decode(SIG::getGeoByAddressDataGouv($street, $cp, $nameCity), true) ) : null ) ;
-                if(!empty($resultDataGouv["features"])){
-                    $newGeo["geo"]["latitude"] = strval($resultDataGouv["features"][0]["geometry"]["coordinates"][1]);
-                    $newGeo["geo"]["longitude"] = strval($resultDataGouv["features"][0]["geometry"]["coordinates"][0]);
+                $resultNominatim = json_decode(SIG::getGeoByAddressNominatim($street, $cp, $nameCity, $country), true);
+                if(!empty($resultNominatim[0])){
+                    $newGeo["geo"]["latitude"] = $resultNominatim[0]["lat"];
+                    $newGeo["geo"]["longitude"] = $resultNominatim[0]["lon"];
                 }else{
                     $resultGoogle = json_decode(SIG::getGeoByAddressGoogleMap($street, $cp, $nameCity, $country), true);
                     if(!empty($resultGoogle["results"])){
                         $newGeo["geo"]["latitude"] = strval($resultGoogle["results"][0]["geometry"]["location"]["lat"]);
                         $newGeo["geo"]["longitude"] = strval($resultGoogle["results"][0]["geometry"]["location"]["lng"]);
                     }else{
-                        $resultNominatim = json_decode(SIG::getGeoByAddressNominatim(null, $cp, $nameCity, $country), true);
-                        if(!empty($resultNominatim[0])){
-                            $newGeo["geo"]["latitude"] = $resultNominatim[0]["lat"];
-                            $newGeo["geo"]["longitude"] = $resultNominatim[0]["lon"];
+                        $resultDataGouv = ( ( !empty($address["addressCountry"]) && $address["addressCountry"] == "FR" ) ? ( empty($cp)?null:json_decode(SIG::getGeoByAddressDataGouv(null, $cp, $nameCity), true) ) : null ) ;
+                        if(!empty($resultDataGouv["features"])){
+                            $newGeo["geo"]["latitude"] = strval($resultDataGouv["features"][0]["geometry"]["coordinates"][1]);
+                            $newGeo["geo"]["longitude"] = strval($resultDataGouv["features"][0]["geometry"]["coordinates"][0]);
                         }else{
-                            $resultDataGouv = ( ( !empty($address["addressCountry"]) && $address["addressCountry"] == "FR" ) ? ( empty($cp)?null:json_decode(SIG::getGeoByAddressDataGouv(null, $cp, $nameCity), true) ) : null ) ;
-                            if(!empty($resultDataGouv["features"])){
-                                $newGeo["geo"]["latitude"] = strval($resultDataGouv["features"][0]["geometry"]["coordinates"][1]);
-                                $newGeo["geo"]["longitude"] = strval($resultDataGouv["features"][0]["geometry"]["coordinates"][0]);
+                            $resultNominatim = json_decode(SIG::getGeoByAddressNominatim(null, $cp, $nameCity, $country), true);
+                            if(!empty($resultNominatim[0])){
+                                $newGeo["geo"]["latitude"] = $resultNominatim[0]["lat"];
+                                $newGeo["geo"]["longitude"] = $resultNominatim[0]["lon"];
                             }else{
                                 $resultGoogle = json_decode(SIG::getGeoByAddressGoogleMap(null,$cp, $nameCity, $country), true);
                                 if(!empty($resultGoogle["results"])){
@@ -261,7 +262,6 @@ class NewImport
                     }
                 }
             }
-
         } // Cas 2 il n'y a que la Géo 
         else if(empty($address) && !empty($geo)){
             if(!empty($geo["latitude"]) && !empty($geo["longitude"])){
@@ -278,6 +278,8 @@ class NewImport
 
         if(!empty($newGeo["geo"]["latitude"]) && !empty($newGeo["geo"]["longitude"])){
             $city = SIG::getCityByLatLngGeoShape($newGeo["geo"]["latitude"], $newGeo["geo"]["longitude"],$cp);
+            if(empty($city))
+                $city = SIG::getCityByLatLngGeoShape($newGeo["geo"]["latitude"], $newGeo["geo"]["longitude"],null);
             if(!empty($city)){
                 $newAddress["codeInsee"] = $city["insee"];
                 $newAddress['addressCountry'] = $city["country"];
@@ -370,9 +372,16 @@ class NewImport
                         $exist = Element::alreadyExists($value, $typeElement);
                         if(!$exist["result"]) {
                             if(!empty($post["isLink"]) && $post["isLink"] == "true"){
-                                $paramsLink["idLink"] = $post["idLink"];
-                                $paramsLink["typeLink"] = $post["typeLink"];
-                                $paramsLink["role"] = $post["roleLink"];
+                                if($post["typeLink"] == Event::COLLECTION && $typeElement == Event::COLLECTION){
+                                    $value["parentId"] = $post["idLink"];
+                                    $value["parentType"] = $post["typeLink"];
+                                }
+                                else{
+                                    $paramsLink["idLink"] = $post["idLink"];
+                                    $paramsLink["typeLink"] = $post["typeLink"];
+                                    $paramsLink["role"] = $post["roleLink"];
+                                }
+                                
                             }
 
                             if(!empty($value["urlImg"])){
@@ -382,7 +391,14 @@ class NewImport
                                 $paramsImg["name"] =$split[count($split)-1];
 
                             }
-
+                            if(!empty($value["startDate"])){
+                                $startDate = DateTime::createFromFormat('Y-m-d H:i:s', $value["startDate"]);
+                                $value["startDate"] = $startDate->format('d/m/Y H:i');
+                            }
+                            if(!empty($value["endDate"])){
+                                $endDate = DateTime::createFromFormat('Y-m-d H:i:s', $value["endDate"]);
+                                $value["endDate"] = $endDate->format('d/m/Y H:i');
+                            }
                             $value["collection"] = $typeElement ;
                             $value["key"] = Element::getControlerByCollection($typeElement);
                             $value["paramsImport"] = array( "link" => (empty($paramsLink)?null:$paramsLink),
@@ -392,16 +408,26 @@ class NewImport
 
                             if($typeElement == Organization::COLLECTION)
                                 $value["role"] = "creator";
-                            
+                            if($typeElement == Event::COLLECTION && empty($value["organizerType"]))
+                                $value["organizerType"] = Event::NO_ORGANISER;
+                            else
+                                $value["organizerType"] = $value["organizerType"]."s";
                             $element = array();
                             $res = Element::save($value);
                             $element["name"] =  $value["name"];
                             $element["info"] = $res["msg"];
-                            $element["url"] = "/#".Element::getControlerByCollection($typeElement).".detail.id.".(String)$exist["element"]["_id"] ;
+                            $element["type"] = Element::getControlerByCollection($typeElement) ;
+                            if(!empty($res["id"])){
+                                $element["url"] = "/#".Element::getControlerByCollection($typeElement).".detail.id.".$res["id"] ;
+                                $element["id"] = $res["id"] ;
+                            }
+                            
                         }else{
-                           $element["name"] = $exist["element"]["name"];
-                           $element["info"] = "L'élément existes déjà";
-                           $element["url"] = "/#".Element::getControlerByCollection($typeElement).".detail.id.".(String)$exist["element"]["_id"] ;
+                            $element["name"] = $exist["element"]["name"];
+                            $element["info"] = "L'élément existes déjà";
+                            $element["url"] = "/#".Element::getControlerByCollection($typeElement).".detail.id.".(String)$exist["element"]["_id"] ;
+                            $element["type"] = Element::getControlerByCollection($typeElement) ;
+                            $element["id"] = (String)$exist["element"]["_id"] ;
                         }
                         
                     }else{
@@ -425,5 +451,67 @@ class NewImport
       
         return $params;
     }
+
+    
+
+    public static  function setCedex($post){        
+        if($post['typeFile'] == "csv"){
+            $file = $post['file'];
+            //$headFile = $file[0];
+            unset($file[0]);
+        }else{
+            $file = json_decode($post['file'][0], true);
+        }
+        $bon = "";
+        $erreur = "";
+        $nb = 0;
+        foreach ($file as $keyFile => $valueFile){
+
+            if( !empty($valueFile) && !empty($valueFile[1]) && strlen(trim($valueFile[1])) > 5 && isset($valueFile[9]) && isset($valueFile[10]) ){
+                $newCP = array();
+                $cp = substr(trim($valueFile[1]), 0,5);
+                $cedex = substr(trim($valueFile[1]), 5);
+                $lat = $valueFile[9];
+                $lon = $valueFile[10];
+
+                $where = array("postalCodes.postalCode" => $cp);
+                $existes = PHDB::find(City::COLLECTION, $where);
+
+                if(empty($existes)){
+                    $city = SIG::getCityByLatLngGeoShape($lat, $lon,null);
+
+                    if(!empty($city)){
+                        $newCP["postalCode"] = $cp;
+                        $newCP["complement"] = trim($cedex);
+                        $newCP["name"] = mb_strtoupper(trim($valueFile[2])).$cedex;
+                        $newCP["geo"] = array(   "@type"=>"GeoCoordinates", 
+                                        "latitude" => $lat, 
+                                        "longitude" => $lon);
+                        $newCP["geoPosition"] = array(   "type"=>"Point", 
+                                                "coordinates" => array( floatval($lon), 
+                                                                        floatval($lat)));
+                        //var_dump($newCP);
+                        $city["postalCodes"][] = $newCP;
+                        
+                        $res = PHDB::update( City::COLLECTION, 
+                                array("_id"=>new MongoId((String)$city["_id"])),
+                                array('$set' => array("postalCodes" => $city["postalCodes"])));
+                        $nb++;
+                        $bon .=  "<br> 'cp' : '".$cp."' , 'complement' : '".trim($cedex)."' , 'name' : '".trim($valueFile[2])."' ";
+                    }else{
+                        $erreur .=  "<br> 'error' : 'city not found' , cp' : '".$cp."' , 'complement' : '".trim($cedex)."' , 'name' : '".trim($valueFile[2])."' ";
+                    }
+                }else{
+                    $erreur .=  "<br> 'error' : 'cp exist déjà' , cp' : '".$cp."' , 'complement' : '".trim($cedex)."' , 'name' : '".trim($valueFile[2])."' ";
+                } 
+            }
+        }
+
+        echo "Il y a ".$nb."update" ;
+        echo "<br><br>---------------------<br><br>";
+        echo $erreur ;
+        echo "<br><br>---------------------<br><br>";
+        echo $bon ;
+    }  
 }
 
