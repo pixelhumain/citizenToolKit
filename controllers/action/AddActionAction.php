@@ -21,10 +21,15 @@ class AddActionAction extends CAction
                 $detail['comment']=$_POST["comment"];
             }
 
-	        $res = Action::addAction($userId , $_POST['id'], $_POST['collection'],$_POST['action'], isset($_POST['unset']), isset($_POST["multiple"]), $detail );  
+	        try {
+                $res = Action::addAction($userId , $_POST['id'], $_POST['collection'],$_POST['action'], isset($_POST['unset']), isset($_POST["multiple"]), $detail );  
+            } catch (CTKException $e) {
+                $res = array("result" => false, "msg" => $e->getMessage());
+            }
 
             //Notification situations
-            if( stripos($_POST['action'], "vote") !== false && $_POST['collection'] == Survey::COLLECTION ){
+            //TODO => Move to model ?
+            if( @$res["result"] && stripos($_POST['action'], "vote") !== false && $_POST['collection'] == Survey::COLLECTION ){
                 //get survey parentType if Orga, Project or Event
                 $survey = Survey::getById( $_POST['id'] );
                 if( @$survey ){
@@ -36,6 +41,7 @@ class AddActionAction extends CAction
         } else {
         	$res = array("result" => false, "msg" => Yii::t("common","Please Log in order to vote !"));
         }
+
         Rest::json( $res );
         Yii::app()->end();
     }
