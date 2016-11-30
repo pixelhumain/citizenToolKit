@@ -414,6 +414,17 @@ class NewImport
                             if($typeElement == Event::COLLECTION && empty($value["organizerType"]))
                                 $value["organizerType"] = Event::NO_ORGANISER;
                             
+                            if(!empty($value["organizerId"])){
+
+                                $eltSimple = Element::getElementSimpleById($value["organizerId"], @$value["organizerType"]);
+                                if(empty($eltSimple)){
+                                    unset($value["organizerId"]);
+                                    if(!empty($value["organizerType"])) 
+                                        $value["organizerType"] = Event::NO_ORGANISER;
+                                }
+
+                            }
+
                             $element = array();
                             $res = Element::save($value);
                             $element["name"] =  $value["name"];
