@@ -140,8 +140,8 @@ class NewImport
             }
            // var_dump($nb);
             $params = array("result"=>true,
-                            "elements"=>json_encode($elements),
-                            "elementsWarnings"=>json_encode($elementsWarnings),
+                            "elements"=>json_encode(json_decode(json_encode($elements),true)),
+                            "elementsWarnings"=>json_encode(json_decode(json_encode($elementsWarnings),true)),
                             "listEntite"=>self::createArrayList(array_merge($elements, $elementsWarnings)));
         }
         return $params;
