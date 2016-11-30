@@ -117,8 +117,8 @@ class DetailAction extends CAction {
 						$organizer["type"]=$urlType;
 					}
             		$organizer["id"] = $uid;
-            		$organizer["name"] = $organizerInfo["name"];
-            		$organizer["profilImageUrl"] = $organizerInfo["profilImageUrl"];
+            		$organizer["name"] = @$organizerInfo["name"];
+            		$organizer["profilImageUrl"] = @$organizerInfo["profilImageUrl"];
           		}
 		  		$params["organizer"] = $organizer;
               		

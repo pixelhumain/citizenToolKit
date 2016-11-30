@@ -644,6 +644,15 @@ class Element {
 					array_push($contextMap["organizations"], $newOrga);
 				}
 			}
+
+			if(isset($links["subEvents"])){
+				foreach ($links["subEvents"] as $keyEv => $valueEv) {
+					 $event = Event::getSimpleEventById($keyEv);
+					 if(!empty($event))
+					 	array_push($contextMap["events"], $event);
+				}
+			}
+
 			$follows = array("citoyens"=>array(),
   					"projects"=>array(),
   					"organizations"=>array(),

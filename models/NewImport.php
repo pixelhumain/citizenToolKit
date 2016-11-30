@@ -86,6 +86,7 @@ class NewImport
     public static  function previewData($post){
         $params = array("result"=>false);
         $elements = array();
+        $nb = 0 ;
         $elementsWarnings = array();
         if(!empty($post['infoCreateData']) && !empty($post['file']) && !empty($post['nameFile']) && !empty($post['typeFile'])){
             $mapping = json_decode(file_get_contents("../../modules/communecter/data/import/".Element::getControlerByCollection($post["typeElement"]).".json", FILE_USE_INCLUDE_PATH), true);
@@ -99,7 +100,8 @@ class NewImport
             }
             
             foreach ($file as $keyFile => $valueFile){
-                if(!empty($valueFile)){
+                $nb++;
+                //if(!empty($valueFile)){
                     $element = array();
                     foreach ($post['infoCreateData'] as $key => $value) {
                         $valueData = null;
@@ -134,8 +136,9 @@ class NewImport
                         $elementsWarnings[] = $element;
                     else
                         $elements[] = $element;
-                }
+                //}
             }
+           // var_dump($nb);
             $params = array("result"=>true,
                             "elements"=>json_encode($elements),
                             "elementsWarnings"=>json_encode($elementsWarnings),
@@ -410,13 +413,12 @@ class NewImport
                                 $value["role"] = "creator";
                             if($typeElement == Event::COLLECTION && empty($value["organizerType"]))
                                 $value["organizerType"] = Event::NO_ORGANISER;
-                            else
-                                $value["organizerType"] = $value["organizerType"]."s";
+                            
                             $element = array();
                             $res = Element::save($value);
                             $element["name"] =  $value["name"];
                             $element["info"] = $res["msg"];
-                            $element["type"] = Element::getControlerByCollection($typeElement) ;
+                            $element["type"] = $typeElement;
                             if(!empty($res["id"])){
                                 $element["url"] = "/#".Element::getControlerByCollection($typeElement).".detail.id.".$res["id"] ;
                                 $element["id"] = $res["id"] ;
@@ -426,7 +428,7 @@ class NewImport
                             $element["name"] = $exist["element"]["name"];
                             $element["info"] = "L'élément existes déjà";
                             $element["url"] = "/#".Element::getControlerByCollection($typeElement).".detail.id.".(String)$exist["element"]["_id"] ;
-                            $element["type"] = Element::getControlerByCollection($typeElement) ;
+                            $element["type"] = $typeElement ;
                             $element["id"] = (String)$exist["element"]["_id"] ;
                         }
                         
