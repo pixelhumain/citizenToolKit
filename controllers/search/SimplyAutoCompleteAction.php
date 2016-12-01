@@ -234,7 +234,7 @@ class SimplyAutoCompleteAction extends CAction
 				// $allOrganizations[$key] = Organization::getSimpleOrganizationById($key);
 
 				$allOrganizations[$key] = $orga;
-				$allOrganizations[$key]["type"] = "organization";
+				$allOrganizations[$key]["type"] = "organizations";
 				$allOrganizations[$key]["typeSig"] = "organizations";
 	  		}
 
