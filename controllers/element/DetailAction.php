@@ -212,6 +212,10 @@ class DetailAction extends CAction {
 		$params["needs"]=$needs;
 		$params["edit"] = Authorisation::canEditItem(Yii::app()->session["userId"], $elementAuthorizationType, $elementAuthorizationId);
 		$params["openEdition"] = Authorisation::isOpenEdition($elementAuthorizationId, $elementAuthorizationType, @$element["preferences"]);
+		if(@Yii::app()->session["network"]){
+			$params["openEdition"] = false;
+			$params["edit"] = false;
+		}
 		$params["isLinked"] = Link::isLinked($elementAuthorizationId,$elementAuthorizationType, Yii::app()->session['userId'], @$element["links"]);
 		
 		if($type==Event::COLLECTION){
