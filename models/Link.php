@@ -140,18 +140,47 @@ class Link {
         } else if ($type== Project::COLLECTION){
         	$res = Project:: getById($id);
         } else if ($type== Need::COLLECTION){
-        	$res = Need:: getById($id);
+            $res = Need:: getById($id);
+        }else if ($type == Poi::COLLECTION){
+            $res = Poi:: getById($id);
         } else if ($type== ActionRoom::COLLECTION_ACTIONS){
             $res = ActionRoom:: getActionById($id);
         } else {
 
-        	throw new CTKException("Can not manage this type of MemberOf : ".$type);
+        	throw new CTKException("Can not manage this type : ".$type);
         }
         if (empty($res)) throw new CTKException("The actor (".$id." / ".$type.") is unknown");
 
         return $res;
     }
+    
+    public static function addFavorite($targetId, $targetType){
+        
+        $person = Person::getById( Yii::app()->session["userId"] );
+        $target = Link::checkIdAndType( $targetId, $targetType );
+        $favorites=array("favorites.".$targetType.".".$targetId => new MongoDate(time()),"updated"=>time());
+        
+        $action = '$set';
+        $inc = 1;
+        $verb = "Added ".$target["name"]." to";
+        if( @$person["favorites"][$targetType][$targetId] ){
+            $action =  '$unset';
+            $inc = -1;
+            $verb = "Removed ".$target["name"]." from";
+            $favorites=array("favorites.".$targetType.".".$targetId => 1);
+        }  
 
+        PHDB::update(Person::COLLECTION, 
+                       array("_id" => new MongoId(Yii::app()->session["userId"]) ) , 
+                       array($action => $favorites));
+
+        PHDB::update($targetType, 
+                       array( "_id" => new MongoId($targetId) ) , 
+                       array( '$inc' => array( "favoriteCount" => $inc ) ) );
+            
+        return array("result"=>true,"action"=>$action, "msg"=>"$verb your Favorites with success");
+    }
+    
     /**
      * Connection between 2 class : organization, person, event, projects, places
 	 * Create a link between the 2 actors. The link will be typed as knows
@@ -315,7 +344,7 @@ class Link {
 	 */
     public static function addOrganizer($organizerId, $organizerType, $eventId, $userId) {
 		$res = array("result"=>false, "msg"=>"You can't add this event to this organization");
-		if ($organizerType=="organizations"){
+		if ($organizerType==Organization::COLLECTION){
 	   		$isUserAdmin = Authorisation::isOrganizationAdmin($userId, $organizerId);
             if($isUserAdmin != true)
                 $isUserAdmin = Authorisation::isOpenEdition($organizerId, $organizerType);
@@ -332,7 +361,7 @@ class Link {
 	   			$res = array("result"=>true, "msg"=>"The event has been added with success");
 	   		};
 	   	}
-	   	else if ($organizerType=="projects"){
+	   	else if ($organizerType==Project::COLLECTION){
 		   	$isUserAdmin = Authorisation::isProjectAdmin($organizerId,$userId);
             if($isUserAdmin != true)
                 $isUserAdmin = Authorisation::isOpenEdition($organizerId, $organizerType);

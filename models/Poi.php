@@ -91,7 +91,8 @@ class Poi {
 		  	$poi["typeSig"] = self::COLLECTION.".".$poi["type"];
 	  	else
 		  	$poi["typeSig"] = self::COLLECTION;
-	  	$poi = array_merge($poi, Document::retrieveAllImagesUrl($id, self::COLLECTION, $poi["type"], $poi));
+		if(@$poi["type"])
+	  		$poi = array_merge($poi, Document::retrieveAllImagesUrl($id, self::COLLECTION, $poi["type"], $poi));
 
 	  	return $poi;
 	}
