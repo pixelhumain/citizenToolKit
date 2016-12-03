@@ -4,9 +4,9 @@ class AddDataInDbAction extends CAction
     public function run(){
     	
     	$controller=$this->getController();
-    	$array = Import::addDataInDb($_POST, $controller->moduleId);
+    	$result = NewImport::addDataInDb($_POST);
     	
-    	Rest::json( $array );
+    	Rest::json( $result );
         Yii::app()->end();
     }
 }

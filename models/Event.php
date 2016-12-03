@@ -421,6 +421,10 @@ class Event {
 	    	$params["organizerId"] = Yii::app()->session['userId'];
 	    }
 
+
+	    
+
+
 	    //if it's a subevent, add the organiser to the parent user Organiser list 
     	//ajouter le nouveau sub user dans organiser ?
     	if( @$params["parentId"] )

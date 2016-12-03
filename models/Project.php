@@ -249,11 +249,7 @@ class Project {
 	 * @return array as result type
 	 */
 	public static function insert($params, $parentId,$parentType){
-		//var_dump($params);
-		//var_dump("-------------------------------------------");
 	    $newProject = self::getAndCheckProject($params, Yii::app() -> session["userId"]);
-	    //var_dump($newProject);
-	    //var_dump("-------------------------------------------");
 	    if (isset($newProject["tags"]))
 			$newProject["tags"] = Tags::filterAndSaveNewTags($newProject["tags"]);
 
@@ -261,11 +257,7 @@ class Project {
 			$newProject["preferences"] = array("publicFields" => array(), "privateFields" => array(), "isOpenData" => true, "isOpenEdition" => true);
 		}
 		$newProject["updated"] = time();
-		//var_dump($newProject);
-	    //var_dump("-------------------------------------------");
 	    PHDB::insert(self::COLLECTION,$newProject);
-	    var_dump($newProject);
-	    var_dump("-------------------------------------------");
 
 	    Badge::addAndUpdateBadges("opendata",(String)$newProject["_id"], Project::COLLECTION);
 		Link::addContributor(Yii::app() -> session["userId"],Person::COLLECTION,$parentId,$parentType,$newProject["_id"]);

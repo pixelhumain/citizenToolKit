@@ -315,7 +315,7 @@ class Link {
 	 */
     public static function addOrganizer($organizerId, $organizerType, $eventId, $userId) {
 		$res = array("result"=>false, "msg"=>"You can't add this event to this organization");
-		if ($organizerType=="organizations"){
+		if ($organizerType==Organization::COLLECTION){
 	   		$isUserAdmin = Authorisation::isOrganizationAdmin($userId, $organizerId);
             if($isUserAdmin != true)
                 $isUserAdmin = Authorisation::isOpenEdition($organizerId, $organizerType);
@@ -332,7 +332,7 @@ class Link {
 	   			$res = array("result"=>true, "msg"=>"The event has been added with success");
 	   		};
 	   	}
-	   	else if ($organizerType=="projects"){
+	   	else if ($organizerType==Project::COLLECTION){
 		   	$isUserAdmin = Authorisation::isProjectAdmin($organizerId,$userId);
             if($isUserAdmin != true)
                 $isUserAdmin = Authorisation::isOpenEdition($organizerId, $organizerType);
