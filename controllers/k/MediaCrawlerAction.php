@@ -33,7 +33,7 @@ class MediaCrawlerAction extends CAction
 
 		if($mapExtract == false) return "SOURCE NOT FOUND : ".$src." - ".$urlKey;
 			
-		foreach($html->find($mapExtract["urls"]) as $url) {
+		foreach($mapExtract["urls"] as $url) {
 		
 			$html = file_get_html($url);
 			//echo $html; exit;
@@ -138,7 +138,7 @@ class MediaCrawlerAction extends CAction
     									  ),
 
     								"EMISSION" => 
-    								array("url" => "http://www.nci.nc/category/emissions/",
+    								array("urls" =>  array("url" => "http://www.nci.nc/category/emissions/"),
     									  "elementUK" => ".cactus-post-item",
     									  "href" => ".picture .picture-content a",
     									  "img" => ".picture .picture-content a img",
@@ -150,7 +150,7 @@ class MediaCrawlerAction extends CAction
     							),
     					"NC1" => 
     						array( "NC" => 
-    								array("url" => "http://la1ere.francetvinfo.fr/nouvellecaledonie/",
+    								array("urls" =>  array("url" => "http://la1ere.francetvinfo.fr/nouvellecaledonie/"),
     									  "elementUK" => ".block-fr3-content",
     									  "href" => ".content .image a",
     									  "img" => ".content .image a img",
@@ -165,7 +165,7 @@ class MediaCrawlerAction extends CAction
     									  ),
 
     								"YOUTUBE" => 
-    								array("url" => "https://www.youtube.com/channel/UCu1v8ajo9Z-ZLBlR-QPmyCQ/videos",
+    								array("urls" =>  array("url" => "https://www.youtube.com/channel/UCu1v8ajo9Z-ZLBlR-QPmyCQ/videos"),
     									  "elementUK" => ".channels-content-item",
     									  "href" => ".yt-lockup-content a",
     									  "img" => "",
@@ -180,7 +180,7 @@ class MediaCrawlerAction extends CAction
     							),
     					"CALEDOSPHERE" => 
     						array( "FEED" => 
-    								array("url" => "https://caledosphere.com/flux-des-articles/",
+    								array("urls" =>  array("url" => "https://caledosphere.com/flux-des-articles/"),
     									  "elementUK" => ".post_header",
     									  "href" => ".post_img a",
     									  "img" => ".post_img a img",
@@ -192,7 +192,7 @@ class MediaCrawlerAction extends CAction
     							),
     					"NCTV" => 
     						array( "YOUTUBE" => 
-    								array("url" => "https://www.youtube.fr/channel/UCdX2FGu9cQ0HwKRnymkulcw/videos",
+    								array("urls" =>  array("url" => "https://www.youtube.fr/channel/UCdX2FGu9cQ0HwKRnymkulcw/videos"),
     									  "elementUK" => ".channels-content-item",
     									  "href" => ".yt-lockup-content a",
     									  "img" => "",
