@@ -25,7 +25,7 @@ class WebSearchAction extends CAction
     	if(!isset($_POST["category"]) && !isset($_POST["search"]))
     		$query = array();
 
-    	$siteurls = PHDB::findAndSort("siteurl", $query, array("nbClick"=>-1));
+    	$siteurls = PHDB::findAndSort("url", $query, array("nbClick"=>-1));
     	foreach ($siteurls as $key => $siteurl) {
     		$siteurls[$key]["typeSig"] = "siteurl";
     	}
