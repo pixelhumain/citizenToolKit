@@ -306,7 +306,7 @@ class Link {
 		return $res;
 	}
     /**
-	 * Add a organization to an event
+	 * Add a organizer to an event
 	 * Create a link between the 2 actors. The link will be typed event and organizer
 	 * @param type $organizerId The Id (organization) where an event will be linked. 
 	 * @param type $eventId The Id (event) where an organization will be linked. 
@@ -362,6 +362,55 @@ class Link {
 	   	}
    		return $res;
    	}
+
+    public static function removeOrganizer($organizerId, $organizerType, $eventId, $userId) {
+        $res = array("result"=>false, "msg"=>"You can't remove this event to this organization");
+        if ($organizerType==Organization::COLLECTION){
+            $isUserAdmin = Authorisation::isOrganizationAdmin($userId, $organizerId);
+            if($isUserAdmin != true)
+                $isUserAdmin = Authorisation::isOpenEdition($organizerId, $organizerType);
+
+            if($isUserAdmin){
+                PHDB::update(Organization::COLLECTION,
+                            array("_id" => new MongoId($organizerId)),
+                            array('$unset' => array("links.events.".$eventId))
+                );
+                PHDB::update(PHType::TYPE_EVENTS,
+                            array("_id"=>new MongoId($eventId)),
+                            array('$unset'=> array("links.organizer.".$organizerId))
+                );
+                $res = array("result"=>true, "msg"=>"The organizer has been removed with success");
+            };
+        } else if ($organizerType==Project::COLLECTION){
+            $isUserAdmin = Authorisation::isProjectAdmin($organizerId,$userId);
+            if($isUserAdmin != true)
+                $isUserAdmin = Authorisation::isOpenEdition($organizerId, $organizerType);
+            if($isUserAdmin){
+                PHDB::update(Project::COLLECTION,
+                            array("_id" => new MongoId($organizerId)),
+                            array('$unset' => array("links.events.".$eventId))
+                );
+                PHDB::update(Event::COLLECTION,
+                            array("_id"=>new MongoId($eventId)),
+                            array('$unset'=> array("links.organizer.".$organizerId))
+                );
+                $res = array("result"=>true, "msg"=>"The organizer has been removed with success");
+            };
+        }
+        else {
+            PHDB::update(Person::COLLECTION,
+                            array("_id" => new MongoId($organizerId)),
+                            array('$unset' => array("links.events.".$eventId))
+                );
+            PHDB::update(Event::COLLECTION,
+                        array("_id"=>new MongoId($eventId)),
+                        array('$unset'=> array("links.organizer.".$organizerId))
+            );
+            $res = array("result"=>true, "msg"=>"The organizer has been removed with success");
+
+        }
+        return $res;
+    }
 
     /**
 	* Link a person to an event when an event is create

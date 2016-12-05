@@ -429,6 +429,12 @@ class Element {
 			$dt = DataValidator::getDateTimeFromString($fieldValue, $dataFieldName);
 			$newMongoDate = new MongoDate($dt->getTimestamp());
 			$set = array($dataFieldName => $newMongoDate);
+		} else if ($dataFieldName == "organizer") {
+			$set = array("organizerId" => $fieldValue["organizerId"], 
+							 "organizerType" => $fieldValue["organizerType"]);
+			$element = Element::getElementById($id, $collection);
+			//Link::removeOrganizer($element["organizerId"], $element["organizerType"], $id, Yii::app()->session["userId"]);
+			Link::addOrganizer($fieldValue["organizerId"], $fieldValue["organizerType"], $id, Yii::app()->session["userId"]);
 		} else if ($dataFieldName == "seePreferences") {
 			//var_dump($fieldValue);
 			if($fieldValue == "false"){
