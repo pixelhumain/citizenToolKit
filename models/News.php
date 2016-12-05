@@ -340,11 +340,10 @@ class News {
     	$ext = strtolower(pathinfo($urlImage, PATHINFO_EXTENSION));
     	if(empty($ext))
     		$ext="png";
-    	/*if(strstr($ext,"?") || strstr($ext,"?")){
-    		$ext = preg_split( "/ (?|&) /", $ext );
-    		print_r($ext);
+    	if(strstr($ext,"?")){
+    		$ext = explode( "?", $ext );
     		$ext = $ext[0];
-    	}*/
+    	}
 		$dir=Yii::app()->params['defaultController'];
 		$folder="news";
 		$upload_dir = Yii::app()->params['uploadUrl'].$dir.'/'.$folder; 
