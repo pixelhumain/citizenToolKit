@@ -436,34 +436,43 @@ class SIG
 
     // Nominatim
     public static function getLocalityByLatLonNominatim($lat, $lon){
-        $url = "http://nominatim.openstreetmap.org/reverse?format=json&lat=".$lat."&lon=".$lon."&zoom=18&addressdetails=1" ;
-        return file_get_contents($url);
-        //return self::getUrl($url);
+    	try{
+			$url = "http://nominatim.openstreetmap.org/reverse?format=json&lat=".$lat."&lon=".$lon."&zoom=18&addressdetails=1" ;
+        	$res =  file_get_contents($url);
+	        return $res;
+        }catch (CTKException $e){
+            return null ;
+        }
     }
 
 
     public static function getGeoByAddressNominatim($street = null, $cp = null, $city = null, $country = null, $polygon_geojson = null){
-        $url = "http://nominatim.openstreetmap.org/search?format=json&addressdetails=1" ;
-        if(!empty($street))
-            $url .= "&street=".str_replace(" ", "+", $street);
-        
-        if(!empty($cp)){
-            $url .= "&postalcode=".$cp;
-        }
-            
-        if(!empty($city)){
-            $url .= "&city=".str_replace(" ", "+", $city);
-        }
+        try{
+	        $url = "http://nominatim.openstreetmap.org/search?format=json&addressdetails=1" ;
+	        if(!empty($street))
+	            $url .= "&street=".str_replace(" ", "+", $street);
+	        
+	        if(!empty($cp)){
+	            $url .= "&postalcode=".str_replace(" ", "+", $cp);
+	        }
+	            
+	        if(!empty($city)){
+	            $url .= "&city=".str_replace(" ", "+", $city);
+	        }
 
-        if(!empty($country))
-            $url .= "&countrycodes=".self::changeCountryForNominatim($country);
+	        if(!empty($country))
+	            $url .= "&countrycodes=".self::changeCountryForNominatim($country);
 
-        if(!empty($polygon_geojson)){
-            $url .= "&polygon_geojson=1";
+	        if(!empty($polygon_geojson)){
+	            $url .= "&polygon_geojson=1";
+	        }
+	        //var_dump($url);
+	        $res =  file_get_contents($url);
+	        return $res;
+			//return self::getUrl($url);
+		}catch (CTKException $e){
+            return null ;
         }
-        //var_dump($url);
-        return file_get_contents($url);
-		//return self::getUrl($url);
     }
 
     public static function changeCountryForNominatim($country){
@@ -473,54 +482,76 @@ class SIG
 				$country = $key ;
 		}
 		return $country ;
+
 	}
 
     // GoogleMap
     public static function getGeoByAddressGoogleMap($street = null, $cp = null, $city = null, $country = null, $polygon_geojson = null){
-        $url = "https://maps.googleapis.com/maps/api/geocode/json?address=" ;
+        try{
+	        $url = "https://maps.googleapis.com/maps/api/geocode/json?address=" ;
 
-        if(!empty($street))
-            $url .= str_replace(" ", "+", $street);
-        if(!empty($cp)){
-            if(!empty($street))
-                $url .= "+".$cp;
-            else
-                $url .= $cp;
+	        
+	        
+	        if(!empty($street)){
+	            $url .= str_replace(" ", "+", $street);
+	            //$url .= "&components=route:".str_replace(" ", "+", $street);
+	        }
+	        if(!empty($cp)){
+	            if(!empty($street))
+	            	$url .= "+".str_replace(" ", "+", $cp);
+	                //$url .= "|postal_code:".str_replace(" ", "+", $cp);
+	            else
+	            	$url .= str_replace(" ", "+", $cp);
+	            	//$url .= "&components=postal_code:".str_replace(" ", "+", $cp);
+	        }
+	        if(!empty($city)){
+	            $url .= "+".str_replace(" ", "+", $city);
+	        }
+	        if(!empty($country)){
+	        	$url .= "&components=country:".str_replace(" ", "+", $country);
+	        }
+	        $url .= "&key=".Yii::app()->params['google']['keyMaps'] ;
+	        var_dump($url);
+	        $res =  file_get_contents($url);
+	        return $res;
+	        //return self::getUrl($url) ;
+        }catch (CTKException $e){
+            return null ;
         }
-        if(!empty($city)){
-            $url .= "+".str_replace(" ", "+", $city);
-        }
-        if(!empty($country)){
-            $url .= "+".$country;
-        }
-        $url .= "&key=".Yii::app()->params['google']['keyMaps'] ;
-        //var_dump($url);
-        return file_get_contents($url);
-        //return self::getUrl($url) ;
     }
 
     // DataGouv
     public static function getGeoByAddressDataGouv($street = null, $cp = null, $city = null, $polygon_geojson = null){
-        $url = "http://api-adresse.data.gouv.fr/search/?q=" ;
-        if(!empty($street))
-            $url .= str_replace(" ", "+", $street);
-        
-        if(!empty($city)){
-            $url .= "+".str_replace(" ", "+", $city);
-        }
+	    try{
+	        $url = "http://api-adresse.data.gouv.fr/search/?q=" ;
+	        if(!empty($street))
+	            $url .= str_replace(" ", "+", $street);
+	        
+	        if(!empty($city)){
+	            $url .= "+".str_replace(" ", "+", $city);
+	        }
 
-        if(!empty($cp)){
-            $url .= "&postcode=".$cp;
+	        if(!empty($cp)){
+	            $url .= "&postcode=".str_replace(" ", "+", $cp);
+	        }
+	        $url .= "&type=street";
+	        //var_dump($url);
+	        $res =  file_get_contents($url);
+	        return $res;
+	        //return self::getUrl($url) ;
+        }catch (CTKException $e){
+            return null ;
         }
-        $url .= "&type=street";
-        //var_dump($url);
-        return file_get_contents($url);
-        //return self::getUrl($url) ;
     }
 
     public static function getLocalityByLatLonDataGouv($lat, $lon){
-        $url = "http://api-adresse.data.gouv.fr/reverse/?lon=".$lon."&lat=".$lat."&zoom=18&addressdetails=1" ;
-        return file_get_contents($url);
+    	try{
+	        $url = "http://api-adresse.data.gouv.fr/reverse/?lon=".$lon."&lat=".$lat."&zoom=18&addressdetails=1" ;
+	        $res =  file_get_contents($url);
+	        return $res;
+        }catch (CTKException $e){
+            return null ;
+        }
     }
 
     public static function getUrl($url){
@@ -532,7 +563,6 @@ class SIG
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
         $result = curl_exec($ch);
         curl_close($ch);
-        //var_dump($result);
         return $result ;
     }
 
