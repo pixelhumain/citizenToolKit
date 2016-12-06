@@ -65,6 +65,7 @@ class Organization {
 	    "creator" => array("name" => "creator"),
 	    "created" => array("name" => "created"),
 	    "locality" => array("name" => "address"),
+	    "contacts" => array("name" => "contacts"),
 	);
 	
 	//See findOrganizationByCriterias...

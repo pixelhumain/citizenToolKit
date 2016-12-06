@@ -2,7 +2,7 @@
 /*
     
  */
-class Import
+class ImportOld
 { 
     const MICROFORMATS = "microformats";
     const ORGANIZATIONS = "organizations";

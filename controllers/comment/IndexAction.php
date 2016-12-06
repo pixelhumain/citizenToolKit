@@ -88,6 +88,8 @@ class IndexAction extends CAction
             $params["parentId"] = $actionRoom["parentId"];
         } else if($type == Need::COLLECTION) {
             $params["context"] = Need::getById($id);
+        } else if($type == Media::COLLECTION) {
+            $params["context"] = Media::getById($id);
         } else {
         	throw new CTKException("Error : the type is unknown ".$type);
         }
