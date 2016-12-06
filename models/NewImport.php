@@ -525,6 +525,62 @@ class NewImport
         echo $erreur ;
         echo "<br><br>---------------------<br><br>";
         echo $bon ;
+    } 
+
+
+
+
+    public static  function setWikiDataID($post){        
+        if($post['typeFile'] == "csv"){
+            $file = $post['file'];
+            //$headFile = $file[0];
+            unset($file[0]);
+        }
+
+        $bon = "";
+        $erreur = "";
+        $nb = 0;
+        $elements = array();
+        $elementsWarnings = array();
+        foreach ($file as $keyFile => $valueFile){
+
+            if( !empty($valueFile) && !empty($valueFile[0]) && isset($valueFile[2]) ){
+                
+                $insee = $valueFile[2];
+                $split = explode("http://www.wikidata.org/entity/", $valueFile[0]) ;
+                $wikidataID = $split[count($split)-1];
+                
+
+                $where = array("insee" => $insee);
+                $city = PHDB::find(City::COLLECTION, $where);
+                if(!empty($city)){
+                    foreach ($city as $key => $value) {
+                        $value["modifiedByBatch"][] = array("setWikiDataID" => new MongoDate(time()));
+
+                        $res = PHDB::update( City::COLLECTION, 
+                                    array("_id"=>new MongoId($key)),
+                                    array('$set' => array(  "wikidataID" => $wikidataID,
+                                                            "modifiedByBatch" => $value["modifiedByBatch"])));
+                        $good = array();
+                        $good["insee"] = $insee ;
+                        $good["wikidataID"] = $wikidataID ;
+                        $elements[] =  $good;
+                    }
+                    
+                }else{
+                    $error = array();
+                    $error["insee"] = $insee ;
+                    $error["wikidataID"] = $wikidataID ;
+                    $elementsWarnings[] =  $error;
+                } 
+            }
+        }
+       // var_dump($elements);
+        $params = array("result"=>true,
+                            "elements"=>json_encode($elements),
+                            "elementsWarnings"=>json_encode($elementsWarnings),
+                            "listEntite"=>array());
+        return $params ;
     }  
 }
 
