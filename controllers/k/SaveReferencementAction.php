@@ -18,7 +18,7 @@ class SaveReferencementAction extends CAction
 		$result = array("status"=> "error");
 
 		$query = array("url"=>@$_POST["url"]);
-        $siteurl = PHDB::findOne("siteurl", $query);
+        $siteurl = PHDB::findOne("url", $query);
 
         if(!isset($siteurl["_id"])){
 
@@ -39,7 +39,7 @@ class SaveReferencementAction extends CAction
 		                        "status" 		=> $status,
 		                        "dateRef"		=> new MongoDate(time()),
 		                        "nbClick"		=> 0,
-		                        "typeSig"		=> "siteurl"
+		                        "typeSig"		=> "url"
 	    						);
 
 	    	if($address != false) 		$newSiteurl["address"] = $address;
@@ -47,7 +47,7 @@ class SaveReferencementAction extends CAction
 			if($geoPosition != false) 	$newSiteurl["geoPosition"] = $geoPosition;
 
 	    	if($newRefValide)
-	    		PHDB::insert("siteurl", $newSiteurl);
+	    		PHDB::insert("url", $newSiteurl);
 
 	    	$result = array("valid"=> $newRefValide);
 	    
