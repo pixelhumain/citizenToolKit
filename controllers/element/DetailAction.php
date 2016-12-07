@@ -233,6 +233,10 @@ class DetailAction extends CAction {
 		}
 		
 		$page = "detail";
+
+		if(isset($_GET["tpl"]) && $_GET["tpl"] == "kgougle")
+				$page = "onepage";
+			
 		if(Yii::app()->request->isAjaxRequest)
           echo $controller->renderPartial($page,$params,true);
         else 
