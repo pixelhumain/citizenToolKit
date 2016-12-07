@@ -432,9 +432,17 @@ class Element {
 		} else if ($dataFieldName == "organizer") {
 			$set = array("organizerId" => $fieldValue["organizerId"], 
 							 "organizerType" => $fieldValue["organizerType"]);
+			//get element and remove current organizer
 			$element = Element::getElementById($id, $collection);
-			//Link::removeOrganizer($element["organizerId"], $element["organizerType"], $id, Yii::app()->session["userId"]);
-			Link::addOrganizer($fieldValue["organizerId"], $fieldValue["organizerType"], $id, Yii::app()->session["userId"]);
+			$oldOrganizerId = @$element["organizerId"] ? $element["organizerId"] : key($element["links"]["organizer"]);
+			$oldOrganizerType = @$element["organizerType"] ? $element["organizerType"] : $element["links"]["organizer"][$oldOrganizerId]["type"];
+			//remove the old organizer
+			$res = Link::removeOrganizer($oldOrganizerId, $oldOrganizerType, $id, Yii::app()->session["userId"]);
+			if (! @$res["result"]) throw new CTKException(@$res["msg"]);
+			//add new organizer
+			$res = Link::addOrganizer($fieldValue["organizerId"], $fieldValue["organizerType"], $id, Yii::app()->session["userId"]);
+			if (! @$res["result"]) throw new CTKException(@$res["msg"]);
+
 		} else if ($dataFieldName == "seePreferences") {
 			//var_dump($fieldValue);
 			if($fieldValue == "false"){
