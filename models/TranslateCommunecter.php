@@ -4,6 +4,23 @@ class TranslateCommunecter {
 
 	----------------- COMMUNECTER ----------------- 
 */
+	
+
+	public static $dataBinding_allPerson = array(
+		"@type"		=> "Person",
+	    "name" 		=> array("valueOf" => "name"),
+	    "url" 	=> array("valueOf" => array(
+	    					"website" 		=> array(	"valueOf" => 'url'),
+							"communecter" 	=> array(	"valueOf" => '_id.$id',
+									   						"type" 	=> "url", 
+															"prefix"   => "/#person.detail.id.",
+															"suffix"   => ""),
+						    "api" 			=> array(	"valueOf"  	=> '_id.$id', 
+															"type" 	=> "url", 
+															"prefix"   => "/api/person/get/id/",
+															"suffix"   => "" )))
+	);
+
 	public static $dataBinding_person = array(
 		"@type"		=> "Person",
 	    "name" 		=> array("valueOf" => "name"),
@@ -150,9 +167,26 @@ class TranslateCommunecter {
 								))
 	);
 
+	public static $dataBinding_allOrganization  = array(
+		"@type"		=> "Organization",
+	    "name" 		=> array("valueOf" => "name"),
+	    "typeCommunecter" 		=> array("valueOf" => "type"),
+	    "image"		=> array("valueOf" => "image",
+							 "type" 	=> "url"),
+	    "url" 		=> array("valueOf" => array(
+								"communecter" 	=> array(	"valueOf" => '_id.$id',
+										   						"type" 	=> "url", 
+																"prefix"   => "/#organization.detail.id.",
+																"suffix"   => ""),
+							    "api" 			=> array(	"valueOf"  	=> '_id.$id', 
+																"type" 	=> "url", 
+																"prefix"   => "/api/organization/get/id/",
+																"suffix"   => "" ),
+	    						"website" 		=> array(	"valueOf" => 'url'))),
+	);
+
 	public static $dataBinding_organization = array(
 		"@type"		=> "Organization",
-		
 	    "name" 		=> array("valueOf" => "name"),
 	    "typeCommunecter" 		=> array("valueOf" => "type"),
 	    "image"		=> array("valueOf" => "image",
@@ -362,10 +396,26 @@ class TranslateCommunecter {
 				 					)),
 	);
 
+	public static $dataBinding_allEvent  = array(
+		"@type"		=> "Event",
+	    "name" 		=> array("valueOf" => "name"),
+	    "typeCommunecter" 		=> array("valueOf" => "type"),
+	    "image"		=> array("valueOf" => "image",
+							 "type" 	=> "url"),
+	    "url" 		=> array("valueOf" => array(
+								"communecter" 	=> array(	"valueOf" => '_id.$id',
+										   						"type" 	=> "url", 
+																"prefix"   => "/#event.detail.id.",
+																"suffix"   => ""),
+							    "api" 			=> array(	"valueOf"  	=> '_id.$id', 
+																"type" 	=> "url", 
+																"prefix"   => "/api/event/get/id/",
+																"suffix"   => "" ),
+	    						"website" 		=> array(	"valueOf" => 'url')))
+	);
 
 	public static $dataBinding_event = array(
 		"@type"		=> "Event",
-		
 	    "name" 		=> array("valueOf" => "name"),
 	    "typeCommunecter" 		=> array("valueOf" => "type"),
 	    "image"		=> array("valueOf" => "image",
@@ -495,11 +545,27 @@ class TranslateCommunecter {
 								))
 	);
 
+	public static $dataBinding_allProject  = array(
+		"@type"		=> "Project",
+	    "name" 		=> array("valueOf" => "name"),
+	    "image"		=> array("valueOf" => "image",
+							 "type" 	=> "url"),
+	    "url" 		=> array("valueOf" => array(
+		    					
+								"communecter" 	=> array(	"valueOf" => '_id.$id',
+										   						"type" 	=> "url", 
+																"prefix"   => "/#project.detail.id.",
+																"suffix"   => ""),
+							    "api" 			=> array(	"valueOf"  	=> '_id.$id', 
+																"type" 	=> "url", 
+																"prefix"   => "/api/project/get/id/",
+																"suffix"   => "" ),
+							    "website" 		=> array(	"valueOf" => 'url'))),
+	);
+
 	public static $dataBinding_project = array(
 		"@type"		=> "Project",
-		
 	    "name" 		=> array("valueOf" => "name"),
-	    "typeCommunecter" 		=> array("valueOf" => "type"),
 	    "image"		=> array("valueOf" => "image",
 							 "type" 	=> "url"),
 	    "url" 		=> array("valueOf" => array(
