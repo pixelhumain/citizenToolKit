@@ -36,16 +36,18 @@ class Survey
                         || @$survey["voteDownCount"] ) ? true : false;
 
         //the survey has vote. Only can modify the endDate field
-        if ($hasVote && $fieldName == "dateEnd") {
-            //If the endDate is modified after votes, the new end date should be after the previous
-            //Surveys can be only delayed
-        	if (@$survey["dateEnd"] > strtotime($fieldValue)) {
-        		$res = array("result" => false, "msg" => Yii::t("survey","The end date can only be delayed after votes have been done."));
-        		return $res;
+        if ($hasVote) {
+        	if ($fieldName == "dateEnd") {
+	            //If the endDate is modified after votes, the new end date should be after the previous
+	            //Surveys can be only delayed
+	        	if (@$survey["dateEnd"] > strtotime($fieldValue)) {
+	        		$res = array("result" => false, "msg" => Yii::t("survey","The end date can only be delayed after votes have been done."));
+	        		return $res;
+	        	}
+        	} else {
+	        	$res = array("result" => false, "msg" => Yii::t("survey","Can not update the survey after votes have been done."));
+	        	return $res;
         	}
-        } else {
-        	$res = array("result" => false, "msg" => Yii::t("survey","Can not update the survey after votes have been done."));
-        	return $res;
         }
 
         return $res;
@@ -277,11 +279,11 @@ class Survey
 		$colorTxt = ($color=="white") ? "black" : $color;
 		$colXS = ($color=="white") ? "col-xs-12" : "col-xs-6";
 
-		$tooltips = array("green"=>"Je suis favorable à cette proposition",
-						"blue"=>"Je pense que cette proposition n'est pas complète",
-						"white"=>"Je n'ai pas d'avis",
-						"purple"=>"Je n'ai pas compris, il manque des informations",
-						"red"=>"Je suis contre à cette proposition",
+		$tooltips = array("green"=>Yii::t("common","I am in favor of this proposal"),
+						"blue"=>Yii::t("common","I think that this proposal is not complete"),
+						"white"=>Yii::t("common","I have not reviews"),
+						"purple"=>Yii::t("common","I don't understand, it miss informations"),
+						"red"=>Yii::t("common","I am not in favor of this proposal"),
 						);
 		
 		$tooltip = $tooltips[$color];

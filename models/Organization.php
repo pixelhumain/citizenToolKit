@@ -22,11 +22,11 @@ class Organization {
 	); 
 
 	//From Post/Form name to database field name
-	//TODO : remove name
+	//TODO : remove name   
 	public static $dataBinding = array(
 	    "name" => array("name" => "name", "rules" => array("required", "organizationSameName")),
 	    "email" => array("name" => "email", "rules" => array("email")),
-	    "type" => array("name" => "type"),
+	    "type" => array("name" => "type", "rules" => array("typeOrganization")),
 	    "shortDescription" => array("name" => "shortDescription"),
 	    "description" => array("name" => "description"),
 	    "category" => array("name" => "category"),
@@ -49,7 +49,6 @@ class Organization {
 	    "fax" => array("name" => "telephone.fax"),
 	    "modules" => array("name" => "modules"),
 	    "preferences" => array("name" => "preferences"),
-	    //"mobile" => array("name" => "telephone.mobile"),
 	    "video" => array("name" => "video"),
 	    "state" => array("name" => "state"),
 	    "warnings" => array("name" => "warnings"),
@@ -57,16 +56,16 @@ class Organization {
 	    "urlTwitter" => array("name" => "urlTwitter"),
 	    "isOpenData" => array("name" => "isOpenData"),
 	    "badges" => array("name" => "badges"),
+		"source" => array("name" => "source", "rules" => array("source")),
 	    "role" => array("name" => "role"),
 	    "medias" => array("name" => "medias"),
 	    "urls" => array("name" => "urls"),
-
 	    "modified" => array("name" => "modified"),
 	    "updated" => array("name" => "updated"),
 	    "creator" => array("name" => "creator"),
 	    "created" => array("name" => "created"),
-
 	    "locality" => array("name" => "address"),
+	    "contacts" => array("name" => "contacts"),
 	);
 	
 	//See findOrganizationByCriterias...
@@ -178,7 +177,9 @@ class Organization {
 	 * @param String $adminId : can be ommited. user id representing the administrator of the organization
 	 * @return array result as an array. 
 	 */
-	public static function afterSave($organization, $creatorId,$paramLinkImport=null) {
+
+	public static function afterSave($organization, $creatorId,$paramsImport=null) {
+
 	    $newOrganizationId = (string)$organization['_id'];
 		Badge::addAndUpdateBadges("opendata", $newOrganizationId, Organization::COLLECTION);
 		
@@ -196,6 +197,7 @@ class Organization {
 		}
 		unset($organization["role"]);
 		
+		
 		if ($isToLink) {
 			//Create link in both entity person and organization 
 			Link::connect($newOrganizationId, Organization::COLLECTION, $memberId, Person::COLLECTION, $creatorId,"members",$isAdmin);
@@ -203,24 +205,55 @@ class Organization {
 		   // Link::addMember($newOrganizationId, Organization::COLLECTION, $memberId, Person::COLLECTION, $creatorId, $isAdmin);
 		}
 
-		if (@$paramLinkImport) {
-			$idLink = $paramLinkImport["idLink"];
-			$typeLink = $paramLinkImport["typeLink"];
-			if (@$paramLinkImport["role"] == "admin"){
-				$isAdmin = true;
-			}else{
-				$isAdmin = false;
+		if (@$paramsImport) {
+			if(!empty($paramsImport["link"])){
+				$idLink = $paramsImport["link"]["idLink"];
+				$typeLink = $paramsImport["link"]["typeLink"];
+				if (@$paramsImport["link"]["role"] == "admin"){
+					$isAdmin = true;
+				}else{
+					$isAdmin = false;
+				}
+
+				if($typeLink == Organization::COLLECTION){
+					Link::connect($idLink, $typeLink, $newOrganizationId, self::COLLECTION, $creatorId,"members", false);
+					Link::connect($newOrganizationId, self::COLLECTION, $idLink, $typeLink, $creatorId,"memberOf",false);
+				}
+				else if($typeLink == Person::COLLECTION){
+					Link::connect($newOrganizationId, self::COLLECTION, $idLink, Person::COLLECTION, $creatorId,"members",$isAdmin);
+					Link::connect($idLink, $typeLink, $newOrganizationId, self::COLLECTION, $creatorId,"memberOf",$isAdmin);
+				}
 			}
 
-			if($typeLink == Organization::COLLECTION){
-				Link::connect($idLink, $typeLink, $newOrganizationId, self::COLLECTION, $creatorId,"members", false);
-				Link::connect($newOrganizationId, self::COLLECTION, $idLink, $typeLink, $creatorId,"memberOf",false);
+			if(!empty($paramsImport["img"])){
+		    	try{
+		    		$paramsImg = $paramsImport["img"] ;
+					$resUpload = Document::uploadDocumentFromURL(	$paramsImg["module"], self::COLLECTION, 
+																	$newOrganizationId, "avatar", false, 
+																	$paramsImg["url"], $paramsImg["name"]);
+					if(!empty($resUpload["result"]) && $resUpload["result"] == true){
+						$params = array();
+						$params['id'] = $newOrganizationId;
+						$params['type'] = self::COLLECTION;
+						$params['moduleId'] = $paramsImg["module"];
+						$params['folder'] = self::COLLECTION."/".$newOrganizationId;
+						$params['name'] = $resUpload['name'];
+						$params['author'] = Yii::app()->session["userId"] ;
+						$params['size'] = $resUpload["size"];
+						$params["contentKey"] = "profil";
+						$resImgSave = Document::save($params);
+						if($resImgSave["result"] == false)
+							throw new CTKException("Impossible de sauvegarder l'image.");
+					}else{
+						throw new CTKException("Impossible uploader l'image.");
+					}
+				}catch (CTKException $e){
+					throw new CTKException($e);
+				}	
 			}
-			else if($typeLink == Person::COLLECTION){
-				Link::connect($newOrganizationId, self::COLLECTION, $idLink, Person::COLLECTION, $creatorId,"members",$isAdmin);
-				Link::connect($idLink, $typeLink, $newOrganizationId, self::COLLECTION, $creatorId,"memberOf",$isAdmin);
-			}
-		} 
+			
+		}
+
 	    //send Notification Email
 	    $creator = Person::getById($creatorId);
 	    //Mail::organization($creator,$organization);
@@ -511,7 +544,7 @@ class Organization {
 			$logo = Document::getLastImageByKey($id, self::COLLECTION, Document::IMG_LOGO);
 			$simpleOrganization["logoImageUrl"] = $logo;
 			
-			$simpleOrganization["address"] = empty($orga["address"]) ? array("addressLocality" => "Unknown") : $orga["address"];
+			$simpleOrganization["address"] = empty($orga["address"]) ? array("addressLocality" => Yii::t("common","Unknown Locality")) : $orga["address"];
 		}
 		return $simpleOrganization;
 	}
@@ -1413,7 +1446,25 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 	  	return self::$dataBinding;
 	}
 
+	public static function checkType($type) {
+		$type = self::translateType($type);
+		$types = array(self::TYPE_NGO, self::TYPE_BUSINESS, self::TYPE_GROUP, self::TYPE_GOV);
+		$result = (in_array($type, $types)?true:false);
+	  	return $result;
+	}
 
+	public static function translateType($type) {
+		if(trim($type) == "Association")
+			$type = self::TYPE_NGO ;
+		else if(trim($type) == "Groupe Gouvernemental")
+			$type = self::TYPE_GOV ;
+		else if(trim($type) == "Entreprise")
+			$type = self::TYPE_BUSINESS ;
+		else if(trim($type) == "Groupe")
+			$type = self::TYPE_GROUP ;
+		return $type;
+	}
+	
 
 }
 ?>

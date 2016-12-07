@@ -149,19 +149,23 @@ class Preference {
 		//$status = self::getStatusPreference($element["preferences"], $namePref);
 		$result = false;
 		
-		//mask
-		if($elementType==Person::COLLECTION && (string)$element["_id"] == $userId){
-			$result = true;
+		$eltId = ((!empty($element["_id"]))?(string)$element["_id"]: (string)$element["id"]);
+		
+		if(empty($element["preferences"])){
+			$element["preferences"] = self::getPreferencesByTypeId($eltId, $elementType) ;
 		}
-		//public
-		else if(@$element["preferences"]["publicFields"] && in_array($namePref, $element["preferences"]["publicFields"]))
+		//mask
+		if($elementType==Person::COLLECTION && $eltId == $userId){
 			$result = true;
-		//private
-		else if(@$element["preferences"]["privateFields"] && 
+		}//public
+		else if($result == false && self::isPublic($element, $namePref)){
+			$result = true;
+		}//private
+		else if( $result == false && 
+				@$element["preferences"]["privateFields"] && 
 				in_array($namePref, $element["preferences"]["privateFields"]) && 
-				($element["_id"] == $userId || Link::isLinked($element["_id"], $elementType, $userId, @$element["links"])))
+				( $eltId == $userId || Link::isLinked($eltId, $elementType, $userId, @$element["links"]) ) )
 			$result = true;
-
 		return $result;
 	}
 

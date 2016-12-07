@@ -6,9 +6,9 @@ class GetAction extends CAction
 		$controller=$this->getController();
 		// Get format
 		if( $format == Translate::FORMAT_SCHEMA)
-	        $bindMap = TranslateSchema::$dataBinding_organization;
+	        $bindMap = (empty($id)?TranslateSchema::$dataBinding_allOrganization:TranslateSchema::$dataBinding_organization);
 		else
-	        $bindMap = TranslateCommunecter::$dataBinding_organization;
+	       $bindMap = (empty($id)?TranslateCommunecter::$dataBinding_allOrganization:TranslateCommunecter::$dataBinding_organization);
 
       	$result = Api::getData($bindMap, $format, Organization::COLLECTION, $id,$limit, $index, $tags, $multiTags, $key, $insee);
 

@@ -307,10 +307,13 @@ class Element {
 						$user = Yii::app()->session["user"];
 						$user["codeInsee"] = $address["codeInsee"];
 						$user["postalCode"] = $address["postalCode"];
-						$user["address"] = $address;
+						$user["addressCountry"] = $address["addressCountry"];
+						//$user["address"] = $address;
 						Yii::app()->session["user"] = $user;
 						Person::updateCookieCommunexion($id, $address);
 					}
+					$firstCitizen = Person::isFirstCitizen($fieldValue["address"]["codeInsee"]) ;
+
 				}else{
 					$verb = '$unset' ;
 					SIG::updateEntityGeoposition($collection, $id, null, null);
@@ -318,7 +321,8 @@ class Element {
 						$user = Yii::app()->session["user"];
 						unset($user["codeInsee"]);
 						unset($user["postalCode"]);
-						unset($user["address"]);
+						unset($user["addressCountry"]);
+						//unset($user["address"]);
 						Yii::app()->session["user"] = $user;
 						Person::updateCookieCommunexion($id, null);
 					}
@@ -428,7 +432,6 @@ class Element {
 		} else if ($dataFieldName == "seePreferences") {
 			//var_dump($fieldValue);
 			if($fieldValue == "false"){
-				//$verb = "$unset";
 				$verb = '$unset' ;
 				$set = array($dataFieldName => "");
 			}else{
@@ -438,27 +441,13 @@ class Element {
 		else
 			$set = array($dataFieldName => $fieldValue);
 
-		if(Person::COLLECTION == $collection){
-			if ( $fieldValue == "bgClass") {
-				//save to session for all page reuse
-				$user = Yii::app()->session["user"];
-				$user["bg"] = $fieldValue;
-				Yii::app()->session["user"] = $user;
-			} else if ( $fieldName == "bgUrl") {
-				//save to session for all page reuse
-				$user = Yii::app()->session["user"];
-				$user["bgUrl"] = $fieldValue;
-				Yii::app()->session["user"] = $user;
-			} 
+		if ($verb == '$set') {
+			$set["modified"] = new MongoDate(time());
+			$set["updated"] = time();
 		} else {
-			if ($verb == '$set') {
-				$set["modified"] = new MongoDate(time());
-				$set["updated"] = time();
-			} else {
-				$setModified = array();
-				$setModified["modified"] = new MongoDate(time());
-				$setModified["updated"] = time();
-			}
+			$setModified = array();
+			$setModified["modified"] = new MongoDate(time());
+			$setModified["updated"] = time();
 		}
 		
 		//Manage dateEnd field for survey
@@ -503,6 +492,9 @@ class Element {
 				ActivityStream::saveActivityHistory($verbActivity, $id, $collection, $dataFieldName, $fieldValue);
 			}
 			$res = array("result"=>true,"msg"=>Yii::t(Element::getControlerByCollection($collection),"The ".Element::getControlerByCollection($collection)." has been updated"));
+
+			if(isset($firstCitizen))
+				$res["firstCitizen"] = $firstCitizen ;
 		}else{
 			throw new CTKException("Can not update the element!");
 		}
@@ -560,11 +552,15 @@ class Element {
 			$elt = Event::getSimpleEventById($id);
 			array_push($contextMap["events"], $elt);
 		}
-		else if ($type == Person::COLLECTION)
+		else if ($type == Person::COLLECTION){
 			$connectAs="knows";
-
+			$elt = Person::getSimpleUserById($id);
+			array_push($contextMap["people"], $elt);
+		}
 	    
-		if(!empty($links)){
+		if(!empty($links) && 
+			( (Preference::showPreference($elt, $type, "directory", Yii::app()->session["userId"]) && $type == Person::COLLECTION) || 
+			$type != Person::COLLECTION) ) {
 			if(isset($links[$connectAs])){
 				foreach ($links[$connectAs] as $key => $aMember) {
 					if($type==Event::COLLECTION){
@@ -648,6 +644,15 @@ class Element {
 					array_push($contextMap["organizations"], $newOrga);
 				}
 			}
+
+			if(isset($links["subEvents"])){
+				foreach ($links["subEvents"] as $keyEv => $valueEv) {
+					 $event = Event::getSimpleEventById($keyEv);
+					 if(!empty($event))
+					 	array_push($contextMap["events"], $event);
+				}
+			}
+
 			$follows = array("citoyens"=>array(),
   					"projects"=>array(),
   					"organizations"=>array(),
@@ -756,6 +761,36 @@ class Element {
             return array( "result" => false, "msg" => "For now you can only delete Points of interest" );   
         }
 
+/*<<<<<<< HEAD
+
+	public static function getWhere($type, $params) {
+		$res = null ;
+		if(in_array($type, self::TYPES))
+	  		$res = PHDB::findAndSort($type,$params,array("created"),null);
+	  	return $res ;
+	}
+
+	public static function getAllEntitiesByKey($key){
+        $result = array();
+        foreach (self::TYPES as $key => $type) {
+        	$res = self::getWhere($type, array("source.key"=>$key, "state" => "uncomplete"));
+	        foreach ($res as $key => $value) {
+	            $element = array();
+	            $element["id"] = $key;
+	            $element["name"] = $value["name"];
+	            $element["warnings"] = (empty($value["warnings"])?array():$value["warnings"]);
+	            $result[$type][] = $element;
+	        }
+        }
+		return $result ;
+    }
+
+
+	public static function save($params){
+
+        //var_dump($params);
+
+======= */
 		if ( !@$userId) {
             return array( "result" => false, "msg" => "You must be loggued to delete something" );
         }
@@ -774,13 +809,16 @@ class Element {
         $id = null;
         $data = null;
         $collection = $params["collection"];
+        
         if( !empty($params["id"]) ){
         	$id = $params["id"];
         }
         $key = $params["key"];
-		$paramsLinkImport = ( empty($params["paramsLink"] ) ? null : $params["paramsLink"]);
 
-		unset($params["paramsLink"]);
+		//$paramsImport = (empty($params["paramsImport"])?null:$params["paramsImport"]);
+		$paramsLinkImport = ( empty($params["paramsImport"] ) ? null : $params["paramsImport"]);
+
+		unset($params["paramsImport"]);
         unset($params['collection']);
         unset($params['key']);
         $params = self::prepData( $params );
@@ -845,7 +883,7 @@ class Element {
                 //post process for specific actions
                 // ***********************************
                 if( $collection == Organization::COLLECTION )
-                	$res["afterSave"] = Organization::afterSave($params, Yii::app()->session["userId"]);
+                	$res["afterSave"] = Organization::afterSave($params, Yii::app()->session["userId"], $paramsLinkImport);
                 else if( $collection == Event::COLLECTION )
                 	$res["afterSave"] = Event::afterSave($params);
                 else if( $collection == Project::COLLECTION )
@@ -950,6 +988,17 @@ class Element {
         return $params;
      }
 
+	public static function alreadyExists ($params, $collection) {
+		$result = array("result" => false);
+		$where = array(	"name" => $params["name"],
+						"address.codeInsee" => $params["address"]["codeInsee"]);
+		$element = PHDB::findOne($collection, $where);
+		if(!empty($element))
+			$result = array("result" => true ,
+							"element" => $element);
+		return $result;
+    }
+
 
     /**
 	 * Retrieve a element by id from DB
@@ -1041,5 +1090,101 @@ class Element {
 
 
 
-    
+	public static function afterSaveImport($eltId, $eltType, $paramsImport){
+		if (@$paramsImport) {
+			if(!empty($paramsImport["link"])){
+				$idLink = $paramsImport["link"]["idLink"];
+				$typeLink = $paramsImport["link"]["typeLink"];
+				if (@$paramsImport["link"]["role"] == "admin"){
+					$isAdmin = true;
+				}else{
+					$isAdmin = false;
+				}
+
+
+				/*const person2person = "follows";
+			    const person2organization = "memberOf";
+			    const organization2person = "members";
+			    const person2events = "events";
+			    const person2projects = "projects";
+			    const event2person = "attendees";
+			    const project2person = "contributors";
+			    const need2Item = "needs";*/
+				if($eltType == Organization::COLLECTION){
+					if($typeLink == Organization::COLLECTION){
+						$connectType1 = "members";
+						$connectType2 = "memberOf";
+						//Link::connect($idLink, $typeLink, $eltId, $eltType, $creatorId,"members", false);
+						//Link::connect($eltId, $eltType, $idLink, $typeLink, $creatorId,"memberOf",false);
+					}
+					else if($typeLink == Person::COLLECTION){
+						$connectType1 = "members";
+						$connectType2 = "memberOf";
+					}
+				}else if($eltType == Person::COLLECTION){
+					if($typeLink == Organization::COLLECTION){
+						$connectType1 = "memberOf";
+						$connectType2 = "members";
+					}else if($typeLink == Person::COLLECTION){
+						$connectType1 = "followers";
+						$connectType2 = "follows";
+					}
+				}else if($eltType == Project::COLLECTION){
+					if($typeLink == Organization::COLLECTION){
+						$connectType1 = "contributors";
+						$connectType2 = "projects";
+					}else if($typeLink == Person::COLLECTION){
+						$connectType1 = "contributors";
+						$connectType2 = "projects";
+					}
+				}else if($eltType == Event::COLLECTION){
+					if($typeLink == Organization::COLLECTION){
+						//$connectType1 = "memberOf";
+						//$connectType2 = "members";
+					}else if($typeLink == Person::COLLECTION){
+						$connectType1 = "attendees";
+						$connectType2 = "events";
+					}else if($typeLink == Event::COLLECTION){
+						$connectType1 = "attendees";
+						$connectType2 = "events";
+					}
+				}
+
+				if(!empty($connectType1) && !empty($connectType2)){
+					Link::connect($eltId, $eltType, $idLink, $typeLink, $creatorId, $connectType1,$isAdmin);
+					Link::connect($idLink, $typeLink, $eltId, $eltType, $creatorId, $connectType2,$isAdmin);
+				}
+				
+				
+			}
+
+			if(!empty($paramsImport["img"])){
+		    	try{
+		    		$paramsImg = $paramsImport["img"] ;
+					$resUpload = Document::uploadDocumentFromURL(	$paramsImg["module"], $eltType, 
+																	$eltId, "avatar", false, 
+																	$paramsImg["url"], $paramsImg["name"]);
+					if(!empty($resUpload["result"]) && $resUpload["result"] == true){
+						$params = array();
+						$params['id'] = $eltId;
+						$params['type'] = $eltType;
+						$params['moduleId'] = $paramsImg["module"];
+						$params['folder'] = $eltType."/".$eltId;
+						$params['name'] = $resUpload['name'];
+						$params['author'] = Yii::app()->session["userId"] ;
+						$params['size'] = $resUpload["size"];
+						$params["contentKey"] = "profil";
+						$resImgSave = Document::save($params);
+						if($resImgSave["result"] == false)
+							throw new CTKException("Impossible de sauvegarder l'image.");
+					}else{
+						throw new CTKException("Impossible uploader l'image.");
+					}
+				}catch (CTKException $e){
+					throw new CTKException($e);
+				}	
+			}
+		}
+	}
+
 }

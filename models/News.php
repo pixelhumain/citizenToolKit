@@ -116,6 +116,11 @@ class News {
 						$codeInsee=$person["address"]["codeInsee"];
 						$postalCode=$person["address"]["postalCode"];
 					}
+					if($_POST["parentId"] != Yii::app()->session["userId"]){
+						$person["type"]=Person::COLLECTION;
+						Notification::actionOnPerson ( ActStr::VERB_POST, ActStr::ICON_RSS, null , $person )  ;
+					}
+						
 				}else if($type == Organization::COLLECTION ){
 					$organization = Organization::getById($_POST["parentId"]);
 					if( isset( $organization['geo'] ) )
@@ -335,11 +340,10 @@ class News {
     	$ext = strtolower(pathinfo($urlImage, PATHINFO_EXTENSION));
     	if(empty($ext))
     		$ext="png";
-    	/*if(strstr($ext,"?") || strstr($ext,"?")){
-    		$ext = preg_split( "/ (?|&) /", $ext );
-    		print_r($ext);
+    	if(strstr($ext,"?")){
+    		$ext = explode( "?", $ext );
     		$ext = $ext[0];
-    	}*/
+    	}
 		$dir=Yii::app()->params['defaultController'];
 		$folder="news";
 		$upload_dir = Yii::app()->params['uploadUrl'].$dir.'/'.$folder; 
