@@ -180,9 +180,11 @@ class GlobalAutoCompleteAction extends CAction
 		  			if( @$value["links"]["followers"][Yii::app()->session["userId"]] )
 			  			$orga["isFollowed"] = true;
 
-			  		if(@$searchTypeOrga == "")
+			  		if(@$searchTypeOrga != "")
+						$orga["typeOrga"] = $searchTypeOrga;
+
 					$orga["type"] = "organization";
-				
+
 					$orga["typeSig"] = Organization::COLLECTION;
 					$allOrganizations[$key] = $orga;
 				}
