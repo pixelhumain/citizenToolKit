@@ -493,16 +493,6 @@ class TranslateCommunecter {
 										"valueOf" => array (
 									   		"@type"		=> "Person",
 									   		"name" => array("valueOf" => "name"),
-									   		/*"url" => array(
-									   			"valueOf" => '_id.$id',
-									   			"type" 	=> "url", 
-												"prefix"   => "/#citoyens.detail.id.",
-												"suffix"   => ""),
-									   		"urlApi" => array(
-									   			"valueOf" => '_id.$id',
-									   			"type" 	=> "url", 
-												"prefix"   => "/api/data/get/type/citoyens/id/",
-												"suffix"   => "")*/
 									   		"url" 	=> array("valueOf" => array(
 									    					"communecter" 	=> array(	"valueOf" => '_id.$id',
 																	   						"type" 	=> "url", 
@@ -520,16 +510,6 @@ class TranslateCommunecter {
 										"valueOf" => array (
 									   		"type" => "Need",
 									   		"name" => array("valueOf" => "name"),
-									   		/*"url" => array(
-									   			"valueOf" => '_id.$id',
-									   			"type" 	=> "url", 
-												"prefix"   => "/#need.detail.id.",
-												"suffix"   => ""),
-									   		"urlApi" => array(
-									   			"valueOf" => '_id.$id',
-									   			"type" 	=> "url", 
-												"prefix"   => "/api/data/get/type/needs/id/",
-												"suffix"   => "")*/
 									   		"url" 	=> array("valueOf" => array(
 									    					"communecter" 	=> array(	"valueOf" => '_id.$id',
 																	   						"type" 	=> "url", 
@@ -641,16 +621,6 @@ class TranslateCommunecter {
 										"valueOf" => array (
 									   		"@type"		=> "Person",
 									   		"name" => array("valueOf" => "name"),
-									   		/*"url" => array(
-									   			"valueOf" => '_id.$id',
-									   			"type" 	=> "url", 
-												"prefix"   => "/#citoyens.detail.id.",
-												"suffix"   => ""),
-									   		"urlApi" => array(
-									   			"valueOf" => '_id.$id',
-									   			"type" 	=> "url", 
-												"prefix"   => "/api/data/get/type/citoyens/id/",
-												"suffix"   => "")*/
 									   		"url" 	=> array("valueOf" => array(
 									    					"communecter" 	=> array(	"valueOf" => '_id.$id',
 																	   						"type" 	=> "url", 
@@ -731,16 +701,6 @@ class TranslateCommunecter {
 										"valueOf" => array (
 									   		"@type"		=> "Person",
 									   		"name" => array("valueOf" => "name"),
-									   		/*"url" => array(
-									   			"valueOf" => '_id.$id',
-									   			"type" 	=> "url", 
-												"prefix"   => "/#citoyens.detail.id.",
-												"suffix"   => ""),
-									   		"urlApi" => array(
-									   			"valueOf" => '_id.$id',
-									   			"type" 	=> "url", 
-												"prefix"   => "/api/data/get/type/citoyens/id/",
-												"suffix"   => "")*/
 									   		"url" 	=> array("valueOf" => array(
 									    					"communecter" 	=> array(	"valueOf" => '_id.$id',
 																	   						"type" 	=> "url", 
@@ -780,19 +740,19 @@ class TranslateCommunecter {
 															"prefix"   => "http://www.wikidata.org/entity/",
 															"suffix"   => "",
 															"outsite"   => true),
-						    "apiCitoyens" 			=> array(	"valueOf"  	=> 'insee', 
+						    "citoyens" 			=> array(	"valueOf"  	=> 'insee', 
 															"type" 	=> "url", 
 															"prefix"   => "/api/person/get/insee/",
 															"suffix"   => "" ),
-						    "apiOrganizations" 			=> array(	"valueOf"  	=> 'insee', 
+						    "organizations" 			=> array(	"valueOf"  	=> 'insee', 
 															"type" 	=> "url", 
 															"prefix"   => "/api/organization/get/insee/",
 															"suffix"   => "" ),
-						    "apiProjects" 			=> array(	"valueOf"  	=> 'insee', 
+						    "projects" 			=> array(	"valueOf"  	=> 'insee', 
 															"type" 	=> "url", 
 															"prefix"   => "/api/project/get/insee/",
 															"suffix"   => "" ),
-						    "apiEvents" 			=> array(	"valueOf"  	=> 'insee', 
+						    "events" 			=> array(	"valueOf"  	=> 'insee', 
 															"type" 	=> "url", 
 															"prefix"   => "/api/event/get/insee/",
 															"suffix"   => "" ),

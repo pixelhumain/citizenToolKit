@@ -44,10 +44,10 @@ class Api {
             else
                 $params["address.codeInsee"] = $insee ;
         }
-
+        
         if( @$tags ){
             $tagsArray = explode(",", $tags);
-            $params["tags"] =  (($multiTags == true)?array('$eq' => $tagsArray):array('$in' => $tagsArray));
+            $params["tags"] =  (($multiTags == "true")?array('$eq' => $tagsArray):array('$in' => $tagsArray));
         }
 
         if( @$key ) $params["source.key"] = $key ;
