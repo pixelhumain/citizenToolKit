@@ -16,7 +16,16 @@ class GlobalAutoCompleteAction extends CAction
 
         $indexStep = $indexMax - $indexMin;
         
-        //error_log("global search " . $search . " - searchBy : ". $searchBy. " & locality : ". $locality. " & country : ". $country);
+        $searchTypeOrga = "";
+        if( sizeOf($searchType) == 1 &&
+        	$searchType[0] == Organization::TYPE_NGO ||
+         	$searchType[0] == Organization::TYPE_BUSINESS ||
+         	$searchType[0] == Organization::TYPE_GROUP ||
+        	$searchType[0] == Organization::TYPE_GOV) {
+        	$searchTypeOrga = $searchType[0];
+        	$searchType = array(Organization::COLLECTION);
+        }
+       // error_log("global search " . $search . " - searchType : ". $searchType); //. " & locality : ". $locality. " & country : ". $country);
 	    
    //      if($search == "" && $locality == "") {
    //      	Rest::json(array());
@@ -155,7 +164,13 @@ class GlobalAutoCompleteAction extends CAction
         	$queryOrganization = $query;
         	if( !isset( $queryOrganization['$and'] ) ) 
         		$queryOrganization['$and'] = array();
+
         	array_push( $queryOrganization[ '$and' ], array( "disabled" => array('$exists' => false) ) );
+
+        	if(sizeof($searchType)==1 && @$searchTypeOrga != "")
+        		array_push( $queryOrganization[ '$and' ], array( "type" => $searchTypeOrga ) );
+
+        	//var_dump($queryOrganization); exit;
 	  		$allOrganizations = PHDB::findAndSortAndLimitAndIndex ( Organization::COLLECTION ,$queryOrganization, 
 	  												array("updated" => -1), $indexStep, $indexMin);
 	  		foreach ($allOrganizations as $key => $value) 
@@ -164,7 +179,10 @@ class GlobalAutoCompleteAction extends CAction
 		  			$orga = Organization::getSimpleOrganizationById($key,$value);
 		  			if( @$value["links"]["followers"][Yii::app()->session["userId"]] )
 			  			$orga["isFollowed"] = true;
+
+			  		if(@$searchTypeOrga == "")
 					$orga["type"] = "organization";
+				
 					$orga["typeSig"] = Organization::COLLECTION;
 					$allOrganizations[$key] = $orga;
 				}
