@@ -764,11 +764,22 @@ class TranslateCommunecter {
 							 "suffix"   => "" ),
 	    "name" 		=> array("valueOf" => "name"),
 	    "alternateName" => array("valueOf" => "alternateName"),
+	    "insee" 		=> array("valueOf" => "insee"),
+	    "dep" 		=> array("valueOf" => "dep"),
+	    "depName" 		=> array("valueOf" => "depName"),
+	    "region" 		=> array("valueOf" => "region"),
+	    "regionName" 		=> array("valueOf" => "regionName"),
+	    "country" 		=> array("valueOf" => "country"),
 	    "url" 	=> array("valueOf" => array(
-	    					/*"communecter" 	=> array(	"valueOf" => '_id.$id',
+	    					"communecter" 	=> array(	"valueOf" => 'insee',
 									   						"type" 	=> "url", 
-															"prefix"   => "/#person.detail.id.",
-															"suffix"   => ""),*/
+															"prefix"   => "/#city.detail.insee.",
+															"suffix"   => ""),
+	    					"wikidata" 	=> array(	"valueOf" => 'wikidataID',
+									   						"type" 	=> "url", 
+															"prefix"   => "http://www.wikidata.org/entity/",
+															"suffix"   => "",
+															"outsite"   => true),
 						    "apiCitoyens" 			=> array(	"valueOf"  	=> 'insee', 
 															"type" 	=> "url", 
 															"prefix"   => "/api/person/get/insee/",
@@ -788,21 +799,6 @@ class TranslateCommunecter {
 						    
 				 		)),
 		"postalCodes" 	=> array("valueOf"=>"postalCodes"),
-	    /*"postalCodes" 	=> array("parentKey"=>"postalCodes", 
-	    					 	"valueOf" => array(
-									"postalCode" 	=> array("parentKey"=>"postalCode", "valueOf" => "postalCode"), 
-									"name" 			=> array(	"valueOf" => "name"),
-									"geo" 			=> array(	"parentKey"=>"geo", 
-							    					 			"valueOf" => array(
-																	"@type" 			=> "GeoCoordinates", 
-																	"latitude" 			=> array("valueOf" => "latitude"),
-																	"longitude" 		=> array("valueOf" => "longitude"))),
-							   		"geoPosition" 	=> array(	"parentKey"=>"geoPosition", 
-							    					 			"valueOf" => array(
-																	"@type" 			=> "Point", 
-																	"coordinates" 		=> array("valueOf" => "coordinates")
-										 						)),
-				 					)),*/
 	    "geo" 	=> array("parentKey"=>"geo", 
 	    					 "valueOf" => array(
 									"@type" 			=> "GeoCoordinates", 
