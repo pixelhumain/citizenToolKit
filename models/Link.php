@@ -101,8 +101,8 @@ class Link {
     /*public static function removeMember($memberOfId, $memberOfType, $memberId, $memberType, $userId) {
         
         //0. Check if the $memberOfId and the $memberId exists
-        $memberOf = Link::checkIdAndType($memberOfId, $memberOfType);
-        $member = Link::checkIdAndType($memberId, $memberType);
+        $memberOf = Element::checkIdAndType($memberOfId, $memberOfType);
+        $member = Element::checkIdAndType($memberId, $memberType);
         
         //1.1 the $userId can manage the $memberOf (admin)
         // Or the user can remove himself from a member list of an organization
@@ -154,32 +154,7 @@ class Link {
         return $res;
     }
     
-    public static function addFavorite($targetId, $targetType){
-        
-        $person = Person::getById( Yii::app()->session["userId"] );
-        $target = Link::checkIdAndType( $targetId, $targetType );
-        $favorites=array("favorites.".$targetType.".".$targetId => new MongoDate(time()),"updated"=>time());
-        
-        $action = '$set';
-        $inc = 1;
-        $verb = "Added ".$target["name"]." to";
-        if( @$person["favorites"][$targetType][$targetId] ){
-            $action =  '$unset';
-            $inc = -1;
-            $verb = "Removed ".$target["name"]." from";
-            $favorites=array("favorites.".$targetType.".".$targetId => 1);
-        }  
-
-        PHDB::update(Person::COLLECTION, 
-                       array("_id" => new MongoId(Yii::app()->session["userId"]) ) , 
-                       array($action => $favorites));
-
-        PHDB::update($targetType, 
-                       array( "_id" => new MongoId($targetId) ) , 
-                       array( '$inc' => array( "favoriteCount" => $inc ) ) );
-            
-        return array("result"=>true,"action"=>$action, "msg"=>"$verb your Favorites with success");
-    }
+    
     
     /**
      * Connection between 2 class : organization, person, event, projects, places
@@ -200,8 +175,8 @@ class Link {
      */
     public static function connect($originId, $originType, $targetId, $targetType, $userId, $connectType,$isAdmin=false,$pendingAdmin=false,$isPending=false, $role="") {
 	    //0. Check if the $originId and the $targetId exists
-        $origin = Link::checkIdAndType($originId, $originType);
-		$target = Link::checkIdAndType($targetId, $targetType);
+        $origin = Element::checkIdAndType($originId, $originType);
+		$target = Element::checkIdAndType($targetId, $targetType);
         $links=array("links.".$connectType.".".$targetId.".type" => $targetType,"updated"=>time());
 	    if($isPending){
 		    //If event, refers has been invited by and user as to confirm its attendee to the event
@@ -251,8 +226,8 @@ class Link {
     public static function disconnect($originId, $originType, $targetId, $targetType, $userId, $connectType) {
         
         //0. Check if the $originId and the $targetId exists
-        $origin = Link::checkIdAndType($originId, $originType, "disconnect");
-        $target = Link::checkIdAndType($targetId, $targetType, "disconnect");
+        $origin = Element::checkIdAndType($originId, $originType, "disconnect");
+        $target = Element::checkIdAndType($targetId, $targetType, "disconnect");
 
         //2. Remove the links
         PHDB::update( $originType, 
@@ -335,7 +310,7 @@ class Link {
 		return $res;
 	}
     /**
-	 * Add a organization to an event
+	 * Add a organizer to an event
 	 * Create a link between the 2 actors. The link will be typed event and organizer
 	 * @param type $organizerId The Id (organization) where an event will be linked. 
 	 * @param type $eventId The Id (event) where an organization will be linked. 
@@ -343,54 +318,75 @@ class Link {
 	 * @return result array with the result of the operation
 	 */
     public static function addOrganizer($organizerId, $organizerType, $eventId, $userId) {
-		$res = array("result"=>false, "msg"=>"You can't add this event to this organization");
-		if ($organizerType==Organization::COLLECTION){
-	   		$isUserAdmin = Authorisation::isOrganizationAdmin($userId, $organizerId);
-            if($isUserAdmin != true)
-                $isUserAdmin = Authorisation::isOpenEdition($organizerId, $organizerType);
+		error_log("Try to add organizer ".$organizerId."/".$organizerType." from event ".$eventId);
+        
+        if ($organizerType==Organization::COLLECTION) {
+            $isUserAdmin = Authorisation::isOrganizationAdmin($userId, $organizerId) || Authorisation::isUserSuperAdmin($userId); 
+        } else if ($organizerType==Project::COLLECTION) {
+            $isUserAdmin = Authorisation::isProjectAdmin($organizerId,$userId) || Authorisation::isUserSuperAdmin($userId);
+        } else if ($organizerType==Person::COLLECTION) {
+            $isUserAdmin = ($userId == $organizerId) || Authorisation::isUserSuperAdmin($userId);
+        } else if ($organizerType == Event::NO_ORGANISER) { 
+            $isUserAdmin = true;
+        } else{
+            throw new CTKException("Unknown organizer type = ".$organizerType);
+        }
+        
+        if($isUserAdmin != true)
+            $isUserAdmin = Authorisation::isOpenEdition($organizerId, $organizerType);
 
-	   		if($isUserAdmin){
-	   			PHDB::update(Organization::COLLECTION,
-	   						array("_id" => new MongoId($organizerId)),
-	   						array('$set' => array("links.events.".$eventId.".type" => PHType::TYPE_EVENTS))
-	   			);
-	   			PHDB::update(PHType::TYPE_EVENTS,
-	   						array("_id"=>new MongoId($eventId)),
-	   						array('$set'=> array("links.organizer.".$organizerId.".type"=>Organization::COLLECTION))
-	   			);
-	   			$res = array("result"=>true, "msg"=>"The event has been added with success");
-	   		};
-	   	}
-	   	else if ($organizerType==Project::COLLECTION){
-		   	$isUserAdmin = Authorisation::isProjectAdmin($organizerId,$userId);
-            if($isUserAdmin != true)
-                $isUserAdmin = Authorisation::isOpenEdition($organizerId, $organizerType);
-	   		if($isUserAdmin){
-	   			PHDB::update(Project::COLLECTION,
-	   						array("_id" => new MongoId($organizerId)),
-	   						array('$set' => array("links.events.".$eventId.".type" => Event::COLLECTION))
-	   			);
-	   			PHDB::update(Event::COLLECTION,
-	   						array("_id"=>new MongoId($eventId)),
-	   						array('$set'=> array("links.organizer.".$organizerId.".type"=>Project::COLLECTION))
-	   			);
-	   			$res = array("result"=>true, "msg"=>"The event has been added with success");
-	   		};
-	   	}
-	   	else {
-		   	PHDB::update(Person::COLLECTION,
-	   						array("_id" => new MongoId($organizerId)),
-	   						array('$set' => array("links.events.".$eventId.".type" => Event::COLLECTION))
-	   			);
-   			PHDB::update(Event::COLLECTION,
-   						array("_id"=>new MongoId($eventId)),
-   						array('$set'=> array("links.organizer.".$organizerId.".type"=>Person::COLLECTION))
-   			);
-   			$res = array("result"=>true, "msg"=>"The event has been added with success");
+        if($isUserAdmin != true)
+            return array("result"=>false, "msg"=>"You can't remove the organizer of this event !");
 
-	   	}
+		if ($organizerType != Event::NO_ORGANISER) {
+            PHDB::update($organizerType,
+    					array("_id" => new MongoId($organizerId)),
+    					array('$set' => array("links.events.".$eventId.".type" => PHType::TYPE_EVENTS))
+    		);
+            PHDB::update(Event::COLLECTION,
+                    array("_id"=>new MongoId($eventId)),
+                    array('$set'=> array("links.organizer.".$organizerId.".type"=>Organization::COLLECTION))
+            );
+        }
+		//TODO SBAR : add notification for new organizer
+		$res = array("result"=>true, "msg"=>"The event organizer has been added with success");
+	   	
    		return $res;
    	}
+
+    public static function removeOrganizer($organizerId, $organizerType, $eventId, $userId) {
+        error_log("Try to remove organizer ".$organizerId."/".$organizerType." from event ".$eventId);
+        
+        if ($organizerType==Organization::COLLECTION) {
+            $isUserAdmin = Authorisation::isOrganizationAdmin($userId, $organizerId) || Authorisation::isUserSuperAdmin($userId); 
+        } else if ($organizerType==Project::COLLECTION) {
+            $isUserAdmin = Authorisation::isProjectAdmin($organizerId,$userId) || Authorisation::isUserSuperAdmin($userId);
+        } else if ($organizerType==Person::COLLECTION) {
+            $isUserAdmin = ($userId == $organizerId) || Authorisation::isUserSuperAdmin($userId);
+        } else if ($organizerType == Event::NO_ORGANISER) { 
+            return array("result"=>true, "msg"=>"Nothing to remove for an unknown organizer");
+        } else {
+            throw new CTKException("Unknown organizer type = ".$organizerType);
+        }
+
+        if($isUserAdmin != true)
+            $isUserAdmin = Authorisation::isOpenEdition($organizerId, $organizerType);
+
+        if($isUserAdmin != true)
+            return array("result"=>false, "msg"=>"You can't remove the organizer of this event !");
+        
+
+        if ($organizerType != Event::NO_ORGANISER) {
+            PHDB::update(Event::COLLECTION,
+                        array("_id"=>new MongoId($eventId)),
+                        array('$unset'=> array("links.organizer.".$organizerId => ""))
+            );
+            //TODO SBAR : add notification for old organizer
+            $res = array("result"=>true, "msg"=>"The organizer has been removed with success");
+        }
+
+        return $res;
+    }
 
     /**
 	* Link a person to an event when an event is create
@@ -443,8 +439,8 @@ class Link {
    /* private static function addLink($originId, $originType, $targetId, $targetType, $userId= null, $connectType){
 
     	//0. Check if the $originId and the $targetId exists
-        $origin = Link::checkIdAndType($originId, $originType);
-        $target = Link::checkIdAndType($targetId, $targetType);
+        $origin = Element::checkIdAndType($originId, $originType);
+        $target = Element::checkIdAndType($targetId, $targetType);
 
         //2. Create the links
         PHDB::update( $originType, 
@@ -512,8 +508,8 @@ class Link {
     public static function removeRole($memberOfId, $memberOfType, $memberId, $memberType, $role, $userId) {
         
         //0. Check if the $memberOfId and the $memberId exists
-        $memberOf = Link::checkIdAndType($memberOfId, $memberOfType);
-        $member = Link::checkIdAndType($memberId, $memberType);
+        $memberOf = Element::checkIdAndType($memberOfId, $memberOfType);
+        $member = Element::checkIdAndType($memberId, $memberType);
         
         //1.1 the $userId can manage the $memberOf (admin)
         // Or the user can remove himself from a member list of an organization
@@ -547,8 +543,8 @@ class Link {
     public static function disconnectPerson($ownerId, $ownerType, $targetId, $targetType, $ownerLink, $targetLink = null) {
         
         //0. Check if the $owner and the $target exists
-        $owner = Link::checkIdAndType($ownerId, $ownerType);
-        $target = Link::checkIdAndType($targetId, $targetType);
+        $owner = Element::checkIdAndType($ownerId, $ownerType);
+        $target = Element::checkIdAndType($targetId, $targetType);
        
         //1. Remove the links
         PHDB::update( $ownerType, 
@@ -577,8 +573,8 @@ class Link {
      */
     /*public static function connectPerson($ownerId, $ownerType, $targetId, $targetType, $ownerLink, $targetLink = null){
     	 //0. Check if the $owner and the $target exists
-        $owner = Link::checkIdAndType($ownerId, $ownerType);
-        $target = Link::checkIdAndType($targetId, $targetType);
+        $owner = Element::checkIdAndType($ownerId, $ownerType);
+        $target = Element::checkIdAndType($targetId, $targetType);
 
         PHDB::update( $ownerType, 
            array("_id" => new MongoId($ownerId)) , 

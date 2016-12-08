@@ -145,6 +145,36 @@ class Element {
 	    	return false;
     }
 
+
+
+    public static function checkIdAndType($id, $type, $actionType=null) {
+		if ($type == Organization::COLLECTION) {
+        	$res = Organization::getById($id); 
+            if (@$res["disabled"] && $actionType != "disconnect") {
+                throw new CTKException("Impossible to link something on a disabled organization");    
+            }
+        } else if ($type == Person::COLLECTION) {
+        	$res = Person::getById($id);
+        } else if ($type== Event::COLLECTION){
+        	$res = Event:: getById($id);
+        } else if ($type== Project::COLLECTION){
+        	$res = Project:: getById($id);
+        } else if ($type== Need::COLLECTION){
+            $res = Need:: getById($id);
+        }else if ($type == Poi::COLLECTION){
+            $res = Poi:: getById($id);
+        } else if ($type== ActionRoom::COLLECTION_ACTIONS){
+            $res = ActionRoom:: getActionById($id);
+        } else {
+
+        	throw new CTKException("Can not manage this type : ".$type);
+        }
+        if (empty($res)) throw new CTKException("The actor (".$id." / ".$type.") is unknown");
+
+        return $res;
+    }
+    
+
     /**
      * Return a link depending on the type and the id of the element.
      * The HTML link could be kind of : <a href="" onclick="loadByHash(...)">name</a>
@@ -429,6 +459,20 @@ class Element {
 			$dt = DataValidator::getDateTimeFromString($fieldValue, $dataFieldName);
 			$newMongoDate = new MongoDate($dt->getTimestamp());
 			$set = array($dataFieldName => $newMongoDate);
+		} else if ($dataFieldName == "organizer") {
+			$set = array("organizerId" => $fieldValue["organizerId"], 
+							 "organizerType" => $fieldValue["organizerType"]);
+			//get element and remove current organizer
+			$element = Element::getElementById($id, $collection);
+			$oldOrganizerId = @$element["organizerId"] ? $element["organizerId"] : key($element["links"]["organizer"]);
+			$oldOrganizerType = @$element["organizerType"] ? $element["organizerType"] : $element["links"]["organizer"][$oldOrganizerId]["type"];
+			//remove the old organizer
+			$res = Link::removeOrganizer($oldOrganizerId, $oldOrganizerType, $id, Yii::app()->session["userId"]);
+			if (! @$res["result"]) throw new CTKException(@$res["msg"]);
+			//add new organizer
+			$res = Link::addOrganizer($fieldValue["organizerId"], $fieldValue["organizerType"], $id, Yii::app()->session["userId"]);
+			if (! @$res["result"]) throw new CTKException(@$res["msg"]);
+
 		} else if ($dataFieldName == "seePreferences") {
 			//var_dump($fieldValue);
 			if($fieldValue == "false"){

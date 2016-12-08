@@ -170,14 +170,22 @@ class Translate {
 	}
 
 
-	public static function pastTime($date,$type) {
-	    if($type == "timestamp") {
+	public static function pastTime($date,$type, $timezone=null) {
+
+		date_default_timezone_set("UTC");
+
+		if($type == "timestamp") {
 	        $date2 = $date; // depuis cette date
 	    } elseif($type == "date") {
 	        $date2 = strtotime($date); // depuis cette date
 	    } else {
 	        return "Non reconnu";
 	    }
+
+	    if(isset($timezone) && date_default_timezone_get()!=$timezone){
+			date_default_timezone_set($timezone); //'Pacific/Noumea'
+		}
+
 	    $Ecart = time()-$date2;
 	    $Annees = date('Y',$Ecart)-1970;
 	    $Mois = date('m',$Ecart)-1;

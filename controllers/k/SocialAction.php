@@ -4,7 +4,7 @@
 */
 class SocialAction extends CAction
 {
-    public function run($type) {
+    public function run($type=null) {
     	$controller=$this->getController();
         
 
@@ -19,7 +19,7 @@ class SocialAction extends CAction
         $params = array("type" => @$type,
                         "subdomain" => "social",
                         "mainTitle" => "Le réseau social des Cagous",
-                        "placeholderMainSearch" => "");
+                        "placeholderMainSearch" => "Rechercher parmis les acteurs locaux");
 
     	//if(@$_POST['renderPartial'] == true)
     	//echo $controller->renderPartial("liveStream", $params, true);
