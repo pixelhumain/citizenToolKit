@@ -1,8 +1,9 @@
 <?php
 class ListAction extends CAction
 {
-    public function run()
+    public function run( $tpl )
     {
+    	$controller = $this->getController();
         $res = array( "result" => false , "msg" => Yii::t("common","Something went wrong!") );
         if( !Person::logguedAndValid() )
             return array("result"=>false, "msg"=>Yii::t("common","Please Login First") );
@@ -14,6 +15,12 @@ class ListAction extends CAction
 			}
 		}
 
-		return Rest::json($res);
+		if(Yii::app()->request->isAjaxRequest && @$tpl) {
+			if( $res["list"]["citoyens"] )
+				$res["list"]["person"] = $res["list"]["citoyens"];
+			$res["type"] = "favorites";
+        	echo $controller->renderPartial("../default/".$tpl ,$res["list"] ,true );
+		} else
+			return Rest::json($res);
     }
 }
