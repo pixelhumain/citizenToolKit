@@ -320,11 +320,11 @@ class Link {
     public static function addOrganizer($organizerId, $organizerType, $eventId, $userId) {
 		error_log("Try to add organizer ".$organizerId."/".$organizerType." from event ".$eventId);
         
-        if ($organizerType==Organization::COLLECTION) {
+        if ($organizerType == Organization::COLLECTION) {
             $isUserAdmin = Authorisation::isOrganizationAdmin($userId, $organizerId) || Authorisation::isUserSuperAdmin($userId); 
-        } else if ($organizerType==Project::COLLECTION) {
+        } else if ($organizerType == Project::COLLECTION) {
             $isUserAdmin = Authorisation::isProjectAdmin($organizerId,$userId) || Authorisation::isUserSuperAdmin($userId);
-        } else if ($organizerType==Person::COLLECTION) {
+        } else if ($organizerType == Person::COLLECTION) {
             $isUserAdmin = ($userId == $organizerId) || Authorisation::isUserSuperAdmin($userId);
         } else if ($organizerType == Event::NO_ORGANISER) { 
             $isUserAdmin = true;
@@ -341,11 +341,11 @@ class Link {
 		if ($organizerType != Event::NO_ORGANISER) {
             PHDB::update($organizerType,
     					array("_id" => new MongoId($organizerId)),
-    					array('$set' => array("links.events.".$eventId.".type" => PHType::TYPE_EVENTS))
+    					array('$set' => array("links.events.".$eventId.".type" => Event::COLLECTION))
     		);
             PHDB::update(Event::COLLECTION,
                     array("_id"=>new MongoId($eventId)),
-                    array('$set'=> array("links.organizer.".$organizerId.".type"=>Organization::COLLECTION))
+                    array('$set'=> array("links.organizer.".$organizerId.".type"=>$organizerType))
             );
         }
 		//TODO SBAR : add notification for new organizer
