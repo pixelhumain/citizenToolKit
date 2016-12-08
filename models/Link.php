@@ -101,8 +101,8 @@ class Link {
     /*public static function removeMember($memberOfId, $memberOfType, $memberId, $memberType, $userId) {
         
         //0. Check if the $memberOfId and the $memberId exists
-        $memberOf = Link::checkIdAndType($memberOfId, $memberOfType);
-        $member = Link::checkIdAndType($memberId, $memberType);
+        $memberOf = Element::checkIdAndType($memberOfId, $memberOfType);
+        $member = Element::checkIdAndType($memberId, $memberType);
         
         //1.1 the $userId can manage the $memberOf (admin)
         // Or the user can remove himself from a member list of an organization
@@ -175,8 +175,8 @@ class Link {
      */
     public static function connect($originId, $originType, $targetId, $targetType, $userId, $connectType,$isAdmin=false,$pendingAdmin=false,$isPending=false, $role="") {
 	    //0. Check if the $originId and the $targetId exists
-        $origin = Link::checkIdAndType($originId, $originType);
-		$target = Link::checkIdAndType($targetId, $targetType);
+        $origin = Element::checkIdAndType($originId, $originType);
+		$target = Element::checkIdAndType($targetId, $targetType);
         $links=array("links.".$connectType.".".$targetId.".type" => $targetType,"updated"=>time());
 	    if($isPending){
 		    //If event, refers has been invited by and user as to confirm its attendee to the event
@@ -226,8 +226,8 @@ class Link {
     public static function disconnect($originId, $originType, $targetId, $targetType, $userId, $connectType) {
         
         //0. Check if the $originId and the $targetId exists
-        $origin = Link::checkIdAndType($originId, $originType, "disconnect");
-        $target = Link::checkIdAndType($targetId, $targetType, "disconnect");
+        $origin = Element::checkIdAndType($originId, $originType, "disconnect");
+        $target = Element::checkIdAndType($targetId, $targetType, "disconnect");
 
         //2. Remove the links
         PHDB::update( $originType, 
@@ -439,8 +439,8 @@ class Link {
    /* private static function addLink($originId, $originType, $targetId, $targetType, $userId= null, $connectType){
 
     	//0. Check if the $originId and the $targetId exists
-        $origin = Link::checkIdAndType($originId, $originType);
-        $target = Link::checkIdAndType($targetId, $targetType);
+        $origin = Element::checkIdAndType($originId, $originType);
+        $target = Element::checkIdAndType($targetId, $targetType);
 
         //2. Create the links
         PHDB::update( $originType, 
@@ -508,8 +508,8 @@ class Link {
     public static function removeRole($memberOfId, $memberOfType, $memberId, $memberType, $role, $userId) {
         
         //0. Check if the $memberOfId and the $memberId exists
-        $memberOf = Link::checkIdAndType($memberOfId, $memberOfType);
-        $member = Link::checkIdAndType($memberId, $memberType);
+        $memberOf = Element::checkIdAndType($memberOfId, $memberOfType);
+        $member = Element::checkIdAndType($memberId, $memberType);
         
         //1.1 the $userId can manage the $memberOf (admin)
         // Or the user can remove himself from a member list of an organization
@@ -543,8 +543,8 @@ class Link {
     public static function disconnectPerson($ownerId, $ownerType, $targetId, $targetType, $ownerLink, $targetLink = null) {
         
         //0. Check if the $owner and the $target exists
-        $owner = Link::checkIdAndType($ownerId, $ownerType);
-        $target = Link::checkIdAndType($targetId, $targetType);
+        $owner = Element::checkIdAndType($ownerId, $ownerType);
+        $target = Element::checkIdAndType($targetId, $targetType);
        
         //1. Remove the links
         PHDB::update( $ownerType, 
@@ -573,8 +573,8 @@ class Link {
      */
     /*public static function connectPerson($ownerId, $ownerType, $targetId, $targetType, $ownerLink, $targetLink = null){
     	 //0. Check if the $owner and the $target exists
-        $owner = Link::checkIdAndType($ownerId, $ownerType);
-        $target = Link::checkIdAndType($targetId, $targetType);
+        $owner = Element::checkIdAndType($ownerId, $ownerType);
+        $target = Element::checkIdAndType($targetId, $targetType);
 
         PHDB::update( $ownerType, 
            array("_id" => new MongoId($ownerId)) , 

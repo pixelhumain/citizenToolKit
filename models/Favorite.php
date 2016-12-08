@@ -5,7 +5,7 @@ class Favorite {
     {
         
         $person = Person::getById( Yii::app()->session["userId"] );
-        $target = Link::checkIdAndType( $targetId, $targetType );
+        $target = Element::checkIdAndType( $targetId, $targetType );
         $favorites=array("favorites.".$targetType.".".$targetId => new MongoDate(time()),"updated"=>time());
         
         $action = '$set';
@@ -38,6 +38,7 @@ class Favorite {
         $person = Person::getById( $userId );
         $list = array();
         $count = 0;
+        if(@$person["favorites"])
         foreach ( @$person["favorites"] as $favtype => $value ) 
         {
             $ids = array();
