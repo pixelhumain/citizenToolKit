@@ -26,6 +26,7 @@ class Event {
 	    "parentType" => array("name" => "parentType"),
 	    "organizerId" => array("name" => "organizerId"),
 	    "organizerType" => array("name" => "organizerType"),
+	    "organizer" => array("name" => "organizer", "rules" => array("validOrganizer")),
 
 
 	    "address" => array("name" => "address", "rules" => array("addressValid")),
@@ -421,10 +422,6 @@ class Event {
 	    	$params["organizerId"] = Yii::app()->session['userId'];
 	    }
 
-
-	    
-
-
 	    //if it's a subevent, add the organiser to the parent user Organiser list 
     	//ajouter le nouveau sub user dans organiser ?
     	if( @$params["parentId"] )
@@ -601,6 +598,7 @@ class Event {
 		}
 
 		$dataFieldName = self::getCollectionFieldNameAndValidate($eventFieldName, $eventFieldValue, $eventId);
+		error_log("Update event : ".$dataFieldName);
 		if ($dataFieldName == "tags") {
 			$eventFieldValue = Tags::filterAndSaveNewTags($eventFieldValue);
 			$set = array($dataFieldName => $eventFieldValue);
@@ -629,10 +627,17 @@ class Event {
 			}
 			$newMongoDate = new MongoDate($dt->getTimestamp());
 			$set = array($dataFieldName => $newMongoDate);	
+		} else if ($dataFieldName == "organizer") {
+			error_log("Vlan maj d'organizer");
+			$set = array("organizerId" => $eventFieldValue["organizerId"], 
+							 "organizerType" => $eventFieldValue["organizerType"]);
+			Link::addOrganizer($eventFieldValue["organizerId"], $eventFieldValue["organizerType"], $eventId, $userId);
 		} else {
 			$set = array($dataFieldName => $eventFieldValue);
 		}
+		
 		$res = Event::updateEvent($eventId, $set, $userId);
+
 		if($authorization == "openEdition" && $dataFieldName != "badges"){
 			// Add in activity to show each modification added to this entity
 					//echo $dataFieldName;
