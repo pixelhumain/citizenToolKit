@@ -306,7 +306,7 @@ class Link {
 		return $res;
 	}
     /**
-	 * Add a organization to an event
+	 * Add a organizer to an event
 	 * Create a link between the 2 actors. The link will be typed event and organizer
 	 * @param type $organizerId The Id (organization) where an event will be linked. 
 	 * @param type $eventId The Id (event) where an organization will be linked. 
@@ -314,54 +314,75 @@ class Link {
 	 * @return result array with the result of the operation
 	 */
     public static function addOrganizer($organizerId, $organizerType, $eventId, $userId) {
-		$res = array("result"=>false, "msg"=>"You can't add this event to this organization");
-		if ($organizerType==Organization::COLLECTION){
-	   		$isUserAdmin = Authorisation::isOrganizationAdmin($userId, $organizerId);
-            if($isUserAdmin != true)
-                $isUserAdmin = Authorisation::isOpenEdition($organizerId, $organizerType);
+		error_log("Try to add organizer ".$organizerId."/".$organizerType." from event ".$eventId);
+        
+        if ($organizerType == Organization::COLLECTION) {
+            $isUserAdmin = Authorisation::isOrganizationAdmin($userId, $organizerId) || Authorisation::isUserSuperAdmin($userId); 
+        } else if ($organizerType == Project::COLLECTION) {
+            $isUserAdmin = Authorisation::isProjectAdmin($organizerId,$userId) || Authorisation::isUserSuperAdmin($userId);
+        } else if ($organizerType == Person::COLLECTION) {
+            $isUserAdmin = ($userId == $organizerId) || Authorisation::isUserSuperAdmin($userId);
+        } else if ($organizerType == Event::NO_ORGANISER) { 
+            $isUserAdmin = true;
+        } else{
+            throw new CTKException("Unknown organizer type = ".$organizerType);
+        }
+        
+        if($isUserAdmin != true)
+            $isUserAdmin = Authorisation::isOpenEdition($organizerId, $organizerType);
 
-	   		if($isUserAdmin){
-	   			PHDB::update(Organization::COLLECTION,
-	   						array("_id" => new MongoId($organizerId)),
-	   						array('$set' => array("links.events.".$eventId.".type" => PHType::TYPE_EVENTS))
-	   			);
-	   			PHDB::update(PHType::TYPE_EVENTS,
-	   						array("_id"=>new MongoId($eventId)),
-	   						array('$set'=> array("links.organizer.".$organizerId.".type"=>Organization::COLLECTION))
-	   			);
-	   			$res = array("result"=>true, "msg"=>"The event has been added with success");
-	   		};
-	   	}
-	   	else if ($organizerType==Project::COLLECTION){
-		   	$isUserAdmin = Authorisation::isProjectAdmin($organizerId,$userId);
-            if($isUserAdmin != true)
-                $isUserAdmin = Authorisation::isOpenEdition($organizerId, $organizerType);
-	   		if($isUserAdmin){
-	   			PHDB::update(Project::COLLECTION,
-	   						array("_id" => new MongoId($organizerId)),
-	   						array('$set' => array("links.events.".$eventId.".type" => Event::COLLECTION))
-	   			);
-	   			PHDB::update(Event::COLLECTION,
-	   						array("_id"=>new MongoId($eventId)),
-	   						array('$set'=> array("links.organizer.".$organizerId.".type"=>Project::COLLECTION))
-	   			);
-	   			$res = array("result"=>true, "msg"=>"The event has been added with success");
-	   		};
-	   	}
-	   	else {
-		   	PHDB::update(Person::COLLECTION,
-	   						array("_id" => new MongoId($organizerId)),
-	   						array('$set' => array("links.events.".$eventId.".type" => Event::COLLECTION))
-	   			);
-   			PHDB::update(Event::COLLECTION,
-   						array("_id"=>new MongoId($eventId)),
-   						array('$set'=> array("links.organizer.".$organizerId.".type"=>Person::COLLECTION))
-   			);
-   			$res = array("result"=>true, "msg"=>"The event has been added with success");
+        if($isUserAdmin != true)
+            return array("result"=>false, "msg"=>"You can't remove the organizer of this event !");
 
-	   	}
+		if ($organizerType != Event::NO_ORGANISER) {
+            PHDB::update($organizerType,
+    					array("_id" => new MongoId($organizerId)),
+    					array('$set' => array("links.events.".$eventId.".type" => Event::COLLECTION))
+    		);
+            PHDB::update(Event::COLLECTION,
+                    array("_id"=>new MongoId($eventId)),
+                    array('$set'=> array("links.organizer.".$organizerId.".type"=>$organizerType))
+            );
+        }
+		//TODO SBAR : add notification for new organizer
+		$res = array("result"=>true, "msg"=>"The event organizer has been added with success");
+	   	
    		return $res;
    	}
+
+    public static function removeOrganizer($organizerId, $organizerType, $eventId, $userId) {
+        error_log("Try to remove organizer ".$organizerId."/".$organizerType." from event ".$eventId);
+        
+        if ($organizerType==Organization::COLLECTION) {
+            $isUserAdmin = Authorisation::isOrganizationAdmin($userId, $organizerId) || Authorisation::isUserSuperAdmin($userId); 
+        } else if ($organizerType==Project::COLLECTION) {
+            $isUserAdmin = Authorisation::isProjectAdmin($organizerId,$userId) || Authorisation::isUserSuperAdmin($userId);
+        } else if ($organizerType==Person::COLLECTION) {
+            $isUserAdmin = ($userId == $organizerId) || Authorisation::isUserSuperAdmin($userId);
+        } else if ($organizerType == Event::NO_ORGANISER) { 
+            return array("result"=>true, "msg"=>"Nothing to remove for an unknown organizer");
+        } else {
+            throw new CTKException("Unknown organizer type = ".$organizerType);
+        }
+
+        if($isUserAdmin != true)
+            $isUserAdmin = Authorisation::isOpenEdition($organizerId, $organizerType);
+
+        if($isUserAdmin != true)
+            return array("result"=>false, "msg"=>"You can't remove the organizer of this event !");
+        
+
+        if ($organizerType != Event::NO_ORGANISER) {
+            PHDB::update(Event::COLLECTION,
+                        array("_id"=>new MongoId($eventId)),
+                        array('$unset'=> array("links.organizer.".$organizerId => ""))
+            );
+            //TODO SBAR : add notification for old organizer
+            $res = array("result"=>true, "msg"=>"The organizer has been removed with success");
+        }
+
+        return $res;
+    }
 
     /**
 	* Link a person to an event when an event is create

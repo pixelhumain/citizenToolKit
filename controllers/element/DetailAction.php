@@ -119,12 +119,12 @@ class DetailAction extends CAction {
             		$organizer["id"] = $uid;
             		$organizer["name"] = @$organizerInfo["name"];
             		$organizer["profilImageUrl"] = @$organizerInfo["profilImageUrl"];
+            		$organizer["profilThumbImageUrl"] = @$organizerInfo["profilThumbImageUrl"];
           		}
 		  		$params["organizer"] = $organizer;
               		
             }
 			//events can have sub evnets
-
 	        $params["subEvents"] = PHDB::find(Event::COLLECTION,array("parentId"=>$id));
 	        $params["subEventsOrganiser"] = array();
 	        $hasSubEvents = false;
