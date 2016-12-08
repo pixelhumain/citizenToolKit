@@ -28,6 +28,17 @@ https://schema.org/Person
   "url": "http://www.janedoe.com"
 }*/
 //http://127.0.0.1/ph/communecter/data/get/type/citoyens/id/520931e2f6b95c5cd3003d6c/format/schema
+	public static $dataBinding_allPerson = array(
+		"@context"  => "http://schema.org",
+		"@type"		=> "Person",
+		"@id" 		=> array("valueOf"  	=> '_id.$id', 
+							 "type" 	=> "url", 
+							 "prefix"   => "/data/get/type/citoyens/id/",
+							 "suffix"   => "/format/schema" ),
+	    "name" 		=> array("valueOf" => "name"),
+	  	"url"		=> array("valueOf" => "url")
+	);
+
 	public static $dataBinding_person = array(
 		"@context"  => "http://schema.org",
 		"@type"		=> "Person",
@@ -53,6 +64,17 @@ https://schema.org/Person
 		"jobTitle"	=> array("valueOf" => "positions"),
 		"telephone"	=> array("valueOf" => "phoneNumber"),
 		"url"		=> array("valueOf" => "url")
+	);
+
+	public static $dataBinding_allOrganization = array(
+		"@context"  => "http://schema.org",
+		"@type"		=> "Organization",
+		"id" 		=> array("valueOf"  	=> '_id.$id', 
+							 "type" 	=> "url", 
+							 "prefix"   => "/data/get/type/organizations/id/",
+							 "suffix"   => "/format/schema" ),
+	    "name" 		=> array("valueOf" => "name"),
+	  	"url"		=> array("valueOf" => "url")
 	);
 
 	public static $dataBinding_organization = array(
@@ -81,6 +103,16 @@ https://schema.org/Person
 		"url"		=> array("valueOf" => "url")
 	);
 
+	public static $dataBinding_allProject = array(
+		"@context"  => "http://schema.org",
+		"@type"		=> "CreativeWork",
+		"@id" 		=> array("valueOf"  	=> '_id.$id', 
+							 "type" 	=> "url", 
+							 "prefix"   => "/data/get/type/projects/id/",
+							 "suffix"   => "/format/schema" ),
+	    "name" 		=> array("valueOf" => "name"),
+	  	"url"		=> array("valueOf" => "url")
+	);
 	public static $dataBinding_project = array(
 		"@context"  => "http://schema.org",
 		"@type"		=> "CreativeWork",
@@ -107,7 +139,17 @@ https://schema.org/Person
 		"url"		=> array("valueOf" => "url")
 	);
 
-	//http://127.0.0.1/ph/communecter/data/get/type/events/id/55a786fcf6ca473b2f8b4569/format/schema
+	public static $dataBinding_allEvent = array(
+		"@context"  => "http://schema.org",
+		"@type"		=> "CreativeWork",
+		"@id" 		=> array("valueOf"  	=> '_id.$id', 
+							 "type" 	=> "url", 
+							 "prefix"   => "/data/get/type/projects/id/",
+							 "suffix"   => "/format/schema" ),
+	    "name" 		=> array("valueOf" => "name"),
+	  	"url"		=> array("valueOf" => "url")
+	);
+
 	public static $dataBinding_event = array(
 		"@context"  => "http://schema.org",
 		"@type"		=> "Event",
