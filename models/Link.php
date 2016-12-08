@@ -344,7 +344,7 @@ class Link {
                     array('$set'=> array("links.organizer.".$organizerId.".type"=>Organization::COLLECTION))
             );
         }
-		
+		//TODO SBAR : add notification for new organizer
 		$res = array("result"=>true, "msg"=>"The event organizer has been added with success");
 	   	
    		return $res;
@@ -377,8 +377,7 @@ class Link {
                         array("_id"=>new MongoId($eventId)),
                         array('$unset'=> array("links.organizer.".$organizerId => ""))
             );
-            //TODO SBAR : add notification for old organizer + actstr for event history
-            error_log("update event organizer");
+            //TODO SBAR : add notification for old organizer
             $res = array("result"=>true, "msg"=>"The organizer has been removed with success");
         }
 
