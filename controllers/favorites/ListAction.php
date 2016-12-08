@@ -1,5 +1,5 @@
 <?php
-class FavoriteAction extends CAction
+class ListAction extends CAction
 {
     public function run()
     {
@@ -8,7 +8,7 @@ class FavoriteAction extends CAction
             return array("result"=>false, "msg"=>Yii::t("common","Please Login First") );
         else{	
 			try {
-				$res = Link::addFavorite($_POST['id'], $_POST['type']);
+				$res = Favorite::get(@$_POST['id'], @$_POST['type']);
 			} catch (CTKException $e) {
 				$res = array( "result" => false , "msg" => $e->getMessage() );
 			}

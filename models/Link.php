@@ -154,32 +154,7 @@ class Link {
         return $res;
     }
     
-    public static function addFavorite($targetId, $targetType){
-        
-        $person = Person::getById( Yii::app()->session["userId"] );
-        $target = Link::checkIdAndType( $targetId, $targetType );
-        $favorites=array("favorites.".$targetType.".".$targetId => new MongoDate(time()),"updated"=>time());
-        
-        $action = '$set';
-        $inc = 1;
-        $verb = "Added ".$target["name"]." to";
-        if( @$person["favorites"][$targetType][$targetId] ){
-            $action =  '$unset';
-            $inc = -1;
-            $verb = "Removed ".$target["name"]." from";
-            $favorites=array("favorites.".$targetType.".".$targetId => 1);
-        }  
-
-        PHDB::update(Person::COLLECTION, 
-                       array("_id" => new MongoId(Yii::app()->session["userId"]) ) , 
-                       array($action => $favorites));
-
-        PHDB::update($targetType, 
-                       array( "_id" => new MongoId($targetId) ) , 
-                       array( '$inc' => array( "favoriteCount" => $inc ) ) );
-            
-        return array("result"=>true,"action"=>$action, "msg"=>"$verb your Favorites with success");
-    }
+    
     
     /**
      * Connection between 2 class : organization, person, event, projects, places
