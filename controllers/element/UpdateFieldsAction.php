@@ -13,8 +13,8 @@ class UpdateFieldsAction extends CAction
 			$elementFieldValue = $_POST["value"];
 			try {
 				$res = Element::updateField($type, $elementId, $elementFieldName, $elementFieldValue);
-				if(Import::isUncomplete($elementId, $type)){
-					Import::checkWarning($elementId, $type, Yii::app()->session['userId'] );
+				if(ImportOld::isUncomplete($elementId, $type)){
+					ImportOld::checkWarning($elementId, $type, Yii::app()->session['userId'] );
 				}
 				if($res["result"] == true){
 					$result = array("result"=>true, "msg"=>Yii::t(Element::getControlerByCollection($type),"The ".Element::getControlerByCollection($type)." has been updated"), $elementFieldName=>$elementFieldValue);
