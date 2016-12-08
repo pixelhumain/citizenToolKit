@@ -44,10 +44,10 @@ class Api {
             else
                 $params["address.codeInsee"] = $insee ;
         }
-
+        
         if( @$tags ){
             $tagsArray = explode(",", $tags);
-            $params["tags"] =  (($multiTags == true)?array('$eq' => $tagsArray):array('$in' => $tagsArray));
+            $params["tags"] =  (($multiTags == "true")?array('$eq' => $tagsArray):array('$in' => $tagsArray));
         }
 
         if( @$key ) $params["source.key"] = $key ;
@@ -58,8 +58,7 @@ class Api {
             $limit = 50 ;
 
         if($index < 0) $index = 0 ;
-
-        $params["preferences.isOpenData"] = true ;
+        if($type != City::COLLECTION) $params["preferences.isOpenData"] = true ;
 
         $data = PHDB::findAndLimitAndIndex($type , $params, $limit, $index);
         $data = self::getUrlImage($data, $type);
@@ -74,7 +73,8 @@ class Api {
         // create JSON
         if(empty($id)){
             $meta["limit"] = $limit;
-            $meta["next"] = "/ph/communecter/data/get/type/".$type."/limit/".$limit."/index/".($index+$limit);
+            $server = ((isset($_SERVER['HTTPS']) AND (!empty($_SERVER['HTTPS'])) AND strtolower($_SERVER['HTTPS'])!='off') ? 'https://' : 'http://').$_SERVER['HTTP_HOST'];
+            $meta["next"] = $server.Yii::app()->createUrl("/api/".Element::getControlerByCollection($type)."/get/limit/".$limit."/index/".($index+$limit));
 
             if(@$format)
                 $meta["format"] = "/format/".$format ;
@@ -82,7 +82,7 @@ class Api {
                 $newIndex = $index - $limit;
                 if($newIndex < 0)
                     $newIndex = 0 ;
-                $meta["previous"] = "/ph/communecter/data/get/type/".$type."/limit/".$limit."/index/".$newIndex ;
+                $meta["previous"] = $server.Yii::app()->createUrl("/api/".Element::getControlerByCollection($type)."/get/limit/".$limit."/index/".$newIndex) ;
             }
         }else{
             $meta["limit"] = 1;

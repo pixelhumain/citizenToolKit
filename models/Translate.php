@@ -138,11 +138,15 @@ class Translate {
 		//prefix and suffix can be added to anything
 		$prefix = ( isset( $bindPath["prefix"] ) ) ? $bindPath["prefix"] : "";
 		$suffix = ( isset( $bindPath["suffix"] ) ) ? $bindPath["suffix"] : "";
+		$outsite = ( isset( $bindPath["outsite"] ) ) ? $bindPath["outsite"] : null;
 		
 		if( isset( $bindPath["type"] ) && $bindPath["type"] == "url" )
-		{
-			$server = ((isset($_SERVER['HTTPS']) AND (!empty($_SERVER['HTTPS'])) AND strtolower($_SERVER['HTTPS'])!='off') ? 'https://' : 'http://').$_SERVER['HTTP_HOST'];
-			$val = $server.Yii::app()->createUrl($prefix.$val.$suffix);
+		{	
+			$val = $prefix.$val.$suffix ;
+			if(empty($outsite)){
+				$server = ((isset($_SERVER['HTTPS']) AND (!empty($_SERVER['HTTPS'])) AND strtolower($_SERVER['HTTPS'])!='off') ? 'https://' : 'http://').$_SERVER['HTTP_HOST'];
+				$val = $server.Yii::app()->createUrl($val);
+			}		
 			//$val = $server.Yii::app()->createUrl(Yii::app()->controller->module->id.$prefix.$val.$suffix);
 		}
 		else if( isset( $bindPath["type"] ) && $bindPath["type"] == "urlOsm" )

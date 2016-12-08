@@ -9,7 +9,6 @@ class GetAction extends CAction
 	        $bindMap = TranslateSchema::$dataBinding_city;
 		else*/
 	        $bindMap = TranslateCommunecter::$dataBinding_city;
-
       	$result = Api::getData($bindMap, $format, City::COLLECTION, $id,$limit, $index, $tags, $multiTags, $key, $insee);
 
 		Rest::json($result);

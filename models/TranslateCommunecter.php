@@ -493,16 +493,6 @@ class TranslateCommunecter {
 										"valueOf" => array (
 									   		"@type"		=> "Person",
 									   		"name" => array("valueOf" => "name"),
-									   		/*"url" => array(
-									   			"valueOf" => '_id.$id',
-									   			"type" 	=> "url", 
-												"prefix"   => "/#citoyens.detail.id.",
-												"suffix"   => ""),
-									   		"urlApi" => array(
-									   			"valueOf" => '_id.$id',
-									   			"type" 	=> "url", 
-												"prefix"   => "/api/data/get/type/citoyens/id/",
-												"suffix"   => "")*/
 									   		"url" 	=> array("valueOf" => array(
 									    					"communecter" 	=> array(	"valueOf" => '_id.$id',
 																	   						"type" 	=> "url", 
@@ -520,16 +510,6 @@ class TranslateCommunecter {
 										"valueOf" => array (
 									   		"type" => "Need",
 									   		"name" => array("valueOf" => "name"),
-									   		/*"url" => array(
-									   			"valueOf" => '_id.$id',
-									   			"type" 	=> "url", 
-												"prefix"   => "/#need.detail.id.",
-												"suffix"   => ""),
-									   		"urlApi" => array(
-									   			"valueOf" => '_id.$id',
-									   			"type" 	=> "url", 
-												"prefix"   => "/api/data/get/type/needs/id/",
-												"suffix"   => "")*/
 									   		"url" 	=> array("valueOf" => array(
 									    					"communecter" 	=> array(	"valueOf" => '_id.$id',
 																	   						"type" 	=> "url", 
@@ -641,16 +621,6 @@ class TranslateCommunecter {
 										"valueOf" => array (
 									   		"@type"		=> "Person",
 									   		"name" => array("valueOf" => "name"),
-									   		/*"url" => array(
-									   			"valueOf" => '_id.$id',
-									   			"type" 	=> "url", 
-												"prefix"   => "/#citoyens.detail.id.",
-												"suffix"   => ""),
-									   		"urlApi" => array(
-									   			"valueOf" => '_id.$id',
-									   			"type" 	=> "url", 
-												"prefix"   => "/api/data/get/type/citoyens/id/",
-												"suffix"   => "")*/
 									   		"url" 	=> array("valueOf" => array(
 									    					"communecter" 	=> array(	"valueOf" => '_id.$id',
 																	   						"type" 	=> "url", 
@@ -731,16 +701,6 @@ class TranslateCommunecter {
 										"valueOf" => array (
 									   		"@type"		=> "Person",
 									   		"name" => array("valueOf" => "name"),
-									   		/*"url" => array(
-									   			"valueOf" => '_id.$id',
-									   			"type" 	=> "url", 
-												"prefix"   => "/#citoyens.detail.id.",
-												"suffix"   => ""),
-									   		"urlApi" => array(
-									   			"valueOf" => '_id.$id',
-									   			"type" 	=> "url", 
-												"prefix"   => "/api/data/get/type/citoyens/id/",
-												"suffix"   => "")*/
 									   		"url" 	=> array("valueOf" => array(
 									    					"communecter" 	=> array(	"valueOf" => '_id.$id',
 																	   						"type" 	=> "url", 
@@ -764,45 +724,41 @@ class TranslateCommunecter {
 							 "suffix"   => "" ),
 	    "name" 		=> array("valueOf" => "name"),
 	    "alternateName" => array("valueOf" => "alternateName"),
+	    "insee" 		=> array("valueOf" => "insee"),
+	    "dep" 		=> array("valueOf" => "dep"),
+	    "depName" 		=> array("valueOf" => "depName"),
+	    "region" 		=> array("valueOf" => "region"),
+	    "regionName" 		=> array("valueOf" => "regionName"),
+	    "country" 		=> array("valueOf" => "country"),
 	    "url" 	=> array("valueOf" => array(
-	    					/*"communecter" 	=> array(	"valueOf" => '_id.$id',
+	    					"communecter" 	=> array(	"valueOf" => 'insee',
 									   						"type" 	=> "url", 
-															"prefix"   => "/#person.detail.id.",
-															"suffix"   => ""),*/
-						    "apiCitoyens" 			=> array(	"valueOf"  	=> 'insee', 
+															"prefix"   => "/#city.detail.insee.",
+															"suffix"   => ""),
+	    					"wikidata" 	=> array(	"valueOf" => 'wikidataID',
+									   						"type" 	=> "url", 
+															"prefix"   => "http://www.wikidata.org/entity/",
+															"suffix"   => "",
+															"outsite"   => true),
+						    "citoyens" 			=> array(	"valueOf"  	=> 'insee', 
 															"type" 	=> "url", 
 															"prefix"   => "/api/person/get/insee/",
 															"suffix"   => "" ),
-						    "apiOrganizations" 			=> array(	"valueOf"  	=> 'insee', 
+						    "organizations" 			=> array(	"valueOf"  	=> 'insee', 
 															"type" 	=> "url", 
 															"prefix"   => "/api/organization/get/insee/",
 															"suffix"   => "" ),
-						    "apiProjects" 			=> array(	"valueOf"  	=> 'insee', 
+						    "projects" 			=> array(	"valueOf"  	=> 'insee', 
 															"type" 	=> "url", 
 															"prefix"   => "/api/project/get/insee/",
 															"suffix"   => "" ),
-						    "apiEvents" 			=> array(	"valueOf"  	=> 'insee', 
+						    "events" 			=> array(	"valueOf"  	=> 'insee', 
 															"type" 	=> "url", 
 															"prefix"   => "/api/event/get/insee/",
 															"suffix"   => "" ),
 						    
 				 		)),
 		"postalCodes" 	=> array("valueOf"=>"postalCodes"),
-	    /*"postalCodes" 	=> array("parentKey"=>"postalCodes", 
-	    					 	"valueOf" => array(
-									"postalCode" 	=> array("parentKey"=>"postalCode", "valueOf" => "postalCode"), 
-									"name" 			=> array(	"valueOf" => "name"),
-									"geo" 			=> array(	"parentKey"=>"geo", 
-							    					 			"valueOf" => array(
-																	"@type" 			=> "GeoCoordinates", 
-																	"latitude" 			=> array("valueOf" => "latitude"),
-																	"longitude" 		=> array("valueOf" => "longitude"))),
-							   		"geoPosition" 	=> array(	"parentKey"=>"geoPosition", 
-							    					 			"valueOf" => array(
-																	"@type" 			=> "Point", 
-																	"coordinates" 		=> array("valueOf" => "coordinates")
-										 						)),
-				 					)),*/
 	    "geo" 	=> array("parentKey"=>"geo", 
 	    					 "valueOf" => array(
 									"@type" 			=> "GeoCoordinates", 
