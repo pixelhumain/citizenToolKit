@@ -53,6 +53,11 @@ class Element {
 	    	ActionRoom::TYPE_DISCUSS	=> "comment",
 	    	ActionRoom::TYPE_VOTE		=> "archive",
 	    	ActionRoom::TYPE_ACTIONS	=> "cogs",
+
+	    	Organization::TYPE_NGO 		=> "group",
+	    	Organization::TYPE_BUSINESS => "industry",
+	    	Organization::TYPE_GROUP 	=> "circle-o",
+	    	Organization::TYPE_GOV 		=> "university",
 	    );	
 	    
 	    if(isset($fas[$type])) return $fas[$type];
@@ -64,6 +69,11 @@ class Element {
 	    	Person::COLLECTION 			=> "yellow",
 	    	Event::COLLECTION 			=> "orange",
 	    	Project::COLLECTION 		=> "purple",
+
+	    	Organization::TYPE_NGO 		=> "green",
+	    	Organization::TYPE_BUSINESS => "azure",
+	    	Organization::TYPE_GROUP 	=> "black",
+	    	Organization::TYPE_GOV 		=> "red",
 	    );	
 	    if(isset($colors[$type])) return $colors[$type];
 	    else return false;
