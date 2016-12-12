@@ -1,7 +1,7 @@
 <?php
 class ListAction extends CAction
 {
-    public function run( $tpl )
+    public function run( $tpl=null )
     {
     	$controller = $this->getController();
         $res = array( "result" => false , "msg" => Yii::t("common","Something went wrong!") );
