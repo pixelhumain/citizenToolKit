@@ -406,6 +406,15 @@ class NewImport
                                 $endDate = DateTime::createFromFormat('Y-m-d H:i:s', $value["endDate"]);
                                 $value["endDate"] = $endDate->format('d/m/Y H:i');
                             }
+
+                            if(!empty($value["geo"])){
+                                if(gettype($value["geo"]["latitude"]) != "string" )
+                                    $value["geo"]["latitude"] = strval($value["geo"]["latitude"]);
+                                if(gettype($value["geo"]["longitude"]) != "string" )
+                                    $value["geo"]["longitude"] = strval($value["geo"]["longitude"]);
+                            }
+
+
                             $value["collection"] = $typeElement ;
                             $value["key"] = Element::getControlerByCollection($typeElement);
                             $value["paramsImport"] = array( "link" => (empty($paramsLink)?null:$paramsLink),
