@@ -436,6 +436,9 @@ class IndexAction extends CAction
 							
 		if(Yii::app()->request->isAjaxRequest){
 			if (@$_GET["isFirst"]){
+				 if(@$_GET["tpl"]=="kgougle")
+				 echo $controller->renderPartial("indexK", $params,true);
+				 else
 				 echo $controller->renderPartial("index", $params,true);
 	       } else{
 				//

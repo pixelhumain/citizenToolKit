@@ -36,6 +36,7 @@ class MediaCrawlerAction extends CAction
 		foreach($mapExtract["urls"] as $url) {
 		
 			$html = file_get_html($url);
+            error_log("CRAWLING ".$url);
 			//echo $html; exit;
 			foreach($html->find($mapExtract["elementUK"]) as $element) {
 
