@@ -32,7 +32,7 @@ class Api {
     }
 
 
-    public static function getData($bindMap, $format = null, $type, $id = null, $limit=50, $index=0, $tags = null, $multiTags=null , $key = null, $insee = null){
+    public static function getData($bindMap, $format = null, $type, $id = null, $limit=50, $index=0, $tags = null, $multiTags=null , $key = null, $insee = null, $geoShape = null){
         
         // Create params for request
         $params = array();
@@ -59,9 +59,18 @@ class Api {
 
         if($index < 0) $index = 0 ;
         if($type != City::COLLECTION) $params["preferences.isOpenData"] = true ;
-
+        
         $data = PHDB::findAndLimitAndIndex($type , $params, $limit, $index);
         $data = self::getUrlImage($data, $type);
+
+        if($type == City::COLLECTION) {
+            if( @$geoShape != "1" ){
+                foreach ($data as $key => $value) {
+                    unset($value["geoShape"]);
+                    $data[$key] = $value ; 
+                }
+            }
+        }
 
         if(Person::COLLECTION == $type){
             foreach ($data as $key => $value) {
