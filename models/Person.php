@@ -10,6 +10,8 @@ class Person {
 	const REGISTER_MODE_NORMAL 		= "normal";
 	const REGISTER_MODE_TWO_STEPS 	= "two_steps_register";
 
+
+
 	//From Post/Form name to database field name with rules
 	public static $dataBinding = array(
 	    "name" => array("name" => "name", "rules" => array("required")),
@@ -53,7 +55,6 @@ class Person {
 	    "lastLoginDate" => array("name" => "lastLoginDate"),
 	    "seePreferences" => array("name" => "seePreferences"),
 	    "locality" => array("name" => "address"),
-
 	    "modified" => array("name" => "modified"),
 	    "updated" => array("name" => "updated"),
 	    "creator" => array("name" => "creator"),

@@ -39,6 +39,50 @@ class AutocompleteMultiScopeAction extends CAction
             if($geoShape) $att[] =  "geoShape";
             //var_dump($where);
             $cities = PHDB::findAndSort( City::COLLECTION, $where, $att, 40, $att);
+            if(empty($cities)){
+                $resNominatim = json_decode(SIG::getGeoByAddressNominatim(null, null, $scopeValue, $countryCode, true, true),true);
+
+                foreach ($resNominatim as $key => $value) {
+                    $wikidata = json_decode(SIG::getWikidata($value["extratags"]["wikidata"]),true);
+                    $valWiki = $wikidata["entities"][$value["extratags"]["wikidata"]]["claims"];
+                    $newCities = array( "name" => $value["address"]["city"],
+                                        "alternateName" => mb_strtoupper($value["address"]["city"]),
+                                        "country" => $countryCode,
+                                        "insee" => $valWiki[City::getInseeWikidataIDByCountry($countryCode)][0]["mainsnak"]["datavalue"]["value"]."*".$countryCode,
+                                        "geo" => array( "@type"=>"GeoCoordinates", 
+                                                        "latitude" => $value["lat"], 
+                                                        "longitude" => $value["lon"]),
+
+                                        "geoPosition" => array( "type"=>"Point", 
+                                                                "coordinates" => array(
+                                                                    floatval($value["lon"]), 
+                                                                    floatval($value["lat"]))),
+                                        //"geoShape" => $value["geojson"],
+                                        "regionName" => $value["address"]["state"],
+                                        "region" => null,
+                                        "depName" => $value["address"]["county"],
+                                        "dep" => null,
+                                        "osmID" => $value["osm_id"],
+                                        "wikidataID" => $value["extratags"]["wikidata"],
+                                        "save" => true);
+
+                    //P281 postalcode
+                    foreach ($valWiki["P281"] as $key => $cp) {
+                        $postalCodes[]  = array("name" => $value["address"]["city"],
+                                                "postalCode" => $cp["mainsnak"]["datavalue"]["value"],
+                                                "geo" => array( "@type"=>"GeoCoordinates", 
+                                                                "latitude" => $value["lat"], 
+                                                                "longitude" => $value["lon"]),
+                                                "geoPosition" => array( "type"=>"Point", 
+                                                                        "coordinates" => array(
+                                                                            floatval($value["lon"]), 
+                                                                            floatval($value["lat"]))));
+                    }
+                    $newCities["postalCodes"] = $postalCodes;
+                    $newCities["geoShape"] = $value["geojson"];
+                    $cities[] = $newCities;
+                }
+            }
         }
         else if($type == "dep"){
             $cities = array();
@@ -59,5 +103,8 @@ class AutocompleteMultiScopeAction extends CAction
         return Rest::json( array("res"=>true, "cities" => $cities ));
        
     }
+
+
+    
 } 
 

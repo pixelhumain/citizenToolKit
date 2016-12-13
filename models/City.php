@@ -15,6 +15,89 @@ class City {
 	const COLLECTION_IMPORTHISTORY = "importHistory";
 	const ICON = "fa-university";
 
+	public static $dataBinding = array(
+	    "name" => array("name" => "name", "rules" => array("required")),
+	    "alternateName" => array("name" => "alternateName", "rules" => array("required")),
+	    "insee" => array("name" => "insee", "rules" => array("required")),
+	    "country" => array("name" => "birthDate", "rules" => array("required")),
+	    "geo" => array("name" => "geo", "rules" => array("required","geoValid")),
+	    "geoPosition" => array("name" => "geoPosition", "rules" => array("required","geoPositionValid")),
+	    "geoShape" => array("name" => "geoShape"/*, "rules" => array("geoShapeValid")*/),
+	 	"postalCodes" => array("name" => "postalCodes"/*, "rules" => array("postalCodesValid")*/),
+	    "regionName" => array("name" => "regionName"),
+	    "region" => array("name" => "region"),
+	    "depName" => array("name" => "depName"),
+	    "dep" => array("name" => "dep"),
+	    "osmID" => array("name" => "osmID"),
+	    "wikidataID" => array("name" => "wikidataID"),
+	    "modified" => array("name" => "modified"),
+	    "updated" => array("name" => "updated"),
+	    "creator" => array("name" => "creator"),
+	    "created" => array("name" => "created")
+	);
+
+
+	public static function insert($city, $userid){
+		
+		unset($city["save"]);
+		//var_dump($city);
+		$city["modified"] = new MongoDate(time());
+		$city["updated"] = time();
+        $city["creator"] = $userid;
+        $city["created"] = time();
+        $city["geoPosition"]["coordinates"][0] = floatval($city["geoPosition"]["coordinates"][0]);
+    	$city["geoPosition"]["coordinates"][1] = floatval($city["geoPosition"]["coordinates"][1]);
+
+    	$city["geoShape"] = self::getGeoShape($city["name"], $city["country"], $city["osmID"]);
+    	if($city["geoShape"] == null)
+    		unset($city["geoShape"]);
+    	
+	    try {
+    		$valid = DataValidator::validate( ucfirst(self::CONTROLLER), json_decode (json_encode ($city), true) );
+    	} catch (CTKException $e) {
+    		$valid = array("result"=>false, "msg" => $e->getMessage());
+    	}
+    	//check insee
+    	//var_dump($city["postalCodes"] );
+    	if( $valid["result"]) {
+    		$exist = PHDB::findOne(self::COLLECTION, array("insee" => $city["insee"]));
+
+    		if(empty($exist)){
+    			PHDB::insert(self::COLLECTION, $city );
+				$res = array("result"=>true,
+	                         "msg"=>"La commune a été enregistrer.",
+	                         "id"=>(string)$city["_id"]); 
+    		}else{
+    			$res = array("result"=>false,
+	                         "msg"=>"La commune existe déjà"); 
+    		}
+
+			 
+		}else 
+        	$res = array( "result" => false, 
+                      "msg" => Yii::t("common","Something went really bad : ".$valid['msg']) );
+	    return $res;
+	}
+
+	public static function getGeoShape($name, $country, $osmID){
+		$resNominatim = json_decode(SIG::getGeoByAddressNominatim(null, null, $name, $country, true, true),true);
+		foreach ($resNominatim as $key => $value) {
+			if($osmID == $value["osm_id"]){
+				return $value["geojson"];
+			}
+		}
+		return null;
+	}
+	
+	public static function getInseeWikidataIDByCountry ($country) { 
+        $wiki = array(
+            "FR"    => "P374",
+            "CH"    => "P771",
+        );  
+        if(isset($wiki[$country])) return $wiki[$country];
+        else return false;
+     }
+
 	/* Retourne des infos sur la commune dans la collection cities" */
 	public static function getWhere($params, $fields=null, $limit=20) 
 	{
@@ -497,6 +580,7 @@ class City {
 	    
 	    return $str;
 	}
+
 	
 	/*
 	public static function createCitizenAssemblies(){
