@@ -136,32 +136,55 @@ class DirectoryAction extends CAction {
       	}
       }
 
-      uasort($organizations, array("DirectoryAction", 'compareByName'));
-      $params["organizations"] = $organizations;
-      uasort($projects, array("DirectoryAction", 'compareByName'));
-      $params["projects"] = $projects;
-      uasort($events, array("DirectoryAction", 'compareByName'));
-      $params["events"] = $events;
-      $params["type"] = Person::CONTROLLER;
-      $params["person"] = $person;
-      uasort($followers, array("DirectoryAction", 'compareByName'));
-      $params["followers"] = $followers;
+      if(@$_GET[ "tpl" ] == "json"){
+        if (@$follows[Organization::COLLECTION])
+          $organizations = array_merge($organizations,$follows[Organization::COLLECTION]);
+        uasort($organizations, array("DirectoryAction", 'compareByName'));
+        $params["organizations"] = $organizations;
 
-      //Sort Follows
-      if (@$follows[Person::COLLECTION])
-        uasort($follows[Person::COLLECTION], array("DirectoryAction", 'compareByName'));
-      if (@$follows[Organization::COLLECTION])
-        uasort($follows[Organization::COLLECTION], array("DirectoryAction", 'compareByName'));
-      if (@$follows[Project::COLLECTION])
-        uasort($follows[Project::COLLECTION], array("DirectoryAction", 'compareByName'));
-      $params["follows"] = $follows;
+        if (@$follows[Project::COLLECTION])
+          $projects = array_merge($projects,$follows[Project::COLLECTION]);
+        uasort($projects, array("DirectoryAction", 'compareByName'));
+        $params["projects"] = $projects;
 
+        uasort($events, array("DirectoryAction", 'compareByName'));
+        $params["events"] = $events;
+
+        if (@$follows[Person::COLLECTION]){
+          uasort($follows[Person::COLLECTION], array("DirectoryAction", 'compareByName'));
+          $params[ "citoyens" ] = $follows[ Person::COLLECTION ];
+        }
+      } else {
+        uasort($organizations, array("DirectoryAction", 'compareByName'));
+        $params["organizations"] = $organizations;
+        uasort($projects, array("DirectoryAction", 'compareByName'));
+        $params["projects"] = $projects;
+        uasort($events, array("DirectoryAction", 'compareByName'));
+        $params["events"] = $events;
+        $params["type"] = Person::CONTROLLER;
+        $params["person"] = $person;
+        uasort($followers, array("DirectoryAction", 'compareByName'));
+        $params["followers"] = $followers;
+
+        //Sort Follows
+        if (@$follows[Person::COLLECTION])
+          uasort($follows[Person::COLLECTION], array("DirectoryAction", 'compareByName'));
+        if (@$follows[Organization::COLLECTION])
+          uasort($follows[Organization::COLLECTION], array("DirectoryAction", 'compareByName'));
+        if (@$follows[Project::COLLECTION])
+          uasort($follows[Project::COLLECTION], array("DirectoryAction", 'compareByName'));
+        $params["follows"] = $follows;
+      }
 		  $page = "../default/directory";
       if( isset($_GET[ "tpl" ]) )
         $page = "../default/".$_GET[ "tpl" ];
       
       if(Yii::app()->request->isAjaxRequest) {
-        echo $controller->renderPartial($page,$params,true);
+        if(@$_GET[ "tpl" ] == "json"){
+          echo Rest::json( array( "list" => $params) );
+        }
+        else
+          echo $controller->renderPartial($page,$params,true);
       } else {
         $controller->render($page,$params);
       }
