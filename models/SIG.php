@@ -511,7 +511,7 @@ class SIG
 	        	$url .= "&components=country:".str_replace(" ", "+", $country);
 	        }
 	        $url .= "&key=".Yii::app()->params['google']['keyMaps'] ;
-	        var_dump($url);
+	        //var_dump($url);
 	        $res =  file_get_contents($url);
 	        return $res;
 	        //return self::getUrl($url) ;
@@ -536,9 +536,9 @@ class SIG
 	        }
 	        $url .= "&type=street";
 	        //var_dump($url);
-	        $res =  file_get_contents($url);
-	        return $res;
-	        //return self::getUrl($url) ;
+	        /*$res =  file_get_contents($url);
+	        return $res;*/
+	        return self::getUrl($url) ;
         }catch (CTKException $e){
             return null ;
         }
