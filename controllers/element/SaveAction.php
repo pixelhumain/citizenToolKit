@@ -6,11 +6,13 @@ class SaveAction extends CAction {
 */
     public function run() { 
 
-        if(Yii::app()->request->isAjaxRequest && isset(Yii::app()->session["userId"]))
+    	$res = array( "result" => false, "msg" => Yii::t("common","Login First") );
+        if(isset(Yii::app()->session["userId"]))
         {
             $res = Element::save($_POST);
-            echo json_encode( $res );  
         }
+        	
+        echo json_encode( $res );  	
     }
 }
 
