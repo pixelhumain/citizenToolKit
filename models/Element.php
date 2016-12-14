@@ -172,7 +172,7 @@ class Element {
 	    }
 	    
 	    //if ( !$hashOnly && @$el ) 
-	    $link = '<a href="#'.$link.'" class="lbh">'.htmlspecialchars(@$el['name']).'</a>';
+	    $link = '<a href="#'.$link.'" class="lbh add2fav">'.htmlspecialchars(@$el['name']).'</a>';
 	    
     	return $link;
     }
@@ -862,8 +862,10 @@ class Element {
         		$valid = array("result"=>false, "msg" => $e->getMessage());
         	}
 
-        if( $valid["result"]) {
-			if( $collection == Event::COLLECTION ){
+        if( $valid["result"]) 
+        {
+			if( $collection == Event::COLLECTION )
+			{
             	 $res = Event::formatBeforeSaving($params);
             	 if ($res["result"]) 
             	 	$params = $res["params"];
@@ -871,7 +873,8 @@ class Element {
             	 	throw new CTKException("Error processing the before saving on event");
             }
 
-            if($id) {
+            if($id) 
+            {
                 //update a single field
                 //else update whole map
                 //$changeMap = ( !$microformat && isset( $key )) ? array('$set' => array( $key => $params[ $key ] ) ) : array('$set' => $params );
@@ -881,7 +884,9 @@ class Element {
                              "reload"=>true,
                              "map"=>$params,
                              "id"=>$id);
-            } else {
+            } 
+            else 
+            {
                 $params["created"] = time();
                 PHDB::insert($collection, $params );
                 $res = array("result"=>true,
@@ -905,7 +910,8 @@ class Element {
 
                 $res["afterSaveGbl"] = self::afterSave((string)$params["_id"],$collection,$params,$postParams);
 
-                if( false && @$params["parentType"] && @$params["parentId"] ){
+                if( false && @$params["parentType"] && @$params["parentId"] )
+                {
                     //createdObjectAsParam($authorType, $authorId, $objectType, $objectId, $targetType, $targetId, $geo, $tags, $address, $verb="create")
                     //TODO
                     //Notification::createdObjectAsParam($authorType[Person::COLLECTION],$userId,$elementType, $elementType, $parentType[projet crée par une orga => orga est parent], $parentId, $params["geo"], (isset($params["tags"])) ? $params["tags"]:null ,$params["address"]);  
