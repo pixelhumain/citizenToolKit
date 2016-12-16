@@ -18,8 +18,10 @@ class SocialAction extends CAction
     	
         $params = array("type" => @$type,
                         "subdomain" => "social",
-                        "mainTitle" => "Le réseau social des Cagous",
-                        "placeholderMainSearch" => "Rechercher parmis les acteurs locaux");
+                        "subdomainName" => "network",
+                        "icon" => "user-circle",
+                        "mainTitle" => "Le réseau social <span class='letter-green'>à effet de serre positif</span>",
+                        "placeholderMainSearch" => "Rechercher parmis les membres du réseau Communecter");
 
     	//if(@$_POST['renderPartial'] == true)
     	//echo $controller->renderPartial("liveStream", $params, true);
