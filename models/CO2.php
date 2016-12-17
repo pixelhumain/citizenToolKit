@@ -59,8 +59,8 @@ class CO2 {
 
     								"#co2.page.type"=>
     								  	array("inMenu" => false, 
-						                      "subdomain" => "", 
-						                      "subdomainName" => "",
+						                      "subdomain" => "page.type", 
+						                      "subdomainName" => "page",
 						                      "icon" => "", 
 						                      "mainTitle" => "",
 						                      "placeholderMainSearch" => ""),
@@ -86,6 +86,7 @@ class CO2 {
     								  
     								"#co2.web"=>
     								  	array("inMenu" => true, 
+						                      "useHeader" => true, 
 						                      "subdomain" => "web", 
 						                      "subdomainName" => "web",
 						                      "icon" => "search", 
@@ -94,6 +95,7 @@ class CO2 {
 
     								"#co2.live"=>
     								  	array("inMenu" => true, 
+						                      "useHeader" => true, 
 						                      "subdomain" => "live", 
 						                      "subdomainName" => "live",
 						                      "icon" => "newspaper-o", 
@@ -102,6 +104,7 @@ class CO2 {
 
     								"#co2.social"=>
     								  	array("inMenu" => true, 
+						                      "useHeader" => true, 
 						                      "subdomain" => "social", 
 						                      "subdomainName" => "social",
 						                      "icon" => "user-circle-o", 
@@ -110,6 +113,7 @@ class CO2 {
 
     								"#co2.freedom"=>
     								  	array("inMenu" => true, 
+						                      "useHeader" => true, 
 						                      "subdomain" => "freedom", 
 						                      "subdomainName" => "freedom",
 						                      "icon" => "comments", 
@@ -118,6 +122,7 @@ class CO2 {
 
     								"#co2.power"=>
     								  	array("inMenu" => true, 
+						                      "useHeader" => true, 
 						                      "subdomain" => "power", 
 						                      "subdomainName" => "power",
 						                      "icon" => "hand-rock-o", 
@@ -126,11 +131,12 @@ class CO2 {
 
     								"#co2.page.type"=>
     								  	array("inMenu" => false, 
-						                      "subdomain" => "", 
-						                      "subdomainName" => "",
+						                      "useHeader" => false, 
+						                      "subdomain" => "page.type", 
+						                      "subdomainName" => "page",
 						                      "icon" => "", 
-						                      "mainTitle" => "",
-						                      "placeholderMainSearch" => ""),
+						                      "mainTitle" => "Le réseau social Calédonien",
+						                      "placeholderMainSearch" => "rechercher parmis les membres du réseau ..."),
     							) 								  
 
     					));
