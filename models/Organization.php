@@ -1460,7 +1460,7 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 			$type = self::TYPE_GOV ;
 		else if(trim($type) == "Entreprise")
 			$type = self::TYPE_BUSINESS ;
-		else if(trim($type) == "Groupe")
+		else if(trim($type) == "Groupe" || trim($type) == "Groupe informel")
 			$type = self::TYPE_GROUP ;
 		return $type;
 	}
