@@ -445,6 +445,9 @@ class IndexAction extends CAction
 				 echo $controller->renderPartial("index", $params,true);
 	       } else{
 				//
+	       		if(@$_GET["tpl"]=="co2")
+				 echo $controller->renderPartial("newsPartialCO2", $params,true);
+				else
 				echo json_encode($params);
 	      }
 	    }

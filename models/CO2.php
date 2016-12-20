@@ -93,6 +93,15 @@ class CO2 {
 						                      "mainTitle" => "Le moteur de recherche des Cagous",
 						                      "placeholderMainSearch" => "rechercher sur le web Calédonien ..."),
 
+    								"#co2.referencement"=>
+    								  	array("inMenu" => false, 
+						                      "useHeader" => true, 
+						                      "subdomain" => "referencement", 
+						                      "subdomainName" => "referencement",
+						                      "icon" => "search", 
+						                      "mainTitle" => "Référencer un site",
+						                      "placeholderMainSearch" => "rechercher sur le web Calédonien ..."),
+
     								"#co2.live"=>
     								  	array("inMenu" => true, 
 						                      "useHeader" => true, 
