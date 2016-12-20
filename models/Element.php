@@ -774,37 +774,6 @@ class Element {
 		if ($elementType != Poi::COLLECTION && $elementType != Poi::CONTROLLER) {
             return array( "result" => false, "msg" => "For now you can only delete Points of interest" );   
         }
-
-/*<<<<<<< HEAD
-
-	public static function getWhere($type, $params) {
-		$res = null ;
-		if(in_array($type, self::TYPES))
-	  		$res = PHDB::findAndSort($type,$params,array("created"),null);
-	  	return $res ;
-	}
-
-	public static function getAllEntitiesByKey($key){
-        $result = array();
-        foreach (self::TYPES as $key => $type) {
-        	$res = self::getWhere($type, array("source.key"=>$key, "state" => "uncomplete"));
-	        foreach ($res as $key => $value) {
-	            $element = array();
-	            $element["id"] = $key;
-	            $element["name"] = $value["name"];
-	            $element["warnings"] = (empty($value["warnings"])?array():$value["warnings"]);
-	            $result[$type][] = $element;
-	        }
-        }
-		return $result ;
-    }
-
-
-	public static function save($params){
-
-        //var_dump($params);
-
-======= */
 		if ( !@$userId) {
             return array( "result" => false, "msg" => "You must be loggued to delete something" );
         }
@@ -988,11 +957,14 @@ class Element {
 		//Manage the event startDate and endDate format : 
 		//it comes with the format DD/MM/YYYY HH:ii or DD/MM/YYYY 
 		//and must be transform in YYYY-MM-DD HH:ii
-		if (@$params["startDate"]) {
+		/*if (@$params["startDate"]) {
 			$startDate = DateTime::createFromFormat('d/m/Y', $params["startDate"]);
 			if (empty($startDate)) {
 				$startDate = DateTime::createFromFormat('d/m/Y H:i', $params["startDate"]);
-				$params["startDate"] = $startDate->format('Y-m-d H:i');
+				if (! empty($startDate)) 
+					$params["startDate"] = $startDate->format('Y-m-d H:i');
+				else 
+					throw new CTKException("Start Date is not well formated !");
 			} else 
 				$params["startDate"] = $startDate->format('Y-m-d');
 		}
@@ -1000,10 +972,13 @@ class Element {
 			$endDate = DateTime::createFromFormat('d/m/Y', $params["endDate"]);
 			if (empty($endDate)) {
 				$endDate = DateTime::createFromFormat('d/m/Y H:i', $params["endDate"]);
-				$params["endDate"] = $endDate->format('Y-m-d H:i');
+				if (! empty($endDate)) 
+					$params["endDate"] = $endDate->format('Y-m-d H:i');
+				else 
+					throw new CTKException("End Date is not well formated !");
 			} else 
 				$params["endDate"] = $endDate->format('Y-m-d');
-		}
+		}*/
 
         return $params;
      }

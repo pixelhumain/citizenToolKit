@@ -96,8 +96,8 @@ class Event {
 			if (gettype($event["startDate"]) == "object" && gettype($event["endDate"]) == "object") {
 				//Set TZ to UTC in order to be the same than Mongo
 				date_default_timezone_set('UTC');
-				$event["startDate"] = date('Y-m-d H:i:s', $event["startDate"]->sec);
-				$event["endDate"] = date('Y-m-d H:i:s', $event["endDate"]->sec);
+				$event["startDate"] = date(DateTime::ISO8601, $event["startDate"]->sec);
+				$event["endDate"] = date(DateTime::ISO8601, $event["endDate"]->sec);
 			} else {
 				//Manage old date with string on date event
 				$now = time();
