@@ -43,44 +43,81 @@ class AutocompleteMultiScopeAction extends CAction
                 $resNominatim = json_decode(SIG::getGeoByAddressNominatim(null, null, $scopeValue, $countryCode, true, true),true);
 
                 foreach ($resNominatim as $key => $value) {
-                    $wikidata = json_decode(SIG::getWikidata($value["extratags"]["wikidata"]),true);
-                    $valWiki = $wikidata["entities"][$value["extratags"]["wikidata"]]["claims"];
-                    $newCities = array( "name" => $value["address"]["city"],
-                                        "alternateName" => mb_strtoupper($value["address"]["city"]),
-                                        "country" => $countryCode,
-                                        "insee" => $valWiki[City::getInseeWikidataIDByCountry($countryCode)][0]["mainsnak"]["datavalue"]["value"]."*".$countryCode,
-                                        "geo" => array( "@type"=>"GeoCoordinates", 
-                                                        "latitude" => $value["lat"], 
-                                                        "longitude" => $value["lon"]),
 
-                                        "geoPosition" => array( "type"=>"Point", 
-                                                                "coordinates" => array(
-                                                                    floatval($value["lon"]), 
-                                                                    floatval($value["lat"]))),
-                                        //"geoShape" => $value["geojson"],
-                                        "regionName" => $value["address"]["state"],
-                                        "region" => null,
-                                        "depName" => $value["address"]["county"],
-                                        "dep" => null,
-                                        "osmID" => $value["osm_id"],
-                                        "wikidataID" => $value["extratags"]["wikidata"],
-                                        "save" => true);
+                    if(!empty($value["extratags"]["wikidata"])){
+                        $arrayAdd = array();
+                        $arrayCp = array();
+                        $postalCodes = array();
+                        $wikidata = json_decode(SIG::getWikidata($value["extratags"]["wikidata"]),true);
+                        $valWiki = $wikidata["entities"][$value["extratags"]["wikidata"]]["claims"];
+                        $newCities = array( "name" => $value["address"]["city"],
+                                            "alternateName" => mb_strtoupper($value["address"]["city"]),
+                                            "country" => $countryCode,
+                                            "insee" => $valWiki[City::getInseeWikidataIDByCountry($countryCode)][0]["mainsnak"]["datavalue"]["value"]."*".$countryCode,
+                                            "geo" => array( "@type"=>"GeoCoordinates", 
+                                                            "latitude" => $value["lat"], 
+                                                            "longitude" => $value["lon"]),
 
-                    //P281 postalcode
-                    foreach ($valWiki["P281"] as $key => $cp) {
-                        $postalCodes[]  = array("name" => $value["address"]["city"],
-                                                "postalCode" => $cp["mainsnak"]["datavalue"]["value"],
-                                                "geo" => array( "@type"=>"GeoCoordinates", 
-                                                                "latitude" => $value["lat"], 
-                                                                "longitude" => $value["lon"]),
-                                                "geoPosition" => array( "type"=>"Point", 
-                                                                        "coordinates" => array(
-                                                                            floatval($value["lon"]), 
-                                                                            floatval($value["lat"]))));
+                                            "geoPosition" => array( "type"=>"Point", 
+                                                                    "coordinates" => array(
+                                                                        floatval($value["lon"]), 
+                                                                        floatval($value["lat"]))),
+                                            "regionName" => $value["address"]["state"],
+                                            "region" => null,
+                                            "depName" => $value["address"]["county"],
+                                            "dep" => null,
+                                            "osmID" => $value["osm_id"],
+                                            "wikidataID" => $value["extratags"]["wikidata"],
+                                            "save" => true);
+
+                        //P281 postalcode
+
+                        foreach ($valWiki["P281"] as $key => $cp) {
+                            
+
+                            if(strpos($cp["mainsnak"]["datavalue"]["value"],"–") || strpos($cp["mainsnak"]["datavalue"]["value"],"-")) {
+                                if(strpos($cp["mainsnak"]["datavalue"]["value"],"–"))
+                                    $split = explode("–", $cp["mainsnak"]["datavalue"]["value"]);
+                                else
+                                    $split = explode("-", $cp["mainsnak"]["datavalue"]["value"]);
+                                if(count($split) == 2){
+                                    $start = intval($split[0]);
+                                    if(!empty($start)){
+                                        $end = intval($split[1]);
+                                        while($start <= $end ){
+                                            $arrayCp[] = trim(strval($start));
+                                            $start++;
+                                        }
+                                    }
+                                    
+                                }
+                            }else{
+                                $arrayCp[] = $cp["mainsnak"]["datavalue"]["value"];
+                            }
+
+                            foreach ($arrayCp as $keyCP => $valueCP) {
+                                //var_dump($valueCP);
+                                if(!in_array($valueCP, $arrayAdd)){
+                                    $arrayAdd[] =  $valueCP;
+                                    $postalCodes[]  = array("name" => $value["address"]["city"],
+                                                    "postalCode" => $valueCP,
+                                                    "geo" => array( "@type"=>"GeoCoordinates", 
+                                                                    "latitude" => $value["lat"], 
+                                                                    "longitude" => $value["lon"]),
+                                                    "geoPosition" => array( "type"=>"Point", 
+                                                                            "coordinates" => array(
+                                                                                floatval($value["lon"]), 
+                                                                                floatval($value["lat"]))));  
+                                }
+                                
+                            }
+                            
+                        }
+                        $newCities["postalCodes"] = $postalCodes;
+                        $newCities["geoShape"] = $value["geojson"];
+                        $cities[] = $newCities;
                     }
-                    $newCities["postalCodes"] = $postalCodes;
-                    $newCities["geoShape"] = $value["geojson"];
-                    $cities[] = $newCities;
+                    
                 }
             }
         }

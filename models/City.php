@@ -93,6 +93,7 @@ class City {
         $wiki = array(
             "FR"    => "P374",
             "CH"    => "P771",
+            "ES"    => "P772",
         );  
         if(isset($wiki[$country])) return $wiki[$country];
         else return false;
