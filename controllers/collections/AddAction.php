@@ -8,7 +8,7 @@ class AddAction extends CAction
             return array("result"=>false, "msg"=>Yii::t("common","Please Login First") );
         else{	
 			try {
-				$res = Favorite::add($_POST['id'], $_POST['type']);
+				$res = Collection::add( @$_POST['id'], @$_POST['type'], @$_POST['collection']);
 			} catch (CTKException $e) {
 				$res = array( "result" => false , "msg" => $e->getMessage() );
 			}
