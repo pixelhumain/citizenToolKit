@@ -65,7 +65,8 @@ class DetailAction extends CAction {
 			if(isset($element["links"]["events"])){
 				foreach ($element["links"]["events"] as $keyEv => $valueEv) {
 					 $event = Event::getSimpleEventById($keyEv);
-	           		 $events[$keyEv] = $event;
+					 if(!empty($event))
+		           		 $events[$keyEv] = $event;
 				}
 			}
 
