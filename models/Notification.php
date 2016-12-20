@@ -13,7 +13,7 @@ class Notification{
 	notify invited member (person or Organization) if Org notify all admins
 	notify the project admins
 	*/
-	public static function invited2Project( $memberType, $memberId, $projectId,$projectName ) 
+	/*public static function invited2Project( $memberType, $memberId, $projectId,$projectName ) 
 	{
 	    $asParam = array(
 	    	"type" => ActStr::TEST, 
@@ -63,12 +63,194 @@ class Notification{
 	    ActivityStream::addEntry($stream);
 
 	    //TODO mail::invited
+	}*/
+	/* TODO BOUBOULE
+		=> récupérer les admins || / && les membres || / && les followers d’un élement suivant le niveau d’impact de la notification et les préférences des utilisateurs
+		=>$impact == admin || member || community
+		=> retourne id + mail + userName	
+	*/
+	$notificationTree = array(
+		// Action realized by a user
+		"FOLLOW" => array(
+			"repeat" => true
+		),
+		"ASK" => array(
+			"repeat" => true,
+			"type" => array(
+				"asMember" => "member",
+				"asAdmin" => "all"
+			)
+		),
+		//// USED ONLY FOR EVENT
+		"JOIN" => array(
+			"repeat" => true
+		),
+		"JOIN" => array(
+			"repeat" => true
+		),
+		"COMMENT || LIKE || UNLIKE" => array(
+			"repeat" => true,
+			"what" => array(
+				"news"=> array("targetIsOrgaOrProject" =>true),
+				"survey/Rooms/needs",
+				"comment"
+		),
+		"ADDNEED || ADDROOM || ADDPROPOSAL || ADDACTION || ADDVOTE || ADDPROJECT || ADDEVENT" => array(
+			"repeat" => false
+		),
+		"CONFIRM" => array(
+			"repeat" => true
+		),
+		"MODIFY" => array(
+			"repeat" => true
+		),
+		//FROM USER LINK TO AN ELEMENT ACTING ON IT
+		"INVITE" => array(
+			"repeat" => true,
+			"type" => {
+				"join" || "administrate"
+			}
+		)
+		"CONFIRM" => array(
+			"repeat" => true
+		)
+	)
+	public static function communityToNotify($id, $type, $impact="all"){
+		//inform the entities members of the new member
+		//build list of people to notify
+        $people = array();
+	    $members = array();
+	    if( $type == Project::COLLECTION ) {
+	    	$members = Project::getContributorsByProjectId( $id ,"all", null ) ;
+			$typeOfConnect="contributor";
+	    }
+	    else if( $type == Organization::COLLECTION) {
+	    	$members = Organization::getMembersByOrganizationId( $id ,"all", null ) ;
+	    	$typeOfConnect="member";
+	    }
+	    else if( $type == Event::COLLECTION ) {
+	    	/**
+		    * Notify only the admin of the event
+	    	*	- if new attendee or new admin
+	    	* Notify all
+	    	*	- if a post in event wall
+	    	*/
+	    	if($verb == ActStr::VERB_POST)
+	    		$members = Event::getAttendeesByEventId( $id , "all", null ) ;
+	    	else
+	    		$members = Event::getAttendeesByEventId( $id , "admin", "isAdmin" ) ;
+	    	$typeOfConnect="attendee";
+	    }
+		else if($type == Person::COLLECTION)
+			$people = array($id);
+		else if($type == News::COLLECTION){
+			$author=News::getAuthor($id);
+			$people = array($author["author"]);
+		} 
+		else if( in_array($type, array( Survey::COLLECTION, ActionRoom::COLLECTION, ActionRoom::COLLECTION_ACTIONS) ) )
+		{
+			$entryId = $id;
+			if( $$type == Survey::COLLECTION ){
+				$target["entry"] = Survey::getById( $id );
+				$entryId = (string)$target["entry"]["survey"];
+			} else if( $type == ActionRoom::COLLECTION_ACTIONS ){
+				$target["entry"] = ActionRoom::getActionById( $id );
+				$entryId = $target["entry"]["room"];
+			}
+			$room = ActionRoom::getById( $entryId );
+			$target["room"] = $room;
+			if( @$room["parentType"] ){
+				if( $room["parentType"] == Project::COLLECTION ) {
+					$target["parent"] = Project::getById( $room["parentId"]);
+			    	$members = Project::getContributorsByProjectId( $room["parentId"] ,"all", null ) ;
+					$typeOfConnect="contributor";
+			    }
+			    else if( $room["parentType"] == Organization::COLLECTION) {
+			    	$target["parent"] = Organization::getById( $room["parentId"]);
+			    	$members = Organization::getMembersByOrganizationId( $room["parentId"] ,"all", null ) ;
+			    	$typeOfConnect="member";
+			    }
+			    else if( $room["parentType"] == Event::COLLECTION ) {
+			    	//TODO notify only the admin of the event
+			    	$target["parent"] = Event::getById( $room["parentId"]);
+			    	if($verb == ActStr::VERB_POST)
+		    			$members = Event::getAttendeesByEventId( $room["parentId"] , "all", null ) ;
+					else
+		    			$members = Event::getAttendeesByEventId( $room["parentId"] , "admin", "isAdmin" ) ;
+			    	$typeOfConnect="attendee";
+			    } else if( $room["parentType"] == City::COLLECTION ) {
+			    	//TODO notify only the admin of the event
+			    	$target["parent"] = City::getByUnikey( $room["parentId"]);
+			    }
+			}
+		}
+	    foreach ($members as $key => $value) 
+	    {
+	    	if( $key != Yii::app()->session['userId'] && !in_array($key, $people) && count($people) < self::PEOPLE_NOTIFY_LIMIT )
+	    		array_push($people, $key);
+	    }
+	    return $people;
 	}
+	/* TODO BOUBOULE
+		Regarde si une notif portant sur le même type ajout comment like sur la même target existe alors:
+		=> Si n’existe pas
+			Return false
+		=> sinon
+			Check by ids si read is false
+				Remove all ids of this notif where read is false
+				Add id in resultArray notif $repeatAction 1
+			Else is true
+				Up notif and label $repeat +1 
+		Return array of ids  
+	*/
+	public static function checkIfAlreadyNotifForAnotherLink($targetId, $targetType, , $label, $community,$verb){
+		$allReadyVerb	
+	}
+	/* TODO BOUBOULE
+		=> $label : “a ajouté un nouvel $type à $type”
+		=> $community:
+			$impact => community
+			$notify => $ids => {id + isUnread == true}
+	*/
+	public static function notificationNewElementOnElement($typeNewElement,$id,$type){
+		
+	}
+	
+	/* TODO BOUBOULE
+	* When a link is between an element to another element
+	* $label : “a jouté un membre”, “a ajouté un admin”, “a invité” $name
+	* $repeatAction : 1
+	* checkIfAlreadyNotifForAnotherLink($type,$id,$community,$verb)
+	if(return of checkIfAlreadyNotifForAnLink is not empty){
+	* $community:
+		$impact => community
+		$notify => $ids => {id + boolean read}
+	*/
+	public static function linkPersonToElement(){
+
+	}
+	/* TODO BOUBOULE
+	* a commenté || a répondu || a aimé || a modéré
+	* $repeatAction : 1
+	* checkIfAlreadyNotifForAnotherLink($type,$id,$community,$verb)
+	if(return of checkIfAlreadyNotifForAnLink is not empty){
+	if mention go to mention function
+	=> $community:
+		$impact => community
+		$notify => $ids => {id + boolean read}
+	*/
+    public static function notifyOnNewAndComment(){
+	    
+    }
+
+
 	private static function array_column($array,$column_name)
     {
         return array_map(function($element) use($column_name){return $element[$column_name];}, $array);
 
     }
+    // TODO BOUBOULE => Mention in news // comment (à développer)
+    // A RENOMER mentionNotification
 	public static function actionOnNews ( $verb, $icon, $author, $target, $mentions) 
 	{
 		$notification=array();
@@ -219,7 +401,6 @@ class Notification{
 	            "id"   => $targetId
             )
         );
-		
         //build list of people to notify
         $people = array();
         //when admin makes the change
@@ -455,12 +636,12 @@ class Notification{
 	    //TODO mail::invited
 	}
 
-	/*
+	/* NOT USED ANYMORE
 	When a link is create between 2 people (follow)
 	notify the followed person
 	actionType : follow(default) or invite 
 	*/
-	public static function connectPeople ( $followedPersonId, $followerId, $followerName, $actionType=null ) 
+	/*public static function connectPeople ( $followedPersonId, $followerId, $followerName, $actionType=null ) 
 	{
 	    $asParam = array(
 	    	"type" => ActStr::TEST, 
@@ -488,8 +669,9 @@ class Notification{
 	    
 	    //TODO mail::following
 	    //add a link to follow back easily
-	}
-	/*
+	}*/
+	/* 
+	TODO BOUBOULE => A DECALER OU NON OU RENOMER ACTIVITYSTREAM EMBED CREER LA NEWS ACTIVITY HISTORY
 	inject to activity stream
 	When a project, or event is create 
 	It will appear for person or organization
