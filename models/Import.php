@@ -265,10 +265,13 @@ class Import
                     }else{
                         $resultGoogle = json_decode(SIG::getGeoByAddressGoogleMap($street, $cp, $nameCity, $country), true);
                         $resG = false ;
-                        foreach (@$resultGoogle["results"][0]["address_components"] as $key => $value) {
-                            if(in_array("locality", $value["types"]))
-                                $resG = true ;
+                        if(!empty($resultGoogle["results"][0]["address_components"])){
+                            foreach ($resultGoogle["results"][0]["address_components"] as $key => $value) {
+                                if(in_array("locality", $value["types"]))
+                                    $resG = true ;
+                            }
                         }
+                        
                         //var_dump($resG);
                         if(!empty($resultGoogle["results"]) && $resG == true){
                             $newGeo["geo"]["latitude"] = strval($resultGoogle["results"][0]["geometry"]["location"]["lat"]);
@@ -286,9 +289,11 @@ class Import
                                 }else{
                                     $resultGoogle = json_decode(SIG::getGeoByAddressGoogleMap(null,$cp, $nameCity, $country), true);
                                     $resG = false ;
-                                    foreach (@$resultGoogle["results"][0]["address_components"] as $key => $value) {
-                                        if(in_array("locality", $value["types"]))
-                                            $resG = true ;
+                                    if(!empty($resultGoogle["results"][0]["address_components"])){
+                                        foreach ($resultGoogle["results"][0]["address_components"] as $key => $value) {
+                                            if(in_array("locality", $value["types"]))
+                                                $resG = true ;
+                                        }
                                     }
 
                                     if(!empty($resultGoogle["results"]) && $resG == true){
