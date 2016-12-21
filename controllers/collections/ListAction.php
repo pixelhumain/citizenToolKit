@@ -1,7 +1,7 @@
 <?php
 class ListAction extends CAction
 {
-    public function run( $tpl=null )
+    public function run( $tpl=null,$col="favorites" )
     {
     	$controller = $this->getController();
         $res = array( "result" => false , "msg" => Yii::t("common","Something went wrong!") );
@@ -9,7 +9,7 @@ class ListAction extends CAction
             return array("result"=>false, "msg"=>Yii::t("common","Please Login First") );
         else{	
 			try {
-				$res = Favorite::get(@$_POST['id'], @$_POST['type']);
+				$res = Collection::get(@$_POST['id'], @$_POST['type'], $col );
 			} catch (CTKException $e) {
 				$res = array( "result" => false , "msg" => $e->getMessage() );
 			}
@@ -18,7 +18,7 @@ class ListAction extends CAction
 		if(Yii::app()->request->isAjaxRequest && @$tpl) {
 			if( $res["list"]["citoyens"] )
 				$res["list"]["person"] = $res["list"]["citoyens"];
-			$res["type"] = "favorites";
+			$res["type"] = @$_POST['collection'];
         	echo $controller->renderPartial("../default/".$tpl ,$res["list"] ,true );
 		} else
 			return Rest::json($res);

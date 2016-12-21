@@ -433,15 +433,21 @@ class IndexAction extends CAction
 		}
 
 		$params["firstView"] = "news";
+
+		//$params["params"] = $params;
+		//$params["params"]["news"] = "";
 							
 		if(Yii::app()->request->isAjaxRequest){
 			if (@$_GET["isFirst"]){
-				 if(@$_GET["tpl"]=="kgougle")
-				 echo $controller->renderPartial("indexK", $params,true);
+				 if(@$_GET["tpl"]=="co2")
+				 echo $controller->renderPartial("indexCO2", $params,true);
 				 else
 				 echo $controller->renderPartial("index", $params,true);
 	       } else{
 				//
+	       		if(@$_GET["tpl"]=="co2")
+				 echo $controller->renderPartial("newsPartialCO2", $params,true);
+				else
 				echo json_encode($params);
 	      }
 	    }

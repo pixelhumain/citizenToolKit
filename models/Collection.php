@@ -1,45 +1,57 @@
 <?php 
-class Favorite {
+class Collection {
 
-    public static function add($targetId, $targetType)
+    public static function create($name)
+    {
+        
+        $person = Person::getById( Yii::app()->session["userId"] );
+        $action = '$set';        
+        PHDB::update(Person::COLLECTION, 
+                       array("_id" => new MongoId(Yii::app()->session["userId"]) ) , 
+                       array($action => array("collections.".$name => new stdClass() )));
+
+        return array("result"=>true, "msg"=>"Collection $name with success");
+    }
+
+    public static function add($targetId, $targetType,$collection="favorites")
     {
         
         $person = Person::getById( Yii::app()->session["userId"] );
         $target = Element::checkIdAndType( $targetId, $targetType );
-        $favorites=array("favorites.".$targetType.".".$targetId => new MongoDate(time()),"updated"=>time());
+        $collections=array("collections.".$collection.".".$targetType.".".$targetId => new MongoDate(time()),"updated"=>time());
         
         $action = '$set';
         $inc = 1;
         $verb = "Added ".$target["name"]." to";
-        if( @$person["favorites"][$targetType][$targetId] )
+        if( @$person["collections"][$collection][$targetType][$targetId] )
         {
             $action =  '$unset';
             $inc = -1;
             $verb = "Removed ".$target["name"]." from";
-            $favorites=array("favorites.".$targetType.".".$targetId => 1);
+            $collections=array("collections.".$collection.".".$targetType.".".$targetId => 1);
         }  
 
         PHDB::update(Person::COLLECTION, 
                        array("_id" => new MongoId(Yii::app()->session["userId"]) ) , 
-                       array($action => $favorites));
+                       array($action => $collections));
 
         PHDB::update($targetType, 
                        array( "_id" => new MongoId($targetId) ) , 
-                       array( '$inc' => array( "favoriteCount" => $inc ) ) );
+                       array( '$inc' => array( "collectionCount" => $inc ) ) );
             
-        return array("result"=>true,"list"=>$action, "msg"=>"$verb your Favorites with success");
+        return array("result"=>true,"list"=>$action, "msg"=>"$verb $collection with success");
     }
 
     //$type is a filter of a type of favorite
-    public static function get($userId=null, $type=null)
+    public static function get($userId=null, $type=null,$collection="favorites")
     {
         if(!$userId)
             $userId = Yii::app()->session["userId"];
         $person = Person::getById( $userId );
         $list = array();
         $count = 0;
-        if(@$person["favorites"])
-        foreach ( @$person["favorites"] as $favtype => $value ) 
+        if(@$person["collections"][$collection])
+        foreach ( @$person["collections"][$collection] as $favtype => $value ) 
         {
             $ids = array();
             if(!$type || $type == $favtype )

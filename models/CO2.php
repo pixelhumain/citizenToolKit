@@ -19,6 +19,7 @@ class CO2 {
     								  
     								"#co2.web"=>
     								  	array("inMenu" => true, 
+						                      "useHeader" => true, 
 						                      "subdomain" => "web", 
 						                      "subdomainName" => "web",
 						                      "icon" => "search", 
@@ -27,22 +28,25 @@ class CO2 {
 
     								"#co2.media"=>
     								  	array("inMenu" => true, 
+						                      "useHeader" => true, 
 						                      "subdomain" => "media", 
 						                      "subdomainName" => "media",
 						                      "icon" => "newspaper-o", 
 						                      "mainTitle" => "Toute l'actu <span class='letter-green'>des médias alternatifs</span>",
 						                      "placeholderMainSearch" => "rechercher dans l'actu  ..."),
 
-    								"#co2.network"=>
+    								"#co2.social"=>
     								  	array("inMenu" => true, 
-						                      "subdomain" => "network", 
-						                      "subdomainName" => "network",
+						                      "useHeader" => true, 
+						                      "subdomain" => "social", 
+						                      "subdomainName" => "social",
 						                      "icon" => "user-circle-o", 
 						                      "mainTitle" => "Le réseau social <span class='letter-green'>à effet de serre positif</span>",
 						                      "placeholderMainSearch" => "Rechercher parmis les membres du réseau Communecter"),
 
     								"#co2.live"=>
     								  	array("inMenu" => true, 
+						                      "useHeader" => true, 
 						                      "subdomain" => "live", 
 						                      "subdomainName" => "live",
 						                      "icon" => "rss", 
@@ -51,6 +55,7 @@ class CO2 {
 
     								"#co2.power"=>
     								  	array("inMenu" => true, 
+						                      "useHeader" => true, 
 						                      "subdomain" => "power", 
 						                      "subdomainName" => "power",
 						                      "icon" => "hand-rock-o", 
@@ -59,11 +64,12 @@ class CO2 {
 
     								"#co2.page.type"=>
     								  	array("inMenu" => false, 
-						                      "subdomain" => "", 
-						                      "subdomainName" => "",
+						                      "useHeader" => false, 
+						                      "subdomain" => "page.type", 
+						                      "subdomainName" => "page",
 						                      "icon" => "", 
-						                      "mainTitle" => "",
-						                      "placeholderMainSearch" => ""),
+						                      "mainTitle" => "Le réseau social à effet de sert",
+						                      "placeholderMainSearch" => "rechercher parmis les membres du réseau ..."),
 
     								  
 
@@ -86,14 +92,25 @@ class CO2 {
     								  
     								"#co2.web"=>
     								  	array("inMenu" => true, 
+						                      "useHeader" => true, 
 						                      "subdomain" => "web", 
 						                      "subdomainName" => "web",
 						                      "icon" => "search", 
 						                      "mainTitle" => "Le moteur de recherche des Cagous",
 						                      "placeholderMainSearch" => "rechercher sur le web Calédonien ..."),
 
+    								"#co2.referencement"=>
+    								  	array("inMenu" => false, 
+						                      "useHeader" => true, 
+						                      "subdomain" => "referencement", 
+						                      "subdomainName" => "referencement",
+						                      "icon" => "search", 
+						                      "mainTitle" => "Référencer un site",
+						                      "placeholderMainSearch" => "rechercher sur le web Calédonien ..."),
+
     								"#co2.live"=>
     								  	array("inMenu" => true, 
+						                      "useHeader" => true, 
 						                      "subdomain" => "live", 
 						                      "subdomainName" => "live",
 						                      "icon" => "newspaper-o", 
@@ -102,6 +119,7 @@ class CO2 {
 
     								"#co2.social"=>
     								  	array("inMenu" => true, 
+						                      "useHeader" => true, 
 						                      "subdomain" => "social", 
 						                      "subdomainName" => "social",
 						                      "icon" => "user-circle-o", 
@@ -110,6 +128,7 @@ class CO2 {
 
     								"#co2.freedom"=>
     								  	array("inMenu" => true, 
+						                      "useHeader" => true, 
 						                      "subdomain" => "freedom", 
 						                      "subdomainName" => "freedom",
 						                      "icon" => "comments", 
@@ -118,6 +137,7 @@ class CO2 {
 
     								"#co2.power"=>
     								  	array("inMenu" => true, 
+						                      "useHeader" => true, 
 						                      "subdomain" => "power", 
 						                      "subdomainName" => "power",
 						                      "icon" => "hand-rock-o", 
@@ -126,11 +146,12 @@ class CO2 {
 
     								"#co2.page.type"=>
     								  	array("inMenu" => false, 
-						                      "subdomain" => "", 
-						                      "subdomainName" => "",
+						                      "useHeader" => false, 
+						                      "subdomain" => "page.type", 
+						                      "subdomainName" => "page",
 						                      "icon" => "", 
-						                      "mainTitle" => "",
-						                      "placeholderMainSearch" => ""),
+						                      "mainTitle" => "Le réseau social Calédonien",
+						                      "placeholderMainSearch" => "rechercher parmis les membres du réseau ..."),
     							) 								  
 
     					));

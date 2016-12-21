@@ -14,6 +14,8 @@ class WebSearchAction extends CAction
     	if(isset($_POST["search"]) && $_POST["search"] != ""){
     		$search = $_POST["search"];
     		$searchRegExp = self::accentToRegex($search);
+        	
+        	$query['$or'][]["hostname"] = new MongoRegex("/.*{$searchRegExp}.*/i");
         	$query['$or'][]["title"] = new MongoRegex("/.*{$searchRegExp}.*/i");
 
         	$query['$or'][]["tags"] = array('$in' => array(new MongoRegex("/.*{$searchRegExp}.*/i")));
@@ -21,6 +23,9 @@ class WebSearchAction extends CAction
         	
         	$query['$or'][]["description"] = new MongoRegex("/.*{$searchRegExp}.*/i");
     	}
+
+    	//$query['$and'] = array(array("status" => array('$ne'=>'unreachable', '$ne'=>'locked')));
+    	$query['$and'] = array(array("status" => "uncomplet"));
 
     	if(!isset($_POST["category"]) && !isset($_POST["search"]))
     		$query = array();

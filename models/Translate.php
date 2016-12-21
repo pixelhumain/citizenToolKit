@@ -182,7 +182,7 @@ class Translate {
 	        return "Non reconnu";
 	    }
 
-	    if(isset($timezone) && date_default_timezone_get()!=$timezone){
+	    if(isset($timezone) && $timezone != "" && date_default_timezone_get()!=$timezone){
 			date_default_timezone_set($timezone); //'Pacific/Noumea'
 		}
 
