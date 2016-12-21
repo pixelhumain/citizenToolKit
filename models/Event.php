@@ -684,8 +684,8 @@ class Event {
 	  		{
 				if (gettype($value["startDate"]) == "object" && gettype($value["endDate"]) == "object") 
 				{
-					$events[$key]["startDate"] = date('Y-m-d H:i:s', $value["startDate"]->sec);
-					$events[$key]["endDate"] = date('Y-m-d H:i:s', $value["endDate"]->sec);
+					$events[$key]["startDate"] = date(DateTime::ISO8601, $value["startDate"]->sec);
+					$events[$key]["endDate"] = date(DateTime::ISO8601, $value["endDate"]->sec);
 				} 
 				else 
 				{
