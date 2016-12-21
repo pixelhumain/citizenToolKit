@@ -160,6 +160,15 @@ class Notification{
 			),
 			"label"=>"{who} modified {object} of {what}"
 		),
+		"CONFIRM" => array(
+			"repeat" => true,
+			"context" => array("community"),
+			"mail" => array(
+				"type"=>"instantly",
+				"to" => "invitor"
+			)
+		),
+
 		//FROM USER LINK TO AN ELEMENT ACTING ON IT
 		"INVITE" => array(
 			"repeat" => true,
@@ -181,7 +190,7 @@ class Notification{
 				"to" => "user"
 			)
 		)
-		"CONFIRM" => array(
+		"ACCEPT" => array(
 			"repeat" => true,
 			"context" => array("community"),
 			"mail" => array(
