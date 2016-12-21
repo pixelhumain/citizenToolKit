@@ -18,7 +18,7 @@ class SaveAction extends CAction {
             $res = Element::save($_POST);
         }
 
-        echo json_encode( $res );  	
+        echo Rest::json( $res );  	
     }
 }
 
