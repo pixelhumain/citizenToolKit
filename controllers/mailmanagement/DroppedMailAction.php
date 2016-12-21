@@ -7,7 +7,7 @@ class DroppedMailAction extends CAction {
         try {
             $mailError = new MailError($_POST);
         } catch (CTKException $e) {
-            Rest::sendResponse(450, "Webhook : ".$e->message);
+            Rest::sendResponse(450, "Webhook : ".$e->getMessage());
             die;
         }
         $mailError->actionOnEvent();

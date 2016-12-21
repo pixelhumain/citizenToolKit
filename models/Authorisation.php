@@ -502,14 +502,16 @@ class Authorisation {
             if (self::isUserSuperAdmin($userId)) {
                 return true;
             }
-			$hasVote = (@$survey["voteUpCount"] 
-							|| @$survey["voteAbstainCount"]  
-							|| @$survey["voteUnclearCount"] 
-							|| @$survey["voteMoreInfoCount"] 
-							|| @$survey["voteDownCount"] ) ? true : false;
-            if ( !$hasVote && Authorisation::canEditItem($userId, $parentId, $parentType) )  {
+
+            // case 2 : organiser of Survey
+            if ( @$survey["organizerType"] == Person::COLLECTION && @$survey["organizerId"] == $userId ) {
+                return true;
+            }
+
+            // case 3 : admin of parent
+            if ( Authorisation::canEditItem($userId, $parentId, $parentType) )  {
 	            return true;
-	         }
+	       }
         } else {
 	        //RAJOUTER UN LOG
 			error_log("Problem with survey authorization, surveyId:".@$surveyId." & userId:".@$userId);
@@ -612,7 +614,7 @@ class Authorisation {
     public static function isLocalCitizen($userId, $cityId) {
         $cityMap = City::getUnikeyMap($cityId);
         //echo Yii::app()->session["user"]["codeInsee"] ."==". $cityMap["insee"];
-        return (Yii::app()->session["user"]["codeInsee"] == $cityMap["insee"] ) ? true : false;
+        return (@Yii::app()->session["user"]["codeInsee"] && Yii::app()->session["user"]["codeInsee"] == $cityMap["insee"] ) ? true : false;
     }
 
     /**

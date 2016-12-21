@@ -5,7 +5,7 @@ Contains anything generix for the site
 class Mail {
     
     public static function send( $params, $force = false ) {
-        
+        $account = null;
         //Check if the user has the not valid email flag
         if (! empty($params['to'])) {
             if ($params['to'] != Yii::app()->params['adminEmail']) {
@@ -22,12 +22,16 @@ class Mail {
                     $msg = "Try to send an email to an unknown email user : ".$params['to'];
                     return array("result" => false, "msg" => $msg);
                 }
+            } else {
+                $nameTo = "Admin Communecter";
             }
         } else {
             return false;
         }
         
-        $nameTo = $account["name"];
+        if ($account)
+            $nameTo = $account["name"];
+
         if( PH::notlocalServer() || $force ){
             $message = new YiiMailMessage;
             $message->view =  $params['tpl'];

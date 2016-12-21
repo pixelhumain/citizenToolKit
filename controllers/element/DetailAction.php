@@ -4,7 +4,7 @@ class DetailAction extends CAction {
 /**
 * Dashboard Organization
 */
-    public function run($type, $id) { 
+    public function run($type, $id, $networkParams=null) { 
     	$controller=$this->getController();
 		$members=array();
 		//$list = Lists::get(array("eventTypes"));
@@ -65,7 +65,8 @@ class DetailAction extends CAction {
 			if(isset($element["links"]["events"])){
 				foreach ($element["links"]["events"] as $keyEv => $valueEv) {
 					 $event = Event::getSimpleEventById($keyEv);
-	           		 $events[$keyEv] = $event;
+					 if(!empty($event))
+		           		 $events[$keyEv] = $event;
 				}
 			}
 
@@ -117,14 +118,14 @@ class DetailAction extends CAction {
 						$organizer["type"]=$urlType;
 					}
             		$organizer["id"] = $uid;
-            		$organizer["name"] = $organizerInfo["name"];
-            		$organizer["profilImageUrl"] = $organizerInfo["profilImageUrl"];
+            		$organizer["name"] = @$organizerInfo["name"];
+            		$organizer["profilImageUrl"] = @$organizerInfo["profilImageUrl"];
+            		$organizer["profilThumbImageUrl"] = @$organizerInfo["profilThumbImageUrl"];
           		}
 		  		$params["organizer"] = $organizer;
               		
             }
 			//events can have sub evnets
-
 	        $params["subEvents"] = PHDB::find(Event::COLLECTION,array("parentId"=>$id));
 	        $params["subEventsOrganiser"] = array();
 	        $hasSubEvents = false;
@@ -212,6 +213,10 @@ class DetailAction extends CAction {
 		$params["needs"]=$needs;
 		$params["edit"] = Authorisation::canEditItem(Yii::app()->session["userId"], $elementAuthorizationType, $elementAuthorizationId);
 		$params["openEdition"] = Authorisation::isOpenEdition($elementAuthorizationId, $elementAuthorizationType, @$element["preferences"]);
+		if(@Yii::app()->session["network"]){
+			$params["openEdition"] = false;
+			$params["edit"] = false;
+		}
 		$params["isLinked"] = Link::isLinked($elementAuthorizationId,$elementAuthorizationType, Yii::app()->session['userId'], @$element["links"]);
 		
 		if($type==Event::COLLECTION){
@@ -227,6 +232,8 @@ class DetailAction extends CAction {
 		if(@$_POST["modeEdit"]){
 			$params["modeEdit"]=$_POST["modeEdit"];
 		}
+		if(@$_GET["network"])
+			$params["networkJson"]=Network::getNetworkJson($_GET["network"]);
 		
 		$page = "detail";
 		if(Yii::app()->request->isAjaxRequest)

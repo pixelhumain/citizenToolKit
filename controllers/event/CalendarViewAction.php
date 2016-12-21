@@ -45,6 +45,8 @@
 		  	$tpl = ( $pod ) ? "../pod/calendarPod" : "calendarView";
 		  	if(Yii::app()->request->isAjaxRequest)
 	            echo $controller->renderPartial($tpl, $params);
+	        else if(@$_GET["format"] && $_GET["format"] == "json")
+	        	echo Rest::json($params);
 	        else 
 		  		$controller->render( $tpl , $params);
 		}

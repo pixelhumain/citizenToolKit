@@ -78,7 +78,7 @@ class SimplyAutoCompleteAction extends CAction
 	  			$tmpSourceKey[] = new MongoRegex("/".$sourceKey."/i");
 	  		}
 	  		if(count($tmpSourceKey)){
-	  			$query = array('$and' => array( $query , array("source.key" => array('$in' => $tmpSourceKey))));
+	  			$query = array('$and' => array( $query , array("source.keys" => array('$in' => $tmpSourceKey))));
 	  		}
 	  		unset($tmpSourceKey);
 	  	}
@@ -108,7 +108,8 @@ class SimplyAutoCompleteAction extends CAction
 					        }
 	        			}
 	        		}elseif($key == "DEPARTEMENT") {
-	        			$queryLocality = array($value => new MongoRegex("/^".$locality."/i"));
+	        			$dep = PHDB::findOne( City::COLLECTION, array("depName" => $locality), array("dep"));	
+		        		$queryLocality = array($value => new MongoRegex("/^".$dep["dep"]."/i"));
 		        	}//OneLocality
 		        	else{
 	  					$queryLocality = array($value => new MongoRegex("/".$locality."/i"));
@@ -233,7 +234,7 @@ class SimplyAutoCompleteAction extends CAction
 				// $allOrganizations[$key] = Organization::getSimpleOrganizationById($key);
 
 				$allOrganizations[$key] = $orga;
-				$allOrganizations[$key]["type"] = "organization";
+				$allOrganizations[$key]["type"] = "organizations";
 				$allOrganizations[$key]["typeSig"] = "organizations";
 	  		}
 

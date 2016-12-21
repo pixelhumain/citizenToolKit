@@ -26,6 +26,7 @@ class Event {
 	    "parentType" => array("name" => "parentType"),
 	    "organizerId" => array("name" => "organizerId"),
 	    "organizerType" => array("name" => "organizerType"),
+	    "organizer" => array("name" => "organizer", "rules" => array("validOrganizer")),
 
 
 	    "address" => array("name" => "address", "rules" => array("addressValid")),
@@ -40,10 +41,10 @@ class Event {
 	    
 	    "description" => array("name" => "description"),
 	    "shortDescription" => array("name" => "shortDescription"),
-	    "allDay" => array("name" => "allDay"),
+	    "allDay" => array("name" => "allDay", "rules" => array("boolean")),
 	    "modules" => array("name" => "modules"),
-	    "startDate" => array("name" => "startDate"), //"rules" => array("eventStartDate")),
-	    "endDate" => array("name" => "endDate"), //"rules" => array("eventEndDate")),
+	    "startDate" => array("name" => "startDate", "rules" => array("eventStartDate")),
+	    "endDate" => array("name" => "endDate", "rules" => array("eventEndDate")),
 	    "preferences" => array("name" => "preferences"),
 
 	    "source" => array("name" => "source"),
@@ -51,6 +52,7 @@ class Event {
 	    "tags" => array("name" => "tags"),
 	    "medias" => array("name" => "medias"),
 	    "urls" => array("name" => "urls"),
+	    "url" => array("name" => "url"),
 
 	    "modified" => array("name" => "modified"),
 	    "updated" => array("name" => "updated"),
@@ -94,8 +96,8 @@ class Event {
 			if (gettype($event["startDate"]) == "object" && gettype($event["endDate"]) == "object") {
 				//Set TZ to UTC in order to be the same than Mongo
 				date_default_timezone_set('UTC');
-				$event["startDate"] = date('Y-m-d H:i:s', $event["startDate"]->sec);
-				$event["endDate"] = date('Y-m-d H:i:s', $event["endDate"]->sec);
+				$event["startDate"] = date(DateTime::ISO8601, $event["startDate"]->sec);
+				$event["endDate"] = date(DateTime::ISO8601, $event["endDate"]->sec);
 			} else {
 				//Manage old date with string on date event
 				$now = time();
@@ -120,7 +122,7 @@ class Event {
 	public static function getSimpleEventById($id) {
 		
 		$simpleEvent = array();
-		$event = PHDB::findOneById( self::COLLECTION ,$id, array("id" => 1, "name" => 1, "type" => 1,  "shortDescription" => 1, "description" => 1, "address" => 1, "geo" => 1, "tags" => 1, "profilImageUrl" => 1, "profilThumbImageUrl" => 1, "profilMarkerImageUrl" => 1, "profilMediumImageUrl" => 1, "startDate" => 1, "endDate" => 1));
+		$event = PHDB::findOneById( self::COLLECTION ,$id, array("id" => 1, "name" => 1, "type" => 1,  "shortDescription" => 1, "description" => 1, "address" => 1, "geo" => 1, "tags" => 1, "profilImageUrl" => 1, "profilThumbImageUrl" => 1, "profilMarkerImageUrl" => 1, "profilMediumImageUrl" => 1, "startDate" => 1, "endDate" => 1, "addresses"=>1));
 		if(!empty($event)){
 			$simpleEvent["id"] = $id;
 			$simpleEvent["_id"] = $event["_id"];
@@ -134,11 +136,12 @@ class Event {
 			$simpleEvent["description"] = @$event["description"];
 			$simpleEvent["startDate"] = @$event["startDate"];
 			$simpleEvent["endDate"] = @$event["endDate"];
-			$simpleEvent["typeSig"] = Event::COLLECTION;
+			$simpleEvent["addresses"] = @$event["addresses"];
 			
 			$simpleEvent = array_merge($simpleEvent, Document::retrieveAllImagesUrl($id, self::COLLECTION, $simpleEvent["type"], $event));
 			
-			$simpleEvent["address"] = empty($event["address"]) ? array("addressLocality" => "Unknown") : $event["address"];
+			$simpleEvent["address"] = empty($event["address"]) ? array("addressLocality" => Yii::t("common","Unknown Locality")) : $event["address"];
+			$simpleEvent["typeSig"] = Event::COLLECTION;
 		}
 		return @$simpleEvent;
 	}
@@ -368,15 +371,18 @@ class Event {
 	    return array("result"=>true, "msg"=>Yii::t("event","Your event has been connected."), "id"=>$newEvent["_id"], "event" => $newEvent );
 	}
 
-	public static function validateFirstAndFormat ($params){
+	public static function formatBeforeSaving($params) {
+		$startDate = DataValidator::getDateTimeFromString($params['startDate'], "start date");
+		$endDate = DataValidator::getDateTimeFromString($params['endDate'], "end date");
+	    
+		$params["startDate"] = new MongoDate($startDate->getTimestamp());
+		$params["endDate"]   = new MongoDate($endDate->getTimestamp());
 
-		//The end datetime must be after start datetime
-		$startDate = strtotime( str_replace("/", "-", $params['startDate']) );
-		$endDate = strtotime( str_replace("/", "-", $params['endDate']) );
-		if ($startDate > $endDate) 
-		{
-			return array("result"=>false, "msg"=>"The start date must be before the end date.");
-		}
+		return array('result' => true, "params"=>$params );
+	}
+
+	public static function validateFirst($params){
+
 		//SubEvent authorization
 		//check if the parent event exists and the user can add subevent
 		if( @$params["parentId"] ) {
@@ -390,11 +396,6 @@ class Event {
 				}
 			}
 		}
-		
-		date_default_timezone_set('UTC');
-		$params["startDate"] = new MongoDate(strtotime($params['startDate']));
-		$params["endDate"]   = new MongoDate(strtotime($params['endDate']));
-		
 		
 		return array('result' => true, "params"=>$params );
 	}
@@ -597,6 +598,7 @@ class Event {
 		}
 
 		$dataFieldName = self::getCollectionFieldNameAndValidate($eventFieldName, $eventFieldValue, $eventId);
+		error_log("Update event : ".$dataFieldName);
 		if ($dataFieldName == "tags") {
 			$eventFieldValue = Tags::filterAndSaveNewTags($eventFieldValue);
 			$set = array($dataFieldName => $eventFieldValue);
@@ -625,10 +627,17 @@ class Event {
 			}
 			$newMongoDate = new MongoDate($dt->getTimestamp());
 			$set = array($dataFieldName => $newMongoDate);	
+		} else if ($dataFieldName == "organizer") {
+			error_log("Vlan maj d'organizer");
+			$set = array("organizerId" => $eventFieldValue["organizerId"], 
+							 "organizerType" => $eventFieldValue["organizerType"]);
+			Link::addOrganizer($eventFieldValue["organizerId"], $eventFieldValue["organizerType"], $eventId, $userId);
 		} else {
 			$set = array($dataFieldName => $eventFieldValue);
 		}
+		
 		$res = Event::updateEvent($eventId, $set, $userId);
+
 		if($authorization == "openEdition" && $dataFieldName != "badges"){
 			// Add in activity to show each modification added to this entity
 					//echo $dataFieldName;
@@ -884,7 +893,7 @@ class Event {
 		$newEvents["creator"] = Yii::app()->params['idOpenAgenda'];
 		$newEvents["type"] = "other";
 		$newEvents["public"] = true;
-		$newEvents['allDay'] = 'true' ;
+		$newEvents['allDay'] = true;
 
 		$newEvents['source']["id"] = $eventOpenAgenda["uid"] ;
 		$newEvents['source']["url"] = $eventOpenAgenda["link"] ;

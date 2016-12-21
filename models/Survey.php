@@ -11,9 +11,46 @@ class Survey
   	const STATUS_CLEARED 	= "cleared";
   	const STATUS_REFUSED 	= "refused";
 
+	public static $dataBinding = array (
+		//TODO : make field name as event endDate + make it as mongoDate
+	    "endDate" => array("name" => "dateEnd", "rules" => array("required"))
+	);
+
+	public static function getDataBinding() {
+	  	return self::$dataBinding;
+	}
+
 	public static function getById($id) {
 		$survey = PHDB::findOneById( self::COLLECTION ,$id );
 		return $survey;
+	}
+
+	public static function canUpdateSurvey($id, $fieldName, $fieldValue) {
+		$res = array("result" => true);
+		$survey = PHDB::findOneById( self::COLLECTION ,$id );
+
+        $hasVote = (@$survey["voteUpCount"] 
+                        || @$survey["voteAbstainCount"]  
+                        || @$survey["voteUnclearCount"] 
+                        || @$survey["voteMoreInfoCount"] 
+                        || @$survey["voteDownCount"] ) ? true : false;
+
+        //the survey has vote. Only can modify the endDate field
+        if ($hasVote) {
+        	if ($fieldName == "dateEnd") {
+	            //If the endDate is modified after votes, the new end date should be after the previous
+	            //Surveys can be only delayed
+	        	if (@$survey["dateEnd"] > strtotime($fieldValue)) {
+	        		$res = array("result" => false, "msg" => Yii::t("survey","The end date can only be delayed after votes have been done."));
+	        		return $res;
+	        	}
+        	} else {
+	        	$res = array("result" => false, "msg" => Yii::t("survey","Can not update the survey after votes have been done."));
+	        	return $res;
+        	}
+        }
+
+        return $res;
 	}
 
     public static function moderateEntry($params) {
@@ -222,32 +259,31 @@ class Survey
 		$actionMoreInfo = "javascript:addaction('".(string)$survey["_id"]."','".Action::ACTION_VOTE_MOREINFO."')";
 		$actionDown 	= "javascript:addaction('".(string)$survey["_id"]."','".Action::ACTION_VOTE_DOWN."')";
 		
-		$hasVoted = $voteLinksAndInfos["hasVoted"];
 		$isAuth =  Authorisation::canParticipate(Yii::app()->session['userId'],$parentType,$parentId);
 
-		$hasVoted = !$isAuth || $hasVoted;
+		$canVote = !$isAuth || $voteLinksAndInfos["hasVoted"] || ($voteLinksAndInfos["avoter"]=="closed");
 
 		$html = '<div class="col-md-1"></div>';
-		$html .= self::getOneChartCircle($percentVoteUp, 		$voteUpCount,		$actionUp, 		"Pour", 	"green", 	"thumbs-up", 		$hasVoted);
-		$html .= self::getOneChartCircle($percentVoteMoreInfo,  	$voteMoreInfoCount,	$actionMoreInfo,"Incomplet","blue", 	"pencil", 			$hasVoted);
-		$html .= self::getOneChartCircle($percentVoteAbstain,	$voteAbstainCount,	$actionAbstain, "Blanc", 	"white", 	"circle", 			$hasVoted);
-		$html .= self::getOneChartCircle($percentVoteUnclear, 	$voteUnclearCount,	$actionUnclear, "Incompris","purple", 	"question-circle", 	$hasVoted);
-		$html .= self::getOneChartCircle($percentVoteDown, 		$voteDownCount,		$actionDown, 	"Contre", 	"red", 		"thumbs-down", 		$hasVoted);
+		$html .= self::getOneChartCircle($percentVoteUp, 		$voteUpCount,		$actionUp, 		"Pour", 	"green", 	"thumbs-up", 		$canVote);
+		$html .= self::getOneChartCircle($percentVoteMoreInfo,  	$voteMoreInfoCount,	$actionMoreInfo,"Incomplet","blue", 	"pencil", 			$canVote);
+		$html .= self::getOneChartCircle($percentVoteAbstain,	$voteAbstainCount,	$actionAbstain, "Blanc", 	"white", 	"circle", 			$canVote);
+		$html .= self::getOneChartCircle($percentVoteUnclear, 	$voteUnclearCount,	$actionUnclear, "Incompris","purple", 	"question-circle", 	$canVote);
+		$html .= self::getOneChartCircle($percentVoteDown, 		$voteDownCount,		$actionDown, 	"Contre", 	"red", 		"thumbs-down", 		$canVote);
 		$html .= '<div class="col-md-1"></div>';
 		if(!$isAuth)
 			$html .= '<div class="col-md-12 center text-red"><br/> Vous n&apos;avez pas les droits pour voter. </div>';
 		return $html;
 	}
 
-	private static function getOneChartCircle($percent, $voteCount, $action, $label, $color, $icon, $hasVoted){
+	private static function getOneChartCircle($percent, $voteCount, $action, $label, $color, $icon, $canVote){
 		$colorTxt = ($color=="white") ? "black" : $color;
 		$colXS = ($color=="white") ? "col-xs-12" : "col-xs-6";
 
-		$tooltips = array("green"=>"Je suis favorable à cette proposition",
-						"blue"=>"Je pense que cette proposition n'est pas complète",
-						"white"=>"Je n'ai pas d'avis",
-						"purple"=>"Je n'ai pas compris, il manque des informations",
-						"red"=>"Je suis contre à cette proposition",
+		$tooltips = array("green"=>Yii::t("common","I am in favor of this proposal"),
+						"blue"=>Yii::t("common","I think that this proposal is not complete"),
+						"white"=>Yii::t("common","I have not reviews"),
+						"purple"=>Yii::t("common","I don't understand, it miss informations"),
+						"red"=>Yii::t("common","I am not in favor of this proposal"),
 						);
 		
 		$tooltip = $tooltips[$color];
@@ -264,9 +300,9 @@ class Survey
 		  		  '</div>'.
 		  		'</div>';
 
-		if(!$hasVoted)
-		$html .=	'<button onclick="'.$action.'" data-original-title="'.$tooltip.'" data-toggle="tooltip" data-placement="bottom" '.
-							'class="btn btn-default tooltips btn-sm text-'.$colorTxt.'"><i class="fa fa-gavel"></i> Voter</button>';
+		if(!$canVote)
+			$html .=	'<button onclick="'.$action.'" data-original-title="'.$tooltip.'" data-toggle="tooltip" data-placement="bottom" '.
+							'class="btn btn-default tooltips btn-sm text-'.$colorTxt.'"><i class="fa fa-gavel"></i> Voter'.@$voteLinksAndInfos["avoter"].'</button>';
 		
 		$html .=  '</div>';
 		

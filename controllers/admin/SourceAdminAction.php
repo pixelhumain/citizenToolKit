@@ -10,7 +10,7 @@ class SourceAdminAction extends CAction
 
         if(!empty($sourceAdmin)){
             foreach ($sourceAdmin as $key => $value) {
-                $result[$value] = Import::getAllEntitiesByKey($value);
+                $result[$value] = Element::getAllEntitiesByKey($value);
             }
         }
         

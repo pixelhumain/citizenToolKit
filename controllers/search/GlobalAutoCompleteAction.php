@@ -29,6 +29,15 @@ class GlobalAutoCompleteAction extends CAction
        // if(isset($search) && $search != "")
         $searchRegExp = self::accentToRegex($search);
         $query = array( "name" => new MongoRegex("/.*{$searchRegExp}.*/i"));
+        //implode $search
+        $explodeSearchRegExp = explode(" ", $searchRegExp);
+        if(count($explodeSearchRegExp)>1){
+	        $andArray=array();
+	        foreach($explodeSearchRegExp as $data){
+		        array_push($andArray,array("name" => new MongoRegex("/.*{$data}.*/i")));
+	        }
+	        $query = array('$or' => array($query,array('$and'=> $andArray)));
+        }
 
         
         /***********************************  TAGS   *****************************************/
@@ -219,10 +228,16 @@ class GlobalAutoCompleteAction extends CAction
         	$allPoi = PHDB::findAndSortAndLimitAndIndex(Poi::COLLECTION, $query, 
 	  												array("updated" => -1), $indexStep, $indexMin);
 	  		foreach ($allPoi as $key => $value) {
-	  			$parent = Element::getElementSimpleById($value["parentId"], $value["parentType"]);
+		  		if(@$value["parentId"] && @$value["parentType"])
+		  			$parent = Element::getElementSimpleById(@$value["parentId"], @$value["parentType"]);
+		  		else
+		  			$parent=array();
 				$allPoi[$key]["parent"] = $parent;
-				$allPoi[$key]["type"] = "poi";
-				$allPoi[$key]["typeSig"] = Poi::COLLECTION;
+				//$allPoi[$key]["type"] = "poi";
+				if(@$value["type"])
+					$allPoi[$key]["typeSig"] = Poi::COLLECTION.".".$value["type"];
+				else
+					$allPoi[$key]["typeSig"] = Poi::COLLECTION;
 	  		}
 	  		//$res["project"] = $allProject;
 	  		$allRes = array_merge($allRes, $allPoi);
@@ -356,9 +371,9 @@ class GlobalAutoCompleteAction extends CAction
         		foreach ($myLinks["organizations"] as $keyL => $orga) {
         			//error_log("orga " . (string)$orga['_id'] ."==". (string)$room['parentId']);
         			if((string)$orga['_id'] == (string)$room['parentId'] && $room['parentType'] == "organizations"){
-        				$allRooms[$keyR]["parentObj"]["_id"] = $orga["_id"];
-        				$allRooms[$keyR]["parentObj"]["name"] = $orga["name"];
-        				$allRooms[$keyR]["parentObj"]["address"] = $orga["address"];
+        				$allRooms[$keyR]["parentObj"]["_id"] 	 = $orga["_id"];
+        				$allRooms[$keyR]["parentObj"]["name"] 	 = $orga["name"];
+        				$allRooms[$keyR]["parentObj"]["address"] = @$orga["address"];
         				$allRooms[$keyR]["parentObj"]["typeSig"] = $orga["typeSig"];
         				break;
         			}
@@ -367,9 +382,9 @@ class GlobalAutoCompleteAction extends CAction
         		foreach ($myLinks["projects"] as $keyL => $project) {
         			//error_log("project " . (string)$project['_id'] ."==". (string)$room['parentId']);
         			if((string)$project['_id'] == (string)$room['parentId'] && $room['parentType'] == "projects"){
-        				$allRooms[$keyR]["parentObj"]["_id"] = $project["_id"];
-        				$allRooms[$keyR]["parentObj"]["name"] = $project["name"];
-        				$allRooms[$keyR]["parentObj"]["address"] = $project["address"];
+        				$allRooms[$keyR]["parentObj"]["_id"] 	 = $project["_id"];
+        				$allRooms[$keyR]["parentObj"]["name"] 	 = $project["name"];
+        				$allRooms[$keyR]["parentObj"]["address"] = @$project["address"];
         				$allRooms[$keyR]["parentObj"]["typeSig"] = $project["typeSig"];
         				break;
         			}
@@ -380,18 +395,24 @@ class GlobalAutoCompleteAction extends CAction
     				$cityCheck["name"] = $myCity["name"];
     				$cityCheck["address"] = array("postalCode" => $myCity["cp"], "countryCode" => $myCity["country"]);
     				$cityCheck["codeInsee"] = $myCity["insee"];
+    				$cityCheck["geo"] = $myCity["geo"];
     				$cityCheck["typeSig"] = "city";
 
     				if($this->checkScopeParent($cityCheck) == true){
 	    				$allRooms[$keyR]["parentObj"]["name"] = $cityCheck["name"];
-	    				$allRooms[$keyR]["parentObj"]["address"] = $cityCheck["address"];
+	    				$allRooms[$keyR]["parentObj"]["address"] = @$cityCheck["address"];
+	    				$allRooms[$keyR]["parentObj"]["address"]["addressLocality"] = @$cityCheck["name"];
+	    				$allRooms[$keyR]["parentObj"]["address"]["addressCountry"] = @$cityCheck["address"]["countryCode"];
 	    				$allRooms[$keyR]["parentObj"]["typeSig"] = $cityCheck["typeSig"];
+	    				$allRooms[$keyR]["geo"] = @$cityCheck["geo"];
 	    			}else{
 	    				//array_splice($allRooms, $keyR, 1);
 	    				//unset($allRooms[$keyR]);
 	    				$allRooms[$keyR] = array();
 	    			}
         		}
+
+        		$allRooms[$keyR]["typeSig"] = $allRooms[$keyR]["type"];
         	}
         	
         	//pour chaque resultat, on ajoute les infos du parentRoom
@@ -399,6 +420,9 @@ class GlobalAutoCompleteAction extends CAction
         		foreach ($allRooms as $keyR => $room) {
         			if((string)$survey[$parentRow] == (string)@$room['_id']){
         				$allFound[$keyS]["parentRoom"] = $room;
+        				$allFound[$keyS]["geo"] = @$room["geo"];
+        				if($room["parentType"] == "cities")
+        					$allFound[$keyS]["address"] = @$room["parentObj"]["address"];
         				break;
         			}else if(!isset($room['_id'])){
         				unset($allFound[$keyS]);

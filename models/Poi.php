@@ -6,6 +6,7 @@ class Poi {
 	//TODO Translate
 	public static $types = array (
 		"link" => "Lien, Url",
+		"poi"=>"points d'intérêt",
 		"geoJson" => "Url au format geojson ou vers une umap",
 		"compostPickup" => "récolte de composte",
 		"video" => "video",
@@ -87,7 +88,11 @@ class Poi {
 	 */
 	public static function getById($id) { 
 	  	$poi = PHDB::findOneById( self::COLLECTION ,$id );
-	  	$poi = array_merge($poi, Document::retrieveAllImagesUrl($id, self::COLLECTION, null, $poi));
+	  	if(@$poi["type"])
+		  	$poi["typeSig"] = self::COLLECTION.".".$poi["type"];
+	  	else
+		  	$poi["typeSig"] = self::COLLECTION;
+	  	$poi = array_merge($poi, Document::retrieveAllImagesUrl($id, self::COLLECTION, $poi["type"], $poi));
 
 	  	return $poi;
 	}
