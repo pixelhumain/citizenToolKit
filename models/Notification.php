@@ -72,47 +72,130 @@ class Notification{
 	$notificationTree = array(
 		// Action realized by a user
 		"FOLLOW" => array(
-			"repeat" => true
+			"repeat" => true,
+			"context" => array("me","community"),
+			"mail" => array(
+				"type"=>"daily",
+			),
+			//WHAT == you || elementName
+			"label" => "{who} is following {what}",
+			"labelRepeat"=>"{count} users are following {what}"
 		),
 		"ASK" => array(
 			"repeat" => true,
 			"type" => array(
-				"asMember" => "member",
-				"asAdmin" => "all"
+				"asMember" => array(
+					"to"=> "members",
+					"label"=>"{who} wants to join {what}",
+					"labelRepeat"=>"{count} users want to join {what}"
+				),
+				"asAdmin" => array(
+					"to" => "admin",
+					"label"=>"{who} wants to administrate {what}",
+					"labelRepeat"=>"{count} users want to administrate {what}"
+				)
+			),
+			"context" => "community",
+			"mail" => array(
+				"type"=>"instantly",
 			)
 		),
 		//// USED ONLY FOR EVENT
 		"JOIN" => array(
-			"repeat" => true
-		),
-		"JOIN" => array(
-			"repeat" => true
+			"repeat" => true,
+			"context" => "community",
+			"mail" => array(
+				"type"=>"daily",
+			),
+			"label"=>"{who} participates to {what}"
+			"labelRepeat"=>"{count} participate to {what}"
+
 		),
 		"COMMENT || LIKE || UNLIKE" => array(
 			"repeat" => true,
 			"what" => array(
-				"news"=> array("targetIsOrgaOrProject" =>true),
-				"survey/Rooms/needs",
+				"news"=> array(
+					"targetIsOrgaOrProject" =>true
+				),
+				"survey/rooms/needs",
 				"comment"
+			),
+			"context" => array(
+				"me","community"
+			),
+			"mail" => array(
+				"type"=>"instantly",
+				"to" => "author" //If orga or project to members
+			)
 		),
-		"ADDNEED || ADDROOM || ADDPROPOSAL || ADDACTION || ADDVOTE || ADDPROJECT || ADDEVENT" => array(
-			"repeat" => false
+		"ADDNEED || ADDPROJECT || ADDEVENT" => array(
+			"repeat" => false,
+			"context" => "community",
+			"mail" => array(
+				"type"=>"instantly",
+				"to" => "members"
+			),
+			"label"=>"{who} added a need to {what}"
 		),
-		"CONFIRM" => array(
-			"repeat" => true
+		"ADDROOM || ADDPROPOSAL || ADDACTION || ADDVOTE" => array(
+			"repeat" => false,
+			"context" => array(
+				"community" => array(
+					"mail" => array(
+						"type"=>"instantly",
+						"to" => "members"
+					),
+				),
+				"city"
+			),
+			"label"=>"{who} added a room to {what}"
 		),
+
 		"MODIFY" => array(
-			"repeat" => true
+			"repeat" => true,
+			"context" => "community",
+			"mail" => array(
+				"type"=>"daily",
+				"to" => "members"
+			),
+			"label"=>"{who} modified {object} of {what}"
 		),
 		//FROM USER LINK TO AN ELEMENT ACTING ON IT
 		"INVITE" => array(
 			"repeat" => true,
-			"type" => {
-				"join" || "administrate"
-			}
+			"type" => array(
+				"asMember" => array(
+					"to"=> "members",
+					"label"=>"{authorName} invited {who} to join {what}",
+					"labelRepeat"=>"{authorName} invited {count} users to join {what}"
+				),
+				"asAdmin" => array(
+					"to"=> "members",
+					"label"=>"{authorName} invited {who} to administrate {what}",
+					"labelRepeat"=>"{authorName} invited {count} users to administrate {what}"
+				)
+			),
+			"context" => array("community"),
+			"mail" => array(
+				"type"=>"instantly",
+				"to" => "user"
+			)
 		)
 		"CONFIRM" => array(
-			"repeat" => true
+			"repeat" => true,
+			"context" => array("community"),
+			"mail" => array(
+				"type"=>"instantly",
+				"to" => "invitor"
+			)
+		),
+		"SIGNIN" => array(
+			"repeat" => true,
+			"context" => array("me"),
+			"mail" => array(
+				"type"=>"instantly",
+				"to" => "invitor"
+			)
 		)
 	)
 	public static function communityToNotify($id, $type, $impact="all"){
