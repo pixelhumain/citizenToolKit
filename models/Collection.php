@@ -10,7 +10,32 @@ class Collection {
                        array("_id" => new MongoId(Yii::app()->session["userId"]) ) , 
                        array($action => array("collections.".$name => new stdClass() )));
 
-        return array("result"=>true, "msg"=>"Collection $name with success");
+        return array("result"=>true, "msg"=>"Collection $name created with success");
+    }
+
+    public static function update($name,$newName,$del=false)
+    {
+        
+        $person = Person::getById( Yii::app()->session["userId"] );     
+
+        if( isset($person["collections"][$name]) )
+        {
+            $actions = array();
+            $action = "deleted";
+            if(!$del){
+                $actions['$set'] = array("collections.".$newName => $person["collections"][$name]);
+                $action = "updated";
+            }
+
+            $actions['$unset'] = array("collections.".$name => true);
+            PHDB::update(Person::COLLECTION, 
+                           array("_id" => new MongoId(Yii::app()->session["userId"]) ) , 
+                           $actions
+                           );
+            return array("result"=>true, "msg"=>"Collection $name $action with success");
+        } else 
+            return array("result"=>false, "collection"=>"collections.".$name, "msg"=>"Collection $name doesn't exist");
+        
     }
 
     public static function add($targetId, $targetType,$collection="favorites")
@@ -50,20 +75,21 @@ class Collection {
         $person = Person::getById( $userId );
         $list = array();
         $count = 0;
-        if(@$person["collections"][$collection])
-        foreach ( @$person["collections"][$collection] as $favtype => $value ) 
-        {
-            $ids = array();
-            if(!$type || $type == $favtype )
+        if(@$person["collections"][$collection]){
+            foreach ( @$person["collections"][$collection] as $favtype => $value ) 
             {
-                foreach ($value as $id => $date) 
+                $ids = array();
+                if(!$type || $type == $favtype )
                 {
-                    array_push($ids, new MongoId($id) );
-                }
-                if( count($ids) > 0)
-                {
-                    $count += count($ids);
-                    $list[$favtype] = PHDB::find($favtype,array( "_id" => array( '$in'=>$ids ) ));//,array("name","tags","profilMediumImageUrl")
+                    foreach ($value as $id => $date) 
+                    {
+                        array_push($ids, new MongoId($id) );
+                    }
+                    if( count($ids) > 0)
+                    {
+                        $count += count($ids);
+                        $list[$favtype] = PHDB::find($favtype,array( "_id" => array( '$in'=>$ids ) ));//,array("name","tags","profilMediumImageUrl")
+                    }
                 }
             }
         }

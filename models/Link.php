@@ -141,13 +141,15 @@ class Link {
         	$res = Project:: getById($id);
         } else if ($type== Need::COLLECTION){
             $res = Need:: getById($id);
-        }else if ($type == Poi::COLLECTION){
+        }else if ( $type == Poi::COLLECTION){
             $res = Poi:: getById($id);
-        } else if ($type== ActionRoom::COLLECTION_ACTIONS){
+        } else if ( $type == ActionRoom::COLLECTION_ACTIONS){
             $res = ActionRoom:: getActionById($id);
-        } else {
-
-        	throw new CTKException("Can not manage this type : ".$type);
+        } else if ( $type == Survey::COLLECTION) {
+            $res = Survey:: getById($id);
+        }
+        else {
+        	throw new CTKException("Cannot manage this type : ".$type);
         }
         if (empty($res)) throw new CTKException("The actor (".$id." / ".$type.") is unknown");
 
