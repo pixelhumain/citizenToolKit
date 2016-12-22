@@ -122,21 +122,24 @@ class Event {
 	public static function getSimpleEventById($id) {
 		
 		$simpleEvent = array();
-		$event = PHDB::findOneById( self::COLLECTION ,$id, array("id" => 1, "name" => 1, "type" => 1,  "shortDescription" => 1, "description" => 1, "address" => 1, "geo" => 1, "tags" => 1, "profilImageUrl" => 1, "profilThumbImageUrl" => 1, "profilMarkerImageUrl" => 1, "profilMediumImageUrl" => 1, "startDate" => 1, "endDate" => 1, "addresses"=>1));
+		$event = PHDB::findOneById( self::COLLECTION ,$id, array("id" => 1, "name" => 1, "type" => 1,  "shortDescription" => 1, "description" => 1, "address" => 1, "geo" => 1, "tags" => 1, "profilImageUrl" => 1, "profilThumbImageUrl" => 1, "profilMarkerImageUrl" => 1, "profilMediumImageUrl" => 1, "startDate" => 1, "endDate" => 1, "addresses"=>1, "allDay" => 1));
 		if(!empty($event)){
 			$simpleEvent["id"] = $id;
 			$simpleEvent["_id"] = $event["_id"];
 			$simpleEvent["name"] = @$event["name"];
-			$simpleEvent["startDate"] = @$event["startDate"];
-			$simpleEvent["endDate"] = @$event["endDate"];
+			if (gettype($event["startDate"]) == "object" && gettype($event["endDate"]) == "object") {
+				//Set TZ to UTC in order to be the same than Mongo
+				date_default_timezone_set('UTC');
+				$simpleEvent["startDate"] = date(DateTime::ISO8601, $event["startDate"]->sec);
+				$simpleEvent["endDate"] = date(DateTime::ISO8601, $event["endDate"]->sec);
+			} 
 			$simpleEvent["type"] = @$event["type"];
 			$simpleEvent["geo"] = @$event["geo"];
 			$simpleEvent["tags"] = @$event["tags"];
 			$simpleEvent["shortDescription"] = @$event["shortDescription"];
 			$simpleEvent["description"] = @$event["description"];
-			$simpleEvent["startDate"] = @$event["startDate"];
-			$simpleEvent["endDate"] = @$event["endDate"];
 			$simpleEvent["addresses"] = @$event["addresses"];
+			$simpleEvent["allDay"] = @$event["allDay"];
 			
 			$simpleEvent = array_merge($simpleEvent, Document::retrieveAllImagesUrl($id, self::COLLECTION, $simpleEvent["type"], $event));
 			
