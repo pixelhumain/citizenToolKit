@@ -34,51 +34,93 @@ class SuperAdminAction extends CAction
     private function web(){
         $controller = $this->getController();
 
-        $query = array('status' => "locked");
-        $urlsLocked = PHDB::find("url", $query);
+        $urlsAll = PHDB::find("url");
+        
+        $urlsLocked = PHDB::find("url", array('status' => "locked"));
+        
+        $urlsUnreachable = PHDB::find("url", array('status' => "unreachable"));
+        
+        $urlsUncomplet = PHDB::find("url", array('status' => "uncomplet"));
+
+        $urlsValidated = PHDB::find("url", array('status' => "validated"));
+
+        $urlsActivated = PHDB::find("url", array('status' => "active"));
+        
+        $urlsUncategorized = PHDB::find("url", array('categories' => "") );
+        
+        
+
         // foreach ($urlsLocked as $key => $value) {
         //     $resAddToSet = PHDB::update( "url", array("_id" => new MongoId($key)), 
         //                                 array('$set' => array("status"=>"locked")));
         // }
-        $params = array("urlsLocked"=>$urlsLocked);
+        $params = array("urlsAllNb"=>sizeof($urlsAll),
+                        "urlsLockedNb"=>sizeof($urlsLocked),
+                        "urlsUnreachableNb"=>sizeof($urlsUnreachable),
+                        "urlsUncompletNb"=>sizeof($urlsUncomplet),
+                        "urlsValidatedNb"=>sizeof($urlsValidated),
+                        
+                        "urlsUncategorizedNb"=>sizeof($urlsUncategorized),
+                        "urlsActivatedNb"=>sizeof($urlsActivated),
+
+                        "urlsLocked"=>$urlsLocked,
+                        );
     	$controller->renderPartial("admin/web", $params);
     }
 
     private function scanLinks(){
-        echo "PAR SECURITÉ, MERCI D'ACTIVER CETTE FONCTION DANS LE CODE ;)";
-        return;
+        //echo "PAR SECURITÉ, MERCI D'ACTIVER CETTE FONCTION DANS LE CODE ;)";
+        //return;
 
-        $url = "http://www.la-nouvelle-caledonie.com/liens-utiles/";
+        //$url = "http://www.la-nouvelle-caledonie.com/liens-utiles/";
+        $url = "http://www.skazy.nc/";
+        $url = "/home/tango/Bureau/Skazy - Nouvelle-Calédonie.html";
         $html = file_get_html($url);
         error_log("CRAWLING ".$url);
         $res = "- ";
-
-        foreach($html->find("#matrix_1026082780") as $element) {
+        //$links = $html->find("#freewall");
+        echo "ok loaded";
+        //var_dump($links);
+        //exit;
+        $n=0;
+        foreach($html->find("a.rea-link") as $element) {
             $res .= "FOUND<br>";
-            $n=0;
-            foreach($element->find(".module-type-text p a") as $element2) {
+            // foreach($element->find(".module-type-text p a") as $element2) {
+            $url = mb_convert_encoding(@$element->href, "HTML-ENTITIES", "UTF-8");
+            $res .= "search ".$url."<br>";
+
+            $site = file_get_html($url);
+            echo "site : ".$url.$site; exit;
+            $thisSiteUrl = "ddd";
+            foreach($site->find(".see-more a") as $element2)
+                $thisSiteUrl = mb_convert_encoding($element2->href, "HTML-ENTITIES", "UTF-8");
+            //$site->find(".see-more a");    
+           
+             $res .= "scan : ".$thisSiteUrl."<br>";
+
                 $n++;
-                $url = mb_convert_encoding(@$element2->href, "HTML-ENTITIES", "UTF-8");
+                $url = $thisSiteUrl; //mb_convert_encoding(@$thisSiteUrl->href, "HTML-ENTITIES", "UTF-8");
                 
                 $host = parse_url($url);
                 $hostname = @$host["host"];
 
-                $res .= $n." ".$url." == ".$hostname."<br>";
+               // $res .= $n." ".$url." == ".$hostname."<br>";
                 
-                $newSiteurl = array("url"           => @$url,
-                                    "hostname"      => @$hostname,
-                                    "title"         => "",
-                                    "description"   => "",
-                                    "tags"          => "",
-                                    "categories"    => "",
-                                    "status"        => "locked",
-                                    "dateRef"       => new MongoDate(time()),
-                                    "nbClick"       => 0,
-                                    "typeSig"       => "url"
-                                    );
+
+                // $newSiteurl = array("url"           => @$url,
+                //                     "hostname"      => @$hostname,
+                //                     "title"         => "",
+                //                     "description"   => "",
+                //                     "tags"          => "",
+                //                     "categories"    => "",
+                //                     "status"        => "locked",
+                //                     "dateRef"       => new MongoDate(time()),
+                //                     "nbClick"       => 0,
+                //                     "typeSig"       => "url"
+                //                     );
                 //error_log("INSERT-URL ".$url);
                 //PHDB::insert("url", $newSiteurl);
-            }
+            // }
         }
 
         echo $res;
