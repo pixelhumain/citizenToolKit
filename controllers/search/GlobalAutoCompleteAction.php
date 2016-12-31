@@ -278,14 +278,14 @@ class GlobalAutoCompleteAction extends CAction
 	  		$allRes = array_merge($allRes, $allFound);
 	  		
 
-        	$allFound = PHDB::findAndSort(ActionRoom::COLLECTION_ACTIONS, $query, array("updated" => -1), $indexMax);
+        	$allFound = PHDB::findAndSort( ActionRoom::COLLECTION_ACTIONS, $query, array("updated" => -1), $indexMax);
 	  		foreach ($allFound as $key => $value) {
 				$allFound[$key]["type"] = $value["type"];
 				$allFound[$key]["typeSig"] = ActionRoom::COLLECTION_ACTIONS;
 	  		}
 	  		$allRes = array_merge($allRes, $allFound);
 
-        	$allFound = PHDB::findAndSort(Survey::COLLECTION, $query, array("updated" => -1), $indexMax);
+        	$allFound = PHDB::findAndSort( Survey::COLLECTION, $query, array("updated" => -1), $indexMax);
 	  		foreach ($allFound as $key => $value) {
 				$allFound[$key]["type"] = $value["type"];
 				$allFound[$key]["typeSig"] = Survey::CONTROLLER;
@@ -302,7 +302,7 @@ class GlobalAutoCompleteAction extends CAction
         	(strcmp($filter, ActionRoom::TYPE_ACTIONS) != 0 && $this->typeWanted(ActionRoom::TYPE_ACTIONS, $searchType))
         	 )
         {    
-        	$myLinks = Person::getPersonLinksByPersonId(Yii::app()->session["userId"]);
+        	$myLinks = Person::getPersonLinksByPersonId( Yii::app()->session["userId"] );
         	
         	//créer un array avec uniquement les id de mes orgas
         	$orgasId = array();
@@ -335,7 +335,7 @@ class GlobalAutoCompleteAction extends CAction
         	}
         	
 
-        	$allRooms = PHDB::find(ActionRoom::COLLECTION, $query);
+        	$allRooms = PHDB::find( ActionRoom::COLLECTION, $query);
         	
         	//crée une array avec uniquement les id des rooms
         	$allRoomsId = array();
@@ -343,11 +343,11 @@ class GlobalAutoCompleteAction extends CAction
         		$allRoomsId[] = (string)$room["_id"];
         	}
 
-        	if($this->typeWanted(ActionRoom::TYPE_VOTE, $searchType)){
+        	if($this->typeWanted( ActionRoom::TYPE_VOTE, $searchType)){
 				$collection = Survey::COLLECTION;
 				$parentRow = "survey";
 			}
-        	if($this->typeWanted(ActionRoom::TYPE_ACTIONS, $searchType)){ 
+        	if($this->typeWanted( ActionRoom::TYPE_ACTIONS, $searchType)){ 
         		$collection = Action::NODE_ACTIONS;
         		$parentRow = "room";
         	}
@@ -398,6 +398,7 @@ class GlobalAutoCompleteAction extends CAction
         				break;
         			}
         		}
+
         		//pour chaque room des projets, on ajoute les infos du parentObj
         		foreach ($myLinks["projects"] as $keyL => $project) {
         			//error_log("project " . (string)$project['_id'] ."==". (string)$room['parentId']);
@@ -409,6 +410,7 @@ class GlobalAutoCompleteAction extends CAction
         				break;
         			}
         		}
+
         		//les conseils citoyens
         		if($myCityKey!=false && $room["parentType"] == "cities"){
         			$myCity = City::getByUnikey($myCityKey); 			
@@ -475,7 +477,7 @@ class GlobalAutoCompleteAction extends CAction
 	    		if($type == "NAME"){ 
 	        		$query = array('$or' => array( array( "name" => new MongoRegex("/".self::wd_remove_accents($locality)."/i")),
 	        									   array( "alternateName" => new MongoRegex("/".self::wd_remove_accents($locality)."/i")),
-	        									   array("postalCodes.name" => array('$in' => array(new MongoRegex("/".self::wd_remove_accents($locality)."/i"))))
+	        									   array( "postalCodes.name" => array('$in' => array(new MongoRegex("/".self::wd_remove_accents($locality)."/i"))))
 	        					));
 	        		//error_log("search city with : " . self::wd_remove_accents($locality));
 	        	}

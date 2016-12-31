@@ -175,6 +175,8 @@ class Element {
             $res = Poi:: getById($id);
         } else if ($type== ActionRoom::COLLECTION_ACTIONS){
             $res = ActionRoom:: getActionById($id);
+        } else if ( $type == Survey::COLLECTION) {
+            $res = Survey::getById($id);
         } else {
 
         	throw new CTKException("Can not manage this type : ".$type);
@@ -229,6 +231,7 @@ class Element {
 		else if($type == City::COLLECTION)
 			$element = City::getIdByInsee($id);
 		else 
+
 			$element = PHDB::findOne($type,array("_id"=>new MongoId($id)));
 	  	
 	  	return $element;
