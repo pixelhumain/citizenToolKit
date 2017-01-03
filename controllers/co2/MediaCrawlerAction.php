@@ -10,9 +10,7 @@ class MediaCrawlerAction extends CAction
     public function run() {
     	$controller=$this->getController();
         
-        $src = "http://www.nci.nc/blog/";
-    	
-		$res = "";
+        $res = "";
 
 		$res .= $this->extractSource("NCTV", "YOUTUBE");
 		$res .= $this->extractSource("NC1", "YOUTUBE");

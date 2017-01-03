@@ -17,23 +17,23 @@ class CO2 {
 						      //                 "mainTitle" => "",
 						      //                 "placeholderMainSearch" => ""),
     								  
-    								"#co2.web"=>
-    								  	array("inMenu" => true, 
-						                      "useHeader" => true, 
-						                      "subdomain" => "web", 
-						                      "subdomainName" => "web",
-						                      "icon" => "search", 
-						                      "mainTitle" => "Le moteur de recherche <span class='letter-green'>du green-web</span>",
-						                      "placeholderMainSearch" => "rechercher sur le green web  ..."),
+    								// "#co2.web"=>
+    								//   	array("inMenu" => true, 
+						      //                 "useHeader" => true, 
+						      //                 "subdomain" => "web", 
+						      //                 "subdomainName" => "web",
+						      //                 "icon" => "search", 
+						      //                 "mainTitle" => "Le moteur de recherche <span class='letter-green'>du green-web</span>",
+						      //                 "placeholderMainSearch" => "rechercher sur le green web  ..."),
 
-    								"#co2.media"=>
-    								  	array("inMenu" => true, 
-						                      "useHeader" => true, 
-						                      "subdomain" => "media", 
-						                      "subdomainName" => "media",
-						                      "icon" => "newspaper-o", 
-						                      "mainTitle" => "Toute l'actu <span class='letter-green'>des médias alternatifs</span>",
-						                      "placeholderMainSearch" => "rechercher dans l'actu  ..."),
+    								// "#co2.media"=>
+    								//   	array("inMenu" => true, 
+						      //                 "useHeader" => true, 
+						      //                 "subdomain" => "media", 
+						      //                 "subdomainName" => "media",
+						      //                 "icon" => "newspaper-o", 
+						      //                 "mainTitle" => "Toute l'actu <span class='letter-green'>des médias alternatifs</span>",
+						      //                 "placeholderMainSearch" => "rechercher dans l'actu  ..."),
 
     								"#co2.social"=>
     								  	array("inMenu" => true, 
@@ -52,6 +52,15 @@ class CO2 {
 						                      "icon" => "rss", 
 						                      "mainTitle" => "",
 						                      "placeholderMainSearch" => "rechercher dans le fil d'actualités"),
+
+    								"#co2.agenda"=>
+    								  	array("inMenu" => true, 
+						                      "useHeader" => true, 
+						                      "subdomain" => "agenda", 
+						                      "subdomainName" => "agenda",
+						                      "icon" => "hand-rock-o", 
+						                      "mainTitle" => "L'agenda<span class='letter-green'>CO</span>mmun",
+						                      "placeholderMainSearch" => "rechercher sur le green web  ..."),
 
     								"#co2.power"=>
     								  	array("inMenu" => true, 
@@ -124,7 +133,7 @@ class CO2 {
 						                      "subdomainName" => "social",
 						                      "icon" => "user-circle-o", 
 						                      "mainTitle" => "Le réseau social Calédonien",
-						                      "placeholderMainSearch" => "rechercher parmis les membres du réseau ..."),
+						                      "placeholderMainSearch" => "rechercher une page ..."),
 
     								"#co2.freedom"=>
     								  	array("inMenu" => true, 
@@ -134,6 +143,15 @@ class CO2 {
 						                      "icon" => "comments", 
 						                      "mainTitle" => "Un espace d'expression libre pour tout les Calédoniens",
 						                      "placeholderMainSearch" => "rechercher parmis les messages  ..."),
+
+    								"#co2.agenda"=>
+    								  	array("inMenu" => true, 
+						                      "useHeader" => true, 
+						                      "subdomain" => "agenda", 
+						                      "subdomainName" => "agenda",
+						                      "icon" => "calendar", 
+						                      "mainTitle" => "L'agenda collaboratif des Calédoniens",
+						                      "placeholderMainSearch" => "rechercher un événement  ..."),
 
     								"#co2.power"=>
     								  	array("inMenu" => true, 
@@ -158,6 +176,27 @@ class CO2 {
 
     	if(isset($params[$domainName])) return $params[$domainName]; 
     	else return false;
+    }
+
+
+    public static function getCitiesNewCaledonia(){
+    	$query = array("country"=>"NC", "name"=>array('$in'=>array("Noumea", "Dumbea", "Paita", "Mont-Dore")));
+    	$citiesGN = PHDB::find(City::COLLECTION, $query);
+
+    	$query = array("country"=>"NC", "depName"=>"Province Sud", "name"=>array('$nin'=>array("Noumea", "Dumbea", "Paita", "Mont-Dore")));
+    	$citiesS = PHDB::find(City::COLLECTION, $query);
+
+    	$query = array("country"=>"NC", "depName"=>"Province Nord");
+    	$citiesN = PHDB::find(City::COLLECTION, $query);
+
+    	$query = array("country"=>"NC", "depName"=>"Province Des Iles");
+    	$citiesI = PHDB::find(City::COLLECTION, $query);
+
+    	$cities = array("GN"=>$citiesGN, 
+    					"Sud"=>$citiesS, 
+    					"Nord"=>$citiesN, 
+    					"Iles"=>$citiesI);
+    	return $cities;
     }
 
 }

@@ -136,18 +136,20 @@ class Link {
         } else if ($type == Person::COLLECTION) {
         	$res = Person::getById($id);
         } else if ($type== Event::COLLECTION){
-        	$res = Event:: getById($id);
+        	$res = Event::getById($id);
         } else if ($type== Project::COLLECTION){
-        	$res = Project:: getById($id);
+        	$res = Project::getById($id);
         } else if ($type== Need::COLLECTION){
-            $res = Need:: getById($id);
-        }else if ($type == Poi::COLLECTION){
-            $res = Poi:: getById($id);
-        } else if ($type== ActionRoom::COLLECTION_ACTIONS){
-            $res = ActionRoom:: getActionById($id);
-        } else {
-
-        	throw new CTKException("Can not manage this type : ".$type);
+            $res = Need::getById($id);
+        }else if ( $type == Poi::COLLECTION){
+            $res = Poi::getById($id);
+        } else if ( $type == ActionRoom::COLLECTION_ACTIONS){
+            $res = ActionRoom::getActionById($id);
+        } else if ( $type == Survey::COLLECTION) {
+            $res = Survey::getById($id);
+        }
+        else {
+        	throw new CTKException("Cannot manage this type : ".$type.Survey::COLLECTION);
         }
         if (empty($res)) throw new CTKException("The actor (".$id." / ".$type.") is unknown");
 

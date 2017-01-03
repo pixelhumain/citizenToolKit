@@ -2,15 +2,14 @@
 /**
 * retreive dynamically 
 */
-class SocialAction extends CAction
+class AgendaAction extends CAction
 {
-    public function run($type=null) {
+    public function run() {
     	$controller=$this->getController();
         
+        CO2Stat::incNbLoad("co2-agenda");
 
-        CO2Stat::incNbLoad("co2-social");
-    	
-        $params = array("type" => @$type );
+        $params = array("type" => "events");
 
     	//if(@$_POST['renderPartial'] == true)
     	//echo $controller->renderPartial("liveStream", $params, true);

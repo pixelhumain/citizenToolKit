@@ -434,9 +434,13 @@ class IndexAction extends CAction
 
 		$params["firstView"] = "news";
 
+		$nbCol = @$_GET["nbCol"] ? $_GET["nbCol"] : 1;
+		if(@$_GET["tpl"]=="co2") $params["nbCol"] = $nbCol;
+
 		//$params["params"] = $params;
 		//$params["params"]["news"] = "";
-							
+		error_log(@$params["nbCol"]);
+		error_log(Yii::app()->request->isAjaxRequest ? "isAjax".@$_GET["tpl"] : "notAjax".@$_GET["tpl"]);			
 		if(Yii::app()->request->isAjaxRequest){
 			if (@$_GET["isFirst"]){
 				 if(@$_GET["tpl"]=="co2")
