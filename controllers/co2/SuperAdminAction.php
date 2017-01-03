@@ -11,6 +11,8 @@ class SuperAdminAction extends CAction
     	
     	if($action == "main")		{ $this->main(); 	      return; }
         if($action == "web")        { $this->web();           return; }
+        if($action == "live")       { $this->live();           return; }
+        if($action == "power")      { $this->power();           return; }
         if($action == "scanlinks")  { $this->scanLinks();     return; }
 
         if($action == "updateurlmetadata")  { $this->updateUrlMetaData($_POST);     return; }
@@ -26,30 +28,35 @@ class SuperAdminAction extends CAction
 
 
     private function main(){
-    	$controller = $this->getController();
+        $controller = $this->getController();
         $params = array();
-    	$controller->renderPartial("admin/main", $params);
+        $controller->renderPartial("admin/main", $params);
+    }
+
+    private function live(){
+        $controller = $this->getController();
+        $params = array();
+        $controller->renderPartial("admin/live", $params);
+    }
+
+    private function power(){
+        $controller = $this->getController();
+        $params = array();
+        $controller->renderPartial("admin/power", $params);
     }
 
     private function web(){
         $controller = $this->getController();
 
+
         $urlsAll = PHDB::find("url");
+        $urlsLocked         = PHDB::find("url", array('status' => "locked"));        
+        $urlsUnreachable    = PHDB::find("url", array('status' => "unreachable"));        
+        $urlsUncomplet      = PHDB::find("url", array('status' => "uncomplet"));
+        $urlsValidated      = PHDB::find("url", array('status' => "validated"));
+        $urlsActivated      = PHDB::find("url", array('status' => "active"));        
+        $urlsUncategorized  = PHDB::find("url", array('categories' => "") );
         
-        $urlsLocked = PHDB::find("url", array('status' => "locked"));
-        
-        $urlsUnreachable = PHDB::find("url", array('status' => "unreachable"));
-        
-        $urlsUncomplet = PHDB::find("url", array('status' => "uncomplet"));
-
-        $urlsValidated = PHDB::find("url", array('status' => "validated"));
-
-        $urlsActivated = PHDB::find("url", array('status' => "active"));
-        
-        $urlsUncategorized = PHDB::find("url", array('categories' => "") );
-        
-        
-
         // foreach ($urlsLocked as $key => $value) {
         //     $resAddToSet = PHDB::update( "url", array("_id" => new MongoId($key)), 
         //                                 array('$set' => array("status"=>"locked")));
@@ -73,54 +80,53 @@ class SuperAdminAction extends CAction
         //return;
 
         //$url = "http://www.la-nouvelle-caledonie.com/liens-utiles/";
-        $url = "http://www.skazy.nc/";
-        $url = "/home/tango/Bureau/Skazy - Nouvelle-Calédonie.html";
+        $url = "http://caledoweb.com/?page_id=14";
+        //$url = "/home/tango/Bureau/Skazy - Nouvelle-Calédonie.html";
         $html = file_get_html($url);
         error_log("CRAWLING ".$url);
         $res = "- ";
-        //$links = $html->find("#freewall");
+        //$links = $html->find(".entry-content");
         echo "ok loaded";
         //var_dump($links);
         //exit;
         $n=0;
-        foreach($html->find("a.rea-link") as $element) {
-            $res .= "FOUND<br>";
+        foreach($html->find(".entry-content .wp-caption a") as $element) {
+            //$res .= "FOUND<br>";
             // foreach($element->find(".module-type-text p a") as $element2) {
             $url = mb_convert_encoding(@$element->href, "HTML-ENTITIES", "UTF-8");
-            $res .= "search ".$url."<br>";
+            //$res .= "search ".$url."<br>";
 
-            $site = file_get_html($url);
-            echo "site : ".$url.$site; exit;
-            $thisSiteUrl = "ddd";
-            foreach($site->find(".see-more a") as $element2)
-                $thisSiteUrl = mb_convert_encoding($element2->href, "HTML-ENTITIES", "UTF-8");
+            //$site = file_get_html($url);
+            //echo "site : ".$url.$site; //exit;
+            //$thisSiteUrl = "ddd";
+            //foreach($site->find(".see-more a") as $element2)
+            //    $thisSiteUrl = mb_convert_encoding($element2->href, "HTML-ENTITIES", "UTF-8");
             //$site->find(".see-more a");    
            
-             $res .= "scan : ".$thisSiteUrl."<br>";
+            //$res .= "scan : ".$thisSiteUrl."<br>";
 
-                $n++;
-                $url = $thisSiteUrl; //mb_convert_encoding(@$thisSiteUrl->href, "HTML-ENTITIES", "UTF-8");
+            $n++;
+            // $url = $thisSiteUrl; //mb_convert_encoding(@$thisSiteUrl->href, "HTML-ENTITIES", "UTF-8");
                 
-                $host = parse_url($url);
-                $hostname = @$host["host"];
+            $host = parse_url($url);
+            $hostname = @$host["host"];
 
-               // $res .= $n." ".$url." == ".$hostname."<br>";
-                
-
-                // $newSiteurl = array("url"           => @$url,
-                //                     "hostname"      => @$hostname,
-                //                     "title"         => "",
-                //                     "description"   => "",
-                //                     "tags"          => "",
-                //                     "categories"    => "",
-                //                     "status"        => "locked",
-                //                     "dateRef"       => new MongoDate(time()),
-                //                     "nbClick"       => 0,
-                //                     "typeSig"       => "url"
-                //                     );
+            if(strpos($url, "caledoweb")==0){
+                $newSiteurl = array("url"           => @$url,
+                                    "hostname"      => @$hostname,
+                                    "title"         => "",
+                                    "description"   => "",
+                                    "tags"          => "",
+                                    "categories"    => array("Logement", "Entreprises"),
+                                    "status"        => "locked",
+                                    "dateRef"       => new MongoDate(time()),
+                                    "nbClick"       => 0,
+                                    "typeSig"       => "url"
+                                    );
+                $res .= $n." ".$url." == ".$hostname." - ".strpos($url, "caledoweb")."<br>";
                 //error_log("INSERT-URL ".$url);
-                //PHDB::insert("url", $newSiteurl);
-            // }
+                PHDB::insert("url", $newSiteurl);
+            }
         }
 
         echo $res;

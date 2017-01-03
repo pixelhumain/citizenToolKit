@@ -497,6 +497,7 @@ class City {
 	    
 	    return $str;
 	}
+
 	
 	/*
 	public static function createCitizenAssemblies(){

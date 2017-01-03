@@ -133,7 +133,7 @@ class CO2 {
 						                      "subdomainName" => "social",
 						                      "icon" => "user-circle-o", 
 						                      "mainTitle" => "Le réseau social Calédonien",
-						                      "placeholderMainSearch" => "rechercher parmis les membres du réseau ..."),
+						                      "placeholderMainSearch" => "rechercher une page ..."),
 
     								"#co2.freedom"=>
     								  	array("inMenu" => true, 
@@ -176,6 +176,27 @@ class CO2 {
 
     	if(isset($params[$domainName])) return $params[$domainName]; 
     	else return false;
+    }
+
+
+    public static function getCitiesNewCaledonia(){
+    	$query = array("country"=>"NC", "name"=>array('$in'=>array("Noumea", "Dumbea", "Paita", "Mont-Dore")));
+    	$citiesGN = PHDB::find(City::COLLECTION, $query);
+
+    	$query = array("country"=>"NC", "depName"=>"Province Sud", "name"=>array('$nin'=>array("Noumea", "Dumbea", "Paita", "Mont-Dore")));
+    	$citiesS = PHDB::find(City::COLLECTION, $query);
+
+    	$query = array("country"=>"NC", "depName"=>"Province Nord");
+    	$citiesN = PHDB::find(City::COLLECTION, $query);
+
+    	$query = array("country"=>"NC", "depName"=>"Province Des Iles");
+    	$citiesI = PHDB::find(City::COLLECTION, $query);
+
+    	$cities = array("GN"=>$citiesGN, 
+    					"Sud"=>$citiesS, 
+    					"Nord"=>$citiesN, 
+    					"Iles"=>$citiesI);
+    	return $cities;
     }
 
 }

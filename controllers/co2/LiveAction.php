@@ -15,14 +15,10 @@ class LiveAction extends CAction
        
         $query = array('srcMedia' => array('$in' => array("NCI", "NC1", "CALEDOSPHERE", "NCTV")));
     	$medias = PHDB::findAndSortAndLimitAndIndex("media", $query, array("date"=>-1) , $indexStep, $indexMin);
-    	//$medias = array();
-    	$params = array("medias" => $medias,
-    					// "subdomain" => "live",
-         //                "subdomainName" => "Media",
-         //                "icon" => "newspaper-o", 
-         //                "mainTitle" => "Toute l'actu <span class='letter-green'>des médias alternatifs</span>",
-         //                "placeholderMainSearch" => "rechercher dans l'actualité ..."
-                        );
+    	
+        $params = array("medias" => $medias );
+
+        CO2Stat::incNbLoad("co2-live");
 
     	if(@$_POST['renderPartial'] == true)
     	echo $controller->renderPartial("liveStream", $params, true);

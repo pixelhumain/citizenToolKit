@@ -2,19 +2,19 @@
 /**
 * retreive dynamically 
 */
-class SocialAction extends CAction
+class FreedomAction extends CAction
 {
-    public function run($type=null) {
+    public function run() {
     	$controller=$this->getController();
         
 
-        CO2Stat::incNbLoad("co2-social");
+        CO2Stat::incNbLoad("co2-freedom");
     	
-        $params = array("type" => @$type );
+        $params = array( );
 
     	//if(@$_POST['renderPartial'] == true)
     	//echo $controller->renderPartial("liveStream", $params, true);
     	//else
-    	echo $controller->renderPartial("social", $params, true);
+    	echo $controller->renderPartial("freedom", $params, true);
     }
 }
