@@ -865,6 +865,10 @@ class Element {
 	public static function save($params){
         $id = null;
         $data = null;
+
+        if(!@$params["collection"] && !@$params["key"])
+        	return array("result"=> false, "error"=>"400", "msg" => "Bad Request");
+
         $collection = $params["collection"];
         
         if( !empty($params["id"]) ){
@@ -905,13 +909,14 @@ class Element {
         		$valid = array("result"=>false, "msg" => $e->getMessage());
         	}
 
-        if( $valid["result"]) {
+        if( $valid["result"] ) 
+        {
 			if( $collection == Event::COLLECTION ){
             	 $res = Event::formatBeforeSaving($params);
             	 if ($res["result"]) 
             	 	$params = $res["params"];
             	 else
-            	 	throw new CTKException("Error processing the before saving on event");
+            	 	throw new CTKException("Error processing before saving on event");
             }
 
             if($id) {
@@ -967,7 +972,7 @@ class Element {
              
 			$res["url"]=$url;
         } else 
-            $res = array( "result" => false, 
+            $res = array( "result" => false, "error"=>"400",
                           "msg" => Yii::t("common","Something went really bad : ".$valid['msg']) );
 
         return $res;
@@ -975,7 +980,8 @@ class Element {
 
     public static function afterSave ($id, $collection, $params,$postParams) {
     	$res = array();
-    	if( @$postParams["medias"] ){
+    	if( @$postParams["medias"] )
+    	{
     		//create POI for medias connected to the parent
     		unset($params['_id']);
     		$poiParams["parentType"] = $collection;
