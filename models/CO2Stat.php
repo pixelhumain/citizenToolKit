@@ -22,6 +22,7 @@ class CO2Stat {
 			error_log("Stats initialisée pour cette semaine (n°$week)");
 		}else{
 			$today = date("D");
+			
 			$nbLoad = $stat["hash"][$hash][$today]["nbLoad"];
 			$stat["hash"][$hash][$today]["nbLoad"] = $nbLoad+1;
 			//var_dump($stat); //exit;
@@ -82,7 +83,7 @@ class CO2Stat {
 		foreach ($newWeekStat["hash"] as $domain => $days) {
 			$newWeekStat["hash"][$domain] = array("Mon"=>array("nbLoad"=>0), 
                              					  "Tue"=>array("nbLoad"=>0), 
-                             					  "Wen"=>array("nbLoad"=>0), 
+                             					  "Wed"=>array("nbLoad"=>0), 
                              					  "Thu"=>array("nbLoad"=>0), 
                              					  "Fri"=>array("nbLoad"=>0), 
                              					  "Sat"=>array("nbLoad"=>0), 
