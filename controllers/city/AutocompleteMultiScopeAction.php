@@ -40,85 +40,69 @@ class AutocompleteMultiScopeAction extends CAction
             //var_dump($where);
             $cities = PHDB::findAndSort( City::COLLECTION, $where, $att, 40, $att);
             if(empty($cities)){
-                $resNominatim = json_decode(SIG::getGeoByAddressNominatim(null, null, $scopeValue, $countryCode, true, true),true);
+                $countryCode = mb_convert_encoding($countryCode, "ASCII");
+                if(strlen($countryCode) > 2 ){
+                   $countryCode = substr($countryCode, 0, 2);
+                }
+                $countryCode = mb_convert_encoding($countryCode, "UTF-8");
+                $resNominatim = json_decode(SIG::getGeoByAddressNominatim(null, null, $scopeValue, trim($countryCode), true, true),true);
 
-                foreach ($resNominatim as $key => $value) {
+                if(!empty($resNominatim)){
+                    foreach (@$resNominatim as $key => $value) {
+                        $typeCities = array("city", "village", "town") ;
+                        foreach ($typeCities as $keyType => $valueType) {
+                            if(/*!empty($value["extratags"]["wikidata"]) && */ 
+                                !empty($value["address"][$valueType]) &&
+                                $countryCode == strtoupper(@$value["address"]["country_code"])){
 
-                    if(!empty($value["extratags"]["wikidata"])){
-                        $arrayAdd = array();
-                        $arrayCp = array();
-                        $postalCodes = array();
-                        $wikidata = json_decode(SIG::getWikidata($value["extratags"]["wikidata"]),true);
-                        $valWiki = $wikidata["entities"][$value["extratags"]["wikidata"]]["claims"];
-                        $newCities = array( "name" => $value["address"]["city"],
-                                            "alternateName" => mb_strtoupper($value["address"]["city"]),
-                                            "country" => $countryCode,
-                                            "insee" => $valWiki[City::getInseeWikidataIDByCountry($countryCode)][0]["mainsnak"]["datavalue"]["value"]."*".$countryCode,
-                                            "geo" => array( "@type"=>"GeoCoordinates", 
-                                                            "latitude" => $value["lat"], 
-                                                            "longitude" => $value["lon"]),
-
-                                            "geoPosition" => array( "type"=>"Point", 
-                                                                    "coordinates" => array(
-                                                                        floatval($value["lon"]), 
-                                                                        floatval($value["lat"]))),
-                                            "regionName" => $value["address"]["state"],
-                                            "region" => null,
-                                            "depName" => $value["address"]["county"],
-                                            "dep" => null,
-                                            "osmID" => $value["osm_id"],
-                                            "wikidataID" => $value["extratags"]["wikidata"],
-                                            "save" => true);
-
-                        //P281 postalcode
-
-                        foreach ($valWiki["P281"] as $key => $cp) {
-                            
-
-                            if(strpos($cp["mainsnak"]["datavalue"]["value"],"–") || strpos($cp["mainsnak"]["datavalue"]["value"],"-")) {
-                                if(strpos($cp["mainsnak"]["datavalue"]["value"],"–"))
-                                    $split = explode("–", $cp["mainsnak"]["datavalue"]["value"]);
-                                else
-                                    $split = explode("-", $cp["mainsnak"]["datavalue"]["value"]);
-                                if(count($split) == 2){
-                                    $start = intval($split[0]);
-                                    if(!empty($start)){
-                                        $end = intval($split[1]);
-                                        while($start <= $end ){
-                                            $arrayCp[] = trim(strval($start));
-                                            $start++;
-                                        }
-                                    }
-                                    
-                                }
-                            }else{
-                                $arrayCp[] = $cp["mainsnak"]["datavalue"]["value"];
-                            }
-
-                            foreach ($arrayCp as $keyCP => $valueCP) {
-                                //var_dump($valueCP);
-                                if(!in_array($valueCP, $arrayAdd)){
-                                    $arrayAdd[] =  $valueCP;
-                                    $postalCodes[]  = array("name" => $value["address"]["city"],
-                                                    "postalCode" => $valueCP,
+                                $arrayAdd = array();
+                                $arrayCp = array();
+                                $postalCodes = array();
+                                $newCities = array( "name" => $value["address"][$valueType],
+                                                    "alternateName" => mb_strtoupper($value["address"][$valueType]),
+                                                    "country" => $countryCode,
                                                     "geo" => array( "@type"=>"GeoCoordinates", 
                                                                     "latitude" => $value["lat"], 
                                                                     "longitude" => $value["lon"]),
-                                                    "geoPosition" => array( "type"=>"Point", 
+
+                                                    "geoPosition" => array( "type"=>"Point",
+                                                                            "float"=>true, 
                                                                             "coordinates" => array(
                                                                                 floatval($value["lon"]), 
-                                                                                floatval($value["lat"]))));  
+                                                                                floatval($value["lat"]))),
+                                                    "regionName" => (empty($value["address"]["state"]) ? null : $value["address"]["state"] ),
+                                                    "region" => null,
+                                                    "depName" => (empty($value["address"]["county"]) ? null : $value["address"]["county"] ),
+                                                    "dep" => null,
+                                                    "osmID" => $value["osm_id"],
+                                                   
+                                                    "save" => true);
+     
+
+                                
+
+                                if(!empty($wikidata)){
+                                    $newCities = City::getCitiesWithWikiData($wikidata);
+                                }else{
+                                    $newCities["insee"] = $value["osm_id"]."*".$countryCode;
+                                    $newCities["postalCodes"] = $postalCodes;
+                                    $newCities["geoShape"] = $value["geojson"];
                                 }
+
+                            
+
+                                if(City::checkCitySimply($newCities))
+                                    $cities[] = $newCities;
+                                
                                 
                             }
-                            
-                        }
-                        $newCities["postalCodes"] = $postalCodes;
-                        $newCities["geoShape"] = $value["geojson"];
-                        $cities[] = $newCities;
+                        } 
+
+                        
+                        
                     }
-                    
                 }
+                
             }
         }
         else if($type == "dep"){

@@ -459,7 +459,6 @@ class SIG
 	        if(!empty($city)){
 	            $url .= "&city=".str_replace(" ", "+", $city);
 	        }
-
 	        if(!empty($country))
 	            $url .= "&countrycodes=".self::changeCountryForNominatim($country);
 
@@ -575,6 +574,7 @@ class SIG
         try{
 	        $url = "https://www.wikidata.org/wiki/Special:EntityData/".$wikidataID.".json" ;
 	        $res =  file_get_contents($url);
+	         //var_dump($res);
 	        return $res;
 			//return self::getUrl($url);
 		}catch (CTKException $e){
