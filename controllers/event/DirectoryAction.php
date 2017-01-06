@@ -95,7 +95,7 @@ class DirectoryAction extends CAction
               if(!is_array($value))
                 unset($params[$key]);
             }
-            echo Rest::json( array( "list" => $params) );
+            echo Rest::json( array( "list" => $params,"context"=>$context) );
           }
           else
             echo $controller->renderPartial($page,$params,true);
