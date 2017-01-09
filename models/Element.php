@@ -494,6 +494,20 @@ class Element {
 			}else{
 				$set = array($dataFieldName => $fieldValue);
 			}
+		} else if ($dataFieldName == "contacts") {
+			if(empty($fieldValue["index"]))
+				$addToSet = array("contacts" => $fieldValue);
+			else{
+				$headSet = "contacts.".$fieldValue["index"] ;
+				unset($fieldValue["index"]);
+				if(count($fieldValue) == 1){
+					$verb = '$unset' ;
+					$verbActivity = ActStr::VERB_DELETE ;
+					$fieldValue = null ;
+					$updatePull = true ;
+				}
+				$set = array($headSet => $fieldValue);
+			}
 		}
 		else
 			$set = array($dataFieldName => $fieldValue);
@@ -1242,6 +1256,20 @@ class Element {
 				}	
 			}
 		}
+	}
+
+
+	public static function saveContact($params){
+		$id = $params["parentId"];
+		$collection = $params["parentType"];
+		$collection = $params["parentType"];
+		$params["telephone"] = explode(",", $params["phone"]);
+		unset($params["parentId"]);
+		unset($params["parentType"]);
+		unset($params["phone"]);
+		//$res = null ;
+		$res = self::updateField($collection, $id, "contacts", $params);
+		return $res;
 	}
 
 }
