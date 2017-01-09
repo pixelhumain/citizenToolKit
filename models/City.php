@@ -668,6 +668,25 @@ class City {
 		return $res;
 	}
 
+	public static function getAllCities(){
+		$cities = City::getWhere(array());
+		$goods = array();
+		$errors = array();
+
+		foreach ($cities as $key => $city) {
+			
+			$res = self::checkCity($city);
+		}
+	}
+
+	public static function checkCity($city){
+		$msgErrors = "" ;
+
+		if(empty($city["name"]))
+			$msgErrors = "The name is missing." ;
+
+	}
+
 	
     
 
