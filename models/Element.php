@@ -214,7 +214,7 @@ class Element {
 	    }
 	    
 	    //if ( !$hashOnly && @$el ) 
-	    $link = '<a href="#'.$link.'" class="lbh">'.htmlspecialchars(@$el['name']).'</a>';
+	    $link = '<a href="#'.$link.'" class="lbh add2fav">'.htmlspecialchars(@$el['name']).'</a>';
 	    
     	return $link;
     }
@@ -831,37 +831,6 @@ class Element {
 		if ($elementType != Poi::COLLECTION && $elementType != Poi::CONTROLLER) {
             return array( "result" => false, "msg" => "For now you can only delete Points of interest" );   
         }
-
-/*<<<<<<< HEAD
-
-	public static function getWhere($type, $params) {
-		$res = null ;
-		if(in_array($type, self::TYPES))
-	  		$res = PHDB::findAndSort($type,$params,array("created"),null);
-	  	return $res ;
-	}
-
-	public static function getAllEntitiesByKey($key){
-        $result = array();
-        foreach (self::TYPES as $key => $type) {
-        	$res = self::getWhere($type, array("source.key"=>$key, "state" => "uncomplete"));
-	        foreach ($res as $key => $value) {
-	            $element = array();
-	            $element["id"] = $key;
-	            $element["name"] = $value["name"];
-	            $element["warnings"] = (empty($value["warnings"])?array():$value["warnings"]);
-	            $result[$type][] = $element;
-	        }
-        }
-		return $result ;
-    }
-
-
-	public static function save($params){
-
-        //var_dump($params);
-
-======= */
 		if ( !@$userId) {
             return array( "result" => false, "msg" => "You must be loggued to delete something" );
         }
@@ -923,9 +892,10 @@ class Element {
         		$valid = array("result"=>false, "msg" => $e->getMessage());
         	}
 
-        if( $valid["result"] ) 
+        if( $valid["result"]) 
         {
-			if( $collection == Event::COLLECTION ){
+			if( $collection == Event::COLLECTION )
+			{
             	 $res = Event::formatBeforeSaving($params);
             	 if ($res["result"]) 
             	 	$params = $res["params"];
@@ -933,7 +903,8 @@ class Element {
             	 	throw new CTKException("Error processing before saving on event");
             }
 
-            if($id) {
+            if($id) 
+            {
                 //update a single field
                 //else update whole map
                 //$changeMap = ( !$microformat && isset( $key )) ? array('$set' => array( $key => $params[ $key ] ) ) : array('$set' => $params );
@@ -943,7 +914,9 @@ class Element {
                              "reload"=>true,
                              "map"=>$params,
                              "id"=>$id);
-            } else {
+            } 
+            else 
+            {
                 $params["created"] = time();
                 PHDB::insert($collection, $params );
                 $res = array("result"=>true,
@@ -967,7 +940,8 @@ class Element {
 
                 $res["afterSaveGbl"] = self::afterSave((string)$params["_id"],$collection,$params,$postParams);
 
-                if( false && @$params["parentType"] && @$params["parentId"] ){
+                if( false && @$params["parentType"] && @$params["parentId"] )
+                {
                     //createdObjectAsParam($authorType, $authorId, $objectType, $objectId, $targetType, $targetId, $geo, $tags, $address, $verb="create")
                     //TODO
                     //Notification::createdObjectAsParam($authorType[Person::COLLECTION],$userId,$elementType, $elementType, $parentType[projet crée par une orga => orga est parent], $parentId, $params["geo"], (isset($params["tags"])) ? $params["tags"]:null ,$params["address"]);  
@@ -1045,11 +1019,14 @@ class Element {
 		//Manage the event startDate and endDate format : 
 		//it comes with the format DD/MM/YYYY HH:ii or DD/MM/YYYY 
 		//and must be transform in YYYY-MM-DD HH:ii
-		if (@$params["startDate"]) {
+		/*if (@$params["startDate"]) {
 			$startDate = DateTime::createFromFormat('d/m/Y', $params["startDate"]);
 			if (empty($startDate)) {
 				$startDate = DateTime::createFromFormat('d/m/Y H:i', $params["startDate"]);
-				$params["startDate"] = $startDate->format('Y-m-d H:i');
+				if (! empty($startDate)) 
+					$params["startDate"] = $startDate->format('Y-m-d H:i');
+				else 
+					throw new CTKException("Start Date is not well formated !");
 			} else 
 				$params["startDate"] = $startDate->format('Y-m-d');
 		}
@@ -1057,10 +1034,13 @@ class Element {
 			$endDate = DateTime::createFromFormat('d/m/Y', $params["endDate"]);
 			if (empty($endDate)) {
 				$endDate = DateTime::createFromFormat('d/m/Y H:i', $params["endDate"]);
-				$params["endDate"] = $endDate->format('Y-m-d H:i');
+				if (! empty($endDate)) 
+					$params["endDate"] = $endDate->format('Y-m-d H:i');
+				else 
+					throw new CTKException("End Date is not well formated !");
 			} else 
 				$params["endDate"] = $endDate->format('Y-m-d');
-		}
+		}*/
 
         return $params;
      }

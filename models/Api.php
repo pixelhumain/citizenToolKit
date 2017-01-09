@@ -55,7 +55,7 @@ class Api {
 
         if($index < 0) $index = 0 ;
         if($type != City::COLLECTION) $params["preferences.isOpenData"] = true ;
-        
+
         $data = PHDB::findAndLimitAndIndex($type , $params, $limit, $index);
         $data = self::getUrlImage($data, $type);
 

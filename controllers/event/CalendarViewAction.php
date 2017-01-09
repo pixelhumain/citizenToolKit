@@ -22,7 +22,7 @@
 		  			$params['events'] = Event::getListEventsById($id);
 		  			if( @$event['startDate'] ){
 		  				//focus on the start date of the event 
-		  				$params['defaultDate'] = date("Y-m-d", strtotime($event["startDate"]) );
+		  				$params['defaultDate'] = $event["startDate"];
 		  				//if last onl y one day then apply day view 
 		  				$params['defaultView'] = "agendaDay";
 		  				if( @$event['endDate'] )
