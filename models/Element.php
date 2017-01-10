@@ -1082,8 +1082,23 @@ class Element {
 		}
 		return $result;
 	}
-
-
+	
+    public static function saveChart($type, $id,$properties){
+	    //TODO SABR - Check the properties before inserting
+	    PHDB::update($type,
+			array("_id" => new MongoId($id)),
+            array('$set' => array("properties.chart"=> $properties))
+        );
+        return true;
+    }
+    
+	public static function removeChart($type, $id){
+		PHDB::update($type, 
+            array("_id" => new MongoId($id)) , 
+            array('$unset' => array("properties.chart" => 1))
+        );
+        return true;	
+	}
 
 	public static function afterSaveImport($eltId, $eltType, $paramsImport){
 		if (@$paramsImport) {
