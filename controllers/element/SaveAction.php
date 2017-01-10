@@ -12,14 +12,16 @@ class SaveAction extends CAction {
         
         if(isset(Yii::app()->session["userId"])) {
             //SBAR - temporary Workaround
-            unset($_POST["startDateInput"]);
-            unset($_POST["endDateInput"]);
+            $params = ( $_SERVER['REQUEST_METHOD'] == 'PUT' ) ? parse_str( file_get_contents("php://input"), $params ) : $_POST ;  
 
-            $res = Element::save($_POST);
+            unset($params["startDateInput"]);
+            unset($params["endDateInput"]);
+
+            $res = Element::save($params);
+            $res['resquest'] = $_SERVER['REQUEST_METHOD'];
         }
 
-        echo Rest::json( $res );  	
-
+        echo Rest::json( $res );  
     }
 }
 
