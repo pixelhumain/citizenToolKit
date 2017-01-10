@@ -4,7 +4,7 @@ class DetailAction extends CAction {
 /**
 * Dashboard Organization
 */
-    public function run($type, $id) { 
+    public function run($type, $id, $networkParams=null) { 
     	$controller=$this->getController();
 		$members=array();
 		//$list = Lists::get(array("eventTypes"));
@@ -65,7 +65,8 @@ class DetailAction extends CAction {
 			if(isset($element["links"]["events"])){
 				foreach ($element["links"]["events"] as $keyEv => $valueEv) {
 					 $event = Event::getSimpleEventById($keyEv);
-	           		 $events[$keyEv] = $event;
+					 if(!empty($event))
+		           		 $events[$keyEv] = $event;
 				}
 			}
 
@@ -231,6 +232,8 @@ class DetailAction extends CAction {
 		if(@$_POST["modeEdit"]){
 			$params["modeEdit"]=$_POST["modeEdit"];
 		}
+		if(@$_GET["network"])
+			$params["networkJson"]=Network::getNetworkJson($_GET["network"]);
 		
 		$page = "detail";
 

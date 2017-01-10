@@ -143,7 +143,6 @@ class GlobalAutoCompleteAction extends CAction
 	    //var_dump($query); return;
         /***********************************  PERSONS   *****************************************/
         if(strcmp($filter, Person::COLLECTION) != 0 && $this->typeWanted("persons", $searchType)){
-
         	$allCitoyen = PHDB::findAndSortAndLimitAndIndex ( Person::COLLECTION , $query, 
 	  										  array("updated" => -1), $indexStep, $indexMin);
 
@@ -215,9 +214,9 @@ class GlobalAutoCompleteAction extends CAction
 		  			$allEvents[$key]["isFollowed"] = true;
 	  			}
 				if(@$allEvents[$key]["startDate"])
-				$allEvents[$key]["startDate"] = date('Y-m-d H:i:s', $allEvents[$key]["startDate"]->sec);
+					$allEvents[$key]["startDate"] = date(DateTime::ISO8601, $allEvents[$key]["startDate"]->sec);
 				if(@$allEvents[$key]["endDate"])
-				$allEvents[$key]["endDate"] = date('Y-m-d H:i:s', $allEvents[$key]["endDate"]->sec);
+					$allEvents[$key]["endDate"] = date(DateTime::ISO8601, $allEvents[$key]["endDate"]->sec);
 	  		}
 	  		
 	  		$allRes = array_merge($allRes, $allEvents);

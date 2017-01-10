@@ -78,7 +78,7 @@ class SimplyAutoCompleteAction extends CAction
 	  			$tmpSourceKey[] = new MongoRegex("/".$sourceKey."/i");
 	  		}
 	  		if(count($tmpSourceKey)){
-	  			$query = array('$and' => array( $query , array("source.key" => array('$in' => $tmpSourceKey))));
+	  			$query = array('$and' => array( $query , array("source.keys" => array('$in' => $tmpSourceKey))));
 	  		}
 	  		unset($tmpSourceKey);
 	  	}

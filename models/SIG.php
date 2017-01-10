@@ -446,7 +446,7 @@ class SIG
     }
 
 
-    public static function getGeoByAddressNominatim($street = null, $cp = null, $city = null, $country = null, $polygon_geojson = null){
+    public static function getGeoByAddressNominatim($street = null, $cp = null, $city = null, $country = null, $polygon_geojson = null, $extratags = null){
         try{
 	        $url = "http://nominatim.openstreetmap.org/search?format=json&addressdetails=1" ;
 	        if(!empty($street))
@@ -459,12 +459,15 @@ class SIG
 	        if(!empty($city)){
 	            $url .= "&city=".str_replace(" ", "+", $city);
 	        }
-
 	        if(!empty($country))
 	            $url .= "&countrycodes=".self::changeCountryForNominatim($country);
 
 	        if(!empty($polygon_geojson)){
 	            $url .= "&polygon_geojson=1";
+	        }
+
+	        if(!empty($extratags)){
+	            $url .= "&extratags=1";
 	        }
 	        //var_dump($url);
 	        $res =  file_get_contents($url);
@@ -511,7 +514,7 @@ class SIG
 	        	$url .= "&components=country:".str_replace(" ", "+", $country);
 	        }
 	        $url .= "&key=".Yii::app()->params['google']['keyMaps'] ;
-	        var_dump($url);
+	        //var_dump($url);
 	        $res =  file_get_contents($url);
 	        return $res;
 	        //return self::getUrl($url) ;
@@ -536,9 +539,9 @@ class SIG
 	        }
 	        $url .= "&type=street";
 	        //var_dump($url);
-	        $res =  file_get_contents($url);
-	        return $res;
-	        //return self::getUrl($url) ;
+	        /*$res =  file_get_contents($url);
+	        return $res;*/
+	        return self::getUrl($url) ;
         }catch (CTKException $e){
             return null ;
         }
@@ -564,6 +567,19 @@ class SIG
         $result = curl_exec($ch);
         curl_close($ch);
         return $result ;
+    }
+
+
+    public static function getWikidata($wikidataID){
+        try{
+	        $url = "https://www.wikidata.org/wiki/Special:EntityData/".$wikidataID.".json" ;
+	        $res =  file_get_contents($url);
+	         //var_dump($res);
+	        return $res;
+			//return self::getUrl($url);
+		}catch (CTKException $e){
+            return null ;
+        }
     }
 
 }

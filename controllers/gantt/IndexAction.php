@@ -41,7 +41,8 @@ class IndexAction extends CAction
 				$newArrayEvent=array();
 				foreach ($project["links"]["events"] as $idEvent => $e) {
 					$eventsProject=Event::getById($idEvent);
-					array_push($taskEvent,$eventsProject);	
+					if(!empty($eventsProject))
+						array_push($taskEvent,$eventsProject);	
 				}
 				if (isset($year)){
 			        foreach ($taskEvent as $key => $val){
