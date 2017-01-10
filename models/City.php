@@ -670,21 +670,67 @@ class City {
 
 	public static function getAllCities(){
 		$cities = City::getWhere(array());
-		$goods = array();
-		$errors = array();
+		//ini_set('memory_limit', '-1');
+		//$cities =  PHDB::find( self::COLLECTION,array());
+		$res = array(	"goods" => array(),
+						"errors" => array());
 
 		foreach ($cities as $key => $city) {
 			
-			$res = self::checkCity($city);
+			$msg = self::checkCity($city);
+			if($msg != ""){
+				$city["msgErrors"] = $msg;
+				$res["errors"][(String)$city["_id"]] = $city;
+			}else{
+				$res["goods"][(String)$city["_id"]] = $city;
+			}
 		}
+		return $res ;
 	}
 
 	public static function checkCity($city){
 		$msgErrors = "" ;
 
 		if(empty($city["name"]))
-			$msgErrors = "The name is missing." ;
+			$msgErrors = "The name is missing.<br\>" ;
 
+		if(empty($city["alternateName"]))
+			$msgErrors = "The alternateName is missing.<br\>" ;
+		if(empty($city["insee"]))
+			$msgErrors = "The insee is missing.<br\>" ;
+		if(empty($city["country"]))
+			$msgErrors = "The country is missing.<br\>" ;
+		if(empty($city["dep"]))
+			$msgErrors = "The dep is missing.<br\>" ;
+		if(empty($city["depName"]))
+			$msgErrors = "The depName is missing.<br\>" ;
+		if(empty($city["region"]))
+			$msgErrors = "The region is missing.<br\>" ;
+		if(empty($city["regionName"]))
+			$msgErrors = "The regionName is missing.<br\>" ;
+
+		if(empty($city["geo"]))
+			$msgErrors = "The geo is missing.<br\>" ;
+		if(empty($city["geoPosition"]))
+			$msgErrors = "The geoPosition is missing.<br\>" ;
+
+		if(empty($city["geoShape"]))
+			$msgErrors = "The geoShape is missing.<br\>" ;
+
+		if(empty($city["postalCodes"])){
+			foreach ($city["postalCodes"] as $keyPC => $postalCode) {
+				if(empty($postalCode["postalCode"]))
+					$msgErrors = "The postalCode is missing.<br\>" ;
+				if(empty($postalCode["name"]))
+					$msgErrors = "The name is missing for postal code ".$postalCode["postalCode"].".<br\>" ;
+				if(empty($postalCode["geo"]))
+					$msgErrors = "The geo is missing for postal code ".$postalCode["postalCode"].".<br\>" ;
+				if(empty($postalCode["geoPosition"]))
+					$msgErrors = "The geoPosition is missing for postal code ".$postalCode["postalCode"].".<br\>" ;
+			}
+		}
+
+		return $msgErrors;
 	}
 
 	
