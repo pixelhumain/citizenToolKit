@@ -9,48 +9,25 @@ class CO2 {
 
     						"pages" => 
     							array(
-    								// "#"=>
-    								// 	array("inMenu" => false, 
-						      //                 "subdomain" => "", 
-						      //                 "subdomainName" => "",
-						      //                 "icon" => "search", 
-						      //                 "mainTitle" => "",
-						      //                 "placeholderMainSearch" => ""),
+    							    "#co2.index"=>
+    								 	array("redirect"=>"social"),
     								  
-    								// "#co2.web"=>
-    								//   	array("inMenu" => true, 
-						      //                 "useHeader" => true, 
-						      //                 "subdomain" => "web", 
-						      //                 "subdomainName" => "web",
-						      //                 "icon" => "search", 
-						      //                 "mainTitle" => "Le moteur de recherche <span class='letter-green'>du green-web</span>",
-						      //                 "placeholderMainSearch" => "rechercher sur le green web  ..."),
-
-    								// "#co2.media"=>
-    								//   	array("inMenu" => true, 
-						      //                 "useHeader" => true, 
-						      //                 "subdomain" => "media", 
-						      //                 "subdomainName" => "media",
-						      //                 "icon" => "newspaper-o", 
-						      //                 "mainTitle" => "Toute l'actu <span class='letter-green'>des médias alternatifs</span>",
-						      //                 "placeholderMainSearch" => "rechercher dans l'actu  ..."),
-
     								"#co2.social"=>
     								  	array("inMenu" => true, 
 						                      "useHeader" => true, 
 						                      "subdomain" => "social", 
-						                      "subdomainName" => "social",
-						                      "icon" => "user-circle-o", 
-						                      "mainTitle" => "Le réseau social <span class='letter-green'>à effet de serre positif</span>",
-						                      "placeholderMainSearch" => "Rechercher parmis les membres du réseau Communecter"),
+						                      "subdomainName" => "Recherche",
+						                      "icon" => "search", 
+						                      "mainTitle" => "Moteur de recherche <span class='letter-red'>territorial</span>",
+						                      "placeholderMainSearch" => "Rechercher une page ..."),
 
-    								"#co2.live"=>
+    								"#co2.freedom"=>
     								  	array("inMenu" => true, 
 						                      "useHeader" => true, 
-						                      "subdomain" => "live", 
-						                      "subdomainName" => "live",
+						                      "subdomain" => "freedom", 
+						                      "subdomainName" => "Live",
 						                      "icon" => "rss", 
-						                      "mainTitle" => "",
+						                      "mainTitle" => "Un fil d'actu <span class='letter-red'>commun</span>",
 						                      "placeholderMainSearch" => "rechercher dans le fil d'actualités"),
 
     								"#co2.agenda"=>
@@ -58,9 +35,9 @@ class CO2 {
 						                      "useHeader" => true, 
 						                      "subdomain" => "agenda", 
 						                      "subdomainName" => "agenda",
-						                      "icon" => "hand-rock-o", 
-						                      "mainTitle" => "L'agenda<span class='letter-green'>CO</span>mmun",
-						                      "placeholderMainSearch" => "rechercher sur le green web  ..."),
+						                      "icon" => "calendar", 
+						                      "mainTitle" => "L'agenda<span class='letter-red'>CO</span>mmun",
+						                      "placeholderMainSearch" => "rechercher un événement ..."),
 
     								"#co2.power"=>
     								  	array("inMenu" => true, 
@@ -68,8 +45,8 @@ class CO2 {
 						                      "subdomain" => "power", 
 						                      "subdomainName" => "power",
 						                      "icon" => "hand-rock-o", 
-						                      "mainTitle" => "Un bien <span class='letter-green'>CO</span>mmun dédié à l'intelligence <span class='letter-green'>CO</span>llective",
-						                      "placeholderMainSearch" => "rechercher sur le green web  ..."),
+						                      "mainTitle" => "Un bien <span class='letter-red'>CO</span>mmun dédié à l'intelligence <span class='letter-red'>CO</span>llective",
+						                      "placeholderMainSearch" => "rechercher parmis les propositions ..."),
 
     								"#co2.page.type"=>
     								  	array("inMenu" => false, 
@@ -78,9 +55,7 @@ class CO2 {
 						                      "subdomainName" => "page",
 						                      "icon" => "", 
 						                      "mainTitle" => "Le réseau social à effet de sert",
-						                      "placeholderMainSearch" => "rechercher parmis les membres du réseau ..."),
-
-    								  
+						                      "placeholderMainSearch" => "rechercher parmis les membres du réseau ..."),			  
 
     						)
     					),
@@ -91,13 +66,8 @@ class CO2 {
 
     						"pages" => 
     							array(
-    								// "#"=>
-    								// 	array("inMenu" => false, 
-						      //                 "subdomain" => "", 
-						      //                 "subdomainName" => "",
-						      //                 "icon" => "search", 
-						      //                 "mainTitle" => "Le moteur de recherche des Cagous",
-						      //                 "placeholderMainSearch" => "rechercher sur le green web  ..."),
+    								"#co2.index"=>
+	    								 	array("redirect"=>"web"),
     								  
     								"#co2.web"=>
     								  	array("inMenu" => true, 
@@ -141,8 +111,8 @@ class CO2 {
 						                      "subdomain" => "freedom", 
 						                      "subdomainName" => "freedom",
 						                      "icon" => "comments", 
-						                      "mainTitle" => "Un espace d'expression libre pour tout les Calédoniens",
-						                      "placeholderMainSearch" => "rechercher parmis les messages  ..."),
+						                      "mainTitle" => "Toutes vos annonces en direct",
+						                      "placeholderMainSearch" => "rechercher parmis les annonces  ..."),
 
     								"#co2.agenda"=>
     								  	array("inMenu" => true, 
@@ -197,6 +167,60 @@ class CO2 {
     					"Nord"=>$citiesN, 
     					"Iles"=>$citiesI);
     	return $cities;
+    }
+
+
+    public static function getAnnounceCategories(){
+    	$cat = array("Technologie" => array("TV / Vidéo", "Informatique", "Tablettes", "Téléphonie", "Appareils photos", "Appareil audio"), 
+					 
+					 "Logement" => array("Vente", "Location", "Collocation"), 
+					 
+					 "Véhicules" => 
+					 	array(	"Voiture", 
+					 			"SUV", 
+					 			"4x4", 
+					 			"Moto", 
+					 			"Scooter", 
+					 			"Bateau", 
+					 			"Voiturette", 
+					 			"Vélos",
+					 			"Équipement véhicule",
+					 			"Équipement 2 roues",
+					 			"Équipement bateau",
+					 			"Équipement vélo"), 
+
+					 "Maison" => 
+						 array(	 "Electroménager",
+								 "Mobilier", 
+								 "Équipement bébé", 
+			    				 "Animaux", 
+			    				 "Divers"),
+					 "Loisirs" => 
+						 array(	 "Sports", 
+						 		 "Instrument musique", 
+						 		 "Sonorisation", 
+						 		 "CD / DVD",
+								 "Jouet", 
+			    				 "Jeux de société", 
+			    				 "Livres / BD", 
+			    				 "Collections", 
+			    				 "Bricolages", 
+			    				 "Jardinage", 
+			    				 "Art / Déco", 
+			    				 "Modélisme", 
+			    				 "Puériculture", 
+			    				 "Animaux", 
+			    				 "Divers"),
+	    			"Mode" => 
+						 array(	 "Vêtements", 
+								 "Chaussures", 
+			    				 "Accessoires", 
+			    				 "Montres", 
+			    				 "Bijoux", 
+			    				 )
+	    			);
+
+    	return $cat;
     }
 
 }
