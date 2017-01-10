@@ -169,6 +169,24 @@ class Authorisation {
         return $result;
     }
 
+    public static function isValidUser( $user, $pwd ) {
+        
+        $result = false;
+        Person::clearUserSessionData();
+        $account = PHDB::findOne(Person::COLLECTION, array( '$or' => array( 
+                                                        array("email" => new MongoRegex('/^'.preg_quote(trim($user)).'$/i')),
+                                                        array("username" => $user) ) ));
+        if( @$account )
+        {
+            if (Person::checkPassword($pwd, $account)) {
+                Person::saveUserSessionData($account);
+                Person::updateLoginHistory((String) $account["_id"]);
+                $result = true;
+            }
+        }
+        return $result;
+    }
+
     /**
      * Description
      * @param type $userId 

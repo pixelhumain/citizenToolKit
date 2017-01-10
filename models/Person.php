@@ -922,7 +922,7 @@ class Person {
      * @param String $accountId an existing account id
      * @return boolean True if the update goes well, false else
      */
-    private static function updateLoginHistory($accountId) {
+    public static function updateLoginHistory($accountId) {
     	return self::updatePersonField($accountId, "lastLoginDate", time(), $accountId);
     }
 
@@ -933,7 +933,7 @@ class Person {
      * @param array $account The account retrieve from 
      * @return boolean : true if password match
      */
-    private static function checkPassword($pwd, $account) {
+    public static function checkPassword($pwd, $account) {
     	$res = false;
     	if ($account) {
     		if (@$account["pwd"] == hash('sha256', @$account["email"].$pwd)) {

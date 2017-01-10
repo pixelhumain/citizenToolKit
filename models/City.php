@@ -691,6 +691,29 @@ class City {
     
 
 	
+	public static function getCityByCedex($cp)
+	{
+		$cityCedex = PHDB::findOne(City::COLLECTION, array("postalCodes.postalCode" => $cp,
+                                                            "postalCodes.complement" => array('$exists' => 1)));
+        $res = null ;
+        if(!empty($cityCedex)){
+            foreach ($cityCedex["postalCodes"] as $key => $value) {
+            	if(!empty($value["complement"]) && $value["postalCode"] == $cp){
+            		$res["name"] = $value["name"];
+            		$res["insee"] = $cityCedex["insee"];
+            		$res["cp"] = $value["postalCode"];
+            		$res["geo"] = $value["geo"];
+            		$res["geoPosition"] = $value["geoPosition"];
+            		$res["regionName"] = $cityCedex["regionName"];
+            		$res["depName"] = $cityCedex["depName"];
+            		$res["country"] = $cityCedex["country"];
+            	}
+            }
+        }
+        return $res;
+	}
+	
+
 	/*
 	public static function createCitizenAssemblies(){
 		$params = array("habitants" => array('$gt' => 5000));
