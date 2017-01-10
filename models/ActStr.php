@@ -21,6 +21,7 @@ class ActStr {
       
     const VERB_JOIN = "join";
     const VERB_WAIT = "wait";
+    const VERB_ASK = "ask";
     const VERB_LEAVE = "leave";
     const VERB_INVITE = "invite";
     const VERB_ACCEPT = "accept";
@@ -33,6 +34,8 @@ class ActStr {
     const VERB_AUTHORIZE = "authorize";
     const VERB_ATTEND = "attend";
     const VERB_COMMENT = "comment";
+    const VERB_LIKE = "like";
+    const VERB_UNLIKE = "unlike";
     const VERB_MENTION = "mention";
 
     const VERB_ADDROOM = "addactionroom";
