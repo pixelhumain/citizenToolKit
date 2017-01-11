@@ -12,16 +12,40 @@ class SaveAction extends CAction {
         
         if(isset(Yii::app()->session["userId"])) {
             //SBAR - temporary Workaround
-            $params = ( $_SERVER['REQUEST_METHOD'] == 'PUT' ) ? parse_str( file_get_contents("php://input"), $params ) : $_POST ;  
+        //========== danzalDev for test =============
+            $arrayToSave = array();
 
-            unset($params["startDateInput"]);
-            unset($params["endDateInput"]);
+            if ( $_SERVER['REQUEST_METHOD'] == 'PUT' || $_SERVER['REQUEST_METHOD'] == 'POST') {
+                $headers = getallheaders();
 
-            $res = Element::save($params);
+                if ( array_key_exists('X-SmartCitizenData', $headers) && array_key_exists('X-SmartCitizenMacADDR', $headers)) {
+                    
+                    $data = $headers['X-SmartCitizenData']; 
+                    $datapoints = json_decode($data,true);
+                
+                    $arrayToSave['key']='thing';
+                    $arrayToSave['collection']='thing';
+                    $arrayToSave['type']='smartCitizen';
+                    $arrayToSave['boardId']=$headers['X-SmartCitizenMacADDR'];
+                    $arrayToSave = array_merge($arrayToSave, $datapoints);
+                    
+                    } elseif ( $_SERVER['REQUEST_METHOD'] == 'POST') {
+                        $arrayToSave = $_POST;
+                        unset($arrayToSave["startDateInput"]);
+                        unset($arrayToSave["endDateInput"]);
+                    }
+            
+            $res = Element::save($arrayToSave);
+        //========== danzalDev for test =============
+
             $res['resquest'] = $_SERVER['REQUEST_METHOD'];
+            
+            }
+        
         }
 
-        echo Rest::json( $res );  
+        echo Rest::json( $res ); 
+      
     }
 }
 
