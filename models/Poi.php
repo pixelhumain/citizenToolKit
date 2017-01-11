@@ -93,7 +93,7 @@ class Poi {
 				$where["tags"] = array('$in' => $queryTag); 			
 		}
 		
-		$pois = PHDB::findAndSortAndLimitAndIndex( self::COLLECTION, $where, array("updated" => -1), $indexStep, $limitMin);
+		$pois = PHDB::findAndSort( self::COLLECTION, $where, array("updated" => -1));
 	   	return $pois;
 	}
 
