@@ -104,21 +104,7 @@ class Poi {
 	 */
 	public static function getById($id) { 
 	  	$poi = PHDB::findOneById( self::COLLECTION ,$id );
-	  	if(Yii::app()->theme->name=="notragora"){
-		  	if(@$poi["tags"]){
-			  	foreach($poi["tags"] as $data){
-				  	if (in_array($data, self::$collectionsList)) {
-					    $poi["collections"]=$data;
-					    unset($poi["tags"][$data]);
-					}
-					if (in_array($data, self::$genresList)) {
-					    $poi["genres"]=$data;
-					    unset($poi["tags"][$data]);
-					}
-
-			  	}
-		  	}
-	  	}
+	  	// Use case notragora
 	  	if(@$poi["type"])
 		  	$poi["typeSig"] = self::COLLECTION.".".$poi["type"];
 	  	else
