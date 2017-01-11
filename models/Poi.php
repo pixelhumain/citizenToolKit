@@ -51,6 +51,22 @@ class Poi {
 	    "creator" => array("name" => "creator"),
 	    "created" => array("name" => "created"),
 	    );
+//From Post/Form name to database field name
+	public static $collectionsList = array (
+	   "Où sont les femmes",
+		"Passeur d'images",
+		"MHQM",
+		"MIAA",
+		"Portrait citoyens",
+		"Parcours d'engagement"
+	);
+	public static $genresList=array(
+		"Documentaire",
+		"Fiction",
+		"Docu-fiction",
+		"Films outils",
+		"Films de commande"
+	);
 	/**
 	 * get all poi details of an element
 	 * @param type $id : is the mongoId (String) of the parent
@@ -88,6 +104,21 @@ class Poi {
 	 */
 	public static function getById($id) { 
 	  	$poi = PHDB::findOneById( self::COLLECTION ,$id );
+	  	if(Yii::app()->theme->name=="notragora"){
+		  	if(@$poi["tags"]){
+			  	foreach($poi["tags"] as $data){
+				  	if (in_array($data, self::$collectionsList)) {
+					    $poi["collections"]=$data;
+					    unset($poi["tags"][$data]);
+					}
+					if (in_array($data, self::$genresList)) {
+					    $poi["genres"]=$data;
+					    unset($poi["tags"][$data]);
+					}
+
+			  	}
+		  	}
+	  	}
 	  	if(@$poi["type"])
 		  	$poi["typeSig"] = self::COLLECTION.".".$poi["type"];
 	  	else

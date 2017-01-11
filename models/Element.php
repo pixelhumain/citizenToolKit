@@ -230,8 +230,9 @@ class Element {
 			$element = Event::getById($id);	
 		else if($type == City::COLLECTION)
 			$element = City::getIdByInsee($id);
-		else 
-
+		else if($type == Poi::COLLECTION)
+			$element = Poi::getById($id);
+		else
 			$element = PHDB::findOne($type,array("_id"=>new MongoId($id)));
 	  	
 	  	return $element;
