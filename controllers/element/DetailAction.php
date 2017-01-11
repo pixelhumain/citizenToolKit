@@ -243,7 +243,7 @@ class DetailAction extends CAction {
 		if(@$_GET["tpl"] == "profilSocial")
 				$page = "profilSocial";
 		
-		if(@$_GET["tpl"] == "notragora")
+		if(Yii::app()->theme->name == "notragora")
 				$page = "notragora/detail";
 			
 		//$page = "onepage";
