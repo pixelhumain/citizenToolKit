@@ -668,14 +668,23 @@ class Event {
 	* @param limit is the number of events we want to get
 	* @return an array with the next event since the current day
 	*/
-	public static function getListCurrentEventsByPeopleId($userId, $limit = 20) {
+	public static function getListCurrentEventsByPeopleId($userId, $limit = 20) 
+	{
 		$listEvent = array();
 		$where = array 	('$and' => array (
 							array("links.attendees.".$userId => array('$exists' => true)),
 							array("endDate" => array('$gte' => new MongoDate(time())))
 						));
         $eventPeople = PHDB::findAndSort(self::COLLECTION, $where, array('endDate' => 1), $limit);
-
+        $person = Person::getById($userId);
+        if( $person["favorites"] && $person["favorites"]["events"] )
+        {
+        	foreach ($person["favorites"]["events"] as $key => $value) 
+        	{
+        		if($eventPeople[$key])
+        			$eventPeople[$key] = Event::getById($key);
+        	}
+        }
         return Event::addInfoEvents($eventPeople);
 	}
 

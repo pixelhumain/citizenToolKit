@@ -11,10 +11,14 @@
 		  	{
 		  		if( @$type )
 		  		{
-		  			if(strcmp($type, "person")==0)
+		  			if(strcmp($type, "person")==0){
 		  				$params['events'] = Event::getListCurrentEventsByPeopleId($id);
-		  			else if (strcmp($type, "organization") == 0)
+		  				$params['person'] = Person::getById($id);
+		  			}
+		  			else if (strcmp($type, "organization") == 0){
 		  				$params['events'] = Event::getListCurrentEventsByOrganizationId($id);
+		  				$params['organization'] = Organization::getById($id);
+		  			}
 		  		}else{
 		  			//means we are showing details of an events
 		  			$event = Event::getById($id);
