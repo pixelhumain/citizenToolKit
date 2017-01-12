@@ -171,9 +171,11 @@ class CO2 {
 
 
     public static function getAnnounceCategories(){
-    	$cat = array("Technologie" => array("TV / Vidéo", "Informatique", "Tablettes", "Téléphonie", "Appareils photos", "Appareil audio"), 
+    	$cat = array("Technologie" => 
+    					array("TV / Vidéo", "Informatique", "Tablettes", "Téléphonie", "Appareils photos", "Appareil audio"), 
 					 
-					 "Logement" => array("Vente", "Location", "Collocation"), 
+					 "Immobilier" => 
+					 	array("Maison", "Appartement", "Terrain", "Parking", "Bureaux"), 
 					 
 					 "Véhicules" => 
 					 	array(	"Voiture", 
@@ -223,5 +225,49 @@ class CO2 {
     	return $cat;
     }
 
+    public static function getJobsCategories(){
+    	$cat = array("Technologie" => 
+    					array("TV / Vidéo", "Informatique", "Tablettes", "Téléphonie", "Appareils photos", "Appareil audio"), 
+					 
+					 "Logement" => 
+					 	array("Vente", "Location", "Collocation"), 
+					 
+					 "Véhicules" => 
+					 	array(	"Voiture", 
+					 			), 
+
+					 "Maison" => 
+						 array(	 "Electroménager",
+								 ),
+					 "Loisirs" => 
+						 array(	 "Sports", 
+						 		 ),
+	    			"Mode" => 
+						 array(	 "Vêtements", 
+								 )
+	    			);
+
+    	return $cat;
+    }
+
+
+
+    public static function getFreedomTags(){
+    	$tags = array(
+    		"all" 		=> array("label"=>"Tout", 				"key" => "all", 		"icon" => "circle-o", 				"section"=>1),
+    		"like" 		=> array("label"=>"Coup de cœur", 		"key" => "like", 		"icon" => "heartbeat", 				"section"=>2),
+    		"dislike" 	=> array("label"=>"Coup de gueule", 	"key" => "dislike", 	"icon" => "thumbs-o-down", 			"section"=>2),
+    		"forsale" 	=> array("label"=>"À vendre", 			"key" => "forsale", 	"icon" => "money", 					"section"=>3),
+    		"location" 	=> array("label"=>"À louer", 			"key" => "location", 	"icon" => "external-link", 			"section"=>3),
+    		"donation" 	=> array("label"=>"À donner", 			"key" => "donation", 	"icon" => "gift", 					"section"=>4),
+    		"sharing" 	=> array("label"=>"À partager", 		"key" => "sharing", 	"icon" => "exchange", 				"section"=>4),
+    		"lookingfor" => array("label"=>"À la recherche", 	"key" => "lookingfor", 	"icon" => "eye", 					"section"=>5),
+    		"job" 		=> array("label"=>"Offre d'emplois", 	"key" => "job", 		"icon" => "briefcase", 				"section"=>5),
+    		"public" 	=> array("label"=>"Les communiqués", 	"key" => "public", 		"icon" => "bullhorn", 				"section"=>6),
+    		"urgency" 	=> array("label"=>"Urgences", 			"key" => "urgency", 	"icon" => "exclamation-triangle", 	"section"=>6),
+    				
+    	);
+    	return $tags;
+    }
 }
 ?>
