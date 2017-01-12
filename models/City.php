@@ -758,6 +758,43 @@ class City {
         }
         return $res;
 	}
+
+	public static function prepCity ($params) { 
+
+        if(!empty($params["name"]))
+        	$params["alternateName"]= mb_strtoupper($params["name"]);
+        
+        if(!empty($params["latitude"]) && !empty($params["longitude"])){
+        	$params["geo"]= SIG::getFormatGeo($params["latitude"], $params["longitude"]);
+			$params["geoPosition"]= SIG::getFormatGeoPosition($params["latitude"], $params["longitude"]);
+        }
+
+        if(!empty($params["wikidata"]))
+        	$params["wikidataID"]= $params["wikidata"];
+        
+        if(!empty($params["osmid"]))
+        	$params["osmID"]= $params["osmid"];
+        
+ 		if(!empty($params["postalCodes"])){
+ 			$newPostalCodes = array();
+        	foreach ($params["postalCodes"] as $keyCP => $valueCP) {
+        		$newCP = array();
+        		$newCP["postalCode"] = $valueCP["postalCode"];
+        		$newCP["name"] = $valueCP["name"];
+        		$newCP["geo"] = SIG::getFormatGeo($valueCP["latitude"], $valueCP["longitude"]);
+        		$newCP["geoPosition"]= SIG::getFormatGeoPosition($valueCP["latitude"], $valueCP["longitude"]);
+        		$newPostalCodes[] = $newCP;
+        	}
+        	$params["postalCodes"] = $newPostalCodes;
+ 		}
+ 		
+        unset($params["osmid"]);
+        unset($params["wikidata"]);
+        unset($params["latitude"]);
+        unset($params["longitude"]);
+
+		return $params;
+     }
 	
 
 	/*

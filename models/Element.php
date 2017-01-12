@@ -866,6 +866,7 @@ class Element {
 		unset($params["paramsImport"]);
         unset($params['collection']);
         unset($params['key']);
+       
         $params = self::prepData( $params );
         unset($params['id']);
 
@@ -876,6 +877,9 @@ class Element {
         	$postParams["urls"] = $params["urls"];
         	unset($params['urls']);
         }
+
+        if($collection == City::COLLECTION)
+        	$params = City::prepCity($params);
         
         /*$microformat = PHDB::findOne(PHType::TYPE_MICROFORMATS, array( "key"=> $key));
         $validate = ( !isset($microformat )  || !isset($microformat["jsonSchema"])) ? false : true;
@@ -892,7 +896,7 @@ class Element {
         	} catch (CTKException $e) {
         		$valid = array("result"=>false, "msg" => $e->getMessage());
         	}
-
+        
         if( $valid["result"]) 
         {
 			if( $collection == Event::COLLECTION )
@@ -906,19 +910,20 @@ class Element {
 
             if($id) 
             {
+            	var_dump($params);
                 //update a single field
                 //else update whole map
                 //$changeMap = ( !$microformat && isset( $key )) ? array('$set' => array( $key => $params[ $key ] ) ) : array('$set' => $params );
-                PHDB::update($collection,array("_id"=>new MongoId($id)), array('$set' => $params ));
+                /*PHDB::update($collection,array("_id"=>new MongoId($id)), array('$set' => $params ));
                 $res = array("result"=>true,
                              "msg"=>"Vos données ont été mises à jour.",
                              "reload"=>true,
                              "map"=>$params,
-                             "id"=>$id);
+                             "id"=>$id);*/
             } 
             else 
             {
-                $params["created"] = time();
+                /*$params["created"] = time();
                 PHDB::insert($collection, $params );
                 $res = array("result"=>true,
                              "msg"=>"Vos données ont bien été enregistrées.",
@@ -946,7 +951,7 @@ class Element {
                     //createdObjectAsParam($authorType, $authorId, $objectType, $objectId, $targetType, $targetId, $geo, $tags, $address, $verb="create")
                     //TODO
                     //Notification::createdObjectAsParam($authorType[Person::COLLECTION],$userId,$elementType, $elementType, $parentType[projet crée par une orga => orga est parent], $parentId, $params["geo"], (isset($params["tags"])) ? $params["tags"]:null ,$params["address"]);  
-                }
+                }*/
             }
           //  if(@$url = ( @$params["parentType"] && @$params["parentId"] && in_array($collection, array("poi") && Yii::app()->theme != "notragora")) ? "#".self::getControlerByCollection($params["parentType"]).".detail.id.".$params["parentId"] : null )
 	        //    $res["url"] = $url;
