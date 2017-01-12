@@ -127,12 +127,20 @@ class Event {
 			$simpleEvent["id"] = $id;
 			$simpleEvent["_id"] = $event["_id"];
 			$simpleEvent["name"] = @$event["name"];
-			if (gettype($event["startDate"]) == "object" && gettype($event["endDate"]) == "object") {
+			if (gettype($event["startDate"]) == "object" /*&& gettype($event["endDate"]) == "object"*/) {
 				//Set TZ to UTC in order to be the same than Mongo
 				date_default_timezone_set('UTC');
 				$simpleEvent["startDate"] = date(DateTime::ISO8601, $event["startDate"]->sec);
+				$simpleEvent["startDateSec"] = $event["startDate"]->sec ;
+				/*$simpleEvent["endDate"] = date(DateTime::ISO8601, $event["endDate"]->sec);
+				$simpleEvent["endDateSec"] = $event["endDate"]->sec ;*/
+			}
+			if ( gettype($event["endDate"]) == "object") {
+				//Set TZ to UTC in order to be the same than Mongo
+				date_default_timezone_set('UTC');
 				$simpleEvent["endDate"] = date(DateTime::ISO8601, $event["endDate"]->sec);
-			} 
+				$simpleEvent["endDateSec"] = $event["endDate"]->sec ;
+			}
 			$simpleEvent["type"] = @$event["type"];
 			$simpleEvent["geo"] = @$event["geo"];
 			$simpleEvent["tags"] = @$event["tags"];
