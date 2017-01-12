@@ -238,6 +238,36 @@ class Element {
 	  	return $element;
 	}
 
+	/**
+	 * get all poi details of an element
+	 * @param type $id : is the mongoId (String) of the parent
+	 * @param type $type : is the type of the parent
+	 * @return list of pois
+	 */
+	public static function getByIdAndTypeOfParent($collection, $id, $type){
+		$list = PHDB::find($collection,array("parentId"=>$id,"parentType"=>$type));
+	   	return $list;
+	}
+	/**
+	 * get poi with limit $limMin and $limMax
+	 * @return list of pois
+	 */
+	public static function getByTagsAndLimit($collection, $limitMin=0, $indexStep=15, $searchByTags=""){
+		$where = array("name"=>array('$exists'=>1));
+		if(@$searchByTags && !empty($searchByTags)){
+			$queryTag = array();
+			foreach ($searchByTags as $key => $tag) {
+				if($tag != "")
+					$queryTag[] = new MongoRegex("/".$tag."/i");
+			}
+			if(!empty($queryTag))
+				$where["tags"] = array('$in' => $queryTag); 			
+		}
+		
+		$list = PHDB::findAndSort( $collection, $where, array("updated" => -1));
+	   	return $list;
+	}
+
     public static function getInfos( $type, $id, $loadByHashOnly=null ) {	    
     	$link = ""; 
     	$name = ""; 
@@ -950,7 +980,7 @@ class Element {
             }
           //  if(@$url = ( @$params["parentType"] && @$params["parentId"] && in_array($collection, array("poi") && Yii::app()->theme != "notragora")) ? "#".self::getControlerByCollection($params["parentType"]).".detail.id.".$params["parentId"] : null )
 	        //    $res["url"] = $url;
-	        if(@$params["parentType"] && @$params["parentId"] && in_array($collection, array("poi"))){
+	        if(@$params["parentType"] && @$params["parentId"] && in_array($collection, array("poi","classified"))){
 		        if(Yii::app()->theme->name != "notragora")
 		        	$url="#".self::getControlerByCollection($params["parentType"]).".detail.id.".$params["parentId"];
 		        else
