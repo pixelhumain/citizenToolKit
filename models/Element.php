@@ -230,8 +230,9 @@ class Element {
 			$element = Event::getById($id);	
 		else if($type == City::COLLECTION)
 			$element = City::getIdByInsee($id);
-		else 
-
+		else if($type == Poi::COLLECTION)
+			$element = Poi::getById($id);
+		else
 			$element = PHDB::findOne($type,array("_id"=>new MongoId($id)));
 	  	
 	  	return $element;
@@ -950,7 +951,7 @@ class Element {
           //  if(@$url = ( @$params["parentType"] && @$params["parentId"] && in_array($collection, array("poi") && Yii::app()->theme != "notragora")) ? "#".self::getControlerByCollection($params["parentType"]).".detail.id.".$params["parentId"] : null )
 	        //    $res["url"] = $url;
 	        if(@$params["parentType"] && @$params["parentId"] && in_array($collection, array("poi"))){
-		        if(Yii::app()->params["theme"] != "notragora")
+		        if(Yii::app()->theme->name != "notragora")
 		        	$url="#".self::getControlerByCollection($params["parentType"]).".detail.id.".$params["parentId"];
 		        else
 		        	$url="#poi.detail.id.".$res["id"];
