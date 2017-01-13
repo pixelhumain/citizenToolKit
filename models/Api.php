@@ -58,7 +58,7 @@ class Api {
 
         $data = PHDB::findAndLimitAndIndex($type , $params, $limit, $index);
         $data = self::getUrlImage($data, $type);
-
+var_dump($data);
         if($type == City::COLLECTION) {
             if( @$geoShape != "1" ){
                 foreach ($data as $key => $value) {

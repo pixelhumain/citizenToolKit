@@ -21,6 +21,24 @@ class TranslateCommunecter {
 															"suffix"   => "" )))
 	);
 
+	public static $dataBinding_time = array(
+		"@type"		=> "Date",
+		"date"		=> array("valueOf" => array(
+	    					"year" 		=> array(	"valueOf" => 'year'),
+	    					"mon" 		=> array(	"valueOf" => 'mon'),
+	    					"mday" 		=> array(	"valueOf" => 'mday')
+	    					)
+		),
+	    
+	    "time" 	=> array("valueOf" => array(
+	    					"hours" 		=> array(	"valueOf" => 'hours'),
+	    					"minutes" 		=> array(	"valueOf" => 'minutes'),
+	    					"secondes" 		=> array(	"valueOf" => 'secondes')
+	    					)
+	    )
+
+	);
+
 	public static $dataBinding_person = array(
 		"@type"		=> "Person",
 	    "name" 		=> array("valueOf" => "name"),
