@@ -6,8 +6,16 @@ class EditChartAction extends CAction
 		$id=$_POST["id"];
 		$type=$_POST["type"];
 		//echo $idProject;
-		if(!empty($_POST["properties"]))
-			$newProperties=$_POST["properties"];
+		if(!empty($_POST["properties"])){
+			if(@$_POST["properties"]["commons"]){
+				$newProperties=$_POST["properties"]["commons"];
+				$label="commons";
+			}else if(@$_POST["properties"]["open"]){
+				$newProperties=$_POST["properties"]["open"];
+				$label="open";
+			}
+			
+		}
 		else
 			$newProperties=[];
 		/*$propertiesList=[];
@@ -18,10 +26,10 @@ class EditChartAction extends CAction
 		}*/
 
 		if (!empty($newProperties)){
-        	$res = Element::saveChart($type,$id,$newProperties);
+        	$res = Element::saveChart($type,$id,$newProperties, $label);
         }
         else
-        	$res = Element::removeChart($type,$id);
+        	$res = Element::removeChart($type,$id, $label);
 
   		echo json_encode(array("result"=>true, "properties"=>$newProperties, "msg"=>Yii::t("common", "properties well updated")));
         exit;
