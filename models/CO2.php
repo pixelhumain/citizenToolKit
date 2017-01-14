@@ -254,17 +254,18 @@ class CO2 {
 
     public static function getFreedomTags(){
     	$tags = array(
-    		"all" 		=> array("label"=>"Tout", 				"key" => "all", 		"icon" => "circle-o", 				"section"=>1),
-    		"like" 		=> array("label"=>"Coup de cœur", 		"key" => "like", 		"icon" => "heartbeat", 				"section"=>2),
-    		"dislike" 	=> array("label"=>"Coup de gueule", 	"key" => "dislike", 	"icon" => "thumbs-o-down", 			"section"=>2),
-    		"forsale" 	=> array("label"=>"À vendre", 			"key" => "forsale", 	"icon" => "money", 					"section"=>3),
-    		"location" 	=> array("label"=>"À louer", 			"key" => "location", 	"icon" => "external-link", 			"section"=>3),
-    		"donation" 	=> array("label"=>"À donner", 			"key" => "donation", 	"icon" => "gift", 					"section"=>4),
-    		"sharing" 	=> array("label"=>"À partager", 		"key" => "sharing", 	"icon" => "exchange", 				"section"=>4),
-    		"lookingfor" => array("label"=>"À la recherche", 	"key" => "lookingfor", 	"icon" => "eye", 					"section"=>5),
-    		"job" 		=> array("label"=>"Offre d'emplois", 	"key" => "job", 		"icon" => "briefcase", 				"section"=>5),
-    		"public" 	=> array("label"=>"Les communiqués", 	"key" => "public", 		"icon" => "bullhorn", 				"section"=>6),
-    		"urgency" 	=> array("label"=>"Urgences", 			"key" => "urgency", 	"icon" => "exclamation-triangle", 	"section"=>6),
+    		"all" 		=> array("label"=>"Tout", 				"key" => "all", 		"icon" => "circle-o", 				"section"=>1, "color"=>"default"),
+    		"like" 		=> array("label"=>"Coup de cœur", 		"key" => "like", 		"icon" => "heartbeat", 				"section"=>2, "color"=>"green"),
+    		"dislike" 	=> array("label"=>"Coup de gueule", 	"key" => "dislike", 	"icon" => "thumbs-o-down", 			"section"=>2, "color"=>"red"),
+    		"information"=> array("label"=>"Information", 		"key" => "information", "icon" => "newspaper-o", 			"section"=>3, "color"=>"yellow"),
+    		"urgency" 	=> array("label"=>"Urgence", 			"key" => "urgency", 	"icon" => "exclamation-triangle", 	"section"=>3, "color"=>"yellow"),
+    		"lookingfor" => array("label"=>"À la recherche", 	"key" => "lookingfor", 	"icon" => "eye", 					"section"=>4, "color"=>"blue"),
+    		"job" 		=> array("label"=>"Offre d'emplois", 	"key" => "job", 		"icon" => "briefcase", 				"section"=>4, "color"=>"blue"),
+    		"forsale" 	=> array("label"=>"À vendre", 			"key" => "forsale", 	"icon" => "money", 					"section"=>5, "color"=>"blue"),
+    		"location" 	=> array("label"=>"À louer", 			"key" => "location", 	"icon" => "external-link", 			"section"=>5, "color"=>"blue"),
+    		"donation" 	=> array("label"=>"À donner", 			"key" => "donation", 	"icon" => "gift", 					"section"=>6, "color"=>"blue"),
+    		"sharing" 	=> array("label"=>"À partager", 		"key" => "sharing", 	"icon" => "exchange", 				"section"=>6, "color"=>"blue"),
+    		//"urgency" 	=> array("label"=>"Urgences", 			"key" => "urgency", 	"icon" => "exclamation-triangle", 	"section"=>6, "color"=>"red"),
     				
     	);
     	return $tags;
