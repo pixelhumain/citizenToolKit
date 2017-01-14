@@ -143,6 +143,14 @@ class DetailAction extends CAction {
 
 		} else if ($type == Person::COLLECTION){
 			$element = Person::getById($id);
+			// Link with projects
+			if(isset($element["links"]["projects"])){
+				foreach ($element["links"]["projects"] as $keyProj => $valueProj) {
+					 $project = Project::getPublicData($keyProj);
+	           		 $projects[$keyProj] = $project;
+				}
+			}
+
 			$connectType = "attendees";
 		} else if ($type == Poi::COLLECTION){
 			$element = Poi::getById($id);
