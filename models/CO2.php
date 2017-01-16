@@ -171,9 +171,11 @@ class CO2 {
 
 
     public static function getAnnounceCategories(){
-    	$cat = array("Technologie" => array("TV / Vidéo", "Informatique", "Tablettes", "Téléphonie", "Appareils photos", "Appareil audio"), 
+    	$cat = array("Technologie" => 
+    					array("TV / Vidéo", "Informatique", "Tablettes", "Téléphonie", "Appareils photos", "Appareil audio"), 
 					 
-					 "Logement" => array("Vente", "Location", "Collocation"), 
+					 "Immobilier" => 
+					 	array("Maison", "Appartement", "Terrain", "Parking", "Bureaux"), 
 					 
 					 "Véhicules" => 
 					 	array(	"Voiture", 
@@ -223,5 +225,50 @@ class CO2 {
     	return $cat;
     }
 
+    public static function getJobsCategories(){
+    	$cat = array("Technologie" => 
+    					array("TV / Vidéo", "Informatique", "Tablettes", "Téléphonie", "Appareils photos", "Appareil audio"), 
+					 
+					 "Logement" => 
+					 	array("Vente", "Location", "Collocation"), 
+					 
+					 "Véhicules" => 
+					 	array(	"Voiture", 
+					 			), 
+
+					 "Maison" => 
+						 array(	 "Electroménager",
+								 ),
+					 "Loisirs" => 
+						 array(	 "Sports", 
+						 		 ),
+	    			"Mode" => 
+						 array(	 "Vêtements", 
+								 )
+	    			);
+
+    	return $cat;
+    }
+
+
+
+    public static function getFreedomTags(){
+    	$tags = array(
+    		"all" 		=> array("label"=>"Tout", 				"key" => "all", 		"icon" => "circle-o", 				"section"=>1, "color"=>"default"),
+    		"like" 		=> array("label"=>"Coup de cœur", 		"key" => "like", 		"icon" => "heartbeat", 				"section"=>2, "color"=>"green"),
+    		"dislike" 	=> array("label"=>"Coup de gueule", 	"key" => "dislike", 	"icon" => "thumbs-o-down", 			"section"=>2, "color"=>"red"),
+    		"information"=> array("label"=>"Information", 		"key" => "information", "icon" => "newspaper-o", 			"section"=>3, "color"=>"yellow"),
+    		"urgency" 	=> array("label"=>"Urgence", 			"key" => "urgency", 	"icon" => "exclamation-triangle", 	"section"=>3, "color"=>"yellow"),
+    		"lookingfor" => array("label"=>"À la recherche", 	"key" => "lookingfor", 	"icon" => "eye", 					"section"=>4, "color"=>"blue"),
+    		"job" 		=> array("label"=>"Offre d'emplois", 	"key" => "job", 		"icon" => "briefcase", 				"section"=>4, "color"=>"blue"),
+    		"forsale" 	=> array("label"=>"À vendre", 			"key" => "forsale", 	"icon" => "money", 					"section"=>5, "color"=>"blue"),
+    		"location" 	=> array("label"=>"À louer", 			"key" => "location", 	"icon" => "external-link", 			"section"=>5, "color"=>"blue"),
+    		"donation" 	=> array("label"=>"À donner", 			"key" => "donation", 	"icon" => "gift", 					"section"=>6, "color"=>"blue"),
+    		"sharing" 	=> array("label"=>"À partager", 		"key" => "sharing", 	"icon" => "exchange", 				"section"=>6, "color"=>"blue"),
+    		//"urgency" 	=> array("label"=>"Urgences", 			"key" => "urgency", 	"icon" => "exclamation-triangle", 	"section"=>6, "color"=>"red"),
+    				
+    	);
+    	return $tags;
+    }
 }
 ?>
