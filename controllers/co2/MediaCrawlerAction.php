@@ -10,9 +10,7 @@ class MediaCrawlerAction extends CAction
     public function run() {
     	$controller=$this->getController();
         
-        $src = "http://www.nci.nc/blog/";
-    	
-		$res = "";
+        $res = "";
 
 		$res .= $this->extractSource("NCTV", "YOUTUBE");
 		$res .= $this->extractSource("NC1", "YOUTUBE");
@@ -36,6 +34,7 @@ class MediaCrawlerAction extends CAction
 		foreach($mapExtract["urls"] as $url) {
 		
 			$html = file_get_html($url);
+            error_log("CRAWLING ".$url);
 			//echo $html; exit;
 			foreach($html->find($mapExtract["elementUK"]) as $element) {
 
@@ -61,6 +60,7 @@ class MediaCrawlerAction extends CAction
 				if(!isset($mediaExists)){
 					//var_dump($mediaExists); echo $href;
 					if(@$mapExtract["followImg"] || @$mapExtract["followContent"] || @$mapExtract["followDate"]){
+                        error_log("MediaCrawler : extracting ".$href);
 						$link = file_get_html($href);
 
 						if(@$mapExtract["followImg"]){
@@ -110,10 +110,14 @@ class MediaCrawlerAction extends CAction
 							"------------------------<br>";
 					}else{
 						$result .= "<br>URL IGNORED :: title :".$title." content : ".$content." href : ".$href."<br>";
+                        error_log("MediaCrawler : IGNORED (MISSING DATA)".$href);
+                        
 					}
 
 			    }else{
 			    	$result .= "URL IGNORED : ".$href."<br>";
+                    error_log("MediaCrawler : IGNORED ".$href);
+                        
 			    }
 
 			}
@@ -213,12 +217,14 @@ class MediaCrawlerAction extends CAction
 
     private function formatDate($src, $urlKey, $date){
     	if($src == "NCI"){
+            $date = str_replace("+00:00", "+11:00", $date);
     		$date = new DateTime($date);
 			return $date->format('Y-m-d H:i:s');
     	}
 
     	if($src == "NC1" && $urlKey == "NC"){
     		$date = new DateTime($date);
+            
 			return $date->format('Y-m-d H:i:s');
     	}
 
@@ -238,8 +244,6 @@ class MediaCrawlerAction extends CAction
 
 
     	if($urlKey == "YOUTUBE"){
-    		//$date = html_entity_decode($date);
-    		//echo "date : ".$date; exit;
     		$dateC = str_replace("Published on ", "", $date);
     		$dateC = str_replace("Streamed live on ", "", $dateC);
     		$dateC = str_replace(",", "", $dateC);

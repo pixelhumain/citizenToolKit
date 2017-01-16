@@ -98,7 +98,17 @@ class DirectoryAction extends CAction
         if( isset($_GET[ "tpl" ]) )
           $page = "../default/".$_GET[ "tpl" ];
         if(Yii::app()->request->isAjaxRequest){
-            echo $controller->renderPartial($page,$params,true);
+            if(@$_GET[ "tpl" ] == "json"){
+              $context = array("name"=>$params["organization"]["name"]);
+              unset($params["organization"]);
+              foreach ($params as $key => $value) {
+                if(!is_array($value))
+                  unset($params[$key]);
+              }
+              echo Rest::json( array( "list" => $params,"context"=>$context) );
+            }
+            else
+              echo $controller->renderPartial($page,$params,true);
         }
         else {
             $controller->render($page,$params);

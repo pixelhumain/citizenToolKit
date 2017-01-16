@@ -12,14 +12,14 @@ class IncNbClickAction extends CAction
         if(isset($_POST["url"])){
             $url = $_POST["url"];
         	$query = array("url"=>$url);
-            $siteurl = PHDB::findOne("siteurl", $query);
+            $siteurl = PHDB::findOne("url", $query);
 
             if(isset($siteurl["_id"])){
                 $id = $siteurl["_id"];
                 $nbClick = $siteurl["nbClick"];
                 $nbClick++;
                 $set = array("nbClick"=>$nbClick);
-                $resUpdate = PHDB::update( "siteurl", array("_id" => new MongoId($id)), 
+                $resUpdate = PHDB::update( "url", array("_id" => new MongoId($id)), 
                                           array('$set' => $set));
 
                 $result = array("resUpdate"=>$resUpdate, "nbClick"=>$nbClick);

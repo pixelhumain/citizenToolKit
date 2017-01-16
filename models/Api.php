@@ -32,17 +32,15 @@ class Api {
     }
 
 
-    public static function getData($bindMap, $format = null, $type, $id = null, $limit=50, $index=0, $tags = null, $multiTags=null , $key = null, $insee = null){
+    public static function getData($bindMap, $format = null, $type, $id = null, $limit=50, $index=0, $tags = null, $multiTags=null , $key = null, $insee = null, $geoShape = null){
         
         // Create params for request
         $params = array();
         if( @$id ) $params["_id"] =  new MongoId($id);
             
         if( @$insee ){
-            if($type == City::COLLECTION)
-                $params["insee"] = $insee;
-            else
-                $params["address.codeInsee"] = $insee ;
+            if($type == City::COLLECTION) $params["insee"] = $insee;
+            else $params["address.codeInsee"] = $insee ;
         }
         
         if( @$tags ){
@@ -52,16 +50,23 @@ class Api {
 
         if( @$key ) $params["source.key"] = $key ;
         
-        if( $limit > 500)
-            $limit = 500 ;
-        else if($limit < 1)
-            $limit = 50 ;
+        if( $limit > 500) $limit = 500 ;
+        else if($limit < 1) $limit = 50 ;
 
         if($index < 0) $index = 0 ;
         if($type != City::COLLECTION) $params["preferences.isOpenData"] = true ;
 
         $data = PHDB::findAndLimitAndIndex($type , $params, $limit, $index);
         $data = self::getUrlImage($data, $type);
+var_dump($data);
+        if($type == City::COLLECTION) {
+            if( @$geoShape != "1" ){
+                foreach ($data as $key => $value) {
+                    unset($value["geoShape"]);
+                    $data[$key] = $value ; 
+                }
+            }
+        }
 
         if(Person::COLLECTION == $type){
             foreach ($data as $key => $value) {

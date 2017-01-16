@@ -7,27 +7,48 @@ class WebSearchAction extends CAction
     public function run() {
     	$controller=$this->getController();
         
-        $query = array('$or'=>array());
-        if(isset($_POST["category"]))
-        	$query['$or'][]["categories"] = array('$in' => array($_POST["category"]));
+        $query = array('$and'=>array());
+        $plain = array('$or'=>array());
+
+        if(isset($_POST["category"]) && $_POST["category"] != "" && @$status != "uncategorized")
+        	$query['$and'][]["categories"] = array('$in' => array(@$_POST["category"]));
 
     	if(isset($_POST["search"]) && $_POST["search"] != ""){
     		$search = $_POST["search"];
     		$searchRegExp = self::accentToRegex($search);
-        	$query['$or'][]["title"] = new MongoRegex("/.*{$searchRegExp}.*/i");
-
-        	$query['$or'][]["tags"] = array('$in' => array(new MongoRegex("/.*{$searchRegExp}.*/i")));
-        	$query['$or'][]["categories"] = array('$in' => array(new MongoRegex("/.*{$searchRegExp}.*/i")));
         	
-        	$query['$or'][]["description"] = new MongoRegex("/.*{$searchRegExp}.*/i");
+    		$plain['$or'][]["hostname"] = new MongoRegex("/.*{$searchRegExp}.*/i");
+        	$plain['$or'][]["title"] = new MongoRegex("/.*{$searchRegExp}.*/i");
+
+        	$plain['$or'][]["tags"] = array('$in' => array(new MongoRegex("/.*{$searchRegExp}.*/i")));
+        	$plain['$or'][]["categories"] = array('$in' => array(new MongoRegex("/.*{$searchRegExp}.*/i")));
+        	
+        	$plain['$or'][]["description"] = new MongoRegex("/.*{$searchRegExp}.*/i");
+
+        	$query['$and'][] = $plain;
     	}
 
-    	if(!isset($_POST["category"]) && !isset($_POST["search"]))
+    	
+
+    	//$query['$and'] = array(array("status" => array('$ne'=>'unreachable', '$ne'=>'locked')));
+        $status = @$_POST["status"] ? $_POST["status"] : "validated";
+
+        if(!isset($_POST["category"]) && (!isset($_POST["search"]) || @$_POST["search"] == ""))
     		$query = array();
+
+    	//if($status != "uncategorized")
+    	//$query['$and'] = array(array("status" => $status)); //validated active locked uncomplet
+    	// else
+        if($status == "uncategorized")
+    	$query['$and'] = array(array("categories" => "")); //validated active locked uncomplet
+    		
+    	CO2Stat::incNbLoad("co2-websearch");
+
+    	//var_dump($query); exit;
 
     	$siteurls = PHDB::findAndSort("url", $query, array("nbClick"=>-1));
     	foreach ($siteurls as $key => $siteurl) {
-    		$siteurls[$key]["typeSig"] = "siteurl";
+    		$siteurls[$key]["typeSig"] = "url";
     	}
     	$params = array("siteurls"=>$siteurls,
     					"search"=>@$_POST["search"],

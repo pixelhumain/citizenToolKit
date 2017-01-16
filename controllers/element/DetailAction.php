@@ -143,6 +143,14 @@ class DetailAction extends CAction {
 
 		} else if ($type == Person::COLLECTION){
 			$element = Person::getById($id);
+			// Link with projects
+			if(isset($element["links"]["projects"])){
+				foreach ($element["links"]["projects"] as $keyProj => $valueProj) {
+					 $project = Project::getPublicData($keyProj);
+	           		 $projects[$keyProj] = $project;
+				}
+			}
+
 			$connectType = "attendees";
 		} else if ($type == Poi::COLLECTION){
 			$element = Poi::getById($id);
@@ -236,6 +244,17 @@ class DetailAction extends CAction {
 			$params["networkJson"]=Network::getNetworkJson($_GET["network"]);
 		
 		$page = "detail";
+
+		if(@$_GET["tpl"] == "onepage")
+				$page = "onepage";
+			
+		if(@$_GET["tpl"] == "profilSocial")
+				$page = "profilSocial";
+		
+		if(Yii::app()->theme->name == "notragora")
+				$page = "notragora/detail";
+			
+		//$page = "onepage";
 		if(Yii::app()->request->isAjaxRequest)
           echo $controller->renderPartial($page,$params,true);
         else 

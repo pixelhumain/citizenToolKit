@@ -16,7 +16,16 @@ class GlobalAutoCompleteAction extends CAction
 
         $indexStep = $indexMax - $indexMin;
         
-        //error_log("global search " . $search . " - searchBy : ". $searchBy. " & locality : ". $locality. " & country : ". $country);
+        $searchTypeOrga = "";
+        if( sizeOf($searchType) == 1 &&
+        	$searchType[0] == Organization::TYPE_NGO ||
+         	$searchType[0] == Organization::TYPE_BUSINESS ||
+         	$searchType[0] == Organization::TYPE_GROUP ||
+        	$searchType[0] == Organization::TYPE_GOV) {
+        	$searchTypeOrga = $searchType[0];
+        	$searchType = array(Organization::COLLECTION);
+        }
+       // error_log("global search " . $search . " - searchType : ". $searchType); //. " & locality : ". $locality. " & country : ". $country);
 	    
    //      if($search == "" && $locality == "") {
    //      	Rest::json(array());
@@ -134,7 +143,6 @@ class GlobalAutoCompleteAction extends CAction
 	    //var_dump($query); return;
         /***********************************  PERSONS   *****************************************/
         if(strcmp($filter, Person::COLLECTION) != 0 && $this->typeWanted("persons", $searchType)){
-
         	$allCitoyen = PHDB::findAndSortAndLimitAndIndex ( Person::COLLECTION , $query, 
 	  										  array("updated" => -1), $indexStep, $indexMin);
 
@@ -155,7 +163,13 @@ class GlobalAutoCompleteAction extends CAction
         	$queryOrganization = $query;
         	if( !isset( $queryOrganization['$and'] ) ) 
         		$queryOrganization['$and'] = array();
+
         	array_push( $queryOrganization[ '$and' ], array( "disabled" => array('$exists' => false) ) );
+
+        	if(sizeof($searchType)==1 && @$searchTypeOrga != "")
+        		array_push( $queryOrganization[ '$and' ], array( "type" => $searchTypeOrga ) );
+
+        	//var_dump($queryOrganization); exit;
 	  		$allOrganizations = PHDB::findAndSortAndLimitAndIndex ( Organization::COLLECTION ,$queryOrganization, 
 	  												array("updated" => -1), $indexStep, $indexMin);
 	  		foreach ($allOrganizations as $key => $value) 
@@ -164,7 +178,12 @@ class GlobalAutoCompleteAction extends CAction
 		  			$orga = Organization::getSimpleOrganizationById($key,$value);
 		  			if( @$value["links"]["followers"][Yii::app()->session["userId"]] )
 			  			$orga["isFollowed"] = true;
+
+			  		if(@$searchTypeOrga != "")
+						$orga["typeOrga"] = $searchTypeOrga;
+
 					$orga["type"] = "organization";
+
 					$orga["typeSig"] = Organization::COLLECTION;
 					$allOrganizations[$key] = $orga;
 				}
@@ -195,9 +214,9 @@ class GlobalAutoCompleteAction extends CAction
 		  			$allEvents[$key]["isFollowed"] = true;
 	  			}
 				if(@$allEvents[$key]["startDate"])
-				$allEvents[$key]["startDate"] = date('Y-m-d H:i:s', $allEvents[$key]["startDate"]->sec);
+					$allEvents[$key]["startDate"] = date(DateTime::ISO8601, $allEvents[$key]["startDate"]->sec);
 				if(@$allEvents[$key]["endDate"])
-				$allEvents[$key]["endDate"] = date('Y-m-d H:i:s', $allEvents[$key]["endDate"]->sec);
+					$allEvents[$key]["endDate"] = date(DateTime::ISO8601, $allEvents[$key]["endDate"]->sec);
 	  		}
 	  		
 	  		$allRes = array_merge($allRes, $allEvents);
@@ -223,7 +242,28 @@ class GlobalAutoCompleteAction extends CAction
 	  		$allRes = array_merge($allRes, $allProject);
 	  		//error_log(sizeof($allProject));
 	  	}
-	/***********************************  PROJECTS   *****************************************/
+	/***********************************  POI   *****************************************/
+        if(strcmp($filter, Classified::COLLECTION) != 0 && $this->typeWanted(Classified::COLLECTION, $searchType)){
+        	$allPoi = PHDB::findAndSortAndLimitAndIndex(Classified::COLLECTION, $query, 
+	  												array("updated" => -1), $indexStep, $indexMin);
+	  		foreach ($allPoi as $key => $value) {
+		  		if(@$value["parentId"] && @$value["parentType"])
+		  			$parent = Element::getElementSimpleById(@$value["parentId"], @$value["parentType"]);
+		  		else
+		  			$parent=array();
+				$allPoi[$key]["parent"] = $parent;
+				//$allPoi[$key]["type"] = "poi";
+				if(@$value["type"])
+					$allPoi[$key]["typeSig"] = Classified::COLLECTION.".".$value["type"];
+				else
+					$allPoi[$key]["typeSig"] = Classified::COLLECTION;
+	  		}
+	  		//$res["project"] = $allProject;
+	  		$allRes = array_merge($allRes, $allPoi);
+	  		//error_log(sizeof($allPoi));
+	  	}
+
+	  	/***********************************  POI   *****************************************/
         if(strcmp($filter, Poi::COLLECTION) != 0 && $this->typeWanted(Poi::COLLECTION, $searchType)){
         	$allPoi = PHDB::findAndSortAndLimitAndIndex(Poi::COLLECTION, $query, 
 	  												array("updated" => -1), $indexStep, $indexMin);
@@ -258,14 +298,14 @@ class GlobalAutoCompleteAction extends CAction
 	  		$allRes = array_merge($allRes, $allFound);
 	  		
 
-        	$allFound = PHDB::findAndSort(ActionRoom::COLLECTION_ACTIONS, $query, array("updated" => -1), $indexMax);
+        	$allFound = PHDB::findAndSort( ActionRoom::COLLECTION_ACTIONS, $query, array("updated" => -1), $indexMax);
 	  		foreach ($allFound as $key => $value) {
 				$allFound[$key]["type"] = $value["type"];
 				$allFound[$key]["typeSig"] = ActionRoom::COLLECTION_ACTIONS;
 	  		}
 	  		$allRes = array_merge($allRes, $allFound);
 
-        	$allFound = PHDB::findAndSort(Survey::COLLECTION, $query, array("updated" => -1), $indexMax);
+        	$allFound = PHDB::findAndSort( Survey::COLLECTION, $query, array("updated" => -1), $indexMax);
 	  		foreach ($allFound as $key => $value) {
 				$allFound[$key]["type"] = $value["type"];
 				$allFound[$key]["typeSig"] = Survey::CONTROLLER;
@@ -282,7 +322,7 @@ class GlobalAutoCompleteAction extends CAction
         	(strcmp($filter, ActionRoom::TYPE_ACTIONS) != 0 && $this->typeWanted(ActionRoom::TYPE_ACTIONS, $searchType))
         	 )
         {    
-        	$myLinks = Person::getPersonLinksByPersonId(Yii::app()->session["userId"]);
+        	$myLinks = Person::getPersonLinksByPersonId( Yii::app()->session["userId"] );
         	
         	//créer un array avec uniquement les id de mes orgas
         	$orgasId = array();
@@ -315,7 +355,7 @@ class GlobalAutoCompleteAction extends CAction
         	}
         	
 
-        	$allRooms = PHDB::find(ActionRoom::COLLECTION, $query);
+        	$allRooms = PHDB::find( ActionRoom::COLLECTION, $query);
         	
         	//crée une array avec uniquement les id des rooms
         	$allRoomsId = array();
@@ -323,11 +363,11 @@ class GlobalAutoCompleteAction extends CAction
         		$allRoomsId[] = (string)$room["_id"];
         	}
 
-        	if($this->typeWanted(ActionRoom::TYPE_VOTE, $searchType)){
+        	if($this->typeWanted( ActionRoom::TYPE_VOTE, $searchType)){
 				$collection = Survey::COLLECTION;
 				$parentRow = "survey";
 			}
-        	if($this->typeWanted(ActionRoom::TYPE_ACTIONS, $searchType)){ 
+        	if($this->typeWanted( ActionRoom::TYPE_ACTIONS, $searchType)){ 
         		$collection = Action::NODE_ACTIONS;
         		$parentRow = "room";
         	}
@@ -378,6 +418,7 @@ class GlobalAutoCompleteAction extends CAction
         				break;
         			}
         		}
+
         		//pour chaque room des projets, on ajoute les infos du parentObj
         		foreach ($myLinks["projects"] as $keyL => $project) {
         			//error_log("project " . (string)$project['_id'] ."==". (string)$room['parentId']);
@@ -389,6 +430,7 @@ class GlobalAutoCompleteAction extends CAction
         				break;
         			}
         		}
+
         		//les conseils citoyens
         		if($myCityKey!=false && $room["parentType"] == "cities"){
         			$myCity = City::getByUnikey($myCityKey); 			
@@ -455,7 +497,7 @@ class GlobalAutoCompleteAction extends CAction
 	    		if($type == "NAME"){ 
 	        		$query = array('$or' => array( array( "name" => new MongoRegex("/".self::wd_remove_accents($locality)."/i")),
 	        									   array( "alternateName" => new MongoRegex("/".self::wd_remove_accents($locality)."/i")),
-	        									   array("postalCodes.name" => array('$in' => array(new MongoRegex("/".self::wd_remove_accents($locality)."/i"))))
+	        									   array( "postalCodes.name" => array('$in' => array(new MongoRegex("/".self::wd_remove_accents($locality)."/i"))))
 	        					));
 	        		//error_log("search city with : " . self::wd_remove_accents($locality));
 	        	}

@@ -11,10 +11,14 @@
 		  	{
 		  		if( @$type )
 		  		{
-		  			if(strcmp($type, "person")==0)
+		  			if(strcmp($type, "person")==0){
 		  				$params['events'] = Event::getListCurrentEventsByPeopleId($id);
-		  			else if (strcmp($type, "organization") == 0)
+		  				$params['person'] = Person::getById($id);
+		  			}
+		  			else if (strcmp($type, "organization") == 0){
 		  				$params['events'] = Event::getListCurrentEventsByOrganizationId($id);
+		  				$params['organization'] = Organization::getById($id);
+		  			}
 		  		}else{
 		  			//means we are showing details of an events
 		  			$event = Event::getById($id);
@@ -22,7 +26,7 @@
 		  			$params['events'] = Event::getListEventsById($id);
 		  			if( @$event['startDate'] ){
 		  				//focus on the start date of the event 
-		  				$params['defaultDate'] = date("Y-m-d", strtotime($event["startDate"]) );
+		  				$params['defaultDate'] = $event["startDate"];
 		  				//if last onl y one day then apply day view 
 		  				$params['defaultView'] = "agendaDay";
 		  				if( @$event['endDate'] )

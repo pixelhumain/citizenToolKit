@@ -53,6 +53,11 @@ class Element {
 	    	ActionRoom::TYPE_DISCUSS	=> "comment",
 	    	ActionRoom::TYPE_VOTE		=> "archive",
 	    	ActionRoom::TYPE_ACTIONS	=> "cogs",
+
+	    	Organization::TYPE_NGO 		=> "group",
+	    	Organization::TYPE_BUSINESS => "industry",
+	    	Organization::TYPE_GROUP 	=> "circle-o",
+	    	Organization::TYPE_GOV 		=> "university",
 	    );	
 	    
 	    if(isset($fas[$type])) return $fas[$type];
@@ -64,6 +69,11 @@ class Element {
 	    	Person::COLLECTION 			=> "yellow",
 	    	Event::COLLECTION 			=> "orange",
 	    	Project::COLLECTION 		=> "purple",
+
+	    	Organization::TYPE_NGO 		=> "green",
+	    	Organization::TYPE_BUSINESS => "azure",
+	    	Organization::TYPE_GROUP 	=> "black",
+	    	Organization::TYPE_GOV 		=> "red",
 	    );	
 	    if(isset($colors[$type])) return $colors[$type];
 	    else return false;
@@ -145,6 +155,38 @@ class Element {
 	    	return false;
     }
 
+
+
+    public static function checkIdAndType($id, $type, $actionType=null) {
+		if ($type == Organization::COLLECTION) {
+        	$res = Organization::getById($id); 
+            if (@$res["disabled"] && $actionType != "disconnect") {
+                throw new CTKException("Impossible to link something on a disabled organization");    
+            }
+        } else if ($type == Person::COLLECTION) {
+        	$res = Person::getById($id);
+        } else if ($type== Event::COLLECTION){
+        	$res = Event:: getById($id);
+        } else if ($type== Project::COLLECTION){
+        	$res = Project:: getById($id);
+        } else if ($type== Need::COLLECTION){
+            $res = Need:: getById($id);
+        }else if ($type == Poi::COLLECTION){
+            $res = Poi:: getById($id);
+        } else if ($type== ActionRoom::COLLECTION_ACTIONS){
+            $res = ActionRoom:: getActionById($id);
+        } else if ( $type == Survey::COLLECTION) {
+            $res = Survey::getById($id);
+        } else {
+
+        	throw new CTKException("Can not manage this type : ".$type);
+        }
+        if (empty($res)) throw new CTKException("The actor (".$id." / ".$type.") is unknown");
+
+        return $res;
+    }
+    
+
     /**
      * Return a link depending on the type and the id of the element.
      * The HTML link could be kind of : <a href="" onclick="loadByHash(...)">name</a>
@@ -188,10 +230,42 @@ class Element {
 			$element = Event::getById($id);	
 		else if($type == City::COLLECTION)
 			$element = City::getIdByInsee($id);
-		else 
+		else if($type == Poi::COLLECTION)
+			$element = Poi::getById($id);
+		else
 			$element = PHDB::findOne($type,array("_id"=>new MongoId($id)));
 	  	
 	  	return $element;
+	}
+
+	/**
+	 * get all poi details of an element
+	 * @param type $id : is the mongoId (String) of the parent
+	 * @param type $type : is the type of the parent
+	 * @return list of pois
+	 */
+	public static function getByIdAndTypeOfParent($collection, $id, $type){
+		$list = PHDB::find($collection,array("parentId"=>$id,"parentType"=>$type));
+	   	return $list;
+	}
+	/**
+	 * get poi with limit $limMin and $limMax
+	 * @return list of pois
+	 */
+	public static function getByTagsAndLimit($collection, $limitMin=0, $indexStep=15, $searchByTags=""){
+		$where = array("name"=>array('$exists'=>1));
+		if(@$searchByTags && !empty($searchByTags)){
+			$queryTag = array();
+			foreach ($searchByTags as $key => $tag) {
+				if($tag != "")
+					$queryTag[] = new MongoRegex("/".$tag."/i");
+			}
+			if(!empty($queryTag))
+				$where["tags"] = array('$in' => $queryTag); 			
+		}
+		
+		$list = PHDB::findAndSort( $collection, $where, array("updated" => -1));
+	   	return $list;
 	}
 
     public static function getInfos( $type, $id, $loadByHashOnly=null ) {	    
@@ -450,6 +524,20 @@ class Element {
 				$set = array($dataFieldName => "");
 			}else{
 				$set = array($dataFieldName => $fieldValue);
+			}
+		} else if ($dataFieldName == "contacts") {
+			if(empty($fieldValue["index"]))
+				$addToSet = array("contacts" => $fieldValue);
+			else{
+				$headSet = "contacts.".$fieldValue["index"] ;
+				unset($fieldValue["index"]);
+				if(count($fieldValue) == 1){
+					$verb = '$unset' ;
+					$verbActivity = ActStr::VERB_DELETE ;
+					$fieldValue = null ;
+					$updatePull = true ;
+				}
+				$set = array($headSet => $fieldValue);
 			}
 		}
 		else
@@ -791,6 +879,10 @@ class Element {
 	public static function save($params){
         $id = null;
         $data = null;
+
+        if(!@$params["collection"] && !@$params["key"])
+        	return array("result"=> false, "error"=>"400", "msg" => "Bad Request");
+
         $collection = $params["collection"];
         
         if( !empty($params["id"]) ){
@@ -839,7 +931,7 @@ class Element {
             	 if ($res["result"]) 
             	 	$params = $res["params"];
             	 else
-            	 	throw new CTKException("Error processing the before saving on event");
+            	 	throw new CTKException("Error processing before saving on event");
             }
 
             if($id) 
@@ -888,8 +980,8 @@ class Element {
             }
           //  if(@$url = ( @$params["parentType"] && @$params["parentId"] && in_array($collection, array("poi") && Yii::app()->theme != "notragora")) ? "#".self::getControlerByCollection($params["parentType"]).".detail.id.".$params["parentId"] : null )
 	        //    $res["url"] = $url;
-	        if(@$params["parentType"] && @$params["parentId"] && in_array($collection, array("poi"))){
-		        if(Yii::app()->params["theme"] != "notragora")
+	        if(@$params["parentType"] && @$params["parentId"] && in_array($collection, array("poi","classified"))){
+		        if(Yii::app()->theme->name != "notragora")
 		        	$url="#".self::getControlerByCollection($params["parentType"]).".detail.id.".$params["parentId"];
 		        else
 		        	$url="#poi.detail.id.".$res["id"];
@@ -899,7 +991,7 @@ class Element {
              
 			$res["url"]=$url;
         } else 
-            $res = array( "result" => false, 
+            $res = array( "result" => false, "error"=>"400",
                           "msg" => Yii::t("common","Something went really bad : ".$valid['msg']) );
 
         return $res;
@@ -907,7 +999,8 @@ class Element {
 
     public static function afterSave ($id, $collection, $params,$postParams) {
     	$res = array();
-    	if( @$postParams["medias"] ){
+    	if( @$postParams["medias"] )
+    	{
     		//create POI for medias connected to the parent
     		unset($params['_id']);
     		$poiParams["parentType"] = $collection;
@@ -1195,6 +1288,20 @@ class Element {
 				}	
 			}
 		}
+	}
+
+
+	public static function saveContact($params){
+		$id = $params["parentId"];
+		$collection = $params["parentType"];
+		$collection = $params["parentType"];
+		$params["telephone"] = explode(",", $params["phone"]);
+		unset($params["parentId"]);
+		unset($params["parentType"]);
+		unset($params["phone"]);
+		//$res = null ;
+		$res = self::updateField($collection, $id, "contacts", $params);
+		return $res;
 	}
 
 }
