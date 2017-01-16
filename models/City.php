@@ -45,6 +45,7 @@ class City {
 		$city["updated"] = time();
         $city["creator"] = $userid;
         $city["created"] = time();
+        $city["new"] = true;
         $city["geoPosition"]["coordinates"][0] = floatval($city["geoPosition"]["coordinates"][0]);
     	$city["geoPosition"]["coordinates"][1] = floatval($city["geoPosition"]["coordinates"][1]);
 
@@ -673,17 +674,22 @@ class City {
 		//ini_set('memory_limit', '-1');
 		//$cities =  PHDB::find( self::COLLECTION,array());
 		$res = array(	"goods" => array(),
-						"errors" => array());
+						"errors" => array(),
+						"news" => array());
 
 		foreach ($cities as $key => $city) {
 			
 			$msg = self::checkCity($city);
-			if($msg != ""){
+			if(!empty($city["new"]) && $city["new"]==true){
+				if($msg != "")
+					$city["msgErrors"] = $msg;
+				$res["news"][(String)$city["_id"]] = $city;
+			}
+			else if($msg != ""){
 				$city["msgErrors"] = $msg;
 				$res["errors"][(String)$city["_id"]] = $city;
-			}else{
+			}else
 				$res["goods"][(String)$city["_id"]] = $city;
-			}
 		}
 		return $res ;
 	}
@@ -693,7 +699,6 @@ class City {
 
 		if(empty($city["name"]))
 			$msgErrors = "The name is missing.<br\>" ;
-
 		if(empty($city["alternateName"]))
 			$msgErrors = "The alternateName is missing.<br\>" ;
 		if(empty($city["insee"]))
