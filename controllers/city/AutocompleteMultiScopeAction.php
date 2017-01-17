@@ -39,6 +39,71 @@ class AutocompleteMultiScopeAction extends CAction
             if($geoShape) $att[] =  "geoShape";
             //var_dump($where);
             $cities = PHDB::findAndSort( City::COLLECTION, $where, $att, 40, $att);
+            if(empty($cities)){
+                $countryCode = mb_convert_encoding($countryCode, "ASCII");
+                if(strlen($countryCode) > 2 ){
+                   $countryCode = substr($countryCode, 0, 2);
+                }
+                $countryCode = mb_convert_encoding($countryCode, "UTF-8");
+                $resNominatim = json_decode(SIG::getGeoByAddressNominatim(null, null, $scopeValue, trim($countryCode), true, true),true);
+
+                if(!empty($resNominatim)){
+                    foreach (@$resNominatim as $key => $value) {
+                        $typeCities = array("city", "village", "town") ;
+                        foreach ($typeCities as $keyType => $valueType) {
+                            if(/*!empty($value["extratags"]["wikidata"]) && */ 
+                                !empty($value["address"][$valueType]) &&
+                                $countryCode == strtoupper(@$value["address"]["country_code"])){
+
+                                $arrayAdd = array();
+                                $arrayCp = array();
+                                $postalCodes = array();
+                                $newCities = array( "name" => $value["address"][$valueType],
+                                                    "alternateName" => mb_strtoupper($value["address"][$valueType]),
+                                                    "country" => $countryCode,
+                                                    "geo" => array( "@type"=>"GeoCoordinates", 
+                                                                    "latitude" => $value["lat"], 
+                                                                    "longitude" => $value["lon"]),
+
+                                                    "geoPosition" => array( "type"=>"Point",
+                                                                            "float"=>true, 
+                                                                            "coordinates" => array(
+                                                                                floatval($value["lon"]), 
+                                                                                floatval($value["lat"]))),
+                                                    "regionName" => (empty($value["address"]["state"]) ? null : $value["address"]["state"] ),
+                                                    "region" => null,
+                                                    "depName" => (empty($value["address"]["county"]) ? null : $value["address"]["county"] ),
+                                                    "dep" => null,
+                                                    "osmID" => $value["osm_id"],
+                                                   
+                                                    "save" => true);
+     
+
+                                
+
+                                if(!empty($wikidata)){
+                                    $newCities = City::getCitiesWithWikiData($wikidata);
+                                }else{
+                                    $newCities["insee"] = $value["osm_id"]."*".$countryCode;
+                                    $newCities["postalCodes"] = $postalCodes;
+                                    $newCities["geoShape"] = $value["geojson"];
+                                }
+
+                            
+
+                                if(City::checkCitySimply($newCities))
+                                    $cities[] = $newCities;
+                                
+                                
+                            }
+                        } 
+
+                        
+                        
+                    }
+                }
+                
+            }
         }
         else if($type == "dep"){
             $cities = array();
@@ -59,5 +124,8 @@ class AutocompleteMultiScopeAction extends CAction
         return Rest::json( array("res"=>true, "cities" => $cities ));
        
     }
+
+
+    
 } 
 

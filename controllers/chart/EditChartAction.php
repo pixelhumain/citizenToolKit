@@ -3,8 +3,8 @@ class EditChartAction extends CAction
 {
     public function run() {
 		$controller=$this->getController();
-		$parentId=$_POST["parentId"];
-		$parentId=$_POST["parentId"];
+		$id=$_POST["id"];
+		$type=$_POST["type"];
 		//echo $idProject;
 		if(!empty($_POST["properties"])){
 			if(@$_POST["properties"]["commons"]){
@@ -15,21 +15,23 @@ class EditChartAction extends CAction
 				$label="open";
 			}
 			
-		}else
+		}
+		else
 			$newProperties=[];
-		/*if(!empty($newProperties)){
+		/*$propertiesList=[];
+		if(!empty($newProperties)){
 			foreach ($newProperties as $data){
 				$propertiesList[$data["label"]]=$data["value"];
 			}
 		}*/
 
 		if (!empty($newProperties)){
-        	$res = Project::saveChart($parentId,$newProperties,$label);
+        	$res = Element::saveChart($type,$id,$newProperties, $label);
         }
         else
-        	$res = Project::removeChart($parentId,$label);
+        	$res = Element::removeChart($type,$id, $label);
 
-  		echo json_encode(array("result"=>true, "properties"=>$newProperties, "msg"=>"Ce projet a de nouvelle propriétés"));
+  		echo json_encode(array("result"=>true, "properties"=>$newProperties, "msg"=>Yii::t("common", "properties well updated")));
         exit;
 	}
 }

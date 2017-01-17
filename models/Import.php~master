@@ -188,13 +188,12 @@ class Import
             date_default_timezone_set('UTC');
             if(!empty($element['startDate']))
                 $element['startDate'] = date('Y-m-d H:i:s', strtotime($element['startDate']));
-                //$element['startDate'] = new MongoDate(strtotime($element['startDate']));
             
             if(!empty($element['endDate']))
                 $element['endDate'] = date('Y-m-d H:i:s', strtotime($element['endDate']));
-                //$element['endDate'] = strtotime($element['endDate']);
-                //$element['endDate'] = new MongoDate(strtotime($element['endDate']));
         }
+        if(!empty($element["tags"]))
+            $element["tags"] = self::checkTag($element["tags"]);
         
         $element = self::getWarnings($element, $typeElement, true) ;
         $resDataValidator = DataValidator::validate(Element::getControlerByCollection($typeElement), $element, true);
@@ -204,6 +203,17 @@ class Import
         }
         
         return $element;
+    }
+
+    public static function checkTag($tags){
+        $newTags = array();
+        foreach ($tags as $key => $tag) {
+           $split = explode(",", $tag);
+           foreach ($split as $keyS => $value) {
+               $newTags[] = trim($value);
+           }
+        }
+        return $newTags;
     }
 
 
@@ -254,7 +264,16 @@ class Import
                         $newGeo["geo"]["longitude"] = $resultNominatim[0]["lon"];
                     }else{
                         $resultGoogle = json_decode(SIG::getGeoByAddressGoogleMap($street, $cp, $nameCity, $country), true);
-                        if(!empty($resultGoogle["results"])){
+                        $resG = false ;
+                        if(!empty($resultGoogle["results"][0]["address_components"])){
+                            foreach ($resultGoogle["results"][0]["address_components"] as $key => $value) {
+                                if(in_array("locality", $value["types"]))
+                                    $resG = true ;
+                            }
+                        }
+                        
+                        //var_dump($resG);
+                        if(!empty($resultGoogle["results"]) && $resG == true){
                             $newGeo["geo"]["latitude"] = strval($resultGoogle["results"][0]["geometry"]["location"]["lat"]);
                             $newGeo["geo"]["longitude"] = strval($resultGoogle["results"][0]["geometry"]["location"]["lng"]);
                         }else{
@@ -269,7 +288,15 @@ class Import
                                     $newGeo["geo"]["longitude"] = $resultNominatim[0]["lon"];
                                 }else{
                                     $resultGoogle = json_decode(SIG::getGeoByAddressGoogleMap(null,$cp, $nameCity, $country), true);
-                                    if(!empty($resultGoogle["results"])){
+                                    $resG = false ;
+                                    if(!empty($resultGoogle["results"][0]["address_components"])){
+                                        foreach ($resultGoogle["results"][0]["address_components"] as $key => $value) {
+                                            if(in_array("locality", $value["types"]))
+                                                $resG = true ;
+                                        }
+                                    }
+
+                                    if(!empty($resultGoogle["results"]) && $resG == true){
                                         $newGeo["geo"]["latitude"] = strval($resultGoogle["results"][0]["geometry"]["location"]["lat"]);
                                         $newGeo["geo"]["longitude"] = strval($resultGoogle["results"][0]["geometry"]["location"]["lng"]);
                                     }
@@ -305,8 +332,8 @@ class Import
                 if(!empty($city)){
                     $newAddress["codeInsee"] = $city["insee"];
                     $newAddress['addressCountry'] = $city["country"];
-                    $newAddress['regionName'] = $city["regionName"];
-                    $newAddress['depName'] = $city["depName"];
+                    $newAddress['regionName'] = (@$city["regionName"]?$city["regionName"]:"");
+                    $newAddress['depName'] = (@$city["depName"]?$city["depName"]:"");
                     foreach ($city["postalCodes"] as $keyCp => $valueCp){
                         if(empty($cp)){
                             if($valueCp["name"] == $city["alternateName"]){

@@ -51,6 +51,22 @@ class Poi {
 	    "creator" => array("name" => "creator"),
 	    "created" => array("name" => "created"),
 	    );
+//From Post/Form name to database field name
+	public static $collectionsList = array (
+	   "Où sont les femmes",
+		"Passeur d'images",
+		"MHQM",
+		"MIAA",
+		"Portrait citoyens",
+		"Parcours d'engagement"
+	);
+	public static $genresList=array(
+		"Documentaire",
+		"Fiction",
+		"Docu-fiction",
+		"Films outils",
+		"Films de commande"
+	);
 	/**
 	 * get all poi details of an element
 	 * @param type $id : is the mongoId (String) of the parent
@@ -77,7 +93,7 @@ class Poi {
 				$where["tags"] = array('$in' => $queryTag); 			
 		}
 		
-		$pois = PHDB::findAndSortAndLimitAndIndex( self::COLLECTION, $where, array("updated" => -1), $indexStep, $limitMin);
+		$pois = PHDB::findAndSort( self::COLLECTION, $where, array("updated" => -1));
 	   	return $pois;
 	}
 
@@ -88,11 +104,13 @@ class Poi {
 	 */
 	public static function getById($id) { 
 	  	$poi = PHDB::findOneById( self::COLLECTION ,$id );
+	  	// Use case notragora
 	  	if(@$poi["type"])
 		  	$poi["typeSig"] = self::COLLECTION.".".$poi["type"];
 	  	else
 		  	$poi["typeSig"] = self::COLLECTION;
-	  	$poi = array_merge($poi, Document::retrieveAllImagesUrl($id, self::COLLECTION, $poi["type"], $poi));
+		if(@$poi["type"])
+	  		$poi = array_merge($poi, Document::retrieveAllImagesUrl($id, self::COLLECTION, $poi["type"], $poi));
 
 	  	return $poi;
 	}

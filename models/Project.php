@@ -33,6 +33,7 @@ class Project {
 	    "preferences" => array("name" => "preferences"),
 	    "medias" => array("name" => "medias"),
 	    "urls" => array("name" => "urls"),
+	    "type" => array("name" => "type"),
 		
 		"parentId" => array("name" => "parentId"),
 		"parentType" => array("name" => "parentType"),
