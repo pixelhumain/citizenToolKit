@@ -19,6 +19,7 @@ class Url {
 	    "categories" => array("name" => "categories"),
 		"keywords" => array("name" => "keywords"),
 		"title" => array("name" => "title"),
+		"favicon" => array("name" => "favicon"),
 		"hostname" => array("name" => "hostname"),
 
 		"url" => array("name" => "url", "rules" => array("notexist")),
