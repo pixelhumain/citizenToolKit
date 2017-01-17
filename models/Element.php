@@ -455,6 +455,7 @@ class Element {
 						}else{
 							$headSet = "addresses.".$fieldValue["addressesIndex"] ;
 							$updatePull = true ;
+							$pull="contacts";
 						}
 					}
 
@@ -531,13 +532,15 @@ class Element {
 			else{
 				$headSet = "contacts.".$fieldValue["index"] ;
 				unset($fieldValue["index"]);
-				if(count($fieldValue) == 1){
+				if(count($fieldValue) == 0){
 					$verb = '$unset' ;
 					$verbActivity = ActStr::VERB_DELETE ;
 					$fieldValue = null ;
 					$updatePull = true ;
+					$pull="contacts";
 				}
 				$set = array($headSet => $fieldValue);
+				
 			}
 		}
 		else
@@ -583,7 +586,7 @@ class Element {
 
 			if(!empty($updatePull) && $updatePull == true){
 				$resPull = PHDB::update( $collection, array("_id" => new MongoId($id)), 
-		                          array('$pull' => array('addresses' => null)));
+		                          array('$pull' => array($pull => null)));
 			}
 
 			$fieldNames = array("badges", "geo", "geoPosition");
@@ -938,20 +941,20 @@ class Element {
 
             if($id) 
             {
-            	var_dump($params);
+            	//var_dump($params);
                 //update a single field
                 //else update whole map
                 //$changeMap = ( !$microformat && isset( $key )) ? array('$set' => array( $key => $params[ $key ] ) ) : array('$set' => $params );
-                /*PHDB::update($collection,array("_id"=>new MongoId($id)), array('$set' => $params ));
+                PHDB::update($collection,array("_id"=>new MongoId($id)), array('$set' => $params ));
                 $res = array("result"=>true,
                              "msg"=>"Vos données ont été mises à jour.",
                              "reload"=>true,
                              "map"=>$params,
-                             "id"=>$id);*/
+                             "id"=>$id);
             } 
             else 
             {
-                /*$params["created"] = time();
+                $params["created"] = time();
                 PHDB::insert($collection, $params );
                 $res = array("result"=>true,
                              "msg"=>"Vos données ont bien été enregistrées.",
@@ -979,7 +982,7 @@ class Element {
                     //createdObjectAsParam($authorType, $authorId, $objectType, $objectId, $targetType, $targetId, $geo, $tags, $address, $verb="create")
                     //TODO
                     //Notification::createdObjectAsParam($authorType[Person::COLLECTION],$userId,$elementType, $elementType, $parentType[projet crée par une orga => orga est parent], $parentId, $params["geo"], (isset($params["tags"])) ? $params["tags"]:null ,$params["address"]);  
-                }*/
+                }
             }
           //  if(@$url = ( @$params["parentType"] && @$params["parentId"] && in_array($collection, array("poi") && Yii::app()->theme != "notragora")) ? "#".self::getControlerByCollection($params["parentType"]).".detail.id.".$params["parentId"] : null )
 	        //    $res["url"] = $url;
