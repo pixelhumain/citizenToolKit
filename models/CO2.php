@@ -25,10 +25,10 @@ class CO2 {
     								  	array("inMenu" => true, 
 						                      "useHeader" => true, 
 						                      "subdomain" => "freedom", 
-						                      "subdomainName" => "Live",
-						                      "icon" => "rss", 
-						                      "mainTitle" => "Un fil d'actu <span class='letter-red'>commun</span>",
-						                      "placeholderMainSearch" => "rechercher dans le fil d'actualités"),
+						                      "subdomainName" => "annonces",
+						                      "icon" => "newspaper-o", 
+						                      "mainTitle" => "Toutes vos annonces en direct",
+						                      "placeholderMainSearch" => "rechercher parmis les annonces  ..."),
 
     								"#co2.agenda"=>
     								  	array("inMenu" => true, 
@@ -36,7 +36,7 @@ class CO2 {
 						                      "subdomain" => "agenda", 
 						                      "subdomainName" => "agenda",
 						                      "icon" => "calendar", 
-						                      "mainTitle" => "L'agenda<span class='letter-red'>CO</span>mmun",
+						                      "mainTitle" => "L'agenda <span class='letter-red'>CO</span>mmun",
 						                      "placeholderMainSearch" => "rechercher un événement ..."),
 
     								"#co2.power"=>
