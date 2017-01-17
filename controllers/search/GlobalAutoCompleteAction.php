@@ -17,14 +17,14 @@ class GlobalAutoCompleteAction extends CAction
         $indexStep = $indexMax - $indexMin;
         
         $searchTypeOrga = "";
-        if( sizeOf($searchType) == 1 &&
+        /*if( sizeOf($searchType) == 1 &&
         	$searchType[0] == Organization::TYPE_NGO ||
          	$searchType[0] == Organization::TYPE_BUSINESS ||
          	$searchType[0] == Organization::TYPE_GROUP ||
         	$searchType[0] == Organization::TYPE_GOV) {
         	$searchTypeOrga = $searchType[0];
         	$searchType = array(Organization::COLLECTION);
-        }
+        }*/
        // error_log("global search " . $search . " - searchType : ". $searchType); //. " & locality : ". $locality. " & country : ". $country);
 	    
    //      if($search == "" && $locality == "") {

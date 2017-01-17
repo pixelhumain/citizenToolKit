@@ -1283,12 +1283,19 @@ class Element {
 		$id = $params["parentId"];
 		$collection = $params["parentType"];
 		$collection = $params["parentType"];
-		$params["telephone"] = explode(",", $params["phone"]);
+		if(!empty($params["phone"]))
+			$params["telephone"] = explode(",", $params["phone"]);
+		if(!empty($params["idContact"]))
+			$params["id"] = $params["idContact"];
 		unset($params["parentId"]);
 		unset($params["parentType"]);
 		unset($params["phone"]);
+		unset($params["idContact"]);
 		//$res = null ;
 		$res = self::updateField($collection, $id, "contacts", $params);
+
+		if($res["result"])
+			$res["msg"] = "Les contacts ont été mis à jours";
 		return $res;
 	}
 
