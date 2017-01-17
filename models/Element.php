@@ -455,6 +455,7 @@ class Element {
 						}else{
 							$headSet = "addresses.".$fieldValue["addressesIndex"] ;
 							$updatePull = true ;
+							$pull="contacts";
 						}
 					}
 
@@ -531,13 +532,15 @@ class Element {
 			else{
 				$headSet = "contacts.".$fieldValue["index"] ;
 				unset($fieldValue["index"]);
-				if(count($fieldValue) == 1){
+				if(count($fieldValue) == 0){
 					$verb = '$unset' ;
 					$verbActivity = ActStr::VERB_DELETE ;
 					$fieldValue = null ;
 					$updatePull = true ;
+					$pull="contacts";
 				}
 				$set = array($headSet => $fieldValue);
+				
 			}
 		}
 		else
@@ -583,7 +586,7 @@ class Element {
 
 			if(!empty($updatePull) && $updatePull == true){
 				$resPull = PHDB::update( $collection, array("_id" => new MongoId($id)), 
-		                          array('$pull' => array('addresses' => null)));
+		                          array('$pull' => array($pull => null)));
 			}
 
 			$fieldNames = array("badges", "geo", "geoPosition");
@@ -593,15 +596,13 @@ class Element {
 					$verbActivity = ActStr::VERB_UPDATE ;
 				ActivityStream::saveActivityHistory($verbActivity, $id, $collection, $dataFieldName, $fieldValue);
 			}
-			$res = array("result"=>true,"msg"=>Yii::t(Element::getControlerByCollection($collection),"The ".Element::getControlerByCollection($collection)." has been updated"));
+			$res = array("result"=>true,"msg"=>Yii::t(Element::getControlerByCollection($collection),"The ".Element::getControlerByCollection($collection)." has been updated"), "value" => $fieldValue);
 
 			if(isset($firstCitizen))
 				$res["firstCitizen"] = $firstCitizen ;
 		}else{
 			throw new CTKException("Can not update the element!");
 		}
-		
-
 		return $res;
 	}
 
@@ -896,6 +897,7 @@ class Element {
 		unset($params["paramsImport"]);
         unset($params['collection']);
         unset($params['key']);
+       
         $params = self::prepData( $params );
         unset($params['id']);
 
@@ -906,6 +908,9 @@ class Element {
         	$postParams["urls"] = $params["urls"];
         	unset($params['urls']);
         }
+
+        if($collection == City::COLLECTION)
+        	$params = City::prepCity($params);
         
         /*$microformat = PHDB::findOne(PHType::TYPE_MICROFORMATS, array( "key"=> $key));
         $validate = ( !isset($microformat )  || !isset($microformat["jsonSchema"])) ? false : true;
@@ -922,7 +927,7 @@ class Element {
         	} catch (CTKException $e) {
         		$valid = array("result"=>false, "msg" => $e->getMessage());
         	}
-
+        
         if( $valid["result"]) 
         {
 			if( $collection == Event::COLLECTION )
@@ -936,6 +941,7 @@ class Element {
 
             if($id) 
             {
+            	//var_dump($params);
                 //update a single field
                 //else update whole map
                 //$changeMap = ( !$microformat && isset( $key )) ? array('$set' => array( $key => $params[ $key ] ) ) : array('$set' => $params );
@@ -1175,8 +1181,23 @@ class Element {
 		}
 		return $result;
 	}
-
-
+	
+    public static function saveChart($type, $id, $properties, $label){
+	    //TODO SABR - Check the properties before inserting
+	    PHDB::update($type,
+			array("_id" => new MongoId($id)),
+            array('$set' => array("properties.chart.".$label=> $properties))
+        );
+        return true;
+    }
+    
+	public static function removeChart($type, $id, $label){
+		PHDB::update($type, 
+            array("_id" => new MongoId($id)) , 
+            array('$unset' => array("properties.chart.".$label => 1))
+        );
+        return true;	
+	}
 
 	public static function afterSaveImport($eltId, $eltType, $paramsImport){
 		if (@$paramsImport) {
@@ -1280,12 +1301,19 @@ class Element {
 		$id = $params["parentId"];
 		$collection = $params["parentType"];
 		$collection = $params["parentType"];
-		$params["telephone"] = explode(",", $params["phone"]);
+		if(!empty($params["phone"]))
+			$params["telephone"] = explode(",", $params["phone"]);
+		if(!empty($params["idContact"]))
+			$params["id"] = $params["idContact"];
 		unset($params["parentId"]);
 		unset($params["parentType"]);
 		unset($params["phone"]);
+		unset($params["idContact"]);
 		//$res = null ;
 		$res = self::updateField($collection, $id, "contacts", $params);
+
+		if($res["result"])
+			$res["msg"] = "Les contacts ont été mis à jours";
 		return $res;
 	}
 

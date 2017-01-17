@@ -17,14 +17,14 @@ class GlobalAutoCompleteAction extends CAction
         $indexStep = $indexMax - $indexMin;
         
         $searchTypeOrga = "";
-        if( sizeOf($searchType) == 1 &&
+        /*if( sizeOf($searchType) == 1 &&
         	$searchType[0] == Organization::TYPE_NGO ||
          	$searchType[0] == Organization::TYPE_BUSINESS ||
          	$searchType[0] == Organization::TYPE_GROUP ||
         	$searchType[0] == Organization::TYPE_GOV) {
         	$searchTypeOrga = $searchType[0];
         	$searchType = array(Organization::COLLECTION);
-        }
+        }*/
        // error_log("global search " . $search . " - searchType : ". $searchType); //. " & locality : ". $locality. " & country : ". $country);
 	    
    //      if($search == "" && $locality == "") {
@@ -242,7 +242,28 @@ class GlobalAutoCompleteAction extends CAction
 	  		$allRes = array_merge($allRes, $allProject);
 	  		//error_log(sizeof($allProject));
 	  	}
-	/***********************************  PROJECTS   *****************************************/
+	/***********************************  POI   *****************************************/
+        if(strcmp($filter, Classified::COLLECTION) != 0 && $this->typeWanted(Classified::COLLECTION, $searchType)){
+        	$allPoi = PHDB::findAndSortAndLimitAndIndex(Classified::COLLECTION, $query, 
+	  												array("updated" => -1), $indexStep, $indexMin);
+	  		foreach ($allPoi as $key => $value) {
+		  		if(@$value["parentId"] && @$value["parentType"])
+		  			$parent = Element::getElementSimpleById(@$value["parentId"], @$value["parentType"]);
+		  		else
+		  			$parent=array();
+				$allPoi[$key]["parent"] = $parent;
+				//$allPoi[$key]["type"] = "poi";
+				if(@$value["type"])
+					$allPoi[$key]["typeSig"] = Classified::COLLECTION.".".$value["type"];
+				else
+					$allPoi[$key]["typeSig"] = Classified::COLLECTION;
+	  		}
+	  		//$res["project"] = $allProject;
+	  		$allRes = array_merge($allRes, $allPoi);
+	  		//error_log(sizeof($allPoi));
+	  	}
+
+	  	/***********************************  POI   *****************************************/
         if(strcmp($filter, Poi::COLLECTION) != 0 && $this->typeWanted(Poi::COLLECTION, $searchType)){
         	$allPoi = PHDB::findAndSortAndLimitAndIndex(Poi::COLLECTION, $query, 
 	  												array("updated" => -1), $indexStep, $indexMin);

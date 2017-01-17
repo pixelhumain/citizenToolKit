@@ -7,7 +7,8 @@ class GetDataByUrlAction extends CAction
         $controller = $this->getController();
         $params = array();
         try{
-        	$params["data"] = Import::getDataByUrl($_POST['url']);
+        	//$params["data"] = SIG::getUrl($_POST['url']);
+            $params["data"] = file_get_contents($_POST['url']);
         }catch (CTKException $e){
             $params["error"][] = $e->getMessage();
         }

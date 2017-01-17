@@ -51,12 +51,10 @@ class AutocompleteMultiScopeAction extends CAction
                     foreach (@$resNominatim as $key => $value) {
                         $typeCities = array("city", "village", "town") ;
                         foreach ($typeCities as $keyType => $valueType) {
-                            if(/*!empty($value["extratags"]["wikidata"]) && */ 
-                                !empty($value["address"][$valueType]) &&
-                                $countryCode == strtoupper(@$value["address"]["country_code"])){
+                            if(!empty($value["address"][$valueType]) && $countryCode == strtoupper(@$value["address"]["country_code"])){
 
-                                $arrayAdd = array();
-                                $arrayCp = array();
+                                $wikidata = (empty($value["extratags"]["wikidata"]) ? null : $value["extratags"]["wikidata"]);
+                                
                                 $postalCodes = array();
                                 $newCities = array( "name" => $value["address"][$valueType],
                                                     "alternateName" => mb_strtoupper($value["address"][$valueType]),
@@ -80,9 +78,9 @@ class AutocompleteMultiScopeAction extends CAction
      
 
                                 
-
+                               
                                 if(!empty($wikidata)){
-                                    $newCities = City::getCitiesWithWikiData($wikidata);
+                                    $newCities = City::getCitiesWithWikiData($wikidata, $newCities);
                                 }else{
                                     $newCities["insee"] = $value["osm_id"]."*".$countryCode;
                                     $newCities["postalCodes"] = $postalCodes;
