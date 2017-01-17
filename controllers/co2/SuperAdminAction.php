@@ -55,7 +55,8 @@ class SuperAdminAction extends CAction
         $urlsUncomplet      = PHDB::find("url", array('status' => "uncomplet"));
         $urlsValidated      = PHDB::find("url", array('status' => "validated"));
         $urlsActivated      = PHDB::find("url", array('status' => "active"));        
-        $urlsUncategorized  = PHDB::find("url", array('categories' => "") );
+        $urlsUncategorized  = PHDB::find("url", array('categories' => "") );        
+        $urlsNoFavicon      = PHDB::find("url", array('favicon' => array('$exists' => false) ) );
         
         // foreach ($urlsLocked as $key => $value) {
         //     $resAddToSet = PHDB::update( "url", array("_id" => new MongoId($key)), 
@@ -71,13 +72,14 @@ class SuperAdminAction extends CAction
                         "urlsActivatedNb"=>sizeof($urlsActivated),
 
                         "urlsLocked"=>$urlsLocked,
+                        "urlsNoFavicon"=>$urlsNoFavicon,
                         );
     	$controller->renderPartial("admin/web", $params);
     }
 
     private function scanLinks(){
-        //echo "PAR SECURITÉ, MERCI D'ACTIVER CETTE FONCTION DANS LE CODE ;)";
-        //return;
+        echo "PAR SECURITÉ, MERCI D'ACTIVER CETTE FONCTION DANS LE CODE ;)";
+        return;
 
         //$url = "http://www.la-nouvelle-caledonie.com/liens-utiles/";
         $url = "http://caledoweb.com/?page_id=14";
