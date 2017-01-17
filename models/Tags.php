@@ -15,11 +15,12 @@ class Tags {
 
 	    if(!empty($tags)){
 	      foreach($tags as $tag) {
-	        if(!in_array($tag, $existingTags)) {
+	      	$newTags = self::checkAndGetTag($tag);
+	        if(!in_array($newTags, $existingTags)) {
 	          //TODO : Add here how to define if a tag is valid or not
-	          PHDB::update( PHType::TYPE_LISTS,array("name"=>"tags"), array('$push' => array("list"=>$tag)));
+	          PHDB::update( PHType::TYPE_LISTS,array("name"=>"tags"), array('$push' => array("list"=>$newTags)));
 	        }
-	      	array_push($res, $tag);
+	      	array_push($res, $newTags);
 	      }
 	    }
 
@@ -41,6 +42,13 @@ class Tags {
 
   	return $res;
   }
+
+	public static function checkAndGetTag($tag) {
+  		$carac = array("\r\n", "\n");
+		$newtags = str_replace($carac, " ", $tag);
+		$newtags = str_replace("#", "", $newtags);
+		return $newtags;
+ 	}
 
 }
 ?>
