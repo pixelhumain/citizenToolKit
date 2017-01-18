@@ -1,7 +1,17 @@
 <?php 
 class Element {
 
-
+	public static $urlTypes = array(
+        "chat" => "Chat",
+        "decisionroom" => "Salle de decision",
+        "website" => "Site web",
+        "partner" => "Partenaire",
+        "documentation" => "Documentation",
+        "wiki" => "Wiki",
+        "management" => "Gestion",
+	    "funding" => "Financement",
+	    "other" => "Autre"
+	);  
 
 	public static function getControlerByCollection ($type) { 
 
@@ -542,8 +552,22 @@ class Element {
 				$set = array($headSet => $fieldValue);
 				
 			}
-		}
-		else
+		} else if ($dataFieldName == "urls") {
+			if(empty($fieldValue["index"]))
+				$addToSet = array("urls" => $fieldValue);
+			else{
+				$headSet = "urls.".$fieldValue["index"] ;
+				unset($fieldValue["index"]);
+				if(count($fieldValue) == 0){
+					$verb = '$unset' ;
+					$verbActivity = ActStr::VERB_DELETE ;
+					$fieldValue = null ;
+					$updatePull = true ;
+					$pull="urls";
+				}
+				$set = array($headSet => $fieldValue);
+			}
+		} else
 			$set = array($dataFieldName => $fieldValue);
 
 		if ($verb == '$set') {
@@ -1300,7 +1324,6 @@ class Element {
 	public static function saveContact($params){
 		$id = $params["parentId"];
 		$collection = $params["parentType"];
-		$collection = $params["parentType"];
 		if(!empty($params["phone"]))
 			$params["telephone"] = explode(",", $params["phone"]);
 		if(!empty($params["idContact"]))
@@ -1314,6 +1337,26 @@ class Element {
 
 		if($res["result"])
 			$res["msg"] = "Les contacts ont été mis à jours";
+		return $res;
+	}
+
+	public static function saveUrl($params){
+		$id = $params["parentId"];
+		$collection = $params["parentType"];
+		$find = false;
+		$needles = array("http://", "https://");
+	    foreach($needles as $needle) {
+	    	if(stripos($params["url"], $needle) != false)
+	    		$find = true;
+	    }
+	    if(!$find)
+	    	$params["url"]="http://".$params["url"];
+
+		unset($params["parentId"]);
+		unset($params["parentType"]);
+		$res = self::updateField($collection, $id, "urls", $params);
+		if($res["result"])
+			$res["msg"] = "Les urls ont été mis à jours";
 		return $res;
 	}
 
