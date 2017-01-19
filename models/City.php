@@ -14,6 +14,7 @@ class City {
 	const CITOYENS = "citoyens";
 	const COLLECTION_IMPORTHISTORY = "importHistory";
 	const ICON = "fa-university";
+	const ZONES = "zones";
 
 	public static $dataBinding = array(
 	    "name" => array("name" => "name", "rules" => array("required")),
@@ -551,6 +552,16 @@ class City {
 		return $city;
 	}
 
+	public static function getZone($insee, $cp = null, $zone = null){
+		
+		$city = PHDB::findOne( City::COLLECTION, array("insee" => $insee));// ,$fields);
+	
+		$zone = PHDB::findOne( City::ZONES, array("_id" => $insee));
+		
+		
+		return $city;
+	}
+
 	public static function getCityByInsee($insee){
 		$where = array("insee" => $insee);
 		//$fields = array("_id");
@@ -800,8 +811,12 @@ class City {
         unset($params["longitude"]);
 
 		return $params;
-     }
+    }
 	
+	public static function getZones($insee){
+		$zones =PHDB::findAndSort(self::ZONES,array("insee" =>$insee), array("name" => 1));
+	  	return $zones;
+	}
 
 	/*
 	public static function createCitizenAssemblies(){
