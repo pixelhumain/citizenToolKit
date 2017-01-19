@@ -13,7 +13,7 @@ class DateTimeAction extends CAction {
 		
 		$bindMap = null;
 		$headers = getallheaders();
-
+		error_log("requete data time");
 		if ($headers['User-Agent'] != 'SmartCitizen') {
 			// Note : réponse incorrecte -> voir dans Thing::getDateTime -> dans Translate::convert
 			$bindMap = TranslateCommunecter::$dataBinding_time;
