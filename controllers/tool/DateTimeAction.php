@@ -23,7 +23,7 @@ class DateTimeAction extends CAction {
 			//Rest::json($resDateTime);
 
 		} else { 
-			$resDateTime = gmdate("e:Y,n,j,H,i,s"); 
+			$resDateTime = gmdate("e: Y,n,j,H,i,s#"); 
 			echo $resDateTime;
 		}	
     }
