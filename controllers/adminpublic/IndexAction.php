@@ -2,10 +2,10 @@
 
 class IndexAction extends CAction
 {
-    public function run($key)
+    public function run()
     {
     	$controller=$this->getController();
-        $page = "../error/error";
+        /*$page = "../error/error";
         if(Role::isSourceAdmin(Role::getRolesUserId(Yii::app()->session["userId"]))){
             if(Person::getSourceAdmin(Yii::app()->session["userId"])){
                 $params["entitiesSourceAdmin"] = Import::getAllEntitiesByKey($key);
@@ -35,9 +35,9 @@ class IndexAction extends CAction
                     $params["contextMap"][]=$element;
                 }
             } 
-        }
+        }*/
             
-        
+        $params = array();
         if(Yii::app()->request->isAjaxRequest)
                 echo $controller->renderPartial("index",$params,true);
             else 

@@ -25,10 +25,10 @@ class CO2 {
     								  	array("inMenu" => true, 
 						                      "useHeader" => true, 
 						                      "subdomain" => "freedom", 
-						                      "subdomainName" => "Live",
-						                      "icon" => "rss", 
-						                      "mainTitle" => "Un fil d'actu <span class='letter-red'>commun</span>",
-						                      "placeholderMainSearch" => "rechercher dans le fil d'actualités"),
+						                      "subdomainName" => "annonces",
+						                      "icon" => "newspaper-o", 
+						                      "mainTitle" => "Toutes vos annonces en direct",
+						                      "placeholderMainSearch" => "rechercher parmis les annonces  ..."),
 
     								"#co2.agenda"=>
     								  	array("inMenu" => true, 
@@ -36,7 +36,7 @@ class CO2 {
 						                      "subdomain" => "agenda", 
 						                      "subdomainName" => "agenda",
 						                      "icon" => "calendar", 
-						                      "mainTitle" => "L'agenda<span class='letter-red'>CO</span>mmun",
+						                      "mainTitle" => "L'agenda <span class='letter-red'>CO</span>mmun",
 						                      "placeholderMainSearch" => "rechercher un événement ..."),
 
     								"#co2.power"=>
@@ -140,6 +140,15 @@ class CO2 {
 						                      "icon" => "", 
 						                      "mainTitle" => "Le réseau social Calédonien",
 						                      "placeholderMainSearch" => "rechercher parmis les membres du réseau ..."),
+    							
+    								"#co2.info"=>
+    								  	array("inMenu" => false, 
+						                      "useHeader" => false, 
+						                      "subdomain" => "apropos", 
+						                      "subdomainName" => "Info",
+						                      "icon" => "search", 
+						                      "mainTitle" => "Le moteur de recherche des Cagous",
+						                      "placeholderMainSearch" => "rechercher parmis les membres du réseau ..."),
     							) 								  
 
     					));
@@ -242,7 +251,7 @@ class CO2 {
 					 "Loisirs" => 
 						 array(	 "Sports", 
 						 		 ),
-	    			"Mode" => 
+	    			 "Mode" => 
 						 array(	 "Vêtements", 
 								 )
 	    			);
@@ -254,17 +263,18 @@ class CO2 {
 
     public static function getFreedomTags(){
     	$tags = array(
-    		"all" 		=> array("label"=>"Tout", 				"key" => "all", 		"icon" => "circle-o", 				"section"=>1),
-    		"like" 		=> array("label"=>"Coup de cœur", 		"key" => "like", 		"icon" => "heartbeat", 				"section"=>2),
-    		"dislike" 	=> array("label"=>"Coup de gueule", 	"key" => "dislike", 	"icon" => "thumbs-o-down", 			"section"=>2),
-    		"forsale" 	=> array("label"=>"À vendre", 			"key" => "forsale", 	"icon" => "money", 					"section"=>3),
-    		"location" 	=> array("label"=>"À louer", 			"key" => "location", 	"icon" => "external-link", 			"section"=>3),
-    		"donation" 	=> array("label"=>"À donner", 			"key" => "donation", 	"icon" => "gift", 					"section"=>4),
-    		"sharing" 	=> array("label"=>"À partager", 		"key" => "sharing", 	"icon" => "exchange", 				"section"=>4),
-    		"lookingfor" => array("label"=>"À la recherche", 	"key" => "lookingfor", 	"icon" => "eye", 					"section"=>5),
-    		"job" 		=> array("label"=>"Offre d'emplois", 	"key" => "job", 		"icon" => "briefcase", 				"section"=>5),
-    		"public" 	=> array("label"=>"Les communiqués", 	"key" => "public", 		"icon" => "bullhorn", 				"section"=>6),
-    		"urgency" 	=> array("label"=>"Urgences", 			"key" => "urgency", 	"icon" => "exclamation-triangle", 	"section"=>6),
+    		"all" 		=> array("label"=>"Tout", 				"key" => "all", 		"icon" => "circle-o", 				"section"=>1, "color"=>"default"),
+    		"like" 		=> array("label"=>"Coup de cœur", 		"key" => "like", 		"icon" => "heartbeat", 				"section"=>2, "color"=>"green"),
+    		"dislike" 	=> array("label"=>"Coup de gueule", 	"key" => "dislike", 	"icon" => "thumbs-o-down", 			"section"=>2, "color"=>"red"),
+    		//"information"=> array("label"=>"Information", 		"key" => "information", "icon" => "newspaper-o", 			"section"=>3, "color"=>"yellow"),
+    		//"urgency" 	=> array("label"=>"Urgence", 			"key" => "urgency", 	"icon" => "exclamation-triangle", 	"section"=>3, "color"=>"yellow"),
+    		"lookingfor" => array("label"=>"À la recherche", 	"key" => "lookingfor", 	"icon" => "eye", 					"section"=>3, "color"=>"yellow"),
+    		"job" 		=> array("label"=>"Offre d'emplois", 	"key" => "job", 		"icon" => "briefcase", 				"section"=>3, "color"=>"yellow"),
+    		"forsale" 	=> array("label"=>"À vendre", 			"key" => "forsale", 	"icon" => "money", 					"section"=>4, "color"=>"blue"),
+    		"location" 	=> array("label"=>"À louer", 			"key" => "location", 	"icon" => "external-link", 			"section"=>4, "color"=>"blue"),
+    		"donation" 	=> array("label"=>"À donner", 			"key" => "donation", 	"icon" => "gift", 					"section"=>5, "color"=>"blue"),
+    		"sharing" 	=> array("label"=>"À partager", 		"key" => "sharing", 	"icon" => "exchange", 				"section"=>5, "color"=>"blue"),
+    		//"urgency" 	=> array("label"=>"Urgences", 			"key" => "urgency", 	"icon" => "exclamation-triangle", 	"section"=>6, "color"=>"red"),
     				
     	);
     	return $tags;

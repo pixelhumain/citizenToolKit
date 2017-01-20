@@ -582,4 +582,13 @@ class SIG
         }
     }
 
+
+    public static function getFormatGeo($latitude, $longitude){
+        return array("@type"=>"GeoCoordinates", "latitude" => $latitude, "longitude" => $longitude);
+    }
+
+    public static function getFormatGeoPosition($latitude, $longitude){
+        return array("type"=>"Point", "float"=> true, "coordinates" => array(floatval($longitude), floatval($latitude)));
+    }
+
 }

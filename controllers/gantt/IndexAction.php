@@ -57,7 +57,7 @@ class IndexAction extends CAction
 					        	$endDate=$year.'-12-31';
 					        else
 					        	$endDate=date("Y-m-d",strtotime($val["endDate"]));
-					        $valEv=array("color"=>"lorem","name"=>$val["name"],"startDate"=>$startDate,"endDate"=>$endDate,"key"=> array ("address"=> $val["address"]["addressLocality"]));
+					        $valEv=array("color"=>"lorem","name"=>$val["name"],"startDate"=>$startDate,"endDate"=>$endDate,"key"=> array ("address"=> (empty($val["address"]["addressLocality"])? "" : $val["address"]["addressLocality"])));
 							$newArrayEvent[]=$valEv;
 						}
 			        }
@@ -68,7 +68,11 @@ class IndexAction extends CAction
 						$keyEvent=(string)$val["_id"];
 						$startDate=date("Y-m-d",strtotime($val["startDate"]));
 				        $endDate=date("Y-m-d",strtotime($val["endDate"]));
-						$valEv=array("color"=>"lorem","name"=>$val["name"],"startDate"=>$startDate,"endDate"=>$endDate,"key"=> array ("address"=> $val["address"]["addressLocality"]));
+						$valEv=array("color"=>"lorem",
+										"name"=>$val["name"],
+										"startDate"=>$startDate,
+										"endDate"=>$endDate,
+										"key"=> array ("address"=> (empty($val["address"]["addressLocality"])? "" : $val["address"]["addressLocality"])));
 						 $newArrayEvent[]=$valEv;
 					}
 					$taskEvent=$newArrayEvent;
@@ -100,7 +104,7 @@ class IndexAction extends CAction
 				        	$endDate=$year.'-12-31';
 				        else
 				        	$endDate=date("Y-m-d",strtotime($val["endDate"]));
-				        $valEv=array("color"=>"lorem","name"=>$val["name"],"startDate"=>$startDate,"endDate"=>$endDate,"key"=> array ("address"=> $val["address"]["addressLocality"]));
+				        $valEv=array("color"=>"lorem","name"=>$val["name"],"startDate"=>$startDate,"endDate"=>$endDate,"key"=> array ("address"=> (empty($val["address"]["addressLocality"])? "" : $val["address"]["addressLocality"])));
 						$newArrayEvent[]=$valEv;
 					}
 		        }
@@ -111,7 +115,7 @@ class IndexAction extends CAction
 					$keyEvent=(string)$val["_id"];
 					$startDate=date("Y-m-d",strtotime($val["startDate"]));
 			        $endDate=date("Y-m-d",strtotime($val["endDate"]));
-					$valEv=array("color"=>"lorem","name"=>$val["name"],"startDate"=>$startDate,"endDate"=>$endDate,"key"=> array ("address"=> $val["address"]["addressLocality"]));
+					$valEv=array("color"=>"lorem","name"=>$val["name"],"startDate"=>$startDate,"endDate"=>$endDate,"key"=> array ("address"=> (empty($val["address"]["addressLocality"])? "" : $val["address"]["addressLocality"])));
 					 $newArrayEvent[]=$valEv;
 				}
 				$taskEvent=$newArrayEvent;

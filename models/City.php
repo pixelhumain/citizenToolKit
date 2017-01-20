@@ -14,6 +14,7 @@ class City {
 	const CITOYENS = "citoyens";
 	const COLLECTION_IMPORTHISTORY = "importHistory";
 	const ICON = "fa-university";
+	const ZONES = "zones";
 
 	public static $dataBinding = array(
 	    "name" => array("name" => "name", "rules" => array("required")),
@@ -45,6 +46,7 @@ class City {
 		$city["updated"] = time();
         $city["creator"] = $userid;
         $city["created"] = time();
+        $city["new"] = true;
         $city["geoPosition"]["coordinates"][0] = floatval($city["geoPosition"]["coordinates"][0]);
     	$city["geoPosition"]["coordinates"][1] = floatval($city["geoPosition"]["coordinates"][1]);
 
@@ -550,6 +552,16 @@ class City {
 		return $city;
 	}
 
+	public static function getZone($insee, $cp = null, $zone = null){
+		
+		$city = PHDB::findOne( City::COLLECTION, array("insee" => $insee));// ,$fields);
+	
+		$zone = PHDB::findOne( City::ZONES, array("_id" => $insee));
+		
+		
+		return $city;
+	}
+
 	public static function getCityByInsee($insee){
 		$where = array("insee" => $insee);
 		//$fields = array("_id");
@@ -606,9 +618,10 @@ class City {
 		
 		$newCities["wikidataID"] = $wikidataID;
 		$wikidata = json_decode(SIG::getWikidata($wikidataID),true);
-		$valWiki = @$wikidata["entities"][$value["extratags"]["wikidata"]]["claims"];     
-	    
-	    $newCities["insee"] = $valWiki[City::getInseeWikidataIDByCountry($countryCode)][0]["mainsnak"]["datavalue"]["value"]."*".$countryCode;
+		$valWiki = @$wikidata["entities"][$wikidataID]["claims"];
+		$arrayAdd = array();
+		$arrayCp = array();
+	    $newCities["insee"] = $valWiki[City::getInseeWikidataIDByCountry($newCities["country"])][0]["mainsnak"]["datavalue"]["value"]."*".$newCities["country"];
 
 	    $postalCodes = array() ;
 	    if(!empty($valWiki)){
@@ -637,16 +650,16 @@ class City {
 	                //var_dump($valueCP);
 	                if(!in_array($valueCP, $arrayAdd)){
 	                    $arrayAdd[] =  $valueCP;
-	                    $postalCodes[]  = array("name" => $value["address"]["city"],
+	                    $postalCodes[]  = array("name" => $newCities["name"],
 	                                    "postalCode" => $valueCP,
 	                                    "geo" => array( "@type"=>"GeoCoordinates", 
-	                                                    "latitude" => $value["lat"], 
-	                                                    "longitude" => $value["lon"]),
+	                                                    "latitude" => $newCities["geo"]["latitude"], 
+	                                                    "longitude" => $newCities["geo"]["longitude"]),
 	                                    "geoPosition" => array( "type"=>"Point",
 	                                    						"float" => true,
 	                                                            "coordinates" => array(
-	                                                                floatval($value["lon"]), 
-	                                                                floatval($value["lat"]))));  
+	                                                                floatval($newCities["geo"]["longitude"]), 
+	                                                                floatval($newCities["geo"]["latitude"]))));  
 	                }
 	            }
 	            
@@ -666,6 +679,75 @@ class City {
 			$res = true;
 		
 		return $res;
+	}
+
+	public static function getAllCities(){
+		$cities = City::getWhere(array());
+		//ini_set('memory_limit', '-1');
+		//$cities =  PHDB::find( self::COLLECTION,array());
+		$res = array(	"goods" => array(),
+						"errors" => array(),
+						"news" => array());
+
+		foreach ($cities as $key => $city) {
+			
+			$msg = self::checkCity($city);
+			if(!empty($city["new"]) && $city["new"]==true){
+				if($msg != "")
+					$city["msgErrors"] = $msg;
+				$res["news"][(String)$city["_id"]] = $city;
+			}
+			else if($msg != ""){
+				$city["msgErrors"] = $msg;
+				$res["errors"][(String)$city["_id"]] = $city;
+			}else
+				$res["goods"][(String)$city["_id"]] = $city;
+		}
+		return $res ;
+	}
+
+	public static function checkCity($city){
+		$msgErrors = "" ;
+
+		if(empty($city["name"]))
+			$msgErrors = "The name is missing.<br\>" ;
+		if(empty($city["alternateName"]))
+			$msgErrors = "The alternateName is missing.<br\>" ;
+		if(empty($city["insee"]))
+			$msgErrors = "The insee is missing.<br\>" ;
+		if(empty($city["country"]))
+			$msgErrors = "The country is missing.<br\>" ;
+		if(empty($city["dep"]))
+			$msgErrors = "The dep is missing.<br\>" ;
+		if(empty($city["depName"]))
+			$msgErrors = "The depName is missing.<br\>" ;
+		if(empty($city["region"]))
+			$msgErrors = "The region is missing.<br\>" ;
+		if(empty($city["regionName"]))
+			$msgErrors = "The regionName is missing.<br\>" ;
+
+		if(empty($city["geo"]))
+			$msgErrors = "The geo is missing.<br\>" ;
+		if(empty($city["geoPosition"]))
+			$msgErrors = "The geoPosition is missing.<br\>" ;
+
+		if(empty($city["geoShape"]))
+			$msgErrors = "The geoShape is missing.<br\>" ;
+
+		if(empty($city["postalCodes"])){
+			foreach ($city["postalCodes"] as $keyPC => $postalCode) {
+				if(empty($postalCode["postalCode"]))
+					$msgErrors = "The postalCode is missing.<br\>" ;
+				if(empty($postalCode["name"]))
+					$msgErrors = "The name is missing for postal code ".$postalCode["postalCode"].".<br\>" ;
+				if(empty($postalCode["geo"]))
+					$msgErrors = "The geo is missing for postal code ".$postalCode["postalCode"].".<br\>" ;
+				if(empty($postalCode["geoPosition"]))
+					$msgErrors = "The geoPosition is missing for postal code ".$postalCode["postalCode"].".<br\>" ;
+			}
+		}
+
+		return $msgErrors;
 	}
 
 	
@@ -693,7 +775,48 @@ class City {
         }
         return $res;
 	}
+
+	public static function prepCity ($params) { 
+
+        if(!empty($params["name"]))
+        	$params["alternateName"]= mb_strtoupper($params["name"]);
+        
+        if(!empty($params["latitude"]) && !empty($params["longitude"])){
+        	$params["geo"]= SIG::getFormatGeo($params["latitude"], $params["longitude"]);
+			$params["geoPosition"]= SIG::getFormatGeoPosition($params["latitude"], $params["longitude"]);
+        }
+
+        if(!empty($params["wikidata"]))
+        	$params["wikidataID"]= $params["wikidata"];
+        
+        if(!empty($params["osmid"]))
+        	$params["osmID"]= $params["osmid"];
+        
+ 		if(!empty($params["postalCodes"])){
+ 			$newPostalCodes = array();
+        	foreach ($params["postalCodes"] as $keyCP => $valueCP) {
+        		$newCP = array();
+        		$newCP["postalCode"] = $valueCP["postalCode"];
+        		$newCP["name"] = $valueCP["name"];
+        		$newCP["geo"] = SIG::getFormatGeo($valueCP["latitude"], $valueCP["longitude"]);
+        		$newCP["geoPosition"]= SIG::getFormatGeoPosition($valueCP["latitude"], $valueCP["longitude"]);
+        		$newPostalCodes[] = $newCP;
+        	}
+        	$params["postalCodes"] = $newPostalCodes;
+ 		}
+ 		
+        unset($params["osmid"]);
+        unset($params["wikidata"]);
+        unset($params["latitude"]);
+        unset($params["longitude"]);
+
+		return $params;
+    }
 	
+	public static function getZones($insee){
+		$zones =PHDB::findAndSort(self::ZONES,array("insee" =>$insee), array("name" => 1));
+	  	return $zones;
+	}
 
 	/*
 	public static function createCitizenAssemblies(){
