@@ -200,6 +200,12 @@ class City {
 		//return array("country" => $country, "insee" => $insee, "cp" => $cp);
 	}
 
+	public static function getById($id){
+		$city = PHDB::findOne( self::COLLECTION , array("_id"=>new MongoId($id)));
+		if (!empty($city)) return $city;
+		return null;
+	}
+
 	/* Retourne le code de la region d'une commune par rapport a son code insee */
 	public static function getCodeRegion($insee){
 		$where = array("insee" => $insee);
@@ -912,7 +918,36 @@ class City {
 	}*/
 
 
+	public static function getDetail($collection, $id){
+		$where = array("_id"=>new MongoId($id));
 
+		/*if(!empty($cp))
+			$where["postalCodes.postalCode"] = $cp;*/
+
+		$zone = PHDB::findOne($collection, $where);
+	
+		/*if(isset($city["postalCodes"]))
+		foreach ($city["postalCodes"] as $key => $value) {
+			if(!empty($cp) && $value["postalCode"] == $cp){
+				$city["namePc"] = $value["name"];
+				$city["cp"] = $value["postalCode"];
+				$city["geo"] = $value["geo"];
+				$city["geoPosition"] = $value["geoPosition"];
+				return $city;
+			}else{
+				$city["namePc"][] = $value["name"];
+				$city["cpArray"][] = $value["postalCode"];
+
+				if($value["name"] == $city["name"])
+					$city["cp"] = $value["postalCode"];
+			}
+		}
+
+		if(empty($city["cp"]))
+			$city["cp"] = $city["cpArray"][0];*/
+		
+		return $zone;
+	}
 
 
 }
