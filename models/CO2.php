@@ -140,6 +140,15 @@ class CO2 {
 						                      "icon" => "", 
 						                      "mainTitle" => "Le réseau social Calédonien",
 						                      "placeholderMainSearch" => "rechercher parmis les membres du réseau ..."),
+    							
+    								"#co2.info"=>
+    								  	array("inMenu" => false, 
+						                      "useHeader" => false, 
+						                      "subdomain" => "apropos", 
+						                      "subdomainName" => "Info",
+						                      "icon" => "search", 
+						                      "mainTitle" => "Le moteur de recherche des Cagous",
+						                      "placeholderMainSearch" => "rechercher parmis les membres du réseau ..."),
     							) 								  
 
     					));

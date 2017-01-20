@@ -50,7 +50,7 @@ class Thing {
         $dataThing['type']='smartCitizen';
         $dataThing['boardId']=$headers['X-SmartCitizenMacADDR'];
         $dataThing['version']=$headers['X-SmartCitizenVersion'];
-        
+        error_log("fillSmartCitizenData $dataThing");
         return array_merge($dataThing, $datapoints);
 	}
 	
