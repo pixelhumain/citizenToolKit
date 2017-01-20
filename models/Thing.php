@@ -43,7 +43,8 @@ class Thing {
 		$dataThing = array();
 
 		$data = $headers['X-SmartCitizenData']; 
-        $datapoints = json_decode($data,true);
+        $datasub = substr($data, 1, (strlen($data)-2));
+        $datapoints = json_decode($datasub,true);
                 
         $dataThing['key']='thing';
         $dataThing['collection']='thing';
@@ -54,6 +55,5 @@ class Thing {
         return array_merge($dataThing, $datapoints);
 	}
 	
-
 }
 ?>
