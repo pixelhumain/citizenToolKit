@@ -36,10 +36,10 @@ class WebSearchAction extends CAction
         if(!isset($_POST["category"]) && (!isset($_POST["search"]) || @$_POST["search"] == ""))
     		$query = array();
 
-    	//if($status != "uncategorized")
-    	//$query['$and'] = array(array("status" => $status)); //validated active locked uncomplet
-    	// else
-        if($status == "uncategorized")
+    	if($status != "uncategorized")
+    	$query['$and'][] = array("status" => $status); //validated active locked uncomplet
+    	 else
+        //if($status == "uncategorized")
     	$query['$and'] = array(array("categories" => "")); //validated active locked uncomplet
     		
     	CO2Stat::incNbLoad("co2-websearch");
