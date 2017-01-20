@@ -607,9 +607,10 @@ class City {
 		
 		$newCities["wikidataID"] = $wikidataID;
 		$wikidata = json_decode(SIG::getWikidata($wikidataID),true);
-		$valWiki = @$wikidata["entities"][$value["extratags"]["wikidata"]]["claims"];     
-	    
-	    $newCities["insee"] = $valWiki[City::getInseeWikidataIDByCountry($countryCode)][0]["mainsnak"]["datavalue"]["value"]."*".$countryCode;
+		$valWiki = @$wikidata["entities"][$wikidataID]["claims"];
+		$arrayAdd = array();
+		$arrayCp = array();
+	    $newCities["insee"] = $valWiki[City::getInseeWikidataIDByCountry($newCities["country"])][0]["mainsnak"]["datavalue"]["value"]."*".$newCities["country"];
 
 	    $postalCodes = array() ;
 	    if(!empty($valWiki)){
@@ -638,16 +639,16 @@ class City {
 	                //var_dump($valueCP);
 	                if(!in_array($valueCP, $arrayAdd)){
 	                    $arrayAdd[] =  $valueCP;
-	                    $postalCodes[]  = array("name" => $value["address"]["city"],
+	                    $postalCodes[]  = array("name" => $newCities["name"],
 	                                    "postalCode" => $valueCP,
 	                                    "geo" => array( "@type"=>"GeoCoordinates", 
-	                                                    "latitude" => $value["lat"], 
-	                                                    "longitude" => $value["lon"]),
+	                                                    "latitude" => $newCities["geo"]["latitude"], 
+	                                                    "longitude" => $newCities["geo"]["longitude"]),
 	                                    "geoPosition" => array( "type"=>"Point",
 	                                    						"float" => true,
 	                                                            "coordinates" => array(
-	                                                                floatval($value["lon"]), 
-	                                                                floatval($value["lat"]))));  
+	                                                                floatval($newCities["geo"]["longitude"]), 
+	                                                                floatval($newCities["geo"]["latitude"]))));  
 	                }
 	            }
 	            
