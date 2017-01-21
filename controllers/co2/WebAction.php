@@ -9,7 +9,7 @@ class WebAction extends CAction
         
         CO2Stat::incNbLoad("co2-web");
 
-        $cookiesFav = isset( Yii::app()->request->cookies['webFavorites'] ) ? 
+        $cookiesFav = isset( Yii::app()->request->cookies['webFavorites'] ) && Yii::app()->request->cookies['webFavorites'] != "" ? 
 		   			    		 explode(",", Yii::app()->request->cookies['webFavorites']->value) : array();
     	
     	$myWebFavorites = array();
