@@ -2,7 +2,7 @@
 
 class DetailAction extends CAction
 {
-	public function run( $insee, $postalCode=null )
+	public function run( $insee, $postalCode=null, $zone=null )
     {
         $controller = $this->getController();
         //echo $insee;
@@ -13,8 +13,10 @@ class DetailAction extends CAction
 
         //$city = PHDB::findOne(City::COLLECTION, array( "insee" => $insee,  "postalCodes.postalCode" => $postalCode ) );
 
-        //if(!empty($postalCode))
-        $city = City::getCityByInseeCp($insee, $postalCode);
+        if(empty($zone))
+            $city = City::getCityByInseeCp($insee, $postalCode);
+        else
+            $city = City::getZone($insee, $zone);
         /*else
             $city = City::getWhere(array(insee => $insee),null, 1); */
 
@@ -117,6 +119,8 @@ class DetailAction extends CAction
         $params["insee"] = $insee;
         $params["city"] = $city;
 
+        $params["zones"] = City::getZones( $insee );
+        $params["postalCodes"] = $city["postalCodes"];
         
         //$page = "detail2";
 
