@@ -1,6 +1,6 @@
 <?php
 
-class DetailAction extends CAction
+class DetailoldAction extends CAction
 {
 	public function run( $insee, $postalCode=null )
     {
@@ -126,7 +126,7 @@ class DetailAction extends CAction
             $params["cityGlobal"] = false;
         else
             $params["cityGlobal"] = true;
-        $page = "detail";
+        $page = "detailOld";
         if(Yii::app()->request->isAjaxRequest)
             echo $controller->renderPartial($page,$params,true);
         else 

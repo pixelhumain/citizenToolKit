@@ -202,7 +202,10 @@ class City {
 
 	public static function getById($id){
 		$city = PHDB::findOne( self::COLLECTION , array("_id"=>new MongoId($id)));
-		if (!empty($city)) return $city;
+		if (!empty($city)){
+			$city["type"] = self::COLLECTION;
+			return $city;
+		} 
 		return null;
 	}
 
