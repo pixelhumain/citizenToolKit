@@ -264,12 +264,10 @@ class Element {
 		$dataFieldName = self::getCollectionFieldNameAndValidate($collection, $fieldName, $fieldValue, $id);
 		
 		$verb = (empty($fieldValue) ? '$unset' : '$set');
-		//$verb = '$set' ;
-		//$set = array($fieldName => $fieldValue);
+		
+		if ($dataFieldName == "name") 
+			$fieldValue = htmlspecialchars($fieldValue);
 
-		//Specific case : 
-		//Tags
-		//var_dump($dataFieldName);
 		if ($dataFieldName == "tags") {
 			$fieldValue = Tags::filterAndSaveNewTags($fieldValue);
 			$set = array($dataFieldName => $fieldValue);
@@ -950,7 +948,9 @@ class Element {
 				$params["allDay"] = false;
 			}
 		}
-
+		if(isset($params["name"])) 
+	    	$params["name"] = htmlspecialchars($params["name"]);
+	
 		//TODO SBAR - Manage elsewhere (maybe in the view)
 		//Manage the event startDate and endDate format : 
 		//it comes with the format DD/MM/YYYY HH:ii or DD/MM/YYYY 
