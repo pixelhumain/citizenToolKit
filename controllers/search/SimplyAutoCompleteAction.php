@@ -28,7 +28,7 @@ class SimplyAutoCompleteAction extends CAction
         /***********************************  DEFINE GLOBAL QUERY   *****************************************/
         $query = array( "name" => new MongoRegex("/".$search."/i"));
 
-        var_dump($query);
+        //var_dump($query);
         /***********************************  TAGS   *****************************************/
         $tmpTags = array();
         if(strpos($search, "#") > -1){
