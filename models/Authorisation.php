@@ -609,6 +609,8 @@ class Authorisation {
         {   $res = Preference::isOpenEdition(Preference::getPreferencesByTypeId($itemId, $type));
             //var_dump($res);
             if($res != true){
+                if( $type == Person::COLLECTION && $itemId == $userId)
+                    $res = true;
                 if( $type == Organization::COLLECTION )
                     $res = self::isOrganizationMember($userId, $itemId);
                 if( $type == Project::COLLECTION )

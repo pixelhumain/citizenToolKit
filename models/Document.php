@@ -68,6 +68,19 @@ class Document {
 	/**
 	 * save document information
 	 * @param $params : a set of information for the document (?to define)
+	 * $params = array(
+			"id" => $_POST['id'],
+	  		"type" => $_POST['type'],
+	  		"folder" => $_POST['folder'],
+	  		"moduleId" => $_POST['moduleId'],
+	  		"name" => $_POST['name'],
+	  		"size" => (int) $_POST['size'],
+	  		"contentKey" => $_POST["contentKey"],
+	  		"author" => Yii::app()->session["userId"]
+	    );
+		$params["parentType"] = $_POST["parentType"];
+		$params["parentId"] = $_POST["parentId"];			
+		$params["formOrigin"] = $_POST["formOrigin"];
 	*/
 	public static function save($params){
 		
@@ -83,7 +96,7 @@ class Document {
 	  		"author" => $params['author'],
 	  		"name" => $params['name'],
 	  		"size" => (int) $params['size'],
-	  		"contentKey" => $params["contentKey"],
+	  		"contentKey" => @$params["contentKey"],
 	  		'created' => time()
 	    );
 		if (in_array($new["type"], array(Survey::COLLECTION, ActionRoom::COLLECTION, ActionRoom::COLLECTION_ACTIONS))) {
