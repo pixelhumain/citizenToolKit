@@ -3,7 +3,6 @@ class SimplyAutoCompleteAction extends CAction
 {
     public function run($filter = null)
     {
-
   		// $pathParams = Yii::app()->controller->module->viewPath.'/default/dir/';
 		// echo file_get_contents($pathParams."simply.json");
 		// die();
@@ -28,7 +27,6 @@ class SimplyAutoCompleteAction extends CAction
         /***********************************  DEFINE GLOBAL QUERY   *****************************************/
         $query = array( "name" => new MongoRegex("/".$search."/i"));
 
-        //var_dump($query);
         /***********************************  TAGS   *****************************************/
         $tmpTags = array();
         if(strpos($search, "#") > -1){
@@ -127,72 +125,7 @@ class SimplyAutoCompleteAction extends CAction
   		}
   		if(isset($allQueryLocality) && is_array($allQueryLocality))
   			$query = array('$and' => array($query, $allQueryLocality));
-  		// print_r($query);
-  		// $query = array('$and' => array($query, $queryLocality));
 
-    //     if($locality != null && $locality != ""){
-
-    //     	//$type = $this->getTypeOfLocalisation($locality);
-    //     	//if($searchBy == "INSEE")
-    //     	$type = $searchBy;
-
-    //     	$queryLocality = array();
-
-    //     	if($type == "NAME"){
-    //     		$queryLocality = array("address.addressLocality" => new MongoRegex("/".$locality."/i"));
-    //     	}
-    //     	if($type == "CODE_POSTAL_INSEE") {
-    //     		$queryLocality = array("address.postalCode" => $locality );
-    //     	}
-    //     	if($type == "DEPARTEMENT") {
-    //     		$queryLocality = array("address.postalCode"
-				// 		=> new MongoRegex("/^".$locality."/i"));
-    //     	}
-    //     	if($type == "REGION") {
-    //     		//#TODO GET REGION NAME | CITIES.DEP = myDep
-    //     		$regionName = PHDB::findOne( City::COLLECTION, array("insee" => $locality), array("regionName", "dep"));
-
-				// if(isset($regionName["regionName"])){ //quand la city a bien la donnée "regionName"
-    //     			$regionName = $regionName["regionName"];
-    //     			//#TODO GET ALL DEPARTMENT BY REGION
-    //     			$deps = PHDB::find( City::COLLECTION, array("regionName" => $regionName), array("dep"));
-    //     			$departements = array();
-    //     			$inQuest = array();
-    //     			foreach($deps as $index => $value){
-    //     				if(!in_array($value["dep"], $departements)){
-	   //      				$departements[] = $value["dep"];
-	   //      				$inQuest[] = new MongoRegex("/^".$value["dep"]."/i");
-				//         	$queryLocality = array("address.postalCode" => array('$in' => $inQuest));
-
-				//         }
-    //     			}
-    //     			//$queryLocality = array('$or' => $orQuest);
-    //     			//error_log("queryLocality : " . print_R($queryLocality, true));
-
-    //     		}else{ //quand la city communectée n'a pas la donnée "regionName", on prend son département à la place
-    //     			$regionName = isset($regionName["dep"]) ? $regionName["dep"] : "";
-    //     			$queryLocality = array("address.postalCode"
-				// 		=> new MongoRegex("/^".$regionName."/i"));
-    //     		}
-
-
-    //     		//$str = implode(",", $regionName);
-    //     		error_log("regionName : ".$regionName );
-
-    //     		//#TODO CREATE REQUEST CITIES.POSTALCODE IN (LIST_DEPARTMENT)"
-    //   //   		$queryLocality = array("address.postalCode"
-				// 		// => new MongoRegex("/^".$locality."/i"));
-    //     	}
-    //     	if($type == "INSEE") {
-    //     		$queryLocality = array("address.codeInsee" => $locality );
-    //     	}
-
-    //     	$query = array('$and' => array($query, $queryLocality ) );
-	   //  }
-
-
-
-	    //$res = array();
 	    $allRes = array();
 
         /***********************************  PERSONS   *****************************************/
@@ -207,7 +140,6 @@ class SimplyAutoCompleteAction extends CAction
 				$allCitoyen[$key] = $person;
 	  		}
 
-	  		//$res["citoyen"] = $allCitoyen;
 	  		$allRes = array_merge($allRes, $allCitoyen);
 
 	  	}
@@ -219,26 +151,11 @@ class SimplyAutoCompleteAction extends CAction
 													 			"address" => 1, "pending" => 1, "tags" => 1, "geo" => 1, "source.key" => 1));
 	  		foreach ($allOrganizations as $key => $value) {
 	  			$orga = Organization::getSimpleOrganizationById($key);
-
-	  			// $followers = Organization::getFollowersByOrganizationId($key);
-	  			// if(@$followers[Yii::app()->session["userId"]]){
-		  		// 	$orga["isFollowed"] = true;
-	  			// }
-
-	  	// 		$allOrganizations[$key]["profilThumbImageUrl"] = "";
-				// $allOrganizations[$key]["profilMarkerImageUrl"] = "//com/assets/dad45ab2/images/sig/markers/icons_carto/";
-				// $allOrganizations[$key]["logoImageUrl"] = "";
-
-				// $allOrganizations[$key]["address"] = empty($value["address"]) ? array("addressLocality" => "Unknown") : $value["address"];
-
-				// $allOrganizations[$key] = Organization::getSimpleOrganizationById($key);
-
 				$allOrganizations[$key] = $orga;
 				$allOrganizations[$key]["type"] = "organizations";
 				$allOrganizations[$key]["typeSig"] = "organizations";
 	  		}
 
-	  		//$res["organization"] = $allOrganizations;
 	  		$allRes = array_merge($allRes, $allOrganizations);
 	  	}
 
@@ -258,7 +175,6 @@ class SimplyAutoCompleteAction extends CAction
 				$allEvents[$key] = $event;
 	  		}
 
-	  		//$res["event"] = $allEvents;
 	  		$allRes = array_merge($allRes, $allEvents);
 	  	}
 
