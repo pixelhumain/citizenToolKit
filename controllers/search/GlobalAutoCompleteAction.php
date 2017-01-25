@@ -3,7 +3,7 @@ class GlobalAutoCompleteAction extends CAction
 {
     public function run($filter = null)
     {
-
+    	//ini_set('memory_limit', '-1');
         $search = trim(urldecode($_POST['name']));
         $locality = isset($_POST['locality']) ? trim(urldecode($_POST['locality'])) : null;
         $searchType = isset($_POST['searchType']) ? $_POST['searchType'] : null;
