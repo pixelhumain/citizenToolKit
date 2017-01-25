@@ -79,6 +79,7 @@ class Api {
             }
         }
 
+        $resData = ((!empty($data) && !empty($bindMap) )?Translate::convert($data , $bindMap):$data);
         // create JSON
         if(empty($id)){
             $meta["limit"] = $limit;
@@ -93,14 +94,11 @@ class Api {
                     $newIndex = 0 ;
                 $meta["previous"] = $server.Yii::app()->createUrl("/api/".Element::getControlerByCollection($type)."/get/limit/".$limit."/index/".$newIndex) ;
             }
+            $result["meta"] = $meta ;
+            $result["entities"] = $resData;
         }else{
-            $meta["limit"] = 1;
-
+            $result = $resData[$id];
         }
-
-        $result["meta"] = $meta ;
-        $result["entities"] = ((!empty($data) && !empty($bindMap) )?Translate::convert($data , $bindMap):$data);
-
         return $result;
     }
     

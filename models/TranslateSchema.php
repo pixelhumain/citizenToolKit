@@ -80,7 +80,7 @@ https://schema.org/Person
 	public static $dataBinding_organization = array(
 		"@context"  => "http://schema.org",
 		"@type"		=> "Organization",
-		"id" 		=> array("valueOf"  	=> '_id.$id', 
+		"@id" 		=> array("valueOf"  	=> '_id.$id', 
 							 "type" 	=> "url", 
 							 "prefix"   => "/data/get/type/organizations/id/",
 							 "suffix"   => "/format/schema" ),
@@ -88,19 +88,25 @@ https://schema.org/Person
 	    "address" 	=> array("parentKey"=>"address", 
 	    					 "valueOf" => array(
 								"@type" 			=> "PostalAddress", 
-								"@id" 				=> array("valueOf"  	=> 'codeInsee', 
+								/*"@id" 				=> array("valueOf"  	=> 'codeInsee', 
 															 "type" 	=> "url", 
 															 "prefix"   => "/data/get/type/city/insee/",
-															 "suffix"   => "/format/schema" ),
+															 "suffix"   => "/format/schema" ),*/
 								"addressLocality"   => array("valueOf" => "addressLocality"),
-								"addressRegion" 	=> array("valueOf" => "region"),
+								"addressRegion" 	=> array("valueOf" => "regionName"),
 								"postalCode" 		=> array("valueOf" => "postalCode"),
 				 				"streetAddress" 	=> array("valueOf" => "streetAddress")) ),
-	    "email"		=> array("valueOf" => "email"),
-		"image"		=> array("valueOf" => "img","type" 	=> "url", 
-							 "prefix"   => "/communecter/"),
+	    "email"		=> array(	"valueOf" 	=> "email",
+	    						"prefix" 	=> "mailto:"),
+		"image"		=> array(	"valueOf" => "img",
+								"type" 	=> "url", 
+							 	"prefix"   => "/communecter/"),
 		"telephone"	=> array("valueOf" => "phoneNumber"),
-		"url"		=> array("valueOf" => "url")
+		"url"		=> array("valueOf" => "url"),
+		"sameAs"	=> array("valueOf"  	=> '_id.$id', 
+							 "type" 	=> "url", 
+							 "prefix"   => "/#person.detail.id.",
+							 "suffix"   => "" )
 	);
 
 	public static $dataBinding_allProject = array(
