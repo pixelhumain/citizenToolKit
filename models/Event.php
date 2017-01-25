@@ -26,6 +26,7 @@ class Event {
 	    "parentType" => array("name" => "parentType"),
 	    "organizerId" => array("name" => "organizerId"),
 	    "organizerType" => array("name" => "organizerType"),
+	    "organizer" => array("name" => "organizer", "rules" => array("validOrganizer")),
 
 
 	    "address" => array("name" => "address", "rules" => array("addressValid")),
@@ -95,8 +96,8 @@ class Event {
 			if (gettype($event["startDate"]) == "object" && gettype($event["endDate"]) == "object") {
 				//Set TZ to UTC in order to be the same than Mongo
 				date_default_timezone_set('UTC');
-				$event["startDate"] = date('Y-m-d H:i:s', $event["startDate"]->sec);
-				$event["endDate"] = date('Y-m-d H:i:s', $event["endDate"]->sec);
+				$event["startDate"] = date(DateTime::ISO8601, $event["startDate"]->sec);
+				$event["endDate"] = date(DateTime::ISO8601, $event["endDate"]->sec);
 			} else {
 				//Manage old date with string on date event
 				$now = time();
@@ -121,21 +122,32 @@ class Event {
 	public static function getSimpleEventById($id) {
 		
 		$simpleEvent = array();
-		$event = PHDB::findOneById( self::COLLECTION ,$id, array("id" => 1, "name" => 1, "type" => 1,  "shortDescription" => 1, "description" => 1, "address" => 1, "geo" => 1, "tags" => 1, "profilImageUrl" => 1, "profilThumbImageUrl" => 1, "profilMarkerImageUrl" => 1, "profilMediumImageUrl" => 1, "startDate" => 1, "endDate" => 1, "addresses"=>1));
+		$event = PHDB::findOneById( self::COLLECTION ,$id, array("id" => 1, "name" => 1, "type" => 1,  "shortDescription" => 1, "description" => 1, "address" => 1, "geo" => 1, "tags" => 1, "profilImageUrl" => 1, "profilThumbImageUrl" => 1, "profilMarkerImageUrl" => 1, "profilMediumImageUrl" => 1, "startDate" => 1, "endDate" => 1, "addresses"=>1, "allDay" => 1));
 		if(!empty($event)){
 			$simpleEvent["id"] = $id;
 			$simpleEvent["_id"] = $event["_id"];
 			$simpleEvent["name"] = @$event["name"];
-			$simpleEvent["startDate"] = @$event["startDate"];
-			$simpleEvent["endDate"] = @$event["endDate"];
+			if (gettype($event["startDate"]) == "object" /*&& gettype($event["endDate"]) == "object"*/) {
+				//Set TZ to UTC in order to be the same than Mongo
+				date_default_timezone_set('UTC');
+				$simpleEvent["startDate"] = date(DateTime::ISO8601, $event["startDate"]->sec);
+				$simpleEvent["startDateSec"] = $event["startDate"]->sec ;
+				/*$simpleEvent["endDate"] = date(DateTime::ISO8601, $event["endDate"]->sec);
+				$simpleEvent["endDateSec"] = $event["endDate"]->sec ;*/
+			}
+			if ( gettype($event["endDate"]) == "object") {
+				//Set TZ to UTC in order to be the same than Mongo
+				date_default_timezone_set('UTC');
+				$simpleEvent["endDate"] = date(DateTime::ISO8601, $event["endDate"]->sec);
+				$simpleEvent["endDateSec"] = $event["endDate"]->sec ;
+			}
 			$simpleEvent["type"] = @$event["type"];
 			$simpleEvent["geo"] = @$event["geo"];
 			$simpleEvent["tags"] = @$event["tags"];
 			$simpleEvent["shortDescription"] = @$event["shortDescription"];
 			$simpleEvent["description"] = @$event["description"];
-			$simpleEvent["startDate"] = @$event["startDate"];
-			$simpleEvent["endDate"] = @$event["endDate"];
 			$simpleEvent["addresses"] = @$event["addresses"];
+			$simpleEvent["allDay"] = @$event["allDay"];
 			
 			$simpleEvent = array_merge($simpleEvent, Document::retrieveAllImagesUrl($id, self::COLLECTION, $simpleEvent["type"], $event));
 			
@@ -421,10 +433,6 @@ class Event {
 	    	$params["organizerId"] = Yii::app()->session['userId'];
 	    }
 
-
-	    
-
-
 	    //if it's a subevent, add the organiser to the parent user Organiser list 
     	//ajouter le nouveau sub user dans organiser ?
     	if( @$params["parentId"] )
@@ -601,6 +609,7 @@ class Event {
 		}
 
 		$dataFieldName = self::getCollectionFieldNameAndValidate($eventFieldName, $eventFieldValue, $eventId);
+		error_log("Update event : ".$dataFieldName);
 		if ($dataFieldName == "tags") {
 			$eventFieldValue = Tags::filterAndSaveNewTags($eventFieldValue);
 			$set = array($dataFieldName => $eventFieldValue);
@@ -629,10 +638,17 @@ class Event {
 			}
 			$newMongoDate = new MongoDate($dt->getTimestamp());
 			$set = array($dataFieldName => $newMongoDate);	
+		} else if ($dataFieldName == "organizer") {
+			error_log("Vlan maj d'organizer");
+			$set = array("organizerId" => $eventFieldValue["organizerId"], 
+							 "organizerType" => $eventFieldValue["organizerType"]);
+			Link::addOrganizer($eventFieldValue["organizerId"], $eventFieldValue["organizerType"], $eventId, $userId);
 		} else {
 			$set = array($dataFieldName => $eventFieldValue);
 		}
+		
 		$res = Event::updateEvent($eventId, $set, $userId);
+
 		if($authorization == "openEdition" && $dataFieldName != "badges"){
 			// Add in activity to show each modification added to this entity
 					//echo $dataFieldName;
@@ -679,8 +695,8 @@ class Event {
 	  		{
 				if (gettype($value["startDate"]) == "object" && gettype($value["endDate"]) == "object") 
 				{
-					$events[$key]["startDate"] = date('Y-m-d H:i:s', $value["startDate"]->sec);
-					$events[$key]["endDate"] = date('Y-m-d H:i:s', $value["endDate"]->sec);
+					$events[$key]["startDate"] = date(DateTime::ISO8601, $value["startDate"]->sec);
+					$events[$key]["endDate"] = date(DateTime::ISO8601, $value["endDate"]->sec);
 				} 
 				else 
 				{

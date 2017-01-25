@@ -172,7 +172,7 @@ class Element {
 	    }
 	    
 	    //if ( !$hashOnly && @$el ) 
-	    $link = '<a href="#'.$link.'" class="lbh">'.htmlspecialchars(@$el['name']).'</a>';
+	    $link = '<a href="#'.$link.'" class="lbh add2fav">'.htmlspecialchars(@$el['name']).'</a>';
 	    
     	return $link;
     }
@@ -264,12 +264,10 @@ class Element {
 		$dataFieldName = self::getCollectionFieldNameAndValidate($collection, $fieldName, $fieldValue, $id);
 		
 		$verb = (empty($fieldValue) ? '$unset' : '$set');
-		//$verb = '$set' ;
-		//$set = array($fieldName => $fieldValue);
+		
+		if ($dataFieldName == "name") 
+			$fieldValue = htmlspecialchars($fieldValue);
 
-		//Specific case : 
-		//Tags
-		//var_dump($dataFieldName);
 		if ($dataFieldName == "tags") {
 			$fieldValue = Tags::filterAndSaveNewTags($fieldValue);
 			$set = array($dataFieldName => $fieldValue);
@@ -429,6 +427,20 @@ class Element {
 			$dt = DataValidator::getDateTimeFromString($fieldValue, $dataFieldName);
 			$newMongoDate = new MongoDate($dt->getTimestamp());
 			$set = array($dataFieldName => $newMongoDate);
+		} else if ($dataFieldName == "organizer") {
+			$set = array("organizerId" => $fieldValue["organizerId"], 
+							 "organizerType" => $fieldValue["organizerType"]);
+			//get element and remove current organizer
+			$element = Element::getElementById($id, $collection);
+			$oldOrganizerId = @$element["organizerId"] ? $element["organizerId"] : key($element["links"]["organizer"]);
+			$oldOrganizerType = @$element["organizerType"] ? $element["organizerType"] : $element["links"]["organizer"][$oldOrganizerId]["type"];
+			//remove the old organizer
+			$res = Link::removeOrganizer($oldOrganizerId, $oldOrganizerType, $id, Yii::app()->session["userId"]);
+			if (! @$res["result"]) throw new CTKException(@$res["msg"]);
+			//add new organizer
+			$res = Link::addOrganizer($fieldValue["organizerId"], $fieldValue["organizerType"], $id, Yii::app()->session["userId"]);
+			if (! @$res["result"]) throw new CTKException(@$res["msg"]);
+
 		} else if ($dataFieldName == "seePreferences") {
 			//var_dump($fieldValue);
 			if($fieldValue == "false"){
@@ -491,15 +503,13 @@ class Element {
 					$verbActivity = ActStr::VERB_UPDATE ;
 				ActivityStream::saveActivityHistory($verbActivity, $id, $collection, $dataFieldName, $fieldValue);
 			}
-			$res = array("result"=>true,"msg"=>Yii::t(Element::getControlerByCollection($collection),"The ".Element::getControlerByCollection($collection)." has been updated"));
+			$res = array("result"=>true,"msg"=>Yii::t(Element::getControlerByCollection($collection),"The ".Element::getControlerByCollection($collection)." has been updated"), "value" => $fieldValue);
 
 			if(isset($firstCitizen))
 				$res["firstCitizen"] = $firstCitizen ;
 		}else{
 			throw new CTKException("Can not update the element!");
 		}
-		
-
 		return $res;
 	}
 
@@ -760,37 +770,6 @@ class Element {
 		if ($elementType != Poi::COLLECTION && $elementType != Poi::CONTROLLER) {
             return array( "result" => false, "msg" => "For now you can only delete Points of interest" );   
         }
-
-/*<<<<<<< HEAD
-
-	public static function getWhere($type, $params) {
-		$res = null ;
-		if(in_array($type, self::TYPES))
-	  		$res = PHDB::findAndSort($type,$params,array("created"),null);
-	  	return $res ;
-	}
-
-	public static function getAllEntitiesByKey($key){
-        $result = array();
-        foreach (self::TYPES as $key => $type) {
-        	$res = self::getWhere($type, array("source.key"=>$key, "state" => "uncomplete"));
-	        foreach ($res as $key => $value) {
-	            $element = array();
-	            $element["id"] = $key;
-	            $element["name"] = $value["name"];
-	            $element["warnings"] = (empty($value["warnings"])?array():$value["warnings"]);
-	            $result[$type][] = $element;
-	        }
-        }
-		return $result ;
-    }
-
-
-	public static function save($params){
-
-        //var_dump($params);
-
-======= */
 		if ( !@$userId) {
             return array( "result" => false, "msg" => "You must be loggued to delete something" );
         }
@@ -848,8 +827,10 @@ class Element {
         		$valid = array("result"=>false, "msg" => $e->getMessage());
         	}
 
-        if( $valid["result"]) {
-			if( $collection == Event::COLLECTION ){
+        if( $valid["result"]) 
+        {
+			if( $collection == Event::COLLECTION )
+			{
             	 $res = Event::formatBeforeSaving($params);
             	 if ($res["result"]) 
             	 	$params = $res["params"];
@@ -857,7 +838,8 @@ class Element {
             	 	throw new CTKException("Error processing the before saving on event");
             }
 
-            if($id) {
+            if($id) 
+            {
                 //update a single field
                 //else update whole map
                 //$changeMap = ( !$microformat && isset( $key )) ? array('$set' => array( $key => $params[ $key ] ) ) : array('$set' => $params );
@@ -867,7 +849,9 @@ class Element {
                              "reload"=>true,
                              "map"=>$params,
                              "id"=>$id);
-            } else {
+            } 
+            else 
+            {
                 $params["created"] = time();
                 PHDB::insert($collection, $params );
                 $res = array("result"=>true,
@@ -891,7 +875,8 @@ class Element {
 
                 $res["afterSaveGbl"] = self::afterSave((string)$params["_id"],$collection,$params,$postParams);
 
-                if( false && @$params["parentType"] && @$params["parentId"] ){
+                if( false && @$params["parentType"] && @$params["parentId"] )
+                {
                     //createdObjectAsParam($authorType, $authorId, $objectType, $objectId, $targetType, $targetId, $geo, $tags, $address, $verb="create")
                     //TODO
                     //Notification::createdObjectAsParam($authorType[Person::COLLECTION],$userId,$elementType, $elementType, $parentType[projet crée par une orga => orga est parent], $parentId, $params["geo"], (isset($params["tags"])) ? $params["tags"]:null ,$params["address"]);  
@@ -963,16 +948,21 @@ class Element {
 				$params["allDay"] = false;
 			}
 		}
-
+		if(isset($params["name"])) 
+	    	$params["name"] = htmlspecialchars($params["name"]);
+	
 		//TODO SBAR - Manage elsewhere (maybe in the view)
 		//Manage the event startDate and endDate format : 
 		//it comes with the format DD/MM/YYYY HH:ii or DD/MM/YYYY 
 		//and must be transform in YYYY-MM-DD HH:ii
-		if (@$params["startDate"]) {
+		/*if (@$params["startDate"]) {
 			$startDate = DateTime::createFromFormat('d/m/Y', $params["startDate"]);
 			if (empty($startDate)) {
 				$startDate = DateTime::createFromFormat('d/m/Y H:i', $params["startDate"]);
-				$params["startDate"] = $startDate->format('Y-m-d H:i');
+				if (! empty($startDate)) 
+					$params["startDate"] = $startDate->format('Y-m-d H:i');
+				else 
+					throw new CTKException("Start Date is not well formated !");
 			} else 
 				$params["startDate"] = $startDate->format('Y-m-d');
 		}
@@ -980,10 +970,13 @@ class Element {
 			$endDate = DateTime::createFromFormat('d/m/Y', $params["endDate"]);
 			if (empty($endDate)) {
 				$endDate = DateTime::createFromFormat('d/m/Y H:i', $params["endDate"]);
-				$params["endDate"] = $endDate->format('Y-m-d H:i');
+				if (! empty($endDate)) 
+					$params["endDate"] = $endDate->format('Y-m-d H:i');
+				else 
+					throw new CTKException("End Date is not well formated !");
 			} else 
 				$params["endDate"] = $endDate->format('Y-m-d');
-		}
+		}*/
 
         return $params;
      }

@@ -1031,6 +1031,9 @@ class ImportOld
                         $paramsLink = null;
                     }
 
+                   
+
+
                     if($typeEntity == "project")
                         $res = Project::insertProjetFromImportData($value, $post['creatorID'],Person::COLLECTION,true,$pathFolderImage, $paramsLink) ;
                     else if($typeEntity == "organization")

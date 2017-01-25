@@ -12,6 +12,7 @@ class SimplyAutoCompleteAction extends CAction
         $locality = isset($_POST['locality']) ? trim(urldecode($_POST['locality'])) : null;
         $searchType = isset($_POST['searchType']) ? $_POST['searchType'] : null;
         $searchTag = isset($_POST['searchTag']) ? $_POST['searchTag'] : null;
+        $searchPrefTag = isset($_POST['searchPrefTag']) ? $_POST['searchPrefTag'] : null;
         $searchBy = isset($_POST['searchBy']) ? $_POST['searchBy'] : "INSEE";
         $indexMin = isset($_POST['indexMin']) ? $_POST['indexMin'] : 0;
         $indexMax = isset($_POST['indexMax']) ? $_POST['indexMax'] : 100;
@@ -60,7 +61,8 @@ class SimplyAutoCompleteAction extends CAction
   	  			$tmpMainTag[] = new MongoRegex("/".$mainTag."/i");
   	  		}
 	  		if(count($tmpMainTag)){
-	  			$query = array('$and' => array( $query , array("tags" => array('$in' => $tmpMainTag))));
+	  			$verbTag = ( (!empty($searchPrefTag) && '$or' == $searchPrefTag) ? '$or' : '$and' );
+	  			$query = array($verbTag => array( $query , array("tags" => array('$in' => $tmpMainTag))));
 	  		}
 	  		unset($tmpMainTag);
 	  	}
@@ -78,7 +80,7 @@ class SimplyAutoCompleteAction extends CAction
 	  			$tmpSourceKey[] = new MongoRegex("/".$sourceKey."/i");
 	  		}
 	  		if(count($tmpSourceKey)){
-	  			$query = array('$and' => array( $query , array("source.key" => array('$in' => $tmpSourceKey))));
+	  			$query = array('$and' => array( $query , array("source.keys" => array('$in' => $tmpSourceKey))));
 	  		}
 	  		unset($tmpSourceKey);
 	  	}
