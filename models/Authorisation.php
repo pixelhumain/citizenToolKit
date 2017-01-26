@@ -537,6 +537,23 @@ class Authorisation {
         return $res;
     }
 
+    public static function canEditPoi($userId, $id){
+        $res = false;
+        $poi = Poi::getById($id);
+
+        if(@$poi && !empty($userId)) {
+            if( $poi["parentType"] == Person::COLLECTION && $userId == $poi["parentId"] )
+                return true;
+            if ( Authorisation::canEditItem($userId, $poi["parentId"], $poi["parentType"]) )  {
+                return true;
+           }
+        } else {
+            //RAJOUTER UN LOG
+            error_log("Problem with survey authorization, poiId:".@$id." & userId:".@$userId);
+        }
+        return $res;
+    }
+
 
     /**
     * Get the authorization for edit an item
@@ -593,6 +610,10 @@ class Authorisation {
     	else if($type == Survey::COLLECTION) 
         {
             $res = self::canEditSurvey($userId, $itemId,$parentType,$parentId);
+        }
+        else if($type == Poi::COLLECTION) 
+        {
+            $res = self::canEditPoi($userId, $itemId);
         }
     	return $res;
     }

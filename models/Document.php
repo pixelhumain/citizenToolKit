@@ -99,19 +99,21 @@ class Document {
 	  		"contentKey" => @$params["contentKey"],
 	  		'created' => time()
 	    );
-		if (in_array($new["type"], array(Survey::COLLECTION, ActionRoom::COLLECTION, ActionRoom::COLLECTION_ACTIONS))) {
-			 if (!Authorisation::canEditItem( $new['author'], $new['type'], $new['id'], @$params["parentType"],@$params["parentId"])) {
+	    //if item exists
+	    //if( PHDB::count($new['type'],array("_id"=>new MongoId($new['id']))) > 0 ){
+		if (in_array($params["type"], array(Survey::COLLECTION, ActionRoom::COLLECTION, ActionRoom::COLLECTION_ACTIONS))) {
+			 if (!Authorisation::canEditItem( $params['author'], $params['type'], $params['id'], @$params["parentType"],@$params["parentId"])) {
 		    	return array("result"=>false, "msg"=>Yii::t('document',"You are not allowed to modify the document of this item !") );
 		    }
 		} else {
-		    if (! Authorisation::canEditItem($new['author'], $new['type'], $new['id']) && !Authorisation::isOpenEdition($new['id'], $new['type']) && (!@$params["formOrigin"] || !Link::isLinked($new['id'], $new['type'], $new['author']))) {
+		    if (! Authorisation::canEditItem($params['author'], $params['type'], $params['id']) && !Authorisation::isOpenEdition($params['id'], $params['type']) && (!@$params["formOrigin"] || !Link::isLinked($params['id'], $params['type'], $params['author']))) {
 			    if(@$params["formOrigin"] && $params["formOrigin"]=="news")
 					return array("result"=>false, "msg"=>Yii::t('document',"You have no rights upload document on this item, just write a message !") );
 			    else
 		    		return array("result"=>false, "msg"=>Yii::t('document',"You are not allowed to modify the document of this item !") );
 		    }
 	    }
-
+		//}
 	    if(isset($params["category"]) && !empty($params["category"]))
 	    	$new["category"] = $params["category"];
 
