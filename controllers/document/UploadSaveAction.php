@@ -19,10 +19,8 @@ class UploadSaveAction extends CAction {
                 error_log("WATCH OUT ! - ERROR WHEN UPLOADING A FILE ! CHECK IF IT'S NOT AN ATTACK");
                 $res = array('result'=>false,'msg'=>Yii::t("document","Something went wrong with your upload!"));
             }
-            $res['file']=$file;
-            $res['tmp_dir'] = ini_get('upload_tmp_dir') ? ini_get('upload_tmp_dir') : sys_get_temp_dir();
-
-            
+            $res['file'] = $file;   
+                        
             $res = Document::checkFileRequirements($file, $dir, $folder, $ownerId, $input);
             if ($res["result"]) {
                 $res = Document::uploadDocument($file, $res["uploadDir"],$input,$rename);
