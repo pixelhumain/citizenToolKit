@@ -879,7 +879,6 @@ class Element {
 	public static function save($params){
         $id = null;
         $data = null;
-
         if(!@$params["collection"] && !@$params["key"])
         	return array("result"=> false, "error"=>"400", "msg" => "Bad Request");
 
@@ -940,27 +939,26 @@ class Element {
 
             if($id) 
             {
-            	var_dump($params);
+            	//var_dump($params);
                 //update a single field
                 //else update whole map
                 //$changeMap = ( !$microformat && isset( $key )) ? array('$set' => array( $key => $params[ $key ] ) ) : array('$set' => $params );
-                /*PHDB::update($collection,array("_id"=>new MongoId($id)), array('$set' => $params ));
+                PHDB::update($collection,array("_id"=>new MongoId($id)), array('$set' => $params ));
                 $res = array("result"=>true,
                              "msg"=>"Vos données ont été mises à jour.",
                              "reload"=>true,
                              "map"=>$params,
-                             "id"=>$id);*/
+                             "id"=>$id);
             } 
             else 
             {
-                /*$params["created"] = time();
+                $params["created"] = time();
                 PHDB::insert($collection, $params );
                 $res = array("result"=>true,
                              "msg"=>"Vos données ont bien été enregistrées.",
                              "reload"=>true,
                              "map"=>$params,
                              "id"=>(string)$params["_id"]);  
-                
                 //TODO
                 //self::afterSave();
                 
@@ -973,15 +971,13 @@ class Element {
                 	$res["afterSave"] = Event::afterSave($params);
                 else if( $collection == Project::COLLECTION )
                 	$res["afterSave"] = Project::afterSave($params, @$params["parentId"] , @$params["parentType"] );
-
                 $res["afterSaveGbl"] = self::afterSave((string)$params["_id"],$collection,$params,$postParams);
-
-                if( false && @$params["parentType"] && @$params["parentId"] )
-                {
+                //if( false && @$params["parentType"] && @$params["parentId"] )
+                //{
                     //createdObjectAsParam($authorType, $authorId, $objectType, $objectId, $targetType, $targetId, $geo, $tags, $address, $verb="create")
                     //TODO
                     //Notification::createdObjectAsParam($authorType[Person::COLLECTION],$userId,$elementType, $elementType, $parentType[projet crée par une orga => orga est parent], $parentId, $params["geo"], (isset($params["tags"])) ? $params["tags"]:null ,$params["address"]);  
-                }*/
+                //}
             }
           //  if(@$url = ( @$params["parentType"] && @$params["parentId"] && in_array($collection, array("poi") && Yii::app()->theme != "notragora")) ? "#".self::getControlerByCollection($params["parentType"]).".detail.id.".$params["parentId"] : null )
 	        //    $res["url"] = $url;

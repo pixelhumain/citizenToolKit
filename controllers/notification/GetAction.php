@@ -11,11 +11,11 @@ class GetAction extends CAction
         $res = array();
         if( Yii::app()->session["userId"] )
         {
-        	$params = array("notify.id"=>Yii::app()->session["userId"]);
+        	$params = array("notify.id.".Yii::app()->session["userId"] => array('$exists' => true));
             //$params = array("notify.id"=>Yii::app()->session["userId"]); 
             /*if( isset($_GET["ts"])) 
             	$params["timestamp"] = array('$gt'=>(int)$_GET["ts"]);*/
-
+                
             $res = ActivityStream::getNotifications($params);
         } else
             $res = array('result' => false , 'msg'=>'something somewhere went terribly wrong');

@@ -182,7 +182,6 @@ class Organization {
 
 	    $newOrganizationId = (string)$organization['_id'];
 		Badge::addAndUpdateBadges("opendata", $newOrganizationId, Organization::COLLECTION);
-		
 		//Manage link with the creator depending of the role selected
 		if (@$organization["role"] == "admin") {
 			$isToLink = true;
@@ -202,7 +201,6 @@ class Organization {
 			//Create link in both entity person and organization 
 			Link::connect($newOrganizationId, Organization::COLLECTION, $memberId, Person::COLLECTION, $creatorId,"members",$isAdmin);
 			Link::connect($memberId, Person::COLLECTION, $newOrganizationId, Organization::COLLECTION, $creatorId,"memberOf",$isAdmin);
-		   // Link::addMember($newOrganizationId, Organization::COLLECTION, $memberId, Person::COLLECTION, $creatorId, $isAdmin);
 		}
 
 		if (@$paramsImport) {
@@ -269,7 +267,7 @@ class Organization {
 	    	$orgaCodeInsee=$organization["address"];
 	    else
 	    	$orgaCodeInsee="";
-	    
+
 		Notification::createdObjectAsParam(Person::COLLECTION,$creatorId,Organization::COLLECTION, $newOrganizationId, Person::COLLECTION,$creatorId, $orgaGeo,$orgaTags,$orgaCodeInsee);
 		ActivityStream::saveActivityHistory(ActStr::VERB_CREATE, $newOrganizationId, Organization::COLLECTION, "organization", $organization["name"]);
 	    $organization = Organization::getById($newOrganizationId);

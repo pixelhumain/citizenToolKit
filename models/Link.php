@@ -630,7 +630,8 @@ class Link {
 		$msg=Yii::t("common","You are following")." ".$parentData["name"];
 		Link::connect($parentId, $parentType, $childId, $childType,Yii::app()->session["userId"], $parentConnectAs);
 		Link::connect($childId, $childType, $parentId, $parentType, Yii::app()->session["userId"], $childConnectAs);
-		Notification::actionOnPerson($verb, ActStr::ICON_SHARE, $pendingChild , array("type"=>$parentType,"id"=> $parentId,"name"=>$parentData["name"]));
+        Notification::constructNotification($verb, $pendingChild , array("type"=>$parentType,"id"=> $parentId,"name"=>$parentData["name"]));
+		//Notification::actionOnPerson($verb, ActStr::ICON_SHARE, $pendingChild , array("type"=>$parentType,"id"=> $parentId,"name"=>$parentData["name"]));
 		return array( "result" => true , "msg" => $msg, "parentEntity" => $parentData );
 	}
 	 /**
@@ -673,6 +674,7 @@ class Link {
         $childId = @$child["childId"];
         $childType = $child["childType"];
         $invitation = false;
+        $levelNotif = null;
 
 		if($parentType == Organization::COLLECTION){
 			$parentData = Organization::getById($parentId);
@@ -777,12 +779,14 @@ class Link {
             if ($actionFromAdmin && $parentType != Event::COLLECTION) {
 	            //If admin add as admin or member 
 	            if($isConnectingAdmin==true){
-					$verb = ActStr::VERB_CONFIRM;
+					$verb = ActStr::VERB_ACCEPT;
 					$msg=$pendingChild["name"]." ".Yii::t("common","is now admin of")." ".$parentData["name"];
 					$pendingChild["isAdmin"]=true;
+                    $levelNotif = "asAdmin";
 				} else {
 					$verb = ActStr::VERB_ACCEPT;
 					$msg=$pendingChild["name"]." ".Yii::t("common","is now ".$typeOfDemand." of")." ".$parentData["name"];
+                    $levelNotif = "asMember";
 				}
 				$toBeValidated=false;
 			} else{
@@ -816,16 +820,17 @@ class Link {
             //Someone ask to become an admin
             if ($isConnectingAdmin) {
     			//Admin validation process
-                $verb = ActStr::VERB_AUTHORIZE;
+                $verb = ActStr::VERB_ASK;
     			$toBeValidatedAdmin=true;
     			$toBeValidated=false;
     			$pendingChild["isAdminPending"]=true;
-    			
+                $levelNotif = "asAdmin";
             } else {
-                $verb = ActStr::VERB_WAIT;
+                $verb = ActStr::VERB_ASK;
                 $toBeValidatedAdmin=false;
                 $toBeValidated=true;
                 $pendingChild["toBeValidated"]=true;
+                $levelNotif = "asMember";
             }
             //Notification and email are sent to the admin(s)
             $listofAdminsEmail = array();
@@ -842,7 +847,8 @@ class Link {
         
 		Link::connect($parentId, $parentType, $childId, $childType,Yii::app()->session["userId"], $parentConnectAs, $isConnectingAdmin, $toBeValidatedAdmin, $toBeValidated, $userRole);
 		Link::connect($childId, $childType, $parentId, $parentType, Yii::app()->session["userId"], $childConnectAs, $isConnectingAdmin, $toBeValidatedAdmin, $toBeValidated, $userRole);
-		Notification::actionOnPerson($verb, ActStr::ICON_SHARE, $pendingChild , array("type"=>$parentType,"id"=> $parentId,"name"=>$parentData["name"]), $invitation);
+        Notification::constructNotification($verb, $pendingChild , array("type"=>$parentType,"id"=> $parentId,"name"=>$parentData["name"]), null, $levelNotif);
+		//Notification::actionOnPerson($verb, ActStr::ICON_SHARE, $pendingChild , array("type"=>$parentType,"id"=> $parentId,"name"=>$parentData["name"]), $invitation);
 		$res = array("result" => true, "msg" => $msg, "parent" => $parentData,"parentType"=>$parentType,"newElement"=>$pendingChild, "newElementType"=> $childType );
 		return $res;
 	}

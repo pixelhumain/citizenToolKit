@@ -23,7 +23,7 @@ class ActivityStream {
 			unset($news["target"]["objectType"]);
 		    PHDB::insert(News::COLLECTION, $news);
 		}
-	    $param["timestamp"] = new MongoDate(time());
+	    //$param["timestamp"] = new MongoDate(time());
 	    PHDB::insert(self::COLLECTION, $param);
 	}
 	public static function getWhere($params) {
@@ -148,8 +148,11 @@ class ActivityStream {
 
 	public static function addNotification($params)
 	{
+		$objectType="persons";
+		if(@$params["objectType"])
+			$objectType=$params["objectType"];
 	    $notify =  array(
-	        "objectType" => "persons",
+	        "objectType" => $objectType,
 	        "id" => $params["persons"],
 	        "displayName" => $params["label"],
 	        "icon" => $params["icon"],
@@ -177,7 +180,7 @@ class ActivityStream {
             "type" => $params["type"],
             "verb" => $params["verb"],
             "author" => Yii::app()->session["userId"],
-            "date" => new MongoDate(time()),
+            "updated" => new MongoDate(time()),
             "created" => new MongoDate(time())
         );
 
