@@ -105,9 +105,9 @@ class Notification{
 			),
 			"icon" => "fa-cog",
 			"url" => "{ctrlr}/directory/id/{id}?tpl=directory2"
-		)/*,
+		),
 		//// USED ONLY FOR EVENT
-		"ActStr::VERB_JOIN" => array(
+		/*"ActStr::VERB_JOIN" => array(
 			"repeat" => true,
 			"context" => "members",
 			"mail" => array(
@@ -287,25 +287,24 @@ class Notification{
 		),*/
 		// AJouter la confirmation vers l'utilisateur
 		//Creer le mail pour l'utilisateur accepté !!
-		"ActStr::VERB_ACCEPT" => array(
+		ActStr::VERB_ACCEPT => array(
 			"repeat" => true,
-			"context" => array("user","community"),
+			"context" => array("user","members"),
+			"notifyUser" => true,
 			"mail" => array(
 				"type"=>"instantly",
 				"to" => "invitor"
 			),
 			"type" => array(
-				"community" => array(
-					"asMember" => array(
-						"to"=> "members",
-						"label"=>"{author} confirmed {who} to join {where}",
-						"labelRepeat"=>"{author} confirmed {who} to join {where}"
-					),
-					"asAdmin" => array(
-						"to"=> "members",
-						"label"=>"{author} confirmed {who} to administrate {where}",
-						"labelRepeat"=>"{author} confirmed {who} to administrate {where}"
-					)
+				"asMember" => array(
+					"to"=> "members",
+					"label"=>"{author} confirmed {who} to join {where}",
+					"labelRepeat"=>"{author} confirmed {who} to join {where}"
+				),
+				"asAdmin" => array(
+					"to"=> "members",
+					"label"=>"{author} confirmed {who} to administrate {where}",
+					"labelRepeat"=>"{author} confirmed {who} to administrate {where}"
 				),
 				"user" => array(
 					"asMember" => array(
@@ -330,7 +329,7 @@ class Notification{
 		)*/
 	);
 
-	public static function communityToNotify($id, $type, $impact="all"){
+	public static function communityToNotify($id, $type, $impact="all", $authorId=null){
 		//inform the entities members of the new member
 		//build list of people to notify
         $people = array();
@@ -357,7 +356,7 @@ class Notification{
 	    	$typeOfConnect="attendee";
 	    }
 		else if($type == Person::COLLECTION)
-			$people = array($id);
+			$people[$id] = array("isUnread" => true, "isUnsee" => true);
 		else if($type == News::COLLECTION){
 			$author=News::getAuthor($id);
 			$people = array($author["author"]);
@@ -401,16 +400,16 @@ class Notification{
 		}
 	    foreach ($members as $key => $value) 
 	    {
-	    	if( $key != Yii::app()->session['userId'] && !in_array($key, $people) && count($people) < self::PEOPLE_NOTIFY_LIMIT ){
+	    	if( $key != Yii::app()->session['userId'] && $key != $authorId && !in_array($key, $people) && count($people) < self::PEOPLE_NOTIFY_LIMIT ){
 	    		$people[$key] = array("isUnread" => true, "isUnsee" => true); 
 	    	}
 	    }
 	    return $people;
 	}
 
-	public static function getLabelNotification($label, $labelArray, $count, $targetName=null, $notification=null, $object=null){
+	public static function getLabelNotification($label, $labelArray, $count, $targetName, $notification, $object, $labelUpNotifyTarget){
 		$specifyLabel = array();
-		if(@$labelArray["author"]){
+		if($labelUpNotifyTarget=="object"){
 			$memberName=$object["name"];
 			$specifyLabel["{author}"] = Yii::app()->session['user']['name'];
 		}else {
@@ -421,14 +420,14 @@ class Notification{
 			$specifyLabel["{who}"] = $memberName;
 		}
 		else if($count==2){
-			foreach($notification["author"] as $data){
+			foreach($notification[$labelUpNotifyTarget] as $data){
 				$lastAuthorName=$data["name"];
 				break; 
 			}
 			$specifyLabel["{who}"] = $memberName." ".Yii::t("common","and")." ".$lastAuthorName;
 		}
 		else {
-			foreach($notification["author"] as $data){
+			foreach($notification[$labelUpNotifyTarget] as $data){
 				$lastAuthorName=$data["name"];
 				break;
 			}
@@ -462,29 +461,39 @@ class Notification{
 	*/
 	public static function checkIfAlreadyNotifForAnotherLink($target, $author, $verb, $notificationPart, $object=null, $levelInformation=null)	{
 		$where=array("verb"=>$verb, "target.id"=>$target["id"], "target.type"=>$target["type"]);
-		if($object)
-			array_push($where, array("object.id" => $object["id"], "object.type" => $object["type"]));
+		$labelUpNotifyTarget="author";
+		if(in_array("author",$notificationPart["labelArray"])){
+			$where["author.".Yii::app()->session["userId"]] = array('$exists' => true);
+			$labelUpNotifyTarget="object";
+			$object=$author;
+		} else if($object){
+			$where["object.id"] = $object["id"];
+			$where["object.type"]=$object["type"];
+		}
+			
+		
 		if($levelInformation)
 			$where["notify.objectType"] = $levelInformation;
 		$notification = PHDB::findOne(ActivityStream::COLLECTION, $where);
 		if(!empty($notification)){
-			if(@$notification["author"] && @$notification["author"][$author["id"]])
+			if(@$notification[$labelUpNotifyTarget] && @$notification[$labelUpNotifyTarget][$author["id"]])
 				return true;
 			else{
 				$countRepeat=1;
-				foreach($notification["author"] as $i){$countRepeat++;}
-				if($levelInformation)
+				foreach($notification[$labelUpNotifyTarget] as $i){$countRepeat++;}
+				if($levelInformation){
 					$labelRepeat = $notificationPart["type"][$levelInformation]["labelRepeat"];
-				else
+				}
+				else{
 					$labelRepeat = $notificationPart["labelRepeat"];
+				}
 				// Get new Label
-				$newLabel=self::getLabelNotification($labelRepeat, $notificationPart["labelArray"], $countRepeat, $target["name"], $notification);
+				$newLabel=self::getLabelNotification($labelRepeat, $notificationPart["labelArray"], $countRepeat, $target["name"], $notification, $object, $labelUpNotifyTarget);
 				// Add new author to notification
-				if(@$notificationPart["labelArray"]["author"])
-					$newAuthor = $author;
-				else 
-					$newAuthor = array("name" => Yii::app()->session['user']['name']);
-				$notification["author"][Yii::app()->session['userId']]=$newAuthor;
+				if($labelUpNotifyTarget == "object")
+					$notification["object"][$author["id"]]=array("name" => $author["name"]);
+				else
+					$notification["author"][Yii::app()->session['userId']]=array("name" => Yii::app()->session['user']['name']);
 				// Up isUnread and unSee to community to notify
 				$communityToNotify=array();
 				foreach ($notification["notify"]["id"] as $key => $data){
@@ -496,7 +505,13 @@ class Notification{
 				}
 				PHDB::update(ActivityStream::COLLECTION,
 					array("_id" => $notification["_id"]),
-					array('$set' => array("author"=>$notification["author"],"notify.id" => $communityToNotify,"notify.displayName"=> $newLabel,"updated" => new MongoDate(time())))
+					array('$set' => array(
+						$labelUpNotifyTarget=>$notification[$labelUpNotifyTarget],
+						"notify.id" => $communityToNotify,
+						"notify.displayName"=> $newLabel,
+						"updated" => new MongoDate(time())
+						)
+					)
 				);
 				return true;
 			}
@@ -512,20 +527,57 @@ class Notification{
 	*/
 	public static function constructNotification($verb, $author, $target, $object = null, $typeAction = null, $context = null){
 		$notificationPart = self::$notificationTree[$verb];
-		$author=array("id"=>(string)$author["_id"],"name" => $author["name"]);
-		$community = self::communityToNotify($target["id"], $target["type"], $context);
+		// Object could be the object in following method if action is by an other acting on an other person (ex: author add so as member {"member"=> $author})
+		if(@$author["_id"])
+			$authorId=(string)$author["_id"];
+		else
+			$authorId=$author["id"];
+		$author=array("id"=>$authorId,"name" => $author["name"]);
+		$labelUpNotifyTarget = "author";
+		if(@$notificationPart["notifyUser"]){
+			$community=self::communityToNotify($author["id"],Person::COLLECTION,$context);
+			$asParam = array(
+		    	"type" => "notifications", 
+	            "verb" => $verb,
+	            "author"=> array(Yii::app()->session["userId"]=> array("name"=> Yii::app()->session["user"]["name"])),
+	 			"target"=> array("id" => $target["id"],"type" => $target["type"])
+	        );
+	 	    $stream = ActStr::buildEntry($asParam);
+	 	    //if($typeAction)
+			$label = $notificationPart["type"]["user"][$typeAction]["label"];
+			$labelUpNotifyTarget="object";
+			//else
+			//	$label = $notificationPart["label"];
+			$notif = array( 
+		    	"persons" => $community,
+	            "label"   => self::getLabelNotification($label, $notificationPart["labelArray"], 1, $target["name"], null, $object, $labelUpNotifyTarget),
+	            "icon"    => $notificationPart["icon"],
+	            "url"     => self::getUrlNotification($notificationPart["url"],$target)
+	        );
+		    $stream["notify"] = ActivityStream::addNotification( $notif );
+	    	ActivityStream::addEntry($stream);
+	        //To DO -- Create Mail of confirmation for user Or invitation for user !!!!!!
+		}
+		$community = self::communityToNotify($target["id"], $target["type"], $context, $authorId);
 		$update = false;
 		if(@$notificationPart["repeat"] && $notificationPart["repeat"]){	
 			$update=self::checkIfAlreadyNotifForAnotherLink($target, $author, $verb, $notificationPart, $object, $typeAction);
 		}
-		if($update==false){
+		if($update==false && !empty($community)){
 			$asParam = array(
 		    	"type" => "notifications", 
 	            "verb" => $verb,
 	            "author"=> $author,
 	 			"target"=> array("id" => $target["id"],"type" => $target["type"])
 	        );
-	        if($object)
+	        // Case 
+	        if(in_array("author",$notificationPart["labelArray"])){
+	        	$asParam["object"] = array($author["id"]=>array("name"=>$author["name"]));
+	        	$asParam["author"] = array(Yii::app()->session["userId"]=> array("name"=> Yii::app()->session["user"]["name"]));
+	        	$labelUpNotifyTarget="object";
+	        	$object = $author;
+	        }
+	        else if($object)
 	        	$asParam["object"]=array("id" => $object["id"], "type" => $object["type"]);
 	 	    $stream = ActStr::buildEntry($asParam);
 	 	    if($typeAction)
@@ -534,7 +586,7 @@ class Notification{
 				$label = $notificationPart["label"];
 			$notif = array( 
 		    	"persons" => $community,
-	            "label"   => self::getLabelNotification($label, $notificationPart["labelArray"], 1, $target["name"]),
+	            "label"   => self::getLabelNotification($label, $notificationPart["labelArray"], 1, $target["name"], null, $object, $labelUpNotifyTarget),
 	            "icon"    => $notificationPart["icon"],
 	            "url"     => self::getUrlNotification($notificationPart["url"],$target)
 	        );

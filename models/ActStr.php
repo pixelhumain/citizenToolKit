@@ -61,17 +61,22 @@ class ActStr {
             "created" => new MongoDate(time())
         );
         if(@$params["author"]){
-            $action["author"]=array($params["author"]["id"]=>array("name"=>$params["author"]["name"]));
+            if(!@$params["author"]["id"])
+                $action["author"]=$params["author"];
+            else
+                $action["author"]=array($params["author"]["id"]=>array("name"=>$params["author"]["name"]));
         }
         if( isset( $params["ip"] ))
             $action["ip"] = $params["ip"];
 
-        if( isset( $params["object"] )){
+        if( isset( $params["object"] ))
+            $action["object"]=$params["object"];
+            /*{
             $action["object"] = array( 
                 "type" => $params["object"]['type'],
                 "id" => $params["object"]['id']
             );
-        }
+        }*/
 
         if( isset( $params["target"] )){
             $action["target"] = array( 

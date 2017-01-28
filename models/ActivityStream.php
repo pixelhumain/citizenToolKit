@@ -184,16 +184,16 @@ class ActivityStream {
             "created" => new MongoDate(time())
         );
 
-        if( isset( $params["object"] )){
-            $action["object"] = array( 
-                "objectType" => $params["object"]['type'],
+        if(@$params["object"])
+            $action["object"] = $params["object"];
+            /*$action["object"] = array( 
+                "type" => $params["object"]['type'],
                 "id" => $params["object"]['id']
-            );
-        }
+            );*/
 
         if( isset( $params["target"] )){
             $action["target"] = array( 
-                "objectType" => $params["target"]['type'],
+                "type" => $params["target"]['type'],
                 "id" => $params["target"]['id']
             );
         }
