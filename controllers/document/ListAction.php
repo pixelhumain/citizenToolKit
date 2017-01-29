@@ -1,7 +1,7 @@
 <?php
 class ListAction extends CAction {
 
-	public function run($id, $type,$getSub=false) 
+	public function run($id, $type,$getSub=false,$tpl=null) 
 	{
 		$controller=$this->getController();
 		
@@ -16,9 +16,7 @@ class ListAction extends CAction {
 			$organizations[$id] = $organization['name'];
 		}
 		$documents = Document::getWhere( array( "type" => $type, 
-												"id" => $id ,
-												"contentKey" => array( '$exists' => false)
-		));
+												"id" => $id ) );
 		
 		if($getSub && $type == Organization::COLLECTION && Authorisation::canEditMembersData($id)) {
 			$subOrganization = Organization::getMembersByOrganizationId($id, Organization::COLLECTION);
@@ -37,10 +35,23 @@ class ListAction extends CAction {
 		$params = array("documents"=>$documents, 
 						"id" => $id, 
 						"categories" => $categories,
-						"organizations" => $organizations,
 						"getSub" => $getSub
 						);
-		if(Yii::app()->request->isAjaxRequest)
+		if(@$organizations)
+			$params["organizations"] = $organizations;
+
+		if( @$tpl == "json" ){
+			 $documentsLight = array();
+			foreach (  $documents as $k => $v) {
+				$documentsLight[$k] = array(
+					"path" => Yii::app()->getRequest()->getBaseUrl(true)."/upload/communecter/".$v["folder"]."/".$v["name"],
+					"thumb" => Yii::app()->getRequest()->getBaseUrl(true)."/upload/communecter/".$v["folder"]."/thumb/".$v["name"],
+					"name" => $v["name"]
+				);
+			}
+			Rest::json( $documentsLight );
+		}
+		else if( Yii::app()->request->isAjaxRequest )
 			echo $controller->renderPartial("documents",$params,true);
 		else
 			$controller->render("documents",$params);

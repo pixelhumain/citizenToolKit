@@ -24,6 +24,10 @@ class IndexAction extends CAction
 		else if ($type == Event::COLLECTION){
 			$params["parent"] = Event::getPublicData($id);
 			$params["controller"] = Event::CONTROLLER;
+		} 
+		else if ($type == Poi::COLLECTION){
+			$params["parent"] = Poi::getById($id);
+			$params["controller"] = Poi::CONTROLLER;
 		}
 		else{
 			throw new CTKException("Impossible to manage this type ".$type);
