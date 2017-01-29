@@ -63,7 +63,7 @@ class ActStr {
         if(@$params["author"]){
             if(!@$params["author"]["id"])
                 $action["author"]=$params["author"];
-            else
+            else if(@$params["author"]["name"])
                 $action["author"]=array($params["author"]["id"]=>array("name"=>$params["author"]["name"]));
         }
         if( isset( $params["ip"] ))
