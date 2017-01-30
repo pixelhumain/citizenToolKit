@@ -3,7 +3,10 @@
 class Thing {
 	//TODO 
 
-	const collection = "thing";
+	const COLLECTION = "thing";
+	const CONTROLLER = "thing";
+
+	//public static $types = array ();
 
 	public static $dataBinding = array (
 	    "type" => array("name" => "type"),//"smartCitizen"
@@ -20,6 +23,10 @@ class Thing {
 	    "boardId" => array("name"=>"macId", "rules" => array("required")),
 	    "userId" => array("name"=>"userId"),
 	    "version" => array("name" => "sckVersion"),
+	    "latitude" => array("name" => "latitude"),
+	    "longitude" => array("name" => "longitude"),
+
+	    //"location" => array("name" => "" ),
 	    
 	    "modified" => array("name" => "modified"),
 	    "updated" => array("name" => "updated"),
@@ -52,6 +59,23 @@ class Thing {
         $dataThing['boardId']=$headers['X-SmartCitizenMacADDR'];
         $dataThing['version']=$headers['X-SmartCitizenVersion'];
         return array_merge($dataThing, $datapoints);
+	}
+
+	public static function countEntriesSCKDevices(){
+		$numberSCKDevices = PHDB::count(self::COLLECTION, array("type"=>"smartCitizen"));
+	
+		return $numberSCKDevices;
+
+	}
+
+	public static function getLastedRead($deviceId){
+
+			
+	}
+
+	public static function getSensorReading($sensor,$boardId){
+
+
 	}
 
 }
