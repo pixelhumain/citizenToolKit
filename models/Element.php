@@ -348,12 +348,10 @@ class Element {
 		$dataFieldName = self::getCollectionFieldNameAndValidate($collection, $fieldName, $fieldValue, $id);
 		
 		$verb = (empty($fieldValue) ? '$unset' : '$set');
-		//$verb = '$set' ;
-		//$set = array($fieldName => $fieldValue);
+		
+		if ($dataFieldName == "name") 
+			$fieldValue = htmlspecialchars($fieldValue);
 
-		//Specific case : 
-		//Tags
-		//var_dump($dataFieldName);
 		if ($dataFieldName == "tags") {
 			$fieldValue = Tags::filterAndSaveNewTags($fieldValue);
 			$set = array($dataFieldName => $fieldValue);
@@ -969,7 +967,11 @@ class Element {
                 //update a single field
                 //else update whole map
                 //$changeMap = ( !$microformat && isset( $key )) ? array('$set' => array( $key => $params[ $key ] ) ) : array('$set' => $params );
-                PHDB::update($collection,array("_id"=>new MongoId($id)), array('$set' => $params ));
+                $exists = PHDB::findOne($collection,array("_id"=>new MongoId($id)));
+                if(!@$exists)
+                	PHDB::updateWithOptions($collection,array("_id"=>new MongoId($id)), array('$set' => $params ),array('upsert' => true ));
+                else
+                	PHDB::update($collection,array("_id"=>new MongoId($id)), array('$set' => $params ));
                 $res = array("result"=>true,
                              "msg"=>"Vos données ont été mises à jour.",
                              "reload"=>true,
@@ -1075,7 +1077,9 @@ class Element {
 				$params["allDay"] = false;
 			}
 		}
-
+		if(isset($params["name"])) 
+	    	$params["name"] = htmlspecialchars($params["name"]);
+	
 		//TODO SBAR - Manage elsewhere (maybe in the view)
 		//Manage the event startDate and endDate format : 
 		//it comes with the format DD/MM/YYYY HH:ii or DD/MM/YYYY 

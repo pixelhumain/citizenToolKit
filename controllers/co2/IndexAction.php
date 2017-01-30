@@ -10,6 +10,7 @@ class IndexAction extends CAction
         $CO2DomainName = isset(Yii::app()->params["CO2DomainName"]) ? Yii::app()->params["CO2DomainName"] : "CO2";
 
         Yii::app()->theme = "CO2";
+        Yii::app()->session["theme"] = "CO2";
         $params = CO2::getThemeParams();
 
         $hash = $params["pages"]["#co2.index"]["redirect"];

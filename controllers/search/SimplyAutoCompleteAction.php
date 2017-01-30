@@ -7,7 +7,6 @@ class SimplyAutoCompleteAction extends CAction
   		// $pathParams = Yii::app()->controller->module->viewPath.'/default/dir/';
 		// echo file_get_contents($pathParams."simply.json");
 		// die();
-    	ini_set('memory_limit', '-1');
         $search = isset($_POST['name']) ? trim(urldecode($_POST['name'])) : null;
         $locality = isset($_POST['locality']) ? trim(urldecode($_POST['locality'])) : null;
         $searchType = isset($_POST['searchType']) ? $_POST['searchType'] : null;
@@ -28,7 +27,6 @@ class SimplyAutoCompleteAction extends CAction
         /***********************************  DEFINE GLOBAL QUERY   *****************************************/
         $query = array( "name" => new MongoRegex("/".$search."/i"));
 
-        //var_dump($query);
         /***********************************  TAGS   *****************************************/
         $tmpTags = array();
         if(strpos($search, "#") > -1){

@@ -2,6 +2,7 @@
 
 class Poi {
 	const COLLECTION = "poi";
+	const CONTROLLER = "poi";
 	
 	//TODO Translate
 	public static $types = array (
