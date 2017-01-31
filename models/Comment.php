@@ -102,9 +102,12 @@ class Comment {
 			Notification::actionOnPerson ( ActStr::VERB_COMMENT, ActStr::ICON_COMMENT, "", array("type"=>$comment["contextType"],"id"=> $comment["contextId"]));
 		}*/
 		$objectNotif=null;
-		if(@$comment["parentCommentId"])
+		$typeAction=$comment["contextType"];
+		if(@$comment["parentCommentId"]){
 			$objectNotif = array("id"=> $comment["parentCommentId"], "type" => Comment::COLLECTION);
-		 Notification::constructNotification(ActStr::VERB_COMMENT, array("id" => Yii::app()->session["userId"],"name"=> Yii::app()->session["user"]["name"]), array("type"=>$comment["contextType"],"id"=> $comment["contextId"],"name"=>@$options["name"]), $objectNotif, $comment["contextType"]);
+			$typeAction=Comment::COLLECTION;
+		}
+		Notification::constructNotification(ActStr::VERB_COMMENT, array("id" => Yii::app()->session["userId"],"name"=> Yii::app()->session["user"]["name"]), array("type"=>$comment["contextType"],"id"=> $comment["contextId"],"name"=>@$options["name"]), $objectNotif, $typeAction);
 		//Increment comment count (can have multiple comment by user)
 		$resAction = Action::addAction($userId , $comment["contextId"], $comment["contextType"], Action::ACTION_COMMENT, false, true) ;
 		if (! $resAction["result"]) {

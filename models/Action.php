@@ -119,7 +119,7 @@ class Action
 
                 }
 
-                self::addActionHistory( $userId , $id, $collection, $action);
+                //self::addActionHistory( $userId , $id, $collection, $action);
                 
                 self::updateParent( $id, $collection);
 
@@ -156,7 +156,7 @@ class Action
         return $res;
     }
 
-    /*
+    /* TODO BOUBOULE - Not necessary anymore ... ?
     The Action History colelction helps build timeline and historical visualisations 
     on a given item
     in time we could also use it as a base for undoing tasks

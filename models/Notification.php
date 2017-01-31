@@ -342,7 +342,7 @@ class Notification{
 		)*/
 	);
 
-	public static function communityToNotify($id, $type, $impact="all", $authorId=null){
+	public static function communityToNotify($id, $type, $impact="all", $authorId=null, $alreadyAuhtorNotify=null){
 		//inform the entities members of the new member
 		//build list of people to notify
         $people = array();
@@ -371,8 +371,10 @@ class Notification{
 		else if($type == Person::COLLECTION)
 			$people[$id] = array("isUnread" => true, "isUnsee" => true);
 		else if($type == News::COLLECTION){
-			$author=News::getAuthor($id);
-			$people = array($author["author"]);
+			if($id != $alreadyAuhtorNotify){
+				$author=News::getAuthor($id);
+				$people[$author["author"]] = array("isUnread" => true, "isUnsee" => true);
+			} 
 		} 
 		else if( in_array($type, array( Survey::COLLECTION, ActionRoom::COLLECTION, ActionRoom::COLLECTION_ACTIONS) ) )
 		{
@@ -413,7 +415,7 @@ class Notification{
 		}
 	    foreach ($members as $key => $value) 
 	    {
-	    	if( $key != Yii::app()->session['userId'] && $key != $authorId && !in_array($key, $people) && count($people) < self::PEOPLE_NOTIFY_LIMIT ){
+	    	if( $key != Yii::app()->session['userId'] && $key != $authorId && !in_array($key, $people) && count($people) < self::PEOPLE_NOTIFY_LIMIT && $key != $alreadyAuhtorNotify){
 	    		$people[$key] = array("isUnread" => true, "isUnsee" => true); 
 	    	}
 	    }
@@ -460,6 +462,8 @@ class Notification{
 			$url=$notification["url"];
 		else 
 			$url=$notification["type"][$levelInformation]["url"];
+		if($url=="targetTypeUrl")
+			$url=$notification["type"][$target["type"]]["url"];
 		$url = str_replace("{ctrlr}", Element::getControlerByCollection($target["type"]), $url);
 		$url = str_replace("{id}", $target["id"], $url);
 		return $url;
@@ -550,9 +554,15 @@ class Notification{
 		$author=array("id"=>$authorId,"name" => $author["name"]);
 		$labelUpNotifyTarget = "author";
 		// Create notification specially for user added to the next notify for community of target
-		if(@$notificationPart["notifyUser"] || (@$notificationPart[$typeAction] && @$notificationPart[$typeAction]["notifyUser"])){
+		if(@$notificationPart["notifyUser"] || (@$notificationPart["type"] || @$notificationPart["type"][$typeAction] && @$notificationPart["type"][$typeAction]["notifyUser"])){
 			$update=false;
 			$community=self::communityToNotify($author["id"],Person::COLLECTION,$context);
+			// If answered on comment is the same than on the news or other don't notify twice the author of parent and comment
+			if($verb==Actstr::VERB_COMMENT){
+				$alreadyAuhtorNotify=$author["id"];
+				if(!empty(@$target["name"]))
+					$target["name"]=Element::getControlerByCollection($target["type"]);
+			}
 			if(@$notificationPart[$typeAction] && @$notificationPart[$typeAction]["repeat"])
 				$update=self::checkIfAlreadyNotifForAnotherLink($target, $author, $verb, $notificationPart, $object, $typeAction);
 			if($update==false){
@@ -573,8 +583,6 @@ class Notification{
 					$label = $notificationPart["type"][$target["type"]]["label"];
 					$labelUpNotifyTarget="author";
 				}
-				//else
-				//	$label = $notificationPart["label"];
 				$notif = array( 
 			    	"persons" => $community,
 		            "label"   => self::getLabelNotification($label, $notificationPart["labelArray"], 1, $target["name"], null, $object, $labelUpNotifyTarget),
@@ -586,7 +594,7 @@ class Notification{
 		    }
 	        //To DO -- Create Mail of confirmation for user Or invitation for user !!!!!!
 		}
-		$community = self::communityToNotify($target["id"], $target["type"], $context, $authorId);
+		$community = self::communityToNotify($target["id"], $target["type"], $context, $authorId, @$alreadyAuhtorNotify);
 		$update = false;
 		if(@$notificationPart["repeat"] && $notificationPart["repeat"]){	
 			$update=self::checkIfAlreadyNotifForAnotherLink($target, $author, $verb, $notificationPart, $object, $typeAction);
@@ -605,8 +613,12 @@ class Notification{
 	        	$labelUpNotifyTarget="object";
 	        	$object = $author;
 	        }
-	        else if($object)
+	        else if($object){
 	        	$asParam["object"]=array("id" => $object["id"], "type" => $object["type"]);
+				if(!empty(@$target["name"]))
+					$target["name"]=Element::getControlerByCollection($target["type"]);
+
+	        }
 	 	    $stream = ActStr::buildEntry($asParam);
 	 	    if($typeAction)
 				$label = $notificationPart["type"][$typeAction]["label"];
