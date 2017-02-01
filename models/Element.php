@@ -359,8 +359,13 @@ class Element {
 		else if ( ($dataFieldName == "telephone.mobile"|| $dataFieldName == "telephone.fixe" || $dataFieldName == "telephone.fax")){
 			if($fieldValue ==null)
 				$fieldValue = array();
-			else
-				$fieldValue = explode(",", $fieldValue);
+			else {
+				$split = explode(",", $fieldValue);
+				$fieldValue = array();
+				foreach ($split as $key => $value) {
+					$fieldValue[] = trim($value);
+				}
+			}
 			$set = array($dataFieldName => $fieldValue);
 		}
 		else if ($fieldName == "locality") {
@@ -618,7 +623,7 @@ class Element {
 					$verbActivity = ActStr::VERB_UPDATE ;
 				ActivityStream::saveActivityHistory($verbActivity, $id, $collection, $dataFieldName, $fieldValue);
 			}
-			$res = array("result"=>true,"msg"=>Yii::t(Element::getControlerByCollection($collection),"The ".Element::getControlerByCollection($collection)." has been updated"), "value" => $fieldValue);
+			$res = array("result"=>true,"msg"=>Yii::t(Element::getControlerByCollection($collection),"The ".Element::getControlerByCollection($collection)." has been updated"), "fieldName" => $fieldName, "value" => $fieldValue);
 
 			if(isset($firstCitizen))
 				$res["firstCitizen"] = $firstCitizen ;
@@ -1362,6 +1367,66 @@ class Element {
 		if($res["result"])
 			$res["msg"] = "Les urls ont été mis à jours";
 		return $res;
+	}
+
+
+	public static function updateBlock($params){
+		$block = $params["block"];
+		$collection = $params["type"];
+		$id = $params["id"];
+
+		
+		if($block == "coordonnees"){
+			if(isset($params["email"]))
+				$res[] = self::updateField($collection, $id, "email", $params["email"]);
+			if(isset($params["birthDate"]))
+				$res[] = self::updateField($collection, $id, "birthDate", $params["birthDate"]);
+			if(isset($params["fixe"]))
+				$res[] = self::updateField($collection, $id, "fixe", $params["fixe"]);
+			if(isset($params["fax"]))
+				$res[] = self::updateField($collection, $id, "fax", $params["fax"]);
+			if(isset($params["mobile"]))
+				$res[] = self::updateField($collection, $id, "mobile", $params["mobile"]);
+		}
+
+		if(Import::isUncomplete($id, $collection)){
+			Import::checkWarning($id, $collection, Yii::app()->session['userId'] );
+		}
+
+		$result = array("result"=>false);
+		$resultGoods = array();
+		$resultErrors = array();
+		$values = array();
+		$msg = "";
+		$msgError = "";
+		foreach ($res as $key => $value) {
+			if($value["result"] == true){
+				if($msg != "")
+					$msg .= ", ";
+				$msg .= $value["fieldName"];
+				$values[$value["fieldName"]] = $value["value"];
+			}else{
+				if($msgError != "")
+					$msgError .= ". ";
+				$msgError .= $value["mgs"];
+			}
+		}
+
+		if($msg != ""){
+			$resultGoods["result"]=true;
+			$resultGoods["msg"]=Yii::t("common", "The next attributs has been updated : ".$msg);
+			$resultGoods["values"] = $values ;
+			$result["resultGoods"] = $resultGoods ;
+			$result["result"] = true ;
+		}
+
+		if($msgError != ""){
+			$resultErrors["result"]=false;
+			$resultErrors["msg"]=Yii::t("common", $msgError);
+			$result["resultErrors"] = $resultErrors ;
+		}
+
+		return $result;
 	}
 
 }
