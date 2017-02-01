@@ -1,4 +1,4 @@
-<?php 
+ <?php 
 class CO2 {
 
     public static function getThemeParams($domainName=null){
@@ -57,6 +57,14 @@ class CO2 {
 						                      "mainTitle" => "Le réseau social à effet de sert",
 						                      "placeholderMainSearch" => "rechercher parmis les membres du réseau ..."),			  
 
+    								"#co2.info"=>
+    								  	array("inMenu" => false, 
+						                      "useHeader" => false, 
+						                      "subdomain" => "apropos", 
+						                      "subdomainName" => "Info",
+						                      "icon" => "search", 
+						                      "mainTitle" => "Le réseau social à effet de sert",
+						                      "placeholderMainSearch" => "rechercher parmis les membres du réseau ..."),
     						)
     					),
 
@@ -85,7 +93,7 @@ class CO2 {
 						                      "subdomainName" => "referencement",
 						                      "icon" => "search", 
 						                      "mainTitle" => "Référencer un site",
-						                      "placeholderMainSearch" => "rechercher sur le web Calédonien ..."),
+						                      "placeholderMainSearch" => "rechercher un sit eCalédonien ..."),
 
     								"#co2.live"=>
     								  	array("inMenu" => true, 
@@ -102,7 +110,7 @@ class CO2 {
 						                      "subdomain" => "social", 
 						                      "subdomainName" => "social",
 						                      "icon" => "user-circle-o", 
-						                      "mainTitle" => "Le réseau social Calédonien",
+						                      "mainTitle" => "Le réseau social des Nouzot",
 						                      "placeholderMainSearch" => "rechercher une page ..."),
 
     								"#co2.freedom"=>
