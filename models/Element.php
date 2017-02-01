@@ -229,8 +229,10 @@ class Element {
     	return $link;
     }
 
-	public static function getByTypeAndId($type, $id){
-		if($type == Person::COLLECTION)
+	public static function getByTypeAndId($type, $id,$what=null){
+		if( @$what ) 
+			$element = PHDB::findOneById($type, $id, $what);
+		else if($type == Person::COLLECTION)
 			$element = Person::getById($id);
 		else if($type == Organization::COLLECTION)
 			$element = Organization::getById($id);		

@@ -41,12 +41,16 @@ class ListAction extends CAction {
 			$params["organizations"] = $organizations;
 
 		if( @$tpl == "json" ){
-			 $documentsLight = array();
+			 $documentsLight = array(
+			 	"list"=>array(),
+			 	"element" => Element::getByTypeAndId($type, $id, array("name"))
+			 	);
 			foreach (  $documents as $k => $v) {
-				$documentsLight[$k] = array(
-					"path" => Yii::app()->getRequest()->getBaseUrl(true)."/upload/communecter/".$v["folder"]."/".$v["name"],
-					"thumb" => Yii::app()->getRequest()->getBaseUrl(true)."/upload/communecter/".$v["folder"]."/thumb/".$v["name"],
-					"name" => $v["name"]
+				$documentsLight["list"][$k] = array(
+					"path" => Yii::app()->getRequest()->getBaseUrl(true)."/upload/communecter/".$v["folder"],
+					"name" => $v["name"],
+					"id" => (string)$v["_id"],
+					"author" => $v["author"],
 				);
 			}
 			Rest::json( $documentsLight );

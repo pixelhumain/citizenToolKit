@@ -346,8 +346,10 @@ class Document {
 	public static function removeDocumentById($id, $userId){
 		//TODO SBAR - Generate new thumbs if the image is the current image
 		$doc = Document::getById($id);
-		if ($doc) {
-			if (Authorisation::canEditItem($userId, $doc["type"], $doc["id"])) {
+		if ($doc) 
+		{
+			if (Authorisation::canEditItem($userId, $doc["type"], $doc["id"])) 
+			{
 				$filepath = self::getDocumentPath($doc);
 				if(file_exists ( $filepath )) {
 		            if (unlink($filepath)) {
@@ -358,12 +360,12 @@ class Document {
 		        } else {
 		        	//even if The file does not exists on the filesystem : we try to delete the document on mongo
 		            PHDB::remove(self::COLLECTION, array("_id"=>new MongoId($id)));
-		            $res = array('result'=>false,'error'=>Yii::t("common","Something went wrong!"),"filepath"=>$filepath);
+		            $res = array('result'=>true, "msg" => Yii::t("document","Document deleted"), "id" => $id);
 		        }
-		    } else {
+		    } else 
 		    	$res = array('result'=>false, "msg" => Yii::t("document","You are not allowed to delete this document !"), "id" => $id);
-		    }
-		}
+		} else 
+		    $res = array('result'=>false,'error'=>Yii::t("common","Something went wrong!"),"id"=>$id);
 
 		return $res;
 	}
@@ -373,15 +375,17 @@ class Document {
 	*/
 	public static function removeDocumentCommuneventByObjId($id, $userId){
 		$doc = Document::getById($id);
-		if ($doc) {
-			if (Authorisation::canEditItem($userId, $doc["type"], $doc["id"])) {
+		if ($doc) 
+		{
+			if (Authorisation::canEditItem($userId, $doc["type"], $doc["id"])) 
+			{
 				//Suppression de l'image dans la collection cfs.photosimg.filerecord
 				PHDB::remove("cfs.photosimg.filerecord", array("_id"=>$id));
 				//Suppression du document
-				$res = PHDB::remove(self::COLLECTION, array("objId"=>$id));
-			} else {
+				PHDB::remove(self::COLLECTION, array("objId"=>$id));
+				$res = array('result'=>true, "msg" => Yii::t("document","Document deleted"), "id" => $id);
+			} else
 				$res = array('result'=>false, "msg" => Yii::t("document","You are not allowed to delete this document !"), "id" => $id);
-			}
 		}
 		return $res;
 	}
