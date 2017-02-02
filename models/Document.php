@@ -110,7 +110,7 @@ class Document {
 			    if(@$params["formOrigin"] && $params["formOrigin"]=="news")
 					return array("result"=>false, "msg"=>Yii::t('document',"You have no rights upload document on this item, just write a message !") );
 			    else
-		    		return array("result"=>false, "msg"=>Yii::t('document',"You are not allowed to modify the document of this item !") );
+		    		return array("result"=>false, "msg"=>Yii::t('document',"You are not allowed to modify the document of this item !"), "params" => $params );
 		    }
 	    }
 		//}
@@ -369,6 +369,41 @@ class Document {
 
 		return $res;
 	}
+
+	/**
+	* remove a document by folder and delete the file on the filesystem
+	* a test of Authorization must be done higher in the process 
+	* testing the user created the element parent of the document 
+	* @return
+	*/
+	public static function removeDocumentByFolder($folder){
+		//TODO SBAR - Generate new thumbs if the image is the current image
+		$docs = self::getWhere(array("folder"=>$folder));
+		if (@$docs) 
+		{
+			//delete all entries in DB
+			foreach ($docs as $key => $doc) 
+			{
+				PHDB::remove( self::COLLECTION, array("_id"=>$key) );
+				$results[$key] = array( 'result'=>true, "entry" => "deleted");
+		    }
+		    
+		    $folder = self::getDocumentFolderPath($doc);
+		    //delete folder from disk recursively
+		    if(file_exists ( $folder ) ){
+		    	CFileHelper::removeDirectory($folder);
+                $results["folder"] = "deleted";
+            } else 
+                $results["folder"] = "something went wrong";
+
+		    $res = array( 'result'=>true, "msg" => Yii::t("document","Document deleted"), "results" => $results );
+		} else 
+			$res = array( 'result'=>true, "msg" => Yii::t("document","no Documents associated") );
+
+		return $res;
+	}
+
+
 	/**
 	* remove a document from communevent by objId
 	* @return
