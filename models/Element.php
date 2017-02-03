@@ -375,6 +375,8 @@ class Element {
 					$verb = '$set';
 					$address = array(
 				        "@type" => "PostalAddress",
+				         "id" => "468768",
+				        "name" => "mairie",
 				        "codeInsee" => $fieldValue["address"]["codeInsee"],
 				        "addressCountry" => $fieldValue["address"]["addressCountry"],
 				        "postalCode" => $fieldValue["address"]["postalCode"],
@@ -1352,14 +1354,7 @@ class Element {
 	public static function saveUrl($params){
 		$id = $params["parentId"];
 		$collection = $params["parentType"];
-		$find = false;
-		$needles = array("http://", "https://");
-	    foreach($needles as $needle) {
-	    	if(stripos($params["url"], $needle) != false)
-	    		$find = true;
-	    }
-	    if(!$find)
-	    	$params["url"]="http://".$params["url"];
+		$params["url"]=self::getAndCheckUrl($params["url"]);
 
 		unset($params["parentId"]);
 		unset($params["parentType"]);
@@ -1369,16 +1364,30 @@ class Element {
 		return $res;
 	}
 
+	public static function getAndCheckUrl($url){
+		$needles = array("http://", "https://");
+		$find=false;
+	    foreach($needles as $needle) {
+	    	if(stripos($url, $needle) == 0)
+	    		$find = true;
+	    }
+	    if(!$find)
+	    	$url="http://".$url;
+	    return $url ;
+	}
+
 
 	public static function updateBlock($params){
 		$block = $params["block"];
-		$collection = $params["type"];
+		$collection = $params["collection"];
 		$id = $params["id"];
 
-		
-		if($block == "coordonnees"){
+		$res = array();
+		if($block == "contact"){
 			if(isset($params["email"]))
 				$res[] = self::updateField($collection, $id, "email", $params["email"]);
+			if(isset($params["url"]))
+				$res[] = self::updateField($collection, $id, "url", self::getAndCheckUrl($params["url"]));
 			if(isset($params["birthDate"]))
 				$res[] = self::updateField($collection, $id, "birthDate", $params["birthDate"]);
 			if(isset($params["fixe"]))
@@ -1387,6 +1396,26 @@ class Element {
 				$res[] = self::updateField($collection, $id, "fax", $params["fax"]);
 			if(isset($params["mobile"]))
 				$res[] = self::updateField($collection, $id, "mobile", $params["mobile"]);
+
+		}else if($block == "info"){
+			if(isset($params["name"]))
+				$res[] = self::updateField($collection, $id, "name", $params["name"]);
+			if(isset($params["username"]))
+				$res[] = self::updateField($collection, $id, "username", $params["username"]);
+			if(isset($params["tags"]))
+				$res[] = self::updateField($collection, $id, "tags", $params["tags"]);
+			if(isset($params["telegramAccount"]))
+				$res[] = self::updateField($collection, $id, "telegramAccount", $params["telegramAccount"]);
+			if(isset($params["facebookAccount"]))
+				$res[] = self::updateField($collection, $id, "facebookAccount", self::getAndCheckUrl($params["facebookAccount"]));
+			if(isset($params["twitterAccount"]))
+				$res[] = self::updateField($collection, $id, "twitterAccount", self::getAndCheckUrl($params["twitterAccount"]));
+			if(isset($params["gitHubAccount"]))
+				$res[] = self::updateField($collection, $id, "gitHubAccount", self::getAndCheckUrl($params["gitHubAccount"]));
+			if(isset($params["gpplusAccount"]))
+				$res[] = self::updateField($collection, $id, "url", self::getAndCheckUrl($params["gpplusAccount"]));
+			if(isset($params["skypeAccount"]))
+				$res[] = self::updateField($collection, $id, "url", self::getAndCheckUrl($params["skypeAccount"]));
 		}
 
 		if(Import::isUncomplete($id, $collection)){
