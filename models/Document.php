@@ -106,7 +106,10 @@ class Document {
 		    	return array("result"=>false, "msg"=>Yii::t('document',"You are not allowed to modify the document of this item !") );
 		    }
 		} else {
-		    if (! Authorisation::canEditItem($params['author'], $params['type'], $params['id']) && !Authorisation::isOpenEdition($params['id'], $params['type']) && (!@$params["formOrigin"] || !Link::isLinked($params['id'], $params['type'], $params['author']))) {
+		    if (   ! Authorisation::canEditItem($params['author'], $params['type'], $params['id']) 
+		    	&& !Authorisation::isOpenEdition($params['id'], $params['type']) 
+		    	&& (!@$params["formOrigin"] || !Link::isLinked($params['id'], $params['type'], $params['author']))) 
+		    {
 			    if(@$params["formOrigin"] && $params["formOrigin"]=="news")
 					return array("result"=>false, "msg"=>Yii::t('document',"You have no rights upload document on this item, just write a message !") );
 			    else
@@ -563,7 +566,7 @@ class Document {
         mkdir($upload_dir, 0775);
         // Medium Image
         if(!file_exists ( $upload_dir_medium )) {       
-			mkdir($upload_dir_medium, 0777);
+			mkdir($upload_dir_medium, 0775);
 		}
    		//GET THUMB IMAGE
         $profilUrl = self::getDocumentUrl($document);
@@ -618,7 +621,7 @@ class Document {
 		$upload_dir = Yii::app()->params['uploadDir'].$dir.'/'.$folder.$destination; 
 		
 		if(!file_exists ( $upload_dir )) {       
-			mkdir($upload_dir, 0777);
+			mkdir($upload_dir, 0775);
 		}
 		//echo "iciiiiiii/////////////".$upload_dir;
 		$path=self::getDocumentPath($document);

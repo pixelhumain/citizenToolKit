@@ -21,7 +21,8 @@ class ListAction extends CAction {
 		if($getSub && $type == Organization::COLLECTION && Authorisation::canEditMembersData($id)) {
 			$subOrganization = Organization::getMembersByOrganizationId($id, Organization::COLLECTION);
 			
-			foreach ($subOrganization as $key => $value) {
+			foreach ($subOrganization as $key => $value) 
+			{
 				$organization = Organization::getById($key);
 				$organizations[$key] = $organization['name'];
 				$documents = array_merge( $documents, Document::getWhere( array( "type" => $type, 
