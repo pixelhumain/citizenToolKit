@@ -296,7 +296,7 @@ class Comment {
 	public static function getCommentOptions($id, $type) {
 		$res = self::$defaultDiscussOptions;
 		
-		$collection = PHDB::findOneById( $type ,$id, array("commentOptions" => 1, "name" => 1, "targetIsAuthor" => 1));
+		$collection = PHDB::findOneById( $type ,$id, array("commentOptions" => 1));
 
 		if (@$collection["commentOptions"]) {
 			$res = $collection;

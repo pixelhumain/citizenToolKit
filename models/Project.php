@@ -276,11 +276,12 @@ class Project {
 			$params['parentType'] = Person::COLLECTION; 
 			$params['parentId'] = Yii::app() -> session["userId"];
 		}
-
 		Link::addContributor(Yii::app() -> session["userId"],Person::COLLECTION,$params['parentId'], $params['parentType'],$params["_id"]);
-	   // Link::connect($parentId, $parentType, $params["_id"], self::COLLECTION, $parentId, "projects", true );
-
+		echo "ouiiiii";
 	    Notification::createdObjectAsParam(Person::COLLECTION,Yii::app() -> session["userId"],Project::COLLECTION, (String)$params["_id"], $params['parentType'], $params['parentId'], @$params["geo"], @$params["tags"] ,@$params["address"]);
+	    if($params["parentType"]==Organization::COLLECTION || $params["parentType"]==Project::COLLECTION)
+	    	Notification::constructNotification(ActStr::VERB_ADD, array("id" => Yii::app()->session["userId"],"name"=> Yii::app()->session["user"]["name"]), array("type"=>$params["parentType"],"id"=> $params["parentId"]), array("id"=>(string)$params["_id"],"type"=> Project::COLLECTION), Project::COLLECTION);
+
 	    //ActivityStream::saveActivityHistory(ActStr::VERB_CREATE, (String)$params["_id"], Project::COLLECTION, "project", $params["name"]);
 	    return array("result"=>true, "msg"=>"Votre projet est communecté.", "id" => $params["_id"]);	
 		
