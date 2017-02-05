@@ -530,27 +530,20 @@ class Authorisation {
             if ( Authorisation::canEditItem($userId, $parentId, $parentType) )  {
 	            return true;
 	       }
-        } else {
-	        //RAJOUTER UN LOG
-			error_log("Problem with survey authorization, surveyId:".@$surveyId." & userId:".@$userId);
-        }
+        } 
         return $res;
     }
 
     public static function canEditPoi($userId, $id){
         $res = false;
-        $poi = Poi::getById($id);
+        $poi = Poi::getById($id) ;
 
-        if(@$poi && !empty($userId)) {
-            if( $poi["parentType"] == Person::COLLECTION && $userId == $poi["parentId"] )
+        if( @$poi && !empty($userId) ) {
+            if( ($poi["parentType"] == Person::COLLECTION && $userId == $poi["parentId"] )
+                || $userId == $poi["creator"]
+                || Authorisation::canEditItem($userId, $poi["parentId"], $poi["parentType"]) ) 
                 return true;
-            if ( Authorisation::canEditItem($userId, $poi["parentId"], $poi["parentType"]) )  {
-                return true;
-           }
-        } else {
-            //RAJOUTER UN LOG
-            error_log("Problem with survey authorization, poiId:".@$id." & userId:".@$userId);
-        }
+        } 
         return $res;
     }
 
