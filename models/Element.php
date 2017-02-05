@@ -1379,7 +1379,7 @@ class Element {
 
 	public static function updateBlock($params){
 		$block = $params["block"];
-		$collection = $params["collection"];
+		$collection = $params["typeElement"];
 		$id = $params["id"];
 
 		$res = array();
@@ -1402,8 +1402,14 @@ class Element {
 				$res[] = self::updateField($collection, $id, "name", $params["name"]);
 			if(isset($params["username"]))
 				$res[] = self::updateField($collection, $id, "username", $params["username"]);
+			if(isset($params["shortDescription"]))
+				$res[] = self::updateField($collection, $id, "shortDescription", $params["shortDescription"]);
+			if(isset($params["avancement"]))
+				$res[] = self::updateField($collection, $id, "avancement", $params["avancement"]);
 			if(isset($params["tags"]))
 				$res[] = self::updateField($collection, $id, "tags", $params["tags"]);
+			if(isset($params["type"]))
+				$res[] = self::updateField($collection, $id, "type", $params["type"]);
 			if(isset($params["telegramAccount"]))
 				$res[] = self::updateField($collection, $id, "telegramAccount", $params["telegramAccount"]);
 			if(isset($params["facebookAccount"]))

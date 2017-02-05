@@ -45,6 +45,15 @@ class Project {
 	    "locality" => array("name" => "address"),
 	);
 
+	public static $avancement = array(
+        "idea" => "idea",
+        "concept" => "concept",
+        "started" => "started",
+        "development" => "development",
+        "testing" => "testing",
+        "mature" => "mature"
+	);
+
 	private static function getCollectionFieldNameAndValidate($projectFieldName, $projectFieldValue, $projectId) {
 		return DataValidator::getCollectionFieldNameAndValidate(self::$dataBinding, $projectFieldName, $projectFieldValue, $projectId);
 	}

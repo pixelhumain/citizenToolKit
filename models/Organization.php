@@ -1465,6 +1465,14 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 			$type = self::TYPE_GROUP ;
 		return $type;
 	}
+
+	public static function getKeyTypeByValue($type) {
+		foreach (self::$types as $key => $value) {
+			if($type == $value)
+				return $key;
+		}
+	  	return false;
+	}
 	
 
 }
