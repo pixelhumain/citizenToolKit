@@ -83,8 +83,8 @@ class CO2 {
 						                      "subdomain" => "web", 
 						                      "subdomainName" => "web",
 						                      "icon" => "search", 
-						                      "mainTitle" => "Le moteur de recherche des Cagous",
-						                      "placeholderMainSearch" => "rechercher sur le web Calédonien ..."),
+						                      "mainTitle" => "Le moteur de recherche des cagous",
+						                      "placeholderMainSearch" => "Que recherchez-vous ?"),
 
     								"#co2.referencement"=>
     								  	array("inMenu" => false, 
@@ -93,15 +93,15 @@ class CO2 {
 						                      "subdomainName" => "referencement",
 						                      "icon" => "search", 
 						                      "mainTitle" => "Référencer un site",
-						                      "placeholderMainSearch" => "rechercher un sit eCalédonien ..."),
+						                      "placeholderMainSearch" => ""),
 
-    								"#co2.live"=>
+    								"#co2.media"=>
     								  	array("inMenu" => true, 
 						                      "useHeader" => true, 
-						                      "subdomain" => "live", 
-						                      "subdomainName" => "live",
+						                      "subdomain" => "media", 
+						                      "subdomainName" => "media",
 						                      "icon" => "newspaper-o", 
-						                      "mainTitle" => "Toute l'actu du pays",
+						                      "mainTitle" => "Toute l'actu du pays, d'hier à aujourd'hui",
 						                      "placeholderMainSearch" => "rechercher dans l'actu ..."),
 
     								"#co2.social"=>
