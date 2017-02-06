@@ -21,6 +21,7 @@ class Url {
 		"title" => array("name" => "title"),
 		"favicon" => array("name" => "favicon"),
 		"hostname" => array("name" => "hostname"),
+		"nbClick" => array("name" => "hostname"),
 
 		"url" => array("name" => "url", "rules" => array("notexist")),
 

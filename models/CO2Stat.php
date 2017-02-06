@@ -98,8 +98,8 @@ class CO2Stat {
 		return $stat;
 	}
 
-	private static function getTodayWeek(){
-		date_default_timezone_set('Pacific/Noumea');
+	private static function getTodayWeek(){ error_log("getTodayWeek");
+		//date_default_timezone_set('Pacific/Noumea');
 		$w = date("W");
 		$y = date("Y");
 		$week = $w.$y;
