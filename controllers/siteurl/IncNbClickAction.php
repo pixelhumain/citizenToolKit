@@ -16,7 +16,7 @@ class IncNbClickAction extends CAction
 
             if(isset($siteurl["_id"])){
                 $id = $siteurl["_id"];
-                $nbClick = $siteurl["nbClick"];
+                $nbClick = isset($siteurl["nbClick"]) ? $siteurl["nbClick"] : 0;
                 $nbClick++;
                 $set = array("nbClick"=>$nbClick);
                 $resUpdate = PHDB::update( "url", array("_id" => new MongoId($id)), 
