@@ -110,7 +110,7 @@ class DetailAction extends CAction {
 		                $urlType="organization";	
 		                $organizerInfo = Organization::getSimpleOrganizationById($uid);  
 						$organizer["type"]=$urlType;
-						$organizer["typeOrga"]=$organizerInfo["type"];              
+						$organizer["typeOrga"]=@$organizerInfo["type"];              
             		}
 					else{
 						$iconNav="fa-user";

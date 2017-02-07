@@ -266,7 +266,7 @@ class Element {
 		$verb = (empty($fieldValue) ? '$unset' : '$set');
 		
 		if ($dataFieldName == "name") 
-			$fieldValue = htmlspecialchars($fieldValue);
+			$fieldValue = $fieldValue;
 
 		if ($dataFieldName == "tags") {
 			$fieldValue = Tags::filterAndSaveNewTags($fieldValue);
@@ -949,7 +949,7 @@ class Element {
 			}
 		}
 		if(isset($params["name"])) 
-	    	$params["name"] = htmlspecialchars($params["name"]);
+	    	$params["name"] = $params["name"];
 	
 		//TODO SBAR - Manage elsewhere (maybe in the view)
 		//Manage the event startDate and endDate format : 
