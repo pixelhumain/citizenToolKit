@@ -291,8 +291,8 @@ class Element {
 				        "postalCode" => $fieldValue["address"]["postalCode"],
 				        "addressLocality" => $fieldValue["address"]["addressLocality"],
 				        "streetAddress" => ((@$fieldValue["address"]["streetAddress"])?trim(@$fieldValue["address"]["streetAddress"]):""),
-				        "depName" => $fieldValue["address"]["depName"],
-				        "regionName" => $fieldValue["address"]["regionName"],
+				        "depName" => ((@$fieldValue["address"]["depName"])?trim(@$fieldValue["address"]["depName"]):""),
+				        "regionName" => ((@$fieldValue["address"]["regionName"])?trim(@$fieldValue["address"]["regionName"]):""),
 				    	);
 					//Check address is well formated
 
@@ -345,8 +345,8 @@ class Element {
 					        "postalCode" => $fieldValue["address"]["postalCode"],
 					        "addressLocality" => $fieldValue["address"]["addressLocality"],
 					        "streetAddress" => ((@$fieldValue["address"]["streetAddress"])?trim(@$fieldValue["address"]["streetAddress"]):""),
-					        "depName" => $fieldValue["address"]["depName"],
-					        "regionName" => $fieldValue["address"]["regionName"],
+					        "depName" => ((@$fieldValue["address"]["depName"])?trim(@$fieldValue["address"]["depName"]):""),
+				        	"regionName" => ((@$fieldValue["address"]["regionName"])?trim(@$fieldValue["address"]["regionName"]):""),
 					    	);
 						//Check address is well formated
 
