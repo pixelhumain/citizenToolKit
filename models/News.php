@@ -350,7 +350,7 @@ class News {
 		//echo $upload_dir;
 		$name=time()."_".$authorId.".".$ext;        
 		if(!file_exists ( $upload_dir )) {       
-			mkdir($upload_dir, 0777);
+			mkdir($upload_dir, 0775);
 		}
 		if($size="large"){
 			$maxWidth=500;

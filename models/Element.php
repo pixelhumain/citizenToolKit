@@ -229,8 +229,10 @@ class Element {
     	return $link;
     }
 
-	public static function getByTypeAndId($type, $id){
-		if($type == Person::COLLECTION)
+	public static function getByTypeAndId($type, $id,$what=null){
+		if( @$what ) 
+			$element = PHDB::findOneById($type, $id, $what);
+		else if($type == Person::COLLECTION)
 			$element = Person::getById($id);
 		else if($type == Organization::COLLECTION)
 			$element = Organization::getById($id);		
@@ -903,7 +905,11 @@ class Element {
         }
         
 		PHDB::remove($elementType, array("_id"=>new MongoId($elementId)));
-		return array("result" => true, "msg" => "The element has been deleted succesfully");
+		//since userId is creator 
+		//todo for more complexe elements 
+		$resDocs = Document::removeDocumentByFolder($elementType."/".$elementId);
+		
+		return array("result" => true, "msg" => "The element has been deleted succesfully", "resDocs" => $resDocs);
 	}
 
 	public static function save($params){
@@ -924,10 +930,10 @@ class Element {
 		$paramsLinkImport = ( empty($params["paramsImport"] ) ? null : $params["paramsImport"]);
 
 		unset($params["paramsImport"]);
-        unset($params['collection']);
         unset($params['key']);
        
         $params = self::prepData( $params );
+        unset($params['collection']);
         unset($params['id']);
 
         $postParams = array();
@@ -975,8 +981,11 @@ class Element {
                 //else update whole map
                 //$changeMap = ( !$microformat && isset( $key )) ? array('$set' => array( $key => $params[ $key ] ) ) : array('$set' => $params );
                 $exists = PHDB::findOne($collection,array("_id"=>new MongoId($id)));
-                if(!@$exists)
+                if(!@$exists){
+                	$params["creator"] = Yii::app()->session["userId"];
+	        		$params["created"] = time();
                 	PHDB::updateWithOptions($collection,array("_id"=>new MongoId($id)), array('$set' => $params ),array('upsert' => true ));
+                }
                 else
                 	PHDB::update($collection,array("_id"=>new MongoId($id)), array('$set' => $params ));
                 $res = array("result"=>true,
