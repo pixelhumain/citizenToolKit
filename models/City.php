@@ -115,10 +115,15 @@ class City {
             "FR"    => "P374",
             "CH"    => "P771",
             "ES"    => "P772",
+            "BR​" 	=> "P1585",
             "MX"    => null,
         );  
-        if(isset($wiki[$country])) return $wiki[$country];
-        else return false;
+        return  ( isset($wiki[$country]) ? $wiki[$country] : false );
+    }
+
+    public static function countryNotSplitCP ($country) { 
+        $wiki = array("BR​");  
+        return  ( isset($wiki[$country]) ? true : false );
      }
 
 	/* Retourne des infos sur la commune dans la collection cities" */
@@ -628,14 +633,17 @@ class City {
 
 	    $postalCodes = array() ;
 	    if(!empty($valWiki)){
-	        //P281 postalcode
+	       
 	        if(!empty($valWiki["P281"])){
+	        	
 	        	foreach ($valWiki["P281"] as $key => $cp) {
-		            if(strpos($cp["mainsnak"]["datavalue"]["value"],"–") || strpos($cp["mainsnak"]["datavalue"]["value"],"-")) {
+		            if( (strpos($cp["mainsnak"]["datavalue"]["value"],"–") || strpos($cp["mainsnak"]["datavalue"]["value"],"-")) 
+		            	&& self::countryNotSplitCP($newCities["country"])) {
 		                if(strpos($cp["mainsnak"]["datavalue"]["value"],"–"))
 		                    $split = explode("–", $cp["mainsnak"]["datavalue"]["value"]);
 		                else
 		                    $split = explode("-", $cp["mainsnak"]["datavalue"]["value"]);
+		                
 		                if(count($split) == 2){
 		                    $start = intval($split[0]);
 		                    if(!empty($start)){

@@ -46,16 +46,18 @@ class AutocompleteMultiScopeAction extends CAction
                 }
                 $countryCode = mb_convert_encoding($countryCode, "UTF-8");
                 $resNominatim = json_decode(SIG::getGeoByAddressNominatim(null, null, $scopeValue, trim($countryCode), true, true),true);
-
+                var_dump($resNominatim);
                 if(!empty($resNominatim)){
+                    //var_dump($resNominatim);
                     foreach (@$resNominatim as $key => $value) {
                         $typeCities = array("city", "village", "town") ;
                         foreach ($typeCities as $keyType => $valueType) {
-                            if(!empty($value["address"][$valueType]) && $countryCode == strtoupper(@$value["address"]["country_code"])){
+                            if( !empty($value["address"][$valueType]) 
+                                && $countryCode == strtoupper(@$value["address"]["country_code"]) 
+                               /* && empty($value["address"]["city_district"])*/) {
 
                                 $wikidata = (empty($value["extratags"]["wikidata"]) ? null : $value["extratags"]["wikidata"]);
-                                
-                                
+                                //var_dump($value["osm_id"]);
                                 $newCities = array( "name" => $value["address"][$valueType],
                                                     "alternateName" => mb_strtoupper($value["address"][$valueType]),
                                                     "country" => $countryCode,
