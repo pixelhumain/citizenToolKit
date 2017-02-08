@@ -233,6 +233,7 @@ class DetailAction extends CAction {
 		if(@$_POST["modeEdit"]){
 			$params["modeEdit"]=$_POST["modeEdit"];
 		}
+		
 		if(@$_GET["network"])
 			$params["networkJson"]=Network::getNetworkJson($_GET["network"]);
 		
