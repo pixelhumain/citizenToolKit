@@ -34,7 +34,8 @@ class City {
 	    "modified" => array("name" => "modified"),
 	    "updated" => array("name" => "updated"),
 	    "creator" => array("name" => "creator"),
-	    "created" => array("name" => "created")
+	    "created" => array("name" => "created"),
+	    "new" => array("name" => "new")
 	);
 
 
@@ -69,14 +70,14 @@ class City {
     	}
     	
     	$city["postalCodes"] = $postalCodes;
+    	
 	    try {
     		$valid = DataValidator::validate( ucfirst(self::CONTROLLER), json_decode (json_encode ($city), true) );
     	} catch (CTKException $e) {
     		$valid = array("result"=>false, "msg" => $e->getMessage());
     	}
     	//check insee
-    	//var_dump($city["postalCodes"] );
-    	if( $valid["result"]) {
+    	if( $valid["result"]){
     		$exist = PHDB::findOne(self::COLLECTION, array("insee" => $city["insee"]));
     		//var_dump(json_encode($city));
     		if(empty($exist)){
@@ -621,49 +622,54 @@ class City {
 		$valWiki = @$wikidata["entities"][$wikidataID]["claims"];
 		$arrayAdd = array();
 		$arrayCp = array();
-	    $newCities["insee"] = $valWiki[City::getInseeWikidataIDByCountry($newCities["country"])][0]["mainsnak"]["datavalue"]["value"]."*".$newCities["country"];
+		$wikiInsee = City::getInseeWikidataIDByCountry($newCities["country"]);
+		if(!empty($wikiInsee))
+	    	$newCities["insee"] = $valWiki[$wikiInsee][0]["mainsnak"]["datavalue"]["value"]."*".$newCities["country"];
 
 	    $postalCodes = array() ;
 	    if(!empty($valWiki)){
 	        //P281 postalcode
-	        foreach ($valWiki["P281"] as $key => $cp) {
-	            if(strpos($cp["mainsnak"]["datavalue"]["value"],"–") || strpos($cp["mainsnak"]["datavalue"]["value"],"-")) {
-	                if(strpos($cp["mainsnak"]["datavalue"]["value"],"–"))
-	                    $split = explode("–", $cp["mainsnak"]["datavalue"]["value"]);
-	                else
-	                    $split = explode("-", $cp["mainsnak"]["datavalue"]["value"]);
-	                if(count($split) == 2){
-	                    $start = intval($split[0]);
-	                    if(!empty($start)){
-	                        $end = intval($split[1]);
-	                        while($start <= $end ){
-	                            $arrayCp[] = trim(strval($start));
-	                            $start++;
-	                        }
-	                    }
-	                }
-	            }else{
-	                $arrayCp[] = $cp["mainsnak"]["datavalue"]["value"];
-	            }
+	        if(!empty($valWiki["P281"])){
+	        	foreach ($valWiki["P281"] as $key => $cp) {
+		            if(strpos($cp["mainsnak"]["datavalue"]["value"],"–") || strpos($cp["mainsnak"]["datavalue"]["value"],"-")) {
+		                if(strpos($cp["mainsnak"]["datavalue"]["value"],"–"))
+		                    $split = explode("–", $cp["mainsnak"]["datavalue"]["value"]);
+		                else
+		                    $split = explode("-", $cp["mainsnak"]["datavalue"]["value"]);
+		                if(count($split) == 2){
+		                    $start = intval($split[0]);
+		                    if(!empty($start)){
+		                        $end = intval($split[1]);
+		                        while($start <= $end ){
+		                            $arrayCp[] = trim(strval($start));
+		                            $start++;
+		                        }
+		                    }
+		                }
+		            }else{
+		                $arrayCp[] = $cp["mainsnak"]["datavalue"]["value"];
+		            }
 
-	            foreach ($arrayCp as $keyCP => $valueCP) {
-	                //var_dump($valueCP);
-	                if(!in_array($valueCP, $arrayAdd)){
-	                    $arrayAdd[] =  $valueCP;
-	                    $postalCodes[]  = array("name" => $newCities["name"],
-	                                    "postalCode" => $valueCP,
-	                                    "geo" => array( "@type"=>"GeoCoordinates", 
-	                                                    "latitude" => $newCities["geo"]["latitude"], 
-	                                                    "longitude" => $newCities["geo"]["longitude"]),
-	                                    "geoPosition" => array( "type"=>"Point",
-	                                    						"float" => true,
-	                                                            "coordinates" => array(
-	                                                                floatval($newCities["geo"]["longitude"]), 
-	                                                                floatval($newCities["geo"]["latitude"]))));  
-	                }
-	            }
-	            
+		            foreach ($arrayCp as $keyCP => $valueCP) {
+		                //var_dump($valueCP);
+		                if(!in_array($valueCP, $arrayAdd)){
+		                    $arrayAdd[] =  $valueCP;
+		                    $postalCodes[]  = array("name" => $newCities["name"],
+		                                    "postalCode" => $valueCP,
+		                                    "geo" => array( "@type"=>"GeoCoordinates", 
+		                                                    "latitude" => $newCities["geo"]["latitude"], 
+		                                                    "longitude" => $newCities["geo"]["longitude"]),
+		                                    "geoPosition" => array( "type"=>"Point",
+		                                    						"float" => true,
+		                                                            "coordinates" => array(
+		                                                                floatval($newCities["geo"]["longitude"]), 
+		                                                                floatval($newCities["geo"]["latitude"]))));  
+		                }
+		            }
+		            
+		        }
 	        }
+	        
 
 		}
 		$newCities["postalCodes"] = $postalCodes;
