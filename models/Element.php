@@ -1437,7 +1437,7 @@ class Element {
 			Import::checkWarning($id, $collection, Yii::app()->session['userId'] );
 		}
 
-		$result = array("result"=>false);
+		$result = array("result"=>true);
 		$resultGoods = array();
 		$resultErrors = array();
 		$values = array();
