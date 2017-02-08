@@ -212,7 +212,7 @@ class DetailAction extends CAction {
 		}
 		//$lists = Lists::get($listsToRetrieve);
 		//$params["eventTypes"] = $list["eventTypes"];
-		$params["tags"] = Tags::getActiveTags();
+		$params["tags"] = array("TODO : écrire la liste de suggestion de tags"); Tags::getActiveTags();
 		$params["element"] = $element;
 		$params["members"] = $members;
 		$params["type"] = $type;
@@ -245,6 +245,9 @@ class DetailAction extends CAction {
 		
 		$page = "detail";
 
+		if(@$_GET["tpl"] == "detail")
+				$page = "detail";
+		
 		if(@$_GET["tpl"] == "onepage")
 				$page = "onepage";
 			
@@ -253,8 +256,10 @@ class DetailAction extends CAction {
 		
 		if(Yii::app()->theme->name == "notragora")
 				$page = "notragora/detail";
-			
+		
+		//var_dump($params); //exit;
 		//$page = "onepage";
+		$params["params"] = $params;
 		if(Yii::app()->request->isAjaxRequest)
           echo $controller->renderPartial($page,$params,true);
         else 
