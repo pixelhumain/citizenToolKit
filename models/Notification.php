@@ -259,7 +259,7 @@ class Notification{
 					"label" => "{who} added a new action {what} in {where}"
 				),
 				"profilImage" => array(
-					"url" => "{ctrlr}/detail/id/{id}",
+					"url" => "targetTypeUrl",
 					"label" => "{who} added a new profil image on {where}"
 				),
 				"albumImage" => array(
@@ -294,23 +294,28 @@ class Notification{
 			"labelArray" => array("who","what","where"),
 			"icon" => "fa-cog",
 			"url" => "{whatController}/detail/id/{whatId}"
-		),
-		"ActStr::VERB_CONFIRM" => array(
+		),*/
+		ActStr::VERB_CONFIRM => array(
 			"repeat" => true,
-			"context" => "community",
-			"mail" => array(
-				"type"=>"instantly",
-				"to" => "invitor"
+			//"context" => "community",
+			"type"=>array(
+				"asMember"=>array(
+					"label" => "{who} confirmed the invitation to join {where}",
+					"labelRepeat" => "{who} have confirmed the invitation to join {where}"
+				),
+				"asAdmin"=>array(
+					"label" => "{who} confirmed the invitation to administrate {where}",
+					"labelRepeat" => "{who} have confirmed the invitation to administrate {where}"
+				)
 			),
-			"label" => "{who} confirmed the invitation to join {where}",
-			"labelRepeat" => "{who} confirmed the invitation to join {where}",
-			"labelArray" => array("who","what"),
-			"icon" => "fa-cog",
-			"url" => "element/directory/type/{whatType}/id/{whatId}"
+			"labelArray" => array("who","where"),
+			"icon" => "fa-check",
+			"url" => "{ctrlr}/directory/id/{id}"
 		),
 		//FROM USER LINK TO AN ELEMENT ACTING ON IT
-		"ActStr::VERB_INVITE" => array(
+		ActStr::VERB_INVITE => array(
 			"repeat" => true,
+			"notifyUser" => true,
 			"type" => array(
 				"asMember" => array(
 					"to"=> "members",
@@ -321,17 +326,25 @@ class Notification{
 					"to"=> "members",
 					"label"=>"{author} invited {who} to administrate {where}",
 					"labelRepeat"=>"{author} invited {who} to administrate {where}"
+				),
+				"user" => array(
+					"asMember" => array(
+						"label"=>"{author} invited you to join {where}"
+					),
+					"asAdmin" => array(
+						"label"=>"{author} invited you to administrate {where}"
+					)
 				)
 			),
 			"labelArray" => array("author","who","where"),
-			"context" => array("community","user"),
+			"context" => array("members","user"),
 			"mail" => array(
 				"type"=>"instantly",
 				"to" => "user"
 			),
 			"icon" => "fa-send",
-			"url" => "element/directory/type/{whatType}/id/{whatId}"
-		),*/
+			"url" => "{ctrlr}/detail/id/{id}"
+		),
 		// AJouter la confirmation vers l'utilisateur
 		//Creer le mail pour l'utilisateur accepté !!
 		ActStr::VERB_ACCEPT => array(
@@ -363,8 +376,8 @@ class Notification{
 				)
 			),
 			"labelArray" => array("author","who","where"),
-			"icon" => "fa-cog",
-			"url" => "{ctrlr}}/directory/id/{id}"
+			"icon" => "fa-check",
+			"url" => "{ctrlr}/directory/id/{id}"
 		)/*,
 		"SIGNIN" => array(
 			"repeat" => true,
@@ -396,9 +409,9 @@ class Notification{
 	    	* Notify all
 	    	*	- if a post in event wall
 	    	*/
-	    	if($verb == ActStr::VERB_POST)
-	    		$members = Event::getAttendeesByEventId( $id , "all", null ) ;
-	    	else
+	    	//if($verb == ActStr::VERB_POST)
+	    	//	$members = Event::getAttendeesByEventId( $id , "all", null ) ;
+	    	//else
 	    		$members = Event::getAttendeesByEventId( $id , "admin", "isAdmin" ) ;
 	    	$typeOfConnect="attendee";
 	    }
@@ -448,7 +461,16 @@ class Notification{
 	public static function getLabelNotification($label, $labelArray, $count, $target, $notification, $object, $labelUpNotifyTarget){
 		$specifyLabel = array();
 		if($labelUpNotifyTarget=="object"){
-			$memberName=$object["name"];
+			$memberName="";
+			if($object){
+				if(@$object["name"])
+					$memberName=$object["name"];
+				else{
+					foreach($object as $user){
+						$memberName=$user["name"];
+					}
+				}
+			}
 			$specifyLabel["{author}"] = Yii::app()->session['user']['name'];
 		}else {
 			$memberName=Yii::app()->session['user']['name'];
@@ -477,7 +499,7 @@ class Notification{
 			if(@$target["name"])
 				$specifyLabel["{where}"] = $target["name"];
 			else{
-				$resArray=self::getTargetInformation($target["id"],$target["type"]);
+				$resArray=self::getTargetInformation($target["id"],$target["type"], $object);
 				$specifyLabel["{where}"] = $resArray["{where}"];
 				if(@$resArray["{what}"])
 					$specifyLabel["{what}"]=$resArray["{what}"];
@@ -628,7 +650,6 @@ class Notification{
 			if(@$notificationPart["type"][$typeAction] && @$notificationPart["type"][$typeAction]["repeat"])
 				$update=self::checkIfAlreadyNotifForAnotherLink($target, $author, $verb, $notificationPart, $object, $typeAction);
 			if($update==false){
-		 	    //if($typeAction)
 		 	    $notifyObject=null;
 		 	    if(@$notificationPart["type"]["user"]){
 					$label = $notificationPart["type"]["user"][$typeAction]["label"];
@@ -658,11 +679,9 @@ class Notification{
 	        	$object = array($author["id"]=>array("name"=>$author["name"]));
 	        	$author = array(Yii::app()->session["userId"]=> array("name"=> Yii::app()->session["user"]["name"]));
 	        	$labelUpNotifyTarget="object";
-	        	//$object = $author;
 	        }
 	        else if($object){
 	        	$object=array("id" => $object["id"], "type" => $object["type"]);
-				//$target["name"]=self::getTargetName($target["id"],$target["type"]);
 	        }
 	        $notifyObject=null;
 	 	    if($typeAction){
@@ -678,7 +697,7 @@ class Notification{
 	    }
 	}
 
-	public static function getTargetInformation($id, $type) {	
+	public static function getTargetInformation($id, $type, $object=null) {	
 	 	$target=array();
 	 	if( in_array($type, array( Survey::COLLECTION, ActionRoom::COLLECTION, ActionRoom::COLLECTION_ACTIONS) ) )
 		{
@@ -707,14 +726,24 @@ class Notification{
 		$res["{what}"] = Yii::t("common", "a ".Element::getControlerByCollection($type));
 		if(@$target["name"])
 			$res["{where}"]=$target["name"];
-		else if(@$parent["name"])
+		else if(@$parent["name"]){
 			$res["{where}"]=$parent["name"];
+			if($object){
+				$object=Element::getElementSimpleById($object["id"], $object["type"]);
+				$res["{what}"]=$object["name"];
+			}
+
+		}
 		else if (@$target["entry"]){
 			$res["{what}"]=$target["entry"]["name"];
 			if(@$target["parent"])
 				$res["{where}"] = $target["parent"]["name"];
+		} 
+		else if(@$target["room"]){
+			$res["{what}"]=$target["room"]["name"];
+			if(@$target["parent"])
+				$res["{where}"] = $target["parent"]["name"];
 		}
-			
 		return $res;
 	}
 

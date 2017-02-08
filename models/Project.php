@@ -277,7 +277,6 @@ class Project {
 			$params['parentId'] = Yii::app() -> session["userId"];
 		}
 		Link::addContributor(Yii::app() -> session["userId"],Person::COLLECTION,$params['parentId'], $params['parentType'],$params["_id"]);
-		echo "ouiiiii";
 	    Notification::createdObjectAsParam(Person::COLLECTION,Yii::app() -> session["userId"],Project::COLLECTION, (String)$params["_id"], $params['parentType'], $params['parentId'], @$params["geo"], @$params["tags"] ,@$params["address"]);
 	    if($params["parentType"]==Organization::COLLECTION || $params["parentType"]==Project::COLLECTION)
 	    	Notification::constructNotification(ActStr::VERB_ADD, array("id" => Yii::app()->session["userId"],"name"=> Yii::app()->session["user"]["name"]), array("type"=>$params["parentType"],"id"=> $params["parentId"]), array("id"=>(string)$params["_id"],"type"=> Project::COLLECTION), Project::COLLECTION);
@@ -524,14 +523,22 @@ class Project {
 	  	
 	  	if ( isset($project) && isset( $project["links"] ) && isset( $project["links"]["contributors"] ) ) 
 	  	{
-	  		$contributors = $project["links"]["contributors"];
+	  		$contributors = array();
+	  		foreach($project["links"]["contributors"] as $key => $contributor){
+	  			if (!@$contributor["toBeValidated"] && !@$contributor["isInviting"])
+	  				$contributors[$key]=$contributor;
+	  		}
 	  		//No filter needed
 	  		if ($type == "all") {
 	  			return $contributors;
 	  		} else {
 	  			foreach ($project["links"]["contributors"] as $key => $contributor) {
 		            if ($contributor['type'] == $type ) {
-		                $res[$key] = $contributor;
+		            	if ($type=="isAdmin"){
+		            		if(!@$contributor["isAdminPending"])
+		            			$res[$key] = $contributor;
+		            	} else
+		                	$res[$key] = $contributor;
 		            }
 		            if ( $role && @$contributor[$role] == true ) {
 		                $res[$key] = $contributor;

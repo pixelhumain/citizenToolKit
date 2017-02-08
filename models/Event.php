@@ -431,10 +431,20 @@ class Event {
 			Link::connect( $params["parentId"], Event::COLLECTION,$params["_id"], Event::COLLECTION, Yii::app()->session["userId"], "subEvents");	
 
 		Notification::createdObjectAsParam( Person::COLLECTION, Yii::app()->session['userId'],Event::COLLECTION, (String)$params["_id"], $params["organizerType"], $params["organizerId"], @$params["geo"], array($params["type"]),@$params["address"]);
+	    if($params["organizerType"]==Organization::COLLECTION || $params["organizerType"]==Project::COLLECTION || @$params["parentId"]){
+			if(@$params["parentId"]){
+	    		$parentId=$params["parentId"];
+	    		$parentType=Event::COLLECTION;
+			} else{
+	    		$parentId=$params["organizerId"];
+	    		$parentType=$params["organizerType"];
+			}
+	    	Notification::constructNotification(ActStr::VERB_ADD, array("id" => Yii::app()->session["userId"],"name"=> Yii::app()->session["user"]["name"]), array("type"=>$parentType,"id"=> $parentId), array("id"=>(string)$params["_id"],"type"=> Event::COLLECTION), Event::COLLECTION);
+	    }
 	    $creator = Person::getById(Yii::app()->session['userId']);
 	    // Add in activity, person who's created the event
 	    ActivityStream::saveActivityHistory(ActStr::VERB_CREATE, (String)$params["_id"], Event::COLLECTION, "event", $params["name"]);
-	    Mail::newEvent($creator,$params);
+	    //Mail::newEvent($creator,$params);
 	    
 	    //TODO : add an admin notification
 	    //Notification::saveNotification(array("type"=>NotificationType::ASSOCIATION_SAVED,"user"=>$new["_id"]));

@@ -109,11 +109,13 @@ class Document {
 	    //Generate image profil if necessary
 	    if (substr_count(@$new["contentKey"], self::IMG_PROFIL)) {
 	    	self::generateProfilImages($new);
+	    	$typeNotif="profilImage";
 	    }
 	    if (substr_count(@$new["contentKey"], self::IMG_SLIDER)) {
 	    	self::generateAlbumImages($new, self::GENERATED_IMAGES_FOLDER);
+	    	$typeNotif="albumImage";
 	    }
-
+    	Notification::constructNotification(ActStr::VERB_ADD, array("id" => Yii::app()->session["userId"],"name"=> Yii::app()->session["user"]["name"]), array("type"=>$new["type"],"id"=> $new["id"]), null, $typeNotif);
 	    return array("result"=>true, "msg"=>Yii::t('document','Document saved successfully'), "id"=>$new["_id"],"name"=>$new["name"]);	
 	}
 	
@@ -801,7 +803,6 @@ class Document {
     		} else {
     			file_put_contents($uploadDir.$name , $file);
 			}
-
     		return array('result'=>true,
                         "success"=>true,
                         'name'=>$name,

@@ -562,14 +562,23 @@ class Organization {
             throw new CTKException(Yii::t("organization", "The organization id is unkown : contact your admin"));
         }
 	  	if (isset($organization) && isset($organization["links"]) && isset($organization["links"]["members"])) {
-	  		$members = $organization["links"]["members"];
+	  		$members=array();
+	  		foreach($organization["links"]["members"] as $key => $member){
+	  		 	if(!@$member["toBeValidated"] && !@$member["isInviting"])
+	  		 		$members[$key]= $member;
+	  		}
 	  		//No filter needed
 	  		if ($type == "all") {
 	  			return $members;
 	  		} else {
 	  			foreach ($organization["links"]["members"] as $key => $member) {
 		            if ($member['type'] == $type ) {
-		                $res[$key] = $member;
+		            	if($type=="isAdmin"){
+		            		if(!@$member["isAdminPending"])
+		            			$res[$key] = $member;	
+		            	}
+		            	else
+		                	$res[$key] = $member;
 		            }
 		            if ( $role && @$member[$role] == true ) {
 		                $res[$key] = $member;

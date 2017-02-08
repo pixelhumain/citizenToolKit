@@ -168,6 +168,7 @@ class DetailAction extends CAction {
 			if(isset($element["links"][$connectType])){
 				$countStrongLinks=count($element["links"][$connectType]);
 				$nbMembers=0;
+				$nbInvitations=0;
 				foreach ($element["links"][$connectType] as $key => $aMember) {
 					if($nbMembers < 11){
 						if($aMember["type"]==Organization::COLLECTION){
@@ -182,7 +183,7 @@ class DetailAction extends CAction {
 								$members[$key] = $newOrga ;
 							}
 						} else if($aMember["type"]==Person::COLLECTION){
-							if(!@$aMember["invitorId"]){
+							if(!@$aMember["isInviting"]){
 								$newCitoyen = Person::getSimpleUserById($key);
 								if (!empty($newCitoyen)) {
 									if (@$aMember["type"] == Person::COLLECTION) {
@@ -200,10 +201,14 @@ class DetailAction extends CAction {
 									//array_push($contextMap["people"], $newCitoyen);
 									//array_push($members, $newCitoyen);
 									$members[$key] = $newCitoyen ;
+									$nbMembers++;
 								}
-							}
+							} else{
+		  						if(@Yii::app()->session["userId"] && $key==Yii::app()->session["userId"])
+		  							$params["invitedMe"]=array("invitorId"=>$aMember["invitorId"],"invitorName"=>$aMember["invitorName"]);
+		  						$nbInvitations++;
+			  				} 
 						}
-						$nbMembers++;
 					} else {
 						break;
 					}

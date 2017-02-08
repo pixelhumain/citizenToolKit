@@ -23,8 +23,8 @@ class ActivityStream {
 			unset($news["target"]["objectType"]);
 		    PHDB::insert(News::COLLECTION, $news);
 		}
-	    //$param["timestamp"] = new MongoDate(time());
-	    PHDB::insert(self::COLLECTION, $param);
+		else
+	    	PHDB::insert(self::COLLECTION, $param);
 	}
 	public static function getWhere($params) {
 	  	 return PHDB::find( self::COLLECTION,$params,null,null);

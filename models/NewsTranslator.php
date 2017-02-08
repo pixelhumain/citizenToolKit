@@ -18,31 +18,31 @@ class NewsTranslator {
 	public static function convertParamsForNews($params,$readOne=false){
 		if(@$params["object"]){
 			$docImg="";
-			if($params["object"]["objectType"]==Event::COLLECTION){
+			if($params["object"]["type"]==Event::COLLECTION){
 				$object=Event::getSimpleEventById((string)$params["object"]["id"]);
 				$params["icon"] = "fa-calendar";
 			} 
-			else if ($params["object"]["objectType"]==Organization::COLLECTION){
+			else if ($params["object"]["type"]==Organization::COLLECTION){
 				$object=Organization::getSimpleOrganizationById((string)$params["object"]["id"]);
 				$params["icon"] = "fa-group";
 			} 
-			else if ($params["object"]["objectType"]==Project::COLLECTION){
+			else if ($params["object"]["type"]==Project::COLLECTION){
 				$object=Project::getSimpleProjectById((string)$params["object"]["id"]);
 				$params["icon"]="fa-lightbulb-o";
 			}
-			else if ($params["object"]["objectType"]==Need::COLLECTION){
+			else if ($params["object"]["type"]==Need::COLLECTION){
 				$object=Need::getSimpleNeedById((string)$params["object"]["id"]);
 				$params["icon"]="fa-cubes";
 			}
 
 			if(!empty($object)){
-				if($params["object"]["objectType"]!=Need::COLLECTION)
+				if($params["object"]["type"]!=Need::COLLECTION)
 					$params["imageBackground"] = $object["profilImageUrl"];
 				$params["name"] = $object["name"];
 				$params["text"] = preg_replace('/<[^>]*>/', '', (isset($object["shortDescription"]) ? $object["shortDescription"] : "" ));
 				if (empty($params["text"]))
 					$params["text"] =(isset($object["description"]) ? preg_replace('/<[^>]*>/', '',$object["description"]) : "");
-				if($params["object"]["objectType"]==Event::COLLECTION || $params["object"]["objectType"]==Need::COLLECTION){
+				if($params["object"]["type"]==Event::COLLECTION || $params["object"]["type"]==Need::COLLECTION){
 					$params["startDate"]=@$object["startDate"];
 					$params["endDate"]=@$object["endDate"];
 					
