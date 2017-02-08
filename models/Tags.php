@@ -35,6 +35,7 @@ class Tags {
 
   	$res = array();
   	//The tags are found in the list collection, key tags
+  	//TODO : écrire la liste de suggestion de tags
   	$tagsList = PHDB::findOne( PHType::TYPE_LISTS,array("name"=>"tags"), array('list'));
   	
   	if (!empty($tagsList['list']))

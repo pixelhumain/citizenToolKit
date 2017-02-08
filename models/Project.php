@@ -34,6 +34,7 @@ class Project {
 	    "medias" => array("name" => "medias"),
 	    "urls" => array("name" => "urls"),
 	    "type" => array("name" => "type"),
+	    "contacts" => array("name" => "contacts"),
 		
 		"parentId" => array("name" => "parentId"),
 		"parentType" => array("name" => "parentType"),
