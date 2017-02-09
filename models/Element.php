@@ -1093,6 +1093,7 @@ class Element {
 				$params["allDay"] = false;
 			}
 		}
+
 		if(isset($params["name"])) 
 	    	$params["name"] = htmlspecialchars($params["name"]);
 	
@@ -1431,6 +1432,13 @@ class Element {
 				$res[] = self::updateField($collection, $id, "url", self::getAndCheckUrl($params["gpplusAccount"]));
 			if(isset($params["skypeAccount"]))
 				$res[] = self::updateField($collection, $id, "url", self::getAndCheckUrl($params["skypeAccount"]));
+		}else if($block == "when"){
+			if(isset($params["allDay"]))
+				$res[] = self::updateField($collection, $id, "allDay", (($params["allDay"] == "true") ? true : false));
+			if(isset($params["startDate"]))
+				$res[] = self::updateField($collection, $id, "startDate", $params["startDate"]);
+			if(isset($params["endDate"]))
+				$res[] = self::updateField($collection, $id, "endDate", $params["endDate"]);
 		}
 
 		if(Import::isUncomplete($id, $collection)){
