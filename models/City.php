@@ -105,7 +105,7 @@ class City {
 
 	public static function getDepAndRegionByInsee($insee){
 		$where = array("insee" => $insee);
-		$fields = array("depName", "regionName");
+		$fields = array("depName", "regionName", "country");
 		$city = PHDB::findOne(self::COLLECTION, $where ,$fields);
 		return $city;
 	}
