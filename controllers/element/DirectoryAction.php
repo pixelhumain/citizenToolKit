@@ -133,6 +133,13 @@ class DirectoryAction extends CAction
         if(Yii::app()->request->isAjaxRequest){
             if(@$_GET[ "tpl" ] == "json"){
               $context = array("name"=>$element["name"]);
+
+              unset($params["element"]);
+              foreach ($params as $key => $value) {
+                if(!is_array($value))
+                  unset($params[$key]);
+              }
+
               echo Rest::json( array( "list" => $params,"context"=>$context) );
             }
             else
