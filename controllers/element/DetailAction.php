@@ -49,9 +49,9 @@ class DetailAction extends CAction {
 			
 			// Link with needs
 			if(isset($element["links"]["needs"])){
-				foreach ($element["links"]["needs"] as $key => $value){
-					$need = Need::getSimpleNeedById($key);
-	           		$needs[$key] = $need;
+				foreach ($element["links"]["needs"] as $keyNeed => $value){
+					$need = Need::getSimpleNeedById($keyNeed);
+	           		$needs[$keyNeed] = $need;
 				}
 			}
 			
@@ -71,9 +71,10 @@ class DetailAction extends CAction {
 			}
 
 			if(isset($element["links"]["needs"])){
-				foreach ($element["links"]["needs"] as $key => $value){
-					$need = Need::getSimpleNeedById($key);
-	           		$needs[$key] = $need;
+				foreach ($element["links"]["needs"] as $keyNeed => $value){
+					error_log("getting needs : ".$keyNeed);
+					$need = Need::getSimpleNeedById($keyNeed);
+	           		$needs[$keyNeed] = $need;
 				}
 			}
 
@@ -125,7 +126,7 @@ class DetailAction extends CAction {
 		  		$params["organizer"] = $organizer;
               		
             }
-			//events can have sub evnets
+			//events can have sub events
 	        $params["subEvents"] = PHDB::find(Event::COLLECTION,array("parentId"=>$id));
 	        $params["subEventsOrganiser"] = array();
 	        $hasSubEvents = false;
