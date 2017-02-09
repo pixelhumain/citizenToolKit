@@ -255,8 +255,8 @@ class DetailAction extends CAction {
 		if(@$_GET["tpl"] == "profilSocial")
 				$page = "profilSocial";
 		
-		if(Yii::app()->theme->name == "notragora")
-				$page = "notragora/detail";
+		if( in_array( Yii::app()->theme->name, array("notragora") ) )
+				$page = Yii::app()->theme->name."/detail";
 		
 		//var_dump($params); //exit;
 		//$page = "onepage";

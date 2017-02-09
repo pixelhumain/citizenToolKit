@@ -135,6 +135,7 @@ class DirectoryAction extends CAction
               $context = array("name"=>$element["name"]);
 
               unset($params["element"]);
+              unset($params["links"]);
               foreach ($params as $key => $value) {
                 if(!is_array($value))
                   unset($params[$key]);
