@@ -19,6 +19,7 @@ class SimplyAutoCompleteAction extends CAction
         $country = isset($_POST['country']) ? $_POST['country'] : "";
         $sourceKey = isset($_POST['sourceKey']) ? $_POST['sourceKey'] : null;
         $mainTag = isset($_POST['mainTag']) ? $_POST['mainTag'] : null;
+        $paramsFiltre = isset($_POST['paramsFiltre']) ? $_POST['paramsFiltre'] : null;
 
 
 
@@ -41,7 +42,8 @@ class SimplyAutoCompleteAction extends CAction
   			$tmpTags[] = new MongoRegex("/".$value."/i");
   		}
   		if(count($tmpTags)){
-  			$query = array('$and' => array( $query , array("tags" => array('$in' => $tmpTags)))) ;
+  			$verbTag = ( (!empty($paramsFiltre) && '$all' == $paramsFiltre) ? '$all' : '$in' ) ;
+  			$query = array('$and' => array( $query , array("tags" => array($verbTag => $tmpTags)))) ;
   		}
   		unset($tmpTags);
 
@@ -61,8 +63,8 @@ class SimplyAutoCompleteAction extends CAction
   	  			$tmpMainTag[] = new MongoRegex("/".$mainTag."/i");
   	  		}
 	  		if(count($tmpMainTag)){
-	  			$verbTag = ( (!empty($searchPrefTag) && '$or' == $searchPrefTag) ? '$or' : '$and' );
-	  			$query = array($verbTag => array( $query , array("tags" => array('$in' => $tmpMainTag))));
+	  			$verbMainTag = ( (!empty($searchPrefTag) && '$or' == $searchPrefTag) ? '$or' : '$and' );
+	  			$query = array($verbMainTag => array( $query , array("tags" => array('$in' => $tmpMainTag))));
 	  		}
 	  		unset($tmpMainTag);
 	  	}
