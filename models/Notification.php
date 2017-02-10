@@ -82,7 +82,7 @@ class Notification{
 			"labelRepeat"=>"{who} are following {where}",
 			"labelArray" => array("who","where"),
 			"icon" => "fa-link",
-			"url" => "{ctrlr}/directory/id/{id}?tpl=directory2"
+			"url" => "{ctrlr}/directory/id/{id}"
 		),
 		ActStr::VERB_ASK => array(
 			"repeat" => true,
@@ -494,15 +494,39 @@ class Notification{
 	    return $people;
 	}
 
-	public static function getLabelNotification($label, $labelArray, $count, $target, $notification, $object, $labelUpNotifyTarget){
+	public static function getLabelNotification($construct, $type=null, $count=1, $notification=null){
 		$specifyLabel = array();
-		if($labelUpNotifyTarget=="object"){
+		//GetLAbel
+		//$type=""; else "Repeat"
+		if($type)
+			$label = $construct["type"]["user"][$construct["levelType"]]["label"];
+		else if($construct["levelType"]){
+ 	    	if(@$target["targetIsAuthor"])
+				$label = $construct["type"][$construct["levelType"]]["targetIsAuthor"]["label".$type];
+			else if(!@$notificationPart["type"][$construct["levelType"]]["label"])
+				$label = $construct["type"][$construct["levelType"]][$construct["target"]["type"]]["label".$type];
+			else
+				$label = $construct["type"][$construct["levelType"]]["label".$type];
+ 	    	//$notifyObject=$typeAction;
+ 	    }
+ 	    // CASE FOR NEWS
+		else if (!@$construct["label".$type]){
+			if(@$construct["target"]["targetIsAuthor"])
+				$label = $construct["type"]["targetIsAuthor"]["label".$type];
+			else if(@$construct["target"]["userWall"])
+				$label = $construct["type"]["userWall"]["label".$type];
+			else
+				$label = $construct["type"]["label".$type];
+		}
+		else
+			$label = $construct["label".$type];
+		if($construct["labelUpNotifyTarget"]=="object"){
 			$memberName="";
-			if($object){
-				if(@$object["name"])
-					$memberName=$object["name"];
+			if($construct["object"]){
+				if(@$construct["object"]["name"])
+					$memberName=$construct["object"]["name"];
 				else{
-					foreach($object as $user){
+					foreach($construct["object"] as $user){
 						$memberName=$user["name"];
 					}
 				}
@@ -516,14 +540,14 @@ class Notification{
 			$specifyLabel["{who}"] = $memberName;
 		}
 		else if($count==2){
-			foreach($notification[$labelUpNotifyTarget] as $data){
+			foreach($notification[$construct["labelUpNotifyTarget"]] as $data){
 				$lastAuthorName=$data["name"];
 				break; 
 			}
 			$specifyLabel["{who}"] = $memberName." ".Yii::t("common","and")." ".$lastAuthorName;
 		}
 		else {
-			foreach($notification[$labelUpNotifyTarget] as $data){
+			foreach($notification[$construct["labelUpNotifyTarget"]] as $data){
 				$lastAuthorName=$data["name"];
 				break;
 			}
@@ -531,11 +555,11 @@ class Notification{
 			if($nbOthers == 1) $labelUser = "person"; else $labelUser = "persons";
 			$specifyLabel["{who}"] = $memberName.", ".$lastAuthorName." ".Yii::t("common","and")." ".$nbOthers." ".Yii::t("common", $labelUser);
 		}
-		if(in_array("where",$labelArray)){
-			if(@$target["name"])
-				$specifyLabel["{where}"] = $target["name"];
+		if(in_array("where",$construct["labelArray"])){
+			if(@$construct["target"]["name"])
+				$specifyLabel["{where}"] = $construct["target"]["name"];
 			else{
-				$resArray=self::getTargetInformation($target["id"],$target["type"], $object);
+				$resArray=self::getTargetInformation($construct["target"]["id"],$construct["target"]["type"], $construct["object"]);
 				$specifyLabel["{where}"] = @$resArray["{where}"];
 				if(@$resArray["{what}"])
 					$specifyLabel["{what}"]=$resArray["{what}"];
@@ -543,21 +567,21 @@ class Notification{
 		}
 		//if(in_array("type", $labelArray))
 		//	$specifyLabel["{type}"] = $labelArray["typeValue"];
-		if(in_array("what",$labelArray))
-			$specifyLabel["{what}"] = @$object["name"];
+		if(in_array("what",$construct["labelArray"]))
+			$specifyLabel["{what}"] = @$construct["object"]["name"];
 		return Yii::t("notification",$label, $specifyLabel);	
 	}
 
-	public static function getUrlNotification($notification,$target,$levelInformation){
-		if(@$notification["url"])
-			$url=$notification["url"];
+	public static function getUrlNotification($construct){
+		if(@$construct["url"])
+			$url=$construct["url"];
 		else 
-			$url=$notification["type"][$levelInformation]["url"];
+			$url=$construct["type"][$construct["levelType"]]["url"];
 		if($url=="targetTypeUrl")
-			$url=$notification["type"][$target["type"]]["url"];
-		$url = str_replace("{ctrlr}", Element::getControlerByCollection($target["type"]), $url);
-		$url = str_replace("{collection}", $target["type"], $url);
-		$url = str_replace("{id}", $target["id"], $url);
+			$url=$construct["type"][$construct["target"]["type"]]["url"];
+		$url = str_replace("{ctrlr}", Element::getControlerByCollection($construct["target"]["type"]), $url);
+		$url = str_replace("{collection}", $construct["target"]["type"], $url);
+		$url = str_replace("{id}", $construct["target"]["id"], $url);
 		return $url;
 	}
 	/* TODO BOUBOULE
@@ -572,28 +596,35 @@ class Notification{
 				Up notif and label $repeat +1 
 		Return array of ids  
 	*/
-	public static function checkIfAlreadyNotifForAnotherLink($target, $author, $verb, $notificationPart, $object=null, $levelInformation=null)	{
-		$where=array("verb"=>$verb, "target.id"=>$target["id"], "target.type"=>$target["type"]);
+	public static function checkIfAlreadyNotifForAnotherLink($construct)	{
+		$where=array("verb"=>$construct["verb"], "target.id"=>$construct["target"]["id"], "target.type"=>$construct["target"]["type"]);
+		if($construct["labelUpNotifyTarget"]=="object"){
+			$where["author.".Yii::app()->session["userId"]] = array('$exists' => true);
+			$object=$author;
+		}
+
+		/*--- chack for object=author
 		$labelUpNotifyTarget="author";
 		if(in_array("author",$notificationPart["labelArray"])){
 			$where["author.".Yii::app()->session["userId"]] = array('$exists' => true);
 			$labelUpNotifyTarget="object";
 			$object=$author;
-		} /*else if($object){
+		}*/ /*else if($object){
 			$where["object.id"] = $object["id"];
 			$where["object.type"]=$object["type"];
 		}*/
-		if($levelInformation)
-			$where["notify.objectType"] = $levelInformation;
+		if($construct["levelType"])
+			$where["notify.objectType"] = $construct["levelType"];
 		$notification = PHDB::findOne(ActivityStream::COLLECTION, $where);
 		if(!empty($notification)){
-			if((@$notification[$labelUpNotifyTarget] && @$notification[$labelUpNotifyTarget][$author["id"]]) || (@$notificationPart["type"] && @$notificationPart["type"][$levelInformation] && @$notificationPart["type"][$levelInformation]["noUpdate"] ))
+			if((@$notification[$construct["labelUpNotifyTarget"]] && @$notification[$construct["labelUpNotifyTarget"]][$construct["author"]["id"]]
+				) || (@$construct["type"] && @$construct["type"][$construct["levelType"]] && @$construct["type"][$construct["levelType"]]["noUpdate"] ))
 				return true;
 			else{
 				$countRepeat=1;
-				foreach($notification[$labelUpNotifyTarget] as $i){$countRepeat++;}
+				foreach($notification[$construct["labelUpNotifyTarget"]] as $i){$countRepeat++;}
 				//------- MOVE ON GETLABEL -------//
-				if($levelInformation){
+				/*if($levelInformation){
 					if(@$target["targetIsAuthor"])
 						$labelRepeat = $notificationPart["type"][$levelInformation]["targetIsAuthor"]["labelRepeat"];
 					else if(!@$notificationPart["type"][$levelInformation]["labelRepeat"])
@@ -612,29 +643,29 @@ class Notification{
 				}
 				else{
 					$labelRepeat = $notificationPart["labelRepeat"];
-				}
+				}*/
 				// ------ END MOVE --------- //
 				// Get new Label
-				$newLabel=self::getLabelNotification($labelRepeat, $notificationPart["labelArray"], $countRepeat, $target, $notification, $object, $labelUpNotifyTarget);
+				$newLabel=self::getLabelNotification($construct, null, $countRepeat, $notification);
 				// Add new author to notification
-				if($labelUpNotifyTarget == "object")
-					$notification["object"][$author["id"]]=array("name" => $author["name"]);
+				if($construct["labelUpNotifyTarget"] == "object")
+					$notification["object"][$construct["author"]["id"]]=array("name" => $construct["author"]["name"]);
 				else
 					$notification["author"][Yii::app()->session['userId']]=array("name" => Yii::app()->session['user']['name']);
 				// Up isUnread and unSee to community to notify
-				$communityToNotify=array();
+				/*$communityToNotify=array();
 				foreach ($notification["notify"]["id"] as $key => $data){
 					if(!@$data["isUnread"])
 						$data["isUnread"]=true;
 					if(!@$data["isUnsee"])
 						$data["isUnsee"]=true;
 					$communityToNotify[$key]=$data;
-				}
+				}*/
 				PHDB::update(ActivityStream::COLLECTION,
 					array("_id" => $notification["_id"]),
 					array('$set' => array(
-						$labelUpNotifyTarget=>$notification[$labelUpNotifyTarget],
-						"notify.id" => $communityToNotify,
+						$construct["labelUpNotifyTarget"]=>$notification[$construct["labelUpNotifyTarget"]],
+						"notify.id" => $construct["community"],
 						"notify.displayName"=> $newLabel,
 						"updated" => new MongoDate(time())
 						)
@@ -648,24 +679,24 @@ class Notification{
 	}
 	/* TODO BOUBOULE
 	*/
-	public static function createNotification($verb, $author, $target, $community, $label,$notificationPart, $labelUpNotifyTarget, $typeAction, $object, $notifyObject=null){
+	public static function createNotification($construct, $type=null){
 		$asParam = array(
 	    	"type" => "notifications", 
-            "verb" => $verb,
-            "author"=> $author,
- 			"target"=> array("id" => $target["id"],"type" => $target["type"])
+            "verb" => $construct["verb"],
+            "author"=> $construct["author"],
+ 			"target"=> array("id" => $construct["target"]["id"],"type" => $construct["target"]["type"])
         );
-        if($object)
-        	$asParam["object"]=$object;
+        if($construct["object"])
+        	$asParam["object"]=$construct["object"];
  	    $stream = ActStr::buildEntry($asParam);
 		$notif = array( 
-	    	"persons" => $community,
-            "label"   => self::getLabelNotification($label, $notificationPart["labelArray"], 1, $target, null, $object, $labelUpNotifyTarget),
-            "icon"    => $notificationPart["icon"],
-            "url"     => self::getUrlNotification($notificationPart,$target, $typeAction)
+	    	"persons" => $construct["community"],
+            "label"   => self::getLabelNotification($construct,$type),
+            "icon"    => $construct["icon"],
+            "url"     => self::getUrlNotification($construct)
         );
-        if($notifyObject)
-        	$notif["objectType"]=$notifyObject;
+        if($construct["levelType"] && !@$construct["type"]["user"])
+        	$notif["objectType"]=$construct["levelType"];
 	    $stream["notify"] = ActivityStream::addNotification( $notif );
     	ActivityStream::addEntry($stream);
 	}
@@ -689,9 +720,9 @@ class Notification{
 			$authorId=(string)$author["_id"];
 		else
 			$authorId=$author["id"];
-		$notificationPart["author"]==array("id"=>$authorId,"name"=>$author["name"]);
+		$notificationPart["author"]=array("id"=>$authorId,"name"=>$author["name"]);
 		//Move labelUpToNotify in getLabel
-		$labelUpNotifyTarget = "author";
+		$notificationPart["labelUpNotifyTarget"] = "author";
 		// Create notification specially for user added to the next notify for community of target
 		if(@$notificationPart["notifyUser"] || (@$notificationPart["type"] && @$notificationPart["type"][$levelType] && @$notificationPart["type"][$levelType]["notifyUser"])){
 			$update=false;
@@ -699,58 +730,61 @@ class Notification{
 			if($verb==Actstr::VERB_COMMENT){
 				$comment=Comment::getById($object["id"]);
 				$userNotify=$comment["author"]["id"];
-				$alreadyAuhtorNotify=$userNotify;
+				$notificationPart["alreadyAuhtorNotify"]=$userNotify;
 			}else
 				$userNotify=$author["id"];
 			$community=self::communityToNotify($userNotify,Person::COLLECTION,$context);
 			if(@$notificationPart["type"][$typeAction] && @$notificationPart["type"][$levelType]["repeat"])
-				$update=self::checkIfAlreadyNotifForAnotherLink($target, $author, $verb, $notificationPart, $object, $levelType);
+				$update=self::checkIfAlreadyNotifForAnotherLink($notificationPart);
 			if($update==false){
-		 	    $notifyObject=null;
+		 	    //$notifyObject=null;
 		 	    //--------- MOVE ON GETLABEL -----------//
+		 	    $type=null;
 		 	    if(@$notificationPart["type"]["user"]){
-					$label = $notificationPart["type"]["user"][$levelType]["label"];
-					$labelUpNotifyTarget="object";
+					$type="user";
+					$notificationPart["labelUpNotifyTarget"]="object";
 				}
-				else{
+				//REFACTOR -- VERYFY ELSE NO IMPACT ON A NOTIF
+				/*else{
 					if(@$target["targetIsAuthor"])
 						$label = $notificationPart["type"][$levelType]["targetIsAuthor"]["label"];
 					else
 						$label = $notificationPart["type"][$levelType]["label"];
-					$labelUpNotifyTarget="author";
-					$notifyObject=$typeAction;
-				}
+					//$labelUpNotifyTarget="author";
+					//$notifyObject=$typeAction;
+				}*/
 				// -------- END MOVE ON GETLABEL --------///
-				$authorUser=array(Yii::app()->session["userId"]=> array("name"=> Yii::app()->session["user"]["name"]));
-				self::createNotification($verb,$authorUser,$target,$community,$label,$notificationPart,$labelUpNotifyTarget,$levelType,$object, $notifyObject);
+				$notificationPart["author"]=array(Yii::app()->session["userId"]=> array("name"=> Yii::app()->session["user"]["name"]));
+				self::createNotification($notificationPart,$type);
 		    }
 	        //To DO -- Create Mail of confirmation for user Or invitation for user !!!!!!
 		}
 		// COnstruct notification for target
 		$community = self::communityToNotify($target["id"], $target["type"], $context, @$alreadyAuhtorNotify);
+		$notificationPart["community"]=$community;
 		$update = false;
-		if((@$notificationPart["repeat"] && $notificationPart["repeat"]) || (@$notificationPart["type"] && @$notificationPart["type"][$typeAction] && @$notificationPart["type"][$typeAction]["repeat"])){	
-			$update=self::checkIfAlreadyNotifForAnotherLink($target, $author, $verb, $notificationPart, $object, $typeAction);
+		if((@$notificationPart["repeat"] && $notificationPart["repeat"]) || (@$notificationPart["type"] && @$notificationPart["type"][$levelType] && @$notificationPart["type"][$levelType]["repeat"])){	
+			$update=self::checkIfAlreadyNotifForAnotherLink($notificationPart);
 		}
-		if($update==false && !empty($community)){
+		if($update==false && !empty($notificationPart["community"])){
 	        // Case 
 	        if(in_array("author",$notificationPart["labelArray"])){
-	        	$object = array($author["id"]=>array("name"=>$author["name"]));
-	        	$author = array(Yii::app()->session["userId"]=> array("name"=> Yii::app()->session["user"]["name"]));
-	        	$labelUpNotifyTarget="object";
+	        	$notificationPart["object"] = array($notificationPart["author"]["id"]=>array("name"=>$notificationPart["author"]["name"]));
+	        	$notificationPart["author"] = array(Yii::app()->session["userId"]=> array("name"=> Yii::app()->session["user"]["name"]));
+	        	$notificationPart["labelUpNotifyTarget"]="object";
 	        }
 	        else if($object){
-	        	$object=array("id" => $object["id"], "type" => $object["type"]);
+	        	$notificationPart["object"]=array("id" => $object["id"], "type" => $object["type"]);
 	        }
-	        $notifyObject=null;
-	 	    if($typeAction){
+	        //$notifyObject=null;
+	 	    /*if($typeAction){
 	 	    	if(@$target["targetIsAuthor"])
 					$label = $notificationPart["type"][$typeAction]["targetIsAuthor"]["label"];
 				else if(!@$notificationPart["type"][$typeAction]["label"])
 					$label = $notificationPart["type"][$typeAction][$target["type"]]["label"];
 				else
 					$label = $notificationPart["type"][$typeAction]["label"];
-	 	    	$notifyObject=$typeAction;
+	 	    	//$notifyObject=$typeAction;
 	 	    }
 	 	    // CASE FOR NEWS
 			else if (!@$notificationPart["label"]){
@@ -762,8 +796,8 @@ class Notification{
 					$label = $notificationPart["type"]["label"];
 			}
 			else
-				$label = $notificationPart["label"];
-			 self::createNotification($verb, $author, $target, $community, $label,$notificationPart, $labelUpNotifyTarget, $typeAction, $object, $notifyObject);
+				$label = $notificationPart["label"];*/
+			 self::createNotification($notificationPart);
 	    }
 	}
 
