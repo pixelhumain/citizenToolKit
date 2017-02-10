@@ -108,18 +108,36 @@ class Notification{
 		),
 		//// USED ONLY FOR EVENT
 		// FOR ORGANIZATRION AND PROJECT IF ONLY MEMBER
-		/*"ActStr::VERB_JOIN" => array(
+		ActStr::VERB_JOIN => array(
 			"repeat" => true,
-			"context" => "members",
+			//"context" => "members",
 			"mail" => array(
 				"type"=>"daily"
 			),
-			"label"=>"{who} participates to {where}",
-			"labelRepeat"=>"{who} participate to {where}",
+			"type" => array(
+				"asMember"=> array(
+					Event::COLLECTION => array(
+						"label"=>"{who} participates to {where}",
+						"labelRepeat"=>"{who} participate to {where}"
+					),
+					Organization::COLLECTION => array(
+						"label"=>"{who} joins {where}",
+						"labelRepeat"=>"{who} join {where}"
+					),
+					Project::COLLECTION => array(
+						"label"=>"{who} contributes to {where}",
+						"labelRepeat"=>"{who} contribute to {where}"
+					)
+				),
+				"asAdmin" => array(
+					"label"=>"{who} becomes administrator of {where}",
+					"labelRepeat"=>"{who} become administrator of {where}"
+				)
+			),
 			"labelArray" => array("who","where"),
-			"icon" => "fa-link",
-			"url" => "{whatController}/detail/id/{whatId}"
-		),*/
+			"icon" => "fa-group",
+			"url" => "{ctrlr}/directory/id/{id}"
+		),
 		ActStr::VERB_COMMENT => array(
 			"repeat" => true,
 			"type" => array(
@@ -220,6 +238,24 @@ class Notification{
 				"to" => "author" //If orga or project to members
 			),
 			"icon" => "fa-thumbs-down"
+		),
+		ActStr::VERB_POST => array(
+			"repeat" => true,
+			"type" => array(
+				"targetIsAuthor" => array(
+					"label"=>"{where} publishes a new post",
+					"labelRepeat"=>"{where} publishes new posts"
+				),
+				"userWall" => array(
+					"label"=>"{who} writes a post on your wall",
+					"labelRepeat"=>"{who} write posts on your wall"
+				),
+				"label"=>"{who} writes a post on the wall of {where}",
+				"labelRepeat"=>"{who} write posts on the wall of {where}"
+			),
+			"url" => "news/index/type/{collection}/id/{id}",
+			"labelArray" => array("who", "where"),
+			"icon" => "fa-rss"
 		),
 		ActStr::VERB_ADD => array(
 			"type" => array(
@@ -500,13 +536,13 @@ class Notification{
 				$specifyLabel["{where}"] = $target["name"];
 			else{
 				$resArray=self::getTargetInformation($target["id"],$target["type"], $object);
-				$specifyLabel["{where}"] = $resArray["{where}"];
+				$specifyLabel["{where}"] = @$resArray["{where}"];
 				if(@$resArray["{what}"])
 					$specifyLabel["{what}"]=$resArray["{what}"];
 			}
 		}
-		if(in_array("type", $labelArray))
-			$specifyLabel["{type}"] = $labelArray["typeValue"];
+		//if(in_array("type", $labelArray))
+		//	$specifyLabel["{type}"] = $labelArray["typeValue"];
 		if(in_array("what",$labelArray))
 			$specifyLabel["{what}"] = @$object["name"];
 		return Yii::t("notification",$label, $specifyLabel);	
@@ -520,6 +556,7 @@ class Notification{
 		if($url=="targetTypeUrl")
 			$url=$notification["type"][$target["type"]]["url"];
 		$url = str_replace("{ctrlr}", Element::getControlerByCollection($target["type"]), $url);
+		$url = str_replace("{collection}", $target["type"], $url);
 		$url = str_replace("{id}", $target["id"], $url);
 		return $url;
 	}
@@ -555,15 +592,28 @@ class Notification{
 			else{
 				$countRepeat=1;
 				foreach($notification[$labelUpNotifyTarget] as $i){$countRepeat++;}
+				//------- MOVE ON GETLABEL -------//
 				if($levelInformation){
 					if(@$target["targetIsAuthor"])
-						$labelRepeat = $notificationPart["type"][$levelInformation]["targetIsAuthor"]["label"];
+						$labelRepeat = $notificationPart["type"][$levelInformation]["targetIsAuthor"]["labelRepeat"];
+					else if(!@$notificationPart["type"][$levelInformation]["labelRepeat"])
+						$labelRepeat = $notificationPart["type"][$levelInformation][$target["type"]]["labelRepeat"];
 					else
 						$labelRepeat = $notificationPart["type"][$levelInformation]["labelRepeat"];
+				}
+				// CASE FOR NEWS
+				else if (!@$notificationPart["labelRepeat"]){
+					if(@$target["targetIsAuthor"])
+						$labelRepeat = $notificationPart["type"]["targetIsAuthor"]["labelRepeat"];
+					else if(@$target["userWall"])
+						$labelRepeat = $notificationPart["type"]["userWall"]["labelRepeat"];
+					else
+						$labelRepeat = $notificationPart["type"]["labelRepeat"];
 				}
 				else{
 					$labelRepeat = $notificationPart["labelRepeat"];
 				}
+				// ------ END MOVE --------- //
 				// Get new Label
 				$newLabel=self::getLabelNotification($labelRepeat, $notificationPart["labelArray"], $countRepeat, $target, $notification, $object, $labelUpNotifyTarget);
 				// Add new author to notification
@@ -625,19 +675,25 @@ class Notification{
 			$impact => community
 			$notify => $ids => {id + isUnread == true}
 	*/
-	public static function constructNotification($verb, $author, $target, $object = null, $typeAction = null, $context = null){
+	public static function constructNotification($verb, $author, $target, $object = null, $levelType = null, $context = null){
 		$notificationPart = self::$notificationTree[$verb];
-		if(in_array("type",$notificationPart["labelArray"]))
-			$notificationPart["labelArray"]["typeValue"]=$notificationPart["type"][$typeAction]["type"];
+		$notificationPart["verb"] = $verb;
+		//$notificationPart["author"]=$author;
+		$notificationPart["target"]=$target;
+		$notificationPart["object"]=$object;
+		$notificationPart["levelType"]=$levelType;
+		//if(in_array("type",$notificationPart["labelArray"]))
+		//	$notificationPart["labelArray"]["typeValue"]=$notificationPart["type"][$levelType]["type"];
 		// Object could be the object in following method if action is by an other acting on an other person (ex: author add so as member {"member"=> $author})
 		if(@$author["_id"])
 			$authorId=(string)$author["_id"];
 		else
 			$authorId=$author["id"];
-		$author=array("id"=>$authorId,"name"=>$author["name"]);
+		$notificationPart["author"]==array("id"=>$authorId,"name"=>$author["name"]);
+		//Move labelUpToNotify in getLabel
 		$labelUpNotifyTarget = "author";
 		// Create notification specially for user added to the next notify for community of target
-		if(@$notificationPart["notifyUser"] || (@$notificationPart["type"] && @$notificationPart["type"][$typeAction] && @$notificationPart["type"][$typeAction]["notifyUser"])){
+		if(@$notificationPart["notifyUser"] || (@$notificationPart["type"] && @$notificationPart["type"][$levelType] && @$notificationPart["type"][$levelType]["notifyUser"])){
 			$update=false;
 			// If answered on comment is the same than on the news or other don't notify twice the author of parent and comment
 			if($verb==Actstr::VERB_COMMENT){
@@ -647,23 +703,26 @@ class Notification{
 			}else
 				$userNotify=$author["id"];
 			$community=self::communityToNotify($userNotify,Person::COLLECTION,$context);
-			if(@$notificationPart["type"][$typeAction] && @$notificationPart["type"][$typeAction]["repeat"])
-				$update=self::checkIfAlreadyNotifForAnotherLink($target, $author, $verb, $notificationPart, $object, $typeAction);
+			if(@$notificationPart["type"][$typeAction] && @$notificationPart["type"][$levelType]["repeat"])
+				$update=self::checkIfAlreadyNotifForAnotherLink($target, $author, $verb, $notificationPart, $object, $levelType);
 			if($update==false){
 		 	    $notifyObject=null;
+		 	    //--------- MOVE ON GETLABEL -----------//
 		 	    if(@$notificationPart["type"]["user"]){
-					$label = $notificationPart["type"]["user"][$typeAction]["label"];
+					$label = $notificationPart["type"]["user"][$levelType]["label"];
 					$labelUpNotifyTarget="object";
-				}else{
+				}
+				else{
 					if(@$target["targetIsAuthor"])
-						$label = $notificationPart["type"][$typeAction]["targetIsAuthor"]["label"];
+						$label = $notificationPart["type"][$levelType]["targetIsAuthor"]["label"];
 					else
-						$label = $notificationPart["type"][$typeAction]["label"];
+						$label = $notificationPart["type"][$levelType]["label"];
 					$labelUpNotifyTarget="author";
 					$notifyObject=$typeAction;
 				}
+				// -------- END MOVE ON GETLABEL --------///
 				$authorUser=array(Yii::app()->session["userId"]=> array("name"=> Yii::app()->session["user"]["name"]));
-				self::createNotification($verb,$authorUser,$target,$community,$label,$notificationPart,$labelUpNotifyTarget,$typeAction,$object, $notifyObject);
+				self::createNotification($verb,$authorUser,$target,$community,$label,$notificationPart,$labelUpNotifyTarget,$levelType,$object, $notifyObject);
 		    }
 	        //To DO -- Create Mail of confirmation for user Or invitation for user !!!!!!
 		}
@@ -687,10 +746,21 @@ class Notification{
 	 	    if($typeAction){
 	 	    	if(@$target["targetIsAuthor"])
 					$label = $notificationPart["type"][$typeAction]["targetIsAuthor"]["label"];
+				else if(!@$notificationPart["type"][$typeAction]["label"])
+					$label = $notificationPart["type"][$typeAction][$target["type"]]["label"];
 				else
 					$label = $notificationPart["type"][$typeAction]["label"];
 	 	    	$notifyObject=$typeAction;
 	 	    }
+	 	    // CASE FOR NEWS
+			else if (!@$notificationPart["label"]){
+				if(@$target["targetIsAuthor"])
+					$label = $notificationPart["type"]["targetIsAuthor"]["label"];
+				else if(@$target["userWall"])
+					$label = $notificationPart["type"]["userWall"]["label"];
+				else
+					$label = $notificationPart["type"]["label"];
+			}
 			else
 				$label = $notificationPart["label"];
 			 self::createNotification($verb, $author, $target, $community, $label,$notificationPart, $labelUpNotifyTarget, $typeAction, $object, $notifyObject);

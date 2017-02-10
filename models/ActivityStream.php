@@ -29,7 +29,7 @@ class ActivityStream {
 	public static function getWhere($params) {
 	  	 return PHDB::find( self::COLLECTION,$params,null,null);
 	}
-	public static function getNotifications($param,$sort=array("timestamp"=>-1))
+	public static function getNotifications($param,$sort=array("created"=>-1,"updated"=>-1))
 	{
 	    return PHDB::findAndSort(self::COLLECTION, $param,$sort);
 	}
