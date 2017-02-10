@@ -130,6 +130,7 @@ class City {
 	/* Retourne des infos sur la commune dans la collection cityData" */
 	public static function getWhereData($params, $fields=null, $limit=20, $sort=null) 
 	{
+		ini_set('memory_limit', '-1');
 		if(isset($sort)){
 			//var_dump($sort);
 			$cityData =PHDB::findAndSort( self::COLLECTION_DATA,$params, $sort, $limit, $fields);

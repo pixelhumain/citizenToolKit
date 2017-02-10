@@ -53,7 +53,7 @@ class Event {
 	    "medias" => array("name" => "medias"),
 	    "urls" => array("name" => "urls"),
 	    "url" => array("name" => "url"),
-
+	    "contacts" => array("name" => "contacts"),
 	    "modified" => array("name" => "modified"),
 	    "updated" => array("name" => "updated"),
 	    "creator" => array("name" => "creator"),
