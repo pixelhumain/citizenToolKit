@@ -680,7 +680,7 @@ class Element {
 			array_push($contextMap["events"], $elt);
 		}
 		else if ($type == Person::COLLECTION){
-			$connectAs="knows";
+			$connectAs="follows";
 			$elt = Person::getSimpleUserById($id);
 			array_push($contextMap["people"], $elt);
 		}
