@@ -42,8 +42,8 @@ class SimplyAutoCompleteAction extends CAction
   		/*if($searchTag)foreach ($searchTag as $value) {
   			$tmpTags[] = new MongoRegex("/".$value."/i");
   		}*/
+  		$verbTag = ( (!empty($paramsFiltre) && '$all' == $paramsFiltre) ? '$all' : '$in' ) ;
   		if(count($tmpTags)){
-  			$verbTag = ( (!empty($paramsFiltre) && '$all' == $paramsFiltre) ? '$all' : '$in' ) ;
   			$query = array('$and' => array( $query , array("tags" => array($verbTag => $tmpTags)))) ;
   		}
   		if(!empty($searchTag2)){
@@ -52,8 +52,10 @@ class SimplyAutoCompleteAction extends CAction
 	  			foreach ($tags as $key => $tag) {
 			  		$tmpTags[] = new MongoRegex("/".$tag."/i");
 		  		}
-		  		if(count($tmpTags))
-		  			$query = array('$and' => array( $query , array("tags" => array('$in' => $tmpTags)))) ;
+		  		if(count($tmpTags)){
+		  			$verbTag = ( (!empty($paramsFiltre) && '$all' == $paramsFiltre) ? '$all' : '$in' ) ;
+		  			$query = array('$and' => array( $query , array("tags" => array($verbTag => $tmpTags)))) ;
+		  		}
 	  		}
   		}
   		
