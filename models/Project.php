@@ -534,13 +534,14 @@ class Project {
 	  		} else {
 	  			foreach ($project["links"]["contributors"] as $key => $contributor) {
 		            if ($contributor['type'] == $type ) {
-		            	if ($type=="isAdmin"){
+		            	if (!@$contributor["toBeValidated"] && !@$contributor["isInviting"])
+		            		$res[$key] = $contributor;
+		            }
+		            if ( $role && @$contributor[$role] == true ) {
+		            	if ($role=="isAdmin"){
 		            		if(!@$contributor["isAdminPending"])
 		            			$res[$key] = $contributor;
 		            	} else
-		                	$res[$key] = $contributor;
-		            }
-		            if ( $role && @$contributor[$role] == true ) {
 		                $res[$key] = $contributor;
 		            }
 	        	}

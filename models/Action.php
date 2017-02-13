@@ -122,7 +122,7 @@ class Action
                        $verb = ActStr::VERB_LIKE;
                     else if($action == "voteDown")
                         $verb = ActStr::VERB_UNLIKE;
-                    if(@$verb){
+                    if(@$verb && $collection != Survey::COLLECTION){
                         $objectNotif=null;
                         if($collection==Comment::COLLECTION){
                             $target=array("type"=>$element["contextType"], "id"=>$element["contextId"]);

@@ -441,7 +441,7 @@ class Menu {
         if( !isset( $element["disabled"] ) ){
 	        if((@$config["connectLink"] && $config["connectLink"]) || empty($config)){
 	            //Link button 
-	            if($type != Person::COLLECTION && isset($element["_id"]) && isset(Yii::app()->session["userId"]) && 
+	            /*if($type != Person::COLLECTION && $type != Event::COLLECTION && isset($element["_id"]) && isset(Yii::app()->session["userId"]) && 
 	                Link::isLinked((string)$element["_id"], $type, Yii::app()->session["userId"])){
 		            
 		            self::entry("right", 'onclick',
@@ -449,25 +449,28 @@ class Menu {
 	                        Yii::t( "common", "Leave"),
 	                        'unlink disconnectBtnIcon',
 	                        "disconnectTo('".$type."','".$id."','".Yii::app()->session["userId"]."','".Person::COLLECTION."','".$strongLinks."')",null,null,"text-red"); 
-	            } else if (isset($element["_id"]) && isset(Yii::app()->session["userId"]) && 
-	                isset($element["links"]["followers"][Yii::app()->session["userId"]])){
-		            self::entry("right", 'onclick',
-	                        Yii::t( "common", "Unfollow this ".$controllerType),
-	                        Yii::t( "common", "Unfollow"),
-	                        'unlink disconnectBtnIcon',
-	                        "disconnectTo('".$type."','".$id."','".Yii::app()->session["userId"]."','".Person::COLLECTION."','followers')",null,null,"text-red"); 
-	            } else if(@$element["_id"] 
-	                        && @Yii::app()->session["userId"] 
-	                        && !@$element["links"]["followers"][Yii::app()->session["userId"]] 
-	                        && $type != Event::COLLECTION 
-	                        && @$element["_id"] != @Yii::app()->session["userId"]){
-		                self::entry("right", 'onclick',
-		                        Yii::t( "common", "Follow this ".$controllerType),
-		                        Yii::t( "common", "Follow"),
-		                        'link followBtn',
-		                        "follow('".$type."','".$id."','".Yii::app()->session["userId"]."','".Person::COLLECTION."')",null,null);
+	            } else */
+                if(!@$element["links"][$strongLinks][Yii::app()->session["userId"]]){
+                    if (isset($element["_id"]) 
+                        && isset(Yii ::app()->session["userId"]) 
+                        && isset($element["links"]["followers"][Yii::app()->session["userId"]])){
+                            self::entry("right", 'onclick',   
+	                           Yii::t( "common", "Unfollow this ".$controllerType),
+	                           Yii::t( "common", "Unfollow"),
+	                           'unlink disconnectBtnIcon',    
+	                           "disconnectTo('".$type."','".$id."','".Yii::app()->session["userId"]."','".Person  ::COLLECTION. "','followers')",null,null,"text-red");  
+	                } else if(@$element["_id"]     
+	                    && @Yii::app()->session["userId"]  
+	                    && !@$element["links"]["followers"][Yii::app()->session["userId"]]     
+	                    && $type != Event::COLLECTION  
+	                    && @$element["_id"] != @Yii::app()->session["userId"]){    
+		                    self::entry("right", 'onclick',   
+		                          Yii::t( "common", "Follow this ".$controllerType),    
+		                          Yii::t( "common", "Follow"),  
+		                          'link followBtn', 
+		                          "follow('".$type."','".$id."','".Yii::app()->session["userId"]."','".Person:: COLLECTION."')",null,null);
+	               }
 	            }
-	
 	            // Add member , contributor, attendee
 	            if($type == Organization::COLLECTION)
 	               $connectAs="member";
@@ -495,8 +498,13 @@ class Menu {
 	                                Yii::t( "common", "Become ".$connectAs),
 	                                'user-circle-o becomeAdminBtn',
 	                                "connectTo('".$type."','".$id."','".Yii::app()->session["userId"]."','".Person::COLLECTION."','".$connectAs."','".addslashes($element["name"])."')",null,null);
-	                    }             
-	                }
+	                    }    
+                        self::entry("right", 'onclick',
+                                Yii::t( "common", "Leave this ".$controllerType),
+                                Yii::t( "common", "Leave"),
+                                'unlink disconnectBtnIcon',
+                                "disconnectTo('".$type."','".$id."','".Yii::app()->session["userId"]."','".Person::COLLECTION."','".$strongLinks."')",null,null,"text-red");              
+    	            }
 	            }
 			}
         } 

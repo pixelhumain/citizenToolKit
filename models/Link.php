@@ -610,7 +610,7 @@ class Link {
 	public static function follow($parentId, $parentType, $child){
 		$childId = @$child["childId"];
         $childType = $child["childType"];
-
+        $levelNotif=null;
 		if($parentType == Organization::COLLECTION){
 			$parentData = Organization::getById($parentId);
 			$parentController = Organization::CONTROLLER;
@@ -622,6 +622,7 @@ class Link {
 		else if ($parentType == Person::COLLECTION){
 			$parentData = Person::getById($parentId);			
 			$parentController=Person::CONTROLLER;
+            $levelNotif="user";
 		} else {
             throw new CTKException(Yii::t("common","Can not manage the type ").$parentType);
         }
@@ -636,7 +637,7 @@ class Link {
 		$msg=Yii::t("common","You are following")." ".$parentData["name"];
 		Link::connect($parentId, $parentType, $childId, $childType,Yii::app()->session["userId"], $parentConnectAs);
 		Link::connect($childId, $childType, $parentId, $parentType, Yii::app()->session["userId"], $childConnectAs);
-        Notification::constructNotification($verb, $pendingChild , array("type"=>$parentType,"id"=> $parentId,"name"=>$parentData["name"]));
+        Notification::constructNotification($verb, $pendingChild , array("type"=>$parentType,"id"=> $parentId,"name"=>$parentData["name"]), null, $levelNotif);
 		//Notification::actionOnPerson($verb, ActStr::ICON_SHARE, $pendingChild , array("type"=>$parentType,"id"=> $parentId,"name"=>$parentData["name"]));
 		return array( "result" => true , "msg" => $msg, "parentEntity" => $parentData );
 	}
