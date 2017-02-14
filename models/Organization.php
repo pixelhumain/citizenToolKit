@@ -67,6 +67,7 @@ class Organization {
 	    "locality" => array("name" => "address"),
 	    "contacts" => array("name" => "contacts"),
 	    "urls" => array("name" => "urls"),
+	    "descriptionHTML" => array("name" => "descriptionHTML"),
 	);
 	
 	//See findOrganizationByCriterias...

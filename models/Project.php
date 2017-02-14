@@ -42,6 +42,7 @@ class Project {
 	    "creator" => array("name" => "creator"),
 	    "created" => array("name" => "created"),
 	    "locality" => array("name" => "address"),
+	    "descriptionHTML" => array("name" => "descriptionHTML"),
 	);
 
 	public static $avancement = array(

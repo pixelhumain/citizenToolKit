@@ -1439,6 +1439,9 @@ class Element {
 				$res[] = self::updateField($collection, $id, "startDate", $params["startDate"]);
 			if(isset($params["endDate"]))
 				$res[] = self::updateField($collection, $id, "endDate", $params["endDate"]);
+		}else if($block == "toMarkdown"){
+			$res[] = self::updateField($collection, $id, "description", $params["value"]);
+			$res[] = self::updateField($collection, $id, "descriptionHTML", null);
 		}
 
 		if(Import::isUncomplete($id, $collection)){

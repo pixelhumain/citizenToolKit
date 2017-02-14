@@ -59,6 +59,7 @@ class Person {
 	    "updated" => array("name" => "updated"),
 	    "creator" => array("name" => "creator"),
 	    "created" => array("name" => "created"),
+	    "descriptionHTML" => array("name" => "descriptionHTML"),
 	);
 
 	public static function logguedAndValid() {
