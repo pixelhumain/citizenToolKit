@@ -35,7 +35,8 @@ class DetailAction extends CAction {
 			if(isset($element["links"]["events"])){
 				foreach ($element["links"]["events"] as $keyEv => $valueEv) {
 					 $event = Event::getSimpleEventById($keyEv);
-	           		 $events[$keyEv] = $event;
+	           		 if(!empty($event))
+	           		 	$events[$keyEv] = $event;
 				}
 			}
 			
@@ -110,7 +111,7 @@ class DetailAction extends CAction {
 		                $urlType="organization";	
 		                $organizerInfo = Organization::getSimpleOrganizationById($uid);  
 						$organizer["type"]=$urlType;
-						$organizer["typeOrga"]=$organizerInfo["type"];              
+						$organizer["typeOrga"]=@$organizerInfo["type"];              
             		}
 					else{
 						$iconNav="fa-user";
@@ -241,6 +242,7 @@ class DetailAction extends CAction {
 		if(@$_POST["modeEdit"]){
 			$params["modeEdit"]=$_POST["modeEdit"];
 		}
+		
 		if(@$_GET["network"])
 			$params["networkJson"]=Network::getNetworkJson($_GET["network"]);
 		
