@@ -88,17 +88,19 @@ class ActivityStream {
 	    $res = array( "result"=>false,"msg"=>"Something went wrong : Activty Stream Not Found","id"=>$id );
 	    if( isset($notif) && isset( $notif["notify"] ) && isset( $notif["notify"]["id"]) )
 	    {
-		    if( count($notif["notify"]["id"]) > 1 )
+	    	//echo count($notif["notify"]["id"]);
+		    if( count($notif["notify"]["id"]) > 1 ){
 		    	//remove userid from array
-		    	unset($notif["notify"]);
-		    else
-		    	unset($notif["notify"]);
-			try{
-			    unset($notif["_id"]);
-			    PHDB::update( self::COLLECTION,
+			    PHDB::update(self::COLLECTION,
 			                  array("_id"  => new MongoId($id) ), 
-			                  array('$unset' => array("notify"=>true) ) );
-
+			                  array('$unset' => array("notify.id.".Yii::app()->session["userId"]=>true) ) );
+		    }else{
+		    	PHDB::remove( self::COLLECTION,
+			                  array("_id"  => new MongoId($id)));
+		    	//unset($notif["notify"]);
+		    }
+			try{
+//			    unset($notif["_id"]);
 			    $res = array( "result"=>true,"msg"=>"Removed succesfully" );
 		    }
 		    catch (Exception $e) {  
@@ -106,7 +108,51 @@ class ActivityStream {
 		    } 
 		}
 
-		return Rest::json($res);
+		return $res;
+	}
+	public static function updateNotificationById($id,$action){
+		try{
+    		PHDB::update( self::COLLECTION,
+				array("_id"  => new MongoId($id)), 
+				array('$unset' => array("notify.id.".Yii::app()->session["userId"].".".$action=>true) ) );
+		    $res = array( "result"=>true,"msg"=>"Updated succesfully");
+	    }
+	    catch (Exception $e) {  
+	        $res = array( "result"=>false,"msg"=>"Something went wrong :".$e->getMessage() );
+	    } 
+	
+
+		return $res;
+	}
+	public static function updateNotificationsByUser($action) {
+		try{
+		    $userNotifcations = PHDB::find( self::COLLECTION,array("notify.id.".Yii::app()->session["userId"] => array('$exists' => true)));
+		    
+		    foreach ($userNotifcations as $key => $value) 
+		    {
+		    	//if(count($value["notify"]["id"]) == 1 )
+		    		PHDB::update( self::COLLECTION,
+				                  array("_id"  => $value["_id"] ), 
+				                  array('$unset' => array("notify.id.".Yii::app()->session["userId"].".".$action=>true) ) );
+		    	//else
+		    		/*PHDB::update( self::COLLECTION,
+			                  	  array("_id"  => $value["_id"] ), 
+			                  	  array('$pull' => array( "notify.id" => $userId )));*/
+		    	
+		    }
+		    /*PHDB::updateWithOptions( self::COLLECTION,
+					    			array("notify.id"  => Yii::app()->session["userId"] ),
+					    			array('$pull' => array( "notify.id" => Yii::app()->session["userId"] )),
+					    			array("multi"=>1));*/
+			
+		    $res = array( "result"=>true,"msg"=>"Updated succesfully");
+	    }
+	    catch (Exception $e) {  
+	        $res = array( "result"=>false,"msg"=>"Something went wrong :".$e->getMessage() );
+	    } 
+	
+
+		return $res;
 	}
 
 	/**
