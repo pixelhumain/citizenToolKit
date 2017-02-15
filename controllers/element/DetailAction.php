@@ -35,7 +35,8 @@ class DetailAction extends CAction {
 			if(isset($element["links"]["events"])){
 				foreach ($element["links"]["events"] as $keyEv => $valueEv) {
 					 $event = Event::getSimpleEventById($keyEv);
-	           		 $events[$keyEv] = $event;
+	           		 if(!empty($event))
+	           		 	$events[$keyEv] = $event;
 				}
 			}
 			
@@ -49,9 +50,9 @@ class DetailAction extends CAction {
 			
 			// Link with needs
 			if(isset($element["links"]["needs"])){
-				foreach ($element["links"]["needs"] as $key => $value){
-					$need = Need::getSimpleNeedById($key);
-	           		$needs[$key] = $need;
+				foreach ($element["links"]["needs"] as $keyNeed => $value){
+					$need = Need::getSimpleNeedById($keyNeed);
+	           		$needs[$keyNeed] = $need;
 				}
 			}
 			
@@ -71,9 +72,10 @@ class DetailAction extends CAction {
 			}
 
 			if(isset($element["links"]["needs"])){
-				foreach ($element["links"]["needs"] as $key => $value){
-					$need = Need::getSimpleNeedById($key);
-	           		$needs[$key] = $need;
+				foreach ($element["links"]["needs"] as $keyNeed => $value){
+					error_log("getting needs : ".$keyNeed);
+					$need = Need::getSimpleNeedById($keyNeed);
+	           		$needs[$keyNeed] = $need;
 				}
 			}
 
@@ -125,7 +127,7 @@ class DetailAction extends CAction {
 		  		$params["organizer"] = $organizer;
               		
             }
-			//events can have sub evnets
+			//events can have sub events
 	        $params["subEvents"] = PHDB::find(Event::COLLECTION,array("parentId"=>$id));
 	        $params["subEventsOrganiser"] = array();
 	        $hasSubEvents = false;
@@ -240,6 +242,7 @@ class DetailAction extends CAction {
 		if(@$_POST["modeEdit"]){
 			$params["modeEdit"]=$_POST["modeEdit"];
 		}
+		
 		if(@$_GET["network"])
 			$params["networkJson"]=Network::getNetworkJson($_GET["network"]);
 		
@@ -254,8 +257,8 @@ class DetailAction extends CAction {
 		if(@$_GET["tpl"] == "profilSocial")
 				$page = "profilSocial";
 		
-		if(Yii::app()->theme->name == "notragora")
-				$page = "notragora/detail";
+		if( in_array( Yii::app()->theme->name, array("notragora") ) )
+				$page = Yii::app()->theme->name."/detail";
 		
 		//var_dump($params); //exit;
 		//$page = "onepage";
