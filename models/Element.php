@@ -352,7 +352,7 @@ class Element {
 		$verb = (empty($fieldValue) ? '$unset' : '$set');
 		
 		if ($dataFieldName == "name") 
-			$fieldValue = htmlspecialchars($fieldValue);
+			$fieldValue = $fieldValue;
 
 		if ($dataFieldName == "tags") {
 			$fieldValue = Tags::filterAndSaveNewTags($fieldValue);
@@ -377,8 +377,8 @@ class Element {
 				        "postalCode" => $fieldValue["address"]["postalCode"],
 				        "addressLocality" => $fieldValue["address"]["addressLocality"],
 				        "streetAddress" => ((@$fieldValue["address"]["streetAddress"])?trim(@$fieldValue["address"]["streetAddress"]):""),
-				        "depName" => $fieldValue["address"]["depName"],
-				        "regionName" => $fieldValue["address"]["regionName"],
+				        "depName" => ((@$fieldValue["address"]["depName"])?trim(@$fieldValue["address"]["depName"]):""),
+				        "regionName" => ((@$fieldValue["address"]["regionName"])?trim(@$fieldValue["address"]["regionName"]):""),
 				    	);
 					//Check address is well formated
 
@@ -431,8 +431,8 @@ class Element {
 					        "postalCode" => $fieldValue["address"]["postalCode"],
 					        "addressLocality" => $fieldValue["address"]["addressLocality"],
 					        "streetAddress" => ((@$fieldValue["address"]["streetAddress"])?trim(@$fieldValue["address"]["streetAddress"]):""),
-					        "depName" => $fieldValue["address"]["depName"],
-					        "regionName" => $fieldValue["address"]["regionName"],
+					        "depName" => ((@$fieldValue["address"]["depName"])?trim(@$fieldValue["address"]["depName"]):""),
+				        	"regionName" => ((@$fieldValue["address"]["regionName"])?trim(@$fieldValue["address"]["regionName"]):""),
 					    	);
 						//Check address is well formated
 
@@ -680,7 +680,7 @@ class Element {
 			array_push($contextMap["events"], $elt);
 		}
 		else if ($type == Person::COLLECTION){
-			$connectAs="knows";
+			$connectAs="follows";
 			$elt = Person::getSimpleUserById($id);
 			array_push($contextMap["people"], $elt);
 		}
@@ -1087,7 +1087,7 @@ class Element {
 			}
 		}
 		if(isset($params["name"])) 
-	    	$params["name"] = htmlspecialchars($params["name"]);
+	    	$params["name"] = $params["name"];
 	
 		//TODO SBAR - Manage elsewhere (maybe in the view)
 		//Manage the event startDate and endDate format : 

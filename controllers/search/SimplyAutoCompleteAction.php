@@ -11,12 +11,15 @@ class SimplyAutoCompleteAction extends CAction
         $locality = isset($_POST['locality']) ? trim(urldecode($_POST['locality'])) : null;
         $searchType = isset($_POST['searchType']) ? $_POST['searchType'] : null;
         $searchTag = isset($_POST['searchTag']) ? $_POST['searchTag'] : null;
+        $searchTag2 = isset($_POST['searchTag2']) ? $_POST['searchTag2'] : null;
+        $searchPrefTag = isset($_POST['searchPrefTag']) ? $_POST['searchPrefTag'] : null;
         $searchBy = isset($_POST['searchBy']) ? $_POST['searchBy'] : "INSEE";
         $indexMin = isset($_POST['indexMin']) ? $_POST['indexMin'] : 0;
         $indexMax = isset($_POST['indexMax']) ? $_POST['indexMax'] : 100;
         $country = isset($_POST['country']) ? $_POST['country'] : "";
         $sourceKey = isset($_POST['sourceKey']) ? $_POST['sourceKey'] : null;
         $mainTag = isset($_POST['mainTag']) ? $_POST['mainTag'] : null;
+        $paramsFiltre = isset($_POST['paramsFiltre']) ? $_POST['paramsFiltre'] : null;
 
 
 
@@ -34,12 +37,26 @@ class SimplyAutoCompleteAction extends CAction
         	// $query = array( "tags" => array('$in' => array(new MongoRegex("/".$search."/i")))) ; //new MongoRegex("/".$search."/i") )));
         	$tmpTags[] = new MongoRegex("/".$search."/i");
   		}
-  		if($searchTag)foreach ($searchTag as $value) {
+  		/*if($searchTag)foreach ($searchTag as $value) {
   			$tmpTags[] = new MongoRegex("/".$value."/i");
-  		}
+  		}*/
+  		$verbTag = ( (!empty($paramsFiltre) && '$all' == $paramsFiltre) ? '$all' : '$in' ) ;
   		if(count($tmpTags)){
-  			$query = array('$and' => array( $query , array("tags" => array('$in' => $tmpTags)))) ;
+  			$query = array('$and' => array( $query , array("tags" => array($verbTag => $tmpTags)))) ;
   		}
+  		if(!empty($searchTag2)){
+  			foreach ($searchTag2 as $key => $tags) {
+	  			$tmpTags = array();
+	  			foreach ($tags as $key => $tag) {
+			  		$tmpTags[] = new MongoRegex("/".$tag."/i");
+		  		}
+		  		if(count($tmpTags)){
+		  			$verbTag = ( (!empty($paramsFiltre) && '$all' == $paramsFiltre) ? '$all' : '$in' ) ;
+		  			$query = array('$and' => array( $query , array("tags" => array($verbTag => $tmpTags)))) ;
+		  		}
+	  		}
+  		}
+  		
   		unset($tmpTags);
 
   		/***********************************  COMPLETED   *****************************************/
@@ -58,7 +75,8 @@ class SimplyAutoCompleteAction extends CAction
   	  			$tmpMainTag[] = new MongoRegex("/".$mainTag."/i");
   	  		}
 	  		if(count($tmpMainTag)){
-	  			$query = array('$and' => array( $query , array("tags" => array('$in' => $tmpMainTag))));
+	  			$verbMainTag = ( (!empty($searchPrefTag) && '$or' == $searchPrefTag) ? '$or' : '$and' );
+	  			$query = array($verbMainTag => array( $query , array("tags" => array('$in' => $tmpMainTag))));
 	  		}
 	  		unset($tmpMainTag);
 	  	}

@@ -454,7 +454,9 @@ class GlobalAutoCompleteAction extends CAction
 	    			}
         		}
 
-        		$allRooms[$keyR]["typeSig"] = $allRooms[$keyR]["type"];
+        		//var_dump($allRooms[$keyR]);exit;
+
+        		$allRooms[$keyR]["typeSig"] = @$allRooms[$keyR]["type"];
         	}
         	
         	//pour chaque resultat, on ajoute les infos du parentRoom

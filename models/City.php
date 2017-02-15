@@ -214,6 +214,13 @@ class City {
 		return $region;
 	}
 
+	public static function getDepAndRegionByInsee($insee){
+		$where = array("insee" => $insee);
+		$fields = array("depName", "regionName", "country");
+		$city = PHDB::findOne(self::COLLECTION, $where ,$fields);
+		return $city;
+	}
+
 	/* Retourne le code du departement d'une commune par rapport a son code insee */
 	public static function getCodeDepartement($insee){
 		$where = array("insee" => $insee);
@@ -237,6 +244,8 @@ class City {
 		$cities = self::getWhere($where, $fields , 0);
 		return $cities;
 	}
+
+
 
 
 	public static function getDepartementByInsee($insee, $fields, $typeData, $option=null, $inseeCities=null){
