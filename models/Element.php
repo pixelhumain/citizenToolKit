@@ -1353,8 +1353,12 @@ class Element {
 		unset($params["parentType"]);
 		unset($params["phone"]);
 		unset($params["idContact"]);
-		//$res = null ;
-		$res = self::updateField($collection, $id, "contacts", $params);
+
+
+		if(empty($params["name"]) && empty($params["email"]) && empty($params["role"]) && empty($params["telephone"]))
+			$res = array("result" => false, "msg" => "Vous devez avoir au moins une information sur le contact");
+		else
+			$res = self::updateField($collection, $id, "contacts", $params);
 
 		if($res["result"])
 			$res["msg"] = "Les contacts ont été mis à jours";
