@@ -503,7 +503,7 @@ class Element {
 					$verbActivity = ActStr::VERB_UPDATE ;
 				ActivityStream::saveActivityHistory($verbActivity, $id, $collection, $dataFieldName, $fieldValue);
 			}
-			$res = array("result"=>true,"msg"=>Yii::t(Element::getControlerByCollection($collection),"The ".Element::getControlerByCollection($collection)." has been updated"), "value" => $fieldValue);
+			$res = array("result"=>true,"msg"=>Yii::t(Element::getControlerByCollection($collection),"The ".Element::getControlerByCollection($collection)." has been updated"), "fieldName" => $fieldName, "value" => $fieldValue);
 
 			if(isset($firstCitizen))
 				$res["firstCitizen"] = $firstCitizen ;
@@ -1178,6 +1178,18 @@ class Element {
 				}	
 			}
 		}
+	}
+
+	public static function getAndCheckUrl($url){
+		$needles = array("http://", "https://");
+		$find=false;
+	    foreach($needles as $needle) {
+	    	if(stripos($url, $needle) == 0)
+	    		$find = true;
+	    }
+	    if(!$find)
+	    	$url="http://".$url;
+	    return $url ;
 	}
 
 	public static function updateBlock($params){
