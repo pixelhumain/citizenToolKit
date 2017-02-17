@@ -2,7 +2,7 @@
 
 class DetailAction extends CAction {
 /**
-* Dashboard Organization
+* Element Detail 
 */
     public function run($type, $id, $networkParams=null) { 
     	$controller=$this->getController();
