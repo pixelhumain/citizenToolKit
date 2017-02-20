@@ -32,11 +32,16 @@ class Api {
     }
 
 
-    public static function getData($bindMap, $format = null, $type, $id = null, $limit=50, $index=0, $tags = null, $multiTags=null , $key = null, $insee = null, $geoShape = null){
+    public static function getData($bindMap, $format = null, $type, $id = null, $limit=50, $index=0, $tags = null, $multiTags=null , $key = null, $insee = null, $geoShape = null, $idElement = null, $typeElement = null){
         
         // Create params for request
         $params = array();
         if( @$id ) $params["_id"] =  new MongoId($id);
+
+        //"target.id": "589094538fe7a1d3048b4587"
+        if( @$idElement ) $params["target.id"] = $idElement;
+        //"target.type": "organizations" 
+        if( @$typeElement) $params["target.type"] = $typeElement;
             
         if( @$insee ){
             if($type == City::COLLECTION) $params["insee"] = $insee;
@@ -45,7 +50,7 @@ class Api {
         
         if( @$tags ){
             $tagsArray = explode(",", $tags);
-            $params["tags"] =  (($multiTags == "true")?array('$eq' => $tagsArray):array('$in' => $tagsArray));
+            $params["tags"] =  (($multiTags == "true") ? array('$eq' => $tagsArray) : array('$in' => $tagsArray));
         }
 
         if( @$key ) $params["source.key"] = $key ;
@@ -54,7 +59,7 @@ class Api {
         else if($limit < 1) $limit = 50 ;
 
         if($index < 0) $index = 0 ;
-        if($type != City::COLLECTION) $params["preferences.isOpenData"] = true ;
+        //if($type != City::COLLECTION) $params["preferences.isOpenData"] = true ;
 
         $data = PHDB::findAndLimitAndIndex($type , $params, $limit, $index);
         $data = self::getUrlImage($data, $type);
@@ -73,6 +78,21 @@ class Api {
                 $person = Person::getSimpleUserById($key, $value);
                 $data[$key] = $person ; 
             }
+        }
+
+
+        if( $format == Translate::FORMAT_RSS) {
+            //if(((@$idElement) && (@$typeElement)) || (@$tags)) {
+            foreach ($data as $key => $value) {
+
+                $data2[] = $value ;                    
+            }
+
+            if (isset($data2)) {
+                $data = $data2;
+            }
+
+            //}
         }
 
         // create JSON
@@ -94,8 +114,16 @@ class Api {
 
         }
 
-        $result["meta"] = $meta ;
-        $result["entities"] = ((!empty($data) && !empty($bindMap) )?Translate::convert($data , $bindMap):$data);
+        if ($format == Translate::FORMAT_RSS) {
+            $result = ((!empty($data) && !empty($bindMap) )?Translate::convert($data , $bindMap):$data);         
+        } 
+        else { 
+            $result["meta"] = $meta ;
+            $result["entities"] = ((!empty($data) && !empty($bindMap) )?Translate::convert($data , $bindMap):$data);
+
+        }
+
+       
 
         return $result;
     }
