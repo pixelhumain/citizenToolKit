@@ -104,6 +104,36 @@ class Mail {
         
         Mail::schedule($params);
     }
+
+    //Mail is sent to super admin when an element is created
+    public static function newElementMail($element, $collection, $creatorId, $listOfRecipient) {
+        $subject = "[".Yii::app()->name."] - Création de ".$collection;
+        $url = "#".Element::getControlerByCollection($collection).".detail.id.".$element["_id"];
+        $creator = Person::getSimpleUserById($creatorId);
+        $creatorName = isset($creator["name"]) ? $creator["name"] : "A.Nonyme";
+
+        foreach ($listOfRecipient as $id => $recipient) {
+            if (isset($recipient)) {
+                $params = array(
+                            "type" => Cron::TYPE_MAIL,
+                            "tpl"=>'notifNewElement',
+                            "subject" => $subject,
+                            "from"=>Yii::app()->params['adminEmail'],
+                            "to" => $recipient["email"],
+                            "tplParams" => array(   "elementName"   => $element["name"],
+                                                    "elementType"   => Element::getControlerByCollection($collection),
+                                                    "elementCreator" => $creatorName,
+                                                    "url" => Yii::app()->getRequest()->getBaseUrl(true)."/".$url,
+                                                    "logo" => Yii::app()->params["logoUrl"],
+                                                    "logo2" => Yii::app()->params["logoUrl2"],
+                                                    "applicationName" => Yii::app()->params["name"],
+                                                )
+                        );
+            }
+        }
+        Mail::schedule($params);
+    }
+
 	/*public static function invitePersonAgain($person, $msg = null, $nameInvitor = null, $invitorUrl = null) {
         $invitor = Person::getSimpleUserById(Yii::app()->session["userId"]);
         

@@ -1,8 +1,5 @@
 <?php 
 class Network {
-
-	const COLLECTION = "network";
-	const CONTROLLER = "network";
 	
 	/**
 	 * Récupère le fichier de configuration du network et retourne en tableau json
@@ -36,6 +33,7 @@ class Network {
     		throw new CHttpException(404, "Error Reading the network configuration file.");
 		}
 
-		return json_decode($json, true);
+		$params = json_decode($json, true);
+		return $params;
 	}
 }
