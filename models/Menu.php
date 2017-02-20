@@ -487,8 +487,7 @@ class Menu {
 	                                "connectTo('".$type."','".$id."','".Yii::app()->session["userId"]."','".Person::COLLECTION."', '".$connectAs."','".addslashes($element["name"])."')",null,null);
 	            }else{
 	                //Ask Admin button
-	                if (    $type != Person::COLLECTION 
-	                    && !in_array(Yii::app()->session["userId"], Authorisation::listAdmins($id, $type,true)) 
+	                if ($type != Person::COLLECTION  
 	                    && @Yii::app()->session["userId"]) {
 	                    $connectAs="admin";
 	                    //Test if user has already asked to become an admin
