@@ -1215,8 +1215,6 @@ class Element {
 				$res[] = self::updateField($collection, $id, "name", $params["name"]);
 			if(isset($params["username"]))
 				$res[] = self::updateField($collection, $id, "username", $params["username"]);
-			if(isset($params["shortDescription"]))
-				$res[] = self::updateField($collection, $id, "shortDescription", $params["shortDescription"]);
 			if(isset($params["avancement"]))
 				$res[] = self::updateField($collection, $id, "avancement", $params["avancement"]);
 			if(isset($params["tags"]))
@@ -1245,6 +1243,11 @@ class Element {
 		}else if($block == "toMarkdown"){
 			$res[] = self::updateField($collection, $id, "description", $params["value"]);
 			$res[] = self::updateField($collection, $id, "descriptionHTML", null);
+		}else if($block == "description"){
+			if(isset($params["description"]))
+				$res[] = self::updateField($collection, $id, "description", $params["description"]);
+			if(isset($params["shortDescription"]))
+				$res[] = self::updateField($collection, $id, "shortDescription", $params["shortDescription"]);
 		}
 		if(Import::isUncomplete($id, $collection)){
 			Import::checkWarning($id, $collection, Yii::app()->session['userId'] );
