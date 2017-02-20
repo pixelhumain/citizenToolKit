@@ -637,6 +637,10 @@ class Link {
 		$msg=Yii::t("common","You are following")." ".$parentData["name"];
 		Link::connect($parentId, $parentType, $childId, $childType,Yii::app()->session["userId"], $parentConnectAs);
 		Link::connect($childId, $childType, $parentId, $parentType, Yii::app()->session["userId"], $childConnectAs);
+        if($parentType==Person::COLLECTION)
+            Mail::follow($parentData, $parentType);
+        //else
+          //  Mail::follow($element, $elementType, $listOfMail);
         Notification::constructNotification($verb, $pendingChild , array("type"=>$parentType,"id"=> $parentId,"name"=>$parentData["name"]), null, $levelNotif);
 		//Notification::actionOnPerson($verb, ActStr::ICON_SHARE, $pendingChild , array("type"=>$parentType,"id"=> $parentId,"name"=>$parentData["name"]));
 		return array( "result" => true , "msg" => $msg, "parentEntity" => $parentData );
@@ -799,6 +803,7 @@ class Link {
                 $pendingChild["isInviting"]=true;
 				$toBeValidated=false;
                 $isInviting=true;
+                Mail::someoneInviteYouToBecome($parentData, $parentType, $pendingChild, $typeOfDemand);
 			} else{
                 // Verb Confirm in ValidateLink
 				$verb = ActStr::VERB_JOIN;
@@ -903,20 +908,24 @@ class Link {
             $connectTypeOf="memberOf";
             $connectType="members";
             $usersAdmin = Authorisation::listAdmins($parentId,  $parentType, false);
+            $typeOfDemand="member";
         } else if ($parentType==Project::COLLECTION) {
             $parent = Project::getById( $parentId );            
             $connectTypeOf = "projects";
             $connectType = "contributors";
+            $typeOfDemand="contributor";
             $usersAdmin = Authorisation::listAdmins($parentId,  $parentType, false);
         } else if ($parentType==Event::COLLECTION) {
             $parent = Event::getById( $parentId );            
             $connectTypeOf = "events";
             $connectType = "attendees";
+            $typeOfDemand="attendee";
             $usersAdmin = Authorisation::listAdmins($parentId,  $parentType, false);
         } else {
             throw new CTKException(Yii::t("common","Can not manage the type ").$parentType);
         }
-
+        if($linkOption==Link::IS_ADMIN_PENDING)
+            $typeOfDemand="admin";
         //Check if the user is admin
         $actionFromAdmin=in_array($userId,$usersAdmin);
         //Check the link exists in order to update it
@@ -963,6 +972,8 @@ class Link {
                 $levelNotif="asMember";
             //MAIL TO INVITOR
         }
+        if($verb==ActStr::VERB_ACCEPT)
+            Mail::someoneConfirmYouTo($parent, $parentType, $pendingChild, $typeOfDemand);
         Notification::constructNotification($verb, $user , array("type"=>$parentType,"id"=> $parentId,"name"=>$parent["name"]), null, $levelNotif);
         return array( "result" => true , "msg" => Yii::t("common",$msg) );
     }
