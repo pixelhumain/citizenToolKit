@@ -20,6 +20,8 @@ class SimplyAutoCompleteAction extends CAction
         $sourceKey = isset($_POST['sourceKey']) ? $_POST['sourceKey'] : null;
         $mainTag = isset($_POST['mainTag']) ? $_POST['mainTag'] : null;
         $paramsFiltre = isset($_POST['paramsFiltre']) ? $_POST['paramsFiltre'] : null;
+        $disabled = isset($_POST['disabled']) ? $_POST['disabled'] : null;
+        $seeDisable = isset($_POST['seeDisable']) ? $_POST['seeDisable'] : null;
 
 
 
@@ -30,6 +32,11 @@ class SimplyAutoCompleteAction extends CAction
         /***********************************  DEFINE GLOBAL QUERY   *****************************************/
         $query = array( "name" => new MongoRegex("/".$search."/i"));
 
+        if($seeDisable == "true"){
+  			$query = array('$and' => array($query, array("disabled" => array('$exists' => 1))));
+        }else if($disabled != "true"){
+  			$query = array('$and' => array($query, array("disabled" => array('$exists' => 0))));
+        }
 
         /***********************************  TAGS   *****************************************/
         $tmpTags = array();
@@ -233,7 +240,7 @@ class SimplyAutoCompleteAction extends CAction
         if(strcmp($filter, Organization::COLLECTION) != 0 && $this->typeWanted("organizations", $searchType)){
 
 	  		$allOrganizations = PHDB::find ( Organization::COLLECTION ,$query ,array("id" => 1, "name" => 1, "type" => 1, "email" => 1,  "shortDescription" => 1, "description" => 1,
-													 			"address" => 1, "pending" => 1, "tags" => 1, "geo" => 1, "source.key" => 1));
+													 			"address" => 1, "pending" => 1, "tags" => 1, "geo" => 1, "source.key" => 1, "disabled" => 1,));
 	  		foreach ($allOrganizations as $key => $value) {
 	  			$orga = Organization::getSimpleOrganizationById($key);
 

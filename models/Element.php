@@ -948,8 +948,8 @@ class Element {
 				$params["allDay"] = false;
 			}
 		}
-		if(isset($params["name"])) 
-	    	$params["name"] = $params["name"];
+		if(isset($params["disabled"]) && ($params["disabled"] == "true" || $params["disabled"] == true) ) 
+	    	$params["disabled"] = true;
 	
 		//TODO SBAR - Manage elsewhere (maybe in the view)
 		//Manage the event startDate and endDate format : 
