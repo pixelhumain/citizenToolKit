@@ -12,23 +12,51 @@ class GetAction extends CAction {
 
 	    $result = Api::getData($bindMap, $format, News::COLLECTION, $id,$limit, $index, $tags, $multiTags, $key, $insee, null, $idElement, $typeElement);
 
-	    if ((isset($typeElement)) && (isset($idElement))) {	    	
+	    if ((isset($idElement)) && (isset($typeElement))) {
+	    	
+	    $opendata = Preference::getPreferencesByTypeId($idElement, $typeElement);
+		//var_dump($opendata);
+	    	
+		    if ($opendata["isOpenData"] == false) {
+				$not_opendata = 'Cet element ne veut pas partager ces données au public';
+				$strucRss = News::getStrucChannelRss($not_opendata);
+				$array_null = array();
+				$result = $array_null;
+			} else {
+				$element = Element::getByTypeAndId($typeElement , $idElement);
+				$name_element = ($element["name"]);
+				$element["name"] = 'Fil d\'actualité de ' . $element["name"];		
+				$strucRss = News::getStrucChannelRss($element["name"]);
+			}
+
+
+	    } else if ((isset($tags))) {
+				//$string_tag .= $tags;
+				$tags = ' Fil d\'atualité pour le ou les Tags suivants : ' . $tags;
+				$strucRss = News::getStrucChannelRss($tags);
+		} else {
+			$default = 'Fil d\'actualité de tous les éléments du site';
+			$strucRss = News::getStrucChannelRss($default);
+		}			
 	    
-		$element = Element::getByTypeAndId($typeElement , $idElement);
-		$name_element = ($element["name"]);
-		$element["name"] = ' de ' . $element["name"];		
-		$strucRss = News::getStrucChannelRss($element["name"]);
+/*			
+		if ((isset($typeElement)) && (isset($idElement))) {	    	
+		    
+			$element = Element::getByTypeAndId($typeElement , $idElement);
+			$name_element = ($element["name"]);
+			$element["name"] = 'Fil d\'actualité de ' . $element["name"];		
+			$strucRss = News::getStrucChannelRss($element["name"]);			
 
 		} else if ((isset($tags))) {
 			//$string_tag .= $tags;
-			$tags = ' du/des Tags : ' . $tags;
+			$tags = ' Fil d\'atualité pour le ou les Tags suivants : ' . $tags;
 			$strucRss = News::getStrucChannelRss($tags);
 		} else {
-			$default = 'de tous les éléments du site';
+			$default = 'Fil d\'actualité de tous les éléments du site';
 			$strucRss = News::getStrucChannelRss($default);
-		}					
-				
-
+		}
+*/		
+					
 	    if( $format == Translate::FORMAT_RSS)
 			Rest::xml($result, $strucRss);
 		else 
