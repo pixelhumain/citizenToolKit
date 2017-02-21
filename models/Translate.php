@@ -92,8 +92,6 @@ class Translate {
 						$newData[$key] = $valByPath;
 				}
 
-
-
 			}  else if( is_array( $bindPath )){
 				// there can be a first level with a simple key value
 				// but can have following more than a single level 
@@ -112,28 +110,6 @@ class Translate {
 			if( isset($newData[$key]) && ( isset( $bindPath["type"] ) || isset( $bindPath["prefix"] ) || isset( $bindPath["suffix"] ) ) ) 
 				$newData[$key] = self::formatValueByType( $newData[$key] , $bindPath );			
 		}
-
-		/*
-
-		if (!isset($newData["description"]) && (isset($newData["verb"]))) {
-				
-				
-				//$newData["description"] = ($newData["author"] . ' ' . $newData["verb"]);
-				$newData["description"] = $newData["verb"];
-
-				//if ($newData["description"] == "create") {
-				//	$newData["description"] = "Création ";
-				//}
-			}
-			if (isset($newData["object_news"]) ) {
-				
-				
-				$newData["description"] .= ' ' . $newData["object_news"]["objectType"];
-				$newData["description"] .= ' ' . $newData["object_news"]["id"];
-				$newData["title"] .= ' 1 ' . $newData["object_news"]["objectType"];
-			}
-
-		*/	
 
 		return $newData;
 	}
