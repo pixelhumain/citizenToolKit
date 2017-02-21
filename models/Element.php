@@ -860,9 +860,6 @@ class Element {
                              "map"=>$params,
                              "id"=>(string)$params["_id"]);  
                 
-                //TODO
-                //self::afterSave();
-                
                 // ***********************************
                 //post process for specific actions
                 // ***********************************
@@ -916,6 +913,12 @@ class Element {
     		$poiParams["urls"] = $postParams['urls'];
     		$res["medias"] = self::save($poiParams);
     	}
+
+    	// If option is activated a mail is sent to super admin on each creation
+    	if (@Yii::app()->params["mailForSuperAdmin"] == true) {
+    		Mail::newElementMail($params, $collection, $params["creator"], Person::getCurrentSuperAdmins());
+    	}
+
     	return $res;
     }
 

@@ -2073,7 +2073,7 @@ class Person {
 
     public static function getCurrentSuperAdmins() {
     	$superAdmins = array();
-    	$superAdmins = PHDB::find(self::COLLECTION, array('roles.superAdmin' => true), array("_id"));
+    	$superAdmins = PHDB::find(self::COLLECTION, array('roles.superAdmin' => true), array("_id", "email"));
     	return $superAdmins;
     }
 
