@@ -90,7 +90,7 @@ class Translate {
 					$valByPath = $data[ $bindPath["valueOf"] ];
 					if(!empty($valByPath))
 						$newData[$key] = $valByPath;
-				} 
+				}
 
 			}  else if( is_array( $bindPath )){
 				// there can be a first level with a simple key value
@@ -105,9 +105,12 @@ class Translate {
 				$newData[$key] = $bindPath;
 
 			//post processing once the data has been fetched
+			
+
 			if( isset($newData[$key]) && ( isset( $bindPath["type"] ) || isset( $bindPath["prefix"] ) || isset( $bindPath["suffix"] ) ) ) 
 				$newData[$key] = self::formatValueByType( $newData[$key] , $bindPath );			
 		}
+
 		return $newData;
 	}
 
@@ -139,7 +142,7 @@ class Translate {
 		$prefix = ( isset( $bindPath["prefix"] ) ) ? $bindPath["prefix"] : "";
 		$suffix = ( isset( $bindPath["suffix"] ) ) ? $bindPath["suffix"] : "";
 		$outsite = ( isset( $bindPath["outsite"] ) ) ? $bindPath["outsite"] : null;
-		
+		//var_dump($val);
 		if( isset( $bindPath["type"] ) && $bindPath["type"] == "url" )
 		{	
 			$val = $prefix.$val.$suffix ;
@@ -153,10 +156,127 @@ class Translate {
 		{
 			$val = $prefix.$val["latitude"]."/".$val["longitude"].$suffix;
 		} 
+		else if ( isset($bindPath["type"]) && $bindPath["type"] == "date")
+		{
+			
+			//$datetime = date_create($val->pubDate);
+			//$val = date_format($datetime, 'd M Y H\hi' );
+
+			$val = date('D, d M Y H:i:s O',$val->sec);	
+			
+				 
+		} 
+		else if (isset($bindPath["type"]) && $bindPath["type"] == "title" /*&& isset($bindPath["verb"]["valueOf"])*/) 
+		{
+
+			//var_dump($val);
+			$type = $val["type_el"];
+
+			if (isset($val["object_news"]["objectType"])) {
+				$object_type= $val["object_news"]["objectType"];
+			}
+			
+				if ($type == "news") {
+					$val = "Rédaction d'un message";
+				} else if ($type == "activityStream") {
+					$val = "Création";
+					if (isset($object_type)) {
+						if ($object_type == Organization::COLLECTION) {
+							$object_type = " d'une Organisation";
+						} else if ($object_type == "projects") {
+							$object_type = " d'un Projet";
+						} else if ($object_type == "events") {
+							$object_type = " d'un Evenement";
+						}
+							$val .= $object_type;
+						}
+				}
+				/* if ($type == organization::COLLECTION) {
+						$type = " Organisation";
+					} else if ($type == "projects") {
+						$type = "Projet";
+					} else if ($type == "events") {
+						$type = "Evenement";
+					}
+					$val .= ' ' . $type;
+					if (isset($val_nom)) {
+						$val .= ' sous le nom de "' . $val_nom . ' "';
+					} */
+				
+			
+		
+		}
+		else if (isset($bindPath["type"]) && $bindPath["type"] == "description") {
+				//var_dump($val);
+			if (isset($val["text"])) {
+				$val = $val["text"];
+				//var_dump($val);
+			}
+			else {
+				
+				
+				//$element = PHDB::findOneById($val["object_news"]["objectType"] , $val["object_news"]["id"]);
+				$element = Element::getByTypeAndId($val["object_news"]["objectType"] , $val["object_news"]["id"]);
+				//var_dump($element);
+				if (isset($val["target"]["type"]) && (isset($val["target"]["id"]))) {
+					$author = Element::getByTypeAndId( $val["target"]["type"] , $val["target"]["id"]);
+				}
+				//$id_orga = PHDB::findOneById($val["object_news"]["objectType"] , $val["object_news"]["id"]);
+				//$id_event = PHDB::findOneById(Event::COLLECTION, $val["object_news"]["id"]);
+				//$id_projet = PHDB::findOneById(Project::COLLECTION, $val["object_news"]["id"]);
+				$verb = $val["verb"];
+				$type = $val["object_news"]["objectType"];
+
+
+				//var_dump($author);
+				//var_dump($id_orga)
+				//var_dump($id_event);
+				//var_dump($id_projet);
+				//var_dump($val);
+
+				if (($val["object_news"]["objectType"] == "events")  || ($val["object_news"]["objectType"] == organization::COLLECTION) || ($val["object_news"]["objectType"] == "projects")) {
+					$val_nom = $element["name"];
+				}
+
+				/* else if ($val["object_news"]["objectType"] == "organizations") {
+					$val_type = $element["name"];
+				} else if ($val["object_news"]["objectType"] == "projects") {
+					$val_type = $element["name"];
+				} */
+			
+
+				//$val = $val["verb"];
+				if (isset($author["username"])) {
+
+					$val = $author["username"];
+				} else {
+					$val = 'Quelqu\'un ou quelque chose ';
+				}	
+
+				if ($verb == "create") {
+					$verb = "a crée un(e) nouvel(le) ";
+				}
+				$val .= ' ' . $verb;
+
+				if ($type == organization::COLLECTION) {
+					$type = " Organisation";
+				} else if ($type == "projects") {
+					$type = "Projet";
+				} else if ($type == "events") {
+					$type = "Evenement";
+				}
+				$val .= ' ' . $type;
+				if (isset($val_nom)) {
+					$val .= ' sous le nom de "' . $val_nom . ' "';
+				}
+
+			}
+		}
 		else if( isset( $bindPath["prefix"] ) || isset( $bindPath["suffix"] ) )
 		{
 			$val = $prefix.$val.$suffix;
 		}
+	
 		return $val;
 	}
 

@@ -304,25 +304,25 @@ class News {
 	**/
 	public static function sortNews($array, $cols){
 		$colarr = array();
-			    foreach ($cols as $col => $order) {
-			        $colarr[$col] = array();
-			        foreach ($array as $k => $row) { $colarr[$col]['_'.$k] = strtolower($row[$col]); }
-			    }
-			    $eval = 'array_multisort(';
-			    foreach ($cols as $col => $order) {
-			        $eval .= '$colarr[\''.$col.'\'],'.$order.',';
-			    }
-			    $eval = substr($eval,0,-1).');';
-			    eval($eval);
-			    $ret = array();
-			    foreach ($colarr as $col => $arr) {
-			        foreach ($arr as $k => $v) {
-			            $k = substr($k,1);
-			            if (!isset($ret[$k])) $ret[$k] = $array[$k];
-			            $ret[$k][$col] = $array[$k][$col];
-			        }
-			    }
-			    return $ret;
+	    foreach ($cols as $col => $order) {
+	        $colarr[$col] = array();
+	        foreach ($array as $k => $row) { $colarr[$col]['_'.$k] = strtolower($row[$col]); }
+	    }
+	    $eval = 'array_multisort(';
+	    foreach ($cols as $col => $order) {
+	        $eval .= '$colarr[\''.$col.'\'],'.$order.',';
+	    }
+	    $eval = substr($eval,0,-1).');';
+	    eval($eval);
+	    $ret = array();
+	    foreach ($colarr as $col => $arr) {
+	        foreach ($arr as $k => $v) {
+	            $k = substr($k,1);
+	            if (!isset($ret[$k])) $ret[$k] = $array[$k];
+	            $ret[$k][$col] = $array[$k][$col];
+	        }
+	    }
+	    return $ret;
 	}
 
 	public static function getNewsToModerate($whereAdditional = null, $limit = 0) {
@@ -365,7 +365,7 @@ class News {
 		//echo $upload_dir;
 		$name=time()."_".$authorId.".".$ext;        
 		if(!file_exists ( $upload_dir )) {       
-			mkdir($upload_dir, 0777);
+			mkdir($upload_dir, 0775);
 		}
 		if($size="large"){
 			$maxWidth=500;
@@ -379,6 +379,24 @@ class News {
 		$destPathThumb = $upload_dir."/".$name;
 		$imageUtils->resizePropertionalyImage($maxWidth,$maxHeight)->save($destPathThumb,$quality);
 		return $destPathThumb;
+	}
+
+	public static function getStrucChannelRss($elementName) {
+
+		$xmlElement = new SimpleXMLElement(
+			'<?xml version="1.0" encoding="UTF-8"?><rss version="2.0">
+				<channel></channel>
+				<title> ' . $elementName . ' </title>
+				<description>Communecter, un site fait par les communs pour les communs </description>
+					<image>
+      					<url>http://127.0.0.1/ph/assets/7d331fe5/images/Communecter-32x32.svg</url>
+      					</image>
+				</rss>');
+
+		//var_dump($xml_element);
+
+		return $xmlElement;
+
 	}
 
 }

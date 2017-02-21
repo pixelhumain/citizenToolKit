@@ -131,6 +131,18 @@ class DirectoryAction extends CAction
         $params["openEdition"] = Authorisation::isOpenEdition($id, $type, @$element["preferences"]);
         $page = "directory2";
         if(Yii::app()->request->isAjaxRequest){
+            if(@$_GET[ "tpl" ] == "json"){
+              $context = array("name"=>$element["name"]);
+              //controllons le resultat
+              $list = array(
+                "citoyens" => $params["people"],
+                "organizations" => $params["organizations"],
+                "events" => $params["events"],
+                "projects" => $params["projects"],
+                );
+              echo Rest::json( array( "list" => $list,"context"=>$context) );
+            }
+            else
             echo $controller->renderPartial($page,$params,true);
         }
         else {

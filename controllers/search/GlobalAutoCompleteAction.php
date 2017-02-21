@@ -3,7 +3,7 @@ class GlobalAutoCompleteAction extends CAction
 {
     public function run($filter = null)
     {
-
+    	//ini_set('memory_limit', '-1');
         $search = trim(urldecode($_POST['name']));
         $locality = isset($_POST['locality']) ? trim(urldecode($_POST['locality'])) : null;
         $searchType = isset($_POST['searchType']) ? $_POST['searchType'] : null;
@@ -16,7 +16,7 @@ class GlobalAutoCompleteAction extends CAction
 
         $indexStep = $indexMax - $indexMin;
         
-        $searchTypeOrga = "";
+        $searchTypeOrga = ""; /* used in CO2 to find different organisation type */
         if( sizeOf($searchType) == 1 &&
         	$searchType[0] == Organization::TYPE_NGO ||
          	$searchType[0] == Organization::TYPE_BUSINESS ||
@@ -454,7 +454,9 @@ class GlobalAutoCompleteAction extends CAction
 	    			}
         		}
 
-        		$allRooms[$keyR]["typeSig"] = $allRooms[$keyR]["type"];
+        		//var_dump($allRooms[$keyR]);exit;
+
+        		$allRooms[$keyR]["typeSig"] = @$allRooms[$keyR]["type"];
         	}
         	
         	//pour chaque resultat, on ajoute les infos du parentRoom

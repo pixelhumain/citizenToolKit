@@ -68,6 +68,19 @@ class Document {
 	/**
 	 * save document information
 	 * @param $params : a set of information for the document (?to define)
+	 * $params = array(
+			"id" => $_POST['id'],
+	  		"type" => $_POST['type'],
+	  		"folder" => $_POST['folder'],
+	  		"moduleId" => $_POST['moduleId'],
+	  		"name" => $_POST['name'],
+	  		"size" => (int) $_POST['size'],
+	  		"contentKey" => $_POST["contentKey"],
+	  		"author" => Yii::app()->session["userId"]
+	    );
+		$params["parentType"] = $_POST["parentType"];
+		$params["parentId"] = $_POST["parentId"];			
+		$params["formOrigin"] = $_POST["formOrigin"];
 	*/
 	public static function save($params){
 		
@@ -83,22 +96,27 @@ class Document {
 	  		"author" => $params['author'],
 	  		"name" => $params['name'],
 	  		"size" => (int) $params['size'],
-	  		"contentKey" => $params["contentKey"],
+	  		"contentKey" => @$params["contentKey"],
 	  		'created' => time()
 	    );
-		if (in_array($new["type"], array(Survey::COLLECTION, ActionRoom::COLLECTION, ActionRoom::COLLECTION_ACTIONS))) {
-			 if (!Authorisation::canEditItem( $new['author'], $new['type'], $new['id'], @$params["parentType"],@$params["parentId"])) {
+	    //if item exists
+	    //if( PHDB::count($new['type'],array("_id"=>new MongoId($new['id']))) > 0 ){
+		if (in_array($params["type"], array(Survey::COLLECTION, ActionRoom::COLLECTION, ActionRoom::COLLECTION_ACTIONS))) {
+			 if (!Authorisation::canEditItem( $params['author'], $params['type'], $params['id'], @$params["parentType"],@$params["parentId"])) {
 		    	return array("result"=>false, "msg"=>Yii::t('document',"You are not allowed to modify the document of this item !") );
 		    }
 		} else {
-		    if (! Authorisation::canEditItem($new['author'], $new['type'], $new['id']) && !Authorisation::isOpenEdition($new['id'], $new['type']) && (!@$params["formOrigin"] || !Link::isLinked($new['id'], $new['type'], $new['author']))) {
+		    if (   ! Authorisation::canEditItem($params['author'], $params['type'], $params['id']) 
+		    	&& !Authorisation::isOpenEdition($params['id'], $params['type']) 
+		    	&& (!@$params["formOrigin"] || !Link::isLinked($params['id'], $params['type'], $params['author']))) 
+		    {
 			    if(@$params["formOrigin"] && $params["formOrigin"]=="news")
 					return array("result"=>false, "msg"=>Yii::t('document',"You have no rights upload document on this item, just write a message !") );
 			    else
-		    		return array("result"=>false, "msg"=>Yii::t('document',"You are not allowed to modify the document of this item !") );
+		    		return array("result"=>false, "msg"=>Yii::t('document',"You are not allowed to modify the document of this item !"), "params" => $params );
 		    }
 	    }
-
+		//}
 	    if(isset($params["category"]) && !empty($params["category"]))
 	    	$new["category"] = $params["category"];
 
@@ -333,8 +351,10 @@ class Document {
 	public static function removeDocumentById($id, $userId){
 		//TODO SBAR - Generate new thumbs if the image is the current image
 		$doc = Document::getById($id);
-		if ($doc) {
-			if (Authorisation::canEditItem($userId, $doc["type"], $doc["id"])) {
+		if ($doc) 
+		{
+			if (Authorisation::canEditItem($userId, $doc["type"], $doc["id"])) 
+			{
 				$filepath = self::getDocumentPath($doc);
 				if(file_exists ( $filepath )) {
 		            if (unlink($filepath)) {
@@ -345,30 +365,67 @@ class Document {
 		        } else {
 		        	//even if The file does not exists on the filesystem : we try to delete the document on mongo
 		            PHDB::remove(self::COLLECTION, array("_id"=>new MongoId($id)));
-		            $res = array('result'=>false,'error'=>Yii::t("common","Something went wrong!"),"filepath"=>$filepath);
+		            $res = array('result'=>true, "msg" => Yii::t("document","Document deleted"), "id" => $id);
 		        }
-		    } else {
+		    } else 
 		    	$res = array('result'=>false, "msg" => Yii::t("document","You are not allowed to delete this document !"), "id" => $id);
-		    }
-		}
+		} else 
+		    $res = array('result'=>false,'error'=>Yii::t("common","Something went wrong!"),"id"=>$id);
 
 		return $res;
 	}
+
+	/**
+	* remove a document by folder and delete the file on the filesystem
+	* a test of Authorization must be done higher in the process 
+	* testing the user created the element parent of the document 
+	* @return
+	*/
+	public static function removeDocumentByFolder($folder){
+		//TODO SBAR - Generate new thumbs if the image is the current image
+		$docs = self::getWhere(array("folder"=>$folder));
+		if (@$docs) 
+		{
+			//delete all entries in DB
+			foreach ($docs as $key => $doc) 
+			{
+				PHDB::remove( self::COLLECTION, array("_id"=>$key) );
+				$results[$key] = array( 'result'=>true, "entry" => "deleted");
+		    }
+		    
+		    $folder = self::getDocumentFolderPath($doc);
+		    //delete folder from disk recursively
+		    if(file_exists ( $folder ) ){
+		    	CFileHelper::removeDirectory($folder);
+                $results["folder"] = "deleted";
+            } else 
+                $results["folder"] = "something went wrong";
+
+		    $res = array( 'result'=>true, "msg" => Yii::t("document","Document deleted"), "results" => $results );
+		} else 
+			$res = array( 'result'=>true, "msg" => Yii::t("document","no Documents associated") );
+
+		return $res;
+	}
+
+
 	/**
 	* remove a document from communevent by objId
 	* @return
 	*/
 	public static function removeDocumentCommuneventByObjId($id, $userId){
 		$doc = Document::getById($id);
-		if ($doc) {
-			if (Authorisation::canEditItem($userId, $doc["type"], $doc["id"])) {
+		if ($doc) 
+		{
+			if (Authorisation::canEditItem($userId, $doc["type"], $doc["id"])) 
+			{
 				//Suppression de l'image dans la collection cfs.photosimg.filerecord
 				PHDB::remove("cfs.photosimg.filerecord", array("_id"=>$id));
 				//Suppression du document
-				$res = PHDB::remove(self::COLLECTION, array("objId"=>$id));
-			} else {
+				PHDB::remove(self::COLLECTION, array("objId"=>$id));
+				$res = array('result'=>true, "msg" => Yii::t("document","Document deleted"), "id" => $id);
+			} else
 				$res = array('result'=>false, "msg" => Yii::t("document","You are not allowed to delete this document !"), "id" => $id);
-			}
 		}
 		return $res;
 	}
@@ -511,7 +568,7 @@ class Document {
         mkdir($upload_dir, 0775);
         // Medium Image
         if(!file_exists ( $upload_dir_medium )) {       
-			mkdir($upload_dir_medium, 0777);
+			mkdir($upload_dir_medium, 0775);
 		}
    		//GET THUMB IMAGE
         $profilUrl = self::getDocumentUrl($document);
@@ -566,7 +623,7 @@ class Document {
 		$upload_dir = Yii::app()->params['uploadDir'].$dir.'/'.$folder.$destination; 
 		
 		if(!file_exists ( $upload_dir )) {       
-			mkdir($upload_dir, 0777);
+			mkdir($upload_dir, 0775);
 		}
 		//echo "iciiiiiii/////////////".$upload_dir;
 		$path=self::getDocumentPath($document);

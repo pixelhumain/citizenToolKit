@@ -8,7 +8,7 @@ class IndexAction extends CAction
         $controller->subTitle = "NEWS comes from everywhere, and from anyone.";
         $controller->pageTitle = "Communecter - Timeline Globale";
         $news = array();
-        if(@$date && $date != null){
+        if(@$date && $date != null && $date != ""){
 			$date = $date;
 		}
 		else{

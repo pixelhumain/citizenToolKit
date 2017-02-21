@@ -45,6 +45,8 @@ class NewsTranslator {
 				if($params["object"]["type"]==Event::COLLECTION || $params["object"]["type"]==Need::COLLECTION){
 					$params["startDate"]=@$object["startDate"];
 					$params["endDate"]=@$object["endDate"];
+					$params["startDateSec"]=@$object["startDateSec"];
+					$params["endDateSec"]=@$object["endDateSec"];
 					
 				}
 				if(@$object["address"])

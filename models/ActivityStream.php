@@ -280,6 +280,7 @@ class ActivityStream {
 		
         if( isset( $params["label"] ))
         	$action["object"]["displayName"] = $params["label"];
+            
 		if( isset( $params["value"] )){
 			$action["object"]["displayValue"] = ((isset( $params["label"] ) && $params["label"] = "address")?$params["value"]:preg_replace('/<[^>]*>/', '',$params["value"]));
 

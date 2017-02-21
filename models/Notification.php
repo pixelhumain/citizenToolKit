@@ -1250,6 +1250,8 @@ class Notification{
 			$param["geo"]=$geo;
 		if (!empty($address))
 			$param["address"]=$address;	
+		
+		    $param["label"] = "A crée";
 		$stream = ActivityStream::buildEntry($param);
 	    ActivityStream::addEntry($stream);
 
