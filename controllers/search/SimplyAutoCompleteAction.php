@@ -83,8 +83,8 @@ class SimplyAutoCompleteAction extends CAction
   	  			$tmpMainTag[] = new MongoRegex("/".$mainTag."/i");
   	  		}
 	  		if(count($tmpMainTag)){
-	  			$verbMainTag = ( (!empty($searchPrefTag) && '$or' == $searchPrefTag) ? '$or' : '$and' );
-	  			$query = array($verbMainTag => array( $query , array("tags" => array('$in' => $tmpMainTag))));
+	  			$verbMainTag = ( (!empty($searchPrefTag) && '$or' == $searchPrefTag) ? '$all' : '$in' );
+	  			$query = array("$and"=> array( $query , array("tags" => array($verbMainTag  => $tmpMainTag))));
 	  		}
 	  		unset($tmpMainTag);
 	  	}
