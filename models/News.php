@@ -371,11 +371,11 @@ class News {
 		$xmlElement = new SimpleXMLElement(
 			'<?xml version="1.0" encoding="UTF-8"?><rss version="2.0">
 				<channel></channel>
-				<title> Fil d\'actualité ' . $elementName . ' </title>
+				<title> ' . $elementName . ' </title>
 				<description>Communecter, un site fait par les communs pour les communs </description>
 					<image>
       					<url>http://127.0.0.1/ph/assets/7d331fe5/images/Communecter-32x32.svg</url>
-      				</image>
+      					</image>
 				</rss>');
 
 		//var_dump($xml_element);
