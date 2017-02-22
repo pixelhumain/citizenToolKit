@@ -736,5 +736,29 @@ class Authorisation {
 
         return $res;
     }
+
+    /**
+     * Return true if the user can delete the element
+     * @param type $elementType 
+     * @param type $elementId 
+     * @param type $userId 
+     * @return boolean
+     */
+    public static function canDeleteElement($elementType, $elementId, $userId) {
+        //If open Edition : the element can be deleted
+        $res = self::isOpenEdition($idEntity, $typeEntity);
+        
+        if($res != true) {
+            //check if the user is super admin
+            $res = $self::isUserSuperAdmin($userId);
+            if ($res != true) {
+                // check if the user can edit the element (admin of the element)
+                $self::canEditItem($userId, $elementType, $elementId);
+            }
+        }
+        
+        return $res;
+    }
+
 } 
 ?>

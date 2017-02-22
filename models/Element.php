@@ -4,7 +4,6 @@ class Element {
 
 
 	public static function getControlerByCollection ($type) { 
-
 		$ctrls = array(
 	    	Organization::COLLECTION => Organization::CONTROLLER,
 	    	Person::COLLECTION => Person::CONTROLLER,
@@ -20,6 +19,18 @@ class Element {
     	return @$ctrls[$type];
     }
 
+    public static function getModelByType($type) {
+    	$models = array(
+	    	Organization::COLLECTION => "Organization",
+	    	Person::COLLECTION => "Person",
+	    	Event::COLLECTION => "Event",
+	    	Project::COLLECTION => "Project",
+			News::COLLECTION => "News",
+	    	Need::COLLECTION => "Need",
+	    	City::COLLECTION => "City",
+	    );	
+	 	return @$models[$type];     
+    }
 
     public static function getCommonByCollection ($type) { 
 
@@ -782,6 +793,196 @@ class Element {
         
 		PHDB::remove($elementType, array("_id"=>new MongoId($elementId)));
 		return array("result" => true, "msg" => "The element has been deleted succesfully");
+	}
+
+	/**
+	 * Demande la suppression d'un élément
+	 * - Si creator demande la suppression et organisation vide (pas de links, pas de members) => suppression de l’orga
+	 * - Si superadmin => suppression direct
+	 * - Si edition libre sans admin 
+	 * 		- Mail + notification envoyée aux super admins + creator
+	 * - Si admins > 0 pour l’orga :
+	 * 		- envoi d’un mail + notification aux admins
+	 * 		- L’orga est en attente de validation de suppression pendant X jours. Un des admins peut venir et bloquer la suppression pendant ce laps de temps. 
+	 * 		- Après X jours, un batch passe et supprime l’organisation
+	 * 		- Notifications des admins après suppression
+	 * @param String $elementType : element type
+	 * @param String $elementId : element Id
+	 * @param String $reason : reason why the element can be deleted
+	 * @param String $userId : the userId asking to delete the element
+	 * @return array : result : boolean, msg : String
+	 */
+	public static function askToDelete($elementType, $elementId, $reason, $userId) {
+		if (! Authorisation::canDeleteElement($elementType, $elementId, $userId)) {
+			return array("result" => false, "msg" => "The user cannot delete this element !");
+		}
+
+		$res = array("result" => false, "msg" => "Something bad happend : impossible to delete this element");
+		$managedTypes = array(Organization::COLLECTION);
+		if (!in_array($managedTypes, $elementType)) return array( "result" => false, "msg" => "Impossible to delete this type of element" );
+		$modelElement = self::getModelByType($elementType);
+
+		$canBeDeleted = false;
+		$element = self::getByTypeAndId($elementType, $elementId);
+		
+		//Check if the creator is the user asking to delete the element
+		$creator = empty($element["creator"]) ? "" : $element["creator"];
+		if ($creator == $userId) {
+			// If almost empty element (no links expect creator as member) => delete the element
+			if (count(@$element["links"]) == 0) {
+				$canBeDeleted = true;
+			} else if (count(@$element["links"]["members"]) == 1) {
+				$canBeDeleted = isset($element["links"]["members"][$creator]);
+			}
+		}
+
+		// If the userId is superAdmin : element can be deleted as well
+		if (Authorisation::isUserSuperAdmin($userId)) {
+			$canBeDeleted = true;
+		}
+
+		//Try to delete the element
+		if ($canBeDeleted) {
+			$res = self::deleteElement($elementType, $elementId, $reason, $userId);
+		} else {
+			//retrieve admins of the element
+			$admins == array();
+			foreach (@$element["links"]["members"] as $id => $aLink) {
+				if (@$aLink["type"] == Person::COLLECTION && @$aLink["isAdmin"] == true) {
+					array_push($admins, $id);
+				}
+			}
+			//If open data without admin
+			if ((@$element["preferences"]["isOpenData"] == true || @$element["preferences"]["isOpenData"] == 'true' ) && count($admins == 0))  {
+				//Ask the super admins to act for the deletion of the element
+				$res = $self::goElementDeletePending($elementType, $elementId, $reason, Person::getCurrentSuperAdmins(), $userId);
+			}
+
+			//If at least one admin => ask if one of the admins want to stop the deletion. The element is mark as pending deletion. After X days, if no one block the deletion => the element if deleted
+			if (count($admins) > 0) {
+				$res = $self::goElementDeletePending($elementType, $elementId, $reason, $admins, $userId);	
+			}
+		}
+
+		return $res;
+	}
+
+	/**
+	 * Suppression de l'élément et de ses liens. 
+	 * - Suppression des liens 
+	 * 		- Persons : followers / member / memberOf
+	 * 		- Projects :  links.contributor. Vider le parentId+parentType
+	 *		- Event : links.events, vider le organizerId et organizerType
+	 * 		- Organization : member / memberOf
+	 * - Suppresion des Documents 
+	 * 		- Supprimer les images de profil 
+	 * - Vider le activityStream de type history
+	 * Si pas de lien News, Actions, Surveys, ActionRooms, News : Suppression de l’élément
+	 * Sinon anonymisation :
+	 * 	- renomer l'élément “Element Supprimé”
+	 * 	- Vider les éléments de contacts (ex : description / numéro de tel…)
+	 * 	- Ajouter un status ‘deleted’ : ne sors plus dans les recherches et l’api
+	 * @param type $elementType : type d'élément
+	 * @param type $elementId : id of the element
+	 * @param type $reason : reason of the deletion
+	 * @param type $userId : userId making the deletion
+	 * @return array result : bool, msg : message
+	 */
+	public static function deleteElement($elementType, $elementId, $reason, $userId) {
+		
+		if (! Authorisation::canDeleteElement($elementType, $elementId, $userId)) {
+			return array("result" => false, "msg" => "The user cannot delete this element !");
+		}
+		
+		//array to know likeTypes to their backwards link. Ex : a person "members" type link got a memberOf link in his collection
+		$linksTypes = array(
+			Person::COLLECTION => 
+				array(	"followers" => "follow", 
+						"members", "memberOf",
+						"follow" => "followers",
+						"attendees" => "events",
+						"helpers" => "needs"),
+			Organization::COLLECTION => 
+				array(	"memberOf" => "member",
+						"member" =>"memberOf",
+						"follow" => "followers"),
+			Events::COLLECTION => 
+				array("events" => "organizer"),
+			Project::COLLECTION =>
+				array("projects" => "contributors"),
+			//TODO : pb with links in needs collection. the parentType is used on the linkType. Better use "needer" or parent.
+			Need::COLLECTION => 
+				array(	"needs" => "organizations",
+						"needs" => "helpers"),
+			);
+
+		$elementToDelete = self::getByTypeAndId($elementType, $elementId);
+		
+		//Remove backwards links
+		foreach (@$elementToDelete["links"] as $linkType => $aLink) {
+			foreach ($aLink as $linkElementId => $linkInfo) {
+				$linkElementType = $linkInfo["type"];
+				if (!isset($linksTypes[$linkElementType][$linkType])) {
+					error_log("Unknown backward links for a link in a ".$elementType." of type ".$linkType." to a ".$linkElementType);
+					continue;
+				}
+				$linkToDelete = $linksTypes[$linkElementType][$linkType];
+				$collection = $linkElementType;
+				$where = array('$unset' => array('links.'.$linkToDelete.'.'.$elementId));
+				PHDB::update($collection, $where);
+				error_log("Because of deletion of element :".$elementType."/".$elementId." : delete a backward link on a element of type ".$collection." of type ".$linkToDelete);
+			}
+		}
+
+		//Remove Documents => Profil Images
+    	$profilImages = Document::listMyDocumentByIdAndType($id, $elementType, Document::IMG_PROFIL, Document::DOC_TYPE_IMAGE, array( 'created' => -1 ));
+    	foreach ($profilImages as $docId => $document) {
+    		Document::removeDocumentById($docId, $userId);
+    		error_log("delete document id ".$docId);
+    	}
+
+    	//Remove Activity History
+    	ActivityStream::removeActivityHistory($elementId, $elementType);
+
+    	//Check if the element got activity (news, ActionRooms, actions, surveys)
+		$res = self::checkActivity($elementId, $elementType);
+		if ($res["result"]) {
+			//Anonymize the element : Remove all fields from the element
+			$where = array("_id" => new MongoId($elementId));
+			$action = array("email" => $id."@communecter.org", "name" => "element deleted", "deletedDate" => new mongoDate(time()), "status" => "deleted", "reason" => $reason);
+			PHDB::update($elementType, $where, $action);
+			Log::save(array("userId" => $userId, "browser" => @$_SERVER["HTTP_USER_AGENT"], "ipAddress" => @$_SERVER["REMOTE_ADDR"], "created" => new MongoDate(time()), "action" => "deleteElement", "params" => array("id" => $elementId, "type" => $elementType)));
+		} else {
+			//Delete the element
+			$where = array("_id" => new MongoId($id));
+	    	PHDB::remove($elementType, $where);
+		}
+	}
+
+	/**
+	 * Check if the element got activity it host : news, actions, surveys, ActionRooms
+	 * @param String $elementId 
+	 * @param String $elementType 
+	 * @return array result => bool, msg => String
+	 */
+	public static function checkActivity($elementId, $elementType) {
+		$where = array('$and' => 
+					array(
+						array("target.type" => self::COLLECTION), 
+						array("target.id" => $id)
+				));
+		$count = PHDB::count(News::COLLECTION, $where);
+		if ($count > 0) return array("result" => true, "msg" => "This element had made news");
+
+		$where = array('$and' => 
+					array(
+						array("parentType" => self::COLLECTION), 
+						array("parentId" => $id)
+				));
+		$count = PHDB::count(ActionRoom::COLLECTION, $where);
+		if ($count > 0) return array("result" => true, "msg" => "This element had made action Rooms");
+
+		return array("result" => false, "msg" => "No activity");
 	}
 
 	public static function save($params){

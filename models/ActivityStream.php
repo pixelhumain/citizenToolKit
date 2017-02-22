@@ -37,7 +37,7 @@ class ActivityStream {
 	{
 	    return PHDB::findAndSort(self::COLLECTION, $param,$sort,5);
 	}
-	/*
+	/**
 	* Get activities on entity which is in openEdition
 	* @param type string $id defines id of modified entity
 	* @param type string $type defines type of modified entity
@@ -49,7 +49,20 @@ class ActivityStream {
 		$sort = array("date"=>-1);
 		return PHDB::findAndSort( self::COLLECTION,$where,$sort,null);
 	}
-	/*
+
+	/**
+	* Remove activities history on entity
+	* @param type string $id defines id of modified entity
+	* @param type string $type defines type of modified entity
+	*/	
+	public static function removeActivityHistory($id,$type){
+		$where = array("target.id"=>$id, 
+					"target.objectType"=>$type, 
+					"type"=>ActStr::TYPE_ACTIVITY_HISTORY);
+		return PHDB::remove( self::COLLECTION,$where);
+	}
+
+	/**
 	* SaveActivityHistory aims to insert in collecion ActivityStream 
 	* Each modification, add, each activity done on an entity
 	* @param type string $verb defines action realized
