@@ -39,7 +39,38 @@ class SimplyAutoCompleteAction extends CAction
   			$query = array('$and' => array($query, array("disabled" => array('$exists' => 0))));
         }
 
-        /***********************************  Tags   *****************************************/
+        
+
+        /***********************************  Filtre   *****************************************/
+        
+        $tmpTags = array();
+        if(strpos($search, "#") > -1){
+        	$search = substr($search, 1, strlen($search));
+        	$tmpTags[] = new MongoRegex("/".$search."/i");
+  		}
+  		if(count($tmpTags)){
+  			$query = array('$and' => array( $query , array("tags" => array('$in' => $tmpTags)))) ;
+  		}
+  		
+  		if(!empty($filtreTag)){
+  			foreach ($filtreTag as $key => $tags) {
+	  			$tmpTags = array();
+	  			foreach ($tags as $key => $tag) {
+			  		$tmpTags[] = new MongoRegex("/".$tag."/i");
+			  		/*if(in_array($tag, $searchTag))
+			  			unset($searchTag["$tag"]);*/
+		  		}
+		  		if(count($tmpTags)){
+		  			$verbBlock = ( (!empty($paramsFiltre["conditionBlock"]) && 'or' == $paramsFiltre["conditionBlock"]) ? '$or' : '$and' ) ;
+  					$verbTagInBlock = ( (!empty($paramsFiltre["conditionTagInBlock"]) && '$all' == $paramsFiltre["conditionTagInBlock"]) ? '$all' : '$in' ) ;
+		  			$query = array($verbBlock => array( $query , array("tags" => array($verbTagInBlock => $tmpTags)))) ;
+		  		}
+	  		}
+  		}
+  		
+  		unset($tmpTags);
+
+        /***********************************  search Tag   *****************************************/
         $tmpTags = array();
   		if($searchTag){
   			foreach ($searchTag as $value) {
@@ -49,35 +80,9 @@ class SimplyAutoCompleteAction extends CAction
   		if(count($tmpTags)){
   			$query = array('$and' => array( $query , array("tags" => array('$in' => $tmpTags)))) ;
   		}
-
-  		
   		unset($tmpTags);
 
-        /***********************************  Filtre   *****************************************/
-        $tmpTags = array();
-        if(strpos($search, "#") > -1){
-        	$search = substr($search, 1, strlen($search));
-        	$tmpTags[] = new MongoRegex("/".$search."/i");
-  		}
-  		
-  		$verbTag = ( (!empty($paramsFiltre) && '$all' == $paramsFiltre) ? '$all' : '$in' ) ;
-  		if(count($tmpTags)){
-  			$query = array('$and' => array( $query , array("tags" => array($verbTag => $tmpTags)))) ;
-  		}
-  		if(!empty($filtreTag)){
-  			foreach ($filtreTag as $key => $tags) {
-	  			$tmpTags = array();
-	  			foreach ($tags as $key => $tag) {
-			  		$tmpTags[] = new MongoRegex("/".$tag."/i");
-		  		}
-		  		if(count($tmpTags)){
-		  			//$verbTag = ( (!empty($paramsFiltre) && '$all' == $paramsFiltre) ? '$all' : '$in' ) ;
-		  			$query = array('$and' => array( $query , array("tags" => array($verbTag => $tmpTags)))) ;
-		  		}
-	  		}
-  		}
-  		
-  		unset($tmpTags);
+        
 
   		/***********************************  COMPLETED   *****************************************/
   		$query = array('$and' => array( $query , array("state" => array('$ne' => "uncomplete")) ));
