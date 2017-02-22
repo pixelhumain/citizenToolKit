@@ -22,8 +22,8 @@ class GlobalAutoCompleteAction extends CAction
          	$searchType[0] == Organization::TYPE_BUSINESS ||
          	$searchType[0] == Organization::TYPE_GROUP ||
         	$searchType[0] == Organization::TYPE_GOV) {
-        	$searchTypeOrga = $searchType[0];
-        	$searchType = array(Organization::COLLECTION);
+	        	$searchTypeOrga = $searchType[0];
+	        	$searchType = array(Organization::COLLECTION);
         }
        // error_log("global search " . $search . " - searchType : ". $searchType); //. " & locality : ". $locality. " & country : ". $country);
 	    
@@ -179,9 +179,8 @@ class GlobalAutoCompleteAction extends CAction
 		  			if( @$value["links"]["followers"][Yii::app()->session["userId"]] )
 			  			$orga["isFollowed"] = true;
 
-			  		if(@$searchTypeOrga != "")
-						$orga["typeOrga"] = $searchTypeOrga;
-
+			  		if(@$orga["type"] != "")
+						$orga["typeOrga"] = $orga["type"];
 					$orga["type"] = "organization";
 
 					$orga["typeSig"] = Organization::COLLECTION;
@@ -683,7 +682,7 @@ class GlobalAutoCompleteAction extends CAction
 	}
 
 	private function typeWanted($type, $searchType){
-		if($searchType == null) return true;
+		if($searchType == null || $searchType[0] == "all") return true;
 		return in_array($type, $searchType);
 	}
 
