@@ -22,7 +22,8 @@ class Poi {
 		"streetArts" => "arts de rue",
 		"openScene" => "scène ouverte",
 		"stand" => "stand",
-		"parking" => "Parking"
+		"parking" => "Parking",
+		"smartCitizen"=>"Smart-Citizen-Kit"
 	);
 
 	//From Post/Form name to database field name

@@ -2,6 +2,7 @@
 
 class Thing {
 	//TODO changer collection things en datas (dans mongodb dev aussi)
+	//TODO : utilisé un formulaire avec device et adresse mac pour compléter les métadatas
 
 	const COLLECTION = "metadatas";
 	const CONTROLLER = "thing";
@@ -39,7 +40,8 @@ class Thing {
 	    "countryCode" => array("name" =>"countryCode"),
 	    "country" => array("name" =>"country"),
 	    "city"=> array("name"=> "city"),
-	    "exposure" => array("name" => "exposure"),
+	    "sckUpdatedAt"=array("name"=>"sckUpdatedAt"),
+	    //"exposure" => array("name" => "exposure"),
 	    "status" => array("name" => "status"), //in metadata updated for POI 
 	    
 	    "modified" => array("name" => "modified"),
@@ -49,25 +51,47 @@ class Thing {
 	);
 
 	//ajouter les metadatas si le sck n'est pas en base 
-	public static function insert($metadatas,$deviceUpdatedDate=null){
-		//vérifier que le sck n'est pas dans la base
-		//get
-		//if (! )
+	public static function insert($deviceId=null){
 
+
+		//prendre les infos dans poi : 
+
+		//prendre les infos via l'api sc
+
+		//merge le pour save dans metadata via Element::save($sckdevice);
 
 
 	}
 
 	//vérifier que la données est à jours (lire la date de modification de la métadatas)
-	public static function updateMetadata($deviceUpdatedDate,$location,$macId=null){
+	public static function updateMetadatas(){
 		//$location : latitude longitude geohash city country_code country exposure
+		$deviceIds=array();
+		$pois = getSCKInPOIByCountry(); //les poi sck de la réunion
+		//$resmerge = array();
+		foreach ($pois as $poi) {
+			# code...
+			$urls=$poi['urls'];
+			$Ids[]=getSCKDeviceIDsByPoiUrls($urls);
+			$temp=$deviceIds;
 
+			$deviceIds = array_merge($temp,$Ids);
+		}
+		
+		//$deviceIds;
+		$mongodbIds=array();
+		foreach ($deviceIds as $deviceId) {
+			# code...
+			$mongodbIds[] = getDBIdSCKDevice($deviceId);
+		}
 
+		
 
 	}
 
 	//chercher les sck enregistrer dans les poi dans la base de données basé sur l'url du kits find de l'url deviceid après "devices/"
-	public static function getSCKDeviceInPOI($country="RE",$fields=null){
+	public static function getSCKInPOIByCountry($country="RE",$fields=null){
+
 		$where = array('type' => array('$exists'=>1));
 		//poi : addressCountry
 		//mongo regex pour le code postal
@@ -76,64 +100,85 @@ class Thing {
 		$where['urls'] = array('$in'=> $queryUrls);
 
 		$pois = PHDB::find(Poi::COLLECTION, $where, $fields);
-
-		/*$deviceids = array();
-		foreach ($pois as $value) {
-			# code...
-			$value['urls']
-		}*/
 		return $pois;
-		
-		
 	}
 
-	//utilise pour chercher le deviceID (si addresse mac présent aussi ?) et comparer avec POI 
-	public static function getSCKDevices(){
+	public static function getSCKDeviceIDsByPoiUrls($poisUrls){
+		
+		$deviceids = array();
+		foreach ($poisUrls as $poiUrls) {
+			//*
+			$sckUrl = $poiUrls['urls'][0]; 
+			$eUrl= explode("/",$sckUrl);
+			$deviceids[] = $eUrl[(count($eUrl)-1)];
+			//*/
 
-		/*$SCKDevices = PHDB::find(self::COLLECTION, array("type"=>"smartCitizen"));
-	
-		return $SCKDevices;*/
+			/*
+			$aUrls = $poiUrls['urls'];
+			 foreach ($aUrls as $url) {
+			 	$eUrl = explode("/",$url);
+				$deviceids[] = $eUrl[(count($eUrl)-1)];
+			 }
+			*/
 
+		}
+		return $deviceids;
 	}
 
+	//todo: vision sur carte, et api pour les données
 
+	//utilise pour chercher l'_id dans metadata (si addresse mac présent aussi ?) 
+	public static function getDBIdSCKDevice($deviceId=null){
+		$where=array("type"=>"smartCitizen");
+
+		if(!empty($deviceId)){
+			$where["deviceId"]=$deviceId;
+		}
+		$metadatasId = self::getSCKDevices($where,array('_id'));
+		return $metadatasId;
+	}
+
+	public static function getSCKDevices($where=array("type"=>"smartCitizen"), $fields=null){
+		//$where=array("type"=>"smartCitizen");
+		$SCKDevices = PHDB::find(self::COLLECTION, $where,$fields);
+		return $SCKDevices;
+	}
 
 	/* Par l'api pas de conversion à faire sur value (convertis par smartcitizen.me), 
 	valeur brute raw_value conversion nécessaire  */
 	public static function getLastedReadViaAPI($deviceId=4162){  //4162 pour test
+		if(is_string($deviceId)){
+			settype($deviceId, "integer");
+		}
 
 		$lastReadDevice = json_decode(file_get_contents(self::URL_API_SC."/devices/".$deviceId."?access_token=".self::AUTHORIZATION),true);
 		
-		$res =array();
+		$partReadings =array();
 		
 		if( $lastReadDevice["id"] == $deviceId ){
-			$timestamp = $lastReadDevice["data"]["recorded_at"]; // for readings , TODO : parse pour avoir la date
-			$location= $lastReadDevice["data"]["location"]; //latitude longitude geohash city country_code country exposure
-			$sensors = $lastReadDevice["data"]["sensors"];//[] chaque item : id name description unit value raw_value prev_value prev_raw_value ancestry created_at updated_at
+			// for readings , TODO : parse pour avoir la date
+			//location : latitude longitude geohash city country_code country exposure
+			//sensors[] chaque item : id name description unit value raw_value prev_value prev_raw_value ancestry created_at updated_at
 			$deviceUpdatedDate = $lastReadDevice["updated_at"];
+			$timestamp = $lastReadDevice["data"]["recorded_at"]; 
+			$location = $lastReadDevice["data"]["location"]; 
+			$sensors = $lastReadDevice["data"]["sensors"];
 			$macId = $lastReadDevice["mac_address"];
-			/*if ( $macId != "[FILTERED]"){
-				updateMetadata($deviceUpdatedDate,$location) ;
-			} else {
-				//echo "(l'adresse mac du device $deviceId n'est pas afficher.)"; 
-			}*/
-			//$res  = array('macId' => $macId, 'updatedAt'=> $deviceUpdatedDate, 'location'=> $location,'timestamp' => $timestamp, 'sensors'=>$sensors);
-		return $sensors;
+			unset($location['ip']);
+			unset($location['elevation']);
 
+			$partReadings = array('macId' => $macId, 'sckUpdatedAt'=> $deviceUpdatedDate, 'location'=> $location, 'timestamp' => $timestamp, 'sensors'=>$sensors);
+			return $partReadings;
 		}
- 		
- 		//test : 
- 		//$sensors = $lastReadDevice["data"]["sensors"];
- 		
 
 	}
 
-	public static function getLastestRecordsInDB($macId, $limit=3, $sort=array("created"=>-1)){
+	public static function getLastestRecordsInDB($macId, $limit=2, $sort=array("created"=>-1)){
 
 		$where = array('type' => array('$exists'=>1));
 		$lastRecords = array();
 
-		if(!empty($macId)){
+		if(!empty($macId)&&(strlen($macId)<=17)){
 			$queryMacId[] = new MongoRegex("/".$macId."/i");
 			$where["type"] = self::SCK_TYPE;
 			//$fields = array('boardId'=> $macId);
@@ -183,14 +228,13 @@ class Thing {
         return array_merge($dataThing, $datapoints);
 	}
 
-	public static function fillSmartCitizenMetadata($params){
+	public static function fillSmartCitizenMetadata($partReadings){
 		$mdata = array();
 		$mdata['collection']=self::COLLECTION;
 		$mdata['type'] = self::SCK_TYPE;
 		$mdata['key'] = 'thing';
-		$mdata['boardId'] = $params['macId'];
-		$mdata['deviceId'] = $params['deviceId'];
-
+		$mdata['boardId'] = $partReadings['macId'];
+		
 
 	}
 
