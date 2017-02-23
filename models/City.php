@@ -82,7 +82,7 @@ class City {
     		if(empty($exist)){
     			PHDB::insert(self::COLLECTION, $city );
 				$res = array("result"=>true,
-	                         "msg"=>"La commune a été enregistrer.",
+	                         "msg"=>"La commune a été enregistré.",
 	                         "city"=>json_encode($city),
 	                         "id"=>(string)$city["_id"]); 
     		}else{

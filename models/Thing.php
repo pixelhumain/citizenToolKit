@@ -35,12 +35,12 @@ class Thing {
 		"sensorsIds" => array("name"=> "sensors"),
 		"geo" => array("name" => "geo", "rules" => array("required","geoValid")), //poi
 		//"geoPosition" => array("name" => "geoPosition", "rules" => array("required","geoPositionValid")),
-		"geohash" => array("name" => "geohash" ), //smartcitizen.me
+		//"geohash" => array("name" => "geohash" ), //smartcitizen.me
 	    "location" => array("name" => "location"),
-	    "countryCode" => array("name" =>"countryCode"),
-	    "country" => array("name" =>"country"),
-	    "city"=> array("name"=> "city"),
-	    "sckUpdatedAt"=array("name"=>"sckUpdatedAt"),
+	    //"countryCode" => array("name" =>"countryCode"),
+	    //"country" => array("name" =>"country"),
+	    //"city"=> array("name"=> "city"),
+	    "sckUpdatedAt"=>array("name"=>"sckUpdatedAt"),
 	    //"exposure" => array("name" => "exposure"),
 	    "status" => array("name" => "status"), //in metadata updated for POI 
 	    
@@ -51,46 +51,51 @@ class Thing {
 	);
 
 	//ajouter les metadatas si le sck n'est pas en base 
-	public static function insert($deviceId=null){
+	public static function setMetadata($poi,$deviceId=null,$macId=null){
 
+			$wheremeta = array('type'=>'smartCitizen');
+			
+			$toSave=array();
 
-		//prendre les infos dans poi : 
+			$sckurl=$poi['urls'][0];
+			$deviceId=  self::getSCKDeviceIdByPoiUrl($sckurl);
+			$wheremeta['deviceId']=$deviceId;
+			$deviceMetadata = self::getSCKDevices($wheremeta);
 
-		//prendre les infos via l'api sc
-
-		//merge le pour save dans metadata via Element::save($sckdevice);
-
-
+			$partReadings = self::getLastedReadViaAPI($deviceId);
+			$geo=$poi['geo'];
+			$toSave = self::fillSmartCitizenMetadata($partReadings,$geo);
+			if(!empty($deviceMetadata)){
+				$toSave['id']=$deviceMetadata['_id'];
+			}
+			return $toSave;
 	}
 
 	//vérifier que la données est à jours (lire la date de modification de la métadatas)
-	public static function updateMetadatas(){
+	public static function updateMetadatas($pois=null){
 		//$location : latitude longitude geohash city country_code country exposure
-		$deviceIds=array();
-		$pois = getSCKInPOIByCountry(); //les poi sck de la réunion
-		//$resmerge = array();
+		
+		$sck=array();
+		$res=array();
+		if(empty($pois)){
+			$pois = self::getSCKInPoiByCountry();
+		}
+		
 		foreach ($pois as $poi) {
-			# code...
-			$urls=$poi['urls'];
-			$Ids[]=getSCKDeviceIDsByPoiUrls($urls);
-			$temp=$deviceIds;
+			$toUpSave= self::setMetadata($poi);
 
-			$deviceIds = array_merge($temp,$Ids);
+			$res[] = Element::save($toUpSave);
+			$sck[]=$toUpSave;
+			 
 		}
+		echo Rest::json( $res );
 		
-		//$deviceIds;
-		$mongodbIds=array();
-		foreach ($deviceIds as $deviceId) {
-			# code...
-			$mongodbIds[] = getDBIdSCKDevice($deviceId);
-		}
-
-		
+		return $sck;
 
 	}
 
-	//chercher les sck enregistrer dans les poi dans la base de données basé sur l'url du kits find de l'url deviceid après "devices/"
-	public static function getSCKInPOIByCountry($country="RE",$fields=null){
+	//chercher les sck enregistrer dans les poi dans la base de données
+	public static function getSCKInPoiByCountry($country="RE",$fields=null){
 
 		$where = array('type' => array('$exists'=>1));
 		//poi : addressCountry
@@ -103,30 +108,18 @@ class Thing {
 		return $pois;
 	}
 
-	public static function getSCKDeviceIDsByPoiUrls($poisUrls){
-		
-		$deviceids = array();
-		foreach ($poisUrls as $poiUrls) {
-			//*
-			$sckUrl = $poiUrls['urls'][0]; 
-			$eUrl= explode("/",$sckUrl);
-			$deviceids[] = $eUrl[(count($eUrl)-1)];
-			//*/
+	/* TODO : Faire avec deviceId renseigner dans le formulaire poi type smartcitizen
+	*/
 
-			/*
-			$aUrls = $poiUrls['urls'];
-			 foreach ($aUrls as $url) {
-			 	$eUrl = explode("/",$url);
-				$deviceids[] = $eUrl[(count($eUrl)-1)];
-			 }
-			*/
-
-		}
-		return $deviceids;
+	public static function getSCKDeviceIdByPoiUrl($sckUrl){
+	
+		$eUrl= explode("/",$sckUrl);
+		$deviceid = $eUrl[(count($eUrl)-1)];
+		return $deviceid;
 	}
 
 	//todo: vision sur carte, et api pour les données
-
+	/*
 	//utilise pour chercher l'_id dans metadata (si addresse mac présent aussi ?) 
 	public static function getDBIdSCKDevice($deviceId=null){
 		$where=array("type"=>"smartCitizen");
@@ -136,7 +129,7 @@ class Thing {
 		}
 		$metadatasId = self::getSCKDevices($where,array('_id'));
 		return $metadatasId;
-	}
+	}*/
 
 	public static function getSCKDevices($where=array("type"=>"smartCitizen"), $fields=null){
 		//$where=array("type"=>"smartCitizen");
@@ -159,17 +152,16 @@ class Thing {
 			// for readings , TODO : parse pour avoir la date
 			//location : latitude longitude geohash city country_code country exposure
 			//sensors[] chaque item : id name description unit value raw_value prev_value prev_raw_value ancestry created_at updated_at
-			$deviceUpdatedDate = $lastReadDevice["updated_at"];
-			$timestamp = $lastReadDevice["data"]["recorded_at"]; 
-			$location = $lastReadDevice["data"]["location"]; 
-			$sensors = $lastReadDevice["data"]["sensors"];
-			$macId = $lastReadDevice["mac_address"];
-			unset($location['ip']);
-			unset($location['elevation']);
+			$partReadings['sckUpdatedAt'] = $lastReadDevice["updated_at"];
+			$partReadings['timestamp'] = $lastReadDevice["data"]["recorded_at"]; 
+			$partReadings['location'] = $lastReadDevice["data"]["location"]; 
+			$partReadings['sensors'] = $lastReadDevice["data"]["sensors"];
+			$partReadings['macId'] = $lastReadDevice["mac_address"];
+			unset($partReadings['location']['ip']);
+			unset($partReadings['location']['elevation']);
 
-			$partReadings = array('macId' => $macId, 'sckUpdatedAt'=> $deviceUpdatedDate, 'location'=> $location, 'timestamp' => $timestamp, 'sensors'=>$sensors);
-			return $partReadings;
 		}
+		return $partReadings;
 
 	}
 
@@ -228,13 +220,17 @@ class Thing {
         return array_merge($dataThing, $datapoints);
 	}
 
-	public static function fillSmartCitizenMetadata($partReadings){
+	public static function fillSmartCitizenMetadata($partReadings,$geo){
 		$mdata = array();
 		$mdata['collection']=self::COLLECTION;
 		$mdata['type'] = self::SCK_TYPE;
 		$mdata['key'] = 'thing';
 		$mdata['boardId'] = $partReadings['macId'];
-		
+		if($partReadings['macId'] !="[FILTERED]"){
+			unset($partReadings['macId']);
+		}
+		$mdata['geo'] = $geo;
+		return array_merge($mdata,$partReadings);
 
 	}
 
