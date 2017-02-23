@@ -488,6 +488,7 @@ class GlobalAutoCompleteAction extends CAction
 	  	/***********************************  CITIES   *****************************************/
         if(strcmp($filter, City::COLLECTION) != 0 && $this->typeWanted(City::COLLECTION, $searchType)){
 	  		$query = array( "name" => new MongoRegex("/".self::wd_remove_accents($search)."/i"));//array('$text' => array('$search' => $search));//
+
 	  		
 	  		/***********************************  DEFINE LOCALITY QUERY   *****************************************/
 	        	if($locality == null || $locality == "")
