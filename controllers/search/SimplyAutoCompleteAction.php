@@ -101,7 +101,7 @@ class SimplyAutoCompleteAction extends CAction
   	  		}
 	  		if(count($tmpMainTag)){
 	  			$verbMainTag = ( (!empty($searchPrefTag) && '$or' == $searchPrefTag) ? '$all' : '$in' );
-	  			$query = array("$and"=> array( $query , array("tags" => array($verbMainTag  => $tmpMainTag))));
+	  			$query = array('$and'=> array( $query , array("tags" => array($verbMainTag  => $tmpMainTag))));
 	  		}
 	  		unset($tmpMainTag);
 	  	}
