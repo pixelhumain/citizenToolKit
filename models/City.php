@@ -133,6 +133,16 @@ class City {
 	  	return $city;
 	}
 
+	public static function getById($id) {
+	  	$city = PHDB::findOne(self::COLLECTION, array("_id"=>new MongoId($id)));
+	  	return $city;
+	}
+
+	public static function getByInsee($insee) {
+	  	$city = PHDB::findOne(self::COLLECTION, array("insee"=>$insee));
+	  	return $city;
+	}
+
 	/* Retourne des infos sur la commune dans la collection cityData" */
 	public static function getWhereData($params, $fields=null, $limit=20, $sort=null) 
 	{
@@ -934,6 +944,12 @@ class City {
 		// }
 		return $CTZAssembly;
 	}*/
+
+	public static function getDetail($collection, $id){
+		$where = array("_id"=>new MongoId($id));
+		$zone = PHDB::findOne($collection, $where);
+		return $zone;
+	}
 
 
 
