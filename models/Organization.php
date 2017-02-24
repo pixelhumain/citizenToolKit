@@ -67,6 +67,7 @@ class Organization {
 	    "locality" => array("name" => "address"),
 	    "contacts" => array("name" => "contacts"),
 	    "urls" => array("name" => "urls"),
+	    "descriptionHTML" => array("name" => "descriptionHTML"),
 	);
 	
 	//See findOrganizationByCriterias...
@@ -526,12 +527,14 @@ class Organization {
 
 		$simpleOrganization = array();
 		if(!$orga)
-			$orga = PHDB::findOneById( self::COLLECTION ,$id, array("id" => 1, "name" => 1, "type" => 1, "email" => 1,  "shortDescription" => 1, "description" => 1, "address" => 1, "pending" => 1, "tags" => 1, "geo" => 1, "updated" => 1, "profilImageUrl" => 1, "profilThumbImageUrl" => 1, "profilMarkerImageUrl" => 1,"profilMediumImageUrl" => 1, "addresses"=>1) );
+			$orga = PHDB::findOneById( self::COLLECTION ,$id, array("id" => 1, "name" => 1, "type" => 1, "email" => 1, "url" => 1, "shortDescription" => 1, "description" => 1, "address" => 1, "pending" => 1, "tags" => 1, "geo" => 1, "updated" => 1, "profilImageUrl" => 1, "profilThumbImageUrl" => 1, "profilMarkerImageUrl" => 1,"profilMediumImageUrl" => 1, "addresses"=>1, "telephone"=>1) );
 		if(!empty($orga)){
 			$simpleOrganization["id"] = $id;
 			$simpleOrganization["name"] = @$orga["name"];
 			$simpleOrganization["type"] = @$orga["type"];
 			$simpleOrganization["email"] = @$orga["email"];
+			$simpleOrganization["url"] = @$orga["url"];
+			$simpleOrganization["telephone"] = @$orga["telephone"];
 			$simpleOrganization["pending"] = @$orga["pending"];
 			$simpleOrganization["tags"] = @$orga["tags"];
 			$simpleOrganization["geo"] = @$orga["geo"];
@@ -1464,6 +1467,14 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 		else if(trim($type) == "Groupe" || trim($type) == "Groupe informel")
 			$type = self::TYPE_GROUP ;
 		return $type;
+	}
+
+	public static function getKeyTypeByValue($type) {
+		foreach (self::$types as $key => $value) {
+			if($type == $value)
+				return $key;
+		}
+	  	return false;
 	}
 	
 

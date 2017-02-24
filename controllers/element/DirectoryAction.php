@@ -133,7 +133,14 @@ class DirectoryAction extends CAction
         if(Yii::app()->request->isAjaxRequest){
             if(@$_GET[ "tpl" ] == "json"){
               $context = array("name"=>$element["name"]);
-              echo Rest::json( array( "list" => $params,"context"=>$context) );
+              //controllons le resultat
+              $list = array(
+                "citoyens" => $params["people"],
+                "organizations" => $params["organizations"],
+                "events" => $params["events"],
+                "projects" => $params["projects"],
+                );
+              echo Rest::json( array( "list" => $list,"context"=>$context) );
             }
             else
             echo $controller->renderPartial($page,$params,true);

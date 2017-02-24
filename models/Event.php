@@ -53,12 +53,13 @@ class Event {
 	    "medias" => array("name" => "medias"),
 	    "urls" => array("name" => "urls"),
 	    "url" => array("name" => "url"),
-
+	    "contacts" => array("name" => "contacts"),
 	    "modified" => array("name" => "modified"),
 	    "updated" => array("name" => "updated"),
 	    "creator" => array("name" => "creator"),
 	    "created" => array("name" => "created"),
 	    "locality" => array("name" => "address"),
+	    "descriptionHTML" => array("name" => "descriptionHTML"),
 	);
 
 	//TODO SBAR - First test to validate data. Move it to DataValidator
