@@ -15,7 +15,7 @@ class UpdateSckDevicesAction extends CAction {
 		} elseif ($_SERVER['REQUEST_METHOD'] == 'POST') { //TODO : post pour mettre ajours avec un nouveau poi }
 
 	}
-	echo Rest::json( $sckdevices );
+	//echo Rest::json( $sckdevices );
 
 
 	}

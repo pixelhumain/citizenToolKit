@@ -6,13 +6,11 @@ class Thing {
 
 	const COLLECTION = "metadatas";
 	const CONTROLLER = "thing";
-	const COLLECTION_DATA = "datas";
+	const COLLECTION_DATA = "data";
 	const URL_API_SC = "https://api.smartcitizen.me/v0"; // vérifier que l'url de l'api est à jour
 	const SCK_TYPE = 'smartCitizen';
 	//autorisation doit etre changé pour le compte de fablab.re
 	const AUTHORIZATION = "beb94bb79a163a9d01a45a1b869874b93067788e65de06b8b53de7ccda5df3ef"; //compte DanZal
-
-	
 
 	//public static $types = array ();
 
@@ -32,7 +30,7 @@ class Thing {
 	    //"userId" => array("name"=>"userId"), 		//id for data in mongodb
 	    "deviceId" => array("name"=> "deviceId"), 	//id for smartcitizen.me
 		"version" => array("name" => "sckVersion"),
-		"sensorsIds" => array("name"=> "sensors"),
+		"sensors" => array("name"=> "sensors"),
 		"geo" => array("name" => "geo", "rules" => array("required","geoValid")), //poi
 		//"geoPosition" => array("name" => "geoPosition", "rules" => array("required","geoPositionValid")),
 		//"geohash" => array("name" => "geohash" ), //smartcitizen.me
@@ -59,24 +57,26 @@ class Thing {
 
 			$sckurl=$poi['urls'][0];
 			$deviceId=  self::getSCKDeviceIdByPoiUrl($sckurl);
+			//echo $deviceId;
 			$wheremeta['deviceId']=$deviceId;
-			$deviceMetadata = self::getSCKDevices($wheremeta);
+			$deviceMetadata = self::getSCKDevice($wheremeta);
 
 			$partReadings = self::getLastedReadViaAPI($deviceId);
 			$geo=$poi['geo'];
 			$toSave = self::fillSmartCitizenMetadata($partReadings,$geo);
 			if(!empty($deviceMetadata)){
 				$toSave['id']=$deviceMetadata['_id'];
+			} else {
+				$toSave['deviceId'] = $deviceId;
 			}
 			return $toSave;
 	}
 
 	//vérifier que la données est à jours (lire la date de modification de la métadatas)
 	public static function updateMetadatas($pois=null){
-		//$location : latitude longitude geohash city country_code country exposure
 		
-		$sck=array();
-		$res=array();
+		$sck=array(); //contient tous les metadata à jour
+		$res=array(); //resultat de Element::save
 		if(empty($pois)){
 			$pois = self::getSCKInPoiByCountry();
 		}
@@ -89,7 +89,7 @@ class Thing {
 			 
 		}
 		echo Rest::json( $res );
-		
+
 		return $sck;
 
 	}
@@ -131,9 +131,9 @@ class Thing {
 		return $metadatasId;
 	}*/
 
-	public static function getSCKDevices($where=array("type"=>"smartCitizen"), $fields=null){
+	public static function getSCKDevice($where=array("type"=>"smartCitizen"), $fields=null){
 		//$where=array("type"=>"smartCitizen");
-		$SCKDevices = PHDB::find(self::COLLECTION, $where,$fields);
+		$SCKDevices = PHDB::findOne(self::COLLECTION, $where,$fields);
 		return $SCKDevices;
 	}
 
