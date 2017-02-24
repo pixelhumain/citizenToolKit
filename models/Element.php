@@ -1272,7 +1272,7 @@ class Element {
 		}
 		if($msg != ""){
 			$resultGoods["result"]=true;
-			$resultGoods["msg"]=Yii::t("common", "The next attributs has been updated : ".$msg);
+			$resultGoods["msg"]=Yii::t("common", "The following attributs has been updated : ".$msg);
 			$resultGoods["values"] = $values ;
 			$result["resultGoods"] = $resultGoods ;
 			$result["result"] = true ;
