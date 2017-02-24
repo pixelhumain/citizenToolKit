@@ -6,16 +6,16 @@ class Poi {
 	
 	//TODO Translate
 	public static $types = array (
-		"link" => "Lien, Url",
-		"poi"=>"points d'intérêt",
-		"geoJson" => "Url au format geojson ou vers une umap",
+		"link" 			=> "Lien, Url",
+		"poi"			=>"points d'intérêt",
+		"geoJson" 		=> "Url au format geojson ou vers une umap",
 		"compostPickup" => "récolte de composte",
-		"video" => "video",
+		"video" 		=> "video",
 		"sharedLibrary" => "bibliothèque partagée",
-		"artPiece" => "oeuvres",
-		"recoveryCenter" => "ressourcerie",
-		"trash" => "poubelle",
-		"history" => "histoire",
+		"artPiece" 		=> "oeuvres",
+		"recoveryCenter"=> "ressourcerie",
+		"trash" 		=> "poubelle",
+		"history" 		=> "histoire",
 		"something2See" => "chose a voir",
 		"funPlace" => "endroit Sympas (skatepark, vue...)",
 		"place" => "place publique",
@@ -24,6 +24,7 @@ class Poi {
 		"stand" => "stand",
 		"parking" => "Parking",
 		"smartCitizen"=>"Smart-Citizen-Kit"
+
 	);
 
 	//From Post/Form name to database field name

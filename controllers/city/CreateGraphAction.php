@@ -18,7 +18,6 @@ class CreateGraphAction extends CAction{
         else 
 			$controller->render( $page , $params );
     }
-    	
 }
 
 ?>

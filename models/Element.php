@@ -352,7 +352,7 @@ class Element {
 		$verb = (empty($fieldValue) ? '$unset' : '$set');
 		
 		if ($dataFieldName == "name") 
-			$fieldValue = htmlspecialchars($fieldValue);
+			$fieldValue = $fieldValue;
 
 		if ($dataFieldName == "tags") {
 			$fieldValue = Tags::filterAndSaveNewTags($fieldValue);
@@ -361,8 +361,13 @@ class Element {
 		else if ( ($dataFieldName == "telephone.mobile"|| $dataFieldName == "telephone.fixe" || $dataFieldName == "telephone.fax")){
 			if($fieldValue ==null)
 				$fieldValue = array();
-			else
-				$fieldValue = explode(",", $fieldValue);
+			else {
+				$split = explode(",", $fieldValue);
+				$fieldValue = array();
+				foreach ($split as $key => $value) {
+					$fieldValue[] = trim($value);
+				}
+			}
 			$set = array($dataFieldName => $fieldValue);
 		}
 		else if ($fieldName == "locality") {
@@ -372,13 +377,15 @@ class Element {
 					$verb = '$set';
 					$address = array(
 				        "@type" => "PostalAddress",
+				         "id" => "468768",
+				        "name" => "mairie",
 				        "codeInsee" => $fieldValue["address"]["codeInsee"],
 				        "addressCountry" => $fieldValue["address"]["addressCountry"],
 				        "postalCode" => $fieldValue["address"]["postalCode"],
 				        "addressLocality" => $fieldValue["address"]["addressLocality"],
 				        "streetAddress" => ((@$fieldValue["address"]["streetAddress"])?trim(@$fieldValue["address"]["streetAddress"]):""),
-				        "depName" => $fieldValue["address"]["depName"],
-				        "regionName" => $fieldValue["address"]["regionName"],
+				        "depName" => ((@$fieldValue["address"]["depName"])?trim(@$fieldValue["address"]["depName"]):""),
+				        "regionName" => ((@$fieldValue["address"]["regionName"])?trim(@$fieldValue["address"]["regionName"]):""),
 				    	);
 					//Check address is well formated
 
@@ -431,8 +438,8 @@ class Element {
 					        "postalCode" => $fieldValue["address"]["postalCode"],
 					        "addressLocality" => $fieldValue["address"]["addressLocality"],
 					        "streetAddress" => ((@$fieldValue["address"]["streetAddress"])?trim(@$fieldValue["address"]["streetAddress"]):""),
-					        "depName" => $fieldValue["address"]["depName"],
-					        "regionName" => $fieldValue["address"]["regionName"],
+					        "depName" => ((@$fieldValue["address"]["depName"])?trim(@$fieldValue["address"]["depName"]):""),
+				        	"regionName" => ((@$fieldValue["address"]["regionName"])?trim(@$fieldValue["address"]["regionName"]):""),
 					    	);
 						//Check address is well formated
 
@@ -620,7 +627,7 @@ class Element {
 					$verbActivity = ActStr::VERB_UPDATE ;
 				ActivityStream::saveActivityHistory($verbActivity, $id, $collection, $dataFieldName, $fieldValue);
 			}
-			$res = array("result"=>true,"msg"=>Yii::t(Element::getControlerByCollection($collection),"The ".Element::getControlerByCollection($collection)." has been updated"), "value" => $fieldValue);
+			$res = array("result"=>true,"msg"=>Yii::t(Element::getControlerByCollection($collection),"The ".Element::getControlerByCollection($collection)." has been updated"), "fieldName" => $fieldName, "value" => $fieldValue);
 
 			if(isset($firstCitizen))
 				$res["firstCitizen"] = $firstCitizen ;
@@ -680,7 +687,7 @@ class Element {
 			array_push($contextMap["events"], $elt);
 		}
 		else if ($type == Person::COLLECTION){
-			$connectAs="knows";
+			$connectAs="follows";
 			$elt = Person::getSimpleUserById($id);
 			array_push($contextMap["people"], $elt);
 		}
@@ -1086,8 +1093,9 @@ class Element {
 				$params["allDay"] = false;
 			}
 		}
+
 		if(isset($params["name"])) 
-	    	$params["name"] = htmlspecialchars($params["name"]);
+	    	$params["name"] = $params["name"];
 	
 		//TODO SBAR - Manage elsewhere (maybe in the view)
 		//Manage the event startDate and endDate format : 
@@ -1345,8 +1353,12 @@ class Element {
 		unset($params["parentType"]);
 		unset($params["phone"]);
 		unset($params["idContact"]);
-		//$res = null ;
-		$res = self::updateField($collection, $id, "contacts", $params);
+
+
+		if(empty($params["name"]) && empty($params["email"]) && empty($params["role"]) && empty($params["telephone"]))
+			$res = array("result" => false, "msg" => "Vous devez avoir au moins une information sur le contact");
+		else
+			$res = self::updateField($collection, $id, "contacts", $params);
 
 		if($res["result"])
 			$res["msg"] = "Les contacts ont été mis à jours";
@@ -1356,14 +1368,7 @@ class Element {
 	public static function saveUrl($params){
 		$id = $params["parentId"];
 		$collection = $params["parentType"];
-		$find = false;
-		$needles = array("http://", "https://");
-	    foreach($needles as $needle) {
-	    	if(stripos($params["url"], $needle) != false)
-	    		$find = true;
-	    }
-	    if(!$find)
-	    	$params["url"]="http://".$params["url"];
+		$params["url"]=self::getAndCheckUrl($params["url"]);
 
 		unset($params["parentId"]);
 		unset($params["parentType"]);
@@ -1371,6 +1376,116 @@ class Element {
 		if($res["result"])
 			$res["msg"] = "Les urls ont été mis à jours";
 		return $res;
+	}
+
+	public static function getAndCheckUrl($url){
+		$needles = array("http://", "https://");
+		$find=false;
+	    foreach($needles as $needle) {
+	    	if(stripos($url, $needle) == 0)
+	    		$find = true;
+	    }
+	    if(!$find)
+	    	$url="http://".$url;
+	    return $url ;
+	}
+
+
+	public static function updateBlock($params){
+		$block = $params["block"];
+		$collection = $params["typeElement"];
+		$id = $params["id"];
+
+		$res = array();
+		if($block == "contact"){
+			if(isset($params["email"]))
+				$res[] = self::updateField($collection, $id, "email", $params["email"]);
+			if(isset($params["url"]))
+				$res[] = self::updateField($collection, $id, "url", self::getAndCheckUrl($params["url"]));
+			if(isset($params["birthDate"]))
+				$res[] = self::updateField($collection, $id, "birthDate", $params["birthDate"]);
+			if(isset($params["fixe"]))
+				$res[] = self::updateField($collection, $id, "fixe", $params["fixe"]);
+			if(isset($params["fax"]))
+				$res[] = self::updateField($collection, $id, "fax", $params["fax"]);
+			if(isset($params["mobile"]))
+				$res[] = self::updateField($collection, $id, "mobile", $params["mobile"]);
+
+		}else if($block == "info"){
+			if(isset($params["name"]))
+				$res[] = self::updateField($collection, $id, "name", $params["name"]);
+			if(isset($params["username"]))
+				$res[] = self::updateField($collection, $id, "username", $params["username"]);
+			if(isset($params["shortDescription"]))
+				$res[] = self::updateField($collection, $id, "shortDescription", $params["shortDescription"]);
+			if(isset($params["avancement"]))
+				$res[] = self::updateField($collection, $id, "avancement", $params["avancement"]);
+			if(isset($params["tags"]))
+				$res[] = self::updateField($collection, $id, "tags", $params["tags"]);
+			if(isset($params["type"]))
+				$res[] = self::updateField($collection, $id, "type", $params["type"]);
+			if(isset($params["telegramAccount"]))
+				$res[] = self::updateField($collection, $id, "telegramAccount", $params["telegramAccount"]);
+			if(isset($params["facebookAccount"]))
+				$res[] = self::updateField($collection, $id, "facebookAccount", self::getAndCheckUrl($params["facebookAccount"]));
+			if(isset($params["twitterAccount"]))
+				$res[] = self::updateField($collection, $id, "twitterAccount", self::getAndCheckUrl($params["twitterAccount"]));
+			if(isset($params["gitHubAccount"]))
+				$res[] = self::updateField($collection, $id, "gitHubAccount", self::getAndCheckUrl($params["gitHubAccount"]));
+			if(isset($params["gpplusAccount"]))
+				$res[] = self::updateField($collection, $id, "url", self::getAndCheckUrl($params["gpplusAccount"]));
+			if(isset($params["skypeAccount"]))
+				$res[] = self::updateField($collection, $id, "url", self::getAndCheckUrl($params["skypeAccount"]));
+		}else if($block == "when"){
+			if(isset($params["allDay"]))
+				$res[] = self::updateField($collection, $id, "allDay", (($params["allDay"] == "true") ? true : false));
+			if(isset($params["startDate"]))
+				$res[] = self::updateField($collection, $id, "startDate", $params["startDate"]);
+			if(isset($params["endDate"]))
+				$res[] = self::updateField($collection, $id, "endDate", $params["endDate"]);
+		}else if($block == "toMarkdown"){
+			$res[] = self::updateField($collection, $id, "description", $params["value"]);
+			$res[] = self::updateField($collection, $id, "descriptionHTML", null);
+		}
+
+		if(Import::isUncomplete($id, $collection)){
+			Import::checkWarning($id, $collection, Yii::app()->session['userId'] );
+		}
+
+		$result = array("result"=>true);
+		$resultGoods = array();
+		$resultErrors = array();
+		$values = array();
+		$msg = "";
+		$msgError = "";
+		foreach ($res as $key => $value) {
+			if($value["result"] == true){
+				if($msg != "")
+					$msg .= ", ";
+				$msg .= $value["fieldName"];
+				$values[$value["fieldName"]] = $value["value"];
+			}else{
+				if($msgError != "")
+					$msgError .= ". ";
+				$msgError .= $value["mgs"];
+			}
+		}
+
+		if($msg != ""){
+			$resultGoods["result"]=true;
+			$resultGoods["msg"]=Yii::t("common", "The next attributs has been updated : ".$msg);
+			$resultGoods["values"] = $values ;
+			$result["resultGoods"] = $resultGoods ;
+			$result["result"] = true ;
+		}
+
+		if($msgError != ""){
+			$resultErrors["result"]=false;
+			$resultErrors["msg"]=Yii::t("common", $msgError);
+			$result["resultErrors"] = $resultErrors ;
+		}
+
+		return $result;
 	}
 
 }
