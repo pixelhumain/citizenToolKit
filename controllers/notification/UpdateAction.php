@@ -21,7 +21,7 @@ class UpdateAction extends CAction
         if( Yii::app()->session["userId"] )
         {
             if(@$_POST["action"] && $_POST["action"]=="seen")
-                $action="isUnsee";
+                $action="isUnseen";
             else
                 $action="isUnread";
             if(@$_POST["all"])
