@@ -17,6 +17,7 @@ class ActivityStream {
    */
 	public static function addEntry($param)
 	{
+		//print_r($param);
 		if($param["type"]==self::COLLECTION){
 			$news=$param;
 			$news["target"]["type"]=$param["target"]["type"];
@@ -30,6 +31,10 @@ class ActivityStream {
 	  	 return PHDB::find( self::COLLECTION,$params,null,null);
 	}
 	public static function getNotifications($param,$sort=array("created"=>-1,"updated"=>-1))
+	{
+	    return PHDB::findAndSort(self::COLLECTION, $param,$sort);
+	}
+	public static function getNotificationsByTypeAndId($param,$sort=array("created"=>-1,"updated"=>-1))
 	{
 	    return PHDB::findAndSort(self::COLLECTION, $param,$sort);
 	}

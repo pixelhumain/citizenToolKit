@@ -63,7 +63,7 @@ class Notification{
 				)
 			),
 			"labelArray" => array("who","where"),
-			//"context" => "members",
+			"context" => "admin",
 			"mail" => array(
 				"type"=>"instantly"
 			),
@@ -112,6 +112,7 @@ class Notification{
 						"label"=> "{who} commented a news {what} posted on {where}",
 						"labelRepeat"=> "{who} added comments on a news {what} posted on {where}"
 					),
+					"notifyUser" => true,
 					"url" => "news/detail/id/{id}"
 				),
 				Survey::COLLECTION => array(
@@ -143,7 +144,6 @@ class Notification{
 				)
 			),
 			"labelArray" => array("who","where"),
-			"context" => array("user","members"),
 			"mail" => array(
 				"type"=>"instantly",
 				"to" => "author" //If orga or project to members
@@ -161,6 +161,7 @@ class Notification{
 					) ,
 					"label"=>"{who} likes your news {what}",
 					"labelRepeat"=>"{who} like your news {what}",
+					"notifyUser" => true,
 					"url" => "news/detail/id/{id}"
 				),
 				Comment::COLLECTION => array(
@@ -170,7 +171,6 @@ class Notification{
 				)
 			),
 			"labelArray" => array("who", "where"),
-			//"context" => array("user","members"),
 			"mail" => array(
 				"type"=>"instantly",
 				"to" => "author" //If orga or project to members
@@ -187,6 +187,7 @@ class Notification{
 					),
 					"label"=>"{who} disapproves your news {what}",
 					"labelRepeat"=>"{who} disapproves your news {what}",
+					"notifyUser" => true,
 					"url" => "news/detail/id/{id}"
 				),
 				Comment::COLLECTION => array(
@@ -196,7 +197,6 @@ class Notification{
 				)
 			),
 			"labelArray" => array("who", "where"),
-			"context" => array("me","members"),
 			"mail" => array(
 				"type"=>"instantly",
 				"to" => "author" //If orga or project to members
@@ -302,7 +302,6 @@ class Notification{
 		),*/
 		ActStr::VERB_CONFIRM => array(
 			"repeat" => true,
-			//"context" => "community",
 			"type"=>array(
 				"asMember"=>array(
 					"label" => "{who} confirmed the invitation to join {where}",
@@ -342,7 +341,7 @@ class Notification{
 				)
 			),
 			"labelArray" => array("author","who","where"),
-			"context" => array("members","user"),
+			"context" => "admin",
 			"mail" => array(
 				"type"=>"instantly",
 				"to" => "user"
@@ -354,7 +353,7 @@ class Notification{
 		//Creer le mail pour l'utilisateur accepté !!
 		ActStr::VERB_ACCEPT => array(
 			"repeat" => true,
-			"context" => array("user","members"),
+			//"context" => array("user","members"),
 			"notifyUser" => true,
 			"mail" => array(
 				"type"=>"instantly",
@@ -399,45 +398,45 @@ class Notification{
 	* params string $impact is which part of community is notified
 	* params string $authorId is used to avoid to notify author of the action
 	* params string $alreadyAuthorNotify could be used if a notification for a specific user is already create
-	* return array of id with two boolean for each id, isUnsee && isUnread
+	* return array of id with two boolean for each id, isUnseen && isUnread
 	**/
-	public static function communityToNotify($id, $type, $impact="all", $authorId=null, $alreadyAuhtorNotify=null){
+	public static function communityToNotify($construct, $alreadyAuhtorNotify=null){
 		//inform the entities members of the new member
 		//build list of people to notify
+		$type=$construct["target"]["type"];
+		$id=$construct["target"]["id"];
+		$impactType="all";
+		$impactRole=null;
+		if(@$construct["context"]){
+			$impactType=Person::COLLECTION;
+			$impactRole="isAdmin";
+		}
         $people = array();
 	    $members = array();
-	    if( $type == Project::COLLECTION ) {
-	    	$members = Project::getContributorsByProjectId( $id ,"all", null ) ;
-			$typeOfConnect="contributor";
-	    }
-	    else if( $type == Organization::COLLECTION) {
-	    	$members = Organization::getMembersByOrganizationId( $id ,"all", null ) ;
-	    	$typeOfConnect="member";
-	    }
-	    else if( $type == Event::COLLECTION ) {
-	    	/**
-		    * Notify only the admin of the event
-	    	*	- if new attendee or new admin
-	    	* Notify all
-	    	*	- if a post in event wall
-	    	*/
-	    	if($verb == ActStr::VERB_POST)
-	    		$members = Event::getAttendeesByEventId( $id , "all", null ) ;
-	    	else
-	    		$members = Event::getAttendeesByEventId( $id , "admin", "isAdmin" ) ;
-	    	$typeOfConnect="attendee";
-	    }
+	    if( $type == Project::COLLECTION )
+	    	$members = Project::getContributorsByProjectId( $id ,$impactType, $impactRole);
+	    else if( $type == Organization::COLLECTION)
+	    	$members = Organization::getMembersByOrganizationId( $id ,$impactType, $impactRole) ;
+	    else if( $type == Event::COLLECTION )
+	    	$members = Event::getAttendeesByEventId( $id , "admin", "isAdmin" ) ;
 		else if($type == Person::COLLECTION)
-			$people[$id] = array("isUnread" => true, "isUnsee" => true);
+			$people[$id] = array("isUnread" => true, "isUnseen" => true);
 		else if($type == News::COLLECTION){
 			if(Yii::app()->session["userId"] != $alreadyAuhtorNotify){
 				$news=News::getById($id);
 				if(($alreadyAuhtorNotify != $news["author"]["id"] && $news["target"]["type"]==Person::COLLECTION) || ( $news["target"]["type"] !=Person::COLLECTION && Yii::app()->session["userId"]!=$news["author"]["id"])){
 					//echo $alreadyAuhtorNotify;
-					if($news["target"]["type"] !=Person::COLLECTION)
-						$people=self::communityToNotify($news["target"]["id"], $news["target"]["type"]);
+					if($news["target"]["type"] !=Person::COLLECTION){
+						if( $news["target"]["type"] == Project::COLLECTION )
+	    					$members = Project::getContributorsByProjectId( $news["target"]["id"] ,$impactType, $impactRole);
+	    				else if( $news["target"]["type"] == Organization::COLLECTION)
+	    					$members = Organization::getMembersByOrganizationId( $news["target"]["id"] ,$impactType, $impactRole);
+	    				else if( $news["target"]["type"] == Event::COLLECTION )
+	    					$members = Event::getAttendeesByEventId( $news["target"]["id"] , "all", null ) ;
+						$construct["target"]["parent"]=array("id"=>$news["target"]["id"],"type"=> $news["target"]["type"]);
+					}
 					else
-						$people[$news["author"]["id"]] = array("isUnread" => true, "isUnsee" => true);
+						$people[$news["author"]["id"]] = array("isUnread" => true, "isUnseen" => true);
 				}
 			} 
 		} 
@@ -457,22 +456,19 @@ class Notification{
 			    	$members = Project::getContributorsByProjectId( $room["parentId"] ,"all", null ) ;
 			    else if( $room["parentType"] == Organization::COLLECTION) 
 			    	$members = Organization::getMembersByOrganizationId( $room["parentId"] ,"all", null ) ;
-			    else if( $room["parentType"] == Event::COLLECTION ) {
-			    	//TODO notify only the admin of the event
-			    	if($verb == ActStr::VERB_POST)
-		    			$members = Event::getAttendeesByEventId( $room["parentId"] , "all", null ) ;
-					else
+			    else if( $room["parentType"] == Event::COLLECTION )
 		    			$members = Event::getAttendeesByEventId( $room["parentId"] , "admin", "isAdmin" ) ;
-		    	}
+		    	$construct["target"]["parent"]=array("id"=>$room["parentId"],"type"=> $room["parentType"]);
 			}
 		}
 	    foreach ($members as $key => $value) 
 	    {
-	    	if( $key != Yii::app()->session['userId'] && $key != $authorId && !in_array($key, $people) && count($people) < self::PEOPLE_NOTIFY_LIMIT && $key != $alreadyAuhtorNotify){
-	    		$people[$key] = array("isUnread" => true, "isUnsee" => true); 
+	    	if( $key != Yii::app()->session['userId'] && !in_array($key, $people) && count($people) < self::PEOPLE_NOTIFY_LIMIT && $key != $alreadyAuhtorNotify){
+	    		$people[$key] = array("isUnread" => true, "isUnseen" => true); 
 	    	}
 	    }
-	    return $people;
+	    $construct["community"]=$people;
+	    return $construct;
 	}
 	/** TODO BOUBOULE
 	* getLabelNotification will create the specific label for notification to create or update
@@ -487,8 +483,12 @@ class Notification{
 		$specifyLabel = array();
 		//GetLAbel
 		//$type=""; else "Repeat"
-		if($type && $construct["levelType"]!=Comment::COLLECTION)
-			$label = $construct["type"]["user"][$construct["levelType"]]["label".$repeat];
+		if($type && $construct["levelType"]!=Comment::COLLECTION){
+			if($construct["levelType"] == News::COLLECTION)
+				$label = $construct["type"][$construct["levelType"]]["label".$repeat];
+			else
+				$label = $construct["type"]["user"][$construct["levelType"]]["label".$repeat];
+		}
 		else if($construct["levelType"]){
  	    	if(@$target["targetIsAuthor"])
 				$label = $construct["type"][$construct["levelType"]]["targetIsAuthor"]["label".$repeat];
@@ -646,7 +646,7 @@ class Notification{
 	    	"type" => "notifications", 
             "verb" => $construct["verb"],
             "author"=> $construct["author"],
- 			"target"=> array("id" => $construct["target"]["id"],"type" => $construct["target"]["type"])
+ 			"target"=> $construct["target"]
         );
         if($construct["object"])
         	$asParam["object"]=$construct["object"];
@@ -703,6 +703,7 @@ class Notification{
 				$userNotify=$comment["author"]["id"];
 				if($notificationPart["target"]["type"]==News::COLLECTION){
 					$news=News::getById($notificationPart["target"]["id"]);
+					$userNotify=$news["author"]["id"];
 					if(@$news["targetIsAuthor"])
 						$isNewsAuthorIsPerson=false;
 				}
@@ -711,7 +712,7 @@ class Notification{
 				$userNotify=$author["id"];
 			if($isNewsAuthorIsPerson){
 				$alreadyAuhtorNotify=$userNotify;
-				$notificationPart["community"]=self::communityToNotify($userNotify,Person::COLLECTION,$context);
+				$notificationPart["community"]=array($userNotify=>array("isUnread" => true, "isUnseen" => true));
 				if(@$notificationPart["type"][$typeAction] && @$notificationPart["type"][$levelType]["repeat"])
 					$update=self::checkIfAlreadyNotifForAnotherLink($notificationPart);
 				if($update==false){
@@ -739,8 +740,8 @@ class Notification{
 			} 
 		}
 		// COnstruct notification for target
-		$community = self::communityToNotify($target["id"], $target["type"], $context, null, @$alreadyAuhtorNotify);
-		$notificationPart["community"]=$community;
+		$notificationPart = self::communityToNotify($notificationPart, @$alreadyAuhtorNotify);
+		//$["community"]=$community;
 		$update = false;
 		if(!empty($notificationPart["community"])){
 		    if(in_array("author",$notificationPart["labelArray"])){

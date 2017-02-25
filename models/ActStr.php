@@ -83,6 +83,8 @@ class ActStr {
                 "type" => $params["target"]['type'],
                 "id" => $params["target"]['id']
             );
+            if(@$params["target"]["parent"])
+                $action["target"]["parent"]=$params["target"]["parent"];
         }
         	
 		if($params["type"]==ActivityStream::COLLECTION){
