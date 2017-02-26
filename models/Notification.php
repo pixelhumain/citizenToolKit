@@ -696,21 +696,25 @@ class Notification{
 		// Create notification specially for user added to the next notify for community of target
 		if(@$notificationPart["notifyUser"] || (@$notificationPart["type"] && @$notificationPart["type"][$levelType] && @$notificationPart["type"][$levelType]["notifyUser"])){
 			$update=false;
-			$isNewsAuthorIsPerson=true;
+			$isToNotify=true;
 			// If answered on comment is the same than on the news or other don't notify twice the author of parent and comment
 			if($verb==Actstr::VERB_COMMENT){
 				$comment=Comment::getById($object["id"]);
 				$userNotify=$comment["author"]["id"];
+				// Case when user answer to his comment
+				if($notificationPart["target"]["type"]==News::COLLECTION && $userNotify==Yii::app()->session["userId"])
+					$isToNotify=false;
 				if($notificationPart["target"]["type"]==News::COLLECTION){
 					$news=News::getById($notificationPart["target"]["id"]);
 					$userNotify=$news["author"]["id"];
+					// Case when user comment a news where target is author
 					if(@$news["targetIsAuthor"])
-						$isNewsAuthorIsPerson=false;
+						$isToNotify=false;
 				}
 
 			}else
 				$userNotify=$author["id"];
-			if($isNewsAuthorIsPerson){
+			if($isToNotify){
 				$alreadyAuhtorNotify=$userNotify;
 				$notificationPart["community"]=array($userNotify=>array("isUnread" => true, "isUnseen" => true));
 				if(@$notificationPart["type"][$typeAction] && @$notificationPart["type"][$levelType]["repeat"])
@@ -734,7 +738,7 @@ class Notification{
 						//$notifyObject=$typeAction;
 					}*/
 					// -------- END MOVE ON GETLABEL --------///
-					$notificationPart["author"]=array(Yii::app()->session["userId"]=> array("name"=> Yii::app()->session["user"]["name"]));
+					$notificationPart["author"]=array($userNotify=> array("name"=> Yii::app()->session["user"]["name"]));
 					self::createNotification($notificationPart,$type);
 			    }
 			} 
