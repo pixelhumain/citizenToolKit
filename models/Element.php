@@ -797,12 +797,13 @@ class Element {
 		//$paramsImport = (empty($params["paramsImport"])?null:$params["paramsImport"]);
 		$paramsLinkImport = ( empty($params["paramsImport"] ) ? null : $params["paramsImport"]);
 
-		unset($params["paramsImport"]);
+		
         unset($params['collection']);
         unset($params['key']);
         $params = self::prepData( $params );
+        unset($params["paramsImport"]);
         unset($params['id']);
-
+		
         $postParams = array();
         if( !in_array($collection, array("poi")) && @$params["urls"] && @$params["medias"] ){
         	$postParams["medias"] = $params["medias"];
@@ -951,8 +952,14 @@ class Element {
 				$params["allDay"] = false;
 			}
 		}
-		if(isset($params["disabled"]) && ($params["disabled"] == "true" || $params["disabled"] == true) ) 
-	    	$params["disabled"] = true;
+
+		//If moderation and not import mode : the element is set as disable 
+		if (@Yii::app()->params['moderation'] == true && empty($params["paramsImport"])) {
+			$params["disabled"] = true;
+		}
+
+		//if(isset($params["disabled"]) && ($params["disabled"] == "true" || $params["disabled"] == true) ) 
+	    //	$params["disabled"] = true;
 	
 		//TODO SBAR - Manage elsewhere (maybe in the view)
 		//Manage the event startDate and endDate format : 

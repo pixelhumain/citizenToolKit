@@ -198,8 +198,8 @@ class Organization {
 		}
 		unset($organization["role"]);
 		
-		
-		if ($isToLink) {
+		//If moderation is set, the links are ignored
+		if ($isToLink && @Yii::app()->params['moderation'] != true ) {
 			//Create link in both entity person and organization 
 			Link::connect($newOrganizationId, Organization::COLLECTION, $memberId, Person::COLLECTION, $creatorId,"members",$isAdmin);
 			Link::connect($memberId, Person::COLLECTION, $newOrganizationId, Organization::COLLECTION, $creatorId,"memberOf",$isAdmin);
