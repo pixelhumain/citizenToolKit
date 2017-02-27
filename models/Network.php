@@ -13,11 +13,14 @@ class Network {
 		/*if(@$_GET["network"]) {
             Yii::app()->params['networkParams'] = $_GET["network"];
         }*/
-        
-        if (empty($networkParams)) {
-			$configPath = "default";
-		} else {
-			$configPath = $networkParams;
+        if (!empty(Yii::app()->params['networkConfigurationFile'])) {
+        	$configPath = Yii::app()->params['networkConfigurationFile'];
+        } else {
+	        if (empty($networkParams)) {
+				$configPath = "default";
+			} else {
+				$configPath = $networkParams;
+			}
 		}
 
 		if ( stripos($configPath, "http") === false ) {
