@@ -51,14 +51,18 @@ class ActivityStream {
 	}
 
 	/**
-	* Remove activities history on entity
+	* Remove activities history and ActivityStream
 	* @param type string $id defines id of modified entity
 	* @param type string $type defines type of modified entity
 	*/	
 	public static function removeActivityHistory($id,$type){
 		$where = array("target.id"=>$id, 
-					"target.objectType"=>$type, 
-					"type"=>ActStr::TYPE_ACTIVITY_HISTORY);
+					"target.objectType"=>$type,
+					array('$or' => 
+						array("type"=>ActStr::TYPE_ACTIVITY_HISTORY),
+						array("type"=>ActivityStream::COLLECTION),
+						//TODO SBAR : le type est un peu bizarre mais c'est de activity Stream de demande d'acceptation. A voir avec clem si ça va rester comme ça.
+						array("type"=>"test")));
 		return PHDB::remove( self::COLLECTION,$where);
 	}
 
