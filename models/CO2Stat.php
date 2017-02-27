@@ -73,9 +73,9 @@ class CO2Stat {
 							 					  "co2-websearch"=>array(),
 							 					  "co2-referencement"=>array(),
 							 					  "co2-live"=>array(),
-							 					  "co2-social"=>array(),
+							 					  "co2-search"=>array(),
 							 					  "co2-page"=>array(),
-							 					  "co2-freedom"=>array(),
+							 					  "co2-annonces"=>array(),
 							 					  "co2-agenda"=>array(),
 							 					  "co2-power"=>array()),
                         );
