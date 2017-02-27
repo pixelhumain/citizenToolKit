@@ -78,7 +78,7 @@ class DetailAction extends CAction {
                                                           'tooltip' => Yii::t("common","Back to")." ".$urlType, 
                                                           "iconClass"=>"fa ".$iconNav,
 														  "parent"=>"span",
-                                                          "href"=>'<a href="javascript:;" onclick="loadByHash( \'#'.$urlType.'.detail.id.'.$uid.'\')" class="tooltips btn btn-default"'));*/
+                                                          "href"=>'<a href="javascript:;" onclick="url.loadByHash( \'#'.$urlType.'.detail.id.'.$uid.'\')" class="tooltips btn btn-default"'));*/
               		}
             	} else if(isset($event["links"]["creator"])) {
 	                foreach ($event["links"]["creator"] as $uid => $e) {
