@@ -89,12 +89,13 @@ class Search {
 
         /***********************************  DEFINE GLOBAL QUERY   *****************************************/
         $query = array();
-        
-        if(trim($search) == "")
-       		$query = self::searchString($search, $query);
 
+
+        
+        $query = self::searchString($search, $query);
+       
         $query = array('$and' => array( $query , array("state" => array('$ne' => "uncomplete")) ));
-  		
+  		 //var_dump($query);
   		if($latest)
   			$query = array('$and' => array($query, array("updated"=>array('$exists'=>1))));
 
@@ -105,8 +106,8 @@ class Search {
         	$query = array( "tags" => array('$in' => array(new MongoRegex("/^".$searchTagText."$/i")))) ; 
         	$tmpTags[] = new MongoRegex("/^".$searchTagText."$/i");
   		}*/
-  		if( !empty($searchTags) )
-  			$query = array('$and' => array( $query , self::searchTags($searchTags, $query) ) );
+  		if( /*!empty($searchTags)*/ count($searchTags) > 1  || count($searchTags) == 1 && $searchTags[0] != "" )
+  			$query = array('$and' => array( $query , self::searchTags($searchTags) ) );
   		//unset($tmpTags);
   		
 
@@ -118,7 +119,7 @@ class Search {
   			//var_dump($query );
   		}
 
-	    var_dump($query);
+	    //var_dump($query);
 	    $allRes = array();
         /***********************************  PERSONS   *****************************************/
         if(strcmp($filter, Person::COLLECTION) != 0 && self::typeWanted("persons", $searchType)){
@@ -212,9 +213,11 @@ class Search {
 
 
 	/***********************************  TAGS   *****************************************/
-	public static function searchTags($searchTags, $query){
-
+	public static function searchTags($searchTags){
+		var_dump("here");
+		var_dump($searchTags);
         $tmpTags = array();
+        $query = array();
   		if(!empty($searchTags)){
   			foreach ($searchTags as $value) { 
   				if($value != "")
@@ -239,14 +242,16 @@ class Search {
 			//if($zone["level"] == 0){
 				$queryLocality = array( /*"address.addressCountry" => $zone["country"],*/
 										"address.codeInsee" => $zone["insee"],
-										/*'geoPosition' => array(
+										'geoPosition' => array(
 											'$geoWithin'  => array(
-												'$polygon' => $zone["geoShape"]["coordinates"]) )*/ );
+												'$polygon' => $zone["geoShape"]["coordinates"][0]) ) );
 			//}
-
-			if(!empty($queryLocality))
+			if(empty($query))
+				$query = $queryLocality;
+			else if(!empty($queryLocality))
 				$query = array('$or' => array($query ,$queryLocality));
-		}
+
+}
 		return $query ;
 	}
 
