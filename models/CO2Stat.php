@@ -23,7 +23,7 @@ class CO2Stat {
 		}else{
 			$today = date("D");
 			
-			$nbLoad = $stat["hash"][$hash][$today]["nbLoad"];
+			$nbLoad = @$stat["hash"][$hash][$today]["nbLoad"];
 			$stat["hash"][$hash][$today]["nbLoad"] = $nbLoad+1;
 			//var_dump($stat); //exit;
 			$resUpdate = PHDB::update(self::COLLECTION, $query, array('$set' => $stat));
