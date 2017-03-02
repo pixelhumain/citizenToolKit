@@ -343,6 +343,7 @@ class Person {
 	  	if (empty($person)) {
             throw new CTKException("The person id is unkown : contact your admin");
         }
+        
         $myContacts = array();
 	  	if (isset($person) && isset($person["links"])) {
 	  		$myContacts = $person["links"];

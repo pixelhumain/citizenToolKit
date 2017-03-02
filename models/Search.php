@@ -66,7 +66,7 @@ class Search {
 
 		$search = @$post['name'] ? trim(urldecode($post['name'])) : "";
         $locality = isset($post['locality']) ? trim(urldecode($post['locality'])) : null;
-        $localities = isset($post['localities']) ? $post['localities'] : null;
+        //$localities = isset($post['localities']) ? $post['localities'] : null;
         $searchType = isset($post['searchType']) ? $post['searchType'] : null;
         $searchTags = isset($post['searchTag']) ? $post['searchTag'] : null;
         $searchBy = isset($post['searchBy']) ? $post['searchBy'] : "INSEE";
@@ -95,35 +95,34 @@ class Search {
         $query = self::searchString($search, $query);
        
         $query = array('$and' => array( $query , array("state" => array('$ne' => "uncomplete")) ));
-  		 //var_dump($query);
   		if($latest)
   			$query = array('$and' => array($query, array("updated"=>array('$exists'=>1))));
 
         /***********************************  TAGS   *****************************************/
-        /*$tmpTags = array();
         if(strpos($search, "#") > -1){
         	$searchTagText = substr($search, 1, strlen($search)); 
-        	$query = array( "tags" => array('$in' => array(new MongoRegex("/^".$searchTagText."$/i")))) ; 
-        	$tmpTags[] = new MongoRegex("/^".$searchTagText."$/i");
-  		}*/
+        	//$query = array( "tags" => array('$in' => array(new MongoRegex("/^".$searchTagText."$/i")))) ;
+        	$query = array('$and' => array('$in' , self::searchTags(array($searchTagText)) ) );
+        	//$tmpTags[] = new MongoRegex("/^".$searchTagText."$/i");
+  		}
+
   		if( /*!empty($searchTags)*/ count($searchTags) > 1  || count($searchTags) == 1 && $searchTags[0] != "" )
   			$query = array('$and' => array( $query , self::searchTags($searchTags) ) );
   		//unset($tmpTags);
   		
 
   		/***********************************  DEFINE LOCALITY QUERY   ***************************************/
-  		//$query = array('$and' => array( $query , self::searchLocality($post, $query) ) );
-  		if(!empty($localities)){
+  		$query = array('$and' => array( $query , self::searchLocality($post, $query) ) );
+  		/*if(!empty($localities)){
   			//var_dump(self::searchZones($localities));
   			$query = array('$and' => array( $query , self::searchZones($localities) ) ) ;
   			//var_dump($query );
-  		}
+  		}*/
 
-	    //var_dump($query);
 	    $allRes = array();
         /***********************************  PERSONS   *****************************************/
         if(strcmp($filter, Person::COLLECTION) != 0 && self::typeWanted("persons", $searchType)){
-        	//$allRes = array_merge($allRes, self::searchPersons($query, $indexStep, $indexMin));
+        	$allRes = array_merge($allRes, self::searchPersons($query, $indexStep, $indexMin));
 	  	}
 
 	  	/***********************************  ORGANISATIONS   *****************************************/
@@ -135,25 +134,24 @@ class Search {
 				
 	  	/***********************************  EVENT   *****************************************/
         if(strcmp($filter, Event::COLLECTION) != 0 && self::typeWanted(Event::COLLECTION, $searchType)){
-        	//$allRes = array_merge($allRes, self::searchEvents($query, $indexStep, $indexMin));
+        	$allRes = array_merge($allRes, self::searchEvents($query, $indexStep, $indexMin));
 	  	}
 	  	/***********************************  PROJECTS   *****************************************/
         if(strcmp($filter, Project::COLLECTION) != 0 && self::typeWanted(Project::COLLECTION, $searchType)){
-        	//$allRes = array_merge($allRes, self::searchProject($query, $indexStep, $indexMin));
+        	$allRes = array_merge($allRes, self::searchProject($query, $indexStep, $indexMin));
 	  	}
 		/***********************************  Classified   *****************************************/
         if(strcmp($filter, Classified::COLLECTION) != 0 && self::typeWanted(Classified::COLLECTION, $searchType)){
-        	//$allRes = array_merge($allRes, self::searchClassified($query, $indexStep, $indexMin));
-	  		//error_log(sizeof($allPoi));
+        	$allRes = array_merge($allRes, self::searchClassified($query, $indexStep, $indexMin));
 	  	}
 	  	/***********************************  POI   *****************************************/
         if(strcmp($filter, Poi::COLLECTION) != 0 && self::typeWanted(Poi::COLLECTION, $searchType)){
-        	//$allRes = array_merge($allRes, self::searchPoi($query, $indexStep, $indexMin));
+        	$allRes = array_merge($allRes, self::searchPoi($query, $indexStep, $indexMin));
 	  	}
 
 	  	/***********************************  DDA   *****************************************/
         if(strcmp($filter, ActionRoom::COLLECTION) != 0 && self::typeWanted(ActionRoom::COLLECTION, $searchType)){
-        	//$allRes = array_merge($allRes, self::searchDDA($query, $indexStep, $indexMin));
+        	$allRes = array_merge($allRes, self::searchDDA($query, $indexMax));
 	  	}
 
 		/***********************************  VOTES / propositions   *****************************************/
@@ -161,17 +159,16 @@ class Search {
         	(strcmp($filter, ActionRoom::TYPE_VOTE) != 0 && self::typeWanted(ActionRoom::TYPE_VOTE, $searchType)) ||
         	(strcmp($filter, ActionRoom::TYPE_ACTIONS) != 0 && self::typeWanted(ActionRoom::TYPE_ACTIONS, $searchType))
         	 ){    
-        	//$allRes = array_merge($allRes, self::searchVotes($query, $indexStep, $indexMin));
+        	$allRes = array_merge($allRes, self::searchVotes($query, $indexStep, $indexMin));
         }
 
 	  	/***********************************  CITIES   *****************************************/
         if(strcmp($filter, City::COLLECTION) != 0 && self::typeWanted(City::COLLECTION, $searchType)){
-	  		//$allCitiesRes = self::searchCities($search, $locality, $country);
+	  		$allCitiesRes = self::searchCities($search, $locality, $country);
 	  	}
 
 	  	if(isset($allCitiesRes)) usort($allCitiesRes, "self::mySortByName");
 
-	  	//error_log("count : " . count($allRes));
 	  	if(count($allRes) < $indexMax){
 	  		if(isset($allCitiesRes)) 
 	  			$allRes = array_merge($allRes, $allCitiesRes);
@@ -586,7 +583,7 @@ class Search {
 
 
   	/***********************************  DDA   *****************************************/
-  	public static function searchDDA($query, $indexStep, $indexMin){
+  	public static function searchDDA($query, $indexMax){
   		$allRes = array();
         $queryDiscuss = $query;
     	if( !isset( $queryDiscuss['$and'] ) ) 
@@ -618,145 +615,150 @@ class Search {
 
 
 	/***********************************  VOTES / propositions   *****************************************/
-    public static function searchVotes($query, $indexStep, $indexMin){    
-    	$myLinks = Person::getPersonLinksByPersonId( Yii::app()->session["userId"] );
-    	
-    	//créer un array avec uniquement les id de mes orgas
-    	$orgasId = array();
-    	foreach ($myLinks["organizations"] as $key => $link) {
-    		if(self::checkScopeParent($link) == true)//en vérifiant si l'orga correspond aux scopes demandés
-    			$orgasId[] = (string)$link["_id"];
-    	}
-    	     
-    	//créer un array avec uniquement les id de mes projets
-    	$projectsId = array();
-    	foreach ($myLinks["projects"] as $key => $link) {
-    		if(self::checkScopeParent($link) == true)//en vérifiant si le projet correspond aux scopes demandés
-    			$projectsId[] = (string)$link["_id"];
-    	}
-    	
-    	$query = array( '$or' => array( array("parentType"=>"organizations", "parentId" => array('$in' => $orgasId) ),
-    									array("parentType"=>"projects", "parentId" => array('$in' => $projectsId) )
-    							 )
-    				  );
+    public static function searchVotes($query, $indexStep, $indexMin){
+    	$allFound = array();
+    	if(!empty(Yii::app()->session["userId"])){
+    		$myLinks = Person::getPersonLinksByPersonId( Yii::app()->session["userId"] );
+    		//créer un array avec uniquement les id de mes orgas
+	    	$orgasId = array();
+	    	foreach ($myLinks["organizations"] as $key => $link) {
+	    		if(self::checkScopeParent($link) == true)//en vérifiant si l'orga correspond aux scopes demandés
+	    			$orgasId[] = (string)$link["_id"];
+	    	}
+	    	     
+	    	//créer un array avec uniquement les id de mes projets
+	    	$projectsId = array();
+	    	foreach ($myLinks["projects"] as $key => $link) {
+	    		if(self::checkScopeParent($link) == true)//en vérifiant si le projet correspond aux scopes demandés
+	    			$projectsId[] = (string)$link["_id"];
+	    	}
+	    	
+	    	$query = array( '$or' => array( array("parentType"=>"organizations", "parentId" => array('$in' => $orgasId) ),
+	    									array("parentType"=>"projects", "parentId" => array('$in' => $projectsId) )
+	    							 )
+	    				  );
 
-    	//rajoute les résultats pour mon conseil citoyen
-    	$me = Person::getSimpleUserById(Yii::app()->session["userId"]);
-    	$myCityKey = @$me["address"]["addressCountry"] ? $me["address"]["addressCountry"] : false;
-    	if($myCityKey!=false){
-    		$myCityKey .= @$me["address"]["codeInsee"] ? "_".$me["address"]["codeInsee"] : false;
-    		if($myCityKey!=false){
-    			$myCityKey .= @$me["address"]["postalCode"] ? "-".$me["address"]["postalCode"] : "";
-        		$query['$or'][] = array("parentType"=>"cities", "parentId" => $myCityKey);
-        	}
-    	}
-    	
+	    	//rajoute les résultats pour mon conseil citoyen
+	    	$me = Person::getSimpleUserById(Yii::app()->session["userId"]);
+	    	$myCityKey = @$me["address"]["addressCountry"] ? $me["address"]["addressCountry"] : false;
+	    	if($myCityKey!=false){
+	    		$myCityKey .= @$me["address"]["codeInsee"] ? "_".$me["address"]["codeInsee"] : false;
+	    		if($myCityKey!=false){
+	    			$myCityKey .= @$me["address"]["postalCode"] ? "-".$me["address"]["postalCode"] : "";
+	        		$query['$or'][] = array("parentType"=>"cities", "parentId" => $myCityKey);
+	        	}
+	    	}
+	    	
 
-    	$allRooms = PHDB::find( ActionRoom::COLLECTION, $query);
-    	
-    	//crée une array avec uniquement les id des rooms
-    	$allRoomsId = array();
-    	foreach ($allRooms as $key => $room) {
-    		$allRoomsId[] = (string)$room["_id"];
-    	}
+	    	$allRooms = PHDB::find( ActionRoom::COLLECTION, $query);
+	    	
+	    	//crée une array avec uniquement les id des rooms
+	    	$allRoomsId = array();
+	    	foreach ($allRooms as $key => $room) {
+	    		$allRoomsId[] = (string)$room["_id"];
+	    	}
 
-    	if(self::typeWanted( ActionRoom::TYPE_VOTE, $searchType)){
-			$collection = Survey::COLLECTION;
-			$parentRow = "survey";
-		}
-    	if(self::typeWanted( ActionRoom::TYPE_ACTIONS, $searchType)){ 
-    		$collection = Action::NODE_ACTIONS;
-    		$parentRow = "room";
-    	}
+	    	if(self::typeWanted( ActionRoom::TYPE_VOTE, $searchType)){
+				$collection = Survey::COLLECTION;
+				$parentRow = "survey";
+			}
+	    	if(self::typeWanted( ActionRoom::TYPE_ACTIONS, $searchType)){ 
+	    		$collection = Action::NODE_ACTIONS;
+	    		$parentRow = "room";
+	    	}
 
-    	$query = array($parentRow => array('$in' => $allRoomsId) );
-    	
-    	if(count($tmpTags))
-    	$query = array('$and' => array( $query , array("tags" => array('$in' => $tmpTags)))) ;
-    	
-    	//echo "search : ". $search." - ".(string)strpos($search, "#");
-    	if($search != "" && strpos($search, "#") === false){
-        	$searchRegExp = self::accentToRegex($search);
-        	$queryFullTxt = array( '$or' => array( array("name" => new MongoRegex("/.*{$searchRegExp}.*/i")),
-        						   				   array("message" => new MongoRegex("/.*{$searchRegExp}.*/i")))
-        						);
-        	if(isset($query['$and'])) $query['$and'][] = $queryFullTxt;
-        	else $query = array('$and' => array( $query , $queryFullTxt)) ;
-        }
+	    	$query = array($parentRow => array('$in' => $allRoomsId) );
+	    	
+	    	if(count($tmpTags))
+	    	$query = array('$and' => array( $query , array("tags" => array('$in' => $tmpTags)))) ;
+	    	
+	    	//echo "search : ". $search." - ".(string)strpos($search, "#");
+	    	if($search != "" && strpos($search, "#") === false){
+	        	$searchRegExp = self::accentToRegex($search);
+	        	$queryFullTxt = array( '$or' => array( array("name" => new MongoRegex("/.*{$searchRegExp}.*/i")),
+	        						   				   array("message" => new MongoRegex("/.*{$searchRegExp}.*/i")))
+	        						);
+	        	if(isset($query['$and'])) $query['$and'][] = $queryFullTxt;
+	        	else $query = array('$and' => array( $query , $queryFullTxt)) ;
+	        }
 
-        $allFound = PHDB::findAndSortAndLimitAndIndex($collection, $query, array("updated" => -1), $indexStep, $indexMin);
+	        $allFound = PHDB::findAndSortAndLimitAndIndex($collection, $query, array("updated" => -1), $indexStep, $indexMin);
 
-    	foreach ($allRooms as $keyR => $room) {
-    		//pour chaque room des orga, on ajoute quelques info sur le parentObj
-    		foreach ($myLinks["organizations"] as $keyL => $orga) {
-    			//error_log("orga " . (string)$orga['_id'] ."==". (string)$room['parentId']);
-    			if((string)$orga['_id'] == (string)$room['parentId'] && $room['parentType'] == "organizations"){
-    				$allRooms[$keyR]["parentObj"]["_id"] 	 = $orga["_id"];
-    				$allRooms[$keyR]["parentObj"]["name"] 	 = $orga["name"];
-    				$allRooms[$keyR]["parentObj"]["address"] = @$orga["address"];
-    				$allRooms[$keyR]["parentObj"]["typeSig"] = $orga["typeSig"];
-    				break;
-    			}
-    		}
+	    	foreach ($allRooms as $keyR => $room) {
+	    		//pour chaque room des orga, on ajoute quelques info sur le parentObj
+	    		foreach ($myLinks["organizations"] as $keyL => $orga) {
+	    			//error_log("orga " . (string)$orga['_id'] ."==". (string)$room['parentId']);
+	    			if((string)$orga['_id'] == (string)$room['parentId'] && $room['parentType'] == "organizations"){
+	    				$allRooms[$keyR]["parentObj"]["_id"] 	 = $orga["_id"];
+	    				$allRooms[$keyR]["parentObj"]["name"] 	 = $orga["name"];
+	    				$allRooms[$keyR]["parentObj"]["address"] = @$orga["address"];
+	    				$allRooms[$keyR]["parentObj"]["typeSig"] = $orga["typeSig"];
+	    				break;
+	    			}
+	    		}
 
-    		//pour chaque room des projets, on ajoute les infos du parentObj
-    		foreach ($myLinks["projects"] as $keyL => $project) {
-    			//error_log("project " . (string)$project['_id'] ."==". (string)$room['parentId']);
-    			if((string)$project['_id'] == (string)$room['parentId'] && $room['parentType'] == "projects"){
-    				$allRooms[$keyR]["parentObj"]["_id"] 	 = $project["_id"];
-    				$allRooms[$keyR]["parentObj"]["name"] 	 = $project["name"];
-    				$allRooms[$keyR]["parentObj"]["address"] = @$project["address"];
-    				$allRooms[$keyR]["parentObj"]["typeSig"] = $project["typeSig"];
-    				break;
-    			}
-    		}
+	    		//pour chaque room des projets, on ajoute les infos du parentObj
+	    		foreach ($myLinks["projects"] as $keyL => $project) {
+	    			//error_log("project " . (string)$project['_id'] ."==". (string)$room['parentId']);
+	    			if((string)$project['_id'] == (string)$room['parentId'] && $room['parentType'] == "projects"){
+	    				$allRooms[$keyR]["parentObj"]["_id"] 	 = $project["_id"];
+	    				$allRooms[$keyR]["parentObj"]["name"] 	 = $project["name"];
+	    				$allRooms[$keyR]["parentObj"]["address"] = @$project["address"];
+	    				$allRooms[$keyR]["parentObj"]["typeSig"] = $project["typeSig"];
+	    				break;
+	    			}
+	    		}
 
-    		//les conseils citoyens
-    		if($myCityKey!=false && $room["parentType"] == "cities"){
-    			$myCity = City::getByUnikey($myCityKey); 			
-				$cityCheck["name"] = $myCity["name"];
-				$cityCheck["address"] = array("postalCode" => $myCity["cp"], "countryCode" => $myCity["country"]);
-				$cityCheck["codeInsee"] = $myCity["insee"];
-				$cityCheck["geo"] = $myCity["geo"];
-				$cityCheck["typeSig"] = "city";
+	    		//les conseils citoyens
+	    		if($myCityKey!=false && $room["parentType"] == "cities"){
+	    			$myCity = City::getByUnikey($myCityKey); 			
+					$cityCheck["name"] = $myCity["name"];
+					$cityCheck["address"] = array("postalCode" => $myCity["cp"], "countryCode" => $myCity["country"]);
+					$cityCheck["codeInsee"] = $myCity["insee"];
+					$cityCheck["geo"] = $myCity["geo"];
+					$cityCheck["typeSig"] = "city";
 
-				if(self::checkScopeParent($cityCheck) == true){
-    				$allRooms[$keyR]["parentObj"]["name"] = $cityCheck["name"];
-    				$allRooms[$keyR]["parentObj"]["address"] = @$cityCheck["address"];
-    				$allRooms[$keyR]["parentObj"]["address"]["addressLocality"] = @$cityCheck["name"];
-    				$allRooms[$keyR]["parentObj"]["address"]["addressCountry"] = @$cityCheck["address"]["countryCode"];
-    				$allRooms[$keyR]["parentObj"]["typeSig"] = $cityCheck["typeSig"];
-    				$allRooms[$keyR]["geo"] = @$cityCheck["geo"];
-    			}else{
-    				$allRooms[$keyR] = array();
-    			}
-    		}
+					if(self::checkScopeParent($cityCheck) == true){
+	    				$allRooms[$keyR]["parentObj"]["name"] = $cityCheck["name"];
+	    				$allRooms[$keyR]["parentObj"]["address"] = @$cityCheck["address"];
+	    				$allRooms[$keyR]["parentObj"]["address"]["addressLocality"] = @$cityCheck["name"];
+	    				$allRooms[$keyR]["parentObj"]["address"]["addressCountry"] = @$cityCheck["address"]["countryCode"];
+	    				$allRooms[$keyR]["parentObj"]["typeSig"] = $cityCheck["typeSig"];
+	    				$allRooms[$keyR]["geo"] = @$cityCheck["geo"];
+	    			}else{
+	    				$allRooms[$keyR] = array();
+	    			}
+	    		}
 
-    		$allRooms[$keyR]["typeSig"] = @$allRooms[$keyR]["type"];
-    	}
-    	
-    	//pour chaque resultat, on ajoute les infos du parentRoom
-    	foreach ($allFound as $keyS => $survey) {
-    		foreach ($allRooms as $keyR => $room) {
-    			if((string)$survey[$parentRow] == (string)@$room['_id']){
-    				$allFound[$keyS]["parentRoom"] = $room;
-    				$allFound[$keyS]["geo"] = @$room["geo"];
-    				if($room["parentType"] == "cities")
-    					$allFound[$keyS]["address"] = @$room["parentObj"]["address"];
-    				break;
-    			}else if(!isset($room['_id'])){
-    				unset($allFound[$keyS]);
-    				//$allFound[$keyS] = array();
-    				//break;
-    			}
-    		}
+	    		$allRooms[$keyR]["typeSig"] = @$allRooms[$keyR]["type"];
+	    	}
+	    	
+	    	//pour chaque resultat, on ajoute les infos du parentRoom
+	    	foreach ($allFound as $keyS => $survey) {
+	    		foreach ($allRooms as $keyR => $room) {
+	    			if((string)$survey[$parentRow] == (string)@$room['_id']){
+	    				$allFound[$keyS]["parentRoom"] = $room;
+	    				$allFound[$keyS]["geo"] = @$room["geo"];
+	    				if($room["parentType"] == "cities")
+	    					$allFound[$keyS]["address"] = @$room["parentObj"]["address"];
+	    				break;
+	    			}else if(!isset($room['_id'])){
+	    				unset($allFound[$keyS]);
+	    				//$allFound[$keyS] = array();
+	    				//break;
+	    			}
+	    		}
+	    		
+	    		if(@$allFound[$keyS]["dateEnd"]) $allFound[$keyS]["dateEnd"] =  date("Y-m-d H:i:s", $allFound[$keyS]["dateEnd"]);
+				if(@$allFound[$keyS]["endDate"]) $allFound[$keyS]["endDate"] =  date("Y-m-d H:i:s", $allFound[$keyS]["endDate"]);
+				if(@$allFound[$keyS]["startDate"]) $allFound[$keyS]["startDate"] =  date("Y-m-d H:i:s", $allFound[$keyS]["startDate"]);
+				if(@$allFound[$keyS]["created"]) $allFound[$keyS]["created"] =  date("Y-m-d H:i:s", $allFound[$keyS]["created"]);
+				
+	    	}
+    	}   
     		
-    		if(@$allFound[$keyS]["dateEnd"]) $allFound[$keyS]["dateEnd"] =  date("Y-m-d H:i:s", $allFound[$keyS]["dateEnd"]);
-			if(@$allFound[$keyS]["endDate"]) $allFound[$keyS]["endDate"] =  date("Y-m-d H:i:s", $allFound[$keyS]["endDate"]);
-			if(@$allFound[$keyS]["startDate"]) $allFound[$keyS]["startDate"] =  date("Y-m-d H:i:s", $allFound[$keyS]["startDate"]);
-			if(@$allFound[$keyS]["created"]) $allFound[$keyS]["created"] =  date("Y-m-d H:i:s", $allFound[$keyS]["created"]);
-			
-    	}
+    	
+    	
     	return $allFound;
     }
 
