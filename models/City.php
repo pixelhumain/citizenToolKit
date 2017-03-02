@@ -169,7 +169,15 @@ class City {
 	}
 
 	public static function getUnikey($city){
-		return $city["country"]."_".$city["insee"]."-".$city["cp"];
+		//var_dump($city);
+		if(@$city["cp"])
+			return $city["country"]."_".$city["insee"]."-".$city["cp"];
+		else if(@$city["postalCode"])
+			return $city["country"]."_".$city["insee"]."-".$city["postalCode"];
+		else if(@$city["postalCodes"])
+			return $city["country"]."_".$city["insee"]."-".$city["postalCodes"][0]["postalCode"];
+
+		return false;
 	}
 
 	public static function getUnikeyMap($key){
