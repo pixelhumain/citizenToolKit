@@ -24,7 +24,7 @@ class GlobalAutoCompleteAction extends CAction
         	$searchType[0] == Organization::TYPE_GOV) {
 	        	$searchTypeOrga = $searchType[0];
 	        	$searchType = array(Organization::COLLECTION);
-        }
+        } 
        // error_log("global search " . $search . " - searchType : ". $searchType); //. " & locality : ". $locality. " & country : ". $country);
 	    
    //      if($search == "" && $locality == "") {
@@ -488,7 +488,6 @@ class GlobalAutoCompleteAction extends CAction
 	  	/***********************************  CITIES   *****************************************/
         if(strcmp($filter, City::COLLECTION) != 0 && $this->typeWanted(City::COLLECTION, $searchType)){
 	  		$query = array( "name" => new MongoRegex("/".self::wd_remove_accents($search)."/i"));//array('$text' => array('$search' => $search));//
-
 	  		
 	  		/***********************************  DEFINE LOCALITY QUERY   *****************************************/
 	        	if($locality == null || $locality == "")
