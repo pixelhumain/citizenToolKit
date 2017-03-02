@@ -917,7 +917,8 @@ class Element {
 			);
 
 		$elementToDelete = self::getByTypeAndId($elementType, $elementId);
-		
+		$listEventsId = array();
+		$listProjectId = array();
 		//Remove backwards links
 		if (isset($elementToDelete["links"])) {
 			foreach ($elementToDelete["links"] as $linkType => $aLink) {
@@ -929,7 +930,11 @@ class Element {
 						continue;
 					}
 					$linkToDelete = $linksTypes[$linkElementType][$linkType];
+					
 					$collection = $linkElementType;
+					if ($collection == Event::COLLECTION) array_push($listEventsId, new MongoId($linkElementId));
+					if ($collection == Project::COLLECTION) array_push($listProjectId, new MongoId($linkElementId));
+
 					$where = array("_id" => new MongoId($linkElementId));
 					$action = array('$unset' => array('links.'.$linkToDelete.'.'.$elementId => ""));
 					PHDB::update($collection, $where, $action);
@@ -937,8 +942,23 @@ class Element {
 				}
 			}
 		}
+		
+		//Unset the organizer for events organized by the element
+		if (count($listEventsId) > 0) {
+			$where = 	array('$in' => $listEventsId);
+			$action = array('$set' => array("organizerId" => Event::NO_ORGANISER, "organizerType" => Event::NO_ORGANISER));
+			PHDB::update(Event::COLLECTION, $where, $action);
+		}
+
+		//Unset the project with parent this element
+		if (count($listProjectId) > 0) {
+			$where = 	array('$in' => $listEventsId);
+			$action = array('$unset' => array("parentId", "parentType"));
+			PHDB::update(Project::COLLECTION, $where, $action);
+		}
 
 		//Remove Documents => Profil Images
+		//TODO SBAR : Remove other images ?
     	$profilImages = Document::listMyDocumentByIdAndType($elementId, $elementType, Document::IMG_PROFIL, Document::DOC_TYPE_IMAGE, array( 'created' => -1 ));
     	foreach ($profilImages as $docId => $document) {
     		Document::removeDocumentById($docId, $userId);
@@ -946,7 +966,7 @@ class Element {
     	}
 
     	//Remove Activity History
-    	ActivityStream::removeActivityHistory($elementId, $elementType);
+    	ActivityStream::removeElementActivityStream($elementId, $elementType);
 
     	//Check if the element got activity (news, ActionRooms, actions, surveys)
 		$res = self::checkActivity($elementId, $elementType);
