@@ -246,10 +246,12 @@ class News {
 		}
 	}
 	/**
-	 * delete a news in database
-	 * @param String $id : id to delete
-	*/
-	public static function delete($id) {
+	 * delete a news in database and the comments on that news
+	 * @param type $id  : id to delete
+	 * @param type|bool $removeComments 
+	 * @return true
+	 */
+	public static function delete($id, $removeComments = false) {
 		$news=self::getById($id);
 		if(@$news["media"] && @$news["media"]["content"] && @$news["media"]["content"]["image"] && !@$news["media"]["content"]["imageId"]){
 			$endPath=explode(Yii::app()->params['uploadUrl'],$news["media"]["content"]["image"]);
@@ -257,8 +259,21 @@ class News {
 			$pathFileDelete= Yii::app()->params['uploadDir'].$endPath[1];
 			unlink($pathFileDelete);
 		}
-		return PHDB::remove(self::COLLECTION,array("_id"=>new MongoId($id)));
+		
+		/* TODO SBAR => for now a user can only delete his own comment. To modify
+		$nbCommentsDeleted = 0;
+		if (count(@$news["comment"]) > O && $removeComments) {
+			foreach ($news["comment"] as $idComment => $comment) {
+				Comment::delete($idComment);
+				$nbCommentsDeleted++;
+			}
+		}*/
+
+		PHDB::remove(self::COLLECTION,array("_id"=>new MongoId($id)));
+
+		return array("result" => true, "msg" => "The news with id ".$id." and ".$nbCommentsDeleted." have been removed with succes.");
 	}
+
 	/**
 	 * delete a news in database from communevent with imageId
 	 * @param String $id : imageId in media.content to delete
