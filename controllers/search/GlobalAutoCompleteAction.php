@@ -217,8 +217,9 @@ class GlobalAutoCompleteAction extends CAction
 				if(@$allEvents[$key]["endDate"])
 					$allEvents[$key]["endDate"] = date(DateTime::ISO8601, $allEvents[$key]["endDate"]->sec);
 	  		}
-	  		
+
 	  		$allRes = array_merge($allRes, $allEvents);
+
 	  	}
 	  	//error_log("recherche - indexMin : ".$indexMin." - "." indexMax : ".$indexMax);
 	  	/***********************************  PROJECTS   *****************************************/
@@ -488,6 +489,7 @@ class GlobalAutoCompleteAction extends CAction
 	  	/***********************************  CITIES   *****************************************/
         if(strcmp($filter, City::COLLECTION) != 0 && $this->typeWanted(City::COLLECTION, $searchType)){
 	  		$query = array( "name" => new MongoRegex("/".self::wd_remove_accents($search)."/i"));//array('$text' => array('$search' => $search));//
+
 	  		
 	  		/***********************************  DEFINE LOCALITY QUERY   *****************************************/
 	        	if($locality == null || $locality == "")
