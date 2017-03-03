@@ -9,14 +9,14 @@ class UpdateSckDevicesAction extends CAction {
 		if ($_SERVER['REQUEST_METHOD'] == 'GET') {//TODO : utiliser GET pour mettre à jours et utiliser les données à jours dans la vue
 			//$params = $_GET;
 			
-			$sckdevices = Thing::updateMetadatas();
+			$res = Thing::updateMetadatas();
 
 
-		} elseif ($_SERVER['REQUEST_METHOD'] == 'POST') { //TODO : post pour mettre ajours avec un nouveau poi }
+		} elseif ($_SERVER['REQUEST_METHOD'] == 'POST') { //TODO : post pour mettre ajours avec un nouveau poi ou sans poi en utilisant deviceId et macId du SCK}
 
-	}
-	//echo Rest::json( $sckdevices );
-
+		}
+		echo Rest::json( $res );
+		//echo "]";
 
 	}
 }

@@ -9,21 +9,19 @@
 
 class GetGraphAction extends CAction {
 
-    public function run() {
+    public function run($country="RE",$postalCode="97490") {
 
+       
     	//echo "graphe ici";
 		$controller=$this->getController();
 
+        $params=array();    
+        if(isset($country)){$params['country']=$country; }
+        if(isset($postalCode)){$params['postalCode']=$postalCode; }
+        //if((isset($postalCode) && empty($postalCode)) || !isset($postalCode)) {$params['postalCode']="97490";}
+        //else if(isset($postalCode) && is_int($postalCode)){$params['postalCode']=strval($postalCode); }
 
-
-    	
-
-        $params = array();
-
-
-
-
-
+       // echo $params['postalCode'];
 
         if(Yii::app()->request->isAjaxRequest)
             echo $controller->renderPartial("graph",$params,true);
