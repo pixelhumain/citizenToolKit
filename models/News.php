@@ -260,7 +260,7 @@ class News {
 			unlink($pathFileDelete);
 		}
 		
-		/* TODO SBAR => for now a user can only delete his own comment. To modify
+		/* TODO SBAR => for now a user can only delete his own comment. To modify and use : deleteAllContextComments
 		$nbCommentsDeleted = 0;
 		if (count(@$news["comment"]) > O && $removeComments) {
 			foreach ($news["comment"] as $idComment => $comment) {
