@@ -17,6 +17,7 @@ class ActivityStream {
    */
 	public static function addEntry($param)
 	{
+		//print_r($param);
 		if($param["type"]==self::COLLECTION){
 			$news=$param;
 			$news["target"]["type"]=$param["target"]["type"];

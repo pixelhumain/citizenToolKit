@@ -231,16 +231,24 @@ class Link {
      * @param type $userId The userId doing the action
      * @return result array with the result of the operation
      */
-    public static function disconnect($originId, $originType, $targetId, $targetType, $userId, $connectType) {
+    public static function disconnect($originId, $originType, $targetId, $targetType, $userId, $connectType, $linkOption=null) {
         
         //0. Check if the $originId and the $targetId exists
         $origin = Element::checkIdAndType($originId, $originType, "disconnect");
         $target = Element::checkIdAndType($targetId, $targetType, "disconnect");
-
+        $unset=array("links.".$connectType.".".$targetId => "");
+        if ($linkOption != null && $linkOption==self::IS_ADMIN_PENDING){
+            if(!@$origin["links"][$connectType][$targetId][self::TO_BE_VALIDATED]){
+                $unset=array(
+                        "links.".$connectType.".".$targetId.".".self::IS_ADMIN_PENDING => "",
+                        "links.".$connectType.".".$targetId.".".self::IS_ADMIN => ""
+                    );
+            }
+        }
         //2. Remove the links
         PHDB::update( $originType, 
                        array("_id" => $origin["_id"]) , 
-                       array('$unset' => array("links.".$connectType.".".$targetId => "") ));
+                       array('$unset' => $unset ));
 
         //3. Send Notifications
         //TODO - Send email to the member
