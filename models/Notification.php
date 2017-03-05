@@ -760,9 +760,32 @@ class Notification{
 		    	$notificationPart["levelType"]=$notificationPart["target"]["type"];
 			if((@$notificationPart["repeat"] && $notificationPart["repeat"]) || (@$notificationPart["type"] && @$notificationPart["type"][$levelType] && @$notificationPart["type"][$levelType]["repeat"])){	
 				$update=self::checkIfAlreadyNotifForAnotherLink($notificationPart);
+				/********* MAILING PROCEDURE *********/
+				/** Update mail notification
+				* Modifier le cron si le cron n'est pas déjà envoyé (sinon cf. création mail notification:
+					** Ajouté l'object concerné
+				* Le cron sera récupéré sur les cinq/dix minutes depuis sa création 
+				* Regarder si la communauté notifiée par mail n'a pas vu la notification associée (isUnseen exists)
+				* Envoie de l'email
+				**/
+				/********** END MAIL PROCEDURE ******/
+
 			}
 			if($update==false && !empty($notificationPart["community"]))
 				 self::createNotification($notificationPart);
+				/********* MAILING PROCEDURE *********/
+				/** Création mail notification
+				* Créer un cron avec:
+					** type "notificaitons"
+					** Id de la notification
+					** object a notifié
+					** tpl égale à $notificationPart["mail"]
+				* Récupérer les id de la communauté notifiée qui n'est pas connectée (sinon on considère qu'elle a vu la notification)
+				* Le cron sera récupéré sur les cinq/dix minutes depuis sa création 
+				* Regarder si la communauté notifiée par mail n'a pas vu la notification associée (isUnseen exists)
+				* Envoie de l'email
+				**/
+				/********** END MAILING PROCEDURE *********/
 		}
 	}
 	/** TODO BOUBOULE
