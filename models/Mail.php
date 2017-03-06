@@ -57,12 +57,12 @@ class Mail {
         $params = array(
             "type" => Cron::TYPE_MAIL,
             "tpl"=>'notifAdminNewUser',
-            "subject" => 'Nouvel utilisateur sur le site '.Yii::app()->name,
+            "subject" => 'Nouvel utilisateur sur le site '.self::getAppName(),
             "from"=>Yii::app()->params['adminEmail'],
             "to" => Yii::app()->params['adminEmail'],
             "tplParams" => array(   "person"   => $person ,
-                                    "title" => Yii::app()->name ,
-                                    "logo"  => "/images/logoLTxt.jpg")
+                                    "title" => self::getAppName() ,
+                                    "logo"  => Yii::app()->params["logoUrl"])
         );
         Mail::schedule($params);
     }
@@ -221,7 +221,7 @@ class Mail {
         $params = array(
             "type" => Cron::TYPE_MAIL,
             "tpl"=>'validation', //TODO validation should be Controller driven boolean $this->userAccountValidation 
-            "subject" => Yii::t("common","Confirm your account on ").Yii::app()->name,
+            "subject" => Yii::t("common","Confirm your account on ").self::getAppName(),
             "from" => Yii::app()->params['adminEmail'],
             "to" => $person["email"],
             "tplParams" => array( "user"  => $person["_id"] ,
