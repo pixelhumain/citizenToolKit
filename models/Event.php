@@ -119,10 +119,12 @@ class Event {
 	 * @param String $id of the event
 	 * @return array with data id, name, type profilImageUrl
 	 */
-	public static function getSimpleEventById($id) {
+	public static function getSimpleEventById($id, $event=null, $network = false) {
 		
 		$simpleEvent = array();
-		$event = PHDB::findOneById( self::COLLECTION ,$id, array("id" => 1, "name" => 1, "type" => 1,  "shortDescription" => 1, "description" => 1, "address" => 1, "geo" => 1, "tags" => 1, "profilImageUrl" => 1, "profilThumbImageUrl" => 1, "profilMarkerImageUrl" => 1, "profilMediumImageUrl" => 1, "startDate" => 1, "endDate" => 1, "addresses"=>1, "allDay" => 1));
+
+		if(!$event)
+			$event = PHDB::findOneById( self::COLLECTION ,$id, array("id" => 1, "name" => 1, "type" => 1,  "shortDescription" => 1, "description" => 1, "address" => 1, "geo" => 1, "tags" => 1, "profilImageUrl" => 1, "profilThumbImageUrl" => 1, "profilMarkerImageUrl" => 1, "profilMediumImageUrl" => 1, "startDate" => 1, "endDate" => 1, "addresses"=>1, "allDay" => 1));
 		if(!empty($event)){
 			$simpleEvent["id"] = $id;
 			$simpleEvent["_id"] = $event["_id"];
@@ -148,6 +150,11 @@ class Event {
 			$simpleEvent["description"] = @$event["description"];
 			$simpleEvent["addresses"] = @$event["addresses"];
 			$simpleEvent["allDay"] = @$event["allDay"];
+
+			if($network == true){
+				$simpleEvent["links"] = @$event["links"];
+				$simpleEvent["creator"] = @$event["creator"];
+			}
 			
 			$simpleEvent = array_merge($simpleEvent, Document::retrieveAllImagesUrl($id, self::COLLECTION, $simpleEvent["type"], $event));
 			

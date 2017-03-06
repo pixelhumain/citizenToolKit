@@ -522,7 +522,7 @@ class Organization {
 	 * @param String $id of the organization
 	 * @return array with data id, name, profilImageUrl, logoImageUrl
 	 */
-	public static function getSimpleOrganizationById($id,$orga=null) {
+	public static function getSimpleOrganizationById($id,$orga=null, $network = false) {
 
 		$simpleOrganization = array();
 		if(!$orga)
@@ -542,6 +542,11 @@ class Organization {
 			$simpleOrganization["updated"] = @$orga["updated"];
 			$simpleOrganization["addresses"] = @$orga["addresses"];
 			$simpleOrganization["typeSig"] = "organizations";
+
+			if($network == true){
+				$simpleOrganization["links"] = @$orga["links"];
+				$simpleOrganization["creator"] = @$orga["creator"];
+			}
 
 			if(!empty($orga["disabled"]))
 				$simpleOrganization["disabled"] = @$orga["disabled"];
