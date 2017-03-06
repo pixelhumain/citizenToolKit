@@ -217,8 +217,7 @@ class Mail {
         Mail::schedule($params);
     }
 
-    public static function validatePerson( $person )
-    {
+    public static function validatePerson( $person ) {
         $params = array(
             "type" => Cron::TYPE_MAIL,
             "tpl"=>'validation', //TODO validation should be Controller driven boolean $this->userAccountValidation 
@@ -226,7 +225,7 @@ class Mail {
             "from" => Yii::app()->params['adminEmail'],
             "to" => $person["email"],
             "tplParams" => array( "user"  => $person["_id"] ,
-                                  "title" => Yii::app()->name ,
+                                  "title" => self::getAppName(),
                                   //"logo"  => "/images/logoLTxt.jpg" 
                                   "logo" => Yii::app()->params["logoUrl"],
                                   //"urlRedirect" => Yii::app()->getRequest()->getBaseUrl(true);
@@ -360,6 +359,10 @@ class Mail {
 		);   
 
 		Mail::schedule($params);
+    }
+
+    private static function getAppName() {
+        return isset(Yii::app()->params["name"]) ? Yii::app()->params["name"] : Yii::app()->name;       
     }
 
 }
