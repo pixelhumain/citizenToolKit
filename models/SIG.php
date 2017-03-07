@@ -446,8 +446,9 @@ class SIG
     }
 
 
-    public static function getGeoByAddressNominatim($street = null, $cp = null, $city = null, $country = null, $polygon_geojson = null, $extratags = null){
+    public static function getGeoByAddressNominatim($street = null, $cp = null, $city = null, $countryCode = null, $polygon_geojson = null, $extratags = null, $nameLevel = null, $state = null){
         try{
+
 	        $url = "http://nominatim.openstreetmap.org/search?format=json&addressdetails=1" ;
 	        if(!empty($street))
 	            $url .= "&street=".str_replace(" ", "+", $street);
@@ -459,8 +460,16 @@ class SIG
 	        if(!empty($city)){
 	            $url .= "&city=".str_replace(" ", "+", $city);
 	        }
-	        if(!empty($country))
-	            $url .= "&countrycodes=".self::changeCountryForNominatim($country);
+
+	        if(!empty($nameLevel)){
+	        	if($state == true)
+	            	$url .= "&state=".str_replace(" ", "+", $nameLevel);
+	            else
+	            	$url .= "&country=".str_replace(" ", "+", $nameLevel);
+	        }
+	        
+	        if(!empty($countryCode))
+	            $url .= "&countrycodes=".self::changeCountryForNominatim($countryCode);
 
 	        if(!empty($polygon_geojson)){
 	            $url .= "&polygon_geojson=1";
@@ -469,7 +478,7 @@ class SIG
 	        if(!empty($extratags)){
 	            $url .= "&extratags=1";
 	        }
-	        //var_dump($url);
+	        var_dump($url);
 	        $res =  file_get_contents($url);
 	        return $res;
 			//return self::getUrl($url);
@@ -477,6 +486,8 @@ class SIG
             return null ;
         }
     }
+
+
 
     public static function changeCountryForNominatim($country){
 		$codeCountry = array("FR" => array("RE")) ;
