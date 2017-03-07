@@ -10,12 +10,13 @@ class UpdateSckDevicesAction extends CAction {
 			//$params = $_GET;
 			
 			$res = Thing::updateMetadatas();
+			$res2= Thing::updateSCKAPIMetadata();
 
 
 		} elseif ($_SERVER['REQUEST_METHOD'] == 'POST') { //TODO : post pour mettre ajours avec un nouveau poi ou sans poi en utilisant deviceId et macId du SCK}
 
 		}
-		echo Rest::json( $res );
+		echo Rest::json($res2);
 		//echo "]";
 
 	}

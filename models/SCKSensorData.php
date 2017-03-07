@@ -64,7 +64,7 @@ class SCKSensorData
      *
      */
     
-    public function SCK11Convert($rawData)
+    public static function SCK11Convert($rawData)
     {
         
         $data = array();
@@ -107,7 +107,7 @@ class SCKSensorData
      *
      */
     
-    public function tempConversion($rawTemp)
+    public static function tempConversion($rawTemp)
     {
         return round(-53 + 175.72 / 65536.0 * $rawTemp, 2);
     }
@@ -126,7 +126,7 @@ class SCKSensorData
      *
      */
     
-    public function humConversion($rawHum)
+    public static function humConversion($rawHum)
     {
         return round(7 + 125.0 / 65536.0 * $rawHum, 2);
     }
@@ -143,10 +143,10 @@ class SCKSensorData
      *
      */
     
-    public function noiseConversion($rawSound)
+    public static function noiseConversion($rawSound)
     {
         //$dbTable = json_decode(file_get_contents("./sensors/db.json"), true);
-        return round(self::tableCalibration($dbTable, $rawSound), 2);
+        return round(self::tableCalibration(self::$dbTable, $rawSound), 2);
     }
     
     /**
@@ -159,7 +159,7 @@ class SCKSensorData
      *
      */
     
-    public function coConversion($rawCO)
+    public static function coConversion($rawCO)
     {
         return round($rawCO / 1000, 2);
     }
@@ -175,7 +175,7 @@ class SCKSensorData
      *
      */
     
-    public function no2Conversion($rawNO2)
+    public static function no2Conversion($rawNO2)
     {
         return round($rawNO2 / 1000, 2);
     }
@@ -191,7 +191,7 @@ class SCKSensorData
      *
      */
     
-    public function lightConversion($rawLight)
+    public static function lightConversion($rawLight)
     {
         return round($rawLight / 10, 2);
     }
@@ -207,7 +207,7 @@ class SCKSensorData
      */
     
     
-    public function batConversion($rawBat)
+    public static function batConversion($rawBat)
     {
         return round($rawBat / 10, 2);
     }
@@ -222,7 +222,7 @@ class SCKSensorData
      *
      */
     
-    public function panelConversion($rawBat)
+    public static function panelConversion($rawBat)
     {
         return round($rawBat / 100, 2);
     }
@@ -237,7 +237,7 @@ class SCKSensorData
      *
      */
      
-    private function isValidDateTimeString($str_dt)
+    private static function isValidDateTimeString($str_dt)
     {
         $date1 = DateTime::createFromFormat('Y-m-d G:i:s', $str_dt);
         $date2 = DateTime::createFromFormat('Y-m-d H:i:s', $str_dt);
@@ -255,7 +255,7 @@ class SCKSensorData
      *
      */
     
-    private function tableCalibration($refTable, $rawValue)
+    private static function tableCalibration($refTable, $rawValue)
     {
         for ($i = 0; $i < sizeof($refTable) - 1; $i++) {
             $prevValueRef = $refTable[$i][0];
@@ -281,7 +281,7 @@ class SCKSensorData
      *
      */
 
-    private function linearRegression($valueInput, $prevValueOutput, $nextValueOutput, $prevValueRef, $nextValueRef)
+    private static function linearRegression($valueInput, $prevValueOutput, $nextValueOutput, $prevValueRef, $nextValueRef)
     {
         $slope  = ($nextValueOutput - $prevValueOutput) / ($nextValueRef - $prevValueRef);
         $result = $slope * ($valueInput - $prevValueRef) + $prevValueOutput;

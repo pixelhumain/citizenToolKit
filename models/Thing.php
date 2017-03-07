@@ -38,7 +38,10 @@ class Thing {
 		"geo" 	=> array("name" => "geo", "rules" => array("required","geoValid")), //poi
 	    "location" 	=> array("name" => "location"),
 	    "sckUpdatedAt"	=>array("name"=>"sckUpdatedAt"),
-	    "url"	=> array("name" =>"url"),
+	    "url"		=> array("name" =>"url"),
+	    "sckKits" 	=> array("name"=>"sckKits"), //api metadata
+		"sckSensors" => array("name"=>"sckSensors"),//api metadata
+		"sckMeasurements" => array("name"=>"sckMeasurements"),//api metadata
 	    "status" 	=> array("name" => "status"), //in metadata updated for POI realy need?
 
 	    "modified" 	=> array("name" => "modified"),
@@ -46,6 +49,42 @@ class Thing {
 	    "creator" 	=> array("name" => "creator"),
 	    "created" 	=> array("name" => "created"),
 	);
+
+	private static $sckAPIPathMetadata = array("sckSensors" => "sensors", "sckMeasurements" => "measurements", "sckKits" => "kits");
+
+	public static function updateSCKAPIMetadata($forceUpdate=true){
+		
+		$res=array(); //resultat de Element::save
+		
+		$wheremeta=array();
+		$gmttime=gmdate('Y-m-d');
+
+		$fields=array('modified','_id','updated');
+		
+		foreach (self::$sckAPIPathMetadata as $key => $value) {
+			$wheremeta['type']=$key;
+			
+			$apisck = self::getSCKDeviceMdata($wheremeta,$fields);
+		
+			$intDayBeginning=strtotime($gmttime);
+
+			$mdata=array();
+			$mdata['collection']=self::COLLECTION;
+			$mdata['type'] = $key;
+			$mdata['key'] = 'thing';
+			$sckAPIMetadata=json_decode(file_get_contents(self::URL_API_SC."/".$value),true);
+			//print_r($sckAPIMetadata);
+			$mdata[$key]=$sckAPIMetadata;
+			
+			if($intDayBeginning >= $apisck['updated'] || $forceUpdate==true){
+				if(!empty($apisck))
+					$mdata['id']=$apisck['_id']; 
+				
+				$res[]= Element::save($mdata);
+			}
+		}
+		return $res;
+	}
 
 	//TODO : Prévoir l'edition forcer (ajout d'argument et de condition (passer outre la limite de temps $forceUpdate), ne pas utiliser un poi mais directement le deviceId SCK) par une post via le controller UpdateSckDevicesAction.php
 	//ajouter les metadatas si le sck n'est pas en base 
@@ -57,7 +96,7 @@ class Thing {
 		$deviceId = self::getSCKDeviceIdByPoiUrl($sckurl); //TODO remplacer par un argument direct obtenue par le formulaire
 		//echo $deviceId;
 		$wheremeta['deviceId']=$deviceId;
-		$deviceMetadata = self::getSCKDevice($wheremeta);
+		$deviceMetadata = self::getSCKDeviceMdata($wheremeta);
 		$tLReadings=$deviceMetadata['timestamp'];
 		$gmttime=gmdate('Y-m-d\TH');
 		
@@ -140,7 +179,8 @@ class Thing {
 		return $SCKDevices;
 	}
 
-	public static function getSCKDevice($where=array("type"=>self::SCK_TYPE), $fields=null){
+	//metadata
+	public static function getSCKDeviceMdata($where=array("type"=>self::SCK_TYPE), $fields=null){
 		//$where=array("type"=>"smartCitizen");
 		$SCKDevice = PHDB::findOne(self::COLLECTION, $where,$fields);
 		return $SCKDevice;
@@ -186,18 +226,28 @@ class Thing {
 
 	}
 
+	public static function getDistinctBoardId(){
+		$where = array('boardId' => array('$exists'=>1));
+		$where['type']= self::SCK_TYPE;
+		
+		$distinctedBoardId=PHDB::distinct(self::COLLECTION_DATA,'boardId', $where);
+		print_r($distinctedBoardId);
+		return $distinctedBoardId;
+	}
+
+
 	public static function getLastestRecordsInDB($macId=null,$where=array("type"=>self::SCK_TYPE),$sort=array("created"=>-1),$limit=2){
 		$lastRecords = array();
-		if(!empty($macId)&&(strlen($macId)<=17)){
+		if(!empty($macId)&&(strlen($macId)<=17)&& ($macId!= "[FILTERED]" )){
 			$where["boardId"] = $macId;
-			$lastRecords = PHDB::findAndSort(self::COLLECTION_DATA,$where,$sort,$limit); 
 		}
+		$lastRecords = PHDB::findAndSort(self::COLLECTION_DATA,$where,$sort,$limit);
 		return $lastRecords;
 	}
 
-	public static function getBoardReadingsByTime($boardId,$date=null,$hour=null){
+	public static function getConvertedRercord($boardId,$lastest=false,$date=null,$hour=null){
 
-		$where= array("type"=>self::SCK_TYPE);
+		$where = array("type"=>self::SCK_TYPE);
 		//date example :"2017-02-27"
 		if(!empty($date)){
 			$time=$date;
@@ -208,26 +258,29 @@ class Thing {
 			$time=gmdate('Y-m-d');
 		}
 		$queryTimestamp[] = new MongoRegex("/".$time."/i");
-		$where["timestamp"] = array("$in"=>$queryTimestamp);
-		$sort = array("timestamp"=>1);
-		$limit = null;
+		$where["timestamp"] = array('$in'=> $queryTimestamp);
+		if($lastest==false){
+			$sort = array("timestamp"=>1);
+			$limit = null;
+		} else {
+			$sort = array("timestamp"=>-1);
+			$limit=1;
+		}
 
 		$dataInDB = self::getLastestRecordsInDB($boardId,$where,$sort,$limit);
 
-		//print_r($dataInDB);
+		//return $dataInDB;
 
 		$data=array();
 		foreach ($dataInDB as $rawData) {
 			$data[]=SCKSensorData::SCK11Convert($rawData);
-			# code...
 		}
-		return $data;
+		return $data; 
 	}
 
-	public static function getSensorReading($sensor,$boardId){
-
-
-	}
+	// après conversion adapter sensor {timestamp : value} -> fonction à mettre coté client en javascript (reduit les envois de données)
+	/*public static function getSensorReading($sensor,$boardId){
+	}*/
 
 
 	public static function getDateTime($bindMap) {
@@ -263,9 +316,9 @@ class Thing {
 		$mdata['type'] = self::SCK_TYPE;
 		$mdata['key'] = 'thing';
 		$mdata['boardId'] = $partReadings['macId'];
-		if($partReadings['macId'] !="[FILTERED]"){
-			unset($partReadings['macId']);
-		}
+		//if($partReadings['macId'] !="[FILTERED]"){
+		  unset($partReadings['macId']);
+		//}
 		
 		$mdata['address']= $address;
 		$mdata['geo'] = $geo;
