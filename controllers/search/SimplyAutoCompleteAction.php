@@ -34,17 +34,22 @@ class SimplyAutoCompleteAction extends CAction
         //strpos($sourceKey[0], "@")
         if( $sourceKey != null && $sourceKey != "" && strpos($sourceKey[0], "@") > 0 ) {
         	$split = explode("@", $sourceKey[0]);
-
-        	$element = Element::getByTypeAndId($split[1], $split[0]);
         	$query = array();
-        	if(!empty($element) && Preference::showPreference($element, $split[1], "directory", Yii::app()->session["userId"]) ) {
-        		$query = array("creator" => $split[0]);
-	        	$links = array("events", "projects", "followers", "members", "memberOf", "subEvents", "follows", "attendees", "organizer", "contributors");
-	        	foreach ($links as $key => $value) {
-	        		$query = array('$or' => array($query, array("links.".$value.".".$split[0] => array('$exists' => 1))));
+        	try{
+        		$element = Element::getByTypeAndId($split[1], $split[0]);
+	        	
+	        	if(!empty($element) && Preference::showPreference($element, $split[1], "directory", Yii::app()->session["userId"]) ) {
+	        		$query = array("creator" => $split[0]);
+		        	$links = array("events", "projects", "followers", "members", "memberOf", "subEvents", "follows", "attendees", "organizer", "contributors");
+		        	foreach ($links as $key => $value) {
+		        		$query = array('$or' => array($query, array("links.".$value.".".$split[0] => array('$exists' => 1))));
+		        	}
+		        	$getCreator = true ;
 	        	}
-	        	$getCreator = true ;
-        	}
+        	}catch (MongoException $m){
+				
+			}
+        	
 		}else{
 
 	        /***********************************  DEFINE GLOBAL QUERY   *****************************************/
@@ -460,7 +465,7 @@ class SimplyAutoCompleteAction extends CAction
 			  	//filter type
 		  		if(isset($value['typeSig'])){
 		  			if(isset($filters['types'][$value['typeSig']])){
-		  				$filters['types'][$value['typeSig']] +=1;
+		  				$filters['types'][$value['typeSig']] += 1;
 		  			}
 		  			else{
 		  				$filters['types'][$value['typeSig']] = 1;
