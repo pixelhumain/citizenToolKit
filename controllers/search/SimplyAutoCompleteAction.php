@@ -446,7 +446,8 @@ class SimplyAutoCompleteAction extends CAction
 
 			  	//filter tag
 			  	if(!empty($value['tags']))foreach ($value['tags'] as $keyTag => $valueTag) {
-			  		if(!empty(trim($valueTag))){
+			  		$valueTag = trim($valueTag);
+			  		if(!empty($valueTag)){
 			  			if(isset($filters['tags'][$valueTag])){
 				  			$filters['tags'][$valueTag] +=1;
 				  		}
