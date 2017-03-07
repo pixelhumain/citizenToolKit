@@ -151,7 +151,7 @@ class Event {
 			$simpleEvent["addresses"] = @$event["addresses"];
 			$simpleEvent["allDay"] = @$event["allDay"];
 
-			if($network == true){
+			if($moreInfo == true){
 				$simpleEvent["links"] = @$event["links"];
 				$simpleEvent["creator"] = @$event["creator"];
 			}
