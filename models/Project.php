@@ -93,10 +93,10 @@ class Project {
 
 	/**
 	 * Retrieve a simple project (id, name, profilImageUrl) by id from DB
-	 * @param String $id of the project
+	 * @param String $id of the project, $project (Object) is all datas of element, moreInfo (Boolean) for get links and creator
 	 * @return array with data id, name, profilImageUrl
 	 */
-	public static function getSimpleProjectById($id, $project=null, $network = false) {
+	public static function getSimpleProjectById($id, $project=null, $moreInfo = false) {
 		
 		$simpleProject = array();
 		$project = PHDB::findOneById( self::COLLECTION ,$id, array("id" => 1, "name" => 1, "shortDescription" => 1, "description" => 1, "address" => 1, "geo" => 1, "tags" => 1, "profilImageUrl" => 1, "profilThumbImageUrl" => 1, "profilMarkerImageUrl" => 1, "profilMediumImageUrl" => 1, "addresses"=>1) );
@@ -112,7 +112,7 @@ class Project {
 			$simpleProject["description"] = @$project["description"];
 			$simpleProject["typeSig"] = "projects";
 
-			if($network == true){
+			if($moreInfo == true){
 				$simpleProject["links"] = @$projects["links"];
 				$simpleProject["creator"] = @$projects["creator"];
 			}

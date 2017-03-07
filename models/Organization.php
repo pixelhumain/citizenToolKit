@@ -519,10 +519,10 @@ class Organization {
 
 	/**
 	 * Retrieve a simple organization (id, name, profilImageUrl) by id from DB
-	 * @param String $id of the organization
+	 * @param String $id of the organization, $orga (Object) is all datas of element, moreInfo (Boolean) for get links and creator
 	 * @return array with data id, name, profilImageUrl, logoImageUrl
 	 */
-	public static function getSimpleOrganizationById($id,$orga=null, $network = false) {
+	public static function getSimpleOrganizationById($id,$orga=null, $moreInfo = false) {
 
 		$simpleOrganization = array();
 		if(!$orga)
@@ -543,7 +543,7 @@ class Organization {
 			$simpleOrganization["addresses"] = @$orga["addresses"];
 			$simpleOrganization["typeSig"] = "organizations";
 
-			if($network == true){
+			if($moreInfo == true){
 				$simpleOrganization["links"] = @$orga["links"];
 				$simpleOrganization["creator"] = @$orga["creator"];
 			}

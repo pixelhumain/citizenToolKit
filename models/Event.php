@@ -116,10 +116,10 @@ class Event {
 
 	/**
 	 * Retrieve a simple event (id, name, type profilImageUrl) by id from DB
-	 * @param String $id of the event
+	 * @param String $id of the event , $orga (Object) is all datas of element, moreInfo (Boolean) for get links and creator
 	 * @return array with data id, name, type profilImageUrl
 	 */
-	public static function getSimpleEventById($id, $event=null, $network = false) {
+	public static function getSimpleEventById($id, $event=null, $moreInfo = false) {
 		
 		$simpleEvent = array();
 
