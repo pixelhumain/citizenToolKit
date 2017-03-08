@@ -461,7 +461,7 @@ class SimplyAutoCompleteAction extends CAction
 				  		else{
 				  			$filters['tags'][$valueTag] = 1;
 				  		}
-			  			ksort($filters['tags']);
+			  			ksort($filters['tags'], SORT_NATURAL | SORT_FLAG_CASE);
 			  		}
 			  	}
 
@@ -473,7 +473,7 @@ class SimplyAutoCompleteAction extends CAction
 		  			else{
 		  				$filters['types'][$value['typeSig']] = 1;
 		  			}
-		  			ksort($filters['types']);
+		  			ksort($filters['types'], SORT_NATURAL | SORT_FLAG_CASE);
 		  		}
 
 		  		//filter sourcekey
@@ -496,7 +496,7 @@ class SimplyAutoCompleteAction extends CAction
 				  			$filters['sourceKey'][$value['source']['key']] = 1;
 				  		}
 					}
-			  		ksort($filters['sourceKey']);
+			  		ksort($filters['sourceKey'], SORT_NATURAL | SORT_FLAG_CASE);
 			  	}
 			  	$index++;
 		  	}
