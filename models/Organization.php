@@ -537,7 +537,7 @@ class Organization {
 			$simpleOrganization["pending"] = @$orga["pending"];
 			$simpleOrganization["tags"] = @$orga["tags"];
 			$simpleOrganization["geo"] = @$orga["geo"];
-			$simpleOrganization["geoPosition"] = @$orga["geoPosition"];
+			//$simpleOrganization["geoPosition"] = @$orga["geoPosition"];
 			$simpleOrganization["shortDescription"] = @$orga["shortDescription"];
 			$simpleOrganization["description"] = @$orga["description"];
 			$simpleOrganization["updated"] = @$orga["updated"];

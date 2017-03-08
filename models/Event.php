@@ -145,7 +145,7 @@ class Event {
 			}
 			$simpleEvent["type"] = @$event["type"];
 			$simpleEvent["geo"] = @$event["geo"];
-			$simpleEvent["geoPosition"] = @$event["geoPosition"];
+			//$simpleEvent["geoPosition"] = @$event["geoPosition"];
 			$simpleEvent["tags"] = @$event["tags"];
 			$simpleEvent["shortDescription"] = @$event["shortDescription"];
 			$simpleEvent["description"] = @$event["description"];

@@ -107,7 +107,7 @@ class Project {
 			$simpleProject["address"] = empty($project["address"]) ? array("addressLocality" => Yii::t("common","Unknown Locality")) : $project["address"];
 			$simpleProject["addresses"] = @$project["addresses"];
 			$simpleProject["geo"] = @$project["geo"];
-			$simpleProject["geoPosition"] = @$project["geoPosition"];
+			//$simpleProject["geoPosition"] = @$project["geoPosition"];
 			$simpleProject["tags"] = @$project["tags"];
 			$simpleProject["shortDescription"] = @$project["shortDescription"];
 			$simpleProject["description"] = @$project["description"];
