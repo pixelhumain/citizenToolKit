@@ -965,11 +965,13 @@ class Element {
     		error_log("delete document id ".$docId);
     	}
 
-    	//Remove Activity History
+    	//Remove Activity of the Element
     	ActivityStream::removeElementActivityStream($elementId, $elementType);
 
+    	//Delete News
+    	News::deleteNewsOfElement($elementId, $elementType, true);
     	//Check if the element got activity (news, ActionRooms, actions, surveys)
-		$res = self::checkActivity($elementId, $elementType);
+		/*$res = self::checkActivity($elementId, $elementType);
 		if ($res["result"]) {
 			error_log("Because of deletion of element :".$elementType."/".$elementId." : anonymize the element. ".$res["msg"]);
 			//Anonymize the element : Remove all fields from the element
@@ -984,7 +986,7 @@ class Element {
 	    	$res = array("result" => true, "msg" => "The element ".$elementId." of type ".$elementType." has been deleted with success.");
 		}
 		Log::save(array("userId" => $userId, "browser" => @$_SERVER["HTTP_USER_AGENT"], "ipAddress" => @$_SERVER["REMOTE_ADDR"], "created" => new MongoDate(time()), "action" => "deleteElement", "params" => array("id" => $elementId, "type" => $elementType)));
-		
+		*/
 		return $res;
 	}
 

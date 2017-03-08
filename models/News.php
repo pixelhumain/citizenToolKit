@@ -245,6 +245,7 @@ class News {
 			return array("result"=>false, "msg"=>"Please Fill required Fields.");	
 		}
 	}
+
 	/**
 	 * delete a news in database and the comments on that news
 	 * @param type $id  : id to delete
@@ -272,6 +273,37 @@ class News {
 		PHDB::remove(self::COLLECTION,array("_id"=>new MongoId($id)));
 
 		return array("result" => true, "msg" => "The news with id ".$id." and ".$nbCommentsDeleted." have been removed with succes.");
+	}
+
+	/**
+	 * delete all news linked to an element
+	 * @param String $elementId  : id of the element the news depends on
+	 * @param String $elementType : type of the element the news depends on
+	 * @param type|bool $removeComments 
+	 * @return array result => bool, msg => String
+	 */
+	public static function deleteNewsOfElement($elementId, $elementType, $removeComments = false, $userId) {
+		
+		//Check if the $userId can delete the element
+		$canDelete = Authorisation::canDeleteElement($elementType, $elementId, $userId);
+		if (! $canDelete) {
+			return array("result" => false, "msg" => "You do not have enough credential to delete this element news.");
+		}
+
+		//get all the news
+		$where = array('$and' => array(
+						array("target.id" => $elementId),
+						array("target.type" => $elementType)
+					));
+		$news2delete = PHDB::find(self::COLLECTION, $where);
+		$nbNews = 0;		
+		
+		foreach ($news2delete as $id => $aNews) {
+			self::delete($id, true);
+			$nbNews++;
+		}
+
+		return array("result" => true, "msg" => $nbNews." news of the element ".$id." of type ".$elementType." have been removed with succes.");
 	}
 
 	/**

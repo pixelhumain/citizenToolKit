@@ -134,7 +134,32 @@ class ActionRoom {
         } 
 
         return $res;
-     }
+    }
+
+    /**
+     * Delete all rooms (comments, votes...) of an element
+     * @param String $elementType type of the element
+     * @param String $elementId id of the element
+     * @param String $userId userId making the delete
+     * @return array result => boolean, msg => String
+     */
+    public static function deleteElementActionRooms($elemenType, $elementId, $userId){        
+        //Check if the $userId can delete the element
+        $canDelete = Authorisation::canDeleteElement($elementType, $elementId, $userId);
+        if (! $canDelete) {
+            return array("result" => false, "msg" => "You do not have enough credential to delete this element rooms.");
+        }
+
+        //get all actions
+        $actionRooms2delete = self::getAllRoomsByTypeId($elemenType, $elementId);
+        
+        foreach ($actionRooms2delete as $id => $anActionRoom) {
+            self::delete($id, $userId);
+            $nbActionRoom++;
+        }
+
+        return array("result" => true, "msg" => $nbActionRoom." actionRoom of the element ".$id." of type ".$elementType." have been removed with succes.");
+    }
 
     public static function closeAction($params){
      	$res = array( "result" => false );
