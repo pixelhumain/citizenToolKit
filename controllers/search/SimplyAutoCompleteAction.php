@@ -24,8 +24,10 @@ class SimplyAutoCompleteAction extends CAction
         $disabled = isset($_POST['disabled']) ? $_POST['disabled'] : null;
         $seeDisable = isset($_POST['seeDisable']) ? $_POST['seeDisable'] : null;
 
-
-
+        if( ($indexMax - $indexMin) > 2000 ){
+        	$indexMax = $indexMin + 2000 ;
+        }
+        
         if($search == null && $locality == null && $sourceKey == null) {
         	Rest::json(array());
 			Yii::app()->end();
@@ -459,7 +461,7 @@ class SimplyAutoCompleteAction extends CAction
 				  		else{
 				  			$filters['tags'][$valueTag] = 1;
 				  		}
-			  			arsort($filters['tags']);
+			  			ksort($filters['tags']);
 			  		}
 			  	}
 
@@ -471,7 +473,7 @@ class SimplyAutoCompleteAction extends CAction
 		  			else{
 		  				$filters['types'][$value['typeSig']] = 1;
 		  			}
-		  			arsort($filters['types']);
+		  			ksort($filters['types']);
 		  		}
 
 		  		//filter sourcekey
@@ -494,7 +496,7 @@ class SimplyAutoCompleteAction extends CAction
 				  			$filters['sourceKey'][$value['source']['key']] = 1;
 				  		}
 					}
-			  		arsort($filters['sourceKey']);
+			  		ksort($filters['sourceKey']);
 			  	}
 			  	$index++;
 		  	}
