@@ -423,20 +423,42 @@ class Mail {
      * Send an email with beta test information
      * @return null
      */
+    public static function sendMailFormContact($emailSender, $subject, $name, $message) {
+        
+        $params = array (
+            "type" => Cron::TYPE_MAIL,
+            "tpl"=>'simple',
+            "subject" => $subject,
+            "from" => $emailSender,
+            "to"=>Yii::app()->params['adminEmail'],
+            "tplParams" => array(   "title" => Yii::t("email","New message from").$name,
+                                    "subject" => $subject,
+                                    "message" => $message,
+                                )
+                                    /*   "logo"=> "/images/logo-communecter.png",
+                                    "logo2" => "/images/logoLTxt.jpg")*/
+        );   
+
+        Mail::schedule($params);
+    }
+    /**
+     * Send an email with beta test information
+     * @return null
+     */
     public static function betaTestInformation($person) {
-		$email = $person['email'];
+        $email = $person['email'];
 
-		$params = array (
-			"type" => Cron::TYPE_MAIL,
-			"tpl"=>'betaTest',
-			"subject" => "[".Yii::app()->name."] - Plateforme en cours de test",
-			"from"=>Yii::app()->params['adminEmail'],
-			"to" => $email,
-			"tplParams" => array(   "logo"=> "/images/logo-communecter.png",
-			                        "logo2" => "/images/logoLTxt.jpg")
-		);   
+        $params = array (
+            "type" => Cron::TYPE_MAIL,
+            "tpl"=>'betaTest',
+            "subject" => "[".Yii::app()->name."] - Plateforme en cours de test",
+            "from"=>Yii::app()->params['adminEmail'],
+            "to" => $email,
+            "tplParams" => array(   "logo"=> "/images/logo-communecter.png",
+                                    "logo2" => "/images/logoLTxt.jpg")
+        );   
 
-		Mail::schedule($params);
+        Mail::schedule($params);
     }
 
 }

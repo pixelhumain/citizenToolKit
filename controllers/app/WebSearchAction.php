@@ -33,7 +33,6 @@ class WebSearchAction extends CAction
 
         	$query['$and'][] = $plain;
     	}
-
     	
     	//$query['$and'] = array(array("status" => array('$ne'=>'unreachable', '$ne'=>'locked')));
         $status = @$_POST["status"] ? $_POST["status"] : "validated";
@@ -42,10 +41,9 @@ class WebSearchAction extends CAction
     		$query = array();
 
     	if($status != "uncategorized")
-    	$query['$and'][] = array("status" => $status); //validated active locked uncomplet
-    	 else
-        //if($status == "uncategorized")
-    	$query['$and'] = array(array("categories" => "")); //validated active locked uncomplet
+    	   $query['$and'][] = array("status" => $status); //validated - active - locked - uncomplet
+    	else
+            $query['$and'] = array(array("categories" => "")); //validated - active - locked - uncomplet
 
     	//var_dump($query); exit;
 
@@ -54,7 +52,12 @@ class WebSearchAction extends CAction
             $urlSorted[$i] = array();
         }
 
-    	$siteurls = PHDB::findAndSort("url", $query, array("nbClick"=>-1));
+        $orderBy = @$_POST["orderBy"] ? array($_POST["orderBy"]=>1) : array("nbClick"=>-1);
+        $collection = @$_POST["searchEdit"] ? "urlEdit" : "url";
+        
+        $siteurls = PHDB::findAndSort($collection, $query, $orderBy);
+
+        /* AFTER DB */
     	foreach ($siteurls as $key => $siteurl) {
     		$siteurls[$key]["typeSig"] = "url";
 

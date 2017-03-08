@@ -46,10 +46,14 @@ class SaveReferencementAction extends CAction
 	    	if($geo != false) 			$newSiteurl["geo"] = $geo;
 			if($geoPosition != false) 	$newSiteurl["geoPosition"] = $geoPosition;
 
-	    	if($newRefValide)
+	    	if($newRefValide){
 	    		PHDB::insert("url", $newSiteurl);
+	    		$result = array("valid"=> $newRefValide);
+	    	}else{
+	    		$result = array("status"=> "URL_NOT_VALIDE");
+	    	}
 
-	    	$result = array("valid"=> $newRefValide);
+	    	
 	    
 	    }else{
 	    	$result = array("status"=> "URL_EXISTS");
