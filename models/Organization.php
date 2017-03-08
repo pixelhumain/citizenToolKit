@@ -526,7 +526,7 @@ class Organization {
 
 		$simpleOrganization = array();
 		if(!$orga)
-			$orga = PHDB::findOneById( self::COLLECTION ,$id, array("id" => 1, "name" => 1, "type" => 1, "email" => 1, "url" => 1, "shortDescription" => 1, "description" => 1, "address" => 1, "pending" => 1, "tags" => 1, "geo" => 1, "updated" => 1, "profilImageUrl" => 1, "profilThumbImageUrl" => 1, "profilMarkerImageUrl" => 1,"profilMediumImageUrl" => 1, "addresses"=>1, "telephone"=>1, "disabled"=>1) );
+			$orga = PHDB::findOneById( self::COLLECTION ,$id, array("id" => 1, "name" => 1, "type" => 1, "email" => 1, "url" => 1, "shortDescription" => 1, "description" => 1, "address" => 1, "pending" => 1, "tags" => 1, "geo" => 1, "geoPosition" => 1, "updated" => 1, "profilImageUrl" => 1, "profilThumbImageUrl" => 1, "profilMarkerImageUrl" => 1,"profilMediumImageUrl" => 1, "addresses"=>1, "telephone"=>1, "disabled"=>1) );
 		if(!empty($orga)){
 			$simpleOrganization["id"] = $id;
 			$simpleOrganization["name"] = @$orga["name"];
@@ -537,6 +537,7 @@ class Organization {
 			$simpleOrganization["pending"] = @$orga["pending"];
 			$simpleOrganization["tags"] = @$orga["tags"];
 			$simpleOrganization["geo"] = @$orga["geo"];
+			$simpleOrganization["geoPosition"] = @$orga["geoPosition"];
 			$simpleOrganization["shortDescription"] = @$orga["shortDescription"];
 			$simpleOrganization["description"] = @$orga["description"];
 			$simpleOrganization["updated"] = @$orga["updated"];
