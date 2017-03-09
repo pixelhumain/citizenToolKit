@@ -47,21 +47,6 @@ class Zone {
 	}
 
 
-	/*public static function createCountry($countryName, $countryCode){
-		$countryNominatim = Sig::getGeoByAddressNominatim(null,null, null, $countryCode, true, true, $countryName);
-		$zone = array();
-		if(!empty($countryNominatim)){
-			$zone["name"] = $countryNominatim[0]["display_name"];
-			$zone["countryCode"] = $countryCode;
-			$zone["geo"] = Sig::getFormatGeo($countryNominatim[0]["lat"], $countryNominatim[0]["lon"]);
-			$zone["geoPosition"] = Sig::getFormatGeoPosition($countryNominatim[0]["lat"], $countryNominatim[0]["lon"]);
-			$zone["geoShape"] = $countryNominatim[0]["geojson"];
-			$zone["osmID"] = $countryNominatim[0]["osm_id"];
-			$zone["wikidataID"] = $countryNominatim[0]["extratags"]["wikidata"];
-		}
-		return $zone;
-	}*/
-
 	public static function createLevel($name, $countryCode, $level, $parentKey){
 		$zoneNominatim = array() ;
 		$zone = array();
@@ -98,6 +83,66 @@ class Zone {
 			$res = array( 	"result" => true, 
 							"msg" => "création Country" );
 		}
+	}
+
+
+	public static function createKey($zone){
+		$key = "";
+		if($zone["level"] != "1"){
+			$country = self::getCountryByCountryCode($zone["countryCode"]);
+			$key .= (String)$country["_id"];
+
+			if($zone["level"] == "2"){
+				$key .= "@".(String)$zone["_id"] ;
+			}
+			else{
+				$level2 =  ( ( empty($zone["level2"]) ) ? null : self::getZoneById($zone["level2"]) ) ;
+				$key .= "@".( ( empty($level2["_id"]) ) ? "" : (String)$level2["_id"] );
+
+				if($zone["level"] == "3"){
+					$key .= "@".(String)$zone["_id"] ;
+				}
+				else{
+					$level3 =  ( ( empty($zone["level3"]) ) ? null : self::getZoneById($zone["level3"]) ) ;
+					$key .= "@".( ( empty($level3["_id"]) ) ? "" : (String)$level3["_id"] );
+
+					if($zone["level"] == "4"){
+						$key .= "@".(String)$zone["_id"] ;
+					}else{
+						$level4 =  ( ( empty($zone["level4"]) ) ? null : self::getZoneById($zone["level4"]) ) ;
+						$key .= "@".( ( empty($level4["_id"]) ) ? "" : (String)$level4["_id"] );
+					}
+				}
+			}
+		}
+	}
+
+
+	public static function getCountryByCountryCode($countryCode){
+		$where = array(	"country"=> $countryCode,
+						"level" => "1");
+		$country = PHDB::findOne(self::COLLECTION, $where);
+		return $country;
+	}
+
+
+	public static function getAreaAdministrative($countryCode, $level, $idZone = null, $idInCountry = null, $name = null){
+		$where = array(	"country"=> $countryCode,
+						"level" => $level);
+
+		$zone = array();
+		if(!empty($idInCountry) || !empty($name) ){
+
+			if(!empty($idInCountry))
+				$where["idInCountry"] = $idInCountry ;
+
+			if(!empty($name))
+				$where["name"] = $name ;
+
+			$zone = PHDB::findOne(self::COLLECTION, $where);
+		}
+		
+		return $zone;
 	}
 
 }
