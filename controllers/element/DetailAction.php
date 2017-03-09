@@ -168,8 +168,9 @@ class DetailAction extends CAction {
 		$params["controller"] = Element::getControlerByCollection($type);
 		if(	@$element["links"] ) {
 			if(isset($element["links"][$connectType])){
-				$countStrongLinks=count($element["links"][$connectType]);
+				$countStrongLinks=0;//count($element["links"][$connectType]);
 				$nbMembers=0;
+				$invitedNumber=0;
 				foreach ($element["links"][$connectType] as $key => $aMember) {
 					if($nbMembers < 11){
 						if($aMember["type"]==Organization::COLLECTION){
@@ -184,7 +185,7 @@ class DetailAction extends CAction {
 								$members[$key] = $newOrga ;
 							}
 						} else if($aMember["type"]==Person::COLLECTION){
-							if(!@$aMember["invitorId"]){
+							if(!@$aMember["isInviting"]){
 								$newCitoyen = Person::getSimpleUserById($key);
 								if (!empty($newCitoyen)) {
 									if (@$aMember["type"] == Person::COLLECTION) {
@@ -202,13 +203,21 @@ class DetailAction extends CAction {
 									//array_push($contextMap["people"], $newCitoyen);
 									//array_push($members, $newCitoyen);
 									$members[$key] = $newCitoyen ;
+									$nbMembers++;
 								}
 							}
 						}
-						$nbMembers++;
-					} else {
-						break;
+					} 
+					if(!@$aMember["isInviting"])
+						$countStrongLinks++;
+					else{
+		  				if(@Yii::app()->session["userId"] && $key==Yii::app()->session["userId"])
+		  					$params["invitedMe"]=array("invitorId"=>$aMember["invitorId"],"invitorName"=>$aMember["invitorName"]);
+						$invitedNumber++;
 					}
+					//else {
+						//break;
+					//}
 				}
 			}
 		}
@@ -231,12 +240,13 @@ class DetailAction extends CAction {
 		
 		if($type==Event::COLLECTION){
 			$params["countStrongLinks"]= @$attendeeNumber;
-			$params["countLowLinks"] = @$invitedNumber;
+			//$params["countLowLinks"] = @$invitedNumber;
 		}
 		else{
 			$params["countStrongLinks"]= @$countStrongLinks;
 			$params["countLowLinks"] = count(@$element["links"]["followers"]);
 		}
+		$params["countInvitations"]=@$invitedNumber;
 		$params["countries"] = OpenData::getCountriesList();
 
 		if(@$_POST["modeEdit"]){
