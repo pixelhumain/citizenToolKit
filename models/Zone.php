@@ -47,7 +47,7 @@ class Zone {
 	}
 
 
-	public static function createLevel($name, $countryCode, $level, $parentKey){
+	public static function createLevel($name, $countryCode, $level){
 		$zoneNominatim = array() ;
 		$zone = array();
 
@@ -61,8 +61,7 @@ class Zone {
 			$zone["countryCode"] = $countryCode;
 			$zone["level"] = $level;
 			if($level != "1"){
-				
-				$zone["parentKey"] = $parentKey;
+				$zone["level1"] = self::getIdCountryByCountryCode($countryCode);
 			}
 			$zone["geo"] = SIG::getFormatGeo($zoneNominatim[0]["lat"], $zoneNominatim[0]["lon"]);
 			$zone["geoPosition"] = SIG::getFormatGeoPosition($zoneNominatim[0]["lat"], $zoneNominatim[0]["lon"]);
@@ -115,19 +114,24 @@ class Zone {
 				}
 			}
 		}
+		return $key ;
 	}
 
-
 	public static function getCountryByCountryCode($countryCode){
-		$where = array(	"country"=> $countryCode,
+		$where = array(	"countryCode"=> $countryCode,
 						"level" => "1");
 		$country = PHDB::findOne(self::COLLECTION, $where);
 		return $country;
 	}
 
+	public static function getIdCountryByCountryCode($countryCode){
+		$country = self::getCountryByCountryCode($countryCode);
+		return ( ( empty($country["_id"]) ) ? null : (String)$country["_id"] );
+	}
+
 
 	public static function getAreaAdministrative($countryCode, $level, $idZone = null, $idInCountry = null, $name = null){
-		$where = array(	"country"=> $countryCode,
+		$where = array(	"countryCode"=> $countryCode,
 						"level" => $level);
 
 		$zone = array();
