@@ -10,6 +10,9 @@ class DisconnectAction extends CAction
 	        $parentId=$_POST["parentId"];
 	        $parentType=$_POST["parentType"];
 	        $connectType=$_POST["connectType"];
+	        $linkOption=null;
+	        if(@$_POST["linkOption"])
+	        	$linkOption=$_POST["linkOption"];
 	        $removeMeAsAdmin=false;
 			try {
 				if($parentType==Organization::COLLECTION)
@@ -20,8 +23,8 @@ class DisconnectAction extends CAction
 					$parentConnect=$parentType;
 				//if($parentType == Person::COLLECTION && $childType == Organization::COLLECTION && $connectType == "members")
 				//	$connectType="memberOf";
-				$data=Link::disconnect($childId, $childType, $parentId, $parentType,Yii::app()->session['userId'], $parentConnect);
-				Link::disconnect($parentId, $parentType, $childId, $childType,Yii::app()->session['userId'], $connectType);
+				$data=Link::disconnect($childId, $childType, $parentId, $parentType,Yii::app()->session['userId'], $parentConnect,$linkOption);
+				Link::disconnect($parentId, $parentType, $childId, $childType,Yii::app()->session['userId'], $connectType,$linkOption);
 				if($childId == Yii::app()->session["userId"] && !@$_POST["fromMyDirectory"]){
 					$removeMeAsAdmin=true;
 				}

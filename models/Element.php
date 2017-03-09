@@ -1,7 +1,17 @@
 <?php 
 class Element {
 
-
+	public static $urlTypes = array(
+        "chat" => "Chat",
+        "decisionroom" => "Salle de decision",
+        "website" => "Site web",
+        "partner" => "Partenaire",
+        "documentation" => "Documentation",
+        "wiki" => "Wiki",
+        "management" => "Gestion",
+	    "funding" => "Financement",
+	    "other" => "Autre"
+	);  
 
 	public static function getControlerByCollection ($type) { 
 
@@ -189,11 +199,11 @@ class Element {
 
     /**
      * Return a link depending on the type and the id of the element.
-     * The HTML link could be kind of : <a href="" onclick="loadByHash(...)">name</a>
-     * If loadByHashOnly is set : only the loadByHash will be returned
+     * The HTML link could be kind of : <a href="" onclick="url.loadByHash(...)">name</a>
+     * If url.loadByHashOnly is set : only the url.loadByHash will be returned
      * @param String $type The type of the entity
      * @param String $id The id of the entity
-     * @param type|null $loadByHashOnly if true, will return only the loadbyhash not surounded by the html link
+     * @param type|null $loadByHashOnly if true, will return only the url.loadByHash not surounded by the html link
      * @return String the link on the loaByHash to display the detail of the element
      */
     public static function getLink( $type, $id, $hashOnly=null ) {	    
@@ -219,8 +229,10 @@ class Element {
     	return $link;
     }
 
-	public static function getByTypeAndId($type, $id){
-		if($type == Person::COLLECTION)
+	public static function getByTypeAndId($type, $id,$what=null){
+		if( @$what ) 
+			$element = PHDB::findOneById($type, $id, $what);
+		else if($type == Person::COLLECTION)
 			$element = Person::getById($id);
 		else if($type == Organization::COLLECTION)
 			$element = Organization::getById($id);		
@@ -275,13 +287,13 @@ class Element {
     		$el = PHDB::findOne ( $type , array( "_id" => new MongoId($id) ) );
 	    	$ctrl = self::getControlerByCollection($type);
 	    	if( @$el && @$ctrl )
-	    		$link = "loadByHash('#".$ctrl.".detail.id.".$id."')";
+	    		$link = "url.loadByHash('#".$ctrl.".detail.id.".$id."')";
 	    }
 	    else if($type == City::COLLECTION){
 	    	$el = City::getByUnikey($id);
 	    	$ctrl = self::getControlerByCollection($type);
 	    	if( @$el && @$ctrl )
-	    		$link = "loadByHash('#".$ctrl.".detail.insee.".$el['insee'].".cp.".$el['cp']."')";
+	    		$link = "url.loadByHash('#".$ctrl.".detail.insee.".$el['insee'].".cp.".$el['cp']."')";
 	    }
 	    
 	    if (! $loadByHashOnly) {
@@ -338,12 +350,10 @@ class Element {
 		$dataFieldName = self::getCollectionFieldNameAndValidate($collection, $fieldName, $fieldValue, $id);
 		
 		$verb = (empty($fieldValue) ? '$unset' : '$set');
-		//$verb = '$set' ;
-		//$set = array($fieldName => $fieldValue);
+		
+		if ($dataFieldName == "name") 
+			$fieldValue = $fieldValue;
 
-		//Specific case : 
-		//Tags
-		//var_dump($dataFieldName);
 		if ($dataFieldName == "tags") {
 			$fieldValue = Tags::filterAndSaveNewTags($fieldValue);
 			$set = array($dataFieldName => $fieldValue);
@@ -351,8 +361,13 @@ class Element {
 		else if ( ($dataFieldName == "telephone.mobile"|| $dataFieldName == "telephone.fixe" || $dataFieldName == "telephone.fax")){
 			if($fieldValue ==null)
 				$fieldValue = array();
-			else
-				$fieldValue = explode(",", $fieldValue);
+			else {
+				$split = explode(",", $fieldValue);
+				$fieldValue = array();
+				foreach ($split as $key => $value) {
+					$fieldValue[] = trim($value);
+				}
+			}
 			$set = array($dataFieldName => $fieldValue);
 		}
 		else if ($fieldName == "locality") {
@@ -362,13 +377,15 @@ class Element {
 					$verb = '$set';
 					$address = array(
 				        "@type" => "PostalAddress",
+				         "id" => "468768",
+				        "name" => "mairie",
 				        "codeInsee" => $fieldValue["address"]["codeInsee"],
 				        "addressCountry" => $fieldValue["address"]["addressCountry"],
 				        "postalCode" => $fieldValue["address"]["postalCode"],
 				        "addressLocality" => $fieldValue["address"]["addressLocality"],
 				        "streetAddress" => ((@$fieldValue["address"]["streetAddress"])?trim(@$fieldValue["address"]["streetAddress"]):""),
-				        "depName" => $fieldValue["address"]["depName"],
-				        "regionName" => $fieldValue["address"]["regionName"],
+				        "depName" => ((@$fieldValue["address"]["depName"])?trim(@$fieldValue["address"]["depName"]):""),
+				        "regionName" => ((@$fieldValue["address"]["regionName"])?trim(@$fieldValue["address"]["regionName"]):""),
 				    	);
 					//Check address is well formated
 
@@ -421,8 +438,8 @@ class Element {
 					        "postalCode" => $fieldValue["address"]["postalCode"],
 					        "addressLocality" => $fieldValue["address"]["addressLocality"],
 					        "streetAddress" => ((@$fieldValue["address"]["streetAddress"])?trim(@$fieldValue["address"]["streetAddress"]):""),
-					        "depName" => $fieldValue["address"]["depName"],
-					        "regionName" => $fieldValue["address"]["regionName"],
+					        "depName" => ((@$fieldValue["address"]["depName"])?trim(@$fieldValue["address"]["depName"]):""),
+				        	"regionName" => ((@$fieldValue["address"]["regionName"])?trim(@$fieldValue["address"]["regionName"]):""),
 					    	);
 						//Check address is well formated
 
@@ -455,6 +472,7 @@ class Element {
 						}else{
 							$headSet = "addresses.".$fieldValue["addressesIndex"] ;
 							$updatePull = true ;
+							$pull="contacts";
 						}
 					}
 
@@ -531,16 +549,32 @@ class Element {
 			else{
 				$headSet = "contacts.".$fieldValue["index"] ;
 				unset($fieldValue["index"]);
-				if(count($fieldValue) == 1){
+				if(count($fieldValue) == 0){
 					$verb = '$unset' ;
 					$verbActivity = ActStr::VERB_DELETE ;
 					$fieldValue = null ;
 					$updatePull = true ;
+					$pull="contacts";
+				}
+				$set = array($headSet => $fieldValue);
+				
+			}
+		} else if ($dataFieldName == "urls") {
+			if(empty($fieldValue["index"]))
+				$addToSet = array("urls" => $fieldValue);
+			else{
+				$headSet = "urls.".$fieldValue["index"] ;
+				unset($fieldValue["index"]);
+				if(count($fieldValue) == 0){
+					$verb = '$unset' ;
+					$verbActivity = ActStr::VERB_DELETE ;
+					$fieldValue = null ;
+					$updatePull = true ;
+					$pull="urls";
 				}
 				$set = array($headSet => $fieldValue);
 			}
-		}
-		else
+		} else
 			$set = array($dataFieldName => $fieldValue);
 
 		if ($verb == '$set') {
@@ -583,7 +617,7 @@ class Element {
 
 			if(!empty($updatePull) && $updatePull == true){
 				$resPull = PHDB::update( $collection, array("_id" => new MongoId($id)), 
-		                          array('$pull' => array('addresses' => null)));
+		                          array('$pull' => array($pull => null)));
 			}
 
 			$fieldNames = array("badges", "geo", "geoPosition");
@@ -593,15 +627,13 @@ class Element {
 					$verbActivity = ActStr::VERB_UPDATE ;
 				ActivityStream::saveActivityHistory($verbActivity, $id, $collection, $dataFieldName, $fieldValue);
 			}
-			$res = array("result"=>true,"msg"=>Yii::t(Element::getControlerByCollection($collection),"The ".Element::getControlerByCollection($collection)." has been updated"));
+			$res = array("result"=>true,"msg"=>Yii::t(Element::getControlerByCollection($collection),"The ".Element::getControlerByCollection($collection)." has been updated"), "fieldName" => $fieldName, "value" => $fieldValue);
 
 			if(isset($firstCitizen))
 				$res["firstCitizen"] = $firstCitizen ;
 		}else{
 			throw new CTKException("Can not update the element!");
 		}
-		
-
 		return $res;
 	}
 
@@ -655,7 +687,7 @@ class Element {
 			array_push($contextMap["events"], $elt);
 		}
 		else if ($type == Person::COLLECTION){
-			$connectAs="knows";
+			$connectAs="follows";
 			$elt = Person::getSimpleUserById($id);
 			array_push($contextMap["people"], $elt);
 		}
@@ -873,13 +905,16 @@ class Element {
         }
         
 		PHDB::remove($elementType, array("_id"=>new MongoId($elementId)));
-		return array("result" => true, "msg" => "The element has been deleted succesfully");
+		//since userId is creator 
+		//todo for more complexe elements 
+		$resDocs = Document::removeDocumentByFolder($elementType."/".$elementId);
+		
+		return array("result" => true, "msg" => "The element has been deleted succesfully", "resDocs" => $resDocs);
 	}
 
 	public static function save($params){
         $id = null;
         $data = null;
-
         if(!@$params["collection"] && !@$params["key"])
         	return array("result"=> false, "error"=>"400", "msg" => "Bad Request");
 
@@ -894,10 +929,10 @@ class Element {
 		$paramsLinkImport = ( empty($params["paramsImport"] ) ? null : $params["paramsImport"]);
 
 		unset($params["paramsImport"]);
-        unset($params['collection']);
         unset($params['key']);
        
         $params = self::prepData( $params );
+        unset($params['collection']);
         unset($params['id']);
 
         $postParams = array();
@@ -940,27 +975,33 @@ class Element {
 
             if($id) 
             {
-            	var_dump($params);
+            	//var_dump($params);
                 //update a single field
                 //else update whole map
                 //$changeMap = ( !$microformat && isset( $key )) ? array('$set' => array( $key => $params[ $key ] ) ) : array('$set' => $params );
-                /*PHDB::update($collection,array("_id"=>new MongoId($id)), array('$set' => $params ));
+                $exists = PHDB::findOne($collection,array("_id"=>new MongoId($id)));
+                if(!@$exists){
+                	$params["creator"] = Yii::app()->session["userId"];
+	        		$params["created"] = time();
+                	PHDB::updateWithOptions($collection,array("_id"=>new MongoId($id)), array('$set' => $params ),array('upsert' => true ));
+                }
+                else
+                	PHDB::update($collection,array("_id"=>new MongoId($id)), array('$set' => $params ));
                 $res = array("result"=>true,
                              "msg"=>"Vos données ont été mises à jour.",
                              "reload"=>true,
                              "map"=>$params,
-                             "id"=>$id);*/
+                             "id"=>$id);
             } 
             else 
             {
-                /*$params["created"] = time();
+                $params["created"] = time();
                 PHDB::insert($collection, $params );
                 $res = array("result"=>true,
                              "msg"=>"Vos données ont bien été enregistrées.",
                              "reload"=>true,
                              "map"=>$params,
                              "id"=>(string)$params["_id"]);  
-                
                 //TODO
                 //self::afterSave();
                 
@@ -973,15 +1014,13 @@ class Element {
                 	$res["afterSave"] = Event::afterSave($params);
                 else if( $collection == Project::COLLECTION )
                 	$res["afterSave"] = Project::afterSave($params, @$params["parentId"] , @$params["parentType"] );
-
                 $res["afterSaveGbl"] = self::afterSave((string)$params["_id"],$collection,$params,$postParams);
-
-                if( false && @$params["parentType"] && @$params["parentId"] )
-                {
+                //if( false && @$params["parentType"] && @$params["parentId"] )
+                //{
                     //createdObjectAsParam($authorType, $authorId, $objectType, $objectId, $targetType, $targetId, $geo, $tags, $address, $verb="create")
                     //TODO
                     //Notification::createdObjectAsParam($authorType[Person::COLLECTION],$userId,$elementType, $elementType, $parentType[projet crée par une orga => orga est parent], $parentId, $params["geo"], (isset($params["tags"])) ? $params["tags"]:null ,$params["address"]);  
-                }*/
+                //}
             }
           //  if(@$url = ( @$params["parentType"] && @$params["parentId"] && in_array($collection, array("poi") && Yii::app()->theme != "notragora")) ? "#".self::getControlerByCollection($params["parentType"]).".detail.id.".$params["parentId"] : null )
 	        //    $res["url"] = $url;
@@ -1051,6 +1090,9 @@ class Element {
 			}
 		}
 
+		if(isset($params["name"])) 
+	    	$params["name"] = $params["name"];
+	
 		//TODO SBAR - Manage elsewhere (maybe in the view)
 		//Manage the event startDate and endDate format : 
 		//it comes with the format DD/MM/YYYY HH:ii or DD/MM/YYYY 
@@ -1299,14 +1341,147 @@ class Element {
 	public static function saveContact($params){
 		$id = $params["parentId"];
 		$collection = $params["parentType"];
-		$collection = $params["parentType"];
-		$params["telephone"] = explode(",", $params["phone"]);
+		if(!empty($params["phone"]))
+			$params["telephone"] = explode(",", $params["phone"]);
+		if(!empty($params["idContact"]))
+			$params["id"] = $params["idContact"];
 		unset($params["parentId"]);
 		unset($params["parentType"]);
 		unset($params["phone"]);
-		//$res = null ;
-		$res = self::updateField($collection, $id, "contacts", $params);
+		unset($params["idContact"]);
+
+
+		if(empty($params["name"]) && empty($params["email"]) && empty($params["role"]) && empty($params["telephone"]))
+			$res = array("result" => false, "msg" => "Vous devez avoir au moins une information sur le contact");
+		else
+			$res = self::updateField($collection, $id, "contacts", $params);
+
+		if($res["result"])
+			$res["msg"] = "Les contacts ont été mis à jours";
 		return $res;
+	}
+
+	public static function saveUrl($params){
+		$id = $params["parentId"];
+		$collection = $params["parentType"];
+		$params["url"]=self::getAndCheckUrl($params["url"]);
+
+		unset($params["parentId"]);
+		unset($params["parentType"]);
+		$res = self::updateField($collection, $id, "urls", $params);
+		if($res["result"])
+			$res["msg"] = "Les urls ont été mis à jours";
+		return $res;
+	}
+
+	public static function getAndCheckUrl($url){
+		$needles = array("http://", "https://");
+		$find=false;
+	    foreach($needles as $needle) {
+	    	if(stripos($url, $needle) == 0)
+	    		$find = true;
+	    }
+	    if(!$find)
+	    	$url="http://".$url;
+	    return $url ;
+	}
+
+
+	public static function updateBlock($params){
+		$block = $params["block"];
+		$collection = $params["typeElement"];
+		$id = $params["id"];
+
+		$res = array();
+		if($block == "contact"){
+			if(isset($params["email"]))
+				$res[] = self::updateField($collection, $id, "email", $params["email"]);
+			if(isset($params["url"]))
+				$res[] = self::updateField($collection, $id, "url", self::getAndCheckUrl($params["url"]));
+			if(isset($params["birthDate"]))
+				$res[] = self::updateField($collection, $id, "birthDate", $params["birthDate"]);
+			if(isset($params["fixe"]))
+				$res[] = self::updateField($collection, $id, "fixe", $params["fixe"]);
+			if(isset($params["fax"]))
+				$res[] = self::updateField($collection, $id, "fax", $params["fax"]);
+			if(isset($params["mobile"]))
+				$res[] = self::updateField($collection, $id, "mobile", $params["mobile"]);
+
+		}else if($block == "info"){
+			if(isset($params["name"]))
+				$res[] = self::updateField($collection, $id, "name", $params["name"]);
+			if(isset($params["username"]))
+				$res[] = self::updateField($collection, $id, "username", $params["username"]);
+			if(isset($params["shortDescription"]))
+				$res[] = self::updateField($collection, $id, "shortDescription", $params["shortDescription"]);
+			if(isset($params["avancement"]))
+				$res[] = self::updateField($collection, $id, "avancement", $params["avancement"]);
+			if(isset($params["tags"]))
+				$res[] = self::updateField($collection, $id, "tags", $params["tags"]);
+			if(isset($params["type"]))
+				$res[] = self::updateField($collection, $id, "type", $params["type"]);
+			if(isset($params["telegramAccount"]))
+				$res[] = self::updateField($collection, $id, "telegramAccount", $params["telegramAccount"]);
+			if(isset($params["facebookAccount"]))
+				$res[] = self::updateField($collection, $id, "facebookAccount", self::getAndCheckUrl($params["facebookAccount"]));
+			if(isset($params["twitterAccount"]))
+				$res[] = self::updateField($collection, $id, "twitterAccount", self::getAndCheckUrl($params["twitterAccount"]));
+			if(isset($params["gitHubAccount"]))
+				$res[] = self::updateField($collection, $id, "gitHubAccount", self::getAndCheckUrl($params["gitHubAccount"]));
+			if(isset($params["gpplusAccount"]))
+				$res[] = self::updateField($collection, $id, "url", self::getAndCheckUrl($params["gpplusAccount"]));
+			if(isset($params["skypeAccount"]))
+				$res[] = self::updateField($collection, $id, "url", self::getAndCheckUrl($params["skypeAccount"]));
+		}else if($block == "when"){
+			if(isset($params["allDay"]))
+				$res[] = self::updateField($collection, $id, "allDay", (($params["allDay"] == "true") ? true : false));
+			if(isset($params["startDate"]))
+				$res[] = self::updateField($collection, $id, "startDate", $params["startDate"]);
+			if(isset($params["endDate"]))
+				$res[] = self::updateField($collection, $id, "endDate", $params["endDate"]);
+		}else if($block == "toMarkdown"){
+			$res[] = self::updateField($collection, $id, "description", $params["value"]);
+			$res[] = self::updateField($collection, $id, "descriptionHTML", null);
+		}
+
+		if(Import::isUncomplete($id, $collection)){
+			Import::checkWarning($id, $collection, Yii::app()->session['userId'] );
+		}
+
+		$result = array("result"=>true);
+		$resultGoods = array();
+		$resultErrors = array();
+		$values = array();
+		$msg = "";
+		$msgError = "";
+		foreach ($res as $key => $value) {
+			if($value["result"] == true){
+				if($msg != "")
+					$msg .= ", ";
+				$msg .= $value["fieldName"];
+				$values[$value["fieldName"]] = $value["value"];
+			}else{
+				if($msgError != "")
+					$msgError .= ". ";
+				$msgError .= $value["mgs"];
+			}
+		}
+
+		if($msg != ""){
+			$resultGoods["result"]=true;
+			$resultGoods["msg"]=Yii::t("common", "The next attributs has been updated : ".$msg);
+			$resultGoods["values"] = $values ;
+			$result["resultGoods"] = $resultGoods ;
+			$result["result"] = true ;
+		}
+
+		if($msgError != ""){
+			$resultErrors["result"]=false;
+			$resultErrors["msg"]=Yii::t("common", $msgError);
+			$result["resultErrors"] = $resultErrors ;
+		}
+
+		return $result;
 	}
 
 }

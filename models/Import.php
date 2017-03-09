@@ -38,7 +38,10 @@ class Import
         header('Content-Type: text/html; charset=UTF-8');
         $params = array("result"=>false);
         if(isset($post['file'])) {
-            $json = $post['file'][0];            
+            
+            $json = $post['file'][0];
+            //(empty($post["path"]) ? $post['file'][0] : $post['file'][0][$post["path"]]);
+            
             if($post['idMapping'] != "-1"){
                 $where = array("_id" => new MongoId($post['idMapping']));
                 $fields = array("fields");
@@ -47,6 +50,12 @@ class Import
             }
             else
                 $arrayMapping = array();
+
+            if(!empty($post["path"])){
+                $json = json_decode($json,true);
+                $json = $json[$post["path"]];
+                $json = json_encode($json);
+            }
 
             if(substr($json, 0,1) == "{")
                 $arbre = self::getAllPathJson($json); 

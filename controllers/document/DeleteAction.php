@@ -8,15 +8,16 @@ class DeleteAction extends CAction {
 			return;
 		}
 
-		if ($_POST["path"]=="communevent"){
+		if ( @$_POST["path"] == "communevent" ){
 			// Method for Communevent
 			Document::removeDocumentCommuneventByObjId($_POST["docId"], Yii::app()->session["userId"]);
 			if(@$_POST["source"] && $_POST["source"]=="gallery")
 				News::removeNewsByImageId($_POST["docId"]);
-			echo json_encode(array('result'=>true, "msg" => Yii::t("document","Image deleted")));
+			
 		} else {
-			Document::removeDocumentById($_POST["docId"], Yii::app()->session["userId"]);
-			echo json_encode(array('result'=>true, "msg" => Yii::t("document","Image deleted")));
+			$res = Document::removeDocumentById($_POST["docId"], Yii::app()->session["userId"]);
+			
 	    }
+	    Rest::json($res);
 	}
 }

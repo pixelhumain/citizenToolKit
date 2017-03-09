@@ -23,7 +23,7 @@ class CO2Stat {
 		}else{
 			$today = date("D");
 			
-			$nbLoad = $stat["hash"][$hash][$today]["nbLoad"];
+			$nbLoad = @$stat["hash"][$hash][$today]["nbLoad"];
 			$stat["hash"][$hash][$today]["nbLoad"] = $nbLoad+1;
 			//var_dump($stat); //exit;
 			$resUpdate = PHDB::update(self::COLLECTION, $query, array('$set' => $stat));
@@ -73,9 +73,9 @@ class CO2Stat {
 							 					  "co2-websearch"=>array(),
 							 					  "co2-referencement"=>array(),
 							 					  "co2-live"=>array(),
-							 					  "co2-social"=>array(),
+							 					  "co2-search"=>array(),
 							 					  "co2-page"=>array(),
-							 					  "co2-freedom"=>array(),
+							 					  "co2-annonces"=>array(),
 							 					  "co2-agenda"=>array(),
 							 					  "co2-power"=>array()),
                         );
@@ -98,8 +98,8 @@ class CO2Stat {
 		return $stat;
 	}
 
-	private static function getTodayWeek(){
-		date_default_timezone_set('Pacific/Noumea');
+	private static function getTodayWeek(){ error_log("getTodayWeek");
+		//date_default_timezone_set('Pacific/Noumea');
 		$w = date("W");
 		$y = date("Y");
 		$week = $w.$y;

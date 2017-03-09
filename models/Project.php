@@ -34,15 +34,24 @@ class Project {
 	    "medias" => array("name" => "medias"),
 	    "urls" => array("name" => "urls"),
 	    "type" => array("name" => "type"),
-		
+	    "contacts" => array("name" => "contacts"),
 		"parentId" => array("name" => "parentId"),
 		"parentType" => array("name" => "parentType"),
-
 		"modified" => array("name" => "modified"),
 	    "updated" => array("name" => "updated"),
 	    "creator" => array("name" => "creator"),
 	    "created" => array("name" => "created"),
 	    "locality" => array("name" => "address"),
+	    "descriptionHTML" => array("name" => "descriptionHTML"),
+	);
+
+	public static $avancement = array(
+        "idea" => "idea",
+        "concept" => "concept",
+        "started" => "started",
+        "development" => "development",
+        "testing" => "testing",
+        "mature" => "mature"
 	);
 
 	private static function getCollectionFieldNameAndValidate($projectFieldName, $projectFieldValue, $projectId) {
@@ -276,11 +285,11 @@ class Project {
 			$params['parentType'] = Person::COLLECTION; 
 			$params['parentId'] = Yii::app() -> session["userId"];
 		}
-
 		Link::addContributor(Yii::app() -> session["userId"],Person::COLLECTION,$params['parentId'], $params['parentType'],$params["_id"]);
-	   // Link::connect($parentId, $parentType, $params["_id"], self::COLLECTION, $parentId, "projects", true );
-
 	    Notification::createdObjectAsParam(Person::COLLECTION,Yii::app() -> session["userId"],Project::COLLECTION, (String)$params["_id"], $params['parentType'], $params['parentId'], @$params["geo"], @$params["tags"] ,@$params["address"]);
+	    if($params["parentType"]==Organization::COLLECTION || $params["parentType"]==Project::COLLECTION)
+	    	Notification::constructNotification(ActStr::VERB_ADD, array("id" => Yii::app()->session["userId"],"name"=> Yii::app()->session["user"]["name"]), array("type"=>$params["parentType"],"id"=> $params["parentId"]), array("id"=>(string)$params["_id"],"type"=> Project::COLLECTION), Project::COLLECTION);
+
 	    //ActivityStream::saveActivityHistory(ActStr::VERB_CREATE, (String)$params["_id"], Project::COLLECTION, "project", $params["name"]);
 	    return array("result"=>true, "msg"=>"Votre projet est communecté.", "id" => $params["_id"]);	
 		
@@ -523,16 +532,25 @@ class Project {
 	  	
 	  	if ( isset($project) && isset( $project["links"] ) && isset( $project["links"]["contributors"] ) ) 
 	  	{
-	  		$contributors = $project["links"]["contributors"];
+	  		$contributors = array();
+	  		foreach($project["links"]["contributors"] as $key => $contributor){
+	  			if (!@$contributor["toBeValidated"] && !@$contributor["isInviting"])
+	  				$contributors[$key]=$contributor;
+	  		}
 	  		//No filter needed
 	  		if ($type == "all") {
 	  			return $contributors;
 	  		} else {
 	  			foreach ($project["links"]["contributors"] as $key => $contributor) {
 		            if ($contributor['type'] == $type ) {
-		                $res[$key] = $contributor;
+		            	if (!@$contributor["toBeValidated"] && !@$contributor["isInviting"])
+		            		$res[$key] = $contributor;
 		            }
 		            if ( $role && @$contributor[$role] == true ) {
+		            	if ($role=="isAdmin"){
+		            		if(!@$contributor["isAdminPending"])
+		            			$res[$key] = $contributor;
+		            	} else
 		                $res[$key] = $contributor;
 		            }
 	        	}

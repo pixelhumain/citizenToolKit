@@ -35,7 +35,8 @@ class DetailAction extends CAction {
 			if(isset($element["links"]["events"])){
 				foreach ($element["links"]["events"] as $keyEv => $valueEv) {
 					 $event = Event::getSimpleEventById($keyEv);
-	           		 $events[$keyEv] = $event;
+	           		 if(!empty($event))
+	           		 	$events[$keyEv] = $event;
 				}
 			}
 			
@@ -49,9 +50,9 @@ class DetailAction extends CAction {
 			
 			// Link with needs
 			if(isset($element["links"]["needs"])){
-				foreach ($element["links"]["needs"] as $key => $value){
-					$need = Need::getSimpleNeedById($key);
-	           		$needs[$key] = $need;
+				foreach ($element["links"]["needs"] as $keyNeed => $value){
+					$need = Need::getSimpleNeedById($keyNeed);
+	           		$needs[$keyNeed] = $need;
 				}
 			}
 			
@@ -71,9 +72,10 @@ class DetailAction extends CAction {
 			}
 
 			if(isset($element["links"]["needs"])){
-				foreach ($element["links"]["needs"] as $key => $value){
-					$need = Need::getSimpleNeedById($key);
-	           		$needs[$key] = $need;
+				foreach ($element["links"]["needs"] as $keyNeed => $value){
+					error_log("getting needs : ".$keyNeed);
+					$need = Need::getSimpleNeedById($keyNeed);
+	           		$needs[$keyNeed] = $need;
 				}
 			}
 
@@ -109,7 +111,7 @@ class DetailAction extends CAction {
 		                $urlType="organization";	
 		                $organizerInfo = Organization::getSimpleOrganizationById($uid);  
 						$organizer["type"]=$urlType;
-						$organizer["typeOrga"]=$organizerInfo["type"];              
+						$organizer["typeOrga"]=@$organizerInfo["type"];              
             		}
 					else{
 						$iconNav="fa-user";
@@ -125,7 +127,7 @@ class DetailAction extends CAction {
 		  		$params["organizer"] = $organizer;
               		
             }
-			//events can have sub evnets
+			//events can have sub events
 	        $params["subEvents"] = PHDB::find(Event::COLLECTION,array("parentId"=>$id));
 	        $params["subEventsOrganiser"] = array();
 	        $hasSubEvents = false;
@@ -166,8 +168,9 @@ class DetailAction extends CAction {
 		$params["controller"] = Element::getControlerByCollection($type);
 		if(	@$element["links"] ) {
 			if(isset($element["links"][$connectType])){
-				$countStrongLinks=count($element["links"][$connectType]);
+				$countStrongLinks=0;//count($element["links"][$connectType]);
 				$nbMembers=0;
+				$invitedNumber=0;
 				foreach ($element["links"][$connectType] as $key => $aMember) {
 					if($nbMembers < 11){
 						if($aMember["type"]==Organization::COLLECTION){
@@ -182,7 +185,7 @@ class DetailAction extends CAction {
 								$members[$key] = $newOrga ;
 							}
 						} else if($aMember["type"]==Person::COLLECTION){
-							if(!@$aMember["invitorId"]){
+							if(!@$aMember["isInviting"]){
 								$newCitoyen = Person::getSimpleUserById($key);
 								if (!empty($newCitoyen)) {
 									if (@$aMember["type"] == Person::COLLECTION) {
@@ -200,19 +203,27 @@ class DetailAction extends CAction {
 									//array_push($contextMap["people"], $newCitoyen);
 									//array_push($members, $newCitoyen);
 									$members[$key] = $newCitoyen ;
+									$nbMembers++;
 								}
 							}
 						}
-						$nbMembers++;
-					} else {
-						break;
+					} 
+					if(!@$aMember["isInviting"])
+						$countStrongLinks++;
+					else{
+		  				if(@Yii::app()->session["userId"] && $key==Yii::app()->session["userId"])
+		  					$params["invitedMe"]=array("invitorId"=>$aMember["invitorId"],"invitorName"=>$aMember["invitorName"]);
+						$invitedNumber++;
 					}
+					//else {
+						//break;
+					//}
 				}
 			}
 		}
 		//$lists = Lists::get($listsToRetrieve);
 		//$params["eventTypes"] = $list["eventTypes"];
-		$params["tags"] = Tags::getActiveTags();
+		$params["tags"] = array("TODO : écrire la liste de suggestion de tags"); Tags::getActiveTags();
 		$params["element"] = $element;
 		$params["members"] = $members;
 		$params["type"] = $type;
@@ -229,32 +240,39 @@ class DetailAction extends CAction {
 		
 		if($type==Event::COLLECTION){
 			$params["countStrongLinks"]= @$attendeeNumber;
-			$params["countLowLinks"] = @$invitedNumber;
+			//$params["countLowLinks"] = @$invitedNumber;
 		}
 		else{
 			$params["countStrongLinks"]= @$countStrongLinks;
 			$params["countLowLinks"] = count(@$element["links"]["followers"]);
 		}
+		$params["countInvitations"]=@$invitedNumber;
 		$params["countries"] = OpenData::getCountriesList();
 
 		if(@$_POST["modeEdit"]){
 			$params["modeEdit"]=$_POST["modeEdit"];
 		}
+		
 		if(@$_GET["network"])
 			$params["networkJson"]=Network::getNetworkJson($_GET["network"]);
 		
 		$page = "detail";
 
+		if(@$_GET["tpl"] == "detail")
+				$page = "detail";
+		
 		if(@$_GET["tpl"] == "onepage")
 				$page = "onepage";
 			
 		if(@$_GET["tpl"] == "profilSocial")
 				$page = "profilSocial";
 		
-		if(Yii::app()->theme->name == "notragora")
-				$page = "notragora/detail";
-			
+		if( in_array( Yii::app()->theme->name, array("notragora") ) )
+				$page = Yii::app()->theme->name."/detail";
+		
+		//var_dump($params); //exit;
 		//$page = "onepage";
+		$params["params"] = $params;
 		if(Yii::app()->request->isAjaxRequest)
           echo $controller->renderPartial($page,$params,true);
         else 

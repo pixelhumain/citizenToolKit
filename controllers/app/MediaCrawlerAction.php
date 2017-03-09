@@ -116,7 +116,7 @@ class MediaCrawlerAction extends CAction
 
 			    }else{
 			    	$result .= "URL IGNORED : ".$href."<br>";
-                    error_log("MediaCrawler : IGNORED ".$href);
+                    error_log("MediaCrawler : IGNORED (media exists)".$href);
                         
 			    }
 
@@ -235,7 +235,7 @@ class MediaCrawlerAction extends CAction
     		$month = $this->getMonthNum($dateS[1]);
 
     		if($month == false) return false;
-    		else $month++;
+    		//else $month++;
     		
     		$date = $dateS[2]."-".$month."-".$dateS[0]." 00:00:00";
     		$date = new DateTime($date);
@@ -248,12 +248,12 @@ class MediaCrawlerAction extends CAction
     		$dateC = str_replace("Streamed live on ", "", $dateC);
     		$dateC = str_replace(",", "", $dateC);
     		$dateS = explode(" ", $dateC);
-    		//echo "date : ".$dateC."<br>";// exit;
     		$month = $this->getMonthNum($dateS[0]);
-
-    		if($month == false) return false;
-    		else $month++;
+           
+          	if($month == false) return false;
+    		//else $month++;
     		
+            
     		$date = $dateS[1]."-".$month."-".$dateS[2]." 00:00:00"; 
     		$date = new DateTime($date);
     		//echo $date->format('Y-m-d H:i:s'); //exit;
@@ -263,16 +263,17 @@ class MediaCrawlerAction extends CAction
     	return $date;
     }
 
-    private function getMonthNum($monthName){
+    private function getMonthNum($monthName){ 
     	$months = array('janvier', "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre");
     	foreach($months as $key => $value){
-    		if($value == $monthName) return $key;
+    		if($value == $monthName) return $key+1;
     	}
     	//date youtube
     	//echo $monthName."<br>";
-    	$months = array('Jan', "Feb", "Mar", "Apr", "May", "June", "Jul", "Aug", "Sep", "Oct.", "Nov", "Dec");
+        
+    	$months = array('Jan', "Feb", "Mar", "Apr", "May", "June", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec");
     	foreach($months as $key => $value){
-    		if($value == $monthName) return $key;
+            if($value == $monthName) return $key+1;
     	}
     	return false;
     }

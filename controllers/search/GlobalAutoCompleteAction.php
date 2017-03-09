@@ -3,8 +3,8 @@ class GlobalAutoCompleteAction extends CAction
 {
     public function run($filter = null)
     {
-
-        $search = trim(urldecode($_POST['name']));
+    	//ini_set('memory_limit', '-1');
+        $search = @$_POST['name'] ? trim(urldecode($_POST['name'])) : "";
         $locality = isset($_POST['locality']) ? trim(urldecode($_POST['locality'])) : null;
         $searchType = isset($_POST['searchType']) ? $_POST['searchType'] : null;
         $searchTag = isset($_POST['searchTag']) ? $_POST['searchTag'] : null;
@@ -16,15 +16,15 @@ class GlobalAutoCompleteAction extends CAction
 
         $indexStep = $indexMax - $indexMin;
         
-        $searchTypeOrga = "";
+        $searchTypeOrga = ""; /* used in CO2 to find different organisation type */
         if( sizeOf($searchType) == 1 &&
         	$searchType[0] == Organization::TYPE_NGO ||
          	$searchType[0] == Organization::TYPE_BUSINESS ||
          	$searchType[0] == Organization::TYPE_GROUP ||
         	$searchType[0] == Organization::TYPE_GOV) {
-        	$searchTypeOrga = $searchType[0];
-        	$searchType = array(Organization::COLLECTION);
-        }
+	        	$searchTypeOrga = $searchType[0];
+	        	$searchType = array(Organization::COLLECTION);
+        } 
        // error_log("global search " . $search . " - searchType : ". $searchType); //. " & locality : ". $locality. " & country : ". $country);
 	    
    //      if($search == "" && $locality == "") {
@@ -179,9 +179,8 @@ class GlobalAutoCompleteAction extends CAction
 		  			if( @$value["links"]["followers"][Yii::app()->session["userId"]] )
 			  			$orga["isFollowed"] = true;
 
-			  		if(@$searchTypeOrga != "")
-						$orga["typeOrga"] = $searchTypeOrga;
-
+			  		if(@$orga["type"] != "")
+						$orga["typeOrga"] = $orga["type"];
 					$orga["type"] = "organization";
 
 					$orga["typeSig"] = Organization::COLLECTION;
@@ -218,8 +217,9 @@ class GlobalAutoCompleteAction extends CAction
 				if(@$allEvents[$key]["endDate"])
 					$allEvents[$key]["endDate"] = date(DateTime::ISO8601, $allEvents[$key]["endDate"]->sec);
 	  		}
-	  		
+
 	  		$allRes = array_merge($allRes, $allEvents);
+
 	  	}
 	  	//error_log("recherche - indexMin : ".$indexMin." - "." indexMax : ".$indexMax);
 	  	/***********************************  PROJECTS   *****************************************/
@@ -454,7 +454,9 @@ class GlobalAutoCompleteAction extends CAction
 	    			}
         		}
 
-        		$allRooms[$keyR]["typeSig"] = $allRooms[$keyR]["type"];
+        		//var_dump($allRooms[$keyR]);exit;
+
+        		$allRooms[$keyR]["typeSig"] = @$allRooms[$keyR]["type"];
         	}
         	
         	//pour chaque resultat, on ajoute les infos du parentRoom
@@ -487,6 +489,7 @@ class GlobalAutoCompleteAction extends CAction
 	  	/***********************************  CITIES   *****************************************/
         if(strcmp($filter, City::COLLECTION) != 0 && $this->typeWanted(City::COLLECTION, $searchType)){
 	  		$query = array( "name" => new MongoRegex("/".self::wd_remove_accents($search)."/i"));//array('$text' => array('$search' => $search));//
+
 	  		
 	  		/***********************************  DEFINE LOCALITY QUERY   *****************************************/
 	        	if($locality == null || $locality == "")
@@ -681,7 +684,7 @@ class GlobalAutoCompleteAction extends CAction
 	}
 
 	private function typeWanted($type, $searchType){
-		if($searchType == null) return true;
+		if($searchType == null || $searchType[0] == "all") return true;
 		return in_array($type, $searchType);
 	}
 

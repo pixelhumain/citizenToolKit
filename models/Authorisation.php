@@ -530,10 +530,20 @@ class Authorisation {
             if ( Authorisation::canEditItem($userId, $parentId, $parentType) )  {
 	            return true;
 	       }
-        } else {
-	        //RAJOUTER UN LOG
-			error_log("Problem with survey authorization, surveyId:".@$surveyId." & userId:".@$userId);
-        }
+        } 
+        return $res;
+    }
+
+    public static function canEditPoi($userId, $id){
+        $res = false;
+        $poi = Poi::getById($id) ;
+
+        if( @$poi && !empty($userId) ) {
+            if( ($poi["parentType"] == Person::COLLECTION && $userId == $poi["parentId"] )
+                || $userId == $poi["creator"]
+                || Authorisation::canEditItem($userId, $poi["parentId"], $poi["parentType"]) ) 
+                return true;
+        } 
         return $res;
     }
 
@@ -594,6 +604,10 @@ class Authorisation {
         {
             $res = self::canEditSurvey($userId, $itemId,$parentType,$parentId);
         }
+        else if($type == Poi::COLLECTION) 
+        {
+            $res = self::canEditPoi($userId, $itemId);
+        }
     	return $res;
     }
 
@@ -609,6 +623,8 @@ class Authorisation {
         {   $res = Preference::isOpenEdition(Preference::getPreferencesByTypeId($itemId, $type));
             //var_dump($res);
             if($res != true){
+                if( $type == Person::COLLECTION && $itemId == $userId)
+                    $res = true;
                 if( $type == Organization::COLLECTION )
                     $res = self::isOrganizationMember($userId, $itemId);
                 if( $type == Project::COLLECTION )
