@@ -295,19 +295,23 @@ class Thing {
 
 	}
 	
-	public static function fillSmartCitizenData($headers){
-		$dataThing = array();
-
-		$data = $headers['X-SmartCitizenData']; 
-        $datasub = substr($data, 1, (strlen($data)-2));
-        $datapoints = json_decode($datasub,true);
-        
-        $dataThing['collection']=self::COLLECTION_DATA;        
-        $dataThing['key'] = 'thing';
-        $dataThing['type'] 	 = self::SCK_TYPE;
-        $dataThing['boardId']=$headers['X-SmartCitizenMacADDR'];
-        $dataThing['version']=$headers['X-SmartCitizenVersion'];
-        return array_merge($dataThing, $datapoints);
+	public static function fillAndSaveSmartCitizenData($headers){
+		
+		$data = json_decode($headers["X-SmartCitizenData"],true);
+		//print_r($data);
+		foreach ($data as $datum) {
+			//echo "<br>\n";
+			$dataThing = array();
+			$dataThing['collection']=self::COLLECTION_DATA;        
+        	$dataThing['key'] = 'thing';
+        	$dataThing['type'] 	 = self::SCK_TYPE;
+        	$dataThing['boardId']=$headers['X-SmartCitizenMacADDR'];
+        	$dataThing['version']=$headers['X-SmartCitizenVersion'];
+			# code...
+			$res = Element::save(array_merge($dataThing, $datum));
+			//print_r($res);
+		}
+        return $res;
 	}
 
 	public static function fillSmartCitizenMetadata($partReadings,$address,$geo){
