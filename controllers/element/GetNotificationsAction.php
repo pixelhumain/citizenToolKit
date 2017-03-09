@@ -1,12 +1,10 @@
 <?php
+
+class GetNotificationsAction extends CAction {
 /**
- * a notification has been read by a user
- * remove it's entry in the notify node on an activity Stream for the current user
- * @return [json] 
- */
-class GetAction extends CAction
-{
-     public function run($type,$id) { 
+* Dashboard Notifications By Element and User
+*/
+    public function run($type,$id) { 
         $res = array();
         if( Yii::app()->session["userId"] )
         {
@@ -25,7 +23,7 @@ class GetAction extends CAction
               );
           }else
             $params = array("notify.id.".Yii::app()->session["userId"] => array('$exists' => true));
-            $res = ActivityStream::getNotifications($params);
+            $res = ActivityStream::getNotificationsByTypeAndId($params);
         } else
             $res = array('result' => false , 'msg'=>'something somewhere went terribly wrong');
             
@@ -33,3 +31,5 @@ class GetAction extends CAction
         Yii::app()->end();
     }
 }
+
+?>

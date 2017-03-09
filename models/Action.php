@@ -98,6 +98,7 @@ class Action
                                                        '$set'=>array( "updated" => time(),
                                                                       "modified" => new MongoDate(time()))
                                                        ));
+                    // DELETE IN NOTIFICATION REMOVE LIKE
                 }
                 else{
                     $mapObject[ $action.".".(string)$user["_id"] ] = $details ;
@@ -116,10 +117,26 @@ class Action
                     PHDB::update ($collection, 
                                     array("_id" => new MongoId($element["_id"])), 
                                     $params);
-
+                    //NOTIFICATION LIKE AND DISLIKE
+                    if($action == "voteUp") 
+                       $verb = ActStr::VERB_LIKE;
+                    else if($action == "voteDown")
+                        $verb = ActStr::VERB_UNLIKE;
+                    if(@$verb && $collection != Survey::COLLECTION){
+                        $objectNotif=null;
+                        if($collection==Comment::COLLECTION){
+                            $target=array("type"=>$element["contextType"], "id"=>$element["contextId"]);
+                            $objectNotif=array("type"=>$collection,"id"=>(string)$element["_id"]);
+                        } else {
+                            $target=array("type"=>$collection, "id"=>(string)$element["_id"]);
+                            if(@$element["targetIsAuthor"] || @$target["object"])
+                                $target["targetIsAuthor"]=true;
+                        }
+                        Notification::constructNotification($verb, array("id" => Yii::app()->session["userId"],"name"=> Yii::app()->session["user"]["name"]), $target, $objectNotif, $collection);
+                    }
                 }
 
-                self::addActionHistory( $userId , $id, $collection, $action);
+                //self::addActionHistory( $userId , $id, $collection, $action);
                 
                 self::updateParent( $id, $collection);
 
@@ -156,7 +173,7 @@ class Action
         return $res;
     }
 
-    /*
+    /* TODO BOUBOULE - Not necessary anymore ... ?
     The Action History colelction helps build timeline and historical visualisations 
     on a given item
     in time we could also use it as a base for undoing tasks

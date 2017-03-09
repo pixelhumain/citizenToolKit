@@ -24,7 +24,7 @@ class GlobalAutoCompleteAction extends CAction
         	$searchType[0] == Organization::TYPE_GOV) {
 	        	$searchTypeOrga = $searchType[0];
 	        	$searchType = array(Organization::COLLECTION);
-        }
+        } 
        // error_log("global search " . $search . " - searchType : ". $searchType); //. " & locality : ". $locality. " & country : ". $country);
 	    
    //      if($search == "" && $locality == "") {
@@ -217,8 +217,9 @@ class GlobalAutoCompleteAction extends CAction
 				if(@$allEvents[$key]["endDate"])
 					$allEvents[$key]["endDate"] = date(DateTime::ISO8601, $allEvents[$key]["endDate"]->sec);
 	  		}
-	  		
+
 	  		$allRes = array_merge($allRes, $allEvents);
+
 	  	}
 	  	//error_log("recherche - indexMin : ".$indexMin." - "." indexMax : ".$indexMax);
 	  	/***********************************  PROJECTS   *****************************************/

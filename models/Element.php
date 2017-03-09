@@ -199,11 +199,11 @@ class Element {
 
     /**
      * Return a link depending on the type and the id of the element.
-     * The HTML link could be kind of : <a href="" onclick="loadByHash(...)">name</a>
-     * If loadByHashOnly is set : only the loadByHash will be returned
+     * The HTML link could be kind of : <a href="" onclick="url.loadByHash(...)">name</a>
+     * If url.loadByHashOnly is set : only the url.loadByHash will be returned
      * @param String $type The type of the entity
      * @param String $id The id of the entity
-     * @param type|null $loadByHashOnly if true, will return only the loadbyhash not surounded by the html link
+     * @param type|null $loadByHashOnly if true, will return only the url.loadByHash not surounded by the html link
      * @return String the link on the loaByHash to display the detail of the element
      */
     public static function getLink( $type, $id, $hashOnly=null ) {	    
@@ -287,13 +287,13 @@ class Element {
     		$el = PHDB::findOne ( $type , array( "_id" => new MongoId($id) ) );
 	    	$ctrl = self::getControlerByCollection($type);
 	    	if( @$el && @$ctrl )
-	    		$link = "loadByHash('#".$ctrl.".detail.id.".$id."')";
+	    		$link = "url.loadByHash('#".$ctrl.".detail.id.".$id."')";
 	    }
 	    else if($type == City::COLLECTION){
 	    	$el = City::getByUnikey($id);
 	    	$ctrl = self::getControlerByCollection($type);
 	    	if( @$el && @$ctrl )
-	    		$link = "loadByHash('#".$ctrl.".detail.insee.".$el['insee'].".cp.".$el['cp']."')";
+	    		$link = "url.loadByHash('#".$ctrl.".detail.insee.".$el['insee'].".cp.".$el['cp']."')";
 	    }
 	    
 	    if (! $loadByHashOnly) {
@@ -915,7 +915,6 @@ class Element {
 	public static function save($params){
         $id = null;
         $data = null;
-
         if(!@$params["collection"] && !@$params["key"])
         	return array("result"=> false, "error"=>"400", "msg" => "Bad Request");
 
@@ -1003,7 +1002,6 @@ class Element {
                              "reload"=>true,
                              "map"=>$params,
                              "id"=>(string)$params["_id"]);  
-                
                 //TODO
                 //self::afterSave();
                 
@@ -1016,15 +1014,13 @@ class Element {
                 	$res["afterSave"] = Event::afterSave($params);
                 else if( $collection == Project::COLLECTION )
                 	$res["afterSave"] = Project::afterSave($params, @$params["parentId"] , @$params["parentType"] );
-
                 $res["afterSaveGbl"] = self::afterSave((string)$params["_id"],$collection,$params,$postParams);
-
-                if( false && @$params["parentType"] && @$params["parentId"] )
-                {
+                //if( false && @$params["parentType"] && @$params["parentId"] )
+                //{
                     //createdObjectAsParam($authorType, $authorId, $objectType, $objectId, $targetType, $targetId, $geo, $tags, $address, $verb="create")
                     //TODO
                     //Notification::createdObjectAsParam($authorType[Person::COLLECTION],$userId,$elementType, $elementType, $parentType[projet crée par une orga => orga est parent], $parentId, $params["geo"], (isset($params["tags"])) ? $params["tags"]:null ,$params["address"]);  
-                }
+                //}
             }
           //  if(@$url = ( @$params["parentType"] && @$params["parentId"] && in_array($collection, array("poi") && Yii::app()->theme != "notragora")) ? "#".self::getControlerByCollection($params["parentType"]).".detail.id.".$params["parentId"] : null )
 	        //    $res["url"] = $url;
