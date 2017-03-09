@@ -35,7 +35,7 @@ class AddActionAction extends CAction
                 if( @$survey ){
                     $room = ActionRoom::getById( $survey['survey'] );
                     if( in_array( $room["parentType"], array( Organization::COLLECTION, Project::COLLECTION  ) ) )
-                        Notification::actionOnPerson ( ActStr::VERB_VOTE, ActStr::ICON_VOTE, "", array( "type"=>Survey::COLLECTION,"id"=> $_POST['id'] ) );
+                        Notification::constructNotification ( ActStr::VERB_VOTE, array("id" => Yii::app()->session["userId"],"name"=> Yii::app()->session["user"]["name"]), array( "type"=>Survey::COLLECTION,"id"=> $_POST['id'] ) );
                 }
             }      
         } else {

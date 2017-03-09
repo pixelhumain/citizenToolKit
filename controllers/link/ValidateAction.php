@@ -17,7 +17,7 @@ class ValidateAction extends CAction {
 		$res = array( "result" => false , "msg" => Yii::t("common","Something went wrong!" ));
 		
 		$linkOption = $_POST["linkOption"];
-		if ($linkOption != Link::IS_ADMIN_PENDING && $linkOption != Link::TO_BE_VALIDATED ) {
+		if ($linkOption != Link::IS_ADMIN_PENDING && $linkOption != Link::TO_BE_VALIDATED && $linkOption != Link::IS_INVITING ) {
 			return array( "result" => false , "msg" => "Unknown link option : ".$linkOption);
 		}
 

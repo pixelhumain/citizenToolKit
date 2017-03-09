@@ -55,12 +55,19 @@ class SaveRoomAction extends CAction
                 $res["newInfos"] = $newInfos;
 
                 //Notify Element participants 
-                Notification::actionOnPerson ( ActStr::VERB_ADDROOM, ActStr::ICON_ADD, "", 
+                Notification::constructNotification(ActStr::VERB_ADD, 
+                    array("id" => Yii::app()->session["userId"],"name"=> Yii::app()->session["user"]["name"]), 
+                    array(  "type"=>@$newInfos['parentType'] ? $newInfos['parentType'] : "",
+                            "id"=> @$newInfos['parentId'] ? $newInfos['parentId'] : ""), 
+                    array("id"=>(string)$newInfos["_id"],"type"=> ActionRoom::COLLECTION), 
+                    $newInfos['type']
+                );
+                /*Notification::actionOnPerson ( ActStr::VERB_ADDROOM, ActStr::ICON_ADD, "", 
                                                 array( "type" => ActionRoom::COLLECTION , 
                                                        "id" => (string)$newInfos["_id"], 
                                                        "parentId" => @$newInfos['parentId'] ? $newInfos['parentId'] : "", 
                                                        "parentType" => @$newInfos['parentType'] ? $newInfos['parentType'] : "", 
-                                                       "name" => (string)$name ));
+                                                       "name" => (string)$name ));*/
             }else
                 $res = array('result' => false , 'msg'=>"user doen't exist");
         } else
