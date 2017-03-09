@@ -1190,4 +1190,24 @@ class Element {
 		}
 	}
 
+	public static function myNetwork($id, $type){
+		$myN = json_decode(file_get_contents("../../modules/communecter/data/myNetwork.json", FILE_USE_INCLUDE_PATH), true);
+		if($type == Person::COLLECTION || $type == Organization::COLLECTION || $type == Event::COLLECTION || $type == Project::COLLECTION){
+			$myN["request"]["sourceKey"][0] = $id."@".$type ;
+
+		}
+
+		return $myN;
+	}
+
+	public static function getUrlMyNetwork($id, $type) {
+		$server = ((isset($_SERVER['HTTPS']) AND (!empty($_SERVER['HTTPS'])) AND strtolower($_SERVER['HTTPS'])!='off') ? 'https://' : 'http://').$_SERVER['HTTP_HOST'];
+		$jsonNetwork = $server.Yii::app()->createUrl("/communecter/element/network/id/".$id."/type/".$type);
+		$urlNetwork = $server.Yii::app()->createUrl("/?network=".$jsonNetwork);
+
+		return $urlNetwork;
+	}
+
+	
+
 }
