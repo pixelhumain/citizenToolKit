@@ -116,7 +116,7 @@ class Survey
             $resComment = Comment::deleteAllContextComments($id, self::COLLECTION, $userId);
         } 
 
-        if (! $resComment["result"]) return $resComment;
+        if (isset($resComment["result"]) && ! $resComment["result"]) return $resComment;
 
         //Remove the entry (survey)
         if (PHDB::remove(self::COLLECTION,array("_id"=>new MongoId($id)))) {
