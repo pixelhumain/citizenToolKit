@@ -9,9 +9,6 @@ class Thing {
 	const COLLECTION_DATA = "data";
 	const URL_API_SC = "https://api.smartcitizen.me/v0"; // vérifier que l'url de l'api est à jour
 	const SCK_TYPE = 'smartCitizen';
-	//autorisation doit etre changé pour le compte de fablab.re
-	const AUTHORIZATION = "beb94bb79a163a9d01a45a1b869874b93067788e65de06b8b53de7ccda5df3ef"; //compte DanZal
-
 	//public static $types = array ();
 
 	public static $dataBinding = array (
@@ -77,8 +74,9 @@ class Thing {
 			$mdata[$key]=$sckAPIMetadata;
 			
 			if($intDayBeginning >= $apisck['updated'] || $forceUpdate==true){
-				if(!empty($apisck))
+				if(!empty($apisck)) {
 					$mdata['id']=$apisck['_id']; 
+				}
 				
 				$res[]= Element::save($mdata);
 			}
@@ -94,7 +92,7 @@ class Thing {
 
 		$sckurl=$poi['urls'][0];
 		$deviceId = self::getSCKDeviceIdByPoiUrl($sckurl); //TODO remplacer par un argument direct obtenue par le formulaire
-		//echo $deviceId;
+		
 		$wheremeta['deviceId']=$deviceId;
 		$deviceMetadata = self::getSCKDeviceMdata($wheremeta);
 		$tLReadings=$deviceMetadata['timestamp'];
@@ -167,12 +165,12 @@ class Thing {
 		return $metadatasId;
 	}*/
 
-	public static function getSCKDevicesByCountryAndCP($country="RE", $cp="97490", $fields=null ){
+	public static function getSCKDevicesByCountryAndCP($country="RE", $cp="97490", $fields=null){
 
 		$where=array("type"=>self::SCK_TYPE);
 
 		$where['address.addressCountry']=$country;
-//$cp="0" pas de codepostale dans where. prend tous les sck du pays
+		//$cp="0" pas de codepostale dans where. prend tous les sck du pays
 		if($cp!="0"){$where['address.postalCode']=$cp;}
 
 		$SCKDevices = self::getSCKDevices($where,$fields);
@@ -204,7 +202,7 @@ class Thing {
 			settype($deviceId, "integer");
 		}
 
-		$lastReadDevice = json_decode(file_get_contents(self::URL_API_SC."/devices/".$deviceId."?access_token=".self::AUTHORIZATION),true);
+		$lastReadDevice = json_decode(file_get_contents(self::URL_API_SC."/devices/".$deviceId),true);
 		
 		$partReadings =array();
 		
@@ -216,7 +214,6 @@ class Thing {
 			$partReadings['timestamp'] = $lastReadDevice["data"]["recorded_at"]; 
 			$partReadings['location'] = $lastReadDevice["data"]["location"]; 
 			$partReadings['sensors'] = $lastReadDevice["data"]["sensors"];
-			$partReadings['macId'] = $lastReadDevice["mac_address"];
 			$partReadings['kit'] = $lastReadDevice["kit"];
 			unset($partReadings['location']['ip']);
 			unset($partReadings['location']['elevation']);
@@ -307,7 +304,6 @@ class Thing {
         	$dataThing['type'] 	 = self::SCK_TYPE;
         	$dataThing['boardId']=$headers['X-SmartCitizenMacADDR'];
         	$dataThing['version']=$headers['X-SmartCitizenVersion'];
-			# code...
 			$res = Element::save(array_merge($dataThing, $datum));
 			//print_r($res);
 		}
@@ -321,7 +317,7 @@ class Thing {
 		$mdata['key'] = 'thing';
 		$mdata['boardId'] = $partReadings['macId'];
 		//if($partReadings['macId'] !="[FILTERED]"){
-		  unset($partReadings['macId']);
+		 // unset($partReadings['macId']);
 		//}
 		
 		$mdata['address']= $address;
@@ -338,11 +334,7 @@ class Thing {
 	}
 
 
-
 }
-
-
-
 
 
 ?>
