@@ -43,6 +43,7 @@ class Classified {
 	    "urls" => array("name" => "urls"),
 	    "medias" => array("name" => "medias"),
 	    "tags" => array("name" => "tags"),
+	    "price" => array("name" => "price"),
 
 	    "modified" => array("name" => "modified"),
 	    "updated" => array("name" => "updated"),
