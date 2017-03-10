@@ -970,23 +970,16 @@ class Element {
 
     	//Delete News
     	News::deleteNewsOfElement($elementId, $elementType, true);
-    	//Check if the element got activity (news, ActionRooms, actions, surveys)
-		/*$res = self::checkActivity($elementId, $elementType);
-		if ($res["result"]) {
-			error_log("Because of deletion of element :".$elementType."/".$elementId." : anonymize the element. ".$res["msg"]);
-			//Anonymize the element : Remove all fields from the element
-			$where = array("_id" => new MongoId($elementId));
-			$action = array("email" => $elementId."@communecter.org", "name" => "element deleted", "deletedDate" => new mongoDate(time()), "status" => "deleted", "reason" => $reason);
-			PHDB::update($elementType, $where, $action);
-			$res = array("result" => true, "msg" => "The element ".$elementId." of type ".$elementType." has been deleted anonymously with success.");
-		} else {
-			//Delete the element
-			$where = array("_id" => new MongoId($elementId));
-	    	PHDB::remove($elementType, $where);
-	    	$res = array("result" => true, "msg" => "The element ".$elementId." of type ".$elementType." has been deleted with success.");
-		}
+    	//Delete Action Rooms
+    	ActionRoom::deleteElementActionRooms($elementId, $elementType,$userId);
+    	
+		//Delete the element
+		$where = array("_id" => new MongoId($elementId));
+    	PHDB::remove($elementType, $where);
+    	$res = array("result" => true, "msg" => "The element ".$elementId." of type ".$elementType." has been deleted with success.");
+
 		Log::save(array("userId" => $userId, "browser" => @$_SERVER["HTTP_USER_AGENT"], "ipAddress" => @$_SERVER["REMOTE_ADDR"], "created" => new MongoDate(time()), "action" => "deleteElement", "params" => array("id" => $elementId, "type" => $elementType)));
-		*/
+		
 		return $res;
 	}
 

@@ -121,12 +121,16 @@ class ActionRoom {
 
         //Remove actionRoom of type discuss : remove all comments linked
         if (@$actionRoom["type"] == self::TYPE_DISCUSS) {
-            $resComment = Comment::deleteAllContextComments($id, self::COLLECTION, $userId);
+            $resChildren = Comment::deleteAllContextComments($id, self::COLLECTION, $userId);
+        //Remove actionRoom of type vote : remove all survey linked
+        } else if (@$actionRoom["type"] == self::TYPE_VOTE) {
+            //Delete all surveys of this action room
+            $resChildren = Survey::deleteAllSurveyOfTheRoom($id, $userId);
         } else {
-            $resComment = array("result" => "false", "msg" => "This delete of this type of action room '".@$actionRoom["type"]."' is not yet implemented.");
+            $resChildren = array("result" => "false", "msg" => "This delete of this type of action room '".@$actionRoom["type"]."' is not yet implemented.");
         }
 
-        if (! $resComment["result"]) return $resComment;
+        if (! $resChildren["result"]) return $resChildren;
 
         //Remove the action room
         if (PHDB::remove(self::COLLECTION,array("_id"=>new MongoId($id)))) {
@@ -154,7 +158,7 @@ class ActionRoom {
         $actionRooms2delete = self::getAllRoomsByTypeId($elemenType, $elementId);
         
         foreach ($actionRooms2delete as $id => $anActionRoom) {
-            self::delete($id, $userId);
+            self::deleteActionRoom($id, $userId);
             $nbActionRoom++;
         }
 

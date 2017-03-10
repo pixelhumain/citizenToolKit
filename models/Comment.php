@@ -428,6 +428,7 @@ class Comment {
 		} else {
 			return array("result" => "false", "msg" => "This contextType '".$contextType."' is not yet implemented.");
 		}
+		
 		if ($canDelete) {
 			$where = array('$and' => array(
 						array("contextId" => $contextId),
