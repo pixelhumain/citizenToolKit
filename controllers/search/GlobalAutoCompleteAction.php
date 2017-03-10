@@ -244,22 +244,23 @@ class GlobalAutoCompleteAction extends CAction
 	  	}
 	/***********************************  POI   *****************************************/
         if(strcmp($filter, Classified::COLLECTION) != 0 && $this->typeWanted(Classified::COLLECTION, $searchType)){
-        	$allPoi = PHDB::findAndSortAndLimitAndIndex(Classified::COLLECTION, $query, 
+        	$allClassified = PHDB::findAndSortAndLimitAndIndex(Classified::COLLECTION, $query, 
 	  												array("updated" => -1), $indexStep, $indexMin);
-	  		foreach ($allPoi as $key => $value) {
+	  		foreach ($allClassified as $key => $value) {
 		  		if(@$value["parentId"] && @$value["parentType"])
 		  			$parent = Element::getElementSimpleById(@$value["parentId"], @$value["parentType"]);
 		  		else
 		  			$parent=array();
-				$allPoi[$key]["parent"] = $parent;
-				//$allPoi[$key]["type"] = "poi";
-				if(@$value["type"])
-					$allPoi[$key]["typeSig"] = Classified::COLLECTION.".".$value["type"];
-				else
-					$allPoi[$key]["typeSig"] = Classified::COLLECTION;
+				$allClassified[$key]["parent"] = $parent;
+				$allClassified[$key]["category"] = @$allClassified[$key]["type"];
+				$allClassified[$key]["type"] = "classified";
+				//if(@$value["type"])
+				//	$allClassified[$key]["typeSig"] = Classified::COLLECTION.".".$value["type"];
+				//else
+					$allClassified[$key]["typeSig"] = Classified::COLLECTION;
 	  		}
 	  		//$res["project"] = $allProject;
-	  		$allRes = array_merge($allRes, $allPoi);
+	  		$allRes = array_merge($allRes, $allClassified);
 	  		//error_log(sizeof($allPoi));
 	  	}
 
