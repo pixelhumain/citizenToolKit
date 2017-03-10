@@ -82,14 +82,14 @@ class SaveActionAction extends CAction
                 $where = array();
                 if( isset( $_POST['id'] ) ){
                     $where["_id"] = new MongoId($_POST['id']);
-                    $result = PHDB::update( ActionRoom::COLLECTION_ACTIONS,  $where, 
+                    $result = PHDB::update( Actions::COLLECTION,  $where, 
                                                    array('$set' => $entryInfos ));
                     $actionId = $_POST['id'];
                 } else {
                     $actionId = new MongoId();
                     $entryInfos['created'] = time();
                     $entryInfos["_id"] = $actionId;
-                    $result = PHDB::insert( ActionRoom::COLLECTION_ACTIONS,$entryInfos );
+                    $result = PHDB::insert( Actions::COLLECTION,$entryInfos );
                 }
                 
 
@@ -99,7 +99,7 @@ class SaveActionAction extends CAction
                 $res['url'] = "#rooms.action.id.".$actionId;
                 //echo "actionId :".$actionId; return;
                 //Notify Element participants 
-                Notification::actionOnPerson ( ActStr::VERB_ADD_ACTION, ActStr::ICON_ADD, "", array( "type" => ActionRoom::COLLECTION_ACTIONS , "id" => $actionId ));
+                Notification::actionOnPerson ( ActStr::VERB_ADD_ACTION, ActStr::ICON_ADD, "", array( "type" => Actions::COLLECTION , "id" => $actionId ));
                 
             } else
                 $res = array('result' => false , 'msg'=>"user doen't exist");

@@ -112,13 +112,14 @@ class ActionRoom {
      * @return array result => boolean, msg => String
      */
     public static function deleteActionRoom($id, $userId){
-     	$res = array( "result" => false, "msg" => "Something went wrong : contact your admin !");;
+     	error_log("Try to delete the actionroom ".$id);
+        $res = array( "result" => false, "msg" => "Something went wrong : contact your admin !");;
      	
         $actionRoom = self::getById($id);
         if (empty($actionRoom)) return array("result" => false, "the action room does not exist");
         
         if (! self::canAdministrate($userId, $id)) return array("result" => false, "msg" => "You must be admin of the parent of this room if you want delete it");
-
+        
         //Remove actionRoom of type discuss : remove all comments linked
         if (@$actionRoom["type"] == self::TYPE_DISCUSS) {
             $resChildren = Comment::deleteAllContextComments($id, self::COLLECTION, $userId);
@@ -126,11 +127,14 @@ class ActionRoom {
         } else if (@$actionRoom["type"] == self::TYPE_VOTE) {
             //Delete all surveys of this action room
             $resChildren = Survey::deleteAllSurveyOfTheRoom($id, $userId);
+        } else if (@$actionRoom["type"] == self::TYPE_ACTIONS) {
+            //Delete all actions of this action room
+            $resChildren = Actions::deleteAllActionsOfTheRoom($id, $userId);
         } else {
-            $resChildren = array("result" => "false", "msg" => "This delete of this type of action room '".@$actionRoom["type"]."' is not yet implemented.");
+            $resChildren = array("result" => false, "msg" => "This delete of this type of action room '".@$actionRoom["type"]."' is not yet implemented.");
         }
 
-        if (! $resChildren["result"]) return $resChildren;
+        if (isset($resChildren["result"]) && !$resChildren["result"]) return $resChildren;
 
         //Remove the action room
         if (PHDB::remove(self::COLLECTION,array("_id"=>new MongoId($id)))) {

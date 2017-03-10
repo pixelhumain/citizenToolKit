@@ -3,7 +3,7 @@ class AssignMeAction extends CAction
 {
     public function run()
     {
-        $res = ActionRoom::assignMe( $_POST );
+        $res = Actions::assignMe( $_POST );
         Rest::json( $res );
         Yii::app()->end();
     }
