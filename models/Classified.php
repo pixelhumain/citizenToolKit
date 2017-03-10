@@ -44,6 +44,7 @@ class Classified {
 	    "medias" => array("name" => "medias"),
 	    "tags" => array("name" => "tags"),
 	    "price" => array("name" => "price"),
+	    "contactInfo" => array("name" => "contactInfo"),
 
 	    "modified" => array("name" => "modified"),
 	    "updated" => array("name" => "updated"),
