@@ -102,6 +102,7 @@ class Thing {
 			$partReadings = self::getLastedReadViaAPI($deviceId);
 			$partReadings['url']=$sckurl;
 			$partReadings['namepoi']=$poi['name'];
+			$partReadings['macId']=$poi['macId'];
 			$address = $poi['address'];
 			$geo=$poi['geo'];
 			$toSave=array();
@@ -315,7 +316,7 @@ class Thing {
 		$mdata['collection']=self::COLLECTION;
 		$mdata['type'] = self::SCK_TYPE;
 		$mdata['key'] = 'thing';
-		$mdata['boardId'] = $partReadings['macId'];
+		//$mdata['boardId'] = $partReadings['macId'];
 		//if($partReadings['macId'] !="[FILTERED]"){
 		 // unset($partReadings['macId']);
 		//}

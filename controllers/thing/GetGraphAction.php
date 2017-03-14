@@ -8,7 +8,7 @@
 */
 
 class GetGraphAction extends CAction {
-
+    
     public function run($country="RE",$postalCode="97490") {
 
        
