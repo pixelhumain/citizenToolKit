@@ -248,31 +248,35 @@ class News {
 
 	/**
 	 * delete a news in database and the comments on that news
-	 * @param type $id  : id to delete
-	 * @param type|bool $removeComments 
-	 * @return true
+	 * @param type $id : id to delete
+	 * @param type $userId : the userid asking to delete the news
+	 * @param bool $removeComments 
+	 * @return array result => bool, msg => string
 	 */
-	public static function delete($id, $removeComments = false) {
+	public static function delete($id, $userId, $removeComments = false) {
 		$news=self::getById($id);
+		$nbCommentsDeleted = 0;
+
+		//Check if the userId can delete the news
+		if (! News::canAdministrate($userId, $id)) return array("result"=>false, "msg"=>Yii::t("common","You are not allowed to delete this news"));
+
+		//Delete image
 		if(@$news["media"] && @$news["media"]["content"] && @$news["media"]["content"]["image"] && !@$news["media"]["content"]["imageId"]){
 			$endPath=explode(Yii::app()->params['uploadUrl'],$news["media"]["content"]["image"]);
 			//print_r($endPath);
 			$pathFileDelete= Yii::app()->params['uploadDir'].$endPath[1];
 			unlink($pathFileDelete);
 		}
-		
-		/* TODO SBAR => for now a user can only delete his own comment. To modify and use : deleteAllContextComments
-		$nbCommentsDeleted = 0;
-		if (count(@$news["comment"]) > O && $removeComments) {
-			foreach ($news["comment"] as $idComment => $comment) {
-				Comment::delete($idComment);
-				$nbCommentsDeleted++;
-			}
-		}*/
 
-		PHDB::remove(self::COLLECTION,array("_id"=>new MongoId($id)));
+		if ($removeComments) {
+			$res = Comment::deleteAllContextComments($id, News::COLLECTION, $userId);
+			if (!$res["result"]) return $res;
+		}
 
-		return array("result" => true, "msg" => "The news with id ".$id." and ".$nbCommentsDeleted." have been removed with succes.");
+		//Remove the news
+		$res = PHDB::remove(self::COLLECTION,array("_id"=>new MongoId($id)));
+
+		return array("result" => true, "msg" => "The news with id ".$id." and ".$nbCommentsDeleted." comments have been removed with succes.");
 	}
 
 	/**
@@ -412,6 +416,34 @@ class News {
 		$imageUtils->resizePropertionalyImage($maxWidth,$maxHeight)->save($destPathThumb,$quality);
 		return $destPathThumb;
 	}
+
+	/**
+	 * Return true if the user can administrate the news. The user can administrate a news when :
+	 *     - he is super admin
+	 *     - he is the author of the news
+	 *     - he is admin of the element the news is a target
+	 * @param Strinf $userId the userId to check the credential
+	 * @param String $id the news id to check
+	 * @return bool : true if the user can administrate the news, false else
+	 */
+	public static function canAdministrate($userId, $id) {
+        $news = self::getById($id);
+
+        if (empty($news)) return false;
+        if (@$news["author"] == $userId) return true;
+        if (Authorisation::isUserSuperAdmin($userId)) return true;
+
+        $parentId = @$news["target"]["id"];
+        $parentType = @$new["target"]["type"];
+
+        $isAdmin = false;
+        if( ( $parentType == Organization::COLLECTION && Authorisation::isOrganizationAdmin ( $userId , $parentId ) )
+            || ( $parentType == Project::COLLECTION && Authorisation::isProjectAdmin( $userId , $parentId ) )
+            || ( $parentType == Event::COLLECTION && Authorisation::isEventAdmin( $userId , $parentId ) ) )
+            $isAdmin = true;
+
+        return $isAdmin;
+    }
 
 }
 ?>
