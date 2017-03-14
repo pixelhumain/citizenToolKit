@@ -111,39 +111,9 @@ class IndexAction extends CAction
 		//}
 			//error_log("le type :". $type);
 			//Define condition of each wall generated datas
-			if($type == "citoyens") {
+			if($type == Person::COLLECTION) {
 				//if (!@Yii::app()->session["userId"] || (@Yii::app()->session["userId"] && Yii::app()->session["userId"]!=$id) || (!@$isLive)){
-				if(!@$isLive){
-					error_log("message 1");
-					$scope=array(
-						array("scope.type"=> "public"),
-						array("scope.type"=> "restricted")
-					);
-					if (@$params["canManageNews"] && $params["canManageNews"])
-						array_push($scope,array("scope.type"=>"private"));
-					if(@Yii::app()->session["userId"]){
-						array_push($scope,
-									array("author"=> Yii::app()->session["userId"],
-											"target.id"=> $id,
-											"target.type" => Person::COLLECTION)
-								);
-					}
-					$where = array('$and' => 
-						array(
-							array('$or' => 
-								array(
-									array("author"=> $id,"targetIsAuthor"=>array('$exists'=>false),"type"=>"news"), 
-									array("target.id"=> $id, "target.type" => Person::COLLECTION)  
-								)
-							),
-							array('$or' => 
-								$scope
-							),
-						)	
-					);
-					//echo '<pre>';var_dump($where);echo '</pre>'; return;
-				}
-				else{
+				if(@$isLive && (@Yii::app()->session["userId"] && $id == Yii::app()->session["userId"])){
 					error_log("message 2");
 					$authorFollowedAndMe=[];
 					array_push($authorFollowedAndMe,array("author"=>$id));
@@ -201,6 +171,36 @@ class IndexAction extends CAction
 			        	)	
 			        );
 			        //echo '<pre>';var_dump($where);echo '</pre>'; return;
+				}
+				else{
+					error_log("message 1");
+					$scope=array(
+						array("scope.type"=> "public"),
+						array("scope.type"=> "restricted")
+					);
+					if (@$params["canManageNews"] && $params["canManageNews"])
+						array_push($scope,array("scope.type"=>"private"));
+					if(@Yii::app()->session["userId"]){
+						array_push($scope,
+									array("author"=> Yii::app()->session["userId"],
+											"target.id"=> $id,
+											"target.type" => Person::COLLECTION)
+								);
+					}
+					$where = array('$and' => 
+						array(
+							array('$or' => 
+								array(
+									array("author"=> $id,"targetIsAuthor"=>array('$exists'=>false),"type"=>"news"), 
+									array("target.id"=> $id, "target.type" => Person::COLLECTION)  
+								)
+							),
+							array('$or' => 
+								$scope
+							),
+						)	
+					);
+					//echo '<pre>';var_dump($where);echo '</pre>'; return;
 				}
 			}
 			else if($type == "organizations" || $type == "projects" || $type == "events"){
