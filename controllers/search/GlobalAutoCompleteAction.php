@@ -653,9 +653,9 @@ class GlobalAutoCompleteAction extends CAction
 		foreach ($allRes as $key => $value) {
 			if(@$value["updated"]) {
 				if($this->typeWanted(Event::COLLECTION, $searchType))
-					$allRes[$key]["updatedLbl"] = Translate::pastTime($value["startDate"],"date");
+					$allRes[$key]["updatedLbl"] = Translate::pastTime(@$value["startDate"],"date");
 				else
-					$allRes[$key]["updatedLbl"] = Translate::pastTime($value["updated"],"timestamp");
+					$allRes[$key]["updatedLbl"] = Translate::pastTime(@$value["updated"],"timestamp");
 	  		}
 	  	}
 
