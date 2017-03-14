@@ -8,6 +8,8 @@ class LogoutAction extends CAction
         $network="";
         if(@$_GET["network"])
         	$network="?network=".$_GET["network"];
-    	$controller->redirect( Yii::app()->createUrl($controller->module->id.$network) );
+        echo "oui";
+        var_dump("iciiiii");
+    	$controller->redirect(Yii::app()->createUrl("co2#social".$network) );
     }
 }
