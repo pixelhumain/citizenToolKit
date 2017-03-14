@@ -6,6 +6,8 @@ class Translate {
 	const FORMAT_AS = "activityStream";
 	const FORMAT_COMMUNECTER = "communecter";
 	const FORMAT_RSS = "rss";
+	const FORMAT_KML = "kml";
+	const FORMAT_GEOJSON = "geojson";
 
 	public static function convert($data,$bindMap)
 	{
@@ -13,6 +15,17 @@ class Translate {
 		foreach ($data as $keyID => $valueData) {
 			if ( isset($valueData) ) {
 				$newData[$keyID] = self::bindData($valueData,$bindMap);
+			}
+		}
+		return $newData;
+	}
+
+	public static function convert_geojson($data,$bindMap)
+	{
+		$newData = array();
+		foreach ($data as $keyID => $valueData) {
+			if ( isset($valueData) ) {
+				$newData[] = self::bindData($valueData,$bindMap);
 			}
 		}
 		return $newData;
@@ -166,10 +179,186 @@ class Translate {
 			
 				 
 		} 
+
+		elseif (isset($bindPath["type"]) && $bindPath["type"] == "coor_news") {
+
+			if ((isset($val["coordinates"]["cities"]["0"]["geo"]["latitude"])) && (isset($val["coordinates"]["cities"]["0"]["geo"]["longitude"]))) 
+			{
+				// var_dump($val["coordinates"]["cities"]["0"]["geo"]["latitude"]);
+
+				$latitude = $val["coordinates"]["cities"]["0"]["geo"]["latitude"];
+				$longitude = $val["coordinates"]["cities"]["0"]["geo"]["longitude"];
+
+				$coor = $longitude.','.$latitude;
+
+				$val['coordinates'] = $coor;
+				unset($val["type"]);
+		
+			} 
+			elseif ((!isset($val["coordinates"]["cities"]["0"]["geo"]["latitude"])) || (!isset($val["coordinates"]["cities"]["0"]["geo"]["longitude"]))) {
+
+					// var_dump($val);
+					$val['coordinates'] = '0,0';
+					
+					unset($val["type"]);
+
+
+			}
+		}			
+
+		elseif (isset($bindPath["type"]) && $bindPath["type"] == "coor_orga") {
+
+
+			if (isset($val["coordinates1"])) {
+
+
+				$latitude = $val["coordinates1"]["coordinates"]["0"];
+			 	$longitude = $val["coordinates1"]["coordinates"]["1"];
+
+			 	$coor = $latitude.','.$longitude;
+				$val['coordinates1'] = $coor;
+
+				$val["coordinates"] = $val["coordinates1"];
+				unset($val["coordinates1"]);
+
+				unset($val["type"]);
+		 	
+			} 
+			elseif (!isset($val["coordinates"])) {
+
+					$val['coordinates'] = '0,0';
+					
+					unset($val["type"]);
+
+
+			}
+
+			
+		}
+
+
+		elseif (isset($bindPath["type"]) && $bindPath["type"] == "coor") {
+
+
+			if ((isset($val["coordinates"]["latitude"])) && (isset($val["coordinates"]["longitude"]))) {
+
+				$latitude = $val["coordinates"]["latitude"];
+			 	$longitude = $val["coordinates"]["longitude"];
+
+			 	$coor = $longitude.','.$latitude;
+				$val['coordinates'] = $coor;
+
+				unset($val["type"]);
+				
+			} elseif ((!isset($val["coordinates"]["latitude"])) || (!isset($val["coordinates"]["longitude"]))) {
+
+					$val['coordinates'] = '0,0';
+					
+					unset($val["type"]);
+
+
+			}
+			
+		}
+
+		elseif (isset($bindPath["type"]) && $bindPath["type"] == "Point_news") {
+
+			if ((isset($val["coordinates"]["cities"]["0"]["geo"]["latitude"])) && (isset($val["coordinates"]["cities"]["0"]["geo"]["longitude"]))) 
+			{
+
+				// var_dump($val);
+				$latitude = $val["coordinates"]["cities"]["0"]["geo"]["latitude"];
+				$longitude = $val["coordinates"]["cities"]["0"]["geo"]["longitude"];
+
+				$latitude = floatval($latitude);
+				$longitude = floatval($longitude);
+
+
+				$val["coordinates"] = array();
+				array_push($val["coordinates"], $longitude);				
+				array_push($val["coordinates"], $latitude);
+
+
+			} elseif ((!isset($val["coordinates"]["cities"]["0"]["geo"]["latitude"])) && (!isset($val["coordinates"]["cities"]["0"]["geo"]["longitude"]))) 
+			{
+
+				$val["coordinates"] = array();
+				array_push($val["coordinates"], 0, 0);
+
+			}
+
+
+			$val["type"] = "Point";
+
+		}
+		elseif (isset($bindPath["type"]) && $bindPath["type"] == "Point_orga") {
+
+
+			if (isset($val["coordinates1"])) {
+
+
+				$latitude = $val["coordinates1"]["coordinates"]["0"];
+			 	$longitude = $val["coordinates1"]["coordinates"]["1"];
+
+			 	$coor = $latitude.','.$longitude;
+				$val['coordinates1'] = $coor;
+
+				$val["coordinates"] = $val["coordinates1"];
+				unset($val["coordinates1"]);
+
+				unset($val["type"]);
+		 	
+			} 
+			elseif (!isset($val["coordinates"])) {
+
+					$val["coordinates"] = array();
+					array_push($val["coordinates"], 0, 0);
+
+			}
+
+			
+		}
+
+
+		elseif (isset($bindPath["type"]) && $bindPath["type"] == "Point") {
+
+
+			if ((isset($val["coordinates"]["latitude"])) && (isset($val["coordinates"]["longitude"]))) {
+
+				$latitude = $val["coordinates"]["latitude"];
+			 	$longitude = $val["coordinates"]["longitude"];
+
+			 	$latitude = floatval($latitude);
+				$longitude = floatval($longitude);
+
+				$val["coordinates"] = array();
+				array_push($val["coordinates"], $longitude);				
+				array_push($val["coordinates"], $latitude);
+
+			 	
+				
+			} elseif ((!isset($val["coordinates"]["latitude"])) || (!isset($val["coordinates"]["longitude"]))) {
+
+				$val["coordinates"] = array();
+				array_push($val["coordinates"], 0, 0);
+
+
+			}
+			
+		}
+
+		elseif (isset($bindPath["type"]) && $bindPath["type"] == "properties") {
+
+			$val["name"] = $val["0"]["prop0"];
+			unset($val["0"]);
+			unset($val["type"]);
+			
+		}
+		
+	
 		else if (isset($bindPath["type"]) && $bindPath["type"] == "title" /*&& isset($bindPath["verb"]["valueOf"])*/) 
 		{
 
-			//var_dump($val);
 			$type = $val["type_el"];
 
 			if (isset($val["object_news"]["objectType"])) {
@@ -190,22 +379,17 @@ class Translate {
 						}
 							$val .= $object_type;
 						}
-				}
-				/* if ($type == organization::COLLECTION) {
-						$type = " Organisation";
-					} else if ($type == "projects") {
-						$type = "Projet";
-					} else if ($type == "events") {
-						$type = "Evenement";
-					}
-					$val .= ' ' . $type;
-					if (isset($val_nom)) {
-						$val .= ' sous le nom de "' . $val_nom . ' "';
-					} */
-				
-			
+				}		
 		
 		}
+		else if (isset($bindPath["type"]) && $bindPath["type"] == "description_kml") {
+			if (isset($val["text"])) {
+				$val = $val["text"];
+			} else {
+				$val = "Pas de description pour cette news";
+			}
+		}
+
 		else if (isset($bindPath["type"]) && $bindPath["type"] == "description") {
 				//var_dump($val);
 			if (isset($val["text"])) {
@@ -226,13 +410,6 @@ class Translate {
 				//$id_projet = PHDB::findOneById(Project::COLLECTION, $val["object_news"]["id"]);
 				$verb = $val["verb"];
 				$type = $val["object_news"]["objectType"];
-
-
-				//var_dump($author);
-				//var_dump($id_orga)
-				//var_dump($id_event);
-				//var_dump($id_projet);
-				//var_dump($val);
 
 				if (($val["object_news"]["objectType"] == "events")  || ($val["object_news"]["objectType"] == organization::COLLECTION) || ($val["object_news"]["objectType"] == "projects")) {
 					$val_nom = $element["name"];
@@ -271,7 +448,8 @@ class Translate {
 				}
 
 			}
-		}
+		} 
+		
 		else if( isset( $bindPath["prefix"] ) || isset( $bindPath["suffix"] ) )
 		{
 			$val = $prefix.$val.$suffix;
