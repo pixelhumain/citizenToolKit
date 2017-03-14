@@ -206,16 +206,21 @@ class GlobalAutoCompleteAction extends CAction
         	
         	$allEvents = PHDB::findAndSortAndLimitAndIndex( PHType::TYPE_EVENTS, $queryEvent, 
 	  										array("startDate" => 1), $indexStep, $indexMin);
+        	
 	  		foreach ($allEvents as $key => $value) {
 	  			$allEvents[$key]["type"] = "event";
 				$allEvents[$key]["typeSig"] = Event::COLLECTION;
 				if(@$value["links"]["attendees"][Yii::app()->session["userId"]]){
 		  			$allEvents[$key]["isFollowed"] = true;
 	  			}
-				if(@$allEvents[$key]["startDate"])
+				if(@$allEvents[$key]["startDate"]){
+					$allEvents[$key]["startDateTime"] = date(DateTime::ISO8601, $allEvents[$key]["startDate"]->sec);
 					$allEvents[$key]["startDate"] = date(DateTime::ISO8601, $allEvents[$key]["startDate"]->sec);
-				if(@$allEvents[$key]["endDate"])
+				}
+				if(@$allEvents[$key]["endDate"]){
+					$allEvents[$key]["endDateTime"] = date(DateTime::ISO8601, $allEvents[$key]["endDate"]->sec);
 					$allEvents[$key]["endDate"] = date(DateTime::ISO8601, $allEvents[$key]["endDate"]->sec);
+				}
 	  		}
 
 	  		$allRes = array_merge($allRes, $allEvents);
@@ -244,22 +249,23 @@ class GlobalAutoCompleteAction extends CAction
 	  	}
 	/***********************************  POI   *****************************************/
         if(strcmp($filter, Classified::COLLECTION) != 0 && $this->typeWanted(Classified::COLLECTION, $searchType)){
-        	$allPoi = PHDB::findAndSortAndLimitAndIndex(Classified::COLLECTION, $query, 
+        	$allClassified = PHDB::findAndSortAndLimitAndIndex(Classified::COLLECTION, $query, 
 	  												array("updated" => -1), $indexStep, $indexMin);
-	  		foreach ($allPoi as $key => $value) {
+	  		foreach ($allClassified as $key => $value) {
 		  		if(@$value["parentId"] && @$value["parentType"])
 		  			$parent = Element::getElementSimpleById(@$value["parentId"], @$value["parentType"]);
 		  		else
 		  			$parent=array();
-				$allPoi[$key]["parent"] = $parent;
-				//$allPoi[$key]["type"] = "poi";
-				if(@$value["type"])
-					$allPoi[$key]["typeSig"] = Classified::COLLECTION.".".$value["type"];
-				else
-					$allPoi[$key]["typeSig"] = Classified::COLLECTION;
+				$allClassified[$key]["parent"] = $parent;
+				$allClassified[$key]["category"] = @$allClassified[$key]["type"];
+				$allClassified[$key]["type"] = "classified";
+				//if(@$value["type"])
+				//	$allClassified[$key]["typeSig"] = Classified::COLLECTION.".".$value["type"];
+				//else
+					$allClassified[$key]["typeSig"] = Classified::COLLECTION;
 	  		}
 	  		//$res["project"] = $allProject;
-	  		$allRes = array_merge($allRes, $allPoi);
+	  		$allRes = array_merge($allRes, $allClassified);
 	  		//error_log(sizeof($allPoi));
 	  	}
 
@@ -645,7 +651,12 @@ class GlobalAutoCompleteAction extends CAction
 		*/
 
 		foreach ($allRes as $key => $value) {
-			if(@$value["updated"]) $allRes[$key]["updatedLbl"] = Translate::pastTime($value["updated"],"timestamp");
+			if(@$value["updated"]) {
+				if($this->typeWanted(Event::COLLECTION, $searchType))
+					$allRes[$key]["updatedLbl"] = Translate::pastTime(@$value["startDate"],"date");
+				else
+					$allRes[$key]["updatedLbl"] = Translate::pastTime(@$value["updated"],"timestamp");
+	  		}
 	  	}
 
 	  	$limitRes = $allRes;
