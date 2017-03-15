@@ -292,8 +292,16 @@ class Translate {
 
 	public static function pastTime($date,$type, $timezone=null) {
 
-		date_default_timezone_set("UTC");
-
+		if(isset($timezone) && $timezone != ""){
+			if(date_default_timezone_get()!=$timezone){
+				//error_log("SET TIMEZONE ".$timezone);
+				date_default_timezone_set($timezone); //'Pacific/Noumea'
+			}
+		}else{
+			date_default_timezone_set("UTC");
+			//error_log("SET TIMEZONE UTC");
+		}
+		
 		if($type == "timestamp") {
 	        $date2 = $date; // depuis cette date
 	    } elseif($type == "date") {
@@ -302,11 +310,17 @@ class Translate {
 	        return "Non reconnu";
 	    }
 
-	    if(isset($timezone) && $timezone != "" && date_default_timezone_get()!=$timezone){
-			date_default_timezone_set($timezone); //'Pacific/Noumea'
-		}
+	   
 
 	    $Ecart = time()-$date2;
+	    $lblEcart = "il y a ";
+	    if(time() < $date2){
+	    	$lblEcart = "dans ";
+			$Ecart = $date2 - time();
+	    }
+
+
+
 	    $Annees = date('Y',$Ecart)-1970;
 	    $Mois = date('m',$Ecart)-1;
 	    $Jours = date('d',$Ecart)-1;
@@ -314,22 +328,22 @@ class Translate {
 	    $Minutes = date('i',$Ecart);
 	    $Secondes = date('s',$Ecart);
 	    if($Annees > 0) {
-	        return "il y a ".$Annees." an".($Annees>1?"s":"")." et ".$Jours." jour".($Jours>1?"s":""); // on indique les jours avec les année pour être un peu plus précis
+	        return $lblEcart.$Annees." an".($Annees>1?"s":"")." et ".$Jours." jour".($Jours>1?"s":""); // on indique les jours avec les année pour être un peu plus précis
 	    }
 	    if($Mois > 0) {
-	        return "il y a ".$Mois." mois et ".$Jours." jour".($Jours>1?"s":""); // on indique les jours aussi
+	        return $lblEcart.$Mois." mois et ".$Jours." jour".($Jours>1?"s":""); // on indique les jours aussi
 	    }
 	    if($Jours > 0) {
-	        return "il y a ".$Jours." jour".($Jours>1?"s":"");
+	        return $lblEcart.$Jours." jour".($Jours>1?"s":"");
 	    }
 	    if($Heures > 0) {
-	        return "il y a ".$Heures." heure".($Heures>1?"s":"");
+	        return $lblEcart.$Heures." heure".($Heures>1?"s":"");
 	    }
 	    if($Minutes > 0) {
-	        return "il y a ".$Minutes." minute".($Minutes>1?"s":"");
+	        return $lblEcart.$Minutes." minute".($Minutes>1?"s":"");
 	    }
 	    if($Secondes > 0) {
-	        return "il y a ".$Secondes." seconde".($Secondes>1?"s":"");
+	        return $lblEcart.$Secondes." seconde".($Secondes>1?"s":"");
 	    }
 	}
 }

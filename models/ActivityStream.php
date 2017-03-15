@@ -34,6 +34,24 @@ class ActivityStream {
 	{
 	    return PHDB::findAndSort(self::COLLECTION, $param,$sort);
 	}
+	public static function countUnseenNotifications($userId, $elementType, $elementId){
+		if($elementType != Person::COLLECTION){
+			$params = array(
+			  '$and'=> 
+			    array(
+			      array("notify.id.".$userId.".isUnseen" => array('$exists' => true),
+			      "verb" => array('$ne' => ActStr::VERB_ASK)),
+			      array('$or'=> array(
+			        array("target.type"=>$elementType, "target.id" => $elementId),
+			        array("target.parent.type"=>$elementType, "target.parent.id" => $elementId)
+			        )
+			      ) 
+			    ) 
+			  );
+		}else
+			$params = array("notify.id.".$userId.".isUnseen" => array('$exists' => true));
+		return PHDB::count(self::COLLECTION, $params);
+	}
 	public static function getActivtyForObjectId($param,$sort=array("timestamp"=>-1))
 	{
 	    return PHDB::findAndSort(self::COLLECTION, $param,$sort,5);
