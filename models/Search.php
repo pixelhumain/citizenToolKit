@@ -67,4 +67,28 @@ class Search {
 		return utf8_encode($text);
 	}
 
+
+
+
+    static public function removeEmptyWords($search)
+	{
+        $stopwords = array(" ", "", "-", "?", "!", ",", ".", "/", "le", "la", "les", "un", "une", "des", "mon", "ton", "son", "pour", 
+                            "à", "a", "d", "d'", "de", "notre", "votre", "leur", "leurs", "mes", "tes", "ses", "du");
+
+        $arraySearch = explode(" ", $search);
+        $resArraySearch = array();
+        foreach ($arraySearch as $key => $word) {
+            if(!in_array($word, $stopwords)){
+                $resArraySearch[] = $word;
+            }
+        }
+
+        $resStr = "";
+        foreach ($resArraySearch as $key => $word) {
+            if($resStr != "") $resStr .= " ";
+            $resStr .= $word;
+        }
+        return $resStr;
+    }
+
 }
