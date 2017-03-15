@@ -292,8 +292,16 @@ class Translate {
 
 	public static function pastTime($date,$type, $timezone=null) {
 
-		date_default_timezone_set("UTC");
-
+		if(isset($timezone) && $timezone != ""){
+			if(date_default_timezone_get()!=$timezone){
+				//error_log("SET TIMEZONE ".$timezone);
+				date_default_timezone_set($timezone); //'Pacific/Noumea'
+			}
+		}else{
+			date_default_timezone_set("UTC");
+			//error_log("SET TIMEZONE UTC");
+		}
+		
 		if($type == "timestamp") {
 	        $date2 = $date; // depuis cette date
 	    } elseif($type == "date") {
@@ -302,10 +310,7 @@ class Translate {
 	        return "Non reconnu";
 	    }
 
-	    if(isset($timezone) && $timezone != "" && date_default_timezone_get()!=$timezone){
-			date_default_timezone_set($timezone); //'Pacific/Noumea'
-		}
-
+	   
 
 	    $Ecart = time()-$date2;
 	    $lblEcart = "il y a ";
@@ -313,6 +318,8 @@ class Translate {
 	    	$lblEcart = "dans ";
 			$Ecart = $date2 - time();
 	    }
+
+
 
 	    $Annees = date('Y',$Ecart)-1970;
 	    $Mois = date('m',$Ecart)-1;
