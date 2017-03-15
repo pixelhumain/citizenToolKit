@@ -12,6 +12,8 @@ class MediaCrawlerAction extends CAction
         
         $res = "";
 
+        //date_default_timezone_set('Pacific/Noumea'); //'Pacific/Noumea'
+
 		$res .= $this->extractSource("NCTV", "YOUTUBE");
 		$res .= $this->extractSource("NC1", "YOUTUBE");
 		$res .= $this->extractSource("NC1", "NC");
@@ -33,9 +35,9 @@ class MediaCrawlerAction extends CAction
 			
 		foreach($mapExtract["urls"] as $url) {
 		
-			$html = file_get_html($url);
-            error_log("CRAWLING ".$url);
-			//echo $html; exit;
+			error_log("CRAWLING ".$url);
+            $html = file_get_html($url);
+            //echo $html; exit;
 			foreach($html->find($mapExtract["elementUK"]) as $element) {
 
 				$href 		= mb_convert_encoding(@$element->find(@$mapExtract["href"], 0)->href, "HTML-ENTITIES", "UTF-8");
@@ -59,9 +61,10 @@ class MediaCrawlerAction extends CAction
 				
 				if(!isset($mediaExists)){
 					//var_dump($mediaExists); echo $href;
+                    if(strpos($href, 'http')===0)                      
 					if(@$mapExtract["followImg"] || @$mapExtract["followContent"] || @$mapExtract["followDate"]){
                         error_log("MediaCrawler : extracting ".$href);
-						$link = file_get_html($href);
+                            $link = file_get_html($href);
 
 						if(@$mapExtract["followImg"]){
 							$img = mb_convert_encoding(@$link->find($mapExtract["followImg"], 0)->src, "HTML-ENTITIES", "UTF-8");
@@ -110,13 +113,13 @@ class MediaCrawlerAction extends CAction
 							"------------------------<br>";
 					}else{
 						$result .= "<br>URL IGNORED :: title :".$title." content : ".$content." href : ".$href."<br>";
-                        error_log("MediaCrawler : IGNORED (MISSING DATA)".$href);
+                        error_log("MediaCrawler : IGNORED (MISSING DATA) : ".$href);
                         
 					}
 
 			    }else{
 			    	$result .= "URL IGNORED : ".$href."<br>";
-                    error_log("MediaCrawler : IGNORED (media exists)".$href);
+                    error_log("MediaCrawler : IGNORED (media exists) : ".$href);
                         
 			    }
 
@@ -169,7 +172,7 @@ class MediaCrawlerAction extends CAction
     									  ),
 
     								"YOUTUBE" => 
-    								array("urls" =>  array("url" => "https://www.youtube.com/channel/UCu1v8ajo9Z-ZLBlR-QPmyCQ/videos"),
+    								array("urls" =>  array("url" => "https://www.youtube.com/channel/UCu1v8ajo9Z-ZLBlR-QPmyCQ/videos?live_view=500&flow=grid&view=0&sort=dd"),
     									  "elementUK" => ".channels-content-item",
     									  "href" => ".yt-lockup-content a",
     									  "img" => "",
@@ -215,17 +218,27 @@ class MediaCrawlerAction extends CAction
     	if(@$map[$src] && @$map[$src][$urlKey]) return $map[$src][$urlKey]; else return false;
     }
 
-    private function formatDate($src, $urlKey, $date){
+    //cette fonction est paramétrée pour fonctionner avec la timezone NC (+11h)
+    private function formatDate($src, $urlKey, $date){ 
+
+        date_default_timezone_set('Pacific/Noumea');
+
+        //error_log("DATE formatDate : ".$date." src:".$src." urlKey:".$urlKey." TIMZONE : ".date_default_timezone_get());
+
     	if($src == "NCI"){
             $date = str_replace("+00:00", "+11:00", $date);
     		$date = new DateTime($date);
+
 			return $date->format('Y-m-d H:i:s');
     	}
 
     	if($src == "NC1" && $urlKey == "NC"){
-    		$date = new DateTime($date);
-            
-			return $date->format('Y-m-d H:i:s');
+    		if(strpos($date, "aujourd'hui")!==false){
+                $date = new DateTime();
+            }else{
+                $date = new DateTime($date);
+            }
+            return $date->format('Y-m-d H:i:s')."+11:00";
     	}
 
     	if($src == "CALEDOSPHERE"){
@@ -244,12 +257,20 @@ class MediaCrawlerAction extends CAction
 
 
     	if($urlKey == "YOUTUBE"){
+            //error_log("DATE YOUTUBE 1 : ".$date);
     		$dateC = str_replace("Published on ", "", $date);
     		$dateC = str_replace("Streamed live on ", "", $dateC);
     		$dateC = str_replace(",", "", $dateC);
+
+            if(strpos($dateC, "Streamed live ")!==false){
+                $date = new DateTime();
+                return $date->format('Y-m-d H:i:s')."+11:00";
+            }
+
     		$dateS = explode(" ", $dateC);
     		$month = $this->getMonthNum($dateS[0]);
-           
+            //error_log("DATE YOUTUBE 2 : ".$month);
+            
           	if($month == false) return false;
     		//else $month++;
     		
@@ -262,6 +283,7 @@ class MediaCrawlerAction extends CAction
 
     	return $date;
     }
+
 
     private function getMonthNum($monthName){ 
     	$months = array('janvier', "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre");

@@ -208,7 +208,8 @@ class GlobalAutoCompleteAction extends CAction
 	  										array("startDate" => 1), $indexStep, $indexMin);
         	
 	  		foreach ($allEvents as $key => $value) {
-	  			$allEvents[$key]["type"] = "event";
+	  			$allEvents[$key]["typeEvent"] = @$allEvents[$key]["type"];
+				$allEvents[$key]["type"] = "event";
 				$allEvents[$key]["typeSig"] = Event::COLLECTION;
 				if(@$value["links"]["attendees"][Yii::app()->session["userId"]]){
 		  			$allEvents[$key]["isFollowed"] = true;
@@ -220,6 +221,13 @@ class GlobalAutoCompleteAction extends CAction
 				if(@$allEvents[$key]["endDate"]){
 					$allEvents[$key]["endDateTime"] = date(DateTime::ISO8601, $allEvents[$key]["endDate"]->sec);
 					$allEvents[$key]["endDate"] = date(DateTime::ISO8601, $allEvents[$key]["endDate"]->sec);
+				}
+				if(@$allEvents[$key]["organizerId"] &&
+				   @$allEvents[$key]["organizerType"] &&
+				   @$allEvents[$key]["organizerId"] != "dontKnow"){ 
+
+					$allEvents[$key]["organizerObj"] = 
+					Element::getElementById(@$allEvents[$key]["organizerId"], @$allEvents[$key]["organizerType"]);
 				}
 	  		}
 
