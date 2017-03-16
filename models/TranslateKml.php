@@ -7,26 +7,40 @@ class TranslateKml {
 
 			"name" => array("valueOf" => '_id.$id'),
 			"description" => 
-						array ("type" => "description_kml",		
+						array ("type" => "description_kml",
+									
 								"text" => array ("valueOf" => "text"),
-				),
-			"Point" => array(
-							"type" => "coor_news",
-							"coordinates" => 
-							array( "valueOf" => "scope"),
-					),
 
+				),
+
+			"Point" => array(
+							"type" => "coor",
+							"coordinates" => 
+							array( "latitude" => array("valueOf" => "scope.cities.0.geo.latitude"),
+								   "longitude" => array("valueOf" => "scope.cities.0.geo.longitude"),
+							),
+					),
 	);
+
+
 
 	public static $dataBinding_allOrganization = array(
 
 
 			"name" => array("valueOf" => 'name'),
-			"description" => array("valueOf" => "type"),
+
+			"description" => array(
+							"img"		=> array("valueOf" => "profilImageUrl",
+							"type" 	=> "url", 
+							"prefix"   => "/"),
+							// "description" => array("valueOf" => "username"),
+							),
 			"Point" => array(
 							"type" => "coor",
 							"coordinates" => 
-							array( "valueOf" => "geo"),
+							array( "latitude" => array("valueOf" => "geo.latitude"),
+								   "longitude" => array("valueOf" => "geo.longitude"),
+							),
 					),
 
 		
@@ -36,11 +50,18 @@ class TranslateKml {
 
 
 			"name" => array("valueOf" => 'name'),
-			"description" => array("valueOf" => "type"),
+			"description" => array(
+							"img"		=> array("valueOf" => "profilImageUrl",
+							"type" 	=> "url", 
+							"prefix"   => "/"),
+							// "description" => array("valueOf" => "username"),
+							),
 			"Point" => array(
 							"type" => "coor",
 							"coordinates" => 
-							array( "valueOf" => "geo"),
+							array( "latitude" => array("valueOf" => "geo.latitude"),
+								   "longitude" => array("valueOf" => "geo.longitude"),
+							),
 					),
 
 
@@ -49,25 +70,37 @@ class TranslateKml {
 	public static $dataBinding_allEvent  = array(
 
 			"name" => array("valueOf" => 'name'),
-			"description" => array("valueOf" => "type"),
+			"description" => array(
+							"img"		=> array("valueOf" => "profilImageUrl",
+							"type" 	=> "url", 
+							"prefix"   => "/"),
+							// "description" => array("valueOf" => "username"),
+							),
 			"Point" => array(
 							"type" => "coor",
 							"coordinates" => 
-							array( "valueOf" => "geo"),
+							array( "latitude" => array("valueOf" => "geo.latitude"),
+								   "longitude" => array("valueOf" => "geo.longitude"),
+							),
 					),
-
 		
 		);
 	public static $dataBinding_event = array(
 
 			"name" => array("valueOf" => 'name'),
-			"description" => array("valueOf" => "type"),
+			"description" => array(
+							"img"		=> array("valueOf" => "profilImageUrl",
+							"type" 	=> "url", 
+							"prefix"   => "/"),
+							// "description" => array("valueOf" => "username"),
+							),
 			"Point" => array(
 							"type" => "coor",
 							"coordinates" => 
-							array( "valueOf" => "geo"),
+							array( "latitude" => array("valueOf" => "geo.latitude"),
+								   "longitude" => array("valueOf" => "geo.longitude"),
+							),
 					),
-
 		
 	);
 
@@ -75,11 +108,18 @@ class TranslateKml {
 
 
 			"name" => array("valueOf" => 'name'),
-			"description" => array("valueOf" => "type"),
+			"description" => array(
+							"img"		=> array("valueOf" => "profilImageUrl",
+							"type" 	=> "url", 
+							"prefix"   => "/"),
+							// "description" => array("valueOf" => "username"),
+							),
 			"Point" => array(
 							"type" => "coor",
 							"coordinates" => 
-							array( "valueOf" => "geo"),
+							array( "latitude" => array("valueOf" => "geo.latitude"),
+								   "longitude" => array("valueOf" => "geo.longitude"),
+							),
 					),
 
 	);
@@ -88,13 +128,19 @@ class TranslateKml {
 
 
 			"name" => array("valueOf" => 'name'),
-			"description" => array("valueOf" => "type"),
+			"description" => array(
+							"img"		=> array("valueOf" => "profilImageUrl",
+							"type" 	=> "url", 
+							"prefix"   => "/"),
+							// "description" => array("valueOf" => "username"),
+							),
 			"Point" => array(
 							"type" => "coor",
 							"coordinates" => 
-							array( "valueOf" => "geo"),
+							array( "latitude" => array("valueOf" => "geo.latitude"),
+								   "longitude" => array("valueOf" => "geo.longitude"),
+							),
 					),
-
 		
 	);
 
@@ -103,11 +149,18 @@ class TranslateKml {
 
 
 			"name" => array("valueOf" => 'name'),
-			"description" => array("valueOf" => "username"),
+			"description" => array(
+							"img"		=> array("valueOf" => "profilImageUrl",
+							"type" 	=> "url", 
+							"prefix"   => "/"),
+							// "description" => array("valueOf" => "username"),
+							),
 			"Point" => array(
 							"type" => "coor",
 							"coordinates" => 
-							array( "valueOf" => "geo"),
+							array( "latitude" => array("valueOf" => "geo.latitude"),
+								   "longitude" => array("valueOf" => "geo.longitude"),
+							),
 					),
 
 		
@@ -115,15 +168,19 @@ class TranslateKml {
 
 	public static $dataBinding_person = array(
 
-
-
-
 			"name" => array("valueOf" => 'name'),
-			"description" => array("valueOf" => "username"),
+			"description" => array(
+							"img"		=> array("valueOf" => "profilImageUrl",
+							"type" 	=> "url", 
+							"prefix"   => "/"),
+							// "description" => array("valueOf" => "username"),
+							),
 			"Point" => array(
 							"type" => "coor",
 							"coordinates" => 
-							array( "valueOf" => "geo"),
+							array( "latitude" => array("valueOf" => "geo.latitude"),
+								   "longitude" => array("valueOf" => "geo.longitude"),
+							),
 					),
 
 			);
@@ -138,13 +195,65 @@ class TranslateKml {
 			"Point" => array(
 							"type" => "coor",
 							"coordinates" => 
-							array( "valueOf" => "geo"),
+							array( "latitude" => array("valueOf" => "geo.latitude"),
+								   "longitude" => array("valueOf" => "geo.longitude"),
+							),
 					),
 
 		
 
 
 	);
+
+
+	public static function getKmlCoor($val, $bindPath) {
+
+
+		if ((isset($val["coordinates"]["latitude"])) && (isset($val["coordinates"]["longitude"]))) {
+
+			$latitude = $val["coordinates"]["latitude"];
+		 	$longitude = $val["coordinates"]["longitude"];
+
+		 	$coor = $longitude.','.$latitude;
+			$val['coordinates'] = $coor;
+
+			unset($val["type"]);
+			
+		} elseif ((!isset($val["coordinates"]["latitude"])) || (!isset($val["coordinates"]["longitude"]))) {
+
+			unset($val);
+
+
+		}
+		// if (isset($bindPath["type"]) && $bindPath["type"] == "description_kml") {
+
+		// 	if (isset($val["text"])) {
+		// 		$val = $val["text"];
+		// 	} else {
+		// 		$val = "Pas de description pour cette news";
+		// 	}
+
+
+
+		// }	
+	
+		if (isset($val)) {
+			return $val;		
+		}	
+		
+
+	}
+
+	public static function specFormatByType($val, $bindPath) {
+
+		if (isset($val["text"])) {
+			$val = $val["text"];
+		} else {
+			$val = "Pas de description pour cette news";
+		}
+
+		return $val;
+	}
 
 
 }
