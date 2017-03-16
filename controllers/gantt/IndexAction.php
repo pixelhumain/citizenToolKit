@@ -73,6 +73,8 @@ class IndexAction extends CAction
 										"startDate"=>$startDate,
 										"endDate"=>$endDate,
 										"key"=> array ("address"=> (empty($val["address"]["addressLocality"])? "" : $val["address"]["addressLocality"])));
+						//if(@$val["address"] && @$val["address"]["addressLocality"])
+						//	$valEv["key"] = array("address"=> $val["address"]["addressLocality"]);
 						 $newArrayEvent[]=$valEv;
 					}
 					$taskEvent=$newArrayEvent;

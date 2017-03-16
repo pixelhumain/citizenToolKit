@@ -46,16 +46,18 @@ class AutocompleteMultiScopeAction extends CAction
                 }
                 $countryCode = mb_convert_encoding($countryCode, "UTF-8");
                 $resNominatim = json_decode(SIG::getGeoByAddressNominatim(null, null, $scopeValue, trim($countryCode), true, true),true);
-
+                var_dump($resNominatim);
                 if(!empty($resNominatim)){
+                    //var_dump($resNominatim);
                     foreach (@$resNominatim as $key => $value) {
                         $typeCities = array("city", "village", "town") ;
                         foreach ($typeCities as $keyType => $valueType) {
-                            if(!empty($value["address"][$valueType]) && $countryCode == strtoupper(@$value["address"]["country_code"])){
+                            if( !empty($value["address"][$valueType]) 
+                                && $countryCode == strtoupper(@$value["address"]["country_code"]) 
+                               /* && empty($value["address"]["city_district"])*/) {
 
                                 $wikidata = (empty($value["extratags"]["wikidata"]) ? null : $value["extratags"]["wikidata"]);
-                                
-                                $postalCodes = array();
+                                //var_dump($value["osm_id"]);
                                 $newCities = array( "name" => $value["address"][$valueType],
                                                     "alternateName" => mb_strtoupper($value["address"][$valueType]),
                                                     "country" => $countryCode,
@@ -75,20 +77,20 @@ class AutocompleteMultiScopeAction extends CAction
                                                     "osmID" => $value["osm_id"],
                                                    
                                                     "save" => true);
-     
-
-                                
-                               
-                                if(!empty($wikidata)){
+                                if(!empty($wikidata))
                                     $newCities = City::getCitiesWithWikiData($wikidata, $newCities);
-                                }else{
+                                
+
+                                if(empty($newCities["insee"]))
                                     $newCities["insee"] = $value["osm_id"]."*".$countryCode;
-                                    $newCities["postalCodes"] = $postalCodes;
+
+                                if(empty($newCities["postalCodes"]))
+                                    $newCities["postalCodes"] = array();
+
+                                if(empty($newCities["geoShape"]))
                                     $newCities["geoShape"] = $value["geojson"];
-                                }
 
-                            
-
+                              
                                 if(City::checkCitySimply($newCities))
                                     $cities[] = $newCities;
                                 

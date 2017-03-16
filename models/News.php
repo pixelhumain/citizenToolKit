@@ -108,7 +108,14 @@ class News {
 				$type=$_POST["parentType"];
 				$news["target"]["type"] = $type;
 				$from="";
-				if($type == Person::COLLECTION ){
+				$parent = Element::getByTypeAndId($type, $_POST["parentId"]);
+				if( isset( $parent['geo'] ) )
+					$from = $parent['geo'];
+				if(@$parent["address"]){
+						$codeInsee=$parent["address"]["codeInsee"];
+						$postalCode=$parent["address"]["postalCode"];
+				}
+				/*if($type == Person::COLLECTION ){
 					$person = Person::getById($_POST["parentId"]);
 					if( isset( $person['geo'] ) )
 						$from = $person['geo'];
@@ -153,7 +160,7 @@ class News {
 					}
 					$project["type"] = Project::COLLECTION; 
 					Notification::actionOnPerson ( ActStr::VERB_POST, ActStr::ICON_RSS, null , $project )  ;
-				}
+				}*/
 				// if( isset($_POST["scope"])) {
 				// 	if(@$_POST["codeInsee"]){
 				// 		$news["scope"]["type"]="public";
@@ -233,6 +240,14 @@ class News {
 			}
 
 			PHDB::insert(self::COLLECTION,$news);
+			//NOTIFICATION POST
+			$target=array("id"=>$_POST["parentId"],"type"=>$_POST["parentType"]);
+			if(@$news["targetIsAuthor"])
+				$target["targetIsAuthor"]=true;
+			else if($_POST["parentType"]==Person::COLLECTION && $_POST["parentId"] != Yii::app()->session["userId"])
+				$target["userWall"]=true;
+			if($_POST["parentType"] != Person::COLLECTION || $_POST["parentId"] != Yii::app()->session["userId"])
+        		Notification::constructNotification(ActStr::VERB_POST, array("id" => Yii::app()->session["userId"],"name" => Yii::app()->session["user"]["name"]) , $target, null, null);
 			$news=NewsTranslator::convertParamsForNews($news);			  		
 		    $news["author"] = Person::getSimpleUserById(Yii::app()->session["userId"]);
 		    
