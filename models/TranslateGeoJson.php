@@ -42,16 +42,31 @@ class TranslateGeoJson {
 
 			"type" => "Feature",
 			"geometry" => 
-						array ("type" => "Point_news",		
-								"coordinates" => array ("valueOf" => "scope"),
+						array ("type" => "Point",		
+								"coordinates" => array ("valueOf" => "scope.cities.0.geo"),
 				),
-			"properties" => array("prop0" => "value0"),
+			"properties" => array(
+				"type" => "properties",
+				array(
+					"email" => array("valueOf" => "email"),
+					"name" => array("valueOf" => "name"),
+					"username" => array("valueOf" => "username"),
+					"img"		=> array("valueOf" => "profilImageUrl",
+										"type" 	=> "url", 
+										"prefix"   => "/"),
+					),
+				),
+
 	);
 
+// "Point" => array(
+// 							"type" => "coor",
+// 							"coordinates" => 
+// 							array( "valueOf" => "geo"),
+// 					),
 	
 
 	public static $dataBinding_allOrganization = array(
-
 
 			
 			"type" => "Feature",
@@ -59,8 +74,18 @@ class TranslateGeoJson {
 						array ("type" => "Point",		
 								"coordinates" => array ("valueOf" => "geo"),
 				),
-			"properties" => array("type" => "properties",
-				array("prop0" => array("valueOf" => "name")),),
+			"properties" => array(
+				"type" => "properties",
+				array(
+					"email" => array("valueOf" => "email"),
+					"name" => array("valueOf" => "name"),
+					"username" => array("valueOf" => "username"),
+					"img"		=> array("valueOf" => "profilImageUrl",
+										"type" 	=> "url", 
+										"prefix"   => "/"),
+					),
+				),
+
 
 		
 	);
@@ -74,8 +99,18 @@ class TranslateGeoJson {
 						array ("type" => "Point",		
 								"coordinates" => array ("valueOf" => "geo"),
 				),
-			"properties" => array("type" => "properties",
-				array("prop0" => array("valueOf" => "name")),),
+			"properties" => array(
+				"type" => "properties",
+				array(
+					"email" => array("valueOf" => "email"),
+					"name" => array("valueOf" => "name"),
+					"username" => array("valueOf" => "username"),
+					"img"		=> array("valueOf" => "profilImageUrl",
+										"type" 	=> "url", 
+										"prefix"   => "/"),
+					),
+				),
+
 	);
 
 	public static $dataBinding_allEvent  = array(
@@ -86,8 +121,18 @@ class TranslateGeoJson {
 						array ("type" => "Point",		
 								"coordinates" => array ("valueOf" => "geo"),
 				),
-			"properties" => array("type" => "properties",
-				array("prop0" => array("valueOf" => "name")),),
+			"properties" => array(
+				"type" => "properties",
+				array(
+					"email" => array("valueOf" => "email"),
+					"name" => array("valueOf" => "name"),
+					"username" => array("valueOf" => "username"),
+					"img"		=> array("valueOf" => "profilImageUrl",
+										"type" 	=> "url", 
+										"prefix"   => "/"),
+					),
+				),
+
 		
 		);
 	public static $dataBinding_event = array(
@@ -97,8 +142,18 @@ class TranslateGeoJson {
 						array ("type" => "Point",		
 								"coordinates" => array ("valueOf" => "geo"),
 				),
-			"properties" => array("type" => "properties",
-				array("prop0" => array("valueOf" => "name")),),
+			"properties" => array(
+				"type" => "properties",
+				array(
+					"email" => array("valueOf" => "email"),
+					"name" => array("valueOf" => "name"),
+					"username" => array("valueOf" => "username"),
+					"img"		=> array("valueOf" => "profilImageUrl",
+										"type" 	=> "url", 
+										"prefix"   => "/"),
+					),
+				),
+
 
 		
 	);
@@ -111,8 +166,18 @@ class TranslateGeoJson {
 						array ("type" => "Point",		
 								"coordinates" => array ("valueOf" => "geo"),
 				),
-			"properties" => array("type" => "properties",
-				array("prop0" => array("valueOf" => "name")),),
+			"properties" => array(
+				"type" => "properties",
+				array(
+					"email" => array("valueOf" => "email"),
+					"name" => array("valueOf" => "name"),
+					"username" => array("valueOf" => "username"),
+					"img"		=> array("valueOf" => "profilImageUrl",
+										"type" 	=> "url", 
+										"prefix"   => "/"),
+					),
+				),
+
 
 	);
 
@@ -124,8 +189,18 @@ class TranslateGeoJson {
 						array ("type" => "Point",		
 								"coordinates" => array ("valueOf" => "geo"),
 				),
-			"properties" => array("type" => "properties",
-				array("prop0" => array("valueOf" => "name")),),
+			"properties" => array(
+				"type" => "properties",
+				array(
+					"email" => array("valueOf" => "email"),
+					"name" => array("valueOf" => "name"),
+					"username" => array("valueOf" => "username"),
+					"img"		=> array("valueOf" => "profilImageUrl",
+										"type" 	=> "url", 
+										"prefix"   => "/"),
+					),
+				),
+
 
 		
 	);
@@ -138,8 +213,17 @@ class TranslateGeoJson {
 						array ("type" => "Point",		
 								"coordinates" => array ("valueOf" => "geo"),
 				),
-			"properties" => array("type" => "properties",
-				array("prop0" => array("valueOf" => "name")),),
+			"properties" => array(
+				"type" => "properties",
+				array(
+					"email" => array("valueOf" => "email"),
+					"name" => array("valueOf" => "name"),
+					"username" => array("valueOf" => "username"),
+					"img"		=> array("valueOf" => "profilImageUrl",
+										"type" 	=> "url", 
+										"prefix"   => "/"),
+					),
+				),
 
 		
 	);
@@ -154,8 +238,18 @@ class TranslateGeoJson {
 						array ("type" => "Point",		
 								"coordinates" => array ("valueOf" => "geo"),
 				),
-			"properties" => array("type" => "properties",
-				array("prop0" => array("valueOf" => "name")),),
+			"properties" => array(
+				"type" => "properties",
+				array(
+					"email" => array("valueOf" => "email"),
+					"name" => array("valueOf" => "name"),
+					"username" => array("valueOf" => "username"),
+					"img"		=> array("valueOf" => "profilImageUrl",
+										"type" 	=> "url", 
+										"prefix"   => "/"),
+					),
+				),
+
 
 			);
 
@@ -171,12 +265,87 @@ class TranslateGeoJson {
 				),
 			"properties" => array(
 				"type" => "properties",
-				array("prop0" => array("valueOf" => "name")),
+				array(
+					"email" => array("valueOf" => "email"),
+					"name" => array("valueOf" => "name"),
+					"username" => array("valueOf" => "username"),
+					"img"		=> array("valueOf" => "profilImageUrl",
+										"type" 	=> "url", 
+										"prefix"   => "/"),
+					),
 				),
+
 
 	);
 
 
+	public static function getGeojsonCoor($val, $bindPath) {
+
+		if (isset($bindPath["type"]) && $bindPath["type"] == "Point") {
+
+
+			if ((isset($val["coordinates"]["latitude"])) && (isset($val["coordinates"]["longitude"]))) {
+
+				$latitude = $val["coordinates"]["latitude"];
+			 	$longitude = $val["coordinates"]["longitude"];
+
+			 	$latitude = floatval($latitude);
+				$longitude = floatval($longitude);
+
+				$val["coordinates"] = array();
+				array_push($val["coordinates"], $longitude);				
+				array_push($val["coordinates"], $latitude);
+
+			 	
+				
+			} elseif ((!isset($val["coordinates"]["latitude"])) || (!isset($val["coordinates"]["longitude"]))) {
+
+				unset($val);
+
+
+			}
+			
+		}
+
+		if (isset($val)) {
+			return $val;	
+		}
+		
+		
+	}
+
+	public static function getGeojsonProperties($val, $bindPath) {
+
+			if (isset($val["0"]["name"])) {
+				$val["name"] = $val["0"]["name"];
+				//var_dump($val);
+			}
+			if (isset($val["0"]["username"])) {
+				$val["username"] = $val["0"]["username"];
+			}
+			if (isset($val["0"]["email"])) {
+				$val["email"] = $val["0"]["email"];
+			}
+				if (isset($val["0"]["img"])) {
+				$val["img"] = $val["0"]["img"];
+			}
+
+			
+			unset($val["0"]);
+			
+			unset($val["type"]);
+			
+		
+		return $val;
+
+	}
+
+
 }
+
+
+
+
+
 
 ?>
