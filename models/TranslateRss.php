@@ -101,17 +101,17 @@ class TranslateRss {
 												"guid" => array("valueOf" => "_id"),
 
 												"enclosure" => array(
+													"type" => "image_rss",											
 													"id" => array("valueOf" => '_id.$id'),
+													"target_id" => array("valueOf" => "target.id"),
+													"target_type" => array("valueOf" => "target.type"),
+													"verb" => array ("valueOf" => "verb"),
+													"object_type" => array("valueOf" => "object.objectType"),
+													"object_id" => array("valueOf" => "object.id"),
 													"type2" => array("valueOf" => "type"),
-													"type" => "image_rss",
 													"image_id" => array("valueOf" => "media.images.0"),
 
-													"img"		=> array(										
-																		"valueOf" => "author",
-																		"type" 	=> "url", 
-																		"prefix"   => "/upload/communecter/citoyens/",
-																		"suffix" => "/album",
-																	),
+													
 												),
 
 												
@@ -223,6 +223,71 @@ class TranslateRss {
 
 			return $val;
 
+
+	}
+
+	public static function getRssImage($val, $bindPath) {
+
+			
+
+			if (isset($val["verb"])) {
+				// var_dump($val);
+				$doc_crea = Document::getListDocumentsByIdAndType($val["object_id"], $val["object_type"]);
+
+				if (isset($doc_crea["profil"])) {
+					
+					foreach ($doc_crea['profil'] as $key => $value) {
+						foreach ($value as $key2 => $value2) {
+							// if ($val["image_id"] == $value2) {
+						 	$image_path = $value["imagePath"];
+							// }
+
+							//var_dump($value["imagePath"]);
+						}
+					}
+
+					$val = $image_path;
+
+				} else {
+					$val = "http://127.0.0.1/ph/assets/7d331fe5/images/thumbnail-default.jpg";
+	
+				}
+				
+				
+			} elseif (isset($val["image_id"])) {	
+
+				// var_dump($val["image_id"]);					
+				$doc = Document::getListDocumentsByIdAndType($val["target_id"], $val["target_type"]);
+				// //$params['images'] = Document::getListDocumentsByIdAndType($id, $type, $contentKey, Document::DOC_TYPE_IMAGE);
+
+				// if ($val["verb"] == "create") {
+				// 	$doc_crea = Document::getListDocumentsByIdAndType($val["target_id"], $val["target_type"]);
+				// 	var_dump($doc_crea);
+				// }		
+
+				foreach ($doc['slider'] as $key => $value) {
+					foreach ($value as $key2 => $value2) {
+						if ($val["image_id"] == $value2) {
+							$image_path = $value["imagePath"];
+						}
+					}
+				}
+
+				$image_path = "http://127.0.0.1".$image_path;
+				
+				$val = $image_path;
+
+				//var_dump($val);
+
+
+			} else {
+				$val = "http://127.0.0.1/ph/assets/7d331fe5/images/thumbnail-default.jpg";
+				
+
+			}
+
+
+		return $val;
 
 	}
 
