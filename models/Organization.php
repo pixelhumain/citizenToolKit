@@ -67,6 +67,7 @@ class Organization {
 	    "locality" => array("name" => "address"),
 	    "contacts" => array("name" => "contacts"),
 	    "urls" => array("name" => "urls"),
+	    "descriptionHTML" => array("name" => "descriptionHTML"),
 	);
 	
 	//See findOrganizationByCriterias...
@@ -183,7 +184,6 @@ class Organization {
 
 	    $newOrganizationId = (string)$organization['_id'];
 		Badge::addAndUpdateBadges("opendata", $newOrganizationId, Organization::COLLECTION);
-		
 		//Manage link with the creator depending of the role selected
 		if (@$organization["role"] == "admin") {
 			$isToLink = true;
@@ -203,7 +203,6 @@ class Organization {
 			//Create link in both entity person and organization 
 			Link::connect($newOrganizationId, Organization::COLLECTION, $memberId, Person::COLLECTION, $creatorId,"members",$isAdmin);
 			Link::connect($memberId, Person::COLLECTION, $newOrganizationId, Organization::COLLECTION, $creatorId,"memberOf",$isAdmin);
-		   // Link::addMember($newOrganizationId, Organization::COLLECTION, $memberId, Person::COLLECTION, $creatorId, $isAdmin);
 		}
 
 		if (@$paramsImport) {
@@ -270,7 +269,7 @@ class Organization {
 	    	$orgaCodeInsee=$organization["address"];
 	    else
 	    	$orgaCodeInsee="";
-	    
+
 		Notification::createdObjectAsParam(Person::COLLECTION,$creatorId,Organization::COLLECTION, $newOrganizationId, Person::COLLECTION,$creatorId, $orgaGeo,$orgaTags,$orgaCodeInsee);
 		ActivityStream::saveActivityHistory(ActStr::VERB_CREATE, $newOrganizationId, Organization::COLLECTION, "organization", $organization["name"]);
 	    $organization = Organization::getById($newOrganizationId);
@@ -526,12 +525,14 @@ class Organization {
 
 		$simpleOrganization = array();
 		if(!$orga)
-			$orga = PHDB::findOneById( self::COLLECTION ,$id, array("id" => 1, "name" => 1, "type" => 1, "email" => 1,  "shortDescription" => 1, "description" => 1, "address" => 1, "pending" => 1, "tags" => 1, "geo" => 1, "updated" => 1, "profilImageUrl" => 1, "profilThumbImageUrl" => 1, "profilMarkerImageUrl" => 1,"profilMediumImageUrl" => 1, "addresses"=>1) );
+			$orga = PHDB::findOneById( self::COLLECTION ,$id, array("id" => 1, "name" => 1, "type" => 1, "email" => 1, "url" => 1, "shortDescription" => 1, "description" => 1, "address" => 1, "pending" => 1, "tags" => 1, "geo" => 1, "updated" => 1, "profilImageUrl" => 1, "profilThumbImageUrl" => 1, "profilMarkerImageUrl" => 1,"profilMediumImageUrl" => 1, "addresses"=>1, "telephone"=>1) );
 		if(!empty($orga)){
 			$simpleOrganization["id"] = $id;
 			$simpleOrganization["name"] = @$orga["name"];
 			$simpleOrganization["type"] = @$orga["type"];
 			$simpleOrganization["email"] = @$orga["email"];
+			$simpleOrganization["url"] = @$orga["url"];
+			$simpleOrganization["telephone"] = @$orga["telephone"];
 			$simpleOrganization["pending"] = @$orga["pending"];
 			$simpleOrganization["tags"] = @$orga["tags"];
 			$simpleOrganization["geo"] = @$orga["geo"];
@@ -565,17 +566,26 @@ class Organization {
             throw new CTKException(Yii::t("organization", "The organization id is unkown : contact your admin"));
         }
 	  	if (isset($organization) && isset($organization["links"]) && isset($organization["links"]["members"])) {
-	  		$members = $organization["links"]["members"];
+	  		$members=array();
+	  		foreach($organization["links"]["members"] as $key => $member){
+	  		 	if(!@$member["toBeValidated"] && !@$member["isInviting"])
+	  		 		$members[$key]= $member;
+	  		}
 	  		//No filter needed
 	  		if ($type == "all") {
 	  			return $members;
 	  		} else {
 	  			foreach ($organization["links"]["members"] as $key => $member) {
 		            if ($member['type'] == $type ) {
-		                $res[$key] = $member;
+		            	if(!@$member["toBeValidated"] && !@$member["isInviting"])
+		            		$res[$key] = $member;	
 		            }
 		            if ( $role && @$member[$role] == true ) {
-		                $res[$key] = $member;
+		            	if($role=="isAdmin"){
+		            		if(!@$member["isAdminPending"])
+		            			$res[$key] = $member;	
+		            	} else 
+		                	$res[$key] = $member;
 		            }
 	        	}
 	  		}
@@ -1464,6 +1474,14 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 		else if(trim($type) == "Groupe" || trim($type) == "Groupe informel")
 			$type = self::TYPE_GROUP ;
 		return $type;
+	}
+
+	public static function getKeyTypeByValue($type) {
+		foreach (self::$types as $key => $value) {
+			if($type == $value)
+				return $key;
+		}
+	  	return false;
 	}
 	
 

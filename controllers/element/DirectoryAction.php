@@ -135,9 +135,9 @@ class DirectoryAction extends CAction
               $context = array("name"=>$element["name"]);
               //controllons le resultat
               $list = array(
+                "citoyens" => $params["people"],
                 "organizations" => $params["organizations"],
                 "events" => $params["events"],
-                "citoyens" => $params["people"],
                 "projects" => $params["projects"],
                 );
               echo Rest::json( array( "list" => $list,"context"=>$context) );

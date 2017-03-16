@@ -1,22 +1,19 @@
 <?php
-class AddChartSvAction extends CAction
+class IndexAction extends CAction
 {
-    public function run($type=null, $id=null){
+    public function run($type=null, $id=null, $chart=null){
 
     	$controller=$this->getController();
 		$element = Element::getByTypeAndId($type,$id);
 		$params["element"] = $element;
-		$params["properties"]=array();
-		if (isset($element["properties"]["chart"])){
-				$params["properties"]=$element["properties"]["chart"];
-			}
+		$params["properties"]=$element["properties"]["chart"][$chart];
 		$params["parentType"] = $type;
 		$params["parentId"] = $id;
+		$params["chartKey"] = $chart;
 		$params["edit"] = Authorisation::canEditItem(Yii::app()->session["userId"], $type, $id);
 		$params["openEdition"] = Authorisation::isOpenEdition($id, $type, @$element["preferences"]);
-
         if(Yii::app()->request->isAjaxRequest){
-			echo $controller->renderPartial("addChartSV", $params, true);
+			echo $controller->renderPartial("index", $params, true);
 
 		}
     }
