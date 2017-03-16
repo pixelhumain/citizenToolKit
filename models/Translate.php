@@ -193,34 +193,20 @@ class Translate {
 		elseif (isset($bindPath["type"]) && $bindPath["type"] == "properties") {
 			$val = TranslateGeojson::getGeoJsonProperties($val, $bindPath);	
 		}
-	
-
-
-		
-
-		
-		
-	
-	
-
-		
 		elseif (isset($bindPath["type"]) && $bindPath["type"] == "image_rss") {
+			$val = TranslateRss::getRssImage($val, $bindPath);		
+		}	
+	
 
-			//var_dump($val);
-			if (isset($val["image_id"])) {				
 
-				
-				$val = $val["img"];
-
-			} else {
-				$val = "http://127.0.0.1/ph/assets/7d331fe5/images/thumbnail-default.jpg";
-				
-
-			}
-				
-			
 		
-		}			 
+
+		
+		
+	
+	
+
+				 
 
 
 		
