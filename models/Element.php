@@ -188,7 +188,6 @@ class Element {
         } else if ( $type == Survey::COLLECTION) {
             $res = Survey::getById($id);
         } else {
-
         	throw new CTKException("Can not manage this type : ".$type);
         }
         if (empty($res)) throw new CTKException("The actor (".$id." / ".$type.") is unknown");
@@ -507,7 +506,7 @@ class Element {
 			}
 		}
 		
-		else if ($dataFieldName == "birthDate") {
+		/*else if ($dataFieldName == "birthDate") {
 			date_default_timezone_set('UTC');
 			$dt = DateTime::createFromFormat('Y-m-d H:i', $fieldValue);
 			if (empty($dt)) {
@@ -515,8 +514,9 @@ class Element {
 			}
 			$newMongoDate = new MongoDate($dt->getTimestamp());
 			$set = array($dataFieldName => $newMongoDate);
+
 		//Date format
-		} else if ($dataFieldName == "startDate" || $dataFieldName == "endDate") {
+		}*/ else if ($dataFieldName == "startDate" || $dataFieldName == "endDate" || $dataFieldName == "birthDate") {
 			date_default_timezone_set('UTC');
 			$dt = DataValidator::getDateTimeFromString($fieldValue, $dataFieldName);
 			$newMongoDate = new MongoDate($dt->getTimestamp());
@@ -1393,7 +1393,19 @@ class Element {
 		$id = $params["id"];
 
 		$res = array();
-		if($block == "contact"){
+		if($block == "info"){
+			if(isset($params["name"]))
+				$res[] = self::updateField($collection, $id, "name", $params["name"]);
+			if(isset($params["username"]))
+				$res[] = self::updateField($collection, $id, "username", $params["username"]);
+			//if(isset($params["shortDescription"]))
+			//	$res[] = self::updateField($collection, $id, "shortDescription", $params["shortDescription"]);
+			if(isset($params["avancement"]))
+				$res[] = self::updateField($collection, $id, "avancement", $params["avancement"]);
+			if(isset($params["tags"]))
+				$res[] = self::updateField($collection, $id, "tags", $params["tags"]);
+			if(isset($params["type"]))
+				$res[] = self::updateField($collection, $id, "type", $params["type"]);
 			if(isset($params["email"]))
 				$res[] = self::updateField($collection, $id, "email", $params["email"]);
 			if(isset($params["url"]))
@@ -1406,20 +1418,7 @@ class Element {
 				$res[] = self::updateField($collection, $id, "fax", $params["fax"]);
 			if(isset($params["mobile"]))
 				$res[] = self::updateField($collection, $id, "mobile", $params["mobile"]);
-
-		}else if($block == "info"){
-			if(isset($params["name"]))
-				$res[] = self::updateField($collection, $id, "name", $params["name"]);
-			if(isset($params["username"]))
-				$res[] = self::updateField($collection, $id, "username", $params["username"]);
-			if(isset($params["shortDescription"]))
-				$res[] = self::updateField($collection, $id, "shortDescription", $params["shortDescription"]);
-			if(isset($params["avancement"]))
-				$res[] = self::updateField($collection, $id, "avancement", $params["avancement"]);
-			if(isset($params["tags"]))
-				$res[] = self::updateField($collection, $id, "tags", $params["tags"]);
-			if(isset($params["type"]))
-				$res[] = self::updateField($collection, $id, "type", $params["type"]);
+		}else if($block == "network"){
 			if(isset($params["telegramAccount"]))
 				$res[] = self::updateField($collection, $id, "telegramAccount", $params["telegramAccount"]);
 			if(isset($params["facebookAccount"]))
