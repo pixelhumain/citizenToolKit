@@ -73,7 +73,8 @@ class Search {
         $indexMin = isset($post['indexMin']) ? $post['indexMin'] : 0;
         $indexMax = isset($post['indexMax']) ? $post['indexMax'] : 30;
         $country = isset($post['country']) ? $post['country'] : "";
-        $latest = isset($post['latest']) ? $post['latest'] : null;
+        $latest = isset($_POST['latest']) ? $_POST['latest'] : null;
+        $searchSType = !empty($post['searchSType']) ? $post['searchSType'] : "";
 
         $indexStep = $indexMax - $indexMin;
         
@@ -141,7 +142,7 @@ class Search {
 				
 	  	/***********************************  EVENT   *****************************************/
         if(strcmp($filter, Event::COLLECTION) != 0 && self::typeWanted(Event::COLLECTION, $searchType)){
-        	$allRes = array_merge($allRes, self::searchEvents($query, $indexStep, $indexMin));
+        	$allRes = array_merge($allRes, self::searchEvents($query, $indexStep, $indexMin, $searchSType));
 	  	}
 	  	/***********************************  PROJECTS   *****************************************/
         if(strcmp($filter, Project::COLLECTION) != 0 && self::typeWanted(Project::COLLECTION, $searchType)){
@@ -186,8 +187,13 @@ class Search {
 	  		usort($allRes, "self::mySortByUpdated");
 	  	}
 
-		foreach ($allRes as $key => $value) {
-			if(@$value["updated"]) $allRes[$key]["updatedLbl"] = Translate::pastTime($value["updated"],"timestamp");
+	  	foreach ($allRes as $key => $value) {
+			if(@$value["updated"]) {
+				if(self::typeWanted(Event::COLLECTION, $searchType))
+					$allRes[$key]["updatedLbl"] = Translate::pastTime(@$value["startDate"],"date");
+				else
+					$allRes[$key]["updatedLbl"] = Translate::pastTime(@$value["updated"],"timestamp");
+	  		}
 	  	}
 
 	  	return $allRes ;
@@ -500,7 +506,7 @@ class Search {
 	
 
 	/***********************************  EVENT   *****************************************/
-	public static function searchEvents($query, $indexStep, $indexMin){
+	public static function searchEvents($query, $indexStep, $indexMin, $searchSType){
 		date_default_timezone_set('UTC');
     	$queryEvent = $query;
 
@@ -508,6 +514,9 @@ class Search {
     		$queryEvent['$and'] = array();
     	
     	array_push( $queryEvent[ '$and' ], array( "endDate" => array( '$gte' => new MongoDate( time() ) ) ) );
+
+    	if(isset($searchSType) && $searchSType != "")
+        		array_push( $queryEvent[ '$and' ], array( "type" => $_POST["searchSType"] ) );
     	
     	$allEvents = PHDB::findAndSortAndLimitAndIndex( PHType::TYPE_EVENTS, $queryEvent, 
   										array("startDate" => 1), $indexStep, $indexMin);
