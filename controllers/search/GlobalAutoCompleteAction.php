@@ -204,6 +204,10 @@ class GlobalAutoCompleteAction extends CAction
         	
         	array_push( $queryEvent[ '$and' ], array( "endDate" => array( '$gte' => new MongoDate( time() ) ) ) );
         	
+        	if(isset($_POST["searchSType"]) && $_POST["searchSType"] != "")
+        		array_push( $queryEvent[ '$and' ], array( "type" => $_POST["searchSType"] ) );
+        	
+
         	$allEvents = PHDB::findAndSortAndLimitAndIndex( PHType::TYPE_EVENTS, $queryEvent, 
 	  										array("startDate" => 1), $indexStep, $indexMin);
         	
