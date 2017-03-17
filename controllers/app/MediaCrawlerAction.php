@@ -14,12 +14,13 @@ class MediaCrawlerAction extends CAction
 
         //date_default_timezone_set('Pacific/Noumea'); //'Pacific/Noumea'
 
-		$res .= $this->extractSource("NCTV", "YOUTUBE");
-		$res .= $this->extractSource("NC1", "YOUTUBE");
-		$res .= $this->extractSource("NC1", "NC");
-		$res .= $this->extractSource("CALEDOSPHERE", "FEED");
-		$res .= $this->extractSource("NCI", "EMISSION");
-		$res .= $this->extractSource("NCI", "BLOG");
+	    //$res .= $this->extractSource("NCTV", "YOUTUBE");
+	    //$res .= $this->extractSource("NC1", "YOUTUBE");
+	    //$res .= $this->extractSource("NC1", "NC");
+	    $res .= $this->extractSource("TAZAR", "BLOG");
+        //$res .= $this->extractSource("CALEDOSPHERE", "FEED");
+        //$res .= $this->extractSource("NCI", "EMISSION");
+		//$res .= $this->extractSource("NCI", "BLOG");
 		
     	$params = array("res" => $res);
 
@@ -31,22 +32,27 @@ class MediaCrawlerAction extends CAction
 
 	    $mapExtract = $this->getMapExtraction($src, $urlKey);
 
-		if($mapExtract == false) return "SOURCE NOT FOUND : ".$src." - ".$urlKey;
+		if($mapExtract == false){ echo "SOURCE NOT FOUND : ".$src." - ".$urlKey; return; }
 			
 		foreach($mapExtract["urls"] as $url) {
 		
 			error_log("CRAWLING ".$url);
             $html = file_get_html($url);
             //echo $html; exit;
-			foreach($html->find($mapExtract["elementUK"]) as $element) {
-
+            $uk = $html->find($mapExtract["elementUK"]);
+            //echo "results ? ".(string)sizeof($uk); exit;
+            if(sizeof($uk)>0)
+            foreach($uk as $element) {
 				$href 		= mb_convert_encoding(@$element->find(@$mapExtract["href"], 0)->href, "HTML-ENTITIES", "UTF-8");
 				$img 		= mb_convert_encoding(@$element->find(@$mapExtract["img"], 0)->src, "HTML-ENTITIES", "UTF-8");
 				$title 		= mb_convert_encoding(@$element->find(@$mapExtract["title"], 0)->plaintext, "HTML-ENTITIES", "UTF-8");
+                $content    = mb_convert_encoding(@$element->find(@$mapExtract["content"], 0)->plaintext, "HTML-ENTITIES", "UTF-8");
+                
+                if($element->find(@$mapExtract["date"], 0)!= null)
 				$date 		= mb_convert_encoding(@$element->find(@$mapExtract["date"], 0)->getAttribute("datetime"), "HTML-ENTITIES", "UTF-8");
-				$content 	= mb_convert_encoding(@$element->find(@$mapExtract["content"], 0)->plaintext, "HTML-ENTITIES", "UTF-8");
+				else $date = "";
 
-				if($date == "")
+                if($date == "" && $element->find(@$mapExtract["date"], 0)!= null)
 					$date 	= mb_convert_encoding(@$element->find($mapExtract["date"], 0)->plaintext, "HTML-ENTITIES", "UTF-8");
 				
 				$idYoutube = "";
@@ -54,7 +60,6 @@ class MediaCrawlerAction extends CAction
 					$href = "https://www.youtube.com".$href;
 					$idYoutube = $this->exctractYoutubeId($href);
 				}
-
 				//si l'href existe déjà dans la base, on ne charge pas l'url
 				$query = array('href' => $href);
 				$mediaExists = PHDB::findOne("media", $query);
@@ -64,20 +69,22 @@ class MediaCrawlerAction extends CAction
                     if(strpos($href, 'http')===0)                      
 					if(@$mapExtract["followImg"] || @$mapExtract["followContent"] || @$mapExtract["followDate"]){
                         error_log("MediaCrawler : extracting ".$href);
-                            $link = file_get_html($href);
+                        $link = file_get_html($href);
 
-						if(@$mapExtract["followImg"]){
-							$img = mb_convert_encoding(@$link->find($mapExtract["followImg"], 0)->src, "HTML-ENTITIES", "UTF-8");
+                        if($link != false){
+    						if(@$mapExtract["followImg"]){
+    							$img = mb_convert_encoding(@$link->find($mapExtract["followImg"], 0)->src, "HTML-ENTITIES", "UTF-8");
+    						}
+                    
+    						if(@$mapExtract["followContent"])
+    							$content = mb_convert_encoding(@$link->find($mapExtract["followContent"], 0)->plaintext, "HTML-ENTITIES", "UTF-8");
+
+    						if(@$mapExtract["followDate"])
+    							if(@$mapExtract["followDateIsDateTime"] == true)
+    							$date = mb_convert_encoding(@$link->find($mapExtract["followDate"], 0)->getAttribute("datetime"), "HTML-ENTITIES", "UTF-8");
+    							else if(@$mapExtract["followDateIsDateTime"] == false)
+    							$date = mb_convert_encoding(@$link->find($mapExtract["followDate"], 0)->plaintext, "HTML-ENTITIES", "UTF-8");
 						}
-						if(@$mapExtract["followContent"])
-							$content = mb_convert_encoding(@$link->find($mapExtract["followContent"], 0)->plaintext, "HTML-ENTITIES", "UTF-8");
-
-						if(@$mapExtract["followDate"])
-							if(@$mapExtract["followDateIsDateTime"] == true)
-							$date = mb_convert_encoding(@$link->find($mapExtract["followDate"], 0)->getAttribute("datetime"), "HTML-ENTITIES", "UTF-8");
-							else if(@$mapExtract["followDateIsDateTime"] == false)
-							$date = mb_convert_encoding(@$link->find($mapExtract["followDate"], 0)->plaintext, "HTML-ENTITIES", "UTF-8");
-							
 					}
 					
 					$date = $this->formatDate($src, $urlKey, $date);
@@ -145,7 +152,7 @@ class MediaCrawlerAction extends CAction
     									  ),
 
     								"EMISSION" => 
-    								array("urls" =>  array("url" => "http://www.nci.nc/category/emissions/"),
+    								array("urls" =>  array("http://www.nci.nc/category/emissions/"),
     									  "elementUK" => ".cactus-post-item",
     									  "href" => ".picture .picture-content a",
     									  "img" => ".picture .picture-content a img",
@@ -157,7 +164,7 @@ class MediaCrawlerAction extends CAction
     							),
     					"NC1" => 
     						array( "NC" => 
-    								array("urls" =>  array("url" => "http://la1ere.francetvinfo.fr/nouvellecaledonie/"),
+    								array("urls" =>  array("http://la1ere.francetvinfo.fr/nouvellecaledonie/"),
     									  "elementUK" => ".block-fr3-content",
     									  "href" => ".content .image a",
     									  "img" => ".content .image a img",
@@ -172,7 +179,7 @@ class MediaCrawlerAction extends CAction
     									  ),
 
     								"YOUTUBE" => 
-    								array("urls" =>  array("url" => "https://www.youtube.com/channel/UCu1v8ajo9Z-ZLBlR-QPmyCQ/videos?live_view=500&flow=grid&view=0&sort=dd"),
+    								array("urls" =>  array("https://www.youtube.com/channel/UCu1v8ajo9Z-ZLBlR-QPmyCQ/videos?live_view=500&flow=grid&view=0&sort=dd"),
     									  "elementUK" => ".channels-content-item",
     									  "href" => ".yt-lockup-content a",
     									  "img" => "",
@@ -185,21 +192,44 @@ class MediaCrawlerAction extends CAction
     									  "followDateIsDateTime" => false,
     									  ),
     							),
-    					"CALEDOSPHERE" => 
-    						array( "FEED" => 
-    								array("urls" =>  array("url" => "https://caledosphere.com/flux-des-articles/"),
-    									  "elementUK" => ".post_header",
-    									  "href" => ".post_img a",
-    									  "img" => ".post_img a img",
-    									  "title" => ".post_header_title h5 a",
-    									  "date" => ".post_info_date a",
-    									  "content" => "p",
-    									  "type" => "text",
-    									  ),
-    							),
+                        /*"CALEDOSPHERE" => 
+                            array( "FEED" => 
+                                    array("urls" =>  array("https://caledosphere.com/flux-des-articles/"),
+                                          "elementUK" => "#Label1 .item",
+                                          "href" => "a.meta-item-date",
+                                          "img" => ".post_img a img",
+                                          "title" => ".post_header_title h5 a",
+                                          "date" => ".post_info_date a",
+                                          "content" => "p",
+                                          "type" => "text",
+                                          "followImg" => "#primary .wp-post-image",
+                                          "followContent" => ".entry-content h3",
+                                          "followDate" => "a.entry-date span.value",
+                                          "followDateIsDateTime" => false,
+                                          ),
+                                ),*/
+                        "TAZAR" => 
+                            array( "BLOG" => 
+                                    array("urls" =>  array("http://www.tazar.nc/category/je-mimplique/",
+                                                           "http://www.tazar.nc/category/je-me-bouge/",
+                                                            "http://www.tazar.nc/category/demain-cest-moi/"
+                                                            ),
+                                          "elementUK" => ".g1-collection-item",
+                                          "href" => ".entry-body .entry-title a",
+                                          "img" => ".entry-featured-media .wp-post-image",
+                                          "title" => ".entry-title",
+                                          "date" => ".entry-body .entry-date",
+                                          "content" => ".entry-summary p",
+                                          "type" => "text",
+                                          "followImg" => "#primary .entry-featured-media .wp-post-image",
+                                          "followContent" => "#primary .entry-content h3",
+                                          "followDate" => "#primary .entry-meta-wrap .entry-date",
+                                          "followDateIsDateTime" => true,
+                                          ),
+                                ),
     					"NCTV" => 
     						array( "YOUTUBE" => 
-    								array("urls" =>  array("url" => "https://www.youtube.fr/channel/UCdX2FGu9cQ0HwKRnymkulcw/videos"),
+    								array("urls" =>  array("https://www.youtube.fr/channel/UCdX2FGu9cQ0HwKRnymkulcw/videos"),
     									  "elementUK" => ".channels-content-item",
     									  "href" => ".yt-lockup-content a",
     									  "img" => "",
@@ -223,30 +253,42 @@ class MediaCrawlerAction extends CAction
 
         date_default_timezone_set('Pacific/Noumea');
 
-        //error_log("DATE formatDate : ".$date." src:".$src." urlKey:".$urlKey." TIMZONE : ".date_default_timezone_get());
+        error_log("DATE formatDate : ".$date." src:".$src." urlKey:".$urlKey." TIMZONE : ".date_default_timezone_get());
 
     	if($src == "NCI"){
-            $date = str_replace("+00:00", "+11:00", $date);
+            //$date = str_replace("+00:00", "+11:00", $date);
+            //error_log("DATE formatDate NCI : ".$date." src:".$src." urlKey:".$urlKey." TIMZONE : ".date_default_timezone_get());
+
     		$date = new DateTime($date);
 
-			return $date->format('Y-m-d H:i:s');
+			return $date->format('Y-m-d H:i:s')."+11:00";;
     	}
 
     	if($src == "NC1" && $urlKey == "NC"){
-    		if(strpos($date, "aujourd'hui")!==false){
+            if(strpos($date, "aujourd'hui")!==false){
                 $date = new DateTime();
             }else{
                 $date = new DateTime($date);
             }
             return $date->format('Y-m-d H:i:s')."+11:00";
-    	}
+        }
 
-    	if($src == "CALEDOSPHERE"){
+        if($src == "TAZAR" && $urlKey == "BLOG"){
+            if(strpos($date, "aujourd'hui")!==false){
+                $date = new DateTime();
+            }else{
+                $date = new DateTime($date);
+            }
+            return $date->format('Y-m-d H:i:s')."+11:00";
+        }
+
+        if($src == "CALEDOSPHERE"){
     		$date = html_entity_decode($date);
+            error_log("DDATE MONTH : ".$date);
     		$dateC = str_replace("Publié le ", "", $date);
     		$dateS = explode(" ", $dateC);
     		$month = $this->getMonthNum($dateS[1]);
-
+            error_log("DDATE MONTH : ".$month);
     		if($month == false) return false;
     		//else $month++;
     		

@@ -337,6 +337,9 @@ class DetailAction extends CAction {
 			
 		if(@$_GET["tpl"] == "profilSocial")
 				$page = "profilSocial";
+
+		if(@$_GET["tpl"] == "ficheInfoElement")
+				$page = "ficheInfoElement";
 		
 		if( in_array( Yii::app()->theme->name, array("notragora") ) )
 				$page = Yii::app()->theme->name."/detail";
