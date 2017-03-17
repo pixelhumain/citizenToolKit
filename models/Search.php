@@ -90,14 +90,12 @@ class Search {
         /***********************************  DEFINE GLOBAL QUERY   *****************************************/
         $query = array();
 
-
-        
         $query = self::searchString($search, $query);
        
         $query = array('$and' => array( $query , array("state" => array('$ne' => "uncomplete")) ));
   		if($latest)
   			$query = array('$and' => array($query, array("updated"=>array('$exists'=>1))));
-
+  		
         /***********************************  TAGS   *****************************************/
         if(strpos($search, "#") > -1){
         	$searchTagText = substr($search, 1, strlen($search)); 
@@ -106,13 +104,22 @@ class Search {
         	//$tmpTags[] = new MongoRegex("/^".$searchTagText."$/i");
   		}
 
-  		if( /*!empty($searchTags)*/ count($searchTags) > 1  || count($searchTags) == 1 && $searchTags[0] != "" )
-  			$query = array('$and' => array( $query , self::searchTags($searchTags) ) );
+  		if( /*!empty($searchTags)*/ count($searchTags) > 1  || count($searchTags) == 1 && $searchTags[0] != "" ){
+  			if(strcmp($filter, Classified::COLLECTION) != 0 && self::typeWanted(Classified::COLLECTION, $searchType)){
+        		$queryTags =  self::searchTags($searchTags, '$all') ;
+	  		}
+  			else 
+  				$queryTags =  self::searchTags($searchTags) ;
+  			if(!empty($queryTags))
+  				$query = array('$and' => array( $query , $queryTags) );
+  		}
   		//unset($tmpTags);
-  		
+  		//var_dump($query);
 
   		/***********************************  DEFINE LOCALITY QUERY   ***************************************/
-  		$query = array('$and' => array( $query , self::searchLocality($post, $query) ) );
+  		//$query = array('$and' => array( $query , self::searchLocality($post, $query) ) );
+  		$query = self::searchLocality($post, $query);
+  		
   		/*if(!empty($localities)){
   			//var_dump(self::searchZones($localities));
   			$query = array('$and' => array( $query , self::searchZones($localities) ) ) ;
@@ -140,8 +147,9 @@ class Search {
         if(strcmp($filter, Project::COLLECTION) != 0 && self::typeWanted(Project::COLLECTION, $searchType)){
         	$allRes = array_merge($allRes, self::searchProject($query, $indexStep, $indexMin));
 	  	}
-		/***********************************  Classified   *****************************************/
+		/***********************************  CLASSIFIED   *****************************************/
         if(strcmp($filter, Classified::COLLECTION) != 0 && self::typeWanted(Classified::COLLECTION, $searchType)){
+        	//var_dump($query) ;
         	$allRes = array_merge($allRes, self::searchClassified($query, $indexStep, $indexMin));
 	  	}
 	  	/***********************************  POI   *****************************************/
@@ -185,10 +193,6 @@ class Search {
 	  	return $allRes ;
     }
 
-
-
-    
-
     /***********************************  Search   *****************************************/
 	public static function searchString($search, $query){
 
@@ -206,29 +210,25 @@ class Search {
   		
 	}
 
-
-
-
 	/***********************************  TAGS   *****************************************/
-	public static function searchTags($searchTags){
-		var_dump("here");
-		var_dump($searchTags);
+	public static function searchTags($searchTags, $verb = '$in' ){
         $tmpTags = array();
         $query = array();
   		if(!empty($searchTags)){
-  			foreach ($searchTags as $value) { 
-  				if($value != "")
+  			foreach ($searchTags as $value) {
+  				if(trim($value) != "")
 	  				$tmpTags[] = new MongoRegex("/^".$value."$/i");
 	  		}
 	  		if(count($tmpTags)){
-	  			$query = array('$and' => array( $query , array("tags" => array('$in' => $tmpTags)))) ;
+	  			$allverb = array('$in', '$all');
+	  			if(!in_array($verb, $allverb))
+	  				$verb = '$in';
+	  			$query = array("tags" => array($verb => $tmpTags)) ;
 	  		}
   		}
   		return $query;
   		
 	}
-
-
 
 	/***********************************  Zones   *****************************************/
 	public static function searchZones($localities){
@@ -248,7 +248,7 @@ class Search {
 			else if(!empty($queryLocality))
 				$query = array('$or' => array($query ,$queryLocality));
 
-}
+		}
 		return $query ;
 	}
 
@@ -497,6 +497,8 @@ class Search {
   		return $res;
 	}
 
+	
+
 	/***********************************  EVENT   *****************************************/
 	public static function searchEvents($query, $indexStep, $indexMin){
 		date_default_timezone_set('UTC');
@@ -510,19 +512,33 @@ class Search {
     	$allEvents = PHDB::findAndSortAndLimitAndIndex( PHType::TYPE_EVENTS, $queryEvent, 
   										array("startDate" => 1), $indexStep, $indexMin);
   		foreach ($allEvents as $key => $value) {
-  			$allEvents[$key]["type"] = "event";
+  			$allEvents[$key]["typeEvent"] = @$allEvents[$key]["type"];
+			$allEvents[$key]["type"] = "event";
 			$allEvents[$key]["typeSig"] = Event::COLLECTION;
+
 			if(@$value["links"]["attendees"][Yii::app()->session["userId"]]){
 	  			$allEvents[$key]["isFollowed"] = true;
   			}
-			if(@$allEvents[$key]["startDate"])
+			if(@$allEvents[$key]["startDate"]){
+				$allEvents[$key]["startDateTime"] = date(DateTime::ISO8601, $allEvents[$key]["startDate"]->sec);
 				$allEvents[$key]["startDate"] = date(DateTime::ISO8601, $allEvents[$key]["startDate"]->sec);
-			if(@$allEvents[$key]["endDate"])
+			}
+			if(@$allEvents[$key]["endDate"]){
+				$allEvents[$key]["endDateTime"] = date(DateTime::ISO8601, $allEvents[$key]["endDate"]->sec);
 				$allEvents[$key]["endDate"] = date(DateTime::ISO8601, $allEvents[$key]["endDate"]->sec);
+			}
+			if(@$allEvents[$key]["organizerId"] &&
+			   @$allEvents[$key]["organizerType"] &&
+			   @$allEvents[$key]["organizerId"] != "dontKnow"){ 
+
+				$allEvents[$key]["organizerObj"] = 
+				Element::getElementById(@$allEvents[$key]["organizerId"], @$allEvents[$key]["organizerType"]);
+			}
   		}
   		return $allEvents;
 	  	
 	}
+
 
 	/***********************************  PROJECTS   *****************************************/
 	public static function searchProject($query, $indexStep, $indexMin){
@@ -544,23 +560,26 @@ class Search {
   		return $allProject;	
 	}
 
-
 	/***********************************  CLASSIFIED   *****************************************/
 	public static function searchClassified($query, $indexStep, $indexMin){
-        $allPoi = PHDB::findAndSortAndLimitAndIndex(Classified::COLLECTION, $query, 
+        $allClassified = PHDB::findAndSortAndLimitAndIndex(Classified::COLLECTION, $query, 
 	  												array("updated" => -1), $indexStep, $indexMin);
-  		foreach ($allPoi as $key => $value) {
-	  		if(@$value["parentId"] && @$value["parentType"])
-	  			$parent = Element::getElementSimpleById(@$value["parentId"], @$value["parentType"]);
-	  		else
-	  			$parent=array();
-			$allPoi[$key]["parent"] = $parent;
-			if(@$value["type"])
-				$allPoi[$key]["typeSig"] = Classified::COLLECTION.".".$value["type"];
+        $allClassified = PHDB::findAndSortAndLimitAndIndex(Classified::COLLECTION, $query, 
+	  												array("updated" => -1), $indexStep, $indexMin);
+  		foreach ($allClassified as $key => $value) {
+			if(@$value["parentId"] && @$value["parentType"])
+				$parent = Element::getElementSimpleById(@$value["parentId"], @$value["parentType"]);
 			else
-				$allPoi[$key]["typeSig"] = Classified::COLLECTION;
-  		}
-  		return $allPoi;
+				$parent=array();
+			$allClassified[$key]["parent"] = $parent;
+			$allClassified[$key]["category"] = @$allClassified[$key]["type"];
+			$allClassified[$key]["type"] = "classified";
+			//if(@$value["type"])
+			//	$allClassified[$key]["typeSig"] = Classified::COLLECTION.".".$value["type"];
+			//else
+			$allClassified[$key]["typeSig"] = Classified::COLLECTION;
+		}
+		return $allClassified;
 	}
 
 	/***********************************  POI   *****************************************/
