@@ -20,7 +20,7 @@ class SaveReferencementAction extends CAction
 		$query = array("url"=>@$_POST["url"]);
         $siteurl = PHDB::findOne("url", $query);
 
-        if(!isset($siteurl["_id"])){
+        if(!isset($siteurl["url"])){
 
 			$address = @$_POST["address"] ? @$_POST["address"] : false;
 			$geo = @$_POST["geo"] ? @$_POST["geo"] : false;
@@ -46,10 +46,14 @@ class SaveReferencementAction extends CAction
 	    	if($geo != false) 			$newSiteurl["geo"] = $geo;
 			if($geoPosition != false) 	$newSiteurl["geoPosition"] = $geoPosition;
 
-	    	if($newRefValide)
+	    	if($newRefValide){
 	    		PHDB::insert("url", $newSiteurl);
+	    		$result = array("valid"=> $newRefValide);
+	    	}else{
+	    		$result = array("status"=> "URL_NOT_VALIDE");
+	    	}
 
-	    	$result = array("valid"=> $newRefValide);
+	    	
 	    
 	    }else{
 	    	$result = array("status"=> "URL_EXISTS");

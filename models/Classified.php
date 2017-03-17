@@ -23,6 +23,7 @@ class Classified {
 
 	//From Post/Form name to database field name
 	public static $dataBinding = array (
+	    "section" => array("name" => "section"),
 	    "type" => array("name" => "type"),
 	    "subtype" => array("name" => "subtype"),
 	    "name" => array("name" => "name", "rules" => array("required")),
@@ -43,6 +44,8 @@ class Classified {
 	    "urls" => array("name" => "urls"),
 	    "medias" => array("name" => "medias"),
 	    "tags" => array("name" => "tags"),
+	    "price" => array("name" => "price"),
+	    "contactInfo" => array("name" => "contactInfo"),
 
 	    "modified" => array("name" => "modified"),
 	    "updated" => array("name" => "updated"),

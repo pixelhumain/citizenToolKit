@@ -117,6 +117,7 @@ class City {
             "ES"    => "P772",
             "BR​" 	=> "P1585",
             "MX"    => null,
+            "PE"    => null,
         );  
         return  ( isset($wiki[$country]) ? $wiki[$country] : false );
     }

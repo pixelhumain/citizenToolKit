@@ -34,12 +34,12 @@ class Person {
 	    "tags" => array("name" => "tags"),
 	    "shortDescription" => array("name" => "shortDescription"),
 	    "description" => array("name" => "description"),
-	    "facebookAccount" => array("name" => "socialNetwork.facebook"),
-	    "twitterAccount" => array("name" => "socialNetwork.twitter"),
-	    "gpplusAccount" => array("name" => "socialNetwork.googleplus"),
-	    "gitHubAccount" => array("name" => "socialNetwork.github"),
-	    "skypeAccount" => array("name" => "socialNetwork.skype"),
-	    "telegramAccount" => array("name" => "socialNetwork.telegram"),
+	    "facebook" => array("name" => "socialNetwork.facebook"),
+	    "twitter" => array("name" => "socialNetwork.twitter"),
+	    "gpplus" => array("name" => "socialNetwork.googleplus"),
+	    "gitHub" => array("name" => "socialNetwork.github"),
+	    "skype" => array("name" => "socialNetwork.skype"),
+	    "telegram" => array("name" => "socialNetwork.telegram"),
 	    "bgClass" => array("name" => "preferences.bgClass"),
 	    "bgUrl" => array("name" => "preferences.bgUrl"),
 	    "roles" => array("name" => "roles"),
@@ -911,7 +911,7 @@ class Person {
 	            if ($res["msg"] == "notValidatedEmail") 
 	        		return $res;
 	        	else
-	            	$res = array("result"=>true, "id"=>$account["_id"], "isCommunected"=>isset($account["cp"]), "msg" => "Vous êtes maintenant identifié : bienvenue sur communecter.");
+	            	$res = array("result"=>true, "id"=>(string)$account["_id"], "isCommunected"=>isset($account["cp"]), "msg" => "Vous êtes maintenant identifié : bienvenue sur communecter.");
 	        } else {
 	            $res = array("result"=>false, "msg"=>"emailAndPassNotMatch");
 	        }

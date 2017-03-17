@@ -1,6 +1,7 @@
 <?php
-class GlobalAutoCompleteOldAction extends CAction
+class GlobalAutoCompleteAction extends CAction
 {
+
     public function run($filter = null)
     {
     	//ini_set('memory_limit', '-1');
@@ -24,7 +25,7 @@ class GlobalAutoCompleteOldAction extends CAction
         	$searchType[0] == Organization::TYPE_GOV) {
 	        	$searchTypeOrga = $searchType[0];
 	        	$searchType = array(Organization::COLLECTION);
-        }
+        } 
        // error_log("global search " . $search . " - searchType : ". $searchType); //. " & locality : ". $locality. " & country : ". $country);
 	    
    //      if($search == "" && $locality == "") {
@@ -206,19 +207,33 @@ class GlobalAutoCompleteOldAction extends CAction
         	
         	$allEvents = PHDB::findAndSortAndLimitAndIndex( PHType::TYPE_EVENTS, $queryEvent, 
 	  										array("startDate" => 1), $indexStep, $indexMin);
+        	
 	  		foreach ($allEvents as $key => $value) {
-	  			$allEvents[$key]["type"] = "event";
+	  			$allEvents[$key]["typeEvent"] = @$allEvents[$key]["type"];
+				$allEvents[$key]["type"] = "event";
 				$allEvents[$key]["typeSig"] = Event::COLLECTION;
 				if(@$value["links"]["attendees"][Yii::app()->session["userId"]]){
 		  			$allEvents[$key]["isFollowed"] = true;
 	  			}
-				if(@$allEvents[$key]["startDate"])
+				if(@$allEvents[$key]["startDate"]){
+					$allEvents[$key]["startDateTime"] = date(DateTime::ISO8601, $allEvents[$key]["startDate"]->sec);
 					$allEvents[$key]["startDate"] = date(DateTime::ISO8601, $allEvents[$key]["startDate"]->sec);
-				if(@$allEvents[$key]["endDate"])
+				}
+				if(@$allEvents[$key]["endDate"]){
+					$allEvents[$key]["endDateTime"] = date(DateTime::ISO8601, $allEvents[$key]["endDate"]->sec);
 					$allEvents[$key]["endDate"] = date(DateTime::ISO8601, $allEvents[$key]["endDate"]->sec);
+				}
+				if(@$allEvents[$key]["organizerId"] &&
+				   @$allEvents[$key]["organizerType"] &&
+				   @$allEvents[$key]["organizerId"] != "dontKnow"){ 
+
+					$allEvents[$key]["organizerObj"] = 
+					Element::getElementById(@$allEvents[$key]["organizerId"], @$allEvents[$key]["organizerType"]);
+				}
 	  		}
-	  		
+
 	  		$allRes = array_merge($allRes, $allEvents);
+
 	  	}
 	  	//error_log("recherche - indexMin : ".$indexMin." - "." indexMax : ".$indexMax);
 	  	/***********************************  PROJECTS   *****************************************/
@@ -243,22 +258,23 @@ class GlobalAutoCompleteOldAction extends CAction
 	  	}
 	/***********************************  POI   *****************************************/
         if(strcmp($filter, Classified::COLLECTION) != 0 && $this->typeWanted(Classified::COLLECTION, $searchType)){
-        	$allPoi = PHDB::findAndSortAndLimitAndIndex(Classified::COLLECTION, $query, 
+        	$allClassified = PHDB::findAndSortAndLimitAndIndex(Classified::COLLECTION, $query, 
 	  												array("updated" => -1), $indexStep, $indexMin);
-	  		foreach ($allPoi as $key => $value) {
+	  		foreach ($allClassified as $key => $value) {
 		  		if(@$value["parentId"] && @$value["parentType"])
 		  			$parent = Element::getElementSimpleById(@$value["parentId"], @$value["parentType"]);
 		  		else
 		  			$parent=array();
-				$allPoi[$key]["parent"] = $parent;
-				//$allPoi[$key]["type"] = "poi";
-				if(@$value["type"])
-					$allPoi[$key]["typeSig"] = Classified::COLLECTION.".".$value["type"];
-				else
-					$allPoi[$key]["typeSig"] = Classified::COLLECTION;
+				$allClassified[$key]["parent"] = $parent;
+				$allClassified[$key]["category"] = @$allClassified[$key]["type"];
+				$allClassified[$key]["type"] = "classified";
+				//if(@$value["type"])
+				//	$allClassified[$key]["typeSig"] = Classified::COLLECTION.".".$value["type"];
+				//else
+					$allClassified[$key]["typeSig"] = Classified::COLLECTION;
 	  		}
 	  		//$res["project"] = $allProject;
-	  		$allRes = array_merge($allRes, $allPoi);
+	  		$allRes = array_merge($allRes, $allClassified);
 	  		//error_log(sizeof($allPoi));
 	  	}
 
@@ -644,7 +660,12 @@ class GlobalAutoCompleteOldAction extends CAction
 		*/
 
 		foreach ($allRes as $key => $value) {
-			if(@$value["updated"]) $allRes[$key]["updatedLbl"] = Translate::pastTime($value["updated"],"timestamp");
+			if(@$value["updated"]) {
+				if($this->typeWanted(Event::COLLECTION, $searchType))
+					$allRes[$key]["updatedLbl"] = Translate::pastTime(@$value["startDate"],"date");
+				else
+					$allRes[$key]["updatedLbl"] = Translate::pastTime(@$value["updated"],"timestamp");
+	  		}
 	  	}
 
 	  	$limitRes = $allRes;
@@ -656,154 +677,4 @@ class GlobalAutoCompleteOldAction extends CAction
 			Rest::json($limitRes);
 		Yii::app()->end();
     }
-
-    //supprime les accents (utilisé pour la recherche de ville pour améliorer les résultats)
-    private function wd_remove_accents($str, $charset='utf-8')
-	{
-		return $str;
-	    $str = htmlentities($str, ENT_NOQUOTES, $charset);
-	    
-	    $str = preg_replace('#&([A-za-z])(?:acute|cedil|caron|circ|grave|orn|ring|slash|th|tilde|uml);#', '\1', $str);
-	    $str = preg_replace('#&([A-za-z]{2})(?:lig);#', '\1', $str); // pour les ligatures e.g. '&oelig;'
-	    $str = preg_replace('#&[^;]+;#', '', $str); // supprime les autres caractères
-	    
-	    return $str;
-	}
-
-	private function getTypeOfLocalisation($locStr){
-		//le cas des localisation intégralement numérique (code postal, insee, departement)
-		if(intval($locStr) > 0){
-			if(strlen($locStr) <= 3) return "DEPARTEMENT";
-			if(strlen($locStr) == 4 || strlen($locStr) == 5) return "CODE_POSTAL_INSEE";
-			return "UNDEFINED";
-		}else{
-			//le cas où le lieu est demandé en toute lettre
-			return "NAME";
-		}
-	}
-
-	private function typeWanted($type, $searchType){
-		if($searchType == null || $searchType[0] == "all") return true;
-		return in_array($type, $searchType);
-	}
-
-
-	/**
-	* Returns a string with accent to REGEX expression to find any combinations
-	* in accent insentive way
-	*
-	* @param string $text The text.
-	* @return string The REGEX text.
-	*/
-
-	static public function accentToRegex($text)
-	{
-
-		$from = str_split(utf8_decode('ŠŒŽšœžŸ¥µÀÁÂÃÄÅÆÇÈÉÊËẼÌÍÎÏĨÐÑÒÓÔÕÖØÙÚÛÜÝßàáâãäåæçèéêëẽìíîïĩðñòóôõöøùúûüýÿ'));
-		$to   = str_split(strtolower('SOZsozYYuAAAAAAACEEEEEIIIIIDNOOOOOOUUUUYsaaaaaaaceeeeeiiiiionoooooouuuuyy'));
-		//‘ŠŒŽšœžŸ¥µÀÁÂÃÄÅÆÇÈÉÊËẼÌÍÎÏĨÐÑÒÓÔÕÖØÙÚÛÜÝßàáâãäåæçèéêëẽìíîïĩðñòóôõöøùúûüýÿaeiouçAEIOUÇ';
-		//‘SOZsozYYuAAAAAAACEEEEEIIIIIDNOOOOOOUUUUYsaaaaaaaceeeeeiiiiionoooooouuuuyyaeioucAEIOUÇ';
-		$text = utf8_decode($text);
-		$regex = array();
-
-		foreach ($to as $key => $value)
-		{
-			if (isset($regex[$value]))
-				$regex[$value] .= $from[$key];
-			else 
-				$regex[$value] = $value;
-		}
-
-		foreach ($regex as $rg_key => $rg)
-		{
-			$text = preg_replace("/[$rg]/", "_{$rg_key}_", $text);
-		}
-
-		foreach ($regex as $rg_key => $rg)
-		{
-			$text = preg_replace("/_{$rg_key}_/", "[$rg]", $text);
-		}
-		return utf8_encode($text);
-	}
-
-	private function checkScopeParent($parentObj){ //error_log("checkScopeParent");
-			$localityReferences['CITYKEY'] = "";
-	  		$localityReferences['CODE_POSTAL'] = "address.postalCode";
-	  		$localityReferences['DEPARTEMENT'] = "address.postalCode";
-	  		$localityReferences['REGION'] = ""; //Spécifique
-
-	  		$countScope = 0;
-	  		foreach ($localityReferences as $key => $value){
-	  			if(isset($_POST["searchLocality".$key]) && count($_POST["searchLocality".$key])>0 && $_POST["searchLocality".$key][0] != "" ){ 
-	  				$countScope++; 
-	  			}
-	  		}
-	  		if($countScope==0){ error_log("return true EMPTY"); return true; }
-	  		
-			foreach ($localityReferences as $key => $value) 
-	  		{
-	  			if(isset($_POST["searchLocality".$key]) 
-	  				&& is_array($_POST["searchLocality".$key])
-	  				&& count($_POST["searchLocality".$key])>0)
-	  			{
-	  				foreach ($_POST["searchLocality".$key] as $localityRef) 
-	  				{
-	  					if(isset($localityRef) && $localityRef != ""){
-		  					//OneRegion
-		  					if($key == "CITYKEY"){
-		  						
-		  						$city = City::getByUnikey($localityRef);
-				        		if (empty($city["cp"])) {
-					        		if(@$parentObj["address"]["addressCountry"] == $city["country"] &&
-					        		   @$parentObj["address"]["codeInsee"] == $city["insee"]) return true;
-				        		}else{
-				        			if(@$parentObj["address"]["addressCountry"] == $city["country"] &&
-					        		   @$parentObj["address"]["codeInsee"] == $city["insee"] &&
-					        		   @$parentObj["address"]["postalCode"] == $city["cp"]) return true;
-				        		}
-				        		
-			  				}
-			  				elseif($key == "CODE_POSTAL"){
-			  					if(@$parentObj["address"]["postalCode"] == $localityRef) return true;
-				        		//$queryLocality = array($value => new MongoRegex("/".$localityRef."/i"));
-			  				}
-			  				elseif($key == "DEPARTEMENT"){
-			  					$dep = PHDB::findOne( City::COLLECTION, array("depName" => $localityRef), array("dep"));	
-			        			if(preg_match("/^{$dep['dep']}/i", @$parentObj["address"]["postalCode"])) return true;
-			  				}
-			  				elseif($key == "REGION"){
-			  					$deps = PHDB::find( City::COLLECTION, array("regionName" => $localityRef), array("dep"));
-			        			$departements = array();
-			        			$inQuest = array();
-			        			if(is_array($deps))foreach($deps as $index => $value)
-			        			{
-			        				if(!in_array($value["dep"], $departements)){
-				        				$departements[] = $value["dep"];
-				        				if(preg_match("/^{$value['dep']}/i", @$parentObj["address"]["postalCode"])) return true;
-							        }
-			        			}		        		
-			  				}
-			  			}
-	  				}
-	  			}
-	  		}
-	  		return false;
-		}
-
-		private function checkTagsParent($parentObj, $tags){ //return true;
-			
-			if(count($tags)<=0) return true;
-			foreach ($tags as $key => $tag) { error_log("checkTagsParent tag : " .$tag);
-				if(@$parentObj["tags"]){
-					foreach ($parentObj["tags"] as $key => $parentTag) { error_log("checkTagsParent parentTag : " .$parentTag);
-						if(preg_match("/.*{$tag}.*/i", $parentTag)){
-							error_log("checkTagsParent return true");
-							return true;
-						}
-					}
-				}
-			}error_log("checkTagsParent return false");
-							
-			return false;
-		}
 }
