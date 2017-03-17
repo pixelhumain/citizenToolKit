@@ -592,8 +592,25 @@ class Document {
     	}
         
         //Update the entity collection to store the path of the profil images
-        if (in_array($document["type"], array(Person::COLLECTION, Organization::COLLECTION, Project::COLLECTION, Event::COLLECTION))) {
-	        PHDB::update($document["type"], array("_id" => new MongoId($document["id"])), array('$set' => array("profilImageUrl" => $profilUrl, "profilMediumImageUrl" => $profilMediumUrl,"profilThumbImageUrl" => $profilThumbUrl, "profilMarkerImageUrl" =>  $profilMarkerImageUrl)));
+        $allowedElements = array( Person::COLLECTION, 
+        						  Organization::COLLECTION, 
+        						  Project::COLLECTION, 
+        						  Event::COLLECTION,
+        						  Poi::COLLECTION, 
+        						  Classified::COLLECTION);
+        if (@$profilUrl && in_array($document["type"], $allowedElements )) {
+        	
+        	$changes = array();
+        	if (@$profilUrl)
+        		$changes["profilImageUrl"] = $profilUrl;
+        	if (@$profilMediumUrl)
+        		$changes["profilMediumImageUrl"] = $profilMediumUrl;
+        	if (@$profilThumbUrl)
+        		$changes["profilThumbImageUrl"] = $profilThumbUrl;
+        	if (@$profilMarkerImageUrl)
+        		$changes["profilMarkerImageUrl"] = $profilMarkerImageUrl;
+
+	        PHDB::update($document["type"], array("_id" => new MongoId($document["id"])), array('$set' => $changes));
 
 	        error_log("The entity ".$document["type"]." and id ". $document["id"] ." has been updated with the URL of the profil images.");
 		}
