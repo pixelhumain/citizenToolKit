@@ -547,6 +547,15 @@ class Authorisation {
         return $res;
     }
 
+    public static function userOwner($userId, $type, $id){
+        $res = false;
+        $el = $type::getById($id) ;
+
+        if( @$el && $userId && $userId == $el["creator"] ) 
+            return true;
+        
+        return $res;
+    }
 
     /**
     * Get the authorization for edit an item
@@ -607,6 +616,10 @@ class Authorisation {
         else if($type == Poi::COLLECTION) 
         {
             $res = self::canEditPoi($userId, $itemId);
+        }
+        else if($type == Classified::COLLECTION) 
+        {
+            $res = self::userOwner($userId, "Classified", $itemId);
         }
     	return $res;
     }

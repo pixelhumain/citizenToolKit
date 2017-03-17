@@ -1137,5 +1137,23 @@ class Menu {
         echo '<li><a href="'.$href.'" '.$modal.' '.$class.' '.$onclick.' >'.@$item["label"].'</a></li>';
     }
 
+    public static function zone($zone)
+    {
+        if( !is_array( Yii::app()->controller->toolbarMBZ ))
+            Yii::app()->controller->toolbarMBZ = array();
+        $id = (string)$zone["_id"];
+        $paramsUrl = ".id.".$id ;
+            
+        self::entry("left", 'onclick', 
+                    Yii::t( "common", 'City Home page'),
+                    Yii::t( "common", 'Details'), 'university',
+                    "loadByHash('#city.detail".$paramsUrl."')",null,null);
+        
+        self::entry("left", 'onclick',
+                    Yii::t( "common", 'Local network'), 
+                    Yii::t( "common", 'Directory'),'bookmark fa-rotate-270',
+                    "loadByHash('#city.directory".$paramsUrl.".tpl.directory2')",null,null);
+    }
+
 } 
 ?>

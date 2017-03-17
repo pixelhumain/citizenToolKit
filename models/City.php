@@ -117,6 +117,7 @@ class City {
             "ES"    => "P772",
             "BR​" 	=> "P1585",
             "MX"    => null,
+            "PE"    => null,
         );  
         return  ( isset($wiki[$country]) ? $wiki[$country] : false );
     }
@@ -130,6 +131,16 @@ class City {
 	public static function getWhere($params, $fields=null, $limit=20) 
 	{
 	  	$city =PHDB::findAndSort( self::COLLECTION,$params, array("created" =>1), $limit, $fields);
+	  	return $city;
+	}
+
+	public static function getById($id) {
+	  	$city = PHDB::findOne(self::COLLECTION, array("_id"=>new MongoId($id)));
+	  	return $city;
+	}
+
+	public static function getByInsee($insee) {
+	  	$city = PHDB::findOne(self::COLLECTION, array("insee"=>$insee));
 	  	return $city;
 	}
 
@@ -942,6 +953,12 @@ class City {
 		// }
 		return $CTZAssembly;
 	}*/
+
+	public static function getDetail($collection, $id){
+		$where = array("_id"=>new MongoId($id));
+		$zone = PHDB::findOne($collection, $where);
+		return $zone;
+	}
 
 
 
