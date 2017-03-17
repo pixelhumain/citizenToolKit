@@ -1419,18 +1419,18 @@ class Element {
 			if(isset($params["mobile"]))
 				$res[] = self::updateField($collection, $id, "mobile", $params["mobile"]);
 		}else if($block == "network"){
-			if(isset($params["telegramAccount"]))
-				$res[] = self::updateField($collection, $id, "telegramAccount", $params["telegramAccount"]);
-			if(isset($params["facebookAccount"]))
-				$res[] = self::updateField($collection, $id, "facebookAccount", self::getAndCheckUrl($params["facebookAccount"]));
-			if(isset($params["twitterAccount"]))
-				$res[] = self::updateField($collection, $id, "twitterAccount", self::getAndCheckUrl($params["twitterAccount"]));
-			if(isset($params["gitHubAccount"]))
-				$res[] = self::updateField($collection, $id, "gitHubAccount", self::getAndCheckUrl($params["gitHubAccount"]));
-			if(isset($params["gpplusAccount"]))
-				$res[] = self::updateField($collection, $id, "url", self::getAndCheckUrl($params["gpplusAccount"]));
-			if(isset($params["skypeAccount"]))
-				$res[] = self::updateField($collection, $id, "url", self::getAndCheckUrl($params["skypeAccount"]));
+			if(isset($params["telegram"]))
+				$res[] = self::updateField($collection, $id, "telegram", $params["telegram"]);
+			if(isset($params["facebook"]))
+				$res[] = self::updateField($collection, $id, "facebook", self::getAndCheckUrl($params["facebook"]));
+			if(isset($params["twitter"]))
+				$res[] = self::updateField($collection, $id, "twitter", self::getAndCheckUrl($params["twitter"]));
+			if(isset($params["gitHub"]))
+				$res[] = self::updateField($collection, $id, "gitHub", self::getAndCheckUrl($params["gitHub"]));
+			if(isset($params["gpplus"]))
+				$res[] = self::updateField($collection, $id, "gpplus", self::getAndCheckUrl($params["gpplus"]));
+			if(isset($params["skype"]))
+				$res[] = self::updateField($collection, $id, "skype", self::getAndCheckUrl($params["skype"]));
 		}else if($block == "when"){
 			if(isset($params["allDay"]))
 				$res[] = self::updateField($collection, $id, "allDay", (($params["allDay"] == "true") ? true : false));
