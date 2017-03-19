@@ -14,14 +14,19 @@ class MediaCrawlerAction extends CAction
 
         //date_default_timezone_set('Pacific/Noumea'); //'Pacific/Noumea'
 
-	    //$res .= $this->extractSource("NCTV", "YOUTUBE");
-	    //$res .= $this->extractSource("NC1", "YOUTUBE");
-	    //$res .= $this->extractSource("NC1", "NC");
-	    $res .= $this->extractSource("TAZAR", "BLOG");
-        //$res .= $this->extractSource("CALEDOSPHERE", "FEED");
-        //$res .= $this->extractSource("NCI", "EMISSION");
-		//$res .= $this->extractSource("NCI", "BLOG");
+	    $res .= $this->extractSource("NCTV", "YOUTUBE");
+
+        $res .= $this->extractSource("NC1", "YOUTUBE");
+	    $res .= $this->extractSource("NC1", "NC");
+
+        $res .= $this->extractSource("NCI", "EMISSION");
+		$res .= $this->extractSource("NCI", "BLOG");
+        
+        $res .= $this->extractSource("TAZAR", "BLOG");
 		
+        //$res .= $this->extractSource("LNC", "BLOG");
+        //$res .= $this->extractSource("CALEDOSPHERE", "FEED");
+        
     	$params = array("res" => $res);
 
     	echo $controller->renderPartial("mediacrawler", $params, true);
@@ -192,22 +197,7 @@ class MediaCrawlerAction extends CAction
     									  "followDateIsDateTime" => false,
     									  ),
     							),
-                        /*"CALEDOSPHERE" => 
-                            array( "FEED" => 
-                                    array("urls" =>  array("https://caledosphere.com/flux-des-articles/"),
-                                          "elementUK" => "#Label1 .item",
-                                          "href" => "a.meta-item-date",
-                                          "img" => ".post_img a img",
-                                          "title" => ".post_header_title h5 a",
-                                          "date" => ".post_info_date a",
-                                          "content" => "p",
-                                          "type" => "text",
-                                          "followImg" => "#primary .wp-post-image",
-                                          "followContent" => ".entry-content h3",
-                                          "followDate" => "a.entry-date span.value",
-                                          "followDateIsDateTime" => false,
-                                          ),
-                                ),*/
+                        
                         "TAZAR" => 
                             array( "BLOG" => 
                                     array("urls" =>  array("http://www.tazar.nc/category/je-mimplique/",
@@ -227,22 +217,55 @@ class MediaCrawlerAction extends CAction
                                           "followDateIsDateTime" => true,
                                           ),
                                 ),
-    					"NCTV" => 
-    						array( "YOUTUBE" => 
-    								array("urls" =>  array("https://www.youtube.fr/channel/UCdX2FGu9cQ0HwKRnymkulcw/videos"),
-    									  "elementUK" => ".channels-content-item",
-    									  "href" => ".yt-lockup-content a",
-    									  "img" => "",
-    									  "title" => ".yt-lockup-content a",
-    									  "date" => ".yt-lockup-content a",
-    									  "content" => ".watch-time-text",
-    									  "type" => "youtube",
-    									  "followContent" => "#watch-description-text",
-    									  "followDate" => ".watch-time-text",
-    									  "followDateIsDateTime" => false,
-    									  ),
-    							),
-
+                        "NCTV" => 
+                            array( "YOUTUBE" => 
+                                    array("urls" =>  array("https://www.youtube.fr/channel/UCdX2FGu9cQ0HwKRnymkulcw/videos"),
+                                          "elementUK" => ".channels-content-item",
+                                          "href" => ".yt-lockup-content a",
+                                          "img" => "",
+                                          "title" => ".yt-lockup-content a",
+                                          "date" => ".yt-lockup-content a",
+                                          "content" => ".watch-time-text",
+                                          "type" => "youtube",
+                                          "followContent" => "#watch-description-text",
+                                          "followDate" => ".watch-time-text",
+                                          "followDateIsDateTime" => false,
+                                          ),
+                                ),
+                        /*"CALEDOSPHERE" => 
+                            array( "FEED" => 
+                                    array("urls" =>  array("https://caledosphere.com/flux-des-articles/"),
+                                          "elementUK" => "#Label1 .item",
+                                          "href" => "a.meta-item-date",
+                                          "img" => ".post_img a img",
+                                          "title" => ".post_header_title h5 a",
+                                          "date" => ".post_info_date a",
+                                          "content" => "p",
+                                          "type" => "text",
+                                          "followImg" => "#primary .wp-post-image",
+                                          "followContent" => ".entry-content h3",
+                                          "followDate" => "a.entry-date span.value",
+                                          "followDateIsDateTime" => false,
+                                          ),
+                                ),*/
+                        /*"LNC" => 
+                            array( "BLOG" => 
+                                    array("urls" =>  array(//"http://www.lnc.nc/infos-en-direct",
+                                                            "http://www.lnc.nc/monde"
+                                                          ),
+                                          "elementUK" => "#block-system-main .views-row",
+                                          "href" => ".views-field-field-imagearticle a",
+                                          "img" => ".views-field-field-image-principale img",
+                                          "title" => ".views-field-title a",
+                                          "date" => ".views-field-created-1 span",
+                                          "content" => "",
+                                          "type" => "text",
+                                          //"followImg" => ".field-name-field-image-principale .content img",
+                                          //"followContent" => ".field-name-body p",
+                                          //"followDate" => ".node-content .published .date",
+                                          //"followDateIsDateTime" => false,
+                                          ),
+                                ),*/
         		);
 
     	if(@$map[$src] && @$map[$src][$urlKey]) return $map[$src][$urlKey]; else return false;
@@ -271,6 +294,15 @@ class MediaCrawlerAction extends CAction
                 $date = new DateTime($date);
             }
             return $date->format('Y-m-d H:i:s')."+11:00";
+        }
+
+        if($src == "LNC" && $urlKey == "BLOG"){
+            
+            $date = str_replace("à ", "", $date);
+            $date = str_replace("Crée le ", "", $date);
+            $date = new DateTime($date);
+            
+            return $date->format('Y-m-d H:i:s');//."+11:00";
         }
 
         if($src == "TAZAR" && $urlKey == "BLOG"){
