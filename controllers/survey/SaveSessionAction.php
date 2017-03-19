@@ -102,8 +102,16 @@ class SaveSessionAction extends CAction
                 $res['url'] = "#survey.entry.id.".$surveyId;
 
                 //Notify Element participants 
-                Notification::actionOnPerson ( ActStr::VERB_ADD_PROPOSAL, ActStr::ICON_ADD, "", 
-                                                array( "type" => Survey::COLLECTION , "id" => $surveyId ));
+                Notification::constructNotification(ActStr::VERB_ADD, 
+                    array("id" => Yii::app()->session["userId"],"name"=> Yii::app()->session["user"]["name"]), 
+                    array(  "type"=>Survey::COLLECTION,
+                            "id"=> $surveyId), 
+                    null, 
+                    Survey::COLLECTION
+                );
+
+               // Notification::actionOnPerson ( ActStr::VERB_ADD_PROPOSAL, ActStr::ICON_ADD, "", 
+                                               // array( "type" => Survey::COLLECTION , "id" => $surveyId ));
                 
             } else
                 $res = array('result' => false , 'msg'=>"user doen't exist");

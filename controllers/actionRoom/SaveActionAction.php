@@ -99,7 +99,14 @@ class SaveActionAction extends CAction
                 $res['url'] = "#rooms.action.id.".$actionId;
                 //echo "actionId :".$actionId; return;
                 //Notify Element participants 
-                Notification::actionOnPerson ( ActStr::VERB_ADD_ACTION, ActStr::ICON_ADD, "", array( "type" => ActionRoom::COLLECTION_ACTIONS , "id" => $actionId ));
+                Notification::constructNotification(ActStr::VERB_ADD, 
+                    array("id" => Yii::app()->session["userId"],"name"=> Yii::app()->session["user"]["name"]), 
+                    array(  "type"=> ActionRoom::COLLECTION_ACTIONS,
+                            "id"=> $actionId), 
+                    null, 
+                    ActionRoom::TYPE_ACTION
+                );
+            //    Notification::actionOnPerson ( ActStr::VERB_ADD_ACTION, ActStr::ICON_ADD, "", array( "type" => ActionRoom::COLLECTION_ACTIONS , "id" => $actionId ));
                 
             } else
                 $res = array('result' => false , 'msg'=>"user doen't exist");

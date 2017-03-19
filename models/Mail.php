@@ -311,7 +311,114 @@ class Mail {
             Mail::schedule($params);
         }
     }
+    /**
+     * Send an email to the person invite by a member of an element 
+     * @param array $parent datas of an element where person is inviting
+     * @param array $newChild Datas of a person inviting
+     * @param string $typeOfDemand gives the link definition between the parent and the child
+     * @return null
+     */
+    public static function someoneInviteYouToBecome($parent, $parentType, $newChild, $typeOfDemand) {
+        if($typeOfDemand=="admin")
+            $verb="administrate";
+        else{
+            if($parentType==Event::COLLECTION)
+                $verb="participate to";
+            else if($parentType==Project::COLLECTION)
+                $verb="contribute to";
+            else
+                $verb="join";
+        }
+        $childMail=Person::getEmailById((string)$newChild["_id"]);
+        $params = array (
+            "type" => Cron::TYPE_MAIL,
+            "tpl"=>'inviteYouTo',
+            "subject" => "[".Yii::app()->name."] ".Yii::t("mail","Invitation to ".$verb)." ".$parent["name"],    
+            "from"=>Yii::app()->params['adminEmail'],       
+            "to" => $childMail["email"],     
+            "tplParams" => array(  
+                "newChild"=> $newChild,      
+                "title" => Yii::app()->name , 
+                "invitorName"=>Yii::app()->session["user"]["name"],   
+                "invitorId" => Yii::app()->session["userId"],  
+                "parent" => $parent,       
+                "parentType" => $parentType,       
+                "typeOfDemand"=> $typeOfDemand,
+                "verb"=> $verb)     
+        );   
+        Mail::schedule($params);
+    }
+    /**
 
+     * Send an email to the person when its request is confirmed
+     * @param array $parent datas of an element where person is inviting
+     * @param array $newChild Datas of a person inviting
+     * @param string $typeOfDemand gives the link definition between the parent and the child
+     * @return null
+     */
+
+    public static function someoneConfirmYouTo($parent, $parentType, $child, $typeOfDemand) {
+        if($typeOfDemand=="admin")
+            $verb="administrate";
+        else{
+            if($parentType==Event::COLLECTION)
+                $verb="participate to";
+            else if($parentType==Project::COLLECTION)
+                $verb="contribute to";
+            else
+                $verb="join";
+        }
+        $childMail=Person::getEmailById((string)$child["_id"]);
+        $params = array (
+            "type" => Cron::TYPE_MAIL,
+            "tpl"=>'confirmYouTo',
+            "subject" => "[".Yii::app()->name."] ".Yii::t("mail","Confirmation to ".$verb)." ".$parent["name"],    
+            "from"=>Yii::app()->params['adminEmail'],       
+            "to" => $childMail["email"],     
+            "tplParams" => array(  
+                "newChild"=> $child,      
+                "title" => Yii::app()->name , 
+                "authorName"=>Yii::app()->session["user"]["name"],   
+                "authorId" => Yii::app()->session["userId"],  
+                "parent" => $parent,       
+                "parentType" => $parentType,       
+                "typeOfDemand"=> $typeOfDemand,
+                "verb"=> $verb)     
+        );   
+        Mail::schedule($params);
+    }
+    /**
+     * Send an email to person or member when a follow is done on him or one of its elment
+     * @param array $parent datas of an element where person is following
+     * @param array $newChild Datas of a person inviting
+     * @param string $typeOfDemand gives the link definition between the parent and the child
+     * @return null
+     */
+    public static function follow($element, $elementType, $listOfMail=null) {
+        if($elementType==Person::COLLECTION){
+            $childMail=Person::getEmailById((string)$element["_id"]);
+            $listOfMail=array($childMail["email"]);
+            $title=Yii::t("mail","You have a new follower");
+        }
+        else
+            $title=$element["name"].Yii::t("mail","has a new follower");
+        foreach($listOfMail as $mail){
+            $params = array (
+                "type" => Cron::TYPE_MAIL,
+                "tpl"=>'follow',
+                "subject" => "[".Yii::app()->name."] ".$title,    
+                "from"=>Yii::app()->params['adminEmail'],       
+                "to" => $mail,     
+                "tplParams" => array(    
+                    "title" => Yii::app()->name, 
+                    "authorName"=>Yii::app()->session["user"]["name"],   
+                    "authorId" => Yii::app()->session["userId"],  
+                    "parent" => $element,       
+                    "parentType" => $elementType)     
+            );   
+        }
+        Mail::schedule($params);
+    }
     /**
      * Send an email with beta test information
      * @return null

@@ -17,21 +17,40 @@ class ActivityStream {
    */
 	public static function addEntry($param)
 	{
+		//print_r($param);
 		if($param["type"]==self::COLLECTION){
 			$news=$param;
-			$news["target"]["type"]=$param["target"]["objectType"];
+			$news["target"]["type"]=$param["target"]["type"];
 			unset($news["target"]["objectType"]);
 		    PHDB::insert(News::COLLECTION, $news);
 		}
-	    $param["timestamp"] = new MongoDate(time());
-	    PHDB::insert(self::COLLECTION, $param);
+		else
+	    	PHDB::insert(self::COLLECTION, $param);
 	}
 	public static function getWhere($params) {
 	  	 return PHDB::find( self::COLLECTION,$params,null,null);
 	}
-	public static function getNotifications($param,$sort=array("timestamp"=>-1))
+	public static function getNotifications($param,$sort=array("updated"=>-1,"created"=>-1))
 	{
 	    return PHDB::findAndSort(self::COLLECTION, $param,$sort);
+	}
+	public static function countUnseenNotifications($userId, $elementType, $elementId){
+		if($elementType != Person::COLLECTION){
+			$params = array(
+			  '$and'=> 
+			    array(
+			      array("notify.id.".$userId.".isUnseen" => array('$exists' => true),
+			      "verb" => array('$ne' => ActStr::VERB_ASK)),
+			      array('$or'=> array(
+			        array("target.type"=>$elementType, "target.id" => $elementId),
+			        array("target.parent.type"=>$elementType, "target.parent.id" => $elementId)
+			        )
+			      ) 
+			    ) 
+			  );
+		}else
+			$params = array("notify.id.".$userId.".isUnseen" => array('$exists' => true));
+		return PHDB::count(self::COLLECTION, $params);
 	}
 	public static function getActivtyForObjectId($param,$sort=array("timestamp"=>-1))
 	{
@@ -88,17 +107,19 @@ class ActivityStream {
 	    $res = array( "result"=>false,"msg"=>"Something went wrong : Activty Stream Not Found","id"=>$id );
 	    if( isset($notif) && isset( $notif["notify"] ) && isset( $notif["notify"]["id"]) )
 	    {
-		    if( count($notif["notify"]["id"]) > 1 )
+	    	//echo count($notif["notify"]["id"]);
+		    if( count($notif["notify"]["id"]) > 1 ){
 		    	//remove userid from array
-		    	unset($notif["notify"]);
-		    else
-		    	unset($notif["notify"]);
-			try{
-			    unset($notif["_id"]);
-			    PHDB::update( self::COLLECTION,
+			    PHDB::update(self::COLLECTION,
 			                  array("_id"  => new MongoId($id) ), 
-			                  array('$unset' => array("notify"=>true) ) );
-
+			                  array('$unset' => array("notify.id.".Yii::app()->session["userId"]=>true) ) );
+		    }else{
+		    	PHDB::remove( self::COLLECTION,
+			                  array("_id"  => new MongoId($id)));
+		    	//unset($notif["notify"]);
+		    }
+			try{
+//			    unset($notif["_id"]);
 			    $res = array( "result"=>true,"msg"=>"Removed succesfully" );
 		    }
 		    catch (Exception $e) {  
@@ -106,7 +127,51 @@ class ActivityStream {
 		    } 
 		}
 
-		return Rest::json($res);
+		return $res;
+	}
+	public static function updateNotificationById($id,$action){
+		try{
+    		PHDB::update( self::COLLECTION,
+				array("_id"  => new MongoId($id)), 
+				array('$unset' => array("notify.id.".Yii::app()->session["userId"].".".$action=>true) ) );
+		    $res = array( "result"=>true,"msg"=>"Updated succesfully");
+	    }
+	    catch (Exception $e) {  
+	        $res = array( "result"=>false,"msg"=>"Something went wrong :".$e->getMessage() );
+	    } 
+	
+
+		return $res;
+	}
+	public static function updateNotificationsByUser($action) {
+		try{
+		    $userNotifcations = PHDB::find( self::COLLECTION,array("notify.id.".Yii::app()->session["userId"] => array('$exists' => true)));
+		    
+		    foreach ($userNotifcations as $key => $value) 
+		    {
+		    	//if(count($value["notify"]["id"]) == 1 )
+		    		PHDB::update( self::COLLECTION,
+				                  array("_id"  => $value["_id"] ), 
+				                  array('$unset' => array("notify.id.".Yii::app()->session["userId"].".".$action=>true) ) );
+		    	//else
+		    		/*PHDB::update( self::COLLECTION,
+			                  	  array("_id"  => $value["_id"] ), 
+			                  	  array('$pull' => array( "notify.id" => $userId )));*/
+		    	
+		    }
+		    /*PHDB::updateWithOptions( self::COLLECTION,
+					    			array("notify.id"  => Yii::app()->session["userId"] ),
+					    			array('$pull' => array( "notify.id" => Yii::app()->session["userId"] )),
+					    			array("multi"=>1));*/
+			
+		    $res = array( "result"=>true,"msg"=>"Updated succesfully");
+	    }
+	    catch (Exception $e) {  
+	        $res = array( "result"=>false,"msg"=>"Something went wrong :".$e->getMessage() );
+	    } 
+	
+
+		return $res;
 	}
 
 	/**
@@ -148,8 +213,11 @@ class ActivityStream {
 
 	public static function addNotification($params)
 	{
+		$objectType="persons";
+		if(@$params["objectType"])
+			$objectType=$params["objectType"];
 	    $notify =  array(
-	        "objectType" => "persons",
+	        "objectType" => $objectType,
 	        "id" => $params["persons"],
 	        "displayName" => $params["label"],
 	        "icon" => $params["icon"],
@@ -177,21 +245,20 @@ class ActivityStream {
             "type" => $params["type"],
             "verb" => $params["verb"],
             "author" => Yii::app()->session["userId"],
-            "date" => new MongoDate(time()),
+            "updated" => new MongoDate(time()),
             "created" => new MongoDate(time())
         );
 
-        if( isset( $params["object"] )){
-            $action["object"] = array( 
-                "objectType" => $params["object"]['type'],
-                "id" => $params["object"]['id'],
-                //"displayName" => "titi"
-            );
-        }
+        if(@$params["object"])
+            $action["object"] = $params["object"];
+            /*$action["object"] = array( 
+                "type" => $params["object"]['type'],
+                "id" => $params["object"]['id']
+            );*/
 
         if( isset( $params["target"] )){
             $action["target"] = array( 
-                "objectType" => $params["target"]['type'],
+                "type" => $params["target"]['type'],
                 "id" => $params["target"]['id']
             );
         }

@@ -21,6 +21,7 @@ class ActStr {
       
     const VERB_JOIN = "join";
     const VERB_WAIT = "wait";
+    const VERB_ASK = "ask";
     const VERB_LEAVE = "leave";
     const VERB_INVITE = "invite";
     const VERB_ACCEPT = "accept";
@@ -33,6 +34,8 @@ class ActStr {
     const VERB_AUTHORIZE = "authorize";
     const VERB_ATTEND = "attend";
     const VERB_COMMENT = "comment";
+    const VERB_LIKE = "like";
+    const VERB_UNLIKE = "unlike";
     const VERB_MENTION = "mention";
 
     const VERB_ADDROOM = "addactionroom";
@@ -57,23 +60,31 @@ class ActStr {
             "date" => new MongoDate(time()),
             "created" => new MongoDate(time())
         );
-
-        
+        if(@$params["author"]){
+            if(!@$params["author"]["id"])
+                $action["author"]=$params["author"];
+            else if(@$params["author"]["name"])
+                $action["author"]=array($params["author"]["id"]=>array("name"=>$params["author"]["name"]));
+        }
         if( isset( $params["ip"] ))
             $action["ip"] = $params["ip"];
 
-        if( isset( $params["object"] )){
+        if( isset( $params["object"] ))
+            $action["object"]=$params["object"];
+            /*{
             $action["object"] = array( 
-                "objectType" => $params["object"]['type'],
+                "type" => $params["object"]['type'],
                 "id" => $params["object"]['id']
             );
-        }
+        }*/
 
         if( isset( $params["target"] )){
             $action["target"] = array( 
-                "objectType" => $params["target"]['type'],
+                "type" => $params["target"]['type'],
                 "id" => $params["target"]['id']
             );
+            if(@$params["target"]["parent"])
+                $action["target"]["parent"]=$params["target"]["parent"];
         }
         	
 		if($params["type"]==ActivityStream::COLLECTION){

@@ -127,11 +127,13 @@ class Document {
 	    //Generate image profil if necessary
 	    if (substr_count(@$new["contentKey"], self::IMG_PROFIL)) {
 	    	self::generateProfilImages($new);
+	    	$typeNotif="profilImage";
 	    }
 	    if (substr_count(@$new["contentKey"], self::IMG_SLIDER)) {
 	    	self::generateAlbumImages($new, self::GENERATED_IMAGES_FOLDER);
+	    	$typeNotif="albumImage";
 	    }
-
+    	//Notification::constructNotification(ActStr::VERB_ADD, array("id" => Yii::app()->session["userId"],"name"=> Yii::app()->session["user"]["name"]), array("type"=>$new["type"],"id"=> $new["id"]), null, $typeNotif);
 	    return array("result"=>true, "msg"=>Yii::t('document','Document saved successfully'), "id"=>$new["_id"],"name"=>$new["name"]);	
 	}
 	
@@ -590,8 +592,25 @@ class Document {
     	}
         
         //Update the entity collection to store the path of the profil images
-        if (in_array($document["type"], array(Person::COLLECTION, Organization::COLLECTION, Project::COLLECTION, Event::COLLECTION))) {
-	        PHDB::update($document["type"], array("_id" => new MongoId($document["id"])), array('$set' => array("profilImageUrl" => $profilUrl, "profilMediumImageUrl" => $profilMediumUrl,"profilThumbImageUrl" => $profilThumbUrl, "profilMarkerImageUrl" =>  $profilMarkerImageUrl)));
+        $allowedElements = array( Person::COLLECTION, 
+        						  Organization::COLLECTION, 
+        						  Project::COLLECTION, 
+        						  Event::COLLECTION,
+        						  Poi::COLLECTION, 
+        						  Classified::COLLECTION);
+        if (@$profilUrl && in_array($document["type"], $allowedElements )) {
+        	
+        	$changes = array();
+        	if (@$profilUrl)
+        		$changes["profilImageUrl"] = $profilUrl;
+        	if (@$profilMediumUrl)
+        		$changes["profilMediumImageUrl"] = $profilMediumUrl;
+        	if (@$profilThumbUrl)
+        		$changes["profilThumbImageUrl"] = $profilThumbUrl;
+        	if (@$profilMarkerImageUrl)
+        		$changes["profilMarkerImageUrl"] = $profilMarkerImageUrl;
+
+	        PHDB::update($document["type"], array("_id" => new MongoId($document["id"])), array('$set' => $changes));
 
 	        error_log("The entity ".$document["type"]." and id ". $document["id"] ." has been updated with the URL of the profil images.");
 		}
@@ -858,7 +877,6 @@ class Document {
     		} else {
     			file_put_contents($uploadDir.$name , $file);
 			}
-
     		return array('result'=>true,
                         "success"=>true,
                         'name'=>$name,

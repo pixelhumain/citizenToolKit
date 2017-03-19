@@ -441,7 +441,7 @@ class Menu {
         if( !isset( $element["disabled"] ) ){
 	        if((@$config["connectLink"] && $config["connectLink"]) || empty($config)){
 	            //Link button 
-	            if($type != Person::COLLECTION && isset($element["_id"]) && isset(Yii::app()->session["userId"]) && 
+	            /*if($type != Person::COLLECTION && $type != Event::COLLECTION && isset($element["_id"]) && isset(Yii::app()->session["userId"]) && 
 	                Link::isLinked((string)$element["_id"], $type, Yii::app()->session["userId"])){
 		            
 		            self::entry("right", 'onclick',
@@ -449,25 +449,28 @@ class Menu {
 	                        Yii::t( "common", "Leave"),
 	                        'unlink disconnectBtnIcon',
 	                        "disconnectTo('".$type."','".$id."','".Yii::app()->session["userId"]."','".Person::COLLECTION."','".$strongLinks."')",null,null,"text-red"); 
-	            } else if (isset($element["_id"]) && isset(Yii::app()->session["userId"]) && 
-	                isset($element["links"]["followers"][Yii::app()->session["userId"]])){
-		            self::entry("right", 'onclick',
-	                        Yii::t( "common", "Unfollow this ".$controllerType),
-	                        Yii::t( "common", "Unfollow"),
-	                        'unlink disconnectBtnIcon',
-	                        "disconnectTo('".$type."','".$id."','".Yii::app()->session["userId"]."','".Person::COLLECTION."','followers')",null,null,"text-red"); 
-	            } else if(@$element["_id"] 
-	                        && @Yii::app()->session["userId"] 
-	                        && !@$element["links"]["followers"][Yii::app()->session["userId"]] 
-	                        && $type != Event::COLLECTION 
-	                        && @$element["_id"] != @Yii::app()->session["userId"]){
-		                self::entry("right", 'onclick',
-		                        Yii::t( "common", "Follow this ".$controllerType),
-		                        Yii::t( "common", "Follow"),
-		                        'link followBtn',
-		                        "follow('".$type."','".$id."','".Yii::app()->session["userId"]."','".Person::COLLECTION."')",null,null);
+	            } else */
+                if(!@$element["links"][$strongLinks][Yii::app()->session["userId"]]){
+                    if (isset($element["_id"]) 
+                        && isset(Yii ::app()->session["userId"]) 
+                        && isset($element["links"]["followers"][Yii::app()->session["userId"]])){
+                            self::entry("right", 'onclick',   
+	                           Yii::t( "common", "Unfollow this ".$controllerType),
+	                           Yii::t( "common", "Unfollow"),
+	                           'unlink disconnectBtnIcon',    
+	                           "disconnectTo('".$type."','".$id."','".Yii::app()->session["userId"]."','".Person  ::COLLECTION. "','followers')",null,null,"text-red");  
+	                } else if(@$element["_id"]     
+	                    && @Yii::app()->session["userId"]  
+	                    && !@$element["links"]["followers"][Yii::app()->session["userId"]]     
+	                    && $type != Event::COLLECTION  
+	                    && @$element["_id"] != @Yii::app()->session["userId"]){    
+		                    self::entry("right", 'onclick',   
+		                          Yii::t( "common", "Follow this ".$controllerType),    
+		                          Yii::t( "common", "Follow"),  
+		                          'link followBtn', 
+		                          "follow('".$type."','".$id."','".Yii::app()->session["userId"]."','".Person:: COLLECTION."')",null,null);
+	               }
 	            }
-	
 	            // Add member , contributor, attendee
 	            if($type == Organization::COLLECTION)
 	               $connectAs="member";
@@ -484,8 +487,7 @@ class Menu {
 	                                "connectTo('".$type."','".$id."','".Yii::app()->session["userId"]."','".Person::COLLECTION."', '".$connectAs."','".addslashes($element["name"])."')",null,null);
 	            }else{
 	                //Ask Admin button
-	                if (    $type != Person::COLLECTION 
-	                    && !in_array(Yii::app()->session["userId"], Authorisation::listAdmins($id, $type,true)) 
+	                if ($type != Person::COLLECTION  
 	                    && @Yii::app()->session["userId"]) {
 	                    $connectAs="admin";
 	                    //Test if user has already asked to become an admin
@@ -495,8 +497,13 @@ class Menu {
 	                                Yii::t( "common", "Become ".$connectAs),
 	                                'user-circle-o becomeAdminBtn',
 	                                "connectTo('".$type."','".$id."','".Yii::app()->session["userId"]."','".Person::COLLECTION."','".$connectAs."','".addslashes($element["name"])."')",null,null);
-	                    }             
-	                }
+	                    }    
+                        self::entry("right", 'onclick',
+                                Yii::t( "common", "Leave this ".$controllerType),
+                                Yii::t( "common", "Leave"),
+                                'unlink disconnectBtnIcon',
+                                "disconnectTo('".$type."','".$id."','".Yii::app()->session["userId"]."','".Person::COLLECTION."','".$strongLinks."')",null,null,"text-red");              
+    	            }
 	            }
 			}
         } 
@@ -774,8 +781,8 @@ class Menu {
                 self::entry("left", 'onclick', 
                             Yii::t( "common", 'Create a proposal for your community'),
                             Yii::t( "common", 'Add a proposal'), 'plus',
-                            //"url.loadByHash('#survey.editEntry.survey.".$id."')",
-                            "openForm('entry','sub')",
+                            //"loadByHash('#survey.editEntry.survey.".$id."')",
+                            "elementLib.openForm('entry','sub')",
                             "addProposalBtn",null);
             self::entry("left", 'onclick', 
                         Yii::t( "rooms", ( @$survey["status"] != ActionRoom::STATE_ARCHIVED ) ? 'Archive' : 'Unarchive'.' this action Room',null,Yii::app()->controller->module->id),
@@ -891,8 +898,8 @@ class Menu {
                 self::entry("left", 'onclick', 
                         Yii::t( "common", 'Create an Action for your community'),
                         Yii::t( "rooms", 'Add an Action',null,Yii::app()->controller->module->id), 'plus',
-                        //"url.loadByHash('#rooms.editAction.room.".$id."')",
-                        "openForm('action','sub')",
+                        //"loadByHash('#rooms.editAction.room.".$id."')",
+                        "elementLib.openForm('action','sub')",
                         "addActionBtn",null);
 
             /*if ( @$room["organizerId"] == Yii::app()->session["userId"] ) 
@@ -1128,6 +1135,24 @@ class Menu {
           }
       else
         echo '<li><a href="'.$href.'" '.$modal.' '.$class.' '.$onclick.' >'.@$item["label"].'</a></li>';
+    }
+
+    public static function zone($zone)
+    {
+        if( !is_array( Yii::app()->controller->toolbarMBZ ))
+            Yii::app()->controller->toolbarMBZ = array();
+        $id = (string)$zone["_id"];
+        $paramsUrl = ".id.".$id ;
+            
+        self::entry("left", 'onclick', 
+                    Yii::t( "common", 'City Home page'),
+                    Yii::t( "common", 'Details'), 'university',
+                    "loadByHash('#city.detail".$paramsUrl."')",null,null);
+        
+        self::entry("left", 'onclick',
+                    Yii::t( "common", 'Local network'), 
+                    Yii::t( "common", 'Directory'),'bookmark fa-rotate-270',
+                    "loadByHash('#city.directory".$paramsUrl.".tpl.directory2')",null,null);
     }
 
 } 

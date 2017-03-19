@@ -188,7 +188,6 @@ class Element {
         } else if ( $type == Survey::COLLECTION) {
             $res = Survey::getById($id);
         } else {
-
         	throw new CTKException("Can not manage this type : ".$type);
         }
         if (empty($res)) throw new CTKException("The actor (".$id." / ".$type.") is unknown");
@@ -507,7 +506,7 @@ class Element {
 			}
 		}
 		
-		else if ($dataFieldName == "birthDate") {
+		/*else if ($dataFieldName == "birthDate") {
 			date_default_timezone_set('UTC');
 			$dt = DateTime::createFromFormat('Y-m-d H:i', $fieldValue);
 			if (empty($dt)) {
@@ -515,8 +514,9 @@ class Element {
 			}
 			$newMongoDate = new MongoDate($dt->getTimestamp());
 			$set = array($dataFieldName => $newMongoDate);
+
 		//Date format
-		} else if ($dataFieldName == "startDate" || $dataFieldName == "endDate") {
+		}*/ else if ($dataFieldName == "startDate" || $dataFieldName == "endDate" || $dataFieldName == "birthDate") {
 			date_default_timezone_set('UTC');
 			$dt = DataValidator::getDateTimeFromString($fieldValue, $dataFieldName);
 			$newMongoDate = new MongoDate($dt->getTimestamp());
@@ -915,7 +915,6 @@ class Element {
 	public static function save($params){
         $id = null;
         $data = null;
-
         if(!@$params["collection"] && !@$params["key"])
         	return array("result"=> false, "error"=>"400", "msg" => "Bad Request");
 
@@ -1003,7 +1002,6 @@ class Element {
                              "reload"=>true,
                              "map"=>$params,
                              "id"=>(string)$params["_id"]);  
-                
                 //TODO
                 //self::afterSave();
                 
@@ -1016,15 +1014,13 @@ class Element {
                 	$res["afterSave"] = Event::afterSave($params);
                 else if( $collection == Project::COLLECTION )
                 	$res["afterSave"] = Project::afterSave($params, @$params["parentId"] , @$params["parentType"] );
-
                 $res["afterSaveGbl"] = self::afterSave((string)$params["_id"],$collection,$params,$postParams);
-
-                if( false && @$params["parentType"] && @$params["parentId"] )
-                {
+                //if( false && @$params["parentType"] && @$params["parentId"] )
+                //{
                     //createdObjectAsParam($authorType, $authorId, $objectType, $objectId, $targetType, $targetId, $geo, $tags, $address, $verb="create")
                     //TODO
                     //Notification::createdObjectAsParam($authorType[Person::COLLECTION],$userId,$elementType, $elementType, $parentType[projet crée par une orga => orga est parent], $parentId, $params["geo"], (isset($params["tags"])) ? $params["tags"]:null ,$params["address"]);  
-                }
+                //}
             }
           //  if(@$url = ( @$params["parentType"] && @$params["parentId"] && in_array($collection, array("poi") && Yii::app()->theme != "notragora")) ? "#".self::getControlerByCollection($params["parentType"]).".detail.id.".$params["parentId"] : null )
 	        //    $res["url"] = $url;
@@ -1397,7 +1393,19 @@ class Element {
 		$id = $params["id"];
 
 		$res = array();
-		if($block == "contact"){
+		if($block == "info"){
+			if(isset($params["name"]))
+				$res[] = self::updateField($collection, $id, "name", $params["name"]);
+			if(isset($params["username"]))
+				$res[] = self::updateField($collection, $id, "username", $params["username"]);
+			//if(isset($params["shortDescription"]))
+			//	$res[] = self::updateField($collection, $id, "shortDescription", $params["shortDescription"]);
+			if(isset($params["avancement"]))
+				$res[] = self::updateField($collection, $id, "avancement", $params["avancement"]);
+			if(isset($params["tags"]))
+				$res[] = self::updateField($collection, $id, "tags", $params["tags"]);
+			if(isset($params["type"]))
+				$res[] = self::updateField($collection, $id, "type", $params["type"]);
 			if(isset($params["email"]))
 				$res[] = self::updateField($collection, $id, "email", $params["email"]);
 			if(isset($params["url"]))
@@ -1410,32 +1418,19 @@ class Element {
 				$res[] = self::updateField($collection, $id, "fax", $params["fax"]);
 			if(isset($params["mobile"]))
 				$res[] = self::updateField($collection, $id, "mobile", $params["mobile"]);
-
-		}else if($block == "info"){
-			if(isset($params["name"]))
-				$res[] = self::updateField($collection, $id, "name", $params["name"]);
-			if(isset($params["username"]))
-				$res[] = self::updateField($collection, $id, "username", $params["username"]);
-			if(isset($params["shortDescription"]))
-				$res[] = self::updateField($collection, $id, "shortDescription", $params["shortDescription"]);
-			if(isset($params["avancement"]))
-				$res[] = self::updateField($collection, $id, "avancement", $params["avancement"]);
-			if(isset($params["tags"]))
-				$res[] = self::updateField($collection, $id, "tags", $params["tags"]);
-			if(isset($params["type"]))
-				$res[] = self::updateField($collection, $id, "type", $params["type"]);
-			if(isset($params["telegramAccount"]))
-				$res[] = self::updateField($collection, $id, "telegramAccount", $params["telegramAccount"]);
-			if(isset($params["facebookAccount"]))
-				$res[] = self::updateField($collection, $id, "facebookAccount", self::getAndCheckUrl($params["facebookAccount"]));
-			if(isset($params["twitterAccount"]))
-				$res[] = self::updateField($collection, $id, "twitterAccount", self::getAndCheckUrl($params["twitterAccount"]));
-			if(isset($params["gitHubAccount"]))
-				$res[] = self::updateField($collection, $id, "gitHubAccount", self::getAndCheckUrl($params["gitHubAccount"]));
-			if(isset($params["gpplusAccount"]))
-				$res[] = self::updateField($collection, $id, "url", self::getAndCheckUrl($params["gpplusAccount"]));
-			if(isset($params["skypeAccount"]))
-				$res[] = self::updateField($collection, $id, "url", self::getAndCheckUrl($params["skypeAccount"]));
+		}else if($block == "network"){
+			if(isset($params["telegram"]))
+				$res[] = self::updateField($collection, $id, "telegram", $params["telegram"]);
+			if(isset($params["facebook"]))
+				$res[] = self::updateField($collection, $id, "facebook", self::getAndCheckUrl($params["facebook"]));
+			if(isset($params["twitter"]))
+				$res[] = self::updateField($collection, $id, "twitter", self::getAndCheckUrl($params["twitter"]));
+			if(isset($params["gitHub"]))
+				$res[] = self::updateField($collection, $id, "gitHub", self::getAndCheckUrl($params["gitHub"]));
+			if(isset($params["gpplus"]))
+				$res[] = self::updateField($collection, $id, "gpplus", self::getAndCheckUrl($params["gpplus"]));
+			if(isset($params["skype"]))
+				$res[] = self::updateField($collection, $id, "skype", self::getAndCheckUrl($params["skype"]));
 		}else if($block == "when"){
 			if(isset($params["allDay"]))
 				$res[] = self::updateField($collection, $id, "allDay", (($params["allDay"] == "true") ? true : false));
