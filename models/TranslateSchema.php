@@ -105,8 +105,8 @@ https://schema.org/Person
 		"url"		=> array("valueOf" => "url"),
 		"sameAs"	=> array("valueOf"  	=> '_id.$id', 
 							 "type" 	=> "url", 
-							 "prefix"   => "/#person.detail.id.",
-							 "suffix"   => "" )
+							 "prefix"   => "/#organization.detail.id.",
+							 "suffix"   => "" ),
 	);
 
 	public static $dataBinding_allProject = array(
