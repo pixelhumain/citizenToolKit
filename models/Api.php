@@ -86,16 +86,30 @@ class Api {
             $server = ((isset($_SERVER['HTTPS']) AND (!empty($_SERVER['HTTPS'])) AND strtolower($_SERVER['HTTPS'])!='off') ? 'https://' : 'http://').$_SERVER['HTTP_HOST'];
             $meta["next"] = $server.Yii::app()->createUrl("/api/".Element::getControlerByCollection($type)."/get/limit/".$limit."/index/".($index+$limit));
 
-            if(@$format)
-                $meta["format"] = "/format/".$format ;
+           
             if($index != 0){
                 $newIndex = $index - $limit;
                 if($newIndex < 0)
                     $newIndex = 0 ;
                 $meta["previous"] = $server.Yii::app()->createUrl("/api/".Element::getControlerByCollection($type)."/get/limit/".$limit."/index/".$newIndex) ;
             }
+
+             if(@$format){
+                $meta["next"] .= "/format/".$format ;
+                if(@$meta["previous"])
+                 $meta["previous"] .= "/format/".$format ;
+             }
+                
+
             $result["meta"] = $meta ;
-            $result["entities"] = $resData;
+
+            if($format != "schema")
+                $result["entities"] = $resData;
+            else{
+                foreach ($resData as $key => $value) {
+                    $result["@graph"][] = $value ;
+                }
+            }
         }else{
             $result = $resData[$id];
         }
