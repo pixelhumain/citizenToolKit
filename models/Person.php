@@ -199,7 +199,7 @@ class Person {
 	 * @param String $id of the person
 	 * @return array with data id, name, profilImageUrl
 	 */
-	public static function getSimpleUserById($id,$person=null) {
+	public static function getSimpleUserById($id,$person=null, $network = false) {
 		
 		$simplePerson = array();
 		if(!$person)
@@ -222,6 +222,10 @@ class Person {
 		$simplePerson["updated"] = @$person["updated"];
 		
 		$simplePerson["typeSig"] = "people";
+		if($network == true){
+			$simplePerson["links"] = @$person["links"];
+			$simplePerson["creator"] = @$person["creator"];
+		}
 	  	
 		if (@Yii::app()->params['betaTest']) { 
 			$simplePerson["numberOfInvit"] = @$person["numberOfInvit"];
@@ -2073,7 +2077,7 @@ class Person {
 
     public static function getCurrentSuperAdmins() {
     	$superAdmins = array();
-    	$superAdmins = PHDB::find(self::COLLECTION, array('roles.superAdmin' => true), array("_id"));
+    	$superAdmins = PHDB::find(self::COLLECTION, array('roles.superAdmin' => true), array("_id", "email"));
     	return $superAdmins;
     }
 

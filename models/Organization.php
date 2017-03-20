@@ -66,6 +66,7 @@ class Organization {
 	    "created" => array("name" => "created"),
 	    "locality" => array("name" => "address"),
 	    "contacts" => array("name" => "contacts"),
+	    "disabled" => array("name" => "disabled"),
 	);
 	
 	//See findOrganizationByCriterias...
@@ -197,8 +198,8 @@ class Organization {
 		}
 		unset($organization["role"]);
 		
-		
-		if ($isToLink) {
+		//If moderation is set, the links are ignored
+		if ($isToLink && @Yii::app()->params['moderation'] != true ) {
 			//Create link in both entity person and organization 
 			Link::connect($newOrganizationId, Organization::COLLECTION, $memberId, Person::COLLECTION, $creatorId,"members",$isAdmin);
 			Link::connect($memberId, Person::COLLECTION, $newOrganizationId, Organization::COLLECTION, $creatorId,"memberOf",$isAdmin);
@@ -518,27 +519,38 @@ class Organization {
 
 	/**
 	 * Retrieve a simple organization (id, name, profilImageUrl) by id from DB
-	 * @param String $id of the organization
+	 * @param String $id of the organization, $orga (Object) is all datas of element, moreInfo (Boolean) for get links and creator
 	 * @return array with data id, name, profilImageUrl, logoImageUrl
 	 */
-	public static function getSimpleOrganizationById($id,$orga=null) {
+	public static function getSimpleOrganizationById($id,$orga=null, $moreInfo = false) {
 
 		$simpleOrganization = array();
 		if(!$orga)
-			$orga = PHDB::findOneById( self::COLLECTION ,$id, array("id" => 1, "name" => 1, "type" => 1, "email" => 1,  "shortDescription" => 1, "description" => 1, "address" => 1, "pending" => 1, "tags" => 1, "geo" => 1, "updated" => 1, "profilImageUrl" => 1, "profilThumbImageUrl" => 1, "profilMarkerImageUrl" => 1,"profilMediumImageUrl" => 1, "addresses"=>1) );
+			$orga = PHDB::findOneById( self::COLLECTION ,$id, array("id" => 1, "name" => 1, "type" => 1, "email" => 1, "url" => 1, "shortDescription" => 1, "description" => 1, "address" => 1, "pending" => 1, "tags" => 1, "geo" => 1, "geoPosition" => 1, "updated" => 1, "profilImageUrl" => 1, "profilThumbImageUrl" => 1, "profilMarkerImageUrl" => 1,"profilMediumImageUrl" => 1, "addresses"=>1, "telephone"=>1, "disabled"=>1) );
 		if(!empty($orga)){
 			$simpleOrganization["id"] = $id;
 			$simpleOrganization["name"] = @$orga["name"];
 			$simpleOrganization["type"] = @$orga["type"];
 			$simpleOrganization["email"] = @$orga["email"];
+			$simpleOrganization["url"] = @$orga["url"];
+			$simpleOrganization["telephone"] = @$orga["telephone"];
 			$simpleOrganization["pending"] = @$orga["pending"];
 			$simpleOrganization["tags"] = @$orga["tags"];
 			$simpleOrganization["geo"] = @$orga["geo"];
+			//$simpleOrganization["geoPosition"] = @$orga["geoPosition"];
 			$simpleOrganization["shortDescription"] = @$orga["shortDescription"];
 			$simpleOrganization["description"] = @$orga["description"];
 			$simpleOrganization["updated"] = @$orga["updated"];
 			$simpleOrganization["addresses"] = @$orga["addresses"];
 			$simpleOrganization["typeSig"] = "organizations";
+
+			if($moreInfo == true){
+				$simpleOrganization["links"] = @$orga["links"];
+				$simpleOrganization["creator"] = @$orga["creator"];
+			}
+
+			if(!empty($orga["disabled"]))
+				$simpleOrganization["disabled"] = @$orga["disabled"];
 			$simpleOrganization = array_merge($simpleOrganization, Document::retrieveAllImagesUrl($id, self::COLLECTION, @$orga["type"], $orga));
 			
 			$logo = Document::getLastImageByKey($id, self::COLLECTION, Document::IMG_LOGO);
