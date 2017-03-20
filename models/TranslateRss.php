@@ -246,6 +246,8 @@ class TranslateRss {
 						}
 					}
 
+					$image_path = "http://127.0.0.1".$image_path;
+				
 					$val = $image_path;
 
 				} else {
