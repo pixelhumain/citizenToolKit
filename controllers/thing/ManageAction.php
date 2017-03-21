@@ -9,11 +9,12 @@
 
 class ManageAction extends CAction {
 
-	public function run( ){
+	public function run($country="RE" ){
 
 		$controller=$this->getController();
 
         $params=array();  
+        if(isset($country)){$params['country']=$country; }
 
 		if(Yii::app()->request->isAjaxRequest)
             echo $controller->renderPartial("manage",$params,true);

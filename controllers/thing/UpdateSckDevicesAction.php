@@ -3,7 +3,7 @@
 class UpdateSckDevicesAction extends CAction {
 	
 
-	public function run() { 
+	public function run($deviceId,$macId,$id) { 
 
 
 		if ($_SERVER['REQUEST_METHOD'] == 'GET') {//TODO : utiliser GET pour mettre à jours et utiliser les données à jours dans la vue
@@ -14,6 +14,8 @@ class UpdateSckDevicesAction extends CAction {
 
 
 		} elseif ($_SERVER['REQUEST_METHOD'] == 'POST') { //TODO : post pour mettre ajours avec un nouveau poi ou sans poi en utilisant deviceId et macId du SCK}
+
+
 
 		}
 		echo Rest::json($res2);

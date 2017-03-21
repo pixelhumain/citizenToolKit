@@ -104,7 +104,14 @@ class Thing {
 			$partReadings['namepoi']=$poi['name'];
 			$partReadings['macId']=$poi['macId'];
 			$address = $poi['address'];
-			$geo=$poi['geo'];
+			if(isset($poi['geo'])){
+				$geo=$poi['geo'];
+			}else { 
+				$geo = array("@type"=>"GeoCoordinates", "latitude" =>
+					$partReadings['data']['location']['latitude'], "longitude" =>
+					$partReadings['data']['location']['longitude']);
+			}
+			
 			$toSave=array();
 			$toSave = self::fillSmartCitizenMetadata($partReadings,$address,$geo);
 			if(!empty($deviceMetadata)){
@@ -166,7 +173,7 @@ class Thing {
 		return $metadatasId;
 	}*/
 
-	public static function getSCKDevicesByCountryAndCP($country="RE", $cp="97490", $fields=null){
+	public static function getSCKDevicesByCountryAndCP($country="RE", $cp="0", $fields=null){
 
 		$where=array("type"=>self::SCK_TYPE);
 

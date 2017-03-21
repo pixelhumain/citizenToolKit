@@ -9,13 +9,14 @@
 
 class GetGraphAction extends CAction {
     
-    public function run($country="RE",$postalCode="97490") {
+    public function run($country="RE",$postalCode="97490",$nbDays=1) {
 
        
     	//echo "graphe ici";
 		$controller=$this->getController();
 
-        $params=array();    
+        $params=array(); 
+        if(isset($nbDays)){$params['nbDays']=$nbDays;}
         if(isset($country)){$params['country']=$country; }
         if(isset($postalCode)){$params['postalCode']=$postalCode; }
         //if((isset($postalCode) && empty($postalCode)) || !isset($postalCode)) {$params['postalCode']="97490";}
