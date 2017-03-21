@@ -16,13 +16,13 @@ class MediaCrawlerAction extends CAction
 
 	    $res .= $this->extractSource("NCTV", "YOUTUBE");
 
-        $res .= $this->extractSource("NC1", "YOUTUBE");
+      $res .= $this->extractSource("NC1", "YOUTUBE");
 	    $res .= $this->extractSource("NC1", "NC");
 
-        $res .= $this->extractSource("NCI", "EMISSION");
-		$res .= $this->extractSource("NCI", "BLOG");
+      $res .= $this->extractSource("NCI", "EMISSION");
+		  $res .= $this->extractSource("NCI", "BLOG");
         
-        $res .= $this->extractSource("TAZAR", "BLOG");
+      $res .= $this->extractSource("TAZAR", "BLOG");
 		
         //$res .= $this->extractSource("LNC", "BLOG");
         //$res .= $this->extractSource("CALEDOSPHERE", "FEED");
