@@ -254,7 +254,7 @@ class DetailAction extends CAction {
 	                $connectAs="contributor";
 	            else if($type == Event::COLLECTION)
 	                $connectAs="attendee";
-	           $params["linksBtn"]["connectAs"]=$connectAs;
+	           $params["linksBtn"]["connectAs"]=@$connectAs;
 	           $params["linksBtn"]["connectType"]=$connectType;
 	            if( @Yii::app()->session["userId"] && $type!= Person::COLLECTION && !@$element["links"][$connectType][Yii::app()->session["userId"]]){
 	            	$params["linksBtn"]["communityBn"]=true;	            	
