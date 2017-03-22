@@ -760,8 +760,8 @@ class Document {
 		//The profil image URL should be stored in the entity collection 
 		if (isset($entity["profilImageUrl"])) {
 			$res["profilImageUrl"] = $entity["profilImageUrl"];
-			$res["profilThumbImageUrl"] = !empty($entity["profilThumbImageUrl"]) ? $entity["profilThumbImageUrl"]."?_=".time() : "";
-			$res["profilMarkerImageUrl"] = !empty($entity["profilMarkerImageUrl"]) ? $entity["profilMarkerImageUrl"]."?_=".time() : ""; 
+			$res["profilThumbImageUrl"] = !empty($entity["profilThumbImageUrl"]) ? $entity["profilThumbImageUrl"] : "";
+			$res["profilMarkerImageUrl"] = !empty($entity["profilMarkerImageUrl"]) ? $entity["profilMarkerImageUrl"] : ""; 
 			$res["profilMediumImageUrl"] = !empty($entity["profilMediumImageUrl"]) ? $entity["profilMediumImageUrl"]."?_=".time() : ""; 
 
 		//If empty than retrieve the URLs from document and store them in the entity for next time
