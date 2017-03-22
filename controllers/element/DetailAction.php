@@ -4,7 +4,7 @@ class DetailAction extends CAction {
 /**
 * Dashboard Organization
 */
-    public function run($type, $id, $networkParams=null) { 
+    public function run($type, $id, $view=null, $networkParams=null) { 
     	$controller=$this->getController();
 		$members=array();
 		//$list = Lists::get(array("eventTypes"));
@@ -152,19 +152,8 @@ class DetailAction extends CAction {
 	           		 $projects[$keyProj] = $project;
 				}
 			}
-			$connectType = "attendees";
 
-		} else if ($type == Place::COLLECTION){
-			$element = Place::getById($id);
 			$connectType = "attendees";
-			$elementAuthorizationId = $id;
-			$elementAuthorizationType = Place::COLLECTION;
-			// if($element["parentType"]==Organization::COLLECTION){
-			// 	$params["parent"] = Organization::getSimpleOrganizationById($element["parentId"]);
-			// }else{
-			// 	$params["parent"] = Project::getSimpleProjectById($element["parentId"]); 
-			// }
-
 		} else if ($type == Poi::COLLECTION){
 			$element = Poi::getById($id);
 			$connectType = "attendees";
@@ -234,82 +223,51 @@ class DetailAction extends CAction {
 		}
 		if(!@$element["disabled"]){
 	        //if((@$config["connectLink"] && $config["connectLink"]) || empty($config)){ TODO CONFIG MUTUALIZE WITH NETWORK AND OTHER PLATFORM
-	        	if(!@$element["links"][$connectType][Yii::app()->session["userId"]] || (@$element["links"][$connectType][Yii::app()->session["userId"]] && @$element["links"][$connectType][Yii::app()->session["userId"]][Link::TO_BE_VALIDATED])){
-	        		$params["linksBtn"]["followBtn"]=true;
-                    if (isset($element["_id"]) 
-                        && isset(Yii ::app()->session["userId"]) 
-                        && isset($element["links"]["followers"][Yii::app()->session["userId"]]))
-                        	$params["linksBtn"]["isFollowing"]=true;
-                            /*self::entry("right", 'onclick',   
-	                           Yii::t( "common", "Unfollow this ".$controllerType),
-	                           Yii::t( "common", "Unfollow"),
-	                           'unlink disconnectBtnIcon',    
-	                           "disconnectTo('".$type."','".$id."','".Yii::app()->session["userId"]."','".Person  ::COLLECTION. "','followers')",null,null,"text-red"); */ 
-	                 else if(@$element["_id"]     
-	                    && @Yii::app()->session["userId"]  
-	                    && !@$element["links"]["followers"][Yii::app()->session["userId"]]     
-	                    && $type != Event::COLLECTION  
-	                    && @$element["_id"] != @Yii::app()->session["userId"])   
-	                    	$params["linksBtn"]["isFollowing"]=false; 
-		                    /*self::entry("right", 'onclick',   
-		                          Yii::t( "common", "Follow this ".$controllerType),    
-		                          Yii::t( "common", "Follow"),  
-		                          'link followBtn', 
-		                          "follow('".$type."','".$id."','".Yii::app()->session["userId"]."','".Person:: COLLECTION."')",null,null);*/
-	               
-	            }
-	            // Add member , contributor, attendee
-	            if($type == Organization::COLLECTION)
-	               $connectAs="member";
-	            else if($type == Project::COLLECTION)
-	                $connectAs="contributor";
-	            else if($type == Event::COLLECTION)
-	                $connectAs="attendee";
-	            else if($type==Person::COLLECTION)
-	            	$connectAs="friend";
-	            else if($type==Place::COLLECTION)
-	            	$connectAs="friend";
-
-	            $params["linksBtn"]["connectAs"]=@$connectAs;
-	            $params["linksBtn"]["connectType"]=@$connectType;
-
-	            if( @Yii::app()->session["userId"] && $type!= Person::COLLECTION && !@$element["links"][$connectType][Yii::app()->session["userId"]]){
-	            	$params["linksBtn"]["communityBn"]=true;	            	
-	            	$params["linksBtn"]["isMember"]=false;
-	                /*self::entry("right", 'onclick',
-	                                Yii::t( "common", "Declare me as ".$connectAs." of this ".$controllerType),
-	                                Yii::t( "common", "Become ".$connectAs),
-	                                'user-plus becomeAdminBtn',
-	                                "connectTo('".$type."','".$id."','".Yii::app()->session["userId"]."','".Person::COLLECTION."', '".$connectAs."','".addslashes($element["name"])."')",null,null);*/
-	            }else if($type != Person::COLLECTION  && @Yii::app()->session["userId"]){
-	                //Ask Admin button
-	                    $connectAs="admin";
-	                    $params["linksBtn"]["communityBn"]=true;
-	                   	$params["linksBtn"]["isMember"]=true;
-	                   	if(@$element["links"][$connectType][Yii::app()->session["userId"]][Link::TO_BE_VALIDATED])
-	                   		$params["linksBtn"][Link::TO_BE_VALIDATED]=true;
-	                   	$params["linksBtn"]["isAdmin"]=true;
-	                   	if(@$element["links"][$connectType][Yii::app()->session["userId"]][Link::IS_ADMIN_PENDING])
-	                   		$params["linksBtn"][Link::IS_ADMIN_PENDING]=true;
-	                    //Test if user has already asked to become an admin
-	                    if(!in_array(Yii::app()->session["userId"], Authorisation::listAdmins($id, $type,true))){
-	                    	$params["linksBtn"]["isAdmin"]=false;
-	                        /*self::entry("right", 'onclick',
-	                                Yii::t( "common", "Declare me as ".$connectAs." of this ".$controllerType),
-	                                Yii::t( "common", "Become ".$connectAs),
-	                                'user-circle-o becomeAdminBtn',
-	                                "connectTo('".$type."','".$id."','".Yii::app()->session["userId"]."','".Person::COLLECTION."','".$connectAs."','".addslashes($element["name"])."')",null,null);*/
-	                    }    
-                       /* self::entry("right", 'onclick',
-                                Yii::t( "common", "Leave this ".$controllerType),
-                                Yii::t( "common", "Leave"),
-                                'unlink disconnectBtnIcon',
-                                "disconnectTo('".$type."','".$id."','".Yii::app()->session["userId"]."','".Person::COLLECTION."','".$strongLinks."')",null,null,"text-red"); */          
-	            }
-			//}
+        	if(!@$element["links"][$connectType][Yii::app()->session["userId"]] || (@$element["links"][$connectType][Yii::app()->session["userId"]] && @$element["links"][$connectType][Yii::app()->session["userId"]][Link::TO_BE_VALIDATED])){
+        		$params["linksBtn"]["followBtn"]=true;
+                if (isset($element["_id"]) 
+                    && isset(Yii ::app()->session["userId"]) 
+                    && isset($element["links"]["followers"][Yii::app()->session["userId"]]))
+                    	$params["linksBtn"]["isFollowing"]=true;
+                 else if(@$element["_id"]     
+                    && @Yii::app()->session["userId"]  
+                    && !@$element["links"]["followers"][Yii::app()->session["userId"]]     
+                    && $type != Event::COLLECTION  
+                    && @$element["_id"] != @Yii::app()->session["userId"])   
+                    	$params["linksBtn"]["isFollowing"]=false; 	               
+            }
+            // Add member , contributor, attendee
+            if($type == Organization::COLLECTION)
+               $connectAs="member";
+            else if($type == Project::COLLECTION)
+                $connectAs="contributor";
+            else if($type == Event::COLLECTION)
+                $connectAs="attendee";
+            else if($type==Person::COLLECTION)
+            	$connectAs="friend";
+           $params["linksBtn"]["connectAs"]=$connectAs;
+           $params["linksBtn"]["connectType"]=$connectType;
+            if( @Yii::app()->session["userId"] && $type!= Person::COLLECTION && !@$element["links"][$connectType][Yii::app()->session["userId"]]){
+            	$params["linksBtn"]["communityBn"]=true;	            	
+            	$params["linksBtn"]["isMember"]=false;
+            }else if($type != Person::COLLECTION  && @Yii::app()->session["userId"]){
+                //Ask Admin button
+                $connectAs="admin";
+                $params["linksBtn"]["communityBn"]=true;
+               	$params["linksBtn"]["isMember"]=true;
+               	if(@$element["links"][$connectType][Yii::app()->session["userId"]][Link::TO_BE_VALIDATED])
+               		$params["linksBtn"][Link::TO_BE_VALIDATED]=true;
+               	$params["linksBtn"]["isAdmin"]=true;
+               	if(@$element["links"][$connectType][Yii::app()->session["userId"]][Link::IS_ADMIN_PENDING])
+               		$params["linksBtn"][Link::IS_ADMIN_PENDING]=true;
+                //Test if user has already asked to become an admin
+                if(!in_array(Yii::app()->session["userId"], Authorisation::listAdmins($id, $type,true)))
+                	$params["linksBtn"]["isAdmin"]=false;              
+            }
         }
 		//$lists = Lists::get($listsToRetrieve);
 		//$params["eventTypes"] = $list["eventTypes"];
+		$params["subview"]=$view;
 		$params["tags"] = array("TODO : écrire la liste de suggestion de tags"); Tags::getActiveTags();
 		$params["element"] = $element;
 		$params["members"] = $members;
@@ -343,7 +301,6 @@ class DetailAction extends CAction {
 		
 		if(@$_GET["network"])
 			$params["networkJson"]=Network::getNetworkJson($_GET["network"]);
-		
 		$page = "detail";
 
 		if(@$_GET["tpl"] == "detail")
