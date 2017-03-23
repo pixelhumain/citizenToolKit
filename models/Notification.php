@@ -68,7 +68,7 @@ class Notification{
 				"type"=>"instantly"
 			),
 			"icon" => "fa-cog",
-			"url" => "{ctrlr}/directory/id/{id}"
+			"url" => "page/type/{collections}/id/{id}/view/notifications"
 		),
 		//// USED ONLY FOR EVENT
 		// FOR ORGANIZATRION AND PROJECT IF ONLY MEMBER
@@ -217,7 +217,7 @@ class Notification{
 				"label"=>"{who} writes a post on the wall of {where}",
 				"labelRepeat"=>"{who} write posts on the wall of {where}"
 			),
-			"url" => "news/index/type/{collection}/id/{id}",
+			"url" => "page/type/{collection}/id/{id}",
 			"labelArray" => array("who", "where"),
 			"icon" => "fa-rss"
 		),
@@ -227,11 +227,11 @@ class Notification{
 					"url" => "{ctrlr}/detail/id/{id}"
 				),*/
 				Project::COLLECTION => array(
-					"url" => "{ctrlr}/detail/id/{id}",
+					"url" => "page/type/{collection}/id/{id}",
 					"label" => "{who} added a new project on {where}"
 				),
 				Event::COLLECTION=> array(
-					"url" => "{ctrlr}/detail/id/{id}",
+					"url" => "page/type/{collection}/id/{id}",
 					"label" => "{who} added a new event on {where}"
 				),
 				ActionRoom::COLLECTION_ACTIONS=> array(
@@ -259,7 +259,7 @@ class Notification{
 					"label" => "{who} added a new profil image on {where}"
 				),
 				"albumImage" => array(
-					"url" => "gallery/index/type/{collection}/id/{id}",
+					"url" => "page/type/{collection}/id/{id}/view/gallery",
 					"label" => "{who} added new images to the album of {where}",
 					"repeat" => true,
 					"noUpdate" => true
@@ -347,7 +347,7 @@ class Notification{
 				"to" => "user"
 			),
 			"icon" => "fa-send",
-			"url" => "{ctrlr}/detail/id/{id}"
+			"url" => "page/type/{collection}/id/{id}"
 		),
 		// AJouter la confirmation vers l'utilisateur
 		//Creer le mail pour l'utilisateur accepté !!
