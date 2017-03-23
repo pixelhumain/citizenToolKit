@@ -15,10 +15,10 @@ class IndexAction extends CAction
         //var_dump(Thing::getAllValueSCKDevices());
 
         $params = array();
-        if(Yii::app()->request->isAjaxRequest)
+        //if(Yii::app()->request->isAjaxRequest)
             echo $controller->renderPartial("index",$params,true);
-        else 
-            $controller->render("index",$params);
+        //else 
+          //  $controller->render("index",$params);
         
 
     }
