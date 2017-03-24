@@ -231,15 +231,7 @@ class Translate {
 
 	public static function pastTime($date,$type, $timezone=null) {
 
-		if(isset($timezone) && $timezone != ""){
-			if(date_default_timezone_get()!=$timezone){
-				//error_log("SET TIMEZONE ".$timezone);
-				date_default_timezone_set($timezone); //'Pacific/Noumea'
-			}
-		}else{
-			date_default_timezone_set("UTC");
-			//error_log("SET TIMEZONE UTC");
-		}
+		
 		
 		if($type == "timestamp") {
 	        $date2 = $date; // depuis cette date
@@ -258,7 +250,15 @@ class Translate {
 			$Ecart = $date2 - time();
 	    }
 
-
+if(isset($timezone) && $timezone != ""){
+			if(date_default_timezone_get()!=$timezone){
+				//error_log("SET TIMEZONE ".$timezone);
+				date_default_timezone_set($timezone); //'Pacific/Noumea'
+			}
+		}else{
+			date_default_timezone_set("UTC");
+			//error_log("SET TIMEZONE UTC");
+		}
 
 	    $Annees = date('Y',$Ecart)-1970;
 	    $Mois = date('m',$Ecart)-1;

@@ -1,7 +1,7 @@
 <?php
 class UploadSaveAction extends CAction {
 	
-
+    //$folder is the $type of the element
 	public function run($dir,$folder=null,$ownerId=null,$input,$rename=false) {
 		
         $res = array('result'=>false, 'msg'=>Yii::t("document","Something went wrong with your upload!"));
@@ -26,15 +26,15 @@ class UploadSaveAction extends CAction {
                 $res = Document::uploadDocument($file, $res["uploadDir"],$input,$rename);
                 if ($res["result"]) {
                     $res = array('resultUpload'=>true,
-                                    "success"=>true,
-                                    'name'=>$res["name"],
-                                    'dir'=> $res["uploadDir"],
-                                    'size'=> (int)filesize ($res["uploadDir"].$res["name"]) );
+                                "success"=>true,
+                                'name'=>$res["name"],
+                                'dir'=> $res["uploadDir"],
+                                'size'=> (int)filesize ($res["uploadDir"].$res["name"]) );
                 }
             }
             $res2 = array();
             
-            if($res["resultUpload"]){
+            if( $res["resultUpload"] ){
                 
                     $params = array(
                         "id" => $ownerId,

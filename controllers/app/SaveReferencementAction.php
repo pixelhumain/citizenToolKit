@@ -20,7 +20,7 @@ class SaveReferencementAction extends CAction
 		$query = array("url"=>@$_POST["url"]);
         $siteurl = PHDB::findOne("url", $query);
 
-        if(!isset($siteurl["_id"])){
+        if(!isset($siteurl["url"])){
 
 			$address = @$_POST["address"] ? @$_POST["address"] : false;
 			$geo = @$_POST["geo"] ? @$_POST["geo"] : false;
