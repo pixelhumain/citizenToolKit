@@ -10,7 +10,7 @@ class Import
         $params = array("result"=>false);
         if($post['typeFile'] == "json" || $post['typeFile'] == "js" || $post['typeFile'] == "geojson")
             $params = self::parsingJSON($post);
-        else if($_POST['typeFile'] == "csv")
+        else if($post['typeFile'] == "csv")
             $params = self::parsingCSV($post); 
         return $params ;
     }
@@ -41,7 +41,10 @@ class Import
             
             $json = $post['file'][0];
             //(empty($post["path"]) ? $post['file'][0] : $post['file'][0][$post["path"]]);
-            
+            // if (isset($post['path'])) {
+            //     $json = $post['file'][0][$post['path']][0];
+            // } 
+
             if($post['idMapping'] != "-1"){
                 $where = array("_id" => new MongoId($post['idMapping']));
                 $fields = array("fields");
@@ -104,8 +107,15 @@ class Import
                 $file = $post['file'];
                 $headFile = $file[0];
                 unset($file[0]);
-            }else{
+            }elseif ((!isset($post['pathObject'])) || ($post['pathObject'] == "")) {
                 $file = json_decode($post['file'][0], true);
+                // var_dump($file);
+            }else {
+                // $file = json_decode($post["file"][0][$post["pathObject"]][0], true);
+                $file = json_decode($post['file'][0], true);
+                // $file = json_encode($file);
+                $file = $file[$post["pathObject"]];
+                // $file = json_decode($file,true);
             }
             
             foreach ($file as $keyFile => $valueFile){
@@ -114,17 +124,28 @@ class Import
                     $element = array();
                     foreach ($post['infoCreateData'] as $key => $value) {
                         $valueData = null;
+
+                        //var_dump($valueFile);
+                        //var_dump($value);
                         if($post['typeFile'] == "csv" && in_array($value["idHeadCSV"], $headFile)){
                             $idValueFile = array_search($value["idHeadCSV"], $headFile);
                             $valFile =  (!empty($valueFile[$idValueFile])?$valueFile[$idValueFile]:null);
-                        }else{
+                        }else if ($post['typeFile'] == "json"){
+                            $valFile =  ArrayHelper::getValueByDotPath($valueFile , $value["idHeadCSV"]);
+                        }
+                        else{
                             $valFile =  (!empty($valueFile[$value["idHeadCSV"]])?$valueFile[$value["idHeadCSV"]]:null);
                         }
+                        //var_dump($valFile);
                         if(!empty($valFile)){
                             $valueData = (is_string($valFile)?trim($valFile):$valFile);
                             if(!empty($valueData)){
+                                //var_dump($mapping);
+                                //var_dump($value["valueAttributeElt"]);
                                 $typeValue = ArrayHelper::getValueByDotPath($mapping , $value["valueAttributeElt"]);
                                 $element = ArrayHelper::setValueByDotPath($element , $value["valueAttributeElt"], $valueData, $typeValue);
+                                //var_dump($typeValue);
+                                //var_dump($element);
                             }
                         }
                     }
@@ -153,6 +174,7 @@ class Import
                             "elementsWarnings"=>json_encode(json_decode(json_encode($elementsWarnings),true)),
                             "listEntite"=>self::createArrayList(array_merge($elements, $elementsWarnings)));
         }
+
         return $params;
     }  
 
@@ -262,7 +284,7 @@ class Import
                 $cedex = true;
 
             }else{
-                $resultDataGouv = ( ( !empty($address["addressCountry"]) && $address["addressCountry"] == "FR" ) ? ( empty($cp)?null:json_decode(SIG::getGeoByAddressDataGouv($street, $cp, $nameCity), true) ) : null ) ;
+                $resultDataGouv = ( ( !empty($address["addressCountry"]) && $address["addressCountry"] == "FR" ) ? ( empty($cp) ? null : json_decode(SIG::getGeoByAddressDataGouv($street, $cp, $nameCity), true) ) : null ) ;
                 if(!empty($resultDataGouv["features"])){
                     $newGeo["geo"]["latitude"] = strval($resultDataGouv["features"][0]["geometry"]["coordinates"][1]);
                     $newGeo["geo"]["longitude"] = strval($resultDataGouv["features"][0]["geometry"]["coordinates"][0]);
@@ -318,13 +340,20 @@ class Import
         } // Cas 2 il n'y a que la Géo 
         else if(empty($address) && !empty($geo)){
             if(!empty($geo["latitude"]) && !empty($geo["longitude"])){
-                $newGeo["geo"]["latitude"] = $geo["latitude"] ;
-                $newGeo["geo"]["longitude"] =  $geo["longitude"] ;
-                $resultNominatim = json_decode(SIG::getLocalityByLatLonNominatim($geo["latitude"], $geo["longitude"]), true);
-                if(!empty($resultNominatim["address"]["postcode"])){
-                    $arrayCP = explode(";", $resultNominatim["address"]["postcode"]);
-                    $cp = $arrayCP[0];
-                    $newAddress['postalCode'] = $arrayCP[0];
+
+                if ((is_numeric($geo["latitude"])) && (is_numeric($geo["longitude"]))) {
+                    $newGeo["geo"]["latitude"] = strval($geo["latitude"]) ;
+                    $newGeo["geo"]["longitude"] =  strval($geo["longitude"]);
+                }
+                else {
+                    $newGeo["geo"]["latitude"] = $geo["latitude"] ;
+                    $newGeo["geo"]["longitude"] = $geo["longitude"];
+                    $resultNominatim = json_decode(SIG::getLocalityByLatLonNominatim($geo["latitude"], $geo["longitude"]), true);
+                    if(!empty($resultNominatim["address"]["postcode"])){
+                        $arrayCP = explode(";", $resultNominatim["address"]["postcode"]);
+                        $cp = $arrayCP[0];
+                        $newAddress['postalCode'] = $arrayCP[0];
+                    }
                 }
             }
         }
@@ -692,6 +721,103 @@ class Import
             else
                 Event::updateOrganizationField($idEntity, "state", true, $userId ); 
         }
-    } 
+    }
+
+    public static function getParams($file, $type, $url) {
+
+        $param = array();
+
+        if ($type == Organization::COLLECTION) {
+            $map = TranslateGeoJsonToPh::$mapping_organisation;
+        } elseif ($type == Person::COLLECTION) {
+            $map = TranslateGeoJsonToPh::$mapping_person;
+        } elseif ($type == Event::COLLECTION) {
+            $map = TranslateGeoJsonToPh::$mapping_event;
+        } elseif ($type == Project::COLLECTION) {
+            $map = TranslateGeoJsonToPh::$mapping_project;
+        } 
+        // else {
+        //     return "Type d'élement non reconnu";
+        // }
+
+        $param['typeElement'] = $map["type_elt"];
+
+        foreach ($map as $key => $value) {
+
+            $param['infoCreateData'][$key]["valueAttributeElt"] = $value;
+            $param['infoCreateData'][$key]["idHeadCSV"] = $key;
+
+        }
+
+        $param['typeFile'] = 'json';
+        $param['pathObject'] = 'features';
+        $param['nameFile'] = 'geojson';
+        $param['key'] = 'geojson';
+        $param['warnings'] = false;
+        $param['nbTest'] = "5";
+
+        if (( (isset($file)) || (isset($url)) ) && 
+            (substr($url, 0, 35) !== "http://umap.openstreetmap.fr/en/map")) {
+
+            $param['file'][0] = (isset($file)) ? $file : file_get_contents($url);
+           
+            $result = Import::previewData($param);
+            $res = json_decode($result['elements']);
+
+        } elseif ((isset($url)) && (substr($url, 0, 35) == "http://umap.openstreetmap.fr/en/map")) {
+            $umap_data = file_get_contents($url);
+            $list_url_data = Import::getDatalayersUmap($url);
+            $param['nameFile'] = $url;
+            $res = array();
+
+            foreach ($list_url_data as $keyDatalayer => $valueDatalayer) {  
+
+                $datalayers_data = file_get_contents($valueDatalayer);
+                $param['file'][0] = $datalayers_data;
+
+                $result = Import::previewData($param);
+
+                $result = $result['elements'];
+
+                if (!empty(json_decode($result))) {
+                    array_push($res, json_decode($result));
+                }
+            }
+
+        } 
+
+        if (isset($res)) {
+            return $res;
+        } 
+        //else {
+        //     return "Paramètre(s) manquant(s) ou erroné(s)";
+        // }
+
+
+    }
+
+    public static function getDatalayersUmap($url){
+
+        $url_map = $url;
+
+        $umap_data = file_get_contents($url_map);
+        $umap_data = json_decode($umap_data, true);
+
+        $list_id = array();
+        $list_url_datalayers = array();
+
+        foreach ($umap_data["properties"]["datalayers"] as $key => $value) {
+
+            $url_datalayers = 'http://umap.openstreetmap.fr/en/datalayer/'.$value['id'];
+            array_push($list_url_datalayers, $url_datalayers);
+
+        }
+
+        $datalayers_data = file_get_contents($url_datalayers);
+
+        return $list_url_datalayers;
+
+    }
+
 }
 
