@@ -519,7 +519,6 @@ class Authorisation {
         return $res;
     }
 
-
     /**
     * Get the authorization for edit an item
     * @param type is the type of item, (organization or event or person or project)
@@ -529,53 +528,45 @@ class Authorisation {
     public static function canEditItem($userId, $type, $itemId,$parentType=null,$parentId=null){
         $res=false;    
         $check = false;
-        if($type == ActionRoom::COLLECTION || $type == ActionRoom::COLLECTION_ACTIONS) 
-        {
+        if($type == ActionRoom::COLLECTION || $type == ActionRoom::COLLECTION_ACTIONS) {
 			$type = $parentType;
 			$itemId = $parentId;
             $check = true;
 		}
 
-    	if($type == Event::COLLECTION) 
-        {
+        if($type == Event::COLLECTION) {
+            $isStatusDeletePending = Element::isElementStatusDeletePending($type, $itemId);
     		$res = self::canEditEvent($userId,$itemId);
             if(Role::isSuperAdmin(Role::getRolesUserId($userId)) && $res==false)
-                $res = true ;
+                $res = true && $isStatusDeletePending;
             if(self::isSourceAdmin($itemId, $type, $userId) && $res==false)
-                $res = true ;
-    	} 
-        else if($type == Project::COLLECTION) 
-        {
+                $res = true && $isStatusDeletePending;
+    	} else if($type == Project::COLLECTION) {
+            $isStatusDeletePending = Element::isElementStatusDeletePending($type, $itemId);
     		$res = self::isProjectAdmin($itemId, $userId);
             if(Role::isSuperAdmin(Role::getRolesUserId($userId)) && $res==false)
-                $res = true ;
+                $res = true && $isStatusDeletePending;
             if(self::isSourceAdmin($itemId, $type, $userId) && $res==false)
-                $res = true ;
-    	} 
-        else if($type == Organization::COLLECTION) 
-        {
+                $res = true && $isStatusDeletePending;
+    	} else if($type == Organization::COLLECTION) {
+            $isStatusDeletePending = Element::isElementStatusDeletePending($type, $itemId);
     		$res = self::isOrganizationAdmin($userId, $itemId);
             if(Role::isSuperAdmin(Role::getRolesUserId($userId)) && $res==false)
-                $res = true ;
+                $res = true && $isStatusDeletePending;
             if(self::isSourceAdmin($itemId, $type, $userId) && $res==false)
-                $res = true ; 
-    	} 
-        else if($type == Person::COLLECTION) 
-        {
+                $res = true && $isStatusDeletePending; 
+    	} else if($type == Person::COLLECTION) {
             if($userId==$itemId || Role::isSuperAdmin(Role::getRolesUserId($userId)) == true )
                 $res = true;
-    	} 
-        else if($type == City::COLLECTION )
-        {
+    	} else if($type == City::COLLECTION ) {
             if($check)
                 $res = self::isLocalCitizen( $userId, ($parentType == City::CONTROLLER) ? $parentId : $itemId ); 
             else 
                 $res = true;
-    	} 
-    	else if($type == Survey::COLLECTION) 
-        {
+    	} else if($type == Survey::COLLECTION) {
             $res = self::canEditSurvey($userId, $itemId,$parentType,$parentId);
         }
+
     	return $res;
     }
 

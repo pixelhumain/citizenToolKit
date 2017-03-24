@@ -237,6 +237,9 @@ class DetailAction extends CAction {
 		if(@$_GET["network"])
 			$params["networkJson"]=Network::getNetworkJson($_GET["network"]);
 		
+		//manage delete in progress status
+		$params["deletePending"] = Element::isElementStatusDeletePending($type, $id);;
+
 		$page = "detail";
 		if(Yii::app()->request->isAjaxRequest)
           echo $controller->renderPartial($page,$params,true);

@@ -1,7 +1,7 @@
 <?php 
 class Element {
-
-
+	const NB_DAY_BEFORE_DELETE = 5;
+	const STATUS_DELETE_PEDING = "deletePending";
 
 	public static function getControlerByCollection ($type) { 
 		$ctrls = array(
@@ -818,6 +818,8 @@ class Element {
 		}
 
 		$res = array("result" => false, "msg" => "Something bad happend : impossible to delete this element");
+
+		//What type of element i can delete
 		$managedTypes = array(Organization::COLLECTION);
 		if (!in_array($managedTypes, $elementType)) return array( "result" => false, "msg" => "Impossible to delete this type of element" );
 		$modelElement = self::getModelByType($elementType);
@@ -855,7 +857,13 @@ class Element {
 			//If open data without admin
 			if ((@$element["preferences"]["isOpenData"] == true || @$element["preferences"]["isOpenData"] == 'true' ) && count($admins == 0))  {
 				//Ask the super admins to act for the deletion of the element
-				$res = $self::goElementDeletePending($elementType, $elementId, $reason, Person::getCurrentSuperAdmins(), $userId);
+				$adminsId = array();
+				$superAdmins = Person::getCurrentSuperAdmins();
+				foreach ($superAdmins as $id => $aPerson) {
+					array_push($adminsId, $id);
+				}
+
+				$res = $self::goElementDeletePending($elementType, $elementId, $reason, $adminsId, $userId);
 			}
 
 			//If at least one admin => ask if one of the admins want to stop the deletion. The element is mark as pending deletion. After X days, if no one block the deletion => the element if deleted
@@ -877,11 +885,7 @@ class Element {
 	 * - Suppresion des Documents 
 	 * 		- Supprimer les images de profil 
 	 * - Vider le activityStream de type history
-	 * Si pas de lien News, Actions, Surveys, ActionRooms, News : Suppression de l’élément
-	 * Sinon anonymisation :
-	 * 	- renomer l'élément “Element Supprimé”
-	 * 	- Vider les éléments de contacts (ex : description / numéro de tel…)
-	 * 	- Ajouter un status ‘deleted’ : ne sors plus dans les recherches et l’api
+	 * - Suppression des News, Actions, Surveys, ActionRooms, Comments
 	 * @param type $elementType : type d'élément
 	 * @param type $elementId : id of the element
 	 * @param type $reason : reason of the deletion
@@ -967,7 +971,6 @@ class Element {
 
     	//Remove Activity of the Element
     	ActivityStream::removeElementActivityStream($elementId, $elementType);
-
     	//Delete News
     	News::deleteNewsOfElement($elementId, $elementType, true);
     	//Delete Action Rooms
@@ -982,6 +985,33 @@ class Element {
 		
 		return $res;
 	}
+
+	/**
+	 * The element is mark as pending deletion with a date.
+	 * Send notification/mail to $admins (list of persons) to know if they accept the delete of the element
+	 * After X days, if no one block the deletion => the element if deleted (this behavior is done with a batch)
+	 * @param String $elementType : The element type
+	 * @param String $elementId : the element Id
+	 * @param String $reason : the reason why the element will be deleted
+	 * @param array $admins : a list of person to sent notifications
+	 * @param String $userId : the userId asking the deletion
+	 * @return array result => bool, msg => String
+	 */
+	private static function goElementDeletePending($elementType, $elementId, $reason, $admins, $userId) {
+		//Mark the element as deletePending
+		$res = PHDB::update($elementType, 
+					array("_id" => new MongoId($elementId)), array('$set' => array("status" => self::STATUS_DELETE_PEDING, "statusDate" => new MongoDate())));
+		
+		//Send emails to admins
+		Mail::confirmDeleteElement($elementType, $elementId, $reason, $admins, $userId);
+		//TODO SBAR => @bouboule help wanted
+		//Notification::actionOnPerson();
+	}
+    
+    public static function isElementStatusDeletePending($elementType, $elementId) {
+        $element = Element::getElementById($elementId, $elementType);
+        return @$element["status"] == Element::STATUS_DELETE_PEDING;
+    }
 
 	/**
 	 * Check if the element got activity it host : news, actions, surveys, ActionRooms
