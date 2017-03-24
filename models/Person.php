@@ -34,12 +34,12 @@ class Person {
 	    "tags" => array("name" => "tags"),
 	    "shortDescription" => array("name" => "shortDescription"),
 	    "description" => array("name" => "description"),
-	    "facebookAccount" => array("name" => "socialNetwork.facebook"),
-	    "twitterAccount" => array("name" => "socialNetwork.twitter"),
-	    "gpplusAccount" => array("name" => "socialNetwork.googleplus"),
-	    "gitHubAccount" => array("name" => "socialNetwork.github"),
-	    "skypeAccount" => array("name" => "socialNetwork.skype"),
-	    "telegramAccount" => array("name" => "socialNetwork.telegram"),
+	    "facebook" => array("name" => "socialNetwork.facebook"),
+	    "twitter" => array("name" => "socialNetwork.twitter"),
+	    "gpplus" => array("name" => "socialNetwork.googleplus"),
+	    "gitHub" => array("name" => "socialNetwork.github"),
+	    "skype" => array("name" => "socialNetwork.skype"),
+	    "telegram" => array("name" => "socialNetwork.telegram"),
 	    "bgClass" => array("name" => "preferences.bgClass"),
 	    "bgUrl" => array("name" => "preferences.bgUrl"),
 	    "roles" => array("name" => "roles"),
@@ -343,6 +343,7 @@ class Person {
 	  	if (empty($person)) {
             throw new CTKException("The person id is unkown : contact your admin");
         }
+        
         $myContacts = array();
 	  	if (isset($person) && isset($person["links"])) {
 	  		$myContacts = $person["links"];

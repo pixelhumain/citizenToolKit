@@ -592,8 +592,25 @@ class Document {
     	}
         
         //Update the entity collection to store the path of the profil images
-        if (in_array($document["type"], array(Person::COLLECTION, Organization::COLLECTION, Project::COLLECTION, Event::COLLECTION))) {
-	        PHDB::update($document["type"], array("_id" => new MongoId($document["id"])), array('$set' => array("profilImageUrl" => $profilUrl, "profilMediumImageUrl" => $profilMediumUrl,"profilThumbImageUrl" => $profilThumbUrl, "profilMarkerImageUrl" =>  $profilMarkerImageUrl)));
+        $allowedElements = array( Person::COLLECTION, 
+        						  Organization::COLLECTION, 
+        						  Project::COLLECTION, 
+        						  Event::COLLECTION,
+        						  Poi::COLLECTION, 
+        						  Classified::COLLECTION);
+        if (@$profilUrl && in_array($document["type"], $allowedElements )) {
+        	
+        	$changes = array();
+        	if (@$profilUrl)
+        		$changes["profilImageUrl"] = $profilUrl;
+        	if (@$profilMediumUrl)
+        		$changes["profilMediumImageUrl"] = $profilMediumUrl;
+        	if (@$profilThumbUrl)
+        		$changes["profilThumbImageUrl"] = $profilThumbUrl;
+        	if (@$profilMarkerImageUrl)
+        		$changes["profilMarkerImageUrl"] = $profilMarkerImageUrl;
+
+	        PHDB::update($document["type"], array("_id" => new MongoId($document["id"])), array('$set' => $changes));
 
 	        error_log("The entity ".$document["type"]." and id ". $document["id"] ." has been updated with the URL of the profil images.");
 		}
@@ -743,8 +760,8 @@ class Document {
 		//The profil image URL should be stored in the entity collection 
 		if (isset($entity["profilImageUrl"])) {
 			$res["profilImageUrl"] = $entity["profilImageUrl"];
-			$res["profilThumbImageUrl"] = !empty($entity["profilThumbImageUrl"]) ? $entity["profilThumbImageUrl"]."?_=".time() : "";
-			$res["profilMarkerImageUrl"] = !empty($entity["profilMarkerImageUrl"]) ? $entity["profilMarkerImageUrl"]."?_=".time() : ""; 
+			$res["profilThumbImageUrl"] = !empty($entity["profilThumbImageUrl"]) ? $entity["profilThumbImageUrl"] : "";
+			$res["profilMarkerImageUrl"] = !empty($entity["profilMarkerImageUrl"]) ? $entity["profilMarkerImageUrl"] : ""; 
 			$res["profilMediumImageUrl"] = !empty($entity["profilMediumImageUrl"]) ? $entity["profilMediumImageUrl"]."?_=".time() : ""; 
 
 		//If empty than retrieve the URLs from document and store them in the entity for next time
