@@ -151,22 +151,23 @@ class ActionRoom {
      * @param String $userId userId making the delete
      * @return array result => boolean, msg => String
      */
-    public static function deleteElementActionRooms($elemenType, $elementId, $userId){        
+    public static function deleteElementActionRooms($elementId, $elementType, $userId){        
         //Check if the $userId can delete the element
-        $canDelete = Authorisation::canDeleteElement($elementType, $elementId, $userId);
+        $canDelete = Authorisation::canDeleteElement($elementId, $elementType, $userId);
         if (! $canDelete) {
             return array("result" => false, "msg" => "You do not have enough credential to delete this element rooms.");
         }
 
         //get all actions
-        $actionRooms2delete = self::getAllRoomsByTypeId($elemenType, $elementId);
-        
+        $actionRooms2delete = self::getElementActionRooms($elementId, $elementType);
+        error_log(json_encode($actionRooms2delete));
+        $nbActionRoom = 0;
         foreach ($actionRooms2delete as $id => $anActionRoom) {
             self::deleteActionRoom($id, $userId);
             $nbActionRoom++;
         }
 
-        return array("result" => true, "msg" => $nbActionRoom." actionRoom of the element ".$id." of type ".$elementType." have been removed with succes.");
+        return array("result" => true, "msg" => $nbActionRoom." actionRoom of the element ".$elementId." of type ".$elementType." have been removed with succes.");
     }
 
     public static function closeAction($params){
@@ -325,5 +326,22 @@ class ActionRoom {
 
         return $list;
      }
+
+    /**
+     * Return all action rooms link to an element
+     * @param String $elementId : the elementId
+     * @param String $elementType : the element Type
+     * @return array list of action rooms of the element
+     */
+    public static function getElementActionRooms($elementId, $elementType) {
+        $where = array('$and' => array(
+                            array("parentType" => $elementType),
+                            array("parentId" => $elementId)
+                        ));
+
+        $actionRooms = PHDB::find(self::COLLECTION, $where);
+
+        return $actionRooms;
+    }
      
 }

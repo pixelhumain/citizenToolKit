@@ -735,7 +735,7 @@ class Authorisation {
      * @param type $userId 
      * @return boolean
      */
-    public static function canDeleteElement($elementType, $elementId, $userId) {
+    public static function canDeleteElement($elementId, $elementType, $userId) {
         //If open Edition : the element can be deleted
         $res = self::isOpenEdition($elementId, $elementType);
         

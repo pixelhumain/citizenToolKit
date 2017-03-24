@@ -286,10 +286,10 @@ class News {
 	 * @param type|bool $removeComments 
 	 * @return array result => bool, msg => String
 	 */
-	public static function deleteNewsOfElement($elementId, $elementType, $removeComments = false, $userId) {
+	public static function deleteNewsOfElement($elementId, $elementType, $userId, $removeComments = false) {
 		
 		//Check if the $userId can delete the element
-		$canDelete = Authorisation::canDeleteElement($elementType, $elementId, $userId);
+		$canDelete = Authorisation::canDeleteElement($elementId, $elementType, $userId);
 		if (! $canDelete) {
 			return array("result" => false, "msg" => "You do not have enough credential to delete this element news.");
 		}
@@ -307,7 +307,7 @@ class News {
 			$nbNews++;
 		}
 
-		return array("result" => true, "msg" => $nbNews." news of the element ".$id." of type ".$elementType." have been removed with succes.");
+		return array("result" => true, "msg" => $nbNews." news of the element ".$elementId." of type ".$elementType." have been removed with succes.");
 	}
 
 	/**

@@ -813,7 +813,7 @@ class Element {
 	 * @return array : result : boolean, msg : String
 	 */
 	public static function askToDelete($elementType, $elementId, $reason, $userId) {
-		if (! Authorisation::canDeleteElement($elementType, $elementId, $userId)) {
+		if (! Authorisation::canDeleteElement($elementId, $elementType, $userId)) {
 			return array("result" => false, "msg" => "The user cannot delete this element !");
 		}
 
@@ -894,7 +894,7 @@ class Element {
 	 */
 	public static function deleteElement($elementType, $elementId, $reason, $userId) {
 		
-		if (! Authorisation::canDeleteElement($elementType, $elementId, $userId)) {
+		if (! Authorisation::canDeleteElement($elementId, $elementType, $userId)) {
 			return array("result" => false, "msg" => "The user cannot delete this element !");
 		}
 
@@ -972,7 +972,7 @@ class Element {
     	//Remove Activity of the Element
     	ActivityStream::removeElementActivityStream($elementId, $elementType);
     	//Delete News
-    	News::deleteNewsOfElement($elementId, $elementType, true);
+    	News::deleteNewsOfElement($elementId, $elementType, $userId, true);
     	//Delete Action Rooms
     	ActionRoom::deleteElementActionRooms($elementId, $elementType,$userId);
     	

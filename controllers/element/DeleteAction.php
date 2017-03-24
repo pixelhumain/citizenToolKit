@@ -9,7 +9,7 @@ class DeleteAction extends CAction {
 
         $controller=$this->getController();
         
-        if ( ! Authorisation::canDeleteElement($type, $id, Yii::app()->session["userId"])) {
+        if ( ! Authorisation::canDeleteElement($id, $type, Yii::app()->session["userId"])) {
             Rest::json(array( "result" => false, "msg" => "You are not allowed to delete this element !" ));
             return;
         }
