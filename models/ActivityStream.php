@@ -68,7 +68,7 @@ class ActivityStream {
 	* @param type string $type defines type of modified entity
 	* @param type boolean $removeComments do i remove comments like to the activity stream or not 
 	*/	
-	public static function removeElementActivityStream($id, $type, $removeComments){
+	public static function removeElementActivityStream($id, $type){
 		$res = array("result" => true, msg => "All the activity stream of the element have been removed.");
 		$where = array( 
 					array('$or' => array(
