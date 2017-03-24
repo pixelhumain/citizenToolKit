@@ -24,10 +24,10 @@ class GetGraphAction extends CAction {
 
        // echo $params['postalCode'];
 
-        //if(Yii::app()->request->isAjaxRequest)
+        if(Yii::app()->request->isAjaxRequest)
             echo $controller->renderPartial("graph",$params,true);
-        //else 
-          //  $controller->render("graph",$params);
+        else 
+            $controller->render("graph",$params);
 
     }
 }
