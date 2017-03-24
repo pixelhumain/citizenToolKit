@@ -46,7 +46,7 @@ class AutocompleteMultiScopeAction extends CAction
                 }
                 $countryCode = mb_convert_encoding($countryCode, "UTF-8");
                 $resNominatim = json_decode(SIG::getGeoByAddressNominatim(null, null, $scopeValue, trim($countryCode), true, true),true);
-                var_dump($resNominatim);
+                //var_dump($resNominatim);
                 if(!empty($resNominatim)){
                     //var_dump($resNominatim);
                     foreach (@$resNominatim as $key => $value) {
