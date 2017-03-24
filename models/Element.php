@@ -969,15 +969,16 @@ class Element {
     		error_log("delete document id ".$docId);
     	}
 
+    	$resError = array("result" => false, "msg" => "Error trying to delete this element : please contact your administrator.");
     	//Remove Activity of the Element
     	$res = ActivityStream::removeElementActivityStream($elementId, $elementType);
-    	if (!$res) return array("result" => false, "msg" => "Error trying to delete the element activity");
+    	if (!$res) return $resError;
     	//Delete News
     	$res = News::deleteNewsOfElement($elementId, $elementType, $userId, true);
-    	if (!$res["result"]) return $res;
+    	if (!$res["result"]) return $resError;
     	//Delete Action Rooms
     	$res = ActionRoom::deleteElementActionRooms($elementId, $elementType,$userId);
-    	if (!$res["result"]) return $res;
+    	if (!$res["result"]) return $resError;
     	
 		//Delete the element
 		$where = array("_id" => new MongoId($elementId));
