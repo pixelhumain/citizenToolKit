@@ -163,7 +163,11 @@ class ActionRoom {
         error_log(json_encode($actionRooms2delete));
         $nbActionRoom = 0;
         foreach ($actionRooms2delete as $id => $anActionRoom) {
-            self::deleteActionRoom($id, $userId);
+            $resDeleteActionRoom = self::deleteActionRoom($id, $userId);
+            if ($resDeleteActionRoom["result"] == false) {
+                error_log("Error during the process try to delete the action room ".$id." : ".$resDeleteActionRoom["msg"]);
+                return $resDeleteActionRoom;
+            }
             $nbActionRoom++;
         }
 

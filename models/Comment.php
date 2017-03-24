@@ -433,7 +433,7 @@ class Comment {
 		error_log("try to delete comments of context : ".$contextId."/".$contextType);
 		if ($contextType == ActionRoom::COLLECTION) {
 			$canDelete = ActionRoom::canAdministrate($userId, $contextId);
-		} if ($contextType == News::COLLECTION) {
+		} else if ($contextType == News::COLLECTION) {
 			$canDelete = News::canAdministrate($userId, $contextId);
 		} else {
 			return array("result" => false, "msg" => "This contextType '".$contextType."' is not yet implemented.");

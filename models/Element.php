@@ -970,11 +970,14 @@ class Element {
     	}
 
     	//Remove Activity of the Element
-    	ActivityStream::removeElementActivityStream($elementId, $elementType);
+    	$res = ActivityStream::removeElementActivityStream($elementId, $elementType);
+    	if (!$res) return array("result" => false, "msg" => "Error trying to delete the element activity");
     	//Delete News
-    	News::deleteNewsOfElement($elementId, $elementType, $userId, true);
+    	$res = News::deleteNewsOfElement($elementId, $elementType, $userId, true);
+    	if (!$res["result"]) return $res;
     	//Delete Action Rooms
-    	ActionRoom::deleteElementActionRooms($elementId, $elementType,$userId);
+    	$res = ActionRoom::deleteElementActionRooms($elementId, $elementType,$userId);
+    	if (!$res["result"]) return $res;
     	
 		//Delete the element
 		$where = array("_id" => new MongoId($elementId));

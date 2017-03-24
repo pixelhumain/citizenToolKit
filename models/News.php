@@ -303,7 +303,8 @@ class News {
 		$nbNews = 0;		
 		
 		foreach ($news2delete as $id => $aNews) {
-			self::delete($id, true);
+			$res = self::delete($id, true);
+			if ($res["result"] == false) return $res;
 			$nbNews++;
 		}
 
