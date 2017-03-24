@@ -63,7 +63,7 @@ class ActivityStream {
 	*/	
 	public static function activityHistory($id,$type){
 		$where = array("target.id"=>$id, 
-					"target.objectType"=>$type, 
+					"target.type"=>$type, 
 					"type"=>ActStr::TYPE_ACTIVITY_HISTORY);
 		$sort = array("date"=>-1);
 		return PHDB::findAndSort( self::COLLECTION,$where,$sort,null);
