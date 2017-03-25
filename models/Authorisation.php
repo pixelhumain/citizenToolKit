@@ -536,12 +536,12 @@ class Authorisation {
 
     public static function canEdit($userId, $id,$type){
         $res = false;
-        $poi = $type::getById($id) ;
+        $elem = $type::getById($id) ;
 
-        if( @$poi && !empty($userId) ) {
-            if( ($poi["parentType"] == Person::COLLECTION && $userId == $poi["parentId"] )
-                || $userId == $poi["creator"]
-                || Authorisation::canEditItem($userId, $poi["parentId"], $poi["parentType"]) ) 
+        if( @$elem && !empty($userId) ) {
+            if( (@$elem["parentType"] == Person::COLLECTION && $userId == @$elem["parentId"] )
+                || $userId == @$elem["creator"]
+                || Authorisation::canEditItem($userId, @$elem["parentId"], @$elem["parentType"]) ) 
                 return true;
         } 
         return $res;
