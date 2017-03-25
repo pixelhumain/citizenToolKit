@@ -382,7 +382,7 @@ class Search {
 
   		foreach ($allCitoyen as $key => $value) {
   			$person = Person::getSimpleUserById($key,$value);
-  			$person["type"] = "citoyen";
+  			$person["type"] = Person::COLLECTION;
 			$person["typeSig"] = "citoyens";
 			$res[$key] = $person;
   		}
@@ -494,7 +494,7 @@ class Search {
 
 		  		if(@$orga["type"] != "")
 					$orga["typeOrga"] = $orga["type"];
-				$orga["type"] = "organization";
+				$orga["type"] = "organizations";
 
 				$orga["typeSig"] = Organization::COLLECTION;
 				$res[$key] = $orga;
@@ -522,7 +522,7 @@ class Search {
   										array("startDate" => 1), $indexStep, $indexMin);
   		foreach ($allEvents as $key => $value) {
   			$allEvents[$key]["typeEvent"] = @$allEvents[$key]["type"];
-			$allEvents[$key]["type"] = "event";
+			$allEvents[$key]["type"] = "events";
 			$allEvents[$key]["typeSig"] = Event::COLLECTION;
 
 			if(@$value["links"]["attendees"][Yii::app()->session["userId"]]){
@@ -558,7 +558,7 @@ class Search {
   			if(@$project["links"]["followers"][Yii::app()->session["userId"]]){
 	  			$allProject[$key]["isFollowed"] = true;
   			}
-			$allProject[$key]["type"] = "project";
+			$allProject[$key]["type"] = "projects";
 			$allProject[$key]["typeSig"] = Project::COLLECTION;
 			
 			if(@$allProject[$key]["startDate"])
