@@ -106,7 +106,8 @@ class Search {
   		}
 
   		if( /*!empty($searchTags)*/ count($searchTags) > 1  || count($searchTags) == 1 && $searchTags[0] != "" ){
-  			if(strcmp($filter, Classified::COLLECTION) != 0 && self::typeWanted(Classified::COLLECTION, $searchType)){
+  			if( (strcmp($filter, Classified::COLLECTION) != 0 && self::typeWanted(Classified::COLLECTION, $searchType)) ||
+  				(strcmp($filter, Place::COLLECTION) != 0 && self::typeWanted(Place::COLLECTION, $searchType)) ){
         		$queryTags =  self::searchTags($searchTags, '$all') ;
 	  		}
   			else 
@@ -156,6 +157,11 @@ class Search {
 	  	/***********************************  POI   *****************************************/
         if(strcmp($filter, Poi::COLLECTION) != 0 && self::typeWanted(Poi::COLLECTION, $searchType)){
         	$allRes = array_merge($allRes, self::searchPoi($query, $indexStep, $indexMin));
+	  	}
+
+	  	/***********************************  PLACE   *****************************************/
+        if(strcmp($filter, Place::COLLECTION) != 0 && self::typeWanted(Place::COLLECTION, $searchType)){
+        	$allRes = array_merge($allRes, self::searchPlace($query, $indexStep, $indexMin));
 	  	}
 
 	  	/***********************************  DDA   *****************************************/
@@ -608,6 +614,25 @@ class Search {
   		}
   		return $allPoi;
   	}
+
+  	/***********************************  Place   *****************************************/
+	public static function searchPlace($query, $indexStep, $indexMin){
+    	$allPlace = PHDB::findAndSortAndLimitAndIndex(Place::COLLECTION, $query, 
+  												array("updated" => -1), $indexStep, $indexMin);
+  		foreach ($allPlace as $key => $value) {
+	  		if(@$value["parentId"] && @$value["parentType"])
+	  			$parent = Element::getElementSimpleById(@$value["parentId"], @$value["parentType"]);
+	  		else
+	  			$parent=array();
+			$allPlace[$key]["parent"] = $parent;
+			if(@$value["type"])
+				$allPlace[$key]["typeSig"] = Place::COLLECTION.".".$value["type"];
+			else
+				$allPlace[$key]["typeSig"] = Place::COLLECTION;
+  		}
+  		return $allPlace;
+  	}
+
 
 
   	/***********************************  DDA   *****************************************/
