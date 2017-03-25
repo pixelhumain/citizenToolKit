@@ -152,8 +152,19 @@ class DetailAction extends CAction {
 	           		 $projects[$keyProj] = $project;
 				}
 			}
-
 			$connectType = "attendees";
+
+		} else if ($type == Place::COLLECTION){
+			$element = Place::getById($id);
+			$connectType = "attendees";
+			$elementAuthorizationId = $id;
+			$elementAuthorizationType = Place::COLLECTION;
+			// if($element["parentType"]==Organization::COLLECTION){
+			// 	$params["parent"] = Organization::getSimpleOrganizationById($element["parentId"]);
+			// }else{
+			// 	$params["parent"] = Project::getSimpleProjectById($element["parentId"]); 
+			// }
+
 		} else if ($type == Poi::COLLECTION){
 			$element = Poi::getById($id);
 			$connectType = "attendees";
@@ -256,8 +267,12 @@ class DetailAction extends CAction {
 	                $connectAs="attendee";
 	            else if($type==Person::COLLECTION)
 	            	$connectAs="friend";
-	           $params["linksBtn"]["connectAs"]=$connectAs;
-	           $params["linksBtn"]["connectType"]=$connectType;
+	            else if($type==Place::COLLECTION)
+	            	$connectAs="friend";
+
+	            $params["linksBtn"]["connectAs"]=@$connectAs;
+	            $params["linksBtn"]["connectType"]=@$connectType;
+
 	            if( @Yii::app()->session["userId"] && $type!= Person::COLLECTION && !@$element["links"][$connectType][Yii::app()->session["userId"]]){
 	            	$params["linksBtn"]["communityBn"]=true;	            	
 	            	$params["linksBtn"]["isMember"]=false;
