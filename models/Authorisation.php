@@ -534,9 +534,9 @@ class Authorisation {
         return $res;
     }
 
-    public static function canEditPoi($userId, $id){
+    public static function canEdit($userId, $id,$type){
         $res = false;
-        $poi = Poi::getById($id) ;
+        $poi = $type::getById($id) ;
 
         if( @$poi && !empty($userId) ) {
             if( ($poi["parentType"] == Person::COLLECTION && $userId == $poi["parentId"] )
@@ -615,7 +615,11 @@ class Authorisation {
         }
         else if($type == Poi::COLLECTION) 
         {
-            $res = self::canEditPoi($userId, $itemId);
+            $res = self::canEdit($userId, $itemId, "Poi");
+        }
+        else if($type == Place::COLLECTION) 
+        {
+            $res = self::canEdit($userId, $itemId,"Place");
         }
         else if($type == Classified::COLLECTION) 
         {
