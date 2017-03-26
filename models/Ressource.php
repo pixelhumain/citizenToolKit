@@ -1,8 +1,8 @@
 <?php
 
-class Poi {
-	const COLLECTION = "poi";
-	const CONTROLLER = "poi";
+class Ressource {
+	const COLLECTION = "ressource";
+	const CONTROLLER = "ressource";
 	
 	//TODO Translate
 	public static $types = array (
@@ -14,23 +14,8 @@ class Poi {
 		"RessourceMaterielle" => "Ressource Materielle",
 		"RessourceFinanciere" => "Ressource Financiere",
 		"ficheBlanche" => "Fiche Blanche",
-
-		"poi"			=>"points d'intérêt",
 		"geoJson" 		=> "Url au format geojson ou vers une umap",
-		"compostPickup" => "récolte de composte",
-		"video" 		=> "video",
-		"sharedLibrary" => "bibliothèque partagée",
-		"artPiece" 		=> "oeuvres",
-		"recoveryCenter"=> "ressourcerie",
-		"trash" 		=> "poubelle",
-		"history" 		=> "histoire",
-		"something2See" => "chose a voir",
-		"funPlace" 		=> "endroit Sympas (skatepark, vue...)",
-		"place" 		=> "place publique",
-		"streetArts" 	=> "arts de rue",
-		"openScene" 	=> "scène ouverte",
-		"stand" 		=> "stand",
-		"parking" 		=> "Parking"
+		"video" 		=> "video"
 	);
 
 	//From Post/Form name to database field name
@@ -60,37 +45,22 @@ class Poi {
 	    "creator" => array("name" => "creator"),
 	    "created" => array("name" => "created"),
 	    );
-//From Post/Form name to database field name
-	public static $collectionsList = array (
-	   "Où sont les femmes",
-		"Passeur d'images",
-		"MHQM",
-		"MIAA",
-		"Portrait citoyens",
-		"Parcours d'engagement"
-	);
-	public static $genresList=array(
-		"Documentaire",
-		"Fiction",
-		"Docu-fiction",
-		"Films outils",
-		"Films de commande"
-	);
+
 	/**
-	 * get all poi details of an element
+	 * get all Ressource details of an element
 	 * @param type $id : is the mongoId (String) of the parent
 	 * @param type $type : is the type of the parent
-	 * @return list of pois
+	 * @return list of Ressources
 	 */
-	public static function getPoiByIdAndTypeOfParent($id, $type){
-		$pois = PHDB::find(self::COLLECTION,array("parentId"=>$id,"parentType"=>$type));
-	   	return $pois;
+	public static function getByIdAndTypeOfParent($id, $type){
+		$elems = PHDB::find(self::COLLECTION,array("parentId"=>$id,"parentType"=>$type));
+	   	return $elems;
 	}
 	/**
-	 * get poi with limit $limMin and $limMax
-	 * @return list of pois
+	 * get Ressource with limit $limMin and $limMax
+	 * @return list of Ressources
 	 */
-	public static function getPoiByTagsAndLimit($limitMin=0, $indexStep=15, $searchByTags=""){
+	public static function getByTagsAndLimit($limitMin=0, $indexStep=15, $searchByTags=""){
 		$where = array("name"=>array('$exists'=>1));
 		if(@$searchByTags && !empty($searchByTags)){
 			$queryTag = array();
@@ -102,26 +72,26 @@ class Poi {
 				$where["tags"] = array('$in' => $queryTag); 			
 		}
 		
-		$pois = PHDB::findAndSort( self::COLLECTION, $where, array("updated" => -1));
-	   	return $pois;
+		$elems = PHDB::findAndSort( self::COLLECTION, $where, array("updated" => -1));
+	   	return $elems;
 	}
 
 	/**
-	 * get a Poi By Id
-	 * @param String $id : is the mongoId of the poi
-	 * @return poi
+	 * get a Ressource By Id
+	 * @param String $id : is the mongoId of the Ressource
+	 * @return Ressource
 	 */
 	public static function getById($id) { 
-	  	$poi = PHDB::findOneById( self::COLLECTION ,$id );
+	  	$elem = PHDB::findOneById( self::COLLECTION ,$id );
 	  	// Use case notragora
-	  	if(@$poi["type"])
-		  	$poi["typeSig"] = self::COLLECTION.".".$poi["type"];
+	  	if(@$elem["type"])
+		  	$elem["typeSig"] = self::COLLECTION.".".$elem["type"];
 	  	else
-		  	$poi["typeSig"] = self::COLLECTION;
-		if(@$poi["type"])
-	  		$poi = array_merge($poi, Document::retrieveAllImagesUrl($id, self::COLLECTION, $poi["type"], $poi));
+		  	$elem["typeSig"] = self::COLLECTION;
+		if(@$elem["type"])
+	  		$elem = array_merge($elem, Document::retrieveAllImagesUrl($id, self::COLLECTION, $elem["type"], $elem));
 
-	  	return $poi;
+	  	return $elem;
 	}
 }
 ?>
