@@ -621,6 +621,10 @@ class Authorisation {
         {
             $res = self::canEdit($userId, $itemId,"Place");
         }
+        else if($type == Ressource::COLLECTION) 
+        {
+            $res = self::canEdit($userId, $itemId,"Ressource");
+        }
         else if($type == Classified::COLLECTION) 
         {
             $res = self::userOwner($userId, "Classified", $itemId);
