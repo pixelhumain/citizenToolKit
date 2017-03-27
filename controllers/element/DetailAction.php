@@ -223,17 +223,12 @@ class DetailAction extends CAction {
 		}
 		if(!@$element["disabled"]){
 	        //if((@$config["connectLink"] && $config["connectLink"]) || empty($config)){ TODO CONFIG MUTUALIZE WITH NETWORK AND OTHER PLATFORM
-        	if(!@$element["links"][$connectType][Yii::app()->session["userId"]] || (@$element["links"][$connectType][Yii::app()->session["userId"]] && @$element["links"][$connectType][Yii::app()->session["userId"]][Link::TO_BE_VALIDATED])){
+        	if((!@$element["links"][$connectType][Yii::app()->session["userId"]] || (@$element["links"][$connectType][Yii::app()->session["userId"]] && @$element["links"][$connectType][Yii::app()->session["userId"]][Link::TO_BE_VALIDATED])) && @Yii ::app()->session["userId"] && ($type != Person::COLLECTION || $element["_id"] != Yii::app()->session["userId"])){
         		$params["linksBtn"]["followBtn"]=true;
-                if (isset($element["_id"]) 
-                    && isset(Yii ::app()->session["userId"]) 
-                    && isset($element["links"]["followers"][Yii::app()->session["userId"]]))
+                if (@$element["links"]["followers"][Yii::app()->session["userId"]])
                     	$params["linksBtn"]["isFollowing"]=true;
-                 else if(@$element["_id"]     
-                    && @Yii::app()->session["userId"]  
-                    && !@$element["links"]["followers"][Yii::app()->session["userId"]]     
-                    && $type != Event::COLLECTION  
-                    && @$element["_id"] != @Yii::app()->session["userId"])   
+                 else if(!@$element["links"]["followers"][Yii::app()->session["userId"]]     
+                    && $type != Event::COLLECTION)   
                     	$params["linksBtn"]["isFollowing"]=false; 	               
             }
             // Add member , contributor, attendee
