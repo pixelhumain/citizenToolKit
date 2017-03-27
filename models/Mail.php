@@ -423,7 +423,7 @@ class Mail {
      * Send an email with beta test information
      * @return null
      */
-    public static function sendMailFormContact($emailSender, $subject, $name, $message) {
+    public static function sendMailFormContact($emailSender, $names, $subject, $contentMsg) {
         
         $params = array (
             "type" => Cron::TYPE_MAIL,
@@ -431,9 +431,9 @@ class Mail {
             "subject" => $subject,
             "from" => $emailSender,
             "to"=>Yii::app()->params['adminEmail'],
-            "tplParams" => array(   "title" => Yii::t("email","New message from").$name,
+            "tplParams" => array(   "title" => Yii::t("email","New message from").$names,
                                     "subject" => $subject,
-                                    "message" => $message,
+                                    "message" => $contentMsg,
                                 )
                                     /*   "logo"=> "/images/logo-communecter.png",
                                     "logo2" => "/images/logoLTxt.jpg")*/
