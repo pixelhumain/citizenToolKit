@@ -115,8 +115,9 @@ class Organization {
 	    	throw new CTKException(Yii::t("organization","Problem inserting the new organization"));
 	    }
 
-	    Badge::addAndUpdateBadges("opendata", $newOrganizationId, Organization::COLLECTION);
-		
+	    $res = Badge::addAndUpdateBadges("opendata", $newOrganizationId, Organization::COLLECTION);
+		if ($res["result"] == false) return $res;
+
 		//Manage link with the creator depending of the role selected
 		if (@$organization["role"] == "admin") {
 			$isToLink = true;
@@ -181,8 +182,9 @@ class Organization {
 	public static function afterSave($organization, $creatorId,$paramsImport=null) {
 
 	    $newOrganizationId = (string)$organization['_id'];
+		//TODO SBAR : tester le retour de la méthode : elle est en erreur lorsque l'organisation est créée sans OpenEdition
 		Badge::addAndUpdateBadges("opendata", $newOrganizationId, Organization::COLLECTION);
-		
+
 		//Manage link with the creator depending of the role selected
 		if (@$organization["role"] == "admin") {
 			$isToLink = true;
@@ -616,7 +618,7 @@ class Organization {
 		}
 		else{
 			if (! Authorisation::isOrganizationAdmin($userId, $organizationId)) 
-				return Rest::json(array("result"=>false, "msg"=>Yii::t("organization", "Unauthorized Access.")));
+				return array("result"=>false, "msg"=>Yii::t("organization", "Unauthorized Access."));
 			else 
 				$authorization=true;
 		}
@@ -810,7 +812,7 @@ class Organization {
 	 	if($authorization == false){
 		 	$authorization=Authorisation::canEditItem($userId, self::COLLECTION, $organizationId);
 		 	if (!$authorization) {
-				return Rest::json(array("result"=>false, "msg"=>Yii::t("organization", "Unauthorized Access.")));
+				return array("result"=>false, "msg"=>Yii::t("organization", "Unauthorized Access."));
 			}
 		}
 		$res = self::updateField($organizationId, $organizationFieldName, $organizationFieldValue, $authorization);
