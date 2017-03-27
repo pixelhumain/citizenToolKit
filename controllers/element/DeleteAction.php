@@ -16,13 +16,15 @@ class DeleteAction extends CAction {
 
         if ($type == Person::COLLECTION || $type == Person::CONTROLLER) {
             $res = Person::deletePerson($id, Yii::app()->session["userId"]);
-        } else if ($type == Organization::COLLECTION || $type == Organization::CONTROLLER) {
+        } else if ( $type == Organization::COLLECTION || $type == Organization::CONTROLLER ||
+                    $type == Project::COLLECTION || $type == Project::CONTROLLER ||
+                    $type == Event::COLLECTION || $type == Event::CONTROLLER ) {
             $res = Element::deleteElement($type, $id, $reason, Yii::app()->session["userId"]);
         //TODO SABR - Move Delete POI to DeleteElement
-        } else if ($type == POI::COLLECTION || $type == POI::CONTROLLER) {
+        } else if ($type == POI::COLLECTION) {
         	$res = Element::delete($type, $id, Yii::app()->session["userId"]);
         } else {
-            Rest::json(array( "result" => false, "msg" => "For now you can only delete Person, organization or POI" ));
+            Rest::json(array( "result" => false, "msg" => "Impossible to delete that kind of element ".$type ));
             return;   
         }
 
