@@ -17,7 +17,7 @@ class Import
 
     public static function parsingCSV($post) {
         
-        $attributesElt = self::getAllPathJson(file_get_contents("../../modules/communecter/data/import/".Element::getControlerByCollection($post["typeElement"]).".json", FILE_USE_INCLUDE_PATH));
+        $attributesElt = ArrayHelper::getAllPathJson(file_get_contents("../../modules/communecter/data/import/".Element::getControlerByCollection($post["typeElement"]).".json", FILE_USE_INCLUDE_PATH));
         if($post['idMapping'] != "-1"){
             $where = array("_id" => new MongoId($post['idMapping']));
             $fields = array("fields");
@@ -61,14 +61,14 @@ class Import
             }
 
             if(substr($json, 0,1) == "{")
-                $arbre = self::getAllPathJson($json); 
+                $arbre = ArrayHelper::getAllPathJson($json); 
             else{
                 $arbre = array();
                 foreach (json_decode($json,true) as $key => $value) {
-                    $arbre = self::getAllPathJson(json_encode($value), $arbre); 
+                    $arbre = ArrayHelper::getAllPathJson(json_encode($value), $arbre); 
                 }
             }
-            $attributesElt = self::getAllPathJson(file_get_contents("../../modules/communecter/data/import/".Element::getControlerByCollection($post["typeElement"]).".json", FILE_USE_INCLUDE_PATH));
+            $attributesElt = ArrayHelper::getAllPathJson(file_get_contents("../../modules/communecter/data/import/".Element::getControlerByCollection($post["typeElement"]).".json", FILE_USE_INCLUDE_PATH));
             $params = array("result"=>true,
                         "attributesElt"=>$attributesElt,
                         "arrayMapping"=>$arrayMapping,
@@ -83,17 +83,7 @@ class Import
         return $allMapping;
     }
 
-    public static function getAllPathJson($json, $attributesElt=null){
-        $arrayJson = json_decode($json, true);
-        if($attributesElt==null)
-            $attributesElt = array() ;
-        $arrayPathMapping = explode(";", ArrayHelper::getAllPath($arrayJson));
-        foreach ($arrayPathMapping as $keyPathMapping => $valuePathMapping){
-            if(!empty($valuePathMapping) && !in_array($valuePathMapping, $attributesElt))
-                $attributesElt[] =  $valuePathMapping;
-        }
-        return $attributesElt ;
-    }
+   
 
     public static  function previewData($post){
         $params = array("result"=>false);
@@ -102,7 +92,7 @@ class Import
         $elementsWarnings = array();
         if(!empty($post['infoCreateData']) && !empty($post['file']) && !empty($post['nameFile']) && !empty($post['typeFile'])){
             $mapping = json_decode(file_get_contents("../../modules/communecter/data/import/".Element::getControlerByCollection($post["typeElement"]).".json", FILE_USE_INCLUDE_PATH), true);
-            $attributesElt = self::getAllPathJson(file_get_contents("../../modules/communecter/data/import/".Element::getControlerByCollection($post["typeElement"]).".json", FILE_USE_INCLUDE_PATH));
+            $attributesElt = ArrayHelper::getAllPathJson(file_get_contents("../../modules/communecter/data/import/".Element::getControlerByCollection($post["typeElement"]).".json", FILE_USE_INCLUDE_PATH));
             if($post['typeFile'] == "csv"){
                 $file = $post['file'];
                 $headFile = $file[0];
