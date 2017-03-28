@@ -11,8 +11,6 @@ class GetGraphAction extends CAction {
     
     public function run($country="RE",$postalCode="97490",$nbDays=1) {
 
-       
-    	//echo "graphe ici";
 		$controller=$this->getController();
 
         $params=array(); 

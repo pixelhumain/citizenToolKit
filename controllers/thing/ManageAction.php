@@ -11,6 +11,10 @@ class ManageAction extends CAction {
 
 	public function run($country="RE" ){
 
+		$res = array( "result" => false, "error"=>"401", "msg" => Yii::t("common","Login First") );
+        
+        if(isset(Yii::app()->session["userId"])){
+
 		$controller=$this->getController();
 
         $params=array();  
@@ -21,6 +25,9 @@ class ManageAction extends CAction {
         else 
             $controller->render("manage",$params);
 
+        }
+
+		echo Rest::json( $res ); 	
     }
 }
 
