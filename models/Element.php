@@ -1122,6 +1122,7 @@ class Element {
                 // ***********************************
                 //post process for specific actions
                 // ***********************************
+                //TODO SBAR => Pas de test du résultat de l'afterSave.
                 if( $collection == Organization::COLLECTION )
                 	$res["afterSave"] = Organization::afterSave($params, Yii::app()->session["userId"], $paramsLinkImport);
                 else if( $collection == Event::COLLECTION )
