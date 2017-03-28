@@ -744,7 +744,7 @@ class Authorisation {
             $res = self::isUserSuperAdmin($userId);
             if ($res != true) {
                 // check if the user can edit the element (admin of the element)
-                $self::canEditItem($userId, $elementType, $elementId);
+                self::canEditItem($userId, $elementType, $elementId);
             }
         }
         
