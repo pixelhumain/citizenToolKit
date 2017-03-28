@@ -54,6 +54,7 @@ class Organization {
 	    "warnings" => array("name" => "warnings"),
 	    "urlFacebook" => array("name" => "urlFacebook"),
 	    "urlTwitter" => array("name" => "urlTwitter"),
+	    "urlWiki" => array("name" => "urlWiki"),
 	    "isOpenData" => array("name" => "isOpenData"),
 	    "badges" => array("name" => "badges"),
 		"source" => array("name" => "source", "rules" => array("source")),
