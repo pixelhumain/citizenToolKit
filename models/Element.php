@@ -202,6 +202,7 @@ class Element {
 		else 
 			$element = PHDB::findOne($type,array("_id"=>new MongoId($id)));
 	  	
+	  	if ($element == null) throw new CTKException("The element you are looking for has been moved or deleted");
 	  	return $element;
 	}
 
