@@ -24,6 +24,9 @@ class GetAction extends CAction
       	if ($format == Translate::FORMAT_KML) {
 			$strucKml = News::getStrucKml();		
 			Rest::xml($result, $strucKml,$format);
+		} elseif ($format == "csv") {
+			$res = $result["entities"];
+			$head = Export::toCSV($res, ";", "'");
 		} else
 			Rest::json($result);
 
