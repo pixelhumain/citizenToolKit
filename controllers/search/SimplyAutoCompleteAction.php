@@ -39,8 +39,10 @@ class SimplyAutoCompleteAction extends CAction
         	$query = array();
         	try{
         		$element = Element::getByTypeAndId($split[1], $split[0]);
-	        	
-	        	if(!empty($element) && Preference::showPreference($element, $split[1], "directory", Yii::app()->session["userId"]) ) {
+	        	if(!empty($element) && 
+	        		(	$split[1] != Person::COLLECTION || 
+                     Preference::showPreference($element, $split[1], "directory", Yii::app()->session["userId"]) ) ) {
+
 	        		$query = array("creator" => $split[0]);
 		        	$links = array("events", "projects", "followers", "members", "memberOf", "subEvents", "follows", "attendees", "organizer", "contributors");
 		        	foreach ($links as $key => $value) {
@@ -149,8 +151,8 @@ class SimplyAutoCompleteAction extends CAction
 	  		/***********************************  DEFINE LOCALITY QUERY   ***************************************/
 	  		$localityReferences['NAME'] = "address.addressLocality";
 	  		$localityReferences['CODE_POSTAL_INSEE'] = "address.postalCode";
-	  		$localityReferences['DEPARTEMENT'] = "address.postalCode";
-	  		$localityReferences['REGION'] = ""; //Spécifique
+	  		$localityReferences['DEPARTEMENT'] = "address.depName";
+	  		$localityReferences['REGION'] = "address.regionName"; //Spécifique
 	  		$localityReferences['INSEE'] = "address.codeInsee";
 
 	  		foreach ($localityReferences as $key => $value) {
@@ -159,7 +161,7 @@ class SimplyAutoCompleteAction extends CAction
 
 	  					//OneRegion
 	  					if($key == "REGION") {
-		        			$deps = PHDB::find( City::COLLECTION, array("regionName" => $locality), array("dep"));
+		        			/*$deps = PHDB::find( City::COLLECTION, array("regionName" => $locality), array("dep"));
 		        			$departements = array();
 		        			$inQuest = array();
 		        			if(is_array($deps))foreach($deps as $index => $value){
@@ -169,10 +171,12 @@ class SimplyAutoCompleteAction extends CAction
 						        	$queryLocality = array("address.postalCode" => array('$in' => $inQuest));
 
 						        }
-		        			}
+		        			}*/
+		        			$queryLocality = array($value => $locality);
 		        		}elseif($key == "DEPARTEMENT") {
-		        			$dep = PHDB::findOne( City::COLLECTION, array("depName" => $locality), array("dep"));	
-			        		$queryLocality = array($value => new MongoRegex("/^".$dep["dep"]."/i"));
+		        			//$dep = PHDB::find( City::COLLECTION, array("depName" => $locality), array("dep"));	
+			        		//$queryLocality = array($value => new MongoRegex("/^".$dep["dep"]."/i"));
+			        		$queryLocality = array($value => $locality);
 			        	}//OneLocality
 			        	else{
 		  					$queryLocality = array($value => new MongoRegex("/".$locality."/i"));
