@@ -204,6 +204,9 @@ class Import
         if(!empty($element["tags"]))
             $element["tags"] = self::checkTag($element["tags"]);
         
+		if($typeElement == Organization::COLLECTION )
+        	$element["type"] = Organization::translateType($element["type"]);
+
         $element = self::getWarnings($element, $typeElement, true) ;
         $resDataValidator = DataValidator::validate(Element::getControlerByCollection($typeElement), $element, true);
         if($resDataValidator["result"] != true){
