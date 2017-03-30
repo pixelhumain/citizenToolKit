@@ -6,6 +6,8 @@ class Translate {
 	const FORMAT_AS = "activityStream";
 	const FORMAT_COMMUNECTER = "communecter";
 	const FORMAT_RSS = "rss";
+	const FORMAT_KML = "kml";
+	const FORMAT_GEOJSON = "geojson";
 
 	public static function convert($data,$bindMap)
 	{
@@ -13,6 +15,17 @@ class Translate {
 		foreach ($data as $keyID => $valueData) {
 			if ( isset($valueData) ) {
 				$newData[$keyID] = self::bindData($valueData,$bindMap);
+			}
+		}
+		return $newData;
+	}
+
+	public static function convert_geojson($data,$bindMap)
+	{
+		$newData = array();
+		foreach ($data as $keyID => $valueData) {
+			if ( isset($valueData) ) {
+				$newData[] = self::bindData($valueData,$bindMap);
 			}
 		}
 		return $newData;
@@ -158,120 +171,46 @@ class Translate {
 		} 
 		else if ( isset($bindPath["type"]) && $bindPath["type"] == "date")
 		{
-			
-			//$datetime = date_create($val->pubDate);
-			//$val = date_format($datetime, 'd M Y H\hi' );
-
-			$val = date('D, d M Y H:i:s O',$val->sec);	
-			
-				 
-		} 
-		else if (isset($bindPath["type"]) && $bindPath["type"] == "title" /*&& isset($bindPath["verb"]["valueOf"])*/) 
+			$val = date('D, d M Y H:i:s O',$val->sec);			 
+		}
+		else if (isset($bindPath["type"]) && ($bindPath["type"] == "title")) 
 		{
+			$val = TranslateRss::specFormatByType($val, $bindPath);
+		}
+		else if (isset($bindPath["type"]) && ($bindPath["type"] == "description")) 
+		{
+			$val = TranslateRss::specFormatByType($val, $bindPath);
+		}
+		elseif (isset($bindPath["type"]) && $bindPath["type"] == "coor") {
+			$val = TranslateKml::getKmlCoor($val, $bindPath);
+		}
+		else if (isset($bindPath["type"]) && $bindPath["type"] == "description_kml") {
+			$val = TranslateKml::specFormatByType($val, $bindPath);
+		}
+		elseif (isset($bindPath["type"]) && $bindPath["type"] == "Point") {
+			$val = TranslateGeojson::getGeojsonCoor($val, $bindPath);	
+		}		
+		elseif (isset($bindPath["type"]) && $bindPath["type"] == "properties") {
+			$val = TranslateGeojson::getGeoJsonProperties($val, $bindPath);	
+		}
+		elseif (isset($bindPath["type"]) && $bindPath["type"] == "image_rss") {
+			$val = TranslateRss::getRssImage($val, $bindPath);		
+		}	
+	
 
-			//var_dump($val);
-			$type = $val["type_el"];
 
-			if (isset($val["object_news"]["objectType"])) {
-				$object_type= $val["object_news"]["objectType"];
-			}
-			
-				if ($type == "news") {
-					$val = "Rédaction d'un message";
-				} else if ($type == "activityStream") {
-					$val = "Création";
-					if (isset($object_type)) {
-						if ($object_type == Organization::COLLECTION) {
-							$object_type = " d'une Organisation";
-						} else if ($object_type == "projects") {
-							$object_type = " d'un Projet";
-						} else if ($object_type == "events") {
-							$object_type = " d'un Evenement";
-						}
-							$val .= $object_type;
-						}
-				}
-				/* if ($type == organization::COLLECTION) {
-						$type = " Organisation";
-					} else if ($type == "projects") {
-						$type = "Projet";
-					} else if ($type == "events") {
-						$type = "Evenement";
-					}
-					$val .= ' ' . $type;
-					if (isset($val_nom)) {
-						$val .= ' sous le nom de "' . $val_nom . ' "';
-					} */
-				
-			
 		
-		}
-		else if (isset($bindPath["type"]) && $bindPath["type"] == "description") {
-				//var_dump($val);
-			if (isset($val["text"])) {
-				$val = $val["text"];
-				//var_dump($val);
-			}
-			else {
-				
-				
-				//$element = PHDB::findOneById($val["object_news"]["objectType"] , $val["object_news"]["id"]);
-				$element = Element::getByTypeAndId($val["object_news"]["objectType"] , $val["object_news"]["id"]);
-				//var_dump($element);
-				if (isset($val["target"]["type"]) && (isset($val["target"]["id"]))) {
-					$author = Element::getByTypeAndId( $val["target"]["type"] , $val["target"]["id"]);
-				}
-				//$id_orga = PHDB::findOneById($val["object_news"]["objectType"] , $val["object_news"]["id"]);
-				//$id_event = PHDB::findOneById(Event::COLLECTION, $val["object_news"]["id"]);
-				//$id_projet = PHDB::findOneById(Project::COLLECTION, $val["object_news"]["id"]);
-				$verb = $val["verb"];
-				$type = $val["object_news"]["objectType"];
+
+		
+		
+	
+	
+
+				 
 
 
-				//var_dump($author);
-				//var_dump($id_orga)
-				//var_dump($id_event);
-				//var_dump($id_projet);
-				//var_dump($val);
-
-				if (($val["object_news"]["objectType"] == "events")  || ($val["object_news"]["objectType"] == organization::COLLECTION) || ($val["object_news"]["objectType"] == "projects")) {
-					$val_nom = $element["name"];
-				}
-
-				/* else if ($val["object_news"]["objectType"] == "organizations") {
-					$val_type = $element["name"];
-				} else if ($val["object_news"]["objectType"] == "projects") {
-					$val_type = $element["name"];
-				} */
-			
-
-				//$val = $val["verb"];
-				if (isset($author["username"])) {
-
-					$val = $author["username"];
-				} else {
-					$val = 'Quelqu\'un ou quelque chose ';
-				}	
-
-				if ($verb == "create") {
-					$verb = "a crée un(e) nouvel(le) ";
-				}
-				$val .= ' ' . $verb;
-
-				if ($type == organization::COLLECTION) {
-					$type = " Organisation";
-				} else if ($type == "projects") {
-					$type = "Projet";
-				} else if ($type == "events") {
-					$type = "Evenement";
-				}
-				$val .= ' ' . $type;
-				if (isset($val_nom)) {
-					$val .= ' sous le nom de "' . $val_nom . ' "';
-				}
-
-			}
-		}
+		
+		
 		else if( isset( $bindPath["prefix"] ) || isset( $bindPath["suffix"] ) )
 		{
 			$val = $prefix.$val.$suffix;
