@@ -20,7 +20,9 @@ class Ressource {
 
 	//From Post/Form name to database field name
 	public static $dataBinding = array (
+	    "section" => array("name" => "section"),
 	    "type" => array("name" => "type"),
+	    "subtype" => array("name" => "placeType"),
 	    "name" => array("name" => "name", "rules" => array("required")),
 	    "address" => array("name" => "address", "rules" => array("addressValid")),
 	    "addresses" => array("name" => "addresses"),
