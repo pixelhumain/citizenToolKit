@@ -22,6 +22,8 @@ class Import
             $where = array("_id" => new MongoId($post['idMapping']));
             $fields = array("fields");
             $mapping = self::getMappings($where, $fields);
+            //Remplace les "_dot_" par des "."
+            $mapping[$post['idMapping']]["fields"] = Mapping::replaceByRealDot($mapping[$post['idMapping']]["fields"]);
             $arrayMapping = $mapping[$post['idMapping']]["fields"];
         }
         else
@@ -46,9 +48,11 @@ class Import
             // } 
 
             if($post['idMapping'] != "-1"){
+                
                 $where = array("_id" => new MongoId($post['idMapping']));
                 $fields = array("fields");
                 $mapping = self::getMappings($where, $fields);
+                $mapping[$post['idMapping']]["fields"] = Mapping::replaceByRealDot($mapping[$post['idMapping']]["fields"]);
                 $arrayMapping = $mapping[$post['idMapping']]["fields"];
             }
             else
@@ -68,6 +72,7 @@ class Import
                     $arbre = ArrayHelper::getAllPathJson(json_encode($value), $arbre); 
                 }
             }
+
             $attributesElt = ArrayHelper::getAllPathJson(file_get_contents("../../modules/communecter/data/import/".Element::getControlerByCollection($post["typeElement"]).".json", FILE_USE_INCLUDE_PATH));
             $params = array("result"=>true,
                         "attributesElt"=>$attributesElt,
