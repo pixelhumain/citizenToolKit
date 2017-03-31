@@ -1466,7 +1466,7 @@ public static function newOrganizationFromImportData($organization, $emailCreato
 	public static function translateType($type) {
 		if(trim($type) == "Association" || trim($type) == "association")
 			$type = self::TYPE_NGO ;
-		else if(trim($type) == "Groupe Gouvernemental" || trim($type) == "Groupe gouvernemental" || trim($type) == "Organisation gouvernementale" || trim($type) == "Structure publique" || trim($type) == "Service public")
+		else if(trim($type) == "Groupe Gouvernemental" || trim($type) == "Groupe gouvernemental" || trim($type) == "Organisation gouvernementale" || trim($type) == "Structure publique" || trim($type) == "Structure Publique" || trim($type) == "Service public")
 			$type = self::TYPE_GOV ;
 		else if(trim($type) == "Entreprise")
 			$type = self::TYPE_BUSINESS ;
