@@ -9,28 +9,23 @@ class GetAction extends CAction
 	        $bindMap = TranslateSchema::$dataBinding_city;
 		else*/
 
-		if ($format == Translate::FORMAT_KML) {
+		if ($format == Translate::FORMAT_KML)
 			$bindMap = TranslateKml::$dataBinding_city;
-		}
-		elseif ($format == Translate::FORMAT_GEOJSON) {
+		elseif ($format == Translate::FORMAT_GEOJSON)
 		 	$bindMap = TranslateGeoJson::$dataBinding_city;
-		} 
-
-		else {
+		else 
 	    	$bindMap = TranslateCommunecter::$dataBinding_city;
-		}
-      	
 
       	$result = Api::getData($bindMap, $format, City::COLLECTION, $id,$limit, $index, $tags, $multiTags, $key, $insee);
 
-    if ($format == Translate::FORMAT_KML) {
-	    $strucKml = News::getStrucKml();    
-	    Rest::xml($result, $strucKml,$format);
-    } else
-		Rest::json($result);
+		if ($format == Translate::FORMAT_KML) {
+			$strucKml = News::getStrucKml();   
+			Rest::xml($result, $strucKml,$format);
+		} else
+			Rest::json($result);
 
 		Yii::app()->end();
-    }
+	}
 }
 
 ?>
