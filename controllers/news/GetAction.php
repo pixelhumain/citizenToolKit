@@ -4,8 +4,14 @@ class GetAction extends CAction {
     public function run($id = null, $format = null, $limit=50, $index=0, $tags = null, $multiTags=null , $key = null, $insee = null, $idElement = null, $typeElement = null) {
 		$controller=$this->getController();
 		// Get format
-		if( $format == Translate::FORMAT_RSS)
+		if( $format == Translate::FORMAT_RSS) {
 			$bindMap = TranslateRss::$dataBinding_news;
+		} elseif ($format == Translate::FORMAT_KML) {
+			$bindMap = TranslateKml::$dataBinding_news;
+		} elseif ($format == Translate::FORMAT_GEOJSON) {
+			$bindMap = TranslateGeoJson::$dataBinding_news;
+		}
+
 		else
 			$bindMap = TranslateCommunecter::$dataBinding_news;
 
@@ -58,7 +64,11 @@ class GetAction extends CAction {
 */		
 					
 	    if( $format == Translate::FORMAT_RSS)
-			Rest::xml($result, $strucRss);
+			Rest::xml($result, $strucRss, $format);
+		elseif ($format == Translate::FORMAT_KML) {
+			$strucKml = News::getStrucKml();		
+			Rest::xml($result, $strucKml,$format);
+		}
 		else 
 			Rest::json($result);
 

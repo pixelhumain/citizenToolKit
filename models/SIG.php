@@ -437,8 +437,11 @@ class SIG
     // Nominatim
     public static function getLocalityByLatLonNominatim($lat, $lon){
     	try{
-			$url = "http://nominatim.openstreetmap.org/reverse?format=json&lat=".$lat."&lon=".$lon."&zoom=18&addressdetails=1" ;
-        	$res =  file_get_contents($url);
+			$url = 'http://nominatim.openstreetmap.org/reverse?format=json&lat='.$lat.'&lon='.$lon.'&zoom=18&addressdetails=1';
+			// $url = urlencode($url);
+			// $url = str_replace(['%2F', '%3A', '%3D','%3F', '%26'], ['/', ':', '=', '?', '&'], $url);
+        	//$res =  file_get_contents(htmlspecialchars_decode($url));
+        	$res =  self::getUrl($url) ;
 	        return $res;
         }catch (CTKException $e){
             return null ;
