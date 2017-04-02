@@ -731,9 +731,6 @@ class Import
         } elseif ($type == Project::COLLECTION) {
             $map = TranslateGeoJsonToPh::$mapping_project;
         } 
-        // else {
-        //     return "Type d'élement non reconnu";
-        // }
 
         $param['typeElement'] = $map["type_elt"];
 
@@ -751,17 +748,14 @@ class Import
         $param['warnings'] = false;
         $param['nbTest'] = "5";
 
-        if (( (isset($file)) || (isset($url)) ) && 
-            (substr($url, 0, 35) !== "http://umap.openstreetmap.fr/en/map")) {
+        //url longue : https://umap.openstreetmap.fr/fr/map/incroyables-comestibles-brest-landerneau_113881#14/48.3969/-4.5053
+        // var_dump($url);
+        // var_dump(substr($url, 0, 35));
 
-            $param['file'][0] = (isset($file)) ? $file : file_get_contents($url);
-           
-            $result = Import::previewData($param);
-            $res = json_decode($result['elements']);
-
-        } elseif ((isset($url)) && (substr($url, 0, 35) == "http://umap.openstreetmap.fr/en/map")) {
+        if ((isset($url)) && 
+            (((substr($url, 0, 35) == "http://umap.openstreetmap.fr/en/map")) || (substr($url, 0, 35) == "http://umap.openstreetmap.fr/fr/map"))) {
             $umap_data = file_get_contents($url);
-            $list_url_data = Import::getDatalayersUmap($url);
+            $list_url_data = self::getDatalayersUmap($url);
             $param['nameFile'] = $url;
             $res = array();
 
@@ -770,7 +764,7 @@ class Import
                 $datalayers_data = file_get_contents($valueDatalayer);
                 $param['file'][0] = $datalayers_data;
 
-                $result = Import::previewData($param);
+                $result = self::previewData($param);
 
                 $result = $result['elements'];
 
@@ -779,16 +773,18 @@ class Import
                 }
             }
 
+        } elseif ((isset($file)) || (isset($url))) {
+
+            $param['file'][0] = (isset($file)) ? $file : file_get_contents($url);
+           
+            $result = self::previewData($param);
+            $res = json_decode($result['elements']);
+
         } 
 
         if (isset($res)) {
             return $res;
         } 
-        //else {
-        //     return "Paramètre(s) manquant(s) ou erroné(s)";
-        // }
-
-
     }
 
     public static function getDatalayersUmap($url){
@@ -808,7 +804,7 @@ class Import
 
         }
 
-        $datalayers_data = file_get_contents($url_datalayers);
+        // $datalayers_data = file_get_contents($url_datalayers);
 
         return $list_url_datalayers;
 
