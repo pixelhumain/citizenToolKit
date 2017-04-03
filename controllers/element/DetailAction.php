@@ -2,7 +2,7 @@
 
 class DetailAction extends CAction {
 /**
-* Dashboard Organization
+* Detail d'un élément
 */
     public function run($type, $id, $networkParams=null) { 
     	$controller=$this->getController();
@@ -21,10 +21,9 @@ class DetailAction extends CAction {
 			$listsEvent = Lists::get($listsToRetrieveEvent);
 		}
 		
-
-
 		if($type == Organization::COLLECTION){
 			$element = Organization::getById($id);
+			if (empty($element)) throw new CHttpException(404,Yii::t("organization","The organization you are looking for has been moved or deleted !"));
 			$params["listTypes"] = isset($listsOrga["organisationTypes"]) ? $listsOrga["organisationTypes"] : null;
 			$params["public"] 			 = isset($listsOrga["public"]) 			  ? $listsOrga["public"] : null;
 			$params["typeIntervention"]  = isset($listsOrga["typeIntervention"])  ? $listsOrga["typeIntervention"] : null;
@@ -59,6 +58,7 @@ class DetailAction extends CAction {
 
 		} else if ($type == Project::COLLECTION){
 			$element = Project::getById($id);
+			if (empty($element)) throw new CHttpException(404,Yii::t("projet","The project you are looking for has been moved or deleted !"));
 			$params["eventTypes"] = $listsEvent["eventTypes"];
 			$params["listTypes"] = @$listsEvent["eventTypes"];
 			$connectType = "contributors";
@@ -80,6 +80,7 @@ class DetailAction extends CAction {
 
 		} else if ($type == Event::COLLECTION){
 			$element = Event::getById($id);
+			if (empty($element)) throw new CHttpException(404,Yii::t("event","The event you are looking for has been moved or deleted !"));
 			$params["listTypes"] = $listsEvent["eventTypes"];
 			$connectType = "attendees";
 			$invitedNumber=0;
@@ -144,9 +145,11 @@ class DetailAction extends CAction {
 
 		} else if ($type == Person::COLLECTION){
 			$element = Person::getById($id);
+			if (empty($element)) throw new CHttpException(404,Yii::t("person","The person you are looking for has been moved or deleted !"));
 			$connectType = "attendees";
 		} else if ($type == Poi::COLLECTION){
 			$element = Poi::getById($id);
+			if (empty($element)) throw new CHttpException(404,Yii::t("poi","The poi you are looking for has been moved or deleted !"));
 			$connectType = "attendees";
 			$elementAuthorizationId=$element["parentId"];
 			$elementAuthorizationType=$element["parentType"];
