@@ -748,30 +748,34 @@ class Import
         $param['warnings'] = false;
         $param['nbTest'] = "5";
 
-        //url longue : https://umap.openstreetmap.fr/fr/map/incroyables-comestibles-brest-landerneau_113881#14/48.3969/-4.5053
-        // var_dump($url);
-        // var_dump(substr($url, 0, 35));
+        $url_length = strlen($url);
 
         if ((isset($url)) && 
-            (((substr($url, 0, 35) == "http://umap.openstreetmap.fr/en/map")) || (substr($url, 0, 35) == "http://umap.openstreetmap.fr/fr/map"))) {
-            $umap_data = file_get_contents($url);
-            $list_url_data = self::getDatalayersUmap($url);
-            $param['nameFile'] = $url;
-            $res = array();
+            (((substr($url, 0, 35) == "http://umap.openstreetmap.fr/en/map")) || ((substr($url, 0, 35) == "http://umap.openstreetmap.fr/fr/map"))) &&
+            (((substr($url, $url_length - 8, $url_length)) == "geojson/") || ((substr($url, $url_length - 7, $url_length)) == "geojson"))
+            ) {
 
-            foreach ($list_url_data as $keyDatalayer => $valueDatalayer) {  
+            $res = self::getUmapResult($url, $param);
 
-                $datalayers_data = file_get_contents($valueDatalayer);
-                $param['file'][0] = $datalayers_data;
+        } elseif ((isset($url)) && 
+            (((substr($url, 0, 35) == "http://umap.openstreetmap.fr/en/map")) || (substr($url, 0, 35) == "http://umap.openstreetmap.fr/fr/map"))
+            ) {
 
-                $result = self::previewData($param);
+            $pos_underscore = strpos($url, "_");
+            $id_map = (substr($url, $pos_underscore + 1, strlen($url)))."/";
 
-                $result = $result['elements'];
+            $url = "http://umap.openstreetmap.fr/fr/map/".$id_map."geojson";
 
-                if (!empty(json_decode($result))) {
-                    array_push($res, json_decode($result));
-                }
-            }
+            $res = self::getUmapResult($url, $param);
+
+        } elseif ((isset($url)) && 
+            ((substr($url, 0, 21) == "http://u.osmfr.org/m/"))
+            ) {
+
+            $id_map = (substr($url, 21, strlen($url))); 
+            $url = "http://umap.openstreetmap.fr/fr/map/".$id_map."geojson";
+
+            $res = self::getUmapResult($url, $param);
 
         } elseif ((isset($file)) || (isset($url))) {
 
@@ -804,10 +808,34 @@ class Import
 
         }
 
-        // $datalayers_data = file_get_contents($url_datalayers);
-
         return $list_url_datalayers;
 
+    }
+
+    public static function getUmapResult($url, $param) {
+
+        $umap_data = file_get_contents($url);
+
+        $list_url_data = self::getDatalayersUmap($url);
+
+        $param['nameFile'] = $url;
+        $res = array();
+
+        foreach ($list_url_data as $keyDatalayer => $valueDatalayer) {  
+
+            $datalayers_data = file_get_contents($valueDatalayer);
+            $param['file'][0] = $datalayers_data;
+
+            $result = self::previewData($param);
+
+            $result = $result['elements'];
+
+            if (!empty(json_decode($result))) {
+                array_push($res, json_decode($result));
+            }
+        }
+
+        return $res;
     }
 
 }
