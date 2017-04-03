@@ -70,7 +70,6 @@ class Thing {
 			$mdata['type'] = $key;
 			$mdata['key'] = 'thing';
 			$sckAPIMetadata=json_decode(file_get_contents(self::URL_API_SC."/".$value),true);
-			//print_r($sckAPIMetadata);
 			$mdata[$key]=$sckAPIMetadata;
 			
 			if($intDayBeginning >= $apisck['updated'] || $forceUpdate==true){
@@ -86,7 +85,7 @@ class Thing {
 
 	//TODO : Prévoir l'edition forcer (ajout d'argument et de condition (passer outre la limite de temps $forceUpdate), ne pas utiliser un poi mais directement le deviceId SCK) par une post via le controller UpdateSckDevicesAction.php
 	//ajouter les metadatas si le sck n'est pas en base 
-	public static function setMetadata($poi,$forceUpdate=false,$deviceId=null,$macId=null){
+	public static function setMetadata($poi,$forceUpdate=false,$deviceId=null,$boardId=null){
 
 		$wheremeta = array('type'=>'smartCitizen');
 
@@ -139,7 +138,7 @@ class Thing {
 		}
 
 		if($elementAlreadyUpdate>0){
-			$res['sckMetadata'] = "There are $elementAlreadyUpdate element already up to date (in last hour)";}
+			$res['sckMetadata'] = "There are ".$elementAlreadyUpdate." element already up to date (in last hour)";}
 		return $res;
 	}
 
@@ -197,6 +196,14 @@ class Thing {
 		$SCKDevices = PHDB::find(self::COLLECTION, $where,$fields);
 		return $SCKDevices;
 	}
+
+	public static function getSCKDevicesBoardId(){
+
+		$where=array("type"=>self::SCK_TYPE);
+
+		//self::getSCKDevices
+
+	}
 	/*
 	private static function getDescriptionKitsViaAPI(){
 		$kits=json_decode(file_get_contents(self::URL_API_SC."/kits"),true);
@@ -236,19 +243,28 @@ class Thing {
 		$where['type']= self::SCK_TYPE;
 		
 		$distinctedBoardId=PHDB::distinct(self::COLLECTION_DATA,'boardId', $where);
-		print_r($distinctedBoardId);
 		return $distinctedBoardId;
 	}
 
+	public static function getDistinctDeviceId(){
+		$where = array('deviceId' => array('$exists'=>1));
+		$where['type']= self::SCK_TYPE;
+		
+		$distinctedDeviceId=PHDB::distinct(self::COLLECTION,'deviceId', $where);
+		return $distinctedDeviceId;
+	}
 
-	public static function getLastestRecordsInDB($macId=null,$where=array("type"=>self::SCK_TYPE),$sort=array("created"=>-1),$limit=2){
+	public static function getLastestRecordsInDB($boardId=null,$where=array("type"=>self::SCK_TYPE),$sort=array("created"=>-1),$limit=1){
 		$lastRecords = array();
-		if(!empty($macId)&&(strlen($macId)<=17)&& ($macId!= "[FILTERED]" )){
-			$where["boardId"] = $macId;
+		if(!empty($boardId)&&(strlen($boardId)<=17)&& ($boardId!= "[FILTERED]" )){
+			$where["boardId"] = $boardId;
+			$lastRecords = PHDB::findAndSort(self::COLLECTION_DATA,$where,$sort,$limit);
 		}
-		$lastRecords = PHDB::findAndSort(self::COLLECTION_DATA,$where,$sort,$limit);
 		return $lastRecords;
 	}
+
+	/* getConvertedRercord peu prendre dans la base la dernière valeur ou plusieurs enregistrement de la journées ou d'une heure particulière pour un boardId. si la date n'est pas renseigné c'est la date gmt qui est pris en compte. retourne un tableau avec les enregistements converti
+	*/
 
 	public static function getConvertedRercord($boardId,$lastest=false,$date=null,$hour=null){
 
@@ -282,8 +298,42 @@ class Thing {
 		}
 		return $data; 
 	}
+	//rollup valeur en minute 1440: 24h (en cours)
+	public static function getSCKAvgWithRollupPeriod($data,$rollup=600)
+	{
+		$rollupSec=$rollup*60;
+		$i=0;
+		$avgData=array();
+		$avgValue=array('temp'=>0,'hum'=>0,'light'=>0,'bat'=>0,'panel'=>0,'co' =>0,'no2' =>0,'noise' =>0, 'nets'=>0,'timestamp'=>0);
+		
+		foreach ($data as $record) {
 
-	// après conversion adapter sensor {timestamp : value} -> fonction à mettre coté client en javascript (reduit les envois de données)
+			//record['temp'], record['hum'],record['light'], record['bat'], record['panel'],record['co'],record['no2'], record['noise'], record['nets'], record['timestamp']
+			$timestamp = strtotime($record['timestamp']);
+			$avgTemp=
+
+
+			
+			if($i==0){
+				$startRollup=$timestamp;
+
+
+			}else if($timestamp>=($startRollup+$rollupSec)){
+//ici mettre le timestamp
+
+				$i=0;
+			}
+
+			strtotime($record['timestamp'];
+			//timestamp sur le dernier record
+			
+
+			
+		}
+		
+	}
+
+	// après conversion et moyenne : adapter sensor {timestamp : value} -> fonction à mettre coté client en javascript (reduit les envois de données)
 	/*public static function getSensorReading($sensor,$boardId){
 	}*/
 
@@ -293,7 +343,6 @@ class Thing {
 		//TODO gérer fuseau horaire
 		
 		$datetime = getdate();
-		print_r($datetime);
 		$resDateTime = Translate::convert($datetime, $bindMap);
 
 		return $resDateTime; 
@@ -313,7 +362,6 @@ class Thing {
         	$dataThing['boardId']=$headers['X-SmartCitizenMacADDR'];
         	$dataThing['version']=$headers['X-SmartCitizenVersion'];
 			$res = Element::save(array_merge($dataThing, $datum));
-			//print_r($res);
 		}
         return $res;
 	}
