@@ -26,7 +26,7 @@ class Organization {
 	public static $dataBinding = array(
 	    "name" => array("name" => "name", "rules" => array("required", "organizationSameName")),
 	    "email" => array("name" => "email", "rules" => array("email")),
-	    "type" => array("name" => "type", "rules" => array("typeOrganization")),
+	    "type" => array("name" => "type", "rules" => array("required","typeOrganization")),
 	    "shortDescription" => array("name" => "shortDescription"),
 	    "description" => array("name" => "description"),
 	    "category" => array("name" => "category"),
@@ -54,6 +54,7 @@ class Organization {
 	    "warnings" => array("name" => "warnings"),
 	    "urlFacebook" => array("name" => "urlFacebook"),
 	    "urlTwitter" => array("name" => "urlTwitter"),
+	    "urlWiki" => array("name" => "urlWiki"),
 	    "isOpenData" => array("name" => "isOpenData"),
 	    "badges" => array("name" => "badges"),
 		"source" => array("name" => "source", "rules" => array("source")),

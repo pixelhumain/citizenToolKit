@@ -81,7 +81,7 @@ class Api {
         }
 
 
-        if( $format == Translate::FORMAT_RSS) {
+        if (( $format == Translate::FORMAT_RSS) || ($format == Translate::FORMAT_KML) || ($format == Translate::FORMAT_KML)) {
             //if(((@$idElement) && (@$typeElement)) || (@$tags)) {
             foreach ($data as $key => $value) {
 
@@ -114,9 +114,16 @@ class Api {
 
         }
 
-        if ($format == Translate::FORMAT_RSS) {
+        if (($format == Translate::FORMAT_RSS) || ($format == Translate::FORMAT_KML)) {
             $result = ((!empty($data) && !empty($bindMap) )?Translate::convert($data , $bindMap):$data);         
         } 
+        elseif ($format == Translate::FORMAT_GEOJSON) {
+            $result["type"] = "FeatureCollection";
+            $result["features_temp"] = ((!empty($data) && !empty($bindMap) )?Translate::convert_geojson($data , $bindMap):$data);
+            $result["features"] = array();
+            $result["features"] = $result["features_temp"];
+            unset($result["features_temp"]);
+        }
         else { 
             $result["meta"] = $meta ;
             $result["entities"] = ((!empty($data) && !empty($bindMap) )?Translate::convert($data , $bindMap):$data);
