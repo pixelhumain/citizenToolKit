@@ -1,5 +1,11 @@
 <?php 
 class Preference {
+
+	public static $yesOrNo = array(
+        "true" => true,
+        "false" => false
+	);
+
 	public static function getPreferencesByTypeId($id, $type){
 
 		if($type == City::COLLECTION){
