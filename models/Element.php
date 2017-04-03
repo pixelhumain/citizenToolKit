@@ -635,6 +635,7 @@ class Element {
 		if($resUpdate["ok"]==1){
 
 			if(!empty($updatePull) && $updatePull == true){
+
 				$resPull = PHDB::update( $collection, array("_id" => new MongoId($id)), 
 		                          array('$pull' => array($pull => null)));
 			}
