@@ -238,9 +238,9 @@ class MediaCrawlerAction extends CAction
               
               "OUTREMERS360" => 
                   array( "NEWS" => 
-                          array("urls" =>  array(//"http://outremers360.com/bassins/pacifique/",
-                                                 //"http://outremers360.com/category/societe/",
-                                                 //"http://outremers360.com/category/planete/",
+                          array("urls" =>  array("http://outremers360.com/bassins/pacifique/",
+                                                 "http://outremers360.com/category/societe/",
+                                                 "http://outremers360.com/category/planete/",
                                                  "http://outremers360.com/category/sciences/"),
                                 "elementUK" => ".entry-list li.type-post",
                                 "href" => ".entry-item .entry-title a",
