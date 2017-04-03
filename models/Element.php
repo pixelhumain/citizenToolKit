@@ -248,6 +248,26 @@ class Element {
 	  	
 	  	return $element;
 	}
+	public static function getSimpleByTypeAndId($type, $id,$what=null){
+		if( @$what ) 
+			$element = PHDB::findOneById($type, $id, $what);
+		else if($type == Person::COLLECTION)
+			$element = Person::getSimpleUserById($id);
+		else if($type == Organization::COLLECTION)
+			$element = Organization::getSimpleOrganizationById($id);		
+		else if($type == Project::COLLECTION)
+			$element = Project::getSimpleProjectById($id);	
+		else if($type == Event::COLLECTION)
+			$element = Event::getSimpleEventById($id);	
+		else if($type == City::COLLECTION)
+			$element = City::getIdByInsee($id);
+		else if($type == Poi::COLLECTION)
+			$element = Poi::getById($id);
+		else
+			$element = PHDB::findOne($type,array("_id"=>new MongoId($id)));
+	  	
+	  	return $element;
+	}
 
 	/**
 	 * get all poi details of an element
