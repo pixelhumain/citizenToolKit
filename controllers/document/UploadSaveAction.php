@@ -53,6 +53,8 @@ class UploadSaveAction extends CAction {
                         $params["parentId"] = $ownerId;           
                     if(@$_POST["formOrigin"])
                         $params["formOrigin"] = $_POST["formOrigin"];
+                    if(@$_POST["crop"])
+                        $params["crop"] = $_POST["crop"];
                     $res2 = Document::save($params);
                 
             }

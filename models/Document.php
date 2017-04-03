@@ -19,6 +19,7 @@ class Document {
 	const GENERATED_IMAGES_FOLDER 		= "thumb";
 	const GENERATED_MEDIUM_FOLDER 		= "medium";
 	const GENERATED_ALBUM_FOLDER		= "album";
+	const GENERATED_BANNIERE_FOLDER		= "banniere";
 	const FILENAME_PROFIL_RESIZED 	  	= "profil-resized.png";
 	const FILENAME_PROFIL_MARKER 	  	= "profil-marker.png";
 	const GENERATED_THUMB_PROFIL 	  	= "thumb-profil";
@@ -99,6 +100,8 @@ class Document {
 	  		"contentKey" => @$params["contentKey"],
 	  		'created' => time()
 	    );
+	    if(@$params["crop"])
+	    	$new["crop"]=$params["crop"];
 	    //if item exists
 	    //if( PHDB::count($new['type'],array("_id"=>new MongoId($new['id']))) > 0 ){
 		if (in_array($params["type"], array(Survey::COLLECTION, ActionRoom::COLLECTION, ActionRoom::COLLECTION_ACTIONS))) {
@@ -121,7 +124,11 @@ class Document {
 	    	$new["category"] = $params["category"];
 
 	    PHDB::insert(self::COLLECTION, $new);
-	    
+	     if (substr_count(@$new["contentKey"], self::IMG_BANNIERE)) {
+	    	$src=self::generateBanniereImages($new);
+	    	$typeNotif="banniereImage";
+	    }
+    	else{
 	    //Generate small image
 	   	self::generateAlbumImages($new);
 	    //Generate image profil if necessary
@@ -133,8 +140,9 @@ class Document {
 	    	self::generateAlbumImages($new, self::GENERATED_IMAGES_FOLDER);
 	    	$typeNotif="albumImage";
 	    }
-    	//Notification::constructNotification(ActStr::VERB_ADD, array("id" => Yii::app()->session["userId"],"name"=> Yii::app()->session["user"]["name"]), array("type"=>$new["type"],"id"=> $new["id"]), null, $typeNotif);
-	    return array("result"=>true, "msg"=>Yii::t('document','Document saved successfully'), "id"=>$new["_id"],"name"=>$new["name"]);	
+		}
+	   //Notification::constructNotification(ActStr::VERB_ADD, array("id" => Yii::app()->session["userId"],"name"=> Yii::app()->session["user"]["name"]), array("type"=>$new["type"],"id"=> $new["id"]), null, $typeNotif);
+	    return array("result"=>true, "msg"=>Yii::t('document','Document saved successfully'), "id"=>$new["_id"],"name"=>$new["name"],"src"=>@$src);	
 	}
 	
 	
@@ -654,6 +662,53 @@ class Document {
     			$imageUtils->resizePropertionalyImage($maxWidth,$maxHeight)->save($destPathThumb,$quality);
     	}
 	}
+	// Resize initial image for album size 
+	// param type array $document
+	// param string $folderAlbum where Image is upload
+	public static function generateBanniereImages($document) {
+    	$dir = $document["moduleId"];
+    	$folder = $document["folder"];
+		//$destination='/'.self::GENERATED_BANNIERE_FOLDER;
+		$maxWidth=1300;
+		$maxHeight=400;
+		$quality=100;
+		//The images will be stored in the /uploadDir/moduleId/ownerType/ownerId/thumb (ex : /upload/communecter/citoyen/1242354235435/thumb)
+		$upload_dir = Yii::app()->params['uploadDir'].$dir.'/'.$folder; 
+		
+		if(!file_exists ( $upload_dir )) {       
+			mkdir($upload_dir, 0775);
+		}
+		//echo "iciiiiiii/////////////".$upload_dir;
+		$path=self::getDocumentPath($document);
+		$profilBanniereUrl = self::getDocumentFolderUrl($document)."/".$document["name"];
+		list($width, $height) = getimagesize($path);
+		//if ($width > $maxWidth || $height >  $maxHeight){
+     	$imageUtils = new ImagesUtils($path);
+    	$destPathThumb = $upload_dir."/".$document["name"];
+    		//if($folderAlbum==self::GENERATED_IMAGES_FOLDER)
+    	$crop=$document["crop"];
+    	$imageUtils->resizeAndCropImage($crop["cropW"],$crop["cropH"],$crop)->save($destPathThumb);
+    	
+    	//$imageUtils->imagecropping($crop["cropW"], $crop["cropH"], $crop["cropX"],$crop["cropY"])->save($destPathThumb);
+    	$allowedElements = array( Person::COLLECTION, 
+        						  Organization::COLLECTION, 
+        						  Project::COLLECTION, 
+        						  Event::COLLECTION,
+        						  Poi::COLLECTION, 
+        						  Classified::COLLECTION);
+        if (@$profilBanniereUrl && in_array($document["type"], $allowedElements )) {
+        	
+        	$changes = array();
+        		$changes["profilBanniereUrl"] = $profilBanniereUrl;
+	        PHDB::update($document["type"], array("_id" => new MongoId($document["id"])), array('$set' => $changes));
+
+	        error_log("The entity ".$document["type"]." and id ". $document["id"] ." has been updated with the URL of the profil images.");
+	        return $profilBanniereUrl;
+		}
+    		//else
+    		//	$imageUtils->resizePropertionalyImage($maxWidth,$maxHeight)->save($destPathThumb,$quality);
+    	//}
+	}
 	
 	/**
 	 * Return the url of the generated image 
@@ -761,7 +816,8 @@ class Document {
 		if (isset($entity["profilImageUrl"])) {
 			$res["profilImageUrl"] = $entity["profilImageUrl"];
 			$res["profilThumbImageUrl"] = !empty($entity["profilThumbImageUrl"]) ? $entity["profilThumbImageUrl"] : "";
-			$res["profilMarkerImageUrl"] = !empty($entity["profilMarkerImageUrl"]) ? $entity["profilMarkerImageUrl"] : ""; 
+			$res["profilMarkerImageUrl"] = !empty($entity["profilMarkerImageUrl"]) ? $entity["profilMarkerImageUrl"] : "";
+			$res["profilBanniereUrl"] = !empty($entity["profilBanniereUrl"]) ? $entity["profilBanniereUrl"] : ""; 
 			$res["profilMediumImageUrl"] = !empty($entity["profilMediumImageUrl"]) ? $entity["profilMediumImageUrl"]."?_=".time() : ""; 
 
 		//If empty than retrieve the URLs from document and store them in the entity for next time
@@ -927,6 +983,11 @@ class Document {
        
         if( @$input=="newsImage"){
 	        $upload_dir .= Document::GENERATED_ALBUM_FOLDER.'/';
+            if( !file_exists ( $upload_dir ) )
+                mkdir ( $upload_dir,0775 );
+        }
+		if( @$input=="banniere"){
+	        $upload_dir .= Document::GENERATED_BANNIERE_FOLDER.'/';
             if( !file_exists ( $upload_dir ) )
                 mkdir ( $upload_dir,0775 );
         }
