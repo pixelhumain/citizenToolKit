@@ -822,20 +822,36 @@ class Element {
 
 		//What type of element i can delete
 		$managedTypes = array(Organization::COLLECTION);
-		if (!in_array($managedTypes, $elementType)) return array( "result" => false, "msg" => "Impossible to delete this type of element" );
+		if (!in_array($elementType, $managedTypes)) return array( "result" => false, "msg" => "Impossible to delete this type of element" );
 		$modelElement = self::getModelByType($elementType);
 
 		$canBeDeleted = false;
 		$element = self::getByTypeAndId($elementType, $elementId);
 		
-		//Check if the creator is the user asking to delete the element
+		if (@$element["status"]	== self::STATUS_DELETE_PEDING) 
+			return array("result" => false, "msg" => "The element is already in delete pending status !");
+
+		//retrieve admins of the element
+		$admins = array();
+		foreach (@$element["links"]["members"] as $id => $aLink) {
+			if (@$aLink["type"] == Person::COLLECTION && @$aLink["isAdmin"] == true) {
+				array_push($admins, $id);
+			}
+		}
 		$creator = empty($element["creator"]) ? "" : $element["creator"];
-		if ($creator == $userId) {
+
+		//If open data without admin => the super admin will statut
+		if ((@$element["preferences"]["isOpenData"] == true || @$element["preferences"]["isOpenData"] == 'true' ) && count($admins == 0)) {
+			$canBeDeleted = false;
+		//Check if the creator is the user asking to delete the element
+		} else if ($creator == $userId) {
 			// If almost empty element (no links expect creator as member) => delete the element
 			if (count(@$element["links"]) == 0) {
 				$canBeDeleted = true;
 			} else if (count(@$element["links"]["members"]) == 1) {
 				$canBeDeleted = isset($element["links"]["members"][$creator]);
+			} else if(count($admins) == 1) {
+				$canBeDeleted = in_array($creator, $admins);
 			}
 		}
 
@@ -843,18 +859,12 @@ class Element {
 		if (Authorisation::isUserSuperAdmin($userId)) {
 			$canBeDeleted = true;
 		}
-
+		error_log("Test2 ".$canBeDeleted);
 		//Try to delete the element
 		if ($canBeDeleted) {
 			$res = self::deleteElement($elementType, $elementId, $reason, $userId);
+			error_log("Test3");
 		} else {
-			//retrieve admins of the element
-			$admins == array();
-			foreach (@$element["links"]["members"] as $id => $aLink) {
-				if (@$aLink["type"] == Person::COLLECTION && @$aLink["isAdmin"] == true) {
-					array_push($admins, $id);
-				}
-			}
 			//If open data without admin
 			if ((@$element["preferences"]["isOpenData"] == true || @$element["preferences"]["isOpenData"] == 'true' ) && count($admins == 0))  {
 				//Ask the super admins to act for the deletion of the element
@@ -869,7 +879,7 @@ class Element {
 
 			//If at least one admin => ask if one of the admins want to stop the deletion. The element is mark as pending deletion. After X days, if no one block the deletion => the element if deleted
 			if (count($admins) > 0) {
-				$res = $self::goElementDeletePending($elementType, $elementId, $reason, $admins, $userId);	
+				$res = self::goElementDeletePending($elementType, $elementId, $reason, $admins, $userId);
 			}
 		}
 
@@ -1003,14 +1013,45 @@ class Element {
 	 * @return array result => bool, msg => String
 	 */
 	private static function goElementDeletePending($elementType, $elementId, $reason, $admins, $userId) {
+		$res = array("result" => true, "msg" => "The element has been put in status 'delete pending', waiting the admin to confirm the delete.");
+		
 		//Mark the element as deletePending
-		$res = PHDB::update($elementType, 
+		PHDB::update($elementType, 
 					array("_id" => new MongoId($elementId)), array('$set' => array("status" => self::STATUS_DELETE_PEDING, "statusDate" => new MongoDate())));
 		
 		//Send emails to admins
 		Mail::confirmDeleteElement($elementType, $elementId, $reason, $admins, $userId);
 		//TODO SBAR => @bouboule help wanted
 		//Notification::actionOnPerson();
+		
+		return $res;
+	}
+
+	/**
+	 * An admin of the element want to stop the process of delete of the element.
+	 * Remove the pending status of the element
+	 * @param String $elementType : The element type
+	 * @param String $elementId : the element Id
+	 * @param String $userId : the userId asking to stop
+	 * @return array result => bool, msg => String
+	 */
+	public static function stopToDelete($elementType, $elementId, $userId) {
+		$res = array("result" => true, "msg" => "The element is no more in 'delete pending' status");
+		//remove the status deletePending on the element
+		PHDB::update($elementType, 
+					array("_id" => new MongoId($elementId)), array('$unset' => array("status" => "", "statusDate" => "")));
+		
+		//TODO SBAR => 
+		// - send email to notify the admin : the element has been stop by the user 
+		// - add activity Stream
+		// - Notification
+		
+		//Send emails to admins
+		//Mail::confirmDeleteElement($elementType, $elementId, $reason, $admins, $userId);
+		//TODO SBAR => @bouboule help wanted
+		//Notification::actionOnPerson();
+		
+		return $res;
 	}
     
     public static function isElementStatusDeletePending($elementType, $elementId) {

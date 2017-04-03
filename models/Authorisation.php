@@ -534,29 +534,27 @@ class Authorisation {
             $check = true;
 		}
 
-        if($type == Event::COLLECTION) {
+        //Super Admin can do anything
+        if(Role::isSuperAdmin(Role::getRolesUserId($userId)))
+            return true;
+
+        if ($type == Event::COLLECTION || $type == Project::COLLECTION || $type == Organization::COLLECTION) {
+            //Check if delete pending => can not edit
             $isStatusDeletePending = Element::isElementStatusDeletePending($type, $itemId);
-    		$res = self::canEditEvent($userId,$itemId);
-            if(Role::isSuperAdmin(Role::getRolesUserId($userId)) && $res==false)
-                $res = true && $isStatusDeletePending;
-            if(self::isSourceAdmin($itemId, $type, $userId) && $res==false)
-                $res = true && $isStatusDeletePending;
-    	} else if($type == Project::COLLECTION) {
-            $isStatusDeletePending = Element::isElementStatusDeletePending($type, $itemId);
-    		$res = self::isProjectAdmin($itemId, $userId);
-            if(Role::isSuperAdmin(Role::getRolesUserId($userId)) && $res==false)
-                $res = true && $isStatusDeletePending;
-            if(self::isSourceAdmin($itemId, $type, $userId) && $res==false)
-                $res = true && $isStatusDeletePending;
-    	} else if($type == Organization::COLLECTION) {
-            $isStatusDeletePending = Element::isElementStatusDeletePending($type, $itemId);
-    		$res = self::isOrganizationAdmin($userId, $itemId);
-            if(Role::isSuperAdmin(Role::getRolesUserId($userId)) && $res==false)
-                $res = true && $isStatusDeletePending;
-            if(self::isSourceAdmin($itemId, $type, $userId) && $res==false)
-                $res = true && $isStatusDeletePending; 
+            if ($isStatusDeletePending) 
+                return false;
+            //Element admin ?
+            else if (self::isElementAdmin($itemId, $type, $userId)) {
+                error_log("element admin");
+                return true;
+            //Source admin ?
+            } else if (self::isSourceAdmin($itemId, $type, $userId)) {
+                return true;
+            } else {
+                return false;
+            }
     	} else if($type == Person::COLLECTION) {
-            if($userId==$itemId || Role::isSuperAdmin(Role::getRolesUserId($userId)) == true )
+            if($userId==$itemId)
                 $res = true;
     	} else if($type == City::COLLECTION ) {
             if($check)
@@ -694,7 +692,26 @@ class Authorisation {
         return $res;
     }
 
+    /**
+     * Return true if the user is  admin of the entity (organization, event, project)
+     * @param String the id of the entity
+     * @param String the type of the entity
+     * @param String the id of the user
+     * @return bool 
+     */
+    public static function isElementAdmin($elementId, $elementType ,$userId){
+        $res = false ;
 
+        if($elementType == Event::COLLECTION) {
+            $res = self::canEditEvent($userId,$elementId);
+        } else if($elementType == Project::COLLECTION) {
+            $res = self::isProjectAdmin($elementId, $userId);
+        } else if($elementType == Organization::COLLECTION) {
+            $res = self::isOrganizationAdmin($userId, $elementId);
+        } else 
+            throw new CTKException("Can not manage that type !".$elementType);
+        return $res;
+    }
     
     /**
      * Return true if the entity is in openEdition

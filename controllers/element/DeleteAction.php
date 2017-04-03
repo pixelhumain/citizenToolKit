@@ -19,7 +19,7 @@ class DeleteAction extends CAction {
         } else if ( $type == Organization::COLLECTION || $type == Organization::CONTROLLER ||
                     $type == Project::COLLECTION || $type == Project::CONTROLLER ||
                     $type == Event::COLLECTION || $type == Event::CONTROLLER ) {
-            $res = Element::deleteElement($type, $id, $reason, Yii::app()->session["userId"]);
+            $res = Element::askToDelete($type, $id, $reason, Yii::app()->session["userId"]);
         //TODO SABR - Move Delete POI to DeleteElement
         } else if ($type == POI::COLLECTION) {
         	$res = Element::delete($type, $id, Yii::app()->session["userId"]);

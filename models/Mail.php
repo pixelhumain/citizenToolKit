@@ -374,7 +374,7 @@ class Mail {
     public static function confirmDeleteElement($elementType, $elementId, $reason, $admins, $userId) {
         $element = Element::getElementSimpleById($elementId, $elementType);
         $user = Person::getSimpleUserById($userId);
-        $url = "#".Element::getControlerByCollection($collection).".detail.id.".$element["_id"];
+        $url = "#".Element::getControlerByCollection($elementType).".detail.id.".$element["_id"];
         $nbDayBeforeDelete = Element::NB_DAY_BEFORE_DELETE;
         foreach ($admins as $id) {
             $aPerson = Person::getSimpleUserById($id);
