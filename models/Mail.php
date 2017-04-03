@@ -427,13 +427,14 @@ class Mail {
         
         $params = array (
             "type" => Cron::TYPE_MAIL,
-            "tpl"=>'simple',
+            "tpl"=>'contactForm',
             "subject" => $subject,
-            "from" => $emailSender,
+            "from" => Yii::app()->params['adminEmail'],
             "to"=>Yii::app()->params['adminEmail'],
             "tplParams" => array(   "title" => Yii::t("email","New message from").$names,
                                     "subject" => $subject,
                                     "message" => $contentMsg,
+                                    "emailSender" => $emailSender,
                                 )
                                     /*   "logo"=> "/images/logo-communecter.png",
                                     "logo2" => "/images/logoLTxt.jpg")*/
