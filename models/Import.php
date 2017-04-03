@@ -84,8 +84,12 @@ class Import
     }
 
     public static function getMappings($where=array(),$fields=null){
-        $allMapping = PHDB::find(self::MAPPINGS, $where, $fields);
-        return $allMapping;
+
+        $allMappings = PHDB::find(self::MAPPINGS, $where, $fields);
+
+        $allMappings = self::getStandartMapping($allMappings);
+
+        return $allMappings;
     }
 
    
@@ -804,9 +808,44 @@ class Import
 
         }
 
-        // $datalayers_data = file_get_contents($url_datalayers);
-
         return $list_url_datalayers;
+
+    }
+
+    public static function getStandartMapping($allMappings) {
+
+        $orga_standart_mapping = PHDB::find(self::MAPPINGS, array("key" => "organizationStandart"));
+        $person_standart_mapping = PHDB::find(self::MAPPINGS, array("key" => "personStandart"));
+        $event_standart_mapping = PHDB::find(self::MAPPINGS, array("key" => "eventStandart"));
+        $projet_standart_mapping = PHDB::find(self::MAPPINGS, array("key" => "projetStandart"));
+
+        foreach ($orga_standart_mapping as $key => $value) {
+            $orga_key_standart = $key;
+        }
+        foreach ($person_standart_mapping as $key => $value) {
+            $person_key_standart = $key;
+        }
+        foreach ($event_standart_mapping as $key => $value) {
+            $event_key_standart = $key;
+        }
+        foreach ($projet_standart_mapping as $key => $value) {
+            $projet_key_standart = $key;
+        }
+
+        foreach ($orga_standart_mapping as $key => $value) {
+            $allMappings[$orga_key_standart] = $value;
+        }
+        foreach ($person_standart_mapping as $key => $value) {
+            $allMappings[$person_key_standart] = $value;
+        }
+        foreach ($event_standart_mapping as $key => $value) {
+            $allMappings[$event_key_standart] = $value;
+        }
+        foreach ($projet_standart_mapping as $key => $value) {
+            $allMappings[$projet_key_standart] = $value;
+        }
+
+        return $allMappings;
 
     }
 
