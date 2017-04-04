@@ -966,6 +966,9 @@ class Element {
         if($collection == City::COLLECTION)
         	$params = City::prepCity($params);
         
+        if(isset($params["price"]))
+        	$params["price"] = (int)$params["price"];
+
         /*$microformat = PHDB::findOne(PHType::TYPE_MICROFORMATS, array( "key"=> $key));
         $validate = ( !isset($microformat )  || !isset($microformat["jsonSchema"])) ? false : true;
         //validation process based on microformat defeinition of the form
