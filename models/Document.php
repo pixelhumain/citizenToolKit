@@ -681,7 +681,7 @@ class Document {
 		//echo "iciiiiiii/////////////".$upload_dir;
 		$path=self::getDocumentPath($document);
 		$profilBanniereUrl = self::getDocumentFolderUrl($document)."/".$document["name"];
-		list($width, $height) = getimagesize($path);
+		//list($width, $height) = getimagesize($path);
 		//if ($width > $maxWidth || $height >  $maxHeight){
      	$imageUtils = new ImagesUtils($path);
     	$destPathThumb = $upload_dir."/".$document["name"];
