@@ -73,6 +73,8 @@ class Search {
         $indexMin = isset($post['indexMin']) ? $post['indexMin'] : 0;
         $indexMax = isset($post['indexMax']) ? $post['indexMax'] : 30;
         $country = isset($post['country']) ? $post['country'] : "";
+        $price = isset($_POST['price']) ? $_POST['price'] : null;
+        $devise = isset($_POST['devise']) ? $_POST['devise'] : null;
         $latest = isset($_POST['latest']) ? $_POST['latest'] : null;
         $searchSType = !empty($post['searchSType']) ? $post['searchSType'] : "";
 
@@ -150,7 +152,7 @@ class Search {
 	  	}
 		/***********************************  CLASSIFIED   *****************************************/
         if(strcmp($filter, Classified::COLLECTION) != 0 && self::typeWanted(Classified::COLLECTION, $searchType)){
-        	//var_dump($query) ;
+        	//var_dump($query) ; exit;
         	$allRes = array_merge($allRes, self::searchClassified($query, $indexStep, $indexMin));
 	  	}
 	  	/***********************************  POI   *****************************************/
@@ -573,8 +575,7 @@ class Search {
 	public static function searchClassified($query, $indexStep, $indexMin){
         $allClassified = PHDB::findAndSortAndLimitAndIndex(Classified::COLLECTION, $query, 
 	  												array("updated" => -1), $indexStep, $indexMin);
-        $allClassified = PHDB::findAndSortAndLimitAndIndex(Classified::COLLECTION, $query, 
-	  												array("updated" => -1), $indexStep, $indexMin);
+
   		foreach ($allClassified as $key => $value) {
 			if(@$value["parentId"] && @$value["parentType"])
 				$parent = Element::getElementSimpleById(@$value["parentId"], @$value["parentType"]);
