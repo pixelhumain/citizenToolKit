@@ -575,19 +575,12 @@ class Search {
 	/***********************************  CLASSIFIED   *****************************************/
 	public static function searchClassified($query, $indexStep, $indexMin, $priceMin, $priceMax, $devise){
 
-		//if(@$priceMin) $query['$and'][] = array('price' => array('$gt' => (int)$priceMin));
-		//if(@$priceMax) $query['$and'][] = array('price' => array('$lt' => (int)$priceMax));
-		//if(@$priceMin || @$priceMax) $query['$and'][] = array('devise' => $devise);
-
-		if(@$priceMin){
-			$queryPrice = array('$and' =>	array( 	array('price' => array('$gt' => (int)$priceMin)),  
-													array('price' => array('$lt' => (int)$priceMax)),
-													array('devise' => $devise)  
-												)) ;
-			$query = array('$and' => array( $query , $queryPrice) );
-		} 
-		//var_dump($query); exit;
-        $allClassified = PHDB::findAndSortAndLimitAndIndex(Classified::COLLECTION, $query, 
+		$queryPrice = array('$and' =>	array(array('devise' => $devise)) ) ;
+		if(@$priceMin) $queryPrice['$and'][] = array('price' => array('$gte' => (int)$priceMin));
+		if(@$priceMax) $queryPrice['$and'][] = array('price' => array('$lte' => (int)$priceMax));
+		$query = array('$and' => array( $query , $queryPrice) );
+		
+		$allClassified = PHDB::findAndSortAndLimitAndIndex(Classified::COLLECTION, $query, 
 	  												array("updated" => -1), $indexStep, $indexMin);
 
   		foreach ($allClassified as $key => $value) {
