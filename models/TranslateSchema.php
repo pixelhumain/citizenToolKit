@@ -27,13 +27,13 @@ https://schema.org/Person
   "telephone": "(425) 123-4567",
   "url": "http://www.janedoe.com"
 }*/
-//http://127.0.0.1/ph/communecter/data/get/type/citoyens/id/520931e2f6b95c5cd3003d6c/format/schema
+//http://127.0.0.1/ph/communecter/api/citoyens/id/520931e2f6b95c5cd3003d6c/format/schema
 	public static $dataBinding_allPerson = array(
 		"@context"  => "http://schema.org",
 		"@type"		=> "Person",
 		"@id" 		=> array("valueOf"  	=> '_id.$id', 
 							 "type" 	=> "url", 
-							 "prefix"   => "/data/get/type/citoyens/id/",
+							 "prefix"   => "/api/person/get/id/",
 							 "suffix"   => "/format/schema" ),
 	    "name" 		=> array("valueOf" => "name"),
 	  	"url"		=> array("valueOf" => "url")
@@ -44,7 +44,7 @@ https://schema.org/Person
 		"@type"		=> "Person",
 		"@id" 		=> array("valueOf"  	=> '_id.$id', 
 							 "type" 	=> "url", 
-							 "prefix"   => "/data/get/type/citoyens/id/",
+							 "prefix"   => "/api/person/get/id/",
 							 "suffix"   => "/format/schema" ),
 	    "name" 		=> array("valueOf" => "name"),
 	    "address" 	=> array("parentKey"=>"address", 
@@ -52,7 +52,7 @@ https://schema.org/Person
 								"@type" 			=> "PostalAddress", 
 								"@id" 				=> array("valueOf"  	=> 'codeInsee', 
 															 "type" 	=> "url", 
-															 "prefix"   => "/data/get/type/city/insee/",
+															 "prefix"   => "/api/city/insee/",
 															 "suffix"   => "/format/schema" ),
 								"addressLocality"   => array("valueOf" => "addressLocality"),
 								"addressRegion" 	=> array("valueOf" => "region"),
@@ -63,15 +63,16 @@ https://schema.org/Person
 							 "prefix"   => "/"),
 		"jobTitle"	=> array("valueOf" => "positions"),
 		"telephone"	=> array("valueOf" => "phoneNumber"),
-		"url"		=> array("valueOf" => "url")
+		"url"		=> array("valueOf" => "url"),
+		"description"		=> array("valueOf" => "description"),
 	);
 
 	public static $dataBinding_allOrganization = array(
 		"@context"  => "http://schema.org",
 		"@type"		=> "Organization",
-		"id" 		=> array("valueOf"  	=> '_id.$id', 
+		"@id" 		=> array("valueOf"  	=> '_id.$id', 
 							 "type" 	=> "url", 
-							 "prefix"   => "/data/get/type/organizations/id/",
+							 "prefix"   => "/api/organization/get/id/",
 							 "suffix"   => "/format/schema" ),
 	    "name" 		=> array("valueOf" => "name"),
 	  	"url"		=> array("valueOf" => "url")
@@ -80,27 +81,36 @@ https://schema.org/Person
 	public static $dataBinding_organization = array(
 		"@context"  => "http://schema.org",
 		"@type"		=> "Organization",
-		"id" 		=> array("valueOf"  	=> '_id.$id', 
-							 "type" 	=> "url", 
-							 "prefix"   => "/data/get/type/organizations/id/",
+		"@id" 		=> array("valueOf"  	=> '_id.$id', 
+							 "type" 	=> "url",
+							 "prefix"   => "/api/organization/get/id/",
 							 "suffix"   => "/format/schema" ),
 	    "name" 		=> array("valueOf" => "name"),
 	    "address" 	=> array("parentKey"=>"address", 
 	    					 "valueOf" => array(
-								"@type" 			=> "PostalAddress", 
-								"@id" 				=> array("valueOf"  	=> 'codeInsee', 
-															 "type" 	=> "url", 
-															 "prefix"   => "/data/get/type/city/insee/",
-															 "suffix"   => "/format/schema" ),
+								"@type" 			=> "PostalAddress",
+								"addressCountry"   	=> array("valueOf" => "addressCountry"),
+								"addressRegion" 	=> array("valueOf" => "regionName"),
 								"addressLocality"   => array("valueOf" => "addressLocality"),
-								"addressRegion" 	=> array("valueOf" => "region"),
 								"postalCode" 		=> array("valueOf" => "postalCode"),
-				 				"streetAddress" 	=> array("valueOf" => "streetAddress")) ),
-	    "email"		=> array("valueOf" => "email"),
-		"image"		=> array("valueOf" => "img","type" 	=> "url", 
-							 "prefix"   => "/communecter/"),
-		"telephone"	=> array("valueOf" => "phoneNumber"),
-		"url"		=> array("valueOf" => "url")
+				 				"streetAddress" 	=> array("valueOf" => "streetAddress") ) ),
+	    "email"		=> array(	"valueOf" 	=> "email",
+	    						"prefix" 	=> "mailto:"),
+		"image"		=> array(	"valueOf" => "image",
+							 	"type" 	=> "url"),
+		"telephone"	=> array("valueOf" 	=> "phoneNumber"),
+		"url"		=> array("valueOf" 	=> "url"),
+		"sameAs"	=> array("valueOf"  => '_id.$id', 
+							 "type" 	=> "url", 
+							 "prefix"   => "/#organization.detail.id.",
+							 "suffix"   => "" ),
+		"description"		=> array("valueOf" => "description"),
+		"geo" 	=> array("parentKey"=>"geo", 
+    					 "valueOf" => array(
+								"@type" 			=> "GeoCoordinates", 
+								"latitude" 			=> array("valueOf" => "latitude"),
+								"longitude" 		=> array("valueOf" => "longitude")
+			 					)),
 	);
 
 	public static $dataBinding_allProject = array(
@@ -108,7 +118,7 @@ https://schema.org/Person
 		"@type"		=> "CreativeWork",
 		"@id" 		=> array("valueOf"  	=> '_id.$id', 
 							 "type" 	=> "url", 
-							 "prefix"   => "/data/get/type/projects/id/",
+							 "prefix"   => "/api/project/get/id/",
 							 "suffix"   => "/format/schema" ),
 	    "name" 		=> array("valueOf" => "name"),
 	  	"url"		=> array("valueOf" => "url")
@@ -118,7 +128,7 @@ https://schema.org/Person
 		"@type"		=> "CreativeWork",
 		"@id" 		=> array("valueOf"  	=> '_id.$id', 
 							 "type" 	=> "url", 
-							 "prefix"   => "/data/get/type/projects/id/",
+							 "prefix"   => "/api/project/get/id/",
 							 "suffix"   => "/format/schema" ),
 	    "name" 		=> array("valueOf" => "name"),
 	    "address" 	=> array("parentKey"=>"address", 
@@ -126,17 +136,24 @@ https://schema.org/Person
 								"@type" 			=> "PostalAddress", 
 								"@id" 				=> array("valueOf"  	=> 'codeInsee', 
 															 "type" 	=> "url", 
-															 "prefix"   => "/data/get/type/city/insee/",
+															 "prefix"   => "/api/city/insee/",
 															 "suffix"   => "/format/schema" ),
 								"addressLocality"   => array("valueOf" => "addressLocality"),
 								"addressRegion" 	=> array("valueOf" => "region"),
 								"postalCode" 		=> array("valueOf" => "postalCode"),
-				 				"streetAddress" 	=> array("valueOf" => "streetAddress")) ),
+				 				"streetAddress" 	=> array("valueOf" => "streetAddress") ) ),
 	    "email"		=> array("valueOf" => "email"),
-		"image"		=> array("valueOf" => "img","type" 	=> "url", 
-							 "prefix"   => "/communecter/"),
+	    "description"		=> array("valueOf" => "description"),
+		"image"		=> array(	"valueOf" => "image",
+							 	"type" 	=> "url"),
 		"telephone"	=> array("valueOf" => "phoneNumber"),
-		"url"		=> array("valueOf" => "url")
+		"url"		=> array("valueOf" => "url"),
+		"geo" 	=> array("parentKey"=>"geo", 
+    					 "valueOf" => array(
+								"@type" 			=> "GeoCoordinates", 
+								"latitude" 			=> array("valueOf" => "latitude"),
+								"longitude" 		=> array("valueOf" => "longitude")
+			 					)),
 	);
 
 	public static $dataBinding_allEvent = array(
@@ -144,7 +161,7 @@ https://schema.org/Person
 		"@type"		=> "CreativeWork",
 		"@id" 		=> array("valueOf"  	=> '_id.$id', 
 							 "type" 	=> "url", 
-							 "prefix"   => "/data/get/type/projects/id/",
+							 "prefix"   => "/api/event/get/id/",
 							 "suffix"   => "/format/schema" ),
 	    "name" 		=> array("valueOf" => "name"),
 	  	"url"		=> array("valueOf" => "url")
@@ -155,7 +172,7 @@ https://schema.org/Person
 		"@type"		=> "Event",
 		"@id" 		=> array("valueOf"  	=> '_id.$id', 
 							 "type" 	=> "url", 
-							 "prefix"   => "/data/get/type/events/id/",
+							 "prefix"   => "/api/event/get/id/",
 							 "suffix"   => "/format/schema" ),
 	    "name" 		=> array("valueOf" => "name"),
 	    "address" 	=> array("parentKey"=>"address", 
@@ -163,7 +180,7 @@ https://schema.org/Person
 								"@type" 			=> "PostalAddress", 
 								"@id" 				=> array("valueOf"  	=> 'codeInsee', 
 															 "type" 	=> "url", 
-															 "prefix"   => "/data/get/type/city/insee/",
+															 "prefix"   => "/api/city/insee/",
 															 "suffix"   => "/format/schema" ),
 								"addressLocality"   => array("valueOf" => "addressLocality"),
 								"addressRegion" 	=> array("valueOf" => "region"),
@@ -173,10 +190,17 @@ https://schema.org/Person
 		"image"		=> array("valueOf" => "img","type" 	=> "url", 
 							 "prefix"   => "/communecter/"),
 		"telephone"	=> array("valueOf" => "phoneNumber"),
+		"description"		=> array("valueOf" => "description"),
 		"url"		=> array("valueOf" => "url"),
 		"startDate" => array("valueOf" => "startDate"),
 		"endDate" 	=> array("valueOf" => "endDate"),
 		"eventStatus" => array("valueOf" => "eventStatus"),
+		"geo" 	=> array("parentKey"=>"geo", 
+    					 "valueOf" => array(
+								"@type" 			=> "GeoCoordinates", 
+								"latitude" 			=> array("valueOf" => "latitude"),
+								"longitude" 		=> array("valueOf" => "longitude")
+			 					)),
 		"organizers" => array ( 
 						"object" => "links.organizer",
 						"collection" => "organizations" , 
@@ -185,7 +209,7 @@ https://schema.org/Person
 					   		"@id" => array (
 					   			"valueOf"   => '_id.$id',
 					   			"type" 		=> "url", 
-								"prefix"    => "/data/get/type/organizations/id/",
+								"prefix"    => "/api/organizations/id/",
 								"suffix"    => "/format/schema"),
 					   		"name" => array("valueOf" => "name")) 
 					   	),
@@ -197,19 +221,19 @@ https://schema.org/Person
 					   		"@id" => array(
 					   			"valueOf"   => '_id.$id',
 					   			"type" 		=> "url", 
-								"prefix"    => "/data/get/type/citoyens/id/",
+								"prefix"    => "/api/citoyens/id/",
 								"suffix"    => "/format/schema"),
 					   		"name" => array("valueOf" => "name"))
 					   	 ),
 	);
 
-//http://127.0.0.1/ph/communecter/data/get/type/cities/insee/97414/format/schema
+//http://127.0.0.1/ph/communecter/api/cities/insee/97414/format/schema
 public static $dataBinding_city = array(
 		"@context"  => "http://schema.org",
 		"@type"		=> "City",
 		"@id" 		=> array("valueOf"  => 'insee', 
 							 "type" 	=> "url", 
-							 "prefix"   => "/data/get/type/cities/insee/",
+							 "prefix"   => "/api/cities/insee/",
 							 "suffix"   => "/format/schema" ),
 	    "name" 		=> array("valueOf" => "name"),
 	    "alternateName" => array("valueOf" => "alternateName"),
@@ -217,7 +241,7 @@ public static $dataBinding_city = array(
 								"@type" 			=> "PostalAddress", 
 								"@id" 				=> array("valueOf"  => 'insee', 
 															 "type" 	=> "url", 
-															 "prefix"   => "/data/get/type/city/insee/",
+															 "prefix"   => "/api/city/insee/",
 															 "suffix"   => "/format/schema" ),
 								"addressLocality"   => array("valueOf" => "addressLocality"),
 								"addressRegion" 	=> array("valueOf" => "region"),

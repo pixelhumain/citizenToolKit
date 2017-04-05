@@ -32,7 +32,7 @@ class Api {
     }
 
 
-    public static function getData($bindMap, $format = null, $type, $id = null, $limit=50, $index=0, $tags = null, $multiTags=null , $key = null, $insee = null){
+    public static function getData($bindMap, $format = null, $type, $id = null, $limit=50, $index=0, $tags = null, $multiTags=null , $key = null, $insee = null, $geoShape = null){
         
         // Create params for request
         $params = array();
@@ -59,9 +59,18 @@ class Api {
 
         if($index < 0) $index = 0 ;
         if($type != City::COLLECTION) $params["preferences.isOpenData"] = true ;
-
+        
         $data = PHDB::findAndLimitAndIndex($type , $params, $limit, $index);
         $data = self::getUrlImage($data, $type);
+
+        if($type == City::COLLECTION) {
+            if( @$geoShape != "1" ){
+                foreach ($data as $key => $value) {
+                    unset($value["geoShape"]);
+                    $data[$key] = $value ; 
+                }
+            }
+        }
 
         if(Person::COLLECTION == $type){
             foreach ($data as $key => $value) {
@@ -70,28 +79,40 @@ class Api {
             }
         }
 
+        $resData = ((!empty($data) && !empty($bindMap) )?Translate::convert($data , $bindMap):$data);
         // create JSON
         if(empty($id)){
             $meta["limit"] = $limit;
             $server = ((isset($_SERVER['HTTPS']) AND (!empty($_SERVER['HTTPS'])) AND strtolower($_SERVER['HTTPS'])!='off') ? 'https://' : 'http://').$_SERVER['HTTP_HOST'];
             $meta["next"] = $server.Yii::app()->createUrl("/api/".Element::getControlerByCollection($type)."/get/limit/".$limit."/index/".($index+$limit));
 
-            if(@$format)
-                $meta["format"] = "/format/".$format ;
+           
             if($index != 0){
                 $newIndex = $index - $limit;
                 if($newIndex < 0)
                     $newIndex = 0 ;
                 $meta["previous"] = $server.Yii::app()->createUrl("/api/".Element::getControlerByCollection($type)."/get/limit/".$limit."/index/".$newIndex) ;
             }
+
+             if(@$format){
+                $meta["next"] .= "/format/".$format ;
+                if(@$meta["previous"])
+                 $meta["previous"] .= "/format/".$format ;
+             }
+                
+
+            $result["meta"] = $meta ;
+
+            if($format != "schema")
+                $result["entities"] = $resData;
+            else{
+                foreach ($resData as $key => $value) {
+                    $result["@graph"][] = $value ;
+                }
+            }
         }else{
-            $meta["limit"] = 1;
-
+            $result = $resData[$id];
         }
-
-        $result["meta"] = $meta ;
-        $result["entities"] = ((!empty($data) && !empty($bindMap) )?Translate::convert($data , $bindMap):$data);
-
         return $result;
     }
     

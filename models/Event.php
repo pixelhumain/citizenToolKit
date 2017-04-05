@@ -116,13 +116,15 @@ class Event {
 
 	/**
 	 * Retrieve a simple event (id, name, type profilImageUrl) by id from DB
-	 * @param String $id of the event
+	 * @param String $id of the event , $orga (Object) is all datas of element, moreInfo (Boolean) for get links and creator
 	 * @return array with data id, name, type profilImageUrl
 	 */
-	public static function getSimpleEventById($id) {
+	public static function getSimpleEventById($id, $event=null, $moreInfo = false) {
 		
 		$simpleEvent = array();
-		$event = PHDB::findOneById( self::COLLECTION ,$id, array("id" => 1, "name" => 1, "type" => 1,  "shortDescription" => 1, "description" => 1, "address" => 1, "geo" => 1, "tags" => 1, "profilImageUrl" => 1, "profilThumbImageUrl" => 1, "profilMarkerImageUrl" => 1, "profilMediumImageUrl" => 1, "startDate" => 1, "endDate" => 1, "addresses"=>1, "allDay" => 1));
+
+		if(!$event)
+			$event = PHDB::findOneById( self::COLLECTION ,$id, array("id" => 1, "name" => 1, "type" => 1,  "shortDescription" => 1, "description" => 1, "address" => 1, "geo" => 1, "geoPosition" => 1,"tags" => 1, "profilImageUrl" => 1, "profilThumbImageUrl" => 1, "profilMarkerImageUrl" => 1, "profilMediumImageUrl" => 1, "startDate" => 1, "endDate" => 1, "addresses"=>1, "allDay" => 1));
 		if(!empty($event)){
 			$simpleEvent["id"] = $id;
 			$simpleEvent["_id"] = $event["_id"];
@@ -143,11 +145,17 @@ class Event {
 			}
 			$simpleEvent["type"] = @$event["type"];
 			$simpleEvent["geo"] = @$event["geo"];
+			//$simpleEvent["geoPosition"] = @$event["geoPosition"];
 			$simpleEvent["tags"] = @$event["tags"];
 			$simpleEvent["shortDescription"] = @$event["shortDescription"];
 			$simpleEvent["description"] = @$event["description"];
 			$simpleEvent["addresses"] = @$event["addresses"];
 			$simpleEvent["allDay"] = @$event["allDay"];
+
+			if($moreInfo == true){
+				$simpleEvent["links"] = @$event["links"];
+				$simpleEvent["creator"] = @$event["creator"];
+			}
 			
 			$simpleEvent = array_merge($simpleEvent, Document::retrieveAllImagesUrl($id, self::COLLECTION, $simpleEvent["type"], $event));
 			

@@ -1,8 +1,5 @@
 <?php 
 class Network {
-
-	const COLLECTION = "network";
-	const CONTROLLER = "network";
 	
 	/**
 	 * Récupère le fichier de configuration du network et retourne en tableau json
@@ -16,11 +13,14 @@ class Network {
 		/*if(@$_GET["network"]) {
             Yii::app()->params['networkParams'] = $_GET["network"];
         }*/
-        
-        if (empty($networkParams)) {
-			$configPath = "default";
-		} else {
-			$configPath = $networkParams;
+        if (!empty(Yii::app()->params['networkConfigurationFile'])) {
+        	$configPath = Yii::app()->params['networkConfigurationFile'];
+        } else {
+	        if (empty($networkParams)) {
+				$configPath = "default";
+			} else {
+				$configPath = $networkParams;
+			}
 		}
 
 		if ( stripos($configPath, "http") === false ) {
@@ -36,6 +36,7 @@ class Network {
     		throw new CHttpException(404, "Error Reading the network configuration file.");
 		}
 
-		return json_decode($json, true);
+		$params = json_decode($json, true);
+		return $params;
 	}
 }
