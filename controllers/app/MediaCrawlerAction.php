@@ -238,9 +238,9 @@ class MediaCrawlerAction extends CAction
               
               "OUTREMERS360" => 
                   array( "NEWS" => 
-                          array("urls" =>  array(//"http://outremers360.com/bassins/pacifique/",
-                                                 //"http://outremers360.com/category/societe/",
-                                                 //"http://outremers360.com/category/planete/",
+                          array("urls" =>  array("http://outremers360.com/bassins/pacifique/",
+                                                 "http://outremers360.com/category/societe/",
+                                                 "http://outremers360.com/category/planete/",
                                                  "http://outremers360.com/category/sciences/"),
                                 "elementUK" => ".entry-list li.type-post",
                                 "href" => ".entry-item .entry-title a",
@@ -376,18 +376,17 @@ class MediaCrawlerAction extends CAction
       }
 
       if($src == "OUTREMERS360"){
-          //error_log("DATE OUTREMERS360 : ".$date);
-          $dateS = explode(" ", $date);
-          error_log("DATE OUTREMERS360 XXX : ".$dateS[1]);
-          $month = $this->getMonthNum($dateS[1]);         
-              
-          $date = $dateS[2]."-".$month."-".$dateS[0]." 00:00:00"; 
-          $date = new DateTime($date);
-          //echo $date->format('Y-m-d H:i:s'); //exit;
-
-          //error_log("DATE OUTREMERS360 : ".$date->format('Y-m-d H:i:s') );
           
-          return $date->format('Y-m-d H:i:s');
+          $dateS = explode(" ", $date);
+          $month = $this->getMonthNum($dateS[1]);         
+          
+          $timeNow = new DateTime();
+          $timeNow = $timeNow->format('H:i:s');
+    
+          $date = $dateS[2]."-".$month."-".$dateS[0]." ".$timeNow; 
+          $date = new DateTime($date);
+          
+          return $date->format('Y-m-d H:i:s')."+11:00";
       }
 
       return $date;
