@@ -515,7 +515,7 @@ class Element {
 					$verbActivity = ActStr::VERB_UPDATE ;
 				ActivityStream::saveActivityHistory($verbActivity, $id, $collection, $dataFieldName, $fieldValue);
 			}
-			$res = array("result"=>true,"msg"=>Yii::t(Element::getControlerByCollection($collection),"The ".Element::getControlerByCollection($collection)." has been updated"), "value" => $fieldValue);
+			$res = array("result"=>true,"msg"=>Yii::t(Element::getControlerByCollection($collection),"The ".Element::getControlerByCollection($collection)." has been updated"), "fieldName" => $fieldName, "value" => $fieldValue);
 
 			if(isset($firstCitizen))
 				$res["firstCitizen"] = $firstCitizen ;
@@ -1492,6 +1492,111 @@ class Element {
 		}
 	}
 
+	public static function getAndCheckUrl($url){
+		$needles = array("http://", "https://");
+		$find=false;
+	    foreach($needles as $needle) {
+	    	if(stripos($url, $needle) == 0)
+	    		$find = true;
+	    }
+	    if(!$find)
+	    	$url="http://".$url;
+	    return $url ;
+	}
+
+	public static function updateBlock($params){
+		$block = $params["block"];
+		$collection = $params["typeElement"];
+		$id = $params["id"];
+		$res = array();
+		if($block == "contact"){
+			if(isset($params["email"]))
+				$res[] = self::updateField($collection, $id, "email", $params["email"]);
+			if(isset($params["url"]))
+				$res[] = self::updateField($collection, $id, "url", self::getAndCheckUrl($params["url"]));
+			if(isset($params["birthDate"]))
+				$res[] = self::updateField($collection, $id, "birthDate", $params["birthDate"]);
+			if(isset($params["fixe"]))
+				$res[] = self::updateField($collection, $id, "fixe", $params["fixe"]);
+			if(isset($params["fax"]))
+				$res[] = self::updateField($collection, $id, "fax", $params["fax"]);
+			if(isset($params["mobile"]))
+				$res[] = self::updateField($collection, $id, "mobile", $params["mobile"]);
+		}else if($block == "info"){
+			if(isset($params["name"]))
+				$res[] = self::updateField($collection, $id, "name", $params["name"]);
+			if(isset($params["username"]))
+				$res[] = self::updateField($collection, $id, "username", $params["username"]);
+			if(isset($params["avancement"]))
+				$res[] = self::updateField($collection, $id, "avancement", $params["avancement"]);
+			if(isset($params["tags"]))
+				$res[] = self::updateField($collection, $id, "tags", $params["tags"]);
+			if(isset($params["type"]))
+				$res[] = self::updateField($collection, $id, "type", $params["type"]);
+			if(isset($params["telegramAccount"]))
+				$res[] = self::updateField($collection, $id, "telegramAccount", $params["telegramAccount"]);
+			if(isset($params["facebookAccount"]))
+				$res[] = self::updateField($collection, $id, "facebookAccount", self::getAndCheckUrl($params["facebookAccount"]));
+			if(isset($params["twitterAccount"]))
+				$res[] = self::updateField($collection, $id, "twitterAccount", self::getAndCheckUrl($params["twitterAccount"]));
+			if(isset($params["gitHubAccount"]))
+				$res[] = self::updateField($collection, $id, "gitHubAccount", self::getAndCheckUrl($params["gitHubAccount"]));
+			if(isset($params["gpplusAccount"]))
+				$res[] = self::updateField($collection, $id, "url", self::getAndCheckUrl($params["gpplusAccount"]));
+			if(isset($params["skypeAccount"]))
+				$res[] = self::updateField($collection, $id, "url", self::getAndCheckUrl($params["skypeAccount"]));
+		}else if($block == "when"){
+			if(isset($params["allDay"]))
+				$res[] = self::updateField($collection, $id, "allDay", (($params["allDay"] == "true") ? true : false));
+			if(isset($params["startDate"]))
+				$res[] = self::updateField($collection, $id, "startDate", $params["startDate"]);
+			if(isset($params["endDate"]))
+				$res[] = self::updateField($collection, $id, "endDate", $params["endDate"]);
+		}else if($block == "toMarkdown"){
+			$res[] = self::updateField($collection, $id, "description", $params["value"]);
+			$res[] = self::updateField($collection, $id, "descriptionHTML", null);
+		}else if($block == "description"){
+			if(isset($params["description"]))
+				$res[] = self::updateField($collection, $id, "description", $params["description"]);
+			if(isset($params["shortDescription"]))
+				$res[] = self::updateField($collection, $id, "shortDescription", $params["shortDescription"]);
+		}
+		if(Import::isUncomplete($id, $collection)){
+			Import::checkWarning($id, $collection, Yii::app()->session['userId'] );
+		}
+		$result = array("result"=>true);
+		$resultGoods = array();
+		$resultErrors = array();
+		$values = array();
+		$msg = "";
+		$msgError = "";
+		foreach ($res as $key => $value) {
+			if($value["result"] == true){
+				if($msg != "")
+					$msg .= ", ";
+				$msg .= $value["fieldName"];
+				$values[$value["fieldName"]] = $value["value"];
+			}else{
+				if($msgError != "")
+					$msgError .= ". ";
+				$msgError .= $value["mgs"];
+			}
+		}
+		if($msg != ""){
+			$resultGoods["result"]=true;
+			$resultGoods["msg"]=Yii::t("common", "The following attributs has been updated : ".$msg);
+			$resultGoods["values"] = $values ;
+			$result["resultGoods"] = $resultGoods ;
+			$result["result"] = true ;
+		}
+		if($msgError != ""){
+			$resultErrors["result"]=false;
+			$resultErrors["msg"]=Yii::t("common", $msgError);
+			$result["resultErrors"] = $resultErrors ;
+		}
+		return $result;
+	}
+
 	public static function myNetwork($id, $type){
 		$myN = json_decode(file_get_contents("../../modules/communecter/data/myNetwork.json", FILE_USE_INCLUDE_PATH), true);
 		if($type == Person::COLLECTION || $type == Organization::COLLECTION || $type == Event::COLLECTION || $type == Project::COLLECTION){
@@ -1509,7 +1614,5 @@ class Element {
 
 		return $urlNetwork;
 	}
-
-	
 
 }
