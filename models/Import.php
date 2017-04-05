@@ -466,13 +466,16 @@ class Import
                                 $element["url"] = "/#".Element::getControlerByCollection($typeElement).".detail.id.".$res["id"] ;
                                 $element["id"] = $res["id"] ;
                             }
-                            
+                          
                         }else{
                             $element["name"] = $exist["element"]["name"];
                             $element["info"] = "L'élément existes déjà";
                             $element["url"] = "/#".Element::getControlerByCollection($typeElement).".detail.id.".(String)$exist["element"]["_id"] ;
                             $element["type"] = $typeElement ;
                             $element["id"] = (String)$exist["element"]["_id"] ;
+                            if(!empty($value["source"]["key"]))
+                            	self::addKey($exist["element"],$typeElement, $value["source"]["key"]);
+
                         }
                         
                     }else{
@@ -657,5 +660,22 @@ class Import
                 Event::updateOrganizationField($idEntity, "state", true, $userId ); 
         }
     } 
+
+
+
+    public static function addKey($element,$collection, $key){
+    	if(!empty($element['source'])){
+    		if(!empty($key) && !in_array($key, $element['source']['keys']))
+				$element['source']['keys'][] = $key;
+			
+    	}else{
+    		if(!empty($key)){
+				$element['source']['keys'][] = $key;
+				$element['source']['key'] = "communecter";
+			}
+    	}
+    	Element::updateField($collection, $element["_id"], 'source', $element['source']);
+    }
+
 }
 

@@ -363,7 +363,23 @@ class Menu {
 	                    "showElementPad('directory')", $controller, "directory","communityBtn btn-menu-element btn-menu-element-directory");
 	        }
 	    }
-        
+
+        if($type != Person::COLLECTION || 
+                        Preference::showPreference($element, $type, "directory", Yii::app()->session["userId"])) {  
+                
+                $urlNetwork = Element::getUrlMyNetwork((string)$element["_id"], $type);
+                
+                self::entry("left", 'href',
+                            "Le network est une carte où vous retrouvez tous les éléments que vous avez créés, dont vous êtes membre ou admin.",
+                            "Mon Network" ,
+                        'globe',
+                        $urlNetwork, $controller, "directory","btn-menu-element btn-menu-element-network");    
+
+                    /*<a href='<?php  echo $urlNetwork ;?>' target="_blank" id="myNetwork" class='btn btn-sm btn-default tooltips' data-toggle="tooltip" data-placement="bottom" title="Le network est une carte où vous retrouvez tous les éléments que vous avez créés, dont vous êtes membre ou admin." alt="">
+                        <i class='fa fa-globe'></i> <span class="hidden-sm hidden-xs">Mon Network</span>
+                    </a>*/
+
+        }
         
 
         if( $type == Event::COLLECTION && @$element["links"] && @$element["links"]["subEvents"])

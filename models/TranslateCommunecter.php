@@ -183,6 +183,17 @@ class TranslateCommunecter {
 																"prefix"   => "/api/organization/get/id/",
 																"suffix"   => "" ),
 	    						"website" 		=> array(	"valueOf" => 'url'))),
+	    "geo" 	=> array("parentKey"=>"geo", 
+	    					 "valueOf" => array(
+									"@type" 			=> "GeoCoordinates", 
+									"latitude" 			=> array("valueOf" => "latitude"),
+									"longitude" 		=> array("valueOf" => "longitude")
+				 					)),
+	   	"geoPosition" 	=> array("parentKey"=>"geoPosition", 
+	    					 "valueOf" => array(
+									"@type" 			=> "Point", 
+									"coordinates" 			=> array("valueOf" => "coordinates")
+				 					)),
 	);
 
 	public static $dataBinding_organization = array(
@@ -411,7 +422,18 @@ class TranslateCommunecter {
 																"type" 	=> "url", 
 																"prefix"   => "/api/event/get/id/",
 																"suffix"   => "" ),
-	    						"website" 		=> array(	"valueOf" => 'url')))
+	    						"website" 		=> array(	"valueOf" => 'url'))),
+	    "geo" 	=> array("parentKey"=>"geo", 
+	    					 "valueOf" => array(
+									"@type" 			=> "GeoCoordinates", 
+									"latitude" 			=> array("valueOf" => "latitude"),
+									"longitude" 		=> array("valueOf" => "longitude")
+				 					)),
+	   	"geoPosition" 	=> array("parentKey"=>"geoPosition", 
+	    					 "valueOf" => array(
+									"@type" 			=> "Point", 
+									"coordinates" 			=> array("valueOf" => "coordinates")
+				 					)),
 	);
 
 	public static $dataBinding_event = array(
@@ -541,6 +563,17 @@ class TranslateCommunecter {
 																"prefix"   => "/api/project/get/id/",
 																"suffix"   => "" ),
 							    "website" 		=> array(	"valueOf" => 'url'))),
+	    "geo" 	=> array("parentKey"=>"geo", 
+	    					 "valueOf" => array(
+									"@type" 			=> "GeoCoordinates", 
+									"latitude" 			=> array("valueOf" => "latitude"),
+									"longitude" 		=> array("valueOf" => "longitude")
+				 					)),
+	   	"geoPosition" 	=> array("parentKey"=>"geoPosition", 
+	    					 "valueOf" => array(
+									"@type" 			=> "Point", 
+									"coordinates" 			=> array("valueOf" => "coordinates")
+				 					)),
 	);
 
 	public static $dataBinding_project = array(

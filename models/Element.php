@@ -1098,12 +1098,13 @@ class Element {
 		//$paramsImport = (empty($params["paramsImport"])?null:$params["paramsImport"]);
 		$paramsLinkImport = ( empty($params["paramsImport"] ) ? null : $params["paramsImport"]);
 
-		unset($params["paramsImport"]);
+		
         unset($params['collection']);
         unset($params['key']);
         $params = self::prepData( $params );
+        unset($params["paramsImport"]);
         unset($params['id']);
-
+		
         $postParams = array();
         if( !in_array($collection, array("poi")) && @$params["urls"] && @$params["medias"] ){
         	$postParams["medias"] = $params["medias"];
@@ -1253,8 +1254,14 @@ class Element {
 				$params["allDay"] = false;
 			}
 		}
-		if(isset($params["name"])) 
-	    	$params["name"] = $params["name"];
+
+		//If moderation and not import mode : the element is set as disable 
+		if (@Yii::app()->params['moderation'] == true && empty($params["paramsImport"])) {
+			$params["disabled"] = true;
+		}
+
+		//if(isset($params["disabled"]) && ($params["disabled"] == "true" || $params["disabled"] == true) ) 
+	    //	$params["disabled"] = true;
 	
 		//TODO SBAR - Manage elsewhere (maybe in the view)
 		//Manage the event startDate and endDate format : 
@@ -1484,5 +1491,25 @@ class Element {
 			}
 		}
 	}
+
+	public static function myNetwork($id, $type){
+		$myN = json_decode(file_get_contents("../../modules/communecter/data/myNetwork.json", FILE_USE_INCLUDE_PATH), true);
+		if($type == Person::COLLECTION || $type == Organization::COLLECTION || $type == Event::COLLECTION || $type == Project::COLLECTION){
+			$myN["request"]["sourceKey"][0] = $id."@".$type ;
+
+		}
+
+		return $myN;
+	}
+
+	public static function getUrlMyNetwork($id, $type) {
+		$server = ((isset($_SERVER['HTTPS']) AND (!empty($_SERVER['HTTPS'])) AND strtolower($_SERVER['HTTPS'])!='off') ? 'https://' : 'http://').$_SERVER['HTTP_HOST'];
+		$jsonNetwork = $server.Yii::app()->createUrl("/communecter/element/network/id/".$id."/type/".$type);
+		$urlNetwork = $server.Yii::app()->createUrl("/?network=".$jsonNetwork);
+
+		return $urlNetwork;
+	}
+
+	
 
 }
