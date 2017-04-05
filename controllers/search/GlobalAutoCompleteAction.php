@@ -44,13 +44,13 @@ class GlobalAutoCompleteAction extends CAction
         $tmpTags = array();
         if(strpos($search, "#") > -1){
         	$searchTagText = substr($search, 1, strlen($search)); 
-        	$query = array( "tags" => array('$in' => array(new MongoRegex("/^".$searchTagText."$/i")))) ; 
-        	$tmpTags[] = new MongoRegex("/^".$searchTagText."$/i");
+        	$query = array( "tags" => array('$in' => array(new MongoRegex("/^".self::accentToRegex($searchTagText)."$/i")))) ; 
+        	//$tmpTags[] = new MongoRegex("/^".$searchTagText."$/i");
   		}
   		if(!empty($searchTag))
   			foreach ($searchTag as $value) { 
   				if($value != "")
-	  				$tmpTags[] = new MongoRegex("/^".$value."$/i");
+	  				$tmpTags[] = new MongoRegex("/^".self::accentToRegex($value)."$/i");
 	  		}
   		if(count($tmpTags)){
   			$query = array('$and' => array( $query , array("tags" => array('$in' => $tmpTags)))) ;
@@ -128,7 +128,7 @@ class GlobalAutoCompleteAction extends CAction
   		if(isset($allQueryLocality) && is_array($allQueryLocality))
   			$query = array('$and' => array($query, $allQueryLocality));
   		
-
+  		//var_dump($query);
 	    //$res = array();
 	    $allRes = array();
 	    //var_dump($query); return;
@@ -335,7 +335,7 @@ class GlobalAutoCompleteAction extends CAction
         	$query = array($parentRow => array('$in' => $allRoomsId) );
         	
         	if(count($tmpTags))
-        	$query = array('$and' => array( $query , array("tags" => array('$in' => $tmpTags)))) ;
+        		$query = array('$and' => array( $query , array("tags" => array('$in' => $tmpTags)))) ;
         	
         	//echo "search : ". $search." - ".(string)strpos($search, "#");
         	if($search != "" && strpos($search, "#") === false){

@@ -257,8 +257,7 @@ class SimplyAutoCompleteAction extends CAction
 	    //     	$query = array('$and' => array($query, $queryLocality ) );
 		   //  }
 
-	  	}	
-
+	  	}
 		    //$res = array();
 		    $allRes = array();
 	        /***********************************  PERSONS   *****************************************/
