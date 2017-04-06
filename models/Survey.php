@@ -134,6 +134,7 @@ class Survey
      */
     public static function deleteAllSurveyOfTheRoom($actionRoomId, $userId) {
     	$canDelete = ActionRoom::canAdministrate($userId, $actionRoomId);
+		$res = array("result" => true);
 		if ($canDelete) {
 			$where = array("survey" => $actionRoomId);
 			$surveys = PHDB::find(self::COLLECTION, $where);
