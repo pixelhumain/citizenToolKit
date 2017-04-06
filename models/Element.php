@@ -425,7 +425,7 @@ class Element {
 			}
 		}
 		
-		else if ($dataFieldName == "birthDate") {
+		/*else if ($dataFieldName == "birthDate") {
 			date_default_timezone_set('UTC');
 			$dt = DateTime::createFromFormat('Y-m-d H:i', $fieldValue);
 			if (empty($dt)) {
@@ -434,7 +434,7 @@ class Element {
 			$newMongoDate = new MongoDate($dt->getTimestamp());
 			$set = array($dataFieldName => $newMongoDate);
 		//Date format
-		} else if ($dataFieldName == "startDate" || $dataFieldName == "endDate") {
+		}*/ else if ($dataFieldName == "startDate" || $dataFieldName == "endDate" || $dataFieldName == "birthDate") {
 			date_default_timezone_set('UTC');
 			$dt = DataValidator::getDateTimeFromString($fieldValue, $dataFieldName);
 			$newMongoDate = new MongoDate($dt->getTimestamp());
