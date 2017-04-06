@@ -905,7 +905,7 @@ class Menu {
 
             if( @$room["status"] != ActionRoom::STATE_ARCHIVED )
                 self::entry("left", 'onclick', 
-                        Yii::t( "common", 'Create an Action for your community'),
+                        Yii::t( "rooms", 'Create an Action for your community',null,Yii::app()->controller->module->id),
                         Yii::t( "rooms", 'Add an Action',null,Yii::app()->controller->module->id), 'plus',
                         //"loadByHash('#rooms.editAction.room.".$id."')",
                         "openForm('action','sub')",
@@ -924,8 +924,9 @@ class Menu {
         }
         // Help
         //-----------------------------
+        error_log("Message : ".htmlspecialchars(Yii::t( "rooms", "Understanding action list",null,Yii::app()->controller->module->id), ENT_QUOTES));
         self::entry("left", 'html', 
-                    Yii::t( "rooms", 'Understanding action list',null,Yii::app()->controller->module->id),
+                    htmlspecialchars(Yii::t( "rooms", "Understanding action list",null,Yii::app()->controller->module->id), ENT_QUOTES),
                     '', 'question-circle',
                     '<a href="javascript:;" data-id="explainSurveys" class="tooltips btn btn-default explainLink"',null,null);
     }
@@ -976,7 +977,7 @@ class Menu {
         // Help
         //-----------------------------
         self::entry("right", 'html', 
-                    Yii::t( "common", 'Understanding actions'),
+                    Yii::t( "common", "Understanding actions"),
                     '', 'question-circle',
                     '<a href="javascript:;" data-id="explainActions" class="tooltips btn btn-default explainLink"',null,null);
                       
