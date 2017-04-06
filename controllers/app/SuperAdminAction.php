@@ -8,8 +8,8 @@ class SuperAdminAction extends CAction
     {
         $controller = $this->getController();
         $params = array();
-    	var_dump($action);
-       /* if(Role::isSuperAdmin(Role::getRolesUserId(@Yii::app()->session["userId"]) ) ) {
+    	
+        if(Role::isSuperAdmin(Role::getRolesUserId(@Yii::app()->session["userId"]) ) ) {
         	if($action == "main")		{ $this->main(); 	      return; }
             if($action == "web")        { $this->web();           return; }
             if($action == "live")       { $this->live();          return; }
@@ -24,7 +24,7 @@ class SuperAdminAction extends CAction
         if(Yii::app()->request->isAjaxRequest)
             echo $controller->renderPartial("admin/main",$params,true);
         else 
-            $controller->render("admin/main",$params);*/
+            $controller->render("admin/main",$params);
     }
 
     private function index(){
