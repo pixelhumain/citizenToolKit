@@ -129,6 +129,10 @@ class DirectoryAction extends CAction
        	//	$params["manage"] = 1;        	
 
         $params["openEdition"] = Authorisation::isOpenEdition($id, $type, @$element["preferences"]);
+        
+        //manage delete in progress status
+        $params["deletePending"] = Element::isElementStatusDeletePending($type, $id);
+
         $page = "directory2";
         if(Yii::app()->request->isAjaxRequest){
             echo $controller->renderPartial($page,$params,true);
