@@ -116,7 +116,7 @@ class ActionRoom {
         $res = array( "result" => false, "msg" => "Something went wrong : contact your admin !");;
      	
         $actionRoom = self::getById($id);
-        if (empty($actionRoom)) return array("result" => false, "the action room does not exist");
+        if (empty($actionRoom)) return array("result" => false, "The action room does not exist");
         
         if (! self::canAdministrate($userId, $id)) return array("result" => false, "msg" => "You must be admin of the parent of this room if you want delete it");
         
@@ -131,7 +131,7 @@ class ActionRoom {
             //Delete all actions of this action room
             $resChildren = Actions::deleteAllActionsOfTheRoom($id, $userId);
         } else {
-            $resChildren = array("result" => false, "msg" => "This delete of this type of action room '".@$actionRoom["type"]."' is not yet implemented.");
+            $resChildren = array("result" => false, "msg" => "The delete of this type of action room '".@$actionRoom["type"]."' is not yet implemented.");
         }
 
         if (isset($resChildren["result"]) && !$resChildren["result"]) return $resChildren;
