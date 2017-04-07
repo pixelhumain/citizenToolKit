@@ -581,14 +581,13 @@ class Search {
 	/***********************************  CLASSIFIED   *****************************************/
 	public static function searchClassified($query, $indexStep, $indexMin, $priceMin, $priceMax, $devise){
 
-		$queryPrice = array('$and' =>	array()) ;
 		
-		if(@$priceMin || @$priceMax)
 		$queryPrice = array('$and' =>	array(array('devise' => $devise)) ) ;
-		
+				
 		if(@$priceMin) $queryPrice['$and'][] = array('price' => array('$gte' => (int)$priceMin));
 		if(@$priceMax) $queryPrice['$and'][] = array('price' => array('$lte' => (int)$priceMax));
-		$query = array('$and' => array( $query , $queryPrice) );
+		if(@$priceMin || @$priceMax) 
+			$query = array('$and' => array( $query , $queryPrice) );
 		
 		$allClassified = PHDB::findAndSortAndLimitAndIndex(Classified::COLLECTION, $query, 
 	  												array("updated" => -1), $indexStep, $indexMin);
