@@ -299,37 +299,56 @@ class Thing {
 		return $data; 
 	}
 	//rollup valeur en minute 1440: 24h (en cours)
-	public static function getSCKAvgWithRollupPeriod($data,$rollup=600)
+	public static function getSCKAvgWithRollupPeriod($data,$rollup=60)
 	{
 		$rollupSec=$rollup*60;
 		$i=0;
+		$startRollup=0;
 		$avgData=array();
 		$avgValue=array('temp'=>0,'hum'=>0,'light'=>0,'bat'=>0,'panel'=>0,'co' =>0,'no2' =>0,'noise' =>0, 'nets'=>0,'timestamp'=>0);
 		
 		foreach ($data as $record) {
-
+			
 			//record['temp'], record['hum'],record['light'], record['bat'], record['panel'],record['co'],record['no2'], record['noise'], record['nets'], record['timestamp']
 			$timestamp = strtotime($record['timestamp']);
-			$avgTemp=
 
-
+			$avgValue['temp']	+=$record['temp'];
+			$avgValue['hum']	+=$record['hum'];
+			$avgValue['light']	+=$record['light'];
+			$avgValue['bat']	+=$record['bat'];
+			$avgValue['panel']	+=$record['panel'];
+			$avgValue['co']		+=$record['co'];
+			$avgValue['no2']	+=$record['no2'];
+			$avgValue['noise']	+=$record['noise'];
+			$avgValue['nets']	+=$record['nets'];
 			
 			if($i==0){
 				$startRollup=$timestamp;
-
+				$avgValue['timestamp']=$record['timestamp'];
+				$i+=1;
 
 			}else if($timestamp>=($startRollup+$rollupSec)){
-//ici mettre le timestamp
-
+				$avgValue['temp'] /=($i+1);	
+				$avgValue['hum']  /=($i+1);
+				$avgValue['light']/=($i+1); 
+				$avgValue['bat']  /=($i+1);
+				$avgValue['panel']  /=($i+1);
+				$avgValue['co']   /=($i+1); 
+				$avgValue['no2']  /=($i+1); 
+				$avgValue['noise']/=($i+1);
+				$avgValue['nets'] /=($i+1);
+				
+				$avgValue['timestamp']=$record['timestamp'];
+				$avgData[] = $avgValue;
+				
 				$i=0;
-			}
+				$avgValue=array_replace($avgValue, array('temp'=>0,'hum'=>0,'light'=>0,'bat'=>0,'panel'=>0,'co' =>0,'no2' =>0,'noise' =>0, 'nets'=>0,'timestamp'=>0));
+			} else { $i+=1; }
 
-			strtotime($record['timestamp'];
+			//strtotime($record['timestamp'];
 			//timestamp sur le dernier record
-			
-
-			
 		}
+		return $avgData;
 		
 	}
 
