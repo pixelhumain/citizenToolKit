@@ -873,8 +873,8 @@ class Element {
 				foreach ($superAdmins as $id => $aPerson) {
 					array_push($adminsId, $id);
 				}
-
-				$res = $self::goElementDeletePending($elementType, $elementId, $reason, $adminsId, $userId);
+				error_log("Y a pas d'admin !");
+				$res = self::goElementDeletePending($elementType, $elementId, $reason, $adminsId, $userId);
 			}
 
 			//If at least one admin => ask if one of the admins want to stop the deletion. The element is mark as pending deletion. After X days, if no one block the deletion => the element if deleted
