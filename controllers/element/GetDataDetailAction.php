@@ -10,6 +10,28 @@ class GetDataDetailAction extends CAction {
     	$contextMap = array();
 		$element = Element::getByTypeAndId($type, $id);
 
+		if($dataName == "follows"){
+			if(isset($element["links"]["follows"])){
+				foreach ($element["links"]["follows"] as $keyFollow => $value){
+					//$need = Need::getSimpleNeedById($keyFollow);
+					$follow = Element::getByTypeAndId($value["type"], $keyFollow);
+					$follow["type"] = $value["type"];
+	           		$contextMap[$keyFollow] = $follow;
+				}
+			}
+		}
+
+		if($dataName == "followers"){
+			if(isset($element["links"]["followers"])){
+				foreach ($element["links"]["followers"] as $keyFollow => $value){
+					//$need = Need::getSimpleNeedById($keyFollow);
+					$follow = Element::getByTypeAndId($value["type"], $keyFollow);
+					$follow["type"] = $value["type"];
+	           		$contextMap[$keyFollow] = $follow;
+				}
+			}
+		}
+
 		if($dataName == "links"){
 			$links=@$element["links"];
 			$contextMap = Element::getAllLinks($links,$type, $id);
@@ -33,10 +55,12 @@ class GetDataDetailAction extends CAction {
 		if($dataName == "projects"){
 			foreach ($element["links"]["projects"] as $keyProj => $valueProj) {
 				$project = Project::getPublicData($keyProj);
+				$project["type"] = "projects";
+				$project["typeSig"] = Project::COLLECTION;
            		$contextMap[$keyProj] = $project;
 			}
 		}
-		
+
 		if($dataName == "needs"){
 			if(isset($element["links"]["needs"])){
 				foreach ($element["links"]["needs"] as $keyNeed => $value){
