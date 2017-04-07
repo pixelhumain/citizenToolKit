@@ -821,7 +821,7 @@ class Element {
 		$res = array("result" => false, "msg" => "Something bad happend : impossible to delete this element");
 
 		//What type of element i can delete
-		$managedTypes = array(Organization::COLLECTION);
+		$managedTypes = array(Organization::COLLECTION, Project::COLLECTION, Event::COLLECTION);
 		if (!in_array($elementType, $managedTypes)) return array( "result" => false, "msg" => "Impossible to delete this type of element" );
 		$modelElement = self::getModelByType($elementType);
 
@@ -833,11 +833,17 @@ class Element {
 
 		//retrieve admins of the element
 		$admins = array();
-		foreach (@$element["links"]["members"] as $id => $aLink) {
-			if (@$aLink["type"] == Person::COLLECTION && @$aLink["isAdmin"] == true) {
-				array_push($admins, $id);
+
+		foreach (@$element["links"] as $type => $links) {
+			if (is_array($links)) {
+				foreach ($links as $id => $aLink) {
+					if (@$aLink["type"] == Person::COLLECTION && @$aLink["isAdmin"] == true) {
+						array_push($admins, $id);
+					}
+				}
 			}
 		}
+		
 		$creator = empty($element["creator"]) ? "" : $element["creator"];
 
 		//If open data without admin => the super admin will statut
@@ -916,11 +922,13 @@ class Element {
 						"members" => "memberOf",
 						"follow" => "followers",
 						"attendees" => "events",
-						"helpers" => "needs"),
+						"helpers" => "needs",
+						"contributors" => "projects"),
 			Organization::COLLECTION => 
 				array(	"memberOf" => "member",
 						"members" =>"memberOf",
-						"follow" => "followers"),
+						"follow" => "followers",
+						"contributors" => "projects"),
 			Event::COLLECTION => 
 				array("events" => "organizer"),
 			Project::COLLECTION =>
