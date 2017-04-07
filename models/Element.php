@@ -906,7 +906,7 @@ class Element {
 	public static function deleteElement($elementType, $elementId, $reason, $userId) {
 		
 		if (! Authorisation::canDeleteElement($elementId, $elementType, $userId)) {
-			return array("result" => false, "msg" => "The user cannot delete this element !");
+			return array("result" => false, "msg" => Yii::t('common', "You are not allowed to delete this element !"));
 		}
 
 		//array to know likeTypes to their backwards link. Ex : a person "members" type link got a memberOf link in his collection
@@ -980,7 +980,7 @@ class Element {
     		error_log("delete document id ".$docId);
     	}
 
-    	$resError = array("result" => false, "msg" => "Error trying to delete this element : please contact your administrator.");
+    	$resError = array("result" => false, "msg" => Yii::t('common',"Error trying to delete this element : please contact your administrator."));
     	//Remove Activity of the Element
     	$res = ActivityStream::removeElementActivityStream($elementId, $elementType);
     	if (!$res) return $resError;
@@ -994,7 +994,7 @@ class Element {
 		//Delete the element
 		$where = array("_id" => new MongoId($elementId));
     	PHDB::remove($elementType, $where);
-    	$res = array("result" => true, "msg" => "The element ".$elementId." of type ".$elementType." has been deleted with success.");
+    	$res = array("result" => true, "msg" => Yii::t('common',"The element {elementName} of type {elementType} has been deleted with success.", array("{elementName}" => @$elementToDelete["name"], "{elementType}" => @$elementType )));
 
 		Log::save(array("userId" => $userId, "browser" => @$_SERVER["HTTP_USER_AGENT"], "ipAddress" => @$_SERVER["REMOTE_ADDR"], "created" => new MongoDate(time()), "action" => "deleteElement", "params" => array("id" => $elementId, "type" => $elementType)));
 		
@@ -1013,7 +1013,7 @@ class Element {
 	 * @return array result => bool, msg => String
 	 */
 	private static function goElementDeletePending($elementType, $elementId, $reason, $admins, $userId) {
-		$res = array("result" => true, "msg" => "The element has been put in status 'delete pending', waiting the admin to confirm the delete.");
+		$res = array("result" => true, "msg" => Yii::t('common', "The element has been put in status 'delete pending', waiting the admin to confirm the delete."));
 		
 		//Mark the element as deletePending
 		PHDB::update($elementType, 
@@ -1036,7 +1036,7 @@ class Element {
 	 * @return array result => bool, msg => String
 	 */
 	public static function stopToDelete($elementType, $elementId, $userId) {
-		$res = array("result" => true, "msg" => "The element is no more in 'delete pending' status");
+		$res = array("result" => true, "msg" => Yii::t('common',"The element is no more in 'delete pending' status"));
 		//remove the status deletePending on the element
 		PHDB::update($elementType, 
 					array("_id" => new MongoId($elementId)), array('$unset' => array("status" => "", "statusDate" => "")));
