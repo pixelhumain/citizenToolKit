@@ -841,7 +841,7 @@ class Element {
 		$creator = empty($element["creator"]) ? "" : $element["creator"];
 
 		//If open data without admin => the super admin will statut
-		if ((@$element["preferences"]["isOpenData"] == true || @$element["preferences"]["isOpenData"] == 'true' ) && count($admins == 0)) {
+		if ((@$element["preferences"]["isOpenData"] == true || @$element["preferences"]["isOpenData"] == 'true' ) && count($admins) == 0) {
 			$canBeDeleted = false;
 		//Check if the creator is the user asking to delete the element
 		} else if ($creator == $userId) {
@@ -859,26 +859,26 @@ class Element {
 		if (Authorisation::isUserSuperAdmin($userId)) {
 			$canBeDeleted = true;
 		}
-		error_log("Test2 ".$canBeDeleted);
+
 		//Try to delete the element
 		if ($canBeDeleted) {
 			$res = self::deleteElement($elementType, $elementId, $reason, $userId);
-			error_log("Test3");
 		} else {
 			//If open data without admin
-			if ((@$element["preferences"]["isOpenData"] == true || @$element["preferences"]["isOpenData"] == 'true' ) && count($admins == 0))  {
+			if ((@$element["preferences"]["isOpenData"] == true || @$element["preferences"]["isOpenData"] == 'true' ) && count($admins) == 0)  {
 				//Ask the super admins to act for the deletion of the element
 				$adminsId = array();
 				$superAdmins = Person::getCurrentSuperAdmins();
 				foreach ($superAdmins as $id => $aPerson) {
 					array_push($adminsId, $id);
 				}
-				error_log("Y a pas d'admin !");
+				error_log("Pour la suppression de l'élément ".$elementType."/".$elementId." : on demande aux super admins");
 				$res = self::goElementDeletePending($elementType, $elementId, $reason, $adminsId, $userId);
 			}
 
 			//If at least one admin => ask if one of the admins want to stop the deletion. The element is mark as pending deletion. After X days, if no one block the deletion => the element if deleted
 			if (count($admins) > 0) {
+				error_log("Pour la suppression de l'élément ".$elementType."/".$elementId." : on demande aux admins de l'élément");
 				$res = self::goElementDeletePending($elementType, $elementId, $reason, $admins, $userId);
 			}
 		}
