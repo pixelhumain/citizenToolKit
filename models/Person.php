@@ -133,10 +133,9 @@ class Person {
 	 * @return type
 	 */
 	public static function getById($id, $clearAttribute = true) { 
-		/*echo "yoyo";
-		var_dump($id);*/
+		
 	  	$person = PHDB::findOneById( self::COLLECTION ,$id );
-	  	//echo $id; var_dump($person); exit;
+	  	
 	  	if (empty($person)) {
 	  		//TODO Sylvain - Find a way to manage inconsistente data
             //throw new CTKException("The person id ".$id." is unkown : contact your admin");

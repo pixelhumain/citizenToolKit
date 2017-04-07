@@ -2,89 +2,65 @@
 
 class TranslateGeoJson {
 	
-//Exemple type d'un fichier GeoJSON
+/*Exemple type d'un fichier GeoJSON
 
-// 	{
-//   "type": "FeatureCollection",
-//   "features": [
-//     {
-//       "type": "Feature",
-//       "geometry": {
-//         "type": "Point",
-//         "coordinates": [
-//           102,
-//           0.5
-//         ]
-//       },
-//       "properties": {
-//         "prop0": "value0"
-//       }
-//     },
-    
-//      {
-//       "type": "Feature",
-//       "geometry": {
-//         "type": "Point",
-//         "coordinates": [
-//           55,
-//           0.5
-//         ]
-//       },
-//       "properties": {
-//         "prop0": "value0"
-//       }
-//     }
-   
-//   ]
-// }
+	{
+		"type": "FeatureCollection",
+		"features": [
+			{
+				"type": "Feature",
+				"geometry": {
+					"type": "Point",
+					"coordinates": [ 102, 0.5 ]
+				},
+				"properties": {
+					"prop0": "value0"
+				}
+			},
+			{
+				"type": "Feature",
+				"geometry": {
+					"type": "Point",
+					"coordinates": [55,0.5]
+				},
+				"properties": {
+					"prop0": "value0"
+				}
+			}
+
+		]
+	}
+*/
 	public static $dataBinding_news = array(
-
-
-			"type" => "Feature",
-			"geometry" => 
-						array ("type" => "Point",		
-								"coordinates" => array ("valueOf" => "scope.cities.0.geo"),
-				),
-			"properties" => array(
-				"type" => "properties",
-				array(
-					"email" => array("valueOf" => "email"),
-					"name" => array("valueOf" => "name"),
-					"username" => array("valueOf" => "username"),
+		"type" => "Feature",
+		"geometry" => array (	"type" => "Point",		
+								"coordinates" => array ("valueOf" => "scope.cities.0.geo") ),
+		"properties" => array(
+			"type" => "properties",
+			array( 	"email" 	=> array("valueOf" => "email"),
+					"name" 		=> array("valueOf" => "name"),
+					"username" 	=> array("valueOf" => "username"),
 					"img"		=> array("valueOf" => "profilImageUrl",
 										"type" 	=> "url", 
-										"prefix"   => "/"),
-					),
-				),
-
+										"prefix"   => "/") ) ),
 	);
 
-// "Point" => array(
-// 							"type" => "coor",
-// 							"coordinates" => 
-// 							array( "valueOf" => "geo"),
-// 					),
-	
-
 	public static $dataBinding_allOrganization = array(
-
-			
-			"type" => "Feature",
-			"geometry" => 
-						array ("type" => "Point",		
-								"coordinates" => array ("valueOf" => "geo"),
+		"type" => "Feature",
+		"geometry" => array ("type" => "Point",		
+							"coordinates" => array ("valueOf" => "geo"),
+			),
+		"properties" => array(
+			"type" => "properties",
+			array(
+				"email" => array("valueOf" => "email"),
+				"name" => array("valueOf" => "name"),
+				"username" => array("valueOf" => "username"),
+				"img"		=> array("valueOf" => "profilImageUrl",
+									"type" 	=> "url", 
+									"prefix"   => "/"),
 				),
-			"properties" => array(
-				"type" => "properties",
-				array(
-					"email" => array("valueOf" => "email"),
-					"name" => array("valueOf" => "name"),
-					"username" => array("valueOf" => "username"),
-					"img"		=> array("valueOf" => "profilImageUrl",
-										"type" 	=> "url", 
-										"prefix"   => "/"),
-					),
-				),
+			),
 
 
 		
@@ -286,6 +262,7 @@ class TranslateGeoJson {
 
 			if ((isset($val["coordinates"]["latitude"])) && (isset($val["coordinates"]["longitude"]))) {
 
+				// Damien : 1 ligne
 				$latitude = $val["coordinates"]["latitude"];
 			 	$longitude = $val["coordinates"]["longitude"];
 
@@ -295,14 +272,10 @@ class TranslateGeoJson {
 				$val["coordinates"] = array();
 				array_push($val["coordinates"], $longitude);				
 				array_push($val["coordinates"], $latitude);
-
+				// Fin Damien : 1 ligne
 			 	
-				
 			} elseif ((!isset($val["coordinates"]["latitude"])) || (!isset($val["coordinates"]["longitude"]))) {
-
 				unset($val);
-
-
 			}
 			
 		}

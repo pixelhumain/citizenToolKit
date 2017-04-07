@@ -476,7 +476,6 @@ class Element {
 							$verbActivity = ActStr::VERB_ADD ;
 						}
 						else{
-
 							SIG::updateEntityGeoposition($collection, $id, $fieldValue["geo"]["latitude"], $fieldValue["geo"]["longitude"], $fieldValue["addressesIndex"]);
 							$headSet = "addresses.".$fieldValue["addressesIndex"].".address" ;
 						}
@@ -491,12 +490,13 @@ class Element {
 						}else{
 							$headSet = "addresses.".$fieldValue["addressesIndex"] ;
 							$updatePull = true ;
-							$pull="contacts";
+							$pull="addresses";
 						}
 					}
 
 					if(!empty($headSet))
 						$set = array($headSet => $address);
+
 				}else{
 					throw new CTKException("Error updating  : addressesIndex ");	
 				}
@@ -632,10 +632,10 @@ class Element {
 			                          array($verb => $set, '$set' => $setModified));
 		}
 		$res = array("result"=>false,"msg"=>"");
-
 		if($resUpdate["ok"]==1){
 
 			if(!empty($updatePull) && $updatePull == true){
+
 				$resPull = PHDB::update( $collection, array("_id" => new MongoId($id)), 
 		                          array('$pull' => array($pull => null)));
 			}
@@ -966,6 +966,9 @@ class Element {
         if($collection == City::COLLECTION)
         	$params = City::prepCity($params);
         
+        if(isset($params["price"]))
+        	$params["price"] = (int)$params["price"];
+
         /*$microformat = PHDB::findOne(PHType::TYPE_MICROFORMATS, array( "key"=> $key));
         $validate = ( !isset($microformat )  || !isset($microformat["jsonSchema"])) ? false : true;
         //validation process based on microformat defeinition of the form
@@ -1458,9 +1461,13 @@ class Element {
 				$res[] = self::updateField($collection, $id, "startDate", $params["startDate"]);
 			if(isset($params["endDate"]))
 				$res[] = self::updateField($collection, $id, "endDate", $params["endDate"]);
-		}else if($block == "toMarkdown"){
-			$res[] = self::updateField($collection, $id, "description", $params["value"]);
-			$res[] = self::updateField($collection, $id, "descriptionHTML", null);
+		}else if($block == "descriptions"){
+			if(isset($params["description"])){
+				$res[] = self::updateField($collection, $id, "description", $params["description"]);
+				$res[] = self::updateField($collection, $id, "descriptionHTML", null);
+			}
+			if(isset($params["shortDescription"]))
+				$res[] = self::updateField($collection, $id, "shortDescription", $params["shortDescription"]);
 		}
 
 		if(Import::isUncomplete($id, $collection)){

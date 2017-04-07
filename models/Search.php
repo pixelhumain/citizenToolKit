@@ -73,6 +73,9 @@ class Search {
         $indexMin = isset($post['indexMin']) ? $post['indexMin'] : 0;
         $indexMax = isset($post['indexMax']) ? $post['indexMax'] : 30;
         $country = isset($post['country']) ? $post['country'] : "";
+        $priceMin = isset($_POST['priceMin']) ? $_POST['priceMin'] : null;
+        $priceMax = isset($_POST['priceMax']) ? $_POST['priceMax'] : null;
+        $devise = isset($_POST['devise']) ? $_POST['devise'] : null;
         $latest = isset($_POST['latest']) ? $_POST['latest'] : null;
         $searchSType = !empty($post['searchSType']) ? $post['searchSType'] : "";
 
@@ -106,7 +109,8 @@ class Search {
   		}
 
   		if( /*!empty($searchTags)*/ count($searchTags) > 1  || count($searchTags) == 1 && $searchTags[0] != "" ){
-  			if(strcmp($filter, Classified::COLLECTION) != 0 && self::typeWanted(Classified::COLLECTION, $searchType)){
+  			if( (strcmp($filter, Classified::COLLECTION) != 0 && self::typeWanted(Classified::COLLECTION, $searchType)) ||
+  				(strcmp($filter, Place::COLLECTION) != 0 && self::typeWanted(Place::COLLECTION, $searchType)) ){
         		$queryTags =  self::searchTags($searchTags, '$all') ;
 	  		}
   			else 
@@ -150,12 +154,17 @@ class Search {
 	  	}
 		/***********************************  CLASSIFIED   *****************************************/
         if(strcmp($filter, Classified::COLLECTION) != 0 && self::typeWanted(Classified::COLLECTION, $searchType)){
-        	//var_dump($query) ;
-        	$allRes = array_merge($allRes, self::searchClassified($query, $indexStep, $indexMin));
+        	//var_dump($query) ; exit;
+        	$allRes = array_merge($allRes, self::searchClassified($query, $indexStep, $indexMin, @$priceMin, @$priceMax, @$devise));
 	  	}
 	  	/***********************************  POI   *****************************************/
         if(strcmp($filter, Poi::COLLECTION) != 0 && self::typeWanted(Poi::COLLECTION, $searchType)){
         	$allRes = array_merge($allRes, self::searchPoi($query, $indexStep, $indexMin));
+	  	}
+
+	  	/***********************************  PLACE   *****************************************/
+        if(strcmp($filter, Place::COLLECTION) != 0 && self::typeWanted(Place::COLLECTION, $searchType)){
+        	$allRes = array_merge($allRes, self::searchPlace($query, $indexStep, $indexMin));
 	  	}
 
 	  	/***********************************  DDA   *****************************************/
@@ -570,11 +579,19 @@ class Search {
 	}
 
 	/***********************************  CLASSIFIED   *****************************************/
-	public static function searchClassified($query, $indexStep, $indexMin){
-        $allClassified = PHDB::findAndSortAndLimitAndIndex(Classified::COLLECTION, $query, 
+	public static function searchClassified($query, $indexStep, $indexMin, $priceMin, $priceMax, $devise){
+
+		
+		$queryPrice = array('$and' =>	array(array('devise' => $devise)) ) ;
+				
+		if(@$priceMin) $queryPrice['$and'][] = array('price' => array('$gte' => (int)$priceMin));
+		if(@$priceMax) $queryPrice['$and'][] = array('price' => array('$lte' => (int)$priceMax));
+		if(@$priceMin || @$priceMax) 
+			$query = array('$and' => array( $query , $queryPrice) );
+		
+		$allClassified = PHDB::findAndSortAndLimitAndIndex(Classified::COLLECTION, $query, 
 	  												array("updated" => -1), $indexStep, $indexMin);
-        $allClassified = PHDB::findAndSortAndLimitAndIndex(Classified::COLLECTION, $query, 
-	  												array("updated" => -1), $indexStep, $indexMin);
+
   		foreach ($allClassified as $key => $value) {
 			if(@$value["parentId"] && @$value["parentType"])
 				$parent = Element::getElementSimpleById(@$value["parentId"], @$value["parentType"]);
@@ -608,6 +625,25 @@ class Search {
   		}
   		return $allPoi;
   	}
+
+  	/***********************************  Place   *****************************************/
+	public static function searchPlace($query, $indexStep, $indexMin){
+    	$allPlace = PHDB::findAndSortAndLimitAndIndex(Place::COLLECTION, $query, 
+  												array("updated" => -1), $indexStep, $indexMin);
+  		foreach ($allPlace as $key => $value) {
+	  		if(@$value["parentId"] && @$value["parentType"])
+	  			$parent = Element::getElementSimpleById(@$value["parentId"], @$value["parentType"]);
+	  		else
+	  			$parent=array();
+			$allPlace[$key]["parent"] = $parent;
+			if(@$value["type"])
+				$allPlace[$key]["typeSig"] = Place::COLLECTION.".".$value["type"];
+			else
+				$allPlace[$key]["typeSig"] = Place::COLLECTION;
+  		}
+  		return $allPlace;
+  	}
+
 
 
   	/***********************************  DDA   *****************************************/
