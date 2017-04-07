@@ -10,7 +10,6 @@ class UploadSaveAction extends CAction {
             if(strtolower($_SERVER['REQUEST_METHOD']) != 'post') {
                 $res = array('result'=>false,'error'=>Yii::t("document","Error! Wrong HTTP method!"));
             }
-
             //{"result":false,"msg":"Le chargement du document ne s'est pas deroul\u00e9 correctement",
             //"file":{ "qqfile":{"name":"compo.jpg","type":"","tmp_name":"","error":6,"size":0}}}
             if(array_key_exists($input,$_FILES) && $_FILES[$input]['error'] == 0 ) {
@@ -19,7 +18,7 @@ class UploadSaveAction extends CAction {
                 error_log("WATCH OUT ! - ERROR WHEN UPLOADING A FILE ! CHECK IF IT'S NOT AN ATTACK");
                 $res = array('result'=>false,'msg'=>Yii::t("document","Something went wrong with your upload!"));
             }
-            $res['file'] = $file;   
+            $res['file'] = @$file;   
                         
             $res = Document::checkFileRequirements($file, $dir, $folder, $ownerId, $input);
             if ($res["result"]) {
@@ -35,12 +34,14 @@ class UploadSaveAction extends CAction {
             $res2 = array();
             
             if( $res["resultUpload"] ){
-                
+                    $subFolder="";
+                    if(@$_POST["formOrigin"])
+                        $subFolder="/".$_POST["formOrigin"];
                     $params = array(
                         "id" => $ownerId,
                         "type" => $folder,
-                        "folder" => $folder."/".$ownerId,
-                        "moduleId" => "communecter",
+                        "folder" => $folder."/".$ownerId.$subFolder,
+                        "moduleId" => $dir,
                         "name" => $res["name"],
                         "size" => (int) $res['size'],
                         "contentKey" => (@$_POST["contentKey"]) ? $_POST["contentKey"]:"profil",
@@ -53,6 +54,9 @@ class UploadSaveAction extends CAction {
                         $params["parentId"] = $ownerId;           
                     if(@$_POST["formOrigin"])
                         $params["formOrigin"] = $_POST["formOrigin"];
+                    if(@$_POST["cropX"] || @$_POST["cropY"] || @$_POST["cropW"] || @$_POST["cropH"]){
+                        $params["crop"]=array("cropX" => $_POST["cropX"],"cropY" => $_POST["cropY"],"cropW" => $_POST["cropW"],"cropH" => $_POST["cropH"]);
+                    }
                     $res2 = Document::save($params);
                 
             }

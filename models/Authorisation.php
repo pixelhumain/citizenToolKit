@@ -534,14 +534,14 @@ class Authorisation {
         return $res;
     }
 
-    public static function canEditPoi($userId, $id){
+    public static function canEdit($userId, $id,$type){
         $res = false;
-        $poi = Poi::getById($id) ;
+        $elem = $type::getById($id) ;
 
-        if( @$poi && !empty($userId) ) {
-            if( ($poi["parentType"] == Person::COLLECTION && $userId == $poi["parentId"] )
-                || $userId == $poi["creator"]
-                || Authorisation::canEditItem($userId, $poi["parentId"], $poi["parentType"]) ) 
+        if( @$elem && !empty($userId) ) {
+            if( (@$elem["parentType"] == Person::COLLECTION && $userId == @$elem["parentId"] )
+                || $userId == @$elem["creator"]
+                || Authorisation::canEditItem($userId, @$elem["parentId"], @$elem["parentType"]) ) 
                 return true;
         } 
         return $res;
@@ -615,7 +615,15 @@ class Authorisation {
         }
         else if($type == Poi::COLLECTION) 
         {
-            $res = self::canEditPoi($userId, $itemId);
+            $res = self::canEdit($userId, $itemId, "Poi");
+        }
+        else if($type == Place::COLLECTION) 
+        {
+            $res = self::canEdit($userId, $itemId,"Place");
+        }
+        else if($type == Ressource::COLLECTION) 
+        {
+            $res = self::canEdit($userId, $itemId,"Ressource");
         }
         else if($type == Classified::COLLECTION) 
         {

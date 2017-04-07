@@ -21,6 +21,8 @@ class SaveAction extends CAction {
 			    $params["parentId"] = $_POST["parentId"];			
 			if(@$_POST["formOrigin"])
 			    $params["formOrigin"] = $_POST["formOrigin"];
+			if(@$_POST["crop"])
+			    $params["crop"] = $_POST["crop"];
 		    $res = Document::save($params);
 		} else {
 			$res = array("result" => false, "msg" => Yii::t("common","Please Log in order to update document !"));
