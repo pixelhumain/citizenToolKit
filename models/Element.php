@@ -1255,6 +1255,16 @@ class Element {
 			}
 		}
 
+		if (isset($params["startDateInput"])) {
+	    	$params["startDate"] = $params["startDateInput"];
+	    	unset($params["startDateInput"]);	
+		}
+
+		if (isset($params["endDateInput"])) {
+	    	$params["endDate"] = $params["endDateInput"];
+	    	unset($params["endDateInput"]);	
+		}
+
 		//If moderation and not import mode : the element is set as disable 
 		if (@Yii::app()->params['moderation'] == true && empty($params["paramsImport"])) {
 			$params["disabled"] = true;
@@ -1289,7 +1299,7 @@ class Element {
 			} else 
 				$params["endDate"] = $endDate->format('Y-m-d');
 		}*/
-
+		
         return $params;
      }
 
@@ -1548,10 +1558,10 @@ class Element {
 		}else if($block == "when"){
 			if(isset($params["allDay"]))
 				$res[] = self::updateField($collection, $id, "allDay", (($params["allDay"] == "true") ? true : false));
-			if(isset($params["startDate"]))
-				$res[] = self::updateField($collection, $id, "startDate", $params["startDate"]);
-			if(isset($params["endDate"]))
-				$res[] = self::updateField($collection, $id, "endDate", $params["endDate"]);
+			if(isset($params["startDateInput"]))
+				$res[] = self::updateField($collection, $id, "startDate", $params["startDateInput"]);
+			if(isset($params["endDateInput"]))
+				$res[] = self::updateField($collection, $id, "endDate", $params["endDateInput"]);
 		}else if($block == "toMarkdown"){
 			$res[] = self::updateField($collection, $id, "description", $params["value"]);
 			$res[] = self::updateField($collection, $id, "descriptionHTML", null);

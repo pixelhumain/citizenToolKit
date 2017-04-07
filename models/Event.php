@@ -391,6 +391,7 @@ class Event {
 	}
 
 	public static function formatBeforeSaving($params) {
+
 		$startDate = DataValidator::getDateTimeFromString($params['startDate'], "start date");
 		$endDate = DataValidator::getDateTimeFromString($params['endDate'], "end date");
 	    
