@@ -77,6 +77,15 @@ class IndexAction extends CAction
 				}	
 
 	        }
+	        else if( $type == Place::COLLECTION) { error_log("PLACE");
+	            $parent = Place::getById($id);
+	            if(@Yii::app()->session["userId"]){
+					$params["canPostNews"] = true;
+	            	if (@$parent["links"]["members"][Yii::app()->session["userId"]] && !@$parent["links"]["members"][Yii::app()->session["userId"]][Link::TO_BE_VALIDATED])
+	            		$params["canManageNews"] = true;
+				}	
+
+	        }
 	        else if( $type == Event::COLLECTION ) {
 	            $parent = Event::getById($id);
 	            if((@Yii::app()->session["userId"] && @$parent["links"]["attendees"][Yii::app()->session["userId"]]) ||
@@ -203,7 +212,7 @@ class IndexAction extends CAction
 					//echo '<pre>';var_dump($where);echo '</pre>'; return;
 				}
 			}
-			else if($type == "organizations" || $type == "projects" || $type == "events"){
+			else if($type == "organizations" || $type == "projects" || $type == "events" || $type == "place"){
 				$scope=array(
 						array("scope.type"=> "public"),
 						array("scope.type"=> "restricted"),
