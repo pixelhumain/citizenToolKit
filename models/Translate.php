@@ -237,6 +237,7 @@ class Translate {
 	        $date2 = $date; // depuis cette date
 	    } elseif($type == "date") {
 	        $date2 = strtotime($date); // depuis cette date
+	        error_log($date." - ".$date2);
 	    } else {
 	        return "Non reconnu";
 	    }

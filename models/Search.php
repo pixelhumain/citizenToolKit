@@ -177,7 +177,7 @@ class Search {
         	(strcmp($filter, ActionRoom::TYPE_VOTE) != 0 && self::typeWanted(ActionRoom::TYPE_VOTE, $searchType)) ||
         	(strcmp($filter, ActionRoom::TYPE_ACTIONS) != 0 && self::typeWanted(ActionRoom::TYPE_ACTIONS, $searchType))
         	 ){    
-        	$allRes = array_merge($allRes, self::searchVotes($query, $indexStep, $indexMin));
+        	$allRes = array_merge($allRes, self::searchVotes($query, $indexStep, $indexMin, $searchType));
         }
 
 	  	/***********************************  CITIES   *****************************************/
@@ -679,7 +679,7 @@ class Search {
 
 
 	/***********************************  VOTES / propositions   *****************************************/
-    public static function searchVotes($query, $indexStep, $indexMin){
+    public static function searchVotes($query, $indexStep, $indexMin, $searchType){
     	$allFound = array();
     	if(!empty(Yii::app()->session["userId"])){
     		$myLinks = Person::getPersonLinksByPersonId( Yii::app()->session["userId"] );
@@ -733,8 +733,8 @@ class Search {
 
 	    	$query = array($parentRow => array('$in' => $allRoomsId) );
 	    	
-	    	if(count($tmpTags))
-	    	$query = array('$and' => array( $query , array("tags" => array('$in' => $tmpTags)))) ;
+	    	//if(count($tmpTags))
+	    	//$query = array('$and' => array( $query , array("tags" => array('$in' => $tmpTags)))) ;
 	    	
 	    	//echo "search : ". $search." - ".(string)strpos($search, "#");
 	    	if($search != "" && strpos($search, "#") === false){
