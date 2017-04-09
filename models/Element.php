@@ -120,6 +120,12 @@ class Element {
 	    										 "hash"=> Project::CONTROLLER.".detail.id.",
 	    										 "collection"=>Project::COLLECTION),
 
+			Classified::COLLECTION 		=> array("icon"=>"bullhorn","color"=>"#2BB0C6","text-color"=>"azure",
+	    										 "hash"=> Classified::CONTROLLER.".detail.id."),
+	    	Classified::CONTROLLER 		=> array("icon"=>"bullhorn","color"=>"#2BB0C6","text-color"=>"azure",
+	    										 "hash"=> Classified::CONTROLLER.".detail.id.",
+	    										 "collection"=>Classified::COLLECTION),
+
 			News::COLLECTION 			=> array("icon"=>"rss","hash"=> $prefix.""),
 
 	    	City::COLLECTION 			=> array("icon"=>"university","color"=>"#E33551","text-color"=>"red",

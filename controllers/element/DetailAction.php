@@ -276,7 +276,11 @@ class DetailAction extends CAction {
 			$params["openEdition"] = false;
 			$params["edit"] = false;
 		}
-		$params["isLinked"] = Link::isLinked($elementAuthorizationId,$elementAuthorizationType, Yii::app()->session['userId'], @$element["links"]);
+
+		$params["isLinked"] = Link::isLinked($elementAuthorizationId,$elementAuthorizationType, 
+									Yii::app()->session['userId'], 
+									@$element["links"]);
+
 		if($params["isLinked"]==true)
 			$params["countNotifElement"]=ActivityStream::countUnseenNotifications(Yii::app()->session["userId"], $elementAuthorizationType, $elementAuthorizationId);
 		if($type==Event::COLLECTION){
