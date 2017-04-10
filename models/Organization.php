@@ -24,7 +24,7 @@ class Organization {
 	//From Post/Form name to database field name
 	//TODO : remove name   
 	public static $dataBinding = array(
-	    "name" => array("name" => "name", "rules" => array("required", "organizationSameName")),
+	    "name" => array("name" => "name", "rules" => array("required")),
 	    "email" => array("name" => "email", "rules" => array("email")),
 	    "type" => array("name" => "type", "rules" => array("typeOrganization")),
 	    "shortDescription" => array("name" => "shortDescription"),
