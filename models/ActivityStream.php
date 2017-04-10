@@ -284,9 +284,9 @@ class ActivityStream {
 		        	$cp=$author["address"]["postalCode"];
 		        	if(!@$geo)
 		        		$geo = $author["geo"];
-	        	} else {
-		        	$action["scope"]["type"]="restricted";
-	        	}
+	        	} //else {
+		        	//$action["scope"]["type"]="restricted";
+	        	//}
 			}
 			$action["scope"]["cities"][] = array(
 				"codeInsee" => ((@$insee) ? $insee : ""), 

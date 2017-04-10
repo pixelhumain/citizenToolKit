@@ -2,6 +2,7 @@
 
 class Classified {
 	const COLLECTION = "classified";
+	const CONTROLLER = "classified";
 	
 	//TODO Translate
 	public static $classifiedTypes = array(
@@ -64,6 +65,12 @@ class Classified {
 	public static function getById($id) { 
 	  	$poi = PHDB::findOneById( self::COLLECTION ,$id );
 	  	return $poi;
+	}
+
+
+	public static function getClassifiedByCreator($id){
+		$pois = PHDB::find( self::COLLECTION , array("creator"=> $id));
+	  	return $pois;
 	}
 }
 ?>

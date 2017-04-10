@@ -359,7 +359,7 @@ class IndexAction extends CAction
 					if($data == "news" || $data == "idea" || $data == "question" || $data == "announce" || $data == "information")
 						$searchType[]=array("type" => $data);
 					else
-						$searchType[]=array("object.objectType" => $data);
+						$searchType[]=array("object.type" => $data);
 				}
 				
 				//
