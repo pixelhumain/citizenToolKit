@@ -251,7 +251,7 @@ class Translate {
 			$Ecart = $date2 - time();
 	    }
 
-if(isset($timezone) && $timezone != ""){
+		if(isset($timezone) && $timezone != ""){
 			if(date_default_timezone_get()!=$timezone){
 				//error_log("SET TIMEZONE ".$timezone);
 				date_default_timezone_set($timezone); //'Pacific/Noumea'
@@ -284,6 +284,8 @@ if(isset($timezone) && $timezone != ""){
 	    }
 	    if($Secondes > 0) {
 	        return $lblEcart.$Secondes." seconde".($Secondes>1?"s":"");
+	    } else {
+	    	return "A l'instant";
 	    }
 	}
 }
