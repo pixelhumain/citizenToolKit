@@ -2,6 +2,7 @@
 class Element {
 	const NB_DAY_BEFORE_DELETE = 5;
 	const STATUS_DELETE_PEDING = "deletePending";
+	const ERROR_DELETING = "errorTryingToDelete";
 
 	public static function getControlerByCollection ($type) { 
 		$ctrls = array(
@@ -1025,7 +1026,7 @@ class Element {
 		
 		//Mark the element as deletePending
 		PHDB::update($elementType, 
-					array("_id" => new MongoId($elementId)), array('$set' => array("status" => self::STATUS_DELETE_PEDING, "statusDate" => new MongoDate())));
+					array("_id" => new MongoId($elementId)), array('$set' => array("status" => self::STATUS_DELETE_PEDING, "statusDate" => new MongoDate(), "reasonDelete" => $reason, "userAskingToDelete" => $userId)));
 		
 		//Send emails to admins
 		Mail::confirmDeleteElement($elementType, $elementId, $reason, $admins, $userId);
