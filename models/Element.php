@@ -186,7 +186,7 @@ class Element {
                 throw new CTKException("Impossible to link something on a disabled organization");    
             }
         } else 
-        if ( in_array($parentType, array( Person::COLLECTION, Project::COLLECTION,Event::COLLECTION, Classified::COLLECTION,Need::COLLECTION,Poi::COLLECTION) ) ) ){
+        if ( in_array($type, array( Person::COLLECTION, Project::COLLECTION,Event::COLLECTION, Classified::COLLECTION,Need::COLLECTION,Poi::COLLECTION) ) ){
             $res = self::getByTypeAndId($type, $id);       
         } else if ($type== ActionRoom::COLLECTION_ACTIONS){
             $res = ActionRoom:: getActionById($id);
