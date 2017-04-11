@@ -603,7 +603,8 @@ class Notification{
  			if (@$object["event"] == Element::ERROR_DELETING) {
  				$actionMsg = "Error Deleting the element ".$target["name"].". Check the error log.";
  			}
- 			$url = Element::getLink($target["type"], $target["id"], true);
+ 			$url = '#'.Element::getControlerByCollection($target['type']).".detail.id.".$target['id'];
+ 			error_log("URL notif => ".$url);
  		}
 
 	    $stream = ActStr::buildEntry($asParam);

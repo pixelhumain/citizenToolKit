@@ -94,7 +94,7 @@ class Authorisation {
      * Return true if the user is admin of the organization
      * @param String the id of the user
      * @param String the id of the organization
-     * @return array of Organization (simple)
+     * @return boolean true id userId is admin of the organizationId
      */
     public static function isOrganizationAdmin($userId, $organizationId) {
         $res = false;
@@ -109,7 +109,7 @@ class Authorisation {
      * Return true if the user is member of the organization
      * @param String the id of the user
      * @param String the id of the organization
-     * @return array of Organization (simple)
+     * @return boolean true id userId is member of the organizationId
      */
     public static function isOrganizationMember($userId, $organizationId) {
         $res = false;

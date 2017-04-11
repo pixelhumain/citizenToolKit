@@ -939,8 +939,29 @@ class Element {
 				array(	"needs" => "organizations",
 						"needs" => "helpers"),
 			);
-
+		
 		$elementToDelete = self::getByTypeAndId($elementType, $elementId);
+
+		//Remove Documents => Profil Images
+		//TODO SBAR : Remove other images ?
+    	$profilImages = Document::listMyDocumentByIdAndType($elementId, $elementType, Document::IMG_PROFIL, Document::DOC_TYPE_IMAGE, array( 'created' => -1 ));
+    	foreach ($profilImages as $docId => $document) {
+    		Document::removeDocumentById($docId, $userId);
+    		error_log("delete document id ".$docId);
+    	}
+
+    	$resError = array("result" => false, "msg" => Yii::t('common',"Error trying to delete this element : please contact your administrator."));
+    	//Remove Activity of the Element
+    	$res = ActivityStream::removeElementActivityStream($elementId, $elementType);
+    	if (!$res) return $resError;
+    	//Delete News
+    	$res = News::deleteNewsOfElement($elementId, $elementType, $userId, true);
+    	if (!$res["result"]) {error_log("error deleting News ".@$res["id"]." : ".$res["msg"]); return $resError;}
+    	//Delete Action Rooms
+    	$res = ActionRoom::deleteElementActionRooms($elementId, $elementType, $userId);
+    	if (!$res["result"]) return $resError;
+
+
 		$listEventsId = array();
 		$listProjectId = array();
 		//Remove backwards links
@@ -969,36 +990,17 @@ class Element {
 		
 		//Unset the organizer for events organized by the element
 		if (count($listEventsId) > 0) {
-			$where = 	array('$in' => $listEventsId);
+			$where = array('$in' => array('$in' => $listEventsId));
 			$action = array('$set' => array("organizerId" => Event::NO_ORGANISER, "organizerType" => Event::NO_ORGANISER));
 			PHDB::update(Event::COLLECTION, $where, $action);
 		}
 
 		//Unset the project with parent this element
 		if (count($listProjectId) > 0) {
-			$where = 	array('$in' => $listEventsId);
-			$action = array('$unset' => array("parentId", "parentType"));
+			$where = array('_id' => array('$in' => $listProjectId));
+			$action = array('$unset' => array("parentId" => "", "parentType" => ""));
 			PHDB::update(Project::COLLECTION, $where, $action);
 		}
-
-		//Remove Documents => Profil Images
-		//TODO SBAR : Remove other images ?
-    	$profilImages = Document::listMyDocumentByIdAndType($elementId, $elementType, Document::IMG_PROFIL, Document::DOC_TYPE_IMAGE, array( 'created' => -1 ));
-    	foreach ($profilImages as $docId => $document) {
-    		Document::removeDocumentById($docId, $userId);
-    		error_log("delete document id ".$docId);
-    	}
-
-    	$resError = array("result" => false, "msg" => Yii::t('common',"Error trying to delete this element : please contact your administrator."));
-    	//Remove Activity of the Element
-    	$res = ActivityStream::removeElementActivityStream($elementId, $elementType);
-    	if (!$res) return $resError;
-    	//Delete News
-    	$res = News::deleteNewsOfElement($elementId, $elementType, $userId, true);
-    	if (!$res["result"]) return $resError;
-    	//Delete Action Rooms
-    	$res = ActionRoom::deleteElementActionRooms($elementId, $elementType,$userId);
-    	if (!$res["result"]) return $resError;
     	
 		//Delete the element
 		$where = array("_id" => new MongoId($elementId));
