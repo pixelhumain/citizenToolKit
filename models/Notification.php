@@ -587,7 +587,7 @@ class Notification{
             "object"=>$object,
  			"target"=>$target
         );
-
+ 		$url = Yii::app()->createUrl('/'.Yii::app()->controller->module->id.'/admin/');
  		//Error 
  		if ($verb == ActStr::VERB_RETURN) {
  			if (@$object["event"] == MailError::EVENT_BOUNCED_EMAIL) {
@@ -598,15 +598,22 @@ class Notification{
  				error_log("Unknown event in Mail Error : no notification generated.");
  				return(array("result" => false, "msg" => "Unknown event in Mail Error : no notification generated."));
  			}
- 			
+ 			$url = Yii::app()->createUrl('/'.Yii::app()->controller->module->id.'/admin/mailerrordashboard');
+ 		} else if ($verb == ActStr::VERB_DELETE) {
+ 			if (@$object["event"] == Element::ERROR_DELETING) {
+ 				$actionMsg = "Error Deleting the element ".$target["name"].". Check the error log.";
+ 			}
+ 			$url = '#'.Element::getControlerByCollection($target['type']).".detail.id.".$target['id'];
+ 			error_log("URL notif => ".$url);
  		}
+
 	    $stream = ActStr::buildEntry($asParam);
 
 		$notif = array( 
 	    	"persons" => array_keys($superAdmins),
             "label"   => $actionMsg , 
             "icon"    => "fa-cog" ,
-            "url"     => Yii::app()->createUrl('/'.Yii::app()->controller->module->id.'/admin/mailerrordashboard')
+            "url"     => $url
         );
 
 	    $stream["notify"] = ActivityStream::addNotification( $notif );
