@@ -330,8 +330,12 @@ class Search {
   				}
   			}
   		}
-  		if(isset($allQueryLocality) && is_array($allQueryLocality))
+  		if(isset($allQueryLocality) && is_array($allQueryLocality)){
+  			if(!empty($query))
   			$query = array('$and' => array($query, $allQueryLocality));
+  			else
+  			$query = array('$and' => array($allQueryLocality));
+  		}
   		return $query;
   	}
 

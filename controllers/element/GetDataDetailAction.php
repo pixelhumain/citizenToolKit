@@ -76,7 +76,17 @@ class GetDataDetailAction extends CAction {
 
 		if($dataName == "poi"){
 			$contextMap = Poi::getPoiByIdAndTypeOfParent($id, $type);
+		}
 
+
+		if($dataName == "collections"){
+			if(@$element["collections"]){
+				$collections = $element["collections"];
+				foreach ($collections as $col => $value) {
+					$collections[$col] = Collection::get($id, null, $col);
+				}
+				$contextMap = $collections;
+			}
 		}
 
 
@@ -85,13 +95,12 @@ class GetDataDetailAction extends CAction {
 
 		if($dataName == "liveNow"){
 
-			$date = date('Y-m-d H:i:s');
-			$dDate = strtotime($date);//+" +7 day");
-			$sDate = strtotime($date+" +7 day");
-			
-			//EVENTS
+			//EVENTS-------------------------------------------------------------------------------
+			$query = array("startDate" => array( '$gte' => new MongoDate( time() ) ));
+			$query = Search::searchLocality($_POST, $query);
+
 			$events = PHDB::findAndSortAndLimitAndIndex( Event::COLLECTION,
-							array("startDate" => array( '$gte' => new MongoDate( time() ) )),
+							$query,
 							array("startDate"=>1), 5);
 			foreach ($events as $key => $value) {
 				$events[$key]["type"] = "events";
@@ -101,28 +110,42 @@ class GetDataDetailAction extends CAction {
 					$events[$key]["updatedLbl"] = Translate::pastTime(@$value["startDate"]->sec,"timestamp");
 		  		}
 		  	}
-		  	$contextMap = array_merge($contextMap, $events); //Poi::getPoiByIdAndTypeOfParent($id, $type);
+		  	$contextMap = array_merge($contextMap, $events);
 			
 
-			//CLASSIFIED
-			$classified = PHDB::findAndSortAndLimitAndIndex( Classified::COLLECTION,
-							array(),
+			//CLASSIFIED-------------------------------------------------------------------------------
+			$query = array();
+			$query = Search::searchLocality($_POST, $query);
+			
+			$classified = PHDB::findAndSortAndLimitAndIndex( Classified::COLLECTION, $query,
 							array("updated"=>-1), 5);
+
 			foreach ($classified as $key => $value) {
 				$classified[$key]["type"] = "classified";
 				$classified[$key]["typeSig"] = "classified";
 				if(@$value["updated"]) {
-					//var_dump(@$value["startDate"]);
 					$classified[$key]["updatedLbl"] = Translate::pastTime(@$value["updated"],"timestamp");
 		  		}
 		  	}
-		  	$contextMap = array_merge($contextMap, $classified); //Poi::getPoiByIdAndTypeOfParent($id, $type);
+		  	$contextMap = array_merge($contextMap, $classified);
 			
+		  	//POI-------------------------------------------------------------------------------
+			$query = array();
+			$query = Search::searchLocality($_POST, $query);
+			$pois = PHDB::findAndSortAndLimitAndIndex( Poi::COLLECTION, $query,
+							array("updated"=>-1), 5);
 
-
-
-
-			echo $this->getController()->renderPartial($_POST['tpl'], array("result"=>$contextMap));
+			foreach ($pois as $key => $value) {
+				$pois[$key]["type"] = "poi";
+				$pois[$key]["typeSig"] = "poi";
+				if(@$value["updated"]) {
+					$pois[$key]["updatedLbl"] = Translate::pastTime(@$value["updated"],"timestamp");
+		  		}
+		  	}
+		  	$contextMap = array_merge($contextMap, $pois);
+			
+			echo $this->getController()->renderPartial($_POST['tpl'], 
+				array("result"=>$contextMap, "scope"=>@$_POST['searchLocalityDEPARTEMENT'][0]));
 			Yii::app()->end();
 		}
 

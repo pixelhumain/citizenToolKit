@@ -69,8 +69,26 @@ class Classified {
 
 
 	public static function getClassifiedByCreator($id){
-		$pois = PHDB::find( self::COLLECTION , array("creator"=> $id));
-	  	return $pois;
+		$allClassified = PHDB::findAndSort( self::COLLECTION , array("creator"=> $id), array("updated"=>-1));
+		foreach ($allClassified as $key => $value) {
+			if(@$value["creator"]){// && @$value["parentType"])
+				$parent = Element::getElementById(@$value["creator"], "citoyens");//@$value["parentType"]);
+				$aParent = array("name"=>@$parent["name"],
+								 "profilThumbImageUrl"=>@$parent["profilThumbImageUrl"],
+								);
+			}else{
+				$aParent=array();
+			}
+
+			$allClassified[$key]["parent"] = $aParent;
+			$allClassified[$key]["category"] = @$allClassified[$key]["type"];
+			$allClassified[$key]["type"] = "classified";
+			//if(@$value["type"])
+			//	$allClassified[$key]["typeSig"] = Classified::COLLECTION.".".$value["type"];
+			//else
+			$allClassified[$key]["typeSig"] = Classified::COLLECTION;
+		}
+	  	return $allClassified;
 	}
 }
 ?>

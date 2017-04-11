@@ -126,6 +126,12 @@ class Element {
 	    										 "hash"=> Classified::CONTROLLER.".detail.id.",
 	    										 "collection"=>Classified::COLLECTION),
 
+			Poi::COLLECTION 			=> array("icon"=>"map-marker","color"=>"#2BB0C6","text-color"=>"green",
+	    										 "hash"=> Poi::CONTROLLER.".detail.id."),
+	    	Poi::CONTROLLER 			=> array("icon"=>"map-marker","color"=>"#2BB0C6","text-color"=>"green",
+	    										 "hash"=> Poi::CONTROLLER.".detail.id.",
+	    										 "collection"=>Poi::COLLECTION),
+
 			News::COLLECTION 			=> array("icon"=>"rss","hash"=> $prefix.""),
 
 	    	City::COLLECTION 			=> array("icon"=>"university","color"=>"#E33551","text-color"=>"red",
@@ -179,16 +185,9 @@ class Element {
             if (@$res["disabled"] && $actionType != "disconnect") {
                 throw new CTKException("Impossible to link something on a disabled organization");    
             }
-        } else if ($type == Person::COLLECTION) {
-        	$res = Person::getById($id);
-        } else if ($type== Event::COLLECTION){
-        	$res = Event:: getById($id);
-        } else if ($type== Project::COLLECTION){
-        	$res = Project:: getById($id);
-        } else if ($type== Need::COLLECTION){
-            $res = Need:: getById($id);
-        }else if ($type == Poi::COLLECTION){
-            $res = Poi:: getById($id);
+        } else 
+        if ( in_array($type, array( Person::COLLECTION, Project::COLLECTION,Event::COLLECTION, Classified::COLLECTION,Need::COLLECTION,Poi::COLLECTION) ) ){
+            $res = self::getByTypeAndId($type, $id);       
         } else if ($type== ActionRoom::COLLECTION_ACTIONS){
             $res = ActionRoom:: getActionById($id);
         } else if ( $type == Survey::COLLECTION) {
@@ -249,6 +248,8 @@ class Element {
 			$element = City::getIdByInsee($id);
 		else if($type == Poi::COLLECTION)
 			$element = Poi::getById($id);
+		else if($type == Classified::COLLECTION)
+			$element = Classified::getById($id);
 		else
 			$element = PHDB::findOne($type,array("_id"=>new MongoId($id)));
 	  	
