@@ -155,7 +155,10 @@ class Search {
 		/***********************************  CLASSIFIED   *****************************************/
         if(strcmp($filter, Classified::COLLECTION) != 0 && self::typeWanted(Classified::COLLECTION, $searchType)){
         	//var_dump($query) ; exit;
-        	$allRes = array_merge($allRes, self::searchClassified($query, $indexStep, $indexMin, @$priceMin, @$priceMax, @$devise));
+        	if(in_array("favorites", $searchTags))
+        		$allRes = array_merge($allRes, self::searchFavorites(Classified::COLLECTION));
+        	else 
+        		$allRes = array_merge($allRes, self::searchClassified($query, $indexStep, $indexMin, @$priceMin, @$priceMax, @$devise));
 	  	}
 	  	/***********************************  POI   *****************************************/
         if(strcmp($filter, Poi::COLLECTION) != 0 && self::typeWanted(Poi::COLLECTION, $searchType)){
@@ -610,6 +613,23 @@ class Search {
 			$allClassified[$key]["typeSig"] = Classified::COLLECTION;
 		}
 		return $allClassified;
+	}
+
+	/***********************************  CLASSIFIED   *****************************************/
+	public static function searchFavorites($type){
+
+		$person = Person::getById(Yii::app()->session["userId"]);
+		$res = null;
+
+		if( @$person["collections"] && @$person["collections"]["favorites"] && @$person["collections"]["favorites"][$type] ){
+			foreach ($person["collections"]["favorites"][$type] as $key => $value) {
+				$el = PHDB::findOne($type, array("_id" => new MongoId($key)) );
+				$el["type"] = $type;
+				$el["typeSig"] = $type;
+				$res[$key] = $el;
+			}
+		}
+		return $res;
 	}
 
 	/***********************************  POI   *****************************************/
