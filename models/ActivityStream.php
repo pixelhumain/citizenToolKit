@@ -20,8 +20,8 @@ class ActivityStream {
 		//print_r($param);
 		if($param["type"]==self::COLLECTION){
 			$news=$param;
-			$news["target"]["type"]=$param["target"]["type"];
-			unset($news["target"]["objectType"]);
+			//$news["target"]["type"]=$param["target"]["type"];
+			//unset($news["target"]["objectType"]);
 		    PHDB::insert(News::COLLECTION, $news);
 		}
 		else
