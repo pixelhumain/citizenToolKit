@@ -185,16 +185,9 @@ class Element {
             if (@$res["disabled"] && $actionType != "disconnect") {
                 throw new CTKException("Impossible to link something on a disabled organization");    
             }
-        } else if ($type == Person::COLLECTION) {
-        	$res = Person::getById($id);
-        } else if ($type== Event::COLLECTION){
-        	$res = Event:: getById($id);
-        } else if ($type== Project::COLLECTION){
-        	$res = Project:: getById($id);
-        } else if ($type== Need::COLLECTION){
-            $res = Need:: getById($id);
-        }else if ($type == Poi::COLLECTION){
-            $res = Poi:: getById($id);
+        } else 
+        if ( in_array($type, array( Person::COLLECTION, Project::COLLECTION,Event::COLLECTION, Classified::COLLECTION,Need::COLLECTION,Poi::COLLECTION) ) ){
+            $res = self::getByTypeAndId($type, $id);       
         } else if ($type== ActionRoom::COLLECTION_ACTIONS){
             $res = ActionRoom:: getActionById($id);
         } else if ( $type == Survey::COLLECTION) {
@@ -255,6 +248,8 @@ class Element {
 			$element = City::getIdByInsee($id);
 		else if($type == Poi::COLLECTION)
 			$element = Poi::getById($id);
+		else if($type == Classified::COLLECTION)
+			$element = Classified::getById($id);
 		else
 			$element = PHDB::findOne($type,array("_id"=>new MongoId($id)));
 	  	
@@ -1019,6 +1014,14 @@ class Element {
                 	$params["creator"] = Yii::app()->session["userId"];
 	        		$params["created"] = time();
                 	PHDB::updateWithOptions($collection,array("_id"=>new MongoId($id)), array('$set' => $params ),array('upsert' => true ));
+                	$params["_id"]=new MongoId($id);
+                	 if( $collection == Organization::COLLECTION )
+                		$res["afterSave"] = Organization::afterSave($params, Yii::app()->session["userId"], $paramsLinkImport);
+                	else if( $collection == Event::COLLECTION )
+                		$res["afterSave"] = Event::afterSave($params);
+                	else if( $collection == Project::COLLECTION )
+                		$res["afterSave"] = Project::afterSave($params, @$params["parentId"] , @$params["parentType"] );
+                	$res["afterSaveGbl"] = self::afterSave((string)$params["_id"],$collection,$params,$postParams);
                 }
                 else
                 	PHDB::update($collection,array("_id"=>new MongoId($id)), array('$set' => $params ));
@@ -1043,6 +1046,8 @@ class Element {
                 // ***********************************
                 //post process for specific actions
                 // ***********************************
+               // echo "ici";
+                //echo $collection;
                 if( $collection == Organization::COLLECTION )
                 	$res["afterSave"] = Organization::afterSave($params, Yii::app()->session["userId"], $paramsLinkImport);
                 else if( $collection == Event::COLLECTION )
