@@ -285,6 +285,12 @@ class Element {
 			$fieldValue = Tags::filterAndSaveNewTags($fieldValue);
 			$set = array($dataFieldName => $fieldValue);
 		}
+		else if ( $dataFieldName == "url"){
+			if (filter_var($fieldValue, FILTER_VALIDATE_URL))
+			    $set = array($dataFieldName => $fieldValue);
+			else 
+			    throw new CTKException('Cette URL a un format non adapté.');
+		}
 		else if ( ($dataFieldName == "telephone.mobile"|| $dataFieldName == "telephone.fixe" || $dataFieldName == "telephone.fax")){
 			if($fieldValue ==null)
 				$fieldValue = array();
