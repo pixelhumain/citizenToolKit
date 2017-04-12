@@ -1563,9 +1563,9 @@ class Element {
 			if(isset($params["gitHubAccount"]))
 				$res[] = self::updateField($collection, $id, "gitHubAccount", self::getAndCheckUrl($params["gitHubAccount"]));
 			if(isset($params["gpplusAccount"]))
-				$res[] = self::updateField($collection, $id, "url", self::getAndCheckUrl($params["gpplusAccount"]));
+				$res[] = self::updateField($collection, $id, "gpplusAccount", self::getAndCheckUrl($params["gpplusAccount"]));
 			if(isset($params["skypeAccount"]))
-				$res[] = self::updateField($collection, $id, "url", self::getAndCheckUrl($params["skypeAccount"]));
+				$res[] = self::updateField($collection, $id, "skypeAccount", self::getAndCheckUrl($params["skypeAccount"]));
 		}else if($block == "when"){
 			if(isset($params["allDay"]))
 				$res[] = self::updateField($collection, $id, "allDay", (($params["allDay"] == "true") ? true : false));
@@ -1605,7 +1605,7 @@ class Element {
 		}
 		if($msg != ""){
 			$resultGoods["result"]=true;
-			$resultGoods["msg"]=Yii::t("common", "The following attributs has been updated :".$msg);
+			$resultGoods["msg"]= Yii::t("common", "The following attributs has been updated :")." ".$msg;
 			$resultGoods["values"] = $values ;
 			$result["resultGoods"] = $resultGoods ;
 			$result["result"] = true ;
