@@ -197,8 +197,8 @@ class DetailAction extends CAction {
 										if(@$aMember["toBeValidated"]){
 											$newCitoyen["toBeValidated"]=true;  
 										}
-										if(!@$aMember["isInviting"]){
-
+										if(@$aMember["isInviting"]){
+											$newCitoyen["isInviting"]=true;
 										}		
 					  				
 									}
