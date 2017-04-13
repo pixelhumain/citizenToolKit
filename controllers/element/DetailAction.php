@@ -185,7 +185,7 @@ class DetailAction extends CAction {
 								$members[$key] = $newOrga ;
 							}
 						} else if($aMember["type"]==Person::COLLECTION){
-							if(!@$aMember["isInviting"]){
+							//if(!@$aMember["isInviting"]){
 								$newCitoyen = Person::getSimpleUserById($key);
 								if (!empty($newCitoyen)) {
 									if (@$aMember["type"] == Person::COLLECTION) {
@@ -196,6 +196,9 @@ class DetailAction extends CAction {
 										}			
 										if(@$aMember["toBeValidated"]){
 											$newCitoyen["toBeValidated"]=true;  
+										}
+										if(!@$aMember["isInviting"]){
+
 										}		
 					  				
 									}
@@ -205,7 +208,7 @@ class DetailAction extends CAction {
 									$members[$key] = $newCitoyen ;
 									$nbMembers++;
 								}
-							}
+							//}
 						}
 					} 
 					if(!@$aMember["isInviting"])
