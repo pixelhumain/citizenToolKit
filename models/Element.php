@@ -17,14 +17,14 @@ class Element {
 		Organization::COLLECTION => "members",
 		Project::COLLECTION => "contributors",
 		Event::COLLECTION => "attendees",
-		Person::COLLECTION => "friends"
+		Person::COLLECTION => "followers"
 	);
 
 	public static $connectAs = array(
 		Organization::COLLECTION => "member",
 		Project::COLLECTION => "contributor",
 		Event::COLLECTION => "attendee",
-		Person::COLLECTION => "friend"
+		Person::COLLECTION => "follows"
 	);
 
 	public static function getControlerByCollection ($type) { 
