@@ -13,6 +13,20 @@ class Element {
 	    "other" => "Autre"
 	);  
 
+	public static $connectTypes = array(
+		Organization::COLLECTION => "members",
+		Project::COLLECTION => "contributors",
+		Event::COLLECTION => "attendees",
+		Person::COLLECTION => "friends"
+	);
+
+	public static $connectAs = array(
+		Organization::COLLECTION => "member",
+		Project::COLLECTION => "contributor",
+		Event::COLLECTION => "attendee",
+		Person::COLLECTION => "friend"
+	);
+
 	public static function getControlerByCollection ($type) { 
 
 		$ctrls = array(
@@ -1525,6 +1539,139 @@ class Element {
 		}
 
 		return $result;
+	}
+
+
+
+	public static function getInfoDetail($params, $element, $type, $id){
+		$params["edit"] = Authorisation::canEditItem(Yii::app()->session["userId"], $type, $id);
+        $params["openEdition"] = Authorisation::isOpenEdition($id, $type, @$element["preferences"]);
+
+        $params["controller"] = Element::getControlerByCollection($type);
+
+
+        $connectType = Element::$connectTypes[$type];
+        if( @$element["links"] ) {
+            if(isset($element["links"][$connectType])){
+                $countStrongLinks=0;//count($element["links"][$connectType]);
+                $nbMembers=0;
+                $invitedNumber=0;
+                foreach ($element["links"][$connectType] as $key => $aMember) {
+                    if($nbMembers < 11){
+                        if($aMember["type"]==Organization::COLLECTION){
+                            $newOrga = Organization::getSimpleOrganizationById($key);
+                            if(!empty($newOrga)){
+                                if ($aMember["type"] == Organization::COLLECTION && @$aMember["isAdmin"]){
+                                    $newOrga["isAdmin"]=true;               
+                                }
+                                $newOrga["type"]=Organization::COLLECTION;
+                                //array_push($contextMap["organizations"], $newOrga);
+                                //array_push($members, $newOrga);
+                                $members[$key] = $newOrga ;
+                            }
+                        } else if($aMember["type"]==Person::COLLECTION){
+                            if(!@$aMember["isInviting"]){
+                                $newCitoyen = Person::getSimpleUserById($key);
+                                if (!empty($newCitoyen)) {
+                                    if (@$aMember["type"] == Person::COLLECTION) {
+                                        if(@$aMember["isAdmin"]){
+                                            if(@$aMember["isAdminPending"])
+                                                $newCitoyen["isAdminPending"]=true;  
+                                                $newCitoyen["isAdmin"]=true;    
+                                        }           
+                                        if(@$aMember["toBeValidated"]){
+                                            $newCitoyen["toBeValidated"]=true;  
+                                        }       
+                                    
+                                    }
+                                    $newCitoyen["type"]=Person::COLLECTION;
+                                    //array_push($contextMap["people"], $newCitoyen);
+                                    //array_push($members, $newCitoyen);
+                                    $members[$key] = $newCitoyen ;
+                                    $nbMembers++;
+                                }
+                            }
+                        }
+                    } 
+                    if(!@$aMember["isInviting"])
+                        $countStrongLinks++;
+                    else{
+                        if(@Yii::app()->session["userId"] && $key==Yii::app()->session["userId"])
+                            $params["invitedMe"]=array("invitorId"=>$aMember["invitorId"],"invitorName"=>$aMember["invitorName"]);
+                        $invitedNumber++;
+                    }
+                    //else {
+                        //break;
+                    //}
+                }
+            }
+        }
+
+        if(!@$element["disabled"]){
+            //if((@$config["connectLink"] && $config["connectLink"]) || empty($config)){ TODO CONFIG MUTUALIZE WITH NETWORK AND OTHER PLATFORM
+           //$connectType = $connectType[$type];
+            if((!@$element["links"][$connectType][Yii::app()->session["userId"]] || 
+                (@$element["links"][$connectType][Yii::app()->session["userId"]] && 
+                @$element["links"][$connectType][Yii::app()->session["userId"]][Link::TO_BE_VALIDATED])) && 
+                @Yii::app()->session["userId"] && 
+                ($type != Person::COLLECTION || 
+                $element["_id"] != Yii::app()->session["userId"])){
+                    $params["linksBtn"]["followBtn"]=true;
+                    if (@$element["links"]["followers"][Yii::app()->session["userId"]])
+                            $params["linksBtn"]["isFollowing"]=true;
+                     else if(!@$element["links"]["followers"][Yii::app()->session["userId"]] && 
+                            $type != Event::COLLECTION)   
+                            $params["linksBtn"]["isFollowing"]=false;                  
+            }
+            
+            $connectAs = Element::$connectAs[$type];
+            
+            $params["linksBtn"]["connectAs"]=$connectAs;
+            $params["linksBtn"]["connectType"]=$connectType;
+            if( @Yii::app()->session["userId"] && $type!= Person::COLLECTION && !@$element["links"][$connectType][Yii::app()->session["userId"]]){
+                $params["linksBtn"]["communityBn"]=true;                    
+                $params["linksBtn"]["isMember"]=false;
+            }else if($type != Person::COLLECTION  && @Yii::app()->session["userId"]){
+                //Ask Admin button
+                $connectAs="admin";
+                $params["linksBtn"]["communityBn"]=true;
+                $params["linksBtn"]["isMember"]=true;
+                if(@$element["links"][$connectType][Yii::app()->session["userId"]][Link::TO_BE_VALIDATED])
+                    $params["linksBtn"][Link::TO_BE_VALIDATED]=true;
+                $params["linksBtn"]["isAdmin"]=true;
+                if(@$element["links"][$connectType][Yii::app()->session["userId"]][Link::IS_ADMIN_PENDING])
+                    $params["linksBtn"][Link::IS_ADMIN_PENDING]=true;
+                //Test if user has already asked to become an admin
+                if(!in_array(Yii::app()->session["userId"], Authorisation::listAdmins($id, $type,true)))
+                    $params["linksBtn"]["isAdmin"]=false;              
+            }
+
+            $params["isLinked"] = Link::isLinked($id,$type, 
+                                    Yii::app()->session['userId'], 
+                                    @$element["links"]);
+
+            if($params["isLinked"]==true)
+                $params["countNotifElement"]=ActivityStream::countUnseenNotifications(Yii::app()->session["userId"], $type, $id);
+            if($type==Event::COLLECTION){
+                $params["countStrongLinks"]= @$attendeeNumber;
+                //$params["countLowLinks"] = @$invitedNumber;
+            }
+            else{
+                $params["countStrongLinks"]= @$countStrongLinks;
+                $params["countLowLinks"] = count(@$element["links"]["followers"]);
+            }
+            $params["countInvitations"]=@$invitedNumber;
+            $params["countries"] = OpenData::getCountriesList();
+
+            if(@$_POST["modeEdit"]){
+                $params["modeEdit"]=$_POST["modeEdit"];
+            }
+            
+            if(@$_GET["network"])
+                $params["networkJson"]=Network::getNetworkJson($_GET["network"]);
+        }
+
+        return $params;
 	}
 
 }
