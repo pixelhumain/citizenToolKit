@@ -10,27 +10,18 @@ class GetDataDetailAction extends CAction {
     	$contextMap = array();
 		$element = Element::getByTypeAndId($type, $id);
 
-		if($dataName == "follows"){
-			if(isset($element["links"]["follows"])){
-				foreach ($element["links"]["follows"] as $keyFollow => $value){
-					//$need = Need::getSimpleNeedById($keyFollow);
-					$follow = Element::getByTypeAndId($value["type"], $keyFollow);
-					$follow["type"] = $value["type"];
-	           		$contextMap[$keyFollow] = $follow;
+		if($dataName == "follows" || $dataName == "followers" || 
+			$dataName == "members" || $dataName == "attendees" ||
+			$dataName == "contributors" ){
+			if(isset($element["links"][$dataName])){
+				foreach ($element["links"][$dataName] as $keyLink => $value){
+					$link = Element::getByTypeAndId($value["type"], $keyLink);
+					$link["type"] = $value["type"];
+	           		$contextMap[$keyLink] = $link;
 				}
 			}
 		}
 
-		if($dataName == "followers"){
-			if(isset($element["links"]["followers"])){
-				foreach ($element["links"]["followers"] as $keyFollow => $value){
-					//$need = Need::getSimpleNeedById($keyFollow);
-					$follow = Element::getByTypeAndId($value["type"], $keyFollow);
-					$follow["type"] = $value["type"];
-	           		$contextMap[$keyFollow] = $follow;
-				}
-			}
-		}
 
 		if($dataName == "links"){
 			$links=@$element["links"];
