@@ -323,9 +323,9 @@ class DetailAction extends CAction {
 		//var_dump($params); //exit;
 		//$page = "onepage";
 		$params["params"] = $params;
-		if(Yii::app()->request->isAjaxRequest)
+		/*if(Yii::app()->request->isAjaxRequest)
           echo $controller->renderPartial($page,$params,true);
         else 
-			$controller->render( $page , $params );
+			$controller->render( $page , $params );*/
     }
 }

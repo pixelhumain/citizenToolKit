@@ -1556,6 +1556,7 @@ class Element {
                 $countStrongLinks=0;//count($element["links"][$connectType]);
                 $nbMembers=0;
                 $invitedNumber=0;
+                $members=array();
                 foreach ($element["links"][$connectType] as $key => $aMember) {
                     if($nbMembers < 11){
                         if($aMember["type"]==Organization::COLLECTION){
@@ -1570,7 +1571,7 @@ class Element {
                                 $members[$key] = $newOrga ;
                             }
                         } else if($aMember["type"]==Person::COLLECTION){
-                            if(!@$aMember["isInviting"]){
+                            //if(!@$aMember["isInviting"]){
                                 $newCitoyen = Person::getSimpleUserById($key);
                                 if (!empty($newCitoyen)) {
                                     if (@$aMember["type"] == Person::COLLECTION) {
@@ -1581,7 +1582,10 @@ class Element {
                                         }           
                                         if(@$aMember["toBeValidated"]){
                                             $newCitoyen["toBeValidated"]=true;  
-                                        }       
+                                        } 
+                                        if(@$aMember["isInviting"]){
+											$newCitoyen["isInviting"]=true;
+										}      
                                     
                                     }
                                     $newCitoyen["type"]=Person::COLLECTION;
@@ -1590,7 +1594,7 @@ class Element {
                                     $members[$key] = $newCitoyen ;
                                     $nbMembers++;
                                 }
-                            }
+                            //}
                         }
                     } 
                     if(!@$aMember["isInviting"])
@@ -1600,11 +1604,10 @@ class Element {
                             $params["invitedMe"]=array("invitorId"=>$aMember["invitorId"],"invitorName"=>$aMember["invitorName"]);
                         $invitedNumber++;
                     }
-                    //else {
-                        //break;
-                    //}
                 }
             }
+
+            $params["members"] = $members;
         }
 
         if(!@$element["disabled"]){
