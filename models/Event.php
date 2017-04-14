@@ -422,7 +422,6 @@ class Event {
 		*/
 		$creator = true;
 		$isAdmin = false;
-		
 		if( $params["organizerType"] == Person::COLLECTION )
 			$isAdmin=true;
 

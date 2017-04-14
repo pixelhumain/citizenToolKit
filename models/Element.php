@@ -13,6 +13,20 @@ class Element {
 	    "other" => "Autre"
 	);  
 
+	public static $connectTypes = array(
+		Organization::COLLECTION => "members",
+		Project::COLLECTION => "contributors",
+		Event::COLLECTION => "attendees",
+		Person::COLLECTION => "followers"
+	);
+
+	public static $connectAs = array(
+		Organization::COLLECTION => "member",
+		Project::COLLECTION => "contributor",
+		Event::COLLECTION => "attendee",
+		Person::COLLECTION => "follows"
+	);
+
 	public static function getControlerByCollection ($type) { 
 
 		$ctrls = array(
@@ -120,6 +134,18 @@ class Element {
 	    										 "hash"=> Project::CONTROLLER.".detail.id.",
 	    										 "collection"=>Project::COLLECTION),
 
+			Classified::COLLECTION 		=> array("icon"=>"bullhorn","color"=>"#2BB0C6","text-color"=>"azure",
+	    										 "hash"=> Classified::CONTROLLER.".detail.id."),
+	    	Classified::CONTROLLER 		=> array("icon"=>"bullhorn","color"=>"#2BB0C6","text-color"=>"azure",
+	    										 "hash"=> Classified::CONTROLLER.".detail.id.",
+	    										 "collection"=>Classified::COLLECTION),
+
+			Poi::COLLECTION 			=> array("icon"=>"map-marker","color"=>"#2BB0C6","text-color"=>"green",
+	    										 "hash"=> Poi::CONTROLLER.".detail.id."),
+	    	Poi::CONTROLLER 			=> array("icon"=>"map-marker","color"=>"#2BB0C6","text-color"=>"green",
+	    										 "hash"=> Poi::CONTROLLER.".detail.id.",
+	    										 "collection"=>Poi::COLLECTION),
+
 			News::COLLECTION 			=> array("icon"=>"rss","hash"=> $prefix.""),
 
 	    	City::COLLECTION 			=> array("icon"=>"university","color"=>"#E33551","text-color"=>"red",
@@ -173,16 +199,9 @@ class Element {
             if (@$res["disabled"] && $actionType != "disconnect") {
                 throw new CTKException("Impossible to link something on a disabled organization");    
             }
-        } else if ($type == Person::COLLECTION) {
-        	$res = Person::getById($id);
-        } else if ($type== Event::COLLECTION){
-        	$res = Event:: getById($id);
-        } else if ($type== Project::COLLECTION){
-        	$res = Project:: getById($id);
-        } else if ($type== Need::COLLECTION){
-            $res = Need:: getById($id);
-        }else if ($type == Poi::COLLECTION){
-            $res = Poi:: getById($id);
+        } else 
+        if ( in_array($type, array( Person::COLLECTION, Project::COLLECTION,Event::COLLECTION, Classified::COLLECTION,Need::COLLECTION,Poi::COLLECTION) ) ){
+            $res = self::getByTypeAndId($type, $id);       
         } else if ($type== ActionRoom::COLLECTION_ACTIONS){
             $res = ActionRoom:: getActionById($id);
         } else if ( $type == Survey::COLLECTION) {
@@ -243,6 +262,8 @@ class Element {
 			$element = City::getIdByInsee($id);
 		else if($type == Poi::COLLECTION)
 			$element = Poi::getById($id);
+		else if($type == Classified::COLLECTION)
+			$element = Classified::getById($id);
 		else
 			$element = PHDB::findOne($type,array("_id"=>new MongoId($id)));
 	  	
@@ -966,6 +987,9 @@ class Element {
         if($collection == City::COLLECTION)
         	$params = City::prepCity($params);
         
+        if(isset($params["price"]))
+        	$params["price"] = (int)$params["price"];
+
         /*$microformat = PHDB::findOne(PHType::TYPE_MICROFORMATS, array( "key"=> $key));
         $validate = ( !isset($microformat )  || !isset($microformat["jsonSchema"])) ? false : true;
         //validation process based on microformat defeinition of the form
@@ -1004,6 +1028,14 @@ class Element {
                 	$params["creator"] = Yii::app()->session["userId"];
 	        		$params["created"] = time();
                 	PHDB::updateWithOptions($collection,array("_id"=>new MongoId($id)), array('$set' => $params ),array('upsert' => true ));
+                	$params["_id"]=new MongoId($id);
+                	 if( $collection == Organization::COLLECTION )
+                		$res["afterSave"] = Organization::afterSave($params, Yii::app()->session["userId"], $paramsLinkImport);
+                	else if( $collection == Event::COLLECTION )
+                		$res["afterSave"] = Event::afterSave($params);
+                	else if( $collection == Project::COLLECTION )
+                		$res["afterSave"] = Project::afterSave($params, @$params["parentId"] , @$params["parentType"] );
+                	$res["afterSaveGbl"] = self::afterSave((string)$params["_id"],$collection,$params,$postParams);
                 }
                 else
                 	PHDB::update($collection,array("_id"=>new MongoId($id)), array('$set' => $params ));
@@ -1028,6 +1060,8 @@ class Element {
                 // ***********************************
                 //post process for specific actions
                 // ***********************************
+               // echo "ici";
+                //echo $collection;
                 if( $collection == Organization::COLLECTION )
                 	$res["afterSave"] = Organization::afterSave($params, Yii::app()->session["userId"], $paramsLinkImport);
                 else if( $collection == Event::COLLECTION )
@@ -1505,6 +1539,142 @@ class Element {
 		}
 
 		return $result;
+	}
+
+
+
+	public static function getInfoDetail($params, $element, $type, $id){
+		$params["edit"] = Authorisation::canEditItem(Yii::app()->session["userId"], $type, $id);
+        $params["openEdition"] = Authorisation::isOpenEdition($id, $type, @$element["preferences"]);
+
+        $params["controller"] = Element::getControlerByCollection($type);
+
+
+        $connectType = Element::$connectTypes[$type];
+        if( @$element["links"] ) {
+            if(isset($element["links"][$connectType])){
+                $countStrongLinks=0;//count($element["links"][$connectType]);
+                $nbMembers=0;
+                $invitedNumber=0;
+                $members=array();
+                foreach ($element["links"][$connectType] as $key => $aMember) {
+                    if($nbMembers < 11){
+                        if($aMember["type"]==Organization::COLLECTION){
+                            $newOrga = Organization::getSimpleOrganizationById($key);
+                            if(!empty($newOrga)){
+                                if ($aMember["type"] == Organization::COLLECTION && @$aMember["isAdmin"]){
+                                    $newOrga["isAdmin"]=true;               
+                                }
+                                $newOrga["type"]=Organization::COLLECTION;
+                                //array_push($contextMap["organizations"], $newOrga);
+                                //array_push($members, $newOrga);
+                                $members[$key] = $newOrga ;
+                            }
+                        } else if($aMember["type"]==Person::COLLECTION){
+                            //if(!@$aMember["isInviting"]){
+                                $newCitoyen = Person::getSimpleUserById($key);
+                                if (!empty($newCitoyen)) {
+                                    if (@$aMember["type"] == Person::COLLECTION) {
+                                        if(@$aMember["isAdmin"]){
+                                            if(@$aMember["isAdminPending"])
+                                                $newCitoyen["isAdminPending"]=true;  
+                                                $newCitoyen["isAdmin"]=true;    
+                                        }           
+                                        if(@$aMember["toBeValidated"]){
+                                            $newCitoyen["toBeValidated"]=true;  
+                                        } 
+                                        if(@$aMember["isInviting"]){
+											$newCitoyen["isInviting"]=true;
+										}      
+                                    
+                                    }
+                                    $newCitoyen["type"]=Person::COLLECTION;
+                                    //array_push($contextMap["people"], $newCitoyen);
+                                    //array_push($members, $newCitoyen);
+                                    $members[$key] = $newCitoyen ;
+                                    $nbMembers++;
+                                }
+                            //}
+                        }
+                    } 
+                    if(!@$aMember["isInviting"])
+                        $countStrongLinks++;
+                    else{
+                        if(@Yii::app()->session["userId"] && $key==Yii::app()->session["userId"])
+                            $params["invitedMe"]=array("invitorId"=>$aMember["invitorId"],"invitorName"=>$aMember["invitorName"]);
+                        $invitedNumber++;
+                    }
+                }
+            }
+
+            $params["members"] = $members;
+        }
+
+        if(!@$element["disabled"]){
+            //if((@$config["connectLink"] && $config["connectLink"]) || empty($config)){ TODO CONFIG MUTUALIZE WITH NETWORK AND OTHER PLATFORM
+           //$connectType = $connectType[$type];
+            if((!@$element["links"][$connectType][Yii::app()->session["userId"]] || 
+                (@$element["links"][$connectType][Yii::app()->session["userId"]] && 
+                @$element["links"][$connectType][Yii::app()->session["userId"]][Link::TO_BE_VALIDATED])) && 
+                @Yii::app()->session["userId"] && 
+                ($type != Person::COLLECTION || 
+                $element["_id"] != Yii::app()->session["userId"])){
+                    $params["linksBtn"]["followBtn"]=true;
+                    if (@$element["links"]["followers"][Yii::app()->session["userId"]])
+                            $params["linksBtn"]["isFollowing"]=true;
+                     else if(!@$element["links"]["followers"][Yii::app()->session["userId"]] && 
+                            $type != Event::COLLECTION)   
+                            $params["linksBtn"]["isFollowing"]=false;                  
+            }
+            
+            $connectAs = Element::$connectAs[$type];
+            
+            $params["linksBtn"]["connectAs"]=$connectAs;
+            $params["linksBtn"]["connectType"]=$connectType;
+            if( @Yii::app()->session["userId"] && $type!= Person::COLLECTION && !@$element["links"][$connectType][Yii::app()->session["userId"]]){
+                $params["linksBtn"]["communityBn"]=true;                    
+                $params["linksBtn"]["isMember"]=false;
+            }else if($type != Person::COLLECTION  && @Yii::app()->session["userId"]){
+                //Ask Admin button
+                $connectAs="admin";
+                $params["linksBtn"]["communityBn"]=true;
+                $params["linksBtn"]["isMember"]=true;
+                if(@$element["links"][$connectType][Yii::app()->session["userId"]][Link::TO_BE_VALIDATED])
+                    $params["linksBtn"][Link::TO_BE_VALIDATED]=true;
+                $params["linksBtn"]["isAdmin"]=true;
+                if(@$element["links"][$connectType][Yii::app()->session["userId"]][Link::IS_ADMIN_PENDING])
+                    $params["linksBtn"][Link::IS_ADMIN_PENDING]=true;
+                //Test if user has already asked to become an admin
+                if(!in_array(Yii::app()->session["userId"], Authorisation::listAdmins($id, $type,true)))
+                    $params["linksBtn"]["isAdmin"]=false;              
+            }
+
+            $params["isLinked"] = Link::isLinked($id,$type, 
+                                    Yii::app()->session['userId'], 
+                                    @$element["links"]);
+
+            if($params["isLinked"]==true)
+                $params["countNotifElement"]=ActivityStream::countUnseenNotifications(Yii::app()->session["userId"], $type, $id);
+            if($type==Event::COLLECTION){
+                $params["countStrongLinks"]= @$attendeeNumber;
+                //$params["countLowLinks"] = @$invitedNumber;
+            }
+            else{
+                $params["countStrongLinks"]= @$countStrongLinks;
+                $params["countLowLinks"] = count(@$element["links"]["followers"]);
+            }
+            $params["countInvitations"]=@$invitedNumber;
+            $params["countries"] = OpenData::getCountriesList();
+
+            if(@$_POST["modeEdit"]){
+                $params["modeEdit"]=$_POST["modeEdit"];
+            }
+            
+            if(@$_GET["network"])
+                $params["networkJson"]=Network::getNetworkJson($_GET["network"]);
+        }
+
+        return $params;
 	}
 
 }

@@ -20,8 +20,8 @@ class ActivityStream {
 		//print_r($param);
 		if($param["type"]==self::COLLECTION){
 			$news=$param;
-			$news["target"]["type"]=$param["target"]["type"];
-			unset($news["target"]["objectType"]);
+			//$news["target"]["type"]=$param["target"]["type"];
+			//unset($news["target"]["objectType"]);
 		    PHDB::insert(News::COLLECTION, $news);
 		}
 		else
@@ -284,9 +284,9 @@ class ActivityStream {
 		        	$cp=$author["address"]["postalCode"];
 		        	if(!@$geo)
 		        		$geo = $author["geo"];
-	        	} else {
-		        	$action["scope"]["type"]="restricted";
-	        	}
+	        	} //else {
+		        	//$action["scope"]["type"]="restricted";
+	        	//}
 			}
 			$action["scope"]["cities"][] = array(
 				"codeInsee" => ((@$insee) ? $insee : ""), 
