@@ -82,11 +82,12 @@ class Search {
         $indexStep = $indexMax - $indexMin;
         
         $searchTypeOrga = ""; /* used in CO2 to find different organisation type */
+        
         if( sizeOf($searchType) == 1 &&
-        	$searchType[0] == Organization::TYPE_NGO ||
-         	$searchType[0] == Organization::TYPE_BUSINESS ||
-         	$searchType[0] == Organization::TYPE_GROUP ||
-        	$searchType[0] == Organization::TYPE_GOV) {
+        	@$searchType[0] == Organization::TYPE_NGO ||
+         	@$searchType[0] == Organization::TYPE_BUSINESS ||
+         	@$searchType[0] == Organization::TYPE_GROUP ||
+        	@$searchType[0] == Organization::TYPE_GOV) {
 	        	$searchTypeOrga = $searchType[0];
 	        	$searchType = array(Organization::COLLECTION);
         }
