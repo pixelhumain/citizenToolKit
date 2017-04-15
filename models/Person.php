@@ -937,6 +937,7 @@ class Person {
      */
     public static function checkPassword($pwd, $account) {
     	$res = false;
+
     	if ($account) {
     		if (@$account["pwd"] == hash('sha256', @$account["email"].$pwd)) {
     			//the password match with an "email" as salt => change the password to salt with the "id"
