@@ -185,7 +185,7 @@ class DetailAction extends CAction {
 								$members[$key] = $newOrga ;
 							}
 						} else if($aMember["type"]==Person::COLLECTION){
-							if(!@$aMember["isInviting"]){
+							//if(!@$aMember["isInviting"]){
 								$newCitoyen = Person::getSimpleUserById($key);
 								if (!empty($newCitoyen)) {
 									if (@$aMember["type"] == Person::COLLECTION) {
@@ -196,6 +196,9 @@ class DetailAction extends CAction {
 										}			
 										if(@$aMember["toBeValidated"]){
 											$newCitoyen["toBeValidated"]=true;  
+										}
+										if(@$aMember["isInviting"]){
+											$newCitoyen["isInviting"]=true;
 										}		
 					  				
 									}
@@ -205,7 +208,7 @@ class DetailAction extends CAction {
 									$members[$key] = $newCitoyen ;
 									$nbMembers++;
 								}
-							}
+							//}
 						}
 					} 
 					if(!@$aMember["isInviting"])
@@ -276,7 +279,11 @@ class DetailAction extends CAction {
 			$params["openEdition"] = false;
 			$params["edit"] = false;
 		}
-		$params["isLinked"] = Link::isLinked($elementAuthorizationId,$elementAuthorizationType, Yii::app()->session['userId'], @$element["links"]);
+
+		$params["isLinked"] = Link::isLinked($elementAuthorizationId,$elementAuthorizationType, 
+									Yii::app()->session['userId'], 
+									@$element["links"]);
+
 		if($params["isLinked"]==true)
 			$params["countNotifElement"]=ActivityStream::countUnseenNotifications(Yii::app()->session["userId"], $elementAuthorizationType, $elementAuthorizationId);
 		if($type==Event::COLLECTION){
@@ -316,9 +323,9 @@ class DetailAction extends CAction {
 		//var_dump($params); //exit;
 		//$page = "onepage";
 		$params["params"] = $params;
-		if(Yii::app()->request->isAjaxRequest)
+		/*if(Yii::app()->request->isAjaxRequest)
           echo $controller->renderPartial($page,$params,true);
         else 
-			$controller->render( $page , $params );
+			$controller->render( $page , $params );*/
     }
 }

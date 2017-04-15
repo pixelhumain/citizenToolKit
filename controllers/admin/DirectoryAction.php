@@ -23,24 +23,15 @@ class DirectoryAction extends CAction
       /* **************************************
       *  PERSON
       ***************************************** */
-      $person = Person::getPublicData($id);
+      //$person = Person::getPublicData($id);
 
-      $controller->title = "Admin Directory Restricted Zone";
-      $controller->subTitle = "This is a restricted zone";
-      $controller->pageTitle = ucfirst($controller->module->id)." - ".$controller->title;
+      $superAdmin = Role::isSuperAdmin(Role::getRolesUserId($id)) ;
 
       /* **************************************
       *  EVENTS
       ***************************************** */
       $events = array();
-      /*Authorisation::listEventsIamAdminOf($id);
-      $eventsAttending = Event::listEventAttending($id);
-      foreach ($eventsAttending as $key => $value) {
-        $eventId = (string)$value["_id"];
-        if(!isset($events[$eventId])){
-          $events[$eventId] = $value;
-        }
-      }*/
+      
 
       //TODO - SBAR : Pour le dashboard person, affiche t-on les événements des associations dont je suis memebre ?
       //Get the organization where i am member of;
@@ -60,20 +51,16 @@ class DirectoryAction extends CAction
       *  PROJECTS
       ***************************************** */
       $projects = array();
-      /*if(isset($person["links"]["projects"])){
-        foreach ($person["links"]["projects"] as $key => $value) {
-          $project = Project::getPublicData($key);
-          array_push( $projects, $project );
-        }
-      }*/
 
       $params["organizations"] = $organizations;
       $params["projects"] = $projects;
       $params["events"] = $events;
       $params["people"] = $people;
-      $params["path"] = "../default/";
+      $params["people"] = $people;
+      $params["superAdmin"] = $superAdmin ;
+      //$params["path"] = "../default/";
 
-		  $page = $params["path"]."directoryTable";
+		  $page = "directoryTable";
 
       if(Yii::app()->request->isAjaxRequest){
         echo $controller->renderPartial($page,$params,true);

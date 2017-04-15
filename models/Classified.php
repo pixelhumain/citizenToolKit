@@ -2,6 +2,7 @@
 
 class Classified {
 	const COLLECTION = "classified";
+	const CONTROLLER = "classified";
 	
 	//TODO Translate
 	public static $classifiedTypes = array(
@@ -64,6 +65,30 @@ class Classified {
 	public static function getById($id) { 
 	  	$poi = PHDB::findOneById( self::COLLECTION ,$id );
 	  	return $poi;
+	}
+
+
+	public static function getClassifiedByCreator($id){
+		$allClassified = PHDB::findAndSort( self::COLLECTION , array("creator"=> $id), array("updated"=>-1));
+		foreach ($allClassified as $key => $value) {
+			if(@$value["creator"]){// && @$value["parentType"])
+				$parent = Element::getElementById(@$value["creator"], "citoyens");//@$value["parentType"]);
+				$aParent = array("name"=>@$parent["name"],
+								 "profilThumbImageUrl"=>@$parent["profilThumbImageUrl"],
+								);
+			}else{
+				$aParent=array();
+			}
+
+			$allClassified[$key]["parent"] = $aParent;
+			$allClassified[$key]["category"] = @$allClassified[$key]["type"];
+			$allClassified[$key]["type"] = "classified";
+			//if(@$value["type"])
+			//	$allClassified[$key]["typeSig"] = Classified::COLLECTION.".".$value["type"];
+			//else
+			$allClassified[$key]["typeSig"] = Classified::COLLECTION;
+		}
+	  	return $allClassified;
 	}
 }
 ?>

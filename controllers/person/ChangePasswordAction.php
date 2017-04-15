@@ -11,7 +11,7 @@ class ChangePasswordAction extends CAction {
             $mode = @$_GET["mode"];
             $userId = @$_GET["id"];
         } else {
-            $userId = @$_POST["id"];
+            $userId = @$_POST["userId"];
             $mode = @$_POST["mode"];
         }
 
