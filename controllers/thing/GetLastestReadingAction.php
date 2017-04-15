@@ -5,7 +5,7 @@ class GetLastestReadingAction extends CAction {
 *
 */
 
-    public function run($device=4151) { 
+    public function run($device=null) { 
 
     	$controller=$this->getController();
 

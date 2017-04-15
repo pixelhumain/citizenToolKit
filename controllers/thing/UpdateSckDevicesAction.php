@@ -1,26 +1,23 @@
 <?php
 
 class UpdateSckDevicesAction extends CAction {
-	
+	//TODO mettre une verification de compte admin pour ce controller
+	public function run($deviceId=null,$macId=null,$id=null,$atSC=null) { 
 
-	public function run($deviceId,$macId,$id) { 
-
-
-		if ($_SERVER['REQUEST_METHOD'] == 'GET') {//TODO : utiliser GET pour mettre à jours et utiliser les données à jours dans la vue
-			//$params = $_GET;
+		$res = array();
+		if ($_SERVER['REQUEST_METHOD'] == 'GET') {
 			
-			$res = Thing::updateMetadatas();
-			$res2= Thing::updateSCKAPIMetadata();
+			$res[] = Thing::updateMetadatas(null,$atSC);
+			$res[] = Thing::updateSCKAPIMetadata();
 
-
-		} elseif ($_SERVER['REQUEST_METHOD'] == 'POST') { //TODO : post pour mettre ajours avec un nouveau poi ou sans poi en utilisant deviceId et macId du SCK}
-
-
-
+		} else if ($_SERVER['REQUEST_METHOD'] == 'POST') { 
+			if((preg_match('/^([0-9a-f]{2}[:-]){5}([0-9a-f]{2})$/', $macId)==1) && !empty($deviceId)){
+				$res = Thing::updateOneMetadata($deviceId,$macId);
+			}
 		}
-		echo Rest::json($res2);
-		//echo "]";
 
+		Rest::json($res);
+		Yii::app()->end();
 	}
 }
 ?>

@@ -27,7 +27,7 @@ class ManageAction extends CAction {
 
         }
 
-		echo Rest::json( $res ); 	
+		//echo Rest::json( $res ); 	
     }
 }
 

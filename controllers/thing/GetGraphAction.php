@@ -9,7 +9,7 @@
 
 class GetGraphAction extends CAction {
     
-    public function run($country="RE",$postalCode="97490",$nbDays=1) {
+    public function run($country="RE",$postalCode="0",$nbDays=1) {
 
 		$controller=$this->getController();
 
