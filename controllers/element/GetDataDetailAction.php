@@ -17,6 +17,8 @@ class GetDataDetailAction extends CAction {
 				foreach ($element["links"][$dataName] as $keyLink => $value){
 					$link = Element::getByTypeAndId($value["type"], $keyLink);
 					$link["type"] = $value["type"];
+					if(!empty($value["isInviting"]))
+						$link["isInviting"] = $value["isInviting"];
 	           		$contextMap[$keyLink] = $link;
 				}
 			}
