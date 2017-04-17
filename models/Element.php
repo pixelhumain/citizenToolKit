@@ -566,7 +566,7 @@ class Element {
 			$set = array("organizerId" => $fieldValue["organizerId"], 
 							 "organizerType" => $fieldValue["organizerType"]);
 			//get element and remove current organizer
-			$element = Element::getElementById($id, $collection);
+			$element = self::getElementById($id, $collection);
 			$oldOrganizerId = @$element["organizerId"] ? $element["organizerId"] : key($element["links"]["organizer"]);
 			$oldOrganizerType = @$element["organizerType"] ? $element["organizerType"] : $element["links"]["organizer"][$oldOrganizerId]["type"];
 			//remove the old organizer
@@ -668,7 +668,7 @@ class Element {
 					$verbActivity = ActStr::VERB_UPDATE ;
 				ActivityStream::saveActivityHistory($verbActivity, $id, $collection, $dataFieldName, $fieldValue);
 			}
-			$res = array("result"=>true,"msg"=>Yii::t(Element::getControlerByCollection($collection),"The ".Element::getControlerByCollection($collection)." has been updated"), "fieldName" => $fieldName, "value" => $fieldValue);
+			$res = array("result"=>true,"msg"=>Yii::t(self::getControlerByCollection($collection),"The ".self::getControlerByCollection($collection)." has been updated"), "fieldName" => $fieldName, "value" => $fieldValue);
 
 			if(isset($firstCitizen))
 				$res["firstCitizen"] = $firstCitizen ;
@@ -1271,7 +1271,7 @@ class Element {
 					$params["invitedUserName"] = $split[0];
 				}else
 					$params["invitedUserName"] = $value["name"] ;
-				$result["data"][] = Element::followPerson($params, $gmail);
+				$result["data"][] = self::followPerson($params, $gmail);
 			}
 		}
 		return $result;
@@ -1547,10 +1547,10 @@ class Element {
 		$params["edit"] = Authorisation::canEditItem(Yii::app()->session["userId"], $type, $id);
         $params["openEdition"] = Authorisation::isOpenEdition($id, $type, @$element["preferences"]);
 
-        $params["controller"] = Element::getControlerByCollection($type);
+        $params["controller"] = self::getControlerByCollection($type);
 
 
-        $connectType = Element::$connectTypes[$type];
+        $connectType = @self::$connectTypes[$type];
         if( @$element["links"] ) {
             if(isset($element["links"][$connectType])){
                 $countStrongLinks=0;//count($element["links"][$connectType]);
@@ -1628,7 +1628,7 @@ class Element {
                             $params["linksBtn"]["isFollowing"]=false;                  
             }
             
-            $connectAs = Element::$connectAs[$type];
+            $connectAs = @self::$connectAs[$type];
             
             $params["linksBtn"]["connectAs"]=$connectAs;
             $params["linksBtn"]["connectType"]=$connectType;
