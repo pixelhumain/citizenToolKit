@@ -1440,6 +1440,15 @@ class Element {
 	    return $url ;
 	}
 
+	public static function getUrls($id, $type){
+		$res = array();
+		$listElt = array(Organization::COLLECTION, Person::COLLECTION, Project::COLLECTION, Event::COLLECTION);
+		if(in_array($type, $listElt) ){
+			$res = PHDB::findOne( $type , array( "_id" => new MongoId($id) ) ,array("urls") );
+			$res = (!empty($res["urls"]) ? $res["urls"] : array() );
+		}
+		return $res;
+	}
 
 	public static function updateBlock($params){
 		$block = $params["block"];
