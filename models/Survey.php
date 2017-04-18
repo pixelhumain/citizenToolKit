@@ -97,35 +97,60 @@ class Survey
     	return $res;
      }
 
-     public static function deleteEntry($params){
-     	$res = array( "result" => false );
-     	if( isset( Yii::app()->session["userId"] ))
-     	{ 
-     		if( $survey = PHDB::findOne( self::COLLECTION, array("_id"=>new MongoId($params["survey"])) ) ) 
-     		{
-	     		if(Person::isAppAdmin( Yii::app()->session["userId"] , $params["app"] ))
-	     		{
-			     	
-	     			//first remove all children 
-			     	$count = PHDB::count( self::COLLECTION , array("survey" => $params["survey"]) );
-			     	if( $count > 0){
-				     	PHDB::remove( self::COLLECTION, array("survey"=>$params["survey"]));
-				     	$res["msg2"] = "Deleted ".$count." children entries" ;
-					}
+/**
+     * Delete a survey and its children (comments, votes...)
+     * @param String $id id of the survey to delete
+     * @param String $userId userId making the delete
+     * @return array result => boolean, msg => String
+     */
+    public static function deleteEntry($id, $userId){
+     	$res = array( "result" => false, "msg" => "Something went wrong : contact your admin !");;
+     	
+        $entry = self::getById($id);
+        if (empty($entry)) return array("result" => false, "msg" => "The survey does not exist");
+        
+        if (! self::canAdministrate($userId, $id)) return array("result" => false, "msg" => "You must be admin of the parent of this entry if you want delete it");
 
-			     	//then remove the parent survey
-	     			PHDB::remove( self::COLLECTION,array("_id"=>new MongoId($params["survey"])));
-	     			$res["msg"] = "Deleted";
-	     			$res["result"] = true;
+        //Remove all comments linked
+        if (isset($entry["comment"])) {
+            $resComment = Comment::deleteAllContextComments($id, self::COLLECTION, $userId);
+        } 
 
-			     } else 
-			     	$res["msg"] = "restrictedAccess";
-		     } else
-		     	$res["msg"] = "SurveydoesntExist";
-	     } else 
-	     	$res["msg"] = "mustBeLoggued";
+        if (isset($resComment["result"]) && ! $resComment["result"]) return $resComment;
+
+        //Remove the entry (survey)
+        if (PHDB::remove(self::COLLECTION,array("_id"=>new MongoId($id)))) {
+            $res = array( "result" => true, "msg" => "The survey has been deleted with success");
+        } 
+
+        return $res;
+    }
+
+    /**
+     * Delete all the surveys of the action room
+     * @param String $actionRoomId 
+     * @param String $userId 
+     * @return array result => boolean, msg => String
+     */
+    public static function deleteAllSurveyOfTheRoom($actionRoomId, $userId) {
+    	$canDelete = ActionRoom::canAdministrate($userId, $actionRoomId);
+		$res = array("result" => true);
+		if ($canDelete) {
+			$where = array("survey" => $actionRoomId);
+			$surveys = PHDB::find(self::COLLECTION, $where);
+			foreach ($surveys as $id => $survey) {
+				$res = self::deleteEntry($id, $userId);
+			}
+		} else {
+			return array("result"=>false, "msg"=>Yii::t("common","You are not allowed to delete this action room"));
+		}
+		
+		if ($res["result"]) {
+			$res = array("result"=>true, "msg"=>Yii::t("common","The surveys of this action room have been deleted with success"));
+		} 
+		
 		return $res;
-     }
+    }
 
      public static function closeEntry($params){
      	$res = array( "result" => false );

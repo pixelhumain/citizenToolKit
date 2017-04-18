@@ -37,6 +37,7 @@ class ActivityStream {
 	{
 	    return PHDB::findAndSort(self::COLLECTION, $param,$sort,5);
 	}
+	
 	/*
 	* Get activities on entity which is in openEdition
 	* @param type string $id defines id of modified entity
@@ -48,6 +49,40 @@ class ActivityStream {
 					"type"=>ActStr::TYPE_ACTIVITY_HISTORY);
 		$sort = array("date"=>-1);
 		return PHDB::findAndSort( self::COLLECTION,$where,$sort,null);
+	}
+		/**
+	* Remove activities history
+	* @param type string $id defines id of modified entity
+	* @param type string $type defines type of modified entity
+	*/	
+	public static function removeActivityHistory($id,$type){
+		$where = array("target.id"=>$id, 
+					"target.objectType"=>$type,
+					"type"=>ActStr::TYPE_ACTIVITY_HISTORY);
+		return PHDB::remove( self::COLLECTION,$where);
+	}
+
+	/**
+	* Remove activities of an element
+	* @param type string $id defines id of modified entity
+	* @param type string $type defines type of modified entity
+	* @param type boolean $removeComments do i remove comments like to the activity stream or not 
+	*/	
+	public static function removeElementActivityStream($id, $type){
+		$res = array("result" => true, "msg" => "All the activity stream of the element have been removed.");
+		$where = 	array('$or' => array(
+						array('$and' => array(
+							  array("target.id"=>$id), 
+							  array("target.objectType"=>$type)
+						)),
+						array('$and' => array(
+							  array("object.id"=>$id), 
+							  array("object.objectType"=>$type)
+						))
+					));
+		PHDB::remove( self::COLLECTION,$where);
+		
+		return $res;
 	}
 	/*
 	* SaveActivityHistory aims to insert in collecion ActivityStream 
