@@ -585,11 +585,11 @@ class Element {
 				$set = array($dataFieldName => $fieldValue);
 			}
 		} else if ($dataFieldName == "contacts") {
-			if(empty($fieldValue["index"]))
+			if(!inset($fieldValue["index"]))
 				$addToSet = array("contacts" => $fieldValue);
 			else{
 				$headSet = "contacts.".$fieldValue["index"] ;
-				unset($fieldValue["index"]);
+				isset($fieldValue["index"]);
 				if(count($fieldValue) == 0){
 					$verb = '$unset' ;
 					$verbActivity = ActStr::VERB_DELETE ;
@@ -601,7 +601,7 @@ class Element {
 				
 			}
 		} else if ($dataFieldName == "urls") {
-			if(empty($fieldValue["index"]))
+			if(!isset($fieldValue["index"]))
 				$addToSet = array("urls" => $fieldValue);
 			else{
 				$headSet = "urls.".$fieldValue["index"] ;
@@ -1404,7 +1404,6 @@ class Element {
 		unset($params["phone"]);
 		unset($params["idContact"]);
 
-
 		if(empty($params["name"]) && empty($params["email"]) && empty($params["role"]) && empty($params["telephone"]))
 			$res = array("result" => false, "msg" => "Vous devez avoir au moins une information sur le contact");
 		else
@@ -1422,6 +1421,8 @@ class Element {
 
 		unset($params["parentId"]);
 		unset($params["parentType"]);
+		unset($params["key"]);
+		unset($params["collection"]);
 		$res = self::updateField($collection, $id, "urls", $params);
 		if($res["result"])
 			$res["msg"] = "Les urls ont été mis à jours";
