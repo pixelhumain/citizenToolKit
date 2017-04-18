@@ -46,6 +46,7 @@ class GetDataDetailAction extends CAction {
 		}
 
 		if($dataName == "projects"){
+			if(isset($element["links"]["projects"]))
 			foreach ($element["links"]["projects"] as $keyProj => $valueProj) {
 				$project = Project::getPublicData($keyProj);
 				$project["type"] = "projects";
@@ -54,6 +55,7 @@ class GetDataDetailAction extends CAction {
 			}
 		}
 		if($dataName == "organizations"){
+			if(isset($element["links"]["memberOf"]))
 			foreach ($element["links"]["memberOf"] as $keyOrga => $valueOrga) {
 				$orga = Organization::getPublicData($keyOrga);
 				$orga["typeOrga"] = $orga["type"];
