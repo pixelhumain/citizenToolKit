@@ -1,10 +1,7 @@
 <?php 
 class Preference {
 
-	public static $yesOrNo = array(
-        "true" => true,
-        "false" => false
-	);
+	public static $listPref = array( "email", "locality", "phone", "directory", "birthDate" );
 
 	public static function getPreferencesByTypeId($id, $type){
 
@@ -173,6 +170,33 @@ class Preference {
 				( $eltId == $userId || Link::isLinked($eltId, $elementType, $userId, @$element["links"]) ) )
 			$result = true;
 		return $result;
+	}
+
+
+	public static function clearByPreference($element, $elementType, $userId) {
+		$eltId = ( (!empty($element["_id"])) ? (string)$element["_id"] : (string)$element["id"] );
+		if(!empty($eltId)){
+			if(empty($element["preferences"])){
+			$element["preferences"] = self::getPreferencesByTypeId($eltId, $elementType) ;
+			}
+
+			foreach (self::$listPref as $key => $namePref) {
+				if( !self::showPreference($element, $elementType, $namePref, $userId) ){
+					//array( "email", "locality", "phone", "directory", "birthDate" );
+					if($namePref == "locality"){
+						unset($element["address"]);
+					}else if($namePref == "phone"){
+						unset($element["telephone"]);
+					}else if($namePref == "directory"){
+						unset($element["link"]);
+					}else{
+						unset($element[$namePref]);
+					}
+				}
+			}
+		}
+		
+		return $element;
 	}
 
 
