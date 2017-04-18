@@ -52,6 +52,7 @@ class Person {
 	    "multitags" => array("name" => "multitags"),
 	    "multiscopes" => array("name" => "multiscopes"),
 	    "url" => array("name" => "url"),
+	    "urls" => array("name" => "urls"),
 	    "lastLoginDate" => array("name" => "lastLoginDate"),
 	    "seePreferences" => array("name" => "seePreferences"),
 	    "locality" => array("name" => "address"),
