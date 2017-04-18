@@ -52,6 +52,7 @@ class Person {
 	    "multitags" => array("name" => "multitags"),
 	    "multiscopes" => array("name" => "multiscopes"),
 	    "url" => array("name" => "url"),
+	    "urls" => array("name" => "urls"),
 	    "lastLoginDate" => array("name" => "lastLoginDate"),
 	    "seePreferences" => array("name" => "seePreferences"),
 	    "locality" => array("name" => "address"),
@@ -109,7 +110,8 @@ class Person {
 	    Yii::app()->session["user"] = $user;
 	    Yii::app()->session["isRegisterProcess"] = $isRegisterProcess;
 
-        Yii::app()->session["userIsAdmin"] = Role::isUserSuperAdmin(@$account["roles"]); 
+        Yii::app()->session["userIsAdmin"] = Role::isUserSuperAdmin(@$account["roles"]);
+        Yii::app()->session["userIsAdminPublic"] = Role::isSourceAdmin(@$account["roles"]);  
 
 	    Yii::app()->session['logguedIntoApp'] = (isset(Yii::app()->controller->module->id)) ? Yii::app()->controller->module->id : "communecter";
     }

@@ -17,6 +17,8 @@ class GetDataDetailAction extends CAction {
 				foreach ($element["links"][$dataName] as $keyLink => $value){
 					$link = Element::getByTypeAndId($value["type"], $keyLink);
 					$link["type"] = $value["type"];
+					if(!empty($value["isInviting"]))
+						$link["isInviting"] = $value["isInviting"];
 	           		$contextMap[$keyLink] = $link;
 				}
 			}
@@ -44,6 +46,7 @@ class GetDataDetailAction extends CAction {
 		}
 
 		if($dataName == "projects"){
+			if(isset($element["links"]["projects"]))
 			foreach ($element["links"]["projects"] as $keyProj => $valueProj) {
 				$project = Project::getPublicData($keyProj);
 				$project["type"] = "projects";
@@ -52,9 +55,11 @@ class GetDataDetailAction extends CAction {
 			}
 		}
 		if($dataName == "organizations"){
+			if(isset($element["links"]["memberOf"]))
 			foreach ($element["links"]["memberOf"] as $keyOrga => $valueOrga) {
 				$orga = Organization::getPublicData($keyOrga);
-				//$orga["type"] = "organization";
+				$orga["typeOrga"] = $orga["type"];
+				$orga["type"] = "organization";
 				$orga["typeSig"] = Organization::COLLECTION;
            		$contextMap[$keyOrga] = $orga;
 			}
