@@ -566,7 +566,7 @@ class Element {
 			$set = array("organizerId" => $fieldValue["organizerId"], 
 							 "organizerType" => $fieldValue["organizerType"]);
 			//get element and remove current organizer
-			$element = Element::getElementById($id, $collection);
+			$element = self::getElementById($id, $collection);
 			$oldOrganizerId = @$element["organizerId"] ? $element["organizerId"] : key($element["links"]["organizer"]);
 			$oldOrganizerType = @$element["organizerType"] ? $element["organizerType"] : $element["links"]["organizer"][$oldOrganizerId]["type"];
 			//remove the old organizer
@@ -585,11 +585,11 @@ class Element {
 				$set = array($dataFieldName => $fieldValue);
 			}
 		} else if ($dataFieldName == "contacts") {
-			if(empty($fieldValue["index"]))
+			if(!inset($fieldValue["index"]))
 				$addToSet = array("contacts" => $fieldValue);
 			else{
 				$headSet = "contacts.".$fieldValue["index"] ;
-				unset($fieldValue["index"]);
+				isset($fieldValue["index"]);
 				if(count($fieldValue) == 0){
 					$verb = '$unset' ;
 					$verbActivity = ActStr::VERB_DELETE ;
@@ -601,7 +601,7 @@ class Element {
 				
 			}
 		} else if ($dataFieldName == "urls") {
-			if(empty($fieldValue["index"]))
+			if(!isset($fieldValue["index"]))
 				$addToSet = array("urls" => $fieldValue);
 			else{
 				$headSet = "urls.".$fieldValue["index"] ;
@@ -668,7 +668,7 @@ class Element {
 					$verbActivity = ActStr::VERB_UPDATE ;
 				ActivityStream::saveActivityHistory($verbActivity, $id, $collection, $dataFieldName, $fieldValue);
 			}
-			$res = array("result"=>true,"msg"=>Yii::t(Element::getControlerByCollection($collection),"The ".Element::getControlerByCollection($collection)." has been updated"), "fieldName" => $fieldName, "value" => $fieldValue);
+			$res = array("result"=>true,"msg"=>Yii::t(self::getControlerByCollection($collection),"The ".self::getControlerByCollection($collection)." has been updated"), "fieldName" => $fieldName, "value" => $fieldValue);
 
 			if(isset($firstCitizen))
 				$res["firstCitizen"] = $firstCitizen ;
@@ -1271,7 +1271,7 @@ class Element {
 					$params["invitedUserName"] = $split[0];
 				}else
 					$params["invitedUserName"] = $value["name"] ;
-				$result["data"][] = Element::followPerson($params, $gmail);
+				$result["data"][] = self::followPerson($params, $gmail);
 			}
 		}
 		return $result;
@@ -1404,7 +1404,6 @@ class Element {
 		unset($params["phone"]);
 		unset($params["idContact"]);
 
-
 		if(empty($params["name"]) && empty($params["email"]) && empty($params["role"]) && empty($params["telephone"]))
 			$res = array("result" => false, "msg" => "Vous devez avoir au moins une information sur le contact");
 		else
@@ -1422,6 +1421,8 @@ class Element {
 
 		unset($params["parentId"]);
 		unset($params["parentType"]);
+		unset($params["key"]);
+		unset($params["collection"]);
 		$res = self::updateField($collection, $id, "urls", $params);
 		if($res["result"])
 			$res["msg"] = "Les urls ont été mis à jours";
@@ -1440,6 +1441,15 @@ class Element {
 	    return $url ;
 	}
 
+	public static function getUrls($id, $type){
+		$res = array();
+		$listElt = array(Organization::COLLECTION, Person::COLLECTION, Project::COLLECTION, Event::COLLECTION);
+		if(in_array($type, $listElt) ){
+			$res = PHDB::findOne( $type , array( "_id" => new MongoId($id) ) ,array("urls") );
+			$res = (!empty($res["urls"]) ? $res["urls"] : array() );
+		}
+		return $res;
+	}
 
 	public static function updateBlock($params){
 		$block = $params["block"];
@@ -1547,10 +1557,10 @@ class Element {
 		$params["edit"] = Authorisation::canEditItem(Yii::app()->session["userId"], $type, $id);
         $params["openEdition"] = Authorisation::isOpenEdition($id, $type, @$element["preferences"]);
 
-        $params["controller"] = Element::getControlerByCollection($type);
+        $params["controller"] = self::getControlerByCollection($type);
 
 
-        $connectType = Element::$connectTypes[$type];
+        $connectType = @self::$connectTypes[$type];
         if( @$element["links"] ) {
             if(isset($element["links"][$connectType])){
                 $countStrongLinks=0;//count($element["links"][$connectType]);
@@ -1605,9 +1615,10 @@ class Element {
                         $invitedNumber++;
                     }
                 }
+                $params["members"] = $members;
             }
 
-            $params["members"] = $members;
+            
         }
 
         if(!@$element["disabled"]){
@@ -1627,7 +1638,7 @@ class Element {
                             $params["linksBtn"]["isFollowing"]=false;                  
             }
             
-            $connectAs = Element::$connectAs[$type];
+            $connectAs = @self::$connectAs[$type];
             
             $params["linksBtn"]["connectAs"]=$connectAs;
             $params["linksBtn"]["connectType"]=$connectType;
