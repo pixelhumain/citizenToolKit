@@ -54,7 +54,7 @@ class GetDataDetailAction extends CAction {
 		if($dataName == "organizations"){
 			foreach ($element["links"]["memberOf"] as $keyOrga => $valueOrga) {
 				$orga = Organization::getPublicData($keyOrga);
-				//$orga["type"] = "organization";
+				$orga["type"] = "organization";
 				$orga["typeSig"] = Organization::COLLECTION;
            		$contextMap[$keyOrga] = $orga;
 			}

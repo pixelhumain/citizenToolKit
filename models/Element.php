@@ -1607,7 +1607,7 @@ class Element {
                 }
             }
 
-            $params["members"] = $members;
+            $params["members"] = @$members;
         }
 
         if(!@$element["disabled"]){

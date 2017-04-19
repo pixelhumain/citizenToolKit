@@ -277,11 +277,11 @@ class Thing {
 		return $distinctedDeviceId;
 	}
 
-	public static function getLastestRecordsInDB($boardId=null,$where=array("type"=>self::SCK_TYPE),$sort=array("created"=>-1),$limit=1){
+	public static function getLastestRecordsInDB($boardId=null,$where=array("type"=>self::SCK_TYPE),$sort=array("created"=>-1),$limit=1,$fields=null){
 		$lastRecords = array();
-		if(!empty($boardId)&&(strlen($boardId)<=17)&& ($boardId!= "[FILTERED]" )){
+		if(!empty($boardId)&&(strlen($boardId)==17)&& ($boardId!= "[FILTERED]" )){
 			$where["boardId"] = $boardId;
-			$lastRecords = PHDB::findAndSort(self::COLLECTION_DATA,$where,$sort,$limit);
+			$lastRecords = PHDB::findAndSort(self::COLLECTION_DATA,$where,$sort,$limit,$fields);
 		}
 		return $lastRecords;
 	}
