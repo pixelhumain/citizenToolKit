@@ -1556,7 +1556,6 @@ class Element {
 	public static function getInfoDetail($params, $element, $type, $id){
 		$params["edit"] = Authorisation::canEditItem(Yii::app()->session["userId"], $type, $id);
         $params["openEdition"] = Authorisation::isOpenEdition($id, $type, @$element["preferences"]);
-
         $params["controller"] = self::getControlerByCollection($type);
 
 
@@ -1687,5 +1686,31 @@ class Element {
 
         return $params;
 	}
+
+
+	public static function getElementForJS($element, $type = null) {
+		$newElement = $element ;
+		unset($newElement["badges"]);
+		unset($newElement["modified"]);
+		unset($newElement["modifiedByBatch"]);
+		unset($newElement["preferences"]);
+		unset($newElement["roles"]);
+		unset($newElement["two_step_register"]);
+		unset($newElement["lastLoginDate"]);
+		if(!empty($element["telephone"]["fixe"]))
+			$newElement["fixe"] = ArrayHelper::arrayToString($element["telephone"]["fixe"]) ;
+		if(!empty($element["telephone"]["mobile"]))
+			$newElement["mobile"] = ArrayHelper::arrayToString($element["telephone"]["mobile"]) ;
+		if(!empty($element["telephone"]["fax"]))
+			$newElement["fax"] = ArrayHelper::arrayToString($element["telephone"]["fax"]) ;
+		$newElement["id"] = (String) $element["_id"] ;
+
+		if(!empty($type))
+			$newElement["type"] = $type;
+
+		return $newElement;
+	}
+
+	
 
 }
