@@ -177,18 +177,19 @@ class Preference {
 		$eltId = ( (!empty($element["_id"])) ? (string)$element["_id"] : (string)$element["id"] );
 		if(!empty($eltId)){
 			if(empty($element["preferences"])){
-			$element["preferences"] = self::getPreferencesByTypeId($eltId, $elementType) ;
+				$element["preferences"] = self::getPreferencesByTypeId($eltId, $elementType) ;
 			}
 
 			foreach (self::$listPref as $key => $namePref) {
 				if( !self::showPreference($element, $elementType, $namePref, $userId) ){
-					//array( "email", "locality", "phone", "directory", "birthDate" );
 					if($namePref == "locality"){
 						unset($element["address"]);
+						unset($element["geo"]);
+						unset($element["geoPosition"]);
 					}else if($namePref == "phone"){
 						unset($element["telephone"]);
 					}else if($namePref == "directory"){
-						unset($element["link"]);
+						unset($element["links"]);
 					}else{
 						unset($element[$namePref]);
 					}
