@@ -288,19 +288,24 @@ class Thing {
 
 	/* getConvertedRercord peu prendre dans la base la dernière valeur ou plusieurs enregistrement de la journées ou d'une heure particulière pour un boardId. si la date n'est pas renseigné c'est la date gmt qui est pris en compte. retourne un tableau avec les enregistements converti
 	*/
-	public static function getConvertedRercord($boardId,$lastest=false,$date=null,$hour=null){
+	//Evolution possible modifier pour prendre une periode plus grand qu'une journée, au lieu de faire jour par jour
+	public static function getConvertedRercord($boardId,$lastest=false,$strdateD=null,$hour=null){
 
 		$where = array("type"=>self::SCK_TYPE);
 		//date example :"2017-02-27"
-		if(!empty($date)){
-			$time=$date;
+		if(!empty($strdateD)){
+			$time=$strdateD;
+			$time2 = gmdate('Y-n-d',strtotime($strdateD)); // 2017-4-20
 			if(!empty($hour)&&($hour>=0 && $hour<=23)){ 
 				$time=$time." ".$hour;
 			}
+			$regextime = "/(".$time."|".$time2.")/i";
 		} else { 
 			$time=gmdate('Y-m-d');
+			$regextime = "/".$time."/i";
 		}
-		$queryTimestamp[] = new MongoRegex("/".$time."/i");
+		
+		$queryTimestamp[] = new MongoRegex($regextime);
 		$where["timestamp"] = array('$in'=> $queryTimestamp);
 		if($lastest==false){
 			$sort = array("timestamp"=>1);
@@ -318,35 +323,11 @@ class Thing {
 		}
 		return $data; 
 	}
-	
-	public static function synthesizeSCKRecord($record, $synthA){
-		
-		$temp=array('min'=>(min($synthA['temp']['min'],$record['temp'])),'max'=>(max($synthA['temp']['max'],$record['temp'])));
-		$hum=array('min'=>(min($synthA['hum']['min'],$record['hum'])),'max'=>(max($synthA['hum']['max'],$record['hum'])));
-		$light=array('min'=>(min($synthA['light']['min'],$record['light'])),'max'=>(max($synthA['light']['max'],$record['light'])));
-		$bat=array('min'=>(min($synthA['bat']['min'],$record['bat'])),'max'=>(max($synthA['bat']['max'],$record['bat'])));
-		$panel=array('min'=>(min($synthA['panel']['min'],$record['panel'])),'max'=>(max($synthA['panel']['max'],$record['panel'])));
-		$co=array('min'=>(min($synthA['co']['min'],$record['co'])),'max'=>(max($synthA['co']['max'],$record['co'])));
-		$no2=array('min'=>(min($synthA['no2']['min'],$record['no2'])),'max'=>(max($synthA['no2']['max'],$record['no2'])));
-		$noise=array('min'=>(min($synthA['noise']['min'],$record['noise'])),'max'=>(max($synthA['noise']['max'],$record['noise'])));
-		$nets=array('min'=>(min($synthA['nets']['min'],$record['nets'])),'max'=>(max($synthA['nets']['max'],$record['nets'])));
-		
-		$synthA['temp']=$temp;
-		$synthA['hum']=$hum;
-		$synthA['light']=$light;
-		$synthA['bat']=$bat;
-		$synthA['panel']=$panel;
-		$synthA['co']=$co;
-		$synthA['no2']=$no2;
-		$synthA['noise']=$noise;
-		$synthA['nets']=$nets;
 
-		return $synthA;
-	}
-
+//TODO gérer les données manquantes avec des grand saut pb de synthétisation
 	public static function getSCKAvgWithRollupPeriod($data,$rollup=60,$synthesize=false)
 	{
-		if($rollup>=1440){$rollup=1440;} //
+		if($rollup>=1439){$rollup=1439;} //
 		$rollupSec=$rollup*60;
 		
 		$avgData=array();
@@ -365,6 +346,7 @@ class Thing {
 		  	$carry = function($xi){ return($xi*$xi);};
 		  }
 
+
 		  foreach ($data as $record) {
 			$i+=1;
 			
@@ -372,9 +354,9 @@ class Thing {
 			$timestamp = strtotime($record['timestamp']);
 
 			if($synthesize==true){
-				$synthA=self::synthesizeSCKRecord($record, $synthA);
+				$synthA=self::minmaxSCKRecord($record, $synthA);
 				if($i==1){
-					$dStdDev=array('temp'=>array(),'hum'=>array(),'light'=>array(),'bat'=>array(),'panel'=>array(),'co' =>array(),'no2' =>array(),'noise' =>array(), 'nets'=>array());
+					$dStdDev=array('temp'=>array(null),'hum'=>array(null),'light'=>array(null),'bat'=>array(null),'panel'=>array(null),'co' =>array(null),'no2' =>array(null),'noise' =>array(null), 'nets'=>array(null));
 				}
 
 				$dStdDev['temp'][]	=((double) $record['temp']);
@@ -382,7 +364,7 @@ class Thing {
 				$dStdDev['light'][]	=((double) $record['light']);
 				$dStdDev['bat'][]	=((double) $record['bat']);
 				$dStdDev['panel'][]	=((double) $record['panel']);
-				$dStdDev['co'][]		=((double) $record['co']);
+				$dStdDev['co'][]	=((double) $record['co']);
 				$dStdDev['no2'][]	=((double) $record['no2']);
 				$dStdDev['noise'][]	=((double) $record['noise']);
 				$dStdDev['nets'][]	=((double) $record['nets']);
@@ -421,7 +403,7 @@ class Thing {
 				 $synthA['noise']['stddev']=sqrt((array_sum(array_map($carry,$dStdDev['noise'])))/$i-($avgValue['noise']*$avgValue['noise']));
 	 			 $synthA['nets']['stddev']=sqrt((array_sum(array_map($carry,$dStdDev['nets'])))/$i-($avgValue['nets']*$avgValue['nets']));
 
-					$avgValue['minmax']=$synthA;
+					$avgValue['minmaxstddev']=$synthA;
 				}
 
 				$avgData[] = $avgValue;
@@ -435,86 +417,54 @@ class Thing {
 		return $avgData;	
 	}
 
-	
-/* note : autre approche pour synthèse à réfléchir 
-	public static function getSCKAvgWithRollupPeriodV2($data,$rollup=60,$synthesize=false)
-	{
-		if($rollup>=1440){$rollup=1440;} //
-		$rollupSec=$rollup*60;
+	public static function synthetizeSCKRecordInDB($boardId,$date,$rollupMin,$converted=false){
+		$where=array("type"=>self::SCK_TYPE);
+		$time=	$date->format('Y-m-');
+		$time2 = $date->format('Y-n-');
+		$regextime = "/(".$time."|".$time2.")/i";
+		$queryTimestamp[] = new MongoRegex($regextime);
+		$where["timestamp"] = array('$in'=> $queryTimestamp);
+		$sort = array("timestamp"=>1);
+		$limit = null;
 		
-		$avgData=array();
-		$avgValue=array('temp'=>0,'hum'=>0,'light'=>0,'bat'=>0,'panel'=>0,'co' =>0,'no2' =>0,'noise' =>0, 'nets'=>0,'timestamp'=>0);
-		
-		if(!empty($data)){
-		  $lenData=count($data);
-		  $i=0;
-		  $firstdata=reset($data);
-		  $startRollup=strtotime($firstdata['timestamp']);  
-		  $lastdata=end($data);
-		  $endRollup=strtotime($lastdata['timestamp']);
-
-		  $temp=array_column($data, 'temp');
-		  $hum=array_column($data, 'hum');
-		  $light=array_column($data, 'light');
-		  $bat=array_column($data, 'bat');
-		  $panel=array_column($data, 'panel');
-		  $co=array_column($data, 'co');
-		  $no2=array_column($data, 'no2');
-		  $noise=array_column($data, 'noise');
-		  $nets=array_column($data, 'nets');
-
-		  if($synthesize==true){
-		  	$synthA=array('temp'=>array('min'=>999999,'max'=>0),'hum'=>array('min'=>999999,'max'=>0),'light'=>array('min'=>999999,'max'=>0),'bat'=>array('min'=>999999,'max'=>0),'panel'=>array('min'=>999999,'max'=>0),'co' =>array('min'=>999999,'max'=>0),'no2' =>array('min'=>999999,'max'=>0),'noise' =>array('min'=>999999,'max'=>0), 'nets'=>array('min'=>999999,'max'=>0));
-		  	$mean=array_sum($data)/$lenData;
-		  	$carry=0.0;
-
-		  }
-
-		  foreach ($data as $record) {
-			$i+=1;
-			//record['temp'], record['hum'],record['light'], record['bat'], record['panel'],record['co'],record['no2'], record['noise'], record['nets'], record['timestamp']
-			$timestamp = strtotime($record['timestamp']);
-
-			if($synthesize==true){
-				$synthA=self::synthesizeSCKRecord($record, $synthA);
-
+		$dataR = self::getLastestRecordsInDB($boardId,$where,$sort,$limit);
+		if($converted==true){
+			$dataC=array();
+			foreach ($dataR as $dataRaw) {
+				$dataRaw["converted"]=$converted;
+				$dataC[]=SCKSensorData::SCK11Convert($dataRaw);
 			}
+			$data=$dataC;
+		}else{$data=$dataR;}
 
-			//$avgValue['timestamp']=$record['timestamp'];
-			$avgValue['temp']	+=$record['temp'];
-			$avgValue['hum']	+=$record['hum'];
-			$avgValue['light']	+=$record['light'];
-			$avgValue['bat']	+=$record['bat'];
-			$avgValue['panel']	+=$record['panel'];
-			$avgValue['co']		+=$record['co'];
-			$avgValue['no2']	+=$record['no2'];
-			$avgValue['noise']	+=$record['noise'];
-			$avgValue['nets']	+=$record['nets'];
-
-			if($timestamp>=($startRollup+$rollupSec-30) || $timestamp==$endRollup){   //à 30 seconde ou plus
-				$avgValue['timestamp']=$record['timestamp'];
-				$avgValue['temp'] /=($i);	
-				$avgValue['hum']  /=($i);
-				$avgValue['light']/=($i); 
-				$avgValue['bat']  /=($i);
-				$avgValue['panel']/=($i);
-				$avgValue['co']   /=($i); 
-				$avgValue['no2']  /=($i); 
-				$avgValue['noise']/=($i);
-				$avgValue['nets'] /=($i);
-				if($synthesize==true){$avgValue['minmax']=$synthA;}
-
-				$avgData[] = $avgValue;
-
-
-				$i=0;
-				$startRollup=$timestamp;
-				$avgValue=array_replace($avgValue, array('temp'=>0,'hum'=>0,'light'=>0,'bat'=>0,'panel'=>0,'co' =>0,'no2' =>0,'noise' =>0, 'nets'=>0,'timestamp'=>0));
-			} 
-		  }
+		$dataS = self::getSCKAvgWithRollupPeriod($data,$rollupMin,true);
+		//$dataS[] = $dataC;
+		//var_dump($dataS);
+		$dataThing['collection']=self::COLLECTION_DATA;        
+        $dataThing['key'] = 'thing';
+        $dataThing['type'] 	 = self::SCK_TYPE;
+        $dataThing['boardId']=$boardId;
+        $dataThing['synthetized']=true;
+		
+		$nbSavedElements=0;
+		
+		foreach ($dataS as $dataToSave) {
+			$res = Element::save(array_merge($dataThing, $dataToSave));
+			$res1[]=$res;
+			if($res['result']==true)
+				$nbSavedElements++;
 		}
-		return $avgData;	
-	}*/
+		/*
+
+		if($nbSavedElements==count($dataS))
+		// TODO faire un array where qui exclus les synthese de la suppression
+			$resSuppr = self::deleteSCKRecords($boardId,$date);
+		*/
+
+		//TODO faire un tableau recap des différentes etapes
+		return $res1;
+
+	}
 
 	public static function getDateTime($bindMap) {
 		//TODO regler le probleme $datetime qui n'est pas correctement converti
@@ -526,6 +476,7 @@ class Thing {
 		return $resDateTime; 
 	}
 	
+	//TODO faire une vérification du timestamp pour éviter les '#' ou timestamps vide ou doublons
 	public static function fillAndSaveSmartCitizenData($headers){
 		
 		$data = json_decode($headers["X-SmartCitizenData"],true);
@@ -558,6 +509,44 @@ class Thing {
 		$deviceid = $eUrl[(count($eUrl)-1)];
 		return $deviceid;
 	}
+
+	private static function minmaxSCKRecord($record, $synthA){
+		
+		$temp=array('min'=>(min($synthA['temp']['min'],$record['temp'])),'max'=>(max($synthA['temp']['max'],$record['temp'])));
+		$hum=array('min'=>(min($synthA['hum']['min'],$record['hum'])),'max'=>(max($synthA['hum']['max'],$record['hum'])));
+		$light=array('min'=>(min($synthA['light']['min'],$record['light'])),'max'=>(max($synthA['light']['max'],$record['light'])));
+		$bat=array('min'=>(min($synthA['bat']['min'],$record['bat'])),'max'=>(max($synthA['bat']['max'],$record['bat'])));
+		$panel=array('min'=>(min($synthA['panel']['min'],$record['panel'])),'max'=>(max($synthA['panel']['max'],$record['panel'])));
+		$co=array('min'=>(min($synthA['co']['min'],$record['co'])),'max'=>(max($synthA['co']['max'],$record['co'])));
+		$no2=array('min'=>(min($synthA['no2']['min'],$record['no2'])),'max'=>(max($synthA['no2']['max'],$record['no2'])));
+		$noise=array('min'=>(min($synthA['noise']['min'],$record['noise'])),'max'=>(max($synthA['noise']['max'],$record['noise'])));
+		$nets=array('min'=>(min($synthA['nets']['min'],$record['nets'])),'max'=>(max($synthA['nets']['max'],$record['nets'])));
+		
+		$synthA['temp']=$temp;
+		$synthA['hum']=$hum;
+		$synthA['light']=$light;
+		$synthA['bat']=$bat;
+		$synthA['panel']=$panel;
+		$synthA['co']=$co;
+		$synthA['no2']=$no2;
+		$synthA['noise']=$noise;
+		$synthA['nets']=$nets;
+
+		return $synthA;
+	}
+
+	private static function deleteSCKRecords($boardId,$date){
+
+		$dateM = $date->format('Y-m-'); //'Y-m-d' pour supression par jours (Faut changer l'interval aussi)
+		$dateN = $date->format('Y-n-');
+		$where = array("type"=>self::SCK_TYPE,"boardId"=>$boardId);
+		$queryTimestamp[] = new MongoRegex("/^(".$dateM."|".$dateN.")/i");
+		$where["timestamp"] = array('$in'=> $queryTimestamp);
+		$result = PHDB::remove('data_copy', $where); // collection : self::COLLECTION_DATA , data_copy pour les tests
+		return $result;
+	}
+
+
 
 
 }
