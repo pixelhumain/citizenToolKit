@@ -82,8 +82,12 @@ class SCKSensorData
             $data['bat']   = self::batConversion($rawData['bat']);
             $data['panel'] = self::panelConversion($rawData['panel']);
             $data['nets']  = $rawData['nets'];
+            //unset pour enlever les data brut avant le merge
+            unset($rawData['temp'],$rawData['hum'],$rawData['noise'],$rawData['co']);
+            unset($rawData['light'],$rawData['no2'],$rawData['bat'],$rawData['panel']);
+            unset($rawData['nets'],$rawData['timestamp']);
             
-            return $data;
+            return array_merge($rawData,$data);
             
         } else {
 

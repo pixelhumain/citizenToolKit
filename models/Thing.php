@@ -283,6 +283,7 @@ class Thing {
 			$where["boardId"] = $boardId;
 			$lastRecords = PHDB::findAndSort(self::COLLECTION_DATA,$where,$sort,$limit,$fields);
 		}
+
 		return $lastRecords;
 	}
 
@@ -319,7 +320,8 @@ class Thing {
 
 		$data=array();
 		foreach ($dataInDB as $rawData) {
-			$data[]=SCKSensorData::SCK11Convert($rawData);
+			if(!isset($rawData['converted'])|| (!isset($rawData['synthetized']) || ($rawData['synthetized']==false))
+				$data[]= SCKSensorData::SCK11Convert($rawData);
 		}
 		return $data; 
 	}
@@ -346,11 +348,9 @@ class Thing {
 		  	$carry = function($xi){ return($xi*$xi);};
 		  }
 
-
 		  foreach ($data as $record) {
 			$i+=1;
-			
-			//record['temp'], record['hum'],record['light'], record['bat'], record['panel'],record['co'],record['no2'], record['noise'], record['nets'], record['timestamp']
+
 			$timestamp = strtotime($record['timestamp']);
 
 			if($synthesize==true){
@@ -405,8 +405,12 @@ class Thing {
 
 					$avgValue['minmaxstddev']=$synthA;
 				}
+				//unset pour enlever les data brut avant le merge
+				unset($record['temp'],$record['hum'],$record['noise'],$record['co']);
+            	unset($record['light'],$record['no2'],$record['bat'],$record['panel']);
+            	unset($record['nets'],$record['timestamp']);
 
-				$avgData[] = $avgValue;
+				$avgData[] = array_merge($record,$avgValue);
 
 				$i=0;
 				$startRollup=$timestamp;
@@ -438,14 +442,9 @@ class Thing {
 		}else{$data=$dataR;}
 
 		$dataS = self::getSCKAvgWithRollupPeriod($data,$rollupMin,true);
-		//$dataS[] = $dataC;
-		//var_dump($dataS);
-		$dataThing['collection']=self::COLLECTION_DATA;        
-        $dataThing['key'] = 'thing';
-        $dataThing['type'] 	 = self::SCK_TYPE;
-        $dataThing['boardId']=$boardId;
-        $dataThing['synthetized']=true;
 		
+		$dataThing= array('collection' => self::COLLECTION_DATA, 'key'=>'thing','type'=>self::SCK_TYPE,'boardId'=>$boardId,'synthetized'=>true );
+
 		$nbSavedElements=0;
 		
 		foreach ($dataS as $dataToSave) {
@@ -455,7 +454,6 @@ class Thing {
 				$nbSavedElements++;
 		}
 		/*
-
 		if($nbSavedElements==count($dataS))
 		// TODO faire un array where qui exclus les synthese de la suppression
 			$resSuppr = self::deleteSCKRecords($boardId,$date);
@@ -463,7 +461,6 @@ class Thing {
 
 		//TODO faire un tableau recap des différentes etapes
 		return $res1;
-
 	}
 
 	public static function getDateTime($bindMap) {
