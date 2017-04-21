@@ -329,8 +329,12 @@ class Document {
 	 */
 	public static function authorizedToStock($id, $type,$docType){
 		$storageSpace = self::storageSpaceByIdAndType($id, $type,self::DOC_TYPE_IMAGE);
+		$preferences = Preference::getPreferencesByTypeId($id,$type);
+		$initAuthorizedSpace=20;
+		if(@$preferences["authorizedSpace"])
+			$initAuthorizedSpace=$preferences["authorizedSpace"];
 		$authorizedToStock=true;
-		if($storageSpace > (20*1048576))
+		if($storageSpace > ($initAuthorizedSpace*1048576))
 			$authorizedToStock=false;
 		return $authorizedToStock;
 	}
