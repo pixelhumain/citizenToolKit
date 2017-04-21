@@ -180,7 +180,6 @@ class Organization {
 	 */
 
 	public static function afterSave($organization, $creatorId,$paramsImport=null) {
-
 	    $newOrganizationId = (string)$organization['_id'];
 		Badge::addAndUpdateBadges("opendata", $newOrganizationId, Organization::COLLECTION);
 		

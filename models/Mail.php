@@ -337,7 +337,7 @@ class Mail {
      * @param String $elementType : The element type
      * @param String $elementId : the element Id
      * @param String $reason : the reason why the element will be deleted
-     * @param array $admins : a list of person to sent notifications
+     * @param array $admins : a list of person to send notifications
      * @param String $userId : the userId asking the deletion
      * @return nothing
      */
@@ -347,7 +347,7 @@ class Mail {
         $url = "#".Element::getControlerByCollection($elementType).".detail.id.".$element["_id"];
         $nbDayBeforeDelete = Element::NB_DAY_BEFORE_DELETE;
         foreach ($admins as $id) {
-            $aPerson = Person::getSimpleUserById($id);
+            $aPerson = Person::getById($id, false);
             if (!empty($aPerson["email"])) {
                 $params = array (
                     "type" => Cron::TYPE_MAIL,

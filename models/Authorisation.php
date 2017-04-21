@@ -592,6 +592,8 @@ class Authorisation {
                 $res = true;
         } else if($type == Survey::COLLECTION) {
             $res = self::canEditSurvey($userId, $itemId,$parentType,$parentId);
+        } else if ($type == Poi::COLLECTION) {
+            $res = self::canEditPoi($userId, $itemId);
         }
 
         return $res;
@@ -724,7 +726,7 @@ class Authorisation {
     }
 
     /**
-     * Return true if the user is  admin of the entity (organization, event, project)
+     * Return true if the user is admin of the entity (organization, event, project)
      * @param String the id of the entity
      * @param String the type of the entity
      * @param String the id of the user

@@ -45,7 +45,7 @@ class Element {
 	    );	
 	 	return @$models[$type];     
     }
-    
+
     public static function getCommonByCollection ($type) { 
 
 		$commons = array(
@@ -958,11 +958,13 @@ class Element {
 		//retrieve admins of the element
 		$admins = array();
 
-		foreach (@$element["links"] as $type => $links) {
-			if (is_array($links)) {
-				foreach ($links as $id => $aLink) {
-					if (@$aLink["type"] == Person::COLLECTION && @$aLink["isAdmin"] == true) {
-						array_push($admins, $id);
+		if (@$element["links"]) {
+			foreach (@$element["links"] as $type => $links) {
+				if (is_array($links)) {
+					foreach ($links as $id => $aLink) {
+						if (@$aLink["type"] == Person::COLLECTION && @$aLink["isAdmin"] == true) {
+							array_push($admins, $id);
+						}
 					}
 				}
 			}
@@ -994,7 +996,7 @@ class Element {
 		if ($canBeDeleted) {
 			$res = self::deleteElement($elementType, $elementId, $reason, $userId);
 		} else {
-			//If open data without admin
+			//If open data without admin and not the creator
 			if ((@$element["preferences"]["isOpenData"] == true || @$element["preferences"]["isOpenData"] == 'true' ) && count($admins) == 0)  {
 				//Ask the super admins to act for the deletion of the element
 				$adminsId = array();
@@ -1017,7 +1019,7 @@ class Element {
 	}
 
 	/**
-	 * Suppression de l'élément et de ses liens. 
+	 * Suppression de l'élément et de ses liens. Les règles de gestion pour pouvoir supprimer un élément sont dans la méthode : askToDelete.
 	 * - Suppression des liens 
 	 * 		- Persons : followers / member / memberOf
 	 * 		- Projects :  links.contributor. Vider le parentId+parentType
@@ -1292,6 +1294,18 @@ class Element {
                 	$params["creator"] = Yii::app()->session["userId"];
 	        		$params["created"] = time();
                 	PHDB::updateWithOptions($collection,array("_id"=>new MongoId($id)), array('$set' => $params ),array('upsert' => true ));
+                	$params["_id"] = new MongoId($id);
+                	// ***********************************
+                	//post process for specific actions
+					// ***********************************
+	                if( $collection == Organization::COLLECTION )
+	                	$res["afterSave"] = Organization::afterSave($params, Yii::app()->session["userId"], $paramsLinkImport);
+	                else if( $collection == Event::COLLECTION )
+	                	$res["afterSave"] = Event::afterSave($params);
+	                else if( $collection == Project::COLLECTION )
+	                	$res["afterSave"] = Project::afterSave($params, @$params["parentId"] , @$params["parentType"] );
+
+	                $res["afterSaveGbl"] = self::afterSave((string)$params["_id"],$collection,$params,$postParams);
                 }
                 else
                 	PHDB::update($collection,array("_id"=>new MongoId($id)), array('$set' => $params ));
@@ -1310,18 +1324,15 @@ class Element {
                              "reload"=>true,
                              "map"=>$params,
                              "id"=>(string)$params["_id"]);  
-                
-                //TODO
-                //self::afterSave();
-                
+
                 // ***********************************
-                //post process for specific actions
-                // ***********************************
+            	//post process for specific actions
+				// ***********************************
                 if( $collection == Organization::COLLECTION )
                 	$res["afterSave"] = Organization::afterSave($params, Yii::app()->session["userId"], $paramsLinkImport);
                 else if( $collection == Event::COLLECTION )
                 	$res["afterSave"] = Event::afterSave($params);
-                else if( $collection == Project::COLLECTION )
+        	    else if( $collection == Project::COLLECTION )
                 	$res["afterSave"] = Project::afterSave($params, @$params["parentId"] , @$params["parentType"] );
 
                 $res["afterSaveGbl"] = self::afterSave((string)$params["_id"],$collection,$params,$postParams);
