@@ -585,7 +585,7 @@ class Element {
 				$set = array($dataFieldName => $fieldValue);
 			}
 		} else if ($dataFieldName == "contacts") {
-			if(!inset($fieldValue["index"]))
+			if(!isset($fieldValue["index"]))
 				$addToSet = array("contacts" => $fieldValue);
 			else{
 				$headSet = "contacts.".$fieldValue["index"] ;
@@ -1453,6 +1453,16 @@ class Element {
 		if(in_array($type, $listElt) ){
 			$res = PHDB::findOne( $type , array( "_id" => new MongoId($id) ) ,array("urls") );
 			$res = (!empty($res["urls"]) ? $res["urls"] : array() );
+		}
+		return $res;
+	}
+
+	public static function getContacts($id, $type){
+		$res = array();
+		$listElt = array(Organization::COLLECTION, Person::COLLECTION, Project::COLLECTION, Event::COLLECTION);
+		if(in_array($type, $listElt) ){
+			$res = PHDB::findOne( $type , array( "_id" => new MongoId($id) ) ,array("contacts") );
+			$res = (!empty($res["contacts"]) ? $res["contacts"] : array() );
 		}
 		return $res;
 	}
