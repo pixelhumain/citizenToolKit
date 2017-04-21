@@ -716,21 +716,25 @@ class Element {
 	    	$elt = Organization::getSimpleOrganizationById($id);
 			$newOrga["type"]=Organization::COLLECTION;
 			array_push($contextMap["organizations"], $elt);
+			//$contextMap = array_merge($contextMap, $elt);
 	    }
 	    else if($type == Project::COLLECTION){
 	    	$connectAs="contributors";
 	    	$elt = Project::getSimpleProjectById($id);
 			array_push($contextMap["projects"], $elt);
+			//$contextMap = array_merge($contextMap, $elt);
 	    }
 		else if ($type == Event::COLLECTION){
 			$connectAs="attendees";
 			$elt = Event::getSimpleEventById($id);
 			array_push($contextMap["events"], $elt);
+			//$contextMap = array_merge($contextMap, $elt);
 		}
 		else if ($type == Person::COLLECTION){
 			$connectAs="follows";
 			$elt = Person::getSimpleUserById($id);
 			array_push($contextMap["people"], $elt);
+			//$contextMap = array_merge($contextMap, $elt);
 		}
 	    
 		if(!empty($links) && 
@@ -801,7 +805,7 @@ class Element {
 				foreach ($links["projects"] as $keyProj => $valueProj) {
 					 $project = Project::getSimpleProjectById($keyProj);
 					 if (!empty($project))
-	           		 array_push($contextMap["projects"], $project);
+	           		 	array_push($contextMap["projects"], $project);	
 				}
 			}
 
@@ -809,14 +813,14 @@ class Element {
 				foreach ($links["followers"] as $key => $value) {
 					$newCitoyen = Person::getSimpleUserById($key);
 					if (!empty($newCitoyen))
-					array_push($contextMap["followers"], $newCitoyen);
+						array_push($contextMap["followers"], $newCitoyen);
 				}
 			}
 			if(isset($links["memberOf"])){
 				foreach ($links["memberOf"] as $key => $value) {
 					$newOrga = Organization::getSimpleOrganizationById($key);
 					if (!empty($newOrga))
-					array_push($contextMap["organizations"], $newOrga);
+						array_push($contextMap["organizations"], $newOrga);
 				}
 			}
 
@@ -861,6 +865,7 @@ class Element {
 				}	
 				$follows["count"]= $countFollows;
 				$contextMap["follows"] = $follows;
+
 			}
 			
 		}
@@ -877,10 +882,11 @@ class Element {
 						$value["typeSig"] = Poi::COLLECTION;
 					$allPois[] = $value;
 				}
-				$contextMap["pois"] = $allPois;
-			}else{
-				$contextMap["pois"] = array();
-			}
+				//$contextMap["pois"] = $allPois;
+				$contextMap = array_merge($contextMap, $allPois);
+			}/*else{
+				//$contextMap["pois"] = array();
+			}*/
 		}
 		return $contextMap;	
     }
