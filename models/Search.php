@@ -124,7 +124,7 @@ class Search {
   		
   		$allRes = array();
         //*********************************  PERSONS   ******************************************
-       	if(strcmp($filter, Person::COLLECTION) != 0 && self::typeWanted("persons", $searchType)){
+       	if(strcmp($filter, Person::COLLECTION) != 0 && self::typeWanted(Person::COLLECTION, $searchType)){
         	$allRes = array_merge($allRes, self::searchPersons($query, $indexStep, $indexMin));
 	  	}
 
@@ -393,7 +393,6 @@ class Search {
        	$res = array();
     	$allCitoyen = PHDB::findAndSortAndLimitAndIndex ( Person::COLLECTION , $query, 
   										  array("updated" => -1), $indexStep, $indexMin);
-
   		foreach ($allCitoyen as $key => $value) {
   			$person = Person::getSimpleUserById($key,$value);
   			$person["type"] = Person::COLLECTION;
