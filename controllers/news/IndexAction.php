@@ -63,7 +63,7 @@ class IndexAction extends CAction
 	            $parent = Person::getById($id);
 	            if (@Yii::app()->session["userId"]){
 					$params["canPostNews"] = true;
-					if (Yii::app()->session["userId"]==$id){
+					if (Yii::app()->session["userId"]==$id && $isLive!=true){
 						$params["canManageNews"]=true;
 					}
 				}
