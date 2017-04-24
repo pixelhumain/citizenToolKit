@@ -33,7 +33,12 @@ class Project {
 	    "preferences" => array("name" => "preferences"),
 	    "medias" => array("name" => "medias"),
 	    "urls" => array("name" => "urls"),
-		
+		"url"=>array("name" => "url"),
+	    "telephone" => array("name" => "telephone"),
+	    "mobile" => array("name" => "telephone.mobile"),
+	    "fixe" => array("name" => "telephone.fixe"),
+	    "fax" => array("name" => "telephone.fax"),
+	    "email" => array("name" => "email", "rules" => array("email")),
 		"parentId" => array("name" => "parentId"),
 		"parentType" => array("name" => "parentType"),
 		"descriptionHTML" => array("name" => "descriptionHTML"),

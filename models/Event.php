@@ -53,6 +53,11 @@ class Event {
 	    "medias" => array("name" => "medias"),
 	    "urls" => array("name" => "urls"),
 	    "url" => array("name" => "url"),
+	    "telephone" => array("name" => "telephone"),
+	    "mobile" => array("name" => "telephone.mobile"),
+	    "fixe" => array("name" => "telephone.fixe"),
+	    "fax" => array("name" => "telephone.fax"),
+	    "email" => array("name" => "email", "rules" => array("email")),
 
 	    "modified" => array("name" => "modified"),
 	    "updated" => array("name" => "updated"),
