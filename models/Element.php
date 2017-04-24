@@ -841,11 +841,13 @@ class Element {
 		//retrieve admins of the element
 		$admins = array();
 
-		foreach (@$element["links"] as $type => $links) {
-			if (is_array($links)) {
-				foreach ($links as $id => $aLink) {
-					if (@$aLink["type"] == Person::COLLECTION && @$aLink["isAdmin"] == true) {
-						array_push($admins, $id);
+		if (isset($element["links"])) {
+			foreach (@$element["links"] as $type => $links) {
+				if (is_array($links)) {
+					foreach ($links as $id => $aLink) {
+						if (@$aLink["type"] == Person::COLLECTION && @$aLink["isAdmin"] == true) {
+							array_push($admins, $id);
+						}
 					}
 				}
 			}
