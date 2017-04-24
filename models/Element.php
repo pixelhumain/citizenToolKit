@@ -1642,4 +1642,21 @@ class Element {
 		return $urlNetwork;
 	}
 
+    public static function saveChart($type, $id, $properties, $label){
+	    //TODO SABR - Check the properties before inserting
+	    PHDB::update($type,
+			array("_id" => new MongoId($id)),
+            array('$set' => array("properties.chart.".$label=> $properties))
+        );
+        return true;
+    }
+    
+	public static function removeChart($type, $id, $label){
+		PHDB::update($type, 
+            array("_id" => new MongoId($id)) , 
+            array('$unset' => array("properties.chart.".$label => 1))
+        );
+        return true;	
+	}
+
 }
