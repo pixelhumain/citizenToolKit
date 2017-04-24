@@ -1403,12 +1403,12 @@ class Element {
 		$collection = $params["parentType"];
 		if(!empty($params["phone"]))
 			$params["telephone"] = explode(",", $params["phone"]);
-		if(!empty($params["idContact"]))
-			$params["id"] = $params["idContact"];
+		//if(!empty($params["idContact"]))
+		//	$params["id"] = $params["idContact"];
 		unset($params["parentId"]);
 		unset($params["parentType"]);
 		unset($params["phone"]);
-		unset($params["idContact"]);
+		//unset($params["idContact"]);
 
 		if(empty($params["name"]) && empty($params["email"]) && empty($params["role"]) && empty($params["telephone"]))
 			$res = array("result" => false, "msg" => "Vous devez avoir au moins une information sur le contact");
