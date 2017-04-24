@@ -1576,7 +1576,7 @@ class Element {
 
 
         $connectType = @self::$connectTypes[$type];
-        if( @$element["links"] ) {
+        /*if( @$element["links"] ) {
             if(isset($element["links"][$connectType])){
                 $countStrongLinks=0;//count($element["links"][$connectType]);
                 $nbMembers=0;
@@ -1634,7 +1634,7 @@ class Element {
             }
 
             
-        }
+        } */
 
         if(!@$element["disabled"]){
             //if((@$config["connectLink"] && $config["connectLink"]) || empty($config)){ TODO CONFIG MUTUALIZE WITH NETWORK AND OTHER PLATFORM
