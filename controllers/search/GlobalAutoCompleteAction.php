@@ -277,7 +277,7 @@ class GlobalAutoCompleteAction extends CAction
 		
 
 		/***********************************  VOTES / propositions   *****************************************/
-        if(isset(Yii::app()->session["userId"]) && 
+        if(!empty(Yii::app()->session["userId"]) && 
         	(strcmp($filter, ActionRoom::TYPE_VOTE) != 0 && $this->typeWanted(ActionRoom::TYPE_VOTE, $searchType)) ||
         	(strcmp($filter, ActionRoom::TYPE_ACTIONS) != 0 && $this->typeWanted(ActionRoom::TYPE_ACTIONS, $searchType))
         	 )
