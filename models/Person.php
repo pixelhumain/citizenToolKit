@@ -53,7 +53,7 @@ class Person {
 	    "lastLoginDate" => array("name" => "lastLoginDate"),
 	    "seePreferences" => array("name" => "seePreferences"),
 	    "locality" => array("name" => "address"),
-
+	    "descriptionHTML" => array("name" => "descriptionHTML"),
 	    "modified" => array("name" => "modified"),
 	    "updated" => array("name" => "updated"),
 	    "creator" => array("name" => "creator"),

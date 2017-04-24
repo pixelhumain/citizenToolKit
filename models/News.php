@@ -10,12 +10,13 @@ class News {
 	const COLOR = "#93C020";
 	/**
 	 * get an news By Id
-	 * @param type $id : is the mongoId of the news
-	 * @return object
+	 * @param String $id : is the mongoId of the news
+	 * @param boolean $translator : translate the news if true (by default). If false, get the news as in db
+	 * @return array a News
 	 */
-	public static function getById($id) {
+	public static function getById($id, $translator = true) {
 	  	$news = PHDB::findOne( self::COLLECTION,array("_id"=>new MongoId($id)));
-	  	if(@$news["type"]){
+	  	if($translator && @$news["type"]){
 			$news=NewsTranslator::convertParamsForNews($news,true);
 		}
 		return $news;
@@ -258,7 +259,7 @@ class News {
 		$nbCommentsDeleted = 0;
 
 		//Check if the userId can delete the news
-		if (! News::canAdministrate($userId, $id)) return array("result"=>false, "msg"=>Yii::t("common","You are not allowed to delete this news"));
+		if (! News::canAdministrate($userId, $id)) return array("result"=>false, "msg"=>Yii::t("common","You are not allowed to delete this news"), "id" => $id);
 
 		//Delete image
 		if(@$news["media"] && @$news["media"]["content"] && @$news["media"]["content"]["image"] && !@$news["media"]["content"]["imageId"]){
@@ -303,7 +304,7 @@ class News {
 		$nbNews = 0;		
 		
 		foreach ($news2delete as $id => $aNews) {
-			$res = self::delete($id, true);
+			$res = self::delete($id, $userId, true);
 			if ($res["result"] == false) return $res;
 			$nbNews++;
 		}
@@ -428,21 +429,16 @@ class News {
 	 * @return bool : true if the user can administrate the news, false else
 	 */
 	public static function canAdministrate($userId, $id) {
-        $news = self::getById($id);
+        $news = self::getById($id, false);
 
         if (empty($news)) return false;
         if (@$news["author"] == $userId) return true;
         if (Authorisation::isUserSuperAdmin($userId)) return true;
-
+        var_dump($news);
         $parentId = @$news["target"]["id"];
         $parentType = @$new["target"]["type"];
 
-        $isAdmin = false;
-        if( ( $parentType == Organization::COLLECTION && Authorisation::isOrganizationAdmin ( $userId , $parentId ) )
-            || ( $parentType == Project::COLLECTION && Authorisation::isProjectAdmin( $userId , $parentId ) )
-            || ( $parentType == Event::COLLECTION && Authorisation::isEventAdmin( $userId , $parentId ) ) )
-            $isAdmin = true;
-
+        $isAdmin = Authorisation::isElementAdmin($parentId, $parentType, $userId);
         return $isAdmin;
     }
 
