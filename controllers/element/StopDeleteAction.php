@@ -9,7 +9,7 @@ class StopDeleteAction extends CAction {
 
         $controller=$this->getController();
         
-        if (! Authorisation::isElementAdmin($id, $type, Yii::app()->session["userId"])) {
+        if (! Authorisation::isElementAdmin($id, $type, Yii::app()->session["userId"]) && ! Authorisation::isUserSuperAdmin(Yii::app()->session["userId"])) {
             Rest::json(array( "result" => false, "msg" => Yii::t('common',"You are not allowed to delete this element !") ));
             return;
         } else if (! Element::isElementStatusDeletePending($type, $id)) {

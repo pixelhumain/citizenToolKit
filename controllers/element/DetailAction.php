@@ -43,7 +43,7 @@ class DetailAction extends CAction {
 			if(isset($element["links"]["projects"])){
 				foreach ($element["links"]["projects"] as $keyProj => $valueProj) {
 					 $project = Project::getPublicData($keyProj);
-	           		 if (!empty($projects))
+	           		 if (!empty($project))
 	           		 	$projects[$keyProj] = $project;
 				}
 			}
