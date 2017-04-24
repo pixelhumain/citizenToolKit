@@ -36,7 +36,7 @@ class Project {
 		
 		"parentId" => array("name" => "parentId"),
 		"parentType" => array("name" => "parentType"),
-
+		"descriptionHTML" => array("name" => "descriptionHTML"),
 		"modified" => array("name" => "modified"),
 	    "updated" => array("name" => "updated"),
 	    "creator" => array("name" => "creator"),
