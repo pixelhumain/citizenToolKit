@@ -433,7 +433,11 @@ class IndexAction extends CAction
 		}
 
 		$params["firstView"] = "news";
-							
+		
+		//manage delete in progress status
+		if ($type == Organization::COLLECTION || $type == Project::COLLECTION || $type == Event::COLLECTION)
+			$params["deletePending"] = Element::isElementStatusDeletePending($type, $id);
+
 		if(Yii::app()->request->isAjaxRequest){
 			if (@$_GET["isFirst"]){
 				 echo $controller->renderPartial("index", $params,true);

@@ -31,7 +31,9 @@ class IndexAction extends CAction
 
 		if(isset(Yii::app()->session["userId"]))
 			$params["canEdit"] = Authorisation::canEditItem(Yii::app()->session["userId"], $type, $id);
-
+		//manage delete in progress status
+        $params["deletePending"] = Element::isElementStatusDeletePending($type, $id);
+        
 		//$params['controllerId'] = $controllerId;
 		$contentKey=null;
 		$params["authorizedToStock"]= Document::authorizedToStock($id, $type,Document::DOC_TYPE_IMAGE);

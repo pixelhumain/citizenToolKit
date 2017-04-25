@@ -12,8 +12,8 @@ class SaveAction extends CAction {
         
         if(isset(Yii::app()->session["userId"])) {
             //SBAR - temporary Workaround
-            unset($_POST["startDateInput"]);
-            unset($_POST["endDateInput"]);
+            //unset($_POST["startDateInput"]);
+            //unset($_POST["endDateInput"]);
 
             $res = Element::save($_POST);
         }

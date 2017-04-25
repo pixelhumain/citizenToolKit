@@ -402,21 +402,60 @@ class Comment {
 	    return array("result"=>true, "msg"=>Yii::t("common","Comment well updated"), "id"=>$commentId);
 	}
 	/**
-	 * delete a comment in database
+	 * 
 	 * @param String $id : id to delete
 	*/
-	public static function delete($id) {
-		$comment=self::getById($id);
-		if($comment["author"]["id"]==Yii::app()->session["userId"]){
-			Action::addAction(Yii::app()->session["userId"] , $comment["contextId"], $comment["contextType"], Action::ACTION_COMMENT, true, false) ;
+	/**
+	 * delete a comment in database
+	 * @param String $id Id of the comment to delete
+	 * @param string $userId : userId asking to to delete the comment
+	 * @return array of result (result => boolean, msg => string)
+	 */
+	public static function delete($id, $userId) {
+		$comment=self::getById($id);	
+
+		if($comment["author"]["id"] == $userId ){
+			Action::addAction($userId, $comment["contextId"], $comment["contextType"], Action::ACTION_COMMENT, true, false) ;
 			PHDB::remove(self::COLLECTION,array("_id"=>new MongoId($id)));
-			return array("result"=>true, "msg"=>Yii::t("common","you are not the author of the comment"),"comment"=>$comment);
+			return array("result"=>true, "msg"=>Yii::t("common","The comment has been deleted with success"));
 		} else
-			return array("result"=>false, "msg"=>Yii::t("common","you are not the author of the comment"));
+			return array("result"=>false, "msg"=>Yii::t("common","you are not the author of the comment"), "comment"=>$comment);
 	}
+
+	/**
+	 * Delete all the comment of a context
+	 * @param String $contextId The context id of the comments
+	 * @param String $contextType The context type of the comments
+	 * @param String $userId The userId asking to delete
+	 * @return array result => bool, msg => string
+	 */
+	public static function deleteAllContextComments($contextId, $contextType, $userId) {
+		error_log("try to delete comments of context : ".$contextId."/".$contextType);
+		if ($contextType == ActionRoom::COLLECTION) {
+			$canDelete = ActionRoom::canAdministrate($userId, $contextId);
+		} else if ($contextType == News::COLLECTION) {
+			$canDelete = News::canAdministrate($userId, $contextId);
+		} else {
+			return array("result" => false, "msg" => "This contextType '".$contextType."' is not yet implemented.");
+		}
+		
+		if ($canDelete) {
+			$where = array('$and' => array(
+						array("contextId" => $contextId),
+						array("contextType" => $contextType)
+					));
+			$res = PHDB::remove(self::COLLECTION, $where);
+		} else {
+			return array("result"=>false, "msg"=>Yii::t("common","You are not allowed to delete the comments of this context"));	
+		}
+		
+		if ($res) {
+			return array("result"=>true, "msg"=>Yii::t("common","The comments of the context have been deleted with success"));
+		} else
+			return $res;
+	}
+	
 	public static function getCommentsToModerate($whereAdditional = null, $limit = 0) {
-
-
 		$where = array( 
 			"reportAbuse"=> array('$exists'=>1)
 			,"moderate.isAnAbuse" => array('$exists'=>0)

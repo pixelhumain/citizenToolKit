@@ -59,19 +59,35 @@ class NewsTranslator {
 		if(@$params["target"]["type"]){
 			if ($params["target"]["type"] == Organization::COLLECTION){
 				$params["target"]=Organization::getSimpleOrganizationById($params["target"]["id"]);
+				if(empty($params["target"])){
+					$params=array("created"=>$params["created"]);
+					return $params;
+				}
 				$params["target"]["type"]=Organization::COLLECTION;
 			}
 			else if ($params["target"]["type"]== Project::COLLECTION){
 				$params["target"] = Project::getSimpleProjectById($params["target"]["id"]);
+				if(empty($params["target"])){
+					$params=array("created"=>$params["created"]);
+					return $params;
+				}
 				$params["target"]["type"]=Project::COLLECTION;
 
 			}
 			else if($params["target"]["type"]==Person::COLLECTION){
 				$params["target"] =Person::getSimpleUserById($params["target"]["id"]);
+				if(empty($params["target"])){
+					$params=array("created"=>$params["created"]);
+					return $params;
+				}
 				$params["target"]["type"]=Person::COLLECTION;
 			}
 			else if ($params["target"]["type"]==Event::COLLECTION){
 				$params["target"] = Event::getSimpleEventById($params["target"]["id"]);
+				if(empty($params["target"])){
+					$params=array("created"=>$params["created"]);
+					return $params;
+				}
 				$params["target"]["type"]=Event::COLLECTION;
 			}
 				

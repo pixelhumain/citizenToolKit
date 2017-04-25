@@ -10,12 +10,13 @@ class News {
 	const COLOR = "#93C020";
 	/**
 	 * get an news By Id
-	 * @param type $id : is the mongoId of the news
-	 * @return object
+	 * @param String $id : is the mongoId of the news
+	 * @param boolean $translator : translate the news if true (by default). If false, get the news as in db
+	 * @return array a News
 	 */
-	public static function getById($id) {
+	public static function getById($id, $translator = true) {
 	  	$news = PHDB::findOne( self::COLLECTION,array("_id"=>new MongoId($id)));
-	  	if(@$news["type"]){
+	  	if($translator && @$news["type"]){
 			$news=NewsTranslator::convertParamsForNews($news,true);
 		}
 		return $news;
@@ -245,20 +246,72 @@ class News {
 			return array("result"=>false, "msg"=>"Please Fill required Fields.");	
 		}
 	}
+
 	/**
-	 * delete a news in database
-	 * @param String $id : id to delete
-	*/
-	public static function delete($id) {
+	 * delete a news in database and the comments on that news
+	 * @param type $id : id to delete
+	 * @param type $userId : the userid asking to delete the news
+	 * @param bool $removeComments 
+	 * @return array result => bool, msg => string
+	 */
+	public static function delete($id, $userId, $removeComments = false) {
 		$news=self::getById($id);
+		$nbCommentsDeleted = 0;
+
+		//Check if the userId can delete the news
+		if (! News::canAdministrate($userId, $id)) return array("result"=>false, "msg"=>Yii::t("common","You are not allowed to delete this news"), "id" => $id);
+
+		//Delete image
 		if(@$news["media"] && @$news["media"]["content"] && @$news["media"]["content"]["image"] && !@$news["media"]["content"]["imageId"]){
 			$endPath=explode(Yii::app()->params['uploadUrl'],$news["media"]["content"]["image"]);
 			//print_r($endPath);
 			$pathFileDelete= Yii::app()->params['uploadDir'].$endPath[1];
 			unlink($pathFileDelete);
 		}
-		return PHDB::remove(self::COLLECTION,array("_id"=>new MongoId($id)));
+
+		if ($removeComments) {
+			$res = Comment::deleteAllContextComments($id, News::COLLECTION, $userId);
+			if (!$res["result"]) return $res;
+		}
+
+		//Remove the news
+		$res = PHDB::remove(self::COLLECTION,array("_id"=>new MongoId($id)));
+
+		return array("result" => true, "msg" => "The news with id ".$id." and ".$nbCommentsDeleted." comments have been removed with succes.");
 	}
+
+	/**
+	 * delete all news linked to an element
+	 * @param String $elementId  : id of the element the news depends on
+	 * @param String $elementType : type of the element the news depends on
+	 * @param type|bool $removeComments 
+	 * @return array result => bool, msg => String
+	 */
+	public static function deleteNewsOfElement($elementId, $elementType, $userId, $removeComments = false) {
+		
+		//Check if the $userId can delete the element
+		$canDelete = Authorisation::canDeleteElement($elementId, $elementType, $userId);
+		if (! $canDelete) {
+			return array("result" => false, "msg" => "You do not have enough credential to delete this element news.");
+		}
+
+		//get all the news
+		$where = array('$and' => array(
+						array("target.id" => $elementId),
+						array("target.type" => $elementType)
+					));
+		$news2delete = PHDB::find(self::COLLECTION, $where);
+		$nbNews = 0;		
+		
+		foreach ($news2delete as $id => $aNews) {
+			$res = self::delete($id, $userId, true);
+			if ($res["result"] == false) return $res;
+			$nbNews++;
+		}
+
+		return array("result" => true, "msg" => $nbNews." news of the element ".$elementId." of type ".$elementType." have been removed with succes.");
+	}
+
 	/**
 	 * delete a news in database from communevent with imageId
 	 * @param String $id : imageId in media.content to delete
@@ -365,6 +418,29 @@ class News {
 		$imageUtils->resizePropertionalyImage($maxWidth,$maxHeight)->save($destPathThumb,$quality);
 		return $destPathThumb;
 	}
+
+	/**
+	 * Return true if the user can administrate the news. The user can administrate a news when :
+	 *     - he is super admin
+	 *     - he is the author of the news
+	 *     - he is admin of the element the news is a target
+	 * @param Strinf $userId the userId to check the credential
+	 * @param String $id the news id to check
+	 * @return bool : true if the user can administrate the news, false else
+	 */
+	public static function canAdministrate($userId, $id) {
+        $news = self::getById($id, false);
+
+        if (empty($news)) return false;
+        if (@$news["author"] == $userId) return true;
+        if (Authorisation::isUserSuperAdmin($userId)) return true;
+        var_dump($news);
+        $parentId = @$news["target"]["id"];
+        $parentType = @$new["target"]["type"];
+
+        $isAdmin = Authorisation::isElementAdmin($parentId, $parentType, $userId);
+        return $isAdmin;
+    }
 
 }
 ?>

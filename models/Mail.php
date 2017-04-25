@@ -361,6 +361,44 @@ class Mail {
 		Mail::schedule($params);
     }
 
+    /**
+     * Send a email to a list of admins to ask them if they confirm the deletion
+     * @param String $elementType : The element type
+     * @param String $elementId : the element Id
+     * @param String $reason : the reason why the element will be deleted
+     * @param array $admins : a list of person to sent notifications
+     * @param String $userId : the userId asking the deletion
+     * @return nothing
+     */
+    public static function confirmDeleteElement($elementType, $elementId, $reason, $admins, $userId) {
+        $element = Element::getElementSimpleById($elementId, $elementType);
+        $user = Person::getSimpleUserById($userId);
+        $url = "#".Element::getControlerByCollection($elementType).".detail.id.".$element["_id"];
+        $nbDayBeforeDelete = Element::NB_DAY_BEFORE_DELETE;
+        foreach ($admins as $id) {
+            $aPerson = Person::getById($id, false);
+            if (!empty($aPerson["email"])) {
+                $params = array (
+                    "type" => Cron::TYPE_MAIL,
+                    "tpl"=>'confirmDeleteElement',
+                    "subject" => "[".Yii::app()->name."] - Suppression de ".@$element["name"],
+                    "from"=>Yii::app()->params['adminEmail'],
+                    "to" => $aPerson["email"],
+                    "tplParams" => array(   
+                        "elementName" => @$element["name"],
+                        "userName" => @$user["name"],
+                        "logo"=> Yii::app()->params["logoUrl"],
+                        "logo2" => Yii::app()->params["logoUrl2"],
+                        "reason" => $reason,
+                        "nbDayBeforeDelete" => $nbDayBeforeDelete,
+                        "url" => Yii::app()->getRequest()->getBaseUrl(true)."/".$url,)
+                );
+                
+                Mail::schedule($params);
+            }
+        }
+    }       
+
     private static function getAppName() {
         return isset(Yii::app()->params["name"]) ? Yii::app()->params["name"] : Yii::app()->name;       
     }

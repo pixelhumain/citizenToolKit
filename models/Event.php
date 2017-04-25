@@ -28,7 +28,7 @@ class Event {
 	    "organizerType" => array("name" => "organizerType"),
 	    "organizer" => array("name" => "organizer", "rules" => array("validOrganizer")),
 
-
+	    "descriptionHTML" => array("name" => "descriptionHTML"),
 	    "address" => array("name" => "address", "rules" => array("addressValid")),
 	    "addresses" => array("name" => "addresses"),
 	    "streetAddress" => array("name" => "address.streetAddress"),
@@ -53,6 +53,11 @@ class Event {
 	    "medias" => array("name" => "medias"),
 	    "urls" => array("name" => "urls"),
 	    "url" => array("name" => "url"),
+	    "telephone" => array("name" => "telephone"),
+	    "mobile" => array("name" => "telephone.mobile"),
+	    "fixe" => array("name" => "telephone.fixe"),
+	    "fax" => array("name" => "telephone.fax"),
+	    "email" => array("name" => "email", "rules" => array("email")),
 
 	    "modified" => array("name" => "modified"),
 	    "updated" => array("name" => "updated"),
@@ -391,6 +396,7 @@ class Event {
 	}
 
 	public static function formatBeforeSaving($params) {
+
 		$startDate = DataValidator::getDateTimeFromString($params['startDate'], "start date");
 		$endDate = DataValidator::getDateTimeFromString($params['endDate'], "end date");
 	    

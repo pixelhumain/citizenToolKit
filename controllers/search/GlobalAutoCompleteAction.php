@@ -277,10 +277,10 @@ class GlobalAutoCompleteAction extends CAction
 		
 
 		/***********************************  VOTES / propositions   *****************************************/
-        if(isset(Yii::app()->session["userId"]) && 
-        	(strcmp($filter, ActionRoom::TYPE_VOTE) != 0 && $this->typeWanted(ActionRoom::TYPE_VOTE, $searchType)) ||
+        if (!empty(Yii::app()->session["userId"]) && 
+        	((strcmp($filter, ActionRoom::TYPE_VOTE) != 0 && $this->typeWanted(ActionRoom::TYPE_VOTE, $searchType)) ||
         	(strcmp($filter, ActionRoom::TYPE_ACTIONS) != 0 && $this->typeWanted(ActionRoom::TYPE_ACTIONS, $searchType))
-        	 )
+        	 ))
         {    
         	$myLinks = Person::getPersonLinksByPersonId(Yii::app()->session["userId"]);
         	
@@ -475,7 +475,8 @@ class GlobalAutoCompleteAction extends CAction
 			    }
 
 	  		//$allCities = PHDB::find(City::COLLECTION, $query, array("name", "alternateName", "cp", "insee", "regionName", "country", "geo", "geoShape","postalCodes"));
-	  		$allCities = PHDB::find(City::COLLECTION, $query);
+	  		//$allCities = PHDB::find(City::COLLECTION, $query);
+			$allCities = PHDB::findAndSortAndLimitAndIndex(City::COLLECTION, $query, array("name" => -1), $indexStep, $indexMin);
 	  		$allCitiesRes = array();
 	  		$nbMaxCities = 20;
 	  		$nbCities = 0;

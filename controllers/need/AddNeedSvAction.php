@@ -20,7 +20,7 @@ class AddNeedSvAction extends CAction
         $params["edit"] = Authorisation::canEditItem(Yii::app()->session["userId"], $type, $id);
 		$params["openEdition"] = Authorisation::isOpenEdition($id, $type, @$params["element"]["preferences"]);
         //TODO : add a else to fallback and display error
-
+$params["deletePending"] = Element::isElementStatusDeletePending($type, $id);
         if(Yii::app()->request->isAjaxRequest)
 			echo $controller->renderPartial("addNeedSV", $params, true);
     }
