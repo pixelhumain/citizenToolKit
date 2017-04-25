@@ -124,7 +124,7 @@ class Search {
   		
   		$allRes = array();
         //*********************************  PERSONS   ******************************************
-       	if(strcmp($filter, Person::COLLECTION) != 0 && self::typeWanted(Person::COLLECTION, $searchType)){
+       	if(strcmp($filter, Person::COLLECTION) != 0 && (self::typeWanted(Person::COLLECTION, $searchType) || self::typeWanted("persons", $searchType) ) ) {
         	$allRes = array_merge($allRes, self::searchPersons($query, $indexStep, $indexMin));
 	  	}
 
