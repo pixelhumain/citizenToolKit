@@ -293,12 +293,21 @@ class Search {
 			        				"address.addressCountry" => $city["country"],
 			        				"address.codeInsee" => $city["insee"],
 			        		);
-			        		if (! empty($city["cp"])) {
+			        		if (! empty($city["cp"]) && (!@$post["searchLocalityLEVEL"] && (@$post["searchLocalityLEVEL"] && $post["searchLocalityLEVEL"]=="inseeCommunexion")) ) {
 			        			$queryLocality["address.postalCode"] = $city["cp"];	
 			        		}
 		  				}
 		  				elseif($key == "CODE_POSTAL"){
-			        		$queryLocality = array($value => new MongoRegex("/".$localityRef."/i"));
+			        		if(@$post["searchLocalityLEVEL"] && $post["searchLocalityLEVEL"]=="cpCommunexion"){
+			        			$city = City::getByUnikey($localityRef);
+			        			$queryLocality = array(
+			        				"address.addressCountry" => $city["country"],
+			        				"address.codeInsee" => $city["insee"],
+			        				"address.postalCode" => $city["cp"]
+			        			);
+			        		}else{
+			        			$queryLocality = array($value => new MongoRegex("/".$localityRef."/i"));
+			        		}
 		  				}
 		  				elseif($key == "DEPARTEMENT") {
 		        			$dep = PHDB::findOne( City::COLLECTION, array("depName" => $localityRef), array("dep"));	
