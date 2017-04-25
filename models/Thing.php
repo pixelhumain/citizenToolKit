@@ -49,7 +49,7 @@ class Thing {
 
 	private static $sckAPIPathMetadata = array("sckSensors" => "sensors", "sckMeasurements" => "measurements", "sckKits" => "kits");
 
-	public static function updateSCKAPIMetadata($forceUpdate=true){
+	public static function updateSCKAPIMetadata($forceUpdate=false){
 		
 		$res=array(); //resultat de Element::save
 		
@@ -77,7 +77,10 @@ class Thing {
 					$mdata['id']=$apisck['_id']; 
 				}
 				
-				$res[]= Element::save($mdata);
+				$result = Element::save($mdata);
+				if($result["result"]==true){
+					$res[]=$value;
+				}
 			}
 		}
 		return $res;
@@ -90,7 +93,8 @@ class Thing {
 		$gmttime=gmdate('Y-m-d\TH');
 
 		/*if(!empty($deviceId) && is_string($deviceId)){ settype($deviceId, "integer"); } */
-		
+		$name=null; $geo=null; $sckurl=null; $address=null;
+
 		if(empty($deviceId)){
 			$sckurl=$poi['urls'][0];
 			$deviceId = self::getSCKDeviceIdByPoiUrl($sckurl);
@@ -99,10 +103,9 @@ class Thing {
 			$geo = $poi['geo'];
 		}
 		
-		$wheremeta = array('type'=>'smartCitizen');
-		$wheremeta['deviceId']=$deviceId;
+		$wheremeta = array('type'=>'smartCitizen','deviceId'=> $deviceId );
 		$deviceMetadata = self::getSCKDeviceMdata($wheremeta);
-		$tLReadings=(isset($deviceMetadata['timestamp']) ? $deviceMetadata['timestamp'] : "2017-04-12" );
+		$tLReadings=(isset($deviceMetadata['timestamp']) ? $deviceMetadata['timestamp'] : "2017-04-23" );
 
 		if(preg_match("/".$gmttime."/i",$tLReadings)!=1 || $forceUpdate==true){
 
@@ -114,17 +117,18 @@ class Thing {
 			
 			$partReadings['url']=$sckurl;
 
-			if(!empty($boardId) && ($deviceMetadata['boardId']=='[FILTERED]' || !isset($deviceMetadata['boardId']))){
-				$partReadings['$boardId']='$boardId';}
+			if(!empty($boardId) && ($deviceMetadata['boardId']=='[FILTERED]' || !isset($deviceMetadata['boardId']  ))){
+				$partReadings['boardId']=$boardId;}
+/*
 			if(!empty($partReadings) && isset($partReadings['boardId']) && isset($deviceMetadata['boardId'])){
 			 if ( $deviceMetadata['boardId']!='[FILTERED]' && $partReadings['boardId']=='[FILTERED]'){
 				unset($partReadings['boardId']);}
 			}
-
+*/
 			if(!isset($partReadings['name'])){
-				$partReadings['name'] = (empty($name) ? '' : '$name' );}
+				$partReadings['name'] = ((empty($name)) ? '' : '$name' );}
 			
-			if(empty($geo)){ 
+			if(empty($geo) && isset($partReadings['data'])){ 
 				$geo = array("@type"=>"GeoCoordinates", "latitude" 	=> $partReadings['data']['location']['latitude'], "longitude" => $partReadings['data']['location']['longitude']);
 			}
 			
@@ -148,15 +152,26 @@ class Thing {
 			$pois = self::getSCKInPoiByCountry();
 		}
 		$elementAlreadyUpdate= 0;
+		$newelements= 0 ;
+		$badr=0;
 		foreach ($pois as $poi) {
-			$toUpSave = self::setMetadata($poi,$atSC,true);
+			$toUpSave = self::setMetadata($poi,$atSC); // force update à mettre en false avant d'utilisé ( true pour les test en local);
 
 			if(empty($toUpSave)){ $elementAlreadyUpdate++; }
-			  else{	$res[] = Element::save($toUpSave); } 
+			else{	
+			  	$result = Element::save($toUpSave);
+			  	if($result['result']==true){
+			  		$newelements++;
+			  	}else{
+			  		$badr++;
+			  	}
+			  	  
+			}
 		}
-
-		if($elementAlreadyUpdate>0){
-			$res['sckMetadata'] = "There are ".$elementAlreadyUpdate." element already up to date (in last hour)";}
+			$res['elementsAlreadyUpdate'] = $elementAlreadyUpdate;
+			$res['elementsUpdated']= $newelements;
+			$res['elementsBad']= $badr;
+	
 		return $res;
 	}
 
@@ -170,10 +185,20 @@ class Thing {
 		return $res;
 	}
 
+	public static function updateMultipleMetadata($listbd){
+
+		$res=array(); //resultat de Element::save
+		
+		foreach ($listbd as $bd) {
+			$res[] = Element::save(self::setMetadata(null,null,true,$bd['deviceId'],$bd['boardId']));
+		}
+		return $res;
+	}
+
 	//chercher les sck enregistrer dans les pois dans la base de données CO
 	public static function getSCKInPoiByCountry($country="RE",$fields=null){
 
-		$where = array('type' => array('$exists'=>1));
+		$where = array(	'type' => array('$exists'=>1));
 		//poi : addressCountry
 		//mongo regex pour le code postal
 		$queryUrls[] = new MongoRegex("/".self::SCK_TYPE."/i");
@@ -237,7 +262,8 @@ class Thing {
 		if(is_string($deviceId)){
 			settype($deviceId, "integer");
 		}
-		$queryATSC = (empty($atSC))? "":"?access_token=".$atSC;
+		$queryATSC = (empty($atSC)|| $atSC=="" )? "" : "?access_token=".$atSC;
+		//echo "atSC : ".$queryATSC;
 		$lastReadDevice = json_decode(file_get_contents(self::URL_API_SC."/devices/".$deviceId.$queryATSC),true);
 		
 		$partReadings =array();
@@ -258,7 +284,6 @@ class Thing {
 
 		}
 		return $partReadings;
-
 	}
 
 	public static function getDistinctBoardId(){
@@ -320,8 +345,10 @@ class Thing {
 
 		$data=array();
 		foreach ($dataInDB as $rawData) {
-			if(!isset($rawData['converted'])|| (!isset($rawData['synthetized']) || ($rawData['synthetized']==false))
+			if((!isset($rawData['converted']) || @$rawData['converted']==false )||
+				(!isset($rawData['synthetized']) || @$rawData['synthetized']!=false )){
 				$data[]= SCKSensorData::SCK11Convert($rawData);
+			}
 		}
 		return $data; 
 	}
@@ -453,11 +480,11 @@ class Thing {
 			if($res['result']==true)
 				$nbSavedElements++;
 		}
-		/*
-		if($nbSavedElements==count($dataS))
-		// TODO faire un array where qui exclus les synthese de la suppression
+		
+		if($nbSavedElements>=(count($dataS)-1)){
 			$resSuppr = self::deleteSCKRecords($boardId,$date);
-		*/
+		}
+		
 
 		//TODO faire un tableau recap des différentes etapes
 		return $res1;
@@ -539,6 +566,8 @@ class Thing {
 		$where = array("type"=>self::SCK_TYPE,"boardId"=>$boardId);
 		$queryTimestamp[] = new MongoRegex("/^(".$dateM."|".$dateN.")/i");
 		$where["timestamp"] = array('$in'=> $queryTimestamp);
+		$where["synthetized"] = array('exists'=>0); 
+
 		$result = PHDB::remove('data_copy', $where); // collection : self::COLLECTION_DATA , data_copy pour les tests
 		return $result;
 	}
