@@ -564,8 +564,10 @@ class Authorisation {
         }
 
         //Super Admin can do anything
-        if(Role::isSuperAdmin(Role::getRolesUserId($userId)))
+        if(Role::isSuperAdmin(Role::getRolesUserId($userId))) {
+            error_log('this user is super admin and can edit the element '.$type.'/'.$itemId);
             return true;
+        }
 
         if ($type == Event::COLLECTION || $type == Project::COLLECTION || $type == Organization::COLLECTION) {
             //Check if delete pending => can not edit
