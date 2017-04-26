@@ -43,7 +43,7 @@ class UploadSaveAction extends CAction {
                         "moduleId" => "communecter",
                         "name" => $res["name"],
                         "size" => (int) $res['size'],
-                        "contentKey" => (@$_POST["contentKey"]) ? $_POST["contentKey"]:"profil",
+                        "contentKey" => (@$_POST["contentKey"]) ? $_POST["contentKey"]:"slider",
                         "author" => Yii::app()->session["userId"]
                     );
 
