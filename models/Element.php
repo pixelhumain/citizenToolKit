@@ -217,11 +217,11 @@ class Element {
 
     /**
      * Return a link depending on the type and the id of the element.
-     * The HTML link could be kind of : <a href="" onclick="url.loadByHash(...)">name</a>
-     * If url.loadByHashOnly is set : only the url.loadByHash will be returned
+     * The HTML link could be kind of : <a href="" onclick="urlCtrl.loadByHash(...)">name</a>
+     * If urlCtrl.loadByHashOnly is set : only the urlCtrl.loadByHash will be returned
      * @param String $type The type of the entity
      * @param String $id The id of the entity
-     * @param type|null $loadByHashOnly if true, will return only the url.loadByHash not surounded by the html link
+     * @param type|null $loadByHashOnly if true, will return only the urlCtrl.loadByHash not surounded by the html link
      * @return String the link on the loaByHash to display the detail of the element
      */
     public static function getLink( $type, $id, $hashOnly=null ) {	    
@@ -327,13 +327,13 @@ class Element {
     		$el = PHDB::findOne ( $type , array( "_id" => new MongoId($id) ) );
 	    	$ctrl = self::getControlerByCollection($type);
 	    	if( @$el && @$ctrl )
-	    		$link = "url.loadByHash('#".$ctrl.".detail.id.".$id."')";
+	    		$link = "urlCtrl.loadByHash('#".$ctrl.".detail.id.".$id."')";
 	    }
 	    else if($type == City::COLLECTION){
 	    	$el = City::getByUnikey($id);
 	    	$ctrl = self::getControlerByCollection($type);
 	    	if( @$el && @$ctrl )
-	    		$link = "url.loadByHash('#".$ctrl.".detail.insee.".$el['insee'].".cp.".$el['cp']."')";
+	    		$link = "urlCtrl.loadByHash('#".$ctrl.".detail.insee.".$el['insee'].".cp.".$el['cp']."')";
 	    }
 	    
 	    if (! $loadByHashOnly) {

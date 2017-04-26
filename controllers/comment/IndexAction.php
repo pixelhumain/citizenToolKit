@@ -59,7 +59,7 @@ class IndexAction extends CAction
                 $params["parent"] = array(  "name" => $parent["name"],
                                         "insee" => $parent["insee"],
                                         "cp" => $parent["cp"],
-                                        "link" => "url.loadByHash('#city.detail.insee.".$parent["insee"].".postalCode.".$parent["cp"]."')");
+                                        "link" => "urlCtrl.loadByHash('#city.detail.insee.".$parent["insee"].".postalCode.".$parent["cp"]."')");
             }
 
             if(!isset($params["parent"])) {
