@@ -418,5 +418,27 @@ class News {
 		return $destPathThumb;
 	}
 
+	/**
+	 * Return true if the user can administrate the news. The user can administrate a news when :
+	 *     - he is super admin
+	 *     - he is the author of the news
+	 *     - he is admin of the element the news is a target
+	 * @param Strinf $userId the userId to check the credential
+	 * @param String $id the news id to check
+	 * @return bool : true if the user can administrate the news, false else
+	 */
+	public static function canAdministrate($userId, $id) {
+        $news = self::getById($id, false);
+
+        if (empty($news)) return false;
+        if (@$news["author"] == $userId) return true;
+        if (Authorisation::isUserSuperAdmin($userId)) return true;
+        $parentId = @$news["target"]["id"];
+        $parentType = @$new["target"]["type"];
+
+        $isAdmin = Authorisation::isElementAdmin($parentId, $parentType, $userId);
+        return $isAdmin;
+    }
+
 }
 ?>
