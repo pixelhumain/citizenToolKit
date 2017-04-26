@@ -48,8 +48,11 @@ class ActStr {
     const VERB_POST = "post";
     const VERB_RETURN = "return";
 
+    const VERB_SHARE = "share";
+
     const TYPE_URL = "url";
     const TYPE_ACTIVITY_HISTORY = "history";
+    const TYPE_ACTIVITY_SHARE = "share";
 	
 	public static function buildEntry($params)
     {
