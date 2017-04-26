@@ -431,6 +431,9 @@ class Comment {
 			$canDelete = ActionRoom::canAdministrate($userId, $contextId);
 		} else if ($contextType == News::COLLECTION) {
 			$canDelete = News::canAdministrate($userId, $contextId);
+		} else if ($contextType == Poi::COLLECTION) {
+			error_log("Can delete element : ".$contextId);
+			$canDelete = Poi::canDeletePoi($userId, $contextId);
 		} else {
 			return array("result" => false, "msg" => "This contextType '".$contextType."' is not yet implemented.");
 		}

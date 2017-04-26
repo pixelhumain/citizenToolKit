@@ -22,7 +22,7 @@ class DeleteAction extends CAction {
             $res = Element::askToDelete($type, $id, $reason, Yii::app()->session["userId"]);
         //TODO SABR - Move Delete POI to DeleteElement
         } else if ($type == Poi::COLLECTION) {
-        	$res = Element::delete($type, $id, Yii::app()->session["userId"]);
+        	$res = Poi::delete($id, Yii::app()->session["userId"]);
         } else {
             Rest::json(array( "result" => false, "msg" => "Impossible to delete that kind of element ".$type ));
             return;   
