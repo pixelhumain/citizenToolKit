@@ -784,25 +784,6 @@ class Element {
 		return true;
 	}
 
-	public static function delete($elementType,$elementId,$userId) {
-		
-		if ($elementType != Poi::COLLECTION && $elementType != Poi::CONTROLLER) {
-            return array( "result" => false, "msg" => "For now you can only delete Points of interest" );   
-        }
-		if ( !@$userId) {
-            return array( "result" => false, "msg" => "You must be loggued to delete something" );
-        }
-        
-        $el = self::getByTypeAndId($elementType, $elementId);
-        //TODO : we could also allow admins
-        if ( $userId != $el['creator']) {
-            return array( "result" => false, "msg" => "You must be owner to delete something" );    
-        }
-        
-		PHDB::remove($elementType, array("_id"=>new MongoId($elementId)));
-		return array("result" => true, "msg" => "The element has been deleted succesfully");
-	}
-
 	/**
 	 * Demande la suppression d'un élément
 	 * - Si creator demande la suppression et organisation vide (pas de links, pas de members) => suppression de l’orga
