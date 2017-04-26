@@ -304,6 +304,8 @@ class Mail {
                 "to" => $currentAdminEmail,
                 "tplParams" => array(  "newPendingAdmin"=> $newPendingAdmin ,
                                         "title" => Yii::app()->name ,
+                                        "logo"=> Yii::app()->params["logoUrl"],
+                                        "logo2" => Yii::app()->params["logoUrl2"],
                                         "parent" => $parent,
                                         "parentType" => $parentType,
                                         "typeOfDemand"=> $typeOfDemand)
