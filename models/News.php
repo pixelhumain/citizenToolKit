@@ -115,7 +115,6 @@ class News {
 						$codeInsee=$parent["address"]["codeInsee"];
 						$postalCode=$parent["address"]["postalCode"];
 				}
-				
 				if( $_POST["scope"] != "restricted" && $_POST["scope"] != "private" &&
 					isset($_POST["searchLocalityCITYKEY"]) && !empty($_POST["searchLocalityCITYKEY"]) && $_POST["searchLocalityCITYKEY"] != "") {
 					$news["scope"]["type"]="public";
