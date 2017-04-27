@@ -181,8 +181,9 @@ class Mail {
             "to" => $email,
             "tplParams" => array(   "pwd"   => $pwd ,
                                     "title" => Yii::app()->name ,
-                                    "logo"  => "/images/logo-communecter.png",
-                                    "logo2" => "/images/logoLTxt.jpg")
+                                    "logo" => Yii::app()->params["logoUrl"],
+                                    "logo2" => Yii::app()->params["logoUrl2"]
+                                    )
         );
         Mail::schedule($params);
     }
