@@ -304,6 +304,8 @@ class Mail {
                 "to" => $currentAdminEmail,
                 "tplParams" => array(  "newPendingAdmin"=> $newPendingAdmin ,
                                         "title" => Yii::app()->name ,
+                                        "logo"=> Yii::app()->params["logoUrl"],
+                                        "logo2" => Yii::app()->params["logoUrl2"],
                                         "parent" => $parent,
                                         "parentType" => $parentType,
                                         "typeOfDemand"=> $typeOfDemand)
@@ -378,6 +380,8 @@ class Mail {
             "tplParams" => array(  
                 "newChild"=> $child,      
                 "title" => Yii::app()->name , 
+                "logo"=> Yii::app()->params["logoUrl"],
+                "logo2" => Yii::app()->params["logoUrl2"],
                 "authorName"=>Yii::app()->session["user"]["name"],   
                 "authorId" => Yii::app()->session["userId"],  
                 "parent" => $parent,       
@@ -411,6 +415,8 @@ class Mail {
                 "to" => $mail,     
                 "tplParams" => array(    
                     "title" => Yii::app()->name, 
+                    "logo"=> Yii::app()->params["logoUrl"],
+                    "logo2" => Yii::app()->params["logoUrl2"],
                     "authorName"=>Yii::app()->session["user"]["name"],   
                     "authorId" => Yii::app()->session["userId"],  
                     "parent" => $element,       

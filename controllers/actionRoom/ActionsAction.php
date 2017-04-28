@@ -32,7 +32,7 @@ class ActionsAction extends CAction
       if( $parentType == "" )
         $parentType = ($room["parentType"] == "cities") ? "cities" : "";
 
-      $roomurl.loadByHash = ( isset( $room["parentType"] ) && isset( $room["parentId"] ) ) ? "#".$parentType.".detail.id.".$room["parentId"] : "#rooms"; 
+      $roomurlCtrl.loadByHash = ( isset( $room["parentType"] ) && isset( $room["parentId"] ) ) ? "#".$parentType.".detail.id.".$room["parentId"] : "#rooms"; 
 
      
       $parent = array("name"=>"_");
@@ -60,7 +60,7 @@ class ActionsAction extends CAction
                                              "isModerator"=>false,//$isModerator,
                                              "uniqueVoters"=>$uniqueVoters,
                                              "parent"=>$parent,
-                                             "surveyurl.loadByHash" => $roomurl.loadByHash,
+                                             "surveyurlCtrl.loadByHash" => $roomurlCtrl.loadByHash,
                                              "images" => $images
                                               )  );
     }
