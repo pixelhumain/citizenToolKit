@@ -174,11 +174,11 @@ class Mail {
         $params = array(
             "type" => Cron::TYPE_MAIL,
             "tpl"=>'passwordRetreive',
-            "subject" => 'Réinitialisation du mot de passe pour le site '.Yii::app()->name,
+            "subject" => 'Réinitialisation du mot de passe pour le site '.self::getAppName(),
             "from"=>Yii::app()->params['adminEmail'],
             "to" => $email,
             "tplParams" => array(   "pwd"   => $pwd ,
-                                    "title" => Yii::app()->name ,
+                                    "title" => self::getAppName() ,
                                     "logo" => Yii::app()->params["logoUrl"],
                                     "logo2" => Yii::app()->params["logoUrl2"]
                                     )
@@ -191,11 +191,11 @@ class Mail {
         $params = array(
             "type" => Cron::TYPE_MAIL,
             "tpl"=>'validation', //TODO validation should be Controller driven boolean $this->userAccountValidation 
-            "subject" => Yii::t("common","Confirm your account on ").Yii::app()->name,
+            "subject" => Yii::t("common","Confirm your account on ").self::getAppName(),
             "from" => Yii::app()->params['adminEmail'],
             "to" => $person["email"],
             "tplParams" => array( "user"  => $person["_id"] ,
-                                  "title" => Yii::app()->name ,
+                                  "title" => self::getAppName() ,
                                   //"logo"  => "/images/logoLTxt.jpg" 
                                   "logo" => Yii::app()->params["logoUrl"],
                                   //"urlRedirect" => Yii::app()->getRequest()->getBaseUrl(true);
