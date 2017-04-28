@@ -125,6 +125,7 @@ class IndexAction extends CAction
 				if(@$isLive && (@Yii::app()->session["userId"] && $id == Yii::app()->session["userId"])){
 					error_log("message 2");
 					$authorFollowedAndMe=[];
+					array_push($authorFollowedAndMe,array("sharedBy"=>array('$in'=>array($id))));
 					array_push($authorFollowedAndMe,array("author"=>$id));
 					array_push($authorFollowedAndMe,array("target.id"=> $id, 
 														"target.type" => Person::COLLECTION));

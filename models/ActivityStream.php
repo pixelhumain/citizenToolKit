@@ -103,24 +103,48 @@ class ActivityStream {
 
 
 	public static function saveActivityShare($verb, $targetId, $targetType, $activityName=null, $activityValue=null){
-		$buildArray = array(
-			"type" => ActivityStream::COLLECTION,
-			"verb" => $verb,
-			"target" => array("id" => $targetId,
-							"type"=> $targetType),
-			"author" => Yii::app()->session["userId"],
-			"object" => $activityValue
-		);
 
-		// if($activityName != null)
-		// 	$buildArray["label"] = $activityName;
-		// if($activityValue != null)
-		// 	$buildArray["value"] = $activityValue;
-		// if($activityName=="geo" || $activityName=="geoPosition")
-		// 	$buildArray["value"] = "geoposition";
+		$share = PHDB::findOne( News::COLLECTION , 
+								array(	"verb"=>$verb, 
+										"object.id"=>@$activityValue["id"], 
+										"object.type"=>@$activityValue["type"]
+										)
+								);
+		
+		if($share!=null){
+			//si je n'ai pas déjà partagé cette news
+			if(@$share["sharedBy"])
+			if(!in_array(Yii::app()->session["userId"], $share["sharedBy"])){
+				//si je suis le premier a partager
+				if(!@$share["sharedBy"]){
+					$share["sharedBy"] = array(Yii::app()->session["userId"]);
+				}else{ //si je ne suis pas le premier, je me rajoute à la liste
+					$share["sharedBy"] = array_merge($share["sharedBy"], array(Yii::app()->session["userId"]));
+				}
+			}	
+			$share["updated"] = new MongoDate(time());
+			PHDB::update ( News::COLLECTION , 
+							array( "_id" => $share["_id"]), 
+                            $share);
+			
+		}else{
+			$buildArray = array(
+				"type" => ActivityStream::COLLECTION,
+				"verb" => $verb,
+				"target" => array("id" => $targetId,
+								"type"=> $targetType),
+				"author" => Yii::app()->session["userId"],
+				"object" => $activityValue,
+				"scope" => array("type"=>"restricted"),
+			    "updated" => new MongoDate(time()),
+	            "created" => new MongoDate(time())
+			);
 
-		$params=ActivityStream::buildEntry($buildArray);
-		self::addEntry($params);
+			//$params=ActivityStream::buildEntry($buildArray);
+			self::addEntry($buildArray);
+			error_log("share new");
+		}
+	
 		return true;
 	}
 

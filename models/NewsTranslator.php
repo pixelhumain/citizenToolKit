@@ -34,12 +34,19 @@ class NewsTranslator {
 				$object=Need::getSimpleNeedById((string)$params["object"]["id"]);
 				$params["icon"]="fa-cubes";
 			}
+			else if (@$params["object"]["type"]==News::COLLECTION){
+				$object=News::getById((string)$params["object"]["id"]);
+				$params["icon"]="fa-newspaper-o";
+			}
 
 			if(!empty($object)){
 				if(@$params["object"]["type"]!=Need::COLLECTION)
-					$params["imageBackground"] = $object["profilImageUrl"];
-				$params["name"] = $object["name"];
-				$params["text"] = preg_replace('/<[^>]*>/', '', (isset($object["shortDescription"]) ? $object["shortDescription"] : "" ));
+					$params["imageBackground"] = @$object["profilImageUrl"];
+
+				$params["name"] = @$object["name"] ? $object["name"] : @$object["title"];
+				$params["text"] = preg_replace('/<[^>]*>/', '', (isset($object["shortDescription"]) ? 
+								  $object["shortDescription"] : @$object["text"] ));
+
 				if (empty($params["text"]))
 					$params["text"] =(isset($object["description"]) ? preg_replace('/<[^>]*>/', '',$object["description"]) : "");
 				if(@$params["object"]["type"]==Event::COLLECTION || $params["object"]["type"]==Need::COLLECTION){
@@ -115,13 +122,21 @@ class NewsTranslator {
 			}
 			$params["media"]["images"]=$images;
 		}
-	  	$author =  Person::getSimpleUserById($params["author"]);
-	  	if (!empty($author))
-	  		$params["author"] = $author;
-	  	else{
-		  	$params=array("created"=>$params["created"]);
-			return $params;
-	  	}
+
+		//if(isset($params["author"])){
+  		$author =  Person::getSimpleUserById($params["author"]);
+	  	if (!empty($author)) $params["author"] = $author;
+	  	else return array("created"=>$params["created"]);
+		
+		if(isset($params["sharedBy"])){
+			$sharedBy = array();
+			foreach($params["sharedBy"] as $key => $id){
+				$share =  Person::getSimpleUserById($id);
+				if (!empty($share)) $sharedBy[] = $share;
+			}
+			$params["sharedBy"] = $sharedBy;
+		  	
+		}
 		return $params;
 	}
 }
