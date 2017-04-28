@@ -63,7 +63,7 @@ class IndexAction extends CAction
 	            $parent = Person::getById($id);
 	            if (@Yii::app()->session["userId"]){
 					$params["canPostNews"] = true;
-					if (Yii::app()->session["userId"]==$id){
+					if (Yii::app()->session["userId"]==$id && $isLive!=true){
 						$params["canManageNews"]=true;
 					}
 				}
@@ -111,7 +111,7 @@ class IndexAction extends CAction
 				if (@Yii::app()->session["userId"])
 					$params["canPostNews"] = true;
 			}
-			$params["authorizedToStock"]= Document::authorizedToStock($id, $type,Document::DOC_TYPE_IMAGE);
+			//$params["authorizedToStock"]= Document::authorizedToStock($id, $type,Document::DOC_TYPE_IMAGE);
 			$params["contextParentType"] = $type; 
 			$params["contextParentId"] = $id;
 			$params["parent"]=@$parent;
@@ -270,14 +270,27 @@ class IndexAction extends CAction
 					        		if (isset($city["cp"])) {
 					        			$queryLocality["scope.cities.postalCode"] = $city["cp"];
 					        		}
+					        		if (! empty($city["cp"]) && (!@$_POST["searchLocalityLEVEL"] && (@$_POST["searchLocalityLEVEL"] && $_POST["searchLocalityLEVEL"]=="inseeCommunexion")) ) {
+			        					$queryLocality["scope.cities.postalCode"] = $city["cp"];	
+			        				}
 				  				}
 				  				elseif($key == "CODE_POSTAL") { //error_log($localityRef);
 				  					$cities = PHDB::find( City::COLLECTION, array("postalCodes.postalCode" => $localityRef), array("insee"));
 				  					$inQuestInsee = array();
-				  					foreach($cities as $key => $val){ $inQuestInsee[] = $val["insee"]; error_log($val["insee"]); }
-					        		$queryLocality = array('$or' => array( array($value => new MongoRegex("/^".$localityRef."/i")),
+				  					if(@$_POST["searchLocalityLEVEL"] && $_POST["searchLocalityLEVEL"]=="cpCommunexion"){
+			        					$city = City::getByUnikey($localityRef);
+			        					//var_dump($city);
+			        					$queryLocality = array(
+			        					//"address.addressCountry" => $city["country"],
+			        						"scope.cities.codeInsee" => $city["insee"],
+			        						"scope.cities.postalCode" => $city["cp"]
+			        					);
+			        				}else{
+			        					foreach($cities as $key => $val){ $inQuestInsee[] = $val["insee"]; error_log($val["insee"]); }
+					        			$queryLocality = array('$or' => array( array($value => new MongoRegex("/^".$localityRef."/i")),
 					        												array("scope.cities.codeInsee" => array('$in' => $inQuestInsee)) )
 					        							 );
+				  					}
 				  				}
 				  				elseif($key == "DEPARTEMENT") { error_log("DEPARTEMENT : " . $localityRef);
 				        			$dep = PHDB::findOne( City::COLLECTION, array("depName" => $localityRef), array("dep"));	

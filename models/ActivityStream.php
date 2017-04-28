@@ -101,6 +101,29 @@ class ActivityStream {
 		return true;
 	}
 
+
+	public static function saveActivityShare($verb, $targetId, $targetType, $activityName=null, $activityValue=null){
+		$buildArray = array(
+			"type" => ActivityStream::COLLECTION,
+			"verb" => $verb,
+			"target" => array("id" => $targetId,
+							"type"=> $targetType),
+			"author" => Yii::app()->session["userId"],
+			"object" => $activityValue
+		);
+
+		// if($activityName != null)
+		// 	$buildArray["label"] = $activityName;
+		// if($activityValue != null)
+		// 	$buildArray["value"] = $activityValue;
+		// if($activityName=="geo" || $activityName=="geoPosition")
+		// 	$buildArray["value"] = "geoposition";
+
+		$params=ActivityStream::buildEntry($buildArray);
+		self::addEntry($params);
+		return true;
+	}
+
 	public static function removeNotifications($id)
 	{
 	    $notif = PHDB::findOne(self::COLLECTION, array("_id"=> new MongoId($id) ) );

@@ -25,7 +25,7 @@ class GetAction extends CAction
               );
           }else
             $params = array("notify.id.".Yii::app()->session["userId"] => array('$exists' => true));
-            $res = ActivityStream::getNotifications($params);
+          $res = ActivityStream::getNotifications($params);
         } else
             $res = array('result' => false , 'msg'=>'something somewhere went terribly wrong');
             

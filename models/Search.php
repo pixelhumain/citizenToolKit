@@ -124,7 +124,7 @@ class Search {
   		
   		$allRes = array();
         //*********************************  PERSONS   ******************************************
-       	if(strcmp($filter, Person::COLLECTION) != 0 && self::typeWanted(Person::COLLECTION, $searchType)){
+       	if(strcmp($filter, Person::COLLECTION) != 0 && (self::typeWanted(Person::COLLECTION, $searchType) || self::typeWanted("persons", $searchType) ) ) {
         	$allRes = array_merge($allRes, self::searchPersons($query, $indexStep, $indexMin));
 	  	}
 
@@ -293,12 +293,21 @@ class Search {
 			        				"address.addressCountry" => $city["country"],
 			        				"address.codeInsee" => $city["insee"],
 			        		);
-			        		if (! empty($city["cp"])) {
+			        		if (! empty($city["cp"]) && (!@$post["searchLocalityLEVEL"] && (@$post["searchLocalityLEVEL"] && $post["searchLocalityLEVEL"]=="inseeCommunexion")) ) {
 			        			$queryLocality["address.postalCode"] = $city["cp"];	
 			        		}
 		  				}
 		  				elseif($key == "CODE_POSTAL"){
-			        		$queryLocality = array($value => new MongoRegex("/".$localityRef."/i"));
+			        		if(@$post["searchLocalityLEVEL"] && $post["searchLocalityLEVEL"]=="cpCommunexion"){
+			        			$city = City::getByUnikey($localityRef);
+			        			$queryLocality = array(
+			        				"address.addressCountry" => $city["country"],
+			        				"address.codeInsee" => $city["insee"],
+			        				"address.postalCode" => $city["cp"]
+			        			);
+			        		}else{
+			        			$queryLocality = array($value => new MongoRegex("/".$localityRef."/i"));
+			        		}
 		  				}
 		  				elseif($key == "DEPARTEMENT") {
 		        			$dep = PHDB::findOne( City::COLLECTION, array("depName" => $localityRef), array("dep"));	

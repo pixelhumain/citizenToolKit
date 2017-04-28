@@ -328,10 +328,21 @@ class Document {
 	 * @return size of storage used to stock
 	 */
 	public static function authorizedToStock($id, $type,$docType){
-		$storageSpace = self::storageSpaceByIdAndType($id, $type,self::DOC_TYPE_IMAGE);
-		$authorizedToStock=true;
-		if($storageSpace > (20*1048576))
-			$authorizedToStock=false;
+		$authorizedToStock=false;
+		if(@Yii::app()->session["userId"]){
+			if($type=="city"){
+				$id=Yii::app()->session["userId"];
+				$type=Person::COLLECTION;
+			}
+			$storageSpace = self::storageSpaceByIdAndType($id, $type,self::DOC_TYPE_IMAGE);
+			$preferences = Preference::getPreferencesByTypeId($id,$type);
+			$initAuthorizedSpace=20;
+			if(@$preferences["authorizedSpace"])
+				$initAuthorizedSpace=$preferences["authorizedSpace"];
+			$authorizedToStock=true;
+			if($storageSpace > ($initAuthorizedSpace*1048576))
+				$authorizedToStock=false;
+		}
 		return $authorizedToStock;
 	}
 	/**
