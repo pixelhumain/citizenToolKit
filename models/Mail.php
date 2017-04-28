@@ -57,12 +57,12 @@ class Mail {
         $params = array(
             "type" => Cron::TYPE_MAIL,
             "tpl"=>'notifAdminNewUser',
-            "subject" => 'Nouvel utilisateur sur le site '.Yii::app()->name,
+            "subject" => 'Nouvel utilisateur sur le site '.self::getAppName(),
             "from"=>Yii::app()->params['adminEmail'],
             "to" => Yii::app()->params['adminEmail'],
             "tplParams" => array(   "person"   => $person ,
-                                    "title" => Yii::app()->name ,
-                                    "logo"  => "/images/logoLTxt.jpg")
+                                    "title" => self::getAppName() ,
+                                    "logo"  => Yii::app()->params["logoUrl"])
         );
         Mail::schedule($params);
     }
@@ -74,9 +74,9 @@ class Mail {
             $invitor["name"] = $nameInvitor ;
 		
         if(empty($msg))
-            $msg = $invitor["name"]. " vous invite à rejoindre ".Yii::app()-> name.".";
+            $msg = $invitor["name"]. " vous invite à rejoindre ".self::getAppName().".";
 		if(empty($subject))
-            $subject = $invitor["name"]. " vous invite à rejoindre ".Yii::app()-> name.".";
+            $subject = $invitor["name"]. " vous invite à rejoindre ".self::getAppName().".";
 
         if(!@$person["email"] || empty($person["email"])){
         	$getEmail=Person::getEmailById((string)$person["_id"]);
@@ -90,11 +90,9 @@ class Mail {
             "from"=>Yii::app()->params['adminEmail'],
             "to" => $person["email"],
             "tplParams" => array(   "invitorName"   => $invitor["name"],
-                                    "title" => Yii::app()-> name ,
+                                    "title" => self::getAppName() ,
                                     "logo" => Yii::app()->params["logoUrl"],
                                     "logo2" => Yii::app()->params["logoUrl2"],
-                                    //"logo"=> "/images/logo-communecter.png",
-                                    //"logo2" => "/images/logoLTxt.jpg",
                                     "invitedUserId" => $person["_id"],
                                     "message" => $msg)
         );
@@ -371,5 +369,9 @@ class Mail {
                 Mail::schedule($params);
             }
         }
-    }       
+    }    
+
+    private static function getAppName() {
+        return isset(Yii::app()->params["name"]) ? Yii::app()->params["name"] : Yii::app()->name;       
+    }   
 }
