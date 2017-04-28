@@ -4,7 +4,8 @@ class Thing {
 	//TODO changer collection things en datas (dans mongodb dev aussi)
 	//TODO : utilisé un formulaire avec device et adresse mac pour compléter les métadatas
 
-	const COLLECTION = "metadata";
+	const COLLECTION = "poi";
+	const COLLECTION_METADATA="metadata";
 	const CONTROLLER = "thing";
 	const COLLECTION_DATA = "data";
 	const URL_API_SC = "https://api.smartcitizen.me/v0"; // vérifier que l'url de l'api est à jour
@@ -12,6 +13,9 @@ class Thing {
 	//public static $types = array ();
 
 	public static $dataBinding = array (
+		"address"	=> array("name" => "address"),
+		"boardId" 	=> array("name" =>"macId"),	
+		"deviceId" 	=> array("name"=> "deviceId"), 	//id for smartcitizen.me
 	    "type" 	=> array("name" => "type"),//"smartCitizen" SCK_TYPE
 	    "temp" 	=> array("name" => "temp"),
 	    "hum"	=> array("name" => "hum"),
@@ -23,33 +27,36 @@ class Thing {
 	    "noise"	=> array("name" => "noise"),
 	    "nets"	=> array("name" => "nets"),
 	    "timestamp"	=> array("name" =>"timestamp", "rules" => array("required")),
-	    "boardId" 	=> array("name" =>"macId"),	
 	    "name" => array("name"=>"name"),
-	   	//"userId" => array("name"=>"userId"), 		//id for data in mongodb need if authentified user (admin or user) can update metadata
-	    //"macId" => array("name" => "macId"),
-	    "deviceId" 	=> array("name"=> "deviceId"), 	//id for smartcitizen.me
-		"version" 	=> array("name" => "sckVersion"),
 		"kit" 	=> array("name"=> "kit"),
-		"sensors" 	=> array("name"=> "sensors"),
-		"address"	=> array("name" => "address"),
 		"geo" 	=> array("name" => "geo", "rules" => array("required","geoValid")), //poi
+		"geoPosition" => array("name" => "geoPosition"),
 	    "location" 	=> array("name" => "location"),
-	    "sckUpdatedAt"	=>array("name"=>"sckUpdatedAt"),
-	    "url"		=> array("name" =>"url"),
+	    "addresses" => array("name" => "addresses"),
+	    "description" => array("name" => "description"),
+	    "media" => array("name" => "media"),
+	    "medias" => array("name" => "medias"),
+	    "parentId" => array("name" => "parentId"),
+	    "parentType" => array("name" => "parentType"),
 	    "sckKits" 	=> array("name"=>"sckKits"), //api metadata
+	    "sckMeasurements" => array("name"=>"sckMeasurements"),//api metadata
 		"sckSensors" => array("name"=>"sckSensors"),//api metadata
-		"sckMeasurements" => array("name"=>"sckMeasurements"),//api metadata
+		"sckUpdatedAt"	=>array("name"=>"sckUpdatedAt"),
+		"sensors" 	=> array("name"=> "sensors"),
 	    "status" 	=> array("name" => "status"), //in metadata updated for POI realy need?
-
+	   	"tags" => array("name" => "tags"),
+	    "urls"		=> array("name" =>"urls"),
+	    "version" 	=> array("name" => "sckVersion"),
+	   
 	    "modified" 	=> array("name" => "modified"),
 	    "updated" 	=> array("name" => "updated"),
 	    "creator" 	=> array("name" => "creator"),
-	    "created" 	=> array("name" => "created"),
+	    "created" 	=> array("name" => "created")
 	);
 
 	private static $sckAPIPathMetadata = array("sckSensors" => "sensors", "sckMeasurements" => "measurements", "sckKits" => "kits");
 
-	public static function updateSCKAPIMetadata($forceUpdate=false){
+	public static function updateSCKAPIMetadata($forceUpdate=true){
 		
 		$res=array(); //resultat de Element::save
 		
@@ -61,18 +68,17 @@ class Thing {
 		foreach (self::$sckAPIPathMetadata as $key => $value) {
 			$wheremeta['type']=$key;
 			
-			$apisck = self::getSCKDeviceMdata($wheremeta,$fields);
+			$apisck = self::getSCKDeviceMdata(self::COLLECTION_METADATA,$wheremeta,$fields);
 		
 			$intDayBeginning=strtotime($gmttime);
-
-			$mdata=array();
-			$mdata['collection']=self::COLLECTION;
-			$mdata['type'] = $key;
-			$mdata['key'] = 'thing';
-			$sckAPIMetadata=json_decode(file_get_contents(self::URL_API_SC."/".$value),true);
-			$mdata[$key]=$sckAPIMetadata;
-			
 			if($intDayBeginning >= $apisck['updated'] || $forceUpdate==true){
+				$mdata=array();
+				$mdata['collection']=self::COLLECTION_METADATA;
+				$mdata['type'] = $key;
+				$mdata['key'] = 'thing';
+				$sckAPIMetadata=json_decode(file_get_contents(self::URL_API_SC."/".$value),true);
+				$mdata[$key]=$sckAPIMetadata;
+			
 				if(!empty($apisck)) {
 					$mdata['id']=$apisck['_id']; 
 				}
@@ -93,30 +99,33 @@ class Thing {
 		$gmttime=gmdate('Y-m-d\TH');
 
 		/*if(!empty($deviceId) && is_string($deviceId)){ settype($deviceId, "integer"); } */
-		$name=null; $geo=null; $sckurl=null; $address=null;
+		$name=null; 
+		$geo=null; $sckurl=null; $address=null;
 
-		if(empty($deviceId)){
+		if(empty($deviceId) && !empty($poi)){
 			$sckurl=$poi['urls'][0];
 			$deviceId = self::getSCKDeviceIdByPoiUrl($sckurl);
-			$address = $poi['address'];
-			$name = $poi['name'];
-			$geo = $poi['geo'];
+			if(!empty($poi['address']) ) { $address = $poi['address']; }
+			//$name = $poi['name'];
+			if($poi['type']!=self::SCK_TYPE){ $poi['type'] =self::SCK_TYPE;}
+			if(!empty($poi['geo'])) { $geo = $poi['geo']; }
 		}
 		
 		$wheremeta = array('type'=>'smartCitizen','deviceId'=> $deviceId );
-		$deviceMetadata = self::getSCKDeviceMdata($wheremeta);
-		$tLReadings=(isset($deviceMetadata['timestamp']) ? $deviceMetadata['timestamp'] : "2017-04-23" );
+		$deviceMetadata = self::getSCKDeviceMdata(self::COLLECTION, $wheremeta); //dans poi maintenant vide si le poi n'a pas le bon type dans ce cas update pour mettre le bon type 
+		if(empty($geo) && !empty($deviceMetadata['geo'])){$geo=$deviceMetadata['geo']; }
+		if(empty($address) && !empty($deviceMetadata['address'])){ $address=$deviceMetadata['address']; }
+
+		$tLReadings=(isset($deviceMetadata['timestamp'])) ? $deviceMetadata['timestamp'] : "2017-04-23" ;
 
 		if(preg_match("/".$gmttime."/i",$tLReadings)!=1 || $forceUpdate==true){
-
+			$partReadings = self::getLastedReadViaAPI($deviceId,$atSC);
+/*
 			if(empty($sckurl)){
 				$sckurl = self::URL_API_SC."/".'$deviceId';
 			}
-		
-			$partReadings = self::getLastedReadViaAPI($deviceId,$atSC);
-			
 			$partReadings['url']=$sckurl;
-
+*/
 			if(!empty($boardId) && ($deviceMetadata['boardId']=='[FILTERED]' || !isset($deviceMetadata['boardId']  ))){
 				$partReadings['boardId']=$boardId;}
 /*
@@ -125,21 +134,32 @@ class Thing {
 				unset($partReadings['boardId']);}
 			}
 */
+/*			
 			if(!isset($partReadings['name'])){
 				$partReadings['name'] = ((empty($name)) ? '' : '$name' );}
-			
-			if(empty($geo) && isset($partReadings['data'])){ 
-				$geo = array("@type"=>"GeoCoordinates", "latitude" 	=> $partReadings['data']['location']['latitude'], "longitude" => $partReadings['data']['location']['longitude']);
+*/
+			if(empty($geo) && !empty($partReadings['location'])){ 
+				$geo = array("@type"=>"GeoCoordinates", "latitude" => strval($partReadings['location']['latitude']), "longitude" => strval($partReadings['location']['longitude']));
 			}
-			
-			$toSave=array();
-			$toSave = self::fillSmartCitizenMetadata($partReadings,$address,$geo);
+			if(empty($address) && !empty($geo) ){
+			  $partReadings['address'] = Import::getAndCheckAddressForEntity(null,$geo)['address'];
+			}
 
-			if(!empty($deviceMetadata)){
-				$toSave['id']=$deviceMetadata['_id'];
-			} else {
-				$toSave['deviceId'] = $deviceId;
+			$toSave=array();
+			if(!empty($poi)){
+				$poi['id']=$poi['_id'];
+				unset($poi['_id']);
+				$toSave = array_merge($poi, $partReadings);
+			} else if(empty($deviceMetadata) && empty($poi)){
+				$toSave['deviceId']=$deviceId;
+				$toSave['type']=self::SCK_TYPE;
+				$toSave['address']=$address;
 			}
+			$toSave['deviceId']=$deviceId;
+			$toSave['geo']=$geo;
+			$toSave['collection']=self::COLLECTION;
+			$toSave['key']='thing';
+
 			return $toSave;
 		}
 	}
@@ -151,38 +171,31 @@ class Thing {
 		if(empty($pois)){
 			$pois = self::getSCKInPoiByCountry();
 		}
-		$elementAlreadyUpdate= 0;
-		$newelements= 0 ;
-		$badr=0;
+		$elementAlreadyUpdate= 0; 		$newelements= 0 ; 		$badr=0;
 		foreach ($pois as $poi) {
-			$toUpSave = self::setMetadata($poi,$atSC); // force update à mettre en false avant d'utilisé ( true pour les test en local);
-
+			$toUpSave = self::setMetadata($poi,$atSC,true); // force update à mettre en false avant d'utilisé ( true pour les test en local);
+	//$res['toUpSave'][]=$toUpSave; // pour voir tous les éléments qui vont dans Element::save
 			if(empty($toUpSave)){ $elementAlreadyUpdate++; }
 			else{	
 			  	$result = Element::save($toUpSave);
 			  	if($result['result']==true){
 			  		$newelements++;
 			  	}else{
+			  		//$res['badResult'][]=$result; //décommenté pour voir les messages bad result dans la réponse 
 			  		$badr++;
-			  	}
-			  	  
+			  	} 	  
 			}
 		}
+		// Pour simplifié le message resultat:
 			$res['elementsAlreadyUpdate'] = $elementAlreadyUpdate;
 			$res['elementsUpdated']= $newelements;
 			$res['elementsBad']= $badr;
-	
 		return $res;
 	}
 
 	public static function updateOneMetadata($deviceId,$boardId,$atSC=null){
 		
-		$res=array(); //resultat de Element::save
-		
-		$toUpSave = self::setMetadata(null,$atSC,true,$deviceId,$boardId);
-
-		$res = Element::save($toUpSave);  
-		return $res;
+		return Element::save(self::setMetadata(null,$atSC,true,$deviceId,$boardId));  
 	}
 
 	public static function updateMultipleMetadata($listbd){
@@ -190,23 +203,22 @@ class Thing {
 		$res=array(); //resultat de Element::save
 		
 		foreach ($listbd as $bd) {
-			$res[] = Element::save(self::setMetadata(null,null,true,$bd['deviceId'],$bd['boardId']));
+			//TODO (optionnel) : vérifier le deviceID est un nombre
+			if(preg_match('/^([0-9a-f]{2}[:]){5}([0-9a-f]{2})$/', $bd['boardId'])==1){
+				$res[] = Element::save(self::setMetadata(null,null,true,$bd['deviceId'],$bd['boardId']));
+			}
 		}
 		return $res;
 	}
 
 	//chercher les sck enregistrer dans les pois dans la base de données CO
 	public static function getSCKInPoiByCountry($country="RE",$fields=null){
-
-		$where = array(	'type' => array('$exists'=>1));
+		$where = array(	'type' => array('$exists'=>1) ); //, 'address.addressCountry' =>$country );
 		//poi : addressCountry
-		//mongo regex pour le code postal
+		//mongo regex sur l'url
 		$queryUrls[] = new MongoRegex("/".self::SCK_TYPE."/i");
-		$where['address.addressCountry'] = $country;
 		$where['urls'] = array('$in'=> $queryUrls);
-
-		$pois = PHDB::find(Poi::COLLECTION, $where, $fields);
-		return $pois;
+		return PHDB::find(Poi::COLLECTION, $where, $fields);
 	}
 
 	/* TODO : Faire avec deviceId renseigner dans le formulaire poi type smartcitizen
@@ -225,29 +237,37 @@ class Thing {
 		return $metadatasId;
 	}*/
 
-	public static function getSCKDevicesByCountryAndCP($country="RE", $cp="0", $fields=null){
+	public static function getSCKDevicesByCountryAndCP($country="RE", $cp=null, $fields=null){
 
 		$where=array("type"=>self::SCK_TYPE);
-
 		$where['address.addressCountry']=$country;
-		//$cp="0" pas de codepostale dans where. prend tous les sck du pays
-		if($cp!="0"){$where['address.postalCode']=$cp;}
+		//$cp=null pas de codepostale dans where. prend tous les sck du pays
+		if(!empty($cp)){ $where['address.postalCode']=$cp; }
 
+		return self::getSCKDevices($where,$fields);
+	}
+
+	public static function getSCKDevicesByLocality($country="RE", $regionName=null, $depName=null, $cityName=null, $cp=null, $insee=null, $fields=null){
+
+		$where=array("type"=>self::SCK_TYPE);
+		if(!empty($country)){ 	$where["address.addressCountry"]=$country; }
+		if(!empty($insee)){ 	$where["address.codeInsee"] = $insee; }
+		if(!empty($regionName)){$where["address.regionName"]=$regionName; }
+		if(!empty($depName)){ 	$where["address.depName"]	=$depName; }
+		if(!empty($cityName)){ 	$where["address.addressLocality"]=$cityName; }
+		if(!empty($cp)){ 		$where['address.postalCode']	=$cp; }
+		
 		$SCKDevices = self::getSCKDevices($where,$fields);
 		return $SCKDevices;
 	}
 
 	//metadata
-	public static function getSCKDeviceMdata($where=array("type"=>self::SCK_TYPE), $fields=null){
-		//$where=array("type"=>"smartCitizen");
-		$SCKDevice = PHDB::findOne(self::COLLECTION, $where,$fields);
-		return $SCKDevice;
+	public static function getSCKDeviceMdata($collection=self::COLLECTION,$where=array("type"=>self::SCK_TYPE), $fields=null){
+		return PHDB::findOne($collection, $where,$fields);
 	}
 
-	public static function getSCKDevices($where=array("type"=>self::SCK_TYPE), $fields=null){
-		//$where=array("type"=>"smartCitizen");
-		$SCKDevices = PHDB::find(self::COLLECTION, $where,$fields);
-		return $SCKDevices;
+	public static function getSCKDevices($where=array("type"=>self::SCK_TYPE), $fields=null ){
+		return PHDB::find(self::COLLECTION, $where, $fields);
 	}
 
 	/*public static function getSCKDevicesBoardId(){
@@ -319,16 +339,16 @@ class Thing {
 
 		$where = array("type"=>self::SCK_TYPE);
 		//date example :"2017-02-27"
-		if(!empty($strdateD)){
+		if(empty($strdateD)){
+			$regextime = "/".gmdate('Y-m-d')."/i";
+		} else { 
 			$time=$strdateD;
 			$time2 = gmdate('Y-n-d',strtotime($strdateD)); // 2017-4-20
 			if(!empty($hour)&&($hour>=0 && $hour<=23)){ 
 				$time=$time." ".$hour;
+				$time2=$time2." ".$hour;
 			}
 			$regextime = "/(".$time."|".$time2.")/i";
-		} else { 
-			$time=gmdate('Y-m-d');
-			$regextime = "/".$time."/i";
 		}
 		
 		$queryTimestamp[] = new MongoRegex($regextime);
@@ -516,22 +536,13 @@ class Thing {
         return $res;
 	}
 
-	public static function fillSmartCitizenMetadata($partReadings,$address,$geo){
-		$mdata = array();
-		$mdata['collection']=self::COLLECTION;
-		$mdata['type'] = self::SCK_TYPE;
-		$mdata['key'] = 'thing';
-		$mdata['address']= $address;
-		$mdata['geo'] = $geo;
-		return array_merge($mdata,$partReadings);
-
-	}
-
 	private static function getSCKDeviceIdByPoiUrl($sckUrl){
 	
 		$eUrl= explode("/",$sckUrl);
-		$deviceid = $eUrl[(count($eUrl)-1)];
-		return $deviceid;
+		if( ($eUrl[(count($eUrl)-2)]=='kits' || $eUrl[(count($eUrl)-2)]=='devices') && !empty($eUrl[(count($eUrl)-1)]) ) { 
+			$deviceid = $eUrl[(count($eUrl)-1)];
+			return $deviceid; 
+		}
 	}
 
 	private static function minmaxSCKRecord($record, $synthA){
