@@ -85,6 +85,7 @@ class News {
 						  "text" => $_POST["text"],
 						  "author" => Yii::app()->session["userId"],
 						  "date"=>new MongoDate(time()),
+						  "updated"=>new MongoDate(time()),
 						  "created"=>new MongoDate(time()));
 
 			if(isset($_POST["date"])){
@@ -240,7 +241,7 @@ class News {
 		$colarr = array();
 	    foreach ($cols as $col => $order) {
 	        $colarr[$col] = array();
-	        foreach ($array as $k => $row) { $colarr[$col]['_'.$k] = strtolower($row[$col]); }
+	        foreach ($array as $k => $row) { $colarr[$col]['_'.$k] = strtolower(@$row[$col]); }
 	    }
 	    $eval = 'array_multisort(';
 	    foreach ($cols as $col => $order) {
@@ -253,7 +254,7 @@ class News {
 	        foreach ($arr as $k => $v) {
 	            $k = substr($k,1);
 	            if (!isset($ret[$k])) $ret[$k] = $array[$k];
-	            $ret[$k][$col] = $array[$k][$col];
+	            $ret[$k][$col] = @$array[$k][$col];
 	        }
 	    }
 	    return $ret;

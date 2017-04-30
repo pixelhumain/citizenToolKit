@@ -38,17 +38,27 @@ class NewsTranslator {
 				$object=News::getById((string)$params["object"]["id"]);
 				$params["icon"]="fa-newspaper-o";
 			}
+			else if (@$params["object"]["type"]==Classified::COLLECTION){
+				$object=Classified::getById((string)$params["object"]["id"]);
+				$params["icon"]="fa-newspaper-o";
+			}
 
 			if(!empty($object)){
+				$thisType = $params["object"]["type"];
+				$params["object"] = array_merge($params["object"], $object);
+				$params["object"]["type"] = $thisType;
+
 				if(@$params["object"]["type"]!=Need::COLLECTION)
 					$params["imageBackground"] = @$object["profilImageUrl"];
 
 				$params["name"] = @$object["name"] ? $object["name"] : @$object["title"];
-				$params["text"] = preg_replace('/<[^>]*>/', '', (isset($object["shortDescription"]) ? 
-								  $object["shortDescription"] : @$object["text"] ));
+				
+				//if(@$params["object"]["type"]==ActivityStream::COLLECTION)
+				//$params["text"] = preg_replace('/<[^>]*>/', '', @$object["text"]);
 
-				if (empty($params["text"]))
-					$params["text"] =(isset($object["description"]) ? preg_replace('/<[^>]*>/', '',$object["description"]) : "");
+				//if (empty($params["text"]))
+				//	$params["text"] =(isset($object["description"]) ? preg_replace('/<[^>]*>/', '',$object["description"]) : "");
+				
 				if(@$params["object"]["type"]==Event::COLLECTION || $params["object"]["type"]==Need::COLLECTION){
 					$params["startDate"]=@$object["startDate"];
 					$params["endDate"]=@$object["endDate"];
@@ -56,8 +66,18 @@ class NewsTranslator {
 					$params["endDateSec"]=@$object["endDateSec"];
 					
 				}
+
+				if(@$params["object"]["type"]==News::COLLECTION){
+					//$params["text"] = $params["object"][""]
+					//var_dump($params["object"]); exit;
+					$params["object"] = array_merge($params["object"], $object);
+					
+				}
+
 				if(@$object["address"])
 					$params["scope"]["address"]=$object["address"];
+
+
 			}else{
 				$params=array("created"=>$params["created"]);
 				return $params;
@@ -83,10 +103,10 @@ class NewsTranslator {
 			}
 				
 		}
-		if(@$params["type"]=="news"){
-			if(@$params["text"]){
-				$params["text"]=preg_replace('/<[^>]*>/', '',(isset($params["text"]) ? $params["text"] : ""));
-			}
+		// if(@$params["type"]=="news"){
+		// 	if(@$params["text"]){
+		// 		$params["text"]=preg_replace('/<[^>]*>/', '',(isset($params["text"]) ? $params["text"] : ""));
+		// 	}
 			// if($params["scope"]["type"]=="public" && !@$params["scope"]["cities"][0]["addressLocality"] && @$params["scope"]["cities"][0]["postalCode"]){
 			// 	$address=SIG::getAdressSchemaLikeByCodeInsee($params["scope"]["cities"][0]["codeInsee"],$params["scope"]["cities"][0]["postalCode"]);
 			// 	if(empty($address)){
@@ -95,7 +115,7 @@ class NewsTranslator {
 			// 	}
 			// 	$params["scope"]["cities"][0]["addressLocality"]=$address["addressLocality"];
 			// }
-		}
+		//}
 		if(@$params["media"] && !is_string(@$params["media"]) && $params["media"]["type"]=="gallery_images"){
 			$images=array();
 			$limit=5;
@@ -123,9 +143,14 @@ class NewsTranslator {
 			$params["media"]["images"]=$images;
 		}
 
-		//if(isset($params["author"])){
-  		$author =  Person::getSimpleUserById($params["author"]);
-	  	if (!empty($author)) $params["author"] = $author;
+		if(!isset($params["author"]["id"])){ 
+			//var_dump($params["author"]); //exit;
+  			$author =  Person::getSimpleUserById($params["author"]);
+	  	}else{
+	  		$author = $params["author"];
+	  	}
+	  	//var_dump($params["author"]); //exit;
+  		if (!empty($author)) $params["author"] = $author;
 	  	else return array("created"=>$params["created"]);
 		
 		if(isset($params["sharedBy"])){

@@ -110,17 +110,16 @@ class ActivityStream {
 										"object.type"=>@$activityValue["type"]
 										)
 								);
-		
+		//var_dump($share); exit;
 		if($share!=null){
 			//si je n'ai pas déjà partagé cette news
-			if(@$share["sharedBy"])
-			if(!in_array(Yii::app()->session["userId"], $share["sharedBy"])){
-				//si je suis le premier a partager
-				if(!@$share["sharedBy"]){
-					$share["sharedBy"] = array(Yii::app()->session["userId"]);
-				}else{ //si je ne suis pas le premier, je me rajoute à la liste
+			if(@$share["sharedBy"]){
+				if(!in_array(Yii::app()->session["userId"], $share["sharedBy"])){
+					//si je suis le premier a partager
 					$share["sharedBy"] = array_merge($share["sharedBy"], array(Yii::app()->session["userId"]));
 				}
+			}else{ //si je ne suis pas le premier, je me rajoute à la liste
+				$share["sharedBy"] = array(Yii::app()->session["userId"]);	
 			}	
 			$share["updated"] = new MongoDate(time());
 			PHDB::update ( News::COLLECTION , 
