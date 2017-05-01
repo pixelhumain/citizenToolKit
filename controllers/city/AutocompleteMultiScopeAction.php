@@ -27,7 +27,22 @@ class AutocompleteMultiScopeAction extends CAction
         if($type == "cp")       $where = array("postalCodes.postalCode" =>new MongoRegex("/^".$scopeValue."/i"));
         //if($countryCode != null) $where = array("country" => strtoupper($countryCode));
 
-        if($countryCode != null)  $where = array_merge($where, array("country" => strtoupper($countryCode)));
+        if($countryCode != null && !empty($where))  $where = array_merge($where, array("country" => strtoupper($countryCode)));
+
+        if($type == "locality") {
+            $scopeValue = str_replace(array(
+                        '/', '-', '*', '+', '?', '|',
+                        '(', ')', '[', ']', '{', '}', '\\', " "), ".", $scopeValue);
+            $where = array('$or'=> 
+                            array(array("name" => new MongoRegex("/".$scopeValue."/i")),
+                            array("alternateName" => new MongoRegex("/".$scopeValue."/i")),
+                            array("postalCodes.postalCode" => new MongoRegex("/^".$scopeValue."/i")),
+                     ));
+            $where = array('$and'=> array($where, array("country" => strtoupper($countryCode)) )
+                     );
+        }
+
+        
         
         // if($type == "region")   $where = array('$or' => array(
         //                                         array("regionName" => new MongoRegex("/^".$scopeValue."/i")),
