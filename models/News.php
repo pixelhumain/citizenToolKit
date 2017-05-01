@@ -85,6 +85,7 @@ class News {
 						  "text" => $_POST["text"],
 						  "author" => Yii::app()->session["userId"],
 						  "date"=>new MongoDate(time()),
+						  "updated"=>new MongoDate(time()),
 						  "created"=>new MongoDate(time()));
 
 			if(isset($_POST["date"])){
@@ -115,72 +116,6 @@ class News {
 						$codeInsee=$parent["address"]["codeInsee"];
 						$postalCode=$parent["address"]["postalCode"];
 				}
-				/*if($type == Person::COLLECTION ){
-					$person = Person::getById($_POST["parentId"]);
-					if( isset( $person['geo'] ) )
-						$from = $person['geo'];
-					if(@$person["address"]){
-						$codeInsee=$person["address"]["codeInsee"];
-						$postalCode=$person["address"]["postalCode"];
-					}
-					if($_POST["parentId"] != Yii::app()->session["userId"]){
-						$person["type"]=Person::COLLECTION;
-						Notification::actionOnPerson ( ActStr::VERB_POST, ActStr::ICON_RSS, null , $person )  ;
-					}
-						
-				}else if($type == Organization::COLLECTION ){
-					$organization = Organization::getById($_POST["parentId"]);
-					if( isset( $organization['geo'] ) )
-						$from = $organization['geo'];
-					if(@$organization["address"]){
-						$codeInsee=$organization["address"]["codeInsee"];
-						$postalCode=$organization["address"]["postalCode"];
-					}
-					$organization["type"]=Organization::COLLECTION;
-					Notification::actionOnPerson ( ActStr::VERB_POST, ActStr::ICON_RSS, null , $organization )  ;
-				}
-				else if($type == Event::COLLECTION ){
-					$event = Event::getById($_POST["parentId"]);
-					if( isset( $event['geo'] ) )
-						$from = $event['geo'];
-					if(@$event["address"]){
-						$codeInsee=$event["address"]["codeInsee"];
-						$postalCode=$event["address"]["postalCode"];
-					}
-					$event["type"]=Event::COLLECTION;
-					Notification::actionOnPerson ( ActStr::VERB_POST, ActStr::ICON_RSS, null , $event )  ;
-				}
-				else if($type == Project::COLLECTION ){
-					$project = Project::getById($_POST["parentId"]);
-					if( isset( $project['geo'] ) )
-						$from = $project['geo'];
-					if(@$project["address"]){
-						$codeInsee=$project["address"]["codeInsee"];
-						$postalCode=$project["address"]["postalCode"];
-					}
-					$project["type"] = Project::COLLECTION; 
-					Notification::actionOnPerson ( ActStr::VERB_POST, ActStr::ICON_RSS, null , $project )  ;
-				}*/
-				// if( isset($_POST["scope"])) {
-				// 	if(@$_POST["codeInsee"]){
-				// 		$news["scope"]["type"]="public";
-				// 		$address=SIG::getAdressSchemaLikeByCodeInsee($_POST["codeInsee"],$_POST["postalCode"]);
-
-				// 		$news["scope"]["cities"][] = array("codeInsee"=>$_POST["codeInsee"], "postalCode"=>$_POST["postalCode"], "addressLocality"=>$address["addressLocality"]);
-				// 	}
-				// 	else {
-				// 		$scope = $_POST["scope"];
-				// 		$news["scope"]["type"]=$scope;
-				// 		if($scope== "public"){
-				// 			$address=SIG::getAdressSchemaLikeByCodeInsee($codeInsee,$postalCode);
-				// 			$news["scope"]["cities"][] = array("codeInsee"=>$codeInsee,
-				// 												"postalCode"=>$postalCode,
-				// 												"addressLocality"=>$address["addressLocality"],
-				// 												"geo" => $from
-				// 											);
-				// 		}
-				// 	}		
-				// }
 				if( $_POST["scope"] != "restricted" && $_POST["scope"] != "private" &&
 					isset($_POST["searchLocalityCITYKEY"]) && !empty($_POST["searchLocalityCITYKEY"]) && $_POST["searchLocalityCITYKEY"] != "") {
 					$news["scope"]["type"]="public";
@@ -306,7 +241,7 @@ class News {
 		$colarr = array();
 	    foreach ($cols as $col => $order) {
 	        $colarr[$col] = array();
-	        foreach ($array as $k => $row) { $colarr[$col]['_'.$k] = strtolower($row[$col]); }
+	        foreach ($array as $k => $row) { $colarr[$col]['_'.$k] = strtolower(@$row[$col]); }
 	    }
 	    $eval = 'array_multisort(';
 	    foreach ($cols as $col => $order) {
@@ -319,7 +254,7 @@ class News {
 	        foreach ($arr as $k => $v) {
 	            $k = substr($k,1);
 	            if (!isset($ret[$k])) $ret[$k] = $array[$k];
-	            $ret[$k][$col] = $array[$k][$col];
+	            $ret[$k][$col] = @$array[$k][$col];
 	        }
 	    }
 	    return $ret;

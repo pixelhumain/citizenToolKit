@@ -15,29 +15,26 @@ class ShareAction extends CAction
 		if ( ! Person::logguedAndValid() ) {
 			return array("result"=>false, "msg"=>Yii::t("common", "You are not loggued or do not have acces to this feature "));
 		}
-		
-	    $roles="";
-	    $child = array(
-			"id" => @$_POST["parentId"],
-	    	"type" => $_POST["parentType"],
-	    	"displayName" => @$_POST["childName"] ? $_POST["childName"] : "",
-            //"childEmail" => @$_POST["childEmail"]
-	    );
-    	$parentId = $_POST["parentId"];
-    	$parentType = $_POST["parentType"];
-    	$isConnectingAdmin = @$_POST["connectType"];
-    	
-    	if ($isConnectingAdmin=="admin"){
-	    	$isConnectingAdmin=true;
-    	} else {
-	    	$isConnectingAdmin=false;
-    	}
-    	
-    	$dataFieldName = "";
-    	$fieldValue = "";
-    	$result = ActivityStream::saveActivityShare(ActStr::VERB_SHARE, @$_POST["childId"], @$_POST["childType"], "element", $child);
 
-		//$result = Link::connectParentToChild($parentId, $parentType, $child, $isConnectingAdmin, Yii::app()->session["userId"], $roles);
+
+	    $parentId = $_POST["parentId"];
+    	$parentType = $_POST["parentType"];
+    	
+	    $child = array(
+			"id" => @$parentId,
+	    	"type" => $parentType
+	    );
+    	
+    	//le cas du partage de news
+    	//on rajoute l'identité de l'auteur de la news
+	    if($parentType == "news"){
+			$object=News::getById($parentId);
+			$authorNews=Person::getById(@$object["author"]["id"]);
+			$child["authorName"] = @$authorNews["name"];
+			$child["authorId"] = @$object["author"]["id"];
+		}
+		
+    	$result = ActivityStream::saveActivityShare(ActStr::VERB_SHARE,@$_POST["childId"],@$_POST["childType"], "element", $child);
 		Rest::json($result);
     }
 

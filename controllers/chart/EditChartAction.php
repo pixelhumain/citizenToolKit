@@ -6,7 +6,7 @@ class EditChartAction extends CAction
 		$id=$_POST["id"];
 		$type=$_POST["type"];
 		//echo $idProject;
-		if(!empty($_POST["properties"])){
+		if(!empty($_POST["properties"]) && gettype ($_POST["properties"]) != "string"){
 			if(@$_POST["properties"]["commons"]){
 				$newProperties=$_POST["properties"]["commons"];
 				$label="commons";
@@ -16,8 +16,10 @@ class EditChartAction extends CAction
 			}
 			
 		}
-		else
+		else{
+			$label=$_POST["properties"];
 			$newProperties=[];
+		}
 		/*$propertiesList=[];
 		if(!empty($newProperties)){
 			foreach ($newProperties as $data){

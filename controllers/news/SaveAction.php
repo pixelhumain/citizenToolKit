@@ -10,7 +10,9 @@ class SaveAction extends CAction
     			"news"=>array( (string)$result["id"]=>$result["object"]), 
     			"actionController"=>"save",
     			"canManageNews"=>true,
-    			"canPostNews"=>true);
+    			"canPostNews"=>true,
+                "nbCol" => 1,
+                "pair" => false);
 			echo $controller->renderPartial("newsPartialCO2", $params,true);
     	}
 		else
