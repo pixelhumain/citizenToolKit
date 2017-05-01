@@ -62,7 +62,7 @@ class Search {
 		return utf8_encode($text);
 	}
 
-	public static function globalAutoComplete($post,  $filter = null){
+	public static function globalAutoComplete($post,  $filter = null, $api=false){
 
 		$search = @$post['name'] ? trim(urldecode($post['name'])) : "";
         $locality = isset($post['locality']) ? trim(urldecode($post['locality'])) : null;
@@ -78,6 +78,7 @@ class Search {
         $devise = isset($_POST['devise']) ? $_POST['devise'] : null;
         $latest = isset($_POST['latest']) ? $_POST['latest'] : null;
         $searchSType = !empty($post['searchSType']) ? $post['searchSType'] : "";
+
 
         $indexStep = $indexMax - $indexMin;
         
@@ -100,6 +101,12 @@ class Search {
         $query = array('$and' => array( $query , array("state" => array('$ne' => "uncomplete")) ));
   		if($latest)
   			$query = array('$and' => array($query, array("updated"=>array('$exists'=>1))));
+
+  		if($api == true){
+  			//$query = array('$and' => array($query, array("preferences.isOpenData"=> true)));
+  		}
+
+  		
   		
         //*********************************  TAGS   ******************************************
 
@@ -126,6 +133,7 @@ class Search {
         //*********************************  PERSONS   ******************************************
        	if(strcmp($filter, Person::COLLECTION) != 0 && (self::typeWanted(Person::COLLECTION, $searchType) || self::typeWanted("persons", $searchType) ) ) {
         	$allRes = array_merge($allRes, self::searchPersons($query, $indexStep, $indexMin));
+
 	  	}
 
 	  	//*********************************  ORGANISATIONS   ******************************************
@@ -400,8 +408,9 @@ class Search {
   	//*********************************  PERSONS   ******************************************
   	public static function searchPersons($query, $indexStep, $indexMin){
        	$res = array();
-    	$allCitoyen = PHDB::findAndSortAndLimitAndIndex ( Person::COLLECTION , $query, 
+       	$allCitoyen = PHDB::findAndSortAndLimitAndIndex ( Person::COLLECTION , $query, 
   										  array("updated" => -1), $indexStep, $indexMin);
+
   		foreach ($allCitoyen as $key => $value) {
   			$person = Person::getSimpleUserById($key,$value);
   			$person["type"] = Person::COLLECTION;
@@ -504,9 +513,12 @@ class Search {
     	if(sizeof($searchType)==1 && @$searchTypeOrga != "")
     		array_push( $queryOrganization[ '$and' ], array( "type" => $searchTypeOrga ) );
 
-    	//var_dump($queryOrganization); exit;
+    	//var_dump($indexStep);
+    	//var_dump($indexMin);
   		$allOrganizations = PHDB::findAndSortAndLimitAndIndex ( Organization::COLLECTION ,$queryOrganization, 
   												array("updated" => -1), $indexStep, $indexMin);
+
+  		//var_dump($allOrganizations);
   		foreach ($allOrganizations as $key => $value) 
   		{
   			if(!empty($value)){
