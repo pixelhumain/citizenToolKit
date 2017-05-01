@@ -37,6 +37,7 @@ class AutocompleteMultiScopeAction extends CAction
                             array(array("name" => new MongoRegex("/".$scopeValue."/i")),
                             array("alternateName" => new MongoRegex("/".$scopeValue."/i")),
                             array("postalCodes.postalCode" => new MongoRegex("/^".$scopeValue."/i")),
+                             array("postalCodes.name" => new MongoRegex("/^".$scopeValue."/i")),
                      ));
             $where = array('$and'=> array($where, array("country" => strtoupper($countryCode)) )
                      );
