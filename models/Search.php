@@ -132,7 +132,17 @@ class Search {
   		$allRes = array();
         //*********************************  PERSONS   ******************************************
        	if(strcmp($filter, Person::COLLECTION) != 0 && (self::typeWanted(Person::COLLECTION, $searchType) || self::typeWanted("persons", $searchType) ) ) {
-        	$allRes = array_merge($allRes, self::searchPersons($query, $indexStep, $indexMin));
+       		$localityReferences['CITYKEY'] = "";
+	  		$localityReferences['CODE_POSTAL'] = "address.postalCode";
+	  		$localityReferences['DEPARTEMENT'] = "address.postalCode";
+	  		$localityReferences['REGION'] = ""; //Spécifique
+	  		$prefLocality = false;
+	  		foreach ($localityReferences as $key => $value){
+	  			if(!empty($post["searchLocality".$key])){
+	  				$prefLocality = true;
+	  			} 
+	  		}
+        	$allRes = array_merge($allRes, self::searchPersons($query, $indexStep, $indexMin, $prefLocality));
 
 	  	}
 
@@ -350,9 +360,9 @@ class Search {
   		}
   		if(isset($allQueryLocality) && is_array($allQueryLocality)){
   			if(!empty($query))
-  			$query = array('$and' => array($query, $allQueryLocality));
+  				$query = array('$and' => array($query, $allQueryLocality));
   			else
-  			$query = array('$and' => array($allQueryLocality));
+  				$query = array('$and' => array($allQueryLocality));
   		}
   		return $query;
   	}
@@ -405,20 +415,7 @@ class Search {
 		return in_array($type, $searchType);
 	}
 
-  	//*********************************  PERSONS   ******************************************
-  	public static function searchPersons($query, $indexStep, $indexMin){
-       	$res = array();
-       	$allCitoyen = PHDB::findAndSortAndLimitAndIndex ( Person::COLLECTION , $query, 
-  										  array("updated" => -1), $indexStep, $indexMin);
 
-  		foreach ($allCitoyen as $key => $value) {
-  			$person = Person::getSimpleUserById($key,$value);
-  			$person["type"] = Person::COLLECTION;
-			$person["typeSig"] = "citoyens";
-			$res[$key] = $person;
-  		}
-  		return $res;
-	}
 
 	public static function checkScopeParent($parentObj){ //error_log("checkScopeParent");
 		$localityReferences['CITYKEY'] = "";
@@ -498,6 +495,28 @@ class Search {
 		}error_log("checkTagsParent return false");
 						
 		return false;
+	}
+
+	//*********************************  PERSONS   ******************************************
+  	public static function searchPersons($query, $indexStep, $indexMin, $prefLocality=false){
+       	$res = array();
+       	$allCitoyen = PHDB::findAndSortAndLimitAndIndex ( Person::COLLECTION , $query, 
+  										  array("updated" => -1), $indexStep, $indexMin);
+
+  		foreach ($allCitoyen as $key => $value) {
+
+  			if( $prefLocality == false ||  
+  				Preference::showPreference($value, Person::COLLECTION, "locality", Yii::app()->session["userId"])){
+  				$person = Person::getSimpleUserById($key,$value);
+	  			$person["type"] = Person::COLLECTION;
+				$person["typeSig"] = "citoyens";
+				$res[$key] = $person;
+  			}
+
+
+  			
+  		}
+  		return $res;
 	}
 
 
