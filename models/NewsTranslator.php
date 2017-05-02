@@ -145,7 +145,14 @@ class NewsTranslator {
 
 		if(!isset($params["author"]["id"])){ 
 			//var_dump($params["author"]); //exit;
+			if(@$params["targetIsAuthor"]==true){
+  			$author =  Element::getByTypeAndId($params["target"]["type"], $params["target"]["id"]);
+  			$params["authorName"] = @$author["name"];
+  			$params["authorId"] = @$params["target"]["id"];
+  			$params["authorType"] = @$params["target"]["type"];
+			}else{
   			$author =  Person::getSimpleUserById($params["author"]);
+	  		}
 	  	}else{
 	  		$author = $params["author"];
 	  	}
