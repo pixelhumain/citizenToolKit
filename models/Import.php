@@ -104,13 +104,9 @@ class Import
                 unset($file[0]);
             }elseif ((!isset($post['pathObject'])) || ($post['pathObject'] == "")) {
                 $file = json_decode($post['file'][0], true);
-                // var_dump($file);
             }else {
-                // $file = json_decode($post["file"][0][$post["pathObject"]][0], true);
                 $file = json_decode($post['file'][0], true);
-                // $file = json_encode($file);
                 $file = $file[$post["pathObject"]];
-                // $file = json_decode($file,true);
             }
             
             foreach ($file as $keyFile => $valueFile){
@@ -120,27 +116,21 @@ class Import
                     foreach ($post['infoCreateData'] as $key => $value) {
                         $valueData = null;
 
-                        //var_dump($valueFile);
-                        //var_dump($value);
                         if($post['typeFile'] == "csv" && in_array($value["idHeadCSV"], $headFile)){
                             $idValueFile = array_search($value["idHeadCSV"], $headFile);
                             $valFile =  (!empty($valueFile[$idValueFile])?$valueFile[$idValueFile]:null);
                         }else if ($post['typeFile'] == "json"){
                             $valFile =  ArrayHelper::getValueByDotPath($valueFile , $value["idHeadCSV"]);
+                            // var_dump($valFile);
                         }
                         else{
                             $valFile =  (!empty($valueFile[$value["idHeadCSV"]])?$valueFile[$value["idHeadCSV"]]:null);
                         }
-                        //var_dump($valFile);
                         if(!empty($valFile)){
                             $valueData = (is_string($valFile)?trim($valFile):$valFile);
                             if(!empty($valueData)){
-                                //var_dump($mapping);
-                                //var_dump($value["valueAttributeElt"]);
                                 $typeValue = ArrayHelper::getValueByDotPath($mapping , $value["valueAttributeElt"]);
                                 $element = ArrayHelper::setValueByDotPath($element , $value["valueAttributeElt"], $valueData, $typeValue);
-                                //var_dump($typeValue);
-                                //var_dump($element);
                             }
                         }
                     }
@@ -198,7 +188,9 @@ class Import
 
     public static function checkElement($element, $typeElement){
         $result = array("result" => true);
-        
+
+        $geo = (empty($element['geo']) ? null : $element['geo']);
+
         if($typeElement != Person::COLLECTION){
             $address = (empty($element['address']) ? null : $element['address']);
             $geo = (empty($element['geo']) ? null : $element['geo']);
@@ -221,13 +213,18 @@ class Import
         if(!empty($element["tags"]))
             $element["tags"] = self::checkTag($element["tags"]);
         
-        $element = self::getWarnings($element, $typeElement, true) ;
+        if ($element['source']['keys'][0] !== "convert_datagouv" && $element['source']['keys'][0] !== "convert_osm" && $element['source']['keys'][0] !== "convert_ods" && $element['source']['keys'][0] !== "convert_wiki" && $element['source']['keys'][0] !== "convert_datanova") {
+            $element = self::getWarnings($element, $typeElement, true) ;
+        }
+
+        // $element = self::getWarnings($element, $typeElement, true) ;
+
         $resDataValidator = DataValidator::validate(Element::getControlerByCollection($typeElement), $element, true);
         if($resDataValidator["result"] != true){
             //$element["msgError"] = ((empty($resDataValidator["msg"]->getMessage()))?$resDataValidator["msg"]:$resDataValidator["msg"]->getMessage());
             $element["msgError"] = $resDataValidator["msg"];
         }
-        
+
         return $element;
     }
 
@@ -242,7 +239,6 @@ class Import
         return $newTags;
     }
 
-
     public static function getAndCheckAddressForEntity($address = null, $geo = null){
         
         $result = array("result" => false);
@@ -254,8 +250,14 @@ class Import
                                  'codeInsee' =>  '');
 
         $newGeo["geo"] = array(  "@type"=>"GeoCoordinates",
-                        "latitude" => (empty($geo["latitude"])?'':$address["latitude"]),
-                        "longitude" => (empty($geo["longitude"])?'':$address["longitude"]));
+                        "latitude" => (!empty($geo["latitude"])  ? $geo["latitude"] : ''),
+                        "longitude" => (!empty($geo["longitude"])  ? $geo["longitude"] : ''),
+                        ); 
+
+        if ((is_numeric($geo["latitude"])) && (is_numeric($geo["longitude"]))) {
+            $newGeo["geo"]["latitude"] = strval($geo["latitude"]) ;
+            $newGeo["geo"]["longitude"] =  strval($geo["longitude"]);
+        }                     
 
         $street = (empty($address["streetAddress"])?null:$address["streetAddress"]);
         $cp = (empty($address["postalCode"])?null:$address["postalCode"]);
@@ -380,17 +382,19 @@ class Import
                     }
                 }
             }
-            
+
             $newGeo["geoPosition"] = array("type"=>"Point",
                                                 "coordinates" =>
                                                     array(
                                                         floatval($newGeo["geo"]['longitude']),
                                                         floatval($newGeo["geo"]['latitude'])));
+
             $result["result"] = true;
             $result["geoPosition"] = $newGeo["geoPosition"];
         }
         $result["geo"] = $newGeo["geo"];
         $result["address"] = $newAddress;
+
         return $result;
     }
 
@@ -738,7 +742,6 @@ class Import
 
             $param['infoCreateData'][$key]["valueAttributeElt"] = $value;
             $param['infoCreateData'][$key]["idHeadCSV"] = $key;
-
         }
 
         $param['typeFile'] = 'json';
