@@ -32,7 +32,8 @@ class GetDataDetailAction extends CAction {
 
 		if($dataName == "events"){ //var_dump($element["links"]); exit;
 			if(isset($element["links"]["events"])){
-				foreach ($element["links"]["events"] as $keyEv => $valueEv) {
+
+				foreach (array_reverse($element["links"]["events"]) as $keyEv => $valueEv) {
 					 $event = Event::getSimpleEventById($keyEv);
 					 //var_dump($event); exit;
 					 if(!empty($event)){
@@ -42,6 +43,19 @@ class GetDataDetailAction extends CAction {
 						$contextMap[$keyEv] = $event;
 					 }
 				}
+			}
+			if(isset($element["links"]["subEvents"])){
+				foreach (array_reverse($element["links"]["subEvents"]) as $keyEv => $valueEv) {
+					 $event = Event::getSimpleEventById($keyEv);
+					 //var_dump($event); exit;
+					 if(!empty($event)){
+					 	$event["typeEvent"] = @$event["type"];
+						$event["type"] = "events";
+						$event["typeSig"] = Event::COLLECTION;
+						$contextMap[$keyEv] = $event;
+					 }
+				}
+
 			}
 		}
 
@@ -66,7 +80,7 @@ class GetDataDetailAction extends CAction {
 		}
 
 		if($dataName == "classified"){
-			$contextMap = Classified::getClassifiedByCreator($id);
+			$contextMap = Element::getByIdAndTypeOfParent(Classified::COLLECTION, $id, $type);
 		}
 
 
@@ -84,9 +98,6 @@ class GetDataDetailAction extends CAction {
 				$contextMap = $collections;
 			}
 		}
-
-
-
 
 
 		if($dataName == "liveNow"){
