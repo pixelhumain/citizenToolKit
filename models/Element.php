@@ -1720,6 +1720,9 @@ class Element {
 		unset($newElement["roles"]);
 		unset($newElement["two_step_register"]);
 		unset($newElement["lastLoginDate"]);
+
+		if(in_array($element["type"],array_keys( Organization::$types) ) )
+			$newElement["typeOrga"] = $element["type"] ;
 		if(!empty($element["telephone"]["fixe"]))
 			$newElement["fixe"] = ArrayHelper::arrayToString($element["telephone"]["fixe"]) ;
 		if(!empty($element["telephone"]["mobile"]))
