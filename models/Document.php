@@ -3,7 +3,7 @@ class Document {
 
 	const COLLECTION = "documents";
 
-	const IMG_BANNIERE 			= "banniere";
+	const IMG_BANNER 			= "banner";
 	const IMG_PROFIL 			= "profil";
 	const IMG_LOGO 				= "logo";
 	const IMG_SLIDER 			= "slider";
@@ -19,7 +19,7 @@ class Document {
 	const GENERATED_IMAGES_FOLDER 		= "thumb";
 	const GENERATED_MEDIUM_FOLDER 		= "medium";
 	const GENERATED_ALBUM_FOLDER		= "album";
-	const GENERATED_BANNIERE_FOLDER		= "banniere";
+	const GENERATED_BANNER_FOLDER		= "banner";
 	const FILENAME_PROFIL_RESIZED 	  	= "profil-resized.png";
 	const FILENAME_PROFIL_MARKER 	  	= "profil-marker.png";
 	const GENERATED_THUMB_PROFIL 	  	= "thumb-profil";
@@ -86,7 +86,7 @@ class Document {
 	public static function save($params){
 		
 		//check content key
-		if (!in_array(@$params["contentKey"], array(self::IMG_BANNIERE,self::IMG_PROFIL,self::IMG_LOGO,self::IMG_SLIDER,self::IMG_MEDIA)))
+		if (!in_array(@$params["contentKey"], array(self::IMG_BANNER,self::IMG_PROFIL,self::IMG_LOGO,self::IMG_SLIDER,self::IMG_MEDIA)))
 			throw new CTKException("Unknown contentKey ".$params["contentKey"]." for the document !");
 	    $new = array(
 			"id" => $params['id'],
@@ -124,9 +124,9 @@ class Document {
 	    	$new["category"] = $params["category"];
 
 	    PHDB::insert(self::COLLECTION, $new);
-	     if (substr_count(@$new["contentKey"], self::IMG_BANNIERE)) {
-	    	$src=self::generateBanniereImages($new);
-	    	$typeNotif="banniereImage";
+	     if (substr_count(@$new["contentKey"], self::IMG_BANNER)) {
+	    	$src=self::generateBannerImages($new);
+	    	$typeNotif="bannerImage";
 	    }
     	else{
 	    //Generate small image
@@ -676,10 +676,10 @@ class Document {
 	// Resize initial image for album size 
 	// param type array $document
 	// param string $folderAlbum where Image is upload
-	public static function generateBanniereImages($document) {
+	public static function generateBannerImages($document) {
     	$dir = $document["moduleId"];
     	$folder = $document["folder"];
-		//$destination='/'.self::GENERATED_BANNIERE_FOLDER;
+		//$destination='/'.self::GENERATED_BANNER_FOLDER;
 		$maxWidth=1300;
 		$maxHeight=400;
 		$quality=100;
@@ -691,7 +691,7 @@ class Document {
 		}
 		//echo "iciiiiiii/////////////".$upload_dir;
 		$path=self::getDocumentPath($document);
-		$profilBanniereUrl = self::getDocumentFolderUrl($document)."/".$document["name"];
+		$profilBannerUrl = self::getDocumentFolderUrl($document)."/".$document["name"];
 		//list($width, $height) = getimagesize($path);
 		//if ($width > $maxWidth || $height >  $maxHeight){
      	$imageUtils = new ImagesUtils($path);
@@ -707,14 +707,14 @@ class Document {
         						  Event::COLLECTION,
         						  Poi::COLLECTION, 
         						  Classified::COLLECTION);
-        if (@$profilBanniereUrl && in_array($document["type"], $allowedElements )) {
+        if (@$profilBannerUrl && in_array($document["type"], $allowedElements )) {
         	
         	$changes = array();
-        		$changes["profilBanniereUrl"] = $profilBanniereUrl;
+        		$changes["profilBannerUrl"] = $profilBannerUrl;
 	        PHDB::update($document["type"], array("_id" => new MongoId($document["id"])), array('$set' => $changes));
 
 	        error_log("The entity ".$document["type"]." and id ". $document["id"] ." has been updated with the URL of the profil images.");
-	        return $profilBanniereUrl;
+	        return $profilBannerUrl;
 		}
     		//else
     		//	$imageUtils->resizePropertionalyImage($maxWidth,$maxHeight)->save($destPathThumb,$quality);
@@ -828,7 +828,7 @@ class Document {
 			$res["profilImageUrl"] = $entity["profilImageUrl"];
 			$res["profilThumbImageUrl"] = !empty($entity["profilThumbImageUrl"]) ? $entity["profilThumbImageUrl"] : "";
 			$res["profilMarkerImageUrl"] = !empty($entity["profilMarkerImageUrl"]) ? $entity["profilMarkerImageUrl"] : "";
-			$res["profilBanniereUrl"] = !empty($entity["profilBanniereUrl"]) ? $entity["profilBanniereUrl"] : ""; 
+			$res["profilBannerUrl"] = !empty($entity["profilBannerUrl"]) ? $entity["profilBannerUrl"] : ""; 
 			$res["profilMediumImageUrl"] = !empty($entity["profilMediumImageUrl"]) ? $entity["profilMediumImageUrl"]."?_=".time() : ""; 
 
 		//If empty than retrieve the URLs from document and store them in the entity for next time
@@ -997,8 +997,8 @@ class Document {
             if( !file_exists ( $upload_dir ) )
                 mkdir ( $upload_dir,0775 );
         }
-		if( @$input=="banniere"){
-	        $upload_dir .= Document::GENERATED_BANNIERE_FOLDER.'/';
+		if( @$input=="banner"){
+	        $upload_dir .= Document::GENERATED_BANNER_FOLDER.'/';
             if( !file_exists ( $upload_dir ) )
                 mkdir ( $upload_dir,0775 );
         }
