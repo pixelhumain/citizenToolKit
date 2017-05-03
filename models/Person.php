@@ -2044,13 +2044,28 @@ class Person {
     	if(!empty($userId)){
     		try{
     			if(!empty($address)){
-    				CookieHelper::setCookie("inseeCommunexion", $address["codeInsee"]);
+    				Yii::app()->request->cookies['inseeCommunexion'] = new CHttpCookie('inseeCommunexion', $address["codeInsee"]);
+    				Yii::app()->request->cookies['cpCommunexion'] = new CHttpCookie('cpCommunexion', $address["postalCode"]);
+    				Yii::app()->request->cookies['cityNameCommunexion'] = new CHttpCookie('cityNameCommunexion', $address["addressLocality"]);
+    				/*CookieHelper::setCookie("inseeCommunexion", $address["codeInsee"]);
 		    		CookieHelper::setCookie("cpCommunexion", $address["postalCode"]);
-		    		CookieHelper::setCookie("cityNameCommunexion", $address["addressLocality"]);
+		    		CookieHelper::setCookie("cityNameCommunexion", $address["addressLocality"]);*/
     			}else{
     				CookieHelper::removeCookie("inseeCommunexion");
 		    		CookieHelper::removeCookie("cpCommunexion");
 		    		CookieHelper::removeCookie("cityNameCommunexion");
+		    		CookieHelper::removeCookie("communexionActivated");
+    				unset(Yii::app()->request->cookies['inseeCommunexion']);
+    				unset(Yii::app()->request->cookies['cpCommunexion']);
+    				unset(Yii::app()->request->cookies['cityNameCommunexion']);
+    				unset(Yii::app()->request->cookies['communexionActivated']);
+    				//Yii::app()->request->cookies['communexionActivated'] = new CHttpCookie('communexionActivated', false);
+    				
+    				/*CookieHelper::removeCookie("inseeCommunexion");
+		    		CookieHelper::removeCookie("cpCommunexion");
+		    		CookieHelper::removeCookie("cityNameCommunexion");
+		    		CookieHelper::setCookie("communexionActivated", false);
+		    		//CookieHelper::removeCookie("communexionActivated");*/
     			}
 	    		$result = array("result" => true, "msg" => "Cookies is updated");
 			}catch (CTKException $e) {

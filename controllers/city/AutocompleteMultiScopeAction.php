@@ -27,7 +27,25 @@ class AutocompleteMultiScopeAction extends CAction
         if($type == "cp")       $where = array("postalCodes.postalCode" =>new MongoRegex("/^".$scopeValue."/i"));
         //if($countryCode != null) $where = array("country" => strtoupper($countryCode));
 
-        if($countryCode != null)  $where = array_merge($where, array("country" => strtoupper($countryCode)));
+        if($countryCode != null && !empty($where))  $where = array_merge($where, array("country" => strtoupper($countryCode)));
+
+        if($type == "locality") {
+            $scopeValue = str_replace(array(
+                        '/', '-', '*', '+', '?', '|',
+                        '(', ')', '[', ']', '{', '}', '\\', " "), ".", $scopeValue);
+            $where = array('$or'=> 
+                            array(  array("name" => new MongoRegex("/".$scopeValue."/i")),
+                                    array("alternateName" => new MongoRegex("/".$scopeValue."/i")),
+                                    array("postalCodes.postalCode" => new MongoRegex("/^".$scopeValue."/i")),
+                                    array("postalCodes.name" => new MongoRegex("/^".$scopeValue."/i")),
+                            )
+                        );
+            $where = array('$and'=> array($where, array("country" => strtoupper($countryCode)) )
+                     );
+            //var_dump($where);
+        }
+
+        
         
         // if($type == "region")   $where = array('$or' => array(
         //                                         array("regionName" => new MongoRegex("/^".$scopeValue."/i")),
@@ -39,7 +57,7 @@ class AutocompleteMultiScopeAction extends CAction
             if($geoShape) $att[] =  "geoShape";
             //var_dump($where);
             $cities = PHDB::findAndSort( City::COLLECTION, $where, $att, 40, $att);
-            if(empty($cities)){
+            /*if(empty($cities)){
                 $countryCode = mb_convert_encoding($countryCode, "ASCII");
                 if(strlen($countryCode) > 2 ){
                    $countryCode = substr($countryCode, 0, 2);
@@ -53,8 +71,7 @@ class AutocompleteMultiScopeAction extends CAction
                         $typeCities = array("city", "village", "town") ;
                         foreach ($typeCities as $keyType => $valueType) {
                             if( !empty($value["address"][$valueType]) 
-                                && $countryCode == strtoupper(@$value["address"]["country_code"]) 
-                               /* && empty($value["address"]["city_district"])*/) {
+                                && $countryCode == strtoupper(@$value["address"]["country_code"]) ) {
 
                                 $wikidata = (empty($value["extratags"]["wikidata"]) ? null : $value["extratags"]["wikidata"]);
                                 //var_dump($value["osm_id"]);
@@ -103,7 +120,7 @@ class AutocompleteMultiScopeAction extends CAction
                     }
                 }
                 
-            }
+            } */
         }
         else if($type == "dep"){
             $cities = array();

@@ -772,7 +772,7 @@ class Import
 
                 $result = $result['elements'];
 
-                if (!empty(json_decode($result))) {
+                if (!empty($result)) {
                     array_push($res, json_decode($result));
                 }
             }

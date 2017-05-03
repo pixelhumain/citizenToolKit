@@ -782,7 +782,7 @@ class Menu {
                             Yii::t( "common", 'Create a proposal for your community'),
                             Yii::t( "common", 'Add a proposal'), 'plus',
                             //"loadByHash('#survey.editEntry.survey.".$id."')",
-                            "elementLib.openForm('entry','sub')",
+                            "dyFObj.openForm('entry','sub')",
                             "addProposalBtn",null);
             self::entry("left", 'onclick', 
                         Yii::t( "rooms", ( @$survey["status"] != ActionRoom::STATE_ARCHIVED ) ? 'Archive' : 'Unarchive'.' this action Room',null,Yii::app()->controller->module->id),
@@ -899,7 +899,7 @@ class Menu {
                         Yii::t( "common", 'Create an Action for your community'),
                         Yii::t( "rooms", 'Add an Action',null,Yii::app()->controller->module->id), 'plus',
                         //"loadByHash('#rooms.editAction.room.".$id."')",
-                        "elementLib.openForm('action','sub')",
+                        "dyFObj.openForm('action','sub')",
                         "addActionBtn",null);
 
             /*if ( @$room["organizerId"] == Yii::app()->session["userId"] ) 

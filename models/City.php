@@ -961,6 +961,14 @@ class City {
 	}
 
 
+	 public static function getDetailFormInMap($insee){
+		$where = array("insee"=> $insee);
+		$fields = array("geoShape","osmID", "wikidataID");
+		$city = PHDB::findOne(City::COLLECTION, $where, $fields);
+		return $city;
+	}
+
+
 
 
 

@@ -125,6 +125,7 @@ class IndexAction extends CAction
 				if(@$isLive && (@Yii::app()->session["userId"] && $id == Yii::app()->session["userId"])){
 					error_log("message 2");
 					$authorFollowedAndMe=[];
+					array_push($authorFollowedAndMe,array("sharedBy"=>array('$in'=>array($id))));
 					array_push($authorFollowedAndMe,array("author"=>$id));
 					array_push($authorFollowedAndMe,array("target.id"=> $id, 
 														"target.type" => Person::COLLECTION));
@@ -406,7 +407,7 @@ class IndexAction extends CAction
 			//Exclude => If isAnAbuse
 			$where = array_merge($where,  array( 'isAnAbuse' => array('$ne' => true) ) );
 			
-			$where = array_merge($where,  array('created' => array( '$lt' => $date ) ) );
+			$where = array_merge($where,  array('updated' => array( '$lt' => $date ) ) );
 
 			if(@$_POST["textSearch"] && $_POST["textSearch"]!="")
 			$where = array_merge($where,  array('text' => new MongoRegex("/".$_POST["textSearch"]."/i") ) );
@@ -420,11 +421,11 @@ class IndexAction extends CAction
 		}*/
 		//print_r($where);
 		if(!empty($where))
-			$news= News::getNewsForObjectId($where,array("created"=>-1),$type);
+			$news= News::getNewsForObjectId($where,array("updated"=>-1),$type);
 		
 		
 		// Sort news order by created 
-		$news = News::sortNews($news, array('created'=>SORT_DESC));
+		$news = News::sortNews($news, array('updated'=>SORT_DESC));
         //TODO : reorganise by created date
 		$params["news"] = $news;
 		$params["tags"] = Tags::getActiveTags();

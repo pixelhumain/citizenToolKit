@@ -6,6 +6,7 @@ class HeaderAction extends CAction
     	$controller=$this->getController();
 		$element = Element::getByTypeAndId($type,$id);
 		$params["element"] = $element;
+		$params["properties"]=$element["properties"]["chart"];
 		$params["parentType"] = $type;
 		$params["parentId"] = $id;
 		$params["edit"] = Authorisation::canEditItem(Yii::app()->session["userId"], $type, $id);
