@@ -1471,7 +1471,6 @@ class Element {
 		$block = $params["block"];
 		$collection = $params["typeElement"];
 		$id = $params["id"];
-
 		$res = array();
 		if($block == "info"){
 			if(isset($params["name"]))
@@ -1518,6 +1517,9 @@ class Element {
 				$res[] = self::updateField($collection, $id, "startDate", $params["startDate"]);
 			if(isset($params["endDate"]))
 				$res[] = self::updateField($collection, $id, "endDate", $params["endDate"]);
+		}else if($block == "toMarkdown"){
+			$res[] = self::updateField($collection, $id, "description", $params["value"]);
+			$res[] = self::updateField($collection, $id, "descriptionHTML", null);
 		}else if($block == "descriptions"){
 			if(isset($params["description"])){
 				$res[] = self::updateField($collection, $id, "description", $params["description"]);
@@ -1552,7 +1554,7 @@ class Element {
 
 		if($msg != ""){
 			$resultGoods["result"]=true;
-			$resultGoods["msg"]=Yii::t("common", "The next attributs has been updated : ".$msg);
+			$resultGoods["msg"]=Yii::t("common", "The following attributs has been updated :".$msg);
 			$resultGoods["values"] = $values ;
 			$result["resultGoods"] = $resultGoods ;
 			$result["result"] = true ;
