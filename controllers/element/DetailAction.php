@@ -185,7 +185,7 @@ class DetailAction extends CAction {
 								$members[$key] = $newOrga ;
 							}
 						} else if($aMember["type"]==Person::COLLECTION){
-							if(!@$aMember["isInviting"]){
+							//if(!@$aMember["isInviting"]){
 								$newCitoyen = Person::getSimpleUserById($key);
 								if (!empty($newCitoyen)) {
 									if (@$aMember["type"] == Person::COLLECTION) {
@@ -196,6 +196,9 @@ class DetailAction extends CAction {
 										}			
 										if(@$aMember["toBeValidated"]){
 											$newCitoyen["toBeValidated"]=true;  
+										}
+										if(@$aMember["isInviting"]){
+											$newCitoyen["isInviting"]=true;
 										}		
 					  				
 									}
@@ -205,7 +208,7 @@ class DetailAction extends CAction {
 									$members[$key] = $newCitoyen ;
 									$nbMembers++;
 								}
-							}
+							//}
 						}
 					} 
 					if(!@$aMember["isInviting"])
@@ -223,17 +226,12 @@ class DetailAction extends CAction {
 		}
 		if(!@$element["disabled"]){
 	        //if((@$config["connectLink"] && $config["connectLink"]) || empty($config)){ TODO CONFIG MUTUALIZE WITH NETWORK AND OTHER PLATFORM
-        	if(!@$element["links"][$connectType][Yii::app()->session["userId"]] || (@$element["links"][$connectType][Yii::app()->session["userId"]] && @$element["links"][$connectType][Yii::app()->session["userId"]][Link::TO_BE_VALIDATED])){
+        	if((!@$element["links"][$connectType][Yii::app()->session["userId"]] || (@$element["links"][$connectType][Yii::app()->session["userId"]] && @$element["links"][$connectType][Yii::app()->session["userId"]][Link::TO_BE_VALIDATED])) && @Yii ::app()->session["userId"] && ($type != Person::COLLECTION || $element["_id"] != Yii::app()->session["userId"])){
         		$params["linksBtn"]["followBtn"]=true;
-                if (isset($element["_id"]) 
-                    && isset(Yii ::app()->session["userId"]) 
-                    && isset($element["links"]["followers"][Yii::app()->session["userId"]]))
+                if (@$element["links"]["followers"][Yii::app()->session["userId"]])
                     	$params["linksBtn"]["isFollowing"]=true;
-                 else if(@$element["_id"]     
-                    && @Yii::app()->session["userId"]  
-                    && !@$element["links"]["followers"][Yii::app()->session["userId"]]     
-                    && $type != Event::COLLECTION  
-                    && @$element["_id"] != @Yii::app()->session["userId"])   
+                 else if(!@$element["links"]["followers"][Yii::app()->session["userId"]]     
+                    && $type != Event::COLLECTION)   
                     	$params["linksBtn"]["isFollowing"]=false; 	               
             }
             // Add member , contributor, attendee
@@ -281,7 +279,11 @@ class DetailAction extends CAction {
 			$params["openEdition"] = false;
 			$params["edit"] = false;
 		}
-		$params["isLinked"] = Link::isLinked($elementAuthorizationId,$elementAuthorizationType, Yii::app()->session['userId'], @$element["links"]);
+
+		$params["isLinked"] = Link::isLinked($elementAuthorizationId,$elementAuthorizationType, 
+									Yii::app()->session['userId'], 
+									@$element["links"]);
+
 		if($params["isLinked"]==true)
 			$params["countNotifElement"]=ActivityStream::countUnseenNotifications(Yii::app()->session["userId"], $elementAuthorizationType, $elementAuthorizationId);
 		if($type==Event::COLLECTION){
@@ -321,9 +323,9 @@ class DetailAction extends CAction {
 		//var_dump($params); //exit;
 		//$page = "onepage";
 		$params["params"] = $params;
-		if(Yii::app()->request->isAjaxRequest)
+		/*if(Yii::app()->request->isAjaxRequest)
           echo $controller->renderPartial($page,$params,true);
         else 
-			$controller->render( $page , $params );
+			$controller->render( $page , $params );*/
     }
 }

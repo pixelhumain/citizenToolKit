@@ -13,6 +13,20 @@ class Element {
 	    "other" => "Autre"
 	);  
 
+	public static $connectTypes = array(
+		Organization::COLLECTION => "members",
+		Project::COLLECTION => "contributors",
+		Event::COLLECTION => "attendees",
+		Person::COLLECTION => "followers"
+	);
+
+	public static $connectAs = array(
+		Organization::COLLECTION => "member",
+		Project::COLLECTION => "contributor",
+		Event::COLLECTION => "attendee",
+		Person::COLLECTION => "follows"
+	);
+
 	public static function getControlerByCollection ($type) { 
 
 		$ctrls = array(
@@ -120,6 +134,18 @@ class Element {
 	    										 "hash"=> Project::CONTROLLER.".detail.id.",
 	    										 "collection"=>Project::COLLECTION),
 
+			Classified::COLLECTION 		=> array("icon"=>"bullhorn","color"=>"#2BB0C6","text-color"=>"azure",
+	    										 "hash"=> Classified::CONTROLLER.".detail.id."),
+	    	Classified::CONTROLLER 		=> array("icon"=>"bullhorn","color"=>"#2BB0C6","text-color"=>"azure",
+	    										 "hash"=> Classified::CONTROLLER.".detail.id.",
+	    										 "collection"=>Classified::COLLECTION),
+
+			Poi::COLLECTION 			=> array("icon"=>"map-marker","color"=>"#2BB0C6","text-color"=>"green",
+	    										 "hash"=> Poi::CONTROLLER.".detail.id."),
+	    	Poi::CONTROLLER 			=> array("icon"=>"map-marker","color"=>"#2BB0C6","text-color"=>"green",
+	    										 "hash"=> Poi::CONTROLLER.".detail.id.",
+	    										 "collection"=>Poi::COLLECTION),
+
 			News::COLLECTION 			=> array("icon"=>"rss","hash"=> $prefix.""),
 
 	    	City::COLLECTION 			=> array("icon"=>"university","color"=>"#E33551","text-color"=>"red",
@@ -173,16 +199,9 @@ class Element {
             if (@$res["disabled"] && $actionType != "disconnect") {
                 throw new CTKException("Impossible to link something on a disabled organization");    
             }
-        } else if ($type == Person::COLLECTION) {
-        	$res = Person::getById($id);
-        } else if ($type== Event::COLLECTION){
-        	$res = Event:: getById($id);
-        } else if ($type== Project::COLLECTION){
-        	$res = Project:: getById($id);
-        } else if ($type== Need::COLLECTION){
-            $res = Need:: getById($id);
-        }else if ($type == Poi::COLLECTION){
-            $res = Poi:: getById($id);
+        } else 
+        if ( in_array($type, array( Person::COLLECTION, Project::COLLECTION,Event::COLLECTION, Classified::COLLECTION,Need::COLLECTION,Poi::COLLECTION) ) ){
+            $res = self::getByTypeAndId($type, $id);       
         } else if ($type== ActionRoom::COLLECTION_ACTIONS){
             $res = ActionRoom:: getActionById($id);
         } else if ( $type == Survey::COLLECTION) {
@@ -198,11 +217,11 @@ class Element {
 
     /**
      * Return a link depending on the type and the id of the element.
-     * The HTML link could be kind of : <a href="" onclick="url.loadByHash(...)">name</a>
-     * If url.loadByHashOnly is set : only the url.loadByHash will be returned
+     * The HTML link could be kind of : <a href="" onclick="urlCtrl.loadByHash(...)">name</a>
+     * If urlCtrl.loadByHashOnly is set : only the urlCtrl.loadByHash will be returned
      * @param String $type The type of the entity
      * @param String $id The id of the entity
-     * @param type|null $loadByHashOnly if true, will return only the url.loadByHash not surounded by the html link
+     * @param type|null $loadByHashOnly if true, will return only the urlCtrl.loadByHash not surounded by the html link
      * @return String the link on the loaByHash to display the detail of the element
      */
     public static function getLink( $type, $id, $hashOnly=null ) {	    
@@ -239,6 +258,28 @@ class Element {
 			$element = Project::getById($id);	
 		else if($type == Event::COLLECTION)
 			$element = Event::getById($id);	
+		else if($type == City::COLLECTION)
+			$element = City::getIdByInsee($id);
+		else if($type == Poi::COLLECTION)
+			$element = Poi::getById($id);
+		else if($type == Classified::COLLECTION)
+			$element = Classified::getById($id);
+		else
+			$element = PHDB::findOne($type,array("_id"=>new MongoId($id)));
+	  	
+	  	return $element;
+	}
+	public static function getSimpleByTypeAndId($type, $id,$what=null){
+		if( @$what ) 
+			$element = PHDB::findOneById($type, $id, $what);
+		else if($type == Person::COLLECTION)
+			$element = Person::getSimpleUserById($id);
+		else if($type == Organization::COLLECTION)
+			$element = Organization::getSimpleOrganizationById($id);		
+		else if($type == Project::COLLECTION)
+			$element = Project::getSimpleProjectById($id);	
+		else if($type == Event::COLLECTION)
+			$element = Event::getSimpleEventById($id);	
 		else if($type == City::COLLECTION)
 			$element = City::getIdByInsee($id);
 		else if($type == Poi::COLLECTION)
@@ -286,13 +327,13 @@ class Element {
     		$el = PHDB::findOne ( $type , array( "_id" => new MongoId($id) ) );
 	    	$ctrl = self::getControlerByCollection($type);
 	    	if( @$el && @$ctrl )
-	    		$link = "url.loadByHash('#".$ctrl.".detail.id.".$id."')";
+	    		$link = "urlCtrl.loadByHash('#".$ctrl.".detail.id.".$id."')";
 	    }
 	    else if($type == City::COLLECTION){
 	    	$el = City::getByUnikey($id);
 	    	$ctrl = self::getControlerByCollection($type);
 	    	if( @$el && @$ctrl )
-	    		$link = "url.loadByHash('#".$ctrl.".detail.insee.".$el['insee'].".cp.".$el['cp']."')";
+	    		$link = "urlCtrl.loadByHash('#".$ctrl.".detail.insee.".$el['insee'].".cp.".$el['cp']."')";
 	    }
 	    
 	    if (! $loadByHashOnly) {
@@ -456,7 +497,6 @@ class Element {
 							$verbActivity = ActStr::VERB_ADD ;
 						}
 						else{
-
 							SIG::updateEntityGeoposition($collection, $id, $fieldValue["geo"]["latitude"], $fieldValue["geo"]["longitude"], $fieldValue["addressesIndex"]);
 							$headSet = "addresses.".$fieldValue["addressesIndex"].".address" ;
 						}
@@ -471,12 +511,13 @@ class Element {
 						}else{
 							$headSet = "addresses.".$fieldValue["addressesIndex"] ;
 							$updatePull = true ;
-							$pull="contacts";
+							$pull="addresses";
 						}
 					}
 
 					if(!empty($headSet))
 						$set = array($headSet => $address);
+
 				}else{
 					throw new CTKException("Error updating  : addressesIndex ");	
 				}
@@ -525,7 +566,7 @@ class Element {
 			$set = array("organizerId" => $fieldValue["organizerId"], 
 							 "organizerType" => $fieldValue["organizerType"]);
 			//get element and remove current organizer
-			$element = Element::getElementById($id, $collection);
+			$element = self::getElementById($id, $collection);
 			$oldOrganizerId = @$element["organizerId"] ? $element["organizerId"] : key($element["links"]["organizer"]);
 			$oldOrganizerType = @$element["organizerType"] ? $element["organizerType"] : $element["links"]["organizer"][$oldOrganizerId]["type"];
 			//remove the old organizer
@@ -544,11 +585,11 @@ class Element {
 				$set = array($dataFieldName => $fieldValue);
 			}
 		} else if ($dataFieldName == "contacts") {
-			if(empty($fieldValue["index"]))
+			if(!isset($fieldValue["index"]))
 				$addToSet = array("contacts" => $fieldValue);
 			else{
 				$headSet = "contacts.".$fieldValue["index"] ;
-				unset($fieldValue["index"]);
+				isset($fieldValue["index"]);
 				if(count($fieldValue) == 0){
 					$verb = '$unset' ;
 					$verbActivity = ActStr::VERB_DELETE ;
@@ -560,7 +601,7 @@ class Element {
 				
 			}
 		} else if ($dataFieldName == "urls") {
-			if(empty($fieldValue["index"]))
+			if(!isset($fieldValue["index"]))
 				$addToSet = array("urls" => $fieldValue);
 			else{
 				$headSet = "urls.".$fieldValue["index"] ;
@@ -612,10 +653,10 @@ class Element {
 			                          array($verb => $set, '$set' => $setModified));
 		}
 		$res = array("result"=>false,"msg"=>"");
-
 		if($resUpdate["ok"]==1){
 
 			if(!empty($updatePull) && $updatePull == true){
+
 				$resPull = PHDB::update( $collection, array("_id" => new MongoId($id)), 
 		                          array('$pull' => array($pull => null)));
 			}
@@ -627,7 +668,7 @@ class Element {
 					$verbActivity = ActStr::VERB_UPDATE ;
 				ActivityStream::saveActivityHistory($verbActivity, $id, $collection, $dataFieldName, $fieldValue);
 			}
-			$res = array("result"=>true,"msg"=>Yii::t(Element::getControlerByCollection($collection),"The ".Element::getControlerByCollection($collection)." has been updated"), "fieldName" => $fieldName, "value" => $fieldValue);
+			$res = array("result"=>true,"msg"=>Yii::t(self::getControlerByCollection($collection),"The ".self::getControlerByCollection($collection)." has been updated"), "fieldName" => $fieldName, "value" => $fieldValue);
 
 			if(isset($firstCitizen))
 				$res["firstCitizen"] = $firstCitizen ;
@@ -675,21 +716,25 @@ class Element {
 	    	$elt = Organization::getSimpleOrganizationById($id);
 			$newOrga["type"]=Organization::COLLECTION;
 			array_push($contextMap["organizations"], $elt);
+			//$contextMap = array_merge($contextMap, $elt);
 	    }
 	    else if($type == Project::COLLECTION){
 	    	$connectAs="contributors";
 	    	$elt = Project::getSimpleProjectById($id);
 			array_push($contextMap["projects"], $elt);
+			//$contextMap = array_merge($contextMap, $elt);
 	    }
 		else if ($type == Event::COLLECTION){
 			$connectAs="attendees";
 			$elt = Event::getSimpleEventById($id);
 			array_push($contextMap["events"], $elt);
+			//$contextMap = array_merge($contextMap, $elt);
 		}
 		else if ($type == Person::COLLECTION){
 			$connectAs="follows";
 			$elt = Person::getSimpleUserById($id);
 			array_push($contextMap["people"], $elt);
+			//$contextMap = array_merge($contextMap, $elt);
 		}
 	    
 		if(!empty($links) && 
@@ -760,7 +805,7 @@ class Element {
 				foreach ($links["projects"] as $keyProj => $valueProj) {
 					 $project = Project::getSimpleProjectById($keyProj);
 					 if (!empty($project))
-	           		 array_push($contextMap["projects"], $project);
+	           		 	array_push($contextMap["projects"], $project);	
 				}
 			}
 
@@ -768,14 +813,14 @@ class Element {
 				foreach ($links["followers"] as $key => $value) {
 					$newCitoyen = Person::getSimpleUserById($key);
 					if (!empty($newCitoyen))
-					array_push($contextMap["followers"], $newCitoyen);
+						array_push($contextMap["followers"], $newCitoyen);
 				}
 			}
 			if(isset($links["memberOf"])){
 				foreach ($links["memberOf"] as $key => $value) {
 					$newOrga = Organization::getSimpleOrganizationById($key);
 					if (!empty($newOrga))
-					array_push($contextMap["organizations"], $newOrga);
+						array_push($contextMap["organizations"], $newOrga);
 				}
 			}
 
@@ -820,6 +865,7 @@ class Element {
 				}	
 				$follows["count"]= $countFollows;
 				$contextMap["follows"] = $follows;
+
 			}
 			
 		}
@@ -836,10 +882,11 @@ class Element {
 						$value["typeSig"] = Poi::COLLECTION;
 					$allPois[] = $value;
 				}
-				$contextMap["pois"] = $allPois;
-			}else{
-				$contextMap["pois"] = array();
-			}
+				//$contextMap["pois"] = $allPois;
+				$contextMap = array_merge($contextMap, $allPois);
+			}/*else{
+				//$contextMap["pois"] = array();
+			}*/
 		}
 		return $contextMap;	
     }
@@ -946,6 +993,9 @@ class Element {
         if($collection == City::COLLECTION)
         	$params = City::prepCity($params);
         
+        if(isset($params["price"]))
+        	$params["price"] = (int)$params["price"];
+
         /*$microformat = PHDB::findOne(PHType::TYPE_MICROFORMATS, array( "key"=> $key));
         $validate = ( !isset($microformat )  || !isset($microformat["jsonSchema"])) ? false : true;
         //validation process based on microformat defeinition of the form
@@ -984,6 +1034,14 @@ class Element {
                 	$params["creator"] = Yii::app()->session["userId"];
 	        		$params["created"] = time();
                 	PHDB::updateWithOptions($collection,array("_id"=>new MongoId($id)), array('$set' => $params ),array('upsert' => true ));
+                	$params["_id"]=new MongoId($id);
+                	 if( $collection == Organization::COLLECTION )
+                		$res["afterSave"] = Organization::afterSave($params, Yii::app()->session["userId"], $paramsLinkImport);
+                	else if( $collection == Event::COLLECTION )
+                		$res["afterSave"] = Event::afterSave($params);
+                	else if( $collection == Project::COLLECTION )
+                		$res["afterSave"] = Project::afterSave($params, @$params["parentId"] , @$params["parentType"] );
+                	$res["afterSaveGbl"] = self::afterSave((string)$params["_id"],$collection,$params,$postParams);
                 }
                 else
                 	PHDB::update($collection,array("_id"=>new MongoId($id)), array('$set' => $params ));
@@ -1008,6 +1066,8 @@ class Element {
                 // ***********************************
                 //post process for specific actions
                 // ***********************************
+               // echo "ici";
+                //echo $collection;
                 if( $collection == Organization::COLLECTION )
                 	$res["afterSave"] = Organization::afterSave($params, Yii::app()->session["userId"], $paramsLinkImport);
                 else if( $collection == Event::COLLECTION )
@@ -1217,7 +1277,7 @@ class Element {
 					$params["invitedUserName"] = $split[0];
 				}else
 					$params["invitedUserName"] = $value["name"] ;
-				$result["data"][] = Element::followPerson($params, $gmail);
+				$result["data"][] = self::followPerson($params, $gmail);
 			}
 		}
 		return $result;
@@ -1343,13 +1403,12 @@ class Element {
 		$collection = $params["parentType"];
 		if(!empty($params["phone"]))
 			$params["telephone"] = explode(",", $params["phone"]);
-		if(!empty($params["idContact"]))
-			$params["id"] = $params["idContact"];
+		//if(!empty($params["idContact"]))
+		//	$params["id"] = $params["idContact"];
 		unset($params["parentId"]);
 		unset($params["parentType"]);
 		unset($params["phone"]);
-		unset($params["idContact"]);
-
+		//unset($params["idContact"]);
 
 		if(empty($params["name"]) && empty($params["email"]) && empty($params["role"]) && empty($params["telephone"]))
 			$res = array("result" => false, "msg" => "Vous devez avoir au moins une information sur le contact");
@@ -1368,6 +1427,8 @@ class Element {
 
 		unset($params["parentId"]);
 		unset($params["parentType"]);
+		unset($params["key"]);
+		unset($params["collection"]);
 		$res = self::updateField($collection, $id, "urls", $params);
 		if($res["result"])
 			$res["msg"] = "Les urls ont été mis à jours";
@@ -1386,6 +1447,25 @@ class Element {
 	    return $url ;
 	}
 
+	public static function getUrls($id, $type){
+		$res = array();
+		$listElt = array(Organization::COLLECTION, Person::COLLECTION, Project::COLLECTION, Event::COLLECTION);
+		if(in_array($type, $listElt) ){
+			$res = PHDB::findOne( $type , array( "_id" => new MongoId($id) ) ,array("urls") );
+			$res = (!empty($res["urls"]) ? $res["urls"] : array() );
+		}
+		return $res;
+	}
+
+	public static function getContacts($id, $type){
+		$res = array();
+		$listElt = array(Organization::COLLECTION, Person::COLLECTION, Project::COLLECTION, Event::COLLECTION);
+		if(in_array($type, $listElt) ){
+			$res = PHDB::findOne( $type , array( "_id" => new MongoId($id) ) ,array("contacts") );
+			$res = (!empty($res["contacts"]) ? $res["contacts"] : array() );
+		}
+		return $res;
+	}
 
 	public static function updateBlock($params){
 		$block = $params["block"];
@@ -1438,9 +1518,13 @@ class Element {
 				$res[] = self::updateField($collection, $id, "startDate", $params["startDate"]);
 			if(isset($params["endDate"]))
 				$res[] = self::updateField($collection, $id, "endDate", $params["endDate"]);
-		}else if($block == "toMarkdown"){
-			$res[] = self::updateField($collection, $id, "description", $params["value"]);
-			$res[] = self::updateField($collection, $id, "descriptionHTML", null);
+		}else if($block == "descriptions"){
+			if(isset($params["description"])){
+				$res[] = self::updateField($collection, $id, "description", $params["description"]);
+				$res[] = self::updateField($collection, $id, "descriptionHTML", null);
+			}
+			if(isset($params["shortDescription"]))
+				$res[] = self::updateField($collection, $id, "shortDescription", $params["shortDescription"]);
 		}
 
 		if(Import::isUncomplete($id, $collection)){
@@ -1482,5 +1566,167 @@ class Element {
 
 		return $result;
 	}
+
+
+
+	public static function getInfoDetail($params, $element, $type, $id){
+		$params["edit"] = Authorisation::canEditItem(Yii::app()->session["userId"], $type, $id);
+        $params["openEdition"] = Authorisation::isOpenEdition($id, $type, @$element["preferences"]);
+        $params["controller"] = self::getControlerByCollection($type);
+
+
+        $connectType = @self::$connectTypes[$type];
+        /*if( @$element["links"] ) {
+            if(isset($element["links"][$connectType])){
+                $countStrongLinks=0;//count($element["links"][$connectType]);
+                $nbMembers=0;
+                $invitedNumber=0;
+                $members=array();
+                foreach ($element["links"][$connectType] as $key => $aMember) {
+                    if($nbMembers < 11){
+                        if($aMember["type"]==Organization::COLLECTION){
+                            $newOrga = Organization::getSimpleOrganizationById($key);
+                            if(!empty($newOrga)){
+                                if ($aMember["type"] == Organization::COLLECTION && @$aMember["isAdmin"]){
+                                    $newOrga["isAdmin"]=true;               
+                                }
+                                $newOrga["type"]=Organization::COLLECTION;
+                                //array_push($contextMap["organizations"], $newOrga);
+                                //array_push($members, $newOrga);
+                                $members[$key] = $newOrga ;
+                            }
+                        } else if($aMember["type"]==Person::COLLECTION){
+                            //if(!@$aMember["isInviting"]){
+                                $newCitoyen = Person::getSimpleUserById($key);
+                                if (!empty($newCitoyen)) {
+                                    if (@$aMember["type"] == Person::COLLECTION) {
+                                        if(@$aMember["isAdmin"]){
+                                            if(@$aMember["isAdminPending"])
+                                                $newCitoyen["isAdminPending"]=true;  
+                                                $newCitoyen["isAdmin"]=true;    
+                                        }           
+                                        if(@$aMember["toBeValidated"]){
+                                            $newCitoyen["toBeValidated"]=true;  
+                                        } 
+                                        if(@$aMember["isInviting"]){
+											$newCitoyen["isInviting"]=true;
+										}      
+                                    
+                                    }
+                                    $newCitoyen["type"]=Person::COLLECTION;
+                                    //array_push($contextMap["people"], $newCitoyen);
+                                    //array_push($members, $newCitoyen);
+                                    $members[$key] = $newCitoyen ;
+                                    $nbMembers++;
+                                }
+                            //}
+                        }
+                    } 
+                    if(!@$aMember["isInviting"])
+                        $countStrongLinks++;
+                    else{
+                        if(@Yii::app()->session["userId"] && $key==Yii::app()->session["userId"])
+                            $params["invitedMe"]=array("invitorId"=>$aMember["invitorId"],"invitorName"=>$aMember["invitorName"]);
+                        $invitedNumber++;
+                    }
+                }
+                $params["members"] = $members;
+            }
+
+            
+        } */
+
+        if(!@$element["disabled"]){
+            //if((@$config["connectLink"] && $config["connectLink"]) || empty($config)){ TODO CONFIG MUTUALIZE WITH NETWORK AND OTHER PLATFORM
+           //$connectType = $connectType[$type];
+            if((!@$element["links"][$connectType][Yii::app()->session["userId"]] || 
+                (@$element["links"][$connectType][Yii::app()->session["userId"]] && 
+                @$element["links"][$connectType][Yii::app()->session["userId"]][Link::TO_BE_VALIDATED])) && 
+                @Yii::app()->session["userId"] && 
+                ($type != Person::COLLECTION || 
+                $element["_id"] != Yii::app()->session["userId"])){
+                    $params["linksBtn"]["followBtn"]=true;
+                    if (@$element["links"]["followers"][Yii::app()->session["userId"]])
+                            $params["linksBtn"]["isFollowing"]=true;
+                     else if(!@$element["links"]["followers"][Yii::app()->session["userId"]] && 
+                            $type != Event::COLLECTION)   
+                            $params["linksBtn"]["isFollowing"]=false;                  
+            }
+            
+            $connectAs = @self::$connectAs[$type];
+            
+            $params["linksBtn"]["connectAs"]=$connectAs;
+            $params["linksBtn"]["connectType"]=$connectType;
+            if( @Yii::app()->session["userId"] && $type!= Person::COLLECTION && !@$element["links"][$connectType][Yii::app()->session["userId"]]){
+                $params["linksBtn"]["communityBn"]=true;                    
+                $params["linksBtn"]["isMember"]=false;
+            }else if($type != Person::COLLECTION  && @Yii::app()->session["userId"]){
+                //Ask Admin button
+                $connectAs="admin";
+                $params["linksBtn"]["communityBn"]=true;
+                $params["linksBtn"]["isMember"]=true;
+                if(@$element["links"][$connectType][Yii::app()->session["userId"]][Link::TO_BE_VALIDATED])
+                    $params["linksBtn"][Link::TO_BE_VALIDATED]=true;
+                $params["linksBtn"]["isAdmin"]=true;
+                if(@$element["links"][$connectType][Yii::app()->session["userId"]][Link::IS_ADMIN_PENDING])
+                    $params["linksBtn"][Link::IS_ADMIN_PENDING]=true;
+                //Test if user has already asked to become an admin
+                if(!in_array(Yii::app()->session["userId"], Authorisation::listAdmins($id, $type,true)))
+                    $params["linksBtn"]["isAdmin"]=false;              
+            }
+
+            $params["isLinked"] = Link::isLinked($id,$type, 
+                                    Yii::app()->session['userId'], 
+                                    @$element["links"]);
+
+            if($params["isLinked"]==true)
+                $params["countNotifElement"]=ActivityStream::countUnseenNotifications(Yii::app()->session["userId"], $type, $id);
+            if($type==Event::COLLECTION){
+                $params["countStrongLinks"]= @$attendeeNumber;
+                //$params["countLowLinks"] = @$invitedNumber;
+            }
+            else{
+                $params["countStrongLinks"]= @$countStrongLinks;
+                $params["countLowLinks"] = count(@$element["links"]["followers"]);
+            }
+            $params["countInvitations"]=@$invitedNumber;
+            $params["countries"] = OpenData::getCountriesList();
+
+            if(@$_POST["modeEdit"]){
+                $params["modeEdit"]=$_POST["modeEdit"];
+            }
+            
+            if(@$_GET["network"])
+                $params["networkJson"]=Network::getNetworkJson($_GET["network"]);
+        }
+
+        return $params;
+	}
+
+
+	public static function getElementForJS($element, $type = null) {
+		$newElement = $element ;
+		unset($newElement["badges"]);
+		unset($newElement["modified"]);
+		unset($newElement["modifiedByBatch"]);
+		unset($newElement["preferences"]);
+		unset($newElement["roles"]);
+		unset($newElement["two_step_register"]);
+		unset($newElement["lastLoginDate"]);
+		if(!empty($element["telephone"]["fixe"]))
+			$newElement["fixe"] = ArrayHelper::arrayToString($element["telephone"]["fixe"]) ;
+		if(!empty($element["telephone"]["mobile"]))
+			$newElement["mobile"] = ArrayHelper::arrayToString($element["telephone"]["mobile"]) ;
+		if(!empty($element["telephone"]["fax"]))
+			$newElement["fax"] = ArrayHelper::arrayToString($element["telephone"]["fax"]) ;
+		$newElement["id"] = (String) $element["_id"] ;
+
+		if(!empty($type))
+			$newElement["type"] = $type;
+
+		return $newElement;
+	}
+
+	
 
 }

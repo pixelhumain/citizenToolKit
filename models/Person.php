@@ -52,6 +52,7 @@ class Person {
 	    "multitags" => array("name" => "multitags"),
 	    "multiscopes" => array("name" => "multiscopes"),
 	    "url" => array("name" => "url"),
+	    "urls" => array("name" => "urls"),
 	    "lastLoginDate" => array("name" => "lastLoginDate"),
 	    "seePreferences" => array("name" => "seePreferences"),
 	    "locality" => array("name" => "address"),
@@ -109,7 +110,8 @@ class Person {
 	    Yii::app()->session["user"] = $user;
 	    Yii::app()->session["isRegisterProcess"] = $isRegisterProcess;
 
-        Yii::app()->session["userIsAdmin"] = Role::isUserSuperAdmin(@$account["roles"]); 
+        Yii::app()->session["userIsAdmin"] = Role::isUserSuperAdmin(@$account["roles"]);
+        Yii::app()->session["userIsAdminPublic"] = Role::isSourceAdmin(@$account["roles"]);  
 
 	    Yii::app()->session['logguedIntoApp'] = (isset(Yii::app()->controller->module->id)) ? Yii::app()->controller->module->id : "communecter";
     }
@@ -133,10 +135,9 @@ class Person {
 	 * @return type
 	 */
 	public static function getById($id, $clearAttribute = true) { 
-		/*echo "yoyo";
-		var_dump($id);*/
-	  	$person = PHDB::findOneById( self::COLLECTION ,$id );
-	  	//echo $id; var_dump($person); exit;
+		
+	  	$person = PHDB::findOneById( self::COLLECTION, $id );
+	  	
 	  	if (empty($person)) {
 	  		//TODO Sylvain - Find a way to manage inconsistente data
             //throw new CTKException("The person id ".$id." is unkown : contact your admin");
@@ -158,6 +159,7 @@ class Person {
         if ($clearAttribute) {
         	$person = self::clearAttributesByConfidentiality($person);
         }
+
 	  	return $person;
 	}
 
@@ -231,13 +233,13 @@ class Person {
 		}
 		//images
 		$simplePerson = array_merge($simplePerson, Document::retrieveAllImagesUrl($id, self::COLLECTION, null, $person));
-		if(Preference::showPreference($person, self::COLLECTION, "locality", Yii::app()->session["userId"])){
+		/*if(Preference::showPreference($person, self::COLLECTION, "locality", Yii::app()->session["userId"])){
 			$simplePerson["address"] = empty($person["address"]) ? array("addressLocality" => Yii::t("common","Unknown Locality")) : $person["address"];
 			$simplePerson["geo"] = @$person["geo"];
 			$simplePerson["addresses"] = @$person["addresses"];
 		}else{
 			$simplePerson["address"] = array("addressLocality" => Yii::t("common","Unknown Locality"));
-		}
+		}*/
 		$simplePerson = self::clearAttributesByConfidentiality($simplePerson);
 	  	return $simplePerson;
 
@@ -938,6 +940,7 @@ class Person {
      */
     public static function checkPassword($pwd, $account) {
     	$res = false;
+
     	if ($account) {
     		if (@$account["pwd"] == hash('sha256', @$account["email"].$pwd)) {
     			//the password match with an "email" as salt => change the password to salt with the "id"
@@ -1846,27 +1849,10 @@ class Person {
 		if($id == "") $id = isset($entity['_id']) ? $entity['_id'] : "";
 		if($id == "") $id = isset($entity['id']) ? $entity['id'] : "";
 		if($id == "") return $entity;
-		
+		//var_dump($id);
 		$isLinked = Link::isLinked((string)$id,Person::COLLECTION, Yii::app()->session['userId']);
-		$attNameConfidentiality = array("email", "locality", "phone");
-
-		foreach ($attNameConfidentiality as $key => $fieldName) {
-			if( Yii::app()->session['userId'] == (string)$id 
-		  		||  ( isset($entity["preferences"]) && isset($entity["preferences"]["publicFields"]) && in_array( $fieldName, $entity["preferences"]["publicFields"]) )  
-		  		|| ( $isLinked && isset($entity["preferences"]) && isset($entity["preferences"]["privateFields"]) && in_array( $fieldName, $entity["preferences"]["privateFields"]))  )
-			{}
-			else{
-				if($fieldName == "locality")  { 
-					$entity["address"]["streetAddress"] = ""; 
-				}
-				else if($fieldName == "phone"){ 
-					$entity["telephone"] = ""; 
-				}
-				else{
-					$entity[$fieldName] = "";
-				}
-			}
-	  	}	
+		
+		$entity = Preference::clearByPreference($entity, self::COLLECTION, Yii::app()->session["userId"]);	
 
 	  	if(!empty($entity["pwd"]))
 	  		unset($entity["pwd"]);

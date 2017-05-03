@@ -20,8 +20,8 @@ class ActivityStream {
 		//print_r($param);
 		if($param["type"]==self::COLLECTION){
 			$news=$param;
-			$news["target"]["type"]=$param["target"]["type"];
-			unset($news["target"]["objectType"]);
+			//$news["target"]["type"]=$param["target"]["type"];
+			//unset($news["target"]["objectType"]);
 		    PHDB::insert(News::COLLECTION, $news);
 		}
 		else
@@ -30,7 +30,7 @@ class ActivityStream {
 	public static function getWhere($params) {
 	  	 return PHDB::find( self::COLLECTION,$params,null,null);
 	}
-	public static function getNotifications($param,$sort=array("updated"=>-1,"created"=>-1))
+	public static function getNotifications($param,$sort=array("created"=>-1,"updated"=>-1))
 	{
 	    return PHDB::findAndSort(self::COLLECTION, $param,$sort);
 	}
@@ -63,7 +63,7 @@ class ActivityStream {
 	*/	
 	public static function activityHistory($id,$type){
 		$where = array("target.id"=>$id, 
-					"target.objectType"=>$type, 
+					"target.type"=>$type, 
 					"type"=>ActStr::TYPE_ACTIVITY_HISTORY);
 		$sort = array("date"=>-1);
 		return PHDB::findAndSort( self::COLLECTION,$where,$sort,null);
@@ -98,6 +98,52 @@ class ActivityStream {
 
 		$params=self::buildEntry($buildArray);
 		self::addEntry($params);
+		return true;
+	}
+
+
+	public static function saveActivityShare($verb, $targetId, $targetType, $activityName=null, $activityValue=null){
+
+		$share = PHDB::findOne( News::COLLECTION , 
+								array(	"verb"=>$verb, 
+										"object.id"=>@$activityValue["id"], 
+										"object.type"=>@$activityValue["type"]
+										)
+								);
+		//var_dump($share); exit;
+		if($share!=null){
+			//si je n'ai pas déjà partagé cette news
+			if(@$share["sharedBy"]){
+				if(!in_array(Yii::app()->session["userId"], $share["sharedBy"])){
+					//si je suis le premier a partager
+					$share["sharedBy"] = array_merge($share["sharedBy"], array(Yii::app()->session["userId"]));
+				}
+			}else{ //si je ne suis pas le premier, je me rajoute à la liste
+				$share["sharedBy"] = array(Yii::app()->session["userId"]);	
+			}	
+			$share["updated"] = new MongoDate(time());
+			PHDB::update ( News::COLLECTION , 
+							array( "_id" => $share["_id"]), 
+                            $share);
+			
+		}else{
+			$buildArray = array(
+				"type" => ActivityStream::COLLECTION,
+				"verb" => $verb,
+				"target" => array("id" => $targetId,
+								"type"=> $targetType),
+				"author" => Yii::app()->session["userId"],
+				"object" => $activityValue,
+				"scope" => array("type"=>"restricted"),
+			    "updated" => new MongoDate(time()),
+	            "created" => new MongoDate(time())
+			);
+
+			//$params=ActivityStream::buildEntry($buildArray);
+			self::addEntry($buildArray);
+			error_log("share new");
+		}
+	
 		return true;
 	}
 
@@ -284,9 +330,9 @@ class ActivityStream {
 		        	$cp=$author["address"]["postalCode"];
 		        	if(!@$geo)
 		        		$geo = $author["geo"];
-	        	} else {
-		        	$action["scope"]["type"]="restricted";
-	        	}
+	        	} //else {
+		        	//$action["scope"]["type"]="restricted";
+	        	//}
 			}
 			$action["scope"]["cities"][] = array(
 				"codeInsee" => ((@$insee) ? $insee : ""), 

@@ -16,8 +16,9 @@ class SuperAdminAction extends CAction
             if($action == "power")      { $this->power();         return; }
             if($action == "scanlinks")  { $this->scanLinks();     return; }
             if($action == "deleteUrl")  { $this->deleteUrl($_POST); return; }
+            if(empty($action) || $action == "index")  { $this->index(); return; }
         }
-
+        
         if($action == "updateurlmetadata")  { $this->updateUrlMetaData($_POST);     return; }
 
         if(Yii::app()->request->isAjaxRequest)
@@ -26,6 +27,11 @@ class SuperAdminAction extends CAction
             $controller->render("admin/main",$params);
     }
 
+    private function index(){
+        $controller = $this->getController();
+        $params = array();
+        $controller->renderPartial("admin/index", $params);
+    }
 
     private function main(){
         $controller = $this->getController();

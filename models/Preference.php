@@ -1,5 +1,8 @@
 <?php 
 class Preference {
+
+	public static $listPref = array( "email", "locality", "phone", "directory", "birthDate" );
+
 	public static function getPreferencesByTypeId($id, $type){
 
 		if($type == City::COLLECTION){
@@ -167,6 +170,34 @@ class Preference {
 				( $eltId == $userId || Link::isLinked($eltId, $elementType, $userId, @$element["links"]) ) )
 			$result = true;
 		return $result;
+	}
+
+
+	public static function clearByPreference($element, $elementType, $userId) {
+		$eltId = ( (!empty($element["_id"])) ? (string)$element["_id"] : (string)$element["id"] );
+		if(!empty($eltId)){
+			if(empty($element["preferences"])){
+				$element["preferences"] = self::getPreferencesByTypeId($eltId, $elementType) ;
+			}
+
+			foreach (self::$listPref as $key => $namePref) {
+				if( !self::showPreference($element, $elementType, $namePref, $userId) ){
+					if($namePref == "locality"){
+						unset($element["address"]);
+						unset($element["geo"]);
+						unset($element["geoPosition"]);
+					}else if($namePref == "phone"){
+						unset($element["telephone"]);
+					}else if($namePref == "directory"){
+						unset($element["links"]);
+					}else{
+						unset($element[$namePref]);
+					}
+				}
+			}
+		}
+		
+		return $element;
 	}
 
 

@@ -619,21 +619,18 @@ class Link {
 		$childId = @$child["childId"];
         $childType = $child["childType"];
         $levelNotif=null;
-		if($parentType == Organization::COLLECTION){
-			$parentData = Organization::getById($parentId);
-			$parentController = Organization::CONTROLLER;
-		}
-		else if ($parentType == Project::COLLECTION){
-			$parentData = Project::getById($parentId);			
-			$parentController=Project::CONTROLLER;
-		} 
-		else if ($parentType == Person::COLLECTION){
+		if ( in_array($parentType, array( Organization::COLLECTION, Project::COLLECTION, Classified::COLLECTION ) ) ){
+            $parentData = Element::getByTypeAndId($parentType, $parentId);           
+            $parentController = Element::getControlerByCollection($parentType);
+        }
+        else if ($parentType == Person::COLLECTION){
 			$parentData = Person::getById($parentId);			
 			$parentController=Person::CONTROLLER;
             $levelNotif="user";
-		} else {
+		}
+        else 
             throw new CTKException(Yii::t("common","Can not manage the type ").$parentType);
-        }
+
         //Retrieve the child info
         $pendingChild = Person::getById($childId);
         if (!$pendingChild) {

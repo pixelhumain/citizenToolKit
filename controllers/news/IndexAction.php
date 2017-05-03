@@ -63,13 +63,22 @@ class IndexAction extends CAction
 	            $parent = Person::getById($id);
 	            if (@Yii::app()->session["userId"]){
 					$params["canPostNews"] = true;
-					if (Yii::app()->session["userId"]==$id){
+					if (Yii::app()->session["userId"]==$id && $isLive!=true){
 						$params["canManageNews"]=true;
 					}
 				}
 	        } 
 	        else if( $type == Organization::COLLECTION) {
 	            $parent = Organization::getById($id);
+	            if(@Yii::app()->session["userId"]){
+					$params["canPostNews"] = true;
+	            	if (@$parent["links"]["members"][Yii::app()->session["userId"]] && !@$parent["links"]["members"][Yii::app()->session["userId"]][Link::TO_BE_VALIDATED])
+	            		$params["canManageNews"] = true;
+				}	
+
+	        }
+	        else if( $type == Place::COLLECTION) { error_log("PLACE");
+	            $parent = Place::getById($id);
 	            if(@Yii::app()->session["userId"]){
 					$params["canPostNews"] = true;
 	            	if (@$parent["links"]["members"][Yii::app()->session["userId"]] && !@$parent["links"]["members"][Yii::app()->session["userId"]][Link::TO_BE_VALIDATED])
@@ -102,7 +111,7 @@ class IndexAction extends CAction
 				if (@Yii::app()->session["userId"])
 					$params["canPostNews"] = true;
 			}
-			$params["authorizedToStock"]= Document::authorizedToStock($id, $type,Document::DOC_TYPE_IMAGE);
+			//$params["authorizedToStock"]= Document::authorizedToStock($id, $type,Document::DOC_TYPE_IMAGE);
 			$params["contextParentType"] = $type; 
 			$params["contextParentId"] = $id;
 			$params["parent"]=@$parent;
@@ -116,6 +125,7 @@ class IndexAction extends CAction
 				if(@$isLive && (@Yii::app()->session["userId"] && $id == Yii::app()->session["userId"])){
 					error_log("message 2");
 					$authorFollowedAndMe=[];
+					array_push($authorFollowedAndMe,array("sharedBy"=>array('$in'=>array($id))));
 					array_push($authorFollowedAndMe,array("author"=>$id));
 					array_push($authorFollowedAndMe,array("target.id"=> $id, 
 														"target.type" => Person::COLLECTION));
@@ -203,7 +213,7 @@ class IndexAction extends CAction
 					//echo '<pre>';var_dump($where);echo '</pre>'; return;
 				}
 			}
-			else if($type == "organizations" || $type == "projects" || $type == "events"){
+			else if($type == "organizations" || $type == "projects" || $type == "events" || $type == "place"){
 				$scope=array(
 						array("scope.type"=> "public"),
 						array("scope.type"=> "restricted"),
@@ -261,14 +271,27 @@ class IndexAction extends CAction
 					        		if (isset($city["cp"])) {
 					        			$queryLocality["scope.cities.postalCode"] = $city["cp"];
 					        		}
+					        		if (! empty($city["cp"]) && (!@$_POST["searchLocalityLEVEL"] && (@$_POST["searchLocalityLEVEL"] && $_POST["searchLocalityLEVEL"]=="inseeCommunexion")) ) {
+			        					$queryLocality["scope.cities.postalCode"] = $city["cp"];	
+			        				}
 				  				}
 				  				elseif($key == "CODE_POSTAL") { //error_log($localityRef);
 				  					$cities = PHDB::find( City::COLLECTION, array("postalCodes.postalCode" => $localityRef), array("insee"));
 				  					$inQuestInsee = array();
-				  					foreach($cities as $key => $val){ $inQuestInsee[] = $val["insee"]; error_log($val["insee"]); }
-					        		$queryLocality = array('$or' => array( array($value => new MongoRegex("/^".$localityRef."/i")),
+				  					if(@$_POST["searchLocalityLEVEL"] && $_POST["searchLocalityLEVEL"]=="cpCommunexion"){
+			        					$city = City::getByUnikey($localityRef);
+			        					//var_dump($city);
+			        					$queryLocality = array(
+			        					//"address.addressCountry" => $city["country"],
+			        						"scope.cities.codeInsee" => $city["insee"],
+			        						"scope.cities.postalCode" => $city["cp"]
+			        					);
+			        				}else{
+			        					foreach($cities as $key => $val){ $inQuestInsee[] = $val["insee"]; error_log($val["insee"]); }
+					        			$queryLocality = array('$or' => array( array($value => new MongoRegex("/^".$localityRef."/i")),
 					        												array("scope.cities.codeInsee" => array('$in' => $inQuestInsee)) )
 					        							 );
+				  					}
 				  				}
 				  				elseif($key == "DEPARTEMENT") { error_log("DEPARTEMENT : " . $localityRef);
 				        			$dep = PHDB::findOne( City::COLLECTION, array("depName" => $localityRef), array("dep"));	
@@ -350,7 +373,7 @@ class IndexAction extends CAction
 					if($data == "news" || $data == "idea" || $data == "question" || $data == "announce" || $data == "information")
 						$searchType[]=array("type" => $data);
 					else
-						$searchType[]=array("object.objectType" => $data);
+						$searchType[]=array("object.type" => $data);
 				}
 				
 				//
@@ -384,7 +407,7 @@ class IndexAction extends CAction
 			//Exclude => If isAnAbuse
 			$where = array_merge($where,  array( 'isAnAbuse' => array('$ne' => true) ) );
 			
-			$where = array_merge($where,  array('created' => array( '$lt' => $date ) ) );
+			$where = array_merge($where,  array('updated' => array( '$lt' => $date ) ) );
 
 			if(@$_POST["textSearch"] && $_POST["textSearch"]!="")
 			$where = array_merge($where,  array('text' => new MongoRegex("/".$_POST["textSearch"]."/i") ) );
@@ -398,11 +421,11 @@ class IndexAction extends CAction
 		}*/
 		//print_r($where);
 		if(!empty($where))
-			$news= News::getNewsForObjectId($where,array("created"=>-1),$type);
+			$news= News::getNewsForObjectId($where,array("updated"=>-1),$type);
 		
 		
 		// Sort news order by created 
-		$news = News::sortNews($news, array('created'=>SORT_DESC));
+		$news = News::sortNews($news, array('updated'=>SORT_DESC));
         //TODO : reorganise by created date
 		$params["news"] = $news;
 		$params["tags"] = Tags::getActiveTags();

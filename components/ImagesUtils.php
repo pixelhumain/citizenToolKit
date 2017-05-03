@@ -132,6 +132,95 @@ class ImagesUtils {
 	 * @param int $newheight 
 	 * @return this
 	 */
+	public function resizeAndCropImage($newwidth=1300, $newheight=400,$crop) {
+		//$width = ;
+	    //$height = 587;
+	
+	    # taller
+	   /* if ($height > $newheight) {
+	        $width = ($newheight / $height) * $width;
+	        $height = $newheight;
+	        $resized=true;
+	    }*/
+	
+	    # wider
+	    /*if ($width > $newwidth) {
+	        $height = ($newwidth / $width) * $height;
+	        $width = $newwidth;
+			$resized=true;
+	    }*/
+	    //$initialratio=1400;
+	    //$temp_width = $width;
+		//$temp_height =$height;
+		/*$source_aspect_ratio = $this->source_width / $this->source_height;
+		$desired_aspect_ratio = $newwidth / $newheight;
+
+		if ($source_aspect_ratio > $desired_aspect_ratio) {
+		    // Triggered when source image is wider
+		    $temp_height = $newheight;
+		    $temp_width = ( int ) ($newheight * $source_aspect_ratio);
+		} else {
+		    // Triggered otherwise (i.e. source image is similar or taller)
+		    $temp_width = $newwidth;
+		    $temp_height = ( int ) ($newwidth / $source_aspect_ratio);
+		}*/
+		//echo $temp_width."///".$temp_height;
+		/*
+		 * Resize the image into a temporary GD image
+		 */
+		//echo $this->source_width.",".$this->source_height.",".$crop["cropX"].", ".$crop["cropY"].",".$crop["cropW"].",".$crop["cropH"];
+		$temp_gdim = imagecreatetruecolor($crop["cropW"], $crop["cropH"]);
+		imagecopyresampled(
+		    $temp_gdim,
+		    $this->srcImage,
+		    0, 0,
+		 	$crop["cropX"], $crop["cropY"],
+		    ($crop["cropW"]+$crop["cropX"]), ($crop["cropH"]+$crop["cropY"]),
+		    $this->source_width,$this->source_height
+		);
+		$this->destImage = $temp_gdim;
+		imagedestroy($this->srcImage);
+		/*
+		 * Copy cropped region from temporary image into the desired GD image
+		 */
+		//$x0 = ($temp_width - $newwidth) / 2;
+		//$y0 = ($temp_height - $newheight) / 2;
+		/*echo $width."//".$height;
+		$desired_gdim = imagecreatetruecolor($width, $height);
+
+		imagecopy(
+		    $desired_gdim,
+		    $this->srcImage,
+		    0, 0,
+		    $crop["cropX"], $crop["cropY"],
+		    $crop["cropW"], $crop["cropH"]
+		);
+
+		$this->destImage = $desired_gdim;
+		imagedestroy($this->srcImage);
+		//imagedestroy($desired_gdim);*/
+		return $this;
+	}
+	public function imagecropping($new_width, $new_height, $x = 0, $y = 0){
+		//$im = imagecreatefrompng($this->srcImage);
+        $img = imagecrop($this->srcImage, array(
+            "x" => $x, 
+            "y" => $y,
+            "width" => $new_width,
+            "height" => $new_height
+        ));
+
+        //$this->destImage = $this->srcImage;
+		//imagedestroy($this->srcImage);
+        return $img;
+    }
+	/**
+	 * Resize the image a newWidth and a newHeight
+	 * If the image is a png with transparency, the background will be filled with white color
+	 * @param int $newwidth 
+	 * @param int $newheight 
+	 * @return this
+	 */
 	public function resizePropertionalyImage($newwidth, $newheight) {
 		$width = $this->source_width;
 	    $height = $this->source_height;

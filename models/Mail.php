@@ -304,6 +304,8 @@ class Mail {
                 "to" => $currentAdminEmail,
                 "tplParams" => array(  "newPendingAdmin"=> $newPendingAdmin ,
                                         "title" => Yii::app()->name ,
+                                        "logo"=> Yii::app()->params["logoUrl"],
+                                        "logo2" => Yii::app()->params["logoUrl2"],
                                         "parent" => $parent,
                                         "parentType" => $parentType,
                                         "typeOfDemand"=> $typeOfDemand)
@@ -378,6 +380,8 @@ class Mail {
             "tplParams" => array(  
                 "newChild"=> $child,      
                 "title" => Yii::app()->name , 
+                "logo"=> Yii::app()->params["logoUrl"],
+                "logo2" => Yii::app()->params["logoUrl2"],
                 "authorName"=>Yii::app()->session["user"]["name"],   
                 "authorId" => Yii::app()->session["userId"],  
                 "parent" => $parent,       
@@ -411,6 +415,8 @@ class Mail {
                 "to" => $mail,     
                 "tplParams" => array(    
                     "title" => Yii::app()->name, 
+                    "logo"=> Yii::app()->params["logoUrl"],
+                    "logo2" => Yii::app()->params["logoUrl2"],
                     "authorName"=>Yii::app()->session["user"]["name"],   
                     "authorId" => Yii::app()->session["userId"],  
                     "parent" => $element,       
@@ -423,17 +429,18 @@ class Mail {
      * Send an email with beta test information
      * @return null
      */
-    public static function sendMailFormContact($emailSender, $subject, $name, $message) {
+    public static function sendMailFormContact($emailSender, $names, $subject, $contentMsg) {
         
         $params = array (
             "type" => Cron::TYPE_MAIL,
-            "tpl"=>'simple',
+            "tpl"=>'contactForm',
             "subject" => $subject,
-            "from" => $emailSender,
+            "from" => Yii::app()->params['adminEmail'],
             "to"=>Yii::app()->params['adminEmail'],
-            "tplParams" => array(   "title" => Yii::t("email","New message from").$name,
+            "tplParams" => array(   "title" => Yii::t("email","New message from").$names,
                                     "subject" => $subject,
-                                    "message" => $message,
+                                    "message" => $contentMsg,
+                                    "emailSender" => $emailSender,
                                 )
                                     /*   "logo"=> "/images/logo-communecter.png",
                                     "logo2" => "/images/logoLTxt.jpg")*/
