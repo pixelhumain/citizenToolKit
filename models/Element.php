@@ -1150,8 +1150,13 @@ class Element {
 			}
 		}
 
-		if(isset($params["name"])) 
-	    	$params["name"] = $params["name"];
+		if(isset($params["name"]))
+			$params["name"] = $params["name"];
+
+		if(isset($params["shortDescription"]))
+			$params["shortDescription"] = strip_tags($params["shortDescription"]);
+
+	    
 	
 		//TODO SBAR - Manage elsewhere (maybe in the view)
 		//Manage the event startDate and endDate format : 
@@ -1523,10 +1528,10 @@ class Element {
 		}else if($block == "descriptions"){
 			if(isset($params["description"])){
 				$res[] = self::updateField($collection, $id, "description", $params["description"]);
-				$res[] = self::updateField($collection, $id, "descriptionHTML", null);
+				self::updateField($collection, $id, "descriptionHTML", null);
 			}
 			if(isset($params["shortDescription"]))
-				$res[] = self::updateField($collection, $id, "shortDescription", $params["shortDescription"]);
+				$res[] = self::updateField($collection, $id, "shortDescription", strip_tags($params["shortDescription"]));
 		}
 
 		if(Import::isUncomplete($id, $collection)){
@@ -1543,7 +1548,7 @@ class Element {
 			if($value["result"] == true){
 				if($msg != "")
 					$msg .= ", ";
-				$msg .= $value["fieldName"];
+				$msg .= Yii::t("common",$value["fieldName"]);
 				$values[$value["fieldName"]] = $value["value"];
 			}else{
 				if($msgError != "")
@@ -1554,7 +1559,7 @@ class Element {
 
 		if($msg != ""){
 			$resultGoods["result"]=true;
-			$resultGoods["msg"]=Yii::t("common", "The following attributs has been updated :".$msg);
+			$resultGoods["msg"]= Yii::t("common", "The following attributs has been updated :")." ".Yii::t("common",$msg);
 			$resultGoods["values"] = $values ;
 			$result["resultGoods"] = $resultGoods ;
 			$result["result"] = true ;
