@@ -1150,8 +1150,13 @@ class Element {
 			}
 		}
 
-		if(isset($params["name"])) 
-	    	$params["name"] = $params["name"];
+		if(isset($params["name"]))
+			$params["name"] = $params["name"];
+
+		if(isset($params["shortDescription"]))
+			$params["shortDescription"] = strip_tags($params["shortDescription"]);
+
+	    
 	
 		//TODO SBAR - Manage elsewhere (maybe in the view)
 		//Manage the event startDate and endDate format : 
@@ -1471,7 +1476,6 @@ class Element {
 		$block = $params["block"];
 		$collection = $params["typeElement"];
 		$id = $params["id"];
-
 		$res = array();
 		if($block == "info"){
 			if(isset($params["name"]))
@@ -1518,13 +1522,16 @@ class Element {
 				$res[] = self::updateField($collection, $id, "startDate", $params["startDate"]);
 			if(isset($params["endDate"]))
 				$res[] = self::updateField($collection, $id, "endDate", $params["endDate"]);
+		}else if($block == "toMarkdown"){
+			$res[] = self::updateField($collection, $id, "description", $params["value"]);
+			$res[] = self::updateField($collection, $id, "descriptionHTML", null);
 		}else if($block == "descriptions"){
 			if(isset($params["description"])){
 				$res[] = self::updateField($collection, $id, "description", $params["description"]);
-				$res[] = self::updateField($collection, $id, "descriptionHTML", null);
+				self::updateField($collection, $id, "descriptionHTML", null);
 			}
 			if(isset($params["shortDescription"]))
-				$res[] = self::updateField($collection, $id, "shortDescription", $params["shortDescription"]);
+				$res[] = self::updateField($collection, $id, "shortDescription", strip_tags($params["shortDescription"]));
 		}
 
 		if(Import::isUncomplete($id, $collection)){
@@ -1541,7 +1548,7 @@ class Element {
 			if($value["result"] == true){
 				if($msg != "")
 					$msg .= ", ";
-				$msg .= $value["fieldName"];
+				$msg .= Yii::t("common",$value["fieldName"]);
 				$values[$value["fieldName"]] = $value["value"];
 			}else{
 				if($msgError != "")
@@ -1552,7 +1559,7 @@ class Element {
 
 		if($msg != ""){
 			$resultGoods["result"]=true;
-			$resultGoods["msg"]=Yii::t("common", "The next attributs has been updated : ".$msg);
+			$resultGoods["msg"]= Yii::t("common", "The following attributs has been updated :")." ".Yii::t("common",$msg);
 			$resultGoods["values"] = $values ;
 			$result["resultGoods"] = $resultGoods ;
 			$result["result"] = true ;
@@ -1713,6 +1720,9 @@ class Element {
 		unset($newElement["roles"]);
 		unset($newElement["two_step_register"]);
 		unset($newElement["lastLoginDate"]);
+
+		if(in_array($element["type"],array_keys( Organization::$types) ) )
+			$newElement["typeOrga"] = $element["type"] ;
 		if(!empty($element["telephone"]["fixe"]))
 			$newElement["fixe"] = ArrayHelper::arrayToString($element["telephone"]["fixe"]) ;
 		if(!empty($element["telephone"]["mobile"]))

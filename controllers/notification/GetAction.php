@@ -26,6 +26,15 @@ class GetAction extends CAction
           }else
             $params = array("notify.id.".Yii::app()->session["userId"] => array('$exists' => true));
           $res = ActivityStream::getNotifications($params);
+          if(!empty($res)){
+            $timezone="";
+             foreach($res as $key => $data){
+                if(@$data["updated"])
+                  $res[$key]["timeAgo"]=Translate::pastTime(date(@$data["updated"]->sec), "timestamp", $timezone);
+                else if(@$data["created"])
+                  $res[$key]["timeAgo"]=Translate::pastTime(date(@$data["created"]->sec), "timestamp", $timezone);
+             } 
+          }
         } else
             $res = array('result' => false , 'msg'=>'something somewhere went terribly wrong');
             
