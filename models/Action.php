@@ -109,7 +109,7 @@ class Action
                         $mapObject["modified"] = new MongoDate(time());
                     }
                     else
-                        $params['$set'] = array( "updated" => time(), "modified" => new MongoDate(time()) );
+                        $params['$set'] = array( "updated" => new MongoDate(time()), "modified" => new MongoDate(time()) );
 
                     $params[$dbMethod] = $mapObject;
                     $params['$inc'] = array( $action."Count" => $inc);

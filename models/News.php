@@ -207,6 +207,12 @@ class News {
 			$pathFileDelete= Yii::app()->params['uploadDir'].$endPath[1];
 			unlink($pathFileDelete);
 		}
+
+		PHDB::remove(self::COLLECTION,array("type"=>"activityStream",
+											"verb"=>ActStr::TYPE_ACTIVITY_SHARE,
+											"object.type"=>"news",
+											"object.id"=>new MongoId($id)));
+
 		return PHDB::remove(self::COLLECTION,array("_id"=>new MongoId($id)));
 	}
 	/**
