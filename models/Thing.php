@@ -126,14 +126,14 @@ class Thing {
 			}
 			$partReadings['url']=$sckurl;
 */
-			if(!empty($boardId) && ($deviceMetadata['boardId']=='[FILTERED]' || !isset($deviceMetadata['boardId']  ))){
-				$partReadings['boardId']=$boardId;}
-/*
+			if(!empty($boardId && (preg_match('/([0-9a-f]{2}[:]){5}([0-9a-f]{2})/',$boardId)==1)) && ($deviceMetadata['boardId']=='[FILTERED]' || !isset($deviceMetadata['boardId'] ))){
+				$partReadings['boardId'] = $boardId; }
+
 			if(!empty($partReadings) && isset($partReadings['boardId']) && isset($deviceMetadata['boardId'])){
 			 if ( $deviceMetadata['boardId']!='[FILTERED]' && $partReadings['boardId']=='[FILTERED]'){
 				unset($partReadings['boardId']);}
 			}
-*/
+
 /*			
 			if(!isset($partReadings['name'])){
 				$partReadings['name'] = ((empty($name)) ? '' : '$name' );}
@@ -204,7 +204,7 @@ class Thing {
 		
 		foreach ($listbd as $bd) {
 			//TODO (optionnel) : vérifier le deviceID est un nombre
-			if(preg_match('/^([0-9a-f]{2}[:]){5}([0-9a-f]{2})$/', $bd['boardId'])==1){
+			if(preg_match('/([0-9a-f]{2}[:]){5}([0-9a-f]{2})/', $bd['boardId'])==1){
 				$res[] = Element::save(self::setMetadata(null,null,true,$bd['deviceId'],$bd['boardId']));
 			}
 		}
@@ -250,7 +250,7 @@ class Thing {
 	public static function getSCKDevicesByLocality($country="RE", $regionName=null, $depName=null, $cityName=null, $cp=null, $insee=null, $fields=null){
 
 		$where=array("type"=>self::SCK_TYPE);
-		if(!empty($country)){ 	$where["address.addressCountry"]=$country; }
+		if(!empty($country) ){ 	$where["address.addressCountry"]=$country; }
 		if(!empty($insee)){ 	$where["address.codeInsee"] = $insee; }
 		if(!empty($regionName)){$where["address.regionName"]=$regionName; }
 		if(!empty($depName)){ 	$where["address.depName"]	=$depName; }
@@ -324,7 +324,7 @@ class Thing {
 
 	public static function getLastestRecordsInDB($boardId=null,$where=array("type"=>self::SCK_TYPE),$sort=array("created"=>-1),$limit=1,$fields=null){
 		$lastRecords = array();
-		if(!empty($boardId)&&(strlen($boardId)==17)&& ($boardId!= "[FILTERED]" )){
+		if(!empty($boardId) && $boardId!="[FILTERED]" ){
 			$where["boardId"] = $boardId;
 			$lastRecords = PHDB::findAndSort(self::COLLECTION_DATA,$where,$sort,$limit,$fields);
 		}
@@ -364,10 +364,12 @@ class Thing {
 		$dataInDB = self::getLastestRecordsInDB($boardId,$where,$sort,$limit);
 
 		$data=array();
-		foreach ($dataInDB as $rawData) {
-			if((!isset($rawData['converted']) || @$rawData['converted']==false )||
-				(!isset($rawData['synthetized']) || @$rawData['synthetized']!=false )){
-				$data[]= SCKSensorData::SCK11Convert($rawData);
+		if(!empty($dataInDB)){
+			foreach ($dataInDB as $rawData) {
+				if((!isset($rawData['converted']) || @$rawData['converted']==false )||
+					(!isset($rawData['synthesized']) || @$rawData['synthesized']!=false )){
+					$data[]= SCKSensorData::SCK11Convert($rawData);
+				}
 			}
 		}
 		return $data; 
@@ -469,45 +471,58 @@ class Thing {
 	}
 
 	public static function synthetizeSCKRecordInDB($boardId,$date,$rollupMin,$converted=false){
+		$result=array('nbSynthesizedElements'=>0,'nbSavedElements'=>0 );
+
 		$where=array("type"=>self::SCK_TYPE);
 		$time=	$date->format('Y-m-');
 		$time2 = $date->format('Y-n-');
 		$regextime = "/(".$time."|".$time2.")/i";
 		$queryTimestamp[] = new MongoRegex($regextime);
 		$where["timestamp"] = array('$in'=> $queryTimestamp);
+		$where['converted'] = array('exists'=>0);
+		$where['synthesized'] = array('exists'=>0);
+		$where['latest'] = array('exists'=>0);
 		$sort = array("timestamp"=>1);
 		$limit = null;
 		
 		$dataR = self::getLastestRecordsInDB($boardId,$where,$sort,$limit);
-		if($converted==true){
-			$dataC=array();
-			foreach ($dataR as $dataRaw) {
-				$dataRaw["converted"]=$converted;
-				$dataC[]=SCKSensorData::SCK11Convert($dataRaw);
+		if(!empty($dataR)){
+			if($converted==true){
+				$dataC=array();
+				foreach ($dataR as $dataRaw) {
+					//$dataRaw["converted"]=$converted;
+					$dataC[]=SCKSensorData::SCK11Convert($dataRaw);
+				}
+				$data=$dataC;
+			}else{$data=$dataR;}
+
+			$dataS = self::getSCKAvgWithRollupPeriod($data,$rollupMin,true);
+			
+			$dataThing= array('collection' => self::COLLECTION_DATA, 'key'=>'thing','type'=>self::SCK_TYPE,'boardId'=>$boardId,'synthesized'=>true );
+
+			$nbSavedElements=0;
+			
+			foreach ($dataS as $dataToSave) {
+				$res = Element::save(array_merge($dataThing, $dataToSave));
+				$res1[]=$res;
+				if($res['result']==true)
+					$nbSavedElements++;
 			}
-			$data=$dataC;
-		}else{$data=$dataR;}
-
-		$dataS = self::getSCKAvgWithRollupPeriod($data,$rollupMin,true);
-		
-		$dataThing= array('collection' => self::COLLECTION_DATA, 'key'=>'thing','type'=>self::SCK_TYPE,'boardId'=>$boardId,'synthetized'=>true );
-
-		$nbSavedElements=0;
-		
-		foreach ($dataS as $dataToSave) {
-			$res = Element::save(array_merge($dataThing, $dataToSave));
-			$res1[]=$res;
-			if($res['result']==true)
-				$nbSavedElements++;
-		}
-		
-		if($nbSavedElements>=(count($dataS)-1)){
-			$resSuppr = self::deleteSCKRecords($boardId,$date);
+			
+			
+			if($nbSavedElements>=(count($dataS)-1)){
+				$resSuppr = self::deleteSCKRecords($boardId,$date);
+				$result['result']=true;
+				$result['message']='Data suppressed';
+			}else {
+				$result['result']=false;
+				$result['message']='Data not suppressed';
+			}
 		}
 		
 
 		//TODO faire un tableau recap des différentes etapes
-		return $res1;
+		return $result; 
 	}
 
 	public static function getDateTime($bindMap) {
@@ -522,18 +537,43 @@ class Thing {
 	
 	//TODO faire une vérification du timestamp pour éviter les '#' ou timestamps vide ou doublons
 	public static function fillAndSaveSmartCitizenData($headers){
-		
 		$data = json_decode($headers["X-SmartCitizenData"],true);
+		$nbSavedElements=0;
+
+		$dataThing = array();
+		$dataThing['collection']=self::COLLECTION_DATA;        
+    	$dataThing['key'] 	= 'thing';
+    	$dataThing['type'] 	= self::SCK_TYPE;
+		$dataThing['boardId']=$headers['X-SmartCitizenMacADDR'];
+        $dataThing['version']=$headers['X-SmartCitizenVersion'];
+		
 		foreach ($data as $datum) {
-			$dataThing = array();
-			$dataThing['collection']=self::COLLECTION_DATA;        
-        	$dataThing['key'] = 'thing';
-        	$dataThing['type'] 	 = self::SCK_TYPE;
-        	$dataThing['boardId']=$headers['X-SmartCitizenMacADDR'];
-        	$dataThing['version']=$headers['X-SmartCitizenVersion'];
 			$res = Element::save(array_merge($dataThing, $datum));
+			if($res['result']==true){
+				$nbSavedElements++;
+
+			}
 		}
-        return $res;
+		$resLast = saveLastRecordConverted(array_merge($dataThing,end($data)));
+
+        return array('nbSavedElements'=>$nbSavedElements,'result'=>(($nbSavedElements>0)?true:false), 'latestConverted'=>$resLast['result']);
+	}
+
+	private static function saveLastRecordConverted($latestDatum){
+		$dateAndTime = explode(" ", $latestDatum['timestamp']);
+		$strdateD = $dateAndTime[0];
+		 // $hour = $dateAndTime[1]; //
+
+		$dataC = self::getConvertedRercord($latestDatum['boardId'],true,$strdateD); //,$hour);
+		unset($latestDatum['temp'],$latestDatum['hum'],$latestDatum['noise'],$latestDatum['co']);
+		unset($latestDatum['light'],$latestDatum['no2'],$latestDatum['bat'],$latestDatum['panel']);
+		unset($latestDatum['nets'];
+
+		$latestDatum['id']=$dataC['_id'];
+		$latestDatum['latest']=true;
+		unset($dataC['_id']);
+		return Element::save(array_merge($latestDatum, $dataC));
+
 	}
 
 	private static function getSCKDeviceIdByPoiUrl($sckUrl){
@@ -577,7 +617,7 @@ class Thing {
 		$where = array("type"=>self::SCK_TYPE,"boardId"=>$boardId);
 		$queryTimestamp[] = new MongoRegex("/^(".$dateM."|".$dateN.")/i");
 		$where["timestamp"] = array('$in'=> $queryTimestamp);
-		$where["synthetized"] = array('exists'=>0); 
+		$where["synthesized"] = array('exists'=>0); 
 
 		$result = PHDB::remove('data_copy', $where); // collection : self::COLLECTION_DATA , data_copy pour les tests
 		return $result;

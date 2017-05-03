@@ -23,11 +23,7 @@ class SaveAction extends CAction {
                 if ( array_key_exists('X-SmartCitizenData', $headers) 
                     && array_key_exists('X-SmartCitizenMacADDR', $headers)) {
 
-                    $response = Thing::fillAndSaveSmartCitizenData($headers); 
-                    //print_r($response);
-                    $res=array();
-                    //Element::Save() directement appeler dans la fonction, pour accepter le batch.
-                    //Retourne 
+                    $res=Thing::fillAndSaveSmartCitizenData($headers); 
 
                 } elseif ( $_SERVER['REQUEST_METHOD'] == 'POST') {
                     $toSave = $_POST;
