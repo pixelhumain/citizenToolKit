@@ -417,8 +417,8 @@ class Element {
 					$verb = '$set';
 					$address = array(
 				        "@type" => "PostalAddress",
-				         "id" => "468768",
-				        "name" => "mairie",
+				        // "id" => "468768",
+				        //"name" => "mairie",
 				        "codeInsee" => $fieldValue["address"]["codeInsee"],
 				        "addressCountry" => $fieldValue["address"]["addressCountry"],
 				        "postalCode" => $fieldValue["address"]["postalCode"],

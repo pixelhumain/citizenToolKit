@@ -216,7 +216,7 @@ class Search {
 					$allRes[$key]["updatedLbl"] = Translate::pastTime(@$value["updated"],"timestamp");
 	  		}
 	  	}
-
+	  	//var_dump($allRes);
 	  	return $allRes ;
     }
 
@@ -541,6 +541,7 @@ class Search {
   		foreach ($allOrganizations as $key => $value) 
   		{
   			if(!empty($value)){
+
 	  			$orga = Organization::getSimpleOrganizationById($key,$value);
 	  			if( @$value["links"]["followers"][Yii::app()->session["userId"]] )
 		  			$orga["isFollowed"] = true;
