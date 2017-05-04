@@ -104,13 +104,14 @@ class Action
                     $mapObject[ $action.".".(string)$user["_id"] ] = $details ;
                     $params = array();
 
-                    if( $dbMethod == '$set'){
-                        $mapObject["updated"] = time();
-                        $mapObject["modified"] = new MongoDate(time());
+                    //if : empeche la mise à jour de la date des news à chaque commentaire
+                    if(!($collection == "news" && $action == Action::ACTION_COMMENT)){    
+                        if( $dbMethod == '$set'){
+                            $mapObject["updated"] = time();
+                            $mapObject["modified"] = new MongoDate(time());
+                        }
+                        else $params['$set'] = array( "updated" => new MongoDate(time()), "modified" => new MongoDate(time()) );
                     }
-                    else
-                        $params['$set'] = array( "updated" => new MongoDate(time()), "modified" => new MongoDate(time()) );
-
                     $params[$dbMethod] = $mapObject;
                     $params['$inc'] = array( $action."Count" => $inc);
 
@@ -137,7 +138,6 @@ class Action
                 }
 
                 //self::addActionHistory( $userId , $id, $collection, $action);
-                
                 self::updateParent( $id, $collection);
 
                 //We update the points of the user
