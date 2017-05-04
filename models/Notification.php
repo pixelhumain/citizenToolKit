@@ -836,7 +836,7 @@ class Notification{
 				if(@$news["title"])
 					$res["{what}"]="&quot;".$news["title"]."&quot;";
 				else
-					$res["{what}"]="&quot;".strtr($news["text"], 0, 20)."...&quot;";
+					$res["{what}"]="&quot;".strtr(@$news["text"], 0, 20)."...&quot;";
 			}
 			else if($object){
 				$object=Element::getElementSimpleById($object["id"], $object["type"]);

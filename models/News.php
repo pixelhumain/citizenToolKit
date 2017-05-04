@@ -207,6 +207,27 @@ class News {
 			$pathFileDelete= Yii::app()->params['uploadDir'].$endPath[1];
 			unlink($pathFileDelete);
 		}
+
+		$actStream = PHDB::find(self::COLLECTION,array("type"=>"activityStream",
+														"verb"=>ActStr::TYPE_ACTIVITY_SHARE,
+														"object.type"=>"news",
+														"object.id"=>$id));
+		//var_dump($id); var_dump($actStream); exit;
+		foreach ($actStream as $key => $value) { //var_dump($key); exit;
+			error_log("try to delete comments where contextId=".$key);
+			PHDB::remove(Comment::COLLECTION,array( "contextType"=>"news",
+													"contextId"=>$key));
+		}
+
+		PHDB::remove(self::COLLECTION,array("type"=>"activityStream",
+											"verb"=>ActStr::TYPE_ACTIVITY_SHARE,
+											"object.type"=>"news",
+											"object.id"=>$id));
+
+		error_log("- try to delete comments where contextId=".$id);
+		PHDB::remove(Comment::COLLECTION,array( "contextType"=>"news",
+												"contextId"=>$id));
+
 		return PHDB::remove(self::COLLECTION,array("_id"=>new MongoId($id)));
 	}
 	/**

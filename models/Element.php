@@ -417,8 +417,8 @@ class Element {
 					$verb = '$set';
 					$address = array(
 				        "@type" => "PostalAddress",
-				         "id" => "468768",
-				        "name" => "mairie",
+				        // "id" => "468768",
+				        //"name" => "mairie",
 				        "codeInsee" => $fieldValue["address"]["codeInsee"],
 				        "addressCountry" => $fieldValue["address"]["addressCountry"],
 				        "postalCode" => $fieldValue["address"]["postalCode"],
@@ -1727,11 +1727,14 @@ class Element {
 		unset($newElement["roles"]);
 		unset($newElement["two_step_register"]);
 		unset($newElement["lastLoginDate"]);
-		if(!empty($element["telephone"]["fixe"]))
+
+		if(in_array(@$element["type"],array_keys( Organization::$types) ) )
+			$newElement["typeOrga"] = $element["type"] ;
+		if(!empty(@$element["telephone"]["fixe"]))
 			$newElement["fixe"] = ArrayHelper::arrayToString($element["telephone"]["fixe"]) ;
-		if(!empty($element["telephone"]["mobile"]))
+		if(!empty(@$element["telephone"]["mobile"]))
 			$newElement["mobile"] = ArrayHelper::arrayToString($element["telephone"]["mobile"]) ;
-		if(!empty($element["telephone"]["fax"]))
+		if(!empty(@$element["telephone"]["fax"]))
 			$newElement["fax"] = ArrayHelper::arrayToString($element["telephone"]["fax"]) ;
 		$newElement["id"] = (String) $element["_id"] ;
 
