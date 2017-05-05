@@ -1680,6 +1680,13 @@ class Element {
                 $params["linksBtn"]["isMember"]=true;
                 if(@$element["links"][$connectType][Yii::app()->session["userId"]][Link::TO_BE_VALIDATED])
                     $params["linksBtn"][Link::TO_BE_VALIDATED]=true;
+                if(@$element["links"][$connectType][Yii::app()->session["userId"]][Link::IS_INVITING]){
+                    $params["linksBtn"][Link::IS_INVITING]=true;
+                    $params["invitedMe"]=array(
+                    	"invitorId"=>$element["links"][$connectType][Yii::app()->session["userId"]]["invitorId"],
+                    	"invitorName"=>$element["links"][$connectType][Yii::app()->session["userId"]]["invitorName"]);
+                }
+
                 $params["linksBtn"]["isAdmin"]=true;
                 if(@$element["links"][$connectType][Yii::app()->session["userId"]][Link::IS_ADMIN_PENDING])
                     $params["linksBtn"][Link::IS_ADMIN_PENDING]=true;
