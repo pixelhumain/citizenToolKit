@@ -43,6 +43,12 @@ class Project {
 	    "created" => array("name" => "created"),
 	    "locality" => array("name" => "address"),
 	    "descriptionHTML" => array("name" => "descriptionHTML"),
+
+	    "facebook" => array("name" => "socialNetwork.facebook"),
+	    "twitter" => array("name" => "socialNetwork.twitter"),
+	    "gpplus" => array("name" => "socialNetwork.googleplus"),
+	    "github" => array("name" => "socialNetwork.github"),
+	    "skype" => array("name" => "socialNetwork.skype"),
 	);
 
 	public static $avancement = array(
@@ -109,7 +115,7 @@ class Project {
 	public static function getSimpleProjectById($id) {
 		
 		$simpleProject = array();
-		$project = PHDB::findOneById( self::COLLECTION ,$id, array("id" => 1, "name" => 1, "shortDescription" => 1, "description" => 1, "address" => 1, "geo" => 1, "tags" => 1, "profilImageUrl" => 1, "profilThumbImageUrl" => 1, "profilMarkerImageUrl" => 1, "profilMediumImageUrl" => 1, "addresses"=>1) );
+		$project = PHDB::findOneById( self::COLLECTION ,$id, array("id" => 1, "name" => 1, "shortDescription" => 1, "description" => 1, "address" => 1, "geo" => 1, "tags" => 1, /*"profilImageUrl" => 1, "profilThumbImageUrl" => 1, "profilMarkerImageUrl" => 1, "profilMediumImageUrl" => 1,*/ "addresses"=>1) );
 		if(!empty($project)){
 			$simpleProject["id"] = $id;
 			$simpleProject["name"] = @$project["name"];
@@ -121,6 +127,8 @@ class Project {
 			$simpleProject["shortDescription"] = @$project["shortDescription"];
 			$simpleProject["description"] = @$project["description"];
 			$simpleProject["typeSig"] = "projects";
+			$simpleProject["type"] = Project::COLLECTION;
+			$simpleProject["typeSig"] = Project::COLLECTION;
 		}
 
 		return $simpleProject;
