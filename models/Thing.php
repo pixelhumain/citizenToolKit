@@ -43,10 +43,11 @@ class Thing {
 		"sckSensors" => array("name"=>"sckSensors"),//api metadata
 		"sckUpdatedAt"	=>array("name"=>"sckUpdatedAt"),
 		"sensors" 	=> array("name"=> "sensors"),
-	    "status" 	=> array("name" => "status"), //in metadata updated for POI realy need?
+	    "status" 	=> array("name" => "status"), //
 	   	"tags" => array("name" => "tags"),
 	    "urls"		=> array("name" =>"urls"),
 	    "version" 	=> array("name" => "sckVersion"),
+	    //"converted" => array("name"=>"converted")
 	   
 	    "modified" 	=> array("name" => "modified"),
 	    "updated" 	=> array("name" => "updated"),
@@ -326,7 +327,10 @@ class Thing {
 		$lastRecords = array();
 		if(!empty($boardId) && $boardId!="[FILTERED]" ){
 			$where["boardId"] = $boardId;
+			//$where["latest"]= array('latest'=>array('exists'=>1))
+			//$whereOr=array('$or'=>array(array_merge($where,array('latest'=>array('exists'=>1)))),$where);
 			$lastRecords = PHDB::findAndSort(self::COLLECTION_DATA,$where,$sort,$limit,$fields);
+			
 		}
 
 		return $lastRecords;
@@ -366,8 +370,8 @@ class Thing {
 		$data=array();
 		if(!empty($dataInDB)){
 			foreach ($dataInDB as $rawData) {
-				if((!isset($rawData['converted']) || @$rawData['converted']==false )||
-					(!isset($rawData['synthesized']) || @$rawData['synthesized']!=false )){
+				if((!isset($rawData['status']['converted']) || @$rawData['status']['converted']==false )||
+					(!isset($rawData['status']['synthesized']) || @$rawData['status']['synthesized']!=false )){
 					$data[]= SCKSensorData::SCK11Convert($rawData);
 				}
 			}
@@ -479,9 +483,9 @@ class Thing {
 		$regextime = "/(".$time."|".$time2.")/i";
 		$queryTimestamp[] = new MongoRegex($regextime);
 		$where["timestamp"] = array('$in'=> $queryTimestamp);
-		$where['converted'] = array('exists'=>0);
-		$where['synthesized'] = array('exists'=>0);
-		$where['latest'] = array('exists'=>0);
+		$where['status.converted'] = array('exists'=>0);
+		$where['status.synthesized'] = array('exists'=>0);
+		$where['status.latest'] = array('exists'=>0);
 		$sort = array("timestamp"=>1);
 		$limit = null;
 		
@@ -498,7 +502,7 @@ class Thing {
 
 			$dataS = self::getSCKAvgWithRollupPeriod($data,$rollupMin,true);
 			
-			$dataThing= array('collection' => self::COLLECTION_DATA, 'key'=>'thing','type'=>self::SCK_TYPE,'boardId'=>$boardId,'synthesized'=>true );
+			$dataThing= array('collection' => self::COLLECTION_DATA, 'key'=>'thing','type'=>self::SCK_TYPE,'boardId'=>$boardId,'status'=>array('synthesized'=>true ));
 
 			$nbSavedElements=0;
 			
@@ -567,9 +571,9 @@ class Thing {
 		$dataC = self::getConvertedRercord($latestDatum['boardId'],true,$strdateD); //,$hour);
 		unset($latestDatum['temp'],$latestDatum['hum'],$latestDatum['noise'],$latestDatum['co']);
 		unset($latestDatum['light'],$latestDatum['no2'],$latestDatum['bat'],$latestDatum['panel']);
-		unset($latestDatum['nets'];
+		unset($latestDatum['nets']);
 
-		$latestDatum['id']=$dataC['_id'];
+		//$latestDatum['id']=$dataC['_id'];
 		$latestDatum['latest']=true;
 		unset($dataC['_id']);
 		return Element::save(array_merge($latestDatum, $dataC));
@@ -617,7 +621,7 @@ class Thing {
 		$where = array("type"=>self::SCK_TYPE,"boardId"=>$boardId);
 		$queryTimestamp[] = new MongoRegex("/^(".$dateM."|".$dateN.")/i");
 		$where["timestamp"] = array('$in'=> $queryTimestamp);
-		$where["synthesized"] = array('exists'=>0); 
+		$where["status.synthesized"] = array('exists'=>0); 
 
 		$result = PHDB::remove('data_copy', $where); // collection : self::COLLECTION_DATA , data_copy pour les tests
 		return $result;

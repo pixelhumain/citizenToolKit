@@ -86,7 +86,7 @@ class SCKSensorData
             unset($rawData['temp'],$rawData['hum'],$rawData['noise'],$rawData['co']);
             unset($rawData['light'],$rawData['no2'],$rawData['bat'],$rawData['panel']);
             unset($rawData['nets'],$rawData['timestamp']);
-            $data['converted']=true;
+            $data['status']['converted']=true;
             return array_merge($rawData,$data);
             
         } else {
