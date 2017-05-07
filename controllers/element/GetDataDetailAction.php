@@ -12,14 +12,23 @@ class GetDataDetailAction extends CAction {
 
 		if($dataName == "follows" || $dataName == "followers" || 
 			$dataName == "members" || $dataName == "attendees" ||
-			$dataName == "contributors" ){
-			if(isset($element["links"][$dataName])){
-				foreach ($element["links"][$dataName] as $keyLink => $value){
-					$link = Element::getByTypeAndId($value["type"], $keyLink);
-					$link["type"] = $value["type"];
-					if(!empty($value["isInviting"]))
+			$dataName == "contributors" || $dataName =="guests"){
+			$connector=$dataName;
+			if($dataName=="guests"){
+				$connector=Element::$connectTypes[$type];
+			}
+			if(isset($element["links"][$connector])){
+				foreach ($element["links"][$connector] as $keyLink => $value){
+					if($dataName=="guests" && @$value["isInviting"]){
+						$link = Element::getByTypeAndId($value["type"], $keyLink);
+						$link["type"] = $value["type"];
 						$link["isInviting"] = $value["isInviting"];
-	           		$contextMap[$keyLink] = $link;
+						$contextMap[$keyLink] = $link;
+					}else if($dataName!="guests" && !@$value["isInviting"]){
+						$link = Element::getByTypeAndId($value["type"], $keyLink);
+						$link["type"] = $value["type"];
+						$contextMap[$keyLink] = $link;
+					}
 				}
 			}
 		}
