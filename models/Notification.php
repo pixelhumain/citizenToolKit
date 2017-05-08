@@ -68,7 +68,7 @@ class Notification{
 				"type"=>"instantly"
 			),
 			"icon" => "fa-cog",
-			"url" => "page/type/{collections}/id/{id}/view/notifications"
+			"url" => "page/type/{collection}/id/{id}/view/notifications"
 		),
 		//// USED ONLY FOR EVENT
 		// FOR ORGANIZATRION AND PROJECT IF ONLY MEMBER
