@@ -113,6 +113,7 @@ class Notification{
 						"labelRepeat"=> "{who} added comments on a news {what} posted on {where}"
 					),
 					"notifyUser" => true,
+					"parentTarget"=>true,
 					"url" => "news/detail/id/{id}"
 				),
 				Survey::COLLECTION => array(
@@ -162,6 +163,7 @@ class Notification{
 					"label"=>"{who} likes your news {what}",
 					"labelRepeat"=>"{who} like your news {what}",
 					"notifyUser" => true,
+					"parentTarget"=>true,
 					"url" => "news/detail/id/{id}"
 				),
 				Comment::COLLECTION => array(
@@ -188,6 +190,7 @@ class Notification{
 					"label"=>"{who} disapproves your news {what}",
 					"labelRepeat"=>"{who} disapproves your news {what}",
 					"notifyUser" => true,
+					"parentTarget"=> true,
 					"url" => "news/detail/id/{id}"
 				),
 				Comment::COLLECTION => array(
@@ -227,11 +230,11 @@ class Notification{
 					"url" => "{ctrlr}/detail/id/{id}"
 				),*/
 				Project::COLLECTION => array(
-					"url" => "page/type/{collection}/id/{id}",
+					"url" => "page/type/{objectType}/id/{objectId}",
 					"label" => "{who} added a new project on {where}"
 				),
 				Event::COLLECTION=> array(
-					"url" => "page/type/{collection}/id/{id}",
+					"url" => "page/type/{objectType}/id/{objectId}",
 					"label" => "{who} added a new event on {where}"
 				),
 				ActionRoom::COLLECTION_ACTIONS=> array(
@@ -578,8 +581,10 @@ class Notification{
 		$url = str_replace("{ctrlr}", Element::getControlerByCollection($construct["target"]["type"]), $url);
 		$url = str_replace("{collection}", $construct["target"]["type"], $url);
 		$url = str_replace("{id}", $construct["target"]["id"], $url);
-		if(stripos($url, "{objectType}") > 0)
+		if(stripos($url, "{objectType}") > 0){
+			$url = str_replace("{objectType}", $construct["object"]["type"], $url);
 			$url = str_replace("{objectId}", $construct["object"]["id"], $url);
+		}
 		return $url;
 	}
 	/* TODO BOUBOULE
