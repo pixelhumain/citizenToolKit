@@ -794,10 +794,10 @@ class Link {
         else
             $levelNotif="asMember";
         //First case : The parent doesn't have an admin yet or it is an action from an admin or it is an event: 
-		if (count($usersAdmin) == 0 || $actionFromAdmin || $actionFromMember || $parentType == Event::COLLECTION) {
+		if (count($usersAdmin) == 0 || $actionFromAdmin || ($actionFromMember && $childId != Yii::app()->session["userId"]) || $parentType == Event::COLLECTION) {
             //the person is automatically added as member (admin or not) of the parent
             //var_dump("here");
-            if ($actionFromAdmin || $actionFromMember || ($parentType == Event::COLLECTION && $childId != Yii::app()->session["userId"])) {
+            if ($actionFromAdmin || ($actionFromMember && $childId != Yii::app()->session["userId"]) || ($parentType == Event::COLLECTION && $childId != Yii::app()->session["userId"])) {
 	            //If admin add as admin or member
                 $verb = ActStr::VERB_INVITE; 
 	            if($isConnectingAdmin==true){
