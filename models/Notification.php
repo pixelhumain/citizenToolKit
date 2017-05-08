@@ -46,7 +46,7 @@ class Notification{
 			"labelRepeat"=>"{who} are following {where}",
 			"labelArray" => array("who","where"),
 			"icon" => "fa-link",
-			"url" => "{ctrlr}/directory/id/{id}"
+			"url" => "page/type/{collection}/id/{id}/view/directory/dir/followers"
 		),
 		ActStr::VERB_ASK => array(
 			"repeat" => true,
@@ -100,7 +100,7 @@ class Notification{
 			),
 			"labelArray" => array("who","where"),
 			"icon" => "fa-group",
-			"url" => "{ctrlr}/directory/id/{id}"
+			"url" => "page/type/{collection}/id/{id}/view/directory/dir/{connectAs}"
 		),
 		ActStr::VERB_COMMENT => array(
 			"repeat" => true,
@@ -317,7 +317,7 @@ class Notification{
 			),
 			"labelArray" => array("who","where"),
 			"icon" => "fa-check",
-			"url" => "{ctrlr}/directory/id/{id}"
+			"url" => "page/type/{collection}/id/{id}/view/directory/dir/{connectAs}"
 		),
 		//FROM USER LINK TO AN ELEMENT ACTING ON IT
 		ActStr::VERB_INVITE => array(
@@ -350,7 +350,7 @@ class Notification{
 				"to" => "user"
 			),
 			"icon" => "fa-send",
-			"url" => "page/type/{collection}/id/{id}"
+			"url" => "page/type/{collection}/id/{id}/view/directory/dir/guests"
 		),
 		// AJouter la confirmation vers l'utilisateur
 		//Creer le mail pour l'utilisateur accepté !!
@@ -384,7 +384,7 @@ class Notification{
 			),
 			"labelArray" => array("author","who","where"),
 			"icon" => "fa-check",
-			"url" => "{ctrlr}/directory/id/{id}"
+			"url" => "page/type/{collection}/id/{id}/view/directory/dir/{connectAs}"
 		)/*,
 		"SIGNIN" => array(
 			"repeat" => true,
@@ -581,6 +581,8 @@ class Notification{
 		$url = str_replace("{ctrlr}", Element::getControlerByCollection($construct["target"]["type"]), $url);
 		$url = str_replace("{collection}", $construct["target"]["type"], $url);
 		$url = str_replace("{id}", $construct["target"]["id"], $url);
+		if(stripos($url, "{connectAs}") > 0)
+			$url = str_replace("{connectAs}", Element::$connectTypes[$construct["target"]["type"]], $url);
 		if(stripos($url, "{objectType}") > 0){
 			$url = str_replace("{objectType}", $construct["object"]["type"], $url);
 			$url = str_replace("{objectId}", $construct["object"]["id"], $url);
