@@ -596,6 +596,7 @@ class Search {
 
 				$allEvents[$key]["organizerObj"] = 
 				Element::getElementById(@$allEvents[$key]["organizerId"], @$allEvents[$key]["organizerType"]);
+				$allEvents[$key]["organizerObj"]["type"] = @$allEvents[$key]["organizerType"];
 			}
   		}
   		return $allEvents;
