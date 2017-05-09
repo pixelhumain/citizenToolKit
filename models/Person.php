@@ -37,7 +37,7 @@ class Person {
 	    "facebook" => array("name" => "socialNetwork.facebook"),
 	    "twitter" => array("name" => "socialNetwork.twitter"),
 	    "gpplus" => array("name" => "socialNetwork.googleplus"),
-	    "gitHub" => array("name" => "socialNetwork.github"),
+	    "github" => array("name" => "socialNetwork.github"),
 	    "skype" => array("name" => "socialNetwork.skype"),
 	    "telegram" => array("name" => "socialNetwork.telegram"),
 	    "bgClass" => array("name" => "preferences.bgClass"),
@@ -2041,32 +2041,38 @@ class Person {
 
     public static function updateCookieCommunexion($userId, $address) {
     	$result = array("result" => false, "msg" => "User not connected");
+    	//var_dump($userId);
+
     	if(!empty($userId)){
     		try{
     			if(!empty($address)){
-    				Yii::app()->request->cookies['inseeCommunexion'] = new CHttpCookie('inseeCommunexion', $address["codeInsee"]);
-    				Yii::app()->request->cookies['cpCommunexion'] = new CHttpCookie('cpCommunexion', $address["postalCode"]);
-    				Yii::app()->request->cookies['cityNameCommunexion'] = new CHttpCookie('cityNameCommunexion', $address["addressLocality"]);
-    				/*CookieHelper::setCookie("inseeCommunexion", $address["codeInsee"]);
+    				CookieHelper::setCookie("inseeCommunexion", $address["codeInsee"]);
 		    		CookieHelper::setCookie("cpCommunexion", $address["postalCode"]);
-		    		CookieHelper::setCookie("cityNameCommunexion", $address["addressLocality"]);*/
+		    		CookieHelper::setCookie("cityNameCommunexion", $address["addressLocality"]);
+		    		CookieHelper::setCookie("communexionActivated", false);
+    				CookieHelper::setCookie("communexionType", "cp");
+		    		CookieHelper::setCookie("communexionValue", $address["addressCountry"]."_".$address["codeInsee"]."-".$address["postalCode"]);
+		    		CookieHelper::setCookie("communexionName", $address["addressLocality"]);
+		    		CookieHelper::setCookie("communexionLevel", "cpCommunexion");
     			}else{
+    				//var_dump($address);
+    				/*CookieHelper::removeCookie("communexionType");
+		    		CookieHelper::removeCookie("communexionValue");
+		    		CookieHelper::removeCookie("communexionName");
+		    		CookieHelper::removeCookie("communexionLevel");    				
     				CookieHelper::removeCookie("inseeCommunexion");
 		    		CookieHelper::removeCookie("cpCommunexion");
-		    		CookieHelper::removeCookie("cityNameCommunexion");
-		    		CookieHelper::removeCookie("communexionActivated");
-    				unset(Yii::app()->request->cookies['inseeCommunexion']);
-    				unset(Yii::app()->request->cookies['cpCommunexion']);
-    				unset(Yii::app()->request->cookies['cityNameCommunexion']);
-    				unset(Yii::app()->request->cookies['communexionActivated']);
-    				//Yii::app()->request->cookies['communexionActivated'] = new CHttpCookie('communexionActivated', false);
-    				
-    				/*CookieHelper::removeCookie("inseeCommunexion");
-		    		CookieHelper::removeCookie("cpCommunexion");
-		    		CookieHelper::removeCookie("cityNameCommunexion");
+		    		CookieHelper::removeCookie("cityNameCommunexion");*/
 		    		CookieHelper::setCookie("communexionActivated", false);
-		    		//CookieHelper::removeCookie("communexionActivated");*/
+		    		CookieHelper::setCookie("inseeCommunexion", false);
+		    		CookieHelper::setCookie("cpCommunexion", false);
+		    		CookieHelper::setCookie("cityNameCommunexion", false);
+    				CookieHelper::setCookie("communexionType", false);
+		    		CookieHelper::setCookie("communexionValue", false);
+		    		CookieHelper::setCookie("communexionName", false);
+		    		CookieHelper::setCookie("communexionLevel", false);
     			}
+    			
 	    		$result = array("result" => true, "msg" => "Cookies is updated");
 			}catch (CTKException $e) {
 				$result = array("result" => false, "msg" => $e->getMessage());

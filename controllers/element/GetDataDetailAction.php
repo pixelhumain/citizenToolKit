@@ -12,14 +12,23 @@ class GetDataDetailAction extends CAction {
 
 		if($dataName == "follows" || $dataName == "followers" || 
 			$dataName == "members" || $dataName == "attendees" ||
-			$dataName == "contributors" ){
-			if(isset($element["links"][$dataName])){
-				foreach ($element["links"][$dataName] as $keyLink => $value){
-					$link = Element::getByTypeAndId($value["type"], $keyLink);
-					$link["type"] = $value["type"];
-					if(!empty($value["isInviting"]))
+			$dataName == "contributors" || $dataName =="guests"){
+			$connector=$dataName;
+			if($dataName=="guests"){
+				$connector=Element::$connectTypes[$type];
+			}
+			if(isset($element["links"][$connector])){
+				foreach ($element["links"][$connector] as $keyLink => $value){
+					if($dataName=="guests" && @$value["isInviting"]){
+						$link = Element::getByTypeAndId($value["type"], $keyLink);
+						$link["type"] = $value["type"];
 						$link["isInviting"] = $value["isInviting"];
-	           		$contextMap[$keyLink] = $link;
+						$contextMap[$keyLink] = $link;
+					}else if($dataName!="guests" && !@$value["isInviting"]){
+						$link = Element::getByTypeAndId($value["type"], $keyLink);
+						$link["type"] = $value["type"];
+						$contextMap[$keyLink] = $link;
+					}
 				}
 			}
 		}
@@ -108,7 +117,7 @@ class GetDataDetailAction extends CAction {
 
 			$events = PHDB::findAndSortAndLimitAndIndex( Event::COLLECTION,
 							$query,
-							array("startDate"=>1), 5);
+							array("startDate"=>1), 10);
 			foreach ($events as $key => $value) {
 				$events[$key]["type"] = "events";
 				$events[$key]["typeSig"] = "events";
@@ -125,7 +134,7 @@ class GetDataDetailAction extends CAction {
 			$query = Search::searchLocality($_POST, $query);
 			
 			$classified = PHDB::findAndSortAndLimitAndIndex( Classified::COLLECTION, $query,
-							array("updated"=>-1), 5);
+							array("updated"=>-1), 10);
 
 			foreach ($classified as $key => $value) {
 				$classified[$key]["type"] = "classified";
@@ -140,7 +149,7 @@ class GetDataDetailAction extends CAction {
 			$query = array();
 			$query = Search::searchLocality($_POST, $query);
 			$pois = PHDB::findAndSortAndLimitAndIndex( Poi::COLLECTION, $query,
-							array("updated"=>-1), 5);
+							array("updated"=>-1), 10);
 
 			foreach ($pois as $key => $value) {
 				$pois[$key]["type"] = "poi";

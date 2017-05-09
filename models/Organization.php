@@ -69,6 +69,12 @@ class Organization {
 	    "contacts" => array("name" => "contacts"),
 	    "urls" => array("name" => "urls"),
 	    "descriptionHTML" => array("name" => "descriptionHTML"),
+
+	    "facebook" => array("name" => "socialNetwork.facebook"),
+	    "twitter" => array("name" => "socialNetwork.twitter"),
+	    "gpplus" => array("name" => "socialNetwork.googleplus"),
+	    "github" => array("name" => "socialNetwork.github"),
+	    "skype" => array("name" => "socialNetwork.skype"),
 	);
 	
 	//See findOrganizationByCriterias...
