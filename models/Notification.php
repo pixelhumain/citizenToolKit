@@ -115,7 +115,7 @@ class Notification{
 					"notifyUser" => true,
 					"parentTarget"=>true,
 					"repeat" => true,
-					"url" => "news/detail/id/{id}"
+					"url" => "page/type/news/id/{id}"
 				),
 				Survey::COLLECTION => array(
 					"label" => "{who} commented on proposal {what} in {where}",
@@ -165,7 +165,7 @@ class Notification{
 					"labelRepeat"=>"{who} like your news {what}",
 					"notifyUser" => true,
 					"parentTarget"=>true,
-					"url" => "news/detail/id/{id}"
+					"url" => "page/type/news/id/{id}"
 				),
 				Comment::COLLECTION => array(
 					"label"=>"{who} likes your comment on {where}",
@@ -192,7 +192,7 @@ class Notification{
 					"labelRepeat"=>"{who} disapproves your news {what}",
 					"notifyUser" => true,
 					"parentTarget"=> true,
-					"url" => "news/detail/id/{id}"
+					"url" => "page/type/news/id/{id}"
 				),
 				Comment::COLLECTION => array(
 					"label"=>"{who} disapproves your comment on {where}",
