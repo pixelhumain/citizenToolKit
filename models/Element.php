@@ -1736,6 +1736,9 @@ class Element {
 
 		if(in_array(@$element["type"],array_keys( Organization::$types) ) )
 			$newElement["typeOrga"] = $element["type"] ;
+		if(in_array(@$element["type"],array_keys( Event::$types) ) )
+			$newElement["typeEvent"] = $element["type"] ;
+		
 		if(!empty(@$element["telephone"]["fixe"]))
 			$newElement["fixe"] = ArrayHelper::arrayToString($element["telephone"]["fixe"]) ;
 		if(!empty(@$element["telephone"]["mobile"]))
