@@ -156,6 +156,15 @@ class City {
 		}
 	  	
 	  	return $cityData;
+	} 
+
+	public static function getByPostalCode($insee) {
+
+		$params = array('postalCodes' => array('$elemMatch' => array('postalCode' => $insee ) ) );
+
+        $city = self::getWhere($params);
+
+        return $city;
 	}
 
 	/* Retourne l'id d'une commune par rapport a son code insee */
