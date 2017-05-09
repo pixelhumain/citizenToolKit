@@ -1738,13 +1738,11 @@ class Element {
 			$newElement["typeOrga"] = $element["type"] ;
 		if(in_array(@$element["type"],array_keys( Event::$types) ) )
 			$newElement["typeEvent"] = $element["type"] ;
-		
-		if(!empty(@$element["telephone"]["fixe"]))
-			$newElement["fixe"] = ArrayHelper::arrayToString($element["telephone"]["fixe"]) ;
-		if(!empty(@$element["telephone"]["mobile"]))
-			$newElement["mobile"] = ArrayHelper::arrayToString($element["telephone"]["mobile"]) ;
-		if(!empty(@$element["telephone"]["fax"]))
-			$newElement["fax"] = ArrayHelper::arrayToString($element["telephone"]["fax"]) ;
+
+	
+		$newElement["fixe"] = (!empty(@$element["telephone"]["fixe"])) ? ArrayHelper::arrayToString($element["telephone"]["fixe"]) : "" ;
+		$newElement["mobile"] = (!empty(@$element["telephone"]["mobile"])) ? ArrayHelper::arrayToString($element["telephone"]["mobile"]) : "" ;
+		$newElement["fax"] = (!empty(@$element["telephone"]["fax"])) ? ArrayHelper::arrayToString($element["telephone"]["fax"]) : "" ;
 		$newElement["id"] = (String) $element["_id"] ;
 
 		if(!empty($type))

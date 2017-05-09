@@ -43,7 +43,6 @@ class Project {
 	    "created" => array("name" => "created"),
 	    "locality" => array("name" => "address"),
 	    "descriptionHTML" => array("name" => "descriptionHTML"),
-
 	    "facebook" => array("name" => "socialNetwork.facebook"),
 	    "twitter" => array("name" => "socialNetwork.twitter"),
 	    "gpplus" => array("name" => "socialNetwork.googleplus"),

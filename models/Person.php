@@ -2056,15 +2056,23 @@ class Person {
 		    		CookieHelper::setCookie("communexionLevel", "cpCommunexion");
     			}else{
     				//var_dump($address);
-    				CookieHelper::removeCookie("communexionType");
+    				/*CookieHelper::removeCookie("communexionType");
 		    		CookieHelper::removeCookie("communexionValue");
 		    		CookieHelper::removeCookie("communexionName");
 		    		CookieHelper::removeCookie("communexionLevel");    				
     				CookieHelper::removeCookie("inseeCommunexion");
 		    		CookieHelper::removeCookie("cpCommunexion");
-		    		CookieHelper::removeCookie("cityNameCommunexion");
+		    		CookieHelper::removeCookie("cityNameCommunexion");*/
 		    		CookieHelper::setCookie("communexionActivated", false);
+		    		CookieHelper::setCookie("inseeCommunexion", false);
+		    		CookieHelper::setCookie("cpCommunexion", false);
+		    		CookieHelper::setCookie("cityNameCommunexion", false);
+    				CookieHelper::setCookie("communexionType", false);
+		    		CookieHelper::setCookie("communexionValue", false);
+		    		CookieHelper::setCookie("communexionName", false);
+		    		CookieHelper::setCookie("communexionLevel", false);
     			}
+    			
 	    		$result = array("result" => true, "msg" => "Cookies is updated");
 			}catch (CTKException $e) {
 				$result = array("result" => false, "msg" => $e->getMessage());
