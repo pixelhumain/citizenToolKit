@@ -1,9 +1,9 @@
 <?php
 class WikipediaAction extends CAction {
 
-    public function run($url=null, $wikidataID=null) {
+    public function run($url=null, $text_filter=null) {
 
-		$res = Convert::convertWikiToPh($url, $wikidataID);
+		$res = Convert::convertWikiToPh($url, $text_filter);
 
   		if (isset($res)) {
 			Rest::json($res);

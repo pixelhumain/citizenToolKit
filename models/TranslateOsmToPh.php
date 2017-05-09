@@ -9,7 +9,7 @@ class TranslateOsmToPh {
 		"lat" => "geo.latitude",
 		"lon" => "geo.longitude",
 		"tags.amenity" => "tags.0",
-		// "id" => "description",
+		"id" => "shortDescription",
 	);
 
 }

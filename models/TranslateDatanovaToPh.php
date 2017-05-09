@@ -6,6 +6,7 @@ class TranslateDatanovaToPh {
 
 		"fields.libelle_du_site" => "name",
 		"recordid" => "type",
+		"fields.identifiant_a" => "shortDescription",
 		"fields.latlong.0" => "geo.latitude",
 		"fields.latlong.1" => "geo.longitude",
 		"fields.adresse" => "address.streetAddress",

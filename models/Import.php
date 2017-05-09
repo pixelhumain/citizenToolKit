@@ -213,16 +213,14 @@ class Import
         if(!empty($element["tags"]))
             $element["tags"] = self::checkTag($element["tags"]);
         
-        if ($element['source']['keys'][0] !== "convert_datagouv" && $element['source']['keys'][0] !== "convert_osm" && $element['source']['keys'][0] !== "convert_ods" && $element['source']['keys'][0] !== "convert_wiki" && $element['source']['keys'][0] !== "convert_datanova") {
-            $element = self::getWarnings($element, $typeElement, true) ;
-        }
-
-        // $element = self::getWarnings($element, $typeElement, true) ;
+        
 
 		if($typeElement == Organization::COLLECTION && !empty($element["type"]))
         	$element["type"] = Organization::translateType($element["type"]);
 
-        // $element = self::getWarnings($element, $typeElement, true) ;
+        if ($element['source']['keys'][0] !== "convert_datagouv" && $element['source']['keys'][0] !== "convert_osm" && $element['source']['keys'][0] !== "convert_ods" && $element['source']['keys'][0] !== "convert_wiki" && $element['source']['keys'][0] !== "convert_datanova") {
+            $element = self::getWarnings($element, $typeElement, true) ;
+        }
 
         $resDataValidator = DataValidator::validate(Element::getControlerByCollection($typeElement), $element, true);
         if($resDataValidator["result"] != true){
