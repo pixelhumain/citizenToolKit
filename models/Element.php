@@ -1577,6 +1577,8 @@ class Element {
 
 
         $connectType = @self::$connectTypes[$type];
+        if($type==Person::COLLECTION)
+        	$connectType="friends";
         /*if( @$element["links"] ) {
             if(isset($element["links"][$connectType])){
                 $countStrongLinks=0;//count($element["links"][$connectType]);
@@ -1640,12 +1642,11 @@ class Element {
         if(!@$element["disabled"]){
             //if((@$config["connectLink"] && $config["connectLink"]) || empty($config)){ TODO CONFIG MUTUALIZE WITH NETWORK AND OTHER PLATFORM
            //$connectType = $connectType[$type];
-            if(((!@$element["links"][$connectType][Yii::app()->session["userId"]] && $type!=Event::COLLECTION) || 
-                (@$element["links"][$connectType][Yii::app()->session["userId"]] && 
+            if(((!@$element["links"][$connectType][Yii::app()->session["userId"]] && $type!=Event::COLLECTION) || (@$element["links"][$connectType][Yii::app()->session["userId"]] && 
                 @$element["links"][$connectType][Yii::app()->session["userId"]][Link::TO_BE_VALIDATED])) && 
                 @Yii::app()->session["userId"] && 
                 ($type != Person::COLLECTION || 
-                $element["_id"] != Yii::app()->session["userId"])){
+                (string)$element["_id"] != Yii::app()->session["userId"])){
                     $params["linksBtn"]["followBtn"]=true;
                     if (@$element["links"]["followers"][Yii::app()->session["userId"]])
                             $params["linksBtn"]["isFollowing"]=true;
