@@ -351,7 +351,7 @@ class Notification{
 				"to" => "user"
 			),
 			"icon" => "fa-send",
-			"url" => "page/type/{collection}/id/{id}/view/directory/dir/guests"
+			"url" => "page/type/{collection}/id/{id}"
 		),
 		// AJouter la confirmation vers l'utilisateur
 		//Creer le mail pour l'utilisateur accepté !!
@@ -421,8 +421,13 @@ class Notification{
 	    	$members = Project::getContributorsByProjectId( $id ,$impactType, $impactRole);
 	    else if( $type == Organization::COLLECTION)
 	    	$members = Organization::getMembersByOrganizationId( $id ,$impactType, $impactRole) ;
-	    else if( $type == Event::COLLECTION )
+	    else if( $type == Event::COLLECTION ){
 	    	$members = Event::getAttendeesByEventId( $id , "admin", "isAdmin" ) ;
+	    	// ADD INVITOR IF NOT IN ADMIN LIST
+	    	if($construct["verb"]==ActStr::VERB_CONFIRM && @$construct["target"]["invitorId"] && !@$members[$construct["target"]["invitorId"]]){
+	    		$members[$construct["target"]["invitorId"]]=array();
+	    	}
+	    }
 		else if($type == Person::COLLECTION)
 			$people[$id] = array("isUnread" => true, "isUnseen" => true);
 		else if($type == News::COLLECTION){
