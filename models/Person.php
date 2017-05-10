@@ -2045,6 +2045,13 @@ class Person {
 
     	if(!empty($userId)){
     		try{
+    			CookieHelper::removeCookie("communexionType");
+	    		CookieHelper::removeCookie("communexionValue");
+	    		CookieHelper::removeCookie("communexionName");
+	    		CookieHelper::removeCookie("communexionLevel");    				
+				CookieHelper::removeCookie("inseeCommunexion");
+	    		CookieHelper::removeCookie("cpCommunexion");
+	    		CookieHelper::removeCookie("cityNameCommunexion");
     			if(!empty($address)){
     				CookieHelper::setCookie("inseeCommunexion", $address["codeInsee"]);
 		    		CookieHelper::setCookie("cpCommunexion", $address["postalCode"]);
@@ -2056,13 +2063,6 @@ class Person {
 		    		CookieHelper::setCookie("communexionLevel", "cpCommunexion");
     			}else{
     				//var_dump($address);
-    				/*CookieHelper::removeCookie("communexionType");
-		    		CookieHelper::removeCookie("communexionValue");
-		    		CookieHelper::removeCookie("communexionName");
-		    		CookieHelper::removeCookie("communexionLevel");    				
-    				CookieHelper::removeCookie("inseeCommunexion");
-		    		CookieHelper::removeCookie("cpCommunexion");
-		    		CookieHelper::removeCookie("cityNameCommunexion");*/
 		    		CookieHelper::setCookie("communexionActivated", false);
 		    		CookieHelper::setCookie("inseeCommunexion", false);
 		    		CookieHelper::setCookie("cpCommunexion", false);
