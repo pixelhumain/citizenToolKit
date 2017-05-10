@@ -297,11 +297,8 @@ class Convert {
 	}
 
 	public static function convertPoleEmploiToPh($url) {
-		 
-		$data = array('grant_type' => 'client_credentials',
-					  'client_id' => 'PAR_communecter_9cfae83c352184eff02df647f08661355f3be7028c7ea4eda731bf8718efbfff',
-					  'client_secret' => '62a4a6aa2d82fa201eca1ebb3df639882d2ed7cd75284486aaed3a436df67e55',
-					  'scope' => 'application_PAR_communecter_9cfae83c352184eff02df647f08661355f3be7028c7ea4eda731bf8718efbfff api_infotravailv1');
+
+		//CODE POUR FORGER UN ACCESS TOKEN NECESSAIRE POUR INTEROGER L'API
 
 		$curl = curl_init();
 		 
@@ -310,15 +307,64 @@ class Convert {
 		curl_setopt($curl, CURLOPT_POST, true);
 		curl_setopt($curl, CURLOPT_POSTFIELDS, "grant_type=client_credentials&client_id=PAR_communecter_9cfae83c352184eff02df647f08661355f3be7028c7ea4eda731bf8718efbfff&client_secret=62a4a6aa2d82fa201eca1ebb3df639882d2ed7cd75284486aaed3a436df67e55&scope=application_PAR_communecter_9cfae83c352184eff02df647f08661355f3be7028c7ea4eda731bf8718efbfff api_infotravailv1"); 
 		curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
-		$result = curl_exec($curl);
+		$token = curl_exec($curl);
 		 
 		curl_close($curl);
 
-		$result_final = json_decode($result, true);
+		$token_final = json_decode($token, true);
 
-		var_dump($result_final["access_token"]);
-				
-	}
+		$curl2 = curl_init();
+
+		$pos = strpos($url, "=");
+
+		$url_head = substr($url, 0, ($pos+1));
+		$url_param = substr($url, ($pos+1));
+
+		$url = $url_head . urlencode($url_param);
+
+		curl_setopt($curl2, CURLOPT_URL, $url);
+		curl_setopt($curl2, CURLOPT_HTTPHEADER, array("Authorization: Bearer ".$token_final["access_token"]));
+
+		curl_setopt($curl2, CURLOPT_RETURNTRANSFER, 1);
+		$offres = curl_exec($curl2);
+		 
+		curl_close($curl2);
+
+		$offres_final = json_decode($offres, true);
+
+		$param = array();
+		$param['typeElement'] = Event::COLLECTION;
+
+		$map = TranslatePoleEmploiToPh::$mapping_offres;
+
+        foreach ($map as $key => $value) {
+            $param['infoCreateData'][$key]["valueAttributeElt"] = $value;
+            $param['infoCreateData'][$key]["idHeadCSV"] = $key;
+        }
+
+        $param['typeFile'] = 'json';
+        $param['pathObject'] = 'records';
+        $param['key'] = 'convert_poleemploi';
+        $param['nameFile'] = 'convert_poleemploi';
+        $param['warnings'] = false;
+
+        $offres_array = [];
+        $offres_array['records'] = [];
+
+        foreach ($offres_final["result"]["records"] as $key => $value) {
+        	$offres_array['records'][$key] = $value;
+        }
+		
+		if (isset($url)) {
+        	$param['file'][0] = json_encode($offres_array);
+        }
+
+        $result = Import::previewData($param);
+
+        $res = json_decode($result['elements']);
+
+        return $res;
+    }
 
 	public static function getLatLongWikidataItem($wikidata_item) {
 
