@@ -891,11 +891,17 @@ class Notification{
     
     // TODO BOUBOULE => Mention in news // comment (à développer)
     // A RENOMER mentionNotification
-	public static function actionOnNews ( $verb, $icon, $author, $target, $mentions) 
+	public static function actionOnNews ( $verb, $icon, $author, $target, $mentions,$targetIsAuthor=false) 
 	{
 		$notification=array();
-		$url = Yii::app()->createUrl('/'.Yii::app()->controller->module->id.'/'.'news/index/type/'.$target["type"].'/id/'.$target["id"]);
+		$url = 'page/type/'.$target["type"].'/id/'.$target["id"];
 		$people=array();
+		if($targetIsAuthor){
+			$authorName=Element::getElementSimpleById($target["id"], $target["type"]);
+			$authorName=$authorName["name"];
+		} else{
+			$authorName=$author["name"];
+		}
 		foreach ($mentions as $data){
 			if($data["type"]==Person::COLLECTION){
 				if(!empty($notification) && array_search($data["id"], self::array_column($notification, 'persons'))){
@@ -908,8 +914,8 @@ class Notification{
 										"type"=> Organization::COLLECTION,
 										"nameOrganization"=>@$nameOrga,
 										"nbMention"=>2,
-										"id"=>array($data["id"]=>array("isUnseen"=>true,"isUnread"=>true)),
-										"label"=> $author["name"]." vous a mentionné avec ".$data["name"]." dans un post",
+										"persons"=>array($data["id"]=>array("isUnseen"=>true,"isUnread"=>true)),
+										"label"=> $authorName." vous a mentionné avec ".$data["name"]." dans un post",
 										"url"=> $url,
 										"icon" => $icon
 									);
@@ -923,8 +929,8 @@ class Notification{
 	    			$people=array($data["id"]=>array("isUnseen"=>true,"isUnread"=>true));
 	    			$pushNotif=array(
 							    "type"=> Person::COLLECTION,
-							    "id"=>$people,
-							    "label"=> $author["name"]." vous a mentionné dans un post",
+							    "persons"=>$people,
+							    "label"=> $authorName." vous a mentionné dans un post",
 							    "url"=> $url,
 							    "icon" => $icon
 								);
@@ -949,8 +955,8 @@ class Notification{
 												"type"=> Organization::COLLECTION,
 												"nameOrganization"=>$nameOrga,
 												"nbMention"=>2,
-												"id"=>array($key=>array("isUnseen"=>true,"isUnread"=>true)),
-												"label"=> $author["name"]." a mentionné ".$data["name"]." et ".$nameOrga." dans un post",
+												"persons"=>array($key=>array("isUnseen"=>true,"isUnread"=>true)),
+												"label"=> $authorName." a mentionné ".$data["name"]." et ".$nameOrga." dans un post",
 												"icon" => $icon,
 												"url"=> $url
 											);
@@ -962,8 +968,8 @@ class Notification{
 												"type"=> Person::COLLECTION,
 												"nameOrganization"=>$data["name"],
 												"nbMention"=>2,
-												"id"=> array($key=>array("isUnseen"=>true,"isUnread"=>true)),
-												"label"=> $author["name"]." vous a mentionné ainsi que ".$data["name"]." dans un post",
+												"persons"=> array($key=>array("isUnseen"=>true,"isUnread"=>true)),
+												"label"=> $authorName." vous a mentionné ainsi que ".$data["name"]." dans un post",
 												"icon" => $icon,
 												"url"=> $url
 											);
