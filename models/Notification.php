@@ -895,6 +895,7 @@ class Notification{
 	{
 		$notification=array();
 		$url = Yii::app()->createUrl('/'.Yii::app()->controller->module->id.'/'.'news/index/type/'.$target["type"].'/id/'.$target["id"]);
+		$people=array();
 		foreach ($mentions as $data){
 			if($data["type"]==Person::COLLECTION){
 				if(!empty($notification) && array_search($data["id"], self::array_column($notification, 'persons'))){
@@ -907,7 +908,7 @@ class Notification{
 										"type"=> Organization::COLLECTION,
 										"nameOrganization"=>@$nameOrga,
 										"nbMention"=>2,
-										"persons"=>array($data["id"]),
+										"id"=>array($data["id"]=>array("isUnseen"=>true,"isUnread"=>true)),
 										"label"=> $author["name"]." vous a mentionné avec ".$data["name"]." dans un post",
 										"url"=> $url,
 										"icon" => $icon
@@ -919,10 +920,10 @@ class Notification{
 				    	}
 			    	}
 		    	}else{
-	    			$people=array($data["id"]);
+	    			$people=array($data["id"]=>array("isUnseen"=>true,"isUnread"=>true));
 	    			$pushNotif=array(
 							    "type"=> Person::COLLECTION,
-							    "persons"=>$people,
+							    "id"=>$people,
 							    "label"=> $author["name"]." vous a mentionné dans un post",
 							    "url"=> $url,
 							    "icon" => $icon
@@ -948,7 +949,7 @@ class Notification{
 												"type"=> Organization::COLLECTION,
 												"nameOrganization"=>$nameOrga,
 												"nbMention"=>2,
-												"persons"=>array($key),
+												"id"=>array($key=>array("isUnseen"=>true,"isUnread"=>true)),
 												"label"=> $author["name"]." a mentionné ".$data["name"]." et ".$nameOrga." dans un post",
 												"icon" => $icon,
 												"url"=> $url
@@ -961,7 +962,7 @@ class Notification{
 												"type"=> Person::COLLECTION,
 												"nameOrganization"=>$data["name"],
 												"nbMention"=>2,
-												"persons"=> array($key),
+												"id"=> array($key=>array("isUnseen"=>true,"isUnread"=>true)),
 												"label"=> $author["name"]." vous a mentionné ainsi que ".$data["name"]." dans un post",
 												"icon" => $icon,
 												"url"=> $url
@@ -1007,6 +1008,33 @@ class Notification{
 		}
 		// Verbe ActStr::VERB_POST || ActStr::VERB_MENTION
 		
+	}
+	/**
+	* Get array of news order by date of creation
+	* @param array $array is the array of news to return well order
+	* @param array $cols is the array indicated on which column of $array it is sorted
+	**/
+	public static function sortNotifs($array, $cols){
+		$colarr = array();
+	    foreach ($cols as $col => $order) {
+	        $colarr[$col] = array();
+	        foreach ($array as $k => $row) { $colarr[$col]['_'.$k] = strtolower(@$row[$col]); }
+	    }
+	    $eval = 'array_multisort(';
+	    foreach ($cols as $col => $order) {
+	        $eval .= '$colarr[\''.$col.'\'],'.$order.',';
+	    }
+	    $eval = substr($eval,0,-1).');';
+	    eval($eval);
+	    $ret = array();
+	    foreach ($colarr as $col => $arr) {
+	        foreach ($arr as $k => $v) {
+	            $k = substr($k,1);
+	            if (!isset($ret[$k])) $ret[$k] = $array[$k];
+	            $ret[$k][$col] = @$array[$k][$col];
+	        }
+	    }
+	    return $ret;
 	}
 	/*
 	when someone joins or leaves or disables a project / organization / event
