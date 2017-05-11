@@ -1506,8 +1506,8 @@ class Element {
 
 		}else if( $block == "when" && ( $collection == Event::COLLECTION || $collection == Project::COLLECTION) ) {
 			
-			if(isset($params["allDay"]) && $collection == Event::COLLECTION)
-				$res[] = self::updateField($collection, $id, "allDay", (($params["allDay"] == "true") ? true : false));
+			if(isset($params["allDayHidden"]) && $collection == Event::COLLECTION)
+				$res[] = self::updateField($collection, $id, "allDay", (($params["allDayHidden"] == "true") ? true : false));
 			if(isset($params["startDate"]))
 				$res[] = self::updateField($collection, $id, "startDate", $params["startDate"]);
 			if(isset($params["endDate"]))
