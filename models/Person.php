@@ -2069,14 +2069,13 @@ class Person {
 
     			}else{
     				//var_dump($address);
-		    		CookieHelper::setCookie("communexionActivated", false);
-		    		CookieHelper::setCookie("inseeCommunexion", false);
-		    		CookieHelper::setCookie("cpCommunexion", false);
-		    		CookieHelper::setCookie("cityNameCommunexion", false);
-    				CookieHelper::setCookie("communexionType", false);
-		    		CookieHelper::setCookie("communexionValue", false);
-		    		CookieHelper::setCookie("communexionName", false);
-		    		CookieHelper::setCookie("communexionLevel", false);
+		    		CookieHelper::removeCookie("communexionType");
+					CookieHelper::removeCookie("communexionValue");
+					CookieHelper::removeCookie("communexionName");
+					CookieHelper::removeCookie("communexionLevel");    				
+					CookieHelper::removeCookie("inseeCommunexion");
+					CookieHelper::removeCookie("cpCommunexion");
+					CookieHelper::removeCookie("cityNameCommunexion");
     			}
     			
 	    		$result = array("result" => true, "msg" => "Cookies is updated");
