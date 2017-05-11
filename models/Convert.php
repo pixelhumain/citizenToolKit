@@ -296,7 +296,7 @@ class Convert {
 
 	}
 
-	public static function convertPoleEmploiToPh($url) {
+	public static function convertPoleEmploiToPh($url, $activity_letters = null) {
 
 		//CODE POUR FORGER UN ACCESS TOKEN NECESSAIRE POUR INTEROGER L'API
 
@@ -351,8 +351,22 @@ class Convert {
         $offres_array = [];
         $offres_array['records'] = [];
 
-        foreach ($offres_final["result"]["records"] as $key => $value) {
-        	$offres_array['records'][$key] = $value;
+        if ($activity_letters == null) {
+        	foreach ($offres_final["result"]["records"] as $key => $value) {
+	        	$offres_array['records'][$key] = $value;
+	        }
+        } else {
+
+        	$letters = explode(",", $activity_letters);
+
+        	foreach ($offres_final["result"]["records"] as $key => $value) {
+
+	        	$first_letter = $value["ROME_PROFESSION_CARD_CODE"][0];
+
+	        	if (in_array($first_letter, $letters)) {
+	        		$offres_array['records'][$key] = $value;
+	        	}
+	        }
         }
 		
 		if (isset($url)) {
