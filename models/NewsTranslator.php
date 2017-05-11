@@ -143,9 +143,9 @@ class NewsTranslator {
 			$params["media"]["images"]=$images;
 		}
 
-		if(!isset($params["author"]["id"])){ 
+		if(!isset($params["author"]["id"]) || @$params["verb"] == "create"){ 
 			//var_dump($params["author"]); //exit;
-			if(@$params["targetIsAuthor"]==true){
+			if(@$params["targetIsAuthor"]==true || @$params["verb"] == "create"){
   			$author =  Element::getByTypeAndId($params["target"]["type"], $params["target"]["id"]);
   			$params["authorName"] = @$author["name"];
   			$params["authorId"] = @$params["target"]["id"];
@@ -156,6 +156,11 @@ class NewsTranslator {
 	  	}else{
 	  		$author = $params["author"];
 	  	}
+
+	  	// if($params["verb"] == "create"){
+	  	// 	$params["author"]
+	  	// }
+
 	  	//var_dump($params["author"]); //exit;
   		if (!empty($author)) $params["author"] = $author;
 	  	else return array("created"=>$params["created"]);
