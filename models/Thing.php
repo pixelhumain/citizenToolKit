@@ -1,9 +1,8 @@
 <?php 
-
+// Modifié le 12/05/2017 par danzal
 class Thing {
 	//TODO changer collection things en datas (dans mongodb dev aussi)
-	//TODO : utilisé un formulaire avec device et adresse mac pour compléter les métadatas
-
+	
 	const COLLECTION = "poi";
 	const COLLECTION_METADATA="metadata";
 	const CONTROLLER = "thing";
@@ -93,9 +92,7 @@ class Thing {
 		return $res;
 	}
 
-	//TODO : Prévoir l'edition forcer (ajout d'argument et de condition (passer outre la limite de temps $forceUpdate), ne pas utiliser un poi mais directement le deviceId SCK) par une post via le controller UpdateSckDevicesAction.php
 	//ajouter les metadatas si le sck n'est pas en base 
-
 	public static function setMetadata($poi=null,$atSC=null,$forceUpdate=false,$deviceId=null,$boardId=null){
 		$gmttime=gmdate('Y-m-d\TH');
 
@@ -134,7 +131,6 @@ class Thing {
 			 if ( $deviceMetadata['boardId']!='[FILTERED]' && $partReadings['boardId']=='[FILTERED]'){
 				unset($partReadings['boardId']);}
 			}
-
 /*			
 			if(!isset($partReadings['name'])){
 				$partReadings['name'] = ((empty($name)) ? '' : '$name' );}
@@ -195,16 +191,12 @@ class Thing {
 	}
 
 	public static function updateOneMetadata($deviceId,$boardId,$atSC=null){
-		
 		return Element::save(self::setMetadata(null,$atSC,true,$deviceId,$boardId));  
 	}
 
 	public static function updateMultipleMetadata($listbd){
-
 		$res=array(); //resultat de Element::save
-		
 		foreach ($listbd as $bd) {
-			//TODO (optionnel) : vérifier le deviceID est un nombre
 			if(preg_match('/([0-9a-f]{2}[:]){5}([0-9a-f]{2})/', $bd['boardId'])==1){
 				$res[] = Element::save(self::setMetadata(null,null,true,$bd['deviceId'],$bd['boardId']));
 			}
@@ -222,10 +214,6 @@ class Thing {
 		return PHDB::find(Poi::COLLECTION, $where, $fields);
 	}
 
-	/* TODO : Faire avec deviceId renseigner dans le formulaire poi type smartcitizen
-	*/
-
-	//todo: vision sur carte, et api pour les données
 	/*
 	//utilise pour chercher l'_id dans metadata (si addresse mac présent aussi ?) 
 	public static function getDBIdSCKDevice($deviceId=null){
@@ -244,7 +232,6 @@ class Thing {
 		$where['address.addressCountry']=$country;
 		//$cp=null pas de codepostale dans where. prend tous les sck du pays
 		if(!empty($cp)){ $where['address.postalCode']=$cp; }
-
 		return self::getSCKDevices($where,$fields);
 	}
 
@@ -257,9 +244,8 @@ class Thing {
 		if(!empty($depName)){ 	$where["address.depName"]	=$depName; }
 		if(!empty($cityName)){ 	$where["address.addressLocality"]=$cityName; }
 		if(!empty($cp)){ 		$where['address.postalCode']	=$cp; }
-		
-		$SCKDevices = self::getSCKDevices($where,$fields);
-		return $SCKDevices;
+
+		return self::getSCKDevices($where,$fields);
 	}
 
 	//metadata
@@ -307,20 +293,13 @@ class Thing {
 		return $partReadings;
 	}
 
-	public static function getDistinctBoardId(){
-		$where = array('boardId' => array('$exists'=>1));
-		$where['type']= self::SCK_TYPE;
-		
-		$distinctedBoardId=PHDB::distinct(self::COLLECTION_DATA,'boardId', $where);
-		return $distinctedBoardId;
-	}
+// TODO : faire une seule fonction qui pren
+	public static function getDistinctSCK($fieldToDistinctAndReturn){
 
-	public static function getDistinctDeviceId(){
-		$where = array('deviceId' => array('$exists'=>1));
+		$where = array($fieldToDistinctAndReturn => array('$exists'=>1));
 		$where['type']= self::SCK_TYPE;
-		
-		$distinctedDeviceId=PHDB::distinct(self::COLLECTION,'deviceId', $where);
-		return $distinctedDeviceId;
+
+		return PHDB::distinct(self::COLLECTION_DATA, $fieldToDistinctAndReturn , $where);
 	}
 
 	public static function getLastestRecordsInDB($boardId=null,$where=array("type"=>self::SCK_TYPE),$sort=array("created"=>-1),$limit=1,$fields=null){
@@ -332,7 +311,6 @@ class Thing {
 			$lastRecords = PHDB::findAndSort(self::COLLECTION_DATA,$where,$sort,$limit,$fields);
 			
 		}
-
 		return $lastRecords;
 	}
 
@@ -523,23 +501,16 @@ class Thing {
 				$result['message']='Data not suppressed';
 			}
 		}
-		
-
-		//TODO faire un tableau recap des différentes etapes
 		return $result; 
 	}
 
 	public static function getDateTime($bindMap) {
 		//TODO regler le probleme $datetime qui n'est pas correctement converti
 		//TODO gérer fuseau horaire
-		
 		$datetime = getdate();
-		$resDateTime = Translate::convert($datetime, $bindMap);
-
-		return $resDateTime; 
+		return Translate::convert($datetime, $bindMap);
 	}
 	
-	//TODO faire une vérification du timestamp pour éviter les '#' ou timestamps vide ou doublons
 	public static function fillAndSaveSmartCitizenData($headers){
 		$data = json_decode($headers["X-SmartCitizenData"],true);
 		$nbSavedElements=0;
@@ -616,19 +587,15 @@ class Thing {
 
 	private static function deleteSCKRecords($boardId,$date){
 
-		$dateM = $date->format('Y-m-'); //'Y-m-d' pour supression par jours (Faut changer l'interval aussi)
-		$dateN = $date->format('Y-n-');
+		//$dateM = $date->format('Y-m-') ; //'Y-m-d' pour supression par jours (Faut changer l'interval aussi)
+		//$dateN = $date->format('Y-n-') ;
 		$where = array("type"=>self::SCK_TYPE,"boardId"=>$boardId);
-		$queryTimestamp[] = new MongoRegex("/^(".$dateM."|".$dateN.")/i");
+		$queryTimestamp[] = new MongoRegex("/^(".($date->format('Y-m-'))."|".($date->format('Y-n-')).")/i");
 		$where["timestamp"] = array('$in'=> $queryTimestamp);
 		$where["status.synthesized"] = array('exists'=>0); 
 
-		$result = PHDB::remove('data_copy', $where); // collection : self::COLLECTION_DATA , data_copy pour les tests
-		return $result;
+		return PHDB::remove('data_copy', $where); // collection : self::COLLECTION_DATA , data_copy pour les tests
 	}
-
-
-
 
 }
 
