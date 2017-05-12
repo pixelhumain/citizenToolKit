@@ -351,7 +351,7 @@ class Notification{
 				"to" => "user"
 			),
 			"icon" => "fa-send",
-			"url" => "page/type/{collection}/id/{id}/view/directory/dir/guests"
+			"url" => "page/type/{collection}/id/{id}"
 		),
 		// AJouter la confirmation vers l'utilisateur
 		//Creer le mail pour l'utilisateur accepté !!
@@ -421,8 +421,13 @@ class Notification{
 	    	$members = Project::getContributorsByProjectId( $id ,$impactType, $impactRole);
 	    else if( $type == Organization::COLLECTION)
 	    	$members = Organization::getMembersByOrganizationId( $id ,$impactType, $impactRole) ;
-	    else if( $type == Event::COLLECTION )
+	    else if( $type == Event::COLLECTION ){
 	    	$members = Event::getAttendeesByEventId( $id , "admin", "isAdmin" ) ;
+	    	// ADD INVITOR IF NOT IN ADMIN LIST
+	    	if($construct["verb"]==ActStr::VERB_CONFIRM && @$construct["target"]["invitorId"] && !@$members[$construct["target"]["invitorId"]]){
+	    		$members[$construct["target"]["invitorId"]]=array();
+	    	}
+	    }
 		else if($type == Person::COLLECTION)
 			$people[$id] = array("isUnread" => true, "isUnseen" => true);
 		else if($type == News::COLLECTION){
@@ -886,10 +891,17 @@ class Notification{
     
     // TODO BOUBOULE => Mention in news // comment (à développer)
     // A RENOMER mentionNotification
-	public static function actionOnNews ( $verb, $icon, $author, $target, $mentions) 
+	public static function actionOnNews ( $verb, $icon, $author, $target, $mentions,$targetIsAuthor=false) 
 	{
 		$notification=array();
-		$url = Yii::app()->createUrl('/'.Yii::app()->controller->module->id.'/'.'news/index/type/'.$target["type"].'/id/'.$target["id"]);
+		$url = 'page/type/'.$target["type"].'/id/'.$target["id"];
+		$people=array();
+		if($targetIsAuthor){
+			$authorName=Element::getElementSimpleById($target["id"], $target["type"]);
+			$authorName=$authorName["name"];
+		} else{
+			$authorName=$author["name"];
+		}
 		foreach ($mentions as $data){
 			if($data["type"]==Person::COLLECTION){
 				if(!empty($notification) && array_search($data["id"], self::array_column($notification, 'persons'))){
@@ -902,8 +914,8 @@ class Notification{
 										"type"=> Organization::COLLECTION,
 										"nameOrganization"=>@$nameOrga,
 										"nbMention"=>2,
-										"persons"=>array($data["id"]),
-										"label"=> $author["name"]." vous a mentionné avec ".$data["name"]." dans un post",
+										"persons"=>array($data["id"]=>array("isUnseen"=>true,"isUnread"=>true)),
+										"label"=> $authorName." vous a mentionné avec ".$data["name"]." dans un post",
 										"url"=> $url,
 										"icon" => $icon
 									);
@@ -914,11 +926,11 @@ class Notification{
 				    	}
 			    	}
 		    	}else{
-	    			$people=array($data["id"]);
+	    			$people=array($data["id"]=>array("isUnseen"=>true,"isUnread"=>true));
 	    			$pushNotif=array(
 							    "type"=> Person::COLLECTION,
 							    "persons"=>$people,
-							    "label"=> $author["name"]." vous a mentionné dans un post",
+							    "label"=> $authorName." vous a mentionné dans un post",
 							    "url"=> $url,
 							    "icon" => $icon
 								);
@@ -943,8 +955,8 @@ class Notification{
 												"type"=> Organization::COLLECTION,
 												"nameOrganization"=>$nameOrga,
 												"nbMention"=>2,
-												"persons"=>array($key),
-												"label"=> $author["name"]." a mentionné ".$data["name"]." et ".$nameOrga." dans un post",
+												"persons"=>array($key=>array("isUnseen"=>true,"isUnread"=>true)),
+												"label"=> $authorName." a mentionné ".$data["name"]." et ".$nameOrga." dans un post",
 												"icon" => $icon,
 												"url"=> $url
 											);
@@ -956,8 +968,8 @@ class Notification{
 												"type"=> Person::COLLECTION,
 												"nameOrganization"=>$data["name"],
 												"nbMention"=>2,
-												"persons"=> array($key),
-												"label"=> $author["name"]." vous a mentionné ainsi que ".$data["name"]." dans un post",
+												"persons"=> array($key=>array("isUnseen"=>true,"isUnread"=>true)),
+												"label"=> $authorName." vous a mentionné ainsi que ".$data["name"]." dans un post",
 												"icon" => $icon,
 												"url"=> $url
 											);
@@ -1002,6 +1014,33 @@ class Notification{
 		}
 		// Verbe ActStr::VERB_POST || ActStr::VERB_MENTION
 		
+	}
+	/**
+	* Get array of news order by date of creation
+	* @param array $array is the array of news to return well order
+	* @param array $cols is the array indicated on which column of $array it is sorted
+	**/
+	public static function sortNotifs($array, $cols){
+		$colarr = array();
+	    foreach ($cols as $col => $order) {
+	        $colarr[$col] = array();
+	        foreach ($array as $k => $row) { $colarr[$col]['_'.$k] = strtolower(@$row[$col]); }
+	    }
+	    $eval = 'array_multisort(';
+	    foreach ($cols as $col => $order) {
+	        $eval .= '$colarr[\''.$col.'\'],'.$order.',';
+	    }
+	    $eval = substr($eval,0,-1).');';
+	    eval($eval);
+	    $ret = array();
+	    foreach ($colarr as $col => $arr) {
+	        foreach ($arr as $k => $v) {
+	            $k = substr($k,1);
+	            if (!isset($ret[$k])) $ret[$k] = $array[$k];
+	            $ret[$k][$col] = @$array[$k][$col];
+	        }
+	    }
+	    return $ret;
 	}
 	/*
 	when someone joins or leaves or disables a project / organization / event

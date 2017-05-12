@@ -27,7 +27,7 @@ class Event {
 	    "organizerId" => array("name" => "organizerId"),
 	    "organizerType" => array("name" => "organizerType"),
 	    "organizer" => array("name" => "organizer", "rules" => array("validOrganizer")),
-
+	    
 
 	    "address" => array("name" => "address", "rules" => array("addressValid")),
 	    "addresses" => array("name" => "addresses"),

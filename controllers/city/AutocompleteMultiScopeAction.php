@@ -32,7 +32,7 @@ class AutocompleteMultiScopeAction extends CAction
         if($type == "locality") {
             $scopeValue = str_replace(array(
                         '/', '-', '*', '+', '?', '|',
-                        '(', ')', '[', ']', '{', '}', '\\', " "), ".", $scopeValue);
+                        '(', ')', '[', ']', '{', '}', '\\', " "), ".", trim($scopeValue));
             $where = array('$or'=> 
                             array(  array("name" => new MongoRegex("/".$scopeValue."/i")),
                                     array("alternateName" => new MongoRegex("/".$scopeValue."/i")),

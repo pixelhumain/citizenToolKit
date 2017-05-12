@@ -171,7 +171,7 @@ class News {
 				if(@$_POST["parentType"]){
 					$target=array("id"=>$_POST["parentId"],"type"=>$_POST["parentType"]);
 				}
-				Notification::actionOnNews ( ActStr::VERB_MENTION, ActStr::ICON_RSS, array("id" => Yii::app()->session["userId"],"name" => Yii::app()->session["user"]["name"]) , $target, $news["mentions"] )  ;
+				Notification::actionOnNews ( ActStr::VERB_MENTION, ActStr::ICON_RSS, array("id" => Yii::app()->session["userId"],"name" => Yii::app()->session["user"]["name"]) , $target, $news["mentions"], @$_POST["targetIsAuthor"])  ;
 			}
 
 			PHDB::insert(self::COLLECTION,$news);

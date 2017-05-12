@@ -952,9 +952,12 @@ class Link {
         $user = array(
             "id"=>$childId,
             "type"=>$childType,
-            "name" => $pendingChild["name"],
+            "name" => $pendingChild["name"]
         );
-        
+        $target = array(
+            "type"=>$parentType,
+            "id"=> $parentId,
+            "name"=>$parent["name"]);
         //Notifications
         if ($linkOption == Link::IS_ADMIN_PENDING) {
             //Notification::actionOnPerson ( ActStr::VERB_CONFIRM, ActStr::ICON_SHARE, $user, array("type"=>$parentType,"id"=> $parentId,"name"=>$parent["name"]));
@@ -977,11 +980,12 @@ class Link {
                 $levelNotif="asAdmin";
             else
                 $levelNotif="asMember";
+            $target["invitorId"]=$parent["links"][$connectType][$childId]["invitorId"];
             //MAIL TO INVITOR
         }
         if($verb==ActStr::VERB_ACCEPT)
             Mail::someoneConfirmYouTo($parent, $parentType, $pendingChild, $typeOfDemand);
-        Notification::constructNotification($verb, $user , array("type"=>$parentType,"id"=> $parentId,"name"=>$parent["name"]), null, $levelNotif);
+        Notification::constructNotification($verb, $user , $target, null, $levelNotif);
         return array( "result" => true , "msg" => Yii::t("common",$msg) );
     }
 

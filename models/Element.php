@@ -711,167 +711,158 @@ class Element {
 		$contextMap["followers"] = array();*/
 
 
-	    /*if($type == Organization::COLLECTION){
+	    if($type == Organization::COLLECTION){
 	    	$connectAs="members";
 	    	$elt = Organization::getSimpleOrganizationById($id);
 			$newOrga["type"]=Organization::COLLECTION;
-			array_push($contextMap["organizations"], $elt);
-			//$contextMap = array_merge($contextMap, $elt);
+			$contextMap[$elt["id"]] = $elt;
 	    }
 	    else if($type == Project::COLLECTION){
 	    	$connectAs="contributors";
 	    	$elt = Project::getSimpleProjectById($id);
-			array_push($contextMap["projects"], $elt);
-			//$contextMap = array_merge($contextMap, $elt);
+	    	$contextMap[$elt["id"]] = $elt;
 	    }
 		else if ($type == Event::COLLECTION){
 			$connectAs="attendees";
 			$elt = Event::getSimpleEventById($id);
-			array_push($contextMap["events"], $elt);
-			//$contextMap = array_merge($contextMap, $elt);
-		}
-		else */ if ($type == Person::COLLECTION){
-			$connectAs="follows";
-			$elt = Person::getSimpleUserById($id);
-			//array_push($contextMap["people"], $elt);
 			$contextMap[$elt["id"]] = $elt;
 		}
+		else if ($type == Person::COLLECTION){
+			$connectAs="follows";
+			$elt = Person::getSimpleUserById($id);
+			$contextMap[$elt["id"]] = $elt;
+		}
+
+		
 	    
 		if(!empty($links) && 
 			( (Preference::showPreference($elt, $type, "directory", Yii::app()->session["userId"]) && $type == Person::COLLECTION) || 
 			$type != Person::COLLECTION) ) {
-			/*if(isset($links[$connectAs])){
+			if(isset($links[$connectAs])){
 				foreach ($links[$connectAs] as $key => $aMember) {
 					if($type==Event::COLLECTION){
 						$citoyen = Person::getSimpleUserById($key);
 						if(!empty($citoyen)){
 							if(@$aMember["invitorId"])  {
-								array_push($contextMap["guests"], $citoyen);
+								$contextMap[$citoyen["id"]] = $citoyen;
 							}
 							else{
-				                  if(@$e["isAdmin"]){
-				                    if(@$e["isAdminPending"])
-				                      $citoyen["isAdminPending"]=true;
-				                    $citoyen["isAdmin"]=true;         
-				                  }
-								  array_push($contextMap["attendees"], $citoyen);
+								if(@$e["isAdmin"]){
+									if(@$e["isAdminPending"])
+										$citoyen["isAdminPending"]=true;
+									$citoyen["isAdmin"]=true;         
+								}
+								$contextMap[$citoyen["id"]] = $citoyen;
 							}
-              			}
-					}else{
-						if($aMember["type"]==Organization::COLLECTION){
-							$newOrga = Organization::getSimpleOrganizationById($key);
-							if(!empty($newOrga)){
-								if ($aMember["type"] == Organization::COLLECTION && @$aMember["isAdmin"]){
-									$newOrga["isAdmin"]=true;  				
+						}else{
+							if($aMember["type"]==Organization::COLLECTION){
+								$newOrga = Organization::getSimpleOrganizationById($key);
+								if(!empty($newOrga)){
+									if ($aMember["type"] == Organization::COLLECTION && @$aMember["isAdmin"]){
+										$newOrga["isAdmin"]=true;  				
+									}
+									$newOrga["type"]=Organization::COLLECTION;
+									if (!@$newOrga["disabled"]) {
+										$contextMap[$newOrga["id"]] = $newOrga;
+									}
 								}
-								$newOrga["type"]=Organization::COLLECTION;
-								if (!@$newOrga["disabled"]) {
-									array_push($contextMap["organizations"], $newOrga);
+							} 
+							else if($aMember["type"]==Person::COLLECTION){
+								$newCitoyen = Person::getSimpleUserById($key);
+								if (!empty($newCitoyen)) {
+									if (@$aMember["type"] == Person::COLLECTION) {
+										if(@$aMember["isAdmin"]){
+											if(@$aMember["isAdminPending"])
+												$newCitoyen["isAdminPending"]=true;  
+												$newCitoyen["isAdmin"]=true;  	
+										}			
+										if(@$aMember["toBeValidated"]){
+											$newCitoyen["toBeValidated"]=true;  
+										}
+									}
+									$newCitoyen["type"]=Person::COLLECTION;
+									$contextMap[$newCitoyen["id"]] = $newCitoyen;
 								}
-							}
-						} 
-						else if($aMember["type"]==Person::COLLECTION){
-							$newCitoyen = Person::getSimpleUserById($key);
-							if (!empty($newCitoyen)) {
-								if (@$aMember["type"] == Person::COLLECTION) {
-									if(@$aMember["isAdmin"]){
-										if(@$aMember["isAdminPending"])
-											$newCitoyen["isAdminPending"]=true;  
-											$newCitoyen["isAdmin"]=true;  	
-									}			
-									if(@$aMember["toBeValidated"]){
-										$newCitoyen["toBeValidated"]=true;  
-									}		
-				  				
-								}
-								$newCitoyen["type"]=Person::COLLECTION;
-								array_push($contextMap["people"], $newCitoyen);
 							}
 						}
 					}
 				}
-			} */
+			}
 			// Link with events
-			/*if(isset($links["events"])){
+			if(isset($links["events"])){
 				foreach ($links["events"] as $keyEv => $valueEv) {
-					 $event = Event::getSimpleEventById($keyEv);
-					 if(!empty($event))
-					 	array_push($contextMap["events"], $event);
+					$event = Event::getSimpleEventById($keyEv);
+					if(!empty($event))
+						$contextMap[$event["id"]] = $event;
 				}
-			}*/
+			}
 	
 			// Link with projects
 			if(isset($links["projects"])){
 				foreach ($links["projects"] as $keyProj => $valueProj) {
-					 $project = Project::getSimpleProjectById($keyProj);
-					 if (!empty($project))
-					 	$contextMap[$project["id"]] = $project;
-	           		 	//array_push($contextMap["projects"], $project);	
+					$project = Project::getSimpleProjectById($keyProj);
+					if(!empty($project))
+						$contextMap[$project["id"]] = $project;
 				}
 			}
 
-			/*if(isset($links["followers"])){
+			if(isset($links["followers"])){
 				foreach ($links["followers"] as $key => $value) {
 					$newCitoyen = Person::getSimpleUserById($key);
-					if (!empty($newCitoyen))
-						array_push($contextMap["followers"], $newCitoyen);
+					if(!empty($newCitoyen))
+						$contextMap[$newCitoyen["id"]] = $newCitoyen;
 				}
 			}
 			if(isset($links["memberOf"])){
 				foreach ($links["memberOf"] as $key => $value) {
 					$newOrga = Organization::getSimpleOrganizationById($key);
-					if (!empty($newOrga))
-						array_push($contextMap["organizations"], $newOrga);
+					if(!empty($newOrga))
+						$contextMap[$newOrga["id"]] = $newOrga;
 				}
 			}
 
 			if(isset($links["subEvents"])){
 				foreach ($links["subEvents"] as $keyEv => $valueEv) {
-					 $event = Event::getSimpleEventById($keyEv);
-					 if(!empty($event))
-					 	array_push($contextMap["events"], $event);
+					$event = Event::getSimpleEventById($keyEv);
+					if(!empty($event))
+						$contextMap[$event["id"]] = $event;
 				}
 			}
 
-			$follows = array("citoyens"=>array(),
+			/*$follows = array("citoyens"=>array(),
   					"projects"=>array(),
   					"organizations"=>array(),
   					"count" => 0
-  			);
+  			);*/
   			if ($type == Person::COLLECTION){
-	  			$contextMap["follows"] = array();
-				$countFollows=0;
 			    if (@$links["follows"]) {
 			        foreach ( @$links["follows"] as $key => $member ) {
 			          	if( $member['type'] == Person::COLLECTION ) {
 				            $citoyen = Person::getSimpleUserById( $key );
 				  	        if(!empty($citoyen)) {
-				              array_push( $follows[Person::COLLECTION], $citoyen );
+				  	        	$contextMap[$citoyen["id"]] = $citoyen;
 				            }
 			        	}
+
 						if( $member['type'] == Organization::COLLECTION ) {
 							$organization = Organization::getSimpleOrganizationById($key);
 							if(!empty($organization)) {
-								array_push($follows[Organization::COLLECTION], $organization );
+								$contextMap[$organization["id"]] = $organization;
 							}
 						}
+
 						if( $member['type'] == Project::COLLECTION ) {
 						    $project = Project::getSimpleProjectById($key);
 						    if(!empty($project)) {
-								array_push( $follows[Project::COLLECTION], $project );
+								$contextMap[$project["id"]] = $project;
 							}
 						}
-						$countFollows++;
 		        	}
-				}	
-				$follows["count"]= $countFollows;
-				$contextMap["follows"] = $follows;
-
+				}
 			}
-			*/
 		}
 		//error_log("get POI for id : ".$id." - type : ".$type);
-		/*if(isset($id)){
+		if(isset($id)){
 			$pois = PHDB::find(Poi::COLLECTION,array("parentId"=>$id,"parentType"=>$type));
 			if(!empty($pois)) {
 				$allPois = array();
@@ -881,14 +872,11 @@ class Element {
 						$value["typeSig"] = Poi::COLLECTION.".".$value["type"];
 					else
 						$value["typeSig"] = Poi::COLLECTION;
-					$allPois[] = $value;
+					$contextMap[(String) $value["_id"]] = $value;
 				}
-				//$contextMap["pois"] = $allPois;
-				$contextMap = array_merge($contextMap, $allPois);
-			}/*else{
-				//$contextMap["pois"] = array();
+				
 			}
-		}*/
+		}
 		return $contextMap;	
     }
 
@@ -1036,7 +1024,7 @@ class Element {
 	        		$params["created"] = time();
                 	PHDB::updateWithOptions($collection,array("_id"=>new MongoId($id)), array('$set' => $params ),array('upsert' => true ));
                 	$params["_id"]=new MongoId($id);
-                	 if( $collection == Organization::COLLECTION )
+                	if( $collection == Organization::COLLECTION )
                 		$res["afterSave"] = Organization::afterSave($params, Yii::app()->session["userId"], $paramsLinkImport);
                 	else if( $collection == Event::COLLECTION )
                 		$res["afterSave"] = Event::afterSave($params);
@@ -1518,8 +1506,8 @@ class Element {
 
 		}else if( $block == "when" && ( $collection == Event::COLLECTION || $collection == Project::COLLECTION) ) {
 			
-			if(isset($params["allDay"]) && $collection == Event::COLLECTION)
-				$res[] = self::updateField($collection, $id, "allDay", (($params["allDay"] == "true") ? true : false));
+			if(isset($params["allDayHidden"]) && $collection == Event::COLLECTION)
+				$res[] = self::updateField($collection, $id, "allDay", (($params["allDayHidden"] == "true") ? true : false));
 			if(isset($params["startDate"]))
 				$res[] = self::updateField($collection, $id, "startDate", $params["startDate"]);
 			if(isset($params["endDate"]))
@@ -1589,6 +1577,8 @@ class Element {
 
 
         $connectType = @self::$connectTypes[$type];
+        if($type==Person::COLLECTION)
+        	$connectType="friends";
         /*if( @$element["links"] ) {
             if(isset($element["links"][$connectType])){
                 $countStrongLinks=0;//count($element["links"][$connectType]);
@@ -1652,12 +1642,11 @@ class Element {
         if(!@$element["disabled"]){
             //if((@$config["connectLink"] && $config["connectLink"]) || empty($config)){ TODO CONFIG MUTUALIZE WITH NETWORK AND OTHER PLATFORM
            //$connectType = $connectType[$type];
-            if(((!@$element["links"][$connectType][Yii::app()->session["userId"]] && $type!=Event::COLLECTION) || 
-                (@$element["links"][$connectType][Yii::app()->session["userId"]] && 
+            if(((!@$element["links"][$connectType][Yii::app()->session["userId"]] && $type!=Event::COLLECTION) || (@$element["links"][$connectType][Yii::app()->session["userId"]] && 
                 @$element["links"][$connectType][Yii::app()->session["userId"]][Link::TO_BE_VALIDATED])) && 
                 @Yii::app()->session["userId"] && 
                 ($type != Person::COLLECTION || 
-                $element["_id"] != Yii::app()->session["userId"])){
+                (string)$element["_id"] != Yii::app()->session["userId"])){
                     $params["linksBtn"]["followBtn"]=true;
                     if (@$element["links"]["followers"][Yii::app()->session["userId"]])
                             $params["linksBtn"]["isFollowing"]=true;

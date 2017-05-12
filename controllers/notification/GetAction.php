@@ -29,11 +29,16 @@ class GetAction extends CAction
           if(!empty($res)){
             $timezone="";
              foreach($res as $key => $data){
-                if(@$data["updated"])
+                if(@$data["updated"]){
                   $res[$key]["timeAgo"]=Translate::pastTime(date(@$data["updated"]->sec), "timestamp", $timezone);
-                else if(@$data["created"])
+                  $res[$key]["sortDate"]=$data["updated"];
+                }
+                else if(@$data["created"]){
                   $res[$key]["timeAgo"]=Translate::pastTime(date(@$data["created"]->sec), "timestamp", $timezone);
+                   $res[$key]["sortDate"]=$data["created"];
+                }
              } 
+            $res = Notification::sortNotifs($res, array('sortDate'=>SORT_DESC));
           }
         } else
             $res = array('result' => false , 'msg'=>'something somewhere went terribly wrong');
