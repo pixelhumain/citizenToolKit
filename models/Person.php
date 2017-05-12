@@ -1140,6 +1140,8 @@ class Person {
 	public static function validateUser($accountId,$admin=false) {
 		assert('$accountId != ""; //The userId is mandatory');
         $account = self::getSimpleUserById($accountId);
+        $email=Person::getEmailById($accountId);
+        $account["email"]=$email["email"];
         if (!empty($account)) {
 	       // if($admin==true){
 	        PHDB::update(	Person::COLLECTION,
@@ -1157,7 +1159,7 @@ class Person {
 	}
 
 	public static function getValidationKeyCheck($accountId) {
-		$account = self::getSimpleUserById($accountId);
+		$account = self::getEmailById($accountId);
 		if($account) {
 			$validationKeycheck = hash('sha256',$accountId.$account["email"]);
 		} else {
