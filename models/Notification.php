@@ -108,9 +108,15 @@ class Notification{
 				News::COLLECTION => array(
 					"label" => "{who} commented on your news {what}",
 					"labelRepeat" => "{who} added comments on your news {what}",
+					"sameAuthor"=>array(
+						"labelRepeat" => "{who} added few comments on your news {what}"
+					),
 					"targetIsAuthor"=> array(
 						"label"=> "{who} commented a news {what} posted on {where}",
-						"labelRepeat"=> "{who} added comments on a news {what} posted on {where}"
+						"labelRepeat"=> "{who} added comments on a news {what} posted on {where}",
+						"sameAuthor"=>array(
+							"labelRepeat" => "{who} added few comments on a news {what} posted on {where}"
+						)
 					),
 					"notifyUser" => true,
 					"parentTarget"=>true,
@@ -140,6 +146,9 @@ class Notification{
 				Comment::COLLECTION => array(
 					"label" => "{who} answered to your comment posted on {where}",
 					"labelRepeat" => "{who} added comments on your comments posted on {where}",
+					"sameAuthor" => array(
+						"labelRepeat" => "{who} added few comments on your comments posted on {where}"
+					),
 					"url" => "targetTypeUrl",
 					"notifyUser" => true,
 					"repeat"=>true
@@ -216,10 +225,16 @@ class Notification{
 				),
 				"userWall" => array(
 					"label"=>"{who} writes a post on your wall",
-					"labelRepeat"=>"{who} write posts on your wall"
+					"labelRepeat"=>"{who} write posts on your wall",
+					"sameAuthor" => array(
+						"labelRepeat" => "{who} writes posts on your wall"
+					)
 				),
 				"label"=>"{who} writes a post on the wall of {where}",
-				"labelRepeat"=>"{who} write posts on the wall of {where}"
+				"labelRepeat"=>"{who} write posts on the wall of {where}",
+				"sameAuthor" => array(
+					"labelRepeat" => "{who} writes posts on the wall of {where}"
+				)
 			),
 			"url" => "page/type/{collection}/id/{id}",
 			"labelArray" => array("who", "where"),
@@ -488,7 +503,7 @@ class Notification{
 	* params string $repeat indicates if label used is normal one or the repeat label
 	* return label ready to push in dB
 	**/
-	public static function getLabelNotification($construct, $type=null, $count=1, $notification=null, $repeat=""){
+	public static function getLabelNotification($construct, $type=null, $count=1, $notification=null, $repeat="", $sameAuthor=null){
 		$specifyLabel = array();
 		//GetLAbel
 		//$type=""; else "Repeat"
@@ -499,17 +514,33 @@ class Notification{
 				$label = $construct["type"]["user"][$construct["levelType"]]["label".$repeat];
 		}
 		else if($construct["levelType"]){
- 	    	if(@$target["targetIsAuthor"])
-				$label = $construct["type"][$construct["levelType"]]["targetIsAuthor"]["label".$repeat];
-			else if(!@$construct["type"][$construct["levelType"]]["label"])
-				$label = $construct["type"][$construct["levelType"]][$construct["target"]["type"]]["label".$repeat];
+ 	    	if(@$target["targetIsAuthor"]){
+ 	    		if($sameAuthor)
+ 	    			$label = $construct["type"][$construct["levelType"]]["targetIsAuthor"]["sameAuthor"]["label".$repeat];
+ 	    		else
+					$label = $construct["type"][$construct["levelType"]]["targetIsAuthor"]["label".$repeat];
+ 	    	}
+			else if(!@$construct["type"][$construct["levelType"]]["label"]){
+				if($sameAuthor)
+					$label = $construct["type"][$construct["levelType"]][$construct["target"]["type"]]["sameAuthor"]["label".$repeat];
+				else
+					$label = $construct["type"][$construct["levelType"]][$construct["target"]["type"]]["label".$repeat];
+			}
 			else{
-				$label = $construct["type"][$construct["levelType"]]["label".$repeat];
+				if($sameAuthor){
+					$label = $construct["type"][$construct["levelType"]]["sameAuthor"]["label".$repeat];
+				}
+				else
+					$label = $construct["type"][$construct["levelType"]]["label".$repeat];
 				//Specific case for comment, like, unlike on news
 				if($construct["levelType"]==News::COLLECTION){
 					$news=News::getById($construct["target"]["id"]);
-					if($news["target"]["type"] != Person::COLLECTION)
-						$label = $construct["type"][$construct["levelType"]]["targetIsAuthor"]["label".$repeat];
+					if($news["target"]["type"] != Person::COLLECTION){
+						if($sameAuthor)
+							$label = $construct["type"][$construct["levelType"]]["targetIsAuthor"]["sameAuthor"]["label".$repeat];
+						else
+							$label = $construct["type"][$construct["levelType"]]["targetIsAuthor"]["label".$repeat];
+					}
 				}
 			}
  	    	//$notifyObject=$typeAction;
@@ -518,10 +549,18 @@ class Notification{
 		else if (!@$construct["label".$repeat]){
 			if(@$construct["target"]["targetIsAuthor"])
 				$label = $construct["type"]["targetIsAuthor"]["label".$repeat];
-			else if(@$construct["target"]["userWall"])
-				$label = $construct["type"]["userWall"]["label".$repeat];
-			else
-				$label = $construct["type"]["label".$repeat];
+			else if(@$construct["target"]["userWall"]){
+				if($sameAuthor)
+					$label = $construct["type"]["userWall"]["sameAuthor"]["label".$repeat];
+				else
+					$label = $construct["type"]["userWall"]["label".$repeat];
+			}
+			else{
+				if($sameAuthor)
+					$label = $construct["type"]["sameAuthor"]["label".$repeat];
+				else
+					$label = $construct["type"]["label".$repeat];
+			}
 		}
 		else
 			$label = $construct["label".$repeat];
@@ -619,16 +658,25 @@ class Notification{
 		    $where["notify.objectType"]=News::COLLECTION;
 		if($isUserNotif)
 			$object=$construct["author"];
+		if($construct["object"] && !empty($construct["object"]) &&
+				 ($construct["verb"]==Actstr::VERB_COMMENT || $construct["verb"]==Actstr::VERB_LIKE|| $construct["verb"]==Actstr::VERB_UNLIKE)){
+			$where["object.id"] = $construct["object"]["id"];
+			$where["object.type"] = $construct["object"]["type"];
+		}
 		$notification = PHDB::findOne(ActivityStream::COLLECTION, $where);
 		if(!empty($notification)){
-			if((@$notification[$construct["labelUpNotifyTarget"]] && @$notification[$construct["labelUpNotifyTarget"]][$construct["author"]["id"]]
-				) || (@$construct["type"] && @$construct["type"][$construct["levelType"]] && @$construct["type"][$construct["levelType"]]["noUpdate"] ))
+			if(@$construct["type"] && @$construct["type"][$construct["levelType"]] && @$construct["type"][$construct["levelType"]]["noUpdate"])
 				return true;
 			else{
 				$countRepeat=1;
-				foreach($notification[$construct["labelUpNotifyTarget"]] as $i){$countRepeat++;}
+				foreach($notification[$construct["labelUpNotifyTarget"]] as $key => $i){
+					if(($notification["verb"] != Actstr::VERB_POST && $notification["verb"] != Actstr::VERB_COMMENT) || ($key != Yii::app()->session["userId"]))
+						$countRepeat++;
+				}
+				if($countRepeat==1)
+					$sameAuthor=true;
 				// Get new Label
-				$newLabel=self::getLabelNotification($construct, null, $countRepeat, $notification, "Repeat");
+				$newLabel=self::getLabelNotification($construct, null, $countRepeat, $notification, "Repeat", @$sameAuthor);
 				// Add new author to notification
 				if($construct["labelUpNotifyTarget"] == "object")
 					foreach($construct["object"] as $key => $data){
@@ -721,18 +769,28 @@ class Notification{
 				}
 				$comment=Comment::getById($object["id"]);
 				$userNotify=$comment["author"]["id"];
+				$commentAuthor=$userNotify;
 				// Case when user answer to his comment
 				if($notificationPart["target"]["type"]==News::COLLECTION && $userNotify==Yii::app()->session["userId"])
 					$isToNotify=false;
 				if($notificationPart["target"]["type"]==News::COLLECTION){
 					$news=News::getById($notificationPart["target"]["id"]);
 					$authorNews=News::getAuthor($notificationPart["target"]["id"]);
-					$userNotify=$authorNews["author"];
+					if(!@$notificationPart["object"] || empty($notificationPart["object"]))
+						$userNotify=$authorNews["author"];
 					$notificationPart["target"]["parent"]=array("id"=>$news["target"]["id"],"type"=> $news["target"]["type"]);
+					$notifyCommunity=false;
 					//$notificationPart["parent"]=$news["target"];
 					// Case when user comment a news where target is author
-					if(@$news["targetIsAuthor"])
+					if(@$news["targetIsAuthor"]){
 						$isToNotify=false;
+						$notifyCommunity=true;
+					}
+					if(($commentAuthor!="" && $commentAuthor==$authorNews["author"]) 
+						|| ($commentAuthor=="" && Yii::app()->session["userId"]==$authorNews["author"]))
+						$isToNotify=false;
+					else
+						$notifyCommunity=true;
 				}
 
 			}else
@@ -763,7 +821,7 @@ class Notification{
 						//$notifyObject=$typeAction;
 					}*/
 					// -------- END MOVE ON GETLABEL --------///
-					$notificationPart["author"]=array($userNotify => array("name"=> Yii::app()->session["user"]["name"]));
+					$notificationPart["author"]=array(Yii::app()->session["userId"] => array("name"=> Yii::app()->session["user"]["name"]));
 					self::createNotification($notificationPart,$type);
 			    }
 			} 
@@ -854,13 +912,15 @@ class Notification{
 				if($comment["author"]["id"]==$authorNews["author"] && !@$news["targetIsAuthor"])
 					$res["{where}"]=Yii::t("notification","your news");
 				else
-					$res["{where}"]=Yii::t("notification","the news of")." ".$parent["name"];
+					$res["{where}"]=Yii::t("notification","the news posted on the wall of ")." ".$parent["name"];
 			}
 			else
 				$res["{where}"]=$parent["name"];
 			if($type=="news"){
 				if(@$news["title"])
 					$res["{what}"]="&quot;".$news["title"]."&quot;";
+				else if($news["type"]=="activityStream")
+					$res["{what}"]=Yii::t("notification","of creation").": &quot;".strtr($news["object"]["name"],0,20)."...&quot;";
 				else
 					$res["{what}"]="&quot;".strtr(@$news["text"], 0, 20)."...&quot;";
 			}
