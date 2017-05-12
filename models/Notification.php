@@ -179,7 +179,8 @@ class Notification{
 				Comment::COLLECTION => array(
 					"label"=>"{who} likes your comment on {where}",
 					"labelRepeat"=>"{who} like your comment on {where}",
-					"url" => "targetTypeUrl"
+					"url" => "targetTypeUrl",
+					"notifyUser" => true
 				)
 			),
 			"labelArray" => array("who", "where"),
@@ -206,7 +207,8 @@ class Notification{
 				Comment::COLLECTION => array(
 					"label"=>"{who} disapproves your comment on {where}",
 					"labelRepeat"=>"{who} disapproves your comment on {where}",
-					"url" => "targetTypeUrl"
+					"url" => "targetTypeUrl",
+					"notifyUser" => true
 				)
 			),
 			"labelArray" => array("who", "where"),
@@ -763,10 +765,8 @@ class Notification{
 			$isToNotify=true;
 			// If answered on comment is the same than on the news or other don't notify twice the author of parent and comment
 			if($verb==Actstr::VERB_COMMENT || $verb==Actstr::VERB_LIKE || $verb==Actstr::VERB_UNLIKE){
-				if(@$notificationPart["object"] && !empty($notificationPart["object"])){
-					if(($verb==Actstr::VERB_LIKE || $verb==Actstr::VERB_UNLIKE) && $notificationPart["object"]["type"]=="comments")
-						$notifyCommunity=false;
-				}
+				if(@$notificationPart["object"] && !empty($notificationPart["object"]))
+					$notifyCommunity=false;
 				$comment=Comment::getById($object["id"]);
 				$userNotify=$comment["author"]["id"];
 				$commentAuthor=$userNotify;
@@ -795,6 +795,7 @@ class Notification{
 
 			}else
 				$userNotify=$author["id"];
+
 			if($isToNotify){
 				if(gettype($userNotify)!="string")
 					$userNotify=(string)$userNotify["id"];
