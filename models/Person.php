@@ -126,6 +126,7 @@ class Person {
       Yii::app()->session["user"] = null; 
       Yii::app()->session['logguedIntoApp'] = null;
       Yii::app()->session['requestedUrl'] = null;
+      CookieHelper::setCookie("communexionActivated", false);
     }
 
 	/**

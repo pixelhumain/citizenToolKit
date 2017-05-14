@@ -1024,7 +1024,7 @@ class Element {
 	        		$params["created"] = time();
                 	PHDB::updateWithOptions($collection,array("_id"=>new MongoId($id)), array('$set' => $params ),array('upsert' => true ));
                 	$params["_id"]=new MongoId($id);
-                	 if( $collection == Organization::COLLECTION )
+                	if( $collection == Organization::COLLECTION )
                 		$res["afterSave"] = Organization::afterSave($params, Yii::app()->session["userId"], $paramsLinkImport);
                 	else if( $collection == Event::COLLECTION )
                 		$res["afterSave"] = Event::afterSave($params);
