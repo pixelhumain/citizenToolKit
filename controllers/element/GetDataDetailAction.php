@@ -162,8 +162,14 @@ class GetDataDetailAction extends CAction {
 		  	}
 		  	$contextMap = array_merge($contextMap, $pois);
 			
-			echo $this->getController()->renderPartial($_POST['tpl'], 
-				array("result"=>$contextMap, "scope"=>@$_POST['searchLocalityDEPARTEMENT'][0], "open"=> (@$type=="0")));
+			if(@$_POST["tpl"]=="json")
+				return Rest::json($contextMap);
+			else
+			echo $this->getController()->renderPartial($_POST['tpl'], array("result"=>$contextMap, 
+																			"type"=>$type, 
+																			"id"=>$id, 
+																			"scope"=>@$_POST['searchLocalityDEPARTEMENT'][0], 
+																			"open"=> (@$type=="0"))); //open : for home page (when no user connected)
 			Yii::app()->end();
 		}
 
