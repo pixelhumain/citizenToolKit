@@ -203,7 +203,6 @@ class IndexAction extends CAction
 							array("type" => array('$ne' => "pixels")),
 			        	)	
 			        );
-			        //echo '<pre>';var_dump($where);echo '</pre>'; return;
 				}
 				else{
 					error_log("message 1");
@@ -213,7 +212,6 @@ class IndexAction extends CAction
 							array("author"=> $id,"targetIsAuthor"=>array('$exists'=>false),"type"=>"news"), 
 							array("target.id"=> $id, "target.type" => Person::COLLECTION)
 						);
-						//array_push($scope,array("scope.type"=>"private"));
 					} else {
 						$orRequest=array(
 							array("author"=> $id,
