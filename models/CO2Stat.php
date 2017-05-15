@@ -60,6 +60,12 @@ class CO2Stat {
 		//extrait les données du hash demandé (s'il y en a un, sinon return les stats de tous les hash)
 		$statByHash = ($hash!=null) ? @$stat["hash"][$hash] : $stat;
 
+		if($CO2DomainName!="kgougle"){
+			unset($statByHash["hash"]["co2-web"]);
+			unset($statByHash["hash"]["co2-websearch"]);
+			unset($statByHash["hash"]["co2-referencement"]);
+		}
+		//var_dump($statByHash);
 		return $statByHash;
 	}
 

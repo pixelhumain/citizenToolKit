@@ -195,22 +195,7 @@ class Translate {
 		}
 		elseif (isset($bindPath["type"]) && $bindPath["type"] == "image_rss") {
 			$val = TranslateRss::getRssImage($val, $bindPath);		
-		}	
-	
-
-
-		
-
-		
-		
-	
-	
-
-				 
-
-
-		
-		
+		}			
 		else if( isset( $bindPath["prefix"] ) || isset( $bindPath["suffix"] ) )
 		{
 			$val = $prefix.$val.$suffix;

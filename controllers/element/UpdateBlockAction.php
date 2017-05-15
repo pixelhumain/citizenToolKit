@@ -4,7 +4,7 @@
 */
 class UpdateBlockAction extends CAction
 {
-    public function run($type)
+    public function run()
     {
         $controller=$this->getController();
         if(!empty($_POST["block"])) {

@@ -774,6 +774,7 @@ class Import
 
             $res = self::getUmapResult($url, $param);
 
+// <<<<<<< HEAD
         } elseif ((isset($url)) && 
             ((substr($url, 0, 21) == "http://u.osmfr.org/m/"))
             ) {
@@ -789,6 +790,12 @@ class Import
            
             $result = self::previewData($param);
             $res = json_decode($result['elements']);
+// =======
+            //     if (!empty($result)) {
+            //         array_push($res, json_decode($result));
+            //     }
+            // }
+// >>>>>>> pixelhumain-development
 
         } 
 

@@ -197,8 +197,8 @@ class Mail {
             "to" => $person["email"],
             "tplParams" => array( "user"  => $person["_id"] ,
                                   "title" => Yii::app()->name ,
-                                  //"logo"  => "/images/logoLTxt.jpg" 
                                   "logo" => Yii::app()->params["logoUrl"],
+                                     "logo2" => Yii::app()->params["logoUrl2"]
                                   //"urlRedirect" => Yii::app()->getRequest()->getBaseUrl(true);
                                   ) );
         Mail::schedule($params);

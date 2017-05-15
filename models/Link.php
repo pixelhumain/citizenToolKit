@@ -732,7 +732,9 @@ class Link {
         
         //Check if the user is admin
 		$actionFromAdmin=in_array($userId,$usersAdmin);
-		
+        $actionFromMember=false;
+        if(@$parentUsersList[$userId])
+            $actionFromMember=true;
         if ($childType == Organization::COLLECTION) {
             $class = "Organization";
         //ou Child type Person
@@ -792,10 +794,10 @@ class Link {
         else
             $levelNotif="asMember";
         //First case : The parent doesn't have an admin yet or it is an action from an admin or it is an event: 
-		if (count($usersAdmin) == 0 || $actionFromAdmin || $parentType == Event::COLLECTION) {
+		if (count($usersAdmin) == 0 || $actionFromAdmin || ($actionFromMember && $childId != Yii::app()->session["userId"]) || $parentType == Event::COLLECTION) {
             //the person is automatically added as member (admin or not) of the parent
             //var_dump("here");
-            if ($actionFromAdmin || ($parentType == Event::COLLECTION && $childId != Yii::app()->session["userId"])) {
+            if ($actionFromAdmin || ($actionFromMember && $childId != Yii::app()->session["userId"]) || ($parentType == Event::COLLECTION && $childId != Yii::app()->session["userId"])) {
 	            //If admin add as admin or member
                 $verb = ActStr::VERB_INVITE; 
 	            if($isConnectingAdmin==true){
@@ -950,9 +952,12 @@ class Link {
         $user = array(
             "id"=>$childId,
             "type"=>$childType,
-            "name" => $pendingChild["name"],
+            "name" => $pendingChild["name"]
         );
-        
+        $target = array(
+            "type"=>$parentType,
+            "id"=> $parentId,
+            "name"=>$parent["name"]);
         //Notifications
         if ($linkOption == Link::IS_ADMIN_PENDING) {
             //Notification::actionOnPerson ( ActStr::VERB_CONFIRM, ActStr::ICON_SHARE, $user, array("type"=>$parentType,"id"=> $parentId,"name"=>$parent["name"]));
@@ -975,11 +980,12 @@ class Link {
                 $levelNotif="asAdmin";
             else
                 $levelNotif="asMember";
+            $target["invitorId"]=$parent["links"][$connectType][$childId]["invitorId"];
             //MAIL TO INVITOR
         }
         if($verb==ActStr::VERB_ACCEPT)
             Mail::someoneConfirmYouTo($parent, $parentType, $pendingChild, $typeOfDemand);
-        Notification::constructNotification($verb, $user , array("type"=>$parentType,"id"=> $parentId,"name"=>$parent["name"]), null, $levelNotif);
+        Notification::constructNotification($verb, $user , $target, null, $levelNotif);
         return array( "result" => true , "msg" => Yii::t("common",$msg) );
     }
 
