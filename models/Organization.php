@@ -588,7 +588,7 @@ class Organization {
 		            }
 		            if ( $role && @$member[$role] == true ) {
 		            	if($role=="isAdmin"){
-		            		if(!@$member["isAdminPending"])
+		            		if(!@$member["isAdminPending"] && !@$member["toBeValidated"])
 		            			$res[$key] = $member;	
 		            	} else 
 		                	$res[$key] = $member;

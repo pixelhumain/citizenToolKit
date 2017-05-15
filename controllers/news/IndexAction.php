@@ -126,37 +126,51 @@ class IndexAction extends CAction
 				if(@$isLive && (@Yii::app()->session["userId"] && $id == Yii::app()->session["userId"])){
 					error_log("message 2");
 					$authorFollowedAndMe=[];
-					array_push($authorFollowedAndMe,array("sharedBy"=>array('$in'=>array($id))));
+					/*$or:[
+					{'author':this.userId},
+					{'target.id': {$in:arrayIds}},
+					{'mentions.id': {$in:arrayIds}},
+					{'target.id': {$in:followsArrayIds},'scope.type':{$in:['public','restricted']}},*/ 
+					/*array_push($authorFollowedAndMe,array("sharedBy"=>array('$in'=>array($id))));
 					array_push($authorFollowedAndMe,array("author"=>$id));
 					array_push($authorFollowedAndMe,array("target.id"=> $id, 
 														"target.type" => Person::COLLECTION));
 					array_push($authorFollowedAndMe,array("mentions.id" => $id, 
-															"mentions.type" => Person::COLLECTION));
+															"mentions.type" => Person::COLLECTION));*/
 
 					//echo '<pre>';var_dump($parent);echo '</pre>'; return;
+					$arrayIds=[$id];
+					$followsArrayIds=[];
 					if(@$parent["links"]["memberOf"] && !empty($parent["links"]["memberOf"])){
 						foreach ($parent["links"]["memberOf"] as $key => $data){
-							array_push($authorFollowedAndMe,array("target.id"=>$key, "target.type" => Organization::COLLECTION));
-							array_push($authorFollowedAndMe,array("mentions.id" => $key, "mentions.type" => Organization::COLLECTION));
+							if(!@$data[Link::TO_BE_VALIDATED])
+								array_push($arrayIds,$key);
+							//array_push($authorFollowedAndMe,array("target.id"=>$key, "target.type" => Organization::COLLECTION));
+							//array_push($authorFollowedAndMe,array("mentions.id" => $key, "mentions.type" => Organization::COLLECTION));
 						}
 					}
 					if(@$parent["links"]["projects"] && !empty($parent["links"]["projects"])){
 						foreach ($parent["links"]["projects"] as $key => $data){
-							array_push($authorFollowedAndMe,array("target.id"=>$key, "target.type" => Project::COLLECTION));
-							array_push($authorFollowedAndMe,array("mentions.id" => $key, "mentions.type" => Project::COLLECTION));
+							if(!@$data[Link::TO_BE_VALIDATED])
+								array_push($arrayIds,$key);
+							/*array_push($authorFollowedAndMe,array("target.id"=>$key, "target.type" => Project::COLLECTION));
+							array_push($authorFollowedAndMe,array("mentions.id" => $key, "mentions.type" => Project::COLLECTION));*/
 
 						}
 					}
 					if(@$parent["links"]["events"] && !empty($parent["links"]["events"])){
 						foreach ($parent["links"]["events"] as $key => $data){
-							array_push($authorFollowedAndMe,array("target.id" => $key, "target.type" => Event::COLLECTION));
-							array_push($authorFollowedAndMe,array("mentions.id" => $key, "mentions.type" => Event::COLLECTION));
+							if(!@$data[Link::TO_BE_VALIDATED])
+								array_push($arrayIds,$key);
+							/*array_push($authorFollowedAndMe,array("target.id" => $key, "target.type" => Event::COLLECTION));
+							array_push($authorFollowedAndMe,array("mentions.id" => $key, "mentions.type" => Event::COLLECTION));*/
 
 						}
 					}
 					if(@$parent["links"]["follows"] && !empty($parent["links"]["follows"])){
 						foreach ($parent["links"]["follows"] as $key => $data){
-							$followNews=array('$and'=>array(
+							array_push($followsArrayIds,$key);
+							/*$followNews=array('$and'=>array(
 													array("target.id"=>$key, "target.type" => $data["type"]),
 													array('$or'=>
 														array(
@@ -166,17 +180,25 @@ class IndexAction extends CAction
 													)
 												)
 											);
-							array_push($authorFollowedAndMe,$followNews);
+							array_push($authorFollowedAndMe,$followNews);*/
 						}
 					}
-					if(@$parent["address"]["codeInsee"])
-						array_push($authorFollowedAndMe, array("scope.cities." => $parent["address"]["codeInsee"],"type" => "activityStream"));
-			    	//error_log("message 3");
+					
+					//error_log("message 3");
 					
 			        $where = array(
 			        	'$and' => array(
 							array('$or'=> 
-									$authorFollowedAndMe
+								array(
+									array("author"=>$id),
+									array("sharedBy"=>array('$in'=>array($id))),
+									array("target.id" =>  array('$in' => $arrayIds)),
+									array("mentions.id" => array('$in' => $arrayIds)),
+									array(
+										"target.id"=> array('$in' => $followsArrayIds),
+										"scope.type" => array('$in'=> ['public','restricted'])
+									)
+								)
 							),
 							array("type" => array('$ne' => "pixels")),
 			        	)	
@@ -215,24 +237,43 @@ class IndexAction extends CAction
 				}
 			}
 			else if($type == "organizations" || $type == "projects" || $type == "events" || $type == "place"){
-				$scope=array(
+				/*{ $or :[
+{'mentions.id':'55ed9107e41d75a41a558524','scope.type':{$in:['public','restricted','private']}},
+{'target.id':'55ed9107e41d75a41a558524','scope.type':{$in:['public','restricted','private']}},
+{author:'55ed9107e41d75a41a558524'}]}*/
+				/*$scope=array(
 						array("scope.type"=> "public"),
 						array("scope.type"=> "restricted"),
-				);
+				);*/
+				$scope=["public","restricted"];
 				if (@$params["canManageNews"] && $params["canManageNews"])
-					array_push($scope,array("scope.type"=>"private"));
-				else if(@Yii::app()->session["userId"])
-					array_push($scope,array("author"=>Yii::app()->session["userId"]));
-				$whereScope=array('$or'=>$scope);
-	
+					array_push($scope,"private");
+					//array_push($scope,array("scope.type"=>"private"));
+				//else if(@Yii::app()->session["userId"])
+					//array_push($scope,array("author"=>Yii::app()->session["userId"]));
+				//$whereScope=array('$or'=>$scope);
 				$where = array('$and' => array(
+							array('$or'=>array(
+								array("mentions.id"=>$id,"scope.type"=>array('$in'=>$scope)),
+								array("target.id"=>$id,"scope.type"=>array('$in'=>$scope)),
+								array(
+									"author"=>Yii::app()->session["userId"],
+									'$or'=>array(
+										array("mentions.id"=>$id),
+										array("target.id"=>$id)
+									)
+								)
+							))
+		        	)	
+				);
+				/*$where = array('$and' => array(
 							array('$or'=>array(
 								array("target.type"=> $type,"target.id"=> $id),
 								array("mentions.type"=> $type,"mentions.id"=> $id)
 							)),
-						$whereScope,
+							$whereScope,
 		        	)	
-				);
+				);*/
 			}
 			else if ($type == "pixels"){
 				$where = array('$and' => array(
