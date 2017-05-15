@@ -979,7 +979,7 @@ class Element {
 		
 		//Unset the organizer for events organized by the element
 		if (count($listEventsId) > 0) {
-			$where = array('$in' => array('$in' => $listEventsId));
+			$where = array('_id' => array('$in' => $listEventsId));
 			$action = array('$set' => array("organizerId" => Event::NO_ORGANISER, "organizerType" => Event::NO_ORGANISER));
 			PHDB::update(Event::COLLECTION, $where, $action);
 		}
