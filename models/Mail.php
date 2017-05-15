@@ -384,14 +384,15 @@ class Mail {
                     "subject" => "[".Yii::app()->name."] - Suppression de ".@$element["name"],
                     "from"=>Yii::app()->params['adminEmail'],
                     "to" => $aPerson["email"],
-                    "tplParams" => array(   
+                    "tplParams" => array(
+                        "elementType" => @$elementType,
                         "elementName" => @$element["name"],
                         "userName" => @$user["name"],
                         "logo"=> Yii::app()->params["logoUrl"],
                         "logo2" => Yii::app()->params["logoUrl2"],
                         "reason" => $reason,
                         "nbDayBeforeDelete" => $nbDayBeforeDelete,
-                        "url" => Yii::app()->getRequest()->getBaseUrl(true)."/".$url,)
+                        "url" => Yii::app()->getRequest()->getBaseUrl(true)."/".$url),
                 );
                 
                 Mail::schedule($params);
