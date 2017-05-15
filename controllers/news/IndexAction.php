@@ -28,6 +28,7 @@ class IndexAction extends CAction
 		$date=new MongoDate($date);
 		$news=array();
 		$params = array();
+		$where = array();
 		if (!isset($id)){
 			if($type!="pixels"){
 				if($type=="city"){
