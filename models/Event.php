@@ -27,7 +27,7 @@ class Event {
 	    "organizerId" => array("name" => "organizerId"),
 	    "organizerType" => array("name" => "organizerType"),
 	    "organizer" => array("name" => "organizer", "rules" => array("validOrganizer")),
-
+	    
 
 	    "address" => array("name" => "address", "rules" => array("addressValid")),
 	    "addresses" => array("name" => "addresses"),
@@ -60,6 +60,12 @@ class Event {
 	    "created" => array("name" => "created"),
 	    "locality" => array("name" => "address"),
 	    "descriptionHTML" => array("name" => "descriptionHTML"),
+
+	    "facebook" => array("name" => "socialNetwork.facebook"),
+	    "twitter" => array("name" => "socialNetwork.twitter"),
+	    "gpplus" => array("name" => "socialNetwork.googleplus"),
+	    "github" => array("name" => "socialNetwork.github"),
+	    "skype" => array("name" => "socialNetwork.skype"),
 	);
 
 	//TODO SBAR - First test to validate data. Move it to DataValidator

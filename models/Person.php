@@ -37,7 +37,7 @@ class Person {
 	    "facebook" => array("name" => "socialNetwork.facebook"),
 	    "twitter" => array("name" => "socialNetwork.twitter"),
 	    "gpplus" => array("name" => "socialNetwork.googleplus"),
-	    "gitHub" => array("name" => "socialNetwork.github"),
+	    "github" => array("name" => "socialNetwork.github"),
 	    "skype" => array("name" => "socialNetwork.skype"),
 	    "telegram" => array("name" => "socialNetwork.telegram"),
 	    "bgClass" => array("name" => "preferences.bgClass"),
@@ -126,6 +126,7 @@ class Person {
       Yii::app()->session["user"] = null; 
       Yii::app()->session['logguedIntoApp'] = null;
       Yii::app()->session['requestedUrl'] = null;
+      CookieHelper::setCookie("communexionActivated", false);
     }
 
 	/**
@@ -912,8 +913,10 @@ class Person {
 	            self::updateLoginHistory((String) $account["_id"]);
 	            if ($res["msg"] == "notValidatedEmail") 
 	        		return $res;
-	        	else
+	        	else{
+	        		Person::updateCookieCommunexion((string)$account["_id"], @$account["address"]);
 	            	$res = array("result"=>true, "id"=>(string)$account["_id"], "isCommunected"=>isset($account["cp"]), "msg" => "Vous êtes maintenant identifié : bienvenue sur communecter.");
+	        	}
 	        } else {
 	            $res = array("result"=>false, "msg"=>"emailAndPassNotMatch");
 	        }
@@ -1138,6 +1141,8 @@ class Person {
 	public static function validateUser($accountId,$admin=false) {
 		assert('$accountId != ""; //The userId is mandatory');
         $account = self::getSimpleUserById($accountId);
+        $email=Person::getEmailById($accountId);
+        $account["email"]=$email["email"];
         if (!empty($account)) {
 	       // if($admin==true){
 	        PHDB::update(	Person::COLLECTION,
@@ -1155,7 +1160,7 @@ class Person {
 	}
 
 	public static function getValidationKeyCheck($accountId) {
-		$account = self::getSimpleUserById($accountId);
+		$account = self::getEmailById($accountId);
 		if($account) {
 			$validationKeycheck = hash('sha256',$accountId.$account["email"]);
 		} else {
@@ -2041,17 +2046,41 @@ class Person {
 
     public static function updateCookieCommunexion($userId, $address) {
     	$result = array("result" => false, "msg" => "User not connected");
+    	
+
     	if(!empty($userId)){
     		try{
     			if(!empty($address)){
+    				
     				CookieHelper::setCookie("inseeCommunexion", $address["codeInsee"]);
 		    		CookieHelper::setCookie("cpCommunexion", $address["postalCode"]);
 		    		CookieHelper::setCookie("cityNameCommunexion", $address["addressLocality"]);
+		    		CookieHelper::setCookie("communexionActivated", false);
+    				
+		    		CookieHelper::setCookie("communexionValue", $address["addressCountry"]."_".$address["codeInsee"]."-".$address["postalCode"]);
+		    		CookieHelper::setCookie("communexionName", $address["addressLocality"]);
+
+					$where = array("insee" => $address["codeInsee"]);
+					$citiesResult = PHDB::findOne( City::COLLECTION , $where, array("postalCodes") );
+					foreach($citiesResult as $v){
+						if(!empty($citiesResult["postalCodes"]) && count($citiesResult["postalCodes"]) == 1)
+							CookieHelper::setCookie("communexionType", "city");
+						else
+							CookieHelper::setCookie("communexionType", "cp");
+					}
+		    		CookieHelper::setCookie("communexionLevel", "cpCommunexion");
+
     			}else{
-    				CookieHelper::removeCookie("inseeCommunexion");
-		    		CookieHelper::removeCookie("cpCommunexion");
-		    		CookieHelper::removeCookie("cityNameCommunexion");
+    				//var_dump($address);
+		    		CookieHelper::removeCookie("communexionType");
+					CookieHelper::removeCookie("communexionValue");
+					CookieHelper::removeCookie("communexionName");
+					CookieHelper::removeCookie("communexionLevel");    				
+					CookieHelper::removeCookie("inseeCommunexion");
+					CookieHelper::removeCookie("cpCommunexion");
+					CookieHelper::removeCookie("cityNameCommunexion");
     			}
+    			
 	    		$result = array("result" => true, "msg" => "Cookies is updated");
 			}catch (CTKException $e) {
 				$result = array("result" => false, "msg" => $e->getMessage());
@@ -2060,6 +2089,19 @@ class Person {
 
     	return $result ;
     }
+
+
+    /*public static function removeCookie($person){
+    	if(!empty($person["removeCookie"]) && $person["removeCookie"] == true ){
+    		CookieHelper::removeCookie("communexionType");
+			CookieHelper::removeCookie("communexionValue");
+			CookieHelper::removeCookie("communexionName");
+			CookieHelper::removeCookie("communexionLevel");    				
+			CookieHelper::removeCookie("inseeCommunexion");
+			CookieHelper::removeCookie("cpCommunexion");
+			CookieHelper::removeCookie("cityNameCommunexion");
+    	}
+    }*/
 
     public static function getCurrentSuperAdmins() {
     	$superAdmins = array();

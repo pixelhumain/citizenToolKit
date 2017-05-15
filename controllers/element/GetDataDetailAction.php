@@ -8,18 +8,27 @@ class GetDataDetailAction extends CAction {
     	//$controller=$this->getController();
 
     	$contextMap = array();
-		$element = Element::getByTypeAndId($type, $id);
+		$element = @$type != "0" ? Element::getByTypeAndId(@$type, @$id) : null;
 
 		if($dataName == "follows" || $dataName == "followers" || 
 			$dataName == "members" || $dataName == "attendees" ||
-			$dataName == "contributors" ){
-			if(isset($element["links"][$dataName])){
-				foreach ($element["links"][$dataName] as $keyLink => $value){
-					$link = Element::getByTypeAndId($value["type"], $keyLink);
-					$link["type"] = $value["type"];
-					if(!empty($value["isInviting"]))
+			$dataName == "contributors" || $dataName =="guests"){
+			$connector=$dataName;
+			if($dataName=="guests"){
+				$connector=Element::$connectTypes[@$type];
+			}
+			if(isset($element["links"][$connector])){
+				foreach ($element["links"][$connector] as $keyLink => $value){
+					if($dataName=="guests" && @$value["isInviting"]){
+						$link = Element::getByTypeAndId($value["type"], $keyLink);
+						$link["type"] = $value["type"];
 						$link["isInviting"] = $value["isInviting"];
-	           		$contextMap[$keyLink] = $link;
+						$contextMap[$keyLink] = $link;
+					}else if($dataName!="guests" && !@$value["isInviting"]){
+						$link = Element::getByTypeAndId($value["type"], $keyLink);
+						$link["type"] = $value["type"];
+						$contextMap[$keyLink] = $link;
+					}
 				}
 			}
 		}
@@ -104,11 +113,13 @@ class GetDataDetailAction extends CAction {
 
 			//EVENTS-------------------------------------------------------------------------------
 			$query = array("startDate" => array( '$gte' => new MongoDate( time() ) ));
+			if(@$type!="0")
 			$query = Search::searchLocality($_POST, $query);
 
 			$events = PHDB::findAndSortAndLimitAndIndex( Event::COLLECTION,
 							$query,
-							array("startDate"=>1), 5);
+							array("startDate"=>1), 10);
+
 			foreach ($events as $key => $value) {
 				$events[$key]["type"] = "events";
 				$events[$key]["typeSig"] = "events";
@@ -122,10 +133,10 @@ class GetDataDetailAction extends CAction {
 
 			//CLASSIFIED-------------------------------------------------------------------------------
 			$query = array();
-			$query = Search::searchLocality($_POST, $query);
+			if(@$type!="0")$query = Search::searchLocality($_POST, $query);
 			
 			$classified = PHDB::findAndSortAndLimitAndIndex( Classified::COLLECTION, $query,
-							array("updated"=>-1), 5);
+							array("updated"=>-1), 10);
 
 			foreach ($classified as $key => $value) {
 				$classified[$key]["type"] = "classified";
@@ -138,9 +149,9 @@ class GetDataDetailAction extends CAction {
 			
 		  	//POI-------------------------------------------------------------------------------
 			$query = array();
-			$query = Search::searchLocality($_POST, $query);
+						$query = Search::searchLocality($_POST, $query);
 			$pois = PHDB::findAndSortAndLimitAndIndex( Poi::COLLECTION, $query,
-							array("updated"=>-1), 5);
+							array("updated"=>-1), 10);
 
 			foreach ($pois as $key => $value) {
 				$pois[$key]["type"] = "poi";
@@ -151,8 +162,14 @@ class GetDataDetailAction extends CAction {
 		  	}
 		  	$contextMap = array_merge($contextMap, $pois);
 			
-			echo $this->getController()->renderPartial($_POST['tpl'], 
-				array("result"=>$contextMap, "scope"=>@$_POST['searchLocalityDEPARTEMENT'][0]));
+			if(@$_POST["tpl"]=="json")
+				return Rest::json($contextMap);
+			else
+			echo $this->getController()->renderPartial($_POST['tpl'], array("result"=>$contextMap, 
+																			"type"=>$type, 
+																			"id"=>$id, 
+																			"scope"=>@$_POST['searchLocalityDEPARTEMENT'][0], 
+																			"open"=> (@$type=="0"))); //open : for home page (when no user connected)
 			Yii::app()->end();
 		}
 

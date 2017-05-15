@@ -43,6 +43,12 @@ class Project {
 	    "created" => array("name" => "created"),
 	    "locality" => array("name" => "address"),
 	    "descriptionHTML" => array("name" => "descriptionHTML"),
+	    "facebook" => array("name" => "socialNetwork.facebook"),
+	    "twitter" => array("name" => "socialNetwork.twitter"),
+	    "gpplus" => array("name" => "socialNetwork.googleplus"),
+	    "github" => array("name" => "socialNetwork.github"),
+	    "skype" => array("name" => "socialNetwork.skype"),
+	    
 	);
 
 	public static $avancement = array(
@@ -121,6 +127,8 @@ class Project {
 			$simpleProject["shortDescription"] = @$project["shortDescription"];
 			$simpleProject["description"] = @$project["description"];
 			$simpleProject["typeSig"] = "projects";
+			$simpleProject["type"] = Project::COLLECTION;
+			$simpleProject["typeSig"] = Project::COLLECTION;
 		}
 
 		return $simpleProject;
