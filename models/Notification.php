@@ -650,16 +650,12 @@ class Notification{
 	*/
 	public static function checkIfAlreadyNotifForAnotherLink($construct, $isUserNotif=false)	{
 		$where=array("verb"=>$construct["verb"], "target.id"=>$construct["target"]["id"], "target.type"=>$construct["target"]["type"]);
-		if($construct["labelUpNotifyTarget"]=="object"){
+		if($construct["labelUpNotifyTarget"]=="object")
 			$where["author.".Yii::app()->session["userId"]] = array('$exists' => true);
-			$object=$construct["author"];
-		}
 		if($construct["levelType"])
 			$where["notify.objectType"] = $construct["levelType"];
         else if($construct["verb"]==Actstr::VERB_POST && !@$construct["target"]["targetIsAuthor"] && !@$construct["target"]["userWall"])
 		    $where["notify.objectType"]=News::COLLECTION;
-		if($isUserNotif)
-			$object=$construct["author"];
 		if($construct["object"] && !empty($construct["object"]) &&
 				 ($construct["verb"]==Actstr::VERB_COMMENT || $construct["verb"]==Actstr::VERB_LIKE|| $construct["verb"]==Actstr::VERB_UNLIKE)){
 			$where["object.id"] = $construct["object"]["id"];
@@ -724,6 +720,8 @@ class Notification{
         );
         if($construct["levelType"])
         	$notif["objectType"]=$construct["levelType"];
+        if($type=="user" && $construct["verb"]==Actstr::VERB_INVITE)
+        	$notif["objectType"]="userInvitation";
         else if($construct["verb"]==Actstr::VERB_POST && !@$construct["target"]["targetIsAuthor"] && !@$construct["target"]["userWall"])
 		    $notif["objectType"]=News::COLLECTION; 
 	    $stream["notify"] = ActivityStream::addNotification( $notif );
@@ -808,10 +806,8 @@ class Notification{
 			 	    //--------- MOVE ON GETLABEL -----------//
 			 	   ////////// !!!!!! $type was to null ... change to user for comment on comment but could be a bug in other notification with user notification ... ???? !!!!! ////////////////
 			 	   $type="user";
-			 	    if(@$notificationPart["type"]["user"]){
-						$type="user";
+			 	    if(@$notificationPart["type"]["user"])
 						$notificationPart["labelUpNotifyTarget"]="object";
-					}
 					//REFACTOR -- VERYFY ELSE NO IMPACT ON A NOTIF
 					/*else{
 						if(@$target["targetIsAuthor"])

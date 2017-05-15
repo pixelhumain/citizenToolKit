@@ -582,13 +582,13 @@ class Organization {
 	  			return $members;
 	  		} else {
 	  			foreach ($organization["links"]["members"] as $key => $member) {
-		            if ($member['type'] == $type ) {
+		            if ($member['type'] == $type) {
 		            	if(!@$member["toBeValidated"] && !@$member["isInviting"])
 		            		$res[$key] = $member;	
 		            }
 		            if ( $role && @$member[$role] == true ) {
 		            	if($role=="isAdmin"){
-		            		if(!@$member["isAdminPending"] && !@$member["toBeValidated"])
+		            		if(!@$member["isAdminPending"] && !@$member["toBeValidated"] && !@$member["isInviting"])
 		            			$res[$key] = $member;	
 		            	} else 
 		                	$res[$key] = $member;
