@@ -791,10 +791,10 @@ class Import
             $result = self::previewData($param);
             $res = json_decode($result['elements']);
 // =======
-                if (!empty($result)) {
-                    array_push($res, json_decode($result));
-                }
-            }
+            //     if (!empty($result)) {
+            //         array_push($res, json_decode($result));
+            //     }
+            // }
 // >>>>>>> pixelhumain-development
 
         } 
