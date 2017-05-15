@@ -207,73 +207,51 @@ class IndexAction extends CAction
 				}
 				else{
 					error_log("message 1");
-					$scope=array(
-						array("scope.type"=> "public"),
-						array("scope.type"=> "restricted")
-					);
-					if (@$params["canManageNews"] && $params["canManageNews"])
-						array_push($scope,array("scope.type"=>"private"));
-					if(@Yii::app()->session["userId"]){
-						array_push($scope,
+					$scope=["public","restricted"];
+					if (@$params["canManageNews"] && $params["canManageNews"]){
+						$orRequest=array(
+							array("author"=> $id,"targetIsAuthor"=>array('$exists'=>false),"type"=>"news"), 
+							array("target.id"=> $id, "target.type" => Person::COLLECTION)
+						);
+						//array_push($scope,array("scope.type"=>"private"));
+					} else {
+						$orRequest=array(
+							array("author"=> $id,
+								"targetIsAuthor"=>array('$exists'=>false),
+								"type"=>"news", 
+								"scope.type"=> array('$in'=> $scope)
+							), 
+							array("target.id"=> $id, "scope.type"=> array('$in'=> $scope))
+						);
+					}
+					if((!@$params["canManageNews"] || $params["canManageNews"] == false ) && @Yii::app()->session["userId"]){
+						array_push($orRequest,
 									array("author"=> Yii::app()->session["userId"],
-											"target.id"=> $id,
-											"target.type" => Person::COLLECTION)
+											"target.id"=> $id)
 								);
 					}
-					$where = array('$and' => 
-						array(
-							array('$or' => 
-								array(
-									array("author"=> $id,"targetIsAuthor"=>array('$exists'=>false),"type"=>"news"), 
-									array("target.id"=> $id, "target.type" => Person::COLLECTION)  
-								)
-							),
-							array('$or' => 
-								$scope
-							),
-						)	
-					);
-					//echo '<pre>';var_dump($where);echo '</pre>'; return;
+					$where = array('$or' => $orRequest);
 				}
 			}
 			else if($type == "organizations" || $type == "projects" || $type == "events" || $type == "place"){
-				/*{ $or :[
-{'mentions.id':'55ed9107e41d75a41a558524','scope.type':{$in:['public','restricted','private']}},
-{'target.id':'55ed9107e41d75a41a558524','scope.type':{$in:['public','restricted','private']}},
-{author:'55ed9107e41d75a41a558524'}]}*/
-				/*$scope=array(
-						array("scope.type"=> "public"),
-						array("scope.type"=> "restricted"),
-				);*/
 				$scope=["public","restricted"];
-				if (@$params["canManageNews"] && $params["canManageNews"])
-					array_push($scope,"private");
-					//array_push($scope,array("scope.type"=>"private"));
-				//else if(@Yii::app()->session["userId"])
-					//array_push($scope,array("author"=>Yii::app()->session["userId"]));
-				//$whereScope=array('$or'=>$scope);
-				$where = array('$and' => array(
-							array('$or'=>array(
-								array("mentions.id"=>$id,"scope.type"=>array('$in'=>$scope)),
-								array("target.id"=>$id,"scope.type"=>array('$in'=>$scope)),
-								array(
-									"author"=>Yii::app()->session["userId"],
-									'$or'=>array(
-										array("mentions.id"=>$id),
-										array("target.id"=>$id)
-									)
-								)
-							))
-		        	)	
-				);
-				/*$where = array('$and' => array(
-							array('$or'=>array(
-								array("target.type"=> $type,"target.id"=> $id),
-								array("mentions.type"=> $type,"mentions.id"=> $id)
-							)),
-							$whereScope,
-		        	)	
-				);*/
+				if (@$params["canManageNews"] && $params["canManageNews"]){
+					$orRequest=array(
+						array("mentions.id"=>$id,"scope.type"=>array('$in'=>$scope)),
+						array("target.id"=>$id)
+					);
+				}else{
+					$orRequest=array(
+						array("mentions.id"=>$id,"scope.type"=>array('$in'=>$scope)),
+						array("target.id"=>$id, '
+							$or'=> array(
+								array("scope.type"=>array('$in'=>$scope)),
+								array("author"=>Yii::app()->session["userId"])
+							)
+						)
+					);
+				}
+				$where = array('$or'=>$orRequest);
 			}
 			else if ($type == "pixels"){
 				$where = array('$and' => array(
