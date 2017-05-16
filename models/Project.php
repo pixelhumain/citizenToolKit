@@ -556,7 +556,7 @@ class Project {
 		            }
 		            if ( $role && @$contributor[$role] == true ) {
 		            	if ($role=="isAdmin"){
-		            		if(!@$contributor["isAdminPending"])
+		            		if(!@$contributor["isAdminPending"] && !@$contributor["toBeValidated"] && !@$contributor["isInviting"])
 		            			$res[$key] = $contributor;
 		            	} else
 		                $res[$key] = $contributor;
