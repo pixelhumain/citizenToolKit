@@ -1012,8 +1012,7 @@ class Element {
             	 	throw new CTKException("Error processing before saving on event");
             }
 
-            if($id) 
-            {
+            if($id){
             	//var_dump($params);
                 //update a single field
                 //else update whole map
@@ -1073,9 +1072,9 @@ class Element {
             }
           //  if(@$url = ( @$params["parentType"] && @$params["parentId"] && in_array($collection, array("poi") && Yii::app()->theme != "notragora")) ? "#".self::getControlerByCollection($params["parentType"]).".detail.id.".$params["parentId"] : null )
 	        //    $res["url"] = $url;
-	        if(@$params["parentType"] && @$params["parentId"] && in_array($collection, array("poi","classified"))){
-		        if(Yii::app()->theme->name != "notragora")
-		        	$url="#".self::getControlerByCollection($params["parentType"]).".detail.id.".$params["parentId"];
+	        if(in_array($collection, array("poi","classified"))){
+		        if(Yii::app()->theme->name != "notragora" && @$params["parentType"] && @$params["parentId"])
+		        	$url="#page.type.".$params["parentType"].".id.".$params["parentId"].".view.directory.dir.poi";
 		        else
 		        	$url="#poi.detail.id.".$res["id"];
 	        } else{
