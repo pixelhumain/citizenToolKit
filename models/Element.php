@@ -784,25 +784,6 @@ class Element {
 		return true;
 	}
 
-	public static function delete($elementType,$elementId,$userId) {
-		
-		if ($elementType != Poi::COLLECTION && $elementType != Poi::CONTROLLER) {
-            return array( "result" => false, "msg" => "For now you can only delete Points of interest" );   
-        }
-		if ( !@$userId) {
-            return array( "result" => false, "msg" => "You must be loggued to delete something" );
-        }
-        
-        $el = self::getByTypeAndId($elementType, $elementId);
-        //TODO : we could also allow admins
-        if ( $userId != $el['creator']) {
-            return array( "result" => false, "msg" => "You must be owner to delete something" );    
-        }
-        
-		PHDB::remove($elementType, array("_id"=>new MongoId($elementId)));
-		return array("result" => true, "msg" => "The element has been deleted succesfully");
-	}
-
 	/**
 	 * Demande la suppression d'un élément
 	 * - Si creator demande la suppression et organisation vide (pas de links, pas de members) => suppression de l’orga
@@ -998,7 +979,7 @@ class Element {
 		
 		//Unset the organizer for events organized by the element
 		if (count($listEventsId) > 0) {
-			$where = array('$in' => array('$in' => $listEventsId));
+			$where = array('_id' => array('$in' => $listEventsId));
 			$action = array('$set' => array("organizerId" => Event::NO_ORGANISER, "organizerType" => Event::NO_ORGANISER));
 			PHDB::update(Event::COLLECTION, $where, $action);
 		}
