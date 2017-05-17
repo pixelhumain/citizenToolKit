@@ -401,10 +401,7 @@ class Comment {
 	                  
 	    return array("result"=>true, "msg"=>Yii::t("common","Comment well updated"), "id"=>$commentId);
 	}
-	/**
-	 * 
-	 * @param String $id : id to delete
-	*/
+
 	/**
 	 * delete a comment in database
 	 * @param String $id Id of the comment to delete

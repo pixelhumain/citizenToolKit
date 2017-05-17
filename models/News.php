@@ -434,13 +434,11 @@ class News {
         if (empty($news)) return false;
         if (@$news["author"] == $userId) return true;
         if (Authorisation::isUserSuperAdmin($userId)) return true;
-        var_dump($news);
         $parentId = @$news["target"]["id"];
         $parentType = @$new["target"]["type"];
 
         $isAdmin = Authorisation::isElementAdmin($parentId, $parentType, $userId);
         return $isAdmin;
     }
-
 }
 ?>
