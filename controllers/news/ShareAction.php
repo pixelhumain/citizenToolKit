@@ -6,7 +6,7 @@ class ShareAction extends CAction
 	 * TODO Clement : La PHPDOC
 	 */
     public function run() {
-	    assert('!empty($_POST["childType"]); //The child type is mandatory');
+	    assert('!empty($_POST["shareAuthorType"]); //The child type is mandatory');
 	    assert('!empty($_POST["parentId"]); //The parent id is mandatory');
 	    assert('!empty($_POST["parentType"]); //The parent type is mandatory');
 
@@ -19,8 +19,10 @@ class ShareAction extends CAction
 
 	    $parentId = $_POST["parentId"];
     	$parentType = $_POST["parentType"];
-    	
-	    $child = array(
+    	if(@$_POST["authorIdNews"])
+    		$authorNews=array("id"=>$_POST["authorIdNews"],"type"=>$_POST["authorTypeNews"]);
+    	$text=$_POST["text"];
+	    $sharedContent= array(
 			"id" => @$parentId,
 	    	"type" => $parentType
 	    );
@@ -30,11 +32,11 @@ class ShareAction extends CAction
 	    if($parentType == "news"){
 			$object=News::getById($parentId);
 			$authorNews=Person::getById(@$object["author"]["id"]);
-			$child["authorName"] = @$authorNews["name"];
-			$child["authorId"] = @$object["author"]["id"];
+			$sharedContent["authorName"] = @$authorNews["name"];
+			$sharedContent["authorId"] = @$object["author"]["id"];
 		}
 		
-    	$result = ActivityStream::saveActivityShare(ActStr::VERB_SHARE,@$_POST["childId"],@$_POST["childType"], "element", $child);
+    	$result = News::saveActivityShare(ActStr::VERB_SHARE,@$_POST["shareAuthorId"],@$_POST["shareAuthorType"], $sharedContent, $text, $authorNews);
 		Rest::json($result);
     }
 
