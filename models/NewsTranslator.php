@@ -146,12 +146,12 @@ class NewsTranslator {
 		if(!isset($params["author"]["id"]) || @$params["verb"] == "create"){ 
 			//var_dump($params["author"]); //exit;
 			if(@$params["targetIsAuthor"]==true || @$params["verb"] == "create"){
-  			$author =  Element::getByTypeAndId($params["target"]["type"], $params["target"]["id"]);
-  			$params["authorName"] = @$author["name"];
-  			$params["authorId"] = @$params["target"]["id"];
-  			$params["authorType"] = @$params["target"]["type"];
+  				$author =  Element::getElementSimpleById($params["target"]["id"], $params["target"]["type"]);
+  				$params["authorName"] = @$author["name"];
+  				$params["authorId"] = @$params["target"]["id"];
+  				$params["authorType"] = @$params["target"]["type"];
 			}else{
-  			$author =  Person::getSimpleUserById($params["author"]);
+  				$author =  Person::getSimpleUserById($params["author"]);
 	  		}
 	  	}else{
 	  		$author = $params["author"];
