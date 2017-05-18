@@ -24,17 +24,18 @@ class ShareAction extends CAction
     	$text=$_POST["text"];
 	    $sharedContent= array(
 			"id" => @$parentId,
-	    	"type" => $parentType
+	    	"type" => $parentType,
+	    	"activityId"=>@$_POST["activityIdShare"],
+	    	"activityType"=>@$_POST["activityTypeShare"]
 	    );
-    	
     	//le cas du partage de news
     	//on rajoute l'identité de l'auteur de la news
-	    if($parentType == "news"){
+	    /*if($parentType == "news"){
 			$object=News::getById($parentId);
 			$authorNews=Person::getById(@$object["author"]["id"]);
 			$sharedContent["authorName"] = @$authorNews["name"];
 			$sharedContent["authorId"] = @$object["author"]["id"];
-		}
+		}*/
 		
     	$result = News::saveActivityShare(ActStr::VERB_SHARE,@$_POST["shareAuthorId"],@$_POST["shareAuthorType"], $sharedContent, $text, $authorNews);
 		Rest::json($result);

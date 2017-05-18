@@ -375,37 +375,40 @@ class News {
 	}
 
 	public static function saveActivityShare($verb, $targetId, $targetType, $sharedContent=null, $text=null, $authorNews=null){
-
 		$share = PHDB::findOne( News::COLLECTION , 
-								array(	"verb"=>$verb, 
-										"object.id"=>@$sharedContent["id"], 
-										"object.type"=>@$sharedContent["type"]
-										)
-								);
+			array(	"verb"=>$verb, 
+					"object.id"=>@$sharedContent["activityId"], 
+					"object.type"=>@$sharedContent["activityType"]
+			)
+		);
 		//var_dump($share); exit;
 		if($share!=null){
 			//si je n'ai pas déjà partagé cette news
 			if(@$share["sharedBy"]){
 				//if(!in_array($targetId, $share["sharedBy"])){
-					//si je suis le premier a partager
-					$share["sharedBy"] = array_merge($share["sharedBy"], array($targetId=>array("text"=>$text,"type"=>$targetType, "created"=> new MongoDate(time()))));
+					//si je suis le premier a partager || SI C4EST LA PREMIERE FOIS QUE JE PARTAGE PLUTOT ?
+				//	$share["sharedBy"] = array_merge($share["sharedBy"], array($targetId=>array("text"=>$text,"type"=>$targetType, "created"=> new MongoDate(time()))));
 				//}
 			}else{ //si je ne suis pas le premier, je me rajoute à la liste
-				$share["sharedBy"] = array($targetId=>array("text"=>$text,"type"=>$targetType, "created"=> new MongoDate(time())));	
+				//$share["sharedBy"] = array($targetId=>array("text"=>$text,"type"=>$targetType, "created"=> new MongoDate(time())));	
 			}	
-			$share["updated"] = new MongoDate(time());
-			PHDB::update ( News::COLLECTION , 
-							array( "_id" => $share["_id"]), 
-                            $share);
-			
+			//$share["updated"] = new MongoDate(time());
+			//PHDB::update ( News::COLLECTION , 
+			//				array( "_id" => $share["_id"]), 
+              //              $share);
+			$detailsAction=array("text"=>$text,"type"=>$targetType);
 		}else{
+			$object=array("id"=>$sharedContent["id"],"type"=>$sharedContent["type"]);
+			if(@$sharedContent["activityId"] && $sharedContent["activityId"]!=""){
+				$object["activity"]=array("id"=>$sharedContent["activityId"],"type"=>$sharedContent["activityType"]);
+			}
 			$buildArray = array(
 				"type" => ActivityStream::COLLECTION,
 				"verb" => $verb,
 				"target" => array("id" => $targetId,
 								"type"=> $targetType),
 				"author" => Yii::app()->session["userId"],
-				"object" => $sharedContent,
+				"object" => $object,
 				"text"=> $text,
 				"scope" => array("type"=>"restricted"),
 			    "updated" => new MongoDate(time()),
@@ -416,7 +419,9 @@ class News {
 			ActivityStream::addEntry($buildArray);
 			error_log("share new");
 		}
-	
+		Action::addAction( Yii::app()->session["userId"], $sharedContent["id"], $sharedContent["type"], "sharedBy",false,false,@$detailsAction);
+		if(@$sharedContent["activityId"] && !empty($sharedContent["activityId"]))
+			Action::addAction( Yii::app()->session["userId"], $sharedContent["activityId"], $sharedContent["activityType"], "sharedBy");
 		return true;
 	}
 

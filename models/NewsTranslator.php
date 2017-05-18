@@ -143,19 +143,19 @@ class NewsTranslator {
 			$params["media"]["images"]=$images;
 		}
 
-		if(!isset($params["author"]["id"]) || @$params["verb"] == "create"){ 
+		/*if(!isset($params["author"]["id"]) || @$params["verb"] == "create"){ 
 			//var_dump($params["author"]); //exit;
 			if(@$params["targetIsAuthor"]==true || @$params["verb"] == "create"){
   				$author =  Element::getElementSimpleById($params["target"]["id"], $params["target"]["type"]);
   				$params["authorName"] = @$author["name"];
   				$params["authorId"] = @$params["target"]["id"];
   				$params["authorType"] = @$params["target"]["type"];
-			}else{
+			}else{*/
   				$author =  Person::getSimpleUserById($params["author"]);
-	  		}
+	  	/*	}
 	  	}else{
 	  		$author = $params["author"];
-	  	}
+	  	}*/
 
 	  	// if($params["verb"] == "create"){
 	  	// 	$params["author"]
@@ -166,12 +166,13 @@ class NewsTranslator {
 	  	else return array("created"=>$params["created"]);
 		
 		if(isset($params["sharedBy"])){
-			$sharedBy = array();
-			foreach($params["sharedBy"] as $key => $id){
-				$share =  Person::getSimpleUserById($id);
-				if (!empty($share)) $sharedBy[] = $share;
+			//$sharedBy = array();
+			foreach($params["sharedBy"] as $key => $value){
+				$share =  Element::getElementSimpleById($key, $value["type"],null, array("name","profilThumbImageUrl"));
+				$params["sharedBy"][$key]["profilThumbImageUrl"] = $share["profilThumbImageUrl"];
+				$params["sharedBy"][$key]["name"] = $share["name"];
+				//if (!empty($share)) $sharedBy[] = $share;
 			}
-			$params["sharedBy"] = $sharedBy;
 		  	
 		}
 		return $params;

@@ -14,6 +14,7 @@ class Action
     const ACTION_VOTE_UP        = "voteUp";
     const ACTION_VOTE_ABSTAIN   = "voteAbstain";
     const ACTION_VOTE_UNCLEAR   = "voteUnclear";
+    const ACTION_SHARE          = "sharedBy";
     const ACTION_VOTE_MOREINFO  = "voteMoreInfo";
     const ACTION_VOTE_DOWN      = "voteDown";
    
@@ -66,9 +67,11 @@ class Action
                 // Additional info
                 // can contain a 
                 // comment, date
-                if (!empty($details) && is_array($details))
+                if (!empty($details) && is_array($details)){
+                    $detailInfo=true;
                     $details = array_merge($details, array('date' => new MongoDate(time()))) ; 
-                else 
+                }
+                else
                     $details = array('date' => new MongoDate(time()));
                 //$mapUser[ self::NODE_ACTIONS.".".$collection.".".$action.".".(string)$element["_id"] ] = $details ;
                 $mapUser[self::NODE_ACTIONS.".".$collection.".".(string)$element["_id"].".".$action ] = $action ;
@@ -105,14 +108,15 @@ class Action
                     $params = array();
 
                     //if : empeche la mise à jour de la date des news à chaque commentaire
-                    if(!($collection == "news" && $action == Action::ACTION_COMMENT)){    
+                    if($collection != "news"){    
                         if( $dbMethod == '$set'){
                             $mapObject["updated"] = time();
                             $mapObject["modified"] = new MongoDate(time());
                         }
                         else $params['$set'] = array( "updated" => new MongoDate(time()), "modified" => new MongoDate(time()) );
                     }
-                    $params[$dbMethod] = $mapObject;
+                    if($action != self::ACTION_SHARE || (@$detailInfo && $detailInfo))
+                        $params[$dbMethod] = $mapObject;
                     $params['$inc'] = array( $action."Count" => $inc);
 
                     PHDB::update ($collection, 
