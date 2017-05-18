@@ -185,17 +185,20 @@ class IndexAction extends CAction
 					}
 					
 					//error_log("message 3");
+
+					//sharedBy = array(id => array(type), array(id, type), array(id, type))
 					
 			        $where = array(
 			        	'$and' => array(
 							array('$or'=> 
 								array(
-									array("author"=>$id),
-									array("sharedBy"=>array('$in'=>array($id))),
+									array("author"=>$id), 
+									array("sharedBy"=>array('$in'=>array($id))), 
 									array("target.id" =>  array('$in' => $arrayIds)),
 									array("mentions.id" => array('$in' => $arrayIds)),
 									array(
 										"target.id"=> array('$in' => $followsArrayIds),
+										"sharedBy"=> array('$in' => $followsArrayIds),
 										"scope.type" => array('$in'=> ['public','restricted'])
 									)
 								)
