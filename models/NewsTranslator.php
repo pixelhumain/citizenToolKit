@@ -169,7 +169,7 @@ class NewsTranslator {
 			//$sharedBy = array();
 			foreach($params["sharedBy"] as $key => $value){
 				$share =  Element::getElementSimpleById($key, $value["type"],null, array("name","profilThumbImageUrl"));
-				$params["sharedBy"][$key]["profilThumbImageUrl"] = $share["profilThumbImageUrl"];
+				$params["sharedBy"][$key]["profilThumbImageUrl"] = @$share["profilThumbImageUrl"];
 				$params["sharedBy"][$key]["name"] = $share["name"];
 				//if (!empty($share)) $sharedBy[] = $share;
 			}
