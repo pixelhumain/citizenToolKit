@@ -25,6 +25,15 @@ class News {
 		public static function getWhere($params) {
 	  	return PHDB::findAndSort( self::COLLECTION,$params);
 	}*/
+	public static function getSimpleById($id){
+		$res = PHDB::findOneById( self::COLLECTION ,$id, 
+				array("author" => 1,"target"=>1,"targetIsAuthor"=>1,"type"=>1));
+		if(@$res["author"])
+			$res["author"]=Element::getElementSimpleById($res["author"], Person::COLLECTION,null, array("name","id","type"));
+		if(@$res["target"])
+			$res["target"]=Element::getElementSimpleById($res["target"]["id"], $res["target"]["type"],null, array("name","id","type"));
+		return $res;
+	}
 	public static function getAuthor($id){
 		return PHDB::findOneById( self::COLLECTION ,$id, 
 				array("author" => 1));
@@ -396,7 +405,7 @@ class News {
 			//PHDB::update ( News::COLLECTION , 
 			//				array( "_id" => $share["_id"]), 
               //              $share);
-			$detailsAction=array("text"=>$text,"type"=>$targetType);
+			$detailsAction=array("text"=>$text,"type"=>$targetType,"id"=>$targetId);
 		}else{
 			$object=array("id"=>$sharedContent["id"],"type"=>$sharedContent["type"]);
 			if(@$sharedContent["activityId"] && $sharedContent["activityId"]!=""){
@@ -405,21 +414,24 @@ class News {
 			$buildArray = array(
 				"type" => ActivityStream::COLLECTION,
 				"verb" => $verb,
-				"target" => array("id" => $targetId,
-								"type"=> $targetType),
-				"author" => Yii::app()->session["userId"],
 				"object" => $object,
-				"text"=> $text,
+				"authorIdShare"=>$targetId,
+				"authorTypeShare"=>$targetType,
 				"scope" => array("type"=>"restricted"),
 			    "updated" => new MongoDate(time()),
-	            "created" => new MongoDate(time())
+	            "created" => new MongoDate(time()),
+	            "sharedBy"=>array(array(
+	            	"text"=>$text,
+	            	"type"=>$targetType,
+	            	"id"=>$targetId,
+	            	"date" => new MongoDate(time())
+	            ))
 			);
-
 			//$params=ActivityStream::buildEntry($buildArray);
 			ActivityStream::addEntry($buildArray);
 			error_log("share new");
 		}
-		Action::addAction( Yii::app()->session["userId"], $sharedContent["id"], $sharedContent["type"], "sharedBy",false,false,@$detailsAction);
+		Action::addAction( Yii::app()->session["userId"], $sharedContent["id"], $sharedContent["type"], "sharedBy",false,true,@$detailsAction);
 		if(@$sharedContent["activityId"] && !empty($sharedContent["activityId"]))
 			Action::addAction( Yii::app()->session["userId"], $sharedContent["activityId"], $sharedContent["activityType"], "sharedBy");
 		return true;

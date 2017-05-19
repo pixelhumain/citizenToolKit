@@ -104,7 +104,10 @@ class Action
                     // DELETE IN NOTIFICATION REMOVE LIKE
                 }
                 else{
-                    $mapObject[ $action.".".(string)$user["_id"] ] = $details ;
+                    if($action== self::ACTION_SHARE)
+                        $mapObject[ $action ] = $details ;
+                    else
+                        $mapObject[ $action.".".(string)$user["_id"] ] = $details ;
                     $params = array();
 
                     //if : empeche la mise à jour de la date des news à chaque commentaire

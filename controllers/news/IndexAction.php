@@ -191,7 +191,7 @@ class IndexAction extends CAction
 							array('$or'=> 
 								array(
 									array("author"=>$id),
-									array("sharedBy"=>array('$in'=>array($id))),
+									array("sharedBy.id"=>array('$in'=>array($id))),
 									array("sharedBy"=>array('$in'=>$followsArrayIds)),
 									array("target.id" =>  array('$in' => $arrayIds)),
 									array("mentions.id" => array('$in' => $arrayIds)),
