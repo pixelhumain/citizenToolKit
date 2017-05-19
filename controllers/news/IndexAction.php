@@ -192,7 +192,7 @@ class IndexAction extends CAction
 								array(
 									array("author"=>$id),
 									array("sharedBy.id"=>array('$in'=>array($id))),
-									array("sharedBy"=>array('$in'=>$followsArrayIds)),
+									array("sharedBy.id"=>array('$in'=>$followsArrayIds)),
 									array("target.id" =>  array('$in' => $arrayIds)),
 									array("mentions.id" => array('$in' => $arrayIds)),
 									array(
@@ -445,6 +445,7 @@ class IndexAction extends CAction
 		
 		// Sort news order by created 
 		$news = News::sortNews($news, array('updated'=>SORT_DESC));
+		//print_r($news);
         //TODO : reorganise by created date
 		$params["news"] = $news;
 		$params["tags"] = Tags::getActiveTags();

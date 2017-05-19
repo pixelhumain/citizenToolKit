@@ -51,7 +51,7 @@ class NewsTranslator {
 
 			if(!empty($object)){
 				$thisType = $params["object"]["type"];
-				if(@$params["object"]["activity"]){
+				if(@$params["object"]["activity"] && @$params["object"]["activity"]!="activityStream"){
 					$activity=$params["object"]["activity"];
 					$params["object"]=array_merge($params["object"],News::getSimpleById((string)$params["object"]["id"]));
 					//$params["object"]["activity"]=$activity;
