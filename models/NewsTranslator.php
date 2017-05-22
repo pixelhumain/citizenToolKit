@@ -15,7 +15,7 @@ class NewsTranslator {
 		*	@param object target, 
 		*	@param object media (if type=="gallery_images") become of object with document,
 	**/
-	public static function convertParamsForNews($params,$readOne=false){
+	public static function convertParamsForNews($params,$readOne=false, $followsArrayIds=null){
 		if(@$params["object"]){
 			$docImg="";
 			if(@$params["object"]["type"]==Event::COLLECTION){
@@ -101,6 +101,11 @@ class NewsTranslator {
 				$params["target"] = Event::getSimpleEventById($params["target"]["id"]);
 				$params["target"]["type"]=Event::COLLECTION;
 			}
+
+			$params["target"] = array("id"=>@$params["target"]["id"],
+									 "name"=>@$params["target"]["name"],
+									 "type"=>@$params["target"]["type"],
+									 "profilThumbImageUrl"=>@$params["target"]["profilThumbImageUrl"]);
 				
 		}
 		// if(@$params["type"]=="news"){
@@ -161,18 +166,80 @@ class NewsTranslator {
 	  	// 	$params["author"]
 	  	// }
 
+	  	$author = array("id"=>@$author["id"],
+					    "name"=>@$author["name"],
+					    "type"=>@$author["type"],
+					    "profilThumbImageUrl"=>@$author["profilThumbImageUrl"]);
+
 	  	//var_dump($params["author"]); //exit;
   		if (!empty($author)) $params["author"] = $author;
 	  	else return array("created"=>$params["created"]);
 		
 		if(isset($params["sharedBy"])){
-			$sharedBy = array();
-			foreach($params["sharedBy"] as $key => $id){
-				$share =  Person::getSimpleUserById($id);
-				if (!empty($share)) $sharedBy[] = $share;
+			$sharedBy = array(); 
+			$dateUpdated = 0;
+			$lastComment = "";
+			$lastAuthorShare = array();
+			$lastKey = null;
+
+			$count=0;
+			foreach($params["sharedBy"] as $key => $value){
+				 //on commence par prendre la date du premier partage (date de création si news)
+				if($count==0) $dateUpdated = @$value["updated"];
+				$count++;
+
+				$lastKey = null;
+
+				$share =  Element::getSimpleByTypeAndId($value["type"], $value["id"]);
+				if (!empty($share)){	
+					$clearShare = array("id"=>@$value["id"],
+										"name"=>@$share["name"],
+										"type"=>@$value["type"],
+										"profilThumbImageUrl"=>@$share["profilThumbImageUrl"]);	
+					
+					if(@$followsArrayIds){ //si j'ai la liste des follows de l'element
+						//et que l'id du sharedBy est dans la liste des follows
+						//ou que l'id du sharedBy est mon id
+						if( in_array(@$value["id"], $followsArrayIds) || 
+									 @$value["id"] == Yii::app()->session["userId"]){ 
+							$dateUpdated = $value["updated"]; //memorise la date du share
+							$lastComment = @$value["comment"]; //memorise la date du share
+							$lastAuthorShare = $clearShare;	  //memorise l'auteur du share   
+							$lastKey = count($sharedBy);
+						}
+					}else{//si j'ai pas la liste des follows de l'element => journal
+						if( @$value["id"] == Yii::app()->session["userId"]){ 
+							$dateUpdated = $value["updated"]; //memorise la date du share
+							$lastComment = @$value["comment"]; //memorise la date du share
+							$lastAuthorShare = $clearShare;	  //memorise l'auteur du share   
+							$lastKey = count($sharedBy);
+						}
+					}
+
+					//ajoute le share dans la liste
+					$sharedBy[] = $clearShare; 	 
+					//memorise la clé pour pouvoir supprimer le dernier share de la liste
+					//(permet d'afficher le bon nombre de partage)				
+				}
 			}
-			$params["sharedBy"] = $sharedBy;
-		  	
+
+			//efface le lastAuthorShared de la liste des sharedBy
+			//echo $lastKey;
+			if($lastKey!=null && @$sharedBy[$lastKey]){ unset($sharedBy[$lastKey]); }
+
+			$params["updated"] = @$dateUpdated;
+			$params["comment"] = @$lastComment;
+
+		  	if(!empty($lastAuthorShare)){
+		  		$params["lastAuthorShare"] = @$lastAuthorShare;
+		  	}
+		  	else if(!@$followsArrayIds){ 
+		  		$params["lastAuthorShare"] = @$author;
+		  	}
+
+
+		  	$params["sharedBy"] = $sharedBy;
+				
 		}
 		return $params;
 	}

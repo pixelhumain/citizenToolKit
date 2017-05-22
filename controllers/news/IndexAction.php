@@ -183,22 +183,20 @@ class IndexAction extends CAction
 							array_push($authorFollowedAndMe,$followNews);*/
 						}
 					}
-					
-					//error_log("message 3");
-
-					//sharedBy = array(id => array(type), array(id, type), array(id, type))
-					
+										//var_dump($followsArrayIds);
 			        $where = array(
 			        	'$and' => array(
 							array('$or'=> 
 								array(
 									array("author"=>$id), 
-									array("sharedBy"=>array('$in'=>array($id))), 
+									array("sharedBy.id"=>array('$in'=>array($id))), 
+									array("sharedBy.id"=>array('$in'=>array($arrayIds))), 
 									array("target.id" =>  array('$in' => $arrayIds)),
 									array("mentions.id" => array('$in' => $arrayIds)),
 									array(
 										"target.id"=> array('$in' => $followsArrayIds),
-										"sharedBy"=> array('$in' => $followsArrayIds),
+										"sharedBy.id"=> array('$in' => $followsArrayIds),
+										//"sharedBy.id"=>array('$in'=>array($id)), 
 										"scope.type" => array('$in'=> ['public','restricted'])
 									)
 								)
@@ -208,12 +206,13 @@ class IndexAction extends CAction
 			        );
 				}
 				else{
-					error_log("message 1");
+					//error_log("message 1");
 					$scope=["public","restricted"];
 					if (@$params["canManageNews"] && $params["canManageNews"]){
 						$orRequest=array(
 							array("author"=> $id,"targetIsAuthor"=>array('$exists'=>false),"type"=>"news"), 
-							array("target.id"=> $id, "target.type" => Person::COLLECTION)
+							array("target.id"=> $id, "target.type" => Person::COLLECTION),
+							array("sharedBy.id"=>array('$in'=>array($id))),
 						);
 					} else {
 						$orRequest=array(
@@ -222,7 +221,8 @@ class IndexAction extends CAction
 								"type"=>"news", 
 								"scope.type"=> array('$in'=> $scope)
 							), 
-							array("target.id"=> $id, "scope.type"=> array('$in'=> $scope))
+							array("target.id"=> $id, "scope.type"=> array('$in'=> $scope),
+							array("sharedBy.id"=>array('$in'=>array($id))),)
 						);
 					}
 					if((!@$params["canManageNews"] || $params["canManageNews"] == false ) && @Yii::app()->session["userId"]){
@@ -405,30 +405,30 @@ class IndexAction extends CAction
 				}
 				//echo '<pre>';var_dump($where);echo '</pre>'; return;
 			}
+			/*
+				// if(@$_POST['searchType']){
+				// 	$searchType=array();
+				// 	foreach($_POST['searchType'] as $data){
+				// 		if($data == "activityStream")
+				// 			$searchType[]=array("object.objectType" => $data);
+				// 		else if(@$_POST["typeNews"])
+				// 			$searchType[]=array("type" => $_POST["typeNews"]);
+				// 		else 
+				// 	}
+				// 	if(!empty($searchType))
+				// 	$where = array_merge($where, array('$and' => array(array('$or' =>$searchType))));
+				// }
 
-			// if(@$_POST['searchType']){
-			// 	$searchType=array();
-			// 	foreach($_POST['searchType'] as $data){
-			// 		if($data == "activityStream")
-			// 			$searchType[]=array("object.objectType" => $data);
-			// 		else if(@$_POST["typeNews"])
-			// 			$searchType[]=array("type" => $_POST["typeNews"]);
-			// 		else 
-			// 	}
-			// 	if(!empty($searchType))
-			// 	$where = array_merge($where, array('$and' => array(array('$or' =>$searchType))));
-			// }
-
-			//Exclude => If there is more than 5 reportAbuse
-			// $where = array_merge($where,  array('$or' => array(
-			// 											array("reportAbuseCount" => array('$lt' => 5)),
-			// 											array("reportAbuseCount" => array('$exists'=>0))
-			// 										)));
-			
+				//Exclude => If there is more than 5 reportAbuse
+				// $where = array_merge($where,  array('$or' => array(
+				// 											array("reportAbuseCount" => array('$lt' => 5)),
+				// 											array("reportAbuseCount" => array('$exists'=>0))
+				// 										)));
+			*/
 			//Exclude => If isAnAbuse
 			$where = array_merge($where,  array( 'isAnAbuse' => array('$ne' => true) ) );
 			
-			$where = array_merge($where,  array('updated' => array( '$lt' => $date ) ) );
+			$where = array_merge($where,  array('sharedBy.updated' => array( '$lt' => $date ) ) );
 
 			if(@$_POST["textSearch"] && $_POST["textSearch"]!="")
 			$where = array_merge($where,  array('text' => new MongoRegex("/".$_POST["textSearch"]."/i") ) );
@@ -442,9 +442,9 @@ class IndexAction extends CAction
 		}*/
 		//print_r($where);
 		if(!empty($where))
-			$news= News::getNewsForObjectId($where,array("updated"=>-1),$type);
+			$news= News::getNewsForObjectId($where,array("sharedBy.updated"=>-1),$type, @$followsArrayIds);
 		
-		
+		//echo count($news);
 		// Sort news order by created 
 		$news = News::sortNews($news, array('updated'=>SORT_DESC));
         //TODO : reorganise by created date

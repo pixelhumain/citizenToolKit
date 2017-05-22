@@ -30,7 +30,7 @@ class News {
 				array("author" => 1));
 	}
 	/*public static function getWhereSortLimit($params,$sort=array("created"=>-1),$limit=1) {
-	  	$res = PHDB::findAndSort( self::COLLECTION,$params,$sort,$limit);
+	  	$res = PHDB::findAndSort( self::COLLECTION,$params,$sort,$limit);f
 
 	  	foreach ($res as $key => $news) {
 	  		$res[$key]["author"] = Person::getById($news["author"]);
@@ -44,13 +44,13 @@ class News {
 	 * @param type sort
 	 * News limited to 15
 	 */
-	public static function getNewsForObjectId($param,$sort=array("created"=>-1),$type)
+	public static function getNewsForObjectId($param,$sort=array("created"=>-1),$type, $followsArrayIds=null)
 	{
 		//$param=array();
 	    $res = PHDB::findAndSort(self::COLLECTION, $param,$sort,6);
 	    foreach ($res as $key => $news) {
 		    if(@$news["type"]){
-			    $newNews=NewsTranslator::convertParamsForNews($news);
+			    $newNews=NewsTranslator::convertParamsForNews($news, false, $followsArrayIds);
 			    //if(empty($newNews)){			  		
 				$res[$key]=$newNews;
 				//}else{
@@ -85,7 +85,12 @@ class News {
 						  "text" => $_POST["text"],
 						  "author" => Yii::app()->session["userId"],
 						  "date"=>new MongoDate(time()),
-						  "updated"=>new MongoDate(time()),
+						  "sharedBy"=> array(array("id"=>Yii::app()->session["userId"],
+						  					 "type"=>Person::COLLECTION,
+						  					 "updated"=>new MongoDate(time()),
+						  					)),
+
+						  //"updated"=>new MongoDate(time()),
 						  "created"=>new MongoDate(time()));
 
 			if(isset($_POST["date"])){
@@ -238,6 +243,62 @@ class News {
 	 * delete a news in database from communevent with imageId
 	 * @param String $id : imageId in media.content to delete
 	*/
+
+
+	public static function share($verb, $targetId, $targetType, $comment=null, $activityValue=null){
+
+		$share = PHDB::findOne( News::COLLECTION , 
+								array(	"verb"=>$verb, 
+										"object.id"=>@$activityValue["id"], 
+										"object.type"=>@$activityValue["type"]
+										)
+								);
+		
+		if($share!=null){
+			
+			$allShare = array();
+			//regarde tous les sharedBy
+			foreach ($share["sharedBy"] as $key => $value) {
+			 	if($value["id"] != Yii::app()->session["userId"]){ //si ce n'est pas moi je garde ce partage
+			 		$allShare[] = $value;
+			 	}
+			} 
+			
+			//je me rajoute à la liste des allShare
+			$share["sharedBy"] = array_merge($allShare, 
+								 array(array( 	"id" => Yii::app()->session["userId"],
+												"type"=> Person::COLLECTION,
+												"comment"=>@$comment,
+												"updated" => new MongoDate(time())),
+        						));
+		
+			PHDB::update ( News::COLLECTION , 
+							array( "_id" => $share["_id"]), 
+                            $share);
+			
+		}else{
+			$buildArray = array(
+				"type" => ActivityStream::COLLECTION,
+				"verb" => $verb,
+				"target" => array("id" => $targetId,
+								  "type"=> $targetType),
+				"author" => Yii::app()->session["userId"],
+				"object" => $activityValue,
+				"scope" => array("type"=>"restricted"),
+			    "created" => new MongoDate(time()),
+				"sharedBy" => array(array(	"id" => Yii::app()->session["userId"],
+											"type"=> Person::COLLECTION,
+											"comment"=>@$comment,
+											"updated" => new MongoDate(time()))),
+			);
+
+			//$params=ActivityStream::buildEntry($buildArray);
+			ActivityStream::addEntry($buildArray);
+			//error_log("share new");
+		}
+	
+		return true;
+	}
 
 	public static function removeNewsByImageId($imageId){
 		return PHDB::remove(self::COLLECTION,array("media.content.imageId"=>$imageId));
