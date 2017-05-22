@@ -286,6 +286,7 @@ class Element {
 	  	if ($element == null) throw new CTKException("The element you are looking for has been moved or deleted");
 	  	return $element;
 	}
+
 	public static function getSimpleByTypeAndId($type, $id,$what=null){
 		if( @$what ) 
 			$element = PHDB::findOneById($type, $id, $what);
@@ -994,11 +995,8 @@ class Element {
 		
 		$creator = empty($element["creator"]) ? "" : $element["creator"];
 
-		//If open data without admin => the super admin will statut
-		if ((@$element["preferences"]["isOpenData"] == true || @$element["preferences"]["isOpenData"] == 'true' ) && count($admins) == 0) {
-			$canBeDeleted = false;
 		//Check if the creator is the user asking to delete the element
-		} else if ($creator == $userId) {
+		if ($creator == $userId) {
 			// If almost empty element (no links expect creator as member) => delete the element
 			if (count(@$element["links"]) == 0) {
 				$canBeDeleted = true;
@@ -1007,6 +1005,9 @@ class Element {
 			} else if(count($admins) == 1) {
 				$canBeDeleted = in_array($creator, $admins);
 			}
+		//If open data without admin => the super admin will statut
+		} else if ((@$element["preferences"]["isOpenData"] == true || @$element["preferences"]["isOpenData"] == 'true' ) && count($admins) == 0) {
+			$canBeDeleted = false;
 		}
 
 		// If the userId is superAdmin : element can be deleted as well
