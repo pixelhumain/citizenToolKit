@@ -93,6 +93,13 @@ class News {
 						  //"updated"=>new MongoDate(time()),
 						  "created"=>new MongoDate(time()));
 
+			if(@$_POST["targetIsAuthor"]==true){
+				$news["sharedBy"] = array(array("id"=>$_POST["parentId"],
+						  					 "type"=>$_POST["parentType"],
+						  					 "updated"=>new MongoDate(time()),
+						  					));
+			}
+
 			if(isset($_POST["date"])){
 				$news["date"] = new MongoDate(strtotime(str_replace('/', '-', $_POST["date"])));
 			}

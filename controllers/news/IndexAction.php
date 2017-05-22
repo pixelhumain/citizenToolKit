@@ -124,7 +124,7 @@ class IndexAction extends CAction
 			if($type == Person::COLLECTION) {
 				//if (!@Yii::app()->session["userId"] || (@Yii::app()->session["userId"] && Yii::app()->session["userId"]!=$id) || (!@$isLive)){
 				if(@$isLive && (@Yii::app()->session["userId"] && $id == Yii::app()->session["userId"])){
-					error_log("message 2");
+					//error_log("message 2");
 					$authorFollowedAndMe=[];
 					/*$or:[
 					{'author':this.userId},
@@ -222,7 +222,7 @@ class IndexAction extends CAction
 								"scope.type"=> array('$in'=> $scope)
 							), 
 							array("target.id"=> $id, "scope.type"=> array('$in'=> $scope),
-							array("sharedBy.id"=>array('$in'=>array($id))),)
+							array("sharedBy.id"=>array('$in'=>array($id))))
 						);
 					}
 					if((!@$params["canManageNews"] || $params["canManageNews"] == false ) && @Yii::app()->session["userId"]){
@@ -427,7 +427,7 @@ class IndexAction extends CAction
 			*/
 			//Exclude => If isAnAbuse
 			$where = array_merge($where,  array( 'isAnAbuse' => array('$ne' => true) ) );
-			
+			//echo $date."/"; //exit;
 			$where = array_merge($where,  array('sharedBy.updated' => array( '$lt' => $date ) ) );
 
 			if(@$_POST["textSearch"] && $_POST["textSearch"]!="")

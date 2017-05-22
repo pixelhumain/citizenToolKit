@@ -151,12 +151,14 @@ class NewsTranslator {
 		if(!isset($params["author"]["id"]) || @$params["verb"] == "create"){ 
 			//var_dump($params["author"]); //exit;
 			if(@$params["targetIsAuthor"]==true || @$params["verb"] == "create"){
-  			$author =  Element::getByTypeAndId($params["target"]["type"], $params["target"]["id"]);
-  			$params["authorName"] = @$author["name"];
-  			$params["authorId"] = @$params["target"]["id"];
-  			$params["authorType"] = @$params["target"]["type"];
+	  			$author =  Element::getByTypeAndId($params["target"]["type"], $params["target"]["id"]);
+	  			$params["authorName"] = @$author["name"];
+	  			$params["authorId"] = @$params["target"]["id"];
+	  			$params["authorType"] = @$params["target"]["type"];
+	  			$params["updated"] = $params["created"];
+	  			$params["sharedBy"] = array();
 			}else{
-  			$author =  Person::getSimpleUserById($params["author"]);
+  				$author =  Person::getSimpleUserById($params["author"]);
 	  		}
 	  	}else{
 	  		$author = $params["author"];
@@ -177,12 +179,13 @@ class NewsTranslator {
 		
 		if(isset($params["sharedBy"])){
 			$sharedBy = array(); 
-			$dateUpdated = 0;
+			$dateUpdated = @$params["updated"];
 			$lastComment = "";
 			$lastAuthorShare = array();
 			$lastKey = null;
 
 			$count=0;
+			//var_dump($params["sharedBy"]);
 			foreach($params["sharedBy"] as $key => $value){
 				 //on commence par prendre la date du premier partage (date de création si news)
 				if($count==0) $dateUpdated = @$value["updated"];

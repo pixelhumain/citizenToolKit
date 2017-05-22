@@ -263,6 +263,11 @@ class ActivityStream {
                 "type" => $params["target"]['type'],
                 "id" => $params["target"]['id']
             );
+            $action["sharedBy"] = array(array( 
+                "type" => $params["target"]['type'],
+                "id" => $params["target"]['id'],
+                "updated"=>new MongoDate(time()),
+            ));
         }
 
         if( isset( $params["ip"] ))
