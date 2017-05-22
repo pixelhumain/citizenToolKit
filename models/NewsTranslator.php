@@ -151,7 +151,7 @@ class NewsTranslator {
 			$params["media"]["images"]=$images;
 		}
 
-		if(!@$params["author"]["id"] || @$params["verb"] == "create"){ 
+		if(!isset($params["author"]["id"]) || @$params["verb"] == "create"){ 
 			//var_dump($params["author"]); //exit;
 			//$author=array("id"=>$params["author"]);
 			$authorId=@$params["author"];
