@@ -113,9 +113,12 @@ class GetDataDetailAction extends CAction {
 
 			//EVENTS-------------------------------------------------------------------------------
 			$query = array("startDate" => array( '$gte' => new MongoDate( time() ) ));
-			if(@$type!="0")
+
+			if(@$type!="0" || !empty(@$_POST["searchLocalityCITYKEY"]))
 			$query = Search::searchLocality($_POST, $query);
 
+			
+			
 			$events = PHDB::findAndSortAndLimitAndIndex( Event::COLLECTION,
 							$query,
 							array("startDate"=>1), 10);
@@ -133,8 +136,9 @@ class GetDataDetailAction extends CAction {
 
 			//CLASSIFIED-------------------------------------------------------------------------------
 			$query = array();
-			if(@$type!="0")$query = Search::searchLocality($_POST, $query);
-			
+			if(@$type!="0" || !empty(@$_POST["searchLocalityCITYKEY"]))
+				$query = Search::searchLocality($_POST, $query);
+			//var_dump($query); exit;
 			$classified = PHDB::findAndSortAndLimitAndIndex( Classified::COLLECTION, $query,
 							array("updated"=>-1), 10);
 
@@ -149,7 +153,9 @@ class GetDataDetailAction extends CAction {
 			
 		  	//POI-------------------------------------------------------------------------------
 			$query = array();
-						$query = Search::searchLocality($_POST, $query);
+			if(@$type!="0" || !empty(@$_POST["searchLocalityCITYKEY"]))
+				$query = Search::searchLocality($_POST, $query);
+			
 			$pois = PHDB::findAndSortAndLimitAndIndex( Poi::COLLECTION, $query,
 							array("updated"=>-1), 10);
 
