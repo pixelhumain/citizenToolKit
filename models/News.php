@@ -372,6 +372,42 @@ class News {
 	    return array("result"=>true, "msg"=>Yii::t("common","News well updated"), "id"=>$newsId);
 	}
 	/**
+	 * update a news in database
+	 * @param String $newsId : 
+	 * @param string $name fields to update
+	 * @param String $value : new value of the field
+	 * @return array of result (result => boolean, msg => string)
+	 */
+	public static function update($params){
+		if((isset($_POST["text"]) && !empty($_POST["text"])) || (isset($_POST["media"]) && !empty($_POST["media"])))
+	 	{
+			$set = array(
+						  "text" => $_POST["text"],
+						  "updated"=>new MongoDate(time()),
+			);
+			if (@$_POST["media"]){
+				$set["media"] = $_POST["media"];
+				if(@$_POST["media"]["content"] && @$_POST["media"]["content"]["image"] && !@$_POST["media"]["content"]["imageId"]){
+					$urlImage = self::uploadNewsImage($_POST["media"]["content"]["image"],$_POST["media"]["content"]["imageSize"],Yii::app()->session["userId"]);
+					$set["media"]["content"]["image"]=	 Yii::app()->baseUrl."/".$urlImage;
+				}
+			}
+			if(@$_POST["tags"])
+				$set["tags"] = $_POST["tags"];
+		 	
+		 	if(@($_POST["mentions"])){
+				$set["mentions"] = $_POST["mentions"];
+				$target="";
+			}
+			
+		//update the project
+		PHDB::update( self::COLLECTION, array("_id" => new MongoId($_POST["idNews"])), 
+		                          array('$set' => $set));
+		$news=self::getById($_POST["idNews"]);
+	    return array("result"=>true, "msg"=>Yii::t("common","News well updated"), "object"=>$news);
+	}
+}
+	/**
 	* Get array of news order by date of creation
 	* @param array $array is the array of news to return well order
 	* @param array $cols is the array indicated on which column of $array it is sorted
