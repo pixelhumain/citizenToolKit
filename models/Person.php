@@ -638,7 +638,11 @@ class Person {
 
 		//A mail is sent to the admin
 		Mail::notifAdminNewUser($person);
-	    return array("result"=>true, "msg"=>"You are now communnected", "id"=>$newpersonId, "person"=>$person);
+		$res = array("result"=>true, "msg"=>"You are now communnected", "id"=>$newpersonId, "person"=>$person);
+
+		if(!empty($person["invitedBy"]))
+			$res['invitedBy'] = $person["invitedBy"];
+	    return ;
 	}
 
 	/**
