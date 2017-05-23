@@ -107,7 +107,7 @@ class News {
 				$news["media"] = $_POST["media"];
 				if(@$_POST["media"]["content"] && @$_POST["media"]["content"]["image"] && !@$_POST["media"]["content"]["imageId"]){
 					$urlImage = self::uploadNewsImage($_POST["media"]["content"]["image"],$_POST["media"]["content"]["imageSize"],Yii::app()->session["userId"]);
-					$news["media"]["content"]["image"]=	Yii::app()->baseUrl."/".$urlImage;
+					$news["media"]["content"]["image"]=	 Yii::app()->baseUrl."/".$urlImage;
 				}
 			}
 			if(isset($_POST["tags"]))
@@ -433,10 +433,10 @@ class News {
     		$ext = explode( "?", $ext );
     		$ext = $ext[0];
     	}
-		$dir=Yii::app()->params['defaultController'];
+		$dir=Yii::app()->controller->module->id;
 		$folder="news";
-		$upload_dir = Yii::app()->params['uploadUrl'].$dir.'/'.$folder; 
-		//echo $upload_dir;
+		$upload_dir = Yii::app()->params['uploadDir'].$dir.'/'.$folder; 
+		$returnUrl="/".Yii::app()->params['uploadUrl'].$dir.'/'.$folder;
 		$name=time()."_".$authorId.".".$ext;        
 		if(!file_exists ( $upload_dir )) {       
 			mkdir($upload_dir, 0775);
@@ -451,8 +451,9 @@ class News {
 		$quality=100;
  		$imageUtils = new ImagesUtils($urlImage);
 		$destPathThumb = $upload_dir."/".$name;
+		$returnUrl=$returnUrl."/".$name;
 		$imageUtils->resizePropertionalyImage($maxWidth,$maxHeight)->save($destPathThumb,$quality);
-		return $destPathThumb;
+		return $returnUrl;
 	}
 
 	public static function getStrucChannelRss($elementName) {
