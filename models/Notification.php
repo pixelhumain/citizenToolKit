@@ -74,12 +74,12 @@ class Notification{
 			"type" => array(
 				ActStr::VERB_ASK => array(
 					"to"=> "admin",
-					"label"=>"{who} aks to delete {where}",
+					"label"=>"{who} asks the suppression of {where}",
 					"url" => "page/type/{collection}/id/{id}"
 				),
 				ActStr::VERB_REFUSE => array(
 					"to" => "admin",
-					"label"=>"{who} stopped the pending delete of {where}",
+					"label"=>"{who} stopped the pending suppression of {where}",
 					"notifyUser" => true,
 					"url" => "page/type/{collection}/id/{id}"
 				),
