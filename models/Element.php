@@ -1028,13 +1028,13 @@ class Element {
 					array_push($adminsId, $id);
 				}
 				error_log("Pour la suppression de l'élément ".$elementType."/".$elementId." : on demande aux super admins");
-				$res = self::goElementDeletePending($elementType, $elementId, $reason, $adminsId, $userId);
+				$res = self::goElementDeletePending($elementType, $elementId, $reason, $adminsId, $userId,true);
 			}
 
 			//If at least one admin => ask if one of the admins want to stop the deletion. The element is mark as pending deletion. After X days, if no one block the deletion => the element if deleted
 			if (count($admins) > 0) {
 				error_log("Pour la suppression de l'élément ".$elementType."/".$elementId." : on demande aux admins de l'élément");
-				$res = self::goElementDeletePending($elementType, $elementId, $reason, $admins, $userId);
+				$res = self::goElementDeletePending($elementType, $elementId, $reason, $admins, $userId, false);
 			}
 		}
 
@@ -1153,6 +1153,9 @@ class Element {
 		//Delete the element
 		$where = array("_id" => new MongoId($elementId));
     	PHDB::remove($elementType, $where);
+    	// NOTIFY COMMUNITY OF DELETED ELEMENT
+    	Notification::constructNotification(ActStr::VERB_DELETE, array("id" => Yii::app()->session["userId"],"name"=> Yii::app()->session["user"]["name"]), array("type"=>$elementType,"id"=> $elementId), null, ActStr::VERB_DELETE);
+		
     	$res = array("result" => true, "msg" => Yii::t('common',"The element {elementName} of type {elementType} has been deleted with success.", array("{elementName}" => @$elementToDelete["name"], "{elementType}" => @$elementType )));
 
 		Log::save(array("userId" => $userId, "browser" => @$_SERVER["HTTP_USER_AGENT"], "ipAddress" => @$_SERVER["REMOTE_ADDR"], "created" => new MongoDate(time()), "action" => "deleteElement", "params" => array("id" => $elementId, "type" => $elementType)));
@@ -1171,7 +1174,7 @@ class Element {
 	 * @param String $userId : the userId asking the deletion
 	 * @return array result => bool, msg => String
 	 */
-	private static function goElementDeletePending($elementType, $elementId, $reason, $admins, $userId) {
+	private static function goElementDeletePending($elementType, $elementId, $reason, $admins, $userId, $isSuperAdmin=false) {
 		$res = array("result" => true, "msg" => Yii::t('common', "The element has been put in status 'delete pending', waiting the admin to confirm the delete."));
 		
 		//Mark the element as deletePending
@@ -1182,6 +1185,15 @@ class Element {
 		Mail::confirmDeleteElement($elementType, $elementId, $reason, $admins, $userId);
 		//TODO SBAR => @bouboule help wanted
 		//Notification::actionOnPerson();
+		if($isSuperAdmin){
+			/*Notification::actionToAdmin(
+	            ActStr::VERB_RETURN, 
+	            array("type" => Cron::COLLECTION), 
+	            array("id" => $this->id, "type"=>self::COLLECTION, "event" => $this->event),
+	            array("id" => $this->personId, "type"=>Person::COLLECTION, "email"=>$this->recipient)
+        	);*/
+		}else
+			Notification::constructNotification(ActStr::VERB_DELETE, array("id" => Yii::app()->session["userId"],"name"=> Yii::app()->session["user"]["name"]), array("type"=>$elementType,"id"=> $elementId), null, ActStr::VERB_ASK);
 		
 		return $res;
 	}
@@ -1199,6 +1211,8 @@ class Element {
 		//remove the status deletePending on the element
 		PHDB::update($elementType, 
 					array("_id" => new MongoId($elementId)), array('$unset' => array("status" => "", "statusDate" => "")));
+		Notification::constructNotification(ActStr::VERB_DELETE, array("id" => Yii::app()->session["userId"],"name"=> Yii::app()->session["user"]["name"]), array("type"=>$elementType,"id"=> $elementId), null, ActStr::VERB_REFUSE);
+
 		
 		//TODO SBAR => 
 		// - send email to notify the admin : the element has been stop by the user 

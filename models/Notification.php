@@ -70,6 +70,31 @@ class Notification{
 			"icon" => "fa-cog",
 			"url" => "page/type/{collection}/id/{id}/view/notifications"
 		),
+		ActStr::VERB_DELETE => array(
+			"type" => array(
+				ActStr::VERB_ASK => array(
+					"to"=> "admin",
+					"label"=>"{who} aks to delete {where}",
+					"url" => "page/type/{collection}/id/{id}"
+				),
+				ActStr::VERB_REFUSE => array(
+					"to" => "admin",
+					"label"=>"{who} stopped the pending delete of {where}",
+					"notifyUser" => true,
+					"url" => "page/type/{collection}/id/{id}"
+				),
+				ActStr::VERB_DELETE => array(
+					"to" => "members",
+					"label"=>"{who} deleted {where}",
+					"url" => "live"
+				)
+			),
+			"labelArray" => array("who","where"),
+			"mail" => array(
+				"type"=>"instantly"
+			),
+			"icon" => "fa-trash",
+		),
 		//// USED ONLY FOR EVENT
 		// FOR ORGANIZATRION AND PROJECT IF ONLY MEMBER
 		ActStr::VERB_JOIN => array(
