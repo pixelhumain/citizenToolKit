@@ -20,11 +20,14 @@ class GetSCKDataInCODBAction extends CAction {
 				$endD->add($interval);
 
 				$period = new DatePeriod($startD, $interval, $endD);
-
+				
 				foreach ($period as $date) {
+					$resTemp = array();
 					$datef = $date->format('Y-m-d');
 					$dataC = Thing::getConvertedRercord($boardId,false,$datef);
-					$res[] = Thing::getSCKAvgWithRollupPeriod($dataC,$rollupMin,true);
+					$resTemp = Thing::getSCKAvgWithRollupPeriod($dataC,$rollupMin,false);
+					if(!empty($resTemp))
+						$res = array_merge($res,$resTemp);
 				}
 			}
 		} 
