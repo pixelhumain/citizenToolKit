@@ -1202,7 +1202,7 @@ class Person {
 						array("type"=>self::COLLECTION, "id"=> $account["invitedBy"],"name"=>"", ));
 			}
 			
-			$res = array("result" => true, "msg" => "The pending user has been updated and is now complete");
+			$res = array("result" => true, "msg" => "The pending user has been updated and is now complete","personId"=>$personId);
 		}
 		return $res;
 	}
