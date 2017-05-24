@@ -472,7 +472,7 @@ class IndexAction extends CAction
 			$params["isLive"]=false;
 		}
 
-		if(sizeOf(@$_POST['searchType'])==1){
+		if(is_array(@$_POST['searchType']) && count(@$_POST['searchType']) ==1){
 			$params["filterTypeNews"]=$_POST['searchType'][0];
 		}
 
@@ -485,6 +485,10 @@ class IndexAction extends CAction
 		//$params["params"]["news"] = "";
 		error_log(@$params["nbCol"]);
 		error_log(Yii::app()->request->isAjaxRequest ? "isAjax".@$_GET["tpl"] : "notAjax".@$_GET["tpl"]);			
+		//manage delete in progress status
+		if ($type == Organization::COLLECTION || $type == Project::COLLECTION || $type == Event::COLLECTION || $type == Person::COLLECTION)
+			$params["deletePending"] = Element::isElementStatusDeletePending($type, $id);
+
 		if(Yii::app()->request->isAjaxRequest){
 			if (@$_GET["isFirst"]){
 				 if(@$_GET["tpl"]=="co2")

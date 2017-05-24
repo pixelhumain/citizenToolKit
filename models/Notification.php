@@ -1490,8 +1490,14 @@ class Notification{
  				error_log("Unknown event in Mail Error : no notification generated.");
  				return(array("result" => false, "msg" => "Unknown event in Mail Error : no notification generated."));
  			}
- 			
+ 		} else if ($verb == ActStr::VERB_DELETE) {
+ 			if (@$object["event"] == Element::ERROR_DELETING) {
+ 				$actionMsg = "Error Deleting the element ".$target["name"].". Check the error log.";
+ 			}
+ 			$url = '#'.Element::getControlerByCollection($target['type']).".detail.id.".$target['id'];
+ 			error_log("URL notif => ".$url);
  		}
+ 		
 	    $stream = ActStr::buildEntry($asParam);
 
 		$notif = array( 

@@ -19,8 +19,13 @@ class GetDataDetailAction extends CAction {
 			}
 			if(isset($element["links"][$connector])){
 				foreach ($element["links"][$connector] as $keyLink => $value){
-					if($dataName=="guests" && @$value["isInviting"]){
+					try {
 						$link = Element::getByTypeAndId($value["type"], $keyLink);
+					} catch (CTKException $e) {
+						error_log("The element ".$id."/".$type." has a broken link : ".$keyLink."/".$value["type"]);
+						continue;
+					}
+					if($dataName=="guests" && @$value["isInviting"]){
 						$link["type"] = $value["type"];
 						$link["isInviting"] = $value["isInviting"];
 						$contextMap[$keyLink] = $link;
@@ -114,7 +119,7 @@ class GetDataDetailAction extends CAction {
 			//EVENTS-------------------------------------------------------------------------------
 			$query = array("startDate" => array( '$gte' => new MongoDate( time() ) ));
 
-			if(@$type!="0" || !empty(@$_POST["searchLocalityCITYKEY"]))
+			if(@$type!="0" || !empty($_POST["searchLocalityCITYKEY"]))
 			$query = Search::searchLocality($_POST, $query);
 
 			
@@ -136,7 +141,7 @@ class GetDataDetailAction extends CAction {
 
 			//CLASSIFIED-------------------------------------------------------------------------------
 			$query = array();
-			if(@$type!="0" || !empty(@$_POST["searchLocalityCITYKEY"]))
+			if(@$type!="0" || !empty($_POST["searchLocalityCITYKEY"]))
 				$query = Search::searchLocality($_POST, $query);
 			//var_dump($query); exit;
 			$classified = PHDB::findAndSortAndLimitAndIndex( Classified::COLLECTION, $query,
@@ -153,7 +158,7 @@ class GetDataDetailAction extends CAction {
 			
 		  	//POI-------------------------------------------------------------------------------
 			$query = array();
-			if(@$type!="0" || !empty(@$_POST["searchLocalityCITYKEY"]))
+			if(@$type!="0" || !empty($_POST["searchLocalityCITYKEY"]))
 				$query = Search::searchLocality($_POST, $query);
 			
 			$pois = PHDB::findAndSortAndLimitAndIndex( Poi::COLLECTION, $query,

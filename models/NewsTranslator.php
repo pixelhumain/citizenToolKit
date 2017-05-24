@@ -84,9 +84,12 @@ class NewsTranslator {
 			}
 		}
 		if(@$params["target"]["type"]){
-			if ($params["target"]["type"] == Organization::COLLECTION){
-				$params["target"]=Organization::getSimpleOrganizationById($params["target"]["id"]);
+			//$params["target"]["type"]=$params["target"]["type"];
+			$fields=array("name","profilThumbImageUrl");
+			$target=Element::getElementSimpleById($params["target"]["id"], $params["target"]["type"],null, $fields);
+			/*if ($params["target"]["type"] == Organization::COLLECTION){
 				$params["target"]["type"]=Organization::COLLECTION;
+				$params["target"]=Organization::getSimpleOrganizationById($params["target"]["id"]);
 			}
 			else if ($params["target"]["type"]== Project::COLLECTION){
 				$params["target"] = Project::getSimpleProjectById($params["target"]["id"]);
@@ -100,12 +103,12 @@ class NewsTranslator {
 			else if ($params["target"]["type"]==Event::COLLECTION){
 				$params["target"] = Event::getSimpleEventById($params["target"]["id"]);
 				$params["target"]["type"]=Event::COLLECTION;
-			}
+			}*/
 
 			$params["target"] = array("id"=>@$params["target"]["id"],
-									 "name"=>@$params["target"]["name"],
+									 "name"=>@$target["name"],
 									 "type"=>@$params["target"]["type"],
-									 "profilThumbImageUrl"=>@$params["target"]["profilThumbImageUrl"]);
+									 "profilThumbImageUrl"=>@$target["profilThumbImageUrl"]);
 				
 		}
 		// if(@$params["type"]=="news"){
@@ -150,15 +153,23 @@ class NewsTranslator {
 
 		if(!isset($params["author"]["id"]) || @$params["verb"] == "create"){ 
 			//var_dump($params["author"]); //exit;
+			//$author=array("id"=>$params["author"]);
+			$authorId=@$params["author"];
+			$authorType=Person::COLLECTION;
+			$fields=array("name","profilThumbImageUrl");
 			if(@$params["targetIsAuthor"]==true || @$params["verb"] == "create"){
-	  			$author =  Element::getByTypeAndId($params["target"]["type"], $params["target"]["id"]);
+				$authorId=$params["target"]["id"];
+				$authorType=$params["target"]["type"];
+				$author=Element::getElementSimpleById( $params["target"]["id"],$params["target"]["type"],null, $fields);
+	  			//$author =  Element::getByTypeAndId($params["target"]["type"], $params["target"]["id"]);
 	  			$params["authorName"] = @$author["name"];
 	  			$params["authorId"] = @$params["target"]["id"];
 	  			$params["authorType"] = @$params["target"]["type"];
 	  			$params["updated"] = $params["created"];
 	  			$params["sharedBy"] = array();
 			}else{
-  				$author =  Person::getSimpleUserById($params["author"]);
+				$author=Element::getElementSimpleById( $params["author"],Person::COLLECTION,null, $fields);
+  				//$author =  Person::getSimpleUserById($params["author"]);
 	  		}
 	  	}else{
 	  		$author = $params["author"];
@@ -168,9 +179,9 @@ class NewsTranslator {
 	  	// 	$params["author"]
 	  	// }
 
-	  	$author = array("id"=>@$author["id"],
+	  	$author = array("id"=>@$authorId,
 					    "name"=>@$author["name"],
-					    "type"=>@$author["type"],
+					    "type"=>@$authorType,
 					    "profilThumbImageUrl"=>@$author["profilThumbImageUrl"]);
 
 	  	//var_dump($params["author"]); //exit;
@@ -192,8 +203,10 @@ class NewsTranslator {
 				$count++;
 
 				$lastKey = null;
-
-				$share =  Element::getSimpleByTypeAndId($value["type"], $value["id"]);
+				$fields=array("name","profilThumbImageUrl");
+				$share=Element::getElementSimpleById($value["id"],$value["type"],null, $fields);
+			
+				//$share =  Element::getSimpleByTypeAndId($value["type"], $value["id"]);
 				if (!empty($share)){	
 					$clearShare = array("id"=>@$value["id"],
 										"name"=>@$share["name"],
