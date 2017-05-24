@@ -34,7 +34,7 @@ class ShareAction extends CAction
 			$child["authorId"] = @$object["author"]["id"];
 		}
 		
-    	$result = ActivityStream::saveActivityShare(ActStr::VERB_SHARE,@$_POST["childId"],@$_POST["childType"], "element", $child);
+    	$result = News::share(ActStr::VERB_SHARE,@$_POST["childId"],@$_POST["childType"], @$_POST["comment"], $child);
 		Rest::json($result);
     }
 

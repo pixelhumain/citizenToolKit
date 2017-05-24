@@ -768,9 +768,9 @@ class Document {
 				$markerDefaultName = str_replace("empty", "default", self::getEmptyMarkerFileName($type, $subType));
 				//$res = "/communecter/assets/images/sig/markers/icons_carto/".$markerDefaultName;
 				//remove the "/ph/" on the assersUrl if there
-				$homeUrlRegEx = "/".str_replace("/", "\/", Yii::app()->homeUrl)."/";
-				$assetsUrl = preg_replace($homeUrlRegEx, "", @Yii::app()->controller->module->assetsUrl,1);
-				$res = "/".$assetsUrl."/images/sig/markers/icons_carto/".$markerDefaultName;
+				//$homeUrlRegEx = "/".str_replace("/", "\/", Yii::app()->homeUrl)."/";
+				//$assetsUrl = preg_replace($homeUrlRegEx, "", @Yii::app()->controller->module->assetsUrl,1);
+				$res = "/".$Yii::app()->controller->module->assetsUrl."/images/sig/markers/icons_carto/".$markerDefaultName;
 			} else {
 				$res = "";
 			}
@@ -856,14 +856,15 @@ class Document {
 		}
 
 		//If empty marker return default marker
-		if ($res["profilMarkerImageUrl"] == "") {
-			$markerDefaultName = str_replace("empty", "default", self::getEmptyMarkerFileName($type, $subType));
+		//if ($res["profilMarkerImageUrl"] == "") {
+		//	$markerDefaultName = str_replace("empty", "default", self::getEmptyMarkerFileName($type, $subType));
 			//$res = "/communecter/assets/images/sig/markers/icons_carto/".$markerDefaultName;
 			//remove the "/ph/" on the assersUrl if there
-			$homeUrlRegEx = "/".str_replace("/", "\/", Yii::app()->homeUrl)."/";
-			$assetsUrl = preg_replace($homeUrlRegEx, "", @Yii::app()->controller->module->assetsUrl,1);
-			$res["profilMarkerImageUrl"] = "/".$assetsUrl."/images/sig/markers/icons_carto/".$markerDefaultName;
-		}
+			//$homeUrlRegEx = "/".str_replace("/", "\/", Yii::app()->homeUrl)."/";
+			//$assetsUrl = preg_replace($homeUrlRegEx, "", @Yii::app()->controller->module->assetsUrl,1);
+			//echo Yii::app()->controller->module->assetsUrl;
+			//$res["profilMarkerImageUrl"] = "/".Yii::app()->controller->module->assetsUrl."/images/sig/markers/icons_carto/".$markerDefaultName;
+		//}
 
 		return $res;
 	}

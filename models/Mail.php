@@ -57,7 +57,7 @@ class Mail {
         $params = array(
             "type" => Cron::TYPE_MAIL,
             "tpl"=>'notifAdminNewUser',
-            "subject" => 'Nouvel utilisateur sur le site '.Yii::app()->name,
+            "subject" => 'Nouvel utilisateur sur le site '.self::getAppName(),
             "from"=>Yii::app()->params['adminEmail'],
             "to" => Yii::app()->params['adminEmail'],
             "tplParams" => array(   "person"   => $person ,
@@ -74,9 +74,9 @@ class Mail {
             $invitor["name"] = $nameInvitor ;
 		
         if(empty($msg))
-            $msg = $invitor["name"]. " vous invite à rejoindre ".Yii::app()-> name.".";
+            $msg = $invitor["name"]. " vous invite à rejoindre ".self::getAppName().".";
 		if(empty($subject))
-            $subject = $invitor["name"]. " vous invite à rejoindre ".Yii::app()-> name.".";
+            $subject = $invitor["name"]. " vous invite à rejoindre ".self::getAppName().".";
 
         if(!@$person["email"] || empty($person["email"])){
         	$getEmail=Person::getEmailById((string)$person["_id"]);
@@ -90,7 +90,7 @@ class Mail {
             "from"=>Yii::app()->params['adminEmail'],
             "to" => $person["email"],
             "tplParams" => array(   "invitorName"   => $invitor["name"],
-                                    "title" => Yii::app()-> name ,
+                                    "title" => self::getAppName() ,
                                     "logo" => Yii::app()->params["logoUrl"],
                                     "logo2" => Yii::app()->params["logoUrl2"],
                                     //"logo"=> "/images/logo-communecter.png",
@@ -144,10 +144,10 @@ class Mail {
         $params = array(
             "type" => Cron::TYPE_MAIL,
             "tpl"=>'inviteKKBB',
-            "subject" => '['.Yii::app()->name.'] - Venez rejoindre le réseau social citoyen',
+            "subject" => '['.self::getAppName().'] - Venez rejoindre le réseau social citoyen',
             "from"=>Yii::app()->params['adminEmail'],
             "to" => $person["email"],
-            "tplParams" => array(   "title" => Yii::app()->name ,
+            "tplParams" => array(   "title" => self::getAppName() ,
                                     "logo"=> "/images/logo-communecter.png",
                                     "logo2" => "/images/logoLTxt.jpg",
                                     "invitedUserId" => $person["_id"],
@@ -161,7 +161,7 @@ class Mail {
         $params = array(
             "type" => Cron::TYPE_MAIL,
             "tpl"=>'invitation',
-            "subject" => 'Invited to '.Yii::app()->name.' by '.$name,
+            "subject" => 'Invited to '.self::getAppName().' by '.$name,
             "from"=>Yii::app()->params['adminEmail'],
             "to" => Yii::app()->params['adminEmail'],
             "tplParams" => array(   "sponsorName"   => $name ,
@@ -176,11 +176,11 @@ class Mail {
         $params = array(
             "type" => Cron::TYPE_MAIL,
             "tpl"=>'passwordRetreive',
-            "subject" => 'Réinitialisation du mot de passe pour le site '.Yii::app()->name,
+            "subject" => 'Réinitialisation du mot de passe pour le site '.self::getAppName(),
             "from"=>Yii::app()->params['adminEmail'],
             "to" => $email,
             "tplParams" => array(   "pwd"   => $pwd ,
-                                    "title" => Yii::app()->name ,
+                                    "title" => self::getAppName() ,
                                     "logo"  => "/images/logo-communecter.png",
                                     "logo2" => "/images/logoLTxt.jpg")
         );
@@ -192,11 +192,11 @@ class Mail {
         $params = array(
             "type" => Cron::TYPE_MAIL,
             "tpl"=>'validation', //TODO validation should be Controller driven boolean $this->userAccountValidation 
-            "subject" => Yii::t("common","Confirm your account on ").Yii::app()->name,
+            "subject" => Yii::t("common","Confirm your account on ").self::getAppName(),
             "from" => Yii::app()->params['adminEmail'],
             "to" => $person["email"],
             "tplParams" => array( "user"  => $person["_id"] ,
-                                  "title" => Yii::app()->name ,
+                                  "title" => self::getAppName() ,
                                   "logo" => Yii::app()->params["logoUrl"],
                                      "logo2" => Yii::app()->params["logoUrl2"]
                                   //"urlRedirect" => Yii::app()->getRequest()->getBaseUrl(true);
@@ -209,7 +209,7 @@ class Mail {
         $params = array(
             "type" => Cron::TYPE_MAIL,
             "tpl"=>'newEvent',
-            "subject" => Yii::t("common",'New Event created on ').Yii::app()->name,
+            "subject" => Yii::t("common",'New Event created on ').self::getAppName(),
             "from"=>Yii::app()->params['adminEmail'],
             "to" => $creator['email'],
             "tplParams" => array( "user"=> $creator['_id'] ,
@@ -225,7 +225,7 @@ class Mail {
         $params = array(
             "type" => Cron::TYPE_MAIL,
             "tpl"=>'newProject',
-            "subject" => Yii::t("common",'New Project created on ').Yii::app()->name,
+            "subject" => Yii::t("common",'New Project created on ').self::getAppName(),
             "from"=>Yii::app()->params['adminEmail'],
             "to" => $creator['email'],
             "tplParams" => array( "user"=> $creator['_id'] ,
@@ -241,7 +241,7 @@ class Mail {
         $params = array (
             "type" => Cron::TYPE_MAIL,
             "tpl"=>'newOrganization',
-            "subject" => Yii::t("common",'New Organization created on ').Yii::app()->name,
+            "subject" => Yii::t("common",'New Organization created on ').self::getAppName(),
             "from"=>Yii::app()->params['adminEmail'],
             "to" => $newOrganization["email"],
             "tplParams" => array( "user"=> $creator['_id'] ,
@@ -257,11 +257,11 @@ class Mail {
         $params = array(
             "type" => Cron::TYPE_MAIL,
             "tpl"=>'invitation',
-            "subject" => 'You have been invited to '.Yii::app()->name.' by '.$user["name"],
+            "subject" => 'You have been invited to '.self::getAppName().' by '.$user["name"],
             "from"=>Yii::app()->params['adminEmail'],
             "to" => $person["email"],
             "tplParams" => array(   "invitorName"   => $user["name"],
-                                    "title" => Yii::app()->name ,
+                                    "title" => self::getAppName() ,
                                     "logo"  => "/images/logo.png",
                                     "invitedUserId" => $person["_id"])
         );
@@ -275,7 +275,7 @@ class Mail {
         $params = array(
             "type" => Cron::TYPE_MAIL,
             "tpl"=>'helpAndDebugNews',
-            "subject" => 'You received a new post on help and debug stream by '.Yii::app()->name,
+            "subject" => 'You received a new post on help and debug stream by '.self::getAppName(),
             "from"=>Yii::app()->session['userEmail'],
             "to" => Yii::app()->params['adminEmail'],
             "tplParams" => array(
@@ -299,11 +299,11 @@ class Mail {
            $params = array (
                 "type" => Cron::TYPE_MAIL,
                 "tpl"=>'askToBecomeAdmin',
-                "subject" => "[".Yii::app()->name."] ".Yii::t("organization","A citizen ask to become ".$typeOfDemand." of")." ".$parent["name"],
+                "subject" => "[".self::getAppName()."] ".Yii::t("organization","A citizen ask to become ".$typeOfDemand." of")." ".$parent["name"],
                 "from"=>Yii::app()->params['adminEmail'],
                 "to" => $currentAdminEmail,
                 "tplParams" => array(  "newPendingAdmin"=> $newPendingAdmin ,
-                                        "title" => Yii::app()->name ,
+                                        "title" => self::getAppName() ,
                                         "logo"=> Yii::app()->params["logoUrl"],
                                         "logo2" => Yii::app()->params["logoUrl2"],
                                         "parent" => $parent,
@@ -335,12 +335,12 @@ class Mail {
         $params = array (
             "type" => Cron::TYPE_MAIL,
             "tpl"=>'inviteYouTo',
-            "subject" => "[".Yii::app()->name."] ".Yii::t("mail","Invitation to ".$verb)." ".$parent["name"],    
+            "subject" => "[".self::getAppName()."] ".Yii::t("mail","Invitation to ".$verb)." ".$parent["name"],    
             "from"=>Yii::app()->params['adminEmail'],       
             "to" => $childMail["email"],     
             "tplParams" => array(  
                 "newChild"=> $newChild,      
-                "title" => Yii::app()->name , 
+                "title" => self::getAppName() , 
                 "invitorName"=>Yii::app()->session["user"]["name"],   
                 "invitorId" => Yii::app()->session["userId"],  
                 "parent" => $parent,       
@@ -374,12 +374,12 @@ class Mail {
         $params = array (
             "type" => Cron::TYPE_MAIL,
             "tpl"=>'confirmYouTo',
-            "subject" => "[".Yii::app()->name."] ".Yii::t("mail","Confirmation to ".$verb)." ".$parent["name"],    
+            "subject" => "[".self::getAppName()."] ".Yii::t("mail","Confirmation to ".$verb)." ".$parent["name"],    
             "from"=>Yii::app()->params['adminEmail'],       
             "to" => $childMail["email"],     
             "tplParams" => array(  
                 "newChild"=> $child,      
-                "title" => Yii::app()->name , 
+                "title" => self::getAppName() , 
                 "logo"=> Yii::app()->params["logoUrl"],
                 "logo2" => Yii::app()->params["logoUrl2"],
                 "authorName"=>Yii::app()->session["user"]["name"],   
@@ -410,11 +410,11 @@ class Mail {
             $params = array (
                 "type" => Cron::TYPE_MAIL,
                 "tpl"=>'follow',
-                "subject" => "[".Yii::app()->name."] ".$title,    
+                "subject" => "[".self::getAppName()."] ".$title,    
                 "from"=>Yii::app()->params['adminEmail'],       
                 "to" => $mail,     
                 "tplParams" => array(    
-                    "title" => Yii::app()->name, 
+                    "title" => self::getAppName(), 
                     "logo"=> Yii::app()->params["logoUrl"],
                     "logo2" => Yii::app()->params["logoUrl2"],
                     "authorName"=>Yii::app()->session["user"]["name"],   
@@ -448,6 +448,7 @@ class Mail {
 
         Mail::schedule($params);
     }
+
     /**
      * Send an email with beta test information
      * @return null
@@ -458,7 +459,7 @@ class Mail {
         $params = array (
             "type" => Cron::TYPE_MAIL,
             "tpl"=>'betaTest',
-            "subject" => "[".Yii::app()->name."] - Plateforme en cours de test",
+            "subject" => "[".self::getAppName()."] - Plateforme en cours de test",
             "from"=>Yii::app()->params['adminEmail'],
             "to" => $email,
             "tplParams" => array(   "logo"=> "/images/logo-communecter.png",
@@ -466,6 +467,49 @@ class Mail {
         );   
 
         Mail::schedule($params);
+    }
+
+    /**
+     * Send a email to a list of admins to ask them if they confirm the deletion
+     * @param String $elementType : The element type
+     * @param String $elementId : the element Id
+     * @param String $reason : the reason why the element will be deleted
+     * @param array $admins : a list of person to sent notifications
+     * @param String $userId : the userId asking the deletion
+     * @return nothing
+     */
+    public static function confirmDeleteElement($elementType, $elementId, $reason, $admins, $userId) {
+        $element = Element::getElementSimpleById($elementId, $elementType);
+        $user = Person::getSimpleUserById($userId);
+        $url = "#".Element::getControlerByCollection($elementType).".detail.id.".$element["_id"];
+        $nbDayBeforeDelete = Element::NB_DAY_BEFORE_DELETE;
+        foreach ($admins as $id) {
+            $aPerson = Person::getById($id, false);
+            if (!empty($aPerson["email"])) {
+                $params = array (
+                    "type" => Cron::TYPE_MAIL,
+                    "tpl"=>'confirmDeleteElement',
+                    "subject" => "[".self::getAppName()."] - Suppression de ".@$element["name"],
+                    "from"=>Yii::app()->params['adminEmail'],
+                    "to" => $aPerson["email"],
+                    "tplParams" => array(
+                        "elementType" => @$elementType,
+                        "elementName" => @$element["name"],
+                        "userName" => @$user["name"],
+                        "logo"=> Yii::app()->params["logoUrl"],
+                        "logo2" => Yii::app()->params["logoUrl2"],
+                        "reason" => $reason,
+                        "nbDayBeforeDelete" => $nbDayBeforeDelete,
+                        "url" => Yii::app()->getRequest()->getBaseUrl(true)."/".$url),
+                );
+                
+                Mail::schedule($params);
+            }
+        }
+    }       
+
+    private static function getAppName() {
+        return isset(Yii::app()->params["name"]) ? Yii::app()->params["name"] : Yii::app()->name;       
     }
 
 }
