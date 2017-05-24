@@ -1,12 +1,24 @@
 <?php
 class Convert {
 
-	public static function convertOdsToPh($url) {
+	public static function getPrimaryParam($map) {
 
-        $param = array();
+		$param = array();
 		$param['typeElement'] = Event::COLLECTION;
 
-		$map = TranslateOdsToPh::$mapping_activity;
+        foreach ($map as $key => $value) {
+
+            $param['infoCreateData'][$key]["valueAttributeElt"] = $value;
+            $param['infoCreateData'][$key]["idHeadCSV"] = $key;
+        }
+
+        $param['typeFile'] = 'json';
+        $param['warnings'] = false;
+
+        return $param;
+	}
+
+	public static function getCorrectUrlForOdsAndDatanova() {
 
 		$url_final = "";
 		$url_ods_params = "";
@@ -37,20 +49,22 @@ class Convert {
 
 		$url_complete = $url_ods_head_final . $url_ods_params;
 
+		return $url_complete;
+	}
+
+	public static function convertOdsToPh($url) {
+
+		$map = TranslateOdsToPh::$mapping_activity;
+
+		$url_complete = self::getCorrectUrlForOdsAndDatanova();
+
 		$url_complete = str_replace("_", ".", $url_complete);
 
+		$param = self::getPrimaryParam($map);
 
-        foreach ($map as $key => $value) {
-
-            $param['infoCreateData'][$key]["valueAttributeElt"] = $value;
-            $param['infoCreateData'][$key]["idHeadCSV"] = $key;
-        }
-
-        $param['typeFile'] = 'json';
         $param['key'] = 'convert_ods';
         $param['nameFile'] = 'convert_ods';
         $param['pathObject'] = 'records';
-        $param['warnings'] = false;
 
         $ch = curl_init();
 
@@ -67,62 +81,28 @@ class Convert {
 
         $result = Import::previewData($param);
 
-        $res = json_decode($result['elements']);
+        if ($result['result'] !== false) {
+			$res = json_decode($result['elements']);
+		} else {
+			$res = [];
+		}
 
         return $res;
 	}
 
 	public static function convertDatanovaToPh($url) {
 
-		$param = array();
-		$param['typeElement'] = Event::COLLECTION;
+		$map = TranslateOdsToPh::$mapping_activity;
 
-		$map = TranslateDatanovaToPh::$mapping_activity;
-
-		$url_final = "";
-		$url_ods_params = "";
-
-		foreach ($_GET as $key => $value) {
-			if ($key == "url") {
-				$url_ods_head = $value;	
-			} else {
-				if (is_array($value)) {
-					foreach ($value as $key2 => $value2) {
-						$url_ods_params .= "&" . $key . "=" . $value2;
-					}
-				} else {
-					$url_ods_params .= "&" . $key . "=" . $value;
-				}
-			}
-			$url_final = $url_ods_head.$url_ods_params;
-		}
-
-		$pos = strpos($url_ods_head, "?");
-
-		$url_ods_head_final = substr($url_ods_head, 0, $pos) . "?";
-		$url_param_dataset = substr($url_ods_head, ($pos+1));
-
-		$url_ods_params = $url_param_dataset . $url_ods_params;
-
-		$url_ods_params = str_replace("@", "%40", $url_ods_params);
-
-		$url_complete = $url_ods_head_final . $url_ods_params;
+		$url_complete = self::getCorrectUrlForOdsAndDatanova();
 
 		$url_complete = str_replace("geofilter_polygon", "geofilter.polygon", $url_complete);
 
+        $param = self::getPrimaryParam($map);
 
-        foreach ($map as $key => $value) {
-
-            $param['infoCreateData'][$key]["valueAttributeElt"] = $value;
-            $param['infoCreateData'][$key]["idHeadCSV"] = $key;
-        }
-
-        $param['typeFile'] = 'json';
         $param['key'] = 'convert_datanova';
         $param['nameFile'] = 'convert_datanova';
         $param['pathObject'] = 'records';
-        $param['warnings'] = false;
-
         $ch = curl_init();
 
 	    curl_setopt($ch, CURLOPT_URL, $url_complete);
@@ -138,7 +118,11 @@ class Convert {
 
         $result = Import::previewData($param);
 
-        $res = json_decode($result['elements']);
+        if ($result['result'] !== false) {
+			$res = json_decode($result['elements']);
+		} else {
+			$res = [];
+		}
 
         return $res;
 
@@ -146,22 +130,13 @@ class Convert {
 
 	public static function convertOsmToPh($url) {
 
-		$param = array();
-		$param['typeElement'] = Event::COLLECTION;
-
 		$map = TranslateOsmToPh::$mapping_element;
 
-        foreach ($map as $key => $value) {
+        $param = self::getPrimaryParam($map);
 
-            $param['infoCreateData'][$key]["valueAttributeElt"] = $value;
-            $param['infoCreateData'][$key]["idHeadCSV"] = $key;
-        }
-
-        $param['typeFile'] = 'json';
         $param['pathObject'] = 'elements';
         $param['nameFile'] = 'convert_osm';
         $param['key'] = 'convert_osm';
-        $param['warnings'] = false;
 
         $pos = strpos($url, "=");
 
@@ -170,14 +145,17 @@ class Convert {
 
 		$url_osm = $url_head . urlencode($url_param);
 
-
         if (isset($url_osm)) {
         	$param['file'][0] = file_get_contents($url_osm);
         }
 
         $result = Import::previewData($param);
 
-        $res = json_decode($result['elements']);
+        if ($result['result'] !== false) {
+			$res = json_decode($result['elements']);
+		} else {
+			$res = [];
+		}
 
         return $res;
 	}
@@ -186,59 +164,48 @@ class Convert {
 
 		$all_data = array();
 
-		$param = array();
-		$param['typeElement'] = Event::COLLECTION;
-
 		$map = TranslateDatagouvToPh::$mapping_datasets;
-
-        foreach ($map as $key => $value) {
-            $param['infoCreateData'][$key]["valueAttributeElt"] = $value;
-            $param['infoCreateData'][$key]["idHeadCSV"] = $key;
-        }
 
         $param['typeFile'] = 'json';
         $param['key'] = 'convert_datagouv';
         $param['nameFile'] = 'convert_datagouv';
-        $param['warnings'] = false;
-
 		$list_dataset = json_decode(file_get_contents($url), true);
 
 		foreach ($list_dataset as $key => $value) {
 
 			$url_orga = "https://www.data.gouv.fr/api/1/datasets/".$value['id']."/";
-
 			$data_orga = json_decode((file_get_contents($url_orga)), true);
 
 			array_push($all_data, $data_orga);
 		}
-
-
+	
 		$param['file'][0] = json_encode($all_data);
 
 		$result = Import::previewData($param);
 
-        $res = json_decode($result['elements']);
+		if ($result['result'] !== false) {
+			$res = json_decode($result['elements']);
+		} else {
+			$res = [];
+		}
 
         return $res;
 	}
 
+	// public static function convertWikipediaToPh($url) {
+
+	// }
+
 	public static function convertWikiToPh($url, $text_filter) {
 
 		$all_data = array();
-		$param = array();
-		$param['typeElement'] = Event::COLLECTION;
 
 		$map = TranslateWikiToPh::$mapping_element;
 
-        foreach ($map as $key => $value) {
-            $param['infoCreateData'][$key]["valueAttributeElt"] = $value;
-            $param['infoCreateData'][$key]["idHeadCSV"] = $key;
-        }
+        $param = self::getPrimaryParam($map);
 
-        $param['typeFile'] = 'json';
         $param['key'] = 'convert_wiki';
         $param['nameFile'] = 'convert_wiki';
-        $param['warnings'] = false;
 
         $wikidata_page_city = json_decode(file_get_contents($url), true);
 
@@ -249,13 +216,12 @@ class Convert {
 
         $label_dbpedia = $wikidata_page_city["entities"][$wikidataID]["sitelinks"]["frwiki"]["title"];
 
-        // var_dump($label_dbpedia);
+        // $url_wikipedia = "https://fr.wikipedia.org/wiki/".str_replace(" ", "_", $label_dbpedia);
+        // var_dump($url_wikipedia);
 
         $wikidata_article = json_decode(file_get_contents("https://query.wikidata.org/sparql?format=json&query=SELECT%20DISTINCT%20%3Fitem%20%3FitemLabel%20%3FitemDescription%20%3Fcoor%20%3Frange%20WHERE%20{%0A%20%3Fitem%20wdt%3AP131%20wd%3A".$wikidataID.".%0A%20%3Fitem%20%3Frange%20wd%3A".$wikidataID.".%0A%20%3Fitem%20wdt%3AP625%20%3Fcoor.%0A%20SERVICE%20wikibase%3Alabel%20{%20bd%3AserviceParam%20wikibase%3Alanguage%20%22fr%22.%20}%0A}"), true);
 
         $key_wikidata_item = 0;
-
-        // var_dump($wikidata_article);
 
         foreach ($wikidata_article['results']['bindings'] as $key => $value) {
 
@@ -269,10 +235,8 @@ class Convert {
 		        		$coor = self::getLatLongWikidataItem($value);
 		        		array_push($all_data[$key_wikidata_item], $value['itemLabel']['value'], $coor, $value['item']['value'], @$value['itemDescription']['value'], @$value['itemDescription']['value']);
 		        	}
-
 		        	$key_wikidata_item++;
 				}
-
         	} else {
 
         		$all_data[$key_wikidata_item] = array();
@@ -290,7 +254,11 @@ class Convert {
 
 		$result = Import::previewData($param);
 
-        $res = json_decode($result['elements']);
+        if ($result['result'] !== false) {
+			$res = json_decode($result['elements']);
+		} else {
+			$res = [];
+		}
 
         return $res;
 
@@ -332,21 +300,13 @@ class Convert {
 
 		$offres_final = json_decode($offres, true);
 
-		$param = array();
-		$param['typeElement'] = Event::COLLECTION;
-
 		$map = TranslatePoleEmploiToPh::$mapping_offres;
 
-        foreach ($map as $key => $value) {
-            $param['infoCreateData'][$key]["valueAttributeElt"] = $value;
-            $param['infoCreateData'][$key]["idHeadCSV"] = $key;
-        }
+        $param = self::getPrimaryParam($map);
 
-        $param['typeFile'] = 'json';
         $param['pathObject'] = 'records';
         $param['key'] = 'convert_poleemploi';
         $param['nameFile'] = 'convert_poleemploi';
-        $param['warnings'] = false;
 
         $offres_array = [];
         $offres_array['records'] = [];
@@ -375,7 +335,11 @@ class Convert {
 
         $result = Import::previewData($param);
 
-        $res = json_decode($result['elements']);
+        if ($result['result'] !== false) {
+			$res = json_decode($result['elements']);
+		} else {
+			$res = [];
+		}
 
         return $res;
     }

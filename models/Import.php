@@ -228,6 +228,8 @@ class Import
             $element["msgError"] = $resDataValidator["msg"];
         }
 
+        // var_dump($element);
+
         return $element;
     }
 
@@ -674,7 +676,6 @@ class Import
                 } 
             }
         }
-       // var_dump($elements);
         $params = array("result"=>true,
                             "elements"=>json_encode($elements),
                             "elementsWarnings"=>json_encode($elementsWarnings),
