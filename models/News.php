@@ -177,16 +177,20 @@ class News {
 					}
 				}		
 			}
-		 	if(isset($_POST["mentions"])){
+		 	if(isset($_POST["mentions"]))
 				$news["mentions"] = $_POST["mentions"];
+
+			PHDB::insert(self::COLLECTION,$news);
+
+			//NOTIFICATION MENTIONS
+			if(isset($news["mentions"])){
 				$target="";
 				if(@$_POST["parentType"]){
 					$target=array("id"=>$_POST["parentId"],"type"=>$_POST["parentType"]);
 				}
-				Notification::actionOnNews ( ActStr::VERB_MENTION, ActStr::ICON_RSS, array("id" => Yii::app()->session["userId"],"name" => Yii::app()->session["user"]["name"]) , $target, $news["mentions"], $_POST["scope"], @$_POST["targetIsAuthor"])  ;
+				Notification::actionOnNews ( ActStr::VERB_MENTION, ActStr::ICON_RSS, array("id" => Yii::app()->session["userId"],"name" => Yii::app()->session["user"]["name"]) , $target, $news["mentions"], $_POST["scope"], (string)$news["_id"], @$_POST["targetIsAuthor"])  ;
 			}
 
-			PHDB::insert(self::COLLECTION,$news);
 			//NOTIFICATION POST
 			$target=array("id"=>$_POST["parentId"],"type"=>$_POST["parentType"]);
 			if(@$news["targetIsAuthor"])

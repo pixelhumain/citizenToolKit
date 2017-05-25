@@ -973,10 +973,10 @@ class Notification{
     
     // TODO BOUBOULE => Mention in news // comment (à développer)
     // A RENOMER mentionNotification
-	public static function actionOnNews ( $verb, $icon, $author, $target, $mentions,$scope,$targetIsAuthor=false) 
+	public static function actionOnNews ( $verb, $icon, $author, $target, $mentions,$scope, $newsId, $targetIsAuthor=false) 
 	{
 		$notification=array();
-		$url = 'page/type/'.$target["type"].'/id/'.$target["id"];
+		$url = 'page/type/'.News::COLLECTION.'/id/'.$newsId;
 		$people=array();
 		if($targetIsAuthor){
 			$authorName=Element::getElementSimpleById($target["id"], $target["type"]);
@@ -1098,9 +1098,13 @@ class Notification{
 	            	"id"   => $author["id"]
 	            ),
 	            "object"=>array(
-	            	"type" => Person::COLLECTION,
-	            	"id"   => $author["id"]
+	            	"type" => News::COLLECTION,
+	            	"id"   => $newsId
 	            ),
+	            "target"=>array(
+	            	"type"=>$target["type"],
+	            	"id" => $target["id"]
+	            )
 	        );
 		    $stream = ActStr::buildEntry($asParam);
 		    $stream["notify"] = ActivityStream::addNotification( $notif );
