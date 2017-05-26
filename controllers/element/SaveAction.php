@@ -28,8 +28,8 @@ class SaveAction extends CAction {
                     $toSave = $_POST;
                     unset($toSave["startDateInput"]);
                     unset($toSave["endDateInput"]);
-                    $res['resquest'] = $_SERVER['REQUEST_METHOD'];
                     $res = Element::save($toSave);
+                    $res['resquest'] = $_SERVER['REQUEST_METHOD'];
                 }
             }
         }
