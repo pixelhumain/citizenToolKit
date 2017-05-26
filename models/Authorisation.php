@@ -761,8 +761,9 @@ class Authorisation {
      */
     public static function isElementAdmin($elementId, $elementType ,$userId){
         $res = false ;
-
-        if($elementType == Event::COLLECTION) {
+        if (self::isUserSuperAdmin($userId)) {
+            $res = true;
+        } else if($elementType == Event::COLLECTION) {
             $res = self::canEditEvent($userId,$elementId);
         } else if($elementType == Project::COLLECTION) {
             $res = self::isProjectAdmin($elementId, $userId);
