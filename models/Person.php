@@ -157,7 +157,7 @@ class Person {
 											"addressCountry" => "");
         }
         
-        if ($clearAttribute) {
+        if($clearAttribute) {
         	$person = self::clearAttributesByConfidentiality($person);
         }
 
