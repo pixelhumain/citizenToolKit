@@ -8,7 +8,9 @@ class LoggedAction extends CAction
     		$me = Person::getById(Yii::app()->session['userId']);
             //Yii::app()->request->cookies->clear();
             //Person::removeCookie(@$me);
-    		Person::updateCookieCommunexion(Yii::app()->session['userId'], @$me["address"]);
+            if(!empty($me["address"]["codeInsee"]))
+                $address=$me["address"];
+    		Person::updateCookieCommunexion(Yii::app()->session['userId'], @$address);
     		$res["profilThumbImageUrl"] = $me['profilThumbImageUrl'];
     	}
         Rest::json($res);
