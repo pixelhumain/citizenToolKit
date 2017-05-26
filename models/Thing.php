@@ -467,8 +467,8 @@ class Thing {
 			if($res['result']==true)
 				$nbSavedElements++;
 		}
-		$resLast = saveLastRecordConverted(array_merge($dataThing,end($data)));
-		return array('nbSavedElements'=>$nbSavedElements,'result'=>(($nbSavedElements>0)?true:false), 'latestConverted'=>$resLast['result']);
+		//$resLast = saveLastRecordConverted(array_merge($dataThing,end($data)));
+		return array('nbSavedElements'=>$nbSavedElements,'result'=>(($nbSavedElements>0)?true:false)); //, 'latestConverted'=>$resLast['result']);
 	}
 /*
 	public static function offsetIndex(&$item, &$key, $endArray){

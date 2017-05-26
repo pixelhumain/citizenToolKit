@@ -57,6 +57,7 @@ class Element {
 			News::COLLECTION => "News",
 	    	Need::COLLECTION => "Need",
 	    	City::COLLECTION => "City",
+	    	Thing::COLLECTION_DATA=>"Thing",
 	    );	
 	 	return @$models[$type];     
     }
