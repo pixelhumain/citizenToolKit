@@ -41,7 +41,6 @@ class ActionRoom {
 	}
 
 	public static function getSingleActionRoomByOrgaParent($idOrga){
-		error_log("idOrga " . $idOrga);
 		return PHDB::findOne( self::COLLECTION, 
 										array("parentId"=> $idOrga, 
 											  //"parentType" => "organizations",
@@ -65,7 +64,21 @@ class ActionRoom {
     		$res = ( isset( $userId ) && in_array(Yii::app()->session["userId"], $app["moderator"]) ) ? true : false;
     	return $res;
      }
-     /**
+
+    public static function canAdministrate($userId, $id) {
+        $actionRoom = self::getById($id);
+
+        $parentId = @$actionRoom["parentId"];
+        $parentType = @$actionRoom["parentType"];
+
+        $isAdmin = false;
+        if ( $parentType == Organization::COLLECTION || $parentType == Project::COLLECTION || $parentType == Event::COLLECTION) {
+            $isAdmin = Authorisation::canDeleteElement($parentId, $parentType, $userId);
+        }
+        return $isAdmin;
+    }
+    
+    /**
     *
     * @return [json Map] list
     */
@@ -97,14 +110,12 @@ class ActionRoom {
      * @return array result => boolean, msg => String
      */
     public static function deleteActionRoom($id, $userId){
-        error_log("Try to delete the actionroom ".$id);
         $res = array( "result" => false, "msg" => "Something went wrong : contact your admin !");;
         
         $actionRoom = self::getById($id);
         if (empty($actionRoom)) return array("result" => false, "The action room does not exist");
         
         if (! self::canAdministrate($userId, $id)) return array("result" => false, "msg" => "You must be admin of the parent of this room if you want delete it");
-        
         //Remove actionRoom of type discuss : remove all comments linked
         if (@$actionRoom["type"] == self::TYPE_DISCUSS) {
             $resChildren = Comment::deleteAllContextComments($id, self::COLLECTION, $userId);
@@ -145,7 +156,6 @@ class ActionRoom {
 
         //get all actions
         $actionRooms2delete = self::getElementActionRooms($elementId, $elementType);
-        error_log(json_encode($actionRooms2delete));
         $nbActionRoom = 0;
         foreach ($actionRooms2delete as $id => $anActionRoom) {
             $resDeleteActionRoom = self::deleteActionRoom($id, $userId);
@@ -230,8 +240,6 @@ class ActionRoom {
             $actionHistory = $roomsActions["actions"];
         }
         
-        //error_log("count rooms : ".count($rooms));
-
         $discussions = array();
         $votes = array();
         $actions = array();

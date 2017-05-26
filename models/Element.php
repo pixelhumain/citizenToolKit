@@ -1152,10 +1152,11 @@ class Element {
     	
 		//Delete the element
 		$where = array("_id" => new MongoId($elementId));
-    	PHDB::remove($elementType, $where);
     	// NOTIFY COMMUNITY OF DELETED ELEMENT
     	Notification::constructNotification(ActStr::VERB_DELETE, array("id" => Yii::app()->session["userId"],"name"=> Yii::app()->session["user"]["name"]), array("type"=>$elementType,"id"=> $elementId), null, ActStr::VERB_DELETE);
 		
+    	PHDB::remove($elementType, $where);
+    	
     	$res = array("result" => true, "msg" => Yii::t('common',"The element {elementName} of type {elementType} has been deleted with success.", array("{elementName}" => @$elementToDelete["name"], "{elementType}" => @$elementType )));
 
 		Log::save(array("userId" => $userId, "browser" => @$_SERVER["HTTP_USER_AGENT"], "ipAddress" => @$_SERVER["REMOTE_ADDR"], "created" => new MongoDate(time()), "action" => "deleteElement", "params" => array("id" => $elementId, "type" => $elementType)));
@@ -1235,7 +1236,8 @@ class Element {
 	public static function save($params){
         $id = null;
         $data = null;
-        if(!@$params["collection"] && !@$params["key"])
+
+        if(empty($params["collection"]))
         	return array("result"=> false, "error"=>"400", "msg" => "Bad Request");
 
         $collection = $params["collection"];
@@ -1243,7 +1245,8 @@ class Element {
         if( !empty($params["id"]) ){
         	$id = $params["id"];
         }
-        $key = $params["key"];
+        
+        $key = self::getModelByType($collection);
 
 		//$paramsImport = (empty($params["paramsImport"])?null:$params["paramsImport"]);
 		$paramsLinkImport = ( empty($params["paramsImport"] ) ? null : $params["paramsImport"]);
