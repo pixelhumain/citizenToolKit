@@ -334,5 +334,19 @@ class Survey
 		return $html;
 	}
 
+
+    /**
+     * Can administrate the entry (survey) if the userId can administrate the parent of the action room (type vote)
+     * @param String $userId : the userId you want to check
+     * @param String $id : the entry (survey) Id
+     * @return bool : true if the userId can administrate the entry (survey)
+     */
+    public static function canAdministrate($userId, $id) {
+        $entry = self::getById($id);
+        $actionRoomId = $entry["survey"];
+        
+        $isAdmin = ActionRoom::canAdministrate($userId, $actionRoomId);
+        return $isAdmin;
+    }
 }
 ?>

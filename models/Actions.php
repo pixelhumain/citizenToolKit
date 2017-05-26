@@ -26,10 +26,9 @@ class Actions {
         $parentType = @$actionRoom["parentType"];
 
         $isAdmin = false;
-        if( ( $parentType == Organization::COLLECTION && Authorisation::isOrganizationAdmin ( $userId , $parentId ) )
-            || ( $parentType == Project::COLLECTION && Authorisation::isProjectAdmin( $userId , $parentId ) )
-            || ( $parentType == Event::COLLECTION && Authorisation::isEventAdmin( $userId , $parentId ) ) )
-            $isAdmin = true;
+        if ( $parentType == Organization::COLLECTION || $parentType == Project::COLLECTION || $parentType == Event::COLLECTION) {
+            $isAdmin = Authorisation::canDeleteElement($parentId, $parentType, $userId);
+        }
         return $isAdmin;
     }
 
