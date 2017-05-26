@@ -37,6 +37,7 @@ class ActStr {
     const VERB_LIKE = "like";
     const VERB_UNLIKE = "unlike";
     const VERB_MENTION = "mention";
+    const VERB_REFUSE = "refuse";
 
     const VERB_ADDROOM = "addactionroom";
     const VERB_ADD_PROPOSAL = "addproposal";

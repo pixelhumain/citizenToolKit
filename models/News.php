@@ -177,16 +177,20 @@ class News {
 					}
 				}		
 			}
-		 	if(isset($_POST["mentions"])){
+		 	if(isset($_POST["mentions"]))
 				$news["mentions"] = $_POST["mentions"];
+
+			PHDB::insert(self::COLLECTION,$news);
+
+			//NOTIFICATION MENTIONS
+			if(isset($news["mentions"])){
 				$target="";
 				if(@$_POST["parentType"]){
 					$target=array("id"=>$_POST["parentId"],"type"=>$_POST["parentType"]);
 				}
-				Notification::actionOnNews ( ActStr::VERB_MENTION, ActStr::ICON_RSS, array("id" => Yii::app()->session["userId"],"name" => Yii::app()->session["user"]["name"]) , $target, $news["mentions"], $_POST["scope"], @$_POST["targetIsAuthor"])  ;
+				Notification::actionOnNews ( ActStr::VERB_MENTION, ActStr::ICON_RSS, array("id" => Yii::app()->session["userId"],"name" => Yii::app()->session["user"]["name"]) , $target, $news["mentions"], $_POST["scope"], (string)$news["_id"], @$_POST["targetIsAuthor"])  ;
 			}
 
-			PHDB::insert(self::COLLECTION,$news);
 			//NOTIFICATION POST
 			$target=array("id"=>$_POST["parentId"],"type"=>$_POST["parentType"]);
 			if(@$news["targetIsAuthor"])
@@ -220,44 +224,54 @@ class News {
 		$nbCommentsDeleted = 0;
 
 		//Check if the userId can delete the news
-		if (! self::canAdministrate($userId, $id)) return array("result"=>false, "msg"=>Yii::t("common","You are not allowed to delete this news"), "id" => $id);
+		$authorization=self::canAdministrate($userId, $id);
+		if (! $authorization) return array("result"=>false, "msg"=>Yii::t("common","You are not allowed to delete this news"), "id" => $id);
+		if($authorization=="share")
+			$countShare=count($news["sharedBy"]);
+		if($authorization===true || (@$countShare && $countShare==1)){
+			//Delete image
+			if(@$news["media"] && @$news["media"]["content"] && @$news["media"]["content"]["image"] && !@$news["media"]["content"]["imageId"]){
+				$endPath=explode(Yii::app()->params['uploadUrl'],$news["media"]["content"]["image"]);
+				$pathFileDelete= Yii::app()->params['uploadDir'].$endPath[1];
+				unlink($pathFileDelete);
+			}
+		
+			//récupère les activityStream liés à la news
+			$actStream = PHDB::find(self::COLLECTION,array("type"=>"activityStream",
+															"verb"=>ActStr::TYPE_ACTIVITY_SHARE,
+															"object.type"=>"news",
+															"object.id"=>$id));
+			//var_dump($id); var_dump($actStream); exit;
+			//efface les commentaires des activityStream liés à la news
+			if(!empty($actStream))
+			foreach ($actStream as $key => $value) { //var_dump($key); exit;
+				//error_log("try to delete comments where contextId=".$key);
+				PHDB::remove(Comment::COLLECTION,array( "contextType"=>"news",
+														"contextId"=>$key));
+			}
+			//efface les activityStream lié à la news
+			PHDB::remove(self::COLLECTION,array("type"=>"activityStream",
+												"verb"=>ActStr::TYPE_ACTIVITY_SHARE,
+												"object.type"=>"news",
+												"object.id"=>$id));
 
-		//Delete image
-		if(@$news["media"] && @$news["media"]["content"] && @$news["media"]["content"]["image"] && !@$news["media"]["content"]["imageId"]){
-			$endPath=explode(Yii::app()->params['uploadUrl'],$news["media"]["content"]["image"]);
-			//print_r($endPath);
-			$pathFileDelete= Yii::app()->params['uploadDir'].$endPath[1];
-			unlink($pathFileDelete);
+			if ($removeComments) {
+				$res = Comment::deleteAllContextComments($id, News::COLLECTION, $userId);
+				if (!$res["result"]) return $res;
+			}
+
+			//Remove the news
+			$res = PHDB::remove(self::COLLECTION,array("_id"=>new MongoId($id)));
+		} else if($authorization=="share" && $countShare > 1){
+			$key=array_search($userId,array_column($news["sharedBy"],"id"));
+			unset($news["sharedBy"][$key]);
+			$shareUpdate=true;
+			$res = PHDB::update(self::COLLECTION, array("_id"  => new MongoId($id) ), array('$pull'=>array("sharedBy"=>array("id"=>$userId))));
 		}
-
-		//récupère les activityStream liés à la news
-		$actStream = PHDB::find(self::COLLECTION,array("type"=>"activityStream",
-														"verb"=>ActStr::TYPE_ACTIVITY_SHARE,
-														"object.type"=>"news",
-														"object.id"=>$id));
-		//var_dump($id); var_dump($actStream); exit;
-		//efface les commentaires des activityStream liés à la news
-		if(!empty($actStream))
-		foreach ($actStream as $key => $value) { //var_dump($key); exit;
-			//error_log("try to delete comments where contextId=".$key);
-			PHDB::remove(Comment::COLLECTION,array( "contextType"=>"news",
-													"contextId"=>$key));
-		}
-		//efface les activityStream lié à la news
-		PHDB::remove(self::COLLECTION,array("type"=>"activityStream",
-											"verb"=>ActStr::TYPE_ACTIVITY_SHARE,
-											"object.type"=>"news",
-											"object.id"=>$id));
-
-		if ($removeComments) {
-			$res = Comment::deleteAllContextComments($id, News::COLLECTION, $userId);
-			if (!$res["result"]) return $res;
-		}
-
-		//Remove the news
-		$res = PHDB::remove(self::COLLECTION,array("_id"=>new MongoId($id)));
-
-		return array("result" => true, "msg" => "The news with id ".$id." and ".$nbCommentsDeleted." comments have been removed with succes.");
+		$res=array("result" => true, "msg" => "The news with id ".$id." and ".$nbCommentsDeleted." comments have been removed with succes.","type"=>$news["type"]);
+		if(@$shareUpdate)
+			$res["newsUp"]=$news;
+		return $res;
 	}
 
 	/**
@@ -387,7 +401,10 @@ class News {
 			);
 			if (@$_POST["media"]){
 				$set["media"] = $_POST["media"];
-				if(@$_POST["media"]["content"] && @$_POST["media"]["content"]["image"] && !@$_POST["media"]["content"]["imageId"]){
+				if(@$_POST["media"]["content"] && @$_POST["media"]["content"]["image"] && !@$_POST["media"]["content"]["imageId"] 
+					&& strpos($_POST["media"]["content"]["image"], Yii::app()->baseUrl) === false){
+					//echo Yii::app()->baseUrl; 
+					//echo strpos($_POST["media"]["content"]["image"], Yii::app()->baseUrl);
 					$urlImage = self::uploadNewsImage($_POST["media"]["content"]["image"],$_POST["media"]["content"]["imageSize"],Yii::app()->session["userId"]);
 					$set["media"]["content"]["image"]=	 Yii::app()->baseUrl."/".$urlImage;
 				}
@@ -460,7 +477,7 @@ class News {
 	* @param string $size, defines image size for resizing
 	* @param string $authorId, defines name of img
 	*/
-	public static function uploadNewsImage($urlImage,$size,$authorId){
+	public static function uploadNewsImage($urlImage,$size,$authorId,$actionUpload=true){
 		$allowed_ext = array('jpg','jpeg','png','gif'); 
     	$ext = strtolower(pathinfo($urlImage, PATHINFO_EXTENSION));
     	if(empty($ext))
@@ -472,7 +489,7 @@ class News {
 		$dir=Yii::app()->controller->module->id;
 		$folder="news";
 		$upload_dir = Yii::app()->params['uploadDir'].$dir.'/'.$folder; 
-		$returnUrl="/".Yii::app()->params['uploadUrl'].$dir.'/'.$folder;
+		$returnUrl= Yii::app()->params['uploadUrl'].$dir.'/'.$folder;
 		$name=time()."_".$authorId.".".$ext;        
 		if(!file_exists ( $upload_dir )) {       
 			mkdir($upload_dir, 0775);
@@ -536,13 +553,12 @@ class News {
 	 */
 	public static function canAdministrate($userId, $id) {
         $news = self::getById($id, false);
-
         if (empty($news)) return false;
-        if (@$news["author"] == $userId) return true;
+        if (@$news["author"]["id"] == $userId && (!@$news["verb"] || $news["verb"]!="share")) return true;
+        if (@$news["sharedBy"] && in_array($userId,array_column($news["sharedBy"],"id"))) return "share";
         if (Authorisation::isUserSuperAdmin($userId)) return true;
         $parentId = @$news["target"]["id"];
         $parentType = @$new["target"]["type"];
-
         $isAdmin = Authorisation::isElementAdmin($parentId, $parentType, $userId);
         return $isAdmin;
     }

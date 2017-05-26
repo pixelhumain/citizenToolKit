@@ -1028,13 +1028,13 @@ class Element {
 					array_push($adminsId, $id);
 				}
 				error_log("Pour la suppression de l'élément ".$elementType."/".$elementId." : on demande aux super admins");
-				$res = self::goElementDeletePending($elementType, $elementId, $reason, $adminsId, $userId);
+				$res = self::goElementDeletePending($elementType, $elementId, $reason, $adminsId, $userId,true);
 			}
 
 			//If at least one admin => ask if one of the admins want to stop the deletion. The element is mark as pending deletion. After X days, if no one block the deletion => the element if deleted
 			if (count($admins) > 0) {
 				error_log("Pour la suppression de l'élément ".$elementType."/".$elementId." : on demande aux admins de l'élément");
-				$res = self::goElementDeletePending($elementType, $elementId, $reason, $admins, $userId);
+				$res = self::goElementDeletePending($elementType, $elementId, $reason, $admins, $userId, false);
 			}
 		}
 
@@ -1153,6 +1153,9 @@ class Element {
 		//Delete the element
 		$where = array("_id" => new MongoId($elementId));
     	PHDB::remove($elementType, $where);
+    	// NOTIFY COMMUNITY OF DELETED ELEMENT
+    	Notification::constructNotification(ActStr::VERB_DELETE, array("id" => Yii::app()->session["userId"],"name"=> Yii::app()->session["user"]["name"]), array("type"=>$elementType,"id"=> $elementId), null, ActStr::VERB_DELETE);
+		
     	$res = array("result" => true, "msg" => Yii::t('common',"The element {elementName} of type {elementType} has been deleted with success.", array("{elementName}" => @$elementToDelete["name"], "{elementType}" => @$elementType )));
 
 		Log::save(array("userId" => $userId, "browser" => @$_SERVER["HTTP_USER_AGENT"], "ipAddress" => @$_SERVER["REMOTE_ADDR"], "created" => new MongoDate(time()), "action" => "deleteElement", "params" => array("id" => $elementId, "type" => $elementType)));
@@ -1171,7 +1174,7 @@ class Element {
 	 * @param String $userId : the userId asking the deletion
 	 * @return array result => bool, msg => String
 	 */
-	private static function goElementDeletePending($elementType, $elementId, $reason, $admins, $userId) {
+	private static function goElementDeletePending($elementType, $elementId, $reason, $admins, $userId, $isSuperAdmin=false) {
 		$res = array("result" => true, "msg" => Yii::t('common', "The element has been put in status 'delete pending', waiting the admin to confirm the delete."));
 		
 		//Mark the element as deletePending
@@ -1182,6 +1185,15 @@ class Element {
 		Mail::confirmDeleteElement($elementType, $elementId, $reason, $admins, $userId);
 		//TODO SBAR => @bouboule help wanted
 		//Notification::actionOnPerson();
+		if($isSuperAdmin){
+			/*Notification::actionToAdmin(
+	            ActStr::VERB_RETURN, 
+	            array("type" => Cron::COLLECTION), 
+	            array("id" => $this->id, "type"=>self::COLLECTION, "event" => $this->event),
+	            array("id" => $this->personId, "type"=>Person::COLLECTION, "email"=>$this->recipient)
+        	);*/
+		}else
+			Notification::constructNotification(ActStr::VERB_DELETE, array("id" => Yii::app()->session["userId"],"name"=> Yii::app()->session["user"]["name"]), array("type"=>$elementType,"id"=> $elementId), null, ActStr::VERB_ASK);
 		
 		return $res;
 	}
@@ -1199,6 +1211,8 @@ class Element {
 		//remove the status deletePending on the element
 		PHDB::update($elementType, 
 					array("_id" => new MongoId($elementId)), array('$unset' => array("status" => "", "statusDate" => "")));
+		Notification::constructNotification(ActStr::VERB_DELETE, array("id" => Yii::app()->session["userId"],"name"=> Yii::app()->session["user"]["name"]), array("type"=>$elementType,"id"=> $elementId), null, ActStr::VERB_REFUSE);
+
 		
 		//TODO SBAR => 
 		// - send email to notify the admin : the element has been stop by the user 
@@ -1845,7 +1859,12 @@ class Element {
         $params["openEdition"] = Authorisation::isOpenEdition($id, $type, @$element["preferences"]);
         $params["controller"] = self::getControlerByCollection($type);
 
-
+        if($type==Person::COLLECTION && !@$element["links"]){
+        	$fields=array("links");
+        	$links=Element::getElementSimpleById($id,$type,null,$fields);
+        }
+        else
+        	$links=@$element["links"];
         $connectType = @self::$connectTypes[$type];
         if($type==Person::COLLECTION)
         	$connectType="friends";
@@ -1912,15 +1931,15 @@ class Element {
         if(!@$element["disabled"]){
             //if((@$config["connectLink"] && $config["connectLink"]) || empty($config)){ TODO CONFIG MUTUALIZE WITH NETWORK AND OTHER PLATFORM
            //$connectType = $connectType[$type];
-            if(((!@$element["links"][$connectType][Yii::app()->session["userId"]] && $type!=Event::COLLECTION) || (@$element["links"][$connectType][Yii::app()->session["userId"]] && 
-                @$element["links"][$connectType][Yii::app()->session["userId"]][Link::TO_BE_VALIDATED])) && 
+            if(((!@$links[$connectType][Yii::app()->session["userId"]] && $type!=Event::COLLECTION) || (@$links[$connectType][Yii::app()->session["userId"]] && 
+                @$links[$connectType][Yii::app()->session["userId"]][Link::TO_BE_VALIDATED])) && 
                 @Yii::app()->session["userId"] && 
                 ($type != Person::COLLECTION || 
                 (string)$element["_id"] != Yii::app()->session["userId"])){
                     $params["linksBtn"]["followBtn"]=true;
-                    if (@$element["links"]["followers"][Yii::app()->session["userId"]])
+                    if (@$links["followers"][Yii::app()->session["userId"]])
                             $params["linksBtn"]["isFollowing"]=true;
-                     else if(!@$element["links"]["followers"][Yii::app()->session["userId"]] && 
+                     else if(!@$links["followers"][Yii::app()->session["userId"]] && 
                             $type != Event::COLLECTION)   
                             $params["linksBtn"]["isFollowing"]=false;                  
             }
@@ -1929,7 +1948,7 @@ class Element {
             
             $params["linksBtn"]["connectAs"]=$connectAs;
             $params["linksBtn"]["connectType"]=$connectType;
-            if( @Yii::app()->session["userId"] && $type!= Person::COLLECTION && !@$element["links"][$connectType][Yii::app()->session["userId"]]){
+            if( @Yii::app()->session["userId"] && $type!= Person::COLLECTION && !@$links[$connectType][Yii::app()->session["userId"]]){
                 $params["linksBtn"]["communityBn"]=true;                    
                 $params["linksBtn"]["isMember"]=false;
             }else if($type != Person::COLLECTION  && @Yii::app()->session["userId"]){
@@ -1937,17 +1956,17 @@ class Element {
                 $connectAs="admin";
                 $params["linksBtn"]["communityBn"]=true;
                 $params["linksBtn"]["isMember"]=true;
-                if(@$element["links"][$connectType][Yii::app()->session["userId"]][Link::TO_BE_VALIDATED])
+                if(@$links[$connectType][Yii::app()->session["userId"]][Link::TO_BE_VALIDATED])
                     $params["linksBtn"][Link::TO_BE_VALIDATED]=true;
-                if(@$element["links"][$connectType][Yii::app()->session["userId"]][Link::IS_INVITING]){
+                if(@$links[$connectType][Yii::app()->session["userId"]][Link::IS_INVITING]){
                     $params["linksBtn"][Link::IS_INVITING]=true;
                     $params["invitedMe"]=array(
-                    	"invitorId"=>$element["links"][$connectType][Yii::app()->session["userId"]]["invitorId"],
-                    	"invitorName"=>$element["links"][$connectType][Yii::app()->session["userId"]]["invitorName"]);
+                    	"invitorId"=>$links[$connectType][Yii::app()->session["userId"]]["invitorId"],
+                    	"invitorName"=>$links[$connectType][Yii::app()->session["userId"]]["invitorName"]);
                 }
 
                 $params["linksBtn"]["isAdmin"]=true;
-                if(@$element["links"][$connectType][Yii::app()->session["userId"]][Link::IS_ADMIN_PENDING])
+                if(@$links[$connectType][Yii::app()->session["userId"]][Link::IS_ADMIN_PENDING])
                     $params["linksBtn"][Link::IS_ADMIN_PENDING]=true;
                 //Test if user has already asked to become an admin
                 if(!in_array(Yii::app()->session["userId"], Authorisation::listAdmins($id, $type,true)))

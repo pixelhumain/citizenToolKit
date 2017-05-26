@@ -70,6 +70,31 @@ class Notification{
 			"icon" => "fa-cog",
 			"url" => "page/type/{collection}/id/{id}/view/notifications"
 		),
+		ActStr::VERB_DELETE => array(
+			"type" => array(
+				ActStr::VERB_ASK => array(
+					"to"=> "admin",
+					"label"=>"{who} asks the suppression of {where}",
+					"url" => "page/type/{collection}/id/{id}"
+				),
+				ActStr::VERB_REFUSE => array(
+					"to" => "admin",
+					"label"=>"{who} stopped the pending suppression of {where}",
+					"notifyUser" => true,
+					"url" => "page/type/{collection}/id/{id}"
+				),
+				ActStr::VERB_DELETE => array(
+					"to" => "members",
+					"label"=>"{who} deleted {where}",
+					"url" => "live"
+				)
+			),
+			"labelArray" => array("who","where"),
+			"mail" => array(
+				"type"=>"instantly"
+			),
+			"icon" => "fa-trash",
+		),
 		//// USED ONLY FOR EVENT
 		// FOR ORGANIZATRION AND PROJECT IF ONLY MEMBER
 		ActStr::VERB_JOIN => array(
@@ -948,10 +973,10 @@ class Notification{
     
     // TODO BOUBOULE => Mention in news // comment (à développer)
     // A RENOMER mentionNotification
-	public static function actionOnNews ( $verb, $icon, $author, $target, $mentions,$scope,$targetIsAuthor=false) 
+	public static function actionOnNews ( $verb, $icon, $author, $target, $mentions,$scope, $newsId, $targetIsAuthor=false) 
 	{
 		$notification=array();
-		$url = 'page/type/'.$target["type"].'/id/'.$target["id"];
+		$url = 'page/type/'.News::COLLECTION.'/id/'.$newsId;
 		$people=array();
 		if($targetIsAuthor){
 			$authorName=Element::getElementSimpleById($target["id"], $target["type"]);
@@ -1073,9 +1098,13 @@ class Notification{
 	            	"id"   => $author["id"]
 	            ),
 	            "object"=>array(
-	            	"type" => Person::COLLECTION,
-	            	"id"   => $author["id"]
+	            	"type" => News::COLLECTION,
+	            	"id"   => $newsId
 	            ),
+	            "target"=>array(
+	            	"type"=>$target["type"],
+	            	"id" => $target["id"]
+	            )
 	        );
 		    $stream = ActStr::buildEntry($asParam);
 		    $stream["notify"] = ActivityStream::addNotification( $notif );

@@ -60,6 +60,8 @@ class RegisterAction extends CAction
 
 		//Try to login with the user
 		$res = Person::login($email,$pwd,true);
+		if(@$_POST["isInvitation"])
+			$res["isInvitation"]=true;
 		if ($res["result"]) {
 			
 		} else if ($res["msg"] == "notValidatedEmail") {
