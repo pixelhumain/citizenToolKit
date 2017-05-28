@@ -2055,7 +2055,6 @@ class Person {
     	if(!empty($userId)){
     		try{
     			if(!empty($address)){
-    				
     				CookieHelper::setCookie("inseeCommunexion", $address["codeInsee"]);
 		    		CookieHelper::setCookie("cpCommunexion", $address["postalCode"]);
 		    		CookieHelper::setCookie("cityNameCommunexion", $address["addressLocality"]);

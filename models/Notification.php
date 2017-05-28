@@ -80,7 +80,6 @@ class Notification{
 				ActStr::VERB_REFUSE => array(
 					"to" => "admin",
 					"label"=>"{who} stopped the pending suppression of {where}",
-					"notifyUser" => true,
 					"url" => "page/type/{collection}/id/{id}"
 				),
 				ActStr::VERB_DELETE => array(
@@ -470,6 +469,13 @@ class Notification{
 	    		$members[$construct["target"]["invitorId"]]=array();
 	    	}
 	    }
+	    if($construct["verb"]==Actstr::VERB_DELETE && $construct["levelType"]==ActStr::VERB_REFUSE){
+	    	$userAskingToDelete=Element::getElementSimpleById($id, $type, null,array("userAskingToDelete"));
+	    	$userAskingToDelete=$userAskingToDelete["userAskingToDelete"];
+	    	if(!@$members[$userAskingToDelete])
+	    		$members[$userAskingToDelete]=array();
+	    }
+
 		else if($type == Person::COLLECTION)
 			$people[$id] = array("isUnread" => true, "isUnseen" => true);
 		else if($type == News::COLLECTION){

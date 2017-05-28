@@ -770,7 +770,7 @@ class Authorisation {
         } else if($elementType == Organization::COLLECTION) {
             $res = self::isOrganizationAdmin($userId, $elementId);
         } else 
-            throw new CTKException("Can not manage that type !".$elementType);
+            error_log("isElementAdmin : Can not manage that type !".$elementType);
         return $res;
     }
     
