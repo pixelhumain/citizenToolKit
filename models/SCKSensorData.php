@@ -48,31 +48,24 @@
  * <http://www.gnu.org/licenses/>. 
  *
  */
-
+/*
+Modification pour communecter par Danzal
+*/
 
 class SCKSensorData
 {
-    
-    
+
     /**
      * SCK11Calibration
-     * 
      * Calibrates to propper SI units an SCK datapoint
-     *
      * @param array $rawBat Indexed array containing a SCK 1.1 datapoint
      * @return array Indexed arrary with a SCK datapoint calibrated 
-     *
      */
-    
     public static function SCK11Convert($rawData)
     {
-        
         $data = array();
-        
         if (self::isValidDateTimeString($rawData['timestamp'])) { //Check calibration....
-            
-            $data['timestamp'] = $rawData['timestamp'];
-            
+            //$data['timestamp'] = $rawData['timestamp'];
             $data['temp']  = self::tempConversion($rawData['temp']);
             $data['hum']   = self::humConversion($rawData['hum']);
             $data['noise'] = self::noiseConversion($rawData['noise']);
@@ -81,36 +74,26 @@ class SCKSensorData
             $data['light'] = self::lightConversion($rawData['light']);
             $data['bat']   = self::batConversion($rawData['bat']);
             $data['panel'] = self::panelConversion($rawData['panel']);
-            $data['nets']  = $rawData['nets'];
+            //$data['nets']  = $rawData['nets'];
             //unset pour enlever les data brut avant le merge
             unset($rawData['temp'],$rawData['hum'],$rawData['noise'],$rawData['co']);
             unset($rawData['light'],$rawData['no2'],$rawData['bat'],$rawData['panel']);
-            unset($rawData['nets'],$rawData['timestamp']);
+            //unset($rawData['timestamp'],$rawData['nets']);
             $data['status']['converted']=true;
             return array_merge($rawData,$data);
-            
         } else {
-
             return false;
-
         }
-        
     }
     
     /**
      * tempConversion
-     *
      * Temperature calibration for SHT21 based on the datasheet:
      * https://github.com/fablabbcn/Smart-Citizen-Kit/wiki/Datasheets/HTU-21D.pdf
-     *
      * Formula can be tune depending on the SCK enclosure.
-     * 
-     *
      * @param float $rawTemp
      * @return float Temperature in ºC
-     *
      */
-    
     public static function tempConversion($rawTemp)
     {
         return round(-53 + 175.72 / 65536.0 * $rawTemp, 2);
@@ -118,18 +101,12 @@ class SCKSensorData
     
     /**
      * humConversion
-     *
      * Humidity calibration for SHT21 based on the datasheet:
      * https://github.com/fablabbcn/Smart-Citizen-Kit/wiki/Datasheets/HTU-21D.pdf
-     *
      * Formula can be tune depending on the SCK enclosure.
-     * 
-     *
      * @param float $rawHum
      * @return float Rel. Humidity in %
-     *
      */
-    
     public static function humConversion($rawHum)
     {
         return round(7 + 125.0 / 65536.0 * $rawHum, 2);
@@ -137,16 +114,11 @@ class SCKSensorData
     
     /**
      * noiseConversion
-     *
      * Noise calibration for SCK1.1 sound sensor. Converts mV in to dBs. 
      * Based on a linear regresion from a lookup table (db.json) obtained after real measurements from our test facility.
-     * 
-     *
      * @param float $rawSound
      * @return float noise as sound pressure in dB
-     *
      */
-    
     public static function noiseConversion($rawSound)
     {
         //$dbTable = json_decode(file_get_contents("./sensors/db.json"), true);
@@ -155,14 +127,10 @@ class SCKSensorData
     
     /**
      * coConversion
-     *
      * CO values rescaling. For obtaining ppm check:
-     * 
      * @param float $rawCO
      * @return float sensor resistance in KOhm
-     *
      */
-    
     public static function coConversion($rawCO)
     {
         return round($rawCO / 1000, 2);
@@ -170,15 +138,11 @@ class SCKSensorData
     
     /**
      * no2Conversion
-     *
-     * NO2 values rescaling. For obtaining ppm check:
-     * 
+     * NO2 values rescaling. For obtaining ppm check: 
      * returns k0hm
      * @param float $rawNO2
      * @return float sensor resistance in KOhm
-     *
      */
-    
     public static function no2Conversion($rawNO2)
     {
         return round($rawNO2 / 1000, 2);
@@ -186,15 +150,11 @@ class SCKSensorData
     
     /**
      * lightConversion
-     *
      * Light values rescaling. 
-     * 
      * returns lux
      * @param float $rawLight
      * @return float light level in lux
-     *
      */
-    
     public static function lightConversion($rawLight)
     {
         return round($rawLight / 10, 2);
@@ -202,15 +162,10 @@ class SCKSensorData
     
     /**
      * batConversion
-     *
      * Battery values rescaling. 
-     * 
      * @param float $rawBat
      * @return float battery level in %
-     *
      */
-    
-    
     public static function batConversion($rawBat)
     {
         return round($rawBat / 10, 2);
@@ -218,14 +173,10 @@ class SCKSensorData
     
     /**
      * panelConversion
-     *
      * Solar panel values rescaling. 
-     * 
      * @param float $rawBat
      * @return float Tension in volts
-     *
      */
-    
     public static function panelConversion($rawBat)
     {
         return round($rawBat / 100, 2);
@@ -233,14 +184,11 @@ class SCKSensorData
     
     /**
      * isValidDateTimeString
-     *
      * Check if a string is a valid time stamp
-     *
      * @param string $str_dt
      * @return bool
-     *
      */
-     
+     // TODO danzal : Voir si une regex est plus performant 
     private static function isValidDateTimeString($str_dt)
     {
         $date1 = DateTime::createFromFormat('Y-m-d G:i:s', $str_dt);
@@ -250,15 +198,11 @@ class SCKSensorData
     
      /**
      * tableCalibration
-     *
      * Calculates a point based on a linear regresion from a look up table
-     *
      * @param array $refTable
      * @param float $rawValue
      * @return float
-     *
      */
-    
     private static function tableCalibration($refTable, $rawValue)
     {
         for ($i = 0; $i < sizeof($refTable) - 1; $i++) {
@@ -275,16 +219,13 @@ class SCKSensorData
 
      /**
      * linearRegression
-     *     *
      * @param float $valueInput
      * @param float $prevValueOutput
      * @param float $nextValueOutput
      * @param float $prevValueRef
      * @param float $nextValueRef
      * @return float
-     *
      */
-
     private static function linearRegression($valueInput, $prevValueOutput, $nextValueOutput, $prevValueRef, $nextValueRef)
     {
         $slope  = ($nextValueOutput - $prevValueOutput) / ($nextValueRef - $prevValueRef);
@@ -292,8 +233,9 @@ class SCKSensorData
         return $result;
     }
 
-    //CJD convertion json to array php
-    private static $dbTable = array( 0 => array( 0 => 0, 1 => 50 ), 1 => array( 0 => 2, 1 => 55 ), 2 => array( 0 => 3, 1 => 57 ),
+    //Danzal conversion json to array php
+    private static $dbTable = array( 
+        0 => array( 0 => 0, 1 => 50 ), 1 => array( 0 => 2, 1 => 55 ), 2 => array( 0 => 3, 1 => 57 ),
         3 => array( 0 => 6, 1 => 58 ), 4 => array( 0 => 20, 1 => 59 ), 5 => array( 0 => 40, 1 => 60 ),
         6 => array( 0 => 60, 1 => 61 ), 7 => array( 0 => 75, 1 => 62 ), 8 => array( 0 => 115, 1 => 63 ),
         9 => array( 0 => 150, 1 => 64 ), 10 => array( 0 => 180, 1 => 65 ), 11 => array( 0 => 220, 1 => 66 ),
@@ -311,9 +253,8 @@ class SCKSensorData
         45 => array( 0 => 1710, 1 => 100 ), 46 => array( 0 => 1720, 1 => 101 ), 47 => array( 0 => 1745, 1 => 102 ),
         48 => array( 0 => 1770, 1 => 103 ), 49 => array( 0 => 1785, 1 => 104 ), 50 => array( 0 => 1800, 1 => 105 ),
         51 => array( 0 => 1815, 1 => 106 ), 52 => array( 0 => 1830, 1 => 107 ), 53 => array( 0 => 1845, 1 => 108 ),
-        54 => array( 0 => 1860, 1 => 109 ), 55 => array( 0 => 1875, 1 => 110 ) ) ;
-    
-    
+        54 => array( 0 => 1860, 1 => 109 ), 55 => array( 0 => 1875, 1 => 110 ) 
+    ) ;
 }
 
 ?>

@@ -4,15 +4,20 @@
 */
 
 class GetSCKDataInCODBAction extends CAction {
-
-	public function run($boardId=null,$rollupMin=10,$start=null,$end=null){
+//Accept un appel pour un seul boardId, mais est prévue pour 
+	public function run($boardId=null,$rollupMin=10,$start=null,$end=null,$listBoardIds=null){
 
 		$res=array();
 		if ($_SERVER['REQUEST_METHOD'] == 'GET') {
+	
+			if(empty($listBoardIds) && !empty($boardId))
+				$boardIds=array($boardId);
+			else
+				$boardIds=json_decode($listBoardIds,true);
 
 			$interval = new DateInterval('P1D');
 			
-			if(isset($start)){
+			if(isset($start) && is_array($boardIds)){
 				$startD = new DateTime($start);
 				if (isset($end)){
 					$endD= new DateTime($end);
@@ -20,23 +25,12 @@ class GetSCKDataInCODBAction extends CAction {
 				$endD->add($interval);
 
 				$period = new DatePeriod($startD, $interval, $endD);
-				
-				foreach ($period as $date) {
-					$resTemp = array();
-					$datef = $date->format('Y-m-d');
-					$dataC = Thing::getConvertedRercord($boardId,false,$datef);
-					$resTemp = Thing::getSCKAvgWithRollupPeriod($dataC,$rollupMin,false);
-					if(!empty($resTemp))
-						$res = array_merge($res,$resTemp);
-				}
+
+				$res = Thing::getSCKDataCODBbyPeriodAndRollup($boardIds, $period, $rollupMin); 
 			}
 		} 
 		Rest::json($res);
 		Yii::app()->end(); 
-		/*echo 'dataC : </br>';
-		var_dump($dataC);
-		echo '</br> res : </br>';
-		var_dump($res);*/
 	}
 }
 ?>

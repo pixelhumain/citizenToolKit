@@ -309,8 +309,11 @@ class Thing {
 		$data=array();
 		if(!empty($dataInDB)){
 			foreach ($dataInDB as $rawData) {
+				unset($rawData['creator'],$rawData['created'],$rawData['updated'],$rawData['creator'],$rawData['type'],$rawData['version'],$rawData['modified']);
 				if(!isset($rawData['status']['converted']) || $rawData['status']['converted']==false){
-					$data[]= SCKSensorData::SCK11Convert($rawData);
+					$convertedData = SCKSensorData::SCK11Convert($rawData);
+						if($convertedData!=false)
+							$data[]= $convertedData;
 				}else{
 					$data[]=$rawData;
 				}
@@ -371,7 +374,7 @@ class Thing {
 				$avgValue['noise']	+=$record['noise'];
 				$avgValue['nets']	+=$record['nets'];
 
-				if($timestamp>=($startRollup+$rollupSec-30) || $timestamp==$endRollup){   //à 30 seconde ou plus
+				if($timestamp>=($startRollup+$rollupSec-50) || $timestamp==$endRollup){   //à 50 seconde ou plus
 					$avgValue['timestamp']=$record['timestamp'];
 					$avgValue['temp'] /=($i);	
 					$avgValue['hum']  /=($i);
@@ -406,6 +409,21 @@ class Thing {
 			}
 		}
 		return $avgData;	
+	}
+
+	public static function getSCKDataCODBbyPeriodAndRollup($boardIds, $period, $rollupMin) {
+		$res=array();
+		foreach ($boardIds as $bId) {
+			//$resTemp = array();
+			$res[$bId]=array();
+			foreach ($period as $date) {
+				$datef = $date->format('Y-m-d');
+				$dataC=self::getConvertedRercord($bId,false,$datef);
+				if(!empty($dataC))
+					$res[$bId] = array_merge($res[$bId], self::getSCKAvgWithRollupPeriod($dataC,$rollupMin,false));
+			}
+		}
+		return $res;
 	}
 
 	public static function synthetizeSCKRecordInDB($boardId,$date,$rollupMin,$converted=false){
