@@ -57,6 +57,7 @@ class Element {
 			News::COLLECTION => "News",
 	    	Need::COLLECTION => "Need",
 	    	City::COLLECTION => "City",
+	    	Thing::COLLECTION=>"Thing",
 	    );	
 	 	return @$models[$type];     
     }
@@ -1219,11 +1220,6 @@ class Element {
 		// - send email to notify the admin : the element has been stop by the user 
 		// - add activity Stream
 		// - Notification
-		
-		//Send emails to admins
-		//Mail::confirmDeleteElement($elementType, $elementId, $reason, $admins, $userId);
-		//TODO SBAR => @bouboule help wanted
-		//Notification::actionOnPerson();
 		
 		return $res;
 	}

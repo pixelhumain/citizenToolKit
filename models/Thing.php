@@ -3,7 +3,7 @@
 class Thing {
 	//TODO 
 
-	const collection = "thing";
+	const COLLECTION = "thing";
 
 	public static $dataBinding = array (
 	    "type" => array("name" => "type"),//"smartCitizen"
