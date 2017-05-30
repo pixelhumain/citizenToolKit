@@ -112,7 +112,7 @@ class Element {
 
 	    	Organization::TYPE_NGO 		=> "green",
 	    	Organization::TYPE_BUSINESS => "azure",
-	    	Organization::TYPE_GROUP 	=> "black",
+	    	Organization::TYPE_GROUP 	=> "turq",
 	    	Organization::TYPE_GOV 		=> "red",
 	    );	
 	    if(isset($colors[$type])) return $colors[$type];
