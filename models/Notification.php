@@ -683,6 +683,8 @@ class Notification{
 		$where=array("verb"=>$construct["verb"], "target.id"=>$construct["target"]["id"], "target.type"=>$construct["target"]["type"]);
 		if($construct["labelUpNotifyTarget"]=="object")
 			$where["author.".Yii::app()->session["userId"]] = array('$exists' => true);
+		if($construct["labelUpNotifyTarget"]=="object" && $construct["verb"]==ActStr::VERB_ACCEPT)
+			$where["object"] = array('$exists' => true);
 		if($construct["levelType"])
 			$where["notify.objectType"] = $construct["levelType"];
         else if($construct["verb"]==Actstr::VERB_POST && !@$construct["target"]["targetIsAuthor"] && !@$construct["target"]["userWall"])
@@ -698,6 +700,7 @@ class Notification{
 				return true;
 			else{
 				$countRepeat=1;
+				//print_r($notification);
 				foreach($notification[$construct["labelUpNotifyTarget"]] as $key => $i){
 					if(($notification["verb"] != Actstr::VERB_POST && $notification["verb"] != Actstr::VERB_COMMENT) || ($key != Yii::app()->session["userId"]))
 						$countRepeat++;
