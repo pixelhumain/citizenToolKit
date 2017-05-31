@@ -51,14 +51,15 @@ class Element {
     public static function getModelByType($type) {
     	$models = array(
 	    	Organization::COLLECTION => "Organization",
-	    	Person::COLLECTION => "Person",
-	    	Event::COLLECTION => "Event",
-	    	Project::COLLECTION => "Project",
-			News::COLLECTION => "News",
-	    	Need::COLLECTION => "Need",
-	    	City::COLLECTION => "City",
-	    	Thing::COLLECTION=>"Thing",
-	    	Poi::COLLECTION=>"Poi",
+	    	Person::COLLECTION 		 => "Person",
+	    	Event::COLLECTION 		 => "Event",
+	    	Project::COLLECTION 	 => "Project",
+			News::COLLECTION 		 => "News",
+	    	Need::COLLECTION 		 => "Need",
+	    	City::COLLECTION 		 => "City",
+	    	Thing::COLLECTION 		 => "Thing",
+	    	Poi::COLLECTION 		 => "Poi",
+	    	Classified::COLLECTION   => "Classified",
 	    );	
 	 	return @$models[$type];     
     }

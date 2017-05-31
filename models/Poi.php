@@ -14,8 +14,6 @@ class Poi {
 		"RessourceMaterielle" => "Ressource Materielle",
 		"RessourceFinanciere" => "Ressource Financiere",
 		"ficheBlanche" => "Fiche Blanche",
-
-		"poi"			=>"points d'intérêt",
 		"geoJson" 		=> "Url au format geojson ou vers une umap",
 		"compostPickup" => "récolte de composte",
 		"video" 		=> "video",
@@ -30,7 +28,8 @@ class Poi {
 		"streetArts" 	=> "arts de rue",
 		"openScene" 	=> "scène ouverte",
 		"stand" 		=> "stand",
-		"parking" 		=> "Parking"
+		"parking" 		=> "Parking",
+		"other"			=> "Autre"
 	);
 
 	//From Post/Form name to database field name
