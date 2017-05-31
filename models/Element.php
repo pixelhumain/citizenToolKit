@@ -608,7 +608,7 @@ class Element {
 				$addToSet = array("contacts" => $fieldValue);
 			else{
 				$headSet = "contacts.".$fieldValue["index"] ;
-				isset($fieldValue["index"]);
+				unset($fieldValue["index"]);
 				if(count($fieldValue) == 0){
 					$verb = '$unset' ;
 					$verbActivity = ActStr::VERB_DELETE ;
@@ -617,7 +617,6 @@ class Element {
 					$pull="contacts";
 				}
 				$set = array($headSet => $fieldValue);
-				
 			}
 		} else if ($dataFieldName == "urls") {
 			if(!isset($fieldValue["index"]))
@@ -633,6 +632,7 @@ class Element {
 					$pull="urls";
 				}
 				$set = array($headSet => $fieldValue);
+
 			}
 		} else
 			$set = array($dataFieldName => $fieldValue);
