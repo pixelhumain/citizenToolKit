@@ -58,6 +58,7 @@ class Element {
 	    	Need::COLLECTION => "Need",
 	    	City::COLLECTION => "City",
 	    	Thing::COLLECTION=>"Thing",
+	    	Poi::COLLECTION=>"Poi",
 	    );	
 	 	return @$models[$type];     
     }
@@ -1740,6 +1741,14 @@ class Element {
 		if(in_array($type, $listElt) ){
 			$res = PHDB::findOne( $type , array( "_id" => new MongoId($id) ) ,array("contacts") );
 			$res = (!empty($res["contacts"]) ? $res["contacts"] : array() );
+		}
+		return $res;
+	}
+
+	public static function getContactsByMails($listMails){
+		$res = array();
+		foreach ($listMails as $key => $mail){
+			$res[$mail] = PHDB::findOne( Person::COLLECTION , array( "email" => $mail ), array("_id", "name", "profilThumbImageUrl") );
 		}
 		return $res;
 	}
