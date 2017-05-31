@@ -31,6 +31,15 @@ class GetDataDetailAction extends CAction {
 						$contextMap[$keyLink] = $link;
 					}else if($dataName!="guests" && !@$value["isInviting"]){
 						$link = Element::getByTypeAndId($value["type"], $keyLink);
+						if($value["type"]==Person::COLLECTION){
+							$link["statusLink"]=[];
+							if(@$value[Link::TO_BE_VALIDATED])
+								$link["statusLink"][Link::TO_BE_VALIDATED]=true;
+							if(@$value[Link::IS_ADMIN])
+								$link["statusLink"][Link::IS_ADMIN]=true;
+							if(@$value[Link::IS_ADMIN_PENDING])
+								$link["statusLink"][Link::IS_ADMIN_PENDING]=true;
+						}
 						$link["type"] = $value["type"];
 						$contextMap[$keyLink] = $link;
 					}

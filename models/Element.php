@@ -1159,7 +1159,7 @@ class Element {
 		
     	PHDB::remove($elementType, $where);
     	
-    	$res = array("result" => true, "msg" => Yii::t('common',"The element {elementName} of type {elementType} has been deleted with success.", array("{elementName}" => @$elementToDelete["name"], "{elementType}" => @$elementType )));
+    	$res = array("result" => true, "status" => "deleted", "msg" => Yii::t('common',"The element {elementName} of type {elementType} has been deleted with success.", array("{elementName}" => @$elementToDelete["name"], "{elementType}" => @$elementType )));
 
 		Log::save(array("userId" => $userId, "browser" => @$_SERVER["HTTP_USER_AGENT"], "ipAddress" => @$_SERVER["REMOTE_ADDR"], "created" => new MongoDate(time()), "action" => "deleteElement", "params" => array("id" => $elementId, "type" => $elementType)));
 		
@@ -1178,7 +1178,7 @@ class Element {
 	 * @return array result => bool, msg => String
 	 */
 	private static function goElementDeletePending($elementType, $elementId, $reason, $admins, $userId, $isSuperAdmin=false) {
-		$res = array("result" => true, "msg" => Yii::t('common', "The element has been put in status 'delete pending', waiting the admin to confirm the delete."));
+		$res = array("result" => true, "status" => "deletePending", "msg" => Yii::t('common', "The element has been put in status 'delete pending', waiting the admin to confirm the delete."));
 		
 		//Mark the element as deletePending
 		PHDB::update($elementType, 
