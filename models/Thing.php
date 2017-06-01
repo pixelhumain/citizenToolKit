@@ -1,5 +1,5 @@
 <?php 
-// Modifié le 12/05/2017 par danzal
+// Modified le 30/05/2017 par danzal
 class Thing {
 	//TODO changer collection things en datas (dans mongodb dev aussi)
 	
@@ -42,6 +42,7 @@ class Thing {
 		"sckSensors" => array("name"=>"sckSensors"),//api metadata
 		"sckUpdatedAt"	=>array("name"=>"sckUpdatedAt"),
 		"sensors" 	=> array("name"=> "sensors"),
+		"minmaxstddev" =>array("name"=>"minmaxstddev"),
 		"status" 	=> array("name" => "status"), //
 		"tags" => array("name" => "tags"),
 		"urls"		=> array("name" =>"urls"),
@@ -191,7 +192,6 @@ class Thing {
 		foreach ($listbd as $bd) {
 			if(preg_match('/([0-9a-f]{2}[:]){5}([0-9a-f]{2})/', $bd['boardId'])==1){
 				$res['updated'][] = Element::save(self::setMetadata(null,null,true,$bd['deviceId'],$bd['boardId']));
-
 			}
 		}
 		if(!empty($res['updated']))
@@ -263,9 +263,9 @@ class Thing {
 
 	public static function getLastestRecordsInDB($boardId=null,$where=array("type"=>self::SCK_TYPE),$sort=array("created"=>-1),$limit=1,$fields=null){
 		$lastRecords = array();
+
 		if(!empty($boardId) && $boardId!="[FILTERED]" ){
 			$where["boardId"] = $boardId;
-			//$where["latest"]= array('latest'=>array('exists'=>1))
 			$lastRecords = PHDB::findAndSort(self::COLLECTION_DATA,$where,$sort,$limit,$fields);
 		}
 		return $lastRecords;
@@ -287,13 +287,8 @@ class Thing {
 				$time=$time." ".$hour;
 				$time2=$time2." ".$hour;
 			}
-			$regextime = "/^(".$time."|".$time2.")/i";
-			//$regextime1 = "/".$time."/i";
-			//$regextime2 ="/".$time2."/i";
-			//$queryTimestamp[] = new MongoRegex($regextime2);
+			$regextime = "/(".$time."|".$time2.")/i";
 		}
-		
-		//$queryTimestamp[] = 
 		
 		$where["timestamp"] = new MongoRegex($regextime);
 		if($lastest==false){
@@ -427,38 +422,49 @@ class Thing {
 	}
 
 	public static function synthetizeSCKRecordInDB($boardId,$date,$rollupMin,$converted=false){
-		$result=array('nbSynthesizedElements'=>0,'nbSavedElements'=>0 );
+		$result=array('nbSynthesizedElements'=>0, 'nbSavedElements'=>0 );
 
-		$where=array("type"=>self::SCK_TYPE, 'status.converted'=>array('exists'=>0),
-			'status.synthesized'=> array('exists'=>0), 'status.latest' => array('exists'=>0),
-			'timestamp' =>  new MongoRegex("/^(".($date->format('Y-m-'))."|".($date->format('Y-n-')).")/i")  );
+		$where=array("type"=>self::SCK_TYPE, 'status.converted'=>array('$exists'=>0),
+			'status.synthesized'=> array('$exists'=>0), //'status.latest' => array('$exists'=>0),
+			'timestamp' =>  new MongoRegex("/(".($date->format('Y-m-d'))."|".($date->format('Y-n-d')).")/") 
+			 );
+
 		$sort = array("timestamp"=>1);
 		$limit = null;
 		
 		$dataR = self::getLastestRecordsInDB($boardId,$where,$sort,$limit);
+
+		$result["dataInCoDB"]=$dataR;
 		if(!empty($dataR)){
 			if($converted==true){
 				$dataC=array();
 				foreach ($dataR as $dataRaw) {
-					//$dataRaw["converted"]=$converted;
-					$dataC[]=SCKSensorData::SCK11Convert($dataRaw);
+					$convertedData = SCKSensorData::SCK11Convert($dataRaw);
+					if($convertedData!=false)
+						$dataC[]=$convertedData;
 				}
 				$data=$dataC;
-			}else{$data=$dataR;}
+			}else{
+				$data=$dataR;
+			}
 
 			$dataS = self::getSCKAvgWithRollupPeriod($data,$rollupMin,true);
-			
+			$result["dataSynthetized"]=$dataS;
+
 			$dataThing= array('collection' => self::COLLECTION_DATA, 'key'=>'thing','type'=>self::SCK_TYPE,'boardId'=>$boardId,'status'=>array('synthesized'=>true ));
-			
+			$res1=array();
 			foreach ($dataS as $dataToSave) {
+				unset($dataToSave["_id"]);
+
 				$res = Element::save(array_merge($dataThing, $dataToSave));
 				$res1[]=$res;
 				if($res['result']==true)
-					$result['nbSavedElements']++;
+					$result['nbSavedElements']+=1;
 			}
+			$result["res1"]=$res1;
 			
-			if($result['nbSavedElements']>=(count($dataS)-1)){
-				$resSuppr = self::deleteSCKRecords($boardId,$date);
+			if($result['nbSavedElements'] >= (count($dataS)) -1){
+				$result["resultSuppression"] = self::deleteSCKRecords($boardId,$date);
 				$result['result']=true;
 				$result['msg']='Data suppressed';
 			}else {
@@ -470,7 +476,6 @@ class Thing {
 	}
 
 	public static function getDateTime($bindMap) {
-		//TODO regler le probleme $datetime qui n'est pas correctement converti
 		//TODO gérer fuseau horaire
 		return Translate::convert(getdate(), $bindMap);
 	}
@@ -526,8 +531,8 @@ class Thing {
 	private static function deleteSCKRecords($boardId,$date){
 		//$dateM = $date->format('Y-m-') ; //'Y-m-d' pour supression par jours (Faut changer l'interval aussi)
 		//$dateN = $date->format('Y-n-') ;
-		return PHDB::remove('data_copy', array("type"=>self::SCK_TYPE,"boardId"=>$boardId, "status.synthesized" => array('exists'=>0),
-			"timestamp" => new MongoRegex("/^(".($date->format('Y-m-'))."|".($date->format('Y-n-')).")/i") ) ); // collection : self::COLLECTION_DATA , data_copy pour les tests
+		return PHDB::remove(self::COLLECTION_DATA, array("type"=>self::SCK_TYPE,"boardId"=>$boardId, "status.synthesized" => array('$exists'=>0),
+			"timestamp" => new MongoRegex("/(".($date->format('Y-m-d'))."|".($date->format('Y-n-d')).")/i") ) ); // collection : self::COLLECTION_DATA , data_copy pour les tests
 	}
 
 }

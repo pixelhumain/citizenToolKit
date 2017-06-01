@@ -1,6 +1,7 @@
 <?php
-/*10/04/17
-* Danzal
+/**
+* 10/04/17
+*@author : Danzal
 */
 
 class GetSCKDataInCODBAction extends CAction {

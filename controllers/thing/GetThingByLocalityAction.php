@@ -2,7 +2,7 @@
 /**
 * GetThingByLocalityAction 
 *  
-* @author: Jean Daniel CAZAL <danzalkay551@gmail.com>
+* @author: Danzal
 * Date: 28/04/2017
 * 
 */
