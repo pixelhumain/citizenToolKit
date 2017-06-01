@@ -244,8 +244,8 @@ class IndexAction extends CAction
 				}else{
 					$orRequest=array(
 						array("mentions.id"=>$id,"scope.type"=>array('$in'=>$scope)),
-						array("target.id"=>$id, '
-							$or'=> array(
+						array("target.id"=>$id, 
+								'$or'=> array(
 								array("scope.type"=>array('$in'=>$scope)),
 								array("author"=>Yii::app()->session["userId"])
 							)

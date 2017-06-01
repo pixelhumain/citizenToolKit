@@ -51,13 +51,15 @@ class Element {
     public static function getModelByType($type) {
     	$models = array(
 	    	Organization::COLLECTION => "Organization",
-	    	Person::COLLECTION => "Person",
-	    	Event::COLLECTION => "Event",
-	    	Project::COLLECTION => "Project",
-			News::COLLECTION => "News",
-	    	Need::COLLECTION => "Need",
-	    	City::COLLECTION => "City",
-	    	Thing::COLLECTION_DATA=>"Thing",
+	    	Person::COLLECTION 		 => "Person",
+	    	Event::COLLECTION 		 => "Event",
+	    	Project::COLLECTION 	 => "Project",
+			News::COLLECTION 		 => "News",
+	    	Need::COLLECTION 		 => "Need",
+	    	City::COLLECTION 		 => "City",
+	    	Thing::COLLECTION_DATA	 => "Thing",
+	    	Poi::COLLECTION 		 => "Poi",
+	    	Classified::COLLECTION   => "Classified",
 	    );	
 	 	return @$models[$type];     
     }
@@ -113,7 +115,7 @@ class Element {
 
 	    	Organization::TYPE_NGO 		=> "green",
 	    	Organization::TYPE_BUSINESS => "azure",
-	    	Organization::TYPE_GROUP 	=> "black",
+	    	Organization::TYPE_GROUP 	=> "turq",
 	    	Organization::TYPE_GOV 		=> "red",
 	    );	
 	    if(isset($colors[$type])) return $colors[$type];
@@ -608,7 +610,7 @@ class Element {
 				$addToSet = array("contacts" => $fieldValue);
 			else{
 				$headSet = "contacts.".$fieldValue["index"] ;
-				isset($fieldValue["index"]);
+				unset($fieldValue["index"]);
 				if(count($fieldValue) == 0){
 					$verb = '$unset' ;
 					$verbActivity = ActStr::VERB_DELETE ;
@@ -617,7 +619,6 @@ class Element {
 					$pull="contacts";
 				}
 				$set = array($headSet => $fieldValue);
-				
 			}
 		} else if ($dataFieldName == "urls") {
 			if(!isset($fieldValue["index"]))
@@ -633,6 +634,7 @@ class Element {
 					$pull="urls";
 				}
 				$set = array($headSet => $fieldValue);
+
 			}
 		} else
 			$set = array($dataFieldName => $fieldValue);
@@ -1158,7 +1160,7 @@ class Element {
 		
     	PHDB::remove($elementType, $where);
     	
-    	$res = array("result" => true, "msg" => Yii::t('common',"The element {elementName} of type {elementType} has been deleted with success.", array("{elementName}" => @$elementToDelete["name"], "{elementType}" => @$elementType )));
+    	$res = array("result" => true, "status" => "deleted", "msg" => Yii::t('common',"The element {elementName} of type {elementType} has been deleted with success.", array("{elementName}" => @$elementToDelete["name"], "{elementType}" => @$elementType )));
 
 		Log::save(array("userId" => $userId, "browser" => @$_SERVER["HTTP_USER_AGENT"], "ipAddress" => @$_SERVER["REMOTE_ADDR"], "created" => new MongoDate(time()), "action" => "deleteElement", "params" => array("id" => $elementId, "type" => $elementType)));
 		
@@ -1177,7 +1179,7 @@ class Element {
 	 * @return array result => bool, msg => String
 	 */
 	private static function goElementDeletePending($elementType, $elementId, $reason, $admins, $userId, $isSuperAdmin=false) {
-		$res = array("result" => true, "msg" => Yii::t('common', "The element has been put in status 'delete pending', waiting the admin to confirm the delete."));
+		$res = array("result" => true, "status" => "deletePending", "msg" => Yii::t('common', "The element has been put in status 'delete pending', waiting the admin to confirm the delete."));
 		
 		//Mark the element as deletePending
 		PHDB::update($elementType, 
@@ -1220,11 +1222,6 @@ class Element {
 		// - send email to notify the admin : the element has been stop by the user 
 		// - add activity Stream
 		// - Notification
-		
-		//Send emails to admins
-		//Mail::confirmDeleteElement($elementType, $elementId, $reason, $admins, $userId);
-		//TODO SBAR => @bouboule help wanted
-		//Notification::actionOnPerson();
 		
 		return $res;
 	}
@@ -1745,6 +1742,14 @@ class Element {
 		if(in_array($type, $listElt) ){
 			$res = PHDB::findOne( $type , array( "_id" => new MongoId($id) ) ,array("contacts") );
 			$res = (!empty($res["contacts"]) ? $res["contacts"] : array() );
+		}
+		return $res;
+	}
+
+	public static function getContactsByMails($listMails){
+		$res = array();
+		foreach ($listMails as $key => $mail){
+			$res[$mail] = PHDB::findOne( Person::COLLECTION , array( "email" => $mail ), array("_id", "name", "profilThumbImageUrl") );
 		}
 		return $res;
 	}

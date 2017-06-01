@@ -10,7 +10,7 @@ class SaveAction extends CAction {
     public function run() { 
 
     	$res = array( "result" => false, "error"=>"401", "msg" => Yii::t("common","Login First") );
-        error_log("user logged ? ".isset(Yii::app()->session["userId"]));
+
         //possibilité d'enregistrer des URL sur Kgougle when not login !?
         if(isset(Yii::app()->session["userId"]) || (isset($_POST["collection"]) && $_POST["collection"] == "url")) { 
         //====== Modified 13/01/2017

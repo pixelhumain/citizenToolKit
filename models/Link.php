@@ -499,7 +499,7 @@ class Link {
     	}
     	return $res;
     }
-	
+
 	///// TODO BOUBOULE - AN ORGANIZER COULD BE A PROJECT OR AN ORGA OR A PERSON
 	//// DOCUMENT THIS FUNCTION 
     public static function removeEventLinks($eventId){

@@ -14,8 +14,6 @@ class Poi {
 		"RessourceMaterielle" => "Ressource Materielle",
 		"RessourceFinanciere" => "Ressource Financiere",
 		"ficheBlanche" => "Fiche Blanche",
-
-		"poi"			=>"points d'intérêt",
 		"geoJson" 		=> "Url au format geojson ou vers une umap",
 		"compostPickup" => "récolte de composte",
 		"video" 		=> "video",
@@ -25,14 +23,14 @@ class Poi {
 		"trash" 		=> "poubelle",
 		"history" 		=> "histoire",
 		"something2See" => "chose a voir",
-		"funPlace" => "endroit Sympas (skatepark, vue...)",
-		"place" => "place publique",
-		"streetArts" => "arts de rue",
-		"openScene" => "scène ouverte",
-		"stand" => "stand",
-		"parking" => "Parking",
-		"smartCitizen"=>"Smart-Citizen-Kit"
-
+		"funPlace" 		=> "endroit Sympas (skatepark, vue...)",
+		"place" 		=> "place publique",
+		"streetArts" 	=> "arts de rue",
+		"openScene" 	=> "scène ouverte",
+		"stand" 		=> "stand",
+		"parking" 		=> "Parking",
+		"other"			=> "Autre"
+		"smartCitizen"	=> "Smart-Citizen-Kit"
 	);
 
 	//From Post/Form name to database field name
