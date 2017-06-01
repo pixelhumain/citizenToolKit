@@ -4,11 +4,11 @@
 */
 class GetLastestReadingAction extends CAction {
 
-    public function run($device=null) { 
+    public function run($deviceId=null) { 
 
     	$controller=$this->getController();
 
-        if(empty($device)){
+        if(empty($deviceId)){
             //echo "Index thing\n";
             //var_dump(Thing::getAllValueSCKDevices());
             $params = array();
@@ -19,9 +19,10 @@ class GetLastestReadingAction extends CAction {
                 $controller->render("scklastestreadings",$params);
         }else{
             //partie pour l'actualisation des données sur la page dernière mesures
+            
             $device = Thing::getSCKDeviceMdata(
                 Thing::COLLECTION,$where=
-                    array("type"=>Thing::SCK_TYPE,'deviceId'=>$device));
+                    array("type"=>Thing::SCK_TYPE,'deviceId'=>$deviceId));
             $boardId=$device['boardId'];
             if(!empty($boardId) && $boardId!='[FILTERED]'){
                 $res['viaCODB']=Thing::getLastestRecordsInDB($boardId);

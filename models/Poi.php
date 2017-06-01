@@ -29,7 +29,7 @@ class Poi {
 		"openScene" 	=> "scène ouverte",
 		"stand" 		=> "stand",
 		"parking" 		=> "Parking",
-		"other"			=> "Autre"
+		"other"			=> "Autre",
 		"smartCitizen"	=> "Smart-Citizen-Kit"
 	);
 
