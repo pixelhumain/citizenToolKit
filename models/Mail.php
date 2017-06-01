@@ -425,6 +425,7 @@ class Mail {
         }
         Mail::schedule($params);
     }
+
     /**
      * Send an email with beta test information
      * @return null
@@ -437,6 +438,31 @@ class Mail {
             "subject" => $subject,
             "from" => Yii::app()->params['adminEmail'],
             "to"=>Yii::app()->params['adminEmail'],
+            "tplParams" => array(   "title" => Yii::t("email","New message from").$names,
+                                    "subject" => $subject,
+                                    "message" => $contentMsg,
+                                    "emailSender" => $emailSender,
+                                )
+                                    /*   "logo"=> "/images/logo-communecter.png",
+                                    "logo2" => "/images/logoLTxt.jpg")*/
+        );   
+
+        Mail::schedule($params);
+    }
+
+
+    /**
+     * Send an email with beta test information
+     * @return null
+     */
+    public static function sendMailFormContactPrivate($emailSender, $names, $subject, $contentMsg, $emailReceiver) {
+        
+        $params = array (
+            "type" => Cron::TYPE_MAIL,
+            "tpl"=>'contactForm',
+            "subject" => $subject,
+            "from" => Yii::app()->params['adminEmail'],
+            "to"=>$emailReceiver,
             "tplParams" => array(   "title" => Yii::t("email","New message from").$names,
                                     "subject" => $subject,
                                     "message" => $contentMsg,

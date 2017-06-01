@@ -683,21 +683,27 @@ class Notification{
 		$where=array("verb"=>$construct["verb"], "target.id"=>$construct["target"]["id"], "target.type"=>$construct["target"]["type"]);
 		if($construct["labelUpNotifyTarget"]=="object")
 			$where["author.".Yii::app()->session["userId"]] = array('$exists' => true);
+		if($construct["labelUpNotifyTarget"]=="object" && $construct["verb"]==ActStr::VERB_ACCEPT)
+			$where["object"] = array('$exists' => true);
 		if($construct["levelType"])
 			$where["notify.objectType"] = $construct["levelType"];
         else if($construct["verb"]==Actstr::VERB_POST && !@$construct["target"]["targetIsAuthor"] && !@$construct["target"]["userWall"])
 		    $where["notify.objectType"]=News::COLLECTION;
 		if($construct["object"] && !empty($construct["object"]) &&
 				 ($construct["verb"]==Actstr::VERB_COMMENT || $construct["verb"]==Actstr::VERB_LIKE|| $construct["verb"]==Actstr::VERB_UNLIKE)){
+			//echo "oui"; print_r($construct["object"]);
 			$where["object.id"] = $construct["object"]["id"];
 			$where["object.type"] = $construct["object"]["type"];
 		}
 		$notification = PHDB::findOne(ActivityStream::COLLECTION, $where);
+		//print_r($notication);
 		if(!empty($notification)){
 			if(@$construct["type"] && @$construct["type"][$construct["levelType"]] && @$construct["type"][$construct["levelType"]]["noUpdate"])
 				return true;
 			else{
+				//echo "oui";
 				$countRepeat=1;
+				//print_r($notification);
 				foreach($notification[$construct["labelUpNotifyTarget"]] as $key => $i){
 					if(($notification["verb"] != Actstr::VERB_POST && $notification["verb"] != Actstr::VERB_COMMENT) || ($key != Yii::app()->session["userId"]))
 						$countRepeat++;
@@ -816,10 +822,11 @@ class Notification{
 						$notifyCommunity=true;
 					}
 					if(($commentAuthor!="" && $commentAuthor==$authorNews["author"]) 
-						|| ($commentAuthor=="" && Yii::app()->session["userId"]==$authorNews["author"]))
+						|| ($commentAuthor=="" && Yii::app()->session["userId"]==$authorNews["author"])){
 						$isToNotify=false;
-					else
-						$notifyCommunity=true;
+						//$notifyCommunity=false;
+					}//else
+					//	$notifyCommunity=true;
 				}
 
 			}else
@@ -830,7 +837,8 @@ class Notification{
 					$userNotify=(string)$userNotify["id"];
 				$alreadyAuhtorNotify=$userNotify;
 				$notificationPart["community"]=array($userNotify=>array("isUnread" => true, "isUnseen" => true));
-				if(@$notificationPart["type"][$levelType] && @$notificationPart["type"][$levelType]["repeat"])
+				if((@$notificationPart["type"][$levelType] && @$notificationPart["type"][$levelType]["repeat"])
+					|| in_array($notificationPart["verb"], array(Actstr::VERB_COMMENT,Actstr::VERB_LIKE,Actstr::VERB_UNLIKE)))
 					$update=self::checkIfAlreadyNotifForAnotherLink($notificationPart,true);
 				if($update==false){
 			 	    //$notifyObject=null;
@@ -947,8 +955,12 @@ class Notification{
 			if($type=="news"){
 				if(@$news["title"])
 					$res["{what}"]="&quot;".$news["title"]."&quot;";
-				else if($news["type"]=="activityStream")
-					$res["{what}"]=Yii::t("notification","of creation").": &quot;".strtr($news["object"]["name"],0,20)."...&quot;";
+				else if($news["type"]=="activityStream"){ 
+					if($news["verb"]!="share")
+						$res["{what}"]=Yii::t("notification","of creation").": &quot;".strtr($news["object"]["name"],0,20)."...&quot;";
+					else
+						$res["{what}"]=Yii::t("notification","shared");
+				}
 				else
 					$res["{what}"]="&quot;".strtr(@$news["text"], 0, 20)."...&quot;";
 			}
