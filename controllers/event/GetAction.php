@@ -11,6 +11,8 @@ class GetAction extends CAction
 			$bindMap = (empty($id) ? TranslateKml::$dataBinding_allEvent : TranslateKml::$dataBinding_event);
 		elseif ($format == Translate::FORMAT_GEOJSON)
 			$bindMap = (empty($id) ? ranslateGeoJson::$dataBinding_allEvent : TranslateGeoJson::$dataBinding_event);
+		elseif ($format == Translate::FORMAT_JSONFEED)
+			$bindMap = TranslateJsonFeed::$dataBinding_allEvent;
 		else
 	       $bindMap = (empty($id) ? TranslateCommunecter::$dataBinding_allEvent : TranslateCommunecter::$dataBinding_event);
 		

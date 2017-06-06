@@ -10,6 +10,8 @@ class GetAction extends CAction {
 			$bindMap = TranslateKml::$dataBinding_news;
 		} elseif ($format == Translate::FORMAT_GEOJSON) {
 			$bindMap = TranslateGeoJson::$dataBinding_news;
+		} elseif ($format == Translate::FORMAT_JSONFEED) {
+			$bindMap = TranslateJsonFeed::$dataBinding_news;
 		}
 
 		else

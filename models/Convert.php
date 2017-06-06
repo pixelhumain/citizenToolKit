@@ -21,6 +21,7 @@ class Convert {
 	public static function getCorrectUrlForOdsAndDatanova() {
 
 		$url_final = "";
+		$url_ods_head ="";
 		$url_ods_params = "";
 
 		foreach ($_GET as $key => $value) {
@@ -90,9 +91,159 @@ class Convert {
         return $res;
 	}
 
+	public static function convertEducMembreToPh($url) {
+		$map = TranslateEducMembreToPh::$mapping;
+
+		$url_complete = self::getCorrectUrlForOdsAndDatanova();
+		$url_complete = str_replace("geofilter_polygon", "geofilter.polygon", $url_complete);
+
+		$param = self::getPrimaryParam($map);
+
+        $param['key'] = 'convert_educ_membre';
+        $param['nameFile'] = 'convert_educ_membre';
+        $param['pathObject'] = 'records';
+
+		$ch = curl_init();
+
+	    curl_setopt($ch, CURLOPT_URL, $url_complete);
+	    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+	    curl_setopt($ch, CURLOPT_HEADER, 0);
+
+	    $return = curl_exec ($ch);
+	    curl_close ($ch);
+
+        if (isset($url)) {
+        	$param['file'][0] = $return;
+        }
+
+        $result = Import::previewData($param);
+
+        if ($result['result'] !== false) {
+			$res = json_decode($result['elements']);
+		} else {
+			$res = [];
+		}
+
+        return $res;
+	}
+
+	public static function convertEducEcoleToPh($url) {
+
+		$map = TranslateEducEcoleToPh::$mapping;
+
+		$url_complete = self::getCorrectUrlForOdsAndDatanova();
+		$url_complete = str_replace("geofilter_polygon", "geofilter.polygon", $url_complete);
+
+		$param = self::getPrimaryParam($map);
+
+        $param['key'] = 'convert_educ_ecole';
+        $param['nameFile'] = 'convert_educ_ecole';
+        $param['pathObject'] = 'records';
+
+		$ch = curl_init();
+
+	    curl_setopt($ch, CURLOPT_URL, $url_complete);
+	    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+	    curl_setopt($ch, CURLOPT_HEADER, 0);
+
+	    $return = curl_exec ($ch);
+	    curl_close ($ch);
+
+        if (isset($url)) {
+        	$param['file'][0] = $return;
+        }
+
+        $result = Import::previewData($param);
+
+        if ($result['result'] !== false) {
+			$res = json_decode($result['elements']);
+		} else {
+			$res = [];
+		}
+
+        return $res;
+	}
+
+	public static function convertEducEtabToPh($url) {
+
+		$map = TranslateEducEtabToPh::$mapping;
+		$url_complete = self::getCorrectUrlForOdsAndDatanova();
+		$url_complete = str_replace("geofilter_polygon", "geofilter.polygon", $url_complete);
+
+		// var_dump($url_complete);
+
+		$param = self::getPrimaryParam($map);
+
+        $param['key'] = 'convert_educ_etab';
+        $param['nameFile'] = 'convert_educ_etab';
+        $param['pathObject'] = 'records';
+
+        $ch = curl_init();
+
+	    curl_setopt($ch, CURLOPT_URL, $url_complete);
+	    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+	    curl_setopt($ch, CURLOPT_HEADER, 0);
+
+	    $return = curl_exec ($ch);
+	    curl_close ($ch);
+
+        if (isset($url)) {
+        	$param['file'][0] = $return;
+        }
+
+        $result = Import::previewData($param);
+
+        if ($result['result'] !== false) {
+			$res = json_decode($result['elements']);
+		} else {
+			$res = [];
+		}
+
+        return $res;
+
+	}
+
+	public static function convertEducStructToPh($url) {
+		$map = TranslateEducStructToPh::$mapping;
+
+		$url_complete = self::getCorrectUrlForOdsAndDatanova();
+		$url_complete = str_replace("geofilter_polygon", "geofilter.polygon", $url_complete);
+
+		$param = self::getPrimaryParam($map);
+
+        $param['key'] = 'convert_educ_struct';
+        $param['nameFile'] = 'convert_educ_struct';
+        $param['pathObject'] = 'records';
+
+        $ch = curl_init();
+
+	    curl_setopt($ch, CURLOPT_URL, $url_complete);
+	    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+	    curl_setopt($ch, CURLOPT_HEADER, 0);
+
+	    $return = curl_exec ($ch);
+	    curl_close ($ch);
+
+        if (isset($url)) {
+        	$param['file'][0] = $return;
+        }
+
+        $result = Import::previewData($param);
+
+        if ($result['result'] !== false) {
+			$res = json_decode($result['elements']);
+		} else {
+			$res = [];
+		}
+
+        return $res;
+
+
+	}
+
 	public static function convertDatanovaToPh($url) {
 
-		$map = TranslateOdsToPh::$mapping_activity;
+		$map = TranslateDatanovaToPh::$mapping_activity;
 
 		$url_complete = self::getCorrectUrlForOdsAndDatanova();
 
@@ -165,6 +316,7 @@ class Convert {
 		$all_data = array();
 
 		$map = TranslateDatagouvToPh::$mapping_datasets;
+		$param = self::getPrimaryParam($map);
 
         $param['typeFile'] = 'json';
         $param['key'] = 'convert_datagouv';
@@ -178,7 +330,7 @@ class Convert {
 
 			array_push($all_data, $data_orga);
 		}
-	
+
 		$param['file'][0] = json_encode($all_data);
 
 		$result = Import::previewData($param);
@@ -191,10 +343,6 @@ class Convert {
 
         return $res;
 	}
-
-	// public static function convertWikipediaToPh($url) {
-
-	// }
 
 	public static function convertWikiToPh($url, $text_filter) {
 

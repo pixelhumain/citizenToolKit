@@ -218,7 +218,7 @@ class Import
 		if($typeElement == Organization::COLLECTION && !empty($element["type"]))
         	$element["type"] = Organization::translateType($element["type"]);
 
-        if ($element['source']['keys'][0] !== "convert_datagouv" && $element['source']['keys'][0] !== "convert_osm" && $element['source']['keys'][0] !== "convert_ods" && $element['source']['keys'][0] !== "convert_wiki" && $element['source']['keys'][0] !== "convert_datanova" && $element['source']['keys'][0] !== "convert_poleemploi") {
+        if ($element['source']['keys'][0] !== "convert_datagouv" && $element['source']['keys'][0] !== "convert_osm" && $element['source']['keys'][0] !== "convert_ods" && $element['source']['keys'][0] !== "convert_wiki" && $element['source']['keys'][0] !== "convert_datanova" && $element['source']['keys'][0] !== "convert_poleemploi" && $element['source']['keys'][0] !== "convert_educ_etab" && $element['source']['keys'][0] !== "convert_educ_membre" && $element['source']['keys'][0] !== "convert_educ_ecole" && $element['source']['keys'][0] !== "convert_educ_struct") {
             $element = self::getWarnings($element, $typeElement, true) ;
         }
 

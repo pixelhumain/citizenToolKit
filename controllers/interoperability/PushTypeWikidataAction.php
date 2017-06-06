@@ -6,6 +6,8 @@ class PushTypeWikidataAction extends CAction {
 
 		$controller=$this->getController();
 
+		var_dump('flkfmel');
+
 		// header('Content-Type: application/json');
 
 		// var_dump($_POST);
@@ -22,17 +24,17 @@ class PushTypeWikidataAction extends CAction {
 
 		// https://en.wikipedia.org/w/api.php?action=centralauthtoken
 
-		$curl3 = curl_init();
-		curl_setopt($curl3, CURLOPT_URL, "https://test.wikidata.org/w/api.php?action=centralauthtoken");
-		curl_setopt($curl3, CURLOPT_POST, true);
-		// curl_setopt($curl3, CURLOPT_HTTPHEADER, array('Content-Type: application/x-www-form-urlencoded'));
-		// curl_setopt($curl3, CURLOPT_POSTFIELDS, 'action=query&meta=tokens&format=json'); 
-		curl_setopt($curl3, CURLOPT_RETURNTRANSFER, 1);
-		$result3 = curl_exec($curl3);
+		// $curl3 = curl_init();
+		// curl_setopt($curl3, CURLOPT_URL, "https://test.wikidata.org/w/api.php?action=centralauthtoken");
+		// curl_setopt($curl3, CURLOPT_POST, true);
+		// // curl_setopt($curl3, CURLOPT_HTTPHEADER, array('Content-Type: application/x-www-form-urlencoded'));
+		// // curl_setopt($curl3, CURLOPT_POSTFIELDS, 'action=query&meta=tokens&format=json'); 
+		// curl_setopt($curl3, CURLOPT_RETURNTRANSFER, 1);
+		// $result3 = curl_exec($curl3);
 		 
-		curl_close($curl3);
+		// curl_close($curl3);
 
-		var_dump($result3);
+		// var_dump($result3);
 
 
 
@@ -108,17 +110,17 @@ class PushTypeWikidataAction extends CAction {
 	
 		// OBTENIR LES INFOS SUR L'USER (CO OU PAS)
 
-		$curl4 = curl_init();
-		curl_setopt($curl4, CURLOPT_URL, "https://en.wikipedia.org/w/api.php?");
-		curl_setopt($curl4, CURLOPT_POST, true);
-		// curl_setopt($curl4, CURLOPT_HTTPHEADER, array('Content-Type: application/x-www-form-urlencoded'));
-		curl_setopt($curl4, CURLOPT_POSTFIELDS, 'action=query&meta=userinfo&uiprop=rights&format=json'); 
-		curl_setopt($curl4, CURLOPT_RETURNTRANSFER, 1);
-		$result4 = curl_exec($curl4);
+		// $curl4 = curl_init();
+		// curl_setopt($curl4, CURLOPT_URL, "https://en.wikipedia.org/w/api.php?");
+		// curl_setopt($curl4, CURLOPT_POST, true);
+		// // curl_setopt($curl4, CURLOPT_HTTPHEADER, array('Content-Type: application/x-www-form-urlencoded'));
+		// curl_setopt($curl4, CURLOPT_POSTFIELDS, 'action=query&meta=userinfo&uiprop=rights&format=json'); 
+		// curl_setopt($curl4, CURLOPT_RETURNTRANSFER, 1);
+		// $result4 = curl_exec($curl4);
 		 
-		curl_close($curl4);
+		// curl_close($curl4);
 
-		echo $result4;
+		// echo $result4;
 		// echo json_encode($result4, true);
 		// var_dump($result4);
 
