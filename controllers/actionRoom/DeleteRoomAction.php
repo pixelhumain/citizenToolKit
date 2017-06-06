@@ -1,18 +1,20 @@
 <?php
-
-//Delete a Survey
-class DeleteAction extends CAction {
-    
+/**
+ * @return [json] 
+ */
+class DeleteRoomAction extends CAction
+{
     public function run($id) {
+        $res = array();
+        
         //Check if connected
         if( ! Person::logguedAndValid()) {
             $res = array("result"=>false, "msg"=>"You must be loggued to delete a room");
         } else {
-            $res = Survey::deleteEntry( $id,  Yii::app()->session["userId"]);
+            $res = ActionRoom::deleteActionRoom($id, Yii::app()->session["userId"]);
         }
 
-        Rest::json( $res );
+        Rest::json($res);  
         Yii::app()->end();
     }
-    
 }

@@ -19,13 +19,27 @@ class GetDataDetailAction extends CAction {
 			}
 			if(isset($element["links"][$connector])){
 				foreach ($element["links"][$connector] as $keyLink => $value){
-					if($dataName=="guests" && @$value["isInviting"]){
+					try {
 						$link = Element::getByTypeAndId($value["type"], $keyLink);
+					} catch (CTKException $e) {
+						error_log("The element ".$id."/".$type." has a broken link : ".$keyLink."/".$value["type"]);
+						continue;
+					}
+					if($dataName=="guests" && @$value["isInviting"]){
 						$link["type"] = $value["type"];
 						$link["isInviting"] = $value["isInviting"];
 						$contextMap[$keyLink] = $link;
 					}else if($dataName!="guests" && !@$value["isInviting"]){
 						$link = Element::getByTypeAndId($value["type"], $keyLink);
+						if($value["type"]==Person::COLLECTION){
+							$link["statusLink"]=[];
+							if(@$value[Link::TO_BE_VALIDATED])
+								$link["statusLink"][Link::TO_BE_VALIDATED]=true;
+							if(@$value[Link::IS_ADMIN])
+								$link["statusLink"][Link::IS_ADMIN]=true;
+							if(@$value[Link::IS_ADMIN_PENDING])
+								$link["statusLink"][Link::IS_ADMIN_PENDING]=true;
+						}
 						$link["type"] = $value["type"];
 						$contextMap[$keyLink] = $link;
 					}
@@ -113,9 +127,12 @@ class GetDataDetailAction extends CAction {
 
 			//EVENTS-------------------------------------------------------------------------------
 			$query = array("startDate" => array( '$gte' => new MongoDate( time() ) ));
-			if(@$type!="0")
+
+			if(@$type!="0" || !empty($_POST["searchLocalityCITYKEY"]))
 			$query = Search::searchLocality($_POST, $query);
 
+			
+			
 			$events = PHDB::findAndSortAndLimitAndIndex( Event::COLLECTION,
 							$query,
 							array("startDate"=>1), 10);
@@ -133,8 +150,9 @@ class GetDataDetailAction extends CAction {
 
 			//CLASSIFIED-------------------------------------------------------------------------------
 			$query = array();
-			if(@$type!="0")$query = Search::searchLocality($_POST, $query);
-			
+			if(@$type!="0" || !empty($_POST["searchLocalityCITYKEY"]))
+				$query = Search::searchLocality($_POST, $query);
+			//var_dump($query); exit;
 			$classified = PHDB::findAndSortAndLimitAndIndex( Classified::COLLECTION, $query,
 							array("updated"=>-1), 10);
 
@@ -149,7 +167,9 @@ class GetDataDetailAction extends CAction {
 			
 		  	//POI-------------------------------------------------------------------------------
 			$query = array();
-						$query = Search::searchLocality($_POST, $query);
+			if(@$type!="0" || !empty($_POST["searchLocalityCITYKEY"]))
+				$query = Search::searchLocality($_POST, $query);
+			
 			$pois = PHDB::findAndSortAndLimitAndIndex( Poi::COLLECTION, $query,
 							array("updated"=>-1), 10);
 

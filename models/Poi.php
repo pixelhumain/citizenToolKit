@@ -14,8 +14,6 @@ class Poi {
 		"RessourceMaterielle" => "Ressource Materielle",
 		"RessourceFinanciere" => "Ressource Financiere",
 		"ficheBlanche" => "Fiche Blanche",
-
-		"poi"			=>"points d'intérêt",
 		"geoJson" 		=> "Url au format geojson ou vers une umap",
 		"compostPickup" => "récolte de composte",
 		"video" 		=> "video",
@@ -30,7 +28,8 @@ class Poi {
 		"streetArts" 	=> "arts de rue",
 		"openScene" 	=> "scène ouverte",
 		"stand" 		=> "stand",
-		"parking" 		=> "Parking"
+		"parking" 		=> "Parking",
+		"other"			=> "Autre"
 	);
 
 	//From Post/Form name to database field name
@@ -123,5 +122,37 @@ class Poi {
 
 	  	return $poi;
 	}
+
+	public static function delete($id, $userId) {
+		if ( !@$userId) {
+            return array( "result" => false, "msg" => "You must be loggued to delete something" );
+        }
+        
+        $poi = self::getById($id);
+        if (!self::canDeletePoi($userId, $id, $poi)) 
+        	return array( "result" => false, "msg" => "You are not authorized to delete this poi.");
+        
+        //Delete the comments
+        $resComments = Comment::deleteAllContextComments($id,self::COLLECTION, $userId);
+		if (@$resComments["result"]) {
+			PHDB::remove(self::COLLECTION, array("_id"=>new MongoId($id)));
+			$resDocs = Document::removeDocumentByFolder(self::COLLECTION."/".$id);
+		} else {
+			return $resComments;
+		}
+		
+		return array("result" => true, "msg" => "The element has been deleted succesfully", "resDocs" => $resDocs);
+	}
+
+	public static function canDeletePoi($userId, $id, $poi = null) {
+		if ($poi == null) 
+			$poi = self::getById($id);
+		//To Delete POI, the user should be creator or can delete the parent of the POI
+        if ( $userId == $poi['creator'] || Authorisation::canDeleteElement(@$poi["parentId"], @$poi["parentType"], $userId)) {
+            return true;
+        } else {
+        	return false;
+        }
+    }
 }
 ?>

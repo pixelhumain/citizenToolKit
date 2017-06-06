@@ -28,6 +28,7 @@ class IndexAction extends CAction
 		$date=new MongoDate($date);
 		$news=array();
 		$params = array();
+		$where = array();
 		if (!isset($id)){
 			if($type!="pixels"){
 				if($type=="city"){
@@ -123,7 +124,7 @@ class IndexAction extends CAction
 			if($type == Person::COLLECTION) {
 				//if (!@Yii::app()->session["userId"] || (@Yii::app()->session["userId"] && Yii::app()->session["userId"]!=$id) || (!@$isLive)){
 				if(@$isLive && (@Yii::app()->session["userId"] && $id == Yii::app()->session["userId"])){
-					error_log("message 2");
+					//error_log("message 2");
 					$authorFollowedAndMe=[];
 					/*$or:[
 					{'author':this.userId},
@@ -182,19 +183,20 @@ class IndexAction extends CAction
 							array_push($authorFollowedAndMe,$followNews);*/
 						}
 					}
-					
-					//error_log("message 3");
-					
+										//var_dump($followsArrayIds);
 			        $where = array(
 			        	'$and' => array(
 							array('$or'=> 
 								array(
-									array("author"=>$id),
-									array("sharedBy"=>array('$in'=>array($id))),
+									array("author"=>$id), 
+									array("sharedBy.id"=>array('$in'=>array($id))), 
+									array("sharedBy.id"=>array('$in'=>array($arrayIds))), 
 									array("target.id" =>  array('$in' => $arrayIds)),
 									array("mentions.id" => array('$in' => $arrayIds)),
 									array(
 										"target.id"=> array('$in' => $followsArrayIds),
+										"sharedBy.id"=> array('$in' => $followsArrayIds),
+										//"sharedBy.id"=>array('$in'=>array($id)), 
 										"scope.type" => array('$in'=> ['public','restricted'])
 									)
 								)
@@ -202,77 +204,55 @@ class IndexAction extends CAction
 							array("type" => array('$ne' => "pixels")),
 			        	)	
 			        );
-			        //echo '<pre>';var_dump($where);echo '</pre>'; return;
 				}
 				else{
-					error_log("message 1");
-					$scope=array(
-						array("scope.type"=> "public"),
-						array("scope.type"=> "restricted")
-					);
-					if (@$params["canManageNews"] && $params["canManageNews"])
-						array_push($scope,array("scope.type"=>"private"));
-					if(@Yii::app()->session["userId"]){
-						array_push($scope,
+					//error_log("message 1");
+					$scope=["public","restricted"];
+					if (@$params["canManageNews"] && $params["canManageNews"]){
+						$orRequest=array(
+							array("author"=> $id,"targetIsAuthor"=>array('$exists'=>false),"type"=>"news"), 
+							array("target.id"=> $id, "target.type" => Person::COLLECTION),
+							array("sharedBy.id"=>array('$in'=>array($id))),
+						);
+					} else {
+						$orRequest=array(
+							array("author"=> $id,
+								"targetIsAuthor"=>array('$exists'=>false),
+								"type"=>"news", 
+								"scope.type"=> array('$in'=> $scope)
+							), 
+							array("target.id"=> $id, "scope.type"=> array('$in'=> $scope),
+							array("sharedBy.id"=>array('$in'=>array($id))))
+						);
+					}
+					if((!@$params["canManageNews"] || $params["canManageNews"] == false ) && @Yii::app()->session["userId"]){
+						array_push($orRequest,
 									array("author"=> Yii::app()->session["userId"],
-											"target.id"=> $id,
-											"target.type" => Person::COLLECTION)
+											"target.id"=> $id)
 								);
 					}
-					$where = array('$and' => 
-						array(
-							array('$or' => 
-								array(
-									array("author"=> $id,"targetIsAuthor"=>array('$exists'=>false),"type"=>"news"), 
-									array("target.id"=> $id, "target.type" => Person::COLLECTION)  
-								)
-							),
-							array('$or' => 
-								$scope
-							),
-						)	
-					);
-					//echo '<pre>';var_dump($where);echo '</pre>'; return;
+					$where = array('$or' => $orRequest);
 				}
 			}
 			else if($type == "organizations" || $type == "projects" || $type == "events" || $type == "place"){
-				/*{ $or :[
-{'mentions.id':'55ed9107e41d75a41a558524','scope.type':{$in:['public','restricted','private']}},
-{'target.id':'55ed9107e41d75a41a558524','scope.type':{$in:['public','restricted','private']}},
-{author:'55ed9107e41d75a41a558524'}]}*/
-				/*$scope=array(
-						array("scope.type"=> "public"),
-						array("scope.type"=> "restricted"),
-				);*/
 				$scope=["public","restricted"];
-				if (@$params["canManageNews"] && $params["canManageNews"])
-					array_push($scope,"private");
-					//array_push($scope,array("scope.type"=>"private"));
-				//else if(@Yii::app()->session["userId"])
-					//array_push($scope,array("author"=>Yii::app()->session["userId"]));
-				//$whereScope=array('$or'=>$scope);
-				$where = array('$and' => array(
-							array('$or'=>array(
-								array("mentions.id"=>$id,"scope.type"=>array('$in'=>$scope)),
-								array("target.id"=>$id,"scope.type"=>array('$in'=>$scope)),
-								array(
-									"author"=>Yii::app()->session["userId"],
-									'$or'=>array(
-										array("mentions.id"=>$id),
-										array("target.id"=>$id)
-									)
-								)
-							))
-		        	)	
-				);
-				/*$where = array('$and' => array(
-							array('$or'=>array(
-								array("target.type"=> $type,"target.id"=> $id),
-								array("mentions.type"=> $type,"mentions.id"=> $id)
-							)),
-							$whereScope,
-		        	)	
-				);*/
+				if (@$params["canManageNews"] && $params["canManageNews"]){
+					$orRequest=array(
+						array("mentions.id"=>$id,"scope.type"=>array('$in'=>$scope)),
+						array("target.id"=>$id)
+					);
+				}else{
+					$orRequest=array(
+						array("mentions.id"=>$id,"scope.type"=>array('$in'=>$scope)),
+						array("target.id"=>$id, 
+								'$or'=> array(
+								array("scope.type"=>array('$in'=>$scope)),
+								array("author"=>Yii::app()->session["userId"])
+							)
+						)
+					);
+				}
+				$where = array('$or'=>$orRequest);
 			}
 			else if ($type == "pixels"){
 				$where = array('$and' => array(
@@ -425,30 +405,30 @@ class IndexAction extends CAction
 				}
 				//echo '<pre>';var_dump($where);echo '</pre>'; return;
 			}
+			/*
+				// if(@$_POST['searchType']){
+				// 	$searchType=array();
+				// 	foreach($_POST['searchType'] as $data){
+				// 		if($data == "activityStream")
+				// 			$searchType[]=array("object.objectType" => $data);
+				// 		else if(@$_POST["typeNews"])
+				// 			$searchType[]=array("type" => $_POST["typeNews"]);
+				// 		else 
+				// 	}
+				// 	if(!empty($searchType))
+				// 	$where = array_merge($where, array('$and' => array(array('$or' =>$searchType))));
+				// }
 
-			// if(@$_POST['searchType']){
-			// 	$searchType=array();
-			// 	foreach($_POST['searchType'] as $data){
-			// 		if($data == "activityStream")
-			// 			$searchType[]=array("object.objectType" => $data);
-			// 		else if(@$_POST["typeNews"])
-			// 			$searchType[]=array("type" => $_POST["typeNews"]);
-			// 		else 
-			// 	}
-			// 	if(!empty($searchType))
-			// 	$where = array_merge($where, array('$and' => array(array('$or' =>$searchType))));
-			// }
-
-			//Exclude => If there is more than 5 reportAbuse
-			// $where = array_merge($where,  array('$or' => array(
-			// 											array("reportAbuseCount" => array('$lt' => 5)),
-			// 											array("reportAbuseCount" => array('$exists'=>0))
-			// 										)));
-			
+				//Exclude => If there is more than 5 reportAbuse
+				// $where = array_merge($where,  array('$or' => array(
+				// 											array("reportAbuseCount" => array('$lt' => 5)),
+				// 											array("reportAbuseCount" => array('$exists'=>0))
+				// 										)));
+			*/
 			//Exclude => If isAnAbuse
 			$where = array_merge($where,  array( 'isAnAbuse' => array('$ne' => true) ) );
-			
-			$where = array_merge($where,  array('updated' => array( '$lt' => $date ) ) );
+			//echo $date."/"; //exit;
+			$where = array_merge($where,  array('sharedBy.updated' => array( '$lt' => $date ) ) );
 
 			if(@$_POST["textSearch"] && $_POST["textSearch"]!="")
 			$where = array_merge($where,  array('text' => new MongoRegex("/".$_POST["textSearch"]."/i") ) );
@@ -462,9 +442,9 @@ class IndexAction extends CAction
 		}*/
 		//print_r($where);
 		if(!empty($where))
-			$news= News::getNewsForObjectId($where,array("updated"=>-1),$type);
+			$news= News::getNewsForObjectId($where,array("sharedBy.updated"=>-1),$type, @$followsArrayIds);
 		
-		
+		//echo count($news);
 		// Sort news order by created 
 		$news = News::sortNews($news, array('updated'=>SORT_DESC));
         //TODO : reorganise by created date
@@ -492,7 +472,7 @@ class IndexAction extends CAction
 			$params["isLive"]=false;
 		}
 
-		if(sizeOf(@$_POST['searchType'])==1){
+		if(is_array(@$_POST['searchType']) && count(@$_POST['searchType']) ==1){
 			$params["filterTypeNews"]=$_POST['searchType'][0];
 		}
 
@@ -505,6 +485,10 @@ class IndexAction extends CAction
 		//$params["params"]["news"] = "";
 		error_log(@$params["nbCol"]);
 		error_log(Yii::app()->request->isAjaxRequest ? "isAjax".@$_GET["tpl"] : "notAjax".@$_GET["tpl"]);			
+		//manage delete in progress status
+		if ($type == Organization::COLLECTION || $type == Project::COLLECTION || $type == Event::COLLECTION || $type == Person::COLLECTION)
+			$params["deletePending"] = Element::isElementStatusDeletePending($type, $id);
+
 		if(Yii::app()->request->isAjaxRequest){
 			if (@$_GET["isFirst"]){
 				 if(@$_GET["tpl"]=="co2")

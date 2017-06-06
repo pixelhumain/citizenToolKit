@@ -429,7 +429,8 @@ class Search {
   				$countScope++; 
   			}
   		}
-  		if($countScope==0){ error_log("return true EMPTY"); return true; }
+  		if($countScope==0){ //error_log("return true EMPTY"); 
+  			return true; }
   		
 		foreach ($localityReferences as $key => $value) 
   		{

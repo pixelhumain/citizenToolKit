@@ -1,6 +1,10 @@
 <?php 
 class Element {
 
+	const NB_DAY_BEFORE_DELETE = 5;
+	const STATUS_DELETE_PEDING = "deletePending";
+	const ERROR_DELETING = "errorTryingToDelete";
+
 	public static $urlTypes = array(
         "chat" => "Chat",
         "decisionroom" => "Salle de decision",
@@ -44,7 +48,22 @@ class Element {
     	return @$ctrls[$type];
     }
 
-
+    public static function getModelByType($type) {
+    	$models = array(
+	    	Organization::COLLECTION => "Organization",
+	    	Person::COLLECTION 		 => "Person",
+	    	Event::COLLECTION 		 => "Event",
+	    	Project::COLLECTION 	 => "Project",
+			News::COLLECTION 		 => "News",
+	    	Need::COLLECTION 		 => "Need",
+	    	City::COLLECTION 		 => "City",
+	    	Thing::COLLECTION 		 => "Thing",
+	    	Poi::COLLECTION 		 => "Poi",
+	    	Classified::COLLECTION   => "Classified",
+	    );	
+	 	return @$models[$type];     
+    }
+    
     public static function getCommonByCollection ($type) { 
 
 		$commons = array(
@@ -96,7 +115,7 @@ class Element {
 
 	    	Organization::TYPE_NGO 		=> "green",
 	    	Organization::TYPE_BUSINESS => "azure",
-	    	Organization::TYPE_GROUP 	=> "black",
+	    	Organization::TYPE_GROUP 	=> "turq",
 	    	Organization::TYPE_GOV 		=> "red",
 	    );	
 	    if(isset($colors[$type])) return $colors[$type];
@@ -267,8 +286,10 @@ class Element {
 		else
 			$element = PHDB::findOne($type,array("_id"=>new MongoId($id)));
 	  	
+	  	if ($element == null) throw new CTKException("The element you are looking for has been moved or deleted");
 	  	return $element;
 	}
+
 	public static function getSimpleByTypeAndId($type, $id,$what=null){
 		if( @$what ) 
 			$element = PHDB::findOneById($type, $id, $what);
@@ -589,7 +610,7 @@ class Element {
 				$addToSet = array("contacts" => $fieldValue);
 			else{
 				$headSet = "contacts.".$fieldValue["index"] ;
-				isset($fieldValue["index"]);
+				unset($fieldValue["index"]);
 				if(count($fieldValue) == 0){
 					$verb = '$unset' ;
 					$verbActivity = ActStr::VERB_DELETE ;
@@ -598,7 +619,6 @@ class Element {
 					$pull="contacts";
 				}
 				$set = array($headSet => $fieldValue);
-				
 			}
 		} else if ($dataFieldName == "urls") {
 			if(!isset($fieldValue["index"]))
@@ -614,6 +634,7 @@ class Element {
 					$pull="urls";
 				}
 				$set = array($headSet => $fieldValue);
+
 			}
 		} else
 			$set = array($dataFieldName => $fieldValue);
@@ -925,33 +946,296 @@ class Element {
 		return true;
 	}
 
-	public static function delete($elementType,$elementId,$userId) {
+	/**
+	 * Demande la suppression d'un élément
+	 * - Si creator demande la suppression et organisation vide (pas de links, pas de members) => suppression de l’orga
+	 * - Si superadmin => suppression direct
+	 * - Si edition libre sans admin 
+	 * 		- Mail + notification envoyée aux super admins + creator
+	 * - Si admins > 0 pour l’orga :
+	 * 		- envoi d’un mail + notification aux admins
+	 * 		- L’orga est en attente de validation de suppression pendant X jours. Un des admins peut venir et bloquer la suppression pendant ce laps de temps. 
+	 * 		- Après X jours, un batch passe et supprime l’organisation
+	 * 		- Notifications des admins après suppression
+	 * @param String $elementType : element type
+	 * @param String $elementId : element Id
+	 * @param String $reason : reason why the element can be deleted
+	 * @param String $userId : the userId asking to delete the element
+	 * @return array : result : boolean, msg : String
+	 */
+	public static function askToDelete($elementType, $elementId, $reason, $userId) {
+		if (! Authorisation::canDeleteElement($elementId, $elementType, $userId)) {
+			return array("result" => false, "msg" => "The user cannot delete this element !");
+		}
+
+		$res = array("result" => false, "msg" => "Something bad happend : impossible to delete this element");
+
+		//What type of element i can delete
+		$managedTypes = array(Organization::COLLECTION, Project::COLLECTION, Event::COLLECTION);
+		if (!in_array($elementType, $managedTypes)) return array( "result" => false, "msg" => "Impossible to delete this type of element" );
+		$modelElement = self::getModelByType($elementType);
+
+		$canBeDeleted = false;
+		$element = self::getByTypeAndId($elementType, $elementId);
 		
-		if ($elementType != Poi::COLLECTION && $elementType != Poi::CONTROLLER) {
-            return array( "result" => false, "msg" => "For now you can only delete Points of interest" );   
-        }
-		if ( !@$userId) {
-            return array( "result" => false, "msg" => "You must be loggued to delete something" );
-        }
-        
-        $el = self::getByTypeAndId($elementType, $elementId);
-        //TODO : we could also allow admins
-        if ( $userId != $el['creator']) {
-            return array( "result" => false, "msg" => "You must be owner to delete something" );    
-        }
-        
-		PHDB::remove($elementType, array("_id"=>new MongoId($elementId)));
-		//since userId is creator 
-		//todo for more complexe elements 
-		$resDocs = Document::removeDocumentByFolder($elementType."/".$elementId);
+		if (@$element["status"]	== self::STATUS_DELETE_PEDING) 
+			return array("result" => false, "msg" => "The element is already in delete pending status !");
+
+		//retrieve admins of the element
+		$admins = array();
+
+		if (isset($element["links"])) {
+			foreach (@$element["links"] as $type => $links) {
+				if (is_array($links)) {
+					foreach ($links as $id => $aLink) {
+						if (@$aLink["type"] == Person::COLLECTION && @$aLink["isAdmin"] == true) {
+							array_push($admins, $id);
+						}
+					}
+				}
+			}
+		}
 		
-		return array("result" => true, "msg" => "The element has been deleted succesfully", "resDocs" => $resDocs);
+		$creator = empty($element["creator"]) ? "" : $element["creator"];
+
+		//Check if the creator is the user asking to delete the element
+		if ($creator == $userId) {
+			// If almost empty element (no links expect creator as member) => delete the element
+			if (count(@$element["links"]) == 0) {
+				$canBeDeleted = true;
+			} else if (count(@$element["links"]["members"]) == 1) {
+				$canBeDeleted = isset($element["links"]["members"][$creator]);
+			} else if(count($admins) == 1) {
+				$canBeDeleted = in_array($creator, $admins);
+			}
+		//If open data without admin => the super admin will statut
+		} else if ((@$element["preferences"]["isOpenData"] == true || @$element["preferences"]["isOpenData"] == 'true' ) && count($admins) == 0) {
+			$canBeDeleted = false;
+		}
+
+		// If the userId is superAdmin : element can be deleted as well
+		if (Authorisation::isUserSuperAdmin($userId)) {
+			$canBeDeleted = true;
+		}
+
+		//Try to delete the element
+		if ($canBeDeleted) {
+			$res = self::deleteElement($elementType, $elementId, $reason, $userId);
+		} else {
+			//If open data without admin
+			if ((@$element["preferences"]["isOpenData"] == true || @$element["preferences"]["isOpenData"] == 'true' ) && count($admins) == 0)  {
+				//Ask the super admins to act for the deletion of the element
+				$adminsId = array();
+				$superAdmins = Person::getCurrentSuperAdmins();
+				foreach ($superAdmins as $id => $aPerson) {
+					array_push($adminsId, $id);
+				}
+				error_log("Pour la suppression de l'élément ".$elementType."/".$elementId." : on demande aux super admins");
+				$res = self::goElementDeletePending($elementType, $elementId, $reason, $adminsId, $userId,true);
+			}
+
+			//If at least one admin => ask if one of the admins want to stop the deletion. The element is mark as pending deletion. After X days, if no one block the deletion => the element if deleted
+			if (count($admins) > 0) {
+				error_log("Pour la suppression de l'élément ".$elementType."/".$elementId." : on demande aux admins de l'élément");
+				$res = self::goElementDeletePending($elementType, $elementId, $reason, $admins, $userId, false);
+			}
+		}
+
+		return $res;
 	}
+
+	/**
+	 * Suppression de l'élément et de ses liens. 
+	 * - Suppression des liens 
+	 * 		- Persons : followers / member / memberOf
+	 * 		- Projects :  links.contributor. Vider le parentId+parentType
+	 *		- Event : links.events, vider le organizerId et organizerType
+	 * 		- Organization : member / memberOf
+	 * - Suppresion des Documents 
+	 * 		- Supprimer les images de profil 
+	 * - Vider le activityStream de type history
+	 * - Suppression des News, Actions, Surveys, ActionRooms, Comments
+	 * @param type $elementType : type d'élément
+	 * @param type $elementId : id of the element
+	 * @param type $reason : reason of the deletion
+	 * @param type $userId : userId making the deletion
+	 * @return array result : bool, msg : message
+	 */
+	public static function deleteElement($elementType, $elementId, $reason, $userId) {
+		
+		if (! Authorisation::canDeleteElement($elementId, $elementType, $userId)) {
+			return array("result" => false, "msg" => Yii::t('common', "You are not allowed to delete this element !"));
+		}
+
+		//array to know likeTypes to their backwards link. Ex : a person "members" type link got a memberOf link in his collection
+		$linksTypes = array(
+			Person::COLLECTION => 
+				array(	"followers" => "follow", 
+						"members" => "memberOf",
+						"follow" => "followers",
+						"attendees" => "events",
+						"helpers" => "needs",
+						"contributors" => "projects"),
+			Organization::COLLECTION => 
+				array(	"memberOf" => "member",
+						"members" =>"memberOf",
+						"follow" => "followers",
+						"contributors" => "projects"),
+			Event::COLLECTION => 
+				array("events" => "organizer"),
+			Project::COLLECTION =>
+				array("projects" => "contributors"),
+			//TODO : pb with links in needs collection. the parentType is used on the linkType. Better use "needer" or parent.
+			Need::COLLECTION => 
+				array(	"needs" => "organizations",
+						"needs" => "helpers"),
+			);
+		
+		$elementToDelete = self::getByTypeAndId($elementType, $elementId);
+
+		//Remove Documents => Profil Images
+		//TODO SBAR : Remove other images ?
+    	$profilImages = Document::listMyDocumentByIdAndType($elementId, $elementType, Document::IMG_PROFIL, Document::DOC_TYPE_IMAGE, array( 'created' => -1 ));
+    	foreach ($profilImages as $docId => $document) {
+    		Document::removeDocumentById($docId, $userId);
+    		error_log("delete document id ".$docId);
+    	}
+
+    	$resError = array("result" => false, "msg" => Yii::t('common',"Error trying to delete this element : please contact your administrator."));
+    	//Remove Activity of the Element
+    	$res = ActivityStream::removeElementActivityStream($elementId, $elementType);
+    	if (!$res) return $resError;
+    	//Delete News
+    	$res = News::deleteNewsOfElement($elementId, $elementType, $userId, true);
+    	if (!$res["result"]) {error_log("error deleting News ".@$res["id"]." : ".$res["msg"]); return $resError;}
+    	//Delete Action Rooms
+    	$res = ActionRoom::deleteElementActionRooms($elementId, $elementType, $userId);
+    	if (!$res["result"]) return $resError;
+
+
+		$listEventsId = array();
+		$listProjectId = array();
+		//Remove backwards links
+		if (isset($elementToDelete["links"])) {
+			foreach ($elementToDelete["links"] as $linkType => $aLink) {
+				foreach ($aLink as $linkElementId => $linkInfo) {
+					$linkElementType = $linkInfo["type"];
+					if (!isset($linksTypes[$linkElementType][$linkType])) {
+						//error_log(print_r(@$linksTypes[$linkElementType]));
+						error_log("Unknown backward links for a link in a ".$elementType." of type ".$linkType." to a ".$linkElementType);
+						continue;
+					}
+					$linkToDelete = $linksTypes[$linkElementType][$linkType];
+					
+					$collection = $linkElementType;
+					if ($collection == Event::COLLECTION) array_push($listEventsId, new MongoId($linkElementId));
+					if ($collection == Project::COLLECTION) array_push($listProjectId, new MongoId($linkElementId));
+
+					$where = array("_id" => new MongoId($linkElementId));
+					$action = array('$unset' => array('links.'.$linkToDelete.'.'.$elementId => ""));
+					PHDB::update($collection, $where, $action);
+					error_log("Because of deletion of element :".$elementType."/".$elementId." : delete a backward link on a element ".$linkElementId." of type ".$collection." of type ".$linkToDelete);
+				}
+			}
+		}
+		
+		//Unset the organizer for events organized by the element
+		if (count($listEventsId) > 0) {
+			$where = array('_id' => array('$in' => $listEventsId));
+			$action = array('$set' => array("organizerId" => Event::NO_ORGANISER, "organizerType" => Event::NO_ORGANISER));
+			PHDB::update(Event::COLLECTION, $where, $action);
+		}
+
+		//Unset the project with parent this element
+		if (count($listProjectId) > 0) {
+			$where = array('_id' => array('$in' => $listProjectId));
+			$action = array('$unset' => array("parentId" => "", "parentType" => ""));
+			PHDB::update(Project::COLLECTION, $where, $action);
+		}
+    	
+		//Delete the element
+		$where = array("_id" => new MongoId($elementId));
+    	// NOTIFY COMMUNITY OF DELETED ELEMENT
+    	Notification::constructNotification(ActStr::VERB_DELETE, array("id" => Yii::app()->session["userId"],"name"=> Yii::app()->session["user"]["name"]), array("type"=>$elementType,"id"=> $elementId), null, ActStr::VERB_DELETE);
+		
+    	PHDB::remove($elementType, $where);
+    	
+    	$res = array("result" => true, "status" => "deleted", "msg" => Yii::t('common',"The element {elementName} of type {elementType} has been deleted with success.", array("{elementName}" => @$elementToDelete["name"], "{elementType}" => @$elementType )));
+
+		Log::save(array("userId" => $userId, "browser" => @$_SERVER["HTTP_USER_AGENT"], "ipAddress" => @$_SERVER["REMOTE_ADDR"], "created" => new MongoDate(time()), "action" => "deleteElement", "params" => array("id" => $elementId, "type" => $elementType)));
+		
+		return $res;
+	}
+
+	/**
+	 * The element is mark as pending deletion with a date.
+	 * Send notification/mail to $admins (list of persons) to know if they accept the delete of the element
+	 * After X days, if no one block the deletion => the element if deleted (this behavior is done with a batch)
+	 * @param String $elementType : The element type
+	 * @param String $elementId : the element Id
+	 * @param String $reason : the reason why the element will be deleted
+	 * @param array $admins : a list of person to sent notifications
+	 * @param String $userId : the userId asking the deletion
+	 * @return array result => bool, msg => String
+	 */
+	private static function goElementDeletePending($elementType, $elementId, $reason, $admins, $userId, $isSuperAdmin=false) {
+		$res = array("result" => true, "status" => "deletePending", "msg" => Yii::t('common', "The element has been put in status 'delete pending', waiting the admin to confirm the delete."));
+		
+		//Mark the element as deletePending
+		PHDB::update($elementType, 
+					array("_id" => new MongoId($elementId)), array('$set' => array("status" => self::STATUS_DELETE_PEDING, "statusDate" => new MongoDate(), "reasonDelete" => $reason, "userAskingToDelete" => $userId)));
+		
+		//Send emails to admins
+		Mail::confirmDeleteElement($elementType, $elementId, $reason, $admins, $userId);
+		//TODO SBAR => @bouboule help wanted
+		//Notification::actionOnPerson();
+		if($isSuperAdmin){
+			/*Notification::actionToAdmin(
+	            ActStr::VERB_RETURN, 
+	            array("type" => Cron::COLLECTION), 
+	            array("id" => $this->id, "type"=>self::COLLECTION, "event" => $this->event),
+	            array("id" => $this->personId, "type"=>Person::COLLECTION, "email"=>$this->recipient)
+        	);*/
+		}else
+			Notification::constructNotification(ActStr::VERB_DELETE, array("id" => Yii::app()->session["userId"],"name"=> Yii::app()->session["user"]["name"]), array("type"=>$elementType,"id"=> $elementId), null, ActStr::VERB_ASK);
+		
+		return $res;
+	}
+
+	/**
+	 * An admin of the element want to stop the process of delete of the element.
+	 * Remove the pending status of the element
+	 * @param String $elementType : The element type
+	 * @param String $elementId : the element Id
+	 * @param String $userId : the userId asking to stop
+	 * @return array result => bool, msg => String
+	 */
+	public static function stopToDelete($elementType, $elementId, $userId) {
+		$res = array("result" => true, "msg" => Yii::t('common',"The element is no more in 'delete pending' status"));
+		//remove the status deletePending on the element
+		PHDB::update($elementType, 
+					array("_id" => new MongoId($elementId)), array('$unset' => array("status" => "", "statusDate" => "")));
+		Notification::constructNotification(ActStr::VERB_DELETE, array("id" => Yii::app()->session["userId"],"name"=> Yii::app()->session["user"]["name"]), array("type"=>$elementType,"id"=> $elementId), null, ActStr::VERB_REFUSE);
+
+		
+		//TODO SBAR => 
+		// - send email to notify the admin : the element has been stop by the user 
+		// - add activity Stream
+		// - Notification
+		
+		return $res;
+	}
+    
+    public static function isElementStatusDeletePending($elementType, $elementId) {
+        $element = Element::getElementById($elementId, $elementType);
+        return @$element["status"] == Element::STATUS_DELETE_PEDING;
+    }
 
 	public static function save($params){
         $id = null;
         $data = null;
-        if(!@$params["collection"] && !@$params["key"])
+
+        if(empty($params["collection"]))
         	return array("result"=> false, "error"=>"400", "msg" => "Bad Request");
 
         $collection = $params["collection"];
@@ -959,7 +1243,8 @@ class Element {
         if( !empty($params["id"]) ){
         	$id = $params["id"];
         }
-        $key = $params["key"];
+        
+        $key = self::getModelByType($collection);
 
 		//$paramsImport = (empty($params["paramsImport"])?null:$params["paramsImport"]);
 		$paramsLinkImport = ( empty($params["paramsImport"] ) ? null : $params["paramsImport"]);
@@ -1012,8 +1297,7 @@ class Element {
             	 	throw new CTKException("Error processing before saving on event");
             }
 
-            if($id) 
-            {
+            if($id){
             	//var_dump($params);
                 //update a single field
                 //else update whole map
@@ -1073,9 +1357,9 @@ class Element {
             }
           //  if(@$url = ( @$params["parentType"] && @$params["parentId"] && in_array($collection, array("poi") && Yii::app()->theme != "notragora")) ? "#".self::getControlerByCollection($params["parentType"]).".detail.id.".$params["parentId"] : null )
 	        //    $res["url"] = $url;
-	        if(@$params["parentType"] && @$params["parentId"] && in_array($collection, array("poi","classified"))){
-		        if(Yii::app()->theme->name != "notragora")
-		        	$url="#".self::getControlerByCollection($params["parentType"]).".detail.id.".$params["parentId"];
+	        if(in_array($collection, array("poi","classified"))){
+		        if(Yii::app()->theme->name != "notragora" && @$params["parentType"] && @$params["parentId"])
+		        	$url="#page.type.".$params["parentType"].".id.".$params["parentId"].".view.directory.dir.poi";
 		        else
 		        	$url="#poi.detail.id.".$res["id"];
 	        } else{
@@ -1202,7 +1486,8 @@ class Element {
 
 
 	public static function getElementSimpleById($id, $collection,$where=null, $fields=null){
-		$fields = array("_id", "name");
+		if(empty($fields))
+			$fields = array("_id", "name");
 		$element = self::getElementById($id, $collection, $where ,$fields) ;
 		return @$element;
 	}
@@ -1461,6 +1746,14 @@ class Element {
 		return $res;
 	}
 
+	public static function getContactsByMails($listMails){
+		$res = array();
+		foreach ($listMails as $key => $mail){
+			$res[$mail] = PHDB::findOne( Person::COLLECTION , array( "email" => $mail ), array("_id", "name", "profilThumbImageUrl") );
+		}
+		return $res;
+	}
+
 	public static function updateBlock($params){
 		$block = $params["block"];
 		$collection = $params["typeElement"];
@@ -1575,7 +1868,12 @@ class Element {
         $params["openEdition"] = Authorisation::isOpenEdition($id, $type, @$element["preferences"]);
         $params["controller"] = self::getControlerByCollection($type);
 
-
+        if($type==Person::COLLECTION && !@$element["links"]){
+        	$fields=array("links");
+        	$links=Element::getElementSimpleById($id,$type,null,$fields);
+        }
+        else
+        	$links=@$element["links"];
         $connectType = @self::$connectTypes[$type];
         if($type==Person::COLLECTION)
         	$connectType="friends";
@@ -1642,15 +1940,15 @@ class Element {
         if(!@$element["disabled"]){
             //if((@$config["connectLink"] && $config["connectLink"]) || empty($config)){ TODO CONFIG MUTUALIZE WITH NETWORK AND OTHER PLATFORM
            //$connectType = $connectType[$type];
-            if(((!@$element["links"][$connectType][Yii::app()->session["userId"]] && $type!=Event::COLLECTION) || (@$element["links"][$connectType][Yii::app()->session["userId"]] && 
-                @$element["links"][$connectType][Yii::app()->session["userId"]][Link::TO_BE_VALIDATED])) && 
+            if(((!@$links[$connectType][Yii::app()->session["userId"]] && $type!=Event::COLLECTION) || (@$links[$connectType][Yii::app()->session["userId"]] && 
+                @$links[$connectType][Yii::app()->session["userId"]][Link::TO_BE_VALIDATED])) && 
                 @Yii::app()->session["userId"] && 
                 ($type != Person::COLLECTION || 
                 (string)$element["_id"] != Yii::app()->session["userId"])){
                     $params["linksBtn"]["followBtn"]=true;
-                    if (@$element["links"]["followers"][Yii::app()->session["userId"]])
+                    if (@$links["followers"][Yii::app()->session["userId"]])
                             $params["linksBtn"]["isFollowing"]=true;
-                     else if(!@$element["links"]["followers"][Yii::app()->session["userId"]] && 
+                     else if(!@$links["followers"][Yii::app()->session["userId"]] && 
                             $type != Event::COLLECTION)   
                             $params["linksBtn"]["isFollowing"]=false;                  
             }
@@ -1659,7 +1957,7 @@ class Element {
             
             $params["linksBtn"]["connectAs"]=$connectAs;
             $params["linksBtn"]["connectType"]=$connectType;
-            if( @Yii::app()->session["userId"] && $type!= Person::COLLECTION && !@$element["links"][$connectType][Yii::app()->session["userId"]]){
+            if( @Yii::app()->session["userId"] && $type!= Person::COLLECTION && !@$links[$connectType][Yii::app()->session["userId"]]){
                 $params["linksBtn"]["communityBn"]=true;                    
                 $params["linksBtn"]["isMember"]=false;
             }else if($type != Person::COLLECTION  && @Yii::app()->session["userId"]){
@@ -1667,17 +1965,17 @@ class Element {
                 $connectAs="admin";
                 $params["linksBtn"]["communityBn"]=true;
                 $params["linksBtn"]["isMember"]=true;
-                if(@$element["links"][$connectType][Yii::app()->session["userId"]][Link::TO_BE_VALIDATED])
+                if(@$links[$connectType][Yii::app()->session["userId"]][Link::TO_BE_VALIDATED])
                     $params["linksBtn"][Link::TO_BE_VALIDATED]=true;
-                if(@$element["links"][$connectType][Yii::app()->session["userId"]][Link::IS_INVITING]){
+                if(@$links[$connectType][Yii::app()->session["userId"]][Link::IS_INVITING]){
                     $params["linksBtn"][Link::IS_INVITING]=true;
                     $params["invitedMe"]=array(
-                    	"invitorId"=>$element["links"][$connectType][Yii::app()->session["userId"]]["invitorId"],
-                    	"invitorName"=>$element["links"][$connectType][Yii::app()->session["userId"]]["invitorName"]);
+                    	"invitorId"=>$links[$connectType][Yii::app()->session["userId"]]["invitorId"],
+                    	"invitorName"=>$links[$connectType][Yii::app()->session["userId"]]["invitorName"]);
                 }
 
                 $params["linksBtn"]["isAdmin"]=true;
-                if(@$element["links"][$connectType][Yii::app()->session["userId"]][Link::IS_ADMIN_PENDING])
+                if(@$links[$connectType][Yii::app()->session["userId"]][Link::IS_ADMIN_PENDING])
                     $params["linksBtn"][Link::IS_ADMIN_PENDING]=true;
                 //Test if user has already asked to become an admin
                 if(!in_array(Yii::app()->session["userId"], Authorisation::listAdmins($id, $type,true)))
@@ -1729,9 +2027,9 @@ class Element {
 			$newElement["typeEvent"] = $element["type"] ;
 
 	
-		$newElement["fixe"] = (!empty(@$element["telephone"]["fixe"])) ? ArrayHelper::arrayToString($element["telephone"]["fixe"]) : "" ;
-		$newElement["mobile"] = (!empty(@$element["telephone"]["mobile"])) ? ArrayHelper::arrayToString($element["telephone"]["mobile"]) : "" ;
-		$newElement["fax"] = (!empty(@$element["telephone"]["fax"])) ? ArrayHelper::arrayToString($element["telephone"]["fax"]) : "" ;
+		$newElement["fixe"] = (!empty($element["telephone"]["fixe"])) ? ArrayHelper::arrayToString($element["telephone"]["fixe"]) : "" ;
+		$newElement["mobile"] = (!empty($element["telephone"]["mobile"])) ? ArrayHelper::arrayToString($element["telephone"]["mobile"]) : "" ;
+		$newElement["fax"] = (!empty($element["telephone"]["fax"])) ? ArrayHelper::arrayToString($element["telephone"]["fax"]) : "" ;
 		$newElement["id"] = (String) $element["_id"] ;
 
 		if(!empty($type))

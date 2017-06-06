@@ -41,7 +41,6 @@ class ActionRoom {
 	}
 
 	public static function getSingleActionRoomByOrgaParent($idOrga){
-		error_log("idOrga " . $idOrga);
 		return PHDB::findOne( self::COLLECTION, 
 										array("parentId"=> $idOrga, 
 											  //"parentType" => "organizations",
@@ -65,7 +64,21 @@ class ActionRoom {
     		$res = ( isset( $userId ) && in_array(Yii::app()->session["userId"], $app["moderator"]) ) ? true : false;
     	return $res;
      }
-     /**
+
+    public static function canAdministrate($userId, $id) {
+        $actionRoom = self::getById($id);
+
+        $parentId = @$actionRoom["parentId"];
+        $parentType = @$actionRoom["parentType"];
+
+        $isAdmin = false;
+        if ( $parentType == Organization::COLLECTION || $parentType == Project::COLLECTION || $parentType == Event::COLLECTION) {
+            $isAdmin = Authorisation::canDeleteElement($parentId, $parentType, $userId);
+        }
+        return $isAdmin;
+    }
+    
+    /**
     *
     * @return [json Map] list
     */
@@ -89,36 +102,73 @@ class ActionRoom {
         PHDB::insert( ActionRoom::COLLECTION, $newInfos );
         return $newInfos;
  	}
-     public static function deleteAction($params){
-     	$res = array( "result" => false );
-     	if( isset( Yii::app()->session["userId"] ))
-     	{ 
-     		if( $survey = PHDB::findOne( PHType::TYPE_SURVEYS, array("_id"=>new MongoId($params["survey"])) ) ) 
-     		{
-	     		if(Person::isAppAdmin( Yii::app()->session["userId"] , $params["app"] ))
-	     		{
-			     	
-	     			//first remove all children 
-			     	$count = PHDB::count( PHType::TYPE_SURVEYS , array("survey" => $params["survey"]) );
-			     	if( $count > 0){
-				     	PHDB::remove( PHType::TYPE_SURVEYS, array("survey"=>$params["survey"]));
-				     	$res["msg2"] = "Deleted ".$count." children entries" ;
-					}
+     
+    /**
+     * Delete an action room and its children (comments, votes...)
+     * @param String $id id of the room to delete
+     * @param String $userId userId making the delete
+     * @return array result => boolean, msg => String
+     */
+    public static function deleteActionRoom($id, $userId){
+        $res = array( "result" => false, "msg" => "Something went wrong : contact your admin !");;
+        
+        $actionRoom = self::getById($id);
+        if (empty($actionRoom)) return array("result" => false, "The action room does not exist");
+        
+        if (! self::canAdministrate($userId, $id)) return array("result" => false, "msg" => "You must be admin of the parent of this room if you want delete it");
+        //Remove actionRoom of type discuss : remove all comments linked
+        if (@$actionRoom["type"] == self::TYPE_DISCUSS) {
+            $resChildren = Comment::deleteAllContextComments($id, self::COLLECTION, $userId);
+        //Remove actionRoom of type vote : remove all survey linked
+        } else if (@$actionRoom["type"] == self::TYPE_VOTE) {
+            //Delete all surveys of this action room
+            $resChildren = Survey::deleteAllSurveyOfTheRoom($id, $userId);
+        } else if (@$actionRoom["type"] == self::TYPE_ACTIONS) {
+            //Delete all actions of this action room
+            $resChildren = Actions::deleteAllActionsOfTheRoom($id, $userId);
+        } else {
+            $resChildren = array("result" => false, "msg" => "The delete of this type of action room '".@$actionRoom["type"]."' is not yet implemented.");
+        }
 
-			     	//then remove the parent survey
-	     			PHDB::remove( PHType::TYPE_SURVEYS,array("_id"=>new MongoId($params["survey"])));
-	     			$res["msg"] = "Deleted";
-	     			$res["result"] = true;
+        if (isset($resChildren["result"]) && !$resChildren["result"]) return $resChildren;
 
-			     } else 
-			     	$res["msg"] = "restrictedAccess";
-		     } else
-		     	$res["msg"] = "SurveydoesntExist";
-	     } else 
-	     	$res["msg"] = "mustBeLoggued";
-		return $res;
-     }
+        //Remove the action room
+        if (PHDB::remove(self::COLLECTION,array("_id"=>new MongoId($id)))) {
+            $res = array( "result" => true, "msg" => "The action room has been deleted with success");
+        } 
 
+        return $res;
+    }
+
+    /**
+     * Delete all rooms (comments, votes...) of an element
+     * @param String $elementType type of the element
+     * @param String $elementId id of the element
+     * @param String $userId userId making the delete
+     * @return array result => boolean, msg => String
+     */
+    public static function deleteElementActionRooms($elementId, $elementType, $userId){        
+        //Check if the $userId can delete the element
+        $canDelete = Authorisation::canDeleteElement($elementId, $elementType, $userId);
+        if (! $canDelete) {
+            return array("result" => false, "msg" => "You do not have enough credential to delete this element rooms.");
+        }
+
+        //get all actions
+        $actionRooms2delete = self::getElementActionRooms($elementId, $elementType);
+        $nbActionRoom = 0;
+        foreach ($actionRooms2delete as $id => $anActionRoom) {
+            $resDeleteActionRoom = self::deleteActionRoom($id, $userId);
+            if ($resDeleteActionRoom["result"] == false) {
+                error_log("Error during the process try to delete the action room ".$id." : ".$resDeleteActionRoom["msg"]);
+                return $resDeleteActionRoom;
+            }
+            $nbActionRoom++;
+        }
+
+        return array("result" => true, "msg" => $nbActionRoom." actionRoom of the element ".$elementId." of type ".$elementType." have been removed with succes.");
+    }
+    
     public static function closeAction($params){
      	$res = array( "result" => false );
      	if( isset( Yii::app()->session["userId"] ))
@@ -190,8 +240,6 @@ class ActionRoom {
             $actionHistory = $roomsActions["actions"];
         }
         
-        //error_log("count rooms : ".count($rooms));
-
         $discussions = array();
         $votes = array();
         $actions = array();
@@ -275,5 +323,22 @@ class ActionRoom {
 
         return $list;
      }
-     
+
+    /**
+     * Return all action rooms link to an element
+     * @param String $elementId : the elementId
+     * @param String $elementType : the element Type
+     * @return array list of action rooms of the element
+     */
+    public static function getElementActionRooms($elementId, $elementType) {
+        $where = array('$and' => array(
+                            array("parentType" => $elementType),
+                            array("parentId" => $elementId)
+                        ));
+
+        $actionRooms = PHDB::find(self::COLLECTION, $where);
+
+        return $actionRooms;
+    }
+         
 }

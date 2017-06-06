@@ -68,6 +68,42 @@ class ActivityStream {
 		$sort = array("date"=>-1);
 		return PHDB::findAndSort( self::COLLECTION,$where,$sort,null);
 	}
+
+	/**
+	* Remove activities history
+	* @param type string $id defines id of modified entity
+	* @param type string $type defines type of modified entity
+	*/	
+	public static function removeActivityHistory($id,$type){
+		$where = array("target.id"=>$id, 
+					"target.objectType"=>$type,
+					"type"=>ActStr::TYPE_ACTIVITY_HISTORY);
+		return PHDB::remove( self::COLLECTION,$where);
+	}
+
+	/**
+	* Remove activities of an element
+	* @param type string $id defines id of modified entity
+	* @param type string $type defines type of modified entity
+	* @param type boolean $removeComments do i remove comments like to the activity stream or not 
+	*/	
+	public static function removeElementActivityStream($id, $type){
+		$res = array("result" => true, "msg" => "All the activity stream of the element have been removed.");
+		$where = 	array('$or' => array(
+						array('$and' => array(
+							  array("target.id"=>$id), 
+							  array("target.objectType"=>$type)
+						)),
+						array('$and' => array(
+							  array("object.id"=>$id), 
+							  array("object.objectType"=>$type)
+						))
+					));
+		PHDB::remove( self::COLLECTION,$where);
+		
+		return $res;
+	}
+	
 	/*
 	* SaveActivityHistory aims to insert in collecion ActivityStream 
 	* Each modification, add, each activity done on an entity
@@ -102,50 +138,6 @@ class ActivityStream {
 	}
 
 
-	public static function saveActivityShare($verb, $targetId, $targetType, $activityName=null, $activityValue=null){
-
-		$share = PHDB::findOne( News::COLLECTION , 
-								array(	"verb"=>$verb, 
-										"object.id"=>@$activityValue["id"], 
-										"object.type"=>@$activityValue["type"]
-										)
-								);
-		//var_dump($share); exit;
-		if($share!=null){
-			//si je n'ai pas déjà partagé cette news
-			if(@$share["sharedBy"]){
-				if(!in_array(Yii::app()->session["userId"], $share["sharedBy"])){
-					//si je suis le premier a partager
-					$share["sharedBy"] = array_merge($share["sharedBy"], array(Yii::app()->session["userId"]));
-				}
-			}else{ //si je ne suis pas le premier, je me rajoute à la liste
-				$share["sharedBy"] = array(Yii::app()->session["userId"]);	
-			}	
-			$share["updated"] = new MongoDate(time());
-			PHDB::update ( News::COLLECTION , 
-							array( "_id" => $share["_id"]), 
-                            $share);
-			
-		}else{
-			$buildArray = array(
-				"type" => ActivityStream::COLLECTION,
-				"verb" => $verb,
-				"target" => array("id" => $targetId,
-								"type"=> $targetType),
-				"author" => Yii::app()->session["userId"],
-				"object" => $activityValue,
-				"scope" => array("type"=>"restricted"),
-			    "updated" => new MongoDate(time()),
-	            "created" => new MongoDate(time())
-			);
-
-			//$params=ActivityStream::buildEntry($buildArray);
-			self::addEntry($buildArray);
-			error_log("share new");
-		}
-	
-		return true;
-	}
 
 	public static function removeNotifications($id)
 	{
@@ -307,6 +299,11 @@ class ActivityStream {
                 "type" => $params["target"]['type'],
                 "id" => $params["target"]['id']
             );
+            $action["sharedBy"] = array(array( 
+                "type" => $params["target"]['type'],
+                "id" => $params["target"]['id'],
+                "updated"=>new MongoDate(time()),
+            ));
         }
 
         if( isset( $params["ip"] ))

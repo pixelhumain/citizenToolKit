@@ -15,7 +15,7 @@ class NewsTranslator {
 		*	@param object target, 
 		*	@param object media (if type=="gallery_images") become of object with document,
 	**/
-	public static function convertParamsForNews($params,$readOne=false){
+	public static function convertParamsForNews($params,$readOne=false, $followsArrayIds=null){
 		if(@$params["object"]){
 			$docImg="";
 			if(@$params["object"]["type"]==Event::COLLECTION){
@@ -84,9 +84,12 @@ class NewsTranslator {
 			}
 		}
 		if(@$params["target"]["type"]){
-			if ($params["target"]["type"] == Organization::COLLECTION){
-				$params["target"]=Organization::getSimpleOrganizationById($params["target"]["id"]);
+			//$params["target"]["type"]=$params["target"]["type"];
+			$fields=array("name","profilThumbImageUrl");
+			$target=Element::getElementSimpleById($params["target"]["id"], $params["target"]["type"],null, $fields);
+			/*if ($params["target"]["type"] == Organization::COLLECTION){
 				$params["target"]["type"]=Organization::COLLECTION;
+				$params["target"]=Organization::getSimpleOrganizationById($params["target"]["id"]);
 			}
 			else if ($params["target"]["type"]== Project::COLLECTION){
 				$params["target"] = Project::getSimpleProjectById($params["target"]["id"]);
@@ -100,7 +103,12 @@ class NewsTranslator {
 			else if ($params["target"]["type"]==Event::COLLECTION){
 				$params["target"] = Event::getSimpleEventById($params["target"]["id"]);
 				$params["target"]["type"]=Event::COLLECTION;
-			}
+			}*/
+
+			$params["target"] = array("id"=>@$params["target"]["id"],
+									 "name"=>@$target["name"],
+									 "type"=>@$params["target"]["type"],
+									 "profilThumbImageUrl"=>@$target["profilThumbImageUrl"]);
 				
 		}
 		// if(@$params["type"]=="news"){
@@ -145,13 +153,23 @@ class NewsTranslator {
 
 		if(!isset($params["author"]["id"]) || @$params["verb"] == "create"){ 
 			//var_dump($params["author"]); //exit;
+			//$author=array("id"=>$params["author"]);
+			$authorId=@$params["author"];
+			$authorType=Person::COLLECTION;
+			$fields=array("name","profilThumbImageUrl");
 			if(@$params["targetIsAuthor"]==true || @$params["verb"] == "create"){
-  			$author =  Element::getByTypeAndId($params["target"]["type"], $params["target"]["id"]);
-  			$params["authorName"] = @$author["name"];
-  			$params["authorId"] = @$params["target"]["id"];
-  			$params["authorType"] = @$params["target"]["type"];
+				$authorId=$params["target"]["id"];
+				$authorType=$params["target"]["type"];
+				$author=Element::getElementSimpleById( $params["target"]["id"],$params["target"]["type"],null, $fields);
+	  			//$author =  Element::getByTypeAndId($params["target"]["type"], $params["target"]["id"]);
+	  			$params["authorName"] = @$author["name"];
+	  			$params["authorId"] = @$params["target"]["id"];
+	  			$params["authorType"] = @$params["target"]["type"];
+	  			$params["updated"] = $params["created"];
+	  			$params["sharedBy"] = array();
 			}else{
-  			$author =  Person::getSimpleUserById($params["author"]);
+				$author=Element::getElementSimpleById( $params["author"],Person::COLLECTION,null, $fields);
+  				//$author =  Person::getSimpleUserById($params["author"]);
 	  		}
 	  	}else{
 	  		$author = $params["author"];
@@ -161,18 +179,83 @@ class NewsTranslator {
 	  	// 	$params["author"]
 	  	// }
 
+	  	$author = array("id"=>@$authorId,
+					    "name"=>@$author["name"],
+					    "type"=>@$authorType,
+					    "profilThumbImageUrl"=>@$author["profilThumbImageUrl"]);
+
 	  	//var_dump($params["author"]); //exit;
   		if (!empty($author)) $params["author"] = $author;
 	  	else return array("created"=>$params["created"]);
 		
 		if(isset($params["sharedBy"])){
-			$sharedBy = array();
-			foreach($params["sharedBy"] as $key => $id){
-				$share =  Person::getSimpleUserById($id);
-				if (!empty($share)) $sharedBy[] = $share;
+			$sharedBy = array(); 
+			$dateUpdated = @$params["updated"];
+			$lastComment = "";
+			$lastAuthorShare = array();
+			$lastKey = null;
+
+			$count=0;
+			//var_dump($params["sharedBy"]);
+			foreach($params["sharedBy"] as $key => $value){
+				 //on commence par prendre la date du premier partage (date de création si news)
+				if($count==0) $dateUpdated = @$value["updated"];
+				$count++;
+
+				$lastKey = null;
+				$fields=array("name","profilThumbImageUrl");
+				$share=Element::getElementSimpleById($value["id"],$value["type"],null, $fields);
+			
+				//$share =  Element::getSimpleByTypeAndId($value["type"], $value["id"]);
+				if (!empty($share)){	
+					$clearShare = array("id"=>@$value["id"],
+										"name"=>@$share["name"],
+										"type"=>@$value["type"],
+										"profilThumbImageUrl"=>@$share["profilThumbImageUrl"]);	
+					
+					if(@$followsArrayIds){ //si j'ai la liste des follows de l'element
+						//et que l'id du sharedBy est dans la liste des follows
+						//ou que l'id du sharedBy est mon id
+						if( in_array(@$value["id"], $followsArrayIds) || 
+									 @$value["id"] == Yii::app()->session["userId"]){ 
+							$dateUpdated = $value["updated"]; //memorise la date du share
+							$lastComment = @$value["comment"]; //memorise la date du share
+							$lastAuthorShare = $clearShare;	  //memorise l'auteur du share   
+							$lastKey = count($sharedBy);
+						}
+					}else{//si j'ai pas la liste des follows de l'element => journal
+						if( @$value["id"] == Yii::app()->session["userId"]){ 
+							$dateUpdated = $value["updated"]; //memorise la date du share
+							$lastComment = @$value["comment"]; //memorise la date du share
+							$lastAuthorShare = $clearShare;	  //memorise l'auteur du share   
+							$lastKey = count($sharedBy);
+						}
+					}
+
+					//ajoute le share dans la liste
+					$sharedBy[] = $clearShare; 	 
+					//memorise la clé pour pouvoir supprimer le dernier share de la liste
+					//(permet d'afficher le bon nombre de partage)				
+				}
 			}
-			$params["sharedBy"] = $sharedBy;
-		  	
+
+			//efface le lastAuthorShared de la liste des sharedBy
+			//echo $lastKey;
+			if($lastKey!=null && @$sharedBy[$lastKey]){ unset($sharedBy[$lastKey]); }
+
+			$params["updated"] = @$dateUpdated;
+			$params["comment"] = @$lastComment;
+
+		  	if(!empty($lastAuthorShare)){
+		  		$params["lastAuthorShare"] = @$lastAuthorShare;
+		  	}
+		  	else if(!@$followsArrayIds){ 
+		  		$params["lastAuthorShare"] = @$author;
+		  	}
+
+
+		  	$params["sharedBy"] = $sharedBy;
+				
 		}
 		return $params;
 	}

@@ -157,7 +157,7 @@ class Person {
 											"addressCountry" => "");
         }
         
-        if ($clearAttribute) {
+        if($clearAttribute) {
         	$person = self::clearAttributesByConfidentiality($person);
         }
 
@@ -638,7 +638,11 @@ class Person {
 
 		//A mail is sent to the admin
 		Mail::notifAdminNewUser($person);
-	    return array("result"=>true, "msg"=>"You are now communnected", "id"=>$newpersonId, "person"=>$person);
+		$res = array("result"=>true, "msg"=>"You are now communnected", "id"=>$newpersonId, "person"=>$person);
+
+		if(!empty($person["invitedBy"]))
+			$res['invitedBy'] = $person["invitedBy"];
+	    return ;
 	}
 
 	/**
@@ -1202,7 +1206,7 @@ class Person {
 						array("type"=>self::COLLECTION, "id"=> $account["invitedBy"],"name"=>"", ));
 			}
 			
-			$res = array("result" => true, "msg" => "The pending user has been updated and is now complete");
+			$res = array("result" => true, "msg" => "The pending user has been updated and is now complete","personId"=>$personId);
 		}
 		return $res;
 	}
@@ -2051,7 +2055,6 @@ class Person {
     	if(!empty($userId)){
     		try{
     			if(!empty($address)){
-    				
     				CookieHelper::setCookie("inseeCommunexion", $address["codeInsee"]);
 		    		CookieHelper::setCookie("cpCommunexion", $address["postalCode"]);
 		    		CookieHelper::setCookie("cityNameCommunexion", $address["addressLocality"]);

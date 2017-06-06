@@ -499,7 +499,7 @@ class Link {
     	}
     	return $res;
     }
-	
+
 	///// TODO BOUBOULE - AN ORGANIZER COULD BE A PROJECT OR AN ORGA OR A PERSON
 	//// DOCUMENT THIS FUNCTION 
     public static function removeEventLinks($eventId){
@@ -904,7 +904,7 @@ class Link {
             return array("result" => false, "msg" => "Unknown ".$childType.". Please check your parameters !");
         }
         //Retrieve the child info
-        $pendingChild = $class::getById($childId);
+        $pendingChild = $class::getById($childId,false);
         if (!$pendingChild) {
             return array("result" => false, "msg" => "Something went wrong ! Impossible to find the children ".$childId);
         }
