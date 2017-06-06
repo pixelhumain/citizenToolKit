@@ -166,5 +166,6 @@ class TranslateJsonFeed {
 	  	// "content_html" => array("valueOf" => "text"),
 	  	"content"	=> array( "shortDescription" => array("valueOf" => "shortDescription"),
 	  						  "Description" => array("valueOf" => "Description"),
+	  						),
 	);
 }
