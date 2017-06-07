@@ -489,7 +489,7 @@ class Person {
 		  			array('$push' => array('invitationDate' => time())));	
 	  		}
 
-	  				  		//send invitation mail
+	  		//send invitation mail
 			Mail::invitePerson($res["person"], $msg);
 		  		  		
 	  	} catch (CTKException $e) {
@@ -642,7 +642,7 @@ class Person {
 
 		if(!empty($person["invitedBy"]))
 			$res['invitedBy'] = $person["invitedBy"];
-	    return ;
+	    return $res;
 	}
 
 	/**

@@ -1548,16 +1548,16 @@ class Element {
 		$params["msgEmail"] = (empty($msgEmail)?null:$msgEmail) ;
 		foreach ($listMails as $key => $value) {
 			$result["result"] = true ;
-			if(!empty($value["mail"])){
-				$params["invitedUserEmail"] = $value["mail"] ;
+			//if(!empty($value["mail"])){
+				$params["invitedUserEmail"] = $key ;
 
-				if(empty($value["name"])){
-					$split = explode("@", $value["mail"]);
+				if(empty($value)){
+					$split = explode("@", $key);
 					$params["invitedUserName"] = $split[0];
 				}else
-					$params["invitedUserName"] = $value["name"] ;
+					$params["invitedUserName"] = $value ;
 				$result["data"][] = self::followPerson($params, $gmail);
-			}
+			//}
 		}
 		return $result;
 	}
