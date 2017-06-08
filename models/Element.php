@@ -1749,7 +1749,11 @@ class Element {
 	public static function getContactsByMails($listMails){
 		$res = array();
 		foreach ($listMails as $key => $mail){
-			$res[$mail] = PHDB::findOne( Person::COLLECTION , array( "email" => $mail ), array("_id", "name", "profilThumbImageUrl") );
+			$valid = DataValidator::email($mail) ;
+			if( $valid  == "")
+				$res[$mail] = PHDB::findOne( Person::COLLECTION , array( "email" => $mail ), array("_id", "name", "profilThumbImageUrl") );
+			else
+				$res[$mail] = $valid ;
 		}
 		return $res;
 	}

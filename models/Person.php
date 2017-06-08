@@ -217,6 +217,7 @@ class Person {
 
 		$simplePerson["id"] = $id;
 		$simplePerson["name"] = @$person["name"];
+		//$simplePerson["name"] = addslashes(@$person["name"]);
 		$simplePerson["username"] = @$person["username"];
 		$simplePerson["email"] = @$person["email"];
 		$simplePerson["tags"] = @$person["tags"];
