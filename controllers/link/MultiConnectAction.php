@@ -24,6 +24,7 @@ class MultiConnectAction extends CAction
 		$newMembers = array();
 		$msg=false;
 		$finalResult = false;
+		$onlyOrganization=true;
 		foreach($_POST["childs"] as $key => $contact){
 			if(@$contact["childId"] != $parentId ){
 				$roles="";
@@ -33,7 +34,8 @@ class MultiConnectAction extends CAction
 			    	"childName" => @$contact["childName"],
 		            "childEmail" => @$contact["childEmail"],
 			    );
-		    	    	
+		    	if($child["childType"]==Person::COLLECTION)
+		    		$onlyOrganization=false;    	
 		    	$isConnectingAdmin= (@$contact["connectType"]=="admin") ? true : false;
 		    	
 		    	$res = Link::connectParentToChild($parentId, $parentType, $child, $isConnectingAdmin, Yii::app()->session["userId"], $roles);
@@ -55,10 +57,10 @@ class MultiConnectAction extends CAction
 	 	}
 	 	if($finalResult == true){
 		 	if($msg==1)
-		 		$msg = "Le(s) nouveaux membres ont été ajoutés correctement";
+		 		$msg = "Le(s) nouveau(x) membre(s) ont été ajoutés correctement";
 		 	else
 		 		$msg = "Le(s) nouveaux membres ont été ajoutés correctement exceptés ceux déjà présents";		 		
-	 		$result = array("result"=>true, "msg" => $msg,"newMembers" => $newMembers);
+	 		$result = array("result"=>true, "msg" => $msg,"newMembers" => $newMembers, "onlyOrganization"=>$onlyOrganization);
 		}else $result = $res;
 		
 		Rest::json($result);
