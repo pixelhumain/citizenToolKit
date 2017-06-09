@@ -342,6 +342,7 @@ class News {
 			PHDB::update ( News::COLLECTION , 
 							array( "_id" => $share["_id"]), 
                             $share);
+			$idNews=(string)$share["_id"];
 			
 		}else{
 			$buildArray = array(
@@ -360,11 +361,12 @@ class News {
 			);
 
 			//$params=ActivityStream::buildEntry($buildArray);
-			ActivityStream::addEntry($buildArray);
+			$newsShared=ActivityStream::addEntry($buildArray);
+			$idNews=(string)$newsShared["_id"];
 			//error_log("share new");
 		}
-	
-		return true;
+		$newsShared=News::getById($idNews);
+		return array("result"=>true, "msg"=> Yii::t("common", "News has been shared with your network"), "data"=>$newsShared);
 	}
 
 	public static function removeNewsByImageId($imageId){
