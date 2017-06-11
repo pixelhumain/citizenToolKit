@@ -13,10 +13,10 @@ class News {
 	 * @param type $id : is the mongoId of the news
 	 * @return object
 	 */
-	public static function getById($id) {
+	public static function getById($id,$followsArrayIds=null) {
 	  	$news = PHDB::findOne( self::COLLECTION,array("_id"=>new MongoId($id)));
 	  	if(@$news["type"]){
-			$news=NewsTranslator::convertParamsForNews($news,true);
+			$news=NewsTranslator::convertParamsForNews($news,true,$followsArrayIds);
 		}
 		return $news;
 	}
@@ -264,13 +264,21 @@ class News {
 			$res = PHDB::remove(self::COLLECTION,array("_id"=>new MongoId($id)));
 		} else if($authorization=="share" && $countShare > 1){
 			$key=array_search($userId,array_column($news["sharedBy"],"id"));
-			unset($news["sharedBy"][$key]);
+			//unset($news["sharedBy"][$key]);
 			$shareUpdate=true;
 			$res = PHDB::update(self::COLLECTION, array("_id"  => new MongoId($id) ), array('$pull'=>array("sharedBy"=>array("id"=>$userId))));
 		}
 		$res=array("result" => true, "msg" => "The news with id ".$id." and ".$nbCommentsDeleted." comments have been removed with succes.","type"=>$news["type"]);
-		if(@$shareUpdate)
-			$res["newsUp"]=$news;
+		if(@$shareUpdate){
+			$followsArrayIds=[];
+			$parent=Element::getElementSimpleById(Yii::app()->session["userId"],Person::COLLECTION,null, array("links"));
+			if(@$parent["links"]["follows"] && !empty($parent["links"]["follows"])){
+				foreach ($parent["links"]["follows"] as $key => $data){
+					array_push($followsArrayIds,$key);
+				}
+			}
+			$res["newsUp"]=News::getById($id, $followsArrayIds);
+		}
 		return $res;
 	}
 
