@@ -1871,10 +1871,10 @@ class Element {
 		$params["edit"] = Authorisation::canEditItem(Yii::app()->session["userId"], $type, $id);
         $params["openEdition"] = Authorisation::isOpenEdition($id, $type, @$element["preferences"]);
         $params["controller"] = self::getControlerByCollection($type);
-
         if($type==Person::COLLECTION && !@$element["links"]){
         	$fields=array("links");
         	$links=Element::getElementSimpleById($id,$type,null,$fields);
+        	$links=$links["links"];
         }
         else
         	$links=@$element["links"];
@@ -1949,12 +1949,12 @@ class Element {
                 @Yii::app()->session["userId"] && 
                 ($type != Person::COLLECTION || 
                 (string)$element["_id"] != Yii::app()->session["userId"])){
-                    $params["linksBtn"]["followBtn"]=true;
+                    $params["linksBtn"]["followBtn"]=true;	
                     if (@$links["followers"][Yii::app()->session["userId"]])
-                            $params["linksBtn"]["isFollowing"]=true;
-                     else if(!@$links["followers"][Yii::app()->session["userId"]] && 
+                        $params["linksBtn"]["isFollowing"]=true;
+                    else if(!@$links["followers"][Yii::app()->session["userId"]] && 
                             $type != Event::COLLECTION)   
-                            $params["linksBtn"]["isFollowing"]=false;                  
+                        $params["linksBtn"]["isFollowing"]=false;       
             }
             
             $connectAs = @self::$connectAs[$type];

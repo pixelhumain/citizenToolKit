@@ -308,6 +308,12 @@ class Notification{
 					"label" => "{who} added new images to the album of {where}",
 					"repeat" => true,
 					"noUpdate" => true
+				),
+				"asMember"=> array(
+					"url" => "page/type/{collection}/id/{id}/view/directory/dir/members",
+					"label" => "{who} added {what} as member of {where}",
+					"labelRepeat" => "{who} added {what} as members of {where}",
+					"repeat" => true
 				)
 			),
 			/*"context" => array(
@@ -320,7 +326,7 @@ class Notification{
 				"city" => true
 			),*/
 			//"label"=>"{who} added {type} {what} in {where}",
-			"labelArray" => array("who","where"),
+			"labelArray" => array("who","where","what"),
 			"icon" => "fa-plus"
 		),
 		ActStr::VERB_VOTE => array(
