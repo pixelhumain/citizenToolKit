@@ -211,6 +211,8 @@ class NewsTranslator {
 					$clearShare = array("id"=>@$value["id"],
 										"name"=>@$share["name"],
 										"type"=>@$value["type"],
+										"updated" => @$value["updated"],
+										"comment" => @$value["comment"],
 										"profilThumbImageUrl"=>@$share["profilThumbImageUrl"]);	
 					
 					if(@$followsArrayIds){ //si j'ai la liste des follows de l'element
@@ -241,7 +243,7 @@ class NewsTranslator {
 
 			//efface le lastAuthorShared de la liste des sharedBy
 			//echo $lastKey;
-			if($lastKey!=null && @$sharedBy[$lastKey]){ unset($sharedBy[$lastKey]); }
+			//if($lastKey!=null && @$sharedBy[$lastKey]){ unset($sharedBy[$lastKey]); }
 
 			$params["updated"] = @$dateUpdated;
 			$params["comment"] = @$lastComment;
