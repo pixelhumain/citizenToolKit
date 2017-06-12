@@ -185,9 +185,13 @@ class Search {
 	  	}
 
 		//*********************************  VOTES / propositions   ******************************************
+		//error_log(print_r($searchType)); 
+		//error_log("filter : ".$filter);
         if(isset(Yii::app()->session["userId"]) && 
-        	(strcmp($filter, ActionRoom::TYPE_VOTE) != 0 && self::typeWanted(ActionRoom::TYPE_VOTE, $searchType)) ||
-        	(strcmp($filter, ActionRoom::TYPE_ACTIONS) != 0 && self::typeWanted(ActionRoom::TYPE_ACTIONS, $searchType))
+        	//(strcmp($filter, ActionRoom::TYPE_VOTE) != 0 && 
+        		self::typeWanted(ActionRoom::TYPE_VOTE, $searchType) ||
+        	//(strcmp($filter, ActionRoom::TYPE_ACTIONS) != 0 && 
+        		self::typeWanted(ActionRoom::TYPE_ACTIONS, $searchType)
         	 ){    
         	$allRes = array_merge($allRes, self::searchVotes($query, $indexStep, $indexMin, $searchType));
         }
@@ -746,40 +750,42 @@ class Search {
     public static function searchVotes($query, $indexStep, $indexMin, $searchType){
     	$allFound = array();
     	if(!empty(Yii::app()->session["userId"])){
-    		$myLinks = Person::getPersonLinksByPersonId( Yii::app()->session["userId"] );
-    		//créer un array avec uniquement les id de mes orgas
-	    	$orgasId = array();
-	    	foreach ($myLinks["organizations"] as $key => $link) {
-	    		if(self::checkScopeParent($link) == true)//en vérifiant si l'orga correspond aux scopes demandés
-	    			$orgasId[] = (string)$link["_id"];
-	    	}
+    		// $myLinks = Person::getPersonLinksByPersonId( Yii::app()->session["userId"] );
+    		// //créer un array avec uniquement les id de mes orgas
+	    	// $orgasId = array();
+	    	// foreach ($myLinks["organizations"] as $key => $link) {
+	    	// 	if(self::checkScopeParent($link) == true)//en vérifiant si l'orga correspond aux scopes demandés
+	    	// 		$orgasId[] = (string)$link["_id"];
+	    	// }
 	    	     
-	    	//créer un array avec uniquement les id de mes projets
-	    	$projectsId = array();
-	    	foreach ($myLinks["projects"] as $key => $link) {
-	    		if(self::checkScopeParent($link) == true)//en vérifiant si le projet correspond aux scopes demandés
-	    			$projectsId[] = (string)$link["_id"];
-	    	}
+	    	// //créer un array avec uniquement les id de mes projets
+	    	// $projectsId = array();
+	    	// foreach ($myLinks["projects"] as $key => $link) {
+	    	// 	if(self::checkScopeParent($link) == true)//en vérifiant si le projet correspond aux scopes demandés
+	    	// 		$projectsId[] = (string)$link["_id"];
+	    	// }
 	    	
-	    	$query = array( '$or' => array( array("parentType"=>"organizations", "parentId" => array('$in' => $orgasId) ),
-	    									array("parentType"=>"projects", "parentId" => array('$in' => $projectsId) )
-	    							 )
-	    				  );
+	    	// $query = array( '$or' => array( array("parentType"=>"organizations", "parentId" => array('$in' => $orgasId) ),
+	    	// 								array("parentType"=>"projects", "parentId" => array('$in' => $projectsId) )
+	    	// 						 )
+	    	// 			  );
 
-	    	//rajoute les résultats pour mon conseil citoyen
+	    	// //rajoute les résultats pour mon conseil citoyen
 	    	$me = Person::getSimpleUserById(Yii::app()->session["userId"]);
 	    	$myCityKey = @$me["address"]["addressCountry"] ? $me["address"]["addressCountry"] : false;
 	    	if($myCityKey!=false){
 	    		$myCityKey .= @$me["address"]["codeInsee"] ? "_".$me["address"]["codeInsee"] : false;
 	    		if($myCityKey!=false){
 	    			$myCityKey .= @$me["address"]["postalCode"] ? "-".$me["address"]["postalCode"] : "";
-	        		$query['$or'][] = array("parentType"=>"cities", "parentId" => $myCityKey);
+	        		//$query['$or'][] = array("parentType"=>"cities", "parentId" => $myCityKey);
 	        	}
 	    	}
 	    	
+	    	$query = array();
 
-	    	$allRooms = PHDB::find( ActionRoom::COLLECTION, $query);
-	    	
+	    	$allRooms = array(); //PHDB::find( ActionRoom::COLLECTION, $query);
+	    	//var_dump($allRooms); exit;
+
 	    	//crée une array avec uniquement les id des rooms
 	    	$allRoomsId = array();
 	    	foreach ($allRooms as $key => $room) {
@@ -795,13 +801,13 @@ class Search {
 	    		$parentRow = "room";
 	    	}
 
-	    	$query = array($parentRow => array('$in' => $allRoomsId) );
+	    	$query = array();//$parentRow => array('$in' => $allRoomsId) );
 	    	
 	    	//if(count($tmpTags))
 	    	//$query = array('$and' => array( $query , array("tags" => array('$in' => $tmpTags)))) ;
 	    	
 	    	//echo "search : ". $search." - ".(string)strpos($search, "#");
-	    	if($search != "" && strpos($search, "#") === false){
+	    	if(@$search != "" && strpos(@$search, "#") === false){
 	        	$searchRegExp = self::accentToRegex($search);
 	        	$queryFullTxt = array( '$or' => array( array("name" => new MongoRegex("/.*{$searchRegExp}.*/i")),
 	        						   				   array("message" => new MongoRegex("/.*{$searchRegExp}.*/i")))
@@ -810,10 +816,13 @@ class Search {
 	        	else $query = array('$and' => array( $query , $queryFullTxt)) ;
 	        }
 
+			//var_dump($query); exit;
+
 	        $allFound = PHDB::findAndSortAndLimitAndIndex($collection, $query, array("updated" => -1), $indexStep, $indexMin);
 
 	    	foreach ($allRooms as $keyR => $room) {
 	    		//pour chaque room des orga, on ajoute quelques info sur le parentObj
+	    		if(@$myLinks)
 	    		foreach ($myLinks["organizations"] as $keyL => $orga) {
 	    			//error_log("orga " . (string)$orga['_id'] ."==". (string)$room['parentId']);
 	    			if((string)$orga['_id'] == (string)$room['parentId'] && $room['parentType'] == "organizations"){
@@ -826,6 +835,7 @@ class Search {
 	    		}
 
 	    		//pour chaque room des projets, on ajoute les infos du parentObj
+	    		if(@$myLinks)
 	    		foreach ($myLinks["projects"] as $keyL => $project) {
 	    			//error_log("project " . (string)$project['_id'] ."==". (string)$room['parentId']);
 	    			if((string)$project['_id'] == (string)$room['parentId'] && $room['parentType'] == "projects"){
