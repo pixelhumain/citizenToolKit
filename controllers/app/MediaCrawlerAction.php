@@ -296,7 +296,7 @@ class MediaCrawlerAction extends CAction
 
       date_default_timezone_set('Pacific/Noumea');
 
-      error_log("DATE formatDate : ".$date." src:".$src." urlKey:".$urlKey." TIMZONE : ".date_default_timezone_get());
+      //error_log("DATE formatDate : ".$date." src:".$src." urlKey:".$urlKey." TIMZONE : ".date_default_timezone_get());
 
     	if($src == "NCI"){
             //$date = str_replace("+00:00", "+11:00", $date);
@@ -406,7 +406,7 @@ class MediaCrawlerAction extends CAction
         if($value == $monthName) return $key+1;
       }
           
-    	$months = array('Jan', "Feb", "Mar", "Apr", "May", "June", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec");
+    	$months = array('Jan', "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec");
     	foreach($months as $key => $value){
             if($value == $monthName) return $key+1;
     	}
