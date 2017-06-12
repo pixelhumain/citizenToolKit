@@ -508,21 +508,23 @@ class Notification{
 			$entryId = $id;
 			if( $type == Survey::COLLECTION ){
 				$target["entry"] = Survey::getById( $id );
-				$entryId = (string)$target["entry"]["survey"];
+				//var_dump($target); exit;
+				$entryId = (string)@$target["entry"]["survey"];
 			} else if( $type == ActionRoom::COLLECTION_ACTIONS ){
 				$target["entry"] = ActionRoom::getActionById( $id );
 				$entryId = $target["entry"]["room"];
 			}
-			$room = ActionRoom::getById( $entryId );
-			if( @$room["parentType"] ){
-				if( $room["parentType"] == Project::COLLECTION ) 
-			    	$members = Project::getContributorsByProjectId( $room["parentId"] ,"all", null ) ;
-			    else if( $room["parentType"] == Organization::COLLECTION) 
-			    	$members = Organization::getMembersByOrganizationId( $room["parentId"] ,"all", null ) ;
-			    else if( $room["parentType"] == Event::COLLECTION )
-		    			$members = Event::getAttendeesByEventId( $room["parentId"] , "admin", "isAdmin" ) ;
-		    	$construct["target"]["parent"]=array("id"=>$room["parentId"],"type"=> $room["parentType"]);
-			}
+			
+			// $room = ActionRoom::getById( $entryId );
+			// if( @$room["parentType"] ){
+			// 	if( $room["parentType"] == Project::COLLECTION ) 
+			//     	$members = Project::getContributorsByProjectId( $room["parentId"] ,"all", null ) ;
+			//     else if( $room["parentType"] == Organization::COLLECTION) 
+			//     	$members = Organization::getMembersByOrganizationId( $room["parentId"] ,"all", null ) ;
+			//     else if( $room["parentType"] == Event::COLLECTION )
+		 //    			$members = Event::getAttendeesByEventId( $room["parentId"] , "admin", "isAdmin" ) ;
+		 //    	$construct["target"]["parent"]=array("id"=>$room["parentId"],"type"=> $room["parentType"]);
+			// }
 		}
 	    foreach ($members as $key => $value) 
 	    {
