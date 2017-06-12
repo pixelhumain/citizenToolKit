@@ -1874,7 +1874,7 @@ class Element {
         if($type==Person::COLLECTION && !@$element["links"]){
         	$fields=array("links");
         	$links=Element::getElementSimpleById($id,$type,null,$fields);
-        	$links=$links["links"];
+        	$links=@$links["links"];
         }
         else
         	$links=@$element["links"];
