@@ -4,9 +4,7 @@ class SaveAction extends CAction {
     public function run() {
 
 	    $controller=$this->getController();
-		
 	    $mapping = $_POST["mapping"];
-	    
 	    
 	    try{
 			if ( Person::logguedAndValid() ) {

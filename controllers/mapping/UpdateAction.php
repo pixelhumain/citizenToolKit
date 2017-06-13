@@ -4,10 +4,8 @@ class UpdateAction extends CAction {
     public function run() {
 
 	    $controller=$this->getController();
-
 	    $post = $_POST;
-	    
-	    
+
 	    try{
 			if ( Person::logguedAndValid() ) {
 				//Save the mapping

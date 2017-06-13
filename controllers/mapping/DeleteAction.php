@@ -4,7 +4,6 @@ class DeleteAction extends CAction {
     public function run() {
 
 	    $controller=$this->getController();
-
 	    $post = $_POST;
 	    	    
 	    try{
