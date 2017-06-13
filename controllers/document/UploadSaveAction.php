@@ -2,7 +2,7 @@
 class UploadSaveAction extends CAction {
 	
     //$folder is the $type of the element
-	public function run($dir,$folder=null,$ownerId=null,$input,$rename=false) {
+	public function run($dir,$folder=null,$ownerId=null,$input, $contentKey=false, $rename=false) {
 		
         $res = array('result'=>false, 'msg'=>Yii::t("document","Something went wrong with your upload!"));
         if (Person::logguedAndValid()) 
@@ -34,6 +34,10 @@ class UploadSaveAction extends CAction {
             $res2 = array();
             
             if( $res["resultUpload"] ){
+                    if($contentKey==false){
+                        if(@$_POST["contentKey"]) $contentKey=$_POST["contentKey"];
+                        else $contentKey=Document::IMG_PROFIL;
+                    }
                     $subFolder="";
                     if(@$_POST["formOrigin"])
                         $subFolder="/".$_POST["formOrigin"];
@@ -44,7 +48,7 @@ class UploadSaveAction extends CAction {
                         "moduleId" => $dir,
                         "name" => $res["name"],
                         "size" => (int) $res['size'],
-                        "contentKey" => (@$_POST["contentKey"]) ? $_POST["contentKey"]:"profil",
+                        "contentKey" => $contentKey,
                         "author" => Yii::app()->session["userId"]
                     );
 
