@@ -7,7 +7,6 @@ class SaveAction extends CAction {
 		
 	    $mapping = $_POST["mapping"];
 	    
-	    
 	    try{
 			if ( Person::logguedAndValid() ) {
 				//Save the mapping

@@ -532,7 +532,35 @@ class Mail {
                 Mail::schedule($params);
             }
         }
-    }       
+    }
+
+    public static function proposeInteropSource($url_source, $admins, $userID, $description) {
+
+        $user = Person::getSimpleUserById($userID);
+
+        // foreach ($admins as $id) {
+        $aPerson = Person::getById("5880b24a8fe7a1a65b8b456b", false);
+        if (!empty($aPerson["email"])) {
+            $params = array (
+                "type" => Cron::TYPE_MAIL,
+                "tpl"=>'proposeInteropSource',
+                "subject" => "[".self::getAppName()."] - Proposition de ".@$user["name"],
+                "from"=>Yii::app()->params['adminEmail'],
+                "to" => $aPerson["email"],
+                "tplParams" => array(
+                    "userName" => @$user["name"],
+                    "description" => $description,
+                    "source_de_donnees" => $url_source,
+                    "logo"=> Yii::app()->params["logoUrl"],
+                    "logo2" => Yii::app()->params["logoUrl2"],
+                    // "url" => Yii::app()->getRequest()->getBaseUrl(true)."/".$url
+                ),
+            );
+            
+            Mail::schedule($params);
+        }
+        // }
+    }   
 
     private static function getAppName() {
         return isset(Yii::app()->params["name"]) ? Yii::app()->params["name"] : Yii::app()->name;       

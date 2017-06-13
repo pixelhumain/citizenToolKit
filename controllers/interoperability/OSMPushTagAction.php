@@ -5,42 +5,49 @@ class OSMPushTagAction extends CAction {
 
     	$controller=$this->getController();
 
-		// $version = '@package_version@';
-		// if (strstr($version, 'package_version')) {
-		//     set_include_path(dirname(dirname(__FILE__)) . PATH_SEPARATOR . get_include_path());
-		// }
-
-		// require_once 'Services/OpenStreetMap.php';
-
-		$osm = new Services_OpenStreetMap();
-
 		ini_set('display_errors', 1);
-		require __DIR__ . '/../vendor/autoload.php';
+		require __DIR__ . '/Services_Openstreetmap/vendor/autoload.php';
 		require_once 'Services/OpenStreetMap.php';
-
-		// $config = array(
-		// 'user' => 'd.grondin@rt-iut.re',
-		// 'password' => 'A8i vmIg',
-		// );
 
 		$config = array(
 			'user' => $_POST['user'],
 			'password' => $_POST['pwd'],
 		);
 
+		$tag_to_push = "";
+		$tag_to_push2 = "";
+
+		if (!empty($_POST['tagvalue'])) {
+			$tag_to_push = $_POST['tagvalue'];
+		}
+
+		if (!empty($_POST['tagnewname'])) {
+			$tag_to_push2 = $_POST['tagnewvalue'];
+		}
+
+		// var_dump($_POST);
+		// var_dump($tag_to_push);
+		// var_dump($tag_to_push2);
+
 		$osm = new Services_OpenStreetMap($config);
 
 		$changeset = $osm->createChangeset();
-		$changeset->begin("Add tag " .$_POST['tagname'] . " with value : " . $_POST['tagvalue'] . "from COMMUNECTER");
-
+		$changeset->begin("Add tag " .$_POST['tagname'] . " from Communecter (www.communecter.org)");
 		$node = $osm->getNode($_POST['nodeID']);
-		echo $node;
-		$node->setTag($_POST['tagname'], $_POST['tagvalue']);
+
+		if (!empty($tag_to_push)) {
+			$node->setTag($_POST['tagname'], $tag_to_push);
+		}
+
+		if (!empty($tag_to_push2)) {
+			$node->setTag($_POST['tagnewname'], $tag_to_push2);
+		}
+
 		$changeset->add($node);
+
 		$changeset->commit();
 
-		echo "Vous avez ajouté le tag".$_POST['tagname'] . "avec comme valeur : " . $_POST['tagname'] . " from COMMUNECTER<br/>";
-		echo "Merci d'avoir contribuez à enrichir l'Open Common Database !!! ";
+		Rest::json(array("result"=>true, "Vous avez ajouté le tag ".$_POST['tagname'] . " avec comme valeur : " . $tag_to_push . "<br/>"));
 
 		Yii::app()->end();
 	}
