@@ -45,7 +45,7 @@ class UploadSaveAction extends CAction {
                         "id" => $ownerId,
                         "type" => $folder,
                         "folder" => $folder."/".$ownerId.$subFolder,
-                        "moduleId" => $dir,
+                        "moduleId" => "communecter",
                         "name" => $res["name"],
                         "size" => (int) $res['size'],
                         "contentKey" => $contentKey,

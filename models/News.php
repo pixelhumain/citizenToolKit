@@ -496,7 +496,7 @@ class News {
     		$ext = explode( "?", $ext );
     		$ext = $ext[0];
     	}
-		$dir=Yii::app()->controller->module->id;
+		$dir="communecter";
 		$folder="news";
 		$upload_dir = Yii::app()->params['uploadDir'].$dir.'/'.$folder; 
 		$returnUrl= Yii::app()->params['uploadUrl'].$dir.'/'.$folder;
