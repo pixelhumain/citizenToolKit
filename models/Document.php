@@ -320,12 +320,28 @@ class Document {
 	 * @return size of storage used to stock
 	 */
 	public static function authorizedToStock($id, $type,$docType){
-		$storageSpace = self::storageSpaceByIdAndType($id, $type,self::DOC_TYPE_IMAGE);
-		$authorizedToStock=true;
-		if($storageSpace > (20*1048576))
-			$authorizedToStock=false;
+		if (isset(Yii::app()->params['limitImageSpaceForOrganization']) && Yii::app()->params['limitImageSpaceForOrganization'] == false) {
+			$authorizedToStock = false;
+		} else {
+			$storageSpace = self::storageSpaceByIdAndType($id, $type,self::DOC_TYPE_IMAGE);
+			$authorizedToStock=true;
+			if($storageSpace > (20*1048576))
+				$authorizedToStock=false;
+		}
 		return $authorizedToStock;
 	}
+
+	/**
+	 * Return the file size limit if one is set in the param file, or the default one in this class
+	 * @return file size max allowed (integer)
+	 */
+	public static function getFileSizeLimit() {
+		if (isset(Yii::app()->params['filesizeMax']))
+			return Yii::app()->params['filesizeMax'];
+		else
+			return self::FILE_SIZE_MAX;
+	}
+
 	/**
 	 * @See getListDocumentsByContentKey. 
 	 * @return array Return only the Url of the documents ordered by contentkey type
@@ -927,8 +943,8 @@ class Document {
 
     	//Check size
     	$size = (!empty($sizeUrl) ? $sizeUrl : $file["size"] );
-    	if ($size > self::FILE_SIZE_MAX ) {
-	    	return array('result'=>false,'error'=>"The file size should not be over 5 Mo");
+    	if ($size > self::getFileSizeLimit() ) {
+	    	return array('result'=>false,'error'=>"The file size should not be over ".round(self::getFileSizeLimit())." Mo");
 	    }
 
     	return array('result' => true, 'msg'=>'Files requirements meet', 'uploadDir' => $upload_dir);
