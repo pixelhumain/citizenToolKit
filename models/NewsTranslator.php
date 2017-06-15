@@ -79,7 +79,7 @@ class NewsTranslator {
 
 
 			}else{
-				$params=array("created"=>$params["created"]);
+				$params=array();
 				return $params;
 			}
 		}
