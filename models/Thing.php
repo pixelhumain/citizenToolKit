@@ -41,6 +41,7 @@ class Thing {
 		"sckMeasurements" => array("name"=>"sckMeasurements"),//api metadata
 		"sckSensors" => array("name"=>"sckSensors"),//api metadata
 		"sckUpdatedAt"	=>array("name"=>"sckUpdatedAt"),
+		"sckComponents" =>array("name"=>"sckComponents"),
 		"sensors" 	=> array("name"=> "sensors"),
 		"minmaxstddev" =>array("name"=>"minmaxstddev"),
 		"status" 	=> array("name" => "status"), //
@@ -53,7 +54,7 @@ class Thing {
 		"created" 	=> array("name" => "created")
 	);
 
-	private static $sckAPIPathMetadata = array("sckSensors" => "sensors", "sckMeasurements" => "measurements", "sckKits" => "kits");
+	private static $sckAPIPathMetadata = array("sckSensors" => "sensors", "sckMeasurements" => "measurements", "sckKits" => "kits","sckComponents"=>"components");
 
 	public static function updateSCKAPIMetadata($forceUpdate=true){
 		
