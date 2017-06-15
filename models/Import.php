@@ -126,12 +126,15 @@ class Import
                         else{
                             $valFile =  (!empty($valueFile[$value["idHeadCSV"]])?$valueFile[$value["idHeadCSV"]]:null);
                         }
+
+
                         //var_dump($valFile);
                         if(!empty($valFile)){
-                            $valueData = (is_string($valFile)?trim($valFile):$valFile);
+                            $valueData = ( is_string($valFile) ? trim($valFile) : $valFile );
                             if(!empty($valueData)){
-                                //var_dump($mapping);
-                                //var_dump($value["valueAttributeElt"]);
+                                var_dump($value["valueAttributeElt"]);
+                                var_dump(trim($valueData));
+                               
                                 $typeValue = ArrayHelper::getValueByDotPath($mapping , $value["valueAttributeElt"]);
                                 $element = ArrayHelper::setValueByDotPath($element , $value["valueAttributeElt"], $valueData, $typeValue);
                                 //var_dump($typeValue);
@@ -223,8 +226,12 @@ class Import
 		if($typeElement == Organization::COLLECTION && !empty($element["type"]))
         	$element["type"] = Organization::translateType($element["type"]);
 
+        if(!empty($element["facebook"]))
+            $element["socialNetwork"]["facebook"] = $element["facebook"];
+
         $element = self::getWarnings($element, $typeElement, true) ;
         $resDataValidator = DataValidator::validate(Element::getControlerByCollection($typeElement), $element, true);
+
         if($resDataValidator["result"] != true){
             //$element["msgError"] = ((empty($resDataValidator["msg"]->getMessage()))?$resDataValidator["msg"]:$resDataValidator["msg"]->getMessage());
             $element["msgError"] = $resDataValidator["msg"];

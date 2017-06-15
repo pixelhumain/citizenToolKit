@@ -69,7 +69,7 @@ class Organization {
 	    "contacts" => array("name" => "contacts"),
 	    "urls" => array("name" => "urls"),
 	    "descriptionHTML" => array("name" => "descriptionHTML"),
-
+		"socialNetwork" => array("name" => "socialNetwork"),
 	    "facebook" => array("name" => "socialNetwork.facebook"),
 	    "twitter" => array("name" => "socialNetwork.twitter"),
 	    "gpplus" => array("name" => "socialNetwork.googleplus"),
