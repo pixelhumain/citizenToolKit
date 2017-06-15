@@ -159,9 +159,9 @@ class Element {
 	    										 "hash"=> Classified::CONTROLLER.".detail.id.",
 	    										 "collection"=>Classified::COLLECTION),
 
-			Poi::COLLECTION 			=> array("icon"=>"map-marker","color"=>"#2BB0C6","text-color"=>"green",
+			Poi::COLLECTION 			=> array("icon"=>"map-marker","color"=>"#2BB0C6","text-color"=>"green-poi",
 	    										 "hash"=> Poi::CONTROLLER.".detail.id."),
-	    	Poi::CONTROLLER 			=> array("icon"=>"map-marker","color"=>"#2BB0C6","text-color"=>"green",
+	    	Poi::CONTROLLER 			=> array("icon"=>"map-marker","color"=>"#2BB0C6","text-color"=>"green-poi",
 	    										 "hash"=> Poi::CONTROLLER.".detail.id.",
 	    										 "collection"=>Poi::COLLECTION),
 
