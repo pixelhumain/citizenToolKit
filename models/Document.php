@@ -11,6 +11,8 @@ class Document {
 	const IMG_PROFIL_RESIZED 	= "profil-resized";
 	const IMG_PROFIL_MARKER 	= "profil-marker";
 
+	const FILE_SIZE_MAX			= 5000000;
+
 	const CATEGORY_PLAQUETTE 	= "Plaquette";
 
 	const DOC_TYPE_IMAGE 		= "image";
@@ -925,8 +927,8 @@ class Document {
 
     	//Check size
     	$size = (!empty($sizeUrl) ? $sizeUrl : $file["size"] );
-    	if ($size > 4000000 ) {
-	    	return array('result'=>false,'error'=>"The file size should not be over 4 Mo");
+    	if ($size > self::FILE_SIZE_MAX ) {
+	    	return array('result'=>false,'error'=>"The file size should not be over 5 Mo");
 	    }
 
     	return array('result' => true, 'msg'=>'Files requirements meet', 'uploadDir' => $upload_dir);
