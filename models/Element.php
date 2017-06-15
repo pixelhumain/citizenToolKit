@@ -159,9 +159,9 @@ class Element {
 	    										 "hash"=> Classified::CONTROLLER.".detail.id.",
 	    										 "collection"=>Classified::COLLECTION),
 
-			Poi::COLLECTION 			=> array("icon"=>"map-marker","color"=>"#2BB0C6","text-color"=>"green",
+			Poi::COLLECTION 			=> array("icon"=>"map-marker","color"=>"#2BB0C6","text-color"=>"green-poi",
 	    										 "hash"=> Poi::CONTROLLER.".detail.id."),
-	    	Poi::CONTROLLER 			=> array("icon"=>"map-marker","color"=>"#2BB0C6","text-color"=>"green",
+	    	Poi::CONTROLLER 			=> array("icon"=>"map-marker","color"=>"#2BB0C6","text-color"=>"green-poi",
 	    										 "hash"=> Poi::CONTROLLER.".detail.id.",
 	    										 "collection"=>Poi::COLLECTION),
 
@@ -1548,16 +1548,16 @@ class Element {
 		$params["msgEmail"] = (empty($msgEmail)?null:$msgEmail) ;
 		foreach ($listMails as $key => $value) {
 			$result["result"] = true ;
-			if(!empty($value["mail"])){
-				$params["invitedUserEmail"] = $value["mail"] ;
+			//if(!empty($value["mail"])){
+				$params["invitedUserEmail"] = $key ;
 
-				if(empty($value["name"])){
-					$split = explode("@", $value["mail"]);
+				if(empty($value)){
+					$split = explode("@", $key);
 					$params["invitedUserName"] = $split[0];
 				}else
-					$params["invitedUserName"] = $value["name"] ;
+					$params["invitedUserName"] = $value ;
 				$result["data"][] = self::followPerson($params, $gmail);
-			}
+			//}
 		}
 		return $result;
 	}
@@ -1749,7 +1749,11 @@ class Element {
 	public static function getContactsByMails($listMails){
 		$res = array();
 		foreach ($listMails as $key => $mail){
-			$res[$mail] = PHDB::findOne( Person::COLLECTION , array( "email" => $mail ), array("_id", "name", "profilThumbImageUrl") );
+			$valid = DataValidator::email($mail) ;
+			if( $valid  == "")
+				$res[$mail] = PHDB::findOne( Person::COLLECTION , array( "email" => $mail ), array("_id", "name", "profilThumbImageUrl") );
+			else
+				$res[$mail] = $valid ;
 		}
 		return $res;
 	}
@@ -1867,10 +1871,10 @@ class Element {
 		$params["edit"] = Authorisation::canEditItem(Yii::app()->session["userId"], $type, $id);
         $params["openEdition"] = Authorisation::isOpenEdition($id, $type, @$element["preferences"]);
         $params["controller"] = self::getControlerByCollection($type);
-
         if($type==Person::COLLECTION && !@$element["links"]){
         	$fields=array("links");
         	$links=Element::getElementSimpleById($id,$type,null,$fields);
+        	$links=@$links["links"];
         }
         else
         	$links=@$element["links"];
@@ -1945,12 +1949,12 @@ class Element {
                 @Yii::app()->session["userId"] && 
                 ($type != Person::COLLECTION || 
                 (string)$element["_id"] != Yii::app()->session["userId"])){
-                    $params["linksBtn"]["followBtn"]=true;
+                    $params["linksBtn"]["followBtn"]=true;	
                     if (@$links["followers"][Yii::app()->session["userId"]])
-                            $params["linksBtn"]["isFollowing"]=true;
-                     else if(!@$links["followers"][Yii::app()->session["userId"]] && 
+                        $params["linksBtn"]["isFollowing"]=true;
+                    else if(!@$links["followers"][Yii::app()->session["userId"]] && 
                             $type != Event::COLLECTION)   
-                            $params["linksBtn"]["isFollowing"]=false;                  
+                        $params["linksBtn"]["isFollowing"]=false;       
             }
             
             $connectAs = @self::$connectAs[$type];

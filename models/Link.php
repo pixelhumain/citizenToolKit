@@ -807,9 +807,16 @@ class Link {
 				} else 
 					//$verb = ActStr::VERB_ACCEPT;
 					$msg=$pendingChild["name"]." ".Yii::t("common","is well invited to join")." ".$parentData["name"];
-                $pendingChild["isInviting"]=true;
-				$toBeValidated=false;
-                $isInviting=true;
+                //SPECIFIC USECASE FOR ORGANIZATION => NO INVITATION PROCESS
+                if($childType==Organization::COLLECTION){
+                    $verb = ActStr::VERB_ADD;
+                    $msg=$pendingChild["name"]." ".Yii::t("common","is well added to")." ".$parentData["name"];
+                }
+				else{
+                    $isInviting=true;
+                    $pendingChild["isInviting"]=true;
+                }
+                $toBeValidated=false;
                 Mail::someoneInviteYouToBecome($parentData, $parentType, $pendingChild, $typeOfDemand);
 			} else{
                 // Verb Confirm in ValidateLink

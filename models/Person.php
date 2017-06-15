@@ -217,6 +217,7 @@ class Person {
 
 		$simplePerson["id"] = $id;
 		$simplePerson["name"] = @$person["name"];
+		//$simplePerson["name"] = addslashes(@$person["name"]);
 		$simplePerson["username"] = @$person["username"];
 		$simplePerson["email"] = @$person["email"];
 		$simplePerson["tags"] = @$person["tags"];
@@ -489,7 +490,7 @@ class Person {
 		  			array('$push' => array('invitationDate' => time())));	
 	  		}
 
-	  				  		//send invitation mail
+	  		//send invitation mail
 			Mail::invitePerson($res["person"], $msg);
 		  		  		
 	  	} catch (CTKException $e) {
@@ -642,7 +643,7 @@ class Person {
 
 		if(!empty($person["invitedBy"]))
 			$res['invitedBy'] = $person["invitedBy"];
-	    return ;
+	    return $res;
 	}
 
 	/**
