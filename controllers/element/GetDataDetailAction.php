@@ -185,7 +185,7 @@ class GetDataDetailAction extends CAction {
 			if(@$_POST["tpl"]=="json")
 				return Rest::json($contextMap);
 			else
-			echo $this->getController()->renderPartial($_POST['tpl'], array("result"=>$contextMap, 
+				echo $this->getController()->renderPartial($_POST['tpl'], array("result"=>$contextMap, 
 																			"type"=>$type, 
 																			"id"=>$id, 
 																			"scope"=>@$_POST['searchLocalityDEPARTEMENT'][0], 

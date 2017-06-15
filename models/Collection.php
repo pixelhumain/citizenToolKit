@@ -10,7 +10,7 @@ class Collection {
                        array("_id" => new MongoId(Yii::app()->session["userId"]) ) , 
                        array($action => array("collections.".$name => new stdClass() )));
 
-        return array("result"=>true, "msg"=>"Collection $name created with success");
+        return array("result"=>true, "msg"=>Yii::t("common","Collection {what} created with success",array("{what}"=>$name)));
     }
 
     public static function update($name,$newName,$del=false)
@@ -32,7 +32,7 @@ class Collection {
                            array("_id" => new MongoId(Yii::app()->session["userId"]) ) , 
                            $actions
                            );
-            return array("result"=>true, "msg"=>"Collection $name $action with success");
+            return array("result"=>true, "msg"=>Yii::t("common","Collection {what} ".$action." with success",array("{what}"=>$name)));
         } else 
             return array("result"=>false, "collection"=>"collections.".$name, "msg"=>"Collection $name doesn't exist");
         
@@ -47,12 +47,20 @@ class Collection {
         
         $action = '$set';
         $inc = 1;
-        $verb = "Added ".$target["name"]." to";
+        $verb = "added";
+        $linkVerb=Yii::t("common","to")." ".$collection;
+        if($collection=="favorites")
+            $linkVerb=Yii::t("common","to favorites");
+        
         if( @$person["collections"][$collection][$targetType][$targetId] )
         {
             $action =  '$unset';
             $inc = -1;
-            $verb = "Removed ".$target["name"]." from";
+            $verb = "removed";
+            $linkVerb=Yii::t("common","from")." ".$collection;
+            if($collection=="favorites")
+                $linkVerb=Yii::t("common","from favorites");
+        
             $collections=array("collections.".$collection.".".$targetType.".".$targetId => 1);
         }  
 
@@ -64,7 +72,7 @@ class Collection {
                        array( "_id" => new MongoId($targetId) ) , 
                        array( '$inc' => array( "collectionCount" => $inc ) ) );
             
-        return array("result"=>true,"list"=>$action, "msg"=>"$verb $collection with success");
+        return array("result"=>true,"list"=>$action, "msg"=>Yii::t("common", "{what} ".$verb." {where} with success",array("{what}"=>$target["name"],"{where}"=>$linkVerb)));
     }
 
     //$type is a filter of a type of favorite
