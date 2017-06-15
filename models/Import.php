@@ -197,6 +197,10 @@ class Import
         if($typeElement != Person::COLLECTION){
             $address = (empty($element['address']) ? null : $element['address']);
             $geo = (empty($element['geo']) ? null : $element['geo']);
+
+            if(!empty($address) && !empty($address["addressCountry"])  && !empty($address["postalCode"]) && strtoupper($address["addressCountry"]) == "FR" && strlen($address["postalCode"]) == 4 )
+                $address["postalCode"] = '0'.$address["postalCode"];
+
             $detailsLocality = self::getAndCheckAddressForEntity($address, $geo) ;
             if($detailsLocality["result"] == true){
                $element["address"] = $detailsLocality["address"] ;
