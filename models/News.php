@@ -51,8 +51,8 @@ class News {
 	    foreach ($res as $key => $news) {
 		    if(@$news["type"]){
 			    $newNews=NewsTranslator::convertParamsForNews($news, false, $followsArrayIds);
-			    //if(empty($newNews)){			  		
-				$res[$key]=$newNews;
+			    if(empty($newNews))			  		
+					$res[$key]=$newNews;
 				//}else{
 				//	$res[$key]=array();
 				//}
