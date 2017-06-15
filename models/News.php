@@ -53,6 +53,8 @@ class News {
 			    $newNews=NewsTranslator::convertParamsForNews($news, false, $followsArrayIds);
 			    if(!empty($newNews))			  		
 					$res[$key]=$newNews;
+				else
+					unset($res[$key]);
 				//}else{
 				//	$res[$key]=array();
 				//}
