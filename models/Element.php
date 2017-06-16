@@ -1097,9 +1097,8 @@ class Element {
 
 		//$paramsImport = (empty($params["paramsImport"])?null:$params["paramsImport"]);
 		$paramsLinkImport = ( empty($params["paramsImport"] ) ? null : $params["paramsImport"]);
-
 		
-        unset($params['collection']);
+		unset($params['collection']);
         unset($params['key']);
         $params = self::prepData( $params );
         unset($params["paramsImport"]);
@@ -1124,7 +1123,7 @@ class Element {
         }
         if( $valid["result"] )
         	try {
-        		$valid = DataValidator::validate( ucfirst($key), json_decode (json_encode ($params), true) );
+        		$valid = DataValidator::validate( ucfirst($key), json_decode (json_encode ($params), true), ( empty($paramsLinkImport ) ? null : true));
         	} catch (CTKException $e) {
         		$valid = array("result"=>false, "msg" => $e->getMessage());
         	}

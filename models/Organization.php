@@ -69,6 +69,8 @@ class Organization {
 	    "contacts" => array("name" => "contacts"),
 	    "disabled" => array("name" => "disabled"),
 	    "descriptionHTML" => array("name" => "descriptionHTML"),
+	    "socialNetwork" => array("name" => "socialNetwork"),
+	    "facebook" => array("name" => "socialNetwork.facebook"),
 	);
 	
 	//See findOrganizationByCriterias...
