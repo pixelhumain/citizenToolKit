@@ -29,6 +29,7 @@ class Network {
 		}
 
 		try {
+			//$json = file_get_contents($configPath);
 			$json = file_get_contents($configPath, null, null, 0, 10000);
 			if ($json === false) 
 				throw new CHttpException(404, "Impossible to find the network configuration file.");

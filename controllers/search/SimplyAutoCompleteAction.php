@@ -43,16 +43,28 @@ class SimplyAutoCompleteAction extends CAction
   		if(count($tmpTags)){
   			$query = array('$and' => array( $query , array("tags" => array($verbTag => $tmpTags)))) ;
   		}
+
   		if(!empty($searchTag)){
+  			$isString = false;
   			foreach ($searchTag as $key => $tags) {
 	  			$tmpTags = array();
-	  			foreach ($tags as $key => $tag) {
-			  		$tmpTags[] = new MongoRegex("/".$tag."/i");
-		  		}
-		  		if(count($tmpTags)){
-		  			$verbTag = ( (!empty($paramsFiltre) && '$all' == $paramsFiltre) ? '$all' : '$in' ) ;
-		  			$query = array('$and' => array( $query , array("tags" => array($verbTag => $tmpTags)))) ;
-		  		}
+	  			if(is_array($tags)){
+	  				foreach ($tags as $key => $tag) {
+				  		$tmpTags[] = new MongoRegex("/".$tag."/i");
+			  		}
+			  		if(count($tmpTags)){
+			  			$verbTag = ( (!empty($paramsFiltre) && '$all' == $paramsFiltre) ? '$all' : '$in' ) ;
+			  			$query = array('$and' => array( $query , array("tags" => array($verbTag => $tmpTags)))) ;
+			  		}
+	  			}else{
+	  				$tmpTags[] = new MongoRegex("/".$tags."/i");
+				  	
+			  		$isString = true;
+	  			}
+	  		}
+
+	  		if($isString && count($tmpTags)){
+	  			$query = array('$and' => array( $query , array("tags" => array('$in' => $tmpTags)))) ;
 	  		}
   		}
   		
