@@ -131,10 +131,7 @@ class Import
                         //var_dump($valFile);
                         if(!empty($valFile)){
                             $valueData = ( is_string($valFile) ? trim($valFile) : $valFile );
-                            if(!empty($valueData)){
-                                var_dump($value["valueAttributeElt"]);
-                                var_dump(trim($valueData));
-                               
+                            if(!empty($valueData)){                               
                                 $typeValue = ArrayHelper::getValueByDotPath($mapping , $value["valueAttributeElt"]);
                                 $element = ArrayHelper::setValueByDotPath($element , $value["valueAttributeElt"], $valueData, $typeValue);
                                 //var_dump($typeValue);
@@ -172,11 +169,20 @@ class Import
     }  
 
     public static function createArrayList($list) {
-        $head = array("name", "warnings", "msgError") ;
+        $head = array("name", "address", "warnings", "msgError") ;
         $tableau = array($head);
         foreach ($list as $keyList => $valueList){
             $ligne = array();
             $ligne[] = (empty($valueList["name"])? "" : $valueList["name"]);
+
+            if(!empty($valueList["address"])){
+                $str = (empty($valueList["address"]["streetAddress"]) ? "" : $valueList["address"]["streetAddress"].",");
+                $str .= (empty($valueList["address"]["postalCode"]) ? "" : $valueList["address"]["postalCode"].", ");
+                $str .= (empty($valueList["address"]["addressLocality"]) ? "" : $valueList["address"]["addressLocality"].", ");
+                $str .= (empty($valueList["address"]["addressCountry"]) ? "" : $valueList["address"]["addressCountry"]);
+                $ligne[] = $str;
+            }
+
             $ligne[] = (empty($valueList["warnings"])? "" : self::getMessagesWarnings($valueList["warnings"]));
             $ligne[] = (empty($valueList["msgError"])? "" : $valueList["msgError"]);
             $tableau[] = $ligne ;
