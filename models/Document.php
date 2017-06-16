@@ -372,7 +372,7 @@ class Document {
 		$doc = Document::getById($id);
 		if ($doc) 
 		{
-			if (Authorisation::canEditItem($userId, $doc["type"], $doc["id"])) 
+			if (Authorisation::canParticipate($userId, $doc["type"], $doc["id"])) 
 			{
 				$filepath = self::getDocumentPath($doc);
 				if(file_exists ( $filepath )) {

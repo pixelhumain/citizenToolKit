@@ -42,8 +42,8 @@ class NewsTranslator {
 				$object=Classified::getById((string)$params["object"]["id"]);
 				$params["icon"]="fa-newspaper-o";
 			}
-			var_dump($object);
-			exit;
+			//var_dump($object);
+			//exit;
 			if(!empty($object)){
 				$thisType = $params["object"]["type"];
 				$params["object"] = array_merge($params["object"], $object);
