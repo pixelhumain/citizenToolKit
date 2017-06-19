@@ -763,7 +763,7 @@ class Element {
 		  ) {
 			if(isset($links[$connectAs])){
 				foreach ($links[$connectAs] as $key => $aMember) {
-					if($type==Event::COLLECTION){
+					//if($type==Event::COLLECTION){
 						$citoyen = Person::getSimpleUserById($key);
 						if(!empty($citoyen)){
 							if(@$aMember["invitorId"])  {
@@ -808,14 +808,15 @@ class Element {
 								}
 							}
 						}
-					}
+					//}
 				}
 			}
 			// Link with events
 			if(isset($links["events"])){
 				foreach ($links["events"] as $keyEv => $valueEv) {
 					$event = Event::getSimpleEventById($keyEv);
-					if(!empty($event))
+					//if(!empty($event))
+					if(!empty($event) && !empty($event["endDate"]) && strtotime($event["endDate"]) > strtotime("now") )
 						$contextMap[$event["id"]] = $event;
 				}
 			}
@@ -847,7 +848,7 @@ class Element {
 			if(isset($links["subEvents"])){
 				foreach ($links["subEvents"] as $keyEv => $valueEv) {
 					$event = Event::getSimpleEventById($keyEv);
-					if(!empty($event))
+					if(!empty($event) && !empty($event["endDate"]) && strtotime($event["endDate"]) > strtotime("now") )
 						$contextMap[$event["id"]] = $event;
 				}
 			}
@@ -885,7 +886,7 @@ class Element {
 			}
 		}
 		//error_log("get POI for id : ".$id." - type : ".$type);
-		if(isset($id)){
+		/*if(isset($id)){
 			$pois = PHDB::find(Poi::COLLECTION,array("parentId"=>$id,"parentType"=>$type));
 			if(!empty($pois)) {
 				$allPois = array();
@@ -899,7 +900,7 @@ class Element {
 				}
 				
 			}
-		}
+		}*/
 		return $contextMap;	
     }
 
