@@ -51,8 +51,10 @@ class News {
 	    foreach ($res as $key => $news) {
 		    if(@$news["type"]){
 			    $newNews=NewsTranslator::convertParamsForNews($news, false, $followsArrayIds);
-			    //if(empty($newNews)){			  		
-				$res[$key]=$newNews;
+			    if(!empty($newNews))			  		
+					$res[$key]=$newNews;
+				else
+					unset($res[$key]);
 				//}else{
 				//	$res[$key]=array();
 				//}
@@ -298,10 +300,15 @@ class News {
 		}
 
 		//get all the news
-		$where = array('$and' => array(
+		$where = array('$or' => array(
+						array("target.id" => $elementId),
+						array("object.id" => $elementId)
+					));
+		
+		/*$where = array('$and' => array(
 						array("target.id" => $elementId),
 						array("target.type" => $elementType)
-					));
+					));*/
 		$news2delete = PHDB::find(self::COLLECTION, $where);
 		$nbNews = 0;		
 		

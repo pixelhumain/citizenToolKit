@@ -42,7 +42,8 @@ class NewsTranslator {
 				$object=Classified::getById((string)$params["object"]["id"]);
 				$params["icon"]="fa-newspaper-o";
 			}
-
+			//var_dump($object);
+			//exit;
 			if(!empty($object)){
 				$thisType = $params["object"]["type"];
 				$params["object"] = array_merge($params["object"], $object);
@@ -79,7 +80,7 @@ class NewsTranslator {
 
 
 			}else{
-				$params=array("created"=>$params["created"]);
+				$params=array();
 				return $params;
 			}
 		}
