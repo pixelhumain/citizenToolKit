@@ -757,8 +757,10 @@ class Element {
 		
 	    
 		if(!empty($links) && 
-			( (Preference::showPreference($elt, $type, "directory", Yii::app()->session["userId"]) && $type == Person::COLLECTION) || 
-			$type != Person::COLLECTION) ) {
+			( (Preference::showPreference($elt, $type, "directory", Yii::app()->session["userId"]) && 
+			  $type == Person::COLLECTION ) || 
+			  $type != Person::COLLECTION) 
+		  ) {
 			if(isset($links[$connectAs])){
 				foreach ($links[$connectAs] as $key => $aMember) {
 					if($type==Event::COLLECTION){
@@ -902,9 +904,7 @@ class Element {
     }
 
     public static function getActive($type){
-
         $list = PHDB::findAndSort( $type ,array("updated"=>array('$exists'=>1)),array("updated"=>1), 4);
-        
         return $list;
      }
 
