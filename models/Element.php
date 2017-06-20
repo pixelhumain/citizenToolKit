@@ -391,7 +391,7 @@ class Element {
 
 
 
-    public static function updateField($collection, $id, $fieldName, $fieldValue) {
+    public static function updateField($collection, $id, $fieldName, $fieldValue, $allDay=null) {
     	//error_log("updateField : ".$fieldName." with value :".$fieldValue);
     	if (!Authorisation::canEditItemOrOpenEdition($id, $collection, Yii::app()->session['userId'])) {
 			throw new CTKException(Yii::t("common","Can not update the element : you are not authorized to update that element !"));
@@ -414,7 +414,6 @@ class Element {
 		
 		if ($dataFieldName == "name") 
 			$fieldValue = $fieldValue;
-
 		if ($dataFieldName == "tags") {
 			$fieldValue = Tags::filterAndSaveNewTags($fieldValue);
 			$set = array($dataFieldName => $fieldValue);
@@ -581,6 +580,11 @@ class Element {
 		}*/ else if ($dataFieldName == "startDate" || $dataFieldName == "endDate" || $dataFieldName == "birthDate") {
 			date_default_timezone_set('UTC');
 			$dt = DataValidator::getDateTimeFromString($fieldValue, $dataFieldName);
+
+			if ($dataFieldName == "startDate" && @$allDay && $allDay==true)
+				$dt=date_time_set($dt, 00, 00);
+			if ($dataFieldName == "endDate" && @$allDay && $allDay==true) 
+				$dt=date_time_set($dt, 23, 59);
 			$newMongoDate = new MongoDate($dt->getTimestamp());
 			$set = array($dataFieldName => $newMongoDate);
 		} else if ($dataFieldName == "organizer") {
@@ -1808,9 +1812,9 @@ class Element {
 			if(isset($params["allDayHidden"]) && $collection == Event::COLLECTION)
 				$res[] = self::updateField($collection, $id, "allDay", (($params["allDayHidden"] == "true") ? true : false));
 			if(isset($params["startDate"]))
-				$res[] = self::updateField($collection, $id, "startDate", $params["startDate"]);
+				$res[] = self::updateField($collection, $id, "startDate", $params["startDate"],@$params["allDay"]);
 			if(isset($params["endDate"]))
-				$res[] = self::updateField($collection, $id, "endDate", $params["endDate"]);
+				$res[] = self::updateField($collection, $id, "endDate", $params["endDate"],@$params["allDay"]);
 		
 		}else if($block == "toMarkdown"){
 
