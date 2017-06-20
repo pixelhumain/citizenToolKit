@@ -920,7 +920,13 @@ class Person {
 	        		return $res;
 	        	else{
 	        		Person::updateCookieCommunexion((string)$account["_id"], @$account["address"]);
-	            	$res = array("result"=>true, "id"=>(string)$account["_id"], "isCommunected"=>isset($account["cp"]), "msg" => "Vous êtes maintenant identifié : bienvenue sur communecter.");
+	        		unset($account["pwd"]);
+	            	$res = array(
+	            		"result"=>true, 
+	            		"id"=>(string)$account["_id"], 
+	            		"isCommunected"=>isset($account["cp"]), 
+	            		"account" => $account,
+	            		"msg" => "Vous êtes maintenant identifié : bienvenue sur communecter.");
 	        	}
 	        } else {
 	            $res = array("result"=>false, "msg"=>"emailAndPassNotMatch");
