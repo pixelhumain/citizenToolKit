@@ -164,7 +164,7 @@ class Search {
 		//*********************************  CLASSIFIED   ******************************************
         if(strcmp($filter, Classified::COLLECTION) != 0 && self::typeWanted(Classified::COLLECTION, $searchType)){
         	//var_dump($query) ; exit;
-        	if(in_array("favorites", $searchTags))
+        	if(!empty($searchTags) && in_array("favorites", $searchTags))
         		$allRes = array_merge($allRes, self::searchFavorites(Classified::COLLECTION));
         	else 
         		$allRes = array_merge($allRes, self::searchClassified($query, $indexStep, $indexMin, @$priceMin, @$priceMax, @$devise));
