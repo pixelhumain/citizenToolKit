@@ -381,6 +381,8 @@ class Element {
 			return Project::getDataBinding();
 		else if($collection == Survey::COLLECTION)
 			return Survey::getDataBinding();
+		else if($collection == Poi::COLLECTION)
+			return Poi::getDataBinding();
 		else
 			return array();
 	}
