@@ -392,7 +392,10 @@ class Event {
 	public static function formatBeforeSaving($params) {
 		$startDate = DataValidator::getDateTimeFromString($params['startDate'], "start date");
 		$endDate = DataValidator::getDateTimeFromString($params['endDate'], "end date");
-	    
+		if(@$params["allDay"] && $params["allDay"]){
+			$startDate=date_time_set($startDate, 00, 00);
+			$endDate=date_time_set($endDate, 23, 59);
+		}
 		$params["startDate"] = new MongoDate($startDate->getTimestamp());
 		$params["endDate"]   = new MongoDate($endDate->getTimestamp());
 

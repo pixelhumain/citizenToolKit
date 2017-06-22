@@ -27,7 +27,7 @@ class UploadSaveAction extends CAction {
                     $res = array('resultUpload'=>true,
                                 "success"=>true,
                                 'name'=>$res["name"],
-                                'dir'=> $res["uploadDir"],
+                                //'dir'=> $res["uploadDir"],
                                 'size'=> (int)filesize ($res["uploadDir"].$res["name"]) );
                 }
             }
