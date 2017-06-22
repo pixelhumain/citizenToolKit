@@ -1,4 +1,4 @@
-<?php 
+<?php
 class News {
 
 	const COLLECTION = "news";
@@ -26,7 +26,7 @@ class News {
 	  	return PHDB::findAndSort( self::COLLECTION,$params);
 	}*/
 	public static function getAuthor($id){
-		return PHDB::findOneById( self::COLLECTION ,$id, 
+		return PHDB::findOneById( self::COLLECTION ,$id,
 				array("author" => 1));
 	}
 	/*public static function getWhereSortLimit($params,$sort=array("created"=>-1),$limit=1) {
@@ -37,9 +37,9 @@ class News {
 	  	}
 	  	return $res;
 	}*/
-	
+
 	/**
-	 * get news 
+	 * get news
 	 * @param type $params : is the condition of news generated
 	 * @param type sort
 	 * News limited to 15
@@ -51,7 +51,7 @@ class News {
 	    foreach ($res as $key => $news) {
 		    if(@$news["type"]){
 			    $newNews=NewsTranslator::convertParamsForNews($news);
-			    //if(empty($newNews)){			  		
+			    //if(empty($newNews)){
 				$res[$key]=$newNews;
 				//}else{
 				//	$res[$key]=array();
@@ -69,12 +69,12 @@ class News {
 	 */
 	public static function save($params)
 	{
-		//check a user is loggued 
+		//check a user is loggued
 	 	$user = Person::getById(Yii::app()->session["userId"]);
 	 	//TODO : if type is Organization check the connected user isAdmin
-	 	
+
 	 	if(empty($user))
-	 		return array("result"=>false, "msg"=>Yii::t("common","You must be logged in to add a news entry !"));	
+	 		return array("result"=>false, "msg"=>Yii::t("common","You must be logged in to add a news entry !"));
 
 	 	if((isset($_POST["text"]) && !empty($_POST["text"])) || (isset($_POST["media"]) && !empty($_POST["media"])))
 	 	{
@@ -120,7 +120,7 @@ class News {
 						$person["type"]=Person::COLLECTION;
 						Notification::actionOnPerson ( ActStr::VERB_POST, ActStr::ICON_RSS, null , $person )  ;
 					}
-						
+
 				}else if($type == Organization::COLLECTION ){
 					$organization = Organization::getById($_POST["parentId"]);
 					if( isset( $organization['geo'] ) )
@@ -151,7 +151,7 @@ class News {
 						$codeInsee=$project["address"]["codeInsee"];
 						$postalCode=$project["address"]["postalCode"];
 					}
-					$project["type"] = Project::COLLECTION; 
+					$project["type"] = Project::COLLECTION;
 					Notification::actionOnPerson ( ActStr::VERB_POST, ActStr::ICON_RSS, null , $project )  ;
 				}
 				// if( isset($_POST["scope"])) {
@@ -172,7 +172,7 @@ class News {
 				// 												"geo" => $from
 				// 											);
 				// 		}
-				// 	}		
+				// 	}
 				// }
 				if( $_POST["scope"] != "restricted" && $_POST["scope"] != "private" &&
 					isset($_POST["searchLocalityCITYKEY"]) && !empty($_POST["searchLocalityCITYKEY"]) && $_POST["searchLocalityCITYKEY"] != "") {
@@ -200,7 +200,7 @@ class News {
 																"addressLocality"=>"", //$city["name"],
 																"geo" => $city["geo"]
 															);
-						}	
+						}
 					}}
 					foreach($_POST["searchLocalityDEPARTEMENT"] as $key => $value){ if(!empty($value)){
 						$news["scope"]["departements"][] = array( "name"=>$value );
@@ -221,7 +221,7 @@ class News {
 															"geo" => $from
 														);
 					}
-				}		
+				}
 			}
 		 	if(isset($_POST["mentions"])){
 				$news["mentions"] = $_POST["mentions"];
@@ -233,16 +233,16 @@ class News {
 			}
 
 			PHDB::insert(self::COLLECTION,$news);
-			$news=NewsTranslator::convertParamsForNews($news);			  		
+			$news=NewsTranslator::convertParamsForNews($news);
 		    $news["author"] = Person::getSimpleUserById(Yii::app()->session["userId"]);
-		    
+
 		    /* Send email alert to contact@pixelhumain.com */
 		  	if(@$type && $type=="pixels"){
 		  		Mail::notifAdminBugMessage($news["text"]);
 		  	}
-		    return array("result"=>true, "msg"=>"Votre message est enregistré.", "id"=>$news["_id"],"object"=>$news);	
+		    return array("result"=>true, "msg"=>"Votre message est enregistré.", "id"=>$news["_id"],"object"=>$news);
 		} else {
-			return array("result"=>false, "msg"=>"Please Fill required Fields.");	
+			return array("result"=>false, "msg"=>"Please Fill required Fields.");
 		}
 	}
 
@@ -250,7 +250,7 @@ class News {
 	 * delete a news in database and the comments on that news
 	 * @param type $id : id to delete
 	 * @param type $userId : the userid asking to delete the news
-	 * @param bool $removeComments 
+	 * @param bool $removeComments
 	 * @return array result => bool, msg => string
 	 */
 	public static function delete($id, $userId, $removeComments = false) {
@@ -283,11 +283,11 @@ class News {
 	 * delete all news linked to an element
 	 * @param String $elementId  : id of the element the news depends on
 	 * @param String $elementType : type of the element the news depends on
-	 * @param type|bool $removeComments 
+	 * @param type|bool $removeComments
 	 * @return array result => bool, msg => String
 	 */
 	public static function deleteNewsOfElement($elementId, $elementType, $userId, $removeComments = false) {
-		
+
 		//Check if the $userId can delete the element
 		$canDelete = Authorisation::canDeleteElement($elementId, $elementType, $userId);
 		if (! $canDelete) {
@@ -300,8 +300,8 @@ class News {
 						array("target.type" => $elementType)
 					));
 		$news2delete = PHDB::find(self::COLLECTION, $where);
-		$nbNews = 0;		
-		
+		$nbNews = 0;
+
 		foreach ($news2delete as $id => $aNews) {
 			$res = self::delete($id, $userId, true);
 			if ($res["result"] == false) return $res;
@@ -321,17 +321,17 @@ class News {
 	}
 	/**
 	 * update a news in database
-	 * @param String $newsId : 
+	 * @param String $newsId :
 	 * @param string $name fields to update
 	 * @param String $value : new value of the field
 	 * @return array of result (result => boolean, msg => string)
 	 */
 	public static function updateField($newsId, $name, $value, $userId){
-		$set = array($name => $value);	
+		$set = array($name => $value);
 		//update the project
-		PHDB::update( self::COLLECTION, array("_id" => new MongoId($newsId)), 
+		PHDB::update( self::COLLECTION, array("_id" => new MongoId($newsId)),
 		                          array('$set' => $set));
-	                  
+
 	    return array("result"=>true, "msg"=>Yii::t("common","News well updated"), "id"=>$newsId);
 	}
 	/**
@@ -363,7 +363,7 @@ class News {
 	}
 
 	public static function getNewsToModerate($whereAdditional = null, $limit = 0) {
-		
+
 		$where = array(
           "reportAbuse"=> array('$exists'=>1)
           ,"isAnAbuse" => array('$exists'=>0)
@@ -388,7 +388,7 @@ class News {
 	* @param string $authorId, defines name of img
 	*/
 	public static function uploadNewsImage($urlImage,$size,$authorId){
-		$allowed_ext = array('jpg','jpeg','png','gif'); 
+		$allowed_ext = array('jpg','jpeg','png','gif');
     	$ext = strtolower(pathinfo($urlImage, PATHINFO_EXTENSION));
     	if(empty($ext))
     		$ext="png";
@@ -398,10 +398,10 @@ class News {
     	}
 		$dir=Yii::app()->params['defaultController'];
 		$folder="news";
-		$upload_dir = Yii::app()->params['uploadUrl'].$dir.'/'.$folder; 
+		$upload_dir = Yii::app()->params['uploadUrl'].$dir.'/'.$folder;
 		//echo $upload_dir;
-		$name=time()."_".$authorId.".".$ext;        
-		if(!file_exists ( $upload_dir )) {       
+		$name=time()."_".$authorId.".".$ext;
+		if(!file_exists ( $upload_dir )) {
 			mkdir($upload_dir, 0775);
 		}
 		if($size="large"){
@@ -434,7 +434,7 @@ class News {
         if (@$news["author"] == $userId) return true;
         if (Authorisation::isUserSuperAdmin($userId)) return true;
         $parentId = @$news["target"]["id"];
-        $parentType = @$new["target"]["type"];
+        $parentType = @$news["target"]["type"];
 
         $isAdmin = Authorisation::isElementAdmin($parentId, $parentType, $userId);
         return $isAdmin;
