@@ -124,15 +124,22 @@ class GetDataDetailAction extends CAction {
 
 
 		if($dataName == "liveNow"){
+			//echo  empty($_POST["searchLocalityDEPARTEMENT"] == "" ? "true" : "false"; exit;
+			$post = $_POST; 
+			if( empty($_POST["searchLocalityCITYKEY"]) && 
+				(empty($_POST["searchLocalityDEPARTEMENT"]) || $_POST["searchLocalityDEPARTEMENT"][0] == "") && 
+				isset($element["address"])){
+				$city = City::getDepAndRegionByInsee($element["address"]["codeInsee"]);
+				$post["searchLocalityDEPARTEMENT"] = array($city["depName"]);
+				//var_dump($post); exit;
+			}
 
 			//EVENTS-------------------------------------------------------------------------------
 			$query = array("startDate" => array( '$gte' => new MongoDate( time() ) ));
 
-			if(@$type!="0" || !empty($_POST["searchLocalityCITYKEY"]))
-			$query = Search::searchLocality($_POST, $query);
+			if(@$type!="0" || !empty($post["searchLocalityCITYKEY"]))
+			$query = Search::searchLocality($post, $query);
 
-			
-			
 			$events = PHDB::findAndSortAndLimitAndIndex( Event::COLLECTION,
 							$query,
 							array("startDate"=>1), 10);
@@ -150,8 +157,9 @@ class GetDataDetailAction extends CAction {
 
 			//CLASSIFIED-------------------------------------------------------------------------------
 			$query = array();
-			if(@$type!="0" || !empty($_POST["searchLocalityCITYKEY"]))
-				$query = Search::searchLocality($_POST, $query);
+			if(@$type!="0" || !empty($post["searchLocalityCITYKEY"]))
+				$query = Search::searchLocality($post, $query);
+
 			//var_dump($query); exit;
 			$classified = PHDB::findAndSortAndLimitAndIndex( Classified::COLLECTION, $query,
 							array("updated"=>-1), 10);
@@ -167,8 +175,8 @@ class GetDataDetailAction extends CAction {
 			
 		  	//POI-------------------------------------------------------------------------------
 			$query = array();
-			if(@$type!="0" || !empty($_POST["searchLocalityCITYKEY"]))
-				$query = Search::searchLocality($_POST, $query);
+			if(@$type!="0" || !empty($post["searchLocalityCITYKEY"]))
+				$query = Search::searchLocality($post, $query);
 			
 			$pois = PHDB::findAndSortAndLimitAndIndex( Poi::COLLECTION, $query,
 							array("updated"=>-1), 10);
@@ -182,13 +190,13 @@ class GetDataDetailAction extends CAction {
 		  	}
 		  	$contextMap = array_merge($contextMap, $pois);
 			
-			if(@$_POST["tpl"]=="json")
+			if(@$post["tpl"]=="json")
 				return Rest::json($contextMap);
 			else
-				echo $this->getController()->renderPartial($_POST['tpl'], array("result"=>$contextMap, 
+				echo $this->getController()->renderPartial($post['tpl'], array("result"=>$contextMap, 
 																			"type"=>$type, 
 																			"id"=>$id, 
-																			"scope"=>@$_POST['searchLocalityDEPARTEMENT'][0], 
+																			"scope"=>@$post['searchLocalityDEPARTEMENT'][0], 
 																			"open"=> (@$type=="0"))); //open : for home page (when no user connected)
 			Yii::app()->end();
 		}
