@@ -124,14 +124,12 @@ class GetDataDetailAction extends CAction {
 
 
 		if($dataName == "liveNow"){
-			//echo  empty($_POST["searchLocalityDEPARTEMENT"] == "" ? "true" : "false"; exit;
 			$post = $_POST; 
 			if( empty($_POST["searchLocalityCITYKEY"]) && 
 				(empty($_POST["searchLocalityDEPARTEMENT"]) || $_POST["searchLocalityDEPARTEMENT"][0] == "") && 
 				isset($element["address"])){
 				$city = City::getDepAndRegionByInsee($element["address"]["codeInsee"]);
 				$post["searchLocalityDEPARTEMENT"] = array($city["depName"]);
-				//var_dump($post); exit;
 			}
 
 			//EVENTS-------------------------------------------------------------------------------
@@ -148,7 +146,6 @@ class GetDataDetailAction extends CAction {
 				$events[$key]["type"] = "events";
 				$events[$key]["typeSig"] = "events";
 				if(@$value["startDate"]) {
-					//var_dump(@$value["startDate"]);
 					$events[$key]["updatedLbl"] = Translate::pastTime(@$value["startDate"]->sec,"timestamp");
 		  		}
 		  	}
@@ -160,7 +157,6 @@ class GetDataDetailAction extends CAction {
 			if(@$type!="0" || !empty($post["searchLocalityCITYKEY"]))
 				$query = Search::searchLocality($post, $query);
 
-			//var_dump($query); exit;
 			$classified = PHDB::findAndSortAndLimitAndIndex( Classified::COLLECTION, $query,
 							array("updated"=>-1), 10);
 
