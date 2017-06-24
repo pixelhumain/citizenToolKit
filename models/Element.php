@@ -391,7 +391,7 @@ class Element {
 
 
 
-    public static function updateField($collection, $id, $fieldName, $fieldValue) {
+    public static function updateField($collection, $id, $fieldName, $fieldValue, $allDay=null) {
     	//error_log("updateField : ".$fieldName." with value :".$fieldValue);
     	if (!Authorisation::canEditItemOrOpenEdition($id, $collection, Yii::app()->session['userId'])) {
 			throw new CTKException(Yii::t("common","Can not update the element : you are not authorized to update that element !"));
@@ -414,7 +414,6 @@ class Element {
 		
 		if ($dataFieldName == "name") 
 			$fieldValue = $fieldValue;
-
 		if ($dataFieldName == "tags") {
 			$fieldValue = Tags::filterAndSaveNewTags($fieldValue);
 			$set = array($dataFieldName => $fieldValue);
@@ -581,6 +580,11 @@ class Element {
 		}*/ else if ($dataFieldName == "startDate" || $dataFieldName == "endDate" || $dataFieldName == "birthDate") {
 			date_default_timezone_set('UTC');
 			$dt = DataValidator::getDateTimeFromString($fieldValue, $dataFieldName);
+
+			if ($dataFieldName == "startDate" && @$allDay && $allDay==true)
+				$dt=date_time_set($dt, 00, 00);
+			if ($dataFieldName == "endDate" && @$allDay && $allDay==true) 
+				$dt=date_time_set($dt, 23, 59);
 			$newMongoDate = new MongoDate($dt->getTimestamp());
 			$set = array($dataFieldName => $newMongoDate);
 		} else if ($dataFieldName == "organizer") {
@@ -757,11 +761,13 @@ class Element {
 		
 	    
 		if(!empty($links) && 
-			( (Preference::showPreference($elt, $type, "directory", Yii::app()->session["userId"]) && $type == Person::COLLECTION) || 
-			$type != Person::COLLECTION) ) {
+			( (Preference::showPreference($elt, $type, "directory", Yii::app()->session["userId"]) && 
+			  $type == Person::COLLECTION ) || 
+			  $type != Person::COLLECTION) 
+		  ) {
 			if(isset($links[$connectAs])){
 				foreach ($links[$connectAs] as $key => $aMember) {
-					if($type==Event::COLLECTION){
+					//if($type==Event::COLLECTION){
 						$citoyen = Person::getSimpleUserById($key);
 						if(!empty($citoyen)){
 							if(@$aMember["invitorId"])  {
@@ -806,14 +812,15 @@ class Element {
 								}
 							}
 						}
-					}
+					//}
 				}
 			}
 			// Link with events
 			if(isset($links["events"])){
 				foreach ($links["events"] as $keyEv => $valueEv) {
 					$event = Event::getSimpleEventById($keyEv);
-					if(!empty($event))
+					//if(!empty($event))
+					if(!empty($event) && !empty($event["endDate"]) && strtotime($event["endDate"]) > strtotime("now") )
 						$contextMap[$event["id"]] = $event;
 				}
 			}
@@ -845,7 +852,7 @@ class Element {
 			if(isset($links["subEvents"])){
 				foreach ($links["subEvents"] as $keyEv => $valueEv) {
 					$event = Event::getSimpleEventById($keyEv);
-					if(!empty($event))
+					if(!empty($event) && !empty($event["endDate"]) && strtotime($event["endDate"]) > strtotime("now") )
 						$contextMap[$event["id"]] = $event;
 				}
 			}
@@ -883,7 +890,7 @@ class Element {
 			}
 		}
 		//error_log("get POI for id : ".$id." - type : ".$type);
-		if(isset($id)){
+		/*if(isset($id)){
 			$pois = PHDB::find(Poi::COLLECTION,array("parentId"=>$id,"parentType"=>$type));
 			if(!empty($pois)) {
 				$allPois = array();
@@ -897,14 +904,12 @@ class Element {
 				}
 				
 			}
-		}
+		}*/
 		return $contextMap;	
     }
 
     public static function getActive($type){
-
         $list = PHDB::findAndSort( $type ,array("updated"=>array('$exists'=>1)),array("updated"=>1), 4);
-        
         return $list;
      }
 
@@ -1248,7 +1253,8 @@ class Element {
 
 		//$paramsImport = (empty($params["paramsImport"])?null:$params["paramsImport"]);
 		$paramsLinkImport = ( empty($params["paramsImport"] ) ? null : $params["paramsImport"]);
-
+		
+		
 		unset($params["paramsImport"]);
         unset($params['key']);
        
@@ -1281,7 +1287,7 @@ class Element {
         }
         if( $valid["result"] )
         	try {
-        		$valid = DataValidator::validate( ucfirst($key), json_decode (json_encode ($params), true) );
+        		$valid = DataValidator::validate( ucfirst($key), json_decode (json_encode ($params), true), ( empty($paramsLinkImport) ? null : true) );
         	} catch (CTKException $e) {
         		$valid = array("result"=>false, "msg" => $e->getMessage());
         	}
@@ -1806,9 +1812,9 @@ class Element {
 			if(isset($params["allDayHidden"]) && $collection == Event::COLLECTION)
 				$res[] = self::updateField($collection, $id, "allDay", (($params["allDayHidden"] == "true") ? true : false));
 			if(isset($params["startDate"]))
-				$res[] = self::updateField($collection, $id, "startDate", $params["startDate"]);
+				$res[] = self::updateField($collection, $id, "startDate", $params["startDate"],@$params["allDay"]);
 			if(isset($params["endDate"]))
-				$res[] = self::updateField($collection, $id, "endDate", $params["endDate"]);
+				$res[] = self::updateField($collection, $id, "endDate", $params["endDate"],@$params["allDay"]);
 		
 		}else if($block == "toMarkdown"){
 

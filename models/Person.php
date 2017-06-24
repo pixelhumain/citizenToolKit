@@ -98,6 +98,9 @@ class Person {
 	    }
 		if( @$account["roles"])
 	     	$user ["roles"] = $account["roles"];
+	    if( @$account["preferences"])
+	     	$user ["preferences"] = $account["preferences"];
+	    
 	    //Last login date
 	    $user ["lastLoginDate"] = @$account["lastLoginDate"] ? $account["lastLoginDate"] : time();
 	    
@@ -920,7 +923,13 @@ class Person {
 	        		return $res;
 	        	else{
 	        		Person::updateCookieCommunexion((string)$account["_id"], @$account["address"]);
-	            	$res = array("result"=>true, "id"=>(string)$account["_id"], "isCommunected"=>isset($account["cp"]), "msg" => "Vous êtes maintenant identifié : bienvenue sur communecter.");
+	        		unset($account["pwd"]);
+	            	$res = array(
+	            		"result"=>true, 
+	            		"id"=>(string)$account["_id"], 
+	            		"isCommunected"=>isset($account["cp"]), 
+	            		"account" => $account,
+	            		"msg" => "Vous êtes maintenant identifié : bienvenue sur communecter.");
 	        	}
 	        } else {
 	            $res = array("result"=>false, "msg"=>"emailAndPassNotMatch");
@@ -1212,6 +1221,14 @@ class Person {
 		return $res;
 	}
 	
+	public static function  updateNotSeeHelpCo($id){
+		PHDB::update(Person::COLLECTION, array("_id" => new MongoId($id)), 
+			                          array('$set' => array("preferences.unseenHelpCo"=>true)));
+		//Yii::app()->session["user"]["preferences"]["unseenHelpCo"]=true;
+		$account=self::getById($id);
+		$res=self::saveUserSessionData($account);
+		return array("result" => true);
+	}
 	private static function hashPassword($personId, $pwd) {
 		return hash('sha256', $personId.$pwd);
 	}

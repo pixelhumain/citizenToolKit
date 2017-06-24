@@ -372,7 +372,7 @@ class Document {
 		$doc = Document::getById($id);
 		if ($doc) 
 		{
-			if (Authorisation::canEditItem($userId, $doc["type"], $doc["id"])) 
+			if (Authorisation::canParticipate($userId, $doc["type"], $doc["id"])) 
 			{
 				$filepath = self::getDocumentPath($doc);
 				if(file_exists ( $filepath )) {
@@ -770,7 +770,7 @@ class Document {
 				//remove the "/ph/" on the assersUrl if there
 				//$homeUrlRegEx = "/".str_replace("/", "\/", Yii::app()->homeUrl)."/";
 				//$assetsUrl = preg_replace($homeUrlRegEx, "", @Yii::app()->controller->module->assetsUrl,1);
-				$res = "/".$Yii::app()->controller->module->assetsUrl."/images/sig/markers/icons_carto/".$markerDefaultName;
+				$res = "/".Yii::app()->controller->module->assetsUrl."/images/sig/markers/icons_carto/".$markerDefaultName;
 			} else {
 				$res = "";
 			}
