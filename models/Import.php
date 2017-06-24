@@ -126,12 +126,12 @@ class Import
                         else{
                             $valFile =  (!empty($valueFile[$value["idHeadCSV"]])?$valueFile[$value["idHeadCSV"]]:null);
                         }
+
+
                         //var_dump($valFile);
                         if(!empty($valFile)){
-                            $valueData = (is_string($valFile)?trim($valFile):$valFile);
-                            if(!empty($valueData)){
-                                //var_dump($mapping);
-                                //var_dump($value["valueAttributeElt"]);
+                            $valueData = ( is_string($valFile) ? trim($valFile) : $valFile );
+                            if(!empty($valueData)){                               
                                 $typeValue = ArrayHelper::getValueByDotPath($mapping , $value["valueAttributeElt"]);
                                 $element = ArrayHelper::setValueByDotPath($element , $value["valueAttributeElt"], $valueData, $typeValue);
                                 //var_dump($typeValue);
@@ -169,11 +169,20 @@ class Import
     }  
 
     public static function createArrayList($list) {
-        $head = array("name", "warnings", "msgError") ;
+        $head = array("name", "address", "warnings", "msgError") ;
         $tableau = array($head);
         foreach ($list as $keyList => $valueList){
             $ligne = array();
             $ligne[] = (empty($valueList["name"])? "" : $valueList["name"]);
+
+            if(!empty($valueList["address"])){
+                $str = (empty($valueList["address"]["streetAddress"]) ? "" : $valueList["address"]["streetAddress"].",");
+                $str .= (empty($valueList["address"]["postalCode"]) ? "" : $valueList["address"]["postalCode"].", ");
+                $str .= (empty($valueList["address"]["addressLocality"]) ? "" : $valueList["address"]["addressLocality"].", ");
+                $str .= (empty($valueList["address"]["addressCountry"]) ? "" : $valueList["address"]["addressCountry"]);
+                $ligne[] = $str;
+            }
+
             $ligne[] = (empty($valueList["warnings"])? "" : self::getMessagesWarnings($valueList["warnings"]));
             $ligne[] = (empty($valueList["msgError"])? "" : $valueList["msgError"]);
             $tableau[] = $ligne ;
@@ -197,6 +206,10 @@ class Import
         if($typeElement != Person::COLLECTION){
             $address = (empty($element['address']) ? null : $element['address']);
             $geo = (empty($element['geo']) ? null : $element['geo']);
+
+            if(!empty($address) && !empty($address["addressCountry"])  && !empty($address["postalCode"]) && strtoupper($address["addressCountry"]) == "FR" && strlen($address["postalCode"]) == 4 )
+                $address["postalCode"] = '0'.$address["postalCode"];
+
             $detailsLocality = self::getAndCheckAddressForEntity($address, $geo) ;
             if($detailsLocality["result"] == true){
                $element["address"] = $detailsLocality["address"] ;
@@ -219,8 +232,12 @@ class Import
 		if($typeElement == Organization::COLLECTION && !empty($element["type"]))
         	$element["type"] = Organization::translateType($element["type"]);
 
+        if(!empty($element["facebook"]))
+            $element["socialNetwork"]["facebook"] = $element["facebook"];
+
         $element = self::getWarnings($element, $typeElement, true) ;
         $resDataValidator = DataValidator::validate(Element::getControlerByCollection($typeElement), $element, true);
+
         if($resDataValidator["result"] != true){
             //$element["msgError"] = ((empty($resDataValidator["msg"]->getMessage()))?$resDataValidator["msg"]:$resDataValidator["msg"]->getMessage());
             $element["msgError"] = $resDataValidator["msg"];

@@ -440,7 +440,6 @@ class IndexAction extends CAction
 			$where=$_POST["condition"];
 			$where["created"]=array('$lt' => $date);
 		}*/
-		//print_r($where);
 		if(!empty($where))
 			$news= News::getNewsForObjectId($where,array("sharedBy.updated"=>-1),$type, @$followsArrayIds);
 		
