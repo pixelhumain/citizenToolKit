@@ -24,9 +24,9 @@ class RegisterAction extends CAction
 
 		$inviteCode = (@$_POST['inviteCode']) ? $_POST['inviteCode'] : null;
 
-		if (@$_POST['mode']) 
+		if (@$_POST['mode'])
 			$mode = Person::REGISTER_MODE_TWO_STEPS;
-		else 
+		else
 			$mode = Person::REGISTER_MODE_NORMAL;
 
 		// Deprecated but keep it for Rest calls.
@@ -44,13 +44,14 @@ class RegisterAction extends CAction
 			if (! $res["result"]) {
 				Rest::json($res);
 				exit;
-			} 
+			}
 		//New user
 		} else {
 			try {
 				$newPerson['email'] = $email;
 				$res = Person::insert($newPerson, $mode,$inviteCode);
 				$newPerson["_id"]=$res["id"];
+        Person::validateUser($newPerson["_id"]);
 			} catch (CTKException $e) {
 				$res = array("result" => false, "msg"=>$e->getMessage());
 				Rest::json($res);
@@ -61,22 +62,22 @@ class RegisterAction extends CAction
 		//Try to login with the user
 		$res = Person::login($email,$pwd,true);
 		if ($res["result"]) {
-			
+
 		} else if ($res["msg"] == "notValidatedEmail") {
 			//send validation mail to the user
 			$newPerson['email'] = $email;
 			$newPerson["inviteCode"] = $inviteCode;
 			Mail::validatePerson($newPerson);
-			$res = array("result"=>true, "msg"=> Yii::t("login","Congratulation your account is created !")."<br>".Yii::t("login","Last step to enter : we sent you an email, click on the link to validate your mail address."), "id"=>$pendingUserId);
+			$res = array("result"=>true, "msg"=> Yii::t("login","Congratulation your account is created !")."<br>".Yii::t("login","You are now registered, Welcome!"), "id"=>$pendingUserId);
 		} else if ($res["msg"] == "betaTestNotOpen") {
 			$newPerson["_id"] = $pendingUserId;
 			$newPerson['email'] = $email;
 			//send betatest information mail
 			Mail::betaTestInformation($newPerson);
-			$res = array("result"=>true, 
-				"msg"=> Yii::t("login","You are now communnected !")."<br>".Yii::t("login","Our developpers are fighting to open soon ! Check your mail that will happen soon !")."<br>".Yii::t("login","If you really want to start testing the platform before, send us an email and we'll consider your demand :)"), 
-				"id"=>$pendingUserId); 
-		} 
+			$res = array("result"=>true,
+				"msg"=> Yii::t("login","You are now communnected !")."<br>".Yii::t("login","Our developpers are fighting to open soon ! Check your mail that will happen soon !")."<br>".Yii::t("login","If you really want to start testing the platform before, send us an email and we'll consider your demand :)"),
+				"id"=>$pendingUserId);
+		}
 		Rest::json($res);
 		exit;
     }

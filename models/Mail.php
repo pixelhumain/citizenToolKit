@@ -1,9 +1,9 @@
 <?php
 /*
-Contains anything generix for the site 
+Contains anything generix for the site
  */
 class Mail {
-    
+
     public static function send( $params, $force = false ) {
         $account = null;
         //Check if the user has the not valid email flag
@@ -28,7 +28,7 @@ class Mail {
         } else {
             return false;
         }
-        
+
         if ($account)
             $nameTo = $account["name"];
 
@@ -41,7 +41,7 @@ class Mail {
             $message->from = array($params['from'] => "Communecter");
 
             return Yii::app()->mail->send($message);
-        } else 
+        } else
             return false;
     }
 
@@ -72,7 +72,7 @@ class Mail {
             $invitor = Person::getSimpleUserById($person["invitedBy"]);
         else if(isset($nameInvitor))
             $invitor["name"] = $nameInvitor ;
-		
+
         if(empty($msg))
             $msg = $invitor["name"]. " vous invite à rejoindre ".self::getAppName().".";
 		if(empty($subject))
@@ -99,18 +99,18 @@ class Mail {
 
         if(!empty($invitorUrl))
             $params["tplParams"]["invitorUrl"] = $invitorUrl;
-        
+
         Mail::schedule($params);
     }
 	/*public static function invitePersonAgain($person, $msg = null, $nameInvitor = null, $invitorUrl = null) {
         $invitor = Person::getSimpleUserById(Yii::app()->session["userId"]);
-        
+
             $invitor["name"] = $nameInvitor ;
 
         if(empty($msg))
             $msg = $invitor["name"]. " vous relance pour rejoindre Communecter.";
 
-        
+
 
         $params = array(
             "type" => Cron::TYPE_MAIL,
@@ -128,7 +128,7 @@ class Mail {
 
         if(!empty($invitorUrl))
             $params["tplParams"]["invitorUrl"] = $invitorUrl;
-        
+
         Mail::schedule($params);
     }*/
     /**
@@ -190,13 +190,16 @@ class Mail {
     {
         $params = array(
             "type" => Cron::TYPE_MAIL,
-            "tpl"=>'validation', //TODO validation should be Controller driven boolean $this->userAccountValidation 
-            "subject" => Yii::t("common","Confirm your account on ").self::getAppName(),
+            "tpl"=>'validation', //TODO validation should be Controller driven boolean $this->userAccountValidation
+            "subject" => Yii::t("common","Welcome on ").self::getAppName(),
             "from" => Yii::app()->params['adminEmail'],
             "to" => $person["email"],
             "tplParams" => array( "user"  => $person["_id"] ,
+                                  "username" => $person["username"] ,
+                                  "pwd"   => $person["pwd"] ,
+                                  "email" => $person["email"] ,
                                   "title" => self::getAppName() ,
-                                  //"logo"  => "/images/logoLTxt.jpg" 
+                                  //"logo"  => "/images/logoLTxt.jpg"
                                   "logo" => Yii::app()->params["logoUrl"],
                                   //"urlRedirect" => Yii::app()->getRequest()->getBaseUrl(true);
                                   ) );
@@ -267,7 +270,7 @@ class Mail {
         Mail::schedule($params);
     }
 	/**
-	* Send an email to contact@pixelhumain.com quand quelqu'un post dans les news help and bugs	
+	* Send an email to contact@pixelhumain.com quand quelqu'un post dans les news help and bugs
 	* @param string $text message of user
 	*/
 	 public static function notifAdminBugMessage($text) {
@@ -293,7 +296,7 @@ class Mail {
      * @return null
      */
     public static function someoneDemandToBecome( $parent, $parentType, $newPendingAdmin, $listofAdminsEmail, $typeOfDemand) {
-       
+
        foreach ($listofAdminsEmail as $currentAdminEmail) {
            $params = array (
                 "type" => Cron::TYPE_MAIL,
@@ -308,7 +311,7 @@ class Mail {
                                         "parent" => $parent,
                                         "parentType" => $parentType,
                                         "typeOfDemand"=> $typeOfDemand)
-            );   
+            );
             Mail::schedule($params);
         }
     }
@@ -328,7 +331,7 @@ class Mail {
 			"to" => $email,
 			"tplParams" => array(   "logo"=> "/images/logo-communecter.png",
 			                        "logo2" => "/images/logoLTxt.jpg")
-		);   
+		);
 
 		Mail::schedule($params);
     }
@@ -366,13 +369,13 @@ class Mail {
                         "nbDayBeforeDelete" => $nbDayBeforeDelete,
                         "url" => Yii::app()->getRequest()->getBaseUrl(true)."/".$url),
                 );
-                
+
                 Mail::schedule($params);
             }
         }
-    } 
+    }
 
     private static function getAppName() {
-        return isset(Yii::app()->params["name"]) ? Yii::app()->params["name"] : Yii::app()->name;       
-    }   
+        return isset(Yii::app()->params["name"]) ? Yii::app()->params["name"] : Yii::app()->name;
+    }
 }
