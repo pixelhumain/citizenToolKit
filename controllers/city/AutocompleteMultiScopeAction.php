@@ -57,7 +57,7 @@ class AutocompleteMultiScopeAction extends CAction
             if($geoShape) $att[] =  "geoShape";
             //var_dump($where);
             $cities = PHDB::findAndSort( City::COLLECTION, $where, $att, 40, $att);
-            /*if(empty($cities)){
+            if(empty($cities)){
                 $countryCode = mb_convert_encoding($countryCode, "ASCII");
                 if(strlen($countryCode) > 2 ){
                    $countryCode = substr($countryCode, 0, 2);
@@ -96,7 +96,6 @@ class AutocompleteMultiScopeAction extends CAction
                                                     "save" => true);
                                 if(!empty($wikidata))
                                     $newCities = City::getCitiesWithWikiData($wikidata, $newCities);
-                                
 
                                 if(empty($newCities["insee"]))
                                     $newCities["insee"] = $value["osm_id"]."*".$countryCode;
@@ -107,20 +106,13 @@ class AutocompleteMultiScopeAction extends CAction
                                 if(empty($newCities["geoShape"]))
                                     $newCities["geoShape"] = $value["geojson"];
 
-                              
                                 if(City::checkCitySimply($newCities))
                                     $cities[] = $newCities;
-                                
-                                
                             }
                         } 
-
-                        
-                        
                     }
                 }
-                
-            } */
+            }
         }
         else if($type == "dep"){
             $cities = array();
