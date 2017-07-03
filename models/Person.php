@@ -222,6 +222,7 @@ class Person {
 		$simplePerson["name"] = @$person["name"];
 		//$simplePerson["name"] = addslashes(@$person["name"]);
 		$simplePerson["username"] = @$person["username"];
+		$simplePerson["username"] = @$person["username"];
 		$simplePerson["email"] = @$person["email"];
 		$simplePerson["tags"] = @$person["tags"];
 		$simplePerson["links"] = @$person["links"];
@@ -230,6 +231,10 @@ class Person {
 		$simplePerson["description"] = @$person["description"];
 		$simplePerson["pending"] = @$person["pending"];
 		$simplePerson["updated"] = @$person["updated"];
+
+		//Ajouter par rapport au getAllLink
+		$simplePerson["address"] = @$person["address"];
+		$simplePerson["geo"] = @$person["geo"];
 		
 		$simplePerson["typeSig"] = "people";
 	  	
@@ -238,13 +243,6 @@ class Person {
 		}
 		//images
 		$simplePerson = array_merge($simplePerson, Document::retrieveAllImagesUrl($id, self::COLLECTION, null, $person));
-		/*if(Preference::showPreference($person, self::COLLECTION, "locality", Yii::app()->session["userId"])){
-			$simplePerson["address"] = empty($person["address"]) ? array("addressLocality" => Yii::t("common","Unknown Locality")) : $person["address"];
-			$simplePerson["geo"] = @$person["geo"];
-			$simplePerson["addresses"] = @$person["addresses"];
-		}else{
-			$simplePerson["address"] = array("addressLocality" => Yii::t("common","Unknown Locality"));
-		}*/
 		$simplePerson = self::clearAttributesByConfidentiality($simplePerson);
 	  	return $simplePerson;
 
