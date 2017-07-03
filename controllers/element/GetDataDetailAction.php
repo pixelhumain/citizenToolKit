@@ -190,6 +190,7 @@ class GetDataDetailAction extends CAction {
 				return Rest::json($contextMap);
 			else
 				echo $this->getController()->renderPartial($post['tpl'], array("result"=>$contextMap, 
+																			"element" => $element,
 																			"type"=>$type, 
 																			"id"=>$id, 
 																			"scope"=>@$post['searchLocalityDEPARTEMENT'][0], 
