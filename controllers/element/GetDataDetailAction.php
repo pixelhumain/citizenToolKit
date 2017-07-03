@@ -126,7 +126,8 @@ class GetDataDetailAction extends CAction {
 		if($dataName == "liveNow"){
 			$post = $_POST; 
 			if( empty($_POST["searchLocalityCITYKEY"]) && 
-				(empty($_POST["searchLocalityDEPARTEMENT"]) || $_POST["searchLocalityDEPARTEMENT"][0] == "") && 
+				(empty($_POST["searchLocalityDEPARTEMENT"]) || $_POST["searchLocalityDEPARTEMENT"][0] == "" || 
+				 $_POST["searchLocalityDEPARTEMENT"][0] == "undefined") && 
 				isset($element["address"])){
 				$city = City::getDepAndRegionByInsee($element["address"]["codeInsee"]);
 				$post["searchLocalityDEPARTEMENT"] = array($city["depName"]);
