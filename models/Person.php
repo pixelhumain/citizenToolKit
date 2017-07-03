@@ -98,6 +98,9 @@ class Person {
 	    }
 		if( @$account["roles"])
 	     	$user ["roles"] = $account["roles"];
+	    if( @$account["preferences"])
+	     	$user ["preferences"] = $account["preferences"];
+	    
 	    //Last login date
 	    $user ["lastLoginDate"] = @$account["lastLoginDate"] ? $account["lastLoginDate"] : time();
 	    
@@ -1218,6 +1221,14 @@ class Person {
 		return $res;
 	}
 	
+	public static function  updateNotSeeHelpCo($id){
+		PHDB::update(Person::COLLECTION, array("_id" => new MongoId($id)), 
+			                          array('$set' => array("preferences.unseenHelpCo"=>true)));
+		//Yii::app()->session["user"]["preferences"]["unseenHelpCo"]=true;
+		$account=self::getById($id);
+		$res=self::saveUserSessionData($account);
+		return array("result" => true);
+	}
 	private static function hashPassword($personId, $pwd) {
 		return hash('sha256', $personId.$pwd);
 	}

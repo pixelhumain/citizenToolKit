@@ -46,7 +46,6 @@ class Poi {
 	    "geo" => array("name" => "geo"),
 	    "geoPosition" => array("name" => "geoPosition"),
 	    "description" => array("name" => "description"),
-	    "addresses" => array("name" => "addresses"),
 	    "parentId" => array("name" => "parentId"),
 	    "parentType" => array("name" => "parentType"),
 	    "media" => array("name" => "media"),
@@ -154,5 +153,9 @@ class Poi {
         	return false;
         }
     }
+
+    public static function getDataBinding() {
+	  	return self::$dataBinding;
+	}
 }
 ?>
