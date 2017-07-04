@@ -5,6 +5,7 @@ class UploadSaveAction extends CAction {
 	public function run($dir,$folder=null,$ownerId=null,$input, $contentKey=false, $rename=false) {
 		
         $res = array('result'=>false, 'msg'=>Yii::t("document","Something went wrong with your upload!"));
+        
         if (Person::logguedAndValid()) 
         {
             if(strtolower($_SERVER['REQUEST_METHOD']) != 'post') {
@@ -21,6 +22,7 @@ class UploadSaveAction extends CAction {
             $res['file'] = @$file;   
                         
             $res = Document::checkFileRequirements($file, $dir, $folder, $ownerId, $input);
+            $res["start"] = array('ownerId' => $ownerId,'folder' => $folder );
             if ($res["result"]) {
                 $res = Document::uploadDocument($file, $res["uploadDir"],$input,$rename);
                 if ($res["result"]) {
@@ -32,7 +34,7 @@ class UploadSaveAction extends CAction {
                 }
             }
             $res2 = array();
-            
+            $res["middle"] = array('ownerId' => $ownerId,'folder' => $folder );
             if( $res["resultUpload"] ){
                     if($contentKey==false){
                         if(@$_POST["contentKey"]) $contentKey=$_POST["contentKey"];
