@@ -690,6 +690,9 @@ class Search {
 				$allPoi[$key]["typeSig"] = Poi::COLLECTION.".".$value["type"];
 			else
 				$allPoi[$key]["typeSig"] = Poi::COLLECTION;
+			
+			$allPoi[$key]["typePoi"] = $allPoi[$key]["type"];
+			$allPoi[$key]["type"] = Poi::COLLECTION;
   		}
   		return $allPoi;
   	}
