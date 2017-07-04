@@ -70,7 +70,6 @@ class UploadSaveAction extends CAction {
             
         
         $res = array_merge($res,$res2 );
-        $res["params"] = $params;
         return Rest::json($res);
 	}
 
