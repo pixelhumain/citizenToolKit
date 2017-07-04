@@ -797,7 +797,8 @@ class Link {
 		if (count($usersAdmin) == 0 || $actionFromAdmin || ($actionFromMember && $childId != Yii::app()->session["userId"]) || $parentType == Event::COLLECTION) {
             //the person is automatically added as member (admin or not) of the parent
             //var_dump("here");
-            if ($actionFromAdmin || ($actionFromMember && $childId != Yii::app()->session["userId"]) || ($parentType == Event::COLLECTION && $childId != Yii::app()->session["userId"])) {
+            if ($actionFromAdmin || ($actionFromMember && $childId != Yii::app()->session["userId"]) || ($parentType == Event::COLLECTION && $childId != Yii::app()->session["userId"]) 
+                || (count($usersAdmin) == 0 && $childId != Yii::app()->session["userId"])) {
 	            //If admin add as admin or member
                 $verb = ActStr::VERB_INVITE; 
 	            if($isConnectingAdmin==true){
