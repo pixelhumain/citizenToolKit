@@ -109,6 +109,9 @@ class GetDataDetailAction extends CAction {
 
 		if($dataName == "poi"){
 			$contextMap = Poi::getPoiByIdAndTypeOfParent($id, $type);
+			foreach ($contextMap as $key => $value) {
+				$contextMap[$key]["typePoi"] = $value["type"];
+			}
 		}
 
 
