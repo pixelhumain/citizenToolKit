@@ -203,7 +203,7 @@ class GetDataDetailAction extends CAction {
 		}
 
 		foreach ($contextMap as $key => $value) {
-			if($contextMap[$key]["type"] == Event::COLLECTION)
+			if(@$contextMap[$key]["type"] && $contextMap[$key]["type"] == Event::COLLECTION)
   				$contextMap[$key]["updatedLbl"] = Translate::pastTime(@$value["startDate"],"date");
   			else
   				$contextMap[$key]["updatedLbl"] = Translate::pastTime(@$value["updated"],"timestamp");
