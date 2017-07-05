@@ -317,8 +317,8 @@ class Element {
 	 * @param type $type : is the type of the parent
 	 * @return list of pois
 	 */
-	public static function getByIdAndTypeOfParent($collection, $id, $type){
-		$list = PHDB::find($collection,array("parentId"=>$id,"parentType"=>$type));
+	public static function getByIdAndTypeOfParent($collection, $id, $type, $orderBy){
+		$list = PHDB::findAndSort($collection,array("parentId"=>$id,"parentType"=>$type), $orderBy);
 	   	return $list;
 	}
 	/**

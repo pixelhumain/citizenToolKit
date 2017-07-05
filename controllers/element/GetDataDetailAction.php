@@ -103,12 +103,12 @@ class GetDataDetailAction extends CAction {
 		}
 
 		if($dataName == "classified"){
-			$contextMap = Element::getByIdAndTypeOfParent(Classified::COLLECTION, $id, $type);
+			$contextMap = Element::getByIdAndTypeOfParent(Classified::COLLECTION, $id, $type, array("updated"=>-1));
 		}
 
 
 		if($dataName == "poi"){
-			$contextMap = Poi::getPoiByIdAndTypeOfParent($id, $type);
+			$contextMap = Poi::getPoiByIdAndTypeOfParent($id, $type, array("updated"=>-1));
 			foreach ($contextMap as $key => $value) {
 				$contextMap[$key]["typePoi"] = @$value["type"];
 			}
