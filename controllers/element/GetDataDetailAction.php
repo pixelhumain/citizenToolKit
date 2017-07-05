@@ -202,6 +202,12 @@ class GetDataDetailAction extends CAction {
 			Yii::app()->end();
 		}
 
+		foreach ($contextMap as $key => $value) {
+			if($contextMap[$key]["type"] == Event::COLLECTION)
+  				$contextMap[$key]["updatedLbl"] = Translate::pastTime(@$value["startDate"],"date");
+  			else
+  				$contextMap[$key]["updatedLbl"] = Translate::pastTime(@$value["updated"],"timestamp");
+		}
 
 
 		return Rest::json($contextMap);
