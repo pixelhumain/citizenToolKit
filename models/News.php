@@ -213,14 +213,14 @@ class News {
 				else{
 					$scope = $_POST["scope"];
 					$news["scope"]["type"]=$scope;
-					if($scope== "public"){
+					/*if($scope== "public"){
 						$address=SIG::getAdressSchemaLikeByCodeInsee($codeInsee,$postalCode);
 						$news["scope"]["cities"][] = array("codeInsee"=>$codeInsee,
 															"postalCode"=>$postalCode,
 															"addressLocality"=>$address["addressLocality"],
 															"geo" => $from
 														);
-					}
+					}*/
 				}
 			}
 		 	if(isset($_POST["mentions"])){
