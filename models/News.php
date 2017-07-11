@@ -413,8 +413,8 @@ class News {
 		if((isset($_POST["text"]) && !empty($_POST["text"])) || (isset($_POST["media"]) && !empty($_POST["media"])))
 	 	{
 			$set = array(
-						  "text" => $_POST["text"],
-						  "updated"=>new MongoDate(time()),
+				 "text" => $_POST["text"],
+				 "updated"=>new MongoDate(time()),
 			);
 			if (@$_POST["media"]){
 				$set["media"] = $_POST["media"];
@@ -428,15 +428,16 @@ class News {
 			}
 			if(@$_POST["tags"])
 				$set["tags"] = $_POST["tags"];
-		 	
-		 	if(@($_POST["mentions"])){
+		 	if(@$_POST["mentions"])
 				$set["mentions"] = $_POST["mentions"];
-				$target="";
-			}
-			
+			else
+				$unset=array("mentions"=>"");
+			$modify=array('$set'=>$set);
+			if(@$unset)
+				$modify['$unset']=$unset;
 		//update the project
 		PHDB::update( self::COLLECTION, array("_id" => new MongoId($_POST["idNews"])), 
-		                          array('$set' => $set));
+		                          $modify);
 		$news=self::getById($_POST["idNews"]);
 	    return array("result"=>true, "msg"=>Yii::t("common","News well updated"), "object"=>$news);
 	}
