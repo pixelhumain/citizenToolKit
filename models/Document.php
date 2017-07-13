@@ -966,7 +966,7 @@ class Document {
 	 * @param type|null $sizeUrl The size of the file (not mandatory : could be retrieve from the file when it's not an URL file)
 	 * @return array result => boolean, msg => String, uploadDir => where the file is stored
 	 */
-	public static function checkFileRequirements($file, $dir, $folder, $ownerId, $input, $nameUrl = null, $sizeUrl=null) {
+	public static function checkFileRequirements($file, $dir, $folder, $ownerId, $input, $contentKey=null, $nameUrl = null, $sizeUrl=null) {
 		//TODO SBAR
 		//$dir devrait être calculé : sinon on peut facilement enregistrer des fichiers n'importe où
 		$upload_dir = Yii::app()->params['uploadDir'];
@@ -993,7 +993,7 @@ class Document {
 
         }
        
-        if( @$input=="newsImage"){
+        if( @$input=="newsImage" || (@$contentKey && $contentKey==Document::IMG_SLIDER)){
 	        $upload_dir .= Document::GENERATED_ALBUM_FOLDER.'/';
             if( !file_exists ( $upload_dir ) )
                 mkdir ( $upload_dir,0775 );
