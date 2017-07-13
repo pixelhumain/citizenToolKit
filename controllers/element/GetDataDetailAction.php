@@ -103,12 +103,15 @@ class GetDataDetailAction extends CAction {
 		}
 
 		if($dataName == "classified"){
-			$contextMap = Element::getByIdAndTypeOfParent(Classified::COLLECTION, $id, $type);
+			$contextMap = Element::getByIdAndTypeOfParent(Classified::COLLECTION, $id, $type, array("updated"=>-1));
 		}
 
 
 		if($dataName == "poi"){
-			$contextMap = Poi::getPoiByIdAndTypeOfParent($id, $type);
+			$contextMap = Poi::getPoiByIdAndTypeOfParent($id, $type, array("updated"=>-1));
+			foreach ($contextMap as $key => $value) {
+				$contextMap[$key]["typePoi"] = @$value["type"];
+			}
 		}
 
 
@@ -126,7 +129,8 @@ class GetDataDetailAction extends CAction {
 		if($dataName == "liveNow"){
 			$post = $_POST; 
 			if( empty($_POST["searchLocalityCITYKEY"]) && 
-				(empty($_POST["searchLocalityDEPARTEMENT"]) || $_POST["searchLocalityDEPARTEMENT"][0] == "") && 
+				(empty($_POST["searchLocalityDEPARTEMENT"]) || $_POST["searchLocalityDEPARTEMENT"][0] == "" || 
+				 $_POST["searchLocalityDEPARTEMENT"][0] == "undefined") && 
 				isset($element["address"])){
 				$city = City::getDepAndRegionByInsee($element["address"]["codeInsee"]);
 				$post["searchLocalityDEPARTEMENT"] = array($city["depName"]);
@@ -190,6 +194,7 @@ class GetDataDetailAction extends CAction {
 				return Rest::json($contextMap);
 			else
 				echo $this->getController()->renderPartial($post['tpl'], array("result"=>$contextMap, 
+																			"element" => $element,
 																			"type"=>$type, 
 																			"id"=>$id, 
 																			"scope"=>@$post['searchLocalityDEPARTEMENT'][0], 
@@ -197,6 +202,12 @@ class GetDataDetailAction extends CAction {
 			Yii::app()->end();
 		}
 
+		foreach ($contextMap as $key => $value) {
+			if(@$contextMap[$key]["type"] && $contextMap[$key]["type"] == Event::COLLECTION)
+  				$contextMap[$key]["updatedLbl"] = Translate::pastTime(@$value["startDate"],"date");
+  			else
+  				$contextMap[$key]["updatedLbl"] = Translate::pastTime(@$value["updated"],"timestamp");
+		}
 
 
 		return Rest::json($contextMap);

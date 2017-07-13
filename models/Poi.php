@@ -80,8 +80,8 @@ class Poi {
 	 * @param type $type : is the type of the parent
 	 * @return list of pois
 	 */
-	public static function getPoiByIdAndTypeOfParent($id, $type){
-		$pois = PHDB::find(self::COLLECTION,array("parentId"=>$id,"parentType"=>$type));
+	public static function getPoiByIdAndTypeOfParent($id, $type, $orderBy){
+		$pois = PHDB::findAndSort(self::COLLECTION,array("parentId"=>$id,"parentType"=>$type), $orderBy);
 	   	return $pois;
 	}
 	/**
@@ -147,7 +147,7 @@ class Poi {
 		if ($poi == null) 
 			$poi = self::getById($id);
 		//To Delete POI, the user should be creator or can delete the parent of the POI
-        if ( $userId == $poi['creator'] || Authorisation::canDeleteElement(@$poi["parentId"], @$poi["parentType"], $userId)) {
+        if ( $userId == @$poi['creator'] || Authorisation::canDeleteElement(@$poi["parentId"], @$poi["parentType"], $userId)) {
             return true;
         } else {
         	return false;

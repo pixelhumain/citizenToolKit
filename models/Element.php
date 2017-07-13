@@ -317,8 +317,8 @@ class Element {
 	 * @param type $type : is the type of the parent
 	 * @return list of pois
 	 */
-	public static function getByIdAndTypeOfParent($collection, $id, $type){
-		$list = PHDB::find($collection,array("parentId"=>$id,"parentType"=>$type));
+	public static function getByIdAndTypeOfParent($collection, $id, $type, $orderBy){
+		$list = PHDB::findAndSort($collection,array("parentId"=>$id,"parentType"=>$type), $orderBy);
 	   	return $list;
 	}
 	/**
@@ -978,7 +978,7 @@ class Element {
 		$res = array("result" => false, "msg" => "Something bad happend : impossible to delete this element");
 
 		//What type of element i can delete
-		$managedTypes = array(Organization::COLLECTION, Project::COLLECTION, Event::COLLECTION);
+		$managedTypes = array(Organization::COLLECTION, Project::COLLECTION, Event::COLLECTION, Classified::COLLECTION);
 		if (!in_array($elementType, $managedTypes)) return array( "result" => false, "msg" => "Impossible to delete this type of element" );
 		$modelElement = self::getModelByType($elementType);
 

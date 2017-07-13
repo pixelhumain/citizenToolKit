@@ -687,9 +687,12 @@ class Search {
 	  			$parent=array();
 			$allPoi[$key]["parent"] = $parent;
 			if(@$value["type"])
-				$allPoi[$key]["typeSig"] = Poi::COLLECTION.".".$value["type"];
+				$allPoi[$key]["typeSig"] = Poi::COLLECTION;//.".".$value["type"];
 			else
 				$allPoi[$key]["typeSig"] = Poi::COLLECTION;
+			
+			$allPoi[$key]["typePoi"] = @$allPoi[$key]["type"];
+			$allPoi[$key]["type"] = Poi::COLLECTION;
   		}
   		return $allPoi;
   	}
