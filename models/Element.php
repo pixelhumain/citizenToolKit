@@ -1948,7 +1948,7 @@ class Element {
 
             
         } */
-
+        $params["linksBtn"] = array();
         if(!@$element["disabled"]){
             //if((@$config["connectLink"] && $config["connectLink"]) || empty($config)){ TODO CONFIG MUTUALIZE WITH NETWORK AND OTHER PLATFORM
            //$connectType = $connectType[$type];
