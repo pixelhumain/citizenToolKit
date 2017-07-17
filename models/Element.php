@@ -1879,6 +1879,7 @@ class Element {
 		$params["edit"] = Authorisation::canEditItem(Yii::app()->session["userId"], $type, $id);
         $params["openEdition"] = Authorisation::isOpenEdition($id, $type, @$element["preferences"]);
         $params["controller"] = self::getControlerByCollection($type);
+        $params["linksBtn"] = array();
         if($type==Person::COLLECTION && !@$element["links"]){
         	$fields=array("links");
         	$links=Element::getElementSimpleById($id,$type,null,$fields);
@@ -1948,7 +1949,7 @@ class Element {
 
             
         } */
-        $params["linksBtn"] = array();
+
         if(!@$element["disabled"]){
             //if((@$config["connectLink"] && $config["connectLink"]) || empty($config)){ TODO CONFIG MUTUALIZE WITH NETWORK AND OTHER PLATFORM
            //$connectType = $connectType[$type];
