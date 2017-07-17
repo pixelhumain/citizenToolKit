@@ -1880,6 +1880,7 @@ class Element {
         $params["openEdition"] = Authorisation::isOpenEdition($id, $type, @$element["preferences"]);
         $params["controller"] = self::getControlerByCollection($type);
         $params["linksBtn"] = array();
+        
         if($type==Person::COLLECTION && !@$element["links"]){
         	$fields=array("links");
         	$links=Element::getElementSimpleById($id,$type,null,$fields);
@@ -1888,6 +1889,12 @@ class Element {
         else
         	$links=@$element["links"];
         $connectType = @self::$connectTypes[$type];
+
+        $params["isLinked"] = Link::isLinked($id,$type, 
+                                    Yii::app()->session['userId'], 
+                                    @$links);
+
+        
         if($type==Person::COLLECTION)
         	$connectType="friends";
         /*if( @$element["links"] ) {
@@ -1994,10 +2001,6 @@ class Element {
                 if(!in_array(Yii::app()->session["userId"], Authorisation::listAdmins($id, $type,true)))
                     $params["linksBtn"]["isAdmin"]=false;              
             }
-
-            $params["isLinked"] = Link::isLinked($id,$type, 
-                                    Yii::app()->session['userId'], 
-                                    @$element["links"]);
 
             if($params["isLinked"]==true)
                 $params["countNotifElement"]=ActivityStream::countUnseenNotifications(Yii::app()->session["userId"], $type, $id);
