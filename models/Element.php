@@ -1879,8 +1879,6 @@ class Element {
 		$params["edit"] = Authorisation::canEditItem(Yii::app()->session["userId"], $type, $id);
         $params["openEdition"] = Authorisation::isOpenEdition($id, $type, @$element["preferences"]);
         $params["controller"] = self::getControlerByCollection($type);
-        $params["linksBtn"] = array();
-        
         if($type==Person::COLLECTION && !@$element["links"]){
         	$fields=array("links");
         	$links=Element::getElementSimpleById($id,$type,null,$fields);
@@ -1889,12 +1887,6 @@ class Element {
         else
         	$links=@$element["links"];
         $connectType = @self::$connectTypes[$type];
-
-        $params["isLinked"] = Link::isLinked($id,$type, 
-                                    Yii::app()->session['userId'], 
-                                    @$links);
-
-        
         if($type==Person::COLLECTION)
         	$connectType="friends";
         /*if( @$element["links"] ) {
@@ -1956,8 +1948,7 @@ class Element {
 
             
         } */
-
-        if(!@$element["disabled"]){
+        //if(!@$element["disabled"]){
             //if((@$config["connectLink"] && $config["connectLink"]) || empty($config)){ TODO CONFIG MUTUALIZE WITH NETWORK AND OTHER PLATFORM
            //$connectType = $connectType[$type];
             if(((!@$links[$connectType][Yii::app()->session["userId"]] && $type!=Event::COLLECTION) || (@$links[$connectType][Yii::app()->session["userId"]] && 
@@ -2002,6 +1993,10 @@ class Element {
                     $params["linksBtn"]["isAdmin"]=false;              
             }
 
+            $params["isLinked"] = Link::isLinked($id,$type, 
+                                    Yii::app()->session['userId'], 
+                                    @$element["links"]);
+
             if($params["isLinked"]==true)
                 $params["countNotifElement"]=ActivityStream::countUnseenNotifications(Yii::app()->session["userId"], $type, $id);
             if($type==Event::COLLECTION){
@@ -2021,7 +2016,7 @@ class Element {
             
             if(@$_GET["network"])
                 $params["networkJson"]=Network::getNetworkJson($_GET["network"]);
-        }
+        //}
 
         return $params;
 	}
