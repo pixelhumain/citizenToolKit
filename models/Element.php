@@ -1948,8 +1948,7 @@ class Element {
 
             
         } */
-
-        if(!@$element["disabled"]){
+        //if(!@$element["disabled"]){
             //if((@$config["connectLink"] && $config["connectLink"]) || empty($config)){ TODO CONFIG MUTUALIZE WITH NETWORK AND OTHER PLATFORM
            //$connectType = $connectType[$type];
             if(((!@$links[$connectType][Yii::app()->session["userId"]] && $type!=Event::COLLECTION) || (@$links[$connectType][Yii::app()->session["userId"]] && 
@@ -2017,7 +2016,7 @@ class Element {
             
             if(@$_GET["network"])
                 $params["networkJson"]=Network::getNetworkJson($_GET["network"]);
-        }
+        //}
 
         return $params;
 	}

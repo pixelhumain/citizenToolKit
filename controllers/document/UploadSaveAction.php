@@ -20,7 +20,7 @@ class UploadSaveAction extends CAction {
             }
             $res['file'] = @$file;   
                         
-            $res = Document::checkFileRequirements($file, $dir, $folder, $ownerId, $input);
+            $res = Document::checkFileRequirements($file, $dir, $folder, $ownerId, $input, @$contentKey);
             if ($res["result"]) {
                 $res = Document::uploadDocument($file, $res["uploadDir"],$input,$rename);
                 if ($res["result"]) {
@@ -41,6 +41,8 @@ class UploadSaveAction extends CAction {
                     $subFolder="";
                     if(@$_POST["formOrigin"])
                         $subFolder="/".$_POST["formOrigin"];
+                    if($contentKey==Document::IMG_SLIDER)
+                        $subFolder="/".Document::GENERATED_ALBUM_FOLDER;
                     $params = array(
                         "id" => $ownerId,
                         "type" => $folder,
