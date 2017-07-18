@@ -47,7 +47,7 @@ class News {
 	public static function getNewsForObjectId($param,$sort=array("created"=>-1),$type)
 	{
 		//$param=array();
-	    $res = PHDB::findAndSort(self::COLLECTION, $param,$sort,5);
+	    $res = PHDB::findAndSort(self::COLLECTION, $param,$sort);
 	    foreach ($res as $key => $news) {
 		    if(@$news["type"]){
 			    $newNews=NewsTranslator::convertParamsForNews($news);
@@ -213,14 +213,14 @@ class News {
 				else{
 					$scope = $_POST["scope"];
 					$news["scope"]["type"]=$scope;
-					/*if($scope== "public"){
+					if($scope== "public"){
 						$address=SIG::getAdressSchemaLikeByCodeInsee($codeInsee,$postalCode);
 						$news["scope"]["cities"][] = array("codeInsee"=>$codeInsee,
 															"postalCode"=>$postalCode,
 															"addressLocality"=>$address["addressLocality"],
 															"geo" => $from
 														);
-					}*/
+					}
 				}
 			}
 		 	if(isset($_POST["mentions"])){
