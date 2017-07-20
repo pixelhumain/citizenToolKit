@@ -969,8 +969,9 @@ class Notification{
 					else
 						$res["{what}"]=Yii::t("notification","shared");
 				}
-				else
-					$res["{what}"]="&quot;".strtr(@$news["text"], 0, 20)."...&quot;";
+				else{
+					$res["{what}"]="&quot;".substr(@$news["text"], 0, 20)."...&quot;";
+				}
 			}
 			else if($object){
 				$object=Element::getElementSimpleById($object["id"], $object["type"]);
