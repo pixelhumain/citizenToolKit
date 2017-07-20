@@ -663,7 +663,7 @@ class Search {
 	public static function searchFavorites($type){
 
 		$person = Person::getById(Yii::app()->session["userId"]);
-		$res = null;
+		$res = array();
 
 		if( @$person["collections"] && @$person["collections"]["favorites"] && @$person["collections"]["favorites"][$type] ){
 			foreach ($person["collections"]["favorites"][$type] as $key => $value) {
