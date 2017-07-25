@@ -4,7 +4,7 @@ class DetailAction extends CAction {
 /**
 * Dashboard Organization
 */
-    public function run($type, $id, $networkParams=null) { 
+    public function run($type, $id, $networkParams=null) {
     	$controller=$this->getController();
 		$members=array();
 		//$list = Lists::get(array("eventTypes"));
@@ -20,7 +20,7 @@ class DetailAction extends CAction {
 			$listsToRetrieveEvent = array("eventTypes");
 			$listsEvent = Lists::get($listsToRetrieveEvent);
 		}
-		
+
 
 
 		if($type == Organization::COLLECTION){
@@ -40,7 +40,7 @@ class DetailAction extends CAction {
 	           			$events[$keyEv] = $event;
 				}
 			}
-			
+
 			// Link with projects
 			if(isset($element["links"]["projects"])){
 				foreach ($element["links"]["projects"] as $keyProj => $valueProj) {
@@ -49,7 +49,7 @@ class DetailAction extends CAction {
 	           			$projects[$keyProj] = $project;
 				}
 			}
-			
+
 			// Link with needs
 			if(isset($element["links"]["needs"])){
 				foreach ($element["links"]["needs"] as $keyNeed => $value){
@@ -57,7 +57,7 @@ class DetailAction extends CAction {
 	           		$needs[$keyNeed] = $need;
 				}
 			}
-			
+
 
 		} else if ($type == Project::COLLECTION){
 			$element = Project::getById($id);
@@ -112,15 +112,15 @@ class DetailAction extends CAction {
             		}
             		else if($organizer["type"] == Organization::COLLECTION ){
 		                $iconNav="fa-group";
-		                $urlType="organization";	
-		                $organizerInfo = Organization::getSimpleOrganizationById($uid);  
+		                $urlType="organization";
+		                $organizerInfo = Organization::getSimpleOrganizationById($uid);
 						$organizer["type"]=$urlType;
-						$organizer["typeOrga"]=$organizerInfo["type"];              
+						$organizer["typeOrga"]=$organizerInfo["type"];
             		}
 					else{
 						$iconNav="fa-user";
-		                $urlType="person";	
-		                $organizerInfo = Person::getSimpleUserById($uid);  
+		                $urlType="person";
+		                $organizerInfo = Person::getSimpleUserById($uid);
 						$organizer["type"]=$urlType;
 					}
             		$organizer["id"] = $uid;
@@ -129,7 +129,7 @@ class DetailAction extends CAction {
             		$organizer["profilThumbImageUrl"] = @$organizerInfo["profilThumbImageUrl"];
           		}
 		  		$params["organizer"] = $organizer;
-              		
+
             }
 			//events can have sub events
 	        $params["subEvents"] = PHDB::find(Event::COLLECTION,array("parentId"=>$id));
@@ -168,7 +168,7 @@ class DetailAction extends CAction {
 			if($element["parentType"]==Organization::COLLECTION){
 				$params["parent"] = Organization::getSimpleOrganizationById($element["parentId"]);
 			}else{
-				$params["parent"] = Project::getSimpleProjectById($element["parentId"]); 
+				$params["parent"] = Project::getSimpleProjectById($element["parentId"]);
 			}
 		}
 		$params["controller"] = Element::getControlerByCollection($type);
@@ -177,12 +177,12 @@ class DetailAction extends CAction {
 				$countStrongLinks=count($element["links"][$connectType]);
 				$nbMembers=0;
 				foreach ($element["links"][$connectType] as $key => $aMember) {
-					if($nbMembers < 11){
+					if($nbMembers < 50){
 						if($aMember["type"]==Organization::COLLECTION){
 							$newOrga = Organization::getSimpleOrganizationById($key);
 							if(!empty($newOrga)){
 								if ($aMember["type"] == Organization::COLLECTION && @$aMember["isAdmin"]){
-									$newOrga["isAdmin"]=true;  				
+									$newOrga["isAdmin"]=true;
 								}
 								$newOrga["type"]=Organization::COLLECTION;
 								//array_push($contextMap["organizations"], $newOrga);
@@ -196,13 +196,13 @@ class DetailAction extends CAction {
 									if (@$aMember["type"] == Person::COLLECTION) {
 										if(@$aMember["isAdmin"]){
 											if(@$aMember["isAdminPending"])
-												$newCitoyen["isAdminPending"]=true;  
-												$newCitoyen["isAdmin"]=true;  	
-										}			
+												$newCitoyen["isAdminPending"]=true;
+												$newCitoyen["isAdmin"]=true;
+										}
 										if(@$aMember["toBeValidated"]){
-											$newCitoyen["toBeValidated"]=true;  
-										}		
-					  				
+											$newCitoyen["toBeValidated"]=true;
+										}
+
 									}
 									$newCitoyen["type"]=Person::COLLECTION;
 									//array_push($contextMap["people"], $newCitoyen);
@@ -234,7 +234,7 @@ class DetailAction extends CAction {
 			$params["edit"] = false;
 		}
 		$params["isLinked"] = Link::isLinked($elementAuthorizationId,$elementAuthorizationType, Yii::app()->session['userId'], @$element["links"]);
-		
+
 		if($type==Event::COLLECTION){
 			$params["countStrongLinks"]= @$attendeeNumber;
 			$params["countLowLinks"] = @$invitedNumber;
@@ -250,30 +250,30 @@ class DetailAction extends CAction {
 		}
 		if(@$_GET["network"])
 			$params["networkJson"]=Network::getNetworkJson($_GET["network"]);
-		
+
 		$page = "detail";
 
 		if(@$_GET["tpl"] == "detail")
 				$page = "detail";
-		
+
 		if(@$_GET["tpl"] == "onepage")
 				$page = "onepage";
-			
+
 		if(@$_GET["tpl"] == "profilSocial")
 				$page = "profilSocial";
-		
+
 		if( in_array( Yii::app()->theme->name, array("notragora") ) )
 				$page = Yii::app()->theme->name."/detail";
-		
+
 		//manage delete in progress status
 		$params["deletePending"] = Element::isElementStatusDeletePending($type, $id);;
-		
+
 		//var_dump($params); //exit;
 		//$page = "onepage";
 		$params["params"] = $params;
 		if(Yii::app()->request->isAjaxRequest)
           echo $controller->renderPartial($page,$params,true);
-        else 
+        else
 			$controller->render( $page , $params );
     }
 }
