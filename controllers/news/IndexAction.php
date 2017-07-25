@@ -429,9 +429,10 @@ class IndexAction extends CAction
 			$where = array_merge($where,  array( 'isAnAbuse' => array('$ne' => true) ) );
 			//echo $date."/"; //exit;
 			$where = array_merge($where,  array('sharedBy.updated' => array( '$lt' => $date ) ) );
+			$where = array_merge($where, array("target.type" => array('$ne' => "pixels")));
 
 			if(@$_POST["textSearch"] && $_POST["textSearch"]!="")
-			$where = array_merge($where,  array('text' => new MongoRegex("/".$_POST["textSearch"]."/i") ) );
+				$where = array_merge($where,  array('text' => new MongoRegex("/".$_POST["textSearch"]."/i") ) );
 
 			//echo '<pre>';var_dump($_POST);echo '</pre>';
 			//echo '<pre>';var_dump($where);echo '</pre>'; return;
@@ -442,11 +443,9 @@ class IndexAction extends CAction
 		}*/
 		if(!empty($where))
 			$news= News::getNewsForObjectId($where,array("sharedBy.updated"=>-1),$type, @$followsArrayIds);
-		
-		print_r($news);
 		//echo count($news);
 		// Sort news order by created 
-		//$news = News::sortNews($news, array('updated'=>SORT_DESC));
+		$news = News::sortNews($news, array('updated'=>SORT_DESC));
         //TODO : reorganise by created date
 		$params["news"] = $news;
 		$params["tags"] = Tags::getActiveTags();
@@ -489,7 +488,7 @@ class IndexAction extends CAction
 		if ($type == Organization::COLLECTION || $type == Project::COLLECTION || $type == Event::COLLECTION || $type == Person::COLLECTION)
 			$params["deletePending"] = Element::isElementStatusDeletePending($type, $id);
 
-		/*if(Yii::app()->request->isAjaxRequest){
+		if(Yii::app()->request->isAjaxRequest){
 			if (@$_GET["isFirst"]){
 				 if(@$_GET["tpl"]=="co2")
 				 echo $controller->renderPartial("indexCO2", $params,true);
@@ -504,6 +503,6 @@ class IndexAction extends CAction
 	      }
 	    }
 	    else
-			$controller->render( "index" , $params  );*/
+			$controller->render( "index" , $params  );
     }
 }
