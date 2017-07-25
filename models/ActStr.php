@@ -61,8 +61,9 @@ class ActStr {
             "type" => $params["type"],
             "verb" => $params["verb"],
             "author" => Yii::app()->session["userId"],
-            "date" => new MongoDate(time()),
-            "created" => new MongoDate(time())
+            //"date" => new MongoDate(time()),
+            "created" => new MongoDate(time()),
+            "updated" => new MongoDate(time())
         );
         if(@$params["author"]){
             if(!@$params["author"]["id"])

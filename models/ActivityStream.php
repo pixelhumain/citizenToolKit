@@ -262,6 +262,8 @@ class ActivityStream {
 	        "icon" => $params["icon"],
 	        "url" => $params["url"]
 	    );
+	    if(@$params["labelAuthorObject"])
+	    	$notify["labelAuthorObject"]=$params["labelAuthorObject"];
 	    return $notify;
 	}
 	public static function removeObject($objectId,$type,$targetId=null,$targetType=null,$verb=null){

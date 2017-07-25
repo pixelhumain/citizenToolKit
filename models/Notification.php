@@ -605,7 +605,8 @@ class Notification{
 		}
 		else
 			$label = $construct["label".$repeat];
-		if($construct["labelUpNotifyTarget"]=="object"){
+		return $label;
+		/*if($construct["labelUpNotifyTarget"]=="object"){
 			$memberName="";
 			if($construct["object"]){
 				if(@$construct["object"]["name"])
@@ -654,8 +655,70 @@ class Notification{
 		//	$specifyLabel["{type}"] = $labelArray["typeValue"];
 		if(in_array("what",$construct["labelArray"]))
 			$specifyLabel["{what}"] = @$construct["object"]["name"];
-		return Yii::t("notification",$label, $specifyLabel);	
+		return Yii::t("notification",$label, $specifyLabel);*/
 	}
+
+	public static function getLabelNotificationFront($notif){
+		$labelArray=self::$notificationTree[$notif["verb"]]["labelArray"];
+		$count=0;
+		$memberName="";
+		if(@$notif[$notif["notify"]["labelAuthorObject"]]){
+			if($notif["notify"]["labelAuthorObject"]=="object"){
+				if($notif["object"]){
+					if(@$notif["object"]["name"]){
+						$count++;
+						$memberName=$notif["object"]["name"];
+					}
+					else{
+						foreach($notif["object"] as $user){
+							$memberName=$user["name"];
+							$count++;
+						}
+					}
+				}
+				foreach($notif["author"] as $author){
+					$specifyLabel["{author}"] = $author['name'];
+				}
+			}else {
+				foreach($notif["author"] as $author){
+					$memberName = $author['name'];
+					$count++;
+				}
+			}
+		}
+		if($count==1){
+			$specifyLabel["{who}"] = $memberName;
+		}
+		else if($count==2){
+			foreach($notif[$notif["notify"]["labelAuthorObject"]] as $data){
+				$lastAuthorName=$data["name"];
+				//break; 
+			}
+			$specifyLabel["{who}"] = $memberName." ".Yii::t("common","and")." ".$lastAuthorName;
+		}
+		else if($count > 2) {
+			foreach($notif[$notif["notify"]["labelAuthorObject"]] as $data){
+				$lastAuthorName=$data["name"];
+				break;
+			}
+			$nbOthers = $count - 2;
+			if($nbOthers == 1) $labelUser = "person"; else $labelUser = "persons";
+			$specifyLabel["{who}"] = $memberName.", ".$lastAuthorName." ".Yii::t("common","and")." ".$nbOthers." ".Yii::t("common", $labelUser);
+		}
+		if(in_array("where",$labelArray)){
+			if(@$notif["target"]["name"])
+				$specifyLabel["{where}"] = $notif["target"]["name"];
+			else{
+				$resArray=self::getTargetInformation($notif["target"]["id"],$notif["target"]["type"], @$notif["object"]);
+				$specifyLabel["{where}"] = @$resArray["{where}"];
+				if(@$resArray["{what}"])
+					$specifyLabel["{what}"]=$resArray["{what}"];
+			}
+		}
+		if(in_array("what",$labelArray))
+			$specifyLabel["{what}"] = @$notif["object"]["name"];
+		return Yii::t("notification",$notif["notify"]["displayName"], $specifyLabel);
+	} 
 
 	public static function getUrlNotification($construct){
 		if(@$construct["url"])
@@ -760,6 +823,7 @@ class Notification{
 		$notif = array( 
 	    	"persons" => $construct["community"],
             "label"   => self::getLabelNotification($construct,$type),
+            "labelAuthorObject"=>$construct["labelUpNotifyTarget"],
             "icon"    => $construct["icon"],
             "url"     => self::getUrlNotification($construct)
         );
