@@ -1794,6 +1794,12 @@ class Element {
 				$res[] = self::updateField($collection, $id, "fax", $params["fax"]);
 			if(isset($params["mobile"]))
 				$res[] = self::updateField($collection, $id, "mobile", $params["mobile"]);
+			if(isset($params["parentId"]))
+				$res[] = self::updateField($collection, $id, "parentId", $params["parentId"]);
+			if(isset($params["parentType"]))
+				$res[] = self::updateField($collection, $id, "parentType", $params["parentType"]);
+			
+
 		}else if($block == "network"){
 
 			if(isset($params["telegram"]) && $collection == Person::COLLECTION)
