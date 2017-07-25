@@ -52,6 +52,7 @@ class Project {
 	);
 
 	public static $avancement = array(
+		"" => "Not specified",
         "idea" => "idea",
         "concept" => "concept",
         "started" => "started",

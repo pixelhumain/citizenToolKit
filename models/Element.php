@@ -603,6 +603,19 @@ class Element {
 			$res = Link::addOrganizer($fieldValue["organizerId"], $fieldValue["organizerType"], $id, Yii::app()->session["userId"]);
 			if (! @$res["result"]) throw new CTKException(@$res["msg"]);
 
+		}else if ($dataFieldName == "parent") {
+			$set = array("parentId" => $fieldValue["parentId"],
+							 "parentType" => $fieldValue["parentType"]);
+			//get element and remove current parent
+			$element = Element::getElementById($id, $collection);
+			$oldParentId = @$element["parentId"] ? $element["parentId"] : key($element["links"]["parent"]);
+			$oldParentType = @$element["parentType"] ? $element["parentType"] : $element["links"]["parent"][$oldParentId]["type"];
+			//remove the old parent
+			$res = Link::removeParent($oldParentId, $oldParentType, $id, Yii::app()->session["userId"]);
+			if (! @$res["result"]) throw new CTKException(@$res["msg"]);
+			//add new parent
+			$res = Link::addParent($fieldValue["parentId"], $fieldValue["parentType"], $id, Yii::app()->session["userId"]);
+			if (! @$res["result"]) throw new CTKException(@$res["msg"]);
 		} else if ($dataFieldName == "seePreferences") {
 			//var_dump($fieldValue);
 			if($fieldValue == "false"){
@@ -1794,11 +1807,16 @@ class Element {
 				$res[] = self::updateField($collection, $id, "fax", $params["fax"]);
 			if(isset($params["mobile"]))
 				$res[] = self::updateField($collection, $id, "mobile", $params["mobile"]);
-			if(isset($params["parentId"]))
-				$res[] = self::updateField($collection, $id, "parentId", $params["parentId"]);
-			if(isset($params["parentType"]))
-				$res[] = self::updateField($collection, $id, "parentType", $params["parentType"]);
-			
+			if(!empty($params["parentId"]) && !empty($params["parentType"])){
+				$parent["parentId"] = $params["parentId"] ;
+				$parent["parentType"] = $params["parentType"] ;
+				$res[] = self::updateField($collection, $id, "parent", $parent);
+			}
+			if(!empty($params["organizerId"]) && !empty($params["organizerType"])){
+				$organizer["organizerId"] = $params["organizerId"] ;
+				$organizer["organizerType"] = $params["organizerType"] ;
+				$res[] = self::updateField($collection, $id, "organizer", $organizer);
+			}
 
 		}else if($block == "network"){
 
@@ -2051,6 +2069,9 @@ class Element {
 
 		if(!empty($type))
 			$newElement["type"] = $type;
+
+		if(!empty($element["properties"]["avancement"]))
+			$newElement["avancement"] = $element["properties"]["avancement"];
 
 		return $newElement;
 	}
