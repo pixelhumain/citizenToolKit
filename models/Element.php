@@ -603,6 +603,19 @@ class Element {
 			$res = Link::addOrganizer($fieldValue["organizerId"], $fieldValue["organizerType"], $id, Yii::app()->session["userId"]);
 			if (! @$res["result"]) throw new CTKException(@$res["msg"]);
 
+		}else if ($dataFieldName == "parent") {
+			$set = array("parentId" => $fieldValue["parentId"],
+							 "parentType" => $fieldValue["parentType"]);
+			//get element and remove current parent
+			$element = Element::getElementById($id, $collection);
+			$oldParentId = @$element["parentId"] ? $element["parentId"] : key($element["links"]["parent"]);
+			$oldParentType = @$element["parentType"] ? $element["parentType"] : $element["links"]["parent"][$oldParentId]["type"];
+			//remove the old parent
+			$res = Link::removeParent($oldParentId, $oldParentType, $id, $collection, Yii::app()->session["userId"]);
+			if (! @$res["result"]) throw new CTKException(@$res["msg"]);
+			//add new parent
+			$res = Link::addParent($fieldValue["parentId"], $fieldValue["parentType"], $id, $collection, Yii::app()->session["userId"]);
+			if (! @$res["result"]) throw new CTKException(@$res["msg"]);
 		} else if ($dataFieldName == "seePreferences") {
 			//var_dump($fieldValue);
 			if($fieldValue == "false"){
@@ -1794,6 +1807,21 @@ class Element {
 				$res[] = self::updateField($collection, $id, "fax", $params["fax"]);
 			if(isset($params["mobile"]))
 				$res[] = self::updateField($collection, $id, "mobile", $params["mobile"]);
+			if(!empty($params["parentId"]) && !empty($params["parentType"])){
+				$parent["parentId"] = $params["parentId"] ;
+				$parent["parentType"] = $params["parentType"] ;
+				$resParent = self::updateField($collection, $id, "parent", $parent);
+				$resParent["value"]["parent"] = Element::getByTypeAndId( $params["parentType"], $params["parentId"]);
+				$res[] = $resParent;
+			}
+			if(!empty($params["organizerId"]) && !empty($params["organizerType"])){
+				$organizer["organizerId"] = $params["organizerId"] ;
+				$organizer["organizerType"] = $params["organizerType"] ;
+				$resOrg = self::updateField($collection, $id, "organizer", $organizer);
+				$resOrg["value"]["organizer"] = Element::getByTypeAndId( $params["organizerType"], $params["organizerId"]);
+				$res[] = $resOrg;
+			}
+
 		}else if($block == "network"){
 
 			if(isset($params["telegram"]) && $collection == Person::COLLECTION)
@@ -1948,8 +1976,7 @@ class Element {
 
             
         } */
-
-        if(!@$element["disabled"]){
+        //if(!@$element["disabled"]){
             //if((@$config["connectLink"] && $config["connectLink"]) || empty($config)){ TODO CONFIG MUTUALIZE WITH NETWORK AND OTHER PLATFORM
            //$connectType = $connectType[$type];
             if(((!@$links[$connectType][Yii::app()->session["userId"]] && $type!=Event::COLLECTION) || (@$links[$connectType][Yii::app()->session["userId"]] && 
@@ -2017,7 +2044,7 @@ class Element {
             
             if(@$_GET["network"])
                 $params["networkJson"]=Network::getNetworkJson($_GET["network"]);
-        }
+        //}
 
         return $params;
 	}
@@ -2046,6 +2073,9 @@ class Element {
 
 		if(!empty($type))
 			$newElement["type"] = $type;
+
+		if(!empty($element["properties"]["avancement"]))
+			$newElement["avancement"] = $element["properties"]["avancement"];
 
 		return $newElement;
 	}

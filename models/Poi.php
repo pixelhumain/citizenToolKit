@@ -11,8 +11,8 @@ class Poi {
 		"machine"		=> "Machine",
 		"software"		=> "Software",
 		"rh"			=> "Ressource Humaine",
-		"RessourceMaterielle" => "Ressource Materielle",
-		"RessourceFinanciere" => "Ressource Financiere",
+		"materialRessource" => "Ressource Materielle",
+		"financialRessource" => "Ressource Financiere",
 		"ficheBlanche" => "Fiche Blanche",
 		"geoJson" 		=> "Url au format geojson ou vers une umap",
 		"compostPickup" => "récolte de composte",
@@ -147,7 +147,7 @@ class Poi {
 		if ($poi == null) 
 			$poi = self::getById($id);
 		//To Delete POI, the user should be creator or can delete the parent of the POI
-        if ( $userId == $poi['creator'] || Authorisation::canDeleteElement(@$poi["parentId"], @$poi["parentType"], $userId)) {
+        if ( $userId == @$poi['creator'] || Authorisation::canDeleteElement(@$poi["parentId"], @$poi["parentType"], $userId)) {
             return true;
         } else {
         	return false;

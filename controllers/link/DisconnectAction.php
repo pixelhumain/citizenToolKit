@@ -21,6 +21,10 @@ class DisconnectAction extends CAction
 					$parentConnect="follows";
 				else
 					$parentConnect=$parentType;
+				if($parentType == Person::COLLECTION && $childType == Organization::COLLECTION && $connectType!="follows"){
+					$parentConnect="members";
+					$connectType="memberOf";
+				}
 				//if($parentType == Person::COLLECTION && $childType == Organization::COLLECTION && $connectType == "members")
 				//	$connectType="memberOf";
 				$data=Link::disconnect($childId, $childType, $parentId, $parentType,Yii::app()->session['userId'], $parentConnect,$linkOption);
