@@ -611,10 +611,10 @@ class Element {
 			$oldParentId = @$element["parentId"] ? $element["parentId"] : key($element["links"]["parent"]);
 			$oldParentType = @$element["parentType"] ? $element["parentType"] : $element["links"]["parent"][$oldParentId]["type"];
 			//remove the old parent
-			$res = Link::removeParent($oldParentId, $oldParentType, $id, Yii::app()->session["userId"]);
+			$res = Link::removeParent($oldParentId, $oldParentType, $id, $collection, Yii::app()->session["userId"]);
 			if (! @$res["result"]) throw new CTKException(@$res["msg"]);
 			//add new parent
-			$res = Link::addParent($fieldValue["parentId"], $fieldValue["parentType"], $id, Yii::app()->session["userId"]);
+			$res = Link::addParent($fieldValue["parentId"], $fieldValue["parentType"], $id, $collection, Yii::app()->session["userId"]);
 			if (! @$res["result"]) throw new CTKException(@$res["msg"]);
 		} else if ($dataFieldName == "seePreferences") {
 			//var_dump($fieldValue);
@@ -1810,12 +1810,16 @@ class Element {
 			if(!empty($params["parentId"]) && !empty($params["parentType"])){
 				$parent["parentId"] = $params["parentId"] ;
 				$parent["parentType"] = $params["parentType"] ;
-				$res[] = self::updateField($collection, $id, "parent", $parent);
+				$resParent = self::updateField($collection, $id, "parent", $parent);
+				$resParent["value"]["parent"] = Element::getByTypeAndId( $params["parentType"], $params["parentId"]);
+				$res[] = $resParent;
 			}
 			if(!empty($params["organizerId"]) && !empty($params["organizerType"])){
 				$organizer["organizerId"] = $params["organizerId"] ;
 				$organizer["organizerType"] = $params["organizerType"] ;
-				$res[] = self::updateField($collection, $id, "organizer", $organizer);
+				$resOrg = self::updateField($collection, $id, "organizer", $organizer);
+				$resOrg["value"]["organizer"] = Element::getByTypeAndId( $params["organizerType"], $params["organizerId"]);
+				$res[] = $resOrg;
 			}
 
 		}else if($block == "network"){

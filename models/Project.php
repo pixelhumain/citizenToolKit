@@ -35,6 +35,7 @@ class Project {
 	    "urls" => array("name" => "urls"),
 	    "type" => array("name" => "type"),
 	    "contacts" => array("name" => "contacts"),
+	    "parent" => array("name" => "parent"),
 		"parentId" => array("name" => "parentId"),
 		"parentType" => array("name" => "parentType"),
 		"modified" => array("name" => "modified"),
