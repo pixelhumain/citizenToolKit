@@ -130,6 +130,21 @@ class Search {
   		
   		
   		$allRes = array();
+
+  		//*********************************  CITIES   ******************************************
+  		if(!empty($search)){
+	        if(strcmp($filter, City::COLLECTION) != 0 && self::typeWanted(City::COLLECTION, $searchType)){
+		  		$allCitiesRes = self::searchCities($search, $locality, $country);
+		  	}
+
+		  	if(isset($allCitiesRes)) usort($allCitiesRes, "self::mySortByName");
+
+		  	if(count($allRes) < $indexMax){
+		  		if(isset($allCitiesRes)) 
+		  			$allRes = array_merge($allRes, $allCitiesRes);
+		  	} 
+		}
+	  		
         //*********************************  PERSONS   ******************************************
        	if(strcmp($filter, Person::COLLECTION) != 0 && (self::typeWanted(Person::COLLECTION, $searchType) || self::typeWanted("persons", $searchType) ) ) {
        		$localityReferences['CITYKEY'] = "";
@@ -196,18 +211,7 @@ class Search {
         	$allRes = array_merge($allRes, self::searchVotes($query, $indexStep, $indexMin, $searchType));
         }
 
-	  	//*********************************  CITIES   ******************************************
-        if(strcmp($filter, City::COLLECTION) != 0 && self::typeWanted(City::COLLECTION, $searchType)){
-	  		$allCitiesRes = self::searchCities($search, $locality, $country);
-	  	}
-
-	  	if(isset($allCitiesRes)) usort($allCitiesRes, "self::mySortByName");
-
-	  	if(count($allRes) < $indexMax){
-	  		if(isset($allCitiesRes)) 
-	  			$allRes = array_merge($allRes, $allCitiesRes);
-	  	} 
-	  		
+	  	
 	  	if(@$post['tpl'] == "/pod/nowList"){
 	  		usort($allRes, "self::mySortByUpdated");
 	  	}
@@ -950,6 +954,7 @@ class Search {
 		  						"_id"=>$data["_id"],
 		  						"insee" => $data["insee"], 
 		  						"regionName" => isset($data["regionName"]) ? $data["regionName"] : "", 
+		  						"depName" => isset($data["depName"]) ? $data["depName"] : "", 
 		  						"country" => $data["country"],
 		  						"geoShape" => isset($data["geoShape"]) ? $data["geoShape"] : "",
 		  						"cp" => $val["postalCode"],
