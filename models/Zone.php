@@ -51,10 +51,27 @@ class Zone {
 		$zoneNominatim = array() ;
 		$zone = array();
 
-		if($level == "1")
+		$state = false;
+		$county = false;
+
+
+		if($level == "2"){
+			$state = true;
+		}else if($level == "3"){
+			if($countryCode == "BE")
+				$county = true;
+			else
+				$state = true;
+		}else if($level == "4"){
+			$county = true;
+		}
+
+		$zoneNominatim = json_decode(SIG::getGeoByAddressNominatim(null,null, null, $countryCode, true, true, $name, $state, $county), true);
+
+		/*if($level == "1")
 			$zoneNominatim = json_decode(SIG::getGeoByAddressNominatim(null,null, null, $countryCode, true, true, $name), true);
 		else if($level == "2" || $level == "3" || $level == "4")
-			$zoneNominatim = json_decode(SIG::getGeoByAddressNominatim(null,null, null, $countryCode, true, true, $name, true), true);
+			$zoneNominatim = json_decode(SIG::getGeoByAddressNominatim(null,null, null, $countryCode, true, true, $name, true), true);*/
 		
 		if(!empty($zoneNominatim)){
 			$zone["name"] = $name;
@@ -64,7 +81,6 @@ class Zone {
 				$zone["level1"] = self::getIdCountryByCountryCode($countryCode);
 				if($level != "2" && !empty($level2)){
 					$zone["level2"] = self::getIdLevelByNameAndCountry($level2, "2", $countryCode);
-
 					if($level != "3" && !empty($level3)){
 						$zone["level3"] = self::getIdLevelByNameAndCountry($level3, "3", $countryCode);
 					}
@@ -74,7 +90,8 @@ class Zone {
 			$zone["geo"] = SIG::getFormatGeo($zoneNominatim[0]["lat"], $zoneNominatim[0]["lon"]);
 			$zone["geoPosition"] = SIG::getFormatGeoPosition($zoneNominatim[0]["lat"], $zoneNominatim[0]["lon"]);
 			$zone["geoShape"] = $zoneNominatim[0]["geojson"];
-			$zone["osmID"] = $zoneNominatim[0]["osm_id"];
+			if(!empty($zoneNominatim[0]["osm_id"]))
+				$zone["osmID"] = $zoneNominatim[0]["osm_id"];
 			if(!empty($zoneNominatim[0]["extratags"]["wikidata"]))
 				$zone["wikidataID"] = $zoneNominatim[0]["extratags"]["wikidata"];
 		}
