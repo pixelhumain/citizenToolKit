@@ -477,6 +477,7 @@ class SIG
 	        if(!empty($extratags)){
 	            $url .= "&extratags=1";
 	        }
+	        echo $url."<br>" ;
 	        $res =  file_get_contents($url);
 	        return $res;
 			//return self::getUrl($url);

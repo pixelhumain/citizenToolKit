@@ -47,7 +47,7 @@ class Zone {
 	}
 
 
-	public static function createLevel($name, $countryCode, $level){
+	public static function createLevel($name, $countryCode, $level, $level2 = null, $level3 = null){
 		$zoneNominatim = array() ;
 		$zone = array();
 
@@ -62,7 +62,15 @@ class Zone {
 			$zone["level"] = $level;
 			if($level != "1"){
 				$zone["level1"] = self::getIdCountryByCountryCode($countryCode);
+				if($level != "2" && !empty($level2)){
+					$zone["level2"] = self::getIdLevelByNameAndCountry($level2, "2", $countryCode);
+
+					if($level != "3" && !empty($level3)){
+						$zone["level3"] = self::getIdLevelByNameAndCountry($level3, "3", $countryCode);
+					}
+				}
 			}
+
 			$zone["geo"] = SIG::getFormatGeo($zoneNominatim[0]["lat"], $zoneNominatim[0]["lon"]);
 			$zone["geoPosition"] = SIG::getFormatGeoPosition($zoneNominatim[0]["lat"], $zoneNominatim[0]["lon"]);
 			$zone["geoShape"] = $zoneNominatim[0]["geojson"];
@@ -127,6 +135,14 @@ class Zone {
 	public static function getIdCountryByCountryCode($countryCode){
 		$country = self::getCountryByCountryCode($countryCode);
 		return ( ( empty($country["_id"]) ) ? null : (String)$country["_id"] );
+	}
+
+	public static function getIdLevelByNameAndCountry($name, $level, $countryCode){
+		$where = array(	"countryCode"=> $countryCode,
+						"level" => $level,
+						"name" => $name);
+		$zone = PHDB::findOne(self::COLLECTION, $where);
+		return ( ( empty($zone["_id"]) ) ? null : (String)$zone["_id"] );
 	}
 
 
