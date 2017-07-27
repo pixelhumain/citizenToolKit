@@ -151,6 +151,12 @@ class GetDataDetailAction extends CAction {
 				$events[$key]["typeSig"] = "events";
 				if(@$value["startDate"]) {
 					$events[$key]["updatedLbl"] = Translate::pastTime(@$value["startDate"]->sec,"timestamp");
+					$events[$key]["startDate"] = date(DateTime::ISO8601, $value["startDate"]->sec);
+				
+		  		}
+
+		  		if(@$value["endDate"]) {
+					$events[$key]["endDate"] = date(DateTime::ISO8601, $value["endDate"]->sec);
 		  		}
 		  	}
 		  	$contextMap = array_merge($contextMap, $events);

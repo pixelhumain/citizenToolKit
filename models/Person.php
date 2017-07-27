@@ -11,7 +11,6 @@ class Person {
 	const REGISTER_MODE_TWO_STEPS 	= "two_steps_register";
 
 
-
 	//From Post/Form name to database field name with rules
 	public static $dataBinding = array(
 	    "name" => array("name" => "name", "rules" => array("required")),

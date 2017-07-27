@@ -482,8 +482,8 @@ class Notification{
 	    		$members[$userAskingToDelete]=array();
 	    }
 
-		// else if($type == Person::COLLECTION)
-		// 	$people[$id] = array("isUnread" => true, "isUnseen" => true);
+		if($type == Person::COLLECTION && $construct["verb"]==Actstr::VERB_FOLLOW)
+		 	$people[$id] = array("isUnread" => true, "isUnseen" => true);
 		else if($type == News::COLLECTION){
 			if(Yii::app()->session["userId"] != $alreadyAuhtorNotify){
 				$news=News::getById($id);
@@ -969,8 +969,9 @@ class Notification{
 					else
 						$res["{what}"]=Yii::t("notification","shared");
 				}
-				else
-					$res["{what}"]="&quot;".strtr(@$news["text"], 0, 20)."...&quot;";
+				else{
+					$res["{what}"]="&quot;".substr(@$news["text"], 0, 20)."...&quot;";
+				}
 			}
 			else if($object){
 				$object=Element::getElementSimpleById($object["id"], $object["type"]);

@@ -124,22 +124,22 @@ class Document {
 	    	$new["category"] = $params["category"];
 
 	    PHDB::insert(self::COLLECTION, $new);
-	     if (substr_count(@$new["contentKey"], self::IMG_BANNER)) {
+	    if (substr_count(@$new["contentKey"], self::IMG_BANNER)) {
 	    	$src=self::generateBannerImages($new);
 	    	$typeNotif="bannerImage";
 	    }
     	else{
-	    //Generate small image
-	   	self::generateAlbumImages($new);
-	    //Generate image profil if necessary
-	    if (substr_count(@$new["contentKey"], self::IMG_PROFIL)) {
-	    	self::generateProfilImages($new);
-	    	$typeNotif="profilImage";
-	    }
-	    if (substr_count(@$new["contentKey"], self::IMG_SLIDER)) {
-	    	self::generateAlbumImages($new, self::GENERATED_IMAGES_FOLDER);
-	    	$typeNotif="albumImage";
-	    }
+		    //Generate small image
+		   	self::generateAlbumImages($new);
+		    //Generate image profil if necessary
+		    if (substr_count(@$new["contentKey"], self::IMG_PROFIL)) {
+		    	self::generateProfilImages($new);
+		    	$typeNotif="profilImage";
+		    }
+		    if (substr_count(@$new["contentKey"], self::IMG_SLIDER)) {
+		    	self::generateAlbumImages($new, self::GENERATED_IMAGES_FOLDER);
+		    	$typeNotif="albumImage";
+		    }
 		}
 	   //Notification::constructNotification(ActStr::VERB_ADD, array("id" => Yii::app()->session["userId"],"name"=> Yii::app()->session["user"]["name"]), array("type"=>$new["type"],"id"=> $new["id"]), null, $typeNotif);
 	    return array("result"=>true, "msg"=>Yii::t('document','Document saved successfully'), "id"=>$new["_id"],"name"=>$new["name"],"src"=>@$src);	
@@ -625,7 +625,7 @@ class Document {
         	if (@$profilMediumUrl)
         		$changes["profilMediumImageUrl"] = $profilMediumUrl;
         	if (@$profilThumbUrl)
-        		$changes["profilThumbImageUrl"] = $profilThumbUrl;
+        		$changes["profilThumbImageUrl"] = $profilThumbUrl."?t=".time();
         	if (@$profilMarkerImageUrl)
         		$changes["profilMarkerImageUrl"] = $profilMarkerImageUrl;
 
@@ -966,7 +966,7 @@ class Document {
 	 * @param type|null $sizeUrl The size of the file (not mandatory : could be retrieve from the file when it's not an URL file)
 	 * @return array result => boolean, msg => String, uploadDir => where the file is stored
 	 */
-	public static function checkFileRequirements($file, $dir, $folder, $ownerId, $input, $nameUrl = null, $sizeUrl=null) {
+	public static function checkFileRequirements($file, $dir, $folder, $ownerId, $input, $contentKey=null, $nameUrl = null, $sizeUrl=null) {
 		//TODO SBAR
 		//$dir devrait être calculé : sinon on peut facilement enregistrer des fichiers n'importe où
 		$upload_dir = Yii::app()->params['uploadDir'];
@@ -993,7 +993,7 @@ class Document {
 
         }
        
-        if( @$input=="newsImage"){
+        if( @$input=="newsImage" || (@$contentKey && $contentKey==Document::IMG_SLIDER)){
 	        $upload_dir .= Document::GENERATED_ALBUM_FOLDER.'/';
             if( !file_exists ( $upload_dir ) )
                 mkdir ( $upload_dir,0775 );
