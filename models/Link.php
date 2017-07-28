@@ -18,6 +18,25 @@ class Link {
     const INVITED_BY_NAME = "invitorName";
     const IS_INVITING = "isInviting";
 
+
+
+    public static $linksTypes = array(
+    Person::COLLECTION => 
+		array(  Project::COLLECTION =>  "projects",
+				Event::COLLECTION =>  "events"),
+	Organization::COLLECTION => 
+		array(  Project::COLLECTION =>  "projects",
+				Event::COLLECTION =>  "events"),
+	Event::COLLECTION => 
+		array(	Event::COLLECTION => "subEvent" ),
+	Project::COLLECTION =>
+		array(	Organization::COLLECTION => "contributors",
+				Person::COLLECTION => "contributors",
+				Project::COLLECTION =>  "projects"),
+	);
+
+
+
 	/** TODO BOUBOULE  ----- TO DELETE ConnectParentToChild do it
 	 * Add a member to an organization
 	 * Create a link between the 2 actors. The link will be typed members and memberOf
@@ -400,6 +419,92 @@ class Link {
             //TODO SBAR : add notification for old organizer
             $res = array("result"=>true, "msg"=>"The organizer has been removed with success");
         }
+
+        return $res;
+    }
+
+
+    public static function addParent($parentId, $parentType, $childId, $childType, $userId) {
+		error_log("Try to add parent ".$parentId."/".$parentType." from ".$childType." / ".$childId);
+        
+        if ($parentType == Organization::COLLECTION) {
+            $isUserAdmin = Authorisation::isOrganizationAdmin($userId, $parentId) || Authorisation::isUserSuperAdmin($userId); 
+        } else if ($parentType == Project::COLLECTION) {
+            $isUserAdmin = Authorisation::isProjectAdmin($parentId,$userId) || Authorisation::isUserSuperAdmin($userId);
+        } else if ($parentType == Person::COLLECTION) {
+            $isUserAdmin = ($userId == $parentId) || Authorisation::isUserSuperAdmin($userId);
+        } else if ($parentType == Event::NO_ORGANISER) { 
+            $isUserAdmin = true;
+        } else{
+            throw new CTKException("Unknown parent type = ".$parentType);
+        }
+        
+        if($isUserAdmin != true)
+            $isUserAdmin = Authorisation::isOpenEdition($parentId, $parentType);
+
+        if($isUserAdmin != true)
+            return array("result"=>false, "msg"=>"You can't remove the parent of this event !");
+
+		if ($parentType != Event::NO_ORGANISER) {
+            PHDB::update($parentType,
+    					array("_id" => new MongoId($parentId)),
+    					array('$set' => array(	"links.".self::$linksTypes[$parentType][$childType].".".$childId.".type"=>$childType))
+    		);
+
+            PHDB::update($childType,
+                    array("_id"=>new MongoId($childId)),
+                    array('$set'=> array(	"parentId" => $childId,
+    										"parentType" => $childType,
+    										"links.".self::$linksTypes[$childType][$parentType].".".$parentId.".type"=>$parentType))
+            );
+        }
+		//TODO SBAR : add notification for new parent
+		$res = array("result"=>true, "msg"=>"The element parent has been added with success");
+	   	
+   		return $res;
+   	}
+
+
+    public static function removeParent($parentId, $parentType, $childId, $childType, $userId) {
+        error_log("Try to remove parent ".$parentId."/".$parentType." from ".$childType." / ".$childId);
+        
+        if ($parentType==Organization::COLLECTION) {
+            $isUserAdmin = Authorisation::isOrganizationAdmin($userId, $parentId) || Authorisation::isUserSuperAdmin($userId); 
+        } else if ($parentType==Project::COLLECTION) {
+            $isUserAdmin = Authorisation::isProjectAdmin($parentId,$userId) || Authorisation::isUserSuperAdmin($userId);
+        } else if ($parentType==Person::COLLECTION) {
+            $isUserAdmin = ($userId == $parentId) || Authorisation::isUserSuperAdmin($userId);
+        } else if ($parentType == Event::NO_ORGANISER) { 
+            $isUserAdmin = Authorisation::isEventAdmin($parentId,$userId) || Authorisation::isUserSuperAdmin($userId);
+        } else {
+            throw new CTKException("Unknown parent type = ".$parentType);
+        }
+
+        if($isUserAdmin != true)
+            $isUserAdmin = Authorisation::isOpenEdition($parentId, $parentType);
+
+        if($isUserAdmin != true)
+            return array("result"=>false, "msg"=>"You can't remove the parent of this event !");
+        
+
+        if(	$parentType != Person::COLLECTION ||
+			(	$parentType == Person::COLLECTION && 
+				!self::isLinked($childId, $childType, $userId, null) ) 
+		) {
+			PHDB::update($parentType,
+						array("_id"=>new MongoId($parentId)),
+						array('$unset'=> array("links.".self::$linksTypes[$parentType][$childType].".".$childId => ""))
+	        );
+			PHDB::update($childType,
+					array("_id"=>new MongoId($childId)),
+					array('$unset'=> array("links.".self::$linksTypes[$childType][$parentType].".".$parentId => ""))
+        	);
+		}
+        
+
+        //TODO SBAR : add notification for old parent
+        $res = array("result"=>true, "msg"=>"The parent has been removed with success");
+        //}
 
         return $res;
     }

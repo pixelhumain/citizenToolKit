@@ -576,7 +576,7 @@ class News {
         if (@$news["sharedBy"] && in_array($userId,array_column($news["sharedBy"],"id"))) return "share";
         if (Authorisation::isUserSuperAdmin($userId)) return true;
         $parentId = @$news["target"]["id"];
-        $parentType = @$new["target"]["type"];
+        $parentType = @$news["target"]["type"];
         $isAdmin = Authorisation::isElementAdmin($parentId, $parentType, $userId);
         return $isAdmin;
     }
