@@ -160,7 +160,7 @@ class DetailAction extends CAction {
 			$connectType = "attendees";
 		} else if ($type == Place::COLLECTION){
 			$element = Place::getById($id);
-			if (empty($element)) throw new CHttpException(404,Yii::t("poi","The poi you are looking for has been moved or deleted !"));
+			if (empty($element)) throw new CHttpException(404,Yii::t("place","The place you are looking for has been moved or deleted !"));
 			
 		}
 		else if ($type == Poi::COLLECTION){
