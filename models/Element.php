@@ -44,6 +44,7 @@ class Element {
 	    	Survey::COLLECTION => Survey::CONTROLLER,
 	    	ActionRoom::COLLECTION => ActionRoom::CONTROLLER,
 	    	ActionRoom::COLLECTION_ACTIONS => ActionRoom::CONTROLLER,
+	    	Place::COLLECTION => Place::CONTROLLER
 	    );	    
     	return @$ctrls[$type];
     }
@@ -60,6 +61,7 @@ class Element {
 	    	Thing::COLLECTION 		 => "Thing",
 	    	Poi::COLLECTION 		 => "Poi",
 	    	Classified::COLLECTION   => "Classified",
+	    	Place::COLLECTION   => "Place",
 	    );	
 	 	return @$models[$type];     
     }
@@ -281,6 +283,8 @@ class Element {
 			$element = City::getIdByInsee($id);
 		else if($type == Poi::COLLECTION)
 			$element = Poi::getById($id);
+		else if($type == Place::COLLECTION)
+			$element = Place::getById($id);
 		else if($type == Classified::COLLECTION)
 			$element = Classified::getById($id);
 		else
@@ -310,26 +314,6 @@ class Element {
 	  	return $element;
 	}
 
-	public static function getSimpleByTypeAndId($type, $id,$what=null){
-		if( @$what ) 
-			$element = PHDB::findOneById($type, $id, $what);
-		else if($type == Person::COLLECTION)
-			$element = Person::getSimpleUserById($id);
-		else if($type == Organization::COLLECTION)
-			$element = Organization::getSimpleOrganizationById($id);		
-		else if($type == Project::COLLECTION)
-			$element = Project::getSimpleProjectById($id);	
-		else if($type == Event::COLLECTION)
-			$element = Event::getSimpleEventById($id);	
-		else if($type == City::COLLECTION)
-			$element = City::getIdByInsee($id);
-		else if($type == Poi::COLLECTION)
-			$element = Poi::getById($id);
-		else
-			$element = PHDB::findOne($type,array("_id"=>new MongoId($id)));
-	  	
-	  	return $element;
-	}
 
 	/**
 	 * get all poi details of an element
