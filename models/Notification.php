@@ -605,8 +605,8 @@ class Notification{
 		}
 		else
 			$label = $construct["label".$repeat];
-		return $label;
-		/*if($construct["labelUpNotifyTarget"]=="object"){
+		//return $label;
+		if($construct["labelUpNotifyTarget"]=="object"){
 			$memberName="";
 			if($construct["object"]){
 				if(@$construct["object"]["name"])
@@ -655,7 +655,7 @@ class Notification{
 		//	$specifyLabel["{type}"] = $labelArray["typeValue"];
 		if(in_array("what",$construct["labelArray"]))
 			$specifyLabel["{what}"] = @$construct["object"]["name"];
-		return Yii::t("notification",$label, $specifyLabel);*/
+		return Yii::t("notification",$label, $specifyLabel);
 	}
 
 	public static function getLabelNotificationFront($notif){
