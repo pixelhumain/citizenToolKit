@@ -68,10 +68,14 @@ class Zone {
 
 		$zoneNominatim = json_decode(SIG::getGeoByAddressNominatim(null,null, null, $countryCode, true, true, $name, $state, $county), true);
 
-		/*if($level == "1")
-			$zoneNominatim = json_decode(SIG::getGeoByAddressNominatim(null,null, null, $countryCode, true, true, $name), true);
-		else if($level == "2" || $level == "3" || $level == "4")
-			$zoneNominatim = json_decode(SIG::getGeoByAddressNominatim(null,null, null, $countryCode, true, true, $name, true), true);*/
+		if(empty($zoneNominatim)){
+			$resNominatim = json_decode(SIG::getGeoByAddressNominatim(null,null, $name, $countryCode, true, true), true);
+			foreach ($resNominatim as $key => $value) {
+				if(empty($value["address"]["city"])){
+					$zoneNominatim = array($value);
+				}
+			}
+		}
 		
 		if(!empty($zoneNominatim)){
 			$zone["name"] = $name;
