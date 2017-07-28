@@ -11,11 +11,16 @@ class Event {
         "competition" => "Competition",
         "concert" => "Concert",
         "concours" => "Contest",
-        "exposition" => "Exposition",
+        "exposition" => "Exhibition",
         "festival" => "Festival",
         "getTogether" => "Get together",
         "market" => "Market",
-	    "meeting" => "Meeting"
+	    "meeting" => "Meeting",
+	    "course"=>"Course",
+		"workshop"=>"Workshop",
+		"conference"=>"Conference",
+		"debate"=>"Debate",
+		"film"=>"Film",
 	);  
 	      
 	//From Post/Form name to database field name
