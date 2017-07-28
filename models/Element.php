@@ -1124,18 +1124,25 @@ class Element {
     	$resError = array("result" => false, "msg" => Yii::t('common',"Error trying to delete this element : please contact your administrator."));
     	//Remove Activity of the Element
     	$res = ActivityStream::removeElementActivityStream($elementId, $elementType);
+    	$resError["action"] = "removeElementActivityStream";
     	if (!$res) return $resError;
     	//Delete News
     	$res = News::deleteNewsOfElement($elementId, $elementType, $userId, true);
-    	if (!$res["result"]) {error_log("error deleting News ".@$res["id"]." : ".$res["msg"]); return $resError;}
+    	$resError["action"] = "deleteNewsOfElement";
+    	$resError["res"] = $res;
+    	if (!$res["result"]) {
+    		error_log("error deleting News ".@$res["id"]." : ".$res["msg"]); return $resError;
+    	}
     	//Delete Action Rooms
     	$res = ActionRoom::deleteElementActionRooms($elementId, $elementType, $userId);
+    	$resError["action"] = "deleteElementActionRooms";
     	if (!$res["result"]) return $resError;
 
 
 		$listEventsId = array();
 		$listProjectId = array();
 		//Remove backwards links
+		$resError["action"] = "Remove backwards links";
 		if (isset($elementToDelete["links"])) {
 			foreach ($elementToDelete["links"] as $linkType => $aLink) {
 				foreach ($aLink as $linkElementId => $linkInfo) {
@@ -1160,6 +1167,7 @@ class Element {
 		}
 		
 		//Unset the organizer for events organized by the element
+		$resError["action"] = "Unset the organizer for events organized by the element";
 		if (count($listEventsId) > 0) {
 			$where = array('_id' => array('$in' => $listEventsId));
 			$action = array('$set' => array("organizerId" => Event::NO_ORGANISER, "organizerType" => Event::NO_ORGANISER));
@@ -1167,6 +1175,7 @@ class Element {
 		}
 
 		//Unset the project with parent this element
+		$resError["action"] = "Unset the project with parent this element";
 		if (count($listProjectId) > 0) {
 			$where = array('_id' => array('$in' => $listProjectId));
 			$action = array('$unset' => array("parentId" => "", "parentType" => ""));
@@ -1178,6 +1187,7 @@ class Element {
     	// NOTIFY COMMUNITY OF DELETED ELEMENT
     	Notification::constructNotification(ActStr::VERB_DELETE, array("id" => Yii::app()->session["userId"],"name"=> Yii::app()->session["user"]["name"]), array("type"=>$elementType,"id"=> $elementId), null, ActStr::VERB_DELETE);
 		
+		$resError["action"] = "remove element";
     	PHDB::remove($elementType, $where);
     	
     	$res = array("result" => true, "status" => "deleted", "msg" => Yii::t('common',"The element {elementName} of type {elementType} has been deleted with success.", array("{elementName}" => @$elementToDelete["name"], "{elementType}" => @$elementType )));
