@@ -1853,10 +1853,14 @@ class Element {
 
 		}else if($block == "descriptions"){
 
+			if(isset($params["tags"]))
+				$res[] = self::updateField($collection, $id, "tags", $params["tags"]);
+
 			if(isset($params["description"])){
 				$res[] = self::updateField($collection, $id, "description", $params["description"]);
 				self::updateField($collection, $id, "descriptionHTML", null);
 			}
+			
 			if(isset($params["shortDescription"]))
 				$res[] = self::updateField($collection, $id, "shortDescription", strip_tags($params["shortDescription"]));
 		}
