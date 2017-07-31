@@ -44,7 +44,8 @@ class Element {
 	    	Survey::COLLECTION => Survey::CONTROLLER,
 	    	ActionRoom::COLLECTION => ActionRoom::CONTROLLER,
 	    	ActionRoom::COLLECTION_ACTIONS => ActionRoom::CONTROLLER,
-	    	Place::COLLECTION => Place::CONTROLLER
+	    	Place::COLLECTION => Place::CONTROLLER,
+	    	Ressource::COLLECTION => Ressource::COLLECTION
 	    );	    
     	return @$ctrls[$type];
     }
@@ -62,6 +63,7 @@ class Element {
 	    	Poi::COLLECTION 		 => "Poi",
 	    	Classified::COLLECTION   => "Classified",
 	    	Place::COLLECTION   => "Place",
+	    	Ressource::COLLECTION   => "Ressource",
 	    );	
 	 	return @$models[$type];     
     }

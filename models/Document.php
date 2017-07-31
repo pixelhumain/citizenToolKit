@@ -615,7 +615,7 @@ class Document {
         						  Organization::COLLECTION, 
         						  Project::COLLECTION, 
         						  Event::COLLECTION,
-        						  Poi::COLLECTION, 
+        						  Poi::COLLECTION, Ressource::COLLECTION, Place::COLLECTION, 
         						  Classified::COLLECTION);
         if (@$profilUrl && in_array($document["type"], $allowedElements )) {
         	
