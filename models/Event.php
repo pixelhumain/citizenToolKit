@@ -10,8 +10,8 @@ class Event {
 	public static $types = array(
         "competition" => "Competition",
         "concert" => "Concert",
-        "concours" => "Contest",
-        "exposition" => "Exhibition",
+        "contest" => "Contest",
+        "exhibition" => "Exhibition",
         "festival" => "Festival",
         "getTogether" => "Get together",
         "market" => "Market",
