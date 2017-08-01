@@ -1350,7 +1350,7 @@ class Element {
                 else
                 	PHDB::update($collection,array("_id"=>new MongoId($id)), array('$set' => $params ));
                 $res = array("result"=>true,
-                             "msg"=>"Vos données ont été mises à jour.",
+                             "msg"=>Yii::t("common","Your data are well updated."),
                              "reload"=>true,
                              "map"=>$params,
                              "id"=>$id);
@@ -1360,7 +1360,7 @@ class Element {
                 $params["created"] = time();
                 PHDB::insert($collection, $params );
                 $res = array("result"=>true,
-                             "msg"=>"Vos données ont bien été enregistrées.",
+                             "msg"=>Yii::t("common","Your data are well registred"),
                              "reload"=>true,
                              "map"=>$params,
                              "id"=>(string)$params["_id"]);  
@@ -1726,7 +1726,7 @@ class Element {
 			$res = self::updateField($collection, $id, "contacts", $params);
 
 		if($res["result"])
-			$res["msg"] = "Les contacts ont été mis à jours";
+			$res["msg"] = Yii::t("common","Contacts are well updated");
 		return $res;
 	}
 
@@ -1741,7 +1741,7 @@ class Element {
 		unset($params["collection"]);
 		$res = self::updateField($collection, $id, "urls", $params);
 		if($res["result"])
-			$res["msg"] = "Les urls ont été mis à jours";
+			$res["msg"] = Yii::t("common","URLs are well updated");
 		return $res;
 	}
 

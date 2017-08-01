@@ -15,10 +15,10 @@ class Organization {
 	const TYPE_GOV = "GovernmentOrganization";
 
 	public static $types = array(
-        "NGO" => "Association",
-        "LocalBusiness" => "Entreprise",
-        "Group" => "Groupe",
-        "GovernmentOrganization" => "Service public"
+        "NGO" => "NGO",
+        "LocalBusiness" => "Local Business",
+        "Group" => "Group",
+        "GovernmentOrganization" => "Government Organization"
 	); 
 
 	//From Post/Form name to database field name
