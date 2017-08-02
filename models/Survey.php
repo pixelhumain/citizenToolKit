@@ -226,7 +226,7 @@ class Survey
                       $totalVotes." ".$msgVote.
                   "</div>".
 
-                  "<div class='space1'></div>";
+                  "<hr>";
         
       $html .=    '<div class="progress">'.
                     '<div class="progress-bar progress-bar-green progress-bar-striped" style="width: '.$percentVoteUpCount.'%">'.

@@ -96,6 +96,10 @@ class MediaCrawlerAction extends CAction
 					}
 					
 					$date = $this->formatDate($src, $urlKey, $date);
+          if($date == false){ 
+            $date = new DateTime();
+            $date = $date->format('Y-m-d H:i:s')."+11:00";
+          }
 
 					if($title != "" && $href != ""){
 						$media = array( "title" 		=> @$title,

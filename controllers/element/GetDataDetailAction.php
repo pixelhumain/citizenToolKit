@@ -126,6 +126,16 @@ class GetDataDetailAction extends CAction {
 		}
 
 
+		if($dataName == "actionRooms"){
+			$contextMap = PHDB::findAndSortAndLimitAndIndex( ActionRoom::COLLECTION,
+							array("parentType"=>$type, "parentId"=>$id));
+
+			foreach ($contextMap as $key => $value) {
+				//$rooms[$key]["typePoi"] = @$value["type"];
+			}
+		}
+		
+
 		if($dataName == "liveNow"){
 			$post = $_POST; 
 			if( empty($_POST["searchLocalityCITYKEY"]) && 
@@ -199,12 +209,14 @@ class GetDataDetailAction extends CAction {
 			if(@$post["tpl"]=="json")
 				return Rest::json($contextMap);
 			else
-				echo $this->getController()->renderPartial($post['tpl'], array("result"=>$contextMap, 
-																			"element" => $element,
-																			"type"=>$type, 
-																			"id"=>$id, 
-																			"scope"=>@$post['searchLocalityDEPARTEMENT'][0], 
-																			"open"=> (@$type=="0"))); //open : for home page (when no user connected)
+				echo $this->getController()->renderPartial($post['tpl'], 
+											array("result"=>$contextMap, 
+												"element" => $element,
+												"type"=>$type, 
+												"id"=>$id, 
+												"scope"=>@$post['searchLocalityDEPARTEMENT'][0], 
+												"open"=> (@$type=="0"))); 
+												//open : for home page (when no user connected)
 			Yii::app()->end();
 		}
 

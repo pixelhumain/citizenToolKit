@@ -25,7 +25,7 @@ class EntryAction extends CAction
       $params = array( 
             "title" => $survey["name"] ,
             //"content" => $controller->renderPartial( "entry", array( "survey" => $survey ), true),
-            "contentBrut" => $survey["message"],
+            "contentBrut" => @$survey["message"],
             "survey" => $survey,
              ) ;
 
