@@ -389,6 +389,10 @@ class Element {
 			return Survey::getDataBinding();
 		else if($collection == Poi::COLLECTION)
 			return Poi::getDataBinding();
+		else if($collection == Place::COLLECTION)
+			return Place::getDataBinding();
+		else if($collection == Ressource::COLLECTION)
+			return Ressource::getDataBinding();
 		else
 			return array();
 	}

@@ -29,6 +29,7 @@ class Place {
 	    "geoPosition" => array("name" => "geoPosition"),
 	    "description" => array("name" => "description"),
 	    "addresses" => array("name" => "addresses"),
+	    "parent" => array("name" => "parent"),
 	    "parentId" => array("name" => "parentId"),
 	    "parentType" => array("name" => "parentType"),
 	    "media" => array("name" => "media"),
@@ -86,6 +87,10 @@ class Place {
 	  		$elem = array_merge($elem, Document::retrieveAllImagesUrl($id, self::COLLECTION, $elem["type"], $elem));
 
 	  	return $elem;
+	}
+
+	public static function getDataBinding() {
+	  	return self::$dataBinding;
 	}
 }
 ?>
