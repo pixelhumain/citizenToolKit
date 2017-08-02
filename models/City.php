@@ -35,7 +35,11 @@ class City {
 	    "updated" => array("name" => "updated"),
 	    "creator" => array("name" => "creator"),
 	    "created" => array("name" => "created"),
-	    "new" => array("name" => "new")
+	    "new" => array("name" => "new"),
+	    "level1" => array("name" => "level1"),
+	    "level2" => array("name" => "level2"),
+	    "level3" => array("name" => "level3"),
+	    "level4" => array("name" => "level4")
 	);
 
 
@@ -68,8 +72,51 @@ class City {
 	    		$postalCodes[] = $newCP;
 	    	}
     	}
-    	
     	$city["postalCodes"] = $postalCodes;
+
+
+
+		$idLevel1 = Zone::getIdCountryByCountryCode($city["country"]);
+    	if(empty($idLevel1)){
+    		$level1 = Zone::createLevel(OpenData::$phCountries[$city["country"]], $city["country"], "1");
+    		$savelevel1 = Zone::save($level1);
+    		if($savelevel1["result"] == true)
+    			$idLevel1 = Zone::getIdCountryByCountryCode($city["country"]);
+    	}
+    	$city["level1"] = $idLevel1;
+    	
+    	if(!empty($city["regionNameBel"])){
+    		$idLevel2 = Zone::getIdLevelByNameAndCountry($city["regionNameBel"], "2", $city["country"]);
+	    	if(empty($idLevel2)){
+	    		$level2 = Zone::createLevel($city["regionNameBel"], $city["country"], "2");
+	    		$savelevel2 = Zone::save($level2);
+	    		if($savelevel2["result"] == true)
+	    			$idLevel2 = Zone::getIdLevelByNameAndCountry($city["regionNameBel"], "2", $city["country"]);
+	    	}
+	    	$city["level2"] = $idLevel2;
+    	}
+    	
+    	if(!empty($city["regionName"])){
+	    	$idLevel3 = Zone::getIdLevelByNameAndCountry($city["regionName"], "3", $city["country"]);
+	    	if(empty($idLevel3)){
+	    		$level3 = Zone::createLevel($city["regionName"], $city["country"], "3", ((!empty($city["regionNameBel"])) ? $city["regionNameBel"] : null));
+	    		$savelevel3 = Zone::save($level3);
+	    		if($savelevel3["result"] == true)
+	    			$idLevel3 = Zone::getIdLevelByNameAndCountry($city["regionName"], "3", $city["country"]);
+	    	}
+	    	$city["level3"] = $idLevel3;
+	    }
+
+	    if(!empty($city["depName"])){
+	    	$idLevel4 = Zone::getIdLevelByNameAndCountry($city["depName"], "4", $city["country"]);
+	    	if(empty($idLevel4)){
+	    		$level4 = Zone::createLevel($city["depName"], $city["country"], "4", ((!empty($city["regionNameBel"])) ? $city["regionNameBel"] : null), ((!empty($city["regionName"])) ? $city["regionName"] : null));
+	    		$savelevel4 = Zone::save($level4);
+	    		if($savelevel4["result"] == true)
+	    			$idLevel4 = Zone::getIdLevelByNameAndCountry($city["depName"], "4", $city["country"]);
+	    	}
+	    	$city["level4"] = $idLevel4;
+	    }
     	
 	    try {
     		$valid = DataValidator::validate( ucfirst(self::CONTROLLER), json_decode (json_encode ($city), true) );
@@ -122,9 +169,11 @@ class City {
         return  ( isset($wiki[$country]) ? $wiki[$country] : false );
     }
 
+
     public static function countryNotSplitCP ($country) { 
-        $wiki = array("BR​");  
-        return  ( isset($wiki[$country]) ? true : false );
+    	
+        $wiki = array("BR");
+        return  ( in_array($country, $wiki) ? false : true );
      }
 
 	/* Retourne des infos sur la commune dans la collection cities" */
@@ -666,8 +715,12 @@ class City {
 	        if(!empty($valWiki["P281"])){
 	        	
 	        	foreach ($valWiki["P281"] as $key => $cp) {
-		            if( (strpos($cp["mainsnak"]["datavalue"]["value"],"–") || strpos($cp["mainsnak"]["datavalue"]["value"],"-")) 
+	        		//var_dump(self::countryNotSplitCP($newCities["country"]));
+		            
+		            if( (strpos($cp["mainsnak"]["datavalue"]["value"],"–") > 0 || strpos($cp["mainsnak"]["datavalue"]["value"],"-") > 0) 
 		            	&& self::countryNotSplitCP($newCities["country"])) {
+		            	// var_dump($cp["mainsnak"]["datavalue"]["value"]);
+		            	// var_dump(strpos($cp["mainsnak"]["datavalue"]["value"],"–"));
 		                if(strpos($cp["mainsnak"]["datavalue"]["value"],"–"))
 		                    $split = explode("–", $cp["mainsnak"]["datavalue"]["value"]);
 		                else

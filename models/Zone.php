@@ -83,11 +83,13 @@ class Zone {
 			$zone["level"] = $level;
 			if($level != "1"){
 				$zone["level1"] = self::getIdCountryByCountryCode($countryCode);
+				
 				if($level != "2" && !empty($level2)){
 					$zone["level2"] = self::getIdLevelByNameAndCountry($level2, "2", $countryCode);
-					if($level != "3" && !empty($level3)){
-						$zone["level3"] = self::getIdLevelByNameAndCountry($level3, "3", $countryCode);
-					}
+				}
+
+				if($level != "3" && !empty($level3)){
+					$zone["level3"] = self::getIdLevelByNameAndCountry($level3, "3", $countryCode);
 				}
 			}
 
@@ -107,38 +109,36 @@ class Zone {
 						"error"=>"400",
 						"msg" => "error" );
 		if(!empty($zone)){
-			PHDB::insert(self::COLLECTION, $zone );
+			$zone = PHDB::insert(self::COLLECTION, $zone );
 			$res = array( 	"result" => true, 
-							"msg" => "création Country" );
+							"msg" => "création Country", "zone"=>$zone);
 		}
+		return $res;
 	}
 
 
 	public static function createKey($zone){
-		$key = "";
+		$key = $zone["countryCode"];
 		if($zone["level"] != "1"){
 			$country = self::getCountryByCountryCode($zone["countryCode"]);
-			$key .= (String)$country["_id"];
+			$key .= "@".(String)$country["_id"];
 
 			if($zone["level"] == "2"){
 				$key .= "@".(String)$zone["_id"] ;
 			}
 			else{
-				$level2 =  ( ( empty($zone["level2"]) ) ? null : self::getZoneById($zone["level2"]) ) ;
-				$key .= "@".( ( empty($level2["_id"]) ) ? "" : (String)$level2["_id"] );
+				$key .= "@".( ( empty($zone["level2"]) ) ? "" : $zone["level2"] );
 
 				if($zone["level"] == "3"){
 					$key .= "@".(String)$zone["_id"] ;
 				}
 				else{
-					$level3 =  ( ( empty($zone["level3"]) ) ? null : self::getZoneById($zone["level3"]) ) ;
-					$key .= "@".( ( empty($level3["_id"]) ) ? "" : (String)$level3["_id"] );
+					$key .= "@".( ( empty($zone["level3"]) ) ? "" : $zone["level3"] );
 
 					if($zone["level"] == "4"){
 						$key .= "@".(String)$zone["_id"] ;
 					}else{
-						$level4 =  ( ( empty($zone["level4"]) ) ? null : self::getZoneById($zone["level4"]) ) ;
-						$key .= "@".( ( empty($level4["_id"]) ) ? "" : (String)$level4["_id"] );
+						$key .= "@".( ( empty($zone["level4"]) ) ? "" : $zone["level4"] );
 					}
 				}
 			}

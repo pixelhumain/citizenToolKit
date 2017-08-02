@@ -71,7 +71,8 @@ class AutocompleteMultiScopeAction extends CAction
                         $typeCities = array("city", "village", "town") ;
                         foreach ($typeCities as $keyType => $valueType) {
                             if( !empty($value["address"][$valueType]) 
-                                && $countryCode == strtoupper(@$value["address"]["country_code"]) ) {
+                                && $countryCode == strtoupper(@$value["address"]["country_code"]) 
+                               /* && empty($value["address"]["city_district"])*/) {
 
                                 $wikidata = (empty($value["extratags"]["wikidata"]) ? null : $value["extratags"]["wikidata"]);
                                 //var_dump($value["osm_id"]);
@@ -96,6 +97,7 @@ class AutocompleteMultiScopeAction extends CAction
                                                     "save" => true);
                                 if(!empty($wikidata))
                                     $newCities = City::getCitiesWithWikiData($wikidata, $newCities);
+                                
 
                                 if(empty($newCities["insee"]))
                                     $newCities["insee"] = $value["osm_id"]."*".$countryCode;
@@ -106,12 +108,19 @@ class AutocompleteMultiScopeAction extends CAction
                                 if(empty($newCities["geoShape"]))
                                     $newCities["geoShape"] = $value["geojson"];
 
+                              
                                 if(City::checkCitySimply($newCities))
                                     $cities[] = $newCities;
+                                
+                                
                             }
                         } 
+
+                        
+                        
                     }
                 }
+                
             }
         }
         else if($type == "dep"){
