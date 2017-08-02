@@ -1124,18 +1124,25 @@ class Element {
     	$resError = array("result" => false, "msg" => Yii::t('common',"Error trying to delete this element : please contact your administrator."));
     	//Remove Activity of the Element
     	$res = ActivityStream::removeElementActivityStream($elementId, $elementType);
+    	$resError["action"] = "removeElementActivityStream";
     	if (!$res) return $resError;
     	//Delete News
     	$res = News::deleteNewsOfElement($elementId, $elementType, $userId, true);
-    	if (!$res["result"]) {error_log("error deleting News ".@$res["id"]." : ".$res["msg"]); return $resError;}
+    	$resError["action"] = "deleteNewsOfElement";
+    	$resError["res"] = $res;
+    	if (!$res["result"]) {
+    		error_log("error deleting News ".@$res["id"]." : ".$res["msg"]); return $resError;
+    	}
     	//Delete Action Rooms
     	$res = ActionRoom::deleteElementActionRooms($elementId, $elementType, $userId);
+    	$resError["action"] = "deleteElementActionRooms";
     	if (!$res["result"]) return $resError;
 
 
 		$listEventsId = array();
 		$listProjectId = array();
 		//Remove backwards links
+		$resError["action"] = "Remove backwards links";
 		if (isset($elementToDelete["links"])) {
 			foreach ($elementToDelete["links"] as $linkType => $aLink) {
 				foreach ($aLink as $linkElementId => $linkInfo) {
@@ -1160,6 +1167,7 @@ class Element {
 		}
 		
 		//Unset the organizer for events organized by the element
+		$resError["action"] = "Unset the organizer for events organized by the element";
 		if (count($listEventsId) > 0) {
 			$where = array('_id' => array('$in' => $listEventsId));
 			$action = array('$set' => array("organizerId" => Event::NO_ORGANISER, "organizerType" => Event::NO_ORGANISER));
@@ -1167,6 +1175,7 @@ class Element {
 		}
 
 		//Unset the project with parent this element
+		$resError["action"] = "Unset the project with parent this element";
 		if (count($listProjectId) > 0) {
 			$where = array('_id' => array('$in' => $listProjectId));
 			$action = array('$unset' => array("parentId" => "", "parentType" => ""));
@@ -1178,6 +1187,7 @@ class Element {
     	// NOTIFY COMMUNITY OF DELETED ELEMENT
     	Notification::constructNotification(ActStr::VERB_DELETE, array("id" => Yii::app()->session["userId"],"name"=> Yii::app()->session["user"]["name"]), array("type"=>$elementType,"id"=> $elementId), null, ActStr::VERB_DELETE);
 		
+		$resError["action"] = "remove element";
     	PHDB::remove($elementType, $where);
     	
     	$res = array("result" => true, "status" => "deleted", "msg" => Yii::t('common',"The element {elementName} of type {elementType} has been deleted with success.", array("{elementName}" => @$elementToDelete["name"], "{elementType}" => @$elementType )));
@@ -1340,7 +1350,7 @@ class Element {
                 else
                 	PHDB::update($collection,array("_id"=>new MongoId($id)), array('$set' => $params ));
                 $res = array("result"=>true,
-                             "msg"=>"Vos données ont été mises à jour.",
+                             "msg"=>Yii::t("common","Your data are well updated."),
                              "reload"=>true,
                              "map"=>$params,
                              "id"=>$id);
@@ -1350,7 +1360,7 @@ class Element {
                 $params["created"] = time();
                 PHDB::insert($collection, $params );
                 $res = array("result"=>true,
-                             "msg"=>"Vos données ont bien été enregistrées.",
+                             "msg"=>Yii::t("common","Your data are well registred"),
                              "reload"=>true,
                              "map"=>$params,
                              "id"=>(string)$params["_id"]);  
@@ -1716,7 +1726,7 @@ class Element {
 			$res = self::updateField($collection, $id, "contacts", $params);
 
 		if($res["result"])
-			$res["msg"] = "Les contacts ont été mis à jours";
+			$res["msg"] = Yii::t("common","Contacts are well updated");
 		return $res;
 	}
 
@@ -1731,7 +1741,7 @@ class Element {
 		unset($params["collection"]);
 		$res = self::updateField($collection, $id, "urls", $params);
 		if($res["result"])
-			$res["msg"] = "Les urls ont été mis à jours";
+			$res["msg"] = Yii::t("common","URLs are well updated");
 		return $res;
 	}
 
@@ -1853,10 +1863,14 @@ class Element {
 
 		}else if($block == "descriptions"){
 
+			if(isset($params["tags"]))
+				$res[] = self::updateField($collection, $id, "tags", $params["tags"]);
+
 			if(isset($params["description"])){
 				$res[] = self::updateField($collection, $id, "description", $params["description"]);
 				self::updateField($collection, $id, "descriptionHTML", null);
 			}
+			
 			if(isset($params["shortDescription"]))
 				$res[] = self::updateField($collection, $id, "shortDescription", strip_tags($params["shortDescription"]));
 		}

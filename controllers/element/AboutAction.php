@@ -17,7 +17,10 @@ class AboutAction extends CAction {
 			$params["openEdition"] = false;
 			$params["edit"] = false;
 		}
-		
+		if($type==Event::COLLECTION)
+			$params["typesList"]=Event::$types;
+		else if($type==Organization::COLLECTION)
+			$params["typesList"]=Organization::$types;
 		$params["element"] = $element;
 		$params["type"] = $type;
 		$params["edit"] = Authorisation::canEditItem(Yii::app()->session["userId"], $type, $id);
