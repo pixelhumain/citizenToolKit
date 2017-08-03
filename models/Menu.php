@@ -697,8 +697,8 @@ class Menu {
         
         if( Yii::app()->session['userId'] && @$context["email"] == Yii::app()->session['userEmail'] )
             self::entry("right", 'onclick', 
-                    Yii::t( "rooms", ( @$context["status"] != ActionRoom::STATE_ARCHIVED ) ? 'Archive' : 'Unarchive'.' this action Room',null,Yii::app()->controller->module->id),
-                    Yii::t( "rooms", ( @$context["status"] != ActionRoom::STATE_ARCHIVED ) ? 'Archive' : 'Unarchive',null,Yii::app()->controller->module->id), 'archive text-red',
+                    Yii::t( "rooms", ( @$context["status"] != ActionRoom::STATE_ARCHIVED ) ? 'Archive' : 'Unarchive'.' this action Room'),
+                    Yii::t( "rooms", ( @$context["status"] != ActionRoom::STATE_ARCHIVED ) ? 'Archive' : 'Unarchive'), 'archive text-red',
                     "archive('".ActionRoom::COLLECTION."','".$_GET['id']."')","archiveBtn",null);
 
         // Help
@@ -785,8 +785,8 @@ class Menu {
                             "dyFObj.openForm('entry','sub')",
                             "addProposalBtn",null);
             self::entry("left", 'onclick', 
-                        Yii::t( "rooms", ( @$survey["status"] != ActionRoom::STATE_ARCHIVED ) ? 'Archive' : 'Unarchive'.' this action Room',null,Yii::app()->controller->module->id),
-                        Yii::t( "rooms", ( @$survey["status"] != ActionRoom::STATE_ARCHIVED ) ? 'Archive' : 'Unarchive',null,Yii::app()->controller->module->id), 'archive text-red',
+                        Yii::t( "rooms", ( @$survey["status"] != ActionRoom::STATE_ARCHIVED ) ? 'Archive' : 'Unarchive'.' this action Room'),
+                        Yii::t( "rooms", ( @$survey["status"] != ActionRoom::STATE_ARCHIVED ) ? 'Archive' : 'Unarchive'), 'archive text-red',
                         "archive('".ActionRoom::COLLECTION."','".$id."')","archiveBtn",null);
         }
         // Help
@@ -897,7 +897,7 @@ class Menu {
             if( @$room["status"] != ActionRoom::STATE_ARCHIVED )
                 self::entry("left", 'onclick', 
                         Yii::t( "common", 'Create an Action for your community'),
-                        Yii::t( "rooms", 'Add an Action',null,Yii::app()->controller->module->id), 'plus',
+                        Yii::t( "survey", 'Add an Action'), 'plus',
                         //"loadByHash('#rooms.editAction.room.".$id."')",
                         "dyFObj.openForm('action','sub')",
                         "addActionBtn",null);
@@ -909,8 +909,8 @@ class Menu {
                         "movePrompt('rooms.action', '".$id."')","moveProposalBtn",null);
             */
             self::entry("right", 'onclick', 
-                        Yii::t( "rooms", ( @$room["status"] != ActionRoom::STATE_ARCHIVED ) ? 'Archive' : 'Unarchive'.' this action Room',null,Yii::app()->controller->module->id),
-                        Yii::t( "rooms", ( @$room["status"] != ActionRoom::STATE_ARCHIVED ) ? 'Archive' : 'Unarchive',null,Yii::app()->controller->module->id), 'archive text-red',
+                        Yii::t( "rooms", ( @$room["status"] != ActionRoom::STATE_ARCHIVED ) ? 'Archive' : 'Unarchive'.' this action Room'),
+                        Yii::t( "rooms", ( @$room["status"] != ActionRoom::STATE_ARCHIVED ) ? 'Archive' : 'Unarchive'), 'archive text-red',
                         "archive('".ActionRoom::COLLECTION."','".$id."')","archiveBtn",null);
         }
         // Help
