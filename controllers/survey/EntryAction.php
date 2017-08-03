@@ -35,19 +35,19 @@ class EntryAction extends CAction
           {
             $organizer = Person::getById( $survey["organizerId"] );
             $params["organizer"] = array(  "name" => $organizer["name"],
-                                           "link" => "urlCtrl.loadByHash('#person.detail.id.".$survey["organizerId"]."')");
+                                           "link" => "#page.type.citoyens.id.".$survey["organizerId"]);
           }
           else if( $survey["organizerType"] == Organization::COLLECTION )
           {
             $organizer = Organization::getById( $survey["organizerId"] );
             $params["organizer"] = array(  "name" => $organizer["name"],
-                                           "link" => "urlCtrl.loadByHash('#organization.detail.id.".$survey["organizerId"]."')");
+                                           "link" => "#page.type.organization.id.".$survey["organizerId"]);
           }
           else if( $survey["organizerType"] == Project::COLLECTION )
           {
             $organizer = Project::getById( $survey["organizerId"] );
             $params["organizer"] = array(  "name" => $organizer["name"],
-                                           "link" => "urlCtrl.loadByHash('#project.detail.id.".$survey["organizerId"]."')");
+                                           "link" => "#page.type.project.id.".$survey["organizerId"]);
           }
 
           $params["organizerType"] = $survey["organizerType"];
