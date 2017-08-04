@@ -7,9 +7,10 @@ class SuperAdminAction extends CAction
     public function run($action)
     {
         $controller = $this->getController();
-        $params = array();
+        $params = array(Role::getRolesUserId(@Yii::app()->session["userId"]));
     	
-        if(Role::isSuperAdmin(Role::getRolesUserId(@Yii::app()->session["userId"]) ) ) {
+        $role = Role::getRolesUserId(@Yii::app()->session["userId"]) ; 
+        if(Role::isSuperAdmin($role) || Role::isSourceAdmin($role) ) {
         	if($action == "main")		{ $this->main(); 	      return; }
             if($action == "web")        { $this->web();           return; }
             if($action == "live")       { $this->live();          return; }
