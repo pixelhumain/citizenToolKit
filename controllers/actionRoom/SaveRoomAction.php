@@ -41,6 +41,8 @@ class SaveRoomAction extends CAction
                 if( @$_POST['tags'] && count($_POST['tags']) )
                     $newInfos['tags'] = $_POST['tags'];
                 
+                $newInfos['_id'] = new MongoId($_POST['id']);
+                
                 $newInfos['created'] = time();
                 $newInfos['updated'] = time();
                 $newInfos["modified"] = new MongoDate(time());
