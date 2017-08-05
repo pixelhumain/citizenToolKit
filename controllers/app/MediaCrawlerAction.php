@@ -401,7 +401,7 @@ class MediaCrawlerAction extends CAction
       }
 
       $months = array("janvier", "f&eacute;vrier", "mars", "avril", "mai", "juin", "juillet", 
-                      "août", "septembre", "octobre", "novembre", "d&eacute;cembre");
+                      "ao&ucirc;t", "septembre", "octobre", "novembre", "d&eacute;cembre");
       foreach($months as $key => $value){
         if($value == $monthName) return $key+1;
       }
