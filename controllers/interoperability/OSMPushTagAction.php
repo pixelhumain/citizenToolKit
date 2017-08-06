@@ -6,7 +6,7 @@ class OSMPushTagAction extends CAction {
     	$controller=$this->getController();
 
 		ini_set('display_errors', 1);
-		require __DIR__ . '/Services_Openstreetmap/vendor/autoload.php';
+		require __DIR__ . '/Services_Openstreetmap/vendor/autoload_osm.php';
 		require_once 'Services/OpenStreetMap.php';
 
 		$config = array(

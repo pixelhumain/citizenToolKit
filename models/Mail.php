@@ -562,6 +562,66 @@ class Mail {
         // }
     }   
 
+    public static function validateProposedInterop($url_source, $userID, $adminID, $description) {
+
+        $user = Person::getSimpleUserById($userID);
+        $aPerson = Person::getSimpleUserById($adminID);
+
+        // foreach ($admins as $id) {
+        // $aPerson = Person::getById("5880b24a8fe7a1a65b8b456b", false);
+        if (!empty($aPerson["email"])) {
+            $params = array (
+                "type" => Cron::TYPE_MAIL,
+                "tpl"=>'validateInteropSource',
+                "subject" => "[".self::getAppName()."] - Validation de votre proposition pour une nouvelle interopérabilité, ".@$user["name"],
+                "from"=>Yii::app()->params['adminEmail'],
+                "to" => $user["email"],
+                "tplParams" => array(
+                    "userName" => @$user["name"],
+                    "url_source" => $url_source,
+                    // "admin" => $aPerson['name'],
+                    "description" => $description,
+                    "logo"=> Yii::app()->params["logoUrl"],
+                    "logo2" => Yii::app()->params["logoUrl2"],
+                    // "url" => Yii::app()->getRequest()->getBaseUrl(true)."/".$url
+                ),
+            );
+            
+            Mail::schedule($params);
+        }
+        // }
+    }   
+
+    public static function rejectProposedInterop($url_source, $userID, $adminID, $description) {
+
+        $user = Person::getSimpleUserById($userID);
+        $aPerson = Person::getSimpleUserById($adminID);
+
+        // foreach ($admins as $id) {
+        // $aPerson = Person::getById("5880b24a8fe7a1a65b8b456b", false);
+        if (!empty($aPerson["email"])) {
+            $params = array (
+                "type" => Cron::TYPE_MAIL,
+                "tpl"=>'rejectInteropSource',
+                "subject" => "[".self::getAppName()."] - Rejet de votre proposition pour une nouvelle interopérabilité, ".@$user["name"],
+                "from"=>Yii::app()->params['adminEmail'],
+                "to" => $user["email"],
+                "tplParams" => array(
+                    "userName" => @$user["name"],
+                    "url_source" => $url_source,
+                    // "admin" => $aPerson['name'],
+                    "description" => $description,
+                    "logo"=> Yii::app()->params["logoUrl"],
+                    "logo2" => Yii::app()->params["logoUrl2"],
+                    // "url" => Yii::app()->getRequest()->getBaseUrl(true)."/".$url
+                ),
+            );
+            
+            Mail::schedule($params);
+        }
+        // }
+    }   
+
     private static function getAppName() {
         return isset(Yii::app()->params["name"]) ? Yii::app()->params["name"] : Yii::app()->name;       
     }
