@@ -126,13 +126,12 @@ class GetDataDetailAction extends CAction {
 		}
 
 
-		if($dataName == "actionRooms"){
-			$contextMap = PHDB::findAndSortAndLimitAndIndex( ActionRoom::COLLECTION,
-							array("parentType"=>$type, "parentId"=>$id));
-
-			foreach ($contextMap as $key => $value) {
-				//$rooms[$key]["typePoi"] = @$value["type"];
-			}
+		if( $dataName == "actionRooms" || $dataName == "vote" || $dataName == "actions" || $dataName == "discuss" ){
+			$where = array("parentType"=>$type, "parentId"=>$id);
+			if($dataName == "vote") $where["type"] = "vote";
+			if($dataName == "actions")$where["type"] = "actions";
+			if($dataName == "discuss")$where["type"] = "discuss";
+			$contextMap = PHDB::findAndSortAndLimitAndIndex( ActionRoom::COLLECTION, $where);
 		}
 		
 
