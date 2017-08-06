@@ -42,7 +42,7 @@ class CO2Stat {
 			echo "Access deny";
 			exit;
 		}
-
+		
 		if($week==null) //si le numéro de semaine n'est pas indiqué
 		$week = self::getTodayWeek(); //prend la semaine en cours
 
@@ -65,6 +65,9 @@ class CO2Stat {
 			unset($statByHash["hash"]["co2-websearch"]);
 			unset($statByHash["hash"]["co2-referencement"]);
 		}
+		$statByHash["week"] = substr($week, 0, 2)." - ".substr($week, 2, 4);
+		$statByHash["numweek"] = intval(substr($week, 0, 2));
+		$statByHash["year"] = substr($week, 2, 4);
 		//var_dump($statByHash);
 		return $statByHash;
 	}
