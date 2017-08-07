@@ -80,7 +80,7 @@ class Zone {
 		if(!empty($zoneNominatim)){
 			$zone["name"] = $name;
 			$zone["countryCode"] = $countryCode;
-			$zone["level"] = $level;
+			$zone["level"] = array($level);
 			if($level != "1"){
 				$zone["level1"] = self::getIdCountryByCountryCode($countryCode);
 				
@@ -119,27 +119,31 @@ class Zone {
 
 	public static function createKey($zone){
 		$key = $zone["countryCode"];
-		if($zone["level"] != "1"){
-			$country = self::getCountryByCountryCode($zone["countryCode"]);
-			$key .= "@".(String)$country["_id"];
+		if(in_array("1", $zone["level"]) ){
+			$key .= "@".(String)$zone["_id"] ;
+		}else{
+			$key .= "@".( ( empty($zone["level1"]) ) ? "" : $zone["level1"] );
+		}
 
-			if($zone["level"] == "2"){
+		if(in_array("2", $zone["level"]) || in_array("3", $zone["level"]) || in_array("4", $zone["level"])){
+
+			if(in_array("2", $zone["level"])){
 				$key .= "@".(String)$zone["_id"] ;
 			}
-			else{
+			else {
 				$key .= "@".( ( empty($zone["level2"]) ) ? "" : $zone["level2"] );
+			}
 
-				if($zone["level"] == "3"){
+			if(in_array("3", $zone["level"]) || in_array("4", $zone["level"])){
+				if(in_array("3", $zone["level"])){
 					$key .= "@".(String)$zone["_id"] ;
 				}
 				else{
 					$key .= "@".( ( empty($zone["level3"]) ) ? "" : $zone["level3"] );
+				}
 
-					if($zone["level"] == "4"){
-						$key .= "@".(String)$zone["_id"] ;
-					}else{
-						$key .= "@".( ( empty($zone["level4"]) ) ? "" : $zone["level4"] );
-					}
+				if(in_array("4", $zone["level"])){
+					$key .= "@".(String)$zone["_id"] ;
 				}
 			}
 		}
