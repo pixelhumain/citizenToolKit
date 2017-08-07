@@ -106,7 +106,7 @@ class Document {
 	    //if( PHDB::count($new['type'],array("_id"=>new MongoId($new['id']))) > 0 ){
 		if (in_array($params["type"], array(Survey::COLLECTION, ActionRoom::COLLECTION, ActionRoom::COLLECTION_ACTIONS))) {
 			 if (!Authorisation::canEditItem( $params['author'], $params['type'], $params['id'], @$params["parentType"],@$params["parentId"])) {
-		    	return array("result"=>false, "msg"=>Yii::t('document',"You are not allowed to modify the document of this item !") );
+		    	return array("result"=>false, "type"=>$params['type'], "parentType"=>@$params["parentType"],"parentId"=>@$params["parentId"], "msg"=>Yii::t('document',"You are not allowed to modify the document of this item !") );
 		    }
 		} else {
 		    if (   ! Authorisation::canEditItem($params['author'], $params['type'], $params['id']) 
@@ -616,7 +616,10 @@ class Document {
         						  Project::COLLECTION, 
         						  Event::COLLECTION,
         						  Poi::COLLECTION, 
-        						  Classified::COLLECTION);
+        						  Survey::COLLECTION ,
+							      ActionRoom::COLLECTION,
+							      ActionRoom::COLLECTION_ACTIONS
+							      );
         if (@$profilUrl && in_array($document["type"], $allowedElements )) {
         	
         	$changes = array();

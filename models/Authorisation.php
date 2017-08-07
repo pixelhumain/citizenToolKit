@@ -511,18 +511,18 @@ class Authorisation {
     * @param String $eventId event to get authorisation of
     * @return a boolean True if the user can edit and false else
     */
-    public static function canEditSurvey($userId, $surveyId,$parentType=null,$parentId=null){
+    public static function canEditSurvey($userId, $elemId,$parentType=null,$parentId=null,$type = null){
         $res = false;
-        $survey = Survey::getById($surveyId);
+        $elem = Element::getByTypeAndId($type, $elemId);
 
-        if(!empty($survey) && !empty($userId)) {
+        if(!empty($elem) && !empty($userId)) {
             // case 1 : superAdmin
             if (self::isUserSuperAdmin($userId)) {
                 return true;
             }
 
             // case 2 : organiser of Survey
-            if ( @$survey["organizerType"] == Person::COLLECTION && @$survey["organizerId"] == $userId ) {
+            if ( @$elem["organizerType"] == Person::COLLECTION && @$elem["organizerId"] == $userId ) {
                 return true;
             }
 
@@ -532,7 +532,7 @@ class Authorisation {
            }
         } else {
             //RAJOUTER UN LOG
-            error_log("Problem with survey authorization, surveyId:".@$surveyId." & userId:".@$userId);
+            error_log("Problem with survey authorization, surveyId:".@$elemId." & userId:".@$userId);
         }
         return $res;
     }
@@ -571,10 +571,17 @@ class Authorisation {
     public static function canEditItem($userId, $type, $itemId,$parentType=null,$parentId=null){
         $res=false;    
         $check = false;
-        if($type == ActionRoom::COLLECTION || $type == ActionRoom::COLLECTION_ACTIONS) {
+        if($type == ActionRoom::COLLECTION || 
+           $type == ActionRoom::COLLECTION_ACTIONS ) {
+            if( $parentType == null || $parentId == null ){
+                $elem = Element::getByTypeAndId($type, $itemId);
+                $parentId = $elem["parentId"];
+                $parentType = $elem["parentType"];
+            } 
             $type = $parentType;
             $itemId = $parentId;
             $check = true;
+            
         }
 
         //Super Admin can do anything
@@ -604,8 +611,10 @@ class Authorisation {
                 $res = self::isLocalCitizen( $userId, ($parentType == City::CONTROLLER) ? $parentId : $itemId ); 
             else 
                 $res = true;
-        } else if($type == Survey::COLLECTION) {
-            $res = self::canEditSurvey($userId, $itemId,$parentType,$parentId);
+        } else if($type == ActionRoom::COLLECTION || 
+                   $type == ActionRoom::COLLECTION_ACTIONS || 
+                   $type == Survey::COLLECTION ) {
+            $res = self::canEditSurvey($userId, $itemId,$parentType,$parentId,$type);
         }
         else if($type == Poi::COLLECTION) 
         {
