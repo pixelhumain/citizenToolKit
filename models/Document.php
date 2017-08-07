@@ -22,6 +22,7 @@ class Document {
 	const GENERATED_BANNER_FOLDER		= "banner";
 	const FILENAME_PROFIL_RESIZED 	  	= "profil-resized.png";
 	const FILENAME_PROFIL_MARKER 	  	= "profil-marker.png";
+	const FILENAME_PROFIL_BANNER 	  	= "banner.png";
 	const GENERATED_THUMB_PROFIL 	  	= "thumb-profil";
 	const GENERATED_MARKER		 	  	= "marker";
 
@@ -125,7 +126,13 @@ class Document {
 
 	    PHDB::insert(self::COLLECTION, $new);
 	    if (substr_count(@$new["contentKey"], self::IMG_BANNER)) {
+	    	// get banner image resize and crop
 	    	$src=self::generateBannerImages($new);
+	    	// get normal image resize
+	    	self::generateAlbumImages($new);
+	    	// get album image resize
+	    	self::generateAlbumImages($new,  self::GENERATED_IMAGES_FOLDER);
+	    	
 	    	$typeNotif="bannerImage";
 	    }
     	else{
@@ -656,7 +663,7 @@ class Document {
 			$destination="";
 			$maxWidth=1100;
 			$maxHeight=700;
-			$quality=50;
+			$quality=80;
 		}
 		//The images will be stored in the /uploadDir/moduleId/ownerType/ownerId/thumb (ex : /upload/communecter/citoyen/1242354235435/thumb)
 		$upload_dir = Yii::app()->params['uploadDir'].$dir.'/'.$folder.$destination; 
@@ -687,21 +694,23 @@ class Document {
 		$maxHeight=400;
 		$quality=100;
 		//The images will be stored in the /uploadDir/moduleId/ownerType/ownerId/thumb (ex : /upload/communecter/citoyen/1242354235435/thumb)
-		$upload_dir = Yii::app()->params['uploadDir'].$dir.'/'.$folder; 
+		$upload_dir = Yii::app()->params['uploadDir'].$dir.'/'.$folder."/resized"; 
 		
-		if(!file_exists ( $upload_dir )) {       
-			mkdir($upload_dir, 0775);
-		}
-		//echo "iciiiiiii/////////////".$upload_dir;
+		if(file_exists ( $upload_dir )) {
+            CFileHelper::removeDirectory($upload_dir."bck");
+            rename($upload_dir, $upload_dir."bck");
+        }
+        mkdir($upload_dir, 0775);//echo "iciiiiiii/////////////".$upload_dir;
 		$path=self::getDocumentPath($document);
-		$profilBannerUrl = self::getDocumentFolderUrl($document)."/".$document["name"];
+		$profilBannerUrl = self::getDocumentFolderUrl($document)."/resized/".self::FILENAME_PROFIL_BANNER."?t=".time();
 		//list($width, $height) = getimagesize($path);
 		//if ($width > $maxWidth || $height >  $maxHeight){
      	$imageUtils = new ImagesUtils($path);
-    	$destPathThumb = $upload_dir."/".$document["name"];
+    	$destPathThumb = $upload_dir."/".self::FILENAME_PROFIL_BANNER;
     		//if($folderAlbum==self::GENERATED_IMAGES_FOLDER)
     	$crop=$document["crop"];
-    	$imageUtils->resizeAndCropImage($crop["cropW"],$crop["cropH"],$crop)->save($destPathThumb);
+    	$imageUtils->imagecropping($crop["cropW"],$crop["cropH"],$crop["cropX"],$crop["cropY"])->save($destPathThumb,100);
+    	//$imageUtils->resizeAndCropImage($crop["cropW"],$crop["cropH"],$crop)->save($destPathThumb);
     	
     	//$imageUtils->imagecropping($crop["cropW"], $crop["cropH"], $crop["cropX"],$crop["cropY"])->save($destPathThumb);
     	$allowedElements = array( Person::COLLECTION, 
@@ -713,12 +722,15 @@ class Document {
         if (@$profilBannerUrl && in_array($document["type"], $allowedElements )) {
         	
         	$changes = array();
-        		$changes["profilBannerUrl"] = $profilBannerUrl;
+        	$changes["profilBannerUrl"] = $profilBannerUrl;
+        	$changes["profilRealBannerUrl"]= self::getDocumentUrl($document);
 	        PHDB::update($document["type"], array("_id" => new MongoId($document["id"])), array('$set' => $changes));
 
 	        error_log("The entity ".$document["type"]." and id ". $document["id"] ." has been updated with the URL of the profil images.");
-	        return $profilBannerUrl;
+	        CFileHelper::removeDirectory($upload_dir."bck");
+	        return $changes;
 		}
+		
     		//else
     		//	$imageUtils->resizePropertionalyImage($maxWidth,$maxHeight)->save($destPathThumb,$quality);
     	//}
@@ -831,7 +843,8 @@ class Document {
 			$res["profilImageUrl"] = $entity["profilImageUrl"];
 			$res["profilThumbImageUrl"] = !empty($entity["profilThumbImageUrl"]) ? $entity["profilThumbImageUrl"] : "";
 			$res["profilMarkerImageUrl"] = !empty($entity["profilMarkerImageUrl"]) ? $entity["profilMarkerImageUrl"] : "";
-			$res["profilBannerUrl"] = !empty($entity["profilBannerUrl"]) ? $entity["profilBannerUrl"] : ""; 
+			$res["profilBannerUrl"] = !empty($entity["profilBannerUrl"]) ? $entity["profilBannerUrl"] : "";
+			$res["profilRealBannerUrl"] = !empty($entity["profilRealBannerUrl"]) ? $entity["profilRealBannerUrl"] : ""; 
 			$res["profilMediumImageUrl"] = !empty($entity["profilMediumImageUrl"]) ? $entity["profilMediumImageUrl"]."?_=".time() : ""; 
 
 		//If empty than retrieve the URLs from document and store them in the entity for next time
