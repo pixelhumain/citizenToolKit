@@ -89,6 +89,7 @@ class Document {
 		//check content key
 		if (!in_array(@$params["contentKey"], array(self::IMG_BANNER,self::IMG_PROFIL,self::IMG_LOGO,self::IMG_SLIDER,self::IMG_MEDIA)))
 			throw new CTKException("Unknown contentKey ".$params["contentKey"]." for the document !");
+	    
 	    $new = array(
 			"id" => $params['id'],
 	  		"type" => $params['type'],
@@ -101,13 +102,31 @@ class Document {
 	  		"contentKey" => @$params["contentKey"],
 	  		'created' => time()
 	    );
+
 	    if(@$params["crop"])
 	    	$new["crop"]=$params["crop"];
+
 	    //if item exists
 	    //if( PHDB::count($new['type'],array("_id"=>new MongoId($new['id']))) > 0 ){
-		if (in_array($params["type"], array(Survey::COLLECTION, ActionRoom::COLLECTION, ActionRoom::COLLECTION_ACTIONS))) {
-			 if (!Authorisation::canEditItem( $params['author'], $params['type'], $params['id'], @$params["parentType"],@$params["parentId"])) {
-		    	return array("result"=>false, "type"=>$params['type'], "parentType"=>@$params["parentType"],"parentId"=>@$params["parentId"], "msg"=>Yii::t('document',"You are not allowed to modify the document of this item !") );
+		if ( in_array($params["type"], array( Survey::COLLECTION,Survey::CONTROLLER, ActionRoom::COLLECTION, ActionRoom::COLLECTION_ACTIONS)) ) {
+				if($params['type'] == Survey::COLLECTION || $params['type'] == Survey::CONTROLLER ){
+		            $elem = Survey::getById($params["id"]);
+		            $room = Element::getByTypeAndId(ActionRoom::COLLECTION, $elem["survey"]);
+		            $params["parentId"] = $room["parentId"];
+		            $params["parentType"] = $room["parentType"];
+		        }
+				
+				if($params['type'] == ActionRoom::TYPE_ACTION)
+					$params['type'] = ActionRoom::COLLECTION_ACTIONS;
+	            
+	            if( @$params["parentType"] == null || @$params["parentId"] == null ) {
+	                $elem = Element::getByTypeAndId($params['type'], $params["id"]);
+	                $params["parentId"] = $elem["parentId"];
+	                $params["parentType"] = $elem["parentType"];
+	            } 
+
+			if (!Authorisation::canEditItem( $params['author'], $params['type'], $params['id'], @$params["parentType"],@$params["parentId"])) {
+		    	return array("result"=>false, "type"=>$params['type'],"id"=>@$params["id"],  "parentType"=>@$params["parentType"],"parentId"=>@$params["parentId"], "msg"=>Yii::t('document',"You are not allowed to modify the document of this item !") );
 		    }
 		} else {
 		    if (   ! Authorisation::canEditItem($params['author'], $params['type'], $params['id']) 
@@ -120,6 +139,7 @@ class Document {
 		    		return array("result"=>false, "msg"=>Yii::t('document',"You are not allowed to modify the document of this item !"), "params" => $params );
 		    }
 	    }
+
 		//}
 	    if(isset($params["category"]) && !empty($params["category"]))
 	    	$new["category"] = $params["category"];

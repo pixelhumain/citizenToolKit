@@ -511,7 +511,7 @@ class Authorisation {
     * @param String $eventId event to get authorisation of
     * @return a boolean True if the user can edit and false else
     */
-    public static function canEditSurvey($userId, $elemId,$parentType=null,$parentId=null,$type = null){
+    public static function canEditElementByParent($userId, $elemId,$parentType=null,$parentId=null,$type = null){
         $res = false;
         $elem = Element::getByTypeAndId($type, $elemId);
 
@@ -536,7 +536,6 @@ class Authorisation {
         }
         return $res;
     }
-
 
     public static function canEdit($userId, $id,$type){
         $res = false;
@@ -571,8 +570,8 @@ class Authorisation {
     public static function canEditItem($userId, $type, $itemId,$parentType=null,$parentId=null){
         $res=false;    
         $check = false;
-        if($type == ActionRoom::COLLECTION || 
-           $type == ActionRoom::COLLECTION_ACTIONS ) {
+        if($type == ActionRoom::COLLECTION || $type == ActionRoom::COLLECTION_ACTIONS || $type == ActionRoom::TYPE_ACTION 
+             || $type == Survey::COLLECTION || $type == Survey::CONTROLLER ) { 
             if( $parentType == null || $parentId == null ){
                 $elem = Element::getByTypeAndId($type, $itemId);
                 $parentId = $elem["parentId"];
@@ -581,14 +580,13 @@ class Authorisation {
             $type = $parentType;
             $itemId = $parentId;
             $check = true;
-            
         }
 
         //Super Admin can do anything
-        if(Role::isSuperAdmin(Role::getRolesUserId($userId)))
+        if(Role::isSuperAdmin( Role::getRolesUserId($userId) ) )
             return true;
 
-        if ($type == Event::COLLECTION || $type == Project::COLLECTION || $type == Organization::COLLECTION) {
+        if ( $type == Event::COLLECTION || $type == Project::COLLECTION || $type == Organization::COLLECTION ) {
             //Check if delete pending => can not edit
             $isStatusDeletePending = Element::isElementStatusDeletePending($type, $itemId);
             if ($isStatusDeletePending) 
@@ -613,7 +611,7 @@ class Authorisation {
                 $res = true;
         } else if($type == ActionRoom::COLLECTION || 
                    $type == ActionRoom::COLLECTION_ACTIONS || 
-                   $type == Survey::COLLECTION ) {
+                   $type == Survey::COLLECTION || $type == Survey::CONTROLLER) {
             $res = self::canEditSurvey($userId, $itemId,$parentType,$parentId,$type);
         }
         else if($type == Poi::COLLECTION) 
