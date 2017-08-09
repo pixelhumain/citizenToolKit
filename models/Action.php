@@ -6,7 +6,9 @@
 class Action
 {
     const NODE_ACTIONS          = "actions";
-
+    const COLLECTION            = "actions";
+    const CONTROLLER            = "action";
+    
     const ACTION_ROOMS          = "actionRooms";
     const ACTION_ROOMS_TYPE_SURVEY = "survey";
 
@@ -25,6 +27,15 @@ class Action
     const ACTION_REPORT_ABUSE   = "reportAbuse";
     const ACTION_FOLLOW         = "follow";
 
+    /**
+     * get a action room By Id
+     * @param String $id : is the mongoId of the action room
+     * @return array Document of the action room
+     */
+    public static function getById($id) {
+        return PHDB::findOne( self::COLLECTION,array("_id"=>new MongoId($id)));
+    }
+    
     /**
      * - can only add an action once vote , purchase, .. 
      * - check user and element existance 

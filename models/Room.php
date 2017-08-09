@@ -1,8 +1,8 @@
 <?php 
-class ActionRoom {
+class Room {
 
 	const COLLECTION 		= "rooms";
-	const CONTROLLER 		= "rooms";
+	const CONTROLLER 		= "room";
 	
 	const TYPE_SURVEY 		= "survey"; //sondage à la Google Forms
 	const TYPE_DISCUSS 		= "discuss"; // systeme de discussioin voir avec dialoguea
