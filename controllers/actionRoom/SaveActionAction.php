@@ -79,16 +79,19 @@ class SaveActionAction extends CAction
                 $entryInfos['updated'] = time();
                 
 
-                /*$where = array( "_id" => new MongoId($_POST['id']) );
+                /*
                 if( PHDB::findOne (ActionRoom::COLLECTION_ACTIONS, $where ) )
                 {
                     $result = PHDB::update( ActionRoom::COLLECTION_ACTIONS,  $where, array( '$set' => $entryInfos ) );
                     $actionId = $_POST['id'];
                 } else { */
+                    $where = array( "_id" => new MongoId($_POST['id']) );
                     $actionId = new MongoId($_POST['id']);
                     $entryInfos['created'] = time();
                     $entryInfos["_id"] = $actionId;
-                    $result = PHDB::insert( ActionRoom::COLLECTION_ACTIONS,$entryInfos );
+                    $result = PHDB::updateWithOptions( ActionRoom::COLLECTION_ACTIONS,  $where, 
+                                                   array('$set' => $entryInfos ) ,
+                                                   array('upsert' => true ) ); 
                 //}
                 
 
