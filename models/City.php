@@ -83,7 +83,7 @@ class City {
     		if(empty($exist)){
     			PHDB::insert(self::COLLECTION, $city );
 				$res = array("result"=>true,
-	                         "msg"=>"La commune a été enregistrer.",
+	                         "msg"=>"La commune a été enregistrée.",
 	                         "city"=>json_encode($city),
 	                         "id"=>(string)$city["_id"]); 
     		}else{
@@ -129,7 +129,7 @@ class City {
 
 	/* Retourne des infos sur la commune dans la collection cities" */
 	public static function getWhere($params, $fields=null, $limit=20) 
-	{
+	{ 
 	  	$city =PHDB::findAndSort( self::COLLECTION,$params, array("created" =>1), $limit, $fields);
 	  	return $city;
 	}

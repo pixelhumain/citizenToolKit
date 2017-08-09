@@ -21,17 +21,16 @@ class SaveAction extends CAction {
 
                 if ( array_key_exists('X-SmartCitizenData', $headers) 
                     && array_key_exists('X-SmartCitizenMacADDR', $headers)) {
-                    
-                    $toSave = Thing::fillSmartCitizenData($headers);
+
+                    $res=Thing::fillAndSaveSmartCitizenData($headers); 
 
                 } elseif ( $_SERVER['REQUEST_METHOD'] == 'POST') {
                     $toSave = $_POST;
                     unset($toSave["startDateInput"]);
                     unset($toSave["endDateInput"]);
+                    $res = Element::save($toSave);
+                    $res['resquest'] = $_SERVER['REQUEST_METHOD'];
                 }
-                $res = Element::save($toSave);
-        //====== 
-                $res['resquest'] = $_SERVER['REQUEST_METHOD'];
             }
         }
         echo Rest::json( $res ); 

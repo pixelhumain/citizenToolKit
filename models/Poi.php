@@ -29,7 +29,8 @@ class Poi {
 		"openScene" 	=> "scène ouverte",
 		"stand" 		=> "stand",
 		"parking" 		=> "Parking",
-		"other"			=> "Autre"
+		"other"			=> "Autre",
+		"smartCitizen"	=> "Smart-Citizen-Kit"
 	);
 
 	//From Post/Form name to database field name

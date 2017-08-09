@@ -57,7 +57,7 @@ class Element {
 			News::COLLECTION 		 => "News",
 	    	Need::COLLECTION 		 => "Need",
 	    	City::COLLECTION 		 => "City",
-	    	Thing::COLLECTION 		 => "Thing",
+	    	Thing::COLLECTION_DATA	 => "Thing",
 	    	Poi::COLLECTION 		 => "Poi",
 	    	Classified::COLLECTION   => "Classified",
 	    );	
@@ -2000,7 +2000,7 @@ class Element {
                 $params["members"] = $members;
             }
 
-            
+        
         } */
         //if(!@$element["disabled"]){
             //if((@$config["connectLink"] && $config["connectLink"]) || empty($config)){ TODO CONFIG MUTUALIZE WITH NETWORK AND OTHER PLATFORM
