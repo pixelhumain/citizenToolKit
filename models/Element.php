@@ -60,6 +60,7 @@ class Element {
 	    	Thing::COLLECTION 		 => "Thing",
 	    	Poi::COLLECTION 		 => "Poi",
 	    	Classified::COLLECTION   => "Classified",
+	    	Proposal::COLLECTION   	 => "Proposal",
 	    );	
 	 	return @$models[$type];     
     }
@@ -1321,7 +1322,7 @@ class Element {
         $valid = array("result"=>true);
         if( $collection == Event::COLLECTION ){
             $valid = Event::validateFirst($params);
-        }
+        } error_log("KEY : ". $key);
         if( $valid["result"] )
         	try {
         		$valid = DataValidator::validate( ucfirst($key), json_decode (json_encode ($params), true), ( empty($paramsLinkImport) ? null : true) );

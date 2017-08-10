@@ -19,12 +19,12 @@ class Proposal
 		
 		// true / false
 		"amendementActivated" 	=> array("name" => "amendementActivated", 	"rules" => array("required")),
-		"amendementEndDate" 	=> array("name" => "amendementEndDate"),
+		"amendementDateEnd" 	=> array("name" => "amendementDateEnd"),
+		"durationAmendement" 	=> array("name" => "durationAmendement"),
 		
 		// true / false
 		"voteActivated" 		=> array("name" => "voteActivated", 		"rules" => array("required")),
-		"endDateVote" 			=> array("name" => "endDateVote"),
-		"durationAmendement" 	=> array("name" => "durationAmendement"),
+		"voteDateEnd" 			=> array("name" => "voteDateEnd"),
 		
 		// Amendable / ToVote / Closed / Archived
 		"status" 				=> array("name" => "status", 				"rules" => array("required")), 
@@ -38,6 +38,14 @@ class Proposal
 
 		"idUserAuthor" 			=> array("name" => "idUserAuthor", 			"rules" => array("required")),
 		"idParentRoom" 			=> array("name" => "idParentRoom", 			"rules" => array("required")),
+
+
+	    "modified" => array("name" => "modified"),
+	    "updated" => array("name" => "updated"),
+	    "creator" => array("name" => "creator"),
+	    "created" => array("name" => "created"),
+
+	    //"medias" => array("name" => "medias"),
 	);
 
 	public static function getDataBinding() {
