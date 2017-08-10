@@ -9,6 +9,7 @@ class AutocompleteMultiScopeAction extends CAction
         $geoShape   = isset($_POST["geoShape"])     ? true : false;
         $scopeValue = isset($_POST["scopeValue"])   ? $_POST["scopeValue"] : null;
         $countryCode = isset($_POST["countryCode"])   ? $_POST["countryCode"] : null;
+        $formInMap = isset($_POST["formInMap"])   ? $_POST["formInMap"] : null;
 
         if($type == null || $scopeValue == null) 
             return Rest::json( array("res"=>false, "msg" => "error with type or scopeValue" ));
@@ -52,12 +53,12 @@ class AutocompleteMultiScopeAction extends CAction
         //                                         array("region" => new MongoRegex("/^".$scopeValue."/i"))
         //                                         ));
         //var_dump($where); return;
-        if($type != "dep" && $type != "region"){
-            $att = array("insee", "postalCodes", "country", "name", "alternateName", "depName", "regionName");
+        if(/*$type != "dep" && $type != "region" &&*/ $type != "zone"){
+            $att = array("name", "alternateName", "country", "key", "postalCodes", "insee", "depName", "regionName");
             if($geoShape) $att[] =  "geoShape";
             //var_dump($where);
             $cities = PHDB::findAndSort( City::COLLECTION, $where, $att, 40, $att);
-            if(empty($cities)){
+            if(empty($cities) && !empty($formInMap)){
                 $countryCode = mb_convert_encoding($countryCode, "ASCII");
                 if(strlen($countryCode) > 2 ){
                    $countryCode = substr($countryCode, 0, 2);
@@ -71,8 +72,7 @@ class AutocompleteMultiScopeAction extends CAction
                         $typeCities = array("city", "village", "town") ;
                         foreach ($typeCities as $keyType => $valueType) {
                             if( !empty($value["address"][$valueType]) 
-                                && $countryCode == strtoupper(@$value["address"]["country_code"]) 
-                               /* && empty($value["address"]["city_district"])*/) {
+                                && $countryCode == strtoupper(@$value["address"]["country_code"])) {
 
                                 $wikidata = (empty($value["extratags"]["wikidata"]) ? null : $value["extratags"]["wikidata"]);
                                 //var_dump($value["osm_id"]);
@@ -122,21 +122,23 @@ class AutocompleteMultiScopeAction extends CAction
                 }
                 
             }
+        }else if($type == "zone"){
+            $att = array("name", "countryCode", "key", "level");
+            $where = array('$and'=> array(
+                                        array("name" => new MongoRegex("/".$scopeValue."/i")), 
+                                        array("countryCode" => strtoupper($countryCode)) ) );
+            $cities = PHDB::findAndSort( Zone::COLLECTION, $where, $att, 40, $att);
         }
-        else if($type == "dep"){
-            $cities = array();
-            foreach (OpenData::$dep as $key => $value) {
-                if ( count( preg_grep ( '/'.$scopeValue.'/i', $value ) ) ) 
-                    array_push($cities, $key);
-            }
+        /*else if($type == "dep"){
+            $att = array("name", "countryCode", "key");
+            $where = array("name" => new MongoRegex("/".$scopeValue."/i"));
+            $cities = PHDB::findAndSort( Zone::COLLECTION, $where, $att, 40, $att);
         }
         else if($type == "region"){
-            $cities = array();
-            foreach (OpenData::$region as $key => $value) {
-                if ( count( preg_grep ( '/'.$scopeValue.'/i', $value ) ) ) 
-                    array_push($cities, $key);
-            }
-        }
+            $att = array("name", "countryCode", "key");
+            $where = array("name" => new MongoRegex("/".$scopeValue."/i"));
+            $cities = PHDB::findAndSort( Zone::COLLECTION, $where, $att, 40, $att);
+        }*/
         //echo '<pre>';var_dump($cities);echo '</pre>'; return;
         
         return Rest::json( array("res"=>true, "cities" => $cities ));

@@ -283,8 +283,8 @@ class City {
 		return $region;
 	}
 
-	public static function getDepAndRegionByInsee($insee){
-		$where = array("insee" => $insee);
+	public static function getDepAndRegionByInsee($key){
+		$where = array("key" => $insee);
 		$fields = array("depName", "regionName", "country");
 		$city = PHDB::findOne(self::COLLECTION, $where ,$fields);
 		return $city;
@@ -1014,8 +1014,8 @@ class City {
 	}
 
 
-	 public static function getDetailFormInMap($insee){
-		$where = array("insee"=> $insee);
+	 public static function getDetailFormInMap($key){
+		$where = array("key"=> $key);
 		$fields = array("geoShape","osmID", "wikidataID");
 		$city = PHDB::findOne(City::COLLECTION, $where, $fields);
 		return $city;

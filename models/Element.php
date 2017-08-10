@@ -446,6 +446,7 @@ class Element {
 				        "postalCode" => $fieldValue["address"]["postalCode"],
 				        "addressLocality" => $fieldValue["address"]["addressLocality"],
 				        "streetAddress" => ((@$fieldValue["address"]["streetAddress"])?trim(@$fieldValue["address"]["streetAddress"]):""),
+				        "key" => ((@$fieldValue["address"]["key"])?trim(@$fieldValue["address"]["key"]):""),
 				        "depName" => ((@$fieldValue["address"]["depName"])?trim(@$fieldValue["address"]["depName"]):""),
 				        "regionName" => ((@$fieldValue["address"]["regionName"])?trim(@$fieldValue["address"]["regionName"]):""),
 				    	);
@@ -500,6 +501,7 @@ class Element {
 					        "postalCode" => $fieldValue["address"]["postalCode"],
 					        "addressLocality" => $fieldValue["address"]["addressLocality"],
 					        "streetAddress" => ((@$fieldValue["address"]["streetAddress"])?trim(@$fieldValue["address"]["streetAddress"]):""),
+					        "key" => ((@$fieldValue["address"]["key"])?trim(@$fieldValue["address"]["key"]):""),
 					        "depName" => ((@$fieldValue["address"]["depName"])?trim(@$fieldValue["address"]["depName"]):""),
 				        	"regionName" => ((@$fieldValue["address"]["regionName"])?trim(@$fieldValue["address"]["regionName"]):""),
 					    	);

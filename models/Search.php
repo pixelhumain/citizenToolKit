@@ -65,7 +65,7 @@ class Search {
 	public static function globalAutoComplete($post,  $filter = null, $api=false){
 
 		$search = @$post['name'] ? trim(urldecode($post['name'])) : "";
-        $locality = isset($post['locality']) ? trim(urldecode($post['locality'])) : null;
+        $searchLocality = isset($post['locality']) ? $post['locality'] : null;
         //$localities = isset($post['localities']) ? $post['localities'] : null;
         $searchType = isset($post['searchType']) ? $post['searchType'] : null;
         $searchTags = isset($post['searchTag']) ? $post['searchTag'] : null;
@@ -126,9 +126,10 @@ class Search {
 
   		//*********************************  DEFINE LOCALITY QUERY   ****************************************
   		//$query = array('$and' => array( $query , self::searchLocality($post, $query) ) );
-  		$query = self::searchLocality($post, $query);
+  		if(!empty($searchLocality))
+  			$query = self::searchLocality($searchLocality, $query);
   		
-  		
+  		//var_dump($query);
   		$allRes = array();
 
   		//*********************************  CITIES   ******************************************
@@ -294,11 +295,31 @@ class Search {
 		return $query ;
 	}
 
+	//*********************************  Zones   ******************************************
+	public static function searchLocality($localities, $query){
+		$allQueryLocality = array();
+		foreach ($localities as $key => $locality){
+			if(!empty($locality)){
+				$queryLocality = array("address.key" => new MongoRegex("/^".$locality."/i"));
+			
+				if(empty($allQueryLocality))
+					$allQueryLocality = $queryLocality;
+				else if(!empty($queryLocality))
+					$allQueryLocality = array('$or' => array($allQueryLocality ,$queryLocality));
+			}
+			
+
+		}
+		$query = array('$and' => array($allQueryLocality));
+		return $query ;
+	}
+
 
 
 
 	//*********************************  DEFINE LOCALITY QUERY   ****************************************
-	public static function searchLocality($post, $query){
+
+	/*public static function searchLocality($post, $query){
   		$localityReferences['CITYKEY'] = "";
   		$localityReferences['CODE_POSTAL'] = "address.postalCode";
   		$localityReferences['DEPARTEMENT'] = "address.postalCode";
@@ -373,7 +394,7 @@ class Search {
   				$query = array('$and' => array($allQueryLocality));
   		}
   		return $query;
-  	}
+  	}*/
 
   	//trie les éléments dans l'ordre alphabetique par name
   	public static function mySortByName($a, $b){ // error_log("sort : ");//.$a['name']);

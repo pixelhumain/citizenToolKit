@@ -150,6 +150,13 @@ class Zone {
 		return $key ;
 	}
 
+	public static function getCountryList(){
+		$where = array(	"level" => array('$in' => array("1")));
+		$fields = array("name", "level", "countryCode", "key");
+		$list = PHDB::findAndSort( self::COLLECTION, $where, array("name"), 0, $fields);;
+		return $list;
+	}
+
 	public static function getCountryByCountryCode($countryCode){
 		$where = array(	"countryCode"=> $countryCode,
 						"level" => "1");
