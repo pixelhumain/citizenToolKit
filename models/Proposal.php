@@ -16,7 +16,9 @@ class Proposal
 		"title" 				=> array("name" => "title", 				"rules" => array("required")),
 		"shortDescription" 		=> array("name" => "shortDescription"),
 		"description" 			=> array("name" => "description", 			"rules" => array("required")),
-		
+		"tags" 					=> array("name" => "tags"),
+	    "urls" 					=> array("name" => "urls"),
+	    
 		// true / false
 		"amendementActivated" 	=> array("name" => "amendementActivated", 	"rules" => array("required")),
 		"amendementDateEnd" 	=> array("name" => "amendementDateEnd"),
@@ -36,9 +38,11 @@ class Proposal
 		"canModify" 			=> array("name" => "canModify", 			"rules" => array("required")), 
 		"viewCount" 			=> array("name" => "viewCount"),
 
-		"idUserAuthor" 			=> array("name" => "idUserAuthor", 			"rules" => array("required")),
+		//"idUserAuthor" 			=> array("name" => "idUserAuthor", 			"rules" => array("required")),
 		"idParentRoom" 			=> array("name" => "idParentRoom", 			"rules" => array("required")),
-
+		"parentId"              => array("name" => "parentId",              "rules" => array("required")),
+        "parentType"            => array("name" => "parentType",            "rules" => array("required")),
+        
 
 	    "modified" => array("name" => "modified"),
 	    "updated" => array("name" => "updated"),

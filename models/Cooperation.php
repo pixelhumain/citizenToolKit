@@ -18,7 +18,7 @@ class Cooperation {
 				$status = empty($status) ? "open" : $status;
 				$query = array( "parentType" => $parentType, "parentId" => $parentId, "status" => $status);
 				$res["roomList"] = PHDB::findAndSort ( 
-								Room::COLLECTION, $query, array("created" => -1));
+								Room::COLLECTION, $query, array("name" => 1));
 			}else{ //si un d'id : prend récupère toutes les proposals & actions & resolutions de la room
 				$res["room"] = Room::getById($dataId);
 

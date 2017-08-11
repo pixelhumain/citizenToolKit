@@ -27,6 +27,37 @@ class Action
     const ACTION_REPORT_ABUSE   = "reportAbuse";
     const ACTION_FOLLOW         = "follow";
 
+
+    public static $dataBinding = array (
+        
+        "name"                  => array("name" => "name",                  "rules" => array("required")),
+        "description"           => array("name" => "description",           "rules" => array("required")),
+        "tags"                  => array("name" => "tags"),
+        "urls"                  => array("name" => "urls"),
+        
+        "startDate"             => array("name" => "startDate"),
+        "endDate"               => array("name" => "endDate"),
+        
+        "actors"               => array("name" => "actors"),
+        
+        // Open / Closed
+        "status"                => array("name" => "status",                "rules" => array("required")), 
+        
+        "idUserAuthor"          => array("name" => "idUserAuthor",          "rules" => array("required")),
+        "idParentRoom"          => array("name" => "idParentRoom",          "rules" => array("required")),
+        "parentId"              => array("name" => "parentId",              "rules" => array("required")),
+        "parentType"            => array("name" => "parentType",            "rules" => array("required")),
+        
+        "email"                => array("name" => "status"), 
+        
+        "modified" => array("name" => "modified"),
+        "updated" => array("name" => "updated"),
+        "creator" => array("name" => "creator"),
+        "created" => array("name" => "created"),
+
+        //"medias" => array("name" => "medias"),
+    );
+
     /**
      * get a action room By Id
      * @param String $id : is the mongoId of the action room

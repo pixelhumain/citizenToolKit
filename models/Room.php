@@ -24,6 +24,32 @@ class Room {
 	const ACTION_INPROGRESS = "inprogress";
 	const ACTION_LATE = "late";	
 	const ACTION_CLOSED = "closed";	
+
+    public static $dataBinding = array (
+        
+        "name"                  => array("name" => "title",                 "rules" => array("required")),
+        "topic"                 => array("name" => "shortDescription"),
+        "description"           => array("name" => "description",           "rules" => array("required")),
+        "tags"                  => array("name" => "tags"),
+        "urls"                  => array("name" => "urls"),
+        
+        // Open / Closed
+        "status"                => array("name" => "status",                "rules" => array("required")), 
+        
+        "idUserAuthor"          => array("name" => "idUserAuthor",          "rules" => array("required")),
+        "parentId"              => array("name" => "parentId",              "rules" => array("required")),
+        "parentType"            => array("name" => "parentType",            "rules" => array("required")),
+        "parentApp"            => array("name" => "parentApp"),
+
+
+        "modified" => array("name" => "modified"),
+        "updated" => array("name" => "updated"),
+        "creator" => array("name" => "creator"),
+        "created" => array("name" => "created"),
+
+        //"medias" => array("name" => "medias"),
+    );
+    
 	/**
 	 * get a action room By Id
 	 * @param String $id : is the mongoId of the action room

@@ -61,6 +61,8 @@ class Element {
 	    	Poi::COLLECTION 		 => "Poi",
 	    	Classified::COLLECTION   => "Classified",
 	    	Proposal::COLLECTION   	 => "Proposal",
+	    	Room::COLLECTION   	 	 => "Room",
+	    	Action::COLLECTION   	 => "Action",
 	    );	
 	 	return @$models[$type];     
     }

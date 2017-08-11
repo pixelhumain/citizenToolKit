@@ -20,6 +20,8 @@ class GetCoopDataAction extends CAction {
 			//if($type == Resolution::CONTROLLER) $page = "resolution";
 		}
 
+		if(empty($dataId) && $type == Room::CONTROLLER) $page = "roomList";
+		
 		$params = Cooperation::getCoopData($parentType, $parentId, $type, $status, $dataId);
 
 		echo $controller->renderPartial($page, $params, true);
