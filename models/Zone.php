@@ -29,6 +29,11 @@ class Zone {
 	    "new" => array("name" => "new")*/
 	);
 
+	public static function getById($id) {
+	  	$city = PHDB::findOne(self::COLLECTION, array("_id"=>new MongoId($id)));
+	  	return $city;
+	}
+
 	/* Retourne des infos sur la commune dans la collection cities" */
 	public static function getWhere($params, $fields=null, $limit=20) {
 	  	$zones =PHDB::findAndSort( self::COLLECTION,$params, array(), $limit, $fields);

@@ -1014,11 +1014,51 @@ class City {
 	}
 
 
-	 public static function getDetailFormInMap($key){
+	public static function getDetailFormInMap($key){
 		$where = array("key"=> $key);
 		$fields = array("geoShape","osmID", "wikidataID");
 		$city = PHDB::findOne(City::COLLECTION, $where, $fields);
 		return $city;
+	}
+
+	public static function explodeKeyLocality($key){
+		$keyArray = explode("@", $key);
+		$res = array("codeCountry" => $keyArray[0]);
+
+		if(!empty($keyArray[1])){
+			$level1 = Zone::getById($keyArray[1]);
+			$res["level1"] = $keyArray[1];
+			$res["level1Name"] = $level1["name"]; 
+		}
+
+		if(!empty($keyArray[2])){
+			$level2 = Zone::getById($keyArray[2]);
+			$res["level2"] = $keyArray[2];
+			$res["level2Name"] = $level2["name"];
+		}
+
+		if(!empty($keyArray[3])){
+			$level3 = Zone::getById($keyArray[3]);
+			$res["level3"] = $keyArray[3];
+			$res["level3Name"] = $level3["name"];
+		}
+
+		if(!empty($keyArray[4])){
+			$level4 = Zone::getById($keyArray[4]);
+			$res["level4"] = $keyArray[4];
+			$res["level4Name"] = $level4["name"];
+		}
+
+		if(!empty($keyArray[5])){
+			$city = self::getById($keyArray[5]);
+			$res["city"] = $city;
+			$res["cityName"] = $city["name"];
+		}	
+						
+		if(!empty($keyArray[6]))
+			$res["cp"] = $keyArray[6];
+
+		return $res;
 	}
 
 
