@@ -38,7 +38,8 @@ class CO2Stat {
 
 	public static function getStatsByHash($week=null, $hash=null){
 
-		if( !Role::isSuperAdmin(Role::getRolesUserId(Yii::app()->session["userId"]) )){
+		$role = Role::getRolesUserId(@Yii::app()->session["userId"]) ; 
+        if(!Role::isSuperAdmin($role) && !Role::isSourceAdmin($role) ){
 			echo "Access deny";
 			exit;
 		}

@@ -60,6 +60,7 @@ class Element {
 	    	Thing::COLLECTION 		 => "Thing",
 	    	Poi::COLLECTION 		 => "Poi",
 	    	Classified::COLLECTION   => "Classified",
+	    	Survey::COLLECTION   	 => "Survey",
 	    );	
 	 	return @$models[$type];     
     }
@@ -196,6 +197,12 @@ class Element {
 	    	ActionRoom::TYPE_ENTRY."s"	=> array("icon"=>"archive","color"=>"#3C5665", "text-color"=>"dark",
 	    										 "hash"=> "survey.entry.id.",
 	    										 "collection"=>Survey::COLLECTION ),
+	    	Survey::COLLECTION	=> array("icon"=>"archive","color"=>"#3C5665", "text-color"=>"dark",
+	    										 "hash"=> "survey.entry.id.",
+	    										 "collection"=>Survey::COLLECTION ),
+	    	Survey::CONTROLLER	=> array("icon"=>"archive","color"=>"#3C5665", "text-color"=>"dark",
+	    										 "hash"=> "survey.entry.id.",
+	    										 "collection"=>Survey::COLLECTION ),
 	    	ActionRoom::TYPE_DISCUSS	=> array("icon"=>"comment","color"=>"#3C5665", "text-color"=>"dark",
 	    										 "hash"=> "comment.index.type.actionRooms.id.",
 	    										 "collection"=>ActionRoom::COLLECTION),
@@ -283,6 +290,10 @@ class Element {
 			$element = Poi::getById($id);
 		else if($type == Classified::COLLECTION)
 			$element = Classified::getById($id);
+		else if($type == ActionRoom::COLLECTION_ACTIONS)
+			$element = PHDB::findOne( ActionRoom::COLLECTION_ACTIONS ,array("_id"=>new MongoId($id)));
+		else if($type == Survey::CONTROLLER )
+			$element = PHDB::findOne( Survey::COLLECTION ,array("_id"=>new MongoId($id)));
 		else
 			$element = PHDB::findOne($type,array("_id"=>new MongoId($id)));
 	  	
@@ -305,6 +316,8 @@ class Element {
 			$element = City::getIdByInsee($id);
 		else if($type == Poi::COLLECTION)
 			$element = Poi::getById($id);
+		else if($type == "action")
+			$element = PHDB::findOne("actions",array("_id"=>new MongoId($id)));
 		else
 			$element = PHDB::findOne($type,array("_id"=>new MongoId($id)));
 	  	
@@ -1288,7 +1301,7 @@ class Element {
         unset($params['id']);
 
         $postParams = array();
-        if( !in_array($collection, array("poi")) && @$params["urls"] && @$params["medias"] ){
+        if( !in_array( $collection, array("poi") ) && @$params["urls"] && @$params["medias"] ){
         	$postParams["medias"] = $params["medias"];
         	unset($params['medias']);
         	$postParams["urls"] = $params["urls"];

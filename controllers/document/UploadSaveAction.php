@@ -34,37 +34,36 @@ class UploadSaveAction extends CAction {
             $res2 = array();
             
             if( $res["resultUpload"] ){
-                    if($contentKey==false){
-                        if(@$_POST["contentKey"]) $contentKey=$_POST["contentKey"];
-                        else $contentKey=Document::IMG_PROFIL;
-                    }
-                    $subFolder="";
-                    if(@$_POST["formOrigin"])
-                        $subFolder="/".$_POST["formOrigin"];
-                    if($contentKey==Document::IMG_SLIDER)
-                        $subFolder="/".Document::GENERATED_ALBUM_FOLDER;
-                    $params = array(
-                        "id" => $ownerId,
-                        "type" => $folder,
-                        "folder" => $folder."/".$ownerId.$subFolder,
-                        "moduleId" => "communecter",
-                        "name" => $res["name"],
-                        "size" => (int) $res['size'],
-                        "contentKey" => $contentKey,
-                        "author" => Yii::app()->session["userId"]
-                    );
+                if($contentKey==false){
+                    if(@$_POST["contentKey"]) $contentKey=$_POST["contentKey"];
+                    else $contentKey=Document::IMG_PROFIL;
+                }
+                $subFolder="";
+                if(@$_POST["formOrigin"])
+                    $subFolder="/".$_POST["formOrigin"];
+                if($contentKey==Document::IMG_SLIDER)
+                    $subFolder="/".Document::GENERATED_ALBUM_FOLDER;
+                $params = array(
+                    "id" => $ownerId,
+                    "type" => $folder,
+                    "folder" => $folder."/".$ownerId.$subFolder,
+                    "moduleId" => "communecter",
+                    "name" => $res["name"],
+                    "size" => (int) $res['size'],
+                    "contentKey" => $contentKey,
+                    "author" => Yii::app()->session["userId"]
+                );
 
-                    if(@$_POST["parentType"])
-                        $params["parentType"] = $folder;
-                    if(@$_POST["parentId"])
-                        $params["parentId"] = $ownerId;           
-                    if(@$_POST["formOrigin"])
-                        $params["formOrigin"] = $_POST["formOrigin"];
-                    if(@$_POST["cropX"] || @$_POST["cropY"] || @$_POST["cropW"] || @$_POST["cropH"]){
-                        $params["crop"]=array("cropX" => $_POST["cropX"],"cropY" => $_POST["cropY"],"cropW" => $_POST["cropW"],"cropH" => $_POST["cropH"]);
-                    }
-                    $res2 = Document::save($params);
-                
+                if(@$_POST["parentType"])
+                    $params["parentType"] = $folder;
+                if(@$_POST["parentId"])
+                    $params["parentId"] = $ownerId;           
+                if(@$_POST["formOrigin"])
+                    $params["formOrigin"] = $_POST["formOrigin"];
+                if(@$_POST["cropX"] || @$_POST["cropY"] || @$_POST["cropW"] || @$_POST["cropH"]){
+                    $params["crop"]=array("cropX" => $_POST["cropX"],"cropY" => $_POST["cropY"],"cropW" => $_POST["cropW"],"cropH" => $_POST["cropH"]);
+                }
+                $res2 = Document::save($params);
             }
 
         } else 
