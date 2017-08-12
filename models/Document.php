@@ -298,8 +298,12 @@ class Document {
 		if(@$collection)
 			$where["collection"]=$collection;
 		$doc = PHDB::findOne( self::COLLECTION, $where);
-		$doc=self::getListOfImage(array($doc));
-		return $doc[0]["imageThumbPath"];
+		if(!empty($doc)){
+			$doc=self::getListOfImage(array($doc));
+			$url=$doc[0]["imageThumbPath"];
+		}else
+			$url = Yii::app()->baseUrl."/".$this->module->assetsUrl.'/images/thumbnail-default.jpg';
+		return $url;
 	}
 	public static function countImageByWhere($id,$type,$contentKey, $col=null){
 		$where=array("id"=>$id,"type"=>$type,"contentKey"=>$contentKey);
