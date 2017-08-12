@@ -123,7 +123,14 @@ class Document {
 		//}
 	    if(isset($params["category"]) && !empty($params["category"]))
 	    	$new["category"] = $params["category"];
-
+	    if($new["contentKey"]==self::IMG_BANNER || $new["contentKey"]==self::IMG_PROFIL){
+	    	PHDB::update(self::COLLECTION,
+	    		array("id"=>$new["id"],"type"=>$new["type"],"contentKey"=>$new["contentKey"],
+	    			"current"=>array('$exists'=>true)),
+	    		array('$unset'=>array("current"=>true))
+	    		);
+	    	$new["current"]=true;
+	    }
 	    PHDB::insert(self::COLLECTION, $new);
 	    if (substr_count(@$new["contentKey"], self::IMG_BANNER)) {
 	    	// get banner image resize and crop
@@ -230,13 +237,40 @@ class Document {
 		return $listDocuments;
 	}
 	
-	public static function listMyDocumentByIdAndType($id, $type, $contentKey= null, $docType = null, $sort=null)	{	
+	public static function getDocumentSimpleByWhere($where=null, $fields=null){
+		if(empty($fields))
+			$fields = array("_id");
+		$documents = PHDB::find(self::COLLECTION, $where ,$fields);
+		return @$documents;
+	}
+	public static function updateCollectionNameDocument($targetId,$targetType,$name, $docType, $oldName=null){
+		return PHDB::update($self::COLLECTION,
+	    					array("id" => $targetId, "type"=>$targetType, "docType"=>$docType,"collection"=>$oldName),
+	                        array('$set' => array("collection"=> $name))
+	    );
+	}
+	public static function moveDocumentToCollection($id, $name=null){
+		return PHDB::update(self::COLLECTION,
+	    					array("_id"=>new MongoId($id)),
+	                        array('$set' => array("collection"=> $name))
+	                    );
+	}
+	public static function removeAllDocument($targetId, $targetType, $collection,$docType="image"){
+		$where=array("type"=>$targetType,"id"=>$targetId,"docType"=>$docType,"collection"=>$collection);
+		$docsToDelete=self::getDocumentSimpleByWhere($where);
+		foreach ($docsToDelete as $data){
+			self::removeDocumentById((string)$data["_id"]);
+		}
+	}
+	public static function listMyDocumentByIdAndType($id, $type, $contentKey= null, $collection=null, $docType = null, $sort=null)	{	
 		$params = array("id"=> $id,
 						"type" => $type);
 		if (isset($contentKey) && $contentKey != null) 
 			$params["contentKey"] = $contentKey;
 		if (isset($docType)) 
 			$params["doctype"] = $docType;
+		if (isset($docType)) 
+			$params["collection"] = $collection;
 		$listDocuments = PHDB::findAndSort( self::COLLECTION,$params, $sort);
 		return $listDocuments;
 	}
@@ -248,10 +282,33 @@ class Document {
 	 * @param array $limit represent the number of document by type that will be return. If not set, everything will be return
 	 * @return array a list of documents + URL sorted by contentkey type (IMG_PROFIL, IMG_SLIDER...)
 	 */
-	public static function getListDocumentsByIdAndType($id, $type, $contentKey=null, $docType=null, $limit=null){
+	public static function getListDocumentsWhere($where, $docType, $limit=null){
+		$listDocumentsofType = PHDB::findAndSort( self::COLLECTION,$where, array( 'created' => -1 ));
+		if($docType="image"){
+			$docs=self::getListOfImage($listDocumentsofType);
+		}
+
+		return $docs;
+		
+	}
+	public static function getLastThumb($id,$type,$contentKey,$collection=null){
+		// To finishADD LAST ONE CREATED 
+		//,"created"=>array('$gt'=>1)
+		$where=array("id"=>$id,"type"=>$type,"contentKey"=>$contentKey);
+		if(@$collection)
+			$where["collection"]=$collection;
+		$doc = PHDB::findOne( self::COLLECTION, $where);
+		$doc=self::getListOfImage(array($doc));
+		return $doc[0]["imageThumbPath"];
+	}
+	public static function countImageByWhere($id,$type,$contentKey, $col=null){
+		$where=array("id"=>$id,"type"=>$type,"contentKey"=>$contentKey);
+		if(@$col)
+			$where["collection"]=$col;
+		return PHDB::count( self::COLLECTION, $where);
+	}
+	public static function getListOfImage($listDocumentsofType){
 		$listDocuments = array();
-		$sort = array( 'created' => -1 );
-		$listDocumentsofType = Document::listMyDocumentByIdAndType($id, $type, $contentKey, $docType, $sort);
 		foreach ($listDocumentsofType as $key => $value) {
 			$toPush = false;
 			if(isset($value["contentKey"]) && $value["contentKey"] != ""){
@@ -282,22 +339,24 @@ class Document {
 					$pushImage['id'] = (string)$value["_id"];
 					$imagePath = Yii::app()->baseUrl."/".Yii::app()->params['uploadUrl'].$value["moduleId"]."/".$value["folder"];
 					if($value["contentKey"]=="profil")
-						$imageThumbPath = $imagePath;
+						$imageThumbPath = $imagePath."/".self::GENERATED_MEDIUM_FOLDER;
+					//else if($value["contentKey"]=="banner")
+						//$imageThumbPath = $imagePath."/".self::GENERATED_IMAGES_FOLDER;
 					else
 						$imageThumbPath = $imagePath."/".self::GENERATED_IMAGES_FOLDER;
 					$imagePath .= "/".$value["name"];
 					$imageThumbPath .= "/".$value["name"];
 				}
-				if (! isset($listDocuments[$currentContentKey])) {
+				/*if (!isset($listDocuments[$currentContentKey])) {
 					$listDocuments[$currentContentKey] = array();
-				} 
+				} */
 				$pushImage['moduleId'] = $value["moduleId"];
 				$pushImage['contentKey'] = $value["contentKey"];
 				$pushImage['imagePath'] = $imagePath;
 				$pushImage['imageThumbPath'] = $imageThumbPath;
 				$pushImage['name'] = $value["name"];
 				$pushImage['size'] = self::getHumanFileSize($value["size"]);
-				array_push($listDocuments[$currentContentKey], $pushImage);
+				array_push($listDocuments, $pushImage);
 			}
 		}
 		return $listDocuments;
@@ -374,27 +433,51 @@ class Document {
 	* remove a document by id and delete the file on the filesystem
 	* @return
 	*/
-	public static function removeDocumentById($id, $userId){
-		//TODO SBAR - Generate new thumbs if the image is the current image
+	public static function removeDocumentById($id){
 		$doc = Document::getById($id);
 		if ($doc) 
 		{
-			if (Authorisation::canParticipate($userId, $doc["type"], $doc["id"])) 
-			{
-				$filepath = self::getDocumentPath($doc);
-				if(file_exists ( $filepath )) {
-		            if (unlink($filepath)) {
-		                PHDB::remove(self::COLLECTION, array("_id"=>new MongoId($id)));
-		                $res = array('result'=>true, "msg" => Yii::t("document","Document deleted"), "id" => $id);
-		            } else
-		                $res = array('result'=>false,'msg'=>Yii::t("common","Something went wrong!"), "filepath" => $filepath);
-		        } else {
-		        	//even if The file does not exists on the filesystem : we try to delete the document on mongo
-		            PHDB::remove(self::COLLECTION, array("_id"=>new MongoId($id)));
-		            $res = array('result'=>true, "msg" => Yii::t("document","Document deleted"), "id" => $id);
-		        }
-		    } else 
-		    	$res = array('result'=>false, "msg" => Yii::t("document","You are not allowed to delete this document !"), "id" => $id);
+			// IF EXIST FILEPATH IN DOCUMENT STOCK, DELETE DOCUMENT IN UPLOAD FOLDER ELSE SIMPLY DELETE DOCUMENT IN DB
+			$filepath = self::getDocumentPath($doc);
+			if($doc["contentKey"]==self::IMG_SLIDER || $doc["contentKey"]==self::IMG_BANNER){
+				$filePathThumb=self::getDocumentFolderPath($doc).self::GENERATED_IMAGES_FOLDER."/".$doc["name"];
+			}else if($doc["contentKey"]==self::IMG_PROFIL)
+				$filePathThumb=self::getDocumentFolderPath($doc).self::GENERATED_MEDIUM_FOLDER."/".$doc["name"];
+			if(file_exists($filepath)) {
+	            if (unlink($filepath)) {
+	            	if(@$filePathThumb && file_exists ($filePathThumb))
+	            		unlink($filePathThumb);
+	            	if(@$doc["current"]){
+	            		// iF GET CURRENT DELETE PATH IN COLLECTION OF ELEMENT
+	            		if($doc["contentKey"]==self::IMG_PROFIL){
+	            			$unset=array(
+	            				"profilImageUrl"=>true,
+	            				"profilThumbImageUrl"=>true,
+	            				"profilMarkerImageUrl"=>true,
+	            				"profilMediumImageUrl"=>true
+	            			);
+
+	            		}
+	            		else if($doc["contentKey"]==self::IMG_BANNER){
+	            			$unset=array(
+	            				"profilBannerUrl"=>true,
+	            				"profilRealBannerUrl"=>true
+	            			);
+	            		}
+	            		PHDB::update($doc["type"],
+ 							array("_id"  => new MongoId($doc["id"])), 
+ 							array('$unset'=> $unset) 
+ 						);
+	            	}
+	                PHDB::remove(self::COLLECTION, array("_id"=>new MongoId($id)));
+	                $res = array('result'=>true, "msg" => Yii::t("document","Document deleted"), "id" => $id);
+	            } else
+	                $res = array('result'=>false,'msg'=>Yii::t("common","Something went wrong!"), "filepath" => $filepath);
+	        } else {
+	        	//even if The file does not exists on the filesystem : we try to delete the document on mongo
+	            PHDB::remove(self::COLLECTION, array("_id"=>new MongoId($id)));
+	            $res = array('result'=>true, "msg" => Yii::t("document","Document deleted"), "id" => $id);
+	        }
 		} else 
 		    $res = array('result'=>false,'error'=>Yii::t("common","Something went wrong!"),"id"=>$id);
 
