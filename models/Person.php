@@ -2076,7 +2076,7 @@ class Person {
 		    		CookieHelper::setCookie("communexionActivated", false);
     				
 		    		CookieHelper::setCookie("communexionValue", $address["addressCountry"]."_".$address["codeInsee"]."-".$address["postalCode"]);
-		    		CookieHelper::setCookie("communexionValue", $address["key"]);
+		    		//CookieHelper::setCookie("communexionValue", $address["key"]);
 		    		CookieHelper::setCookie("communexionName", $address["addressLocality"]);
 
 					$where = array("insee" => $address["codeInsee"]);
