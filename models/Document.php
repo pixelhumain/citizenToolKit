@@ -322,7 +322,7 @@ class Document {
 			$doc=self::getListOfImage(array($doc));
 			$url=$doc[0]["imageThumbPath"];
 		}else
-			$url = Yii::app()->baseUrl."/".$this->module->assetsUrl.'/images/thumbnail-default.jpg';
+			$url = Yii::app()->controller->module->assetsUrl.'/images/thumbnail-default.jpg';
 		return $url;
 	}
 	public static function countImageByWhere($id,$type,$contentKey, $col=null){
@@ -379,6 +379,7 @@ class Document {
 				$pushImage['imagePath'] = $imagePath;
 				$pushImage['imageThumbPath'] = $imageThumbPath;
 				$pushImage['name'] = $value["name"];
+				$pushImage['title'] = @$value["title"];
 				$pushImage['size'] = self::getHumanFileSize($value["size"]);
 				array_push($listDocuments, $pushImage);
 			}
@@ -580,7 +581,22 @@ class Document {
 	                    );
 		}
 	}
-
+	/**
+	* update document
+	* @param Id is the id of the document that we want to update
+	* @param update is the array with values to update
+	* @return
+	*/
+	public static function update($id, $update){
+		$set=array();
+		if(@$update["title"] && !empty($update["title"]))
+			$set["title"]=$update["title"];
+		PHDB::update(self::COLLECTION,
+			array("_id" => new MongoId($id)),
+            array('$set' => $set)
+        );
+		return true;
+	}
 	/**
 	* get a list of images with a key depending on limit
 	* @param itemId is the id of the item that we want to get images

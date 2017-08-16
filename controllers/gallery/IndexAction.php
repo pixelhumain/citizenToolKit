@@ -78,12 +78,13 @@ class IndexAction extends CAction
 				$countImagesProfil=Document::countImageByWhere($id,$type,"profil");
 				$countImagesBanner=Document::countImageByWhere($id,$type,"banner");
 				$countImagesAlbum=Document::countImageByWhere($id,$type,"slider");
-				if($countImagesProfil > 0)	
-					$thumbProfil=Document::getLastThumb($id,$type,"profil");
-				if($countImagesBanner > 0)	
-					$thumbBanner=Document::getLastThumb($id,$type,"banner");
-				if($countImagesAlbum > 0)	
-					$thumbAlbum=Document::getLastThumb($id,$type,"slider");
+				//if($countImagesProfil > 0)	
+				$thumbProfil=Document::getLastThumb($id,$type,"profil");
+				//if($countImagesBanner > 0)	
+				$thumbBanner=Document::getLastThumb($id,$type,"banner");
+				//if($countImagesAlbum > 0)	
+				$thumbAlbum=Document::getLastThumb($id,$type,"slider");
+				$countAlbums=0;
 				if(@$element[Document::COLLECTION] && @$element[Document::COLLECTION][$docType]){
 					$countAlbums=count($element[Document::COLLECTION][$docType]);
 				}

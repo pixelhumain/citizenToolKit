@@ -106,20 +106,25 @@ class Collection {
     }
 
 
-    public static function createDocument($targetId,$targetType,$name,$colType="collections",$docType=null)
-    {
-        
+    public static function createDocument($targetId,$targetType,$name,$colType="collections",$docType=null,$subDir=array()){
         $target = Element::getByTypeAndId( $targetType, $targetId);
         if(!empty($target)){   
             $pathToCreate=$colType.".";
             if($docType!=null)
                 $pathToCreate.=$docType.".";
+            if(@$subDir && !empty($subDir)){
+                foreach($subDir as $dir){
+                    $pathToCreate.=$dir.".";
+                    $createdIn=$dir;
+                }
+            }
+
             $pathToCreate.=$name;
             PHDB::update($targetType, 
                            array("_id" => new MongoId($targetId) ) , 
                            array('$set' => array($pathToCreate => array("updated"=>new MongoDate(time())) )));
-
-            return array("result"=>true, "msg"=>Yii::t("common","Collection {what} created with success",array("{what}"=>$name)));
+            
+            return array("result"=>true, "msg"=>Yii::t("common","Collection {what} created with success",array("{what}"=>$name)),"createdIn"=>@$createdIn);
         } else 
             return array("result"=>false,  "msg"=>Yii::t("common","Something went wrong"));
         
@@ -204,6 +209,6 @@ class Collection {
         foreach($ids as $id){
             Document::moveDocumentToCollection($id, $nameCol);
         }     
-        return array("result"=>true, "msg"=>Yii::t("common","Documents added with success to {what}",array("{what}"=>$nameCol))); 
+        return array("result"=>true, "msg"=>Yii::t("common","Documents added with success to {what}",array("{what}"=>$nameCol)),"movedIn"=>$nameCol); 
     }
 }

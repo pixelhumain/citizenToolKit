@@ -13,7 +13,11 @@ class CrudCollectionAction extends CAction
 				else if($action == "update")
 					$res = Collection::updateDocument($_POST["targetId"],$_POST["targetType"], @$_POST['oldname'],@$_POST['name'],$_POST["colType"],$_POST["docType"]);
 				else
-					$res = Collection::createDocument($_POST["targetId"],$_POST["targetType"], @$_POST['name'],$_POST["colType"],$_POST["docType"]);
+					$res = Collection::createDocument($_POST["targetId"],$_POST["targetType"], @$_POST['name'],$_POST["colType"],$_POST["docType"],$_POST["subDir"]);
+				$element=Element::getElementSimpleById($_POST["targetId"],$_POST["targetType"] ,null, array(Document::COLLECTION,"preferences"));
+				$res["collections"]=array();
+				if(@$element[Document::COLLECTION] && @$element[Document::COLLECTION][$_POST["docType"]])
+					$res["collections"]=$element[Document::COLLECTION][$_POST["docType"]];
 			} catch (CTKException $e) {
 				$res = array( "result" => false , "msg" => $e->getMessage() );
 			}
