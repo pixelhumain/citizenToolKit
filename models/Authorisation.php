@@ -571,7 +571,7 @@ class Authorisation {
         $res=false;    
         $check = false;
         if($type == ActionRoom::COLLECTION || $type == ActionRoom::COLLECTION_ACTIONS || $type == ActionRoom::TYPE_ACTION 
-             || $type == Survey::COLLECTION || $type == Survey::CONTROLLER ) { 
+             || $type == Survey::COLLECTION ) { 
             if( $parentType == null || $parentId == null ){
                 $elem = Element::getByTypeAndId($type, $itemId);
                 $parentId = $elem["parentId"];

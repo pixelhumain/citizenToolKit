@@ -60,6 +60,7 @@ class Element {
 	    	Thing::COLLECTION 		 => "Thing",
 	    	Poi::COLLECTION 		 => "Poi",
 	    	Classified::COLLECTION   => "Classified",
+	    	Survey::COLLECTION   	 => "Survey",
 	    );	
 	 	return @$models[$type];     
     }
@@ -1300,7 +1301,7 @@ class Element {
         unset($params['id']);
 
         $postParams = array();
-        if( !in_array($collection, array("poi")) && @$params["urls"] && @$params["medias"] ){
+        if( !in_array( $collection, array("poi") ) && @$params["urls"] && @$params["medias"] ){
         	$postParams["medias"] = $params["medias"];
         	unset($params['medias']);
         	$postParams["urls"] = $params["urls"];
