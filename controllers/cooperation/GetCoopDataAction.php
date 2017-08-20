@@ -22,8 +22,8 @@ class GetCoopDataAction extends CAction {
 
 		if(empty($dataId) && $type == Room::CONTROLLER) $page = "roomList";
 		
-		$params = Cooperation::getCoopData($parentType, $parentId, $type, $status, $dataId);
-
-		echo $controller->renderPartial($page, $params, true);
+		$res = Cooperation::getCoopData($parentType, $parentId, $type, $status, $dataId);
+		//var_dump($res);
+		echo $controller->renderPartial($page, $res, true);
 	}
 }

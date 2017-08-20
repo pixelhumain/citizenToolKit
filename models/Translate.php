@@ -217,12 +217,18 @@ class Translate {
 	public static function pastTime($date,$type, $timezone=null) {
 
 		
-		
+		//echo "Date : ".$date;
 		if($type == "timestamp") {
 	        $date2 = $date; // depuis cette date
+
 	    } elseif($type == "date") {
 	        $date2 = strtotime($date); // depuis cette date
-	        error_log($date." - ".$date2);
+	        //error_log($date." - ".$date2);
+	    } elseif($type == "datefr") { //echo $date;exit;
+	    	$date2 = DateTime::createFromFormat('d/m/Y H:i', $date)->format('Y-m-d H:i');
+	    	//var_dump($date2); exit;
+	        $date2 = strtotime($date2); // depuis cette date
+	        //error_log($date." - ".$date2);
 	    } else {
 	        return "Non reconnu";
 	    }

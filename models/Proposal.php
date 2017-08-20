@@ -16,6 +16,7 @@ class Proposal
 		"title" 				=> array("name" => "title", 				"rules" => array("required")),
 		"shortDescription" 		=> array("name" => "shortDescription"),
 		"description" 			=> array("name" => "description", 			"rules" => array("required")),
+		"arguments" 			=> array("name" => "arguments",),
 		"tags" 					=> array("name" => "tags"),
 	    "urls" 					=> array("name" => "urls"),
 	    
@@ -32,7 +33,7 @@ class Proposal
 		"status" 				=> array("name" => "status", 				"rules" => array("required")), 
 		
 		// 50%  / 75% / 90%
-		"majority" 				=> array("name" => "majority"),
+		"majority" 				=> array("name" => "majority", 				"rules" => array("required")),
 
 		// true / false
 		"canModify" 			=> array("name" => "canModify", 			"rules" => array("required")), 
@@ -61,6 +62,46 @@ class Proposal
 		return $survey;
 	}
 
+	public static function getAllVoteRes($proposal){
+		$voteRes = array("up"=> array("bg-color"=> "green-k",
+ 										"voteValue"=>"up"),
+ 						"down"=> array("bg-color"=> "red",
+ 										"voteValue"=>"down"),
+ 						"white"=> array("bg-color"=> "white",
+ 										"voteValue"=>"white"),
+ 						"uncomplet"=> array("bg-color"=> "orange",
+ 										"voteValue"=>"uncomplet"),
+
+ 		);
+
+ 		$votes = @$proposal["votes"] ? $proposal["votes"] : array();
+
+ 		if(!@$votes["up"]) $votes["up"] = array();
+ 		if(!@$votes["down"]) $votes["down"] = array();
+ 		if(!@$votes["white"]) $votes["white"] = array();
+ 		if(!@$votes["uncomplet"]) $votes["uncomplet"] = array();
+
+ 		//$voteRes = array("up"=>array(), );
+
+ 		$totalVotant = 0;
+ 		foreach ($votes as $key => $value) {
+ 			$voteRes[$key]["votant"] = count($votes[$key]);
+ 			$totalVotant+=count($votes[$key]);
+ 		} //echo $totalVotant; exit;
+ 		foreach ($votes as $key => $value) {
+ 			$voteRes[$key]["percent"] = $totalVotant > 0 ? $voteRes[$key]["votant"] * 100 / $totalVotant : 0;
+ 		}
+
+ 		return $voteRes;
+	}
+	public static function getTotalVoters($proposal){
+		if(!@$proposal["votes"]) return 0;
+		$totalVotant = 0;
+		foreach ($proposal["votes"] as $key => $value) {
+ 			$totalVotant+=count($value);
+ 		}
+ 		return $totalVotant;
+	}
 }
 
 ?>

@@ -296,6 +296,8 @@ class Element {
 			$element = PHDB::findOne( ActionRoom::COLLECTION_ACTIONS ,array("_id"=>new MongoId($id)));
 		else if($type == Survey::CONTROLLER )
 			$element = PHDB::findOne( Survey::COLLECTION ,array("_id"=>new MongoId($id)));
+		else if($type == Proposal::COLLECTION )
+			$element = PHDB::findOne( Proposal::COLLECTION ,array("_id"=>new MongoId($id)));
 		else
 			$element = PHDB::findOne($type,array("_id"=>new MongoId($id)));
 	  	
@@ -398,6 +400,8 @@ class Element {
 			return Survey::getDataBinding();
 		else if($collection == Poi::COLLECTION)
 			return Poi::getDataBinding();
+		else if($collection == Proposal::COLLECTION)
+			return Proposal::getDataBinding();
 		else
 			return array();
 	}
@@ -1476,7 +1480,16 @@ class Element {
 			$params["shortDescription"] = strip_tags($params["shortDescription"]);
 
 	    
-	
+		// if (@$params["amendementDateEnd"]){
+		// 	$params["amendementDateEnd"] = DateTime::createFromFormat('d/m/Y H:i', $params["amendementDateEnd"]);
+		// 	//$params["amendementDateEnd"] = $params["amendementDateEnd"]->format('Y-m-d H:i');
+		// }
+
+		// if (@$params["voteDateEnd"]){
+		// 	$params["voteDateEnd"] = DateTime::createFromFormat('d/m/Y H:i', $params["voteDateEnd"]);
+		// 	//$params["voteDateEnd"] = $params["voteDateEnd"]->format('Y-m-d H:i');
+		// }
+
 		//TODO SBAR - Manage elsewhere (maybe in the view)
 		//Manage the event startDate and endDate format : 
 		//it comes with the format DD/MM/YYYY HH:ii or DD/MM/YYYY 
@@ -1888,6 +1901,15 @@ class Element {
 			
 			if(isset($params["shortDescription"]))
 				$res[] = self::updateField($collection, $id, "shortDescription", strip_tags($params["shortDescription"]));
+		
+		}else if($block == "activeCoop"){
+
+			if(isset($params["status"]))
+				$res[] = self::updateField($collection, $id, "status", $params["status"]);
+			if(isset($params["voteActivated"]))
+				$res[] = self::updateField($collection, $id, "voteActivated", $params["voteActivated"]);
+			if(isset($params["amendementActivated"]))
+				$res[] = self::updateField($collection, $id, "amendementActivated", $params["amendementActivated"]);
 		}
 
 		if(Import::isUncomplete($id, $collection)){
