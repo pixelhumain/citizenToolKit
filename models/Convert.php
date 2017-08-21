@@ -492,6 +492,31 @@ class Convert {
         return $res;
     }
 
+    public static function ConvertValueFlowsToPh($url) {
+
+    	$map = TranslateValueFlowsToPh::$mapping_valueflows;
+
+        $param = self::getPrimaryParam($map);
+
+        $param['nameFile'] = 'convert_valueflows';
+        $param['key'] = 'convert_valueflows';
+
+        if (isset($url)) {
+        	$param['file'][0] = file_get_contents($url);
+        }
+
+        $result = Import::previewData($param);
+
+        if ($result['result'] !== false) {
+			$res = json_decode($result['elements']);
+		} else {
+			$res = [];
+		}
+
+        return $res;
+
+    }
+
 	public static function getLatLongWikidataItem($wikidata_item) {
 
 		if (@$wikidata_item['coor']) {

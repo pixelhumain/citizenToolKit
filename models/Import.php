@@ -112,7 +112,7 @@ class Import
             foreach ($file as $keyFile => $valueFile){
                 $nb++;
                 //if(!empty($valueFile)){
-                    $element = array();
+                    $element = array();     
                     foreach ($post['infoCreateData'] as $key => $value) {
                         $valueData = null;
 
@@ -126,18 +126,11 @@ class Import
                         else{
                             $valFile =  (!empty($valueFile[$value["idHeadCSV"]])?$valueFile[$value["idHeadCSV"]]:null);
                         }
-<<<<<<< HEAD
 
-
-                        //var_dump($valFile);
-                        if(!empty($valFile)){
-                            $valueData = ( is_string($valFile) ? trim($valFile) : $valFile );
-                            if(!empty($valueData)){                               
-=======
                         if(!empty($valFile)){
                             $valueData = (is_string($valFile)?trim($valFile):$valFile);
                             if(!empty($valueData)){
->>>>>>> copedia
+
                                 $typeValue = ArrayHelper::getValueByDotPath($mapping , $value["valueAttributeElt"]);
                                 $element = ArrayHelper::setValueByDotPath($element , $value["valueAttributeElt"], $valueData, $typeValue);
                             }
@@ -240,17 +233,13 @@ class Import
 		if($typeElement == Organization::COLLECTION && !empty($element["type"]))
         	$element["type"] = Organization::translateType($element["type"]);
 
-<<<<<<< HEAD
         if(!empty($element["facebook"]))
             $element["socialNetwork"]["facebook"] = $element["facebook"];
 
-        $element = self::getWarnings($element, $typeElement, true) ;
-=======
-        if ($element['source']['keys'][0] !== "convert_datagouv" && $element['source']['keys'][0] !== "convert_osm" && $element['source']['keys'][0] !== "convert_ods" && $element['source']['keys'][0] !== "convert_wiki" && $element['source']['keys'][0] !== "convert_datanova" && $element['source']['keys'][0] !== "convert_poleemploi" && $element['source']['keys'][0] !== "convert_educ_etab" && $element['source']['keys'][0] !== "convert_educ_membre" && $element['source']['keys'][0] !== "convert_educ_ecole" && $element['source']['keys'][0] !== "convert_educ_struct") {
+        if ($element['source']['keys'][0] !== "convert_datagouv" && $element['source']['keys'][0] !== "convert_osm" && $element['source']['keys'][0] !== "convert_ods" && $element['source']['keys'][0] !== "convert_wiki" && $element['source']['keys'][0] !== "convert_datanova" && $element['source']['keys'][0] !== "convert_poleemploi" && $element['source']['keys'][0] !== "convert_educ_etab" && $element['source']['keys'][0] !== "convert_educ_membre" && $element['source']['keys'][0] !== "convert_educ_ecole" && $element['source']['keys'][0] !== "convert_educ_struct" && $element['source']['keys'][0] !== "convert_valueflows") {
             $element = self::getWarnings($element, $typeElement, true) ;
         }
 
->>>>>>> copedia
         $resDataValidator = DataValidator::validate(Element::getControlerByCollection($typeElement), $element, true);
 
         if($resDataValidator["result"] != true){
@@ -805,7 +794,6 @@ class Import
 
             $res = self::getUmapResult($url, $param);
 
-// <<<<<<< HEAD
         } elseif ((isset($url)) && 
             ((substr($url, 0, 21) == "http://u.osmfr.org/m/"))
             ) {
@@ -821,12 +809,6 @@ class Import
            
             $result = self::previewData($param);
             $res = json_decode($result['elements']);
-// =======
-            //     if (!empty($result)) {
-            //         array_push($res, json_decode($result));
-            //     }
-            // }
-// >>>>>>> pixelhumain-development
 
         } 
 
