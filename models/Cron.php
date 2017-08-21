@@ -24,8 +24,13 @@ class Cron {
 	*/
 	public static function save($params){
 		//echo "adding Cron entry";
+		$userId=null;
+		if(@Yii::app()->session['userId'])
+			$userId=Yii::app()->session['userId'];
+		else if(@$params['tplParams'] && @$params['tplParams']["user"])
+			$userId=$params['tplParams']["user"];
 	    $new = array(
-			"userId" => Yii::app()->session['userId'],
+			"userId" => $userId,
 			"status" => self::STATUS_PENDING,
 	  		"type"   => $params['type'],
 	  		//contextType

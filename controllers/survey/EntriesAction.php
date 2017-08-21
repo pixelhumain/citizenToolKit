@@ -35,7 +35,7 @@ class EntriesAction extends CAction
       if( $parentType == "" )
         $parentType = ($survey["parentType"] == "cities") ? "city" : "";
 
-      $surveyurlCtrl.loadByHash = ( isset( $survey["parentType"] ) && isset( $survey["parentId"] ) ) ? "#".$parentType.".detail.id.".$survey["parentId"] : "#rooms"; 
+      $surveyurlCtrl["loadByHash"] = ( isset( $survey["parentType"] ) && isset( $survey["parentId"] ) ) ? "#".$parentType.".detail.id.".$survey["parentId"] : "#rooms";  
 
      
       $parent = array("name"=>"_");
@@ -71,7 +71,7 @@ class EntriesAction extends CAction
                                              "parentType" => $survey["parentType"],
                                              "parentId" => $survey["parentId"],
                                              "canParticipate"=>$canParticipate,
-                                             "surveyurlCtrl.loadByHash" => $surveyurlCtrl.loadByHash,
+                                             "surveyurlCtrl.loadByHash" => $surveyurlCtrl["loadByHash"],
                                              "images"=> $images
                                               )  );
     }

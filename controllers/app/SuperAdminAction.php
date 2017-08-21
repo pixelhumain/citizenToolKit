@@ -7,10 +7,11 @@ class SuperAdminAction extends CAction
     public function run($action)
     {
         $controller = $this->getController();
-        $params = array();
+        $params = array(Role::getRolesUserId(@Yii::app()->session["userId"]));
     	
-        if(Role::isSuperAdmin(Role::getRolesUserId(@Yii::app()->session["userId"]) ) ) {
-        	if($action == "main")		{ $this->main(); 	      return; }
+        $role = Role::getRolesUserId(@Yii::app()->session["userId"]) ; 
+        if(Role::isSuperAdmin($role) || Role::isSourceAdmin($role) ) {
+        	if($action == "main")		{ $this->main($_POST); 	  return; }
             if($action == "web")        { $this->web();           return; }
             if($action == "live")       { $this->live();          return; }
             if($action == "power")      { $this->power();         return; }
@@ -33,9 +34,9 @@ class SuperAdminAction extends CAction
         $controller->renderPartial("admin/index", $params);
     }
 
-    private function main(){
+    private function main($post=null){
         $controller = $this->getController();
-        $params = array();
+        $params = array("week", @$post["week"]);
         $controller->renderPartial("admin/main", $params);
     }
 

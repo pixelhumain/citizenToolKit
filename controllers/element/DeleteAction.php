@@ -14,13 +14,17 @@ class DeleteAction extends CAction {
             return;
         }
 
+        $elemTypes = array( 
+            Organization::COLLECTION, Organization::CONTROLLER, 
+            Project::COLLECTION, Project::CONTROLLER,
+            Event::COLLECTION, Event::CONTROLLER,
+            Classified::COLLECTION, Classified::CONTROLLER);
+
         if ($type == Person::COLLECTION || $type == Person::CONTROLLER) {
             $res = Person::deletePerson($id, Yii::app()->session["userId"]);
-        } else if ( $type == Organization::COLLECTION || $type == Organization::CONTROLLER ||
-                    $type == Project::COLLECTION || $type == Project::CONTROLLER ||
-                    $type == Event::COLLECTION || $type == Event::CONTROLLER ) {
+        } else if ( in_array( $type,$elemTypes )  ) {
             $res = Element::askToDelete($type, $id, $reason, Yii::app()->session["userId"]);
-        } else if ($type == POI::COLLECTION) {
+        } else if ($type == Poi::COLLECTION) {
         	$res = Poi::delete($id, Yii::app()->session["userId"]);
         } else {
             Rest::json(array( "result" => false, "msg" => "Impossible to delete that kind of element ".$type ));

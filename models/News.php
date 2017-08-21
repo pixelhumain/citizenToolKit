@@ -13,10 +13,10 @@ class News {
 	 * @param type $id : is the mongoId of the news
 	 * @return object
 	 */
-	public static function getById($id) {
+	public static function getById($id,$followsArrayIds=null) {
 	  	$news = PHDB::findOne( self::COLLECTION,array("_id"=>new MongoId($id)));
 	  	if(@$news["type"]){
-			$news=NewsTranslator::convertParamsForNews($news,true);
+			$news=NewsTranslator::convertParamsForNews($news,true,$followsArrayIds);
 		}
 		return $news;
 	}
@@ -51,8 +51,10 @@ class News {
 	    foreach ($res as $key => $news) {
 		    if(@$news["type"]){
 			    $newNews=NewsTranslator::convertParamsForNews($news, false, $followsArrayIds);
-			    //if(empty($newNews)){			  		
-				$res[$key]=$newNews;
+			    if(!empty($newNews))			  		
+					$res[$key]=$newNews;
+				else
+					unset($res[$key]);
 				//}else{
 				//	$res[$key]=array();
 				//}
@@ -233,7 +235,8 @@ class News {
 			if(@$news["media"] && @$news["media"]["content"] && @$news["media"]["content"]["image"] && !@$news["media"]["content"]["imageId"]){
 				$endPath=explode(Yii::app()->params['uploadUrl'],$news["media"]["content"]["image"]);
 				$pathFileDelete= Yii::app()->params['uploadDir'].$endPath[1];
-				unlink($pathFileDelete);
+				if(file_exists ( $pathFileDelete )) 
+					unlink($pathFileDelete);
 			}
 		
 			//récupère les activityStream liés à la news
@@ -264,13 +267,21 @@ class News {
 			$res = PHDB::remove(self::COLLECTION,array("_id"=>new MongoId($id)));
 		} else if($authorization=="share" && $countShare > 1){
 			$key=array_search($userId,array_column($news["sharedBy"],"id"));
-			unset($news["sharedBy"][$key]);
+			//unset($news["sharedBy"][$key]);
 			$shareUpdate=true;
 			$res = PHDB::update(self::COLLECTION, array("_id"  => new MongoId($id) ), array('$pull'=>array("sharedBy"=>array("id"=>$userId))));
 		}
 		$res=array("result" => true, "msg" => "The news with id ".$id." and ".$nbCommentsDeleted." comments have been removed with succes.","type"=>$news["type"]);
-		if(@$shareUpdate)
-			$res["newsUp"]=$news;
+		if(@$shareUpdate){
+			$followsArrayIds=[];
+			$parent=Element::getElementSimpleById(Yii::app()->session["userId"],Person::COLLECTION,null, array("links"));
+			if(@$parent["links"]["follows"] && !empty($parent["links"]["follows"])){
+				foreach ($parent["links"]["follows"] as $key => $data){
+					array_push($followsArrayIds,$key);
+				}
+			}
+			$res["newsUp"]=News::getById($id, $followsArrayIds);
+		}
 		return $res;
 	}
 
@@ -290,10 +301,15 @@ class News {
 		}
 
 		//get all the news
-		$where = array('$and' => array(
+		$where = array('$or' => array(
+						array("target.id" => $elementId),
+						array("object.id" => $elementId)
+					));
+		
+		/*$where = array('$and' => array(
 						array("target.id" => $elementId),
 						array("target.type" => $elementType)
-					));
+					));*/
 		$news2delete = PHDB::find(self::COLLECTION, $where);
 		$nbNews = 0;		
 		
@@ -342,6 +358,7 @@ class News {
 			PHDB::update ( News::COLLECTION , 
 							array( "_id" => $share["_id"]), 
                             $share);
+			$idNews=(string)$share["_id"];
 			
 		}else{
 			$buildArray = array(
@@ -360,11 +377,12 @@ class News {
 			);
 
 			//$params=ActivityStream::buildEntry($buildArray);
-			ActivityStream::addEntry($buildArray);
+			$newsShared=ActivityStream::addEntry($buildArray);
+			$idNews=(string)$newsShared["_id"];
 			//error_log("share new");
 		}
-	
-		return true;
+		$newsShared=News::getById($idNews);
+		return array("result"=>true, "msg"=> Yii::t("common", "News has been shared with your network"), "data"=>$newsShared);
 	}
 
 	public static function removeNewsByImageId($imageId){
@@ -396,8 +414,8 @@ class News {
 		if((isset($_POST["text"]) && !empty($_POST["text"])) || (isset($_POST["media"]) && !empty($_POST["media"])))
 	 	{
 			$set = array(
-						  "text" => $_POST["text"],
-						  "updated"=>new MongoDate(time()),
+				 "text" => $_POST["text"],
+				 "updated"=>new MongoDate(time()),
 			);
 			if (@$_POST["media"]){
 				$set["media"] = $_POST["media"];
@@ -411,15 +429,16 @@ class News {
 			}
 			if(@$_POST["tags"])
 				$set["tags"] = $_POST["tags"];
-		 	
-		 	if(@($_POST["mentions"])){
+		 	if(@$_POST["mentions"])
 				$set["mentions"] = $_POST["mentions"];
-				$target="";
-			}
-			
+			else
+				$unset=array("mentions"=>"");
+			$modify=array('$set'=>$set);
+			if(@$unset)
+				$modify['$unset']=$unset;
 		//update the project
 		PHDB::update( self::COLLECTION, array("_id" => new MongoId($_POST["idNews"])), 
-		                          array('$set' => $set));
+		                          $modify);
 		$news=self::getById($_POST["idNews"]);
 	    return array("result"=>true, "msg"=>Yii::t("common","News well updated"), "object"=>$news);
 	}
@@ -486,7 +505,7 @@ class News {
     		$ext = explode( "?", $ext );
     		$ext = $ext[0];
     	}
-		$dir=Yii::app()->controller->module->id;
+		$dir="communecter";
 		$folder="news";
 		$upload_dir = Yii::app()->params['uploadDir'].$dir.'/'.$folder; 
 		$returnUrl= Yii::app()->params['uploadUrl'].$dir.'/'.$folder;
@@ -558,7 +577,7 @@ class News {
         if (@$news["sharedBy"] && in_array($userId,array_column($news["sharedBy"],"id"))) return "share";
         if (Authorisation::isUserSuperAdmin($userId)) return true;
         $parentId = @$news["target"]["id"];
-        $parentType = @$new["target"]["type"];
+        $parentType = @$news["target"]["type"];
         $isAdmin = Authorisation::isElementAdmin($parentId, $parentType, $userId);
         return $isAdmin;
     }

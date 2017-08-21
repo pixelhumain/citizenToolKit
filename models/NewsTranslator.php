@@ -42,7 +42,8 @@ class NewsTranslator {
 				$object=Classified::getById((string)$params["object"]["id"]);
 				$params["icon"]="fa-newspaper-o";
 			}
-
+			//var_dump($object);
+			//exit;
 			if(!empty($object)){
 				$thisType = $params["object"]["type"];
 				$params["object"] = array_merge($params["object"], $object);
@@ -79,7 +80,7 @@ class NewsTranslator {
 
 
 			}else{
-				$params=array("created"=>$params["created"]);
+				$params=array();
 				return $params;
 			}
 		}
@@ -211,6 +212,8 @@ class NewsTranslator {
 					$clearShare = array("id"=>@$value["id"],
 										"name"=>@$share["name"],
 										"type"=>@$value["type"],
+										"updated" => @$value["updated"],
+										"comment" => @$value["comment"],
 										"profilThumbImageUrl"=>@$share["profilThumbImageUrl"]);	
 					
 					if(@$followsArrayIds){ //si j'ai la liste des follows de l'element
@@ -241,7 +244,7 @@ class NewsTranslator {
 
 			//efface le lastAuthorShared de la liste des sharedBy
 			//echo $lastKey;
-			if($lastKey!=null && @$sharedBy[$lastKey]){ unset($sharedBy[$lastKey]); }
+			//if($lastKey!=null && @$sharedBy[$lastKey]){ unset($sharedBy[$lastKey]); }
 
 			$params["updated"] = @$dateUpdated;
 			$params["comment"] = @$lastComment;

@@ -39,9 +39,9 @@ class SearchMembersAutoCompleteAction extends CAction {
 		}
 		
 		if ($limitSearchPerson > 0) {
-			$allCitoyens = PHDB::findAndSort( Person::COLLECTION , $query, array("name" => 1), $limitSearchPerson);
+			$allCitoyens = PHDB::findAndSort( Person::COLLECTION , $query, array(/*"name" => 1*/), $limitSearchPerson);
 			foreach ($allCitoyens as $key => $value) {
-				$person = Person::getSimpleUserById($key);
+				$person = Person::getSimpleUserById($key, $value);
 				$allCitoyens[$key] = $person;
 			}
 			$all["citoyens"] = $allCitoyens;

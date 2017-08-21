@@ -8,20 +8,26 @@ class Event {
 	const NO_ORGANISER = "dontKnow";
 
 	public static $types = array(
-        "competition" => "Compétition",
+        "competition" => "Competition",
         "concert" => "Concert",
-        "concours" => "Concours",
-        "exposition" => "Exposition",
+        "contest" => "Contest",
+        "exhibition" => "Exhibition",
         "festival" => "Festival",
-        "getTogether" => "Rencontre",
-        "market" => "Marché",
-	    "meeting" => "Réunion"
+        "getTogether" => "Get together",
+        "market" => "Market",
+	    "meeting" => "Meeting",
+	    "course"=>"Course",
+		"workshop"=>"Workshop",
+		"conference"=>"Conference",
+		"debate"=>"Debate",
+		"film"=>"Film",
 	);  
 	      
 	//From Post/Form name to database field name
 	public static $dataBinding = array (
 	    "name" => array("name" => "name", "rules" => array("required")),
 	    "type" => array("name" => "type"),
+	    "parent" => array("name" => "parent"),
 	    "parentId" => array("name" => "parentId"),
 	    "parentType" => array("name" => "parentType"),
 	    "organizerId" => array("name" => "organizerId"),
@@ -392,7 +398,10 @@ class Event {
 	public static function formatBeforeSaving($params) {
 		$startDate = DataValidator::getDateTimeFromString($params['startDate'], "start date");
 		$endDate = DataValidator::getDateTimeFromString($params['endDate'], "end date");
-	    
+		if(@$params["allDay"] && $params["allDay"]){
+			$startDate=date_time_set($startDate, 00, 00);
+			$endDate=date_time_set($endDate, 23, 59);
+		}
 		$params["startDate"] = new MongoDate($startDate->getTimestamp());
 		$params["endDate"]   = new MongoDate($endDate->getTimestamp());
 

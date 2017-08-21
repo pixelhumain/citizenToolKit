@@ -169,7 +169,7 @@ class ImagesUtils {
 		 * Resize the image into a temporary GD image
 		 */
 		//echo $this->source_width.",".$this->source_height.",".$crop["cropX"].", ".$crop["cropY"].",".$crop["cropW"].",".$crop["cropH"];
-		$temp_gdim = imagecreatetruecolor($crop["cropW"], $crop["cropH"]);
+		$temp_gdim = imagecreatetruecolor($this->source_width, $this->source_height);
 		imagecopyresampled(
 		    $temp_gdim,
 		    $this->srcImage,
@@ -202,17 +202,19 @@ class ImagesUtils {
 		return $this;
 	}
 	public function imagecropping($new_width, $new_height, $x = 0, $y = 0){
-		//$im = imagecreatefrompng($this->srcImage);
-        $img = imagecrop($this->srcImage, array(
-            "x" => $x, 
-            "y" => $y,
-            "width" => $new_width,
-            "height" => $new_height
-        ));
-
-        //$this->destImage = $this->srcImage;
-		//imagedestroy($this->srcImage);
-        return $img;
+		$im = imagecreatetruecolor($new_width,$new_height);
+		imagecopy  ( 
+   			$im ,
+    		$this->srcImage,
+    		0 , 0 , 
+    		$x , $y , 
+    		$new_width ,
+    		$new_height 
+		);
+       
+        $this->destImage = $im;
+		imagedestroy($this->srcImage);
+        return $this;
     }
 	/**
 	 * Resize the image a newWidth and a newHeight

@@ -24,8 +24,11 @@ class Preference {
 	}
 	
 	public static function updateConfidentiality($id, $type, $param){
-		if ($type == Person::COLLECTION)
+		if ($type == Person::COLLECTION){
+			$id = $param["idEntity"];
 			$context = Person::getById($id);
+		}
+
 		if($type == Organization::COLLECTION){
 			$id = $param["idEntity"];
 			$context = Organization::getById($id);
@@ -100,9 +103,10 @@ class Preference {
 			Badge::delete("opendata", $id, $type);
 		
 		/*PHDB::update($type, array("_id" => new MongoId($id)), 
-		    array('$set' => array("preferences.privateFields" => $privateFields, "preferences.publicFields" => $publicFields)));*/		
-		PHDB::update($type, array("_id" => new MongoId($id)), 
-		    array('$set' => array("preferences" => $preferences)));
+		    array('$set' => array("preferences.privateFields" => $privateFields, "preferences.publicFields" => $publicFields)));*/
+
+		$result = PHDB::update($type, array("_id" => new MongoId($id)), 
+		    						array('$set' => array("preferences" => $preferences)));
 
 		ActivityStream::saveActivityHistory(ActStr::VERB_UPDATE, $id, $type, $setType, self::valueActivityStream($setValue));
 		$res = array("result" => true, "msg" => Yii::t("common","Confidentiality param well updated"));

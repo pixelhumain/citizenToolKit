@@ -103,12 +103,15 @@ class GetDataDetailAction extends CAction {
 		}
 
 		if($dataName == "classified"){
-			$contextMap = Element::getByIdAndTypeOfParent(Classified::COLLECTION, $id, $type);
+			$contextMap = Element::getByIdAndTypeOfParent(Classified::COLLECTION, $id, $type, array("updated"=>-1));
 		}
 
 
 		if($dataName == "poi"){
-			$contextMap = Poi::getPoiByIdAndTypeOfParent($id, $type);
+			$contextMap = Poi::getPoiByIdAndTypeOfParent($id, $type, array("updated"=>-1));
+			foreach ($contextMap as $key => $value) {
+				$contextMap[$key]["typePoi"] = @$value["type"];
+			}
 		}
 
 
@@ -123,16 +126,31 @@ class GetDataDetailAction extends CAction {
 		}
 
 
+		if( $dataName == "actionRooms" || $dataName == "vote" || $dataName == "actions" || $dataName == "discuss" ){
+			$where = array("parentType"=>$type, "parentId"=>$id);
+			if($dataName == "vote") $where["type"] = "vote";
+			if($dataName == "actions")$where["type"] = "actions";
+			if($dataName == "discuss")$where["type"] = "discuss";
+			$contextMap = PHDB::findAndSortAndLimitAndIndex( ActionRoom::COLLECTION, $where);
+		}
+		
+
 		if($dataName == "liveNow"){
+			$post = $_POST; 
+			if( empty($_POST["searchLocalityCITYKEY"]) && 
+				(empty($_POST["searchLocalityDEPARTEMENT"]) || $_POST["searchLocalityDEPARTEMENT"][0] == "" || 
+				 $_POST["searchLocalityDEPARTEMENT"][0] == "undefined") && 
+				isset($element["address"])){
+				$city = City::getDepAndRegionByInsee($element["address"]["codeInsee"]);
+				$post["searchLocalityDEPARTEMENT"] = array($city["depName"]);
+			}
 
 			//EVENTS-------------------------------------------------------------------------------
 			$query = array("startDate" => array( '$gte' => new MongoDate( time() ) ));
 
-			if(@$type!="0" || !empty($_POST["searchLocalityCITYKEY"]))
-			$query = Search::searchLocality($_POST, $query);
+			if(@$type!="0" || !empty($post["searchLocalityCITYKEY"]))
+			$query = Search::searchLocality($post, $query);
 
-			
-			
 			$events = PHDB::findAndSortAndLimitAndIndex( Event::COLLECTION,
 							$query,
 							array("startDate"=>1), 10);
@@ -141,8 +159,13 @@ class GetDataDetailAction extends CAction {
 				$events[$key]["type"] = "events";
 				$events[$key]["typeSig"] = "events";
 				if(@$value["startDate"]) {
-					//var_dump(@$value["startDate"]);
 					$events[$key]["updatedLbl"] = Translate::pastTime(@$value["startDate"]->sec,"timestamp");
+					$events[$key]["startDate"] = date(DateTime::ISO8601, $value["startDate"]->sec);
+				
+		  		}
+
+		  		if(@$value["endDate"]) {
+					$events[$key]["endDate"] = date(DateTime::ISO8601, $value["endDate"]->sec);
 		  		}
 		  	}
 		  	$contextMap = array_merge($contextMap, $events);
@@ -150,9 +173,9 @@ class GetDataDetailAction extends CAction {
 
 			//CLASSIFIED-------------------------------------------------------------------------------
 			$query = array();
-			if(@$type!="0" || !empty($_POST["searchLocalityCITYKEY"]))
-				$query = Search::searchLocality($_POST, $query);
-			//var_dump($query); exit;
+			if(@$type!="0" || !empty($post["searchLocalityCITYKEY"]))
+				$query = Search::searchLocality($post, $query);
+
 			$classified = PHDB::findAndSortAndLimitAndIndex( Classified::COLLECTION, $query,
 							array("updated"=>-1), 10);
 
@@ -167,8 +190,8 @@ class GetDataDetailAction extends CAction {
 			
 		  	//POI-------------------------------------------------------------------------------
 			$query = array();
-			if(@$type!="0" || !empty($_POST["searchLocalityCITYKEY"]))
-				$query = Search::searchLocality($_POST, $query);
+			if(@$type!="0" || !empty($post["searchLocalityCITYKEY"]))
+				$query = Search::searchLocality($post, $query);
 			
 			$pois = PHDB::findAndSortAndLimitAndIndex( Poi::COLLECTION, $query,
 							array("updated"=>-1), 10);
@@ -182,17 +205,26 @@ class GetDataDetailAction extends CAction {
 		  	}
 		  	$contextMap = array_merge($contextMap, $pois);
 			
-			if(@$_POST["tpl"]=="json")
+			if(@$post["tpl"]=="json")
 				return Rest::json($contextMap);
 			else
-			echo $this->getController()->renderPartial($_POST['tpl'], array("result"=>$contextMap, 
-																			"type"=>$type, 
-																			"id"=>$id, 
-																			"scope"=>@$_POST['searchLocalityDEPARTEMENT'][0], 
-																			"open"=> (@$type=="0"))); //open : for home page (when no user connected)
+				echo $this->getController()->renderPartial($post['tpl'], 
+											array("result"=>$contextMap, 
+												"element" => $element,
+												"type"=>$type, 
+												"id"=>$id, 
+												"scope"=>@$post['searchLocalityDEPARTEMENT'][0], 
+												"open"=> (@$type=="0"))); 
+												//open : for home page (when no user connected)
 			Yii::app()->end();
 		}
 
+		foreach ($contextMap as $key => $value) {
+			if(@$contextMap[$key]["type"] && $contextMap[$key]["type"] == Event::COLLECTION)
+  				$contextMap[$key]["updatedLbl"] = Translate::pastTime(@$value["startDate"],"date");
+  			else
+  				$contextMap[$key]["updatedLbl"] = Translate::pastTime(@$value["updated"],"timestamp");
+		}
 
 
 		return Rest::json($contextMap);

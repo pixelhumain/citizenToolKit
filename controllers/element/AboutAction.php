@@ -5,18 +5,29 @@ class AboutAction extends CAction {
 		$controller=$this->getController();
 
 		$element=Element::getByTypeAndId($type,$id);
-		$params["element"] = $element;
-		$params["type"] = $type;
-		$params["edit"] = Authorisation::canEditItem(Yii::app()->session["userId"], $type, $id);
-		$params["openEdition"] = Authorisation::isOpenEdition($id, $type, @$element["preferences"]);
+		
+		if(@$element["parentId"] && @$element["parentType"])
+            $element['parent'] = Element::getByTypeAndId( $element["parentType"], $element["parentId"]);
+
+        if(@$element["organizerId"] && @$element["organizerType"] && 
+            $element["organizerId"] != "dontKnow" && $element["organizerType"] != "dontKnow")
+            $element['organizer'] = Element::getByTypeAndId( $element["organizerType"], $element["organizerId"]);
 
 		if(@Yii::app()->session["network"]){
 			$params["openEdition"] = false;
 			$params["edit"] = false;
 		}
+		if($type==Event::COLLECTION)
+			$params["typesList"]=Event::$types;
+		else if($type==Organization::COLLECTION)
+			$params["typesList"]=Organization::$types;
+		$params["element"] = $element;
+		$params["type"] = $type;
+		$params["edit"] = Authorisation::canEditItem(Yii::app()->session["userId"], $type, $id);
+		$params["openEdition"] = Authorisation::isOpenEdition($id, $type, @$element["preferences"]);
+		$params["params"] = $params;
 
 		$page = "about";
-		$params["params"] = $params;
 		if(Yii::app()->request->isAjaxRequest)
 			echo $controller->renderPartial($page,$params,true);
 		else 

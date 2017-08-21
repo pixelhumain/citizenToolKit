@@ -8,7 +8,7 @@ class UpdateAction extends CAction
     	$result=News::update($_POST);
     	if(@$_GET["tpl"]=="co2"){
     		$params=array(
-    			"news"=>array($result["object"]), 
+    			"news"=>array((string)$result["object"]["_id"]=>$result["object"]), 
     			"actionController"=>"save",
     			"canManageNews"=>true,
     			"canPostNews"=>true,

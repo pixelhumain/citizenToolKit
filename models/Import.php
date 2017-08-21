@@ -112,7 +112,7 @@ class Import
             foreach ($file as $keyFile => $valueFile){
                 $nb++;
                 //if(!empty($valueFile)){
-                    $element = array();
+                    $element = array();     
                     foreach ($post['infoCreateData'] as $key => $value) {
                         $valueData = null;
 
@@ -126,9 +126,11 @@ class Import
                         else{
                             $valFile =  (!empty($valueFile[$value["idHeadCSV"]])?$valueFile[$value["idHeadCSV"]]:null);
                         }
+
                         if(!empty($valFile)){
                             $valueData = (is_string($valFile)?trim($valFile):$valFile);
                             if(!empty($valueData)){
+
                                 $typeValue = ArrayHelper::getValueByDotPath($mapping , $value["valueAttributeElt"]);
                                 $element = ArrayHelper::setValueByDotPath($element , $value["valueAttributeElt"], $valueData, $typeValue);
                             }
@@ -164,11 +166,20 @@ class Import
     }  
 
     public static function createArrayList($list) {
-        $head = array("name", "warnings", "msgError") ;
+        $head = array("name", "address", "warnings", "msgError") ;
         $tableau = array($head);
         foreach ($list as $keyList => $valueList){
             $ligne = array();
             $ligne[] = (empty($valueList["name"])? "" : $valueList["name"]);
+
+            if(!empty($valueList["address"])){
+                $str = (empty($valueList["address"]["streetAddress"]) ? "" : $valueList["address"]["streetAddress"].",");
+                $str .= (empty($valueList["address"]["postalCode"]) ? "" : $valueList["address"]["postalCode"].", ");
+                $str .= (empty($valueList["address"]["addressLocality"]) ? "" : $valueList["address"]["addressLocality"].", ");
+                $str .= (empty($valueList["address"]["addressCountry"]) ? "" : $valueList["address"]["addressCountry"]);
+                $ligne[] = $str;
+            }
+
             $ligne[] = (empty($valueList["warnings"])? "" : self::getMessagesWarnings($valueList["warnings"]));
             $ligne[] = (empty($valueList["msgError"])? "" : $valueList["msgError"]);
             $tableau[] = $ligne ;
@@ -194,6 +205,10 @@ class Import
         if($typeElement != Person::COLLECTION){
             $address = (empty($element['address']) ? null : $element['address']);
             $geo = (empty($element['geo']) ? null : $element['geo']);
+
+            if(!empty($address) && !empty($address["addressCountry"])  && !empty($address["postalCode"]) && strtoupper($address["addressCountry"]) == "FR" && strlen($address["postalCode"]) == 4 )
+                $address["postalCode"] = '0'.$address["postalCode"];
+
             $detailsLocality = self::getAndCheckAddressForEntity($address, $geo) ;
             if($detailsLocality["result"] == true){
                $element["address"] = $detailsLocality["address"] ;
@@ -218,11 +233,15 @@ class Import
 		if($typeElement == Organization::COLLECTION && !empty($element["type"]))
         	$element["type"] = Organization::translateType($element["type"]);
 
-        if ($element['source']['keys'][0] !== "convert_datagouv" && $element['source']['keys'][0] !== "convert_osm" && $element['source']['keys'][0] !== "convert_ods" && $element['source']['keys'][0] !== "convert_wiki" && $element['source']['keys'][0] !== "convert_datanova" && $element['source']['keys'][0] !== "convert_poleemploi" && $element['source']['keys'][0] !== "convert_educ_etab" && $element['source']['keys'][0] !== "convert_educ_membre" && $element['source']['keys'][0] !== "convert_educ_ecole" && $element['source']['keys'][0] !== "convert_educ_struct") {
+        if(!empty($element["facebook"]))
+            $element["socialNetwork"]["facebook"] = $element["facebook"];
+
+        if ($element['source']['keys'][0] !== "convert_datagouv" && $element['source']['keys'][0] !== "convert_osm" && $element['source']['keys'][0] !== "convert_ods" && $element['source']['keys'][0] !== "convert_wiki" && $element['source']['keys'][0] !== "convert_datanova" && $element['source']['keys'][0] !== "convert_poleemploi" && $element['source']['keys'][0] !== "convert_educ_etab" && $element['source']['keys'][0] !== "convert_educ_membre" && $element['source']['keys'][0] !== "convert_educ_ecole" && $element['source']['keys'][0] !== "convert_educ_struct" && $element['source']['keys'][0] !== "convert_valueflows") {
             $element = self::getWarnings($element, $typeElement, true) ;
         }
 
         $resDataValidator = DataValidator::validate(Element::getControlerByCollection($typeElement), $element, true);
+
         if($resDataValidator["result"] != true){
             //$element["msgError"] = ((empty($resDataValidator["msg"]->getMessage()))?$resDataValidator["msg"]:$resDataValidator["msg"]->getMessage());
             $element["msgError"] = $resDataValidator["msg"];
@@ -775,7 +794,6 @@ class Import
 
             $res = self::getUmapResult($url, $param);
 
-// <<<<<<< HEAD
         } elseif ((isset($url)) && 
             ((substr($url, 0, 21) == "http://u.osmfr.org/m/"))
             ) {
@@ -791,12 +809,6 @@ class Import
            
             $result = self::previewData($param);
             $res = json_decode($result['elements']);
-// =======
-            //     if (!empty($result)) {
-            //         array_push($res, json_decode($result));
-            //     }
-            // }
-// >>>>>>> pixelhumain-development
 
         } 
 

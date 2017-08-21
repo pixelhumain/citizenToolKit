@@ -11,7 +11,6 @@ class Person {
 	const REGISTER_MODE_TWO_STEPS 	= "two_steps_register";
 
 
-
 	//From Post/Form name to database field name with rules
 	public static $dataBinding = array(
 	    "name" => array("name" => "name", "rules" => array("required")),
@@ -98,6 +97,9 @@ class Person {
 	    }
 		if( @$account["roles"])
 	     	$user ["roles"] = $account["roles"];
+	    if( @$account["preferences"])
+	     	$user ["preferences"] = $account["preferences"];
+	    
 	    //Last login date
 	    $user ["lastLoginDate"] = @$account["lastLoginDate"] ? $account["lastLoginDate"] : time();
 	    
@@ -217,6 +219,8 @@ class Person {
 
 		$simplePerson["id"] = $id;
 		$simplePerson["name"] = @$person["name"];
+		//$simplePerson["name"] = addslashes(@$person["name"]);
+		$simplePerson["username"] = @$person["username"];
 		$simplePerson["username"] = @$person["username"];
 		$simplePerson["email"] = @$person["email"];
 		$simplePerson["tags"] = @$person["tags"];
@@ -226,6 +230,10 @@ class Person {
 		$simplePerson["description"] = @$person["description"];
 		$simplePerson["pending"] = @$person["pending"];
 		$simplePerson["updated"] = @$person["updated"];
+
+		//Ajouter par rapport au getAllLink
+		$simplePerson["address"] = @$person["address"];
+		$simplePerson["geo"] = @$person["geo"];
 		
 		$simplePerson["typeSig"] = "people";
 	  	
@@ -234,13 +242,6 @@ class Person {
 		}
 		//images
 		$simplePerson = array_merge($simplePerson, Document::retrieveAllImagesUrl($id, self::COLLECTION, null, $person));
-		/*if(Preference::showPreference($person, self::COLLECTION, "locality", Yii::app()->session["userId"])){
-			$simplePerson["address"] = empty($person["address"]) ? array("addressLocality" => Yii::t("common","Unknown Locality")) : $person["address"];
-			$simplePerson["geo"] = @$person["geo"];
-			$simplePerson["addresses"] = @$person["addresses"];
-		}else{
-			$simplePerson["address"] = array("addressLocality" => Yii::t("common","Unknown Locality"));
-		}*/
 		$simplePerson = self::clearAttributesByConfidentiality($simplePerson);
 	  	return $simplePerson;
 
@@ -489,7 +490,7 @@ class Person {
 		  			array('$push' => array('invitationDate' => time())));	
 	  		}
 
-	  				  		//send invitation mail
+	  		//send invitation mail
 			Mail::invitePerson($res["person"], $msg);
 		  		  		
 	  	} catch (CTKException $e) {
@@ -642,7 +643,7 @@ class Person {
 
 		if(!empty($person["invitedBy"]))
 			$res['invitedBy'] = $person["invitedBy"];
-	    return ;
+	    return $res;
 	}
 
 	/**
@@ -919,7 +920,13 @@ class Person {
 	        		return $res;
 	        	else{
 	        		Person::updateCookieCommunexion((string)$account["_id"], @$account["address"]);
-	            	$res = array("result"=>true, "id"=>(string)$account["_id"], "isCommunected"=>isset($account["cp"]), "msg" => "Vous êtes maintenant identifié : bienvenue sur communecter.");
+	        		unset($account["pwd"]);
+	            	$res = array(
+	            		"result"=>true, 
+	            		"id"=>(string)$account["_id"], 
+	            		"isCommunected"=>isset($account["cp"]), 
+	            		"account" => $account,
+	            		"msg" => "Vous êtes maintenant identifié : bienvenue sur communecter.");
 	        	}
 	        } else {
 	            $res = array("result"=>false, "msg"=>"emailAndPassNotMatch");
@@ -1211,6 +1218,14 @@ class Person {
 		return $res;
 	}
 	
+	public static function  updateNotSeeHelpCo($id){
+		PHDB::update(Person::COLLECTION, array("_id" => new MongoId($id)), 
+			                          array('$set' => array("preferences.unseenHelpCo"=>true)));
+		//Yii::app()->session["user"]["preferences"]["unseenHelpCo"]=true;
+		$account=self::getById($id);
+		$res=self::saveUserSessionData($account);
+		return array("result" => true);
+	}
 	private static function hashPassword($personId, $pwd) {
 		return hash('sha256', $personId.$pwd);
 	}

@@ -23,6 +23,7 @@ class ActivityStream {
 			//$news["target"]["type"]=$param["target"]["type"];
 			//unset($news["target"]["objectType"]);
 		    PHDB::insert(News::COLLECTION, $news);
+		    return $news;
 		}
 		else
 	    	PHDB::insert(self::COLLECTION, $param);
@@ -30,7 +31,7 @@ class ActivityStream {
 	public static function getWhere($params) {
 	  	 return PHDB::find( self::COLLECTION,$params,null,null);
 	}
-	public static function getNotifications($param,$sort=array("updated"=>-1,"created"=>-1))
+	public static function getNotifications($param,$sort=array("updated"=>-1))
 	{
 	    return PHDB::findAndSort(self::COLLECTION, $param,$sort);
 	}
@@ -261,6 +262,8 @@ class ActivityStream {
 	        "icon" => $params["icon"],
 	        "url" => $params["url"]
 	    );
+	    if(@$params["labelAuthorObject"])
+	    	$notify["labelAuthorObject"]=$params["labelAuthorObject"];
 	    return $notify;
 	}
 	public static function removeObject($objectId,$type,$targetId=null,$targetType=null,$verb=null){

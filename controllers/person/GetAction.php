@@ -16,6 +16,8 @@ class GetAction extends CAction {
 			$bindMap = (empty($id) ? TranslateGeoJson::$dataBinding_allPerson : TranslateGeoJson::$dataBinding_person);
 		else if ($format == Translate::FORMAT_JSONFEED)
 			$bindMap = TranslateJsonFeed::$dataBinding_allPerson;
+		else if ( $format == "valueflows")
+              $bindMap = TranslateValueFlows::$dataBinding_agent;
 		else 
 			$bindMap = (empty($id) ? TranslateCommunecter::$dataBinding_allPerson : TranslateCommunecter::$dataBinding_person);
 

@@ -11,8 +11,8 @@ class Poi {
 		"machine"		=> "Machine",
 		"software"		=> "Software",
 		"rh"			=> "Ressource Humaine",
-		"RessourceMaterielle" => "Ressource Materielle",
-		"RessourceFinanciere" => "Ressource Financiere",
+		"materialRessource" => "Ressource Materielle",
+		"financialRessource" => "Ressource Financiere",
 		"ficheBlanche" => "Fiche Blanche",
 		"geoJson" 		=> "Url au format geojson ou vers une umap",
 		"compostPickup" => "récolte de composte",
@@ -46,7 +46,6 @@ class Poi {
 	    "geo" => array("name" => "geo"),
 	    "geoPosition" => array("name" => "geoPosition"),
 	    "description" => array("name" => "description"),
-	    "addresses" => array("name" => "addresses"),
 	    "parentId" => array("name" => "parentId"),
 	    "parentType" => array("name" => "parentType"),
 	    "media" => array("name" => "media"),
@@ -81,8 +80,8 @@ class Poi {
 	 * @param type $type : is the type of the parent
 	 * @return list of pois
 	 */
-	public static function getPoiByIdAndTypeOfParent($id, $type){
-		$pois = PHDB::find(self::COLLECTION,array("parentId"=>$id,"parentType"=>$type));
+	public static function getPoiByIdAndTypeOfParent($id, $type, $orderBy){
+		$pois = PHDB::findAndSort(self::COLLECTION,array("parentId"=>$id,"parentType"=>$type), $orderBy);
 	   	return $pois;
 	}
 	/**
@@ -148,11 +147,15 @@ class Poi {
 		if ($poi == null) 
 			$poi = self::getById($id);
 		//To Delete POI, the user should be creator or can delete the parent of the POI
-        if ( $userId == $poi['creator'] || Authorisation::canDeleteElement(@$poi["parentId"], @$poi["parentType"], $userId)) {
+        if ( $userId == @$poi['creator'] || Authorisation::canDeleteElement(@$poi["parentId"], @$poi["parentType"], $userId)) {
             return true;
         } else {
         	return false;
         }
     }
+
+    public static function getDataBinding() {
+	  	return self::$dataBinding;
+	}
 }
 ?>

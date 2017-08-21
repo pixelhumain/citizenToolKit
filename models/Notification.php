@@ -308,6 +308,12 @@ class Notification{
 					"label" => "{who} added new images to the album of {where}",
 					"repeat" => true,
 					"noUpdate" => true
+				),
+				"asMember"=> array(
+					"url" => "page/type/{collection}/id/{id}/view/directory/dir/members",
+					"label" => "{who} added {what} as member of {where}",
+					"labelRepeat" => "{who} added {what} as members of {where}",
+					"repeat" => true
 				)
 			),
 			/*"context" => array(
@@ -320,7 +326,7 @@ class Notification{
 				"city" => true
 			),*/
 			//"label"=>"{who} added {type} {what} in {where}",
-			"labelArray" => array("who","where"),
+			"labelArray" => array("who","where","what"),
 			"icon" => "fa-plus"
 		),
 		ActStr::VERB_VOTE => array(
@@ -476,8 +482,8 @@ class Notification{
 	    		$members[$userAskingToDelete]=array();
 	    }
 
-		else if($type == Person::COLLECTION)
-			$people[$id] = array("isUnread" => true, "isUnseen" => true);
+		if($type == Person::COLLECTION && $construct["verb"]==Actstr::VERB_FOLLOW)
+		 	$people[$id] = array("isUnread" => true, "isUnseen" => true);
 		else if($type == News::COLLECTION){
 			if(Yii::app()->session["userId"] != $alreadyAuhtorNotify){
 				$news=News::getById($id);
@@ -502,21 +508,23 @@ class Notification{
 			$entryId = $id;
 			if( $type == Survey::COLLECTION ){
 				$target["entry"] = Survey::getById( $id );
-				$entryId = (string)$target["entry"]["survey"];
+				//var_dump($target); exit;
+				$entryId = (string)@$target["entry"]["survey"];
 			} else if( $type == ActionRoom::COLLECTION_ACTIONS ){
 				$target["entry"] = ActionRoom::getActionById( $id );
 				$entryId = $target["entry"]["room"];
 			}
-			$room = ActionRoom::getById( $entryId );
-			if( @$room["parentType"] ){
-				if( $room["parentType"] == Project::COLLECTION ) 
-			    	$members = Project::getContributorsByProjectId( $room["parentId"] ,"all", null ) ;
-			    else if( $room["parentType"] == Organization::COLLECTION) 
-			    	$members = Organization::getMembersByOrganizationId( $room["parentId"] ,"all", null ) ;
-			    else if( $room["parentType"] == Event::COLLECTION )
-		    			$members = Event::getAttendeesByEventId( $room["parentId"] , "admin", "isAdmin" ) ;
-		    	$construct["target"]["parent"]=array("id"=>$room["parentId"],"type"=> $room["parentType"]);
-			}
+			
+			// $room = ActionRoom::getById( $entryId );
+			// if( @$room["parentType"] ){
+			// 	if( $room["parentType"] == Project::COLLECTION ) 
+			//     	$members = Project::getContributorsByProjectId( $room["parentId"] ,"all", null ) ;
+			//     else if( $room["parentType"] == Organization::COLLECTION) 
+			//     	$members = Organization::getMembersByOrganizationId( $room["parentId"] ,"all", null ) ;
+			//     else if( $room["parentType"] == Event::COLLECTION )
+		 //    			$members = Event::getAttendeesByEventId( $room["parentId"] , "admin", "isAdmin" ) ;
+		 //    	$construct["target"]["parent"]=array("id"=>$room["parentId"],"type"=> $room["parentType"]);
+			// }
 		}
 	    foreach ($members as $key => $value) 
 	    {
@@ -597,6 +605,7 @@ class Notification{
 		}
 		else
 			$label = $construct["label".$repeat];
+		//return $label;
 		if($construct["labelUpNotifyTarget"]=="object"){
 			$memberName="";
 			if($construct["object"]){
@@ -646,8 +655,70 @@ class Notification{
 		//	$specifyLabel["{type}"] = $labelArray["typeValue"];
 		if(in_array("what",$construct["labelArray"]))
 			$specifyLabel["{what}"] = @$construct["object"]["name"];
-		return Yii::t("notification",$label, $specifyLabel);	
+		return Yii::t("notification",$label, $specifyLabel);
 	}
+
+	public static function getLabelNotificationFront($notif){
+		$labelArray=self::$notificationTree[$notif["verb"]]["labelArray"];
+		$count=0;
+		$memberName="";
+		if(@$notif[$notif["notify"]["labelAuthorObject"]]){
+			if($notif["notify"]["labelAuthorObject"]=="object"){
+				if($notif["object"]){
+					if(@$notif["object"]["name"]){
+						$count++;
+						$memberName=$notif["object"]["name"];
+					}
+					else{
+						foreach($notif["object"] as $user){
+							$memberName=$user["name"];
+							$count++;
+						}
+					}
+				}
+				foreach($notif["author"] as $author){
+					$specifyLabel["{author}"] = $author['name'];
+				}
+			}else {
+				foreach($notif["author"] as $author){
+					$memberName = $author['name'];
+					$count++;
+				}
+			}
+		}
+		if($count==1){
+			$specifyLabel["{who}"] = $memberName;
+		}
+		else if($count==2){
+			foreach($notif[$notif["notify"]["labelAuthorObject"]] as $data){
+				$lastAuthorName=$data["name"];
+				//break; 
+			}
+			$specifyLabel["{who}"] = $memberName." ".Yii::t("common","and")." ".$lastAuthorName;
+		}
+		else if($count > 2) {
+			foreach($notif[$notif["notify"]["labelAuthorObject"]] as $data){
+				$lastAuthorName=$data["name"];
+				break;
+			}
+			$nbOthers = $count - 2;
+			if($nbOthers == 1) $labelUser = "person"; else $labelUser = "persons";
+			$specifyLabel["{who}"] = $memberName.", ".$lastAuthorName." ".Yii::t("common","and")." ".$nbOthers." ".Yii::t("common", $labelUser);
+		}
+		if(in_array("where",$labelArray)){
+			if(@$notif["target"]["name"])
+				$specifyLabel["{where}"] = $notif["target"]["name"];
+			else{
+				$resArray=self::getTargetInformation($notif["target"]["id"],$notif["target"]["type"], @$notif["object"]);
+				$specifyLabel["{where}"] = @$resArray["{where}"];
+				if(@$resArray["{what}"])
+					$specifyLabel["{what}"]=$resArray["{what}"];
+			}
+		}
+		if(in_array("what",$labelArray))
+			$specifyLabel["{what}"] = @$notif["object"]["name"];
+		return Yii::t("notification",$notif["notify"]["displayName"], $specifyLabel);
+	} 
 
 	public static function getUrlNotification($construct){
 		if(@$construct["url"])
@@ -752,6 +823,7 @@ class Notification{
 		$notif = array( 
 	    	"persons" => $construct["community"],
             "label"   => self::getLabelNotification($construct,$type),
+            "labelAuthorObject"=>$construct["labelUpNotifyTarget"],
             "icon"    => $construct["icon"],
             "url"     => self::getUrlNotification($construct)
         );
@@ -961,8 +1033,9 @@ class Notification{
 					else
 						$res["{what}"]=Yii::t("notification","shared");
 				}
-				else
-					$res["{what}"]="&quot;".strtr(@$news["text"], 0, 20)."...&quot;";
+				else{
+					$res["{what}"]="&quot;".substr(@$news["text"], 0, 20)."...&quot;";
+				}
 			}
 			else if($object){
 				$object=Element::getElementSimpleById($object["id"], $object["type"]);
