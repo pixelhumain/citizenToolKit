@@ -14,9 +14,11 @@ class Document {
 	const CATEGORY_PLAQUETTE 	= "Plaquette";
 
 	const DOC_TYPE_IMAGE 		= "image";
+	const DOC_TYPE_FILE 		= "file";
 	const DOC_TYPE_CSV		= "text/csv";
 
 	const GENERATED_IMAGES_FOLDER 		= "thumb";
+	const GENERATED_FILE_FOLDER 		= "file";
 	const GENERATED_MEDIUM_FOLDER 		= "medium";
 	const GENERATED_ALBUM_FOLDER		= "album";
 	const GENERATED_BANNER_FOLDER		= "banner";
@@ -87,7 +89,7 @@ class Document {
 	public static function save($params){
 		
 		//check content key
-		if (!in_array(@$params["contentKey"], array(self::IMG_BANNER,self::IMG_PROFIL,self::IMG_LOGO,self::IMG_SLIDER,self::IMG_MEDIA)))
+		if (!@$params["doctype"] && !in_array(@$params["contentKey"], array(self::IMG_BANNER,self::IMG_PROFIL,self::IMG_LOGO,self::IMG_SLIDER,self::IMG_MEDIA)))
 			throw new CTKException("Unknown contentKey ".$params["contentKey"]." for the document !");
 	    
 	    $new = array(
@@ -95,14 +97,18 @@ class Document {
 	  		"type" => $params['type'],
 	  		"folder" => $params['folder'],
 	  		"moduleId" => $params['moduleId'],
-	  		"doctype" => Document::getDoctype($params['name']),	
 	  		"author" => $params['author'],
 	  		"name" => $params['name'],
 	  		"size" => (int) $params['size'],
 	  		"contentKey" => @$params["contentKey"],
 	  		'created' => time()
 	    );
-
+	    if(@$params["doctype"]){
+	    	$new["doctype"]=$params["doctype"];
+	    	$new["contentKey"]=Document::getFileContentKey($params['name']);
+	    }
+	    else
+	    	$new["doctype"]=Document::getDoctype($params['name']);
 	    if(@$params["crop"])
 	    	$new["crop"]=$params["crop"];
 
@@ -152,28 +158,30 @@ class Document {
 	    	$new["current"]=true;
 	    }
 	    PHDB::insert(self::COLLECTION, $new);
-	    if (substr_count(@$new["contentKey"], self::IMG_BANNER)) {
-	    	// get banner image resize and crop
-	    	$src=self::generateBannerImages($new);
-	    	// get normal image resize
-	    	self::generateAlbumImages($new);
-	    	// get album image resize
-	    	self::generateAlbumImages($new,  self::GENERATED_IMAGES_FOLDER);
-	    	
-	    	$typeNotif="bannerImage";
-	    }
-    	else{
-		    //Generate small image
-		   	self::generateAlbumImages($new);
-		    //Generate image profil if necessary
-		    if (substr_count(@$new["contentKey"], self::IMG_PROFIL)) {
-		    	self::generateProfilImages($new);
-		    	$typeNotif="profilImage";
+	    if($new["doctype"]==self::DOC_TYPE_IMAGE){
+		    if (substr_count(@$new["contentKey"], self::IMG_BANNER)) {
+		    	// get banner image resize and crop
+		    	$src=self::generateBannerImages($new);
+		    	// get normal image resize
+		    	self::generateAlbumImages($new);
+		    	// get album image resize
+		    	self::generateAlbumImages($new,  self::GENERATED_IMAGES_FOLDER);
+		    	
+		    	$typeNotif="bannerImage";
 		    }
-		    if (substr_count(@$new["contentKey"], self::IMG_SLIDER)) {
-		    	self::generateAlbumImages($new, self::GENERATED_IMAGES_FOLDER);
-		    	$typeNotif="albumImage";
-		    }
+	    	else{
+			    //Generate small image
+			   	self::generateAlbumImages($new);
+			    //Generate image profil if necessary
+			    if (substr_count(@$new["contentKey"], self::IMG_PROFIL)) {
+			    	self::generateProfilImages($new);
+			    	$typeNotif="profilImage";
+			    }
+			    if (substr_count(@$new["contentKey"], self::IMG_SLIDER)) {
+			    	self::generateAlbumImages($new, self::GENERATED_IMAGES_FOLDER);
+			    	$typeNotif="albumImage";
+			    }
+			}
 		}
 	   //Notification::constructNotification(ActStr::VERB_ADD, array("id" => Yii::app()->session["userId"],"name"=> Yii::app()->session["user"]["name"]), array("type"=>$new["type"],"id"=> $new["id"]), null, $typeNotif);
 	    return array("result"=>true, "msg"=>Yii::t('document','Document saved successfully'), "id"=>$new["_id"],"name"=>$new["name"],"src"=>@$src);	
@@ -201,6 +209,28 @@ class Document {
 			$doctype = $ext;
 		}
 		return $doctype;
+	}
+	/**
+	* get the type of a document
+	* @param strname : the name of the document
+	*/
+	public static function getFileContentKey($strname){
+		$pdf_ext = array("pdf");
+		$spreadsheet_ext =array("xls","xlsx","ods");
+		$text_ext = array("doc","docx","odt");
+		$presentation_ext= array("ppt","pptx","odp");
+		$contentKey = "";
+		$ext = strtolower(pathinfo($strname, PATHINFO_EXTENSION)); // Using strtolower to overcome case sensitive
+		if (in_array($ext, $pdf_ext)) {
+			$contentKey = "pdf";
+		}else if(in_array($ext, $spreadsheet_ext)){
+			$contentKey = "spreadsheet";
+		}else if(in_array($ext, $text_ext)){
+			$contentKey = "text";
+		}else{
+			$contentKey = "presentation";
+		}
+		return $contentKey;
 	}
 
 	/** TODO BOUBOULE 
@@ -325,8 +355,10 @@ class Document {
 			$url = Yii::app()->controller->module->assetsUrl.'/images/thumbnail-default.jpg';
 		return $url;
 	}
-	public static function countImageByWhere($id,$type,$contentKey, $col=null){
-		$where=array("id"=>$id,"type"=>$type,"contentKey"=>$contentKey);
+	public static function countByWhere($id,$type,$contentKey=null, $col=null, $docType="image"){
+		$where=array("id"=>$id,"type"=>$type,"doctype"=>$docType);
+		if(@$contentKey)
+			$where["contentKey"]=$contentKey;
 		if(@$col)
 			$where["collection"]=$col;
 		return PHDB::count( self::COLLECTION, $where);
@@ -1105,7 +1137,7 @@ class Document {
 	 * @param type|null $sizeUrl The size of the file (not mandatory : could be retrieve from the file when it's not an URL file)
 	 * @return array result => boolean, msg => String, uploadDir => where the file is stored
 	 */
-	public static function checkFileRequirements($file, $dir, $folder, $ownerId, $input, $contentKey=null, $nameUrl = null, $sizeUrl=null) {
+	public static function checkFileRequirements($file, $dir, $folder, $ownerId, $input, $contentKey=null, $docType=null,$nameUrl = null, $sizeUrl=null) {
 		//TODO SBAR
 		//$dir devrait être calculé : sinon on peut facilement enregistrer des fichiers n'importe où
 		$upload_dir = Yii::app()->params['uploadDir'];
@@ -1131,7 +1163,11 @@ class Document {
             	mkdir ( $upload_dir,0775 );
 
         }
-       
+       	if( @$docType && $docType==Document::DOC_TYPE_FILE){
+       		$upload_dir .= Document::GENERATED_FILE_FOLDER.'/';
+            if( !file_exists ( $upload_dir ) )
+                mkdir ( $upload_dir,0775 );
+       	}
         if( @$input=="newsImage" || (@$contentKey && $contentKey==Document::IMG_SLIDER)){
 	        $upload_dir .= Document::GENERATED_ALBUM_FOLDER.'/';
             if( !file_exists ( $upload_dir ) )
@@ -1144,7 +1180,7 @@ class Document {
         }
 
         //Check extension
-        $allowed_ext = array('jpg','jpeg','png','gif',"pdf","xls","xlsx","doc","docx","ppt","pptx","odt");
+        $allowed_ext = array('jpg','jpeg','png','gif',"pdf","xls","xlsx","doc","docx","ppt","pptx","odt","ods","odp");
         
         $nameFile = (!empty($nameUrl) ? $nameUrl : $file["name"] );
         

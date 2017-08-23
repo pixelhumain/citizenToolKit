@@ -25,28 +25,29 @@ class IndexAction extends CAction
 		$params["collections"]=array();
 		if(@$element[Document::COLLECTION] && @$element[Document::COLLECTION][$docType])
 			$params["collections"]=$element[Document::COLLECTION][$docType];
-		/*if(!empty($element[Document::COLLECTION] && @$element[Document::COLLECTION][$docType])){
-			$params["results"]=$element[Document::COLLECTION][$docType];
-			if($subDir!=null){
-				$params["results"]=Document::getListDocumentsByList($element[Document::COLLECTION][$docType][$subDir],$docType, $subDir);
-				if($subDir=="album"){
-					foreach($element[Document::COLLECTION][$docType] as $key => $data){
-						if(!in_array(["profil,banner,album"], $key))
-							$params["results"]["albums"]=array();
-							$params["results"]["albums"][$key]=array("count"=>count(data),"getImgPath"=>Document::getDocumentPathById($data[0]));
-					}
-				}
-			}
-		}*/
 		if(@$contentKey){
-			$where=array("id"=>$id, "type"=>$type, "contentKey"=>$contentKey, "doctype"=>Document::DOC_TYPE_IMAGE);
+			$indexFiles="files";
+			$indexFolders="folders";
+			$where=array("id"=>$id, "type"=>$type, "doctype"=>$docType);
+			if($docType==Document::DOC_TYPE_IMAGE){
+				$indexFiles="images";
+				$indexFolders="albums";
+				$where["contentKey"] = $contentKey;
+			}
 			if(@$colName){
 				//$lastKey = count($subDir);
 				$where["collection"]=$colName;
 			}
-			$params['images'] = Document::getListDocumentsWhere($where,$docType);
-			$params["albums"]=array();
-			if($contentKey=="slider"){
+			if($contentKey=="bookmarks"){
+				$where=array("parentId"=>$id, "parentType"=>$type);
+				$resFiles=Bookmark::getListByWhere($where);
+				$params["tagsFilter"]=Bookmark::getListOfTags($where);
+			}else{
+				$resFiles=Document::getListDocumentsWhere($where,$docType);
+			}
+			$params[$indexFiles] = $resFiles; 
+			$params[$indexFolders]=array();
+			if($contentKey=="slider" || $contentKey=="files"){
 				if(@$element[Document::COLLECTION] && @$element[Document::COLLECTION][$docType]){
 					$albums=$element[Document::COLLECTION][$docType];
 					if(!empty($subDir)){
@@ -58,14 +59,14 @@ class IndexAction extends CAction
 					}
 					foreach($albums as $key => $data){
 						if($key!="updated"){
-							$params["albums"][$key]=array();
+							$params[$indexFolders][$key]=array();
 							$alb=0;
 							foreach($data as $i => $v){
 								if($i!="updated")
 									$alb++;
 							}
-							$params["albums"][$key]=array(
-								"count"=>Document::countImageByWhere($id,$type,"slider",$key),"imageThumb"=>Document::getLastThumb($id,$type,"slider",$key), "countAlbums"=>$alb
+							$params[$indexFolders][$key]=array(
+								"count"=>Document::countByWhere($id,$type,"slider",$key),"imageThumb"=>Document::getLastThumb($id,$type,"slider",$key), "countAlbums"=>$alb
 							);
 						}
 					}
@@ -75,9 +76,9 @@ class IndexAction extends CAction
 			$where=array("id"=>$id, "type"=>$type, "contentKey"=>"slider", "doctype"=>$docType, "collection"=> array('$exists'=> false));
 			$params["images"] = Document::getListDocumentsWhere($where,$docType);
 			if($docType=="image"){
-				$countImagesProfil=Document::countImageByWhere($id,$type,"profil");
-				$countImagesBanner=Document::countImageByWhere($id,$type,"banner");
-				$countImagesAlbum=Document::countImageByWhere($id,$type,"slider");
+				$countImagesProfil=Document::countByWhere($id,$type,"profil");
+				$countImagesBanner=Document::countByWhere($id,$type,"banner");
+				$countImagesAlbum=Document::countByWhere($id,$type,"slider");
 				//if($countImagesProfil > 0)	
 				$thumbProfil=Document::getLastThumb($id,$type,"profil");
 				//if($countImagesBanner > 0)	
@@ -93,6 +94,14 @@ class IndexAction extends CAction
 					"profil"=>array("count"=>$countImagesProfil,"imageThumb"=>@$thumbProfil),
 					"banner"=>array("count"=>$countImagesBanner,"imageThumb"=>@$thumbBanner),
 					"album"=>array("count"=>0,"imageThumb"=>@$thumbAlbum,"countAlbums"=>@$countAlbums)
+				);
+			}else if($docType=="file"){
+				$countFile=Document::countByWhere($id,$type,null,null,$docType);
+				$countBookmarks=0;
+				$params["files"] =array();
+				$params["folders"]=array(
+					"file"=>array("count"=>$countFile),
+					"bookmark"=>array("count"=>$countBookmarks)
 				);
 			}
 		}
