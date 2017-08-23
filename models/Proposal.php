@@ -16,7 +16,7 @@ class Proposal
 		"title" 				=> array("name" => "title", 				"rules" => array("required")),
 		"shortDescription" 		=> array("name" => "shortDescription"),
 		"description" 			=> array("name" => "description", 			"rules" => array("required")),
-		"arguments" 			=> array("name" => "arguments",),
+		"arguments" 			=> array("name" => "arguments"),
 		"tags" 					=> array("name" => "tags"),
 	    "urls" 					=> array("name" => "urls"),
 	    
@@ -43,8 +43,9 @@ class Proposal
 		"idParentRoom" 			=> array("name" => "idParentRoom", 			"rules" => array("required")),
 		"parentId"              => array("name" => "parentId",              "rules" => array("required")),
         "parentType"            => array("name" => "parentType",            "rules" => array("required")),
+       
+       	"amendements"           => array("name" => "amendements"),
         
-
 	    "modified" => array("name" => "modified"),
 	    "updated" => array("name" => "updated"),
 	    "creator" => array("name" => "creator"),

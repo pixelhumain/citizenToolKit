@@ -1910,6 +1910,22 @@ class Element {
 				$res[] = self::updateField($collection, $id, "voteActivated", $params["voteActivated"]);
 			if(isset($params["amendementActivated"]))
 				$res[] = self::updateField($collection, $id, "amendementActivated", $params["amendementActivated"]);
+		
+		}else if($block == "amendement"){
+
+			if(isset($params["txtAmdt"]) && isset($params["typeAmdt"]) && isset($params["id"]) && @Yii::app()->session['userId']){
+				$proposal = Proposal::getById($params["id"]);
+				$amdtList = @$proposal["amendements"] ? $proposal["amendements"] : array();
+				$rand = rand(1000, 100000);
+				while(isset($amdtList[$rand])){ $rand = rand(1000, 100000); }
+
+				$amdtList[$rand] = array(
+									"idUserAuthor"=> Yii::app()->session['userId'],
+									"typeAmdt" => $params["typeAmdt"],
+									"textAdd"=> $params["txtAmdt"]);
+
+				$res[] = self::updateField($collection, $id, "amendements", $amdtList);
+			}
 		}
 
 		if(Import::isUncomplete($id, $collection)){

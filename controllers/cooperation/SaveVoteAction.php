@@ -7,6 +7,7 @@ class SaveVoteAction extends CAction {
 		$parentType = @$_POST["parentType"];
 		$parentId 	= @$_POST["parentId"];
 		$voteValue	= @$_POST["voteValue"];
+		$idAmdt 	= @$_POST["idAmdt"];
 
 		$controller=$this->getController();
 
@@ -16,7 +17,13 @@ class SaveVoteAction extends CAction {
 		$proposal = PHDB::findOne(Proposal::COLLECTION, array("_id" => new MongoId($parentId)));
 		
 		$allVotes = @$proposal["votes"] ? $proposal["votes"] : array();
+		if($parentType == "amendement")
+			$allVotes = @$proposal["amendements"][$idAmdt]["votes"] ? $proposal["amendements"][$idAmdt]["votes"] : array();
+		
 		$hasVote = Cooperation::userHasVoted($myId, $allVotes);
+
+		$root = $parentType != "amendement" ? "votes" : "amendements.".@$idAmdt.".votes";
+		//var_dump($allVotes);
 		//echo $hasVote == false ? "false" : $hasVote; exit;
 		if($hasVote != false){
 			if($hasVote == $voteValue){
@@ -26,9 +33,10 @@ class SaveVoteAction extends CAction {
 				$pos = array_search($myId, $withoutMe);
 				unset($withoutMe[$pos]);
 				
+				
 				PHDB::update(Proposal::COLLECTION,
 					array("_id" => new MongoId($parentId)),
-		            array('$set' => array("votes.".$hasVote=> $withoutMe))
+		            array('$set' => array($root.".".$hasVote=> $withoutMe))
 		        );
 
 			}
@@ -40,7 +48,7 @@ class SaveVoteAction extends CAction {
 		//$page = "";
 		PHDB::update(Proposal::COLLECTION,
 			array("_id" => new MongoId($parentId)),
-            array('$set' => array("votes.".$voteValue=> $votes))
+            array('$set' => array($root.".".$voteValue=> $votes))
         );
 
 		$page = "proposal";
