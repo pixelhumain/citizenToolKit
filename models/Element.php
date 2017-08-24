@@ -61,6 +61,7 @@ class Element {
 	    	Poi::COLLECTION 		 => "Poi",
 	    	Classified::COLLECTION   => "Classified",
 	    	Survey::COLLECTION   	 => "Survey",
+	    	Bookmark::COLLECTION   	 => "Bookmark",
 	    );	
 	 	return @$models[$type];     
     }
