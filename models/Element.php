@@ -1364,7 +1364,7 @@ class Element {
                 else
                 	PHDB::update($collection,array("_id"=>new MongoId($id)), array('$set' => $params ));
                 $res = array("result"=>true,
-                             "msg"=>Yii::t("common","Your data are well updated."),
+                             "msg"=>Yii::t("common","Your data are well updated"),
                              "reload"=>true,
                              "map"=>$params,
                              "id"=>$id);
