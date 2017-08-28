@@ -571,7 +571,8 @@ class Authorisation {
         $res=false;    
         $check = false;
         if($type == ActionRoom::COLLECTION || $type == ActionRoom::COLLECTION_ACTIONS || $type == ActionRoom::TYPE_ACTION 
-             || $type == Survey::COLLECTION ) { 
+             || $type == Survey::COLLECTION || $type == Survey::CONTROLLER || $type == Proposal::COLLECTION ) { 
+
             if( $parentType == null || $parentId == null ){
                 $elem = Element::getByTypeAndId($type, $itemId);
                 $parentId = $elem["parentId"];
@@ -586,7 +587,8 @@ class Authorisation {
         if(Role::isSuperAdmin( Role::getRolesUserId($userId) ) )
             return true;
 
-        if ( $type == Event::COLLECTION || $type == Project::COLLECTION || $type == Organization::COLLECTION ) {
+       error_log("TRAITEMENT PROPOSAL1: ".$type." ".$itemId);
+            if ( $type == Event::COLLECTION || $type == Project::COLLECTION || $type == Organization::COLLECTION ) {
             //Check if delete pending => can not edit
             $isStatusDeletePending = Element::isElementStatusDeletePending($type, $itemId);
             if ($isStatusDeletePending) 
@@ -629,6 +631,11 @@ class Authorisation {
         else if($type == Classified::COLLECTION) 
         {
             $res = self::userOwner($userId, "Classified", $itemId);
+        }
+        else if($type == Proposal::COLLECTION) 
+        {
+           error_log("TRAITEMENT PROPOSAL: ".$type);
+           $res = self::userOwner($userId, "Proposal", $itemId);
         }
     	return $res;
     }

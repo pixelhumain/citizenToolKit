@@ -308,7 +308,7 @@ class MediaCrawlerAction extends CAction
 
     		$date = new DateTime($date);
 
-			return $date->format('Y-m-d H:i:s')."+11:00";;
+			return $date->format('Y-m-d H:i:s')."+11:00";
     	}
 
     	if($src == "NC1" && $urlKey == "NC"){
