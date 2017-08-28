@@ -42,6 +42,7 @@ class Element {
 	    	Need::COLLECTION => Need::CONTROLLER,
 	    	City::COLLECTION => City::CONTROLLER,
 	    	Survey::COLLECTION => Survey::CONTROLLER,
+	    	Proposal::COLLECTION => Proposal::CONTROLLER,
 	    	ActionRoom::COLLECTION => ActionRoom::CONTROLLER,
 	    	ActionRoom::COLLECTION_ACTIONS => ActionRoom::CONTROLLER,
 	    );	    
@@ -413,6 +414,7 @@ class Element {
 
 
     public static function updateField($collection, $id, $fieldName, $fieldValue, $allDay=null) {
+    	
     	//error_log("updateField : ".$fieldName." with value :".$fieldValue);
     	if (!Authorisation::canEditItemOrOpenEdition($id, $collection, Yii::app()->session['userId'])) {
 			throw new CTKException(Yii::t("common","Can not update the element : you are not authorized to update that element !"));
@@ -1480,15 +1482,15 @@ class Element {
 			$params["shortDescription"] = strip_tags($params["shortDescription"]);
 
 	    
-		// if (@$params["amendementDateEnd"]){
-		// 	$params["amendementDateEnd"] = DateTime::createFromFormat('d/m/Y H:i', $params["amendementDateEnd"]);
-		// 	//$params["amendementDateEnd"] = $params["amendementDateEnd"]->format('Y-m-d H:i');
-		// }
+		/*if (@$params["amendementDateEnd"]){
+			$params["amendementDateEnd"] = Cooperation::formatDateBeforeSaving($params["amendementDateEnd"]);
+			//$params["amendementDateEnd"] = $params["amendementDateEnd"]->format('Y-m-d H:i');
+		}
 
-		// if (@$params["voteDateEnd"]){
-		// 	$params["voteDateEnd"] = DateTime::createFromFormat('d/m/Y H:i', $params["voteDateEnd"]);
-		// 	//$params["voteDateEnd"] = $params["voteDateEnd"]->format('Y-m-d H:i');
-		// }
+		if (@$params["voteDateEnd"]){
+			$params["voteDateEnd"] = Cooperation::formatDateBeforeSaving($params["voteDateEnd"]);
+			//$params["voteDateEnd"] = $params["voteDateEnd"]->format('Y-m-d H:i');
+		}*/
 
 		//TODO SBAR - Manage elsewhere (maybe in the view)
 		//Manage the event startDate and endDate format : 

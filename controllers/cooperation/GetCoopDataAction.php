@@ -13,10 +13,21 @@ class GetCoopDataAction extends CAction {
 		$controller=$this->getController();
 
 		$page = "";
+		if($type == "menucoop") {
+			$res = array("element"=>array("_id"=>$parentId), 
+										 "type"=>$parentType);
+			echo $controller->renderPartial("menuCoop", $res, true);
+			exit;
+		}
+
 		if(empty($dataId) || $type == Room::CONTROLLER) $page = "menuRoom";
 		else {
-			if($type == Proposal::CONTROLLER) $page = "proposal";
-			if($type == Action::CONTROLLER) $page = "action";
+			if($type == Proposal::CONTROLLER || $type == Proposal::COLLECTION){
+				$page = "proposal"; $type = Proposal::CONTROLLER;
+			} 
+			if($type == Action::CONTROLLER || $type == Action::COLLECTION){
+				$page = "action"; $type = Action::CONTROLLER;
+			} 
 			//if($type == Resolution::CONTROLLER) $page = "resolution";
 		}
 

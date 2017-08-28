@@ -216,7 +216,6 @@ class Translate {
 
 	public static function pastTime($date,$type, $timezone=null) {
 
-		
 		//echo "Date : ".$date;
 		if($type == "timestamp") {
 	        $date2 = $date; // depuis cette date

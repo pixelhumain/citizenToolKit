@@ -56,10 +56,12 @@ class Cooperation {
 		
 		$res = array();
 
+		self::updateStatusProposal($parentType, $parentId);
+
 		if($type == Room::CONTROLLER){
 			if(empty($dataId)){ //si pas d'id : prend toutes les rooms pour un element parent
-				self::updateStatusProposal($parentType, $parentId);
 
+				
 				$status = empty($status) ? "open" : $status;
 				$query = array( "parentType" => $parentType, "parentId" => $parentId, "status" => $status);
 				$res["roomList"] = PHDB::findAndSort ( 
@@ -82,7 +84,7 @@ class Cooperation {
 		}
 
 		else if($type == Proposal::CONTROLLER){
-			if(empty($dataId)){ //si pas d'id : prend toutes les rooms pour un element parent
+			if(empty($dataId)){ //si pas d'id : prend toutes les proposal pour un element parent
 				$query = array( "parentType" => $parentType, "parentId" => $parentId);
 				if(!empty($status)) {
 					if($status == "mine"){
@@ -113,9 +115,8 @@ class Cooperation {
 				}else{
 					$query["status"] = $status;
 				}
-				$res["actionList"] = PHDB::findAndSort ( 
-							  		Action::COLLECTION, $query, 
-							  		array("dateEnd" => 1));
+				$res["actionList"] = PHDB::findAndSort (Action::COLLECTION, $query, 
+							  							array("dateEnd" => 1));
 			}else{ //si un d'id : prend récupère toutes les proposals & actions & resolutions de la room
 				$res["action"] = Action::getById($dataId);
 			}
@@ -123,7 +124,7 @@ class Cooperation {
 		//}else if($type == Resolution::CONTROLLER){
 
 		}
-		
+
 		$res["post"]["type"] = $type;
 		$res["post"]["status"] = $status;
 
@@ -180,21 +181,52 @@ class Cooperation {
 
 	public static function updateStatusProposal($parentType, $parentId){
 		
-		$query = array( "parentType" => $parentType, "parentId" => $parentId, "status" => "amendable");
+		$query = array( "parentType" => $parentType, "parentId" => $parentId, "status" => array('$in'=>array("amendable", "tovote")));
 		$proposalList = PHDB::findAndSort (Proposal::COLLECTION, $query, array());
 
 		foreach ($proposalList as $key => $proposal) {
-			if(@$proposal["amendementDateEnd"] && $proposal["amendementActivated"] == true){
-				$amDateEnd = DateTime::createFromFormat('d/m/Y H:s', $proposal["amendementDateEnd"])->getTimestamp();
+			//amendement TO tovote
+			if(@$proposal["amendementDateEnd"] && @$proposal["amendementActivated"] == true && $proposal["status"] == "amendable"){
+				$amDateEnd = strtotime($proposal["amendementDateEnd"]);
 				$today = time();
-				//error_log("TODAY : ".$today);
-				//error_log("amendementDateEnd : ".$amDateEnd);
+
 				if($amDateEnd < $today){
 					$proposalList[$key]["status"] = "tovote";
-					Element::updateField(Proposal::COLLECTION, $key, "status", "tovote");
+					//Element::updateField(Proposal::COLLECTION, $key, "status", "tovote");
+					PHDB::update(Proposal::COLLECTION,
+						array("_id" => new MongoId($key)),
+			            array('$set' => array("status"=> "tovote"))
+			            );
+					/* TODO : Add notification */
+				}
+			}
+
+			//tovote TO closed
+			if(@$proposal["voteDateEnd"] && $proposal["voteActivated"] == true && $proposal["status"] == "tovote"){
+				$voteDateEnd = strtotime($proposal["voteDateEnd"]);
+				$today = time(); 
+
+				//var_dump($amDateEnd); var_dump($today); exit;
+				if($voteDateEnd < $today){
+					//var_dump($voteDateEnd); var_dump($today);
+					$proposalList[$key]["status"] = "closed";
+					//Element::updateField(Proposal::COLLECTION, $key, "status", "closed");
+					PHDB::update(Proposal::COLLECTION,
+						array("_id" => new MongoId($key)),
+			            array('$set' => array("status"=> "closed"))
+			            );
+					/* TODO : Create Resolution */
+					/* TODO : Add notification */
 				}
 			}
 		}
 		return $proposalList;
+	}
+
+
+	public static function formatDateBeforeSaving($date) { 
+		$date = DateTime::createFromFormat('d/m/Y H:s', $date); //var_dump($date); exit;
+		$date = new MongoDate($date->getTimestamp());
+		return $date;
 	}
 }

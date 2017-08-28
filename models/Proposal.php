@@ -13,7 +13,7 @@ class Proposal
 
 	public static $dataBinding = array (
 		
-		"title" 				=> array("name" => "title", 				"rules" => array("required")),
+		"title" 				=> array("name" => "title"),
 		"shortDescription" 		=> array("name" => "shortDescription"),
 		"description" 			=> array("name" => "description", 			"rules" => array("required")),
 		"arguments" 			=> array("name" => "arguments"),
@@ -36,7 +36,7 @@ class Proposal
 		"majority" 				=> array("name" => "majority", 				"rules" => array("required")),
 
 		// true / false
-		"canModify" 			=> array("name" => "canModify", 			"rules" => array("required")), 
+		//"canModify" 			=> array("name" => "canModify", 			"rules" => array("required")), 
 		"viewCount" 			=> array("name" => "viewCount"),
 
 		//"idUserAuthor" 			=> array("name" => "idUserAuthor", 			"rules" => array("required")),
