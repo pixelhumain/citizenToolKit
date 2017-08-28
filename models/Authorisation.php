@@ -780,7 +780,7 @@ class Authorisation {
         } else if($elementType == Event::COLLECTION) {
             $res = self::canEditEvent($userId,$elementId);
         } else if($elementType == Project::COLLECTION) {
-            $res = self::isProjectAdmin($userId, $elementId);
+            $res = self::isProjectAdmin($elementId, $userId);
         } else if($elementType == Organization::COLLECTION) {
             $res = self::isOrganizationAdmin($userId, $elementId);
         } else 

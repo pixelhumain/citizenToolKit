@@ -61,6 +61,8 @@ class Element {
 	    	Thing::COLLECTION 		 => "Thing",
 	    	Poi::COLLECTION 		 => "Poi",
 	    	Classified::COLLECTION   => "Classified",
+	    	Survey::COLLECTION   	 => "Survey",
+	    	Bookmark::COLLECTION   	 => "Bookmark",
 	    	Proposal::COLLECTION   	 => "Proposal",
 	    	Room::COLLECTION   	 	 => "Room",
 	    	Action::COLLECTION   	 => "Action",
@@ -1309,7 +1311,7 @@ class Element {
         unset($params['id']);
 
         $postParams = array();
-        if( !in_array($collection, array("poi")) && @$params["urls"] && @$params["medias"] ){
+        if( !in_array( $collection, array("poi") ) && @$params["urls"] && @$params["medias"] ){
         	$postParams["medias"] = $params["medias"];
         	unset($params['medias']);
         	$postParams["urls"] = $params["urls"];
@@ -1371,7 +1373,7 @@ class Element {
                 else
                 	PHDB::update($collection,array("_id"=>new MongoId($id)), array('$set' => $params ));
                 $res = array("result"=>true,
-                             "msg"=>Yii::t("common","Your data are well updated."),
+                             "msg"=>Yii::t("common","Your data are well updated"),
                              "reload"=>true,
                              "map"=>$params,
                              "id"=>$id);
