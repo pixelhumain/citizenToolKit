@@ -30,8 +30,20 @@ class Zone {
 	);
 
 	public static function getById($id) {
-	  	$city = PHDB::findOne(self::COLLECTION, array("_id"=>new MongoId($id)));
-	  	return $city;
+	  	$zone = PHDB::findOne(self::COLLECTION, array("_id"=>new MongoId($id)));
+	  	return $zone;
+	}
+
+	public static function getTranslateById($id) {
+	  	$translate = PHDB::findOne("translates", array("parentId"=> $id));
+	  	return $translate;
+	}
+
+	public static function getZoneAndTranslateById($id) {
+	  	$zone = self::getById($id);
+	  	$translate = self::getTranslateById($id);
+	  	$zone["translates"] = $translate["translates"];
+	  	return $zone;
 	}
 
 	/* Retourne des infos sur la commune dans la collection cities" */

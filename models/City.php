@@ -1023,7 +1023,7 @@ class City {
 
 	public static function detailKeysLevels($key){
 		$keyArray = explode("@", $key);
-
+		$res = array();
 		if(isset($keyArray[1])){
 			$res["level1Key"] = $keyArray[0]."@".$keyArray[1];
 		}
@@ -1047,6 +1047,7 @@ class City {
 		if(isset($keyArray[6])){
 			$res["cpKey"] = $res["cityKey"]."@".$keyArray[6];
 		}
+		return $res ;
 	}
 
 
@@ -1058,25 +1059,36 @@ class City {
 
 		if(isset($keyArray[5])){
 			$city = self::getById($keyArray[5]);
-			$res["city"] = $city;
-			$res["cityName"] = $city["name"];
+			$cityTrad = Zone::getTranslateById($keyArray[5]);
+			$res["city"] = $keyArray[5];
+			$res["cityName"] = (!empty($cityTrad["translates"]["AR"]) ? $cityTrad["translates"]["AR"] : $city["name"]);
 			$res["cityKey"] = $detailKey["cityKey"];
 
+			$trad1 = Zone::getTranslateById($keyArray[1]);
 			$res["level1"] = $keyArray[1];
-			$res["level1key"] = $detailKey["level1key"];
-			$res["level1Name"] = $city["level1Name"];
+			$res["level1Key"] = $detailKey["level1Key"];
+			$res["level1Name"] = (!empty($trad1["translates"]["AR"]) ? $trad1["translates"]["AR"] : $trad1["translates"]["FR"]);
 
-			$res["level2"] = $keyArray[2];
-			$res["level2key"] = $detailKey["level2key"];
-			$res["level2Name"] = $city["level2Name"];
+			if(!empty($keyArray[2])){
+				$trad2 = Zone::getTranslateById($keyArray[2]);
+				$res["level2"] = $keyArray[2];
+				$res["level2Key"] = $detailKey["level2Key"];
+				$res["level2Name"] = (!empty($trad2["translates"]["AR"]) ? $trad2["translates"]["AR"] : $trad2["translates"]["FR"]);
+			}
 
-			$res["level3"] = $keyArray[3];
-			$res["level3key"] = $detailKey["level3key"];
-			$res["level3Name"] = $city["level3Name"];
+			if(!empty($keyArray[3])){
+				$trad3 = Zone::getTranslateById($keyArray[3]);
+				$res["level3"] = $keyArray[3];
+				$res["level3Key"] = $detailKey["level3Key"];
+				$res["level3Name"] = (!empty($trad3["translates"]["AR"]) ? $trad3["translates"]["AR"] : $trad3["translates"]["FR"]);
+			}
 
-			$res["level4"] = $keyArray[4];
-			$res["level4key"] = $detailKey["level4key"];
-			$res["level4Name"] = $city["level4Name"];
+			if(!empty($keyArray[4])){
+				$trad4 = Zone::getTranslateById($keyArray[4]);
+				$res["level4"] = $keyArray[4];
+				$res["level4Key"] = $detailKey["level4Key"];
+				$res["level4Name"] = (!empty($trad4["translates"]["AR"]) ? $trad4["translates"]["AR"] : $trad4["translates"]["FR"]);
+			}
 
 			if(isset($keyArray[6]))
 				$res["cp"] = $keyArray[6];
@@ -1084,28 +1096,28 @@ class City {
 		}else{
 
 			if(isset($keyArray[1])){
-				$level1 = Zone::getById($keyArray[1]);
+				$level1 = Zone::getZoneAndTranslateById($keyArray[1]);
 				$res["level1"] = $keyArray[1];
 				$res["level1Name"] = $level1["name"];
 				$res["level1key"] = $detailKey["level1key"];
 			}
 
 			if(isset($keyArray[2])){
-				$level2 = Zone::getById($keyArray[2]);
+				$level2 = Zone::getZoneAndTranslateById($keyArray[2]);
 				$res["level2"] = $keyArray[2];
 				$res["level2Name"] = $level2["name"];
 				$res["level2key"] = $detailKey["level2key"];
 			}
 
 			if(isset($keyArray[3])){
-				$level3 = Zone::getById($keyArray[3]);
+				$level3 = Zone::getZoneAndTranslateById($keyArray[3]);
 				$res["level3"] = $keyArray[3];
 				$res["level3Name"] = $level3["name"];
 				$res["level3key"] = $detailKey["level3key"];
 			}
 
 			if(isset($keyArray[4])){
-				$level4 = Zone::getById($keyArray[4]);
+				$level4 = Zone::getZoneAndTranslateById($keyArray[4]);
 				$res["level4"] = $keyArray[4];
 				$res["level4Name"] = $level4["name"];
 				$res["level4key"] = $detailKey["level4key"];
