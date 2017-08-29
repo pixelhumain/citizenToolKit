@@ -42,6 +42,7 @@ class Element {
 	    	Need::COLLECTION => Need::CONTROLLER,
 	    	City::COLLECTION => City::CONTROLLER,
 	    	Survey::COLLECTION => Survey::CONTROLLER,
+	    	Proposal::COLLECTION => Proposal::CONTROLLER,
 	    	ActionRoom::COLLECTION => ActionRoom::CONTROLLER,
 	    	ActionRoom::COLLECTION_ACTIONS => ActionRoom::CONTROLLER,
 	    );	    
@@ -62,6 +63,9 @@ class Element {
 	    	Classified::COLLECTION   => "Classified",
 	    	Survey::COLLECTION   	 => "Survey",
 	    	Bookmark::COLLECTION   	 => "Bookmark",
+	    	Proposal::COLLECTION   	 => "Proposal",
+	    	Room::COLLECTION   	 	 => "Room",
+	    	Action::COLLECTION   	 => "Action",
 	    );	
 	 	return @$models[$type];     
     }
@@ -295,6 +299,8 @@ class Element {
 			$element = PHDB::findOne( ActionRoom::COLLECTION_ACTIONS ,array("_id"=>new MongoId($id)));
 		else if($type == Survey::CONTROLLER )
 			$element = PHDB::findOne( Survey::COLLECTION ,array("_id"=>new MongoId($id)));
+		else if($type == Proposal::COLLECTION )
+			$element = PHDB::findOne( Proposal::COLLECTION ,array("_id"=>new MongoId($id)));
 		else
 			$element = PHDB::findOne($type,array("_id"=>new MongoId($id)));
 	  	
@@ -397,6 +403,8 @@ class Element {
 			return Survey::getDataBinding();
 		else if($collection == Poi::COLLECTION)
 			return Poi::getDataBinding();
+		else if($collection == Proposal::COLLECTION)
+			return Proposal::getDataBinding();
 		else
 			return array();
 	}
@@ -408,6 +416,7 @@ class Element {
 
 
     public static function updateField($collection, $id, $fieldName, $fieldValue, $allDay=null) {
+    	
     	//error_log("updateField : ".$fieldName." with value :".$fieldValue);
     	if (!Authorisation::canEditItemOrOpenEdition($id, $collection, Yii::app()->session['userId'])) {
 			throw new CTKException(Yii::t("common","Can not update the element : you are not authorized to update that element !"));
@@ -1323,7 +1332,7 @@ class Element {
         $valid = array("result"=>true);
         if( $collection == Event::COLLECTION ){
             $valid = Event::validateFirst($params);
-        }
+        } error_log("KEY : ". $key);
         if( $valid["result"] )
         	try {
         		$valid = DataValidator::validate( ucfirst($key), json_decode (json_encode ($params), true), ( empty($paramsLinkImport) ? null : true) );
@@ -1475,7 +1484,16 @@ class Element {
 			$params["shortDescription"] = strip_tags($params["shortDescription"]);
 
 	    
-	
+		/*if (@$params["amendementDateEnd"]){
+			$params["amendementDateEnd"] = Cooperation::formatDateBeforeSaving($params["amendementDateEnd"]);
+			//$params["amendementDateEnd"] = $params["amendementDateEnd"]->format('Y-m-d H:i');
+		}
+
+		if (@$params["voteDateEnd"]){
+			$params["voteDateEnd"] = Cooperation::formatDateBeforeSaving($params["voteDateEnd"]);
+			//$params["voteDateEnd"] = $params["voteDateEnd"]->format('Y-m-d H:i');
+		}*/
+
 		//TODO SBAR - Manage elsewhere (maybe in the view)
 		//Manage the event startDate and endDate format : 
 		//it comes with the format DD/MM/YYYY HH:ii or DD/MM/YYYY 
@@ -1887,6 +1905,31 @@ class Element {
 			
 			if(isset($params["shortDescription"]))
 				$res[] = self::updateField($collection, $id, "shortDescription", strip_tags($params["shortDescription"]));
+		
+		}else if($block == "activeCoop"){
+
+			if(isset($params["status"]))
+				$res[] = self::updateField($collection, $id, "status", $params["status"]);
+			if(isset($params["voteActivated"]))
+				$res[] = self::updateField($collection, $id, "voteActivated", $params["voteActivated"]);
+			if(isset($params["amendementActivated"]))
+				$res[] = self::updateField($collection, $id, "amendementActivated", $params["amendementActivated"]);
+		
+		}else if($block == "amendement"){
+
+			if(isset($params["txtAmdt"]) && isset($params["typeAmdt"]) && isset($params["id"]) && @Yii::app()->session['userId']){
+				$proposal = Proposal::getById($params["id"]);
+				$amdtList = @$proposal["amendements"] ? $proposal["amendements"] : array();
+				$rand = rand(1000, 100000);
+				while(isset($amdtList[$rand])){ $rand = rand(1000, 100000); }
+
+				$amdtList[$rand] = array(
+									"idUserAuthor"=> Yii::app()->session['userId'],
+									"typeAmdt" => $params["typeAmdt"],
+									"textAdd"=> $params["txtAmdt"]);
+
+				$res[] = self::updateField($collection, $id, "amendements", $amdtList);
+			}
 		}
 
 		if(Import::isUncomplete($id, $collection)){

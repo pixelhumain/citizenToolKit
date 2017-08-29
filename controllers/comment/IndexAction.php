@@ -30,10 +30,11 @@ class IndexAction extends CAction
 		} else if($type == Poi::COLLECTION) {
             $params["context"] = Poi::getById($id);
 
-        } else if($type == Survey::COLLECTION) {
-            $params["context"] = Survey::getById($id);
+        } else if($type == Proposal::COLLECTION) {
+            $params["context"] = Proposal::getById($id);
+
             /*AUTH*/
-            $actionRoom = ActionRoom::getById($params["context"]["survey"]);
+            $actionRoom = Room::getById($params["context"]["idParentRoom"]);
             $canParticipate = Authorisation::canParticipate(Yii::app()->session["userId"], $actionRoom["parentType"], $actionRoom["parentId"]);
             $canComment = $params["canComment"] && $canParticipate;
             $params['canComment'] = $canComment;

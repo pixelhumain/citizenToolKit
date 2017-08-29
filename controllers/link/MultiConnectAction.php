@@ -34,6 +34,8 @@ class MultiConnectAction extends CAction
 			    	"childName" => @$contact["childName"],
 		            "childEmail" => @$contact["childEmail"],
 			    );
+			    if(@$contact["roles"])
+			    	$roles=$contact["roles"];
 		    	if($child["childType"]==Person::COLLECTION)
 		    		$onlyOrganization=false;    	
 		    	$isConnectingAdmin= (@$contact["connectType"]=="admin") ? true : false;

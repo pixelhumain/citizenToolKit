@@ -78,7 +78,8 @@ class Role {
 
 	public static function isUserSuperAdmin($roles) {
 		if (! $roles) {
-			throw new CTKException("The user does not have roles set on his profile : contact your admin");
+			return false;
+			//throw new CTKException("The user does not have roles set on his profile : contact your admin");
 		}
 		//var_dump($roles);
 		if (@$roles["superAdmin"]) {
