@@ -126,7 +126,7 @@ class Search {
 
   		//*********************************  DEFINE LOCALITY QUERY   ****************************************
   		//$query = array('$and' => array( $query , self::searchLocality($post, $query) ) );
-  		if(!empty($searchLocality))
+  		if(!empty($searchLocality) && strcmp($filter, City::COLLECTION) == 0)
   			$query = self::searchLocality($searchLocality, $query);
   		
   		//var_dump($query);
@@ -300,7 +300,11 @@ class Search {
 		$allQueryLocality = array();
 		foreach ($localities as $key => $locality){
 			if(!empty($locality)){
-				$queryLocality = array("address.key" => new MongoRegex("/^".$locality."/i"));
+
+				if(strpos($locality, "@") != false)
+					$queryLocality = array("address.key" => new MongoRegex("/^".$locality."/i"));
+				else
+					$queryLocality = array("address.postalCode" => new MongoRegex("/^".$locality."/i"));
 			
 				if(empty($allQueryLocality))
 					$allQueryLocality = $queryLocality;

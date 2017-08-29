@@ -2071,15 +2071,8 @@ class Person {
     		try{
     			if(!empty($address)){
     				CookieHelper::setCookie("keyCommunexion", $address["key"]);
-    				/*CookieHelper::setCookie("inseeCommunexion", $address["codeInsee"]);
-		    		CookieHelper::setCookie("cpCommunexion", $address["postalCode"]);
-		    		CookieHelper::setCookie("cityNameCommunexion", $address["addressLocality"]);
-		    		CookieHelper::setCookie("communexionActivated", false);
-		    		CookieHelper::setCookie("communexionValue", $address["addressCountry"]."_".$address["codeInsee"]."-".$address["postalCode"]);
-		    		
-		    		CookieHelper::setCookie("communexionName", $address["addressLocality"]);
-
-					$where = array("insee" => $address["codeInsee"]);
+    				CookieHelper::setCookie("communexion",  json_encode(City::explodeKeyLocality($address["key"])));
+    				$where = array("insee" => $address["codeInsee"]);
 					$citiesResult = PHDB::findOne( City::COLLECTION , $where, array("postalCodes") );
 					foreach($citiesResult as $v){
 						if(!empty($citiesResult["postalCodes"]) && count($citiesResult["postalCodes"]) == 1)
@@ -2087,6 +2080,13 @@ class Person {
 						else
 							CookieHelper::setCookie("communexionType", "cp");
 					}
+
+    				/*CookieHelper::setCookie("inseeCommunexion", $address["codeInsee"]);
+		    		CookieHelper::setCookie("cpCommunexion", $address["postalCode"]);
+		    		CookieHelper::setCookie("cityNameCommunexion", $address["addressLocality"]);
+		    		CookieHelper::setCookie("communexionActivated", false);
+		    		CookieHelper::setCookie("communexionValue", $address["addressCountry"]."_".$address["codeInsee"]."-".$address["postalCode"]);
+		    		CookieHelper::setCookie("communexionName", $address["addressLocality"]);
 		    		CookieHelper::setCookie("communexionLevel", "cpCommunexion");*/
 
     			}else{

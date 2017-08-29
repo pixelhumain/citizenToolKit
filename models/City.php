@@ -1061,33 +1061,33 @@ class City {
 			$city = self::getById($keyArray[5]);
 			$cityTrad = Zone::getTranslateById($keyArray[5]);
 			$res["city"] = $keyArray[5];
-			$res["cityName"] = (!empty($cityTrad["translates"]["AR"]) ? $cityTrad["translates"]["AR"] : $city["name"]);
+			$res["cityName"] = (!empty($cityTrad["translates"]["UK"]) ? $cityTrad["translates"]["UK"] : $city["name"]);
 			$res["cityKey"] = $detailKey["cityKey"];
 
 			$trad1 = Zone::getTranslateById($keyArray[1]);
 			$res["level1"] = $keyArray[1];
 			$res["level1Key"] = $detailKey["level1Key"];
-			$res["level1Name"] = (!empty($trad1["translates"]["AR"]) ? $trad1["translates"]["AR"] : $trad1["translates"]["FR"]);
+			$res["level1Name"] = (!empty($trad1["translates"]["UK"]) ? $trad1["translates"]["UK"] : $trad1["translates"]["FR"]);
 
 			if(!empty($keyArray[2])){
 				$trad2 = Zone::getTranslateById($keyArray[2]);
 				$res["level2"] = $keyArray[2];
 				$res["level2Key"] = $detailKey["level2Key"];
-				$res["level2Name"] = (!empty($trad2["translates"]["AR"]) ? $trad2["translates"]["AR"] : $trad2["translates"]["FR"]);
+				$res["level2Name"] = (!empty($trad2["translates"]["UK"]) ? $trad2["translates"]["UK"] : $trad2["translates"]["FR"]);
 			}
 
 			if(!empty($keyArray[3])){
 				$trad3 = Zone::getTranslateById($keyArray[3]);
 				$res["level3"] = $keyArray[3];
 				$res["level3Key"] = $detailKey["level3Key"];
-				$res["level3Name"] = (!empty($trad3["translates"]["AR"]) ? $trad3["translates"]["AR"] : $trad3["translates"]["FR"]);
+				$res["level3Name"] = (!empty($trad3["translates"]["UK"]) ? $trad3["translates"]["UK"] : $trad3["translates"]["FR"]);
 			}
 
 			if(!empty($keyArray[4])){
 				$trad4 = Zone::getTranslateById($keyArray[4]);
 				$res["level4"] = $keyArray[4];
 				$res["level4Key"] = $detailKey["level4Key"];
-				$res["level4Name"] = (!empty($trad4["translates"]["AR"]) ? $trad4["translates"]["AR"] : $trad4["translates"]["FR"]);
+				$res["level4Name"] = (!empty($trad4["translates"]["UK"]) ? $trad4["translates"]["UK"] : $trad4["translates"]["FR"]);
 			}
 
 			if(isset($keyArray[6]))
