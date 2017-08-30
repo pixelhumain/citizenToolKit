@@ -634,7 +634,7 @@ class Link {
         
         //1.1 the $userId can manage the $memberOf (admin)
         // Or the user can remove himself from a member list of an organization
-        if (!Authorisation::isOrganizationAdmin($userId, $contextId)) {
+        if (!Authorisation::isElementAdmin($contextId, $contextType ,$userId)) {
             //if ($memberId != $userId) {
                 throw new CTKException("You are not admin of the Organization : ".$contextId);
             //}
