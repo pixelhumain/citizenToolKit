@@ -62,6 +62,7 @@ class RegisterAction extends CAction
 		$res = Person::login($email,$pwd,true);
 		if(@$_POST["isInvitation"])
 			$res["isInvitation"]=true;
+
 		if ($res["result"]) {
 			
 		} else if ($res["msg"] == "notValidatedEmail") {
@@ -69,7 +70,7 @@ class RegisterAction extends CAction
 			$newPerson['email'] = $email;
 			$newPerson["inviteCode"] = $inviteCode;
 			Mail::validatePerson($newPerson);
-			$res = array("result"=>true, "msg"=> Yii::t("login","Congratulation your account is created !")."<br>".Yii::t("login","Last step to enter : we sent you an email, click on the link to validate your mail address."), "id"=>$pendingUserId);
+			$res = array("result"=>true, "msg"=> Yii::t("login","Congratulation your account is created !")."<br>".Yii::t("login","Last step to enter : we sent you an email, click on the link to validate your mail address."), "id"=>(string)$newPerson["_id"] );
 		} else if ($res["msg"] == "betaTestNotOpen") {
 			$newPerson["_id"] = $pendingUserId;
 			$newPerson['email'] = $email;
