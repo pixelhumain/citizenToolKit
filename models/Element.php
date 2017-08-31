@@ -1014,7 +1014,9 @@ class Element {
 		$res = array("result" => false, "msg" => "Something bad happend : impossible to delete this element");
 
 		//What type of element i can delete
-		$managedTypes = array(Organization::COLLECTION, Project::COLLECTION, Event::COLLECTION, Classified::COLLECTION);
+		$managedTypes = array(Organization::COLLECTION, Project::COLLECTION, Event::COLLECTION, Classified::COLLECTION,
+							 Proposal::COLLECTION, Action::COLLECTION, Room::COLLECTION);
+		
 		if (!in_array($elementType, $managedTypes)) return array( "result" => false, "msg" => "Impossible to delete this type of element" );
 		$modelElement = self::getModelByType($elementType);
 

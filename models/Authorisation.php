@@ -570,8 +570,10 @@ class Authorisation {
     public static function canEditItem($userId, $type, $itemId,$parentType=null,$parentId=null){
         $res=false;    
         $check = false;
-        if($type == ActionRoom::COLLECTION || $type == ActionRoom::COLLECTION_ACTIONS || $type == ActionRoom::TYPE_ACTION 
-             || $type == Survey::COLLECTION || $type == Survey::CONTROLLER || $type == Proposal::COLLECTION ) { 
+        //DDA
+        if( $type == Room::COLLECTION || $type == Room::CONTROLLER ||
+            $type == Survey::COLLECTION || $type == Survey::CONTROLLER || 
+            $type == Proposal::COLLECTION || $type == Proposal::CONTROLLER ) { 
 
             if( $parentType == null || $parentId == null ){
                 $elem = Element::getByTypeAndId($type, $itemId);
