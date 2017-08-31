@@ -41,8 +41,8 @@ class IndexAction extends CAction
 
             $params["parentType"] = $actionRoom["parentType"];
             
-        } else if($type == ActionRoom::COLLECTION) {
-            $actionRoom = ActionRoom::getById($id);
+        } else if($type == Room::COLLECTION) {
+            $actionRoom = Room::getById($id);
             $params["context"] = $actionRoom;
             //Images
 			$limit = array(Document::IMG_PROFIL => 1);

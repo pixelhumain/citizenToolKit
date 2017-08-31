@@ -85,7 +85,8 @@ class Comment {
 			"created" => time(),
 			"author" => $userId,
 			"tags" => @$comment["tags"],
-			"status" => self::STATUS_POSTED 
+			"status" => self::STATUS_POSTED,
+			"argval" => @$comment["argval"]
 		);
 
 		if (self::canUserComment($comment["contextId"], $comment["contextType"], $userId, $options)) {
