@@ -150,6 +150,8 @@ class Cooperation {
 
 		$res["post"]["type"] = $type;
 		$res["post"]["status"] = $status;
+		$res["post"]["parentId"] = $parentId;
+		$res["post"]["parentType"] = $parentType;
 
 		return $res;
 	}
