@@ -762,19 +762,15 @@ class Notification{
 		    $where["notify.objectType"]=News::COLLECTION;
 		if($construct["object"] && !empty($construct["object"]) &&
 				 ($construct["verb"]==Actstr::VERB_COMMENT || $construct["verb"]==Actstr::VERB_LIKE|| $construct["verb"]==Actstr::VERB_UNLIKE)){
-			//echo "oui"; print_r($construct["object"]);
 			$where["object.id"] = $construct["object"]["id"];
 			$where["object.type"] = $construct["object"]["type"];
 		}
 		$notification = PHDB::findOne(ActivityStream::COLLECTION, $where);
-		//print_r($notication);
 		if(!empty($notification)){
 			if(@$construct["type"] && @$construct["type"][$construct["levelType"]] && @$construct["type"][$construct["levelType"]]["noUpdate"])
 				return true;
 			else{
-				//echo "oui";
 				$countRepeat=1;
-				//print_r($notification);
 				foreach($notification[$construct["labelUpNotifyTarget"]] as $key => $i){
 					if(($notification["verb"] != Actstr::VERB_POST && $notification["verb"] != Actstr::VERB_COMMENT) || ($key != Yii::app()->session["userId"]))
 						$countRepeat++;
