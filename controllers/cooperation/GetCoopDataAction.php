@@ -28,6 +28,9 @@ class GetCoopDataAction extends CAction {
 			if($type == Action::CONTROLLER || $type == Action::COLLECTION){
 				$page = "action"; $type = Action::CONTROLLER;
 			} 
+			if($type == Resolution::CONTROLLER || $type == Resolution::COLLECTION){
+				$page = "resolution"; $type = Resolution::CONTROLLER;
+			} 
 			//if($type == Resolution::CONTROLLER) $page = "resolution";
 		}
 

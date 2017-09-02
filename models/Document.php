@@ -312,7 +312,7 @@ class Document {
 			self::removeDocumentById((string)$data["_id"]);
 		}
 	}
-	public static function listMyDocumentByIdAndType($id, $type, $contentKey= null, $collection=null, $docType = null, $sort=null)	{	
+	public static function listMyDocumentByIdAndType($id, $type, $contentKey= null, $collection=null, $docType = null, $sort=array())	{	
 		$params = array("id"=> $id,
 						"type" => $type);
 		if (isset($contentKey) && $contentKey != null) 

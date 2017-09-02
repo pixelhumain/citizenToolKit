@@ -512,7 +512,7 @@ class Notification{
 				$entryId = (string)@$target["entry"]["survey"];
 			} else if( $type == ActionRoom::COLLECTION_ACTIONS ){
 				$target["entry"] = ActionRoom::getActionById( $id );
-				$entryId = $target["entry"]["room"];
+				$entryId = $target["entry"]["idParentRoom"];
 			}
 			
 			// $room = ActionRoom::getById( $entryId );
@@ -990,7 +990,7 @@ class Notification{
 				$entryId = (string)$target["entry"]["survey"];
 			} else if( $type == ActionRoom::COLLECTION_ACTIONS ){
 				$target["entry"] = ActionRoom::getActionById( $id );
-				$entryId = $target["entry"]["room"];
+				$entryId = $target["entry"]["idParentRoom"];
 			}
 			$room = ActionRoom::getById( $entryId );
 			$target["room"] = $room;

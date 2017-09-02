@@ -72,11 +72,17 @@ class Cooperation {
 			}else{ //si un d'id : prend récupère toutes les proposals & actions & resolutions de la room
 				$res["room"] = Room::getById($dataId);
 
-				$query = array( "idParentRoom" => $dataId );
+				$query = array( "idParentRoom" => $dataId, 
+								"status" => array('$in'=>array('amendable', "tovote", "archived", "todo", "adopted", "refused")));
+				//$query["status"] = ;
 				$res["proposalList"] = PHDB::findAndSort (Proposal::COLLECTION, $query, 
 															array("status" => -1, "amendementDateEnd" => 1, "voteDateEnd" => 1));
+				
 				$res["actionList"] = PHDB::findAndSort (Action::COLLECTION, $query, 
-															array("status" => -1, "dateEnd" => 1));
+															array("status" => -1, "voteDateEnd" => 1));
+
+				$res["resolutionList"] = PHDB::findAndSort ("resolutions", $query, 
+															array("status" => 1, "voteDateEnd" => -1));
 
 				/*$query = array( "idParentRoom" => $dataId );
 				$res["proposalList"] = PHDB::findAndSort (Proposal::COLLECTION, $query, array("created" => -1));*/
@@ -95,7 +101,10 @@ class Cooperation {
 					}else{
 						$query["status"] = $status;
 					}
+				}else{
+					$query["status"] = array('$in'=>array('amendable', "tovote"));
 				}
+				
 				$res["proposalList"] = PHDB::findAndSort ( 
 								  		Proposal::COLLECTION, $query, 
 								  		array("status" => -1, "amendementDateEnd" => 1, "voteDateEnd" => 1));
@@ -121,12 +130,28 @@ class Cooperation {
 				$res["action"] = Action::getById($dataId);
 			}
 
-		//}else if($type == Resolution::CONTROLLER){
-
+		}else if($type == Resolution::CONTROLLER){
+			if(empty($dataId)){ //si pas d'id : prend toutes les Resolution pour un element parent
+				$query = array( "parentType" => $parentType, "parentId" => $parentId);
+				if($status == "mine"){
+					$myId = @Yii::app()->session['userId'] ? Yii::app()->session['userId'] : false;
+					if($myId != false){
+						$query["creator"] = $myId;
+					}
+				}else{
+					$query["status"] = $status;
+				}
+				$res["resolutionList"] = PHDB::findAndSort (Resolution::COLLECTION, $query, 
+							  								array("status" => 1, "dateEnd" => -1));
+			}else{ //si un d'id : prend récupère toutes les proposals & actions & resolutions de la room
+				$res["resolution"] = Resolution::getById($dataId);
+			}
 		}
 
 		$res["post"]["type"] = $type;
 		$res["post"]["status"] = $status;
+		$res["post"]["parentId"] = $parentId;
+		$res["post"]["parentType"] = $parentType;
 
 		return $res;
 	}
@@ -206,16 +231,22 @@ class Cooperation {
 				$voteDateEnd = strtotime($proposal["voteDateEnd"]);
 				$today = time(); 
 
-				//var_dump($amDateEnd); var_dump($today); exit;
 				if($voteDateEnd < $today){
 					//var_dump($voteDateEnd); var_dump($today);
 					$proposalList[$key]["status"] = "closed";
-					//Element::updateField(Proposal::COLLECTION, $key, "status", "closed");
 					PHDB::update(Proposal::COLLECTION,
 						array("_id" => new MongoId($key)),
 			            array('$set' => array("status"=> "closed"))
 			            );
-					/* TODO : Create Resolution */
+
+					$resolution = Proposal::getById($key);
+					$voteRes = Proposal::getAllVoteRes($resolution);
+					//var_dump(@$voteRes); exit;
+					$adopted = @$voteRes["up"] && @$voteRes["up"]["percent"] && $voteRes["up"]["percent"] > intval(@$resolution["majority"]);
+					
+					$resolution["status"] = $adopted ? "adopted" : "refused";
+					PHDB::insert(Resolution::COLLECTION, $resolution);
+					
 					/* TODO : Add notification */
 				}
 			}
