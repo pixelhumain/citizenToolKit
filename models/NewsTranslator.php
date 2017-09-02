@@ -125,7 +125,7 @@ class NewsTranslator {
 			// 	$params["scope"]["cities"][0]["addressLocality"]=$address["addressLocality"];
 			// }
 		//}
-		if(@$params["media"] && !is_string(@$params["media"]) && $params["media"]["type"]=="gallery_images"){
+		if(@$params["media"] && $params["media"]["type"]=="gallery_images"){
 			$images=array();
 			$limit=5;
 			$i=0;
@@ -150,6 +150,32 @@ class NewsTranslator {
 				}
 			}
 			$params["media"]["images"]=$images;
+		}
+		if(@$params["media"] && $params["media"]["type"]=="gallery_files"){
+			$files=array();
+			$limit=5;
+			$i=0;
+			foreach($params["media"]["files"] as $data){
+				if($i<$limit){
+					if(@$data && !empty($data)){
+						$file=Document::getById($data);
+						if(@$file){
+							array_push($files,$file);
+						}else{
+							$countFiles=intval($params["media"]["countFiles"]);
+							$countFiles--;
+							$params["media"]["countFiles"]=$countFiles;
+						}
+					}else{
+						$countfiles=intval($params["media"]["countFiles"]);
+						$countFiles--;
+						$params["media"]["countFiles"]=$countFiles;
+					}
+				} else {
+					exit;
+				}
+			}
+			$params["media"]["files"]=$files;
 		}
 
 		if(!isset($params["author"]["id"]) || @$params["verb"] == "create"){ 
