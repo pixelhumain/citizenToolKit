@@ -45,7 +45,7 @@ class RocketChat{
 		return $res;	
 	}
 
-	public static function createGroup($name,$type=null) 
+	public static function createGroup($name,$type=null,$username,$inviteOnly=null) 
 	{ 
 		define('REST_API_ROOT', '/api/v1/');
 		define('ROCKET_CHAT_INSTANCE', Yii::app()->params['rocketchatURL']);
@@ -58,12 +58,49 @@ class RocketChat{
 		Yii::import('httpful.Bootstrap', true);
 
 		// all creation is made by communecter chat admin
-		$admin = new \RocketChat\User(Yii::app()->params['rocketAdmin'], Yii::app()->params['rocketAdminPwd']);
+		$admin = new \RocketChat\User( Yii::app()->params['rocketAdmin'], Yii::app()->params['rocketAdminPwd'] );
+		$admin->login();
+		//$admin->info();
+		
 		$res = array();
 		try{
-			$admin->login();
 			$channel = ( $type == "channel" ) ? new \RocketChat\Channel( $name ) : new \RocketChat\Group( $name );
-			$res = $channel->create();
+			
+			if(!$inviteOnly)
+				$res = $channel->create();
+			
+			if(@$username){
+				$channel->invite($username) ;
+			}
+
+		} catch (Exception $e) {
+            $res["msg"] = $e->getMessage();
+		}
+		return $res;
+	}
+
+	public static function invite($name,$type=null,$username) 
+	{ 
+		define('REST_API_ROOT', '/api/v1/');
+		define('ROCKET_CHAT_INSTANCE', Yii::app()->params['rocketchatURL']);
+
+		Yii::import('rocketchat.RocketChatClient', true);
+		Yii::import('rocketchat.RocketChatUser', true);
+		Yii::import('rocketchat.RocketChatChannel', true);
+		Yii::import('rocketchat.RocketChatGroup', true);
+		Yii::import('httpful.Request', true);
+		Yii::import('httpful.Bootstrap', true);
+
+		// all creation is made by communecter chat admin
+		$admin = new \RocketChat\User( Yii::app()->params['rocketAdmin'], Yii::app()->params['rocketAdminPwd'] );
+		$admin->login();
+		
+		$res = array();
+		try{
+			$channel = ( $type == "channel" ) ? new \RocketChat\Channel( $name ) : new \RocketChat\Group( $name );
+			if(@$username)
+				$channel->invite($username);
+			
 		} catch (Exception $e) {
             $res["msg"] = $e->getMessage();
 		}
@@ -73,5 +110,23 @@ class RocketChat{
 	public static function createDirect($username) { 
 
 	}
+
+	public static function listUserChannels() { 
+		
+		define('REST_API_ROOT', '/api/v1/');
+		define('ROCKET_CHAT_INSTANCE', Yii::app()->params['rocketchatURL']);
+
+		Yii::import('rocketchat.RocketChatClient', true);
+		Yii::import('rocketchat.RocketChatUser', true);
+		Yii::import('httpful.Request', true);
+		Yii::import('httpful.Bootstrap', true);
+		$api = new \RocketChat\Client();
+		$logged = new \RocketChat\User(Yii::app()->session['userEmail']);
+		
+		return $logged->listJoined();
+        /*foreach ($list as $key => $value) {
+        	echo $key." channel : ".$value." <br/>";
+        }*/
+    }
 
 }
