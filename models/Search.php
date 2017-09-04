@@ -126,7 +126,7 @@ class Search {
 
   		//*********************************  DEFINE LOCALITY QUERY   ****************************************
   		//$query = array('$and' => array( $query , self::searchLocality($post, $query) ) );
-  		if(!empty($searchLocality) && strcmp($filter, City::COLLECTION) == 0)
+  		if(!empty($searchLocality))
   			$query = self::searchLocality($searchLocality, $query);
   		
   		//var_dump($query);
@@ -298,21 +298,23 @@ class Search {
 	//*********************************  Zones   ******************************************
 	public static function searchLocality($localities, $query){
 		$allQueryLocality = array();
+
 		foreach ($localities as $key => $locality){
 			if(!empty($locality)){
 
-				if(strpos($locality, "@") != false)
-					$queryLocality = array("address.key" => new MongoRegex("/^".$locality."/i"));
+				if($locality["type"] == City::CONTROLLER)
+					$queryLocality = array("address.localityId" => $key);
+				else if($locality["type"] == "cp")
+					$queryLocality = array("address.postalCode" => new MongoRegex("/^".$key."/i"));
 				else
-					$queryLocality = array("address.postalCode" => new MongoRegex("/^".$locality."/i"));
+					$queryLocality = array("address.".$locality["type"] => $key);
+				
 			
 				if(empty($allQueryLocality))
 					$allQueryLocality = $queryLocality;
 				else if(!empty($queryLocality))
 					$allQueryLocality = array('$or' => array($allQueryLocality ,$queryLocality));
 			}
-			
-
 		}
 		$query = array('$and' => array($allQueryLocality));
 		return $query ;

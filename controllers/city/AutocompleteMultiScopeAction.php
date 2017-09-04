@@ -46,17 +46,16 @@ class AutocompleteMultiScopeAction extends CAction
             //var_dump($where);
         }
 
-        
-        
-        // if($type == "region")   $where = array('$or' => array(
-        //                                         array("regionName" => new MongoRegex("/^".$scopeValue."/i")),
-        //                                         array("region" => new MongoRegex("/^".$scopeValue."/i"))
-        //                                         ));
-        //var_dump($where); return;
-        if(/*$type != "dep" && $type != "region" &&*/ $type != "zone"){
-            $att = array("name", "alternateName", "country", "key", "postalCodes", "insee", "depName", "regionName");
+
+        if($type != "zone"){
+            $att = array(   "name", "alternateName", 
+                            "country", "postalCodes", "insee", 
+                            "level1", "level1Name",
+                            "level2", "level2Name",
+                            "level3", "level3Name",
+                            "level4", "level4Name");
             if($geoShape) $att[] =  "geoShape";
-            //var_dump($where);
+
             $cities = PHDB::findAndSort( City::COLLECTION, $where, $att, 40, $att);
             if(empty($cities) && !empty($formInMap)){
                 $countryCode = mb_convert_encoding($countryCode, "ASCII");
@@ -88,10 +87,10 @@ class AutocompleteMultiScopeAction extends CAction
                                                                             "coordinates" => array(
                                                                                 floatval($value["lon"]), 
                                                                                 floatval($value["lat"]))),
-                                                    "regionName" => (empty($value["address"]["state"]) ? null : $value["address"]["state"] ),
-                                                    "region" => null,
-                                                    "depName" => (empty($value["address"]["county"]) ? null : $value["address"]["county"] ),
-                                                    "dep" => null,
+                                                    "level3Name" => (empty($value["address"]["state"]) ? null : $value["address"]["state"] ),
+                                                    "level3" => null,
+                                                    "level4Name" => (empty($value["address"]["county"]) ? null : $value["address"]["county"] ),
+                                                    "level4" => null,
                                                     "osmID" => $value["osm_id"],
                                                    
                                                     "save" => true);
@@ -123,7 +122,7 @@ class AutocompleteMultiScopeAction extends CAction
                 
             }
         }else if($type == "zone"){
-            $att = array("name", "countryCode", "key", "level");
+            $att = array("name", "countryCode", "level");
             $where = array('$and'=> array(
                                         array("name" => new MongoRegex("/".$scopeValue."/i")), 
                                         array("countryCode" => strtoupper($countryCode)) ) );

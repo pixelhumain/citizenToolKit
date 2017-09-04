@@ -3,7 +3,8 @@
 class Zone {
 
 	const COLLECTION = "zones";
-	//const CONTROLLER = "zone";
+	const CONTROLLER = "zone";
+	const TRANSLATE = "translate";
 	const COLOR = "#E6304C";
 	const ICON = "fa-university";
 
@@ -29,13 +30,18 @@ class Zone {
 	    "new" => array("name" => "new")*/
 	);
 
-	public static function getById($id) {
-	  	$zone = PHDB::findOne(self::COLLECTION, array("_id"=>new MongoId($id)));
+	public static function getById($id,$fields=array()) {
+	  	$zone = PHDB::findOne(self::COLLECTION, array("_id"=>new MongoId($id)), $fields);
+	  	return $zone;
+	}
+
+	public static function getByKey($key) {
+	  	$zone = PHDB::findOne(self::COLLECTION, array("key"=> $key));
 	  	return $zone;
 	}
 
 	public static function getTranslateById($id) {
-	  	$translate = PHDB::findOne("translates", array("parentId"=> $id));
+	  	$translate = PHDB::findOne(self::TRANSLATE, array("parentId"=> $id));
 	  	return $translate;
 	}
 
@@ -61,6 +67,25 @@ class Zone {
 		$zone["depName"] = $city["depName"];
 		$zone["regionName"] = $city["regionName"];
 		return $zone;
+	}
+
+	public static function getLevelIdById($id, $zone=null, $type){
+
+		if(empty($zone)){
+			$where = array("_id"=>new MongoId($id));
+			$zone = PHDB::findOne($type, $where);
+		}
+
+		$res = array("level1" => $zone["level1"]);
+
+		if(!empty($zone["level2"]))
+			$res["level2"] = $zone["level2"];
+		if(!empty($zone["level3"]))
+			$res["level3"] = $zone["level3"];
+		if(!empty($zone["level4"]))
+			$res["level4"] = $zone["level4"];
+
+		return $res;
 	}
 
 
@@ -126,7 +151,14 @@ class Zone {
 						"error"=>"400",
 						"msg" => "error" );
 		if(!empty($zone)){
-			$zone = PHDB::insert(self::COLLECTION, $zone );
+			PHDB::insert(self::COLLECTION, $zone );
+
+			$key = self::createKey($zone);
+
+			PHDB::update(self::COLLECTION,
+					array("_id"=>new MongoId($zone["_id"])),
+					array('$set' => array("key" => $key))	
+			);
 			$res = array( 	"result" => true, 
 							"msg" => "création Country", "zone"=>$zone);
 		}

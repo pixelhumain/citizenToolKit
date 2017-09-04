@@ -2070,8 +2070,7 @@ class Person {
     	if(!empty($userId)){
     		try{
     			if(!empty($address)){
-    				CookieHelper::setCookie("keyCommunexion", $address["key"]);
-    				CookieHelper::setCookie("communexion",  json_encode(City::explodeKeyLocality($address["key"])));
+    				CookieHelper::setCookie("communexion",  json_encode(City::detailsLocality($address)));
     				$where = array("insee" => $address["codeInsee"]);
 					$citiesResult = PHDB::findOne( City::COLLECTION , $where, array("postalCodes") );
 					foreach($citiesResult as $v){
