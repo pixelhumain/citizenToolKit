@@ -511,18 +511,18 @@ class Authorisation {
     * @param String $eventId event to get authorisation of
     * @return a boolean True if the user can edit and false else
     */
-    public static function canEditSurvey($userId, $surveyId,$parentType=null,$parentId=null){
+    public static function canEditElementByParent($userId, $elemId,$parentType=null,$parentId=null,$type = null){
         $res = false;
-        $survey = Survey::getById($surveyId);
+        $elem = Element::getByTypeAndId($type, $elemId);
 
-        if(!empty($survey) && !empty($userId)) {
+        if(!empty($elem) && !empty($userId)) {
             // case 1 : superAdmin
             if (self::isUserSuperAdmin($userId)) {
                 return true;
             }
 
             // case 2 : organiser of Survey
-            if ( @$survey["organizerType"] == Person::COLLECTION && @$survey["organizerId"] == $userId ) {
+            if ( @$elem["organizerType"] == Person::COLLECTION && @$elem["organizerId"] == $userId ) {
                 return true;
             }
 
@@ -532,11 +532,10 @@ class Authorisation {
            }
         } else {
             //RAJOUTER UN LOG
-            error_log("Problem with survey authorization, surveyId:".@$surveyId." & userId:".@$userId);
+            error_log("Problem with survey authorization, surveyId:".@$elemId." & userId:".@$userId);
         }
         return $res;
     }
-
 
     public static function canEdit($userId, $id,$type){
         $res = false;
@@ -571,17 +570,28 @@ class Authorisation {
     public static function canEditItem($userId, $type, $itemId,$parentType=null,$parentId=null){
         $res=false;    
         $check = false;
-        if($type == ActionRoom::COLLECTION || $type == ActionRoom::COLLECTION_ACTIONS) {
+        //DDA
+        if( $type == Room::COLLECTION || $type == Room::CONTROLLER ||
+            $type == Action::COLLECTION || $type == Action::CONTROLLER || 
+            $type == Proposal::COLLECTION || $type == Proposal::CONTROLLER ) { 
+
+            if( $parentType == null || $parentId == null ){
+                $elem = Element::getByTypeAndId($type, $itemId);
+                $parentId = $elem["parentId"];
+                $parentType = $elem["parentType"];
+            } 
+            $isDDA = true;
             $type = $parentType;
             $itemId = $parentId;
             $check = true;
         }
 
         //Super Admin can do anything
-        if(Role::isSuperAdmin(Role::getRolesUserId($userId)))
+        if(Role::isSuperAdmin( Role::getRolesUserId($userId) ) )
             return true;
 
-        if ($type == Event::COLLECTION || $type == Project::COLLECTION || $type == Organization::COLLECTION) {
+            error_log("TRAITEMENT PROPOSAL1: ".$type." ".$itemId);
+            if ( $type == Event::COLLECTION || $type == Project::COLLECTION || $type == Organization::COLLECTION ) {
             //Check if delete pending => can not edit
             $isStatusDeletePending = Element::isElementStatusDeletePending($type, $itemId);
             if ($isStatusDeletePending) 
@@ -593,8 +603,8 @@ class Authorisation {
             //Source admin ?
             } else if (self::isSourceAdmin($itemId, $type, $userId)) {
                 return true;
-            } else {
-                return false;
+            } else if(@$isDDA == true) {
+                return self::canParticipate($userId, $type, $itemId);
             }
         } else if($type == Person::COLLECTION) {
             if($userId==$itemId)
@@ -604,8 +614,10 @@ class Authorisation {
                 $res = self::isLocalCitizen( $userId, ($parentType == City::CONTROLLER) ? $parentId : $itemId ); 
             else 
                 $res = true;
-        } else if($type == Survey::COLLECTION) {
-            $res = self::canEditSurvey($userId, $itemId,$parentType,$parentId);
+        } else if($type == ActionRoom::COLLECTION || 
+                   $type == ActionRoom::COLLECTION_ACTIONS || 
+                   $type == Survey::COLLECTION || $type == Survey::CONTROLLER) {
+            $res = self::canEditSurvey($userId, $itemId,$parentType,$parentId,$type);
         }
         else if($type == Poi::COLLECTION) 
         {
@@ -622,6 +634,11 @@ class Authorisation {
         else if($type == Classified::COLLECTION) 
         {
             $res = self::userOwner($userId, "Classified", $itemId);
+        }
+        else if($type == Proposal::COLLECTION) 
+        {
+           error_log("1 TRAITEMENT PROPOSAL: ".$type);
+           $res = self::canParticipate($userId, $type, $itemId);
         }
     	return $res;
     }

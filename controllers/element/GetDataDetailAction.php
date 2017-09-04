@@ -25,12 +25,16 @@ class GetDataDetailAction extends CAction {
 						error_log("The element ".$id."/".$type." has a broken link : ".$keyLink."/".$value["type"]);
 						continue;
 					}
+					if(@$value["roles"]){
+						$link["rolesLink"]=[];
+						$link["rolesLink"]=$value["roles"];
+					}
 					if($dataName=="guests" && @$value["isInviting"]){
 						$link["type"] = $value["type"];
 						$link["isInviting"] = $value["isInviting"];
 						$contextMap[$keyLink] = $link;
 					}else if($dataName!="guests" && !@$value["isInviting"]){
-						$link = Element::getByTypeAndId($value["type"], $keyLink);
+						//$link = Element::getByTypeAndId($value["type"], $keyLink);
 						if($value["type"]==Person::COLLECTION){
 							$link["statusLink"]=[];
 							if(@$value[Link::TO_BE_VALIDATED])
@@ -126,6 +130,15 @@ class GetDataDetailAction extends CAction {
 		}
 
 
+		if( $dataName == "actionRooms" || $dataName == "vote" || $dataName == "actions" || $dataName == "discuss" ){
+			$where = array("parentType"=>$type, "parentId"=>$id);
+			if($dataName == "vote") $where["type"] = "vote";
+			if($dataName == "actions")$where["type"] = "actions";
+			if($dataName == "discuss")$where["type"] = "discuss";
+			$contextMap = PHDB::findAndSortAndLimitAndIndex( ActionRoom::COLLECTION, $where);
+		}
+		
+
 		if($dataName == "liveNow"){
 			$post = $_POST; 
 			if( empty($_POST["searchLocalityCITYKEY"]) && 
@@ -199,12 +212,14 @@ class GetDataDetailAction extends CAction {
 			if(@$post["tpl"]=="json")
 				return Rest::json($contextMap);
 			else
-				echo $this->getController()->renderPartial($post['tpl'], array("result"=>$contextMap, 
-																			"element" => $element,
-																			"type"=>$type, 
-																			"id"=>$id, 
-																			"scope"=>@$post['searchLocalityDEPARTEMENT'][0], 
-																			"open"=> (@$type=="0"))); //open : for home page (when no user connected)
+				echo $this->getController()->renderPartial($post['tpl'], 
+											array("result"=>$contextMap, 
+												"element" => $element,
+												"type"=>$type, 
+												"id"=>$id, 
+												"scope"=>@$post['searchLocalityDEPARTEMENT'][0], 
+												"open"=> (@$type=="0"))); 
+												//open : for home page (when no user connected)
 			Yii::app()->end();
 		}
 

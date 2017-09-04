@@ -42,6 +42,7 @@ class Element {
 	    	Need::COLLECTION => Need::CONTROLLER,
 	    	City::COLLECTION => City::CONTROLLER,
 	    	Survey::COLLECTION => Survey::CONTROLLER,
+	    	Proposal::COLLECTION => Proposal::CONTROLLER,
 	    	ActionRoom::COLLECTION => ActionRoom::CONTROLLER,
 	    	ActionRoom::COLLECTION_ACTIONS => ActionRoom::CONTROLLER,
 	    );	    
@@ -60,6 +61,11 @@ class Element {
 	    	Thing::COLLECTION 		 => "Thing",
 	    	Poi::COLLECTION 		 => "Poi",
 	    	Classified::COLLECTION   => "Classified",
+	    	Survey::COLLECTION   	 => "Survey",
+	    	Bookmark::COLLECTION   	 => "Bookmark",
+	    	Proposal::COLLECTION   	 => "Proposal",
+	    	Room::COLLECTION   	 	 => "Room",
+	    	Action::COLLECTION   	 => "Action",
 	    );	
 	 	return @$models[$type];     
     }
@@ -196,6 +202,12 @@ class Element {
 	    	ActionRoom::TYPE_ENTRY."s"	=> array("icon"=>"archive","color"=>"#3C5665", "text-color"=>"dark",
 	    										 "hash"=> "survey.entry.id.",
 	    										 "collection"=>Survey::COLLECTION ),
+	    	Survey::COLLECTION	=> array("icon"=>"archive","color"=>"#3C5665", "text-color"=>"dark",
+	    										 "hash"=> "survey.entry.id.",
+	    										 "collection"=>Survey::COLLECTION ),
+	    	Survey::CONTROLLER	=> array("icon"=>"archive","color"=>"#3C5665", "text-color"=>"dark",
+	    										 "hash"=> "survey.entry.id.",
+	    										 "collection"=>Survey::COLLECTION ),
 	    	ActionRoom::TYPE_DISCUSS	=> array("icon"=>"comment","color"=>"#3C5665", "text-color"=>"dark",
 	    										 "hash"=> "comment.index.type.actionRooms.id.",
 	    										 "collection"=>ActionRoom::COLLECTION),
@@ -283,6 +295,12 @@ class Element {
 			$element = Poi::getById($id);
 		else if($type == Classified::COLLECTION)
 			$element = Classified::getById($id);
+		else if($type == ActionRoom::COLLECTION_ACTIONS)
+			$element = PHDB::findOne( ActionRoom::COLLECTION_ACTIONS ,array("_id"=>new MongoId($id)));
+		else if($type == Survey::CONTROLLER )
+			$element = PHDB::findOne( Survey::COLLECTION ,array("_id"=>new MongoId($id)));
+		else if($type == Proposal::COLLECTION )
+			$element = PHDB::findOne( Proposal::COLLECTION ,array("_id"=>new MongoId($id)));
 		else
 			$element = PHDB::findOne($type,array("_id"=>new MongoId($id)));
 	  	
@@ -305,6 +323,8 @@ class Element {
 			$element = City::getIdByInsee($id);
 		else if($type == Poi::COLLECTION)
 			$element = Poi::getById($id);
+		else if($type == "action")
+			$element = PHDB::findOne("actions",array("_id"=>new MongoId($id)));
 		else
 			$element = PHDB::findOne($type,array("_id"=>new MongoId($id)));
 	  	
@@ -383,6 +403,8 @@ class Element {
 			return Survey::getDataBinding();
 		else if($collection == Poi::COLLECTION)
 			return Poi::getDataBinding();
+		else if($collection == Proposal::COLLECTION)
+			return Proposal::getDataBinding();
 		else
 			return array();
 	}
@@ -394,6 +416,7 @@ class Element {
 
 
     public static function updateField($collection, $id, $fieldName, $fieldValue, $allDay=null) {
+    	
     	//error_log("updateField : ".$fieldName." with value :".$fieldValue);
     	if (!Authorisation::canEditItemOrOpenEdition($id, $collection, Yii::app()->session['userId'])) {
 			throw new CTKException(Yii::t("common","Can not update the element : you are not authorized to update that element !"));
@@ -1006,7 +1029,9 @@ class Element {
 		$res = array("result" => false, "msg" => "Something bad happend : impossible to delete this element");
 
 		//What type of element i can delete
-		$managedTypes = array(Organization::COLLECTION, Project::COLLECTION, Event::COLLECTION, Classified::COLLECTION);
+		$managedTypes = array(Organization::COLLECTION, Project::COLLECTION, Event::COLLECTION, Classified::COLLECTION,
+							 Proposal::COLLECTION, Action::COLLECTION, Room::COLLECTION);
+		
 		if (!in_array($elementType, $managedTypes)) return array( "result" => false, "msg" => "Impossible to delete this type of element" );
 		$modelElement = self::getModelByType($elementType);
 
@@ -1180,6 +1205,13 @@ class Element {
 				}
 			}
 		}
+
+		if($elementType == Room::COLLECTION){
+			$where = array("idParentRoom" => $elementId);
+    		PHDB::remove(Proposal::COLLECTION, $where);
+    		PHDB::remove(Action::COLLECTION, $where);
+    		PHDB::remove(Resolution::COLLECTION, $where);
+		}
 		
 		//Unset the organizer for events organized by the element
 		$resError["action"] = "Unset the organizer for events organized by the element";
@@ -1303,7 +1335,7 @@ class Element {
         unset($params['id']);
 
         $postParams = array();
-        if( !in_array($collection, array("poi")) && @$params["urls"] && @$params["medias"] ){
+        if( !in_array( $collection, array("poi") ) && @$params["urls"] && @$params["medias"] ){
         	$postParams["medias"] = $params["medias"];
         	unset($params['medias']);
         	$postParams["urls"] = $params["urls"];
@@ -1324,7 +1356,7 @@ class Element {
         $valid = array("result"=>true);
         if( $collection == Event::COLLECTION ){
             $valid = Event::validateFirst($params);
-        }
+        } error_log("KEY : ". $key);
         if( $valid["result"] )
         	try {
         		$valid = DataValidator::validate( ucfirst($key), json_decode (json_encode ($params), true), ( empty($paramsLinkImport) ? null : true) );
@@ -1365,7 +1397,7 @@ class Element {
                 else
                 	PHDB::update($collection,array("_id"=>new MongoId($id)), array('$set' => $params ));
                 $res = array("result"=>true,
-                             "msg"=>"Vos données ont été mises à jour.",
+                             "msg"=>Yii::t("common","Your data are well updated"),
                              "reload"=>true,
                              "map"=>$params,
                              "id"=>$id);
@@ -1375,7 +1407,7 @@ class Element {
                 $params["created"] = time();
                 PHDB::insert($collection, $params );
                 $res = array("result"=>true,
-                             "msg"=>"Vos données ont bien été enregistrées.",
+                             "msg"=>Yii::t("common","Your data are well registred"),
                              "reload"=>true,
                              "map"=>$params,
                              "id"=>(string)$params["_id"]);  
@@ -1476,7 +1508,16 @@ class Element {
 			$params["shortDescription"] = strip_tags($params["shortDescription"]);
 
 	    
-	
+		/*if (@$params["amendementDateEnd"]){
+			$params["amendementDateEnd"] = Cooperation::formatDateBeforeSaving($params["amendementDateEnd"]);
+			//$params["amendementDateEnd"] = $params["amendementDateEnd"]->format('Y-m-d H:i');
+		}
+
+		if (@$params["voteDateEnd"]){
+			$params["voteDateEnd"] = Cooperation::formatDateBeforeSaving($params["voteDateEnd"]);
+			//$params["voteDateEnd"] = $params["voteDateEnd"]->format('Y-m-d H:i');
+		}*/
+
 		//TODO SBAR - Manage elsewhere (maybe in the view)
 		//Manage the event startDate and endDate format : 
 		//it comes with the format DD/MM/YYYY HH:ii or DD/MM/YYYY 
@@ -1741,7 +1782,7 @@ class Element {
 			$res = self::updateField($collection, $id, "contacts", $params);
 
 		if($res["result"])
-			$res["msg"] = "Les contacts ont été mis à jours";
+			$res["msg"] = Yii::t("common","Contacts are well updated");
 		return $res;
 	}
 
@@ -1756,7 +1797,7 @@ class Element {
 		unset($params["collection"]);
 		$res = self::updateField($collection, $id, "urls", $params);
 		if($res["result"])
-			$res["msg"] = "Les urls ont été mis à jours";
+			$res["msg"] = Yii::t("common","URLs are well updated");
 		return $res;
 	}
 
@@ -1888,6 +1929,31 @@ class Element {
 			
 			if(isset($params["shortDescription"]))
 				$res[] = self::updateField($collection, $id, "shortDescription", strip_tags($params["shortDescription"]));
+		
+		}else if($block == "activeCoop"){
+
+			if(isset($params["status"]))
+				$res[] = self::updateField($collection, $id, "status", $params["status"]);
+			if(isset($params["voteActivated"]))
+				$res[] = self::updateField($collection, $id, "voteActivated", $params["voteActivated"]);
+			if(isset($params["amendementActivated"]))
+				$res[] = self::updateField($collection, $id, "amendementActivated", $params["amendementActivated"]);
+		
+		}else if($block == "amendement"){
+
+			if(isset($params["txtAmdt"]) && isset($params["typeAmdt"]) && isset($params["id"]) && @Yii::app()->session['userId']){
+				$proposal = Proposal::getById($params["id"]);
+				$amdtList = @$proposal["amendements"] ? $proposal["amendements"] : array();
+				$rand = rand(1000, 100000);
+				while(isset($amdtList[$rand])){ $rand = rand(1000, 100000); }
+
+				$amdtList[$rand] = array(
+									"idUserAuthor"=> Yii::app()->session['userId'],
+									"typeAmdt" => $params["typeAmdt"],
+									"textAdd"=> $params["txtAmdt"]);
+
+				$res[] = self::updateField($collection, $id, "amendements", $amdtList);
+			}
 		}
 
 		if(Import::isUncomplete($id, $collection)){

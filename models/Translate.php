@@ -216,13 +216,18 @@ class Translate {
 
 	public static function pastTime($date,$type, $timezone=null) {
 
-		
-		
+		//echo "Date : ".$date;
 		if($type == "timestamp") {
 	        $date2 = $date; // depuis cette date
+
 	    } elseif($type == "date") {
 	        $date2 = strtotime($date); // depuis cette date
-	        error_log($date." - ".$date2);
+	        //error_log($date." - ".$date2);
+	    } elseif($type == "datefr") { //echo $date;exit;
+	    	$date2 = DateTime::createFromFormat('d/m/Y H:i', $date)->format('Y-m-d H:i');
+	    	//var_dump($date2); exit;
+	        $date2 = strtotime($date2); // depuis cette date
+	        //error_log($date." - ".$date2);
 	    } else {
 	        return "Non reconnu";
 	    }
@@ -230,9 +235,11 @@ class Translate {
 	   
 
 	    $Ecart = time()-$date2;
-	    $lblEcart = "il y a ";
+	    $lblEcart = "";
+	    $tradAgo=true;
 	    if(time() < $date2){
-	    	$lblEcart = "dans ";
+	    	$tradAgo=false;
+	    	$lblEcart = Yii::t("common","in")." ";
 			$Ecart = $date2 - time();
 	    }
 
@@ -253,24 +260,28 @@ class Translate {
 	    $Minutes = date('i',$Ecart);
 	    $Secondes = date('s',$Ecart);
 	    if($Annees > 0) {
-	        return $lblEcart.$Annees." an".($Annees>1?"s":"")." et ".$Jours." jour".($Jours>1?"s":""); // on indique les jours avec les année pour être un peu plus précis
+	        $res=$lblEcart.$Annees." ".Yii::t("translate","year".($Annees>1?"s":""))." ".Yii::t("common","and")." ".$Jours." ".Yii::t("translate","day".($Jours>1?"s":"")); // on indique les jours avec les année pour être un peu plus précis
 	    }
-	    if($Mois > 0) {
-	        return $lblEcart.$Mois." mois et ".$Jours." jour".($Jours>1?"s":""); // on indique les jours aussi
+	    else if($Mois > 0) {
+	        $res=$lblEcart.$Mois." ".Yii::t("translate","month".($Mois>1?"s":""))." ".Yii::t("common","and")." ".$Jours." ".Yii::t("translate","day".($Jours>1?"s":"")); // on indique les jours aussi
 	    }
-	    if($Jours > 0) {
-	        return $lblEcart.$Jours." jour".($Jours>1?"s":"");
+	    else if($Jours > 0) {
+	        $res=$lblEcart.$Jours." ".Yii::t("translate","day".($Jours>1?"s":""));
 	    }
-	    if($Heures > 0) {
-	        return $lblEcart.$Heures." heure".($Heures>1?"s":"");
+	    else if($Heures > 0) {
+	        $res=$lblEcart.$Heures." ".Yii::t("translate","hour".($Heures>1?"s":""));
 	    }
-	    if($Minutes > 0) {
-	        return $lblEcart.$Minutes." minute".($Minutes>1?"s":"");
+	    else if($Minutes > 0) {
+	        $res=$lblEcart.$Minutes." ".Yii::t("translate","minute".($Minutes>1?"s":""));
 	    }
-	    if($Secondes > 0) {
-	        return $lblEcart.$Secondes." seconde".($Secondes>1?"s":"");
+	    else if($Secondes > 0) {
+	        $res=$lblEcart.$Secondes." ".Yii::t("translate","second".($Secondes>1?"s":""));
 	    } else {
-	    	return "A l'instant";
+	    	$tradAgo=false;
+	    	$res=Yii::t("translate","Right now");
 	    }
+	    if($tradAgo)
+	    	$res=Yii::t("translate","{time} ago",array("{time}"=>$res));
+	    return $res;
 	}
 }

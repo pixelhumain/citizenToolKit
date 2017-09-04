@@ -311,7 +311,8 @@ class News {
 			if(@$news["media"] && @$news["media"]["content"] && @$news["media"]["content"]["image"] && !@$news["media"]["content"]["imageId"]){
 				$endPath=explode(Yii::app()->params['uploadUrl'],$news["media"]["content"]["image"]);
 				$pathFileDelete= Yii::app()->params['uploadDir'].$endPath[1];
-				unlink($pathFileDelete);
+				if(file_exists ( $pathFileDelete )) 
+					unlink($pathFileDelete);
 			}
 		
 			//récupère les activityStream liés à la news

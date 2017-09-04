@@ -6,7 +6,9 @@
 class Action
 {
     const NODE_ACTIONS          = "actions";
-
+    const COLLECTION            = "actions";
+    const CONTROLLER            = "action";
+    
     const ACTION_ROOMS          = "actionRooms";
     const ACTION_ROOMS_TYPE_SURVEY = "survey";
 
@@ -25,6 +27,46 @@ class Action
     const ACTION_REPORT_ABUSE   = "reportAbuse";
     const ACTION_FOLLOW         = "follow";
 
+
+    public static $dataBinding = array (
+        
+        "name"                  => array("name" => "name",                  "rules" => array("required")),
+        "description"           => array("name" => "description",           "rules" => array("required")),
+        "tags"                  => array("name" => "tags"),
+        "urls"                  => array("name" => "urls"),
+        
+        "startDate"             => array("name" => "startDate"),
+        "endDate"               => array("name" => "endDate"),
+        
+        "actors"               => array("name" => "actors"),
+        
+        // Open / Closed
+        "status"                => array("name" => "status",                "rules" => array("required")), 
+        
+        "idUserAuthor"          => array("name" => "idUserAuthor",          "rules" => array("required")),
+        "idParentRoom"          => array("name" => "idParentRoom",          "rules" => array("required")),
+        "parentId"              => array("name" => "parentId",              "rules" => array("required")),
+        "parentType"            => array("name" => "parentType",            "rules" => array("required")),
+        
+        "email"                => array("name" => "status"), 
+        
+        "modified" => array("name" => "modified"),
+        "updated" => array("name" => "updated"),
+        "creator" => array("name" => "creator"),
+        "created" => array("name" => "created"),
+
+        //"medias" => array("name" => "medias"),
+    );
+
+    /**
+     * get a action room By Id
+     * @param String $id : is the mongoId of the action room
+     * @return array Document of the action room
+     */
+    public static function getById($id) {
+        return PHDB::findOne( self::COLLECTION,array("_id"=>new MongoId($id)));
+    }
+    
     /**
      * - can only add an action once vote , purchase, .. 
      * - check user and element existance 
@@ -278,23 +320,23 @@ class Action
         {
             $linkVoteUp = ($logguedAndValid && !empty($voteUpActive) ) ? 
                             "<span class='".$classUp." ' ><i class='fa fa-caret-bottom'></i> ".
-                                Yii::t("survey","Voted", null, Yii::app()->controller->module->id).
+                                Yii::t("survey","Voted").
                                 " <span class='btnvote color-btnvote-green'><i class='fa $iconUp' ></i> Pour</span></span>" : "";
             $linkVoteAbstain = ($logguedAndValid && !empty($voteAbstainActive)) ? 
                             "<span class='".$classAbstain." '><i class='fa fa-caret-bottom'></i> ".
-                                Yii::t("survey","Voted", null, Yii::app()->controller->module->id).
+                                Yii::t("survey","Voted").
                                 " <span class='btnvote color-btnvote-white'><i class='fa $iconAbstain'></i> Blanc</span></span>" : "";
             $linkVoteUnclear = ($logguedAndValid && !empty($voteUnclearActive)) ? 
                             "<span class='".$classUnclear." '><i class='fa fa-caret-bottom'></i> ".
-                                Yii::t("survey","Voted", null, Yii::app()->controller->module->id).
+                                Yii::t("survey","Voted").
                                 " <span class='btnvote color-btnvote-blue'><i class='fa  $iconUnclear'></i> Incompris</span></span>" : "";
             $linkVoteMoreInfo = ($logguedAndValid && !empty($voteMoreInfoActive)) ? 
                             "<span class='".$classMoreInfo." '><i class='fa fa-caret-bottom'></i> ".
-                                Yii::t("survey","Voted", null, Yii::app()->controller->module->id).
+                                Yii::t("survey","Voted").
                                 " <span class='btnvote color-btnvote-purple'><i class='fa  $iconMoreInfo'></i> Incomplet</span></span>" : "";
             $linkVoteDown = ($logguedAndValid && !empty($voteDownActive)) ? 
                             "<span class='".$classDown." '><i class='fa fa-caret-bottom'></i> ".
-                                Yii::t("survey","Voted", null, Yii::app()->controller->module->id).
+                                Yii::t("survey","Voted").
                                 " <span class='btnvote color-btnvote-red'><i class='fa $iconDown'></i> Contre</span></span>" : "";
         }
         else
