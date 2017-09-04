@@ -572,7 +572,7 @@ class Authorisation {
         $check = false;
         //DDA
         if( $type == Room::COLLECTION || $type == Room::CONTROLLER ||
-            $type == Survey::COLLECTION || $type == Survey::CONTROLLER || 
+            $type == Action::COLLECTION || $type == Action::CONTROLLER || 
             $type == Proposal::COLLECTION || $type == Proposal::CONTROLLER ) { 
 
             if( $parentType == null || $parentId == null ){
@@ -580,6 +580,7 @@ class Authorisation {
                 $parentId = $elem["parentId"];
                 $parentType = $elem["parentType"];
             } 
+            $isDDA = true;
             $type = $parentType;
             $itemId = $parentId;
             $check = true;
@@ -589,7 +590,7 @@ class Authorisation {
         if(Role::isSuperAdmin( Role::getRolesUserId($userId) ) )
             return true;
 
-       error_log("TRAITEMENT PROPOSAL1: ".$type." ".$itemId);
+            error_log("TRAITEMENT PROPOSAL1: ".$type." ".$itemId);
             if ( $type == Event::COLLECTION || $type == Project::COLLECTION || $type == Organization::COLLECTION ) {
             //Check if delete pending => can not edit
             $isStatusDeletePending = Element::isElementStatusDeletePending($type, $itemId);
@@ -602,8 +603,8 @@ class Authorisation {
             //Source admin ?
             } else if (self::isSourceAdmin($itemId, $type, $userId)) {
                 return true;
-            } else {
-                return false;
+            } else if(@$isDDA == true) {
+                return self::canParticipate($userId, $type, $itemId);
             }
         } else if($type == Person::COLLECTION) {
             if($userId==$itemId)
@@ -636,8 +637,8 @@ class Authorisation {
         }
         else if($type == Proposal::COLLECTION) 
         {
-           error_log("TRAITEMENT PROPOSAL: ".$type);
-           $res = self::userOwner($userId, "Proposal", $itemId);
+           error_log("1 TRAITEMENT PROPOSAL: ".$type);
+           $res = self::canParticipate($userId, $type, $itemId);
         }
     	return $res;
     }

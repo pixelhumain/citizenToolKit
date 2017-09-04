@@ -1190,6 +1190,13 @@ class Element {
 				}
 			}
 		}
+
+		if($elementType == Room::COLLECTION){
+			$where = array("idParentRoom" => $elementId);
+    		PHDB::remove(Proposal::COLLECTION, $where);
+    		PHDB::remove(Action::COLLECTION, $where);
+    		PHDB::remove(Resolution::COLLECTION, $where);
+		}
 		
 		//Unset the organizer for events organized by the element
 		$resError["action"] = "Unset the organizer for events organized by the element";
