@@ -20,7 +20,13 @@ class GetCoopDataAction extends CAction {
 			exit;
 		}
 
-		if(empty($dataId) || $type == Room::CONTROLLER) $page = "menuRoom";
+		$res = Cooperation::getCoopData($parentType, $parentId, $type, $status, $dataId);
+
+		if(empty($dataId) || $type == Room::CONTROLLER) {
+			$page = "menuRoom";
+			$res["parentType"] = @$_POST["parentType"];
+			$res["parentId"] 	= @$_POST["parentId"];
+		}
 		else {
 			if($type == Proposal::CONTROLLER || $type == Proposal::COLLECTION){
 				$page = "proposal"; $type = Proposal::CONTROLLER;
@@ -34,10 +40,15 @@ class GetCoopDataAction extends CAction {
 			//if($type == Resolution::CONTROLLER) $page = "resolution";
 		}
 
-		if(empty($dataId) && $type == Room::CONTROLLER) $page = "roomList";
 		
-		$res = Cooperation::getCoopData($parentType, $parentId, $type, $status, $dataId);
-		//var_dump($res);
+		//var_dump($res);exit;
+
+		if(empty($dataId) && $type == Room::CONTROLLER) {
+			$page = "roomList";
+			$res["parentType"] = @$_POST["parentType"];
+			$res["parentId"] 	= @$_POST["parentId"];
+		}
+		
 		echo $controller->renderPartial($page, $res, true);
 	}
 }
