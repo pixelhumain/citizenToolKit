@@ -24,8 +24,6 @@ class RocketChat{
 			Yii::import('httpful.Bootstrap', true);
 			$user = new \RocketChat\User($email, $pwd);
 
-			
-
 			try{
 				$log = $user->login();
 				//var_dump($log);
@@ -33,9 +31,10 @@ class RocketChat{
 					$res["loginToken"] = $user->authToken;
 					$res["rocketUserId"] = $user->id;
 					$res["msg"] = "user logged in";
+					unset(Yii::app()->session["pwd"]);
 				} else {
 					$res["msg"] = "mail or pwd don't exist or match,can't log into RC : ".$log->message;	
-					$res["error"] = "unauthoriser";
+					$res["error"] = "unauthorised";
 				}
 			} catch (Exception $e) {
 	            $res["msg"] = $e->getMessage();

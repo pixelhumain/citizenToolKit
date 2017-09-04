@@ -84,12 +84,6 @@ class Person {
 	  	Yii::app()->session["userEmail"] = $account["email"];
 	  	Yii::app()->session["pwd"] = $pwd;
 
-	  	//todo login to Rocket Chat 
-	  	if(Yii::app()->params['rocketchatEnabled']){
-		  	$rocket = RocketChat::getToken($account["email"],$pwd);
-		  	Yii::app()->session["loginToken"] = $rocket["loginToken"];
-		  	Yii::app()->session["rocketUserId"] = $rocket["rocketUserId"];
-		  }
 
 	  	$name = (isset($account["name"])) ? $account["name"] : "Anonymous" ;
 	    $user = array("name"=>$name);
