@@ -142,7 +142,7 @@ class News {
 									$detailsKey = City::detailLevels($locality);
 									$city = City::getById($key);
 									//$city = City::getByUnikey($value);
-									$scope = array( "parentId"=>(String) $city["_id"],
+									$scope = array( "cityId"=>(String) $city["_id"],
 													"parentType"=>City::COLLECTION,
 													"name"=>$city["name"],
 													"geo" => $city["geo"]
@@ -163,13 +163,15 @@ class News {
 									$cities = City::getWhere($where);
 									if(!empty($cities)){
 										//$city=$city[0];
+
+										$scope = array("postalCode"=>strval($key));
+										$news["scope"]["localities"][] = $scope;
+
 										foreach($cities as $keyC=>$city){
 											$id = (String) $city["_id"];
 											$scope = array( "parentId"=>(String) $city["_id"],
 															"parentType"=>City::COLLECTION,
-															"postalCode"=>array(strval($key)),
 															"geo" => $city["geo"] );
-
 											$scope = array_merge($scope, Zone::getLevelIdById((String) $city["_id"], $city, City::COLLECTION) ) ;
 											$news["scope"]["localities"][] = $scope;
 										}
@@ -191,40 +193,6 @@ class News {
 							}
 						}
 			  		}
-
-
-					// foreach($_POST["searchLocalityCITYKEY"] as $key => $value){ if(!empty($value)){
-					// 	$city = City::getByUnikey($value); error_log("save news searchLocalityCITYKEY ".$value);
-					// 	$scope = array( "codeInsee"=>$city["insee"],
-					// 				"addressLocality"=>$city["name"],
-					// 				"geo" => $city["geo"]
-					// 			);
-					// 	//If no cp => on the whole city
-					// 	if (!(empty($city["cp"]))) {
-					// 		$scope["postalCode"] = $city["cp"];
-					// 	}
-					// 	$news["scope"]["cities"][] = $scope;
-					// }}
-					// foreach($_POST["searchLocalityCODE_POSTAL"] as $key => $value){ if(!empty($value)){
-					// 	$cities = City::getWhere(array("postalCodes.postalCode"=>$value), array("insee", "postalCodes.postalCode", "geo"), 1);
-					// 	if(!empty($cities)){
-					// 		//$city=$city[0];
-					// 		error_log("save news searchLocalityCODE_POSTAL");
-					// 		foreach($cities as $key=>$city) //var_dump($city); return;
-					// 		$news["scope"]["cities"][] = array( "codeInsee"=>$city["insee"],
-					// 											"postalCode"=>$city["postalCodes"][0]["postalCode"],
-					// 											"addressLocality"=>"", //$city["name"],
-					// 											"geo" => $city["geo"]
-					// 										);
-					// 	}	
-					// }}
-					// foreach($_POST["searchLocalityDEPARTEMENT"] as $key => $value){ if(!empty($value)){
-					// 	$news["scope"]["departements"][] = array( "name"=>$value );
-					// }}
-
-					// foreach($_POST["searchLocalityREGION"] as $key => $value){ if(!empty($value)){
-					// 	$news["scope"]["regions"][] = array( "name"=>$value );
-					// }}
 				}
 				else{
 					$scope = $_POST["scope"];
@@ -245,12 +213,6 @@ class News {
 								$scope["postalCode"] = $postalCode;
 							}
 							$news["scope"]["localities"][] = $scope;
-							/*$address=SIG::getAdressSchemaLikeByCodeInsee($codeInsee,$postalCode);
-							$news["scope"]["cities"][] = array("codeInsee"=>$codeInsee,
-																"postalCode"=>$postalCode,
-																"addressLocality"=>$address["addressLocality"],
-																"geo" => $from
-															);*/
 						}
 					}
 				}		

@@ -380,8 +380,25 @@ class Import
                 if(!empty($city)){
                     $newAddress["codeInsee"] = $city["insee"];
                     $newAddress['addressCountry'] = $city["country"];
-                    $newAddress['regionName'] = (@$city["regionName"]?$city["regionName"]:"");
-                    $newAddress['depName'] = (@$city["depName"]?$city["depName"]:"");
+                    $newAddress['localityId'] = (String) $city["_id"] ;
+                    $newAddress['level1'] = (@$city["level1"]?$city["level1"]:"");
+                    $newAddress['level1Name'] = (@$city["level1Name"]?$city["level1Name"]:"");
+
+					if(!empty($city["level2"])){
+						$newAddress['level2'] = $city["level2"];
+						$newAddress['level2Name'] = (@$city["level2Name"]?$city["level2Name"]:"");
+					}
+
+					if(!empty($city["level3"])){
+						$newAddress['level3'] = $city["level3"];
+						$newAddress['level3Name'] = (@$city["level3Name"]?$city["level3Name"]:"");
+					}
+
+					if(!empty($city["level4"])){
+						$newAddress['level4'] = $city["level4"];
+						$newAddress['level4Name'] = (@$city["level4Name"]?$city["level4Name"]:"");
+					}
+					
                     foreach ($city["postalCodes"] as $keyCp => $valueCp){
                         if(empty($cp)){
                             if($valueCp["name"] == $city["alternateName"]){

@@ -128,17 +128,6 @@ class AutocompleteMultiScopeAction extends CAction
                                         array("countryCode" => strtoupper($countryCode)) ) );
             $cities = PHDB::findAndSort( Zone::COLLECTION, $where, $att, 40, $att);
         }
-        /*else if($type == "dep"){
-            $att = array("name", "countryCode", "key");
-            $where = array("name" => new MongoRegex("/".$scopeValue."/i"));
-            $cities = PHDB::findAndSort( Zone::COLLECTION, $where, $att, 40, $att);
-        }
-        else if($type == "region"){
-            $att = array("name", "countryCode", "key");
-            $where = array("name" => new MongoRegex("/".$scopeValue."/i"));
-            $cities = PHDB::findAndSort( Zone::COLLECTION, $where, $att, 40, $att);
-        }*/
-        //echo '<pre>';var_dump($cities);echo '</pre>'; return;
         
         return Rest::json( array("res"=>true, "cities" => $cities ));
        

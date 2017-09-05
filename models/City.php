@@ -25,10 +25,6 @@ class City {
 	    "geoPosition" => array("name" => "geoPosition", "rules" => array("required","geoPositionValid")),
 	    "geoShape" => array("name" => "geoShape"/*, "rules" => array("geoShapeValid")*/),
 	 	"postalCodes" => array("name" => "postalCodes"/*, "rules" => array("postalCodesValid")*/),
-	    "regionName" => array("name" => "regionName"),
-	    "region" => array("name" => "region"),
-	    "depName" => array("name" => "depName"),
-	    "dep" => array("name" => "dep"),
 	    "osmID" => array("name" => "osmID"),
 	    "wikidataID" => array("name" => "wikidataID"),
 	    "modified" => array("name" => "modified"),
@@ -39,7 +35,11 @@ class City {
 	    "level1" => array("name" => "level1"),
 	    "level2" => array("name" => "level2"),
 	    "level3" => array("name" => "level3"),
-	    "level4" => array("name" => "level4")
+	    "level4" => array("name" => "level4"),
+	    "level1Name" => array("name" => "level1Name"),
+	    "level2Name" => array("name" => "level2Name"),
+	    "level3Name" => array("name" => "level3Name"),
+	    "level4Name" => array("name" => "level4Name"),
 	);
 
 
@@ -1189,27 +1189,30 @@ class City {
 	public static function detailsLocality($locality){
 		$res = self::detailLevels($locality) ;
 		$trad1 = Zone::getTranslateById($res["level1"]);
-		$res["level1Name"] = (!empty($trad1["translates"]["UK"]) ? $trad1["translates"]["UK"] : $trad1["translates"]["FR"]);
+
+		$userT = strtoupper(Yii::app()->language) ;
+
+		$res["level1Name"] = (!empty($trad1["translates"][$userT]) ? $trad1["translates"][$userT] : $trad1["translates"]["EN"]);
 
 		if(isset($res["localityId"])){
 			$city = self::getById($res["localityId"]);
 			$cityTrad = Zone::getTranslateById($res["localityId"]);
-			$res["cityName"] = (!empty($cityTrad["translates"]["UK"]) ? $cityTrad["translates"]["UK"] : $city["name"]);
+			$res["cityName"] = (!empty($cityTrad["translates"][$userT]) ? $cityTrad["translates"][$userT] : $city["name"]);
 		}	
 
 		if(!empty($res["level2"])){
 			$trad2 = Zone::getTranslateById($res["level2"]);
-			$res["level2Name"] = (!empty($trad2["translates"]["UK"]) ? $trad2["translates"]["UK"] : $trad2["translates"]["FR"]);
+			$res["level2Name"] = (!empty($trad2["translates"][$userT]) ? $trad2["translates"][$userT] : $trad2["translates"]["EN"]);
 		}
 
 		if(!empty($res["level3"])){
 			$trad3 = Zone::getTranslateById($res["level3"]);
-			$res["level3Name"] = (!empty($trad3["translates"]["UK"]) ? $trad3["translates"]["UK"] : $trad3["translates"]["FR"]);
+			$res["level3Name"] = (!empty($trad3["translates"][$userT]) ? $trad3["translates"][$userT] : $trad3["translates"]["EN"]);
 		}
 
 		if(!empty($res["level4"])){
 			$trad4 = Zone::getTranslateById($res["level4"]);
-			$res["level4Name"] = (!empty($trad4["translates"]["UK"]) ? $trad4["translates"]["UK"] : $trad4["translates"]["FR"]);
+			$res["level4Name"] = (!empty($trad4["translates"][$userT]) ? $trad4["translates"][$userT] : $trad4["translates"]["EN"]);
 		}
 
 		if(isset($keyArray[6]))

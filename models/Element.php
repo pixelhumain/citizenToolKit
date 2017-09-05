@@ -461,16 +461,16 @@ class Element {
 				if(!empty($fieldValue)){
 					$verb = '$set';
 					$address = array(
-				        "@type" => "PostalAddress",
-				        "codeInsee" => $fieldValue["address"]["codeInsee"],
-				        "addressCountry" => $fieldValue["address"]["addressCountry"],
-				        "postalCode" => $fieldValue["address"]["postalCode"],
-				        "addressLocality" => $fieldValue["address"]["addressLocality"],
-				        "streetAddress" => ((@$fieldValue["address"]["streetAddress"])?trim(@$fieldValue["address"]["streetAddress"]):""),
-				        "localityId" => $fieldValue["address"]["localityId"],
-				        "level1" => $fieldValue["address"]["level1"],
-				        "level1Name" => $fieldValue["address"]["level1Name"],
-				    	);
+						"@type" => "PostalAddress",
+						"codeInsee" => $fieldValue["address"]["codeInsee"],
+						"addressCountry" => $fieldValue["address"]["addressCountry"],
+						"postalCode" => $fieldValue["address"]["postalCode"],
+						"addressLocality" => $fieldValue["address"]["addressLocality"],
+						"streetAddress" => ((@$fieldValue["address"]["streetAddress"])?trim(@$fieldValue["address"]["streetAddress"]):""),
+						"localityId" => $fieldValue["address"]["localityId"],
+						"level1" => $fieldValue["address"]["level1"],
+						"level1Name" => $fieldValue["address"]["level1Name"],
+					);
 					
 					if(!empty($fieldValue["address"]["level2"])){
 						$address["level2"] = $fieldValue["address"]["level2"];
@@ -537,10 +537,25 @@ class Element {
 					        "postalCode" => $fieldValue["address"]["postalCode"],
 					        "addressLocality" => $fieldValue["address"]["addressLocality"],
 					        "streetAddress" => ((@$fieldValue["address"]["streetAddress"])?trim(@$fieldValue["address"]["streetAddress"]):""),
-					        "key" => ((@$fieldValue["address"]["key"])?trim(@$fieldValue["address"]["key"]):""),
-					        "depName" => ((@$fieldValue["address"]["depName"])?trim(@$fieldValue["address"]["depName"]):""),
-				        	"regionName" => ((@$fieldValue["address"]["regionName"])?trim(@$fieldValue["address"]["regionName"]):""),
-					    	);
+					        "localityId" => $fieldValue["address"]["localityId"],
+							"level1" => $fieldValue["address"]["level1"],
+							"level1Name" => $fieldValue["address"]["level1Name"],
+						);
+
+						if(!empty($fieldValue["address"]["level2"])){
+							$address["level2"] = $fieldValue["address"]["level2"];
+							$address["level2Name"] =((@$fieldValue["address"]["level2Name"])?trim(@$fieldValue["address"]["level2Name"]):"");
+						}
+
+						if(!empty($fieldValue["address"]["level3"])){
+							$address["level3"] = $fieldValue["address"]["level3"];
+							$address["level3Name"] =((@$fieldValue["address"]["level3Name"])?trim(@$fieldValue["address"]["level3Name"]):"");
+						}
+
+						if(!empty($fieldValue["address"]["level4"])){
+							$address["level4"] = $fieldValue["address"]["level4"];
+							$address["level4Name"] =((@$fieldValue["address"]["level4Name"])?trim(@$fieldValue["address"]["level4Name"]):"");
+						}
 						//Check address is well formated
 
 						$valid = DataValidator::addressValid($address);
