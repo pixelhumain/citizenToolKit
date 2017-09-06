@@ -12,8 +12,8 @@ class User extends Client {
 	public $nickname;
 	public $email;
 
-	public function __construct($username, $password=null, $fields = array()){
-		parent::__construct();
+	public function __construct($username, $password=null, $fields = array(),$admin=null){
+		parent::__construct($admin);
 		$this->username = $username;
 		$this->password = $password;
 		if( isset($fields['nickname']) ) {

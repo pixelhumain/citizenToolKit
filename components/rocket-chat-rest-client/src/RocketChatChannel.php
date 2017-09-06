@@ -149,14 +149,15 @@ class Channel extends Client {
 		$userId = is_string($user) ? $user : $user->id;
 
 		$response = Request::post( $this->api . 'channels.invite' )
-			->body(array('roomId' => $this->id, 'username' => $userId))
+			->body(array('roomName' => $this->name, 'username' => $userId))
 			->send();
 
-		if( $response->code == 200 && isset($response->body->success) && $response->body->success == true ) {
+		/*if( $response->code == 200 && isset($response->body->success) && $response->body->success == true ) {
 			return $response->body;
 		} else {
 			//var_dump($response->body);
-		}
+		}*/
+		$response->body->naname = $this->name;
 		return $response->body;
 	}
 
