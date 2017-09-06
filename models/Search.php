@@ -69,7 +69,6 @@ class Search {
         //$localities = isset($post['localities']) ? $post['localities'] : null;
         $searchType = isset($post['searchType']) ? $post['searchType'] : null;
         $searchTags = isset($post['searchTag']) ? $post['searchTag'] : null;
-        $searchBy = isset($post['searchBy']) ? $post['searchBy'] : "INSEE";
         $indexMin = isset($post['indexMin']) ? $post['indexMin'] : 0;
         $indexMax = isset($post['indexMax']) ? $post['indexMax'] : 30;
         $country = isset($post['country']) ? $post['country'] : "";
@@ -320,87 +319,7 @@ class Search {
 		return $query ;
 	}
 
-
-
-
 	//*********************************  DEFINE LOCALITY QUERY   ****************************************
-
-	/*public static function searchLocality($post, $query){
-  		$localityReferences['CITYKEY'] = "";
-  		$localityReferences['CODE_POSTAL'] = "address.postalCode";
-  		$localityReferences['DEPARTEMENT'] = "address.postalCode";
-  		$localityReferences['REGION'] = ""; //Spécifique
-
-  		foreach ($localityReferences as $key => $value) 
-  		{
-  			if(isset($post["searchLocality".$key]) 
-  				&& is_array($post["searchLocality".$key])
-  				&& count($post["searchLocality".$key])>0)
-  			{
-  				foreach ($post["searchLocality".$key] as $localityRef) 
-  				{
-  					if(isset($localityRef) && $localityRef != ""){
-	  					if($key == "CITYKEY"){
-			        		$city = City::getByUnikey($localityRef);
-			        		$queryLocality = array(
-			        				"address.addressCountry" => $city["country"],
-			        				"address.codeInsee" => $city["insee"],
-			        		);
-			        		if (! empty($city["cp"]) && (!@$post["searchLocalityLEVEL"] && (@$post["searchLocalityLEVEL"] && $post["searchLocalityLEVEL"]=="inseeCommunexion")) ) {
-			        			$queryLocality["address.postalCode"] = $city["cp"];	
-			        		}
-		  				}
-		  				elseif($key == "CODE_POSTAL"){
-			        		if(@$post["searchLocalityLEVEL"] && $post["searchLocalityLEVEL"]=="cpCommunexion"){
-			        			$city = City::getByUnikey($localityRef);
-			        			$queryLocality = array(
-			        				"address.addressCountry" => $city["country"],
-			        				"address.codeInsee" => $city["insee"],
-			        				"address.postalCode" => $city["cp"]
-			        			);
-			        		}else{
-			        			$queryLocality = array($value => new MongoRegex("/".$localityRef."/i"));
-			        		}
-		  				}
-		  				elseif($key == "DEPARTEMENT") {
-		        			$dep = PHDB::findOne( City::COLLECTION, array("depName" => $localityRef), array("dep"));	
-		        			$queryLocality = array($value => new MongoRegex("/^".$dep["dep"]."/i"));
-						}
-			        	elseif($key == "REGION") 
-	  					{ 
-		        			$deps = PHDB::find( City::COLLECTION, array("regionName" => $localityRef), array("dep"));
-		        			$departements = array();
-		        			$inQuest = array();
-		        			if(is_array($deps))foreach($deps as $index => $value)
-		        			{
-		        				if(!in_array($value["dep"], $departements))
-		        				{
-			        				$departements[] = $value["dep"];
-			        				$inQuest[] = new MongoRegex("/^".$value["dep"]."/i");
-						        	$queryLocality = array("address.postalCode" => array('$in' => $inQuest));
-						        }
-		        			}		        		
-		        		}
-
-	  					//Consolidate Queries
-	  					if(isset($allQueryLocality) && isset($queryLocality)){
-	  						$allQueryLocality = array('$or' => array( $allQueryLocality ,$queryLocality));
-	  					}else if(isset($queryLocality)){
-	  						$allQueryLocality = $queryLocality;
-	  					}
-	  					unset($queryLocality);
-	  				}
-  				}
-  			}
-  		}
-  		if(isset($allQueryLocality) && is_array($allQueryLocality)){
-  			if(!empty($query))
-  				$query = array('$and' => array($query, $allQueryLocality));
-  			else
-  				$query = array('$and' => array($allQueryLocality));
-  		}
-  		return $query;
-  	}*/
 
   	//trie les éléments dans l'ordre alphabetique par name
   	public static function mySortByName($a, $b){ // error_log("sort : ");//.$a['name']);
@@ -942,9 +861,9 @@ class Search {
   		//*********************************  DEFINE LOCALITY QUERY   ******************************************
     	if($locality == null || $locality == "")
     		$locality = $search;
+    	
     	$type = self::getTypeOfLocalisation($locality);
-    	//if($searchBy == "INSEE") $type = $searchBy;
-    	//error_log("type " . $type);
+
 		if($type == "NAME"){ 
     		$query = array('$or' => array( array( "name" => new MongoRegex("/".self::wd_remove_accents($locality)."/i")),
     									   array( "alternateName" => new MongoRegex("/".self::wd_remove_accents($locality)."/i")),

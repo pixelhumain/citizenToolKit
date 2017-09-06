@@ -17,10 +17,14 @@ class Zone {
 	    "geoPosition" => array("name" => "geoPosition", "rules" => array("required","geoPositionValid")),
 	    "geoShape" => array("name" => "geoShape"),
 	 	"postalCodes" => array("name" => "postalCodes"),
-	    "regionName" => array("name" => "regionName"),
-	    "region" => array("name" => "region"),
-	    "depName" => array("name" => "depName"),
-	    "dep" => array("name" => "dep"),
+	    "level1" => array("name" => "level1"),
+	    "level2" => array("name" => "level2"),
+	    "level3" => array("name" => "level3"),
+	    "level4" => array("name" => "level4"),
+	    "level1Name" => array("name" => "level1Name"),
+	    "level2Name" => array("name" => "level2Name"),
+	    "level3Name" => array("name" => "level3Name"),
+	    "level4Name" => array("name" => "level4Name"),
 	    "osmID" => array("name" => "osmID"),
 	    "wikidataID" => array("name" => "wikidataID"),
 	    "modified" => array("name" => "modified"),
@@ -61,11 +65,6 @@ class Zone {
 	public static function getDetailById($id){
 		$where = array("_id"=>new MongoId($id));
 		$zone = PHDB::findOne(self::COLLECTION, $where);
-
-		$city =  City::getByInsee($zone["insee"]);
-		//$zone["cityName"] = $city["name"];
-		$zone["depName"] = $city["depName"];
-		$zone["regionName"] = $city["regionName"];
 		return $zone;
 	}
 

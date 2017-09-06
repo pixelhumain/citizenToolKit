@@ -332,27 +332,23 @@ class SIG
 		$address["@type"] = "PostalAddress";
 		$address["codeInsee"] = isset($city['insee']) ? $city['insee'] : "" ;
 		$address["addressCountry"] = isset($city['country']) ? $city['country'] : "";
-		$address["depName"] = isset($city['depName']) ? $city['depName'] : "";
-		$address["regionName"] = isset($city['regionName']) ? $city['regionName'] : "";
-
-
-		$newAddress['localityId'] = (String) $city["_id"] ;
-        $newAddress['level1'] = (@$city["level1"]?$city["level1"]:"");
-        $newAddress['level1Name'] = (@$city["level1Name"]?$city["level1Name"]:"");
+		$address['localityId'] = (String) $city["_id"] ;
+        $address['level1'] = $city["level1"];
+        $address['level1Name'] = (@$city["level1Name"]?$city["level1Name"]:"");
 
 		if(!empty($city["level2"])){
-			$newAddress['level2'] = $city["level2"];
-			$newAddress['level2Name'] = (@$city["level2Name"]?$city["level2Name"]:"");
+			$address['level2'] = $city["level2"];
+			$address['level2Name'] = (@$city["level2Name"]?$city["level2Name"]:"");
 		}
 
 		if(!empty($city["level3"])){
-			$newAddress['level3'] = $city["level3"];
-			$newAddress['level3Name'] = (@$city["level3Name"]?$city["level3Name"]:"");
+			$address['level3'] = $city["level3"];
+			$address['level3Name'] = (@$city["level3Name"]?$city["level3Name"]:"");
 		}
 
 		if(!empty($city["level4"])){
-			$newAddress['level4'] = $city["level4"];
-			$newAddress['level4Name'] = (@$city["level4Name"]?$city["level4Name"]:"");
+			$address['level4'] = $city["level4"];
+			$address['level4Name'] = (@$city["level4Name"]?$city["level4Name"]:"");
 		}
 		
 		if($postalCode != null){
