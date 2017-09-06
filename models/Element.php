@@ -1379,9 +1379,9 @@ class Element {
                 	if( $collection == Organization::COLLECTION )
                 		$res["afterSave"] = Organization::afterSave($params, Yii::app()->session["userId"], $paramsLinkImport);
                 	else if( $collection == Event::COLLECTION )
-                		$res["afterSave"] = Event::afterSave($params);
+                		$res["afterSave"] = Event::afterSave($params, $paramsLinkImport);
                 	else if( $collection == Project::COLLECTION )
-                		$res["afterSave"] = Project::afterSave($params, @$params["parentId"] , @$params["parentType"] );
+                		$res["afterSave"] = Project::afterSave($params, $paramsLinkImport);
                 	$res["afterSaveGbl"] = self::afterSave((string)$params["_id"],$collection,$params,$postParams);
                 }
                 else
@@ -1412,9 +1412,9 @@ class Element {
                 if( $collection == Organization::COLLECTION )
                 	$res["afterSave"] = Organization::afterSave($params, Yii::app()->session["userId"], $paramsLinkImport);
                 else if( $collection == Event::COLLECTION )
-                	$res["afterSave"] = Event::afterSave($params);
+                	$res["afterSave"] = Event::afterSave($params, $paramsLinkImport);
                 else if( $collection == Project::COLLECTION )
-                	$res["afterSave"] = Project::afterSave($params, @$params["parentId"] , @$params["parentType"] );
+                	$res["afterSave"] = Project::afterSave($params, $paramsLinkImport );
                 $res["afterSaveGbl"] = self::afterSave((string)$params["_id"],$collection,$params,$postParams);
                 //if( false && @$params["parentType"] && @$params["parentId"] )
                 //{
