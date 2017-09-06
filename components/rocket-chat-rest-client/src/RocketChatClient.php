@@ -11,25 +11,36 @@ class Client{
 
 	function __construct($admin=null){
 		$this->api = ROCKET_CHAT_INSTANCE . REST_API_ROOT;
-
+		
+		$this->client = (object)array();
 		// set template request to send and expect JSON
 		// user is loggued from CO , when entering CO
-		if($admin!=null)
+		if($admin===true){
+			$this->client->header = "ADMIN ACTIONS";
+			$this->client->XAuthToken = @$_SESSION["adminLoginToken"];
+			$this->client->XUserId = @$_SESSION["adminRocketUserId"];
 			$tmp = Request::init()
 				->sendsJson()
 				->expectsJson()
 	            ->addHeader( 'X-Auth-Token', @$_SESSION["adminLoginToken"] )
 	            ->addHeader( 'X-User-Id', @$_SESSION["adminRocketUserId"] );
-	    else if($admin=="noHeader")
+		}
+	    else if($admin=="noHeader"){
+	    	$this->client->header = "no Header";
 			$tmp = Request::init()
 				->sendsJson()
 				->expectsJson();
-		else
+	    }
+		else{
+			$this->client->header = "USER ACTION";
+			$this->client->XAuthToken = @$_SESSION["loginToken"];
+			$this->client->XUserId = @$_SESSION["rocketUserId"];
 			$tmp = Request::init()
 				->sendsJson()
 				->expectsJson()
 	            ->addHeader( 'X-Auth-Token', @$_SESSION["loginToken"] )
 	            ->addHeader( 'X-User-Id', @$_SESSION["rocketUserId"] );
+		}
         
 		Request::ini( $tmp );
 	}

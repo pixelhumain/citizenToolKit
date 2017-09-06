@@ -11,8 +11,8 @@ class Channel extends Client {
 	public $name;
 	public $members = array();
 
-	public function __construct($name, $members = array()){
-		parent::__construct();
+	public function __construct($name, $members = array(),$admin=null){
+		parent::__construct($admin);
 		if( is_string($name) ) {
 			$this->name = $name;
 		} else if( isset($name->_id) ) {
