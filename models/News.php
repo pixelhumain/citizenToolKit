@@ -417,14 +417,19 @@ class News {
 				 "text" => $_POST["text"],
 				 "updated"=>new MongoDate(time()),
 			);
+			$unset=array();
 			if (@$_POST["media"]){
-				$set["media"] = $_POST["media"];
-				if(@$_POST["media"]["content"] && @$_POST["media"]["content"]["image"] && !@$_POST["media"]["content"]["imageId"] 
-					&& strpos($_POST["media"]["content"]["image"], Yii::app()->baseUrl) === false){
-					//echo Yii::app()->baseUrl; 
-					//echo strpos($_POST["media"]["content"]["image"], Yii::app()->baseUrl);
-					$urlImage = self::uploadNewsImage($_POST["media"]["content"]["image"],$_POST["media"]["content"]["imageSize"],Yii::app()->session["userId"]);
-					$set["media"]["content"]["image"]=	 Yii::app()->baseUrl."/".$urlImage;
+				if($_POST["media"]=="unset"){
+					$unset["media"]="";
+				}else{
+					$set["media"] = $_POST["media"];
+					if(@$_POST["media"]["content"] && @$_POST["media"]["content"]["image"] && !@$_POST["media"]["content"]["imageId"] 
+							&& strpos($_POST["media"]["content"]["image"], Yii::app()->baseUrl) === false){
+						//echo Yii::app()->baseUrl; 
+						//echo strpos($_POST["media"]["content"]["image"], Yii::app()->baseUrl);
+						$urlImage = self::uploadNewsImage($_POST["media"]["content"]["image"],$_POST["media"]["content"]["imageSize"],Yii::app()->session["userId"]);
+						$set["media"]["content"]["image"]=	 Yii::app()->baseUrl."/".$urlImage;
+					}
 				}
 			}
 			if(@$_POST["tags"])
@@ -432,9 +437,9 @@ class News {
 		 	if(@$_POST["mentions"])
 				$set["mentions"] = $_POST["mentions"];
 			else
-				$unset=array("mentions"=>"");
+				$unset["mentions"]="";
 			$modify=array('$set'=>$set);
-			if(@$unset)
+			if(@$unset && !empty($unset))
 				$modify['$unset']=$unset;
 		//update the project
 		PHDB::update( self::COLLECTION, array("_id" => new MongoId($_POST["idNews"])), 

@@ -453,7 +453,8 @@ class Event {
     	if( @$params["parentId"] )
 			Link::connect( $params["parentId"], Event::COLLECTION,$params["_id"], Event::COLLECTION, Yii::app()->session["userId"], "subEvents");	
 
-		Notification::createdObjectAsParam( Person::COLLECTION, Yii::app()->session['userId'],Event::COLLECTION, (String)$params["_id"], $params["organizerType"], $params["organizerId"], @$params["geo"], array($params["type"]),@$params["address"]);
+		if (empty($import))
+			Notification::createdObjectAsParam( Person::COLLECTION, Yii::app()->session['userId'],Event::COLLECTION, (String)$params["_id"], $params["organizerType"], $params["organizerId"], @$params["geo"], array($params["type"]),@$params["address"]);
 	    if($params["organizerType"]==Organization::COLLECTION || $params["organizerType"]==Project::COLLECTION || @$params["parentId"]){
 			if(@$params["parentId"]){
 	    		$parentId=$params["parentId"];
