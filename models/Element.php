@@ -43,8 +43,9 @@ class Element {
 	    	City::COLLECTION => City::CONTROLLER,
 	    	Survey::COLLECTION => Survey::CONTROLLER,
 	    	Proposal::COLLECTION => Proposal::CONTROLLER,
-	    	ActionRoom::COLLECTION => ActionRoom::CONTROLLER,
-	    	ActionRoom::COLLECTION_ACTIONS => ActionRoom::CONTROLLER,
+	    	Action::COLLECTION => Action::CONTROLLER,
+	    	//ActionRoom::COLLECTION => ActionRoom::CONTROLLER,
+	    	//ActionRoom::COLLECTION_ACTIONS => ActionRoom::CONTROLLER,
 	    );	    
     	return @$ctrls[$type];
     }
@@ -301,6 +302,8 @@ class Element {
 			$element = PHDB::findOne( Survey::COLLECTION ,array("_id"=>new MongoId($id)));
 		else if($type == Proposal::COLLECTION )
 			$element = PHDB::findOne( Proposal::COLLECTION ,array("_id"=>new MongoId($id)));
+		else if($type == Action::COLLECTION )
+			$element = PHDB::findOne( Action::COLLECTION ,array("_id"=>new MongoId($id)));
 		else
 			$element = PHDB::findOne($type,array("_id"=>new MongoId($id)));
 	  	
@@ -405,6 +408,8 @@ class Element {
 			return Poi::getDataBinding();
 		else if($collection == Proposal::COLLECTION)
 			return Proposal::getDataBinding();
+		else if($collection == Action::COLLECTION)
+			return Action::getDataBinding();
 		else
 			return array();
 	}

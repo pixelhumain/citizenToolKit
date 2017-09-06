@@ -58,6 +58,10 @@ class Action
         //"medias" => array("name" => "medias"),
     );
 
+    public static function getDataBinding() {
+        return self::$dataBinding;
+    }
+    
     /**
      * get a action room By Id
      * @param String $id : is the mongoId of the action room

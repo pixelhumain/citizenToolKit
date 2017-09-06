@@ -58,7 +58,7 @@ class Cooperation {
 
 		self::updateStatusProposal($parentType, $parentId);
 
-		if($type == Room::CONTROLLER){
+		if($type == Room::CONTROLLER){ 
 			if(empty($dataId)){ //si pas d'id : prend toutes les rooms pour un element parent
 
 				$status = empty($status) ? "open" : $status;
