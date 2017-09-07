@@ -84,7 +84,6 @@ class Person {
 	  	Yii::app()->session["userEmail"] = $account["email"];
 	  	Yii::app()->session["pwd"] = $pwd;
 
-
 	  	$name = (isset($account["name"])) ? $account["name"] : "Anonymous" ;
 	    $user = array("name"=>$name);
 		

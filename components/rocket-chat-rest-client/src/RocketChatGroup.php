@@ -11,8 +11,8 @@ class Group extends Client {
 	public $name;
 	public $members = array();
 
-	public function __construct($name, $members = array()){
-		parent::__construct();
+	public function __construct($name, $members = array(),$admin=null){
+		parent::__construct($admin);
 		if( is_string($name) ) {
 			$this->name = $name;
 		} else if( isset($name->_id) ) {
@@ -62,11 +62,12 @@ class Group extends Client {
 
 		if( $response->code == 200 && isset($response->body->success) && $response->body->success == true ) {
 			$this->id = $response->body->group->_id;
-			return $response->body;
+			//return $response->body;
 		} else {
-			echo( "<b>".$response->body->error . "</b><br/>" );
-			return false;
+			//echo( "<b>".$response->body->error . "</b><br/>" );
+			//return false;
 		}
+		return $response->body;
 	}
 
 	/**
@@ -150,14 +151,14 @@ class Group extends Client {
 		$userId = is_string($user) ? $user : $user->id;
 
 		$response = Request::post( $this->api . 'groups.invite' )
-			->body(array('roomName' => $this->name, 'username' => $userId))
+			->body(array('roomId' => $this->id, 'username' => $userId))
 			->send();
 
-		if( $response->code == 200 && isset($response->body->success) && $response->body->success == true ) {
+		/*if( $response->code == 200 && isset($response->body->success) && $response->body->success == true ) {
 			//return true;
 		} else {
 			//var_dump($response->body->error );
-		}
+		}*/
 		return $response->body;
 	}
 
