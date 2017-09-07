@@ -91,6 +91,7 @@ class Cooperation {
 		else if($type == Proposal::CONTROLLER){
 			if(empty($dataId)){ //si pas d'id : prend toutes les proposal pour un element parent
 				$query = array( "parentType" => $parentType, "parentId" => $parentId);
+				//var_dump($query); exit;
 				if(!empty($status)) {
 					if($status == "mine"){
 						$myId = @Yii::app()->session['userId'] ? Yii::app()->session['userId'] : false;
@@ -108,7 +109,9 @@ class Cooperation {
 								  		Proposal::COLLECTION, $query, 
 								  		array("status" => -1, "amendementDateEnd" => 1, "voteDateEnd" => 1));
 			}else{ //si un d'id : prend récupère toutes les proposals & actions & resolutions de la room
+
 				$res["proposal"] = Proposal::getById($dataId);
+				//var_dump($res); exit;
 			}
 		}
 
