@@ -25,12 +25,16 @@ class GetDataDetailAction extends CAction {
 						error_log("The element ".$id."/".$type." has a broken link : ".$keyLink."/".$value["type"]);
 						continue;
 					}
+					if(@$value["roles"]){ 
+			            $link["rolesLink"]=[]; 
+			            $link["rolesLink"]=$value["roles"]; 
+			        } 
 					if($dataName=="guests" && @$value["isInviting"]){
 						$link["type"] = $value["type"];
 						$link["isInviting"] = $value["isInviting"];
 						$contextMap[$keyLink] = $link;
 					}else if($dataName!="guests" && !@$value["isInviting"]){
-						$link = Element::getByTypeAndId($value["type"], $keyLink);
+						//$link = Element::getByTypeAndId($value["type"], $keyLink);
 						if($value["type"]==Person::COLLECTION){
 							$link["statusLink"]=[];
 							if(@$value[Link::TO_BE_VALIDATED])

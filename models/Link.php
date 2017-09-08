@@ -626,32 +626,42 @@ class Link {
     }
 	
 	// TODO BOUBOULE - COULD BE DELETED FOR A BETTER INTERPRETATION OF ROLE
-    public static function removeRole($memberOfId, $memberOfType, $memberId, $memberType, $role, $userId) {
-        
+    public static function removeRole($contextId, $contextType, $childId, $childType, $roles, $userId, $connectType) {     
         //0. Check if the $memberOfId and the $memberId exists
-        $memberOf = Element::checkIdAndType($memberOfId, $memberOfType);
-        $member = Element::checkIdAndType($memberId, $memberType);
-        
+        $memberOf = Element::checkIdAndType($contextId, $contextType); 
+        $member = Element::checkIdAndType($childId, $childType); 
         //1.1 the $userId can manage the $memberOf (admin)
         // Or the user can remove himself from a member list of an organization
-        if (!Authorisation::isOrganizationAdmin($userId, $memberOfId)) {
-            if ($memberId != $userId) {
-                throw new CTKException("You are not admin of the Organization : ".$memberOfId);
-            }
+         if (!Authorisation::isElementAdmin($contextId, $contextType ,$userId)) {  
+            //if ($memberId != $userId) { 
+                throw new CTKException("You are not admin of the Organization : ".$contextId); 
+            //} 
+        } 
+        if($connectType=="members") 
+            $connectTypeOf="memberOf"; 
+        else if($connectType=="contributors") 
+            $connectTypeOf="projects"; 
+        if($connectType=="attendees") 
+            $connectTypeOf="events"; 
+        if(empty($roles)) 
+            $action='$unset'; 
+        else{ 
+            $action='$set'; 
+            $roles=explode(",", $roles); 
         }
 
         //2. Remove the role
-        PHDB::update( $memberOfType, 
-                   array("_id" => $memberOf["_id"]) , 
-                   array('$pull' => array( "links.members.".$memberId.".roles" => $role) ));
- 
+         PHDB::update( $contextType,  
+                   array("_id" => new MongoId($contextId)) ,  
+                   array($action => array( "links.".$connectType.".".$childId.".roles" => $roles) )); 
+  
         //3. Remove the role
-        PHDB::update($memberType,
-        			array("_id"=> $member["_id"]),
-        			array('$pull' => array("links.memberOf.".$memberOfId.".roles" => $role)) );
-        
-        return array("result"=>true, "msg"=>Yii::t("link","The member's role has been removed with success",null,Yii::app()->controller->module->id), "memberOfid"=>$memberOfId, "memberid"=>$memberId);
-    }
+         PHDB::update($childType, 
+              array("_id"=> new MongoId($childId)), 
+              array($action => array("links.".$connectTypeOf.".".$contextId.".roles" => $roles)) ); 
+         
+        return array("result"=>true, "msg"=>Yii::t("link","The member's role has been removed with success",null,Yii::app()->controller->module->id), "memberOfid"=>$contextId, "memberid"=>$childId); 
+      }
 
     /** TODO BOUBOULE - TO DELETE WITH CTK/CONTROLLERS/PERSON/DISCONNECTACTION.PHP
      * Delete a link between the 2 actors.
