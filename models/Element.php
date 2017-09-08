@@ -1382,6 +1382,9 @@ class Element {
                 		$res["afterSave"] = Event::afterSave($params, $paramsLinkImport);
                 	else if( $collection == Project::COLLECTION )
                 		$res["afterSave"] = Project::afterSave($params, $paramsLinkImport);
+                	else if( $collection == Proposal::COLLECTION || $collection == Action::COLLECTION || $collection == Room::COLLECTION )
+                		$res["afterSave"] = Cooperation::afterSave($params, $collection);
+                	
                 	$res["afterSaveGbl"] = self::afterSave((string)$params["_id"],$collection,$params,$postParams);
                 }
                 else
@@ -1415,7 +1418,10 @@ class Element {
                 	$res["afterSave"] = Event::afterSave($params, $paramsLinkImport);
                 else if( $collection == Project::COLLECTION )
                 	$res["afterSave"] = Project::afterSave($params, $paramsLinkImport );
-                $res["afterSaveGbl"] = self::afterSave((string)$params["_id"],$collection,$params,$postParams);
+                else if( $collection == Proposal::COLLECTION || $collection == Action::COLLECTION )
+                	$res["afterSave"] = Cooperation::afterSave($params, $collection);
+
+               $res["afterSaveGbl"] = self::afterSave((string)$params["_id"],$collection,$params,$postParams);
                 //if( false && @$params["parentType"] && @$params["parentId"] )
                 //{
                     //createdObjectAsParam($authorType, $authorId, $objectType, $objectId, $targetType, $targetId, $geo, $tags, $address, $verb="create")
