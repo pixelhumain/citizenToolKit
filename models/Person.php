@@ -14,6 +14,7 @@ class Person {
 	//From Post/Form name to database field name with rules
 	public static $dataBinding = array(
 	    "name" => array("name" => "name", "rules" => array("required")),
+	    "slug" => array("name" => "slug", "rules" => array("checkSlug")),
 	    "username" => array("name" => "username", "rules" => array("required", "checkUsername")),
 	    "birthDate" => array("name" => "birthDate", "rules" => array("required")),
 	    "email" => array("name" => "email", "rules" => array("email")),

@@ -1500,6 +1500,13 @@ class Element {
 		if(isset($params["name"]))
 			$params["name"] = $params["name"];
 
+		if(isset($params["slug"]) && !empty($params["slug"])){
+			$params["slug"]=$params["slug"];
+			if(!empty(Slug::getByTypeAndId($params["collection"],$params["id"])))
+				Slug::update($params["collection"],$params["id"],$params["slug"]);
+			else
+				Slug::save($params["collection"],$params["id"],$params["slug"]);
+		}
 		if(isset($params["shortDescription"]))
 			$params["shortDescription"] = strip_tags($params["shortDescription"]);
 
@@ -1859,6 +1866,8 @@ class Element {
 				$res[] = self::updateField($collection, $id, "type", $params["type"]);
 			if(isset($params["email"]))
 				$res[] = self::updateField($collection, $id, "email", $params["email"]);
+			if(isset($params["slug"]))
+				$res[] = self::updateField($collection, $id, "slug", $params["slug"]);
 			if(isset($params["url"]))
 				$res[] = self::updateField($collection, $id, "url", self::getAndCheckUrl($params["url"]));
 			if(isset($params["birthDate"]) && $collection == Person::COLLECTION)

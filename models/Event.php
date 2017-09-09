@@ -26,6 +26,7 @@ class Event {
 	//From Post/Form name to database field name
 	public static $dataBinding = array (
 	    "name" => array("name" => "name", "rules" => array("required")),
+	    "slug" => array("name" => "slug", "rules" => array("checkSlug")),
 	    "type" => array("name" => "type"),
 	    "parent" => array("name" => "parent"),
 	    "parentId" => array("name" => "parentId"),
