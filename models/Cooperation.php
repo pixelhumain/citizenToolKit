@@ -262,4 +262,36 @@ class Cooperation {
 		$date = new MongoDate($date->getTimestamp());
 		return $date;
 	}
+
+
+	public static function afterSave($params, $type){ error_log("COOPERATION::afterSave : ".@$type);
+		$id = (string)$params['_id'];
+		$name = @$params["name"] ? $params["name"] : @$params["title"];
+		//ActivityStream::saveActivityHistory(ActStr::VERB_CREATE, @$params["parentId"], @$params["parentType"], $type, $name);
+
+		$targetId = @$params["parentId"];
+		$targetType = @$params["parentType"];
+
+		$object = array("type" => $type,
+						"id" => $id,
+						"displayName" => $name);
+
+		$buildArray = array(
+				"type" => ActivityStream::COLLECTION,
+				"verb" => ActStr::VERB_CREATE,
+				"target" => array("id" => $targetId,
+								  "type"=> $targetType),
+				"author" => Yii::app()->session["userId"],
+				"object" => $object,
+				"scope" => array("type"=>"private"),
+			    "created" => new MongoDate(time()),
+				"sharedBy" => array(array(	"id" => Yii::app()->session["userId"],
+											"type"=> "citoyens",
+											//"comment"=>@$comment,
+											"updated" => new MongoDate(time()))),
+			);
+
+			//$params=ActivityStream::buildEntry($buildArray);
+			$newsShared=ActivityStream::addEntry($buildArray);
+	}
 }
