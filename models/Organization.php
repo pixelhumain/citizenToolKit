@@ -25,6 +25,7 @@ class Organization {
 	//TODO : remove name   
 	public static $dataBinding = array(
 	    "name" => array("name" => "name", "rules" => array("required", "organizationSameName")),
+	    "slug" => array("name" => "slug", "rules" => array("checkSlug")),
 	    "email" => array("name" => "email", "rules" => array("email")),
 	    "type" => array("name" => "type", "rules" => array("required","typeOrganization")),
 	    "shortDescription" => array("name" => "shortDescription"),
