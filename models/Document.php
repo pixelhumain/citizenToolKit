@@ -347,6 +347,8 @@ class Document {
 		$where=array("id"=>$id,"type"=>$type,"contentKey"=>$contentKey);
 		if(@$collection)
 			$where["collection"]=$collection;
+		else if(!@$collection && $contentKey==self::IMG_SLIDER)
+			$where["collection"]=array('$exists'=>true);
 		$doc = PHDB::findOne( self::COLLECTION, $where);
 		if(!empty($doc)){
 			$doc=self::getListOfImage(array($doc));
