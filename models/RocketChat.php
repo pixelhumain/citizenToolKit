@@ -72,6 +72,8 @@ class RocketChat{
 				$res->create = $channel->create();
 				if(!@$res->create->success)
 					$res->info = $channel->info() ;
+				
+
 			}
 				
 			if(@$username){
@@ -79,7 +81,7 @@ class RocketChat{
 				if(@$res->invite->channel->usernames)
 					$channel->members = $res->invite->channel->usernames;			
 			}
-			$res->channel = $channel;
+			//$res->channel = $channel;
 
 		} catch (Exception $e) {
             $res->msg = $e->getMessage();

@@ -13,6 +13,18 @@ class Authorisation {
     }
 
     //**************************************************************
+    // Super Admin Authorisation
+    //**************************************************************
+    public static function isUser($userId,$roles) {
+        $res = false;
+        if (! empty($userId)) {
+            $account = Person::getById($userId);
+            $res = Role::isUser(@$account["roles"],$roles);
+        }
+        return $res;
+    }
+
+    //**************************************************************
     // Organization Authorisation
     //**************************************************************
 
@@ -836,8 +848,10 @@ class Authorisation {
         //If open Edition : the element can be deleted
         $res = self::isOpenEdition($elementId, $elementType);
         if($res != true) {
+            
             //check if the user is super admin
-            $res = self::isUserSuperAdmin($userId);
+            $res = self::isUser($userId, array(Role::SUPERADMIN, Role::COEDITOR ));
+
             if ($res != true) {
                 // check if the user can edit the element (admin of the element)
                 $res = self::canEditItem($userId, $elementType, $elementId);

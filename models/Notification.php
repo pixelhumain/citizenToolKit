@@ -314,7 +314,11 @@ class Notification{
 					"label" => "{who} added {what} as member of {where}",
 					"labelRepeat" => "{who} added {what} as members of {where}",
 					"repeat" => true
-				)
+				),
+				"chat" => array(
+					"url" => "page/type/{collection}/id/{id}",
+					"label" => "{who} added a Chat on {where}"
+				),
 			),
 			/*"context" => array(
 				"members" => array(
