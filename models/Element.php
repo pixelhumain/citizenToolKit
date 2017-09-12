@@ -43,8 +43,9 @@ class Element {
 	    	City::COLLECTION => City::CONTROLLER,
 	    	Survey::COLLECTION => Survey::CONTROLLER,
 	    	Proposal::COLLECTION => Proposal::CONTROLLER,
-	    	ActionRoom::COLLECTION => ActionRoom::CONTROLLER,
-	    	ActionRoom::COLLECTION_ACTIONS => ActionRoom::CONTROLLER,
+	    	Action::COLLECTION => Action::CONTROLLER,
+	    	//ActionRoom::COLLECTION => ActionRoom::CONTROLLER,
+	    	//ActionRoom::COLLECTION_ACTIONS => ActionRoom::CONTROLLER,
 	    );	    
     	return @$ctrls[$type];
     }
@@ -301,6 +302,8 @@ class Element {
 			$element = PHDB::findOne( Survey::COLLECTION ,array("_id"=>new MongoId($id)));
 		else if($type == Proposal::COLLECTION )
 			$element = PHDB::findOne( Proposal::COLLECTION ,array("_id"=>new MongoId($id)));
+		else if($type == Action::COLLECTION )
+			$element = PHDB::findOne( Action::COLLECTION ,array("_id"=>new MongoId($id)));
 		else
 			$element = PHDB::findOne($type,array("_id"=>new MongoId($id)));
 	  	
@@ -405,6 +408,8 @@ class Element {
 			return Poi::getDataBinding();
 		else if($collection == Proposal::COLLECTION)
 			return Proposal::getDataBinding();
+		else if($collection == Action::COLLECTION)
+			return Action::getDataBinding();
 		else
 			return array();
 	}
@@ -1404,9 +1409,12 @@ class Element {
                 	if( $collection == Organization::COLLECTION )
                 		$res["afterSave"] = Organization::afterSave($params, Yii::app()->session["userId"], $paramsLinkImport);
                 	else if( $collection == Event::COLLECTION )
-                		$res["afterSave"] = Event::afterSave($params);
+                		$res["afterSave"] = Event::afterSave($params, $paramsLinkImport);
                 	else if( $collection == Project::COLLECTION )
-                		$res["afterSave"] = Project::afterSave($params, @$params["parentId"] , @$params["parentType"] );
+                		$res["afterSave"] = Project::afterSave($params, $paramsLinkImport);
+                	else if( $collection == Proposal::COLLECTION || $collection == Action::COLLECTION || $collection == Room::COLLECTION )
+                		$res["afterSave"] = Cooperation::afterSave($params, $collection);
+                	
                 	$res["afterSaveGbl"] = self::afterSave((string)$params["_id"],$collection,$params,$postParams);
                 }
                 else
@@ -1437,10 +1445,13 @@ class Element {
                 if( $collection == Organization::COLLECTION )
                 	$res["afterSave"] = Organization::afterSave($params, Yii::app()->session["userId"], $paramsLinkImport);
                 else if( $collection == Event::COLLECTION )
-                	$res["afterSave"] = Event::afterSave($params);
+                	$res["afterSave"] = Event::afterSave($params, $paramsLinkImport);
                 else if( $collection == Project::COLLECTION )
-                	$res["afterSave"] = Project::afterSave($params, @$params["parentId"] , @$params["parentType"] );
-                $res["afterSaveGbl"] = self::afterSave((string)$params["_id"],$collection,$params,$postParams);
+                	$res["afterSave"] = Project::afterSave($params, $paramsLinkImport );
+                else if( $collection == Proposal::COLLECTION || $collection == Action::COLLECTION )
+                	$res["afterSave"] = Cooperation::afterSave($params, $collection);
+
+               $res["afterSaveGbl"] = self::afterSave((string)$params["_id"],$collection,$params,$postParams);
                 //if( false && @$params["parentType"] && @$params["parentId"] )
                 //{
                     //createdObjectAsParam($authorType, $authorId, $objectType, $objectId, $targetType, $targetId, $geo, $tags, $address, $verb="create")
@@ -1519,6 +1530,13 @@ class Element {
 		if(isset($params["name"]))
 			$params["name"] = $params["name"];
 
+		if(isset($params["slug"]) && !empty($params["slug"])){
+			$params["slug"]=$params["slug"];
+			if(!empty(Slug::getByTypeAndId($params["collection"],$params["id"])))
+				Slug::update($params["collection"],$params["id"],$params["slug"]);
+			else
+				Slug::save($params["collection"],$params["id"],$params["slug"]);
+		}
 		if(isset($params["shortDescription"]))
 			$params["shortDescription"] = strip_tags($params["shortDescription"]);
 
@@ -1878,6 +1896,8 @@ class Element {
 				$res[] = self::updateField($collection, $id, "type", $params["type"]);
 			if(isset($params["email"]))
 				$res[] = self::updateField($collection, $id, "email", $params["email"]);
+			if(isset($params["slug"]))
+				$res[] = self::updateField($collection, $id, "slug", $params["slug"]);
 			if(isset($params["url"]))
 				$res[] = self::updateField($collection, $id, "url", self::getAndCheckUrl($params["url"]));
 			if(isset($params["birthDate"]) && $collection == Person::COLLECTION)

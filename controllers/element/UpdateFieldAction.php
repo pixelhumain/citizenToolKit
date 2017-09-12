@@ -8,14 +8,14 @@ class UpdateFieldAction extends CAction
     public function run() {
 		$id = "";
 		$res = array("result"=>false, "msg"=>Yii::t("common", "Something went wrong!"));
-		 if (!empty($_POST["id"])) {
+		if (!empty($_POST["id"])) {
 			$id = $_POST["id"];
 		}
 
 		if ($id != "" && Yii::app()->session['userId'] ) {
 			$el = PHDB::findOne($_POST["type"], array( "_id" => new MongoId($id) ) );
 			$auth = false;
-			if( $_POST["type"] == Proposal::COLLECTION )
+			//if( $_POST["type"] == Proposal::COLLECTION )
 			$auth = Authorisation::canParticipate( 
 						Yii::app()->session['userId'], $el["parentType"], $el["parentId"] );
 								

@@ -9,6 +9,7 @@ class Project {
 	//From Post/Form name to database field name
 	public static $dataBinding = array(
 	    "name" => array("name" => "name", "rules" => array("required")),
+	    "slug" => array("name" => "slug", "rules" => array("checkSlug")),
 	    "address" => array("name" => "address", "rules" => array("addressValid")),
 	    "addresses" => array("name" => "addresses"),
 	    "streetAddress" => array("name" => "address.streetAddress"),
@@ -288,7 +289,7 @@ class Project {
 	    return array("result"=>true, "msg"=>"Votre projet est communecté.", "id" => $newProject["_id"]);	
 	}
 
-	public static function afterSave($params){
+	public static function afterSave($params, $import){
 	    
 	    Badge::addAndUpdateBadges("opendata",(String)$params["_id"], Project::COLLECTION);
 	    if( !@$params['parentType'] && !@$params['parentId'] ){
@@ -301,7 +302,8 @@ class Project {
     	if( @$params["parentId"] && $params["parentType"]==self::COLLECTION)
 			Link::connect( $params["parentId"], self::COLLECTION, (string)$params["_id"], self::COLLECTION, Yii::app()->session["userId"], "projects");
 
-	    Notification::createdObjectAsParam(Person::COLLECTION,Yii::app() -> session["userId"],Project::COLLECTION, (String)$params["_id"], $params['parentType'], $params['parentId'], @$params["geo"], @$params["tags"] ,@$params["address"]);
+		if(empty($import))
+	    	Notification::createdObjectAsParam(Person::COLLECTION,Yii::app() -> session["userId"],Project::COLLECTION, (String)$params["_id"], $params['parentType'], $params['parentId'], @$params["geo"], @$params["tags"] ,@$params["address"]);
 	    if($params["parentType"]==Organization::COLLECTION || $params["parentType"]==Project::COLLECTION)
 	    	Notification::constructNotification(ActStr::VERB_ADD, array("id" => Yii::app()->session["userId"],"name"=> Yii::app()->session["user"]["name"]), array("type"=>$params["parentType"],"id"=> $params["parentId"]), array("id"=>(string)$params["_id"],"type"=> Project::COLLECTION), Project::COLLECTION);
 

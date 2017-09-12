@@ -42,6 +42,18 @@ class NewsTranslator {
 				$object=Classified::getById((string)$params["object"]["id"]);
 				$params["icon"]="fa-newspaper-o";
 			}
+			else if (@$params["object"]["type"]==Proposal::COLLECTION){
+				$object=Proposal::getById((string)$params["object"]["id"]);
+				$params["icon"]="fa-gavel";
+			}
+			else if (@$params["object"]["type"]==Action::COLLECTION){
+				$object=Action::getById((string)$params["object"]["id"]);
+				$params["icon"]="fa-ticket";
+			}
+			else if (@$params["object"]["type"]==Room::COLLECTION){
+				$object=Room::getById((string)$params["object"]["id"]);
+				$params["icon"]="fa-inbox";
+			}
 			//var_dump($object);
 			//exit;
 			if(!empty($object)){
@@ -151,7 +163,7 @@ class NewsTranslator {
 			}
 			$params["media"]["images"]=$images;
 		}
-		if(@$params["media"] && $params["media"]["type"]=="gallery_files"){
+		else if(@$params["media"] && $params["media"]["type"]=="gallery_files"){
 			$files=array();
 			$limit=5;
 			$i=0;
@@ -176,6 +188,11 @@ class NewsTranslator {
 				}
 			}
 			$params["media"]["files"]=$files;
+		}
+		else if(@$params["media"] && $params["media"]["type"]=="activityStream"){
+			$element=Element::getSimpleByTypeAndId($params["media"]["object"]["type"], $params["media"]["object"]["id"]);
+			$element["type"]=$params["media"]["object"]["type"];
+			$params["media"]["object"] = $element;
 		}
 
 		if(!isset($params["author"]["id"]) || @$params["verb"] == "create"){ 

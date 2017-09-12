@@ -361,11 +361,15 @@ class IndexAction extends CAction
 			$where=$_POST["condition"];
 			$where["created"]=array('$lt' => $date);
 		}*/
+
+
 		if(!empty($where))
 			$news= News::getNewsForObjectId($where,array("sharedBy.updated"=>-1),$type, @$followsArrayIds);
 		//echo count($news);
 		// Sort news order by created 
 		$news = News::sortNews($news, array('updated'=>SORT_DESC));
+
+		//var_dump($news); exit;
         //TODO : reorganise by created date
 		$params["news"] = $news;
 		$params["tags"] = Tags::getActiveTags();
