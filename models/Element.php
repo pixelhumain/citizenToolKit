@@ -1866,8 +1866,13 @@ class Element {
 				$res[] = self::updateField($collection, $id, "type", $params["type"]);
 			if(isset($params["email"]))
 				$res[] = self::updateField($collection, $id, "email", $params["email"]);
-			if(isset($params["slug"]))
+			if(isset($params["slug"])){
 				$res[] = self::updateField($collection, $id, "slug", $params["slug"]);
+				if(!empty(Slug::getByTypeAndId($collection,$id)))
+					Slug::update($collection,$id,$params["slug"]);
+				else
+					Slug::save($collection,$id,$params["slug"]);
+			}
 			if(isset($params["url"]))
 				$res[] = self::updateField($collection, $id, "url", self::getAndCheckUrl($params["url"]));
 			if(isset($params["birthDate"]) && $collection == Person::COLLECTION)
