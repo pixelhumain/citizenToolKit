@@ -1374,6 +1374,11 @@ class Element {
                 if(!@$exists){
                 	$params["creator"] = Yii::app()->session["userId"];
 	        		$params["created"] = time();
+	        		if(in_array($collection,[Organization::COLLECTION,Project::COLLECTION,Event::COLLECTION])){
+	        			$slug=Slug::checkAndCreateSlug($params["name"],$collection,$id);
+	        			Slug::save($collection,$id,$slug);
+	        			$params["slug"]=$slug;
+	        		}
                 	PHDB::updateWithOptions($collection,array("_id"=>new MongoId($id)), array('$set' => $params ),array('upsert' => true ));
                 	$params["_id"]=new MongoId($id);
                 	if( $collection == Organization::COLLECTION )
