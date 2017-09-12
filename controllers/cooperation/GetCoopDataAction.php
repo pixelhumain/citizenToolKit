@@ -29,13 +29,35 @@ class GetCoopDataAction extends CAction {
 		}
 		else {
 			if($type == Proposal::CONTROLLER || $type == Proposal::COLLECTION){
-				$page = "proposal"; $type = Proposal::CONTROLLER;
+				$page = "proposal"; 
+				$type = Proposal::CONTROLLER;
 			} 
 			if($type == Action::CONTROLLER || $type == Action::COLLECTION){
-				$page = "action"; $type = Action::CONTROLLER;
+				$page = "action"; 
+				$type = Action::CONTROLLER;
+
+				$res["contributors"] = array();
+		        $res["countStrongLinks"] = 0;
+		        if(@$res["action"]["links"]["contributors"])
+		        {
+		            $res["countStrongLinks"]=count($res["action"]["links"]["contributors"]);
+		            foreach ($res["action"]["links"]["contributors"] as $uid => $e) 
+		            {
+		            	var_dump($uid);
+		                $citoyen = Person::getPublicData($uid);
+		                if(!empty($citoyen)){
+		                    $citoyen["type"]=Person::COLLECTION;
+		                    $profil = Document::getLastImageByKey($uid, Person::COLLECTION, Document::IMG_PROFIL);
+		                    if($profil !="")
+		                        $citoyen["imagePath"] = $profil;
+		                    array_push( $res["contributors"] , $citoyen);
+		                }
+		            }
+		        }
 			} 
 			if($type == Resolution::CONTROLLER || $type == Resolution::COLLECTION){
-				$page = "resolution"; $type = Resolution::CONTROLLER;
+				$page = "resolution"; 
+				$type = Resolution::CONTROLLER;
 			} 
 			//if($type == Resolution::CONTROLLER) $page = "resolution";
 		}
