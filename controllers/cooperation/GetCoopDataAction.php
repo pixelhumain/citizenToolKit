@@ -43,7 +43,6 @@ class GetCoopDataAction extends CAction {
 		            $res["countStrongLinks"]=count($res["action"]["links"]["contributors"]);
 		            foreach ($res["action"]["links"]["contributors"] as $uid => $e) 
 		            {
-		            	var_dump($uid);
 		                $citoyen = Person::getPublicData($uid);
 		                if(!empty($citoyen)){
 		                    $citoyen["type"]=Person::COLLECTION;
