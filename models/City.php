@@ -302,6 +302,21 @@ class City {
 		return $city;
 	}
 
+	public static function getLevelForNowList($loc){
+		$res = null;
+		
+		if(!empty($loc["level4"])){
+			$res = $loc["level4"];
+		} else if(!empty($loc["level3"])){
+			$res = $loc["level3"];
+		} else if(!empty($loc["level2"])){
+			$res = $loc["level2"];
+		} else
+			$res = $loc["level1"];
+	
+		return $res;
+	}
+
 	/* Retourne le code du departement d'une commune par rapport a son code insee */
 	public static function getCodeDepartement($insee){
 		$where = array("insee" => $insee);

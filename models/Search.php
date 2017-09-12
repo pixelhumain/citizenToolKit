@@ -300,7 +300,6 @@ class Search {
 
 		foreach ($localities as $key => $locality){
 			if(!empty($locality)){
-
 				if($locality["type"] == City::CONTROLLER)
 					$queryLocality = array("address.localityId" => $key);
 				else if($locality["type"] == "cp")
@@ -315,7 +314,10 @@ class Search {
 					$allQueryLocality = array('$or' => array($allQueryLocality ,$queryLocality));
 			}
 		}
-		$query = array('$and' => array($allQueryLocality));
+
+		if(!empty($allQueryLocality))
+			$query = array('$and' => array($allQueryLocality));
+
 		return $query ;
 	}
 
