@@ -18,8 +18,13 @@ class Slug {
 	public static function getByTypeAndId($type,$id){
 		return PHDB::findOne(self::COLLECTION,array("type"=>$type,"id"=>$id));
 	}
-	public static function check($params){
-		$res=PHDB::findOne(self::COLLECTION,array("name"=>$params["slug"], "id"=>array('$ne'=>$params["id"])));
+	public static function check($slug,$type=null,$id=null){
+		$where=array("name"=>$slug);
+		if(@$id && @$type){
+			$where["id"]=array('$ne'=>$id);
+			$where["type"]=array('$ne'=>$type);
+		}
+		$res=PHDB::findOne(self::COLLECTION,$where);
 		if(!empty($res))
 			return false;
 		else 
@@ -52,12 +57,12 @@ class Slug {
   			$res.=$text;
   			$i++;
 		}	
-		if(!self::check(array("slug"=>$res,"type"=>$type,"id"=>$id))){
+		if(!self::check($res)){
 			$v = 1; // $i est un nombre que l'on incrémentera. 
 			$inc=false;
 			while($inc==false) 
 			{ 
-				$inc=self::check(array("slug"=>$res.$v,"type"=>$type,"id"=>$id));
+				$inc=self::check($res.$v);
 				if($inc)
 					$res=$res.$v;
 				else
