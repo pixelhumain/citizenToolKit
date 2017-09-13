@@ -28,10 +28,14 @@ class Cooperation {
 		"mine" => "blue",
 		"amendable" => "purple",
 		"todo" => "green-k",
+		"progress" => "green-k",
+		"startingsoon" => "green-k",
 		"tovote" => "green-k",
 		"done" => "red",
 		"closed" => "red",
+		"nodate" => "red",
 		"archived" => "orange",
+		"late" => "orange",
 		);
 
 	public static function getColorCoop($key){
