@@ -53,8 +53,10 @@ class SaveVoteAction extends CAction {
 			}
 		}
 
-		$votes = @$proposal["votes"][$voteValue] ? $proposal["votes"][$voteValue] : array();
+		$votes = isset($allVotes[$voteValue]) ? $allVotes[$voteValue] : array();
 		$votes[] = $myId;
+
+		//var_dump($allVotes[$voteValue]); exit;
 
 		//$page = "";
 		PHDB::update(Proposal::COLLECTION,

@@ -90,7 +90,7 @@ class Proposal
  			$totalVotant+=count($votes[$key]);
  		} //echo $totalVotant; exit;
  		foreach ($votes as $key => $value) {
- 			$voteRes[$key]["percent"] = $totalVotant > 0 ? $voteRes[$key]["votant"] * 100 / $totalVotant : 0;
+ 			$voteRes[$key]["percent"] = $totalVotant > 0 ? round($voteRes[$key]["votant"] * 100 / $totalVotant, 2) : 0;
  		}
 
  		return $voteRes;
