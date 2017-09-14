@@ -147,10 +147,10 @@ class Notification{
 					"repeat" => true,
 					"url" => "page/type/news/id/{id}"
 				),
-				Survey::COLLECTION => array(
+				Proposal::COLLECTION => array(
 					"label" => "{who} commented on proposal {what} in {where}",
 					"labelRepeat" => "{who} added comments on proposal {what} in {where}",
-					"url" => "survey/entry/id/{id}"
+					"url" => "page/type/{collection}/id/{id}/view/coop/room/{roomId}/proposal/{objectId}",
 				),
 				ActionRoom::COLLECTION_ACTIONS => array(
 					"label" => "{who} commented on action {what} in {where}",
@@ -291,12 +291,16 @@ class Notification{
 					"url"=>"survey/entries/id/{objectId}",
 					"label" => "{who} added a new voting room on {where}"
 				),
-				Survey::COLLECTION => array(
-					"url" => "survey/entry/id/{id}",
+				Room::COLLECTION => array(
+					"url"=>"page/type/{collection}/id/{id}/view/coop/room/{objectId}",
+					"label" => "{who} added a new room on {where}"
+				),
+				Proposal::COLLECTION => array(
+					"url" => "page/type/{collection}/id/{id}/view/coop/room/{roomId}/proposal/{objectId}",
 					"label"=> "{who} added a new proposal {what} in {where}"
 				),
-				ActionRoom::TYPE_ACTION => array(
-					"url" => "rooms/action/id/{id}",
+				Action::COLLECTION => array(
+					"url" => "page/type/{collection}/id/{id}/view/coop/room/{roomId}/action/{objectId}",
 					"label" => "{who} added a new action {what} in {where}"
 				),
 				"profilImage" => array(
@@ -339,8 +343,17 @@ class Notification{
 			"labelRepeat"=>"{who} have voted on {what} in {where}",
 			"labelArray" => array("who","where"),
 			"icon" => ActStr::ICON_VOTE,
-			"url" => "survey/entry/id/{id}"
+			"url" =>  "page/type/{collection}/id/{id}/view/coop/room/{roomId}/proposal/{objectId}"
 		),
+		ActStr::VERB_AMEND => array(
+			"repeat" => true,
+			"label" => "{who} amended on {what} in {where}",
+			"labelRepeat"=>"{who} have amended on {what} in {where}",
+			"labelArray" => array("who","where"),
+			"icon" => ActStr::ICON_VOTE,
+			"url" =>  "page/type/{collection}/id/{id}/view/coop/room/{roomId}/proposal/{objectId}"
+		),
+
 		/*
 		"ActStr::VERB_UPDATE" => array(
 			"repeat" => true,
@@ -468,6 +481,11 @@ class Notification{
 		}
         $people = array();
 	    $members = array();
+	    if(in_array($type, array( Proposal::COLLECTION))){
+	    	$prop=Proposal::getById($id);
+	    	$type=$prop["parentType"];
+	    	$id=$prop["parentId"];
+	    }
 	    if( $type == Project::COLLECTION )
 	    	$members = Project::getContributorsByProjectId( $id ,$impactType, $impactRole);
 	    else if( $type == Organization::COLLECTION)
@@ -507,7 +525,7 @@ class Notification{
 				}
 			} 
 		} 
-		else if( in_array($type, array( Survey::COLLECTION, ActionRoom::COLLECTION, ActionRoom::COLLECTION_ACTIONS) ) )
+		/*else if( in_array($type, array( Survey::COLLECTION, ActionRoom::COLLECTION, ActionRoom::COLLECTION_ACTIONS) ) )
 		{
 			$entryId = $id;
 			if( $type == Survey::COLLECTION ){
@@ -529,10 +547,10 @@ class Notification{
 		 //    			$members = Event::getAttendeesByEventId( $room["parentId"] , "admin", "isAdmin" ) ;
 		 //    	$construct["target"]["parent"]=array("id"=>$room["parentId"],"type"=> $room["parentType"]);
 			// }
-		}
+		}*/
 	    foreach ($members as $key => $value) 
 	    {
-	    	if( $key != Yii::app()->session['userId'] && !in_array($key, $people) && count($people) < self::PEOPLE_NOTIFY_LIMIT && $key != $alreadyAuhtorNotify){
+	    	if( $key != Yii::app()->session['userId'] && !in_array($key, $people) && count($people) < self::PEOPLE_NOTIFY_LIMIT && $key != $alreadyAuhtorNotify && (!@$value["type"] || $value["type"]==Person::COLLECTION)){
 	    		$people[$key] = array("isUnread" => true, "isUnseen" => true); 
 	    	}
 	    }
@@ -736,9 +754,16 @@ class Notification{
 		$url = str_replace("{id}", $construct["target"]["id"], $url);
 		if(stripos($url, "{connectAs}") > 0)
 			$url = str_replace("{connectAs}", Element::$connectTypes[$construct["target"]["type"]], $url);
-		if(stripos($url, "{objectType}") > 0){
+		if(stripos($url, "{objectType}") > 0)
 			$url = str_replace("{objectType}", $construct["object"]["type"], $url);
+		if(stripos($url, "{objectId}") > 0)
 			$url = str_replace("{objectId}", $construct["object"]["id"], $url);
+		if(stripos($url, "{roomId}") > 0){
+			if($construct["object"]["type"]==Action::COLLECTION)
+				$actionSpec=Action::getSimpleSpecById($construct["object"]["id"],null,array("idParentRoom"));
+			else if($construct["object"]["type"]==Proposal::COLLECTION)
+				$actionSpec=Proposal::getSimpleSpecById($construct["object"]["id"],null,array("idParentRoom"));
+			$url = str_replace("{roomId}", $actionSpec["idParentRoom"], $url);
 		}
 		return $url;
 	}
@@ -866,6 +891,12 @@ class Notification{
 		//Move labelUpToNotify in getLabel
 		$notificationPart["labelUpNotifyTarget"] = "author";
 		$notifyCommunity=true;
+		//Specific usecase for comment on proposal
+		if($verb==Actstr::VERB_COMMENT && $target["type"]==Proposal::COLLECTION){
+			$prop=Proposal::getById($target["id"]);
+			$notificationPart["object"]=$target;
+			$notificationPart["target"]=array("type"=>$prop["parentType"],"id"=>$prop["parentId"]);
+		}
 		// Create notification specially for user added to the next notify for community of target
 		if(@$notificationPart["notifyUser"] || (@$notificationPart["type"] && @$notificationPart["type"][$levelType] && @$notificationPart["type"][$levelType]["notifyUser"])){
 			$update=false;
@@ -913,21 +944,11 @@ class Notification{
 					|| in_array($notificationPart["verb"], array(Actstr::VERB_COMMENT,Actstr::VERB_LIKE,Actstr::VERB_UNLIKE)))
 					$update=self::checkIfAlreadyNotifForAnotherLink($notificationPart,true);
 				if($update==false){
-			 	    //$notifyObject=null;
 			 	    //--------- MOVE ON GETLABEL -----------//
 			 	   ////////// !!!!!! $type was to null ... change to user for comment on comment but could be a bug in other notification with user notification ... ???? !!!!! ////////////////
 			 	   $type="user";
 			 	    if(@$notificationPart["type"]["user"])
 						$notificationPart["labelUpNotifyTarget"]="object";
-					//REFACTOR -- VERYFY ELSE NO IMPACT ON A NOTIF
-					/*else{
-						if(@$target["targetIsAuthor"])
-							$label = $notificationPart["type"][$levelType]["targetIsAuthor"]["label"];
-						else
-							$label = $notificationPart["type"][$levelType]["label"];
-						//$labelUpNotifyTarget="author";
-						//$notifyObject=$typeAction;
-					}*/
 					// -------- END MOVE ON GETLABEL --------///
 					$notificationPart["author"]=array(Yii::app()->session["userId"] => array("name"=> Yii::app()->session["user"]["name"]));
 					self::createNotification($notificationPart,$type);
@@ -986,24 +1007,24 @@ class Notification{
 	**/
 	public static function getTargetInformation($id, $type, $object=null) {	
 	 	$target=array();
-	 	if( in_array($type, array( Survey::COLLECTION, ActionRoom::COLLECTION, ActionRoom::COLLECTION_ACTIONS) ) )
+	 	if(@$object && in_array($object["type"], array( Proposal::COLLECTION, Room::COLLECTION, Action::COLLECTION) ) )
 		{
-			$entryId = $id;
-			if( $type == Survey::COLLECTION ){
-				$target["entry"] = Survey::getById( $id );
-				$entryId = (string)$target["entry"]["survey"];
-			} else if( $type == ActionRoom::COLLECTION_ACTIONS ){
-				$target["entry"] = ActionRoom::getActionById( $id );
-				$entryId = $target["entry"]["idParentRoom"];
-			}
-			$room = ActionRoom::getById( $entryId );
-			$target["room"] = $room;
+			$roomId = $id;
+			if( $object["type"] == Proposal::COLLECTION )
+				$target["entry"] = Proposal::getById( $object["id"] );
+			else if( $object["type"] == Action::COLLECTION )
+				$target["entry"] = Action::getById( $object["id"] );
+			if(@$target["entry"])
+				$roomId=$target["entry"]["idParentRoom"];
+			$target["room"] = Room::getById( $roomId );
+			$target["parent"] = Element::getElementSimpleById($target["entry"]["parentId"], $target["entry"]["parentType"]); 
+			/*$target["room"] = $room;
 			if( @$room["parentType"] ){
 				if( $room["parentType"] == City::COLLECTION ) 
 			    	$target["parent"] = City::getByUnikey( $room["parentId"]);
 				else 
-					$target["parent"] = Element::getElementSimpleById($room["parentId"], $room["parentType"]); 
-			}
+					$target["parent"] = Element::getElementSimpleById($target["entry"]["parentId"], $target["entry"]["parentType"]);
+			}*/
 		}else if($type=="news"){
 			$news=News::getById($id);
 			$authorNews=News::getAuthor($id);
@@ -1044,7 +1065,10 @@ class Notification{
 
 		}
 		else if (@$target["entry"]){
-			$res["{what}"]=$target["entry"]["name"];
+			if(@$target["entry"]["name"])
+				$res["{what}"]=$target["entry"]["name"];
+			else
+				$res["{what}"]=$target["entry"]["title"];
 			if(@$target["parent"])
 				$res["{where}"] = $target["parent"]["name"];
 		} 

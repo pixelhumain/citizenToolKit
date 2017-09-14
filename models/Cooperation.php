@@ -270,12 +270,16 @@ class Cooperation {
 		return $date;
 	}
 
-
 	public static function afterSave($params, $type){ error_log("COOPERATION::afterSave : ".@$type);
 		$id = (string)$params['_id'];
 		$name = @$params["name"] ? $params["name"] : @$params["title"];
 		//ActivityStream::saveActivityHistory(ActStr::VERB_CREATE, @$params["parentId"], @$params["parentType"], $type, $name);
-
+		Notification::constructNotification(ActStr::VERB_ADD, 
+                    array("id" => Yii::app()->session["userId"],"name"=> Yii::app()->session["user"]["name"]), 
+                    array(  "type"=>@$params['parentType'] ? $params['parentType'] : "",
+                            "id"=> @$params['parentId'] ? $params['parentId'] : ""), 
+                    array("id"=>$id,"type"=> $type), $type
+                );
 		$targetId = @$params["parentId"];
 		$targetType = @$params["parentType"];
 

@@ -1969,7 +1969,7 @@ class Element {
 									"idUserAuthor"=> Yii::app()->session['userId'],
 									"typeAmdt" => $params["typeAmdt"],
 									"textAdd"=> $params["txtAmdt"]);
-
+				Notification::constructNotification ( ActStr::VERB_AMEND, array("id" => Yii::app()->session["userId"],"name"=> Yii::app()->session["user"]["name"]), array("type"=>$proposal["parentType"],"id"=>$proposal["parentId"]),array( "type"=>Proposal::COLLECTION,"id"=> $params["id"] ) );
 				$res[] = self::updateField($collection, $id, "amendements", $amdtList);
 			}
 		}
