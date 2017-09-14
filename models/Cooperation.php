@@ -107,6 +107,9 @@ class Cooperation {
 					}
 				}else{
 					$query["status"] = array('$in'=>array('amendable', "tovote"));
+
+					$res["roomList"] = PHDB::findAndSort ( Room::COLLECTION, 
+						array( "parentType" => $parentType, "parentId" => $parentId), array());
 				}
 				
 				$res["proposalList"] = PHDB::findAndSort ( 

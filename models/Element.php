@@ -280,6 +280,7 @@ class Element {
     }
 
 	public static function getByTypeAndId($type, $id,$what=null){
+
 		if( @$what ) 
 			$element = PHDB::findOneById($type, $id, $what);
 		else if($type == Person::COLLECTION)
@@ -304,6 +305,8 @@ class Element {
 			$element = PHDB::findOne( Proposal::COLLECTION ,array("_id"=>new MongoId($id)));
 		else if($type == Action::COLLECTION )
 			$element = PHDB::findOne( Action::COLLECTION ,array("_id"=>new MongoId($id)));
+		else if($type == Room::COLLECTION )
+			$element = PHDB::findOne( Room::COLLECTION ,array("_id"=>new MongoId($id)));
 		else
 			$element = PHDB::findOne($type,array("_id"=>new MongoId($id)));
 	  	
