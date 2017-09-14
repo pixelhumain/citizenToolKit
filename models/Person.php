@@ -90,6 +90,8 @@ class Person {
 		
 		if(	@$account["username"] ) 
 	      	$user ["username"] = $account["username"];
+	    if(@$account["slug"] ) 
+	      	$user ["slug"] = $account["slug"];
 	    if( @$account["cp"] ) 
 	      	$user ["postalCode"] = $account["cp"];
 	    if( @$account["address"]) {
@@ -628,7 +630,7 @@ class Person {
 	  	//$person["preferences"] = array("seeExplanations"=> true);
 	  	$person["preferences"] = Preference::initPreferences(self::COLLECTION);
 	  	$person["seePreferences"] = true;
-	  	
+	  	$person["slug"]=Slug::checkAndCreateSlug($person["username"]);
 	  	PHDB::insert(self::COLLECTION , $person);
         if (isset($person["_id"])) {
         	$newpersonId = (String) $person["_id"];
@@ -637,6 +639,7 @@ class Person {
 			  	$encodedpwd = self::hashPassword($newpersonId, $pwd);
 			  	self::updatePersonField($newpersonId, "pwd", $encodedpwd, $newpersonId);
 			} 
+	        Slug::save(Person::COLLECTION,(string)$person["_id"],$person["slug"]);
 	    } else {
 	    	throw new CTKException("Problem inserting the new person");
 	    }
@@ -1204,7 +1207,9 @@ class Person {
 			}
 
 			$personToUpdate["pwd"] = $pwd;
-
+			// CREATE SLUG FOR CITOYENS
+			$personToUpdate["slug"]=Slug::checkAndCreateSlug($personToUpdate["username"]);
+	  	    Slug::save(Person::COLLECTION,$personId,$personToUpdate["slug"]);
 			PHDB::update(self::COLLECTION, array("_id" => new MongoId($personId)), 
 			                          array('$set' => $personToUpdate, '$unset' => array("pending" => "" ,"roles.tobeactivated"=>""
 			                          	)));
