@@ -99,7 +99,7 @@ class IndexAction extends CAction
 			$images = Document::getImagesByKey($id, Room::COLLECTION_ACTIONS, $limit);
 			$params["images"] = $images;
             $actionRoom = Room::getById($params["context"]["idParentRoom"]);
-            $canParticipate = Authorisation::canParticipate(Yii::app()->session["userId"], $actionRoom["parentType"], $actionRoom["parentId"]);
+            $canParticipate = Authorisation::canParticipate(Yii::app()->session["userId"], $params["context"]["parentType"], $params["context"]["parentId"]);
             $canComment = $params["canComment"] && $canParticipate;
             $params['canComment'] = $canComment;
             $params["parentType"] = $actionRoom["parentType"];
