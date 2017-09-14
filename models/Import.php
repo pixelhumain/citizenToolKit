@@ -371,11 +371,23 @@ class Import
 				$newGeoPosition = SIG::getFormatGeoPosition($lat, $lon);
 				$result = true;
 			} else {
-				$resNominatim = json_decode(SIG::getGeoByAddressNominatim(null, null, $address["addressLocality"], trim($address["addressCountry"]), true, true),true);
-				//var_dump($resNominatim);
+				$resNominatim = json_decode(SIG::getGeoByAddressNominatim(null, null, $address["addressLocality"], trim($address["addressCountry"]), false, true),true);
 				if(!empty($resNominatim)){
-					$saveCities[] = array(	"osmID" => $resultNominatim[0][$valueType],
-                							"name" => $resultNominatim[0]["address"][$valueType]);
+
+					// $typeCities = array("city", "village", "town") ;
+					// foreach ($resNominatim as $keyN=> $valueN) {
+					// 	if( !empty($valueN["address"][$valueType]) && 
+					// 		$countryCode == strtoupper(@$valueN["address"]["country_code"]) &&
+					// 		in_array(needle, haystack)) {
+
+					// 			$newA = array(	"osmID" => $valueN["address"]["osm_id"],
+					// 									"name" => $valueN[0]["address"][$valueType]);
+					// 			$saveCities[] = $newA;
+
+					// 			break;
+							
+					// 	}
+					// }	
 				}
 			}
 
@@ -551,7 +563,7 @@ class Import
                         }
                     }
                 }else{
-                	var_dump("here");
+                	//var_dump("here");
                 	if(!empty($resultNominatim[0])){
                 		$saveCities[] = array(	"osmID" => $resultNominatim[0][$valueType],
                 								"name" => $resultNominatim[0]["address"][$valueType]);

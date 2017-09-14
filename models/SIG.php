@@ -483,10 +483,12 @@ class SIG
 	        if(!empty($extratags)){
 	            $url .= "&extratags=1";
 	        }
-	        //var_dump($url);
-	        //echo $url."<br>" ;
-	        //$res =  file_get_contents($url);
-	        //return $res;
+	        $url .= "&email=raphaelriviere06@gmail.com";
+
+	        // var_dump($url);
+	        // $res = null;
+	  //       $res = file_get_contents(htmlspecialchars_decode($url), false);
+			// return $res;
 			return self::getUrl($url);
 		}catch (CTKException $e){
             return null ;
@@ -580,6 +582,7 @@ class SIG
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
         $result = curl_exec($ch);
+        //var_dump($result);
         curl_close($ch);
         return $result ;
     }
