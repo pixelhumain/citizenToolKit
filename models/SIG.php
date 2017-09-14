@@ -138,28 +138,16 @@ class SIG
 			return array( 	"@type" => "GeoCoordinates",
 							"latitude" => $city["geo"]["latitude"],
 							"longitude" => $city["geo"]["longitude"]);
-		} return false;
-
+		}
+		return false;
 	}
 
 	////récupère la ville qui correspond à une position géographique
 	//récupère les villes qui se trouvent dans un rayon de 50km d'un position geo
 	//https://docs.mongodb.org/manual/reference/operator/query/near/#op._S_near
-	public static function getCityByLatLng($lat, $lng, $cp){
-
-		// $request = array("geoShape"  =>
-		// 				  array('$geoIntersects'  =>
-		// 				  	array('$geometry' =>
-		// 				  		array("type" 	    => "Point",
-		// 				  			  "coordinates" => array(floatval($lng), floatval($lat)))
-		// 				  		)));
-		// if($cp != null){ $request = array_merge(array("cp"  => $cp), $request); }
-
-		// $oneCity =	PHDB::findOne(City::COLLECTION, $request);
+	public static function getCityByLatLng($lat, $lng, $cp = null , $countryCode = null){
 
 		$oneCity = null;
-		//City::updateGeoPositions();
-		//error_log($lng." - ".$lat);
 		if($oneCity == null){
 			$request = array("postalCodes.geoPosition" => array( '$exists' => true ),
 							 "postalCodes.geoPosition"  => 
@@ -177,6 +165,8 @@ class SIG
 
 			if($cp != null){ $request = array_merge(array("postalCodes.postalCode" => array('$in' => array($cp))), $request); }
 
+			if($countryCode != null){ $request = array_merge(array("country" => array('$in' => array($countryCode))), $request); }
+
 			$cities =	PHDB::findAndSort(City::COLLECTION, $request, array());
 			$allCities = array();
 			foreach ($cities as $key => $value) {
@@ -191,12 +181,7 @@ class SIG
 
 				}
 			}
-			//var_dump($oneCity);
 		}
-
-		// var_dump($request);
-		// var_dump($oneCity);
-		//var_dump($oneCity);
 		return $allCities;
 	}
 
@@ -374,7 +359,7 @@ class SIG
 
 
 
-	public static function getCityByLatLngGeoShape($lat, $lng, $cp){
+	public static function getCityByLatLngGeoShape($lat, $lng, $cp = null, $countryCode = null){
 		$request = array("geoShape"  =>
 		 				  array('$geoIntersects'  =>
 		 				  	array('$geometry' =>
@@ -382,6 +367,8 @@ class SIG
 	 				  			  	"coordinates" => array(floatval($lng), floatval($lat)))
 		 				  		)));
 		if($cp != null){ $request = array_merge(array("postalCodes.postalCode" => array('$in' => array($cp))), $request); }
+
+		if($countryCode != null){ $request = array_merge(array("country" => $countryCode), $request); }
 
 		$oneCity =	PHDB::findOne(City::COLLECTION, $request);
 
@@ -496,10 +483,11 @@ class SIG
 	        if(!empty($extratags)){
 	            $url .= "&extratags=1";
 	        }
+	        //var_dump($url);
 	        //echo $url."<br>" ;
-	        $res =  file_get_contents($url);
-	        return $res;
-			//return self::getUrl($url);
+	        //$res =  file_get_contents($url);
+	        //return $res;
+			return self::getUrl($url);
 		}catch (CTKException $e){
             return null ;
         }
@@ -542,9 +530,9 @@ class SIG
 	        }
 	        $url .= "&key=".Yii::app()->params['google']['keyMaps'] ;
 	        //var_dump($url);
-	        $res =  file_get_contents($url);
-	        return $res;
-	        //return self::getUrl($url) ;
+	        //$res =  file_get_contents($url);
+	        //return $res;
+	        return self::getUrl($url) ;
         }catch (CTKException $e){
             return null ;
         }
