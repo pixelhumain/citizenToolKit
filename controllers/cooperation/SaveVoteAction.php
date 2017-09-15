@@ -53,15 +53,17 @@ class SaveVoteAction extends CAction {
 			}
 		}
 
-		$votes = @$proposal["votes"][$voteValue] ? $proposal["votes"][$voteValue] : array();
+		$votes = isset($allVotes[$voteValue]) ? $allVotes[$voteValue] : array();
 		$votes[] = $myId;
+
+		//var_dump($allVotes[$voteValue]); exit;
 
 		//$page = "";
 		PHDB::update(Proposal::COLLECTION,
 			array("_id" => new MongoId($parentId)),
             array('$set' => array($root.".".$voteValue=> $votes))
         );
-
+		Notification::constructNotification ( ActStr::VERB_VOTE, array("id" => Yii::app()->session["userId"],"name"=> Yii::app()->session["user"]["name"]), array("type"=>$proposal["parentType"],"id"=>$proposal["parentId"]),array( "type"=>Proposal::COLLECTION,"id"=> $parentId ) );
 		$page = "proposal";
 		$params = Cooperation::getCoopData(null, null, "proposal", null, $parentId);
 

@@ -18,14 +18,19 @@ class Slug {
 	public static function getByTypeAndId($type,$id){
 		return PHDB::findOne(self::COLLECTION,array("type"=>$type,"id"=>$id));
 	}
-	public static function check($params){
-		$res=PHDB::findOne(self::COLLECTION,array("name"=>$params["slug"], "id"=>array('$ne'=>$params["id"])));
+	public static function check($slug,$type=null,$id=null){
+		$where=array("name"=>$slug);
+		if(@$id && @$type){
+			$where["id"]=array('$ne'=>$id);
+			$where["type"]=array('$ne'=>$type);
+		}
+		$res=PHDB::findOne(self::COLLECTION,$where);
 		if(!empty($res))
 			return false;
 		else 
 			return true;
 	}
-	public static function checkAndCreateSlug($str,$type,$id){
+	public static function checkAndCreateSlug($str){
 		$unwanted_array = array(    
 			'Š'=>'S', 'š'=>'s', 'Ž'=>'Z', 'ž'=>'z', 'À'=>'A', 'Á'=>'A', 'Â'=>'A', 'Ã'=>'A', 'Ä'=>'A', 'Å'=>'A', 'Æ'=>'A', 'Ç'=>'C', 'È'=>'E', 'É'=>'E',
             'Ê'=>'E', 'Ë'=>'E', 'Ì'=>'I', 'Í'=>'I', 'Î'=>'I', 'Ï'=>'I', 'Ñ'=>'N', 'Ò'=>'O', 'Ó'=>'O', 'Ô'=>'O', 'Õ'=>'O', 'Ö'=>'O', 'Ø'=>'O', 'Ù'=>'U',
@@ -52,12 +57,12 @@ class Slug {
   			$res.=$text;
   			$i++;
 		}	
-		if(!self::check(array("slug"=>$res,"type"=>$type,"id"=>$id))){
+		if(!self::check($res)){
 			$v = 1; // $i est un nombre que l'on incrémentera. 
 			$inc=false;
 			while($inc==false) 
 			{ 
-				$inc=self::check(array("slug"=>$res.$v,"type"=>$type,"id"=>$id));
+				$inc=self::check($res.$v);
 				if($inc)
 					$res=$res.$v;
 				else

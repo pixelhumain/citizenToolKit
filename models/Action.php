@@ -70,6 +70,13 @@ class Action
     public static function getById($id) {
         return PHDB::findOne( self::COLLECTION,array("_id"=>new MongoId($id)));
     }
+    public static function getSimpleSpecById($id, $where=null, $fields=null){
+        if(empty($fields))
+            $fields = array("_id", "name");
+        $where["_id"] = new MongoId($id) ;
+        $action = PHDB::findOne(self::COLLECTION, $where ,$fields);
+        return @$action;
+    }
     
     /**
      * - can only add an action once vote , purchase, .. 

@@ -63,6 +63,14 @@ class Proposal
 		return $survey;
 	}
 
+	public static function getSimpleSpecById($id, $where=null, $fields=null){
+		if(empty($fields))
+			$fields = array("_id", "name");
+		$where["_id"] = new MongoId($id) ;
+		$survey = PHDB::findOne(self::COLLECTION, $where ,$fields);
+		return @$survey;
+	}
+
 	public static function getAllVoteRes($proposal){
 		$voteRes = array("up"=> array("bg-color"=> "green-k",
  										"voteValue"=>"up"),
@@ -90,7 +98,7 @@ class Proposal
  			$totalVotant+=count($votes[$key]);
  		} //echo $totalVotant; exit;
  		foreach ($votes as $key => $value) {
- 			$voteRes[$key]["percent"] = $totalVotant > 0 ? $voteRes[$key]["votant"] * 100 / $totalVotant : 0;
+ 			$voteRes[$key]["percent"] = $totalVotant > 0 ? round($voteRes[$key]["votant"] * 100 / $totalVotant, 2) : 0;
  		}
 
  		return $voteRes;
