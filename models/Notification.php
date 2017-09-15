@@ -747,8 +747,12 @@ class Notification{
 			$url=$construct["url"];
 		else 
 			$url=$construct["type"][$construct["levelType"]]["url"];
-		if($url=="targetTypeUrl")
-			$url=$construct["type"][$construct["target"]["type"]]["url"];
+		if($url=="targetTypeUrl"){
+			if($construct["verb"]==Actstr::VERB_COMMENT && @$construct["object"] && $construct["object"]["type"]==Proposal::COLLECTION)
+				$url=$construct["type"][$construct["object"]["type"]]["url"];
+			else
+				$url=$construct["type"][$construct["target"]["type"]]["url"];
+		}
 		$url = str_replace("{ctrlr}", Element::getControlerByCollection($construct["target"]["type"]), $url);
 		$url = str_replace("{collection}", $construct["target"]["type"], $url);
 		$url = str_replace("{id}", $construct["target"]["id"], $url);
@@ -1053,7 +1057,7 @@ class Notification{
 						if(@$news["object"]["name"])
 							$res["{what}"]=Yii::t("notification","of creation").": &quot;".strtr($news["object"]["name"],0,20)."...&quot;";
 						else if(@$news["object"]["displayName"])
-							
+
 							$res["{what}"]=Yii::t("notification","of creation").": &quot;".strtr($news["object"]["displayName"],0,20)."...&quot;";
 					else
 						$res["{what}"]=Yii::t("notification","shared");
