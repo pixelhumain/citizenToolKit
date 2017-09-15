@@ -1050,7 +1050,11 @@ class Notification{
 					$res["{what}"]="&quot;".$news["title"]."&quot;";
 				else if($news["type"]=="activityStream"){ 
 					if($news["verb"]!="share")
-						$res["{what}"]=Yii::t("notification","of creation").": &quot;".strtr($news["object"]["name"],0,20)."...&quot;";
+						if(@$news["object"]["name"])
+							$res["{what}"]=Yii::t("notification","of creation").": &quot;".strtr($news["object"]["name"],0,20)."...&quot;";
+						else if(@$news["object"]["displayName"])
+							
+							$res["{what}"]=Yii::t("notification","of creation").": &quot;".strtr($news["object"]["displayName"],0,20)."...&quot;";
 					else
 						$res["{what}"]=Yii::t("notification","shared");
 				}
