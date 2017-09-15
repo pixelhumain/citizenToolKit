@@ -63,7 +63,7 @@ class SaveVoteAction extends CAction {
 			array("_id" => new MongoId($parentId)),
             array('$set' => array($root.".".$voteValue=> $votes))
         );
-
+		Notification::constructNotification ( ActStr::VERB_VOTE, array("id" => Yii::app()->session["userId"],"name"=> Yii::app()->session["user"]["name"]), array("type"=>$proposal["parentType"],"id"=>$proposal["parentId"]),array( "type"=>Proposal::COLLECTION,"id"=> $parentId ) );
 		$page = "proposal";
 		$params = Cooperation::getCoopData(null, null, "proposal", null, $parentId);
 
