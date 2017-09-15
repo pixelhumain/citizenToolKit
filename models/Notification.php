@@ -293,7 +293,7 @@ class Notification{
 				),
 				Room::COLLECTION => array(
 					"url"=>"page/type/{collection}/id/{id}/view/coop/room/{objectId}",
-					"label" => "{who} added a new room on {where}"
+					"label" => "{who} added a new room in the co-space on {where}"
 				),
 				Proposal::COLLECTION => array(
 					"url" => "page/type/{collection}/id/{id}/view/coop/room/{roomId}/proposal/{objectId}",
@@ -347,8 +347,8 @@ class Notification{
 		),
 		ActStr::VERB_AMEND => array(
 			"repeat" => true,
-			"label" => "{who} amended on {what} in {where}",
-			"labelRepeat"=>"{who} have amended on {what} in {where}",
+			"label" => "{who} amended the proposal {what} in {where}",
+			"labelRepeat"=>"{who} have amended the proposal {what} in {where}",
 			"labelArray" => array("who","where"),
 			"icon" => ActStr::ICON_VOTE,
 			"url" =>  "page/type/{collection}/id/{id}/view/coop/room/{roomId}/proposal/{objectId}"
@@ -1045,7 +1045,7 @@ class Notification{
 				if($comment["author"]["id"]==$authorNews["author"] && !@$news["targetIsAuthor"])
 					$res["{where}"]=Yii::t("notification","your news");
 				else
-					$res["{where}"]=Yii::t("notification","the news posted on the wall of ")." ".$parent["name"];
+					$res["{where}"]=Yii::t("notification","the wall of")." ".$parent["name"];
 			}
 			else
 				$res["{where}"]=$parent["name"];
