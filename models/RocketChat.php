@@ -29,7 +29,7 @@ class RocketChat{
 			
 				$log = $user->login();
 				//var_dump($log);
-				if($log->status == "success"){
+				if(@$log->status == "success"){
 					$res["loginToken"] = $user->authToken;
 					$res["rocketUserId"] = $user->id;
 					$res["msg"] = "user logged in";
