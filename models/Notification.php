@@ -293,7 +293,7 @@ class Notification{
 				),
 				Room::COLLECTION => array(
 					"url"=>"page/type/{collection}/id/{id}/view/coop/room/{objectId}",
-					"label" => "{who} added a new room on {where}"
+					"label" => "{who} added a new room in the co-space on {where}"
 				),
 				Proposal::COLLECTION => array(
 					"url" => "page/type/{collection}/id/{id}/view/coop/room/{roomId}/proposal/{objectId}",
@@ -347,8 +347,8 @@ class Notification{
 		),
 		ActStr::VERB_AMEND => array(
 			"repeat" => true,
-			"label" => "{who} amended on {what} in {where}",
-			"labelRepeat"=>"{who} have amended on {what} in {where}",
+			"label" => "{who} amended the proposal {what} in {where}",
+			"labelRepeat"=>"{who} have amended the proposal {what} in {where}",
 			"labelArray" => array("who","where"),
 			"icon" => ActStr::ICON_VOTE,
 			"url" =>  "page/type/{collection}/id/{id}/view/coop/room/{roomId}/proposal/{objectId}"
@@ -747,8 +747,12 @@ class Notification{
 			$url=$construct["url"];
 		else 
 			$url=$construct["type"][$construct["levelType"]]["url"];
-		if($url=="targetTypeUrl")
-			$url=$construct["type"][$construct["target"]["type"]]["url"];
+		if($url=="targetTypeUrl"){
+			if($construct["verb"]==Actstr::VERB_COMMENT && @$construct["object"] && $construct["object"]["type"]==Proposal::COLLECTION)
+				$url=$construct["type"][$construct["object"]["type"]]["url"];
+			else
+				$url=$construct["type"][$construct["target"]["type"]]["url"];
+		}
 		$url = str_replace("{ctrlr}", Element::getControlerByCollection($construct["target"]["type"]), $url);
 		$url = str_replace("{collection}", $construct["target"]["type"], $url);
 		$url = str_replace("{id}", $construct["target"]["id"], $url);
@@ -1041,7 +1045,7 @@ class Notification{
 				if($comment["author"]["id"]==$authorNews["author"] && !@$news["targetIsAuthor"])
 					$res["{where}"]=Yii::t("notification","your news");
 				else
-					$res["{where}"]=Yii::t("notification","the news posted on the wall of ")." ".$parent["name"];
+					$res["{where}"]=Yii::t("notification","the wall of")." ".$parent["name"];
 			}
 			else
 				$res["{where}"]=$parent["name"];
@@ -1050,7 +1054,11 @@ class Notification{
 					$res["{what}"]="&quot;".$news["title"]."&quot;";
 				else if($news["type"]=="activityStream"){ 
 					if($news["verb"]!="share")
-						$res["{what}"]=Yii::t("notification","of creation").": &quot;".strtr($news["object"]["name"],0,20)."...&quot;";
+						if(@$news["object"]["name"])
+							$res["{what}"]=Yii::t("notification","of creation").": &quot;".strtr($news["object"]["name"],0,20)."...&quot;";
+						else if(@$news["object"]["displayName"])
+
+							$res["{what}"]=Yii::t("notification","of creation").": &quot;".strtr($news["object"]["displayName"],0,20)."...&quot;";
 					else
 						$res["{what}"]=Yii::t("notification","shared");
 				}
