@@ -72,7 +72,15 @@ class RocketChat{
 				$res->create = $channel->create();
 				if(!@$res->create->success)
 					$res->info = $channel->info() ;
-				
+				if(!@$res->info->success){
+					//check if channel in opposite Security
+					$channel2 = ( $type == "channel" ) ? new \RocketChat\Group( $name,array(),true ) : new \RocketChat\Channel( $name,array(),true );
+					$res->info2 = $channel2->info() ;
+					if(@$res->info2->success){
+						$switchType = ( $type == "channel" ) ? "c" : "p";
+						$channel2->setType($name,$switchType);
+					}
+				}
 
 			}
 				
@@ -81,7 +89,6 @@ class RocketChat{
 				if(@$res->invite->channel->usernames)
 					$channel->members = $res->invite->channel->usernames;			
 			}
-			//$res->channel = $channel;
 
 		} catch (Exception $e) {
             $res->msg = $e->getMessage();
@@ -89,6 +96,33 @@ class RocketChat{
 		return $res;
 	}
 
+	public static function rename($name, $new, $type) 
+	{ 
+		define('REST_API_ROOT', '/api/v1/');
+		define('ROCKET_CHAT_INSTANCE', Yii::app()->params['rocketchatURL']);
+
+		try{
+			Yii::import('rocketchat.RocketChatClient', true);
+			Yii::import('rocketchat.RocketChatUser', true);
+			Yii::import('rocketchat.RocketChatChannel', true);
+			Yii::import('rocketchat.RocketChatGroup', true);
+			Yii::import('httpful.Request', true);
+			Yii::import('httpful.Bootstrap', true);
+			
+			$channel = ( $type == "true" ) ? new \RocketChat\Channel( $name,array(),true ) : new \RocketChat\Group( $name,array(),true );
+			
+			$res = (object)array(
+				"name" => $name,
+				"type" => ( $type == "true" ) ? "channel":"group"
+			);
+			$res->info = $channel->info() ;
+			$res->rename = $channel->rename($new) ;
+
+		} catch (Exception $e) {
+            $res->msg = $e->getMessage();
+		}
+		return $res;
+	}
 
 	public static function listUserChannels() { 
 		

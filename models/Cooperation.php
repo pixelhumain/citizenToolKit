@@ -70,7 +70,7 @@ class Cooperation {
 				$res["roomList"] = PHDB::findAndSort ( 
 								Room::COLLECTION, $query, array("amendementDateEnd" => 1, "voteDateEnd" => 1));
 
-				$res["allCount"] = Cooperation::getAllCount($parentType, $parentId);
+				$res["allCount"] = self::getAllCount($parentType, $parentId);
 
 			}else{ //si un d'id : prend récupère toutes les proposals & actions & resolutions de la room
 				$res["room"] = Room::getById($dataId);
@@ -189,20 +189,21 @@ class Cooperation {
 		$allCount = array();
 		foreach (array("tovote", "amendable", "closed", "archived") as $status) {
 			$query = array( "parentType" => $parentType, "parentId" => $parentId, "status" => $status);
-			$allCount["proposals"][$status] = sizeof(PHDB::findAndSort (Proposal::COLLECTION, $query, array()));
+			$allCount["proposals"][$status] = sizeof(PHDB::count (Proposal::COLLECTION, $query, array()));
 			
 			if($myId != false){
 				$query = array( "parentType" => $parentType, "parentId" => $parentId, "creator" => $myId);
-				$allCount["proposals"]["mine"] = sizeof(PHDB::findAndSort (Proposal::COLLECTION, $query, array()));
+				$allCount["proposals"]["mine"] = sizeof(PHDB::count (Proposal::COLLECTION, $query, array()));
 			}
 		}
+
 		foreach (array("todo", "done", "archived") as $status) {
 			$query = array( "parentType" => $parentType, "parentId" => $parentId, "status" => $status);
-			$allCount["actions"][$status] = sizeof(PHDB::findAndSort (Action::COLLECTION, $query, array()));
+			$allCount["actions"][$status] = sizeof(PHDB::count (Action::COLLECTION, $query, array()));
 
 			if($myId != false){
 				$query = array( "parentType" => $parentType, "parentId" => $parentId, "creator" => $myId);
-				$allCount["actions"]["mine"] = sizeof(PHDB::findAndSort (Action::COLLECTION, $query, array()));
+				$allCount["actions"]["mine"] = sizeof(PHDB::count (Action::COLLECTION, $query, array()));
 			}
 		}
 
@@ -212,6 +213,50 @@ class Cooperation {
 		/*$res["actionList"] = PHDB::findAndSort (Action::COLLECTION, $query, 
 													array("status" => -1, "dateEnd" => 1));*/
 	}
+
+	/*
+		public static function getAllCount($parentType, $parentId){
+
+		$myId = @Yii::app()->session['userId'] ? Yii::app()->session['userId'] : false;
+		$allCount = array();
+		$allCount["proposals"] = array();
+		foreach (array("tovote", "amendable", "closed", "archived") as $status) {
+			$query = array( "parentType" => $parentType, "parentId" => $parentId, "status" => $status);
+			$res = PHDB::findAndSort (Proposal::COLLECTION, $query, array());
+			$allCount["proposals"][$status] = sizeof(@$res);
+			foreach ($res as $key => $value) {
+				$allCount["proposals"][ (string)$value["_id"] ] = (!@$allCount["proposals"][ (string)$value["_id"] ] ) ? 1 : $allCount["proposals"][ (string)$value["_id"] ]+1;
+			}
+			if($myId != false){
+				$query = array( "parentType" => $parentType, "parentId" => $parentId, "creator" => $myId);
+				$res = PHDB::findAndSort (Proposal::COLLECTION, $query, array());
+				$allCount["proposals"]["mine"] = sizeof(@$res);
+				foreach ($res as $key => $value) {
+					$allCount["proposals"][ (string)$value["_id"] ] = (!@$allCount["proposals"][ (string)$value["_id"] ] ) ? 1 : $allCount["proposals"][ (string)$value["_id"] ]+1;
+				}
+			}
+		}
+
+		$allCount["actions"] = array();
+		foreach (array("todo", "done", "archived") as $status) {
+			$query = array( "parentType" => $parentType, "parentId" => $parentId, "status" => $status);
+			$res = PHDB::findAndSort (Action::COLLECTION, $query, array());
+
+			$allCount["actions"][$status] = sizeof(@$res);
+			foreach ($res as $key => $value) {
+				 (!@$allCount["actions"][ (string)$value["_id"] ] ) ? 1 : $allCount["actions"][ (string)$value["_id"] ]+1;
+			}
+			if($myId != false){
+				$query = array( "parentType" => $parentType, "parentId" => $parentId, "creator" => $myId);
+				$res = PHDB::findAndSort (Action::COLLECTION, $query, array());
+				$allCount["actions"]["mine"] = sizeof(@$res);
+				foreach ($res as $key => $value) {
+					$allCount["actions"][ (string)$value["_id"] ] = (!@$allCount["actions"][ (string)$value["_id"] ] ) ? 1 : $allCount["actions"][ (string)$value["_id"] ]+1;
+				}
+			}
+		}
+
+*/
 
 	public static function updateStatusProposal($parentType, $parentId){
 		
@@ -270,7 +315,8 @@ class Cooperation {
 		return $date;
 	}
 
-	public static function afterSave($params, $type){ error_log("COOPERATION::afterSave : ".@$type);
+
+	public static function afterSave($params, $type){ error_log("self::afterSave : ".@$type);
 		$id = (string)$params['_id'];
 		$name = @$params["name"] ? $params["name"] : @$params["title"];
 		//ActivityStream::saveActivityHistory(ActStr::VERB_CREATE, @$params["parentId"], @$params["parentType"], $type, $name);

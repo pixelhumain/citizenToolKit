@@ -201,17 +201,21 @@ class Group extends Client {
 	}
 
 
-	public function setType($type){
+	public function setType($name, $type){
 		$response = Request::post( $this->api . 'groups.setType' )
-			->body(array('roomId' => $this->id, 'type' => $type))
+			//->body(array('roomId' => $this->id, 'type' => $type))
+			->body(array('roomName' => $name , 'type' => $type))
 			->send();
 
-		if( $response->code == 200 && isset($response->body->success) && $response->body->success == true ) {
-			return true;
-		} else {
-			echo( "<b>".$response->body->error . "</b><br/>" );
-			return false;
-		}
+		return $response->body;
+	}
+
+	public function rename($name){
+		$response = Request::post( $this->api . 'groups.rename' )
+			->body(array('roomId' => $this->id , 'name' => $name))
+			->send();
+			
+		return $response->body;
 	}
 }
 
