@@ -31,6 +31,7 @@ class Room {
         "topic"                 => array("name" => "shortDescription"),
         "description"           => array("name" => "description",           "rules" => array("required")),
         "tags"                  => array("name" => "tags"),
+        "roles"                 => array("name" => "roles"),
         "urls"                  => array("name" => "urls"),
         
         // Open / Closed
