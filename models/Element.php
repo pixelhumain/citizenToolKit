@@ -1862,8 +1862,11 @@ class Element {
 		$id = $params["id"];
 		$res = array();
 		if($block == "info"){
-			if(isset($params["name"]))
+			if(isset($params["name"])){
 				$res[] = self::updateField($collection, $id, "name", $params["name"]);
+				/*PHDB::update( $collection,  array("_id" => new MongoId($id)), 
+		 										array('$unset' => array("hasRC"=>"") ));*/
+			}
 			if(isset($params["username"]) && $collection == Person::COLLECTION)
 				$res[] = self::updateField($collection, $id, "username", $params["username"]);
 			if(isset($params["avancement"]) && $collection == Project::COLLECTION)
@@ -1875,11 +1878,21 @@ class Element {
 			if(isset($params["email"]))
 				$res[] = self::updateField($collection, $id, "email", $params["email"]);
 			if(isset($params["slug"])){
+				
+				$el = PHDB::findOne($collection,array("_id"=>new MongoId($id)));
+				$oldslug = $el["slug"];
+				
 				$res[] = self::updateField($collection, $id, "slug", $params["slug"]);
+
 				if(!empty(Slug::getByTypeAndId($collection,$id)))
 					Slug::update($collection,$id,$params["slug"]);
 				else
 					Slug::save($collection,$id,$params["slug"]);
+
+				//update RC channel name if exist
+				if(@$el["hasRC"]){
+					RocketChat::rename( $oldslug, $params["slug"], @$el["preferences"]["isOpenEdition"] );
+				}
 			}
 			if(isset($params["url"]))
 				$res[] = self::updateField($collection, $id, "url", self::getAndCheckUrl($params["url"]));
@@ -1969,7 +1982,7 @@ class Element {
 									"idUserAuthor"=> Yii::app()->session['userId'],
 									"typeAmdt" => $params["typeAmdt"],
 									"textAdd"=> $params["txtAmdt"]);
-
+				Notification::constructNotification ( ActStr::VERB_AMEND, array("id" => Yii::app()->session["userId"],"name"=> Yii::app()->session["user"]["name"]), array("type"=>$proposal["parentType"],"id"=>$proposal["parentId"]),array( "type"=>Proposal::COLLECTION,"id"=> $params["id"] ) );
 				$res[] = self::updateField($collection, $id, "amendements", $amdtList);
 			}
 		}
@@ -2186,6 +2199,7 @@ class Element {
 
 		if(!empty($type))
 			$newElement["type"] = $type;
+
 
 		if(!empty($element["properties"]["avancement"]))
 			$newElement["avancement"] = $element["properties"]["avancement"];

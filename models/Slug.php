@@ -9,10 +9,12 @@ class Slug {
 		return true;
 	}
 	public static function update($type, $id, $slug){
+		
 		PHDB::update(self::COLLECTION,
 			array("id"=>$id,"type"=>$type),
 			array('$set'=>array("name"=>$slug))
 		);
+		
 		return true;
 	}
 	public static function getByTypeAndId($type,$id){

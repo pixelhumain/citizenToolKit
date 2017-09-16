@@ -63,6 +63,14 @@ class Proposal
 		return $survey;
 	}
 
+	public static function getSimpleSpecById($id, $where=null, $fields=null){
+		if(empty($fields))
+			$fields = array("_id", "name");
+		$where["_id"] = new MongoId($id) ;
+		$survey = PHDB::findOne(self::COLLECTION, $where ,$fields);
+		return @$survey;
+	}
+
 	public static function getAllVoteRes($proposal){
 		$voteRes = array("up"=> array("bg-color"=> "green-k",
  										"voteValue"=>"up"),

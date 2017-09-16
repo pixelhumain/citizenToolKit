@@ -42,6 +42,7 @@ class ActStr {
     const VERB_ADDROOM = "addactionroom";
     const VERB_ADD_PROPOSAL = "addproposal";
     const VERB_MODERATE = "moderate";
+    const VERB_AMEND = "ammend";
 
     const VERB_ADD_ACTION = "addaction";
     const VERB_VOTE = "vote";
