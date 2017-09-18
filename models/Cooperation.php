@@ -77,7 +77,7 @@ class Cooperation {
 
 				$query = array( "idParentRoom" => $dataId, 
 								"status" => array('$in'=>array('amendable', "tovote", "archived", "todo", "adopted", "refused")));
-				//$query["status"] = ;
+				
 				$res["proposalList"] = PHDB::findAndSort (Proposal::COLLECTION, $query, 
 															array("status" => -1, "amendementDateEnd" => 1, "voteDateEnd" => 1));
 				
@@ -87,15 +87,13 @@ class Cooperation {
 				$res["resolutionList"] = PHDB::findAndSort ("resolutions", $query, 
 															array("status" => 1, "voteDateEnd" => -1));
 
-				/*$query = array( "idParentRoom" => $dataId );
-				$res["proposalList"] = PHDB::findAndSort (Proposal::COLLECTION, $query, array("created" => -1));*/
 			}
 		}
 
 		else if($type == Proposal::CONTROLLER){
 			if(empty($dataId)){ //si pas d'id : prend toutes les proposal pour un element parent
 				$query = array( "parentType" => $parentType, "parentId" => $parentId);
-				//var_dump($query); exit;
+				
 				if(!empty($status)) {
 					if($status == "mine"){
 						$myId = @Yii::app()->session['userId'] ? Yii::app()->session['userId'] : false;
@@ -115,10 +113,9 @@ class Cooperation {
 				$res["proposalList"] = PHDB::findAndSort ( 
 								  		Proposal::COLLECTION, $query, 
 								  		array("status" => -1, "amendementDateEnd" => 1, "voteDateEnd" => 1));
-			}else{ //si un d'id : prend récupère toutes les proposals & actions & resolutions de la room
 
+			}else{ //si un d'id : prend récupère toutes les proposals & actions & resolutions de la room
 				$res["proposal"] = Proposal::getById($dataId);
-				//var_dump($res); exit;
 			}
 		}
 
@@ -166,20 +163,11 @@ class Cooperation {
 	}
 
 	public static function userHasVoted($userId, $obj){
-		// foreach (array("up, down", "white", "uncomplet") as $key) {
-		// 	var_dump(@$obj[$key]); //exit;
-		// 	if(@$obj[$key])
-		// 	error_log($userId." - ".$key." - ".(string)in_array($userId, @$obj[$key]) );
-		// 	if(@$obj[$key] && in_array($userId, @$obj[$key])) return $key;
-		// }
-
 		foreach ($obj as $keyVal=>$arr) {
-			//echo "<br>-**-<br>"; var_dump($arr); 
 			foreach ($arr as $keyId) {
-				//echo "<br>--<br>"; var_dump($keyId);  //exit; 
 				if($keyId == $userId) return $keyVal;
 			}
-		}//exit;
+		}
 		return false;
 	}
 
@@ -189,21 +177,21 @@ class Cooperation {
 		$allCount = array();
 		foreach (array("tovote", "amendable", "closed", "archived") as $status) {
 			$query = array( "parentType" => $parentType, "parentId" => $parentId, "status" => $status);
-			$allCount["proposals"][$status] = sizeof(PHDB::count (Proposal::COLLECTION, $query, array()));
+			$allCount["proposals"][$status] = PHDB::count (Proposal::COLLECTION, $query, array());
 			
 			if($myId != false){
 				$query = array( "parentType" => $parentType, "parentId" => $parentId, "creator" => $myId);
-				$allCount["proposals"]["mine"] = sizeof(PHDB::count (Proposal::COLLECTION, $query, array()));
+				$allCount["proposals"]["mine"] = PHDB::count (Proposal::COLLECTION, $query, array());
 			}
 		}
 
 		foreach (array("todo", "done", "archived") as $status) {
 			$query = array( "parentType" => $parentType, "parentId" => $parentId, "status" => $status);
-			$allCount["actions"][$status] = sizeof(PHDB::count (Action::COLLECTION, $query, array()));
+			$allCount["actions"][$status] = PHDB::count (Action::COLLECTION, $query, array());
 
 			if($myId != false){
 				$query = array( "parentType" => $parentType, "parentId" => $parentId, "creator" => $myId);
-				$allCount["actions"]["mine"] = sizeof(PHDB::count (Action::COLLECTION, $query, array()));
+				$allCount["actions"]["mine"] = PHDB::count (Action::COLLECTION, $query, array());
 			}
 		}
 

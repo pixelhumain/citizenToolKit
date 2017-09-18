@@ -15,7 +15,9 @@ class GetCoopDataAction extends CAction {
 		$page = "";
 		if($type == "menucoop") {
 			$res = array("element"=>array("_id"=>$parentId), 
-										 "type"=>$parentType);
+						 "type"=>$parentType,
+						 "parentType" => $parentType,
+						 "parentId" => $parentId,);
 			echo $controller->renderPartial("menuCoop", $res, true);
 			exit;
 		}
