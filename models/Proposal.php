@@ -32,6 +32,12 @@ class Proposal
 		// Amendable / ToVote / Closed / Archived
 		"status" 				=> array("name" => "status", 				"rules" => array("required")), 
 		
+		// true / false
+		"voteAnonymous" 		=> array("name" => "voteActivated", 		"rules" => array("required")),
+		// true / false
+		"voteCanChange" 		=> array("name" => "voteActivated", 		"rules" => array("required")),
+		
+
 		// 50%  / 75% / 90%
 		"majority" 				=> array("name" => "majority", 				"rules" => array("required")),
 
