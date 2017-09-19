@@ -827,6 +827,28 @@ class Authorisation {
     }
 
 
+    /**
+     * Return true if the entity is in openEdition
+     * @param String the id of the entity
+     * @param String the type of the entity
+     * @return bool 
+     */
+    public static function isOpenData($idEntity, $typeEntity, $preferences=null){
+        $res = false ;
+        if(empty($preferences)){
+            $entity = PHDB::findOne($typeEntity,array("_id"=>new MongoId($idEntity)),array('preferences'));
+            $preferences = @$entity["preferences"];
+        }
+        if(!empty($preferences)){
+           $res = Preference::isOpenData($preferences);
+
+        }
+        
+
+        return $res;
+    }
+
+
     public static function canEditItemOrOpenEdition($idEntity, $typeEntity, $userId, $parentType=null,$parentId=null){
         $res = false ;
         
