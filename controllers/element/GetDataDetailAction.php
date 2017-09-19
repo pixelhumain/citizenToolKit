@@ -25,10 +25,10 @@ class GetDataDetailAction extends CAction {
 						error_log("The element ".$id."/".$type." has a broken link : ".$keyLink."/".$value["type"]);
 						continue;
 					}
-					if(@$value["roles"]){
-						$link["rolesLink"]=[];
-						$link["rolesLink"]=$value["roles"];
-					}
+					if(@$value["roles"] && !empty($value["roles"])){ 
+			            $link["rolesLink"]=[]; 
+			            $link["rolesLink"]=$value["roles"]; 
+			        } 
 					if($dataName=="guests" && @$value["isInviting"]){
 						$link["type"] = $value["type"];
 						$link["isInviting"] = $value["isInviting"];
