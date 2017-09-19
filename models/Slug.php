@@ -20,6 +20,10 @@ class Slug {
 	public static function getByTypeAndId($type,$id){
 		return PHDB::findOne(self::COLLECTION,array("type"=>$type,"id"=>$id));
 	}
+	public static function getBySlug($slug){
+		return PHDB::findOne(self::COLLECTION,array("name"=>$slug));
+	}
+	
 	public static function check($slug,$type=null,$id=null){
 		$where=array("name"=>$slug);
 		if(@$id && @$type){
