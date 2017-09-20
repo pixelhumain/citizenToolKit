@@ -1038,7 +1038,7 @@ class Notification{
 	 	$target=array();
 	 	if(@$object && in_array($object["type"], array( Proposal::COLLECTION, Room::COLLECTION, Action::COLLECTION) ) )
 		{
-			$roomId = $id;
+			$roomId = $object["id"];
 			if( $object["type"] == Proposal::COLLECTION )
 				$target["entry"] = Proposal::getById( $object["id"] );
 			else if( $object["type"] == Action::COLLECTION )
@@ -1046,7 +1046,7 @@ class Notification{
 			if(@$target["entry"])
 				$roomId=$target["entry"]["idParentRoom"];
 			$target["room"] = Room::getById( $roomId );
-			$target["parent"] = Element::getElementSimpleById($target["entry"]["parentId"], $target["entry"]["parentType"]); 
+			$target["parent"] = Element::getElementSimpleById($target["room"]["parentId"], $target["room"]["parentType"]); 
 			/*$target["room"] = $room;
 			if( @$room["parentType"] ){
 				if( $room["parentType"] == City::COLLECTION ) 
