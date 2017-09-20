@@ -34,6 +34,7 @@ class Action
         "description"           => array("name" => "description",           "rules" => array("required")),
         "tags"                  => array("name" => "tags"),
         "urls"                  => array("name" => "urls"),
+        "medias"                => array("name" => "medias"),
         
         "startDate"             => array("name" => "startDate"),
         "endDate"               => array("name" => "endDate"),

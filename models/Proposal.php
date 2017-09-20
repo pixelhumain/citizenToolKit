@@ -19,6 +19,7 @@ class Proposal
 		"arguments" 			=> array("name" => "arguments"),
 		"tags" 					=> array("name" => "tags"),
 	    "urls" 					=> array("name" => "urls"),
+	    "medias" 					=> array("name" => "medias"),
 	    
 		// true / false
 		"amendementActivated" 	=> array("name" => "amendementActivated", 	"rules" => array("required")),

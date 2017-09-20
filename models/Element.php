@@ -1328,11 +1328,12 @@ class Element {
         unset($params['id']);
 
         $postParams = array();
-        if( !in_array( $collection, array("poi") ) && @$params["urls"] && @$params["medias"] ){
-        	$postParams["medias"] = $params["medias"];
-        	unset($params['medias']);
-        	$postParams["urls"] = $params["urls"];
-        	unset($params['urls']);
+        if( !in_array( $collection, array("poi", "actions", "proposals", "resolutions") ) && 
+        	@$params["urls"] && @$params["medias"] ){
+	        	$postParams["medias"] = $params["medias"];
+	        	unset($params['medias']);
+	        	$postParams["urls"] = $params["urls"];
+	        	unset($params['urls']);
         }
 
         if($collection == City::COLLECTION)
@@ -1349,7 +1350,7 @@ class Element {
         $valid = array("result"=>true);
         if( $collection == Event::COLLECTION ){
             $valid = Event::validateFirst($params);
-        } error_log("KEY : ". $key);
+        } //error_log("KEY : ". $key);
         if( $valid["result"] )
         	try {
         		$valid = DataValidator::validate( ucfirst($key), json_decode (json_encode ($params), true), ( empty($paramsLinkImport) ? null : true) );
@@ -1368,7 +1369,8 @@ class Element {
             	 	throw new CTKException("Error processing before saving on event");
             }
 
-            if($id){
+            if($id){ //var_dump($params); exit;
+        	
             	//var_dump($params);
                 //update a single field
                 //else update whole map
@@ -1404,7 +1406,7 @@ class Element {
                              "id"=>$id);
             } 
             else 
-            {
+            { 
                 $params["created"] = time();
                 PHDB::insert($collection, $params );
                 $res = array("result"=>true,
@@ -1429,6 +1431,7 @@ class Element {
                 else if( $collection == Proposal::COLLECTION || $collection == Action::COLLECTION )
                 	$res["afterSave"] = Cooperation::afterSave($params, $collection);
 
+               // echo "pas d'id - "; var_dump($postParams); exit;
                $res["afterSaveGbl"] = self::afterSave((string)$params["_id"],$collection,$params,$postParams);
                 //if( false && @$params["parentType"] && @$params["parentId"] )
                 //{
@@ -1458,6 +1461,7 @@ class Element {
 
     public static function afterSave ($id, $collection, $params,$postParams) {
     	$res = array();
+    	
     	if( @$postParams["medias"] )
     	{
     		//create POI for medias connected to the parent
@@ -1470,6 +1474,7 @@ class Element {
     		$poiParams["collection"] = Poi::COLLECTION;
     		$poiParams["medias"] = $postParams['medias'];
     		$poiParams["urls"] = $postParams['urls'];
+    		//echo "afterSave - "; var_dump($poiParams); exit;
     		$res["medias"] = self::save($poiParams);
     	}
     	return $res;
