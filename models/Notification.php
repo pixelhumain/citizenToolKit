@@ -152,10 +152,10 @@ class Notification{
 					"labelRepeat" => "{who} added comments on proposal {what} in {where}",
 					"url" => "page/type/{collection}/id/{id}/view/coop/room/{roomId}/proposal/{objectId}",
 				),
-				ActionRoom::COLLECTION_ACTIONS => array(
+				Action::COLLECTION => array(
 					"label" => "{who} commented on action {what} in {where}",
 					"labelRepeat" => "{who} added comments on action {what} in {where}",
-					"url" => "rooms/action/id/{id}"
+					"url" => "page/type/{collection}/id/{id}/view/coop/room/{roomId}/proposal/{objectId}"
 				),
 				ActionRoom::COLLECTION => array(
 					"label" => "{who} commented on discussion {what} in {where}",
