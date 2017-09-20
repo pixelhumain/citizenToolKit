@@ -1047,13 +1047,6 @@ class Notification{
 				$roomId=$target["entry"]["idParentRoom"];
 			$target["room"] = Room::getById( $roomId );
 			$target["parent"] = Element::getElementSimpleById($target["room"]["parentId"], $target["room"]["parentType"]); 
-			/*$target["room"] = $room;
-			if( @$room["parentType"] ){
-				if( $room["parentType"] == City::COLLECTION ) 
-			    	$target["parent"] = City::getByUnikey( $room["parentId"]);
-				else 
-					$target["parent"] = Element::getElementSimpleById($target["entry"]["parentId"], $target["entry"]["parentType"]);
-			}*/
 		}else if($type=="news"){
 			$news=News::getById($id);
 			$authorNews=News::getAuthor($id);
