@@ -155,7 +155,7 @@ class Notification{
 				Action::COLLECTION => array(
 					"label" => "{who} commented on action {what} in {where}",
 					"labelRepeat" => "{who} added comments on action {what} in {where}",
-					"url" => "page/type/{collection}/id/{id}/view/coop/room/{roomId}/proposal/{objectId}"
+					"url" => "page/type/{collection}/id/{id}/view/coop/room/{roomId}/action/{objectId}"
 				),
 				ActionRoom::COLLECTION => array(
 					"label" => "{who} commented on discussion {what} in {where}",
@@ -200,6 +200,16 @@ class Notification{
 					"parentTarget"=>true,
 					"url" => "page/type/news/id/{id}"
 				),
+				Proposal::COLLECTION => array(
+					"label" => "{who} commented on proposal {what} in {where}",
+					"labelRepeat" => "{who} added comments on proposal {what} in {where}",
+					"url" => "page/type/{collection}/id/{id}/view/coop/room/{roomId}/proposal/{objectId}",
+				),
+				Action::COLLECTION => array(
+					"label" => "{who} commented on action {what} in {where}",
+					"labelRepeat" => "{who} added comments on action {what} in {where}",
+					"url" => "page/type/{collection}/id/{id}/view/coop/room/{roomId}/action/{objectId}"
+				),
 				Comment::COLLECTION => array(
 					"label"=>"{who} likes your comment on {where}",
 					"labelRepeat"=>"{who} like your comment on {where}",
@@ -227,6 +237,16 @@ class Notification{
 					"notifyUser" => true,
 					"parentTarget"=> true,
 					"url" => "page/type/news/id/{id}"
+				),
+				Proposal::COLLECTION => array(
+					"label" => "{who} commented on proposal {what} in {where}",
+					"labelRepeat" => "{who} added comments on proposal {what} in {where}",
+					"url" => "page/type/{collection}/id/{id}/view/coop/room/{roomId}/proposal/{objectId}",
+				),
+				Action::COLLECTION => array(
+					"label" => "{who} commented on action {what} in {where}",
+					"labelRepeat" => "{who} added comments on action {what} in {where}",
+					"url" => "page/type/{collection}/id/{id}/view/coop/room/{roomId}/action/{objectId}"
 				),
 				Comment::COLLECTION => array(
 					"label"=>"{who} disapproves your comment on {where}",
@@ -748,7 +768,7 @@ class Notification{
 		else 
 			$url=$construct["type"][$construct["levelType"]]["url"];
 		if($url=="targetTypeUrl"){
-			if($construct["verb"]==Actstr::VERB_COMMENT && @$construct["object"] && $construct["object"]["type"]==Proposal::COLLECTION)
+			if(in_array($construct["verb"],[Actstr::VERB_COMMENT, Actstr::VERB_LIKE,Actstr::VERB_UNLIKE]) && @$construct["object"] && ($construct["object"]["type"]==Proposal::COLLECTION || $construct["object"]["type"]==Action::COLLECTION))
 				$url=$construct["type"][$construct["object"]["type"]]["url"];
 			else
 				$url=$construct["type"][$construct["target"]["type"]]["url"];
@@ -763,6 +783,8 @@ class Notification{
 		if(stripos($url, "{objectId}") > 0)
 			$url = str_replace("{objectId}", $construct["object"]["id"], $url);
 		if(stripos($url, "{roomId}") > 0){
+			//$objTarget=
+			//if($construct["object"]["type"]==Comment::COLLECTION)
 			if($construct["object"]["type"]==Action::COLLECTION)
 				$actionSpec=Action::getSimpleSpecById($construct["object"]["id"],null,array("idParentRoom"));
 			else if($construct["object"]["type"]==Proposal::COLLECTION)
@@ -896,10 +918,13 @@ class Notification{
 		$notificationPart["labelUpNotifyTarget"] = "author";
 		$notifyCommunity=true;
 		//Specific usecase for comment on proposal
-		if($verb==Actstr::VERB_COMMENT && $target["type"]==Proposal::COLLECTION){
-			$prop=Proposal::getById($target["id"]);
+		if(in_array($verb,[Actstr::VERB_COMMENT,Actstr::VERB_LIKE,Actstr::VERB_UNLIKE]) && ($target["type"]==Proposal::COLLECTION || $target["type"]==Action::COLLECTION)){
+			if($target["type"]==Proposal::COLLECTION)
+				$propAct=Proposal::getById($target["id"]);
+			else if($target["type"]==Action::COLLECTION)
+				$propAct=Action::getById($target["id"]);
 			$notificationPart["object"]=$target;
-			$notificationPart["target"]=array("type"=>$prop["parentType"],"id"=>$prop["parentId"]);
+			$notificationPart["target"]=array("type"=>$propAct["parentType"],"id"=>$propAct["parentId"]);
 		}
 		// Create notification specially for user added to the next notify for community of target
 		if(@$notificationPart["notifyUser"] || (@$notificationPart["type"] && @$notificationPart["type"][$levelType] && @$notificationPart["type"][$levelType]["notifyUser"])){
