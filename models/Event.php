@@ -21,6 +21,7 @@ class Event {
 		"conference"=>"Conference",
 		"debate"=>"Debate",
 		"film"=>"Film",
+		"others"=>"Others",
 	);  
 	      
 	//From Post/Form name to database field name
