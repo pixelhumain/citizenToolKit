@@ -21,7 +21,6 @@ class SimplyAutoCompleteAction extends CAction
         $paramsFiltre = isset($_POST['paramsFiltre']) ? $_POST['paramsFiltre'] : null;
 
 
-
         if($search == null && $locality == null && $sourceKey == null) {
         	Rest::json(array());
 			Yii::app()->end();
@@ -36,9 +35,8 @@ class SimplyAutoCompleteAction extends CAction
         	// $query = array( "tags" => array('$in' => array(new MongoRegex("/".$search."/i")))) ; //new MongoRegex("/".$search."/i") )));
         	$tmpTags[] = new MongoRegex("/".$search."/i");
   		}
-  		/*if($searchTag)foreach ($searchTag as $value) {
-  			$tmpTags[] = new MongoRegex("/".$value."/i");
-  		}*/
+
+
   		$verbTag = ( (!empty($paramsFiltre) && '$all' == $paramsFiltre) ? '$all' : '$in' ) ;
   		if(count($tmpTags)){
   			$query = array('$and' => array( $query , array("tags" => array($verbTag => $tmpTags)))) ;
@@ -46,8 +44,9 @@ class SimplyAutoCompleteAction extends CAction
 
   		if(!empty($searchTag)){
   			$isString = false;
+  			$tmpTags = array();
   			foreach ($searchTag as $key => $tags) {
-	  			$tmpTags = array();
+	  			
 	  			if(is_array($tags)){
 	  				foreach ($tags as $key => $tag) {
 				  		$tmpTags[] = new MongoRegex("/".$tag."/i");
@@ -67,7 +66,7 @@ class SimplyAutoCompleteAction extends CAction
 	  			$query = array('$and' => array( $query , array("tags" => array('$in' => $tmpTags)))) ;
 	  		}
   		}
-  		
+  		//var_dump($query);
   		unset($tmpTags);
 
   		/***********************************  COMPLETED   *****************************************/
@@ -150,7 +149,6 @@ class SimplyAutoCompleteAction extends CAction
   		}
   		if(isset($allQueryLocality) && is_array($allQueryLocality))
   			$query = array('$and' => array($query, $allQueryLocality));
-
 	    $allRes = array();
 
         /***********************************  PERSONS   *****************************************/

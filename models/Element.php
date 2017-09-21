@@ -1358,11 +1358,12 @@ class Element {
         unset($params['id']);
 
         $postParams = array();
-        if( !in_array( $collection, array("poi") ) && @$params["urls"] && @$params["medias"] ){
-        	$postParams["medias"] = $params["medias"];
-        	unset($params['medias']);
-        	$postParams["urls"] = $params["urls"];
-        	unset($params['urls']);
+        if( !in_array( $collection, array("poi", "actions", "proposals", "resolutions") ) && 
+        	@$params["urls"] && @$params["medias"] ){
+	        	$postParams["medias"] = $params["medias"];
+	        	unset($params['medias']);
+	        	$postParams["urls"] = $params["urls"];
+	        	unset($params['urls']);
         }
 
         if($collection == City::COLLECTION)
@@ -1379,7 +1380,7 @@ class Element {
         $valid = array("result"=>true);
         if( $collection == Event::COLLECTION ){
             $valid = Event::validateFirst($params);
-        } error_log("KEY : ". $key);
+        } //error_log("KEY : ". $key);
         if( $valid["result"] )
         	try {
         		$valid = DataValidator::validate( ucfirst($key), json_decode (json_encode ($params), true), ( empty($paramsLinkImport) ? null : true) );
@@ -1398,7 +1399,8 @@ class Element {
             	 	throw new CTKException("Error processing before saving on event");
             }
 
-            if($id){
+            if($id){ //var_dump($params); exit;
+        	
             	//var_dump($params);
                 //update a single field
                 //else update whole map
@@ -1434,7 +1436,7 @@ class Element {
                              "id"=>$id);
             } 
             else 
-            {
+            { 
                 $params["created"] = time();
                 PHDB::insert($collection, $params );
                 $res = array("result"=>true,
@@ -1459,6 +1461,7 @@ class Element {
                 else if( $collection == Proposal::COLLECTION || $collection == Action::COLLECTION )
                 	$res["afterSave"] = Cooperation::afterSave($params, $collection);
 
+               // echo "pas d'id - "; var_dump($postParams); exit;
                $res["afterSaveGbl"] = self::afterSave((string)$params["_id"],$collection,$params,$postParams);
                 //if( false && @$params["parentType"] && @$params["parentId"] )
                 //{
@@ -1488,6 +1491,7 @@ class Element {
 
     public static function afterSave ($id, $collection, $params,$postParams) {
     	$res = array();
+    	
     	if( @$postParams["medias"] )
     	{
     		//create POI for medias connected to the parent
@@ -1500,6 +1504,7 @@ class Element {
     		$poiParams["collection"] = Poi::COLLECTION;
     		$poiParams["medias"] = $postParams['medias'];
     		$poiParams["urls"] = $postParams['urls'];
+    		//echo "afterSave - "; var_dump($poiParams); exit;
     		$res["medias"] = self::save($poiParams);
     	}
     	return $res;
@@ -1892,8 +1897,11 @@ class Element {
 		$id = $params["id"];
 		$res = array();
 		if($block == "info"){
-			if(isset($params["name"]))
+			if(isset($params["name"])){
 				$res[] = self::updateField($collection, $id, "name", $params["name"]);
+				/*PHDB::update( $collection,  array("_id" => new MongoId($id)), 
+		 										array('$unset' => array("hasRC"=>"") ));*/
+			}
 			if(isset($params["username"]) && $collection == Person::COLLECTION)
 				$res[] = self::updateField($collection, $id, "username", $params["username"]);
 			if(isset($params["avancement"]) && $collection == Project::COLLECTION)
@@ -1905,11 +1913,21 @@ class Element {
 			if(isset($params["email"]))
 				$res[] = self::updateField($collection, $id, "email", $params["email"]);
 			if(isset($params["slug"])){
+				
+				$el = PHDB::findOne($collection,array("_id"=>new MongoId($id)));
+				$oldslug = $el["slug"];
+				
 				$res[] = self::updateField($collection, $id, "slug", $params["slug"]);
+
 				if(!empty(Slug::getByTypeAndId($collection,$id)))
 					Slug::update($collection,$id,$params["slug"]);
 				else
 					Slug::save($collection,$id,$params["slug"]);
+
+				//update RC channel name if exist
+				if(@$el["hasRC"]){
+					RocketChat::rename( $oldslug, $params["slug"], @$el["preferences"]["isOpenEdition"] );
+				}
 			}
 			if(isset($params["url"]))
 				$res[] = self::updateField($collection, $id, "url", self::getAndCheckUrl($params["url"]));
@@ -2216,6 +2234,7 @@ class Element {
 
 		if(!empty($type))
 			$newElement["type"] = $type;
+
 
 		if(!empty($element["properties"]["avancement"]))
 			$newElement["avancement"] = $element["properties"]["avancement"];

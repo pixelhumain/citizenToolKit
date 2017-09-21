@@ -483,12 +483,12 @@ class SIG
 	        if(!empty($extratags)){
 	            $url .= "&extratags=1";
 	        }
-	        $url .= "&email=raphaelriviere06@gmail.com";
-
-	        // var_dump($url);
-	        // $res = null;
-	  //       $res = file_get_contents(htmlspecialchars_decode($url), false);
-			// return $res;
+	        if(!empty($extratags)){
+	            $url .= "&email=contact@communecter.org";
+	        }
+	        //var_dump($url);
+	        // $res =  file_get_contents($url);
+	        // return $res;
 			return self::getUrl($url);
 		}catch (CTKException $e){
             return null ;
@@ -532,8 +532,9 @@ class SIG
 	        }
 	        $url .= "&key=".Yii::app()->params['google']['keyMaps'] ;
 	        //var_dump($url);
-	        //$res =  file_get_contents($url);
-	        //return $res;
+			// $res =  file_get_contents($url);
+	        // return $res;
+
 	        return self::getUrl($url) ;
         }catch (CTKException $e){
             return null ;

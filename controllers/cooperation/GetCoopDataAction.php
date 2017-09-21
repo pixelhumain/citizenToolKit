@@ -12,15 +12,31 @@ class GetCoopDataAction extends CAction {
 
 		$controller=$this->getController();
 
+		$auth = Authorisation::canParticipate(Yii::app()->session['userId'], $parentType, $parentId);
+		$openData = Authorisation::isOpenData(Yii::app()->session['userId'], $parentType, $parentId);
+
+
 		$page = "";
 		if($type == "menucoop") {
 			$res = array("element"=>array("_id"=>$parentId), 
-										 "type"=>$parentType);
+						 "type"=>$parentType,
+						 "parentType" => $parentType,
+						 "parentId" => $parentId,);
+			
+			//block l'accès si le user n'est pas autorisé à participer, et que l'element n'est pas openData
+			if(!$auth && !$openData)
+				$res["access"] = "deny";
+
 			echo $controller->renderPartial("menuCoop", $res, true);
 			exit;
 		}
 
-		$res = Cooperation::getCoopData($parentType, $parentId, $type, $status, $dataId);
+		//block l'accès si le user n'est pas autorisé à participer, et que l'element n'est pas openData
+		if(!$auth && !$openData) {
+			$res = array("access" => "deny");
+		}else{
+			$res = Cooperation::getCoopData($parentType, $parentId, $type, $status, $dataId);
+		}
 
 		if(empty($dataId) || $type == Room::CONTROLLER) {
 			$page = "menuRoom";

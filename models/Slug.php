@@ -9,15 +9,21 @@ class Slug {
 		return true;
 	}
 	public static function update($type, $id, $slug){
+		
 		PHDB::update(self::COLLECTION,
 			array("id"=>$id,"type"=>$type),
 			array('$set'=>array("name"=>$slug))
 		);
+		
 		return true;
 	}
 	public static function getByTypeAndId($type,$id){
 		return PHDB::findOne(self::COLLECTION,array("type"=>$type,"id"=>$id));
 	}
+	public static function getBySlug($slug){
+		return PHDB::findOne(self::COLLECTION,array("name"=>$slug));
+	}
+	
 	public static function check($slug,$type=null,$id=null){
 		$where=array("name"=>$slug);
 		if(@$id && @$type){
