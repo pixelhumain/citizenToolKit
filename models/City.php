@@ -84,6 +84,7 @@ class City {
     			$idLevel1 = Zone::getIdCountryByCountryCode($city["country"]);
     	}
     	$city["level1"] = $idLevel1;
+    	$city["level1"] = $idLevel1;
     	
     	if(!empty($city["regionNameBel"])){
     		$idLevel2 = Zone::getIdLevelByNameAndCountry($city["regionNameBel"], "2", $city["country"]);
@@ -131,13 +132,6 @@ class City {
     		//var_dump(json_encode($city));
     		if(empty($exist)){
     			PHDB::insert(self::COLLECTION, $city );
-    			$city["key"] = self::createKey($city);
-
-    			PHDB::update(self::COLLECTION,
-						array("_id"=>new MongoId($city["_id"])),
-						array('$set' => array("key" => $city["key"]))	
-				);
-
 				$res = array("result"=>true,
 	                         "msg"=>"La commune a été enregistrer.",
 	                         "city"=>$city,
