@@ -1,4 +1,5 @@
 <?php
+require 'recaptchalib.php';
 /**
    * Register a new user for the application
    * Data expected in the post : name, email, postalCode and pwd
@@ -15,12 +16,27 @@ class RegisterAction extends CAction
 		$email = (!empty($_POST['email'])) ? $_POST['email'] : "";
 		$pwd = (!empty($_POST['pwd'])) ? $_POST['pwd'] : "";
 		$pendingUserId = (!empty($_POST['pendingUserId'])) ? $_POST['pendingUserId'] : "";
+    $recaptchaResponse = (!empty($_POST['g-recaptcha-response'])) ? $_POST['g-recaptcha-response'] : "";
 
 		$newPerson = array(
 			'name'=> $name,
 			'username'=> $username,
 			'pwd'=>$pwd
 		);
+
+    $siteKey = '6LfGyykUAAAAAPOOpiTp6FIJ6lrVDmu6EHOItyBr'; // votre clé publique
+    $secret = '6LfGyykUAAAAANQNoEmwpyzE4t6K0hyw3lLAf_mC'; // votre clé privée
+
+    $reCaptcha = new ReCaptcha($secret);
+    $resp = $reCaptcha->verifyResponse(
+      $_SERVER["REMOTE_ADDR"],
+      $_POST["g-recaptcha-response"]
+    );
+    if ($resp == null || !$resp->success) {
+      $res = array("result" => false, "msg"=>"Merci de valider le CAPTCHA");
+      Rest::json($res);
+      exit;
+    }
 
 		$inviteCode = (@$_POST['inviteCode']) ? $_POST['inviteCode'] : null;
 
