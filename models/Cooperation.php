@@ -15,8 +15,9 @@ class Cooperation {
 		"todo" => "ticket",
 		"tovote" => "gavel",
 		"done" => "check",
-		"closed" => "times",
-		"archived" => "trash",
+		"closed" => "trash",
+		//"archived" => "trash",
+		"disabled" => "times",
 		);
 
 	public static function getIconCoop($key){
@@ -34,7 +35,8 @@ class Cooperation {
 		"done" => "red",
 		"closed" => "red",
 		"nodate" => "red",
-		"archived" => "orange",
+		//"archived" => "orange",
+		"disabled" => "orange",
 		"late" => "orange",
 		);
 
@@ -76,7 +78,7 @@ class Cooperation {
 				$res["room"] = Room::getById($dataId);
 
 				$query = array( "idParentRoom" => $dataId, 
-								"status" => array('$in'=>array('amendable', "tovote", "archived", "todo", "adopted", "refused")));
+								"status" => array('$in'=>array('amendable', "tovote", "disabled", "todo", "adopted", "refused")));
 				
 				$res["proposalList"] = PHDB::findAndSort (Proposal::COLLECTION, $query, 
 															array("status" => -1, "amendementDateEnd" => 1, "voteDateEnd" => 1));
@@ -175,7 +177,7 @@ class Cooperation {
 
 		$myId = @Yii::app()->session['userId'] ? Yii::app()->session['userId'] : false;
 		$allCount = array();
-		foreach (array("tovote", "amendable", "closed", "archived") as $status) {
+		foreach (array("tovote", "amendable", "closed", "disabled") as $status) {
 			$query = array( "parentType" => $parentType, "parentId" => $parentId, "status" => $status);
 			$allCount["proposals"][$status] = PHDB::count (Proposal::COLLECTION, $query, array());
 			
@@ -185,7 +187,7 @@ class Cooperation {
 			}
 		}
 
-		foreach (array("todo", "done", "archived") as $status) {
+		foreach (array("todo", "done", "disabled") as $status) {
 			$query = array( "parentType" => $parentType, "parentId" => $parentId, "status" => $status);
 			$allCount["actions"][$status] = PHDB::count (Action::COLLECTION, $query, array());
 
