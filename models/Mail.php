@@ -66,6 +66,19 @@ class Mail {
         );
         Mail::schedule($params);
     }
+    public static function notifAdminNewPro($person) {
+        $params = array(
+            "type" => Cron::TYPE_MAIL,
+            "tpl"=>'notifAdminNewPro',
+            "subject" => 'Nouveau compte pro crée sur '.self::getAppName(),
+            "from"=>Yii::app()->params['adminEmail'],
+            "to" => Yii::app()->params['adminEmail'],
+            "tplParams" => array(   "person"   => $person ,
+                                    "title" => Yii::app()->name ,
+                                    "logo"  => "/images/logoLTxt.jpg")
+        );
+        Mail::schedule($params);
+    }
 
     public static function invitePerson($person, $msg = null, $nameInvitor = null, $invitorUrl = null, $subject=null) {
         if(isset($person["invitedBy"]))

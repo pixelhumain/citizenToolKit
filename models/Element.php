@@ -62,6 +62,7 @@ class Element {
 	    	Thing::COLLECTION 		 => "Thing",
 	    	Poi::COLLECTION 		 => "Poi",
 	    	Classified::COLLECTION   => "Classified",
+	    	Product::COLLECTION   => "Product",
 	    	Survey::COLLECTION   	 => "Survey",
 	    	Bookmark::COLLECTION   	 => "Bookmark",
 	    	Proposal::COLLECTION   	 => "Proposal",

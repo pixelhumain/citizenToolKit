@@ -59,6 +59,7 @@ class Person {
 	    "modified" => array("name" => "modified"),
 	    "updated" => array("name" => "updated"),
 	    "creator" => array("name" => "creator"),
+	    "professional" => array("name" => "professional"),
 	    "created" => array("name" => "created"),
 	    "descriptionHTML" => array("name" => "descriptionHTML"),
 	);
