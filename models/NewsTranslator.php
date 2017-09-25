@@ -42,6 +42,18 @@ class NewsTranslator {
 				$object=Classified::getById((string)$params["object"]["id"]);
 				$params["icon"]="fa-newspaper-o";
 			}
+			else if (@$params["object"]["type"]==Proposal::COLLECTION){
+				$object=Proposal::getById((string)$params["object"]["id"]);
+				$params["icon"]="fa-gavel";
+			}
+			else if (@$params["object"]["type"]==Action::COLLECTION){
+				$object=Action::getById((string)$params["object"]["id"]);
+				$params["icon"]="fa-ticket";
+			}
+			else if (@$params["object"]["type"]==Room::COLLECTION){
+				$object=Room::getById((string)$params["object"]["id"]);
+				$params["icon"]="fa-inbox";
+			}
 			//var_dump($object);
 			//exit;
 			if(!empty($object)){
@@ -125,7 +137,7 @@ class NewsTranslator {
 			// 	$params["scope"]["cities"][0]["addressLocality"]=$address["addressLocality"];
 			// }
 		//}
-		if(@$params["media"] && !is_string(@$params["media"]) && $params["media"]["type"]=="gallery_images"){
+		if(@$params["media"] && $params["media"]["type"]=="gallery_images"){
 			$images=array();
 			$limit=5;
 			$i=0;
@@ -150,6 +162,37 @@ class NewsTranslator {
 				}
 			}
 			$params["media"]["images"]=$images;
+		}
+		else if(@$params["media"] && $params["media"]["type"]=="gallery_files"){
+			$files=array();
+			$limit=5;
+			$i=0;
+			foreach($params["media"]["files"] as $data){
+				if($i<$limit){
+					if(@$data && !empty($data)){
+						$file=Document::getById($data);
+						if(@$file){
+							array_push($files,$file);
+						}else{
+							$countFiles=intval($params["media"]["countFiles"]);
+							$countFiles--;
+							$params["media"]["countFiles"]=$countFiles;
+						}
+					}else{
+						$countfiles=intval($params["media"]["countFiles"]);
+						$countFiles--;
+						$params["media"]["countFiles"]=$countFiles;
+					}
+				} else {
+					exit;
+				}
+			}
+			$params["media"]["files"]=$files;
+		}
+		else if(@$params["media"] && $params["media"]["type"]=="activityStream"){
+			$element=Element::getSimpleByTypeAndId($params["media"]["object"]["type"], $params["media"]["object"]["id"]);
+			$element["type"]=$params["media"]["object"]["type"];
+			$params["media"]["object"] = $element;
 		}
 
 		if(!isset($params["author"]["id"]) || @$params["verb"] == "create"){ 

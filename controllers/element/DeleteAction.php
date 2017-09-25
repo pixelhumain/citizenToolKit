@@ -18,7 +18,10 @@ class DeleteAction extends CAction {
             Organization::COLLECTION, Organization::CONTROLLER, 
             Project::COLLECTION, Project::CONTROLLER,
             Event::COLLECTION, Event::CONTROLLER,
-            Classified::COLLECTION, Classified::CONTROLLER);
+            Classified::COLLECTION, Classified::CONTROLLER,
+            Proposal::COLLECTION, Proposal::CONTROLLER,
+            Action::COLLECTION, Action::CONTROLLER,
+            Room::COLLECTION, Room::CONTROLLER);
 
         if ($type == Person::COLLECTION || $type == Person::CONTROLLER) {
             $res = Person::deletePerson($id, Yii::app()->session["userId"]);

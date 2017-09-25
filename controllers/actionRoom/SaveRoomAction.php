@@ -11,6 +11,8 @@ class SaveRoomAction extends CAction
         {
             $email = $_POST["email"];
             $name  = $_POST['name'];
+            $topic = $_POST['topic'];
+            $description = $_POST['description'];
 
             //check if owner of the proposal exists login else create the new user
             if(PHDB::findOne (Person::COLLECTION, array( "email" => $email ) ))
@@ -19,7 +21,9 @@ class SaveRoomAction extends CAction
                 $newInfos = array();
                 $newInfos['email'] = (string)$email;
                 $newInfos['name'] = (string)$name;
-                $newInfos['type'] = $_POST['type'];
+                $newInfos['topic'] = (string)$topic;
+                $newInfos['description'] = (string)$description;
+                //$newInfos['type'] = $_POST['type'];
                 if( @$_POST["type"] == ActionRoom::TYPE_FRAMAPAD ) 
                     $newInfos['url'] = "https://annuel.framapad.org/p/".InflectorHelper::slugify( $newInfos['name'] );
 
@@ -43,27 +47,28 @@ class SaveRoomAction extends CAction
                 
                 $newInfos['_id'] = new MongoId($_POST['id']);
                 
+                $newInfos['status'] = "open";
+
                 $newInfos['created'] = time();
                 $newInfos['updated'] = time();
                 $newInfos["modified"] = new MongoDate(time());
-                PHDB::insert( Survey::PARENT_COLLECTION, $newInfos );
+                PHDB::insert( Room::COLLECTION, $newInfos );
                 /*PHDB::updateWithOptions( Survey::PARENT_COLLECTION,  array( "name" => $name ), 
                                                    array('$set' => $newInfos ) ,
                                                    array('upsert' => true ) );
                 */
                 $res['result'] = true;
                 $res['msg'] = "survey Room Saved";
-                $res["savingTo"] = Survey::PARENT_COLLECTION;
+                $res["savingTo"] = Room::COLLECTION;
                 $res["newInfos"] = $newInfos;
 
                 //Notify Element participants 
-                Notification::constructNotification(ActStr::VERB_ADD, 
+                /*Notification::constructNotification(ActStr::VERB_ADD, 
                     array("id" => Yii::app()->session["userId"],"name"=> Yii::app()->session["user"]["name"]), 
                     array(  "type"=>@$newInfos['parentType'] ? $newInfos['parentType'] : "",
                             "id"=> @$newInfos['parentId'] ? $newInfos['parentId'] : ""), 
-                    array("id"=>(string)$newInfos["_id"],"type"=> ActionRoom::COLLECTION), 
-                    $newInfos['type']
-                );
+                    array("id"=>(string)$newInfos["_id"],"type"=> Room::COLLECTION), ""
+                );*/
                 /*Notification::actionOnPerson ( ActStr::VERB_ADDROOM, ActStr::ICON_ADD, "", 
                                                 array( "type" => ActionRoom::COLLECTION , 
                                                        "id" => (string)$newInfos["_id"], 

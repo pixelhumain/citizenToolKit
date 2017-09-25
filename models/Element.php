@@ -42,8 +42,10 @@ class Element {
 	    	Need::COLLECTION => Need::CONTROLLER,
 	    	City::COLLECTION => City::CONTROLLER,
 	    	Survey::COLLECTION => Survey::CONTROLLER,
-	    	ActionRoom::COLLECTION => ActionRoom::CONTROLLER,
-	    	ActionRoom::COLLECTION_ACTIONS => ActionRoom::CONTROLLER,
+	    	Proposal::COLLECTION => Proposal::CONTROLLER,
+	    	Action::COLLECTION => Action::CONTROLLER,
+	    	//ActionRoom::COLLECTION => ActionRoom::CONTROLLER,
+	    	//ActionRoom::COLLECTION_ACTIONS => ActionRoom::CONTROLLER,
 	    );	    
     	return @$ctrls[$type];
     }
@@ -61,6 +63,10 @@ class Element {
 	    	Poi::COLLECTION 		 => "Poi",
 	    	Classified::COLLECTION   => "Classified",
 	    	Survey::COLLECTION   	 => "Survey",
+	    	Bookmark::COLLECTION   	 => "Bookmark",
+	    	Proposal::COLLECTION   	 => "Proposal",
+	    	Room::COLLECTION   	 	 => "Room",
+	    	Action::COLLECTION   	 => "Action",
 	    );	
 	 	return @$models[$type];     
     }
@@ -274,6 +280,7 @@ class Element {
     }
 
 	public static function getByTypeAndId($type, $id,$what=null){
+
 		if( @$what ) 
 			$element = PHDB::findOneById($type, $id, $what);
 		else if($type == Person::COLLECTION)
@@ -294,6 +301,12 @@ class Element {
 			$element = PHDB::findOne( ActionRoom::COLLECTION_ACTIONS ,array("_id"=>new MongoId($id)));
 		else if($type == Survey::CONTROLLER )
 			$element = PHDB::findOne( Survey::COLLECTION ,array("_id"=>new MongoId($id)));
+		else if($type == Proposal::COLLECTION )
+			$element = PHDB::findOne( Proposal::COLLECTION ,array("_id"=>new MongoId($id)));
+		else if($type == Action::COLLECTION )
+			$element = PHDB::findOne( Action::COLLECTION ,array("_id"=>new MongoId($id)));
+		else if($type == Room::COLLECTION )
+			$element = PHDB::findOne( Room::COLLECTION ,array("_id"=>new MongoId($id)));
 		else
 			$element = PHDB::findOne($type,array("_id"=>new MongoId($id)));
 	  	
@@ -396,6 +409,10 @@ class Element {
 			return Survey::getDataBinding();
 		else if($collection == Poi::COLLECTION)
 			return Poi::getDataBinding();
+		else if($collection == Proposal::COLLECTION)
+			return Proposal::getDataBinding();
+		else if($collection == Action::COLLECTION)
+			return Action::getDataBinding();
 		else
 			return array();
 	}
@@ -407,6 +424,7 @@ class Element {
 
 
     public static function updateField($collection, $id, $fieldName, $fieldValue, $allDay=null) {
+    	
     	//error_log("updateField : ".$fieldName." with value :".$fieldValue);
     	if (!Authorisation::canEditItemOrOpenEdition($id, $collection, Yii::app()->session['userId'])) {
 			throw new CTKException(Yii::t("common","Can not update the element : you are not authorized to update that element !"));
@@ -451,19 +469,33 @@ class Element {
 				if(!empty($fieldValue)){
 					$verb = '$set';
 					$address = array(
-				        "@type" => "PostalAddress",
-				        // "id" => "468768",
-				        //"name" => "mairie",
-				        "codeInsee" => $fieldValue["address"]["codeInsee"],
-				        "addressCountry" => $fieldValue["address"]["addressCountry"],
-				        "postalCode" => $fieldValue["address"]["postalCode"],
-				        "addressLocality" => $fieldValue["address"]["addressLocality"],
-				        "streetAddress" => ((@$fieldValue["address"]["streetAddress"])?trim(@$fieldValue["address"]["streetAddress"]):""),
-				        "depName" => ((@$fieldValue["address"]["depName"])?trim(@$fieldValue["address"]["depName"]):""),
-				        "regionName" => ((@$fieldValue["address"]["regionName"])?trim(@$fieldValue["address"]["regionName"]):""),
-				    	);
-					//Check address is well formated
+						"@type" => "PostalAddress",
+						"codeInsee" => $fieldValue["address"]["codeInsee"],
+						"addressCountry" => $fieldValue["address"]["addressCountry"],
+						"postalCode" => $fieldValue["address"]["postalCode"],
+						"addressLocality" => $fieldValue["address"]["addressLocality"],
+						"streetAddress" => ((@$fieldValue["address"]["streetAddress"])?trim(@$fieldValue["address"]["streetAddress"]):""),
+						"localityId" => $fieldValue["address"]["localityId"],
+						"level1" => $fieldValue["address"]["level1"],
+						"level1Name" => $fieldValue["address"]["level1Name"],
+					);
+					
+					if(!empty($fieldValue["address"]["level2"])){
+						$address["level2"] = $fieldValue["address"]["level2"];
+						$address["level2Name"] =((@$fieldValue["address"]["level2Name"])?trim(@$fieldValue["address"]["level2Name"]):"");
+					}
 
+					if(!empty($fieldValue["address"]["level3"])){
+						$address["level3"] = $fieldValue["address"]["level3"];
+						$address["level3Name"] =((@$fieldValue["address"]["level3Name"])?trim(@$fieldValue["address"]["level3Name"]):"");
+					}
+
+					if(!empty($fieldValue["address"]["level4"])){
+						$address["level4"] = $fieldValue["address"]["level4"];
+						$address["level4Name"] =((@$fieldValue["address"]["level4Name"])?trim(@$fieldValue["address"]["level4Name"]):"");
+					}
+
+					//Check address is well formated
 					$valid = DataValidator::addressValid($address);
 					if ( $valid != "") throw new CTKException($valid);
 
@@ -513,9 +545,25 @@ class Element {
 					        "postalCode" => $fieldValue["address"]["postalCode"],
 					        "addressLocality" => $fieldValue["address"]["addressLocality"],
 					        "streetAddress" => ((@$fieldValue["address"]["streetAddress"])?trim(@$fieldValue["address"]["streetAddress"]):""),
-					        "depName" => ((@$fieldValue["address"]["depName"])?trim(@$fieldValue["address"]["depName"]):""),
-				        	"regionName" => ((@$fieldValue["address"]["regionName"])?trim(@$fieldValue["address"]["regionName"]):""),
-					    	);
+					        "localityId" => $fieldValue["address"]["localityId"],
+							"level1" => $fieldValue["address"]["level1"],
+							"level1Name" => $fieldValue["address"]["level1Name"],
+						);
+
+						if(!empty($fieldValue["address"]["level2"])){
+							$address["level2"] = $fieldValue["address"]["level2"];
+							$address["level2Name"] =((@$fieldValue["address"]["level2Name"])?trim(@$fieldValue["address"]["level2Name"]):"");
+						}
+
+						if(!empty($fieldValue["address"]["level3"])){
+							$address["level3"] = $fieldValue["address"]["level3"];
+							$address["level3Name"] =((@$fieldValue["address"]["level3Name"])?trim(@$fieldValue["address"]["level3Name"]):"");
+						}
+
+						if(!empty($fieldValue["address"]["level4"])){
+							$address["level4"] = $fieldValue["address"]["level4"];
+							$address["level4Name"] =((@$fieldValue["address"]["level4Name"])?trim(@$fieldValue["address"]["level4Name"]):"");
+						}
 						//Check address is well formated
 
 						$valid = DataValidator::addressValid($address);
@@ -1004,7 +1052,9 @@ class Element {
 		$res = array("result" => false, "msg" => "Something bad happend : impossible to delete this element");
 
 		//What type of element i can delete
-		$managedTypes = array(Organization::COLLECTION, Project::COLLECTION, Event::COLLECTION, Classified::COLLECTION);
+		$managedTypes = array(Organization::COLLECTION, Project::COLLECTION, Event::COLLECTION, Classified::COLLECTION,
+							 Proposal::COLLECTION, Action::COLLECTION, Room::COLLECTION);
+		
 		if (!in_array($elementType, $managedTypes)) return array( "result" => false, "msg" => "Impossible to delete this type of element" );
 		$modelElement = self::getModelByType($elementType);
 
@@ -1178,6 +1228,13 @@ class Element {
 				}
 			}
 		}
+
+		if($elementType == Room::COLLECTION){
+			$where = array("idParentRoom" => $elementId);
+    		PHDB::remove(Proposal::COLLECTION, $where);
+    		PHDB::remove(Action::COLLECTION, $where);
+    		PHDB::remove(Resolution::COLLECTION, $where);
+		}
 		
 		//Unset the organizer for events organized by the element
 		$resError["action"] = "Unset the organizer for events organized by the element";
@@ -1301,11 +1358,12 @@ class Element {
         unset($params['id']);
 
         $postParams = array();
-        if( !in_array( $collection, array("poi") ) && @$params["urls"] && @$params["medias"] ){
-        	$postParams["medias"] = $params["medias"];
-        	unset($params['medias']);
-        	$postParams["urls"] = $params["urls"];
-        	unset($params['urls']);
+        if( !in_array( $collection, array("poi", "actions", "proposals", "resolutions") ) && 
+        	@$params["urls"] && @$params["medias"] ){
+	        	$postParams["medias"] = $params["medias"];
+	        	unset($params['medias']);
+	        	$postParams["urls"] = $params["urls"];
+	        	unset($params['urls']);
         }
 
         if($collection == City::COLLECTION)
@@ -1322,7 +1380,7 @@ class Element {
         $valid = array("result"=>true);
         if( $collection == Event::COLLECTION ){
             $valid = Event::validateFirst($params);
-        }
+        } //error_log("KEY : ". $key);
         if( $valid["result"] )
         	try {
         		$valid = DataValidator::validate( ucfirst($key), json_decode (json_encode ($params), true), ( empty($paramsLinkImport) ? null : true) );
@@ -1341,7 +1399,8 @@ class Element {
             	 	throw new CTKException("Error processing before saving on event");
             }
 
-            if($id){
+            if($id){ //var_dump($params); exit;
+        	
             	//var_dump($params);
                 //update a single field
                 //else update whole map
@@ -1350,26 +1409,34 @@ class Element {
                 if(!@$exists){
                 	$params["creator"] = Yii::app()->session["userId"];
 	        		$params["created"] = time();
+	        		if(in_array($collection,[Organization::COLLECTION,Project::COLLECTION,Event::COLLECTION])){
+	        			$slug=Slug::checkAndCreateSlug($params["name"],$collection,$id);
+	        			Slug::save($collection,$id,$slug);
+	        			$params["slug"]=$slug;
+	        		}
                 	PHDB::updateWithOptions($collection,array("_id"=>new MongoId($id)), array('$set' => $params ),array('upsert' => true ));
                 	$params["_id"]=new MongoId($id);
                 	if( $collection == Organization::COLLECTION )
                 		$res["afterSave"] = Organization::afterSave($params, Yii::app()->session["userId"], $paramsLinkImport);
                 	else if( $collection == Event::COLLECTION )
-                		$res["afterSave"] = Event::afterSave($params);
+                		$res["afterSave"] = Event::afterSave($params, $paramsLinkImport);
                 	else if( $collection == Project::COLLECTION )
-                		$res["afterSave"] = Project::afterSave($params, @$params["parentId"] , @$params["parentType"] );
+                		$res["afterSave"] = Project::afterSave($params, $paramsLinkImport);
+                	else if( $collection == Proposal::COLLECTION || $collection == Action::COLLECTION || $collection == Room::COLLECTION )
+                		$res["afterSave"] = Cooperation::afterSave($params, $collection);
+                	
                 	$res["afterSaveGbl"] = self::afterSave((string)$params["_id"],$collection,$params,$postParams);
                 }
                 else
                 	PHDB::update($collection,array("_id"=>new MongoId($id)), array('$set' => $params ));
                 $res = array("result"=>true,
-                             "msg"=>Yii::t("common","Your data are well updated."),
+                             "msg"=>Yii::t("common","Your data are well updated"),
                              "reload"=>true,
                              "map"=>$params,
                              "id"=>$id);
             } 
             else 
-            {
+            { 
                 $params["created"] = time();
                 PHDB::insert($collection, $params );
                 $res = array("result"=>true,
@@ -1388,10 +1455,14 @@ class Element {
                 if( $collection == Organization::COLLECTION )
                 	$res["afterSave"] = Organization::afterSave($params, Yii::app()->session["userId"], $paramsLinkImport);
                 else if( $collection == Event::COLLECTION )
-                	$res["afterSave"] = Event::afterSave($params);
+                	$res["afterSave"] = Event::afterSave($params, $paramsLinkImport);
                 else if( $collection == Project::COLLECTION )
-                	$res["afterSave"] = Project::afterSave($params, @$params["parentId"] , @$params["parentType"] );
-                $res["afterSaveGbl"] = self::afterSave((string)$params["_id"],$collection,$params,$postParams);
+                	$res["afterSave"] = Project::afterSave($params, $paramsLinkImport );
+                else if( $collection == Proposal::COLLECTION || $collection == Action::COLLECTION )
+                	$res["afterSave"] = Cooperation::afterSave($params, $collection);
+
+               // echo "pas d'id - "; var_dump($postParams); exit;
+               $res["afterSaveGbl"] = self::afterSave((string)$params["_id"],$collection,$params,$postParams);
                 //if( false && @$params["parentType"] && @$params["parentId"] )
                 //{
                     //createdObjectAsParam($authorType, $authorId, $objectType, $objectId, $targetType, $targetId, $geo, $tags, $address, $verb="create")
@@ -1420,6 +1491,7 @@ class Element {
 
     public static function afterSave ($id, $collection, $params,$postParams) {
     	$res = array();
+    	
     	if( @$postParams["medias"] )
     	{
     		//create POI for medias connected to the parent
@@ -1432,6 +1504,7 @@ class Element {
     		$poiParams["collection"] = Poi::COLLECTION;
     		$poiParams["medias"] = $postParams['medias'];
     		$poiParams["urls"] = $postParams['urls'];
+    		//echo "afterSave - "; var_dump($poiParams); exit;
     		$res["medias"] = self::save($poiParams);
     	}
     	return $res;
@@ -1470,11 +1543,27 @@ class Element {
 		if(isset($params["name"]))
 			$params["name"] = $params["name"];
 
+		if(isset($params["slug"]) && !empty($params["slug"])){
+			$params["slug"]=$params["slug"];
+			if(!empty(Slug::getByTypeAndId($params["collection"],$params["id"])))
+				Slug::update($params["collection"],$params["id"],$params["slug"]);
+			else
+				Slug::save($params["collection"],$params["id"],$params["slug"]);
+		}
 		if(isset($params["shortDescription"]))
 			$params["shortDescription"] = strip_tags($params["shortDescription"]);
 
 	    
-	
+		/*if (@$params["amendementDateEnd"]){
+			$params["amendementDateEnd"] = Cooperation::formatDateBeforeSaving($params["amendementDateEnd"]);
+			//$params["amendementDateEnd"] = $params["amendementDateEnd"]->format('Y-m-d H:i');
+		}
+
+		if (@$params["voteDateEnd"]){
+			$params["voteDateEnd"] = Cooperation::formatDateBeforeSaving($params["voteDateEnd"]);
+			//$params["voteDateEnd"] = $params["voteDateEnd"]->format('Y-m-d H:i');
+		}*/
+
 		//TODO SBAR - Manage elsewhere (maybe in the view)
 		//Manage the event startDate and endDate format : 
 		//it comes with the format DD/MM/YYYY HH:ii or DD/MM/YYYY 
@@ -1808,8 +1897,11 @@ class Element {
 		$id = $params["id"];
 		$res = array();
 		if($block == "info"){
-			if(isset($params["name"]))
+			if(isset($params["name"])){
 				$res[] = self::updateField($collection, $id, "name", $params["name"]);
+				/*PHDB::update( $collection,  array("_id" => new MongoId($id)), 
+		 										array('$unset' => array("hasRC"=>"") ));*/
+			}
 			if(isset($params["username"]) && $collection == Person::COLLECTION)
 				$res[] = self::updateField($collection, $id, "username", $params["username"]);
 			if(isset($params["avancement"]) && $collection == Project::COLLECTION)
@@ -1820,6 +1912,23 @@ class Element {
 				$res[] = self::updateField($collection, $id, "type", $params["type"]);
 			if(isset($params["email"]))
 				$res[] = self::updateField($collection, $id, "email", $params["email"]);
+			if(isset($params["slug"])){
+				
+				$el = PHDB::findOne($collection,array("_id"=>new MongoId($id)));
+				$oldslug = $el["slug"];
+				
+				$res[] = self::updateField($collection, $id, "slug", $params["slug"]);
+
+				if(!empty(Slug::getByTypeAndId($collection,$id)))
+					Slug::update($collection,$id,$params["slug"]);
+				else
+					Slug::save($collection,$id,$params["slug"]);
+
+				//update RC channel name if exist
+				if(@$el["hasRC"]){
+					RocketChat::rename( $oldslug, $params["slug"], @$el["preferences"]["isOpenEdition"] );
+				}
+			}
 			if(isset($params["url"]))
 				$res[] = self::updateField($collection, $id, "url", self::getAndCheckUrl($params["url"]));
 			if(isset($params["birthDate"]) && $collection == Person::COLLECTION)
@@ -1886,6 +1995,31 @@ class Element {
 			
 			if(isset($params["shortDescription"]))
 				$res[] = self::updateField($collection, $id, "shortDescription", strip_tags($params["shortDescription"]));
+		
+		}else if($block == "activeCoop"){
+
+			if(isset($params["status"]))
+				$res[] = self::updateField($collection, $id, "status", $params["status"]);
+			if(isset($params["voteActivated"]))
+				$res[] = self::updateField($collection, $id, "voteActivated", $params["voteActivated"]);
+			if(isset($params["amendementActivated"]))
+				$res[] = self::updateField($collection, $id, "amendementActivated", $params["amendementActivated"]);
+		
+		}else if($block == "amendement"){
+
+			if(isset($params["txtAmdt"]) && isset($params["typeAmdt"]) && isset($params["id"]) && @Yii::app()->session['userId']){
+				$proposal = Proposal::getById($params["id"]);
+				$amdtList = @$proposal["amendements"] ? $proposal["amendements"] : array();
+				$rand = rand(1000, 100000);
+				while(isset($amdtList[$rand])){ $rand = rand(1000, 100000); }
+
+				$amdtList[$rand] = array(
+									"idUserAuthor"=> Yii::app()->session['userId'],
+									"typeAmdt" => $params["typeAmdt"],
+									"textAdd"=> $params["txtAmdt"]);
+				Notification::constructNotification ( ActStr::VERB_AMEND, array("id" => Yii::app()->session["userId"],"name"=> Yii::app()->session["user"]["name"]), array("type"=>$proposal["parentType"],"id"=>$proposal["parentId"]),array( "type"=>Proposal::COLLECTION,"id"=> $params["id"] ) );
+				$res[] = self::updateField($collection, $id, "amendements", $amdtList);
+			}
 		}
 
 		if(Import::isUncomplete($id, $collection)){
@@ -2100,6 +2234,7 @@ class Element {
 
 		if(!empty($type))
 			$newElement["type"] = $type;
+
 
 		if(!empty($element["properties"]["avancement"]))
 			$newElement["avancement"] = $element["properties"]["avancement"];

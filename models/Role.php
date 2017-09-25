@@ -9,7 +9,8 @@ class Role {
 	const DEVELOPER = "developer";
 	const SUPERADMIN = "superAdmin";
 	const SOURCEADMIN = "sourceAdmin";
-	
+	const COEDITOR = "coEditor";
+
 	/**
 	 * Default Roles for a new person : 
 	 *  - tobeactivated : true
@@ -78,54 +79,37 @@ class Role {
 
 	public static function isUserSuperAdmin($roles) {
 		if (! $roles) {
-			throw new CTKException("The user does not have roles set on his profile : contact your admin");
+			return false;
+			//throw new CTKException("The user does not have roles set on his profile : contact your admin");
 		}
 		//var_dump($roles);
-		if (@$roles["superAdmin"]) {
-			return true;
-		} else {
-			return false;
-		}
+		return (@$roles["superAdmin"]) ? true : false;
 	}
 
 	public static function isUserBetaTester($roles) {
-		if (@Yii::app()->params['betaTest'] && @$roles["betaTester"]) {
-			return true;
-		} else {
-			return false;
-		}
+		return (@Yii::app()->params['betaTest'] && @$roles["betaTester"]) ? true : false;
+	}
+
+	public static function isUser($userRoles, $roles) {
+		$res =  array_intersect ( $userRoles , $roles );
+		return ( count($res)>0 ) ? true : false;
 	}
 
 	public static function isSuperAdmin($roles) {
-		if (@$roles[self::SUPERADMIN]) {
-			return true;
-		} else {
-			return false;
-		}
+		return (@$roles[self::SUPERADMIN]) ? true : false;
 	}
 
 	public static function isDeveloper($roles) {
-		if (@$roles[self::DEVELOPER]) {
-			return true;
-		} else {
-			return false;
-		}
+		return (@$roles[self::DEVELOPER]) ? true : false;
 	}
 
 	public static function isSourceAdmin($roles) {
-		if (@$roles[self::SOURCEADMIN]) {
-			return true;
-		} else {
-			return false;
-		}
+		return (@$roles[self::SOURCEADMIN]) ? true : false;
 	}
 
 	public static function isUserActivated($id){
 		$personRole = PHDB::findOneById( Person::COLLECTION ,$id, array("roles" => 1));
-		if (!@$personRole["roles"]["tobeactivated"])
-			return true;
-		else 
-			return false;
+		return (!@$personRole["roles"]["tobeactivated"]) ? true : false;
 	}
 	
 	/**

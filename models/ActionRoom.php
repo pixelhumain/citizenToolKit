@@ -1,7 +1,7 @@
 <?php 
 class ActionRoom {
 
-	const COLLECTION 		= "actionRooms";
+	const COLLECTION 		= "rooms";
 	const CONTROLLER 		= "rooms";
 	
 	const TYPE_SURVEY 		= "survey"; //sondage à la Google Forms

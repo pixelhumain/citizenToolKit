@@ -6,7 +6,9 @@
 class Action
 {
     const NODE_ACTIONS          = "actions";
-
+    const COLLECTION            = "actions";
+    const CONTROLLER            = "action";
+    
     const ACTION_ROOMS          = "actionRooms";
     const ACTION_ROOMS_TYPE_SURVEY = "survey";
 
@@ -25,6 +27,58 @@ class Action
     const ACTION_REPORT_ABUSE   = "reportAbuse";
     const ACTION_FOLLOW         = "follow";
 
+
+    public static $dataBinding = array (
+        
+        "name"                  => array("name" => "name",                  "rules" => array("required")),
+        "description"           => array("name" => "description",           "rules" => array("required")),
+        "tags"                  => array("name" => "tags"),
+        "urls"                  => array("name" => "urls"),
+        "medias"                => array("name" => "medias"),
+        
+        "startDate"             => array("name" => "startDate"),
+        "endDate"               => array("name" => "endDate"),
+        
+        "actors"               => array("name" => "actors"),
+        
+        // Open / Closed
+        "status"                => array("name" => "status",                "rules" => array("required")), 
+        
+        "idUserAuthor"          => array("name" => "idUserAuthor",          "rules" => array("required")),
+        "idParentRoom"          => array("name" => "idParentRoom",          "rules" => array("required")),
+        "parentId"              => array("name" => "parentId",              "rules" => array("required")),
+        "parentType"            => array("name" => "parentType",            "rules" => array("required")),
+        
+        "email"                => array("name" => "status"), 
+        
+        "modified" => array("name" => "modified"),
+        "updated" => array("name" => "updated"),
+        "creator" => array("name" => "creator"),
+        "created" => array("name" => "created"),
+
+        //"medias" => array("name" => "medias"),
+    );
+
+    public static function getDataBinding() {
+        return self::$dataBinding;
+    }
+    
+    /**
+     * get a action room By Id
+     * @param String $id : is the mongoId of the action room
+     * @return array Document of the action room
+     */
+    public static function getById($id) {
+        return PHDB::findOne( self::COLLECTION,array("_id"=>new MongoId($id)));
+    }
+    public static function getSimpleSpecById($id, $where=null, $fields=null){
+        if(empty($fields))
+            $fields = array("_id", "name");
+        $where["_id"] = new MongoId($id) ;
+        $action = PHDB::findOne(self::COLLECTION, $where ,$fields);
+        return @$action;
+    }
+    
     /**
      * - can only add an action once vote , purchase, .. 
      * - check user and element existance 

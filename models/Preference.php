@@ -92,6 +92,8 @@ class Preference {
 		}
 		if($setType == "isOpenEdition"){
 			$preferences["isOpenEdition"] = $setValue;
+			PHDB::update( $type,  array("_id" => new MongoId($id)), 
+		 										array('$unset' => array("hasRC"=>"") ));
 		}else{
 			if($type != Person::COLLECTION)
 				$preferences["isOpenEdition"] = (empty($context["preferences"]["isOpenEdition"])?false:$context["preferences"]["isOpenEdition"]);

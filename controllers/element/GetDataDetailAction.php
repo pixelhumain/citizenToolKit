@@ -25,12 +25,16 @@ class GetDataDetailAction extends CAction {
 						error_log("The element ".$id."/".$type." has a broken link : ".$keyLink."/".$value["type"]);
 						continue;
 					}
+					if(@$value["roles"] && !empty($value["roles"])){ 
+			            $link["rolesLink"]=[]; 
+			            $link["rolesLink"]=$value["roles"]; 
+			        } 
 					if($dataName=="guests" && @$value["isInviting"]){
 						$link["type"] = $value["type"];
 						$link["isInviting"] = $value["isInviting"];
 						$contextMap[$keyLink] = $link;
 					}else if($dataName!="guests" && !@$value["isInviting"]){
-						$link = Element::getByTypeAndId($value["type"], $keyLink);
+						//$link = Element::getByTypeAndId($value["type"], $keyLink);
 						if($value["type"]==Person::COLLECTION){
 							$link["statusLink"]=[];
 							if(@$value[Link::TO_BE_VALIDATED])
@@ -137,19 +141,25 @@ class GetDataDetailAction extends CAction {
 
 		if($dataName == "liveNow"){
 			$post = $_POST; 
-			if( empty($_POST["searchLocalityCITYKEY"]) && 
-				(empty($_POST["searchLocalityDEPARTEMENT"]) || $_POST["searchLocalityDEPARTEMENT"][0] == "" || 
-				 $_POST["searchLocalityDEPARTEMENT"][0] == "undefined") && 
-				isset($element["address"])){
-				$city = City::getDepAndRegionByInsee($element["address"]["codeInsee"]);
-				$post["searchLocalityDEPARTEMENT"] = array($city["depName"]);
+			// if( empty($_POST["searchLocalityCITYKEY"]) && 
+			// 	(empty($_POST["searchLocalityDEPARTEMENT"]) || $_POST["searchLocalityDEPARTEMENT"][0] == "" || 
+			// 	 $_POST["searchLocalityDEPARTEMENT"][0] == "undefined") && 
+			// 	isset($element["address"])){
+			// 	$levelS = City::getLevelForNowList($element["address"]);
+			// 	$post["searchLocalityDEPARTEMENT"] = array($levelS);
+			// }
+
+			if( !empty($post["searchLocality"])){
+				foreach ($post["searchLocality"] as $key => $value) {
+					$scopeName = $value["name"];
+				}
 			}
 
 			//EVENTS-------------------------------------------------------------------------------
 			$query = array("startDate" => array( '$gte' => new MongoDate( time() ) ));
 
-			if(@$type!="0" || !empty($post["searchLocalityCITYKEY"]))
-			$query = Search::searchLocality($post, $query);
+			if(@$type!="0" || !empty($post["searchLocality"]))
+				$query = Search::searchLocality($post["searchLocality"], $query);
 
 			$events = PHDB::findAndSortAndLimitAndIndex( Event::COLLECTION,
 							$query,
@@ -173,8 +183,8 @@ class GetDataDetailAction extends CAction {
 
 			//CLASSIFIED-------------------------------------------------------------------------------
 			$query = array();
-			if(@$type!="0" || !empty($post["searchLocalityCITYKEY"]))
-				$query = Search::searchLocality($post, $query);
+			if(@$type!="0" || !empty($post["searchLocality"]))
+				$query = Search::searchLocality($post["searchLocality"], $query);
 
 			$classified = PHDB::findAndSortAndLimitAndIndex( Classified::COLLECTION, $query,
 							array("updated"=>-1), 10);
@@ -190,8 +200,8 @@ class GetDataDetailAction extends CAction {
 			
 		  	//POI-------------------------------------------------------------------------------
 			$query = array();
-			if(@$type!="0" || !empty($post["searchLocalityCITYKEY"]))
-				$query = Search::searchLocality($post, $query);
+			if(@$type!="0" || !empty($post["searchLocality"]))
+				$query = Search::searchLocality($post["searchLocality"], $query);
 			
 			$pois = PHDB::findAndSortAndLimitAndIndex( Poi::COLLECTION, $query,
 							array("updated"=>-1), 10);
@@ -213,7 +223,7 @@ class GetDataDetailAction extends CAction {
 												"element" => $element,
 												"type"=>$type, 
 												"id"=>$id, 
-												"scope"=>@$post['searchLocalityDEPARTEMENT'][0], 
+												"scope"=>@$scopeName, 
 												"open"=> (@$type=="0"))); 
 												//open : for home page (when no user connected)
 			Yii::app()->end();

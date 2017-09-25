@@ -30,18 +30,36 @@ class IndexAction extends CAction
 		} else if($type == Poi::COLLECTION) {
             $params["context"] = Poi::getById($id);
 
-        } else if($type == Survey::COLLECTION) {
-            $params["context"] = Survey::getById($id);
+        } else if($type == Proposal::COLLECTION) {
+            $params["context"] = Proposal::getById($id);
+
             /*AUTH*/
-            $actionRoom = ActionRoom::getById($params["context"]["survey"]);
-            $canParticipate = Authorisation::canParticipate(Yii::app()->session["userId"], $actionRoom["parentType"], $actionRoom["parentId"]);
+            //var_dump($params["context"]); exit;
+            $actionRoom = Room::getById($params["context"]["idParentRoom"]);
+            $canParticipate = Authorisation::canParticipate(Yii::app()->session["userId"], 
+                                $params["context"]["parentType"], $params["context"]["parentId"]);
+
             $canComment = $params["canComment"] && $canParticipate;
             $params['canComment'] = $canComment;
 
             $params["parentType"] = $actionRoom["parentType"];
             
-        } else if($type == ActionRoom::COLLECTION) {
-            $actionRoom = ActionRoom::getById($id);
+        } else if($type == Resolution::COLLECTION) {
+            $params["context"] = Resolution::getById($id);
+
+            /*AUTH*/
+            //var_dump($params["context"]); exit;
+            $actionRoom = Room::getById($params["context"]["idParentRoom"]);
+            $canParticipate = Authorisation::canParticipate(Yii::app()->session["userId"], 
+                                $params["context"]["parentType"], $params["context"]["parentId"]);
+
+            $canComment = $params["canComment"] && $canParticipate;
+            $params['canComment'] = $canComment;
+
+            $params["parentType"] = $actionRoom["parentType"];
+            
+        } else if($type == Room::COLLECTION) {
+            $actionRoom = Room::getById($id);
             $params["context"] = $actionRoom;
             //Images
 			$limit = array(Document::IMG_PROFIL => 1);
@@ -74,14 +92,14 @@ class IndexAction extends CAction
             $canComment = $params["canComment"] && $canParticipate;
             $params['canComment'] = $canComment;
 
-        }else if($type == ActionRoom::COLLECTION_ACTIONS) {
-            $params["context"] = ActionRoom::getActionById($id);
+        }else if($type == Action::COLLECTION) {
+            $params["context"] = Action::getById($id);
             /*AUTH*/
             $limit = array(Document::IMG_PROFIL => 1);
-			$images = Document::getImagesByKey($id, ActionRoom::COLLECTION_ACTIONS, $limit);
+			$images = Document::getImagesByKey($id, Room::COLLECTION_ACTIONS, $limit);
 			$params["images"] = $images;
-            $actionRoom = ActionRoom::getById($params["context"]["room"]);
-            $canParticipate = Authorisation::canParticipate(Yii::app()->session["userId"], $actionRoom["parentType"], $actionRoom["parentId"]);
+            $actionRoom = Room::getById($params["context"]["idParentRoom"]);
+            $canParticipate = Authorisation::canParticipate(Yii::app()->session["userId"], $params["context"]["parentType"], $params["context"]["parentId"]);
             $canComment = $params["canComment"] && $canParticipate;
             $params['canComment'] = $canComment;
             $params["parentType"] = $actionRoom["parentType"];
@@ -99,12 +117,12 @@ class IndexAction extends CAction
         $params["idComment"] = $id;
 
         if(Yii::app()->request->isAjaxRequest){
-	        if($type != ActionRoom::COLLECTION && $type != ActionRoom::COLLECTION_ACTIONS)
+	        if($type != Room::COLLECTION && $type != Room::COLLECTION_ACTIONS)
                 echo $controller->renderPartial("../comment/commentPodSimple" , $params, true);
             else
                 echo $controller->renderPartial("../comment/commentPodActionRooms" , $params, true);
 	    }else{
-            if($type != ActionRoom::COLLECTION && $type != ActionRoom::COLLECTION_ACTIONS)
+            if($type != Room::COLLECTION && $type != Room::COLLECTION_ACTIONS)
                 $controller->renderPartial("../comment/commentPod" , $params, true);
             else
                 $controller->renderPartial("../comment/commentPodActionRooms" , $params, true);
