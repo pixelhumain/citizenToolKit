@@ -113,7 +113,6 @@ class Api {
             }
         }
 
-
         if (( $format == Translate::FORMAT_RSS) || ($format == Translate::FORMAT_KML) || ($format == Translate::FORMAT_KML)) {
             //if(((@$idElement) && (@$typeElement)) || (@$tags)) {
             foreach ($data as $key => $value) {
@@ -145,12 +144,6 @@ class Api {
         }else{
             $meta["limit"] = 1;
 
-        }
-
-        if ($format == Translate::FORMAT_JSONFEED) {
-            
-
-            // var_dump($data);
         }
 
         if (($format == Translate::FORMAT_RSS) || ($format == Translate::FORMAT_KML)) {
