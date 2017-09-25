@@ -17,7 +17,6 @@ class GetAction extends CAction {
 		else
 			$bindMap = TranslateCommunecter::$dataBinding_news;
 
-
 	    $result = Api::getData($bindMap, $format, News::COLLECTION, $id,$limit, $index, $tags, $multiTags, $key, $insee, null, $idElement, $typeElement);
 
 	    if ((isset($idElement)) && (isset($typeElement))) {
@@ -30,7 +29,7 @@ class GetAction extends CAction {
 				$array_null = array();
 				$result = $array_null;
 			} else {
-				$element = Element::getByTypeAndId($typeElement , $idElement);
+				$element = Element::getSimpleByTypeAndId($typeElement , $idElement);
 				$name_element = ($element["name"]);
 				$element["name"] = 'Fil d\'actualité de ' . $element["name"];		
 				$strucRss = News::getStrucChannelRss($element["name"]);

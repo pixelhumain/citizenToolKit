@@ -514,7 +514,31 @@ class Convert {
 		}
 
         return $res;
+    }
 
+    public static function ConvertOrgancityToPh($url) {
+
+    	$map = TranslateOrgancityToPh::$mapping_organcity;
+        $param = self::getPrimaryParam($map);
+
+        $param['nameFile'] = 'convert_organcity';
+        $param['key'] = 'convert_organcity';
+
+        if (isset($url)) {
+        	$param['file'][0] = file_get_contents($url);
+        }
+
+        $result = Import::previewData($param);
+
+        var_dump($result);
+
+  //       if ($result['result'] !== false) {
+		// 	$res = json_decode($result['elements']);
+		// } else {
+		// 	$res = [];
+		// }
+
+  //       return $res;
     }
 
 	public static function getLatLongWikidataItem($wikidata_item) {
