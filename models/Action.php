@@ -49,7 +49,9 @@ class Action
         "parentId"              => array("name" => "parentId",              "rules" => array("required")),
         "parentType"            => array("name" => "parentType",            "rules" => array("required")),
         
-        "email"                => array("name" => "status"), 
+        "idParentResolution"    => array("name" => "idParentResolution"),
+        
+        "email"                 => array("name" => "status"), 
         
         "modified" => array("name" => "modified"),
         "updated" => array("name" => "updated"),
