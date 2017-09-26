@@ -166,6 +166,11 @@ class Element {
 	    	Classified::CONTROLLER 		=> array("icon"=>"bullhorn","color"=>"#2BB0C6","text-color"=>"azure",
 	    										 "hash"=> Classified::CONTROLLER.".detail.id.",
 	    										 "collection"=>Classified::COLLECTION),
+			Product::COLLECTION 		=> array("icon"=>"gift","color"=>"#2BB0C6","text-color"=>"azure",
+	    										 "hash"=> Product::CONTROLLER.".detail.id."),
+	    	Product::CONTROLLER 		=> array("icon"=>"gift","color"=>"#2BB0C6","text-color"=>"azure",
+	    										 "hash"=> Product::CONTROLLER.".detail.id.",
+	    										 "collection"=>Product::COLLECTION),
 
 			Poi::COLLECTION 			=> array("icon"=>"map-marker","color"=>"#2BB0C6","text-color"=>"green-poi",
 	    										 "hash"=> Poi::CONTROLLER.".detail.id."),

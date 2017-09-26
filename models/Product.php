@@ -1,6 +1,6 @@
 <?php
 
-class Classified {
+class Product {
 	const COLLECTION = "products";
 	const CONTROLLER = "product";
 	

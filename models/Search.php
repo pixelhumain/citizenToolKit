@@ -188,7 +188,10 @@ class Search {
         if(strcmp($filter, Poi::COLLECTION) != 0 && self::typeWanted(Poi::COLLECTION, $searchType)){
         	$allRes = array_merge($allRes, self::searchPoi($query, $indexStep, $indexMin));
 	  	}
-
+	  	//*********************************  PRODUCT  ******************************************
+        if(strcmp($filter, Product::COLLECTION) != 0 && self::typeWanted(Product::COLLECTION, $searchType)){
+        	$allRes = array_merge($allRes, self::searchProduct($query, $indexStep, $indexMin));
+	  	}
 	  	//*********************************  PLACE   ******************************************
         if(strcmp($filter, Place::COLLECTION) != 0 && self::typeWanted(Place::COLLECTION, $searchType)){
         	$allRes = array_merge($allRes, self::searchPlace($query, $indexStep, $indexMin));
@@ -700,7 +703,26 @@ class Search {
   		}
   		return $allPoi;
   	}
-
+	//*********************************  PRODUCT   ******************************************
+	public static function searchProduct($query, $indexStep, $indexMin){
+    	$allProduct = PHDB::findAndSortAndLimitAndIndex(Product::COLLECTION, $query, 
+  												array("updated" => -1), $indexStep, $indexMin);
+  		foreach ($allProduct as $key => $value) {
+	  		if(@$value["parentId"] && @$value["parentType"])
+	  			$parent = Element::getElementSimpleById(@$value["parentId"], @$value["parentType"]);
+	  		else
+	  			$parent=array();
+			$allProduct[$key]["parent"] = $parent;
+			if(@$value["type"])
+				$allProduct[$key]["typeSig"] = Product::COLLECTION;//.".".$value["type"];
+			else
+				$allProduct[$key]["typeSig"] = Product::COLLECTION;
+			
+			$allProduct[$key]["typePoi"] = @$allProduct[$key]["type"];
+			$allProduct[$key]["type"] = Product::COLLECTION;
+  		}
+  		return $allProduct;
+  	}
   	//*********************************  Place   ******************************************
 	public static function searchPlace($query, $indexStep, $indexMin){
     	$allPlace = PHDB::findAndSortAndLimitAndIndex(Place::COLLECTION, $query, 
