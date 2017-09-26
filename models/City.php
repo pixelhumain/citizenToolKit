@@ -200,6 +200,7 @@ class City {
 
 		$params = array('postalCodes' => array('$elemMatch' => array('postalCode' => $insee ) ) );
 	    $city = self::getWhere($params);
+	    
     	return $city;
 	}
 

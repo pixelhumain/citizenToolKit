@@ -160,7 +160,6 @@ class Import
                         $elements[] = $element;
                 //}
             }
-           // var_dump($nb);
             $params = array("result"=>true,
                             "elements"=>json_encode(json_decode(json_encode($elements),true)),
                             "elementsWarnings"=>json_encode(json_decode(json_encode($elementsWarnings),true)),
@@ -215,7 +214,12 @@ class Import
             if(!empty($address) && !empty($address["addressCountry"])  && !empty($address["postalCode"]) && strtoupper($address["addressCountry"]) == "FR" && strlen($address["postalCode"]) == 4 )
                 $address["postalCode"] = '0'.$address["postalCode"];
 
-            $detailsLocality = self::getAndCheckAddressForEntity($address, $geo) ;
+            if ($element['source']['keys'][0] !== "convert_datagouv" && $element['source']['keys'][0] !== "convert_osm" && $element['source']['keys'][0] !== "convert_ods" && $element['source']['keys'][0] !== "convert_wiki" && $element['source']['keys'][0] !== "convert_datanova" && $element['source']['keys'][0] !== "convert_poleemploi" && $element['source']['keys'][0] !== "convert_educ_etab" && $element['source']['keys'][0] !== "convert_educ_membre" && $element['source']['keys'][0] !== "convert_educ_ecole" && $element['source']['keys'][0] !== "convert_educ_struct" && $element['source']['keys'][0] !== "convert_valueflows" && $element['source']['keys'][0] !== "convert_organcity") {
+                $detailsLocality = self::getAndCheckAddressForEntity($address, $geo) ;
+            } else {
+                $detailsLocality = self::getAndCheckAddressForEntityOld($address, $geo) ;
+            }
+            
             if($detailsLocality["result"] == true){
 				$element["address"] = $detailsLocality["address"] ;
 				$element["geo"] = $detailsLocality["geo"] ;
@@ -294,8 +298,6 @@ class Import
 			//var_dump( $where);
 			$city = PHDB::findOne(City::COLLECTION, $where);
 
-			
-
 			if(!empty($city)){
 				if( !empty($address["streetAddress"]) ){
 					$street = (empty($address["streetAddress"])?null:$address["streetAddress"]);
@@ -326,8 +328,6 @@ class Import
 						}
 					}
 				}
-
-
 
 				if( empty($lat) || empty($lon)){
 					$lat = $city["geo"]["latitude"];
@@ -415,6 +415,7 @@ class Import
 						"geo" => ( empty($newGeo) ? null : $newGeo),
 						"geoPosition" => ( empty($newGeoPosition) ? null : $newGeoPosition),
 						"saveCities" => ( empty($saveCities) ? null : $saveCities) );
+
 		return $res ;
 	}
 
@@ -601,6 +602,7 @@ class Import
         $result["address"] = $newAddress;
         if(!empty($saveCities))
         	$result["saveCities"] = $saveCities;
+
         return $result;
     }
 
