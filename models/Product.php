@@ -35,7 +35,7 @@ class Product {
 	    "price" => array("name" => "price"),
 	    "devise" => array("name" => "devise"),
 	    "contactInfo" => array("name" => "contactInfo", "rules" => array("required")),
-
+	    "toBeValidated"=>array("name" => "toBeValidated"),
 	    "modified" => array("name" => "modified"),
 	    "updated" => array("name" => "updated"),
 	    "creator" => array("name" => "creator"),
@@ -50,11 +50,14 @@ class Product {
 	 * @return poi
 	 */
 	public static function getById($id) { 
-	  	$poi = PHDB::findOneById( self::COLLECTION ,$id );
-	  	return $poi;
+	  	$product = PHDB::findOneById( self::COLLECTION ,$id );
+	  	return $product;
 	}
 
-
+	public static function getListBy($where){
+		$products = PHDB::find( self::COLLECTION , $where );
+	  	return $products;
+	}
 	public static function getProductByCreator($id){
 		$allClassified = PHDB::findAndSort( self::COLLECTION , array("creator"=> $id), array("updated"=>-1));
 		foreach ($allClassified as $key => $value) {
