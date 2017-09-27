@@ -25,17 +25,21 @@ class City {
 	    "geoPosition" => array("name" => "geoPosition", "rules" => array("required","geoPositionValid")),
 	    "geoShape" => array("name" => "geoShape"/*, "rules" => array("geoShapeValid")*/),
 	 	"postalCodes" => array("name" => "postalCodes"/*, "rules" => array("postalCodesValid")*/),
-	    "regionName" => array("name" => "regionName"),
-	    "region" => array("name" => "region"),
-	    "depName" => array("name" => "depName"),
-	    "dep" => array("name" => "dep"),
 	    "osmID" => array("name" => "osmID"),
 	    "wikidataID" => array("name" => "wikidataID"),
 	    "modified" => array("name" => "modified"),
 	    "updated" => array("name" => "updated"),
 	    "creator" => array("name" => "creator"),
 	    "created" => array("name" => "created"),
-	    "new" => array("name" => "new")
+	    "new" => array("name" => "new"),
+	    "level1" => array("name" => "level1"),
+	    "level2" => array("name" => "level2"),
+	    "level3" => array("name" => "level3"),
+	    "level4" => array("name" => "level4"),
+	    "level1Name" => array("name" => "level1Name"),
+	    "level2Name" => array("name" => "level2Name"),
+	    "level3Name" => array("name" => "level3Name"),
+	    "level4Name" => array("name" => "level4Name"),
 	);
 
 
@@ -68,8 +72,54 @@ class City {
 	    		$postalCodes[] = $newCP;
 	    	}
     	}
-    	
     	$city["postalCodes"] = $postalCodes;
+
+
+
+		$idLevel1 = Zone::getIdCountryByCountryCode($city["country"]);
+    	if(empty($idLevel1)){
+    		$level1 = Zone::createLevel(OpenData::$phCountries[$city["country"]], $city["country"], "1");
+    		$savelevel1 = Zone::save($level1);
+    		if($savelevel1["result"] == true)
+    			$idLevel1 = Zone::getIdCountryByCountryCode($city["country"]);
+    	}
+    	$city["level1"] = $idLevel1;
+    	$city["level1"] = $idLevel1;
+    	
+    	if(!empty($city["regionNameBel"])){
+    		$idLevel2 = Zone::getIdLevelByNameAndCountry($city["regionNameBel"], "2", $city["country"]);
+	    	if(empty($idLevel2)){
+	    		$level2 = Zone::createLevel($city["regionNameBel"], $city["country"], "2");
+	    		$savelevel2 = Zone::save($level2);
+	    		if($savelevel2["result"] == true)
+	    			$idLevel2 = Zone::getIdLevelByNameAndCountry($city["regionNameBel"], "2", $city["country"]);
+	    	}
+	    	$city["level2"] = $idLevel2;
+    	}
+    	
+    	if(!empty($city["regionName"])){
+	    	$idLevel3 = Zone::getIdLevelByNameAndCountry($city["regionName"], "3", $city["country"]);
+	    	if(empty($idLevel3)){
+	    		$level3 = Zone::createLevel($city["regionName"], $city["country"], "3", ((!empty($city["regionNameBel"])) ? $city["regionNameBel"] : null));
+	    		$savelevel3 = Zone::save($level3);
+	    		if($savelevel3["result"] == true)
+	    			$idLevel3 = Zone::getIdLevelByNameAndCountry($city["regionName"], "3", $city["country"]);
+	    	}
+	    	$city["level3"] = $idLevel3;
+	    }
+
+	    if(!empty($city["depName"])){
+	    	$idLevel4 = Zone::getIdLevelByNameAndCountry($city["depName"], "4", $city["country"]);
+	    	if(empty($idLevel4)){
+	    		$level4 = Zone::createLevel($city["depName"], $city["country"], "4", ((!empty($city["regionNameBel"])) ? $city["regionNameBel"] : null), ((!empty($city["regionName"])) ? $city["regionName"] : null));
+	    		$savelevel4 = Zone::save($level4);
+	    		if($savelevel4["result"] == true)
+	    			$idLevel4 = Zone::getIdLevelByNameAndCountry($city["depName"], "4", $city["country"]);
+	    	}
+	    	$city["level4"] = $idLevel4;
+	    }
+
+	   
     	
 	    try {
     		$valid = DataValidator::validate( ucfirst(self::CONTROLLER), json_decode (json_encode ($city), true) );
@@ -84,12 +134,12 @@ class City {
     			PHDB::insert(self::COLLECTION, $city );
 				$res = array("result"=>true,
 	                         "msg"=>"La commune a été enregistrer.",
-	                         "city"=>json_encode($city),
+	                         "city"=>$city,
 	                         "id"=>(string)$city["_id"]); 
     		}else{
     			$res = array("result"=>false,
 	                         "msg"=>"La commune existe déjà",
-	                         "city"=>json_encode($city)); 
+	                         "city"=>$city); 
     		}
 
 			 
@@ -122,9 +172,11 @@ class City {
         return  ( isset($wiki[$country]) ? $wiki[$country] : false );
     }
 
+
     public static function countryNotSplitCP ($country) { 
-        $wiki = array("BR​");  
-        return  ( isset($wiki[$country]) ? true : false );
+    	
+        $wiki = array("BR");
+        return  ( in_array($country, $wiki) ? false : true );
      }
 
 	/* Retourne des infos sur la commune dans la collection cities" */
@@ -144,10 +196,11 @@ class City {
 	  	return $city;
 	}
 
-	public static function getByPostalCode($insee) {
+	public static function getByPostalCode($cp) {
 
-		$params = array('postalCodes' => array('$elemMatch' => array('postalCode' => $insee ) ) );
+		$params = array('postalCodes' => array('$elemMatch' => array('postalCode' => $cp ) ) );
 	    $city = self::getWhere($params);
+	    
     	return $city;
 	}
 
@@ -241,11 +294,29 @@ class City {
 		return $region;
 	}
 
-	public static function getDepAndRegionByInsee($insee){
-		$where = array("insee" => $insee);
-		$fields = array("depName", "regionName", "country");
+	public static function getLevelById($id){
+		$where = array("_id"=>new MongoId($id));
+		$fields = array("level1", "level1Name", 
+						"level2", "level2Name",
+						"level3", "level3Name",
+						"level4", "level4Name", "country");
 		$city = PHDB::findOne(self::COLLECTION, $where ,$fields);
 		return $city;
+	}
+
+	public static function getLevelForNowList($loc){
+		$res = null;
+		
+		if(!empty($loc["level4"])){
+			$res = $loc["level4"];
+		} else if(!empty($loc["level3"])){
+			$res = $loc["level3"];
+		} else if(!empty($loc["level2"])){
+			$res = $loc["level2"];
+		} else
+			$res = $loc["level1"];
+	
+		return $res;
 	}
 
 	/* Retourne le code du departement d'une commune par rapport a son code insee */
@@ -673,8 +744,12 @@ class City {
 	        if(!empty($valWiki["P281"])){
 	        	
 	        	foreach ($valWiki["P281"] as $key => $cp) {
-		            if( (strpos($cp["mainsnak"]["datavalue"]["value"],"–") || strpos($cp["mainsnak"]["datavalue"]["value"],"-")) 
+	        		//var_dump(self::countryNotSplitCP($newCities["country"]));
+		            
+		            if( (strpos($cp["mainsnak"]["datavalue"]["value"],"–") > 0 || strpos($cp["mainsnak"]["datavalue"]["value"],"-") > 0) 
 		            	&& self::countryNotSplitCP($newCities["country"])) {
+		            	// var_dump($cp["mainsnak"]["datavalue"]["value"]);
+		            	// var_dump(strpos($cp["mainsnak"]["datavalue"]["value"],"–"));
 		                if(strpos($cp["mainsnak"]["datavalue"]["value"],"–"))
 		                    $split = explode("–", $cp["mainsnak"]["datavalue"]["value"]);
 		                else
@@ -968,16 +1043,209 @@ class City {
 	}
 
 
-	 public static function getDetailFormInMap($insee){
-		$where = array("insee"=> $insee);
+	public static function getDetailFormInMap($id){
+		$where = array("_id"=>new MongoId($id));
 		$fields = array("geoShape","osmID", "wikidataID");
 		$city = PHDB::findOne(City::COLLECTION, $where, $fields);
 		return $city;
 	}
 
+	public static function detailKeysLevels($key){
+		$keyArray = explode("@", $key);
+		$res = array();
+		if(isset($keyArray[1])){
+			$res["level1Key"] = $keyArray[0]."@".$keyArray[1];
+			$res["level1"] = $keyArray[1];
+		}
+
+		if(isset($keyArray[2])){
+			$res["level2Key"] = $res["level1Key"]."@".$keyArray[2];
+			$res["level2"] = $keyArray[2];
+		}
+
+		if(isset($keyArray[3])){
+			$res["level3Key"] = $res["level2Key"]."@".$keyArray[3];
+			$res["level3"] = $keyArray[3];
+		}
+
+		if(isset($keyArray[4])){
+			$res["level4Key"] = $res["level3Key"]."@".$keyArray[4];
+			$res["level4"] = $keyArray[4];
+		}
+
+		if(isset($keyArray[5])){
+			$res["cityKey"] = $res["level4Key"]."@".$keyArray[5];
+			$res["city"] = $keyArray[5];
+		}
+
+		if(isset($keyArray[6])){
+			$res["cpKey"] = $res["cityKey"]."@".$keyArray[6];
+			$res["cp"] = $keyArray[6];
+		}
+		return $res ;
+	}
 
 
+	// public static function explodeKeyLocality($key){
+	// 	$detailKey = self::detailKeysLevels($key) ;
+	// 	$keyArray = explode("@", $key);
+	// 	$res = array("codeCountry" => $keyArray[0]);
 
 
+	// 	if(isset($keyArray[5])){
+	// 		$city = self::getById($keyArray[5]);
+	// 		$cityTrad = Zone::getTranslateById($keyArray[5]);
+	// 		$res["city"] = $keyArray[5];
+	// 		$res["cityName"] = (!empty($cityTrad["translates"]["UK"]) ? $cityTrad["translates"]["UK"] : $city["name"]);
+	// 		$res["cityKey"] = $detailKey["cityKey"];
+
+	// 		$trad1 = Zone::getTranslateById($keyArray[1]);
+	// 		$res["level1"] = $keyArray[1];
+	// 		$res["level1Key"] = $detailKey["level1Key"];
+	// 		$res["level1Name"] = (!empty($trad1["translates"]["UK"]) ? $trad1["translates"]["UK"] : $trad1["translates"]["FR"]);
+
+	// 		if(!empty($keyArray[2])){
+	// 			$trad2 = Zone::getTranslateById($keyArray[2]);
+	// 			$res["level2"] = $keyArray[2];
+	// 			$res["level2Key"] = $detailKey["level2Key"];
+	// 			$res["level2Name"] = (!empty($trad2["translates"]["UK"]) ? $trad2["translates"]["UK"] : $trad2["translates"]["FR"]);
+	// 		}
+
+	// 		if(!empty($keyArray[3])){
+	// 			$trad3 = Zone::getTranslateById($keyArray[3]);
+	// 			$res["level3"] = $keyArray[3];
+	// 			$res["level3Key"] = $detailKey["level3Key"];
+	// 			$res["level3Name"] = (!empty($trad3["translates"]["UK"]) ? $trad3["translates"]["UK"] : $trad3["translates"]["FR"]);
+	// 		}
+
+	// 		if(!empty($keyArray[4])){
+	// 			$trad4 = Zone::getTranslateById($keyArray[4]);
+	// 			$res["level4"] = $keyArray[4];
+	// 			$res["level4Key"] = $detailKey["level4Key"];
+	// 			$res["level4Name"] = (!empty($trad4["translates"]["UK"]) ? $trad4["translates"]["UK"] : $trad4["translates"]["FR"]);
+	// 		}
+
+	// 		if(isset($keyArray[6]))
+	// 			$res["cp"] = $keyArray[6];
+
+	// 	}else{
+
+	// 		if(isset($keyArray[1])){
+	// 			$level1 = Zone::getZoneAndTranslateById($keyArray[1]);
+	// 			$res["level1"] = $keyArray[1];
+	// 			$res["level1Name"] = $level1["name"];
+	// 			$res["level1key"] = $detailKey["level1key"];
+	// 		}
+
+	// 		if(isset($keyArray[2])){
+	// 			$level2 = Zone::getZoneAndTranslateById($keyArray[2]);
+	// 			$res["level2"] = $keyArray[2];
+	// 			$res["level2Name"] = $level2["name"];
+	// 			$res["level2key"] = $detailKey["level2key"];
+	// 		}
+
+	// 		if(isset($keyArray[3])){
+	// 			$level3 = Zone::getZoneAndTranslateById($keyArray[3]);
+	// 			$res["level3"] = $keyArray[3];
+	// 			$res["level3Name"] = $level3["name"];
+	// 			$res["level3key"] = $detailKey["level3key"];
+	// 		}
+
+	// 		if(isset($keyArray[4])){
+	// 			$level4 = Zone::getZoneAndTranslateById($keyArray[4]);
+	// 			$res["level4"] = $keyArray[4];
+	// 			$res["level4Name"] = $level4["name"];
+	// 			$res["level4key"] = $detailKey["level4key"];
+	// 		}
+	// 	}
+
+	// 	return $res;
+	// }
+
+	public static function detailLevels($locality){
+		
+		$res = array();
+		if(isset($locality["level1"])){
+			$res["level1Name"] = $locality["level1Name"];
+			$res["level1"] = $locality["level1"];
+		}
+
+		if(isset($locality["level2"])){
+			$res["level2Name"] = $locality["level2Name"];
+			$res["level2"] = $locality["level2"];
+		}
+
+		if(isset($locality["level3"])){
+			$res["level3Name"] = $locality["level3Name"];
+			$res["level3"] = $locality["level3"];
+		}
+
+		if(isset($locality["level4"])){
+			$res["level4Name"] = $locality["level4Name"];
+			$res["level4"] = $locality["level4"];
+		}
+
+		if(isset($locality["localityId"])){
+			$res["cityName"] = $locality["addressLocality"];
+			$res["city"] = $locality["localityId"];
+		}
+
+
+		if(isset($locality["insee"]))
+			$res["insee"] = $locality["insee"];
+
+		if(isset($locality["postalCode"]))
+			$res["cp"] = $locality["postalCode"];
+		
+		if(isset($locality["countryCode"]))
+			$res["countryCode"] = $locality["countryCode"];
+		
+		return $res ;
+	}
+
+	public static function detailsLocality($locality){
+		$res = self::detailLevels($locality) ;
+		$trad1 = Zone::getTranslateById($res["level1"]);
+
+		$userT = strtoupper(Yii::app()->language) ;
+
+		$res["level1Name"] = (!empty($trad1["translates"][$userT]) ? $trad1["translates"][$userT] : $trad1["translates"]["EN"]);
+
+		if(isset($res["localityId"])){
+			$city = self::getById($res["localityId"]);
+			$cityTrad = Zone::getTranslateById($res["localityId"]);
+			$res["cityName"] = (!empty($cityTrad["translates"][$userT]) ? $cityTrad["translates"][$userT] : $city["name"]);
+		}	
+
+		if(!empty($res["level2"])){
+			$trad2 = Zone::getTranslateById($res["level2"]);
+			$res["level2Name"] = (!empty($trad2["translates"][$userT]) ? $trad2["translates"][$userT] : $trad2["translates"]["EN"]);
+		}
+
+		if(!empty($res["level3"])){
+			$trad3 = Zone::getTranslateById($res["level3"]);
+			$res["level3Name"] = (!empty($trad3["translates"][$userT]) ? $trad3["translates"][$userT] : $trad3["translates"]["EN"]);
+		}
+
+		if(!empty($res["level4"])){
+			$trad4 = Zone::getTranslateById($res["level4"]);
+			$res["level4Name"] = (!empty($trad4["translates"][$userT]) ? $trad4["translates"][$userT] : $trad4["translates"]["EN"]);
+		}
+
+		if(isset($keyArray[6]))
+			$res["cp"] = $keyArray[6];
+		return $res;
+	}
+
+
+	public static function createKey($city){
+		$key = $city["country"];
+		$key .= "@".( ( empty($city["level1"]) ) ? "" : $city["level1"] );
+		$key .= "@".( ( empty($city["level2"]) ) ? "" : $city["level2"] );
+		$key .= "@".( ( empty($city["level3"]) ) ? "" : $city["level3"] );
+		$key .= "@".( ( empty($city["level4"]) ) ? "" : $city["level4"] );
+		$key .= "@".(String)$city["_id"] ;
+		return $key ;
+	}
 }
 ?>

@@ -217,13 +217,18 @@ class Translate {
 
 	public static function pastTime($date,$type, $timezone=null) {
 
-		
-		
+		//echo "Date : ".$date;
 		if($type == "timestamp") {
 	        $date2 = $date; // depuis cette date
+
 	    } elseif($type == "date") {
 	        $date2 = strtotime($date); // depuis cette date
-	        error_log($date." - ".$date2);
+	        //error_log($date." - ".$date2);
+	    } elseif($type == "datefr") { //echo $date;exit;
+	    	$date2 = DateTime::createFromFormat('d/m/Y H:i', $date)->format('Y-m-d H:i');
+	    	//var_dump($date2); exit;
+	        $date2 = strtotime($date2); // depuis cette date
+	        //error_log($date." - ".$date2);
 	    } else {
 	        return "Non reconnu";
 	    }
@@ -252,9 +257,10 @@ class Translate {
 	    $Annees = date('Y',$Ecart)-1970;
 	    $Mois = date('m',$Ecart)-1;
 	    $Jours = date('d',$Ecart)-1;
-	    $Heures = date('H',$Ecart)-1;
+	    $Heures = date('H',$Ecart);
 	    $Minutes = date('i',$Ecart);
 	    $Secondes = date('s',$Ecart);
+
 	    if($Annees > 0) {
 	        $res=$lblEcart.$Annees." ".Yii::t("translate","year".($Annees>1?"s":""))." ".Yii::t("common","and")." ".$Jours." ".Yii::t("translate","day".($Jours>1?"s":"")); // on indique les jours avec les année pour être un peu plus précis
 	    }
@@ -265,19 +271,36 @@ class Translate {
 	        $res=$lblEcart.$Jours." ".Yii::t("translate","day".($Jours>1?"s":""));
 	    }
 	    else if($Heures > 0) {
+	        if($Heures < 10) $Heures = substr($Heures, 1, 1);
 	        $res=$lblEcart.$Heures." ".Yii::t("translate","hour".($Heures>1?"s":""));
+	        if($Minutes > 0) {
+		    	if($Minutes < 10) $Minutes = substr($Minutes, 1, 1);
+		        $res.=" ".Yii::t("common","and")." ".$Minutes." ".Yii::t("translate","minute".($Minutes>1?"s":""));
+		    }
 	    }
-	    else if($Minutes > 0) {
+	    else if($Minutes > 0) {//var_dump($Minutes); //exit;
+	    	if($Minutes < 10) $Minutes = substr($Minutes, 1, 1);
 	        $res=$lblEcart.$Minutes." ".Yii::t("translate","minute".($Minutes>1?"s":""));
+
 	    }
 	    else if($Secondes > 0) {
+	    	if($Secondes < 10) $Secondes = substr($Secondes, 1, 1);
 	        $res=$lblEcart.$Secondes." ".Yii::t("translate","second".($Secondes>1?"s":""));
 	    } else {
-	    	$tradAgo=false;
-	    	$res=Yii::t("translate","Right now");
+	    	//$tradAgo=false;
+	    	if($tradAgo == true)
+	    		$res=Yii::t("translate","Right now");
+	    	else
+	    		$res=Yii::t("translate","In a few second");
 	    }
 	    if($tradAgo)
 	    	$res=Yii::t("translate","{time} ago",array("{time}"=>$res));
 	    return $res;
+	}
+
+	public static function strToClickable($str){
+		$url = '@(http(s)?)?(://)?(([a-zA-Z])([-\w]+\.)+([^\s\.]+[^\s]*)+[^,.\s])@';
+		$string = preg_replace($url, '<a href="http$2://$4" target="_blank" title="$0">$0</a>', $str);
+		return $string;
 	}
 }

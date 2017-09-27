@@ -25,6 +25,7 @@ class Organization {
 	//TODO : remove name   
 	public static $dataBinding = array(
 	    "name" => array("name" => "name", "rules" => array("required", "organizationSameName")),
+	    "slug" => array("name" => "slug", "rules" => array("checkSlug")),
 	    "email" => array("name" => "email", "rules" => array("email")),
 	    "type" => array("name" => "type", "rules" => array("required","typeOrganization")),
 	    "shortDescription" => array("name" => "shortDescription"),
@@ -276,7 +277,8 @@ class Organization {
 	    else
 	    	$orgaCodeInsee="";
 
-		Notification::createdObjectAsParam(Person::COLLECTION,$creatorId,Organization::COLLECTION, $newOrganizationId, Person::COLLECTION,$creatorId, $orgaGeo,$orgaTags,$orgaCodeInsee);
+	    if (empty($paramsImport))
+			Notification::createdObjectAsParam(Person::COLLECTION,$creatorId,Organization::COLLECTION, $newOrganizationId, Person::COLLECTION,$creatorId, $orgaGeo,$orgaTags,$orgaCodeInsee);
 		ActivityStream::saveActivityHistory(ActStr::VERB_CREATE, $newOrganizationId, Organization::COLLECTION, "organization", $organization["name"]);
 	    $organization = Organization::getById($newOrganizationId);
 	    return array("result"=>true,

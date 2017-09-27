@@ -104,6 +104,44 @@ class Mail {
         
         Mail::schedule($params);
     }
+    public static function relaunchInvitePerson($person, $nameInvitor = null, $invitorUrl = null, $subject=null) {
+        if(isset($person["invitedBy"]))
+            $invitor = Person::getSimpleUserById($person["invitedBy"]);
+        else if(isset($nameInvitor))
+            $invitor["name"] = $nameInvitor ;
+        
+        if(@$invitor && empty(@$invitor["name"]))
+            $subject = "Invitation:".$invitor["name"]. " attend votre réponse pour rejoindre ".self::getAppName().".";
+        else
+            $subject = "Invitation: n'attendez plus pour rejoindre le site ".self::getAppName().".";
+        //if(empty($subject))
+         //   $subject = $invitor["name"]. " vous invite à rejoindre ".self::getAppName().".";
+
+        if(!@$person["email"] || empty($person["email"])){
+            $getEmail=Person::getEmailById((string)$person["_id"]);
+            $person["email"]=$getEmail["email"];
+        }
+
+        $params = array(
+            "type" => Cron::TYPE_MAIL,
+            "tpl"=>'relaunchInvitation',
+            "subject" => $subject,
+            "from"=>Yii::app()->params['adminEmail'],
+            "to" => $person["email"],
+            "tplParams" => array(   "invitorName"   => @$invitor["name"],
+                                    "title" => self::getAppName() ,
+                                    "logo" => Yii::app()->params["logoUrl"],
+                                    "logo2" => Yii::app()->params["logoUrl2"],
+                                    //"logo"=> "/images/logo-communecter.png",
+                                    //"logo2" => "/images/logoLTxt.jpg",
+                                    "invitedUserId" => $person["_id"])
+        );
+
+        if(!empty($invitorUrl))
+            $params["tplParams"]["invitorUrl"] = $invitorUrl;
+        
+        Mail::schedule($params);
+    }
 	/*public static function invitePersonAgain($person, $msg = null, $nameInvitor = null, $invitorUrl = null) {
         $invitor = Person::getSimpleUserById(Yii::app()->session["userId"]);
         
