@@ -196,9 +196,9 @@ class City {
 	  	return $city;
 	}
 
-	public static function getByPostalCode($insee) {
+	public static function getByPostalCode($cp) {
 
-		$params = array('postalCodes' => array('$elemMatch' => array('postalCode' => $insee ) ) );
+		$params = array('postalCodes' => array('$elemMatch' => array('postalCode' => $cp ) ) );
 	    $city = self::getWhere($params);
 	    
     	return $city;
