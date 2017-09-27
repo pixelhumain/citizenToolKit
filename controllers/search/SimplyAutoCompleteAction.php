@@ -123,11 +123,15 @@ class SimplyAutoCompleteAction extends CAction
   					//OneRegion
   					if($key == "REGION") {
 	        			$deps = PHDB::find( City::COLLECTION, array("regionName" => $locality), array("dep"));
+
 	        			$departements = array();
 	        			$inQuest = array();
 	        			if(is_array($deps))foreach($deps as $index => $value){
 	        				if(!in_array($value["dep"], $departements)){
 		        				$departements[] = $value["dep"];
+
+		        				if($value["dep"] == "2A" || $value["dep"] == "2B" )
+		        					$value["dep"] = "20";
 		        				$inQuest[] = new MongoRegex("/^".$value["dep"]."/i");
 					        	$queryLocality = array("address.postalCode" => array('$in' => $inQuest));
 
