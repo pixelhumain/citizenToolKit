@@ -80,7 +80,6 @@ class RegisterAction extends CAction
 					"msg"=> Yii::t("login","You are now communnected !")."<br>".Yii::t("login","Our developpers are fighting to open soon ! Check your mail that will happen soon !")."<br>".Yii::t("login","If you really want to start testing the platform before, send us an email and we'll consider your demand :)"), 
 					"id"=>$pendingUserId); 
 		} 
-		var_dump("here");
 		Rest::json($res);
 		exit;
     }
