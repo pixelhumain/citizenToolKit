@@ -579,7 +579,8 @@ class Person {
 		  	//Get Locality label
 		  	try {
 		  		//Format adress 
-		  		$newPerson["address"] = SIG::getAdressSchemaLikeByCodeInsee($person["city"]);
+		  		//$newPerson["address"] = SIG::getAdressSchemaLikeByCodeInsee($person["city"]);
+		  		$newPerson["address"] = SIG::getAdressSchemaLikeByCodeInsee($person["city"],$person["postalCode"]);
 
 				if(!empty($person['geoPosLatitude']) && !empty($person["geoPosLongitude"])){
 					$newPerson["geo"] = array("@type"=>"GeoCoordinates",
