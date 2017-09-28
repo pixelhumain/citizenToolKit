@@ -19,6 +19,7 @@ class Proposal
 		"arguments" 			=> array("name" => "arguments"),
 		"tags" 					=> array("name" => "tags"),
 	    "urls" 					=> array("name" => "urls"),
+	    "medias" 					=> array("name" => "medias"),
 	    
 		// true / false
 		"amendementActivated" 	=> array("name" => "amendementActivated", 	"rules" => array("required")),
@@ -32,6 +33,12 @@ class Proposal
 		// Amendable / ToVote / Closed / Archived
 		"status" 				=> array("name" => "status", 				"rules" => array("required")), 
 		
+		// true / false
+		"voteAnonymous" 		=> array("name" => "voteActivated", 		"rules" => array("required")),
+		// true / false
+		"voteCanChange" 		=> array("name" => "voteActivated", 		"rules" => array("required")),
+		
+
 		// 50%  / 75% / 90%
 		"majority" 				=> array("name" => "majority", 				"rules" => array("required")),
 
