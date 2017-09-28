@@ -62,6 +62,14 @@ class Resolution
         return $survey;
     }
 
+    public static function getSimpleSpecById($id, $where=null, $fields=null){
+        if(empty($fields))
+            $fields = array("_id", "name");
+        $where["_id"] = new MongoId($id) ;
+        $resolution = PHDB::findOne(self::COLLECTION, $where ,$fields);
+        return @$resolution;
+    }
+
     public static function getAllVoteRes($proposal){
         $voteRes = array("up"=> array("bg-color"=> "green-k",
                                         "voteValue"=>"up"),

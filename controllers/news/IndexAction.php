@@ -97,11 +97,11 @@ class IndexAction extends CAction
 	            }
 	        }
 	        else if ($type=="city"){
-	        	$locality = isset($_POST['locality']) ? trim(urldecode($_POST['locality'])) : null;
+	        	$localities = isset($_POST['localities']) ? $_POST['localities'] : null;
 				//$searchType = isset($_POST['searchType']) ? $_POST['searchType'] : null;
 				$searchBy = isset($_POST['searchBy']) ? $_POST['searchBy'] : "INSEE";
 				$tagSearch = isset($_POST['tagSearch']) ? $_POST['tagSearch'] : "";
-				$params["locality"] = $locality;
+				$params["localities"] = $localities;
 				$params["searchBy"] = $searchBy;
 				$params["tagSearch"] = $tagSearch;
 		        if (@Yii::app()->session["userId"])
@@ -263,108 +263,28 @@ class IndexAction extends CAction
 			}
 			else if($type == "city"){
 				/***********************************  DEFINE LOCALITY QUERY   ***************************************/
-		  		$localityReferences['CITYKEY'] = "scope.cities.codeInsee";
-		  		$localityReferences['CODE_POSTAL'] = "scope.cities.postalCode";
-		  		$localityReferences['DEPARTEMENT'] = "scope.cities.postalCode";//Spécifique
-		  		$localityReferences['REGION'] = ""; //Spécifique
+		  		
+		  		$allQueryLocality = array();
+		  		if(!empty($localities)){
+		  			foreach ($localities as $key => $locality){
+						if(!empty($locality)){
 
-		  		foreach ($localityReferences as $key => $value) 
-		  		{
-		  			if(isset($_POST["searchLocality".$key]) 
-	  				&& is_array($_POST["searchLocality".$key])
-	  				&& count($_POST["searchLocality".$key])>0)
-		  			{
-		  				foreach ($_POST["searchLocality".$key] as $localityRef) 
-		  				{
-		  					$locality = utf8_encode($locality);
-		  					if(isset($localityRef) && $localityRef != ""){
-			  					//error_log("locality :  ".$localityRef. " - " .$key);
-			  					//OneRegion
-			  					if($key == "CITYKEY"){
-					        		//value.country + "_" + value.insee + "-" + value.postalCodes[0].postalCode; 
-					        		//error_log("CITYKEY " .$localityRef );
-					        		$city = City::getByUnikey($localityRef);
-					        		$queryLocality = array(
-					        				"scope.cities.codeInsee" => $city["insee"]
-					        				//"scope.cities.codeInsee" => new MongoRegex("/".$city["insee"]."/i"),
-					        				//"scope.cities.postalCode" => new MongoRegex("/".$city["cp"]."/i"),
-					        		);
-					        		if (isset($city["cp"])) {
-					        			$queryLocality["scope.cities.postalCode"] = $city["cp"];
-					        		}
-					        		if (! empty($city["cp"]) && (!@$_POST["searchLocalityLEVEL"] && (@$_POST["searchLocalityLEVEL"] && $_POST["searchLocalityLEVEL"]=="inseeCommunexion")) ) {
-			        					$queryLocality["scope.cities.postalCode"] = $city["cp"];	
-			        				}
-				  				}
-				  				elseif($key == "CODE_POSTAL") { //error_log($localityRef);
-				  					$cities = PHDB::find( City::COLLECTION, array("postalCodes.postalCode" => $localityRef), array("insee"));
-				  					$inQuestInsee = array();
-				  					if(@$_POST["searchLocalityLEVEL"] && $_POST["searchLocalityLEVEL"]=="cpCommunexion"){
-			        					$city = City::getByUnikey($localityRef);
-			        					//var_dump($city);
-			        					$queryLocality = array(
-			        					//"address.addressCountry" => $city["country"],
-			        						"scope.cities.codeInsee" => $city["insee"],
-			        						"scope.cities.postalCode" => $city["cp"]
-			        					);
-			        				}else{
-			        					foreach($cities as $key => $val){ $inQuestInsee[] = $val["insee"]; error_log($val["insee"]); }
-					        			$queryLocality = array('$or' => array( array($value => new MongoRegex("/^".$localityRef."/i")),
-					        												array("scope.cities.codeInsee" => array('$in' => $inQuestInsee)) )
-					        							 );
-				  					}
-				  				}
-				  				elseif($key == "DEPARTEMENT") { error_log("DEPARTEMENT : " . $localityRef);
-				        			$dep = PHDB::findOne( City::COLLECTION, array("depName" => $localityRef), array("dep"));	
-				        			if(isset($dep["dep"])){
-					        			//$queryLocality = array($value => new MongoRegex("/^".$dep["dep"]."/i"));
-					        			$queryLocality = array('$or' => array(
-									        						array($value => new MongoRegex("/^".$dep["dep"]."/i")),
-									        						array("scope.cities.codeInsee" => new MongoRegex("/^".$dep["dep"]."/i")),
-									        						array("scope.departements.name" => $localityRef)
-									        						));
-				        			}
-								}
-					        	elseif($key == "REGION") {
-				        			$deps = PHDB::find( City::COLLECTION, array("regionName" => $localityRef), array("dep", "depName"));
-				        			$departements = array();
-				        			$departementsName = array();
-				        			$inQuestCp = array();
-				        			$inQuestName = array();
-				        			if(is_array($deps))
-				        				foreach($deps as $index => $value)
-					        			{
-					        				if(!in_array($value["dep"], $departements))
-					        				{   //error_log("depppppp :".@$value["depName"]);
-						        				$departements[] = $value["dep"];
-						        				if(@$value["dep"])
-						        				$inQuestCp[] = new MongoRegex("/^".$value["dep"]."/i");
-						        				if(@$value["depName"] && !in_array($value["depName"], $departementsName))
-									        	$inQuestName[] = $value["depName"];
-									        	
-									        	$departementsName[] = @$value["depName"];
-						        				
-									        }
-					        			}
-					        			$queryLocality = array('$or' => array(								        							
-					        								array("scope.cities.postalCode" => array('$in' => $inQuestCp)),
-									        				array("scope.cities.codeInsee" => array('$in' => $inQuestCp)),
-									        				array("scope.departements.name" => array('$in' => $inQuestName)),
-									        				array("scope.regions.name" => $localityRef)
-									        						));
-				        		} //error_log("HEEEEEEEEEEEEEEEEEEEee");
-			  					//Consolidate Queries
-			  					if(isset($allQueryLocality) && isset($queryLocality)){
-			  						$allQueryLocality = array('$or' => array( $allQueryLocality ,$queryLocality));
-			  					}else if(isset($queryLocality)){
-			  						$allQueryLocality = $queryLocality;
-			  					}
-			  					unset($queryLocality);
-			  				}
-		  				}
-		  			}
+							if($locality["type"] == City::CONTROLLER)
+								$queryLocality = array("scope.localities.parentId" => $key, "scope.localities.parentType" =>  City::COLLECTION);
+							else if($locality["type"] == "cp")
+								$queryLocality = array("scope.localities.postalCode" => new MongoRegex("/^".$key."/i"));
+							else
+								$queryLocality = array("scope.localities.".$locality["type"] => $key);
+						
+							if(empty($allQueryLocality))
+								$allQueryLocality = $queryLocality;
+							else if(!empty($queryLocality))
+								$allQueryLocality = array('$or' => array($allQueryLocality ,$queryLocality));
+						}
+					}
 		  		}
-		  		$where = array( "scope.type" => "public",
+				
+				$where = array( "scope.type" => "public",
 		  						"target.type" => array('$ne' => "pixels"),
 		  						);
 

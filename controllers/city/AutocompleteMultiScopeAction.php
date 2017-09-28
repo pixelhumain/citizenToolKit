@@ -9,6 +9,7 @@ class AutocompleteMultiScopeAction extends CAction
         $geoShape   = isset($_POST["geoShape"])     ? true : false;
         $scopeValue = isset($_POST["scopeValue"])   ? $_POST["scopeValue"] : null;
         $countryCode = isset($_POST["countryCode"])   ? $_POST["countryCode"] : null;
+        $formInMap = isset($_POST["formInMap"])   ? $_POST["formInMap"] : null;
 
         if($type == null || $scopeValue == null) 
             return Rest::json( array("res"=>false, "msg" => "error with type or scopeValue" ));
@@ -45,19 +46,18 @@ class AutocompleteMultiScopeAction extends CAction
             //var_dump($where);
         }
 
-        
-        
-        // if($type == "region")   $where = array('$or' => array(
-        //                                         array("regionName" => new MongoRegex("/^".$scopeValue."/i")),
-        //                                         array("region" => new MongoRegex("/^".$scopeValue."/i"))
-        //                                         ));
-        //var_dump($where); return;
-        if($type != "dep" && $type != "region"){
-            $att = array("insee", "postalCodes", "country", "name", "alternateName", "depName", "regionName");
+
+        if($type != "zone"){
+            $att = array(   "name", "alternateName", 
+                            "country", "postalCodes", "insee", 
+                            "level1", "level1Name",
+                            "level2", "level2Name",
+                            "level3", "level3Name",
+                            "level4", "level4Name");
             if($geoShape) $att[] =  "geoShape";
-            //var_dump($where);
+
             $cities = PHDB::findAndSort( City::COLLECTION, $where, $att, 40, $att);
-            /*if(empty($cities)){
+            if(empty($cities) && !empty($formInMap)){
                 $countryCode = mb_convert_encoding($countryCode, "ASCII");
                 if(strlen($countryCode) > 2 ){
                    $countryCode = substr($countryCode, 0, 2);
@@ -71,7 +71,7 @@ class AutocompleteMultiScopeAction extends CAction
                         $typeCities = array("city", "village", "town") ;
                         foreach ($typeCities as $keyType => $valueType) {
                             if( !empty($value["address"][$valueType]) 
-                                && $countryCode == strtoupper(@$value["address"]["country_code"]) ) {
+                                && $countryCode == strtoupper(@$value["address"]["country_code"])) {
 
                                 $wikidata = (empty($value["extratags"]["wikidata"]) ? null : $value["extratags"]["wikidata"]);
                                 //var_dump($value["osm_id"]);
@@ -87,10 +87,10 @@ class AutocompleteMultiScopeAction extends CAction
                                                                             "coordinates" => array(
                                                                                 floatval($value["lon"]), 
                                                                                 floatval($value["lat"]))),
-                                                    "regionName" => (empty($value["address"]["state"]) ? null : $value["address"]["state"] ),
-                                                    "region" => null,
-                                                    "depName" => (empty($value["address"]["county"]) ? null : $value["address"]["county"] ),
-                                                    "dep" => null,
+                                                    "level3Name" => (empty($value["address"]["state"]) ? null : $value["address"]["state"] ),
+                                                    "level3" => null,
+                                                    "level4Name" => (empty($value["address"]["county"]) ? null : $value["address"]["county"] ),
+                                                    "level4" => null,
                                                     "osmID" => $value["osm_id"],
                                                    
                                                     "save" => true);
@@ -120,23 +120,14 @@ class AutocompleteMultiScopeAction extends CAction
                     }
                 }
                 
-            } */
-        }
-        else if($type == "dep"){
-            $cities = array();
-            foreach (OpenData::$dep as $key => $value) {
-                if ( count( preg_grep ( '/'.$scopeValue.'/i', $value ) ) ) 
-                    array_push($cities, $key);
             }
+        }else if($type == "zone"){
+            $att = array("name", "countryCode", "level");
+            $where = array('$and'=> array(
+                                        array("name" => new MongoRegex("/".$scopeValue."/i")), 
+                                        array("countryCode" => strtoupper($countryCode)) ) );
+            $cities = PHDB::findAndSort( Zone::COLLECTION, $where, $att, 40, $att);
         }
-        else if($type == "region"){
-            $cities = array();
-            foreach (OpenData::$region as $key => $value) {
-                if ( count( preg_grep ( '/'.$scopeValue.'/i', $value ) ) ) 
-                    array_push($cities, $key);
-            }
-        }
-        //echo '<pre>';var_dump($cities);echo '</pre>'; return;
         
         return Rest::json( array("res"=>true, "cities" => $cities ));
        

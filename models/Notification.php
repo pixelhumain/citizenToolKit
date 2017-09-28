@@ -150,12 +150,26 @@ class Notification{
 				Proposal::COLLECTION => array(
 					"label" => "{who} commented on proposal {what} in {where}",
 					"labelRepeat" => "{who} added comments on proposal {what} in {where}",
+					"sameAuthor"=>array(
+						"labelRepeat" => "{who} added few comments on proposal {what} in {where}"
+					),
 					"url" => "page/type/{collection}/id/{id}/view/coop/room/{roomId}/proposal/{objectId}",
 				),
-				ActionRoom::COLLECTION_ACTIONS => array(
+				Action::COLLECTION => array(
 					"label" => "{who} commented on action {what} in {where}",
 					"labelRepeat" => "{who} added comments on action {what} in {where}",
-					"url" => "rooms/action/id/{id}"
+					"sameAuthor"=>array(
+						"labelRepeat" => "{who} added few comments on action {what} in {where}"
+					),
+					"url" => "page/type/{collection}/id/{id}/view/coop/room/{roomId}/action/{objectId}"
+				),
+				Resolution::COLLECTION => array(
+					"label" => "{who} commented on resolution {what} in {where}",
+					"labelRepeat" => "{who} added comments on resolution {what} in {where}",
+					"sameAuthor"=>array(
+						"labelRepeat" => "{who} added few comments on resolution {what} in {where}"
+					),
+					"url" => "page/type/{collection}/id/{id}/view/coop/room/{roomId}/resolution/{objectId}"
 				),
 				ActionRoom::COLLECTION => array(
 					"label" => "{who} commented on discussion {what} in {where}",
@@ -200,6 +214,21 @@ class Notification{
 					"parentTarget"=>true,
 					"url" => "page/type/news/id/{id}"
 				),
+				Proposal::COLLECTION => array(
+					"label" => "{who} commented on proposal {what} in {where}",
+					"labelRepeat" => "{who} added comments on proposal {what} in {where}",
+					"url" => "page/type/{collection}/id/{id}/view/coop/room/{roomId}/proposal/{objectId}",
+				),
+				Action::COLLECTION => array(
+					"label" => "{who} commented on action {what} in {where}",
+					"labelRepeat" => "{who} added comments on action {what} in {where}",
+					"url" => "page/type/{collection}/id/{id}/view/coop/room/{roomId}/action/{objectId}"
+				),
+				Resolution::COLLECTION => array(
+					"label" => "{who} commented on resolution {what} in {where}",
+					"labelRepeat" => "{who} added comments on resolution {what} in {where}",
+					"url" => "page/type/{collection}/id/{id}/view/coop/room/{roomId}/resolution/{objectId}"
+				),
 				Comment::COLLECTION => array(
 					"label"=>"{who} likes your comment on {where}",
 					"labelRepeat"=>"{who} like your comment on {where}",
@@ -227,6 +256,21 @@ class Notification{
 					"notifyUser" => true,
 					"parentTarget"=> true,
 					"url" => "page/type/news/id/{id}"
+				),
+				Proposal::COLLECTION => array(
+					"label" => "{who} commented on proposal {what} in {where}",
+					"labelRepeat" => "{who} added comments on proposal {what} in {where}",
+					"url" => "page/type/{collection}/id/{id}/view/coop/room/{roomId}/proposal/{objectId}",
+				),
+				Action::COLLECTION => array(
+					"label" => "{who} commented on action {what} in {where}",
+					"labelRepeat" => "{who} added comments on action {what} in {where}",
+					"url" => "page/type/{collection}/id/{id}/view/coop/room/{roomId}/action/{objectId}"
+				),
+				Resolution::COLLECTION => array(
+					"label" => "{who} commented on resolution {what} in {where}",
+					"labelRepeat" => "{who} added comments on resolution {what} in {where}",
+					"url" => "page/type/{collection}/id/{id}/view/coop/room/{roomId}/resolution/{objectId}"
 				),
 				Comment::COLLECTION => array(
 					"label"=>"{who} disapproves your comment on {where}",
@@ -302,6 +346,10 @@ class Notification{
 				Action::COLLECTION => array(
 					"url" => "page/type/{collection}/id/{id}/view/coop/room/{roomId}/action/{objectId}",
 					"label" => "{who} added a new action {what} in {where}"
+				),
+				Resolution::COLLECTION => array(
+					"url" => "page/type/{collection}/id/{id}/view/coop/room/{roomId}/resolution/{objectId}",
+					"label" => "{who} added a new resolution {what} in {where}"
 				),
 				"profilImage" => array(
 					"url" => "targetTypeUrl",
@@ -748,7 +796,7 @@ class Notification{
 		else 
 			$url=$construct["type"][$construct["levelType"]]["url"];
 		if($url=="targetTypeUrl"){
-			if($construct["verb"]==Actstr::VERB_COMMENT && @$construct["object"] && $construct["object"]["type"]==Proposal::COLLECTION)
+			if(in_array($construct["verb"],[Actstr::VERB_COMMENT, Actstr::VERB_LIKE,Actstr::VERB_UNLIKE]) && @$construct["object"] && ($construct["object"]["type"]==Proposal::COLLECTION || $construct["object"]["type"]==Action::COLLECTION || $construct["object"]["type"]==Resolution::COLLECTION))
 				$url=$construct["type"][$construct["object"]["type"]]["url"];
 			else
 				$url=$construct["type"][$construct["target"]["type"]]["url"];
@@ -763,10 +811,14 @@ class Notification{
 		if(stripos($url, "{objectId}") > 0)
 			$url = str_replace("{objectId}", $construct["object"]["id"], $url);
 		if(stripos($url, "{roomId}") > 0){
+			//$objTarget=
+			//if($construct["object"]["type"]==Comment::COLLECTION)
 			if($construct["object"]["type"]==Action::COLLECTION)
 				$actionSpec=Action::getSimpleSpecById($construct["object"]["id"],null,array("idParentRoom"));
 			else if($construct["object"]["type"]==Proposal::COLLECTION)
 				$actionSpec=Proposal::getSimpleSpecById($construct["object"]["id"],null,array("idParentRoom"));
+			else if($construct["object"]["type"]==Resolution::COLLECTION)
+				$actionSpec=Resolution::getSimpleSpecById($construct["object"]["id"],null,array("idParentRoom"));
 			$url = str_replace("{roomId}", $actionSpec["idParentRoom"], $url);
 		}
 		return $url;
@@ -896,10 +948,16 @@ class Notification{
 		$notificationPart["labelUpNotifyTarget"] = "author";
 		$notifyCommunity=true;
 		//Specific usecase for comment on proposal
-		if($verb==Actstr::VERB_COMMENT && $target["type"]==Proposal::COLLECTION){
-			$prop=Proposal::getById($target["id"]);
+		if(in_array($verb,[Actstr::VERB_COMMENT,Actstr::VERB_LIKE,Actstr::VERB_UNLIKE]) && 
+			($target["type"]==Proposal::COLLECTION || $target["type"]==Action::COLLECTION || $target["type"]==Resolution::COLLECTION)){
+			if($target["type"]==Proposal::COLLECTION)
+				$propAct=Proposal::getById($target["id"]);
+			else if($target["type"]==Action::COLLECTION)
+				$propAct=Action::getById($target["id"]);
+			else if($target["type"]==Resolution::COLLECTION)
+				$propAct=Resolution::getById($target["id"]);
 			$notificationPart["object"]=$target;
-			$notificationPart["target"]=array("type"=>$prop["parentType"],"id"=>$prop["parentId"]);
+			$notificationPart["target"]=array("type"=>$propAct["parentType"],"id"=>$propAct["parentId"]);
 		}
 		// Create notification specially for user added to the next notify for community of target
 		if(@$notificationPart["notifyUser"] || (@$notificationPart["type"] && @$notificationPart["type"][$levelType] && @$notificationPart["type"][$levelType]["notifyUser"])){
@@ -1011,24 +1069,19 @@ class Notification{
 	**/
 	public static function getTargetInformation($id, $type, $object=null) {	
 	 	$target=array();
-	 	if(@$object && in_array($object["type"], array( Proposal::COLLECTION, Room::COLLECTION, Action::COLLECTION) ) )
+	 	if(@$object && in_array($object["type"], array( Proposal::COLLECTION, Room::COLLECTION, Action::COLLECTION, Resolution::COLLECTION) ) )
 		{
-			$roomId = $id;
+			$roomId = $object["id"];
 			if( $object["type"] == Proposal::COLLECTION )
 				$target["entry"] = Proposal::getById( $object["id"] );
 			else if( $object["type"] == Action::COLLECTION )
 				$target["entry"] = Action::getById( $object["id"] );
+			else if( $object["type"] == Resolution::COLLECTION )
+				$target["entry"] = Resolution::getById( $object["id"] );
 			if(@$target["entry"])
 				$roomId=$target["entry"]["idParentRoom"];
 			$target["room"] = Room::getById( $roomId );
-			$target["parent"] = Element::getElementSimpleById($target["entry"]["parentId"], $target["entry"]["parentType"]); 
-			/*$target["room"] = $room;
-			if( @$room["parentType"] ){
-				if( $room["parentType"] == City::COLLECTION ) 
-			    	$target["parent"] = City::getByUnikey( $room["parentId"]);
-				else 
-					$target["parent"] = Element::getElementSimpleById($target["entry"]["parentId"], $target["entry"]["parentType"]);
-			}*/
+			$target["parent"] = Element::getElementSimpleById($target["room"]["parentId"], $target["room"]["parentType"]); 
 		}else if($type=="news"){
 			$news=News::getById($id);
 			$authorNews=News::getAuthor($id);
@@ -1076,7 +1129,7 @@ class Notification{
 			if(@$target["entry"]["name"])
 				$res["{what}"]=$target["entry"]["name"];
 			else
-				$res["{what}"]=$target["entry"]["title"];
+				$res["{what}"]=@$target["entry"]["title"];
 			if(@$target["parent"])
 				$res["{where}"] = $target["parent"]["name"];
 		} 
@@ -1468,6 +1521,12 @@ class Notification{
 	    }
 	    else if($verb == ActStr::VERB_ADD_PROPOSAL){
 		    $label = Yii::t("rooms","{who} added a new Proposal {what} in {where}", array("{who}" => Yii::app()->session['user']['name'],
+		    																	"{what}"=>$target['entry']["name"],
+		    																	"{where}"=>$target['parent']["name"]),Yii::app()->controller->module->id);
+		    $url = 'survey/entry/id/'.$target["id"];
+	    }
+	    else if($verb == ActStr::VERB_ADD_RESOLUTION){
+		    $label = Yii::t("rooms","{who} added a new Resolution {what} in {where}", array("{who}" => Yii::app()->session['user']['name'],
 		    																	"{what}"=>$target['entry']["name"],
 		    																	"{where}"=>$target['parent']["name"]),Yii::app()->controller->module->id);
 		    $url = 'survey/entry/id/'.$target["id"];
