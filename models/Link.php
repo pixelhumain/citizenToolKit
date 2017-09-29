@@ -647,9 +647,11 @@ class Link {
             $connectTypeOf="events";
         if(empty($roles))
             $action='$unset';
+            $msg = "The member's role has been removed with success";
         else{
             $action='$set';
             $roles=explode(",", $roles);
+            $msg = "The member's role has been added with success";
         }
         //2. Remove the role
         PHDB::update( $contextType, 
@@ -661,7 +663,7 @@ class Link {
         			array("_id"=> new MongoId($childId)),
         			array($action => array("links.".$connectTypeOf.".".$contextId.".roles" => $roles)) );
         
-        return array("result"=>true, "msg"=>Yii::t("link","The member's role has been removed with success",null,Yii::app()->controller->module->id), "memberOfid"=>$contextId, "memberid"=>$childId);
+        return array("result"=>true, "msg"=>Yii::t("link",$msg,null,Yii::app()->controller->module->id), "memberOfid"=>$contextId, "memberid"=>$childId);
     }
 
     /** TODO BOUBOULE - TO DELETE WITH CTK/CONTROLLERS/PERSON/DISCONNECTACTION.PHP
