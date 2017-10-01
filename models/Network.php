@@ -6,13 +6,21 @@ class Network {
 
     public static $dataBinding = array (
 	    "name" => array("name" => "name", "rules" => array("required")),
+	    
 	    "skin"=> array("name" => "skin"),
 	    "title"=> array("name" => "skin.title"),
 	    "paramsLogo"=> array("name" => "paramsLogo"),
 	    "origin"=> array("name" => "origin"),
+	    
+	    "add" => array("name" => "add"),
+	    
+	    "result" => array("name" => "result"),
+	    "displayImage" => array("name" => "displayImage"),
+
 	    "request" => array("name" => "request"),
 	    "searchTag" => array("name" => "searchTag"),
 	    "tags" => array("name" => "tags"),
+
 
 	    "modified" => array("name" => "modified"),
 	    "updated" => array("name" => "updated"),
