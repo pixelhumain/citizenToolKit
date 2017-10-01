@@ -67,6 +67,7 @@ class Element {
 	    	Proposal::COLLECTION   	 => "Proposal",
 	    	Room::COLLECTION   	 	 => "Room",
 	    	Action::COLLECTION   	 => "Action",
+	    	Network::COLLECTION   	 => "Network",
 	    );	
 	 	return @$models[$type];     
     }
