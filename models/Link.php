@@ -645,10 +645,10 @@ class Link {
             $connectTypeOf="projects";
         if($connectType=="attendees")
             $connectTypeOf="events";
-        if(empty($roles))
+        if(empty($roles)){
             $action='$unset';
             $msg = "The member's role has been removed with success";
-        else{
+        }else{
             $action='$set';
             $roles=explode(",", $roles);
             $msg = "The member's role has been added with success";
