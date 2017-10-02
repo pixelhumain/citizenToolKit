@@ -2048,69 +2048,7 @@ class Element {
         $connectType = @self::$connectTypes[$type];
         if($type==Person::COLLECTION)
         	$connectType="friends";
-        /*if( @$element["links"] ) {
-            if(isset($element["links"][$connectType])){
-                $countStrongLinks=0;//count($element["links"][$connectType]);
-                $nbMembers=0;
-                $invitedNumber=0;
-                $members=array();
-                foreach ($element["links"][$connectType] as $key => $aMember) {
-                    if($nbMembers < 11){
-                        if($aMember["type"]==Organization::COLLECTION){
-                            $newOrga = Organization::getSimpleOrganizationById($key);
-                            if(!empty($newOrga)){
-                                if ($aMember["type"] == Organization::COLLECTION && @$aMember["isAdmin"]){
-                                    $newOrga["isAdmin"]=true;               
-                                }
-                                $newOrga["type"]=Organization::COLLECTION;
-                                //array_push($contextMap["organizations"], $newOrga);
-                                //array_push($members, $newOrga);
-                                $members[$key] = $newOrga ;
-                            }
-                        } else if($aMember["type"]==Person::COLLECTION){
-                            //if(!@$aMember["isInviting"]){
-                                $newCitoyen = Person::getSimpleUserById($key);
-                                if (!empty($newCitoyen)) {
-                                    if (@$aMember["type"] == Person::COLLECTION) {
-                                        if(@$aMember["isAdmin"]){
-                                            if(@$aMember["isAdminPending"])
-                                                $newCitoyen["isAdminPending"]=true;  
-                                                $newCitoyen["isAdmin"]=true;    
-                                        }           
-                                        if(@$aMember["toBeValidated"]){
-                                            $newCitoyen["toBeValidated"]=true;  
-                                        } 
-                                        if(@$aMember["isInviting"]){
-											$newCitoyen["isInviting"]=true;
-										}      
-                                    
-                                    }
-                                    $newCitoyen["type"]=Person::COLLECTION;
-                                    //array_push($contextMap["people"], $newCitoyen);
-                                    //array_push($members, $newCitoyen);
-                                    $members[$key] = $newCitoyen ;
-                                    $nbMembers++;
-                                }
-                            //}
-                        }
-                    } 
-                    if(!@$aMember["isInviting"])
-                        $countStrongLinks++;
-                    else{
-                        if(@Yii::app()->session["userId"] && $key==Yii::app()->session["userId"])
-                            $params["invitedMe"]=array("invitorId"=>$aMember["invitorId"],"invitorName"=>$aMember["invitorName"]);
-                        $invitedNumber++;
-                    }
-                }
-                $params["members"] = $members;
-            }
-
-            
-        } */
-        //if(!@$element["disabled"]){
-            //if((@$config["connectLink"] && $config["connectLink"]) || empty($config)){ TODO CONFIG MUTUALIZE WITH NETWORK AND OTHER PLATFORM
-           //$connectType = $connectType[$type];
-            if(((!@$links[$connectType][Yii::app()->session["userId"]] && $type!=Event::COLLECTION) || (@$links[$connectType][Yii::app()->session["userId"]] && 
+       	if(((!@$links[$connectType][Yii::app()->session["userId"]] && $type!=Event::COLLECTION) || (@$links[$connectType][Yii::app()->session["userId"]] && 
                 @$links[$connectType][Yii::app()->session["userId"]][Link::TO_BE_VALIDATED])) && 
                 @Yii::app()->session["userId"] && 
                 ($type != Person::COLLECTION || 
@@ -2142,6 +2080,13 @@ class Element {
                     $params["invitedMe"]=array(
                     	"invitorId"=>$links[$connectType][Yii::app()->session["userId"]]["invitorId"],
                     	"invitorName"=>$links[$connectType][Yii::app()->session["userId"]]["invitorName"]);
+                }
+				if(@$links[$connectType][Yii::app()->session["userId"]][Link::IS_ADMIN_INVITING]){
+                    $params["linksBtn"][Link::IS_ADMIN_INVITING]=true;
+                    $params["invitedMe"]=array(
+                    	"invitorId"=>$links[$connectType][Yii::app()->session["userId"]]["invitorId"],
+                    	"invitorName"=>$links[$connectType][Yii::app()->session["userId"]]["invitorName"],
+                    	"isAdminInviting"=>true);
                 }
 
                 $params["linksBtn"]["isAdmin"]=true;

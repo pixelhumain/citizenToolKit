@@ -17,6 +17,7 @@ class Link {
     const INVITED_BY_ID = "invitorId";
     const INVITED_BY_NAME = "invitorName";
     const IS_INVITING = "isInviting";
+    const IS_ADMIN_INVITING = "isAdminInviting";
 
 
 
@@ -211,7 +212,12 @@ class Link {
         if($isInviting){
             $links["links.".$connectType.".".$targetId.".".Link::INVITED_BY_ID] = $userId;
             $links["links.".$connectType.".".$targetId.".".Link::INVITED_BY_NAME] = Yii::app()->session["user"]["name"];
-            $links["links.".$connectType.".".$targetId.".".Link::IS_INVITING] = $isInviting;
+            if($isInviting==="admin"){
+                $links["links.".$connectType.".".$targetId.".".Link::IS_ADMIN_INVITING] = true;
+            }
+            else{
+                $links["links.".$connectType.".".$targetId.".".Link::IS_INVITING] = $isInviting;
+            }
         }/*else if($targetType==Event::COLLECTION || $originType==Event::COLLECTION){
 		    PHDB::update($originType, 
                        array("_id" => $origin["_id"]) , 
@@ -256,10 +262,11 @@ class Link {
         $origin = Element::checkIdAndType($originId, $originType, "disconnect");
         $target = Element::checkIdAndType($targetId, $targetType, "disconnect");
         $unset=array("links.".$connectType.".".$targetId => "");
-        if ($linkOption != null && $linkOption==self::IS_ADMIN_PENDING){
+        if ($linkOption != null && ($linkOption==self::IS_ADMIN_PENDING || $linkOption==self::IS_ADMIN_INVITING)){
             if(!@$origin["links"][$connectType][$targetId][self::TO_BE_VALIDATED]){
                 $unset=array(
                         "links.".$connectType.".".$targetId.".".self::IS_ADMIN_PENDING => "",
+                        "links.".$connectType.".".$targetId.".".self::IS_ADMIN_INVITING => "",
                         "links.".$connectType.".".$targetId.".".self::IS_ADMIN => ""
                     );
             }
@@ -921,18 +928,30 @@ class Link {
                 $verb = ActStr::VERB_INVITE; 
 	            if($isConnectingAdmin==true){
 					//$verb = ActStr::VERB_ACCEPT;
-					$msg=$pendingChild["name"]." ".Yii::t("common","is well invited to administrate of")." ".$parentData["name"];
+                    if(@$parentData["links"] 
+                        && @$parentData["links"][$parentConnectAs] 
+                        && @$parentData["links"][$parentConnectAs][$childId]
+                        && @$parentData["links"][$parentConnectAs][$childId][self::TO_BE_VALIDATED]){
+                        $isInviting="admin";
+                        self::validateLink($parentId, $parentType, $childId, $childType, self::TO_BE_VALIDATED, Yii::app()->session["userId"]);
+                    }
+                    $msg=Yii::t("common","{who} is well invited to administrate {what}",array("{who}"=>$pendingChild["name"],"{what}"=>$parentData["name"]));
 					$pendingChild["isAdmin"]=true;
 				} else 
 					//$verb = ActStr::VERB_ACCEPT;
-					$msg=$pendingChild["name"]." ".Yii::t("common","is well invited to join")." ".$parentData["name"];
+					$msg=Yii::t("common","{who} is well invited to join {what}",array("{who}"=>$pendingChild["name"],"{what}"=>$parentData["name"]));
                 //SPECIFIC USECASE FOR ORGANIZATION => NO INVITATION PROCESS
                 if($childType==Organization::COLLECTION){
                     $verb = ActStr::VERB_ADD;
-                    $msg=$pendingChild["name"]." ".Yii::t("common","is well added to")." ".$parentData["name"];
+                    $msg=Yii::t("common","{who} is well added to {what}",array("{who}"=>$pendingChild["name"],"{what}"=>$parentData["name"]));
                 }
 				else{
-                    $isInviting=true;
+                    if(@$parentUsersList[$childId] || $isInviting==="admin"){
+                        $isInviting="admin";
+                    }
+                    else{
+                        $isInviting=true;
+                    }
                     $pendingChild["isInviting"]=true;
                 }
                 $toBeValidated=false;
@@ -942,7 +961,7 @@ class Link {
 				$verb = ActStr::VERB_JOIN;
 				$toBeValidated=false;
 				//if($childId==Yii::app()->session["userId"]){
-				$msg= Yii::t("common", "You are now ".$typeOfDemand." of")." ".Yii::t("common","this ".$parentController);
+				$msg= Yii::t("common", "You are now {what} of {where}",array("{what}"=>$typeOfDemand,"{where}"=>Yii::t("common","this ".$parentController)));
                 /*}else{
 					$invitation = ActStr::VERB_INVITE;
 					if($typeOfDemand != "admin"){
@@ -1089,19 +1108,19 @@ class Link {
             //Notification::actionOnPerson ( ActStr::VERB_CONFIRM, ActStr::ICON_SHARE, $user, array("type"=>$parentType,"id"=> $parentId,"name"=>$parent["name"]));
             $verb=ActStr::VERB_ACCEPT;
             $levelNotif = "asAdmin";
-            $msg = $pendingChild["name"]." has been validated as admin of ".$parent["name"];
+            $msg = Yii::t("common","{who} has been validated as admin of {what}",array("{who}"=>$pendingChild["name"],"{what}"=>$parent["name"]));
             //MAIL TO CHILDREN 
             //REMOVE ASK NOTIF FOR COMMUNITY
         } else if ($linkOption == Link::TO_BE_VALIDATED) {
             //Notification::actionOnPerson ( ActStr::VERB_ACCEPT, ActStr::ICON_SHARE, $user, array("type"=>$parentType,"id"=> $parentId,"name"=>$parent["name"]));
             $verb=ActStr::VERB_ACCEPT;
             $levelNotif="asMember";
-            $msg = $pendingChild["name"]." has been validated as member of ".$parent["name"];
+            $msg = Yii::t("common","{who} has been validated as member of {what}",array("{who}"=>$pendingChild["name"],"{what}"=>$parent["name"]));
             //MAIL TO CHILDREN
             //REMOVE ASK NOTIF FOR COMMUNITY
-        } else if ($linkOption == Link::IS_INVITING){
+        } else if ($linkOption == Link::IS_INVITING || $linkOption == Link::IS_ADMIN_INVITING){
             $verb=ActStr::VERB_CONFIRM;
-            $msg = "Your answer has been succesfully register";
+            $msg = Yii::t("common","Your answer has been succesfully registered");
             if(@$pendingChild["links"][$connectType][$parentId]["isAdmin"] && @$parent["links"][$connectType][$childId]["isAdmin"])
                 $levelNotif="asAdmin";
             else
@@ -1112,7 +1131,7 @@ class Link {
         if($verb==ActStr::VERB_ACCEPT)
             Mail::someoneConfirmYouTo($parent, $parentType, $pendingChild, $typeOfDemand);
         Notification::constructNotification($verb, $user , $target, null, $levelNotif);
-        return array( "result" => true , "msg" => Yii::t("common",$msg) );
+        return array( "result" => true , "msg" => $msg );
     }
 
 	/*
