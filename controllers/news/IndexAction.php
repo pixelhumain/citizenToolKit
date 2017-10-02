@@ -236,6 +236,19 @@ class IndexAction extends CAction
 			}
 			else if($type == "organizations" || $type == "projects" || $type == "events" || $type == "place"){
 				$scope=["public","restricted"];
+				$arrayIds=[];
+				if(@$parent["links"]["projects"] && !empty($parent["links"]["projects"])){
+					foreach ($parent["links"]["projects"] as $key => $data){
+						if(!@$data[Link::TO_BE_VALIDATED])
+							array_push($arrayIds,$key);
+					}
+				}
+				if(@$parent["links"]["events"] && !empty($parent["links"]["events"])){
+					foreach ($parent["links"]["events"] as $key => $data){
+						if(!@$data[Link::TO_BE_VALIDATED])
+							array_push($arrayIds,$key);
+					}
+				}
 				if (@$params["canManageNews"] && $params["canManageNews"]){
 					$orRequest=array(
 						array("mentions.id"=>$id,"scope.type"=>array('$in'=>$scope)),
@@ -252,6 +265,11 @@ class IndexAction extends CAction
 						)
 					);
 				}
+				array_push($orRequest,
+					array('$or'=>array(
+							array("sharedBy.id"=>array('$in'=>array($arrayIds))), 
+							array("target.id" =>  array('$in' => $arrayIds))),
+						"scope.type"=>array('$in'=>$scope)));
 				$where = array('$or'=>$orRequest);
 			}
 			else if ($type == "pixels"){
