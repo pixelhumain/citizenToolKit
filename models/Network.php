@@ -13,7 +13,10 @@ class Network {
 	    "origin"=> array("name" => "origin"),
 	    
 	    "add" => array("name" => "add"),
-	    
+
+	    "filters" => array("name" => "filters"),
+	    "types" => array("name" => "types"),
+
 	    "result" => array("name" => "result"),
 	    "displayImage" => array("name" => "displayImage"),
 
