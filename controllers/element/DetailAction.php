@@ -204,6 +204,9 @@ class DetailAction extends CAction {
 										}
 										if(@$aMember["isInviting"]){
 											$newCitoyen["isInviting"]=true;
+										}
+										if(@$aMember["isAdminInviting"]){
+											$newCitoyen["isAdminInviting"]=true;
 										}		
 					  				
 									}
@@ -216,8 +219,11 @@ class DetailAction extends CAction {
 							//}
 						}
 					} 
-					if(!@$aMember["isInviting"])
+					if(!@$aMember["isInviting"]){
 						$countStrongLinks++;
+						if($aMember["isAdminInviting"] && @Yii::app()->session["userId"] && $key==Yii::app()->session["userId"])
+		  					$params["invitedMe"]=array("invitorId"=>$aMember["invitorId"],"invitorName"=>$aMember["invitorName"],"admin"=>true);
+					}
 					else{
 		  				if(@Yii::app()->session["userId"] && $key==Yii::app()->session["userId"])
 		  					$params["invitedMe"]=array("invitorId"=>$aMember["invitorId"],"invitorName"=>$aMember["invitorName"]);
