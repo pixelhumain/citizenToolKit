@@ -777,7 +777,8 @@ class Document {
         //Update the entity collection to store the path of the profil images
         $allowedElements = array( Person::COLLECTION, 
         						  Organization::COLLECTION, 
-        						  Project::COLLECTION, 
+        						  Project::COLLECTION,
+        						  Product::COLLECTION, 
         						  Event::COLLECTION,
         						  Poi::COLLECTION, 
         						  Survey::COLLECTION ,

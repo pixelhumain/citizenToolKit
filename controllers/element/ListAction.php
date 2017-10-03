@@ -3,12 +3,16 @@
 class ListAction extends CAction {
 	public function run($type, $id) { 
 		$controller=$this->getController();
-		$params=array("type"=>$type,"id"=>$id, "list"=>[]);
-		if(@$_POST["list"] && !empty($_POST["list"])){
-			foreach($_POST["list"] as $data){
+		$params=array("type"=>$type,"id"=>$id, "actionType"=>$_POST["actionType"],"list"=>[]);
+		if(@$_POST["category"] && !empty($_POST["category"])){
+			foreach($_POST["category"] as $data){
 				if($data==Product::COLLECTION){
 					$where=array("parentId"=>$id, "parentType"=>$type);
 					$params["list"][$data]=Product::getListBy($where);
+				}
+				if($data==Booking::COLLECTION){
+					$where=array("buyingBy"=>Yii::app()->session["userId"]);
+					$params["list"][$data]=Booking::getBookingByUser($where);
 				}
 			}
 		}
