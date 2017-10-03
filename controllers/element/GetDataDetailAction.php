@@ -43,6 +43,8 @@ class GetDataDetailAction extends CAction {
 								$link["statusLink"][Link::IS_ADMIN]=true;
 							if(@$value[Link::IS_ADMIN_PENDING])
 								$link["statusLink"][Link::IS_ADMIN_PENDING]=true;
+							if(@$value[Link::IS_ADMIN_INVITING])
+								$link["statusLink"]["isAdminInviting"]=true;
 						}
 						$link["type"] = $value["type"];
 						$contextMap[$keyLink] = $link;
