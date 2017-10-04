@@ -65,6 +65,8 @@ class GlobalAutoCompleteAction extends CAction
   			$query = array('$and' => array( $query , array("tags" => array('$in' => $tmpTags)))) ;
   		}
   		//unset($tmpTags);
+  		// Don't take working group with producors and supports
+  		$query = array('$and' => array( $query , array("tags" => array('$nin' => ["producors","supports"])))) ;
   		$query = array('$and' => array( $query , array("state" => array('$ne' => "uncomplete")) ));
   		
   		if($latest)
