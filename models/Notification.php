@@ -1116,7 +1116,17 @@ class Notification{
 						$res["{what}"]=Yii::t("notification","shared");
 				}
 				else{
-					$res["{what}"]="&quot;".substr(@$news["text"], 0, 20)."...&quot;";
+					if(!empty($news["text"]))
+						$res["{what}"]="&quot;".substr(@$news["text"], 0, 20)."...&quot;";
+					else if(@$news["media"]){
+						if($news["media"]["type"]=="url_content")
+							$res["{what}"]=Yii::t("notification", "with the link");
+						if($news["media"]["type"]=="gallery_files")
+							$res["{what}"]=Yii::t("notification", "with the documents shared");
+						if($news["media"]["type"]=="gallery_images")
+							$res["{what}"]=Yii::t("notification", "with the album's images");
+					} else
+						$res["{what}"]="";
 				}
 			}
 			else if($object){
