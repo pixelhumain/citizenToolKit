@@ -1120,7 +1120,7 @@ class Notification{
 						$res["{what}"]="&quot;".substr(@$news["text"], 0, 20)."...&quot;";
 					else if(@$news["media"]){
 						if($news["media"]["type"]=="url_content")
-							$res["{what}"]=Yii::t("notification", "with the link shared");
+							$res["{what}"]=Yii::t("notification", "with the link");
 						if($news["media"]["type"]=="gallery_files")
 							$res["{what}"]=Yii::t("notification", "with the documents shared");
 						if($news["media"]["type"]=="gallery_images")
