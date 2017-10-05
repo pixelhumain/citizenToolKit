@@ -6,8 +6,7 @@ class IndexAction extends CAction
         $controller=$this->getController();
 
         $params = array();
-
-        $res = Comment::buildCommentsTree($id, $type, Yii::app()->session["userId"]);
+        $res = Comment::buildCommentsTree($id, $type, Yii::app()->session["userId"], @$_POST["filters"]);
         $params['comments'] = $res["comments"];
         $params['communitySelectedComments'] = $res["communitySelectedComments"];
         $params['abusedComments'] = $res["abusedComments"];

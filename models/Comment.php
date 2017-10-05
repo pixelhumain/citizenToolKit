@@ -88,7 +88,8 @@ class Comment {
 			"status" => self::STATUS_POSTED,
 			"argval" => @$comment["argval"]
 		);
-
+		if(@$comment["rating"])
+			$newComment["rating"]=(int)$comment["rating"];
 		if (self::canUserComment($comment["contextId"], $comment["contextType"], $userId, $options)) {
 			PHDB::insert(self::COLLECTION,$newComment);
 		} else {
@@ -124,7 +125,7 @@ class Comment {
 	 * @param String $contextType The context object type. Can be anything 
 	 * @return array of comment organize in tree
 	 */
-	public static function buildCommentsTree($contextId, $contextType, $userId) {
+	public static function buildCommentsTree($contextId, $contextType, $userId, $filters=null) {
 
 		$res = array();
 		$commentTree = array();
@@ -135,6 +136,12 @@ class Comment {
 		$whereContext = array(
 					"contextId" => $contextId, 
 					"contextType" => $contextType);
+		if(@$filters && !empty($filters)){
+			foreach ($filters as $value) {
+				if($value=="rating")
+					$whereContext["rating"]=array('$exists'=>true);
+			}
+		}
 		$nbComment = PHDB::count(self::COLLECTION, $whereContext);
 		
 		$whereRoot = $whereContext;

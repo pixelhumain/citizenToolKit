@@ -10,9 +10,9 @@ class ListAction extends CAction {
 					$where=array("parentId"=>$id, "parentType"=>$type);
 					$params["list"][$data]=Product::getListBy($where);
 				}
-				if($data==Booking::COLLECTION){
-					$where=array("buyingBy"=>Yii::app()->session["userId"]);
-					$params["list"][$data]=Booking::getBookingByUser($where);
+				if($data==Order::COLLECTION){
+					$where=array("customer"=>Yii::app()->session["userId"]);
+					$params["list"][$data]=Order::getListByUser($where);
 				}
 			}
 		}

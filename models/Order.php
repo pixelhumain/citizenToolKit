@@ -1,11 +1,11 @@
 <?php
 
-class Booking {
-	const COLLECTION = "bookings";
-	const CONTROLLER = "booking";
+class Order {
+	const COLLECTION = "orders";
+	const CONTROLLER = "order";
 	
 	//TODO Translate
-	public static $bookingTypes = array(
+	public static $orderTypes = array(
 	   
     );
 
@@ -58,18 +58,36 @@ class Booking {
 		$products = PHDB::find( self::COLLECTION , $where );
 	  	return $products;
 	}
-	public static function getBookingByUser($where){
-		$allBookings = PHDB::findAndSort( self::COLLECTION , $where, array("created"=>-1));
-		foreach ($allBookings as $key => $value) {
-			$itemBook=Product::getById($value["id"]);
+
+	public static function getListByUser($where){
+		$allOrders = PHDB::findAndSort( self::COLLECTION , $where, array("created"=>-1));
+		foreach ($allOrders as $key => $value) {
+			$orderedItem=PHDB::findOneById($value["orderedItemType"], $value["orderedItemId"]);
+			if(@$value["comment"])
+				$allOrders[$key]["comment"]=Comment::getById($value["comment"]);
 			//$allBookings[$key] = array_merge($allBookings[$key], Document::retrieveAllImagesUrl($value["id"], $value["type"]));
-			$allBookings[$key]["name"] = $itemBook["name"];
-			$allBookings[$key]["description"] = $itemBook["description"];
-			$allBookings[$key]["profilImageUrl"] = @$itemBook["profilImageUrl"];
-			$allBookings[$key]["profilThumbImageUrl"] = @$itemBook["profilThumbImageUrl"];
-			$allBookings[$key]["profilMediumImageUrl"] = @$itemBook["profilMediumImageUrl"];
+			$allOrders[$key]["name"] = $orderedItem["name"];
+			$allOrders[$key]["description"] = $orderedItem["description"];
+			$allOrders[$key]["profilImageUrl"] = @$orderedItem["profilImageUrl"];
+			$allOrders[$key]["profilThumbImageUrl"] = @$orderedItem["profilThumbImageUrl"];
+			$allOrders[$key]["profilMediumImageUrl"] = @$orderedItem["profilMediumImageUrl"];
 		}
-	  	return $allBookings;
+	  	return $allOrders;
+	}
+	/*
+	* Increment a comment rating for an order for a specific product or sevrice
+	*/
+	public static function actionRating($params,$commentId){
+		$allRating=Comment::buildCommentsTree($params["contextId"], $params["contextType"], Yii::app()->session["userId"], array("rating"));
+		$sum=0;
+		foreach ($allRating["comments"] as $key => $value) {
+			$sum=$sum+$value["rating"];
+		}
+		if($allRating["nbComment"] != 0)
+			$sum=$sum / $allRating["nbComment"] ;
+		$average=round( $sum , 1);
+		PHDB::update($params["contextType"],array("_id" => new MongoId($params["contextId"])),array('$set'=>array("averageRating"=>$average)));
+		PHDB::update(self::COLLECTION,array("_id" => new MongoId($params["orderId"])),array('$set'=>array("comment"=>$commentId)));
 	}
 }
 ?>
