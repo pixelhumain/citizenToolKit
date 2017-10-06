@@ -439,12 +439,16 @@ class SIG
     }
 
     // Nominatim
-    public static function getLocalityByLatLonNominatim($lat, $lon){
+    public static function getLocalityByLatLonNominatim($lat, $lon, $countryCode = null){
     	try{
 			$url = 'http://nominatim.openstreetmap.org/reverse?format=json&lat='.$lat.'&lon='.$lon.'&zoom=18&addressdetails=1';
+			if(!empty($countryCode))
+	            $url .= "&countrycodes=".self::changeCountryForNominatim($countryCode);
+			$url .= "&email=contact@communecter.org";
 			// $url = urlencode($url);
 			// $url = str_replace(['%2F', '%3A', '%3D','%3F', '%26'], ['/', ':', '=', '?', '&'], $url);
         	//$res =  file_get_contents(htmlspecialchars_decode($url));
+        	//var_dump($url);
         	$res =  self::getUrl($url) ;
 	        return $res;
         }catch (CTKException $e){
