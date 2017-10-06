@@ -2084,12 +2084,15 @@ class Person {
     				CookieHelper::setCookie("communexion",  json_encode(City::detailsLocality($address)));
     				$where = array("insee" => $address["codeInsee"]);
 					$citiesResult = PHDB::findOne( City::COLLECTION , $where, array("postalCodes") );
-					foreach($citiesResult as $v){
-						if(!empty($citiesResult["postalCodes"]) && count($citiesResult["postalCodes"]) == 1)
-							CookieHelper::setCookie("communexionType", "city");
-						else
-							CookieHelper::setCookie("communexionType", "cp");
-					}
+					if(!empty($citiesResult)){
+						foreach($citiesResult as $v){
+							if(!empty($citiesResult["postalCodes"]) && count($citiesResult["postalCodes"]) == 1)
+								CookieHelper::setCookie("communexionType", "city");
+							else
+								CookieHelper::setCookie("communexionType", "cp");
+						}
+					}else
+						CookieHelper::setCookie("communexionType", "city");
 
     				/*CookieHelper::setCookie("inseeCommunexion", $address["codeInsee"]);
 		    		CookieHelper::setCookie("cpCommunexion", $address["postalCode"]);

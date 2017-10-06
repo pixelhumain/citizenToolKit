@@ -226,7 +226,7 @@ class GetDataDetailAction extends CAction {
 												"type"=>$type, 
 												"id"=>$id, 
 												"scope"=>@$scopeName, 
-												"open"=> (@$type=="0"))); 
+												"open"=> (@$type!="0"))); 
 												//open : for home page (when no user connected)
 			Yii::app()->end();
 		}
