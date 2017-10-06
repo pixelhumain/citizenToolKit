@@ -449,6 +449,19 @@ class Import
 				$newGeoPosition = SIG::getFormatGeoPosition($lat, $lon);
 				$result = true;
             }else{
+
+            	$resNominatim = json_decode(SIG::getLocalityByLatLonNominatim($lat, $lon),true);
+            	//var_dump($resNominatim );
+				if(!empty($resNominatim)){
+                    //foreach ($resNominatim as $keyN=> $valueN) {
+						$newA = array(	"osmID" => $resNominatim["osm_id"],
+										"addressLocality" => $resNominatim["address"]["state"],
+										"addressCountry" => (!empty($address["addressCountry"]) ? $address["addressCountry"] :  strtoupper($resNominatim["address"]["country_code"])));
+						$saveCities = $newA;
+						$result = true;
+						//break;
+					//}
+				}
             	$result = true;
             }		
 		}
