@@ -22,6 +22,8 @@ class Import
             $where = array("_id" => new MongoId($post['idMapping']));
             $fields = array("fields");
             $mapping = self::getMappings($where, $fields);
+            //Remplace les "_dot_" par des "."
+            $mapping[$post['idMapping']]["fields"] = Mapping::replaceByRealDot($mapping[$post['idMapping']]["fields"]);
             $arrayMapping = $mapping[$post['idMapping']]["fields"];
         }
         else
@@ -46,9 +48,11 @@ class Import
             // } 
 
             if($post['idMapping'] != "-1"){
+                
                 $where = array("_id" => new MongoId($post['idMapping']));
                 $fields = array("fields");
                 $mapping = self::getMappings($where, $fields);
+                $mapping[$post['idMapping']]["fields"] = Mapping::replaceByRealDot($mapping[$post['idMapping']]["fields"]);
                 $arrayMapping = $mapping[$post['idMapping']]["fields"];
             }
             else
@@ -68,6 +72,7 @@ class Import
                     $arbre = ArrayHelper::getAllPathJson(json_encode($value), $arbre); 
                 }
             }
+
             $attributesElt = ArrayHelper::getAllPathJson(file_get_contents("../../modules/communecter/data/import/".Element::getControlerByCollection($post["typeElement"]).".json", FILE_USE_INCLUDE_PATH));
             $params = array("result"=>true,
                         "attributesElt"=>$attributesElt,
@@ -79,8 +84,12 @@ class Import
     }
 
     public static function getMappings($where=array(),$fields=null){
-        $allMapping = PHDB::find(self::MAPPINGS, $where, $fields);
-        return $allMapping;
+
+        $allMappings = PHDB::find(self::MAPPINGS, $where, $fields);
+
+        $allMappings = self::getStandartMapping($allMappings);
+
+        return $allMappings;
     }
 
    
@@ -989,9 +998,6 @@ class Import
         } elseif ($type == Project::COLLECTION) {
             $map = TranslateGeoJsonToPh::$mapping_project;
         } 
-        // else {
-        //     return "Type d'élement non reconnu";
-        // }
 
         $param['typeElement'] = $map["type_elt"];
 
@@ -1009,17 +1015,14 @@ class Import
         $param['warnings'] = false;
         $param['nbTest'] = "5";
 
-        if (( (isset($file)) || (isset($url)) ) && 
-            (substr($url, 0, 35) !== "http://umap.openstreetmap.fr/en/map")) {
+        //url longue : https://umap.openstreetmap.fr/fr/map/incroyables-comestibles-brest-landerneau_113881#14/48.3969/-4.5053
+        // var_dump($url);
+        // var_dump(substr($url, 0, 35));
 
-            $param['file'][0] = (isset($file)) ? $file : file_get_contents($url);
-           
-            $result = Import::previewData($param);
-            $res = json_decode($result['elements']);
-
-        } elseif ((isset($url)) && (substr($url, 0, 35) == "http://umap.openstreetmap.fr/en/map")) {
+        if ((isset($url)) && 
+            (((substr($url, 0, 35) == "http://umap.openstreetmap.fr/en/map")) || (substr($url, 0, 35) == "http://umap.openstreetmap.fr/fr/map"))) {
             $umap_data = file_get_contents($url);
-            $list_url_data = Import::getDatalayersUmap($url);
+            $list_url_data = self::getDatalayersUmap($url);
             $param['nameFile'] = $url;
             $res = array();
 
@@ -1028,7 +1031,7 @@ class Import
                 $datalayers_data = file_get_contents($valueDatalayer);
                 $param['file'][0] = $datalayers_data;
 
-                $result = Import::previewData($param);
+                $result = self::previewData($param);
 
                 $result = $result['elements'];
 
@@ -1037,16 +1040,18 @@ class Import
                 }
             }
 
+        } elseif ((isset($file)) || (isset($url))) {
+
+            $param['file'][0] = (isset($file)) ? $file : file_get_contents($url);
+           
+            $result = self::previewData($param);
+            $res = json_decode($result['elements']);
+
         } 
 
         if (isset($res)) {
             return $res;
         } 
-        //else {
-        //     return "Paramètre(s) manquant(s) ou erroné(s)";
-        // }
-
-
     }
 
     public static function getDatalayersUmap($url){
@@ -1066,9 +1071,44 @@ class Import
 
         }
 
-        $datalayers_data = file_get_contents($url_datalayers);
-
         return $list_url_datalayers;
+
+    }
+
+    public static function getStandartMapping($allMappings) {
+
+        $orga_standart_mapping = PHDB::find(self::MAPPINGS, array("key" => "organizationStandart"));
+        $person_standart_mapping = PHDB::find(self::MAPPINGS, array("key" => "personStandart"));
+        $event_standart_mapping = PHDB::find(self::MAPPINGS, array("key" => "eventStandart"));
+        $projet_standart_mapping = PHDB::find(self::MAPPINGS, array("key" => "projetStandart"));
+
+        foreach ($orga_standart_mapping as $key => $value) {
+            $orga_key_standart = $key;
+        }
+        foreach ($person_standart_mapping as $key => $value) {
+            $person_key_standart = $key;
+        }
+        foreach ($event_standart_mapping as $key => $value) {
+            $event_key_standart = $key;
+        }
+        foreach ($projet_standart_mapping as $key => $value) {
+            $projet_key_standart = $key;
+        }
+
+        foreach ($orga_standart_mapping as $key => $value) {
+            $allMappings[$orga_key_standart] = $value;
+        }
+        foreach ($person_standart_mapping as $key => $value) {
+            $allMappings[$person_key_standart] = $value;
+        }
+        foreach ($event_standart_mapping as $key => $value) {
+            $allMappings[$event_key_standart] = $value;
+        }
+        foreach ($projet_standart_mapping as $key => $value) {
+            $allMappings[$projet_key_standart] = $value;
+        }
+
+        return $allMappings;
 
     }
 
