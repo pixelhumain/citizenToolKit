@@ -293,35 +293,35 @@ class Import
 			
 
 			if(!empty($city)){
-				if( !empty($address["streetAddress"]) ){
-					$street = (empty($address["streetAddress"])?null:$address["streetAddress"]);
-        			$cp = (empty($address["postalCode"])?null:$address["postalCode"]);
+				//if( !empty($address["streetAddress"]) ){
+				$street = (empty($address["streetAddress"])?null:$address["streetAddress"]);
+    			$cp = (empty($address["postalCode"])?null:$address["postalCode"]);
 
-					$resultDataGouv = ( ( !empty($address["addressCountry"]) && $address["addressCountry"] == "FR" ) ? ( empty($cp) ? null : json_decode(SIG::getGeoByAddressDataGouv($street, $cp, $address["addressLocality"]), true) ) : null ) ;
-					if(!empty($resultDataGouv["features"])){
-						$lat = strval($resultDataGouv["features"][0]["geometry"]["coordinates"][1]);
-						$lon = strval($resultDataGouv["features"][0]["geometry"]["coordinates"][0]);
+				$resultDataGouv = ( ( !empty($address["addressCountry"]) && $address["addressCountry"] == "FR" ) ? ( empty($cp) ? null : json_decode(SIG::getGeoByAddressDataGouv($street, $cp, $address["addressLocality"]), true) ) : null ) ;
+				if(!empty($resultDataGouv["features"])){
+					$lat = strval($resultDataGouv["features"][0]["geometry"]["coordinates"][1]);
+					$lon = strval($resultDataGouv["features"][0]["geometry"]["coordinates"][0]);
+				}else{
+					$resultNominatim = json_decode(SIG::getGeoByAddressNominatim($street, $cp, $address["addressLocality"], $address["addressCountry"]), true);
+					if(!empty($resultNominatim[0])){
+						$lat = $resultNominatim[0]["lat"];
+						$lon = $resultNominatim[0]["lon"];
 					}else{
-						$resultNominatim = json_decode(SIG::getGeoByAddressNominatim($street, $cp, $address["addressLocality"], $address["addressCountry"]), true);
-						if(!empty($resultNominatim[0])){
-							$lat = $resultNominatim[0]["lat"];
-							$lon = $resultNominatim[0]["lon"];
-						}else{
-							$resultGoogle = json_decode(SIG::getGeoByAddressGoogleMap($street, $cp, $address["addressLocality"], $address["addressCountry"]), true);
-							$resG = false ;
-							if(!empty($resultGoogle["results"][0]["address_components"])){
-								foreach ($resultGoogle["results"][0]["address_components"] as $key => $value) {
-									if(in_array("locality", $value["types"]))
-										$resG = true ;
-								}
+						$resultGoogle = json_decode(SIG::getGeoByAddressGoogleMap($street, $cp, $address["addressLocality"], $address["addressCountry"]), true);
+						$resG = false ;
+						if(!empty($resultGoogle["results"][0]["address_components"])){
+							foreach ($resultGoogle["results"][0]["address_components"] as $key => $value) {
+								if(in_array("locality", $value["types"]))
+									$resG = true ;
 							}
-							if(!empty($resultGoogle["results"]) && $resG == true){
-								$lat = strval($resultGoogle["results"][0]["geometry"]["location"]["lat"]);
-								$lon = strval($resultGoogle["results"][0]["geometry"]["location"]["lng"]);
-							}
+						}
+						if(!empty($resultGoogle["results"]) && $resG == true){
+							$lat = strval($resultGoogle["results"][0]["geometry"]["location"]["lat"]);
+							$lon = strval($resultGoogle["results"][0]["geometry"]["location"]["lng"]);
 						}
 					}
 				}
+				//}
 
 
 
@@ -403,8 +403,54 @@ class Import
 			$lat = ( is_numeric($geo["latitude"]) ? strval($geo["latitude"]) : $geo["latitude"] ) ;
 			$lon = ( is_numeric($geo["longitude"]) ? strval($geo["longitude"]) : $geo["longitude"] ) ;
 			$city = SIG::getCityByLatLngGeoShape($lat, $lon, null, $address["addressCountry"]);
+            
+            if(!empty($city)){
+            	$newA = array(
+					'@type' => 'PostalAddress',
+					'addressCountry' =>  $city["country"],
+					'localityId' =>  (String) $city["_id"],
+					'level1' =>  $city["level1"],
+					'level1Name' =>  $city["level1Name"]);
 
-			$result = true;
+            	if( !empty($address["postalCode"]) ) {
+					foreach ($city["postalCodes"] as $keyCp => $valueCp){
+						if($valueCp["postalCode"] == $address["postalCode"]){
+							$newA['addressLocality'] = $valueCp["name"];
+							$newA['postalCode'] = $address["postalCode"];
+						}
+					}
+				}else{
+					$newA["addressLocality"] = $city["name"];
+				}
+
+				if( !empty($address["streetAddress"]) ) 
+					$newA["streetAddress"] = $address["streetAddress"];
+
+				if( !empty($city["insee"]) )
+					$newA["codeInsee"] = $city["insee"];
+								
+
+				if( !empty($city["level2"]) ) {
+					$newA["level2"] = $city["level2"];
+					$newA["level2Name"] = $city["level2Name"];
+				}
+
+				if( !empty($city["level3"]) ) {
+					$newA["level3"] = $city["level3"];
+					$newA["level3Name"] = $city["level3Name"];
+				}
+
+				if( !empty($city["level4"]) ) {
+					$newA["level4"] = $city["level4"];
+					$newA["level4Name"] = $city["level4Name"];
+				}
+
+				$newGeo = SIG::getFormatGeo($lat, $lon);
+				$newGeoPosition = SIG::getFormatGeoPosition($lat, $lon);
+				$result = true;
+            }else{
+            	$result = true;
+            }		
 		}
 		$res = array(	"result" => $result,
 						"address" => ( empty($newA) ? null : $newA),
