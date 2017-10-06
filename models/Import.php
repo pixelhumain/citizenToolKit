@@ -85,10 +85,10 @@ class Import
 
     public static function getMappings($where=array(),$fields=null){
 
-        $allMapping = PHDB::find(self::MAPPINGS, $where, $fields);
+        $allMappings = PHDB::find(self::MAPPINGS, $where, $fields);
         $allMappings = self::getStandartMapping($allMappings);
 
-        return $allMapping;
+        return $allMappings;
     }
 
    
