@@ -159,26 +159,22 @@ class TranslateGeoJson {
 
 	public static $dataBinding_project = array(
 
-
-			"type" => "Feature",
-			"geometry" => 
-						array ("type" => "Point",		
-								"coordinates" => array ("valueOf" => "geo"),
+		"type" => "Feature",
+		"geometry" => 
+					array ("type" => "Point",		
+							"coordinates" => array ("valueOf" => "geo"),
+			),
+		"properties" => array(
+			"type" => "properties",
+			array(
+				"email" => array("valueOf" => "email"),
+				"name" => array("valueOf" => "name"),
+				"username" => array("valueOf" => "username"),
+				"img"		=> array("valueOf" => "profilImageUrl",
+									"type" 	=> "url", 
+									"prefix"   => "/"),
 				),
-			"properties" => array(
-				"type" => "properties",
-				array(
-					"email" => array("valueOf" => "email"),
-					"name" => array("valueOf" => "name"),
-					"username" => array("valueOf" => "username"),
-					"img"		=> array("valueOf" => "profilImageUrl",
-										"type" 	=> "url", 
-										"prefix"   => "/"),
-					),
-				),
-
-
-		
+			),		
 	);
 
 	public static $dataBinding_allPerson = array(

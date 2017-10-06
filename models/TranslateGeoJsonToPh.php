@@ -1,5 +1,4 @@
 <?php 
-
 class TranslateGeoJsonToPh {
 	
 	public static $mapping_organisation = array(
