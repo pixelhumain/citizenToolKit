@@ -196,6 +196,14 @@ class City {
 	  	return $city;
 	}
 
+	public static function getByPostalCode($cp) {
+
+		$params = array('postalCodes' => array('$elemMatch' => array('postalCode' => $cp ) ) );
+	    $city = self::getWhere($params);
+	    
+    	return $city;
+	}
+
 	/* Retourne des infos sur la commune dans la collection cityData" */
 	public static function getWhereData($params, $fields=null, $limit=20, $sort=null) 
 	{
@@ -208,7 +216,7 @@ class City {
 		}
 	  	
 	  	return $cityData;
-	}
+	} 
 
 	/* Retourne l'id d'une commune par rapport a son code insee */
 	public static function getIdByInsee($insee){
