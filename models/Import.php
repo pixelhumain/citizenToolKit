@@ -405,7 +405,7 @@ class Import
 		}else if(!empty($geo["latitude"]) && !empty($geo["longitude"])){
 			$lat = ( is_numeric($geo["latitude"]) ? strval($geo["latitude"]) : $geo["latitude"] ) ;
 			$lon = ( is_numeric($geo["longitude"]) ? strval($geo["longitude"]) : $geo["longitude"] ) ;
-			$city = SIG::getCityByLatLngGeoShape($lat, $lon, null, $address["addressCountry"]);
+			$city = SIG::getCityByLatLngGeoShape( $lat, $lon, null, (!empty($address["addressCountry"]) ? $address["addressCountry"] : null ) ) ;
             
             if(!empty($city)){
             	$newA = array(
