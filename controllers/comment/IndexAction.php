@@ -32,7 +32,7 @@ class IndexAction extends CAction
             $params["context"] = Classified::getById($id);
         }else if($type == Product::COLLECTION) {
             $params["context"] = Product::getById($id);
-        }else if($type == Product::COLLECTION) {
+        }else if($type == Service::COLLECTION) {
             $params["context"] = Service::getById($id);
         } else if($type == Proposal::COLLECTION) {
             $params["context"] = Proposal::getById($id);

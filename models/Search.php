@@ -192,6 +192,10 @@ class Search {
         if(strcmp($filter, Product::COLLECTION) != 0 && self::typeWanted(Product::COLLECTION, $searchType)){
         	$allRes = array_merge($allRes, self::searchProduct($query, $indexStep, $indexMin));
 	  	}
+	  	//*********************************  SERVICE  ******************************************
+        if(strcmp($filter, Service::COLLECTION) != 0 && self::typeWanted(Service::COLLECTION, $searchType)){
+        	$allRes = array_merge($allRes, self::searchService($query, $indexStep, $indexMin));
+	  	}
 	  	//*********************************  PLACE   ******************************************
         if(strcmp($filter, Place::COLLECTION) != 0 && self::typeWanted(Place::COLLECTION, $searchType)){
         	$allRes = array_merge($allRes, self::searchPlace($query, $indexStep, $indexMin));
@@ -670,6 +674,26 @@ class Search {
 			$allProduct[$key]["type"] = Product::COLLECTION;
   		}
   		return $allProduct;
+  	}
+  	//*********************************  PRODUServiceCT   ******************************************
+	public static function searchService($query, $indexStep, $indexMin){
+    	$allService = PHDB::findAndSortAndLimitAndIndex(Service::COLLECTION, $query, 
+  												array("updated" => -1), $indexStep, $indexMin);
+  		foreach ($allService as $key => $value) {
+	  		if(@$value["parentId"] && @$value["parentType"])
+	  			$parent = Element::getElementSimpleById(@$value["parentId"], @$value["parentType"]);
+	  		else
+	  			$parent=array();
+			$allService[$key]["parent"] = $parent;
+			if(@$value["type"])
+				$allService[$key]["typeSig"] = Service::COLLECTION;//.".".$value["type"];
+			else
+				$allService[$key]["typeSig"] = Service::COLLECTION;
+			
+			$allService[$key]["typePoi"] = @$allProduct[$key]["type"];
+			$allService[$key]["type"] = Service::COLLECTION;
+  		}
+  		return $allService;
   	}
   	//*********************************  Place   ******************************************
 	public static function searchPlace($query, $indexStep, $indexMin){
