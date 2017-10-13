@@ -1367,6 +1367,12 @@ class Element {
 	        	unset($params['urls']);
         }
 
+        if($collection == Room::COLLECTION){
+        	if(isset($params["roles"])){
+        		$params["roles"] = explode(",", @$params["roles"]);
+        	}
+        }
+
         if($collection == City::COLLECTION)
         	$params = City::prepCity($params);
         
