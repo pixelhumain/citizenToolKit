@@ -113,7 +113,6 @@ class Api {
             }
         }
 
-
         if (( $format == Translate::FORMAT_RSS) || ($format == Translate::FORMAT_KML) || ($format == Translate::FORMAT_KML)) {
             //if(((@$idElement) && (@$typeElement)) || (@$tags)) {
             foreach ($data as $key => $value) {
@@ -156,15 +155,21 @@ class Api {
             $result["features"] = array();
             $result["features"] = $result["features_temp"];
             unset($result["features_temp"]);
+        } elseif ($format == Translate::FORMAT_JSONFEED) {
+            $meta = [];
+            $meta["version"] = "https://jsonfeed.org/version/1";
+            $meta["title"] = "Communecter's JSON Feed";
+            $meta["description"] = "This is the JSON Feed of the Communecter site";
+            $meta["home_page_url"] = "www.communecter.org";
+
+            $result["meta"] = $meta ;
+            $result["items"] = ((!empty($data) && !empty($bindMap) )?Translate::convert($data , $bindMap):$data);
         }
         else { 
             $result["meta"] = $meta ;
             $result["entities"] = ((!empty($data) && !empty($bindMap) )?Translate::convert($data , $bindMap):$data);
 
         }
-
-       
-
         return $result;
     }
     

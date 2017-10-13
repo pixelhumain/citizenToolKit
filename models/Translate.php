@@ -8,6 +8,7 @@ class Translate {
 	const FORMAT_RSS = "rss";
 	const FORMAT_KML = "kml";
 	const FORMAT_GEOJSON = "geojson";
+	const FORMAT_JSONFEED = "jsonfeed";
 
 	public static function convert($data,$bindMap)
 	{
