@@ -247,9 +247,13 @@ class Cooperation {
 					$adopted = @$voteRes["up"] && @$voteRes["up"]["percent"] && $voteRes["up"]["percent"] > intval(@$resolution["majority"]);
 					
 					$resolution["status"] = $adopted ? "adopted" : "refused";
-					PHDB::insert(Resolution::COLLECTION, $resolution);
-					self::afterSave($resolution, Resolution::COLLECTION);
-
+					$resolutionExist = Resolution::getById($key);
+					
+					if(!$resolutionExist){
+						PHDB::insert(Resolution::COLLECTION, $resolution);
+						self::afterSave($resolution, Resolution::COLLECTION);
+					}
+					
 					//var_dump($proposal); exit;
 					$proposalList[$key]["idResolution"] = $proposal["_id"];
 					$proposalList[$key]["status"] = "resolved";
