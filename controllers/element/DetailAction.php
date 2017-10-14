@@ -177,7 +177,7 @@ class DetailAction extends CAction {
 				$countStrongLinks=count($element["links"][$connectType]);
 				$nbMembers=0;
 				foreach ($element["links"][$connectType] as $key => $aMember) {
-					if($nbMembers < 50){
+					//if($nbMembers < 50){
 						if($aMember["type"]==Organization::COLLECTION){
 							$newOrga = Organization::getSimpleOrganizationById($key);
 							if(!empty($newOrga)){
@@ -212,9 +212,9 @@ class DetailAction extends CAction {
 							}
 						}
 						$nbMembers++;
-					} else {
-						break;
-					}
+					//} else {
+					//	break;
+					//}
 				}
 			}
 		}
