@@ -829,5 +829,149 @@ class Import
 
     }
 
+    public static function exportcsv(){
+        $orgas = PHDB::find(Organization::COLLECTION) ;
+        //$csv = 'name;description;shortDescription' ;
+        $nb = 0 ;
+
+       //$head = "name;Type : (NGO, Group, LocalBusiness ou GovernmentOrganization);Rue;Code Postal;Ville;Code Pays;Email;Site web;Description courte;Description longue;Latitude;Longitude;Fixe1;Fixe2;Mobile1;Mobile2;Fax1;Fax2;Tag1;Tag2;Tag3;Contact1 : name;Contact1 : email;Contact1 : telephone;Contact1 : role;Contact2 : name;Contact2 : email;Contact2 : telephone;Contact2 : role";
+
+       $head = array("name","Type : (NGO, Group, LocalBusiness ou GovernmentOrganization)","Rue","Code Postal","Ville","Code Pays","Email","Site web","Description courte","Description longue","Latitude","Longitude");
+       $fixe = array();
+       $mobile = array();
+       $fax = array();
+       $tags = array();
+       foreach ($orgas as $key => $value) {
+
+            if(!empty($value["telephone"])){
+
+                if(!empty($value["telephone"]["fixe"])){
+                    foreach ($value["telephone"]["fixe"] as $keyNum => $num) {
+                        if( !in_array("Fixe".($keyNum+1), $fixe) && !empty($num))
+                            $fixe[] = "Fixe".($keyNum+1);
+                    }
+                }
+
+                if(!empty($value["telephone"]["mobile"])){
+                    foreach ($value["telephone"]["mobile"] as $keyNum => $num) {
+                        if( !in_array("Mobile".($keyNum+1), $mobile) && !empty($num))
+                            $mobile[] = "Mobile".($keyNum+1);
+                    }
+                }
+
+                if(!empty($value["telephone"]["fax"])){
+                    foreach ($value["telephone"]["fax"] as $keyNum => $num) {
+                        if( !in_array("Fax".($keyNum+1), $fax) && !empty($num))
+                            $fax[] = "Fax".($keyNum+1);
+                    }
+                }
+            }
+
+            if(!empty($value["tags"])){
+
+                foreach ($value["tags"] as $keyNum => $num) {
+                    if( !in_array("Tag".($keyNum+1), $tags) && !empty($num))
+                        $tags[] = "Tag".($keyNum+1);
+                }
+            }
+            
+        }
+
+        $head = array_merge($head, $fixe, $mobile, $fax, $tags);
+
+       $body="";
+        foreach ($orgas as $key => $value) {
+            $nb++;
+            $body .= "\n";
+            $body .= (!empty($value["name"]) ? $value["name"] : '' );
+            $body .= ';'.(!empty($value["type"]) ? $value["type"] : '' );
+            $body .= ';'.(!empty($value["address"]["streetAddress"]) ? $value["address"]["streetAddress"] : '' );
+            $body .= ';'.(!empty($value["address"]["postalCode"]) ? $value["address"]["postalCode"] : '' );
+            $body .= ';'.(!empty($value["address"]["addressLocality"]) ? $value["address"]["addressLocality"] : '' );
+            $body .= ';'.(!empty($value["address"]["addressCountry"]) ? $value["address"]["addressCountry"] : '' );
+            $body .= ';'.(!empty($value["email"]) ? $value["email"] : '' );
+            $body .= ';'.(!empty($value["url"]) ? $value["url"] : '' );
+            $body .= ';'.(!empty($value["shortDescription"]) ? self::strremplace($value["shortDescription"]) : '' );
+            $body .= ';'.(!empty($value["description"]) ? self::strremplace($value["description"]) : '' );
+            $body .= ';'.(!empty($value["geo"]["latitude"]) ? $value["geo"]["latitude"] : '' );
+            $body .= ';'.(!empty($value["geo"]["longitude"]) ? $value["geo"]["longitude"] : '' );
+
+            if(!empty($value["telephone"])){
+
+                if(!empty($value["telephone"]["fixe"])){
+                    foreach ($value["telephone"]["fixe"] as $keyNum => $num) {
+                        $body .= ';'.(!empty($num) ? $num : '' );
+                    }
+
+                    if(count($value["telephone"]["fixe"]) < count($fixe)){
+                        $nb = count($value["telephone"]["fixe"]) ;
+                        while ( $nb <= count($fixe)) {
+                           $body .= ';';
+                           $nb++;
+                        }
+                    }
+                }
+
+                if(!empty($value["telephone"]["mobile"])){
+                    foreach ($value["telephone"]["mobile"] as $keyNum => $num) {
+                        $body .= ';'.(!empty($num) ? $num : '' );
+                    }
+
+                    if(count($value["telephone"]["mobile"]) < count($mobile)){
+                        $nb = count($value["telephone"]["mobile"]) ;
+                        while ( $nb <= count($mobile)) {
+                           $body .= ';';
+                           $nb++;
+                        }
+                    }
+                }
+
+                if(!empty($value["telephone"]["fax"])){
+                    foreach ($value["telephone"]["fax"] as $keyNum => $num) {
+                        // if( !in_array("Fax".($keyNum+1), $head))
+                        //     $head[] = "Fax".($keyNum+1);
+                        $body .= ';'.(!empty($num) ? $num : '' );
+                    }
+
+                    if(count($value["telephone"]["fax"]) < count($fax)){
+                        $nb = count($value["telephone"]["fax"]) ;
+                        while ( $nb <= count($fax)) {
+                           $body .= ';';
+                           $nb++;
+                        }
+                    }
+                }
+            }
+
+            if(!empty($value["tags"])){
+
+                foreach ($value["tags"] as $keyNum => $num) {
+                    // if( !in_array("Tag".($keyNum+1), $head))
+                    //     $head[] = "Tag".($keyNum+1);
+                    $body .= ';'.(!empty($num) ? $num : '' );
+                }
+
+                if(count($value["tags"]) < count($tags)){
+                    $nb = count($value["tags"]) ;
+                    while ( $nb <= count($tags)) {
+                       $body .= ';';
+                       $nb++;
+                    }
+                }
+            }
+            
+        }
+
+        return implode(";", $head).$body ;
+    }
+
+
+     public static function strremplace($val){
+        $val = str_replace("\n"," ",$val);
+        $val = str_replace("\r"," ",$val);
+        $val = str_replace(";",",",$val);
+        return $val ;
+    }
+
 }
 

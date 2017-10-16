@@ -1144,9 +1144,10 @@ class Element {
                 //update a single field
                 //else update whole map
                 //$changeMap = ( !$microformat && isset( $key )) ? array('$set' => array( $key => $params[ $key ] ) ) : array('$set' => $params );
+                alert("");
                 PHDB::update($collection,array("_id"=>new MongoId($id)), array('$set' => $params ));
                 $res = array("result"=>true,
-                             "msg"=>"Vos données ont été mises à jour.",
+                             "msg"=>"Vos données ont été mises à jour. Nous vous remercions d'avoir créé votre fiche dans la cartographie I-viaTIC. Votre fiche sera publiée après modération de l'équipe d'administration du site.",
                              "reload"=>true,
                              "map"=>$params,
                              "id"=>$id);
@@ -1156,7 +1157,7 @@ class Element {
                 $params["created"] = time();
                 PHDB::insert($collection, $params );
                 $res = array("result"=>true,
-                             "msg"=>"Vos données ont bien été enregistrées.",
+                             "msg"=>"Nous vous remercions d'avoir créé votre fiche dans la cartographie I-viaTIC. Votre fiche sera publiée après modération de l'équipe d'administration du site.",
                              "reload"=>true,
                              "map"=>$params,
                              "id"=>(string)$params["_id"]);
