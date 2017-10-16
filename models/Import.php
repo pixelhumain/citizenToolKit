@@ -453,19 +453,21 @@ class Import
 				$result = true;
             }else{
 
-            	$resNominatim = json_decode(SIG::getLocalityByLatLonNominatim($lat, $lon),true);
-            	//var_dump($resNominatim );
-				if(!empty($resNominatim)){
-                    //foreach ($resNominatim as $keyN=> $valueN) {
-						$newA = array(	"osmID" => $resNominatim["osm_id"],
-										"addressLocality" => $resNominatim["address"]["state"],
-										"addressCountry" => (!empty($address["addressCountry"]) ? $address["addressCountry"] :  strtoupper($resNominatim["address"]["country_code"])));
-						$saveCities = $newA;
-						$result = true;
-						//break;
-					//}
+            	$resNominatim = json_decode(SIG::getLocalityByLatLonNominatim($lat, $lon),true, true);
+            	if(!empty($resNominatim)){
+                    $nameCity = self::getCityNameInNominatim($resNominatim["address"]);
+                    if(!empty($nameCity)){
+                        $newA = array(  "osmID" => $resNominatim["osm_id"],
+                                        "addressLocality" => $resNominatim["address"]["city"],
+                                        "addressCountry" => (!empty($address["addressCountry"]) ? $address["addressCountry"] :  strtoupper($resNominatim["address"]["country_code"])));
+
+                        if(!empty($resNominatim["extratags"]["wikidata"]))
+                            $newA["wikidataID"] = $resNominatim["extratags"]["wikidata"];
+                        
+                        $saveCities = $newA;
+                        $result = true;
+                    }
 				}
-            	$result = true;
             }		
 		}
 		$res = array(	"result" => $result,
@@ -477,7 +479,14 @@ class Import
 		return $res ;
 	}
 
-
+    public static function getCityNameInNominatim($address){
+        $typeCities = array("city", "village", "town") ;
+        foreach ($typeCities as $key => $value) {
+            if(!empty($address[$value]))
+                return $address[$value] ;
+        }
+        return null;
+    }
 
 	public static function getAndCheckAddressForEntityOld($address = null, $geo = null){
         
@@ -724,90 +733,106 @@ class Import
             $resData =  array();
             foreach ($jsonArray as $key => $value){
                 try{
-                    if(@$value["address"]){
+
+
+                    if($typeElement == City::COLLECTION){
                         $exist = Element::alreadyExists($value, $typeElement);
                         if(!$exist["result"]) {
-                            if(!empty($post["isLink"]) && $post["isLink"] == "true"){
-                                if($post["typeLink"] == Event::COLLECTION && $typeElement == Event::COLLECTION){
-                                    $value["parentId"] = $post["idLink"];
-                                    $value["parentType"] = $post["typeLink"];
+
+
+                        }else{
+
+                        }
+
+
+
+                    }else{
+
+                        if(@$value["address"]){
+                            $exist = Element::alreadyExists($value, $typeElement);
+                            if(!$exist["result"]) {
+                                if(!empty($post["isLink"]) && $post["isLink"] == "true"){
+                                    if($post["typeLink"] == Event::COLLECTION && $typeElement == Event::COLLECTION){
+                                        $value["parentId"] = $post["idLink"];
+                                        $value["parentType"] = $post["typeLink"];
+                                    }
+                                    else{
+                                        $paramsLink["idLink"] = $post["idLink"];
+                                        $paramsLink["typeLink"] = $post["typeLink"];
+                                        $paramsLink["role"] = $post["roleLink"];
+                                    }
+                                    
                                 }
-                                else{
-                                    $paramsLink["idLink"] = $post["idLink"];
-                                    $paramsLink["typeLink"] = $post["typeLink"];
-                                    $paramsLink["role"] = $post["roleLink"];
+
+                                if(!empty($value["urlImg"])){
+                                    $paramsImg["url"] =$value["urlImg"];
+                                    $paramsImg["module"] = $moduleId;
+                                    $split = explode("/", $value["urlImg"]);
+                                    $paramsImg["name"] =$split[count($split)-1];
+
+                                }
+                                if(!empty($value["startDate"])){
+                                    $startDate = DateTime::createFromFormat('Y-m-d H:i:s', $value["startDate"]);
+                                    $value["startDate"] = $startDate->format('d/m/Y H:i');
+                                }
+                                if(!empty($value["endDate"])){
+                                    $endDate = DateTime::createFromFormat('Y-m-d H:i:s', $value["endDate"]);
+                                    $value["endDate"] = $endDate->format('d/m/Y H:i');
+                                }
+
+                                if(!empty($value["geo"])){
+                                    if(gettype($value["geo"]["latitude"]) != "string" )
+                                        $value["geo"]["latitude"] = strval($value["geo"]["latitude"]);
+                                    if(gettype($value["geo"]["longitude"]) != "string" )
+                                        $value["geo"]["longitude"] = strval($value["geo"]["longitude"]);
+                                }
+
+
+                                $value["collection"] = $typeElement ;
+                                $value["key"] = Element::getControlerByCollection($typeElement);
+                                $value["paramsImport"] = array( "link" => (empty($paramsLink)?null:$paramsLink),
+                                                                "img" => (empty($paramsImg)?null:$paramsImg ));
+                                $value["preferences"] = array(  "isOpenData"=>true, 
+                                                                "isOpenEdition"=>true);
+
+                                if($typeElement == Organization::COLLECTION)
+                                    $value["role"] = "creator";
+                                if($typeElement == Event::COLLECTION && empty($value["organizerType"]))
+                                    $value["organizerType"] = Event::NO_ORGANISER;
+                                
+                                if(!empty($value["organizerId"])){
+
+                                    $eltSimple = Element::getElementSimpleById($value["organizerId"], @$value["organizerType"]);
+                                    if(empty($eltSimple)){
+                                        unset($value["organizerId"]);
+                                        if(!empty($value["organizerType"])) 
+                                            $value["organizerType"] = Event::NO_ORGANISER;
+                                    }
+
+                                }
+
+                                $element = array();
+                                $res = Element::save($value);
+                                $element["name"] =  $value["name"];
+                                $element["info"] = $res["msg"];
+                                $element["type"] = $typeElement;
+                                if(!empty($res["id"])){
+                                    $element["url"] = "/#".Element::getControlerByCollection($typeElement).".detail.id.".$res["id"] ;
+                                    $element["id"] = $res["id"] ;
                                 }
                                 
-                            }
-
-                            if(!empty($value["urlImg"])){
-                                $paramsImg["url"] =$value["urlImg"];
-                                $paramsImg["module"] = $moduleId;
-                                $split = explode("/", $value["urlImg"]);
-                                $paramsImg["name"] =$split[count($split)-1];
-
-                            }
-                            if(!empty($value["startDate"])){
-                                $startDate = DateTime::createFromFormat('Y-m-d H:i:s', $value["startDate"]);
-                                $value["startDate"] = $startDate->format('d/m/Y H:i');
-                            }
-                            if(!empty($value["endDate"])){
-                                $endDate = DateTime::createFromFormat('Y-m-d H:i:s', $value["endDate"]);
-                                $value["endDate"] = $endDate->format('d/m/Y H:i');
-                            }
-
-                            if(!empty($value["geo"])){
-                                if(gettype($value["geo"]["latitude"]) != "string" )
-                                    $value["geo"]["latitude"] = strval($value["geo"]["latitude"]);
-                                if(gettype($value["geo"]["longitude"]) != "string" )
-                                    $value["geo"]["longitude"] = strval($value["geo"]["longitude"]);
-                            }
-
-
-                            $value["collection"] = $typeElement ;
-                            $value["key"] = Element::getControlerByCollection($typeElement);
-                            $value["paramsImport"] = array( "link" => (empty($paramsLink)?null:$paramsLink),
-                                                            "img" => (empty($paramsImg)?null:$paramsImg ));
-                            $value["preferences"] = array(  "isOpenData"=>true, 
-                                                            "isOpenEdition"=>true);
-
-                            if($typeElement == Organization::COLLECTION)
-                                $value["role"] = "creator";
-                            if($typeElement == Event::COLLECTION && empty($value["organizerType"]))
-                                $value["organizerType"] = Event::NO_ORGANISER;
-                            
-                            if(!empty($value["organizerId"])){
-
-                                $eltSimple = Element::getElementSimpleById($value["organizerId"], @$value["organizerType"]);
-                                if(empty($eltSimple)){
-                                    unset($value["organizerId"]);
-                                    if(!empty($value["organizerType"])) 
-                                        $value["organizerType"] = Event::NO_ORGANISER;
-                                }
-
-                            }
-
-                            $element = array();
-                            $res = Element::save($value);
-                            $element["name"] =  $value["name"];
-                            $element["info"] = $res["msg"];
-                            $element["type"] = $typeElement;
-                            if(!empty($res["id"])){
-                                $element["url"] = "/#".Element::getControlerByCollection($typeElement).".detail.id.".$res["id"] ;
-                                $element["id"] = $res["id"] ;
+                            }else{
+                                $element["name"] = $exist["element"]["name"];
+                                $element["info"] = "L'élément existes déjà";
+                                $element["url"] = "/#".Element::getControlerByCollection($typeElement).".detail.id.".(String)$exist["element"]["_id"] ;
+                                $element["type"] = $typeElement ;
+                                $element["id"] = (String)$exist["element"]["_id"] ;
                             }
                             
                         }else{
                             $element["name"] = $exist["element"]["name"];
-                            $element["info"] = "L'élément existes déjà";
-                            $element["url"] = "/#".Element::getControlerByCollection($typeElement).".detail.id.".(String)$exist["element"]["_id"] ;
-                            $element["type"] = $typeElement ;
-                            $element["id"] = (String)$exist["element"]["_id"] ;
+                            $element["info"] = "L'élément n'a pas d'adresse.";  
                         }
-                        
-                    }else{
-                        $element["name"] = $exist["element"]["name"];
-                        $element["info"] = "L'élément n'a pas d'adresse.";  
                     }
                 }
                 catch (CTKException $e){

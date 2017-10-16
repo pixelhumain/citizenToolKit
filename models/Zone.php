@@ -217,11 +217,16 @@ class Zone {
 		return ( ( empty($country["_id"]) ) ? null : (String)$country["_id"] );
 	}
 
-	public static function getIdLevelByNameAndCountry($name, $level, $countryCode){
+	public static function getLevelByNameAndCountry($name, $level, $countryCode){
 		$where = array(	"countryCode"=> $countryCode,
 						"level" => $level,
 						"name" => $name);
 		$zone = PHDB::findOne(self::COLLECTION, $where);
+		return $zone;
+	}
+
+	public static function getIdLevelByNameAndCountry($name, $level, $countryCode){
+		$zone = self::getLevelByNameAndCountry($name, $level, $countryCode);
 		return ( ( empty($zone["_id"]) ) ? null : (String)$zone["_id"] );
 	}
 

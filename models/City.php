@@ -76,47 +76,51 @@ class City {
 
 
 
-		$idLevel1 = Zone::getIdCountryByCountryCode($city["country"]);
-    	if(empty($idLevel1)){
+		$level1 = Zone::getCountryByCountryCode($city["country"]);
+    	if(empty($level1)){
     		$level1 = Zone::createLevel(OpenData::$phCountries[$city["country"]], $city["country"], "1");
     		$savelevel1 = Zone::save($level1);
     		if($savelevel1["result"] == true)
-    			$idLevel1 = Zone::getIdCountryByCountryCode($city["country"]);
+    			$level1 = Zone::getCountryByCountryCode($city["country"]);
     	}
-    	$city["level1"] = $idLevel1;
-    	$city["level1"] = $idLevel1;
-    	
+    	$city["level1"] = (String)$level1["_id"];
+    	$city["level1Name"] = $level1["name"];
+
+
     	if(!empty($city["regionNameBel"])){
-    		$idLevel2 = Zone::getIdLevelByNameAndCountry($city["regionNameBel"], "2", $city["country"]);
-	    	if(empty($idLevel2)){
+    		$level2 = Zone::getLevelByNameAndCountry($city["regionNameBel"], "2", $city["country"]);
+	    	if(empty($level2)){
 	    		$level2 = Zone::createLevel($city["regionNameBel"], $city["country"], "2");
 	    		$savelevel2 = Zone::save($level2);
 	    		if($savelevel2["result"] == true)
-	    			$idLevel2 = Zone::getIdLevelByNameAndCountry($city["regionNameBel"], "2", $city["country"]);
+	    			$level2 = Zone::getLevelByNameAndCountry($city["regionNameBel"], "2", $city["country"]);
 	    	}
-	    	$city["level2"] = $idLevel2;
+	    	$city["level2"] = (String)$level2["_id"];
+    		$city["level2Name"] = $level2["name"];
     	}
     	
     	if(!empty($city["regionName"])){
-	    	$idLevel3 = Zone::getIdLevelByNameAndCountry($city["regionName"], "3", $city["country"]);
-	    	if(empty($idLevel3)){
+	    	$level3 = Zone::getLevelByNameAndCountry($city["regionName"], "3", $city["country"]);
+	    	if(empty($level3)){
 	    		$level3 = Zone::createLevel($city["regionName"], $city["country"], "3", ((!empty($city["regionNameBel"])) ? $city["regionNameBel"] : null));
 	    		$savelevel3 = Zone::save($level3);
 	    		if($savelevel3["result"] == true)
-	    			$idLevel3 = Zone::getIdLevelByNameAndCountry($city["regionName"], "3", $city["country"]);
+	    			$level3 = Zone::getLevelByNameAndCountry($city["regionName"], "3", $city["country"]);
 	    	}
-	    	$city["level3"] = $idLevel3;
+	    	$city["level3"] = (String)$level3["_id"];
+    		$city["level3Name"] = $level3["name"];
 	    }
 
 	    if(!empty($city["depName"])){
-	    	$idLevel4 = Zone::getIdLevelByNameAndCountry($city["depName"], "4", $city["country"]);
-	    	if(empty($idLevel4)){
+	    	$level4 = Zone::getLevelByNameAndCountry($city["depName"], "4", $city["country"]);
+	    	if(empty($level4)){
 	    		$level4 = Zone::createLevel($city["depName"], $city["country"], "4", ((!empty($city["regionNameBel"])) ? $city["regionNameBel"] : null), ((!empty($city["regionName"])) ? $city["regionName"] : null));
 	    		$savelevel4 = Zone::save($level4);
 	    		if($savelevel4["result"] == true)
-	    			$idLevel4 = Zone::getIdLevelByNameAndCountry($city["depName"], "4", $city["country"]);
+	    			$level4 = Zone::getLevelByNameAndCountry($city["depName"], "4", $city["country"]);
 	    	}
-	    	$city["level4"] = $idLevel4;
+	    	$city["level4"] = (String)$level4["_id"];
+    		$city["level4Name"] = $level4["name"];
 	    }
 
 	   
@@ -1247,5 +1251,24 @@ class City {
 		$key .= "@".(String)$city["_id"] ;
 		return $key ;
 	}
+
+
+	public static function alreadyExists ($params) {
+		$result = array("result" => false);
+
+		if(!empty($params["wikidataID"])){
+			$where = array(	"$or" => array(
+								array("osmId" => $params["osmId"]),
+								array("wikidataID" => $params["wikidataID"])));
+		}else{
+			$where = array("osmId" => $params["osmId"]);
+		}
+		
+		$element = PHDB::findOne(self::COLLECTION, $where);
+		if(!empty($element))
+			$result = array("result" => true ,
+							"element" => $element);
+		return $result;
+    }
 }
 ?>
