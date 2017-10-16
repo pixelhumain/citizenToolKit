@@ -17,7 +17,6 @@ class Cooperation {
 		"done" => "check",
 		"closed" => "trash",
 		"resolved" => "certificate",
-		//"archived" => "trash",
 		"disabled" => "times",
 		);
 
@@ -37,7 +36,6 @@ class Cooperation {
 		"closed" => "red",
 		"resolved" => "dark",
 		"nodate" => "red",
-		//"archived" => "orange",
 		"disabled" => "orange",
 		"late" => "orange",
 		);
@@ -253,7 +251,7 @@ class Cooperation {
 						PHDB::insert(Resolution::COLLECTION, $resolution);
 						self::afterSave($resolution, Resolution::COLLECTION);
 					}
-					
+
 					//var_dump($proposal); exit;
 					$proposalList[$key]["idResolution"] = $proposal["_id"];
 					$proposalList[$key]["status"] = "resolved";
