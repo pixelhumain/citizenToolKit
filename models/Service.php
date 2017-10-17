@@ -32,7 +32,7 @@ class Service {
 	    "tags" => array("name" => "tags"),
 	    "price" => array("name" => "price"),
 	    "devise" => array("name" => "devise"),
-	    "quantity" => array("name" => "quantity"),
+	    "capacity" => array("name" => "capacity"),
 	    "openingHours" => array("name" => "openingHours"),
 	    "contactInfo" => array("name" => "contactInfo", "rules" => array("required")),
 	    "toBeValidated"=>array("name" => "toBeValidated"),
