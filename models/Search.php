@@ -305,7 +305,7 @@ class Search {
 				else if($locality["type"] == "cp")
 					$queryLocality = array("address.postalCode" => new MongoRegex("/^".$key."/i"));
 				else
-					$queryLocality = array("address.".$locality["type"] => $key);
+					$queryLocality = array("address.level".$locality["level"] => $key);
 				
 			
 				if(empty($allQueryLocality))
@@ -314,7 +314,6 @@ class Search {
 					$allQueryLocality = array('$or' => array($allQueryLocality ,$queryLocality));
 			}
 		}
-
 		if(!empty($allQueryLocality))
 			$query = array('$and' => array($allQueryLocality));
 

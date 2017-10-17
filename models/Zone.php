@@ -151,13 +151,17 @@ class Zone {
 						"msg" => "error" );
 		if(!empty($zone)){
 			PHDB::insert(self::COLLECTION, $zone );
+			Zone::insertTranslate( (String)$zone["_id"], 
+    									self::COLLECTION, 
+    									$zone["countryCode"], 
+    									(!empty($zone["osmID"]) ? $zone["osmID"] : null),
+    									(!empty($zone["wikidataID"]) ? $zone["wikidataID"] : null));
+			// $key = self::createKey($zone);
 
-			$key = self::createKey($zone);
-
-			PHDB::update(self::COLLECTION,
-					array("_id"=>new MongoId($zone["_id"])),
-					array('$set' => array("key" => $key))	
-			);
+			// PHDB::update(self::COLLECTION,
+			// 		array("_id"=>new MongoId($zone["_id"])),
+			// 		array('$set' => array("key" => $key))	
+			// );
 			$res = array( 	"result" => true, 
 							"msg" => "création Country", "zone"=>$zone);
 		}
@@ -248,6 +252,59 @@ class Zone {
 		}
 		
 		return $zone;
+	}
+
+
+
+
+	public static function insertTranslate($parentId, $parentType, $countryCode, $osmID = null, $wikidataID = null){
+		$res = array("result" => false);
+		$translate = array();
+		$info = array();
+
+		if($parentType != self::COLLECTION && $parentType != City::COLLECTION)
+
+		if(!empty($osmID)){
+			$zoneNominatim =  json_decode(file_get_contents("http://nominatim.openstreetmap.org/lookup?format=json&namedetails=1&osm_ids=R".$osmID), true);
+		
+			if(!empty($zoneNominatim) && !empty($zoneNominatim[0]["namedetails"])){
+				
+				
+				foreach ($zoneNominatim[0]["namedetails"] as $keyName => $valueName) {
+					$arrayName = explode(":", $keyName);
+					if(!empty($arrayName[1]) && $arrayName[0] == "name" && strlen($arrayName[1]) == 2){
+						$translate[strtoupper($arrayName[1])] = $valueName;
+					}
+				}
+			}
+		}
+
+		if(!empty($wikidataID)){
+
+			$zoneWiki =  json_decode(file_get_contents("https://www.wikidata.org/wiki/Special:EntityData/".$wikidataID.".json"), true);
+			
+			if(!empty($zoneWiki) && !empty($zoneWiki["entities"][$wikidataID]["labels"])){
+				foreach ($zoneWiki["entities"][$wikidataID]["labels"] as $keyName => $valueName) {
+					
+					if(strlen($keyName) == 2 && !array_key_exists(strtoupper($keyName), $translate)){
+						$translate[strtoupper($keyName)] = $valueName["value"];
+					}
+				}
+			}
+		}
+		if(!empty($translate)){
+			$info["countryCode"] = $countryCode;
+			$info["parentId"] = $parentId;
+			$info["parentType"] = $parentType;
+			$info["translates"] = $translate;
+			PHDB::insert(Zone::TRANSLATE, $info);
+			PHDB::update($parentType, 
+						array("_id"=>new MongoId($parentId)),
+						array('$set' => array("translateId" => (String)$info["_id"]))
+			);
+			$res = array("result" => true, "translate" => $info);
+		}
+		return $res ;
 	}
 
 }
