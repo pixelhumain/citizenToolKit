@@ -764,18 +764,20 @@ class City {
 		                else
 		                    $split = explode("-", $cp["mainsnak"]["datavalue"]["value"]);
 		                
-		                if(count($split) == 2){
-		                    $start = intval($split[0]);
-		                    if(!empty($start)){
-		                        $end = intval($split[1]);
-		                        while($start <= $end ){
-		                            $arrayCp[] = trim(strval($start));
-		                            $start++;
-		                        }
-		                    }
-		                }
-		            }else{
-		                $arrayCp[] = $cp["mainsnak"]["datavalue"]["value"];
+		                // if(count($split) == 2){
+		                //     $start = intval($split[0]);
+		                //     if(!empty($start)){
+		                //         $end = intval($split[1]);
+		                //         while($start <= $end ){
+		                //             $arrayCp[] = trim(strval($start));
+		                //             $start++;
+		                //         }
+		                //     }
+		                // }
+		                $betweenCP["start"] = $split[0] ;
+		                $betweenCP["end"] = $split[1] ;
+		            } else {
+		               	$arrayCp[] = $cp["mainsnak"]["datavalue"]["value"];
 		            }
 
 		            foreach ($arrayCp as $keyCP => $valueCP) {
@@ -801,6 +803,10 @@ class City {
 
 		}
 		$newCities["postalCodes"] = $postalCodes;
+
+		if(!empty($betweenCP))
+			$newCities["betweenCP"] = $betweenCP;
+
 		return $newCities;
 	}
 

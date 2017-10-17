@@ -104,10 +104,9 @@ class AutocompleteMultiScopeAction extends CAction
                                 if(empty($newCities["postalCodes"]))
                                     $newCities["postalCodes"] = array();
 
-                                if(empty($newCities["geoShape"]))
-                                    $newCities["geoShape"] = $value["geojson"];
+                                // if(empty($newCities["geoShape"]))
+                                //     $newCities["geoShape"] = $value["geojson"];
 
-                              
                                 if(City::checkCitySimply($newCities))
                                     $cities[] = $newCities;
                                 
