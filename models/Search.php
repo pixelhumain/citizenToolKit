@@ -132,7 +132,7 @@ class Search {
   		$allRes = array();
 
   		//*********************************  CITIES   ******************************************
-  		if(!empty($search)){
+  		if(!empty($search) && !empty($locality)){
 	        if(strcmp($filter, City::COLLECTION) != 0 && self::typeWanted(City::COLLECTION, $searchType)){
 		  		$allCitiesRes = self::searchCities($search, $locality, $country);
 		  	}
@@ -297,7 +297,6 @@ class Search {
 	//*********************************  Zones   ******************************************
 	public static function searchLocality($localities, $query){
 		$allQueryLocality = array();
-
 		foreach ($localities as $key => $locality){
 			if(!empty($locality)){
 				if($locality["type"] == City::CONTROLLER)
@@ -316,7 +315,8 @@ class Search {
 		}
 		if(!empty($allQueryLocality))
 			$query = array('$and' => array($allQueryLocality));
-
+		//var_dump($query); exit;
+		
 		return $query ;
 	}
 
@@ -389,6 +389,7 @@ class Search {
   		
 		foreach ($localityReferences as $key => $value) 
   		{
+
   			if(isset($_POST["searchLocality".$key]) 
   				&& is_array($_POST["searchLocality".$key])
   				&& count($_POST["searchLocality".$key])>0)

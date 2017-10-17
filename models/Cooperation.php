@@ -17,7 +17,6 @@ class Cooperation {
 		"done" => "check",
 		"closed" => "trash",
 		"resolved" => "certificate",
-		//"archived" => "trash",
 		"disabled" => "times",
 		);
 
@@ -37,7 +36,6 @@ class Cooperation {
 		"closed" => "red",
 		"resolved" => "dark",
 		"nodate" => "red",
-		//"archived" => "orange",
 		"disabled" => "orange",
 		"late" => "orange",
 		);
@@ -247,8 +245,12 @@ class Cooperation {
 					$adopted = @$voteRes["up"] && @$voteRes["up"]["percent"] && $voteRes["up"]["percent"] > intval(@$resolution["majority"]);
 					
 					$resolution["status"] = $adopted ? "adopted" : "refused";
-					PHDB::insert(Resolution::COLLECTION, $resolution);
-					self::afterSave($resolution, Resolution::COLLECTION);
+					$resolutionExist = Resolution::getById($key);
+					
+					if(!$resolutionExist){
+						PHDB::insert(Resolution::COLLECTION, $resolution);
+						self::afterSave($resolution, Resolution::COLLECTION);
+					}
 
 					//var_dump($proposal); exit;
 					$proposalList[$key]["idResolution"] = $proposal["_id"];

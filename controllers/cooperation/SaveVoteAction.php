@@ -8,6 +8,7 @@ class SaveVoteAction extends CAction {
 		$parentId 	= @$_POST["parentId"];
 		$voteValue	= @$_POST["voteValue"];
 		$idAmdt 	= @$_POST["idAmdt"];
+		$json 		= @$_POST["json"] ? true : false;
 
 		$controller=$this->getController();
 
