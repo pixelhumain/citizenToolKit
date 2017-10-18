@@ -75,8 +75,6 @@ class City {
     	}
     	$city["postalCodes"] = $postalCodes;
 
-
-
 		$level1 = Zone::getCountryByCountryCode($city["country"]);
     	if(empty($level1)){
     		$level1 = Zone::createLevel(OpenData::$phCountries[$city["country"]], $city["country"], "1");

@@ -111,9 +111,11 @@ class Zone {
 
 		if(empty($zoneNominatim)){
 			$resNominatim = json_decode(SIG::getGeoByAddressNominatim(null,null, $name, $countryCode, true, true), true);
-			foreach ($resNominatim as $key => $value) {
-				if(empty($value["address"]["city"])){
-					$zoneNominatim = array($value);
+			if(!empty($resNominatim)){
+				foreach ($resNominatim as $key => $value) {
+					if(empty($value["address"]["city"])){
+						$zoneNominatim = array($value);
+					}
 				}
 			}
 		}
