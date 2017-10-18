@@ -1061,7 +1061,7 @@ class City {
 
 	public static function getDetailFormInMap($id){
 		$where = array("_id"=>new MongoId($id));
-		$fields = array("geoShape","osmID", "wikidataID");
+		$fields = array("geoShape","osmID", "wikidataID", "betweenCP");
 		$city = PHDB::findOne(City::COLLECTION, $where, $fields);
 		return $city;
 	}
@@ -1281,6 +1281,35 @@ class City {
 			$result = array("result" => true ,
 							"element" => $element);
 		return $result;
+    }
+
+
+    public static function checkAndAddPostalCode ($id, $postalCode) {
+		$where = array("_id"=>new MongoId($id));
+
+		$city = PHDB::findOne(self::COLLECTION, $where, array("postalCodes", "geo", "name", "geoPosition"));
+
+		if(!empty($city) ){
+
+			$add = true ;
+			foreach ($city["postalCodes"] as $key => $value) {
+				if($value["postalCode"] == $postalCode){
+					$add = false;
+					break;
+				}
+			}
+
+			if($add == true){
+				$city["postalCodes"][] = array( "postalCode" => $postalCode,
+												"geo" => $city["geo"],
+												"geoPosition" => $city["geoPosition"],
+												"name" => $city["name"]);
+				PHDB::update(self::COLLECTION,
+								array("_id" => new MongoId($id)) , 
+								array('$set' => array("postalCodes" => $city["postalCodes"]))			
+							);
+			}
+		}
     }
 }
 ?>
