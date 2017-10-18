@@ -40,6 +40,7 @@ class City {
 	    "level2Name" => array("name" => "level2Name"),
 	    "level3Name" => array("name" => "level3Name"),
 	    "level4Name" => array("name" => "level4Name"),
+	    "betweenCP" => array("name" => "betweenCP"),
 	);
 
 
