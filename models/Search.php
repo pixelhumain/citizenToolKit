@@ -589,7 +589,7 @@ class Search {
 				
 		if(@$priceMin) $queryPrice['$and'][] = array('price' => array('$gte' => (int)$priceMin));
 		if(@$priceMax) $queryPrice['$and'][] = array('price' => array('$lte' => (int)$priceMax));
-		if(@$priceMin || @$priceMax) 
+		if(@$priceMin || @$priceMax || @$devise) 
 			$query = array('$and' => array( $query , $queryPrice) );
 		
 		$allClassified = PHDB::findAndSortAndLimitAndIndex(Classified::COLLECTION, $query, 

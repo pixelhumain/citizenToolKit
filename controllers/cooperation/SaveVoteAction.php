@@ -8,7 +8,7 @@ class SaveVoteAction extends CAction {
 		$parentId 	= @$_POST["parentId"];
 		$voteValue	= @$_POST["voteValue"];
 		$idAmdt 	= @$_POST["idAmdt"];
-		$json 		= @$_POST["json"] ? true : false;
+		$json 		= @$_POST["json"];
 
 		$controller=$this->getController();
 
@@ -68,7 +68,13 @@ class SaveVoteAction extends CAction {
 		$page = "proposal";
 		$params = Cooperation::getCoopData(null, null, "proposal", null, $parentId);
 
-		echo $controller->renderPartial($page, $params, true);
+		if(@$json == "false"){
+			echo $controller->renderPartial($page, $params, true);
+		}else{
+			return Rest::json($res);
+			Yii::app()->end();
+		}
+
 	}
 
 

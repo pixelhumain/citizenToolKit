@@ -6,6 +6,7 @@ class DeleteAmendementAction extends CAction {
 
 		$numAm 		= @$_POST["numAm"];
 		$idProposal = @$_POST["idProposal"];
+		$json = @$_POST["json"];
 		
 		$controller=$this->getController();
 
@@ -40,7 +41,14 @@ class DeleteAmendementAction extends CAction {
 		$page = "proposal";
 		$params = Cooperation::getCoopData($proposal["parentType"], $proposal["parentId"], "proposal", null, $idProposal);
 
-		echo $controller->renderPartial($page, $params, true);
+		if(@$json == "false"){
+			echo $controller->renderPartial($page, $params, true);
+		}else{
+			return Rest::json($res);
+			Yii::app()->end();
+		}
+
+		
 	}
 
 
