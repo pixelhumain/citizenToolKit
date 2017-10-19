@@ -10,6 +10,8 @@ class GetCoopDataAction extends CAction {
 		$status 	= @$_POST["status"];
 		$dataId 	= @$_POST["dataId"];
 
+		$json 	= @$_POST["json"];
+
 		$controller=$this->getController();
 
 		$auth = Authorisation::canParticipate(Yii::app()->session['userId'], $parentType, $parentId);
@@ -86,6 +88,12 @@ class GetCoopDataAction extends CAction {
 			$res["parentId"] 	= @$_POST["parentId"];
 		}
 		
-		echo $controller->renderPartial($page, $res, true);
+		if(@$json == "false"){
+			echo $controller->renderPartial($page, $res, true);
+		}else{
+			return Rest::json($res);
+			Yii::app()->end();
+		}
+
 	}
 }
