@@ -513,6 +513,9 @@ class Element {
 					}
 					$firstCitizen = Person::isFirstCitizen($fieldValue["address"]["codeInsee"]) ;
 
+					if(!empty($fieldValue["address"]["postalCode"]))
+						City::checkAndAddPostalCode ($fieldValue["address"]["localityId"], $fieldValue["address"]["postalCode"]);
+
 				}else{
 					$verb = '$unset' ;
 					SIG::updateEntityGeoposition($collection, $id, null, null);

@@ -313,7 +313,6 @@ class Search {
 					$allQueryLocality = array('$or' => array($allQueryLocality ,$queryLocality));
 			}
 		}
-
 		if(!empty($allQueryLocality))
 			$query = array('$and' => array($allQueryLocality));
 		//var_dump($query); exit;
