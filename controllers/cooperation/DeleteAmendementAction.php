@@ -44,7 +44,7 @@ class DeleteAmendementAction extends CAction {
 		if(@$json == "false"){
 			echo $controller->renderPartial($page, $params, true);
 		}else{
-			return Rest::json($res);
+			return Rest::json($params);
 			Yii::app()->end();
 		}
 
