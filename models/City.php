@@ -45,7 +45,7 @@ class City {
 
 
 	public static function insert($city, $userid){
-		
+		ini_set('memory_limit', '-1');
 		unset($city["save"]);
 		//var_dump($city);
 		$city["modified"] = new MongoDate(time());
