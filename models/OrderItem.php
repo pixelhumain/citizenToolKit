@@ -1,8 +1,8 @@
 <?php
 
-class Order {
-	const COLLECTION = "orders";
-	const CONTROLLER = "order";
+class OrderItem {
+	const COLLECTION = "orderItems";
+	const CONTROLLER = "orderItem";
 	
 	//TODO Translate
 	public static $orderTypes = array(
@@ -50,46 +50,41 @@ class Order {
 	 * @return poi
 	 */
 	public static function getById($id) { 
-	  	$order = PHDB::findOneById( self::COLLECTION ,$id );
-	  	return $order;
+	  	$product = PHDB::findOneById( self::COLLECTION ,$id );
+	  	return $product;
 	}
 
 	public static function getListBy($where){
 		$products = PHDB::find( self::COLLECTION , $where );
 	  	return $products;
 	}
-	public static function insert($order, $userId){
-		$order["customerId"]=$userId;
-		$orderedItemData["orderDate"]=new MongoDate(time());
-		$orderedItemData["created"] = new MongoDate(time());
-		$orderItems=array();
-		foreach ($order["orderItems"] as $key => $value) {
-			$res=OrderItem::insert($key,$value,$userId);
-			array_push($orderItems, $res["id"]);
-		}
-		$order["orderItems"]=$orderItems;
-		PHDB::insert(self::COLLECTION,$order);
-		return array("result"=>true, "msg"=>Yii::t("common","Your payment and reservations are well registred"), "order"=>$order);
-	}
+
 	public static function getListByUser($where){
 		$allOrders = PHDB::findAndSort( self::COLLECTION , $where, array("created"=>-1));
-		/*foreach ($allOrders as $key => $value) {
+		foreach ($allOrders as $key => $value) {
 			$orderedItem=PHDB::findOneById($value["orderedItemType"], $value["orderedItemId"]);
 			if(@$value["comment"])
 				$allOrders[$key]["comment"]=Comment::getById($value["comment"]);
 			//$allBookings[$key] = array_merge($allBookings[$key], Document::retrieveAllImagesUrl($value["id"], $value["type"]));
 			$allOrders[$key]["name"] = $orderedItem["name"];
-			$allOrders[$key]["description"] = $orderedItem["description"];
+			$allOrders[$key]["description"] = @$orderedItem["description"];
 			$allOrders[$key]["profilImageUrl"] = @$orderedItem["profilImageUrl"];
 			$allOrders[$key]["profilThumbImageUrl"] = @$orderedItem["profilThumbImageUrl"];
 			$allOrders[$key]["profilMediumImageUrl"] = @$orderedItem["profilMediumImageUrl"];
-		}*/
+		}
 	  	return $allOrders;
+	}
+	public static function insert($orderedItemId, $orderedItemData, $userId){
+		$orderedItemData["customerId"]=$userId;
+		$orderedItemData["orderedItemId"]=$orderedItemId;
+		$orderedItemData["created"] = new MongoDate(time());
+		PHDB::insert(self::COLLECTION,$orderedItemData);
+		return array("res"=>true, "msg"=>Yii::t("common","Your orderItem is well reistred"), "id"=>(string)$orderedItemData["_id"]);
 	}
 	/*
 	* Increment a comment rating for an order for a specific product or sevrice
 	*/
-	/*public static function actionRating($params,$commentId){
+	public static function actionRating($params,$commentId){
 		$allRating=Comment::buildCommentsTree($params["contextId"], $params["contextType"], Yii::app()->session["userId"], array("rating"));
 		$sum=0;
 		foreach ($allRating["comments"] as $key => $value) {
@@ -100,6 +95,6 @@ class Order {
 		$average=round( $sum , 1);
 		PHDB::update($params["contextType"],array("_id" => new MongoId($params["contextId"])),array('$set'=>array("averageRating"=>$average)));
 		PHDB::update(self::COLLECTION,array("_id" => new MongoId($params["orderId"])),array('$set'=>array("comment"=>$commentId)));
-	}*/
+	}
 }
 ?>

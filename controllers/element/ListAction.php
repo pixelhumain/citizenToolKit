@@ -11,8 +11,12 @@ class ListAction extends CAction {
 					$params["list"][$data]=Product::getListBy($where);
 				}
 				if($data==Order::COLLECTION){
-					$where=array("customer"=>Yii::app()->session["userId"]);
+					$where=array("customerId"=>Yii::app()->session["userId"]);
 					$params["list"][$data]=Order::getListByUser($where);
+				}
+				if($data==OrderItem::COLLECTION){
+					$where=array("customerId"=>Yii::app()->session["userId"]);
+					$params["list"][$data]=OrderItem::getListByUser($where);
 				}
 			}
 		}

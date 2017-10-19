@@ -8,7 +8,7 @@ class SaveAction extends CAction
             try {
                 $res = Comment::insert($_POST, Yii::app()->session["userId"]);
                 if(@$_POST["orderId"]){
-                    Order::actionRating($_POST,$res["id"]);
+                    OrderItem::actionRating($_POST,$res["id"]);
                 }
             } catch (CTKException $e) {
                 $res = array("result"=>false, "msg"=>$e->getMessage());
