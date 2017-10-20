@@ -50,8 +50,15 @@ class OrderItem {
 	 * @return poi
 	 */
 	public static function getById($id) { 
-	  	$product = PHDB::findOneById( self::COLLECTION ,$id );
-	  	return $product;
+	  	$orderItem = PHDB::findOneById( self::COLLECTION ,$id );
+
+		if(@$orderItem["comment"])
+			$orderItem["comment"]=Comment::getById($orderItem["comment"]);
+		$orderedItem=PHDB::findOneById($orderItem["orderedItemType"], $orderItem["orderedItemId"]);
+		$orderItem["name"] = $orderedItem["name"];
+		$orderItem["description"] = @$orderedItem["description"];
+		$orderItem = array_merge($orderItem, Document::retrieveAllImagesUrl($orderItem["orderedItemId"], $orderItem["orderedItemType"]));
+	  	return $orderItem;
 	}
 
 	public static function getListBy($where){

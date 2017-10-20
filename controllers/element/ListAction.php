@@ -10,14 +10,21 @@ class ListAction extends CAction {
 					$where=array("parentId"=>$id, "parentType"=>$type);
 					$params["list"][$data]=Product::getListBy($where);
 				}
+				if($data==Service::COLLECTION){
+					$where=array("parentId"=>$id, "parentType"=>$type);
+					$params["list"][$data]=Service::getListBy($where);
+				}
 				if($data==Order::COLLECTION){
 					$where=array("customerId"=>Yii::app()->session["userId"]);
-					$params["list"][$data]=Order::getListByUser($where);
+					$params["orderList"]=Order::getListByUser($where);
+					//print_r($params["orderList"]);
+					//exit;
+					$params["list"]["orderItems"]=Order::getOrderItemById((string)array_values($params["orderList"])[0]['_id']);
 				}
-				if($data==OrderItem::COLLECTION){
+				/*if($data==OrderItem::COLLECTION){
 					$where=array("customerId"=>Yii::app()->session["userId"]);
 					$params["list"][$data]=OrderItem::getListByUser($where);
-				}
+				}*/
 			}
 		}
 		

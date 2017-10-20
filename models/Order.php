@@ -60,8 +60,8 @@ class Order {
 	}
 	public static function insert($order, $userId){
 		$order["customerId"]=$userId;
-		$orderedItemData["orderDate"]=new MongoDate(time());
-		$orderedItemData["created"] = new MongoDate(time());
+		$order["orderDate"]=new MongoDate(time());
+		$order["created"] = new MongoDate(time());
 		$orderItems=array();
 		foreach ($order["orderItems"] as $key => $value) {
 			$res=OrderItem::insert($key,$value,$userId);
@@ -85,6 +85,15 @@ class Order {
 			$allOrders[$key]["profilMediumImageUrl"] = @$orderedItem["profilMediumImageUrl"];
 		}*/
 	  	return $allOrders;
+	}
+	public static function getOrderItemById($id){
+		$order=self::getById($id);
+		$orderItems=[];
+		foreach($order["orderItems"] as $data){
+			$orderItem=OrderItem::getById($data);
+			$orderItems[(string)$orderItem["_id"]]=$orderItem;
+		}
+		return $orderItems;
 	}
 	/*
 	* Increment a comment rating for an order for a specific product or sevrice

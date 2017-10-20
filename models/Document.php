@@ -933,7 +933,7 @@ class Document {
 			} else if ($generatedImageType == self::GENERATED_MARKER) {
 				$res = $documentUrl.self::FILENAME_PROFIL_MARKER;
 			}else if ($generatedImageType == self::GENERATED_MEDIUM_FOLDER) {
-				$res = $documentUrl.$lastProfilImage["name"];
+				$res = $documentMedium.$lastProfilImage["name"];
 			}
 
 		//Else the default image is returned

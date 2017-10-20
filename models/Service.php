@@ -50,17 +50,17 @@ class Service {
 	 * @return poi
 	 */
 	public static function getById($id) { 
-	  	$product = PHDB::findOneById( self::COLLECTION ,$id );
-	  	return $product;
+	  	$service = PHDB::findOneById( self::COLLECTION ,$id );
+	  	return $service;
 	}
 
 	public static function getListBy($where){
-		$products = PHDB::find( self::COLLECTION , $where );
-	  	return $products;
+		$services = PHDB::find( self::COLLECTION , $where );
+	  	return $services;
 	}
-	public static function getProductByCreator($id){
-		$allClassified = PHDB::findAndSort( self::COLLECTION , array("creator"=> $id), array("updated"=>-1));
-		foreach ($allClassified as $key => $value) {
+	public static function getServiceByCreator($id){
+		$allServices = PHDB::findAndSort( self::COLLECTION , array("creator"=> $id), array("updated"=>-1));
+		foreach ($allServices as $key => $value) {
 			if(@$value["creator"]){// && @$value["parentType"])
 				$parent = Element::getElementById(@$value["creator"], "citoyens");//@$value["parentType"]);
 				$aParent = array("name"=>@$parent["name"],
@@ -70,15 +70,15 @@ class Service {
 				$aParent=array();
 			}
 
-			$allClassified[$key]["parent"] = $aParent;
-			$allClassified[$key]["category"] = @$allClassified[$key]["type"];
-			$allClassified[$key]["type"] = "classified";
+			$allServices[$key]["parent"] = $aParent;
+			$allServices[$key]["category"] = @$allServices[$key]["type"];
+			$allServices[$key]["type"] = "classified";
 			//if(@$value["type"])
 			//	$allClassified[$key]["typeSig"] = Classified::COLLECTION.".".$value["type"];
 			//else
-			$allClassified[$key]["typeSig"] = Classified::COLLECTION;
+			$allServices[$key]["typeSig"] = Classified::COLLECTION;
 		}
-	  	return $allClassified;
+	  	return $allServices;
 	}
 }
 ?>
