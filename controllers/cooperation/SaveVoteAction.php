@@ -39,6 +39,16 @@ class SaveVoteAction extends CAction {
 				$page = "proposal";
 				$params = Cooperation::getCoopData(null, null, "proposal", null, $parentId);
 				$params["msgController"] = Yii::t("cooperation", "You already voted the same way")." ".Yii::t("cooperation", $hasVote);
+
+				if(@$json == "false"){
+					echo $controller->renderPartial($page, $params, true);
+				}else{
+					$params["result"] = false;
+					$params["msg"] = $params["msgController"];
+					return Rest::json($params);
+					Yii::app()->end();
+				}
+
 				echo $controller->renderPartial($page, $params, true);
 				exit;
 			}else{
@@ -57,21 +67,24 @@ class SaveVoteAction extends CAction {
 		$votes = isset($allVotes[$voteValue]) ? $allVotes[$voteValue] : array();
 		$votes[] = $myId;
 
-		//var_dump($allVotes[$voteValue]); exit;
-
-		//$page = "";
 		PHDB::update(Proposal::COLLECTION,
 			array("_id" => new MongoId($parentId)),
             array('$set' => array($root.".".$voteValue=> $votes))
         );
-		Notification::constructNotification ( ActStr::VERB_VOTE, array("id" => Yii::app()->session["userId"],"name"=> Yii::app()->session["user"]["name"]), array("type"=>$proposal["parentType"],"id"=>$proposal["parentId"]),array( "type"=>Proposal::COLLECTION,"id"=> $parentId ) );
+        
+		Notification::constructNotification ( 	ActStr::VERB_VOTE, array("id" => Yii::app()->session["userId"],
+												"name"=> Yii::app()->session["user"]["name"]), 
+												array("type"=>$proposal["parentType"],"id"=>$proposal["parentId"]),
+												array( "type"=>Proposal::COLLECTION,"id"=> $parentId ) );
 		$page = "proposal";
 		$params = Cooperation::getCoopData(null, null, "proposal", null, $parentId);
 
 		if(@$json == "false"){
 			echo $controller->renderPartial($page, $params, true);
 		}else{
-			return Rest::json($res);
+			$params["result"] = true;
+			$params["msg"] = "Element has been updated";
+			return Rest::json($params);
 			Yii::app()->end();
 		}
 
