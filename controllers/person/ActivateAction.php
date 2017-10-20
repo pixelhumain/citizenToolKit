@@ -43,7 +43,7 @@ class ActivateAction extends CAction
                                             $params, 
                                             array_keys($params)
                                         ));
-	    $controller->redirect(Yii::app()->createUrl("/".$controller->module->id)."?".$params."#panel.box-login");
+	    $controller->redirect(Yii::app()->createUrl("/".$controller->module->id)."?".$params);
     }
 
     
