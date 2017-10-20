@@ -161,7 +161,7 @@ class Action
                     $params = array();
 
                     //if : empeche la mise à jour de la date des news à chaque commentaire
-                    if(!($collection == "news" && $action == Action::ACTION_COMMENT)){    
+                    if(!(in_array($collection, [News::COLLECTION,Service::COLLECTION,Product::COLLECTION]) && $action == Action::ACTION_COMMENT)){    
                         if( $dbMethod == '$set'){
                             $mapObject["updated"] = time();
                             $mapObject["modified"] = new MongoDate(time());
