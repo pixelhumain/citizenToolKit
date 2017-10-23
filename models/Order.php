@@ -63,6 +63,8 @@ class Order {
 		$order["orderDate"]=new MongoDate(time());
 		$order["created"] = new MongoDate(time());
 		$orderItems=array();
+		settype($order["countOrderItem"], "integer");
+		settype($order["totalPrice"], "float");
 		foreach ($order["orderItems"] as $key => $value) {
 			$res=OrderItem::insert($key,$value,$userId);
 			array_push($orderItems, $res["id"]);
