@@ -121,7 +121,7 @@ class Search {
   				$query = array('$and' => array( $query , $queryTags) );
   		}
   		//unset($tmpTags);
-  		//var_dump($query);
+  		//var_dump($queryTags); exit;
 
   		//*********************************  DEFINE LOCALITY QUERY   ****************************************
   		//$query = array('$and' => array( $query , self::searchLocality($post, $query) ) );
@@ -313,8 +313,13 @@ class Search {
 					$allQueryLocality = array('$or' => array($allQueryLocality ,$queryLocality));
 			}
 		}
-		if(!empty($allQueryLocality))
-			$query = array('$and' => array($allQueryLocality));
+
+		//modifié le 21/10/2017 by Tango, en espérant que ça ne casse aucun autre process
+		//(la query originale était perdu => pb pour les tags)
+		if(!empty($allQueryLocality)){
+			if(!empty($query)) $query = array('$and' => array( $query , $allQueryLocality ) );
+			else $query = array('$and' => array($allQueryLocality));
+		}
 		//var_dump($query); exit;
 		
 		return $query ;
