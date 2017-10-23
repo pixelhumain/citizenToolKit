@@ -155,7 +155,8 @@ class Zone {
 			PHDB::insert(self::COLLECTION, $zone );
 			Zone::insertTranslate( (String)$zone["_id"], 
     									self::COLLECTION, 
-    									$zone["countryCode"], 
+    									$zone["countryCode"],
+    									$zone["name"],
     									(!empty($zone["osmID"]) ? $zone["osmID"] : null),
     									(!empty($zone["wikidataID"]) ? $zone["wikidataID"] : null));
 			// $key = self::createKey($zone);
@@ -259,7 +260,7 @@ class Zone {
 
 
 
-	public static function insertTranslate($parentId, $parentType, $countryCode, $osmID = null, $wikidataID = null){
+	public static function insertTranslate($parentId, $parentType, $countryCode, $origin, $osmID = null, $wikidataID = null){
 		$res = array("result" => false);
 		$translate = array();
 		$info = array();
@@ -273,10 +274,9 @@ class Zone {
 		
 			if(!empty($zoneNominatim) && !empty($zoneNominatim[0]["namedetails"])){
 				
-				
 				foreach ($zoneNominatim[0]["namedetails"] as $keyName => $valueName) {
 					$arrayName = explode(":", $keyName);
-					if(!empty($arrayName[1]) && $arrayName[0] == "name" && strlen($arrayName[1]) == 2){
+					if(!empty($arrayName[1]) && $arrayName[0] == "name" && strlen($arrayName[1]) == 2 && $origin != $valueName){
 						$translate[strtoupper($arrayName[1])] = $valueName;
 					}
 				}
@@ -292,7 +292,7 @@ class Zone {
 			if(!empty($zoneWiki) && !empty($zoneWiki["entities"][$wikidataID]["labels"])){
 				foreach ($zoneWiki["entities"][$wikidataID]["labels"] as $keyName => $valueName) {
 					
-					if(strlen($keyName) == 2 && !array_key_exists(strtoupper($keyName), $translate)){
+					if(strlen($keyName) == 2 && !array_key_exists(strtoupper($keyName), $translate) && $origin != $valueName["value"]){
 						$translate[strtoupper($keyName)] = $valueName["value"];
 					}
 				}
@@ -304,6 +304,7 @@ class Zone {
 			$info["parentId"] = $parentId;
 			$info["parentType"] = $parentType;
 			$info["translates"] = $translate;
+			$info["origin"] = $origin;
 			PHDB::insert(Zone::TRANSLATE, $info);
 			PHDB::update($parentType, 
 						array("_id"=>new MongoId($parentId)),

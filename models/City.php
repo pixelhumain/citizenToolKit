@@ -137,7 +137,8 @@ class City {
     			PHDB::insert(self::COLLECTION, $city );
     			Zone::insertTranslate( (String)$city["_id"], 
     									self::COLLECTION, 
-    									$city["country"], 
+    									$city["country"],
+    									$city["name"], 
     									(!empty($city["osmID"]) ? $city["osmID"] : null),
     									(!empty($city["wikidataID"]) ? $city["wikidataID"] : null));
 				$res = array("result"=>true,
@@ -1219,31 +1220,24 @@ class City {
 
 	public static function detailsLocality($locality){
 		$res = self::detailLevels($locality) ;
-		$trad1 = Zone::getTranslateById($res["level1"]);
-
 		$userT = strtoupper(Yii::app()->language) ;
 
-		$res["level1Name"] = (!empty($trad1["translates"][$userT]) ? $trad1["translates"][$userT] : $trad1["translates"]["EN"]);
+		$res["level1Name"] = Zone::getNameCountry($res["level1"]);
 
 		if(isset($res["localityId"])){
-			$city = self::getById($res["localityId"]);
-			$cityTrad = Zone::getTranslateById($res["localityId"]);
-			$res["cityName"] = (!empty($cityTrad["translates"][$userT]) ? $cityTrad["translates"][$userT] : $city["name"]);
+			$res["cityName"] = self::getNameCity($res["localityId"]);
 		}	
 
 		if(!empty($res["level2"])){
-			$trad2 = Zone::getTranslateById($res["level2"]);
-			$res["level2Name"] = (!empty($trad2["translates"][$userT]) ? $trad2["translates"][$userT] : $trad2["translates"]["EN"]);
+			$res["level2Name"] = Zone::getNameCountry($res["level2"]);
 		}
 
 		if(!empty($res["level3"])){
-			$trad3 = Zone::getTranslateById($res["level3"]);
-			$res["level3Name"] = (!empty($trad3["translates"][$userT]) ? $trad3["translates"][$userT] : $trad3["translates"]["EN"]);
+			$res["level3Name"] = Zone::getNameCountry($res["level3"]);
 		}
 
 		if(!empty($res["level4"])){
-			$trad4 = Zone::getTranslateById($res["level4"]);
-			$res["level4Name"] = (!empty($trad4["translates"][$userT]) ? $trad4["translates"][$userT] : $trad4["translates"]["EN"]);
+			$res["level4Name"] = Zone::getNameCountry($res["level4"]);
 		}
 
 		if(isset($keyArray[6]))
@@ -1309,5 +1303,22 @@ class City {
 			}
 		}
     }
+
+    public static function getNameOrigin($id){
+		$translates = Zone::getTranslateById($id, City::COLLECTION);
+		return $translates["origin"];
+	}
+
+	public static function getNameCity($id){
+		$translates = Zone::getTranslateById($id, City::COLLECTION);
+		$userT = strtoupper(Yii::app()->language) ;
+		if(!empty($translates) ){
+			$name = (!empty($translates["translates"][$userT]) ? $translates["translates"][$userT] : $translates["origin"]);
+
+		}else
+			$name = "";
+		
+		return $name;
+	}
 }
 ?>
