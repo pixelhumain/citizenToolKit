@@ -739,12 +739,9 @@ class Import
                         $exist = Element::alreadyExists($value, $typeElement);
                         if(!$exist["result"]) {
 
-
                         }else{
 
                         }
-
-
 
                     }else{
 
