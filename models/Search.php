@@ -115,8 +115,10 @@ class Search {
   				(strcmp($filter, Place::COLLECTION) != 0 && self::typeWanted(Place::COLLECTION, $searchType)) ){
         		$queryTags =  self::searchTags($searchTags, '$all') ;
 	  		}
-  			else 
-  				$queryTags =  self::searchTags($searchTags) ;
+  			else if( (strcmp($filter, Service::COLLECTION) != 0 )){
+  				$queryTags =  self::searchTags($searchTags, '$in', 'type') ;
+  			}
+
   			if(!empty($queryTags))
   				$query = array('$and' => array( $query , $queryTags) );
   		}
@@ -178,7 +180,6 @@ class Search {
 	  	}
 		//*********************************  CLASSIFIED   ******************************************
         if(strcmp($filter, Classified::COLLECTION) != 0 && self::typeWanted(Classified::COLLECTION, $searchType)){
-        	//var_dump($query) ; exit;
         	if(!empty($searchTags) && in_array("favorites", $searchTags))
         		$allRes = array_merge($allRes, self::searchFavorites(Classified::COLLECTION));
         	else 
@@ -259,7 +260,7 @@ class Search {
 	}
 
 	//*********************************  TAGS   ******************************************
-	public static function searchTags($searchTags, $verb = '$in' ){
+	public static function searchTags($searchTags, $verb = '$in', $attName = 'tags' ){
         $tmpTags = array();
         $query = array();
   		if(!empty($searchTags)){
@@ -272,7 +273,7 @@ class Search {
 	  			$allverb = array('$in', '$all');
 	  			if(!in_array($verb, $allverb))
 	  				$verb = '$in';
-	  			$query = array("tags" => array($verb => $tmpTags)) ;
+	  			$query = array($attName => array($verb => $tmpTags)) ;
 	  		}
   		}
   		return $query;
@@ -677,7 +678,7 @@ class Search {
   	}
   	//*********************************  PRODUServiceCT   ******************************************
 	public static function searchService($query, $indexStep, $indexMin){
-    	$allService = PHDB::findAndSortAndLimitAndIndex(Service::COLLECTION, $query, 
+		$allService = PHDB::findAndSortAndLimitAndIndex(Service::COLLECTION, $query, 
   												array("updated" => -1), $indexStep, $indexMin);
   		foreach ($allService as $key => $value) {
 	  		if(@$value["parentId"] && @$value["parentType"])
@@ -690,6 +691,7 @@ class Search {
 			else
 				$allService[$key]["typeSig"] = Service::COLLECTION;
 			
+
 			$allService[$key]["typePoi"] = @$allProduct[$key]["type"];
 			$allService[$key]["type"] = Service::COLLECTION;
   		}
