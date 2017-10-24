@@ -44,14 +44,14 @@ class Zone {
 	  	return $zone;
 	}
 
-	public static function getTranslateById($id) {
-	  	$translate = PHDB::findOne(self::TRANSLATE, array("parentId"=> $id));
+	public static function getTranslateById($id, $type) {
+	  	$translate = PHDB::findOne(self::TRANSLATE, array("parentId"=> $id, "parentType" => $type));
 	  	return $translate;
 	}
 
 	public static function getZoneAndTranslateById($id) {
 	  	$zone = self::getById($id);
-	  	$translate = self::getTranslateById($id);
+	  	$translate = self::getTranslateById($id, Zone::COLLECTION);
 	  	$zone["translates"] = $translate["translates"];
 	  	return $zone;
 	}
@@ -155,7 +155,8 @@ class Zone {
 			PHDB::insert(self::COLLECTION, $zone );
 			Zone::insertTranslate( (String)$zone["_id"], 
     									self::COLLECTION, 
-    									$zone["countryCode"], 
+    									$zone["countryCode"],
+    									$zone["name"],
     									(!empty($zone["osmID"]) ? $zone["osmID"] : null),
     									(!empty($zone["wikidataID"]) ? $zone["wikidataID"] : null));
 			// $key = self::createKey($zone);
@@ -259,7 +260,7 @@ class Zone {
 
 
 
-	public static function insertTranslate($parentId, $parentType, $countryCode, $osmID = null, $wikidataID = null){
+	public static function insertTranslate($parentId, $parentType, $countryCode, $origin, $osmID = null, $wikidataID = null){
 		$res = array("result" => false);
 		$translate = array();
 		$info = array();
@@ -267,14 +268,15 @@ class Zone {
 		if($parentType != self::COLLECTION && $parentType != City::COLLECTION)
 
 		if(!empty($osmID)){
-			$zoneNominatim =  json_decode(file_get_contents("http://nominatim.openstreetmap.org/lookup?format=json&namedetails=1&osm_ids=R".$osmID), true);
+			//$zoneNominatim =  json_decode(file_get_contents("http://nominatim.openstreetmap.org/lookup?format=json&namedetails=1&osm_ids=R".$osmID), true);
+
+			$zoneNominatim =  json_decode(SIG::getUrl("http://nominatim.openstreetmap.org/lookup?format=json&namedetails=1&osm_ids=R".$osmID), true);
 		
 			if(!empty($zoneNominatim) && !empty($zoneNominatim[0]["namedetails"])){
 				
-				
 				foreach ($zoneNominatim[0]["namedetails"] as $keyName => $valueName) {
 					$arrayName = explode(":", $keyName);
-					if(!empty($arrayName[1]) && $arrayName[0] == "name" && strlen($arrayName[1]) == 2){
+					if(!empty($arrayName[1]) && $arrayName[0] == "name" && strlen($arrayName[1]) == 2 && $origin != $valueName){
 						$translate[strtoupper($arrayName[1])] = $valueName;
 					}
 				}
@@ -283,22 +285,26 @@ class Zone {
 
 		if(!empty($wikidataID)){
 
-			$zoneWiki =  json_decode(file_get_contents("https://www.wikidata.org/wiki/Special:EntityData/".$wikidataID.".json"), true);
+			//$zoneWiki =  json_decode(file_get_contents("https://www.wikidata.org/wiki/Special:EntityData/".$wikidataID.".json"), true);
 			
+			$zoneWiki =  json_decode(SIG::getUrl("https://www.wikidata.org/wiki/Special:EntityData/".$wikidataID.".json"), true);
+		
 			if(!empty($zoneWiki) && !empty($zoneWiki["entities"][$wikidataID]["labels"])){
 				foreach ($zoneWiki["entities"][$wikidataID]["labels"] as $keyName => $valueName) {
 					
-					if(strlen($keyName) == 2 && !array_key_exists(strtoupper($keyName), $translate)){
+					if(strlen($keyName) == 2 && !array_key_exists(strtoupper($keyName), $translate) && $origin != $valueName["value"]){
 						$translate[strtoupper($keyName)] = $valueName["value"];
 					}
 				}
 			}
 		}
+
 		if(!empty($translate)){
 			$info["countryCode"] = $countryCode;
 			$info["parentId"] = $parentId;
 			$info["parentType"] = $parentType;
 			$info["translates"] = $translate;
+			$info["origin"] = $origin;
 			PHDB::insert(Zone::TRANSLATE, $info);
 			PHDB::update($parentType, 
 						array("_id"=>new MongoId($parentId)),
@@ -307,6 +313,43 @@ class Zone {
 			$res = array("result" => true, "translate" => $info);
 		}
 		return $res ;
+	}
+
+
+
+	public static function getListCountry(){
+		$where = array(	"level" => "1");
+		$fields = array("_id", "level", "name", "translateId", "countryCode");
+		$zones = PHDB::find(self::COLLECTION, $where, $fields);
+
+		$res = array();
+		foreach ($zones as $key => $zone) {
+
+			$name = self::getNameCountry($key);
+			$res[$zone["countryCode"]] = (!empty($name) ? $name : $zone["name"] );
+			//$res[$zone["countryCode"]] = $zone["name"];
+		}
+		asort($res);
+		return $res ;
+	}
+
+
+	public static function getNameCountry($id){
+		$translates = self::getTranslateById($id, Zone::COLLECTION);
+		$userT = strtoupper(Yii::app()->language) ;
+		if(!empty($translates) ){
+			$name = (!empty($translates["translates"][$userT]) ? $translates["translates"][$userT] : $translates["origin"]);
+
+		}else
+			$name = "";
+		
+		return $name;
+	}
+
+
+	public static function getNameOrigin($id){
+		$translates = self::getTranslateById($id, Zone::COLLECTION);
+		return $translates["origin"];
 	}
 
 }
