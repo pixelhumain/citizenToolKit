@@ -26,7 +26,7 @@ class Slug {
 	
 	public static function check($slug,$type=null,$id=null){
 		$where=array("name"=>$slug);
-		if(@$id && @$type){
+		if(@$id && @$type && !empty($id)){
 			$where["id"]=array('$ne'=>$id);
 			$where["type"]=array('$ne'=>$type);
 		}
