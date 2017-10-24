@@ -53,7 +53,7 @@ class AutocompleteMultiScopeAction extends CAction
                             "level1", "level1Name",
                             "level2", "level2Name",
                             "level3", "level3Name",
-                            "level4", "level4Name");
+                            "level4", "level4Name", "geo");
             if($geoShape) $att[] =  "geoShape";
 
             $cities = PHDB::findAndSort( City::COLLECTION, $where, $att, 40, $att);
@@ -104,10 +104,9 @@ class AutocompleteMultiScopeAction extends CAction
                                 if(empty($newCities["postalCodes"]))
                                     $newCities["postalCodes"] = array();
 
-                                if(empty($newCities["geoShape"]))
-                                    $newCities["geoShape"] = $value["geojson"];
+                                // if(empty($newCities["geoShape"]))
+                                //     $newCities["geoShape"] = $value["geojson"];
 
-                              
                                 if(City::checkCitySimply($newCities))
                                     $cities[] = $newCities;
                                 

@@ -121,7 +121,7 @@ class Search {
   				$query = array('$and' => array( $query , $queryTags) );
   		}
   		//unset($tmpTags);
-  		//var_dump($query);
+  		//var_dump($queryTags); exit;
 
   		//*********************************  DEFINE LOCALITY QUERY   ****************************************
   		//$query = array('$and' => array( $query , self::searchLocality($post, $query) ) );
@@ -132,7 +132,7 @@ class Search {
   		$allRes = array();
 
   		//*********************************  CITIES   ******************************************
-  		if(!empty($search)){
+  		if(!empty($search) && !empty($locality)){
 	        if(strcmp($filter, City::COLLECTION) != 0 && self::typeWanted(City::COLLECTION, $searchType)){
 		  		$allCitiesRes = self::searchCities($search, $locality, $country);
 		  	}
@@ -297,7 +297,6 @@ class Search {
 	//*********************************  Zones   ******************************************
 	public static function searchLocality($localities, $query){
 		$allQueryLocality = array();
-
 		foreach ($localities as $key => $locality){
 			if(!empty($locality)){
 				if($locality["type"] == City::CONTROLLER)
@@ -315,9 +314,14 @@ class Search {
 			}
 		}
 
-		if(!empty($allQueryLocality))
-			$query = array('$and' => array($allQueryLocality));
-
+		//modifié le 21/10/2017 by Tango, en espérant que ça ne casse aucun autre process
+		//(la query originale était perdu => pb pour les tags)
+		if(!empty($allQueryLocality)){
+			if(!empty($query)) $query = array('$and' => array( $query , $allQueryLocality ) );
+			else $query = array('$and' => array($allQueryLocality));
+		}
+		//var_dump($query); exit;
+		
 		return $query ;
 	}
 
@@ -390,6 +394,7 @@ class Search {
   		
 		foreach ($localityReferences as $key => $value) 
   		{
+
   			if(isset($_POST["searchLocality".$key]) 
   				&& is_array($_POST["searchLocality".$key])
   				&& count($_POST["searchLocality".$key])>0)
@@ -589,7 +594,7 @@ class Search {
 				
 		if(@$priceMin) $queryPrice['$and'][] = array('price' => array('$gte' => (int)$priceMin));
 		if(@$priceMax) $queryPrice['$and'][] = array('price' => array('$lte' => (int)$priceMax));
-		if(@$priceMin || @$priceMax) 
+		if(@$priceMin || @$priceMax || @$devise) 
 			$query = array('$and' => array( $query , $queryPrice) );
 		
 		$allClassified = PHDB::findAndSortAndLimitAndIndex(Classified::COLLECTION, $query, 

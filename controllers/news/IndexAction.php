@@ -288,7 +288,7 @@ class IndexAction extends CAction
 						if(!empty($locality)){
 
 							if($locality["type"] == City::CONTROLLER)
-								$queryLocality = array("scope.localities.parentId" => $key, "scope.localities.parentType" =>  City::COLLECTION);
+								$queryLocality = array("scope.localities.cityId" => $key, "scope.localities.parentType" =>  City::COLLECTION);
 							else if($locality["type"] == "cp")
 								$queryLocality = array("scope.localities.postalCode" => new MongoRegex("/^".$key."/i"));
 							else
@@ -311,8 +311,11 @@ class IndexAction extends CAction
 		  		
 					//error_log("typeNews : ".@$_POST["typeNews"]);			
 				if(@$allQueryLocality){
-					$where = array_merge($where, $allQueryLocality);
+					//$where = array_merge($where, $allQueryLocality);
+					$where = array('$and' => array( $where , $allQueryLocality ) );
 				}
+
+
 				//echo '<pre>';var_dump($where);echo '</pre>'; return;
 		  		
 		  	}
@@ -339,7 +342,8 @@ class IndexAction extends CAction
 				if(isset($where['$and']) && isset($searchType)){
 					$where['$and'][] = array('$or' =>$searchType);
 				}else if(isset($searchType)){
-					$where = array_merge($where, array('$and' => array(array('$or' =>$searchType))));
+					//$where = array_merge($where, array('$and' => array(array('$or' =>$searchType))));
+					$where = array('$and' => array( $where , array('$and' => array(array('$or' =>$searchType))) ) );
 				}
 				//echo '<pre>';var_dump($where);echo '</pre>'; return;
 			}
@@ -364,14 +368,18 @@ class IndexAction extends CAction
 				// 										)));
 			*/
 			//Exclude => If isAnAbuse
-			$where = array_merge($where,  array( 'isAnAbuse' => array('$ne' => true) ) );
-			//echo $date."/"; //exit;
-			$where = array_merge($where,  array('sharedBy.updated' => array( '$lt' => $date ) ) );
-			$where = array_merge($where, array("target.type" => array('$ne' => "pixels")));
+			// $where = array_merge($where,  array( 'isAnAbuse' => array('$ne' => true) ) );
+			// $where = array_merge($where,  array('sharedBy.updated' => array( '$lt' => $date ) ) );
+			// $where = array_merge($where, array("target.type" => array('$ne' => "pixels")));
+
+			$where = array('$and' => array( $where , array( 'isAnAbuse' => array('$ne' => true) ) ) );
+			$where = array('$and' => array( $where , array('sharedBy.updated' => array( '$lt' => $date ) ) ) );
+			$where = array('$and' => array( $where , array("target.type" => array('$ne' => "pixels") ) ) );
 
 			if(@$_POST["textSearch"] && $_POST["textSearch"]!="")
-				$where = array_merge($where,  array('text' => new MongoRegex("/".$_POST["textSearch"]."/i") ) );
-
+				$where = array('$and' => array( $where ,  array('text' => new MongoRegex("/".$_POST["textSearch"]."/i") ) ) );
+				//$where = array_merge($where,  array('text' => new MongoRegex("/".$_POST["textSearch"]."/i") ) );
+			//var_dump($where);
 			//echo '<pre>';var_dump($_POST);echo '</pre>';
 			//echo '<pre>';var_dump($where);echo '</pre>'; return;
 		/*}

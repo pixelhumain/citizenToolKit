@@ -40,11 +40,12 @@ class City {
 	    "level2Name" => array("name" => "level2Name"),
 	    "level3Name" => array("name" => "level3Name"),
 	    "level4Name" => array("name" => "level4Name"),
+	    "betweenCP" => array("name" => "betweenCP"),
 	);
 
 
 	public static function insert($city, $userid){
-		
+		ini_set('memory_limit', '-1');
 		unset($city["save"]);
 		//var_dump($city);
 		$city["modified"] = new MongoDate(time());
@@ -74,49 +75,51 @@ class City {
     	}
     	$city["postalCodes"] = $postalCodes;
 
-
-
-		$idLevel1 = Zone::getIdCountryByCountryCode($city["country"]);
-    	if(empty($idLevel1)){
+		$level1 = Zone::getCountryByCountryCode($city["country"]);
+    	if(empty($level1)){
     		$level1 = Zone::createLevel(OpenData::$phCountries[$city["country"]], $city["country"], "1");
     		$savelevel1 = Zone::save($level1);
     		if($savelevel1["result"] == true)
-    			$idLevel1 = Zone::getIdCountryByCountryCode($city["country"]);
+    			$level1 = Zone::getCountryByCountryCode($city["country"]);
     	}
-    	$city["level1"] = $idLevel1;
-    	$city["level1"] = $idLevel1;
-    	
-    	if(!empty($city["regionNameBel"])){
-    		$idLevel2 = Zone::getIdLevelByNameAndCountry($city["regionNameBel"], "2", $city["country"]);
-	    	if(empty($idLevel2)){
-	    		$level2 = Zone::createLevel($city["regionNameBel"], $city["country"], "2");
+    	$city["level1"] = (String)$level1["_id"];
+    	$city["level1Name"] = $level1["name"];
+
+
+    	if(!empty($city["level2Name"])){
+    		$level2 = Zone::getLevelByNameAndCountry($city["level2Name"], "2", $city["country"]);
+	    	if(empty($level2)){
+	    		$level2 = Zone::createLevel($city["level2Name"], $city["country"], "2");
 	    		$savelevel2 = Zone::save($level2);
 	    		if($savelevel2["result"] == true)
-	    			$idLevel2 = Zone::getIdLevelByNameAndCountry($city["regionNameBel"], "2", $city["country"]);
+	    			$level2 = Zone::getLevelByNameAndCountry($city["level2Name"], "2", $city["country"]);
 	    	}
-	    	$city["level2"] = $idLevel2;
+	    	$city["level2"] = (String)$level2["_id"];
+    		$city["level2Name"] = $level2["name"];
     	}
     	
-    	if(!empty($city["regionName"])){
-	    	$idLevel3 = Zone::getIdLevelByNameAndCountry($city["regionName"], "3", $city["country"]);
-	    	if(empty($idLevel3)){
-	    		$level3 = Zone::createLevel($city["regionName"], $city["country"], "3", ((!empty($city["regionNameBel"])) ? $city["regionNameBel"] : null));
+    	if(!empty($city["level3Name"])){
+	    	$level3 = Zone::getLevelByNameAndCountry($city["level3Name"], "3", $city["country"]);
+	    	if(empty($level3)){
+	    		$level3 = Zone::createLevel($city["level3Name"], $city["country"], "3", ((!empty($city["level2Name"])) ? $city["level2Name"] : null));
 	    		$savelevel3 = Zone::save($level3);
 	    		if($savelevel3["result"] == true)
-	    			$idLevel3 = Zone::getIdLevelByNameAndCountry($city["regionName"], "3", $city["country"]);
+	    			$level3 = Zone::getLevelByNameAndCountry($city["level3Name"], "3", $city["country"]);
 	    	}
-	    	$city["level3"] = $idLevel3;
+	    	$city["level3"] = (String)$level3["_id"];
+    		$city["level3Name"] = $level3["name"];
 	    }
 
-	    if(!empty($city["depName"])){
-	    	$idLevel4 = Zone::getIdLevelByNameAndCountry($city["depName"], "4", $city["country"]);
-	    	if(empty($idLevel4)){
-	    		$level4 = Zone::createLevel($city["depName"], $city["country"], "4", ((!empty($city["regionNameBel"])) ? $city["regionNameBel"] : null), ((!empty($city["regionName"])) ? $city["regionName"] : null));
+	    if(!empty($city["level4Name"])){
+	    	$level4 = Zone::getLevelByNameAndCountry($city["level4Name"], "4", $city["country"]);
+	    	if(empty($level4)){
+	    		$level4 = Zone::createLevel($city["level4Name"], $city["country"], "4", ((!empty($city["level2Name"])) ? $city["level2Name"] : null), ((!empty($city["level3Name"])) ? $city["level3Name"] : null));
 	    		$savelevel4 = Zone::save($level4);
 	    		if($savelevel4["result"] == true)
-	    			$idLevel4 = Zone::getIdLevelByNameAndCountry($city["depName"], "4", $city["country"]);
+	    			$level4 = Zone::getLevelByNameAndCountry($city["level4Name"], "4", $city["country"]);
 	    	}
-	    	$city["level4"] = $idLevel4;
+	    	$city["level4"] = (String)$level4["_id"];
+    		$city["level4Name"] = $level4["name"];
 	    }
 
 	   
@@ -132,6 +135,11 @@ class City {
     		//var_dump(json_encode($city));
     		if(empty($exist)){
     			PHDB::insert(self::COLLECTION, $city );
+    			Zone::insertTranslate( (String)$city["_id"], 
+    									self::COLLECTION, 
+    									$city["country"], 
+    									(!empty($city["osmID"]) ? $city["osmID"] : null),
+    									(!empty($city["wikidataID"]) ? $city["wikidataID"] : null));
 				$res = array("result"=>true,
 	                         "msg"=>"La commune a été enregistrer.",
 	                         "city"=>$city,
@@ -755,18 +763,20 @@ class City {
 		                else
 		                    $split = explode("-", $cp["mainsnak"]["datavalue"]["value"]);
 		                
-		                if(count($split) == 2){
-		                    $start = intval($split[0]);
-		                    if(!empty($start)){
-		                        $end = intval($split[1]);
-		                        while($start <= $end ){
-		                            $arrayCp[] = trim(strval($start));
-		                            $start++;
-		                        }
-		                    }
-		                }
-		            }else{
-		                $arrayCp[] = $cp["mainsnak"]["datavalue"]["value"];
+		                // if(count($split) == 2){
+		                //     $start = intval($split[0]);
+		                //     if(!empty($start)){
+		                //         $end = intval($split[1]);
+		                //         while($start <= $end ){
+		                //             $arrayCp[] = trim(strval($start));
+		                //             $start++;
+		                //         }
+		                //     }
+		                // }
+		                $betweenCP["start"] = $split[0] ;
+		                $betweenCP["end"] = $split[1] ;
+		            } else {
+		               	$arrayCp[] = $cp["mainsnak"]["datavalue"]["value"];
 		            }
 
 		            foreach ($arrayCp as $keyCP => $valueCP) {
@@ -792,6 +802,10 @@ class City {
 
 		}
 		$newCities["postalCodes"] = $postalCodes;
+
+		if(!empty($betweenCP))
+			$newCities["betweenCP"] = $betweenCP;
+
 		return $newCities;
 	}
 
@@ -1045,7 +1059,7 @@ class City {
 
 	public static function getDetailFormInMap($id){
 		$where = array("_id"=>new MongoId($id));
-		$fields = array("geoShape","osmID", "wikidataID");
+		$fields = array("geoShape","osmID", "wikidataID", "betweenCP");
 		$city = PHDB::findOne(City::COLLECTION, $where, $fields);
 		return $city;
 	}
@@ -1247,5 +1261,53 @@ class City {
 		$key .= "@".(String)$city["_id"] ;
 		return $key ;
 	}
+
+
+	public static function alreadyExists ($params) {
+		$result = array("result" => false);
+
+		if(!empty($params["wikidataID"])){
+			$where = array(	"$or" => array(
+								array("osmId" => $params["osmId"]),
+								array("wikidataID" => $params["wikidataID"])));
+		}else{
+			$where = array("osmId" => $params["osmId"]);
+		}
+		
+		$element = PHDB::findOne(self::COLLECTION, $where);
+		if(!empty($element))
+			$result = array("result" => true ,
+							"element" => $element);
+		return $result;
+    }
+
+
+    public static function checkAndAddPostalCode ($id, $postalCode) {
+		$where = array("_id"=>new MongoId($id));
+
+		$city = PHDB::findOne(self::COLLECTION, $where, array("postalCodes", "geo", "name", "geoPosition"));
+
+		if(!empty($city) ){
+
+			$add = true ;
+			foreach ($city["postalCodes"] as $key => $value) {
+				if($value["postalCode"] == $postalCode){
+					$add = false;
+					break;
+				}
+			}
+
+			if($add == true){
+				$city["postalCodes"][] = array( "postalCode" => $postalCode,
+												"geo" => $city["geo"],
+												"geoPosition" => $city["geoPosition"],
+												"name" => $city["name"]);
+				PHDB::update(self::COLLECTION,
+								array("_id" => new MongoId($id)) , 
+								array('$set' => array("postalCodes" => $city["postalCodes"]))			
+							);
+			}
+		}
+    }
 }
 ?>

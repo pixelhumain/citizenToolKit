@@ -513,6 +513,9 @@ class Element {
 					}
 					$firstCitizen = Person::isFirstCitizen($fieldValue["address"]["codeInsee"]) ;
 
+					if(!empty($fieldValue["address"]["postalCode"]))
+						City::checkAndAddPostalCode ($fieldValue["address"]["localityId"], $fieldValue["address"]["postalCode"]);
+
 				}else{
 					$verb = '$unset' ;
 					SIG::updateEntityGeoposition($collection, $id, null, null);
@@ -1365,6 +1368,12 @@ class Element {
 	        	unset($params['medias']);
 	        	$postParams["urls"] = $params["urls"];
 	        	unset($params['urls']);
+        }
+
+        if($collection == Room::COLLECTION){
+        	if(isset($params["roles"])){
+        		$params["roles"] = explode(",", @$params["roles"]);
+        	}
         }
 
         if($collection == City::COLLECTION)

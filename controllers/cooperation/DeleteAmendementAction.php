@@ -6,6 +6,7 @@ class DeleteAmendementAction extends CAction {
 
 		$numAm 		= @$_POST["numAm"];
 		$idProposal = @$_POST["idProposal"];
+		$json = @$_POST["json"];
 		
 		$controller=$this->getController();
 
@@ -26,7 +27,10 @@ class DeleteAmendementAction extends CAction {
 			if($myId == $proposal["amendements"][$numAm]["idUserAuthor"])
 				unset($proposal["amendements"][$numAm]);
 			else{
-				exit;
+				$params["result"] = false;
+				$params["msg"] = "Error : your are not the author of this amendement";
+				return Rest::json($params);
+				Yii::app()->end(); exit;
 			}
 			//var_dump($proposal["amendements"]); exit;
 
@@ -34,13 +38,27 @@ class DeleteAmendementAction extends CAction {
 					array("_id" => new MongoId($idProposal)),
 		            array('$set' => array("amendements"=> $proposal["amendements"]))
 		        );
+
+			$params["result"] = true;
+			$params["msg"] = "Element has been updated";
+			
+		}else{
+			$params["result"] = false;
+			$params["msg"] = "Error : this proposal is not amendable.";
 		}
 		
 
 		$page = "proposal";
 		$params = Cooperation::getCoopData($proposal["parentType"], $proposal["parentId"], "proposal", null, $idProposal);
 
-		echo $controller->renderPartial($page, $params, true);
+		if(@$json == "false"){
+			echo $controller->renderPartial($page, $params, true);
+		}else{
+			return Rest::json($params);
+			Yii::app()->end();
+		}
+
+		
 	}
 
 
