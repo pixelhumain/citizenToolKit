@@ -205,13 +205,6 @@ class Zone {
 		return $key ;
 	}
 
-	public static function getCountryList(){
-		$where = array(	"level" => array('$in' => array("1")));
-		$fields = array("name", "level", "countryCode", "key");
-		$list = PHDB::findAndSort( self::COLLECTION, $where, array("name"), 0, $fields);;
-		return $list;
-	}
-
 	public static function getCountryByCountryCode($countryCode){
 		$where = array(	"countryCode"=> $countryCode,
 						"level" => "1");
@@ -317,21 +310,21 @@ class Zone {
 
 
 
-	public static function getListCountry(){
-		$where = array(	"level" => "1");
-		$fields = array("_id", "level", "name", "translateId", "countryCode");
-		$zones = PHDB::find(self::COLLECTION, $where, $fields);
+	// public static function getListCountry(){
+	// 	$where = array(	"level" => "1");
+	// 	$fields = array("_id", "level", "name", "translateId", "countryCode");
+	// 	$zones = PHDB::find(self::COLLECTION, $where, $fields);
 
-		$res = array();
-		foreach ($zones as $key => $zone) {
+	// 	$res = array();
+	// 	foreach ($zones as $key => $zone) {
 
-			$name = self::getNameCountry($key);
-			$res[$zone["countryCode"]] = (!empty($name) ? $name : $zone["name"] );
-			//$res[$zone["countryCode"]] = $zone["name"];
-		}
-		asort($res);
-		return $res ;
-	}
+	// 		$name = self::getNameCountry($key);
+	// 		$res[$zone["countryCode"]] = (!empty($name) ? $name : $zone["name"] );
+	// 		//$res[$zone["countryCode"]] = $zone["name"];
+	// 	}
+	// 	asort($res);
+	// 	return $res ;
+	// }
 
 
 	public static function getNameCountry($id){
@@ -350,6 +343,41 @@ class Zone {
 	public static function getNameOrigin($id){
 		$translates = self::getTranslateById($id, Zone::COLLECTION);
 		return $translates["origin"];
+	}
+
+
+	public static function getCountryList(){
+		$where = array(	"level" => array('$in' => array("1")));
+		$fields = array("name", "level", "countryCode", "key");
+		$list = PHDB::findAndSort( self::COLLECTION, $where, array("name"), 0, $fields);
+
+		foreach ($list as $key => $value) {
+			# code...
+		}
+		return $list;
+	}
+
+
+	public static function getListCountry(){
+		$where = array(	"level" => "1");
+		$fields = array("name","level", "translateId", "countryCode");
+		$zones = PHDB::find(self::COLLECTION, $where, $fields);
+
+		$res = array();
+		foreach ($zones as $key => $zone) {
+			$name = self::getNameCountry($key);
+			$city = PHDB::findOne(City::COLLECTION, array("country" => $zone["countryCode"]));
+			$newZones  = array( "name" => ( !empty($name) ? $name : $zone["name"] ),
+								"countryCode" => $zone["countryCode"],
+								"inDB" => (!empty($city) ? true : false ) );
+
+			
+			//$zone["inDB"] = (!empty($city) ? true : false );
+			$res[$key] = $newZones ;
+		}
+
+		asort($res);
+		return $res ;
 	}
 
 }
