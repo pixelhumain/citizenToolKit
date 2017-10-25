@@ -288,7 +288,7 @@ class IndexAction extends CAction
 						if(!empty($locality)){
 
 							if($locality["type"] == City::CONTROLLER)
-								$queryLocality = array("scope.localities.cityId" => $key, "scope.localities.parentType" =>  City::COLLECTION);
+								$queryLocality = array("scope.localities.parentId" => $key, "scope.localities.parentType" =>  City::COLLECTION);
 							else if($locality["type"] == "cp")
 								$queryLocality = array("scope.localities.postalCode" => new MongoRegex("/^".$key."/i"));
 							else
