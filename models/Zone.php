@@ -308,25 +308,6 @@ class Zone {
 		return $res ;
 	}
 
-
-
-	// public static function getListCountry(){
-	// 	$where = array(	"level" => "1");
-	// 	$fields = array("_id", "level", "name", "translateId", "countryCode");
-	// 	$zones = PHDB::find(self::COLLECTION, $where, $fields);
-
-	// 	$res = array();
-	// 	foreach ($zones as $key => $zone) {
-
-	// 		$name = self::getNameCountry($key);
-	// 		$res[$zone["countryCode"]] = (!empty($name) ? $name : $zone["name"] );
-	// 		//$res[$zone["countryCode"]] = $zone["name"];
-	// 	}
-	// 	asort($res);
-	// 	return $res ;
-	// }
-
-
 	public static function getNameCountry($id){
 		$translates = self::getTranslateById($id, Zone::COLLECTION);
 		$userT = strtoupper(Yii::app()->language) ;
@@ -345,24 +326,10 @@ class Zone {
 		return $translates["origin"];
 	}
 
-
-	public static function getCountryList(){
-		$where = array(	"level" => array('$in' => array("1")));
-		$fields = array("name", "level", "countryCode", "key");
-		$list = PHDB::findAndSort( self::COLLECTION, $where, array("name"), 0, $fields);
-
-		foreach ($list as $key => $value) {
-			# code...
-		}
-		return $list;
-	}
-
-
 	public static function getListCountry(){
 		$where = array(	"level" => "1");
 		$fields = array("name","level", "translateId", "countryCode");
 		$zones = PHDB::find(self::COLLECTION, $where, $fields);
-
 		$res = array();
 		foreach ($zones as $key => $zone) {
 			$name = self::getNameCountry($key);
@@ -370,12 +337,8 @@ class Zone {
 			$newZones  = array( "name" => ( !empty($name) ? $name : $zone["name"] ),
 								"countryCode" => $zone["countryCode"],
 								"inDB" => (!empty($city) ? true : false ) );
-
-			
-			//$zone["inDB"] = (!empty($city) ? true : false );
 			$res[$key] = $newZones ;
 		}
-
 		asort($res);
 		return $res ;
 	}
