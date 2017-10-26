@@ -72,7 +72,7 @@ class Comment {
 	public static function insert($comment, $userId) {
 		$options = self::getCommentOptions($comment["contextId"], $comment["contextType"]);
 
-		$content = trim(@$comment["content"]);
+		$content = trim(@$comment["text"]);
 		if (empty($content))
 			return array("result"=>false, "msg"=> Yii::t("comment","Please add content to your comment !"));
 
@@ -88,7 +88,21 @@ class Comment {
 			"status" => self::STATUS_POSTED,
 			"argval" => @$comment["argval"]
 		);
-
+		if(@$comment["mentions"]){
+			$newComment["mentions"]=$comment["mentions"];
+			/**************************************************************************** 
+			////////If we want to push news where mentions in comment in timeline ///////
+			if($contextType==News::COLLECTION){
+				$newsCommentMentionsArray=[];
+				foreach($comment["mentions"] as $data){
+					$data["mentionAuthorName"]=Yii::app()->session["user"]["name"];
+					$data["mentionAuthorId"]=Yii::app()->session["userId"];
+					array_push($newsCommentMentionsArray,$data);
+				}
+				News::updateCommentMentions($newsCommentMentionsArray, $contextId);
+			}
+			*****************************************************************************/
+		}
 		if (self::canUserComment($comment["contextId"], $comment["contextType"], $userId, $options)) {
 			PHDB::insert(self::COLLECTION,$newComment);
 		} else {

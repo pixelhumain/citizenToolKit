@@ -438,6 +438,24 @@ class News {
 	    return array("result"=>true, "msg"=>Yii::t("common","News well updated"), "id"=>$newsId);
 	}
 	/**
+	 * update a mentionsComent array of a news in database
+	 * @param String $newsId : 
+	 * @param array $mentionsComment to push news on timeline
+	 */
+	
+	public static function updateCommentMentions($mentionsComment,$id){
+		$news = PHDB::findOneById( self::COLLECTION , $id);
+		if(@$news["commentMentions"]){
+			foreach ($news["commentMentions"] as $value) {
+				array_push($mentionsComment, $value);
+			}
+		}
+		PHDB::update ( self::COLLECTION , 
+							array( "_id" => new MongoId($id)), 
+                            array('$set'=>array("commentMentions"=>$mentionsComment)));
+		return true;
+	}
+	/**
 	 * update a news in database
 	 * @param String $newsId : 
 	 * @param string $name fields to update
