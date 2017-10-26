@@ -1319,7 +1319,7 @@ class City {
 
 
 
-	public static function searchCity(){
+	public static function searchCity($where, $countryCode, $scopeValue, $formInMap, $geoShape = false){
 		$att = array(   "name", "alternateName", 
                         "country", "postalCodes", "insee", 
                         "level1", "level1Name",
@@ -1329,6 +1329,7 @@ class City {
         if($geoShape) $att[] =  "geoShape";
 
         $cities = PHDB::findAndSort( City::COLLECTION, $where, $att, 40, $att);
+        
         if(empty($cities) && !empty($formInMap)){
             $countryCode = mb_convert_encoding($countryCode, "ASCII");
             if(strlen($countryCode) > 2 ){
