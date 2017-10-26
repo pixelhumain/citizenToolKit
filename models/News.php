@@ -220,11 +220,23 @@ class News {
 
 			//NOTIFICATION MENTIONS
 			if(isset($news["mentions"])){
-				$target="";
+				$target=array("id"=>(string)$news["_id"],"type"=>self::COLLECTION);
 				if(@$_POST["parentType"]){
-					$target=array("id"=>$_POST["parentId"],"type"=>$_POST["parentType"]);
+					
 				}
-				Notification::actionOnNews ( ActStr::VERB_MENTION, ActStr::ICON_RSS, array("id" => Yii::app()->session["userId"],"name" => Yii::app()->session["user"]["name"]) , $target, $news["mentions"], $_POST["scope"], (string)$news["_id"], @$_POST["targetIsAuthor"])  ;
+				$target=array("id"=>$_POST["parentId"],"type"=>$_POST["parentType"]);
+				if(@$_POST["targetIsAuthor"] && @$_POST["parentType"]){
+					//if($targetIsAuthor){
+					$authorName=Element::getElementSimpleById($_POST["parentId"], $_POST["parentType"]);
+					$author=array("id"=>$_POST["parentId"], "type"=>$_POST["parentType"],"name"=>$authorName["name"]);
+					//	$authorName=$authorName["name"];
+					//} else{
+					//	$authorName=$author["name"];
+					//}
+				}else{
+					$author=array("id" => Yii::app()->session["userId"],"type"=>Person::COLLECTION, "name" => Yii::app()->session["user"]["name"]);
+				}
+				Notification::notifyMentionOn($author , $target, $news["mentions"], null, $_POST["scope"]);
 			}
 
 			//NOTIFICATION POST
