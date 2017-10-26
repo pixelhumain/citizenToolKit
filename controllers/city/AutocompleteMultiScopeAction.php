@@ -46,80 +46,8 @@ class AutocompleteMultiScopeAction extends CAction
             //var_dump($where);
         }
 
-
         if($type != "zone"){
-            $att = array(   "name", "alternateName", 
-                            "country", "postalCodes", "insee", 
-                            "level1", "level1Name",
-                            "level2", "level2Name",
-                            "level3", "level3Name",
-                            "level4", "level4Name", "geo");
-            if($geoShape) $att[] =  "geoShape";
-
-            $cities = PHDB::findAndSort( City::COLLECTION, $where, $att, 40, $att);
-            if(empty($cities) && !empty($formInMap)){
-                $countryCode = mb_convert_encoding($countryCode, "ASCII");
-                if(strlen($countryCode) > 2 ){
-                   $countryCode = substr($countryCode, 0, 2);
-                }
-                $countryCode = mb_convert_encoding($countryCode, "UTF-8");
-                $resNominatim = json_decode(SIG::getGeoByAddressNominatim(null, null, $scopeValue, trim($countryCode), true, true),true);
-                //var_dump($resNominatim);
-                if(!empty($resNominatim)){
-                    //var_dump($resNominatim);
-                    foreach (@$resNominatim as $key => $value) {
-                        $typeCities = array("city", "village", "town") ;
-                        foreach ($typeCities as $keyType => $valueType) {
-                            if( !empty($value["address"][$valueType]) 
-                                && $countryCode == strtoupper(@$value["address"]["country_code"])) {
-
-                                $wikidata = (empty($value["extratags"]["wikidata"]) ? null : $value["extratags"]["wikidata"]);
-                                //var_dump($value["osm_id"]);
-                                $newCities = array( "name" => $value["address"][$valueType],
-                                                    "alternateName" => mb_strtoupper($value["address"][$valueType]),
-                                                    "country" => $countryCode,
-                                                    "geo" => array( "@type"=>"GeoCoordinates", 
-                                                                    "latitude" => $value["lat"], 
-                                                                    "longitude" => $value["lon"]),
-
-                                                    "geoPosition" => array( "type"=>"Point",
-                                                                            "float"=>true, 
-                                                                            "coordinates" => array(
-                                                                                floatval($value["lon"]), 
-                                                                                floatval($value["lat"]))),
-                                                    "level3Name" => (empty($value["address"]["state"]) ? null : $value["address"]["state"] ),
-                                                    "level3" => null,
-                                                    "level4Name" => (empty($value["address"]["county"]) ? null : $value["address"]["county"] ),
-                                                    "level4" => null,
-                                                    "osmID" => $value["osm_id"],
-                                                   
-                                                    "save" => true);
-                                if(!empty($wikidata))
-                                    $newCities = City::getCitiesWithWikiData($wikidata, $newCities);
-                                
-
-                                if(empty($newCities["insee"]))
-                                    $newCities["insee"] = $value["osm_id"]."*".$countryCode;
-
-                                if(empty($newCities["postalCodes"]))
-                                    $newCities["postalCodes"] = array();
-
-                                // if(empty($newCities["geoShape"]))
-                                //     $newCities["geoShape"] = $value["geojson"];
-
-                                if(City::checkCitySimply($newCities))
-                                    $cities[] = $newCities;
-                                
-                                
-                            }
-                        } 
-
-                        
-                        
-                    }
-                }
-                
-            }
+            $cities = City::searchCity($where, $countryCode, $scopeValue, $formInMap, $geoShape);
         }else if($type == "zone"){
             $att = array("name", "countryCode", "level");
             $where = array('$and'=> array(

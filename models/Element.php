@@ -1607,7 +1607,7 @@ class Element {
 	public static function alreadyExists ($params, $collection) {
 		$result = array("result" => false);
 		$where = array(	"name" => $params["name"],
-						"address.codeInsee" => $params["address"]["codeInsee"]);
+						"address.localityId" => $params["address"]["localityId"]);
 		$element = PHDB::findOne($collection, $where);
 		if(!empty($element))
 			$result = array("result" => true ,
