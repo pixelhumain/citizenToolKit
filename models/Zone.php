@@ -343,5 +343,11 @@ class Zone {
 		return $res ;
 	}
 
+
+	public static function getWhereTranlate($params, $fields=null, $limit=20) {
+	  	$zones =PHDB::findAndSort( self::TRANSLATE,$params, array(), $limit, $fields);
+	  	return $zones;
+	}
+
 }
 ?>

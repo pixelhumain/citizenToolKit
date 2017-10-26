@@ -1329,7 +1329,25 @@ class City {
                         "level4", "level4Name", "geo");
         if($geoShape) $att[] =  "geoShape";
 
-        $cities = PHDB::findAndSort( City::COLLECTION, $where, $att, 40, $att);
+        $regex = Search::accentToRegex($scopeValue);
+        $where = array('$or'=> 
+                            array(  array("origin" => new MongoRegex("/".$regex."/i")),
+                                    array("translates.".strtoupper(Yii::app()->language) => array( '$in' => array (new MongoRegex("/".$regex."/i") ) ) ),
+                        ));
+        $where = array('$and'=> array($where, array("countryCode" => strtoupper($countryCode),
+    												"parentType" => City::COLLECTION ) ) );
+
+        $translate = Zone::getWhereTranlate($where);
+        //var_dump($where);
+        $cities = array();
+        foreach ($translate as $keyTran => $valueTran) {
+        	$city = self::getById( $valueTran["parentId"]);
+        	if(!empty($valueTran["translates"][strtoupper(Yii::app()->language)]))
+        		$city["name"] = $valueTran["translates"][strtoupper(Yii::app()->language)] ;
+        	$cities[$valueTran["parentId"]] = $city ;
+        }
+
+        //$cities = PHDB::findAndSort( City::COLLECTION, $where, $att, 40, $att);
         
         if(empty($cities) && !empty($formInMap)){
             $countryCode = mb_convert_encoding($countryCode, "ASCII");
