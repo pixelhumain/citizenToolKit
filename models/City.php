@@ -142,9 +142,10 @@ class City {
 	                         "city"=>$city,
 	                         "id"=>(string)$city["_id"]); 
     		}else{
-    			$res = array("result"=>false,
+    			$res = array("result"=>true,
 	                         "msg"=>"La commune existe déjà",
-	                         "city"=>$city); 
+	                         "city"=>$exist,
+	                         "id"=>(string)$exist["_id"]); 
     		}
 
 			 
