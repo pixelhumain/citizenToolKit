@@ -513,6 +513,9 @@ class Element {
 					}
 					$firstCitizen = Person::isFirstCitizen($fieldValue["address"]["codeInsee"]) ;
 
+					if(!empty($fieldValue["address"]["postalCode"]))
+						City::checkAndAddPostalCode ($fieldValue["address"]["localityId"], $fieldValue["address"]["postalCode"]);
+
 				}else{
 					$verb = '$unset' ;
 					SIG::updateEntityGeoposition($collection, $id, null, null);
@@ -1367,6 +1370,12 @@ class Element {
 	        	unset($params['urls']);
         }
 
+        if($collection == Room::COLLECTION){
+        	if(isset($params["roles"])){
+        		$params["roles"] = explode(",", @$params["roles"]);
+        	}
+        }
+
         if($collection == City::COLLECTION)
         	$params = City::prepCity($params);
         
@@ -1598,7 +1607,7 @@ class Element {
 	public static function alreadyExists ($params, $collection) {
 		$result = array("result" => false);
 		$where = array(	"name" => $params["name"],
-						"address.codeInsee" => $params["address"]["codeInsee"]);
+						"address.localityId" => $params["address"]["localityId"]);
 		$element = PHDB::findOne($collection, $where);
 		if(!empty($element))
 			$result = array("result" => true ,

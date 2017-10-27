@@ -139,10 +139,9 @@ class News {
 
 							if(!empty($locality)){
 								if($locality["type"] == City::CONTROLLER){
-									$detailsKey = City::detailLevels($locality);
 									$city = City::getById($key);
 									//$city = City::getByUnikey($value);
-									$scope = array( "cityId"=>(String) $city["_id"],
+									$scope = array( "parentId"=>(String) $city["_id"],
 													"parentType"=>City::COLLECTION,
 													"name"=>$city["name"],
 													"geo" => $city["geo"]
@@ -158,7 +157,7 @@ class News {
 								}
 								else if($locality["type"] == "cp"){
 
-									$where = array("postalCodes.postalCode"=>strval($key)) ;
+									$where = array("postalCodes.postalCode"=>strval($key), $locality["countryCode"]) ;
 									//var_dump($where);
 									$cities = City::getWhere($where);
 									if(!empty($cities)){
@@ -185,7 +184,6 @@ class News {
 													"name"=>$zone["name"],
 													"geo" => $zone["geo"]
 												);
-
 									$scope = array_merge($scope, Zone::getLevelIdById((String) $zone["_id"], $zone, Zone::COLLECTION) ) ;
 
 									$news["scope"]["localities"][] = $scope;
@@ -200,11 +198,9 @@ class News {
 					if($scope== "public"){
 
 						if(!empty($localities)){
-							$detailsKey = City::detailLevels($keyLocality);
-							$city = City::getById($detailsKey["city"]);
+							$city = City::getById($key);
 							//$city = City::getByUnikey($value);
-							$scope = array( "key"=>$city["key"],
-											"parentId"=>(String) $city["_id"],
+							$scope = array( "parentId"=>(String) $city["_id"],
 											"parentType"=>City::COLLECTION,
 											"name"=>$city["name"],
 											"geo" => $city["geo"]
