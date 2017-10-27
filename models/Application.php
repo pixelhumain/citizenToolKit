@@ -10,7 +10,9 @@ class Application {
 			if( stripos($_SERVER['SERVER_NAME'], "127.0.0.1") === false && 
 				stripos($_SERVER['SERVER_NAME'], "localhost") === false && 
 				stripos($_SERVER['SERVER_NAME'], "::1") === false && 
-				stripos($_SERVER['SERVER_NAME'], "localhost:8080") === false && strpos($_SERVER['SERVER_NAME'], "local.")!==0 )
+				stripos($_SERVER['SERVER_NAME'], "localhost:8080") === false && 
+				strpos($_SERVER['SERVER_NAME'], "local.")!==0 &&
+				strpos($_SERVER['SERVER_NAME'], "dev.")!==0 )
 			    $key = "prodParams"; // PROD
 		}
 		$params = PHDB::findOne( self::COLLECTION, array( "key" => $key ));
