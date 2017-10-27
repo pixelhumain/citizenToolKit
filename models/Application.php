@@ -5,7 +5,6 @@ class Application {
 	
 
 	public static function loadDBAppConfig($key = null) {
-		echo "loadDBAppConfig";
 		if(!$key){
 			$key = "devParams";
 			if( stripos($_SERVER['SERVER_NAME'], "127.0.0.1") === false && 
@@ -14,7 +13,6 @@ class Application {
 				stripos($_SERVER['SERVER_NAME'], "localhost:8080") === false && strpos($_SERVER['SERVER_NAME'], "local.")!==0 )
 			    $key = "prodParams"; // PROD
 		}
-		echo "loadDBAppConfig ::".$key;
 		$params = PHDB::findOne( self::COLLECTION, array( "key" => $key ));
 		if(!$params)
 			throw new CHttpException(403,Yii::t('error','Missing Configs db.applications.key == '.$key.'exists'));
