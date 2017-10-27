@@ -1176,14 +1176,14 @@ class Notification{
 			$where=Yii::t("notification","in a comment");
 		$scope=$news["scope"];
 		if($scope=="private"){
-			if($target["type"]=Person::COLLECTION)
+			if($target["parent"]["type"]=Person::COLLECTION)
 				return true;
-			else if( $target["type"] == Project::COLLECTION )
-	    		$members = Project::getContributorsByProjectId($target["id"]);
-	   		else if( $target["type"] == Organization::COLLECTION)
-	    		$members = Organization::getMembersByOrganizationId( $target["id"]) ;
-	   		else if( $target["type"] == Event::COLLECTION )
-	    		$members = Event::getAttendeesByEventId( $target["id"] , "admin", "isAdmin" ) ;
+			else if( $target["parent"]["type"] == Project::COLLECTION )
+	    		$members = Project::getContributorsByProjectId($target["parent"]["id"]);
+	   		else if( $target["parent"]["type"] == Organization::COLLECTION)
+	    		$members = Organization::getMembersByOrganizationId( $target["parent"]["id"]) ;
+	   		else if( $target["parent"]["type"] == Event::COLLECTION )
+	    		$members = Event::getAttendeesByEventId( $target["parent"]["id"] , "admin", "isAdmin" ) ;
 		}
 		foreach ($mentions as $data){
 			if($data["type"]==Person::COLLECTION){
@@ -1196,7 +1196,7 @@ class Notification{
 					    	foreach($list["persons"] as $id => $v){
 						    	if($id==$data["id"]){
 						    		$alreadyNotify=true;
-							    	$mentionsLabel=Yii::t("notification", "with {who}", array("{who}",$list["nameOrganization"]));
+							    	$mentionsLabel=Yii::t("notification", "with {who}", array("{who}",$list["nameElement"]));
 									if(count($notification[$i]["persons"])>1)
 										unset($notification[$i]["persons"][$data["id"]]);
 									else
@@ -1218,11 +1218,14 @@ class Notification{
 					array_push($notification, $pushNotif);
 				}
 			}
-			if($data["type"]==Organization::COLLECTION){
+			else{
 				if($scope!="private"){
-					$members = Organization::getMembersByOrganizationId( $data["id"], Person::COLLECTION , "all" );
+					if($data["type"]==Organization::COLLECTION)
+						$community = Organization::getMembersByOrganizationId( $data["id"], Person::COLLECTION , "all" );
+					else
+						$community = Project::getContributorsByProjectId( $data["id"], Person::COLLECTION );
 					$people=array();
-				    foreach ($members as $key => $value) 
+				    foreach ($community as $key => $value) 
 				    {
 				    	if( $key != Yii::app()->session['userId'] /* /*&& count($people) < self::PEOPLE_NOTIFY_LIMIT*/ ){
 					    	$people[$key]=array("isUnseen"=>true,"isUnread"=>true);
@@ -1230,20 +1233,20 @@ class Notification{
 						    	foreach($notification as $i => $list){
 							    	foreach($list["persons"] as $id => $v){
 								    	if($id==$key){
-									    	if($list["type"]==Organization::COLLECTION/* && @$list["nbMention"]!=2*/){
-										    	$mentionsLabel=$data["name"]." ".Yii::t("common", "and")." ".@$list["nameOrganization"];
-										    	$typeMention=Organization::COLLECTION;
+									    	if($list["type"]!=Person::COLLECTION){
+										    	$mentionsLabel=$data["name"]." ".Yii::t("common", "and")." ".@$list["nameElement"];
+										    	$typeMention=$list["type"];
 										    	$labelNotif=Yii::t("notification",$arrayLabel["other"],array("{who}"=>$author["name"],"{mentions}"=>$mentionsLabel,"{where}"=>$where));
 										    	
 									    	}
-											if($list["type"]==Person::COLLECTION){
+											else{
 										    	$mentionsLabel=Yii::t("notification", "with {who}", array("{who}"=>$data["name"]));
 										    	$typeMention=Person::COLLECTION;
 										    	$labelNotif=Yii::t("notification",$arrayLabel["you"],array("{who}"=>$author["name"],"{mentions}"=>$mentionsLabel,"{where}"=>$where));
 									    	}
 									    	$pushNotif=array(
 												"type"=> $typeMention,
-												"nameOrganization"=>$data["name"],
+												"nameElement"=>$data["name"],
 												"nbMention"=>2,
 												"persons"=>array($key=>array("isUnseen"=>true,"isUnread"=>true)),
 												"label"=>$labelNotif, 
@@ -1264,8 +1267,8 @@ class Notification{
 			    	}
 			    	if(count($people)>0){
 					    $pushNotif=array(
-						    "type"=> Organization::COLLECTION,
-						    "nameOrganization"=>$data["name"],
+						    "type"=> $data["type"],
+						    "nameElement"=>$data["name"],
 						    "persons"=>$people,
 						    "label"=> Yii::t("notification",$arrayLabel["other"],array("{who}"=>$author["name"],"{mentions}"=>$data["name"],"{where}"=>$where)),
 						    "url"=> $url,
