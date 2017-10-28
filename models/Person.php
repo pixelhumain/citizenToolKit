@@ -11,10 +11,10 @@ class Person {
 	const REGISTER_MODE_TWO_STEPS 	= "two_steps_register";
 
 
-
 	//From Post/Form name to database field name with rules
 	public static $dataBinding = array(
 	    "name" => array("name" => "name", "rules" => array("required")),
+	    "slug" => array("name" => "slug", "rules" => array("checkSlug")),
 	    "username" => array("name" => "username", "rules" => array("required", "checkUsername")),
 	    "birthDate" => array("name" => "birthDate", "rules" => array("required")),
 	    "email" => array("name" => "email", "rules" => array("email")),
@@ -37,7 +37,7 @@ class Person {
 	    "facebook" => array("name" => "socialNetwork.facebook"),
 	    "twitter" => array("name" => "socialNetwork.twitter"),
 	    "gpplus" => array("name" => "socialNetwork.googleplus"),
-	    "gitHub" => array("name" => "socialNetwork.github"),
+	    "github" => array("name" => "socialNetwork.github"),
 	    "skype" => array("name" => "socialNetwork.skype"),
 	    "telegram" => array("name" => "socialNetwork.telegram"),
 	    "bgClass" => array("name" => "preferences.bgClass"),
@@ -80,15 +80,18 @@ class Person {
 	 * user = array("name"=>$username)
 	 * $isRegisterProcess => save in the session if it's the first time a he is connected
 	 */
-	public static function saveUserSessionData($account, $isRegisterProcess = false) {
+	public static function saveUserSessionData($account, $isRegisterProcess = false, $pwd=null) {
 	  	Yii::app()->session["userId"] = (string)$account["_id"];
 	  	Yii::app()->session["userEmail"] = $account["email"];
+	  	Yii::app()->session["pwd"] = $pwd;
 
 	  	$name = (isset($account["name"])) ? $account["name"] : "Anonymous" ;
 	    $user = array("name"=>$name);
 		
 		if(	@$account["username"] ) 
 	      	$user ["username"] = $account["username"];
+	    if(@$account["slug"] ) 
+	      	$user ["slug"] = $account["slug"];
 	    if( @$account["cp"] ) 
 	      	$user ["postalCode"] = $account["cp"];
 	    if( @$account["address"]) {
@@ -98,6 +101,9 @@ class Person {
 	    }
 		if( @$account["roles"])
 	     	$user ["roles"] = $account["roles"];
+	    if( @$account["preferences"])
+	     	$user ["preferences"] = $account["preferences"];
+	    
 	    //Last login date
 	    $user ["lastLoginDate"] = @$account["lastLoginDate"] ? $account["lastLoginDate"] : time();
 	    
@@ -126,6 +132,9 @@ class Person {
       Yii::app()->session["user"] = null; 
       Yii::app()->session['logguedIntoApp'] = null;
       Yii::app()->session['requestedUrl'] = null;
+      Yii::app()->session["loginToken"] = null;
+      Yii::app()->session["rocketUserId"] = null;
+      CookieHelper::setCookie("communexionActivated", false);
     }
 
 	/**
@@ -136,7 +145,7 @@ class Person {
 	 */
 	public static function getById($id, $clearAttribute = true) { 
 		
-	  	$person = PHDB::findOneById( self::COLLECTION ,$id );
+	  	$person = PHDB::findOneById( self::COLLECTION, $id );
 	  	
 	  	if (empty($person)) {
 	  		//TODO Sylvain - Find a way to manage inconsistente data
@@ -156,9 +165,10 @@ class Person {
 											"addressCountry" => "");
         }
         
-        if ($clearAttribute) {
+        if($clearAttribute) {
         	$person = self::clearAttributesByConfidentiality($person);
         }
+
 	  	return $person;
 	}
 
@@ -207,7 +217,7 @@ class Person {
 		$simplePerson = array();
 		if(!$person)
 			$person = PHDB::findOneById( self::COLLECTION ,$id, 
-				array("id" => 1, "name" => 1, "username" => 1, "email" => 1,  "shortDescription" => 1, "description" => 1, "address" => 1, "geo" => 1, "roles" => 1, "tags" => 1, "links" => 1, "pending" => 1, "profilImageUrl" => 1, "profilThumbImageUrl" => 1, "profilMarkerImageUrl" => 1, "profilMediumImageUrl" => 1,"numberOfInvit" => 1,"updated" => 1,"addresses" => 1));
+				array("id" => 1, "name" => 1, "username" => 1, "email" => 1,  "shortDescription" => 1, "description" => 1, "address" => 1, "geo" => 1, "roles" => 1, "tags" => 1, "links" => 1, "pending" => 1, "profilImageUrl" => 1, "profilThumbImageUrl" => 1, "profilMarkerImageUrl" => 1, "profilMediumImageUrl" => 1,"numberOfInvit" => 1,"updated" => 1,"addresses" => 1, "slug" => 1));
 		
 		if (empty($person)) {
 			return $simplePerson;
@@ -215,6 +225,8 @@ class Person {
 
 		$simplePerson["id"] = $id;
 		$simplePerson["name"] = @$person["name"];
+		//$simplePerson["name"] = addslashes(@$person["name"]);
+		$simplePerson["username"] = @$person["username"];
 		$simplePerson["username"] = @$person["username"];
 		$simplePerson["email"] = @$person["email"];
 		$simplePerson["tags"] = @$person["tags"];
@@ -224,6 +236,11 @@ class Person {
 		$simplePerson["description"] = @$person["description"];
 		$simplePerson["pending"] = @$person["pending"];
 		$simplePerson["updated"] = @$person["updated"];
+		$simplePerson["slug"] = @$person["slug"];
+
+		//Ajouter par rapport au getAllLink
+		$simplePerson["address"] = @$person["address"];
+		$simplePerson["geo"] = @$person["geo"];
 		
 		$simplePerson["typeSig"] = "people";
 	  	
@@ -232,13 +249,6 @@ class Person {
 		}
 		//images
 		$simplePerson = array_merge($simplePerson, Document::retrieveAllImagesUrl($id, self::COLLECTION, null, $person));
-		if(Preference::showPreference($person, self::COLLECTION, "locality", Yii::app()->session["userId"])){
-			$simplePerson["address"] = empty($person["address"]) ? array("addressLocality" => Yii::t("common","Unknown Locality")) : $person["address"];
-			$simplePerson["geo"] = @$person["geo"];
-			$simplePerson["addresses"] = @$person["addresses"];
-		}else{
-			$simplePerson["address"] = array("addressLocality" => Yii::t("common","Unknown Locality"));
-		}
 		$simplePerson = self::clearAttributesByConfidentiality($simplePerson);
 	  	return $simplePerson;
 
@@ -251,7 +261,7 @@ class Person {
 	
 	//TODO SBAR - To delete ?
 	private static function setNameByid($name, $id) {
-		PHDB::update(Person::COLLECTION,
+		PHDB::update(self::COLLECTION,
 			array("_id" => new MongoId($id)),
             array('$set' => array("name"=> $name))
             );
@@ -487,7 +497,7 @@ class Person {
 		  			array('$push' => array('invitationDate' => time())));	
 	  		}
 
-	  				  		//send invitation mail
+	  		//send invitation mail
 			Mail::invitePerson($res["person"], $msg);
 		  		  		
 	  	} catch (CTKException $e) {
@@ -539,7 +549,7 @@ class Person {
 
 		//Check if the email of the person is already in the database
 	  	if ($uniqueEmail) {
-		  	$account = PHDB::findOne(Person::COLLECTION,array("email"=> new MongoRegex('/^' . preg_quote(trim($person["email"])) . '$/i')));
+		  	$account = PHDB::findOne(self::COLLECTION,array("email"=> new MongoRegex('/^' . preg_quote(trim($person["email"])) . '$/i')));
 		  	if ($account) {
 		  		throw new CTKException(Yii::t("person","Problem inserting the new person : a person with this email already exists in the plateform"));
 		  	}
@@ -570,7 +580,8 @@ class Person {
 		  	//Get Locality label
 		  	try {
 		  		//Format adress 
-		  		$newPerson["address"] = SIG::getAdressSchemaLikeByCodeInsee($person["city"]);
+		  		//$newPerson["address"] = SIG::getAdressSchemaLikeByCodeInsee($person["city"]);
+		  		$newPerson["address"] = SIG::getAdressSchemaLikeByCodeInsee($person["city"],$person["postalCode"]);
 
 				if(!empty($person['geoPosLatitude']) && !empty($person["geoPosLongitude"])){
 					$newPerson["geo"] = array("@type"=>"GeoCoordinates",
@@ -615,14 +626,14 @@ class Person {
 
 	  	$person["roles"] = Role::getDefaultRoles();
 
-	  	Person::addPersonDataForBetaTest($person, $mode, $inviteCode);
+	  	self::addPersonDataForBetaTest($person, $mode, $inviteCode);
 	  	
 	  	$person["created"] = new mongoDate(time());
 	  	//$person["preferences"] = array("seeExplanations"=> true);
 	  	$person["preferences"] = Preference::initPreferences(self::COLLECTION);
 	  	$person["seePreferences"] = true;
-	  	
-	  	PHDB::insert(Person::COLLECTION , $person);
+	  	$person["slug"]=Slug::checkAndCreateSlug($person["username"]);
+	  	PHDB::insert(self::COLLECTION , $person);
         if (isset($person["_id"])) {
         	$newpersonId = (String) $person["_id"];
         	if (! empty($pwd)) {
@@ -630,13 +641,18 @@ class Person {
 			  	$encodedpwd = self::hashPassword($newpersonId, $pwd);
 			  	self::updatePersonField($newpersonId, "pwd", $encodedpwd, $newpersonId);
 			} 
+	        Slug::save(Person::COLLECTION,(string)$person["_id"],$person["slug"]);
 	    } else {
 	    	throw new CTKException("Problem inserting the new person");
 	    }
 
 		//A mail is sent to the admin
 		Mail::notifAdminNewUser($person);
-	    return array("result"=>true, "msg"=>"You are now communnected", "id"=>$newpersonId, "person"=>$person);
+		$res = array("result"=>true, "msg"=>"You are now communnected", "id"=>$newpersonId, "person"=>$person);
+
+		if(!empty($person["invitedBy"]))
+			$res['invitedBy'] = $person["invitedBy"];
+	    return $res;
 	}
 
 	/**
@@ -773,7 +789,7 @@ class Person {
 		
 		if(is_string($personFieldValue))
 		$personFieldValue = trim($personFieldValue);
-		$dataFieldName = Person::getCollectionFieldNameAndValidate($personFieldName, $personFieldValue);
+		$dataFieldName = self::getCollectionFieldNameAndValidate($personFieldName, $personFieldValue);
 		//Specific case : 
 		//Tags
 		if ($dataFieldName == "tags") 
@@ -817,7 +833,7 @@ class Person {
 
 				if(empty($thisUser["geo"])){
 					$geo = SIG::getGeoPositionByInseeCode($insee,$postalCode);	
-					SIG::updateEntityGeoposition(Person::COLLECTION,$personId,$geo["latitude"],$geo["longitude"]);
+					SIG::updateEntityGeoposition(self::COLLECTION,$personId,$geo["latitude"],$geo["longitude"]);
 				}
 
 				$user["address"] = $address;
@@ -891,7 +907,7 @@ class Person {
         	return array("result"=>false, "msg"=>"Cette requête ne peut aboutir. Merci de bien vouloir réessayer en complétant les champs nécessaires");
         }
 
-        Person::clearUserSessionData();
+        self::clearUserSessionData();
         $account = PHDB::findOne(self::COLLECTION, array( '$or' => array( 
         															array("email" => new MongoRegex('/^'.preg_quote(trim($emailOrUsername)).'$/i')),
         															array("username" => $emailOrUsername) ) ));
@@ -905,14 +921,22 @@ class Person {
         $res = Role::canUserLogin($account, $isRegisterProcess);
         if ($res["result"]) {
 	        //Check the password
-        	if (self::checkPassword($pwd, $account)) {
-	            Person::saveUserSessionData($account, $isRegisterProcess);
+        	if ( self::checkPassword($pwd, $account) ) {
+	            self::saveUserSessionData($account, $isRegisterProcess,$pwd);
 	            //Update login history
 	            self::updateLoginHistory((String) $account["_id"]);
 	            if ($res["msg"] == "notValidatedEmail") 
 	        		return $res;
-	        	else
-	            	$res = array("result"=>true, "id"=>(string)$account["_id"], "isCommunected"=>isset($account["cp"]), "msg" => "Vous êtes maintenant identifié : bienvenue sur communecter.");
+	        	else{
+	        		self::updateCookieCommunexion((string)$account["_id"], @$account["address"]);
+	        		unset($account["pwd"]);
+	            	$res = array(
+	            		"result"=>true, 
+	            		"id"=>(string)$account["_id"], 
+	            		"isCommunected"=>isset($account["cp"]), 
+	            		"account" => $account,
+	            		"msg" => "Vous êtes maintenant identifié : bienvenue sur communecter.");
+	        	}
 	        } else {
 	            $res = array("result"=>false, "msg"=>"emailAndPassNotMatch");
 	        }
@@ -1089,7 +1113,7 @@ class Person {
 	 */
 	public static function changePassword($oldPassword, $newPassword, $userId) {
 		
-		$person = Person::getById($userId, false);
+		$person = self::getById($userId, false);
 
 		if (! self::checkPassword($oldPassword, $person)) {
 			return array("result" => false, "msg" => Yii::t("person","Your current password is incorrect"));
@@ -1137,9 +1161,11 @@ class Person {
 	public static function validateUser($accountId,$admin=false) {
 		assert('$accountId != ""; //The userId is mandatory');
         $account = self::getSimpleUserById($accountId);
+        $email=self::getEmailById($accountId);
+        $account["email"]=$email["email"];
         if (!empty($account)) {
 	       // if($admin==true){
-	        PHDB::update(	Person::COLLECTION,
+	        PHDB::update(	self::COLLECTION,
 	                    	array("_id"=>new MongoId($accountId)), 
 	                        array('$unset' => array("roles.tobeactivated"=>""))
 	                    );
@@ -1154,7 +1180,7 @@ class Person {
 	}
 
 	public static function getValidationKeyCheck($accountId) {
-		$account = self::getSimpleUserById($accountId);
+		$account = self::getEmailById($accountId);
 		if($account) {
 			$validationKeycheck = hash('sha256',$accountId.$account["email"]);
 		} else {
@@ -1183,8 +1209,10 @@ class Person {
 			}
 
 			$personToUpdate["pwd"] = $pwd;
-
-			PHDB::update(Person::COLLECTION, array("_id" => new MongoId($personId)), 
+			// CREATE SLUG FOR CITOYENS
+			$personToUpdate["slug"]=Slug::checkAndCreateSlug($personToUpdate["username"]);
+	  	    Slug::save(Person::COLLECTION,$personId,$personToUpdate["slug"]);
+			PHDB::update(self::COLLECTION, array("_id" => new MongoId($personId)), 
 			                          array('$set' => $personToUpdate, '$unset' => array("pending" => "" ,"roles.tobeactivated"=>""
 			                          	)));
 			
@@ -1196,18 +1224,26 @@ class Person {
 						array("type"=>self::COLLECTION, "id"=> $account["invitedBy"],"name"=>"", ));
 			}
 			
-			$res = array("result" => true, "msg" => "The pending user has been updated and is now complete");
+			$res = array("result" => true, "msg" => "The pending user has been updated and is now complete","personId"=>$personId);
 		}
 		return $res;
 	}
 	
+	public static function  updateNotSeeHelpCo($id){
+		PHDB::update(self::COLLECTION, array("_id" => new MongoId($id)), 
+			                          array('$set' => array("preferences.unseenHelpCo"=>true)));
+		//Yii::app()->session["user"]["preferences"]["unseenHelpCo"]=true;
+		$account=self::getById($id);
+		$res=self::saveUserSessionData($account);
+		return array("result" => true);
+	}
 	private static function hashPassword($personId, $pwd) {
 		return hash('sha256', $personId.$pwd);
 	}
 
 	public static function isUniqueUsername($username) {
 		$res = true;
-		$checkUsername = PHDB::findOne(Person::COLLECTION,array("username"=>$username));
+		$checkUsername = PHDB::findOne(self::COLLECTION,array("username"=>$username));
 		if ($checkUsername) {
 			$res = false;	
 		}
@@ -1216,7 +1252,7 @@ class Person {
 
 	public static function isFirstCitizen($insee) {
 		$res = false;
-		$checkUsername = PHDB::findOne(Person::COLLECTION,array("address.codeInsee"=>$insee));
+		$checkUsername = PHDB::findOne(self::COLLECTION,array("address.codeInsee"=>$insee));
 		if(empty($checkUsername))
 			$res = true;
 		return $res;
@@ -1227,7 +1263,7 @@ class Person {
 	public static function getPersonIdByEmail($email) {
 		//Check if the email of the person is already in the database
 	  	if ($email){
-		  	$account = PHDB::findOne(Person::COLLECTION,array("email"=>$email));
+		  	$account = PHDB::findOne(self::COLLECTION,array("email"=>$email));
 		  	//var_dump($account);
 		  	if ($account) {
 		  		$id = $account["_id"] ;
@@ -1246,11 +1282,11 @@ class Person {
     **/
 	public static function isLinkedEmail($email, $userId) {
     	$res = false ;
-        $id = Person::getPersonIdByEmail($email);
+        $id = self::getPersonIdByEmail($email);
         //var_dump($id);
         if($id != false)
         {
-        	$res = Link::isLinked($id, Person::COLLECTION, $userId);
+        	$res = Link::isLinked($id, self::COLLECTION, $userId);
         	//var_dump($res);
         }	
         
@@ -1266,7 +1302,7 @@ class Person {
 
     public static function getPersonFollowsByUser($id) {
 	  	$res = array();
-	  	$person = Person::getById($id);
+	  	$person = self::getById($id);
 	  	
 	  	if(empty($person)) {
             throw new CTKException(Yii::t("common", "Something went wrong : please contact your admin"));
@@ -1455,8 +1491,8 @@ class Person {
 		  		throw new CTKException(Yii::t("import","205", null, Yii::app()->controller->module->id));
 		  	}
 			//Check if the email of the person is already in the database
-		  	$account = PHDB::findOne(Person::COLLECTION,array("email"=> new MongoRegex('/^' . preg_quote(trim($person["email"])) . '$/i')));
-		  	//$account = PHDB::findOne(Person::COLLECTION,array("email"=>$person["email"]));
+		  	$account = PHDB::findOne(self::COLLECTION,array("email"=> new MongoRegex('/^' . preg_quote(trim($person["email"])) . '$/i')));
+		  	//$account = PHDB::findOne(self::COLLECTION,array("email"=>$person["email"]));
 		  	if($account){
 		  		throw new CTKException(Yii::t("import","206", null, Yii::app()->controller->module->id));
 		  	}
@@ -1668,7 +1704,7 @@ class Person {
 	 */
 	public static function insertPersonFromImportData($person, $warnings, $invite=null, $isKissKiss = null, $invitorUrl=null, $pathFolderImage = null, $moduleId = null, $paramsLink,  $sendMail){
 	    
-		$account = PHDB::findOne(Person::COLLECTION,array("email"=>$person["email"]));
+		$account = PHDB::findOne(self::COLLECTION,array("email"=>$person["email"]));
 		if($account){
 			$msg = "Déja inscrits :" ;
 			if(!empty($sendMail)){
@@ -1694,7 +1730,7 @@ class Person {
 			
 			if(!empty($person["badges"])){
 				$badges = Badge::conformeBadges($person["badges"]);
-				$res = Badge::addAndUpdateBadges($badges, (String)$account["_id"], Person::COLLECTION);
+				$res = Badge::addAndUpdateBadges($badges, (String)$account["_id"], self::COLLECTION);
 				$msg .=" ".$res["msg"];
 			}
 
@@ -1712,7 +1748,7 @@ class Person {
 
 			/*if(!empty($person["source"]["key"])){
 				//var_dump($person["source"]["key"]);
-				$res = Import::addAndUpdateSourceKey($person["source"]["key"], (String)$account["_id"], Person::COLLECTION);
+				$res = Import::addAndUpdateSourceKey($person["source"]["key"], (String)$account["_id"], self::COLLECTION);
 				$msg +=" "+$res["msg"];
 			}*/
 
@@ -1745,7 +1781,7 @@ class Person {
 	        	unset($newPerson["nameInvitor"]);
 			}
 
-			PHDB::insert(Person::COLLECTION , $newPerson);
+			PHDB::insert(self::COLLECTION , $newPerson);
 
 		    if (isset($newPerson["_id"]))
 		    	$newpersonId = (String) $newPerson["_id"];
@@ -1787,9 +1823,9 @@ class Person {
 					}
 				}
 				if($paramsLink["typeLink"] == "Person"){
-					//Link::connect($newOrganizationId, Organization::COLLECTION, $paramsLink["idLink"], Person::COLLECTION, $creatorId,"members",$paramsLink["isAdmin"]);
-					//Link::connect($paramsLink["idLink"], Person::COLLECTION, $newOrganizationId, Organization::COLLECTION, $creatorId,"memberOf",$paramsLink["isAdmin"]);
-				   //Link::addMember($newOrganizationId, Organization::COLLECTION, $paramsLink["idLink"], Person::COLLECTION, $creatorId, $paramsLink["isAdmin"]);
+					//Link::connect($newOrganizationId, Organization::COLLECTION, $paramsLink["idLink"], self::COLLECTION, $creatorId,"members",$paramsLink["isAdmin"]);
+					//Link::connect($paramsLink["idLink"], self::COLLECTION, $newOrganizationId, Organization::COLLECTION, $creatorId,"memberOf",$paramsLink["isAdmin"]);
+				   //Link::addMember($newOrganizationId, Organization::COLLECTION, $paramsLink["idLink"], self::COLLECTION, $creatorId, $paramsLink["isAdmin"]);
 				}
 		
 			}
@@ -1848,27 +1884,10 @@ class Person {
 		if($id == "") $id = isset($entity['_id']) ? $entity['_id'] : "";
 		if($id == "") $id = isset($entity['id']) ? $entity['id'] : "";
 		if($id == "") return $entity;
+		//var_dump($id);
+		$isLinked = Link::isLinked((string)$id,self::COLLECTION, Yii::app()->session['userId']);
 		
-		$isLinked = Link::isLinked((string)$id,Person::COLLECTION, Yii::app()->session['userId']);
-		$attNameConfidentiality = array("email", "locality", "phone");
-
-		foreach ($attNameConfidentiality as $key => $fieldName) {
-			if( Yii::app()->session['userId'] == (string)$id 
-		  		||  ( isset($entity["preferences"]) && isset($entity["preferences"]["publicFields"]) && in_array( $fieldName, $entity["preferences"]["publicFields"]) )  
-		  		|| ( $isLinked && isset($entity["preferences"]) && isset($entity["preferences"]["privateFields"]) && in_array( $fieldName, $entity["preferences"]["privateFields"]))  )
-			{}
-			else{
-				if($fieldName == "locality")  { 
-					$entity["address"]["streetAddress"] = ""; 
-				}
-				else if($fieldName == "phone"){ 
-					$entity["telephone"] = ""; 
-				}
-				else{
-					$entity[$fieldName] = "";
-				}
-			}
-	  	}	
+		$entity = Preference::clearByPreference($entity, self::COLLECTION, Yii::app()->session["userId"]);	
 
 	  	if(!empty($entity["pwd"]))
 	  		unset($entity["pwd"]);
@@ -1891,40 +1910,40 @@ class Person {
         $user = self::getById(Yii::app()->session['userId']);
         $res = array();
         if(!empty($data["identity"]["name"]) && $data["identity"]["name"] != $user["name"])
-        	$res[] = Person::updatePersonField(Yii::app()->session['userId'], "name", $data["identity"]["name"], Yii::app()->session["userId"]);
+        	$res[] = self::updatePersonField(Yii::app()->session['userId'], "name", $data["identity"]["name"], Yii::app()->session["userId"]);
 
         if(!empty($data["identity"]["email"]) && $data["identity"]["email"] != $user["email"])
-        	$res[] = Person::updatePersonField(Yii::app()->session['userId'], "email", $data["identity"]["email"], Yii::app()->session["userId"]);
+        	$res[] = self::updatePersonField(Yii::app()->session['userId'], "email", $data["identity"]["email"], Yii::app()->session["userId"]);
 
         if(!empty($data["identity"]["username"]) && $data["identity"]["username"] != $user["username"])
-        	$res[] = Person::updatePersonField(Yii::app()->session['userId'], "username", $data["identity"]["username"], Yii::app()->session["userId"]);
+        	$res[] = self::updatePersonField(Yii::app()->session['userId'], "username", $data["identity"]["username"], Yii::app()->session["userId"]);
 
         if(!empty($data["identity"]["geo"]) && $data["identity"]["geo"] != $user["geo"]){
-        	$res[] = Person::updatePersonField(Yii::app()->session['userId'], "geo", $data["identity"]["geo"], Yii::app()->session["userId"]);
+        	$res[] = self::updatePersonField(Yii::app()->session['userId'], "geo", $data["identity"]["geo"], Yii::app()->session["userId"]);
         }
 
         if(!empty($data["identity"]["address"]) && $data["identity"]["address"] != $user["address"]){
-        	$res[] = Person::updatePersonField(Yii::app()->session['userId'], "address", $data["identity"]["address"], Yii::app()->session["userId"]);
+        	$res[] = self::updatePersonField(Yii::app()->session['userId'], "address", $data["identity"]["address"], Yii::app()->session["userId"]);
         }
 
         /*if(!empty($data["identity"]["birthDate"]) && $data["identity"]["birthDate"] != $user["birthDate"]){
-        	$res[] = Person::updatePersonField(Yii::app()->session['userId'], "birthDate", $data["identity"]["birthDate"], Yii::app()->session["userId"]);
+        	$res[] = self::updatePersonField(Yii::app()->session['userId'], "birthDate", $data["identity"]["birthDate"], Yii::app()->session["userId"]);
         }*/
        	
         if(!empty($data["identity"]["telephone"]) && $data["identity"]["telephone"] != $user["telephone"]){
-        	$res[] = Person::updatePersonField(Yii::app()->session['userId'], "telephone", $data["identity"]["telephone"], Yii::app()->session["userId"]);
+        	$res[] = self::updatePersonField(Yii::app()->session['userId'], "telephone", $data["identity"]["telephone"], Yii::app()->session["userId"]);
         }
 
         if(!empty($data["identity"]["tags"]) && $data["identity"]["tags"] != $user["tags"]){
-        	$res[] = Person::updatePersonField(Yii::app()->session['userId'], "tags", $data["identity"]["tags"], Yii::app()->session["userId"]);
+        	$res[] = self::updatePersonField(Yii::app()->session['userId'], "tags", $data["identity"]["tags"], Yii::app()->session["userId"]);
         }
        	
        	if(!empty($data["identity"]["shortDescription"]) && $data["identity"]["shortDescription"] != $user["shortDescription"]){
-        	$res[] = Person::updatePersonField(Yii::app()->session['userId'], "shortDescription", $data["identity"]["shortDescription"], Yii::app()->session["userId"]);
+        	$res[] = self::updatePersonField(Yii::app()->session['userId'], "shortDescription", $data["identity"]["shortDescription"], Yii::app()->session["userId"]);
         }
 	    
 	    if(!empty($data["identity"]["socialNetwork"]) && $data["identity"]["socialNetwork"] != $user["socialNetwork"]){
-        	$res[] = Person::updatePersonField(Yii::app()->session['userId'], "socialNetwork", $data["identity"]["socialNetwork"], Yii::app()->session["userId"]);
+        	$res[] = self::updatePersonField(Yii::app()->session['userId'], "socialNetwork", $data["identity"]["socialNetwork"], Yii::app()->session["userId"]);
         }
 
        	return $res;
@@ -1938,7 +1957,7 @@ class Person {
     public static function getPendingUserByEmail($email) {
 		$res = "";
 		if ($email){
-		  	$account = PHDB::findOne(Person::COLLECTION,array("email"=>$email));
+		  	$account = PHDB::findOne(self::COLLECTION,array("email"=>$email));
 		  	if ($account && @$account["pending"]) {
 		  		return (String) $account["_id"];
 		  	}
@@ -2057,17 +2076,43 @@ class Person {
 
     public static function updateCookieCommunexion($userId, $address) {
     	$result = array("result" => false, "msg" => "User not connected");
+    	
+
     	if(!empty($userId)){
     		try{
     			if(!empty($address)){
-    				CookieHelper::setCookie("inseeCommunexion", $address["codeInsee"]);
+    				CookieHelper::setCookie("communexion",  json_encode(City::detailsLocality($address)));
+    				$where = array("insee" => $address["codeInsee"]);
+					$citiesResult = PHDB::findOne( City::COLLECTION , $where, array("postalCodes") );
+					if(!empty($citiesResult)){
+						foreach($citiesResult as $v){
+							if(!empty($citiesResult["postalCodes"]) && count($citiesResult["postalCodes"]) == 1)
+								CookieHelper::setCookie("communexionType", "city");
+							else
+								CookieHelper::setCookie("communexionType", "cp");
+						}
+					}else
+						CookieHelper::setCookie("communexionType", "city");
+
+    				/*CookieHelper::setCookie("inseeCommunexion", $address["codeInsee"]);
 		    		CookieHelper::setCookie("cpCommunexion", $address["postalCode"]);
 		    		CookieHelper::setCookie("cityNameCommunexion", $address["addressLocality"]);
+		    		CookieHelper::setCookie("communexionActivated", false);
+		    		CookieHelper::setCookie("communexionValue", $address["addressCountry"]."_".$address["codeInsee"]."-".$address["postalCode"]);
+		    		CookieHelper::setCookie("communexionName", $address["addressLocality"]);
+		    		CookieHelper::setCookie("communexionLevel", "cpCommunexion");*/
+
     			}else{
-    				CookieHelper::removeCookie("inseeCommunexion");
-		    		CookieHelper::removeCookie("cpCommunexion");
-		    		CookieHelper::removeCookie("cityNameCommunexion");
+    				//var_dump($address);
+		    		/*CookieHelper::removeCookie("communexionType");
+					CookieHelper::removeCookie("communexionValue");
+					CookieHelper::removeCookie("communexionName");
+					CookieHelper::removeCookie("communexionLevel");    				
+					CookieHelper::removeCookie("inseeCommunexion");
+					CookieHelper::removeCookie("cpCommunexion");
+					CookieHelper::removeCookie("cityNameCommunexion");*/
     			}
+    			
 	    		$result = array("result" => true, "msg" => "Cookies is updated");
 			}catch (CTKException $e) {
 				$result = array("result" => false, "msg" => $e->getMessage());
@@ -2076,6 +2121,19 @@ class Person {
 
     	return $result ;
     }
+
+
+    /*public static function removeCookie($person){
+    	if(!empty($person["removeCookie"]) && $person["removeCookie"] == true ){
+    		CookieHelper::removeCookie("communexionType");
+			CookieHelper::removeCookie("communexionValue");
+			CookieHelper::removeCookie("communexionName");
+			CookieHelper::removeCookie("communexionLevel");    				
+			CookieHelper::removeCookie("inseeCommunexion");
+			CookieHelper::removeCookie("cpCommunexion");
+			CookieHelper::removeCookie("cityNameCommunexion");
+    	}
+    }*/
 
     public static function getCurrentSuperAdmins() {
     	$superAdmins = array();

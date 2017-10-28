@@ -9,7 +9,7 @@ class GetJsonAction extends CAction
     {
 	    $name=$_POST["json"];
         //header('Access-Control-Allow-Origin: *');
-        $docsJSON = file_get_contents("../../modules/communecter/views/chart/json/".$name.".json", FILE_USE_INCLUDE_PATH);
+        $docsJSON = file_get_contents("../../modules/co2/views/chart/json/".$name.".json", FILE_USE_INCLUDE_PATH);
         //echo $docsJSON;
         $docs = json_decode($docsJSON,true);       
         //print_r($docs);

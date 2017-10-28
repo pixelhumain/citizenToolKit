@@ -3,7 +3,7 @@ class Document {
 
 	const COLLECTION = "documents";
 
-	const IMG_BANNIERE 			= "banniere";
+	const IMG_BANNER 			= "banner";
 	const IMG_PROFIL 			= "profil";
 	const IMG_LOGO 				= "logo";
 	const IMG_SLIDER 			= "slider";
@@ -14,14 +14,17 @@ class Document {
 	const CATEGORY_PLAQUETTE 	= "Plaquette";
 
 	const DOC_TYPE_IMAGE 		= "image";
+	const DOC_TYPE_FILE 		= "file";
 	const DOC_TYPE_CSV		= "text/csv";
 
 	const GENERATED_IMAGES_FOLDER 		= "thumb";
+	const GENERATED_FILE_FOLDER 		= "file";
 	const GENERATED_MEDIUM_FOLDER 		= "medium";
 	const GENERATED_ALBUM_FOLDER		= "album";
-	const GENERATED_BANNIERE_FOLDER		= "banniere";
+	const GENERATED_BANNER_FOLDER		= "banner";
 	const FILENAME_PROFIL_RESIZED 	  	= "profil-resized.png";
 	const FILENAME_PROFIL_MARKER 	  	= "profil-marker.png";
+	const FILENAME_PROFIL_BANNER 	  	= "banner.png";
 	const GENERATED_THUMB_PROFIL 	  	= "thumb-profil";
 	const GENERATED_MARKER		 	  	= "marker";
 
@@ -86,27 +89,50 @@ class Document {
 	public static function save($params){
 		
 		//check content key
-		if (!in_array(@$params["contentKey"], array(self::IMG_BANNIERE,self::IMG_PROFIL,self::IMG_LOGO,self::IMG_SLIDER,self::IMG_MEDIA)))
+		if (!@$params["doctype"] && !in_array(@$params["contentKey"], array(self::IMG_BANNER,self::IMG_PROFIL,self::IMG_LOGO,self::IMG_SLIDER,self::IMG_MEDIA)))
 			throw new CTKException("Unknown contentKey ".$params["contentKey"]." for the document !");
+	    
 	    $new = array(
 			"id" => $params['id'],
 	  		"type" => $params['type'],
 	  		"folder" => $params['folder'],
 	  		"moduleId" => $params['moduleId'],
-	  		"doctype" => Document::getDoctype($params['name']),	
 	  		"author" => $params['author'],
 	  		"name" => $params['name'],
 	  		"size" => (int) $params['size'],
 	  		"contentKey" => @$params["contentKey"],
 	  		'created' => time()
 	    );
+	    if(@$params["doctype"]){
+	    	$new["doctype"]=$params["doctype"];
+	    	$new["contentKey"]=Document::getFileContentKey($params['name']);
+	    }
+	    else
+	    	$new["doctype"]=Document::getDoctype($params['name']);
 	    if(@$params["crop"])
 	    	$new["crop"]=$params["crop"];
+
 	    //if item exists
 	    //if( PHDB::count($new['type'],array("_id"=>new MongoId($new['id']))) > 0 ){
-		if (in_array($params["type"], array(Survey::COLLECTION, ActionRoom::COLLECTION, ActionRoom::COLLECTION_ACTIONS))) {
-			 if (!Authorisation::canEditItem( $params['author'], $params['type'], $params['id'], @$params["parentType"],@$params["parentId"])) {
-		    	return array("result"=>false, "msg"=>Yii::t('document',"You are not allowed to modify the document of this item !") );
+		if ( in_array($params["type"], array( Survey::COLLECTION,Survey::CONTROLLER, ActionRoom::COLLECTION, ActionRoom::COLLECTION_ACTIONS)) ) {
+				if($params['type'] == Survey::COLLECTION || $params['type'] == Survey::CONTROLLER ){
+		            $elem = Survey::getById($params["id"]);
+		            $room = Element::getByTypeAndId(ActionRoom::COLLECTION, $elem["survey"]);
+		            $params["parentId"] = $room["parentId"];
+		            $params["parentType"] = $room["parentType"];
+		        }
+				
+				if($params['type'] == ActionRoom::TYPE_ACTION)
+					$params['type'] = ActionRoom::COLLECTION_ACTIONS;
+	            
+	            if( @$params["parentType"] == null || @$params["parentId"] == null ) {
+	                $elem = Element::getByTypeAndId($params['type'], $params["id"]);
+	                $params["parentId"] = $elem["parentId"];
+	                $params["parentType"] = $elem["parentType"];
+	            } 
+
+			if (!Authorisation::canEditItem( $params['author'], $params['type'], $params['id'], @$params["parentType"],@$params["parentId"])) {
+		    	return array("result"=>false, "type"=>$params['type'],"id"=>@$params["id"],  "parentType"=>@$params["parentType"],"parentId"=>@$params["parentId"], "msg"=>Yii::t('document',"You are not allowed to modify the document of this item !") );
 		    }
 		} else {
 		    if (   ! Authorisation::canEditItem($params['author'], $params['type'], $params['id']) 
@@ -119,27 +145,43 @@ class Document {
 		    		return array("result"=>false, "msg"=>Yii::t('document',"You are not allowed to modify the document of this item !"), "params" => $params );
 		    }
 	    }
+
 		//}
 	    if(isset($params["category"]) && !empty($params["category"]))
 	    	$new["category"] = $params["category"];
-
+	    if($new["contentKey"]==self::IMG_BANNER || $new["contentKey"]==self::IMG_PROFIL){
+	    	PHDB::update(self::COLLECTION,
+	    		array("id"=>$new["id"],"type"=>$new["type"],"contentKey"=>$new["contentKey"],
+	    			"current"=>array('$exists'=>true)),
+	    		array('$unset'=>array("current"=>true))
+	    		);
+	    	$new["current"]=true;
+	    }
 	    PHDB::insert(self::COLLECTION, $new);
-	     if (substr_count(@$new["contentKey"], self::IMG_BANNIERE)) {
-	    	$src=self::generateBanniereImages($new);
-	    	$typeNotif="banniereImage";
-	    }
-    	else{
-	    //Generate small image
-	   	self::generateAlbumImages($new);
-	    //Generate image profil if necessary
-	    if (substr_count(@$new["contentKey"], self::IMG_PROFIL)) {
-	    	self::generateProfilImages($new);
-	    	$typeNotif="profilImage";
-	    }
-	    if (substr_count(@$new["contentKey"], self::IMG_SLIDER)) {
-	    	self::generateAlbumImages($new, self::GENERATED_IMAGES_FOLDER);
-	    	$typeNotif="albumImage";
-	    }
+	    if($new["doctype"]==self::DOC_TYPE_IMAGE){
+		    if (substr_count(@$new["contentKey"], self::IMG_BANNER)) {
+		    	// get banner image resize and crop
+		    	$src=self::generateBannerImages($new);
+		    	// get normal image resize
+		    	self::generateAlbumImages($new);
+		    	// get album image resize
+		    	self::generateAlbumImages($new,  self::GENERATED_IMAGES_FOLDER);
+		    	
+		    	$typeNotif="bannerImage";
+		    }
+	    	else{
+			    //Generate small image
+			   	self::generateAlbumImages($new);
+			    //Generate image profil if necessary
+			    if (substr_count(@$new["contentKey"], self::IMG_PROFIL)) {
+			    	self::generateProfilImages($new);
+			    	$typeNotif="profilImage";
+			    }
+			    if (substr_count(@$new["contentKey"], self::IMG_SLIDER)) {
+			    	self::generateAlbumImages($new, self::GENERATED_IMAGES_FOLDER);
+			    	$typeNotif="albumImage";
+			    }
+			}
 		}
 	   //Notification::constructNotification(ActStr::VERB_ADD, array("id" => Yii::app()->session["userId"],"name"=> Yii::app()->session["user"]["name"]), array("type"=>$new["type"],"id"=> $new["id"]), null, $typeNotif);
 	    return array("result"=>true, "msg"=>Yii::t('document','Document saved successfully'), "id"=>$new["_id"],"name"=>$new["name"],"src"=>@$src);	
@@ -167,6 +209,28 @@ class Document {
 			$doctype = $ext;
 		}
 		return $doctype;
+	}
+	/**
+	* get the type of a document
+	* @param strname : the name of the document
+	*/
+	public static function getFileContentKey($strname){
+		$pdf_ext = array("pdf");
+		$spreadsheet_ext =array("xls","xlsx","ods");
+		$text_ext = array("doc","docx","odt");
+		$presentation_ext= array("ppt","pptx","odp");
+		$contentKey = "";
+		$ext = strtolower(pathinfo($strname, PATHINFO_EXTENSION)); // Using strtolower to overcome case sensitive
+		if (in_array($ext, $pdf_ext)) {
+			$contentKey = "pdf";
+		}else if(in_array($ext, $spreadsheet_ext)){
+			$contentKey = "spreadsheet";
+		}else if(in_array($ext, $text_ext)){
+			$contentKey = "text";
+		}else{
+			$contentKey = "presentation";
+		}
+		return $contentKey;
 	}
 
 	/** TODO BOUBOULE 
@@ -223,13 +287,40 @@ class Document {
 		return $listDocuments;
 	}
 	
-	public static function listMyDocumentByIdAndType($id, $type, $contentKey= null, $docType = null, $sort=null)	{	
+	public static function getDocumentSimpleByWhere($where=null, $fields=null){
+		if(empty($fields))
+			$fields = array("_id");
+		$documents = PHDB::find(self::COLLECTION, $where ,$fields);
+		return @$documents;
+	}
+	public static function updateCollectionNameDocument($targetId,$targetType,$name, $docType, $oldName=null){
+		return PHDB::update($self::COLLECTION,
+	    					array("id" => $targetId, "type"=>$targetType, "docType"=>$docType,"collection"=>$oldName),
+	                        array('$set' => array("collection"=> $name))
+	    );
+	}
+	public static function moveDocumentToCollection($id, $name=null){
+		return PHDB::update(self::COLLECTION,
+	    					array("_id"=>new MongoId($id)),
+	                        array('$set' => array("collection"=> $name))
+	                    );
+	}
+	public static function removeAllDocument($targetId, $targetType, $collection,$docType="image"){
+		$where=array("type"=>$targetType,"id"=>$targetId,"docType"=>$docType,"collection"=>$collection);
+		$docsToDelete=self::getDocumentSimpleByWhere($where);
+		foreach ($docsToDelete as $data){
+			self::removeDocumentById((string)$data["_id"]);
+		}
+	}
+	public static function listMyDocumentByIdAndType($id, $type, $contentKey= null, $collection=null, $docType = null, $sort=array())	{	
 		$params = array("id"=> $id,
 						"type" => $type);
 		if (isset($contentKey) && $contentKey != null) 
 			$params["contentKey"] = $contentKey;
 		if (isset($docType)) 
 			$params["doctype"] = $docType;
+		if (isset($docType)) 
+			$params["collection"] = $collection;
 		$listDocuments = PHDB::findAndSort( self::COLLECTION,$params, $sort);
 		return $listDocuments;
 	}
@@ -241,10 +332,41 @@ class Document {
 	 * @param array $limit represent the number of document by type that will be return. If not set, everything will be return
 	 * @return array a list of documents + URL sorted by contentkey type (IMG_PROFIL, IMG_SLIDER...)
 	 */
-	public static function getListDocumentsByIdAndType($id, $type, $contentKey=null, $docType=null, $limit=null){
+	public static function getListDocumentsWhere($where, $docType, $limit=null){
+		$listDocumentsofType = PHDB::findAndSort( self::COLLECTION,$where, array( 'created' => -1 ));
+		if($docType="image"){
+			$docs=self::getListOfImage($listDocumentsofType);
+		}
+
+		return $docs;
+		
+	}
+	public static function getLastThumb($id,$type,$contentKey,$collection=null){
+		// To finishADD LAST ONE CREATED 
+		//,"created"=>array('$gt'=>1)
+		$where=array("id"=>$id,"type"=>$type,"contentKey"=>$contentKey);
+		if(@$collection)
+			$where["collection"]=$collection;
+		else if(!@$collection && $contentKey==self::IMG_SLIDER)
+			$where["collection"]=array('$exists'=>true);
+		$doc = PHDB::findOne( self::COLLECTION, $where);
+		if(!empty($doc)){
+			$doc=self::getListOfImage(array($doc));
+			$url=$doc[0]["imageThumbPath"];
+		}else
+			$url = Yii::app()->controller->module->assetsUrl.'/images/thumbnail-default.jpg';
+		return $url;
+	}
+	public static function countByWhere($id,$type,$contentKey=null, $col=null, $docType="image"){
+		$where=array("id"=>$id,"type"=>$type,"doctype"=>$docType);
+		if(@$contentKey)
+			$where["contentKey"]=$contentKey;
+		if(@$col)
+			$where["collection"]=$col;
+		return PHDB::count( self::COLLECTION, $where);
+	}
+	public static function getListOfImage($listDocumentsofType){
 		$listDocuments = array();
-		$sort = array( 'created' => -1 );
-		$listDocumentsofType = Document::listMyDocumentByIdAndType($id, $type, $contentKey, $docType, $sort);
 		foreach ($listDocumentsofType as $key => $value) {
 			$toPush = false;
 			if(isset($value["contentKey"]) && $value["contentKey"] != ""){
@@ -275,22 +397,25 @@ class Document {
 					$pushImage['id'] = (string)$value["_id"];
 					$imagePath = Yii::app()->baseUrl."/".Yii::app()->params['uploadUrl'].$value["moduleId"]."/".$value["folder"];
 					if($value["contentKey"]=="profil")
-						$imageThumbPath = $imagePath;
+						$imageThumbPath = $imagePath."/".self::GENERATED_MEDIUM_FOLDER;
+					//else if($value["contentKey"]=="banner")
+						//$imageThumbPath = $imagePath."/".self::GENERATED_IMAGES_FOLDER;
 					else
 						$imageThumbPath = $imagePath."/".self::GENERATED_IMAGES_FOLDER;
 					$imagePath .= "/".$value["name"];
 					$imageThumbPath .= "/".$value["name"];
 				}
-				if (! isset($listDocuments[$currentContentKey])) {
+				/*if (!isset($listDocuments[$currentContentKey])) {
 					$listDocuments[$currentContentKey] = array();
-				} 
+				} */
 				$pushImage['moduleId'] = $value["moduleId"];
 				$pushImage['contentKey'] = $value["contentKey"];
 				$pushImage['imagePath'] = $imagePath;
 				$pushImage['imageThumbPath'] = $imageThumbPath;
 				$pushImage['name'] = $value["name"];
+				$pushImage['title'] = @$value["title"];
 				$pushImage['size'] = self::getHumanFileSize($value["size"]);
-				array_push($listDocuments[$currentContentKey], $pushImage);
+				array_push($listDocuments, $pushImage);
 			}
 		}
 		return $listDocuments;
@@ -328,10 +453,21 @@ class Document {
 	 * @return size of storage used to stock
 	 */
 	public static function authorizedToStock($id, $type,$docType){
-		$storageSpace = self::storageSpaceByIdAndType($id, $type,self::DOC_TYPE_IMAGE);
-		$authorizedToStock=true;
-		if($storageSpace > (20*1048576))
-			$authorizedToStock=false;
+		$authorizedToStock=false;
+		if(@Yii::app()->session["userId"]){
+			if($type=="city"){
+				$id=Yii::app()->session["userId"];
+				$type=Person::COLLECTION;
+			}
+			$storageSpace = self::storageSpaceByIdAndType($id, $type,self::DOC_TYPE_IMAGE);
+			$preferences = Preference::getPreferencesByTypeId($id,$type);
+			$initAuthorizedSpace=20;
+			if(@$preferences["authorizedSpace"])
+				$initAuthorizedSpace=$preferences["authorizedSpace"];
+			$authorizedToStock=true;
+			if($storageSpace > ($initAuthorizedSpace*1048576))
+				$authorizedToStock=false;
+		}
 		return $authorizedToStock;
 	}
 	/**
@@ -356,27 +492,51 @@ class Document {
 	* remove a document by id and delete the file on the filesystem
 	* @return
 	*/
-	public static function removeDocumentById($id, $userId){
-		//TODO SBAR - Generate new thumbs if the image is the current image
+	public static function removeDocumentById($id){
 		$doc = Document::getById($id);
 		if ($doc) 
 		{
-			if (Authorisation::canEditItem($userId, $doc["type"], $doc["id"])) 
-			{
-				$filepath = self::getDocumentPath($doc);
-				if(file_exists ( $filepath )) {
-		            if (unlink($filepath)) {
-		                PHDB::remove(self::COLLECTION, array("_id"=>new MongoId($id)));
-		                $res = array('result'=>true, "msg" => Yii::t("document","Document deleted"), "id" => $id);
-		            } else
-		                $res = array('result'=>false,'msg'=>Yii::t("common","Something went wrong!"), "filepath" => $filepath);
-		        } else {
-		        	//even if The file does not exists on the filesystem : we try to delete the document on mongo
-		            PHDB::remove(self::COLLECTION, array("_id"=>new MongoId($id)));
-		            $res = array('result'=>true, "msg" => Yii::t("document","Document deleted"), "id" => $id);
-		        }
-		    } else 
-		    	$res = array('result'=>false, "msg" => Yii::t("document","You are not allowed to delete this document !"), "id" => $id);
+			// IF EXIST FILEPATH IN DOCUMENT STOCK, DELETE DOCUMENT IN UPLOAD FOLDER ELSE SIMPLY DELETE DOCUMENT IN DB
+			$filepath = self::getDocumentPath($doc);
+			if($doc["contentKey"]==self::IMG_SLIDER || $doc["contentKey"]==self::IMG_BANNER){
+				$filePathThumb=self::getDocumentFolderPath($doc).self::GENERATED_IMAGES_FOLDER."/".$doc["name"];
+			}else if($doc["contentKey"]==self::IMG_PROFIL)
+				$filePathThumb=self::getDocumentFolderPath($doc).self::GENERATED_MEDIUM_FOLDER."/".$doc["name"];
+			if(file_exists($filepath)) {
+	            if (unlink($filepath)) {
+	            	if(@$filePathThumb && file_exists ($filePathThumb))
+	            		unlink($filePathThumb);
+	            	if(@$doc["current"]){
+	            		// iF GET CURRENT DELETE PATH IN COLLECTION OF ELEMENT
+	            		if($doc["contentKey"]==self::IMG_PROFIL){
+	            			$unset=array(
+	            				"profilImageUrl"=>true,
+	            				"profilThumbImageUrl"=>true,
+	            				"profilMarkerImageUrl"=>true,
+	            				"profilMediumImageUrl"=>true
+	            			);
+
+	            		}
+	            		else if($doc["contentKey"]==self::IMG_BANNER){
+	            			$unset=array(
+	            				"profilBannerUrl"=>true,
+	            				"profilRealBannerUrl"=>true
+	            			);
+	            		}
+	            		PHDB::update($doc["type"],
+ 							array("_id"  => new MongoId($doc["id"])), 
+ 							array('$unset'=> $unset) 
+ 						);
+	            	}
+	                PHDB::remove(self::COLLECTION, array("_id"=>new MongoId($id)));
+	                $res = array('result'=>true, "msg" => Yii::t("document","Document deleted"), "id" => $id);
+	            } else
+	                $res = array('result'=>false,'msg'=>Yii::t("common","Something went wrong!"), "filepath" => $filepath);
+	        } else {
+	        	//even if The file does not exists on the filesystem : we try to delete the document on mongo
+	            PHDB::remove(self::COLLECTION, array("_id"=>new MongoId($id)));
+	            $res = array('result'=>true, "msg" => Yii::t("document","Document deleted"), "id" => $id);
+	        }
 		} else 
 		    $res = array('result'=>false,'error'=>Yii::t("common","Something went wrong!"),"id"=>$id);
 
@@ -455,7 +615,22 @@ class Document {
 	                    );
 		}
 	}
-
+	/**
+	* update document
+	* @param Id is the id of the document that we want to update
+	* @param update is the array with values to update
+	* @return
+	*/
+	public static function update($id, $update){
+		$set=array();
+		if(@$update["title"] && !empty($update["title"]))
+			$set["title"]=$update["title"];
+		PHDB::update(self::COLLECTION,
+			array("_id" => new MongoId($id)),
+            array('$set' => $set)
+        );
+		return true;
+	}
 	/**
 	* get a list of images with a key depending on limit
 	* @param itemId is the id of the item that we want to get images
@@ -605,7 +780,10 @@ class Document {
         						  Project::COLLECTION, 
         						  Event::COLLECTION,
         						  Poi::COLLECTION, 
-        						  Classified::COLLECTION);
+        						  Survey::COLLECTION ,
+							      ActionRoom::COLLECTION,
+							      ActionRoom::COLLECTION_ACTIONS
+							      );
         if (@$profilUrl && in_array($document["type"], $allowedElements )) {
         	
         	$changes = array();
@@ -614,7 +792,7 @@ class Document {
         	if (@$profilMediumUrl)
         		$changes["profilMediumImageUrl"] = $profilMediumUrl;
         	if (@$profilThumbUrl)
-        		$changes["profilThumbImageUrl"] = $profilThumbUrl;
+        		$changes["profilThumbImageUrl"] = $profilThumbUrl."?t=".time();
         	if (@$profilMarkerImageUrl)
         		$changes["profilMarkerImageUrl"] = $profilMarkerImageUrl;
 
@@ -642,7 +820,7 @@ class Document {
 			$destination="";
 			$maxWidth=1100;
 			$maxHeight=700;
-			$quality=50;
+			$quality=80;
 		}
 		//The images will be stored in the /uploadDir/moduleId/ownerType/ownerId/thumb (ex : /upload/communecter/citoyen/1242354235435/thumb)
 		$upload_dir = Yii::app()->params['uploadDir'].$dir.'/'.$folder.$destination; 
@@ -665,29 +843,31 @@ class Document {
 	// Resize initial image for album size 
 	// param type array $document
 	// param string $folderAlbum where Image is upload
-	public static function generateBanniereImages($document) {
+	public static function generateBannerImages($document) {
     	$dir = $document["moduleId"];
     	$folder = $document["folder"];
-		//$destination='/'.self::GENERATED_BANNIERE_FOLDER;
+		//$destination='/'.self::GENERATED_BANNER_FOLDER;
 		$maxWidth=1300;
 		$maxHeight=400;
 		$quality=100;
 		//The images will be stored in the /uploadDir/moduleId/ownerType/ownerId/thumb (ex : /upload/communecter/citoyen/1242354235435/thumb)
-		$upload_dir = Yii::app()->params['uploadDir'].$dir.'/'.$folder; 
+		$upload_dir = Yii::app()->params['uploadDir'].$dir.'/'.$folder."/resized"; 
 		
-		if(!file_exists ( $upload_dir )) {       
-			mkdir($upload_dir, 0775);
-		}
-		//echo "iciiiiiii/////////////".$upload_dir;
+		if(file_exists ( $upload_dir )) {
+            CFileHelper::removeDirectory($upload_dir."bck");
+            rename($upload_dir, $upload_dir."bck");
+        }
+        mkdir($upload_dir, 0775);//echo "iciiiiiii/////////////".$upload_dir;
 		$path=self::getDocumentPath($document);
-		$profilBanniereUrl = self::getDocumentFolderUrl($document)."/".$document["name"];
+		$profilBannerUrl = self::getDocumentFolderUrl($document)."/resized/".self::FILENAME_PROFIL_BANNER."?t=".time();
 		//list($width, $height) = getimagesize($path);
 		//if ($width > $maxWidth || $height >  $maxHeight){
      	$imageUtils = new ImagesUtils($path);
-    	$destPathThumb = $upload_dir."/".$document["name"];
+    	$destPathThumb = $upload_dir."/".self::FILENAME_PROFIL_BANNER;
     		//if($folderAlbum==self::GENERATED_IMAGES_FOLDER)
     	$crop=$document["crop"];
-    	$imageUtils->resizeAndCropImage($crop["cropW"],$crop["cropH"],$crop)->save($destPathThumb);
+    	$imageUtils->imagecropping($crop["cropW"],$crop["cropH"],$crop["cropX"],$crop["cropY"])->save($destPathThumb,100);
+    	//$imageUtils->resizeAndCropImage($crop["cropW"],$crop["cropH"],$crop)->save($destPathThumb);
     	
     	//$imageUtils->imagecropping($crop["cropW"], $crop["cropH"], $crop["cropX"],$crop["cropY"])->save($destPathThumb);
     	$allowedElements = array( Person::COLLECTION, 
@@ -696,15 +876,18 @@ class Document {
         						  Event::COLLECTION,
         						  Poi::COLLECTION, 
         						  Classified::COLLECTION);
-        if (@$profilBanniereUrl && in_array($document["type"], $allowedElements )) {
+        if (@$profilBannerUrl && in_array($document["type"], $allowedElements )) {
         	
         	$changes = array();
-        		$changes["profilBanniereUrl"] = $profilBanniereUrl;
+        	$changes["profilBannerUrl"] = $profilBannerUrl;
+        	$changes["profilRealBannerUrl"]= self::getDocumentUrl($document);
 	        PHDB::update($document["type"], array("_id" => new MongoId($document["id"])), array('$set' => $changes));
 
 	        error_log("The entity ".$document["type"]." and id ". $document["id"] ." has been updated with the URL of the profil images.");
-	        return $profilBanniereUrl;
+	        CFileHelper::removeDirectory($upload_dir."bck");
+	        return $changes;
 		}
+		
     		//else
     		//	$imageUtils->resizePropertionalyImage($maxWidth,$maxHeight)->save($destPathThumb,$quality);
     	//}
@@ -757,9 +940,9 @@ class Document {
 				$markerDefaultName = str_replace("empty", "default", self::getEmptyMarkerFileName($type, $subType));
 				//$res = "/communecter/assets/images/sig/markers/icons_carto/".$markerDefaultName;
 				//remove the "/ph/" on the assersUrl if there
-				$homeUrlRegEx = "/".str_replace("/", "\/", Yii::app()->homeUrl)."/";
-				$assetsUrl = preg_replace($homeUrlRegEx, "", @Yii::app()->controller->module->assetsUrl,1);
-				$res = "/".$assetsUrl."/images/sig/markers/icons_carto/".$markerDefaultName;
+				//$homeUrlRegEx = "/".str_replace("/", "\/", Yii::app()->homeUrl)."/";
+				//$assetsUrl = preg_replace($homeUrlRegEx, "", @Yii::app()->controller->module->assetsUrl,1);
+				$res = "/".Yii::app()->controller->module->assetsUrl."/images/sig/markers/icons_carto/".$markerDefaultName;
 			} else {
 				$res = "";
 			}
@@ -817,7 +1000,8 @@ class Document {
 			$res["profilImageUrl"] = $entity["profilImageUrl"];
 			$res["profilThumbImageUrl"] = !empty($entity["profilThumbImageUrl"]) ? $entity["profilThumbImageUrl"] : "";
 			$res["profilMarkerImageUrl"] = !empty($entity["profilMarkerImageUrl"]) ? $entity["profilMarkerImageUrl"] : "";
-			$res["profilBanniereUrl"] = !empty($entity["profilBanniereUrl"]) ? $entity["profilBanniereUrl"] : ""; 
+			$res["profilBannerUrl"] = !empty($entity["profilBannerUrl"]) ? $entity["profilBannerUrl"] : "";
+			$res["profilRealBannerUrl"] = !empty($entity["profilRealBannerUrl"]) ? $entity["profilRealBannerUrl"] : ""; 
 			$res["profilMediumImageUrl"] = !empty($entity["profilMediumImageUrl"]) ? $entity["profilMediumImageUrl"]."?_=".time() : ""; 
 
 		//If empty than retrieve the URLs from document and store them in the entity for next time
@@ -845,14 +1029,15 @@ class Document {
 		}
 
 		//If empty marker return default marker
-		if ($res["profilMarkerImageUrl"] == "") {
-			$markerDefaultName = str_replace("empty", "default", self::getEmptyMarkerFileName($type, $subType));
+		//if ($res["profilMarkerImageUrl"] == "") {
+		//	$markerDefaultName = str_replace("empty", "default", self::getEmptyMarkerFileName($type, $subType));
 			//$res = "/communecter/assets/images/sig/markers/icons_carto/".$markerDefaultName;
 			//remove the "/ph/" on the assersUrl if there
-			$homeUrlRegEx = "/".str_replace("/", "\/", Yii::app()->homeUrl)."/";
-			$assetsUrl = preg_replace($homeUrlRegEx, "", @Yii::app()->controller->module->assetsUrl,1);
-			$res["profilMarkerImageUrl"] = "/".$assetsUrl."/images/sig/markers/icons_carto/".$markerDefaultName;
-		}
+			//$homeUrlRegEx = "/".str_replace("/", "\/", Yii::app()->homeUrl)."/";
+			//$assetsUrl = preg_replace($homeUrlRegEx, "", @Yii::app()->controller->module->assetsUrl,1);
+			//echo Yii::app()->controller->module->assetsUrl;
+			//$res["profilMarkerImageUrl"] = "/".Yii::app()->controller->module->assetsUrl."/images/sig/markers/icons_carto/".$markerDefaultName;
+		//}
 
 		return $res;
 	}
@@ -954,7 +1139,7 @@ class Document {
 	 * @param type|null $sizeUrl The size of the file (not mandatory : could be retrieve from the file when it's not an URL file)
 	 * @return array result => boolean, msg => String, uploadDir => where the file is stored
 	 */
-	public static function checkFileRequirements($file, $dir, $folder, $ownerId, $input, $nameUrl = null, $sizeUrl=null) {
+	public static function checkFileRequirements($file, $dir, $folder, $ownerId, $input, $contentKey=null, $docType=null,$nameUrl = null, $sizeUrl=null) {
 		//TODO SBAR
 		//$dir devrait être calculé : sinon on peut facilement enregistrer des fichiers n'importe où
 		$upload_dir = Yii::app()->params['uploadDir'];
@@ -980,20 +1165,24 @@ class Document {
             	mkdir ( $upload_dir,0775 );
 
         }
-       
-        if( @$input=="newsImage"){
+       	if( @$docType && $docType==Document::DOC_TYPE_FILE){
+       		$upload_dir .= Document::GENERATED_FILE_FOLDER.'/';
+            if( !file_exists ( $upload_dir ) )
+                mkdir ( $upload_dir,0775 );
+       	}
+        if( @$input=="newsImage" || (@$contentKey && $contentKey==Document::IMG_SLIDER)){
 	        $upload_dir .= Document::GENERATED_ALBUM_FOLDER.'/';
             if( !file_exists ( $upload_dir ) )
                 mkdir ( $upload_dir,0775 );
         }
-		if( @$input=="banniere"){
-	        $upload_dir .= Document::GENERATED_BANNIERE_FOLDER.'/';
+		if( @$input=="banner"){
+	        $upload_dir .= Document::GENERATED_BANNER_FOLDER.'/';
             if( !file_exists ( $upload_dir ) )
                 mkdir ( $upload_dir,0775 );
         }
 
         //Check extension
-        $allowed_ext = array('jpg','jpeg','png','gif',"pdf","xls","xlsx","doc","docx","ppt","pptx","odt");
+        $allowed_ext = array('jpg','jpeg','png','gif',"pdf","xls","xlsx","doc","docx","ppt","pptx","odt","ods","odp");
         
         $nameFile = (!empty($nameUrl) ? $nameUrl : $file["name"] );
         

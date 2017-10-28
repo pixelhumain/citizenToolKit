@@ -14,16 +14,16 @@ class MediaCrawlerAction extends CAction
 
         //date_default_timezone_set('Pacific/Noumea'); //'Pacific/Noumea'
 
-	    $res .= $this->extractSource("OUTREMERS360", "NEWS");
+	    //$res .= $this->extractSource("OUTREMERS360", "NEWS");
       $res .= $this->extractSource("NCTV", "YOUTUBE");
 
       $res .= $this->extractSource("NC1", "YOUTUBE");
-      $res .= $this->extractSource("NC1", "NC");
+      //$res .= $this->extractSource("NC1", "NC");
 
-      $res .= $this->extractSource("NCI", "EMISSION");
-      $res .= $this->extractSource("NCI", "BLOG");
+      //$res .= $this->extractSource("NCI", "EMISSION");
+      //$res .= $this->extractSource("NCI", "BLOG");
 
-      $res .= $this->extractSource("TAZAR", "BLOG");
+      //$res .= $this->extractSource("TAZAR", "BLOG");
 		
       /*
       //$res .= $this->extractSource("LNC", "BLOG");
@@ -76,10 +76,10 @@ class MediaCrawlerAction extends CAction
 					//var_dump($mediaExists); echo $href;
           if(strpos($href, 'http')===0)                      
 					if(@$mapExtract["followImg"] || @$mapExtract["followContent"] || @$mapExtract["followDate"]){
-                        error_log("MediaCrawler : extracting ".$href);
-                        $link = file_get_html($href);
+            error_log("MediaCrawler : extracting ".$href);
+            $link = file_get_html($href);
 
-                        if($link != false){
+            if($link != false){
     						if(@$mapExtract["followImg"]){
     							$img = mb_convert_encoding(@$link->find($mapExtract["followImg"], 0)->src, "HTML-ENTITIES", "UTF-8");
     						}
@@ -96,6 +96,10 @@ class MediaCrawlerAction extends CAction
 					}
 					
 					$date = $this->formatDate($src, $urlKey, $date);
+          if($date == false){ 
+            $date = new DateTime();
+            $date = $date->format('Y-m-d H:i:s')."+11:00";
+          }
 
 					if($title != "" && $href != ""){
 						$media = array( "title" 		=> @$title,
@@ -304,7 +308,7 @@ class MediaCrawlerAction extends CAction
 
     		$date = new DateTime($date);
 
-			return $date->format('Y-m-d H:i:s')."+11:00";;
+			return $date->format('Y-m-d H:i:s')."+11:00";
     	}
 
     	if($src == "NC1" && $urlKey == "NC"){

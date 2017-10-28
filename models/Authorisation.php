@@ -13,6 +13,18 @@ class Authorisation {
     }
 
     //**************************************************************
+    // Super Admin Authorisation
+    //**************************************************************
+    public static function isUser($userId,$roles) {
+        $res = false;
+        if (! empty($userId)) {
+            $account = Person::getById($userId);
+            $res = Role::isUser(@$account["roles"],$roles);
+        }
+        return $res;
+    }
+
+    //**************************************************************
     // Organization Authorisation
     //**************************************************************
 
@@ -376,7 +388,7 @@ class Authorisation {
     public static function isProjectAdmin($projectId, $userId) {
     	$res = false;
     	$listProject = Authorisation::listProjectsIamAdminOf($userId);
-		if(isset($listProject[(string)$projectId]))
+		if( isset( $listProject[(string)$projectId] ) )
        		$res=true;
        	
        	return $res;
@@ -501,7 +513,7 @@ class Authorisation {
     // Entry Authorisation
     //**************************************************************
     
-    /**
+   /**
     * Get the authorization to edit an entry. The entry is stored in the survey collection.
     * A user can edit a vote if :
     * 1/ he is super admin
@@ -511,26 +523,29 @@ class Authorisation {
     * @param String $eventId event to get authorisation of
     * @return a boolean True if the user can edit and false else
     */
-    public static function canEditSurvey($userId, $surveyId,$parentType=null,$parentId=null){
+    public static function canEditElementByParent($userId, $elemId,$parentType=null,$parentId=null,$type = null){
         $res = false;
-        $survey = Survey::getById($surveyId);
+        $elem = Element::getByTypeAndId($type, $elemId);
 
-        if(!empty($survey) && !empty($userId)) {
+        if(!empty($elem) && !empty($userId)) {
             // case 1 : superAdmin
             if (self::isUserSuperAdmin($userId)) {
                 return true;
             }
 
             // case 2 : organiser of Survey
-            if ( @$survey["organizerType"] == Person::COLLECTION && @$survey["organizerId"] == $userId ) {
+            if ( @$elem["organizerType"] == Person::COLLECTION && @$elem["organizerId"] == $userId ) {
                 return true;
             }
 
             // case 3 : admin of parent
             if ( Authorisation::canEditItem($userId, $parentId, $parentType) )  {
-	            return true;
-	       }
-        } 
+                return true;
+           }
+        } else {
+            //RAJOUTER UN LOG
+            error_log("Problem with survey authorization, surveyId:".@$elemId." & userId:".@$userId);
+        }
         return $res;
     }
 
@@ -557,6 +572,7 @@ class Authorisation {
         return $res;
     }
 
+
     /**
     * Get the authorization for edit an item
     * @param type is the type of item, (organization or event or person or project)
@@ -566,53 +582,54 @@ class Authorisation {
     public static function canEditItem($userId, $type, $itemId,$parentType=null,$parentId=null){
         $res=false;    
         $check = false;
-        if($type == ActionRoom::COLLECTION || $type == ActionRoom::COLLECTION_ACTIONS) 
-        {
-			$type = $parentType;
-			$itemId = $parentId;
-            $check = true;
-		}
+        //DDA
+        if( $type == Room::COLLECTION || $type == Room::CONTROLLER ||
+            $type == Action::COLLECTION || $type == Action::CONTROLLER || 
+            $type == Proposal::COLLECTION || $type == Proposal::CONTROLLER ) { 
 
-    	if($type == Event::COLLECTION) 
-        {
-    		$res = self::canEditEvent($userId,$itemId);
-            if(Role::isSuperAdmin(Role::getRolesUserId($userId)) && $res==false)
-                $res = true ;
-            if(self::isSourceAdmin($itemId, $type, $userId) && $res==false)
-                $res = true ;
-    	} 
-        else if($type == Project::COLLECTION) 
-        {
-    		$res = self::isProjectAdmin($itemId, $userId);
-            if(Role::isSuperAdmin(Role::getRolesUserId($userId)) && $res==false)
-                $res = true ;
-            if(self::isSourceAdmin($itemId, $type, $userId) && $res==false)
-                $res = true ;
-    	} 
-        else if($type == Organization::COLLECTION) 
-        {
-    		$res = self::isOrganizationAdmin($userId, $itemId);
-            if(Role::isSuperAdmin(Role::getRolesUserId($userId)) && $res==false)
-                $res = true ;
-            if(self::isSourceAdmin($itemId, $type, $userId) && $res==false)
-                $res = true ; 
-    	} 
-        else if($type == Person::COLLECTION) 
-        {
-            if($userId==$itemId || Role::isSuperAdmin(Role::getRolesUserId($userId)) == true )
+            if( $parentType == null || $parentId == null ){
+                $elem = Element::getByTypeAndId($type, $itemId);
+                $parentId = $elem["parentId"];
+                $parentType = $elem["parentType"];
+            } 
+            $isDDA = true;
+            $type = $parentType;
+            $itemId = $parentId;
+            $check = true;
+        }
+
+        //Super Admin can do anything
+        if(Role::isSuperAdmin( Role::getRolesUserId($userId) ) )
+            return true;
+
+            if ( $type == Event::COLLECTION || $type == Project::COLLECTION || $type == Organization::COLLECTION ) {
+            //Check if delete pending => can not edit
+            $isStatusDeletePending = Element::isElementStatusDeletePending($type, $itemId);
+            if ($isStatusDeletePending) 
+                return false;
+            //Element admin ?
+            else if (self::isElementAdmin($itemId, $type, $userId)) {
+                error_log("element admin");
+                return true;
+            //Source admin ?
+            } else if (self::isSourceAdmin($itemId, $type, $userId)) {
+                return true;
+            } else if(@$isDDA == true) {
+                return self::canParticipate($userId, $type, $itemId);
+            }
+        } else if($type == Person::COLLECTION) {
+            if($userId==$itemId)
                 $res = true;
-    	} 
-        else if($type == City::COLLECTION )
-        {
+        } else if($type == City::COLLECTION ) {
             if($check)
                 $res = self::isLocalCitizen( $userId, ($parentType == City::CONTROLLER) ? $parentId : $itemId ); 
             else 
                 $res = true;
-    	} 
-    	else if($type == Survey::COLLECTION) 
-        {
-            $res = self::canEditSurvey($userId, $itemId,$parentType,$parentId);
-        }
+        } /*else if($type == ActionRoom::COLLECTION || 
+                   $type == ActionRoom::COLLECTION_ACTIONS || 
+                   $type == Survey::COLLECTION || $type == Survey::CONTROLLER) {
+            $res = self::canEditSurvey($userId, $itemId,$parentType,$parentId,$type);
+        }*/
         else if($type == Poi::COLLECTION) 
         {
             $res = self::canEdit($userId, $itemId, "Poi");
@@ -628,6 +645,14 @@ class Authorisation {
         else if($type == Classified::COLLECTION) 
         {
             $res = self::userOwner($userId, "Classified", $itemId);
+        }
+        else if($type == Proposal::COLLECTION) 
+        {
+           $res = self::canParticipate($userId, $type, $itemId);
+        }
+        else if($type == Action::COLLECTION) 
+        {
+           $res = self::canParticipate($userId, $type, $itemId);
         }
     	return $res;
     }
@@ -758,7 +783,27 @@ class Authorisation {
         return $res;
     }
 
-
+    /**
+     * Return true if the user is  admin of the entity (organization, event, project)
+     * @param String the id of the entity
+     * @param String the type of the entity
+     * @param String the id of the user
+     * @return bool 
+     */
+    public static function isElementAdmin($elementId, $elementType ,$userId){
+        $res = false ;
+        if (self::isUserSuperAdmin($userId)) {
+            $res = true;
+        } else if($elementType == Event::COLLECTION) {
+            $res = self::canEditEvent($userId,$elementId);
+        } else if($elementType == Project::COLLECTION) {
+            $res = self::isProjectAdmin($elementId, $userId);
+        } else if($elementType == Organization::COLLECTION) {
+            $res = self::isOrganizationAdmin($userId, $elementId);
+        } else 
+            error_log("isElementAdmin : Can not manage that type !".$elementType);
+        return $res;
+    }
     
     /**
      * Return true if the entity is in openEdition
@@ -782,6 +827,28 @@ class Authorisation {
     }
 
 
+    /**
+     * Return true if the entity is in openEdition
+     * @param String the id of the entity
+     * @param String the type of the entity
+     * @return bool 
+     */
+    public static function isOpenData($idEntity, $typeEntity, $preferences=null){
+        $res = false ;
+        if(empty($preferences)){
+            $entity = PHDB::findOne($typeEntity,array("_id"=>new MongoId($idEntity)),array('preferences'));
+            $preferences = @$entity["preferences"];
+        }
+        if(!empty($preferences)){
+           $res = Preference::isOpenData($preferences);
+
+        }
+        
+
+        return $res;
+    }
+
+
     public static function canEditItemOrOpenEdition($idEntity, $typeEntity, $userId, $parentType=null,$parentId=null){
         $res = false ;
         
@@ -789,6 +856,30 @@ class Authorisation {
         if($res != true)
             $res = self::canEditItem($userId, $typeEntity, $idEntity, $parentType, $parentId);
 
+        return $res;
+    }
+
+    /**
+     * Return true if the user can delete the element
+     * @param type $elementType 
+     * @param type $elementId 
+     * @param type $userId 
+     * @return boolean
+     */
+    public static function canDeleteElement($elementId, $elementType, $userId) {
+        //If open Edition : the element can be deleted
+        $res = self::isOpenEdition($elementId, $elementType);
+        if($res != true) {
+            
+            //check if the user is super admin
+            $res = self::isUser($userId, array(Role::SUPERADMIN, Role::COEDITOR ));
+
+            if ($res != true) {
+                // check if the user can edit the element (admin of the element)
+                $res = self::canEditItem($userId, $elementType, $elementId);
+            }
+        }
+        
         return $res;
     }
 } 

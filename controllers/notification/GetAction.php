@@ -25,10 +25,17 @@ class GetAction extends CAction
               );
           }else
             $params = array("notify.id.".Yii::app()->session["userId"] => array('$exists' => true));
-            $res = ActivityStream::getNotifications($params);
+          $res = ActivityStream::getNotifications($params);
+          if(!empty($res)){
+            $timezone="";
+              foreach($res as $key => $data){
+                //if(@$data["notify"]["labelAuthorObject"])
+                  //$res[$key]["notify"]["displayName"]=Notification::getLabelNotificationFront($data);
+                $res[$key]["timeAgo"]=Translate::pastTime(date(@$data["updated"]->sec), "timestamp", $timezone);
+              } 
+          }
         } else
-            $res = array('result' => false , 'msg'=>'something somewhere went terribly wrong');
-            
+            $res = array('result' => false , 'msg'=>'something somewhere went terribly wrong');   
         Rest::json($res,false);  
         Yii::app()->end();
     }

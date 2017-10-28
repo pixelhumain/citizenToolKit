@@ -11,11 +11,9 @@ class Poi {
 		"machine"		=> "Machine",
 		"software"		=> "Software",
 		"rh"			=> "Ressource Humaine",
-		"RessourceMaterielle" => "Ressource Materielle",
-		"RessourceFinanciere" => "Ressource Financiere",
+		"materialRessource" => "Ressource Materielle",
+		"financialRessource" => "Ressource Financiere",
 		"ficheBlanche" => "Fiche Blanche",
-
-		"poi"			=>"points d'intérêt",
 		"geoJson" 		=> "Url au format geojson ou vers une umap",
 		"compostPickup" => "récolte de composte",
 		"video" 		=> "video",
@@ -30,7 +28,8 @@ class Poi {
 		"streetArts" 	=> "arts de rue",
 		"openScene" 	=> "scène ouverte",
 		"stand" 		=> "stand",
-		"parking" 		=> "Parking"
+		"parking" 		=> "Parking",
+		"other"			=> "Autre"
 	);
 
 	//From Post/Form name to database field name
@@ -47,7 +46,6 @@ class Poi {
 	    "geo" => array("name" => "geo"),
 	    "geoPosition" => array("name" => "geoPosition"),
 	    "description" => array("name" => "description"),
-	    "addresses" => array("name" => "addresses"),
 	    "parentId" => array("name" => "parentId"),
 	    "parentType" => array("name" => "parentType"),
 	    "media" => array("name" => "media"),
@@ -82,8 +80,8 @@ class Poi {
 	 * @param type $type : is the type of the parent
 	 * @return list of pois
 	 */
-	public static function getPoiByIdAndTypeOfParent($id, $type){
-		$pois = PHDB::find(self::COLLECTION,array("parentId"=>$id,"parentType"=>$type));
+	public static function getPoiByIdAndTypeOfParent($id, $type, $orderBy){
+		$pois = PHDB::findAndSort(self::COLLECTION,array("parentId"=>$id,"parentType"=>$type), $orderBy);
 	   	return $pois;
 	}
 	/**
@@ -122,6 +120,42 @@ class Poi {
 	  		$poi = array_merge($poi, Document::retrieveAllImagesUrl($id, self::COLLECTION, $poi["type"], $poi));
 
 	  	return $poi;
+	}
+
+	public static function delete($id, $userId) {
+		if ( !@$userId) {
+            return array( "result" => false, "msg" => "You must be loggued to delete something" );
+        }
+        
+        $poi = self::getById($id);
+        if (!self::canDeletePoi($userId, $id, $poi)) 
+        	return array( "result" => false, "msg" => "You are not authorized to delete this poi.");
+        
+        //Delete the comments
+        $resComments = Comment::deleteAllContextComments($id,self::COLLECTION, $userId);
+		if (@$resComments["result"]) {
+			PHDB::remove(self::COLLECTION, array("_id"=>new MongoId($id)));
+			$resDocs = Document::removeDocumentByFolder(self::COLLECTION."/".$id);
+		} else {
+			return $resComments;
+		}
+		
+		return array("result" => true, "msg" => "The element has been deleted succesfully", "resDocs" => $resDocs);
+	}
+
+	public static function canDeletePoi($userId, $id, $poi = null) {
+		if ($poi == null) 
+			$poi = self::getById($id);
+		//To Delete POI, the user should be creator or can delete the parent of the POI
+        if ( $userId == @$poi['creator'] || Authorisation::canDeleteElement(@$poi["parentId"], @$poi["parentType"], $userId)) {
+            return true;
+        } else {
+        	return false;
+        }
+    }
+
+    public static function getDataBinding() {
+	  	return self::$dataBinding;
 	}
 }
 ?>

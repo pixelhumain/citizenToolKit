@@ -22,14 +22,14 @@ class Menu {
                     Yii::t("common", 'General informations'), 
                     Yii::t("common", 'Details'),
                     'user',
-                    "url.loadByHash('#person.detail.id.".$id."')","person", "detail");
+                    "urlCtrl.loadByHash('#person.detail.id.".$id."')","person", "detail");
         //SEE TIMELINE
         //-----------------------------
         self::entry("left", 'onclick', 
                 Yii::t( "common", 'Read all news publicated by this person'), 
                 Yii::t( "common", 'Newspaper'), 
                 'rss',
-                "url.loadByHash('#news.index.type.".Person::COLLECTION.".id.".$id.".viewer.".Yii::app()->session["userId"]."')","news", "index");
+                "urlCtrl.loadByHash('#news.index.type.".Person::COLLECTION.".id.".$id.".viewer.".Yii::app()->session["userId"]."')","news", "index");
         
         //DIRECTORY
         //-----------------------------
@@ -37,14 +37,14 @@ class Menu {
                     Yii::t("common", 'Show his directory'), 
                     Yii::t("common", 'Directory'),
                     'bookmark fa-rotate-270',
-                    "url.loadByHash('#person.directory.id.".$id."?tpl=directory2')","person", "directory");
+                    "urlCtrl.loadByHash('#person.directory.id.".$id."?tpl=directory2')","person", "directory");
 		//ALBUM
         //-----------------------------
         self::entry("left", 'onclick', 
                     Yii::t("common", 'See the photo gallery'), 
                     Yii::t("common", 'Album'),
                     'photo',
-                    "url.loadByHash('#gallery.index.id.".$id.".type.".Person::COLLECTION."')","gallery", "index");
+                    "urlCtrl.loadByHash('#gallery.index.id.".$id.".type.".Person::COLLECTION."')","gallery", "index");
 
         
         //FOLLOW BUTTON
@@ -81,7 +81,7 @@ class Menu {
 	    self::entry("left", 'onclick',
         			Yii::t("common", $controller." detail"),
         			Yii::t("common","Back to ".$controller),'home',
-        			"url.loadByHash('#".$controller.".detail.id.".$parentId."')",$controller, "detail");
+        			"urlCtrl.loadByHash('#".$controller.".detail.id.".$parentId."')",$controller, "detail");
     }
 	public static function event($event , $hasSubEvents = false)
     {
@@ -99,7 +99,7 @@ class Menu {
                     Yii::t("common", 'General informations'), 
                     Yii::t("common", 'Details'),
                     'home',
-                    "url.loadByHash('#event.detail.id.".$id."')","event", "detail");
+                    "urlCtrl.loadByHash('#event.detail.id.".$id."')","event", "detail");
 
         //SEE TIMELINE
         //-----------------------------
@@ -107,7 +107,7 @@ class Menu {
                 Yii::t( "common", 'Read all news publicated by this event'), 
                 Yii::t( "common", 'Newspaper'), 
                 'rss',
-                "url.loadByHash('#news.index.type.".Event::COLLECTION.".id.".$id."')","news", "index");
+                "urlCtrl.loadByHash('#news.index.type.".Event::COLLECTION.".id.".$id."')","news", "index");
 		
         if( $hasSubEvents )
         {
@@ -117,13 +117,13 @@ class Menu {
                         Yii::t("event", 'View this event as a directory', null, Yii::app()->controller->module->id), 
                         Yii::t("event", 'Visualise', null, Yii::app()->controller->module->id),
                         'connectdevelop',
-                        "url.loadByHash('#event.directory.id.".$id."?tpl=directory2')","event", "directory");*/
+                        "urlCtrl.loadByHash('#event.directory.id.".$id."?tpl=directory2')","event", "directory");*/
 
             self::entry("left", 'onclick', 
                         Yii::t("event", 'View this event calendar', null, Yii::app()->controller->module->id), 
                         Yii::t("event", 'Calendar', null, Yii::app()->controller->module->id),
                         'calendar',
-                        "url.loadByHash('#event.calendarview.id.".$id."')","event", "calendar");
+                        "urlCtrl.loadByHash('#event.calendarview.id.".$id."')","event", "calendar");
         }
 
 		//ALBUM
@@ -132,7 +132,7 @@ class Menu {
                     Yii::t("common", 'See the photo gallery'), 
                     Yii::t("common", 'Album'),
                     'photo',
-                    "url.loadByHash('#gallery.index.id.".$id.".type.".Event::COLLECTION."')","gallery", "index");
+                    "urlCtrl.loadByHash('#gallery.index.id.".$id.".type.".Event::COLLECTION."')","gallery", "index");
         
         if(@Yii::app()->session["userId"]){
             if( @$id && Link::isLinked($id , Event::COLLECTION , Yii::app()->session['userId']) ){
@@ -210,7 +210,7 @@ class Menu {
         self::entry("left", 'onclick',
         			Yii::t("organization","Contact information"), 
         			Yii::t("common","Details"),'home',
-        			"url.loadByHash('#organization.detail.id.".$id."')","organization", "detail");
+        			"urlCtrl.loadByHash('#organization.detail.id.".$id."')","organization", "detail");
 //        			'/organization/detail/id/'.$id,"organization","detail");
        
         //SEE TIMELINE
@@ -219,7 +219,7 @@ class Menu {
                 Yii::t( "common", 'Read all news publicated by this organization'), 
                 Yii::t( "common", 'Newspaper'), 
                 'rss',
-                "url.loadByHash('#news.index.type.".Organization::COLLECTION.".id.".$id."')","news", "index");
+                "urlCtrl.loadByHash('#news.index.type.".Organization::COLLECTION.".id.".$id."')","news", "index");
 
          
         $surveyLink = "#rooms";
@@ -231,7 +231,7 @@ class Menu {
         			Yii::t("common","Organization community"),
         			Yii::t("common","Community") ,
         			'connectdevelop hide',
-        			"url.loadByHash('#organization.directory.id.".$id."?tpl=directory2')","organization", "directory");
+        			"urlCtrl.loadByHash('#organization.directory.id.".$id."?tpl=directory2')","organization", "directory");
                
         //ALBUM
         //-----------------------------
@@ -239,7 +239,7 @@ class Menu {
                     Yii::t("common", 'See the photo gallery'), 
                     Yii::t("common", 'Album'),
                     'photo',
-                    "url.loadByHash('#gallery.index.id.".$id.".type.".Organization::COLLECTION."')","gallery", "index");
+                    "urlCtrl.loadByHash('#gallery.index.id.".$id.".type.".Organization::COLLECTION."')","gallery", "index");
 
         // ADD MEMBER
         //-----------------------------
@@ -247,7 +247,7 @@ class Menu {
 	        self::entry("right", 'onclick',
             			Yii::t('common','Add a member to this organization'), 
             			Yii::t("common",'Add member'),'plus',
-            			"url.loadByHash('#organization.addmember.id.".$id."')",null,null);
+            			"urlCtrl.loadByHash('#organization.addmember.id.".$id."')",null,null);
         }
 
                
@@ -374,7 +374,7 @@ class Menu {
                         Yii::t("event", 'View this event as a directory', null, Yii::app()->controller->module->id), 
                         Yii::t("event", 'Visualise', null, Yii::app()->controller->module->id),
                         'connectdevelop',
-                        "url.loadByHash('#event.directory.id.".$id."?tpl=directory2')","event", "directory");*/
+                        "urlCtrl.loadByHash('#event.directory.id.".$id."?tpl=directory2')","event", "directory");*/
 
             self::entry("left", 'onclick', 
                         Yii::t("event", 'View this event calendar', null, Yii::app()->controller->module->id), 
@@ -400,7 +400,7 @@ class Menu {
 	                        Yii::t("common","Voir ce qui se trouve autour"),
 	                        Yii::t("common","A proximité") ,
 	                        'crosshairs',
-	                        "url.loadByHash('#element.aroundme.type.".$type.".id.".$id.".radius.5000')", 
+	                        "urlCtrl.loadByHash('#element.aroundme.type.".$type.".id.".$id.".radius.5000')", 
 	                        $controller, "aroundme", "btn-menu-element btn-menu-element-around");
 	        }
 		}
@@ -429,7 +429,7 @@ class Menu {
                         Yii::t( "common", "Send a message to this Organization"), 
                         Yii::t( "common", "Contact"),
                         'envelope-o',
-                        "url.loadByHash( '#news.index.type.organizations.id.".$id."')",null,null);*/
+                        "urlCtrl.loadByHash( '#news.index.type.organizations.id.".$id."')",null,null);*/
 		// }
         
         //FOLLOW BUTTON
@@ -530,7 +530,7 @@ class Menu {
         self::entry("left", 'onclick', 
         			Yii::t( "common", 'City Home page'),
 					Yii::t( "common", 'Details'), 'university',
-					"url.loadByHash('#city.detail".$paramsUrl."')",null,null);
+					"urlCtrl.loadByHash('#city.detail".$paramsUrl."')",null,null);
         
         //SEND MESSAGE
         //-----------------------------
@@ -562,14 +562,14 @@ class Menu {
         self::entry("left", 'onclick',
         			Yii::t( "common", 'Local network'), 
         			Yii::t( "common", 'Directory'),'bookmark fa-rotate-270',
-        			"url.loadByHash('#city.directory".$paramsUrl.".tpl.directory2')",null,null);
+        			"urlCtrl.loadByHash('#city.directory".$paramsUrl.".tpl.directory2')",null,null);
 
         //STATISTICS
         //-----------------------------
         /*self::entry("left", 'onclick',
         			Yii::t( "common", 'Show some statistics about this city'),
         			Yii::t( "common", 'Statistics'), 'line-chart',
-        			"url.loadByHash('#city.opendata.insee.".$insee."')",null,null);
+        			"urlCtrl.loadByHash('#city.opendata.insee.".$insee."')",null,null);
 //        			'/city/opendata/insee/'.$insee.'?isNotSV=1',"city","opendata");*/
 
     }
@@ -581,7 +581,7 @@ class Menu {
         self::entry("right", 'onclick', 
               Yii::t( "common", 'Understanding newspaper and news stream'),
             '', 'question-circle',
-             "url.loadByHash('#default.view.page.modules.dir.docs?slide=news')",null,null);
+             "urlCtrl.loadByHash('#default.view.page.modules.dir.docs?slide=news')",null,null);
 
     }
 
@@ -600,21 +600,21 @@ class Menu {
         self::entry("left", 'onclick',
         			Yii::t( "common", 'General information about this project'),
         			Yii::t( "common", 'Details'), 'home',
-        			"url.loadByHash( '#project.detail.id.".$id."')","project", "detail");
+        			"urlCtrl.loadByHash( '#project.detail.id.".$id."')","project", "detail");
 
         //SEE TIMELINE
         //-----------------------------
         self::entry("left",  'onclick',
         			Yii::t( "common", "Read all news publicated by this project"),
         			Yii::t( "common", 'Newspaper'), "rss",
-        			"url.loadByHash('#news.index.type.".Project::COLLECTION.".id.".$id."')","news", "index");
+        			"urlCtrl.loadByHash('#news.index.type.".Project::COLLECTION.".id.".$id."')","news", "index");
 
         //DIRECTORY
         //-----------------------------
         self::entry("left", 'onclick',
         Yii::t( "common", "Project community"), 
         Yii::t( "common", 'Community'), 'connectdevelop',
-        "url.loadByHash('#project.directory.id.".$id."?tpl=directory2')","project", "directory");
+        "urlCtrl.loadByHash('#project.directory.id.".$id."?tpl=directory2')","project", "directory");
 
 
         $surveyLink = "#rooms";
@@ -626,7 +626,7 @@ class Menu {
                     Yii::t("common", 'See the photo gallery'), 
                     Yii::t("common", 'Album'),
                     'photo',
-                    "url.loadByHash('#gallery.index.id.".$id.".type.".Project::COLLECTION."')","gallery", "index");
+                    "urlCtrl.loadByHash('#gallery.index.id.".$id.".type.".Project::COLLECTION."')","gallery", "index");
         
         // ADD MEMBER
         //-----------------------------
@@ -634,7 +634,7 @@ class Menu {
             self::entry("right", 'onclick',
             			Yii::t('common','Add a contributor to this project'), 
             			Yii::t("common",'Add contributor'),'plus',
-            			"url.loadByHash('#project.addcontributorsv.projectId.".$id."')",null,null);
+            			"urlCtrl.loadByHash('#project.addcontributorsv.projectId.".$id."')",null,null);
         }
 		if(@$id && @Yii::app()->session["userId"] && 
                 Link::isLinked($id, Project::COLLECTION, Yii::app()->session["userId"])){
@@ -693,12 +693,12 @@ class Menu {
         self::entry("left", 'onclick', 
                     Yii::t( "rooms", 'All your Rooms', null, Yii::app()->controller->module->id),
                     Yii::t( "rooms", 'Action Rooms', null, Yii::app()->controller->module->id), 'chevron-circle-left',
-                    "url.loadByHash('".$roomLink."')",null,null);
+                    "urlCtrl.loadByHash('".$roomLink."')",null,null);
         
         if( Yii::app()->session['userId'] && @$context["email"] == Yii::app()->session['userEmail'] )
             self::entry("right", 'onclick', 
-                    Yii::t( "rooms", ( @$context["status"] != ActionRoom::STATE_ARCHIVED ) ? 'Archive' : 'Unarchive'.' this action Room',null,Yii::app()->controller->module->id),
-                    Yii::t( "rooms", ( @$context["status"] != ActionRoom::STATE_ARCHIVED ) ? 'Archive' : 'Unarchive',null,Yii::app()->controller->module->id), 'archive text-red',
+                    Yii::t( "rooms", ( @$context["status"] != ActionRoom::STATE_ARCHIVED ) ? 'Archive' : 'Unarchive'.' this action Room'),
+                    Yii::t( "rooms", ( @$context["status"] != ActionRoom::STATE_ARCHIVED ) ? 'Archive' : 'Unarchive'), 'archive text-red',
                     "archive('".ActionRoom::COLLECTION."','".$_GET['id']."')","archiveBtn",null);
 
         // Help
@@ -706,7 +706,7 @@ class Menu {
         self::entry("right", 'onclick', 
                     Yii::t( "comment", 'Click and see the new comments', Yii::app()->controller->module->id),
                     Yii::t( "comment", 'New Comment(s) Click to Refresh', Yii::app()->controller->module->id), 'refresh',
-                    "url.loadByHash(location.hash);",null,null,"refreshComments hidden text-red",null);
+                    "urlCtrl.loadByHash(location.hash);",null,null,"refreshComments hidden text-red",null);
     }
 
     public static function rooms($id,$type)
@@ -722,7 +722,7 @@ class Menu {
          self::entry("left", 'onclick', 
                      Yii::t( "rooms", 'go back to the detail page of the parent', null, Yii::app()->controller->module->id ),
                      Yii::t( "rooms", 'Back to Parent', null, Yii::app()->controller->module->id ), 'chevron-circle-left',
-                     "url.loadByHash('#".$ctrl.".detail.id.".$id."')",null,null);
+                     "urlCtrl.loadByHash('#".$ctrl.".detail.id.".$id."')",null,null);
         }
         
         // Add a proposal
@@ -740,7 +740,7 @@ class Menu {
 //         self::entry("right", 'onclick', 
 //                     Yii::t( "rooms", 'Add an Action Room', null, Yii::app()->controller->module->id ),
 //                     Yii::t( "rooms", 'Add an Action Room', null, Yii::app()->controller->module->id ), 'plus',
-//                     "url.loadByHash('".$btnUrl."')","addNewRoomBtn",null);
+//                     "urlCtrl.loadByHash('".$btnUrl."')","addNewRoomBtn",null);
         
         // Help
         //-----------------------------
@@ -748,12 +748,12 @@ class Menu {
             self::entry("right", 'onclick', 
                         Yii::t( "common", 'Archive'),
                         "", 'download text-red',
-                        "url.loadByHash(location.hash+'.archived.1')",null,null);
+                        "urlCtrl.loadByHash(location.hash+'.archived.1')",null,null);
         }
         self::entry("right", 'onclick', 
                       Yii::t( "common", 'Understanding surveys and proposals'),
                     '', 'question-circle',
-                     "url.loadByHash('#default.view.page.modules.dir.docs?slide=dda')",null,null);
+                     "urlCtrl.loadByHash('#default.view.page.modules.dir.docs?slide=dda')",null,null);
     }
 
     public static function survey($survey)
@@ -772,7 +772,7 @@ class Menu {
         // self::entry("left", 'onclick', 
         //             Yii::t( "rooms", 'All your Rooms', null, Yii::app()->controller->module->id),
         //             Yii::t( "rooms", 'Action Rooms', null, Yii::app()->controller->module->id), 'chevron-circle-left',
-        //             "url.loadByHash('".$surveyLink."')","roomsListBtn",null);
+        //             "urlCtrl.loadByHash('".$surveyLink."')","roomsListBtn",null);
         
         // Add a proposal
         //-----------------------------
@@ -782,11 +782,11 @@ class Menu {
                             Yii::t( "common", 'Create a proposal for your community'),
                             Yii::t( "common", 'Add a proposal'), 'plus',
                             //"loadByHash('#survey.editEntry.survey.".$id."')",
-                            "elementLib.openForm('entry','sub')",
+                            "dyFObj.openForm('entry','sub')",
                             "addProposalBtn",null);
             self::entry("left", 'onclick', 
-                        Yii::t( "rooms", ( @$survey["status"] != ActionRoom::STATE_ARCHIVED ) ? 'Archive' : 'Unarchive'.' this action Room',null,Yii::app()->controller->module->id),
-                        Yii::t( "rooms", ( @$survey["status"] != ActionRoom::STATE_ARCHIVED ) ? 'Archive' : 'Unarchive',null,Yii::app()->controller->module->id), 'archive text-red',
+                        Yii::t( "rooms", ( @$survey["status"] != ActionRoom::STATE_ARCHIVED ) ? 'Archive' : 'Unarchive'.' this action Room'),
+                        Yii::t( "rooms", ( @$survey["status"] != ActionRoom::STATE_ARCHIVED ) ? 'Archive' : 'Unarchive'), 'archive text-red',
                         "archive('".ActionRoom::COLLECTION."','".$id."')","archiveBtn",null);
         }
         // Help
@@ -823,7 +823,7 @@ class Menu {
                     Yii::t( "rooms", 'Parent Survey', null,Yii::app()->controller->module->id),
                     Yii::t( "rooms", 'Back to Parent Survey', null,Yii::app()->controller->module->id), 'chevron-circle-left',
                     "showRoom('vote', '".$parentId."')",null,null);
-                    //"url.loadByHash('#survey.entries.id.".$parentId."')",null,null);
+                    //"urlCtrl.loadByHash('#survey.entries.id.".$parentId."')",null,null);
 
         
         if ( $organiserId == Yii::app()->session["userId"] ) 
@@ -837,7 +837,7 @@ class Menu {
                 self::entry("right", 'onclick', 
                         Yii::t( "rooms", 'Edit this proposal', null,Yii::app()->controller->module->id),
                         Yii::t( "common", 'Edit'), 'pencil',
-                        "url.loadByHash('#survey.editEntry.survey.".$parentId.".id.".$id."')","editProposalBtn",null);
+                        "urlCtrl.loadByHash('#survey.editEntry.survey.".$parentId.".id.".$id."')","editProposalBtn",null);
             }
 
             
@@ -888,7 +888,7 @@ class Menu {
         // self::entry("left", 'onclick', 
         //             Yii::t( "common", 'List of all Surveys'),
         //             Yii::t( "common", 'All Surveys'), 'chevron-circle-left',
-        //             "url.loadByHash('".$surveyLink."')","roomsListBtn",null);
+        //             "urlCtrl.loadByHash('".$surveyLink."')","roomsListBtn",null);
         
         // Add a proposal
         //-----------------------------
@@ -897,9 +897,9 @@ class Menu {
             if( @$room["status"] != ActionRoom::STATE_ARCHIVED )
                 self::entry("left", 'onclick', 
                         Yii::t( "common", 'Create an Action for your community'),
-                        Yii::t( "rooms", 'Add an Action',null,Yii::app()->controller->module->id), 'plus',
+                        Yii::t( "survey", 'Add an Action'), 'plus',
                         //"loadByHash('#rooms.editAction.room.".$id."')",
-                        "elementLib.openForm('action','sub')",
+                        "dyFObj.openForm('action','sub')",
                         "addActionBtn",null);
 
             /*if ( @$room["organizerId"] == Yii::app()->session["userId"] ) 
@@ -909,8 +909,8 @@ class Menu {
                         "movePrompt('rooms.action', '".$id."')","moveProposalBtn",null);
             */
             self::entry("right", 'onclick', 
-                        Yii::t( "rooms", ( @$room["status"] != ActionRoom::STATE_ARCHIVED ) ? 'Archive' : 'Unarchive'.' this action Room',null,Yii::app()->controller->module->id),
-                        Yii::t( "rooms", ( @$room["status"] != ActionRoom::STATE_ARCHIVED ) ? 'Archive' : 'Unarchive',null,Yii::app()->controller->module->id), 'archive text-red',
+                        Yii::t( "rooms", ( @$room["status"] != ActionRoom::STATE_ARCHIVED ) ? 'Archive' : 'Unarchive'.' this action Room'),
+                        Yii::t( "rooms", ( @$room["status"] != ActionRoom::STATE_ARCHIVED ) ? 'Archive' : 'Unarchive'), 'archive text-red',
                         "archive('".ActionRoom::COLLECTION."','".$id."')","archiveBtn",null);
         }
         // Help
@@ -948,7 +948,7 @@ class Menu {
                 self::entry("right", 'onclick', 
                         Yii::t( "common", 'Edit this action'),
                         Yii::t( "common", 'Edit'), 'pencil',
-                        "url.loadByHash('#rooms.editAction.room.".$parentId.".id.".$id."')","editActionBtn",null);
+                        "urlCtrl.loadByHash('#rooms.editAction.room.".$parentId.".id.".$id."')","editActionBtn",null);
             
 
                 //give the right to all 
@@ -981,19 +981,19 @@ class Menu {
         self::entry("left", 'onclick', 
                     Yii::t( "common", 'go to documentation Index'),
                     Yii::t( "common", 'Documentation'), 'binoculars',
-                    "url.loadByHash('#default.view.page.index.dir.docs')","indexBtn",null);// Help
+                    "urlCtrl.loadByHash('#default.view.page.index.dir.docs')","indexBtn",null);// Help
         //-----------------------------
         if($previousChapter != "")
         self::entry("right", 'onclick', 
                     Yii::t( "common", 'Previous chapter'),
                     Yii::t( "common", 'Previous'), 'chevron-circle-left',
-                    "url.loadByHash('#default.view.page.".$previousChapter.".dir.docs')","indexBtn",null);// Help
+                    "urlCtrl.loadByHash('#default.view.page.".$previousChapter.".dir.docs')","indexBtn",null);// Help
         //-----------------------------
         if($nextChapter != "")
         self::entry("right", 'onclick', 
                     Yii::t( "common", 'Next chapter'),
                     Yii::t( "common", 'Next').' <i class="fa fa-chevron-circle-right"></i>', 'chevron-circle-right hidden-lg',
-                    "url.loadByHash('#default.view.page.".$nextChapter.".dir.docs')","indexBtn",null);
+                    "urlCtrl.loadByHash('#default.view.page.".$nextChapter.".dir.docs')","indexBtn",null);
     }
 
     public static function back()

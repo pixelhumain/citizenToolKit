@@ -10,7 +10,7 @@ class Collection {
                        array("_id" => new MongoId(Yii::app()->session["userId"]) ) , 
                        array($action => array("collections.".$name => new stdClass() )));
 
-        return array("result"=>true, "msg"=>"Collection $name created with success");
+        return array("result"=>true, "msg"=>Yii::t("common","Collection {what} created with success",array("{what}"=>$name)));
     }
 
     public static function update($name,$newName,$del=false)
@@ -32,7 +32,7 @@ class Collection {
                            array("_id" => new MongoId(Yii::app()->session["userId"]) ) , 
                            $actions
                            );
-            return array("result"=>true, "msg"=>"Collection $name $action with success");
+            return array("result"=>true, "msg"=>Yii::t("common","Collection {what} ".$action." with success",array("{what}"=>$name)));
         } else 
             return array("result"=>false, "collection"=>"collections.".$name, "msg"=>"Collection $name doesn't exist");
         
@@ -47,12 +47,20 @@ class Collection {
         
         $action = '$set';
         $inc = 1;
-        $verb = "Added ".$target["name"]." to";
+        $verb = "added";
+        $linkVerb=Yii::t("common","to")." ".$collection;
+        if($collection=="favorites")
+            $linkVerb=Yii::t("common","to favorites");
+        
         if( @$person["collections"][$collection][$targetType][$targetId] )
         {
             $action =  '$unset';
             $inc = -1;
-            $verb = "Removed ".$target["name"]." from";
+            $verb = "removed";
+            $linkVerb=Yii::t("common","from")." ".$collection;
+            if($collection=="favorites")
+                $linkVerb=Yii::t("common","from favorites");
+        
             $collections=array("collections.".$collection.".".$targetType.".".$targetId => 1);
         }  
 
@@ -64,7 +72,7 @@ class Collection {
                        array( "_id" => new MongoId($targetId) ) , 
                        array( '$inc' => array( "collectionCount" => $inc ) ) );
             
-        return array("result"=>true,"list"=>$action, "msg"=>"$verb $collection with success");
+        return array("result"=>true,"list"=>$action, "msg"=>Yii::t("common", "{what} ".$verb." {where} with success",array("{what}"=>$target["name"],"{where}"=>$linkVerb)));
     }
 
     //$type is a filter of a type of favorite
@@ -95,5 +103,112 @@ class Collection {
         }
             
         return array("result"=>true, "count"=>$count,"list"=>$list);
+    }
+
+
+    public static function createDocument($targetId,$targetType,$name,$colType="collections",$docType=null,$subDir=array()){
+        $target = Element::getByTypeAndId( $targetType, $targetId);
+        if(!empty($target)){   
+            $pathToCreate=$colType.".";
+            if($docType!=null)
+                $pathToCreate.=$docType.".";
+            if(@$subDir && !empty($subDir)){
+                foreach($subDir as $dir){
+                    $pathToCreate.=$dir.".";
+                    $createdIn=$dir;
+                }
+            }
+
+            $pathToCreate.=$name;
+            PHDB::update($targetType, 
+                           array("_id" => new MongoId($targetId) ) , 
+                           array('$set' => array($pathToCreate => array("updated"=>new MongoDate(time())) )));
+            
+            return array("result"=>true, "msg"=>Yii::t("common","Collection {what} created with success",array("{what}"=>$name)),"createdIn"=>@$createdIn);
+        } else 
+            return array("result"=>false,  "msg"=>Yii::t("common","Something went wrong"));
+        
+    }
+    //////////////////////////////BOUBOULLLEEEEE - MANAGE PORTFOLIO//////////////////////////////////
+    public static function updateCollectionNameDocument($targetId,$targetType,$name,$newName,$colType="collections",$docType=null)
+    {
+        $target=Element::getElementSimpleById($params["target"]["id"], $params["target"]["type"],null, array($colType));   
+        $targetCollection=$target[$colType];
+        $pathToUp=$colType.".";
+        if($docType != null && @$targetCollection[$docType]){
+            $targetCollection=$targetCollection[$docType];
+            $pathToUp.=$docType.".";
+        }
+        if( @$targetCollection[$name] )
+        {
+            $actions = array();
+            $actions['$set'] = array($pathToUp.$newName => array("updated"=>new MongoDate(time())));
+            $actions['$unset'] = array($pathToUp.$name => true);
+            $findListDocument=Document::updateCollectionDocument($targetId,$targetType,$name,$newName,$docType);
+            PHDB::update($targetType, 
+                           array("_id" => new MongoId($targetId) ) , 
+                           $actions
+                           );
+            return array("result"=>true, "msg"=>Yii::t("common","Collection {what} updated with success",array("{what}"=>$name)), "newName"=> $newName);
+        } else 
+            return array("result"=>false, "collection"=>"collections.".$name, "msg"=>Yii::t("common","Collection {what} doesn't exist",array("{what}"=>$name)));
+        
+    }
+    public static function deleteDocument($targetId,$targetType,$name,$colType="collections",$docType=null,$subtype=null)
+    {
+        $target=Element::getElementSimpleById($params["target"]["id"], $params["target"]["type"],null, array($colType));   
+        $targetCollection=$target[$colType];
+        $pathToUp=$colType.".";
+        if($docType != null && @$targetCollection[$docType]){
+            $targetCollection=$targetCollection[$docType];
+            $pathToUp.=$docType.".";
+        }
+        if( @$targetCollection[$name] )
+        {
+            $actions = array();
+            $actions['$unset'] = array($pathToUp.$name => true);
+            PHDB::update($targetType, 
+                           array("_id" => new MongoId($targetId) ) , 
+                           $actions
+                           );
+            if($docType==Document::COLLECTION){
+                Document::removeAllDocument($params["target"]["id"], $params["target"]["type"],$name,$docType);
+            }
+            return array("result"=>true, "msg"=>Yii::t("common","Collection {what} deleted with success",array("{what}"=>$name)));
+        } else 
+            return array("result"=>false, "collection"=>"collections.".$name, "msg"=>Yii::t("common","Collection {what} doesn't exist",array("{what}"=>$name)));
+        
+    }
+    public static function deleteFromCollection($targetId,$targetType,$fileId,$colType="collections",$docType=null,$nameCol=array())
+    {
+        $target=Element::getElementSimpleById($params["target"]["id"], $params["target"]["type"],null, array($colType));   
+        $targetCollection=$target[$colType];
+        $pathToUp=$colType.".";
+        if($docType != null && @$targetCollection[$docType]){
+            $targetCollection=$targetCollection[$docType];
+            $pathToUp.=$docType.".";
+        }
+        if($nameCol != null && @$targetCollection[$nameCol]){
+            $targetCollection=$targetCollection[$docType];
+            $pathToUp.=$nameCol.".";
+        }
+        if( @$targetCollection[$fileId] )
+        {
+            $actions = array();
+            $actions['$unset'] = array($pathToUp.$name => true);
+            PHDB::update($targetType, 
+                           array("_id" => new MongoId($targetId) ) , 
+                           $actions
+                           );
+            return array("result"=>true, "msg"=>Yii::t("common",$docType." deleted with success",array("{what}"=>$name)));
+        } else 
+            return array("result"=>false, "msg"=>Yii::t("common","Something went wrong")); 
+    }
+    public static function addDocumentToColection($ids,$nameCol=null)
+    {
+        foreach($ids as $id){
+            Document::moveDocumentToCollection($id, $nameCol);
+        }     
+        return array("result"=>true, "msg"=>Yii::t("common","Documents added with success to {what}",array("{what}"=>$nameCol)),"movedIn"=>$nameCol); 
     }
 }

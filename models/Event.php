@@ -8,26 +8,35 @@ class Event {
 	const NO_ORGANISER = "dontKnow";
 
 	public static $types = array(
-        "competition" => "Compétition",
+        "competition" => "Competition",
         "concert" => "Concert",
-        "concours" => "Concours",
-        "exposition" => "Exposition",
+        "contest" => "Contest",
+        "exhibition" => "Exhibition",
         "festival" => "Festival",
-        "getTogether" => "Rencontre",
-        "market" => "Marché",
-	    "meeting" => "Réunion"
+        "getTogether" => "Get together",
+        "market" => "Market",
+	    "meeting" => "Meeting",
+	    "course"=>"Course",
+		"workshop"=>"Workshop",
+		"conference"=>"Conference",
+		"debate"=>"Debate",
+		"film"=>"Film",
+		"crowdfunding"=>"Crowdfunding",
+		"others"=>"Others",
 	);  
 	      
 	//From Post/Form name to database field name
 	public static $dataBinding = array (
 	    "name" => array("name" => "name", "rules" => array("required")),
+	    "slug" => array("name" => "slug", "rules" => array("checkSlug")),
 	    "type" => array("name" => "type"),
+	    "parent" => array("name" => "parent"),
 	    "parentId" => array("name" => "parentId"),
 	    "parentType" => array("name" => "parentType"),
 	    "organizerId" => array("name" => "organizerId"),
 	    "organizerType" => array("name" => "organizerType"),
 	    "organizer" => array("name" => "organizer", "rules" => array("validOrganizer")),
-
+	    
 
 	    "address" => array("name" => "address", "rules" => array("addressValid")),
 	    "addresses" => array("name" => "addresses"),
@@ -60,6 +69,12 @@ class Event {
 	    "created" => array("name" => "created"),
 	    "locality" => array("name" => "address"),
 	    "descriptionHTML" => array("name" => "descriptionHTML"),
+
+	    "facebook" => array("name" => "socialNetwork.facebook"),
+	    "twitter" => array("name" => "socialNetwork.twitter"),
+	    "gpplus" => array("name" => "socialNetwork.googleplus"),
+	    "github" => array("name" => "socialNetwork.github"),
+	    "skype" => array("name" => "socialNetwork.skype"),
 	);
 
 	//TODO SBAR - First test to validate data. Move it to DataValidator
@@ -386,7 +401,10 @@ class Event {
 	public static function formatBeforeSaving($params) {
 		$startDate = DataValidator::getDateTimeFromString($params['startDate'], "start date");
 		$endDate = DataValidator::getDateTimeFromString($params['endDate'], "end date");
-	    
+		if(@$params["allDay"] && $params["allDay"]){
+			$startDate=date_time_set($startDate, 00, 00);
+			$endDate=date_time_set($endDate, 23, 59);
+		}
 		$params["startDate"] = new MongoDate($startDate->getTimestamp());
 		$params["endDate"]   = new MongoDate($endDate->getTimestamp());
 
@@ -438,7 +456,8 @@ class Event {
     	if( @$params["parentId"] )
 			Link::connect( $params["parentId"], Event::COLLECTION,$params["_id"], Event::COLLECTION, Yii::app()->session["userId"], "subEvents");	
 
-		Notification::createdObjectAsParam( Person::COLLECTION, Yii::app()->session['userId'],Event::COLLECTION, (String)$params["_id"], $params["organizerType"], $params["organizerId"], @$params["geo"], array($params["type"]),@$params["address"]);
+		if (empty($import))
+			Notification::createdObjectAsParam( Person::COLLECTION, Yii::app()->session['userId'],Event::COLLECTION, (String)$params["_id"], $params["organizerType"], $params["organizerId"], @$params["geo"], array($params["type"]),@$params["address"]);
 	    if($params["organizerType"]==Organization::COLLECTION || $params["organizerType"]==Project::COLLECTION || @$params["parentId"]){
 			if(@$params["parentId"]){
 	    		$parentId=$params["parentId"];

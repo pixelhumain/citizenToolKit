@@ -72,7 +72,7 @@ class Comment {
 	public static function insert($comment, $userId) {
 		$options = self::getCommentOptions($comment["contextId"], $comment["contextType"]);
 
-		$content = trim(@$comment["content"]);
+		$content = trim(@$comment["text"]);
 		if (empty($content))
 			return array("result"=>false, "msg"=> Yii::t("comment","Please add content to your comment !"));
 
@@ -85,9 +85,11 @@ class Comment {
 			"created" => time(),
 			"author" => $userId,
 			"tags" => @$comment["tags"],
-			"status" => self::STATUS_POSTED 
+			"status" => self::STATUS_POSTED,
+			"argval" => @$comment["argval"]
 		);
-
+		if(@$comment["mentions"])
+			$newComment["mentions"]=$comment["mentions"];
 		if (self::canUserComment($comment["contextId"], $comment["contextType"], $userId, $options)) {
 			PHDB::insert(self::COLLECTION,$newComment);
 		} else {
@@ -96,7 +98,25 @@ class Comment {
 		
 		$newComment["author"] = self::getCommentAuthor($newComment, $options);
 		$res = array("result"=>true, "time"=>time(), "msg"=>Yii::t("comment","The comment has been posted"), "newComment" => $newComment, "id"=>$newComment["_id"]);
-		
+		if(@$newComment["mentions"]){
+			//$newComment["mentions"]=$comment["mentions"];
+			$author=array("id" => Yii::app()->session["userId"],"type"=>Person::COLLECTION,"name"=> Yii::app()->session["user"]["name"]);
+			$target=array("type"=>$comment["contextType"],"id"=> $comment["contextId"]);
+			$object=array("type"=>self::COLLECTION, "id"=> (string)$newComment["_id"]);
+			Notification::notifyMentionOn ($author, $target, $newComment["mentions"], $object);
+			/**************************************************************************** 
+			////////If we want to push news where mentions in comment in timeline ///////
+			if($contextType==News::COLLECTION){
+				$newsCommentMentionsArray=[];
+				foreach($comment["mentions"] as $data){
+					$data["mentionAuthorName"]=Yii::app()->session["user"]["name"];
+					$data["mentionAuthorId"]=Yii::app()->session["userId"];
+					array_push($newsCommentMentionsArray,$data);
+				}
+				News::updateCommentMentions($newsCommentMentionsArray, $contextId);
+			}
+			*****************************************************************************/
+		}
 		/*$notificationContexts = array(News::COLLECTION, ActionRoom::COLLECTION_ACTIONS, Survey::COLLECTION);
 		if( in_array( $comment["contextType"] , $notificationContexts) ){
 			Notification::actionOnPerson ( ActStr::VERB_COMMENT, ActStr::ICON_COMMENT, "", array("type"=>$comment["contextType"],"id"=> $comment["contextId"]));
@@ -407,22 +427,60 @@ class Comment {
 	                  
 	    return array("result"=>true, "msg"=>Yii::t("common","Comment well updated"), "id"=>$commentId);
 	}
+
 	/**
 	 * delete a comment in database
-	 * @param String $id : id to delete
-	*/
-	public static function delete($id) {
-		$comment=self::getById($id);
-		if($comment["author"]["id"]==Yii::app()->session["userId"]){
-			Action::addAction(Yii::app()->session["userId"] , $comment["contextId"], $comment["contextType"], Action::ACTION_COMMENT, true, false) ;
+	 * @param String $id Id of the comment to delete
+	 * @param string $userId : userId asking to to delete the comment
+	 * @return array of result (result => boolean, msg => string)
+	 */
+	public static function delete($id, $userId) {
+		$comment=self::getById($id);	
+
+		if($comment["author"]["id"] == $userId ){
+			Action::addAction($userId, $comment["contextId"], $comment["contextType"], Action::ACTION_COMMENT, true, false) ;
 			PHDB::remove(self::COLLECTION,array("_id"=>new MongoId($id)));
-			return array("result"=>true, "msg"=>Yii::t("common","you are not the author of the comment"),"comment"=>$comment);
+			return array("result"=>true, "msg"=>Yii::t("common","The comment has been deleted with success"));
 		} else
-			return array("result"=>false, "msg"=>Yii::t("common","you are not the author of the comment"));
+			return array("result"=>false, "msg"=>Yii::t("common","you are not the author of the comment"), "comment"=>$comment);
 	}
+
+	/**
+	 * Delete all the comment of a context
+	 * @param String $contextId The context id of the comments
+	 * @param String $contextType The context type of the comments
+	 * @param String $userId The userId asking to delete
+	 * @return array result => bool, msg => string
+	 */
+	public static function deleteAllContextComments($contextId, $contextType, $userId) {
+		error_log("try to delete comments of context : ".$contextId."/".$contextType);
+		if ($contextType == ActionRoom::COLLECTION) {
+			$canDelete = ActionRoom::canAdministrate($userId, $contextId);
+		} else if ($contextType == News::COLLECTION) {
+			$canDelete = News::canAdministrate($userId, $contextId);
+		} else if ($contextType == Poi::COLLECTION) {
+			$canDelete = Poi::canDeletePoi($userId, $contextId);
+		} else {
+			return array("result" => false, "msg" => "This contextType '".$contextType."' is not yet implemented.");
+		}
+		
+		if ($canDelete) {
+			$where = array('$and' => array(
+						array("contextId" => $contextId),
+						array("contextType" => $contextType)
+					));
+			$res = PHDB::remove(self::COLLECTION, $where);
+		} else {
+			return array("result"=>false, "msg"=>Yii::t("common","You are not allowed to delete the comments of this context"));	
+		}
+		
+		if ($res) {
+			return array("result"=>true, "msg"=>Yii::t("common","The comments of the context have been deleted with success"));
+		} else
+			return $res;
+	}
+
 	public static function getCommentsToModerate($whereAdditional = null, $limit = 0) {
-
-
 		$where = array( 
 			"reportAbuse"=> array('$exists'=>1)
 			,"moderate.isAnAbuse" => array('$exists'=>0)

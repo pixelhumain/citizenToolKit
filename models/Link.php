@@ -17,6 +17,26 @@ class Link {
     const INVITED_BY_ID = "invitorId";
     const INVITED_BY_NAME = "invitorName";
     const IS_INVITING = "isInviting";
+    const IS_ADMIN_INVITING = "isAdminInviting";
+
+
+
+    public static $linksTypes = array(
+    Person::COLLECTION => 
+		array(  Project::COLLECTION =>  "projects",
+				Event::COLLECTION =>  "events"),
+	Organization::COLLECTION => 
+		array(  Project::COLLECTION =>  "projects",
+				Event::COLLECTION =>  "events"),
+	Event::COLLECTION => 
+		array(	Event::COLLECTION => "subEvent" ),
+	Project::COLLECTION =>
+		array(	Organization::COLLECTION => "contributors",
+				Person::COLLECTION => "contributors",
+				Project::COLLECTION =>  "projects"),
+	);
+
+
 
 	/** TODO BOUBOULE  ----- TO DELETE ConnectParentToChild do it
 	 * Add a member to an organization
@@ -192,7 +212,12 @@ class Link {
         if($isInviting){
             $links["links.".$connectType.".".$targetId.".".Link::INVITED_BY_ID] = $userId;
             $links["links.".$connectType.".".$targetId.".".Link::INVITED_BY_NAME] = Yii::app()->session["user"]["name"];
-            $links["links.".$connectType.".".$targetId.".".Link::IS_INVITING] = $isInviting;
+            if($isInviting==="admin"){
+                $links["links.".$connectType.".".$targetId.".".Link::IS_ADMIN_INVITING] = true;
+            }
+            else{
+                $links["links.".$connectType.".".$targetId.".".Link::IS_INVITING] = $isInviting;
+            }
         }/*else if($targetType==Event::COLLECTION || $originType==Event::COLLECTION){
 		    PHDB::update($originType, 
                        array("_id" => $origin["_id"]) , 
@@ -237,10 +262,11 @@ class Link {
         $origin = Element::checkIdAndType($originId, $originType, "disconnect");
         $target = Element::checkIdAndType($targetId, $targetType, "disconnect");
         $unset=array("links.".$connectType.".".$targetId => "");
-        if ($linkOption != null && $linkOption==self::IS_ADMIN_PENDING){
+        if ($linkOption != null && ($linkOption==self::IS_ADMIN_PENDING || $linkOption==self::IS_ADMIN_INVITING)){
             if(!@$origin["links"][$connectType][$targetId][self::TO_BE_VALIDATED]){
                 $unset=array(
                         "links.".$connectType.".".$targetId.".".self::IS_ADMIN_PENDING => "",
+                        "links.".$connectType.".".$targetId.".".self::IS_ADMIN_INVITING => "",
                         "links.".$connectType.".".$targetId.".".self::IS_ADMIN => ""
                     );
             }
@@ -404,6 +430,92 @@ class Link {
         return $res;
     }
 
+
+    public static function addParent($parentId, $parentType, $childId, $childType, $userId) {
+		error_log("Try to add parent ".$parentId."/".$parentType." from ".$childType." / ".$childId);
+        
+        if ($parentType == Organization::COLLECTION) {
+            $isUserAdmin = Authorisation::isOrganizationAdmin($userId, $parentId) || Authorisation::isUserSuperAdmin($userId); 
+        } else if ($parentType == Project::COLLECTION) {
+            $isUserAdmin = Authorisation::isProjectAdmin($parentId,$userId) || Authorisation::isUserSuperAdmin($userId);
+        } else if ($parentType == Person::COLLECTION) {
+            $isUserAdmin = ($userId == $parentId) || Authorisation::isUserSuperAdmin($userId);
+        } else if ($parentType == Event::NO_ORGANISER) { 
+            $isUserAdmin = true;
+        } else{
+            throw new CTKException("Unknown parent type = ".$parentType);
+        }
+        
+        if($isUserAdmin != true)
+            $isUserAdmin = Authorisation::isOpenEdition($parentId, $parentType);
+
+        if($isUserAdmin != true)
+            return array("result"=>false, "msg"=>"You can't remove the parent of this event !");
+
+		if ($parentType != Event::NO_ORGANISER) {
+            PHDB::update($parentType,
+    					array("_id" => new MongoId($parentId)),
+    					array('$set' => array(	"links.".self::$linksTypes[$parentType][$childType].".".$childId.".type"=>$childType))
+    		);
+
+            PHDB::update($childType,
+                    array("_id"=>new MongoId($childId)),
+                    array('$set'=> array(	"parentId" => $childId,
+    										"parentType" => $childType,
+    										"links.".self::$linksTypes[$childType][$parentType].".".$parentId.".type"=>$parentType))
+            );
+        }
+		//TODO SBAR : add notification for new parent
+		$res = array("result"=>true, "msg"=>"The element parent has been added with success");
+	   	
+   		return $res;
+   	}
+
+
+    public static function removeParent($parentId, $parentType, $childId, $childType, $userId) {
+        error_log("Try to remove parent ".$parentId."/".$parentType." from ".$childType." / ".$childId);
+        
+        if ($parentType==Organization::COLLECTION) {
+            $isUserAdmin = Authorisation::isOrganizationAdmin($userId, $parentId) || Authorisation::isUserSuperAdmin($userId); 
+        } else if ($parentType==Project::COLLECTION) {
+            $isUserAdmin = Authorisation::isProjectAdmin($parentId,$userId) || Authorisation::isUserSuperAdmin($userId);
+        } else if ($parentType==Person::COLLECTION) {
+            $isUserAdmin = ($userId == $parentId) || Authorisation::isUserSuperAdmin($userId);
+        } else if ($parentType == Event::NO_ORGANISER) { 
+            $isUserAdmin = Authorisation::isEventAdmin($parentId,$userId) || Authorisation::isUserSuperAdmin($userId);
+        } else {
+            throw new CTKException("Unknown parent type = ".$parentType);
+        }
+
+        if($isUserAdmin != true)
+            $isUserAdmin = Authorisation::isOpenEdition($parentId, $parentType);
+
+        if($isUserAdmin != true)
+            return array("result"=>false, "msg"=>"You can't remove the parent of this event !");
+        
+
+        if(	$parentType != Person::COLLECTION ||
+			(	$parentType == Person::COLLECTION && 
+				!self::isLinked($childId, $childType, $userId, null) ) 
+		) {
+			PHDB::update($parentType,
+						array("_id"=>new MongoId($parentId)),
+						array('$unset'=> array("links.".self::$linksTypes[$parentType][$childType].".".$childId => ""))
+	        );
+			PHDB::update($childType,
+					array("_id"=>new MongoId($childId)),
+					array('$unset'=> array("links.".self::$linksTypes[$childType][$parentType].".".$parentId => ""))
+        	);
+		}
+        
+
+        //TODO SBAR : add notification for old parent
+        $res = array("result"=>true, "msg"=>"The parent has been removed with success");
+        //}
+
+        return $res;
+    }
+
     /**
 	* Link a person to an event when an event is create
 	* Create a link between the 2 actors. The link will be typed event and organizer
@@ -499,7 +611,7 @@ class Link {
     	}
     	return $res;
     }
-	
+
 	///// TODO BOUBOULE - AN ORGANIZER COULD BE A PROJECT OR AN ORGA OR A PERSON
 	//// DOCUMENT THIS FUNCTION 
     public static function removeEventLinks($eventId){
@@ -521,31 +633,44 @@ class Link {
     }
 	
 	// TODO BOUBOULE - COULD BE DELETED FOR A BETTER INTERPRETATION OF ROLE
-    public static function removeRole($memberOfId, $memberOfType, $memberId, $memberType, $role, $userId) {
+    public static function removeRole($contextId, $contextType, $childId, $childType, $roles, $userId, $connectType) {
         
         //0. Check if the $memberOfId and the $memberId exists
-        $memberOf = Element::checkIdAndType($memberOfId, $memberOfType);
-        $member = Element::checkIdAndType($memberId, $memberType);
+        $memberOf = Element::checkIdAndType($contextId, $contextType);
+        $member = Element::checkIdAndType($childId, $childType);
         
         //1.1 the $userId can manage the $memberOf (admin)
         // Or the user can remove himself from a member list of an organization
-        if (!Authorisation::isOrganizationAdmin($userId, $memberOfId)) {
-            if ($memberId != $userId) {
-                throw new CTKException("You are not admin of the Organization : ".$memberOfId);
-            }
+        if (!Authorisation::isElementAdmin($contextId, $contextType ,$userId)) {
+            //if ($memberId != $userId) {
+                throw new CTKException("You are not admin of the Organization : ".$contextId);
+            //}
         }
-
+        if($connectType=="members")
+            $connectTypeOf="memberOf";
+        else if($connectType=="contributors")
+            $connectTypeOf="projects";
+        if($connectType=="attendees")
+            $connectTypeOf="events";
+        if(empty($roles)){
+            $action='$unset';
+            $msg = "The member's role has been removed with success";
+        }else{
+            $action='$set';
+            $roles=explode(",", $roles);
+            $msg = "The member's role has been added with success";
+        }
         //2. Remove the role
-        PHDB::update( $memberOfType, 
-                   array("_id" => $memberOf["_id"]) , 
-                   array('$pull' => array( "links.members.".$memberId.".roles" => $role) ));
+        PHDB::update( $contextType, 
+                   array("_id" => new MongoId($contextId)) , 
+                   array($action => array( "links.".$connectType.".".$childId.".roles" => $roles) ));
  
         //3. Remove the role
-        PHDB::update($memberType,
-        			array("_id"=> $member["_id"]),
-        			array('$pull' => array("links.memberOf.".$memberOfId.".roles" => $role)) );
+        PHDB::update($childType,
+        			array("_id"=> new MongoId($childId)),
+        			array($action => array("links.".$connectTypeOf.".".$contextId.".roles" => $roles)) );
         
-        return array("result"=>true, "msg"=>Yii::t("link","The member's role has been removed with success",null,Yii::app()->controller->module->id), "memberOfid"=>$memberOfId, "memberid"=>$memberId);
+        return array("result"=>true, "msg"=>Yii::t("link",$msg,null,Yii::app()->controller->module->id), "memberOfid"=>$contextId, "memberid"=>$childId);
     }
 
     /** TODO BOUBOULE - TO DELETE WITH CTK/CONTROLLERS/PERSON/DISCONNECTACTION.PHP
@@ -732,7 +857,9 @@ class Link {
         
         //Check if the user is admin
 		$actionFromAdmin=in_array($userId,$usersAdmin);
-		
+        $actionFromMember=false;
+        if(@$parentUsersList[$userId])
+            $actionFromMember=true;
         if ($childType == Organization::COLLECTION) {
             $class = "Organization";
         //ou Child type Person
@@ -792,29 +919,49 @@ class Link {
         else
             $levelNotif="asMember";
         //First case : The parent doesn't have an admin yet or it is an action from an admin or it is an event: 
-		if (count($usersAdmin) == 0 || $actionFromAdmin || $parentType == Event::COLLECTION) {
+		if (count($usersAdmin) == 0 || $actionFromAdmin || ($actionFromMember && $childId != Yii::app()->session["userId"]) || $parentType == Event::COLLECTION) {
             //the person is automatically added as member (admin or not) of the parent
             //var_dump("here");
-            if ($actionFromAdmin || ($parentType == Event::COLLECTION && $childId != Yii::app()->session["userId"])) {
+            if ($actionFromAdmin || ($actionFromMember && $childId != Yii::app()->session["userId"]) || ($parentType == Event::COLLECTION && $childId != Yii::app()->session["userId"]) 
+                || (count($usersAdmin) == 0 && $childId != Yii::app()->session["userId"])) {
 	            //If admin add as admin or member
                 $verb = ActStr::VERB_INVITE; 
 	            if($isConnectingAdmin==true){
 					//$verb = ActStr::VERB_ACCEPT;
-					$msg=$pendingChild["name"]." ".Yii::t("common","is well invited to administrate of")." ".$parentData["name"];
+                    if(@$parentData["links"] 
+                        && @$parentData["links"][$parentConnectAs] 
+                        && @$parentData["links"][$parentConnectAs][$childId]
+                        && @$parentData["links"][$parentConnectAs][$childId][self::TO_BE_VALIDATED]){
+                        $isInviting="admin";
+                        self::validateLink($parentId, $parentType, $childId, $childType, self::TO_BE_VALIDATED, Yii::app()->session["userId"]);
+                    }
+                    $msg=Yii::t("common","{who} is well invited to administrate {what}",array("{who}"=>$pendingChild["name"],"{what}"=>$parentData["name"]));
 					$pendingChild["isAdmin"]=true;
 				} else 
 					//$verb = ActStr::VERB_ACCEPT;
-					$msg=$pendingChild["name"]." ".Yii::t("common","is well invited to join")." ".$parentData["name"];
-                $pendingChild["isInviting"]=true;
-				$toBeValidated=false;
-                $isInviting=true;
+					$msg=Yii::t("common","{who} is well invited to join {what}",array("{who}"=>$pendingChild["name"],"{what}"=>$parentData["name"]));
+                //SPECIFIC USECASE FOR ORGANIZATION => NO INVITATION PROCESS
+                if($childType==Organization::COLLECTION){
+                    $verb = ActStr::VERB_ADD;
+                    $msg=Yii::t("common","{who} is well added to {what}",array("{who}"=>$pendingChild["name"],"{what}"=>$parentData["name"]));
+                }
+				else{
+                    if(@$parentUsersList[$childId] || $isInviting==="admin"){
+                        $isInviting="admin";
+                    }
+                    else{
+                        $isInviting=true;
+                    }
+                    $pendingChild["isInviting"]=true;
+                }
+                $toBeValidated=false;
                 Mail::someoneInviteYouToBecome($parentData, $parentType, $pendingChild, $typeOfDemand);
 			} else{
                 // Verb Confirm in ValidateLink
 				$verb = ActStr::VERB_JOIN;
 				$toBeValidated=false;
 				//if($childId==Yii::app()->session["userId"]){
-				$msg= Yii::t("common", "You are now ".$typeOfDemand." of")." ".Yii::t("common","this ".$parentController);
+				$msg= Yii::t("common", "You are now {what} of {where}",array("{what}"=>$typeOfDemand,"{where}"=>Yii::t("common","this ".$parentController)));
                 /*}else{
 					$invitation = ActStr::VERB_INVITE;
 					if($typeOfDemand != "admin"){
@@ -902,7 +1049,7 @@ class Link {
             return array("result" => false, "msg" => "Unknown ".$childType.". Please check your parameters !");
         }
         //Retrieve the child info
-        $pendingChild = $class::getById($childId);
+        $pendingChild = $class::getById($childId,false);
         if (!$pendingChild) {
             return array("result" => false, "msg" => "Something went wrong ! Impossible to find the children ".$childId);
         }
@@ -950,37 +1097,41 @@ class Link {
         $user = array(
             "id"=>$childId,
             "type"=>$childType,
-            "name" => $pendingChild["name"],
+            "name" => $pendingChild["name"]
         );
-        
+        $target = array(
+            "type"=>$parentType,
+            "id"=> $parentId,
+            "name"=>$parent["name"]);
         //Notifications
         if ($linkOption == Link::IS_ADMIN_PENDING) {
             //Notification::actionOnPerson ( ActStr::VERB_CONFIRM, ActStr::ICON_SHARE, $user, array("type"=>$parentType,"id"=> $parentId,"name"=>$parent["name"]));
             $verb=ActStr::VERB_ACCEPT;
             $levelNotif = "asAdmin";
-            $msg = $pendingChild["name"]." has been validated as admin of ".$parent["name"];
+            $msg = Yii::t("common","{who} has been validated as admin of {what}",array("{who}"=>$pendingChild["name"],"{what}"=>$parent["name"]));
             //MAIL TO CHILDREN 
             //REMOVE ASK NOTIF FOR COMMUNITY
         } else if ($linkOption == Link::TO_BE_VALIDATED) {
             //Notification::actionOnPerson ( ActStr::VERB_ACCEPT, ActStr::ICON_SHARE, $user, array("type"=>$parentType,"id"=> $parentId,"name"=>$parent["name"]));
             $verb=ActStr::VERB_ACCEPT;
             $levelNotif="asMember";
-            $msg = $pendingChild["name"]." has been validated as member of ".$parent["name"];
+            $msg = Yii::t("common","{who} has been validated as member of {what}",array("{who}"=>$pendingChild["name"],"{what}"=>$parent["name"]));
             //MAIL TO CHILDREN
             //REMOVE ASK NOTIF FOR COMMUNITY
-        } else if ($linkOption == Link::IS_INVITING){
+        } else if ($linkOption == Link::IS_INVITING || $linkOption == Link::IS_ADMIN_INVITING){
             $verb=ActStr::VERB_CONFIRM;
-            $msg = "Your answer has been succesfully register";
+            $msg = Yii::t("common","Your answer has been succesfully registered");
             if(@$pendingChild["links"][$connectType][$parentId]["isAdmin"] && @$parent["links"][$connectType][$childId]["isAdmin"])
                 $levelNotif="asAdmin";
             else
                 $levelNotif="asMember";
+            $target["invitorId"]=$parent["links"][$connectType][$childId]["invitorId"];
             //MAIL TO INVITOR
         }
         if($verb==ActStr::VERB_ACCEPT)
             Mail::someoneConfirmYouTo($parent, $parentType, $pendingChild, $typeOfDemand);
-        Notification::constructNotification($verb, $user , array("type"=>$parentType,"id"=> $parentId,"name"=>$parent["name"]), null, $levelNotif);
-        return array( "result" => true , "msg" => Yii::t("common",$msg) );
+        Notification::constructNotification($verb, $user , $target, null, $levelNotif);
+        return array( "result" => true , "msg" => $msg );
     }
 
 	/*

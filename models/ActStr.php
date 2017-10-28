@@ -37,10 +37,13 @@ class ActStr {
     const VERB_LIKE = "like";
     const VERB_UNLIKE = "unlike";
     const VERB_MENTION = "mention";
+    const VERB_REFUSE = "refuse";
 
     const VERB_ADDROOM = "addactionroom";
     const VERB_ADD_PROPOSAL = "addproposal";
+    const VERB_ADD_RESOLUTION = "addresolution";
     const VERB_MODERATE = "moderate";
+    const VERB_AMEND = "ammend";
 
     const VERB_ADD_ACTION = "addaction";
     const VERB_VOTE = "vote";
@@ -48,8 +51,11 @@ class ActStr {
     const VERB_POST = "post";
     const VERB_RETURN = "return";
 
+    const VERB_SHARE = "share";
+
     const TYPE_URL = "url";
     const TYPE_ACTIVITY_HISTORY = "history";
+    const TYPE_ACTIVITY_SHARE = "share";
 	
 	public static function buildEntry($params)
     {
@@ -57,8 +63,9 @@ class ActStr {
             "type" => $params["type"],
             "verb" => $params["verb"],
             "author" => Yii::app()->session["userId"],
-            "date" => new MongoDate(time()),
-            "created" => new MongoDate(time())
+            //"date" => new MongoDate(time()),
+            "created" => new MongoDate(time()),
+            "updated" => new MongoDate(time())
         );
         if(@$params["author"]){
             if(!@$params["author"]["id"])

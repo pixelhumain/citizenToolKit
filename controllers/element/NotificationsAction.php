@@ -34,10 +34,10 @@ class NotificationsAction extends CAction
 
 		if(isset(Yii::app()->session["userId"])){
 			$params["canEdit"] = Authorisation::canEditItem(Yii::app()->session["userId"], $type, $id);
-			if(@$params["parent"]["links"] && @$params["parent"]["links"][$connectType]){
+			if($params["canEdit"] && @$params["parent"]["links"] && @$params["parent"]["links"][$connectType]){
 				$confirmation=array("asAdmin"=>array(),"asMember"=> array(), "connectType"=> $connectType);
 				foreach($params["parent"]["links"][$connectType] as $key => $data){
-					if(@$data["toBeValidated"] || @$data["isAdminPending"]){
+					if($data["type"]==Person::COLLECTION && (@$data["toBeValidated"] || @$data["isAdminPending"])){
 						$needAdminAction=true;
 						$member=Element::getElementSimpleById($key,Person::COLLECTION);
 						if(@$data["isAdminPending"])

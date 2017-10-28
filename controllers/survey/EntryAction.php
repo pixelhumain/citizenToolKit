@@ -25,7 +25,7 @@ class EntryAction extends CAction
       $params = array( 
             "title" => $survey["name"] ,
             //"content" => $controller->renderPartial( "entry", array( "survey" => $survey ), true),
-            "contentBrut" => $survey["message"],
+            "contentBrut" => @$survey["message"],
             "survey" => $survey,
              ) ;
 
@@ -35,19 +35,19 @@ class EntryAction extends CAction
           {
             $organizer = Person::getById( $survey["organizerId"] );
             $params["organizer"] = array(  "name" => $organizer["name"],
-                                           "link" => "url.loadByHash('#person.detail.id.".$survey["organizerId"]."')");
+                                           "link" => "#page.type.citoyens.id.".$survey["organizerId"]);
           }
           else if( $survey["organizerType"] == Organization::COLLECTION )
           {
             $organizer = Organization::getById( $survey["organizerId"] );
             $params["organizer"] = array(  "name" => $organizer["name"],
-                                           "link" => "url.loadByHash('#organization.detail.id.".$survey["organizerId"]."')");
+                                           "link" => "#page.type.organization.id.".$survey["organizerId"]);
           }
           else if( $survey["organizerType"] == Project::COLLECTION )
           {
             $organizer = Project::getById( $survey["organizerId"] );
             $params["organizer"] = array(  "name" => $organizer["name"],
-                                           "link" => "url.loadByHash('#project.detail.id.".$survey["organizerId"]."')");
+                                           "link" => "#page.type.project.id.".$survey["organizerId"]);
           }
 
           $params["organizerType"] = $survey["organizerType"];
@@ -62,19 +62,19 @@ class EntryAction extends CAction
           {
             $parent = Person::getById( $parentRoom["parentId"] );
             $params["parent"] = array(  "name" => $parent["name"],
-                                           "link" => "url.loadByHash('#person.detail.id.".$parentRoom["parentId"]."')");
+                                           "link" => "urlCtrl.loadByHash('#person.detail.id.".$parentRoom["parentId"]."')");
           }
           else if( $parentRoom["parentType"] == Organization::COLLECTION )
           {
             $parent = Organization::getById( $parentRoom["parentId"] );
             $params["parent"] = array(  "name" => $parent["name"],
-                                           "link" => "url.loadByHash('#organization.detail.id.".$parentRoom["parentId"]."')");
+                                           "link" => "urlCtrl.loadByHash('#organization.detail.id.".$parentRoom["parentId"]."')");
           }
           else if( $parentRoom["parentType"] == Project::COLLECTION )
           {
             $parent = Project::getById( $parentRoom["parentId"] );
             $params["parent"] = array(  "name" => $parent["name"],
-                                           "link" => "url.loadByHash('#project.detail.id.".$parentRoom["parentId"]."')");
+                                           "link" => "urlCtrl.loadByHash('#project.detail.id.".$parentRoom["parentId"]."')");
           }
           else if( $parentRoom["parentType"] == City::COLLECTION )
           {
@@ -82,7 +82,7 @@ class EntryAction extends CAction
             $params["parent"] = array(  "name" => $parent["name"],
                                         "insee" => $parent["insee"],
                                         "cp" => $parent["cp"],
-                                        "link" => "url.loadByHash('#city.detail.insee.".$parent["insee"].".postalCode.".$parent["cp"]."')");
+                                        "link" => "urlCtrl.loadByHash('#city.detail.insee.".$parent["insee"].".postalCode.".$parent["cp"]."')");
           }
 
           $params["parentType"] = $parentRoom["parentType"];

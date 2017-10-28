@@ -23,6 +23,7 @@ class ActivityStream {
 			//$news["target"]["type"]=$param["target"]["type"];
 			//unset($news["target"]["objectType"]);
 		    PHDB::insert(News::COLLECTION, $news);
+		    return $news;
 		}
 		else
 	    	PHDB::insert(self::COLLECTION, $param);
@@ -30,7 +31,7 @@ class ActivityStream {
 	public static function getWhere($params) {
 	  	 return PHDB::find( self::COLLECTION,$params,null,null);
 	}
-	public static function getNotifications($param,$sort=array("updated"=>-1,"created"=>-1))
+	public static function getNotifications($param,$sort=array("updated"=>-1))
 	{
 	    return PHDB::findAndSort(self::COLLECTION, $param,$sort);
 	}
@@ -68,6 +69,42 @@ class ActivityStream {
 		$sort = array("date"=>-1);
 		return PHDB::findAndSort( self::COLLECTION,$where,$sort,null);
 	}
+
+	/**
+	* Remove activities history
+	* @param type string $id defines id of modified entity
+	* @param type string $type defines type of modified entity
+	*/	
+	public static function removeActivityHistory($id,$type){
+		$where = array("target.id"=>$id, 
+					"target.objectType"=>$type,
+					"type"=>ActStr::TYPE_ACTIVITY_HISTORY);
+		return PHDB::remove( self::COLLECTION,$where);
+	}
+
+	/**
+	* Remove activities of an element
+	* @param type string $id defines id of modified entity
+	* @param type string $type defines type of modified entity
+	* @param type boolean $removeComments do i remove comments like to the activity stream or not 
+	*/	
+	public static function removeElementActivityStream($id, $type){
+		$res = array("result" => true, "msg" => "All the activity stream of the element have been removed.");
+		$where = 	array('$or' => array(
+						array('$and' => array(
+							  array("target.id"=>$id), 
+							  array("target.objectType"=>$type)
+						)),
+						array('$and' => array(
+							  array("object.id"=>$id), 
+							  array("object.objectType"=>$type)
+						))
+					));
+		PHDB::remove( self::COLLECTION,$where);
+		
+		return $res;
+	}
+	
 	/*
 	* SaveActivityHistory aims to insert in collecion ActivityStream 
 	* Each modification, add, each activity done on an entity
@@ -100,6 +137,8 @@ class ActivityStream {
 		self::addEntry($params);
 		return true;
 	}
+
+
 
 	public static function removeNotifications($id)
 	{
@@ -223,6 +262,8 @@ class ActivityStream {
 	        "icon" => $params["icon"],
 	        "url" => $params["url"]
 	    );
+	    if(@$params["labelAuthorObject"])
+	    	$notify["labelAuthorObject"]=$params["labelAuthorObject"];
 	    return $notify;
 	}
 	public static function removeObject($objectId,$type,$targetId=null,$targetType=null,$verb=null){
@@ -261,6 +302,11 @@ class ActivityStream {
                 "type" => $params["target"]['type'],
                 "id" => $params["target"]['id']
             );
+            $action["sharedBy"] = array(array( 
+                "type" => $params["target"]['type'],
+                "id" => $params["target"]['id'],
+                "updated"=>new MongoDate(time()),
+            ));
         }
 
         if( isset( $params["ip"] ))

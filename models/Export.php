@@ -4,50 +4,88 @@ class Export
 { 
 	public static function toCSV($data, $separ=";", $separText=" ") {
 
+		$content = array();
+		$allElements = "";
+		$oneElement = "";
+		$csv = "";
+		$data = self::getMongoParam($data);
 
-		$listbranch=array();
-		$listvaluebranch=array();
-		$res = json_encode($data);
-		$head = array();
-		$value_elt = array();
+		$data = json_encode($data);
+		if(substr($data, 0,1) == "{")
+            $allPath = ArrayHelper::getAllPathJson($data); 
+        else{
+            $allPath = array();
+            foreach (json_decode($data,true) as $key => $value) {
+
+            	if ($value != null) {
+            		$allPath = ArrayHelper::getAllPathJson(json_encode($value), $allPath); 
+            	}
+            }
+        }
+
+        $data = json_decode($data, true);
 
 		foreach ($data as $key1 => $value1) {
-
-			$allPath = ArrayHelper::getAllPathJson(json_encode($value1));
-
+			$value_elt = array();
 			foreach ($allPath as $key2 => $value2) {
-				$value = ArrayHelper::getValueByDotPath($value1, $value2);
-				array_push($head, htmlspecialchars($value2));
-				array_push($value_elt, htmlspecialchars($value));
-
+				$valPath = ArrayHelper::getValueByDotPath($value1, $value2);
+				if ($valPath != null) {
+					array_push($value_elt, $valPath);
+				} 
+				else {
+					array_push($value_elt, " ");
+				}
 			}
-		
+
+			array_push($content, $value_elt);
+			//Si l'élément n'as pas de champ id
+			if ($value_elt[0] != " ") {  		
+				$oneElement = implode($separText.$separ.$separText, $value_elt);
+				$allElements .= $separText.$oneElement.$separText;
+				$allElements .= "\n";
+			}
 		}
 
-		$head = implode($separText.$separ.$separText, $head);
-		$value_elt = implode($separText.$separ.$separText, $value_elt);
-
+		$head = implode($separText.$separ.$separText, $allPath);
 		$csv = $separText.$head.$separText;
-		$csv .= "<BR>";
-		$csv .= $separText.$value_elt.$separText;
+		$csv .= "\n";
+		$csv .= $allElements;
 
-		// var_dump($csv);
-		// $list = array (
-		//   array($head),
-		//   array($value_elt)	
-		// );
+		echo $csv; 
+}
 
-		// var_dump($list);
 
-		// $fp = fopen('/home/damien/workspace/travail/test_crea_csv/file.csv', 'w');
-		// var_dump($fp);
+	public static function getMemberOf($id, $type) {
+		$data = Element::getByTypeAndId($type, $id);
 
-		// foreach ($list as $ligne) {
-		// 	fputcsv($fp, $ligne, $separ, $separText, $separText);
-		// }
+		$list_orga = array();
 
-		// fclose($fp);
+		foreach ($data["links"]["memberOf"] as $key => $value) {
+			$orga = Element::getByTypeAndId($value['type'], $key );
+			$list_orga[] = $orga;
+		}
+		return $list_orga;
 	}
 
+	public static function getMongoParam($data) {
+
+		foreach ($data as $key => $value) {
+
+			if (isset($value["_id"])) {
+				$data[$key]['_id'] = (string)$value["_id"];
+			}
+
+			if (isset($value['modified'])) {
+				$data[$key]['modified'] = (string)$value['modified'];
+			}
+
+			if (isset($value['badges'])) {
+				$data[$key]['badges'][0]['date'] = (string)$value['badges'][0]['date'];
+			}
+
+		}
+
+		return $data;
+	}
 }
 

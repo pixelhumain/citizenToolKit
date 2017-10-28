@@ -38,11 +38,12 @@ class CO2Stat {
 
 	public static function getStatsByHash($week=null, $hash=null){
 
-		if( !Role::isSuperAdmin(Role::getRolesUserId(Yii::app()->session["userId"]) )){
+		$role = Role::getRolesUserId(@Yii::app()->session["userId"]) ; 
+        if(!Role::isSuperAdmin($role) && !Role::isSourceAdmin($role) ){
 			echo "Access deny";
 			exit;
 		}
-
+		
 		if($week==null) //si le numéro de semaine n'est pas indiqué
 		$week = self::getTodayWeek(); //prend la semaine en cours
 
@@ -60,6 +61,15 @@ class CO2Stat {
 		//extrait les données du hash demandé (s'il y en a un, sinon return les stats de tous les hash)
 		$statByHash = ($hash!=null) ? @$stat["hash"][$hash] : $stat;
 
+		if($CO2DomainName!="kgougle"){
+			unset($statByHash["hash"]["co2-web"]);
+			unset($statByHash["hash"]["co2-websearch"]);
+			unset($statByHash["hash"]["co2-referencement"]);
+		}
+		$statByHash["week"] = substr($week, 0, 2)." - ".substr($week, 2, 4);
+		$statByHash["numweek"] = intval(substr($week, 0, 2));
+		$statByHash["year"] = substr($week, 2, 4);
+		//var_dump($statByHash);
 		return $statByHash;
 	}
 

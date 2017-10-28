@@ -31,6 +31,39 @@ class Api {
         return $data;
     }
 
+    public static function getDataBySearch($search, $type, $tags, $index, $limit){
+        /*$search = "", $format = null, $limit=50, $index=0, $tags = null, $multiTags=null , $key = null, $insee = null)
+        $search = @$post['name'] ? trim(urldecode($post['name'])) : "";
+        $locality = isset($post['locality']) ? trim(urldecode($post['locality'])) : null;
+        //$localities = isset($post['localities']) ? $post['localities'] : null;
+        $searchType = explode(",", $type);
+        $searchTags = isset($post['searchTag']) ? $post['searchTag'] : null;
+        
+        $indexMin = isset($post['indexMin']) ? $post['indexMin'] : 0;
+        $indexMax = isset($post['indexMax']) ? $post['indexMax'] : 30;
+        $country = isset($post['country']) ? $post['country'] : "";
+        $priceMin = isset($_POST['priceMin']) ? $_POST['priceMin'] : null;
+        $priceMax = isset($_POST['priceMax']) ? $_POST['priceMax'] : null;
+        $devise = isset($_POST['devise']) ? $_POST['devise'] : null;
+        $latest = isset($_POST['latest']) ? $_POST['latest'] : null;
+        $searchSType = !empty($post['searchSType']) ? $post['searchSType'] : "";
+
+        $search = "", $format = null, $limit=50, $index=0, $tags = null, $multiTags=null , $key = null, $insee = null*/
+        $paramsSearch = array(  'name' => $search,
+                                'searchType' => ( !empty($type) ? explode(",", $type) : array(Person::COLLECTION, Organization::COLLECTION, Project::COLLECTION)),
+                                'searchTag' => ( !empty($tags) ? explode(",", $tags) : array()),
+                                'indexMin' => ( !empty($index) ? $index : "0"),
+                                'indexMax' => ( !empty($limit) ? $index+$limit : "30") ) ;
+                                /*'country' => $name
+                                'priceMin' => $name
+                                'priceMax' => $name
+                                'devise' => $name
+                                'latest' => $name
+                                'searchSType' => $name*/
+        $res = Search::globalAutoComplete($paramsSearch, null, true);
+        return $res;
+    }
+
 
     public static function getData($bindMap, $format = null, $type, $id = null, $limit=50, $index=0, $tags = null, $multiTags=null , $key = null, $insee = null, $geoShape = null, $idElement = null, $typeElement = null){
         
@@ -80,7 +113,6 @@ class Api {
             }
         }
 
-
         if (( $format == Translate::FORMAT_RSS) || ($format == Translate::FORMAT_KML) || ($format == Translate::FORMAT_KML)) {
             //if(((@$idElement) && (@$typeElement)) || (@$tags)) {
             foreach ($data as $key => $value) {
@@ -123,15 +155,21 @@ class Api {
             $result["features"] = array();
             $result["features"] = $result["features_temp"];
             unset($result["features_temp"]);
+        } elseif ($format == Translate::FORMAT_JSONFEED) {
+            $meta = [];
+            $meta["version"] = "https://jsonfeed.org/version/1";
+            $meta["title"] = "Communecter's JSON Feed";
+            $meta["description"] = "This is the JSON Feed of the Communecter site";
+            $meta["home_page_url"] = "www.communecter.org";
+
+            $result["meta"] = $meta ;
+            $result["items"] = ((!empty($data) && !empty($bindMap) )?Translate::convert($data , $bindMap):$data);
         }
         else { 
             $result["meta"] = $meta ;
             $result["entities"] = ((!empty($data) && !empty($bindMap) )?Translate::convert($data , $bindMap):$data);
 
         }
-
-       
-
         return $result;
     }
     

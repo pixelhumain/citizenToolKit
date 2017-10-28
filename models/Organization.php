@@ -15,16 +15,17 @@ class Organization {
 	const TYPE_GOV = "GovernmentOrganization";
 
 	public static $types = array(
-        "NGO" => "Association",
-        "LocalBusiness" => "Entreprise",
-        "Group" => "Groupe",
-        "GovernmentOrganization" => "Service public"
+        "NGO" => "NGO",
+        "LocalBusiness" => "Local Business",
+        "Group" => "Group",
+        "GovernmentOrganization" => "Government Organization"
 	); 
 
 	//From Post/Form name to database field name
 	//TODO : remove name   
 	public static $dataBinding = array(
 	    "name" => array("name" => "name", "rules" => array("required", "organizationSameName")),
+	    "slug" => array("name" => "slug", "rules" => array("checkSlug")),
 	    "email" => array("name" => "email", "rules" => array("email")),
 	    "type" => array("name" => "type", "rules" => array("required","typeOrganization")),
 	    "shortDescription" => array("name" => "shortDescription"),
@@ -69,6 +70,12 @@ class Organization {
 	    "contacts" => array("name" => "contacts"),
 	    "urls" => array("name" => "urls"),
 	    "descriptionHTML" => array("name" => "descriptionHTML"),
+		"socialNetwork" => array("name" => "socialNetwork"),
+	    "facebook" => array("name" => "socialNetwork.facebook"),
+	    "twitter" => array("name" => "socialNetwork.twitter"),
+	    "gpplus" => array("name" => "socialNetwork.googleplus"),
+	    "github" => array("name" => "socialNetwork.github"),
+	    "skype" => array("name" => "socialNetwork.skype"),
 	);
 	
 	//See findOrganizationByCriterias...
@@ -270,7 +277,8 @@ class Organization {
 	    else
 	    	$orgaCodeInsee="";
 
-		Notification::createdObjectAsParam(Person::COLLECTION,$creatorId,Organization::COLLECTION, $newOrganizationId, Person::COLLECTION,$creatorId, $orgaGeo,$orgaTags,$orgaCodeInsee);
+	    if (empty($paramsImport))
+			Notification::createdObjectAsParam(Person::COLLECTION,$creatorId,Organization::COLLECTION, $newOrganizationId, Person::COLLECTION,$creatorId, $orgaGeo,$orgaTags,$orgaCodeInsee);
 		ActivityStream::saveActivityHistory(ActStr::VERB_CREATE, $newOrganizationId, Organization::COLLECTION, "organization", $organization["name"]);
 	    $organization = Organization::getById($newOrganizationId);
 	    return array("result"=>true,
@@ -525,7 +533,7 @@ class Organization {
 
 		$simpleOrganization = array();
 		if(!$orga)
-			$orga = PHDB::findOneById( self::COLLECTION ,$id, array("id" => 1, "name" => 1, "type" => 1, "email" => 1, "url" => 1, "shortDescription" => 1, "description" => 1, "address" => 1, "pending" => 1, "tags" => 1, "geo" => 1, "updated" => 1, "profilImageUrl" => 1, "profilThumbImageUrl" => 1, "profilMarkerImageUrl" => 1,"profilMediumImageUrl" => 1, "addresses"=>1, "telephone"=>1) );
+			$orga = PHDB::findOneById( self::COLLECTION ,$id, array("id" => 1, "name" => 1, "type" => 1, "email" => 1, "url" => 1, "shortDescription" => 1, "description" => 1, "address" => 1, "pending" => 1, "tags" => 1, "geo" => 1, "updated" => 1, "profilImageUrl" => 1, "profilThumbImageUrl" => 1, "profilMarkerImageUrl" => 1,"profilMediumImageUrl" => 1, "addresses"=>1, "telephone"=>1, "slug"=>1) );
 		if(!empty($orga)){
 			$simpleOrganization["id"] = $id;
 			$simpleOrganization["name"] = @$orga["name"];
@@ -540,6 +548,7 @@ class Organization {
 			$simpleOrganization["description"] = @$orga["description"];
 			$simpleOrganization["updated"] = @$orga["updated"];
 			$simpleOrganization["addresses"] = @$orga["addresses"];
+			$simpleOrganization["slug"] = @$orga["slug"];
 			$simpleOrganization["typeSig"] = "organizations";
 			$simpleOrganization = array_merge($simpleOrganization, Document::retrieveAllImagesUrl($id, self::COLLECTION, @$orga["type"], $orga));
 			
@@ -576,13 +585,13 @@ class Organization {
 	  			return $members;
 	  		} else {
 	  			foreach ($organization["links"]["members"] as $key => $member) {
-		            if ($member['type'] == $type ) {
+		            if ($member['type'] == $type) {
 		            	if(!@$member["toBeValidated"] && !@$member["isInviting"])
 		            		$res[$key] = $member;	
 		            }
 		            if ( $role && @$member[$role] == true ) {
 		            	if($role=="isAdmin"){
-		            		if(!@$member["isAdminPending"])
+		            		if(!@$member["isAdminPending"] && !@$member["toBeValidated"] && !@$member["isInviting"])
 		            			$res[$key] = $member;	
 		            	} else 
 		                	$res[$key] = $member;

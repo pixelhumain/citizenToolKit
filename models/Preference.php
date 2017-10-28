@@ -1,10 +1,7 @@
 <?php 
 class Preference {
 
-	public static $yesOrNo = array(
-        "true" => true,
-        "false" => false
-	);
+	public static $listPref = array( "email", "locality", "phone", "directory", "birthDate" );
 
 	public static function getPreferencesByTypeId($id, $type){
 
@@ -27,8 +24,11 @@ class Preference {
 	}
 	
 	public static function updateConfidentiality($id, $type, $param){
-		if ($type == Person::COLLECTION)
+		if ($type == Person::COLLECTION){
+			$id = $param["idEntity"];
 			$context = Person::getById($id);
+		}
+
 		if($type == Organization::COLLECTION){
 			$id = $param["idEntity"];
 			$context = Organization::getById($id);
@@ -92,6 +92,8 @@ class Preference {
 		}
 		if($setType == "isOpenEdition"){
 			$preferences["isOpenEdition"] = $setValue;
+			PHDB::update( $type,  array("_id" => new MongoId($id)), 
+		 										array('$unset' => array("hasRC"=>"") ));
 		}else{
 			if($type != Person::COLLECTION)
 				$preferences["isOpenEdition"] = (empty($context["preferences"]["isOpenEdition"])?false:$context["preferences"]["isOpenEdition"]);
@@ -103,9 +105,10 @@ class Preference {
 			Badge::delete("opendata", $id, $type);
 		
 		/*PHDB::update($type, array("_id" => new MongoId($id)), 
-		    array('$set' => array("preferences.privateFields" => $privateFields, "preferences.publicFields" => $publicFields)));*/		
-		PHDB::update($type, array("_id" => new MongoId($id)), 
-		    array('$set' => array("preferences" => $preferences)));
+		    array('$set' => array("preferences.privateFields" => $privateFields, "preferences.publicFields" => $publicFields)));*/
+
+		$result = PHDB::update($type, array("_id" => new MongoId($id)), 
+		    						array('$set' => array("preferences" => $preferences)));
 
 		ActivityStream::saveActivityHistory(ActStr::VERB_UPDATE, $id, $type, $setType, self::valueActivityStream($setValue));
 		$res = array("result" => true, "msg" => Yii::t("common","Confidentiality param well updated"));
@@ -173,6 +176,34 @@ class Preference {
 				( $eltId == $userId || Link::isLinked($eltId, $elementType, $userId, @$element["links"]) ) )
 			$result = true;
 		return $result;
+	}
+
+
+	public static function clearByPreference($element, $elementType, $userId) {
+		$eltId = ( (!empty($element["_id"])) ? (string)$element["_id"] : (string)$element["id"] );
+		if(!empty($eltId)){
+			if(empty($element["preferences"])){
+				$element["preferences"] = self::getPreferencesByTypeId($eltId, $elementType) ;
+			}
+
+			foreach (self::$listPref as $key => $namePref) {
+				if( !self::showPreference($element, $elementType, $namePref, $userId) ){
+					if($namePref == "locality"){
+						unset($element["address"]);
+						unset($element["geo"]);
+						unset($element["geoPosition"]);
+					}else if($namePref == "phone"){
+						unset($element["telephone"]);
+					}else if($namePref == "directory"){
+						unset($element["links"]);
+					}else{
+						unset($element[$namePref]);
+					}
+				}
+			}
+		}
+		
+		return $element;
 	}
 
 

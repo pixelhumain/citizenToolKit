@@ -76,21 +76,25 @@ class SaveSessionAction extends CAction
 
                 $where = array();
                 //echo "_POST"; var_dump($_POST); return;
-                if( isset( $_POST['id'] ) ){
+                /*if( isset( $_POST['id'] ) ){
                     $where["_id"] = new MongoId($_POST['id']);
                     $result = PHDB::update( Survey::COLLECTION,  $where, 
                                                    array('$set' => $entryInfos ));
                     $surveyId = $_POST['id'];
-                } else {
-                    $surveyId = new MongoId();
+                } else {*/
+                    $surveyId = new MongoId($_POST['id']);
                     $entryInfos["_id"] = $surveyId;
                     $entryInfos['created'] = time();
-                    $result = PHDB::insert( Survey::COLLECTION,$entryInfos );
-                }
+                    $where = array( "_id" => new MongoId($_POST['id']) );
+                    /*if( PHDB::findOne (ActionRoom::COLLECTION_ACTIONS, $where ) )
+                        $result = PHDB::update( Survey::COLLECTION,  $where, array('$set' => $entryInfos ));
+                    else 
+                        $result = PHDB::insert( Survey::COLLECTION,$entryInfos );*/
+                //}
                 
-                /*$result = PHDB::updateWithOptions( Survey::COLLECTION,  $where, 
+                $result = PHDB::updateWithOptions( Survey::COLLECTION,  $where, 
                                                    array('$set' => $entryInfos ) ,
-                                                   array('upsert' => true ) ); */
+                                                   array('upsert' => true ) ); 
                 //Save the comment options
                 if (@$_POST["commentOptions"]) {
                     Comment::saveCommentOptions( $surveyId ,Survey::COLLECTION, $_POST["commentOptions"]);

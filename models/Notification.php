@@ -46,7 +46,7 @@ class Notification{
 			"labelRepeat"=>"{who} are following {where}",
 			"labelArray" => array("who","where"),
 			"icon" => "fa-link",
-			"url" => "{ctrlr}/directory/id/{id}"
+			"url" => "page/type/{collection}/id/{id}/view/directory/dir/followers"
 		),
 		ActStr::VERB_ASK => array(
 			"repeat" => true,
@@ -68,7 +68,31 @@ class Notification{
 				"type"=>"instantly"
 			),
 			"icon" => "fa-cog",
-			"url" => "page/type/{collections}/id/{id}/view/notifications"
+			"url" => "page/type/{collection}/id/{id}/view/notifications"
+		),
+		ActStr::VERB_DELETE => array(
+			"type" => array(
+				ActStr::VERB_ASK => array(
+					"to"=> "admin",
+					"label"=>"{who} asks the suppression of {where}",
+					"url" => "page/type/{collection}/id/{id}"
+				),
+				ActStr::VERB_REFUSE => array(
+					"to" => "admin",
+					"label"=>"{who} stopped the pending suppression of {where}",
+					"url" => "page/type/{collection}/id/{id}"
+				),
+				ActStr::VERB_DELETE => array(
+					"to" => "members",
+					"label"=>"{who} deleted {where}",
+					"url" => "live"
+				)
+			),
+			"labelArray" => array("who","where"),
+			"mail" => array(
+				"type"=>"instantly"
+			),
+			"icon" => "fa-trash",
 		),
 		//// USED ONLY FOR EVENT
 		// FOR ORGANIZATRION AND PROJECT IF ONLY MEMBER
@@ -100,7 +124,7 @@ class Notification{
 			),
 			"labelArray" => array("who","where"),
 			"icon" => "fa-group",
-			"url" => "{ctrlr}/directory/id/{id}"
+			"url" => "page/type/{collection}/id/{id}/view/directory/dir/{connectAs}"
 		),
 		ActStr::VERB_COMMENT => array(
 			"repeat" => true,
@@ -108,22 +132,44 @@ class Notification{
 				News::COLLECTION => array(
 					"label" => "{who} commented on your news {what}",
 					"labelRepeat" => "{who} added comments on your news {what}",
+					"sameAuthor"=>array(
+						"labelRepeat" => "{who} added few comments on your news {what}"
+					),
 					"targetIsAuthor"=> array(
 						"label"=> "{who} commented a news {what} posted on {where}",
-						"labelRepeat"=> "{who} added comments on a news {what} posted on {where}"
+						"labelRepeat"=> "{who} added comments on a news {what} posted on {where}",
+						"sameAuthor"=>array(
+							"labelRepeat" => "{who} added few comments on a news {what} posted on {where}"
+						)
 					),
 					"notifyUser" => true,
-					"url" => "news/detail/id/{id}"
+					"parentTarget"=>true,
+					"repeat" => true,
+					"url" => "page/type/news/id/{id}"
 				),
-				Survey::COLLECTION => array(
+				Proposal::COLLECTION => array(
 					"label" => "{who} commented on proposal {what} in {where}",
 					"labelRepeat" => "{who} added comments on proposal {what} in {where}",
-					"url" => "survey/entry/id/{id}"
+					"sameAuthor"=>array(
+						"labelRepeat" => "{who} added few comments on proposal {what} in {where}"
+					),
+					"url" => "page/type/{collection}/id/{id}/view/coop/room/{roomId}/proposal/{objectId}",
 				),
-				ActionRoom::COLLECTION_ACTIONS => array(
+				Action::COLLECTION => array(
 					"label" => "{who} commented on action {what} in {where}",
 					"labelRepeat" => "{who} added comments on action {what} in {where}",
-					"url" => "rooms/action/id/{id}"
+					"sameAuthor"=>array(
+						"labelRepeat" => "{who} added few comments on action {what} in {where}"
+					),
+					"url" => "page/type/{collection}/id/{id}/view/coop/room/{roomId}/action/{objectId}"
+				),
+				Resolution::COLLECTION => array(
+					"label" => "{who} commented on resolution {what} in {where}",
+					"labelRepeat" => "{who} added comments on resolution {what} in {where}",
+					"sameAuthor"=>array(
+						"labelRepeat" => "{who} added few comments on resolution {what} in {where}"
+					),
+					"url" => "page/type/{collection}/id/{id}/view/coop/room/{roomId}/resolution/{objectId}"
 				),
 				ActionRoom::COLLECTION => array(
 					"label" => "{who} commented on discussion {what} in {where}",
@@ -138,6 +184,9 @@ class Notification{
 				Comment::COLLECTION => array(
 					"label" => "{who} answered to your comment posted on {where}",
 					"labelRepeat" => "{who} added comments on your comments posted on {where}",
+					"sameAuthor" => array(
+						"labelRepeat" => "{who} added few comments on your comments posted on {where}"
+					),
 					"url" => "targetTypeUrl",
 					"notifyUser" => true,
 					"repeat"=>true
@@ -162,12 +211,29 @@ class Notification{
 					"label"=>"{who} likes your news {what}",
 					"labelRepeat"=>"{who} like your news {what}",
 					"notifyUser" => true,
-					"url" => "news/detail/id/{id}"
+					"parentTarget"=>true,
+					"url" => "page/type/news/id/{id}"
+				),
+				Proposal::COLLECTION => array(
+					"label" => "{who} commented on proposal {what} in {where}",
+					"labelRepeat" => "{who} added comments on proposal {what} in {where}",
+					"url" => "page/type/{collection}/id/{id}/view/coop/room/{roomId}/proposal/{objectId}",
+				),
+				Action::COLLECTION => array(
+					"label" => "{who} commented on action {what} in {where}",
+					"labelRepeat" => "{who} added comments on action {what} in {where}",
+					"url" => "page/type/{collection}/id/{id}/view/coop/room/{roomId}/action/{objectId}"
+				),
+				Resolution::COLLECTION => array(
+					"label" => "{who} commented on resolution {what} in {where}",
+					"labelRepeat" => "{who} added comments on resolution {what} in {where}",
+					"url" => "page/type/{collection}/id/{id}/view/coop/room/{roomId}/resolution/{objectId}"
 				),
 				Comment::COLLECTION => array(
 					"label"=>"{who} likes your comment on {where}",
 					"labelRepeat"=>"{who} like your comment on {where}",
-					"url" => "targetTypeUrl"
+					"url" => "targetTypeUrl",
+					"notifyUser" => true
 				)
 			),
 			"labelArray" => array("who", "where"),
@@ -188,12 +254,29 @@ class Notification{
 					"label"=>"{who} disapproves your news {what}",
 					"labelRepeat"=>"{who} disapproves your news {what}",
 					"notifyUser" => true,
-					"url" => "news/detail/id/{id}"
+					"parentTarget"=> true,
+					"url" => "page/type/news/id/{id}"
+				),
+				Proposal::COLLECTION => array(
+					"label" => "{who} commented on proposal {what} in {where}",
+					"labelRepeat" => "{who} added comments on proposal {what} in {where}",
+					"url" => "page/type/{collection}/id/{id}/view/coop/room/{roomId}/proposal/{objectId}",
+				),
+				Action::COLLECTION => array(
+					"label" => "{who} commented on action {what} in {where}",
+					"labelRepeat" => "{who} added comments on action {what} in {where}",
+					"url" => "page/type/{collection}/id/{id}/view/coop/room/{roomId}/action/{objectId}"
+				),
+				Resolution::COLLECTION => array(
+					"label" => "{who} commented on resolution {what} in {where}",
+					"labelRepeat" => "{who} added comments on resolution {what} in {where}",
+					"url" => "page/type/{collection}/id/{id}/view/coop/room/{roomId}/resolution/{objectId}"
 				),
 				Comment::COLLECTION => array(
 					"label"=>"{who} disapproves your comment on {where}",
 					"labelRepeat"=>"{who} disapproves your comment on {where}",
-					"url" => "targetTypeUrl"
+					"url" => "targetTypeUrl",
+					"notifyUser" => true
 				)
 			),
 			"labelArray" => array("who", "where"),
@@ -212,10 +295,16 @@ class Notification{
 				),
 				"userWall" => array(
 					"label"=>"{who} writes a post on your wall",
-					"labelRepeat"=>"{who} write posts on your wall"
+					"labelRepeat"=>"{who} write posts on your wall",
+					"sameAuthor" => array(
+						"labelRepeat" => "{who} writes posts on your wall"
+					)
 				),
 				"label"=>"{who} writes a post on the wall of {where}",
-				"labelRepeat"=>"{who} write posts on the wall of {where}"
+				"labelRepeat"=>"{who} write posts on the wall of {where}",
+				"sameAuthor" => array(
+					"labelRepeat" => "{who} writes posts on the wall of {where}"
+				)
 			),
 			"url" => "page/type/{collection}/id/{id}",
 			"labelArray" => array("who", "where"),
@@ -227,11 +316,11 @@ class Notification{
 					"url" => "{ctrlr}/detail/id/{id}"
 				),*/
 				Project::COLLECTION => array(
-					"url" => "page/type/{collection}/id/{id}",
+					"url" => "page/type/{objectType}/id/{objectId}",
 					"label" => "{who} added a new project on {where}"
 				),
 				Event::COLLECTION=> array(
-					"url" => "page/type/{collection}/id/{id}",
+					"url" => "page/type/{objectType}/id/{objectId}",
 					"label" => "{who} added a new event on {where}"
 				),
 				ActionRoom::COLLECTION_ACTIONS=> array(
@@ -246,13 +335,21 @@ class Notification{
 					"url"=>"survey/entries/id/{objectId}",
 					"label" => "{who} added a new voting room on {where}"
 				),
-				Survey::COLLECTION => array(
-					"url" => "survey/entry/id/{id}",
+				Room::COLLECTION => array(
+					"url"=>"page/type/{collection}/id/{id}/view/coop/room/{objectId}",
+					"label" => "{who} added a new room in the co-space on {where}"
+				),
+				Proposal::COLLECTION => array(
+					"url" => "page/type/{collection}/id/{id}/view/coop/room/{roomId}/proposal/{objectId}",
 					"label"=> "{who} added a new proposal {what} in {where}"
 				),
-				ActionRoom::TYPE_ACTION => array(
-					"url" => "rooms/action/id/{id}",
+				Action::COLLECTION => array(
+					"url" => "page/type/{collection}/id/{id}/view/coop/room/{roomId}/action/{objectId}",
 					"label" => "{who} added a new action {what} in {where}"
+				),
+				Resolution::COLLECTION => array(
+					"url" => "page/type/{collection}/id/{id}/view/coop/room/{roomId}/resolution/{objectId}",
+					"label" => "{who} added a new resolution {what} in {where}"
 				),
 				"profilImage" => array(
 					"url" => "targetTypeUrl",
@@ -263,7 +360,17 @@ class Notification{
 					"label" => "{who} added new images to the album of {where}",
 					"repeat" => true,
 					"noUpdate" => true
-				)
+				),
+				"asMember"=> array(
+					"url" => "page/type/{collection}/id/{id}/view/directory/dir/members",
+					"label" => "{who} added {what} as member of {where}",
+					"labelRepeat" => "{who} added {what} as members of {where}",
+					"repeat" => true
+				),
+				"chat" => array(
+					"url" => "page/type/{collection}/id/{id}",
+					"label" => "{who} added a Chat on {where}"
+				),
 			),
 			/*"context" => array(
 				"members" => array(
@@ -275,7 +382,7 @@ class Notification{
 				"city" => true
 			),*/
 			//"label"=>"{who} added {type} {what} in {where}",
-			"labelArray" => array("who","where"),
+			"labelArray" => array("who","where","what"),
 			"icon" => "fa-plus"
 		),
 		ActStr::VERB_VOTE => array(
@@ -284,8 +391,17 @@ class Notification{
 			"labelRepeat"=>"{who} have voted on {what} in {where}",
 			"labelArray" => array("who","where"),
 			"icon" => ActStr::ICON_VOTE,
-			"url" => "survey/entry/id/{id}"
+			"url" =>  "page/type/{collection}/id/{id}/view/coop/room/{roomId}/proposal/{objectId}"
 		),
+		ActStr::VERB_AMEND => array(
+			"repeat" => true,
+			"label" => "{who} amended the proposal {what} in {where}",
+			"labelRepeat"=>"{who} have amended the proposal {what} in {where}",
+			"labelArray" => array("who","where"),
+			"icon" => ActStr::ICON_VOTE,
+			"url" =>  "page/type/{collection}/id/{id}/view/coop/room/{roomId}/proposal/{objectId}"
+		),
+
 		/*
 		"ActStr::VERB_UPDATE" => array(
 			"repeat" => true,
@@ -314,7 +430,7 @@ class Notification{
 			),
 			"labelArray" => array("who","where"),
 			"icon" => "fa-check",
-			"url" => "{ctrlr}/directory/id/{id}"
+			"url" => "page/type/{collection}/id/{id}/view/directory/dir/{connectAs}"
 		),
 		//FROM USER LINK TO AN ELEMENT ACTING ON IT
 		ActStr::VERB_INVITE => array(
@@ -381,7 +497,7 @@ class Notification{
 			),
 			"labelArray" => array("author","who","where"),
 			"icon" => "fa-check",
-			"url" => "{ctrlr}/directory/id/{id}"
+			"url" => "page/type/{collection}/id/{id}/view/directory/dir/{connectAs}"
 		)/*,
 		"SIGNIN" => array(
 			"repeat" => true,
@@ -413,18 +529,36 @@ class Notification{
 		}
         $people = array();
 	    $members = array();
+	    if(in_array($type, array( Proposal::COLLECTION))){
+	    	$prop=Proposal::getById($id);
+	    	$type=$prop["parentType"];
+	    	$id=$prop["parentId"];
+	    }
 	    if( $type == Project::COLLECTION )
 	    	$members = Project::getContributorsByProjectId( $id ,$impactType, $impactRole);
 	    else if( $type == Organization::COLLECTION)
 	    	$members = Organization::getMembersByOrganizationId( $id ,$impactType, $impactRole) ;
-	    else if( $type == Event::COLLECTION )
+	    else if( $type == Event::COLLECTION ){
 	    	$members = Event::getAttendeesByEventId( $id , "admin", "isAdmin" ) ;
-		else if($type == Person::COLLECTION)
-			$people[$id] = array("isUnread" => true, "isUnseen" => true);
+	    	// ADD INVITOR IF NOT IN ADMIN LIST
+	    	if($construct["verb"]==ActStr::VERB_CONFIRM && @$construct["target"]["invitorId"] && !@$members[$construct["target"]["invitorId"]]){
+	    		$members[$construct["target"]["invitorId"]]=array();
+	    	}
+	    }
+	    if($construct["verb"]==Actstr::VERB_DELETE && $construct["levelType"]==ActStr::VERB_REFUSE){
+	    	$userAskingToDelete=Element::getElementSimpleById($id, $type, null,array("userAskingToDelete"));
+	    	$userAskingToDelete=$userAskingToDelete["userAskingToDelete"];
+	    	if(!@$members[$userAskingToDelete])
+	    		$members[$userAskingToDelete]=array();
+	    }
+
+		if($type == Person::COLLECTION && $construct["verb"]==Actstr::VERB_FOLLOW)
+		 	$people[$id] = array("isUnread" => true, "isUnseen" => true);
 		else if($type == News::COLLECTION){
 			if(Yii::app()->session["userId"] != $alreadyAuhtorNotify){
 				$news=News::getById($id);
-				if(($alreadyAuhtorNotify != $news["author"]["id"] && $news["target"]["type"]==Person::COLLECTION) || ( $news["target"]["type"] !=Person::COLLECTION && Yii::app()->session["userId"]!=$news["author"]["id"])){
+				$authorNews=News::getAuthor($id);
+				if(($alreadyAuhtorNotify != $authorNews["author"] && $news["target"]["type"]==Person::COLLECTION) || ( $news["target"]["type"] !=Person::COLLECTION && Yii::app()->session["userId"]!=$authorNews["author"])){
 					//echo $alreadyAuhtorNotify;
 					if($news["target"]["type"] !=Person::COLLECTION){
 						if( $news["target"]["type"] == Project::COLLECTION )
@@ -433,37 +567,38 @@ class Notification{
 	    					$members = Organization::getMembersByOrganizationId( $news["target"]["id"] ,$impactType, $impactRole);
 	    				else if( $news["target"]["type"] == Event::COLLECTION )
 	    					$members = Event::getAttendeesByEventId( $news["target"]["id"] , "all", null ) ;
-						$construct["target"]["parent"]=array("id"=>$news["target"]["id"],"type"=> $news["target"]["type"]);
 					}
 					else
-						$people[$news["author"]["id"]] = array("isUnread" => true, "isUnseen" => true);
+						$people[$authorNews["author"]] = array("isUnread" => true, "isUnseen" => true);
 				}
 			} 
 		} 
-		else if( in_array($type, array( Survey::COLLECTION, ActionRoom::COLLECTION, ActionRoom::COLLECTION_ACTIONS) ) )
+		/*else if( in_array($type, array( Survey::COLLECTION, ActionRoom::COLLECTION, ActionRoom::COLLECTION_ACTIONS) ) )
 		{
 			$entryId = $id;
 			if( $type == Survey::COLLECTION ){
 				$target["entry"] = Survey::getById( $id );
-				$entryId = (string)$target["entry"]["survey"];
+				//var_dump($target); exit;
+				$entryId = (string)@$target["entry"]["survey"];
 			} else if( $type == ActionRoom::COLLECTION_ACTIONS ){
 				$target["entry"] = ActionRoom::getActionById( $id );
-				$entryId = $target["entry"]["room"];
+				$entryId = $target["entry"]["idParentRoom"];
 			}
-			$room = ActionRoom::getById( $entryId );
-			if( @$room["parentType"] ){
-				if( $room["parentType"] == Project::COLLECTION ) 
-			    	$members = Project::getContributorsByProjectId( $room["parentId"] ,"all", null ) ;
-			    else if( $room["parentType"] == Organization::COLLECTION) 
-			    	$members = Organization::getMembersByOrganizationId( $room["parentId"] ,"all", null ) ;
-			    else if( $room["parentType"] == Event::COLLECTION )
-		    			$members = Event::getAttendeesByEventId( $room["parentId"] , "admin", "isAdmin" ) ;
-		    	$construct["target"]["parent"]=array("id"=>$room["parentId"],"type"=> $room["parentType"]);
-			}
-		}
+			
+			// $room = ActionRoom::getById( $entryId );
+			// if( @$room["parentType"] ){
+			// 	if( $room["parentType"] == Project::COLLECTION ) 
+			//     	$members = Project::getContributorsByProjectId( $room["parentId"] ,"all", null ) ;
+			//     else if( $room["parentType"] == Organization::COLLECTION) 
+			//     	$members = Organization::getMembersByOrganizationId( $room["parentId"] ,"all", null ) ;
+			//     else if( $room["parentType"] == Event::COLLECTION )
+		 //    			$members = Event::getAttendeesByEventId( $room["parentId"] , "admin", "isAdmin" ) ;
+		 //    	$construct["target"]["parent"]=array("id"=>$room["parentId"],"type"=> $room["parentType"]);
+			// }
+		}*/
 	    foreach ($members as $key => $value) 
 	    {
-	    	if( $key != Yii::app()->session['userId'] && !in_array($key, $people) && count($people) < self::PEOPLE_NOTIFY_LIMIT && $key != $alreadyAuhtorNotify){
+	    	if( $key != Yii::app()->session['userId'] && !in_array($key, $people) && count($people) < self::PEOPLE_NOTIFY_LIMIT && $key != $alreadyAuhtorNotify && (!@$value["type"] || $value["type"]==Person::COLLECTION)){
 	    		$people[$key] = array("isUnread" => true, "isUnseen" => true); 
 	    	}
 	    }
@@ -479,7 +614,7 @@ class Notification{
 	* params string $repeat indicates if label used is normal one or the repeat label
 	* return label ready to push in dB
 	**/
-	public static function getLabelNotification($construct, $type=null, $count=1, $notification=null, $repeat=""){
+	public static function getLabelNotification($construct, $type=null, $count=1, $notification=null, $repeat="", $sameAuthor=null){
 		$specifyLabel = array();
 		//GetLAbel
 		//$type=""; else "Repeat"
@@ -490,17 +625,33 @@ class Notification{
 				$label = $construct["type"]["user"][$construct["levelType"]]["label".$repeat];
 		}
 		else if($construct["levelType"]){
- 	    	if(@$target["targetIsAuthor"])
-				$label = $construct["type"][$construct["levelType"]]["targetIsAuthor"]["label".$repeat];
-			else if(!@$construct["type"][$construct["levelType"]]["label"])
-				$label = $construct["type"][$construct["levelType"]][$construct["target"]["type"]]["label".$repeat];
+ 	    	if(@$target["targetIsAuthor"]){
+ 	    		if($sameAuthor)
+ 	    			$label = $construct["type"][$construct["levelType"]]["targetIsAuthor"]["sameAuthor"]["label".$repeat];
+ 	    		else
+					$label = $construct["type"][$construct["levelType"]]["targetIsAuthor"]["label".$repeat];
+ 	    	}
+			else if(!@$construct["type"][$construct["levelType"]]["label"]){
+				if($sameAuthor)
+					$label = $construct["type"][$construct["levelType"]][$construct["target"]["type"]]["sameAuthor"]["label".$repeat];
+				else
+					$label = $construct["type"][$construct["levelType"]][$construct["target"]["type"]]["label".$repeat];
+			}
 			else{
-				$label = $construct["type"][$construct["levelType"]]["label".$repeat];
+				if($sameAuthor){
+					$label = $construct["type"][$construct["levelType"]]["sameAuthor"]["label".$repeat];
+				}
+				else
+					$label = $construct["type"][$construct["levelType"]]["label".$repeat];
 				//Specific case for comment, like, unlike on news
 				if($construct["levelType"]==News::COLLECTION){
 					$news=News::getById($construct["target"]["id"]);
-					if($news["target"]["type"] != Person::COLLECTION)
-						$label = $construct["type"][$construct["levelType"]]["targetIsAuthor"]["label".$repeat];
+					if($news["target"]["type"] != Person::COLLECTION){
+						if($sameAuthor)
+							$label = $construct["type"][$construct["levelType"]]["targetIsAuthor"]["sameAuthor"]["label".$repeat];
+						else
+							$label = $construct["type"][$construct["levelType"]]["targetIsAuthor"]["label".$repeat];
+					}
 				}
 			}
  	    	//$notifyObject=$typeAction;
@@ -509,13 +660,22 @@ class Notification{
 		else if (!@$construct["label".$repeat]){
 			if(@$construct["target"]["targetIsAuthor"])
 				$label = $construct["type"]["targetIsAuthor"]["label".$repeat];
-			else if(@$construct["target"]["userWall"])
-				$label = $construct["type"]["userWall"]["label".$repeat];
-			else
-				$label = $construct["type"]["label".$repeat];
+			else if(@$construct["target"]["userWall"]){
+				if($sameAuthor)
+					$label = $construct["type"]["userWall"]["sameAuthor"]["label".$repeat];
+				else
+					$label = $construct["type"]["userWall"]["label".$repeat];
+			}
+			else{
+				if($sameAuthor)
+					$label = $construct["type"]["sameAuthor"]["label".$repeat];
+				else
+					$label = $construct["type"]["label".$repeat];
+			}
 		}
 		else
 			$label = $construct["label".$repeat];
+		//return $label;
 		if($construct["labelUpNotifyTarget"]=="object"){
 			$memberName="";
 			if($construct["object"]){
@@ -565,21 +725,102 @@ class Notification{
 		//	$specifyLabel["{type}"] = $labelArray["typeValue"];
 		if(in_array("what",$construct["labelArray"]))
 			$specifyLabel["{what}"] = @$construct["object"]["name"];
-		return Yii::t("notification",$label, $specifyLabel);	
+		return Yii::t("notification",$label, $specifyLabel);
 	}
+
+	public static function getLabelNotificationFront($notif){
+		$labelArray=self::$notificationTree[$notif["verb"]]["labelArray"];
+		$count=0;
+		$memberName="";
+		if(@$notif[$notif["notify"]["labelAuthorObject"]]){
+			if($notif["notify"]["labelAuthorObject"]=="object"){
+				if($notif["object"]){
+					if(@$notif["object"]["name"]){
+						$count++;
+						$memberName=$notif["object"]["name"];
+					}
+					else{
+						foreach($notif["object"] as $user){
+							$memberName=$user["name"];
+							$count++;
+						}
+					}
+				}
+				foreach($notif["author"] as $author){
+					$specifyLabel["{author}"] = $author['name'];
+				}
+			}else {
+				foreach($notif["author"] as $author){
+					$memberName = $author['name'];
+					$count++;
+				}
+			}
+		}
+		if($count==1){
+			$specifyLabel["{who}"] = $memberName;
+		}
+		else if($count==2){
+			foreach($notif[$notif["notify"]["labelAuthorObject"]] as $data){
+				$lastAuthorName=$data["name"];
+				//break; 
+			}
+			$specifyLabel["{who}"] = $memberName." ".Yii::t("common","and")." ".$lastAuthorName;
+		}
+		else if($count > 2) {
+			foreach($notif[$notif["notify"]["labelAuthorObject"]] as $data){
+				$lastAuthorName=$data["name"];
+				break;
+			}
+			$nbOthers = $count - 2;
+			if($nbOthers == 1) $labelUser = "person"; else $labelUser = "persons";
+			$specifyLabel["{who}"] = $memberName.", ".$lastAuthorName." ".Yii::t("common","and")." ".$nbOthers." ".Yii::t("common", $labelUser);
+		}
+		if(in_array("where",$labelArray)){
+			if(@$notif["target"]["name"])
+				$specifyLabel["{where}"] = $notif["target"]["name"];
+			else{
+				$resArray=self::getTargetInformation($notif["target"]["id"],$notif["target"]["type"], @$notif["object"]);
+				$specifyLabel["{where}"] = @$resArray["{where}"];
+				if(@$resArray["{what}"])
+					$specifyLabel["{what}"]=$resArray["{what}"];
+			}
+		}
+		if(in_array("what",$labelArray))
+			$specifyLabel["{what}"] = @$notif["object"]["name"];
+		return Yii::t("notification",$notif["notify"]["displayName"], $specifyLabel);
+	} 
 
 	public static function getUrlNotification($construct){
 		if(@$construct["url"])
 			$url=$construct["url"];
 		else 
 			$url=$construct["type"][$construct["levelType"]]["url"];
-		if($url=="targetTypeUrl")
-			$url=$construct["type"][$construct["target"]["type"]]["url"];
+		if($url=="targetTypeUrl"){
+			if(in_array($construct["verb"],[Actstr::VERB_COMMENT, Actstr::VERB_LIKE,Actstr::VERB_UNLIKE]) && @$construct["object"] && ($construct["object"]["type"]==Proposal::COLLECTION || $construct["object"]["type"]==Action::COLLECTION || $construct["object"]["type"]==Resolution::COLLECTION))
+				$url=$construct["type"][$construct["object"]["type"]]["url"];
+			else
+				$url=$construct["type"][$construct["target"]["type"]]["url"];
+		}
 		$url = str_replace("{ctrlr}", Element::getControlerByCollection($construct["target"]["type"]), $url);
 		$url = str_replace("{collection}", $construct["target"]["type"], $url);
 		$url = str_replace("{id}", $construct["target"]["id"], $url);
+		if(stripos($url, "{connectAs}") > 0)
+			$url = str_replace("{connectAs}", Element::$connectTypes[$construct["target"]["type"]], $url);
 		if(stripos($url, "{objectType}") > 0)
+			$url = str_replace("{objectType}", $construct["object"]["type"], $url);
+		if(stripos($url, "{objectId}") > 0)
 			$url = str_replace("{objectId}", $construct["object"]["id"], $url);
+		if(stripos($url, "{roomId}") > 0){
+			//$objTarget=
+			//if($construct["object"]["type"]==Comment::COLLECTION)
+			if($construct["object"]["type"]==Action::COLLECTION)
+				$actionSpec=Action::getSimpleSpecById($construct["object"]["id"],null,array("idParentRoom"));
+			else if($construct["object"]["type"]==Proposal::COLLECTION)
+				$actionSpec=Proposal::getSimpleSpecById($construct["object"]["id"],null,array("idParentRoom"));
+			else if($construct["object"]["type"]==Resolution::COLLECTION)
+				$actionSpec=Resolution::getSimpleSpecById($construct["object"]["id"],null,array("idParentRoom"));
+			$url = str_replace("{roomId}", $actionSpec["idParentRoom"], $url);
+		}
 		return $url;
 	}
 	/* TODO BOUBOULE
@@ -594,26 +835,35 @@ class Notification{
 				Up notif and label $repeat +1 
 		Return array of ids  
 	*/
-	public static function checkIfAlreadyNotifForAnotherLink($construct)	{
+	public static function checkIfAlreadyNotifForAnotherLink($construct, $isUserNotif=false)	{
 		$where=array("verb"=>$construct["verb"], "target.id"=>$construct["target"]["id"], "target.type"=>$construct["target"]["type"]);
-		if($construct["labelUpNotifyTarget"]=="object"){
+		if($construct["labelUpNotifyTarget"]=="object")
 			$where["author.".Yii::app()->session["userId"]] = array('$exists' => true);
-			$object=$construct["author"];
-		}
+		if($construct["labelUpNotifyTarget"]=="object" && $construct["verb"]==ActStr::VERB_ACCEPT)
+			$where["object"] = array('$exists' => true);
 		if($construct["levelType"])
 			$where["notify.objectType"] = $construct["levelType"];
         else if($construct["verb"]==Actstr::VERB_POST && !@$construct["target"]["targetIsAuthor"] && !@$construct["target"]["userWall"])
 		    $where["notify.objectType"]=News::COLLECTION;
+		if($construct["object"] && !empty($construct["object"]) &&
+				 ($construct["verb"]==Actstr::VERB_COMMENT || $construct["verb"]==Actstr::VERB_LIKE|| $construct["verb"]==Actstr::VERB_UNLIKE)){
+			$where["object.id"] = $construct["object"]["id"];
+			$where["object.type"] = $construct["object"]["type"];
+		}
 		$notification = PHDB::findOne(ActivityStream::COLLECTION, $where);
 		if(!empty($notification)){
-			if((@$notification[$construct["labelUpNotifyTarget"]] && @$notification[$construct["labelUpNotifyTarget"]][$construct["author"]["id"]]
-				) || (@$construct["type"] && @$construct["type"][$construct["levelType"]] && @$construct["type"][$construct["levelType"]]["noUpdate"] ))
+			if(@$construct["type"] && @$construct["type"][$construct["levelType"]] && @$construct["type"][$construct["levelType"]]["noUpdate"])
 				return true;
 			else{
 				$countRepeat=1;
-				foreach($notification[$construct["labelUpNotifyTarget"]] as $i){$countRepeat++;}
+				foreach($notification[$construct["labelUpNotifyTarget"]] as $key => $i){
+					if(($notification["verb"] != Actstr::VERB_POST && $notification["verb"] != Actstr::VERB_COMMENT) || ($key != Yii::app()->session["userId"]))
+						$countRepeat++;
+				}
+				if($countRepeat==1)
+					$sameAuthor=true;
 				// Get new Label
-				$newLabel=self::getLabelNotification($construct, null, $countRepeat, $notification, "Repeat");
+				$newLabel=self::getLabelNotification($construct, null, $countRepeat, $notification, "Repeat", @$sameAuthor);
 				// Add new author to notification
 				if($construct["labelUpNotifyTarget"] == "object")
 					foreach($construct["object"] as $key => $data){
@@ -654,11 +904,14 @@ class Notification{
 		$notif = array( 
 	    	"persons" => $construct["community"],
             "label"   => self::getLabelNotification($construct,$type),
+            "labelAuthorObject"=>$construct["labelUpNotifyTarget"],
             "icon"    => $construct["icon"],
             "url"     => self::getUrlNotification($construct)
         );
-        if($construct["levelType"] && $type==null)
+        if($construct["levelType"])
         	$notif["objectType"]=$construct["levelType"];
+        if($type=="user" && $construct["verb"]==Actstr::VERB_INVITE)
+        	$notif["objectType"]="userInvitation";
         else if($construct["verb"]==Actstr::VERB_POST && !@$construct["target"]["targetIsAuthor"] && !@$construct["target"]["userWall"])
 		    $notif["objectType"]=News::COLLECTION; 
 	    $stream["notify"] = ActivityStream::addNotification( $notif );
@@ -693,52 +946,73 @@ class Notification{
 		$notificationPart["author"]=array("id"=>$authorId,"name"=>$author["name"]);
 		//Move labelUpToNotify in getLabel
 		$notificationPart["labelUpNotifyTarget"] = "author";
+		$notifyCommunity=true;
+		//Specific usecase for comment on proposal
+		if(in_array($verb,[Actstr::VERB_COMMENT,Actstr::VERB_LIKE,Actstr::VERB_UNLIKE]) && 
+			($target["type"]==Proposal::COLLECTION || $target["type"]==Action::COLLECTION || $target["type"]==Resolution::COLLECTION)){
+			if($target["type"]==Proposal::COLLECTION)
+				$propAct=Proposal::getById($target["id"]);
+			else if($target["type"]==Action::COLLECTION)
+				$propAct=Action::getById($target["id"]);
+			else if($target["type"]==Resolution::COLLECTION)
+				$propAct=Resolution::getById($target["id"]);
+			$notificationPart["object"]=$target;
+			$notificationPart["target"]=array("type"=>$propAct["parentType"],"id"=>$propAct["parentId"]);
+		}
 		// Create notification specially for user added to the next notify for community of target
 		if(@$notificationPart["notifyUser"] || (@$notificationPart["type"] && @$notificationPart["type"][$levelType] && @$notificationPart["type"][$levelType]["notifyUser"])){
 			$update=false;
 			$isToNotify=true;
 			// If answered on comment is the same than on the news or other don't notify twice the author of parent and comment
-			if($verb==Actstr::VERB_COMMENT){
+			if($verb==Actstr::VERB_COMMENT || $verb==Actstr::VERB_LIKE || $verb==Actstr::VERB_UNLIKE){
+				if(@$notificationPart["object"] && !empty($notificationPart["object"]))
+					$notifyCommunity=false;
 				$comment=Comment::getById($object["id"]);
 				$userNotify=$comment["author"]["id"];
+				$commentAuthor=$userNotify;
 				// Case when user answer to his comment
 				if($notificationPart["target"]["type"]==News::COLLECTION && $userNotify==Yii::app()->session["userId"])
 					$isToNotify=false;
 				if($notificationPart["target"]["type"]==News::COLLECTION){
 					$news=News::getById($notificationPart["target"]["id"]);
-					$userNotify=$news["author"]["id"];
+					$authorNews=News::getAuthor($notificationPart["target"]["id"]);
+					if(!@$notificationPart["object"] || empty($notificationPart["object"]))
+						$userNotify=$authorNews["author"];
+					$notificationPart["target"]["parent"]=array("id"=>$news["target"]["id"],"type"=> $news["target"]["type"]);
+					$notifyCommunity=false;
+					//$notificationPart["parent"]=$news["target"];
 					// Case when user comment a news where target is author
-					if(@$news["targetIsAuthor"])
+					if(@$news["targetIsAuthor"]){
 						$isToNotify=false;
+						$notifyCommunity=true;
+					}
+					if(($commentAuthor!="" && $commentAuthor==$authorNews["author"]) 
+						|| ($commentAuthor=="" && Yii::app()->session["userId"]==$authorNews["author"])){
+						$isToNotify=false;
+						//$notifyCommunity=false;
+					}//else
+					//	$notifyCommunity=true;
 				}
 
 			}else
 				$userNotify=$author["id"];
+
 			if($isToNotify){
+				if(gettype($userNotify)!="string")
+					$userNotify=(string)$userNotify["id"];
 				$alreadyAuhtorNotify=$userNotify;
 				$notificationPart["community"]=array($userNotify=>array("isUnread" => true, "isUnseen" => true));
-				if(@$notificationPart["type"][$typeAction] && @$notificationPart["type"][$levelType]["repeat"])
-					$update=self::checkIfAlreadyNotifForAnotherLink($notificationPart);
+				if((@$notificationPart["type"][$levelType] && @$notificationPart["type"][$levelType]["repeat"])
+					|| in_array($notificationPart["verb"], array(Actstr::VERB_COMMENT,Actstr::VERB_LIKE,Actstr::VERB_UNLIKE)))
+					$update=self::checkIfAlreadyNotifForAnotherLink($notificationPart,true);
 				if($update==false){
-			 	    //$notifyObject=null;
 			 	    //--------- MOVE ON GETLABEL -----------//
 			 	   ////////// !!!!!! $type was to null ... change to user for comment on comment but could be a bug in other notification with user notification ... ???? !!!!! ////////////////
 			 	   $type="user";
-			 	    if(@$notificationPart["type"]["user"]){
-						$type="user";
+			 	    if(@$notificationPart["type"]["user"])
 						$notificationPart["labelUpNotifyTarget"]="object";
-					}
-					//REFACTOR -- VERYFY ELSE NO IMPACT ON A NOTIF
-					/*else{
-						if(@$target["targetIsAuthor"])
-							$label = $notificationPart["type"][$levelType]["targetIsAuthor"]["label"];
-						else
-							$label = $notificationPart["type"][$levelType]["label"];
-						//$labelUpNotifyTarget="author";
-						//$notifyObject=$typeAction;
-					}*/
 					// -------- END MOVE ON GETLABEL --------///
-					$notificationPart["author"]=array($userNotify=> array("name"=> Yii::app()->session["user"]["name"]));
+					$notificationPart["author"]=array(Yii::app()->session["userId"] => array("name"=> Yii::app()->session["user"]["name"]));
 					self::createNotification($notificationPart,$type);
 			    }
 			} 
@@ -747,7 +1021,7 @@ class Notification{
 		$notificationPart = self::communityToNotify($notificationPart, @$alreadyAuhtorNotify);
 		//$["community"]=$community;
 		$update = false;
-		if(!empty($notificationPart["community"])){
+		if(!empty($notificationPart["community"]) && $notifyCommunity){
 		    if(in_array("author",$notificationPart["labelArray"])){
 		        $notificationPart["object"] = array($authorId => array("name"=>$author["name"]));
 		        $notificationPart["author"] = array(Yii::app()->session["userId"]=> array("name"=> Yii::app()->session["user"]["name"]));
@@ -795,26 +1069,22 @@ class Notification{
 	**/
 	public static function getTargetInformation($id, $type, $object=null) {	
 	 	$target=array();
-	 	if( in_array($type, array( Survey::COLLECTION, ActionRoom::COLLECTION, ActionRoom::COLLECTION_ACTIONS) ) )
+	 	if(@$object && in_array($object["type"], array( Proposal::COLLECTION, Room::COLLECTION, Action::COLLECTION, Resolution::COLLECTION) ) )
 		{
-			$entryId = $id;
-			if( $type == Survey::COLLECTION ){
-				$target["entry"] = Survey::getById( $id );
-				$entryId = (string)$target["entry"]["survey"];
-			} else if( $type == ActionRoom::COLLECTION_ACTIONS ){
-				$target["entry"] = ActionRoom::getActionById( $id );
-				$entryId = $target["entry"]["room"];
-			}
-			$room = ActionRoom::getById( $entryId );
-			$target["room"] = $room;
-			if( @$room["parentType"] ){
-				if( $room["parentType"] == City::COLLECTION ) 
-			    	$target["parent"] = City::getByUnikey( $room["parentId"]);
-				else 
-					$target["parent"] = Element::getElementSimpleById($room["parentId"], $room["parentType"]); 
-			}
+			$roomId = $object["id"];
+			if( $object["type"] == Proposal::COLLECTION )
+				$target["entry"] = Proposal::getById( $object["id"] );
+			else if( $object["type"] == Action::COLLECTION )
+				$target["entry"] = Action::getById( $object["id"] );
+			else if( $object["type"] == Resolution::COLLECTION )
+				$target["entry"] = Resolution::getById( $object["id"] );
+			if(@$target["entry"])
+				$roomId=$target["entry"]["idParentRoom"];
+			$target["room"] = Room::getById( $roomId );
+			$target["parent"] = Element::getElementSimpleById($target["room"]["parentId"], $target["room"]["parentType"]); 
 		}else if($type=="news"){
 			$news=News::getById($id);
+			$authorNews=News::getAuthor($id);
 			$parent=Element::getElementSimpleById($news["target"]["id"], $news["target"]["type"]);
 		} else if($type==Organization::COLLECTION || $type==Project::COLLECTION || $type==Event::COLLECTION)
 			$parent=Element::getElementSimpleById($id, $type);
@@ -825,18 +1095,39 @@ class Notification{
 		else if(@$parent["name"]){
 			if($object && $object["type"]==Comment::COLLECTION && $type==News::COLLECTION){
 				$comment=Comment::getById($object["id"]);
-				if($comment["author"]["id"]==$news["author"]["id"] && !@$news["targetIsAuthor"])
+				if($comment["author"]["id"]==$authorNews["author"] && !@$news["targetIsAuthor"])
 					$res["{where}"]=Yii::t("notification","your news");
 				else
-					$res["{where}"]=Yii::t("notification","the news of")." ".$parent["name"];
+					$res["{where}"]=Yii::t("notification","the wall of")." ".$parent["name"];
 			}
 			else
 				$res["{where}"]=$parent["name"];
 			if($type=="news"){
 				if(@$news["title"])
 					$res["{what}"]="&quot;".$news["title"]."&quot;";
-				else
-					$res["{what}"]="&quot;".strtr($news["text"], 0, 20)."...&quot;";
+				else if($news["type"]=="activityStream"){ 
+					if($news["verb"]!="share")
+						if(@$news["object"]["name"])
+							$res["{what}"]=Yii::t("notification","of creation").": &quot;".strtr($news["object"]["name"],0,20)."...&quot;";
+						else if(@$news["object"]["displayName"])
+
+							$res["{what}"]=Yii::t("notification","of creation").": &quot;".strtr($news["object"]["displayName"],0,20)."...&quot;";
+					else
+						$res["{what}"]=Yii::t("notification","shared");
+				}
+				else{
+					if(!empty($news["text"]))
+						$res["{what}"]="&quot;".substr(@$news["text"], 0, 20)."...&quot;";
+					else if(@$news["media"]){
+						if($news["media"]["type"]=="url_content")
+							$res["{what}"]=Yii::t("notification", "with the link");
+						if($news["media"]["type"]=="gallery_files")
+							$res["{what}"]=Yii::t("notification", "with the documents shared");
+						if($news["media"]["type"]=="gallery_images")
+							$res["{what}"]=Yii::t("notification", "with the album's images");
+					} else
+						$res["{what}"]="";
+				}
 			}
 			else if($object){
 				$object=Element::getElementSimpleById($object["id"], $object["type"]);
@@ -845,7 +1136,10 @@ class Notification{
 
 		}
 		else if (@$target["entry"]){
-			$res["{what}"]=$target["entry"]["name"];
+			if(@$target["entry"]["name"])
+				$res["{what}"]=$target["entry"]["name"];
+			else
+				$res["{what}"]=@$target["entry"]["title"];
 			if(@$target["parent"])
 				$res["{where}"] = $target["parent"]["name"];
 		} 
@@ -865,122 +1159,168 @@ class Notification{
     
     // TODO BOUBOULE => Mention in news // comment (à développer)
     // A RENOMER mentionNotification
-	public static function actionOnNews ( $verb, $icon, $author, $target, $mentions) 
+	public static function notifyMentionOn ($author, $target, $mentions, $object=null) 
 	{
+		$arrayLabel=array(
+			"you"=>"{who} mentionned you {mentions} {where}",
+			"other"=>"{who} mentionned {mentions} {where}",
+		);
+		$verb=ActStr::VERB_MENTION;	
+		$icon=ActStr::ICON_RSS;
 		$notification=array();
-		$url = Yii::app()->createUrl('/'.Yii::app()->controller->module->id.'/'.'news/index/type/'.$target["type"].'/id/'.$target["id"]);
+		$url = 'page/type/'.$target["type"].'/id/'.$target["id"];
+		$people=array();
+		$news=News::getByid($target["id"]);
+		$where=Yii::t("notification","in a news");
+		if(@$object && !empty($object))
+			$where=Yii::t("notification","in a comment");
+		$scope=$news["scope"];
+		if($scope=="private"){
+			if($target["parent"]["type"]=Person::COLLECTION)
+				return true;
+			else if( $target["parent"]["type"] == Project::COLLECTION )
+	    		$members = Project::getContributorsByProjectId($target["parent"]["id"]);
+	   		else if( $target["parent"]["type"] == Organization::COLLECTION)
+	    		$members = Organization::getMembersByOrganizationId( $target["parent"]["id"]) ;
+	   		else if( $target["parent"]["type"] == Event::COLLECTION )
+	    		$members = Event::getAttendeesByEventId( $target["parent"]["id"] , "admin", "isAdmin" ) ;
+		}
 		foreach ($mentions as $data){
 			if($data["type"]==Person::COLLECTION){
-				if(!empty($notification) && array_search($data["id"], self::array_column($notification, 'persons'))){
-			    	foreach($notications as $i => $list){
-				    	foreach($list["persons"] as $id){
-					    	if($id==$data["id"]){
-						    	if($list["type"]==Organization::COLLECTION){
-							    	$nameOrga = $list["name"];
-							    	$pushNotif=array(
-										"type"=> Organization::COLLECTION,
-										"nameOrganization"=>@$nameOrga,
-										"nbMention"=>2,
-										"persons"=>array($data["id"]),
-										"label"=> $author["name"]." vous a mentionné avec ".$data["name"]." dans un post",
-										"url"=> $url,
-										"icon" => $icon
-									);
-									unset($notication[$i]);
-									array_push($notification, $pushNotif);
+				if($scope!="private" || @$members[$data["id"]]){
+					// si l'id du mention est déjà présent dans une notif alors une orga, ou projet à déjà été notifié 
+					$alreadyNotify=false;
+					if(!empty($notification)){//} && array_search($data["id"], self::array_column($notification, 'persons'))){
+
+				    	foreach($notification as $i => $list){
+					    	foreach($list["persons"] as $id => $v){
+						    	if($id==$data["id"]){
+						    		$alreadyNotify=true;
+							    	$mentionsLabel=Yii::t("notification", "with {who}", array("{who}",$list["nameElement"]));
+									if(count($notification[$i]["persons"])>1)
+										unset($notification[$i]["persons"][$data["id"]]);
+									else
+										unset($notification[$i]);
 						    	}
 					    	}
 				    	}
 			    	}
-		    	}else{
-	    			$people=array($data["id"]);
-	    			$pushNotif=array(
-							    "type"=> Person::COLLECTION,
-							    "persons"=>$people,
-							    "label"=> $author["name"]." vous a mentionné dans un post",
-							    "url"=> $url,
-							    "icon" => $icon
-								);
+			    	if(!$alreadyNotify){
+		    			$mentionsLabel="";
+				    }
+				   	$pushNotif=array(
+					    "type"=> Person::COLLECTION,
+					    "persons"=>array($data["id"]=>array("isUnseen"=>true,"isUnread"=>true)),
+					    "label"=> Yii::t("notification",$arrayLabel["you"],array("{who}"=>$author["name"],"{mentions}"=>$mentionsLabel,"{where}"=>$where)),
+					    "url"=> $url,
+					    "icon" => $icon
+					);
 					array_push($notification, $pushNotif);
-			    }
-				
-				
+				}
 			}
-			if($data["type"]==Organization::COLLECTION){
-				$admins = Organization::getMembersByOrganizationId( $data["id"], Person::COLLECTION , "isAdmin" );
-				$people=array();
-			    foreach ($admins as $key => $value) 
-			    {
-			    	if( $key != Yii::app()->session['userId'] && !in_array($key, $people) && count($people) < self::PEOPLE_NOTIFY_LIMIT ){
-				    	if(!empty($notification)){
-					    	foreach($notification as $i => $list){
-						    	foreach($list["persons"] as $id){
-							    	if($id==$key){
-								    	if($list["type"]==Organization::COLLECTION && @$list["nbMention"]!=2){
-									    	$nameOrga = @$list["nameOrganization"];
+			else{
+				if($scope!="private"){
+					if($data["type"]==Organization::COLLECTION)
+						$community = Organization::getMembersByOrganizationId( $data["id"], Person::COLLECTION , "all" );
+					else
+						$community = Project::getContributorsByProjectId( $data["id"], Person::COLLECTION );
+					$people=array();
+				    foreach ($community as $key => $value) 
+				    {
+				    	if( $key != Yii::app()->session['userId'] /* /*&& count($people) < self::PEOPLE_NOTIFY_LIMIT*/ ){
+					    	$people[$key]=array("isUnseen"=>true,"isUnread"=>true);
+					    	if(!empty($notification)){
+						    	foreach($notification as $i => $list){
+							    	foreach($list["persons"] as $id => $v){
+								    	if($id==$key){
+									    	if($list["type"]!=Person::COLLECTION){
+										    	$mentionsLabel=$data["name"]." ".Yii::t("common", "and")." ".@$list["nameElement"];
+										    	$typeMention=$list["type"];
+										    	$labelNotif=Yii::t("notification",$arrayLabel["other"],array("{who}"=>$author["name"],"{mentions}"=>$mentionsLabel,"{where}"=>$where));
+										    	
+									    	}
+											else{
+										    	$mentionsLabel=Yii::t("notification", "with {who}", array("{who}"=>$data["name"]));
+										    	$typeMention=Person::COLLECTION;
+										    	$labelNotif=Yii::t("notification",$arrayLabel["you"],array("{who}"=>$author["name"],"{mentions}"=>$mentionsLabel,"{where}"=>$where));
+									    	}
 									    	$pushNotif=array(
-												"type"=> Organization::COLLECTION,
-												"nameOrganization"=>$nameOrga,
+												"type"=> $typeMention,
+												"nameElement"=>$data["name"],
 												"nbMention"=>2,
-												"persons"=>array($key),
-												"label"=> $author["name"]." a mentionné ".$data["name"]." et ".$nameOrga." dans un post",
+												"persons"=>array($key=>array("isUnseen"=>true,"isUnread"=>true)),
+												"label"=>$labelNotif, 
 												"icon" => $icon,
 												"url"=> $url
 											);
-											array_push($notification, $pushNotif);
-								    	}
-										if($list["type"]==Person::COLLECTION){
-									    	$nameOrga = @$list["name"];
-									    	$pushNotif=array(
-												"type"=> Person::COLLECTION,
-												"nameOrganization"=>$data["name"],
-												"nbMention"=>2,
-												"persons"=> array($key),
-												"label"=> $author["name"]." vous a mentionné ainsi que ".$data["name"]." dans un post",
-												"icon" => $icon,
-												"url"=> $url
-											);
-											unset($notification[$i]);
+											if(count($notification[$i]["persons"])>1)
+												unset($notification[$i]["persons"][$data["id"]]);
+											else
+												unset($notification[$i]);
+											unset($people[$key]);
 											array_push($notification, $pushNotif);
 								    	}
 							    	}
 						    	}
-					    	}
-					    }else{
-			    			array_push($people, $key);
-		    			}
-			    	}	
-			    }
-			    $pushNotif=array(
-							    "type"=> Organization::COLLECTION,
-							    "nameOrganization"=>$data["name"],
-							    "persons"=>$people,
-							    "label"=> $author["name"]." a mentioné ".$data["name"]." dans un post",
-							    "url"=> $url,
-							    "icon" => $icon 
-				);
-				array_push($notification, $pushNotif);
+						    }
+			    		}	
+			    	}
+			    	if(count($people)>0){
+					    $pushNotif=array(
+						    "type"=> $data["type"],
+						    "nameElement"=>$data["name"],
+						    "persons"=>$people,
+						    "label"=> Yii::t("notification",$arrayLabel["other"],array("{who}"=>$author["name"],"{mentions}"=>$data["name"],"{where}"=>$where)),
+						    "url"=> $url,
+						    "icon" => $icon 
+						);
+						array_push($notification, $pushNotif);
+					}
+				}
 			}
 		}
 		foreach($notification as $notif){
 			$asParam = array(
 		    	"type" => ActStr::TEST, 
 	            "verb" => $verb,
-	            "author"=>array(
-	            	"type" => Person::COLLECTION,
-	            	"id"   => $author["id"]
-	            ),
-	            "object"=>array(
-	            	"type" => Person::COLLECTION,
-	            	"id"   => $author["id"]
-	            ),
+	            "author"=>$author,
+	            "target"=>$target
 	        );
+	        if(!empty($object))
+	        	$asParam["object"]=$object;
 		    $stream = ActStr::buildEntry($asParam);
 		    $stream["notify"] = ActivityStream::addNotification( $notif );
 		    ActivityStream::addEntry($stream);
 		}
 		// Verbe ActStr::VERB_POST || ActStr::VERB_MENTION
 		
+	}
+	/**
+	* Get array of news order by date of creation
+	* @param array $array is the array of news to return well order
+	* @param array $cols is the array indicated on which column of $array it is sorted
+	**/
+	public static function sortNotifs($array, $cols){
+		$colarr = array();
+	    foreach ($cols as $col => $order) {
+	        $colarr[$col] = array();
+	        foreach ($array as $k => $row) { $colarr[$col]['_'.$k] = strtolower(@$row[$col]); }
+	    }
+	    $eval = 'array_multisort(';
+	    foreach ($cols as $col => $order) {
+	        $eval .= '$colarr[\''.$col.'\'],'.$order.',';
+	    }
+	    $eval = substr($eval,0,-1).');';
+	    eval($eval);
+	    $ret = array();
+	    foreach ($colarr as $col => $arr) {
+	        foreach ($arr as $k => $v) {
+	            $k = substr($k,1);
+	            if (!isset($ret[$k])) $ret[$k] = $array[$k];
+	            $ret[$k][$col] = @$array[$k][$col];
+	        }
+	    }
+	    return $ret;
 	}
 	/*
 	when someone joins or leaves or disables a project / organization / event
@@ -1191,6 +1531,12 @@ class Notification{
 		    																	"{where}"=>$target['parent']["name"]),Yii::app()->controller->module->id);
 		    $url = 'survey/entry/id/'.$target["id"];
 	    }
+	    else if($verb == ActStr::VERB_ADD_RESOLUTION){
+		    $label = Yii::t("rooms","{who} added a new Resolution {what} in {where}", array("{who}" => Yii::app()->session['user']['name'],
+		    																	"{what}"=>$target['entry']["name"],
+		    																	"{where}"=>$target['parent']["name"]),Yii::app()->controller->module->id);
+		    $url = 'survey/entry/id/'.$target["id"];
+	    }
 	    else if($verb == ActStr::VERB_ADD_ACTION){
 	    	$label = Yii::t("rooms","{who} added a new Action {what} in {where}", array("{who}" => Yii::app()->session['user']['name'],
 		    																"{what}"=>$target["entry"]["name"],
@@ -1361,8 +1707,14 @@ class Notification{
  				error_log("Unknown event in Mail Error : no notification generated.");
  				return(array("result" => false, "msg" => "Unknown event in Mail Error : no notification generated."));
  			}
- 			
+ 		} else if ($verb == ActStr::VERB_DELETE) {
+ 			if (@$object["event"] == Element::ERROR_DELETING) {
+ 				$actionMsg = "Error Deleting the element ".$target["name"].". Check the error log.";
+ 			}
+ 			$url = '#'.Element::getControlerByCollection($target['type']).".detail.id.".$target['id'];
+ 			error_log("URL notif => ".$url);
  		}
+ 		
 	    $stream = ActStr::buildEntry($asParam);
 
 		$notif = array( 
