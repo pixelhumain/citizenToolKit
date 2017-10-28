@@ -9,7 +9,7 @@ class UpdateFieldAction extends CAction
         $controller=$this->getController();
         if (!empty($_POST["pk"]) && ! empty($_POST["name"]) && ! empty($_POST["value"])) {
 			$newsId = $_POST["pk"];
-			$newsFieldName = "text";
+			$newsFieldName = $_POST["name"];
 			$newsFieldValue = $_POST["value"];
 			try {
 				Comment::updateField($newsId, $newsFieldName, $newsFieldValue, Yii::app()->session["userId"]);

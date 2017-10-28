@@ -72,7 +72,7 @@ class Comment {
 	public static function insert($comment, $userId) {
 		$options = self::getCommentOptions($comment["contextId"], $comment["contextType"]);
 
-		$content = trim(@$comment["content"]);
+		$content = trim(@$comment["text"]);
 		if (empty($content))
 			return array("result"=>false, "msg"=> Yii::t("comment","Please add content to your comment !"));
 
@@ -88,7 +88,8 @@ class Comment {
 			"status" => self::STATUS_POSTED,
 			"argval" => @$comment["argval"]
 		);
-
+		if(@$comment["mentions"])
+			$newComment["mentions"]=$comment["mentions"];
 		if (self::canUserComment($comment["contextId"], $comment["contextType"], $userId, $options)) {
 			PHDB::insert(self::COLLECTION,$newComment);
 		} else {
@@ -97,7 +98,25 @@ class Comment {
 		
 		$newComment["author"] = self::getCommentAuthor($newComment, $options);
 		$res = array("result"=>true, "time"=>time(), "msg"=>Yii::t("comment","The comment has been posted"), "newComment" => $newComment, "id"=>$newComment["_id"]);
-		
+		if(@$newComment["mentions"]){
+			//$newComment["mentions"]=$comment["mentions"];
+			$author=array("id" => Yii::app()->session["userId"],"type"=>Person::COLLECTION,"name"=> Yii::app()->session["user"]["name"]);
+			$target=array("type"=>$comment["contextType"],"id"=> $comment["contextId"]);
+			$object=array("type"=>self::COLLECTION, "id"=> (string)$newComment["_id"]);
+			Notification::notifyMentionOn ($author, $target, $newComment["mentions"], $object);
+			/**************************************************************************** 
+			////////If we want to push news where mentions in comment in timeline ///////
+			if($contextType==News::COLLECTION){
+				$newsCommentMentionsArray=[];
+				foreach($comment["mentions"] as $data){
+					$data["mentionAuthorName"]=Yii::app()->session["user"]["name"];
+					$data["mentionAuthorId"]=Yii::app()->session["userId"];
+					array_push($newsCommentMentionsArray,$data);
+				}
+				News::updateCommentMentions($newsCommentMentionsArray, $contextId);
+			}
+			*****************************************************************************/
+		}
 		/*$notificationContexts = array(News::COLLECTION, ActionRoom::COLLECTION_ACTIONS, Survey::COLLECTION);
 		if( in_array( $comment["contextType"] , $notificationContexts) ){
 			Notification::actionOnPerson ( ActStr::VERB_COMMENT, ActStr::ICON_COMMENT, "", array("type"=>$comment["contextType"],"id"=> $comment["contextId"]));

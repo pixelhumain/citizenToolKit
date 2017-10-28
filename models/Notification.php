@@ -1159,119 +1159,123 @@ class Notification{
     
     // TODO BOUBOULE => Mention in news // comment (à développer)
     // A RENOMER mentionNotification
-	public static function actionOnNews ( $verb, $icon, $author, $target, $mentions,$scope, $newsId, $targetIsAuthor=false) 
+	public static function notifyMentionOn ($author, $target, $mentions, $object=null) 
 	{
+		$arrayLabel=array(
+			"you"=>"{who} mentionned you {mentions} {where}",
+			"other"=>"{who} mentionned {mentions} {where}",
+		);
+		$verb=ActStr::VERB_MENTION;	
+		$icon=ActStr::ICON_RSS;
 		$notification=array();
-		$url = 'page/type/'.News::COLLECTION.'/id/'.$newsId;
+		$url = 'page/type/'.$target["type"].'/id/'.$target["id"];
 		$people=array();
-		if($targetIsAuthor){
-			$authorName=Element::getElementSimpleById($target["id"], $target["type"]);
-			$authorName=$authorName["name"];
-		} else{
-			$authorName=$author["name"];
-		}
+		$news=News::getByid($target["id"]);
+		$where=Yii::t("notification","in a news");
+		if(@$object && !empty($object))
+			$where=Yii::t("notification","in a comment");
+		$scope=$news["scope"];
 		if($scope=="private"){
-			if($target["type"]=Person::COLLECTION)
+			if($target["parent"]["type"]=Person::COLLECTION)
 				return true;
-			else if( $target["type"] == Project::COLLECTION )
-	    		$members = Project::getContributorsByProjectId($target["id"]);
-	   		else if( $target["type"] == Organization::COLLECTION)
-	    		$members = Organization::getMembersByOrganizationId( $target["id"]) ;
-	   		else if( $target["type"] == Event::COLLECTION )
-	    		$members = Event::getAttendeesByEventId( $target["id"] , "admin", "isAdmin" ) ;
+			else if( $target["parent"]["type"] == Project::COLLECTION )
+	    		$members = Project::getContributorsByProjectId($target["parent"]["id"]);
+	   		else if( $target["parent"]["type"] == Organization::COLLECTION)
+	    		$members = Organization::getMembersByOrganizationId( $target["parent"]["id"]) ;
+	   		else if( $target["parent"]["type"] == Event::COLLECTION )
+	    		$members = Event::getAttendeesByEventId( $target["parent"]["id"] , "admin", "isAdmin" ) ;
 		}
 		foreach ($mentions as $data){
 			if($data["type"]==Person::COLLECTION){
-				if($scope!="private" || @$member[$data["id"]]){
-					if(!empty($notification) && array_search($data["id"], self::array_column($notification, 'persons'))){
-				    	foreach($notication as $i => $list){
-					    	foreach($list["persons"] as $id){
+				if($scope!="private" || @$members[$data["id"]]){
+					// si l'id du mention est déjà présent dans une notif alors une orga, ou projet à déjà été notifié 
+					$alreadyNotify=false;
+					if(!empty($notification)){//} && array_search($data["id"], self::array_column($notification, 'persons'))){
+
+				    	foreach($notification as $i => $list){
+					    	foreach($list["persons"] as $id => $v){
 						    	if($id==$data["id"]){
-							    	if($list["type"]==Organization::COLLECTION){
-								    	$nameOrga = $list["name"];
-								    	$pushNotif=array(
-											"type"=> Organization::COLLECTION,
-											"nameOrganization"=>@$nameOrga,
-											"nbMention"=>2,
-											"persons"=>array($data["id"]=>array("isUnseen"=>true,"isUnread"=>true)),
-											"label"=> $authorName." vous a mentionné avec ".$data["name"]." dans un post",
-											"url"=> $url,
-											"icon" => $icon
-										);
-										unset($notication[$i]);
-										array_push($notification, $pushNotif);
-							    	}
+						    		$alreadyNotify=true;
+							    	$mentionsLabel=Yii::t("notification", "with {who}", array("{who}",$list["nameElement"]));
+									if(count($notification[$i]["persons"])>1)
+										unset($notification[$i]["persons"][$data["id"]]);
+									else
+										unset($notification[$i]);
 						    	}
 					    	}
 				    	}
-			    	}else{
-		    			$people=array($data["id"]=>array("isUnseen"=>true,"isUnread"=>true));
-		    			$pushNotif=array(
-								    "type"=> Person::COLLECTION,
-								    "persons"=>$people,
-								    "label"=> $authorName." vous a mentionné dans un post",
-								    "url"=> $url,
-								    "icon" => $icon
-									);
-						array_push($notification, $pushNotif);
+			    	}
+			    	if(!$alreadyNotify){
+		    			$mentionsLabel="";
 				    }
+				   	$pushNotif=array(
+					    "type"=> Person::COLLECTION,
+					    "persons"=>array($data["id"]=>array("isUnseen"=>true,"isUnread"=>true)),
+					    "label"=> Yii::t("notification",$arrayLabel["you"],array("{who}"=>$author["name"],"{mentions}"=>$mentionsLabel,"{where}"=>$where)),
+					    "url"=> $url,
+					    "icon" => $icon
+					);
+					array_push($notification, $pushNotif);
 				}
 			}
-			if($data["type"]==Organization::COLLECTION){
+			else{
 				if($scope!="private"){
-					$admins = Organization::getMembersByOrganizationId( $data["id"], Person::COLLECTION , "isAdmin" );
+					if($data["type"]==Organization::COLLECTION)
+						$community = Organization::getMembersByOrganizationId( $data["id"], Person::COLLECTION , "all" );
+					else
+						$community = Project::getContributorsByProjectId( $data["id"], Person::COLLECTION );
 					$people=array();
-				    foreach ($admins as $key => $value) 
+				    foreach ($community as $key => $value) 
 				    {
-				    	if( $key != Yii::app()->session['userId'] && !in_array($key, $people) && count($people) < self::PEOPLE_NOTIFY_LIMIT ){
+				    	if( $key != Yii::app()->session['userId'] /* /*&& count($people) < self::PEOPLE_NOTIFY_LIMIT*/ ){
+					    	$people[$key]=array("isUnseen"=>true,"isUnread"=>true);
 					    	if(!empty($notification)){
 						    	foreach($notification as $i => $list){
-							    	foreach($list["persons"] as $id){
+							    	foreach($list["persons"] as $id => $v){
 								    	if($id==$key){
-									    	if($list["type"]==Organization::COLLECTION && @$list["nbMention"]!=2){
-										    	$nameOrga = @$list["nameOrganization"];
-										    	$pushNotif=array(
-													"type"=> Organization::COLLECTION,
-													"nameOrganization"=>$nameOrga,
-													"nbMention"=>2,
-													"persons"=>array($key=>array("isUnseen"=>true,"isUnread"=>true)),
-													"label"=> $authorName." a mentionné ".$data["name"]." et ".$nameOrga." dans un post",
-													"icon" => $icon,
-													"url"=> $url
-												);
-												array_push($notification, $pushNotif);
+									    	if($list["type"]!=Person::COLLECTION){
+										    	$mentionsLabel=$data["name"]." ".Yii::t("common", "and")." ".@$list["nameElement"];
+										    	$typeMention=$list["type"];
+										    	$labelNotif=Yii::t("notification",$arrayLabel["other"],array("{who}"=>$author["name"],"{mentions}"=>$mentionsLabel,"{where}"=>$where));
+										    	
 									    	}
-											if($list["type"]==Person::COLLECTION){
-										    	$nameOrga = @$list["name"];
-										    	$pushNotif=array(
-													"type"=> Person::COLLECTION,
-													"nameOrganization"=>$data["name"],
-													"nbMention"=>2,
-													"persons"=> array($key=>array("isUnseen"=>true,"isUnread"=>true)),
-													"label"=> $authorName." vous a mentionné ainsi que ".$data["name"]." dans un post",
-													"icon" => $icon,
-													"url"=> $url
-												);
+											else{
+										    	$mentionsLabel=Yii::t("notification", "with {who}", array("{who}"=>$data["name"]));
+										    	$typeMention=Person::COLLECTION;
+										    	$labelNotif=Yii::t("notification",$arrayLabel["you"],array("{who}"=>$author["name"],"{mentions}"=>$mentionsLabel,"{where}"=>$where));
+									    	}
+									    	$pushNotif=array(
+												"type"=> $typeMention,
+												"nameElement"=>$data["name"],
+												"nbMention"=>2,
+												"persons"=>array($key=>array("isUnseen"=>true,"isUnread"=>true)),
+												"label"=>$labelNotif, 
+												"icon" => $icon,
+												"url"=> $url
+											);
+											if(count($notification[$i]["persons"])>1)
+												unset($notification[$i]["persons"][$data["id"]]);
+											else
 												unset($notification[$i]);
-												array_push($notification, $pushNotif);
-									    	}
+											unset($people[$key]);
+											array_push($notification, $pushNotif);
 								    	}
 							    	}
 						    	}
-						    }else{
-				    			array_push($people, $key);
-			    			}
+						    }
 			    		}	
 			    	}
-				    $pushNotif=array(
-								    "type"=> Organization::COLLECTION,
-								    "nameOrganization"=>$data["name"],
-								    "persons"=>$people,
-								    "label"=> $author["name"]." a mentioné ".$data["name"]." dans un post",
-								    "url"=> $url,
-								    "icon" => $icon 
-					);
-					array_push($notification, $pushNotif);
+			    	if(count($people)>0){
+					    $pushNotif=array(
+						    "type"=> $data["type"],
+						    "nameElement"=>$data["name"],
+						    "persons"=>$people,
+						    "label"=> Yii::t("notification",$arrayLabel["other"],array("{who}"=>$author["name"],"{mentions}"=>$data["name"],"{where}"=>$where)),
+						    "url"=> $url,
+						    "icon" => $icon 
+						);
+						array_push($notification, $pushNotif);
+					}
 				}
 			}
 		}
@@ -1279,19 +1283,11 @@ class Notification{
 			$asParam = array(
 		    	"type" => ActStr::TEST, 
 	            "verb" => $verb,
-	            "author"=>array(
-	            	"type" => Person::COLLECTION,
-	            	"id"   => $author["id"]
-	            ),
-	            "object"=>array(
-	            	"type" => News::COLLECTION,
-	            	"id"   => $newsId
-	            ),
-	            "target"=>array(
-	            	"type"=>$target["type"],
-	            	"id" => $target["id"]
-	            )
+	            "author"=>$author,
+	            "target"=>$target
 	        );
+	        if(!empty($object))
+	        	$asParam["object"]=$object;
 		    $stream = ActStr::buildEntry($asParam);
 		    $stream["notify"] = ActivityStream::addNotification( $notif );
 		    ActivityStream::addEntry($stream);
