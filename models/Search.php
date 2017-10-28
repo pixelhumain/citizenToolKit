@@ -297,6 +297,7 @@ class Search {
 	//*********************************  Zones   ******************************************
 	public static function searchLocality($localities, $query){
 		$allQueryLocality = array();
+		if(!empty($localities))
 		foreach ($localities as $key => $locality){
 			if(!empty($locality)){
 				if($locality["type"] == City::CONTROLLER)

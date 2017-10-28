@@ -98,7 +98,7 @@ class IndexAction extends CAction
 	        }
 	        else if ($type=="city"){
 	        	$localities = isset($_POST['localities']) ? $_POST['localities'] : null;
-				//$searchType = isset($_POST['searchType']) ? $_POST['searchType'] : null;
+	        	//$searchType = isset($_POST['searchType']) ? $_POST['searchType'] : null;
 				$searchBy = isset($_POST['searchBy']) ? $_POST['searchBy'] : "INSEE";
 				$tagSearch = isset($_POST['tagSearch']) ? $_POST['tagSearch'] : "";
 				$params["localities"] = $localities;
@@ -388,7 +388,7 @@ class IndexAction extends CAction
 			$where["created"]=array('$lt' => $date);
 		}*/
 
-
+		//var_dump($where); exit;
 		if(!empty($where))
 			$news= News::getNewsForObjectId($where,array("sharedBy.updated"=>-1),$type, @$followsArrayIds);
 		//echo count($news);

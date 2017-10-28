@@ -153,15 +153,15 @@ class GetDataDetailAction extends CAction {
 
 			if( !empty($post["searchLocality"])){
 				foreach ($post["searchLocality"] as $key => $value) {
-					$scopeName = $value["name"];
+					$scopeName = @$value["name"];
 				}
 			}
 
 			//EVENTS-------------------------------------------------------------------------------
 			$query = array("startDate" => array( '$gte' => new MongoDate( time() ) ));
 
-			if(@$type!="0" || !empty($post["searchLocality"]))
-				$query = Search::searchLocality($post["searchLocality"], $query);
+			if(@$type!="0" || !empty(@$post["searchLocality"]))
+				$query = Search::searchLocality(@$post["searchLocality"], $query);
 
 			$events = PHDB::findAndSortAndLimitAndIndex( Event::COLLECTION,
 							$query,
@@ -186,7 +186,7 @@ class GetDataDetailAction extends CAction {
 			//CLASSIFIED-------------------------------------------------------------------------------
 			$query = array();
 			if(@$type!="0" || !empty($post["searchLocality"]))
-				$query = Search::searchLocality($post["searchLocality"], $query);
+				$query = Search::searchLocality(@$post["searchLocality"], $query);
 
 			$classified = PHDB::findAndSortAndLimitAndIndex( Classified::COLLECTION, $query,
 							array("updated"=>-1), 10);
@@ -202,8 +202,8 @@ class GetDataDetailAction extends CAction {
 			
 		  	//POI-------------------------------------------------------------------------------
 			$query = array();
-			if(@$type!="0" || !empty($post["searchLocality"]))
-				$query = Search::searchLocality($post["searchLocality"], $query);
+			if(@$type!="0" || !empty(@$post["searchLocality"]))
+				$query = Search::searchLocality(@$post["searchLocality"], $query);
 			
 			$pois = PHDB::findAndSortAndLimitAndIndex( Poi::COLLECTION, $query,
 							array("updated"=>-1), 10);
