@@ -221,10 +221,10 @@ class News {
 			//NOTIFICATION MENTIONS
 			if(isset($news["mentions"])){
 				$target=array("id"=>(string)$news["_id"],"type"=>self::COLLECTION);
-				if(@$_POST["parentType"]){
-					
-				}
-				$target=array("id"=>$_POST["parentId"],"type"=>$_POST["parentType"]);
+				//if(@$_POST["parentType"]){
+				//	$target["parent"]=array("id"=>$_POST["parentId"],"type"=>$_POST["parentType"]);		
+				//}
+				//$target=array("id"=>$_POST["parentId"],"type"=>$_POST["parentType"]);
 				if(@$_POST["targetIsAuthor"] && @$_POST["parentType"]){
 					//if($targetIsAuthor){
 					$authorName=Element::getElementSimpleById($_POST["parentId"], $_POST["parentType"]);

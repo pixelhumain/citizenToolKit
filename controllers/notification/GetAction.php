@@ -29,8 +29,12 @@ class GetAction extends CAction
           if(!empty($res)){
             $timezone="";
               foreach($res as $key => $data){
-                //if(@$data["notify"]["labelAuthorObject"])
-                  //$res[$key]["notify"]["displayName"]=Notification::getLabelNotificationFront($data);
+                if(@$data["notify"]["labelAuthorObject"]){
+                  if($data["notify"]["labelAuthorObject"]=="mentions")
+                    $res[$key]["notify"]["displayName"]=Notification::getLabelMentions($data);
+                  else
+                    $res[$key]["notify"]["displayName"]=Notification::getLabelNotificationFront($data);
+                }
                 $res[$key]["timeAgo"]=Translate::pastTime(date(@$data["updated"]->sec), "timestamp", $timezone);
               } 
           }
