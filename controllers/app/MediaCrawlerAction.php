@@ -14,16 +14,16 @@ class MediaCrawlerAction extends CAction
 
         //date_default_timezone_set('Pacific/Noumea'); //'Pacific/Noumea'
 
-	    //$res .= $this->extractSource("OUTREMERS360", "NEWS");
+	    $res .= $this->extractSource("OUTREMERS360", "NEWS");
       $res .= $this->extractSource("NCTV", "YOUTUBE");
 
       $res .= $this->extractSource("NC1", "YOUTUBE");
-      //$res .= $this->extractSource("NC1", "NC");
+      $res .= $this->extractSource("NC1", "NC");
 
-      //$res .= $this->extractSource("NCI", "EMISSION");
-      //$res .= $this->extractSource("NCI", "BLOG");
+      $res .= $this->extractSource("NCI", "EMISSION");
+      $res .= $this->extractSource("NCI", "BLOG");
 
-      //$res .= $this->extractSource("TAZAR", "BLOG");
+      $res .= $this->extractSource("TAZAR", "BLOG");
 		
       /*
       //$res .= $this->extractSource("LNC", "BLOG");
