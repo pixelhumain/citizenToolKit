@@ -132,9 +132,10 @@ class Search {
   		$allRes = array();
 
   		//*********************************  CITIES   ******************************************
-  		if(!empty($search) && !empty($locality)){
+  		if(!empty($search) /*&& !empty($locality) */){
 	        if(strcmp($filter, City::COLLECTION) != 0 && self::typeWanted(City::COLLECTION, $searchType)){
-		  		$allCitiesRes = self::searchCities($search, $locality, $country);
+		  		$allCitiesRes = self::searchCities($search, null, $country);
+		  		//$allCitiesRes = self::searchCities($search, $locality, $country);
 		  	}
 
 		  	if(isset($allCitiesRes)) usort($allCitiesRes, "self::mySortByName");
@@ -864,6 +865,25 @@ class Search {
 
     //*********************************  CITIES   ******************************************
     public static function searchCities($search, $locality, $country){   
+  		
+    	// $where = array('$or'=> 
+     //                        array(  array("origin" => new MongoRegex("/".$search."/i")),
+     //                                array("translates.".strtoupper(Yii::app()->language) => array( '$in' => array (new MongoRegex("/".$search."/i") ) ) ),
+     //                    ));
+     //    $where = array('$and'=> array($where, array("parentType" => City::COLLECTION ) ) );
+
+     //    $translate = Zone::getWhereTranlate($where);
+     //    //var_dump($where);
+     //    $cities = array();
+     //    foreach ($translate as $keyTran => $valueTran) {
+     //    	$city = self::getById( $valueTran["parentId"]);
+     //    	if(!empty($valueTran["translates"][strtoupper(Yii::app()->language)]))
+     //    		$city["name"] = $valueTran["translates"][strtoupper(Yii::app()->language)] ;
+     //    	$cities[$valueTran["parentId"]] = $city ;
+     //    }
+
+
+
   		$query = array( "name" => new MongoRegex("/".self::wd_remove_accents($search)."/i"));//array('$text' => array('$search' => $search));//
   		
   		//*********************************  DEFINE LOCALITY QUERY   ******************************************
@@ -893,38 +913,63 @@ class Search {
 	    if($country != ""){
 	    	$query["country"] = $country;
 	    }
-
+	    //var_dump($query);
   		$allCities = PHDB::find(City::COLLECTION, $query);
   		$allCitiesRes = array();
   		$nbMaxCities = 20;
   		$nbCities = 0;
   		foreach($allCities as $data){
-	  		$countPostalCodeByInsee = count($data["postalCodes"]);
-	  		foreach ($data["postalCodes"] as $val){
-		  		if($nbCities < $nbMaxCities){
-		  		$newCity = array();
-		  		//$regionName = 
-		  		$newCity = array(
-		  						"_id"=>$data["_id"],
-		  						"insee" => $data["insee"], 
-		  						"regionName" => isset($data["regionName"]) ? $data["regionName"] : "", 
-		  						"depName" => isset($data["depName"]) ? $data["depName"] : "", 
-		  						"country" => $data["country"],
-		  						"geoShape" => isset($data["geoShape"]) ? $data["geoShape"] : "",
-		  						"cp" => $val["postalCode"],
-		  						"geo" => $val["geo"],
-		  						"geoPosition" => $val["geoPosition"],
-		  						"name" => ucwords(strtolower($val["name"])),
-		  						"alternateName" => ucwords(strtolower($val["name"])),
-		  						"type"=>"city",
-		  						"typeSig" => "city");
-		  		if($countPostalCodeByInsee > 1){
-		  			$newCity["countCpByInsee"] = $countPostalCodeByInsee;
-		  			$newCity["cityInsee"] = ucwords(strtolower($data["alternateName"]));
+  			if(!empty($data["postalCodes"])){
+  				$countPostalCodeByInsee = count($data["postalCodes"]);
+		  		foreach ($data["postalCodes"] as $val){
+			  		if($nbCities < $nbMaxCities){
+			  		$newCity = array();
+			  		//$regionName = 
+			  		$newCity = array(
+			  						"_id"=>$data["_id"],
+			  						"insee" => $data["insee"], 
+			  						// "regionName" => isset($data["regionName"]) ? $data["regionName"] : "", 
+			  						// "depName" => isset($data["depName"]) ? $data["depName"] : "",
+			  						"level1" => isset($data["level1"]) ? $data["level1"] : "",
+			  						"level1Name" => isset($data["level1Name"]) ? $data["level1Name"] : "",
+			  						"country" => $data["country"],
+			  						"geoShape" => isset($data["geoShape"]) ? $data["geoShape"] : "",
+			  						"cp" => $val["postalCode"],
+			  						"geo" => $val["geo"],
+			  						"geoPosition" => $val["geoPosition"],
+			  						"name" => ucwords(strtolower($val["name"])),
+			  						"alternateName" => ucwords(strtolower($val["name"])),
+			  						"type"=>"city",
+			  						"typeSig" => "city");
+
+			  		if(!empty($data["level4"])){
+						 $newCity["level4"] = $data["level4"];
+						 $newCity["level4Name"] = $data["level4Name"];
+			  		}
+					
+					if(!empty($data["level3"])){
+						 $newCity["level3"] = $data["level3"];
+						 $newCity["level3Name"] = $data["level3Name"];
+			  		}
+
+			  		if(!empty($data["level2"])){
+						 $newCity["level2"] = $data["level2"];
+						 $newCity["level2Name"] = $data["level2Name"];
+			  		}
+
+
+			  		if($countPostalCodeByInsee > 1){
+			  			$newCity["countCpByInsee"] = $countPostalCodeByInsee;
+			  			$newCity["cityInsee"] = ucwords(strtolower($data["alternateName"]));
+			  		}
+			  		$allCitiesRes[]=$newCity;
+			  		} $nbCities++;
 		  		}
-		  		$allCitiesRes[]=$newCity;
-		  		} $nbCities++;
-	  		}
+  			}else{
+  				$data["type"]="city";
+			  	$data["typeSig"] = "city";
+	  			$allCitiesRes[]=$data;
+  			}
   		}
   		if(empty($allCitiesRes)){
   			$query = array( "cp" => $search);
