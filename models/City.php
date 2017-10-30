@@ -1348,14 +1348,14 @@ class City {
         }
 
         //$cities = PHDB::findAndSort( City::COLLECTION, $where, $att, 40, $att);
-        
+        //var_dump($cities);
         if(empty($cities) && !empty($formInMap)){
             $countryCode = mb_convert_encoding($countryCode, "ASCII");
             if(strlen($countryCode) > 2 ){
                $countryCode = substr($countryCode, 0, 2);
             }
             $countryCode = mb_convert_encoding($countryCode, "UTF-8");
-            $resNominatim = json_decode(SIG::getGeoByAddressNominatim(null, null, $scopeValue, trim($countryCode), true, true),true);
+            $resNominatim = json_decode(SIG::getGeoByAddressNominatim(null, null, $scopeValue, trim($countryCode), true, true, true),true);
             //var_dump($resNominatim);
             if(!empty($resNominatim)){
                 //var_dump($resNominatim);
@@ -1365,9 +1365,18 @@ class City {
                         if( !empty($value["address"][$valueType]) 
                             && $countryCode == strtoupper(@$value["address"]["country_code"])) {
 
+                        	$name = null ;
+                        	if(!empty($value["namedetails"])){
+                        		if( !empty($value["namedetails"]["name:".strtolower(Yii::app()->language)]) ) {
+									$name = $value["namedetails"]["name:".strtolower(Yii::app()->language)] ;
+								} else if( !empty($value["namedetails"]["name"] ) ) {
+									$name = $value["namedetails"]["name"] ;
+								}
+							}
+
                             $wikidata = (empty($value["extratags"]["wikidata"]) ? null : $value["extratags"]["wikidata"]);
                             //var_dump($value["osm_id"]);
-                            $newCities = array( "name" => $value["address"][$valueType],
+                            $newCities = array( "name" => (!empty($name) ? $name : $value["address"][$valueType]),
                                                 "alternateName" => mb_strtoupper($value["address"][$valueType]),
                                                 "country" => $countryCode,
                                                 "geo" => array( "@type"=>"GeoCoordinates", 
@@ -1398,7 +1407,7 @@ class City {
 
                             // if(empty($newCities["geoShape"]))
                             //     $newCities["geoShape"] = $value["geojson"];
-
+                            //var_dump($newCities);
                             if(City::checkCitySimply($newCities))
                                 $cities[] = $newCities;
                             
@@ -1429,7 +1438,7 @@ class City {
                $countryCode = substr($countryCode, 0, 2);
             }
             $countryCode = mb_convert_encoding($countryCode, "UTF-8");
-            $resNominatim = json_decode(SIG::getGeoByAddressNominatim(null, null, $scopeValue, trim($countryCode), true, true),true);
+            $resNominatim = json_decode(SIG::getGeoByAddressNominatim(null, null, $scopeValue, trim($countryCode), true, true, true),true);
             //var_dump($resNominatim);
             if(!empty($resNominatim)){
                 //var_dump($resNominatim);
