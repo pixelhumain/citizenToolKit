@@ -462,7 +462,7 @@ class SIG
     }
 
 
-    public static function getGeoByAddressNominatim($street = null, $cp = null, $city = null, $countryCode = null, $polygon_geojson = null, $extratags = null, $nameLevel = null, $state = null, $county = null){
+    public static function getGeoByAddressNominatim($street = null, $cp = null, $city = null, $countryCode = null, $polygon_geojson = null, $extratags = null, $namedetails = null, $nameLevel = null, $state = null, $county = null){
         try{
 	        $url = "http://nominatim.openstreetmap.org/search?format=json&addressdetails=1" ;
 	        if(!empty($street))
@@ -494,6 +494,10 @@ class SIG
 	        }
 	        if(!empty($extratags)){
 	            $url .= "&email=contact@communecter.org";
+	        }
+
+	        if(!empty($namedetails)){
+	            $url .= "&namedetails=1";
 	        }
 	        //var_dump($url);
 	        // $res =  file_get_contents($url);
