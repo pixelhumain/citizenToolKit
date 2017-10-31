@@ -261,8 +261,6 @@ class Zone {
 		if($parentType != self::COLLECTION && $parentType != City::COLLECTION)
 
 		if(!empty($osmID)){
-			//$zoneNominatim =  json_decode(file_get_contents("http://nominatim.openstreetmap.org/lookup?format=json&namedetails=1&osm_ids=R".$osmID), true);
-
 			$zoneNominatim =  json_decode(SIG::getUrl("http://nominatim.openstreetmap.org/lookup?format=json&namedetails=1&osm_ids=R".$osmID), true);
 		
 			if(!empty($zoneNominatim) && !empty($zoneNominatim[0]["namedetails"])){
@@ -278,8 +276,6 @@ class Zone {
 
 		if(!empty($wikidataID)){
 
-			//$zoneWiki =  json_decode(file_get_contents("https://www.wikidata.org/wiki/Special:EntityData/".$wikidataID.".json"), true);
-			
 			$zoneWiki =  json_decode(SIG::getUrl("https://www.wikidata.org/wiki/Special:EntityData/".$wikidataID.".json"), true);
 		
 			if(!empty($zoneWiki) && !empty($zoneWiki["entities"][$wikidataID]["labels"])){
@@ -292,19 +288,19 @@ class Zone {
 			}
 		}
 
-		if(!empty($translate)){
-			$info["countryCode"] = $countryCode;
-			$info["parentId"] = $parentId;
-			$info["parentType"] = $parentType;
-			$info["translates"] = $translate;
-			$info["origin"] = $origin;
-			PHDB::insert(Zone::TRANSLATE, $info);
-			PHDB::update($parentType, 
-						array("_id"=>new MongoId($parentId)),
-						array('$set' => array("translateId" => (String)$info["_id"]))
-			);
-			$res = array("result" => true, "translate" => $info);
-		}
+		//if(!empty($translate)){
+		$info["countryCode"] = $countryCode;
+		$info["parentId"] = $parentId;
+		$info["parentType"] = $parentType;
+		$info["translates"] = $translate;
+		$info["origin"] = $origin;
+		PHDB::insert(Zone::TRANSLATE, $info);
+		PHDB::update($parentType, 
+					array("_id"=>new MongoId($parentId)),
+					array('$set' => array("translateId" => (String)$info["_id"]))
+		);
+		$res = array("result" => true, "translate" => $info);
+		//}
 		return $res ;
 	}
 
