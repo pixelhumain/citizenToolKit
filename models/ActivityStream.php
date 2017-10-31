@@ -264,6 +264,11 @@ class ActivityStream {
 	    );
 	    if(@$params["labelAuthorObject"])
 	    	$notify["labelAuthorObject"]=$params["labelAuthorObject"];
+	 	if(@$params["mentions"])
+	    	$notify["mentions"]=$params["mentions"];
+	 	if(@$params["type"])
+	    	$notify["type"]=$params["type"];
+	    
 	    return $notify;
 	}
 	public static function removeObject($objectId,$type,$targetId=null,$targetType=null,$verb=null){
