@@ -1330,6 +1330,23 @@ class City {
         if($geoShape) $att[] =  "geoShape";
 
         $regex = Search::accentToRegex($scopeValue);
+
+        if($countryCode == "NC"){
+        	$cities = PHDB::findAndSort( City::COLLECTION, 
+        				array('$and'=>array(array("country"=>"NC"),
+        							array(		
+		        					'$or'=> array(
+			        							array("postalCodes.name"=>new MongoRegex("/".$regex."/i")),
+			        							array("postalCodes.postalCode"=>new MongoRegex("/".$regex."/i")),
+			        							array("kanakName"=>new MongoRegex("/".$regex."/i")),
+			        							array("alternateName"=>new MongoRegex("/".$regex."/i")),
+			        						)
+		        					))
+        					),  
+						array("postalCodes.name"), 40);
+	        return $cities;
+	    }
+	    
         $where = array('$or'=> 
                             array(  array("origin" => new MongoRegex("/".$regex."/i")),
                                     array("translates.".strtoupper(Yii::app()->language) => array( '$in' => array (new MongoRegex("/".$regex."/i") ) ) ),
