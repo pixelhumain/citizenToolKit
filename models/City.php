@@ -1228,7 +1228,7 @@ class City {
 
 		if(isset($res["localityId"])){
 			$res["cityName"] = self::getNameCity($res["localityId"]);
-		}	
+		}
 
 		if(!empty($res["level2"])){
 			$res["level2Name"] = Zone::getNameCountry($res["level2"]);
