@@ -374,7 +374,7 @@ class Mail {
         $params = array (
             "type" => Cron::TYPE_MAIL,
             "tpl"=>'inviteYouTo',
-            "subject" => "[".self::getAppName()."] ".Yii::t("mail","Invitation to ".$verb)." ".$parent["name"],    
+            "subject" => "[".self::getAppName()."] ".Yii::t("mail","Invitation to {what} {where}",array("{what}"=>Yii::t("mail",$verb),"{where}"=>$parent["name"])),    
             "from"=>Yii::app()->params['adminEmail'],       
             "to" => $childMail["email"],     
             "tplParams" => array(  
@@ -477,7 +477,7 @@ class Mail {
             "subject" => $subject,
             "from" => Yii::app()->params['adminEmail'],
             "to"=>Yii::app()->params['adminEmail'],
-            "tplParams" => array(   "title" => Yii::t("email","New message from").$names,
+            "tplParams" => array(   "title" => Yii::t("mail","New message from {who}",array("{who}"=>$names)),
                                     "subject" => $subject,
                                     "message" => $contentMsg,
                                     "emailSender" => $emailSender,
@@ -502,7 +502,7 @@ class Mail {
             "subject" => $subject,
             "from" => Yii::app()->params['adminEmail'],
             "to"=>$emailReceiver,
-            "tplParams" => array(   "title" => Yii::t("email","New message from").$names,
+            "tplParams" => array(   "title" => Yii::t("mail","New message from {who}",array("{who}"=>$names)),
                                     "subject" => $subject,
                                     "message" => $contentMsg,
                                     "emailSender" => $emailSender,

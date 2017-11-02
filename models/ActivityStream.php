@@ -266,6 +266,8 @@ class ActivityStream {
 	    	$notify["labelAuthorObject"]=$params["labelAuthorObject"];
 	 	if(@$params["mentions"])
 	    	$notify["mentions"]=$params["mentions"];
+	 	if(@$params["labelArray"])
+	    	$notify["labelArray"]=$params["labelArray"];
 	 	if(@$params["type"])
 	    	$notify["type"]=$params["type"];
 	    
