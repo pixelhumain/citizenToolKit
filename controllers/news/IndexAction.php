@@ -368,13 +368,13 @@ class IndexAction extends CAction
 				// 										)));
 			*/
 			//Exclude => If isAnAbuse
-			// $where = array_merge($where,  array( 'isAnAbuse' => array('$ne' => true) ) );
-			// $where = array_merge($where,  array('sharedBy.updated' => array( '$lt' => $date ) ) );
-			// $where = array_merge($where, array("target.type" => array('$ne' => "pixels")));
+			$where = array_merge($where,  array( 'isAnAbuse' => array('$ne' => true) ) );
+			$where = array_merge($where,  array('sharedBy.updated' => array( '$lt' => $date ) ) );
+			$where = array_merge($where, array("target.type" => array('$ne' => "pixels")));
 
-			$where = array('$and' => array( $where , array( 'isAnAbuse' => array('$ne' => true) ) ) );
-			$where = array('$and' => array( $where , array('sharedBy.updated' => array( '$lt' => $date ) ) ) );
-			$where = array('$and' => array( $where , array("target.type" => array('$ne' => "pixels") ) ) );
+			// $where = array('$and' => array( $where , array( 'isAnAbuse' => array('$ne' => true) ) ) );
+			// $where = array('$and' => array( $where , array('sharedBy.updated' => array( '$lt' => $date ) ) ) );
+			// $where = array('$and' => array( $where , array("target.type" => array('$ne' => "pixels") ) ) );
 
 			if(@$_POST["textSearch"] && $_POST["textSearch"]!="")
 				//$where = array('$and' => array( $where ,  array('text' => new MongoRegex("/".$_POST["textSearch"]."/i") ) ) );
@@ -388,7 +388,7 @@ class IndexAction extends CAction
 			$where["created"]=array('$lt' => $date);
 		}*/
 
-		var_dump($where); //exit;
+		//var_dump($where); //exit;
 		if(!empty($where))
 			$news= News::getNewsForObjectId($where,array("sharedBy.updated"=>-1),$type, @$followsArrayIds);
 		//echo count($news);
