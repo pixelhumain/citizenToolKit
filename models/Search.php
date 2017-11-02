@@ -687,12 +687,12 @@ class Search {
 	  			$parent=array();
 			$allService[$key]["parent"] = $parent;
 			if(@$value["type"])
-				$allService[$key]["typeSig"] = Service::COLLECTION;//.".".$value["type"];
+				$allService[$key]["typeSig"] = Service::COLLECTION.".".@$allService[$key]["type"];//.".".$value["type"];
 			else
-				$allService[$key]["typeSig"] = Service::COLLECTION;
+				$allService[$key]["typeSig"] = Service::COLLECTION.".".@$allService[$key]["type"];
 			
 
-			$allService[$key]["typePoi"] = @$allProduct[$key]["type"];
+			$allService[$key]["typePoi"] = @$allService[$key]["type"];
 			$allService[$key]["type"] = Service::COLLECTION;
   		}
   		return $allService;
