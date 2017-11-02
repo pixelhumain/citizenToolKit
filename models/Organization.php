@@ -644,7 +644,7 @@ class Organization {
 	 */
 	public static function createAndInvite($param) {
 	  	try {
-	  		$res = self::insert($param, $param["invitedBy"], $param["invitedBy"]);
+	  		$res = self::insert($param, Yii::app()->session["userId"], @$param["invitedBy"]);
 	  	} catch (CTKException $e) {
 	  		$res = array("result"=>false, "msg"=> $e->getMessage());
 	  	}
