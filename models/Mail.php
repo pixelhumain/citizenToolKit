@@ -38,7 +38,7 @@ class Mail {
             $message->setSubject($params['subject']);
             $message->setBody($params['tplParams'], 'text/html');
             $message->addTo($params['to'], $nameTo);
-            $message->from = array($params['from'] => "Communecter");
+            $message->from = array($params['from'] => "Notragora");
 
             return Yii::app()->mail->send($message);
         } else
@@ -174,7 +174,7 @@ class Mail {
         $params = array(
             "type" => Cron::TYPE_MAIL,
             "tpl"=>'passwordRetreive',
-            "subject" => 'Réinitialisation du mot de passe pour le site '.self::getAppName(),
+            "subject" => 'Réinitialisation du mot de passe sur '.self::getAppName(),
             "from"=>Yii::app()->params['adminEmail'],
             "to" => $email,
             "tplParams" => array(   "pwd"   => $pwd ,
