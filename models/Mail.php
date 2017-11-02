@@ -38,7 +38,7 @@ class Mail {
             $message->setSubject($params['subject']);
             $message->setBody($params['tplParams'], 'text/html');
             $message->addTo($params['to'], $nameTo);
-            $message->from = array($params['from'] => "Notragora");
+            $message->from = array($params['from'] => self::getAppName());
 
             return Yii::app()->mail->send($message);
         } else
