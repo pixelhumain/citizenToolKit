@@ -66,7 +66,7 @@ class ActivityStream {
 		$where = array("target.id"=>$id, 
 					"target.type"=>$type, 
 					"type"=>ActStr::TYPE_ACTIVITY_HISTORY);
-		$sort = array("date"=>-1);
+		$sort = array("created"=>-1);
 		return PHDB::findAndSort( self::COLLECTION,$where,$sort,null);
 	}
 
