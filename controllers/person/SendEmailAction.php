@@ -38,7 +38,7 @@ class SendEmailAction extends CAction {
             
             //send validation mail
             Mail::passwordRetreive($email, $pwd);
-            $res = array("result"=>true, "msg"=>Yii::t("login", "An email with a new password has been sent to your email account")Un mail avec un nouveau mot de passe vous a été envoyé à votre adresse email. Merci.);
+            $res = array("result"=>true, "msg"=>Yii::t("login", "An email with a new password has been sent to your email account. Thanks."));
         
         // Validation Mail
         } else if ($type == "validateEmail") {

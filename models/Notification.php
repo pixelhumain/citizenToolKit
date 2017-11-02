@@ -1369,13 +1369,16 @@ class Notification{
 								    	if($id==$key){
 									    	if($list["type"]!=Person::COLLECTION){
 									    		$mentionsArray=[$data["name"]];
+									    		$labelArray["{mentions}"]=$mentionsArray;
 									    		if(@$list["nameElement"]){
 									    			array_push($mentionsArray, $list["nameElement"]);
+									    			$labelArray["{mentions}"]= array($data["name"],"and",$list["nameElement"]);
+									    			
 									    		}
-									    		$labelArray["{mentions}"]=$mentionsArray;
 										    	//$mentionsLabel=$data["name"]." ".Yii::t("common", "and")." ".@$list["nameElement"];
 										    	$typeMention=$list["type"];
 										    	$labelNotif=$arrayLabel["other"];
+										    	unset($notification[$i]["persons"][$key]);
 										    	//Yii::t("notification",$arrayLabel["other"],array("{who}"=>$author["name"],"{mentions}"=>$mentionsLabel,"{where}"=>$where));
 										    	
 									    	}
