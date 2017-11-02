@@ -2141,5 +2141,21 @@ class Person {
     	return $superAdmins;
     }
 
+
+    public static function updateScopeInter($id) {
+    	$res = array("result" => false , "msg"=>"You are not connected");
+    	$find = self::getById($id);
+
+    	if(!empty($find)){
+    		$res = PHDB::update(Person::COLLECTION, 
+						array("_id"=>new MongoId($id)),
+						array(	'$unset' 	=> array(	"inter" => null) ) );
+
+    		$res = array("result" => true , "msg"=>"Ce message ne s'affichera plus");
+    	}
+
+    	return $res;
+    }
+
 }
 ?>
