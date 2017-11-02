@@ -24,10 +24,7 @@ class RegisterAction extends CAction
 			'pwd'=>$pwd
 		);
 
-    $siteKey = '6LfGyykUAAAAAPOOpiTp6FIJ6lrVDmu6EHOItyBr'; // votre clé publique
-    $secret = '6LfGyykUAAAAANQNoEmwpyzE4t6K0hyw3lLAf_mC'; // votre clé privée
-
-    $reCaptcha = new ReCaptcha($secret);
+    $reCaptcha = new ReCaptcha( Yii::app()->params['captcha-key'] );
     $resp = $reCaptcha->verifyResponse(
       $_SERVER["REMOTE_ADDR"],
       $_POST["g-recaptcha-response"]
