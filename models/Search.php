@@ -131,6 +131,7 @@ class Search {
   		//var_dump($query);
   		$allRes = array();
 
+  		//var_dump($query);
   		//*********************************  CITIES   ******************************************
   		if(!empty($search) /*&& !empty($locality) */){
 	        if(strcmp($filter, City::COLLECTION) != 0 && self::typeWanted(City::COLLECTION, $searchType)){
@@ -148,16 +149,17 @@ class Search {
 	  		
         //*********************************  PERSONS   ******************************************
        	if(strcmp($filter, Person::COLLECTION) != 0 && (self::typeWanted(Person::COLLECTION, $searchType) || self::typeWanted("persons", $searchType) ) ) {
-       		$localityReferences['CITYKEY'] = "";
-	  		$localityReferences['CODE_POSTAL'] = "address.postalCode";
-	  		$localityReferences['DEPARTEMENT'] = "address.postalCode";
-	  		$localityReferences['REGION'] = ""; //Spécifique
-	  		$prefLocality = false;
-	  		foreach ($localityReferences as $key => $value){
-	  			if(!empty($post["searchLocality".$key])){
-	  				$prefLocality = true;
-	  			} 
-	  		}
+     //   		$localityReferences['CITYKEY'] = "";
+	  		// $localityReferences['CODE_POSTAL'] = "address.postalCode";
+	  		// $localityReferences['DEPARTEMENT'] = "address.postalCode";
+	  		// $localityReferences['REGION'] = ""; //Spécifique
+	  		// $prefLocality = false;
+	  		// foreach ($localityReferences as $key => $value){
+	  		// 	if(!empty($post["searchLocality".$key])){
+	  		// 		$prefLocality = true;
+	  		// 	} 
+	  		// }
+	  		$prefLocality = (!empty($searchLocality) ? true : false);
         	$allRes = array_merge($allRes, self::searchPersons($query, $indexStep, $indexMin, $prefLocality));
 
 	  	}
