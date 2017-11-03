@@ -131,7 +131,7 @@ class Search {
   		//var_dump($query);
   		$allRes = array();
 
-  		//var_dump($query);
+  		var_dump($query);
   		//*********************************  CITIES   ******************************************
   		if(!empty($search) /*&& !empty($locality) */){
 	        if(strcmp($filter, City::COLLECTION) != 0 && self::typeWanted(City::COLLECTION, $searchType)){
@@ -261,8 +261,9 @@ class Search {
   		if(!empty($searchTags)){
   			foreach ($searchTags as $value) {
   				if(trim($value) != "")
+  					$tmpTags[] = new MongoRegex("/^".self::accentToRegex($value)."$/i");
 	  				//$tmpTags[] = new MongoRegex("/^".$value."$/i");
-	  				$tmpTags[] = new MongoRegex("/^".self::accentToRegex($value)."$/i");
+	  				
 	  		}
 	  		if(count($tmpTags)){
 	  			$allverb = array('$in', '$all');

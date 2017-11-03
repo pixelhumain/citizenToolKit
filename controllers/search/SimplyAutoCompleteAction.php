@@ -33,7 +33,8 @@ class SimplyAutoCompleteAction extends CAction
         if(strpos($search, "#") > -1){
         	$search = substr($search, 1, strlen($search));
         	// $query = array( "tags" => array('$in' => array(new MongoRegex("/".$search."/i")))) ; //new MongoRegex("/".$search."/i") )));
-        	$tmpTags[] = new MongoRegex("/".$search."/i");
+        	//$tmpTags[] = new MongoRegex("/".$search."/i");
+        	$tmpTags[] = new MongoRegex("/^".Search::accentToRegex($tags)."$/i");
   		}
 
 
@@ -49,14 +50,16 @@ class SimplyAutoCompleteAction extends CAction
 	  			
 	  			if(is_array($tags)){
 	  				foreach ($tags as $key => $tag) {
-				  		$tmpTags[] = new MongoRegex("/".$tag."/i");
+	  					$tmpTags[] = new MongoRegex("/^".Search::accentToRegex($tags)."$/i");
+				  		//$tmpTags[] = new MongoRegex("/".$tag."/i");
 			  		}
 			  		if(count($tmpTags)){
 			  			$verbTag = ( (!empty($paramsFiltre) && '$all' == $paramsFiltre) ? '$all' : '$in' ) ;
 			  			$query = array('$and' => array( $query , array("tags" => array($verbTag => $tmpTags)))) ;
 			  		}
 	  			}else{
-	  				$tmpTags[] = new MongoRegex("/".$tags."/i");
+	  				$tmpTags[] = new MongoRegex("/^".Search::accentToRegex($tags)."$/i");
+	  				//$tmpTags[] = new MongoRegex("/".$tags."/i");
 				  	
 			  		$isString = true;
 	  			}
