@@ -460,7 +460,7 @@ class IndexAction extends CAction
 			$where["created"]=array('$lt' => $date);
 		}*/
 
-		var_dump($where);
+		
 		if(!empty($where))
 			$news= News::getNewsForObjectId($where,array("sharedBy.updated"=>-1),$type, @$followsArrayIds);
 		//echo count($news);
