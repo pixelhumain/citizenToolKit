@@ -1371,10 +1371,13 @@ class City {
                $countryCode = substr($countryCode, 0, 2);
             }
             $countryCode = mb_convert_encoding($countryCode, "UTF-8");
-            $resNominatim = json_decode(SIG::getGeoByAddressNominatim(null, null, $scopeValue, trim($countryCode), true, true, true),true);
+
+            if(preg_match("/^[0-9]/i", $scopeValue))
+	            $resNominatim = json_decode(SIG::getGeoByAddressNominatim(null, $scopeValue, null, trim($countryCode), true, true, true),true);
+	        else
+	        	$resNominatim = json_decode(SIG::getGeoByAddressNominatim(null, null, $scopeValue, trim($countryCode), true, true, true),true);
             //var_dump($resNominatim);
             if(!empty($resNominatim)){
-                //var_dump($resNominatim);
                 foreach (@$resNominatim as $key => $value) {
                     $typeCities = array("city", "village", "town") ;
                     foreach ($typeCities as $keyType => $valueType) {
