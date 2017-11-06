@@ -144,6 +144,15 @@ class City {
     									$city["name"], 
     									(!empty($city["osmID"]) ? $city["osmID"] : null),
     									(!empty($city["wikidataID"]) ? $city["wikidataID"] : null));
+
+
+    			if(empty($level1["ownACity"])){
+    				$res = PHDB::update( Zone::COLLECTION, 
+								  	array("_id"=>new MongoId($city["level1"])),
+									array('$set' => array("ownACity" =>  true))
+					);
+    			}
+
 				$res = array("result"=>true,
 	                         "msg"=>"La commune a été enregistrer.",
 	                         "city"=>$city,

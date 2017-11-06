@@ -324,16 +324,21 @@ class Zone {
 
 	public static function getListCountry(){
 		$where = array(	"level" => "1");
-		$fields = array("name","level", "translateId", "countryCode");
+		$fields = array("name","level", "translateId", "countryCode", "ownACity");
 		$zones = PHDB::find(self::COLLECTION, $where, $fields);
 		$res = array();
 		foreach ($zones as $key => $zone) {
 			$name = self::getNameCountry($key);
-			$city = PHDB::findOne(City::COLLECTION, array("country" => $zone["countryCode"]));
-			$newZones  = array( "name" => ( !empty($name) ? $name : $zone["name"] ),
+			// if( !empty($name) )
+			// 	$zone["name"] = $name ;
+
+			$newZone = array( 	"name" => ( !empty($name)  ? $name : $zone["name"]),
 								"countryCode" => $zone["countryCode"],
-								"inDB" => (!empty($city) ? true : false ) );
-			$res[$key] = $newZones ;
+								"level" => $zone["level"],
+								"translateId" => $zone["translateId"]);
+			if( !empty($zone["ownACity"]) )
+				$newZone["ownACity"] = $zone["ownACity"] ;
+			$res[$key] = $newZone ;
 		}
 		asort($res);
 		return $res ;
