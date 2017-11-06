@@ -291,7 +291,7 @@ class Import
             $newA["osmID"] = $city["osmID"];
         }
 
-        if( !empty($address["postalCode"]) ) {
+        if( !empty($address["postalCode"]) &&  !empty($city["postalCode"]) ) {
             foreach ($city["postalCodes"] as $keyCp => $valueCp){
                 if($valueCp["postalCode"] == $address["postalCode"]){
                     $newA['addressLocality'] = $valueCp["name"];
@@ -363,7 +363,7 @@ class Import
 		$lon = null;
 		$result = false;
 		$saveCities = array();
-
+        //var_dump( $address);
 		if( !empty($address["addressLocality"]) && !empty($address["addressCountry"]) ){
 			$where = array('$or'=> 
 						array(  
@@ -376,7 +376,7 @@ class Import
 			if( !empty($address["postalCode"]) ){
 				$where = array('$and' => array($where, array("postalCodes.postalCode" => $address["postalCode"]) ) );
 			}
-			//var_dump( $where);
+			
 			$city = PHDB::findOne(City::COLLECTION, $where);
 
 			if(!empty($city)){
