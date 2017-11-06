@@ -14,7 +14,11 @@ class Order {
 	    "section" => array("name" => "section"),
 	    "type" => array("name" => "type"),
 	    "subtype" => array("name" => "subtype"),
-	    "name" => array("name" => "name", "rules" => array("required")),
+	    "orderItems"=>array("name" => "orderItems"),
+	    "countOrderItem"=>array("name" => "countOrderItem"),
+	    "totalPrice"=>array("name" => "totalPrice"),
+	   	"currency"=>array("name" => "currency"),
+	    "name" => array("name" => "name"),
 	    "address" => array("name" => "address", "rules" => array("addressValid")),
 	    "addresses" => array("name" => "addresses"),
 	    "streetAddress" => array("name" => "address.streetAddress"),
@@ -59,19 +63,31 @@ class Order {
 	  	return $products;
 	}
 	public static function insert($order, $userId){
-		$order["customerId"]=$userId;
-		$order["orderDate"]=new MongoDate(time());
-		$order["created"] = new MongoDate(time());
-		$orderItems=array();
-		settype($order["countOrderItem"], "integer");
-		settype($order["totalPrice"], "float");
-		foreach ($order["orderItems"] as $key => $value) {
-			$res=OrderItem::insert($key,$value,$userId);
-			array_push($orderItems, $res["id"]);
-		}
-		$order["orderItems"]=$orderItems;
-		PHDB::insert(self::COLLECTION,$order);
-		return array("result"=>true, "msg"=>Yii::t("common","Your payment and reservations are well registred"), "order"=>$order);
+		
+        try {
+        	$valid = DataValidator::validate( self::CONTROLLER, json_decode (json_encode ($order), true), null );
+        } catch (CTKException $e) {
+        	$valid = array("result"=>false, "msg" => $e->getMessage());
+        }
+        if( $valid["result"]) 
+        {
+			$order["customerId"]=$userId;
+			$order["orderDate"]=new MongoDate(time());
+			$order["created"] = new MongoDate(time());
+			$orderItems=array();
+			settype($order["countOrderItem"], "integer");
+			settype($order["totalPrice"], "float");
+			foreach ($order["orderItems"] as $key => $value) {
+				$res=OrderItem::insert($key,$value,$userId);
+				array_push($orderItems, $res["id"]);
+			}
+			$order["orderItems"]=$orderItems;
+			PHDB::insert(self::COLLECTION,$order);
+			return array("result"=>true, "msg"=>Yii::t("common","Your payment and reservations are well registred"), "order"=>$order);
+		}else 
+            return array( "result" => false, "error"=>"400",
+                          "msg" => Yii::t("common","Something went really bad : ".$valid['msg']) );
+
 	}
 	public static function getListByUser($where){
 		$allOrders = PHDB::findAndSort( self::COLLECTION , $where, array("created"=>-1));
