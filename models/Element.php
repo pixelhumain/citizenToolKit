@@ -426,6 +426,8 @@ class Element {
 			return Proposal::getDataBinding();
 		else if($collection == Action::COLLECTION)
 			return Action::getDataBinding();
+		else if($collection == Service::COLLECTION)
+			return Service::getDataBinding();
 		else
 			return array();
 	}
