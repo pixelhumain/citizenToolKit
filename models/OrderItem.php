@@ -87,12 +87,14 @@ class OrderItem {
 		$orderedItemData["created"] = new MongoDate(time());
 		settype($orderedItemData["quantity"], "integer");
 		settype($orderedItemData["price"], "float");
-		$reservations=[];
-		foreach ($orderedItemData["reservations"] as $key => $value) {
-			$value["date"]=new MongoDate(strtotime($key));
-			array_push($reservations, $value);
+		if(@$orderedItemData["reservations"]){
+			$reservations=[];
+			foreach ($orderedItemData["reservations"] as $key => $value) {
+				$value["date"]=new MongoDate(strtotime($key));
+				array_push($reservations, $value);
+			}
+			$orderedItemData["reservations"]=$reservations;
 		}
-		$orderedItemData["reservations"]=$reservations;
 		PHDB::insert(self::COLLECTION,$orderedItemData);
 		return array("res"=>true, "msg"=>Yii::t("common","Your orderItem is well reistred"), "id"=>(string)$orderedItemData["_id"]);
 	}
