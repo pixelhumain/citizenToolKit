@@ -1344,7 +1344,6 @@ class City {
                         "level3", "level3Name",
                         "level4", "level4Name", "geo");
         if($geoShape) $att[] =  "geoShape";
-
         $regex = Search::accentToRegex($scopeValue);
         $where = array('$or'=> 
                             array(  array("origin" => new MongoRegex("/".$regex."/i")),
@@ -1354,17 +1353,19 @@ class City {
     												"parentType" => City::COLLECTION ) ) );
 
         $translate = Zone::getWhereTranlate($where);
-        //var_dump($where);
         $cities = array();
-        foreach ($translate as $keyTran => $valueTran) {
-        	$city = self::getById( $valueTran["parentId"]);
-        	if(!empty($valueTran["translates"][strtoupper(Yii::app()->language)]))
-        		$city["name"] = $valueTran["translates"][strtoupper(Yii::app()->language)] ;
-        	$cities[$valueTran["parentId"]] = $city ;
+        $valIDCity = array();
+        foreach ($translate as $key => $value) {
+        	$valIDCity[] = new MongoId($value["parentId"]) ;
+        }
+        $citiesWithTrad = PHDB::find(self::COLLECTION, array( "_id" => array('$in' => $valIDCity)));
+
+        foreach ($citiesWithTrad as $keyTran => $city) {
+        	if(!empty($translate[$keyTran]["translates"][strtoupper(Yii::app()->language)]))
+        		$city["name"] = $translate[$keyTran]["translates"][strtoupper(Yii::app()->language)] ;
+        	$cities[$keyTran] = $city ;
         }
 
-        //$cities = PHDB::findAndSort( City::COLLECTION, $where, $att, 40, $att);
-        //var_dump($cities);
         if(empty($cities) && !empty($formInMap)){
             $countryCode = mb_convert_encoding($countryCode, "ASCII");
             if(strlen($countryCode) > 2 ){
