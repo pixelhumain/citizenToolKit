@@ -16,11 +16,19 @@ class ListAction extends CAction {
 				}
 				if($data==Order::COLLECTION){
 					$where=array("customerId"=>Yii::app()->session["userId"]);
-					$params["orderList"]=Order::getListByUser($where);
+					$params["parentList"]=Order::getListByUser($where);
 					//print_r($params["orderList"]);
 					//exit;
-					$params["list"]["orderItems"]=Order::getOrderItemById((string)array_values($params["orderList"])[0]['_id']);
+					$params["list"]["orderItems"]=Order::getOrderItemById((string)array_values($params["parentList"])[0]['_id']);
 				}
+				if($data==Backup::COLLECTION){
+					$where=array("parentId"=>Yii::app()->session["userId"]);
+					$params["parentList"]=Backup::getListBy($where);
+					//print_r($params["orderList"]);
+					//exit;
+					//$params["list"]["orderItems"]=Order::getOrderItemById((string)array_values($params["orderList"])[0]['_id']);
+				}
+				
 				/*if($data==OrderItem::COLLECTION){
 					$where=array("customerId"=>Yii::app()->session["userId"]);
 					$params["list"][$data]=OrderItem::getListByUser($where);
