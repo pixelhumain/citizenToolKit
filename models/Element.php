@@ -68,6 +68,7 @@ class Element {
 	    	Room::COLLECTION   	 	 => "Room",
 	    	Action::COLLECTION   	 => "Action",
 	    	Network::COLLECTION   	 => "Network",
+	    	Url::COLLECTION   	 	 => "Url",
 	    );	
 	 	return @$models[$type];     
     }
@@ -1390,7 +1391,7 @@ class Element {
         $valid = array("result"=>true);
         if( $collection == Event::COLLECTION ){
             $valid = Event::validateFirst($params);
-        } //error_log("KEY : ". $key);
+        } error_log("KEY : ". $key);
         if( $valid["result"] )
         	try {
         		$valid = DataValidator::validate( ucfirst($key), json_decode (json_encode ($params), true), ( empty($paramsLinkImport) ? null : true) );
