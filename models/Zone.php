@@ -327,12 +327,12 @@ class Zone {
 		$fields = array("name","level", "translateId", "countryCode", "ownACity");
 		$zones = PHDB::find(self::COLLECTION, $where, $fields);
 		$res = array();
+		$trad = PHDB::find(	self::TRANSLATE, 
+							array( 	"parentId"=> array('$in' => array_keys($zones) ), 
+									"parentType" => Zone::COLLECTION ), 
+							array("origin", "translates.".strtoupper(Yii::app()->language) ) );
 		foreach ($zones as $key => $zone) {
-			$name = self::getNameCountry($key);
-			// if( !empty($name) )
-			// 	$zone["name"] = $name ;
-
-			$newZone = array( 	"name" => ( !empty($name)  ? $name : $zone["name"]),
+			$newZone = array( 	"name" => ( !empty($trad[$zone["translateId"]]["translates"][strtoupper(Yii::app()->language)])  ? $trad[$zone["translateId"]]["translates"][strtoupper(Yii::app()->language)] : $zone["name"]),
 								"countryCode" => $zone["countryCode"],
 								"level" => $zone["level"],
 								"translateId" => $zone["translateId"]);
