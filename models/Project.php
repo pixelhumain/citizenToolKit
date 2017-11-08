@@ -110,6 +110,56 @@ class Project {
 	  	return $project;
 	}
 
+
+	public static function  getByArrayId($arrayId) {
+	  	
+	  	$projects = PHDB::find(self::COLLECTION, array( "_id" => array('$in' => $arrayId)));
+	  	$res = array();
+	  	foreach ($projects as $id => $project) {
+	  		if (empty($project)) {
+            //TODO Sylvain - Find a way to manage inconsistent data
+            //throw new CommunecterException("The organization id ".$id." is unkown : contact your admin");
+	        } else {
+	        	if ($project !=null) {
+				  	if (!empty($project["startDate"]) || !empty($project["endDate"])) {
+				  		$now = time();
+				  		
+				  		if(isset($project["startDate"])) {
+							$yester2day = mktime(0, 0, 0, date("m")  , date("d")-2, date("Y"));
+							if (gettype($project["startDate"]) == "object") {
+								//Set TZ to UTC in order to be the same than Mongo
+								date_default_timezone_set('UTC');
+								if (!empty($project["startDate"]))
+									$project["startDate"] = date('Y-m-d H:i:s', $project["startDate"]->sec);
+							} else {
+								$project["startDate"] = date('Y-m-d H:i:s',$yester2day);;
+							}
+						}
+
+				  		if(isset($project["startDate"]) && isset($project["endDate"])) {
+							$yesterday = mktime(0, 0, 0, date("m")  , date("d")-1, date("Y"));
+							if (gettype($project["endDate"]) == "object") {
+								date_default_timezone_set('UTC');
+								if (!empty($project["endDate"]))
+									$project["endDate"] = date('Y-m-d H:i:s', $project["endDate"]->sec);
+							} else {
+								$project["endDate"] = date('Y-m-d H:i:s', $yesterday);
+							}
+						}
+					}
+				}
+
+				if (!empty($project)) {
+					$project = array_merge($project, Document::retrieveAllImagesUrl($id, self::COLLECTION, null, $project));
+					$project["typeSig"] = "projects";
+				}
+	        }
+	  		$res[$id] = $project;
+	  	}
+	  
+	  	return $res;
+	}
+
 	/**
 	 * Retrieve a simple project (id, name, profilImageUrl) by id from DB
 	 * @param String $id of the project
