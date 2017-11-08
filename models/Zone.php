@@ -126,11 +126,9 @@ class Zone {
 			$zone["level"] = array($level);
 			if($level != "1"){
 				$zone["level1"] = self::getIdCountryByCountryCode($countryCode);
-				
 				if($level != "2" && !empty($level2)){
 					$zone["level2"] = self::getIdLevelByNameAndCountry($level2, "2", $countryCode);
 				}
-
 				if($level != "3" && !empty($level3)){
 					$zone["level3"] = self::getIdLevelByNameAndCountry($level3, "3", $countryCode);
 				}
@@ -138,7 +136,7 @@ class Zone {
 
 			$zone["geo"] = SIG::getFormatGeo($zoneNominatim[0]["lat"], $zoneNominatim[0]["lon"]);
 			$zone["geoPosition"] = SIG::getFormatGeoPosition($zoneNominatim[0]["lat"], $zoneNominatim[0]["lon"]);
-			$zone["geoShape"] = $zoneNominatim[0]["geojson"];
+			//$zone["geoShape"] = $zoneNominatim[0]["geojson"];
 			if(!empty($zoneNominatim[0]["osm_id"]))
 				$zone["osmID"] = $zoneNominatim[0]["osm_id"];
 			if(!empty($zoneNominatim[0]["extratags"]["wikidata"]))
@@ -309,7 +307,6 @@ class Zone {
 		$userT = strtoupper(Yii::app()->language) ;
 		if(!empty($translates) ){
 			$name = (!empty($translates["translates"][$userT]) ? $translates["translates"][$userT] : $translates["origin"]);
-
 		}else
 			$name = "";
 		
@@ -332,7 +329,8 @@ class Zone {
 									"parentType" => Zone::COLLECTION ), 
 							array("origin", "translates.".strtoupper(Yii::app()->language) ) );
 		foreach ($zones as $key => $zone) {
-			$newZone = array( 	"name" => ( !empty($trad[$zone["translateId"]]["translates"][strtoupper(Yii::app()->language)])  ? $trad[$zone["translateId"]]["translates"][strtoupper(Yii::app()->language)] : $zone["name"]),
+
+			$newZone = array( 	"name" => ( !empty($trad[$zone["translateId"]]["translates"][strtoupper(Yii::app()->language)])  ? $trad[$zone["translateId"]]["translates"][strtoupper(Yii::app()->language)] : $trad[$zone["translateId"]]["origin"]),
 								"countryCode" => $zone["countryCode"],
 								"level" => $zone["level"],
 								"translateId" => $zone["translateId"]);
