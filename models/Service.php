@@ -23,6 +23,8 @@ class Service {
 	    "geo" => array("name" => "geo"),
 	    "geoPosition" => array("name" => "geoPosition"),
 	    "description" => array("name" => "description"),
+	    "shortDescription" => array("name" => "shortDescription"),
+	    "descriptionHTML" => array("name" => "descriptionHTML"),
 	    "addresses" => array("name" => "addresses"),
 	    "parentId" => array("name" => "parentId"),
 	    "parentType" => array("name" => "parentType"),
@@ -44,8 +46,12 @@ class Service {
 
 	
 
+    public static function getDataBinding() {
+        return self::$dataBinding;
+    }
+
 	/**
-	 * get a Poi By Id
+	 * get a Service By Id
 	 * @param String $id : is the mongoId of the poi
 	 * @return poi
 	 */
