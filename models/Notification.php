@@ -807,10 +807,12 @@ class Notification{
 			if(@$notif["target"]["name"])
 				$specifyLabel["{where}"] = $notif["target"]["name"];
 			else{
-				/*if(@$notif["object"] && !@$notif["object"]["type"]){
-					print_r($notif);
-					exit;
-				}*/
+				// if(@$notif["object"] && !@$notif["object"]["type"]){
+				// 	print_r($notif);
+				// 	exit;
+				// }
+				// print_r($notif);
+				// exit;
 				$resArray=self::getTargetInformation($notif["target"]["id"],$notif["target"]["type"], @$notif["object"]);
 				$specifyLabel["{where}"] = @$resArray["{where}"];
 				if(@$resArray["{what}"])
@@ -1124,8 +1126,9 @@ class Notification{
 			$news=News::getById($id);
 			$authorNews=News::getAuthor($id);
 			$parent=Element::getElementSimpleById($news["target"]["id"], $news["target"]["type"]);
-		} else if($type==Organization::COLLECTION || $type==Project::COLLECTION || $type==Event::COLLECTION)
+		} else if($type==Organization::COLLECTION || $type==Project::COLLECTION || $type==Event::COLLECTION){
 			$parent=Element::getElementSimpleById($id, $type);
+		}
 		$res=array();
 		if($labelArray)
 			$res["{what}"] = ["a ".Element::getControlerByCollection($type)];
