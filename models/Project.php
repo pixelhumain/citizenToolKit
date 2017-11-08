@@ -111,48 +111,54 @@ class Project {
 	}
 
 
-	public static function  getByArrayId($arrayId) {
+	public static function  getByArrayId($arrayId, $fields = array(), $simply = false) {
 	  	
-	  	$projects = PHDB::find(self::COLLECTION, array( "_id" => array('$in' => $arrayId)));
+	  	$projects = PHDB::find(self::COLLECTION, array( "_id" => array('$in' => $arrayId)), $fields);
 	  	$res = array();
 	  	foreach ($projects as $id => $project) {
 	  		if (empty($project)) {
             //TODO Sylvain - Find a way to manage inconsistent data
             //throw new CommunecterException("The organization id ".$id." is unkown : contact your admin");
 	        } else {
-	        	if ($project !=null) {
-				  	if (!empty($project["startDate"]) || !empty($project["endDate"])) {
-				  		$now = time();
-				  		
-				  		if(isset($project["startDate"])) {
-							$yester2day = mktime(0, 0, 0, date("m")  , date("d")-2, date("Y"));
-							if (gettype($project["startDate"]) == "object") {
-								//Set TZ to UTC in order to be the same than Mongo
-								date_default_timezone_set('UTC');
-								if (!empty($project["startDate"]))
-									$project["startDate"] = date('Y-m-d H:i:s', $project["startDate"]->sec);
-							} else {
-								$project["startDate"] = date('Y-m-d H:i:s',$yester2day);;
-							}
-						}
 
-				  		if(isset($project["startDate"]) && isset($project["endDate"])) {
-							$yesterday = mktime(0, 0, 0, date("m")  , date("d")-1, date("Y"));
-							if (gettype($project["endDate"]) == "object") {
-								date_default_timezone_set('UTC');
-								if (!empty($project["endDate"]))
-									$project["endDate"] = date('Y-m-d H:i:s', $project["endDate"]->sec);
-							} else {
-								$project["endDate"] = date('Y-m-d H:i:s', $yesterday);
+	        	if($simply)
+	        		$project = self::getSimpleProjectById($id, $project);
+	        	else{
+	        		if ($project !=null) {
+					  	if (!empty($project["startDate"]) || !empty($project["endDate"])) {
+					  		$now = time();
+					  		
+					  		if(isset($project["startDate"])) {
+								$yester2day = mktime(0, 0, 0, date("m")  , date("d")-2, date("Y"));
+								if (gettype($project["startDate"]) == "object") {
+									//Set TZ to UTC in order to be the same than Mongo
+									date_default_timezone_set('UTC');
+									if (!empty($project["startDate"]))
+										$project["startDate"] = date('Y-m-d H:i:s', $project["startDate"]->sec);
+								} else {
+									$project["startDate"] = date('Y-m-d H:i:s',$yester2day);;
+								}
+							}
+
+					  		if(isset($project["startDate"]) && isset($project["endDate"])) {
+								$yesterday = mktime(0, 0, 0, date("m")  , date("d")-1, date("Y"));
+								if (gettype($project["endDate"]) == "object") {
+									date_default_timezone_set('UTC');
+									if (!empty($project["endDate"]))
+										$project["endDate"] = date('Y-m-d H:i:s', $project["endDate"]->sec);
+								} else {
+									$project["endDate"] = date('Y-m-d H:i:s', $yesterday);
+								}
 							}
 						}
 					}
-				}
 
-				if (!empty($project)) {
-					$project = array_merge($project, Document::retrieveAllImagesUrl($id, self::COLLECTION, null, $project));
-					$project["typeSig"] = "projects";
-				}
+					if (!empty($project)) {
+						$project = array_merge($project, Document::retrieveAllImagesUrl($id, self::COLLECTION, null, $project));
+						$project["typeSig"] = "projects";
+					}
+	        	}
+	        	
 	        }
 	  		$res[$id] = $project;
 	  	}
@@ -165,10 +171,12 @@ class Project {
 	 * @param String $id of the project
 	 * @return array with data id, name, profilImageUrl
 	 */
-	public static function getSimpleProjectById($id) {
+	public static function getSimpleProjectById($id, $project=null) {
 		
 		$simpleProject = array();
-		$project = PHDB::findOneById( self::COLLECTION ,$id, array("id" => 1, "name" => 1, "shortDescription" => 1, "description" => 1, "address" => 1, "geo" => 1, "tags" => 1, "profilImageUrl" => 1, "profilThumbImageUrl" => 1, "profilMarkerImageUrl" => 1, "profilMediumImageUrl" => 1, "addresses"=>1) );
+		if(empty($project))
+			$project = PHDB::findOneById( self::COLLECTION ,$id, array("id" => 1, "name" => 1, "shortDescription" => 1, "description" => 1, "address" => 1, "geo" => 1, "tags" => 1, "profilImageUrl" => 1, "profilThumbImageUrl" => 1, "profilMarkerImageUrl" => 1, "profilMediumImageUrl" => 1, "addresses"=>1) );
+		
 		if(!empty($project)){
 			$simpleProject["id"] = $id;
 			$simpleProject["name"] = @$project["name"];

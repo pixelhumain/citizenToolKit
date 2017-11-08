@@ -143,8 +143,7 @@ class Person {
 	 * @param boolean $clearAttribute : by default true. Will clear the confidential attributes
 	 * @return type
 	 */
-	public static function getById($id, $clearAttribute = true) { 
-		
+	public static function getById($id, $clearAttribute = true) {
 	  	$person = PHDB::findOneById( self::COLLECTION, $id );
 	  	
 	  	if (empty($person)) {
@@ -172,10 +171,10 @@ class Person {
 	  	return $person;
 	}
 
-	public static function getByArrayId($arrayId, $clearAttribute = true) { 
+	public static function getByArrayId($arrayId, $fields = array(), $clearAttribute = true, $simpleUser = false) { 
 		
 	  	//$person = PHDB::findOneById( self::COLLECTION, $id );
-	  	$persons = PHDB::find(self::COLLECTION, array( "_id" => array('$in' => $arrayId)));
+	  	$persons = PHDB::find(self::COLLECTION, array( "_id" => array('$in' => $arrayId)), $fields);
 	  	$res = array();
 	  	foreach ($persons as $id => $person) {
 	  		if (empty($person)) {
@@ -195,8 +194,9 @@ class Person {
 												"streetAddress" => "",
 												"addressCountry" => "");
 	        }
-	        
-	        if($clearAttribute) {
+	        if($simpleUser) {
+	        	$person = self::getSimpleUserById($id,$person);
+	        }else if($clearAttribute) {
 	        	$person = self::clearAttributesByConfidentiality($person);
 	        }
 	        $res[$id] = $person;

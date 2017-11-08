@@ -525,20 +525,25 @@ class Organization {
 	}
 
 
-	public static function  getByArrayId($arrayId, $disable = true) {
+	public static function  getByArrayId($arrayId, $fields = array(), $simply = false) {
 	  	
-	  	$organizations = PHDB::find(self::COLLECTION, array( "_id" => array('$in' => $arrayId)));
+	  	$organizations = PHDB::find(self::COLLECTION, array( "_id" => array('$in' => $arrayId)), $fields);
 	  	$res = array();
 	  	foreach ($organizations as $id => $organization) {
 	  		if (empty($organization)) {
             //TODO Sylvain - Find a way to manage inconsistent data
             //throw new CommunecterException("The organization id ".$id." is unkown : contact your admin");
 	        } else {
-	        	if (@$contactComplet["disabled"]) {
+	        	if (@$contactComplet["disabled"]){
 					$organization = null;
 				}else{
-					$organization = array_merge($organization, Document::retrieveAllImagesUrl($id, self::COLLECTION, null, $organization));
-					$organization["typeSig"] = "organizations";
+					if($simply)
+						$organization = self::getSimpleOrganizationById($id,$organization);
+					else{
+						$organization = array_merge($organization, Document::retrieveAllImagesUrl($id, self::COLLECTION, null, $organization));
+						$organization["typeSig"] = "organizations";
+					}
+					
 				}
 	        }
 	  		$res[$id] = $organization;
