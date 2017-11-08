@@ -524,6 +524,34 @@ class Organization {
 	  	return $organization;
 	}
 
+
+	public static function  getByArrayId($arrayId, $fields = array(), $simply = false) {
+	  	
+	  	$organizations = PHDB::find(self::COLLECTION, array( "_id" => array('$in' => $arrayId)), $fields);
+	  	$res = array();
+	  	foreach ($organizations as $id => $organization) {
+	  		if (empty($organization)) {
+            //TODO Sylvain - Find a way to manage inconsistent data
+            //throw new CommunecterException("The organization id ".$id." is unkown : contact your admin");
+	        } else {
+	        	if (@$contactComplet["disabled"]){
+					$organization = null;
+				}else{
+					if($simply)
+						$organization = self::getSimpleOrganizationById($id,$organization);
+					else{
+						$organization = array_merge($organization, Document::retrieveAllImagesUrl($id, self::COLLECTION, null, $organization));
+						$organization["typeSig"] = "organizations";
+					}
+					
+				}
+	        }
+	  		$res[$id] = $organization;
+	  	}
+	  
+	  	return $res;
+	}
+
 	/**
 	 * Retrieve a simple organization (id, name, profilImageUrl) by id from DB
 	 * @param String $id of the organization

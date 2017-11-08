@@ -805,7 +805,7 @@ class Element {
 	    //else return $assetUrl.'/images/thumbnail-default.jpg';
     }
 
-    public static function getAllLinks($links,$type, $id){
+    public static function getAllLinksOld($links,$type, $id){
 	    $contextMap = array();
 		/*$contextMap["people"] = array();
 		$contextMap["guests"] = array();
@@ -921,6 +921,7 @@ class Element {
 						$contextMap[$newCitoyen["id"]] = $newCitoyen;
 				}
 			}
+
 			if(isset($links["memberOf"])){
 				foreach ($links["memberOf"] as $key => $value) {
 					$newOrga = Organization::getSimpleOrganizationById($key);
@@ -969,6 +970,185 @@ class Element {
 				}
 			}
 		}
+		//error_log("get POI for id : ".$id." - type : ".$type);
+		/*if(isset($id)){
+			$pois = PHDB::find(Poi::COLLECTION,array("parentId"=>$id,"parentType"=>$type));
+			if(!empty($pois)) {
+				$allPois = array();
+				if(!is_array($pois)) $pois = array($pois);
+				foreach ($pois as $key => $value) {
+					if(@$value["type"])
+						$value["typeSig"] = Poi::COLLECTION.".".$value["type"];
+					else
+						$value["typeSig"] = Poi::COLLECTION;
+					$contextMap[(String) $value["_id"]] = $value;
+				}
+				
+			}
+		}*/
+		return $contextMap;	
+    }
+
+    public static function getAllLinks($links,$type, $id){
+	    $contextMap = array();
+		/*$contextMap["people"] = array();
+		$contextMap["guests"] = array();
+		$contextMap["attendees"] = array();
+		$contextMap["organizations"] = array();
+		$contextMap["projects"] = array();
+		$contextMap["events"] = array();
+		$contextMap["followers"] = array();*/
+
+
+	    if($type == Organization::COLLECTION){
+	    	$connectAs="members";
+	    	$elt = Organization::getSimpleOrganizationById($id);
+			$newOrga["type"]=Organization::COLLECTION;
+			$contextMap[$elt["id"]] = $elt;
+	    }
+	    else if($type == Project::COLLECTION){
+	    	$connectAs="contributors";
+	    	$elt = Project::getSimpleProjectById($id);
+	    	$contextMap[$elt["id"]] = $elt;
+	    }
+		else if ($type == Event::COLLECTION){
+			$connectAs="attendees";
+			$elt = Event::getSimpleEventById($id);
+			$contextMap[$elt["id"]] = $elt;
+		}
+		else if ($type == Person::COLLECTION){
+			$connectAs="follows";
+			$elt = Person::getSimpleUserById($id);
+			$contextMap[$elt["id"]] = $elt;
+		}		
+	    
+		if(!empty($links) && 
+			( (Preference::showPreference($elt, $type, "directory", Yii::app()->session["userId"]) && 
+			  $type == Person::COLLECTION ) || 
+			  $type != Person::COLLECTION) 
+		  ) {
+			if(isset($links[$connectAs])){
+				foreach ($links[$connectAs] as $key => $aMember) {
+					$citoyen = Person::getSimpleUserById($key);
+					if(!empty($citoyen)){
+						if(@$aMember["invitorId"])  {
+							$contextMap[$citoyen["id"]] = $citoyen;
+						}
+						else{
+							if(@$e["isAdmin"]){
+								if(@$e["isAdminPending"])
+									$citoyen["isAdminPending"]=true;
+								$citoyen["isAdmin"]=true;         
+							}
+							$contextMap[$citoyen["id"]] = $citoyen;
+						}
+					}else{
+						if($aMember["type"]==Organization::COLLECTION){
+							$valLink[Organization::COLLECTION][] = new MongoId($key) ;
+						} 
+						else if($aMember["type"]==Person::COLLECTION){
+							$valLink[Person::COLLECTION][] = new MongoId($key) ;
+						}
+					}
+				}
+			}
+
+			$valLink = array();
+			// Link with events
+			if(isset($links["events"])){
+				foreach ($links["events"] as $keyEv => $valueEv) {
+					$valLink[Event::COLLECTION][] = new MongoId($keyEv) ;
+				}
+			}
+
+			if(isset($links["subEvents"])){
+				foreach ($links["subEvents"] as $keyEv => $valueEv) {
+					$valLink[Event::COLLECTION][] = new MongoId($keyEv) ;
+				}
+			}
+
+			// Link with projects
+			if(isset($links["projects"])){
+				foreach ($links["projects"] as $keyProj => $valueProj) {
+					$valLink[Project::COLLECTION][] = new MongoId($keyProj) ;
+				}
+			}
+	
+			if(isset($links["followers"])){
+				foreach ($links["followers"] as $key => $value) {
+					$valLink[Person::COLLECTION][] = new MongoId($keyProj) ;
+				}
+			}
+
+			if(isset($links["memberOf"])){
+				foreach ($links["memberOf"] as $key => $value) {
+					$valLink[Organization::COLLECTION][] = new MongoId($key) ;
+				}
+			}
+
+  			if ($type == Person::COLLECTION){
+			    if (@$links["follows"]) {
+			        foreach ( @$links["follows"] as $key => $member ) {
+			          	if( $member['type'] == Person::COLLECTION )
+				            $valLink[Person::COLLECTION][] = new MongoId($key) ;
+
+						if( $member['type'] == Organization::COLLECTION )
+							$valLink[Organization::COLLECTION][] = new MongoId($key) ;
+
+						if( $member['type'] == Project::COLLECTION )
+						    $valLink[Project::COLLECTION][] = new MongoId($key) ;
+		        	}
+				}
+			}
+			
+			$fieldsPer =array("id", "name", "username", "email", "roles", "tags", "profilImageUrl", "profilThumbImageUrl", "profilMarkerImageUrl");
+
+			$fieldsOrg = array("id" , "name" , "type" , "email" , "url" , "shortDescription" , "description" , "address" , "pending" , "tags" , "geo" , "updated" , "profilImageUrl" , "profilThumbImageUrl" , "profilMarkerImageUrl" ,"profilMediumImageUrl" , "addresses", "telephone", "slug");
+
+			$fieldsPro = array("id", "name", "shortDescription", "description", "address", "geo", "tags", "profilImageUrl", "profilThumbImageUrl", "profilMarkerImageUrl", "profilMediumImageUrl", "addresses");
+
+			$fieldEve = array("id", "name", "type",  "shortDescription", "description", "address", "geo", "tags", "profilImageUrl", "profilThumbImageUrl", "profilMarkerImageUrl", "profilMediumImageUrl", "startDate", "endDate", "addresses", "allDay");
+
+			if( !empty($valLink) ) {
+				foreach ($valLink as $type => $valLink) {
+					$contactsComplet = null;
+					if($type == Person::COLLECTION)
+						$contactsComplet = Person::getByArrayId($valLink, $fieldsPer, true, true); 
+					if($type == Organization::COLLECTION)
+						$contactsComplet = Organization::getByArrayId($valLink, $fieldsOrg, true);
+					if($type == Project::COLLECTION)
+						$contactsComplet = Project::getByArrayId($valLink, $fieldsPro, true);
+					if($type == Event::COLLECTION)
+						$contactsComplet = Event::getByArrayId($valLink, $fieldEve, true);
+
+					if(!empty($contactsComplet))
+						$contextMap = array_merge($contextMap, $contactsComplet);					
+				}
+			}
+
+			if(isset($links[$connectAs])){
+				foreach ($links[$connectAs] as $key => $aMember) {
+					if(!empty($contextMap[$key])){
+						if($aMember["type"] == Organization::COLLECTION && @$aMember["isAdmin"])
+							$contextMap[$key]["isAdmin"]=true;
+
+						else if (@$aMember["type"] == Person::COLLECTION) {
+							if(@$aMember["isAdmin"]){
+								if(@$aMember["isAdminPending"])
+									$contextMap[$key]["isAdminPending"]=true;  
+								$contextMap[$key]["isAdmin"]=true;  	
+							}			
+							if(@$aMember["toBeValidated"]){
+								$contextMap[$key]["toBeValidated"]=true;  
+							}
+						}
+					}
+				}
+			}
+
+		}
+		//
+		
 		//error_log("get POI for id : ".$id." - type : ".$type);
 		/*if(isset($id)){
 			$pois = PHDB::find(Poi::COLLECTION,array("parentId"=>$id,"parentType"=>$type));

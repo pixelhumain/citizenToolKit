@@ -329,14 +329,15 @@ class Zone {
 									"parentType" => Zone::COLLECTION ), 
 							array("origin", "translates.".strtoupper(Yii::app()->language) ) );
 		foreach ($zones as $key => $zone) {
-
-			$newZone = array( 	"name" => ( !empty($trad[$zone["translateId"]]["translates"][strtoupper(Yii::app()->language)])  ? $trad[$zone["translateId"]]["translates"][strtoupper(Yii::app()->language)] : $trad[$zone["translateId"]]["origin"]),
-								"countryCode" => $zone["countryCode"],
-								"level" => $zone["level"],
-								"translateId" => $zone["translateId"]);
-			if( !empty($zone["ownACity"]) )
-				$newZone["ownACity"] = $zone["ownACity"] ;
-			$res[$key] = $newZone ;
+			if(@$zone["translateId"]){
+				$newZone = array( 	"name" => ( !empty($trad[$zone["translateId"]]["translates"][strtoupper(Yii::app()->language)])  ? $trad[$zone["translateId"]]["translates"][strtoupper(Yii::app()->language)] : $trad[$zone["translateId"]]["origin"]),
+									"countryCode" => $zone["countryCode"],
+									"level" => $zone["level"],
+									"translateId" => $zone["translateId"]);
+				if( !empty($zone["ownACity"]) )
+					$newZone["ownACity"] = $zone["ownACity"] ;
+				$res[$key] = $newZone ;
+			}
 		}
 		asort($res);
 		return $res ;

@@ -76,6 +76,8 @@ class Search {
         $priceMax = isset($_POST['priceMax']) ? $_POST['priceMax'] : null;
         $devise = isset($_POST['devise']) ? $_POST['devise'] : null;
         $latest = isset($_POST['latest']) ? $_POST['latest'] : null;
+        $startDate = isset($_POST['startDate']) ? $_POST['startDate'] : null;
+        $endDate = isset($_POST['endDate']) ? $_POST['endDate'] : null;
         $searchSType = !empty($post['searchSType']) ? $post['searchSType'] : "";
 
 
@@ -173,6 +175,14 @@ class Search {
 				
 	  	//*********************************  EVENT   ******************************************
         if(strcmp($filter, Event::COLLECTION) != 0 && self::typeWanted(Event::COLLECTION, $searchType)){
+
+        	if($startDate!=null){
+        		array_push( $query[ '$and' ], array( "startDate" => array( '$gte' => new MongoDate( (float)$startDate ) ) ) );
+       		}
+        	if($endDate!=null){
+       			array_push( $query[ '$and' ], array( "endDate" => array( '$lte' => new MongoDate( (float)$endDate ) ) ) );
+       		}
+
         	$allRes = array_merge($allRes, self::searchEvents($query, $indexStep, $indexMin, $searchSType));
 	  	}
 	  	//*********************************  PROJECTS   ******************************************
@@ -533,8 +543,9 @@ class Search {
     	if( !isset( $queryEvent['$and'] ) ) 
     		$queryEvent['$and'] = array();
     	
-    	array_push( $queryEvent[ '$and' ], array( "endDate" => array( '$gte' => new MongoDate( time() ) ) ) );
-
+    	//echo  time(); exit;
+    	//array_push( $queryEvent[ '$and' ], array( "endDate" => array( '$gte' => new MongoDate( time() ) ) ) );
+    	//var_dump($queryEvent);
     	if(isset($searchSType) && $searchSType != "")
         		array_push( $queryEvent[ '$and' ], array( "type" => $_POST["searchSType"] ) );
     	
@@ -548,11 +559,11 @@ class Search {
 			if(@$value["links"]["attendees"][Yii::app()->session["userId"]]){
 	  			$allEvents[$key]["isFollowed"] = true;
   			}
-			if(@$allEvents[$key]["startDate"]){
+			if(@$allEvents[$key]["startDate"] && @$allEvents[$key]["startDate"]->sec){
 				$allEvents[$key]["startDateTime"] = date(DateTime::ISO8601, $allEvents[$key]["startDate"]->sec);
 				$allEvents[$key]["startDate"] = date(DateTime::ISO8601, $allEvents[$key]["startDate"]->sec);
 			}
-			if(@$allEvents[$key]["endDate"]){
+			if(@$allEvents[$key]["endDate"] && @$allEvents[$key]["endDate"]->sec){
 				$allEvents[$key]["endDateTime"] = date(DateTime::ISO8601, $allEvents[$key]["endDate"]->sec);
 				$allEvents[$key]["endDate"] = date(DateTime::ISO8601, $allEvents[$key]["endDate"]->sec);
 			}
