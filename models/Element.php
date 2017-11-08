@@ -1020,9 +1020,7 @@ class Element {
 			$connectAs="follows";
 			$elt = Person::getSimpleUserById($id);
 			$contextMap[$elt["id"]] = $elt;
-		}
-
-		
+		}		
 	    
 		if(!empty($links) && 
 			( (Preference::showPreference($elt, $type, "directory", Yii::app()->session["userId"]) && 
@@ -1046,33 +1044,10 @@ class Element {
 						}
 					}else{
 						if($aMember["type"]==Organization::COLLECTION){
-							$newOrga = Organization::getSimpleOrganizationById($key);
-							if(!empty($newOrga)){
-								if ($aMember["type"] == Organization::COLLECTION && @$aMember["isAdmin"]){
-									$newOrga["isAdmin"]=true;  				
-								}
-								$newOrga["type"]=Organization::COLLECTION;
-								if (!@$newOrga["disabled"]) {
-									$contextMap[$newOrga["id"]] = $newOrga;
-								}
-							}
+							$valLink[Organization::COLLECTION][] = new MongoId($key) ;
 						} 
 						else if($aMember["type"]==Person::COLLECTION){
-							$newCitoyen = Person::getSimpleUserById($key);
-							if (!empty($newCitoyen)) {
-								if (@$aMember["type"] == Person::COLLECTION) {
-									if(@$aMember["isAdmin"]){
-										if(@$aMember["isAdminPending"])
-											$newCitoyen["isAdminPending"]=true;  
-											$newCitoyen["isAdmin"]=true;  	
-									}			
-									if(@$aMember["toBeValidated"]){
-										$newCitoyen["toBeValidated"]=true;  
-									}
-								}
-								$newCitoyen["type"]=Person::COLLECTION;
-								$contextMap[$newCitoyen["id"]] = $newCitoyen;
-							}
+							$valLink[Person::COLLECTION][] = new MongoId($key) ;
 						}
 					}
 				}
@@ -1140,6 +1115,26 @@ class Element {
 
 					if(!empty($contactsComplet))
 						$contextMap = array_merge($contextMap, $contactsComplet);					
+				}
+			}
+
+			if(isset($links[$connectAs])){
+				foreach ($links[$connectAs] as $key => $aMember) {
+					if(!empty($contextMap[$key])){
+						if($aMember["type"] == Organization::COLLECTION && @$aMember["isAdmin"])
+							$contextMap[$key]["isAdmin"]=true;
+
+						else if (@$aMember["type"] == Person::COLLECTION) {
+							if(@$aMember["isAdmin"]){
+								if(@$aMember["isAdminPending"])
+									$contextMap[$key]["isAdminPending"]=true;  
+								$contextMap[$key]["isAdmin"]=true;  	
+							}			
+							if(@$aMember["toBeValidated"]){
+								$contextMap[$key]["toBeValidated"]=true;  
+							}
+						}
+					}
 				}
 			}
 
