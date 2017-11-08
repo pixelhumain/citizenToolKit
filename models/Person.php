@@ -172,6 +172,39 @@ class Person {
 	  	return $person;
 	}
 
+	public static function getByArrayId($arrayId, $clearAttribute = true) { 
+		
+	  	//$person = PHDB::findOneById( self::COLLECTION, $id );
+	  	$persons = PHDB::find(self::COLLECTION, array( "_id" => array('$in' => $arrayId)));
+	  	$res = array();
+	  	foreach ($persons as $id => $person) {
+	  		if (empty($person)) {
+		  		//TODO Sylvain - Find a way to manage inconsistente data
+	            //throw new CTKException("The person id ".$id." is unkown : contact your admin");
+	        } else {
+				if (!empty($person["birthDate"])) {
+					date_default_timezone_set('UTC');
+					$person["birthDate"] = date('Y-m-d H:i:s', $person["birthDate"]->sec);
+				}
+				$person = array_merge($person, Document::retrieveAllImagesUrl($id, self::COLLECTION, null, $person));
+				$person["typeSig"] = "people";
+				if(!isset($person["address"])) 
+					$person["address"] = array( "codeInsee" => "", 
+												"postalCode" => "", 
+												"addressLocality" => "",
+												"streetAddress" => "",
+												"addressCountry" => "");
+	        }
+	        
+	        if($clearAttribute) {
+	        	$person = self::clearAttributesByConfidentiality($person);
+	        }
+	        $res[$id] = $person;
+	  	}
+	  
+	  	return $res;
+	}
+
 
 	/**
 	 * Retrieve a simple user (id, name, profilImageUrl) by id from DB
@@ -360,38 +393,67 @@ class Person {
 	  		$myContacts = $person["links"];
 	  	}
 
+	  	$valIDLink = array();
 	  	foreach (array("follows", "memberOf", "projects", "events") as $n => $link) {
-
-	  		if( isset($myContacts[$link]))
-	  		{
+	  		if( isset($myContacts[$link])){
 			  	foreach ($myContacts[$link] as $key => $contact) {
-			  		//error_log(var_dump($contact));
 			  		$type = isset($contact["type"]) ? $contact["type"] : "";
-			  		$contactComplet = null;
-					if($type == "citoyens")		{ 
-						$contactComplet = self::getById($key); 
-						$type = "people"; 
-					}
-					//if ($link != "follows"){
-					if($type == "organizations"){ 
-						$contactComplet = Organization::getById($key);
-						//Do not add orga disabled
-						if (@$contactComplet["disabled"]) {
-							$contactComplet = null;
-						}
-					}
-					if($type == "projects")		{ $contactComplet = Project::getById($key); }
-					if($type == "events")		{ $contactComplet = Event::getById($key); }
-					//}
-					if($contactComplet != null)	$res[$type][$key] = $contactComplet;
-					
-					//var_dump($contactComplet);
+			  		$valIDLink[$type][] = new MongoId($key) ;
 				}
 			}
 		}
 
-	//trie les éléments dans l'ordre alphabetique par name
-  	function mySort($a, $b){ 
+		if( !empty($valIDLink) ) {
+			foreach ($valIDLink as $type => $valLink) {
+				$contactsComplet = null;
+				if($type == self::COLLECTION){
+					$contactsComplet = self::getByArrayId($valLink); 
+					$type = "people"; 
+				}
+
+				if($type == Organization::COLLECTION){
+					$contactsComplet = Organization::getByArrayId($valLink);
+				}
+
+				if($type == Project::COLLECTION) 	{ $contactsComplet = Project::getByArrayId($valLink); }
+				if($type == Event::COLLECTION)		{ $contactsComplet = Event::getByArrayId($valLink); }
+
+				if($contactsComplet != null)	$res[$type] = $contactsComplet;
+			}
+		}
+
+
+	 //  	foreach (array("follows", "memberOf", "projects", "events") as $n => $link) {
+
+	 //  		if( isset($myContacts[$link]))
+	 //  		{
+		// 	  	foreach ($myContacts[$link] as $key => $contact) {
+			  		
+		// 	  		$type = isset($contact["type"]) ? $contact["type"] : "";
+		// 	  		$contactComplet = null;
+		// 			if($type == "citoyens")		{ 
+		// 				$contactComplet = self::getById($key); 
+		// 				$type = "people"; 
+		// 			}
+		// 			if($type == "organizations"){ 
+		// 				$contactComplet = Organization::getById($key);
+		// 				//Do not add orga disabled
+		// 				if (@$contactComplet["disabled"]) {
+		// 					$contactComplet = null;
+		// 				}
+		// 			}
+		// 			if($type == "projects")		{ $contactComplet = Project::getById($key); }
+		// 			if($type == "events")		{ $contactComplet = Event::getById($key); }
+					
+		// 			if($contactComplet != null)	$res[$type][$key] = $contactComplet;
+					
+					
+		// 		}
+		// 	}
+		// }
+
+		//trie les éléments dans l'ordre alphabetique par name
+	  	function mySort($a, $b){ 
 		  	if( isset($a['name']) && isset($b['name']) ){
 		    	return (strtolower($b['name']) < strtolower($a['name']));
 			}else{
