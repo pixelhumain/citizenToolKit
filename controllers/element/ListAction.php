@@ -19,7 +19,10 @@ class ListAction extends CAction {
 					$params["parentList"]=Order::getListByUser($where);
 					//print_r($params["orderList"]);
 					//exit;
-					$params["list"]["orderItems"]=Order::getOrderItemById((string)array_values($params["parentList"])[0]['_id']);
+					if(!empty($params["parentList"]))
+						$params["list"]["orderItems"]=Order::getOrderItemById((string)array_values($params["parentList"])[0]['_id']);
+					else
+						$params["list"]["orderItems"]=[];
 				}
 				if($data==Backup::COLLECTION){
 					$where=array("parentId"=>Yii::app()->session["userId"]);

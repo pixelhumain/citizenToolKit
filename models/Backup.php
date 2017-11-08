@@ -11,6 +11,7 @@ class Backup {
 
 	//From Post/Form name to database field name
 	public static $dataBinding = array (
+	    "id" => array("name" => "id"),
 	    "type" => array("name" => "type"),
 	    "name" => array("name" => "name"),
 	    "object" => array("name" => "object"),
@@ -39,7 +40,7 @@ class Backup {
 	}
 
 	public static function getListBy($where){
-		$backups = PHDB::findAndSort( self::COLLECTION , $where, array("created"=>-1));
+		$backups = PHDB::findAndSort( self::COLLECTION , $where, array("updated"=>-1));
 	  	return $backups;
 	}
 	public static function insert($backup){
@@ -52,6 +53,7 @@ class Backup {
         if( $valid["result"]) 
         {
         	$backup["created"] = new MongoDate(time());
+        	$backup["updated"] = new MongoDate(time());
         	if(!@$backup["parentId"]){
         		$backup["parentId"]=Yii::app()->session["userId"];
         		$backup["parentType"]=Person::COLLECTION;
@@ -63,20 +65,36 @@ class Backup {
                           "msg" => Yii::t("common","Something went really bad : ".$valid['msg']) );
 
 	}
-	/*
-	* Increment a comment rating for an order for a specific product or sevrice
-	*/
-	/*public static function actionRating($params,$commentId){
-		$allRating=Comment::buildCommentsTree($params["contextId"], $params["contextType"], Yii::app()->session["userId"], array("rating"));
-		$sum=0;
-		foreach ($allRating["comments"] as $key => $value) {
-			$sum=$sum+$value["rating"];
-		}
-		if($allRating["nbComment"] != 0)
-			$sum=$sum / $allRating["nbComment"] ;
-		$average=round( $sum , 1);
-		PHDB::update($params["contextType"],array("_id" => new MongoId($params["contextId"])),array('$set'=>array("averageRating"=>$average)));
-		PHDB::update(self::COLLECTION,array("_id" => new MongoId($params["orderId"])),array('$set'=>array("comment"=>$commentId)));
-	}*/
+	public static function update($params){
+		//$backup=self::getById($id);
+		try {
+        	$valid = DataValidator::validate( self::CONTROLLER, json_decode (json_encode ($params), true), null );
+        } catch (CTKException $e) {
+        	$valid = array("result"=>false, "msg" => $e->getMessage());
+        }
+        if( $valid["result"]) 
+        {
+        	$set=array(
+        		"updated"=> new MongoDate(time()),
+        		"totalPrice"=>$params["totalPrice"],
+	            "object"=>$params["object"]
+        		);
+        	$id=$params["id"];
+			PHDB::update(self::COLLECTION,array("_id"=>new MongoId($id)),array('$set' => $set));
+			return array("result"=>true, "msg"=>Yii::t("common","Your backup has been succesfuly updated"));
+		}else
+			return array( "result" => false, "error"=>"400",
+                          "msg" => Yii::t("common","Something went really bad: ".$valid['msg']) );
+
+	}
+	public static function delete($id){
+		$backup=self::getById($id);
+		if(@Yii::app()->session["userId"] && Yii::app()->session["userId"]==$backup["parentId"]){
+			PHDB::remove(self::COLLECTION,array("_id"=>new MongoId($id)));
+			return array("result"=>true, "msg"=>Yii::t("common","Your backup has been deleted with success"));
+		}else
+			return array( "result" => false, "error"=>"400","msg" => Yii::t("common","Something went really bad") );
+
+	}
 }
 ?>
