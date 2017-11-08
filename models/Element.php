@@ -1101,17 +1101,25 @@ class Element {
 				}
 			}
 			
+			$fieldsPer =array("id", "name", "username", "email", "roles", "tags", "profilImageUrl", "profilThumbImageUrl", "profilMarkerImageUrl");
+
+			$fieldsOrg = array("id" , "name" , "type" , "email" , "url" , "shortDescription" , "description" , "address" , "pending" , "tags" , "geo" , "updated" , "profilImageUrl" , "profilThumbImageUrl" , "profilMarkerImageUrl" ,"profilMediumImageUrl" , "addresses", "telephone", "slug");
+
+			$fieldsPro = array("id", "name", "shortDescription", "description", "address", "geo", "tags", "profilImageUrl", "profilThumbImageUrl", "profilMarkerImageUrl", "profilMediumImageUrl", "addresses");
+
+			$fieldEve = array("id", "name", "type",  "shortDescription", "description", "address", "geo", "tags", "profilImageUrl", "profilThumbImageUrl", "profilMarkerImageUrl", "profilMediumImageUrl", "startDate", "endDate", "addresses", "allDay");
+
 			if( !empty($valLink) ) {
 				foreach ($valLink as $type => $valLink) {
 					$contactsComplet = null;
 					if($type == Person::COLLECTION)
-						$contactsComplet = Person::getByArrayId($valLink, array(), true, true); 
+						$contactsComplet = Person::getByArrayId($valLink, $fieldsPer, true, true); 
 					if($type == Organization::COLLECTION)
-						$contactsComplet = Organization::getByArrayId($valLink, array(), true);
+						$contactsComplet = Organization::getByArrayId($valLink, $fieldsOrg, true);
 					if($type == Project::COLLECTION)
-						$contactsComplet = Project::getByArrayId($valLink, array(), true);
+						$contactsComplet = Project::getByArrayId($valLink, $fieldsPro, true);
 					if($type == Event::COLLECTION)
-						$contactsComplet = Event::getByArrayId($valLink, array(), true);
+						$contactsComplet = Event::getByArrayId($valLink, $fieldEve, true);
 
 					if(!empty($contactsComplet))
 						$contextMap = array_merge($contextMap, $contactsComplet);					
