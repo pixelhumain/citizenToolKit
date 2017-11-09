@@ -8,6 +8,7 @@ class Translate {
 	const FORMAT_RSS = "rss";
 	const FORMAT_KML = "kml";
 	const FORMAT_GEOJSON = "geojson";
+	const FORMAT_JSONFEED = "jsonfeed";
 
 	public static function convert($data,$bindMap)
 	{
@@ -295,5 +296,11 @@ class Translate {
 	    if($tradAgo)
 	    	$res=Yii::t("translate","{time} ago",array("{time}"=>$res));
 	    return $res;
+	}
+
+	public static function strToClickable($str){
+		$url = '@(http(s)?)?(://)?(([a-zA-Z])([-\w]+\.)+([^\s\.]+[^\s]*)+[^,.\s])@';
+		$string = preg_replace($url, '<a href="http$2://$4" target="_blank" title="$0">$0</a>', $str);
+		return $string;
 	}
 }

@@ -138,28 +138,16 @@ class SIG
 			return array( 	"@type" => "GeoCoordinates",
 							"latitude" => $city["geo"]["latitude"],
 							"longitude" => $city["geo"]["longitude"]);
-		} return false;
-
+		}
+		return false;
 	}
 
 	////récupère la ville qui correspond à une position géographique
 	//récupère les villes qui se trouvent dans un rayon de 50km d'un position geo
 	//https://docs.mongodb.org/manual/reference/operator/query/near/#op._S_near
-	public static function getCityByLatLng($lat, $lng, $cp){
-
-		// $request = array("geoShape"  =>
-		// 				  array('$geoIntersects'  =>
-		// 				  	array('$geometry' =>
-		// 				  		array("type" 	    => "Point",
-		// 				  			  "coordinates" => array(floatval($lng), floatval($lat)))
-		// 				  		)));
-		// if($cp != null){ $request = array_merge(array("cp"  => $cp), $request); }
-
-		// $oneCity =	PHDB::findOne(City::COLLECTION, $request);
+	public static function getCityByLatLng($lat, $lng, $cp = null , $countryCode = null){
 
 		$oneCity = null;
-		//City::updateGeoPositions();
-		//error_log($lng." - ".$lat);
 		if($oneCity == null){
 			$request = array("postalCodes.geoPosition" => array( '$exists' => true ),
 							 "postalCodes.geoPosition"  => 
@@ -177,6 +165,8 @@ class SIG
 
 			if($cp != null){ $request = array_merge(array("postalCodes.postalCode" => array('$in' => array($cp))), $request); }
 
+			if($countryCode != null){ $request = array_merge(array("country" => array('$in' => array($countryCode))), $request); }
+
 			$cities =	PHDB::findAndSort(City::COLLECTION, $request, array());
 			$allCities = array();
 			foreach ($cities as $key => $value) {
@@ -191,12 +181,7 @@ class SIG
 
 				}
 			}
-			//var_dump($oneCity);
 		}
-
-		// var_dump($request);
-		// var_dump($oneCity);
-		//var_dump($oneCity);
 		return $allCities;
 	}
 
@@ -332,8 +317,25 @@ class SIG
 		$address["@type"] = "PostalAddress";
 		$address["codeInsee"] = isset($city['insee']) ? $city['insee'] : "" ;
 		$address["addressCountry"] = isset($city['country']) ? $city['country'] : "";
-		$address["depName"] = isset($city['depName']) ? $city['depName'] : "";
-		$address["regionName"] = isset($city['regionName']) ? $city['regionName'] : "";
+		$address['localityId'] = (String) $city["_id"] ;
+        $address['level1'] = $city["level1"];
+        $address['level1Name'] = (@$city["level1Name"]?$city["level1Name"]:"");
+
+		if(!empty($city["level2"])){
+			$address['level2'] = $city["level2"];
+			$address['level2Name'] = (@$city["level2Name"]?$city["level2Name"]:"");
+		}
+
+		if(!empty($city["level3"])){
+			$address['level3'] = $city["level3"];
+			$address['level3Name'] = (@$city["level3Name"]?$city["level3Name"]:"");
+		}
+
+		if(!empty($city["level4"])){
+			$address['level4'] = $city["level4"];
+			$address['level4Name'] = (@$city["level4Name"]?$city["level4Name"]:"");
+		}
+		
 		if($postalCode != null){
 			foreach ($city["postalCodes"] as $data){
 				if ($data["postalCode"]==$postalCode){
@@ -357,7 +359,7 @@ class SIG
 
 
 
-	public static function getCityByLatLngGeoShape($lat, $lng, $cp){
+	public static function getCityByLatLngGeoShape($lat, $lng, $cp = null, $countryCode = null){
 		$request = array("geoShape"  =>
 		 				  array('$geoIntersects'  =>
 		 				  	array('$geometry' =>
@@ -365,6 +367,8 @@ class SIG
 	 				  			  	"coordinates" => array(floatval($lng), floatval($lat)))
 		 				  		)));
 		if($cp != null){ $request = array_merge(array("postalCodes.postalCode" => array('$in' => array($cp))), $request); }
+
+		if($countryCode != null){ $request = array_merge(array("country" => $countryCode), $request); }
 
 		$oneCity =	PHDB::findOne(City::COLLECTION, $request);
 
@@ -435,12 +439,21 @@ class SIG
     }
 
     // Nominatim
-    public static function getLocalityByLatLonNominatim($lat, $lon){
+    public static function getLocalityByLatLonNominatim($lat, $lon, $countryCode = null, $extratags = null){
     	try{
 			$url = 'http://nominatim.openstreetmap.org/reverse?format=json&lat='.$lat.'&lon='.$lon.'&zoom=18&addressdetails=1';
+			if(!empty($countryCode))
+	            $url .= "&countrycodes=".self::changeCountryForNominatim($countryCode);
+
+	        if(!empty($extratags)){
+	            $url .= "&extratags=1";
+	        }
+
+			$url .= "&email=contact@communecter.org";
 			// $url = urlencode($url);
 			// $url = str_replace(['%2F', '%3A', '%3D','%3F', '%26'], ['/', ':', '=', '?', '&'], $url);
         	//$res =  file_get_contents(htmlspecialchars_decode($url));
+        	//var_dump($url);
         	$res =  self::getUrl($url) ;
 	        return $res;
         }catch (CTKException $e){
@@ -449,7 +462,7 @@ class SIG
     }
 
 
-    public static function getGeoByAddressNominatim($street = null, $cp = null, $city = null, $country = null, $polygon_geojson = null, $extratags = null){
+    public static function getGeoByAddressNominatim($street = null, $cp = null, $city = null, $countryCode = null, $polygon_geojson = null, $extratags = null, $namedetails = null, $nameLevel = null, $state = null, $county = null){
         try{
 	        $url = "http://nominatim.openstreetmap.org/search?format=json&addressdetails=1" ;
 	        if(!empty($street))
@@ -462,20 +475,34 @@ class SIG
 	        if(!empty($city)){
 	            $url .= "&city=".str_replace(" ", "+", $city);
 	        }
-	        if(!empty($country))
-	            $url .= "&countrycodes=".self::changeCountryForNominatim($country);
-
+	        if(!empty($nameLevel)){
+	        	if($state == true)
+	            	$url .= "&state=".str_replace(" ", "+", $nameLevel);
+	            else if($county == true)
+	            	$url .= "&county=".str_replace(" ", "+", $nameLevel);
+	            else
+	            	$url .= "&country=".str_replace(" ", "+", $nameLevel);
+	        }
+	        
+	        if(!empty($countryCode))
+	            $url .= "&countrycodes=".self::changeCountryForNominatim($countryCode);
 	        if(!empty($polygon_geojson)){
 	            $url .= "&polygon_geojson=1";
 	        }
-
 	        if(!empty($extratags)){
 	            $url .= "&extratags=1";
 	        }
+	        if(!empty($extratags)){
+	            $url .= "&email=contact@communecter.org";
+	        }
+
+	        if(!empty($namedetails)){
+	            $url .= "&namedetails=1";
+	        }
 	        //var_dump($url);
-	        $res =  file_get_contents($url);
-	        return $res;
-			//return self::getUrl($url);
+	        // $res =  file_get_contents($url);
+	        // return $res;
+			return self::getUrl($url);
 		}catch (CTKException $e){
             return null ;
         }
@@ -518,9 +545,10 @@ class SIG
 	        }
 	        $url .= "&key=".Yii::app()->params['google']['keyMaps'] ;
 	        //var_dump($url);
-	        $res =  file_get_contents($url);
-	        return $res;
-	        //return self::getUrl($url) ;
+			// $res =  file_get_contents($url);
+	        // return $res;
+
+	        return self::getUrl($url) ;
         }catch (CTKException $e){
             return null ;
         }
@@ -568,6 +596,7 @@ class SIG
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
         $result = curl_exec($ch);
+        //var_dump($result);
         curl_close($ch);
         return $result ;
     }

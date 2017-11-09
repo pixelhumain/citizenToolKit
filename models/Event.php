@@ -21,6 +21,8 @@ class Event {
 		"conference"=>"Conference",
 		"debate"=>"Debate",
 		"film"=>"Film",
+		"crowdfunding"=>"Crowdfunding",
+		"others"=>"Others",
 	);  
 	      
 	//From Post/Form name to database field name
@@ -128,15 +130,55 @@ class Event {
 	  	return $event;
 	}
 
+	public static function  getByArrayId($arrayId, $fields = array(), $simply = false) {
+	  	
+	  	$events = PHDB::find(self::COLLECTION, array( "_id" => array('$in' => $arrayId)), $fields);
+	  	$res = array();
+	  	foreach ($events as $id => $event) {
+	  		if (empty($event)) {
+            //TODO Sylvain - Find a way to manage inconsistent data
+            //throw new CommunecterException("The organization id ".$id." is unkown : contact your admin");
+	        } else {
+	        	if($simply)
+	        		$event = self::getSimpleEventById($id, $event);
+	        	else{
+		        	if (!empty($event["startDate"]) && !empty($event["endDate"])) {
+						if (gettype($event["startDate"]) == "object" && gettype($event["endDate"]) == "object") {
+							//Set TZ to UTC in order to be the same than Mongo
+							date_default_timezone_set('UTC');
+							$event["startDate"] = date(DateTime::ISO8601, $event["startDate"]->sec);
+							$event["endDate"] = date(DateTime::ISO8601, $event["endDate"]->sec);
+						} else {
+							//Manage old date with string on date event
+							$now = time();
+							$yesterday = mktime(0, 0, 0, date("m")  , date("d")-1, date("Y"));
+							$yester2day = mktime(0, 0, 0, date("m")  , date("d")-2, date("Y"));
+							$event["endDate"] = date('Y-m-d H:i:s', $yesterday);
+							$event["startDate"] = date('Y-m-d H:i:s',$yester2day);;
+						}
+					}
+					if(!empty($event)){
+						$event = array_merge($event, Document::retrieveAllImagesUrl($id, self::COLLECTION, @$event["type"], $event));
+						$event["typeSig"] = "events";
+				  	}
+				}
+	        }
+	  		$res[$id] = $event;
+	  	}
+	  
+	  	return $res;
+	}
+
 	/**
 	 * Retrieve a simple event (id, name, type profilImageUrl) by id from DB
 	 * @param String $id of the event
 	 * @return array with data id, name, type profilImageUrl
 	 */
-	public static function getSimpleEventById($id) {
+	public static function getSimpleEventById($id, $project=null) {
 		
 		$simpleEvent = array();
-		$event = PHDB::findOneById( self::COLLECTION ,$id, array("id" => 1, "name" => 1, "type" => 1,  "shortDescription" => 1, "description" => 1, "address" => 1, "geo" => 1, "tags" => 1, "profilImageUrl" => 1, "profilThumbImageUrl" => 1, "profilMarkerImageUrl" => 1, "profilMediumImageUrl" => 1, "startDate" => 1, "endDate" => 1, "addresses"=>1, "allDay" => 1));
+		if(empty($event))
+			$event = PHDB::findOneById( self::COLLECTION ,$id, array("id" => 1, "name" => 1, "type" => 1,  "shortDescription" => 1, "description" => 1, "address" => 1, "geo" => 1, "tags" => 1, "profilImageUrl" => 1, "profilThumbImageUrl" => 1, "profilMarkerImageUrl" => 1, "profilMediumImageUrl" => 1, "startDate" => 1, "endDate" => 1, "addresses"=>1, "allDay" => 1));
 		if(!empty($event)){
 			$simpleEvent["id"] = $id;
 			$simpleEvent["_id"] = $event["_id"];

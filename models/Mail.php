@@ -91,6 +91,7 @@ class Mail {
             "to" => $person["email"],
             "tplParams" => array(   "invitorName"   => $invitor["name"],
                                     "title" => self::getAppName() ,
+                                    "invitorLogo" => @$invitor["profilThumbImageUrl"],
                                     "logo" => Yii::app()->params["logoUrl"],
                                     "logo2" => Yii::app()->params["logoUrl2"],
                                     //"logo"=> "/images/logo-communecter.png",
@@ -373,7 +374,7 @@ class Mail {
         $params = array (
             "type" => Cron::TYPE_MAIL,
             "tpl"=>'inviteYouTo',
-            "subject" => "[".self::getAppName()."] ".Yii::t("mail","Invitation to ".$verb)." ".$parent["name"],    
+            "subject" => "[".self::getAppName()."] ".Yii::t("mail","Invitation to {what} {where}",array("{what}"=>Yii::t("mail",$verb),"{where}"=>$parent["name"])),    
             "from"=>Yii::app()->params['adminEmail'],       
             "to" => $childMail["email"],     
             "tplParams" => array(  
@@ -476,7 +477,7 @@ class Mail {
             "subject" => $subject,
             "from" => Yii::app()->params['adminEmail'],
             "to"=>Yii::app()->params['adminEmail'],
-            "tplParams" => array(   "title" => Yii::t("email","New message from").$names,
+            "tplParams" => array(   "title" => Yii::t("mail","New message from {who}",array("{who}"=>$names)),
                                     "subject" => $subject,
                                     "message" => $contentMsg,
                                     "emailSender" => $emailSender,
@@ -501,7 +502,7 @@ class Mail {
             "subject" => $subject,
             "from" => Yii::app()->params['adminEmail'],
             "to"=>$emailReceiver,
-            "tplParams" => array(   "title" => Yii::t("email","New message from").$names,
+            "tplParams" => array(   "title" => Yii::t("mail","New message from {who}",array("{who}"=>$names)),
                                     "subject" => $subject,
                                     "message" => $contentMsg,
                                     "emailSender" => $emailSender,
@@ -570,7 +571,95 @@ class Mail {
                 Mail::schedule($params);
             }
         }
-    }       
+    }
+
+    public static function proposeInteropSource($url_source, $admins, $userID, $description) {
+
+        $user = Person::getSimpleUserById($userID);
+
+        // foreach ($admins as $id) {
+        $aPerson = Person::getById("5880b24a8fe7a1a65b8b456b", false);
+        if (!empty($aPerson["email"])) {
+            $params = array (
+                "type" => Cron::TYPE_MAIL,
+                "tpl"=>'proposeInteropSource',
+                "subject" => "[".self::getAppName()."] - Proposition de ".@$user["name"],
+                "from"=>Yii::app()->params['adminEmail'],
+                "to" => $aPerson["email"],
+                "tplParams" => array(
+                    "userName" => @$user["name"],
+                    "description" => $description,
+                    "source_de_donnees" => $url_source,
+                    "logo"=> Yii::app()->params["logoUrl"],
+                    "logo2" => Yii::app()->params["logoUrl2"],
+                    // "url" => Yii::app()->getRequest()->getBaseUrl(true)."/".$url
+                ),
+            );
+            
+            Mail::schedule($params);
+        }
+        // }
+    }   
+
+    public static function validateProposedInterop($url_source, $userID, $adminID, $description) {
+
+        $user = Person::getSimpleUserById($userID);
+        $aPerson = Person::getSimpleUserById($adminID);
+
+        // foreach ($admins as $id) {
+        // $aPerson = Person::getById("5880b24a8fe7a1a65b8b456b", false);
+        if (!empty($aPerson["email"])) {
+            $params = array (
+                "type" => Cron::TYPE_MAIL,
+                "tpl"=>'validateInteropSource',
+                "subject" => "[".self::getAppName()."] - Validation de votre proposition pour une nouvelle interopérabilité, ".@$user["name"],
+                "from"=>Yii::app()->params['adminEmail'],
+                "to" => $user["email"],
+                "tplParams" => array(
+                    "userName" => @$user["name"],
+                    "url_source" => $url_source,
+                    // "admin" => $aPerson['name'],
+                    "description" => $description,
+                    "logo"=> Yii::app()->params["logoUrl"],
+                    "logo2" => Yii::app()->params["logoUrl2"],
+                    // "url" => Yii::app()->getRequest()->getBaseUrl(true)."/".$url
+                ),
+            );
+            
+            Mail::schedule($params);
+        }
+        // }
+    }   
+
+    public static function rejectProposedInterop($url_source, $userID, $adminID, $description) {
+
+        $user = Person::getSimpleUserById($userID);
+        $aPerson = Person::getSimpleUserById($adminID);
+
+        // foreach ($admins as $id) {
+        // $aPerson = Person::getById("5880b24a8fe7a1a65b8b456b", false);
+        if (!empty($aPerson["email"])) {
+            $params = array (
+                "type" => Cron::TYPE_MAIL,
+                "tpl"=>'rejectInteropSource',
+                "subject" => "[".self::getAppName()."] - Rejet de votre proposition pour une nouvelle interopérabilité, ".@$user["name"],
+                "from"=>Yii::app()->params['adminEmail'],
+                "to" => $user["email"],
+                "tplParams" => array(
+                    "userName" => @$user["name"],
+                    "url_source" => $url_source,
+                    // "admin" => $aPerson['name'],
+                    "description" => $description,
+                    "logo"=> Yii::app()->params["logoUrl"],
+                    "logo2" => Yii::app()->params["logoUrl2"],
+                    // "url" => Yii::app()->getRequest()->getBaseUrl(true)."/".$url
+                ),
+            );
+            
+            Mail::schedule($params);
+        }
+        // }
+    }   
 
     private static function getAppName() {
         return isset(Yii::app()->params["name"]) ? Yii::app()->params["name"] : Yii::app()->name;       

@@ -34,6 +34,7 @@ class Action
         "description"           => array("name" => "description",           "rules" => array("required")),
         "tags"                  => array("name" => "tags"),
         "urls"                  => array("name" => "urls"),
+        "medias"                => array("name" => "medias"),
         
         "startDate"             => array("name" => "startDate"),
         "endDate"               => array("name" => "endDate"),
@@ -48,7 +49,9 @@ class Action
         "parentId"              => array("name" => "parentId",              "rules" => array("required")),
         "parentType"            => array("name" => "parentType",            "rules" => array("required")),
         
-        "email"                => array("name" => "status"), 
+        "idParentResolution"    => array("name" => "idParentResolution"),
+        
+        "email"                 => array("name" => "status"), 
         
         "modified" => array("name" => "modified"),
         "updated" => array("name" => "updated"),
@@ -69,6 +72,13 @@ class Action
      */
     public static function getById($id) {
         return PHDB::findOne( self::COLLECTION,array("_id"=>new MongoId($id)));
+    }
+    public static function getSimpleSpecById($id, $where=null, $fields=null){
+        if(empty($fields))
+            $fields = array("_id", "name");
+        $where["_id"] = new MongoId($id) ;
+        $action = PHDB::findOne(self::COLLECTION, $where ,$fields);
+        return @$action;
     }
     
     /**

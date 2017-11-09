@@ -19,6 +19,7 @@ class Proposal
 		"arguments" 			=> array("name" => "arguments"),
 		"tags" 					=> array("name" => "tags"),
 	    "urls" 					=> array("name" => "urls"),
+	    "medias" 				=> array("name" => "medias"),
 	    
 		// true / false
 		"amendementActivated" 	=> array("name" => "amendementActivated", 	"rules" => array("required")),
@@ -32,6 +33,12 @@ class Proposal
 		// Amendable / ToVote / Closed / Archived
 		"status" 				=> array("name" => "status", 				"rules" => array("required")), 
 		
+		// true / false
+		"voteAnonymous" 		=> array("name" => "voteActivated", 		"rules" => array("required")),
+		// true / false
+		"voteCanChange" 		=> array("name" => "voteActivated", 		"rules" => array("required")),
+		
+
 		// 50%  / 75% / 90%
 		"majority" 				=> array("name" => "majority", 				"rules" => array("required")),
 
@@ -61,6 +68,14 @@ class Proposal
 	public static function getById($id) {
 		$survey = PHDB::findOneById( self::COLLECTION , $id );
 		return $survey;
+	}
+
+	public static function getSimpleSpecById($id, $where=null, $fields=null){
+		if(empty($fields))
+			$fields = array("_id", "name");
+		$where["_id"] = new MongoId($id) ;
+		$survey = PHDB::findOne(self::COLLECTION, $where ,$fields);
+		return @$survey;
 	}
 
 	public static function getAllVoteRes($proposal){

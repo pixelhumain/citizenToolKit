@@ -987,7 +987,7 @@ class Document {
 
 	private static function getPathToMarkersAsset() {
 		return dirname(__FILE__).DIRECTORY_SEPARATOR."..".DIRECTORY_SEPARATOR."..".
-				DIRECTORY_SEPARATOR."communecter".DIRECTORY_SEPARATOR."assets".DIRECTORY_SEPARATOR.
+				DIRECTORY_SEPARATOR.Yii::app()->controller->module->id.DIRECTORY_SEPARATOR."assets".DIRECTORY_SEPARATOR.
 				"images".DIRECTORY_SEPARATOR."sig".DIRECTORY_SEPARATOR."markers".DIRECTORY_SEPARATOR.
 				"icons_carto".DIRECTORY_SEPARATOR;
 	}

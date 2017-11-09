@@ -80,7 +80,7 @@ class News {
 
 	 	if((isset($_POST["text"]) && !empty($_POST["text"])) || (isset($_POST["media"]) && !empty($_POST["media"])))
 	 	{
-		 	$codeInsee=$user["address"]["codeInsee"];
+		 	$keyLocality=$user["address"]["codeInsee"];
 		 	$postalCode=$user["address"]["postalCode"];
 		 	$typeNews=@$_POST["type"] ? $_POST["type"] : "news";
 			$news = array("type" => $typeNews, //"news",
@@ -127,55 +127,89 @@ class News {
 				if( isset( $parent['geo'] ) )
 					$from = $parent['geo'];
 				if(@$parent["address"]){
-						$codeInsee=$parent["address"]["codeInsee"];
-						$postalCode=$parent["address"]["postalCode"];
+					$codeInsee=$parent["address"]["codeInsee"];
+					$postalCode=$parent["address"]["postalCode"];
 				}
-				if( $_POST["scope"] != "restricted" && $_POST["scope"] != "private" &&
-					isset($_POST["searchLocalityCITYKEY"]) && !empty($_POST["searchLocalityCITYKEY"]) && $_POST["searchLocalityCITYKEY"] != "") {
+				if( $_POST["scope"] != "restricted" && $_POST["scope"] != "private" && !empty($_POST["localities"]) ) {
 					$news["scope"]["type"]="public";
-					foreach($_POST["searchLocalityCITYKEY"] as $key => $value){ if(!empty($value)){
-						$city = City::getByUnikey($value); error_log("save news searchLocalityCITYKEY ".$value);
-						$scope = array( "codeInsee"=>$city["insee"],
-									"addressLocality"=>$city["name"],
-									"geo" => $city["geo"]
-								);
-						//If no cp => on the whole city
-						if (!(empty($city["cp"]))) {
-							$scope["postalCode"] = $city["cp"];
-						}
-						$news["scope"]["cities"][] = $scope;
-					}}
-					foreach($_POST["searchLocalityCODE_POSTAL"] as $key => $value){ if(!empty($value)){
-						$cities = City::getWhere(array("postalCodes.postalCode"=>$value), array("insee", "postalCodes.postalCode", "geo"), 1);
-						if(!empty($cities)){
-							//$city=$city[0];
-							error_log("save news searchLocalityCODE_POSTAL");
-							foreach($cities as $key=>$city) //var_dump($city); return;
-							$news["scope"]["cities"][] = array( "codeInsee"=>$city["insee"],
-																"postalCode"=>$city["postalCodes"][0]["postalCode"],
-																"addressLocality"=>"", //$city["name"],
-																"geo" => $city["geo"]
-															);
-						}	
-					}}
-					foreach($_POST["searchLocalityDEPARTEMENT"] as $key => $value){ if(!empty($value)){
-						$news["scope"]["departements"][] = array( "name"=>$value );
-					}}
+					$localities = $_POST["localities"] ;
+			  		if(!empty($localities)){
+			  			foreach ($localities as $key => $locality){
 
-					foreach($_POST["searchLocalityREGION"] as $key => $value){ if(!empty($value)){
-						$news["scope"]["regions"][] = array( "name"=>$value );
-					}}
+
+							if(!empty($locality)){
+								if($locality["type"] == City::CONTROLLER){
+									$city = City::getById($key);
+									//$city = City::getByUnikey($value);
+									$scope = array( "parentId"=>(String) $city["_id"],
+													"parentType"=>City::COLLECTION,
+													"name"=>$city["name"],
+													"geo" => $city["geo"]
+												);
+									if (!(empty($city["cp"]))) {
+										$scope["postalCode"] = $city["cp"];
+									}else if (!(empty($city["postalCode"]))) {
+										$scope["postalCode"] = $city["postalCode"];
+									}
+
+									$scope = array_merge($scope, Zone::getLevelIdById((String) $city["_id"], $city, City::COLLECTION) ) ;
+									$news["scope"]["localities"][] = $scope;
+								}
+								else if($locality["type"] == "cp"){
+
+									$where = array("postalCodes.postalCode"=>strval($key), $locality["countryCode"]) ;
+									//var_dump($where);
+									$cities = City::getWhere($where);
+									if(!empty($cities)){
+										//$city=$city[0];
+
+										$scope = array("postalCode"=>strval($key));
+										$news["scope"]["localities"][] = $scope;
+
+										foreach($cities as $keyC=>$city){
+											$id = (String) $city["_id"];
+											$scope = array( "parentId"=>(String) $city["_id"],
+															"parentType"=>City::COLLECTION,
+															"geo" => $city["geo"] );
+											$scope = array_merge($scope, Zone::getLevelIdById((String) $city["_id"], $city, City::COLLECTION) ) ;
+											$news["scope"]["localities"][] = $scope;
+										}
+										
+									}
+								}
+								else{
+									$zone = Zone::getById($key);
+									$scope = array( "parentId"=>(String) $zone["_id"],
+													"parentType"=>Zone::COLLECTION,
+													"name"=>$zone["name"],
+													"geo" => $zone["geo"]
+												);
+									$scope = array_merge($scope, Zone::getLevelIdById((String) $zone["_id"], $zone, Zone::COLLECTION) ) ;
+
+									$news["scope"]["localities"][] = $scope;
+								}
+							}
+						}
+			  		}
 				}
 				else{
 					$scope = $_POST["scope"];
 					$news["scope"]["type"]=$scope;
 					if($scope== "public"){
-						$address=SIG::getAdressSchemaLikeByCodeInsee($codeInsee,$postalCode);
-						$news["scope"]["cities"][] = array("codeInsee"=>$codeInsee,
-															"postalCode"=>$postalCode,
-															"addressLocality"=>$address["addressLocality"],
-															"geo" => $from
-														);
+
+						if(!empty($localities)){
+							$city = City::getById($key);
+							//$city = City::getByUnikey($value);
+							$scope = array( "parentId"=>(String) $city["_id"],
+											"parentType"=>City::COLLECTION,
+											"name"=>$city["name"],
+											"geo" => $city["geo"]
+										);
+							if (!(empty($postalCode))) {
+								$scope["postalCode"] = $postalCode;
+							}
+							$news["scope"]["localities"][] = $scope;
+						}
 					}
 				}		
 			}
@@ -186,11 +220,23 @@ class News {
 
 			//NOTIFICATION MENTIONS
 			if(isset($news["mentions"])){
-				$target="";
-				if(@$_POST["parentType"]){
-					$target=array("id"=>$_POST["parentId"],"type"=>$_POST["parentType"]);
+				$target=array("id"=>(string)$news["_id"],"type"=>self::COLLECTION);
+				//if(@$_POST["parentType"]){
+				//	$target["parent"]=array("id"=>$_POST["parentId"],"type"=>$_POST["parentType"]);		
+				//}
+				//$target=array("id"=>$_POST["parentId"],"type"=>$_POST["parentType"]);
+				if(@$_POST["targetIsAuthor"] && @$_POST["parentType"]){
+					//if($targetIsAuthor){
+					$authorName=Element::getElementSimpleById($_POST["parentId"], $_POST["parentType"]);
+					$author=array("id"=>$_POST["parentId"], "type"=>$_POST["parentType"],"name"=>$authorName["name"]);
+					//	$authorName=$authorName["name"];
+					//} else{
+					//	$authorName=$author["name"];
+					//}
+				}else{
+					$author=array("id" => Yii::app()->session["userId"],"type"=>Person::COLLECTION, "name" => Yii::app()->session["user"]["name"]);
 				}
-				Notification::actionOnNews ( ActStr::VERB_MENTION, ActStr::ICON_RSS, array("id" => Yii::app()->session["userId"],"name" => Yii::app()->session["user"]["name"]) , $target, $news["mentions"], $_POST["scope"], (string)$news["_id"], @$_POST["targetIsAuthor"])  ;
+				Notification::notifyMentionOn($author , $target, $news["mentions"], null, $_POST["scope"]);
 			}
 
 			//NOTIFICATION POST
@@ -402,6 +448,24 @@ class News {
 		                          array('$set' => $set));
 	                  
 	    return array("result"=>true, "msg"=>Yii::t("common","News well updated"), "id"=>$newsId);
+	}
+	/**
+	 * update a mentionsComent array of a news in database
+	 * @param String $newsId : 
+	 * @param array $mentionsComment to push news on timeline
+	 */
+	
+	public static function updateCommentMentions($mentionsComment,$id){
+		$news = PHDB::findOneById( self::COLLECTION , $id);
+		if(@$news["commentMentions"]){
+			foreach ($news["commentMentions"] as $value) {
+				array_push($mentionsComment, $value);
+			}
+		}
+		PHDB::update ( self::COLLECTION , 
+							array( "_id" => new MongoId($id)), 
+                            array('$set'=>array("commentMentions"=>$mentionsComment)));
+		return true;
 	}
 	/**
 	 * update a news in database

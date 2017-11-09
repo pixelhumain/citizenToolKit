@@ -8,7 +8,7 @@ class GetCountriesAction extends CAction
     public function run()
     {
         
-        $countries = OpenData::getCountriesList();
+        $countries = Zone::getListCountry();
         Rest::json($countries,false); 
         Yii::app()->end();
     }

@@ -67,6 +67,7 @@ class Element {
 	    	Proposal::COLLECTION   	 => "Proposal",
 	    	Room::COLLECTION   	 	 => "Room",
 	    	Action::COLLECTION   	 => "Action",
+	    	Network::COLLECTION   	 => "Network",
 	    );	
 	 	return @$models[$type];     
     }
@@ -469,19 +470,33 @@ class Element {
 				if(!empty($fieldValue)){
 					$verb = '$set';
 					$address = array(
-				        "@type" => "PostalAddress",
-				        // "id" => "468768",
-				        //"name" => "mairie",
-				        "codeInsee" => $fieldValue["address"]["codeInsee"],
-				        "addressCountry" => $fieldValue["address"]["addressCountry"],
-				        "postalCode" => $fieldValue["address"]["postalCode"],
-				        "addressLocality" => $fieldValue["address"]["addressLocality"],
-				        "streetAddress" => ((@$fieldValue["address"]["streetAddress"])?trim(@$fieldValue["address"]["streetAddress"]):""),
-				        "depName" => ((@$fieldValue["address"]["depName"])?trim(@$fieldValue["address"]["depName"]):""),
-				        "regionName" => ((@$fieldValue["address"]["regionName"])?trim(@$fieldValue["address"]["regionName"]):""),
-				    	);
-					//Check address is well formated
+						"@type" => "PostalAddress",
+						"codeInsee" => $fieldValue["address"]["codeInsee"],
+						"addressCountry" => $fieldValue["address"]["addressCountry"],
+						"postalCode" => $fieldValue["address"]["postalCode"],
+						"addressLocality" => $fieldValue["address"]["addressLocality"],
+						"streetAddress" => ((@$fieldValue["address"]["streetAddress"])?trim(@$fieldValue["address"]["streetAddress"]):""),
+						"localityId" => $fieldValue["address"]["localityId"],
+						"level1" => $fieldValue["address"]["level1"],
+						"level1Name" => $fieldValue["address"]["level1Name"],
+					);
+					
+					if(!empty($fieldValue["address"]["level2"])){
+						$address["level2"] = $fieldValue["address"]["level2"];
+						$address["level2Name"] =((@$fieldValue["address"]["level2Name"])?trim(@$fieldValue["address"]["level2Name"]):"");
+					}
 
+					if(!empty($fieldValue["address"]["level3"])){
+						$address["level3"] = $fieldValue["address"]["level3"];
+						$address["level3Name"] =((@$fieldValue["address"]["level3Name"])?trim(@$fieldValue["address"]["level3Name"]):"");
+					}
+
+					if(!empty($fieldValue["address"]["level4"])){
+						$address["level4"] = $fieldValue["address"]["level4"];
+						$address["level4Name"] =((@$fieldValue["address"]["level4Name"])?trim(@$fieldValue["address"]["level4Name"]):"");
+					}
+
+					//Check address is well formated
 					$valid = DataValidator::addressValid($address);
 					if ( $valid != "") throw new CTKException($valid);
 
@@ -497,6 +512,9 @@ class Element {
 						Person::updateCookieCommunexion($id, $address);
 					}
 					$firstCitizen = Person::isFirstCitizen($fieldValue["address"]["codeInsee"]) ;
+
+					if(!empty($fieldValue["address"]["postalCode"]))
+						City::checkAndAddPostalCode ($fieldValue["address"]["localityId"], $fieldValue["address"]["postalCode"]);
 
 				}else{
 					$verb = '$unset' ;
@@ -531,9 +549,25 @@ class Element {
 					        "postalCode" => $fieldValue["address"]["postalCode"],
 					        "addressLocality" => $fieldValue["address"]["addressLocality"],
 					        "streetAddress" => ((@$fieldValue["address"]["streetAddress"])?trim(@$fieldValue["address"]["streetAddress"]):""),
-					        "depName" => ((@$fieldValue["address"]["depName"])?trim(@$fieldValue["address"]["depName"]):""),
-				        	"regionName" => ((@$fieldValue["address"]["regionName"])?trim(@$fieldValue["address"]["regionName"]):""),
-					    	);
+					        "localityId" => $fieldValue["address"]["localityId"],
+							"level1" => $fieldValue["address"]["level1"],
+							"level1Name" => $fieldValue["address"]["level1Name"],
+						);
+
+						if(!empty($fieldValue["address"]["level2"])){
+							$address["level2"] = $fieldValue["address"]["level2"];
+							$address["level2Name"] =((@$fieldValue["address"]["level2Name"])?trim(@$fieldValue["address"]["level2Name"]):"");
+						}
+
+						if(!empty($fieldValue["address"]["level3"])){
+							$address["level3"] = $fieldValue["address"]["level3"];
+							$address["level3Name"] =((@$fieldValue["address"]["level3Name"])?trim(@$fieldValue["address"]["level3Name"]):"");
+						}
+
+						if(!empty($fieldValue["address"]["level4"])){
+							$address["level4"] = $fieldValue["address"]["level4"];
+							$address["level4Name"] =((@$fieldValue["address"]["level4Name"])?trim(@$fieldValue["address"]["level4Name"]):"");
+						}
 						//Check address is well formated
 
 						$valid = DataValidator::addressValid($address);
@@ -771,7 +805,7 @@ class Element {
 	    //else return $assetUrl.'/images/thumbnail-default.jpg';
     }
 
-    public static function getAllLinks($links,$type, $id){
+    public static function getAllLinksOld($links,$type, $id){
 	    $contextMap = array();
 		/*$contextMap["people"] = array();
 		$contextMap["guests"] = array();
@@ -887,6 +921,7 @@ class Element {
 						$contextMap[$newCitoyen["id"]] = $newCitoyen;
 				}
 			}
+
 			if(isset($links["memberOf"])){
 				foreach ($links["memberOf"] as $key => $value) {
 					$newOrga = Organization::getSimpleOrganizationById($key);
@@ -935,6 +970,185 @@ class Element {
 				}
 			}
 		}
+		//error_log("get POI for id : ".$id." - type : ".$type);
+		/*if(isset($id)){
+			$pois = PHDB::find(Poi::COLLECTION,array("parentId"=>$id,"parentType"=>$type));
+			if(!empty($pois)) {
+				$allPois = array();
+				if(!is_array($pois)) $pois = array($pois);
+				foreach ($pois as $key => $value) {
+					if(@$value["type"])
+						$value["typeSig"] = Poi::COLLECTION.".".$value["type"];
+					else
+						$value["typeSig"] = Poi::COLLECTION;
+					$contextMap[(String) $value["_id"]] = $value;
+				}
+				
+			}
+		}*/
+		return $contextMap;	
+    }
+
+    public static function getAllLinks($links,$type, $id){
+	    $contextMap = array();
+		/*$contextMap["people"] = array();
+		$contextMap["guests"] = array();
+		$contextMap["attendees"] = array();
+		$contextMap["organizations"] = array();
+		$contextMap["projects"] = array();
+		$contextMap["events"] = array();
+		$contextMap["followers"] = array();*/
+
+
+	    if($type == Organization::COLLECTION){
+	    	$connectAs="members";
+	    	$elt = Organization::getSimpleOrganizationById($id);
+			$newOrga["type"]=Organization::COLLECTION;
+			$contextMap[$elt["id"]] = $elt;
+	    }
+	    else if($type == Project::COLLECTION){
+	    	$connectAs="contributors";
+	    	$elt = Project::getSimpleProjectById($id);
+	    	$contextMap[$elt["id"]] = $elt;
+	    }
+		else if ($type == Event::COLLECTION){
+			$connectAs="attendees";
+			$elt = Event::getSimpleEventById($id);
+			$contextMap[$elt["id"]] = $elt;
+		}
+		else if ($type == Person::COLLECTION){
+			$connectAs="follows";
+			$elt = Person::getSimpleUserById($id);
+			$contextMap[$elt["id"]] = $elt;
+		}		
+	    
+		if(!empty($links) && 
+			( (Preference::showPreference($elt, $type, "directory", Yii::app()->session["userId"]) && 
+			  $type == Person::COLLECTION ) || 
+			  $type != Person::COLLECTION) 
+		  ) {
+			if(isset($links[$connectAs])){
+				foreach ($links[$connectAs] as $key => $aMember) {
+					$citoyen = Person::getSimpleUserById($key);
+					if(!empty($citoyen)){
+						if(@$aMember["invitorId"])  {
+							$contextMap[$citoyen["id"]] = $citoyen;
+						}
+						else{
+							if(@$e["isAdmin"]){
+								if(@$e["isAdminPending"])
+									$citoyen["isAdminPending"]=true;
+								$citoyen["isAdmin"]=true;         
+							}
+							$contextMap[$citoyen["id"]] = $citoyen;
+						}
+					}else{
+						if($aMember["type"]==Organization::COLLECTION){
+							$valLink[Organization::COLLECTION][] = new MongoId($key) ;
+						} 
+						else if($aMember["type"]==Person::COLLECTION){
+							$valLink[Person::COLLECTION][] = new MongoId($key) ;
+						}
+					}
+				}
+			}
+
+			$valLink = array();
+			// Link with events
+			if(isset($links["events"])){
+				foreach ($links["events"] as $keyEv => $valueEv) {
+					$valLink[Event::COLLECTION][] = new MongoId($keyEv) ;
+				}
+			}
+
+			if(isset($links["subEvents"])){
+				foreach ($links["subEvents"] as $keyEv => $valueEv) {
+					$valLink[Event::COLLECTION][] = new MongoId($keyEv) ;
+				}
+			}
+
+			// Link with projects
+			if(isset($links["projects"])){
+				foreach ($links["projects"] as $keyProj => $valueProj) {
+					$valLink[Project::COLLECTION][] = new MongoId($keyProj) ;
+				}
+			}
+	
+			if(isset($links["followers"])){
+				foreach ($links["followers"] as $key => $value) {
+					$valLink[Person::COLLECTION][] = new MongoId($key) ;
+				}
+			}
+
+			if(isset($links["memberOf"])){
+				foreach ($links["memberOf"] as $key => $value) {
+					$valLink[Organization::COLLECTION][] = new MongoId($key) ;
+				}
+			}
+
+  			if ($type == Person::COLLECTION){
+			    if (@$links["follows"]) {
+			        foreach ( @$links["follows"] as $key => $member ) {
+			          	if( $member['type'] == Person::COLLECTION )
+				            $valLink[Person::COLLECTION][] = new MongoId($key) ;
+
+						if( $member['type'] == Organization::COLLECTION )
+							$valLink[Organization::COLLECTION][] = new MongoId($key) ;
+
+						if( $member['type'] == Project::COLLECTION )
+						    $valLink[Project::COLLECTION][] = new MongoId($key) ;
+		        	}
+				}
+			}
+			
+			$fieldsPer =array("id", "name", "username", "email", "roles", "tags", "profilImageUrl", "profilThumbImageUrl", "profilMarkerImageUrl");
+
+			$fieldsOrg = array("id" , "name" , "type" , "email" , "url" , "shortDescription" , "description" , "address" , "pending" , "tags" , "geo" , "updated" , "profilImageUrl" , "profilThumbImageUrl" , "profilMarkerImageUrl" ,"profilMediumImageUrl" , "addresses", "telephone", "slug");
+
+			$fieldsPro = array("id", "name", "shortDescription", "description", "address", "geo", "tags", "profilImageUrl", "profilThumbImageUrl", "profilMarkerImageUrl", "profilMediumImageUrl", "addresses");
+
+			$fieldEve = array("id", "name", "type",  "shortDescription", "description", "address", "geo", "tags", "profilImageUrl", "profilThumbImageUrl", "profilMarkerImageUrl", "profilMediumImageUrl", "startDate", "endDate", "addresses", "allDay");
+
+			if( !empty($valLink) ) {
+				foreach ($valLink as $type => $valLink) {
+					$contactsComplet = null;
+					if($type == Person::COLLECTION)
+						$contactsComplet = Person::getByArrayId($valLink, $fieldsPer, true, true); 
+					if($type == Organization::COLLECTION)
+						$contactsComplet = Organization::getByArrayId($valLink, $fieldsOrg, true);
+					if($type == Project::COLLECTION)
+						$contactsComplet = Project::getByArrayId($valLink, $fieldsPro, true);
+					if($type == Event::COLLECTION)
+						$contactsComplet = Event::getByArrayId($valLink, $fieldEve, true);
+
+					if(!empty($contactsComplet))
+						$contextMap = array_merge($contextMap, $contactsComplet);					
+				}
+			}
+
+			if(isset($links[$connectAs])){
+				foreach ($links[$connectAs] as $key => $aMember) {
+					if(!empty($contextMap[$key])){
+						if($aMember["type"] == Organization::COLLECTION && @$aMember["isAdmin"])
+							$contextMap[$key]["isAdmin"]=true;
+
+						else if (@$aMember["type"] == Person::COLLECTION) {
+							if(@$aMember["isAdmin"]){
+								if(@$aMember["isAdminPending"])
+									$contextMap[$key]["isAdminPending"]=true;  
+								$contextMap[$key]["isAdmin"]=true;  	
+							}			
+							if(@$aMember["toBeValidated"]){
+								$contextMap[$key]["toBeValidated"]=true;  
+							}
+						}
+					}
+				}
+			}
+
+		}
+		//
+		
 		//error_log("get POI for id : ".$id." - type : ".$type);
 		/*if(isset($id)){
 			$pois = PHDB::find(Poi::COLLECTION,array("parentId"=>$id,"parentType"=>$type));
@@ -1328,11 +1542,18 @@ class Element {
         unset($params['id']);
 
         $postParams = array();
-        if( !in_array( $collection, array("poi") ) && @$params["urls"] && @$params["medias"] ){
-        	$postParams["medias"] = $params["medias"];
-        	unset($params['medias']);
-        	$postParams["urls"] = $params["urls"];
-        	unset($params['urls']);
+        if( !in_array( $collection, array("poi", "actions", "proposals", "resolutions") ) && 
+        	@$params["urls"] && @$params["medias"] ){
+	        	$postParams["medias"] = $params["medias"];
+	        	unset($params['medias']);
+	        	$postParams["urls"] = $params["urls"];
+	        	unset($params['urls']);
+        }
+
+        if($collection == Room::COLLECTION){
+        	if(isset($params["roles"])){
+        		$params["roles"] = explode(",", @$params["roles"]);
+        	}
         }
 
         if($collection == City::COLLECTION)
@@ -1349,7 +1570,7 @@ class Element {
         $valid = array("result"=>true);
         if( $collection == Event::COLLECTION ){
             $valid = Event::validateFirst($params);
-        } error_log("KEY : ". $key);
+        } //error_log("KEY : ". $key);
         if( $valid["result"] )
         	try {
         		$valid = DataValidator::validate( ucfirst($key), json_decode (json_encode ($params), true), ( empty($paramsLinkImport) ? null : true) );
@@ -1368,7 +1589,8 @@ class Element {
             	 	throw new CTKException("Error processing before saving on event");
             }
 
-            if($id){
+            if($id){ //var_dump($params); exit;
+        	
             	//var_dump($params);
                 //update a single field
                 //else update whole map
@@ -1404,7 +1626,7 @@ class Element {
                              "id"=>$id);
             } 
             else 
-            {
+            { 
                 $params["created"] = time();
                 PHDB::insert($collection, $params );
                 $res = array("result"=>true,
@@ -1429,6 +1651,7 @@ class Element {
                 else if( $collection == Proposal::COLLECTION || $collection == Action::COLLECTION )
                 	$res["afterSave"] = Cooperation::afterSave($params, $collection);
 
+               // echo "pas d'id - "; var_dump($postParams); exit;
                $res["afterSaveGbl"] = self::afterSave((string)$params["_id"],$collection,$params,$postParams);
                 //if( false && @$params["parentType"] && @$params["parentId"] )
                 //{
@@ -1458,6 +1681,7 @@ class Element {
 
     public static function afterSave ($id, $collection, $params,$postParams) {
     	$res = array();
+    	
     	if( @$postParams["medias"] )
     	{
     		//create POI for medias connected to the parent
@@ -1470,6 +1694,7 @@ class Element {
     		$poiParams["collection"] = Poi::COLLECTION;
     		$poiParams["medias"] = $postParams['medias'];
     		$poiParams["urls"] = $postParams['urls'];
+    		//echo "afterSave - "; var_dump($poiParams); exit;
     		$res["medias"] = self::save($poiParams);
     	}
     	return $res;
@@ -1562,7 +1787,7 @@ class Element {
 	public static function alreadyExists ($params, $collection) {
 		$result = array("result" => false);
 		$where = array(	"name" => $params["name"],
-						"address.codeInsee" => $params["address"]["codeInsee"]);
+						"address.localityId" => $params["address"]["localityId"]);
 		$element = PHDB::findOne($collection, $where);
 		if(!empty($element))
 			$result = array("result" => true ,
@@ -1862,8 +2087,11 @@ class Element {
 		$id = $params["id"];
 		$res = array();
 		if($block == "info"){
-			if(isset($params["name"]))
+			if(isset($params["name"])){
 				$res[] = self::updateField($collection, $id, "name", $params["name"]);
+				/*PHDB::update( $collection,  array("_id" => new MongoId($id)), 
+		 										array('$unset' => array("hasRC"=>"") ));*/
+			}
 			if(isset($params["username"]) && $collection == Person::COLLECTION)
 				$res[] = self::updateField($collection, $id, "username", $params["username"]);
 			if(isset($params["avancement"]) && $collection == Project::COLLECTION)
@@ -1875,11 +2103,21 @@ class Element {
 			if(isset($params["email"]))
 				$res[] = self::updateField($collection, $id, "email", $params["email"]);
 			if(isset($params["slug"])){
+				
+				$el = PHDB::findOne($collection,array("_id"=>new MongoId($id)));
+				$oldslug = $el["slug"];
+				
 				$res[] = self::updateField($collection, $id, "slug", $params["slug"]);
+
 				if(!empty(Slug::getByTypeAndId($collection,$id)))
 					Slug::update($collection,$id,$params["slug"]);
 				else
 					Slug::save($collection,$id,$params["slug"]);
+
+				//update RC channel name if exist
+				if(@$el["hasRC"]){
+					RocketChat::rename( $oldslug, $params["slug"], @$el["preferences"]["isOpenEdition"] );
+				}
 			}
 			if(isset($params["url"]))
 				$res[] = self::updateField($collection, $id, "url", self::getAndCheckUrl($params["url"]));
@@ -1969,7 +2207,7 @@ class Element {
 									"idUserAuthor"=> Yii::app()->session['userId'],
 									"typeAmdt" => $params["typeAmdt"],
 									"textAdd"=> $params["txtAmdt"]);
-
+				Notification::constructNotification ( ActStr::VERB_AMEND, array("id" => Yii::app()->session["userId"],"name"=> Yii::app()->session["user"]["name"]), array("type"=>$proposal["parentType"],"id"=>$proposal["parentId"]),array( "type"=>Proposal::COLLECTION,"id"=> $params["id"] ) );
 				$res[] = self::updateField($collection, $id, "amendements", $amdtList);
 			}
 		}
@@ -2030,69 +2268,7 @@ class Element {
         $connectType = @self::$connectTypes[$type];
         if($type==Person::COLLECTION)
         	$connectType="friends";
-        /*if( @$element["links"] ) {
-            if(isset($element["links"][$connectType])){
-                $countStrongLinks=0;//count($element["links"][$connectType]);
-                $nbMembers=0;
-                $invitedNumber=0;
-                $members=array();
-                foreach ($element["links"][$connectType] as $key => $aMember) {
-                    if($nbMembers < 11){
-                        if($aMember["type"]==Organization::COLLECTION){
-                            $newOrga = Organization::getSimpleOrganizationById($key);
-                            if(!empty($newOrga)){
-                                if ($aMember["type"] == Organization::COLLECTION && @$aMember["isAdmin"]){
-                                    $newOrga["isAdmin"]=true;               
-                                }
-                                $newOrga["type"]=Organization::COLLECTION;
-                                //array_push($contextMap["organizations"], $newOrga);
-                                //array_push($members, $newOrga);
-                                $members[$key] = $newOrga ;
-                            }
-                        } else if($aMember["type"]==Person::COLLECTION){
-                            //if(!@$aMember["isInviting"]){
-                                $newCitoyen = Person::getSimpleUserById($key);
-                                if (!empty($newCitoyen)) {
-                                    if (@$aMember["type"] == Person::COLLECTION) {
-                                        if(@$aMember["isAdmin"]){
-                                            if(@$aMember["isAdminPending"])
-                                                $newCitoyen["isAdminPending"]=true;  
-                                                $newCitoyen["isAdmin"]=true;    
-                                        }           
-                                        if(@$aMember["toBeValidated"]){
-                                            $newCitoyen["toBeValidated"]=true;  
-                                        } 
-                                        if(@$aMember["isInviting"]){
-											$newCitoyen["isInviting"]=true;
-										}      
-                                    
-                                    }
-                                    $newCitoyen["type"]=Person::COLLECTION;
-                                    //array_push($contextMap["people"], $newCitoyen);
-                                    //array_push($members, $newCitoyen);
-                                    $members[$key] = $newCitoyen ;
-                                    $nbMembers++;
-                                }
-                            //}
-                        }
-                    } 
-                    if(!@$aMember["isInviting"])
-                        $countStrongLinks++;
-                    else{
-                        if(@Yii::app()->session["userId"] && $key==Yii::app()->session["userId"])
-                            $params["invitedMe"]=array("invitorId"=>$aMember["invitorId"],"invitorName"=>$aMember["invitorName"]);
-                        $invitedNumber++;
-                    }
-                }
-                $params["members"] = $members;
-            }
-
-            
-        } */
-        //if(!@$element["disabled"]){
-            //if((@$config["connectLink"] && $config["connectLink"]) || empty($config)){ TODO CONFIG MUTUALIZE WITH NETWORK AND OTHER PLATFORM
-           //$connectType = $connectType[$type];
-            if(((!@$links[$connectType][Yii::app()->session["userId"]] && $type!=Event::COLLECTION) || (@$links[$connectType][Yii::app()->session["userId"]] && 
+       	if(((!@$links[$connectType][Yii::app()->session["userId"]] && $type!=Event::COLLECTION) || (@$links[$connectType][Yii::app()->session["userId"]] && 
                 @$links[$connectType][Yii::app()->session["userId"]][Link::TO_BE_VALIDATED])) && 
                 @Yii::app()->session["userId"] && 
                 ($type != Person::COLLECTION || 
@@ -2124,6 +2300,13 @@ class Element {
                     $params["invitedMe"]=array(
                     	"invitorId"=>$links[$connectType][Yii::app()->session["userId"]]["invitorId"],
                     	"invitorName"=>$links[$connectType][Yii::app()->session["userId"]]["invitorName"]);
+                }
+				if(@$links[$connectType][Yii::app()->session["userId"]][Link::IS_ADMIN_INVITING]){
+                    $params["linksBtn"][Link::IS_ADMIN_INVITING]=true;
+                    $params["invitedMe"]=array(
+                    	"invitorId"=>$links[$connectType][Yii::app()->session["userId"]]["invitorId"],
+                    	"invitorName"=>$links[$connectType][Yii::app()->session["userId"]]["invitorName"],
+                    	"isAdminInviting"=>true);
                 }
 
                 $params["linksBtn"]["isAdmin"]=true;
@@ -2186,6 +2369,7 @@ class Element {
 
 		if(!empty($type))
 			$newElement["type"] = $type;
+
 
 		if(!empty($element["properties"]["avancement"]))
 			$newElement["avancement"] = $element["properties"]["avancement"];

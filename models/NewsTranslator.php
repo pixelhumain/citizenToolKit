@@ -21,6 +21,7 @@ class NewsTranslator {
 			if(@$params["object"]["type"]==Event::COLLECTION){
 				$object=Event::getSimpleEventById((string)$params["object"]["id"]);
 				$params["icon"] = "fa-calendar";
+				$object["typeEvent"] = @$object["type"];
 			} 
 			else if (@$params["object"]["type"]==Organization::COLLECTION){
 				$object=Organization::getSimpleOrganizationById((string)$params["object"]["id"]);
@@ -192,6 +193,8 @@ class NewsTranslator {
 		else if(@$params["media"] && $params["media"]["type"]=="activityStream"){
 			$element=Element::getSimpleByTypeAndId($params["media"]["object"]["type"], $params["media"]["object"]["id"]);
 			$element["type"]=$params["media"]["object"]["type"];
+			if($params["media"]["object"]["type"]==Event::COLLECTION)
+				$element["typeEvent"] = @$element["type"];
 			$params["media"]["object"] = $element;
 		}
 

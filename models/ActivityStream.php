@@ -66,7 +66,7 @@ class ActivityStream {
 		$where = array("target.id"=>$id, 
 					"target.type"=>$type, 
 					"type"=>ActStr::TYPE_ACTIVITY_HISTORY);
-		$sort = array("date"=>-1);
+		$sort = array("created"=>-1);
 		return PHDB::findAndSort( self::COLLECTION,$where,$sort,null);
 	}
 
@@ -264,6 +264,13 @@ class ActivityStream {
 	    );
 	    if(@$params["labelAuthorObject"])
 	    	$notify["labelAuthorObject"]=$params["labelAuthorObject"];
+	 	if(@$params["mentions"])
+	    	$notify["mentions"]=$params["mentions"];
+	 	if(@$params["labelArray"])
+	    	$notify["labelArray"]=$params["labelArray"];
+	 	if(@$params["type"])
+	    	$notify["type"]=$params["type"];
+	    
 	    return $notify;
 	}
 	public static function removeObject($objectId,$type,$targetId=null,$targetType=null,$verb=null){
@@ -312,35 +319,41 @@ class ActivityStream {
         if( isset( $params["ip"] ))
         	$action["author"]["ip"] = $params["ip"];
 
-        	
 		if($params["type"]==ActivityStream::COLLECTION){
 			$action["scope"]["type"]="public";
-	        if( isset( $params["address"] )){
-	        	$insee = $params["address"]["codeInsee"];
-	        	$cp = $params["address"]["postalCode"];
-	        } 
+			$address = null ;
+			if( isset( $params["address"] )){
+	        	$localityId = $params["address"]["localityId"];
+	        	$address = $params["address"];
+	        }
+
 	        if( isset( $params["geo"] ))
 				$geo = $params["geo"];
-			if(!@$insee && !@$cp){
+
+			if(!@$localityId){
 
 		        $author=Person::getSimpleUserById(Yii::app()->session["userId"]);
 		        
-		        if(@$author["address"] && @$author["address"]["codeInsee"]){
-			        $insee=$author["address"]["codeInsee"];
-		        	$cp=$author["address"]["postalCode"];
+		        if(@$author["address"] && @$author["address"]["localityId"]){
+			        $localityId=$author["address"]["localityId"];
+		        	$address=$author["address"];
 		        	if(!@$geo)
 		        		$geo = $author["geo"];
-	        	} //else {
-		        	//$action["scope"]["type"]="restricted";
-	        	//}
+	        	}
 			}
-			$action["scope"]["cities"][] = array(
-				"codeInsee" => ((@$insee) ? $insee : ""), 
-				"postalCode" => ((@$cp) ? $cp : ""),
-				"geo"=> ((@$geo) ? $geo : "")
-			);
-			//$action["scope"]["cities"][] = array("codeInsee" => $insee, "postalCode" => $cp,"geo"=> $geo);
 
+			$scope = array( "parentId"=>$localityId,
+							"parentType"=>City::COLLECTION,
+							"name"=>$address["addressLocality"],
+							"geo" => $geo
+						);
+			if (!(empty($address["postalCode"]))) {
+				$scope["postalCode"] = $address["postalCode"];
+			}
+
+			$scope = array_merge($scope, Zone::getLevelIdById($localityId, $address, City::COLLECTION) ) ;
+
+			$action["scope"]["localities"][] = $scope ;
 		}
 		
         if( isset( $params["label"] ))
@@ -348,15 +361,14 @@ class ActivityStream {
             
 		if( isset( $params["value"] )){
 			$action["object"]["displayValue"] = ((isset( $params["label"] ) && $params["label"] = "address")?$params["value"]:preg_replace('/<[^>]*>/', '',$params["value"]));
-
-        	//$action["object"]["displayValue"] = preg_replace('/<[^>]*>/', '',$params["value"]);
-        }
+		}
 		if( isset( $params["author"] ))
         	$action["author"] = $params["author"];
 
 		if (isset ($params["tags"]))
 			$action["tags"] = $params["tags"];
-      return $action;
+
+		return $action;
     }
 
 }

@@ -31,6 +31,7 @@ class Room {
         "topic"                 => array("name" => "shortDescription"),
         "description"           => array("name" => "description",           "rules" => array("required")),
         "tags"                  => array("name" => "tags"),
+        "roles"                 => array("name" => "roles"),
         "urls"                  => array("name" => "urls"),
         
         // Open / Closed
@@ -104,6 +105,25 @@ class Room {
         return $isAdmin;
     }
     
+    public static function getAccessByRole($room, $myRoles){
+        $roomRoles = @$room["roles"];   
+        if(!is_array(@$room["roles"])) 
+            $roomRoles = explode(",", @$room["roles"]);     
+
+        $intersect = array();
+        if(sizeof($myRoles) > 0)
+        foreach (@$roomRoles as $key => $roomRole) {
+            foreach ($myRoles as $key => $myRole) {
+                if($roomRole == $myRole)
+                    $intersect[] = $myRole;
+            }
+        }
+        if(sizeof($intersect) > 0) $accessRoom = "unlock";
+        else if($roomRoles[0] == "") $accessRoom = "open";
+        else $accessRoom = "lock";
+
+        return $accessRoom;
+    }
     /**
     *
     * @return [json Map] list

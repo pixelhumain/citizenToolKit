@@ -801,7 +801,7 @@ class Authorisation {
         } else if($elementType == Organization::COLLECTION) {
             $res = self::isOrganizationAdmin($userId, $elementId);
         } else 
-            error_log("isElementAdmin : Can not manage that type !".$elementType);
+            error_log("isElementAdmin : Can not manage that type ! : ".$elementType);
         return $res;
     }
     
@@ -819,6 +819,28 @@ class Authorisation {
         }
         if(!empty($preferences)){
            $res = Preference::isOpenEdition($preferences);
+
+        }
+        
+
+        return $res;
+    }
+
+
+    /**
+     * Return true if the entity is in openEdition
+     * @param String the id of the entity
+     * @param String the type of the entity
+     * @return bool 
+     */
+    public static function isOpenData($idEntity, $typeEntity, $preferences=null){
+        $res = false ;
+        if(empty($preferences)){
+            $entity = PHDB::findOne($typeEntity,array("_id"=>new MongoId($idEntity)),array('preferences'));
+            $preferences = @$entity["preferences"];
+        }
+        if(!empty($preferences)){
+           $res = Preference::isOpenData($preferences);
 
         }
         

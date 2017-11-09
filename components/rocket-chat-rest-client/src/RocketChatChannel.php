@@ -207,12 +207,15 @@ class Channel extends Client {
 			->body(array('roomName' => $name , 'type' => $type))
 			->send();
 
-		if( $response->code == 200 && isset($response->body->success) && $response->body->success == true ) {
-			return true;
-		} else {
-			echo( "<b>".$response->body->error . "</b><br/>" );
-			return false;
-		}
+		return $response->body;
+	}
+
+	public function rename($name){
+		$response = Request::post( $this->api . 'channels.rename' )
+			->body(array('roomId' => $this->id , 'name' => $name))
+			->send();
+			
+		return $response->body;
 	}
 
 	
