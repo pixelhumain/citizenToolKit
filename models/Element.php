@@ -1076,7 +1076,7 @@ class Element {
 	
 			if(isset($links["followers"])){
 				foreach ($links["followers"] as $key => $value) {
-					$valLink[Person::COLLECTION][] = new MongoId($keyProj) ;
+					$valLink[Person::COLLECTION][] = new MongoId($key) ;
 				}
 			}
 
