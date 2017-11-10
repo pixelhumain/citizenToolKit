@@ -319,10 +319,10 @@ class ActivityStream {
         if( isset( $params["ip"] ))
         	$action["author"]["ip"] = $params["ip"];
 
-		if($params["type"]==ActivityStream::COLLECTION){
+		if($params["type"]==ActivityStream::COLLECTION &&  !empty($params["address"]) ){
 			$action["scope"]["type"]="public";
 			$address = null ;
-			if( isset( $params["address"] )){
+			if( !empty( $params["address"] )){
 	        	$localityId = $params["address"]["localityId"];
 	        	$address = $params["address"];
 	        }
