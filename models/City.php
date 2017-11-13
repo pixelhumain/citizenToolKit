@@ -1453,7 +1453,6 @@ class City {
         return $cities;
     }
 
-
     public static function addCityViaImport(){
 		$att = array(   "name", "alternateName", 
                         "country", "postalCodes", "insee", 
