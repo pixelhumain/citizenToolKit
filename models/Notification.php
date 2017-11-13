@@ -1500,7 +1500,7 @@ class Notification{
 		}
 		foreach($notification as $notif){
 			$asParam = array(
-		    	"type" => ActStr::TEST, 
+		    	"type" => "notifications", 
 	            "verb" => $verb,
 	            "author"=>$author,
 	            "target"=>$target
