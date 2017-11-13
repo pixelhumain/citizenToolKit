@@ -753,10 +753,10 @@ class Notification{
 		return $specifyLabel;
 	}
 	public static function translateLabel($notif){
-		$labelArray=self::$notificationTree[$notif["verb"]]["labelArray"];
-		$count=0;
-		$memberName="";
-		if(@$notif[$notif["notify"]["labelAuthorObject"]]){
+		//$labelArray=self::$notificationTree[$notif["verb"]]["labelArray"];
+		//$count=0;
+		//$memberName="";
+		/*if(@$notif[$notif["notify"]["labelAuthorObject"]]){
 			if($notif["notify"]["labelAuthorObject"]=="object"){
 				if(@$notif["object"]){
 					if(@$notif["object"]["name"]){
@@ -802,26 +802,93 @@ class Notification{
 			$nbOthers = $count - 2;
 			if($nbOthers == 1) $labelUser = "person"; else $labelUser = "persons";
 			$specifyLabel["{who}"] = $memberName.", ".$lastAuthorName." ".Yii::t("common","and")." ".$nbOthers." ".Yii::t("common", $labelUser);
-		}
-		if(in_array("where",$labelArray)){
-			if(@$notif["target"]["name"])
-				$specifyLabel["{where}"] = $notif["target"]["name"];
-			else{
+		}*/
+
+		//if(in_array("where",$labelArray)){
+		//	if(@$notif["target"]["name"])
+		//		$specifyLabel["{where}"] = $notif["target"]["name"];
+		//	else{
 				// if(@$notif["object"] && !@$notif["object"]["type"]){
 				// 	print_r($notif);
 				// 	exit;
 				// }
 				// print_r($notif);
 				// exit;
-				$resArray=self::getTargetInformation($notif["target"]["id"],$notif["target"]["type"], @$notif["object"]);
-				$specifyLabel["{where}"] = @$resArray["{where}"];
-				if(@$resArray["{what}"])
-					$specifyLabel["{what}"]=$resArray["{what}"];
+				//$resArray=self::getTargetInformation($notif["target"]["id"],$notif["target"]["type"], @$notif["object"]);
+		$resArray=array();
+		if(@$notif["notify"]["labelArray"]){
+			//print_r($notif["labelArray"]);
+			if(@$notif["notify"]["labelArray"]["{author}"] && !empty($notif["notify"]["labelArray"]["{author}"])){
+				$author="";
+				$i=0;
+				$countEntry=count($notif["notify"]["labelArray"]["{author}"]);
+				foreach($notif["notify"]["labelArray"]["{author}"] as $data){
+					if($i == 1 && $countEntry==2)
+						$author.=" ".Yii::t("common","and")." ";
+					else if($i > 0)
+						$author.=", ";
+					if($i==2 && is_numeric($data)){
+						$s="";
+						if($data > 1)
+							$s="s";
+						$author.=" ".Yii::t("common","and")." ".$data." ".Yii::t("common", "person".$s);
+					}else
+						$author.=$data;
+					$i++;
+				}
+				$resArray["{author}"]=$author;
+			}
+			if(@$notif["notify"]["labelArray"]["{who}"] && !empty($notif["notify"]["labelArray"]["{who}"])){
+				$who="";
+				$i=0;
+				$countEntry=count($notif["notify"]["labelArray"]["{who}"]);
+				foreach($notif["notify"]["labelArray"]["{who}"] as $data){
+					if($i == 1 && $countEntry==2)
+						$who.=" ".Yii::t("common","and")." ";
+					else if($i > 0)
+						$who.=", ";
+					if($i==2 && is_numeric($data)){
+						$s="";
+						if($data > 1)
+							$s="s";
+						$who.=" ".Yii::t("common","and")." ".$data." ".Yii::t("common", "person".$s);
+					}else
+						$who.=$data;
+					$i++;
+				}
+				$resArray["{who}"]=$who;
+			}
+			if(@$notif["notify"]["labelArray"]["{what}"] && !empty($notif["notify"]["labelArray"]["{what}"])){
+				$what="";
+				$i=0;
+				foreach($notif["notify"]["labelArray"]["{what}"] as $data){
+					if($i > 0)
+						$what.=" ";
+					$what=Yii::t("notification",$data);
+					$i++;
+				}
+				$resArray["{what}"]=$what;
+			}
+			if(@$notif["notify"]["labelArray"]["{where}"] && !empty($notif["notify"]["labelArray"]["{where}"])){
+				$where="";
+				$i=0;
+				foreach($notif["notify"]["labelArray"]["{where}"] as $data){
+					if($i > 0)
+						$where.=" ";
+					$where=Yii::t("notification",$data);
+					$i++;
+				}
+				$resArray["{where}"]=$where;
 			}
 		}
-		if(in_array("what",$labelArray))
-			$specifyLabel["{what}"] = @$notif["object"]["name"];
-		return Yii::t("notification",$notif["notify"]["displayName"], $specifyLabel);
+				//$specifyLabel["{where}"] = @$resArray["{where}"];
+				//if(@$resArray["{what}"])
+				//	$specifyLabel["{what}"]=$resArray["{what}"];
+			//}
+		//}
+		//if(in_array("what",$labelArray))
+		//	$specifyLabel["{what}"] = @$notif["object"]["name"];
+		return Yii::t("notification",$notif["notify"]["displayName"], $resArray);
 	} 
 
 	public static function getUrlNotification($construct){
@@ -1130,87 +1197,87 @@ class Notification{
 			$parent=Element::getElementSimpleById($id, $type);
 		}
 		$res=array();
-		if($labelArray)
+		//if($labelArray)
 			$res["{what}"] = ["a ".Element::getControlerByCollection($type)];
-		else
-			$res["{what}"] = Yii::t("common", "a ".Element::getControlerByCollection($type));
+		//else
+		//	$res["{what}"] = Yii::t("common", "a ".Element::getControlerByCollection($type));
 		if(@$target["name"])
-			$res["{where}"]=$target["name"];
+			$res["{where}"]=[$target["name"]];
 		else if(@$parent["name"]){
 			if($object && @$object["type"] && $object["type"]==Comment::COLLECTION && $type==News::COLLECTION){
 				$comment=Comment::getById($object["id"]);
 				if($comment["author"]["id"]==$authorNews["author"] && !@$news["targetIsAuthor"]){
-					if($labelArray)
+					//if($labelArray)
 						$res["{where}"]=["your news"];
-					else
-						$res["{where}"]=Yii::t("notification","your news");
+					//else
+					//	$res["{where}"]=Yii::t("notification","your news");
 				}
 				else{
-					if($labelArray)
+					//if($labelArray)
 						$res["{where}"]=["the wall of", $parent["name"]];
-					else
-						$res["{where}"]=Yii::t("notification","the wall of {who}", array("{who}"=>$parent["name"]));
+					//else
+					//	$res["{where}"]=Yii::t("notification","the wall of {who}", array("{who}"=>$parent["name"]));
 				}
 			}
 			else{
-				if($labelArray)
+				//if($labelArray)
 					$res["{where}"]=[$parent["name"]];
-				else
-					$res["{where}"]=$parent["name"];
+				//else
+				//	$res["{where}"]=$parent["name"];
 			}
 			if($type=="news"){
 				if(@$news["title"]){
-					if($labelArray)
+					//if($labelArray)
 						$res["{what}"]=["&quot;".$news["title"]."&quot;"];
-					else
-						$res["{what}"]="&quot;".$news["title"]."&quot;";
+					//else
+					//	$res["{what}"]="&quot;".$news["title"]."&quot;";
 				}
 				else if($news["type"]=="activityStream"){ 
 					if($news["verb"]!="share")
 						if(@$news["object"]["name"]){
-							if($labelArray)
+							//if($labelArray)
 								$res["{what}"]=["of creation","&quot;".strtr($news["object"]["name"],0,20)."...&quot;"];
-							else
-								$res["{what}"]=Yii::t("notification","of creation").": &quot;".strtr($news["object"]["name"],0,20)."...&quot;";
+							//else
+							//	$res["{what}"]=Yii::t("notification","of creation").": &quot;".strtr($news["object"]["name"],0,20)."...&quot;";
 						}
 						else if(@$news["object"]["displayName"]){
-							if($labelArray)
+							//if($labelArray)
 								$res["{what}"]=["of creation","&quot;".strtr($news["object"]["displayName"],0,20)."...&quot;"];
-							else
-								$res["{what}"]=Yii::t("notification","of creation").": &quot;".strtr($news["object"]["displayName"],0,20)."...&quot;";
+							//else
+							//	$res["{what}"]=Yii::t("notification","of creation").": &quot;".strtr($news["object"]["displayName"],0,20)."...&quot;";
 						}
 					else{
-						if($labelArray)
+						//if($labelArray)
 							$res["{what}"]=["shared"];
-						else
-							$res["{what}"]=Yii::t("notification","shared");
+						//else
+						//	$res["{what}"]=Yii::t("notification","shared");
 					}
 				}
 				else{
 					if(!empty($news["text"])){
-						if($labelArray)
+						//if($labelArray)
 							$res["{what}"]=["&quot;".substr(@$news["text"], 0, 20)."...&quot;"];
-						else
-							$res["{what}"]="&quot;".substr(@$news["text"], 0, 20)."...&quot;";
+						//else
+						//	$res["{what}"]="&quot;".substr(@$news["text"], 0, 20)."...&quot;";
 					}
 					else if(@$news["media"]){
 						if($news["media"]["type"]=="url_content"){
-							if($labelArray)
+							//if($labelArray)
 								$res["{what}"]=["with the link"];
-							else
-								$res["{what}"]=Yii::t("notification", "with the link");
+							//else
+							//	$res["{what}"]=Yii::t("notification", "with the link");
 						}
 						if($news["media"]["type"]=="gallery_files"){
-							if($labelArray)
+							//if($labelArray)
 								$res["{what}"]=["with the documents shared"];
-							else
-								$res["{what}"]=Yii::t("notification", "with the documents shared");
+							//else
+							//	$res["{what}"]=Yii::t("notification", "with the documents shared");
 						}
 						if($news["media"]["type"]=="gallery_images"){
-							if($labelArray)
+							//if($labelArray)
 								$res["{what}"]=["with the album's images"];
-							else
-								$res["{what}"]=Yii::t("notification", "with the album's images");
+							//else
+							//	$res["{what}"]=Yii::t("notification", "with the album's images");
 						}
 					} else
 						$res["{what}"]="";
@@ -1218,43 +1285,43 @@ class Notification{
 			}
 			else if($object && @$object["type"]){
 				$object=Element::getElementSimpleById($object["id"], $object["type"]);
-				if($labelArray)
+				//if($labelArray)
 					$res["{what}"]=[$object["name"]];
-				else
-					$res["{what}"]=$object["name"];
+				//else
+				//	$res["{what}"]=$object["name"];
 			}
 
 		}
 		else if (@$target["entry"]){
 			if(@$target["entry"]["name"]){
-				if($labelArray)
+				//if($labelArray)
 					$res["{what}"]=[$target["entry"]["name"]];
-				else
-					$res["{what}"]=$target["entry"]["name"];
+				//else
+				//	$res["{what}"]=$target["entry"]["name"];
 			}
 			else{
-				if($labelArray)
+				//if($labelArray)
 					$res["{what}"]=[@$target["entry"]["title"]];
-				else
-					$res["{what}"]=@$target["entry"]["title"];
+				//else
+				//	$res["{what}"]=@$target["entry"]["title"];
 			}
 			if(@$target["parent"]){
-				if($labelArray)
+				//if($labelArray)
 					$res["{where}"] = [$target["parent"]["name"]];
-				else
-					$res["{where}"] = $target["parent"]["name"];
+				//else
+				//	$res["{where}"] = $target["parent"]["name"];
 			}
 		} 
 		else if(@$target["room"]){
-			if($labelArray)
+			//if($labelArray)
 				$res["{what}"]=[$target["room"]["name"]];
-			else
-				$res["{what}"]=$target["room"]["name"];
+			//else
+			//	$res["{what}"]=$target["room"]["name"];
 			if(@$target["parent"]){
-				if($labelArray)
+			//	if($labelArray)
 					$res["{where}"] = [$target["parent"]["name"]];
-				else
-					$res["{where}"] = $target["parent"]["name"];
+			//	else
+			//		$res["{where}"] = $target["parent"]["name"];
 			}
 		}
 		return $res;
@@ -1301,9 +1368,6 @@ class Notification{
 		$labelArray=array("{where}"=>["in a news"],"{who}"=>[$author["name"]]);
 		if(@$object && !empty($object))
 			$labelArray["{where}"]=["in a comment"];
-		//$where=Yii::t("notification","in a news");
-		//if(@$object && !empty($object))
-		//	$where=Yii::t("notification","in a comment");
 		$scope=$news["scope"];
 		if($scope=="private"){
 			if($news["target"]["type"]=Person::COLLECTION)
@@ -1436,7 +1500,7 @@ class Notification{
 		}
 		foreach($notification as $notif){
 			$asParam = array(
-		    	"type" => ActStr::TEST, 
+		    	"type" => "notifications", 
 	            "verb" => $verb,
 	            "author"=>$author,
 	            "target"=>$target
@@ -1448,7 +1512,6 @@ class Notification{
 		    $stream["notify"] = ActivityStream::addNotification( $notif );
 		    ActivityStream::addEntry($stream);
 		}
-		// Verbe ActStr::VERB_POST || ActStr::VERB_MENTION
 		
 	}
 	/**

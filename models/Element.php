@@ -659,11 +659,13 @@ class Element {
 							 "organizerType" => $fieldValue["organizerType"]);
 			//get element and remove current organizer
 			$element = self::getElementById($id, $collection);
-			$oldOrganizerId = @$element["organizerId"] ? $element["organizerId"] : key($element["links"]["organizer"]);
-			$oldOrganizerType = @$element["organizerType"] ? $element["organizerType"] : $element["links"]["organizer"][$oldOrganizerId]["type"];
-			//remove the old organizer
-			$res = Link::removeOrganizer($oldOrganizerId, $oldOrganizerType, $id, Yii::app()->session["userId"]);
-			if (! @$res["result"]) throw new CTKException(@$res["msg"]);
+			if( !empty($element["organizerId"]) || !empty($element["links"]["organizer"]) ){
+				$oldOrganizerId = @$element["organizerId"] ? $element["organizerId"] : $element["links"]["organizer"];
+				$oldOrganizerType = @$element["organizerType"] ? $element["organizerType"] : $element["links"]["organizer"][$oldOrganizerId]["type"];
+				//remove the old organizer
+				$res = Link::removeOrganizer($oldOrganizerId, $oldOrganizerType, $id, Yii::app()->session["userId"]);
+				if (! @$res["result"]) throw new CTKException(@$res["msg"]);
+			}
 			//add new organizer
 			$res = Link::addOrganizer($fieldValue["organizerId"], $fieldValue["organizerType"], $id, Yii::app()->session["userId"]);
 			if (! @$res["result"]) throw new CTKException(@$res["msg"]);
@@ -673,11 +675,14 @@ class Element {
 							 "parentType" => $fieldValue["parentType"]);
 			//get element and remove current parent
 			$element = Element::getElementById($id, $collection);
-			$oldParentId = @$element["parentId"] ? $element["parentId"] : key($element["links"]["parent"]);
-			$oldParentType = @$element["parentType"] ? $element["parentType"] : $element["links"]["parent"][$oldParentId]["type"];
-			//remove the old parent
-			$res = Link::removeParent($oldParentId, $oldParentType, $id, $collection, Yii::app()->session["userId"]);
-			if (! @$res["result"]) throw new CTKException(@$res["msg"]);
+			if( !empty($element["parentId"]) || !empty($element["links"]["parent"]) ){
+				$oldParentId = @$element["parentId"] ? $element["parentId"] : $element["links"]["parent"];
+				$oldParentType = @$element["parentType"] ? $element["parentType"] : $element["links"]["parent"][$oldParentId]["type"];
+				//remove the old parent
+				$res = Link::removeParent($oldParentId, $oldParentType, $id, $collection, Yii::app()->session["userId"]);
+				if (! @$res["result"]) throw new CTKException(@$res["msg"]);
+			}
+			
 			//add new parent
 			$res = Link::addParent($fieldValue["parentId"], $fieldValue["parentType"], $id, $collection, Yii::app()->session["userId"]);
 			if (! @$res["result"]) throw new CTKException(@$res["msg"]);
@@ -1076,7 +1081,7 @@ class Element {
 	
 			if(isset($links["followers"])){
 				foreach ($links["followers"] as $key => $value) {
-					$valLink[Person::COLLECTION][] = new MongoId($keyProj) ;
+					$valLink[Person::COLLECTION][] = new MongoId($key) ;
 				}
 			}
 

@@ -138,15 +138,15 @@ class SimplyAutoCompleteAction extends CAction
 	  				}
 
   					//Consolidate Queries
-  					if(!empty($queryLocality)){
-  						if(isset($allQueryLocality)){
-  							$allQueryLocality = array('$or' => array( $allQueryLocality ,$queryLocality));
+  					if(!empty($queryLocality)) {
+	  					if(isset($allQueryLocality)){
+	  						$allQueryLocality = array('$or' => array( $allQueryLocality ,$queryLocality));
 	  					}else{
 	  						$allQueryLocality = $queryLocality;
 	  					}
-  					}
-  					
-  					unset($queryLocality);
+	  				}
+	  				unset($queryLocality);
+
   				}
   			}
   		}

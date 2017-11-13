@@ -5,10 +5,12 @@ class LogoutAction extends CAction
     {
         $controller = $this->getController();
         Person::clearUserSessionData();
-        $network="";
-        if(@$_GET["network"])
-        	$network="?network=".$_GET["network"];
+
+        $url = "co2#";
         
-    	$controller->redirect(Yii::app()->createUrl("co2#".$network) );
+        if(@$_GET["network"])
+        	$url="/network/default/index?src=".$_GET["network"];
+        
+    	$controller->redirect(Yii::app()->createUrl($url) );
     }
 }

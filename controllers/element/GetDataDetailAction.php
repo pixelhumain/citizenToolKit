@@ -152,8 +152,10 @@ class GetDataDetailAction extends CAction {
 			// }
 
 			if( !empty($post["searchLocality"])){
+				$scope = $post["searchLocality"];
 				foreach ($post["searchLocality"] as $key => $value) {
-					$scopeName = @$value["name"];
+					//$scopeName = @$value["name"];
+					$scope = $value ;
 				}
 			}
 
@@ -225,7 +227,8 @@ class GetDataDetailAction extends CAction {
 												"element" => $element,
 												"type"=>$type, 
 												"id"=>$id, 
-												"scope"=>@$scopeName, 
+												//"scope"=>@$scopeName, 
+												"scope"=>@$scope,
 												"open"=> (@$type!="0"))); 
 												//open : for home page (when no user connected)
 			Yii::app()->end();

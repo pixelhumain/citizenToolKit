@@ -320,7 +320,6 @@ class Search {
 				else
 					$queryLocality = array("address.".$locality["type"] => $key);
 				
-			
 				if(empty($allQueryLocality))
 					$allQueryLocality = $queryLocality;
 				else if(!empty($queryLocality))

@@ -328,9 +328,10 @@ class Zone {
 							array( 	"parentId"=> array('$in' => array_keys($zones) ), 
 									"parentType" => Zone::COLLECTION ), 
 							array("origin", "translates.".strtoupper(Yii::app()->language) ) );
+		//print_r($trad);
 		foreach ($zones as $key => $zone) {
 			if(@$zone["translateId"]){
-				$newZone = array( 	"name" => ( !empty($trad[$zone["translateId"]]["translates"][strtoupper(Yii::app()->language)])  ? $trad[$zone["translateId"]]["translates"][strtoupper(Yii::app()->language)] : $trad[$zone["translateId"]]["origin"]),
+				$newZone = array( 	"name" => ( !empty($trad[$zone["translateId"]]["translates"][strtoupper(Yii::app()->language)])  ? $trad[$zone["translateId"]]["translates"][strtoupper(Yii::app()->language)] : @$trad[$zone["translateId"]]["origin"]),
 									"countryCode" => $zone["countryCode"],
 									"level" => $zone["level"],
 									"translateId" => $zone["translateId"]);
