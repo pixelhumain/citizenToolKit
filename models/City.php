@@ -1345,11 +1345,11 @@ class City {
                         "level4", "level4Name", "geo");
         if($geoShape) $att[] =  "geoShape";
         $regex = Search::accentToRegex($scopeValue);
-        $where = array('$or'=> 
+        $where = array( '$or'=> 
                             array(  array("origin" => new MongoRegex("/".$regex."/i")),
                                     array("translates.".strtoupper(Yii::app()->language) => array( '$in' => array (new MongoRegex("/".$regex."/i") ) ) ),
-                        ));
-        $where = array('$and'=> array($where, array("countryCode" => strtoupper($countryCode),
+                        ) );
+        $where = array( '$and'=> array($where, array("countryCode" => strtoupper($countryCode),
     												"parentType" => City::COLLECTION ) ) );
 
         $translate = Zone::getWhereTranlate($where);
