@@ -146,10 +146,10 @@ class City {
     									(!empty($city["wikidataID"]) ? $city["wikidataID"] : null));
 
 
-    			if(empty($level1["ownACity"])){
+    			if(empty($level1["hasCity"])){
     				$res = PHDB::update( Zone::COLLECTION, 
 								  	array("_id"=>new MongoId($city["level1"])),
-									array('$set' => array("ownACity" =>  true))
+									array('$set' => array("hasCity" =>  true))
 					);
     			}
 

@@ -319,12 +319,12 @@ class Zone {
 		return $translates["origin"];
 	}
 
-	public static function getListCountry($ownACity = null){
+	public static function getListCountry($hasCity = null){
 		$where = array(	"level" => "1");
-		if(!empty($ownACity))
-			$where["ownACity"] = array(	'$exists' => "1");
+		if(!empty($hasCity))
+			$where["hasCity"] = array(	'$exists' => "1");
 
-		$fields = array("name","level", "translateId", "countryCode", "ownACity");
+		$fields = array("name","level", "translateId", "countryCode", "hasCity");
 		$zones = PHDB::find(self::COLLECTION, $where, $fields);
 		$res = array();
 		$trad = PHDB::find(	self::TRANSLATE, 
@@ -338,8 +338,6 @@ class Zone {
 									"countryCode" => $zone["countryCode"],
 									"level" => $zone["level"],
 									"translateId" => $zone["translateId"]);
-				// if( !empty($zone["ownACity"]) )
-				// 	$newZone["ownACity"] = $zone["ownACity"] ;
 				$res[$key] = $newZone ;
 			}
 		}
