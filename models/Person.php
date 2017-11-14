@@ -2166,6 +2166,8 @@ class Person {
 
     			}else{
     				//var_dump($address);
+    				CookieHelper::setCookie("communexionType", null);
+    				CookieHelper::setCookie("communexion",  null);
 		    		/*CookieHelper::removeCookie("communexionType");
 					CookieHelper::removeCookie("communexionValue");
 					CookieHelper::removeCookie("communexionName");
