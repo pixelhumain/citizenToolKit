@@ -86,7 +86,7 @@ class Api {
             $params["tags"] =  (($multiTags == "true") ? array('$eq' => $tagsArray) : array('$in' => $tagsArray));
         }
 
-        if( $type == New::COLLECTION ){
+        if( $type == News::COLLECTION ){
             $params["scope.type"] = "public";
         }
 
