@@ -667,7 +667,8 @@ class Element {
 				if (! @$res["result"]) throw new CTKException(@$res["msg"]);
 			}
 			//add new organizer
-			$res = Link::addOrganizer($fieldValue["organizerId"], $fieldValue["organizerType"], $id, Yii::app()->session["userId"]);
+			if($fieldValue["organizerId"] == 'dontKnow' || $fieldValue["organizerType"] == 'dontKnow')
+				$res = Link::addOrganizer($fieldValue["organizerId"], $fieldValue["organizerType"], $id, Yii::app()->session["userId"]);
 			if (! @$res["result"]) throw new CTKException(@$res["msg"]);
 
 		}else if ($dataFieldName == "parent") {
@@ -684,7 +685,8 @@ class Element {
 			}
 			
 			//add new parent
-			$res = Link::addParent($fieldValue["parentId"], $fieldValue["parentType"], $id, $collection, Yii::app()->session["userId"]);
+			if($fieldValue["parentId"] == 'dontKnow' || $fieldValue["parentId"] == 'dontKnow')
+				$res = Link::addParent($fieldValue["parentId"], $fieldValue["parentType"], $id, $collection, Yii::app()->session["userId"]);
 			if (! @$res["result"]) throw new CTKException(@$res["msg"]);
 		} else if ($dataFieldName == "seePreferences") {
 			//var_dump($fieldValue);

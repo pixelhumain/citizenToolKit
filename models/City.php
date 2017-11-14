@@ -1367,15 +1367,22 @@ class City {
         	$cities[$keyTran] = $city ;
         }
 
+
+        if(!empty($cities)){
+        	
+        }
+
         if(empty($cities) && !empty($formInMap)){
             $countryCode = mb_convert_encoding($countryCode, "ASCII");
             if(strlen($countryCode) > 2 ){
                $countryCode = substr($countryCode, 0, 2);
             }
             $countryCode = mb_convert_encoding($countryCode, "UTF-8");
-
-            if(preg_match("/^[0-9]/i", $scopeValue))
+            $isPC = false ;
+            if(preg_match("/^[0-9]/i", $scopeValue)){
 	            $resNominatim = json_decode(SIG::getGeoByAddressNominatim(null, $scopeValue, null, trim($countryCode), true, true, true),true);
+	            $isPC = true ;
+            }
 	        else
 	        	$resNominatim = json_decode(SIG::getGeoByAddressNominatim(null, null, $scopeValue, trim($countryCode), true, true, true),true);
 
@@ -1384,7 +1391,7 @@ class City {
 
 
 
-            if(!empty($resNominatim)){
+            if(!empty($resNominatim) && !$isPC){
                 foreach (@$resNominatim as $key => $value) {
                     $typeCities = array("city", "village", "town", "state") ;
                     //var_dump($value);
