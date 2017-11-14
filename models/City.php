@@ -1080,6 +1080,9 @@ class City {
 		$where = array("_id"=>new MongoId($id));
 		$fields = array("geoShape","osmID", "wikidataID", "betweenCP");
 		$city = PHDB::findOne(City::COLLECTION, $where, $fields);
+
+		if(!empty($city["geoShape"]) && $city["geoShape"]["type"] == "Point")
+			unset($city["geoShape"]);
 		return $city;
 	}
 
@@ -1395,7 +1398,7 @@ class City {
 
 			if(empty($resNominatim))
 				$resNominatim = json_decode(SIG::getGeoByAddressNominatim(null, null, null, trim($countryCode), true, true, true, $scopeValue, true),true);
-			
+
 			if(!empty($resNominatim)){
 				foreach (@$resNominatim as $key => $value) {
 					$typeCities = array("city", "village", "town", "state") ;
