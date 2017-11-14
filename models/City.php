@@ -1337,58 +1337,70 @@ class City {
 
 
 	public static function searchCity($where, $countryCode, $scopeValue, $formInMap, $geoShape = false){
-		$att = array(   "name", "alternateName", 
-                        "country", "postalCodes", "insee", 
-                        "level1", "level1Name",
-                        "level2", "level2Name",
-                        "level3", "level3Name",
-                        "level4", "level4Name", "geo");
-        if($geoShape) $att[] =  "geoShape";
-        $regex = Search::accentToRegex($scopeValue);
-        $where = array( '$or'=> 
-                            array(  array("origin" => new MongoRegex("/".$regex."/i")),
-                                    array("translates.".strtoupper(Yii::app()->language) => array( '$in' => array (new MongoRegex("/".$regex."/i") ) ) ),
-                        ) );
-        $where = array( '$and'=> array($where, array("countryCode" => strtoupper($countryCode),
-    												"parentType" => City::COLLECTION ) ) );
+		$att = array(	"name", "alternateName", 
+						"country", "postalCodes", "insee", 
+						"level1", "level1Name",
+						"level2", "level2Name",
+						"level3", "level3Name",
+						"level4", "level4Name", "geo");
+		if($geoShape) $att[] =  "geoShape";
+		$regex = Search::accentToRegex($scopeValue);
+		$where = array( '$or'=> 
+							array(  array("origin" => new MongoRegex("/".$regex."/i")),
+									array("translates.".strtoupper(Yii::app()->language) => array( '$in' => array (new MongoRegex("/".$regex."/i") ) ) ),
+						) );
+		$where = array( '$and'=> array($where, array("countryCode" => strtoupper($countryCode),
+													"parentType" => City::COLLECTION ) ) );
 
-        $translate = Zone::getWhereTranlate($where);
-        $cities = array();
-        $valIDCity = array();
-        $nameArray = array();
-        foreach ($translate as $key => $value) {
-        	$valIDCity[] = new MongoId($value["parentId"]) ;
-        }
-        $citiesWithTrad = PHDB::find(self::COLLECTION, array( "_id" => array('$in' => $valIDCity)));
+		$translate = Zone::getWhereTranlate($where);
+		$cities = array();
+		$valIDCity = array();
+		$nameArray = array();
+		foreach ($translate as $key => $value) {
+			$valIDCity[] = new MongoId($value["parentId"]) ;
+		}
+		$citiesWithTrad = PHDB::find(self::COLLECTION, array( "_id" => array('$in' => $valIDCity)));
 
-        foreach ($citiesWithTrad as $keyTran => $city) {
-        	if(!empty($translate[$keyTran]["translates"][strtoupper(Yii::app()->language)]))
-        		$city["name"] = $translate[$keyTran]["translates"][strtoupper(Yii::app()->language)] ;
-        	$cities[$keyTran] = $city ;
-        }
-
-        if(empty($cities) && !empty($formInMap)){
-            $countryCode = mb_convert_encoding($countryCode, "ASCII");
-            if(strlen($countryCode) > 2 ){
-               $countryCode = substr($countryCode, 0, 2);
-            }
-            $countryCode = mb_convert_encoding($countryCode, "UTF-8");
-
-            if(preg_match("/^[0-9]/i", $scopeValue))
-	            $resNominatim = json_decode(SIG::getGeoByAddressNominatim(null, $scopeValue, null, trim($countryCode), true, true, true),true);
-	        else
-	        	$resNominatim = json_decode(SIG::getGeoByAddressNominatim(null, null, $scopeValue, trim($countryCode), true, true, true),true);
-
-	        if(empty($resNominatim))
-	        	$resNominatim = json_decode(SIG::getGeoByAddressNominatim(null, null, null, trim($countryCode), true, true, true, $scopeValue, true),true);
+		foreach ($citiesWithTrad as $keyTran => $city) {
+			if(!empty($translate[$keyTran]["translates"][strtoupper(Yii::app()->language)]))
+				$city["name"] = $translate[$keyTran]["translates"][strtoupper(Yii::app()->language)] ;
+			$cities[$keyTran] = $city ;
+		}
 
 
+		if(empty($cities)){
 
-            if(!empty($resNominatim)){
-                foreach (@$resNominatim as $key => $value) {
-                    $typeCities = array("city", "village", "town", "state") ;
-                    //var_dump($value);
-                    foreach ($typeCities as $keyType => $valueType) {
+			$where = array( '$or' => 
+								array(
+									array("postalCodes.name" => new MongoRegex("/".$regex."/i") ),
+									array("postalCodes.postalCode" => new MongoRegex("/^".$regex."/i") ) 
+								) ) ;
+			$where = array( '$and'=> array(
+								$where, 
+								array("country" => strtoupper($countryCode) ) )) ;
+			$cities = PHDB::find(self::COLLECTION, $where);
+		}
+
+		if(empty($cities) && !empty($formInMap)){
+			$countryCode = mb_convert_encoding($countryCode, "ASCII");
+			if(strlen($countryCode) > 2 ){
+				$countryCode = substr($countryCode, 0, 2);
+			}
+			$countryCode = mb_convert_encoding($countryCode, "UTF-8");
+			// if(preg_match("/^[0-9]/i", $scopeValue)){
+			// 	$resNominatim = json_decode(SIG::getGeoByAddressNominatim(null, $scopeValue, null, trim($countryCode), true, true, true),true);
+			// }
+			// else
+			$resNominatim = json_decode(SIG::getGeoByAddressNominatim(null, null, $scopeValue, trim($countryCode), true, true, true),true);
+
+			if(empty($resNominatim))
+				$resNominatim = json_decode(SIG::getGeoByAddressNominatim(null, null, null, trim($countryCode), true, true, true, $scopeValue, true),true);
+			
+			if(!empty($resNominatim)){
+				foreach (@$resNominatim as $key => $value) {
+					$typeCities = array("city", "village", "town", "state") ;
+					//var_dump($value);
+					foreach ($typeCities as $keyType => $valueType) {
 						if( !empty($value["address"][$valueType]) 
 							&& $countryCode == strtoupper(@$value["address"]["country_code"])) {
 
@@ -1447,83 +1459,77 @@ class City {
 							}
 						}
 					}
-                }
-            }
-        }
-        return $cities;
-    }
+				}
+			}
+		}
+		return $cities;
+	}
 
-    public static function addCityViaImport(){
-		$att = array(   "name", "alternateName", 
-                        "country", "postalCodes", "insee", 
-                        "level1", "level1Name",
-                        "level2", "level2Name",
-                        "level3", "level3Name",
-                        "level4", "level4Name", "geo");
-        if($geoShape) $att[] =  "geoShape";
+  //   public static function addCityViaImport(){
+		// $att = array(   "name", "alternateName", 
+  //                       "country", "postalCodes", "insee", 
+  //                       "level1", "level1Name",
+  //                       "level2", "level2Name",
+  //                       "level3", "level3Name",
+  //                       "level4", "level4Name", "geo");
+  //       if($geoShape) $att[] =  "geoShape";
 
-        $cities = PHDB::findAndSort( City::COLLECTION, $where, $att, 40, $att);
-        if(empty($cities) && !empty($formInMap)){
-            $countryCode = mb_convert_encoding($countryCode, "ASCII");
-            if(strlen($countryCode) > 2 ){
-               $countryCode = substr($countryCode, 0, 2);
-            }
-            $countryCode = mb_convert_encoding($countryCode, "UTF-8");
-            $resNominatim = json_decode(SIG::getGeoByAddressNominatim(null, null, $scopeValue, trim($countryCode), true, true, true),true);
-            //var_dump($resNominatim);
-            if(!empty($resNominatim)){
-                //var_dump($resNominatim);
-                foreach (@$resNominatim as $key => $value) {
-                    $typeCities = array("city", "village", "town") ;
-                    foreach ($typeCities as $keyType => $valueType) {
-                        if( !empty($value["address"][$valueType]) 
-                            && $countryCode == strtoupper(@$value["address"]["country_code"])) {
+  //       $cities = PHDB::findAndSort( City::COLLECTION, $where, $att, 40, $att);
+  //       if(empty($cities) && !empty($formInMap)){
+  //           $countryCode = mb_convert_encoding($countryCode, "ASCII");
+  //           if(strlen($countryCode) > 2 ){
+  //              $countryCode = substr($countryCode, 0, 2);
+  //           }
+  //           $countryCode = mb_convert_encoding($countryCode, "UTF-8");
+  //           $resNominatim = json_decode(SIG::getGeoByAddressNominatim(null, null, $scopeValue, trim($countryCode), true, true, true),true)
+  //           if(!empty($resNominatim)){
+  //               foreach (@$resNominatim as $key => $value) {
+  //                   $typeCities = array("city", "village", "town") ;
+  //                   foreach ($typeCities as $keyType => $valueType) {
+  //                       if( !empty($value["address"][$valueType]) 
+  //                           && $countryCode == strtoupper(@$value["address"]["country_code"])) {
 
-                            $wikidata = (empty($value["extratags"]["wikidata"]) ? null : $value["extratags"]["wikidata"]);
-                            //var_dump($value["osm_id"]);
-                            $newCities = array( "name" => $value["address"][$valueType],
-                                                "alternateName" => mb_strtoupper($value["address"][$valueType]),
-                                                "country" => $countryCode,
-                                                "geo" => array( "@type"=>"GeoCoordinates", 
-                                                                "latitude" => $value["lat"], 
-                                                                "longitude" => $value["lon"]),
+  //                           $wikidata = (empty($value["extratags"]["wikidata"]) ? null : $value["extratags"]["wikidata"]);
+  //                           $newCities = array( "name" => $value["address"][$valueType],
+  //                                               "alternateName" => mb_strtoupper($value["address"][$valueType]),
+  //                                               "country" => $countryCode,
+  //                                               "geo" => array( "@type"=>"GeoCoordinates", 
+  //                                                               "latitude" => $value["lat"], 
+  //                                                               "longitude" => $value["lon"]),
 
-                                                "geoPosition" => array( "type"=>"Point",
-                                                                        "float"=>true, 
-                                                                        "coordinates" => array(
-                                                                            floatval($value["lon"]), 
-                                                                            floatval($value["lat"]))),
-                                                "level3Name" => (empty($value["address"]["state"]) ? null : $value["address"]["state"] ),
-                                                "level3" => null,
-                                                "level4Name" => (empty($value["address"]["county"]) ? null : $value["address"]["county"] ),
-                                                "level4" => null,
-                                                "osmID" => $value["osm_id"],
+  //                                               "geoPosition" => array( "type"=>"Point",
+  //                                                                       "float"=>true, 
+  //                                                                       "coordinates" => array(
+  //                                                                           floatval($value["lon"]), 
+  //                                                                           floatval($value["lat"]))),
+  //                                               "level3Name" => (empty($value["address"]["state"]) ? null : $value["address"]["state"] ),
+  //                                               "level3" => null,
+  //                                               "level4Name" => (empty($value["address"]["county"]) ? null : $value["address"]["county"] ),
+  //                                               "level4" => null,
+  //                                               "osmID" => $value["osm_id"],
                                                
-                                                "save" => true);
-                            if(!empty($wikidata))
-                                $newCities = City::getCitiesWithWikiData($wikidata, $newCities);
+  //                                               "save" => true);
+  //                           if(!empty($wikidata))
+  //                               $newCities = City::getCitiesWithWikiData($wikidata, $newCities);
                             
 
-                            if(empty($newCities["insee"]))
-                                $newCities["insee"] = $value["osm_id"]."*".$countryCode;
+  //                           if(empty($newCities["insee"]))
+  //                               $newCities["insee"] = $value["osm_id"]."*".$countryCode;
 
-                            if(empty($newCities["postalCodes"]))
-                                $newCities["postalCodes"] = array();
+  //                           if(empty($newCities["postalCodes"]))
+  //                               $newCities["postalCodes"] = array();
 
-                            // if(empty($newCities["geoShape"]))
-                            //     $newCities["geoShape"] = $value["geojson"];
-
-                            if(City::checkCitySimply($newCities))
-                                $cities[] = $newCities;
+  //                           if(City::checkCitySimply($newCities))
+  //                               $cities[] = $newCities;
                             
                             
-                        }
-                    }                    
-                }
-            }
+  //                       }
+  //                   }                    
+  //               }
+  //           }
             
-        }
-        return $cities;
-    }
+  //       }
+  //       return $cities;
+  //   }
 }
 ?>
