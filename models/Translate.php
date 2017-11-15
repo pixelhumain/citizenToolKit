@@ -265,7 +265,9 @@ class Translate {
 	        $res=$lblEcart.$Annees." ".Yii::t("translate","year".($Annees>1?"s":""))." ".Yii::t("common","and")." ".$Jours." ".Yii::t("translate","day".($Jours>1?"s":"")); // on indique les jours avec les année pour être un peu plus précis
 	    }
 	    else if($Mois > 0) {
-	        $res=$lblEcart.$Mois." ".Yii::t("translate","month".($Mois>1?"s":""))." ".Yii::t("common","and")." ".$Jours." ".Yii::t("translate","day".($Jours>1?"s":"")); // on indique les jours aussi
+	        $res=$lblEcart.$Mois." ".Yii::t("translate","month".($Mois>1?"s":""));
+	        if($Jours > 0)
+	        	$res.=" ".Yii::t("common","and")." ".$Jours." ".Yii::t("translate","day".($Jours>1?"s":"")); // on indique les jours aussi
 	    }
 	    else if($Jours > 0) {
 	        $res=$lblEcart.$Jours." ".Yii::t("translate","day".($Jours>1?"s":""));

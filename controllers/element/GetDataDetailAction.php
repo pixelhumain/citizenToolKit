@@ -168,7 +168,7 @@ class GetDataDetailAction extends CAction {
 			$events = PHDB::findAndSortAndLimitAndIndex( Event::COLLECTION,
 							$query,
 							array("startDate"=>1), 10);
-
+			//var_dump($events);
 			foreach ($events as $key => $value) {
 				$events[$key]["type"] = "events";
 				$events[$key]["typeSig"] = "events";
@@ -218,6 +218,7 @@ class GetDataDetailAction extends CAction {
 		  		}
 		  	}
 		  	$contextMap = array_merge($contextMap, $pois);
+		  	
 			
 			if(@$post["tpl"]=="json")
 				return Rest::json($contextMap);

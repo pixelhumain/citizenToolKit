@@ -86,6 +86,10 @@ class Api {
             $params["tags"] =  (($multiTags == "true") ? array('$eq' => $tagsArray) : array('$in' => $tagsArray));
         }
 
+        if( $type == News::COLLECTION ){
+            $params["scope.type"] = "public";
+        }
+
         if( @$key ) $params["source.key"] = $key ;
         
         if( $limit > 500) $limit = 500 ;
