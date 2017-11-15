@@ -1394,12 +1394,19 @@ class City {
 			// 	$resNominatim = json_decode(SIG::getGeoByAddressNominatim(null, $scopeValue, null, trim($countryCode), true, true, true),true);
 			// }
 			// else
-			$resNominatim = json_decode(SIG::getGeoByAddressNominatim(null, null, $scopeValue, trim($countryCode), true, true, true),true);
+			$resNominatimCity = json_decode(SIG::getGeoByAddressNominatim(null, null, $scopeValue, trim($countryCode), true, true, true),true);
 
-			if(empty($resNominatim))
-				$resNominatim = json_decode(SIG::getGeoByAddressNominatim(null, null, null, trim($countryCode), true, true, true, $scopeValue, true),true);
-			$typeCities = array("city", "village", "town", "hamlet", "state") ;
+			//if(empty($resNominatim)){
+				$resNominatimState = json_decode(SIG::getGeoByAddressNominatim(null, null, null, trim($countryCode), true, true, true, $scopeValue, true),true);
+
+				$resNominatimCountry = json_decode(SIG::getGeoByAddressNominatim(null, null, null, trim($countryCode), true, true, true, $scopeValue, false, true),true);
+				//var_dump($resNominatimCountry );
+				$resNominatim = array_merge($resNominatimCity , $resNominatimState, $resNominatimCountry);
+			//}				
+
+			$typeCities = array("city", "village", "town", "hamlet", "state", "county") ;
 			$typePlace = array("city", "village", "town", "hamlet") ;
+			$typeZone = array("state", "county") ;
 
 			if(!empty($resNominatim)){
 				foreach (@$resNominatim as $key => $value) {
@@ -1420,8 +1427,8 @@ class City {
 							$name = (!empty($name) ? $name : $value["address"][$valueType]) ;
 							// var_dump($nameArray);
 							// var_dump(in_array($name, $nameArray));
-							if ( ( 	$keyType != "state" ||
-									( 	$keyType == "state" && 
+							if ( ( 	 !in_array($keyType, $typeZone) ||
+									( 	in_array($keyType, $typeZone) && 
 										!empty($value["extratags"]["place"]) && 
 +										in_array($value["extratags"]["place"], $typePlace) ) ) &&
 +								 !in_array($value["osm_id"], $nameArray) ) {
