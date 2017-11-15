@@ -1398,11 +1398,12 @@ class City {
 
 			if(empty($resNominatim))
 				$resNominatim = json_decode(SIG::getGeoByAddressNominatim(null, null, null, trim($countryCode), true, true, true, $scopeValue, true),true);
+			$typeCities = array("city", "village", "town", "hamlet", "state") ;
+			$typePlace = array("city", "village", "town", "hamlet") ;
 
 			if(!empty($resNominatim)){
 				foreach (@$resNominatim as $key => $value) {
-					$typeCities = array("city", "village", "town", "state") ;
-					//var_dump($value);
+					
 					foreach ($typeCities as $keyType => $valueType) {
 						if( !empty($value["address"][$valueType]) 
 							&& $countryCode == strtoupper(@$value["address"]["country_code"])) {
@@ -1421,13 +1422,13 @@ class City {
 							// var_dump(in_array($name, $nameArray));
 							if ( ( 	$keyType != "state" ||
 									( 	$keyType == "state" && 
-										empty($value["extratags"]["place"]) && 
-										$value["extratags"]["place"] = "city" )) &&
-								 !in_array($name, $nameArray) ) {
+										!empty($value["extratags"]["place"]) && 
++										in_array($value["extratags"]["place"], $typePlace) ) ) &&
++								 !in_array($value["osm_id"], $nameArray) ) {
 
 								$wikidata = (empty($value["extratags"]["wikidata"]) ? null : $value["extratags"]["wikidata"]);
 								$newCities = array( "name" => $name,
-													"alternateName" => mb_strtoupper($value["address"][$valueType]),
+													"alternateName" => mb_strtoupper($name),
 													"country" => $countryCode,
 													"geo" => array( "@type"=>"GeoCoordinates", 
 																	"latitude" => $value["lat"], 
@@ -1444,7 +1445,7 @@ class City {
 													"osmID" => $value["osm_id"],
 													"save" => true);
 
-								$nameArray[] = $newCities["name"];
+								$nameArray[] = $value["osm_id"];;
 								if(!empty($wikidata))
 									$newCities = City::getCitiesWithWikiData($wikidata, $newCities);
 
