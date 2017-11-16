@@ -291,7 +291,7 @@ class Import
             $newA["osmID"] = $city["osmID"];
         }
 
-        if( !empty($address["postalCode"]) &&  !empty($city["postalCode"]) ) {
+        if( !empty($address["postalCode"]) &&  !empty($city["postalCodes"]) ) {
             foreach ($city["postalCodes"] as $keyCp => $valueCp){
                 if($valueCp["postalCode"] == $address["postalCode"]){
                     $newA['addressLocality'] = $valueCp["name"];
