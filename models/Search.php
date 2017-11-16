@@ -313,10 +313,14 @@ class Search {
 		if(!empty($localities))
 		foreach ($localities as $key => $locality){
 			if(!empty($locality)){
-				if($locality["type"] == City::CONTROLLER)
+				if($locality["type"] == City::CONTROLLER){
 					$queryLocality = array("address.localityId" => $key);
-				else if($locality["type"] == "cp")
-					$queryLocality = array("address.postalCode" => new MongoRegex("/^".$key."/i"));
+					if(!empty($locality["cp"]))
+						$queryLocality = array_merge($queryLocality, array("address.postalCode" => new MongoRegex("/^".$locality["cp"]."/i")));
+				}
+				else if($locality["type"] == "cp"){
+					$queryLocality = array("address.postalCode" => new MongoRegex("/^".$locality["name"]."/i"));
+				}
 				else
 					$queryLocality = array("address.".$locality["type"] => $key);
 				
