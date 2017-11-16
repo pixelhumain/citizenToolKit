@@ -2154,7 +2154,7 @@ class Element {
 			}
 
 		}else if($block == "network"){
-
+			var_dump($block);
 			if(isset($params["telegram"]) && $collection == Person::COLLECTION)
 				$res[] = self::updateField($collection, $id, "telegram", $params["telegram"]);
 			if(isset($params["facebook"]))
@@ -2167,6 +2167,7 @@ class Element {
 				$res[] = self::updateField($collection, $id, "gpplus", self::getAndCheckUrl($params["gpplus"]));
 			if(isset($params["skype"]))
 				$res[] = self::updateField($collection, $id, "skype", self::getAndCheckUrl($params["skype"]));
+			var_dump($res);
 
 		}else if( $block == "when" && ( $collection == Event::COLLECTION || $collection == Project::COLLECTION) ) {
 			

@@ -1394,17 +1394,24 @@ class City {
 			// 	$resNominatim = json_decode(SIG::getGeoByAddressNominatim(null, $scopeValue, null, trim($countryCode), true, true, true),true);
 			// }
 			// else
-			$resNominatim = json_decode(SIG::getGeoByAddressNominatim(null, null, $scopeValue, trim($countryCode), true, true, true),true);
+			$resNominatimCity = json_decode(SIG::getGeoByAddressNominatim(null, null, $scopeValue, trim($countryCode), true, true, true),true);
 
-			if(empty($resNominatim))
-				$resNominatim = json_decode(SIG::getGeoByAddressNominatim(null, null, null, trim($countryCode), true, true, true, $scopeValue, true),true);
+			//if(empty($resNominatim)){
+				$resNominatimState = json_decode(SIG::getGeoByAddressNominatim(null, null, null, trim($countryCode), true, true, true, $scopeValue, true),true);
+
+				$resNominatimCountry = json_decode(SIG::getGeoByAddressNominatim(null, null, null, trim($countryCode), true, true, true, $scopeValue, false, true),true);
+				//var_dump($resNominatimCountry );
+				$resNominatim = array_merge($resNominatimCity , $resNominatimState, $resNominatimCountry);
+			//}				
+
+			$typeCities = array("city", "village", "town", "hamlet", "state", "county") ;
+			$typePlace = array("city", "village", "town", "hamlet") ;
+			$typeZone = array("state", "county") ;
 
 			$typeCities = array("city", "village", "town", "hamlet", "state") ;
 			$typePlace = array("city", "village", "town", "hamlet") ;
 			if(!empty($resNominatim)){
 				foreach (@$resNominatim as $key => $value) {
-
-					//var_dump($value);
 					foreach ($typeCities as $keyType => $valueType) {
 						if( !empty($value["address"][$valueType]) 
 							&& $countryCode == strtoupper(@$value["address"]["country_code"])) {
@@ -1421,11 +1428,13 @@ class City {
 							$name = (!empty($name) ? $name : $value["address"][$valueType]) ;
 							//var_dump($name);
 							// var_dump(in_array($name, $nameArray));
-							if ( ( 	$keyType != "state" ||
-									( 	$keyType == "state" && 
+
+							if ( ( 	 !in_array($keyType, $typeZone) ||
+									( 	in_array($keyType, $typeZone) && 
 										!empty($value["extratags"]["place"]) && 
 										in_array($value["extratags"]["place"], $typePlace) ) ) &&
-								 !in_array($value["osm_id"], $nameArray)  ) {
+								 !in_array($value["osm_id"], $nameArray) ) {
+
 
 								$wikidata = (empty($value["extratags"]["wikidata"]) ? null : $value["extratags"]["wikidata"]);
 								$newCities = array( "name" => $name,
@@ -1447,6 +1456,7 @@ class City {
 													"save" => true);
 
 								$nameArray[] = $value["osm_id"];
+
 								if(!empty($wikidata))
 									$newCities = City::getCitiesWithWikiData($wikidata, $newCities);
 
