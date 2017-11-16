@@ -49,7 +49,7 @@ class DirectoryAction extends CAction
       $stepLim=100;
       if(@$_POST["page"]){
         $limitMin=$limitMin+(100*$_POST["page"]);
-        $stepLim=$stepLim+(100*$_POST["page"]);
+        //$stepLim=$stepLim+(100*$_POST["page"]);
       }
       $searchLocality = isset($_POST['locality']) ? $_POST['locality'] : null;
        //$localities = isset($post['localities']) ? $post['localities'] : null;
