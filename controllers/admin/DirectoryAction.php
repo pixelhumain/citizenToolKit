@@ -7,7 +7,7 @@
   */
 class DirectoryAction extends CAction
 {
-    public function run( $id=null )
+    public function run( $tpl=null )
     {
         $controller = $this->getController();
 
@@ -30,7 +30,7 @@ class DirectoryAction extends CAction
       /* **************************************
       *  EVENTS
       ***************************************** */
-      $events = array();
+    //  $events = array();
       
 
       //TODO - SBAR : Pour le dashboard person, affiche t-on les événements des associations dont je suis memebre ?
@@ -39,34 +39,74 @@ class DirectoryAction extends CAction
       /* **************************************
       *  ORGANIZATIONS
       ***************************************** */
-      $organizations = Organization::getWhere(array());
+      //$organizations = Organization::getWhere(array());
 
       /* **************************************
       *  PEOPLE
       ***************************************** */
       //$people = Person::getWhere(array( "roles.tobeactivated"=> array('$exists'=>1)));
-      $people = Person::getWhere(array( "roles"=> array('$exists'=>1)));
+      $limitMin=0;
+      $stepLim=100;
+      if(@$_POST["page"]){
+        $limitMin=$limitMin+(100*$_POST["page"]);
+        $stepLim=$stepLim+(100*$_POST["page"]);
+      }
+      $searchLocality = isset($_POST['locality']) ? $_POST['locality'] : null;
+       //$localities = isset($post['localities']) ? $post['localities'] : null;
+     // $searchType = isset($post['searchType']) ? $post['searchType'] : null;
+      $searchTags = isset($_POST['searchTag']) ? $_POST['searchTag'] : null;
+      $country = isset($_POST['country']) ? $_POST['country'] : "";
+      $search="";
+      if(@$_POST["value"] && !empty($_POST["value"])){
+        $search = trim(urldecode($_POST['value']));
+      }
+      $query = array();
+      $query = Search::searchString($search, $query);
+      if( /*!empty($searchTags)*/ count($searchTags) > 1  || count($searchTags) == 1 && $searchTags[0] != "" ){
+        if( (strcmp($filter, Classified::COLLECTION) != 0 && self::typeWanted(Classified::COLLECTION, $searchType)) ||
+          (strcmp($filter, Place::COLLECTION) != 0 && self::typeWanted(Place::COLLECTION, $searchType)) ){
+            $queryTags =  Search::searchTags($searchTags, '$all') ;
+        }
+        else 
+          $queryTags =  Search::searchTags($searchTags) ;
+        if(!empty($queryTags))
+          $query = array('$and' => array( $query , $queryTags) );
+      }
+      if(!empty($searchLocality))
+        $query = Search::searchLocality($searchLocality, $query);
+      
+       //:::::::::::::://////CITOYENS///////////////////////////////////
+        $res = array();
+        $allCitoyen = PHDB::findAndLimitAndIndex ( Person::COLLECTION , $query, $stepLim, $limitMin);
+        $countAllCitoyen = PHDB::count( Person::COLLECTION , $query);
+      ///////////////////////////////END CITOYENS //////////////////////////////////////////////
 
+    //  $people = Person::getWhereByLimit(array( "roles"=> array('$exists'=>1)));
+      //$counẗPeople=Person::countByWhere(array( "roles"=> array('$exists'=>1)));
       /* **************************************
       *  PROJECTS
       ***************************************** */
       $projects = array();
 
-      $params["organizations"] = $organizations;
-      $params["projects"] = $projects;
-      $params["events"] = $events;
-      $params["people"] = $people;
-      $params["people"] = $people;
-      $params["superAdmin"] = $superAdmin ;
+      $params["results"]["organizations"] = array();//$organizations;
+      $params["results"]["projects"] = array();//$projects;
+      $params["results"]["events"] = array();//$events;
+      $params["results"]["countPeople"]=$countAllCitoyen;
+      $params["results"][Person::COLLECTION] = $allCitoyen;
+      //$params["people"] = $people;
+      $params["results"]["superAdmin"] = $superAdmin ;
       //$params["path"] = "../default/";
 
 		  $page = "directoryTable";
-
-      if(Yii::app()->request->isAjaxRequest){
-        echo $controller->renderPartial($page,$params,true);
-      }
-      else {
-        $controller->render($page,$params);
+      if($tpl=="json")
+        Rest::json( $params );
+      else{
+        if(Yii::app()->request->isAjaxRequest){
+          echo $controller->renderPartial($page,$params,true);
+        }
+        else {
+          $controller->render($page,$params);
+        }
       }
     }
 }
