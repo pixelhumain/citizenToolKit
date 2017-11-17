@@ -1605,10 +1605,12 @@ class Element {
                 	$params["creator"] = Yii::app()->session["userId"];
 	        		$params["created"] = time();
 	        		if(in_array($collection,[Organization::COLLECTION,Project::COLLECTION,Event::COLLECTION])){
+
 	        			$slug=Slug::checkAndCreateSlug($params["name"],$collection,$id);
 	        			Slug::save($collection,$id,$slug);
 	        			$params["slug"]=$slug;
 	        		}
+
                 	PHDB::updateWithOptions($collection,array("_id"=>new MongoId($id)), array('$set' => $params ),array('upsert' => true ));
                 	$params["_id"]=new MongoId($id);
                 	if( $collection == Organization::COLLECTION )
@@ -1647,6 +1649,15 @@ class Element {
                 // ***********************************
                // echo "ici";
                 //echo $collection;
+
+                if(in_array($collection,[Organization::COLLECTION,Project::COLLECTION,Event::COLLECTION])){
+        			$slug=Slug::checkAndCreateSlug($params["name"],$collection, $res["id"]);
+        			//var_dump($slug);
+        			Slug::save($collection, $res["id"],$slug);
+        			$params["slug"]=$slug;
+        			self::updateField($collection, $res["id"], "slug", $slug);
+        		}
+
                 if( $collection == Organization::COLLECTION )
                 	$res["afterSave"] = Organization::afterSave($params, Yii::app()->session["userId"], $paramsLinkImport);
                 else if( $collection == Event::COLLECTION )
