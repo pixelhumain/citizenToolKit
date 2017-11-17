@@ -2121,7 +2121,7 @@ class Element {
 					$res[] = self::updateField($collection, $id, "email", $params["email"]);
 				if(isset($params["slug"])){
 					$el = PHDB::findOne($collection,array("_id"=>new MongoId($id)));
-					$oldslug = $el["slug"];
+					$oldslug = @$el["slug"];
 					if(!empty(Slug::getByTypeAndId($collection,$id)))
 						Slug::update($collection,$id,$params["slug"]);
 					else
