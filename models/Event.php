@@ -21,6 +21,7 @@ class Event {
 		"conference"=>"Conference",
 		"debate"=>"Debate",
 		"film"=>"Film",
+		"stand"=>"Stand",
 		"crowdfunding"=>"Crowdfunding",
 		"others"=>"Others",
 	);  
