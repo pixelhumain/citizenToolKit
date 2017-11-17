@@ -2,15 +2,12 @@
 
 class Slug {
 	const COLLECTION = "slugs";
-	const CONTROLER = "slug";
-
 	public static function save($type, $id, $slug){
 		PHDB::insert(self::COLLECTION,
 			array("id"=>$id,"type"=>$type,"name"=>$slug)
 		);
 		return true;
 	}
-
 	public static function update($type, $id, $slug){
 		
 		PHDB::update(self::COLLECTION,
@@ -20,11 +17,9 @@ class Slug {
 		
 		return true;
 	}
-
 	public static function getByTypeAndId($type,$id){
 		return PHDB::findOne(self::COLLECTION,array("type"=>$type,"id"=>$id));
 	}
-
 	public static function getBySlug($slug){
 		return PHDB::findOne(self::COLLECTION,array("name"=>$slug));
 	}
@@ -41,7 +36,6 @@ class Slug {
 		else 
 			return true;
 	}
-
 	public static function checkAndCreateSlug($str){
 		$unwanted_array = array(    
 			'Š'=>'S', 'š'=>'s', 'Ž'=>'Z', 'ž'=>'z', 'À'=>'A', 'Á'=>'A', 'Â'=>'A', 'Ã'=>'A', 'Ä'=>'A', 'Å'=>'A', 'Æ'=>'A', 'Ç'=>'C', 'È'=>'E', 'É'=>'E',
@@ -50,8 +44,6 @@ class Slug {
             'è'=>'e', 'é'=>'e', 'ê'=>'e', 'ë'=>'e', 'ì'=>'i', 'í'=>'i', 'î'=>'i', 'ï'=>'i', 'ð'=>'o', 'ñ'=>'n', 'ò'=>'o', 'ó'=>'o', 'ô'=>'o', 'õ'=>'o',
             'ö'=>'o', 'ø'=>'o', 'ù'=>'u', 'ú'=>'u', 'û'=>'u', 'ý'=>'y', 'þ'=>'b', 'ÿ'=>'y' );
 		$res="";
-		if(strlen($str)>50)
-			substr($str,50);			
 		$value=explode(" ",$str);
 		$i=0;
 		foreach($value as $v){
