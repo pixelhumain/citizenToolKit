@@ -30,39 +30,42 @@ class SimplyAutoCompleteAction extends CAction
 
         /***********************************  TAGS   *****************************************/
         $tmpTags = array();
-        if(strpos($search, "#") > -1){
-        	$search = substr($search, 1, strlen($search));
-        	// $query = array( "tags" => array('$in' => array(new MongoRegex("/".$search."/i")))) ; //new MongoRegex("/".$search."/i") )));
-        	//$tmpTags[] = new MongoRegex("/".$search."/i");
-        	$tmpTags[] = new MongoRegex("/^".Search::accentToRegex($tags)."$/i");
-  		}
-
-
-  		$verbTag = ( (!empty($paramsFiltre) && '$all' == $paramsFiltre) ? '$all' : '$in' ) ;
-  		if(count($tmpTags)){
-  			$query = array('$and' => array( $query , array("tags" => array($verbTag => $tmpTags)))) ;
-  		}
-
+        if(!empty($search)){
+        	var_dump("hehe");
+  			var_dump($search);
+        	if(strpos($search, "#") > -1){
+	        	$search = substr($search, 1, strlen($search));
+	        	// $query = array( "tags" => array('$in' => array(new MongoRegex("/".$search."/i")))) ; //new MongoRegex("/".$search."/i") )));
+	        	//$tmpTags[] = new MongoRegex("/".$search."/i");
+	        	$tmpTags[] = new MongoRegex("/^".Search::accentToRegex($tags)."$/i");
+	  		}
+	  		if(count($tmpTags)){
+	  			$verbTag = ( (!empty($paramsFiltre) && '$all' == $paramsFiltre) ? '$all' : '$in' ) ;
+	  			$query = array('$and' => array( $query , array("tags" => array($verbTag => $tmpTags)))) ;
+	  		}
+        }
+        
   		if(!empty($searchTag)){
   			$isString = false;
   			$tmpTags = array();
   			foreach ($searchTag as $key => $tags) {
-	  			
-	  			if(is_array($tags)){
-	  				foreach ($tags as $key => $tag) {
-	  					$tmpTags[] = new MongoRegex("/^".Search::accentToRegex($tags)."$/i");
-				  		//$tmpTags[] = new MongoRegex("/".$tag."/i");
-			  		}
-			  		if(count($tmpTags)){
-			  			$verbTag = ( (!empty($paramsFiltre) && '$all' == $paramsFiltre) ? '$all' : '$in' ) ;
-			  			$query = array('$and' => array( $query , array("tags" => array($verbTag => $tmpTags)))) ;
-			  		}
-	  			}else{
-	  				$tmpTags[] = new MongoRegex("/^".Search::accentToRegex($tags)."$/i");
-	  				//$tmpTags[] = new MongoRegex("/".$tags."/i");
-				  	
-			  		$isString = true;
-	  			}
+	  			if(!empty($tags)){
+		  			if(is_array($tags)){
+		  				foreach ($tags as $key => $tag) {
+		  					$tmpTags[] = new MongoRegex("/^".Search::accentToRegex($tags)."$/i");
+					  		//$tmpTags[] = new MongoRegex("/".$tag."/i");
+				  		}
+				  		if(count($tmpTags)){
+				  			$verbTag = ( (!empty($paramsFiltre) && '$all' == $paramsFiltre) ? '$all' : '$in' ) ;
+				  			$query = array('$and' => array( $query , array("tags" => array($verbTag => $tmpTags)))) ;
+				  		}
+		  			}else{
+		  				$tmpTags[] = new MongoRegex("/^".Search::accentToRegex($tags)."$/i");
+		  				//$tmpTags[] = new MongoRegex("/".$tags."/i");
+					  	
+				  		$isString = true;
+		  			}
+		  		}
 	  		}
 
 	  		if($isString && count($tmpTags)){
@@ -77,11 +80,13 @@ class SimplyAutoCompleteAction extends CAction
 
       /***********************************   MAINTAG    *****************************************/
       $tmpmainTag = array();
-      if($mainTag != null && $mainTag != ""){
+      if(!empty($mainTag)){
           //Several Sourcekey
+      		$tmpMainTag = array();
   	  		if(is_array($mainTag)){
   	  			foreach ($mainTag as $value) {
-  	  				$tmpMainTag[] = new MongoRegex("/".$value."/i");
+  	  				if(!empty($value))
+  	  					$tmpMainTag[] = new MongoRegex("/".$value."/i");
   	  			}
   	  		}//One Sourcekey
   	  		else{
@@ -111,7 +116,7 @@ class SimplyAutoCompleteAction extends CAction
 	  		}
 	  		unset($tmpSourceKey);
 	  	}
-
+	  	//var_dump($query);
   		/***********************************  DEFINE LOCALITY QUERY   ***************************************/
   		$localityReferences['NAME'] = "address.addressLocality";
   		$localityReferences['CODE_POSTAL_INSEE'] = "address.postalCode";
@@ -124,7 +129,10 @@ class SimplyAutoCompleteAction extends CAction
   				foreach ($_POST["searchLocality".$key] as $locality) {
 
   					//OneRegion
+
   					if($key == "REGION") {
+  						if($locality == "La Réunion")
+  							$locality = "Réunion" ;
 	        			$dep = PHDB::findOne( City::COLLECTION, array("level3Name" => $locality), array("level3"));
 	        			if(!empty($dep))
 	        				$queryLocality = array("address.level3" => $dep["level3"]);
@@ -153,14 +161,13 @@ class SimplyAutoCompleteAction extends CAction
   		if(isset($allQueryLocality) && is_array($allQueryLocality))
   			$query = array('$and' => array($query, $allQueryLocality));
 	    $allRes = array();
-
         /***********************************  PERSONS   *****************************************/
        if(strcmp($filter, Person::COLLECTION) != 0 && $this->typeWanted("citoyen", $searchType)){
 
         	$allCitoyen = PHDB::find ( Person::COLLECTION , $query, array("name", "address", "shortDescription", "description"));
 
 	  		foreach ($allCitoyen as $key => $value) {
-	  			$person = Person::getSimpleUserById($key);
+	  			$person = Person::getSimpleUserById($key, $value);
 	  			$person["type"] = "citoyen";
 				$person["typeSig"] = "citoyens";
 				$allCitoyen[$key] = $person;
@@ -173,26 +180,14 @@ class SimplyAutoCompleteAction extends CAction
 
 	  	/***********************************  ORGANISATIONS   *****************************************/
         if(strcmp($filter, Organization::COLLECTION) != 0 && $this->typeWanted("organizations", $searchType)){
-
-	  		$allOrganizations = PHDB::find ( Organization::COLLECTION ,$query ,array("id" => 1, "name" => 1, "type" => 1, "email" => 1,  "shortDescription" => 1, "description" => 1,
-													 			"address" => 1, "pending" => 1, "tags" => 1, "geo" => 1, "source.key" => 1));
+        	if(in_array("NGO", $searchType))
+        		$query = array('$and' => array($query, array("type" => "NGO")));
+        	//var_dump($query);
+	  		$allOrganizations = PHDB::find ( Organization::COLLECTION ,$query ,array("id" => 1, "name" => 1, "type" => 1, "email" => 1, "url" => 1, "shortDescription" => 1, "description" => 1, "address" => 1, "pending" => 1, "tags" => 1, "geo" => 1, "updated" => 1, "profilImageUrl" => 1, "profilThumbImageUrl" => 1, "profilMarkerImageUrl" => 1,"profilMediumImageUrl" => 1, "addresses"=>1, "telephone"=>1, "slug"=>1));
 	  		foreach ($allOrganizations as $key => $value) {
-	  			$orga = Organization::getSimpleOrganizationById($key);
+	  			$orga = Organization::getSimpleOrganizationById($key, $value);
 
-	  			// $followers = Organization::getFollowersByOrganizationId($key);
-	  			// if(@$followers[Yii::app()->session["userId"]]){
-		  		// 	$orga["isFollowed"] = true;
-	  			// }
-
-	  	// 		$allOrganizations[$key]["profilThumbImageUrl"] = "";
-				// $allOrganizations[$key]["profilMarkerImageUrl"] = "//com/assets/dad45ab2/images/sig/markers/icons_carto/";
-				// $allOrganizations[$key]["logoImageUrl"] = "";
-
-				// $allOrganizations[$key]["address"] = empty($value["address"]) ? array("addressLocality" => "Unknown") : $value["address"];
-
-				// $allOrganizations[$key] = Organization::getSimpleOrganizationById($key);
-
-				$allOrganizations[$key] = $orga;
+	  			$allOrganizations[$key] = $orga;
 				$allOrganizations[$key]["type"] = "organizations";
 				$allOrganizations[$key]["typeSig"] = "organizations";
 	  		}
