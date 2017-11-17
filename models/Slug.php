@@ -25,16 +25,19 @@ class Slug {
 	}
 	
 	public static function check($slug,$type=null,$id=null){
-		$where=array("name"=>$slug);
-		if(@$id && @$type && !empty($id)){
-			$where["id"]=array('$ne'=>$id);
-			$where["type"]=array('$ne'=>$type);
-		}
-		$res=PHDB::findOne(self::COLLECTION,$where);
-		if(!empty($res))
+		if(!in_array($slug,["search","agenda","annonces","live"])){
+			$where=array("name"=>$slug);
+			if(@$id && @$type && !empty($id)){
+				$where["id"]=array('$ne'=>$id);
+				$where["type"]=array('$ne'=>$type);
+			}
+			$res=PHDB::findOne(self::COLLECTION,$where);
+			if(!empty($res))
+				return false;
+			else 
+				return true;
+		}else
 			return false;
-		else 
-			return true;
 	}
 	public static function checkAndCreateSlug($str){
 		$unwanted_array = array(    
@@ -44,6 +47,9 @@ class Slug {
             'è'=>'e', 'é'=>'e', 'ê'=>'e', 'ë'=>'e', 'ì'=>'i', 'í'=>'i', 'î'=>'i', 'ï'=>'i', 'ð'=>'o', 'ñ'=>'n', 'ò'=>'o', 'ó'=>'o', 'ô'=>'o', 'õ'=>'o',
             'ö'=>'o', 'ø'=>'o', 'ù'=>'u', 'ú'=>'u', 'û'=>'u', 'ý'=>'y', 'þ'=>'b', 'ÿ'=>'y' );
 		$res="";
+
+		if(strlen($str)>50)
+			$str=substr($str,50);
 		$value=explode(" ",$str);
 		$i=0;
 		foreach($value as $v){
