@@ -180,9 +180,9 @@ class SimplyAutoCompleteAction extends CAction
 
 	  	/***********************************  ORGANISATIONS   *****************************************/
         if(strcmp($filter, Organization::COLLECTION) != 0 && $this->typeWanted("organizations", $searchType)){
-        	if(in_array("NGO", $searchType))
-        		$query = array('$and' => array($query, array("type" => "NGO")));
-        	//var_dump($query);
+        	// if(in_array("NGO", $searchType))
+        	// 	$query = array('$and' => array($query, array("type" => "NGO")));
+        	
 	  		$allOrganizations = PHDB::find ( Organization::COLLECTION ,$query ,array("id" => 1, "name" => 1, "type" => 1, "email" => 1, "url" => 1, "shortDescription" => 1, "description" => 1, "address" => 1, "pending" => 1, "tags" => 1, "geo" => 1, "updated" => 1, "profilImageUrl" => 1, "profilThumbImageUrl" => 1, "profilMarkerImageUrl" => 1,"profilMediumImageUrl" => 1, "addresses"=>1, "telephone"=>1, "slug"=>1));
 	  		foreach ($allOrganizations as $key => $value) {
 	  			$orga = Organization::getSimpleOrganizationById($key, $value);
