@@ -2103,33 +2103,31 @@ class Element {
 		$id = $params["id"];
 		$res = array();
 		try {
-		if($block == "info"){
-			if(isset($params["name"])){
-				$res[] = self::updateField($collection, $id, "name", $params["name"]);
-				/*PHDB::update( $collection,  array("_id" => new MongoId($id)), 
-		 										array('$unset' => array("hasRC"=>"") ));*/
-			}
-			if(isset($params["username"]) && $collection == Person::COLLECTION)
-				$res[] = self::updateField($collection, $id, "username", $params["username"]);
-			if(isset($params["avancement"]) && $collection == Project::COLLECTION)
-				$res[] = self::updateField($collection, $id, "avancement", $params["avancement"]);
-			if(isset($params["tags"]))
-				$res[] = self::updateField($collection, $id, "tags", $params["tags"]);
-			if(isset($params["type"])  && ( $collection == Event::COLLECTION || $collection == Organization::COLLECTION) )
-				$res[] = self::updateField($collection, $id, "type", $params["type"]);
-			if(isset($params["email"]))
-				$res[] = self::updateField($collection, $id, "email", $params["email"]);
-			if(isset($params["slug"])){
-				
-				$el = PHDB::findOne($collection,array("_id"=>new MongoId($id)));
-				$oldslug = $el["slug"];
-				if(!empty(Slug::getByTypeAndId($collection,$id)))
-					Slug::update($collection,$id,$params["slug"]);
-				else
-					Slug::save($collection,$id,$params["slug"]);
-				$res[] = self::updateField($collection, $id, "slug", $params["slug"]);
-
-				
+			if($block == "info"){
+				if(isset($params["name"])){
+					$res[] = self::updateField($collection, $id, "name", $params["name"]);
+					/*PHDB::update( $collection,  array("_id" => new MongoId($id)), 
+			 										array('$unset' => array("hasRC"=>"") ));*/
+				}
+				if(isset($params["username"]) && $collection == Person::COLLECTION)
+					$res[] = self::updateField($collection, $id, "username", $params["username"]);
+				if(isset($params["avancement"]) && $collection == Project::COLLECTION)
+					$res[] = self::updateField($collection, $id, "avancement", $params["avancement"]);
+				if(isset($params["tags"]))
+					$res[] = self::updateField($collection, $id, "tags", $params["tags"]);
+				if(isset($params["type"])  && ( $collection == Event::COLLECTION || $collection == Organization::COLLECTION) )
+					$res[] = self::updateField($collection, $id, "type", $params["type"]);
+				if(isset($params["email"]))
+					$res[] = self::updateField($collection, $id, "email", $params["email"]);
+				if(isset($params["slug"])){
+					$el = PHDB::findOne($collection,array("_id"=>new MongoId($id)));
+					$oldslug = $el["slug"];
+					if(!empty(Slug::getByTypeAndId($collection,$id)))
+						Slug::update($collection,$id,$params["slug"]);
+					else
+						Slug::save($collection,$id,$params["slug"]);
+					$res[] = self::updateField($collection, $id, "slug", $params["slug"]);
+				}
 				//update RC channel name if exist
 				if(@$el["hasRC"]){
 					RocketChat::rename( $oldslug, $params["slug"], @$el["preferences"]["isOpenEdition"] );
