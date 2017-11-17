@@ -640,14 +640,14 @@ class Import
 									$element["info"] = $res["msg"];
 									$element["type"] = $typeElement;
 									if(!empty($res["id"])){
-										$element["url"] = "/#".Element::getControlerByCollection($typeElement).".detail.id.".$res["id"] ;
+										$element["url"] = "/#page.type.".$typeElement.".id.".$res["id"] ;
 										$element["id"] = $res["id"] ;
 									}
 									
 								} else {
 									$element["name"] = $exist["element"]["name"];
 									$element["info"] = "L'élément existes déjà";
-									$element["url"] = "/#".Element::getControlerByCollection($typeElement).".detail.id.".(String)$exist["element"]["_id"] ;
+									$element["url"] = "/#page.type.".$typeElement.".id.".(String)$exist["element"]["_id"] ;
 									$element["type"] = $typeElement ;
 									$element["id"] = (String)$exist["element"]["_id"] ;
 								}

@@ -1605,10 +1605,12 @@ class Element {
                 	$params["creator"] = Yii::app()->session["userId"];
 	        		$params["created"] = time();
 	        		if(in_array($collection,[Organization::COLLECTION,Project::COLLECTION,Event::COLLECTION])){
+
 	        			$slug=Slug::checkAndCreateSlug($params["name"],$collection,$id);
 	        			Slug::save($collection,$id,$slug);
 	        			$params["slug"]=$slug;
 	        		}
+
                 	PHDB::updateWithOptions($collection,array("_id"=>new MongoId($id)), array('$set' => $params ),array('upsert' => true ));
                 	$params["_id"]=new MongoId($id);
                 	if( $collection == Organization::COLLECTION )
@@ -1647,6 +1649,15 @@ class Element {
                 // ***********************************
                // echo "ici";
                 //echo $collection;
+
+                if(in_array($collection,[Organization::COLLECTION,Project::COLLECTION,Event::COLLECTION])){
+        			$slug=Slug::checkAndCreateSlug($params["name"],$collection, $res["id"]);
+        			//var_dump($slug);
+        			Slug::save($collection, $res["id"],$slug);
+        			$params["slug"]=$slug;
+        			self::updateField($collection, $res["id"], "slug", $slug);
+        		}
+
                 if( $collection == Organization::COLLECTION )
                 	$res["afterSave"] = Organization::afterSave($params, Yii::app()->session["userId"], $paramsLinkImport);
                 else if( $collection == Event::COLLECTION )
@@ -2091,6 +2102,7 @@ class Element {
 		$collection = $params["typeElement"];
 		$id = $params["id"];
 		$res = array();
+		try {
 		if($block == "info"){
 			if(isset($params["name"])){
 				$res[] = self::updateField($collection, $id, "name", $params["name"]);
@@ -2122,140 +2134,144 @@ class Element {
 				if(@$el["hasRC"]){
 					RocketChat::rename( $oldslug, $params["slug"], @$el["preferences"]["isOpenEdition"] );
 				}
-			}
-			if(isset($params["url"]))
-				$res[] = self::updateField($collection, $id, "url", self::getAndCheckUrl($params["url"]));
-			if(isset($params["birthDate"]) && $collection == Person::COLLECTION)
-				$res[] = self::updateField($collection, $id, "birthDate", $params["birthDate"]);
-			if(isset($params["fixe"]))
-				$res[] = self::updateField($collection, $id, "fixe", $params["fixe"]);
-			if(isset($params["fax"]))
-				$res[] = self::updateField($collection, $id, "fax", $params["fax"]);
-			if(isset($params["mobile"]))
-				$res[] = self::updateField($collection, $id, "mobile", $params["mobile"]);
-			if(!empty($params["parentId"]) && !empty($params["parentType"])){
-				$parent["parentId"] = $params["parentId"] ;
-				$parent["parentType"] = $params["parentType"] ;
-				$resParent = self::updateField($collection, $id, "parent", $parent);
-				$resParent["value"]["parent"] = Element::getByTypeAndId( $params["parentType"], $params["parentId"]);
-				$res[] = $resParent;
-			}
-			if(!empty($params["organizerId"]) && !empty($params["organizerType"])){
-				$organizer["organizerId"] = $params["organizerId"] ;
-				$organizer["organizerType"] = $params["organizerType"] ;
-				$resOrg = self::updateField($collection, $id, "organizer", $organizer);
-				if($params["organizerType"]!="dontKnow"){
-					$resOrg["value"]["organizer"] = Element::getByTypeAndId( $params["organizerType"], $params["organizerId"]);
+				if(isset($params["url"]))
+					$res[] = self::updateField($collection, $id, "url", self::getAndCheckUrl($params["url"]));
+				if(isset($params["birthDate"]) && $collection == Person::COLLECTION)
+					$res[] = self::updateField($collection, $id, "birthDate", $params["birthDate"]);
+				if(isset($params["fixe"]))
+					$res[] = self::updateField($collection, $id, "fixe", $params["fixe"]);
+				if(isset($params["fax"]))
+					$res[] = self::updateField($collection, $id, "fax", $params["fax"]);
+				if(isset($params["mobile"]))
+					$res[] = self::updateField($collection, $id, "mobile", $params["mobile"]);
+				if(!empty($params["parentId"]) && !empty($params["parentType"])){
+					$parent["parentId"] = $params["parentId"] ;
+					$parent["parentType"] = $params["parentType"] ;
+					$resParent = self::updateField($collection, $id, "parent", $parent);
+					$resParent["value"]["parent"] = Element::getByTypeAndId( $params["parentType"], $params["parentId"]);
+					$res[] = $resParent;
 				}
-				$res[] = $resOrg;
-			}
+				if(!empty($params["organizerId"]) && !empty($params["organizerType"])){
+					$organizer["organizerId"] = $params["organizerId"] ;
+					$organizer["organizerType"] = $params["organizerType"] ;
+					$resOrg = self::updateField($collection, $id, "organizer", $organizer);
+					if($params["organizerType"]!="dontKnow"){
+						$resOrg["value"]["organizer"] = Element::getByTypeAndId( $params["organizerType"], $params["organizerId"]);
+					}
+					$res[] = $resOrg;
+				}
 
-		}else if($block == "network"){
-			var_dump($block);
-			if(isset($params["telegram"]) && $collection == Person::COLLECTION)
-				$res[] = self::updateField($collection, $id, "telegram", $params["telegram"]);
-			if(isset($params["facebook"]))
-				$res[] = self::updateField($collection, $id, "facebook", self::getAndCheckUrl($params["facebook"]));
-			if(isset($params["twitter"]))
-				$res[] = self::updateField($collection, $id, "twitter", self::getAndCheckUrl($params["twitter"]));
-			if(isset($params["github"]))
-				$res[] = self::updateField($collection, $id, "github", self::getAndCheckUrl($params["github"]));
-			if(isset($params["gpplus"]))
-				$res[] = self::updateField($collection, $id, "gpplus", self::getAndCheckUrl($params["gpplus"]));
-			if(isset($params["skype"]))
-				$res[] = self::updateField($collection, $id, "skype", self::getAndCheckUrl($params["skype"]));
-			var_dump($res);
+			}else if($block == "network"){
+				var_dump($block);
+				if(isset($params["telegram"]) && $collection == Person::COLLECTION)
+					$res[] = self::updateField($collection, $id, "telegram", $params["telegram"]);
+				if(isset($params["facebook"]))
+					$res[] = self::updateField($collection, $id, "facebook", self::getAndCheckUrl($params["facebook"]));
+				if(isset($params["twitter"]))
+					$res[] = self::updateField($collection, $id, "twitter", self::getAndCheckUrl($params["twitter"]));
+				if(isset($params["github"]))
+					$res[] = self::updateField($collection, $id, "github", self::getAndCheckUrl($params["github"]));
+				if(isset($params["gpplus"]))
+					$res[] = self::updateField($collection, $id, "gpplus", self::getAndCheckUrl($params["gpplus"]));
+				if(isset($params["skype"]))
+					$res[] = self::updateField($collection, $id, "skype", self::getAndCheckUrl($params["skype"]));
+				var_dump($res);
 
-		}else if( $block == "when" && ( $collection == Event::COLLECTION || $collection == Project::COLLECTION) ) {
+			}else if( $block == "when" && ( $collection == Event::COLLECTION || $collection == Project::COLLECTION) ) {
+				
+				if(isset($params["allDayHidden"]) && $collection == Event::COLLECTION)
+					$res[] = self::updateField($collection, $id, "allDay", (($params["allDayHidden"] == "true") ? true : false));
+				if(isset($params["startDate"]))
+					$res[] = self::updateField($collection, $id, "startDate", $params["startDate"],@$params["allDay"]);
+				if(isset($params["endDate"]))
+					$res[] = self::updateField($collection, $id, "endDate", $params["endDate"],@$params["allDay"]);
 			
-			if(isset($params["allDayHidden"]) && $collection == Event::COLLECTION)
-				$res[] = self::updateField($collection, $id, "allDay", (($params["allDayHidden"] == "true") ? true : false));
-			if(isset($params["startDate"]))
-				$res[] = self::updateField($collection, $id, "startDate", $params["startDate"],@$params["allDay"]);
-			if(isset($params["endDate"]))
-				$res[] = self::updateField($collection, $id, "endDate", $params["endDate"],@$params["allDay"]);
-		
-		}else if($block == "toMarkdown"){
+			}else if($block == "toMarkdown"){
 
-			$res[] = self::updateField($collection, $id, "description", $params["value"]);
-			$res[] = self::updateField($collection, $id, "descriptionHTML", null);
+				$res[] = self::updateField($collection, $id, "description", $params["value"]);
+				$res[] = self::updateField($collection, $id, "descriptionHTML", null);
 
-		}else if($block == "descriptions"){
+			}else if($block == "descriptions"){
 
-			if(isset($params["tags"]))
-				$res[] = self::updateField($collection, $id, "tags", $params["tags"]);
+				if(isset($params["tags"]))
+					$res[] = self::updateField($collection, $id, "tags", $params["tags"]);
 
-			if(isset($params["description"])){
-				$res[] = self::updateField($collection, $id, "description", $params["description"]);
-				self::updateField($collection, $id, "descriptionHTML", null);
-			}
+				if(isset($params["description"])){
+					$res[] = self::updateField($collection, $id, "description", $params["description"]);
+					self::updateField($collection, $id, "descriptionHTML", null);
+				}
+				
+				if(isset($params["shortDescription"]))
+					$res[] = self::updateField($collection, $id, "shortDescription", strip_tags($params["shortDescription"]));
 			
-			if(isset($params["shortDescription"]))
-				$res[] = self::updateField($collection, $id, "shortDescription", strip_tags($params["shortDescription"]));
-		
-		}else if($block == "activeCoop"){
+			}else if($block == "activeCoop"){
 
-			if(isset($params["status"]))
-				$res[] = self::updateField($collection, $id, "status", $params["status"]);
-			if(isset($params["voteActivated"]))
-				$res[] = self::updateField($collection, $id, "voteActivated", $params["voteActivated"]);
-			if(isset($params["amendementActivated"]))
-				$res[] = self::updateField($collection, $id, "amendementActivated", $params["amendementActivated"]);
-		
-		}else if($block == "amendement"){
+				if(isset($params["status"]))
+					$res[] = self::updateField($collection, $id, "status", $params["status"]);
+				if(isset($params["voteActivated"]))
+					$res[] = self::updateField($collection, $id, "voteActivated", $params["voteActivated"]);
+				if(isset($params["amendementActivated"]))
+					$res[] = self::updateField($collection, $id, "amendementActivated", $params["amendementActivated"]);
+			
+			}else if($block == "amendement"){
 
-			if(isset($params["txtAmdt"]) && isset($params["typeAmdt"]) && isset($params["id"]) && @Yii::app()->session['userId']){
-				$proposal = Proposal::getById($params["id"]);
-				$amdtList = @$proposal["amendements"] ? $proposal["amendements"] : array();
-				$rand = rand(1000, 100000);
-				while(isset($amdtList[$rand])){ $rand = rand(1000, 100000); }
+				if(isset($params["txtAmdt"]) && isset($params["typeAmdt"]) && isset($params["id"]) && @Yii::app()->session['userId']){
+					$proposal = Proposal::getById($params["id"]);
+					$amdtList = @$proposal["amendements"] ? $proposal["amendements"] : array();
+					$rand = rand(1000, 100000);
+					while(isset($amdtList[$rand])){ $rand = rand(1000, 100000); }
 
-				$amdtList[$rand] = array(
-									"idUserAuthor"=> Yii::app()->session['userId'],
-									"typeAmdt" => $params["typeAmdt"],
-									"textAdd"=> $params["txtAmdt"]);
-				Notification::constructNotification ( ActStr::VERB_AMEND, array("id" => Yii::app()->session["userId"],"name"=> Yii::app()->session["user"]["name"]), array("type"=>$proposal["parentType"],"id"=>$proposal["parentId"]),array( "type"=>Proposal::COLLECTION,"id"=> $params["id"] ) );
-				$res[] = self::updateField($collection, $id, "amendements", $amdtList);
+					$amdtList[$rand] = array(
+										"idUserAuthor"=> Yii::app()->session['userId'],
+										"typeAmdt" => $params["typeAmdt"],
+										"textAdd"=> $params["txtAmdt"]);
+					Notification::constructNotification ( ActStr::VERB_AMEND, array("id" => Yii::app()->session["userId"],"name"=> Yii::app()->session["user"]["name"]), array("type"=>$proposal["parentType"],"id"=>$proposal["parentId"]),array( "type"=>Proposal::COLLECTION,"id"=> $params["id"] ) );
+					$res[] = self::updateField($collection, $id, "amendements", $amdtList);
+				}
 			}
-		}
 
-		if(Import::isUncomplete($id, $collection)){
-			Import::checkWarning($id, $collection, Yii::app()->session['userId'] );
-		}
-
-		$result = array("result"=>true);
-		$resultGoods = array();
-		$resultErrors = array();
-		$values = array();
-		$msg = "";
-		$msgError = "";
-		foreach ($res as $key => $value) {
-			if($value["result"] == true){
-				if($msg != "")
-					$msg .= ", ";
-				$msg .= Yii::t("common",$value["fieldName"]);
-				$values[$value["fieldName"]] = $value["value"];
-			}else{
-				if($msgError != "")
-					$msgError .= ". ";
-				$msgError .= $value["mgs"];
+			if(Import::isUncomplete($id, $collection)){
+				Import::checkWarning($id, $collection, Yii::app()->session['userId'] );
 			}
-		}
 
-		if($msg != ""){
-			$resultGoods["result"]=true;
-			$resultGoods["msg"]= Yii::t("common", "The following attributs has been updated :")." ".Yii::t("common",$msg);
-			$resultGoods["values"] = $values ;
-			$result["resultGoods"] = $resultGoods ;
-			$result["result"] = true ;
-		}
 
-		if($msgError != ""){
+			$result = array("result"=>true);
+			$resultGoods = array();
+			$resultErrors = array();
+			$values = array();
+			$msg = "";
+			$msgError = "";
+			foreach ($res as $key => $value) {
+				if($value["result"] == true){
+					if($msg != "")
+						$msg .= ", ";
+					$msg .= Yii::t("common",$value["fieldName"]);
+					$values[$value["fieldName"]] = $value["value"];
+				}else{
+					if($msgError != "")
+						$msgError .= ". ";
+					$msgError .= $value["mgs"];
+				}
+			}
+
+			if($msg != ""){
+				$resultGoods["result"]=true;
+				$resultGoods["msg"]= Yii::t("common", "The following attributs has been updated :")." ".Yii::t("common",$msg);
+				$resultGoods["values"] = $values ;
+				$result["resultGoods"] = $resultGoods ;
+				$result["result"] = true ;
+			}
+
+			if($msgError != ""){
+				$resultErrors["result"]=false;
+				$resultErrors["msg"]=Yii::t("common", $msgError);
+				$result["resultErrors"] = $resultErrors ;
+			}
+		} catch (CTKException $e) {
 			$resultErrors["result"]=false;
-			$resultErrors["msg"]=Yii::t("common", $msgError);
+			$resultErrors["msg"]=$e->getMessage();
 			$result["resultErrors"] = $resultErrors ;
 		}
-
 		return $result;
 	}
 
