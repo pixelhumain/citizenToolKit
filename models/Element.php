@@ -2111,14 +2111,13 @@ class Element {
 				
 				$el = PHDB::findOne($collection,array("_id"=>new MongoId($id)));
 				$oldslug = $el["slug"];
-				
-				$res[] = self::updateField($collection, $id, "slug", $params["slug"]);
-
 				if(!empty(Slug::getByTypeAndId($collection,$id)))
 					Slug::update($collection,$id,$params["slug"]);
 				else
 					Slug::save($collection,$id,$params["slug"]);
+				$res[] = self::updateField($collection, $id, "slug", $params["slug"]);
 
+				
 				//update RC channel name if exist
 				if(@$el["hasRC"]){
 					RocketChat::rename( $oldslug, $params["slug"], @$el["preferences"]["isOpenEdition"] );

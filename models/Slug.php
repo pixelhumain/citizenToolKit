@@ -32,11 +32,11 @@ class Slug {
 	public static function check($slug,$type=null,$id=null){
 		if(!in_array($slug,["search","agenda","annonces","live"])){
 			$where=array("name"=>$slug);
-			if(@$id && @$type && !empty($id)){
+			if(@$id && !empty($id)){
 				$where["id"]=array('$ne'=>$id);
-				$where["type"]=array('$ne'=>$type);
+				//$where["type"]=array('$ne'=>$type);
 			}
-			$res=PHDB::findOne(self::COLLECTION,$where);
+			$res=PHDB::find(self::COLLECTION,$where);
 			if(!empty($res))
 				return false;
 			else 
