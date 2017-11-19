@@ -427,7 +427,41 @@ class Comment {
 	                  
 	    return array("result"=>true, "msg"=>Yii::t("common","Comment well updated"), "id"=>$commentId);
 	}
-
+	/**
+	 * update a comment in database
+	 * @param String $commentId : 
+	 * @param string $name fields to update
+	 * @param String $value : new value of the field
+	 * @return array of result (result => boolean, msg => string)
+	 */
+	public static function update($id,$params){
+		if(@$id && @$params["text"] && !empty($params["text"]) && @Yii::app()->session["userId"] ){
+	 		$comment=self::getById($id);
+	 		if(!empty($comment)){
+	 			if($comment["author"]["id"] == Yii::app()->session["userId"] || (@Yii::app()->session["userIsAdmin"] && Yii::app()->session["userIsAdmin"]==true)){
+					$set = array(
+						 "text" => $params["text"],
+					);
+					$unset=array();
+					if(@$params["mentions"])
+						$set["mentions"] = $params["mentions"];
+					else
+						$unset["mentions"]="";
+					$modify=array('$set'=>$set);
+					if(@$unset && !empty($unset))
+						$modify['$unset']=$unset;
+					//update the project
+					$comment=PHDB::update( self::COLLECTION, array("_id" => new MongoId($id)), 
+					                          $modify);
+					
+				    return array("result"=>true, "msg"=>Yii::t("common","Your comment is well updated"), "comment"=>$comment);
+				}else
+					return array("result"=>false, "msg"=>Yii::t("common","you are not the author of the comment"), "comment"=>$comment);
+	    	}else
+	    		$res = array("result"=>false, "msg"=> Yii::t("comment","This comment doesn't exist"), "comment"=>$comment);
+		}else
+			$res = array("result"=>false, "msg"=> Yii::t("comment","Something went really bad"), "comment"=>$comment);
+	}
 	/**
 	 * delete a comment in database
 	 * @param String $id Id of the comment to delete
@@ -437,7 +471,7 @@ class Comment {
 	public static function delete($id, $userId) {
 		$comment=self::getById($id);	
 
-		if($comment["author"]["id"] == $userId ){
+		if($comment["author"]["id"] == $userId || (@Yii::app()->session["userIsAdmin"] && Yii::app()->session["userIsAdmin"]==true) || (@Yii::app()->session["userIsAdminPublic"] && Yii::app()->session["userIsAdminPublic"]==true)){
 			Action::addAction($userId, $comment["contextId"], $comment["contextType"], Action::ACTION_COMMENT, true, false) ;
 			PHDB::remove(self::COLLECTION,array("_id"=>new MongoId($id)));
 			return array("result"=>true, "msg"=>Yii::t("common","The comment has been deleted with success"));

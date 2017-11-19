@@ -320,6 +320,8 @@ class Search {
 				}
 				else if($locality["type"] == "cp"){
 					$queryLocality = array("address.postalCode" => new MongoRegex("/^".$locality["name"]."/i"));
+					if(!empty($locality["countryCode"]))
+						$queryLocality = array_merge($queryLocality, array("address.addressCountry" => $locality["countryCode"]));
 				}
 				else
 					$queryLocality = array("address.".$locality["type"] => $key);

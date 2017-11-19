@@ -49,7 +49,7 @@ class DirectoryAction extends CAction
       $stepLim=100;
       if(@$_POST["page"]){
         $limitMin=$limitMin+(100*$_POST["page"]);
-        $stepLim=$stepLim+(100*$_POST["page"]);
+        //$stepLim=$stepLim+(100*$_POST["page"]);
       }
       $searchLocality = isset($_POST['locality']) ? $_POST['locality'] : null;
        //$localities = isset($post['localities']) ? $post['localities'] : null;
@@ -77,8 +77,20 @@ class DirectoryAction extends CAction
       
        //:::::::::::::://////CITOYENS///////////////////////////////////
         $res = array();
-        $allCitoyen = PHDB::findAndLimitAndIndex ( Person::COLLECTION , $query, $stepLim, $limitMin);
-        $countAllCitoyen = PHDB::count( Person::COLLECTION , $query);
+        if(!@$_POST["type"] || $_POST["type"]==Person::COLLECTION){
+          $params["results"][Person::COLLECTION] = PHDB::findAndLimitAndIndex ( Person::COLLECTION , $query, $stepLim, $limitMin);
+          $params["results"]["count"]["citoyens"] = PHDB::count( Person::COLLECTION , $query);
+        }
+        else if(@$_POST["type"]){
+          $params["results"][$_POST["type"]] = PHDB::findAndLimitAndIndex ( $_POST["type"] , $query, $stepLim, $limitMin);
+          $params["results"]["count"][$_POST["type"]] = PHDB::count( $_POST["type"] , $query);
+        }
+        if($tpl!="json" || $search != ""){
+          $params["results"]["count"]["citoyens"] = PHDB::count( Person::COLLECTION , $query);
+          $params["results"]["count"]["organizations"] = PHDB::count( Organization::COLLECTION , $query);
+          $params["results"]["count"]["events"] = PHDB::count( Event::COLLECTION , $query);
+          $params["results"]["count"]["projects"] = PHDB::count( Project::COLLECTION , $query);
+      }
       ///////////////////////////////END CITOYENS //////////////////////////////////////////////
 
     //  $people = Person::getWhereByLimit(array( "roles"=> array('$exists'=>1)));
@@ -88,11 +100,11 @@ class DirectoryAction extends CAction
       ***************************************** */
       $projects = array();
 
-      $params["results"]["organizations"] = array();//$organizations;
-      $params["results"]["projects"] = array();//$projects;
-      $params["results"]["events"] = array();//$events;
-      $params["results"]["countPeople"]=$countAllCitoyen;
-      $params["results"][Person::COLLECTION] = $allCitoyen;
+     // $params["results"]["organizations"] = array();//$organizations;
+      //$params["results"]["projects"] = array();//$projects;
+      //$params["results"]["events"] = array();//$events;
+      //$params["results"]["countPeople"]=$countAllCitoyen;
+      
       //$params["people"] = $people;
       $params["results"]["superAdmin"] = $superAdmin ;
       //$params["path"] = "../default/";

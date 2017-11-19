@@ -13,7 +13,7 @@ class SwitchtoAction extends CAction
             if( $person ){
                 Person::saveUserSessionData($person);
                 $res['result'] = true;
-                $res['id']=(string)$person["_id"]
+                $res['id']=(string)$person["_id"];
             }
         } 
         Rest::json($res);
