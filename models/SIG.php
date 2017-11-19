@@ -439,11 +439,16 @@ class SIG
     }
 
     // Nominatim
-    public static function getLocalityByLatLonNominatim($lat, $lon, $countryCode = null){
+    public static function getLocalityByLatLonNominatim($lat, $lon, $countryCode = null, $extratags = null){
     	try{
 			$url = 'http://nominatim.openstreetmap.org/reverse?format=json&lat='.$lat.'&lon='.$lon.'&zoom=18&addressdetails=1';
 			if(!empty($countryCode))
 	            $url .= "&countrycodes=".self::changeCountryForNominatim($countryCode);
+
+	        if(!empty($extratags)){
+	            $url .= "&extratags=1";
+	        }
+
 			$url .= "&email=contact@communecter.org";
 			// $url = urlencode($url);
 			// $url = str_replace(['%2F', '%3A', '%3D','%3F', '%26'], ['/', ':', '=', '?', '&'], $url);
@@ -456,8 +461,8 @@ class SIG
         }
     }
 
-
-    public static function getGeoByAddressNominatim($street = null, $cp = null, $city = null, $countryCode = null, $polygon_geojson = null, $extratags = null, $nameLevel = null, $state = null, $county = null){
+													
+    public static function getGeoByAddressNominatim($street = null, $cp = null, $city = null, $countryCode = null, $polygon_geojson = null, $extratags = null, $namedetails = null, $nameLevel = null, $state = null, $county = null){
         try{
 	        $url = "http://nominatim.openstreetmap.org/search?format=json&addressdetails=1" ;
 	        if(!empty($street))
@@ -489,6 +494,10 @@ class SIG
 	        }
 	        if(!empty($extratags)){
 	            $url .= "&email=contact@communecter.org";
+	        }
+
+	        if(!empty($namedetails)){
+	            $url .= "&namedetails=1";
 	        }
 	        //var_dump($url);
 	        // $res =  file_get_contents($url);

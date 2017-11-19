@@ -98,7 +98,7 @@ class IndexAction extends CAction
 	        }
 	        else if ($type=="city"){
 	        	$localities = isset($_POST['localities']) ? $_POST['localities'] : null;
-				//$searchType = isset($_POST['searchType']) ? $_POST['searchType'] : null;
+	        	//$searchType = isset($_POST['searchType']) ? $_POST['searchType'] : null;
 				$searchBy = isset($_POST['searchBy']) ? $_POST['searchBy'] : "INSEE";
 				$tagSearch = isset($_POST['tagSearch']) ? $_POST['tagSearch'] : "";
 				$params["localities"] = $localities;
@@ -312,7 +312,10 @@ class IndexAction extends CAction
 					//error_log("typeNews : ".@$_POST["typeNews"]);			
 				if(@$allQueryLocality){
 					$where = array_merge($where, $allQueryLocality);
+					//$where = array('$and' => array( $where , $allQueryLocality ) );
 				}
+
+
 				//echo '<pre>';var_dump($where);echo '</pre>'; return;
 		  		
 		  	}
@@ -340,6 +343,7 @@ class IndexAction extends CAction
 					$where['$and'][] = array('$or' =>$searchType);
 				}else if(isset($searchType)){
 					$where = array_merge($where, array('$and' => array(array('$or' =>$searchType))));
+					//$where = array('$and' => array( $where , array('$and' => array(array('$or' =>$searchType))) ) );
 				}
 				//echo '<pre>';var_dump($where);echo '</pre>'; return;
 			}
@@ -365,13 +369,17 @@ class IndexAction extends CAction
 			*/
 			//Exclude => If isAnAbuse
 			$where = array_merge($where,  array( 'isAnAbuse' => array('$ne' => true) ) );
-			//echo $date."/"; //exit;
 			$where = array_merge($where,  array('sharedBy.updated' => array( '$lt' => $date ) ) );
 			$where = array_merge($where, array("target.type" => array('$ne' => "pixels")));
 
-			if(@$_POST["textSearch"] && $_POST["textSearch"]!="")
-				$where = array_merge($where,  array('text' => new MongoRegex("/".$_POST["textSearch"]."/i") ) );
+			// $where = array('$and' => array( $where , array( 'isAnAbuse' => array('$ne' => true) ) ) );
+			// $where = array('$and' => array( $where , array('sharedBy.updated' => array( '$lt' => $date ) ) ) );
+			// $where = array('$and' => array( $where , array("target.type" => array('$ne' => "pixels") ) ) );
 
+			if(@$_POST["textSearch"] && $_POST["textSearch"]!="")
+				//$where = array('$and' => array( $where ,  array('text' => new MongoRegex("/".$_POST["textSearch"]."/i") ) ) );
+				$where = array_merge($where,  array('text' => new MongoRegex("/".$_POST["textSearch"]."/i") ) );
+			//var_dump($where);
 			//echo '<pre>';var_dump($_POST);echo '</pre>';
 			//echo '<pre>';var_dump($where);echo '</pre>'; return;
 		/*}
@@ -380,7 +388,7 @@ class IndexAction extends CAction
 			$where["created"]=array('$lt' => $date);
 		}*/
 
-
+		//var_dump($where); //exit;
 		if(!empty($where))
 			$news= News::getNewsForObjectId($where,array("sharedBy.updated"=>-1),$type, @$followsArrayIds);
 		//echo count($news);

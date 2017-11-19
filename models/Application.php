@@ -5,7 +5,6 @@ class Application {
 	
 
 	public static function loadDBAppConfig($key = null) {
-		
 		if(!$key){
 			$key = "devParams";
 			if( stripos($_SERVER['SERVER_NAME'], "127.0.0.1") === false && 

@@ -1,12 +1,14 @@
 <?php
     class GetAction extends CAction {
 
-        public function run($id = null, $insee = null) {
+        public function run($id = null, $insee = null, $type = null) {
 
             if ($id != null) {
-
-                $res = City::getById($id);
-
+                if ($type == "city") {
+                    $res = City::getById($id);
+                } elseif ($type == "zone") {
+                    $res = Zone::getById($id);
+                } 
             } elseif ($insee != null) {
 
                 $by_insee = true;

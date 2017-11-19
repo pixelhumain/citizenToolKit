@@ -152,21 +152,23 @@ class GetDataDetailAction extends CAction {
 			// }
 
 			if( !empty($post["searchLocality"])){
+				$scope = $post["searchLocality"];
 				foreach ($post["searchLocality"] as $key => $value) {
-					$scopeName = $value["name"];
+					//$scopeName = @$value["name"];
+					$scope = $value ;
 				}
 			}
 
 			//EVENTS-------------------------------------------------------------------------------
 			$query = array("startDate" => array( '$gte' => new MongoDate( time() ) ));
 
-			if(@$type!="0" || !empty($post["searchLocality"]))
-				$query = Search::searchLocality($post["searchLocality"], $query);
+			if(@$type!="0" || !empty(@$post["searchLocality"]))
+				$query = Search::searchLocality(@$post["searchLocality"], $query);
 
 			$events = PHDB::findAndSortAndLimitAndIndex( Event::COLLECTION,
 							$query,
 							array("startDate"=>1), 10);
-
+			//var_dump($events);
 			foreach ($events as $key => $value) {
 				$events[$key]["type"] = "events";
 				$events[$key]["typeSig"] = "events";
@@ -186,7 +188,7 @@ class GetDataDetailAction extends CAction {
 			//CLASSIFIED-------------------------------------------------------------------------------
 			$query = array();
 			if(@$type!="0" || !empty($post["searchLocality"]))
-				$query = Search::searchLocality($post["searchLocality"], $query);
+				$query = Search::searchLocality(@$post["searchLocality"], $query);
 
 			$classified = PHDB::findAndSortAndLimitAndIndex( Classified::COLLECTION, $query,
 							array("updated"=>-1), 10);
@@ -202,8 +204,8 @@ class GetDataDetailAction extends CAction {
 			
 		  	//POI-------------------------------------------------------------------------------
 			$query = array();
-			if(@$type!="0" || !empty($post["searchLocality"]))
-				$query = Search::searchLocality($post["searchLocality"], $query);
+			if(@$type!="0" || !empty(@$post["searchLocality"]))
+				$query = Search::searchLocality(@$post["searchLocality"], $query);
 			
 			$pois = PHDB::findAndSortAndLimitAndIndex( Poi::COLLECTION, $query,
 							array("updated"=>-1), 10);
@@ -216,6 +218,7 @@ class GetDataDetailAction extends CAction {
 		  		}
 		  	}
 		  	$contextMap = array_merge($contextMap, $pois);
+		  	
 			
 			if(@$post["tpl"]=="json")
 				return Rest::json($contextMap);
@@ -225,7 +228,8 @@ class GetDataDetailAction extends CAction {
 												"element" => $element,
 												"type"=>$type, 
 												"id"=>$id, 
-												"scope"=>@$scopeName, 
+												//"scope"=>@$scopeName, 
+												"scope"=>@$scope,
 												"open"=> (@$type!="0"))); 
 												//open : for home page (when no user connected)
 			Yii::app()->end();

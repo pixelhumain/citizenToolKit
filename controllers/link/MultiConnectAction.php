@@ -59,9 +59,9 @@ class MultiConnectAction extends CAction
 	 	}
 	 	if($finalResult == true){
 		 	if($msg==1)
-		 		$msg = "Le(s) nouveau(x) membre(s) ont été ajoutés correctement";
+		 		$msg = Yii::t("common","New member(s) have been succesfully added");
 		 	else
-		 		$msg = "Le(s) nouveaux membres ont été ajoutés correctement exceptés ceux déjà présents";		 		
+		 		$msg = Yii::t("common","New member(s) have been succesfully added except those already in the community");		 		
 	 		$result = array("result"=>true, "msg" => $msg,"newMembers" => $newMembers, "onlyOrganization"=>$onlyOrganization);
 		}else $result = $res;
 		

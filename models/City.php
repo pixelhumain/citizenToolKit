@@ -40,11 +40,12 @@ class City {
 	    "level2Name" => array("name" => "level2Name"),
 	    "level3Name" => array("name" => "level3Name"),
 	    "level4Name" => array("name" => "level4Name"),
+	    "betweenCP" => array("name" => "betweenCP"),
 	);
 
 
 	public static function insert($city, $userid){
-		
+		ini_set('memory_limit', '-1');
 		unset($city["save"]);
 		//var_dump($city);
 		$city["modified"] = new MongoDate(time());
@@ -52,9 +53,7 @@ class City {
         $city["creator"] = $userid;
         $city["created"] = time();
         $city["new"] = true;
-        $city["geoPosition"]["coordinates"][0] = floatval($city["geoPosition"]["coordinates"][0]);
-    	$city["geoPosition"]["coordinates"][1] = floatval($city["geoPosition"]["coordinates"][1]);
-
+        $city["geoPosition"] = SIG::getFormatGeoPosition($city["geo"]["latitude"], $city["geo"]["longitude"]);
     	$city["geoShape"] = self::getGeoShape($city["name"], $city["country"], $city["osmID"]);
     	if($city["geoShape"] == null)
     		unset($city["geoShape"]);
@@ -66,61 +65,68 @@ class City {
 	    		$newCP["postalCode"] = $cp["postalCode"];
 	    		$newCP["name"] = $cp["name"];
 	    		$newCP["geo"] = $cp["geo"];
-	    		$newCP["geoPosition"] = $cp["geoPosition"];
-	    		$newCP["geoPosition"]["coordinates"][0] = floatval($cp["geoPosition"]["coordinates"][0]);
-	    		$newCP["geoPosition"]["coordinates"][1] = floatval($cp["geoPosition"]["coordinates"][1]);
+	    		$newCP["geoPosition"] = SIG::getFormatGeoPosition($cp["geo"]["latitude"], $cp["geo"]["longitude"]);
 	    		$postalCodes[] = $newCP;
 	    	}
     	}
     	$city["postalCodes"] = $postalCodes;
 
-
-
-		$idLevel1 = Zone::getIdCountryByCountryCode($city["country"]);
-    	if(empty($idLevel1)){
+		$level1 = Zone::getCountryByCountryCode($city["country"]);
+    	if(empty($level1)){
     		$level1 = Zone::createLevel(OpenData::$phCountries[$city["country"]], $city["country"], "1");
     		$savelevel1 = Zone::save($level1);
     		if($savelevel1["result"] == true)
-    			$idLevel1 = Zone::getIdCountryByCountryCode($city["country"]);
+    			$level1 = Zone::getCountryByCountryCode($city["country"]);
     	}
-    	$city["level1"] = $idLevel1;
-    	$city["level1"] = $idLevel1;
-    	
-    	if(!empty($city["regionNameBel"])){
-    		$idLevel2 = Zone::getIdLevelByNameAndCountry($city["regionNameBel"], "2", $city["country"]);
-	    	if(empty($idLevel2)){
-	    		$level2 = Zone::createLevel($city["regionNameBel"], $city["country"], "2");
+    	$city["level1"] = (String)$level1["_id"];
+    	$city["level1Name"] = Zone::getNameOrigin($city["level1"]);
+
+
+    	if(!empty($city["level2Name"])){
+    		$level2 = Zone::getLevelByNameAndCountry($city["level2Name"], "2", $city["country"]);
+	    	if(empty($level2)){
+	    		$level2 = Zone::createLevel($city["level2Name"], $city["country"], "2");
 	    		$savelevel2 = Zone::save($level2);
 	    		if($savelevel2["result"] == true)
-	    			$idLevel2 = Zone::getIdLevelByNameAndCountry($city["regionNameBel"], "2", $city["country"]);
+	    			$level2 = Zone::getLevelByNameAndCountry($city["level2Name"], "2", $city["country"]);
 	    	}
-	    	$city["level2"] = $idLevel2;
+	    	if(!empty($level2["_id"])){
+	    		$city["level2"] = (String)$level2["_id"];
+    			$city["level2Name"] = Zone::getNameOrigin($city["level2"]);
+	    	}
+	    	
     	}
     	
-    	if(!empty($city["regionName"])){
-	    	$idLevel3 = Zone::getIdLevelByNameAndCountry($city["regionName"], "3", $city["country"]);
-	    	if(empty($idLevel3)){
-	    		$level3 = Zone::createLevel($city["regionName"], $city["country"], "3", ((!empty($city["regionNameBel"])) ? $city["regionNameBel"] : null));
+    	if(!empty($city["level3Name"])){
+	    	$level3 = Zone::getLevelByNameAndCountry($city["level3Name"], "3", $city["country"]);
+	    	if(empty($level3)){
+	    		$level3 = Zone::createLevel($city["level3Name"], $city["country"], "3", ((!empty($city["level2Name"])) ? $city["level2Name"] : null));
 	    		$savelevel3 = Zone::save($level3);
 	    		if($savelevel3["result"] == true)
-	    			$idLevel3 = Zone::getIdLevelByNameAndCountry($city["regionName"], "3", $city["country"]);
+	    			$level3 = Zone::getLevelByNameAndCountry($city["level3Name"], "3", $city["country"]);
 	    	}
-	    	$city["level3"] = $idLevel3;
+	    	if(!empty($level3["_id"])){
+	    		$city["level3"] = (String)$level3["_id"];
+    			$city["level3Name"] = Zone::getNameOrigin($city["level3"]);
+	    	}
 	    }
 
-	    if(!empty($city["depName"])){
-	    	$idLevel4 = Zone::getIdLevelByNameAndCountry($city["depName"], "4", $city["country"]);
-	    	if(empty($idLevel4)){
-	    		$level4 = Zone::createLevel($city["depName"], $city["country"], "4", ((!empty($city["regionNameBel"])) ? $city["regionNameBel"] : null), ((!empty($city["regionName"])) ? $city["regionName"] : null));
+	    if(!empty($city["level4Name"])){
+	    	$level4 = Zone::getLevelByNameAndCountry($city["level4Name"], "4", $city["country"]);
+	    	if(empty($level4)){
+	    		$level4 = Zone::createLevel($city["level4Name"], $city["country"], "4", ((!empty($city["level2Name"])) ? $city["level2Name"] : null), ((!empty($city["level3Name"])) ? $city["level3Name"] : null));
 	    		$savelevel4 = Zone::save($level4);
 	    		if($savelevel4["result"] == true)
-	    			$idLevel4 = Zone::getIdLevelByNameAndCountry($city["depName"], "4", $city["country"]);
+	    			$level4 = Zone::getLevelByNameAndCountry($city["level4Name"], "4", $city["country"]);
 	    	}
-	    	$city["level4"] = $idLevel4;
+	    	if(!empty($level4["_id"])){
+	    		$city["level4"] = (String)$level4["_id"];
+    			$city["level4Name"] = Zone::getNameOrigin($city["level4"]);
+	    	}
 	    }
 
 	   
-    	
+    	//var_dump($city);
 	    try {
     		$valid = DataValidator::validate( ucfirst(self::CONTROLLER), json_decode (json_encode ($city), true) );
     	} catch (CTKException $e) {
@@ -128,18 +134,34 @@ class City {
     	}
     	//check insee
     	if( $valid["result"]){
-    		$exist = PHDB::findOne(self::COLLECTION, array("insee" => $city["insee"]));
+    		$exist = PHDB::findOne(self::COLLECTION, array("osmID" => $city["osmID"]));
     		//var_dump(json_encode($city));
     		if(empty($exist)){
     			PHDB::insert(self::COLLECTION, $city );
+    			Zone::insertTranslate( (String)$city["_id"], 
+    									self::COLLECTION, 
+    									$city["country"],
+    									$city["name"], 
+    									(!empty($city["osmID"]) ? $city["osmID"] : null),
+    									(!empty($city["wikidataID"]) ? $city["wikidataID"] : null));
+
+
+    			if(empty($level1["hasCity"])){
+    				$res = PHDB::update( Zone::COLLECTION, 
+								  	array("_id"=>new MongoId($city["level1"])),
+									array('$set' => array("hasCity" =>  true))
+					);
+    			}
+
 				$res = array("result"=>true,
 	                         "msg"=>"La commune a été enregistrer.",
 	                         "city"=>$city,
 	                         "id"=>(string)$city["_id"]); 
     		}else{
-    			$res = array("result"=>false,
+    			$res = array("result"=>true,
 	                         "msg"=>"La commune existe déjà",
-	                         "city"=>$city); 
+	                         "city"=>$exist,
+	                         "id"=>(string)$exist["_id"]); 
     		}
 
 			 
@@ -193,6 +215,11 @@ class City {
 
 	public static function getByInsee($insee) {
 	  	$city = PHDB::findOne(self::COLLECTION, array("insee"=>$insee));
+	  	return $city;
+	}
+
+	public static function getByOsmId($osmID) {
+	  	$city = PHDB::findOne(self::COLLECTION, array("osmID"=>$osmID));
 	  	return $city;
 	}
 
@@ -755,18 +782,20 @@ class City {
 		                else
 		                    $split = explode("-", $cp["mainsnak"]["datavalue"]["value"]);
 		                
-		                if(count($split) == 2){
-		                    $start = intval($split[0]);
-		                    if(!empty($start)){
-		                        $end = intval($split[1]);
-		                        while($start <= $end ){
-		                            $arrayCp[] = trim(strval($start));
-		                            $start++;
-		                        }
-		                    }
-		                }
-		            }else{
-		                $arrayCp[] = $cp["mainsnak"]["datavalue"]["value"];
+		                // if(count($split) == 2){
+		                //     $start = intval($split[0]);
+		                //     if(!empty($start)){
+		                //         $end = intval($split[1]);
+		                //         while($start <= $end ){
+		                //             $arrayCp[] = trim(strval($start));
+		                //             $start++;
+		                //         }
+		                //     }
+		                // }
+		                $betweenCP["start"] = $split[0] ;
+		                $betweenCP["end"] = $split[1] ;
+		            } else {
+		               	$arrayCp[] = $cp["mainsnak"]["datavalue"]["value"];
 		            }
 
 		            foreach ($arrayCp as $keyCP => $valueCP) {
@@ -792,6 +821,10 @@ class City {
 
 		}
 		$newCities["postalCodes"] = $postalCodes;
+
+		if(!empty($betweenCP))
+			$newCities["betweenCP"] = $betweenCP;
+
 		return $newCities;
 	}
 
@@ -1045,8 +1078,11 @@ class City {
 
 	public static function getDetailFormInMap($id){
 		$where = array("_id"=>new MongoId($id));
-		$fields = array("geoShape","osmID", "wikidataID");
+		$fields = array("geoShape","osmID", "wikidataID", "betweenCP");
 		$city = PHDB::findOne(City::COLLECTION, $where, $fields);
+
+		if(!empty($city["geoShape"]) && $city["geoShape"]["type"] == "Point")
+			unset($city["geoShape"]);
 		return $city;
 	}
 
@@ -1205,31 +1241,24 @@ class City {
 
 	public static function detailsLocality($locality){
 		$res = self::detailLevels($locality) ;
-		$trad1 = Zone::getTranslateById($res["level1"]);
-
 		$userT = strtoupper(Yii::app()->language) ;
 
-		$res["level1Name"] = (!empty($trad1["translates"][$userT]) ? $trad1["translates"][$userT] : $trad1["translates"]["EN"]);
+		$res["level1Name"] = Zone::getNameCountry($res["level1"]);
 
 		if(isset($res["localityId"])){
-			$city = self::getById($res["localityId"]);
-			$cityTrad = Zone::getTranslateById($res["localityId"]);
-			$res["cityName"] = (!empty($cityTrad["translates"][$userT]) ? $cityTrad["translates"][$userT] : $city["name"]);
-		}	
+			$res["cityName"] = self::getNameCity($res["localityId"]);
+		}
 
 		if(!empty($res["level2"])){
-			$trad2 = Zone::getTranslateById($res["level2"]);
-			$res["level2Name"] = (!empty($trad2["translates"][$userT]) ? $trad2["translates"][$userT] : $trad2["translates"]["EN"]);
+			$res["level2Name"] = Zone::getNameCountry($res["level2"]);
 		}
 
 		if(!empty($res["level3"])){
-			$trad3 = Zone::getTranslateById($res["level3"]);
-			$res["level3Name"] = (!empty($trad3["translates"][$userT]) ? $trad3["translates"][$userT] : $trad3["translates"]["EN"]);
+			$res["level3Name"] = Zone::getNameCountry($res["level3"]);
 		}
 
 		if(!empty($res["level4"])){
-			$trad4 = Zone::getTranslateById($res["level4"]);
-			$res["level4Name"] = (!empty($trad4["translates"][$userT]) ? $trad4["translates"][$userT] : $trad4["translates"]["EN"]);
+			$res["level4Name"] = Zone::getNameCountry($res["level4"]);
 		}
 
 		if(isset($keyArray[6]))
@@ -1247,5 +1276,275 @@ class City {
 		$key .= "@".(String)$city["_id"] ;
 		return $key ;
 	}
+
+
+	public static function alreadyExists ($params) {
+		$result = array("result" => false);
+		if(!empty($params["osmId"])){
+			$where = array("osmId" => $params["osmId"]);		
+			$city = PHDB::findOne(self::COLLECTION, $where);
+			if(!empty($city))
+				$result = array("result" => true ,
+								"city" => $city);
+		}
+		
+		return $result;
+    }
+
+
+    public static function checkAndAddPostalCode ($id, $postalCode) {
+		$where = array("_id"=>new MongoId($id));
+
+		$city = PHDB::findOne(self::COLLECTION, $where, array("postalCodes", "geo", "name", "geoPosition"));
+
+		if(!empty($city) ){
+
+			$add = true ;
+			foreach ($city["postalCodes"] as $key => $value) {
+				if($value["postalCode"] == $postalCode){
+					$add = false;
+					break;
+				}
+			}
+
+			if($add == true){
+				$city["postalCodes"][] = array( "postalCode" => $postalCode,
+												"geo" => $city["geo"],
+												"geoPosition" => $city["geoPosition"],
+												"name" => $city["name"]);
+				PHDB::update(self::COLLECTION,
+								array("_id" => new MongoId($id)) , 
+								array('$set' => array("postalCodes" => $city["postalCodes"]))			
+							);
+			}
+		}
+    }
+
+    public static function getNameOrigin($id){
+		$translates = Zone::getTranslateById($id, City::COLLECTION);
+		return $translates["origin"];
+	}
+
+	public static function getNameCity($id){
+		$translates = Zone::getTranslateById($id, City::COLLECTION);
+		$userT = strtoupper(Yii::app()->language) ;
+		if(!empty($translates) ){
+			$name = (!empty($translates["translates"][$userT]) ? $translates["translates"][$userT] : $translates["origin"]);
+
+		}else
+			$name = "";
+		
+		return $name;
+	}
+
+
+
+	public static function searchCity($where, $countryCode, $scopeValue, $formInMap, $geoShape = false){
+		$att = array(	"name", "alternateName", 
+						"country", "postalCodes", "insee", 
+						"level1", "level1Name",
+						"level2", "level2Name",
+						"level3", "level3Name",
+						"level4", "level4Name", "geo");
+		if($geoShape) $att[] =  "geoShape";
+		$regex = Search::accentToRegex($scopeValue);
+		$where = array( '$or'=> 
+							array(  array("origin" => new MongoRegex("/".$regex."/i")),
+									array("translates.".strtoupper(Yii::app()->language) => array( '$in' => array (new MongoRegex("/".$regex."/i") ) ) ),
+						) );
+		$where = array( '$and'=> array($where, array("countryCode" => strtoupper($countryCode),
+													"parentType" => City::COLLECTION ) ) );
+
+		$translate = Zone::getWhereTranlate($where);
+		$cities = array();
+		$valIDCity = array();
+		$nameArray = array();
+		foreach ($translate as $key => $value) {
+			$valIDCity[] = new MongoId($value["parentId"]) ;
+		}
+		$citiesWithTrad = PHDB::find(self::COLLECTION, array( "_id" => array('$in' => $valIDCity)));
+
+		foreach ($citiesWithTrad as $keyTran => $city) {
+			if(!empty($translate[$keyTran]["translates"][strtoupper(Yii::app()->language)]))
+				$city["name"] = $translate[$keyTran]["translates"][strtoupper(Yii::app()->language)] ;
+			$cities[$keyTran] = $city ;
+		}
+
+
+
+		if(empty($cities)){
+			$where = array( '$or' => 
+								array(
+									array("postalCodes.name" => new MongoRegex("/".$regex."/i") ),
+									array("postalCodes.postalCode" => new MongoRegex("/^".$regex."/i") ) 
+								) ) ;
+			$where = array( '$and'=> array(
+								$where, 
+								array("country" => strtoupper($countryCode) ) )) ;
+			$cities = PHDB::find(self::COLLECTION, $where);
+		}
+
+		if(empty($cities) && !empty($formInMap)){
+			$countryCode = mb_convert_encoding($countryCode, "ASCII");
+			if(strlen($countryCode) > 2 ){
+				$countryCode = substr($countryCode, 0, 2);
+			}
+			$countryCode = mb_convert_encoding($countryCode, "UTF-8");
+			// if(preg_match("/^[0-9]/i", $scopeValue)){
+			// 	$resNominatim = json_decode(SIG::getGeoByAddressNominatim(null, $scopeValue, null, trim($countryCode), true, true, true),true);
+			// }
+			// else
+			$resNominatimCity = json_decode(SIG::getGeoByAddressNominatim(null, null, $scopeValue, trim($countryCode), true, true, true),true);
+
+			//if(empty($resNominatim)){
+				$resNominatimState = json_decode(SIG::getGeoByAddressNominatim(null, null, null, trim($countryCode), true, true, true, $scopeValue, true),true);
+
+				$resNominatimCountry = json_decode(SIG::getGeoByAddressNominatim(null, null, null, trim($countryCode), true, true, true, $scopeValue, false, true),true);
+				//var_dump($resNominatimCountry );
+				$resNominatim = array_merge($resNominatimCity , $resNominatimState, $resNominatimCountry);
+			//}				
+
+			$typeCities = array("city", "village", "town", "hamlet", "state", "county") ;
+			$typePlace = array("city", "village", "town", "hamlet") ;
+			$typeZone = array("state", "county") ;
+
+			$typeCities = array("city", "village", "town", "hamlet", "state") ;
+			$typePlace = array("city", "village", "town", "hamlet") ;
+			if(!empty($resNominatim)){
+				foreach (@$resNominatim as $key => $value) {
+					foreach ($typeCities as $keyType => $valueType) {
+						if( !empty($value["address"][$valueType]) 
+							&& $countryCode == strtoupper(@$value["address"]["country_code"])) {
+
+							$name = null ;
+							if(!empty($value["namedetails"])){
+								if( !empty($value["namedetails"]["name:".strtolower(Yii::app()->language)]) ) {
+									$name = $value["namedetails"]["name:".strtolower(Yii::app()->language)] ;
+								} else if( !empty($value["namedetails"]["name"] ) ) {
+									$name = $value["namedetails"]["name"] ;
+								}
+							}
+
+							$name = (!empty($name) ? $name : $value["address"][$valueType]) ;
+							//var_dump($name);
+							// var_dump(in_array($name, $nameArray));
+
+							if ( ( 	 !in_array($keyType, $typeZone) ||
+									( 	in_array($keyType, $typeZone) && 
+										!empty($value["extratags"]["place"]) && 
+										in_array($value["extratags"]["place"], $typePlace) ) ) &&
+								 !in_array($value["osm_id"], $nameArray) ) {
+
+
+								$wikidata = (empty($value["extratags"]["wikidata"]) ? null : $value["extratags"]["wikidata"]);
+								$newCities = array( "name" => $name,
+													"alternateName" => mb_strtoupper($name),
+													"country" => $countryCode,
+													"geo" => array( "@type"=>"GeoCoordinates", 
+																	"latitude" => $value["lat"], 
+																	"longitude" => $value["lon"]),
+													"geoPosition" => array( "type"=>"Point",
+																			"float"=>true, 
+																			"coordinates" => array(
+																				floatval($value["lon"]), 
+																				floatval($value["lat"]))),
+													"level3Name" => (empty($value["address"]["state"]) ? null : $value["address"]["state"] ),
+													"level3" => null,
+													"level4Name" => (empty($value["address"]["county"]) ? null : $value["address"]["county"] ),
+													"level4" => null,
+													"osmID" => $value["osm_id"],
+													"save" => true);
+
+								$nameArray[] = $value["osm_id"];
+
+								if(!empty($wikidata))
+									$newCities = City::getCitiesWithWikiData($wikidata, $newCities);
+
+								if(empty($newCities["insee"]))
+									$newCities["insee"] = $value["osm_id"]."*".$countryCode;
+
+								if(empty($newCities["postalCodes"]))
+									$newCities["postalCodes"] = array();
+
+								// if(empty($newCities["geoShape"]))
+								//     $newCities["geoShape"] = $value["geojson"];
+								//var_dump($newCities);
+								if(City::checkCitySimply($newCities))
+									$cities[] = $newCities;
+							}
+						}
+					}
+				}
+			}
+		}
+		return $cities;
+	}
+
+  //   public static function addCityViaImport(){
+		// $att = array(   "name", "alternateName", 
+  //                       "country", "postalCodes", "insee", 
+  //                       "level1", "level1Name",
+  //                       "level2", "level2Name",
+  //                       "level3", "level3Name",
+  //                       "level4", "level4Name", "geo");
+  //       if($geoShape) $att[] =  "geoShape";
+
+  //       $cities = PHDB::findAndSort( City::COLLECTION, $where, $att, 40, $att);
+  //       if(empty($cities) && !empty($formInMap)){
+  //           $countryCode = mb_convert_encoding($countryCode, "ASCII");
+  //           if(strlen($countryCode) > 2 ){
+  //              $countryCode = substr($countryCode, 0, 2);
+  //           }
+  //           $countryCode = mb_convert_encoding($countryCode, "UTF-8");
+  //           $resNominatim = json_decode(SIG::getGeoByAddressNominatim(null, null, $scopeValue, trim($countryCode), true, true, true),true)
+  //           if(!empty($resNominatim)){
+  //               foreach (@$resNominatim as $key => $value) {
+  //                   $typeCities = array("city", "village", "town") ;
+  //                   foreach ($typeCities as $keyType => $valueType) {
+  //                       if( !empty($value["address"][$valueType]) 
+  //                           && $countryCode == strtoupper(@$value["address"]["country_code"])) {
+
+  //                           $wikidata = (empty($value["extratags"]["wikidata"]) ? null : $value["extratags"]["wikidata"]);
+  //                           $newCities = array( "name" => $value["address"][$valueType],
+  //                                               "alternateName" => mb_strtoupper($value["address"][$valueType]),
+  //                                               "country" => $countryCode,
+  //                                               "geo" => array( "@type"=>"GeoCoordinates", 
+  //                                                               "latitude" => $value["lat"], 
+  //                                                               "longitude" => $value["lon"]),
+
+  //                                               "geoPosition" => array( "type"=>"Point",
+  //                                                                       "float"=>true, 
+  //                                                                       "coordinates" => array(
+  //                                                                           floatval($value["lon"]), 
+  //                                                                           floatval($value["lat"]))),
+  //                                               "level3Name" => (empty($value["address"]["state"]) ? null : $value["address"]["state"] ),
+  //                                               "level3" => null,
+  //                                               "level4Name" => (empty($value["address"]["county"]) ? null : $value["address"]["county"] ),
+  //                                               "level4" => null,
+  //                                               "osmID" => $value["osm_id"],
+                                               
+  //                                               "save" => true);
+  //                           if(!empty($wikidata))
+  //                               $newCities = City::getCitiesWithWikiData($wikidata, $newCities);
+                            
+
+  //                           if(empty($newCities["insee"]))
+  //                               $newCities["insee"] = $value["osm_id"]."*".$countryCode;
+
+  //                           if(empty($newCities["postalCodes"]))
+  //                               $newCities["postalCodes"] = array();
+
+  //                           if(City::checkCitySimply($newCities))
+  //                               $cities[] = $newCities;
+                            
+                            
+  //                       }
+  //                   }                    
+  //               }
+  //           }
+            
+  //       }
+  //       return $cities;
+  //   }
 }
 ?>

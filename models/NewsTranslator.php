@@ -193,6 +193,8 @@ class NewsTranslator {
 		else if(@$params["media"] && $params["media"]["type"]=="activityStream"){
 			$element=Element::getSimpleByTypeAndId($params["media"]["object"]["type"], $params["media"]["object"]["id"]);
 			$element["type"]=$params["media"]["object"]["type"];
+			if($params["media"]["object"]["type"]==Event::COLLECTION)
+				$element["typeEvent"] = @$element["type"];
 			$params["media"]["object"] = $element;
 		}
 

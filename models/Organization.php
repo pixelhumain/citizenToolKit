@@ -76,6 +76,9 @@ class Organization {
 	    "gpplus" => array("name" => "socialNetwork.googleplus"),
 	    "github" => array("name" => "socialNetwork.github"),
 	    "skype" => array("name" => "socialNetwork.skype"),
+	    "parent" => array("name" => "parent"),
+	    "parentId" => array("name" => "parentId"),
+	    "parentType" => array("name" => "parentType"),
 	);
 	
 	//See findOrganizationByCriterias...
@@ -524,6 +527,34 @@ class Organization {
 	  	return $organization;
 	}
 
+
+	public static function  getByArrayId($arrayId, $fields = array(), $simply = false) {
+	  	
+	  	$organizations = PHDB::find(self::COLLECTION, array( "_id" => array('$in' => $arrayId)), $fields);
+	  	$res = array();
+	  	foreach ($organizations as $id => $organization) {
+	  		if (empty($organization)) {
+            //TODO Sylvain - Find a way to manage inconsistent data
+            //throw new CommunecterException("The organization id ".$id." is unkown : contact your admin");
+	        } else {
+	        	if (@$contactComplet["disabled"]){
+					$organization = null;
+				}else{
+					if($simply)
+						$organization = self::getSimpleOrganizationById($id,$organization);
+					else{
+						$organization = array_merge($organization, Document::retrieveAllImagesUrl($id, self::COLLECTION, null, $organization));
+						$organization["typeSig"] = "organizations";
+					}
+					
+				}
+	        }
+	  		$res[$id] = $organization;
+	  	}
+	  
+	  	return $res;
+	}
+
 	/**
 	 * Retrieve a simple organization (id, name, profilImageUrl) by id from DB
 	 * @param String $id of the organization
@@ -533,7 +564,7 @@ class Organization {
 
 		$simpleOrganization = array();
 		if(!$orga)
-			$orga = PHDB::findOneById( self::COLLECTION ,$id, array("id" => 1, "name" => 1, "type" => 1, "email" => 1, "url" => 1, "shortDescription" => 1, "description" => 1, "address" => 1, "pending" => 1, "tags" => 1, "geo" => 1, "updated" => 1, "profilImageUrl" => 1, "profilThumbImageUrl" => 1, "profilMarkerImageUrl" => 1,"profilMediumImageUrl" => 1, "addresses"=>1, "telephone"=>1) );
+			$orga = PHDB::findOneById( self::COLLECTION ,$id, array("id" => 1, "name" => 1, "type" => 1, "email" => 1, "url" => 1, "shortDescription" => 1, "description" => 1, "address" => 1, "pending" => 1, "tags" => 1, "geo" => 1, "updated" => 1, "profilImageUrl" => 1, "profilThumbImageUrl" => 1, "profilMarkerImageUrl" => 1,"profilMediumImageUrl" => 1, "addresses"=>1, "telephone"=>1, "slug"=>1) );
 		if(!empty($orga)){
 			$simpleOrganization["id"] = $id;
 			$simpleOrganization["name"] = @$orga["name"];
@@ -548,6 +579,7 @@ class Organization {
 			$simpleOrganization["description"] = @$orga["description"];
 			$simpleOrganization["updated"] = @$orga["updated"];
 			$simpleOrganization["addresses"] = @$orga["addresses"];
+			$simpleOrganization["slug"] = @$orga["slug"];
 			$simpleOrganization["typeSig"] = "organizations";
 			$simpleOrganization = array_merge($simpleOrganization, Document::retrieveAllImagesUrl($id, self::COLLECTION, @$orga["type"], $orga));
 			
