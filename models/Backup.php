@@ -25,6 +25,7 @@ class Backup {
 	    "creator" => array("name" => "creator"),
 	    "created" => array("name" => "created"),
 	    "totalPrice"=> array("name" => "totalPrice"),
+	    "currency"=> array("name" => "currency"),
 	);
 
 	
