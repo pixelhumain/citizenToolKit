@@ -117,6 +117,7 @@ class GetDataDetailAction extends CAction {
 			$contextMap = Poi::getPoiByIdAndTypeOfParent($id, $type, array("updated"=>-1));
 			foreach ($contextMap as $key => $value) {
 				$contextMap[$key]["typePoi"] = @$value["type"];
+				$contextMap[$key]["typeSig"] = Poi::COLLECTION;
 			}
 		}
 
