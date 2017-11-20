@@ -94,7 +94,7 @@ class Search {
 				$query = array('$and' => array( $query , $queryTags) );
 		}
 
-		$query = self::searchSourceKey($sourceKey, $query)
+		$query = self::searchSourceKey($sourceKey, $query);
 
 	}
 
@@ -405,7 +405,7 @@ class Search {
 		return $query ;
 	}
 
-	public static function searchLocality($post, $query){
+	/*public static function searchLocality($post, $query){
 		$localityReferences['NAME'] = "address.addressLocality";
   		$localityReferences['CODE_POSTAL_INSEE'] = "address.postalCode";
   		$localityReferences['DEPARTEMENT'] = "address.postalCode";
@@ -447,7 +447,7 @@ class Search {
   			}
   		}
   		if(isset($allQueryLocality) && is_array($allQueryLocality))
-  			$query = array('$and' => array($query, $allQueryLocality));
+  			$query = array('$and' => array($query, $allQueryLocality));*/
 
 	//*********************************  DEFINE LOCALITY QUERY   ****************************************
 
