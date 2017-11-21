@@ -491,6 +491,8 @@ class Search {
   				$person = Person::getSimpleUserById($key,$value);
 	  			$person["type"] = Person::COLLECTION;
 				$person["typeSig"] = "citoyens";
+				if( @$value["links"]["followers"][Yii::app()->session["userId"]] )
+		  			$person["isFollowed"] = true;
 				$res[$key] = $person;
   			}
 
