@@ -347,7 +347,7 @@ class IndexAction extends CAction
 				}
 				//echo '<pre>';var_dump($where);echo '</pre>'; return;
 			}
-			/*
+			
 				// if(@$_POST['searchType']){
 				// 	$searchType=array();
 				// 	foreach($_POST['searchType'] as $data){
@@ -361,12 +361,12 @@ class IndexAction extends CAction
 				// 	$where = array_merge($where, array('$and' => array(array('$or' =>$searchType))));
 				// }
 
-				//Exclude => If there is more than 5 reportAbuse
-				// $where = array_merge($where,  array('$or' => array(
-				// 											array("reportAbuseCount" => array('$lt' => 5)),
-				// 											array("reportAbuseCount" => array('$exists'=>0))
-				// 										)));
-			*/
+			//Exclude => If there is more than 5 reportAbuse
+			$where = array_merge($where,  array('$or' => array(
+														array("reportAbuseCount" => array('$lt' => 5)),
+														array("reportAbuseCount" => array('$exists'=>0))
+													)));
+			
 			//Exclude => If isAnAbuse
 			$where = array_merge($where,  array( 'isAnAbuse' => array('$ne' => true) ) );
 			$where = array_merge($where,  array('sharedBy.updated' => array( '$lt' => $date ) ) );

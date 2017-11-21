@@ -56,8 +56,12 @@ class ModerateAction extends CAction
                     //Save => OK
                     if($resAction['userActionSaved']){
 
+                        $thParams = $params = CO2::getThemeParams();
+                        $nbAdminModeration = @$thParams["nbAdminModeration"];
+                        error_log("nbAdminModeration : ".@$nbAdminModeration);
+                        
                         /**** ISANABUSE ? ****/
-                        if((@$news["moderateCount"]+$resAction['inc']) >= 3){
+                        if((@$news["moderateCount"]+$resAction['inc']) >= $nbAdminModeration){
                             //Cosolidate all moderation of this news
                             $totalAbuse = 0;
                             if($_REQUEST['isAnAbuse'] == "true")$totalAbuse = 1;

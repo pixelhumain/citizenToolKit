@@ -79,6 +79,7 @@ class Search {
         $startDate = isset($_POST['startDate']) ? $_POST['startDate'] : null;
         $endDate = isset($_POST['endDate']) ? $_POST['endDate'] : null;
         $searchSType = !empty($post['searchSType']) ? $post['searchSType'] : "";
+        $sourceKey = !empty($post['sourceKey']) ? $post['sourceKey'] : "";
 
 
         $indexStep = $indexMax - $indexMin;
@@ -102,6 +103,9 @@ class Search {
         $query = array('$and' => array( $query , array("state" => array('$ne' => "uncomplete")) ));
   		if($latest)
   			$query = array('$and' => array($query, array("updated"=>array('$exists'=>1))));
+
+  		if($sourceKey!="")
+  			$query['$and'][] = array("source.key"=>$sourceKey);
 
   		if($api == true){
   			//$query = array('$and' => array($query, array("preferences.isOpenData"=> true)));
@@ -655,9 +659,13 @@ class Search {
 
 	//*********************************  POI   ******************************************
 	public static function searchPoi($query, $indexStep, $indexMin){
+		//var_dump($query); exit;
+		
     	$allPoi = PHDB::findAndSortAndLimitAndIndex(Poi::COLLECTION, $query, 
   												array("updated" => -1), $indexStep, $indexMin);
-  		foreach ($allPoi as $key => $value) {
+
+  		//var_dump($query); exit;
+    	foreach ($allPoi as $key => $value) {
 	  		if(@$value["parentId"] && @$value["parentType"])
 	  			$parent = Element::getElementSimpleById(@$value["parentId"], @$value["parentType"]);
 	  		else
