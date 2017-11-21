@@ -983,6 +983,7 @@ class Notification{
 						"notify.labelArray"=>$arrayLabel,
 						"notify.id" => $construct["community"],
 						"notify.displayName"=> $newLabel,
+						"notify.labelAuthorObject"=>$construct["labelUpNotifyTarget"],
 						"updated" => new MongoDate(time())
 						)
 					)

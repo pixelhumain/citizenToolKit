@@ -29,8 +29,8 @@ class GetAction extends CAction
           if(!empty($res)){
             $timezone="";
               foreach($res as $key => $data){
-                if(@$data["notify"]["labelAuthorObject"]){
-                  if($data["notify"]["labelAuthorObject"]=="mentions")
+                if(@$data["notify"]["labelAuthorObject"] || @$data["notify"]["labelArray"]){
+                  if(@$data["notify"]["labelAuthorObject"] && $data["notify"]["labelAuthorObject"]=="mentions")
                     $res[$key]["notify"]["displayName"]=Notification::translateMentions($data);
                   else
                     $res[$key]["notify"]["displayName"]=Notification::translateLabel($data);
