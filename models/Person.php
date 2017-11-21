@@ -40,6 +40,7 @@ class Person {
 	    "github" => array("name" => "socialNetwork.github"),
 	    "skype" => array("name" => "socialNetwork.skype"),
 	    "telegram" => array("name" => "socialNetwork.telegram"),
+	    "instagram" => array("name" => "socialNetwork.instagram"),
 	    "bgClass" => array("name" => "preferences.bgClass"),
 	    "bgUrl" => array("name" => "preferences.bgUrl"),
 	    "roles" => array("name" => "roles"),

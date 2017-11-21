@@ -76,6 +76,7 @@ class Event {
 	    "gpplus" => array("name" => "socialNetwork.googleplus"),
 	    "github" => array("name" => "socialNetwork.github"),
 	    "skype" => array("name" => "socialNetwork.skype"),
+	    "instagram" => array("name" => "socialNetwork.instagram"),
 	);
 
 	//TODO SBAR - First test to validate data. Move it to DataValidator
