@@ -1233,13 +1233,15 @@ class City {
 		if(isset($locality["postalCode"]))
 			$res["cp"] = $locality["postalCode"];
 		
-		if(isset($locality["countryCode"]))
-			$res["countryCode"] = $locality["countryCode"];
+		if(isset($locality["addressCountry"]))
+			$res["countryCode"] = $locality["addressCountry"];
 		
 		return $res ;
 	}
 
 	public static function detailsLocality($locality){
+		//var_dump($locality);
+
 		$res = self::detailLevels($locality) ;
 		$userT = strtoupper(Yii::app()->language) ;
 
@@ -1260,9 +1262,27 @@ class City {
 		if(!empty($res["level4"])){
 			$res["level4Name"] = Zone::getNameCountry($res["level4"]);
 		}
-
-		if(isset($keyArray[6]))
-			$res["cp"] = $keyArray[6];
+		
+		$city = PHDB::findOne(self::COLLECTION, array("_id"=>new MongoId($res["city"])), array("postalCodes"));
+		if(!empty($city["postalCodes"]))
+			$res["postalCodes"] = $city["postalCodes"];
+		if(!empty($city["postalCodes"]) && count($city["postalCodes"]) > 1){
+			foreach ($city["postalCodes"] as $key => $v) {
+				$citiesNames[] = $v["name"];
+			}
+			$res["cities"] = $citiesNames;
+		}else if(is_string($res["cp"]) && strlen($res["cp"]) > 0){
+			if($res["cp"]){
+				$where = array("postalCodes.postalCode" =>new MongoRegex("/^".$res["cp"]."/i"),
+				"country" => $res["countryCode"]);
+				$citiesResult = PHDB::find( City::COLLECTION , $where, array("_id") );
+				$citiesNames=array();
+				foreach ($citiesResult as $key => $v) {
+					$citiesNames[] = City::getNameCity($key);
+				}
+				$res["cities"] = $citiesNames;
+			}
+		}
 		return $res;
 	}
 
@@ -1330,10 +1350,8 @@ class City {
 		$userT = strtoupper(Yii::app()->language) ;
 		if(!empty($translates) ){
 			$name = (!empty($translates["translates"][$userT]) ? $translates["translates"][$userT] : $translates["origin"]);
-
 		}else
 			$name = "";
-		
 		return $name;
 	}
 

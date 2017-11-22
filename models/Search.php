@@ -884,27 +884,9 @@ class Search {
 
 
     //*********************************  CITIES   ******************************************
-    public static function searchCities($search, $locality, $country){   
-  		
-    	// $where = array('$or'=> 
-     //                        array(  array("origin" => new MongoRegex("/".$search."/i")),
-     //                                array("translates.".strtoupper(Yii::app()->language) => array( '$in' => array (new MongoRegex("/".$search."/i") ) ) ),
-     //                    ));
-     //    $where = array('$and'=> array($where, array("parentType" => City::COLLECTION ) ) );
+    public static function searchCities($search, $locality, $country){
 
-     //    $translate = Zone::getWhereTranlate($where);
-     //    //var_dump($where);
-     //    $cities = array();
-     //    foreach ($translate as $keyTran => $valueTran) {
-     //    	$city = self::getById( $valueTran["parentId"]);
-     //    	if(!empty($valueTran["translates"][strtoupper(Yii::app()->language)]))
-     //    		$city["name"] = $valueTran["translates"][strtoupper(Yii::app()->language)] ;
-     //    	$cities[$valueTran["parentId"]] = $city ;
-     //    }
-
-
-
-  		$query = array( "name" => new MongoRegex("/".self::wd_remove_accents($search)."/i"));//array('$text' => array('$search' => $search));//
+  		$query = array( "name" => new MongoRegex("/".self::wd_remove_accents($search)."/i"));
   		
   		//*********************************  DEFINE LOCALITY QUERY   ******************************************
     	if($locality == null || $locality == "")
@@ -917,7 +899,6 @@ class Search {
     									   array( "alternateName" => new MongoRegex("/".self::wd_remove_accents($locality)."/i")),
     									   array( "postalCodes.name" => array('$in' => array(new MongoRegex("/".self::wd_remove_accents($locality)."/i"))))
     					));
-    		//error_log("search city with : " . self::wd_remove_accents($locality));
     	}
     	if($type == "CODE_POSTAL_INSEE") {
     		$query = array("postalCodes.postalCode" => array('$in' => array($locality)));
@@ -947,6 +928,7 @@ class Search {
 			  		//$regionName = 
 			  		$newCity = array(
 			  						"_id"=>$data["_id"],
+			  						"id"=>(String) $data["_id"],
 			  						"insee" => $data["insee"], 
 			  						// "regionName" => isset($data["regionName"]) ? $data["regionName"] : "", 
 			  						// "depName" => isset($data["depName"]) ? $data["depName"] : "",
@@ -955,12 +937,34 @@ class Search {
 			  						"country" => $data["country"],
 			  						"geoShape" => isset($data["geoShape"]) ? $data["geoShape"] : "",
 			  						"cp" => $val["postalCode"],
+			  						"postalCodes" => $data["postalCodes"],
 			  						"geo" => $val["geo"],
 			  						"geoPosition" => $val["geoPosition"],
 			  						"name" => ucwords(strtolower($val["name"])),
+			  						"cityName" => $val["name"],
 			  						"alternateName" => ucwords(strtolower($val["name"])),
 			  						"type"=>"city",
 			  						"typeSig" => "city");
+
+			  		//var_dump(count($newCity["postalCodes"]));
+			  		if(!empty($newCity["postalCodes"]) && count($newCity["postalCodes"]) > 1){
+						foreach ($newCity["postalCodes"] as $key => $v) {
+		                    $citiesNames[] = $v["name"];
+		                }
+			            $newCity["cities"] = $citiesNames;
+			            
+			  		}else if(is_string($newCity["cp"]) && strlen($newCity["cp"]) > 0){
+						if($newCity["cp"]){
+			                $where = array("postalCodes.postalCode" =>new MongoRegex("/^".$newCity["cp"]."/i"),
+			            					"country" => $newCity["country"]);
+			                $citiesResult = PHDB::find( City::COLLECTION , $where, array("_id") );
+			                $citiesNames=array();
+			                foreach ($citiesResult as $key => $v) {
+			                    $citiesNames[] = City::getNameCity($key);
+			                }
+			                $newCity["cities"] = $citiesNames;
+			            }
+			  		}
 
 			  		if(!empty($data["level4"])){
 						 $newCity["level4"] = $data["level4"];
