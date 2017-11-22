@@ -62,44 +62,79 @@ class Search {
 		return utf8_encode($text);
 	}
 
+	public static function networkAutoComplete($post, $filter = null){
+		$search = isset($post['name']) ? trim(urldecode($post['name'])) : null;
+		$locality = isset($post['locality']) ? trim(urldecode($post['locality'])) : null;
+		$searchType = isset($post['searchType']) ? $post['searchType'] : null;
+		$searchTag = isset($post['searchTag']) ? $post['searchTag'] : null;
+		$searchPrefTag = isset($post['searchPrefTag']) ? $post['searchPrefTag'] : null;
+		$searchBy = isset($post['searchBy']) ? $post['searchBy'] : "INSEE";
+		$indexMin = isset($post['indexMin']) ? $post['indexMin'] : 0;
+		$indexMax = isset($post['indexMax']) ? $post['indexMax'] : 100;
+		$country = isset($post['country']) ? $post['country'] : "";
+		$sourceKey = isset($post['sourceKey']) ? $post['sourceKey'] : null;
+		$mainTag = isset($post['mainTag']) ? $post['mainTag'] : null;
+		$paramsFiltre = isset($post['paramsFiltre']) ? $post['paramsFiltre'] : null;
+
+		$query = array();
+		$query = self::searchString($search, $query);
+
+		$verbTag = ( (!empty($paramsFiltre) && '$all' == $paramsFiltre) ? '$all' : '$in' ) ;
+		$queryTags =  self::searchTags($searchTags, $verbTag) ;
+
+		if( !empty($queryTags) )
+			$query = array('$and' => array( $query , $queryTags) );
+
+		$query = array('$and' => array( $query , array("state" => array('$ne' => "uncomplete")) ));
+
+		if(!empty($mainTag)){
+			$verbMainTag = ( (!empty($searchPrefTag) && '$or' == $searchPrefTag) ? '$or' : '$and' );
+			$queryTags =  self::searchTags($mainTag, $verbMainTag) ;
+			if( !empty($queryTags) )
+				$query = array('$and' => array( $query , $queryTags) );
+		}
+
+		$query = self::searchSourceKey($sourceKey, $query);
+
+	}
+
+
 	public static function globalAutoComplete($post,  $filter = null, $api=false){
 
 		$search = @$post['name'] ? trim(urldecode($post['name'])) : "";
-        $searchLocality = isset($post['locality']) ? $post['locality'] : null;
-        //$localities = isset($post['localities']) ? $post['localities'] : null;
-        $searchType = isset($post['searchType']) ? $post['searchType'] : null;
-        $searchTags = isset($post['searchTag']) ? $post['searchTag'] : null;
-        $indexMin = isset($post['indexMin']) ? $post['indexMin'] : 0;
-        $indexMax = isset($post['indexMax']) ? $post['indexMax'] : 30;
-        $country = isset($post['country']) ? $post['country'] : "";
-        $priceMin = isset($_POST['priceMin']) ? $_POST['priceMin'] : null;
-        $priceMax = isset($_POST['priceMax']) ? $_POST['priceMax'] : null;
-        $devise = isset($_POST['devise']) ? $_POST['devise'] : null;
-        $latest = isset($_POST['latest']) ? $_POST['latest'] : null;
-        $startDate = isset($_POST['startDate']) ? $_POST['startDate'] : null;
-        $endDate = isset($_POST['endDate']) ? $_POST['endDate'] : null;
-        $searchSType = !empty($post['searchSType']) ? $post['searchSType'] : "";
+		$searchLocality = isset($post['locality']) ? $post['locality'] : null;
+		$searchType = isset($post['searchType']) ? $post['searchType'] : null;
+		$searchTags = isset($post['searchTag']) ? $post['searchTag'] : null;
+		$indexMin = isset($post['indexMin']) ? $post['indexMin'] : 0;
+		$indexMax = isset($post['indexMax']) ? $post['indexMax'] : 30;
+		$country = isset($post['country']) ? $post['country'] : "";
+		$priceMin = isset($post['priceMin']) ? $post['priceMin'] : null;
+		$priceMax = isset($post['priceMax']) ? $post['priceMax'] : null;
+		$devise = isset($post['devise']) ? $post['devise'] : null;
+		$latest = isset($post['latest']) ? $post['latest'] : null;
+		$startDate = isset($post['startDate']) ? $post['startDate'] : null;
+		$endDate = isset($post['endDate']) ? $post['endDate'] : null;
+		$searchSType = !empty($post['searchSType']) ? $post['searchSType'] : "";
 
 
-        $indexStep = $indexMax - $indexMin;
-        
-        $searchTypeOrga = ""; /* used in CO2 to find different organisation type */
-        
-        if( sizeOf($searchType) == 1 &&
-        	@$searchType[0] == Organization::TYPE_NGO ||
-         	@$searchType[0] == Organization::TYPE_BUSINESS ||
-         	@$searchType[0] == Organization::TYPE_GROUP ||
-        	@$searchType[0] == Organization::TYPE_GOV) {
-	        	$searchTypeOrga = $searchType[0];
-	        	$searchType = array(Organization::COLLECTION);
-        }
+		$indexStep = $indexMax - $indexMin;
+		
+		$searchTypeOrga = ""; /* used in CO2 to find different organisation type */
+		
+		if( sizeOf($searchType) == 1 &&
+			@$searchType[0] == Organization::TYPE_NGO ||
+			@$searchType[0] == Organization::TYPE_BUSINESS ||
+			@$searchType[0] == Organization::TYPE_GROUP ||
+			@$searchType[0] == Organization::TYPE_GOV) {
+				$searchTypeOrga = $searchType[0];
+				$searchType = array(Organization::COLLECTION);
+		}
 
-        //*********************************  DEFINE GLOBAL QUERY   ******************************************
-        $query = array();
-
-        $query = self::searchString($search, $query);
+		//*********************************  DEFINE GLOBAL QUERY   ******************************************
+		$query = array();
+		$query = self::searchString($search, $query);
        
-        $query = array('$and' => array( $query , array("state" => array('$ne' => "uncomplete")) ));
+		$query = array('$and' => array( $query , array("state" => array('$ne' => "uncomplete")) ));
   		if($latest)
   			$query = array('$and' => array($query, array("updated"=>array('$exists'=>1))));
 
@@ -138,7 +173,7 @@ class Search {
   		//var_dump($query);
   		//*********************************  CITIES   ******************************************
   		if(!empty($search) /*&& !empty($locality) */){
-	        if(strcmp($filter, City::COLLECTION) != 0 && self::typeWanted(City::COLLECTION, $searchType)){
+			if(strcmp($filter, City::COLLECTION) != 0 && self::typeWanted(City::COLLECTION, $searchType)){
 		  		$allCitiesRes = self::searchCities($search, null, $country);
 		  		//$allCitiesRes = self::searchCities($search, $locality, $country);
 		  	}
@@ -151,56 +186,47 @@ class Search {
 		  	} 
 		}
 	  		
-        //*********************************  PERSONS   ******************************************
+		//*********************************  PERSONS   ******************************************
        	if(strcmp($filter, Person::COLLECTION) != 0 && (self::typeWanted(Person::COLLECTION, $searchType) || self::typeWanted("persons", $searchType) ) ) {
-     //   		$localityReferences['CITYKEY'] = "";
-	  		// $localityReferences['CODE_POSTAL'] = "address.postalCode";
-	  		// $localityReferences['DEPARTEMENT'] = "address.postalCode";
-	  		// $localityReferences['REGION'] = ""; //Spécifique
-	  		// $prefLocality = false;
-	  		// foreach ($localityReferences as $key => $value){
-	  		// 	if(!empty($post["searchLocality".$key])){
-	  		// 		$prefLocality = true;
-	  		// 	} 
-	  		// }
-	  		$prefLocality = (!empty($searchLocality) ? true : false);
-        	$allRes = array_merge($allRes, self::searchPersons($query, $indexStep, $indexMin, $prefLocality));
+			$prefLocality = (!empty($searchLocality) ? true : false);
+			$allRes = array_merge($allRes, self::searchPersons($query, $indexStep, $indexMin, $prefLocality));
 
 	  	}
 
 	  	//*********************************  ORGANISATIONS   ******************************************
-        if(strcmp($filter, Organization::COLLECTION) != 0 && self::typeWanted(Organization::COLLECTION, $searchType)){
-        	$allRes = array_merge($allRes, self::searchOrganizations($query, $indexStep, $indexMin,  $searchType, $searchTypeOrga));
+		if(strcmp($filter, Organization::COLLECTION) != 0 && self::typeWanted(Organization::COLLECTION, $searchType)){
+			$allRes = array_merge($allRes, self::searchOrganizations($query, $indexStep, $indexMin,  $searchType, $searchTypeOrga));
 	  	}
 
 	  	date_default_timezone_set('UTC');
 				
 	  	//*********************************  EVENT   ******************************************
-        if(strcmp($filter, Event::COLLECTION) != 0 && self::typeWanted(Event::COLLECTION, $searchType)){
+		if(strcmp($filter, Event::COLLECTION) != 0 && self::typeWanted(Event::COLLECTION, $searchType)){
 
-        	if($startDate!=null){
-        		array_push( $query[ '$and' ], array( "startDate" => array( '$gte' => new MongoDate( (float)$startDate ) ) ) );
+			if($startDate!=null){
+				array_push( $query[ '$and' ], array( "startDate" => array( '$gte' => new MongoDate( (float)$startDate ) ) ) );
        		}
-        	if($endDate!=null){
+			if($endDate!=null){
        			array_push( $query[ '$and' ], array( "endDate" => array( '$lte' => new MongoDate( (float)$endDate ) ) ) );
        		}
 
-        	$allRes = array_merge($allRes, self::searchEvents($query, $indexStep, $indexMin, $searchSType));
+			$allRes = array_merge($allRes, self::searchEvents($query, $indexStep, $indexMin, $searchSType));
 	  	}
 	  	//*********************************  PROJECTS   ******************************************
-        if(strcmp($filter, Project::COLLECTION) != 0 && self::typeWanted(Project::COLLECTION, $searchType)){
-        	$allRes = array_merge($allRes, self::searchProject($query, $indexStep, $indexMin));
+		if(strcmp($filter, Project::COLLECTION) != 0 && self::typeWanted(Project::COLLECTION, $searchType)){
+			$allRes = array_merge($allRes, self::searchProject($query, $indexStep, $indexMin));
 	  	}
 		//*********************************  CLASSIFIED   ******************************************
-        if(strcmp($filter, Classified::COLLECTION) != 0 && self::typeWanted(Classified::COLLECTION, $searchType)){
-        	if(!empty($searchTags) && in_array("favorites", $searchTags))
-        		$allRes = array_merge($allRes, self::searchFavorites(Classified::COLLECTION));
-        	else 
-        		$allRes = array_merge($allRes, self::searchClassified($query, $indexStep, $indexMin, @$priceMin, @$priceMax, @$devise));
+		if(strcmp($filter, Classified::COLLECTION) != 0 && self::typeWanted(Classified::COLLECTION, $searchType)){
+			//var_dump($query) ; exit;
+			if(!empty($searchTags) && in_array("favorites", $searchTags))
+				$allRes = array_merge($allRes, self::searchFavorites(Classified::COLLECTION));
+			else 
+				$allRes = array_merge($allRes, self::searchClassified($query, $indexStep, $indexMin, @$priceMin, @$priceMax, @$devise));
 	  	}
 	  	//*********************************  POI   ******************************************
-        if(strcmp($filter, Poi::COLLECTION) != 0 && self::typeWanted(Poi::COLLECTION, $searchType)){
-        	$allRes = array_merge($allRes, self::searchPoi($query, $indexStep, $indexMin));
+		if(strcmp($filter, Poi::COLLECTION) != 0 && self::typeWanted(Poi::COLLECTION, $searchType)){
+			$allRes = array_merge($allRes, self::searchPoi($query, $indexStep, $indexMin));
 	  	}
 	  	//*********************************  PRODUCT  ******************************************
         if(strcmp($filter, Product::COLLECTION) != 0 && self::typeWanted(Product::COLLECTION, $searchType)){
@@ -211,28 +237,27 @@ class Search {
         	$allRes = array_merge($allRes, self::searchService($query, $indexStep, $indexMin));
 	  	}
 	  	//*********************************  PLACE   ******************************************
-        if(strcmp($filter, Place::COLLECTION) != 0 && self::typeWanted(Place::COLLECTION, $searchType)){
-        	$allRes = array_merge($allRes, self::searchPlace($query, $indexStep, $indexMin));
+		if(strcmp($filter, Place::COLLECTION) != 0 && self::typeWanted(Place::COLLECTION, $searchType)){
+			$allRes = array_merge($allRes, self::searchPlace($query, $indexStep, $indexMin));
 	  	}
 
 	  	//*********************************  DDA   ******************************************
-        if(strcmp($filter, ActionRoom::COLLECTION) != 0 && self::typeWanted(ActionRoom::COLLECTION, $searchType)){
-        	$allRes = array_merge($allRes, self::searchDDA($query, $indexMax));
+		if(strcmp($filter, ActionRoom::COLLECTION) != 0 && self::typeWanted(ActionRoom::COLLECTION, $searchType)){
+			$allRes = array_merge($allRes, self::searchDDA($query, $indexMax));
 	  	}
 
 		//*********************************  VOTES / propositions   ******************************************
 		//error_log(print_r($searchType)); 
 		//error_log("filter : ".$filter);
-        if(isset(Yii::app()->session["userId"]) && 
-        	//(strcmp($filter, ActionRoom::TYPE_VOTE) != 0 && 
-        		self::typeWanted(ActionRoom::TYPE_VOTE, $searchType) ||
-        	//(strcmp($filter, ActionRoom::TYPE_ACTIONS) != 0 && 
-        		self::typeWanted(ActionRoom::TYPE_ACTIONS, $searchType)
-        	 ){    
-        	$allRes = array_merge($allRes, self::searchVotes($query, $indexStep, $indexMin, $searchType));
-        }
+		if(isset(Yii::app()->session["userId"]) && 
+			//(strcmp($filter, ActionRoom::TYPE_VOTE) != 0 && 
+				self::typeWanted(ActionRoom::TYPE_VOTE, $searchType) ||
+			//(strcmp($filter, ActionRoom::TYPE_ACTIONS) != 0 && 
+				self::typeWanted(ActionRoom::TYPE_ACTIONS, $searchType)
+			 ){    
+			$allRes = array_merge($allRes, self::searchVotes($query, $indexStep, $indexMin, $searchType));
+		}
 
-	  	
 	  	if(@$post['tpl'] == "/pod/nowList"){
 	  		usort($allRes, "self::mySortByUpdated");
 	  	}
@@ -273,24 +298,52 @@ class Search {
 	}
 
 	//*********************************  TAGS   ******************************************
-	public static function searchTags($searchTags, $verb = '$in', $attName = 'tags' ){
-        $tmpTags = array();
-        $query = array();
-  		if(!empty($searchTags)){
-  			foreach ($searchTags as $value) {
-  				if(trim($value) != "")
-	  				//$tmpTags[] = new MongoRegex("/^".$value."$/i");
-	  				$tmpTags[] = new MongoRegex("/^".self::accentToRegex($value)."$/i");
+	public static function searchTags($searchTags, $verb = '$in' ){
+		$isString = false;
+		$tmpTags = array();
+		$query = array();
+		if(!empty($searchTags)){
+			if(is_array($tags)){
+				foreach ($searchTags as $value) {
+					if(trim($value) != "")
+						$tmpTags[] = new MongoRegex("/^".self::accentToRegex($value)."$/i");
+				}
+			} else {
+				$tmpTags[] = new MongoRegex("/^".Search::accentToRegex($tags)."$/i");							
+				$isString = true;
+			}
+
+			if(count($tmpTags)){
+				$allverb = array('$in', '$all');
+				if(!in_array($verb, $allverb))
+					$verb = '$in';
+				$query = array("tags" => array($verb => $tmpTags)) ;
+			}
+		}
+
+		if($isString && count($tmpTags))
+			$query = array('$and' => array( $query , array("tags" => array('$in' => $tmpTags)))) ;
+		
+		return $query;
+	}
+
+	public static function searchSourceKey($sourceKey, $query){
+		$tmpSourceKey = array();
+  		if($sourceKey != null && $sourceKey != ""){
+  			//Several Sourcekey
+	  		if(is_array($sourceKey)){
+	  			foreach ($sourceKey as $value) {
+	  				$tmpSourceKey[] = new MongoRegex("/".$value."/i");
+	  			}
+	  		}//One Sourcekey
+	  		else{
+	  			$tmpSourceKey[] = new MongoRegex("/".$sourceKey."/i");
 	  		}
-	  		if(count($tmpTags)){
-	  			$allverb = array('$in', '$all');
-	  			if(!in_array($verb, $allverb))
-	  				$verb = '$in';
-	  			$query = array($attName => array($verb => $tmpTags)) ;
+	  		if(count($tmpSourceKey)){
+	  			$query = array('$and' => array( $query , array("source.keys" => array('$in' => $tmpSourceKey))));
 	  		}
-  		}
-  		return $query;
-  		
+	  		unset($tmpSourceKey);
+	  	}
 	}
 
 	//*********************************  Zones   ******************************************
@@ -351,6 +404,50 @@ class Search {
 		
 		return $query ;
 	}
+
+	/*public static function searchLocality($post, $query){
+		$localityReferences['NAME'] = "address.addressLocality";
+  		$localityReferences['CODE_POSTAL_INSEE'] = "address.postalCode";
+  		$localityReferences['DEPARTEMENT'] = "address.postalCode";
+  		$localityReferences['REGION'] = ""; //Spécifique
+  		$localityReferences['INSEE'] = "address.codeInsee";
+
+  		foreach ($localityReferences as $key => $value) {
+  			if(isset($_POST["searchLocality".$key]) && is_array($_POST["searchLocality".$key])){
+  				foreach ($_POST["searchLocality".$key] as $locality) {
+
+  					//OneRegion
+
+  					if($key == "REGION") {
+  						if($locality == "La Réunion")
+  							$locality = "Réunion" ;
+	        			$dep = PHDB::findOne( City::COLLECTION, array("level3Name" => $locality), array("level3"));
+	        			if(!empty($dep))
+	        				$queryLocality = array("address.level3" => $dep["level3"]);
+	        		}else if($key == "DEPARTEMENT") {
+	        			$dep = PHDB::findOne( City::COLLECTION, array("level4Name" => $locality), array("level4"));
+	        			if(!empty($dep))
+		        			$queryLocality = array("address.level4" => $dep["level4"]);
+		        	}//OneLocality
+		        	else{
+	  					$queryLocality = array($value => new MongoRegex("/".$locality."/i"));
+	  				}
+
+  					//Consolidate Queries
+  					if(!empty($queryLocality)) {
+	  					if(isset($allQueryLocality)){
+	  						$allQueryLocality = array('$or' => array( $allQueryLocality ,$queryLocality));
+	  					}else{
+	  						$allQueryLocality = $queryLocality;
+	  					}
+	  				}
+	  				unset($queryLocality);
+
+  				}
+  			}
+  		}
+  		if(isset($allQueryLocality) && is_array($allQueryLocality))
+  			$query = array('$and' => array($query, $allQueryLocality));*/
 
 	//*********************************  DEFINE LOCALITY QUERY   ****************************************
 
@@ -1074,5 +1171,4 @@ class Search {
         }
         return $resStr;
     }
-
 }
