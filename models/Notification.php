@@ -421,7 +421,7 @@ class Notification{
 		    if ($target["type"] == Event::COLLECTION)
 		    	$url = $ctrl.'/detail/id/'.$target["id"];
 		    else 
-		    	$url = $ctrl.'/directory/id/'.$targetId.'?tpl=directory2';
+		    	$url = 'element/detail/type/'. $target["type"] .'/id/'.$targetId;
 	    }
 		else if($verb == ActStr::VERB_JOIN){
 		    $label = Yii::app()->session['user']['name']." ".Yii::t("common","participates to the event")." ".$target["name"];
@@ -439,7 +439,7 @@ class Notification{
 			 if ($target["type"] == Event::COLLECTION)
 		    	$url = $ctrl.'/detail/id/'.$target["id"];
 		    else 
-			 	$url = $ctrl.'/directory/id/'.$target["id"].'?tpl=directory2';
+			 	$url = 'element/detail/type/'. $target["type"] .'/id/'.$targetId;
 		}
 
 		
