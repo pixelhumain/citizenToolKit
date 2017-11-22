@@ -94,7 +94,7 @@ class Search {
 				$query = array('$and' => array( $query , $queryTags) );
 		}
 
-		$query = self::searchSourceKey($sourceKey, $query)
+		$query = self::searchSourceKey($sourceKey, $query);
 
 	}
 
@@ -298,13 +298,13 @@ class Search {
 		$tmpTags = array();
 		$query = array();
 		if(!empty($searchTags)){
-			if(is_array($tags)){
+			if(is_array(@$searchTags)){
 				foreach ($searchTags as $value) {
 					if(trim($value) != "")
 						$tmpTags[] = new MongoRegex("/^".self::accentToRegex($value)."$/i");
 				}
 			} else {
-				$tmpTags[] = new MongoRegex("/^".Search::accentToRegex($tags)."$/i");							
+				$tmpTags[] = new MongoRegex("/^".Search::accentToRegex(@$searchTags)."$/i");							
 				$isString = true;
 			}
 
@@ -400,7 +400,7 @@ class Search {
 		return $query ;
 	}
 
-	public static function searchLocality($post, $query){
+	/*public static function searchLocality($post, $query){
 		$localityReferences['NAME'] = "address.addressLocality";
   		$localityReferences['CODE_POSTAL_INSEE'] = "address.postalCode";
   		$localityReferences['DEPARTEMENT'] = "address.postalCode";
@@ -443,7 +443,7 @@ class Search {
   		}
   		if(isset($allQueryLocality) && is_array($allQueryLocality))
   			$query = array('$and' => array($query, $allQueryLocality));
-
+  		*/
 	//*********************************  DEFINE LOCALITY QUERY   ****************************************
 
   	//trie les éléments dans l'ordre alphabetique par name

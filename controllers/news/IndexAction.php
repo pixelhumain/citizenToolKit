@@ -362,11 +362,10 @@ class IndexAction extends CAction
 				// }
 
 			//Exclude => If there is more than 5 reportAbuse
-			$where = array_merge($where,  array('$or' => array(
-														array("reportAbuseCount" => array('$lt' => 5)),
-														array("reportAbuseCount" => array('$exists'=>0))
-													)));
-			
+			$where['$and'][] =  array('$or'=>array(array("reportAbuseCount" => array('$lt' => 5)),
+													array("reportAbuseCount" => array('$exists'=>0))
+												  ));
+			//var_dump($where);// exit;
 			//Exclude => If isAnAbuse
 			$where = array_merge($where,  array( 'isAnAbuse' => array('$ne' => true) ) );
 			$where = array_merge($where,  array('sharedBy.updated' => array( '$lt' => $date ) ) );
@@ -388,7 +387,7 @@ class IndexAction extends CAction
 			$where["created"]=array('$lt' => $date);
 		}*/
 
-		//var_dump($where); //exit;
+		//var_dump($where); ///**/exit;
 		if(!empty($where))
 			$news= News::getNewsForObjectId($where,array("sharedBy.updated"=>-1),$type, @$followsArrayIds);
 		//echo count($news);
