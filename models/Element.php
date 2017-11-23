@@ -1621,7 +1621,6 @@ class Element {
                 	$params["creator"] = Yii::app()->session["userId"];
 	        		$params["created"] = time();
 	        		if(in_array($collection,[Organization::COLLECTION,Project::COLLECTION,Event::COLLECTION])){
-
 	        			$slug=Slug::checkAndCreateSlug($params["name"],$collection,$id);
 	        			Slug::save($collection,$id,$slug);
 	        			$params["slug"]=$slug;
