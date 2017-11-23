@@ -61,9 +61,14 @@ class OrderItem {
 	  	return $orderItem;
 	}
 
+	public static function getByArrayId($arrayId, $fields = array()) { 
+		$orderItem = PHDB::find(self::COLLECTION, array( "_id" => array('$in' => $arrayId)), $fields);
+		return $orderItem;
+	}
+
 	public static function getListBy($where){
 		$products = PHDB::find( self::COLLECTION , $where );
-	  	return $products;
+		return $products;
 	}
 
 	public static function getListByUser($where){
