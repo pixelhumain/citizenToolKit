@@ -3,8 +3,8 @@ class InvoiceAction extends CAction
 {
     public function run($type, $id) { 
 		$controller=$this->getController();
-		$params=array("type"=>$type,"id"=>$id, "orders"=>[]);
-		$params["orders"] = Order::getOrderItemForInvoiceByIdUser($id);
+		$params=array("type"=>$type,"id"=>$id, "invoices"=>[]);
+		$params["invoices"] = Document::getWhere(array("customerId" => $id, "type" => "pdf"));
 		if(Yii::app()->params["CO2DomainName"] == "terla")
 			$page="../element/terla/invoice";
 		else
