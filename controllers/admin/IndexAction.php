@@ -14,7 +14,7 @@ class IndexAction extends CAction
 
         $controller = $this->getController();
         $params = array();
-        $controller->renderPartial("index", $params);
+        $controller->renderPartial($dir."index", $params);
         
     }
 }
