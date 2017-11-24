@@ -32,6 +32,11 @@ class CreateAction extends CAction
 						"person" => $person,
 						"orderItem" => $newOrderItem), true);
 		Pdf::createPdf($tpl);
+
+
+		// $tpl = $controller->renderPartial('application.views.pdf.factureTerla', 
+		// 		array("params" => $_POST), true);
+		// return Pdf::createPdf($tpl, "facture");
     }
 }
 ?>

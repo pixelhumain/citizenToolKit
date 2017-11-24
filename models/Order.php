@@ -128,9 +128,9 @@ class Order {
 			$orderItem = OrderItem::getByArrayId($arrayId, array());
 			$newOrderItem = array();
 			foreach ($orderItem as $keyItem => $valueItem) {
-				if($value["orderedItemType"] == Service::COLLECTION ){
+				if($valueItem["orderedItemType"] == Service::COLLECTION ){
 					$elt = Service::getById($valueItem["orderedItemId"]);
-				} else if($value["orderedItemType"] == Product::COLLECTION ){
+				} else if($valueItem["orderedItemType"] == Product::COLLECTION ){
 					$elt = Product::getById($valueItem["orderedItemId"]);
 				}
 				$newOrderItem[$keyItem] = array(	"description" => $elt["name"],
