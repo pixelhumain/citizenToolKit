@@ -34,7 +34,7 @@ class GetCoopDataAction extends CAction {
 		}
 
 		//block l'accès si le user n'est pas autorisé à participer, et que l'element n'est pas openData
-		if(!$auth && !$openData) {
+		if(!$auth && !$openData && $parentType != "news") {
 			$res = array("access" => "deny");
 		}else{
 			$res = Cooperation::getCoopData($parentType, $parentId, $type, $status, $dataId);
@@ -87,6 +87,14 @@ class GetCoopDataAction extends CAction {
 			$res["parentType"] = @$_POST["parentType"];
 			$res["parentId"] 	= @$_POST["parentId"];
 		}
+
+		if(empty($dataId) && $parentType == News::CONTROLLER) {
+			$page = "moderation";
+			//$res["proposal"] = @$res["proposalList"][0];
+			//unset($res["proposalList"]);
+		}
+
+		//var_dump($res); exit;
 		
 		if(@$json == "false"){
 			echo $controller->renderPartial($page, $res, true);

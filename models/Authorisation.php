@@ -679,6 +679,8 @@ class Authorisation {
                     $res = self::isEventMember($userId, $itemId);
                 if($type == City::COLLECTION) 
                     $res = self::isLocalCitizen($userId, $itemId);
+                if($type == News::COLLECTION) 
+                    $res = true;
             }
             
         }
