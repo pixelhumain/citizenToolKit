@@ -236,6 +236,10 @@ class Search {
         if(strcmp($filter, Service::COLLECTION) != 0 && self::typeWanted(Service::COLLECTION, $searchType)){
         	$allRes = array_merge($allRes, self::searchService($query, $indexStep, $indexMin));
 	  	}
+	  	//*********************************  SERVICE  ******************************************
+        if(strcmp($filter, Circuit::COLLECTION) != 0 && self::typeWanted(Circuit::COLLECTION, $searchType)){
+        	$allRes = array_merge($allRes, self::searchCircuit($query, $indexStep, $indexMin));
+	  	}
 	  	//*********************************  PLACE   ******************************************
 		if(strcmp($filter, Place::COLLECTION) != 0 && self::typeWanted(Place::COLLECTION, $searchType)){
 			$allRes = array_merge($allRes, self::searchPlace($query, $indexStep, $indexMin));
@@ -798,7 +802,7 @@ class Search {
   		}
   		return $allProduct;
   	}
-  	//*********************************  PRODUServiceCT   ******************************************
+  	//*********************************  SERVICE   ******************************************
 	public static function searchService($query, $indexStep, $indexMin){
 		$allService = PHDB::findAndSortAndLimitAndIndex(Service::COLLECTION, $query, 
   												array("updated" => -1), $indexStep, $indexMin);
@@ -818,6 +822,28 @@ class Search {
 			$allService[$key]["type"] = Service::COLLECTION;
   		}
   		return $allService;
+  	}
+
+  	//*********************************  SERVICE   ******************************************
+  	public static function searchCircuit($query, $indexStep, $indexMin){
+		$allCircuit = PHDB::findAndSortAndLimitAndIndex(Circuit::COLLECTION, $query, 
+  												array("updated" => -1), $indexStep, $indexMin);
+  		foreach ($allCircuit as $key => $value) {
+	  		if(@$value["parentId"] && @$value["parentType"])
+	  			$parent = Element::getElementSimpleById(@$value["parentId"], @$value["parentType"]);
+	  		else
+	  			$parent=array();
+			$allCircuit[$key]["parent"] = $parent;
+			if(@$value["type"])
+				$allCircuit[$key]["typeSig"] = Circuit::COLLECTION.".".@$allCircuit[$key]["type"];//.".".$value["type"];
+			else
+				$allCircuit[$key]["typeSig"] = Circuit::COLLECTION.".".@$allCircuit[$key]["type"];
+			
+
+			$allCircuit[$key]["typePoi"] = @$allCircuit[$key]["type"];
+			$allCircuit[$key]["type"] = Circuit::COLLECTION;
+  		}
+  		return $allCircuit;
   	}
   	//*********************************  Place   ******************************************
 	public static function searchPlace($query, $indexStep, $indexMin){
