@@ -60,7 +60,11 @@ class Backup {
         		$backup["parentType"]=Person::COLLECTION;
         	}
 			PHDB::insert(self::COLLECTION,$backup);
-			return array("result"=>true, "msg"=>Yii::t("common","Your payment and reservations are well registred"), "backup"=>$backup);
+			if($backup["type"]==Circuit::COLLECTION)
+				$msg="Your circuit is well registered";
+			else
+				$msg="Your cart is well registered";
+			return array("result"=>true, "msg"=>Yii::t("common",$msg), "backup"=>$backup);
 		}else 
             return array( "result" => false, "error"=>"400",
                           "msg" => Yii::t("common","Something went really bad : ".$valid['msg']) );
