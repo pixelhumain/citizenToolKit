@@ -81,9 +81,10 @@ class Backup {
         {
         	$set=array(
         		"updated"=> new MongoDate(time()),
-        		"totalPrice"=>$params["totalPrice"],
 	            "object"=>$params["object"]
         		);
+        	if(@$params["totalPrice"])
+        		$set["totalPrice"]=$params["totalPrice"];
         	$id=$params["id"];
 			PHDB::update(self::COLLECTION,array("_id"=>new MongoId($id)),array('$set' => $set));
 			return array("result"=>true, "msg"=>Yii::t("common","Your backup has been succesfuly updated"));

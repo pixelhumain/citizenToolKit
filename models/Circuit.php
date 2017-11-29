@@ -47,8 +47,8 @@ class Circuit {
 	}
 
 	public static function getListBy($where){
-		$products = PHDB::find( self::COLLECTION , $where );
-	  	return $products;
+		$circuits = PHDB::find( self::COLLECTION , $where );
+	  	return $circuits;
 	}
 	public static function insert($circuit, $userId){
 		

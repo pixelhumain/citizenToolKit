@@ -1,7 +1,7 @@
 <?php
 
 class ListAction extends CAction {
-	public function run($type, $id) { 
+	public function run($type=null, $id=null) { 
 		$controller=$this->getController();
 		$params=array("type"=>$type,"id"=>$id, "actionType"=>$_POST["actionType"],"list"=>[]);
 		if(@$_POST["category"] && !empty($_POST["category"])){
@@ -24,12 +24,23 @@ class ListAction extends CAction {
 					else
 						$params["list"]["orderItems"]=[];
 				}
+				if($data==Circuit::COLLECTION){
+					$where=array();
+					$params["parentList"]=Circuit::getListBy($where);
+					$params["subType"]=Circuit::COLLECTION;
+					//if(!empty($params["parentList"]))
+					//	$params["list"]["orderItems"]=Circuit::getById((string)array_values($params["parentList"])[0]['_id']);
+					//else
+					//	$params["list"]["orderItems"]=[];
+				}
 				if($data==Backup::COLLECTION){
-					$where=array("parentId"=>Yii::app()->session["userId"]);
+					if(@$_POST["type"] && $_POST["type"]==Circuit::COLLECTION){
+						$params["subType"]=Circuit::COLLECTION;
+						$where=array("type"=>$_POST["type"]);
+					}
+					else
+						$where=array("parentId"=>Yii::app()->session["userId"]);
 					$params["parentList"]=Backup::getListBy($where);
-					//print_r($params["orderList"]);
-					//exit;
-					//$params["list"]["orderItems"]=Order::getOrderItemById((string)array_values($params["orderList"])[0]['_id']);
 				}
 				
 				/*if($data==OrderItem::COLLECTION){

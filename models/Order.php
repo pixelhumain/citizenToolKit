@@ -59,9 +59,10 @@ class Order {
 	}
 
 	public static function getListBy($where){
-		$order = PHDB::find( self::COLLECTION , $where );
-	  	return $order;
+		$orders = PHDB::find( self::COLLECTION , $where );
+	  	return $orders;
 	}
+	
 	public static function insert($order, $userId){
 		
         try {
