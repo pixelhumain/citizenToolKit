@@ -6,7 +6,7 @@ class IndexAction extends CAction
 	* Save a new organization with the minimal information
 	* @return an array with result and message json encoded
 	*/
-    public function run($id=null) {
+    public function run($id=null, $tpl=null) {
 		$controller=$this->getController();
 		// Retrieve data from form
 		//$newOrganization = Order::newOrganizationFromPost($_POST);
@@ -30,6 +30,8 @@ class IndexAction extends CAction
 			$viewRender=$_POST["viewRender"];
 		if(@$_POST["manage"])
 			$manage=$_POST["manage"];
+		if(@$tpl && !empty($tpl))
+			$manage=$tpl;
 		$params=array("object"=>$object,"viewRender"=>$viewRender,"manage"=>$manage);
 		if(@$_POST["backup"])
 			$params["backup"]=$_POST["backup"];
