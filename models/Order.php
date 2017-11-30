@@ -64,6 +64,7 @@ class Order {
 		$orders = PHDB::find( self::COLLECTION , $where );
 	  	return $orders;
 	}
+	
 	public static function insert($order, $userId){
 		
         try {
@@ -115,6 +116,39 @@ class Order {
 			$orderItems[(string)$orderItem["_id"]]=$orderItem;
 		}
 		return $orderItems;
+	}
+
+
+	public static function getOrderItemForInvoiceByIdUser($id){
+		//$person = Person::getById($id);
+		$newOrder = array();
+		$order = Order::getListBy(array("customerId" => $id));
+		foreach ($order as $key => $value) {
+			$arrayId =array();
+			foreach ($value["orderItems"] as $keyOrder => $valueOrder) {
+				$arrayId[] = new MongoId($valueOrder);
+			}
+
+			$orderItem = OrderItem::getByArrayId($arrayId, array());
+			$newOrderItem = array();
+			foreach ($orderItem as $keyItem => $valueItem) {
+				if($valueItem["orderedItemType"] == Service::COLLECTION ){
+					$elt = Service::getById($valueItem["orderedItemId"]);
+				} else if($valueItem["orderedItemType"] == Product::COLLECTION ){
+					$elt = Product::getById($valueItem["orderedItemId"]);
+				}
+				$newOrderItem[$keyItem] = array(	"description" => $elt["name"],
+													"quantity" => $valueItem["quantity"],
+													"price" => $elt["price"],
+													"totalPrice" => $valueItem["price"]);
+			}
+
+			$value["orderItems"] = $newOrderItem ;
+
+			$newOrder[$key] = $value;
+		}	
+
+		return $newOrder;
 	}
 	/*
 	* Increment a comment rating for an order for a specific product or sevrice
