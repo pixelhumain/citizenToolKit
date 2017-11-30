@@ -129,9 +129,10 @@ class Mail {
                                                     "applicationName" => Yii::app()->params["name"],
                                                 )
                         );
+                Mail::schedule($params);
             }
         }
-        Mail::schedule($params);
+        
     }
     //Mail is sent to super admin when an element is modified
     public static function elementModificationMail($paramsBlock, $collection, $listOfRecipient) {
