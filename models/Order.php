@@ -15,11 +15,13 @@ class Order {
 	    "type" => array("name" => "type"),
 	    "subtype" => array("name" => "subtype"),
 	    "orderItems"=>array("name" => "orderItems"),
+	    "circuit"=>array("name" => "circuit"),
+	    "bookingFor"=>array("name" => "bookingFor"),
 	    "countOrderItem"=>array("name" => "countOrderItem"),
 	    "totalPrice"=>array("name" => "totalPrice"),
 	   	"currency"=>array("name" => "currency"),
 	    "name" => array("name" => "name"),
-	    "address" => array("name" => "address", "rules" => array("addressValid")),
+	    /*"address" => array("name" => "address", "rules" => array("addressValid")),
 	    "addresses" => array("name" => "addresses"),
 	    "streetAddress" => array("name" => "address.streetAddress"),
 	    "postalCode" => array("name" => "address.postalCode"),
@@ -27,7 +29,7 @@ class Order {
 	    "addressLocality" => array("name" => "address.addressLocality"),
 	    "addressCountry" => array("name" => "address.addressCountry"),
 	    "geo" => array("name" => "geo"),
-	    "geoPosition" => array("name" => "geoPosition"),
+	    "geoPosition" => array("name" => "geoPosition"),*/
 	    "description" => array("name" => "description"),
 	    "addresses" => array("name" => "addresses"),
 	    "parentId" => array("name" => "parentId"),
@@ -83,6 +85,7 @@ class Order {
 			}
 			$order["orderItems"]=$orderItems;
 			PHDB::insert(self::COLLECTION,$order);
+			Mail::notifAdminNewReservation($order);
 			return array("result"=>true, "msg"=>Yii::t("common","Your payment and reservations are well registred"), "order"=>$order);
 		}else 
             return array( "result" => false, "error"=>"400",
