@@ -829,12 +829,50 @@ class Import
 
     }
 
-    public static function exportcsv(){
-        $orgas = PHDB::find(Organization::COLLECTION) ;
-        //$csv = 'name;description;shortDescription' ;
-        $nb = 0 ;
+    public static function exportcsv($post){
+        $where = array();
+        if(!empty($post)){
+            if(!empty($post["tagsActived"])){
 
-       //$head = "name;Type : (NGO, Group, LocalBusiness ou GovernmentOrganization);Rue;Code Postal;Ville;Code Pays;Email;Site web;Description courte;Description longue;Latitude;Longitude;Fixe1;Fixe2;Mobile1;Mobile2;Fax1;Fax2;Tag1;Tag2;Tag3;Contact1 : name;Contact1 : email;Contact1 : telephone;Contact1 : role;Contact2 : name;Contact2 : email;Contact2 : telephone;Contact2 : role";
+                foreach ($post["tagsActived"] as $key => $valueList) {
+                    // foreach ($valueList as $keyT => $tag) {
+                         
+                    // }
+                    $queryTags = array("tags" => array('$in' => $valueList)) ;
+
+                    if(empty($where))
+                        $where = $queryTags;
+                    else
+                        $where = array('$and' => array( $where , $queryTags) );
+                }
+
+            }
+        }
+
+        //var_dump($where);
+
+
+        // public static function searchTags($searchTags, $verb = '$in' ){
+        //     $tmpTags = array();
+        //     $query = array();
+        //     if(!empty($searchTags)){
+        //         foreach ($searchTags as $value) {
+        //             if(trim($value) != "")
+        //                 //$tmpTags[] = new MongoRegex("/^".$value."$/i");
+        //                 $tmpTags[] = new MongoRegex("/^".self::accentToRegex($value)."$/i");
+        //         }
+        //         if(count($tmpTags)){
+        //             $allverb = array('$in', '$all');
+        //             if(!in_array($verb, $allverb))
+        //                 $verb = '$in';
+        //             $query = array("tags" => array($verb => $tmpTags)) ;
+        //         }
+        //     }
+        //     return $query;
+            
+
+        $orgas = PHDB::find(Organization::COLLECTION, $where) ;
+        $nb = 0 ;
 
        $head = array("name","Type : (NGO, Group, LocalBusiness ou GovernmentOrganization)","Rue","Code Postal","Ville","Code Pays","Email","Site web","Description courte","Description longue","Latitude","Longitude");
        $fixe = array();
@@ -928,8 +966,6 @@ class Import
 
                 if(!empty($value["telephone"]["fax"])){
                     foreach ($value["telephone"]["fax"] as $keyNum => $num) {
-                        // if( !in_array("Fax".($keyNum+1), $head))
-                        //     $head[] = "Fax".($keyNum+1);
                         $body .= ';'.(!empty($num) ? $num : '' );
                     }
 
@@ -946,8 +982,6 @@ class Import
             if(!empty($value["tags"])){
 
                 foreach ($value["tags"] as $keyNum => $num) {
-                    // if( !in_array("Tag".($keyNum+1), $head))
-                    //     $head[] = "Tag".($keyNum+1);
                     $body .= ';'.(!empty($num) ? $num : '' );
                 }
 
