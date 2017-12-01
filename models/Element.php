@@ -1241,8 +1241,13 @@ class Element {
 		$res = array("result" => false, "msg" => "Something bad happend : impossible to delete this element");
 
 		//What type of element i can delete
-		$managedTypes = array(Organization::COLLECTION, Project::COLLECTION, Event::COLLECTION, Classified::COLLECTION,
-							 Proposal::COLLECTION, Action::COLLECTION, Room::COLLECTION);
+		$managedTypes = array(Organization::COLLECTION, 
+							Project::COLLECTION, 
+							Event::COLLECTION, 
+							Classified::COLLECTION,
+							Proposal::COLLECTION, 
+							Action::COLLECTION, 
+							Room::COLLECTION);
 		
 		if (!in_array($elementType, $managedTypes)) return array( "result" => false, "msg" => "Impossible to delete this type of element" );
 		$modelElement = self::getModelByType($elementType);
@@ -1281,7 +1286,9 @@ class Element {
 				$canBeDeleted = in_array($creator, $admins);
 			}
 		//If open data without admin => the super admin will statut
-		} else if ((@$element["preferences"]["isOpenData"] == true || @$element["preferences"]["isOpenData"] == 'true' ) && count($admins) == 0) {
+		} else if ((@$element["preferences"]["isOpenData"] == true || 
+					@$element["preferences"]["isOpenData"] == 'true' ) && 
+					count($admins) == 0) {
 			$canBeDeleted = false;
 		}
 
@@ -1365,36 +1372,46 @@ class Element {
 		
 		$elementToDelete = self::getByTypeAndId($elementType, $elementId);
 
+		$resError = array(
+    		"result" => false, 
+    		"action" => array( "start_delete" => array( 
+    						"type"=>$elementType, 
+    						"id"=>$elementId,
+    						"name" => $elementToDelete["name"]
+    					)), 
+    		"msg" => Yii::t('common',"Error trying to delete this element : please contact your administrator."),
+    		);
+
 		//Remove Documents => Profil Images
 		//TODO SBAR : Remove other images ?
     	$profilImages = Document::listMyDocumentByIdAndType($elementId, $elementType, Document::IMG_PROFIL, Document::DOC_TYPE_IMAGE, array( 'created' => -1 ));
     	foreach ($profilImages as $docId => $document) {
     		Document::removeDocumentById($docId, $userId);
-    		error_log("delete document id ".$docId);
+    		//error_log("delete document id ".$docId);
     	}
-
-    	$resError = array("result" => false, "msg" => Yii::t('common',"Error trying to delete this element : please contact your administrator."));
+    	$resError["action"]["deleted_Documents"] = count($profilImages);
+    	
     	//Remove Activity of the Element
     	$res = ActivityStream::removeElementActivityStream($elementId, $elementType);
-    	$resError["action"] = "removeElementActivityStream";
+    	$resError["action"]["removeElementActivityStream"] = $res;
     	if (!$res) return $resError;
     	//Delete News
     	$res = News::deleteNewsOfElement($elementId, $elementType, $userId, true);
-    	$resError["action"] = "deleteNewsOfElement";
+    	$resError["action"]["deleteNewsOfElement"] = $res;
     	$resError["res"] = $res;
     	if (!$res["result"]) {
     		error_log("error deleting News ".@$res["id"]." : ".$res["msg"]); return $resError;
     	}
     	//Delete Action Rooms
     	$res = ActionRoom::deleteElementActionRooms($elementId, $elementType, $userId);
-    	$resError["action"] = "deleteElementActionRooms";
+    	$resError["action"]["deleteElementActionRooms"] = $res; 
     	if (!$res["result"]) return $resError;
 
 
 		$listEventsId = array();
 		$listProjectId = array();
 		//Remove backwards links
-		$resError["action"] = "Remove backwards links";
+		$resError["action"]["RemoveBackwardsLinks"] = $res;
 		if (isset($elementToDelete["links"])) {
 			foreach ($elementToDelete["links"] as $linkType => $aLink) {
 				foreach ($aLink as $linkElementId => $linkInfo) {
@@ -1426,7 +1443,7 @@ class Element {
 		}
 		
 		//Unset the organizer for events organized by the element
-		$resError["action"] = "Unset the organizer for events organized by the element";
+		$resError["action"]["Unset_the_organizer_for_events_organized_by_the_element"] = $res;
 		if (count($listEventsId) > 0) {
 			$where = array('_id' => array('$in' => $listEventsId));
 			$action = array('$set' => array("organizerId" => Event::NO_ORGANISER, "organizerType" => Event::NO_ORGANISER));
@@ -1434,7 +1451,7 @@ class Element {
 		}
 
 		//Unset the project with parent this element
-		$resError["action"] = "Unset the project with parent this element";
+		$resError["action"]["Unset_the_project_with_parent_this_element"] = $res;
 		if (count($listProjectId) > 0) {
 			$where = array('_id' => array('$in' => $listProjectId));
 			$action = array('$unset' => array("parentId" => "", "parentType" => ""));
@@ -1446,13 +1463,13 @@ class Element {
     	// NOTIFY COMMUNITY OF DELETED ELEMENT
     	Notification::constructNotification(ActStr::VERB_DELETE, array("id" => Yii::app()->session["userId"],"name"=> Yii::app()->session["user"]["name"]), array("type"=>$elementType,"id"=> $elementId), null, ActStr::VERB_DELETE);
 		
-		$resError["action"] = "remove element";
+		$resError["action"]["remove_element"] = $res;
     	PHDB::remove($elementType, $where);
     	
     	$res = array("result" => true, "status" => "deleted", "msg" => Yii::t('common',"The element {elementName} of type {elementType} has been deleted with success.", array("{elementName}" => @$elementToDelete["name"], "{elementType}" => @$elementType )));
 
 		Log::save(array("userId" => $userId, "browser" => @$_SERVER["HTTP_USER_AGENT"], "ipAddress" => @$_SERVER["REMOTE_ADDR"], "created" => new MongoDate(time()), "action" => "deleteElement", "params" => array("id" => $elementId, "type" => $elementType)));
-		
+		$resError["action"]["final"] = $res;
 		return $res;
 	}
 
