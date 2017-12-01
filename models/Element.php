@@ -1385,7 +1385,8 @@ class Element {
     	$resError["action"] = "deleteNewsOfElement";
     	$resError["res"] = $res;
     	if (!$res["result"]) {
-    		error_log("error deleting News ".@$res["id"]." : ".$res["msg"]); return $resError;
+    		error_log("error deleting News ".@$res["id"]." : ".$res["msg"]); 
+    		return $resError;
     	}
     	//Delete Action Rooms
     	$res = ActionRoom::deleteElementActionRooms($elementId, $elementType, $userId);
