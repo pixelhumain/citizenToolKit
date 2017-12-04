@@ -208,7 +208,9 @@ class TranslateNetwork {
 	public static $dataBinding_organization = array(
 		"@type"		=> "Organization",
 	    "name" 		=> array("valueOf" => "name"),
-	    "typeCommunecter" 		=> array("valueOf" => "type"),
+	    "type" 		=> array("valueOf" => "type"),
+	    "typeSig"		=> Organization::COLLECTION,
+	    "typeElement"	=> Organization::CONTROLLER,
 	    "image"		=> array("valueOf" => "image",
 							 "type" 	=> "url"),
 	    "url" 		=> array("valueOf" => 'url'),
