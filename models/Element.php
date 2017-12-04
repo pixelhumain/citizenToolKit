@@ -2084,6 +2084,10 @@ class Element {
 		if(in_array($type, $listElt) ){
 			$res = PHDB::findOne( $type , array( "_id" => new MongoId($id) ) ,array("contacts") );
 			$res = (!empty($res["contacts"]) ? $res["contacts"] : array() );
+
+			foreach ($res as $key => $value) {
+				$res[$key]["typeSig"] = "person";
+			}
 		}
 		return $res;
 	}
