@@ -191,6 +191,8 @@ class TranslateNetwork {
 	    "typeCommunecter" 		=> array("valueOf" => "type"),
 	    "image"		=> array("valueOf" => "image",
 							 "type" 	=> "url"),
+	    "typeSig"		=> Organization::COLLECTION,
+	    "typeElement"	=> Organization::CONTROLLER,
 	    "url" 		=> array("valueOf" => array(
 								"communecter" 	=> array(	"valueOf" => '_id.$id',
 										   						"type" 	=> "url", 
