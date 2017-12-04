@@ -277,7 +277,7 @@ class Cooperation {
 					//moderation news
 					if($proposal["parentType"] == News::COLLECTION){
 						if($resolution["status"]=="adopted"){
-							error_log("IS AN ABUSE ".$proposal["parentId"]);
+							//error_log("IS AN ABUSE ".$proposal["parentId"]);
 							$res = PHDB::update ( 	News::COLLECTION , 
 													array( "_id" => new MongoId($proposal["parentId"])), 
 													array( '$set' => array("isAnAbuse"=>true)));
