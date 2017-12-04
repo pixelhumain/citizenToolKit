@@ -121,7 +121,7 @@ class Proposal
 
 	public static function createModeration($parentType, $parentId){
         error_log("createModeration ? " . $parentType . " - ". $parentId);
-		$dateWeek  = mktime(0, 0, 0, date("m"), date("d")+7, date("Y"));
+		$dateWeek  = mktime(0, 0, 0, date("m"), date("d")+2, date("Y"));
 		$voteDateEnd = date("Y-m-d H:i:s", $dateWeek ); 
 		$moderation = array(
 			"title" => "Moderation",
@@ -132,7 +132,7 @@ class Proposal
 		    "voteDateEnd" => $voteDateEnd,
 		    "majority" => "75",
 		    "voteAnonymous" => "true",
-		    "voteCanChange" => "false",
+		    "voteCanChange" => "true",
 		    "status" => "tovote",
 		    "parentId" => $parentId,
 		    "parentType" => $parentType,

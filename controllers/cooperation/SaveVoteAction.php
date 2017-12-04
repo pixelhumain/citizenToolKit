@@ -9,6 +9,7 @@ class SaveVoteAction extends CAction {
 		$voteValue	= @$_POST["voteValue"];
 		$idAmdt 	= @$_POST["idAmdt"];
 		$json 		= @$_POST["json"];
+		$moderation = @$_POST["moderation"];
 
 		$controller=$this->getController();
 
@@ -72,13 +73,23 @@ class SaveVoteAction extends CAction {
             array('$set' => array($root.".".$voteValue=> $votes))
         );
         
+        //pas de notif pour la modération
+        if($proposal["parentType"] != News::COLLECTION && isset($proposal["idParentRoom"]))
 		Notification::constructNotification ( 	ActStr::VERB_VOTE, array("id" => Yii::app()->session["userId"],
 												"name"=> Yii::app()->session["user"]["name"]), 
 												array("type"=>$proposal["parentType"],"id"=>$proposal["parentId"]),
 												array( "type"=>Proposal::COLLECTION,"id"=> $parentId ) );
 		$page = "proposal";
+
+
 		$params = Cooperation::getCoopData(null, null, "proposal", null, $parentId);
 
+		if(@$moderation == "true") {
+			$page = "moderation";
+			$params["news"] = News::getById($proposal["parentId"]);
+			//var_dump($params); exit;
+		}
+		
 		if(@$json == "false"){
 			echo $controller->renderPartial($page, $params, true);
 		}else{

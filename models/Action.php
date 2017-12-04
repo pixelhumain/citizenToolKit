@@ -195,8 +195,8 @@ class Action
 
                     if($action == "reportAbuse" && $collection == News::COLLECTION){
                         $thisNews = News::getById($element["_id"]);
-                        if($thisNews["reportAbuseCount"] >= 3){
-                            Proposal::createModeration(News::COLLECTION, $element["_id"]);
+                        if($thisNews["reportAbuseCount"] >= 1){
+                            Proposal::createModeration(News::COLLECTION, (string)$element["_id"]);
                         }
                     } 
                     

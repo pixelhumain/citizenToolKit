@@ -1187,7 +1187,7 @@ class Notification{
 			else if( $object["type"] == Resolution::COLLECTION )
 				$target["entry"] = Resolution::getById( $object["id"] );
 			if(@$target["entry"])
-				$roomId=$target["entry"]["idParentRoom"];
+				$roomId=@$target["entry"]["idParentRoom"];
 			$target["room"] = Room::getById( $roomId );
 			$target["parent"] = Element::getElementSimpleById($target["room"]["parentId"], $target["room"]["parentType"]); 
 		}else if($type=="news"){
