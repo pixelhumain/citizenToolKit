@@ -7,6 +7,8 @@ class GetAction extends CAction
 		// Get format
 		if( $format == Translate::FORMAT_SCHEMA)
 	        $bindMap = (empty($id)?TranslateSchema::$dataBinding_allOrganization:TranslateSchema::$dataBinding_organization);
+	    else if( $format == "db")
+	       $bindMap = null;
 		else
 	       $bindMap = (empty($id)?TranslateCommunecter::$dataBinding_allOrganization:TranslateCommunecter::$dataBinding_organization);
 
