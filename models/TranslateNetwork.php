@@ -216,7 +216,7 @@ class TranslateNetwork {
 	    "url" 		=> array("valueOf" => 'url'),
 	    "source" 	=> array(	"valueOf"  	=> '_id.$id', 
 								"type" 	=> "url", 
-								"prefix"   => "element/detail/type/organizations/id/",
+								"prefix"   => "#element.detail.type.organizations.id.",
 								"suffix"   => "" ),
     	"api" 		=> array(	"valueOf"  	=> '_id.$id', 
 								"type" 	=> "url", 
