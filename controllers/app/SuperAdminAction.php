@@ -13,6 +13,7 @@ class SuperAdminAction extends CAction
         if(Role::isSuperAdmin($role) || Role::isSourceAdmin($role) ) {
         	if($action == "main")		{ $this->main($_POST); 	  return; }
             if($action == "web")        { $this->web();           return; }
+            if($action == "lilo")       { $this->lilo();          return; }
             if($action == "live")       { $this->live();          return; }
             if($action == "power")      { $this->power();         return; }
             if($action == "scanlinks")  { $this->scanLinks();     return; }
@@ -51,6 +52,11 @@ class SuperAdminAction extends CAction
         $params = array();
         $controller->renderPartial("admin/power", $params);
     }
+    private function lilo(){
+        $controller = $this->getController();
+        $params = array();
+        $controller->renderPartial("admin/lilo", $params);
+    }
 
     private function web(){
         $controller = $this->getController();
@@ -79,7 +85,8 @@ class SuperAdminAction extends CAction
                         "urlsEditedNb"=>sizeof($urlsEdited),
 
                         "urlsLocked"=>$urlsLocked,
-                        "urlsNoFavicon"=>$urlsNoFavicon,
+                        "urlsUncomplet"=>$urlsUncomplet,
+                        "urlsNoFavicon"=>$urlsNoFavicon
                         );
     	$controller->renderPartial("admin/web", $params);
     }
