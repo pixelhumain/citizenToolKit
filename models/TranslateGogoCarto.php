@@ -60,6 +60,7 @@ class TranslateGogoCarto {
 	   	"website" 		=> array("valueOf" => 'url'),
 	   	"openHours" => null,
 		"openHoursMoreInfos"=> "",
-		"sourceKey" => "Communecter"
+		"sourceKey" => "Communecter",
+		"optionValues" => array("valueOf" => "optionValues"),
 	);
 }
