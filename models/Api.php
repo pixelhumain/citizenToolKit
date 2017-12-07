@@ -98,6 +98,10 @@ class Api {
         if($index < 0) $index = 0 ;
         //if($type != City::COLLECTION) $params["preferences.isOpenData"] = true ;
 
+        if ($format == Translate::FORMAT_GOGO) {
+            $params["geoPosition"] = array('$exists' => 1);
+        }
+
         $data = PHDB::findAndLimitAndIndex($type , $params, $limit, $index);
         $data = self::getUrlImage($data, $type);
 
@@ -168,6 +172,22 @@ class Api {
 
             $result["meta"] = $meta ;
             $result["items"] = ((!empty($data) && !empty($bindMap) )?Translate::convert($data , $bindMap):$data);
+        } elseif ($format == Translate::FORMAT_GOGO) {
+            $meta = [];
+            $newData = [];
+            foreach ($data as $key => $value) {
+
+                $value["optionValues"] = array(
+                    array("optionId" => 10507, "index" => 0),
+                    array("optionId" => 10513, "index" => 0),
+                    array("optionId" => 10512, "index" => 0));
+               $newData[] = $value;
+            }
+            //var_dump($meta);
+            $meta["data"] = ((!empty($newData) && !empty($bindMap) )?Translate::convert($newData , $bindMap):$newData);
+            $meta["fullRepresentation"] = true;
+            $meta["allElementsSends"] = true;
+            $result = $meta ;
         }
         else { 
             $result["meta"] = $meta ;

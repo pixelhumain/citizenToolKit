@@ -5,7 +5,7 @@ class GetAction extends CAction
     public function run($id = null, $format = null, $limit=50, $index=0, $tags = null, $multiTags=null , $key = null, $insee = null) {
 		$controller=$this->getController();
 		// Get format
-
+		header("Access-Control-Allow-Origin: *");
 		if( $format == Translate::FORMAT_SCHEMA)
 	        $bindMap = (empty($id) ? TranslateSchema::$dataBinding_allOrganization : TranslateSchema::$dataBinding_organization);
 		else if ($format == Translate::FORMAT_KML)
@@ -15,6 +15,8 @@ class GetAction extends CAction
 		else if ($format == Translate::FORMAT_JSONFEED)
 			$bindMap = TranslateJsonFeed::$dataBinding_allOrganization;
 			// $bindMap = (empty($id) ? TranslateJsonFeed::$dataBinding_allOrganization : TranslateGeoJson::$dataBinding_organization);
+		else if ($format == Translate::FORMAT_GOGO)
+			$bindMap = TranslateGogoCarto::$dataBinding_organization;
 		else
 	       $bindMap = (empty($id) ? TranslateCommunecter::$dataBinding_allOrganization : TranslateCommunecter::$dataBinding_organization);
 

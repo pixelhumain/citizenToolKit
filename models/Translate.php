@@ -9,6 +9,7 @@ class Translate {
 	const FORMAT_KML = "kml";
 	const FORMAT_GEOJSON = "geojson";
 	const FORMAT_JSONFEED = "jsonfeed";
+	const FORMAT_GOGO = "gogocarto";
 
 	public static function convert($data,$bindMap)
 	{
