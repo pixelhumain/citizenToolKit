@@ -178,14 +178,9 @@ class Api {
             foreach ($data as $key => $value) {
 
                 $value["optionValues"] = array(
-                    array("optionId" => 578, "index" => 1),
-                    array("optionId" => 584, "index" => 1),
-                    array("optionId" => 587, "index" => 1),
-                    array("optionId" => 588, "index" => 1),
-                    array("optionId" => 622, "index" => 1),
-                    array("optionId" => 628, "index" => 1));
-
-               // var_dump($value);
+                    array("optionId" => 10507, "index" => 0),
+                    array("optionId" => 10513, "index" => 0),
+                    array("optionId" => 10512, "index" => 0));
                $newData[] = $value;
             }
             //var_dump($meta);
