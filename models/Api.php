@@ -98,6 +98,10 @@ class Api {
         if($index < 0) $index = 0 ;
         //if($type != City::COLLECTION) $params["preferences.isOpenData"] = true ;
 
+        if ($format == Translate::FORMAT_GOGO) {
+            $params["geoPosition"] = array('$exists' => 1);
+        }
+
         $data = PHDB::findAndLimitAndIndex($type , $params, $limit, $index);
         $data = self::getUrlImage($data, $type);
 
