@@ -15,6 +15,8 @@ class GetAction extends CAction
 		else if ($format == Translate::FORMAT_JSONFEED)
 			$bindMap = TranslateJsonFeed::$dataBinding_allOrganization;
 			// $bindMap = (empty($id) ? TranslateJsonFeed::$dataBinding_allOrganization : TranslateGeoJson::$dataBinding_organization);
+		else if ($format == Translate::FORMAT_GOGO)
+			$bindMap = TranslateGogoCarto::$dataBinding_organization;
 		else
 	       $bindMap = (empty($id) ? TranslateCommunecter::$dataBinding_allOrganization : TranslateCommunecter::$dataBinding_organization);
 
