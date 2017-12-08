@@ -63,4 +63,23 @@ class TranslateGogoCarto {
 		"sourceKey" => "Communecter",
 		"optionValues" => array("valueOf" => "optionValues"),
 	);
+
+	public static $dataBinding_organization_symply = array(
+		array("valueOf"  	=> '_id.$id'),1,
+		array("valueOf" => "name"),
+		array("valueOf" => "coordinates.1"),
+	    array("valueOf" => "coordinates.0"),
+	    0,
+	   	array("valueOf" => "optionValues"),
+	);
+
+	// public static $dataBinding_organization_symply = array(
+	// 	0 => array("valueOf"  	=> '_id.$id'),
+	// 	1 => 1,
+	// 	2 => array("valueOf" => "name"),
+	// 	3 => array("valueOf" => "coordinates.1"),
+	//     4 => array("valueOf" => "coordinates.0"),
+	//     5 => 0,
+	//    	6 => array("valueOf" => "optionValues"),
+	// );
 }

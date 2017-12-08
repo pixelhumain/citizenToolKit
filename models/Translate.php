@@ -115,10 +115,10 @@ class Translate {
 				if(!empty($valByPath))
 						$newData[$key] = $valByPath;
 			}	
-			else
+			else{
 				// otherwise it's just a simple label element 
-				$newData[$key] = $bindPath;
-
+				array_push($newData,$bindPath);
+			}
 			//post processing once the data has been fetched
 			
 
@@ -126,6 +126,15 @@ class Translate {
 				$newData[$key] = self::formatValueByType( $newData[$key] , $bindPath );			
 		}
 
+		$t = array_keys($newData);
+		$sarray = true;
+		foreach ($t as $key => $v) {
+			if( !is_numeric($v))
+				$sarray = false;
+		}
+		if($sarray == true)
+			$newData = array_values($newData);
+		
 		return $newData;
 	}
 
