@@ -70,11 +70,10 @@ class TranslateGogoCarto {
 	);
 
 	public static $dataBinding_organization_symply = array(
-		array("valueOf"  	=> '_id.$id'),1,
+		array("valueOf"  	=> '_id.$id'),
 		array("valueOf" => "name"),
-		array("valueOf" => "coordinates.1"),
-	    array("valueOf" => "coordinates.0"),
-	    0,
+		array("valueOf" => "geoPosition.coordinates.1"),
+	    array("valueOf" => "geoPosition.coordinates.0"),
 	   	array(10507,10513,10512),
 	);
 

@@ -44,7 +44,6 @@ class Translate {
 			{
 				/*if( $key == "@id")
 					$newData["debug"] = strpos( $bindPath["valueOf"], ".");*/
-
 				if( is_array( $bindPath["valueOf"] ))
 				{
 					//var_dump($bindPath["valueOf"]);
