@@ -2720,4 +2720,12 @@ class Element {
 		return $params;
 	}
 
+	public static function getUrlMyNetwork($id, $type) {
+		$server = ((isset($_SERVER['HTTPS']) AND (!empty($_SERVER['HTTPS'])) AND strtolower($_SERVER['HTTPS'])!='off') ? 'https://' : 'http://').$_SERVER['HTTP_HOST'];
+		$jsonNetwork = $server.Yii::app()->createUrl("network/default/index/id/".$id."/type/".$type);
+		$urlNetwork = $server.Yii::app()->createUrl("/?network=".$jsonNetwork);
+
+		return $urlNetwork;
+    }
+
 }
