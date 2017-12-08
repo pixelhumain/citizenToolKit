@@ -2728,4 +2728,16 @@ class Element {
 		return $urlNetwork;
     }
 
+
+
+public static function myNetwork($id, $type){
+        $myN = json_decode(file_get_contents("../../modules/co2/data/myNetwork.json", FILE_USE_INCLUDE_PATH), true);
+        if($type == Person::COLLECTION || $type == Organization::COLLECTION || $type == Event::COLLECTION || $type == Project::COLLECTION){
+            $myN["request"]["sourceKey"][0] = $id."@".$type ;
+
+        }
+
+        return $myN;
+    }
+
 }
