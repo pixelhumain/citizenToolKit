@@ -7,7 +7,7 @@ class SimplyAutoCompleteAction extends CAction
         	Rest::json(array());
 			Yii::app()->end();
         }else{
-        	Search::networkAutoComplete($_POST, $filter)
+        	Search::networkAutoComplete($_POST, $filter);
         }
 
      /***********************************  DEFINE LOCALITY QUERY   ***************************************/
