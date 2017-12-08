@@ -115,8 +115,13 @@ class Translate {
 						$newData[$key] = $valByPath;
 			}	
 			else{
+				// var_dump($key);
+				// echo "</br>";
+				// var_dump($bindPath);
+				// echo "</br>";
 				// otherwise it's just a simple label element 
-				array_push($newData,$bindPath);
+				//array_push($newData,$bindPath);
+				$newData[$key] = $bindPath;
 			}
 			//post processing once the data has been fetched
 			
