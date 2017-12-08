@@ -79,6 +79,7 @@ class Organization {
 	    "parent" => array("name" => "parent"),
 	    "parentId" => array("name" => "parentId"),
 	    "parentType" => array("name" => "parentType"),
+	    "onepageEdition" => array("name" => "onepageEdition"),
 	);
 	
 	//See findOrganizationByCriterias...
