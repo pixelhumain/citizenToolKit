@@ -773,7 +773,8 @@ class Authorisation {
      */
     public static function canDeleteElement($elementId, $elementType, $userId) {
         //If open Edition : the element can be deleted
-        $res = self::isOpenEdition($elementId, $elementType);
+        //$res = self::isOpenEdition($elementId, $elementType);
+        $res = false;
         if($res != true) {
             //check if the user is super admin
             $res = self::isUserSuperAdmin($userId);
