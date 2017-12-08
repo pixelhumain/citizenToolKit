@@ -62,11 +62,11 @@ class TranslateGogoCarto {
 		"openHoursMoreInfos"=> "",
 		"sourceKey" => "Communecter",
 		//"optionValues" => array("valueOf" => "optionValues"),
-
-		"optionValues" => array(
-                    array("optionId" => 10507, "index" => 0),
-                    array("optionId" => 10513, "index" => 0),
-                    array("optionId" => 10512, "index" => 0)),
+		"optionValues" => array(10507,10513,10512),
+		// "optionValues" => array(
+  //                   array("optionId" => 10507, "index" => 0),
+  //                   array("optionId" => 10513, "index" => 0),
+  //                   array("optionId" => 10512, "index" => 0)),
 	);
 
 	public static $dataBinding_organization_symply = array(
