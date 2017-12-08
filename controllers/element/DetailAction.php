@@ -217,7 +217,8 @@ class DetailAction extends CAction {
 		$params["projects"]=$projects;
 		$params["needs"]=$needs;
 		$params["edit"] = Authorisation::canEditItem(Yii::app()->session["userId"], $elementAuthorizationType, $elementAuthorizationId);
-		$params["openEdition"] = Authorisation::isOpenEdition($elementAuthorizationId, $elementAuthorizationType, @$element["preferences"]);
+		//$params["openEdition"] = Authorisation::isOpenEdition($elementAuthorizationId, $elementAuthorizationType, @$element["preferences"]);
+		$params["openEdition"] = false;
 		if(@Yii::app()->session["network"]){
 			$params["openEdition"] = false;
 			$params["edit"] = false;

@@ -548,9 +548,11 @@ class Authorisation {
                 error_log("element admin");
                 return true;
             //Source admin ?
-            } else if (self::isSourceAdmin($itemId, $type, $userId)) {
+            } else if (self::isCreator($itemId, $type, $userId)) {
                 return true;
-            } else {
+            } /* else if (self::isSourceAdmin($itemId, $type, $userId)) {
+                return true;
+            } */ else {
                 return false;
             }
     	} else if($type == Person::COLLECTION) {
@@ -689,6 +691,23 @@ class Authorisation {
         }
         if(!empty($user))
             $res = true ;
+        return $res;
+    }
+
+
+    /**
+     * Return true if the user is source admin of the entity(organization, event, project)
+     * @param String the id of the entity
+     * @param String the type of the entity
+     * @param String the id of the user
+     * @return bool 
+     */
+    public static function isCreator($idEntity, $typeEntity ,$idUser){
+        $res = false ;
+        $entity = PHDB::findOne($typeEntity,array("_id"=>new MongoId($idEntity)), array("creator") );
+        if(!empty($entity["creator"]) &&  $entity["creator"] == $idUser){
+            $res = true;
+        }
         return $res;
     }
 
