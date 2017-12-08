@@ -43,7 +43,7 @@ class TranslateGogoCarto {
 	   	"description"		=> array("valueOf" => "shortDescription"),
 	   	"descriptionMore"		=> array("valueOf" => "description"),
 	   	"website" 		=> array("valueOf" => 'url'),
-	   	"email"		=> array("valueOf" => "email"),
+	   	//"email"		=> array("valueOf" => "email"),
 	   	"openHours" => null,
 		"openHoursMoreInfos"=> "",
 		"sourceKey" => "Communecter",
