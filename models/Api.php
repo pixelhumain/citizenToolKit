@@ -176,12 +176,7 @@ class Api {
             $meta = [];
             $newData = [];
             foreach ($data as $key => $value) {
-
-                $value["optionValues"] = array(
-                    array("optionId" => 10507, "index" => 0),
-                    array("optionId" => 10513, "index" => 0),
-                    array("optionId" => 10512, "index" => 0));
-               $newData[] = $value;
+                $newData[] = $value;
             }
             //var_dump($meta);
             $meta["data"] = ((!empty($newData) && !empty($bindMap) )?Translate::convert($newData , $bindMap):$newData);
