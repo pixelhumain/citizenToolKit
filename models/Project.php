@@ -50,6 +50,7 @@ class Project {
 	    "gpplus" => array("name" => "socialNetwork.googleplus"),
 	    "github" => array("name" => "socialNetwork.github"),
 	    "skype" => array("name" => "socialNetwork.skype"),
+	    "onepageEdition" => array("name" => "onepageEdition"),
 	    
 	);
 

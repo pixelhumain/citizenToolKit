@@ -9,6 +9,7 @@ class Translate {
 	const FORMAT_KML = "kml";
 	const FORMAT_GEOJSON = "geojson";
 	const FORMAT_JSONFEED = "jsonfeed";
+	const FORMAT_GOGO = "gogocarto";
 
 	public static function convert($data,$bindMap)
 	{
@@ -43,7 +44,6 @@ class Translate {
 			{
 				/*if( $key == "@id")
 					$newData["debug"] = strpos( $bindPath["valueOf"], ".");*/
-
 				if( is_array( $bindPath["valueOf"] ))
 				{
 					//var_dump($bindPath["valueOf"]);
@@ -114,10 +114,15 @@ class Translate {
 				if(!empty($valByPath))
 						$newData[$key] = $valByPath;
 			}	
-			else
+			else{
+				// var_dump($key);
+				// echo "</br>";
+				// var_dump($bindPath);
+				// echo "</br>";
 				// otherwise it's just a simple label element 
+				//array_push($newData,$bindPath);
 				$newData[$key] = $bindPath;
-
+			}
 			//post processing once the data has been fetched
 			
 
@@ -125,6 +130,15 @@ class Translate {
 				$newData[$key] = self::formatValueByType( $newData[$key] , $bindPath );			
 		}
 
+		$t = array_keys($newData);
+		$sarray = true;
+		foreach ($t as $key => $v) {
+			if( !is_numeric($v))
+				$sarray = false;
+		}
+		if($sarray == true)
+			$newData = array_values($newData);
+		
 		return $newData;
 	}
 
