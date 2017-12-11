@@ -25,141 +25,165 @@ class SimplyAutoCompleteAction extends CAction
         	Rest::json(array());
 			Yii::app()->end();
         }
-        /***********************************  DEFINE GLOBAL QUERY   *****************************************/
-        $query = array( "name" => new MongoRegex("/".$search."/i"));
+        $getCreator = false ;
+        //strpos($sourceKey[0], "@")
+        if( $sourceKey != null && $sourceKey != "" && strpos($sourceKey[0], "@") > 0 ) {
+        	$split = explode("@", $sourceKey[0]);
+        	$query = array();
+        	try{
+        		$element = Element::getByTypeAndId($split[1], $split[0]);
+	        	if(!empty($element) && 
+	        		(	$split[1] != Person::COLLECTION || 
+                     Preference::showPreference($element, $split[1], "directory", Yii::app()->session["userId"]) ) ) {
 
-        /***********************************  TAGS   *****************************************/
-        $tmpTags = array();
-        if(!empty($search)){
-        	var_dump("hehe");
-  			var_dump($search);
-        	if(strpos($search, "#") > -1){
-	        	$search = substr($search, 1, strlen($search));
-	        	// $query = array( "tags" => array('$in' => array(new MongoRegex("/".$search."/i")))) ; //new MongoRegex("/".$search."/i") )));
-	        	//$tmpTags[] = new MongoRegex("/".$search."/i");
-	        	$tmpTags[] = new MongoRegex("/^".Search::accentToRegex($tags)."$/i");
-	  		}
-	  		if(count($tmpTags)){
-	  			$verbTag = ( (!empty($paramsFiltre) && '$all' == $paramsFiltre) ? '$all' : '$in' ) ;
-	  			$query = array('$and' => array( $query , array("tags" => array($verbTag => $tmpTags)))) ;
-	  		}
-        }
-        
-  		if(!empty($searchTag)){
-  			$isString = false;
-  			$tmpTags = array();
-  			foreach ($searchTag as $key => $tags) {
-	  			if(!empty($tags)){
-		  			if(is_array($tags)){
-		  				foreach ($tags as $key => $tag) {
-		  					$tmpTags[] = new MongoRegex("/^".Search::accentToRegex($tags)."$/i");
-					  		//$tmpTags[] = new MongoRegex("/".$tag."/i");
-				  		}
-				  		if(count($tmpTags)){
-				  			$verbTag = ( (!empty($paramsFiltre) && '$all' == $paramsFiltre) ? '$all' : '$in' ) ;
-				  			$query = array('$and' => array( $query , array("tags" => array($verbTag => $tmpTags)))) ;
-				  		}
-		  			}else{
-		  				$tmpTags[] = new MongoRegex("/^".Search::accentToRegex($tags)."$/i");
-		  				//$tmpTags[] = new MongoRegex("/".$tags."/i");
-					  	
-				  		$isString = true;
-		  			}
+	        		$query = array("creator" => $split[0]);
+		        	$links = array("events", "projects", "followers", "members", "memberOf", "subEvents", "follows", "attendees", "organizer", "contributors");
+		        	foreach ($links as $key => $value) {
+		        		$query = array('$or' => array($query, array("links.".$value.".".$split[0] => array('$exists' => 1))));
+		        	}
+		        	$getCreator = true ;
+	        	}
+        	}catch (MongoException $m){
+				
+			}
+        	
+		}else{
+	        /***********************************  DEFINE GLOBAL QUERY   *****************************************/
+	        $query = array( "name" => new MongoRegex("/".$search."/i"));
+
+	        /***********************************  TAGS   *****************************************/
+	        $tmpTags = array();
+	        if(!empty($search)){
+	        	var_dump("hehe");
+	  			var_dump($search);
+	        	if(strpos($search, "#") > -1){
+		        	$search = substr($search, 1, strlen($search));
+		        	// $query = array( "tags" => array('$in' => array(new MongoRegex("/".$search."/i")))) ; //new MongoRegex("/".$search."/i") )));
+		        	//$tmpTags[] = new MongoRegex("/".$search."/i");
+		        	$tmpTags[] = new MongoRegex("/^".Search::accentToRegex($tags)."$/i");
+		  		}
+		  		if(count($tmpTags)){
+		  			$verbTag = ( (!empty($paramsFiltre) && '$all' == $paramsFiltre) ? '$all' : '$in' ) ;
+		  			$query = array('$and' => array( $query , array("tags" => array($verbTag => $tmpTags)))) ;
+		  		}
+	        }
+	        
+	  		if(!empty($searchTag)){
+	  			$isString = false;
+	  			$tmpTags = array();
+	  			foreach ($searchTag as $key => $tags) {
+		  			if(!empty($tags)){
+			  			if(is_array($tags)){
+			  				foreach ($tags as $key => $tag) {
+			  					$tmpTags[] = new MongoRegex("/^".Search::accentToRegex($tags)."$/i");
+						  		//$tmpTags[] = new MongoRegex("/".$tag."/i");
+					  		}
+					  		if(count($tmpTags)){
+					  			$verbTag = ( (!empty($paramsFiltre) && '$all' == $paramsFiltre) ? '$all' : '$in' ) ;
+					  			$query = array('$and' => array( $query , array("tags" => array($verbTag => $tmpTags)))) ;
+					  		}
+			  			}else{
+			  				$tmpTags[] = new MongoRegex("/^".Search::accentToRegex($tags)."$/i");
+			  				//$tmpTags[] = new MongoRegex("/".$tags."/i");
+						  	
+					  		$isString = true;
+			  			}
+			  		}
+		  		}
+
+		  		if($isString && count($tmpTags)){
+		  			$query = array('$and' => array( $query , array("tags" => array('$in' => $tmpTags)))) ;
 		  		}
 	  		}
+	  		//var_dump($query);
+	  		unset($tmpTags);
 
-	  		if($isString && count($tmpTags)){
-	  			$query = array('$and' => array( $query , array("tags" => array('$in' => $tmpTags)))) ;
-	  		}
-  		}
-  		//var_dump($query);
-  		unset($tmpTags);
+	  		/***********************************  COMPLETED   *****************************************/
+	  		$query = array('$and' => array( $query , array("state" => array('$ne' => "uncomplete")) ));
 
-  		/***********************************  COMPLETED   *****************************************/
-  		$query = array('$and' => array( $query , array("state" => array('$ne' => "uncomplete")) ));
+	      /***********************************   MAINTAG    *****************************************/
+	      $tmpmainTag = array();
+	      if(!empty($mainTag)){
+	          //Several Sourcekey
+	      		$tmpMainTag = array();
+	  	  		if(is_array($mainTag)){
+	  	  			foreach ($mainTag as $value) {
+	  	  				if(!empty($value))
+	  	  					$tmpMainTag[] = new MongoRegex("/".$value."/i");
+	  	  			}
+	  	  		}//One Sourcekey
+	  	  		else{
+	  	  			$tmpMainTag[] = new MongoRegex("/".$mainTag."/i");
+	  	  		}
+		  		if(count($tmpMainTag)){
+		  			$verbMainTag = ( (!empty($searchPrefTag) && '$or' == $searchPrefTag) ? '$or' : '$and' );
+		  			$query = array($verbMainTag => array( $query , array("tags" => array('$in' => $tmpMainTag))));
+		  		}
+		  		unset($tmpMainTag);
+		  	}
 
-      /***********************************   MAINTAG    *****************************************/
-      $tmpmainTag = array();
-      if(!empty($mainTag)){
-          //Several Sourcekey
-      		$tmpMainTag = array();
-  	  		if(is_array($mainTag)){
-  	  			foreach ($mainTag as $value) {
-  	  				if(!empty($value))
-  	  					$tmpMainTag[] = new MongoRegex("/".$value."/i");
-  	  			}
-  	  		}//One Sourcekey
-  	  		else{
-  	  			$tmpMainTag[] = new MongoRegex("/".$mainTag."/i");
-  	  		}
-	  		if(count($tmpMainTag)){
-	  			$verbMainTag = ( (!empty($searchPrefTag) && '$or' == $searchPrefTag) ? '$or' : '$and' );
-	  			$query = array($verbMainTag => array( $query , array("tags" => array('$in' => $tmpMainTag))));
-	  		}
-	  		unset($tmpMainTag);
-	  	}
+	  		/***********************************  SOURCEKEY   *****************************************/
+	  		$tmpSourceKey = array();
+	  		if($sourceKey != null && $sourceKey != ""){
+	  			//Several Sourcekey
+		  		if(is_array($sourceKey)){
+		  			foreach ($sourceKey as $value) {
+		  				$tmpSourceKey[] = new MongoRegex("/".$value."/i");
+		  			}
+		  		}//One Sourcekey
+		  		else{
+		  			$tmpSourceKey[] = new MongoRegex("/".$sourceKey."/i");
+		  		}
+		  		if(count($tmpSourceKey)){
+		  			$query = array('$and' => array( $query , array("source.keys" => array('$in' => $tmpSourceKey))));
+		  		}
+		  		unset($tmpSourceKey);
+		  	}
+		  	//var_dump($query);
+	  		/***********************************  DEFINE LOCALITY QUERY   ***************************************/
+	  		$localityReferences['NAME'] = "address.addressLocality";
+	  		$localityReferences['CODE_POSTAL_INSEE'] = "address.postalCode";
+	  		$localityReferences['DEPARTEMENT'] = "address.postalCode";
+	  		$localityReferences['REGION'] = ""; //Spécifique
+	  		$localityReferences['INSEE'] = "address.codeInsee";
 
-  		/***********************************  SOURCEKEY   *****************************************/
-  		$tmpSourceKey = array();
-  		if($sourceKey != null && $sourceKey != ""){
-  			//Several Sourcekey
-	  		if(is_array($sourceKey)){
-	  			foreach ($sourceKey as $value) {
-	  				$tmpSourceKey[] = new MongoRegex("/".$value."/i");
+	  		foreach ($localityReferences as $key => $value) {
+	  			if(isset($_POST["searchLocality".$key]) && is_array($_POST["searchLocality".$key])){
+	  				foreach ($_POST["searchLocality".$key] as $locality) {
+
+	  					//OneRegion
+
+	  					if($key == "REGION") {
+	  						if($locality == "La Réunion")
+	  							$locality = "Réunion" ;
+		        			$dep = PHDB::findOne( City::COLLECTION, array("level3Name" => $locality), array("level3"));
+		        			if(!empty($dep))
+		        				$queryLocality = array("address.level3" => $dep["level3"]);
+		        		}else if($key == "DEPARTEMENT") {
+		        			$dep = PHDB::findOne( City::COLLECTION, array("level4Name" => $locality), array("level4"));
+		        			if(!empty($dep))
+			        			$queryLocality = array("address.level4" => $dep["level4"]);
+			        	}//OneLocality
+			        	else{
+		  					$queryLocality = array($value => new MongoRegex("/".$locality."/i"));
+		  				}
+
+	  					//Consolidate Queries
+	  					if(!empty($queryLocality)) {
+		  					if(isset($allQueryLocality)){
+		  						$allQueryLocality = array('$or' => array( $allQueryLocality ,$queryLocality));
+		  					}else{
+		  						$allQueryLocality = $queryLocality;
+		  					}
+		  				}
+		  				unset($queryLocality);
+
+	  				}
 	  			}
-	  		}//One Sourcekey
-	  		else{
-	  			$tmpSourceKey[] = new MongoRegex("/".$sourceKey."/i");
 	  		}
-	  		if(count($tmpSourceKey)){
-	  			$query = array('$and' => array( $query , array("source.keys" => array('$in' => $tmpSourceKey))));
-	  		}
-	  		unset($tmpSourceKey);
+	  		if(isset($allQueryLocality) && is_array($allQueryLocality))
+	  			$query = array('$and' => array($query, $allQueryLocality));
 	  	}
-	  	//var_dump($query);
-  		/***********************************  DEFINE LOCALITY QUERY   ***************************************/
-  		$localityReferences['NAME'] = "address.addressLocality";
-  		$localityReferences['CODE_POSTAL_INSEE'] = "address.postalCode";
-  		$localityReferences['DEPARTEMENT'] = "address.postalCode";
-  		$localityReferences['REGION'] = ""; //Spécifique
-  		$localityReferences['INSEE'] = "address.codeInsee";
-
-  		foreach ($localityReferences as $key => $value) {
-  			if(isset($_POST["searchLocality".$key]) && is_array($_POST["searchLocality".$key])){
-  				foreach ($_POST["searchLocality".$key] as $locality) {
-
-  					//OneRegion
-
-  					if($key == "REGION") {
-  						if($locality == "La Réunion")
-  							$locality = "Réunion" ;
-	        			$dep = PHDB::findOne( City::COLLECTION, array("level3Name" => $locality), array("level3"));
-	        			if(!empty($dep))
-	        				$queryLocality = array("address.level3" => $dep["level3"]);
-	        		}else if($key == "DEPARTEMENT") {
-	        			$dep = PHDB::findOne( City::COLLECTION, array("level4Name" => $locality), array("level4"));
-	        			if(!empty($dep))
-		        			$queryLocality = array("address.level4" => $dep["level4"]);
-		        	}//OneLocality
-		        	else{
-	  					$queryLocality = array($value => new MongoRegex("/".$locality."/i"));
-	  				}
-
-  					//Consolidate Queries
-  					if(!empty($queryLocality)) {
-	  					if(isset($allQueryLocality)){
-	  						$allQueryLocality = array('$or' => array( $allQueryLocality ,$queryLocality));
-	  					}else{
-	  						$allQueryLocality = $queryLocality;
-	  					}
-	  				}
-	  				unset($queryLocality);
-
-  				}
-  			}
-  		}
-  		if(isset($allQueryLocality) && is_array($allQueryLocality))
-  			$query = array('$and' => array($query, $allQueryLocality));
 	    $allRes = array();
         /***********************************  PERSONS   *****************************************/
        if(strcmp($filter, Person::COLLECTION) != 0 && $this->typeWanted("citoyen", $searchType)){
