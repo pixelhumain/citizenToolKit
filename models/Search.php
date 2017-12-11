@@ -66,7 +66,7 @@ class Search {
 		$search = isset($post['name']) ? trim(urldecode($post['name'])) : null;
 		$locality = isset($post['locality']) ? trim(urldecode($post['locality'])) : null;
 		$searchType = isset($post['searchType']) ? $post['searchType'] : null;
-		$searchTag = isset($post['searchTag']) ? $post['searchTag'] : null;
+		$searchTags = isset($post['searchTag']) ? $post['searchTag'] : null;
 		$searchPrefTag = isset($post['searchPrefTag']) ? $post['searchPrefTag'] : null;
 		$searchBy = isset($post['searchBy']) ? $post['searchBy'] : "INSEE";
 		$indexMin = isset($post['indexMin']) ? $post['indexMin'] : 0;
@@ -75,6 +75,18 @@ class Search {
 		$sourceKey = isset($post['sourceKey']) ? $post['sourceKey'] : null;
 		$mainTag = isset($post['mainTag']) ? $post['mainTag'] : null;
 		$paramsFiltre = isset($post['paramsFiltre']) ? $post['paramsFiltre'] : null;
+		$indexStep = $indexMax - $indexMin;
+
+		$searchTypeOrga = ""; /* used in CO2 to find different organisation type */
+		
+		if( sizeOf($searchType) == 1 &&
+			@$searchType[0] == Organization::TYPE_NGO ||
+			@$searchType[0] == Organization::TYPE_BUSINESS ||
+			@$searchType[0] == Organization::TYPE_GROUP ||
+			@$searchType[0] == Organization::TYPE_GOV) {
+				$searchTypeOrga = $searchType[0];
+				$searchType = array(Organization::COLLECTION);
+		}
 
 		$query = array();
 		$query = self::searchString($search, $query);
@@ -95,7 +107,129 @@ class Search {
 		}
 
 		$query = self::searchSourceKey($sourceKey, $query);
+		//$query = self::searchLocalityNetworkOld($query, $post);
 
+		$allRes = array();
+
+
+		//*********************************  PERSONS   ******************************************
+       	if(strcmp($filter, Person::COLLECTION) != 0 && (self::typeWanted(Person::COLLECTION, $searchType) || self::typeWanted("persons", $searchType) ) ) {
+			$prefLocality = (!empty($searchLocality) ? true : false);
+			$allRes = array_merge($allRes, self::searchPersons($query, $indexStep, $indexMin, $prefLocality));
+	  	}
+
+	  	/*********************************  ORGANISATIONS   *******************************************/
+		if(strcmp($filter, Organization::COLLECTION) != 0 && self::typeWanted(Organization::COLLECTION, $searchType)){
+			$allRes = array_merge($allRes, self::searchOrganizations($query, $indexStep, $indexMin,  $searchType, $searchTypeOrga));
+	  	}
+
+	  	date_default_timezone_set('UTC');
+				
+	  	//*********************************  EVENT   ******************************************
+		if(strcmp($filter, Event::COLLECTION) != 0 && self::typeWanted(Event::COLLECTION, $searchType)){
+
+			if($startDate!=null){
+				array_push( $query[ '$and' ], array( "startDate" => array( '$gte' => new MongoDate( (float)$startDate ) ) ) );
+       		}
+			if($endDate!=null){
+       			array_push( $query[ '$and' ], array( "endDate" => array( '$lte' => new MongoDate( (float)$endDate ) ) ) );
+       		}
+
+			$allRes = array_merge($allRes, self::searchEvents($query, $indexStep, $indexMin, $searchSType));
+	  	}
+	  	//*********************************  PROJECTS   ******************************************
+		if(strcmp($filter, Project::COLLECTION) != 0 && self::typeWanted(Project::COLLECTION, $searchType)){
+			$allRes = array_merge($allRes, self::searchProject($query, $indexStep, $indexMin));
+	  	}
+
+	  	foreach ($allRes as $key => $value) {
+			if(@$value["updated"]) {
+				if(self::typeWanted(Event::COLLECTION, $searchType))
+					$allRes[$key]["updatedLbl"] = Translate::pastTime(@$value["startDate"],"date");
+				else
+					$allRes[$key]["updatedLbl"] = Translate::pastTime(@$value["updated"],"timestamp");
+	  		}
+	  	}
+
+	  	//trie les éléments dans l'ordre alphabetique par name
+	  	function mySort($a, $b){
+	  		if(isset($a['name']) && isset($b['name'])){
+		    	return ( strtolower($b['name']) < strtolower($a['name']) );
+			}else{
+				return false;
+			}
+		}
+
+	  	if(isset($allRes)) //si on a des resultat dans la liste
+	  		if(!self::typeWanted("events", $searchType)) //si on n'est pas en mode "event" (les event sont classé par date)
+	  			usort($allRes, "mySort"); //on tri les éléments par ordre alphabetique sur le name
+
+	  	if(isset($allCitiesRes)) usort($allCitiesRes, "mySort");
+
+	  	//error_log("count : " . count($allRes));
+	  	if(count($allRes) < $indexMax)
+	  		if(isset($allCitiesRes))
+	  			$allRes = array_merge($allRes, $allCitiesRes);
+
+	  	$limitRes = $filters = array();
+	  	$index = 0;
+	  	foreach ($allRes as $key => $value) {
+	  		//Limit <pagination
+	  		if($index < $indexMax && $index >= $indexMin){
+	  			$limitRes[] = $value;
+		  	}
+
+		  	//filter tag
+		  	if(isset($value['tags']))foreach ($value['tags'] as $keyTag => $valueTag) {
+		  		if(isset($filters['tags'][$valueTag])){
+		  			$filters['tags'][$valueTag] +=1;
+		  		}
+		  		else{
+		  			$filters['tags'][$valueTag] = 1;
+		  		}
+		  		arsort($filters['tags']);
+		  	}
+
+		  	//filter type
+	  		if(isset($value['type'])){
+	  			if(isset($filters['types'][$value['type']])){
+	  				$filters['types'][$value['type']] +=1;
+	  			}
+	  			else{
+	  				$filters['types'][$value['type']] = 1;
+	  			}
+	  			arsort($filters['types']);
+	  		}
+
+	  		//filter sourcekey
+		  	if(isset($value['source']['key'])){
+		  		if(is_array($value['source']['key'])){
+			  		foreach ($value['source']['key'] as $keySource => $valueSource) {
+				  		if(isset($filters['sourceKey'][$valueSource])){
+				  			$filters['sourceKey'][$valueSource] +=1;
+				  		}
+				  		else{
+				  			$filters['sourceKey'][$valueSource] = 1;
+				  		}
+				  	}
+				}
+				else{
+					if(isset($filters['sourceKey'][$value['source']['key']])){
+			  			$filters['sourceKey'][$value['source']['key']] += 1;
+			  		}
+			  		else{
+			  			$filters['sourceKey'][$value['source']['key']] = 1;
+			  		}
+				}
+		  		arsort($filters['sourceKey']);
+		  	}
+		  	$index++;
+	  	}
+
+	  	$res['res'] = $limitRes;
+	  	$res['filters'] = $filters;
+
+	  	return $res ;
 	}
 
 
@@ -400,52 +534,6 @@ class Search {
 		return $query ;
 	}
 
-	/*public static function searchLocality($post, $query){
-		$localityReferences['NAME'] = "address.addressLocality";
-  		$localityReferences['CODE_POSTAL_INSEE'] = "address.postalCode";
-  		$localityReferences['DEPARTEMENT'] = "address.postalCode";
-  		$localityReferences['REGION'] = ""; //Spécifique
-  		$localityReferences['INSEE'] = "address.codeInsee";
-
-  		foreach ($localityReferences as $key => $value) {
-  			if(isset($_POST["searchLocality".$key]) && is_array($_POST["searchLocality".$key])){
-  				foreach ($_POST["searchLocality".$key] as $locality) {
-
-  					//OneRegion
-
-  					if($key == "REGION") {
-  						if($locality == "La Réunion")
-  							$locality = "Réunion" ;
-	        			$dep = PHDB::findOne( City::COLLECTION, array("level3Name" => $locality), array("level3"));
-	        			if(!empty($dep))
-	        				$queryLocality = array("address.level3" => $dep["level3"]);
-	        		}else if($key == "DEPARTEMENT") {
-	        			$dep = PHDB::findOne( City::COLLECTION, array("level4Name" => $locality), array("level4"));
-	        			if(!empty($dep))
-		        			$queryLocality = array("address.level4" => $dep["level4"]);
-		        	}//OneLocality
-		        	else{
-	  					$queryLocality = array($value => new MongoRegex("/".$locality."/i"));
-	  				}
-
-  					//Consolidate Queries
-  					if(!empty($queryLocality)) {
-	  					if(isset($allQueryLocality)){
-	  						$allQueryLocality = array('$or' => array( $allQueryLocality ,$queryLocality));
-	  					}else{
-	  						$allQueryLocality = $queryLocality;
-	  					}
-	  				}
-	  				unset($queryLocality);
-
-  				}
-  			}
-  		}
-  		if(isset($allQueryLocality) && is_array($allQueryLocality))
-  			$query = array('$and' => array($query, $allQueryLocality));
-  		*/
-	//*********************************  DEFINE LOCALITY QUERY   ****************************************
-
   	//trie les éléments dans l'ordre alphabetique par name
   	public static function mySortByName($a, $b){ // error_log("sort : ");//.$a['name']);
   		if(isset($a["_id"]) && isset($b["name"])){
@@ -608,34 +696,35 @@ class Search {
     	if( !isset( $queryOrganization['$and'] ) ) 
     		$queryOrganization['$and'] = array();
 
+    	var_dump($queryOrganization);
     	array_push( $queryOrganization[ '$and' ], array( "disabled" => array('$exists' => false) ) );
 
-    	if(sizeof($searchType)==1 && @$searchTypeOrga != "")
-    		array_push( $queryOrganization[ '$and' ], array( "type" => $searchTypeOrga ) );
+   //  	if(sizeof($searchType)==1 && @$searchTypeOrga != "")
+   //  		array_push( $queryOrganization[ '$and' ], array( "type" => $searchTypeOrga ) );
 
-    	//var_dump($indexStep);
-    	//var_dump($indexMin);
-  		$allOrganizations = PHDB::findAndSortAndLimitAndIndex ( Organization::COLLECTION ,$queryOrganization, 
-  												array("updated" => -1), $indexStep, $indexMin);
+   //  	//var_dump($indexStep);
+   //  	//var_dump($indexMin);
+  	// 	$allOrganizations = PHDB::findAndSortAndLimitAndIndex ( Organization::COLLECTION ,$queryOrganization, 
+  	// 											array("updated" => -1), $indexStep, $indexMin);
 
-  		//var_dump($allOrganizations);
-  		foreach ($allOrganizations as $key => $value) 
-  		{
-  			if(!empty($value)){
+  	// 	//var_dump($allOrganizations);
+  	// 	foreach ($allOrganizations as $key => $value) 
+  	// 	{
+  	// 		if(!empty($value)){
 
-	  			$orga = Organization::getSimpleOrganizationById($key,$value);
-	  			if( @$value["links"]["followers"][Yii::app()->session["userId"]] )
-		  			$orga["isFollowed"] = true;
+	  // 			$orga = Organization::getSimpleOrganizationById($key,$value);
+	  // 			if( @$value["links"]["followers"][Yii::app()->session["userId"]] )
+		 //  			$orga["isFollowed"] = true;
 
-		  		if(@$orga["type"] != "")
-					$orga["typeOrga"] = $orga["type"];
-				$orga["type"] = "organizations";
+		 //  		if(@$orga["type"] != "")
+			// 		$orga["typeOrga"] = $orga["type"];
+			// 	$orga["type"] = "organizations";
 
-				$orga["typeSig"] = Organization::COLLECTION;
-				$res[$key] = $orga;
-			}
-  		}
-  		return $res;
+			// 	$orga["typeSig"] = Organization::COLLECTION;
+			// 	$res[$key] = $orga;
+			// }
+  	// 	}
+  	// 	return $res;
 	}
 
 	
@@ -1130,4 +1219,52 @@ class Search {
         }
         return $resStr;
     }
+
+
+    /***********************************  DEFINE LOCALITY QUERY   ***************************************/
+    public static function searchLocalityNetworkOld($query, $post){
+  		$localityReferences['NAME'] = "address.addressLocality";
+  		$localityReferences['CODE_POSTAL_INSEE'] = "address.postalCode";
+  		$localityReferences['DEPARTEMENT'] = "address.postalCode";
+  		$localityReferences['REGION'] = ""; //Spécifique
+  		$localityReferences['INSEE'] = "address.codeInsee";
+
+  		foreach ($localityReferences as $key => $value) {
+  			if(isset($post["searchLocality".$key]) && is_array($post["searchLocality".$key])){
+  				foreach ($post["searchLocality".$key] as $locality) {
+
+  					//OneRegion
+
+  					if($key == "REGION") {
+  						if($locality == "La Réunion")
+  							$locality = "Réunion" ;
+	        			$dep = PHDB::findOne( City::COLLECTION, array("level3Name" => $locality), array("level3"));
+	        			if(!empty($dep))
+	        				$queryLocality = array("address.level3" => $dep["level3"]);
+	        		}else if($key == "DEPARTEMENT") {
+	        			$dep = PHDB::findOne( City::COLLECTION, array("level4Name" => $locality), array("level4"));
+	        			if(!empty($dep))
+		        			$queryLocality = array("address.level4" => $dep["level4"]);
+		        	}//OneLocality
+		        	else{
+	  					$queryLocality = array($value => new MongoRegex("/".$locality."/i"));
+	  				}
+
+  					//Consolidate Queries
+  					if(!empty($queryLocality)) {
+	  					if(isset($allQueryLocality)){
+	  						$allQueryLocality = array('$or' => array( $allQueryLocality ,$queryLocality));
+	  					}else{
+	  						$allQueryLocality = $queryLocality;
+	  					}
+	  				}
+	  				unset($queryLocality);
+
+  				}
+  			}
+  		}
+  		if(isset($allQueryLocality) && is_array($allQueryLocality))
+  			$query = array('$and' => array($query, $allQueryLocality));
+  		return $query; 
+  	}
 }
