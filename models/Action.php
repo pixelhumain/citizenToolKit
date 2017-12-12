@@ -194,8 +194,10 @@ class Action
                     }
 
                     if($action == "reportAbuse" && $collection == News::COLLECTION){
+                        $params = CO2::getThemeParams();
+                        $abuseMax = $params["nbReportCoModeration"];
                         $thisNews = News::getById($element["_id"]);
-                        if($thisNews["reportAbuseCount"] >= 1){
+                        if($thisNews["reportAbuseCount"] >= $abuseMax){
                             Proposal::createModeration(News::COLLECTION, (string)$element["_id"]);
                         }
                     } 
