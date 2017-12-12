@@ -54,7 +54,16 @@ class Api {
         else if($limit < 1) $limit = 50 ;
 
         if($index < 0) $index = 0 ;
-        if($type != City::COLLECTION) $params["preferences.isOpenData"] = true ;
+        if($type != City::COLLECTION){
+            $where = array('$or' => array(
+                                    array("preferences.isOpenData" => true),
+                                    array("preferences.isOpenData" => "true")
+                                    ));
+
+            $params = array_merge($params, $where);
+            //$params["preferences.isOpenData"] = true ;
+        }
+        
 
         $data = PHDB::findAndLimitAndIndex($type , $params, $limit, $index);
         $data = self::getUrlImage($data, $type);

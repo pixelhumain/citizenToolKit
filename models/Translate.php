@@ -6,6 +6,7 @@ class Translate {
 	const FORMAT_AS = "activityStream";
 	const FORMAT_COMMUNECTER = "communecter";
 	const FORMAT_RSS = "rss";
+	const FORMAT_NETWORK = "network";
 
 	public static function convert($data,$bindMap)
 	{
