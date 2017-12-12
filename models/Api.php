@@ -37,10 +37,21 @@ class Api {
         // Create params for request
         $params = array();
         if( @$id ) $params["_id"] =  new MongoId($id);
-            
         if( @$insee ){
-            if($type == City::COLLECTION) $params["insee"] = $insee;
-            else $params["address.codeInsee"] = $insee ;
+
+            if(strrpos($insee, ",") === false)
+                $resInsee = false ;
+            else{
+                $resInsee = explode(",", $insee);
+            }
+
+            if($resInsee==false){
+                if($type == City::COLLECTION) $params["insee"] = $insee;
+                else $params["address.codeInsee"] = $insee ;
+            }else{
+                 if($type == City::COLLECTION) $params["insee"] = array('$in' =>$resInsee);
+                else $params["address.codeInsee"] = array('$in' =>$resInsee);
+            }
         }
         
         if( @$tags ){
