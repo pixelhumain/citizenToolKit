@@ -13,6 +13,6 @@ class GetInfoAction extends CAction
     	if(!empty($res))
     		Rest::json(array("result"=>true,"contextId"=>$res["id"],"contextType"=>$res["type"]));
     	else
-    		Rest::json(array("result"=>false));
+    		Rest::json(array("result"=>false, "res" => $res, "clearSlug" => $clearSlug));
     }
 }
