@@ -679,6 +679,8 @@ class Authorisation {
                     $res = self::isEventMember($userId, $itemId);
                 if($type == City::COLLECTION) 
                     $res = self::isLocalCitizen($userId, $itemId);
+                if($type == News::COLLECTION) 
+                    $res = true;
             }
             
         }
@@ -801,7 +803,7 @@ class Authorisation {
         } else if($elementType == Organization::COLLECTION) {
             $res = self::isOrganizationAdmin($userId, $elementId);
         } else 
-            error_log("isElementAdmin : Can not manage that type !".$elementType);
+            error_log("isElementAdmin : Can not manage that type ! : ".$elementType);
         return $res;
     }
     

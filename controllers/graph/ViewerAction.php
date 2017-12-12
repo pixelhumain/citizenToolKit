@@ -1,8 +1,12 @@
 <?php
 class ViewerAction extends CAction
 {
-    public function run($id, $type,$data=null)
+    public function run($id=null, $type=null,$data=null)
     {
+        if(!@$id && isset(Yii::app()->session["userId"])){
+            $id = Yii::app()->session["userId"];
+            $type = Person::COLLECTION;
+        }
         $controller=$this->getController();
 
         $itemType = Person::COLLECTION;

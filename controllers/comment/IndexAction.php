@@ -35,7 +35,9 @@ class IndexAction extends CAction
 
             /*AUTH*/
             //var_dump($params["context"]); exit;
-            $actionRoom = Room::getById($params["context"]["idParentRoom"]);
+            $actionRoom = $params["context"]["parentType"] == News::CONTROLLER ? 
+                          true : Room::getById($params["context"]["idParentRoom"]);
+                          
             $canParticipate = Authorisation::canParticipate(Yii::app()->session["userId"], 
                                 $params["context"]["parentType"], $params["context"]["parentId"]);
 

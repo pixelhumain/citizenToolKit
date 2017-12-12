@@ -6,12 +6,16 @@ class SwitchtoAction extends CAction
     {
     	
         $controller=$this->getController();
-        $person = Person::getById($uid);
         $res = array( "result" => false );
-        if( $person ){
-            Person::saveUserSessionData($person);
-            $res['result'] = true;
-        }
+        if(@Yii::app()->session["userId"] &&  @Yii::app()->session["userIsAdmin"]){
+            $person = Person::getById($uid,false);
+            
+            if( $person ){
+                Person::saveUserSessionData($person);
+                $res['result'] = true;
+                $res['id']=(string)$person["_id"];
+            }
+        } 
         Rest::json($res);
     }
 }

@@ -86,6 +86,10 @@ class Api {
             $params["tags"] =  (($multiTags == "true") ? array('$eq' => $tagsArray) : array('$in' => $tagsArray));
         }
 
+        if( $type == News::COLLECTION ){
+            $params["scope.type"] = "public";
+        }
+
         if( @$key ) $params["source.key"] = $key ;
         
         if( $limit > 500) $limit = 500 ;
@@ -93,6 +97,10 @@ class Api {
 
         if($index < 0) $index = 0 ;
         //if($type != City::COLLECTION) $params["preferences.isOpenData"] = true ;
+
+        if ($format == Translate::FORMAT_GOGO) {
+            $params["geoPosition"] = array('$exists' => 1);
+        }
 
         $data = PHDB::findAndLimitAndIndex($type , $params, $limit, $index);
         $data = self::getUrlImage($data, $type);
@@ -164,6 +172,17 @@ class Api {
 
             $result["meta"] = $meta ;
             $result["items"] = ((!empty($data) && !empty($bindMap) )?Translate::convert($data , $bindMap):$data);
+        } elseif ($format == Translate::FORMAT_GOGO) {
+            $meta = [];
+            $newData = [];
+            foreach ($data as $key => $value) {
+                $newData[] = $value;
+            }
+            //var_dump($meta);
+            $meta["data"] = ((!empty($newData) && !empty($bindMap) )?Translate::convert($newData , $bindMap):$newData);
+            $meta["fullRepresentation"] = true;
+            $meta["allElementsSends"] = true;
+            $result = $meta ;
         }
         else { 
             $result["meta"] = $meta ;

@@ -136,7 +136,6 @@ class News {
 			  		if(!empty($localities)){
 			  			foreach ($localities as $key => $locality){
 
-
 							if(!empty($locality)){
 								if($locality["type"] == City::CONTROLLER){
 									$city = City::getById($key);
@@ -157,12 +156,12 @@ class News {
 								}
 								else if($locality["type"] == "cp"){
 
-									$where = array("postalCodes.postalCode"=>strval($key), $locality["countryCode"]) ;
+									$where = array( "postalCodes.postalCode"=>strval($key), 
+													"country"=> $locality["countryCode"]) ;
 									//var_dump($where);
 									$cities = City::getWhere($where);
 									if(!empty($cities)){
 										//$city=$city[0];
-
 										$scope = array("postalCode"=>strval($key));
 										$news["scope"]["localities"][] = $scope;
 

@@ -1,16 +1,123 @@
 <?php
 class SimplyAutoCompleteAction extends CAction
 {
-    public function run($filter = null){
+    public function run($filter = null)
+    {
 
-  		if($_POST["search"] == null && $_POST["locality"] == null && $_POST["sourceKey"] == null) {
+  		// $pathParams = Yii::app()->controller->module->viewPath.'/default/dir/';
+		// echo file_get_contents($pathParams."simply.json");
+		// die();
+        $search = isset($_POST['name']) ? trim(urldecode($_POST['name'])) : null;
+        $locality = isset($_POST['locality']) ? trim(urldecode($_POST['locality'])) : null;
+        $searchType = isset($_POST['searchType']) ? $_POST['searchType'] : null;
+        $searchTag = isset($_POST['searchTag']) ? $_POST['searchTag'] : null;
+        $searchPrefTag = isset($_POST['searchPrefTag']) ? $_POST['searchPrefTag'] : null;
+        $searchBy = isset($_POST['searchBy']) ? $_POST['searchBy'] : "INSEE";
+        $indexMin = isset($_POST['indexMin']) ? $_POST['indexMin'] : 0;
+        $indexMax = isset($_POST['indexMax']) ? $_POST['indexMax'] : 100;
+        $country = isset($_POST['country']) ? $_POST['country'] : "";
+        $sourceKey = isset($_POST['sourceKey']) ? $_POST['sourceKey'] : null;
+        $mainTag = isset($_POST['mainTag']) ? $_POST['mainTag'] : null;
+        $paramsFiltre = isset($_POST['paramsFiltre']) ? $_POST['paramsFiltre'] : null;
+
+
+        if($search == null && $locality == null && $sourceKey == null) {
         	Rest::json(array());
 			Yii::app()->end();
-        }else{
-        	Search::networkAutoComplete($_POST, $filter)
         }
+        /***********************************  DEFINE GLOBAL QUERY   *****************************************/
+        $query = array( "name" => new MongoRegex("/".$search."/i"));
 
-     /***********************************  DEFINE LOCALITY QUERY   ***************************************/
+        /***********************************  TAGS   *****************************************/
+        $tmpTags = array();
+        if(!empty($search)){
+        	var_dump("hehe");
+  			var_dump($search);
+        	if(strpos($search, "#") > -1){
+	        	$search = substr($search, 1, strlen($search));
+	        	// $query = array( "tags" => array('$in' => array(new MongoRegex("/".$search."/i")))) ; //new MongoRegex("/".$search."/i") )));
+	        	//$tmpTags[] = new MongoRegex("/".$search."/i");
+	        	$tmpTags[] = new MongoRegex("/^".Search::accentToRegex($tags)."$/i");
+	  		}
+	  		if(count($tmpTags)){
+	  			$verbTag = ( (!empty($paramsFiltre) && '$all' == $paramsFiltre) ? '$all' : '$in' ) ;
+	  			$query = array('$and' => array( $query , array("tags" => array($verbTag => $tmpTags)))) ;
+	  		}
+        }
+        
+  		if(!empty($searchTag)){
+  			$isString = false;
+  			$tmpTags = array();
+  			foreach ($searchTag as $key => $tags) {
+	  			if(!empty($tags)){
+		  			if(is_array($tags)){
+		  				foreach ($tags as $key => $tag) {
+		  					$tmpTags[] = new MongoRegex("/^".Search::accentToRegex($tags)."$/i");
+					  		//$tmpTags[] = new MongoRegex("/".$tag."/i");
+				  		}
+				  		if(count($tmpTags)){
+				  			$verbTag = ( (!empty($paramsFiltre) && '$all' == $paramsFiltre) ? '$all' : '$in' ) ;
+				  			$query = array('$and' => array( $query , array("tags" => array($verbTag => $tmpTags)))) ;
+				  		}
+		  			}else{
+		  				$tmpTags[] = new MongoRegex("/^".Search::accentToRegex($tags)."$/i");
+		  				//$tmpTags[] = new MongoRegex("/".$tags."/i");
+					  	
+				  		$isString = true;
+		  			}
+		  		}
+	  		}
+
+	  		if($isString && count($tmpTags)){
+	  			$query = array('$and' => array( $query , array("tags" => array('$in' => $tmpTags)))) ;
+	  		}
+  		}
+  		//var_dump($query);
+  		unset($tmpTags);
+
+  		/***********************************  COMPLETED   *****************************************/
+  		$query = array('$and' => array( $query , array("state" => array('$ne' => "uncomplete")) ));
+
+      /***********************************   MAINTAG    *****************************************/
+      $tmpmainTag = array();
+      if(!empty($mainTag)){
+          //Several Sourcekey
+      		$tmpMainTag = array();
+  	  		if(is_array($mainTag)){
+  	  			foreach ($mainTag as $value) {
+  	  				if(!empty($value))
+  	  					$tmpMainTag[] = new MongoRegex("/".$value."/i");
+  	  			}
+  	  		}//One Sourcekey
+  	  		else{
+  	  			$tmpMainTag[] = new MongoRegex("/".$mainTag."/i");
+  	  		}
+	  		if(count($tmpMainTag)){
+	  			$verbMainTag = ( (!empty($searchPrefTag) && '$or' == $searchPrefTag) ? '$or' : '$and' );
+	  			$query = array($verbMainTag => array( $query , array("tags" => array('$in' => $tmpMainTag))));
+	  		}
+	  		unset($tmpMainTag);
+	  	}
+
+  		/***********************************  SOURCEKEY   *****************************************/
+  		$tmpSourceKey = array();
+  		if($sourceKey != null && $sourceKey != ""){
+  			//Several Sourcekey
+	  		if(is_array($sourceKey)){
+	  			foreach ($sourceKey as $value) {
+	  				$tmpSourceKey[] = new MongoRegex("/".$value."/i");
+	  			}
+	  		}//One Sourcekey
+	  		else{
+	  			$tmpSourceKey[] = new MongoRegex("/".$sourceKey."/i");
+	  		}
+	  		if(count($tmpSourceKey)){
+	  			$query = array('$and' => array( $query , array("source.keys" => array('$in' => $tmpSourceKey))));
+	  		}
+	  		unset($tmpSourceKey);
+	  	}
+	  	//var_dump($query);
+  		/***********************************  DEFINE LOCALITY QUERY   ***************************************/
   		$localityReferences['NAME'] = "address.addressLocality";
   		$localityReferences['CODE_POSTAL_INSEE'] = "address.postalCode";
   		$localityReferences['DEPARTEMENT'] = "address.postalCode";

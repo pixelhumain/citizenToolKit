@@ -6,6 +6,8 @@ class Role {
 	const REVOKE_BETA_TESTER = "revokeBetaTester";
 	const ADD_SUPER_ADMIN = "addSuperAdmin";
 	const REVOKE_SUPER_ADMIN = "revokeSuperAdmin";
+	const ADD_BANNED_USER = "addBannedUser";
+	const REVOKE_BANNED_USER = "revokeBannedUser";
 	const DEVELOPER = "developer";
 	const SUPERADMIN = "superAdmin";
 	const SOURCEADMIN = "sourceAdmin";
@@ -73,6 +75,10 @@ class Role {
         if (isset($roles["tobeactivated"]) && @$roles["tobeactivated"]) {
             return array("result"=>false, "id" => @$person[_id], "msg"=>"notValidatedEmail");
         }
+        //The account is not validated.
+        if (@$roles["isBanned"]) {
+            return array("result"=>false, "id" => @$person[_id], "msg"=>Yii::t("common","Your account has been certified as fraudulent towards the policies of respect"));
+        }
         
         return $res;
 	}
@@ -121,15 +127,17 @@ class Role {
 	public static function updatePersonRole($action, $userId){
 		$mongoAction = '$set';
 		$roleValue = true;
-		if ($action == self::REVOKE_BETA_TESTER || $action == self::REVOKE_SUPER_ADMIN) {
+		if ($action == self::REVOKE_BETA_TESTER || $action == self::REVOKE_SUPER_ADMIN || $action == self::REVOKE_BANNED_USER) {
 			$mongoAction = '$unset';
 			$roleValue = "";
 		}
 
 		if ($action == self::ADD_BETA_TESTER || $action == self::REVOKE_BETA_TESTER) {
 			$role = 'betaTester';
-		} else if ($action == self::ADD_SUPER_ADMIN || self::REVOKE_SUPER_ADMIN) {
+		} else if ($action == self::ADD_SUPER_ADMIN || $action == self::REVOKE_SUPER_ADMIN) {
 			$role = 'superAdmin';
+		} else if ($action == self::ADD_BANNED_USER || $action == self::REVOKE_BANNED_USER) {
+			$role = 'isBanned';
 		}
 
 		PHDB::update( Person::COLLECTION,

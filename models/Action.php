@@ -179,6 +179,7 @@ class Action
                        $verb = ActStr::VERB_LIKE;
                     else if($action == "voteDown")
                         $verb = ActStr::VERB_UNLIKE;
+
                     if(@$verb && $collection != Survey::COLLECTION){
                         $objectNotif=null;
                         if($collection==Comment::COLLECTION){
@@ -191,6 +192,16 @@ class Action
                         }
                         Notification::constructNotification($verb, array("id" => Yii::app()->session["userId"],"name"=> Yii::app()->session["user"]["name"]), $target, $objectNotif, $collection);
                     }
+
+                    if($action == "reportAbuse" && $collection == News::COLLECTION){
+                        $params = CO2::getThemeParams();
+                        $abuseMax = $params["nbReportCoModeration"];
+                        $thisNews = News::getById($element["_id"]);
+                        if($thisNews["reportAbuseCount"] >= $abuseMax){
+                            Proposal::createModeration(News::COLLECTION, (string)$element["_id"]);
+                        }
+                    } 
+                    
                 }
 
                 //self::addActionHistory( $userId , $id, $collection, $action);

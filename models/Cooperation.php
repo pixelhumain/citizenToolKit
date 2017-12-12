@@ -93,7 +93,7 @@ class Cooperation {
 		}
 
 		else if($type == Proposal::CONTROLLER){
-			if(empty($dataId)){ //si pas d'id : prend toutes les proposal pour un element parent
+			if(empty($dataId) && $parentType != News::CONTROLLER){ //si pas d'id : prend toutes les proposal pour un element parent
 				$query = array( "parentType" => $parentType, "parentId" => $parentId);
 				
 				if(!empty($status)) {
@@ -117,7 +117,13 @@ class Cooperation {
 								  		array("status" => -1, "amendementDateEnd" => 1, "voteDateEnd" => 1));
 
 			}else{ //si un d'id : prend récupère toutes les proposals & actions & resolutions de la room
-				$res["proposal"] = Proposal::getById($dataId);
+				if($parentType != News::CONTROLLER) //parentType == "news" => modération de la news
+					$res["proposal"] = Proposal::getById($dataId);
+				else{
+					$res["proposal"] = PHDB::findOne( Proposal::COLLECTION , 
+										array("parentType"=>News::CONTROLLER, "parentId"=>$parentId) );
+					$res["news"] = News::getById($parentId);
+				}
 			}
 		}
 
@@ -211,12 +217,16 @@ class Cooperation {
 
 	public static function updateStatusProposal($parentType, $parentId){
 		
-		$query = array( "parentType" => $parentType, "parentId" => $parentId, "status" => array('$in'=>array("amendable", "tovote")));
+		$query = array( "parentType" => $parentType, 
+						"parentId" => $parentId, 
+						"status" => array('$in'=>array("amendable", "tovote")));
+
 		$proposalList = PHDB::findAndSort (Proposal::COLLECTION, $query, array());
 
 		foreach ($proposalList as $key => $proposal) {
 			//amendement TO tovote
-			if(@$proposal["amendementDateEnd"] && @$proposal["amendementActivated"] == true && $proposal["status"] == "amendable"){
+			if(@$proposal["amendementDateEnd"] && @$proposal["amendementActivated"] == true && 
+				$proposal["status"] == "amendable"){
 				$amDateEnd = strtotime($proposal["amendementDateEnd"]);
 				$today = time();
 
@@ -242,12 +252,16 @@ class Cooperation {
 					$resolution = Proposal::getById($key);
 					$voteRes = Proposal::getAllVoteRes($resolution);
 					//var_dump(@$voteRes); exit;
-					$adopted = @$voteRes["up"] && @$voteRes["up"]["percent"] && $voteRes["up"]["percent"] > intval(@$resolution["majority"]);
+
+
+					$adopted = 	@$voteRes["up"] && 
+								@$voteRes["up"]["percent"] && 
+								$voteRes["up"]["percent"] > intval(@$resolution["majority"]);
 					
 					$resolution["status"] = $adopted ? "adopted" : "refused";
 					$resolutionExist = Resolution::getById($key);
 					
-					if(!$resolutionExist){
+					if(!$resolutionExist && $proposal["parentType"] == News::COLLECTION){
 						PHDB::insert(Resolution::COLLECTION, $resolution);
 						self::afterSave($resolution, Resolution::COLLECTION);
 					}
@@ -260,7 +274,22 @@ class Cooperation {
 			            array('$set' => array("status"=> "resolved", "idResolution" => $proposal["_id"]))
 			            );
 
-					
+					//moderation news
+					if($proposal["parentType"] == News::COLLECTION){
+						if($resolution["status"]=="adopted"){
+							//error_log("IS AN ABUSE ".$proposal["parentId"]);
+							$res = PHDB::update ( 	News::COLLECTION , 
+													array( "_id" => new MongoId($proposal["parentId"])), 
+													array( '$set' => array("isAnAbuse"=>true)));
+						}else{
+							error_log("IS NOT AN ABUSE ".$proposal["parentId"]);
+							$res = PHDB::update ( 	News::COLLECTION , 
+													array( "_id" => new MongoId($proposal["parentId"])), 
+													array( '$unset' => array("reportAbuse"=>null,
+																			 "reportAbuseCount"=>null)));
+
+						}
+					}
 				}
 			}
 		}
@@ -309,5 +338,12 @@ class Cooperation {
 
 			//$params=ActivityStream::buildEntry($buildArray);
 			$newsShared=ActivityStream::addEntry($buildArray);
+	}
+
+
+	public static function openModerationOnNews($newsId){
+		PHDB::insert(Proposal::COLLECTION, array(
+
+		));
 	}
 }

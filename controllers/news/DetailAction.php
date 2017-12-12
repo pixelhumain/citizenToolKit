@@ -12,8 +12,8 @@ class DetailAction extends CAction
 	        $targetId=$news["author"]["id"];
 	        $targetType=Person::COLLECTION;
         }
-        $params=array("news" => $news,"contextParentType"=> $targetType,"contextParentId"=> $targetId);
-        $page = "detail";
+        $params=array("news" => array($news),"contextParentType"=> $targetType,"contextParentId"=> $targetId);
+        $page = "newsPartialCO2";
         if(Yii::app()->request->isAjaxRequest)
             echo $controller->renderPartial($page,$params,true);
 		else

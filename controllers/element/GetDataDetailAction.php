@@ -117,6 +117,7 @@ class GetDataDetailAction extends CAction {
 			$contextMap = Poi::getPoiByIdAndTypeOfParent($id, $type, array("updated"=>-1));
 			foreach ($contextMap as $key => $value) {
 				$contextMap[$key]["typePoi"] = @$value["type"];
+				$contextMap[$key]["typeSig"] = Poi::COLLECTION;
 			}
 		}
 
@@ -152,8 +153,10 @@ class GetDataDetailAction extends CAction {
 			// }
 
 			if( !empty($post["searchLocality"])){
+				$scope = $post["searchLocality"];
 				foreach ($post["searchLocality"] as $key => $value) {
-					$scopeName = @$value["name"];
+					//$scopeName = @$value["name"];
+					$scope = $value ;
 				}
 			}
 
@@ -166,7 +169,7 @@ class GetDataDetailAction extends CAction {
 			$events = PHDB::findAndSortAndLimitAndIndex( Event::COLLECTION,
 							$query,
 							array("startDate"=>1), 10);
-
+			//var_dump($events);
 			foreach ($events as $key => $value) {
 				$events[$key]["type"] = "events";
 				$events[$key]["typeSig"] = "events";
@@ -216,6 +219,7 @@ class GetDataDetailAction extends CAction {
 		  		}
 		  	}
 		  	$contextMap = array_merge($contextMap, $pois);
+		  	
 			
 			if(@$post["tpl"]=="json")
 				return Rest::json($contextMap);
@@ -225,7 +229,8 @@ class GetDataDetailAction extends CAction {
 												"element" => $element,
 												"type"=>$type, 
 												"id"=>$id, 
-												"scope"=>@$scopeName, 
+												//"scope"=>@$scopeName, 
+												"scope"=>@$scope,
 												"open"=> (@$type!="0"))); 
 												//open : for home page (when no user connected)
 			Yii::app()->end();

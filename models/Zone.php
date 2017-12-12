@@ -126,11 +126,9 @@ class Zone {
 			$zone["level"] = array($level);
 			if($level != "1"){
 				$zone["level1"] = self::getIdCountryByCountryCode($countryCode);
-				
 				if($level != "2" && !empty($level2)){
 					$zone["level2"] = self::getIdLevelByNameAndCountry($level2, "2", $countryCode);
 				}
-
 				if($level != "3" && !empty($level3)){
 					$zone["level3"] = self::getIdLevelByNameAndCountry($level3, "3", $countryCode);
 				}
@@ -138,7 +136,7 @@ class Zone {
 
 			$zone["geo"] = SIG::getFormatGeo($zoneNominatim[0]["lat"], $zoneNominatim[0]["lon"]);
 			$zone["geoPosition"] = SIG::getFormatGeoPosition($zoneNominatim[0]["lat"], $zoneNominatim[0]["lon"]);
-			$zone["geoShape"] = $zoneNominatim[0]["geojson"];
+			//$zone["geoShape"] = $zoneNominatim[0]["geojson"];
 			if(!empty($zoneNominatim[0]["osm_id"]))
 				$zone["osmID"] = $zoneNominatim[0]["osm_id"];
 			if(!empty($zoneNominatim[0]["extratags"]["wikidata"]))
@@ -261,8 +259,6 @@ class Zone {
 		if($parentType != self::COLLECTION && $parentType != City::COLLECTION)
 
 		if(!empty($osmID)){
-			//$zoneNominatim =  json_decode(file_get_contents("http://nominatim.openstreetmap.org/lookup?format=json&namedetails=1&osm_ids=R".$osmID), true);
-
 			$zoneNominatim =  json_decode(SIG::getUrl("http://nominatim.openstreetmap.org/lookup?format=json&namedetails=1&osm_ids=R".$osmID), true);
 		
 			if(!empty($zoneNominatim) && !empty($zoneNominatim[0]["namedetails"])){
@@ -278,8 +274,6 @@ class Zone {
 
 		if(!empty($wikidataID)){
 
-			//$zoneWiki =  json_decode(file_get_contents("https://www.wikidata.org/wiki/Special:EntityData/".$wikidataID.".json"), true);
-			
 			$zoneWiki =  json_decode(SIG::getUrl("https://www.wikidata.org/wiki/Special:EntityData/".$wikidataID.".json"), true);
 		
 			if(!empty($zoneWiki) && !empty($zoneWiki["entities"][$wikidataID]["labels"])){
@@ -292,19 +286,19 @@ class Zone {
 			}
 		}
 
-		if(!empty($translate)){
-			$info["countryCode"] = $countryCode;
-			$info["parentId"] = $parentId;
-			$info["parentType"] = $parentType;
-			$info["translates"] = $translate;
-			$info["origin"] = $origin;
-			PHDB::insert(Zone::TRANSLATE, $info);
-			PHDB::update($parentType, 
-						array("_id"=>new MongoId($parentId)),
-						array('$set' => array("translateId" => (String)$info["_id"]))
-			);
-			$res = array("result" => true, "translate" => $info);
-		}
+		//if(!empty($translate)){
+		$info["countryCode"] = $countryCode;
+		$info["parentId"] = $parentId;
+		$info["parentType"] = $parentType;
+		$info["translates"] = $translate;
+		$info["origin"] = $origin;
+		PHDB::insert(Zone::TRANSLATE, $info);
+		PHDB::update($parentType, 
+					array("_id"=>new MongoId($parentId)),
+					array('$set' => array("translateId" => (String)$info["_id"]))
+		);
+		$res = array("result" => true, "translate" => $info);
+		//}
 		return $res ;
 	}
 
@@ -313,7 +307,6 @@ class Zone {
 		$userT = strtoupper(Yii::app()->language) ;
 		if(!empty($translates) ){
 			$name = (!empty($translates["translates"][$userT]) ? $translates["translates"][$userT] : $translates["origin"]);
-
 		}else
 			$name = "";
 		
@@ -326,18 +319,27 @@ class Zone {
 		return $translates["origin"];
 	}
 
-	public static function getListCountry(){
+	public static function getListCountry($hasCity = null){
 		$where = array(	"level" => "1");
-		$fields = array("name","level", "translateId", "countryCode");
+		if(!empty($hasCity))
+			$where["hasCity"] = array(	'$exists' => "1");
+
+		$fields = array("name","level", "translateId", "countryCode", "hasCity");
 		$zones = PHDB::find(self::COLLECTION, $where, $fields);
 		$res = array();
+		$trad = PHDB::find(	self::TRANSLATE, 
+							array( 	"parentId"=> array('$in' => array_keys($zones) ), 
+									"parentType" => Zone::COLLECTION ), 
+							array("origin", "translates.".strtoupper(Yii::app()->language) ) );
+		//print_r($trad);
 		foreach ($zones as $key => $zone) {
-			$name = self::getNameCountry($key);
-			$city = PHDB::findOne(City::COLLECTION, array("country" => $zone["countryCode"]));
-			$newZones  = array( "name" => ( !empty($name) ? $name : $zone["name"] ),
-								"countryCode" => $zone["countryCode"],
-								"inDB" => (!empty($city) ? true : false ) );
-			$res[$key] = $newZones ;
+			if(@$zone["translateId"]){
+				$newZone = array( 	"name" => ( !empty($trad[$zone["translateId"]]["translates"][strtoupper(Yii::app()->language)])  ? $trad[$zone["translateId"]]["translates"][strtoupper(Yii::app()->language)] : @$trad[$zone["translateId"]]["origin"]),
+									"countryCode" => $zone["countryCode"],
+									"level" => $zone["level"],
+									"translateId" => $zone["translateId"]);
+				$res[$key] = $newZone ;
+			}
 		}
 		asort($res);
 		return $res ;
