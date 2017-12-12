@@ -11,6 +11,7 @@ class Circuit {
 
 	//From Post/Form name to database field name
 	public static $dataBinding = array (
+		"name" => array("name" => "name"),
 	    "type" => array("name" => "type"),
 	    "subtype" => array("name" => "subtype"),
 	    "total"=>array("name" => "total"),
@@ -19,7 +20,6 @@ class Circuit {
 	   	"currency"=>array("name" => "currency"),
 	   	"capacity"=>array("name" => "capacity"),
 	   	"frequency"=>array("name" => "frequency"),
-	    "name" => array("name" => "name"),
 	    "description" => array("name" => "description"),
 	    "countQuantity"=>array("name" => "countQuantity"),
 	    "shortDescription" => array("name" => "shortDescription"),

@@ -70,6 +70,7 @@ class Element {
 	    	Room::COLLECTION   	 	 => "Room",
 	    	Action::COLLECTION   	 => "Action",
 	    	Network::COLLECTION   	 => "Network",
+	    	Circuit::COLLECTION   	 => "Circuit",
 	    );	
 	 	return @$models[$type];     
     }
@@ -1592,8 +1593,10 @@ class Element {
         if( $collection == Event::COLLECTION ){
             $valid = Event::validateFirst($params);
         } //error_log("KEY : ". $key);
+
         if( $valid["result"] )
         	try {
+        		//var_dump($key);exit;
         		$valid = DataValidator::validate( ucfirst($key), json_decode (json_encode ($params), true), ( empty($paramsLinkImport) ? null : true) );
         	} catch (CTKException $e) {
         		$valid = array("result"=>false, "msg" => $e->getMessage());
@@ -1612,11 +1615,7 @@ class Element {
 
             if($id){ //var_dump($params); exit;
         	
-            	//var_dump($params);
-                //update a single field
-                //else update whole map
-                //$changeMap = ( !$microformat && isset( $key )) ? array('$set' => array( $key => $params[ $key ] ) ) : array('$set' => $params );
-                $exists = PHDB::findOne($collection,array("_id"=>new MongoId($id)));
+            	$exists = PHDB::findOne($collection,array("_id"=>new MongoId($id)));
                 if(!@$exists){
                 	$params["creator"] = Yii::app()->session["userId"];
 	        		$params["created"] = time();
