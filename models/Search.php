@@ -698,33 +698,6 @@ class Search {
 
     	var_dump($queryOrganization);
     	array_push( $queryOrganization[ '$and' ], array( "disabled" => array('$exists' => false) ) );
-
-   //  	if(sizeof($searchType)==1 && @$searchTypeOrga != "")
-   //  		array_push( $queryOrganization[ '$and' ], array( "type" => $searchTypeOrga ) );
-
-   //  	//var_dump($indexStep);
-   //  	//var_dump($indexMin);
-  	// 	$allOrganizations = PHDB::findAndSortAndLimitAndIndex ( Organization::COLLECTION ,$queryOrganization, 
-  	// 											array("updated" => -1), $indexStep, $indexMin);
-
-  	// 	//var_dump($allOrganizations);
-  	// 	foreach ($allOrganizations as $key => $value) 
-  	// 	{
-  	// 		if(!empty($value)){
-
-	  // 			$orga = Organization::getSimpleOrganizationById($key,$value);
-	  // 			if( @$value["links"]["followers"][Yii::app()->session["userId"]] )
-		 //  			$orga["isFollowed"] = true;
-
-		 //  		if(@$orga["type"] != "")
-			// 		$orga["typeOrga"] = $orga["type"];
-			// 	$orga["type"] = "organizations";
-
-			// 	$orga["typeSig"] = Organization::COLLECTION;
-			// 	$res[$key] = $orga;
-			// }
-  	// 	}
-  	// 	return $res;
 	}
 
 	
@@ -736,10 +709,7 @@ class Search {
 
     	if( !isset( $queryEvent['$and'] ) ) 
     		$queryEvent['$and'] = array();
-    	
-    	//echo  time(); exit;
-    	//array_push( $queryEvent[ '$and' ], array( "endDate" => array( '$gte' => new MongoDate( time() ) ) ) );
-    	//var_dump($queryEvent);
+
     	if(isset($searchSType) && $searchSType != "")
         		array_push( $queryEvent[ '$and' ], array( "type" => $_POST["searchSType"] ) );
     	
@@ -885,8 +855,6 @@ class Search {
   		return $allPlace;
   	}
 
-
-
   	//*********************************  DDA   ******************************************
   	public static function searchDDA($query, $indexMax){
   		$allRes = array();
@@ -917,32 +885,10 @@ class Search {
 	  	return $allRes;
 	}
 
-
-
 	//*********************************  VOTES / propositions   ******************************************
     public static function searchVotes($query, $indexStep, $indexMin, $searchType){
     	$allFound = array();
     	if(!empty(Yii::app()->session["userId"])){
-    		// $myLinks = Person::getPersonLinksByPersonId( Yii::app()->session["userId"] );
-    		// //créer un array avec uniquement les id de mes orgas
-	    	// $orgasId = array();
-	    	// foreach ($myLinks["organizations"] as $key => $link) {
-	    	// 	if(self::checkScopeParent($link) == true)//en vérifiant si l'orga correspond aux scopes demandés
-	    	// 		$orgasId[] = (string)$link["_id"];
-	    	// }
-	    	     
-	    	// //créer un array avec uniquement les id de mes projets
-	    	// $projectsId = array();
-	    	// foreach ($myLinks["projects"] as $key => $link) {
-	    	// 	if(self::checkScopeParent($link) == true)//en vérifiant si le projet correspond aux scopes demandés
-	    	// 		$projectsId[] = (string)$link["_id"];
-	    	// }
-	    	
-	    	// $query = array( '$or' => array( array("parentType"=>"organizations", "parentId" => array('$in' => $orgasId) ),
-	    	// 								array("parentType"=>"projects", "parentId" => array('$in' => $projectsId) )
-	    	// 						 )
-	    	// 			  );
-
 	    	// //rajoute les résultats pour mon conseil citoyen
 	    	$me = Person::getSimpleUserById(Yii::app()->session["userId"]);
 	    	$myCityKey = @$me["address"]["addressCountry"] ? $me["address"]["addressCountry"] : false;
@@ -1075,26 +1021,7 @@ class Search {
 
 
     //*********************************  CITIES   ******************************************
-    public static function searchCities($search, $locality, $country){   
-  		
-    	// $where = array('$or'=> 
-     //                        array(  array("origin" => new MongoRegex("/".$search."/i")),
-     //                                array("translates.".strtoupper(Yii::app()->language) => array( '$in' => array (new MongoRegex("/".$search."/i") ) ) ),
-     //                    ));
-     //    $where = array('$and'=> array($where, array("parentType" => City::COLLECTION ) ) );
-
-     //    $translate = Zone::getWhereTranlate($where);
-     //    //var_dump($where);
-     //    $cities = array();
-     //    foreach ($translate as $keyTran => $valueTran) {
-     //    	$city = self::getById( $valueTran["parentId"]);
-     //    	if(!empty($valueTran["translates"][strtoupper(Yii::app()->language)]))
-     //    		$city["name"] = $valueTran["translates"][strtoupper(Yii::app()->language)] ;
-     //    	$cities[$valueTran["parentId"]] = $city ;
-     //    }
-
-
-
+    public static function searchCities($search, $locality, $country){
   		$query = array( "name" => new MongoRegex("/".self::wd_remove_accents($search)."/i"));//array('$text' => array('$search' => $search));//
   		
   		//*********************************  DEFINE LOCALITY QUERY   ******************************************
@@ -1199,8 +1126,7 @@ class Search {
   		return $allCitiesRes;
   	}
 
-    static public function removeEmptyWords($search)
-	{
+    static public function removeEmptyWords($search){
         $stopwords = array(" ", "", "-", "?", "!", ",", ".", "/", "le", "la", "les", "un", "une", "des", "mon", "ton", "son", "pour", 
                             "à", "a", "d", "d'", "de", "notre", "votre", "leur", "leurs", "mes", "tes", "ses", "du");
 
