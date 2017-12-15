@@ -2740,4 +2740,11 @@ public static function myNetwork($id, $type){
         return $myN;
     }
 
+
+ 	public static function getHash($element){
+ 		return  (@$element["slug"]) ? 
+				"#".$element["slug"] : 
+				"#page.type.".@$element["type"].".id.".@$element["id"];
+ 	}
+
 }
