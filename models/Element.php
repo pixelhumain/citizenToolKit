@@ -2742,9 +2742,10 @@ public static function myNetwork($id, $type){
 
 
  	public static function getHash($element){
+ 		$id = @$element["id"] ? @$element["id"] : @$element["_id"];
  		return  (@$element["slug"]) ? 
 				"#".$element["slug"] : 
-				"#page.type.".@$element["type"].".id.".@$element["id"];
+				"#page.type.".@$element["type"].".id.".$id;
  	}
 
 }
