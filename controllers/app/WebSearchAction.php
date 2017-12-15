@@ -129,12 +129,23 @@ class WebSearchAction extends CAction
             $currentSearch = @$_POST["category"] ? "#".$_POST["category"] : "";
 
         if($currentSearch != ""){
-            $paramsGAC = array("name" => $currentSearch,
-                            "searchType"=>array(Person::COLLECTION, Project::COLLECTION, 
-                                                Organization::COLLECTION, Event::COLLECTION)
+            $paramsGAC = array( "name" => $currentSearch,
+                                "searchType"=>array(Person::COLLECTION, Project::COLLECTION, 
+                                                    Organization::COLLECTION, Event::COLLECTION, Poi::COLLECTION)
                             );
 
             $elements = Search::globalAutoComplete($paramsGAC);
+            //if(sizeof($elements)==0){
+                $paramsGAC = array( "searchTag" => array($currentSearch),
+                                    "searchType"=>array(Person::COLLECTION, Project::COLLECTION, 
+                                                        Organization::COLLECTION, Event::COLLECTION, Poi::COLLECTION)
+                            );
+                $elementsTags = Search::globalAutoComplete($paramsGAC);
+            //}
+
+            if(sizeof($elementsTags)>0)
+                $elements = array_merge($elements, $elementsTags);
+
             $params["elements"] = $elements;
         }
         /*complete search with element*/
