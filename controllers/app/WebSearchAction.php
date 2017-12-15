@@ -115,19 +115,29 @@ class WebSearchAction extends CAction
 
         $arraySearch = explode(" ", @$searchStr);
 
-        $currentSearch = @$_POST["search"] ? $_POST["search"] : "#".@$_POST["category"];
-        $params = array("name" => $currentSearch,
-                        "searchType"=>array(Person::COLLECTION, Project::COLLECTION, 
-                                            Organization::COLLECTION, Event::COLLECTION)
-                        );
-        
-        $elements = Search::globalAutoComplete($params);
 
     	$params = array("siteurls"=>$siteurls,
     					"search"=>@$_POST["search"],
                         "arraySearch" => @$arraySearch,
     					"category"=>@$_POST["category"],
-                        "elements" => $elements);
+                        "elements"=>array());
+
+        /*complete search with element*/
+        $currentSearch = @$_POST["search"] ? $_POST["search"] : "";
+
+        if($currentSearch == "")
+            $currentSearch = @$_POST["category"] ? "#".$_POST["category"] : "";
+
+        if($currentSearch != ""){
+            $paramsGAC = array("name" => $currentSearch,
+                            "searchType"=>array(Person::COLLECTION, Project::COLLECTION, 
+                                                Organization::COLLECTION, Event::COLLECTION)
+                            );
+
+            $elements = Search::globalAutoComplete($paramsGAC);
+            $params["elements"] = $elements;
+        }
+        /*complete search with element*/
 
         CO2Stat::incNbLoad("co2-websearch");
     	echo $controller->renderPartial("webSearch", $params, true);
