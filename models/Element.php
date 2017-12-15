@@ -1579,7 +1579,7 @@ class Element {
         $valid = array("result"=>true);
         if( $collection == Event::COLLECTION ){
             $valid = Event::validateFirst($params);
-        } //error_log("KEY : ". $key);
+        } error_log("KEY : ". $key);
         if( $valid["result"] )
         	try {
         		$valid = DataValidator::validate( ucfirst($key), json_decode (json_encode ($params), true), ( empty($paramsLinkImport) ? null : true) );
@@ -2739,5 +2739,12 @@ public static function myNetwork($id, $type){
 
         return $myN;
     }
+
+
+ 	public static function getHash($element){
+ 		return  (@$element["slug"]) ? 
+				"#".$element["slug"] : 
+				"#page.type.".@$element["type"].".id.".@$element["id"];
+ 	}
 
 }
