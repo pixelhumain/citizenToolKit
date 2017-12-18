@@ -363,21 +363,40 @@ class Import
 		$lon = null;
 		$result = false;
 		$saveCities = array();
-        //var_dump( $address);
+        //var_dump($address);
 		if( !empty($address["addressLocality"]) && !empty($address["addressCountry"]) ){
+
+            $regexCity = Search::accentToRegex(strtolower($address["addressLocality"]));
+            //var_dump($regexCity);
 			$where = array('$or'=> 
 						array(  
-							array("name" => new MongoRegex("/^".$address["addressLocality"]."/i")),
-							array("alternateName" => new MongoRegex("/^".$address["addressLocality"]."/i")),
-							array("postalCodes.name" => new MongoRegex("/^".$address["addressLocality"]."/i"))
+							array("name" => new MongoRegex("/^".$regexCity."/i")),
+							array("alternateName" => new MongoRegex("/^".$regexCity."/i")),
+							array("postalCodes.name" => new MongoRegex("/^".$regexCity."/i"))
 						) );
 			$where = array('$and' => array($where, array("country" => $address["addressCountry"]) ) );
 
 			if( !empty($address["postalCode"]) ){
 				$where = array('$and' => array($where, array("postalCodes.postalCode" => $address["postalCode"]) ) );
 			}
+            $fields = array("name", "geo", "country", "level1", "level1Name","level2", "level2Name","level3", "level3Name","level4", "level4Name", "osmID", "postalCode", "insee");
+
+			$city = PHDB::findOne(City::COLLECTION, $where, $fields);
+
+            // if(empty($city)){
+            // 	$where = array('$and' => array( array("country" => $address["addressCountry"]), array("postalCodes.postalCode" => $address["postalCode"]) ) );
+
+            // 	$cities = PHDB::find(City::COLLECTION, $where, $fields);
+
+            // 	if(!empty($cities)){
+            // 		$pourcentcity = array();
+            // 		$pourcent = O ;
+            // 		foreach ($cities as $keyC => $valC) {
+            // 			if()
+            // 		}
+            // 	}
 			
-			$city = PHDB::findOne(City::COLLECTION, $where);
+            // }
 
 			if(!empty($city)){
 				$resGeo = self::getLatLonBySIG($address);

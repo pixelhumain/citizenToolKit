@@ -62,6 +62,23 @@ class Search {
 		return utf8_encode($text);
 	}
 
+
+
+	public static function accentToRegexSimply($text) {
+
+		$from = str_split(utf8_decode('ŠŒŽšœžŸ¥µÀÁÂÃÄÅÆÇÈÉÊËẼÌÍÎÏĨÐÑÒÓÔÕÖØÙÚÛÜÝßàáâãäåæçèéêëẽìíîïĩðñòóôõöøùúûüýÿ'));
+		$to   = str_split(strtolower('SOZsozYYuAAAAAAACEEEEEIIIIIDNOOOOOOUUUUYsaaaaaaaceeeeeiiiiionoooooouuuuyy'));
+		//‘ŠŒŽšœžŸ¥µÀÁÂÃÄÅÆÇÈÉÊËẼÌÍÎÏĨÐÑÒÓÔÕÖØÙÚÛÜÝßàáâãäåæçèéêëẽìíîïĩðñòóôõöøùúûüýÿaeiouçAEIOUÇ';
+		//‘SOZsozYYuAAAAAAACEEEEEIIIIIDNOOOOOOUUUUYsaaaaaaaceeeeeiiiiionoooooouuuuyyaeioucAEIOUÇ';
+		$text = utf8_decode($text);
+
+		foreach ($from as $key => $value){
+			$text = str_replace($value, $to[$key], $text);
+		}
+
+		return utf8_encode($text);
+	}
+
 	public static function globalAutoComplete($post,  $filter = null, $api=false){
 
 		$search = @$post['name'] ? trim(urldecode($post['name'])) : "";
