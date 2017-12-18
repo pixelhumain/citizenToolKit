@@ -17,7 +17,7 @@ class Import
 
     public static function parsingCSV($post) {
         
-        $attributesElt = ArrayHelper::getAllPathJson(file_get_contents("../../modules/communecter/data/import/".Element::getControlerByCollection($post["typeElement"]).".json", FILE_USE_INCLUDE_PATH));
+        $attributesElt = ArrayHelper::getAllPathJson(file_get_contents("../../modules/co2/data/import/".Element::getControlerByCollection($post["typeElement"]).".json", FILE_USE_INCLUDE_PATH));
         if($post['idMapping'] != "-1"){
             $where = array("_id" => new MongoId($post['idMapping']));
             $fields = array("fields");
@@ -521,7 +521,7 @@ class Import
         }
     }
 
-     public static function addDataInDb($post, $moduleId = null)
+     public static function addDataInDb($post)
     {
         $jsonString = $post["file"];
         $typeElement = $post["typeElement"];
@@ -589,9 +589,10 @@ class Import
 
 									if(!empty($value["urlImg"])){
 										$paramsImg["url"] =$value["urlImg"];
-										$paramsImg["module"] = $moduleId;
+										$paramsImg["module"] = "communecter";
 										$split = explode("/", $value["urlImg"]);
-										$paramsImg["name"] =$split[count($split)-1];
+										$paramsImg["name"] = $split[count($split)-1];
+                                        unset($value["urlImg"]);
 
 									}
 									if(!empty($value["startDate"])){

@@ -80,6 +80,7 @@ class Organization {
 	    "parent" => array("name" => "parent"),
 	    "parentId" => array("name" => "parentId"),
 	    "parentType" => array("name" => "parentType"),
+	    "urlImg" => array("name" => "urlImg"),
 	);
 	
 	//See findOrganizationByCriterias...
@@ -242,6 +243,7 @@ class Organization {
 					$resUpload = Document::uploadDocumentFromURL(	$paramsImg["module"], self::COLLECTION, 
 																	$newOrganizationId, "avatar", false, 
 																	$paramsImg["url"], $paramsImg["name"]);
+					
 					if(!empty($resUpload["result"]) && $resUpload["result"] == true){
 						$params = array();
 						$params['id'] = $newOrganizationId;
