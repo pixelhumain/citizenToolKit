@@ -191,7 +191,12 @@ class Search {
 
 	  	//*********************************  PLACE   ******************************************
         if(strcmp($filter, Place::COLLECTION) != 0 && self::typeWanted(Place::COLLECTION, $searchType)){
-        	$allRes = array_merge($allRes, self::searchPlace($query, $indexStep, $indexMin));
+        	$allRes = array_merge($allRes, self::searchAny(Place::COLLECTION,$query, $indexStep, $indexMin));
+	  	}
+
+	  	//*********************************  RESSOURCE   ******************************************
+        if(strcmp($filter, Ressource::COLLECTION) != 0 && self::typeWanted(Ressource::COLLECTION, $searchType)){
+        	$allRes = array_merge($allRes, self::searchAny(Ressource::COLLECTION, $query, $indexStep, $indexMin));
 	  	}
 
 	  	//*********************************  DDA   ******************************************
@@ -701,9 +706,9 @@ class Search {
   		return $allPoi;
   	}
 
-  	//*********************************  Place   ******************************************
-	public static function searchPlace($query, $indexStep, $indexMin){
-    	$allPlace = PHDB::findAndSortAndLimitAndIndex(Place::COLLECTION, $query, 
+  	//*********************************  Generic Search   ******************************************
+	public static function searchAny($collection, $query, $indexStep, $indexMin){
+    	$allPlace = PHDB::findAndSortAndLimitAndIndex($collection, $query, 
   												array("updated" => -1), $indexStep, $indexMin);
   		foreach ($allPlace as $key => $value) {
 	  		if(@$value["parentId"] && @$value["parentType"])
@@ -712,14 +717,12 @@ class Search {
 	  			$parent=array();
 			$allPlace[$key]["parent"] = $parent;
 			if(@$value["type"])
-				$allPlace[$key]["typeSig"] = Place::COLLECTION.".".$value["type"];
+				$allPlace[$key]["typeSig"] = $collection.".".$value["type"];
 			else
-				$allPlace[$key]["typeSig"] = Place::COLLECTION;
+				$allPlace[$key]["typeSig"] = $collection;
   		}
   		return $allPlace;
   	}
-
-
 
   	//*********************************  DDA   ******************************************
   	public static function searchDDA($query, $indexMax){

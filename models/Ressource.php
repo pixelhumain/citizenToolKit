@@ -6,6 +6,9 @@ class Ressource {
 	
 	//TODO Translate
 	public static $types = array (
+		"need"			=> "Besoin",
+		"offer"			=> "Offre",
+		"service"		=> "Servive",
 		"link" 			=> "Lien, Url",
 		"tool"			=> "Outil",
 		"machine"		=> "Machine",
