@@ -291,6 +291,39 @@ class Search {
   		return $query;
   		
 	}
+	//*********************************  Search  in news ******************************************
+	public static function searchNewsString($search, $query){
+
+        if(strpos($search, "#") > -1){
+        	$searchTagText = substr($search, 1, strlen($search)); 
+        	$query = self::searchTags(array($searchTagText));
+  		}else{
+  			$searchRegExp = self::accentToRegex($search);
+  			$query = array('$or'=>array(
+			        		array("text" => new MongoRegex("/.*{$searchRegExp}.*/i")),
+			        		array("media.name" => new MongoRegex("/.*{$searchRegExp}.*/i"))
+			        		)
+			        	);//array( "text" => new MongoRegex("/.*{$searchRegExp}.*/i"));
+	        $explodeSearchRegExp = explode(" ", $searchRegExp);
+	        if(count($explodeSearchRegExp)>1){
+		        $andArray=array();
+		        foreach($explodeSearchRegExp as $data){
+			        array_push($andArray,
+			        	array('$or'=>array(
+			        		array("text" => new MongoRegex("/.*{$data}.*/i")),
+			        		array("media.name" => new MongoRegex("/.*{$data}.*/i"))
+			        		)
+			        	)
+			        );
+		        }
+		        $query = array('$or' => array($query,array('$and'=> $andArray)));
+	        }
+  		}
+        //$query["type"]="news";
+	    //$query["scope"]["type"]="public";
+  		return $query;
+  		
+	}
 
 	//*********************************  TAGS   ******************************************
 	public static function searchTags($searchTags, $verb = '$in' ){

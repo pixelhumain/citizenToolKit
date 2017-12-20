@@ -61,7 +61,11 @@ class DirectoryAction extends CAction
         $search = trim(urldecode($_POST['value']));
       }
       $query = array();
+      $queryNews=array();
       $query = Search::searchString($search, $query);
+      $queryNews = Search::searchNewsString($search, $query);
+      $queryNews = array('$and' => array( $queryNews , array("type"=>"news","scope.type"=>"public")) );
+      //print_r($queryNews);
       if( /*!empty($searchTags)*/ count($searchTags) > 1  || count($searchTags) == 1 && $searchTags[0] != "" ){
         if( (strcmp($filter, Classified::COLLECTION) != 0 && self::typeWanted(Classified::COLLECTION, $searchType)) ||
           (strcmp($filter, Place::COLLECTION) != 0 && self::typeWanted(Place::COLLECTION, $searchType)) ){
@@ -81,15 +85,22 @@ class DirectoryAction extends CAction
           $params["results"][Person::COLLECTION] = PHDB::findAndLimitAndIndex ( Person::COLLECTION , $query, $stepLim, $limitMin);
           $params["results"]["count"]["citoyens"] = PHDB::count( Person::COLLECTION , $query);
         }
-        else if(@$_POST["type"]){
+        else if(@$_POST["type"] && $_POST["type"] != News::COLLECTION){
           $params["results"][$_POST["type"]] = PHDB::findAndLimitAndIndex ( $_POST["type"] , $query, $stepLim, $limitMin);
           $params["results"]["count"][$_POST["type"]] = PHDB::count( $_POST["type"] , $query);
+        }else{
+          $params["results"][$_POST["type"]] = PHDB::findAndLimitAndIndex ( $_POST["type"] , $queryNews, $stepLim, $limitMin);
+          $params["results"]["count"][$_POST["type"]] = PHDB::count( $_POST["type"] , $queryNews);
         }
-        if($tpl!="json" || $search != ""){
+        if($tpl!="json" || ($search != "" || $search === true)){
           $params["results"]["count"]["citoyens"] = PHDB::count( Person::COLLECTION , $query);
           $params["results"]["count"]["organizations"] = PHDB::count( Organization::COLLECTION , $query);
           $params["results"]["count"]["events"] = PHDB::count( Event::COLLECTION , $query);
           $params["results"]["count"]["projects"] = PHDB::count( Project::COLLECTION , $query);
+          $params["results"]["count"]["poi"] = PHDB::count( Poi::COLLECTION , $query);
+          $params["results"]["count"]["classified"] = PHDB::count( Classified::COLLECTION , $query);
+         // print_r($queryNews);
+          $params["results"]["count"]["news"] = PHDB::count( News::COLLECTION , $queryNews);
       }
       ///////////////////////////////END CITOYENS //////////////////////////////////////////////
 
@@ -98,7 +109,7 @@ class DirectoryAction extends CAction
       /* **************************************
       *  PROJECTS
       ***************************************** */
-      $projects = array();
+      //$projects = array();
 
      // $params["results"]["organizations"] = array();//$organizations;
       //$params["results"]["projects"] = array();//$projects;
