@@ -302,8 +302,8 @@ class Import
             $newA["addressLocality"] = $city["name"];
         }
 
-        if( !empty($street) ) 
-            $newA["streetAddress"] = $street;
+        if( !empty($address["streetAddress"]) ) 
+            $newA["streetAddress"] = $address["streetAddress"];
 
         if( !empty($city["insee"]) )
             $newA["codeInsee"] = $city["insee"];
