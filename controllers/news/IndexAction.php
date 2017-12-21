@@ -319,16 +319,21 @@ class IndexAction extends CAction
 				//echo '<pre>';var_dump($where);echo '</pre>'; return;
 		  		
 		  	}
+
+		 			
+			$queryTag = array();
 			if(@$_POST["tagSearch"] && !empty($_POST["tagSearch"])){
-					$queryTag = array();
-					foreach ($_POST["tagSearch"] as $key => $tag) {
-						if($tag != "")
-						$queryTag[] = new MongoRegex("/".$tag."/i");
-					}
-					//$querySearch = array( "tags" => array('$in' => $queryTag)) ;
-					if(!empty($queryTag))
-					$where["tags"] = array('$in' => $queryTag); 			
+				foreach ($_POST["tagSearch"] as $key => $tag) {
+					if($tag != "")
+					$queryTag[] = new MongoRegex("/".$tag."/i");
 				}
+				//$querySearch = array( "tags" => array('$in' => $queryTag)) ;
+
+				if(!empty($queryTag))
+				$where["tags"] = array('$in' => $queryTag); 			
+			}
+
+			
 			if(@$_POST['searchType']){
 				$searchType=array();
 				foreach($_POST['searchType'] as $data){
@@ -375,9 +380,25 @@ class IndexAction extends CAction
 			// $where = array('$and' => array( $where , array('sharedBy.updated' => array( '$lt' => $date ) ) ) );
 			// $where = array('$and' => array( $where , array("target.type" => array('$ne' => "pixels") ) ) );
 
-			if(@$_POST["textSearch"] && $_POST["textSearch"]!="")
-				//$where = array('$and' => array( $where ,  array('text' => new MongoRegex("/".$_POST["textSearch"]."/i") ) ) );
-				$where = array_merge($where,  array('text' => new MongoRegex("/".$_POST["textSearch"]."/i") ) );
+			if(@$_POST["textSearch"] && $_POST["textSearch"]!=""){
+			
+				$textTag=null;
+		  		$textSearch = $_POST["textSearch"];
+		  		$textTag = explode(" ", $textSearch);
+				$hashTag = substr($textSearch, 0, 1);
+		  		if(sizeof($textTag)==1 && $hashTag=="#"){
+		  			//var_dump($textTag[0]); echo substr($textTag[0], 1, strlen($textTag[0])-1); exit;
+		  			$tagClear = substr($textTag[0], 1, strlen($textTag[0])-1);
+		  			$textTag = array($textTag[0], $tagClear);
+		  			$where["tags"] = array('$in' => $textTag); 		
+		  			//var_dump($where["tags"]);	
+		  		}else{
+		  			//$where = array('$and' => array( $where ,  array('text' => new MongoRegex("/".$_POST["textSearch"]."/i") ) ) );
+					$where = array_merge($where,  array('text' => new MongoRegex("/".$_POST["textSearch"]."/i") ) );
+		  		}
+		  	
+				
+			}
 			//var_dump($where);
 			//echo '<pre>';var_dump($_POST);echo '</pre>';
 			//echo '<pre>';var_dump($where);echo '</pre>'; return;

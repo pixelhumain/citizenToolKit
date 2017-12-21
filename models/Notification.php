@@ -920,7 +920,7 @@ class Notification{
 				$actionSpec=Proposal::getSimpleSpecById($construct["object"]["id"],null,array("idParentRoom"));
 			else if($construct["object"]["type"]==Resolution::COLLECTION)
 				$actionSpec=Resolution::getSimpleSpecById($construct["object"]["id"],null,array("idParentRoom"));
-			$url = str_replace("{roomId}", $actionSpec["idParentRoom"], $url);
+			$url = str_replace("{roomId}", @$actionSpec["idParentRoom"], $url);
 		}
 		return $url;
 	}
@@ -1189,6 +1189,8 @@ class Notification{
 			if(@$target["entry"])
 				$roomId=@$target["entry"]["idParentRoom"];
 			$target["room"] = Room::getById( $roomId );
+
+			if(@$target["room"])
 			$target["parent"] = Element::getElementSimpleById($target["room"]["parentId"], $target["room"]["parentType"]); 
 		}else if($type=="news"){
 			$news=News::getById($id);

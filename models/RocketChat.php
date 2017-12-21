@@ -8,12 +8,16 @@ class RocketChat{
 			"rocketUserId" => null,
 			"msg" => ""
 		);
+
 		if( @$_SESSION["loginToken"] && @$_SESSION["rocketUserId"]){
 			$res["loginToken"] = $_SESSION["loginToken"];
 	  		$res["rocketUserId"] = $_SESSION["rocketUserId"];
 	  		$res["msg"] = "user logged in from session";
 		} else {
+			if(!defined('REST_API_ROOT'))
 			define('REST_API_ROOT', '/api/v1/');
+			
+			if(!defined('ROCKET_CHAT_INSTANCE'))
 			define('ROCKET_CHAT_INSTANCE', Yii::app()->params['rocketchatURL']);
 
 			try{
