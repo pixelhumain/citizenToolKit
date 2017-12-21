@@ -7,7 +7,7 @@
   */
 class DirectoryAction extends CAction
 {
-    public function run( $tpl=null )
+    public function run( $tpl=null, $view=null )
     {
         $controller = $this->getController();
 
@@ -121,6 +121,8 @@ class DirectoryAction extends CAction
       //$params["path"] = "../default/";
 
 		  $page = "directoryTable";
+      if(@$view && $view=="innovation")
+        $page = "territorialSearch";
       if($tpl=="json")
         Rest::json( $params );
       else{
