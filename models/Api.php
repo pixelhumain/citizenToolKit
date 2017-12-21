@@ -184,6 +184,14 @@ class Api {
             $meta["allElementsSends"] = true;
             $result = $meta ;
         }
+        elseif ($format == Translate::FORMAT_MD) {
+            $newData = [];
+            foreach ($data as $key => $value) {
+                $newData[] = $value;
+            }
+            $data = Translate::convert( $newData , TranslateCommunecter::$dataBinding_person );
+            $result = TranslateMD::MD($data,$bindMap);
+        }
         else { 
             $result["meta"] = $meta ;
             $result["entities"] = ((!empty($data) && !empty($bindMap) )?Translate::convert($data , $bindMap):$data);
