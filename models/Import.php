@@ -283,7 +283,7 @@ class Import
         if(!empty($city["_id"])){
             $newA = array(
                 '@type' => 'PostalAddress',
-                'addressCountry' =>  $city["country"],
+                'addressCountry' =>  strtoupper($city["country"]),
                 'localityId' =>  (String) $city["_id"],
                 'level1' =>  $city["level1"],
                 'level1Name' =>  $city["level1Name"]);
@@ -374,7 +374,7 @@ class Import
 							array("alternateName" => new MongoRegex("/^".$regexCity."/i")),
 							array("postalCodes.name" => new MongoRegex("/^".$regexCity."/i"))
 						) );
-			$where = array('$and' => array($where, array("country" => $address["addressCountry"]) ) );
+			$where = array('$and' => array($where, array("country" => strtoupper($address["addressCountry"])) ) );
 
 			if( !empty($address["postalCode"]) ){
 				$where = array('$and' => array($where, array("postalCodes.postalCode" => $address["postalCode"]) ) );
