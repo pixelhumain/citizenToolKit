@@ -14,13 +14,16 @@ class TranslateMD {
 
 			if ( isset($valueData) ) {
 				$str = "[<i class='fa fa-link'></i> Markdown Source](http://communecter.org/api/".$type."/get/id/".$keyID."/format/md) \n\n\n";
-				$str .= "## I am a ".@$valueData["name"]."\n";
+				$str .= "<span class='text-red'>\n".
+						"## I am a ".@$valueData["name"]."\n<br/> \n"
+						."</span>\n";
 
 				if(@$valueData["shortDescription"])
-					$str .= "> ".@$valueData["shortDescription"]."\n";
+					$str .= "> ".@$valueData["shortDescription"]."<br/><br/>\n";
 				if(@$valueData["description"])
-					$str .= "> ".@$valueData["description"]."\n\n";
-				$str .= "### Information : "."\n".
+					$str .= "> ".@$valueData["description"]."<br/><br/>\n\n";
+
+				$str .= "### <i class='fa fa-user'></i> Information : "."\n".
 						
 						"- my ID :".$keyID."\n".
 						"- email : ".@$valueData["email"]."\n".
@@ -37,10 +40,10 @@ class TranslateMD {
 
 				if( @$valueData["links"]["memberOf"] )
 				{
-					$str .=	"### Organizations : \n";
+					$str .=	"### <i class='fa fa-group'></i> Organizations : \n";
 					foreach ($valueData["links"]["memberOf"] as $ix => $o) {
-						$el =	"- [".@$o["name"]."](http://communecter.org#".@$o["url"]["api"]."/format/md)";
-						if(@$o["isAdmin"])
+						$el =	"- ".@$o["name"]." [ <i class='fa fa-link'></i> ](".@$o["url"]["communecter"].")";
+						if(@$o["isAdmin"] == "true")
 							$el .= "(Admin)";
 						$str .=	$el."\n";
 					}
@@ -49,9 +52,9 @@ class TranslateMD {
 
 				if( @$valueData["links"]["projects"] )
 				{
-					$str .=	"### Projects : \n";
+					$str .=	"### <i class='fa fa-lightbulb-o'></i> Projects : \n";
 					foreach ($valueData["links"]["projects"] as $ix => $o) {
-						$el =	"- [".@$o["name"]."](http://communecter.org#".@$o["url"]["api"]."/format/md)";
+						$el =	"- ".@$o["name"]." [ <i class='fa fa-link'></i> ](".@$o["url"]["communecter"].")";
 						if(@$o["isAdmin"])
 							$el .= "(Admin)";
 						$str .=	$el."\n";
@@ -61,9 +64,9 @@ class TranslateMD {
 
 				if( @$valueData["links"]["events"] )
 				{
-					$str .=	"### Events : \n";
+					$str .=	"### <i class='fa fa-calendar'></i> Events : \n";
 					foreach ($valueData["links"]["events"] as $ix => $o) {
-						$el =	"- [".@$o["name"]."](http://communecter.org#".@$o["url"]["api"]."/format/md)";
+						$el =	"- ".@$o["name"]." [ <i class='fa fa-link'></i> ](".@$o["url"]["communecter"].")";
 						if(@$o["isAdmin"])
 							$el .= "(Admin)";
 						$str .=	$el."\n";

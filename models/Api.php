@@ -185,12 +185,14 @@ class Api {
             $result = $meta ;
         }
         elseif ($format == Translate::FORMAT_MD) {
-            $newData = [];
-            foreach ($data as $key => $value) {
-                $newData[] = $value;
-            }
-            $data = Translate::convert( $newData , TranslateCommunecter::$dataBinding_person );
+            
+            $data = Translate::convert( $data , TranslateCommunecter::$dataBinding_person );
             $result = TranslateMD::MD($data,$bindMap);
+        }
+        elseif ($format == Translate::FORMAT_TREE) {
+            
+            $data = Translate::convert( $data , TranslateCommunecter::$dataBinding_person );
+            $result = TranslateTree::build($data,$bindMap);
         }
         else { 
             $result["meta"] = $meta ;

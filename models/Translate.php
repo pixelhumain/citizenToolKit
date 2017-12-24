@@ -11,6 +11,7 @@ class Translate {
 	const FORMAT_JSONFEED = "jsonfeed";
 	const FORMAT_GOGO = "gogocarto";
 	const FORMAT_MD = "md";
+	const FORMAT_TREE = "tree";
 
 	public static function convert($data,$bindMap)
 	{
