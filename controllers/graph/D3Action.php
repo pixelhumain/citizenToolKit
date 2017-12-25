@@ -19,10 +19,11 @@ class D3Action extends CAction
         }
 
         $item = PHDB::findOne( $itemType ,array("_id"=>new MongoId($id)));
-        $root = array( "id" => (string)$item["_id"], "group" => 0,  "label" => $item["name"], "level" => 0 );
+        $root = array( "id" => (string)$item["_id"], "group" => 0,  "label" => $item["name"], "level" => 0,"tags" => @$item["tags"] );
 
         $data = array($root);
         $links = array();
+        $tags = array();
         $strength = 0.085;
         $hasOrga = false;
         $hasKnows = false;
@@ -30,6 +31,10 @@ class D3Action extends CAction
         $hasProjects = false;
         $hasMembersO = false;
         $hasMembersP = false;
+
+        if(@$item["tags"])
+            foreach (@$item["tags"] as $ix => $tag) {if(!in_array($tag, $tags))$tags[] = $tag;}
+        
         if(isset($item) && isset($item["links"])){
         	foreach ($item["links"] as $key => $value){
         		foreach ($value as $k => $v) {
@@ -89,7 +94,7 @@ class D3Action extends CAction
                                     array_push($links, array( "target" => "memberso", "source" => $root["id"],  "strength" => $strength ) );
                                     $hasMembersO = true;
                                 }
-		        				array_push($data, array( "id" => (string)@$obj["_id"], "group" => 2,  "label" => @$obj["name"], "level" => 2,"type"=>Organization::COLLECTION,"tags" => $obj["tags"] ));
+		        				array_push($data, array( "id" => (string)@$obj["_id"], "group" => 2,  "label" => @$obj["name"], "level" => 2,"type"=>Organization::COLLECTION,"tags" => @$obj["tags"] ));
                                 array_push($links, array( "target" => (string)@$obj["_id"], "source" => "memberso",  "strength" => $strength ) );
 
 		        			}else if(strcmp($v["type"], Person::COLLECTION)== 0){
@@ -106,6 +111,8 @@ class D3Action extends CAction
 		        			}
 		        		}
 	        		}
+                    if(@$obj["tags"])
+                        foreach (@$obj["tags"] as $ix => $tag) {if(!in_array($tag, $tags))$tags[] = $tag;}
         		}
         	}
         }
@@ -114,6 +121,7 @@ class D3Action extends CAction
             'data' => $data, 
             'links' => $links,
             'item' => $item,
+            'tags' => $tags,
             "typeMap" => $type);
 
         if($view)
