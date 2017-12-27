@@ -153,6 +153,41 @@ class Mail {
         );
         Mail::schedule($params);
     }
+    
+    public static function notifAddPersonInGroup($person, $group, $msg = null, $nameInvitor = null, $invitorUrl = null, $subject=null) {
+        $invitor = Person::getSimpleUserById(Yii::app()->session["userId"]);
+
+
+        if(empty($msg))
+            $msg = $invitor["name"]. " vous a ajouté à ".$group["name"].".";
+		if(empty($subject))
+            $subject = self::getAppName() ." : ". $invitor["name"]. " vous a ajouté au groupe : ".$group["name"].".";
+
+        if(!@$person["email"] || empty($person["email"])){
+        	$getEmail=Person::getEmailById((string)$person["childId"]);
+        	$person["email"]=$getEmail["email"];
+        }
+
+        $params = array(
+            "type" => Cron::TYPE_MAIL,
+            "tpl"=>'addPersonInGroup',
+            "subject" => $subject,
+            "from"=>Yii::app()->params['adminEmail'],
+            "to" => $person["email"],
+            "tplParams" => array(   "invitorName"   => $invitor["name"],
+                                    "title" => self::getAppName() ,
+                                    "logo" => Yii::app()->params["logoUrl"],
+                                    "logo2" => Yii::app()->params["logoUrl2"],
+                                    "invitedUserId" => $person["childId"],
+                                    "groupName" => $group["name"],
+                                    "message" => $msg)
+        );
+
+        if(!empty($invitorUrl))
+            $params["tplParams"]["invitorUrl"] = $invitorUrl;
+
+        Mail::schedule($params);
+    }
 
     //TODO SBAR - Do the template
     public static function newConnection($name, $mail, $newConnectionUserId) {
