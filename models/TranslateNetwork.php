@@ -653,4 +653,39 @@ class TranslateNetwork {
 									"suffix"   => "")				   	
 	);
 
+	public static $dataBinding_poi = array(
+		"@type"		=> "Poi",
+	    "name" 		=> array("valueOf" => "name"),
+	    "type" 		=> array("valueOf" => "type"),
+	    "typeSig"		=> Poi::COLLECTION,
+	    "typeElement"	=> Poi::CONTROLLER,
+	    "image"		=> array("valueOf" => "image",
+							 "type" 	=> "url"),
+	    "urls" 		=> array("valueOf" => 'urls'),
+	    "source" 	=> array(	"valueOf"  	=> '_id.$id', 
+								"type" 	=> "url", 
+								"prefix"   => "#element.detail.type.organizations.id.",
+								"suffix"   => "" ),
+    	"api" 		=> array(	"valueOf"  	=> '_id.$id', 
+								"type" 	=> "url", 
+								"prefix"   => "/api/organization/get/id/",
+								"suffix"   => "" ),
+		"address" 	=> array("valueOf"=>"address"),
+	   	"geo" 	=> array("parentKey"=>"geo", 
+	    					 "valueOf" => array(
+									"@type" 			=> "GeoCoordinates", 
+									"latitude" 			=> array("valueOf" => "latitude"),
+									"longitude" 		=> array("valueOf" => "longitude")
+				 					)),
+	   	"geoPosition" 	=> array("parentKey"=>"geoPosition", 
+	    					 "valueOf" => array(
+									"@type" 			=> "Point", 
+									"coordinates" 			=> array("valueOf" => "coordinates")
+				 					)),
+	   	"shortDescription"		=> array("valueOf" => "shortDescription"),
+	   	"description"		=> array("valueOf" => "description"),
+	   	"medias"		=> array("valueOf" => "medias"),
+		"tags"		=> array("valueOf" => "tags")
+	);
+
 }
