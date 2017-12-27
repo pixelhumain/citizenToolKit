@@ -41,6 +41,7 @@ class SearchAction extends CAction
         $root = array( "id" => "search", "group" => 0,  "label" => "search : ".$crit, "level" => 0 );
         $data = array($root);
 
+        echo "<div id='title'>Search : ".$crit."<input id='search' type='text' placeholder='#tag, free search, >types' onkeypress='return runScript(event)'/> </div>";
         $list = Search::globalAutoComplete( $searchCrit );
         if(isset($list)){
         	foreach ($list as $key => $value){

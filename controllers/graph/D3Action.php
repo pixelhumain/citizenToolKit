@@ -36,6 +36,7 @@ class D3Action extends CAction
         if(@$item["tags"])
             foreach (@$item["tags"] as $ix => $tag) {if(!in_array($tag, $tags))$tags[] = $tag;}
         
+        echo "<div id='title'> GRAPH : ".$item["name"]."<input id='search' type='text' placeholder='#tag, free search, >types' onkeypress='return runScript(event)'/></div>";
         if(isset($item) && isset($item["links"])){
         	foreach ($item["links"] as $key => $value){
         		foreach ($value as $k => $v) {
@@ -48,7 +49,7 @@ class D3Action extends CAction
                             array_push($links, array( "target" => "orgas", "source" => $root["id"],  "strength" => $strength ) );
                             $hasOrga = true;
                         }
-                        array_push($data, array( "id" => (string)@$obj["_id"], "group" => 2,  "label" => @$obj["name"], "level" => 2,"type"=>Organization::COLLECTION,"tags" => @$obj["tags"], "linkSize" => count(@$obj["links"], COUNT_RECURSIVE) ) );
+                        array_push($data, array( "id" => (string)@$obj["_id"], "group" => 2,  "label" => @$obj["name"], "level" => 2,"type"=>Organization::CONTROLLER,"tags" => @$obj["tags"], "linkSize" => count(@$obj["links"], COUNT_RECURSIVE) ) );
                         array_push($links, array( "target" => (string)@$obj["_id"], "source" => "orgas",  "strength" => $strength  ) );
 
 	        		}
@@ -76,7 +77,7 @@ class D3Action extends CAction
                             array_push($links, array( "target" => "events", "source" => $root["id"],  "strength" => $strength ) );
                             $hasEvents = true;
                         }
-	        			array_push($data, array( "id" => (string)@$obj["_id"], "group" => 4,  "label" => @$obj["name"], "level" => 2,"type"=>Event::COLLECTION,"tags" => @$obj["tags"], "linkSize" => count(@$obj["links"], COUNT_RECURSIVE) ));
+	        			array_push($data, array( "id" => (string)@$obj["_id"], "group" => 4,  "label" => @$obj["name"], "level" => 2,"type"=>Event::CONTROLLER,"tags" => @$obj["tags"], "linkSize" => count(@$obj["links"], COUNT_RECURSIVE) ));
                         array_push($links, array( "target" => (string)@$obj["_id"], "source" => "events",  "strength" => $strength ) );
 	        		}
 
@@ -89,7 +90,7 @@ class D3Action extends CAction
                             array_push($links, array( "target" => "projects", "source" => $root["id"],  "strength" => $strength ) );
                             $hasProjects = true;
                         }
-	        			array_push($data, array( "id" => (string)@$obj["_id"], "group" => 3,  "label" => @$obj["name"], "level" => 2,"type"=>Project::COLLECTION,"tags" => @$obj["tags"], "linkSize" => count(@$obj["links"], COUNT_RECURSIVE) ));
+	        			array_push($data, array( "id" => (string)@$obj["_id"], "group" => 3,  "label" => @$obj["name"], "level" => 2,"type"=>Project::CONTROLLER,"tags" => @$obj["tags"], "linkSize" => count(@$obj["links"], COUNT_RECURSIVE) ));
                         array_push($links, array( "target" => (string)@$obj["_id"], "source" => "projects",  "strength" => $strength ) );
 	        		}
 
