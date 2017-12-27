@@ -9,7 +9,6 @@ class SearchAction extends CAction
             $type = Person::COLLECTION;
         }
         $controller=$this->getController();
-
         
         $links = array();
         $tags = array();
@@ -21,7 +20,9 @@ class SearchAction extends CAction
         $hasMembersO = false;
         $hasMembersP = false;
 
-        $searchCrit = array();
+        $searchCrit = array(
+            "searchType"=> array(Organization::COLLECTION, Project::COLLECTION, Event::COLLECTION, Person::COLLECTION)
+        );
         $crit = "";
         if(@$tag){
             $searchCrit["searchTag"]= array($tag);
@@ -52,34 +53,42 @@ class SearchAction extends CAction
                             array_push($links, array( "target" => "orgas", "source" => "search",  "strength" => $strength ) );
                             $hasOrga = true;
                         }
-                        array_push($data, array( "id" => (string)@$value["_id"], "group" => 2,  "label" => @$value["name"], "level" => 2,"type"=>Organization::COLLECTION,"tags" => @$value["tags"] ) );
-                        array_push($links, array( "target" => (string)@$value["_id"], "source" => "orgas",  "strength" => $strength  ) );
+                        array_push($data, array( "id" => $key, "group" => 2,  "label" => @$value["name"], "level" => 2,"type"=>Organization::COLLECTION,"tags" => @$value["tags"], "linkSize" => count(@$value["links"], COUNT_RECURSIVE) ) );
+                        array_push($links, array( "target" => $key, "source" => "orgas",  "strength" => $strength  ) );
 
-	        		} else if ($value['type'] == Person::COLLECTION ){
+	        		} 
+
+                    else if ($value['type'] == Person::COLLECTION ){
                         if(!$hasKnows){
-                            array_push($data, array( "id" => "people", "group" => 1,  "label" => "KNOWS", "level" => 1) );
+                            array_push($data, array( "id" => "people", "group" => 1,  "label" => "PEOPLE", "level" => 1) );
                             array_push($links, array( "target" => "people", "source" => "search",  "strength" => $strength ) );
                             $hasKnows = true;
                         }
-	        			array_push($data, array( "id" => (string)@$value["_id"], "group" => 1,  "label" => @$value["name"], "level" => 2,"tags" => @$value["tags"],"type"=>Person::COLLECTION ) );
-                        array_push($links, array( "target" => (string)@$value["_id"], "source" => "people",  "strength" => $strength ,"tags" => @$value["tags"]) );
-	        		} else if ($value['type'] == Event::COLLECTION ){
+	        			array_push($data, array( "id" => $key, "group" => 1,  "label" => @$value["name"], "level" => 2,"tags" => @$value["tags"],"type"=>Person::COLLECTION, "linkSize" => count(@$value["links"], COUNT_RECURSIVE) ) );
+                        array_push($links, array( "target" => $key, "source" => "people",  "strength" => $strength ,"tags" => @$value["tags"]) );
+	        		} 
+
+                    else if ($value['type'] == Event::COLLECTION ){
                         if(!$hasEvents){
                             array_push($data, array( "id" => "events", "group" => 1,  "label" => "EVENTS", "level" => 1 ) );
                             array_push($links, array( "target" => "events", "source" => "search",  "strength" => $strength ) );
                             $hasEvents = true;
                         }
-	        			array_push($data, array( "id" => (string)@$value["_id"], "group" => 4,  "label" => @$value["name"], "level" => 2,"type"=>Event::COLLECTION,"tags" => @$value["tags"] ));
-                        array_push($links, array( "target" => (string)@$value["_id"], "source" => "events",  "strength" => $strength ) );
-	        		} else if ($value['type'] == Project::COLLECTION ){
+	        			array_push($data, array( "id" => $key, "group" => 4,  "label" => @$value["name"], "level" => 2,"type"=>Event::COLLECTION,"tags" => @$value["tags"], "linkSize" => count(@$value["links"], COUNT_RECURSIVE) ));
+                        array_push($links, array( "target" => $key, "source" => "events",  "strength" => $strength ) );
+	        		} 
+
+                    else if ($value['type'] == Project::COLLECTION ){
 	        			if(!$hasProjects){
                             array_push($data, array( "id" => "projects", "group" => 1,  "label" => "PROJECTS", "level" => 1 ) );
                             array_push($links, array( "target" => "projects", "source" => "search",  "strength" => $strength ) );
                             $hasProjects = true;
                         }
-	        			array_push($data, array( "id" => (string)@$value["_id"], "group" => 3,  "label" => @$value["name"], "level" => 2,"type"=>Project::COLLECTION,"tags" => @$value["tags"] ));
-                        array_push($links, array( "target" => (string)@$value["_id"], "source" => "projects",  "strength" => $strength ) );
+	        			array_push($data, array( "id" => $key, "group" => 3,  "label" => @$value["name"], "level" => 2,"type"=>Project::COLLECTION,"tags" => @$value["tags"], "linkSize" => count(@$value["links"], COUNT_RECURSIVE) ));
+                        array_push($links, array( "target" => $key, "source" => "projects",  "strength" => $strength ) );
 	        		}
+
+
                     if(@$value["tags"]){
                         foreach (@$value["tags"] as $ix => $tag) 
                         {
@@ -94,13 +103,14 @@ class SearchAction extends CAction
         $params = array( 
             'data' => $data, 
             'links' => $links,
+            'list' => $list,
             'tags' => $tags);
 
         if($view)
             Rest::json($data);
         else{
             if(Yii::app()->request->isAjaxRequest)
-                $controller->renderPartial('d3', $params);
+                $controller->renderPartial('d3_2', $params);
             else{
                 Yii::app()->theme  = "empty";
                 $controller->render('d3_2', $params);
