@@ -75,6 +75,7 @@ class Search {
 		$sourceKey = isset($post['sourceKey']) ? $post['sourceKey'] : null;
 		$mainTag = isset($post['mainTag']) ? $post['mainTag'] : null;
 		$paramsFiltre = isset($post['paramsFiltre']) ? $post['paramsFiltre'] : null;
+
 		$query = array();
 		$query = self::searchString($search, $query);
 
@@ -100,10 +101,12 @@ class Search {
 
 	public static function globalAutoComplete($post,  $filter = null, $api=false){
 
-		$search = (@$post['name']) ? trim(urldecode($post['name'])) : "";
+		$search = @$post['name'] ? trim(urldecode($post['name'])) : "";
         $searchLocality = isset($post['locality']) ? $post['locality'] : null;
         $searchType = isset($post['searchType']) ? $post['searchType'] : null;
         $searchTags = isset($post['searchTag']) ? $post['searchTag'] : null;
+        $indexMin = isset($post['indexMin']) ? $post['indexMin'] : 0;
+        $indexMax = isset($post['indexMax']) ? $post['indexMax'] : 30;
         $country = isset($post['country']) ? $post['country'] : "";
         $priceMin = isset($_POST['priceMin']) ? $_POST['priceMin'] : null;
         $priceMax = isset($_POST['priceMax']) ? $_POST['priceMax'] : null;
@@ -113,21 +116,10 @@ class Search {
         $endDate = isset($_POST['endDate']) ? $_POST['endDate'] : null;
         $searchSType = !empty($post['searchSType']) ? $post['searchSType'] : "";
         $sourceKey = !empty($post['sourceKey']) ? $post['sourceKey'] : "";
-        $countResult = (@$post["count"]) ? true : false;
-        $page = @$post['page'] ? $post['page'] : 0;
-        //$indexStep = 100;
-        $indexStep=100;
-      	$indexMin=100*$page;
-      	$indexMax=100;
-      	$searchByPage=true;
-        //print_r($post);
-      	if(@$post['indexMax']){
-      	//	echo "ouiiiiiiii";
-      		$indexMin = isset($post['indexMin']) ? $post['indexMin'] : 0;
-        	$indexMax = isset($post['indexMax']) ? $post['indexMax'] : 30;
-			$indexStep = $indexMax - $indexMin;
-			$searchByPage=false;
-		}
+
+
+		$indexStep = $indexMax - $indexMin;
+		
 		$searchTypeOrga = ""; /* used in CO2 to find different organisation type */
 		
 		if( sizeOf($searchType) == 1 &&
@@ -138,14 +130,11 @@ class Search {
 				$searchTypeOrga = $searchType[0];
 				$searchType = array(Organization::COLLECTION);
 		}
-		//echo $indexStep;
+
 		//*********************************  DEFINE GLOBAL QUERY   ******************************************
 		$query = array();
-      	$queryNews=array();
-      	$query = Search::searchString($search, $query);
-      	$queryNews = Search::searchNewsString($search, $query);
-      	$queryNews = array('$and' => array( $queryNews , array("type"=>"news","scope.type"=>"public")) );
-      
+		$query = self::searchString($search, $query);
+       
 		$query = array('$and' => array( $query , array("state" => array('$ne' => "uncomplete")) ));
   		if($latest)
   			$query = array('$and' => array($query, array("updated"=>array('$exists'=>1))));
@@ -156,6 +145,7 @@ class Search {
   		if($api == true){
   			//$query = array('$and' => array($query, array("preferences.isOpenData"=> true)));
   		}
+
   		
   		
         //*********************************  TAGS   ******************************************
@@ -246,19 +236,10 @@ class Search {
 			$allRes = array_merge($allRes, self::searchPlace($query, $indexStep, $indexMin));
 	  	}
 
-	  	//*********************************  NEWS   ******************************************
-	  	if(strcmp($filter, News::COLLECTION) != 0 && self::typeWanted(News::COLLECTION, $searchType)){
-			$allRes = array_merge($allRes, self::searchNews($queryNews, $indexStep, $indexMax));
-	  	}
-
 	  	//*********************************  DDA   ******************************************
 		if(strcmp($filter, ActionRoom::COLLECTION) != 0 && self::typeWanted(ActionRoom::COLLECTION, $searchType)){
 			$allRes = array_merge($allRes, self::searchDDA($query, $indexMax));
 	  	}
-	  	if(strcmp($filter, ActionRoom::COLLECTION) != 0 && self::typeWanted(ActionRoom::COLLECTION, $searchType)){
-			$allRes = array_merge($allRes, self::searchDDA($query, $indexMax));
-	  	}
-	  	
 
 		//*********************************  VOTES / propositions   ******************************************
 		//error_log(print_r($searchType)); 
@@ -284,20 +265,6 @@ class Search {
 					$allRes[$key]["updatedLbl"] = Translate::pastTime(@$value["updated"],"timestamp");
 	  		}
 	  	}
-	  	//$params["results"]["count"][$_POST["type"]] = PHDB::count( $_POST["type"] , $queryNews);
-	  	//print_r($allRes);
-	  	//echo $search;
-	  	if($countResult){
-          $allRes["count"]=array();
-          $allRes["count"][Person::COLLECTION] = PHDB::count( Person::COLLECTION , $query);
-          $allRes["count"][Organization::COLLECTION] = PHDB::count( Organization::COLLECTION , $query);
-          $allRes["count"][Event::COLLECTION] = PHDB::count( Event::COLLECTION , $query);
-          $allRes["count"][Project::COLLECTION] = PHDB::count( Project::COLLECTION , $query);
-          $allRes["count"][Poi::COLLECTION] = PHDB::count( Poi::COLLECTION , $query);
-          $allRes["count"][Classified::COLLECTION] = PHDB::count( Classified::COLLECTION , $query);
-          $allRes["count"][Place::COLLECTION] = PHDB::count(Place::COLLECTION , $query);
-          $allRes["count"][News::COLLECTION] = PHDB::count( News::COLLECTION , $queryNews);
-      	}
 	  	//var_dump($allRes);
 	  	return $allRes ;
     }
@@ -703,23 +670,7 @@ class Search {
   		}
   		return $res;
 	}
-	//*********************************  NEWS   ******************************************
-  	public static function searchNews($query, $indexStep, $indexMin){
-       	$res = array();
-  		$allNews = PHDB::findAndSortAndLimitAndIndex ( News::COLLECTION ,$query, 
-  												array("sharedBy.updated"=>-1), $indexStep, $indexMin);
-  		foreach ($allNews as $key => $value) 
-  		{
-  			
-  			if(!empty($value)){
-				$value=NewsTranslator::convertParamsForNews($value, false);			 
-				//$orga["type"] = News::COLLECTION;
-				$value["typeSig"] = News::COLLECTION;
-				$res[$key]=$value;
-			}
-  		}
-  		return $res;
-	}
+
 	
 
 	//*********************************  EVENT   ******************************************
