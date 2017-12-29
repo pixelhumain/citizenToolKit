@@ -26,22 +26,22 @@ class SearchAction extends CAction
         $crit = "";
         if(@$tag){
             $searchCrit["searchTag"]= array($tag);
-            $crit = $tag;
+            $crit = "tag : ".$tag;
         }
         else if(@$q){
             $searchCrit["name"]= $q;
-            $crit = $q;
+            $crit = "search : ".$q;
         }
         else if(@$type){
             $searchCrit["searchType"]= array($type);
-            $crit = $type;
+            $crit = "type : ".$type;
         }
         
 
-        $root = array( "id" => "search", "group" => 0,  "label" => "search : ".$crit, "level" => 0 );
+        $root = array( "id" => "search", "group" => 0,  "label" => $crit, "level" => 0 );
         $data = array($root);
 
-        echo "<div id='title'>Search : ".$crit."<input id='search' type='text' placeholder='#tag, free search, >types' onkeypress='return runScript(event)'/> </div>";
+        echo "<div id='title'><div class='pull-left'>Search : ".$crit."</div> <input id='search' type='text' placeholder='#tag, free search, >types' onkeypress='return runScript(event)'/> </div>";
         $list = Search::globalAutoComplete( $searchCrit );
         if(isset($list)){
         	foreach ($list as $key => $value){
