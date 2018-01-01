@@ -108,8 +108,9 @@ class GetDataDetailAction extends CAction {
 			}
 		}
 
-		if($dataName == "classified"){
-			$contextMap = Element::getByIdAndTypeOfParent(Classified::COLLECTION, $id, $type, array("updated"=>-1));
+		if($dataName == "classified" || $dataName == "ressource"){
+			$col = ($dataName == "ressource") ? Ressource::COLLECTION : Classified::COLLECTION;
+			$contextMap = Element::getByIdAndTypeOfParent( $col , $id, $type, array("updated"=>-1));
 		}
 
 
@@ -120,7 +121,6 @@ class GetDataDetailAction extends CAction {
 				$contextMap[$key]["typeSig"] = Poi::COLLECTION;
 			}
 		}
-
 
 		if($dataName == "collections"){
 			if(@$element["collections"]){

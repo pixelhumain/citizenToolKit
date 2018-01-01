@@ -46,6 +46,8 @@ class Element {
 	    	Action::COLLECTION => Action::CONTROLLER,
 	    	//ActionRoom::COLLECTION => ActionRoom::CONTROLLER,
 	    	//ActionRoom::COLLECTION_ACTIONS => ActionRoom::CONTROLLER,
+	    	Place::COLLECTION => Place::CONTROLLER,
+	    	Ressource::COLLECTION => Ressource::COLLECTION
 	    );	    
     	return @$ctrls[$type];
     }
@@ -69,6 +71,8 @@ class Element {
 	    	Action::COLLECTION   	 => "Action",
 	    	Network::COLLECTION   	 => "Network",
 	    	Url::COLLECTION   	 	 => "Url",
+	    	Place::COLLECTION   => "Place",
+	    	Ressource::COLLECTION   => "Ressource",
 	    );	
 	 	return @$models[$type];     
     }
@@ -297,6 +301,8 @@ class Element {
 			$element = City::getIdByInsee($id);
 		else if($type == Poi::COLLECTION)
 			$element = Poi::getById($id);
+		else if($type == Place::COLLECTION)
+			$element = Place::getById($id);
 		else if($type == Classified::COLLECTION)
 			$element = Classified::getById($id);
 		else if($type == ActionRoom::COLLECTION_ACTIONS)
@@ -315,7 +321,6 @@ class Element {
 	  	if ($element == null) throw new CTKException("The element you are looking for has been moved or deleted");
 	  	return $element;
 	}
-
 	public static function getSimpleByTypeAndId($type, $id,$what=null){
 		if( @$what ) 
 			$element = PHDB::findOneById($type, $id, $what);
@@ -338,6 +343,7 @@ class Element {
 	  	
 	  	return $element;
 	}
+
 
 	/**
 	 * get all poi details of an element
@@ -415,6 +421,10 @@ class Element {
 			return Proposal::getDataBinding();
 		else if($collection == Action::COLLECTION)
 			return Action::getDataBinding();
+		else if($collection == Place::COLLECTION)
+			return Place::getDataBinding();
+		else if($collection == Ressource::COLLECTION)
+			return Ressource::getDataBinding();
 		else
 			return array();
 	}

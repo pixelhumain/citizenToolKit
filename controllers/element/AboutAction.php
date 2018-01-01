@@ -1,3 +1,4 @@
+		$controller=$this->getController();
 <?php
 
 class AboutAction extends CAction {

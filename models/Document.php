@@ -783,7 +783,8 @@ class Document {
         						  Survey::COLLECTION ,
 							      ActionRoom::COLLECTION,
 							      ActionRoom::COLLECTION_ACTIONS
-							      );
+        						  Poi::COLLECTION, Ressource::COLLECTION, Place::COLLECTION, 
+        						  Classified::COLLECTION);
         if (@$profilUrl && in_array($document["type"], $allowedElements )) {
         	
         	$changes = array();

@@ -22,18 +22,18 @@ class Link {
 
 
     public static $linksTypes = array(
-    Person::COLLECTION => 
-		array(  Project::COLLECTION =>  "projects",
-				Event::COLLECTION =>  "events"),
-	Organization::COLLECTION => 
-		array(  Project::COLLECTION =>  "projects",
-				Event::COLLECTION =>  "events"),
-	Event::COLLECTION => 
-		array(	Event::COLLECTION => "subEvent" ),
-	Project::COLLECTION =>
-		array(	Organization::COLLECTION => "contributors",
-				Person::COLLECTION => "contributors",
-				Project::COLLECTION =>  "projects"),
+        Person::COLLECTION => 
+    		array(  Project::COLLECTION =>  "projects",
+    				Event::COLLECTION =>  "events"),
+    	Organization::COLLECTION => 
+    		array(  Project::COLLECTION =>  "projects",
+    				Event::COLLECTION =>  "events"),
+    	Event::COLLECTION => 
+    		array(	Event::COLLECTION => "subEvent" ),
+    	Project::COLLECTION =>
+    		array(	Organization::COLLECTION => "contributors",
+    				Person::COLLECTION => "contributors",
+    				Project::COLLECTION =>  "projects"),
 	);
 
 
@@ -453,16 +453,22 @@ class Link {
             return array("result"=>false, "msg"=>"You can't remove the parent of this event !");
 
 		if ($parentType != Event::NO_ORGANISER) {
-            PHDB::update($parentType,
-    					array("_id" => new MongoId($parentId)),
-    					array('$set' => array(	"links.".self::$linksTypes[$parentType][$childType].".".$childId.".type"=>$childType))
-    		);
+
+            if($childType != Place::COLLECTION && $childType != Ressourcce::COLLECTION)
+                PHDB::update($parentType,
+        					array("_id" => new MongoId($parentId)),
+        					array('$set' => array(	"links.".self::$linksTypes[$parentType][$childType].".".$childId.".type"=>$childType))
+        		);
+
+            $set = array(   "parentId" => $childId,
+                            "parentType" => $childType ) ;
+
+            if($childType != Place::COLLECTION && $childType != Ressourcce::COLLECTION)
+                $set["links.".self::$linksTypes[$childType][$parentType].".".$parentId.".type"] = $parentType;
 
             PHDB::update($childType,
                     array("_id"=>new MongoId($childId)),
-                    array('$set'=> array(	"parentId" => $childId,
-    										"parentType" => $childType,
-    										"links.".self::$linksTypes[$childType][$parentType].".".$parentId.".type"=>$parentType))
+                    array('$set'=> $set)
             );
         }
 		//TODO SBAR : add notification for new parent
@@ -494,9 +500,12 @@ class Link {
             return array("result"=>false, "msg"=>"You can't remove the parent of this event !");
         
 
-        if(	$parentType != Person::COLLECTION ||
-			(	$parentType == Person::COLLECTION && 
-				!self::isLinked($childId, $childType, $userId, null) ) 
+        if(	
+            (   $childType != Place::COLLECTION &&
+                $childType != Ressourcce::COLLECTION ) &&
+            (   $parentType != Person::COLLECTION ||
+    			(	$parentType == Person::COLLECTION && 
+    				!self::isLinked($childId, $childType, $userId, null) ) ) 
 		) {
 			PHDB::update($parentType,
 						array("_id"=>new MongoId($parentId)),

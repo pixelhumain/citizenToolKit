@@ -158,7 +158,12 @@ class DetailAction extends CAction {
 			}
 
 			$connectType = "attendees";
-		} else if ($type == Poi::COLLECTION){
+		} else if ($type == Place::COLLECTION){
+			$element = Place::getById($id);
+			if (empty($element)) throw new CHttpException(404,Yii::t("place","The place you are looking for has been moved or deleted !"));
+			
+		}
+		else if ($type == Poi::COLLECTION){
 			$element = Poi::getById($id);
 			if (empty($element)) throw new CHttpException(404,Yii::t("poi","The poi you are looking for has been moved or deleted !"));
 			$connectType = "attendees";
@@ -286,6 +291,7 @@ class DetailAction extends CAction {
 		$params["needs"]=$needs;
 		$params["edit"] = Authorisation::canEditItem(Yii::app()->session["userId"], $elementAuthorizationType, $elementAuthorizationId);
 		$params["openEdition"] = Authorisation::isOpenEdition($elementAuthorizationId, $elementAuthorizationType, @$element["preferences"]);
+		
 		if(@Yii::app()->session["network"]){
 			$params["openEdition"] = false;
 			$params["edit"] = false;
