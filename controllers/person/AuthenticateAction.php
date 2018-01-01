@@ -15,6 +15,7 @@ class AuthenticateAction extends CAction {
 		
 		$res = Person::login( $email , $_POST["pwd"], false); 
 		
+		
 		Rest::json($res);
 		Yii::app()->end();
     }

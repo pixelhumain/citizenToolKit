@@ -81,9 +81,32 @@ class DirectoryAction extends CAction
       
        //:::::::::::::://////CITOYENS///////////////////////////////////
         $res = array();
-        if(!@$_POST["type"] || $_POST["type"]==Person::COLLECTION){
-          $params["results"][Person::COLLECTION] = PHDB::findAndLimitAndIndex ( Person::COLLECTION , $query, $stepLim, $limitMin);
-          $params["results"]["count"]["citoyens"] = PHDB::count( Person::COLLECTION , $query);
+        if(@$_POST["initType"]){
+          $params["typeDirectory"]=$_POST["initType"];
+          foreach($_POST["initType"] as $data){
+            $params["results"][$data] = PHDB::findAndLimitAndIndex ( $data , $query, $stepLim, $limitMin);
+            $params["results"]["count"][$data] = PHDB::count( $data , $query);
+          }
+          if($tpl!="json" || $search != ""){
+            foreach($_POST["initType"] as $data){
+            $params["results"]["count"][$data] = PHDB::count( $data , $query);
+            }
+          }
+        }else{
+          $params["typeDirectory"]=[Person::COLLECTION,Project::COLLECTION,Organization::COLLECTION,Event::COLLECTION];
+          if(!@$_POST["type"] || $_POST["type"]==Person::COLLECTION){
+            $params["results"][Person::COLLECTION] = PHDB::findAndLimitAndIndex ( Person::COLLECTION , $query, $stepLim, $limitMin);
+            $params["results"]["count"]["citoyens"] = PHDB::count( Person::COLLECTION , $query);
+          }
+          else if(@$_POST["type"]){
+            $params["results"][$_POST["type"]] = PHDB::findAndLimitAndIndex ( $_POST["type"] , $query, $stepLim, $limitMin);
+            $params["results"]["count"][$_POST["type"]] = PHDB::count( $_POST["type"] , $query);
+          }
+          if($tpl!="json" || $search != ""){
+            $params["results"]["count"]["citoyens"] = PHDB::count( Person::COLLECTION , $query);
+            $params["results"]["count"]["organizations"] = PHDB::count( Organization::COLLECTION , $query);
+            $params["results"]["count"]["events"] = PHDB::count( Event::COLLECTION , $query);
+            $params["results"]["count"]["projects"] = PHDB::count( Project::COLLECTION , $query);
         }
         else if(@$_POST["type"] && $_POST["type"] != News::COLLECTION){
           $params["results"][$_POST["type"]] = PHDB::findAndLimitAndIndex ( $_POST["type"] , $query, $stepLim, $limitMin);
@@ -109,7 +132,6 @@ class DirectoryAction extends CAction
       /* **************************************
       *  PROJECTS
       ***************************************** */
-      //$projects = array();
 
      // $params["results"]["organizations"] = array();//$organizations;
       //$params["results"]["projects"] = array();//$projects;

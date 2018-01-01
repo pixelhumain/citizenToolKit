@@ -66,7 +66,34 @@ class Mail {
         );
         Mail::schedule($params);
     }
-
+    public static function notifAdminNewPro($person) {
+        $params = array(
+            "type" => Cron::TYPE_MAIL,
+            "tpl"=>'notifAdminNewPro',
+            "subject" => 'Nouveau compte pro crée sur '.self::getAppName(),
+            "from"=>Yii::app()->params['adminEmail'],
+            "to" => Yii::app()->params['adminEmail'],
+            "tplParams" => array(   "person"   => $person ,
+                                    "title" => Yii::app()->name ,
+                                    "logo"  => "/images/logoLTxt.jpg")
+        );
+        Mail::schedule($params);
+    }
+    public static function notifAdminNewReservation($params){
+        $params = array(
+            "type" => Cron::TYPE_MAIL,
+            "tpl"=>'reservations',
+            "subject" => Yii::t("terla",'Réservation de '.Yii::app()->session["user"]["name"].' pour le circuit '.$params["name"]),
+            "from"=>Yii::app()->params['adminEmail'],
+            "to" => Yii::app()->params['adminEmail'],
+            "tplParams" => array(   "order"   => $params ,
+                                    "title" => Yii::t("terla",'Réservation de '.Yii::app()->session["user"]["name"].' pour le circuit '.$params["name"]) ,
+                                    "logo" => Yii::app()->params["logoUrl"],
+                                    "logo2" => Yii::app()->params["logoUrl2"]
+            )
+        );
+        Mail::schedule($params);
+    }
     public static function invitePerson($person, $msg = null, $nameInvitor = null, $invitorUrl = null, $subject=null) {
         if(isset($person["invitedBy"]))
             $invitor = Person::getSimpleUserById($person["invitedBy"]);

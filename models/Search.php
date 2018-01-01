@@ -166,8 +166,10 @@ class Search {
   				(strcmp($filter, Place::COLLECTION) != 0 && self::typeWanted(Place::COLLECTION, $searchType)) ){
         		$queryTags =  self::searchTags($searchTags, '$all') ;
 	  		}
-  			else 
-  				$queryTags =  self::searchTags($searchTags) ;
+  			else if( (strcmp($filter, Service::COLLECTION) != 0 )){
+  				$queryTags =  self::searchTags($searchTags, '$in', 'type') ;
+  			}
+
   			if(!empty($queryTags))
   				$query = array('$and' => array( $query , $queryTags) );
   		}
@@ -240,7 +242,18 @@ class Search {
 		if(strcmp($filter, Poi::COLLECTION) != 0 && self::typeWanted(Poi::COLLECTION, $searchType)){
 			$allRes = array_merge($allRes, self::searchPoi($query, $indexStep, $indexMin));
 	  	}
-
+	  	//*********************************  PRODUCT  ******************************************
+        if(strcmp($filter, Product::COLLECTION) != 0 && self::typeWanted(Product::COLLECTION, $searchType)){
+        	$allRes = array_merge($allRes, self::searchProduct($query, $indexStep, $indexMin));
+	  	}
+	  	//*********************************  SERVICE  ******************************************
+        if(strcmp($filter, Service::COLLECTION) != 0 && self::typeWanted(Service::COLLECTION, $searchType)){
+        	$allRes = array_merge($allRes, self::searchService($query, $indexStep, $indexMin));
+	  	}
+	  	//*********************************  SERVICE  ******************************************
+        if(strcmp($filter, Circuit::COLLECTION) != 0 && self::typeWanted(Circuit::COLLECTION, $searchType)){
+        	$allRes = array_merge($allRes, self::searchCircuit($query, $indexStep, $indexMin));
+	  	}
 	  	//*********************************  PLACE   ******************************************
         if(strcmp($filter, Place::COLLECTION) != 0 && self::typeWanted(Place::COLLECTION, $searchType)){
         	$allRes = array_merge($allRes, self::searchAny(Place::COLLECTION,$query, $indexStep, $indexMin));
@@ -864,6 +877,41 @@ class Search {
   		}
   		return $allPoi;
   	}
+	//*********************************  PRODUCT   ******************************************
+	public static function searchProduct($query, $indexStep, $indexMin){
+    	$allProduct = PHDB::findAndSortAndLimitAndIndex(Product::COLLECTION, $query, 
+  												array("updated" => -1), $indexStep, $indexMin);
+  		foreach ($allProduct as $key => $value) {
+	  		if(@$value["parentId"] && @$value["parentType"])
+	  			$parent = Element::getElementSimpleById(@$value["parentId"], @$value["parentType"]);
+	  		else
+	  			$parent=array();
+			$allProduct[$key]["parent"] = $parent;
+			if(@$value["type"])
+				$allProduct[$key]["typeSig"] = Product::COLLECTION;//.".".$value["type"];
+			else
+				$allProduct[$key]["typeSig"] = Product::COLLECTION;
+			
+			$allProduct[$key]["typePoi"] = @$allProduct[$key]["type"];
+			$allProduct[$key]["type"] = Product::COLLECTION;
+  		}
+  		return $allProduct;
+  	}
+  	//*********************************  SERVICE   ******************************************
+	public static function searchService($query, $indexStep, $indexMin){
+		$allService = PHDB::findAndSortAndLimitAndIndex(Service::COLLECTION, $query, 
+  												array("updated" => -1), $indexStep, $indexMin);
+  		foreach ($allService as $key => $value) {
+	  		if(@$value["parentId"] && @$value["parentType"])
+	  			$parent = Element::getElementSimpleById(@$value["parentId"], @$value["parentType"]);
+	  		else
+	  			$parent=array();
+			$allService[$key]["parent"] = $parent;
+			if(@$value["type"])
+				$allService[$key]["typeSig"] = Service::COLLECTION.".".@$allService[$key]["type"];//.".".$value["type"];
+			else
+				$allService[$key]["typeSig"] = Service::COLLECTION.".".@$allService[$key]["type"];
+			
 
   	//*********************************  Generic Search   ******************************************
 	public static function searchAny($collection, $query, $indexStep, $indexMin){

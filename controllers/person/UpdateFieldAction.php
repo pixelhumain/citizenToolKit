@@ -16,6 +16,10 @@ class UpdateFieldAction extends CAction
                     $res = Person::updatePersonField($_POST["pk"], $_POST["name"], @$_POST["value"], Yii::app()->session["userId"] );
                     if( @$_POST["value"] == "bgCustom" && isset( $_POST["url"] ))
                         Person::updatePersonField($_POST["pk"], "bgUrl", $_POST["url"], Yii::app()->session["userId"] );
+                    if(@$_POST["name"] == "professional"){
+                        $person=Person::getById(Yii::app()->session["userId"]);
+                        Mail::notifAdminNewPro($person);
+                    }
                 } catch (CTKException $e) {
                     $res = array("result"=>false, "msg"=>$e->getMessage(), $_POST["name"]=>$_POST["value"]);
                 }

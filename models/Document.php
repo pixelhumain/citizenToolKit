@@ -777,7 +777,9 @@ class Document {
         //Update the entity collection to store the path of the profil images
         $allowedElements = array( Person::COLLECTION, 
         						  Organization::COLLECTION, 
-        						  Project::COLLECTION, 
+        						  Project::COLLECTION,
+        						  Product::COLLECTION,
+        						  Service::COLLECTION, 
         						  Event::COLLECTION,
         						  Poi::COLLECTION, 
         						  Survey::COLLECTION ,
@@ -932,7 +934,7 @@ class Document {
 			} else if ($generatedImageType == self::GENERATED_MARKER) {
 				$res = $documentUrl.self::FILENAME_PROFIL_MARKER;
 			}else if ($generatedImageType == self::GENERATED_MEDIUM_FOLDER) {
-				$res = $documentUrl.$lastProfilImage["name"];
+				$res = $documentMedium.$lastProfilImage["name"];
 			}
 
 		//Else the default image is returned

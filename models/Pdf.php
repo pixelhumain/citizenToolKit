@@ -53,7 +53,7 @@ class Pdf {
     	ob_end_clean();
 		$html2pdf = new \Spipu\Html2Pdf\Html2Pdf();
 		$html2pdf->writeHTML($tpl);
-		$html2pdf->output();
+		return $html2pdf->output();
 	}
 }
 ?> 

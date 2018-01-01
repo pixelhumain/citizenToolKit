@@ -64,6 +64,8 @@ class Element {
 	    	Thing::COLLECTION 		 => "Thing",
 	    	Poi::COLLECTION 		 => "Poi",
 	    	Classified::COLLECTION   => "Classified",
+	    	Product::COLLECTION 	 => "Product",
+	    	Service::COLLECTION   	 => "Service",
 	    	Survey::COLLECTION   	 => "Survey",
 	    	Bookmark::COLLECTION   	 => "Bookmark",
 	    	Proposal::COLLECTION   	 => "Proposal",
@@ -73,6 +75,7 @@ class Element {
 	    	Url::COLLECTION   	 	 => "Url",
 	    	Place::COLLECTION   => "Place",
 	    	Ressource::COLLECTION   => "Ressource",
+	    	Circuit::COLLECTION   	 => "Circuit",
 	    );	
 	 	return @$models[$type];     
     }
@@ -171,6 +174,16 @@ class Element {
 	    	Classified::CONTROLLER 		=> array("icon"=>"bullhorn","color"=>"#2BB0C6","text-color"=>"azure",
 	    										 "hash"=> Classified::CONTROLLER.".detail.id.",
 	    										 "collection"=>Classified::COLLECTION),
+			Product::COLLECTION 		=> array("icon"=>"gift","color"=>"#2BB0C6","text-color"=>"azure",
+	    										 "hash"=> Product::CONTROLLER.".detail.id."),
+	    	Product::CONTROLLER 		=> array("icon"=>"gift","color"=>"#2BB0C6","text-color"=>"azure",
+	    										 "hash"=> Product::CONTROLLER.".detail.id.",
+	    										 "collection"=>Product::COLLECTION),
+	    	Service::COLLECTION 		=> array("icon"=>"gift","color"=>"#2BB0C6","text-color"=>"azure",
+	    										 "hash"=> Service::CONTROLLER.".detail.id."),
+	    	Service::CONTROLLER 		=> array("icon"=>"gift","color"=>"#2BB0C6","text-color"=>"azure",
+	    										 "hash"=> Service::CONTROLLER.".detail.id.",
+	    										 "collection"=>Service::COLLECTION),
 
 			Poi::COLLECTION 			=> array("icon"=>"map-marker","color"=>"#2BB0C6","text-color"=>"green-poi",
 	    										 "hash"=> Poi::CONTROLLER.".detail.id."),
@@ -425,6 +438,8 @@ class Element {
 			return Place::getDataBinding();
 		else if($collection == Ressource::COLLECTION)
 			return Ressource::getDataBinding();
+		else if($collection == Service::COLLECTION)
+			return Service::getDataBinding();
 		else
 			return array();
 	}
@@ -1592,6 +1607,7 @@ class Element {
         } error_log("KEY : ". $key);
         if( $valid["result"] )
         	try {
+        		//var_dump($key);exit;
         		$valid = DataValidator::validate( ucfirst($key), json_decode (json_encode ($params), true), ( empty($paramsLinkImport) ? null : true) );
         	} catch (CTKException $e) {
         		$valid = array("result"=>false, "msg" => $e->getMessage());
@@ -1610,16 +1626,11 @@ class Element {
 
             if($id){ //var_dump($params); exit;
         	
-            	//var_dump($params);
-                //update a single field
-                //else update whole map
-                //$changeMap = ( !$microformat && isset( $key )) ? array('$set' => array( $key => $params[ $key ] ) ) : array('$set' => $params );
-                $exists = PHDB::findOne($collection,array("_id"=>new MongoId($id)));
+            	$exists = PHDB::findOne($collection,array("_id"=>new MongoId($id)));
                 if(!@$exists){
                 	$params["creator"] = Yii::app()->session["userId"];
 	        		$params["created"] = time();
 	        		if(in_array($collection,[Organization::COLLECTION,Project::COLLECTION,Event::COLLECTION])){
-
 	        			$slug=Slug::checkAndCreateSlug($params["name"],$collection,$id);
 	        			Slug::save($collection,$id,$slug);
 	        			$params["slug"]=$slug;

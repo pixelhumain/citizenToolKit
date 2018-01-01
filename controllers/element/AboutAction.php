@@ -27,8 +27,10 @@ class AboutAction extends CAction {
 		$params["edit"] = Authorisation::canEditItem(Yii::app()->session["userId"], $type, $id);
 		$params["openEdition"] = Authorisation::isOpenEdition($id, $type, @$element["preferences"]);
 		$params["params"] = $params;
-
-		$page = "about";
+		if(Yii::app()->params["CO2DomainName"] == "terla")
+			$page="../element/terla/about";
+		else
+			$page = "about";
 		if(Yii::app()->request->isAjaxRequest)
 			echo $controller->renderPartial($page,$params,true);
 		else 

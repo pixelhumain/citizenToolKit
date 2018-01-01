@@ -6,8 +6,7 @@ class IndexAction extends CAction
         $controller=$this->getController();
 
         $params = array();
-
-        $res = Comment::buildCommentsTree($id, $type, Yii::app()->session["userId"]);
+        $res = Comment::buildCommentsTree($id, $type, Yii::app()->session["userId"], @$_POST["filters"]);
         $params['comments'] = $res["comments"];
         $params['communitySelectedComments'] = $res["communitySelectedComments"];
         $params['abusedComments'] = $res["abusedComments"];
@@ -29,7 +28,12 @@ class IndexAction extends CAction
             $params["context"] = News::getById($id);
 		} else if($type == Poi::COLLECTION) {
             $params["context"] = Poi::getById($id);
-
+        } else if($type == Classified::COLLECTION) {
+            $params["context"] = Classified::getById($id);
+        }else if($type == Product::COLLECTION) {
+            $params["context"] = Product::getById($id);
+        }else if($type == Service::COLLECTION) {
+            $params["context"] = Service::getById($id);
         } else if($type == Proposal::COLLECTION) {
             $params["context"] = Proposal::getById($id);
 
