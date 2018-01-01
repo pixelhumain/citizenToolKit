@@ -184,6 +184,16 @@ class Api {
             $meta["allElementsSends"] = true;
             $result = $meta ;
         }
+        elseif ($format == Translate::FORMAT_MD) {
+            
+            $data = Translate::convert( $data , TranslateCommunecter::$dataBinding_person );
+            $result = TranslateMD::MD($data,$bindMap);
+        }
+        elseif ($format == Translate::FORMAT_TREE) {
+            
+            $data = Translate::convert( $data , TranslateCommunecter::$dataBinding_person );
+            $result = TranslateTree::build($data,$bindMap);
+        }
         else { 
             $result["meta"] = $meta ;
             $result["entities"] = ((!empty($data) && !empty($bindMap) )?Translate::convert($data , $bindMap):$data);
