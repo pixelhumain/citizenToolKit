@@ -782,7 +782,7 @@ class Document {
         						  Poi::COLLECTION, 
         						  Survey::COLLECTION ,
 							      ActionRoom::COLLECTION,
-							      ActionRoom::COLLECTION_ACTIONS
+							      ActionRoom::COLLECTION_ACTIONS,
         						  Poi::COLLECTION, Ressource::COLLECTION, Place::COLLECTION, 
         						  Classified::COLLECTION);
         if (@$profilUrl && in_array($document["type"], $allowedElements )) {
