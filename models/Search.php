@@ -293,7 +293,6 @@ class Search {
 	  	if(@$post['tpl'] == "/pod/nowList"){
 	  		usort($allRes, "self::mySortByUpdated");
 	  	}
-
 	  	foreach ($allRes as $key => $value) {
 			if(@$value["updated"]) {
 				if(self::typeWanted(Event::COLLECTION, $searchType))
@@ -911,8 +910,30 @@ class Search {
 				$allService[$key]["typeSig"] = Service::COLLECTION.".".@$allService[$key]["type"];//.".".$value["type"];
 			else
 				$allService[$key]["typeSig"] = Service::COLLECTION.".".@$allService[$key]["type"];
-			
-
+		}
+		return $allService;
+	}	
+	 //*********************************  CIRCUIT   ****************************************** 
+    public static function searchCircuit($query, $indexStep, $indexMin){ 
+    $allCircuit = PHDB::findAndSortAndLimitAndIndex(Circuit::COLLECTION, $query,  
+                          array("updated" => -1), $indexStep, $indexMin); 
+      foreach ($allCircuit as $key => $value) { 
+        if(@$value["parentId"] && @$value["parentType"]) 
+          $parent = Element::getElementSimpleById(@$value["parentId"], @$value["parentType"]); 
+        else 
+          $parent=array(); 
+      $allCircuit[$key]["parent"] = $parent; 
+      if(@$value["type"]) 
+        $allCircuit[$key]["typeSig"] = Circuit::COLLECTION.".".@$allCircuit[$key]["type"];//.".".$value["type"]; 
+      else 
+        $allCircuit[$key]["typeSig"] = Circuit::COLLECTION.".".@$allCircuit[$key]["type"]; 
+       
+ 
+      $allCircuit[$key]["typePoi"] = @$allCircuit[$key]["type"]; 
+      $allCircuit[$key]["type"] = Circuit::COLLECTION; 
+      } 
+      return $allCircuit; 
+    } 
   	//*********************************  Generic Search   ******************************************
 	public static function searchAny($collection, $query, $indexStep, $indexMin){
     	$allPlace = PHDB::findAndSortAndLimitAndIndex($collection, $query, 

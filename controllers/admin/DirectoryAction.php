@@ -108,7 +108,8 @@ class DirectoryAction extends CAction
             $params["results"]["count"]["events"] = PHDB::count( Event::COLLECTION , $query);
             $params["results"]["count"]["projects"] = PHDB::count( Project::COLLECTION , $query);
         }
-        else if(@$_POST["type"] && $_POST["type"] != News::COLLECTION){
+      }
+       /* else if(@$_POST["type"] && $_POST["type"] != News::COLLECTION){
           $params["results"][$_POST["type"]] = PHDB::findAndLimitAndIndex ( $_POST["type"] , $query, $stepLim, $limitMin);
           $params["results"]["count"][$_POST["type"]] = PHDB::count( $_POST["type"] , $query);
         }else{
@@ -124,7 +125,7 @@ class DirectoryAction extends CAction
           $params["results"]["count"]["classified"] = PHDB::count( Classified::COLLECTION , $query);
          // print_r($queryNews);
           $params["results"]["count"]["news"] = PHDB::count( News::COLLECTION , $queryNews);
-      }
+      }*/
       ///////////////////////////////END CITOYENS //////////////////////////////////////////////
 
     //  $people = Person::getWhereByLimit(array( "roles"=> array('$exists'=>1)));
