@@ -100,6 +100,7 @@ class ActivityStream {
 							  array("object.objectType"=>$type)
 						))
 					));
+		$res["count"] = PHDB::count( self::COLLECTION,$where);
 		PHDB::remove( self::COLLECTION,$where);
 		
 		return $res;

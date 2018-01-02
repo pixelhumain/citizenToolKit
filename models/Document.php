@@ -1088,19 +1088,21 @@ class Document {
 	 * @param type $nameFile 
 	 * @return type
 	 */
-	public static function uploadDocumentFromURL($dir,$folder=null,$ownerId=null,$input,$rename=false, $pathFile, $nameFile) {
+	public static function uploadDocumentFromURL($dir,$folder=null,$ownerId=null,$input,$rename=false, $urlFile=false, $nameFile=false) {
 		//Check if the file exists on that URL
-		$file_headers = @get_headers($pathFile.$nameFile);
+		//var_dump($pathFile.$nameFile);
+		//$file_headers = @get_headers($pathFile.$nameFile);
+		$file_headers = @get_headers($urlFile);
 		if($file_headers[0] == 'HTTP/1.1 404 Not Found') {
 		    $exists = false;
 		} else {
 		    $exists = true;
 		}
-
 		if ($exists) {
 			//$file = file_get_contents($pathFile.$nameFile, FILE_USE_INCLUDE_PATH);
-			$file = self::urlGetContents($pathFile.$nameFile);
-			$res = self::checkFileRequirements($file["file"], $dir, $folder, $ownerId, $input, $nameFile, $file["size"] );
+			//$file = self::urlGetContents($pathFile.$nameFile);
+			$file = self::urlGetContents($urlFile);
+			$res = self::checkFileRequirements($file["file"], $dir, $folder, $ownerId, $input, null, null, $nameFile, $file["size"] );
 			if ($res["result"]) {
 				$res = self::uploadDocument($file, $res["uploadDir"], $input, $rename, $nameFile, $file["size"]);
 			}

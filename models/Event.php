@@ -77,6 +77,7 @@ class Event {
 	    "github" => array("name" => "socialNetwork.github"),
 	    "skype" => array("name" => "socialNetwork.skype"),
 	    "onepageEdition" => array("name" => "onepageEdition"),
+	    "instagram" => array("name" => "socialNetwork.instagram"),
 	);
 
 	//TODO SBAR - First test to validate data. Move it to DataValidator
