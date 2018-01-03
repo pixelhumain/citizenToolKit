@@ -690,14 +690,43 @@ class Search {
 
 
 	//*********************************  ORGANIZATIONS   ******************************************
+ //  	public static function searchOrganizations($query, $indexStep, $indexMin, $searchType, $searchTypeOrga){
+ //       	$res = array();
+ //    	$queryOrganization = $query;
+ //    	if( !isset( $queryOrganization['$and'] ) ) 
+ //    		$queryOrganization['$and'] = array();
+
+ //    	var_dump($queryOrganization);
+ //    	array_push( $queryOrganization[ '$and' ], array( "disabled" => array('$exists' => false) ) );
+	// }
+
+	//*********************************  ORGANIZATIONS   ******************************************
   	public static function searchOrganizations($query, $indexStep, $indexMin, $searchType, $searchTypeOrga){
        	$res = array();
     	$queryOrganization = $query;
     	if( !isset( $queryOrganization['$and'] ) ) 
     		$queryOrganization['$and'] = array();
-
-    	var_dump($queryOrganization);
     	array_push( $queryOrganization[ '$and' ], array( "disabled" => array('$exists' => false) ) );
+    	if(sizeof($searchType)==1 && @$searchTypeOrga != "")
+    		array_push( $queryOrganization[ '$and' ], array( "type" => $searchTypeOrga ) );
+
+  		$allOrganizations = PHDB::findAndSortAndLimitAndIndex ( Organization::COLLECTION ,$queryOrganization, 
+  												array("updated" => -1), $indexStep, $indexMin);
+
+  		foreach ($allOrganizations as $key => $value) 
+  		{
+  			if(!empty($value)){
+	  			$orga = Organization::getSimpleOrganizationById($key,$value);
+	  			if( @$value["links"]["followers"][Yii::app()->session["userId"]] )
+		  			$orga["isFollowed"] = true;
+		  		if(@$orga["type"] != "")
+					$orga["typeOrga"] = $orga["type"];
+				$orga["type"] = "organizations";
+				$orga["typeSig"] = Organization::COLLECTION;
+				$res[$key] = $orga;
+			}
+  		}
+  		return $res;
 	}
 
 	
