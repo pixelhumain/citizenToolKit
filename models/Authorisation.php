@@ -79,7 +79,7 @@ class Authorisation {
         $res = $organizations;
         foreach ($organizations as $e) {
         	$res[(string)new MongoId($e['_id'])] = $e;
-        	if (Authorisation::canEditMembersData($e['_id'])) {
+        	if (self::canEditMembersData($e['_id'])) {
         		if(isset($e["links"]["members"])){
         			foreach ($e["links"]["members"] as $key => $value) {
         				if(isset($value["type"]) && $value["type"] == Organization::COLLECTION){
@@ -110,7 +110,7 @@ class Authorisation {
      */
     public static function isOrganizationAdmin($userId, $organizationId) {
         $res = false;
-        $myOrganizations = Authorisation::listUserOrganizationAdmin($userId);
+        $myOrganizations = self::listUserOrganizationAdmin($userId);
         if(!empty($myOrganizations))
 		  $res = array_key_exists((string)$organizationId, $myOrganizations);
 
@@ -257,7 +257,7 @@ class Authorisation {
             $event = PHDB::findOne(Event::COLLECTION, $where);
             if(!empty($event))
                 $res=true;
-            /*$listEvent = Authorisation::listEventsIamAdminOf($userId);
+            /*$listEvent = self::listEventsIamAdminOf($userId);
             if(isset($listEvent[(string)$eventId])){
                 $res=true;
             }*/   
@@ -323,7 +323,7 @@ class Authorisation {
 
 
         //events of organization i'am admin 
-       /* $listOrganizationAdmin = Authorisation::listUserOrganizationAdmin($userId);
+       /* $listOrganizationAdmin = self::listUserOrganizationAdmin($userId);
         foreach ($listOrganizationAdmin as $organizationId => $organization) {
             $eventOrganizationAsOrganizer = Event::listEventByOrganizerId($organizationId, Organization::COLLECTION);
             foreach ($eventOrganizationAsOrganizer as $eventId => $eventValue) {
@@ -331,7 +331,7 @@ class Authorisation {
             }
         }
 		//events of project i'am admin 
-        $listProjectAdmin = Authorisation::listProjectsIamAdminOf($userId);
+        $listProjectAdmin = self::listProjectsIamAdminOf($userId);
         foreach ($listProjectAdmin as $projectId => $project) {
             $eventProjectAsOrganizer = Event::listEventByOrganizerId($projectId, Project::COLLECTION);
             foreach ($eventProjectAsOrganizer as $eventId => $eventValue) {
@@ -371,7 +371,7 @@ class Authorisation {
     /* $isProjectAdmin = false;
 	  	$admins = array();
     	if(isset($project["_id"]) && isset(Yii::app()->session["userId"])) {
-    		$isProjectAdmin =  Authorisation::isProjectAdmin((String) $project["_id"],Yii::app()->session["userId"]);
+    		$isProjectAdmin =  self::isProjectAdmin((String) $project["_id"],Yii::app()->session["userId"]);
     		if (!$isProjectAdmin && !empty($organizations)){
 	    		foreach ($organizations as $data){
 		    		$admins = Organization::getMembersByOrganizationId( (string)$data['_id'], Person::COLLECTION , "isAdmin" );
@@ -387,7 +387,7 @@ class Authorisation {
 
     public static function isProjectAdmin($projectId, $userId) {
     	$res = false;
-    	$listProject = Authorisation::listProjectsIamAdminOf($userId);
+    	$listProject = self::listProjectsIamAdminOf($userId);
 		if( isset( $listProject[(string)$projectId] ) )
        		$res=true;
        	
@@ -421,7 +421,7 @@ class Authorisation {
          				"links.contributors.".$userId.".isAdminPending" => array('$exists' => false )
          		);
         $projectList = PHDB::find(Project::COLLECTION, $where);
-        /*$listOrganizationAdmin = Authorisation::listUserOrganizationAdmin($userId);
+        /*$listOrganizationAdmin = self::listUserOrganizationAdmin($userId);
         foreach ($listOrganizationAdmin as $organizationId => $organization) {
             $projectOrganization = Organization::listProjects($organizationId);
             foreach ($projectOrganization as $projectId => $projectValue) {
@@ -467,7 +467,7 @@ class Authorisation {
             throw new CommunecterException("The job ". $jobId." is not well format : contact your admin.");
         }
         
-        $res = Authorisation::isOrganizationAdmin($userId, $organizationId);
+        $res = self::isOrganizationAdmin($userId, $organizationId);
 
         return $res;
     }
@@ -500,7 +500,7 @@ class Authorisation {
     		// case 2 and 3
     		/*if(isset($event["links"]["organizer"])){
     			foreach ($event["links"]["organizer"] as $key => $value) {
-    				if( Authorisation::isOrganizationAdmin($userId, $key)){
+    				if( self::isOrganizationAdmin($userId, $key)){
     					$res = true;
     				}
     			}
@@ -539,7 +539,7 @@ class Authorisation {
             }
 
             // case 3 : admin of parent
-            if ( Authorisation::canEditItem($userId, $parentId, $parentType) )  {
+            if ( self::canEditItem($userId, $parentId, $parentType) )  {
                 return true;
            }
         } else {
@@ -556,7 +556,7 @@ class Authorisation {
         if( @$elem && !empty($userId) ) {
             if( (@$elem["parentType"] == Person::COLLECTION && $userId == @$elem["parentId"] )
                 || $userId == @$elem["creator"]
-                || Authorisation::canEditItem($userId, @$elem["parentId"], @$elem["parentType"]) ) 
+                || self::canEditItem($userId, @$elem["parentId"], @$elem["parentType"]) ) 
                 return true;
         } 
         return $res;
@@ -579,7 +579,7 @@ class Authorisation {
     * @param itemId id of the item we want to edits
     * @return a boolean
     */
-    public static function canEditItem($userId, $type, $itemId,$parentType=null,$parentId=null){
+    public static function canEditItem($userId, $type, $itemId,$parentType=null,$parentId=null,$deleteProcess=false){
         $res=false;    
         $check = false;
         //DDA
@@ -602,14 +602,14 @@ class Authorisation {
         if(Role::isSuperAdmin( Role::getRolesUserId($userId) ) )
             return true;
 
-            if ( $type == Event::COLLECTION || $type == Project::COLLECTION || $type == Organization::COLLECTION ) {
+        if ( $type == Event::COLLECTION || $type == Project::COLLECTION || $type == Organization::COLLECTION ) {
             //Check if delete pending => can not edit
             $isStatusDeletePending = Element::isElementStatusDeletePending($type, $itemId);
-            if ($isStatusDeletePending) 
+            if ($isStatusDeletePending && $deleteProcess === false ) {
                 return false;
+            }
             //Element admin ?
             else if (self::isElementAdmin($itemId, $type, $userId)) {
-                error_log("element admin");
                 return true;
             //Source admin ?
             } else if (self::isSourceAdmin($itemId, $type, $userId)) {
@@ -625,35 +625,18 @@ class Authorisation {
                 $res = self::isLocalCitizen( $userId, ($parentType == City::CONTROLLER) ? $parentId : $itemId ); 
             else 
                 $res = true;
-        } /*else if($type == ActionRoom::COLLECTION || 
-                   $type == ActionRoom::COLLECTION_ACTIONS || 
-                   $type == Survey::COLLECTION || $type == Survey::CONTROLLER) {
-            $res = self::canEditSurvey($userId, $itemId,$parentType,$parentId,$type);
-        }*/
-        else if($type == Poi::COLLECTION) 
-        {
+        } else if($type == Poi::COLLECTION) 
             $res = self::canEdit($userId, $itemId, "Poi");
-        }
         else if($type == Place::COLLECTION) 
-        {
             $res = self::canEdit($userId, $itemId,"Place");
-        }
         else if($type == Ressource::COLLECTION) 
-        {
             $res = self::canEdit($userId, $itemId,"Ressource");
-        }
         else if($type == Classified::COLLECTION) 
-        {
             $res = self::userOwner($userId, "Classified", $itemId);
-        }
         else if($type == Proposal::COLLECTION) 
-        {
            $res = self::canParticipate($userId, $type, $itemId);
-        }
         else if($type == Action::COLLECTION) 
-        {
            $res = self::canParticipate($userId, $type, $itemId);
-        }
     	return $res;
     }
 
@@ -794,13 +777,13 @@ class Authorisation {
      */
     public static function isElementAdmin($elementId, $elementType ,$userId){
         $res = false ;
-        if (self::isUserSuperAdmin($userId)) {
+        if( self::isUserSuperAdmin($userId) ) {
             $res = true;
-        } else if($elementType == Event::COLLECTION) {
+        } else if( $elementType == Event::COLLECTION ) {
             $res = self::canEditEvent($userId,$elementId);
-        } else if($elementType == Project::COLLECTION) {
+        } else if( $elementType == Project::COLLECTION ) {
             $res = self::isProjectAdmin($elementId, $userId);
-        } else if($elementType == Organization::COLLECTION) {
+        } else if( $elementType == Organization::COLLECTION ) {
             $res = self::isOrganizationAdmin($userId, $elementId);
         } else 
             error_log("isElementAdmin : Can not manage that type ! : ".$elementType);
@@ -821,7 +804,6 @@ class Authorisation {
         }
         if(!empty($preferences)){
            $res = Preference::isOpenEdition($preferences);
-
         }
         
 
@@ -878,7 +860,7 @@ class Authorisation {
 
             if ($res != true) {
                 // check if the user can edit the element (admin of the element)
-                $res = self::canEditItem($userId, $elementType, $elementId);
+                $res = self::canEditItem($userId, $elementType, $elementId,null,null,true);
             }
         }
         

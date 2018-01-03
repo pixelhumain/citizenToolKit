@@ -53,6 +53,7 @@ class Project {
 	    "diaspora" => array("name" => "socialNetwork.diaspora"),
 	    "mastodon" => array("name" => "socialNetwork.mastodon"),
 	    "onepageEdition" => array("name" => "onepageEdition"),
+	    "instagram" => array("name" => "socialNetwork.instagram"),
 	    
 	);
 

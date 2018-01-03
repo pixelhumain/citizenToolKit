@@ -12,7 +12,7 @@ class AuthenticateAction extends CAction {
 			ini_set( 'session.cookie_lifetime', 60 * 30);
 			ini_set( 'session.gc_maxlifetime', 60 * 30);
 		}
-		
+
 		$res = Person::login( $email , $_POST["pwd"], false); 
 		
 		Rest::json($res);

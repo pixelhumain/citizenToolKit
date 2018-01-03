@@ -486,12 +486,12 @@ class Comment {
 	 * @param String $userId The userId asking to delete
 	 * @return array result => bool, msg => string
 	 */
-	public static function deleteAllContextComments($contextId, $contextType, $userId) {
+	public static function deleteAllContextComments($contextId, $contextType, $userId,$deleteProcess=false) {
 		error_log("try to delete comments of context : ".$contextId."/".$contextType);
 		if ($contextType == ActionRoom::COLLECTION) {
 			$canDelete = ActionRoom::canAdministrate($userId, $contextId);
 		} else if ($contextType == News::COLLECTION) {
-			$canDelete = News::canAdministrate($userId, $contextId);
+			$canDelete = News::canAdministrate($userId, $contextId,$deleteProcess);
 		} else if ($contextType == Poi::COLLECTION) {
 			$canDelete = Poi::canDeletePoi($userId, $contextId);
 		} else {

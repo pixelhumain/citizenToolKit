@@ -961,7 +961,7 @@ class Link {
 				$verb = ActStr::VERB_JOIN;
 				$toBeValidated=false;
 				//if($childId==Yii::app()->session["userId"]){
-				$msg= Yii::t("common", "You are now {what} of {where}",array("{what}"=>$typeOfDemand,"{where}"=>Yii::t("common","this ".$parentController)));
+				$msg= Yii::t("common", "You are now {what} of {where}",array("{what}"=>Yii::t("common",$typeOfDemand) ,"{where}"=>Yii::t("common","this ".$parentController)));
                 /*}else{
 					$invitation = ActStr::VERB_INVITE;
 					if($typeOfDemand != "admin"){

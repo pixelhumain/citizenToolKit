@@ -76,12 +76,14 @@ class Organization {
 	    "gpplus" => array("name" => "socialNetwork.googleplus"),
 	    "github" => array("name" => "socialNetwork.github"),
 	    "skype" => array("name" => "socialNetwork.skype"),
+	    "instagram" => array("name" => "socialNetwork.instagram"),
 	    "diaspora" => array("name" => "socialNetwork.diaspora"),
 	    "mastodon" => array("name" => "socialNetwork.mastodon"),
 	    "parent" => array("name" => "parent"),
 	    "parentId" => array("name" => "parentId"),
 	    "parentType" => array("name" => "parentType"),
 	    "onepageEdition" => array("name" => "onepageEdition"),
+	    "urlImg" => array("name" => "urlImg"),
 	);
 	
 	//See findOrganizationByCriterias...
@@ -244,6 +246,7 @@ class Organization {
 					$resUpload = Document::uploadDocumentFromURL(	$paramsImg["module"], self::COLLECTION, 
 																	$newOrganizationId, "avatar", false, 
 																	$paramsImg["url"], $paramsImg["name"]);
+					
 					if(!empty($resUpload["result"]) && $resUpload["result"] == true){
 						$params = array();
 						$params['id'] = $newOrganizationId;

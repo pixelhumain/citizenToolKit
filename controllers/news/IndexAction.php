@@ -218,7 +218,7 @@ class IndexAction extends CAction
 						$orRequest=array(
 							array("author"=> $id,
 								"targetIsAuthor"=>array('$exists'=>false),
-								"type"=>"news", 
+								//"type"=>"news", 
 								"scope.type"=> array('$in'=> $scope)
 							), 
 							array("target.id"=> $id, "scope.type"=> array('$in'=> $scope),

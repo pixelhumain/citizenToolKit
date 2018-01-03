@@ -40,6 +40,7 @@ class Person {
 	    "github" => array("name" => "socialNetwork.github"),
 	    "skype" => array("name" => "socialNetwork.skype"),
 	    "telegram" => array("name" => "socialNetwork.telegram"),
+	    "instagram" => array("name" => "socialNetwork.instagram"),
 	    "diaspora" => array("name" => "socialNetwork.diaspora"),
 	    "mastodon" => array("name" => "socialNetwork.mastodon"),
 	    "bgClass" => array("name" => "preferences.bgClass"),
@@ -2170,26 +2171,11 @@ class Person {
 					}else
 						CookieHelper::setCookie("communexionType", "city");
 
-    				/*CookieHelper::setCookie("inseeCommunexion", $address["codeInsee"]);
-		    		CookieHelper::setCookie("cpCommunexion", $address["postalCode"]);
-		    		CookieHelper::setCookie("cityNameCommunexion", $address["addressLocality"]);
-		    		CookieHelper::setCookie("communexionActivated", false);
-		    		CookieHelper::setCookie("communexionValue", $address["addressCountry"]."_".$address["codeInsee"]."-".$address["postalCode"]);
-		    		CookieHelper::setCookie("communexionName", $address["addressLocality"]);
-		    		CookieHelper::setCookie("communexionLevel", "cpCommunexion");*/
-
     			}else{
     				//var_dump($address);
     				CookieHelper::setCookie("communexionType", null);
     				CookieHelper::setCookie("communexion",  null);
     				CookieHelper::setCookie("communexionActivated", false);
-		    		/*CookieHelper::removeCookie("communexionType");
-					CookieHelper::removeCookie("communexionValue");
-					CookieHelper::removeCookie("communexionName");
-					CookieHelper::removeCookie("communexionLevel");    				
-					CookieHelper::removeCookie("inseeCommunexion");
-					CookieHelper::removeCookie("cpCommunexion");
-					CookieHelper::removeCookie("cityNameCommunexion");*/
     			}
     			
 	    		$result = array("result" => true, "msg" => "Cookies is updated");

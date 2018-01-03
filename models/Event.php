@@ -81,6 +81,7 @@ class Event {
 	    "mastodon" => array("name" => "socialNetwork.mastodon"),
 	    
 	    "onepageEdition" => array("name" => "onepageEdition"),
+	    "instagram" => array("name" => "socialNetwork.instagram"),
 	);
 
 	//TODO SBAR - First test to validate data. Move it to DataValidator
