@@ -266,13 +266,13 @@ class News {
 	 * @param bool $removeComments 
 	 * @return array result => bool, msg => string
 	 */
-	public static function delete($id, $userId, $removeComments = false) {
+	public static function delete($id, $userId, $removeComments = false,$deleteProcess=false) {
 		$news=self::getById($id);
 		$nbCommentsDeleted = 0;
 
 		//Check if the userId can delete the news
-		$authorization=self::canAdministrate($userId, $id);
-		if (! $authorization) return array("result"=>false, "msg"=>Yii::t("common","You are not allowed to delete this news"), "id" => $id);
+		$authorization=self::canAdministrate($userId, $id,$deleteProcess);
+		if (!$authorization) return array("result"=>false, "userId"=>$userId, "msg"=>Yii::t("common","You are not allowed to delete this news"), "id" => $id);
 		if($authorization=="share")
 			$countShare=count($news["sharedBy"]);
 		if($authorization===true || (@$countShare && $countShare==1)){
@@ -292,11 +292,11 @@ class News {
 			//var_dump($id); var_dump($actStream); exit;
 			//efface les commentaires des activityStream liés à la news
 			if(!empty($actStream))
-			foreach ($actStream as $key => $value) { //var_dump($key); exit;
-				//error_log("try to delete comments where contextId=".$key);
-				PHDB::remove(Comment::COLLECTION,array( "contextType"=>"news",
-														"contextId"=>$key));
-			}
+				foreach ($actStream as $key => $value) { //var_dump($key); exit;
+					//error_log("try to delete comments where contextId=".$key);
+					PHDB::remove(Comment::COLLECTION,array( "contextType"=>"news",
+															"contextId"=>$key));
+				}
 			//efface les activityStream lié à la news
 			PHDB::remove(self::COLLECTION,array("type"=>"activityStream",
 												"verb"=>ActStr::TYPE_ACTIVITY_SHARE,
@@ -304,7 +304,7 @@ class News {
 												"object.id"=>$id));
 
 			if ($removeComments) {
-				$res = Comment::deleteAllContextComments($id, News::COLLECTION, $userId);
+				$res = Comment::deleteAllContextComments($id, News::COLLECTION, $userId,$deleteProcess);
 				if (!$res["result"]) return $res;
 			}
 
@@ -316,7 +316,11 @@ class News {
 			$shareUpdate=true;
 			$res = PHDB::update(self::COLLECTION, array("_id"  => new MongoId($id) ), array('$pull'=>array("sharedBy"=>array("id"=>$userId))));
 		}
-		$res=array("result" => true, "msg" => "The news with id ".$id." and ".$nbCommentsDeleted." comments have been removed with succes.","type"=>$news["type"]);
+		$res=array("result" => true, 
+					"msg" => "The news with id ".$id." and ".$nbCommentsDeleted." comments have been removed with succes.",
+					"type"=>$news["type"],
+					"commentsDeleted" => $nbCommentsDeleted
+					);
 		if(@$shareUpdate){
 			$followsArrayIds=[];
 			$parent=Element::getElementSimpleById(Yii::app()->session["userId"],Person::COLLECTION,null, array("links"));
@@ -359,7 +363,7 @@ class News {
 		$nbNews = 0;		
 		
 		foreach ($news2delete as $id => $aNews) {
-			$res = self::delete($id, $userId, true);
+			$res = self::delete($id, $userId, true,true);
 			if ($res["result"] == false) return $res;
 			$nbNews++;
 		}
@@ -638,16 +642,18 @@ class News {
 	 * @param String $id the news id to check
 	 * @return bool : true if the user can administrate the news, false else
 	 */
-	public static function canAdministrate($userId, $id) {
+	public static function canAdministrate($userId, $id,$deleteProcess=false) {
         $news = self::getById($id, false);
+        
         if (empty($news)) return false;
         if (@$news["author"]["id"] == $userId && (!@$news["verb"] || $news["verb"]!="share")) return true;
         if (@$news["sharedBy"] && in_array($userId,array_column($news["sharedBy"],"id"))) return "share";
         if (Authorisation::isUserSuperAdmin($userId)) return true;
-        $parentId = @$news["target"]["id"];
-        $parentType = @$news["target"]["type"];
-        $isAdmin = Authorisation::isElementAdmin($parentId, $parentType, $userId);
-        return $isAdmin;
+        $what = (@$news["verb"] == "create" ) ? "object" : "target" ;
+	    $parentId = @$news[$what]["id"];
+	    $parentType = @$news[$what]["type"];
+	    if(@$deleteProcess) return Authorisation::isOpenEdition($parentId, $parentType);
+        return Authorisation::isElementAdmin($parentId, $parentType, $userId);
     }
 
 }

@@ -341,10 +341,24 @@ class Zone {
 				$res[$key] = $newZone ;
 			}
 		}
-		asort($res);
+		//asort($res, SORT_STRING);
+		usort($res, "self::custom_sort");
+		//uasort($res, "Search::mySortByName");
 		return $res ;
 	}
 
+
+     // Define the custom sort function
+    public static function custom_sort($a,$b) {
+    	$a = Search::accentToRegexSimply(strtolower($a["name"]));
+    	$b = Search::accentToRegexSimply(strtolower($b["name"]));
+    	return strcasecmp($a, $b);
+    }
+
+    public static function stripAccents($string){
+		return strtr($string,	utf8_decode('ŠŒŽšœžŸ¥µÀÁÂÃÄÅÆÇÈÉÊËẼÌÍÎÏĨÐÑÒÓÔÕÖØÙÚÛÜÝßàáâãäåæçèéêëẽìíîïĩðñòóôõöøùúûüýÿ'),
+								'SOZsozYYuAAAAAAACEEEEEIIIIIDNOOOOOOUUUUYsaaaaaaaceeeeeiiiiionoooooouuuuyy');
+	}
 
 	public static function getWhereTranlate($params, $fields=null, $limit=20) {
 	  	$zones =PHDB::findAndSort( self::TRANSLATE,$params, array(), $limit, $fields);

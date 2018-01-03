@@ -232,6 +232,18 @@ class Search {
 	  	return $res ;
 	}
 
+	public static function accentToRegexSimply($text) {
+
+		$from = str_split(utf8_decode('ŠŒŽšœžŸ¥µÀÁÂÃÄÅÆÇÈÉÊËẼÌÍÎÏĨÐÑÒÓÔÕÖØÙÚÛÜÝßàáâãäåæçèéêëẽìíîïĩðñòóôõöøùúûüýÿ'));
+		$to   = str_split(strtolower('SOZsozYYuAAAAAAACEEEEEIIIIIDNOOOOOOUUUUYsaaaaaaaceeeeeiiiiionoooooouuuuyy'));
+		$text = utf8_decode($text);
+
+		foreach ($from as $key => $value){
+			$text = str_replace($value, $to[$key], $text);
+		}
+
+		return utf8_encode($text);
+	}
 
 	public static function globalAutoComplete($post,  $filter = null, $api=false){
 
@@ -679,6 +691,8 @@ class Search {
   				$person = Person::getSimpleUserById($key,$value);
 	  			$person["type"] = Person::COLLECTION;
 				$person["typeSig"] = "citoyens";
+				if( @$value["links"]["followers"][Yii::app()->session["userId"]] )
+		  			$person["isFollowed"] = true;
 				$res[$key] = $person;
   			}
 
@@ -1051,7 +1065,12 @@ class Search {
 
     //*********************************  CITIES   ******************************************
     public static function searchCities($search, $locality, $country){
+<<<<<<< HEAD
   		$query = array( "name" => new MongoRegex("/".self::wd_remove_accents($search)."/i"));//array('$text' => array('$search' => $search));//
+=======
+
+  		$query = array( "name" => new MongoRegex("/".self::wd_remove_accents($search)."/i"));
+>>>>>>> master
   		
   		//*********************************  DEFINE LOCALITY QUERY   ******************************************
     	if($locality == null || $locality == "")
@@ -1064,7 +1083,6 @@ class Search {
     									   array( "alternateName" => new MongoRegex("/".self::wd_remove_accents($locality)."/i")),
     									   array( "postalCodes.name" => array('$in' => array(new MongoRegex("/".self::wd_remove_accents($locality)."/i"))))
     					));
-    		//error_log("search city with : " . self::wd_remove_accents($locality));
     	}
     	if($type == "CODE_POSTAL_INSEE") {
     		$query = array("postalCodes.postalCode" => array('$in' => array($locality)));
@@ -1094,6 +1112,7 @@ class Search {
 			  		//$regionName = 
 			  		$newCity = array(
 			  						"_id"=>$data["_id"],
+			  						"id"=>(String) $data["_id"],
 			  						"insee" => $data["insee"], 
 			  						// "regionName" => isset($data["regionName"]) ? $data["regionName"] : "", 
 			  						// "depName" => isset($data["depName"]) ? $data["depName"] : "",
@@ -1102,12 +1121,34 @@ class Search {
 			  						"country" => $data["country"],
 			  						"geoShape" => isset($data["geoShape"]) ? $data["geoShape"] : "",
 			  						"cp" => $val["postalCode"],
+			  						"postalCodes" => $data["postalCodes"],
 			  						"geo" => $val["geo"],
 			  						"geoPosition" => $val["geoPosition"],
 			  						"name" => ucwords(strtolower($val["name"])),
+			  						"cityName" => $val["name"],
 			  						"alternateName" => ucwords(strtolower($val["name"])),
 			  						"type"=>"city",
 			  						"typeSig" => "city");
+
+			  		//var_dump(count($newCity["postalCodes"]));
+			  		if(!empty($newCity["postalCodes"]) && count($newCity["postalCodes"]) > 1){
+						foreach ($newCity["postalCodes"] as $key => $v) {
+		                    $citiesNames[] = $v["name"];
+		                }
+			            $newCity["cities"] = $citiesNames;
+			            
+			  		}else if(is_string($newCity["cp"]) && strlen($newCity["cp"]) > 0){
+						if($newCity["cp"]){
+			                $where = array("postalCodes.postalCode" =>new MongoRegex("/^".$newCity["cp"]."/i"),
+			            					"country" => $newCity["country"]);
+			                $citiesResult = PHDB::find( City::COLLECTION , $where, array("_id") );
+			                $citiesNames=array();
+			                foreach ($citiesResult as $key => $v) {
+			                    $citiesNames[] = City::getNameCity($key);
+			                }
+			                $newCity["cities"] = $citiesNames;
+			            }
+			  		}
 
 			  		if(!empty($data["level4"])){
 						 $newCity["level4"] = $data["level4"];

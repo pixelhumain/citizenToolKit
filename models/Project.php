@@ -51,6 +51,7 @@ class Project {
 	    "github" => array("name" => "socialNetwork.github"),
 	    "skype" => array("name" => "socialNetwork.skype"),
 	    "onepageEdition" => array("name" => "onepageEdition"),
+	    "instagram" => array("name" => "socialNetwork.instagram"),
 	    
 	);
 
