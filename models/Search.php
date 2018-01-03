@@ -1065,12 +1065,11 @@ class Search {
 
     //*********************************  CITIES   ******************************************
     public static function searchCities($search, $locality, $country){
-<<<<<<< HEAD
-  		$query = array( "name" => new MongoRegex("/".self::wd_remove_accents($search)."/i"));//array('$text' => array('$search' => $search));//
-=======
+
+  		//$query = array( "name" => new MongoRegex("/".self::wd_remove_accents($search)."/i"));//array('$text' => array('$search' => $search));//
+
 
   		$query = array( "name" => new MongoRegex("/".self::wd_remove_accents($search)."/i"));
->>>>>>> master
   		
   		//*********************************  DEFINE LOCALITY QUERY   ******************************************
     	if($locality == null || $locality == "")
