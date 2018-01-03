@@ -32,7 +32,7 @@ class Api {
     }
 
 
-    public static function getData($bindMap, $format = null, $type, $id = null, $limit=50, $index=0, $tags = null, $multiTags=null , $key = null, $insee = null, $geoShape = null){
+    public static function getData($bindMap, $format = null, $type, $id = null, $limit=50, $index=0, $tags = null, $multiTags=null , $key = null, $insee = null, $geoShape = null, $typeData = null){
         
         // Create params for request
         $params = array();
@@ -54,6 +54,11 @@ class Api {
             }
         }
         
+        if( @$typeData ){
+            //var_dump($typeData);
+            $params["type"] =  $typeData;
+        }
+
         if( @$tags ){
             $tagsArray = explode(",", $tags);
             $params["tags"] =  (($multiTags == "true")?array('$eq' => $tagsArray):array('$in' => $tagsArray));
@@ -65,7 +70,7 @@ class Api {
         else if($limit < 1) $limit = 50 ;
 
         if($index < 0) $index = 0 ;
-        if($type != City::COLLECTION){
+        if($type != City::COLLECTION && $type != POI::COLLECTION){
             $where = array('$or' => array(
                                     array("preferences.isOpenData" => true),
                                     array("preferences.isOpenData" => "true")
@@ -75,7 +80,7 @@ class Api {
             //$params["preferences.isOpenData"] = true ;
         }
         
-
+        //var_dump($params);
         $data = PHDB::findAndLimitAndIndex($type , $params, $limit, $index);
         $data = self::getUrlImage($data, $type);
 

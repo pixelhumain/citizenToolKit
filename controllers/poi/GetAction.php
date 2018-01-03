@@ -24,7 +24,7 @@ class GetAction extends CAction {
 				$bindMap = (empty($id)?TranslateCommunecter::$dataBinding_allOrganization:TranslateCommunecter::$dataBinding_organization);
 
 			//var_dump($bindMap);
-			$result = Api::getData($bindMap, $format, Organization::COLLECTION, $id,$limit, $index, $tags, $multiTags, $key, $insee);
+			$result = Api::getData($bindMap, $format, POI::COLLECTION, $id,$limit, $index, $tags, $multiTags, $key, $insee, null, $type);
 
 			Rest::json($result);
 			Yii::app()->end();
