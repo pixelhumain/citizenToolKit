@@ -474,17 +474,19 @@ class Search {
   			//Several Sourcekey
 	  		if(is_array($sourceKey)){
 	  			foreach ($sourceKey as $value) {
-	  				$tmpSourceKey[] = new MongoRegex("/".$value."/i");
+	  				$tmpSourceKey[] = $value;
 	  			}
 	  		}//One Sourcekey
 	  		else{
-	  			$tmpSourceKey[] = new MongoRegex("/".$sourceKey."/i");
+	  			$tmpSourceKey[] = $sourceKey;
 	  		}
+
 	  		if(count($tmpSourceKey)){
 	  			$query = array('$and' => array( $query , array("source.keys" => array('$in' => $tmpSourceKey))));
 	  		}
 	  		unset($tmpSourceKey);
 	  	}
+	  	return $query ;
 	}
 
 	//*********************************  Zones   ******************************************
