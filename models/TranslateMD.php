@@ -42,10 +42,13 @@ class TranslateMD {
 				{
 					$str .=	"### <i class='fa fa-group'></i> Organizations : \n";
 					foreach ($valueData["links"]["memberOf"] as $ix => $o) {
-						$el =	"- ".@$o["name"]." [ <i class='fa fa-link'></i> ](".@$o["url"]["communecter"].")";
-						if(@$o["isAdmin"] == "true")
-							$el .= "(Admin)";
-						$str .=	$el."\n";
+						$urlT = explode( "#", @$o["url"]["communecter"] );
+						if(@$urlT[1]){
+							$el =	"- <a href='#".$urlT[1]."' class='lbh'>".@$o["name"]."</a>";
+							if(@$o["isAdmin"] == "true")
+								$el .= "(Admin)";
+							$str .=	$el."\n";
+						}
 					}
 					$str .= "\n";
 				}
@@ -54,10 +57,12 @@ class TranslateMD {
 				{
 					$str .=	"### <i class='fa fa-lightbulb-o'></i> Projects : \n";
 					foreach ($valueData["links"]["projects"] as $ix => $o) {
-						$el =	"- ".@$o["name"]." [ <i class='fa fa-link'></i> ](".@$o["url"]["communecter"].")";
-						if(@$o["isAdmin"])
+						$urlT = explode( "#", @$o["url"]["communecter"] );
+						if(@$urlT[1]){
+							$el =	"- <a href='#".$urlT[1]."' class='lbh'>".@$o["name"]."</a>";if(@$o["isAdmin"])
 							$el .= "(Admin)";
-						$str .=	$el."\n";
+							$str .=	$el."\n";
+						}
 					}
 					$str .= "\n";
 				}
@@ -66,10 +71,12 @@ class TranslateMD {
 				{
 					$str .=	"### <i class='fa fa-calendar'></i> Events : \n";
 					foreach ($valueData["links"]["events"] as $ix => $o) {
-						$el =	"- ".@$o["name"]." [ <i class='fa fa-link'></i> ](".@$o["url"]["communecter"].")";
-						if(@$o["isAdmin"])
+						$urlT = explode( "#", @$o["url"]["communecter"] );
+						if(@$urlT[1]){
+							$el =	"- <a href='#".$urlT[1]."' class='lbh'>".@$o["name"]."</a>";if(@$o["isAdmin"])
 							$el .= "(Admin)";
-						$str .=	$el."\n";
+							$str .=	$el."\n";
+						}
 					}
 					$str .= "\n";
 				}

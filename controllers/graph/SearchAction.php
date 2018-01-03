@@ -24,24 +24,29 @@ class SearchAction extends CAction
             "searchType"=> array(Organization::COLLECTION, Project::COLLECTION, Event::COLLECTION, Person::COLLECTION)
         );
         $crit = "";
+        $icon = "";
+        $link = ""; 
         if(@$tag){
             $searchCrit["searchTag"]= array($tag);
-            $crit = "tag : ".$tag;
+            $crit = "TAG : ".$tag;
+            $icon = "<i class='fa fa-tag'></i> ";
+            $link = "";
         }
         else if(@$q){
             $searchCrit["name"]= $q;
-            $crit = "search : ".$q;
+            $crit = "SEARCH : '".$q."'";
+            $icon = "<i class='fa fa-search'></i> ";
+            $link = "";
         }
         else if(@$type){
             $searchCrit["searchType"]= array($type);
-            $crit = "type : ".$type;
+            $crit = "TYPE : ".$type;
         }
         
 
         $root = array( "id" => "search", "group" => 0,  "label" => $crit, "level" => 0 );
         $data = array($root);
 
-        echo "<div id='title'><div class='pull-left'>Search : ".$crit."</div> <input id='search' type='text' placeholder='#tag, free search, >types' onkeypress='return runScript(event)'/> </div>";
         $list = Search::globalAutoComplete( $searchCrit );
         if(isset($list)){
         	foreach ($list as $key => $value){
@@ -105,16 +110,18 @@ class SearchAction extends CAction
             'data' => $data, 
             'links' => $links,
             'list' => $list,
-            'tags' => $tags);
+            'tags' => $tags,
+            "title" => $icon.$crit
+            );
 
         if($view)
             Rest::json($data);
         else{
             if(Yii::app()->request->isAjaxRequest)
-                $controller->renderPartial('d3_2', $params);
+                $controller->renderPartial('d3', $params);
             else{
                 Yii::app()->theme  = "empty";
-                $controller->render('d3_2', $params);
+                $controller->render('d3', $params);
             }
         }
     }

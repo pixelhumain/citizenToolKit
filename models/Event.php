@@ -31,6 +31,7 @@ class Event {
 	    "name" => array("name" => "name", "rules" => array("required")),
 	    "slug" => array("name" => "slug", "rules" => array("checkSlug")),
 	    "type" => array("name" => "type"),
+	    "public"  => array("name" => "public"),
 	    "parent" => array("name" => "parent"),
 	    "parentId" => array("name" => "parentId"),
 	    "parentType" => array("name" => "parentType"),
@@ -76,6 +77,9 @@ class Event {
 	    "gpplus" => array("name" => "socialNetwork.googleplus"),
 	    "github" => array("name" => "socialNetwork.github"),
 	    "skype" => array("name" => "socialNetwork.skype"),
+	    "diaspora" => array("name" => "socialNetwork.diaspora"),
+	    "mastodon" => array("name" => "socialNetwork.mastodon"),
+	    
 	    "onepageEdition" => array("name" => "onepageEdition"),
 	);
 

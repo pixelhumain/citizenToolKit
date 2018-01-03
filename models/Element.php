@@ -15,7 +15,7 @@ class Element {
         "management" => "Gestion",
 	    "funding" => "Financement",
 	    "other" => "Autre"
-	);  
+	);
 
 	public static $connectTypes = array(
 		Organization::COLLECTION => "members",
@@ -2168,7 +2168,6 @@ class Element {
 				}
 
 			}else if($block == "network"){
-				var_dump($block);
 				if(isset($params["telegram"]) && $collection == Person::COLLECTION)
 					$res[] = self::updateField($collection, $id, "telegram", $params["telegram"]);
 				if(isset($params["facebook"]))
@@ -2181,7 +2180,10 @@ class Element {
 					$res[] = self::updateField($collection, $id, "gpplus", self::getAndCheckUrl($params["gpplus"]));
 				if(isset($params["skype"]))
 					$res[] = self::updateField($collection, $id, "skype", self::getAndCheckUrl($params["skype"]));
-				var_dump($res);
+				if(isset($params["diaspora"]))
+					$res[] = self::updateField($collection, $id, "diaspora", self::getAndCheckUrl($params["diaspora"]));
+				if(isset($params["mastodon"]))
+					$res[] = self::updateField($collection, $id, "mastodon", self::getAndCheckUrl($params["mastodon"]));
 
 			}else if( $block == "when" && ( $collection == Event::COLLECTION || $collection == Project::COLLECTION) ) {
 				

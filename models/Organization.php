@@ -76,6 +76,8 @@ class Organization {
 	    "gpplus" => array("name" => "socialNetwork.googleplus"),
 	    "github" => array("name" => "socialNetwork.github"),
 	    "skype" => array("name" => "socialNetwork.skype"),
+	    "diaspora" => array("name" => "socialNetwork.diaspora"),
+	    "mastodon" => array("name" => "socialNetwork.mastodon"),
 	    "parent" => array("name" => "parent"),
 	    "parentId" => array("name" => "parentId"),
 	    "parentType" => array("name" => "parentType"),

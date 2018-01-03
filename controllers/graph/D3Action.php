@@ -33,11 +33,12 @@ class D3Action extends CAction
         $hasMembersP = false;
         $hasTags = false;
 
+        $link = "#page.type.".$itemType.".id.".(string)$item["_id"];
+
         if(@$item["tags"])
             foreach (@$item["tags"] as $ix => $tag) {if(!in_array($tag, $tags))$tags[] = $tag;}
         
         
-        echo "<div id='title'> <div class='pull-left'>GRAPH : ".$item["name"]." </div> <input id='search' type='text' placeholder='#tag, free search, >types' onkeypress='return runScript(event)'/></div>";
         if(isset($item) && isset($item["links"])){
         	foreach ($item["links"] as $key => $value){
         		foreach ($value as $k => $v) {
@@ -150,12 +151,14 @@ class D3Action extends CAction
             'item' => $item,
             'tags' => $tags,
             "typeMap" => $type,
-            "colink" => "#page.type.".$itemType.".id.".(string)$item["_id"]
+            "colink" => "#page.type.".$itemType.".id.".(string)$item["_id"],
+            "title" => $type." : ".$item["name"],
+            "link" => $link
             );
 
         Yii::app()->theme  = "empty";
         Yii::app()->session["theme"] = "empty";
 
-        $controller->render('d3_2', $params);
+        $controller->render('d3', $params);
     }
 }

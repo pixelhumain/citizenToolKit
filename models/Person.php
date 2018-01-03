@@ -40,6 +40,8 @@ class Person {
 	    "github" => array("name" => "socialNetwork.github"),
 	    "skype" => array("name" => "socialNetwork.skype"),
 	    "telegram" => array("name" => "socialNetwork.telegram"),
+	    "diaspora" => array("name" => "socialNetwork.diaspora"),
+	    "mastodon" => array("name" => "socialNetwork.mastodon"),
 	    "bgClass" => array("name" => "preferences.bgClass"),
 	    "bgUrl" => array("name" => "preferences.bgUrl"),
 	    "roles" => array("name" => "roles"),
