@@ -61,8 +61,6 @@ class WebSearchAction extends CAction
     	foreach ($siteurls as $key => $siteurl) {
     		$siteurls[$key]["typeSig"] = "url";
 
-
-
             if(isset($_POST["search"]) && $_POST["search"] != ""){
                 /* PONDERATION DES RESULTATS */
 
@@ -117,10 +115,40 @@ class WebSearchAction extends CAction
 
         $arraySearch = explode(" ", @$searchStr);
 
+
     	$params = array("siteurls"=>$siteurls,
     					"search"=>@$_POST["search"],
                         "arraySearch" => @$arraySearch,
-    					"category"=>@$_POST["category"]);
+    					"category"=>@$_POST["category"],
+                        "elements"=>array());
+
+        /*complete search with element*/
+        $currentSearch = @$_POST["search"] ? $_POST["search"] : "";
+
+        if($currentSearch == "")
+            $currentSearch = @$_POST["category"] ? "#".$_POST["category"] : "";
+
+        if($currentSearch != ""){
+            $paramsGAC = array( "name" => $currentSearch,
+                                "searchType"=>array(Person::COLLECTION, Project::COLLECTION, 
+                                                    Organization::COLLECTION, Event::COLLECTION, Poi::COLLECTION)
+                            );
+
+            $elements = Search::globalAutoComplete($paramsGAC);
+            //if(sizeof($elements)==0){
+                $paramsGAC = array( "searchTag" => array($currentSearch),
+                                    "searchType"=>array(Person::COLLECTION, Project::COLLECTION, 
+                                                        Organization::COLLECTION, Event::COLLECTION, Poi::COLLECTION)
+                            );
+                $elementsTags = Search::globalAutoComplete($paramsGAC);
+            //}
+
+            if(sizeof($elementsTags)>0)
+                $elements = array_merge($elements, $elementsTags);
+
+            $params["elements"] = $elements;
+        }
+        /*complete search with element*/
 
         CO2Stat::incNbLoad("co2-websearch");
     	echo $controller->renderPartial("webSearch", $params, true);

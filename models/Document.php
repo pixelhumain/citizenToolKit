@@ -997,12 +997,18 @@ class Document {
 		//error_log("Entity Profil image url for the ".$type." with the id ".$id." : ".@$entity["profilImageUrl"] );
 		//The profil image URL should be stored in the entity collection 
 		if (isset($entity["profilImageUrl"])) {
-			$res["profilImageUrl"] = $entity["profilImageUrl"];
-			$res["profilThumbImageUrl"] = !empty($entity["profilThumbImageUrl"]) ? $entity["profilThumbImageUrl"] : "";
-			$res["profilMarkerImageUrl"] = !empty($entity["profilMarkerImageUrl"]) ? $entity["profilMarkerImageUrl"] : "";
-			$res["profilBannerUrl"] = !empty($entity["profilBannerUrl"]) ? $entity["profilBannerUrl"] : "";
-			$res["profilRealBannerUrl"] = !empty($entity["profilRealBannerUrl"]) ? $entity["profilRealBannerUrl"] : ""; 
-			$res["profilMediumImageUrl"] = !empty($entity["profilMediumImageUrl"]) ? $entity["profilMediumImageUrl"]."?_=".time() : ""; 
+			if(!empty($entity["profilImageUrl"] ))
+				$res["profilImageUrl"] = $entity["profilImageUrl"];
+			if(!empty($entity["profilThumbImageUrl"] ))
+				$res["profilThumbImageUrl"] =  $entity["profilThumbImageUrl"];
+			if(!empty($entity["profilMarkerImageUrl"] ))
+				$res["profilMarkerImageUrl"] = $entity["profilMarkerImageUrl"];
+			if(!empty($entity["profilBannerUrl"] ))
+				$res["profilBannerUrl"] = $entity["profilBannerUrl"];
+			if(!empty($entity["profilRealBannerUrl"] ))
+				$res["profilRealBannerUrl"] = $entity["profilRealBannerUrl"]; 
+			if(!empty($entity["profilMediumImageUrl"] ))
+				$res["profilMediumImageUrl"] = $entity["profilMediumImageUrl"]."?_=".time(); 
 
 		//If empty than retrieve the URLs from document and store them in the entity for next time
 		} else {

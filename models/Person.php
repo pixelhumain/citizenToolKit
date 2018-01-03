@@ -169,6 +169,9 @@ class Person {
         	$person = self::clearAttributesByConfidentiality($person);
         }
 
+        if(@$person["links"])
+				$person["linkSize"] = count($person["links"], COUNT_RECURSIVE);
+
 	  	return $person;
 	}
 
@@ -259,18 +262,26 @@ class Person {
 
 		$simplePerson["id"] = $id;
 		$simplePerson["name"] = @$person["name"];
-		//$simplePerson["name"] = addslashes(@$person["name"]);
-		$simplePerson["username"] = @$person["username"];
-		$simplePerson["username"] = @$person["username"];
-		$simplePerson["email"] = @$person["email"];
-		$simplePerson["tags"] = @$person["tags"];
-		$simplePerson["links"] = @$person["links"];
-		$simplePerson["tobeactivated"] = @$person["roles"]["tobeactivated"];
-		$simplePerson["shortDescription"] = @$person["shortDescription"];
-		$simplePerson["description"] = @$person["description"];
-		$simplePerson["pending"] = @$person["pending"];
-		$simplePerson["updated"] = @$person["updated"];
-		$simplePerson["slug"] = @$person["slug"];
+		if(@$person["username"])
+			$simplePerson["username"] = @$person["username"];
+		if(@$person["email"])
+			$simplePerson["email"] = @$person["email"];
+		if(@$person["tags"])
+			$simplePerson["tags"] = @$person["tags"];
+		if(@$person["links"])
+			$simplePerson["links"] = @$person["links"];
+		if(@$person["roles"]["tobeactivated"])
+			$simplePerson["tobeactivated"] = @$person["roles"]["tobeactivated"];
+		if(@$person["shortDescription"])
+			$simplePerson["shortDescription"] = @$person["shortDescription"];
+		if(@$person["description"])
+			$simplePerson["description"] = @$person["description"];
+		if(@$person["pending"])
+			$simplePerson["pending"] = @$person["pending"];
+		if(@$person["updated"])
+			$simplePerson["updated"] = @$person["updated"];
+		if(@$person["slug"])
+			$simplePerson["slug"] = @$person["slug"];
 
 		//Ajouter par rapport au getAllLink
 		$simplePerson["address"] = @$person["address"];
