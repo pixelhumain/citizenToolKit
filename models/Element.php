@@ -1768,7 +1768,7 @@ class Element {
 		}
 
 		if (isset($params["public"]) && !is_bool($params["public"])) {
-	    	if ($params["public"] == "true") {
+	    	if ($params["public"] == "true")
 				$params["public"] = true;
 			else 
 				$params["public"] = false;
