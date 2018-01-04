@@ -18,7 +18,7 @@ class D3Action extends CAction
         	$itemType = Project::COLLECTION;
         }
 
-        $item = PHDB::findOne( $itemType ,array("_id"=>new MongoId($id)));
+        $item = PHDB::findOne( $itemType , array("_id"=>new MongoId($id)) );
         $root = array( "id" => (string)$item["_id"], "group" => 0,  "label" => $item["name"], "level" => 0,"tags" => @$item["tags"] );
 
         $data = array($root);
@@ -159,6 +159,15 @@ class D3Action extends CAction
         Yii::app()->theme  = "empty";
         Yii::app()->session["theme"] = "empty";
 
-        $controller->render('d3', $params);
+        if($view)
+            Rest::json($data);
+        else{
+            if(Yii::app()->request->isAjaxRequest)
+                $controller->renderPartial('d3', $params);
+            else{
+                Yii::app()->theme  = "empty";
+                $controller->render('d3', $params);
+            }
+        }
     }
 }
