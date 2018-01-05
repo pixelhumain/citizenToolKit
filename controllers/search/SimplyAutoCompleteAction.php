@@ -10,7 +10,7 @@ class SimplyAutoCompleteAction extends CAction
         $search = isset($_POST['name']) ? trim(urldecode($_POST['name'])) : null;
         $locality = isset($_POST['locality']) ? trim(urldecode($_POST['locality'])) : null;
         $searchType = isset($_POST['searchType']) ? $_POST['searchType'] : null;
-        $searchTag = isset($_POST['searchTag']) ? $_POST['searchTag'] : null;
+        $searchTags = isset($_POST['searchTag']) ? $_POST['searchTag'] : null;
         $searchPrefTag = isset($_POST['searchPrefTag']) ? $_POST['searchPrefTag'] : null;
         $searchBy = isset($_POST['searchBy']) ? $_POST['searchBy'] : "INSEE";
         $indexMin = isset($_POST['indexMin']) ? $_POST['indexMin'] : 0;
@@ -55,9 +55,9 @@ class SimplyAutoCompleteAction extends CAction
 
 	        /***********************************  TAGS   *****************************************/
 
-	        if(!empty($searchTag)) {
+	        if(!empty($searchTags)) {
 		  		$verbTag = ( (!empty($paramsFiltre) && '$all' == $paramsFiltre) ? '$all' : '$in' ) ;
-				$queryTags =  self::searchTags($searchTags, $verbTag) ;
+		  		$queryTags =  Search::searchTags($searchTags, $verbTag) ;
 
 				if( !empty($queryTags) )
 					$query = array('$and' => array( $query , $queryTags) );
@@ -130,7 +130,7 @@ class SimplyAutoCompleteAction extends CAction
 			// $allRes = array_merge($allRes, $allEvents);
 	  // 	}
 
-	  	if(strcmp($filter, Event::COLLECTION) != 0 && self::typeWanted(Event::COLLECTION, $searchType)){
+	  	if(strcmp($filter, Event::COLLECTION) != 0 && Search::typeWanted(Event::COLLECTION, $searchType)){
 
 			if(!empty($startDate)){
 				array_push( $query[ '$and' ], array( "startDate" => array( '$gte' => new MongoDate( (float)$startDate ) ) ) );
@@ -139,7 +139,7 @@ class SimplyAutoCompleteAction extends CAction
        			array_push( $query[ '$and' ], array( "endDate" => array( '$lte' => new MongoDate( (float)$endDate ) ) ) );
        		}
 
-			$allRes = array_merge($allRes, self::searchEvents($query, 0, $indexMin, null));
+			$allRes = array_merge($allRes, Search::searchEvents($query, 0, $indexMin, null));
 	  	}
 
 	  	/***********************************  PROJECTS   *****************************************/
@@ -157,8 +157,8 @@ class SimplyAutoCompleteAction extends CAction
 	  	// 	$allRes = array_merge($allRes, $allProject);
 	  	// }
 
-	  	if(strcmp($filter, Project::COLLECTION) != 0 && self::typeWanted(Project::COLLECTION, $searchType)){
-			$allRes = array_merge($allRes, self::searchProject($query, 0, $indexMin));
+	  	if(strcmp($filter, Project::COLLECTION) != 0 && Search::typeWanted(Project::COLLECTION, $searchType)){
+			$allRes = array_merge($allRes, Search::searchProject($query, 0, $indexMin));
 	  	}
 
 	  	/***********************************  CITIES   *****************************************/

@@ -14,7 +14,7 @@ class Network {
 	    
 	    "add" => array("name" => "add"),
 
-	    "filters" => array("name" => "filters"),
+	    "filter" => array("name" => "filter"),
 	    "types" => array("name" => "types"),
 
 	    "result" => array("name" => "result"),
@@ -64,5 +64,52 @@ class Network {
 		}
 
 		return json_decode($json, true);
+	}
+
+	public static function prepData ($params) {
+
+		if (isset($params["skin"]["displayCommunexion"]) && !is_bool($params["skin"]["displayCommunexion"])) {
+			if ($params["skin"]["displayCommunexion"] == "true")
+				$params["skin"]["displayCommunexion"] = true;
+			else 
+				$params["skin"]["displayCommunexion"] = false;
+		}
+
+		if(!empty($params["add"])){
+			$newAdd = array();
+			foreach ($params["add"] as $key => $value) {
+				$newAdd[$value] = true ;
+			}
+			$params["add"] = $newAdd;
+		}
+
+		if(!empty($params["filter"])){
+			$newFilters["linksTag"] = array();
+			foreach ($params["filter"] as $key => $value) {
+				$i = 0 ;
+				$tags = array();
+				while ( !empty($value["keyVal".$i] ) && !empty($value["tagskeyVal".$i] ) ) {
+					$tags[$value["keyVal".$i]] = preg_split("/[,]+/", $value["tagskeyVal".$i]);
+
+
+					$i++;
+				}
+
+				$newFilters["linksTag"][$value["name"]] = array( 	"tagParent" => "Type",
+																	"background-color" => "#f5f5f5",
+																	"image" => "Travail.png",
+																	"tags" => $tags );
+			}
+
+			$params["filter"] = $newFilters;
+		}
+
+		return $params;
+	}
+
+
+	public static function getNetworkById($id, $fields=null) {
+		$network = PHDB::findOneById( Network::COLLECTION, $id, $fields);
+		return $network;
 	}
 }
