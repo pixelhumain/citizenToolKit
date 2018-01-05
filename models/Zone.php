@@ -1,5 +1,4 @@
 <?php
-
 class Zone {
 
 	const COLLECTION = "zones";
