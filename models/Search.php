@@ -719,12 +719,12 @@ class Search {
 	//*********************************  ORGANIZATIONS   ******************************************
   	public static function searchOrganizations($query, $indexStep, $indexMin, $searchType, $searchTypeOrga){
        	$res = array();
-    	$queryOrganization = $query;
-    	if( !isset( $queryOrganization['$and'] ) ) 
-    		$queryOrganization['$and'] = array();
-    	array_push( $queryOrganization[ '$and' ], array( "disabled" => array('$exists' => false) ) );
-    	if(sizeof($searchType)==1 && @$searchTypeOrga != "")
-    		array_push( $queryOrganization[ '$and' ], array( "type" => $searchTypeOrga ) );
+		$queryOrganization = $query;
+		if( !isset( $queryOrganization['$and'] ) ) 
+			$queryOrganization['$and'] = array();
+		array_push( $queryOrganization[ '$and' ], array( "disabled" => array('$exists' => false) ) );
+		if(sizeof($searchType)==1 && @$searchTypeOrga != "")
+			array_push( $queryOrganization[ '$and' ], array( "type" => $searchTypeOrga ) );
 
   		$allOrganizations = PHDB::findAndSortAndLimitAndIndex ( Organization::COLLECTION ,$queryOrganization, 
   												array("updated" => -1), $indexStep, $indexMin);
@@ -750,14 +750,23 @@ class Search {
 	//*********************************  EVENT   ******************************************
 	public static function searchEvents($query, $indexStep, $indexMin, $searchSType){
 		date_default_timezone_set('UTC');
-    	$queryEvent = $query;
+		$queryEvent = $query;
 
-    	if( !isset( $queryEvent['$and'] ) ) 
-    		$queryEvent['$and'] = array();
+		if( !isset( $queryEvent['$and'] ) ) 
+			$queryEvent['$and'] = array();
 
-    	if(isset($searchSType) && $searchSType != "")
-        		array_push( $queryEvent[ '$and' ], array( "type" => $_POST["searchSType"] ) );
-    	
+		if(isset($searchSType) && $searchSType != "")
+			array_push( $queryEvent[ '$and' ], array( "type" => $_POST["searchSType"] ) );
+
+		$queryEvent = array('$and' => 
+						array( $queryEvent , 
+						array( '$or' => array( 
+							array("public" => true ),
+							array( '$and' => array(
+								array("public" => false ),
+								array("links.attendees.".Yii::app()->session["userId"] => array('$exists' => 1) )
+								) ) ) ) ) );
+
     	$allEvents = PHDB::findAndSortAndLimitAndIndex( PHType::TYPE_EVENTS, $queryEvent, 
   										array("startDate" => 1), $indexStep, $indexMin);
   		foreach ($allEvents as $key => $value) {
@@ -793,7 +802,7 @@ class Search {
 	//*********************************  PROJECTS   ******************************************
 	public static function searchProject($query, $indexStep, $indexMin){
 		date_default_timezone_set('UTC');
-        $allProject = PHDB::findAndSortAndLimitAndIndex(Project::COLLECTION, $query, 
+		$allProject = PHDB::findAndSortAndLimitAndIndex(Project::COLLECTION, $query, 
 	  												array("updated" => -1), $indexStep, $indexMin);
   		foreach ($allProject as $key => $value) {
   			if(@$project["links"]["followers"][Yii::app()->session["userId"]]){
