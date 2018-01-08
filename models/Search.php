@@ -129,6 +129,7 @@ class Search {
         $sourceKey = !empty($post['sourceKey']) ? $post['sourceKey'] : "";
         $countResult = (@$post["count"]) ? true : false;
         $page = @$post['page'] ? $post['page'] : 0;
+        $app = @$post['app'] ? $post['app'] : "";
         //$indexStep = 100;
         $indexStep=100;
       	$indexMin=100*$page;
@@ -327,7 +328,15 @@ class Search {
           $allRes["count"][Poi::COLLECTION] = PHDB::count( Poi::COLLECTION , $query);
           $allRes["count"][Classified::COLLECTION] = PHDB::count( Classified::COLLECTION , $query);
           $allRes["count"][Place::COLLECTION] = PHDB::count(Place::COLLECTION , $query);
+          $allRes["count"][Ressource::COLLECTION] = PHDB::count(Ressource::COLLECTION , $query);
           $allRes["count"][News::COLLECTION] = PHDB::count( News::COLLECTION , $queryNews);
+          if($app=="search"){
+          	foreach(Organization::$types as $key => $v){
+          		$querySubOrg=$query;
+          		array_push( $querySubOrg[ '$and' ], array( "type" => $key ) );
+          		$allRes["count"][$key] = PHDB::count( Organization::COLLECTION , $querySubOrg);
+          	}
+          }
       	}
 	  	//var_dump($allRes);
 	  	return $allRes ;
