@@ -112,4 +112,32 @@ class Network {
 		$network = PHDB::findOneById( Network::COLLECTION, $id, $fields);
 		return $network;
 	}
+
+	public static function getNetworkByUserId($id, $fields=null) {
+		$where = array("creator" => $id);
+		$networks = PHDB::find( Network::COLLECTION, $where, $fields);
+		return $networks;
+	}
+
+	public static function getListNetworkByUserId($id) {
+		$networks = Network::getNetworkByUserId($id);
+		$list = array();
+		foreach ($networks as $key => $value) {
+			$value["type"] = "network";
+			$list[$key] = $value;
+		}
+
+		return $list;
+	}
+
+	public static function getNetwork($id, $type){
+		$res = array();
+		$listElt = array(Organization::COLLECTION, Person::COLLECTION, Project::COLLECTION, Event::COLLECTION);
+		if(in_array($type, $listElt) ){
+			$res = PHDB::findOne( $type , array( "_id" => new MongoId($id) ) ,array("urls") );
+			$res = (!empty($res["urls"]) ? $res["urls"] : array() );
+		}
+		return $res;
+	}
+
 }
