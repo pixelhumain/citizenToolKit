@@ -104,6 +104,14 @@ class Network {
 			$params["filter"] = $newFilters;
 		}
 
+
+
+		if(!empty($params["request"]["searchType"]))
+			$params["request"]["searchType"] = explode(",", $params["request"]["searchType"]);
+
+		if(!empty($params["request"]["sourceKey"]))
+			$params["request"]["sourceKey"] = explode(",", $params["request"]["sourceKey"]);
+
 		return $params;
 	}
 
