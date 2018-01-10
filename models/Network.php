@@ -68,49 +68,47 @@ class Network {
 
 	public static function prepData ($params) {
 
-		if (isset($params["skin"]["displayCommunexion"]) && !is_bool($params["skin"]["displayCommunexion"])) {
-			if ($params["skin"]["displayCommunexion"] == "true")
-				$params["skin"]["displayCommunexion"] = true;
-			else 
-				$params["skin"]["displayCommunexion"] = false;
-		}
+		// if (isset($params["skin"]["displayCommunexion"]) && !is_bool($params["skin"]["displayCommunexion"])) {
+		// 	if ($params["skin"]["displayCommunexion"] == "true")
+		// 		$params["skin"]["displayCommunexion"] = true;
+		// 	else 
+		// 		$params["skin"]["displayCommunexion"] = false;
+		// }
 
-		if(!empty($params["add"])){
-			$newAdd = array();
-			foreach ($params["add"] as $key => $value) {
-				$newAdd[$value] = true ;
-			}
-			$params["add"] = $newAdd;
-		}
+		// if(!empty($params["add"])){
+		// 	$newAdd = array();
+		// 	foreach ($params["add"] as $key => $value) {
+		// 		$newAdd[$value] = true ;
+		// 	}
+		// 	$params["add"] = $newAdd;
+		// }
 
-		if(!empty($params["filter"])){
-			$newFilters["linksTag"] = array();
-			foreach ($params["filter"] as $key => $value) {
-				$i = 0 ;
-				$tags = array();
-				while ( !empty($value["keyVal".$i] ) && !empty($value["tagskeyVal".$i] ) ) {
-					$tags[$value["keyVal".$i]] = preg_split("/[,]+/", $value["tagskeyVal".$i]);
-
-
-					$i++;
-				}
-
-				$newFilters["linksTag"][$value["name"]] = array( 	"tagParent" => "Type",
-																	"background-color" => "#f5f5f5",
-																	"image" => "Travail.png",
-																	"tags" => $tags );
-			}
-
-			$params["filter"] = $newFilters;
-		}
+		// if(!empty($params["filter"])){
+		// 	$newFilters["linksTag"] = array();
+		// 	foreach ($params["filter"] as $key => $value) {
+		// 		$i = 0 ;
+		// 		$tags = array();
+		// 		while ( !empty($value["keyVal".$i] ) && !empty($value["tagskeyVal".$i] ) ) {
+		// 			$tags[$value["keyVal".$i]] = preg_split("/[,]+/", $value["tagskeyVal".$i]);
 
 
+		// 			$i++;
+		// 		}
 
-		if(!empty($params["request"]["searchType"]))
-			$params["request"]["searchType"] = explode(",", $params["request"]["searchType"]);
+		// 		$newFilters["linksTag"][$value["name"]] = array( 	"tagParent" => "Type",
+		// 															"background-color" => "#f5f5f5",
+		// 															"image" => "Travail.png",
+		// 															"tags" => $tags );
+		// 	}
 
-		if(!empty($params["request"]["sourceKey"]))
-			$params["request"]["sourceKey"] = explode(",", $params["request"]["sourceKey"]);
+		// 	$params["filter"] = $newFilters;
+		// }
+
+		// if(!empty($params["request"]["searchType"]))
+		// 	$params["request"]["searchType"] = explode(",", $params["request"]["searchType"]);
+
+		// if(!empty($params["request"]["sourceKey"]))
+		// 	$params["request"]["sourceKey"] = explode(",", $params["request"]["sourceKey"]);
 
 		return $params;
 	}
