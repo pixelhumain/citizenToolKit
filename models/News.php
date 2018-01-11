@@ -8,6 +8,10 @@ class News {
 	const ICON_GROUP = "fa-circle-o";
 	const ICON_GOV = "fa-circle-o";
 	const COLOR = "#93C020";
+	const TYPE_PUBLIC = "public";
+	const TYPE_RESTRICTED = "restricted";
+	const TYPE_PRIVATE = "private";
+
 	/**
 	 * get an news By Id
 	 * @param type $id : is the mongoId of the news

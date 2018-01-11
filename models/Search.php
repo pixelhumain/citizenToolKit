@@ -130,6 +130,7 @@ class Search {
         $countResult = (@$post["count"]) ? true : false;
         $page = @$post['page'] ? $post['page'] : 0;
         $app = @$post['app'] ? $post['app'] : "";
+        $ranges = @$post['ranges'] ? $post['ranges'] : null;
         //$indexStep = 100;
         $indexStep=100;
       	$indexMin=100*$page;
@@ -158,10 +159,10 @@ class Search {
 		$query = array();
       	$queryNews=array();
       	$query = Search::searchString($search, $query);
-      	$queryNews = Search::searchNewsString($search, $query);
-      	$queryNews = array('$and' => array( $queryNews , array("type"=>"news","scope.type"=>"public")) );
-      
 		$query = array('$and' => array( $query , array("state" => array('$ne' => "uncomplete")) ));
+      	$queryNews = Search::searchNewsString($search, $query);
+      	$queryNews = array('$and' => array( $queryNews , array("type"=>News::COLLECTION, "scope.type"=>News::TYPE_PUBLIC, "target.type"=>array('$ne'=>"pixels"))));
+
   		if($latest)
   			$query = array('$and' => array($query, array("updated"=>array('$exists'=>1))));
 
@@ -218,12 +219,20 @@ class Search {
 		//*********************************  PERSONS   ******************************************
        	if(strcmp($filter, Person::COLLECTION) != 0 && (self::typeWanted(Person::COLLECTION, $searchType) || self::typeWanted("persons", $searchType) ) ) {
 			$prefLocality = (!empty($searchLocality) ? true : false);
+			if(@$ranges){
+				$indexMin=$ranges[Person::COLLECTION]["indexMin"];
+				$indexStep=$ranges[Person::COLLECTION]["indexMax"]-$ranges[Person::COLLECTION]["indexMin"];
+			}
 			$allRes = array_merge($allRes, self::searchPersons($query, $indexStep, $indexMin, $prefLocality));
 
 	  	}
 
 	  	//*********************************  ORGANISATIONS   ******************************************
 		if(strcmp($filter, Organization::COLLECTION) != 0 && self::typeWanted(Organization::COLLECTION, $searchType)){
+			if(@$ranges){
+				$indexMin=$ranges[Organization::COLLECTION]["indexMin"];
+				$indexStep=$ranges[Organization::COLLECTION]["indexMax"]-$ranges[Organization::COLLECTION]["indexMin"];
+			}
 			$allRes = array_merge($allRes, self::searchOrganizations($query, $indexStep, $indexMin,  $searchType, $searchTypeOrga));
 	  	}
 
@@ -231,7 +240,10 @@ class Search {
 				
 	  	//*********************************  EVENT   ******************************************
 		if(strcmp($filter, Event::COLLECTION) != 0 && self::typeWanted(Event::COLLECTION, $searchType)){
-
+			if(@$ranges){
+				$indexMin=$ranges[Event::COLLECTION]["indexMin"];
+				$indexStep=$ranges[Event::COLLECTION]["indexMax"]-$ranges[Event::COLLECTION]["indexMin"];
+			}
 			if($startDate!=null){
 				array_push( $query[ '$and' ], array( "startDate" => array( '$gte' => new MongoDate( (float)$startDate ) ) ) );
        		}
@@ -239,15 +251,23 @@ class Search {
        			array_push( $query[ '$and' ], array( "endDate" => array( '$lte' => new MongoDate( (float)$endDate ) ) ) );
        		}
 
-			$allRes = array_merge($allRes, self::searchEvents($query, $indexStep, $indexMin, $searchSType));
+			$allRes = array_merge($allRes, self::searchEvents($query, $indexStep, $indexMin, $searchSType, $app));
 	  	}
 	  	//*********************************  PROJECTS   ******************************************
 		if(strcmp($filter, Project::COLLECTION) != 0 && self::typeWanted(Project::COLLECTION, $searchType)){
+			if(@$ranges){
+				$indexMin=$ranges[Project::COLLECTION]["indexMin"];
+				$indexStep=$ranges[Project::COLLECTION]["indexMax"]-$ranges[Project::COLLECTION]["indexMin"];
+			}
 			$allRes = array_merge($allRes, self::searchProject($query, $indexStep, $indexMin));
 	  	}
 		//*********************************  CLASSIFIED   ******************************************
 		if(strcmp($filter, Classified::COLLECTION) != 0 && self::typeWanted(Classified::COLLECTION, $searchType)){
 			//var_dump($query) ; exit;
+			if(@$ranges){
+				$indexMin=$ranges[Classified::COLLECTION]["indexMin"];
+				$indexStep=$ranges[Classified::COLLECTION]["indexMax"]-$ranges[Classified::COLLECTION]["indexMin"];
+			}
 			if(!empty($searchTags) && in_array("favorites", $searchTags))
 				$allRes = array_merge($allRes, self::searchFavorites(Classified::COLLECTION));
 			else 
@@ -255,6 +275,10 @@ class Search {
 	  	}
 	  	//*********************************  POI   ******************************************
 		if(strcmp($filter, Poi::COLLECTION) != 0 && self::typeWanted(Poi::COLLECTION, $searchType)){
+			if(@$ranges){
+				$indexMin=$ranges[Poi::COLLECTION]["indexMin"];
+				$indexStep=$ranges[Poi::COLLECTION]["indexMax"]-$ranges[Poi::COLLECTION]["indexMin"];
+			}
 			$allRes = array_merge($allRes, self::searchPoi($query, $indexStep, $indexMin));
 	  	}
 	  	//*********************************  PRODUCT  ******************************************
@@ -271,17 +295,29 @@ class Search {
 	  	}
 	  	//*********************************  PLACE   ******************************************
         if(strcmp($filter, Place::COLLECTION) != 0 && self::typeWanted(Place::COLLECTION, $searchType)){
+        	if(@$ranges){
+				$indexMin=$ranges[Place::COLLECTION]["indexMin"];
+				$indexStep=$ranges[Place::COLLECTION]["indexMax"]-$ranges[Place::COLLECTION]["indexMin"];
+			}
         	$allRes = array_merge($allRes, self::searchAny(Place::COLLECTION,$query, $indexStep, $indexMin));
 	  	}
 
 	  	//*********************************  RESSOURCE   ******************************************
         if(strcmp($filter, Ressource::COLLECTION) != 0 && self::typeWanted(Ressource::COLLECTION, $searchType)){
+        	if(@$ranges){
+				$indexMin=$ranges[Ressource::COLLECTION]["indexMin"];
+				$indexStep=$ranges[Ressource::COLLECTION]["indexMax"]-$ranges[Ressource::COLLECTION]["indexMin"];
+			}
         	$allRes = array_merge($allRes, self::searchAny(Ressource::COLLECTION, $query, $indexStep, $indexMin));
 	  	}
 
 	  	//*********************************  NEWS   ******************************************
 	  	if(strcmp($filter, News::COLLECTION) != 0 && self::typeWanted(News::COLLECTION, $searchType)){
-			$allRes = array_merge($allRes, self::searchNews($queryNews, $indexStep, $indexMax));
+	  		if(@$ranges){
+				$indexMin=$ranges[News::COLLECTION]["indexMin"];
+				$indexStep=$ranges[News::COLLECTION]["indexMax"]-$ranges[News::COLLECTION]["indexMin"];
+			}
+			$allRes = array_merge($allRes, self::searchNews($queryNews, $indexStep, $indexMin));
 	  	}
 
 	  	//*********************************  DDA   ******************************************
@@ -309,9 +345,25 @@ class Search {
 	  		usort($allRes, "self::mySortByUpdated");
 	  	}
 	  	foreach ($allRes as $key => $value) {
+	  		if($app=="territorial"){
+	  			if($value["type"]==News::COLLECTION){
+	  				if(@$value["updated"])
+						$allRes[$key]["sorting"] = @$value["updated"]->sec;
+					else if(@$value["created"])
+						$allRes[$key]["sorting"] = @$value["created"]->sec;
+	  			}
+				else
+					$allRes[$key]["sorting"] = @$value["updated"];
+	  		}
 			if(@$value["updated"]) {
-				if(self::typeWanted(Event::COLLECTION, $searchType))
+				if($app=="agenda")
 					$allRes[$key]["updatedLbl"] = Translate::pastTime(@$value["startDate"],"date");
+				else if($value["type"]==News::COLLECTION){
+					if(@$value["updated"])
+						$allRes[$key]["updatedLbl"] = Translate::pastTime(@$value["updated"]->sec, "timestamp");
+					else if(@$value["created"])
+						$allRes[$key]["updatedLbl"] = Translate::pastTime(@$value["created"]->sec, "timestamp");
+				}
 				else
 					$allRes[$key]["updatedLbl"] = Translate::pastTime(@$value["updated"],"timestamp");
 	  		}
@@ -360,24 +412,23 @@ class Search {
 		        $query = array('$or' => array($query,array('$and'=> $andArray)));
 	        }
   		}
-        
   		return $query;
   		
 	}
 	//*********************************  Search  in news ******************************************
 	public static function searchNewsString($search, $query){
-
-        if(strpos($search, "#") > -1){
+		if(strpos($search, "#") > -1){
         	$searchTagText = substr($search, 1, strlen($search)); 
         	$query = self::searchTags(array($searchTagText));
   		}else{
   			$searchRegExp = self::accentToRegex($search);
-  			$query = array('$or'=>array(
-			        		array("text" => new MongoRegex("/.*{$searchRegExp}.*/i")),
-			        		array("media.name" => new MongoRegex("/.*{$searchRegExp}.*/i"))
-			        		)
-			        	);//array( "text" => new MongoRegex("/.*{$searchRegExp}.*/i"));
-	        $explodeSearchRegExp = explode(" ", $searchRegExp);
+  			$query = //array('$or'=>array(
+			        	//	array("text" => new MongoRegex("/.*{$searchRegExp}.*/i")),
+			        	//	array("media.name" => new MongoRegex("/.*{$searchRegExp}.*/i"))
+			        //		)
+			        	//);
+					array( "text" => new MongoRegex("/.*{$searchRegExp}.*/i"));
+  		    $explodeSearchRegExp = explode(" ", $searchRegExp);
 	        if(count($explodeSearchRegExp)>1){
 		        $andArray=array();
 		        foreach($explodeSearchRegExp as $data){
@@ -750,12 +801,13 @@ class Search {
        	$res = array();
   		$allNews = PHDB::findAndSortAndLimitAndIndex ( News::COLLECTION ,$query, 
   												array("sharedBy.updated"=>-1), $indexStep, $indexMin);
+  		//print_r($allNews);
   		foreach ($allNews as $key => $value) 
   		{
   			
   			if(!empty($value)){
 				$value=NewsTranslator::convertParamsForNews($value, false);			 
-				//$orga["type"] = News::COLLECTION;
+				$value["type"] = News::COLLECTION;
 				$value["typeSig"] = News::COLLECTION;
 				$res[$key]=$value;
 			}
@@ -765,7 +817,7 @@ class Search {
 	
 
 	//*********************************  EVENT   ******************************************
-	public static function searchEvents($query, $indexStep, $indexMin, $searchSType){
+	public static function searchEvents($query, $indexStep, $indexMin, $searchSType, $app=null){
 		date_default_timezone_set('UTC');
     	$queryEvent = $query;
 
@@ -777,14 +829,16 @@ class Search {
     	//var_dump($queryEvent);
     	if(isset($searchSType) && $searchSType != "")
         		array_push( $queryEvent[ '$and' ], array( "type" => $_POST["searchSType"] ) );
-    	
+    	if($app=="territorial")
+    		$sort=array("updated" => -1);
+    	else
+    		$sort=array("startDate" => 1);
     	$allEvents = PHDB::findAndSortAndLimitAndIndex( PHType::TYPE_EVENTS, $queryEvent, 
-  										array("startDate" => 1), $indexStep, $indexMin);
+  										$sort , $indexStep, $indexMin);
   		foreach ($allEvents as $key => $value) {
   			$allEvents[$key]["typeEvent"] = @$allEvents[$key]["type"];
 			$allEvents[$key]["type"] = "events";
 			$allEvents[$key]["typeSig"] = Event::COLLECTION;
-
 			if(@$value["links"]["attendees"][Yii::app()->session["userId"]]){
 	  			$allEvents[$key]["isFollowed"] = true;
   			}
@@ -819,7 +873,7 @@ class Search {
   			if(@$project["links"]["followers"][Yii::app()->session["userId"]]){
 	  			$allProject[$key]["isFollowed"] = true;
   			}
-			$allProject[$key]["type"] = "projects";
+			$allProject[$key]["type"] = Project::COLLECTION;
 			$allProject[$key]["typeSig"] = Project::COLLECTION;
 			
 			if(@$allProject[$key]["startDate"])
@@ -973,6 +1027,7 @@ class Search {
 				$allPlace[$key]["typeSig"] = $collection.".".$value["type"];
 			else
 				$allPlace[$key]["typeSig"] = $collection;
+			$allPlace[$key]["type"] = $collection;
   		}
   		return $allPlace;
   	}
