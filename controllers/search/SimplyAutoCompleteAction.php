@@ -87,7 +87,6 @@ class SimplyAutoCompleteAction extends CAction
        if(strcmp($filter, Person::COLLECTION) != 0 && Search::typeWanted("citoyen", $searchType)){
 
         	$allCitoyen = PHDB::find ( Person::COLLECTION , $query, array("name", "address", "shortDescription", "description"));
-
 	  		foreach ($allCitoyen as $key => $value) {
 	  			$person = Person::getSimpleUserById($key, $value);
 	  			$person["type"] = "citoyen";
@@ -95,7 +94,6 @@ class SimplyAutoCompleteAction extends CAction
 				$allCitoyen[$key] = $person;
 	  		}
 	  		$allRes = array_merge($allRes, $allCitoyen);
-
 	  	}
 
 	  	/***********************************  ORGANISATIONS   *****************************************/
