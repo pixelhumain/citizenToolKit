@@ -23,6 +23,7 @@ class Network {
 	    "request" => array("name" => "request"),
 	    "searchTag" => array("name" => "searchTag"),
 	    "tags" => array("name" => "tags"),
+	    "scope" => array("name" => "scope"),
 
 
 	    "modified" => array("name" => "modified"),

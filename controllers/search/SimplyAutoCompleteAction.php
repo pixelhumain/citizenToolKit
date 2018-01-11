@@ -9,6 +9,7 @@ class SimplyAutoCompleteAction extends CAction
 		// die();
         $search = isset($_POST['name']) ? trim(urldecode($_POST['name'])) : null;
         $locality = isset($_POST['locality']) ? trim(urldecode($_POST['locality'])) : null;
+        $scope = isset($_POST['scope']) ? $_POST['scope'] : null;
         $searchType = isset($_POST['searchType']) ? $_POST['searchType'] : null;
         $searchTags = isset($_POST['searchTag']) ? $_POST['searchTag'] : null;
         $searchPrefTag = isset($_POST['searchPrefTag']) ? $_POST['searchPrefTag'] : null;
@@ -21,14 +22,15 @@ class SimplyAutoCompleteAction extends CAction
         $paramsFiltre = isset($_POST['paramsFiltre']) ? $_POST['paramsFiltre'] : null;
 
 
-        if($search == null && $locality == null && $sourceKey == null) {
-        	Rest::json(array());
-			Yii::app()->end();
-        }
+   //      if($search == null && $sourceKey == null) {
+   //      	Rest::json(array());
+			// Yii::app()->end();
+   //      }
 
         $getCreator = false ;
         //strpos($sourceKey[0], "@")
         if( $sourceKey != null && $sourceKey != "" && strpos($sourceKey[0], "@") > 0 ) {
+        	//var_dump($sourceKey);
         	$split = explode("@", $sourceKey[0]);
         	$query = array();
         	try{
@@ -76,7 +78,9 @@ class SimplyAutoCompleteAction extends CAction
 			$query = Search::searchSourceKey($sourceKey, $query);
 	  	}
 
-	  		$query =  Search::searchLocalityNetworkOld($query, $_POST);
+	  	$query =  Search::searchLocalityNetworkOld($query, $_POST);
+	  	if(!empty($scope))
+	  		$query =  Search::searchLocality($scope, $query);
 
 	    $allRes = array();
         /***********************************  PERSONS   *****************************************/
