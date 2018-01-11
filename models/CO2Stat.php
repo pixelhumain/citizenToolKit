@@ -79,7 +79,8 @@ class CO2Stat {
 
 		$newWeekStat = array("week"      => $week,
 							 "domainName"=> $CO2DomainName,
-							 "hash"		 => array("co2-web"=>array(), 
+							 "hash"		 => array("co2-login"=>array(), 
+							 					  "co2-web"=>array(), 
 							 					  "co2-websearch"=>array(),
 							 					  "co2-referencement"=>array(),
 							 					  "co2-live"=>array(),

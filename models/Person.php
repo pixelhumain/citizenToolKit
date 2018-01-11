@@ -1013,6 +1013,8 @@ class Person {
 	            		"isCommunected"=>isset($account["cp"]), 
 	            		"account" => $account,
 	            		"msg" => "Vous êtes maintenant identifié : bienvenue sur communecter.");
+	            	//save login action for statistic
+	            	CO2Stat::incNbLoad("co2-login");
 	        	}
 	        } else {
 	            $res = array("result"=>false, "msg"=>"emailAndPassNotMatch");
