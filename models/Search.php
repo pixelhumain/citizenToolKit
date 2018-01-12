@@ -177,7 +177,7 @@ class Search {
         //*********************************  TAGS   ******************************************
 
 
-  		if( /*!empty($searchTags)*/ count($searchTags) > 1  || count($searchTags) == 1 && $searchTags[0] != "" ){
+  		if( count($searchTags) > 1  || count($searchTags) == 1 && $searchTags[0] != "" ){
   			if( (strcmp($filter, Classified::COLLECTION) != 0 && self::typeWanted(Classified::COLLECTION, $searchType)) ||
   				(strcmp($filter, Place::COLLECTION) != 0 && self::typeWanted(Place::COLLECTION, $searchType)) ){
         		$queryTags =  self::searchTags($searchTags, '$all') ;
@@ -194,8 +194,10 @@ class Search {
 
   		//*********************************  DEFINE LOCALITY QUERY   ****************************************
   		//$query = array('$and' => array( $query , self::searchLocality($post, $query) ) );
-  		if(!empty($searchLocality))
+  		if(!empty($searchLocality)){
   			$query = self::searchLocality($searchLocality, $query);
+  			$queryNews = self::searchLocalityNews($searchLocality, $queryNews);
+  		}
   		
   		//var_dump($query);
   		$allRes = array();
@@ -520,7 +522,9 @@ class Search {
 		return $query ;
 	}
 
-	//*********************************  Zones   ******************************************
+	//****************************DEFINE LOCALITY QUERY   ***************************************
+	//*********************************  ZONES   *************************************************
+	//************************ LOCALITY QUERY FOR ELEMENT ****************************************
 	public static function searchLocality($localities, $query){
 		$allQueryLocality = array();
 		if(!empty($localities))
@@ -552,57 +556,40 @@ class Search {
 			if(!empty($query)) $query = array('$and' => array( $query , $allQueryLocality ) );
 			else $query = array('$and' => array($allQueryLocality));
 		}
-		//var_dump($query); exit;
-		
 		return $query ;
 	}
 
-	/*public static function searchLocality($post, $query){
-		$localityReferences['NAME'] = "address.addressLocality";
-  		$localityReferences['CODE_POSTAL_INSEE'] = "address.postalCode";
-  		$localityReferences['DEPARTEMENT'] = "address.postalCode";
-  		$localityReferences['REGION'] = ""; //Spécifique
-  		$localityReferences['INSEE'] = "address.codeInsee";
+	//***************************** LOCALITY QUERY FOR NEWS********************************************
+	public static function searchLocalityNews($localities, $query){
+		$allQueryLocality = array();
+		if(!empty($localities)){
+  			foreach ($localities as $key => $locality){
+				if(!empty($locality)){
 
-  		foreach ($localityReferences as $key => $value) {
-  			if(isset($_POST["searchLocality".$key]) && is_array($_POST["searchLocality".$key])){
-  				foreach ($_POST["searchLocality".$key] as $locality) {
-
-  					//OneRegion
-
-  					if($key == "REGION") {
-  						if($locality == "La Réunion")
-  							$locality = "Réunion" ;
-	        			$dep = PHDB::findOne( City::COLLECTION, array("level3Name" => $locality), array("level3"));
-	        			if(!empty($dep))
-	        				$queryLocality = array("address.level3" => $dep["level3"]);
-	        		}else if($key == "DEPARTEMENT") {
-	        			$dep = PHDB::findOne( City::COLLECTION, array("level4Name" => $locality), array("level4"));
-	        			if(!empty($dep))
-		        			$queryLocality = array("address.level4" => $dep["level4"]);
-		        	}//OneLocality
-		        	else{
-	  					$queryLocality = array($value => new MongoRegex("/".$locality."/i"));
-	  				}
-
-  					//Consolidate Queries
-  					if(!empty($queryLocality)) {
-	  					if(isset($allQueryLocality)){
-	  						$allQueryLocality = array('$or' => array( $allQueryLocality ,$queryLocality));
-	  					}else{
-	  						$allQueryLocality = $queryLocality;
-	  					}
-	  				}
-	  				unset($queryLocality);
-
-  				}
-  			}
+					if($locality["type"] == City::CONTROLLER)
+						$queryLocality = array("scope.localities.parentId" => $key, "scope.localities.parentType" =>  City::COLLECTION);
+					else if($locality["type"] == "cp")
+						$queryLocality = array("scope.localities.postalCode" => new MongoRegex("/^".$key."/i"));
+					else
+						$queryLocality = array("scope.localities.".$locality["type"] => $key);
+				
+					if(empty($allQueryLocality))
+						$allQueryLocality = $queryLocality;
+					else if(!empty($queryLocality))
+						$allQueryLocality = array('$or' => array($allQueryLocality ,$queryLocality));
+				}
+			}
   		}
-  		if(isset($allQueryLocality) && is_array($allQueryLocality))
-  			$query = array('$and' => array($query, $allQueryLocality));
-  		*/
-	//*********************************  DEFINE LOCALITY QUERY   ****************************************
-
+  		//modifié le 21/10/2017 by Tango, en espérant que ça ne casse aucun autre process
+		//(la query originale était perdu => pb pour les tags)
+		if(!empty($allQueryLocality)){
+			if(!empty($query)) $query = array('$and' => array( $query , $allQueryLocality ) );
+			else $query = array('$and' => array($allQueryLocality));
+		}
+		return $query ;
+	}
+	//*********************************  END DEFINE LOCALITY QUERY   ****************************************
+  	
   	//trie les éléments dans l'ordre alphabetique par name
   	public static function mySortByName($a, $b){ // error_log("sort : ");//.$a['name']);
   		if(isset($a["_id"]) && isset($b["name"])){
