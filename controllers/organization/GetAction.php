@@ -19,6 +19,8 @@ class GetAction extends CAction
 			 $bindMap = ( (!empty($fullRepresentation) && $fullRepresentation == "true" ) ? TranslateGogoCarto::$dataBinding_organization : TranslateGogoCarto::$dataBinding_organization_symply);
 			//$bindMap = TranslateGogoCarto::$dataBinding_organization_symply;
 		}
+		else if( $format == Translate::FORMAT_MD || $format == Translate::FORMAT_TREE)
+			$bindMap = Organization::CONTROLLER;
 		else
 	       $bindMap = (empty($id) ? TranslateCommunecter::$dataBinding_allOrganization : TranslateCommunecter::$dataBinding_organization);
 

@@ -77,6 +77,8 @@ class Organization {
 	    "github" => array("name" => "socialNetwork.github"),
 	    "skype" => array("name" => "socialNetwork.skype"),
 	    "instagram" => array("name" => "socialNetwork.instagram"),
+	    "diaspora" => array("name" => "socialNetwork.diaspora"),
+	    "mastodon" => array("name" => "socialNetwork.mastodon"),
 	    "parent" => array("name" => "parent"),
 	    "parentId" => array("name" => "parentId"),
 	    "parentType" => array("name" => "parentType"),

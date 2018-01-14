@@ -14,7 +14,7 @@ class Network {
 	    
 	    "add" => array("name" => "add"),
 
-	    "filters" => array("name" => "filters"),
+	    "filter" => array("name" => "filter"),
 	    "types" => array("name" => "types"),
 
 	    "result" => array("name" => "result"),
@@ -23,6 +23,7 @@ class Network {
 	    "request" => array("name" => "request"),
 	    "searchTag" => array("name" => "searchTag"),
 	    "tags" => array("name" => "tags"),
+	    "scope" => array("name" => "scope"),
 
 
 	    "modified" => array("name" => "modified"),
@@ -65,4 +66,85 @@ class Network {
 
 		return json_decode($json, true);
 	}
+
+	public static function prepData ($params) {
+
+		// if (isset($params["skin"]["displayCommunexion"]) && !is_bool($params["skin"]["displayCommunexion"])) {
+		// 	if ($params["skin"]["displayCommunexion"] == "true")
+		// 		$params["skin"]["displayCommunexion"] = true;
+		// 	else 
+		// 		$params["skin"]["displayCommunexion"] = false;
+		// }
+
+		// if(!empty($params["add"])){
+		// 	$newAdd = array();
+		// 	foreach ($params["add"] as $key => $value) {
+		// 		$newAdd[$value] = true ;
+		// 	}
+		// 	$params["add"] = $newAdd;
+		// }
+
+		// if(!empty($params["filter"])){
+		// 	$newFilters["linksTag"] = array();
+		// 	foreach ($params["filter"] as $key => $value) {
+		// 		$i = 0 ;
+		// 		$tags = array();
+		// 		while ( !empty($value["keyVal".$i] ) && !empty($value["tagskeyVal".$i] ) ) {
+		// 			$tags[$value["keyVal".$i]] = preg_split("/[,]+/", $value["tagskeyVal".$i]);
+
+
+		// 			$i++;
+		// 		}
+
+		// 		$newFilters["linksTag"][$value["name"]] = array( 	"tagParent" => "Type",
+		// 															"background-color" => "#f5f5f5",
+		// 															"image" => "Travail.png",
+		// 															"tags" => $tags );
+		// 	}
+
+		// 	$params["filter"] = $newFilters;
+		// }
+
+		// if(!empty($params["request"]["searchType"]))
+		// 	$params["request"]["searchType"] = explode(",", $params["request"]["searchType"]);
+
+		// if(!empty($params["request"]["sourceKey"]))
+		// 	$params["request"]["sourceKey"] = explode(",", $params["request"]["sourceKey"]);
+
+		return $params;
+	}
+
+
+	public static function getNetworkById($id, $fields=null) {
+		$network = PHDB::findOneById( Network::COLLECTION, $id, $fields);
+		return $network;
+	}
+
+	public static function getNetworkByUserId($id, $fields=null) {
+		$where = array("creator" => $id);
+		$networks = PHDB::find( Network::COLLECTION, $where, $fields);
+		return $networks;
+	}
+
+	public static function getListNetworkByUserId($id) {
+		$networks = Network::getNetworkByUserId($id);
+		$list = array();
+		foreach ($networks as $key => $value) {
+			$value["type"] = "network";
+			$list[$key] = $value;
+		}
+
+		return $list;
+	}
+
+	public static function getNetwork($id, $type){
+		$res = array();
+		$listElt = array(Organization::COLLECTION, Person::COLLECTION, Project::COLLECTION, Event::COLLECTION);
+		if(in_array($type, $listElt) ){
+			$res = PHDB::findOne( $type , array( "_id" => new MongoId($id) ) ,array("urls") );
+			$res = (!empty($res["urls"]) ? $res["urls"] : array() );
+		}
+		return $res;
+	}
+
 }

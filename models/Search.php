@@ -80,7 +80,7 @@ class Search {
 		$search = isset($post['name']) ? trim(urldecode($post['name'])) : null;
 		$locality = isset($post['locality']) ? trim(urldecode($post['locality'])) : null;
 		$searchType = isset($post['searchType']) ? $post['searchType'] : null;
-		$searchTag = isset($post['searchTag']) ? $post['searchTag'] : null;
+		$searchTags = isset($post['searchTag']) ? $post['searchTag'] : null;
 		$searchPrefTag = isset($post['searchPrefTag']) ? $post['searchPrefTag'] : null;
 		$searchBy = isset($post['searchBy']) ? $post['searchBy'] : "INSEE";
 		$indexMin = isset($post['indexMin']) ? $post['indexMin'] : 0;
@@ -89,6 +89,19 @@ class Search {
 		$sourceKey = isset($post['sourceKey']) ? $post['sourceKey'] : null;
 		$mainTag = isset($post['mainTag']) ? $post['mainTag'] : null;
 		$paramsFiltre = isset($post['paramsFiltre']) ? $post['paramsFiltre'] : null;
+		$indexStep = $indexMax - $indexMin;
+
+		$searchTypeOrga = ""; /* used in CO2 to find different organisation type */
+		
+		if( sizeOf($searchType) == 1 &&
+			@$searchType[0] == Organization::TYPE_NGO ||
+			@$searchType[0] == Organization::TYPE_BUSINESS ||
+			@$searchType[0] == Organization::TYPE_GROUP ||
+			@$searchType[0] == Organization::TYPE_GOV) {
+				$searchTypeOrga = $searchType[0];
+				$searchType = array(Organization::COLLECTION);
+		}
+
 		$query = array();
 		$query = self::searchString($search, $query);
 
@@ -108,8 +121,9 @@ class Search {
 		}
 
 		$query = self::searchSourceKey($sourceKey, $query);
+		//$query = self::searchLocalityNetworkOld($query, $post);
 
-	}
+		$allRes = array();
 
 
 	public static function globalAutoComplete($post,  $filter = null, $api=false){
@@ -487,17 +501,19 @@ class Search {
   			//Several Sourcekey
 	  		if(is_array($sourceKey)){
 	  			foreach ($sourceKey as $value) {
-	  				$tmpSourceKey[] = new MongoRegex("/".$value."/i");
+	  				$tmpSourceKey[] = $value;
 	  			}
 	  		}//One Sourcekey
 	  		else{
-	  			$tmpSourceKey[] = new MongoRegex("/".$sourceKey."/i");
+	  			$tmpSourceKey[] = $sourceKey;
 	  		}
+
 	  		if(count($tmpSourceKey)){
 	  			$query = array('$and' => array( $query , array("source.keys" => array('$in' => $tmpSourceKey))));
 	  		}
 	  		unset($tmpSourceKey);
 	  	}
+	  	return $query ;
 	}
 
 	//*********************************  Zones   ******************************************
@@ -748,35 +764,38 @@ class Search {
 
 
 	//*********************************  ORGANIZATIONS   ******************************************
+ //  	public static function searchOrganizations($query, $indexStep, $indexMin, $searchType, $searchTypeOrga){
+ //       	$res = array();
+ //    	$queryOrganization = $query;
+ //    	if( !isset( $queryOrganization['$and'] ) ) 
+ //    		$queryOrganization['$and'] = array();
+
+ //    	var_dump($queryOrganization);
+ //    	array_push( $queryOrganization[ '$and' ], array( "disabled" => array('$exists' => false) ) );
+	// }
+
+	//*********************************  ORGANIZATIONS   ******************************************
   	public static function searchOrganizations($query, $indexStep, $indexMin, $searchType, $searchTypeOrga){
        	$res = array();
-    	$queryOrganization = $query;
-    	if( !isset( $queryOrganization['$and'] ) ) 
-    		$queryOrganization['$and'] = array();
+		$queryOrganization = $query;
+		if( !isset( $queryOrganization['$and'] ) ) 
+			$queryOrganization['$and'] = array();
+		array_push( $queryOrganization[ '$and' ], array( "disabled" => array('$exists' => false) ) );
+		if(sizeof($searchType)==1 && @$searchTypeOrga != "")
+			array_push( $queryOrganization[ '$and' ], array( "type" => $searchTypeOrga ) );
 
-    	array_push( $queryOrganization[ '$and' ], array( "disabled" => array('$exists' => false) ) );
-
-    	if(sizeof($searchType)==1 && @$searchTypeOrga != "")
-    		array_push( $queryOrganization[ '$and' ], array( "type" => $searchTypeOrga ) );
-
-    	//var_dump($indexStep);
-    	//var_dump($indexMin);
   		$allOrganizations = PHDB::findAndSortAndLimitAndIndex ( Organization::COLLECTION ,$queryOrganization, 
   												array("updated" => -1), $indexStep, $indexMin);
 
-  		//var_dump($allOrganizations);
   		foreach ($allOrganizations as $key => $value) 
   		{
   			if(!empty($value)){
-
 	  			$orga = Organization::getSimpleOrganizationById($key,$value);
 	  			if( @$value["links"]["followers"][Yii::app()->session["userId"]] )
 		  			$orga["isFollowed"] = true;
-
 		  		if(@$orga["type"] != "")
 					$orga["typeOrga"] = $orga["type"];
 				$orga["type"] = "organizations";
-
 				$orga["typeSig"] = Organization::COLLECTION;
 				$res[$key] = $orga;
 			}
@@ -806,7 +825,7 @@ class Search {
 	//*********************************  EVENT   ******************************************
 	public static function searchEvents($query, $indexStep, $indexMin, $searchSType, $app=null){
 		date_default_timezone_set('UTC');
-    	$queryEvent = $query;
+		$queryEvent = $query;
 
     	if( !isset( $queryEvent['$and'] ) ) 
     		$queryEvent['$and'] = array();
@@ -820,6 +839,14 @@ class Search {
     		$sort=array("updated" => -1);
     	else
     		$sort=array("startDate" => 1);
+		$queryEvent = array('$and' => 
+						array( $queryEvent , 
+						array( '$or' => array( 
+							array("public" => true ),
+							array( '$and' => array(
+								array("public" => false ),
+								array("links.attendees.".Yii::app()->session["userId"] => array('$exists' => 1) )
+								) ) ) ) ) );
     	$allEvents = PHDB::findAndSortAndLimitAndIndex( PHType::TYPE_EVENTS, $queryEvent, 
   										$sort , $indexStep, $indexMin);
   		foreach ($allEvents as $key => $value) {
@@ -854,7 +881,7 @@ class Search {
 	//*********************************  PROJECTS   ******************************************
 	public static function searchProject($query, $indexStep, $indexMin){
 		date_default_timezone_set('UTC');
-        $allProject = PHDB::findAndSortAndLimitAndIndex(Project::COLLECTION, $query, 
+		$allProject = PHDB::findAndSortAndLimitAndIndex(Project::COLLECTION, $query, 
 	  												array("updated" => -1), $indexStep, $indexMin);
   		foreach ($allProject as $key => $value) {
   			if(@$project["links"]["followers"][Yii::app()->session["userId"]]){
@@ -1049,32 +1076,10 @@ class Search {
 	  	return $allRes;
 	}
 
-
-
 	//*********************************  VOTES / propositions   ******************************************
     public static function searchVotes($query, $indexStep, $indexMin, $searchType){
     	$allFound = array();
     	if(!empty(Yii::app()->session["userId"])){
-    		// $myLinks = Person::getPersonLinksByPersonId( Yii::app()->session["userId"] );
-    		// //créer un array avec uniquement les id de mes orgas
-	    	// $orgasId = array();
-	    	// foreach ($myLinks["organizations"] as $key => $link) {
-	    	// 	if(self::checkScopeParent($link) == true)//en vérifiant si l'orga correspond aux scopes demandés
-	    	// 		$orgasId[] = (string)$link["_id"];
-	    	// }
-	    	     
-	    	// //créer un array avec uniquement les id de mes projets
-	    	// $projectsId = array();
-	    	// foreach ($myLinks["projects"] as $key => $link) {
-	    	// 	if(self::checkScopeParent($link) == true)//en vérifiant si le projet correspond aux scopes demandés
-	    	// 		$projectsId[] = (string)$link["_id"];
-	    	// }
-	    	
-	    	// $query = array( '$or' => array( array("parentType"=>"organizations", "parentId" => array('$in' => $orgasId) ),
-	    	// 								array("parentType"=>"projects", "parentId" => array('$in' => $projectsId) )
-	    	// 						 )
-	    	// 			  );
-
 	    	// //rajoute les résultats pour mon conseil citoyen
 	    	$me = Person::getSimpleUserById(Yii::app()->session["userId"]);
 	    	$myCityKey = @$me["address"]["addressCountry"] ? $me["address"]["addressCountry"] : false;
@@ -1209,6 +1214,9 @@ class Search {
     //*********************************  CITIES   ******************************************
     public static function searchCities($search, $locality, $country){
 
+  		//$query = array( "name" => new MongoRegex("/".self::wd_remove_accents($search)."/i"));//array('$text' => array('$search' => $search));//
+
+
   		$query = array( "name" => new MongoRegex("/".self::wd_remove_accents($search)."/i"));
   		
   		//*********************************  DEFINE LOCALITY QUERY   ******************************************
@@ -1335,8 +1343,7 @@ class Search {
   		return $allCitiesRes;
   	}
 
-    static public function removeEmptyWords($search)
-	{
+    static public function removeEmptyWords($search){
         $stopwords = array(" ", "", "-", "?", "!", ",", ".", "/", "le", "la", "les", "un", "une", "des", "mon", "ton", "son", "pour", 
                             "à", "a", "d", "d'", "de", "notre", "votre", "leur", "leurs", "mes", "tes", "ses", "du");
 
@@ -1355,4 +1362,52 @@ class Search {
         }
         return $resStr;
     }
+
+
+    /***********************************  DEFINE LOCALITY QUERY   ***************************************/
+    public static function searchLocalityNetworkOld($query, $post){
+  		$localityReferences['NAME'] = "address.addressLocality";
+  		$localityReferences['CODE_POSTAL_INSEE'] = "address.postalCode";
+  		$localityReferences['DEPARTEMENT'] = "address.postalCode";
+  		$localityReferences['REGION'] = ""; //Spécifique
+  		$localityReferences['INSEE'] = "address.codeInsee";
+
+  		foreach ($localityReferences as $key => $value) {
+  			if(isset($post["searchLocality".$key]) && is_array($post["searchLocality".$key])){
+  				foreach ($post["searchLocality".$key] as $locality) {
+
+  					//OneRegion
+
+  					if($key == "REGION") {
+  						if($locality == "La Réunion")
+  							$locality = "Réunion" ;
+	        			$dep = PHDB::findOne( City::COLLECTION, array("level3Name" => $locality), array("level3"));
+	        			if(!empty($dep))
+	        				$queryLocality = array("address.level3" => $dep["level3"]);
+	        		}else if($key == "DEPARTEMENT") {
+	        			$dep = PHDB::findOne( City::COLLECTION, array("level4Name" => $locality), array("level4"));
+	        			if(!empty($dep))
+		        			$queryLocality = array("address.level4" => $dep["level4"]);
+		        	}//OneLocality
+		        	else{
+	  					$queryLocality = array($value => new MongoRegex("/".$locality."/i"));
+	  				}
+
+  					//Consolidate Queries
+  					if(!empty($queryLocality)) {
+	  					if(isset($allQueryLocality)){
+	  						$allQueryLocality = array('$or' => array( $allQueryLocality ,$queryLocality));
+	  					}else{
+	  						$allQueryLocality = $queryLocality;
+	  					}
+	  				}
+	  				unset($queryLocality);
+
+  				}
+  			}
+  		}
+  		if(isset($allQueryLocality) && is_array($allQueryLocality))
+  			$query = array('$and' => array($query, $allQueryLocality));
+  		return $query; 
+  	}
 }

@@ -15,7 +15,7 @@ class Element {
         "management" => "Gestion",
 	    "funding" => "Financement",
 	    "other" => "Autre"
-	);  
+	);
 
 	public static $connectTypes = array(
 		Organization::COLLECTION => "members",
@@ -1760,87 +1760,98 @@ class Element {
 
     public static function prepData ($params) { 
 
-        //empty fields aren't properly validated and must be removed
-        foreach ($params as $k => $v) {
-            if($v== "")
-                unset($params[$k]);
-        }
-        $coordinates = @$params["geoPosition"]["coordinates"] ;
-        if(@$coordinates && (is_string($coordinates[0]) || is_string($coordinates[1])))
-			$params["geoPosition"]["coordinates"] = array(floatval($coordinates[0]), floatval($coordinates[1]));
+    	if($params["collection"] == Network::COLLECTION){
+    		$params = Network::prepData ($params); 
+    	}else{
+    		//empty fields aren't properly validated and must be removed
+	        foreach ($params as $k => $v) {
+	            if($v== "")
+	                unset($params[$k]);
+	        }
+	        $coordinates = @$params["geoPosition"]["coordinates"] ;
+	        if(@$coordinates && (is_string($coordinates[0]) || is_string($coordinates[1])))
+				$params["geoPosition"]["coordinates"] = array(floatval($coordinates[0]), floatval($coordinates[1]));
 
-		if (!empty($params["tags"]))
-			$params["tags"] = Tags::filterAndSaveNewTags($params["tags"]);
-        
-		$params["modified"] = new MongoDate(time());
-		$params["updated"] = time();
-		
-		if( empty($params["id"]) ){
-	        $params["creator"] = Yii::app()->session["userId"];
-	        $params["created"] = time();
-	    }
+			if (!empty($params["tags"]))
+				$params["tags"] = Tags::filterAndSaveNewTags($params["tags"]);
+	        
+			$params["modified"] = new MongoDate(time());
+			$params["updated"] = time();
+			
+			if( empty($params["id"]) ){
+		        $params["creator"] = Yii::app()->session["userId"];
+		        $params["created"] = time();
+		    }
 
-	    if (isset($params["allDay"])) {
-	    	if ($params["allDay"] == "true") {
-				$params["allDay"] = true;
-			} else {
-				$params["allDay"] = false;
+		    if (isset($params["allDay"])) {
+		    	if ($params["allDay"] == "true") {
+					$params["allDay"] = true;
+				} else {
+					$params["allDay"] = false;
+				}
 			}
-		}
 
-		if(isset($params["name"]))
-			$params["name"] = $params["name"];
-
-		if(isset($params["slug"]) && !empty($params["slug"])){
-			$params["slug"]=$params["slug"];
-			if(!empty(Slug::getByTypeAndId($params["collection"],$params["id"])))
-				Slug::update($params["collection"],$params["id"],$params["slug"]);
-			else
-				Slug::save($params["collection"],$params["id"],$params["slug"]);
-		}
-		if(isset($params["shortDescription"]))
-			$params["shortDescription"] = strip_tags($params["shortDescription"]);
-
-	    
-		/*if (@$params["amendementDateEnd"]){
-			$params["amendementDateEnd"] = Cooperation::formatDateBeforeSaving($params["amendementDateEnd"]);
-			//$params["amendementDateEnd"] = $params["amendementDateEnd"]->format('Y-m-d H:i');
-		}
-
-		if (@$params["voteDateEnd"]){
-			$params["voteDateEnd"] = Cooperation::formatDateBeforeSaving($params["voteDateEnd"]);
-			//$params["voteDateEnd"] = $params["voteDateEnd"]->format('Y-m-d H:i');
-		}*/
-
-		//TODO SBAR - Manage elsewhere (maybe in the view)
-		//Manage the event startDate and endDate format : 
-		//it comes with the format DD/MM/YYYY HH:ii or DD/MM/YYYY 
-		//and must be transform in YYYY-MM-DD HH:ii
-		/*if (@$params["startDate"]) {
-			$startDate = DateTime::createFromFormat('d/m/Y', $params["startDate"]);
-			if (empty($startDate)) {
-				$startDate = DateTime::createFromFormat('d/m/Y H:i', $params["startDate"]);
-				if (! empty($startDate)) 
-					$params["startDate"] = $startDate->format('Y-m-d H:i');
+			if (isset($params["public"]) && !is_bool($params["public"])) {
+		    	if ($params["public"] == "true")
+					$params["public"] = true;
 				else 
-					throw new CTKException("Start Date is not well formated !");
-			} else 
-				$params["startDate"] = $startDate->format('Y-m-d');
-		}
-		if (@$params["endDate"]) {
-			$endDate = DateTime::createFromFormat('d/m/Y', $params["endDate"]);
-			if (empty($endDate)) {
-				$endDate = DateTime::createFromFormat('d/m/Y H:i', $params["endDate"]);
-				if (! empty($endDate)) 
-					$params["endDate"] = $endDate->format('Y-m-d H:i');
-				else 
-					throw new CTKException("End Date is not well formated !");
-			} else 
-				$params["endDate"] = $endDate->format('Y-m-d');
-		}*/
+					$params["public"] = false;
+				
+			}
 
+			if(isset($params["name"]))
+				$params["name"] = $params["name"];
+
+			if(isset($params["slug"]) && !empty($params["slug"])){
+				$params["slug"]=$params["slug"];
+				if(!empty(Slug::getByTypeAndId($params["collection"],$params["id"])))
+					Slug::update($params["collection"],$params["id"],$params["slug"]);
+				else
+					Slug::save($params["collection"],$params["id"],$params["slug"]);
+			}
+			if(isset($params["shortDescription"]))
+				$params["shortDescription"] = strip_tags($params["shortDescription"]);
+
+		    
+			/*if (@$params["amendementDateEnd"]){
+				$params["amendementDateEnd"] = Cooperation::formatDateBeforeSaving($params["amendementDateEnd"]);
+				//$params["amendementDateEnd"] = $params["amendementDateEnd"]->format('Y-m-d H:i');
+			}
+
+			if (@$params["voteDateEnd"]){
+				$params["voteDateEnd"] = Cooperation::formatDateBeforeSaving($params["voteDateEnd"]);
+				//$params["voteDateEnd"] = $params["voteDateEnd"]->format('Y-m-d H:i');
+			}*/
+
+			//TODO SBAR - Manage elsewhere (maybe in the view)
+			//Manage the event startDate and endDate format : 
+			//it comes with the format DD/MM/YYYY HH:ii or DD/MM/YYYY 
+			//and must be transform in YYYY-MM-DD HH:ii
+			/*if (@$params["startDate"]) {
+				$startDate = DateTime::createFromFormat('d/m/Y', $params["startDate"]);
+				if (empty($startDate)) {
+					$startDate = DateTime::createFromFormat('d/m/Y H:i', $params["startDate"]);
+					if (! empty($startDate)) 
+						$params["startDate"] = $startDate->format('Y-m-d H:i');
+					else 
+						throw new CTKException("Start Date is not well formated !");
+				} else 
+					$params["startDate"] = $startDate->format('Y-m-d');
+			}
+			if (@$params["endDate"]) {
+				$endDate = DateTime::createFromFormat('d/m/Y', $params["endDate"]);
+				if (empty($endDate)) {
+					$endDate = DateTime::createFromFormat('d/m/Y H:i', $params["endDate"]);
+					if (! empty($endDate)) 
+						$params["endDate"] = $endDate->format('Y-m-d H:i');
+					else 
+						throw new CTKException("End Date is not well formated !");
+				} else 
+					$params["endDate"] = $endDate->format('Y-m-d');
+			}*/
+    	}
         return $params;
-     }
+    }
 
 	public static function alreadyExists ($params, $collection) {
 		$result = array("result" => false);
@@ -2206,7 +2217,6 @@ class Element {
 				}
 
 			}else if($block == "network"){
-				//var_dump($block);
 				if(isset($params["telegram"]) && $collection == Person::COLLECTION)
 					$res[] = self::updateField($collection, $id, "telegram", $params["telegram"]);
 				if(isset($params["facebook"]))
@@ -2219,7 +2229,10 @@ class Element {
 					$res[] = self::updateField($collection, $id, "gpplus", self::getAndCheckUrl($params["gpplus"]));
 				if(isset($params["skype"]))
 					$res[] = self::updateField($collection, $id, "skype", self::getAndCheckUrl($params["skype"]));
-				//var_dump($res);
+				if(isset($params["diaspora"]))
+					$res[] = self::updateField($collection, $id, "diaspora", self::getAndCheckUrl($params["diaspora"]));
+				if(isset($params["mastodon"]))
+					$res[] = self::updateField($collection, $id, "mastodon", self::getAndCheckUrl($params["mastodon"]));
 
 			}else if( $block == "when" && ( $collection == Event::COLLECTION || $collection == Project::COLLECTION) ) {
 				

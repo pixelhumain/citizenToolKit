@@ -41,6 +41,8 @@ class Person {
 	    "skype" => array("name" => "socialNetwork.skype"),
 	    "telegram" => array("name" => "socialNetwork.telegram"),
 	    "instagram" => array("name" => "socialNetwork.instagram"),
+	    "diaspora" => array("name" => "socialNetwork.diaspora"),
+	    "mastodon" => array("name" => "socialNetwork.mastodon"),
 	    "bgClass" => array("name" => "preferences.bgClass"),
 	    "bgUrl" => array("name" => "preferences.bgUrl"),
 	    "roles" => array("name" => "roles"),
@@ -1011,6 +1013,8 @@ class Person {
 	            		"isCommunected"=>isset($account["cp"]), 
 	            		"account" => $account,
 	            		"msg" => "Vous êtes maintenant identifié : bienvenue sur communecter.");
+	            	//save login action for statistic
+	            	CO2Stat::incNbLoad("co2-login");
 	        	}
 	        } else {
 	            $res = array("result"=>false, "msg"=>"emailAndPassNotMatch");

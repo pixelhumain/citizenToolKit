@@ -5,10 +5,11 @@
  */
 class GetCountriesAction extends CAction
 {
-    public function run()
+    public function run($hasCity = null)
     {
-        
-        $countries = Zone::getListCountry();
+    	if(!is_bool($hasCity))
+    		$hasCity = ($hasCity == "true" ? true : null);
+        $countries = Zone::getListCountry($hasCity);
         Rest::json($countries,false); 
         Yii::app()->end();
     }

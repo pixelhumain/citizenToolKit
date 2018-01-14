@@ -7,6 +7,8 @@ class CheckAction extends CAction
 	 */
     public function run() {
     	$res=Slug::check($_POST["slug"],@$_POST["type"],@$_POST["id"]);
-    	Rest::json(array("result"=>$res));
+
+    	$paramsApp = CO2::getThemeParams();
+    	Rest::json(array("result"=>$res, "domaineName"=>@$paramsApp["domaineName"]));
     }
 }
