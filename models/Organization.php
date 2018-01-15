@@ -725,6 +725,7 @@ class Organization {
 			"city",
 			"socialAccounts",
 			"url",
+			"type",
 			"coi"
 		);
 
