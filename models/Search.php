@@ -124,7 +124,7 @@ class Search {
 		//$query = self::searchLocalityNetworkOld($query, $post);
 
 		$allRes = array();
-
+	}
 
 	public static function globalAutoComplete($post,  $filter = null, $api=false){
 
@@ -256,6 +256,7 @@ class Search {
 				
 	  	//*********************************  EVENT   ******************************************
 		if(strcmp($filter, Event::COLLECTION) != 0 && self::typeWanted(Event::COLLECTION, $searchType)){
+			$searchAll=false;
 			if(@$ranges){
 				$indexMin=$ranges[Event::COLLECTION]["indexMin"];
 				$indexStep=$ranges[Event::COLLECTION]["indexMax"]-$ranges[Event::COLLECTION]["indexMin"];
@@ -266,8 +267,9 @@ class Search {
 			if($endDate!=null){
        			array_push( $query[ '$and' ], array( "endDate" => array( '$lte' => new MongoDate( (float)$endDate ) ) ) );
        		}
-
-			$allRes = array_merge($allRes, self::searchEvents($query, $indexStep, $indexMin, $searchSType, $app));
+       		if($search != "")
+       			$searchAll=true;
+			$allRes = array_merge($allRes, self::searchEvents($query, $indexStep, $indexMin, $searchSType, $app, $searchAll));
 	  	}
 	  	//*********************************  PROJECTS   ******************************************
 		if(strcmp($filter, Project::COLLECTION) != 0 && self::typeWanted(Project::COLLECTION, $searchType)){
@@ -823,7 +825,7 @@ class Search {
 	
 
 	//*********************************  EVENT   ******************************************
-	public static function searchEvents($query, $indexStep, $indexMin, $searchSType, $app=null){
+	public static function searchEvents($query, $indexStep, $indexMin, $searchSType, $app=null, $all=null){
 		date_default_timezone_set('UTC');
 		$queryEvent = $query;
 
@@ -837,6 +839,8 @@ class Search {
         		array_push( $queryEvent[ '$and' ], array( "type" => $_POST["searchSType"] ) );
     	if($app=="territorial")
     		$sort=array("updated" => -1);
+    	else if(@$all && $all)
+    		$sort=array("startDate" => -1);
     	else
     		$sort=array("startDate" => 1);
 		$queryEvent = array('$and' => 
