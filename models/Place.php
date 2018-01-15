@@ -1,7 +1,7 @@
 <?php
 
 class Place {
-	const COLLECTION = "place";
+	const COLLECTION = "places";
 	const CONTROLLER = "place";
 	
 	//TODO Translate

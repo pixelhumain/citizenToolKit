@@ -1,30 +1,37 @@
 <?php
 
 class Ressource {
-	const COLLECTION = "ressource";
+	const COLLECTION = "ressources";
 	const CONTROLLER = "ressource";
-	
+	const TYPE_NEED = "needs";
+	const TYPE_OFFER = "offers";
 	//TODO Translate
-	public static $types = array (
-		"need"			=> "Besoin",
-		"offer"			=> "Offre",
-		"service"		=> "Servive",
-		"link" 			=> "Lien, Url",
-		"tool"			=> "Outil",
-		"machine"		=> "Machine",
-		"software"		=> "Software",
-		"rh"			=> "Ressource Humaine",
-		"RessourceMaterielle" => "Ressource Materielle",
-		"RessourceFinanciere" => "Ressource Financiere",
-		"ficheBlanche" => "Fiche Blanche",
-		"geoJson" 		=> "Url au format geojson ou vers une umap",
-		"video" 		=> "video"
+	public static $category = array (
+		//"need"			=> "Besoin",
+		//"offer"			=> "Offre",
+		"service"		=> "Service",
+		"knowledge"		=> "knowledge",
+		"material"		=> "Material",
+		//"link" 			=> "Lien, Url",
+		//"tool"			=> "Outil",
+		//"machine"		=> "Machine",
+		//"software"		=> "Software",
+		//"rh"			=> "Ressource Humaine",
+		//"RessourceMaterielle" => "Ressource Materielle",
+		//"RessourceFinanciere" => "Ressource Financiere",
+		//"ficheBlanche" => "Fiche Blanche",
+		//"geoJson" 		=> "Url au format geojson ou vers une umap",
+		//"video" 		=> "video"
+	);
+	public static $subCategory = array(
+
 	);
 
 	//From Post/Form name to database field name
 	public static $dataBinding = array (
 	    "section" => array("name" => "section"),
 	    "type" => array("name" => "type"),
+	    "category" => array("name" => "category"),
 	    "subtype" => array("name" => "placeType"),
 	    "name" => array("name" => "name", "rules" => array("required")),
 	    "address" => array("name" => "address", "rules" => array("addressValid")),
@@ -50,7 +57,7 @@ class Ressource {
 	    "updated" => array("name" => "updated"),
 	    "creator" => array("name" => "creator"),
 	    "created" => array("name" => "created"),
-	    );
+	);
 
 	/**
 	 * get all Ressource details of an element

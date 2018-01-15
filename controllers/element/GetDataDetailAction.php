@@ -108,8 +108,8 @@ class GetDataDetailAction extends CAction {
 			}
 		}
 
-		if($dataName == "classified" || $dataName == "ressource"){
-			$col = ($dataName == "ressource") ? Ressource::COLLECTION : Classified::COLLECTION;
+		if($dataName == "classified" || $dataName == "ressources"){
+			$col = ($dataName == "ressources") ? Ressource::COLLECTION : Classified::COLLECTION;
 			$contextMap = Element::getByIdAndTypeOfParent( $col , $id, $type, array("updated"=>-1));
 		}
 
