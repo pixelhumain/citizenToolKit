@@ -10,7 +10,7 @@ class Ressource {
 		//"need"			=> "Besoin",
 		//"offer"			=> "Offre",
 		"service"		=> "Service",
-		"knowledge"		=> "knowledge",
+		"competence"		=> "Competence",
 		"material"		=> "Material",
 		//"link" 			=> "Lien, Url",
 		//"tool"			=> "Outil",
