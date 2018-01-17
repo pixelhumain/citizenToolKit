@@ -133,7 +133,6 @@ class Network {
 			$value["type"] = "network";
 			$list[$key] = $value;
 		}
-
 		return $list;
 	}
 
