@@ -146,9 +146,9 @@ class Search {
         $app = @$post['app'] ? $post['app'] : "";
         $ranges = @$post['ranges'] ? $post['ranges'] : null;
         //$indexStep = 100;
-        $indexStep=100;
-      	$indexMin=100*$page;
-      	$indexMax=100;
+        $indexStep=30;
+      	$indexMin=30*$page;
+      	$indexMax=30;
       	$searchByPage=true;
         //print_r($post);
       	if(@$post['indexMax']){
