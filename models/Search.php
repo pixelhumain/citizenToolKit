@@ -652,7 +652,8 @@ class Search {
 	}
 
 	public static function typeWanted($type, $searchType){
-		if($searchType == null || $searchType[0] == "all") return true;
+		if($searchType == null) return false;
+		if($searchType[0] == "all") return true;
 		return in_array($type, $searchType);
 	}
 
