@@ -3,6 +3,7 @@
 class Classified {
 	const COLLECTION = "classified";
 	const CONTROLLER = "classified";
+	const MODULE = "classifieds";
 	
 	//TODO Translate
 	public static $classifiedTypes = array(
@@ -55,7 +56,18 @@ class Classified {
 	    "created" => array("name" => "created"),
 	    );
 
-	
+	//used in initJs.php for the modules definition
+	public static function getConfig(){
+		return array(
+			"collection"    => self::COLLECTION,
+            "controller"   => self::CONTROLLER,
+            "module"   => self::MODULE,
+			"init"   => Yii::app()->getModule( self::MODULE )->assetsUrl."/js/init.js" ,
+			"form"   => Yii::app()->getModule( self::MODULE )->assetsUrl."/js/dynForm.js" ,
+            "categories" => CO2::getModuleContextList(self::MODULE,"categories"),
+
+		);
+	}
 
 	/**
 	 * get a Poi By Id

@@ -652,7 +652,8 @@ class Search {
 	}
 
 	public static function typeWanted($type, $searchType){
-		if($searchType == null || $searchType[0] == "all") return true;
+		if($searchType == null) return false;
+		if($searchType[0] == "all") return true;
 		return in_array($type, $searchType);
 	}
 
@@ -1066,7 +1067,7 @@ class Search {
   		
     	$allFound = PHDB::findAndSort( ActionRoom::COLLECTION_ACTIONS, $query, array("updated" => -1), $indexMax);
   		foreach ($allFound as $key => $value) {
-			$allFound[$key]["type"] = $value["type"];
+			$allFound[$key]["type"] = @$value["type"];
 			$allFound[$key]["typeSig"] = ActionRoom::COLLECTION_ACTIONS;
   		}
   		$allRes = array_merge($allRes, $allFound);
