@@ -6,7 +6,7 @@ class Network {
 
     public static $dataBinding = array (
 	    "name" => array("name" => "name", "rules" => array("required")),
-	    
+	    "visible"=> array("name" => "visible"),
 	    "skin"=> array("name" => "skin"),
 	    "title"=> array("name" => "skin.title"),
 	    "paramsLogo"=> array("name" => "paramsLogo"),
@@ -24,8 +24,6 @@ class Network {
 	    "searchTag" => array("name" => "searchTag"),
 	    "tags" => array("name" => "tags"),
 	    "scope" => array("name" => "scope"),
-
-
 	    "modified" => array("name" => "modified"),
 	    "updated" => array("name" => "updated"),
 	    "creator" => array("name" => "creator"),
@@ -133,7 +131,6 @@ class Network {
 			$value["type"] = "network";
 			$list[$key] = $value;
 		}
-
 		return $list;
 	}
 
@@ -146,5 +143,25 @@ class Network {
 		}
 		return $res;
 	}
+
+
+	public static function afterSave($network, $creatorId){
+		$networkId = (string)$network['_id'];
+		$isAdmin = true ;
+		//if ($isToLink) {
+			//Create link in both entity person and organization 
+			Link::connect($networkId, Network::COLLECTION, $creatorId, Person::COLLECTION, $creatorId,"followers",$isAdmin);
+			Link::connect($creatorId, Person::COLLECTION, $networkId, Network::COLLECTION, $creatorId,"networks",$isAdmin);
+		//}
+
+		return array(	"result"=>true,
+		    			"msg"=>"Votre network est communectée.", 
+		    			"id"=>$networkId, 
+		    			"network"=> $network);
+	}
+
+
+
+
 
 }

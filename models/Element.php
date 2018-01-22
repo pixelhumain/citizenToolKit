@@ -251,7 +251,7 @@ class Element {
                 throw new CTKException("Impossible to link something on a disabled organization");    
             }
         } else 
-        if ( in_array($type, array( Person::COLLECTION, Project::COLLECTION,Event::COLLECTION, Classified::COLLECTION,Need::COLLECTION,Poi::COLLECTION) ) ){
+        if ( in_array($type, array( Person::COLLECTION, Project::COLLECTION,Event::COLLECTION, Classified::COLLECTION,Need::COLLECTION,Poi::COLLECTION,Network::COLLECTION) ) ){
             $res = self::getByTypeAndId($type, $id);       
         } else if ($type== ActionRoom::COLLECTION_ACTIONS){
             $res = ActionRoom:: getActionById($id);
@@ -328,6 +328,8 @@ class Element {
 			$element = PHDB::findOne( Action::COLLECTION ,array("_id"=>new MongoId($id)));
 		else if($type == Room::COLLECTION )
 			$element = PHDB::findOne( Room::COLLECTION ,array("_id"=>new MongoId($id)));
+		else if($type == Network::COLLECTION )
+			$element = Network::getNetworkById($id);
 		else
 			$element = PHDB::findOne($type,array("_id"=>new MongoId($id)));
 	  	
@@ -1663,6 +1665,8 @@ class Element {
                 		$res["afterSave"] = Project::afterSave($params, $paramsLinkImport);
                 	else if( $collection == Proposal::COLLECTION || $collection == Action::COLLECTION || $collection == Room::COLLECTION )
                 		$res["afterSave"] = Cooperation::afterSave($params, $collection);
+                	else if( $collection == Network::COLLECTION )
+                		$res["afterSave"] = Network::afterSave($params, Yii::app()->session["userId"]);
                 	
                 	$res["afterSaveGbl"] = self::afterSave((string)$params["_id"],$collection,$params,$postParams);
                 }
@@ -1708,6 +1712,8 @@ class Element {
                 	$res["afterSave"] = Project::afterSave($params, $paramsLinkImport );
                 else if( $collection == Proposal::COLLECTION || $collection == Action::COLLECTION )
                 	$res["afterSave"] = Cooperation::afterSave($params, $collection);
+                else if( $collection == Network::COLLECTION )
+                	$res["afterSave"] = Network::afterSave($params, Yii::app()->session["userId"]);
 
                // echo "pas d'id - "; var_dump($postParams); exit;
                $res["afterSaveGbl"] = self::afterSave((string)$params["_id"],$collection,$params,$postParams);
