@@ -1067,7 +1067,7 @@ class Search {
   		
     	$allFound = PHDB::findAndSort( ActionRoom::COLLECTION_ACTIONS, $query, array("updated" => -1), $indexMax);
   		foreach ($allFound as $key => $value) {
-			$allFound[$key]["type"] = $value["type"];
+			$allFound[$key]["type"] = @$value["type"];
 			$allFound[$key]["typeSig"] = ActionRoom::COLLECTION_ACTIONS;
   		}
   		$allRes = array_merge($allRes, $allFound);
