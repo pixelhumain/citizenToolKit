@@ -24,8 +24,6 @@ class Network {
 	    "searchTag" => array("name" => "searchTag"),
 	    "tags" => array("name" => "tags"),
 	    "scope" => array("name" => "scope"),
-
-
 	    "modified" => array("name" => "modified"),
 	    "updated" => array("name" => "updated"),
 	    "creator" => array("name" => "creator"),
