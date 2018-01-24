@@ -204,6 +204,8 @@ class SimplyAutoCompleteAction extends CAction
         		$queryEvent['$and'] = array();
 
         	array_push( $queryEvent[ '$and' ], array( "endDate" => array( '$gte' => new MongoDate( time() ) ) ) );
+
+        	//var_dump($queryEvent);
 	  		$allEvents = PHDB::findAndSort( PHType::TYPE_EVENTS, $queryEvent, array("startDate" => 1), 100, array("name", "address", "startDate", "endDate", "shortDescription", "description"));
 	  		foreach ($allEvents as $key => $value) {
 	  			$event = Event::getById($key);
