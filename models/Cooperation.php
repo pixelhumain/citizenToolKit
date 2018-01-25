@@ -261,7 +261,7 @@ class Cooperation {
 					$resolution["status"] = $adopted ? "adopted" : "refused";
 					$resolutionExist = Resolution::getById($key);
 					
-					if(!$resolutionExist && $proposal["parentType"] == News::COLLECTION){
+					if(!$resolutionExist){ //} && $proposal["parentType"] == News::COLLECTION){
 						PHDB::insert(Resolution::COLLECTION, $resolution);
 						self::afterSave($resolution, Resolution::COLLECTION);
 					}
