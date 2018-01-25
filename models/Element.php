@@ -554,7 +554,7 @@ class Element {
 						unset($user["addressCountry"]);
 						//unset($user["address"]);
 						Yii::app()->session["user"] = $user;
-						Person::updateCookieCommunexion($id, null);
+						//Person::updateCookieCommunexion($id, null);
 					}
 					$address = null ;
 				}
