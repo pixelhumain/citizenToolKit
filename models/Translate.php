@@ -316,6 +316,55 @@ class Translate {
 	    return $res;
 	}
 
+	public static function dayDifference($date,$type, $timezone=null) {
+
+		//echo "Date : ".$date;
+		if($type == "timestamp") {
+	        $date2 = $date; // depuis cette date
+
+	    } elseif($type == "date") {
+	        $date2 = strtotime($date); // depuis cette date
+	        //error_log($date." - ".$date2);
+	    } elseif($type == "datefr") { //echo $date;exit;
+	    	$date2 = DateTime::createFromFormat('d/m/Y H:i', $date)->format('Y-m-d H:i');
+	    	//var_dump($date2); exit;
+	        $date2 = strtotime($date2); // depuis cette date
+	        //error_log($date." - ".$date2);
+	    } else {
+	        return "Non reconnu";
+	    }
+
+	   
+
+	    $Ecart = time()-$date2;
+	    $lblEcart = "";
+	    $tradAgo=true;
+	    if(time() < $date2){
+	    	$tradAgo=false;
+	    	$lblEcart = Yii::t("common","in")." ";
+			$Ecart = $date2 - time();
+	    }
+
+		if(isset($timezone) && $timezone != ""){
+			if(date_default_timezone_get()!=$timezone){
+				//error_log("SET TIMEZONE ".$timezone);
+				date_default_timezone_set($timezone); //'Pacific/Noumea'
+			}
+		}else{
+			date_default_timezone_set("UTC");
+			//error_log("SET TIMEZONE UTC");
+		}
+
+	    $Annees = date('Y',$Ecart)-1970;
+	    $Mois = date('m',$Ecart)-1;
+	    $Jours = date('d',$Ecart)-1;
+	    //$Heures = date('H',$Ecart);
+	    //$Minutes = date('i',$Ecart);
+	    //$Secondes = date('s',$Ecart);
+	    
+	    return $Jours + ($Mois*30) + ($Annees*356); //approximatif 30jours/mois
+	}
+
 	public static function strToClickable($str){
 		$url = '@(http(s)?)?(://)?(([a-zA-Z])([-\w]+\.)+([^\s\.]+[^\s]*)+[^,.\s])@';
 		$string = preg_replace($url, '<a href="http$2://$4" target="_blank" title="$0">$0</a>', $str);
