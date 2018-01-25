@@ -6,7 +6,7 @@ class GetAction extends CAction
 		$controller=$this->getController();
 		// Get format
 		header("Access-Control-Allow-Origin: *");
-		$result = Network::getNetworkById($id);
+		$result = Network::getById($id);
 		Rest::json($result);
 		Yii::app()->end();
     }

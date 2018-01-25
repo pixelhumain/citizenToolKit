@@ -786,7 +786,8 @@ class Document {
 							      ActionRoom::COLLECTION,
 							      ActionRoom::COLLECTION_ACTIONS,
         						  Poi::COLLECTION, Ressource::COLLECTION, Place::COLLECTION, 
-        						  Classified::COLLECTION);
+        						  Classified::COLLECTION,
+        						Network::COLLECTION);
         if (@$profilUrl && in_array($document["type"], $allowedElements )) {
         	
         	$changes = array();

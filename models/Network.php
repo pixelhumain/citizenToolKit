@@ -11,7 +11,7 @@ class Network {
 	    "title"=> array("name" => "skin.title"),
 	    "paramsLogo"=> array("name" => "paramsLogo"),
 	    "origin"=> array("name" => "origin"),
-	    
+	    "visible"=> array("name" => "visible"),
 	    "add" => array("name" => "add"),
 
 	    "filter" => array("name" => "filter"),
@@ -113,13 +113,33 @@ class Network {
 	}
 
 
-	public static function getNetworkById($id, $fields=null) {
+	public static function getById($id, $fields=null) {
 		$network = PHDB::findOneById( Network::COLLECTION, $id, $fields);
 		return $network;
 	}
 
 	public static function getNetworkByUserId($id, $fields=null) {
 		$where = array("creator" => $id);
+
+		if(Yii::app()->session["userId"] != $id){
+			$isLinked = false;
+			if(!empty(Yii::app()->session["userId"])){
+				$isLinked = Link::isLinked($id, Person::COLLECTION, Yii::app()->session["userId"]);
+			}
+
+			if($isLinked){
+				$where = array('$and' => array(
+								$where,
+								array('$or' => array( 
+									array("visible"=>"public"), 
+									array("visible"=> "network")))));
+			}else{
+				$where =  array('$and' => array(
+								$where,
+								array("visible"=>"public")));
+			}
+		}
+
 		$networks = PHDB::find( Network::COLLECTION, $where, $fields);
 		return $networks;
 	}
