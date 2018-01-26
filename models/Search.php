@@ -176,8 +176,7 @@ class Search {
 		$query = array('$and' => array( $query , array("state" => array('$ne' => "uncomplete")) ));
       	$queryNews = Search::searchNewsString($search, $query);
       	$queryNews = array('$and' => array( $queryNews , array("type"=>News::COLLECTION, "scope.type"=>News::TYPE_PUBLIC, "target.type"=>array('$ne'=>"pixels"))));
-
-  		if($latest)
+   		if($latest)
   			$query = array('$and' => array($query, array("updated"=>array('$exists'=>1))));
 
   		if($sourceKey!="")
@@ -205,11 +204,13 @@ class Search {
   		}
   		//unset($tmpTags);
   		//var_dump($queryTags); exit;
-
+  		$queryPersons=$query;
   		//*********************************  DEFINE LOCALITY QUERY   ****************************************
   		//$query = array('$and' => array( $query , self::searchLocality($post, $query) ) );
   		if(!empty($searchLocality)){
   			$query = self::searchLocality($searchLocality, $query);
+  			$queryPersons=$query;
+  			array_push( $queryPersons[ '$and' ], array("preferences.publicFields"=>array('$in' =>array("locality") )));
   			$queryNews = self::searchLocalityNews($searchLocality, $queryNews);
   		}
   		
@@ -239,7 +240,7 @@ class Search {
 				$indexMin=$ranges[Person::COLLECTION]["indexMin"];
 				$indexStep=$ranges[Person::COLLECTION]["indexMax"]-$ranges[Person::COLLECTION]["indexMin"];
 			}
-			$allRes = array_merge($allRes, self::searchPersons($query, $indexStep, $indexMin, $prefLocality));
+			$allRes = array_merge($allRes, self::searchPersons($queryPersons, $indexStep, $indexMin, $prefLocality));
 
 	  	}
 
@@ -390,23 +391,21 @@ class Search {
 	  	//print_r($allRes);
 	  	//echo $search;
 	  	if($countResult){
-          $allRes["count"]=array();
-          $allRes["count"][Person::COLLECTION] = PHDB::count( Person::COLLECTION , $query);
-          $allRes["count"][Organization::COLLECTION] = PHDB::count( Organization::COLLECTION , $query);
-          $allRes["count"][Event::COLLECTION] = PHDB::count( Event::COLLECTION , $query);
-          $allRes["count"][Project::COLLECTION] = PHDB::count( Project::COLLECTION , $query);
-          $allRes["count"][Poi::COLLECTION] = PHDB::count( Poi::COLLECTION , $query);
-          $allRes["count"][Classified::COLLECTION] = PHDB::count( Classified::COLLECTION , $query);
-          $allRes["count"][Place::COLLECTION] = PHDB::count(Place::COLLECTION , $query);
-          $allRes["count"][Ressource::COLLECTION] = PHDB::count(Ressource::COLLECTION , $query);
-          $allRes["count"][News::COLLECTION] = PHDB::count( News::COLLECTION , $queryNews);
-          if($app=="search"){
+	        $allRes["count"]=array();
+	        $allRes["count"][Person::COLLECTION] = PHDB::count( Person::COLLECTION , $queryPersons);
+	        $allRes["count"][Organization::COLLECTION] = PHDB::count( Organization::COLLECTION , $query);
+	        $allRes["count"][Event::COLLECTION] = PHDB::count( Event::COLLECTION , $query);
+	        $allRes["count"][Project::COLLECTION] = PHDB::count( Project::COLLECTION , $query);
+	        $allRes["count"][Poi::COLLECTION] = PHDB::count( Poi::COLLECTION , $query);
+	        $allRes["count"][Classified::COLLECTION] = PHDB::count( Classified::COLLECTION , $query);
+	        $allRes["count"][Place::COLLECTION] = PHDB::count(Place::COLLECTION , $query);
+	        $allRes["count"][Ressource::COLLECTION] = PHDB::count(Ressource::COLLECTION , $query);
+	        $allRes["count"][News::COLLECTION] = PHDB::count( News::COLLECTION , $queryNews);
           	foreach(Organization::$types as $key => $v){
           		$querySubOrg=$query;
           		array_push( $querySubOrg[ '$and' ], array( "type" => $key ) );
           		$allRes["count"][$key] = PHDB::count( Organization::COLLECTION , $querySubOrg);
           	}
-          }
       	}
 	  	//var_dump($allRes);
 	  	return $allRes ;
@@ -746,18 +745,19 @@ class Search {
        	$res = array();
        	$allCitoyen = PHDB::findAndSortAndLimitAndIndex ( Person::COLLECTION , $query, 
   										  array("updated" => -1), $indexStep, $indexMin);
+       	//print_r($allCitoyen);
 
   		foreach ($allCitoyen as $key => $value) {
 
-  			if( $prefLocality == false ||  
-  				Preference::showPreference($value, Person::COLLECTION, "locality", Yii::app()->session["userId"])){
+  			//if( $prefLocality == false ||  
+  			//	Preference::showPreference($value, Person::COLLECTION, "locality", Yii::app()->session["userId"])){
   				$person = Person::getSimpleUserById($key,$value);
 	  			$person["type"] = Person::COLLECTION;
 				$person["typeSig"] = "citoyens";
 				if( @$value["links"]["followers"][Yii::app()->session["userId"]] )
 		  			$person["isFollowed"] = true;
 				$res[$key] = $person;
-  			}
+  			//}
 
 
   			
