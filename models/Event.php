@@ -133,6 +133,9 @@ class Event {
 		if(!empty($event)){
 			$event = array_merge($event, Document::retrieveAllImagesUrl($id, self::COLLECTION, @$event["type"], $event));
 			$event["typeSig"] = "events";
+	  	}else{
+	  		$event = Element::getGhost(self::COLLECTION);
+			//throw new CTKException("The element you are looking for has been moved or deleted");
 	  	}
 	  	return $event;
 	}

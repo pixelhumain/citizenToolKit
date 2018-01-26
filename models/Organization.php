@@ -524,6 +524,8 @@ class Organization {
 	  	$organization = PHDB::findOne(Organization::COLLECTION,array("_id"=>new MongoId($id)));
 	  	
 	  	if (empty($organization)) {
+	  		$organization = Element::getGhost(self::COLLECTION);
+			//throw new CTKException("The element you are looking for has been moved or deleted");
             //TODO Sylvain - Find a way to manage inconsistent data
             //throw new CommunecterException("The organization id ".$id." is unkown : contact your admin");
         } else {

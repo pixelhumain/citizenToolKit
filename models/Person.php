@@ -151,6 +151,8 @@ class Person {
 	  	$person = PHDB::findOneById( self::COLLECTION, $id );
 	  	
 	  	if (empty($person)) {
+	  		$person = Element::getGhost(self::COLLECTION);
+			//throw new CTKException("The element you are looking for has been moved or deleted");
 	  		//TODO Sylvain - Find a way to manage inconsistente data
             //throw new CTKException("The person id ".$id." is unkown : contact your admin");
         } else {

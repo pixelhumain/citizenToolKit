@@ -333,7 +333,9 @@ class Element {
 		else
 			$element = PHDB::findOne($type,array("_id"=>new MongoId($id)));
 	  	
-	  	if ($element == null) throw new CTKException("The element you are looking for has been moved or deleted");
+	  	if ($element == null) 
+	  		$element = Element::getGhost($type);
+	  		//throw new CTKException("The element you are looking for has been moved or deleted");
 	  	return $element;
 	}
 	public static function getSimpleByTypeAndId($type, $id,$what=null){
@@ -356,9 +358,18 @@ class Element {
 		else
 			$element = PHDB::findOne($type,array("_id"=>new MongoId($id)));
 	  	
+	  	if ($element == null) 
+	  		$element = Element::getGhost($type);
+	  		//throw new CTKException("The element you are looking for has been moved or deleted");
 	  	return $element;
 	}
 
+	public static function getGhost($type){
+		return array("name"=>"Unknown (deleted)", 
+					 "slug"=>"unknown",
+					 "type"=>$type,
+					 "typeSig"=>$type);
+	}
 
 	/**
 	 * get all poi details of an element

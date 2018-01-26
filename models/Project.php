@@ -110,6 +110,9 @@ class Project {
 		if (!empty($project)) {
 			$project = array_merge($project, Document::retrieveAllImagesUrl($id, self::COLLECTION, null, $project));
 			$project["typeSig"] = "projects";
+		}else{
+			$project = Element::getGhost(self::COLLECTION);
+			//throw new CTKException("The element you are looking for has been moved or deleted");
 		}
 	  	return $project;
 	}
