@@ -416,7 +416,8 @@ class Search {
 
         if(strpos($search, "#") > -1){
         	$searchTagText = substr($search, 1, strlen($search)); 
-        	$query = self::searchTags(array($searchTagText));
+        	$tags=explode("#", $searchTagText);
+        	$query = self::searchTags($tags);//array($searchTagText));
   		}else{
   			$searchRegExp = self::accentToRegex($search);
   			$query = array( "name" => new MongoRegex("/.*{$searchRegExp}.*/i"));
@@ -474,8 +475,10 @@ class Search {
 		if(!empty($searchTags)){
 			if(is_array(@$searchTags)){
 				foreach ($searchTags as $value) {
-					if(trim($value) != "")
+					if(trim($value) != ""){
+						$value=rtrim(rtrim($value)," ,");
 						$tmpTags[] = new MongoRegex("/^".self::accentToRegex($value)."$/i");
+					}
 				}
 			} else {
 				$tmpTags[] = new MongoRegex("/^".Search::accentToRegex(@$searchTags)."$/i");							
