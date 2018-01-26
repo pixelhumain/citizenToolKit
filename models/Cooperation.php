@@ -340,10 +340,58 @@ class Cooperation {
 			$newsShared=ActivityStream::addEntry($buildArray);
 	}
 
+	static public function getCountNotif(){
 
-	public static function openModerationOnNews($newsId){
-		PHDB::insert(Proposal::COLLECTION, array(
+		$userId = @Yii::app()->session['userId'];
+		$me = Person::getById($userId);
 
-		));
+		$memberOfOrga = $me["links"]["memberOf"];
+		$memberOfProject = $me["links"]["projects"];
+
+		$memberOf = array_merge($memberOfOrga, $memberOfProject);
+
+		$res = array(); $count = 0;
+		foreach ($memberOf as $id => $element) {
+			$allElement = Element::getByTypeAndId($element["type"], $id);
+
+			$amendable = Cooperation::getCoopData($element["type"], $id, "proposal", "amendable");
+			$tovote = Cooperation::getCoopData($element["type"], $id, "proposal", "tovote");
+			$actions = Cooperation::getCoopData($element["type"], $id, "action", "todo");
+			$adopted = Cooperation::getCoopData($element["type"], $id, "resolution", "adopted");
+			$refused = Cooperation::getCoopData($element["type"], $id, "resolution", "refused");
+
+			foreach ($tovote["proposalList"] as $key => $proposal) { //var_dump($proposal); exit;
+				$hasVote = @$proposal["votes"] ? Cooperation::userHasVoted($userId, $proposal["votes"]) : false;
+				//echo $hasVote ? "true" : "false"; exit;
+				if($hasVote) unset($tovote["proposalList"][$key]); 
+			}
+
+			foreach ($actions["actionList"] as $key => $action) { //var_dump($proposal); exit;
+				$participate = @$action["links"] ? @$action["links"]["contributors"][Yii::app()->session['userId']] : false;
+				if(!$participate && sizeof(@$action["links"]["contributors"])>0) 
+					unset($actions["actionList"][$key]); 
+			}
+
+
+			foreach ($adopted["resolutionList"] as $key => $resolution) { //var_dump($proposal); exit;
+				$dayDiff = Translate::dayDifference($resolution["created"], "timestamp");
+				if($dayDiff > 7) unset($adopted["resolutionList"][$key]); 
+			}
+
+			foreach ($refused["resolutionList"] as $key => $resolution) { //var_dump($proposal); exit;
+				$dayDiff = Translate::dayDifference($resolution["created"], "timestamp");
+				if($dayDiff > 7) unset($refused["resolutionList"][$key]); 
+			}
+
+			$resolved["resolutionList"] = array_merge($adopted["resolutionList"], $refused["resolutionList"]);
+
+
+			$count += count($amendable["proposalList"]) + count($tovote["proposalList"]) + 
+					 count($actions["actionList"]) + count($resolved["resolutionList"]);
+		}
+
+		return $count;
 	}
+
+
 }

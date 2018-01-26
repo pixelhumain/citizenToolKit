@@ -7,9 +7,9 @@
 class GetAction extends CAction
 {
      public function run($type,$id) { 
-        $res = array();
-        if( Yii::app()->session["userId"] )
-        {
+
+        $res = array(); $datas = array();
+        if( Yii::app()->session["userId"] ){
           if($type != Person::COLLECTION){
             $params = array(
               '$and'=> 
@@ -23,8 +23,10 @@ class GetAction extends CAction
                   ) 
                 ) 
               );
-          }else
+          }else{
             $params = array("notify.id.".Yii::app()->session["userId"] => array('$exists' => true));
+          }
+
           $res = ActivityStream::getNotifications($params);
           if(!empty($res)){
             $timezone="";
@@ -38,9 +40,16 @@ class GetAction extends CAction
                 $res[$key]["timeAgo"]=Translate::pastTime(date(@$data["updated"]->sec), "timestamp", $timezone);
               } 
           }
-        } else
-            $res = array('result' => false , 'msg'=>'something somewhere went terribly wrong');   
-        Rest::json($res,false);  
+
+          //$data["notif"] = $res;
+          $datas["notif"] = $res;
+          $datas["coop"] = Cooperation::getCountNotif();
+
+        } else{
+          $data = array('result' => false , 'msg'=>'something somewhere went terribly wrong');   
+        }
+
+        Rest::json($datas,false);  
         Yii::app()->end();
     }
 }
