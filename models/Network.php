@@ -67,20 +67,20 @@ class Network {
 
 	public static function prepData ($params) {
 
-		// if (isset($params["skin"]["displayCommunexion"]) && !is_bool($params["skin"]["displayCommunexion"])) {
-		// 	if ($params["skin"]["displayCommunexion"] == "true")
-		// 		$params["skin"]["displayCommunexion"] = true;
-		// 	else 
-		// 		$params["skin"]["displayCommunexion"] = false;
-		// }
+		if (isset($params["skin"]["displayCommunexion"]) && !is_bool($params["skin"]["displayCommunexion"])) {
+			if ($params["skin"]["displayCommunexion"] == "true")
+				$params["skin"]["displayCommunexion"] = true;
+			else 
+				$params["skin"]["displayCommunexion"] = false;
+		}
 
-		// if(!empty($params["add"])){
-		// 	$newAdd = array();
-		// 	foreach ($params["add"] as $key => $value) {
-		// 		$newAdd[$value] = true ;
-		// 	}
-		// 	$params["add"] = $newAdd;
-		// }
+		if(!empty($params["add"])){
+			$newAdd = array();
+			foreach ($params["add"] as $key => $value) {
+				$newAdd[$value] = true ;
+			}
+			$params["add"] = $newAdd;
+		}
 
 		// if(!empty($params["filter"])){
 		// 	$newFilters["linksTag"] = array();
