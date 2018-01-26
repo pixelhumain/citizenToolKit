@@ -160,8 +160,9 @@ class News {
 								}
 								else if($locality["type"] == "cp"){
 
-									$where = array( "postalCodes.postalCode"=>strval($key), 
-													"country"=> $locality["countryCode"]) ;
+									$where = array( "postalCodes.postalCode"=>strval($key));
+									if(@$locality["countryCode"]) $where["country"]=$locality["countryCode"];
+												
 									//var_dump($where);
 									$cities = City::getWhere($where);
 									if(!empty($cities)){

@@ -914,8 +914,8 @@ class Person {
 				}
 
 				$user["address"] = $address;
-				if($userId == $personId)
-					self::updateCookieCommunexion($userId, @$user["address"]);
+				//if($userId == $personId)
+				//	self::updateCookieCommunexion($userId, @$user["address"]);
 				/*PHDB::update( self::COLLECTION, array("_id" => new MongoId($personId)), 
 		                        array('$unset' => array("two_steps_register"=>"")));*/
 

@@ -329,7 +329,7 @@ class Element {
 		else if($type == Room::COLLECTION )
 			$element = PHDB::findOne( Room::COLLECTION ,array("_id"=>new MongoId($id)));
 		else if($type == Network::COLLECTION )
-			$element = Network::getNetworkById($id);
+			$element = Network::getById($id);
 		else
 			$element = PHDB::findOne($type,array("_id"=>new MongoId($id)));
 	  	
@@ -554,7 +554,7 @@ class Element {
 						unset($user["addressCountry"]);
 						//unset($user["address"]);
 						Yii::app()->session["user"] = $user;
-						Person::updateCookieCommunexion($id, null);
+						//Person::updateCookieCommunexion($id, null);
 					}
 					$address = null ;
 				}

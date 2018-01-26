@@ -637,6 +637,8 @@ class Authorisation {
            $res = self::canParticipate($userId, $type, $itemId);
         else if($type == Action::COLLECTION) 
            $res = self::canParticipate($userId, $type, $itemId);
+        else if($type == Network::COLLECTION) 
+            $res = self::canEdit($userId, $itemId, "Network");
     	return $res;
     }
 
