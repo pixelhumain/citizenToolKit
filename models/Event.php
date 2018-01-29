@@ -218,6 +218,8 @@ class Event {
 			$simpleEvent = array_merge($simpleEvent, Document::retrieveAllImagesUrl($id, self::COLLECTION, $simpleEvent["type"], $event));
 			
 			$simpleEvent["address"] = empty($event["address"]) ? array("addressLocality" => Yii::t("common","Unknown Locality")) : $event["address"];
+			$simpleEvent["typeEvent"] = $simpleEvent["type"];
+			$simpleEvent["type"] = Event::COLLECTION;
 			$simpleEvent["typeSig"] = Event::COLLECTION;
 		}
 		return @$simpleEvent;

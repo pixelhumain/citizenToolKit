@@ -2501,32 +2501,8 @@ class Element {
 			$params["NGOCategories"] 	 = isset($listsOrga["NGOCategories"]) 	  ? $listsOrga["NGOCategories"] : null;
 			$params["localBusinessCategories"] = isset($listsOrga["localBusinessCategories"]) ? $listsOrga["localBusinessCategories"] : null;
 			$connectType = "members";
-			// Link with events
-			if(isset($element["links"]["events"])){
-				foreach ($element["links"]["events"] as $keyEv => $valueEv) {
-					 $event = Event::getSimpleEventById($keyEv);
-	           		 if(!empty($event))
-	           		 	$events[$keyEv] = $event;
-				}
-			}
 			
-			// Link with projects
-			if(isset($element["links"]["projects"])){
-				foreach ($element["links"]["projects"] as $keyProj => $valueProj) {
-					 $project = Project::getPublicData($keyProj);
-	           		 $projects[$keyProj] = $project;
-				}
-			}
 			
-			// Link with needs
-			if(isset($element["links"]["needs"])){
-				foreach ($element["links"]["needs"] as $keyNeed => $value){
-					$need = Need::getSimpleNeedById($keyNeed);
-	           		$needs[$keyNeed] = $need;
-				}
-			}
-			
-
 		} else if ($type == Project::COLLECTION){
 			$element = Project::getById($id);
 			if (empty($element)) throw new CHttpException(404,Yii::t("projet","The project you are looking for has been moved or deleted !"));
@@ -2534,22 +2510,7 @@ class Element {
 			$params["listTypes"] = @$listsEvent["eventTypes"];
 			$connectType = "contributors";
 			// Link with events
-			if(isset($element["links"]["events"])){
-				foreach ($element["links"]["events"] as $keyEv => $valueEv) {
-					 $event = Event::getSimpleEventById($keyEv);
-					 if(!empty($event))
-		           		 $events[$keyEv] = $event;
-				}
-			}
-
-			if(isset($element["links"]["needs"])){
-				foreach ($element["links"]["needs"] as $keyNeed => $value){
-					error_log("getting needs : ".$keyNeed);
-					$need = Need::getSimpleNeedById($keyNeed);
-	           		$needs[$keyNeed] = $need;
-				}
-			}
-
+			
 		} else if ($type == Event::COLLECTION){
 			$element = Event::getById($id);
 			if (empty($element)) throw new CHttpException(404,Yii::t("event","The event you are looking for has been moved or deleted !"));
@@ -2618,15 +2579,9 @@ class Element {
 		} else if ($type == Person::COLLECTION){
 			$element = Person::getById($id);
 			if (empty($element)) throw new CHttpException(404,Yii::t("person","The person you are looking for has been moved or deleted !"));
-			// Link with projects
-			if(isset($element["links"]["projects"])){
-				foreach ($element["links"]["projects"] as $keyProj => $valueProj) {
-					 $project = Project::getPublicData($keyProj);
-	           		 $projects[$keyProj] = $project;
-				}
-			}
-
+	
 			$connectType = "attendees";
+	
 		} else if ($type == Poi::COLLECTION){
 			$element = Poi::getById($id);
 			if (empty($element)) throw new CHttpException(404,Yii::t("poi","The poi you are looking for has been moved or deleted !"));
@@ -2638,6 +2593,7 @@ class Element {
 			}else{
 				$params["parent"] = Project::getSimpleProjectById($element["parentId"]); 
 			}
+		
 		}
 		$params["controller"] = Element::getControlerByCollection($type);
 		if(	@$element["links"] ) {
@@ -2743,6 +2699,31 @@ class Element {
                 	$params["linksBtn"]["isAdmin"]=false;              
             }
         }
+
+        // Link with projects
+		if(isset($element["links"]["projects"])){
+			foreach ($element["links"]["projects"] as $keyProj => $valueProj) {
+				 $project = Project::getPublicData($keyProj);
+	       		 $projects[$keyProj] = $project;
+			}
+		}
+		
+		// Link with needs
+		if(isset($element["links"]["needs"])){
+			foreach ($element["links"]["needs"] as $keyNeed => $value){
+				$need = Need::getSimpleNeedById($keyNeed);
+	       		$needs[$keyNeed] = $need;
+			}
+		}
+
+		// Link with events
+		if(isset($element["links"]["events"])){
+			foreach ($element["links"]["events"] as $keyEv => $valueEv) {
+				 $event = Event::getSimpleEventById($keyEv);
+				 if(!empty($event) && (@$event["endDateSec"] > time() || @$event["startDateSec"] > time()))
+           		 	$events[$keyEv] = $event;
+			}
+		}
 		//$lists = Lists::get($listsToRetrieve);
 		//$params["eventTypes"] = $list["eventTypes"];
 		//$params["subview"]=$view;
