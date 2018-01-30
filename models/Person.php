@@ -289,6 +289,11 @@ class Person {
 		if(@$person["slug"])
 			$simplePerson["slug"] = @$person["slug"];
 
+		
+		if(@$person["links"] && @$person["links"]["follows"] && @$person["links"]["followers"])
+		$simplePerson["counts"] = array("follows"=>count($person["links"]["follows"]),
+										"followers"=>count($person["links"]["followers"]));
+		
 		//Ajouter par rapport au getAllLink
 		$simplePerson["address"] = @$person["address"];
 		$simplePerson["geo"] = @$person["geo"];
