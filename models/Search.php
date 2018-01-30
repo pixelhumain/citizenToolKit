@@ -935,6 +935,12 @@ class Search {
 				Element::getElementById(@$allEvents[$key]["organizerId"], @$allEvents[$key]["organizerType"]);
 				$allEvents[$key]["organizerObj"]["type"] = @$allEvents[$key]["organizerType"];
 			}
+
+			$el = $value;
+			if(@$el["links"]) 
+			foreach(array("attendees") as $k) 
+				if(@$value["links"][$k])
+				$allEvents[$key]["counts"][$k] = count(@$value["links"][$k]);
   		}
   		return $allEvents;
 	  	
@@ -957,6 +963,12 @@ class Search {
 				$allProject[$key]["startDate"] = date('Y-m-d H:i:s', @$allProject[$key]["startDate"]->sec);
 			if(@$allProject[$key]["endDate"])
 				$allProject[$key]["endDate"] = date('Y-m-d H:i:s', @$allProject[$key]["endDate"]->sec);
+
+
+			$el = $value;
+			if(@$el["links"]) foreach(array("contributors", "followers") as $k)
+				if(@$el["links"][$k])
+				$allProject[$key]["counts"][$k] = count($el["links"][$k]);
   		}
   		return $allProject;	
 	}

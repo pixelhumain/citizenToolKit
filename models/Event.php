@@ -189,7 +189,7 @@ class Event {
 		
 		$simpleEvent = array();
 		if(empty($event))
-			$event = PHDB::findOneById( self::COLLECTION ,$id, array("id" => 1, "name" => 1, "type" => 1,  "shortDescription" => 1, "description" => 1, "address" => 1, "geo" => 1, "tags" => 1, "profilImageUrl" => 1, "profilThumbImageUrl" => 1, "profilMarkerImageUrl" => 1, "profilMediumImageUrl" => 1, "startDate" => 1, "endDate" => 1, "addresses"=>1, "allDay" => 1));
+			$event = PHDB::findOneById( self::COLLECTION ,$id, array("id" => 1, "name" => 1, "type" => 1,  "shortDescription" => 1, "description" => 1, "address" => 1, "geo" => 1, "tags" => 1, "links" => 1, "profilImageUrl" => 1, "profilThumbImageUrl" => 1, "profilMarkerImageUrl" => 1, "profilMediumImageUrl" => 1, "startDate" => 1, "endDate" => 1, "addresses"=>1, "allDay" => 1));
 		if(!empty($event)){
 			$simpleEvent["id"] = $id;
 			$simpleEvent["_id"] = $event["_id"];
@@ -216,12 +216,24 @@ class Event {
 			$simpleEvent["addresses"] = @$event["addresses"];
 			$simpleEvent["allDay"] = @$event["allDay"];
 			
-			$simpleEvent = array_merge($simpleEvent, Document::retrieveAllImagesUrl($id, self::COLLECTION, $simpleEvent["type"], $event));
+			$simpleEvent = array_merge($simpleEvent, 
+									   Document::retrieveAllImagesUrl($id, self::COLLECTION, $simpleEvent["type"], 
+									   $event));
 			
-			$simpleEvent["address"] = empty($event["address"]) ? array("addressLocality" => Yii::t("common","Unknown Locality")) : $event["address"];
+			$simpleEvent["address"] = empty($event["address"]) ? 
+									  array("addressLocality" => Yii::t("common","Unknown Locality")) : 
+									  $event["address"];
+
 			$simpleEvent["typeEvent"] = $simpleEvent["type"];
 			$simpleEvent["type"] = Event::COLLECTION;
 			$simpleEvent["typeSig"] = Event::COLLECTION;
+			
+			$el = $event;
+			if(@$el["links"]) 
+			foreach(array("attendees", "followers") as $key) 
+				if(@$el["links"][$key])
+				$simpleEvent["counts"][$key] = count(@$el["links"][$key]);
+
 		}
 		return @$simpleEvent;
 	}

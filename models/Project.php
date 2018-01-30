@@ -183,7 +183,7 @@ class Project {
 		
 		$simpleProject = array();
 		if(empty($project))
-			$project = PHDB::findOneById( self::COLLECTION ,$id, array("id" => 1, "name" => 1, "shortDescription" => 1, "description" => 1, "address" => 1, "geo" => 1, "tags" => 1, "profilImageUrl" => 1, "profilThumbImageUrl" => 1, "profilMarkerImageUrl" => 1, "profilMediumImageUrl" => 1, "addresses"=>1) );
+			$project = PHDB::findOneById( self::COLLECTION ,$id, array("id" => 1, "name" => 1, "shortDescription" => 1, "description" => 1, "address" => 1, "geo" => 1, "tags" => 1, "links" => 1, "profilImageUrl" => 1, "profilThumbImageUrl" => 1, "profilMarkerImageUrl" => 1, "profilMediumImageUrl" => 1, "addresses"=>1) );
 		
 		if(!empty($project)){
 			$simpleProject["id"] = $id;
@@ -198,6 +198,13 @@ class Project {
 			$simpleProject["typeSig"] = "projects";
 			$simpleProject["type"] = Project::COLLECTION;
 			$simpleProject["typeSig"] = Project::COLLECTION;
+
+		
+			$el = $project;
+			if(@$el["links"]) foreach(array("contributors", "followers") as $key)
+				if(@$el["links"][$key])
+				$simpleProject["counts"][$key] = count($el["links"][$key]);
+			
 		}
 
 		return $simpleProject;
