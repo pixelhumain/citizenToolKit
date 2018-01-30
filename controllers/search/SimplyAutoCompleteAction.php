@@ -80,7 +80,7 @@ class SimplyAutoCompleteAction extends CAction
 
 	  	$query =  Search::searchLocalityNetworkOld($query, $_POST);
 	  	if(!empty($scope))
-	  		$query =  Search::searchLocality($scope, $query);
+	  		$query =  Search::searchLocalityNetwork($scope, $query);
 
 	    $allRes = array();
         /***********************************  PERSONS   *****************************************/

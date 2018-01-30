@@ -1375,35 +1375,44 @@ class City {
 						) );
 		// $where = array( '$and'=> array($where, array("countryCode" => strtoupper($countryCode),
 		// 											"parentType" => City::COLLECTION ) ) );
-		$where = array( '$and'=> array($where, array("parentType" => City::COLLECTION ) ) );
+		//$where = array( '$and'=> array($where, array("parentType" => City::COLLECTION ) ) );
 		//var_dump($where);
 		$translate = Zone::getWhereTranlate($where);
 		$cities = array();
+		$zones = array();
 		$valIDCity = array();
+		$valIDZone = array();
 		$nameArray = array();
 		foreach ($translate as $key => $value) {
-			$valIDCity[] = new MongoId($value["parentId"]) ;
-		}
-		$fields = array("name", "postalCodes", "country", "level1", "level1Name", "level2", "level2Name", "level3", "level3Name", "level4", "level4Name");
-		$citiesWithTrad = PHDB::find(self::COLLECTION, array( "_id" => array('$in' => $valIDCity)), $fields);
-
-		foreach ($citiesWithTrad as $keyTran => $city) {
-			if(!empty($translate[$keyTran]["translates"][strtoupper(Yii::app()->language)]))
-				$city["name"] = $translate[$keyTran]["translates"][strtoupper(Yii::app()->language)] ;
-			$cities[$keyTran] = $city ;
+			
+			if($value["parentType"] == City::COLLECTION)
+				$valIDCity[] = new MongoId($value["parentId"]) ;
+			if($value["parentType"] == Zone::COLLECTION)
+				$valIDZone[] = new MongoId($value["parentId"]) ;
 		}
 
-		// if(empty($cities)){
-		// 	$where = array( '$or' => 
-		// 						array(
-		// 							array("postalCodes.name" => new MongoRegex("/".$regex."/i") ),
-		// 							array("postalCodes.postalCode" => new MongoRegex("/^".$regex."/i") ) 
-		// 						) ) ;
-		// 	$where = array( '$and'=> array(
-		// 						$where, 
-		// 						array("country" => strtoupper($countryCode) ) )) ;
-		// 	$cities = PHDB::find(self::COLLECTION, $where);
-		// }
+		
+
+		if(!empty($valIDCity)){
+			$fields = array("name", "postalCodes", "country", "level1", "level1Name", "level2", "level2Name", "level3", "level3Name", "level4", "level4Name");
+			$citiesWithTrad = PHDB::find(self::COLLECTION, array( "_id" => array('$in' => $valIDCity)), $fields);
+			foreach ($citiesWithTrad as $keyTran => $city) {
+				if(!empty($translate[$keyTran]["translates"][strtoupper(Yii::app()->language)]))
+					$city["name"] = $translate[$keyTran]["translates"][strtoupper(Yii::app()->language)] ;
+				$cities[$keyTran] = $city ;
+			}
+		}
+
+		if(!empty($valIDZone)){
+			
+			$fields = array("name", "level", "countrycode", "level1", "level1Name", "level2", "level2Name", "level3", "level3Name", "level4", "level4Name");
+			$zonesWithTrad = PHDB::find(Zone::COLLECTION, array( "_id" => array('$in' => $valIDZone)), $fields);
+			foreach ($zonesWithTrad as $keyTran => $zone) {
+				if(!empty($translate[$keyTran]["translates"][strtoupper(Yii::app()->language)]))
+					$zone["name"] = $translate[$keyTran]["translates"][strtoupper(Yii::app()->language)] ;
+				$zones[$keyTran] = $zone ;
+			}
+		}
 
 		if(empty($cities) && !empty($formInMap)){
 			$countryCode = mb_convert_encoding($countryCode, "ASCII");
@@ -1505,6 +1514,15 @@ class City {
 				$value["type"] = "city" ;
 				if(count($value["postalCodes"]) == 1 ){
 					$value["allCP"] = true ;
+
+					if(!empty($value["postalCodes"][0]["postalCode"])){
+		                $where = array(	"country" => $value["country"], 
+		                				"postalCodes.postalCode" => $value["postalCodes"][0]["postalCode"]);
+		                $countCP = PHDB::count( City::COLLECTION , $where);
+
+		                if($countCP > 1)
+		                	$value["cp"] = $value["postalCodes"][0]["postalCode"] ;
+		            }
 					$newCities[] = $value ;
 				}else{
 					$value["allCP"] = true ;
@@ -1518,9 +1536,22 @@ class City {
 						$newCities[] = $cp ;
 					}
 				}
+
+
 			}
 			$cities = $newCities;
 		}
+		//var_dump($zones);
+		if(!empty($zones) && empty($formInMap)){
+			$newZones = array();
+			foreach ($zones as $key => $value) {
+				//var_dump($value);
+				$value["type"] = "zone" ;
+				$newZones[] = $value ;
+			}
+			$cities = array_merge($cities, $newZones);
+		}
+
 		return $cities;
 	}
 

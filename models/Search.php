@@ -596,6 +596,44 @@ class Search {
 		return $query ;
 	}
 
+
+	//****************************DEFINE LOCALITY QUERY   ***************************************
+	//*********************************  ZONES   *************************************************
+	//************************ LOCALITY QUERY FOR ELEMENT ****************************************
+	public static function searchLocalityNetwork($localities, $query){
+		$allQueryLocality = array();
+		if(!empty($localities))
+		foreach ($localities as $key => $locality){
+			if(!empty($locality)){
+				if($locality["type"] == City::CONTROLLER){
+					$queryLocality = array("address.localityId" => $key);
+					if(!empty($locality["cp"]))
+						$queryLocality = array_merge($queryLocality, array("address.postalCode" => new MongoRegex("/^".$locality["cp"]."/i")));
+				}
+				else if($locality["type"] == "cp"){
+					$queryLocality = array("address.postalCode" => new MongoRegex("/^".$locality["name"]."/i"));
+					if(!empty($locality["countryCode"]))
+						$queryLocality = array_merge($queryLocality, array("address.addressCountry" => $locality["countryCode"]));
+				}
+				else
+					$queryLocality = array("address.".$locality["type"] => $key);
+				
+				if(empty($allQueryLocality))
+					$allQueryLocality = $queryLocality;
+				else if(!empty($queryLocality))
+					$allQueryLocality = array('$or' => array($allQueryLocality ,$queryLocality));
+			}
+		}
+
+		//modifié le 21/10/2017 by Tango, en espérant que ça ne casse aucun autre process
+		//(la query originale était perdu => pb pour les tags)
+		if(!empty($allQueryLocality)){
+			if(!empty($query)) $query = array('$and' => array( $query , $allQueryLocality ) );
+			else $query = array('$and' => array($allQueryLocality));
+		}
+		return $query ;
+	}
+
 	//***************************** LOCALITY QUERY FOR NEWS********************************************
 	public static function searchLocalityNews($localities, $query){
 		$allQueryLocality = array();
