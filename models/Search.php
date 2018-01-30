@@ -221,17 +221,33 @@ class Search {
   		//*********************************  CITIES   ******************************************
   		if(!empty($search) /*&& !empty($locality) */){
 			if(strcmp($filter, City::COLLECTION) != 0 && self::typeWanted(City::COLLECTION, $searchType)){
-		  		$allCitiesRes = self::searchCities($search, null, $country);
-		  		//$allCitiesRes = self::searchCities($search, $locality, $country);
+		  		//$allCitiesRes = self::searchCities($search, null, $country);
+				// $scopeValue = str_replace(array(
+				// 	'/', '-', '*', '+', '?', '|',
+				// 	'(', ')', '[', ']', '{', '}', '\\', " "), ".", trim($search));
+				// $where = array('$or'=> 
+				// 	array(  array("name" => new MongoRegex("/".$scopeValue."/i")),
+				// 		array("alternateName" => new MongoRegex("/".$scopeValue."/i")),
+				// 		array("postalCodes.postalCode" => new MongoRegex("/^".$scopeValue."/i")),
+				// 		array("postalCodes.name" => new MongoRegex("/^".$scopeValue."/i")),
+				// 	)
+				// );
+				// $where = array('$and'=> array($where, array("country" => strtoupper($country)) ));
+				//var_dump($where);
+		  		$allCitiesRes = City::searchCity($country, $search, false, false);
+
 		  	}
-
-		  	if(isset($allCitiesRes)) usort($allCitiesRes, "self::mySortByName");
-
+		  	
+		  	//if(isset($allCitiesRes)) usort($allCitiesRes, "self::mySortByName");
+		  	
 		  	if(count($allRes) < $indexMax){
 		  		if(isset($allCitiesRes)) 
 		  			$allRes = array_merge($allRes, $allCitiesRes);
-		  	} 
+		  	}
+		  	//var_dump($allCitiesRes);
 		}
+
+		//var_dump($allRes);
 	  		
 		//*********************************  PERSONS   ******************************************
        	if(strcmp($filter, Person::COLLECTION) != 0 && (self::typeWanted(Person::COLLECTION, $searchType) || self::typeWanted("persons", $searchType) ) ) {
@@ -401,6 +417,7 @@ class Search {
 	        $allRes["count"][Place::COLLECTION] = PHDB::count(Place::COLLECTION , $query);
 	        $allRes["count"][Ressource::COLLECTION] = PHDB::count(Ressource::COLLECTION , $query);
 	        $allRes["count"][News::COLLECTION] = PHDB::count( News::COLLECTION , $queryNews);
+	        $allRes["count"][City::COLLECTION] = PHDB::count( City::COLLECTION , $queryNews);
           	foreach(Organization::$types as $key => $v){
           		$querySubOrg=$query;
           		array_push( $querySubOrg[ '$and' ], array( "type" => $key ) );
@@ -551,7 +568,7 @@ class Search {
 		foreach ($localities as $key => $locality){
 			if(!empty($locality)){
 				if($locality["type"] == City::CONTROLLER){
-					$queryLocality = array("address.localityId" => $key);
+					$queryLocality = array("address.localityId" => $locality["id"]);
 					if(!empty($locality["cp"]))
 						$queryLocality = array_merge($queryLocality, array("address.postalCode" => new MongoRegex("/^".$locality["cp"]."/i")));
 				}
@@ -561,7 +578,7 @@ class Search {
 						$queryLocality = array_merge($queryLocality, array("address.addressCountry" => $locality["countryCode"]));
 				}
 				else
-					$queryLocality = array("address.".$locality["type"] => $key);
+					$queryLocality = array("address.".$locality["type"] => $locality["id"]);
 				
 				if(empty($allQueryLocality))
 					$allQueryLocality = $queryLocality;
@@ -1325,15 +1342,16 @@ class Search {
 			  			$newCity["countCpByInsee"] = $countPostalCodeByInsee;
 			  			$newCity["cityInsee"] = ucwords(strtolower($data["alternateName"]));
 			  		}
-			  		$allCitiesRes[]=$newCity;
+			  		$allCitiesRes[(String) $data["_id"]]=$newCity;
 			  		} $nbCities++;
 		  		}
   			}else{
   				$data["type"]="city";
 			  	$data["typeSig"] = "city";
-	  			$allCitiesRes[]=$data;
+	  			$allCitiesRes[(String) $data["_id"]]=$data;
   			}
   		}
+  		//var_dump($allCitiesRes);
   		if(empty($allCitiesRes)){
   			$query = array( "cp" => $search);
 	  		$allCities = PHDB::find(City::COLLECTION, $query, array("name", "cp", "insee", "geo", "geoShape"));
@@ -1343,11 +1361,11 @@ class Search {
 		  			$city = City::getSimpleCityById($key);
 					$city["type"] = "city";
 					$city["typeSig"] = "city";
-					$allCitiesRes[$key] = $city;
+					$allCitiesRes[(String) $city["_id"]] = $city;
 				} $nbCities++;
 	  		}  		
   		}
-
+  		//var_dump($allCitiesRes);
   		return $allCitiesRes;
   	}
 

@@ -1226,7 +1226,6 @@ class City {
 			$res["city"] = $locality["localityId"];
 		}
 
-
 		if(isset($locality["insee"]))
 			$res["insee"] = $locality["insee"];
 
@@ -1235,6 +1234,8 @@ class City {
 		
 		if(isset($locality["addressCountry"]))
 			$res["countryCode"] = $locality["addressCountry"];
+		else if(isset($locality["country"]))
+			$res["country"] = $locality["country"];
 		
 		return $res ;
 	}
@@ -1357,7 +1358,7 @@ class City {
 
 
 
-	public static function searchCity($where, $countryCode, $scopeValue, $formInMap, $geoShape = false){
+	public static function searchCity($countryCode, $scopeValue, $formInMap, $geoShape = false){
 		$att = array(	"name", "alternateName", 
 						"country", "postalCodes", "insee", 
 						"level1", "level1Name",
@@ -1369,10 +1370,13 @@ class City {
 		$where = array( '$or'=> 
 							array(  array("origin" => new MongoRegex("/".$regex."/i")),
 									array("translates.".strtoupper(Yii::app()->language) => array( '$in' => array (new MongoRegex("/".$regex."/i") ) ) ),
+									array("postalCodes.origin" => new MongoRegex("/".$regex."/i") ),
+		 							array("postalCodes.postalCode" => new MongoRegex("/^".$regex."/i") )
 						) );
-		$where = array( '$and'=> array($where, array("countryCode" => strtoupper($countryCode),
-													"parentType" => City::COLLECTION ) ) );
-
+		// $where = array( '$and'=> array($where, array("countryCode" => strtoupper($countryCode),
+		// 											"parentType" => City::COLLECTION ) ) );
+		$where = array( '$and'=> array($where, array("parentType" => City::COLLECTION ) ) );
+		//var_dump($where);
 		$translate = Zone::getWhereTranlate($where);
 		$cities = array();
 		$valIDCity = array();
@@ -1380,7 +1384,8 @@ class City {
 		foreach ($translate as $key => $value) {
 			$valIDCity[] = new MongoId($value["parentId"]) ;
 		}
-		$citiesWithTrad = PHDB::find(self::COLLECTION, array( "_id" => array('$in' => $valIDCity)));
+		$fields = array("name", "postalCodes", "country", "level1", "level1Name", "level2", "level2Name", "level3", "level3Name", "level4", "level4Name");
+		$citiesWithTrad = PHDB::find(self::COLLECTION, array( "_id" => array('$in' => $valIDCity)), $fields);
 
 		foreach ($citiesWithTrad as $keyTran => $city) {
 			if(!empty($translate[$keyTran]["translates"][strtoupper(Yii::app()->language)]))
@@ -1388,19 +1393,17 @@ class City {
 			$cities[$keyTran] = $city ;
 		}
 
-
-
-		if(empty($cities)){
-			$where = array( '$or' => 
-								array(
-									array("postalCodes.name" => new MongoRegex("/".$regex."/i") ),
-									array("postalCodes.postalCode" => new MongoRegex("/^".$regex."/i") ) 
-								) ) ;
-			$where = array( '$and'=> array(
-								$where, 
-								array("country" => strtoupper($countryCode) ) )) ;
-			$cities = PHDB::find(self::COLLECTION, $where);
-		}
+		// if(empty($cities)){
+		// 	$where = array( '$or' => 
+		// 						array(
+		// 							array("postalCodes.name" => new MongoRegex("/".$regex."/i") ),
+		// 							array("postalCodes.postalCode" => new MongoRegex("/^".$regex."/i") ) 
+		// 						) ) ;
+		// 	$where = array( '$and'=> array(
+		// 						$where, 
+		// 						array("country" => strtoupper($countryCode) ) )) ;
+		// 	$cities = PHDB::find(self::COLLECTION, $where);
+		// }
 
 		if(empty($cities) && !empty($formInMap)){
 			$countryCode = mb_convert_encoding($countryCode, "ASCII");
@@ -1494,6 +1497,29 @@ class City {
 					}
 				}
 			}
+		}
+
+		if(!empty($cities) && empty($formInMap)){
+			$newCities = array();
+			foreach ($cities as $key => $value) {
+				$value["type"] = "city" ;
+				if(count($value["postalCodes"]) == 1 ){
+					$value["allCP"] = true ;
+					$newCities[] = $value ;
+				}else{
+					$value["allCP"] = true ;
+					$newCities[] = $value ;
+					$value["allCP"] = false;
+					foreach ($value["postalCodes"] as $keyCP => $valueCP) {
+						$cp = $value;
+						$cp["cp"] =  $valueCP["postalCode"];
+						$cp["nameCity"] =  $value["name"];
+						$cp["name"] =  $valueCP["name"]. "( " .$value["name"] . " )";
+						$newCities[] = $cp ;
+					}
+				}
+			}
+			$cities = $newCities;
 		}
 		return $cities;
 	}
