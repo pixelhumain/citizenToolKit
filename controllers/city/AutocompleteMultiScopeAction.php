@@ -47,7 +47,7 @@ class AutocompleteMultiScopeAction extends CAction
         }
 
         if($type != "zone"){
-            $cities = City::searchCity($where, $countryCode, $scopeValue, $formInMap, $geoShape);
+            $cities = City::searchCity($countryCode, $scopeValue, $formInMap, $geoShape);
         }else if($type == "zone"){
             $att = array("name", "countryCode", "level");
             $where = array('$and'=> array(
