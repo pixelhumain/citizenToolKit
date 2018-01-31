@@ -336,6 +336,12 @@ class Element {
 	  	if ($element == null) 
 	  		$element = Element::getGhost($type);
 	  		//throw new CTKException("The element you are looking for has been moved or deleted");
+
+	  	$el = $element;
+		if(@$el["links"]) foreach(array("followers", "follows", "members", "contributors") as $key)
+			if(@$el["links"][$key])
+			$element["counts"][$key] = count($el["links"][$key]);
+
 	  	return $element;
 	}
 	public static function getSimpleByTypeAndId($type, $id,$what=null){
