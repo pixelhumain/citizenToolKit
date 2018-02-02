@@ -1405,7 +1405,8 @@ class City {
 
 		if(!empty($valIDZone)){
 			
-			$fields = array("name", "level", "countrycode", "level1", "level1Name", "level2", "level2Name", "level3", "level3Name", "level4", "level4Name");
+			$fields = array("name", "level", "countryCode", "level1", "level1Name", "level2", "level2Name", 
+				"level3", "level3Name", "level4", "level4Name");
 			$zonesWithTrad = PHDB::find(Zone::COLLECTION, array( "_id" => array('$in' => $valIDZone)), $fields);
 			foreach ($zonesWithTrad as $keyTran => $zone) {
 				if(!empty($translate[$keyTran]["translates"][strtoupper(Yii::app()->language)]))
