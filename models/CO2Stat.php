@@ -38,11 +38,11 @@ class CO2Stat {
 
 	public static function getStatsByHash($week=null, $hash=null){
 
-		$role = Role::getRolesUserId(@Yii::app()->session["userId"]) ; 
-        if(!Role::isSuperAdmin($role) && !Role::isSourceAdmin($role) ){
-			echo "Access deny";
-			exit;
-		}
+		// $role = Role::getRolesUserId(@Yii::app()->session["userId"]) ; 
+  //       if(!Role::isSuperAdmin($role) && !Role::isSourceAdmin($role) ){
+		// 	echo "Access deny";
+		// 	exit;
+		// }
 		
 		if($week==null) //si le numéro de semaine n'est pas indiqué
 		$week = self::getTodayWeek(); //prend la semaine en cours
@@ -83,12 +83,13 @@ class CO2Stat {
 							 					  "co2-web"=>array(), 
 							 					  "co2-websearch"=>array(),
 							 					  "co2-referencement"=>array(),
-							 					  "co2-live"=>array(),
-							 					  "co2-search"=>array(),
 							 					  "co2-page"=>array(),
+							 					  "co2-search"=>array(),
+							 					  "co2-live"=>array(),
 							 					  "co2-annonces"=>array(),
 							 					  "co2-agenda"=>array(),
-							 					  "co2-power"=>array()),
+							 					  //"co2-power"=>array()
+							 					  ),
                         );
 
 		foreach ($newWeekStat["hash"] as $domain => $days) {
@@ -109,7 +110,7 @@ class CO2Stat {
 		return $stat;
 	}
 
-	private static function getTodayWeek(){ error_log("getTodayWeek");
+	public static function getTodayWeek(){ error_log("getTodayWeek");
 		//date_default_timezone_set('Pacific/Noumea');
 		$w = date("W");
 		$y = date("Y");
