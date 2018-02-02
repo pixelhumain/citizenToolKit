@@ -568,7 +568,7 @@ class Search {
 		foreach ($localities as $key => $locality){
 			if(!empty($locality)){
 				if($locality["type"] == City::CONTROLLER){
-					$queryLocality = array("address.localityId" => $locality["id"]);
+					$queryLocality = array("address.localityId" => @$locality["id"]);
 					if(!empty($locality["cp"]))
 						$queryLocality = array_merge($queryLocality, array("address.postalCode" => new MongoRegex("/^".$locality["cp"]."/i")));
 				}
@@ -578,7 +578,7 @@ class Search {
 						$queryLocality = array_merge($queryLocality, array("address.addressCountry" => $locality["countryCode"]));
 				}
 				else
-					$queryLocality = array("address.".$locality["type"] => $locality["id"]);
+					$queryLocality = array("address.".$locality["type"] => @$locality["id"]);
 				
 				if(empty($allQueryLocality))
 					$allQueryLocality = $queryLocality;
