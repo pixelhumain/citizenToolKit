@@ -409,7 +409,7 @@ class Search {
 	  	if($countResult){
 	        $allRes["count"]=array();
 	        $allRes["count"][Person::COLLECTION] = PHDB::count( Person::COLLECTION , $queryPersons);
-	        $allRes["count"][Organization::COLLECTION] = PHDB::count( Organization::COLLECTION , $query);
+	        //$allRes["count"][Organization::COLLECTION] = PHDB::count( Organization::COLLECTION , $query);
 	        $allRes["count"][Event::COLLECTION] = PHDB::count( Event::COLLECTION , $query);
 	        $allRes["count"][Project::COLLECTION] = PHDB::count( Project::COLLECTION , $query);
 	        $allRes["count"][Poi::COLLECTION] = PHDB::count( Poi::COLLECTION , $query);
