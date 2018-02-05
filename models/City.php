@@ -1520,7 +1520,7 @@ class City {
 		                $where = array(	"country" => $value["country"], 
 		                				"postalCodes.postalCode" => $value["postalCodes"][0]["postalCode"]);
 		                $countCP = PHDB::count( City::COLLECTION , $where);
-
+		                $value["uniqueCp"] = ( ($countCP > 1) ? false : true ) ;
 		                if($countCP > 1)
 		                	$value["cp"] = $value["postalCodes"][0]["postalCode"] ;
 		            }
@@ -1531,6 +1531,8 @@ class City {
 					$value["allCP"] = false;
 					foreach ($value["postalCodes"] as $keyCP => $valueCP) {
 						$cp = $value;
+						$countCP = PHDB::count( City::COLLECTION , $where);
+		                $cp["uniqueCp"] = ( ($countCP > 1) ? false : true ) ;
 						$cp["cp"] =  $valueCP["postalCode"];
 						$cp["nameCity"] =  $value["name"];
 						$cp["name"] =  $valueCP["name"]/*." - ".$valueCP["postalCode"]*/;
