@@ -182,13 +182,13 @@ class News {
 									}
 								}
 								else{
-									$zone = Zone::getById($key);
-									$scope = array( "parentId"=>(String) $zone["_id"],
+									$zone = Zone::getById($locality["id"]);
+									$scope = array( "parentId"=> $locality["id"],
 													"parentType"=>Zone::COLLECTION,
 													"name"=>$zone["name"],
 													"geo" => $zone["geo"]
 												);
-									$scope = array_merge($scope, Zone::getLevelIdById((String) $zone["_id"], $zone, Zone::COLLECTION) ) ;
+									$scope = array_merge($scope, Zone::getLevelIdById($locality["id"], $zone, Zone::COLLECTION) ) ;
 
 									$news["scope"]["localities"][] = $scope;
 								}

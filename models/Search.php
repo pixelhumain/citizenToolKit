@@ -214,7 +214,6 @@ class Search {
   			$queryNews = self::searchLocalityNews($searchLocality, $queryNews);
   		}
   		
-  		var_dump($queryNews);
   		$allRes = array();
 
   		//var_dump($query);
@@ -352,7 +351,6 @@ class Search {
 				$indexMin=$ranges[News::COLLECTION]["indexMin"];
 				$indexStep=$ranges[News::COLLECTION]["indexMax"]-$ranges[News::COLLECTION]["indexMin"];
 			}
-			var_dump($queryNews);
 			$allRes = array_merge($allRes, self::searchNews($queryNews, $indexStep, $indexMin));
 	  	}
 
@@ -641,8 +639,6 @@ class Search {
 		if(!empty($localities)){
   			foreach ($localities as $key => $locality){
 				if(!empty($locality)){
-
-					var_dump($locality);
 					if($locality["type"] == City::CONTROLLER)
 						$queryLocality = array("scope.localities.parentId" => $locality["id"], "scope.localities.parentType" =>  City::COLLECTION);
 					else if($locality["type"] == "cp")
