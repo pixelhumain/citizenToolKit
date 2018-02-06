@@ -192,6 +192,7 @@ class Search {
 
   		if( count($searchTags) > 1  || count($searchTags) == 1 && $searchTags[0] != "" ){
   			if( (strcmp($filter, Classified::COLLECTION) != 0 && self::typeWanted(Classified::COLLECTION, $searchType)) ||
+  				(strcmp($filter, Ressource::COLLECTION) != 0 && self::typeWanted(Ressource::COLLECTION, $searchType)) ||
   				(strcmp($filter, Place::COLLECTION) != 0 && self::typeWanted(Place::COLLECTION, $searchType)) ){
         		$queryTags =  self::searchTags($searchTags, '$all') ;
 	  		}
