@@ -214,7 +214,7 @@ class Search {
   			$queryNews = self::searchLocalityNews($searchLocality, $queryNews);
   		}
   		
-  		//var_dump($query);
+  		var_dump($queryNews);
   		$allRes = array();
 
   		//var_dump($query);
@@ -352,6 +352,7 @@ class Search {
 				$indexMin=$ranges[News::COLLECTION]["indexMin"];
 				$indexStep=$ranges[News::COLLECTION]["indexMax"]-$ranges[News::COLLECTION]["indexMin"];
 			}
+			var_dump($queryNews);
 			$allRes = array_merge($allRes, self::searchNews($queryNews, $indexStep, $indexMin));
 	  	}
 
@@ -606,7 +607,7 @@ class Search {
 		foreach ($localities as $key => $locality){
 			if(!empty($locality)){
 				if($locality["type"] == City::CONTROLLER){
-					$queryLocality = array("address.localityId" => $key);
+					$queryLocality = array("address.localityId" => $locality["id"]);
 					if(!empty($locality["cp"]))
 						$queryLocality = array_merge($queryLocality, array("address.postalCode" => new MongoRegex("/^".$locality["cp"]."/i")));
 				}
@@ -616,7 +617,7 @@ class Search {
 						$queryLocality = array_merge($queryLocality, array("address.addressCountry" => $locality["countryCode"]));
 				}
 				else
-					$queryLocality = array("address.".$locality["type"] => $key);
+					$queryLocality = array("address.".$locality["type"] => $locality["id"]);
 				
 				if(empty($allQueryLocality))
 					$allQueryLocality = $queryLocality;
@@ -641,12 +642,13 @@ class Search {
   			foreach ($localities as $key => $locality){
 				if(!empty($locality)){
 
+					var_dump($locality);
 					if($locality["type"] == City::CONTROLLER)
-						$queryLocality = array("scope.localities.parentId" => $key, "scope.localities.parentType" =>  City::COLLECTION);
+						$queryLocality = array("scope.localities.parentId" => $locality["id"], "scope.localities.parentType" =>  City::COLLECTION);
 					else if($locality["type"] == "cp")
-						$queryLocality = array("scope.localities.postalCode" => new MongoRegex("/^".$key."/i"));
+						$queryLocality = array("scope.localities.postalCode" => new MongoRegex("/^".$locality["name"]."/i"));
 					else
-						$queryLocality = array("scope.localities.".$locality["type"] => $key);
+						$queryLocality = array("scope.localities.".$locality["type"] =>$locality["id"]);
 				
 					if(empty($allQueryLocality))
 						$allQueryLocality = $queryLocality;

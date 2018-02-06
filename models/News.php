@@ -142,7 +142,7 @@ class News {
 
 							if(!empty($locality)){
 								if($locality["type"] == City::CONTROLLER){
-									$city = City::getById($key);
+									$city = City::getById($locality["id"]);
 									//$city = City::getByUnikey($value);
 									$scope = array( "parentId"=>(String) $city["_id"],
 													"parentType"=>City::COLLECTION,
@@ -160,14 +160,14 @@ class News {
 								}
 								else if($locality["type"] == "cp"){
 
-									$where = array( "postalCodes.postalCode"=>strval($key));
+									$where = array( "postalCodes.postalCode"=>strval($locality["name"]));
 									if(@$locality["countryCode"]) $where["country"]=$locality["countryCode"];
 												
 									//var_dump($where);
 									$cities = City::getWhere($where);
 									if(!empty($cities)){
 										//$city=$city[0];
-										$scope = array("postalCode"=>strval($key));
+										$scope = array("postalCode"=>strval($locality["name"]));
 										$news["scope"]["localities"][] = $scope;
 
 										foreach($cities as $keyC=>$city){
