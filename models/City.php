@@ -1373,8 +1373,9 @@ class City {
 									array("postalCodes.origin" => new MongoRegex("/".$regex."/i") ),
 		 							array("postalCodes.postalCode" => new MongoRegex("/^".$regex."/i") )
 						) );
-		// $where = array( '$and'=> array($where, array("countryCode" => strtoupper($countryCode),
-		// 											"parentType" => City::COLLECTION ) ) );
+
+		if(!empty($countryCode))
+			$where = array( '$and'=> array($where, array("countryCode" => strtoupper($countryCode) ) ) );
 		//$where = array( '$and'=> array($where, array("parentType" => City::COLLECTION ) ) );
 		//var_dump($where);
 		$translate = Zone::getWhereTranlate($where);
