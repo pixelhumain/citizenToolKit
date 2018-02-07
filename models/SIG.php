@@ -499,7 +499,7 @@ class SIG
 	        if(!empty($namedetails)){
 	            $url .= "&namedetails=1";
 	        }
-	        //var_dump($url);
+	        var_dump($url);
 	        // $res =  file_get_contents($url);
 	        // return $res;
 			return self::getUrl($url);

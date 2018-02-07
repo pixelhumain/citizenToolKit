@@ -359,10 +359,9 @@ class Zone {
 								'SOZsozYYuAAAAAAACEEEEEIIIIIDNOOOOOOUUUUYsaaaaaaaceeeeeiiiiionoooooouuuuyy');
 	}
 
-	public static function getWhereTranlate($params, $fields=null, $limit=20) {
+	public static function getWhereTranlate($params, $fields=null, $limit=0) {
 	  	$zones =PHDB::findAndSort( self::TRANSLATE,$params, array(), $limit, $fields);
 	  	return $zones;
 	}
-
 }
 ?>

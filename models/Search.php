@@ -235,6 +235,7 @@ class Search {
 				// $where = array('$and'=> array($where, array("country" => strtoupper($country)) ));
 				//var_dump($where);
 		  		$allCitiesRes = City::searchCity($country, $search, false, false);
+		  		//var_dump(count($allCitiesRes));
 
 		  	}
 		  	

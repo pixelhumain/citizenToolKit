@@ -1368,9 +1368,9 @@ class City {
 		if($geoShape) $att[] =  "geoShape";
 		$regex = Search::accentToRegex($scopeValue);
 		$where = array( '$or'=> 
-							array(  array("origin" => new MongoRegex("/".$regex."/i")),
-									array("translates.".strtoupper(Yii::app()->language) => array( '$in' => array (new MongoRegex("/".$regex."/i") ) ) ),
-									array("postalCodes.origin" => new MongoRegex("/".$regex."/i") ),
+							array(  array("origin" => new MongoRegex("/^".$regex."/i")),
+									array("translates.".strtoupper(Yii::app()->language) => array( '$in' => array (new MongoRegex("/^".$regex."/i") ) ) ),
+									array("postalCodes.origin" => new MongoRegex("/^".$regex."/i") ),
 		 							array("postalCodes.postalCode" => new MongoRegex("/^".$regex."/i") )
 						) );
 
@@ -1379,6 +1379,7 @@ class City {
 		//$where = array( '$and'=> array($where, array("parentType" => City::COLLECTION ) ) );
 		//var_dump($where);
 		$translate = Zone::getWhereTranlate($where);
+		//var_dump(count($translate));
 		$cities = array();
 		$zones = array();
 		$valIDCity = array();
@@ -1429,11 +1430,12 @@ class City {
 			$resNominatimCity = json_decode(SIG::getGeoByAddressNominatim(null, null, $scopeValue, trim($countryCode), true, true, true),true);
 
 			//if(empty($resNominatim)){
-				$resNominatimState = json_decode(SIG::getGeoByAddressNominatim(null, null, null, trim($countryCode), true, true, true, $scopeValue, true),true);
+			$resNominatimState = json_decode(SIG::getGeoByAddressNominatim(null, null, null, trim($countryCode), true, true, true, $scopeValue, true),true);
 
-				$resNominatimCountry = json_decode(SIG::getGeoByAddressNominatim(null, null, null, trim($countryCode), true, true, true, $scopeValue, false, true),true);
+			$resNominatimCountry = json_decode(SIG::getGeoByAddressNominatim(null, null, null, trim($countryCode), true, true, true, $scopeValue, false, true),true);
 				//var_dump($resNominatimCountry );
-				$resNominatim = array_merge($resNominatimCity , $resNominatimState, $resNominatimCountry);
+			$resNominatim = array_merge($resNominatimState, $resNominatimCountry);
+			$resNominatim = array_merge($resNominatimCity , $resNominatim);
 			//}				
 
 			$typeCities = array("city", "village", "town", "hamlet", "state", "county") ;
