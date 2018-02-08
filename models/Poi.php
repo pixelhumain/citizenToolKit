@@ -3,6 +3,7 @@
 class Poi {
 	const COLLECTION = "poi";
 	const CONTROLLER = "poi";
+	const MODULE = "poi";
 	
 	//TODO Translate
 	public static $types = array (
@@ -76,6 +77,17 @@ class Poi {
 		"Films outils",
 		"Films de commande"
 	);
+	public static function getConfig(){
+		return array(
+			"collection"    => self::COLLECTION,
+            "controller"   => self::CONTROLLER,
+            //"module"   => self::MODULE,
+			//"init"   => Yii::app()->getModule( self::MODULE )->assetsUrl."/js/init.js" ,
+			//"form"   => Yii::app()->getModule( self::MODULE )->assetsUrl."/js/dynForm.js" ,
+            //"categories" => CO2::getModuleContextList(self::MODULE,"categories"),
+            "lbhp"=>true
+		);
+	}
 	/**
 	 * get all poi details of an element
 	 * @param type $id : is the mongoId (String) of the parent
