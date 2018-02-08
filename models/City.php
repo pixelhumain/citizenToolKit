@@ -1429,14 +1429,15 @@ class City {
 			// else
 			$resNominatimCity = json_decode(SIG::getGeoByAddressNominatim(null, null, $scopeValue, trim($countryCode), true, true, true),true);
 
-			//if(empty($resNominatim)){
-			$resNominatimState = json_decode(SIG::getGeoByAddressNominatim(null, null, null, trim($countryCode), true, true, true, $scopeValue, true),true);
+			if(empty($resNominatimCity)){
+				$resNominatimState = json_decode(SIG::getGeoByAddressNominatim(null, null, null, trim($countryCode), true, true, true, $scopeValue, true),true);
 
-			$resNominatimCountry = json_decode(SIG::getGeoByAddressNominatim(null, null, null, trim($countryCode), true, true, true, $scopeValue, false, true),true);
-				//var_dump($resNominatimCountry );
-			$resNominatim = array_merge($resNominatimState, $resNominatimCountry);
-			$resNominatim = array_merge($resNominatimCity , $resNominatim);
-			//}				
+				$resNominatimCountry = json_decode(SIG::getGeoByAddressNominatim(null, null, null, trim($countryCode), true, true, true, $scopeValue, false, true),true);
+					//var_dump($resNominatimCountry );
+				$resNominatim = array_merge($resNominatimState, $resNominatimCountry);
+				$resNominatim = array_merge($resNominatimCity , $resNominatim);
+			}else
+				$resNominatim = $resNominatimCity;			
 
 			$typeCities = array("city", "village", "town", "hamlet", "state", "county") ;
 			$typePlace = array("city", "village", "town", "hamlet") ;
@@ -1446,65 +1447,69 @@ class City {
 			$typePlace = array("city", "village", "town", "hamlet") ;
 			if(!empty($resNominatim)){
 				foreach (@$resNominatim as $key => $value) {
-					foreach ($typeCities as $keyType => $valueType) {
-						if( !empty($value["address"][$valueType]) 
-							&& $countryCode == strtoupper(@$value["address"]["country_code"])) {
 
-							$name = null ;
-							if(!empty($value["namedetails"])){
-								if( !empty($value["namedetails"]["name:".strtolower(Yii::app()->language)]) ) {
-									$name = $value["namedetails"]["name:".strtolower(Yii::app()->language)] ;
-								} else if( !empty($value["namedetails"]["name"] ) ) {
-									$name = $value["namedetails"]["name"] ;
+					if(  $value["osm_type"] == "relation" && 
+						( 	( $value["class"] == "place"  && $value["type"] == "city") ||
+						 	( $value["class"] == "boundary"  && $value["type"] == "administrative") ) ) {
+
+						foreach ($typeCities as $keyType => $valueType) {
+							if( !empty($value["address"][$valueType]) 
+								&& $countryCode == strtoupper(@$value["address"]["country_code"])) {
+
+								$name = null ;
+								if(!empty($value["namedetails"])){
+									if( !empty($value["namedetails"]["name:".strtolower(Yii::app()->language)]) ) {
+										$name = $value["namedetails"]["name:".strtolower(Yii::app()->language)] ;
+									} else if( !empty($value["namedetails"]["name"] ) ) {
+										$name = $value["namedetails"]["name"] ;
+									}
 								}
-							}
 
-							$name = (!empty($name) ? $name : $value["address"][$valueType]) ;
-							//var_dump($name);
-							// var_dump(in_array($name, $nameArray));
+								$name = (!empty($name) ? $name : $value["address"][$valueType]) ;
 
-							if ( ( 	 !in_array($keyType, $typeZone) ||
-									( 	in_array($keyType, $typeZone) && 
-										!empty($value["extratags"]["place"]) && 
-										in_array($value["extratags"]["place"], $typePlace) ) ) &&
-								 !in_array($value["osm_id"], $nameArray) ) {
+								if ( ( 	 !in_array($keyType, $typeZone) ||
+										( 	in_array($keyType, $typeZone) && 
+											!empty($value["extratags"]["place"]) && 
+											in_array($value["extratags"]["place"], $typePlace) ) ) &&
+									 !in_array($value["osm_id"], $nameArray) ) {
 
 
-								$wikidata = (empty($value["extratags"]["wikidata"]) ? null : $value["extratags"]["wikidata"]);
-								$newCities = array( "name" => $name,
-													"alternateName" => mb_strtoupper($name),
-													"country" => $countryCode,
-													"geo" => array( "@type"=>"GeoCoordinates", 
-																	"latitude" => $value["lat"], 
-																	"longitude" => $value["lon"]),
-													"geoPosition" => array( "type"=>"Point",
-																			"float"=>true, 
-																			"coordinates" => array(
-																				floatval($value["lon"]), 
-																				floatval($value["lat"]))),
-													"level3Name" => (empty($value["address"]["state"]) ? null : $value["address"]["state"] ),
-													"level3" => null,
-													"level4Name" => (empty($value["address"]["county"]) ? null : $value["address"]["county"] ),
-													"level4" => null,
-													"osmID" => $value["osm_id"],
-													"save" => true);
+									$wikidata = (empty($value["extratags"]["wikidata"]) ? null : $value["extratags"]["wikidata"]);
+									$newCities = array( "name" => $name,
+														"alternateName" => mb_strtoupper($name),
+														"country" => $countryCode,
+														"geo" => array( "@type"=>"GeoCoordinates", 
+																		"latitude" => $value["lat"], 
+																		"longitude" => $value["lon"]),
+														"geoPosition" => array( "type"=>"Point",
+																				"float"=>true, 
+																				"coordinates" => array(
+																					floatval($value["lon"]), 
+																					floatval($value["lat"]))),
+														"level3Name" => (empty($value["address"]["state"]) ? null : $value["address"]["state"] ),
+														"level3" => null,
+														"level4Name" => (empty($value["address"]["county"]) ? null : $value["address"]["county"] ),
+														"level4" => null,
+														"osmID" => $value["osm_id"],
+														"save" => true);
 
-								$nameArray[] = $value["osm_id"];
+									$nameArray[] = $value["osm_id"];
 
-								if(!empty($wikidata))
-									$newCities = City::getCitiesWithWikiData($wikidata, $newCities);
+									if(!empty($wikidata))
+										$newCities = City::getCitiesWithWikiData($wikidata, $newCities);
 
-								if(empty($newCities["insee"]))
-									$newCities["insee"] = $value["osm_id"]."*".$countryCode;
+									if(empty($newCities["insee"]))
+										$newCities["insee"] = $value["osm_id"]."*".$countryCode;
 
-								if(empty($newCities["postalCodes"]))
-									$newCities["postalCodes"] = array();
+									if(empty($newCities["postalCodes"]))
+										$newCities["postalCodes"] = array();
 
-								// if(empty($newCities["geoShape"]))
-								//     $newCities["geoShape"] = $value["geojson"];
-								//var_dump($newCities);
-								if(City::checkCitySimply($newCities))
-									$cities[] = $newCities;
+									// if(empty($newCities["geoShape"]))
+									//     $newCities["geoShape"] = $value["geojson"];
+									//var_dump($newCities);
+									if(City::checkCitySimply($newCities))
+										$cities[] = $newCities;
+								}
 							}
 						}
 					}
