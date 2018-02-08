@@ -1428,7 +1428,6 @@ class City {
 			// }
 			// else
 			$resNominatimCity = json_decode(SIG::getGeoByAddressNominatim(null, null, $scopeValue, trim($countryCode), true, true, true),true);
-
 			if(empty($resNominatimCity)){
 				$resNominatimState = json_decode(SIG::getGeoByAddressNominatim(null, null, null, trim($countryCode), true, true, true, $scopeValue, true),true);
 
@@ -1448,9 +1447,10 @@ class City {
 			if(!empty($resNominatim)){
 				foreach (@$resNominatim as $key => $value) {
 
-					if(  $value["osm_type"] == "relation" && 
+					if( ( $value["osm_type"] == "relation" && 
 						( 	( $value["class"] == "place"  && $value["type"] == "city") ||
-						 	( $value["class"] == "boundary"  && $value["type"] == "administrative") ) ) {
+						 	( $value["class"] == "boundary"  && $value["type"] == "administrative") ) ) ||
+						( $value["class"] == "place"  && $value["type"] == "town") ) {
 
 						foreach ($typeCities as $keyType => $valueType) {
 							if( !empty($value["address"][$valueType]) 
