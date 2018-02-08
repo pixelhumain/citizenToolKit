@@ -356,7 +356,8 @@ class ActivityStream {
 			$scope = array_merge($scope, Zone::getLevelIdById($localityId, $address, City::COLLECTION) ) ;
 
 			$action["scope"]["localities"][] = $scope ;
-		}
+		}else
+			$action["scope"]["type"]=News::TYPE_RESTRICTED;
 		
         if( isset( $params["label"] ))
         	$action["object"]["displayName"] = $params["label"];

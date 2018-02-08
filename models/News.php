@@ -84,120 +84,95 @@ class News {
 
 	 	if((isset($_POST["text"]) && !empty($_POST["text"])) || (isset($_POST["media"]) && !empty($_POST["media"])))
 	 	{
-		 	$keyLocality=$user["address"]["codeInsee"];
-		 	$postalCode=$user["address"]["postalCode"];
-		 	$typeNews=@$_POST["type"] ? $_POST["type"] : "news";
-			$news = array("type" => $typeNews, //"news",
-						  "text" => $_POST["text"],
-						  "author" => Yii::app()->session["userId"],
-						  "date"=>new MongoDate(time()),
-						  "sharedBy"=> array(array("id"=>Yii::app()->session["userId"],
-						  					 "type"=>Person::COLLECTION,
-						  					 "updated"=>new MongoDate(time()),
-						  					)),
+		 	$news=self::prepData($params);
+		 	PHDB::insert(self::COLLECTION,$news);
 
-						  //"updated"=>new MongoDate(time()),
-						  "created"=>new MongoDate(time()));
-
-			if(@$_POST["targetIsAuthor"]==true){
-				$news["sharedBy"] = array(array("id"=>$_POST["parentId"],
-						  					 "type"=>$_POST["parentType"],
-						  					 "updated"=>new MongoDate(time()),
-						  					));
+			//NOTIFICATION MENTIONS
+			if(isset($news["mentions"])){
+				$target=array("id"=>(string)$news["_id"],"type"=>self::COLLECTION);
+				if(@$news["targetIsAuthor"] && @$news["parentType"]){
+					$authorName=Element::getElementSimpleById($news["parentId"], $news["parentType"]);
+					$author=array("id"=>$news["parentId"], "type"=>$news["parentType"],"name"=>$authorName["name"]);
+				}else{
+					$author=array("id" => Yii::app()->session["userId"],"type"=>Person::COLLECTION, "name" => Yii::app()->session["user"]["name"]);
+				}
+				Notification::notifyMentionOn($author , $target, $news["mentions"], null, $news["scope"]);
 			}
 
-			if(isset($_POST["date"])){
-				$news["date"] = new MongoDate(strtotime(str_replace('/', '-', $_POST["date"])));
+			//NOTIFICATION POST
+			$target=$news["target"];//array("id"=>$news["parentId"],"type"=>$news["parentType"]);
+			if(@$news["targetIsAuthor"])
+				$target["targetIsAuthor"]=true;
+			else if($params["parentType"]==Person::COLLECTION && $params["parentId"] != Yii::app()->session["userId"])
+				$target["userWall"]=true;
+			if($params["parentType"] != Person::COLLECTION || $params["parentId"] != Yii::app()->session["userId"])
+        		Notification::constructNotification(ActStr::VERB_POST, array("id" => Yii::app()->session["userId"],"name" => Yii::app()->session["user"]["name"]) , $target, null, null);
+			$news=NewsTranslator::convertParamsForNews($news);			  		
+		    $news["author"] = Person::getSimpleUserById(Yii::app()->session["userId"]);
+		    
+		    /* Send email alert to contact@pixelhumain.com */
+		  	//if(@$type && $type=="pixels"){
+		  	//	Mail::notifAdminBugMessage($news["text"]);
+		  	//}
+		    return array("result"=>true, "msg"=>"Votre message est enregistré.", "id"=>$news["_id"],"object"=>$news);	
+		} else {
+			return array("result"=>false, "msg"=>"Please Fill required Fields.");	
+		}
+	}
+	public static function prepData ($params) {
+		$typeNews=@$params["type"] ? $params["type"] : "news";
+		$news = array("type" => $typeNews, //"news",
+			"text" => $params["text"],
+		  	"author" => Yii::app()->session["userId"],
+		  	"date"=>new MongoDate(time()),
+		  	"sharedBy"=> array(
+		  		array("id"=>Yii::app()->session["userId"],
+		  			"type"=>Person::COLLECTION,
+		  			"updated"=>new MongoDate(time())
+		  		)
+		  	),
+			'target'=>array(
+				'id'=>@$params["parentId"],
+			  	'type'=>@$params["parentType"]
+			),
+			"created"=>new MongoDate(time())
+		);
+		if(@$params["targetIsAuthor"]==true){
+			$news["sharedBy"] = array(array("id"=>$params["parentId"],
+					  					 "type"=>$params["parentType"],
+					  					 "updated"=>new MongoDate(time()),
+					  					));
+		}
+
+		if(@$params["date"]) $news["date"] = new MongoDate(strtotime(str_replace('/', '-', $params["date"])));
+		if (@$params["media"]){
+			$news["media"] = $params["media"];
+			if(@$params["media"]["content"] && @$params["media"]["content"]["image"] && !@$params["media"]["content"]["imageId"]){
+				$urlImage = self::uploadNewsImage($params["media"]["content"]["image"],$params["media"]["content"]["imageSize"],Yii::app()->session["userId"]);
+				$news["media"]["content"]["image"]=	 Yii::app()->baseUrl."/".$urlImage;
 			}
-			if (isset($_POST["media"])){
-				$news["media"] = $_POST["media"];
-				if(@$_POST["media"]["content"] && @$_POST["media"]["content"]["image"] && !@$_POST["media"]["content"]["imageId"]){
-					$urlImage = self::uploadNewsImage($_POST["media"]["content"]["image"],$_POST["media"]["content"]["imageSize"],Yii::app()->session["userId"]);
-					$news["media"]["content"]["image"]=	 Yii::app()->baseUrl."/".$urlImage;
-				}
-			}
-			if(isset($_POST["tags"]))
-				$news["tags"] = $_POST["tags"];
-		 	if(isset($_POST["parentId"]))
-				$news["target"]["id"] = $_POST["parentId"];
-			if(isset($_POST["targetIsAuthor"]))
-				$news["targetIsAuthor"] = $_POST["targetIsAuthor"];
-		 	if(isset($_POST["parentType"]))
-		 	{
-				$type=$_POST["parentType"];
-				$news["target"]["type"] = $type;
-				$from="";
-				$parent = Element::getByTypeAndId($type, $_POST["parentId"]);
-				if( isset( $parent['geo'] ) )
-					$from = $parent['geo'];
-				if(@$parent["address"]){
-					$codeInsee=$parent["address"]["codeInsee"];
-					$postalCode=$parent["address"]["postalCode"];
-				}
-				if( $_POST["scope"] != "restricted" && $_POST["scope"] != "private" && !empty($_POST["localities"]) ) {
-					$news["scope"]["type"]="public";
-					$localities = $_POST["localities"] ;
-			  		if(!empty($localities)){
-			  			foreach ($localities as $key => $locality){
-
-							if(!empty($locality)){
-								if($locality["type"] == City::CONTROLLER){
-									$city = City::getById($locality["id"]);
-									//$city = City::getByUnikey($value);
-									$scope = array( "parentId"=>(String) $city["_id"],
-													"parentType"=>City::COLLECTION,
-													"name"=>$city["name"],
-													"geo" => $city["geo"]
-												);
-									if (!(empty($city["cp"]))) {
-										$scope["postalCode"] = $city["cp"];
-									}else if (!(empty($city["postalCode"]))) {
-										$scope["postalCode"] = $city["postalCode"];
-									}
-
-									$scope = array_merge($scope, Zone::getLevelIdById((String) $city["_id"], $city, City::COLLECTION) ) ;
-									$news["scope"]["localities"][] = $scope;
-								}
-								else if($locality["type"] == "cp"){
-
-									$where = array( "postalCodes.postalCode"=>strval($locality["name"]));
-									if(@$locality["countryCode"]) $where["country"]=$locality["countryCode"];
-												
-									//var_dump($where);
-									$cities = City::getWhere($where);
-									if(!empty($cities)){
-										//$city=$city[0];
-										$scope = array("postalCode"=>strval($locality["name"]));
-										$news["scope"]["localities"][] = $scope;
-
-										foreach($cities as $keyC=>$city){
-											$id = (String) $city["_id"];
-											$scope = array( "parentId"=>(String) $city["_id"],
-															"parentType"=>City::COLLECTION,
-															"geo" => $city["geo"] );
-											$scope = array_merge($scope, Zone::getLevelIdById((String) $city["_id"], $city, City::COLLECTION) ) ;
-											$news["scope"]["localities"][] = $scope;
-										}
-										
-									}
-								}
-								else{
-									$zone = Zone::getById($locality["id"]);
-									$scope = array( "parentId"=> $locality["id"],
-													"parentType"=>Zone::COLLECTION,
-													"name"=>$zone["name"],
-													"geo" => $zone["geo"]
-												);
-									$scope = array_merge($scope, Zone::getLevelIdById($locality["id"], $zone, Zone::COLLECTION) ) ;
-
-									$news["scope"]["localities"][] = $scope;
-								}
-							}
-						}
-			  		}
-				}
-				else{
-					$scope = $_POST["scope"];
+		}
+		if(@$params["tags"]) $news["tags"] = $params["tags"];
+	 	//if(@$params["parentId"]) $news["target"]["id"] = $params["parentId"];
+	 	//if(@$params["parentType"]) $news["target"]["type"] = $type;
+		if(@$params["targetIsAuthor"]) $news["targetIsAuthor"] = $params["targetIsAuthor"];
+		if(@$params["mentions"]) $news["mentions"] = $params["mentions"];
+	 	//if(isset($params["parentType"]))
+	 	//{
+		$news["scope"]=self::formatedScope($params);
+			//$type=$params["parentType"];
+			
+			//$from="";
+			//$parent = Element::getByTypeAndId($type, $params["parentId"]);
+			//	if( isset( $parent['geo'] ) )
+			//		$from = $parent['geo'];
+			//if(@$parent["address"]){
+			//	$codeInsee=$parent["address"]["codeInsee"];
+			//	$postalCode=$parent["address"]["postalCode"];
+			//}
+			
+				/*else{
+					$scope = $params["scope"];
 					$news["scope"]["type"]=$scope;
 					if($scope== "public"){
 
@@ -215,55 +190,77 @@ class News {
 							$news["scope"]["localities"][] = $scope;
 						}
 					}
-				}		
-			}
-		 	if(isset($_POST["mentions"]))
-				$news["mentions"] = $_POST["mentions"];
-
-			PHDB::insert(self::COLLECTION,$news);
-
-			//NOTIFICATION MENTIONS
-			if(isset($news["mentions"])){
-				$target=array("id"=>(string)$news["_id"],"type"=>self::COLLECTION);
-				//if(@$_POST["parentType"]){
-				//	$target["parent"]=array("id"=>$_POST["parentId"],"type"=>$_POST["parentType"]);		
-				//}
-				//$target=array("id"=>$_POST["parentId"],"type"=>$_POST["parentType"]);
-				if(@$_POST["targetIsAuthor"] && @$_POST["parentType"]){
-					//if($targetIsAuthor){
-					$authorName=Element::getElementSimpleById($_POST["parentId"], $_POST["parentType"]);
-					$author=array("id"=>$_POST["parentId"], "type"=>$_POST["parentType"],"name"=>$authorName["name"]);
-					//	$authorName=$authorName["name"];
-					//} else{
-					//	$authorName=$author["name"];
-					//}
-				}else{
-					$author=array("id" => Yii::app()->session["userId"],"type"=>Person::COLLECTION, "name" => Yii::app()->session["user"]["name"]);
-				}
-				Notification::notifyMentionOn($author , $target, $news["mentions"], null, $_POST["scope"]);
-			}
-
-			//NOTIFICATION POST
-			$target=array("id"=>$_POST["parentId"],"type"=>$_POST["parentType"]);
-			if(@$news["targetIsAuthor"])
-				$target["targetIsAuthor"]=true;
-			else if($_POST["parentType"]==Person::COLLECTION && $_POST["parentId"] != Yii::app()->session["userId"])
-				$target["userWall"]=true;
-			if($_POST["parentType"] != Person::COLLECTION || $_POST["parentId"] != Yii::app()->session["userId"])
-        		Notification::constructNotification(ActStr::VERB_POST, array("id" => Yii::app()->session["userId"],"name" => Yii::app()->session["user"]["name"]) , $target, null, null);
-			$news=NewsTranslator::convertParamsForNews($news);			  		
-		    $news["author"] = Person::getSimpleUserById(Yii::app()->session["userId"]);
-		    
-		    /* Send email alert to contact@pixelhumain.com */
-		  	if(@$type && $type=="pixels"){
-		  		Mail::notifAdminBugMessage($news["text"]);
-		  	}
-		    return array("result"=>true, "msg"=>"Votre message est enregistré.", "id"=>$news["_id"],"object"=>$news);	
-		} else {
-			return array("result"=>false, "msg"=>"Please Fill required Fields.");	
-		}
+				}*/		
+			//}
+		return $news;
 	}
+	public static function formatedScope($params) {
+		$scopes=array("type"=>$params["scope"]);
+		if( $params["scope"]=="public" && !empty($params["localities"]) ) {
+			//$news["scope"]["type"]="public";
+			$localities = $params["localities"] ;
+	  		if(!empty($localities)){
+	  			foreach ($localities as $key => $locality){
+					if(!empty($locality)){
+						if($locality["type"] == City::CONTROLLER || $locality["type"] == City::COLLECTION){
+							$city = City::getById($locality["id"]);
+							//$city = City::getByUnikey($value);
+							$scope = array( "parentId"=>(String) $city["_id"],
+											//"parentType"=>City::COLLECTION,
+											"parentType"=>$locality["type"],
+											"name"=>$city["name"],
+											"geo" => $city["geo"]
+										);
+							if (@$locality["cp"] && !empty($locality["cp"])) {
+								$scope["cp"] = $locality["cp"];
+							}else if (!empty($city["postalCode"])) {
+								$scope["postalCode"] = $city["postalCode"];
+							}
 
+							$scope = array_merge($scope, Zone::getLevelIdById((String) $city["_id"], $city, City::COLLECTION) ) ;
+							$scopes["localities"][] = $scope;
+						}
+						else if($locality["type"] == "cp"){
+
+							$where = array( "postalCodes.postalCode"=>strval($locality["name"]));
+							if(@$locality["countryCode"]) $where["country"]=$locality["countryCode"];
+										
+							//var_dump($where);
+							$cities = City::getWhere($where);
+							if(!empty($cities)){
+								//$city=$city[0];
+								$scope = array("postalCode"=>strval($locality["name"]));
+								$scopes["localities"][] = $scope;
+
+								foreach($cities as $keyC=>$city){
+									$id = (String) $city["_id"];
+									$scope = array( "parentId"=>(String) $city["_id"],
+													"parentType"=>City::COLLECTION,
+													"geo" => $city["geo"] );
+									$scope = array_merge($scope, Zone::getLevelIdById((String) $city["_id"], $city, City::COLLECTION) ) ;
+									$scopes["localities"][] = $scope;
+								}
+								
+							}
+						}
+						else{
+							$zone = Zone::getById($locality["id"]);
+							$scope = array( "parentId"=> $locality["id"],
+											"parentType"=>$locality["type"],
+											"name"=>$zone["name"],
+											"geo" => $zone["geo"]
+										);
+							$scope = array_merge($scope, Zone::getLevelIdById($locality["id"], $zone, Zone::COLLECTION) ) ;
+
+							$scopes["localities"][] = $scope;
+						}
+					}
+				}
+	  		}
+		}else if($params["scope"]=="public" && empty($params["localities"]))
+			$scopes["type"]="restricted";
+		return $scopes;
+	}
 	/**
 	 * delete a news in database and the comments on that news
 	 * @param type $id : id to delete
@@ -483,38 +480,38 @@ class News {
 	 * @return array of result (result => boolean, msg => string)
 	 */
 	public static function update($params){
-		if((isset($_POST["text"]) && !empty($_POST["text"])) || (isset($_POST["media"]) && !empty($_POST["media"])))
-	 	{
+		if((isset($params["text"]) && !empty($params["text"])) || (isset($params["media"]) && !empty($params["media"]))){
 			$set = array(
-				 "text" => $_POST["text"],
+				 "text" => $params["text"],
 				 "updated"=>new MongoDate(time()),
 			);
 			$unset=array();
-			if (@$_POST["media"]){
-				if($_POST["media"]=="unset"){
+			if (@$params["media"]){
+				if($params["media"]=="unset"){
 					$unset["media"]="";
 				}else{
-					$set["media"] = $_POST["media"];
-					if(@$_POST["media"]["content"] && @$_POST["media"]["content"]["image"] && !@$_POST["media"]["content"]["imageId"] 
-							&& strpos($_POST["media"]["content"]["image"], Yii::app()->baseUrl) === false){
+					$set["media"] = $params["media"];
+					if(@$params["media"]["content"] && @$params["media"]["content"]["image"] && !@$params["media"]["content"]["imageId"] 
+							&& strpos($params["media"]["content"]["image"], Yii::app()->baseUrl) === false){
 						//echo Yii::app()->baseUrl; 
 						//echo strpos($_POST["media"]["content"]["image"], Yii::app()->baseUrl);
-						$urlImage = self::uploadNewsImage($_POST["media"]["content"]["image"],$_POST["media"]["content"]["imageSize"],Yii::app()->session["userId"]);
+						$urlImage = self::uploadNewsImage($params["media"]["content"]["image"],$params["media"]["content"]["imageSize"],Yii::app()->session["userId"]);
 						$set["media"]["content"]["image"]=	 Yii::app()->baseUrl."/".$urlImage;
 					}
 				}
 			}
-			if(@$_POST["tags"])
-				$set["tags"] = $_POST["tags"];
-		 	if(@$_POST["mentions"])
-				$set["mentions"] = $_POST["mentions"];
+			if(@$params["tags"])
+				$set["tags"] = $params["tags"];
+		 	if(@$params["mentions"])
+				$set["mentions"] = $params["mentions"];
 			else
 				$unset["mentions"]="";
+			$set["scope"]=self::formatedScope($params);
 			$modify=array('$set'=>$set);
 			if(@$unset && !empty($unset))
 				$modify['$unset']=$unset;
 		//update the project
-		PHDB::update( self::COLLECTION, array("_id" => new MongoId($_POST["idNews"])), 
+		PHDB::update( self::COLLECTION, array("_id" => new MongoId($params["idNews"])), 
 		                          $modify);
 		$news=self::getById($_POST["idNews"]);
 	    return array("result"=>true, "msg"=>Yii::t("common","News well updated"), "object"=>$news);
