@@ -753,7 +753,7 @@ class Link {
 		$childId = @$child["childId"];
         $childType = $child["childType"];
         $levelNotif=null;
-		if ( in_array($parentType, array( Organization::COLLECTION, Project::COLLECTION, Classified::COLLECTION ) ) ){
+		if ( in_array($parentType, array( Organization::COLLECTION, Project::COLLECTION, Classified::COLLECTION, Place::COLLECTION ) ) ){
             $parentData = Element::getByTypeAndId($parentType, $parentId);           
             $parentController = Element::getControlerByCollection($parentType);
         }

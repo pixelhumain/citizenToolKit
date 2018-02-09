@@ -859,8 +859,8 @@ class Event {
 	  		if ($type == "all") {
 	  			return $event["links"]["attendees"];
 	  		} else {
-	  			foreach ($event["links"]["attendees"] as $key => $member) {
-		            if ($member['type'] == $type ) {
+	  			foreach ($event["links"]["attendees"] as $key => $member) { //var_dump($member); exit;
+		            if (@$member['type'] == $type ) {
 		                $res[$key] = $member;
 		            }
 		            if ( $role && @$member[$role] == true ) {

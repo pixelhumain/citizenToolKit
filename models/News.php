@@ -433,7 +433,8 @@ class News {
 			//error_log("share new");
 		}
 		$newsShared=News::getById($idNews);
-		return array("result"=>true, "msg"=> Yii::t("common", "News has been shared with your network"), "data"=>$newsShared);
+		return array("result"=>true, "msg"=> Yii::t("common", "News has been shared with your network"), 
+					 "data"=>$newsShared, "idNews"=>$idNews);
 	}
 
 	public static function removeNewsByImageId($imageId){

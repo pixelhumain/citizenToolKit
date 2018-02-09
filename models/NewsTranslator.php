@@ -55,6 +55,18 @@ class NewsTranslator {
 				$object=Room::getById((string)$params["object"]["id"]);
 				$params["icon"]="fa-inbox";
 			}
+			else if (@$params["object"]["type"]==Classified::COLLECTION){
+				$object=Classified::getById((string)$params["object"]["id"]);
+				$params["icon"]="fa-bullhorn";
+			}
+			else if (@$params["object"]["type"]==Ressource::COLLECTION){
+				$object=Ressource::getById((string)$params["object"]["id"]);
+				$params["icon"]="fa-cubes";
+			}
+			else if (@$params["object"]["type"]==Place::COLLECTION){
+				$object=Place::getById((string)$params["object"]["id"]);
+				$params["icon"]="fa-marker-map";
+			}
 			//var_dump($object);
 			//exit;
 			if(!empty($object)){
