@@ -89,6 +89,7 @@ class Search {
 		$sourceKey = isset($post['sourceKey']) ? $post['sourceKey'] : null;
 		$mainTag = isset($post['mainTag']) ? $post['mainTag'] : null;
 		$paramsFiltre = isset($post['paramsFiltre']) ? $post['paramsFiltre'] : null;
+		$countType = isset($post['countType']) ? $post['countType'] : null;
 		$indexStep = $indexMax - $indexMin;
 
 		$searchTypeOrga = ""; /* used in CO2 to find different organisation type */
@@ -142,9 +143,11 @@ class Search {
         $searchSType = !empty($post['searchSType']) ? $post['searchSType'] : "";
         $sourceKey = !empty($post['sourceKey']) ? $post['sourceKey'] : "";
         $countResult = (@$post["count"]) ? true : false;
-        $page = @$post['page'] ? $post['page'] : 0;
+        $page = @$post['searchPage'] ? $post['searchPage'] : 0;
         $app = @$post['app'] ? $post['app'] : "";
+        $searchOnAll = ($app=="territorial") ? true : false;
         $ranges = @$post['ranges'] ? $post['ranges'] : null;
+        $countType = isset($post['countType']) ? $post['countType'] : null;
         //$indexStep = 100;
         $indexStep=30;
       	$indexMin=30*$page;
@@ -287,7 +290,7 @@ class Search {
        		}
        		if($search != "")
        			$searchAll=true;
-			$allRes = array_merge($allRes, self::searchEvents($query, $indexStep, $indexMin, $searchSType, $app, $searchAll));
+			$allRes = array_merge($allRes, self::searchEvents($query, $indexStep, $indexMin, $searchSType, $searchOnAll, $searchAll));
 	  	}
 	  	//*********************************  PROJECTS   ******************************************
 		if(strcmp($filter, Project::COLLECTION) != 0 && self::typeWanted(Project::COLLECTION, $searchType)){
@@ -381,7 +384,7 @@ class Search {
 	  		usort($allRes, "self::mySortByUpdated");
 	  	}
 	  	foreach ($allRes as $key => $value) {
-	  		if($app=="territorial"){
+	  		if($searchOnAll){
 	  			if($value["type"]==News::COLLECTION){
 	  				if(@$value["updated"])
 						$allRes[$key]["sorting"] = @$value["updated"]->sec;
@@ -407,8 +410,22 @@ class Search {
 	  	//$params["results"]["count"][$_POST["type"]] = PHDB::count( $_POST["type"] , $queryNews);
 	  	//print_r($allRes);
 	  	//echo $search;
-	  	if($countResult){
-	        $allRes["count"]=array();
+	  	$results["results"]=$allRes;
+	  	if($countResult && !empty($countType)){
+	  		foreach($countType as $value){
+	  			$countQuery=$query;
+	  			$col=$value;
+	  			if($value==Person::COLLECTION) $countQuery=$queryPersons;
+	  			else if($value==News::COLLECTION) $countQuery=$queryNews;
+	  			else if(in_array($value, ["Group", "NGO", "LocalBusiness", "GovernmentOrganization"])){
+          			array_push( $countQuery[ '$and' ], array( "type" => $value ) );
+          			$col=Organization::COLLECTION;
+	  			}
+          		
+	  			//else $countQuery=$query;
+	  			$results["count"][$value] = PHDB::count( $col , $countQuery);
+	  		}
+	        /*$allRes["count"]=array();
 	        $allRes["count"][Person::COLLECTION] = PHDB::count( Person::COLLECTION , $queryPersons);
 	        //$allRes["count"][Organization::COLLECTION] = PHDB::count( Organization::COLLECTION , $query);
 	        $allRes["count"][Event::COLLECTION] = PHDB::count( Event::COLLECTION , $query);
@@ -418,15 +435,15 @@ class Search {
 	        $allRes["count"][Place::COLLECTION] = PHDB::count(Place::COLLECTION , $query);
 	        $allRes["count"][Ressource::COLLECTION] = PHDB::count(Ressource::COLLECTION , $query);
 	        $allRes["count"][News::COLLECTION] = PHDB::count( News::COLLECTION , $queryNews);
-	        $allRes["count"][City::COLLECTION] = PHDB::count( City::COLLECTION , $queryNews);
+	        //$allRes["count"][City::COLLECTION] = PHDB::count( City::COLLECTION , $queryNews);
           	foreach(Organization::$types as $key => $v){
           		$querySubOrg=$query;
           		array_push( $querySubOrg[ '$and' ], array( "type" => $key ) );
           		$allRes["count"][$key] = PHDB::count( Organization::COLLECTION , $querySubOrg);
-          	}
+          	}*/
       	}
 	  	//var_dump($allRes);
-	  	return $allRes ;
+	  	return $results ;
     }
 
     //*********************************  Search   ******************************************
@@ -884,7 +901,7 @@ class Search {
 	
 
 	//*********************************  EVENT   ******************************************
-	public static function searchEvents($query, $indexStep, $indexMin, $searchSType, $app=null, $all=null){
+	public static function searchEvents($query, $indexStep, $indexMin, $searchSType, $searchOnAll=null, $all=null){
 		date_default_timezone_set('UTC');
 		$queryEvent = $query;
 
@@ -896,7 +913,7 @@ class Search {
     	//var_dump($queryEvent);
     	if(isset($searchSType) && $searchSType != "")
         		array_push( $queryEvent[ '$and' ], array( "type" => $_POST["searchSType"] ) );
-    	if($app=="territorial")
+    	if($searchOnAll)
     		$sort=array("updated" => -1);
     	else if(@$all && $all)
     		$sort=array("startDate" => -1);
