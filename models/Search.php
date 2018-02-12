@@ -179,9 +179,8 @@ class Search {
 		$query = array('$and' => array( $query , array("state" => array('$ne' => "uncomplete")) ));
       	$queryNews = Search::searchNewsString($search, $query);
       	$queryNews = array('$and' => array( $queryNews , array("type"=>News::COLLECTION, "scope.type"=>News::TYPE_PUBLIC, "target.type"=>array('$ne'=>"pixels"))));
-   		if($latest)
+      	if($latest)
   			$query = array('$and' => array($query, array("updated"=>array('$exists'=>1))));
-
   		if($sourceKey!="")
   			$query['$and'][] = array("source.key"=>$sourceKey);
 
@@ -217,7 +216,7 @@ class Search {
   			array_push( $queryPersons[ '$and' ], array("preferences.publicFields"=>array('$in' =>array("locality") )));
   			$queryNews = self::searchLocalityNews($searchLocality, $queryNews);
   		}
-  		
+  		$queryEvents = Search::getQueryEvents($query, $searchSType, $startDate, $endDate);
   		$allRes = array();
 
   		//var_dump($query);
@@ -282,15 +281,10 @@ class Search {
 				$indexMin=$ranges[Event::COLLECTION]["indexMin"];
 				$indexStep=$ranges[Event::COLLECTION]["indexMax"]-$ranges[Event::COLLECTION]["indexMin"];
 			}
-			if($startDate!=null){
-				array_push( $query[ '$and' ], array( "startDate" => array( '$gte' => new MongoDate( (float)$startDate ) ) ) );
-       		}
-			if($endDate!=null){
-       			array_push( $query[ '$and' ], array( "endDate" => array( '$lte' => new MongoDate( (float)$endDate ) ) ) );
-       		}
+			
        		if($search != "")
        			$searchAll=true;
-			$allRes = array_merge($allRes, self::searchEvents($query, $indexStep, $indexMin, $searchSType, $searchOnAll, $searchAll));
+			$allRes = array_merge($allRes, self::searchEvents($queryEvents, $indexStep, $indexMin, $searchSType, $searchOnAll, $searchAll));
 	  	}
 	  	//*********************************  PROJECTS   ******************************************
 		if(strcmp($filter, Project::COLLECTION) != 0 && self::typeWanted(Project::COLLECTION, $searchType)){
@@ -411,41 +405,36 @@ class Search {
 	  	//print_r($allRes);
 	  	//echo $search;
 	  	$results["results"]=$allRes;
-	  	if($countResult && !empty($countType)){
-	  		foreach($countType as $value){
+	  	if($countResult && !empty($countType))
+	  		$results["count"]=search::countResultsByCollection($countType, $query, $queryPersons, $queryNews, $queryEvents);
+	  	//var_dump($allRes);
+	  	return $results ;
+    }
+
+    //*********************** Count search results********************************************************//
+    // params countTYpe is an array defining collection searching in modules context
+    // params query is array of condition general
+    // params queryPersons is array of condition specific for people
+    // params queryNews is array of condition specific for news
+    // params queryEvents is array of condition specific for events
+    public static function countResultsByCollection($countType, $query, $queryPersons, $queryNews, $queryEvents){
+    	$count=array();
+    	foreach($countType as $value){
 	  			$countQuery=$query;
 	  			$col=$value;
 	  			if($value==Person::COLLECTION) $countQuery=$queryPersons;
 	  			else if($value==News::COLLECTION) $countQuery=$queryNews;
+	  			else if($value==Event::COLLECTION) $countQuery=$queryEvents;
 	  			else if(in_array($value, ["Group", "NGO", "LocalBusiness", "GovernmentOrganization"])){
           			array_push( $countQuery[ '$and' ], array( "type" => $value ) );
           			$col=Organization::COLLECTION;
 	  			}
           		
 	  			//else $countQuery=$query;
-	  			$results["count"][$value] = PHDB::count( $col , $countQuery);
-	  		}
-	        /*$allRes["count"]=array();
-	        $allRes["count"][Person::COLLECTION] = PHDB::count( Person::COLLECTION , $queryPersons);
-	        //$allRes["count"][Organization::COLLECTION] = PHDB::count( Organization::COLLECTION , $query);
-	        $allRes["count"][Event::COLLECTION] = PHDB::count( Event::COLLECTION , $query);
-	        $allRes["count"][Project::COLLECTION] = PHDB::count( Project::COLLECTION , $query);
-	        $allRes["count"][Poi::COLLECTION] = PHDB::count( Poi::COLLECTION , $query);
-	        $allRes["count"][Classified::COLLECTION] = PHDB::count( Classified::COLLECTION , $query);
-	        $allRes["count"][Place::COLLECTION] = PHDB::count(Place::COLLECTION , $query);
-	        $allRes["count"][Ressource::COLLECTION] = PHDB::count(Ressource::COLLECTION , $query);
-	        $allRes["count"][News::COLLECTION] = PHDB::count( News::COLLECTION , $queryNews);
-	        //$allRes["count"][City::COLLECTION] = PHDB::count( City::COLLECTION , $queryNews);
-          	foreach(Organization::$types as $key => $v){
-          		$querySubOrg=$query;
-          		array_push( $querySubOrg[ '$and' ], array( "type" => $key ) );
-          		$allRes["count"][$key] = PHDB::count( Organization::COLLECTION , $querySubOrg);
-          	}*/
-      	}
-	  	//var_dump($allRes);
-	  	return $results ;
+	  			$count[$value] = PHDB::count( $col , $countQuery);
+	  	}
+	  	return $count;
     }
-
     //*********************************  Search   ******************************************
 	public static function searchString($search, $query){
 
@@ -681,7 +670,23 @@ class Search {
 		return $query ;
 	}
 	//*********************************  END DEFINE LOCALITY QUERY   ****************************************
-  	
+  	public static function getQueryEvents($queryEvent, $searchSType, $startDate, $endDate){
+  		if($startDate!=null)
+			array_push( $queryEvent[ '$and' ], array( "startDate" => array( '$gte' => new MongoDate( (float)$startDate ) ) ) );
+		if($endDate!=null)
+       		array_push( $queryEvent[ '$and' ], array( "endDate" => array( '$lte' => new MongoDate( (float)$endDate ) ) ) );
+  		if(isset($searchSType) && $searchSType != "")
+        	array_push( $queryEvent[ '$and' ], array( "type" => $_POST["searchSType"] ) );
+    	$queryEvent = array('$and' => 
+						array( $queryEvent , 
+						array( '$or' => array( 
+							array("public" => true ),
+							array( '$and' => array(
+								array("public" => false ),
+								array("links.attendees.".Yii::app()->session["userId"] => array('$exists' => 1) )
+								) ) ) ) ) );
+  		return $queryEvent;
+  	}
   	//trie les éléments dans l'ordre alphabetique par name
   	public static function mySortByName($a, $b){ // error_log("sort : ");//.$a['name']);
   		if(isset($a["_id"]) && isset($b["name"])){
@@ -905,29 +910,19 @@ class Search {
 		date_default_timezone_set('UTC');
 		$queryEvent = $query;
 
-    	if( !isset( $queryEvent['$and'] ) ) 
-    		$queryEvent['$and'] = array();
+    	//if( !isset( $queryEvent['$and'] ) ) 
+    	//	$queryEvent['$and'] = array();
     	
     	//echo  time(); exit;
     	//array_push( $queryEvent[ '$and' ], array( "endDate" => array( '$gte' => new MongoDate( time() ) ) ) );
     	//var_dump($queryEvent);
-    	if(isset($searchSType) && $searchSType != "")
-        		array_push( $queryEvent[ '$and' ], array( "type" => $_POST["searchSType"] ) );
     	if($searchOnAll)
     		$sort=array("updated" => -1);
     	else if(@$all && $all)
     		$sort=array("startDate" => -1);
     	else
     		$sort=array("startDate" => 1);
-		$queryEvent = array('$and' => 
-						array( $queryEvent , 
-						array( '$or' => array( 
-							array("public" => true ),
-							array( '$and' => array(
-								array("public" => false ),
-								array("links.attendees.".Yii::app()->session["userId"] => array('$exists' => 1) )
-								) ) ) ) ) );
-    	$allEvents = PHDB::findAndSortAndLimitAndIndex( PHType::TYPE_EVENTS, $queryEvent, 
+		$allEvents = PHDB::findAndSortAndLimitAndIndex( PHType::TYPE_EVENTS, $queryEvent, 
   										$sort , $indexStep, $indexMin);
   		foreach ($allEvents as $key => $value) {
   			$allEvents[$key]["typeEvent"] = @$allEvents[$key]["type"];
