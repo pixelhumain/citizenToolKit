@@ -440,7 +440,7 @@ class Search {
           		$querySubOrg=$query;
           		array_push( $querySubOrg[ '$and' ], array( "type" => $key ) );
           		$allRes["count"][$key] = PHDB::count( Organization::COLLECTION , $querySubOrg);
-          	}*/
+          	}*/ $element["gallery"] = Document::listMyDocumentByIdAndType((string)@$element["_id"], @$type);
       	}
 	  	//var_dump($allRes);
 	  	return $results ;
@@ -1012,6 +1012,8 @@ class Search {
 			$allClassified[$key]["parent"] = $parent;
 			$allClassified[$key]["category"] = @$allClassified[$key]["type"];
 			$allClassified[$key]["type"] = "classified";
+
+			$allClassified[$key]["gallery"] = Document::listMyDocumentByIdAndType(@$key, "classified");
 			//if(@$value["type"])
 			//	$allClassified[$key]["typeSig"] = Classified::COLLECTION.".".$value["type"];
 			//else

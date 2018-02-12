@@ -1,4 +1,9 @@
 <?php
+/*
+
+	SEE THIS MODEL IN CLASSIFIED MODULE
+	IF YOU DONT WANT TO GET MAD MODIFYING THIS FILE WITH NO RESULT
+
 
 class Classified {
 	const COLLECTION = "classified";
@@ -70,13 +75,13 @@ class Classified {
 	}
 
 	/**
-	 * get a Poi By Id
-	 * @param String $id : is the mongoId of the poi
+	 * get a Classified By Id
+	 * @param String $id : is the mongoId of the classified
 	 * @return poi
-	 */
-	public static function getById($id) { 
-	  	$poi = PHDB::findOneById( self::COLLECTION ,$id );
-	  	return $poi;
+	 * /
+	public static function getById($id) {
+	  	$classified = PHDB::findOneById( self::COLLECTION ,$id );
+	  	return $classified;
 	}
 
 
@@ -103,4 +108,5 @@ class Classified {
 	  	return $allClassified;
 	}
 }
+*/
 ?>
