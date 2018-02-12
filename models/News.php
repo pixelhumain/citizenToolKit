@@ -224,24 +224,28 @@ class News {
 
 							$where = array( "postalCodes.postalCode"=>strval($locality["name"]));
 							if(@$locality["countryCode"]) $where["country"]=$locality["countryCode"];
-										
-							//var_dump($where);
-							$cities = City::getWhere($where);
-							if(!empty($cities)){
-								//$city=$city[0];
+							$city = City::getWhereFindOne($where, $fields=null);
+							if(!empty($city)){
 								$scope = array("postalCode"=>strval($locality["name"]));
+								$scope = array_merge($scope, Zone::getLevelIdById((String) $city["_id"], $city, City::COLLECTION) ) ;
 								$scopes["localities"][] = $scope;
-
-								foreach($cities as $keyC=>$city){
-									$id = (String) $city["_id"];
-									$scope = array( "parentId"=>(String) $city["_id"],
-													"parentType"=>City::COLLECTION,
-													"geo" => $city["geo"] );
-									$scope = array_merge($scope, Zone::getLevelIdById((String) $city["_id"], $city, City::COLLECTION) ) ;
-									$scopes["localities"][] = $scope;
-								}
 								
 							}
+							// $cities = City::getWhere($where);
+							// if(!empty($cities)){
+							// 	$scope = array("postalCode"=>strval($locality["name"]));
+							// 	$scopes["localities"][] = $scope;
+
+							// 	foreach($cities as $keyC=>$city){
+							// 		$id = (String) $city["_id"];
+							// 		$scope = array( "parentId"=>(String) $city["_id"],
+							// 						"parentType"=>City::COLLECTION,
+							// 						"geo" => $city["geo"] );
+							// 		$scope = array_merge($scope, Zone::getLevelIdById((String) $city["_id"], $city, City::COLLECTION) ) ;
+							// 		$scopes["localities"][] = $scope;
+							// 	}
+								
+							// }
 						}
 						else{
 							$zone = Zone::getById($locality["id"]);
