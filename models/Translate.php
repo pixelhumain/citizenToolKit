@@ -236,6 +236,7 @@ class Translate {
 		//echo "Date : ".$date;
 		if($type == "timestamp") {
 	        $date2 = $date; // depuis cette date
+	        if(@$date->sec) $date2 = $date->sec;
 
 	    } elseif($type == "date") {
 	        $date2 = strtotime($date); // depuis cette date
@@ -250,7 +251,7 @@ class Translate {
 	    }
 
 	   
-
+		//var_dump($date2); exit;
 	    $Ecart = time()-$date2;
 	    $lblEcart = "";
 	    $tradAgo=true;

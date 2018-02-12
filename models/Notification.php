@@ -147,6 +147,14 @@ class Notification{
 					"repeat" => true,
 					"url" => "page/type/news/id/{id}"
 				),
+				Classified::COLLECTION => array(
+					"label" => "{who} commented on classified {what} in {where}",
+					"labelRepeat" => "{who} added comments on classified {what} in {where}",
+					"sameAuthor"=>array(
+						"labelRepeat" => "{who} added few comments on classified {what} in {where}"
+					),
+					"url" => "page/type/{collection}/id/{id}",
+				),
 				Proposal::COLLECTION => array(
 					"label" => "{who} commented on proposal {what} in {where}",
 					"labelRepeat" => "{who} added comments on proposal {what} in {where}",
@@ -214,6 +222,11 @@ class Notification{
 					"parentTarget"=>true,
 					"url" => "page/type/news/id/{id}"
 				),
+				Classified::COLLECTION => array(
+					"label" => "{who} commented on classified {what} in {where}",
+					"labelRepeat" => "{who} added comments on classified {what} in {where}",
+					"url" => "page/type/{collection}/id/{id}",
+				),
 				Proposal::COLLECTION => array(
 					"label" => "{who} commented on proposal {what} in {where}",
 					"labelRepeat" => "{who} added comments on proposal {what} in {where}",
@@ -261,6 +274,11 @@ class Notification{
 					"label" => "{who} commented on proposal {what} in {where}",
 					"labelRepeat" => "{who} added comments on proposal {what} in {where}",
 					"url" => "page/type/{collection}/id/{id}/view/coop/room/{roomId}/proposal/{objectId}",
+				),
+				Classified::COLLECTION => array(
+					"label" => "{who} commented on classified {what} in {where}",
+					"labelRepeat" => "{who} added comments on classified {what} in {where}",
+					"url" => "page/type/{collection}/id/{id}",
 				),
 				Action::COLLECTION => array(
 					"label" => "{who} commented on action {what} in {where}",
@@ -322,6 +340,10 @@ class Notification{
 				Event::COLLECTION=> array(
 					"url" => "page/type/{objectType}/id/{objectId}",
 					"label" => "{who} added a new event on {where}"
+				),
+				Classified::COLLECTION=> array(
+					"url" => "page/type/{objectType}/id/{objectId}",
+					"label" => "{who} added a new classified on {where}"
 				),
 				ActionRoom::COLLECTION_ACTIONS=> array(
 					"url"=>"rooms/actions/id/{objectId}",

@@ -36,20 +36,7 @@ class IndexAction extends CAction
             $params["context"] = Service::getById($id);
         } else if($type == Proposal::COLLECTION) {
             $params["context"] = Proposal::getById($id);
-
-            /*AUTH*/
-            //var_dump($params["context"]); exit;
-            $actionRoom = $params["context"]["parentType"] == News::CONTROLLER ? 
-                          true : Room::getById($params["context"]["idParentRoom"]);
-                          
-            $canParticipate = Authorisation::canParticipate(Yii::app()->session["userId"], 
-                                $params["context"]["parentType"], $params["context"]["parentId"]);
-
-            $canComment = $params["canComment"] && $canParticipate;
-            $params['canComment'] = $canComment;
-
-            $params["parentType"] = $actionRoom["parentType"];
-            
+            $params['canComment'] = true;
         } else if($type == Resolution::COLLECTION) {
             $params["context"] = Resolution::getById($id);
 

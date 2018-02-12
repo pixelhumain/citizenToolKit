@@ -202,9 +202,13 @@ class City {
      }
 
 	/* Retourne des infos sur la commune dans la collection cities" */
-	public static function getWhere($params, $fields=null, $limit=20) 
-	{
+	public static function getWhere($params, $fields=null, $limit=20) {
 	  	$city =PHDB::findAndSort( self::COLLECTION,$params, array("created" =>1), $limit, $fields);
+	  	return $city;
+	}
+
+	public static function getWhereFindOne($where, $fields=null) {
+	  	$city = PHDB::findOne(self::COLLECTION, $where, $fields);
 	  	return $city;
 	}
 
@@ -1447,9 +1451,13 @@ class City {
 			if(!empty($resNominatim)){
 				foreach (@$resNominatim as $key => $value) {
 
-					if( ( $value["osm_type"] == "relation" && 
-						( 	( $value["class"] == "place"  && $value["type"] == "city") ||
-						 	( $value["class"] == "boundary"  && $value["type"] == "administrative") ) ) ||
+					// if( ( $value["osm_type"] == "relation" && 
+					// 	( 	( $value["class"] == "place"  && $value["type"] == "city") ||
+					// 	 	( $value["class"] == "boundary"  && $value["type"] == "administrative") ) ) ||
+					// 	( $value["class"] == "place"  && $value["type"] == "town") ) {
+
+					if( ( $value["class"] == "place"  && $value["type"] == "city") ||
+						( $value["class"] == "boundary"  && $value["type"] == "administrative") ||
 						( $value["class"] == "place"  && $value["type"] == "town") ) {
 
 						foreach ($typeCities as $keyType => $valueType) {

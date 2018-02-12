@@ -666,6 +666,8 @@ class Authorisation {
                     $res = self::isLocalCitizen($userId, $itemId);
                 if($type == News::COLLECTION) 
                     $res = true;
+                if($type == Classified::COLLECTION) 
+                    $res = true;
             }
             
         }

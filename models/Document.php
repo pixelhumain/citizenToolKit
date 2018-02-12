@@ -321,7 +321,12 @@ class Document {
 			$params["doctype"] = $docType;
 		if (isset($docType)) 
 			$params["collection"] = $collection;
+
 		$listDocuments = PHDB::findAndSort( self::COLLECTION,$params, $sort);
+		foreach($listDocuments as $k=>$img){
+			$imagePath = Yii::app()->baseUrl."/".Yii::app()->params['uploadUrl'].$img["moduleId"]."/".$img["folder"];
+			$listDocuments[$k]["path"] = $imagePath."/".$img["name"]; 
+		}
 		return $listDocuments;
 	}
 	/* @Author Bouboule (clement.damiens@gmail.com)
