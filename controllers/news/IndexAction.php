@@ -309,6 +309,8 @@ class IndexAction extends CAction
 		  						"target.type" => array('$ne' => "pixels"),
 		  						);
 
+				//var_dump($where);
+
 		  		if(@$_POST["typeNews"]) $where["type"] = $_POST["typeNews"];
 
 		  		
