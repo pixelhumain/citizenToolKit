@@ -217,6 +217,7 @@ class Search {
   			$queryNews = self::searchLocalityNews($searchLocality, $queryNews);
   		}
   		$queryEvents = Search::getQueryEvents($query, $searchSType, $startDate, $endDate);
+  		$queryClassifieds = Search::getQueryClassifieds($query, @$priceMin, @$priceMax, @$devise);
   		$allRes = array();
 
   		//var_dump($query);
@@ -304,7 +305,7 @@ class Search {
 			if(!empty($searchTags) && in_array("favorites", $searchTags))
 				$allRes = array_merge($allRes, self::searchFavorites(Classified::COLLECTION));
 			else 
-				$allRes = array_merge($allRes, self::searchClassified($query, $indexStep, $indexMin, @$priceMin, @$priceMax, @$devise));
+				$allRes = array_merge($allRes, self::searchClassified($queryClassifieds, $indexStep, $indexMin, @$priceMin, @$priceMax, @$devise));
 	  	}
 	  	//*********************************  POI   ******************************************
 		if(strcmp($filter, Poi::COLLECTION) != 0 && self::typeWanted(Poi::COLLECTION, $searchType)){
@@ -406,7 +407,7 @@ class Search {
 	  	//echo $search;
 	  	$results["results"]=$allRes;
 	  	if($countResult && !empty($countType))
-	  		$results["count"]=search::countResultsByCollection($countType, $query, $queryPersons, $queryNews, $queryEvents);
+	  		$results["count"]=search::countResultsByCollection($countType, $query, $queryPersons, $queryNews, $queryEvents, $queryClassifieds);
 	  	$element["gallery"] = Document::listMyDocumentByIdAndType((string)@$element["_id"], @$type);
 	  	//var_dump($allRes);
 	  	return $results ;
@@ -418,7 +419,7 @@ class Search {
     // params queryPersons is array of condition specific for people
     // params queryNews is array of condition specific for news
     // params queryEvents is array of condition specific for events
-    public static function countResultsByCollection($countType, $query, $queryPersons, $queryNews, $queryEvents){
+    public static function countResultsByCollection($countType, $query, $queryPersons, $queryNews, $queryEvents, $queryClassifieds){
     	$count=array();
     	foreach($countType as $value){
 	  			$countQuery=$query;
@@ -426,6 +427,7 @@ class Search {
 	  			if($value==Person::COLLECTION) $countQuery=$queryPersons;
 	  			else if($value==News::COLLECTION) $countQuery=$queryNews;
 	  			else if($value==Event::COLLECTION) $countQuery=$queryEvents;
+	  			else if($value==Classified::COLLECTION) $countQuery=$queryClassifieds;
 	  			else if(in_array($value, ["Group", "NGO", "LocalBusiness", "GovernmentOrganization"])){
           			array_push( $countQuery[ '$and' ], array( "type" => $value ) );
           			$col=Organization::COLLECTION;
@@ -669,6 +671,8 @@ class Search {
 		return $query ;
 	}
 	//*********************************  END DEFINE LOCALITY QUERY   ****************************************
+
+	//*********************************  Specific queries   ****************************************
   	public static function getQueryEvents($queryEvent, $searchSType, $startDate, $endDate){
   		if($startDate!=null)
 			array_push( $queryEvent[ '$and' ], array( "startDate" => array( '$gte' => new MongoDate( (float)$startDate ) ) ) );
@@ -686,6 +690,15 @@ class Search {
 								) ) ) ) ) );
   		return $queryEvent;
   	}
+  	public static function getQueryClassifieds($query, $priceMin, $priceMax, $devise){
+  		$queryPrice = array('$and' =>	array(array('devise' => $devise)) ) ;	
+		if(@$priceMin) $queryPrice['$and'][] = array('price' => array('$gte' => (int)$priceMin));
+		if(@$priceMax) $queryPrice['$and'][] = array('price' => array('$lte' => (int)$priceMax));
+		if(@$priceMin || @$priceMax || @$devise) 
+			$query = array('$and' => array( $query , $queryPrice) );
+  		return $query;
+  	}
+  	//*********************************  END Specific squeries   ****************************************
   	//trie les éléments dans l'ordre alphabetique par name
   	public static function mySortByName($a, $b){ // error_log("sort : ");//.$a['name']);
   		if(isset($a["_id"]) && isset($b["name"])){
@@ -986,14 +999,6 @@ class Search {
 
 	//*********************************  CLASSIFIED   ******************************************
 	public static function searchClassified($query, $indexStep, $indexMin, $priceMin, $priceMax, $devise){
-
-		
-		$queryPrice = array('$and' =>	array(array('devise' => $devise)) ) ;
-				
-		if(@$priceMin) $queryPrice['$and'][] = array('price' => array('$gte' => (int)$priceMin));
-		if(@$priceMax) $queryPrice['$and'][] = array('price' => array('$lte' => (int)$priceMax));
-		if(@$priceMin || @$priceMax || @$devise) 
-			$query = array('$and' => array( $query , $queryPrice) );
 		
 		$allClassified = PHDB::findAndSortAndLimitAndIndex(Classified::COLLECTION, $query, 
 	  												array("updated" => -1), $indexStep, $indexMin);
