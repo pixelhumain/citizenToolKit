@@ -287,8 +287,11 @@ class IndexAction extends CAction
 		  			foreach ($localities as $key => $locality){
 						if(!empty($locality)){
 
-							if($locality["type"] == City::CONTROLLER)
-								$queryLocality = array("scope.localities.parentId" => $locality["id"], "scope.localities.parentType" =>  City::COLLECTION);
+							if($locality["type"] == City::CONTROLLER){
+								$queryLocality = array("scope.localities.parentId" => $locality["id"], "scope.localities.parentType" =>  $locality["type"]);
+								if(!empty($locality["cp"]))
+									$queryLocality = array_merge($queryLocality, array("scope.localities.cp" => new MongoRegex("/^".$locality["cp"]."/i")));
+							}
 							else if($locality["type"] == "cp")
 								$queryLocality = array("scope.localities.postalCode" => new MongoRegex("/^".$locality["name"]."/i"));
 							else
@@ -314,7 +317,6 @@ class IndexAction extends CAction
 					$where = array_merge($where, $allQueryLocality);
 					//$where = array('$and' => array( $where , $allQueryLocality ) );
 				}
-
 
 				//echo '<pre>';var_dump($where);echo '</pre>'; return;
 		  		
