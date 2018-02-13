@@ -47,6 +47,10 @@ class NewsTranslator {
 				$object=Proposal::getById((string)$params["object"]["id"]);
 				$params["icon"]="fa-gavel";
 			}
+			else if (@$params["object"]["type"]==Resolution::COLLECTION){
+				$object=Resolution::getById((string)$params["object"]["id"]);
+				$params["icon"]="fa-gavel";
+			}
 			else if (@$params["object"]["type"]==Action::COLLECTION){
 				$object=Action::getById((string)$params["object"]["id"]);
 				$params["icon"]="fa-ticket";
