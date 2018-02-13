@@ -47,7 +47,8 @@ class Element {
 	    	//ActionRoom::COLLECTION => ActionRoom::CONTROLLER,
 	    	//ActionRoom::COLLECTION_ACTIONS => ActionRoom::CONTROLLER,
 	    	Place::COLLECTION => Place::CONTROLLER,
-	    	Ressource::COLLECTION => Ressource::COLLECTION
+	    	Ressource::COLLECTION => Ressource::COLLECTION,
+	    	Ressource::CONTROLLER => Ressource::CONTROLLER
 	    );	    
     	return @$ctrls[$type];
     }

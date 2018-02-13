@@ -1218,7 +1218,7 @@ class Notification{
 			$news=News::getById($id);
 			$authorNews=News::getAuthor($id);
 			$parent=Element::getElementSimpleById($news["target"]["id"], $news["target"]["type"]);
-		} else if($type==Organization::COLLECTION || $type==Project::COLLECTION || $type==Event::COLLECTION){
+		} else if(in_array($type, [Organization::COLLECTION, Project::COLLECTION, Event::COLLECTION, Classified::COLLECTION])){
 			$parent=Element::getElementSimpleById($id, $type);
 		}
 		$res=array();
@@ -1310,8 +1310,8 @@ class Notification{
 			}
 			else if($object && @$object["type"]){
 				$object=Element::getElementSimpleById($object["id"], $object["type"]);
-				//if($labelArray)
-					$res["{what}"]=[$object["name"]];
+
+					$res["{what}"]=[@$object["name"]];
 				//else
 				//	$res["{what}"]=$object["name"];
 			}
