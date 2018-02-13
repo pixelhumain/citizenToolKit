@@ -132,7 +132,7 @@ class Event {
 		}
 		if(!empty($event)){
 			$event = array_merge($event, Document::retrieveAllImagesUrl($id, self::COLLECTION, @$event["type"], $event));
-			$event["type"] = "events";
+			// $event["type"] = "events";
 			$event["typeSig"] = "events";
 	  	}else{
 	  		$event = Element::getGhost(self::COLLECTION);
