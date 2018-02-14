@@ -209,9 +209,9 @@ class News {
 											"name"=>$city["name"],
 											"geo" => $city["geo"]
 										);
-							if (@$locality["cp"] && !empty($locality["cp"])) {
+							/*if (@$locality["cp"] && !empty($locality["cp"])) {
 								$scope["cp"] = $locality["cp"];
-							}else if (!empty($city["postalCode"])) {
+							}else */ if (!empty($city["postalCode"])) {
 								$scope["postalCode"] = $city["postalCode"];
 							}
 

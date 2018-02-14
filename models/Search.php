@@ -575,10 +575,10 @@ class Search {
 		if(!empty($localities))
 		foreach ($localities as $key => $locality){
 			if(!empty($locality)){
-				if($locality["type"] == City::CONTROLLER){
+				if($locality["type"] == City::COLLECTION){
 					$queryLocality = array("address.localityId" => @$locality["id"]);
-					if(!empty($locality["cp"]))
-						$queryLocality = array_merge($queryLocality, array("address.postalCode" => new MongoRegex("/^".$locality["cp"]."/i")));
+					if(!empty($locality["postalCode"]))
+						$queryLocality = array_merge($queryLocality, array("address.postalCode" => new MongoRegex("/^".$locality["postalCode"]."/i")));
 				}
 				else if($locality["type"] == "cp"){
 					$queryLocality = array("address.postalCode" => new MongoRegex("/^".$locality["name"]."/i"));
@@ -613,10 +613,10 @@ class Search {
 		if(!empty($localities))
 		foreach ($localities as $key => $locality){
 			if(!empty($locality)){
-				if($locality["type"] == City::CONTROLLER){
+				if($locality["type"] == City::COLLECTION){
 					$queryLocality = array("address.localityId" => $locality["id"]);
-					if(!empty($locality["cp"]))
-						$queryLocality = array_merge($queryLocality, array("address.postalCode" => new MongoRegex("/^".$locality["cp"]."/i")));
+					if(!empty($locality["postalCode"]))
+						$queryLocality = array_merge($queryLocality, array("address.postalCode" => new MongoRegex("/^".$locality["postalCode"]."/i")));
 				}
 				else if($locality["type"] == "cp"){
 					$queryLocality = array("address.postalCode" => new MongoRegex("/^".$locality["name"]."/i"));
@@ -648,8 +648,11 @@ class Search {
 		if(!empty($localities)){
   			foreach ($localities as $key => $locality){
 				if(!empty($locality)){
-					if($locality["type"] == City::CONTROLLER)
+					if($locality["type"] == City::COLLECTION){
 						$queryLocality = array("scope.localities.parentId" => $locality["id"], "scope.localities.parentType" =>  City::COLLECTION);
+						if(!empty($locality["postalCode"]))
+							$queryLocality = array_merge($queryLocality, array("scope.localities.postalCode" => new MongoRegex("/^".$locality["postalCode"]."/i")));
+					}
 					else if($locality["type"] == "cp")
 						$queryLocality = array("scope.localities.postalCode" => new MongoRegex("/^".$locality["name"]."/i"));
 					else

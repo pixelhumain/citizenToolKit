@@ -1234,13 +1234,14 @@ class City {
 			$res["insee"] = $locality["insee"];
 
 		if(isset($locality["postalCode"]))
-			$res["cp"] = $locality["postalCode"];
+			$res["postalCode"] = $locality["postalCode"];
 		
 		if(isset($locality["addressCountry"]))
 			$res["countryCode"] = $locality["addressCountry"];
 		else if(isset($locality["country"]))
 			$res["country"] = $locality["country"];
-		
+		else if(isset($locality["countryCode"]))
+			$res["countryCode"] = $locality["countryCode"];
 		return $res ;
 	}
 
@@ -1276,9 +1277,9 @@ class City {
 				$citiesNames[] = $v["name"];
 			}
 			$res["cities"] = $citiesNames;
-		}else if(is_string($res["cp"]) && strlen($res["cp"]) > 0){
-			if($res["cp"]){
-				$where = array("postalCodes.postalCode" =>new MongoRegex("/^".$res["cp"]."/i"),
+		}else if(is_string($res["postalCode"]) && strlen($res["postalCode"]) > 0){
+			if($res["postalCode"]){
+				$where = array("postalCodes.postalCode" =>new MongoRegex("/^".$res["postalCode"]."/i"),
 				"country" => $res["countryCode"]);
 				$citiesResult = PHDB::find( City::COLLECTION , $where, array("_id") );
 				$citiesNames=array();
@@ -1538,7 +1539,7 @@ class City {
 		                $countCP = PHDB::count( City::COLLECTION , $where);
 		                $value["uniqueCp"] = ( ($countCP > 1) ? false : true ) ;
 		                if($countCP > 1)
-		                	$value["cp"] = $value["postalCodes"][0]["postalCode"] ;
+		                	$value["postalCode"] = $value["postalCodes"][0]["postalCode"] ;
 		            }
 					$newCities[] = $value ;
 				}else{
@@ -1547,16 +1548,16 @@ class City {
 					$value["allCP"] = false;
 					foreach ($value["postalCodes"] as $keyCP => $valueCP) {
 						$cp = $value;
+						$where = array(	"country" => $value["country"], 
+		                				"postalCodes.postalCode" => $valueCP["postalCode"]);
 						$countCP = PHDB::count( City::COLLECTION , $where);
 		                $cp["uniqueCp"] = ( ($countCP > 1) ? false : true ) ;
-						$cp["cp"] =  $valueCP["postalCode"];
+						$cp["postalCode"] =  $valueCP["postalCode"];
 						$cp["nameCity"] =  $value["name"];
 						$cp["name"] =  $valueCP["name"]/*." - ".$valueCP["postalCode"]*/;
 						$newCities[] = $cp ;
 					}
 				}
-
-
 			}
 			$cities = $newCities;
 		}
