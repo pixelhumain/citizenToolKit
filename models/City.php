@@ -93,8 +93,13 @@ class City {
 	    	if(!empty($level2["_id"])){
 	    		$city["level2"] = (String)$level2["_id"];
     			$city["level2Name"] = Zone::getNameOrigin($city["level2"]);
+	    	}else{
+	    		unset($city["level2Name"]);
+	    		unset($city["level2"]);
 	    	}
-	    	
+    	}else{
+    		unset($city["level2Name"]);
+    		unset($city["level2"]);
     	}
     	
     	if(!empty($city["level3Name"])){
@@ -108,8 +113,14 @@ class City {
 	    	if(!empty($level3["_id"])){
 	    		$city["level3"] = (String)$level3["_id"];
     			$city["level3Name"] = Zone::getNameOrigin($city["level3"]);
+	    	}else{
+	    		unset($city["level3Name"]);
+	    		unset($city["level3"]);
 	    	}
-	    }
+	    }else{
+    		unset($city["level3Name"]);
+    		unset($city["level3"]);
+    	}
 
 	    if(!empty($city["level4Name"])){
 	    	$level4 = Zone::getLevelByNameAndCountry($city["level4Name"], "4", $city["country"]);
@@ -122,8 +133,14 @@ class City {
 	    	if(!empty($level4["_id"])){
 	    		$city["level4"] = (String)$level4["_id"];
     			$city["level4Name"] = Zone::getNameOrigin($city["level4"]);
+	    	}else{
+	    		unset($city["level4Name"]);
+	    		unset($city["level4"]);
 	    	}
-	    }
+	    }else{
+    		unset($city["level4Name"]);
+    		unset($city["level4"]);
+    	}
 
 	   
     	//var_dump($city);
