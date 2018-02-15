@@ -531,6 +531,8 @@ class Organization {
         } else {
 			$organization = array_merge($organization, Document::retrieveAllImagesUrl($id, self::COLLECTION, null, $organization));
 			$organization["typeSig"] = "organizations";
+			$organization["typeOrganization"] = $organization["type"];
+
         }
 	  	return $organization;
 	}

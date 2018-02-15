@@ -36,7 +36,7 @@ class DisconnectAction extends CAction
 					$collection = $parentType;
 				else
 					$collection = $childType;
-				$res = array( "result" => true , "msg" => Yii::t("",$connectType." successfully removed"), "collection" => $collection,"removeMeAsAdmin"=> $removeMeAsAdmin,"parentId"=>$parentId,"parentType"=>$parentId,"parentEntity"=>$data["parentEntity"]);			
+				$res = array( "result" => true , "msg" => Yii::t("",$connectType." successfully removed"), "collection" => $collection,"removeMeAsAdmin"=> $removeMeAsAdmin,"parentId"=>$parentId,"parentType"=>$parentId,"parent"=>$data["parentEntity"]);			
 			} catch (CTKException $e) {
 				$res = array( "result" => false , "msg" => $e->getMessage() );
 			}

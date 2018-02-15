@@ -74,20 +74,24 @@ class Zone {
 			$zone = PHDB::findOne($type, $where);
 		}
 
+		//( (empty($zone["level1Name"]) && in_array("1", $zone["level"])) ? $zone["name"] : $zone["level1Name"])
 		$res = array(	"level1" => $zone["level1"],
-						"level1Name" => $zone["level1Name"]);
+						"level1Name" => ( (empty($zone["level1Name"]) && in_array("1", $zone["level"])) ? $zone["name"] : $zone["level1Name"]));
 
 		if(!empty($zone["level2"])){
 			$res["level2"] = $zone["level2"];
-			$res["level2Name"] = $zone["level2Name"];
+			$res["level2Name"] = ( (empty($zone["level2Name"]) && in_array("2", $zone["level"])) ? $zone["name"] : $zone["level2Name"]);
+			//$res["level2Name"] = $zone["level2Name"];
 		}
 		if(!empty($zone["level3"])){
 			$res["level3"] = $zone["level3"];
-			$res["level3Name"] = $zone["level3Name"];
+			$res["level3Name"] = ( (empty($zone["level3Name"]) && in_array("3", $zone["level"])) ? $zone["name"] : $zone["level3Name"]);
+			//$res["level3Name"] = $zone["level3Name"];
 		}
 		if(!empty($zone["level4"])){
 			$res["level4"] = $zone["level4"];
-			$res["level4Name"] = $zone["level4Name"];
+			//$res["level4Name"] = $zone["level4Name"];
+			$res["level4Name"] = ( (empty($zone["level4Name"]) && in_array("4", $zone["level"])) ? $zone["name"] : $zone["level4Name"]);
 		}
 
 		return $res;

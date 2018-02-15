@@ -139,9 +139,9 @@ class Mail {
             $invitor["name"] = $nameInvitor ;
         
         if(@$invitor && empty(@$invitor["name"]))
-            $subject = "Invitation:".$invitor["name"]. " attend votre réponse pour rejoindre ".self::getAppName().".";
+            $subject = $invitor["name"]. " vous attend sur ".self::getAppName().".";
         else
-            $subject = "Invitation: n'attendez plus pour rejoindre le site ".self::getAppName().".";
+            $subject = self::getAppName()." vous attend.";
         //if(empty($subject))
          //   $subject = $invitor["name"]. " vous invite à rejoindre ".self::getAppName().".";
 

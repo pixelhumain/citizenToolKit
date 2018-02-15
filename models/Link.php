@@ -782,7 +782,7 @@ class Link {
           //  Mail::follow($element, $elementType, $listOfMail);
         Notification::constructNotification($verb, $pendingChild , array("type"=>$parentType,"id"=> $parentId,"name"=>$parentData["name"]), null, $levelNotif);
 		//Notification::actionOnPerson($verb, ActStr::ICON_SHARE, $pendingChild , array("type"=>$parentType,"id"=> $parentId,"name"=>$parentData["name"]));
-		return array( "result" => true , "msg" => $msg, "parentEntity" => $parentData );
+		return array( "result" => true , "msg" => $msg, "parent" => $parentData );
 	}
 	 /**
      * Check and remove the link "follows" if a user already follow an entity and will become a member or contributor or knows
