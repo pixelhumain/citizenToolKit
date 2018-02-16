@@ -165,11 +165,45 @@ class Cooperation {
 			}
 		}
 
+		$res = self::checkRoleAccess($res);
+
 		$res["post"]["type"] = $type;
 		$res["post"]["status"] = $status;
 		$res["post"]["parentId"] = $parentId;
 		$res["post"]["parentType"] = $parentType;
 
+		return $res;
+	}
+
+	public static function checkRoleAccess($res){
+		$me = Element::getByTypeAndId("citoyens", Yii::app()->session['userId']);
+
+		foreach (array( "proposal", 	"proposalList", 
+						"action", 		"actionList", 
+						"resolution", 	"resolutionList",
+						"tovote", "amendable", "resolved", "closed", "disabled", "mine",
+						"todo", "done", "disabled") as $list) {
+			if(isset($res[$list])){
+				//var_dump(@$res[$list]["_id"]);exit;
+				$listCoop = !@$res[$list]["_id"] ? $res[$list] : array($res[$list]);
+				foreach ($listCoop as $k => $coop) { //echo $list." - "; var_dump($listCoop);
+					if($coop["parentType"] == "projects") $link = "projects";
+					if($coop["parentType"] == "organizations") $link = "memberOf";
+					$myRoles = @$me["links"][$link][@$coop["parentId"]]["roles"] ? 
+							   @$me["links"][$link][@$coop["parentId"]]["roles"] : array();
+
+					$roomId = $coop["idParentRoom"];
+					//var_dump($myRoles);echo @$coop["parentId"]."-".@$coop["parentType"]."<br>";
+					$parentRoom = Room::getById($roomId);
+					$accessRoom = @$parentRoom ? Room::getAccessByRole($parentRoom, $myRoles) : ""; 
+					//echo $accessRoom; exit;
+					//echo $accessRoom."=";
+					if($accessRoom == "lock"){
+						unset($res[$list][$k]);
+					}
+				}
+			}
+		}//exit;
 		return $res;
 	}
 
@@ -186,26 +220,46 @@ class Cooperation {
 
 		$myId = @Yii::app()->session['userId'] ? Yii::app()->session['userId'] : false;
 		$allCount = array();
+
+		//count proposals
 		foreach (array("tovote", "amendable", "resolved", "closed", "disabled") as $status) {
 			$query = array( "parentType" => $parentType, "parentId" => $parentId, "status" => $status);
-			$allCount["proposals"][$status] = PHDB::count (Proposal::COLLECTION, $query, array());
+			$allCount["proposals"][$status] = PHDB::find (Proposal::COLLECTION, $query, array());
 			
 			if($myId != false){
 				$query = array( "parentType" => $parentType, "parentId" => $parentId, "creator" => $myId);
-				$allCount["proposals"]["mine"] = PHDB::count (Proposal::COLLECTION, $query, array());
+				$allCount["proposals"]["mine"] = PHDB::find (Proposal::COLLECTION, $query, array());
 			}
 		}
 
+			//check roles proposals
+			$allCount["proposals"] = self::checkRoleAccess($allCount["proposals"]);
+			foreach (array("tovote", "amendable", "resolved", "closed", "disabled", "mine") as $status) {
+				if(isset($allCount["proposals"][$status]))
+					$allCount["proposals"][$status] = count($allCount["proposals"][$status]);
+			}
+		
+
+		//count actions
 		foreach (array("todo", "done", "disabled") as $status) {
 			$query = array( "parentType" => $parentType, "parentId" => $parentId, "status" => $status);
-			$allCount["actions"][$status] = PHDB::count (Action::COLLECTION, $query, array());
+			$allCount["actions"][$status] = PHDB::find (Action::COLLECTION, $query, array());
 
 			if($myId != false){
 				$query = array( "parentType" => $parentType, "parentId" => $parentId, "creator" => $myId);
-				$allCount["actions"]["mine"] = PHDB::count (Action::COLLECTION, $query, array());
+				$allCount["actions"]["mine"] = PHDB::find (Action::COLLECTION, $query, array());
 			}
 		}
 
+			//check roles actions
+			$allCount["actions"] = self::checkRoleAccess($allCount["actions"]);
+			foreach (array("todo", "done", "disabled", "mine") as $status) {
+				//echo isset($allCount["proposals"][$status]) ? "true" : "false";
+				if(isset($allCount["actions"][$status]))
+					$allCount["actions"][$status] = count($allCount["actions"][$status]);
+			}
+
+		//var_dump($allCount); exit;
 
 		return $allCount;
 
