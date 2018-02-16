@@ -1336,7 +1336,14 @@ class Person {
 		}
 		return $res;
 	}
-
+public static function isUniqueEmail($email) {
+		$res = true;
+		$checkEmail = PHDB::findOne(self::COLLECTION,array("email"=>$email));
+		if ($checkEmail) {
+			$res = false;	
+		}
+		return $res;
+	}
 	public static function isFirstCitizen($insee) {
 		$res = false;
 		$checkUsername = PHDB::findOne(self::COLLECTION,array("address.codeInsee"=>$insee));
@@ -1346,7 +1353,7 @@ class Person {
 	}
 
 
-
+	// TODO // Just for an id, we call a lot of datas ! To clean and delete it, function avaible in element !
 	public static function getPersonIdByEmail($email) {
 		//Check if the email of the person is already in the database
 	  	if ($email){
