@@ -192,20 +192,24 @@ class Cooperation {
 					$myRoles = @$me["links"][$link][@$coop["parentId"]]["roles"] ? 
 							   @$me["links"][$link][@$coop["parentId"]]["roles"] : array();
 
-					$roomId = $coop["idParentRoom"];
-					//var_dump($myRoles);echo @$coop["parentId"]."-".@$coop["parentType"]."<br>";
-					$parentRoom = Room::getById($roomId);
-					$accessRoom = @$parentRoom ? Room::getAccessByRole($parentRoom, $myRoles) : ""; 
-					//echo $accessRoom; exit;
-					//echo $accessRoom."=";
-					if($accessRoom == "lock"){
-						unset($res[$list][$k]);
+					if(@$coop["idParentRoom"]){
+						$roomId = $coop["idParentRoom"];
+						//var_dump($myRoles);echo @$coop["parentId"]."-".@$coop["parentType"]."<br>";
+						$parentRoom = Room::getById($roomId);
+						$accessRoom = @$parentRoom ? Room::getAccessByRole($parentRoom, $myRoles) : ""; 
+						//echo $accessRoom; exit;
+						//echo $accessRoom."=";
+						if($accessRoom == "lock"){
+							unset($res[$list][$k]);
+						}
 					}
 				}
 			}
 		}//exit;
 		return $res;
 	}
+
+
 
 	public static function userHasVoted($userId, $obj){
 		foreach ($obj as $keyVal=>$arr) {

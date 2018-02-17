@@ -37,6 +37,8 @@ class IndexAction extends CAction
         } else if($type == Proposal::COLLECTION) {
             $params["context"] = Proposal::getById($id);
             $params['canComment'] = true;
+        } else if($type == Ressource::COLLECTION) {
+            $params["context"] = Ressource::getById($id);
         } else if($type == Resolution::COLLECTION) {
             $params["context"] = Resolution::getById($id);
 
