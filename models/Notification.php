@@ -573,7 +573,6 @@ class Notification{
 	    	if(!@$members[$userAskingToDelete])
 	    		$members[$userAskingToDelete]=array();
 	    }
-
 		if($type == Person::COLLECTION && $construct["verb"]==Actstr::VERB_FOLLOW)
 		 	$people[$id] = array("isUnread" => true, "isUnseen" => true);
 		else if($type == News::COLLECTION){
