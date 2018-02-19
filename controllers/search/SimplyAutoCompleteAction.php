@@ -115,6 +115,7 @@ class SimplyAutoCompleteAction extends CAction
 	  	}
 
 	  	/***********************************  EVENT   *****************************************/
+
    //      if(strcmp($filter, Event::COLLECTION) != 0 && Search::typeWanted("events", $searchType)){
 
    //      	$queryEvent = $query;

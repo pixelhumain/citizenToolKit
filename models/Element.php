@@ -1912,30 +1912,38 @@ class Element {
 		$invitedUserId = "";
 
         if (empty(Yii::app()->session["userId"])) {
-        	Rest::json(array("result" => false, "msg" => "The current user is not valid : please login."));
+        	Rest::json(array("result" => false, "msg" => Yii::t("common","The current user is not valid : please login.")));
         	die();
-        }
+        } 
         
         //Case spécial : Vérifie si l'email existe et retourne l'id de l'utilisateur
         if (!empty($params["invitedUserEmail"]))
-        	$invitedUserId = Person::getPersonIdByEmail($params["invitedUserEmail"]) ;
+        	$invitedUserId = Person::getPersonIdByEmail($params["invitedUserEmail"]);
 
+        if(Yii::app()->session["userId"]==$invitedUserId){
+        	Rest::json(array("result" => false, "msg" => Yii::t("common","You try to invite yourself")));
+        	die();
+        }
         //Case 1 : the person invited exists in the db
         if (!empty($params["connectUserId"]) || !empty($invitedUserId)) {
         	if (!empty($params["connectUserId"]))
         		$invitedUserId = $params["connectUserId"];
+        	if(Link::isLinked(Yii::app()->session["userId"], Person::COLLECTION, (string)$invitedUserId))
+        		$res["msg"]=Yii::t("common","This user is already connected and you already follow him");
+        	else{
+	        	$child["childId"] = Yii::app()->session["userId"] ;
+    	    	$child["childType"] = Person::COLLECTION;
 
-        	$child["childId"] = Yii::app()->session["userId"] ;
-        	$child["childType"] = Person::COLLECTION;
-
-        	$res = Link::follow($invitedUserId, Person::COLLECTION, $child);
-            $actionType = ActStr::VERB_FOLLOW;
+	        	$res = Link::follow((string)$invitedUserId, Person::COLLECTION, $child);
+	            $actionType = ActStr::VERB_FOLLOW;
+	            $msg=Yii::t("common","This user is already connected, but now you follow him");
+	        }
 		//Case 2 : the person invited does not exist in the db
 		} else if (empty($params["invitedUserId"])) {
 			$newPerson = array("name" => $params["invitedUserName"], "email" => $params["invitedUserEmail"], "invitedBy" => Yii::app()->session["userId"]);
 			
 			//if(!empty($params["msgEmail"]))
-				$res = Person::createAndInvite($newPerson, @$params["msgEmail"], $gmail);
+			$res = Person::createAndInvite($newPerson, @$params["msgEmail"], $gmail);
 			//else
 				//$res = Person::createAndInvite($newPerson);
 
@@ -1946,11 +1954,12 @@ class Element {
     			$child["childType"] = Person::COLLECTION;
                 $res = Link::follow($invitedUserId, Person::COLLECTION, $child);
             }
+            $msg=Yii::t("common","The invitation is sent with success");
 		}
 		
         if (@$res["result"] == true) {
             $person = Person::getSimpleUserById($invitedUserId);
-            $res = array("result" => true, "invitedUser" => $person);
+            $res = array("result" => true, "msg"=>$msg,"invitedUser" => $person);
         } else {
             $res = array("result" => false, "msg" => $res["msg"]);
         }

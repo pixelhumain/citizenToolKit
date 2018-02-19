@@ -135,8 +135,11 @@ class Mail {
     public static function relaunchInvitePerson($person, $nameInvitor = null, $invitorUrl = null, $subject=null) {
         if(isset($person["invitedBy"]))
             $invitor = Person::getSimpleUserById($person["invitedBy"]);
-        else if(isset($nameInvitor))
+        else if(isset($nameInvitor)){
+
             $invitor["name"] = $nameInvitor ;
+             var_dump($invitor["name"]);
+        }
         
         if(@$invitor && empty(@$invitor["name"]))
             $subject = $invitor["name"]. " vous attend sur ".self::getAppName().".";
