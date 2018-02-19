@@ -35,9 +35,7 @@ class Gamification {
 	const POINTS_LINK_USER_2_PROJECT = 0.5;
 
 	//creation
-	const POINTS_CREATE_ORGANIZATION = 10;
-	const POINTS_CREATE_EVENT = 10;
-	const POINTS_CREATE_PROJECT = 10;
+	const POINTS_CREATE = 10;
 
 	//person activity 
 	//points if profile is filled above 80%
@@ -117,10 +115,21 @@ class Gamification {
 			}
 		}
 
+		$cols = array( Organization::COLLECTION, Event::COLLECTION, Project::COLLECTION, News::COLLECTION, Classified::COLLECTION, Ressource::COLLECTION );
+
+		foreach ($cols as $key => $col) {
+
+			$list = PHDB::find($col, array( "creator" => $userId ) );
+			$res += count($list) * self::POINTS_CREATE;
+
+		}
+		
+
 		return $res;
 	}
 
-	public static function insertGamificationUser($userId){
+	public static function insertGamificationUser($userId)
+	{
 		$entry = array('_id' => new MongoId($userId));
 		$entry[time()] = self::consolidatePoints($userId);
 		self::save($entry);
