@@ -234,7 +234,7 @@ class IndexAction extends CAction
 					$where = array('$or' => $orRequest);
 				}
 			}
-			else if(in_array($type, Organization::COLLECTION, Project::COLLECTION, Event::COLLECTION, Place::COLLECTION)){
+			else if(in_array($type, [Organization::COLLECTION, Project::COLLECTION, Event::COLLECTION, Place::COLLECTION])){
 				$scope=["public","restricted"];
 				$arrayIds=[];
 				if(@$parent["links"]["projects"] && !empty($parent["links"]["projects"])){
