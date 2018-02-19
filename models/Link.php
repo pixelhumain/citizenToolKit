@@ -768,7 +768,7 @@ class Link {
         //Retrieve the child info
         $pendingChild = Person::getById($childId);
         if (!$pendingChild) {
-            return array("result" => true, "msg" => "Something went wrong ! Impossible to find the children ".$childId);
+            return array("result" => false, "msg" => "Something went wrong ! Impossible to find the children ".$childId);
         }
 		$parentConnectAs = "followers";
 		$childConnectAs = "follows";
