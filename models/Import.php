@@ -73,7 +73,7 @@ class Import
                 }
             }
 
-            $attributesElt = ArrayHelper::getAllPathJson(file_get_contents("../../modules/communecter/data/import/".Element::getControlerByCollection($post["typeElement"]).".json", FILE_USE_INCLUDE_PATH));
+            $attributesElt = ArrayHelper::getAllPathJson(file_get_contents("../../modules/co2/data/import/".Element::getControlerByCollection($post["typeElement"]).".json", FILE_USE_INCLUDE_PATH));
             $params = array("result"=>true,
                         "attributesElt"=>$attributesElt,
                         "arrayMapping"=>$arrayMapping,
@@ -100,8 +100,8 @@ class Import
         $nb = 0 ;
         $elementsWarnings = array();
         if(!empty($post['infoCreateData']) && !empty($post['file']) && !empty($post['nameFile']) && !empty($post['typeFile'])){
-            $mapping = json_decode(file_get_contents("../../modules/communecter/data/import/".Element::getControlerByCollection($post["typeElement"]).".json", FILE_USE_INCLUDE_PATH), true);
-            $attributesElt = ArrayHelper::getAllPathJson(file_get_contents("../../modules/communecter/data/import/".Element::getControlerByCollection($post["typeElement"]).".json", FILE_USE_INCLUDE_PATH));
+            $mapping = json_decode(file_get_contents("../../modules/co2/data/import/".Element::getControlerByCollection($post["typeElement"]).".json", FILE_USE_INCLUDE_PATH), true);
+            $attributesElt = ArrayHelper::getAllPathJson(file_get_contents("../../modules/co2/data/import/".Element::getControlerByCollection($post["typeElement"]).".json", FILE_USE_INCLUDE_PATH));
             if($post['typeFile'] == "csv"){
                 $file = $post['file'];
                 $headFile = $file[0];
@@ -535,7 +535,7 @@ class Import
     }
 
     public static function initMappings(){
-        $mappings = json_decode(file_get_contents("../../modules/communecter/data/import/mappings.json", FILE_USE_INCLUDE_PATH), true);
+        $mappings = json_decode(file_get_contents("../../modules/co2/data/import/mappings.json", FILE_USE_INCLUDE_PATH), true);
         foreach ($mappings as $key => $value) {
             PHDB::insert( Import::MAPPINGS, $value );
         }
