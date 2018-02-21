@@ -1,7 +1,7 @@
 <?php
 
 class Search {
-
+	const ICON = "fa-search";
 	/**
 	 * Find elements of collection based on criteria (field contains value)
 	 * By default the criterias will be separated bay a "OR"
@@ -143,13 +143,17 @@ class Search {
         $searchSType = !empty($post['searchSType']) ? $post['searchSType'] : "";
         $sourceKey = !empty($post['sourceKey']) ? $post['sourceKey'] : "";
         $countResult = (@$post["count"]) ? true : false;
-        $page = @$post['searchPage'] ? $post['searchPage'] : 0;
+        //$page = @$post['searchPage'] ? $post['searchPage'] : 0;
         $app = @$post['app'] ? $post['app'] : "";
         $searchOnAll = ($app=="territorial") ? true : false;
         $ranges = @$post['ranges'] ? $post['ranges'] : null;
         $countType = isset($post['countType']) ? $post['countType'] : null;
+        $indexMin = isset($post['indexMin']) ? $post['indexMin'] : 0;
+        $indexMax = isset($post['indexMax']) ? $post['indexMax'] : 30;
+		$indexStep = isset($post['indexStep']) ? $post['indexStep'] : 30;
+		
         //$indexStep = 100;
-        $indexStep=30;
+        /*$indexStep=30;
       	$indexMin=30*$page;
       	$indexMax=30;
       	$searchByPage=true;
@@ -160,7 +164,7 @@ class Search {
         	$indexMax = isset($post['indexMax']) ? $post['indexMax'] : 30;
 			$indexStep = $indexMax - $indexMin;
 			$searchByPage=false;
-		}
+		}*/
 		$searchTypeOrga = ""; /* used in CO2 to find different organisation type */
 		
 		if( sizeOf($searchType) == 1 &&
@@ -656,7 +660,10 @@ class Search {
 					else if($locality["type"] == "cp")
 						$queryLocality = array("scope.localities.postalCode" => new MongoRegex("/^".$locality["name"]."/i"));
 					else
-						$queryLocality = array("scope.localities.".$locality["type"] =>$locality["id"]);
+						$queryLocality =  array('$or'=>array(
+									array("scope.localities.parentId" => $locality["id"]),
+									array("scope.localities.".$locality["type"] => $locality["id"]))
+							);
 				
 					if(empty($allQueryLocality))
 						$allQueryLocality = $queryLocality;
