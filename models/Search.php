@@ -906,9 +906,7 @@ class Search {
   		$allNews = PHDB::findAndSortAndLimitAndIndex ( News::COLLECTION ,$query, 
   												array("sharedBy.updated"=>-1), $indexStep, $indexMin);
   		//print_r($allNews);
-  		foreach ($allNews as $key => $value) 
-  		{
-  			
+  		foreach ($allNews as $key => $value){
   			if(!empty($value)){
 				$value=NewsTranslator::convertParamsForNews($value, false);			 
 				$value["type"] = News::COLLECTION;
