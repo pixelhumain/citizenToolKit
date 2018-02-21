@@ -656,7 +656,10 @@ class Search {
 					else if($locality["type"] == "cp")
 						$queryLocality = array("scope.localities.postalCode" => new MongoRegex("/^".$locality["name"]."/i"));
 					else
-						$queryLocality = array("scope.localities.".$locality["type"] =>$locality["id"]);
+						$queryLocality =  array('$or'=>array(
+									array("scope.localities.parentId" => $locality["id"]),
+									array("scope.localities.".$locality["type"] => $locality["id"]))
+							);
 				
 					if(empty($allQueryLocality))
 						$allQueryLocality = $queryLocality;
