@@ -1,7 +1,7 @@
 <?php
 
 class Search {
-
+	const ICON = "fa-search";
 	/**
 	 * Find elements of collection based on criteria (field contains value)
 	 * By default the criterias will be separated bay a "OR"
