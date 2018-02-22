@@ -1139,10 +1139,11 @@ class Search {
 	  			$parent=array();
 			$allPlace[$key]["parent"] = $parent;
 			if(@$value["type"])
-				$allPlace[$key]["typeSig"] = $collection.".".$value["type"];
+				$allPlace[$key]["typeComplet"] = $collection.".".$value["type"];
 			else
 				$allPlace[$key]["typeSig"] = $collection;
 			$allPlace[$key]["type"] = $collection;
+			$allPlace[$key]["typeSig"] = $collection;
   		}
   		return $allPlace;
   	}

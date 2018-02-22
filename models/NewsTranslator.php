@@ -228,7 +228,7 @@ class NewsTranslator {
 	  			$params["authorName"] = @$author["name"];
 	  			$params["authorId"] = @$params["target"]["id"];
 	  			$params["authorType"] = @$params["target"]["type"];
-	  			$params["updated"] = $params["created"];
+	  			$params["updated"] = $params["created"];					    
 	  			$params["sharedBy"] = array();
 			}else{
 				$author=Element::getElementSimpleById( $params["author"],Person::COLLECTION,null, $fields);
@@ -249,7 +249,7 @@ class NewsTranslator {
 					    "profilThumbImageUrl"=>@$author["profilThumbImageUrl"]);
 
 	  	if(@$author["geo"]==null) unset($author["geo"]);
-	  	
+
 	  	//var_dump($params["author"]); //exit;
   		if (!empty($author)) $params["author"] = $author;
 	  	else return array("created"=>$params["created"]);
@@ -313,6 +313,7 @@ class NewsTranslator {
 
 			$params["updated"] = @$dateUpdated;
 			$params["comment"] = @$lastComment;
+			$params["typeSig"] = "news";
 
 		  	if(!empty($lastAuthorShare)){
 		  		$params["lastAuthorShare"] = @$lastAuthorShare;
