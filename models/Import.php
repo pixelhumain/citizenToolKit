@@ -87,7 +87,6 @@ class Import
 
         $allMappings = PHDB::find(self::MAPPINGS, $where, $fields);
         $allMappings = self::getStandartMapping($allMappings);
-
         return $allMappings;
     }
 
@@ -299,6 +298,10 @@ class Import
                     $newA['postalCode'] = $address["postalCode"];
                 }
             }
+        }else if( empty($address["postalCode"]) && !empty($city["postalCodes"]) ) {
+            $newA['addressLocality'] = $city["postalCodes"][0]["name"];
+            $newA['postalCode'] = $city["postalCodes"][0]["postalCode"];
+            
         }else{
             $newA["addressLocality"] = $city["name"];
         }
@@ -451,7 +454,7 @@ class Import
 			$lon = ( is_numeric($geo["longitude"]) ? strval($geo["longitude"]) : $geo["longitude"] ) ;
 
 			$city = SIG::getCityByLatLngGeoShape( $lat, $lon, null, (!empty($address["addressCountry"]) ? $address["addressCountry"] : null ) ) ;
-            
+            //var_dump($city);
             if(!empty($city)){
                 $newA = self::getAddressConform($city, $address);
                 $newGeo = SIG::getFormatGeo($lat, $lon);

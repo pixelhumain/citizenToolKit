@@ -102,8 +102,15 @@ class Mail {
 		
         if(empty($msg))
             $msg = $invitor["name"]. " vous invite à rejoindre ".self::getAppName().".";
-		if(empty($subject))
-            $subject = $invitor["name"]. " vous invite à rejoindre ".self::getAppName().".";
+		if(empty($subject)){
+            //$subject = $invitor["name"]. " vous invite à rejoindre ".self::getAppName().".";
+            if(@$invitor && empty(@$invitor["name"])) "{who} is waiting for you on {what}"
+                $subject = Yii::t("mail", "{who} is waiting for you on {what}", array("{who}"=>$invitor["name"], "{what}"=>self::getAppName()));
+            else
+                $subject = Yii::t("mail", "{what} is waiting for you", array("{what}"=>self::getAppName()));
+        }
+
+        
 
         if(!@$person["email"] || empty($person["email"])){
         	$getEmail=Person::getEmailById((string)$person["_id"]);
@@ -138,13 +145,14 @@ class Mail {
         else if(isset($nameInvitor)){
 
             $invitor["name"] = $nameInvitor ;
-             var_dump($invitor["name"]);
+            // var_dump($invitor["name"]);
         }
         
-        if(@$invitor && empty(@$invitor["name"]))
-            $subject = $invitor["name"]. " vous attend sur ".self::getAppName().".";
+
+        if(@$invitor && empty(@$invitor["name"])) "{who} is waiting for you on {what}"
+            $subject = Yii::t("mail", "{who} is waiting for you on {what}", array("{who}"=>$invitor["name"], "{what}"=>self::getAppName()));
         else
-            $subject = self::getAppName()." vous attend.";
+            $subject = Yii::t("mail", "{what} is waiting for you", array("{what}"=>self::getAppName()));
         //if(empty($subject))
          //   $subject = $invitor["name"]. " vous invite à rejoindre ".self::getAppName().".";
 
