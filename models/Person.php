@@ -2239,5 +2239,67 @@ public static function isUniqueEmail($email) {
     	return $res;
     }
 
+
+    public static function getCommunexion($address) {
+    	$res = array();
+    	
+
+    	if(!empty($address) && !empty($address["localityId"])){
+			
+    		$res = $address ;
+
+    		$city = City::getById($address["localityId"]);
+			$res["type"] = "city" ;
+			if(!empty($city["postalCodes"]))
+				$res["postalCodes"] = $city["postalCodes"] ;
+
+			if(!empty($address["addressCountry"]))
+				$res["country"] = $address["addressCountry"] ;
+
+			if(!empty($address["addressCountry"]))
+				$res["name"] = $address["addressLocality"] ;
+
+			$res["cityName"] = City::getNameCity($res["localityId"]);
+
+			unset($res["@type"]);
+			unset($res["codeInsee"]);
+			unset($res["addressCountry"]);
+			unset($res["addressLocality"]);
+			unset($res["streetAddress"]);
+
+
+			if(count($res["postalCodes"]) == 1 ){
+				$res["allCP"] = true ;
+
+				if(!empty($res["postalCodes"][0]["postalCode"])){
+	                $where = array(	"country" => $res["country"], 
+	                				"postalCodes.postalCode" => $res["postalCodes"][0]["postalCode"]);
+	                $countCP = PHDB::count( City::COLLECTION , $where);
+	                $res["uniqueCp"] = ( ($countCP > 1) ? false : true ) ;
+	                // if($countCP > 1)
+	                // 	$res["postalCode"] = $res["postalCodes"][0]["postalCode"] ;
+	            }
+				//$newCities[] = $value ;
+			}else{
+				//$res["allCP"] = true ;
+				$newCities[] = $value ;
+				$res["allCP"] = false;
+				foreach ($res["postalCodes"] as $keyCP => $valueCP) {
+					// $cp = $value;
+					// $where = array(	"country" => $res["country"], 
+	    //             				"postalCodes.postalCode" => $valueCP["postalCode"]);
+					// $countCP = PHDB::count( City::COLLECTION , $where);
+	    //             $cp["uniqueCp"] = ( ($countCP > 1) ? false : true ) ;
+					// $cp["postalCode"] =  $valueCP["postalCode"];
+					// $cp["nameCity"] =  $res["name"];
+					// $cp["name"] =  $valueCP["name"]/*." - ".$valueCP["postalCode"]*/;
+					// $newCities[] = $cp ;
+				}
+			}
+    	}
+
+    	return $res ;
+    }
+
 }
 ?>
