@@ -2,6 +2,7 @@
 
 class Application {
 	const COLLECTION = "applications";
+	const ICON = "fa-th";
 	
 
 	public static function loadDBAppConfig($key = null) {

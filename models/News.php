@@ -4,6 +4,7 @@ class News {
 	const COLLECTION = "news";
 	const CONTROLLER = "news";
 	const ICON = "fa-users";
+	const ICON2 = "fa-newspaper-o";
 	const ICON_BIZ = "fa-industry";
 	const ICON_GROUP = "fa-circle-o";
 	const ICON_GOV = "fa-circle-o";
