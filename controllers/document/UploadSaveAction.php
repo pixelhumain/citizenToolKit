@@ -34,6 +34,7 @@ class UploadSaveAction extends CAction {
             $res2 = array();
             
             if( $res["resultUpload"] ){
+            //error_log("resultUpload xxxxxxxxxxxxxxxx");
                 if($contentKey==false){
                     if(@$_POST["contentKey"]) $contentKey=$_POST["contentKey"];
                     else $contentKey=Document::IMG_PROFIL;

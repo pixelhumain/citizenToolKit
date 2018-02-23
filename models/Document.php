@@ -91,7 +91,7 @@ class Document {
 		//check content key
 		if (!@$params["doctype"] && !in_array(@$params["contentKey"], array(self::IMG_BANNER,self::IMG_PROFIL,self::IMG_LOGO,self::IMG_SLIDER,self::IMG_MEDIA)))
 			throw new CTKException("Unknown contentKey ".$params["contentKey"]." for the document !");
-	    
+	    error_log("save xxxxxxxxxxxxxxxx");
 	    $new = array(
 			"id" => $params['id'],
 	  		"type" => $params['type'],
@@ -114,7 +114,10 @@ class Document {
 
 	    //if item exists
 	    //if( PHDB::count($new['type'],array("_id"=>new MongoId($new['id']))) > 0 ){
-		if ( in_array($params["type"], array( Survey::COLLECTION,Survey::CONTROLLER, ActionRoom::COLLECTION, ActionRoom::COLLECTION_ACTIONS)) ) {
+		if ( in_array($params["type"], array( Survey::COLLECTION,
+											  Survey::CONTROLLER, 
+											  ActionRoom::COLLECTION, 
+											  ActionRoom::COLLECTION_ACTIONS)) ) {
 				if($params['type'] == Survey::COLLECTION || $params['type'] == Survey::CONTROLLER ){
 		            $elem = Survey::getById($params["id"]);
 		            $room = Element::getByTypeAndId(ActionRoom::COLLECTION, $elem["survey"]);
@@ -743,6 +746,7 @@ class Document {
      * @return array result => booleant, msg => String
      */
     public static function generateProfilImages($document) {
+    	//error_log("generateProfilImages xxxxxxxxxxxxxxxx".$document["type"]);
     	$dir = $document["moduleId"];
     	$folder = $document["folder"];
 
@@ -781,20 +785,22 @@ class Document {
         
         //Update the entity collection to store the path of the profil images
         $allowedElements = array( Person::COLLECTION, 
-        						  Organization::COLLECTION, 
-        						  Project::COLLECTION,
-        						  Product::COLLECTION,
-        						  Service::COLLECTION, 
-        						  Event::COLLECTION,
-        						  Poi::COLLECTION, 
-        						  Survey::COLLECTION ,
-							      ActionRoom::COLLECTION,
-							      ActionRoom::COLLECTION_ACTIONS,
-        						  Poi::COLLECTION, Ressource::COLLECTION, Place::COLLECTION, 
-        						  Classified::COLLECTION,
+        						Organization::COLLECTION, 
+        						Project::COLLECTION,
+        						Product::COLLECTION,
+        						Service::COLLECTION, 
+        						Event::COLLECTION,
+        						Poi::COLLECTION, 
+        						Survey::COLLECTION ,
+							    ActionRoom::COLLECTION,
+							    ActionRoom::COLLECTION_ACTIONS,
+        						Poi::COLLECTION, 
+        						Ressource::COLLECTION, 
+        						Place::COLLECTION, 
+        						Classified::COLLECTION,
         						Network::COLLECTION);
         if (@$profilUrl && in_array($document["type"], $allowedElements )) {
-        	
+        	//error_log("profilUrl xxxxxxxxxxxxxxxx".$profilUrl);
         	$changes = array();
         	if (@$profilUrl)
         		$changes["profilImageUrl"] = $profilUrl;
@@ -805,7 +811,7 @@ class Document {
         	if (@$profilMarkerImageUrl)
         		$changes["profilMarkerImageUrl"] = $profilMarkerImageUrl;
 
-	        PHDB::update($document["type"], array("_id" => new MongoId($document["id"])), array('$set' => $changes));
+	        PHDB::update($document["type"], array( "_id" => new MongoId( $document["id"] ) ), array('$set' => $changes));
 
 	        error_log("The entity ".$document["type"]." and id ". $document["id"] ." has been updated with the URL of the profil images.");
 		}
