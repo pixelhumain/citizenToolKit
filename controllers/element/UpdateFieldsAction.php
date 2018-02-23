@@ -17,7 +17,7 @@ class UpdateFieldsAction extends CAction
 					Import::checkWarning($elementId, $type, Yii::app()->session['userId'] );
 				}
 				if($res["result"] == true){
-					$result = array("result"=>true, "msg"=>Yii::t(Element::getControlerByCollection($type),"The ".Element::getControlerByCollection($type)." has been updated"), $elementFieldName=>(empty($res["value"]) ? $elementFieldValue : $res["value"]));
+					$result = array("result"=>true, "msg"=>$res["msg"], $elementFieldName=>(empty($res["value"]) ? $elementFieldValue : $res["value"]));
 					//var_dump($res);
 					if(isset($res["firstCitizen"]))
 						$result["firstCitizen"] = $res["firstCitizen"] ;

@@ -825,7 +825,12 @@ class Element {
 					$verbActivity = ActStr::VERB_UPDATE ;
 				ActivityStream::saveActivityHistory($verbActivity, $id, $collection, $dataFieldName, $fieldValue);
 			}
-			$res = array("result"=>true,"msg"=>Yii::t(self::getControlerByCollection($collection),"The ".self::getControlerByCollection($collection)." has been updated"), "fieldName" => $fieldName, "value" => $fieldValue);
+			$msg=Yii::t(self::getControlerByCollection($collection),"The ".self::getControlerByCollection($collection)." has been updated");
+			if ($fieldName == "language"){
+				Yii::app()->language=$fieldValue;
+				$msg=Yii::t("common","Changing language processing"); 
+			}
+			$res = array("result"=>true,"msg"=>$msg, "fieldName" => $fieldName, "value" => $fieldValue);
 
 			if(isset($firstCitizen))
 				$res["firstCitizen"] = $firstCitizen ;
@@ -839,7 +844,7 @@ class Element {
     	$url = "";
     	$testUrl = "";
     	if (isset($person) && !empty($person)) {
-	        if(!empty($person[$imgName])){
+	        if(!empty($person[$imgName])){	
 	          $url = Yii::app()->getRequest()->getBaseUrl(true).$person[$imgName];
 	          $end = strpos($person[$imgName], "?");
 	          if($end<0) $end = strlen($person[$imgName]);
