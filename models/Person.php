@@ -2282,7 +2282,7 @@ public static function isUniqueEmail($email) {
 				//$newCities[] = $value ;
 			}else{
 				//$res["allCP"] = true ;
-				$newCities[] = $value ;
+				//$newCities[] = $value ;
 				$res["allCP"] = false;
 				foreach ($res["postalCodes"] as $keyCP => $valueCP) {
 					// $cp = $value;
