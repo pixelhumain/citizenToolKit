@@ -2276,25 +2276,9 @@ public static function isUniqueEmail($email) {
 	                				"postalCodes.postalCode" => $res["postalCodes"][0]["postalCode"]);
 	                $countCP = PHDB::count( City::COLLECTION , $where);
 	                $res["uniqueCp"] = ( ($countCP > 1) ? false : true ) ;
-	                // if($countCP > 1)
-	                // 	$res["postalCode"] = $res["postalCodes"][0]["postalCode"] ;
 	            }
-				//$newCities[] = $value ;
 			}else{
-				//$res["allCP"] = true ;
-				//$newCities[] = $value ;
 				$res["allCP"] = false;
-				foreach ($res["postalCodes"] as $keyCP => $valueCP) {
-					// $cp = $value;
-					// $where = array(	"country" => $res["country"], 
-	    //             				"postalCodes.postalCode" => $valueCP["postalCode"]);
-					// $countCP = PHDB::count( City::COLLECTION , $where);
-	    //             $cp["uniqueCp"] = ( ($countCP > 1) ? false : true ) ;
-					// $cp["postalCode"] =  $valueCP["postalCode"];
-					// $cp["nameCity"] =  $res["name"];
-					// $cp["name"] =  $valueCP["name"]/*." - ".$valueCP["postalCode"]*/;
-					// $newCities[] = $cp ;
-				}
 			}
     	}
 
