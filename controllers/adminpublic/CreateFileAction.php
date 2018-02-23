@@ -16,9 +16,9 @@ class CreateFileAction extends CAction
 
     	$params["allMappings"] = Import::getMappings($where);
     	if(Yii::app()->request->isAjaxRequest)
-            echo $controller->renderPartial("createFile",$params,true);
+            echo $controller->renderPartial("createfile",$params,true);
         else 
-            $controller->render("createFile",$params);
+            $controller->render("createfile",$params);
     }
 }
 
