@@ -163,6 +163,7 @@ class Import
                         $elements[] = $element;
                 //}
             }
+            
             $params = array("result"=>true,
                             "elements"=>json_encode(json_decode(json_encode($elements),true)),
                             "elementsWarnings"=>json_encode(json_decode(json_encode($elementsWarnings),true)),

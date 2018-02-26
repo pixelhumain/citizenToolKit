@@ -102,12 +102,13 @@ class Mail {
 		
         if(empty($msg))
             $msg = $invitor["name"]. " vous invite à rejoindre ".self::getAppName().".";
-		if(empty($subject)){
+		
+        if(empty($subject)){
             //$subject = $invitor["name"]. " vous invite à rejoindre ".self::getAppName().".";
-            if(@$invitor && empty(@$invitor["name"])) "{who} is waiting for you on {what}"
+            if(@$invitor && empty(@$invitor["name"]))
                 $subject = Yii::t("mail", "{who} is waiting for you on {what}", array("{who}"=>$invitor["name"], "{what}"=>self::getAppName()));
             else
-                $subject = Yii::t("mail", "{what} is waiting for you", array("{what}"=>self::getAppName()));
+                $subject = Yii::t("mail", "{what} is waiting for you", array( "{what}"=>self::getAppName() ) ) ;
         }
 
         
@@ -129,7 +130,8 @@ class Mail {
                                     "logo" => Yii::app()->params["logoUrl"],
                                     "logo2" => Yii::app()->params["logoUrl2"],
                                     "invitedUserId" => $person["_id"],
-                                    "message" => $msg)
+                                    "message" => $msg,
+                                    "language" => ( !empty($person["language"]) ? $person["language"] : "fr" ))
         );
 
         if(!empty($invitorUrl))
@@ -146,7 +148,7 @@ class Mail {
         }
         
 
-        if(@$invitor && empty(@$invitor["name"])) "{who} is waiting for you on {what}"
+        if(@$invitor && empty(@$invitor["name"]))
             $subject = Yii::t("mail", "{who} is waiting for you on {what}", array("{who}"=>$invitor["name"], "{what}"=>self::getAppName()));
         else
             $subject = Yii::t("mail", "{what} is waiting for you", array("{what}"=>self::getAppName()));
@@ -169,7 +171,8 @@ class Mail {
                                     "logo2" => Yii::app()->params["logoUrl2"],
                                     //"logo"=> "/images/logo-communecter.png",
                                     //"logo2" => "/images/logoLTxt.jpg",
-                                    "invitedUserId" => $person["_id"])
+                                    "invitedUserId" => $person["_id"],
+                                    "language" => ( !empty($person["language"]) ? $person["language"] : "fr" ) )
         );
 
         if(!empty($invitorUrl))
