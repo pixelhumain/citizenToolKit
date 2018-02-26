@@ -128,8 +128,6 @@ class Mail {
                                     "invitorLogo" => @$invitor["profilThumbImageUrl"],
                                     "logo" => Yii::app()->params["logoUrl"],
                                     "logo2" => Yii::app()->params["logoUrl2"],
-                                    //"logo"=> "/images/logo-communecter.png",
-                                    //"logo2" => "/images/logoLTxt.jpg",
                                     "invitedUserId" => $person["_id"],
                                     "message" => $msg)
         );
@@ -143,7 +141,6 @@ class Mail {
         if(isset($person["invitedBy"]))
             $invitor = Person::getSimpleUserById($person["invitedBy"]);
         else if(isset($nameInvitor)){
-
             $invitor["name"] = $nameInvitor ;
             // var_dump($invitor["name"]);
         }
@@ -153,8 +150,7 @@ class Mail {
             $subject = Yii::t("mail", "{who} is waiting for you on {what}", array("{who}"=>$invitor["name"], "{what}"=>self::getAppName()));
         else
             $subject = Yii::t("mail", "{what} is waiting for you", array("{what}"=>self::getAppName()));
-        //if(empty($subject))
-         //   $subject = $invitor["name"]. " vous invite à rejoindre ".self::getAppName().".";
+
 
         if(!@$person["email"] || empty($person["email"])){
             $getEmail=Person::getEmailById((string)$person["_id"]);
