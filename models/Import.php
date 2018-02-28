@@ -915,12 +915,12 @@ class Import
             
         }
 
-        $head = array_merge($head, $fixe, $mobile, $fax, $tags);
+       $head = array_merge($head, $fixe, $mobile, $fax, $tags);
 
        $body="";
         foreach ($orgas as $key => $value) {
             $nb++;
-            $body .= "\n";
+            $body .= " <br> ";
             $body .= (!empty($value["name"]) ? $value["name"] : '' );
             $body .= ';'.(!empty($value["type"]) ? $value["type"] : '' );
             $body .= ';'.(!empty($value["address"]["streetAddress"]) ? $value["address"]["streetAddress"] : '' );

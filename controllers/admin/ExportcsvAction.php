@@ -6,7 +6,8 @@ class ExportcsvAction extends CAction
     {
         $controller = $this->getController();
         $res = Import::exportcsv($_POST);
-        Rest::json($res);
+        //Rest::json($res);
+        echo $res;
     }
 }
 
