@@ -42,6 +42,7 @@ class Element {
 	    	Need::COLLECTION => Need::CONTROLLER,
 	    	City::COLLECTION => City::CONTROLLER,
 	    	Survey::COLLECTION => Survey::CONTROLLER,
+	    	Poi::COLLECTION => Poi::CONTROLLER,
 	    	Proposal::COLLECTION => Proposal::CONTROLLER,
 	    	Action::COLLECTION => Action::CONTROLLER,
 	    	//ActionRoom::COLLECTION => ActionRoom::CONTROLLER,
