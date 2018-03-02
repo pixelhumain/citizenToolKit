@@ -831,6 +831,7 @@ class Import
 
     public static function exportcsv($post){
         $where = array();
+
         if(!empty($post)){
             if(!empty($post["tagsActived"])){
 
@@ -849,29 +850,8 @@ class Import
             }
         }
 
-        //var_dump($where);
-
-
-        // public static function searchTags($searchTags, $verb = '$in' ){
-        //     $tmpTags = array();
-        //     $query = array();
-        //     if(!empty($searchTags)){
-        //         foreach ($searchTags as $value) {
-        //             if(trim($value) != "")
-        //                 //$tmpTags[] = new MongoRegex("/^".$value."$/i");
-        //                 $tmpTags[] = new MongoRegex("/^".self::accentToRegex($value)."$/i");
-        //         }
-        //         if(count($tmpTags)){
-        //             $allverb = array('$in', '$all');
-        //             if(!in_array($verb, $allverb))
-        //                 $verb = '$in';
-        //             $query = array("tags" => array($verb => $tmpTags)) ;
-        //         }
-        //     }
-        //     return $query;
-            
-
         $orgas = PHDB::find(Organization::COLLECTION, $where) ;
+
         $nb = 0 ;
 
        $head = array("name","Type : (NGO, Group, LocalBusiness ou GovernmentOrganization)","Rue","Code Postal","Ville","Code Pays","Email","Site web","Description courte","Description longue","Latitude","Longitude");
@@ -879,6 +859,7 @@ class Import
        $mobile = array();
        $fax = array();
        $tags = array();
+
        foreach ($orgas as $key => $value) {
 
             if(!empty($value["telephone"])){
@@ -906,13 +887,11 @@ class Import
             }
 
             if(!empty($value["tags"])){
-
                 foreach ($value["tags"] as $keyNum => $num) {
                     if( !in_array("Tag".($keyNum+1), $tags) && !empty($num))
                         $tags[] = "Tag".($keyNum+1);
                 }
             }
-            
         }
 
        $head = array_merge($head, $fixe, $mobile, $fax, $tags);
@@ -920,7 +899,7 @@ class Import
        $body="";
         foreach ($orgas as $key => $value) {
             $nb++;
-            $body .= " <br> ";
+            $body .= " \n";
             $body .= (!empty($value["name"]) ? $value["name"] : '' );
             $body .= ';'.(!empty($value["type"]) ? $value["type"] : '' );
             $body .= ';'.(!empty($value["address"]["streetAddress"]) ? $value["address"]["streetAddress"] : '' );
@@ -948,6 +927,10 @@ class Import
                            $nb++;
                         }
                     }
+                }else{
+                    foreach ($fixe as $kT => $vT) {
+                        $body .= ';';
+                    }
                 }
 
                 if(!empty($value["telephone"]["mobile"])){
@@ -961,6 +944,10 @@ class Import
                            $body .= ';';
                            $nb++;
                         }
+                    }
+                }else{
+                    foreach ($mobile as $kT => $vT) {
+                        $body .= ';';
                     }
                 }
 
@@ -976,11 +963,25 @@ class Import
                            $nb++;
                         }
                     }
+                }else{
+                    foreach ($fax as $kT => $vT) {
+                        $body .= ';';
+                    }
+                }
+            }else{
+                foreach ($fixe as $kT => $vT) {
+                    $body .= ';';
+                }
+                foreach ($mobile as $kT => $vT) {
+                    $body .= ';';
+                }
+                foreach ($fax as $kT => $vT) {
+                    $body .= ';';
                 }
             }
 
             if(!empty($value["tags"])){
-
+                
                 foreach ($value["tags"] as $keyNum => $num) {
                     $body .= ';'.(!empty($num) ? $num : '' );
                 }
@@ -992,10 +993,13 @@ class Import
                        $nb++;
                     }
                 }
+            }else{
+                foreach ($tags as $kT => $vT) {
+                    $body .= ';';
+                }
             }
-            
+            $orgas3[] = $value ;
         }
-
         return implode(";", $head).$body ;
     }
 
