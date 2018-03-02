@@ -62,8 +62,13 @@ class SimplyAutoCompleteAction extends CAction
 	        if($seeDisable == "true"){
 	  			$query = array('$and' => array($query, array("disabled" => array('$exists' => 1))));
 	        }else if($disabled != "true"){
-	  			$query = array('$and' => array($query, array("disabled" => array('$exists' => 0))));
+	  			//$query = array('$and' => array($query, array("disabled" => array('$exists' => 0))));
+	  			$query = array('$and' => array($query, array('$or' => array(	array("creator" => Yii::app()->session["userId"]), 
+	        													array("disabled" => array('$exists' => 0))))));
 	        }
+
+	        
+
 
 	        /***********************************  Filtre   *****************************************/
 	        
