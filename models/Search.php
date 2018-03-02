@@ -198,8 +198,9 @@ class Search {
 
   		if( count($searchTags) > 1  || count($searchTags) == 1 && $searchTags[0] != "" ){
   			if( (strcmp($filter, Classified::COLLECTION) != 0 && self::typeWanted(Classified::COLLECTION, $searchType)) ||
-  				(strcmp($filter, Ressource::COLLECTION) != 0 && self::typeWanted(Ressource::COLLECTION, $searchType)) ||
-  				(strcmp($filter, Place::COLLECTION) != 0 && self::typeWanted(Place::COLLECTION, $searchType)) ){
+  				(strcmp($filter, Ressource::COLLECTION) != 0 && self::typeWanted(Ressource::COLLECTION, $searchType)) 
+  				//|| (strcmp($filter, Place::COLLECTION) != 0 && self::typeWanted(Place::COLLECTION, $searchType)) 
+  				){
         		$queryTags =  self::searchTags($searchTags, '$all') ;
 	  		}
   			else if( (strcmp($filter, Service::COLLECTION) != 0 )){
@@ -224,7 +225,8 @@ class Search {
   		$queryClassifieds = Search::getQueryClassifieds($query, @$priceMin, @$priceMax, @$devise);
   		$allRes = array();
 
-  		//var_dump($query);
+  		// var_dump($queryEvents);
+  		// echo "<br/>";
   		//*********************************  CITIES   ******************************************
   		if(!empty($search) /*&& !empty($locality) */){
 			if(strcmp($filter, City::COLLECTION) != 0 && self::typeWanted(City::COLLECTION, $searchType)){
@@ -684,20 +686,29 @@ class Search {
 
 	//*********************************  Specific queries   ****************************************
   	public static function getQueryEvents($queryEvent, $searchSType, $startDate, $endDate){
+  		// var_dump($startDate);
+  		// echo "<br/>";
+  		// var_dump(date("d.m.y H:i:s", $startDate));
+  		// echo "<br/>";
+  		// var_dump($endDate);
+  		// echo "<br/>";
+  		// var_dump(date("d.m.y H:i:s", $endDate));
+  		// echo "<br/>";
+  		// echo "<br/>";
   		if($startDate!=null)
 			array_push( $queryEvent[ '$and' ], array( "startDate" => array( '$gte' => new MongoDate( (float)$startDate ) ) ) );
 		if($endDate!=null)
        		array_push( $queryEvent[ '$and' ], array( "endDate" => array( '$lte' => new MongoDate( (float)$endDate ) ) ) );
   		if(isset($searchSType) && $searchSType != "")
         	array_push( $queryEvent[ '$and' ], array( "type" => $_POST["searchSType"] ) );
-    	$queryEvent = array('$and' => 
-						array( $queryEvent , 
-						array( '$or' => array( 
-							array("public" => true ),
-							array( '$and' => array(
-								array("public" => false ),
-								array("links.attendees.".Yii::app()->session["userId"] => array('$exists' => 1) )
-								) ) ) ) ) );
+    	// $queryEvent = array('$and' => 
+					// 	array( $queryEvent , 
+					// 	array( '$or' => array( 
+					// 		array("public" => true ),
+					// 		array( '$and' => array(
+					// 			array("public" => false ),
+					// 			array("links.attendees.".Yii::app()->session["userId"] => array('$exists' => 1) )
+					// 			) ) ) ) ) );
   		return $queryEvent;
   	}
   	public static function getQueryClassifieds($query, $priceMin, $priceMax, $devise){
@@ -930,12 +941,6 @@ class Search {
 		date_default_timezone_set('UTC');
 		$queryEvent = $query;
 
-    	//if( !isset( $queryEvent['$and'] ) ) 
-    	//	$queryEvent['$and'] = array();
-    	
-    	//echo  time(); exit;
-    	//array_push( $queryEvent[ '$and' ], array( "endDate" => array( '$gte' => new MongoDate( time() ) ) ) );
-    	//var_dump($queryEvent);
     	if($searchOnAll)
     		$sort=array("updated" => -1);
     	else if(@$all && $all)
