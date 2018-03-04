@@ -315,15 +315,17 @@ class Document {
 			self::removeDocumentById((string)$data["_id"]);
 		}
 	}
-	public static function listMyDocumentByIdAndType($id, $type, $contentKey= null, $collection=null, $docType = null, $sort=array())	{	
+	public static function listMyDocumentByIdAndType($id, $type, $contentKey= null, $docType = null, $sort=array())	{	
 		$params = array("id"=> $id,
 						"type" => $type);
 		if (isset($contentKey) && $contentKey != null) 
 			$params["contentKey"] = $contentKey;
 		if (isset($docType)) 
 			$params["doctype"] = $docType;
-		if (isset($docType)) 
-			$params["collection"] = $collection;
+		//if (isset($docType)) 
+		//	$params["collection"] = $collection;
+		
+		//error_log("listMyDocumentByIdAndType ".$id.",".$type.",".$contentKey.",".$collection);
 
 		$listDocuments = PHDB::findAndSort( self::COLLECTION,$params, $sort);
 		foreach($listDocuments as $k=>$img){
