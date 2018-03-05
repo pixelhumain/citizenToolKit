@@ -317,7 +317,7 @@ class Element {
 			$element = Poi::getById($id);
 		else if($type == Place::COLLECTION)
 			$element = Place::getById($id);
-		else if($type == Classified::COLLECTION)
+		else if($type == Classified::COLLECTION || $type == Classified::MODULE)
 			$element = Classified::getById($id);
 		else if($type == ActionRoom::COLLECTION_ACTIONS)
 			$element = PHDB::findOne( ActionRoom::COLLECTION_ACTIONS ,array("_id"=>new MongoId($id)));
@@ -1286,23 +1286,14 @@ class Element {
 	 * @param String $userId : the userId asking to delete the element
 	 * @return array : result : boolean, msg : String
 	 */
-	public static function askToDelete($elementType, $elementId, $reason, $userId) {
+	public static function askToDelete($elementType, $elementId, $reason, $userId,$elemTypes) {
 		if (! Authorisation::canDeleteElement($elementId, $elementType, $userId)) {
 			return array("result" => false, "msg" => "The user cannot delete this element !");
 		}
 
 		$res = array("result" => false, "msg" => "Something bad happend : impossible to delete this element");
 
-		//What type of element i can delete
-		$managedTypes = array(Organization::COLLECTION, 
-							Project::COLLECTION, 
-							Event::COLLECTION, 
-							Classified::COLLECTION,
-							Proposal::COLLECTION, 
-							Action::COLLECTION, 
-							Room::COLLECTION);
-		
-		if (!in_array($elementType, $managedTypes)) return array( "result" => false, "msg" => "Impossible to delete this type of element" );
+		if (!in_array($elementType, $elemTypes)) return array( "result" => false, "msg" => "Impossible to delete this type of element" );
 		$modelElement = self::getModelByType($elementType);
 
 		$canBeDeleted = false;
@@ -1423,7 +1414,7 @@ class Element {
 						"needs" => "helpers"),
 			);
 		
-		$elementToDelete = self::getByTypeAndId($elementType, $elementId);
+		$elementToDelete = self::getByTypeAndId( $elementType, $elementId );
 
 		$resError = array(
     		"result" => false, 
@@ -1433,11 +1424,12 @@ class Element {
     						"name" => $elementToDelete["name"]
     					)), 
     		"msg" => Yii::t('common',"Error trying to delete this element : please contact your administrator."),
-    		);
+    	);
 
 		//Remove Documents => Profil Images
 		//TODO SBAR : Remove other images ?
     	$profilImages = Document::listMyDocumentByIdAndType($elementId, $elementType, Document::IMG_PROFIL, Document::DOC_TYPE_IMAGE, array( 'created' => -1 ));
+    	//error_log("count docs ".count( $profilImages ) );
     	foreach ($profilImages as $docId => $document) {
     		Document::removeDocumentById($docId, $userId);
     		//error_log("delete document id ".$docId);
@@ -1524,6 +1516,37 @@ class Element {
 
 		Log::save(array("userId" => $userId, "browser" => @$_SERVER["HTTP_USER_AGENT"], "ipAddress" => @$_SERVER["REMOTE_ADDR"], "created" => new MongoDate(time()), "action" => "deleteElement", "params" => array("id" => $elementId, "type" => $elementType)));
 		$resError["action"]["final"] = $res;
+		return $res;
+	}
+
+	//deletes elements with no strings attached
+	//no particpants, no connected eleemnts ...etc
+	//like POI, Ressources,Classifieds
+	//deletes images by folders and 
+	public static function deleteSimple($id,$type, $userId) {
+		error_log("deleteSimple ".$id.",".$type);
+		if ( !@$userId) 
+            return array( "result" => false, "msg" => "You must be loggued to delete something" );
+        
+        
+        $el = self::getByTypeAndId( $type, $id );
+        if (! Authorisation::canDeleteElement($id, $type, $userId)) 
+			return array("result" => false, "msg" => "The user cannot delete this element !");
+		
+		$res = array("result" => false, "msg" => "Something bad happend : impossible to delete this element");
+
+        //Delete the comments
+        $resComments = Comment::deleteAllContextComments($id,$type, $userId);
+		if (@$resComments["result"]) {
+			$resDocs = Document::removeDocumentByFolder($type."/".$id);
+			PHDB::remove($type, array("_id"=>new MongoId($id)));
+			$res = array("result" => true, 
+						 "msg" => "The element has been deleted succesfully", 
+						 "resDocs" => $resDocs);
+		} else {
+			return $resComments;
+		}
+		
 		return $res;
 	}
 
