@@ -902,9 +902,9 @@ class Import
             $body .= " \n";
             $body .= (!empty($value["name"]) ? $value["name"] : '' );
             $body .= ';'.(!empty($value["type"]) ? $value["type"] : '' );
-            $body .= ';'.(!empty($value["address"]["streetAddress"]) ? $value["address"]["streetAddress"] : '' );
-            $body .= ';'.(!empty($value["address"]["postalCode"]) ? $value["address"]["postalCode"] : '' );
-            $body .= ';'.(!empty($value["address"]["addressLocality"]) ? $value["address"]["addressLocality"] : '' );
+            $body .= ';'.(!empty($value["address"]["streetAddress"]) ? self::strremplace2($value["address"]["streetAddress"]) : '' );
+            $body .= ';'.(!empty($value["address"]["postalCode"]) ? self::strremplace2($value["address"]["postalCode"]) : '' );
+            $body .= ';'.(!empty($value["address"]["addressLocality"]) ? self::strremplace2($value["address"]["addressLocality"]) : '' );
             $body .= ';'.(!empty($value["address"]["addressCountry"]) ? $value["address"]["addressCountry"] : '' );
             $body .= ';'.(!empty($value["email"]) ? $value["email"] : '' );
             $body .= ';'.(!empty($value["url"]) ? $value["url"] : '' );
@@ -1008,6 +1008,11 @@ class Import
         $val = str_replace("\n"," ",$val);
         $val = str_replace("\r"," ",$val);
         $val = str_replace(";",",",$val);
+        return $val ;
+    }
+
+     public static function strremplace2($val){
+        $val = str_replace('"',"'",$val);
         return $val ;
     }
 
