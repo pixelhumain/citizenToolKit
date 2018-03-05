@@ -1012,7 +1012,7 @@ class Import
     }
 
      public static function strremplace2($val){
-        $val = str_replace('"',"'",$val);
+        $val = str_replace('"'," ",$val);
         return $val ;
     }
 
