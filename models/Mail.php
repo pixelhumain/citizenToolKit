@@ -702,4 +702,41 @@ class Mail {
         return isset(Yii::app()->params["name"]) ? Yii::app()->params["name"] : Yii::app()->name;       
     }
 
+
+	public static function mailMaj() {
+
+		$persons=PHDB::find(Person::COLLECTION, array("pending"=>array('$exists'=>0), "email"=>array('$exists'=>1)), array("name", "language", "email"));
+		$i=0;
+		$v=0;
+		$languageUser = Yii::app()->language;
+		$res = array();
+		foreach($persons as $key => $value){
+			if(!empty($value["email"]) && DataValidator::email($value["email"])=="" && !empty($value["language"])){
+				echo $key." : ".$value["name"]." : ".$value["language"]." <br/> ";
+				// Yii::app()->language = $value["language"];
+				$subject = Yii::t("mail", "New Update");
+		        $params = array(
+		            "type" => Cron::TYPE_MAIL,
+		            "tpl"=>'update',
+		            "subject" => $subject,
+		            "from"=>Yii::app()->params['adminEmail'],
+		            "to" => $value["email"],
+		            "tplParams" => array(   "title" => self::getAppName() ,
+		                                    "logo" => Yii::app()->params["logoUrl"],
+		                                    "logo2" => Yii::app()->params["logoUrl2"],
+		                                    "invitedUserId" => $value["_id"],
+		                                    "language" => ( !empty($value["language"]) ? $value["language"] : "fr" ) )
+		        );
+		        Mail::schedule($params);
+				$i++;
+			}else{
+				$v++;
+			}
+		}
+		echo $i." mails envoyé pour relancer l'inscription<br>";
+		echo $v." utilisateur non inscrit (validé) qui ont un mail de marde<br>";
+
+		Yii::app()->language = $languageUser ;
+
+	}
 }
