@@ -25,7 +25,7 @@ class Slug {
 	}
 	
 	public static function check($slug,$type=null,$id=null){
-		if(!in_array($slug,["search","agenda","annonces","live"])){
+		if(!in_array($slug,["search","agenda","annonces","live", "ressources", "welcome", "home", "admin", "info", "docs","default"])){
 			$where=array("name"=>$slug);
 			if(@$id && !empty($id)){
 				$where["id"]=array('$ne'=>$id);
