@@ -15,9 +15,15 @@ class Preference {
 		return $preferences;
 	}
 	
-	public static function updatePreferences($id, $type, $update=null) {
+	public static function updatePreferences($id, $type,$preferenceName=null, $preferenceValue=null) {
+		$action='$set';
+		if(!@$preferenceName || empty($preferenceName)){
+			$action='$unset';
+			$preferenceName="seeExplanations";
+			$preferenceValue="";
+		}	
 		PHDB::update($type, array("_id" => new MongoId($id)), 
-			                          array('$unset' => array("preferences.seeExplanations" => "")
+			                          array($action => array("preferences.".$preferenceName => $preferenceValue)
 			                          ));
 		$res = array("result" => true, "msg" => Yii::t("common","Your request is well updated"));
 		return $res;

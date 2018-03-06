@@ -12,7 +12,7 @@ class UpdateSettingsAction extends CAction
         if(isset($_POST["type"])){
           $res=Preference::updateConfidentiality(Yii::app()->session["userId"],$_POST["typeEntity"],$_POST);
         }else{
-          $res=Preference::updatePreferences(Yii::app()->session["userId"],$_POST["typeEntity"]);
+          $res=Preference::updatePreferences(Yii::app()->session["userId"],$_POST["typeEntity"], @$_POST["name"], @$_POST["value"]);
         }
 		Rest::json($res);
 		exit;
