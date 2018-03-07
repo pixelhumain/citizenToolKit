@@ -12,10 +12,13 @@ class GetMyDashboardCoopAction extends CAction {
 		$userId = @Yii::app()->session['userId'];
 		$me = Person::getById($userId);
 
-		$memberOfOrga = $me["links"]["memberOf"];
-		$memberOfProject = $me["links"]["projects"];
+		$memberOfOrga = @$me["links"]["memberOf"];
+		$memberOfProject = @$me["links"]["projects"];
 
-		$memberOf = array_merge($memberOfOrga, $memberOfProject);
+		if(is_array($memberOfOrga) && is_array($memberOfProject))
+			$memberOf = array_merge($memberOfOrga, $memberOfProject);
+		else if(is_array($memberOfOrga)) $memberOf = $memberOfOrga;
+		else if(is_array($memberOfProject)) $memberOf = $memberOfProject;
 
 		$res = array();
 		foreach ($memberOf as $id => $element) {

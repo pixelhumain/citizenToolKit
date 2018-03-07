@@ -55,7 +55,7 @@ class Cooperation {
 
 	public static function getColorVoted($voted){
 		if(isset(self::$colorVoted[$voted])) return self::$colorVoted[$voted];
-			else return "dark";
+		else return "dark";
 	}
 
 	public static function getCoopData($parentType, $parentId, $type, $status=null, $dataId=null){
@@ -214,7 +214,7 @@ class Cooperation {
 	public static function userHasVoted($userId, $obj){
 		foreach ($obj as $keyVal=>$arr) {
 			foreach ($arr as $keyId) {
-				if($keyId == $userId) return $keyVal;
+				if($keyId == $userId) return (string)$keyVal;
 			}
 		}
 		return false;
@@ -317,6 +317,9 @@ class Cooperation {
 								$voteRes["up"]["percent"] > intval(@$resolution["majority"]);
 					
 					$resolution["status"] = $adopted ? "adopted" : "refused";
+
+					if(@$resolution["answers"]) $resolution["status"] = "adopted";
+
 					$resolutionExist = Resolution::getById($key);
 					
 					if(!$resolutionExist){ //} && $proposal["parentType"] == News::COLLECTION){
