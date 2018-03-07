@@ -219,8 +219,10 @@ class Cooperation {
 					if($proposal["parentType"] == "projects") 		$link = "projects";
 					if($proposal["parentType"] == "organizations")  $link = "memberOf";
 					$myRoles = @$me["links"][@$link][@$proposal["parentId"]]["roles"] ? 
-							   @$me["links"][@$link][@$coop["parentId"]]["roles"] : array();
+							   @$me["links"][@$link][@$proposal["parentId"]]["roles"] : array();
+
 					$accessRoom = @$parentRoom ? Room::getAccessByRole($parentRoom, $myRoles) : ""; 
+					
 					if($accessRoom == "lock"){
 						unset($newsList[$k]);
 					}
