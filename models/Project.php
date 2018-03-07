@@ -83,25 +83,35 @@ class Project {
 		  		$now = time();
 		  		
 		  		if(isset($project["startDate"])) {
+		  			//$project["startDateDB"] = $project["startDate"];
 					$yester2day = mktime(0, 0, 0, date("m")  , date("d")-2, date("Y"));
 					if (gettype($project["startDate"]) == "object") {
 						//Set TZ to UTC in order to be the same than Mongo
 						date_default_timezone_set('UTC');
-						if (!empty($project["startDate"]))
+						if (!empty($project["startDate"])){
+
 							$project["startDate"] = date('Y-m-d H:i:s', $project["startDate"]->sec);
+							//$project["startDateDB"] = $project["startDate"];
+							
+						}
 					} else {
-						$project["startDate"] = date('Y-m-d H:i:s',$yester2day);;
+						$project["startDate"] = date('Y-m-d H:i:s',$yester2day);
+						
 					}
 				}
 
 		  		if(isset($project["startDate"]) && isset($project["endDate"])) {
+		  			//$project["endDateDB"] = $project["endDate"];
 					$yesterday = mktime(0, 0, 0, date("m")  , date("d")-1, date("Y"));
 					if (gettype($project["endDate"]) == "object") {
 						date_default_timezone_set('UTC');
-						if (!empty($project["endDate"]))
+						if (!empty($project["endDate"])){
 							$project["endDate"] = date('Y-m-d H:i:s', $project["endDate"]->sec);
+							//$project["endDateDB"] = $project["endDate"];
+						}
 					} else {
 						$project["endDate"] = date('Y-m-d H:i:s', $yesterday);
+						
 					}
 				}
 			}
