@@ -209,6 +209,28 @@ class Cooperation {
 		return $res;
 	}
 
+	public static function checkRoleAccessInNews($newsList){ //return $newsList;
+		$me = Element::getByTypeAndId("citoyens", Yii::app()->session['userId']);
+		foreach($newsList as $k => $news){
+			if(@$news["object"] && @$news["object"]["type"] == "proposals"){
+				$proposal = Proposal::getById(@$news["object"]["id"]);
+				$parentRoom = Room::getById(@$proposal["idParentRoom"]);
+				if(@$parentRoom["roles"]){
+					if($proposal["parentType"] == "projects") 		$link = "projects";
+					if($proposal["parentType"] == "organizations")  $link = "memberOf";
+					$myRoles = @$me["links"][@$link][@$proposal["parentId"]]["roles"] ? 
+							   @$me["links"][@$link][@$coop["parentId"]]["roles"] : array();
+					$accessRoom = @$parentRoom ? Room::getAccessByRole($parentRoom, $myRoles) : ""; 
+					if($accessRoom == "lock"){
+						unset($newsList[$k]);
+					}
+				}
+			}
+		}
+		return $newsList;
+		
+	}
+
 
 
 	public static function userHasVoted($userId, $obj){

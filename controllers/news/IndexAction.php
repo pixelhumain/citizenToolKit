@@ -422,6 +422,9 @@ class IndexAction extends CAction
 		// Sort news order by created 
 		$news = News::sortNews($news, array('updated'=>SORT_DESC));
 
+		//remove activityStream if user connected can't access his parentRoom (because of room role access)
+		$news = Cooperation::checkRoleAccessInNews($news);
+
 		//var_dump($news); exit;
         //TODO : reorganise by created date
 		$params["news"] = $news;
