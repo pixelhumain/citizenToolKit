@@ -319,8 +319,6 @@ class Element {
 			$element = Place::getById($id);
 		else if($type == Classified::COLLECTION || $type == Classified::MODULE)
 			$element = Classified::getById($id);
-		else if($type == Ressource::COLLECTION || $type == Ressource::MODULE)
-			$element = Ressource::getById($id);
 		else if($type == ActionRoom::COLLECTION_ACTIONS)
 			$element = PHDB::findOne( ActionRoom::COLLECTION_ACTIONS ,array("_id"=>new MongoId($id)));
 		else if($type == Survey::CONTROLLER )
@@ -2398,7 +2396,6 @@ class Element {
 
 
 	public static function getInfoDetail($params, $element, $type, $id){
-
 		$params["edit"] = Authorisation::canEditItem(Yii::app()->session["userId"], $type, $id);
         $params["openEdition"] = Authorisation::isOpenEdition($id, $type, @$element["preferences"]);
         $params["controller"] = self::getControlerByCollection($type);
@@ -2409,8 +2406,6 @@ class Element {
         }
         else
         	$links=@$element["links"];
-
-
         $connectType = @self::$connectTypes[$type];
         if($type==Person::COLLECTION)
         	$connectType="friends";
