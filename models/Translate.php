@@ -371,4 +371,6 @@ class Translate {
 		$string = preg_replace($url, '<a href="http$2://$4" target="_blank" title="$0">$0</a>', $str);
 		return $string;
 	}
+
+	
 }
