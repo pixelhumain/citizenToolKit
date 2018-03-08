@@ -1000,7 +1000,11 @@ class Import
             }
             $orgas3[] = $value ;
         }
-        return implode(";", $head).$body ;
+        $str = implode(";", $head).$body ;
+        //$strUtf8 = utf8_encode($str) ;
+        //$strWin = iconv("UTF-8", "Windows-1252", $strUtf8) ;
+        $strWin = mb_convert_encoding($str,"Windows-1252");
+        return $strWin ;
     }
 
 
