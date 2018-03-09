@@ -392,8 +392,12 @@ class Search {
 					else if(@$value["created"])
 						$allRes[$key]["sorting"] = @$value["created"]->sec;
 	  			}
-				else
-					$allRes[$key]["sorting"] = @$value["updated"];
+				else{
+					if(is_object(@$value["updated"]))
+						$allRes[$key]["sorting"] = @$value["updated"]->sec;
+					else
+						$allRes[$key]["sorting"] = @$value["updated"];
+				}
 	  		}
 			if(@$value["updated"]) {
 				if($app=="agenda")
