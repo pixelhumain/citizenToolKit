@@ -1643,7 +1643,7 @@ class Element {
         unset($params['id']);
 
         $postParams = array();
-        if( !in_array( $collection, array("poi", "actions", "proposals", "resolutions") ) && 
+        if( !in_array( $collection, array("poi", "actions", "proposals", "resolutions", "classified", "ressources") ) && 
         	@$params["urls"] && @$params["medias"] ){
 	        	$postParams["medias"] = $params["medias"];
 	        	unset($params['medias']);
@@ -1692,7 +1692,6 @@ class Element {
             }
 
             if($id){ //var_dump($params); exit;
-        	
             	$exists = PHDB::findOne($collection,array("_id"=>new MongoId($id)));
                 if(!@$exists){
                 	$params["creator"] = Yii::app()->session["userId"];
