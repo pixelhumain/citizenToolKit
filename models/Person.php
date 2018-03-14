@@ -2250,6 +2250,8 @@ public static function isUniqueEmail($email) {
 
     		$city = City::getById($address["localityId"]);
 			$res["type"] = "city" ;
+			$res["id"] = $address["localityId"];
+			$res["city"] = $address["localityId"];
 			if(!empty($city["postalCodes"]))
 				$res["postalCodes"] = $city["postalCodes"] ;
 
