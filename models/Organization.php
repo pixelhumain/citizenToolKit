@@ -15,6 +15,7 @@ class Organization {
 	const TYPE_GOV = "GovernmentOrganization";
 
 	public static $types = array(
+        //"NGO" => Yii::t("common","NGO"),
         "NGO" => "NGO",
         "LocalBusiness" => "Local Business",
         "Group" => "Group",
