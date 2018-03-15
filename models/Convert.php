@@ -554,5 +554,39 @@ class Convert {
 
 		return $coor;
 	}
+
+
+	public static function convertGogoCarto($url, $text_filter) {
+		$res = array();
+
+		if (!empty($url)) {
+        	$data = SIG::getUrl($url);
+        	$data = json_decode($data, true);
+        }
+
+        //$res = $url ;
+
+		$map = TranslateGogoCarto::$dataBinding_network;
+		//var_dump($map);
+		//foreach ($data["data"] as $key => $value) {
+			 // var_dump($value);
+    //     		echo "<br/>";
+			//$res[] = Translate::convert($value , $map);
+		//}
+
+		$res = Translate::convert($data["data"] , $map);
+
+		$result = array('entities' => $res);
+		//exit;
+  //       $param = self::getPrimaryParam($map);
+
+  //       $param['key'] = 'convert_wiki';
+  //       $param['nameFile'] = 'convert_wiki';
+
+        
+       
+        return $result;
+
+	}
 }
 ?>
