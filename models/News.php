@@ -480,12 +480,15 @@ class News {
 					$unset["media"]="";
 				}else{
 					$set["media"] = $params["media"];
-					if(@$params["media"]["content"] && @$params["media"]["content"]["image"] && !@$params["media"]["content"]["imageId"] 
-							&& strpos($params["media"]["content"]["image"], Yii::app()->getRequest()->getBaseUrl(true)) === false){
-						//echo Yii::app()->baseUrl; 
-						//echo strpos($_POST["media"]["content"]["image"], Yii::app()->baseUrl);
-						$urlImage = self::uploadNewsImage($params["media"]["content"]["image"],$params["media"]["content"]["imageSize"],Yii::app()->session["userId"]);
-						$set["media"]["content"]["image"]=	 Yii::app()->baseUrl."/".$urlImage;
+					if(@$params["media"]["content"] && @$params["media"]["content"]["image"] && !@$params["media"]["content"]["imageId"]){
+						$endPath=explode(Yii::app()->params['uploadUrl'],$params["media"]["content"]["image"]);
+						if(@$endPath[1] && !empty($endPath[1]) && !file_exists ( Yii::app()->params['uploadDir'].$endPath[1])){
+				
+							//echo Yii::app()->baseUrl; 
+							//echo strpos($_POST["media"]["content"]["image"], Yii::app()->baseUrl);
+							$urlImage = self::uploadNewsImage($params["media"]["content"]["image"],$params["media"]["content"]["imageSize"],Yii::app()->session["userId"]);
+							$set["media"]["content"]["image"]=	 Yii::app()->baseUrl."/".$urlImage;
+						}
 					}
 				}
 			}
