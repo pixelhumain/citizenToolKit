@@ -481,7 +481,7 @@ class News {
 				}else{
 					$set["media"] = $params["media"];
 					if(@$params["media"]["content"] && @$params["media"]["content"]["image"] && !@$params["media"]["content"]["imageId"] 
-							&& strpos($params["media"]["content"]["image"], Yii::app()->baseUrl) === false){
+							&& strpos($params["media"]["content"]["image"], Yii::app()->getRequest()->getBaseUrl(true)) === false){
 						//echo Yii::app()->baseUrl; 
 						//echo strpos($_POST["media"]["content"]["image"], Yii::app()->baseUrl);
 						$urlImage = self::uploadNewsImage($params["media"]["content"]["image"],$params["media"]["content"]["imageSize"],Yii::app()->session["userId"]);
