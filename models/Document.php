@@ -443,6 +443,8 @@ class Document {
 		if (isset($docType)) 
 			$params["doctype"] = $docType;
 		$c = Yii::app()->mongodb->selectCollection(self::COLLECTION);
+		// var_dump($params);
+		// exit;
 		$result = $c->aggregate( array(
 						array('$match' => $params),
 						array('$group' => array(

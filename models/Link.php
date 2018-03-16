@@ -432,7 +432,7 @@ class Link {
 
 
     public static function addParent($parentId, $parentType, $childId, $childType, $userId) {
-		error_log("Try to add parent ".$parentId."/".$parentType." from ".$childType." / ".$childId);
+		//error_log("Try to add parent ".$parentId."/".$parentType." from ".$childType." / ".$childId);
         
         if ($parentType == Organization::COLLECTION) {
             $isUserAdmin = Authorisation::isOrganizationAdmin($userId, $parentId) || Authorisation::isUserSuperAdmin($userId); 
@@ -454,7 +454,7 @@ class Link {
 
 		if ($parentType != Event::NO_ORGANISER) {
 
-            if($childType != Place::COLLECTION && $childType != Ressourcce::COLLECTION)
+            if($childType != Place::COLLECTION && $childType != Ressource::COLLECTION)
                 PHDB::update($parentType,
         					array("_id" => new MongoId($parentId)),
         					array('$set' => array(	"links.".self::$linksTypes[$parentType][$childType].".".$childId.".type"=>$childType))
@@ -463,7 +463,7 @@ class Link {
             $set = array(   "parentId" => $childId,
                             "parentType" => $childType ) ;
 
-            if($childType != Place::COLLECTION && $childType != Ressourcce::COLLECTION)
+            if($childType != Place::COLLECTION && $childType != Ressource::COLLECTION)
                 $set["links.".self::$linksTypes[$childType][$parentType].".".$parentId.".type"] = $parentType;
 
             PHDB::update($childType,
@@ -473,13 +473,13 @@ class Link {
         }
 		//TODO SBAR : add notification for new parent
 		$res = array("result"=>true, "msg"=>"The element parent has been added with success");
-	   	
+	   
    		return $res;
    	}
 
 
     public static function removeParent($parentId, $parentType, $childId, $childType, $userId) {
-        error_log("Try to remove parent ".$parentId."/".$parentType." from ".$childType." / ".$childId);
+        //error_log("Try to remove parent ".$parentId."/".$parentType." from ".$childType." / ".$childId);
         
         if ($parentType==Organization::COLLECTION) {
             $isUserAdmin = Authorisation::isOrganizationAdmin($userId, $parentId) || Authorisation::isUserSuperAdmin($userId); 
@@ -498,11 +498,10 @@ class Link {
 
         if($isUserAdmin != true)
             return array("result"=>false, "msg"=>"You can't remove the parent of this event !");
-        
 
         if(	
             (   $childType != Place::COLLECTION &&
-                $childType != Ressourcce::COLLECTION ) &&
+                $childType != Ressource::COLLECTION ) &&
             (   $parentType != Person::COLLECTION ||
     			(	$parentType == Person::COLLECTION && 
     				!self::isLinked($childId, $childType, $userId, null) ) ) 

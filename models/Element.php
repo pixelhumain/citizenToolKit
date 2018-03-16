@@ -348,6 +348,7 @@ class Element {
 	  	return $element;
 	}
 	public static function getSimpleByTypeAndId($type, $id,$what=null){
+
 		if( @$what ) 
 			$element = PHDB::findOneById($type, $id, $what);
 		else if($type == Person::COLLECTION)
@@ -720,22 +721,32 @@ class Element {
 			if (! @$res["result"]) throw new CTKException(@$res["msg"]);
 
 		}else if ($dataFieldName == "parent") {
-			$set = array("parentId" => $fieldValue["parentId"],
-							 "parentType" => $fieldValue["parentType"]);
+			
 			//get element and remove current parent
 			$element = Element::getElementById($id, $collection);
+
 			if( !empty($element["parentId"]) || !empty($element["links"]["parent"]) ){
+
 				$oldParentId = @$element["parentId"] ? $element["parentId"] : $element["links"]["parent"];
 				$oldParentType = @$element["parentType"] ? $element["parentType"] : $element["links"]["parent"][$oldParentId]["type"];
 				//remove the old parent
 				$res = Link::removeParent($oldParentId, $oldParentType, $id, $collection, Yii::app()->session["userId"]);
 				if (! @$res["result"]) throw new CTKException(@$res["msg"]);
 			}
-			
 			//add new parent
-			if($fieldValue["parentId"] == 'dontKnow' || $fieldValue["parentId"] == 'dontKnow')
+			if($fieldValue["parentId"] != 'dontKnow' && $fieldValue["parentType"] != 'dontKnow'){
+				$set = array("parentId" => $fieldValue["parentId"],
+							 "parentType" => $fieldValue["parentType"]);
 				$res = Link::addParent($fieldValue["parentId"], $fieldValue["parentType"], $id, $collection, Yii::app()->session["userId"]);
+			}else{
+				$verb == '$unset';
+				$set = array("parentId" => "",
+							 "parentType" => "");
+			}
+
+
 			if (! @$res["result"]) throw new CTKException(@$res["msg"]);
+
 		} else if ($dataFieldName == "seePreferences") {
 			//var_dump($fieldValue);
 			if($fieldValue == "false"){
@@ -786,6 +797,8 @@ class Element {
 			$setModified["modified"] = new MongoDate(time());
 			$setModified["updated"] = time();
 		}
+
+
 		
 		//Manage dateEnd field for survey
 		if ($collection == Survey::COLLECTION) {
@@ -2261,13 +2274,16 @@ class Element {
 					$res[] = self::updateField($collection, $id, "fax", $params["fax"]);
 				if(isset($params["mobile"]))
 					$res[] = self::updateField($collection, $id, "mobile", $params["mobile"]);
-				if(!empty($params["parentId"]) && !empty($params["parentType"])){
+				if( !empty($params["parentId"]) ){
 					$parent["parentId"] = $params["parentId"] ;
-					$parent["parentType"] = $params["parentType"] ;
+					$parent["parentType"] = ( !empty($params["parentType"]) ? $params["parentType"] : "dontKnow" ) ;
 					$resParent = self::updateField($collection, $id, "parent", $parent);
-					$resParent["value"]["parent"] = Element::getByTypeAndId( $params["parentType"], $params["parentId"]);
+
+					if($params["parentType"] != "dontKnow" && $params["parentId"] != "dontKnow")
+						$resParent["value"]["parent"] = Element::getByTypeAndId( $params["parentType"], $params["parentId"]);
 					$res[] = $resParent;
 				}
+
 				if(!empty($params["organizerId"]) && !empty($params["organizerType"])){
 					$organizer["organizerId"] = $params["organizerId"] ;
 					$organizer["organizerType"] = $params["organizerType"] ;
