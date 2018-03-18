@@ -1550,5 +1550,13 @@ class Event {
 	public static function getDataBinding() {
 	  	return self::$dataBinding;
 	}
+
+	public static function isPast($event){
+		$date = @$event["endDate"] ? strtotime(@$event["endDate"]) :  strtotime(@$event["startDate"]);
+		if(@$date < time()){
+			return true;
+		}
+		return false;
+	}
 }
 ?>
