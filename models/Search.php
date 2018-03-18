@@ -449,7 +449,10 @@ class Search {
         	$query = self::searchTags($tags);//array($searchTagText));
   		}else{
   			$searchRegExp = self::accentToRegex($search);
-  			$query = array( "name" => new MongoRegex("/.*{$searchRegExp}.*/i"));
+  			$query = array( '$or' => array(
+  									array( "name" => new MongoRegex("/.*{$searchRegExp}.*/i")),
+  									array( "shortDescription" => new MongoRegex("/.*{$searchRegExp}.*/i"))
+  						));
 	        $explodeSearchRegExp = explode(" ", $searchRegExp);
 	        if(count($explodeSearchRegExp)>1){
 		        $andArray=array();
