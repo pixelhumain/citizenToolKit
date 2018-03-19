@@ -176,6 +176,12 @@ class Element {
 	    	Classified::CONTROLLER 		=> array("icon"=>"bullhorn","color"=>"#2BB0C6","text-color"=>"azure",
 	    										 "hash"=> Classified::CONTROLLER.".detail.id.",
 	    										 "collection"=>Classified::COLLECTION),
+			Ressource::COLLECTION 		=> array("icon"=>"cube","color"=>"#2BB0C6","text-color"=>"vine",
+	    										 "hash"=> Ressource::CONTROLLER.".detail.id."),
+	    	Ressource::CONTROLLER 		=> array("icon"=>"cube","color"=>"#2BB0C6","text-color"=>"vine",
+	    										 "hash"=> Ressource::CONTROLLER.".detail.id.",
+	    										 "collection"=>Ressource::COLLECTION),
+			
 			Product::COLLECTION 		=> array("icon"=>"gift","color"=>"#2BB0C6","text-color"=>"azure",
 	    										 "hash"=> Product::CONTROLLER.".detail.id."),
 	    	Product::CONTROLLER 		=> array("icon"=>"gift","color"=>"#2BB0C6","text-color"=>"azure",
@@ -348,6 +354,7 @@ class Element {
 	  	return $element;
 	}
 	public static function getSimpleByTypeAndId($type, $id,$what=null){
+
 		if( @$what ) 
 			$element = PHDB::findOneById($type, $id, $what);
 		else if($type == Person::COLLECTION)
@@ -706,6 +713,8 @@ class Element {
 			$set = array("organizerId" => $fieldValue["organizerId"], 
 							 "organizerType" => $fieldValue["organizerType"]);
 			//get element and remove current organizer
+			var_dump($fieldValue);
+			exit;
 			$element = self::getElementById($id, $collection);
 			if( !empty($element["organizerId"]) || !empty($element["links"]["organizer"]) ){
 				$oldOrganizerId = @$element["organizerId"] ? $element["organizerId"] : $element["links"]["organizer"];
@@ -715,27 +724,37 @@ class Element {
 				if (! @$res["result"]) throw new CTKException(@$res["msg"]);
 			}
 			//add new organizer
-			if($fieldValue["organizerId"] == 'dontKnow' || $fieldValue["organizerType"] == 'dontKnow')
+			if($fieldValue["organizerId"] != 'dontKnow' && $fieldValue["organizerType"] != 'dontKnow')
 				$res = Link::addOrganizer($fieldValue["organizerId"], $fieldValue["organizerType"], $id, Yii::app()->session["userId"]);
 			if (! @$res["result"]) throw new CTKException(@$res["msg"]);
 
 		}else if ($dataFieldName == "parent") {
-			$set = array("parentId" => $fieldValue["parentId"],
-							 "parentType" => $fieldValue["parentType"]);
+			
 			//get element and remove current parent
 			$element = Element::getElementById($id, $collection);
+
 			if( !empty($element["parentId"]) || !empty($element["links"]["parent"]) ){
+
 				$oldParentId = @$element["parentId"] ? $element["parentId"] : $element["links"]["parent"];
 				$oldParentType = @$element["parentType"] ? $element["parentType"] : $element["links"]["parent"][$oldParentId]["type"];
 				//remove the old parent
 				$res = Link::removeParent($oldParentId, $oldParentType, $id, $collection, Yii::app()->session["userId"]);
 				if (! @$res["result"]) throw new CTKException(@$res["msg"]);
 			}
-			
 			//add new parent
-			if($fieldValue["parentId"] == 'dontKnow' || $fieldValue["parentId"] == 'dontKnow')
+			if($fieldValue["parentId"] != 'dontKnow' && $fieldValue["parentType"] != 'dontKnow'){
+				$set = array("parentId" => $fieldValue["parentId"],
+							 "parentType" => $fieldValue["parentType"]);
 				$res = Link::addParent($fieldValue["parentId"], $fieldValue["parentType"], $id, $collection, Yii::app()->session["userId"]);
+			}else{
+				$verb == '$unset';
+				$set = array("parentId" => "",
+							 "parentType" => "");
+			}
+
+
 			if (! @$res["result"]) throw new CTKException(@$res["msg"]);
+
 		} else if ($dataFieldName == "seePreferences") {
 			//var_dump($fieldValue);
 			if($fieldValue == "false"){
@@ -786,6 +805,8 @@ class Element {
 			$setModified["modified"] = new MongoDate(time());
 			$setModified["updated"] = time();
 		}
+
+
 		
 		//Manage dateEnd field for survey
 		if ($collection == Survey::COLLECTION) {
@@ -2261,18 +2282,21 @@ class Element {
 					$res[] = self::updateField($collection, $id, "fax", $params["fax"]);
 				if(isset($params["mobile"]))
 					$res[] = self::updateField($collection, $id, "mobile", $params["mobile"]);
-				if(!empty($params["parentId"]) && !empty($params["parentType"])){
+				if( !empty($params["parentId"]) ){
 					$parent["parentId"] = $params["parentId"] ;
-					$parent["parentType"] = $params["parentType"] ;
+					$parent["parentType"] = ( !empty($params["parentType"]) ? $params["parentType"] : "dontKnow" ) ;
 					$resParent = self::updateField($collection, $id, "parent", $parent);
-					$resParent["value"]["parent"] = Element::getByTypeAndId( $params["parentType"], $params["parentId"]);
+
+					if($params["parentType"] != "dontKnow" && $params["parentId"] != "dontKnow")
+						$resParent["value"]["parent"] = Element::getByTypeAndId( $params["parentType"], $params["parentId"]);
 					$res[] = $resParent;
 				}
-				if(!empty($params["organizerId"]) && !empty($params["organizerType"])){
+
+				if(!empty($params["organizerId"]) ){
 					$organizer["organizerId"] = $params["organizerId"] ;
-					$organizer["organizerType"] = $params["organizerType"] ;
+					$organizer["organizerType"] = ( !empty($params["organizerType"]) ? $params["organizerType"] : "dontKnow" ) ;
 					$resOrg = self::updateField($collection, $id, "organizer", $organizer);
-					if($params["organizerType"]!="dontKnow"){
+					if($params["organizerType"]!="dontKnow" && $params["parentId"] != "dontKnow"){
 						$resOrg["value"]["organizer"] = Element::getByTypeAndId( $params["organizerType"], $params["organizerId"]);
 					}
 					$res[] = $resOrg;
