@@ -157,9 +157,11 @@ class Mail {
                                                     "applicationName" => Yii::app()->params["name"],
                                                 )
                         );
+                Mail::schedule($params);
             }
+
         }
-        Mail::schedule($params);
+        
     }
 
 	/*public static function invitePersonAgain($person, $msg = null, $nameInvitor = null, $invitorUrl = null) {
