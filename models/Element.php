@@ -707,6 +707,8 @@ class Element {
 			$set = array("organizerId" => $fieldValue["organizerId"], 
 							 "organizerType" => $fieldValue["organizerType"]);
 			//get element and remove current organizer
+			var_dump($fieldValue);
+			exit;
 			$element = self::getElementById($id, $collection);
 			if( !empty($element["organizerId"]) || !empty($element["links"]["organizer"]) ){
 				$oldOrganizerId = @$element["organizerId"] ? $element["organizerId"] : $element["links"]["organizer"];
@@ -716,7 +718,7 @@ class Element {
 				if (! @$res["result"]) throw new CTKException(@$res["msg"]);
 			}
 			//add new organizer
-			if($fieldValue["organizerId"] == 'dontKnow' || $fieldValue["organizerType"] == 'dontKnow')
+			if($fieldValue["organizerId"] != 'dontKnow' && $fieldValue["organizerType"] != 'dontKnow')
 				$res = Link::addOrganizer($fieldValue["organizerId"], $fieldValue["organizerType"], $id, Yii::app()->session["userId"]);
 			if (! @$res["result"]) throw new CTKException(@$res["msg"]);
 
@@ -2284,11 +2286,11 @@ class Element {
 					$res[] = $resParent;
 				}
 
-				if(!empty($params["organizerId"]) && !empty($params["organizerType"])){
+				if(!empty($params["organizerId"]) ){
 					$organizer["organizerId"] = $params["organizerId"] ;
-					$organizer["organizerType"] = $params["organizerType"] ;
+					$organizer["organizerType"] = ( !empty($params["organizerType"]) ? $params["organizerType"] : "dontKnow" ) ;
 					$resOrg = self::updateField($collection, $id, "organizer", $organizer);
-					if($params["organizerType"]!="dontKnow"){
+					if($params["organizerType"]!="dontKnow" && $params["parentId"] != "dontKnow"){
 						$resOrg["value"]["organizer"] = Element::getByTypeAndId( $params["organizerType"], $params["organizerId"]);
 					}
 					$res[] = $resOrg;
