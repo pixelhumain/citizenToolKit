@@ -181,8 +181,8 @@ class Search {
       	$queryNews=array();
       	$query = Search::searchString($search, $query);
 		$query = array('$and' => array( $query , array("state" => array('$ne' => "uncomplete")) ));
-      	$queryNews = Search::searchNewsString($search, $query);
-      	$queryNews = array('$and' => array( $queryNews , array("type"=>News::COLLECTION, "scope.type"=>News::TYPE_PUBLIC, "target.type"=>array('$ne'=>"pixels"))));
+      	//$queryNews = Search::searchNewsString($search, $query);
+      	//$queryNews = array('$and' => array( $queryNews , array("type"=>News::COLLECTION, "scope.type"=>News::TYPE_PUBLIC, "target.type"=>array('$ne'=>"pixels"))));
       	if($latest)
   			$query = array('$and' => array($query, array("updated"=>array('$exists'=>1))));
   		if($sourceKey!="")
@@ -219,7 +219,7 @@ class Search {
   			$query = self::searchLocality($searchLocality, $query);
   			$queryPersons=$query;
   			array_push( $queryPersons[ '$and' ], array("preferences.publicFields"=>array('$in' =>array("locality") )));
-  			$queryNews = self::searchLocalityNews($searchLocality, $queryNews);
+  			//$queryNews = self::searchLocalityNews($searchLocality, $queryNews);
   		}
   		$queryEvents = Search::getQueryEvents($query, $searchSType, $startDate, $endDate);
   		$queryClassifieds = Search::getQueryClassifieds($query, @$priceMin, @$priceMax, @$devise);
@@ -585,15 +585,18 @@ class Search {
 		if(!empty($localities))
 		foreach ($localities as $key => $locality){
 			if(!empty($locality)){
-				if($locality["type"] == City::COLLECTION){
+				if( @$locality["type"] == City::COLLECTION){
 					$queryLocality = array("address.localityId" => @$locality["id"]);
 					if(!empty($locality["postalCode"]))
 						$queryLocality = array_merge($queryLocality, array("address.postalCode" => new MongoRegex("/^".$locality["postalCode"]."/i")));
 				}
-				else if($locality["type"] == "cp"){
+				else if(@$locality["type"] == "cp"){
 					$queryLocality = array("address.postalCode" => new MongoRegex("/^".$locality["name"]."/i"));
 					if(!empty($locality["countryCode"]))
 						$queryLocality = array_merge($queryLocality, array("address.addressCountry" => $locality["countryCode"]));
+				}
+				else if(@$locality["type"] == "country"){
+					$queryLocality = array("address.addressCountry" => $locality["countryCode"]);
 				}
 				else
 					$queryLocality = array("address.".$locality["type"] => @$locality["id"]);

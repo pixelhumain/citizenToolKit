@@ -176,6 +176,12 @@ class Element {
 	    	Classified::CONTROLLER 		=> array("icon"=>"bullhorn","color"=>"#2BB0C6","text-color"=>"azure",
 	    										 "hash"=> Classified::CONTROLLER.".detail.id.",
 	    										 "collection"=>Classified::COLLECTION),
+			Ressource::COLLECTION 		=> array("icon"=>"cube","color"=>"#2BB0C6","text-color"=>"vine",
+	    										 "hash"=> Ressource::CONTROLLER.".detail.id."),
+	    	Ressource::CONTROLLER 		=> array("icon"=>"cube","color"=>"#2BB0C6","text-color"=>"vine",
+	    										 "hash"=> Ressource::CONTROLLER.".detail.id.",
+	    										 "collection"=>Ressource::COLLECTION),
+			
 			Product::COLLECTION 		=> array("icon"=>"gift","color"=>"#2BB0C6","text-color"=>"azure",
 	    										 "hash"=> Product::CONTROLLER.".detail.id."),
 	    	Product::CONTROLLER 		=> array("icon"=>"gift","color"=>"#2BB0C6","text-color"=>"azure",
