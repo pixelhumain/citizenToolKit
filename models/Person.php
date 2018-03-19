@@ -897,7 +897,7 @@ class Person {
         
         //return an error when email does not exist
         if ($account == null) {
-        	return array("result"=>false, "msg"=>"emailNotFound");
+        	return array("result"=>false, "msg"=> Yii::t("common","emailNotFound"));
         }
         
         //Roles validation
@@ -913,7 +913,7 @@ class Person {
 	        	else
 	            	$res = array("result"=>true, "id"=>$account["_id"], "isCommunected"=>isset($account["cp"]), "msg" => "Vous êtes maintenant identifié : bienvenue sur communecter.");
 	        } else {
-	            $res = array("result"=>false, "msg"=>"emailAndPassNotMatch");
+	            $res = array("result"=>false, "msg"=>Yii::t("common","emailAndPassNotMatch"));
 	        }
 	    }
         
