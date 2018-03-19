@@ -604,15 +604,17 @@ class Link {
         elseif ($itemType == Project::COLLECTION) $linkType = self::project2person;
         else $linkType = "unknown";
 
+        //var_dump($linkType);
         if(empty($links)){
            $item = PHDB::findOne( $itemType ,array("_id"=>new MongoId($itemId)));
            $links = @$item["links"] ;
         }
+        //var_dump($links);
     	if(isset($links) && isset($links[$linkType])){
             foreach ($links[$linkType] as $key => $value) {
                 if( $key == $userId) {
 	                //exception for event when attendee is invited
-	                if(!@$value["invitorId"])
+	                if(!isset($value["isInviting"]))
     					$res = true;
     			}
     		}
