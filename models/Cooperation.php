@@ -406,8 +406,8 @@ class Cooperation {
 		$memberOfOrga = array();
 		$memberOfProject = array();
 		if(@$me["links"]){
-			$memberOfOrga = $me["links"]["memberOf"];
-			$memberOfProject = $me["links"]["projects"];
+			$memberOfOrga = @$me["links"]["memberOf"];
+			$memberOfProject = @$me["links"]["projects"];
 		}
 		$memberOf = array_merge($memberOfOrga, $memberOfProject);
 
