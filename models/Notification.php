@@ -1222,7 +1222,7 @@ class Notification{
 		}
 		$res=array();
 		//if($labelArray)
-			$res["{what}"] = ["a ".Element::getControlerByCollection($type)];
+		$res["{what}"] = ["a ".Element::getControlerByCollection($type)];
 		//else
 		//	$res["{what}"] = Yii::t("common", "a ".Element::getControlerByCollection($type));
 		if(@$target["name"])
@@ -1257,7 +1257,7 @@ class Notification{
 					//	$res["{what}"]="&quot;".$news["title"]."&quot;";
 				}
 				else if($news["type"]=="activityStream"){ 
-					if($news["verb"]!="share")
+					if($news["verb"]!="share"){
 						if(@$news["object"]["name"]){
 							//if($labelArray)
 								$res["{what}"]=["of creation","&quot;".strtr($news["object"]["name"],0,20)."...&quot;"];
@@ -1270,7 +1270,7 @@ class Notification{
 							//else
 							//	$res["{what}"]=Yii::t("notification","of creation").": &quot;".strtr($news["object"]["displayName"],0,20)."...&quot;";
 						}
-					else{
+					}else{
 						//if($labelArray)
 							$res["{what}"]=["shared"];
 						//else
