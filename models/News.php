@@ -105,6 +105,8 @@ class News {
 				$news["targetIsAuthor"] = $_POST["targetIsAuthor"];
 		 	if(isset($_POST["parentType"]))
 		 	{
+
+
 				$type=$_POST["parentType"];
 				$news["target"]["type"] = $type;
 				$from="";
@@ -232,10 +234,12 @@ class News {
 				Notification::actionOnNews ( ActStr::VERB_MENTION, ActStr::ICON_RSS, array("id" => Yii::app()->session["userId"],"name" => Yii::app()->session["user"]["name"]) , $target, $news["mentions"] )  ;
 			}
 
+
 			PHDB::insert(self::COLLECTION,$news);
 			$news=NewsTranslator::convertParamsForNews($news);
 		    $news["author"] = Person::getSimpleUserById(Yii::app()->session["userId"]);
 
+		    Mail::mailNotif($_POST["parentId"], $_POST["parentType"], "news", $news);
 		    /* Send email alert to contact@pixelhumain.com */
 		  	if(@$type && $type=="pixels"){
 		  		Mail::notifAdminBugMessage($news["text"]);

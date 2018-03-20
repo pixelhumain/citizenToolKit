@@ -908,7 +908,7 @@ class Person {
 	            if ($res["msg"] == "notValidatedEmail") 
 	        		return $res;
 	        	else
-	            	$res = array("result"=>true, "id"=>$account["_id"], "isCommunected"=>isset($account["cp"]), "msg" => "Vous êtes maintenant identifié : bienvenue sur communecter.");
+	            	$res = array("result"=>true, "id"=>$account["_id"], "isCommunected"=>isset($account["cp"]), "msg" => "Vous êtes maintenant identifié. Bienvenue sur NotrAgora.");
 	        } else {
 	            $res = array("result"=>false, "msg"=>"emailAndPassNotMatch");
 	        }

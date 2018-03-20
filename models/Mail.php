@@ -413,4 +413,39 @@ class Mail {
     private static function getAppName() {
         return isset(Yii::app()->params["name"]) ? Yii::app()->params["name"] : Yii::app()->name;
     }
+
+
+    public static function mailNotif($parentId, $parentType, $typeMsg, $params = null) {
+
+        $element = Element::getElementById( $parentId, $parentType, null, array("links", "name") );
+       
+        foreach ($element["links"]["members"] as $key => $value) {
+        	
+        	$member = Element::getElementById( $key, Person::COLLECTION, null, array("email") );
+
+        	if (!empty($member["email"])) {
+        		$msg = "";
+        		if($typeMsg == "news")
+        			$msg = "Un Nouveau message a été ajouter pour " ;
+
+        		$params = array (
+                    "type" => Cron::TYPE_MAIL,
+                    "tpl"=>'mailNotif',
+                    "subject" => "[".self::getAppName()."] - Nouveau message dans ".@$element["name"],
+                    "from"=>Yii::app()->params['adminEmail'],
+                    "to" => $member["email"],
+                    "tplParams" => array(
+                        "elementType" => $parentType,
+                        "elementName" => $element["name"],
+                        "userName" => @$user["name"],
+                        "logo"=> Yii::app()->params["logoUrl"],
+                        "logo2" => Yii::app()->params["logoUrl2"],
+                        "msg" => $msg,
+                    	"url" => Yii::app()->getRequest()->getBaseUrl(true)."/#element.detail.type.".$parentType.".id.".(String)$element["_id"] )
+                );
+                Mail::schedule($params);
+
+        	}
+        }
+    }
 }
