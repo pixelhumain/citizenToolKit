@@ -585,15 +585,18 @@ class Search {
 		if(!empty($localities))
 		foreach ($localities as $key => $locality){
 			if(!empty($locality)){
-				if($locality["type"] == City::COLLECTION){
+				if( @$locality["type"] == City::COLLECTION){
 					$queryLocality = array("address.localityId" => @$locality["id"]);
 					if(!empty($locality["postalCode"]))
 						$queryLocality = array_merge($queryLocality, array("address.postalCode" => new MongoRegex("/^".$locality["postalCode"]."/i")));
 				}
-				else if($locality["type"] == "cp"){
+				else if(@$locality["type"] == "cp"){
 					$queryLocality = array("address.postalCode" => new MongoRegex("/^".$locality["name"]."/i"));
 					if(!empty($locality["countryCode"]))
 						$queryLocality = array_merge($queryLocality, array("address.addressCountry" => $locality["countryCode"]));
+				}
+				else if(@$locality["type"] == "country"){
+					$queryLocality = array("address.addressCountry" => $locality["countryCode"]);
 				}
 				else
 					$queryLocality = array("address.".$locality["type"] => @$locality["id"]);
