@@ -414,6 +414,10 @@ class Mail {
         return isset(Yii::app()->params["name"]) ? Yii::app()->params["name"] : Yii::app()->name;
     }
 
+    private static function getMailUpdate($mail) {
+    	$res = PHDB::findOne( Cron::COLLECTION, array("to" => $mail, "status" => Cron::STATUS_UPDATE) );
+        return $res ;
+    }
 
     public static function mailNotif($parentId, $parentType, $typeMsg, $params = null) {
 
@@ -428,23 +432,63 @@ class Mail {
         		if($typeMsg == "news")
         			$msg = "Un Nouveau message a été ajouter pour " ;
 
-        		$params = array (
-                    "type" => Cron::TYPE_MAIL,
-                    "tpl"=>'mailNotif',
-                    "subject" => "[".self::getAppName()."] - Nouveau message dans ".@$element["name"],
-                    "from"=>Yii::app()->params['adminEmail'],
-                    "to" => $member["email"],
-                    "tplParams" => array(
-                        "elementType" => $parentType,
-                        "elementName" => $element["name"],
-                        "userName" => @$user["name"],
-                        "logo"=> Yii::app()->params["logoUrl"],
-                        "logo2" => Yii::app()->params["logoUrl2"],
-                        "msg" => $msg,
-                    	"url" => Yii::app()->getRequest()->getBaseUrl(true)."/#element.detail.type.".$parentType.".id.".(String)$element["_id"] )
-                );
-                Mail::schedule($params, true);
+        		$mail = Mail::getMailUpdate($member["email"]) ;
 
+        		if(!empty($mail)){
+        			$mail["tplParams"]["data"]["news"]++;
+        			PHDB::update(Cron::COLLECTION,
+						array("_id" => $mail["_id"]) , 
+						array('$set' => array("tplParams" => $mail["tplParams"]))			
+					);
+
+        		}else{
+        			$params = array (
+	                    "type" => Cron::TYPE_MAIL,
+	                    "tpl"=>'mailNotif',
+	                    "subject" => "[".self::getAppName()."] - Nouveau message dans ".@$element["name"],
+	                    "from"=>Yii::app()->params['adminEmail'],
+	                    "to" => $member["email"],
+	                    "tplParams" => array(
+	                        "elementType" => $parentType,
+	                        "elementName" => $element["name"],
+	                        "userName" => @$user["name"],
+	                        "logo"=> Yii::app()->params["logoUrl"],
+	                        "logo2" => Yii::app()->params["logoUrl2"],
+	                        "msg" => $msg,
+	                        "data" => array("news" => 1),
+	                    	"url" => Yii::app()->getRequest()->getBaseUrl(true)."/#element.detail.type.".$parentType.".id.".(String)$element["_id"] )
+	                );
+
+
+        			ActStr::VERB_POST => array(
+						"repeat" => true,
+						"type" => array(
+							"targetIsAuthor" => array(
+								"label"=>"{where} publishes a new post",
+								"labelRepeat"=>"{where} publishes new posts"
+							),
+							"userWall" => array(
+								"label"=>"{who} writes a post on your wall",
+								"labelRepeat"=>"{who} write posts on your wall",
+								"sameAuthor" => array(
+									"labelRepeat" => "{who} writes posts on your wall"
+								)
+							),
+							"label"=>"{who} writes a post on the wall of {where}",
+							"labelRepeat"=>"{who} write posts on the wall of {where}",
+							"sameAuthor" => array(
+								"labelRepeat" => "{who} writes posts on the wall of {where}"
+							)
+						),
+						"url" => "page/type/{collection}/id/{id}",
+						"labelArray" => array("who", "where"),
+						"icon" => "fa-rss"
+					),
+
+
+
+	                Mail::schedule($params, true);
+        		}
         	}
         }
     }
