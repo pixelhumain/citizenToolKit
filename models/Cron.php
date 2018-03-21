@@ -16,17 +16,21 @@ class Cron {
 	const STATUS_PENDING = "pending";
 	const STATUS_FAIL = "fail";
 	const STATUS_DONE = "done";
+	const STATUS_UPDATE = "update";
 
 	const EXEC_COUNT = 5;
 	/**
 	 * adds an entry into the cron collection
 	 * @param $params : a set of information for a proper cron entry
 	*/
-	public static function save($params){
+	public static function save($params, $update=null){
 		//echo "adding Cron entry";
+
+		$status = ( ( !empty($update) && $update == true ) ?  self::STATUS_UPDATE : self::STATUS_PENDING );
+
 	    $new = array(
 			"userId" => Yii::app()->session['userId'],
-			"status" => self::STATUS_PENDING,
+			"status" => $status,
 	  		"type"   => $params['type'],
 	  		//contextType
 	  		//contextId
@@ -118,5 +122,17 @@ class Cron {
 		}
 	}
 
+
+	public static function processUpdateToPending(){
+		$where = array( "status" => self::STATUS_UPDATE);
+		$mails = PHDB::find( self::COLLECTION, $where);
+		
+		foreach ($mails as $key => $value) {
+			$set = array("status" => self::STATUS_PENDING);
+			$res = PHDB::update(self::COLLECTION, 
+				  	array("_id"=>new MongoId($key)),
+					array('$set' => $set) );
+		}
+	}
 }
 ?>

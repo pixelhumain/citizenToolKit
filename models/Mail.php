@@ -49,8 +49,8 @@ class Mail {
     	return (stripos($_SERVER['SERVER_NAME'], "127.0.0.1") === false && stripos($_SERVER['SERVER_NAME'], "localhost:8080") === false );
     }
 
-    public static function schedule( $params ) {
-        Cron::save($params);
+    public static function schedule( $params, $update = null ) {
+        Cron::save($params, $update);
     }
 
     public static function notifAdminNewUser($person) {
@@ -443,7 +443,7 @@ class Mail {
                         "msg" => $msg,
                     	"url" => Yii::app()->getRequest()->getBaseUrl(true)."/#element.detail.type.".$parentType.".id.".(String)$element["_id"] )
                 );
-                Mail::schedule($params);
+                Mail::schedule($params, true);
 
         	}
         }
