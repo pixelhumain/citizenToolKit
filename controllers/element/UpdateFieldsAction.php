@@ -27,7 +27,9 @@ class UpdateFieldsAction extends CAction
 					return $res ;
 
 			} catch (CTKException $e) {
-				return Rest::json(array("result"=>false, "msg"=>$e->getMessage(), $elementFieldName=>$elementFieldValue));
+				return Rest::json(array("result"=>false, 
+										"msg"=> Yii::t("common", $e->getMessage()), 
+										$elementFieldName=>$elementFieldValue));
 			}
 		}
 		return Rest::json(array("result"=>false,"msg"=>Yii::t("common","Invalid request")));
