@@ -10,25 +10,35 @@ class Export
 		$csv = "";
 		$data = self::getMongoParam($data);
 
-		$data = json_encode($data);
-		if(substr($data, 0,1) == "{")
-            $allPath = ArrayHelper::getAllPathJson($data); 
-        else{
-            $allPath = array();
-            foreach (json_decode($data,true) as $key => $value) {
 
-            	if ($value != null) {
-            		$allPath = ArrayHelper::getAllPathJson(json_encode($value), $allPath); 
-            	}
-            }
-        }
 
-        $data = json_decode($data, true);
+		foreach ($data as $key1 => $value1) {
+			$value1 = json_encode($value1);
+
+			if(substr($value1, 0,1) == "{")
+	            $allPath = ArrayHelper::getAllPathJson($value1); 
+	        else{
+
+	        	if(empty($allPath))
+	            	$allPath = array();
+	            foreach (json_decode($value1,true) as $key => $value) {
+
+	            	if ($value != null) {
+	            		$allPath = ArrayHelper::getAllPathJson(json_encode($value), $allPath); 
+	            	}
+	            }
+	        }
+	    }
+
+        //$data = json_decode($data, true);
 
 		foreach ($data as $key1 => $value1) {
 			$value_elt = array();
+
 			foreach ($allPath as $key2 => $value2) {
+				
 				$valPath = ArrayHelper::getValueByDotPath($value1, $value2);
+				//var_dump($valPath);
 				if ($valPath != null) {
 					array_push($value_elt, $valPath);
 				} 

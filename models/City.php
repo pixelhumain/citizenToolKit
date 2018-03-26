@@ -1423,6 +1423,8 @@ class City {
 			foreach ($citiesWithTrad as $keyTran => $city) {
 				if(!empty($translate[$keyTran]["translates"][strtoupper(Yii::app()->language)]))
 					$city["name"] = $translate[$keyTran]["translates"][strtoupper(Yii::app()->language)] ;
+
+				$city = self::getTranslateLevelCity($city);
 				$cities[$keyTran] = $city ;
 			}
 		}
@@ -1590,6 +1592,27 @@ class City {
 		}
 
 		return $cities;
+	}
+
+
+	public static function getTranslateLevelCity($city){
+
+		if(isset($city["level1"]))
+			$city["level1Name"] = Zone::getNameCountry($city["level1"]);
+
+		if(!empty($city["level2"])){
+			$city["level2Name"] = Zone::getNameCountry($city["level2"]);
+		}
+
+		if(!empty($city["level3"])){
+			$city["level3Name"] = Zone::getNameCountry($city["level3"]);
+		}
+
+		if(!empty($city["level4"])){
+			$city["level4Name"] = Zone::getNameCountry($city["level4"]);
+		}
+
+		return $city;
 	}
 
 }
