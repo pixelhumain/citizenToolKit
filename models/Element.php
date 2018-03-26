@@ -2540,6 +2540,19 @@ class Element {
 		if(!empty($element["properties"]["avancement"]))
 			$newElement["avancement"] = $element["properties"]["avancement"];
 
+
+		if($type == Person::COLLECTION){
+			if(empty($newElement["socialNetwork"]))
+				$newElement["socialNetwork"] = array();
+
+			$sNetwork = array("telegram", "github", "skype", "twitter", "facebook", "gpplus", "instagram", "diaspora", "mastodon");
+			foreach ($sNetwork as $key => $value) {
+				if(empty($newElement["socialNetwork"][$value]))
+					$newElement["socialNetwork"][$value] = "";
+			}
+		}
+		
+
 		return $newElement;
 	}
 
