@@ -1965,7 +1965,7 @@ class Element {
         if (empty(Yii::app()->session["userId"])) {
         	Rest::json(array("result" => false, "msg" => Yii::t("common","The current user is not valid : please login.")));
         	die();
-        } 
+        }
         
         //Case spécial : Vérifie si l'email existe et retourne l'id de l'utilisateur
         if (!empty($params["invitedUserEmail"]))
