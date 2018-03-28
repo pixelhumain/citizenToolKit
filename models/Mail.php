@@ -4,6 +4,54 @@ Contains anything generix for the site
  */
 class Mail {
 
+
+    public static $mailTree = array( 
+                        ActStr::VERB_POST => array(
+                            "url" => "page/type/{collection}/id/{id}",
+                            "labelArray" => array("who", "where"),
+                            "label"=>"{who} writes a post on the wall of {where}",
+                            "icon" => "fa-rss" ),
+                        ActStr::VERB_ADD => array(
+                            "type" => array(
+                                Project::COLLECTION => array(
+                                    "url" => "page/type/{objectType}/id/{objectId}",
+                                    "label" => "{who} added a new project on {where}"
+                                ),
+                                Event::COLLECTION=> array(
+                                    "url" => "page/type/{objectType}/id/{objectId}",
+                                    "label" => "{who} added a new event on {where}"
+                                ),
+                                Poi::COLLECTION=> array(
+                                    "url" => "page/type/{objectType}/id/{objectId}",
+                                    "label" => "{who} added a new production on {where}"
+                                ),
+                                Organization::COLLECTION=> array(
+                                    "url" => "page/type/{objectType}/id/{objectId}",
+                                    "label" => "{who} added a new organization on {where}"
+                                )
+                            ),
+                            "labelArray" => array("who","where","what"),
+                            "icon" => "fa-plus"
+                        ),
+                        ActStr::VERB_COMMENT => array(
+                            "type" => array(
+                                Poi::COLLECTION => array(
+                                    "label" => "{who} commented on production {what} in {where}",
+                                ),
+                                Comment::COLLECTION => array(
+                                    "label" => "{who} answered to your comment posted on {where}",
+                                )
+                            ),
+                            "labelArray" => array("who","where"),
+                            "mail" => array(
+                                "type"=>"instantly",
+                                "to" => "author" //If orga or project to members
+                            ),
+                            "icon" => "fa-comment"
+                            //"url" => "{whatController}/detail/id/{whatId}"
+                        ),
+                    );
+
     public static function send( $params, $force = false ) {
         $account = null;
         //Check if the user has the not valid email flag
@@ -419,8 +467,10 @@ class Mail {
         return $res ;
     }
 
-    public static function mailNotif($parentId, $parentType, $typeMsg, $params = null) {
-
+    public static function mailNotif($parentId, $parentType, $paramsMail = null) {
+        // var_dump($parentId);
+        // var_dump($parentType);
+        //var_dump($paramsMail);exit;
         $element = Element::getElementById( $parentId, $parentType, null, array("links", "name") );
        
         foreach ($element["links"]["members"] as $key => $value) {
@@ -428,20 +478,21 @@ class Mail {
         	$member = Element::getElementById( $key, Person::COLLECTION, null, array("email") );
 
         	if (!empty($member["email"])) {
-        		$msg = "";
-        		if($typeMsg == "news")
-        			$msg = "Un Nouveau message a été ajouter pour " ;
 
+                
+                
         		$mail = Mail::getMailUpdate($member["email"]) ;
-
         		if(!empty($mail)){
-        			$mail["tplParams"]["data"]["news"]++;
+
+                    $paramTpl = self::createParamsTpl($paramsMail, $mail["tplParams"]["data"]);
+                    $mail["tplParams"]["data"] = $paramTpl ;
         			PHDB::update(Cron::COLLECTION,
 						array("_id" => $mail["_id"]) , 
 						array('$set' => array("tplParams" => $mail["tplParams"]))			
 					);
 
         		}else{
+                    $paramTpl = self::createParamsTpl($paramsMail, null);
         			$params = array (
 	                    "type" => Cron::TYPE_MAIL,
 	                    "tpl"=>'mailNotif',
@@ -454,42 +505,70 @@ class Mail {
 	                        "userName" => @$user["name"],
 	                        "logo"=> Yii::app()->params["logoUrl"],
 	                        "logo2" => Yii::app()->params["logoUrl2"],
-	                        "msg" => $msg,
-	                        "data" => array("news" => 1),
-	                    	"url" => Yii::app()->getRequest()->getBaseUrl(true)."/#element.detail.type.".$parentType.".id.".(String)$element["_id"] )
+	                        "data" => $paramTpl)
 	                );
 
-
-        			ActStr::VERB_POST => array(
-						"repeat" => true,
-						"type" => array(
-							"targetIsAuthor" => array(
-								"label"=>"{where} publishes a new post",
-								"labelRepeat"=>"{where} publishes new posts"
-							),
-							"userWall" => array(
-								"label"=>"{who} writes a post on your wall",
-								"labelRepeat"=>"{who} write posts on your wall",
-								"sameAuthor" => array(
-									"labelRepeat" => "{who} writes posts on your wall"
-								)
-							),
-							"label"=>"{who} writes a post on the wall of {where}",
-							"labelRepeat"=>"{who} write posts on the wall of {where}",
-							"sameAuthor" => array(
-								"labelRepeat" => "{who} writes posts on the wall of {where}"
-							)
-						),
-						"url" => "page/type/{collection}/id/{id}",
-						"labelArray" => array("who", "where"),
-						"icon" => "fa-rss"
-					),
-
-
-
-	                Mail::schedule($params, true);
+                    Mail::schedule($params, true);
         		}
         	}
         }
+    }
+
+
+    public static function createParamsMails($verb, $target = null, $object = null, $author = null){
+        $paramsMail = Mail::$mailTree[$verb];
+        if(!empty($paramsMail["type"][$target["type"]])){
+            $type = $paramsMail["type"][$target["type"]];
+            delete($paramsMail["type"][$target["type"]]);
+            $paramsMail = array_merge($paramsMail, $type);
+        }
+
+        $paramsMail["verb"] = $verb;
+        $paramsMail["target"]=$target;
+        $paramsMail["object"]=$object;
+        $paramsMail["author"]=$author;
+        //$paramsMail["levelType"]=$levelType;
+
+        var_dump($paramsMail); exit;
+        return $paramsMail;
+    }
+
+
+    public static function createParamsTpl($paramsMail, $paramTpl = null){
+        $targetType = $paramsMail["target"]["type"];
+        $targetId = $paramsMail["target"]["id"];
+        $verb = $paramsMail["verb"];
+
+
+        if(empty($paramTpl))
+            $paramTpl = array();
+
+        if(empty($paramTpl[$targetType]))
+            $paramTpl[$targetType] = array();
+
+        if(empty($paramTpl[ $targetType ][ $targetId ])){
+
+            $paramTpl[ $targetType ][ $targetId ] = array( "url" => Yii::app()->getRequest()->getBaseUrl(true)."/#element.detail.type.".$targetType.".id.".$targetId,
+                                                            "name" => $paramsMail["target"]["name"]  ) ;
+        }
+
+        if(empty($paramTpl[ $targetType ][ $targetId ][ $verb ]))
+            $paramTpl[ $targetType ][ $targetId ][ $verb ] = array();
+        
+        $paramLabel = array();
+        foreach ($paramsMail["labelArray"] as $key => $value) {
+            if("who" == $value)
+                $paramLabel["{".$value."}"] = $paramsMail[ "author" ][ "name" ];
+            if("where" == $value)
+                $paramLabel["{".$value."}"] = $paramsMail[ "target" ][ "name" ];
+        }
+
+        $info["text"] = Yii::t("notification", $paramsMail["label"], $paramLabel);
+
+
+        $paramTpl[ $targetType ][ $targetId ][ $verb ][] = $info ;
+
+        return $paramTpl ;
+
     }
 }

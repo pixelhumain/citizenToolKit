@@ -88,6 +88,22 @@ class Comment {
 			"status" => self::STATUS_POSTED 
 		);
 
+
+		var_dump($comment); exit;
+
+		$target = array(	"id"=> $comment["contextId"],
+ 							"type"=>$comment["contextType"],
+ 							"name"=> $options["name"]);
+
+		if(!empty($target)){
+	    	$author = array(	"id"=> (String) $user["_id"],
+	 							"type"=>Person::COLLECTION,
+	 							"name"=> $user["name"]);
+	    	$params = Mail::createParamsMails(ActStr::VERB_COMMENT, $target, null, $author);
+	   		Mail::mailNotif($_POST["parentId"], $_POST["parentType"], $params);
+	    }
+		
+
 		if (self::canUserComment($comment["contextId"], $comment["contextType"], $userId, $options)) {
 			PHDB::insert(self::COLLECTION,$newComment);
 		} else {
@@ -101,6 +117,8 @@ class Comment {
 		if( in_array( $comment["contextType"] , $notificationContexts) ){
 			Notification::actionOnPerson ( ActStr::VERB_COMMENT, ActStr::ICON_COMMENT, "", array("type"=>$comment["contextType"],"id"=> $comment["contextId"]));
 		}
+
+
 		
 		//Increment comment count (can have multiple comment by user)
 		$resAction = Action::addAction($userId , $comment["contextId"], $comment["contextType"], Action::ACTION_COMMENT, false, true) ;
