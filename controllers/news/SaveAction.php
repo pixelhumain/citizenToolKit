@@ -13,7 +13,7 @@ class SaveAction extends CAction
     			"canPostNews"=>true,
                 "nbCol" => 1,
                 "pair" => false);
-			echo $controller->renderPartial("newsPartialCO2", $params,true);
+			echo $controller->renderPartial("timeline-tree", $params,true);
     	}
 		else
         	return Rest::json($result);

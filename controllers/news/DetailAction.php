@@ -13,7 +13,7 @@ class DetailAction extends CAction
 	        $targetType=Person::COLLECTION;
         }
         $params=array("news" => array($news),"contextParentType"=> $targetType,"contextParentId"=> $targetId);
-        $page = "newsPartialCO2";
+        $page = "timeline-tree";
         if(Yii::app()->request->isAjaxRequest)
             echo $controller->renderPartial($page,$params,true);
 		else

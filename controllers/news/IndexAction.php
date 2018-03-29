@@ -467,14 +467,14 @@ class IndexAction extends CAction
 
 		if(Yii::app()->request->isAjaxRequest){
 			if (@$_GET["isFirst"]){
-				 if(@$_GET["tpl"]=="co2")
-				 echo $controller->renderPartial("indexCO2", $params,true);
-				 else
+				// if(@$_GET["tpl"]=="co2")
 				 echo $controller->renderPartial("index", $params,true);
+				// else
+				// echo $controller->renderPartial("index", $params,true);
 	       } else{
 				//
 	       		if(@$_GET["tpl"]=="co2")
-				 echo $controller->renderPartial("newsPartialCO2", $params,true);
+				 echo $controller->renderPartial("timeline-tree", $params,true);
 				else
 				echo json_encode($params);
 	      }
