@@ -2,70 +2,81 @@
 
 class MultiConnectAction extends CAction
 {
-	 /**
-	 * TODO Clement : La PHPDOC
-	 */
-    public function run() {
+	public function run() {
+		$controller=$this->getController();
+		if(!empty($_POST["parentId"]) && !empty($_POST["parentType"]) && !empty($_POST["listInvite"])) {
+			try {
 
-    	assert('!empty($_POST["childs"])'); //The childs are mandatory');
-	    //assert('!empty($_POST["childType"])'); //The child type is mandatory');
-	    assert('!empty($_POST["parentId"])'); //The parent id is mandatory');
-	    assert('!empty($_POST["parentType"])'); //The parent type is mandatory');
 
-	    $result = array("result"=>false, "msg"=>Yii::t("common", "Incorrect request"));
-		
-		if ( ! Person::logguedAndValid() ) {
-			return array("result"=>false, "msg"=>Yii::t("common", "You are not loggued or do not have acces to this feature "));
-		}
-	
-		$parentId = $_POST["parentId"];
-    	$parentType = $_POST["parentType"];
-    	//$isConnectingAdmin = @$_POST["connectType"];
-		$newMembers = array();
-		$msg=false;
-		$finalResult = false;
-		$onlyOrganization=true;
-		foreach($_POST["childs"] as $key => $contact){
-			if(@$contact["childId"] != $parentId ){
-				$roles="";
-			    $child = array(
-					"childId" => @$contact["childId"],
-			    	"childType" => @$contact["childType"] == "people" ? "citoyens" : @$contact["childType"],
-			    	"childName" => @$contact["childName"],
-		            "childEmail" => @$contact["childEmail"],
-			    );
-			    if(@$contact["roles"])
-			    	$roles=$contact["roles"];
-		    	if($child["childType"]==Person::COLLECTION)
-		    		$onlyOrganization=false;    	
-		    	$isConnectingAdmin= (@$contact["connectType"]=="admin") ? true : false;
-		    	
-		    	$res = Link::connectParentToChild($parentId, $parentType, $child, $isConnectingAdmin, Yii::app()->session["userId"], $roles);
-		    	if($res["result"] == true){
-			    	if($msg != 2)
-			    		$msg=1;
-					$newMember = $res["newElement"];
-			    	$newMember["childType"] = $res["newElementType"];
-			    	array_push($newMembers, $newMember);
-			    	$finalResult=true; 
-				} else {
-					if($msg==1){
-						$msg=2;
-					}else if($msg != 2){
-						$msg=false;
+
+				$list = $_POST["listInvite"] ;
+
+				// var_dump(count($list["citoyens"]));var_dump(count($list["invites"]));var_dump(count($list["organizations"])); exit ;
+
+				if( !empty($list["citoyens"]) && count($list["citoyens"]) > 0 ){
+
+					foreach ($list["citoyens"] as $key => $value) {
+						// $child = array( "childId" => $key,
+						// 				"childType" => Person::COLLECTION);
+
+						$child = array( "childId" => $_POST["parentId"],
+										"childType" => $_POST["parentType"]);
+						
+						$res[] = Link::follow($key, Person::COLLECTION, $child);
+						
 					}
 				}
+
+				if( !empty($list["invites"]) && count($list["invites"]) > 0 ){
+
+					foreach ($list["invites"] as $key => $value) {
+						
+
+						$invitedUserId = Person::getPersonIdByEmail($key);
+
+						$child = array( "childId" => $_POST["parentId"],
+										"childType" => $_POST["parentType"]);
+						
+						$res[] = Link::follow($invitedUserId, Person::COLLECTION, $child);
+
+
+
+						$newPerson = array(	"name" => $value["name"],
+											"email" => $value["mail"],
+											"invitedBy" => Yii::app()->session["userId"]);
+
+						$creatUser = Person::createAndInvite($newPerson, @$params["msgEmail"]);
+			            if ($creatUser["result"]) {
+			            	$invitedUserId = $creatUser["id"];
+			                $child["childId"] = $_POST["parentId"];
+			    			$child["childType"] = $_POST["parentType"];
+			                $res[] = Link::follow($invitedUserId, Person::COLLECTION, $child);
+			            }
+					}
+				}
+
+				if( !empty($list["organizations"]) && count($list["organizations"]) > 0 ){
+
+					foreach ($list["organizations"] as $key => $value) {
+						
+						// Link::multiconnect($child, $parentId, $parentType)
+						// $invitedUserId = Person::getPersonIdByEmail($key);
+
+						//$child = array( "id" => $key,
+						//				"type" => Person::COLLECTION);
+						//Link::follow($_POST["parentId"], $_POST["parentType"], $child);
+					}
+				}
+
+				//exit;
+				return Rest::json($res);
+				// $res = Element::updateBlock($_POST);
+				// return Rest::json($res);
+			} catch (CTKException $e) {
+				return Rest::json(array("result"=>false, "msg"=>$e->getMessage(), "data"=>$_POST));
 			}
-	 	}
-	 	if($finalResult == true){
-		 	if($msg==1)
-		 		$msg = Yii::t("common","New member(s) have been succesfully added");
-		 	else
-		 		$msg = Yii::t("common","New member(s) have been succesfully added except those already in the community");		 		
-	 		$result = array("result"=>true, "msg" => $msg,"newMembers" => $newMembers, "onlyOrganization"=>$onlyOrganization);
-		}else $result = $res;
-		
-		Rest::json($result);
-    }
+		}
+		return Rest::json(array("result"=>false,"msg"=>Yii::t("common","Invalid request")));
+	}
 
 }
