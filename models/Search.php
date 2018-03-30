@@ -457,6 +457,7 @@ class Search {
   			$searchRegExp = self::accentToRegex($search);
   			$query = array( '$or' => array(
   									array( "name" => new MongoRegex("/.*{$searchRegExp}.*/i")),
+  									array( "slug" => new MongoRegex("/.*{$searchRegExp}.*/i")),
   									array( "shortDescription" => new MongoRegex("/.*{$searchRegExp}.*/i"))
   						));
 	        $explodeSearchRegExp = explode(" ", $searchRegExp);
