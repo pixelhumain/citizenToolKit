@@ -100,8 +100,8 @@ class Mail {
         else if(isset($nameInvitor))
             $invitor["name"] = $nameInvitor ;
 		
-        if(empty($msg))
-            $msg = $invitor["name"]. " vous invite à rejoindre ".self::getAppName().".";
+        // if(empty($msg))
+        //     $msg = $invitor["name"]. " vous invite à rejoindre ".self::getAppName().".";
 		
         if(empty($subject)){
             //$subject = $invitor["name"]. " vous invite à rejoindre ".self::getAppName().".";

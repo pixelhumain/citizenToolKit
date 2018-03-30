@@ -10,20 +10,20 @@ class MultiConnectAction extends CAction
 
 
 				$list = $_POST["listInvite"] ;
+				$res = array();
 
 				// var_dump(count($list["citoyens"]));var_dump(count($list["invites"]));var_dump(count($list["organizations"])); exit ;
 
 				if( !empty($list["citoyens"]) && count($list["citoyens"]) > 0 ){
 
 					foreach ($list["citoyens"] as $key => $value) {
-						// $child = array( "childId" => $key,
-						// 				"childType" => Person::COLLECTION);
+						$child = array( "childId" => $key,
+										"childType" => Person::COLLECTION);
 
 						$child = array( "childId" => $_POST["parentId"],
 										"childType" => $_POST["parentType"]);
 						
 						$res[] = Link::follow($key, Person::COLLECTION, $child);
-						
 					}
 				}
 
@@ -32,26 +32,25 @@ class MultiConnectAction extends CAction
 					foreach ($list["invites"] as $key => $value) {
 						
 
-						$invitedUserId = Person::getPersonIdByEmail($key);
+						// $invitedUserId = Person::getPersonIdByEmail($key);
 
-						$child = array( "childId" => $_POST["parentId"],
-										"childType" => $_POST["parentType"]);
+						// $child = array( "childId" => $_POST["parentId"],
+						// 				"childType" => $_POST["parentType"]);
 						
-						$res[] = Link::follow($invitedUserId, Person::COLLECTION, $child);
-
-
+						// $res[] = Link::follow($invitedUserId, Person::COLLECTION, $child);
 
 						$newPerson = array(	"name" => $value["name"],
-											"email" => $value["mail"],
+											"email" => $key,
 											"invitedBy" => Yii::app()->session["userId"]);
 
-						$creatUser = Person::createAndInvite($newPerson, @$params["msgEmail"]);
-			            if ($creatUser["result"]) {
-			            	$invitedUserId = $creatUser["id"];
-			                $child["childId"] = $_POST["parentId"];
-			    			$child["childType"] = $_POST["parentType"];
-			                $res[] = Link::follow($invitedUserId, Person::COLLECTION, $child);
-			            }
+						$creatUser = Person::createAndInvite($newPerson, @$value["msg"]);
+
+						if ($creatUser["result"]) {
+							$invitedUserId = $creatUser["id"];
+							$child["childId"] = $_POST["parentId"];
+							$child["childType"] = $_POST["parentType"];
+							$res[] = Link::follow($invitedUserId, Person::COLLECTION, $child);
+						}
 					}
 				}
 
