@@ -15,7 +15,7 @@ class SendEmailAction extends CAction {
         $user = PHDB::findOne(PHType::TYPE_CITOYEN,array( "email" => $email));
         if (!$user) {
             Rest::json(array("result"=>false, "errId" => "UNKNOWN_ACCOUNT_ID", 
-                         "msg"=>"Cet email n'existe pas dans notre base. Voulez vous créer un compte ?"));
+                         "msg"=>Yii::t("common", "This email doesn't exist in our database. Do you want to create an account ?")));
             die();
         }
 

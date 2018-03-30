@@ -57,6 +57,7 @@ class Poi {
 	    "tags" => array("name" => "tags"),
 
 	    "modified" => array("name" => "modified"),
+	    "source" => array("name" => "source"),
 	    "updated" => array("name" => "updated"),
 	    "creator" => array("name" => "creator"),
 	    "created" => array("name" => "created"),

@@ -21,8 +21,9 @@ class GetAction extends CAction
 		}
 		else if( $format == Translate::FORMAT_MD || $format == Translate::FORMAT_TREE)
 			$bindMap = Organization::CONTROLLER;
-		else
+		else{
 	       $bindMap = (empty($id) ? TranslateCommunecter::$dataBinding_allOrganization : TranslateCommunecter::$dataBinding_organization);
+		}
 
       	$result = Api::getData($bindMap, $format, Organization::COLLECTION, $id,$limit, $index, $tags, $multiTags, $key, $insee);
 
@@ -30,8 +31,9 @@ class GetAction extends CAction
 			$strucKml = News::getStrucKml();		
 			Rest::xml($result, $strucKml,$format);	
 		} else if ($format == "csv") {
-			$res = $result["entities"];
-			$head = Export::toCSV($res, ";", "'");
+			// $res = $result["entities"];
+			// $head = Export::toCSV($res, ";", "'");
+			Rest::csv($result["entities"]);
 		} else
 			Rest::json($result);
 

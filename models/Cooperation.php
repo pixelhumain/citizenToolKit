@@ -429,10 +429,8 @@ class Cooperation {
 
 		$userId = @Yii::app()->session['userId'];
 		$me = Person::getById($userId);
-
-		$memberOfOrga = $me["links"]["memberOf"];
-		$memberOfProject = $me["links"]["projects"];
-
+		$memberOfOrga = (@$me["links"] && @$me["links"]["memberOf"]) ? $me["links"]["memberOf"] : [];
+		$memberOfProject = (@$me["links"] && @$me["links"]["projects"]) ? $me["links"]["projects"] : [];
 		$memberOf = array_merge($memberOfOrga, $memberOfProject);
 
 		$res = array(); $count = 0;

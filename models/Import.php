@@ -163,6 +163,7 @@ class Import
                         $elements[] = $element;
                 //}
             }
+            
             $params = array("result"=>true,
                             "elements"=>json_encode(json_decode(json_encode($elements),true)),
                             "elementsWarnings"=>json_encode(json_decode(json_encode($elementsWarnings),true)),
@@ -335,6 +336,8 @@ class Import
     	$cp = (empty($address["postalCode"])?null:$address["postalCode"]);
 		$geo = array();
     	$resultDataGouv = ( ( !empty($address["addressCountry"]) && $address["addressCountry"] == "FR" ) ? ( empty($cp) ? null : json_decode(SIG::getGeoByAddressDataGouv($street, $cp, $address["addressLocality"]), true) ) : null ) ;
+
+
 		if(!empty($resultDataGouv["features"])){
 			$geo["lat"] = strval($resultDataGouv["features"][0]["geometry"]["coordinates"][1]);
 			$geo["lon"] = strval($resultDataGouv["features"][0]["geometry"]["coordinates"][0]);
@@ -387,28 +390,12 @@ class Import
 
 			$city = PHDB::findOne(City::COLLECTION, $where, $fields);
 
-            // if(empty($city)){
-            // 	$where = array('$and' => array( array("country" => $address["addressCountry"]), array("postalCodes.postalCode" => $address["postalCode"]) ) );
-
-            // 	$cities = PHDB::find(City::COLLECTION, $where, $fields);
-
-            // 	if(!empty($cities)){
-            // 		$pourcentcity = array();
-            // 		$pourcent = O ;
-            // 		foreach ($cities as $keyC => $valC) {
-            // 			if()
-            // 		}
-            // 	}
-			
-            // }
-
 			if(!empty($city)){
 				$resGeo = self::getLatLonBySIG($address);
-
 				$lat = ( empty($resGeo["lat"]) ? $city["geo"]["latitude"] : $resGeo["lat"] );
 				$lon = ( empty($resGeo["lon"]) ? $city["geo"]["longitude"] : $resGeo["lon"] );
 				
-                $newA = self::getAddressConform($city, $address);
+				$newA = self::getAddressConform($city, $address);
 				$newGeo = SIG::getFormatGeo($lat, $lon);
 				$newGeoPosition = SIG::getFormatGeoPosition($lat, $lon);
 				$result = true;
@@ -434,8 +421,8 @@ class Import
 															"level4" => null,
 															"osmID" => $valueN["osm_id"],
 															"save" => true);
-                                    if(!empty($valueN["extratags"]["wikidata"]))
-                                        $saveCities["wikidataID"] = $valueN["extratags"]["wikidata"];
+                    					if(!empty($valueN["extratags"]["wikidata"]))
+                    					$saveCities["wikidataID"] = $valueN["extratags"]["wikidata"];
 
                                     $newA = self::getAddressConform($saveCities, $address);
                                     $result = true;
@@ -615,7 +602,7 @@ class Import
 										$paramsImg["module"] = "communecter";
 										$split = explode("/", $value["urlImg"]);
 										$paramsImg["name"] = $split[count($split)-1];
-                                        unset($value["urlImg"]);
+										unset($value["urlImg"]);
 
 									}
 									if(!empty($value["startDate"])){

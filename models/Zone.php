@@ -71,12 +71,18 @@ class Zone {
 
 		if(empty($zone)){
 			$where = array("_id"=>new MongoId($id));
-			$zone = PHDB::findOne($type, $where);
+			$fields = array("name", "level", "level1", "level1Name", "level2", "level2Name", "level3", "level3Name", "level4", "level4Name",  "", "", "", "", "", "", "");
+			$zone = PHDB::findOne($type, $where, $fields);
 		}
 
 		//( (empty($zone["level1Name"]) && in_array("1", $zone["level"])) ? $zone["name"] : $zone["level1Name"])
-		$res = array(	"level1" => $zone["level1"],
-						"level1Name" => ( (empty($zone["level1Name"]) && in_array("1", $zone["level"])) ? $zone["name"] : $zone["level1Name"]));
+
+		if(!empty($zone["level1"])){
+			$res = array(	"level1" => $zone["level1"],
+							"level1Name" => ( (empty($zone["level1Name"]) && in_array("1", $zone["level"])) ? $zone["name"] : $zone["level1Name"]));
+		}else{
+			$res = array();
+		}
 
 		if(!empty($zone["level2"])){
 			$res["level2"] = $zone["level2"];

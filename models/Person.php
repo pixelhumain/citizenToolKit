@@ -59,6 +59,7 @@ class Person {
 	    "lastLoginDate" => array("name" => "lastLoginDate"),
 	    "seePreferences" => array("name" => "seePreferences"),
 	    "locality" => array("name" => "address"),
+	    "language" => array("name" => "language"),
 	    "modified" => array("name" => "modified"),
 	    "updated" => array("name" => "updated"),
 	    "creator" => array("name" => "creator"),
@@ -116,7 +117,6 @@ class Person {
 	    $user ["profilImageUrl"] = $simpleUser["profilImageUrl"];
 	    $user ["profilThumbImageUrl"] = $simpleUser["profilThumbImageUrl"];
 	    $user ["profilMarkerImageUrl"] = $simpleUser["profilMarkerImageUrl"];
-
 	    Yii::app()->session["user"] = $user;
 	    Yii::app()->session["isRegisterProcess"] = $isRegisterProcess;
 
@@ -2250,6 +2250,8 @@ public static function isUniqueEmail($email) {
 
     		$city = City::getById($address["localityId"]);
 			$res["type"] = "city" ;
+			$res["id"] = $address["localityId"];
+			$res["city"] = $address["localityId"];
 			if(!empty($city["postalCodes"]))
 				$res["postalCodes"] = $city["postalCodes"] ;
 
@@ -2276,25 +2278,9 @@ public static function isUniqueEmail($email) {
 	                				"postalCodes.postalCode" => $res["postalCodes"][0]["postalCode"]);
 	                $countCP = PHDB::count( City::COLLECTION , $where);
 	                $res["uniqueCp"] = ( ($countCP > 1) ? false : true ) ;
-	                // if($countCP > 1)
-	                // 	$res["postalCode"] = $res["postalCodes"][0]["postalCode"] ;
 	            }
-				//$newCities[] = $value ;
 			}else{
-				//$res["allCP"] = true ;
-				$newCities[] = $value ;
 				$res["allCP"] = false;
-				foreach ($res["postalCodes"] as $keyCP => $valueCP) {
-					// $cp = $value;
-					// $where = array(	"country" => $res["country"], 
-	    //             				"postalCodes.postalCode" => $valueCP["postalCode"]);
-					// $countCP = PHDB::count( City::COLLECTION , $where);
-	    //             $cp["uniqueCp"] = ( ($countCP > 1) ? false : true ) ;
-					// $cp["postalCode"] =  $valueCP["postalCode"];
-					// $cp["nameCity"] =  $res["name"];
-					// $cp["name"] =  $valueCP["name"]/*." - ".$valueCP["postalCode"]*/;
-					// $newCities[] = $cp ;
-				}
 			}
     	}
 

@@ -21,7 +21,7 @@ class NewsTranslator {
 			if(@$params["object"]["type"]==Event::COLLECTION){
 				$object=Event::getSimpleEventById((string)$params["object"]["id"]);
 				$params["icon"] = "fa-calendar";
-				$object["typeEvent"] = @$object["type"];
+				//$object["typeEvent"] = @$object["type"];
 			} 
 			else if (@$params["object"]["type"]==Organization::COLLECTION){
 				$object=Organization::getSimpleOrganizationById((string)$params["object"]["id"]);

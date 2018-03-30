@@ -203,6 +203,23 @@ class GetDataDetailAction extends CAction {
 		  	}
 		  	$contextMap = array_merge($contextMap, $classified);
 			
+			//RESSOURCE-------------------------------------------------------------------------------
+			$query = array();
+			if(@$type!="0" || !empty($post["searchLocality"]))
+				$query = Search::searchLocality(@$post["searchLocality"], $query);
+
+			$ressource = PHDB::findAndSortAndLimitAndIndex( Ressource::COLLECTION, $query,
+							array("updated"=>-1), 10);
+
+			foreach ($ressource as $key => $value) {
+				$ressource[$key]["type"] = "ressources";
+				$ressource[$key]["typeSig"] = "ressources";
+				if(@$value["updated"]) {
+					$ressource[$key]["updatedLbl"] = Translate::pastTime(@$value["updated"],"timestamp");
+		  		}
+		  	}
+		  	$contextMap = array_merge($contextMap, $ressource);
+			
 		  	//POI-------------------------------------------------------------------------------
 			$query = array();
 			if(@$type!="0" || !empty(@$post["searchLocality"]))

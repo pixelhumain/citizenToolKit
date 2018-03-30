@@ -181,8 +181,8 @@ class Search {
       	$queryNews=array();
       	$query = Search::searchString($search, $query);
 		$query = array('$and' => array( $query , array("state" => array('$ne' => "uncomplete")) ));
-      	$queryNews = Search::searchNewsString($search, $query);
-      	$queryNews = array('$and' => array( $queryNews , array("type"=>News::COLLECTION, "scope.type"=>News::TYPE_PUBLIC, "target.type"=>array('$ne'=>"pixels"))));
+      	//$queryNews = Search::searchNewsString($search, $query);
+      	//$queryNews = array('$and' => array( $queryNews , array("type"=>News::COLLECTION, "scope.type"=>News::TYPE_PUBLIC, "target.type"=>array('$ne'=>"pixels"))));
       	if($latest)
   			$query = array('$and' => array($query, array("updated"=>array('$exists'=>1))));
   		if($sourceKey!="")
@@ -198,8 +198,9 @@ class Search {
 
   		if( count($searchTags) > 1  || count($searchTags) == 1 && $searchTags[0] != "" ){
   			if( (strcmp($filter, Classified::COLLECTION) != 0 && self::typeWanted(Classified::COLLECTION, $searchType)) ||
-  				(strcmp($filter, Ressource::COLLECTION) != 0 && self::typeWanted(Ressource::COLLECTION, $searchType)) ||
-  				(strcmp($filter, Place::COLLECTION) != 0 && self::typeWanted(Place::COLLECTION, $searchType)) ){
+  				(strcmp($filter, Ressource::COLLECTION) != 0 && self::typeWanted(Ressource::COLLECTION, $searchType)) 
+  				//|| (strcmp($filter, Place::COLLECTION) != 0 && self::typeWanted(Place::COLLECTION, $searchType)) 
+  				){
         		$queryTags =  self::searchTags($searchTags, '$all') ;
 	  		}
   			else if( (strcmp($filter, Service::COLLECTION) != 0 )){
@@ -218,13 +219,14 @@ class Search {
   			$query = self::searchLocality($searchLocality, $query);
   			$queryPersons=$query;
   			array_push( $queryPersons[ '$and' ], array("preferences.publicFields"=>array('$in' =>array("locality") )));
-  			$queryNews = self::searchLocalityNews($searchLocality, $queryNews);
+  			//$queryNews = self::searchLocalityNews($searchLocality, $queryNews);
   		}
   		$queryEvents = Search::getQueryEvents($query, $searchSType, $startDate, $endDate);
   		$queryClassifieds = Search::getQueryClassifieds($query, @$priceMin, @$priceMax, @$devise);
   		$allRes = array();
 
-  		//var_dump($query);
+  		// var_dump($queryEvents);
+  		// echo "<br/>";
   		//*********************************  CITIES   ******************************************
   		if(!empty($search) /*&& !empty($locality) */){
 			if(strcmp($filter, City::COLLECTION) != 0 && self::typeWanted(City::COLLECTION, $searchType)){
@@ -390,8 +392,12 @@ class Search {
 					else if(@$value["created"])
 						$allRes[$key]["sorting"] = @$value["created"]->sec;
 	  			}
-				else
-					$allRes[$key]["sorting"] = @$value["updated"];
+				else{
+					if(is_object(@$value["updated"]))
+						$allRes[$key]["sorting"] = @$value["updated"]->sec;
+					else
+						$allRes[$key]["sorting"] = @$value["updated"];
+				}
 	  		}
 			if(@$value["updated"]) {
 				if($app=="agenda")
@@ -582,15 +588,18 @@ class Search {
 		if(!empty($localities))
 		foreach ($localities as $key => $locality){
 			if(!empty($locality)){
-				if($locality["type"] == City::COLLECTION){
+				if( @$locality["type"] == City::COLLECTION){
 					$queryLocality = array("address.localityId" => @$locality["id"]);
 					if(!empty($locality["postalCode"]))
 						$queryLocality = array_merge($queryLocality, array("address.postalCode" => new MongoRegex("/^".$locality["postalCode"]."/i")));
 				}
-				else if($locality["type"] == "cp"){
+				else if(@$locality["type"] == "cp"){
 					$queryLocality = array("address.postalCode" => new MongoRegex("/^".$locality["name"]."/i"));
 					if(!empty($locality["countryCode"]))
 						$queryLocality = array_merge($queryLocality, array("address.addressCountry" => $locality["countryCode"]));
+				}
+				else if(@$locality["type"] == "country"){
+					$queryLocality = array("address.addressCountry" => $locality["countryCode"]);
 				}
 				else
 					$queryLocality = array("address.".$locality["type"] => @$locality["id"]);
@@ -687,20 +696,29 @@ class Search {
 
 	//*********************************  Specific queries   ****************************************
   	public static function getQueryEvents($queryEvent, $searchSType, $startDate, $endDate){
+  		// var_dump($startDate);
+  		// echo "<br/>";
+  		// var_dump(date("d.m.y H:i:s", $startDate));
+  		// echo "<br/>";
+  		// var_dump($endDate);
+  		// echo "<br/>";
+  		// var_dump(date("d.m.y H:i:s", $endDate));
+  		// echo "<br/>";
+  		// echo "<br/>";
   		if($startDate!=null)
 			array_push( $queryEvent[ '$and' ], array( "startDate" => array( '$gte' => new MongoDate( (float)$startDate ) ) ) );
 		if($endDate!=null)
        		array_push( $queryEvent[ '$and' ], array( "endDate" => array( '$lte' => new MongoDate( (float)$endDate ) ) ) );
   		if(isset($searchSType) && $searchSType != "")
         	array_push( $queryEvent[ '$and' ], array( "type" => $_POST["searchSType"] ) );
-    	$queryEvent = array('$and' => 
-						array( $queryEvent , 
-						array( '$or' => array( 
-							array("public" => true ),
-							array( '$and' => array(
-								array("public" => false ),
-								array("links.attendees.".Yii::app()->session["userId"] => array('$exists' => 1) )
-								) ) ) ) ) );
+    	// $queryEvent = array('$and' => 
+					// 	array( $queryEvent , 
+					// 	array( '$or' => array( 
+					// 		array("public" => true ),
+					// 		array( '$and' => array(
+					// 			array("public" => false ),
+					// 			array("links.attendees.".Yii::app()->session["userId"] => array('$exists' => 1) )
+					// 			) ) ) ) ) );
   		return $queryEvent;
   	}
   	public static function getQueryClassifieds($query, $priceMin, $priceMax, $devise){
@@ -933,12 +951,6 @@ class Search {
 		date_default_timezone_set('UTC');
 		$queryEvent = $query;
 
-    	//if( !isset( $queryEvent['$and'] ) ) 
-    	//	$queryEvent['$and'] = array();
-    	
-    	//echo  time(); exit;
-    	//array_push( $queryEvent[ '$and' ], array( "endDate" => array( '$gte' => new MongoDate( time() ) ) ) );
-    	//var_dump($queryEvent);
     	if($searchOnAll)
     		$sort=array("updated" => -1);
     	else if(@$all && $all)

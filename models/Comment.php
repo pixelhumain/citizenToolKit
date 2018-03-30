@@ -500,8 +500,8 @@ class Comment {
 			$canDelete = ActionRoom::canAdministrate($userId, $contextId);
 		} else if ($contextType == News::COLLECTION) {
 			$canDelete = News::canAdministrate($userId, $contextId,$deleteProcess);
-		} else if ($contextType == Poi::COLLECTION) {
-			$canDelete = Poi::canDeletePoi($userId, $contextId);
+		} else if ( in_array( $contextType, array( Ressource::COLLECTION,Classified::COLLECTION, Poi::COLLECTION ) ) ) {
+			$canDelete = Authorisation::canDeleteElement($contextId, $contextType, Yii::app()->session["userId"]);
 		} else {
 			return array("result" => false, "msg" => "This contextType '".$contextType."' is not yet implemented.");
 		}

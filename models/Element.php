@@ -42,6 +42,7 @@ class Element {
 	    	Need::COLLECTION => Need::CONTROLLER,
 	    	City::COLLECTION => City::CONTROLLER,
 	    	Survey::COLLECTION => Survey::CONTROLLER,
+	    	Poi::COLLECTION => Poi::CONTROLLER,
 	    	Proposal::COLLECTION => Proposal::CONTROLLER,
 	    	Action::COLLECTION => Action::CONTROLLER,
 	    	//ActionRoom::COLLECTION => ActionRoom::CONTROLLER,
@@ -175,6 +176,12 @@ class Element {
 	    	Classified::CONTROLLER 		=> array("icon"=>"bullhorn","color"=>"#2BB0C6","text-color"=>"azure",
 	    										 "hash"=> Classified::CONTROLLER.".detail.id.",
 	    										 "collection"=>Classified::COLLECTION),
+			Ressource::COLLECTION 		=> array("icon"=>"cube","color"=>"#2BB0C6","text-color"=>"vine",
+	    										 "hash"=> Ressource::CONTROLLER.".detail.id."),
+	    	Ressource::CONTROLLER 		=> array("icon"=>"cube","color"=>"#2BB0C6","text-color"=>"vine",
+	    										 "hash"=> Ressource::CONTROLLER.".detail.id.",
+	    										 "collection"=>Ressource::COLLECTION),
+			
 			Product::COLLECTION 		=> array("icon"=>"gift","color"=>"#2BB0C6","text-color"=>"azure",
 	    										 "hash"=> Product::CONTROLLER.".detail.id."),
 	    	Product::CONTROLLER 		=> array("icon"=>"gift","color"=>"#2BB0C6","text-color"=>"azure",
@@ -316,8 +323,10 @@ class Element {
 			$element = Poi::getById($id);
 		else if($type == Place::COLLECTION)
 			$element = Place::getById($id);
-		else if($type == Classified::COLLECTION)
+		else if($type == Classified::COLLECTION || $type == Classified::MODULE)
 			$element = Classified::getById($id);
+		else if($type == Ressource::COLLECTION || $type == Ressource::MODULE)
+			$element = Ressource::getById($id);
 		else if($type == ActionRoom::COLLECTION_ACTIONS)
 			$element = PHDB::findOne( ActionRoom::COLLECTION_ACTIONS ,array("_id"=>new MongoId($id)));
 		else if($type == Survey::CONTROLLER )
@@ -345,6 +354,7 @@ class Element {
 	  	return $element;
 	}
 	public static function getSimpleByTypeAndId($type, $id,$what=null){
+
 		if( @$what ) 
 			$element = PHDB::findOneById($type, $id, $what);
 		else if($type == Person::COLLECTION)
@@ -703,6 +713,8 @@ class Element {
 			$set = array("organizerId" => $fieldValue["organizerId"], 
 							 "organizerType" => $fieldValue["organizerType"]);
 			//get element and remove current organizer
+			var_dump($fieldValue);
+			exit;
 			$element = self::getElementById($id, $collection);
 			if( !empty($element["organizerId"]) || !empty($element["links"]["organizer"]) ){
 				$oldOrganizerId = @$element["organizerId"] ? $element["organizerId"] : $element["links"]["organizer"];
@@ -712,27 +724,37 @@ class Element {
 				if (! @$res["result"]) throw new CTKException(@$res["msg"]);
 			}
 			//add new organizer
-			if($fieldValue["organizerId"] == 'dontKnow' || $fieldValue["organizerType"] == 'dontKnow')
+			if($fieldValue["organizerId"] != 'dontKnow' && $fieldValue["organizerType"] != 'dontKnow')
 				$res = Link::addOrganizer($fieldValue["organizerId"], $fieldValue["organizerType"], $id, Yii::app()->session["userId"]);
 			if (! @$res["result"]) throw new CTKException(@$res["msg"]);
 
 		}else if ($dataFieldName == "parent") {
-			$set = array("parentId" => $fieldValue["parentId"],
-							 "parentType" => $fieldValue["parentType"]);
+			
 			//get element and remove current parent
 			$element = Element::getElementById($id, $collection);
+
 			if( !empty($element["parentId"]) || !empty($element["links"]["parent"]) ){
+
 				$oldParentId = @$element["parentId"] ? $element["parentId"] : $element["links"]["parent"];
 				$oldParentType = @$element["parentType"] ? $element["parentType"] : $element["links"]["parent"][$oldParentId]["type"];
 				//remove the old parent
 				$res = Link::removeParent($oldParentId, $oldParentType, $id, $collection, Yii::app()->session["userId"]);
 				if (! @$res["result"]) throw new CTKException(@$res["msg"]);
 			}
-			
 			//add new parent
-			if($fieldValue["parentId"] == 'dontKnow' || $fieldValue["parentId"] == 'dontKnow')
+			if($fieldValue["parentId"] != 'dontKnow' && $fieldValue["parentType"] != 'dontKnow'){
+				$set = array("parentId" => $fieldValue["parentId"],
+							 "parentType" => $fieldValue["parentType"]);
 				$res = Link::addParent($fieldValue["parentId"], $fieldValue["parentType"], $id, $collection, Yii::app()->session["userId"]);
+			}else{
+				$verb == '$unset';
+				$set = array("parentId" => "",
+							 "parentType" => "");
+			}
+
+
 			if (! @$res["result"]) throw new CTKException(@$res["msg"]);
+
 		} else if ($dataFieldName == "seePreferences") {
 			//var_dump($fieldValue);
 			if($fieldValue == "false"){
@@ -783,6 +805,8 @@ class Element {
 			$setModified["modified"] = new MongoDate(time());
 			$setModified["updated"] = time();
 		}
+
+
 		
 		//Manage dateEnd field for survey
 		if ($collection == Survey::COLLECTION) {
@@ -825,7 +849,12 @@ class Element {
 					$verbActivity = ActStr::VERB_UPDATE ;
 				ActivityStream::saveActivityHistory($verbActivity, $id, $collection, $dataFieldName, $fieldValue);
 			}
-			$res = array("result"=>true,"msg"=>Yii::t(self::getControlerByCollection($collection),"The ".self::getControlerByCollection($collection)." has been updated"), "fieldName" => $fieldName, "value" => $fieldValue);
+			$msg=Yii::t(self::getControlerByCollection($collection),"The ".self::getControlerByCollection($collection)." has been updated");
+			if ($fieldName == "language"){
+				Yii::app()->language=$fieldValue;
+				$msg=Yii::t("common","Changing language processing"); 
+			}
+			$res = array("result"=>true,"msg"=>$msg, "fieldName" => $fieldName, "value" => $fieldValue);
 
 			if(isset($firstCitizen))
 				$res["firstCitizen"] = $firstCitizen ;
@@ -839,7 +868,7 @@ class Element {
     	$url = "";
     	$testUrl = "";
     	if (isset($person) && !empty($person)) {
-	        if(!empty($person[$imgName])){
+	        if(!empty($person[$imgName])){	
 	          $url = Yii::app()->getRequest()->getBaseUrl(true).$person[$imgName];
 	          $end = strpos($person[$imgName], "?");
 	          if($end<0) $end = strlen($person[$imgName]);
@@ -1280,7 +1309,7 @@ class Element {
 	 * @param String $userId : the userId asking to delete the element
 	 * @return array : result : boolean, msg : String
 	 */
-	public static function askToDelete($elementType, $elementId, $reason, $userId) {
+	public static function askToDelete($elementType, $elementId, $reason, $userId,$elemTypes) {
 		if (! Authorisation::canDeleteElement($elementId, $elementType, $userId)) {
 			return array("result" => false, "msg" => "The user cannot delete this element !");
 		}
@@ -1429,7 +1458,7 @@ class Element {
 						"needs" => "helpers"),
 			);
 		
-		$elementToDelete = self::getByTypeAndId($elementType, $elementId);
+		$elementToDelete = self::getByTypeAndId( $elementType, $elementId );
 
 		$resError = array(
     		"result" => false, 
@@ -1439,11 +1468,12 @@ class Element {
     						"name" => $elementToDelete["name"]
     					)), 
     		"msg" => Yii::t('common',"Error trying to delete this element : please contact your administrator."),
-    		);
+    	);
 
 		//Remove Documents => Profil Images
 		//TODO SBAR : Remove other images ?
     	$profilImages = Document::listMyDocumentByIdAndType($elementId, $elementType, Document::IMG_PROFIL, Document::DOC_TYPE_IMAGE, array( 'created' => -1 ));
+    	//error_log("count docs ".count( $profilImages ) );
     	foreach ($profilImages as $docId => $document) {
     		Document::removeDocumentById($docId, $userId);
     		//error_log("delete document id ".$docId);
@@ -1550,6 +1580,37 @@ class Element {
 		return $res;
 	}
 
+	//deletes elements with no strings attached
+	//no particpants, no connected eleemnts ...etc
+	//like POI, Ressources,Classifieds
+	//deletes images by folders and 
+	public static function deleteSimple($id,$type, $userId) {
+		error_log("deleteSimple ".$id.",".$type);
+		if ( !@$userId) 
+            return array( "result" => false, "msg" => "You must be loggued to delete something" );
+        
+        
+        $el = self::getByTypeAndId( $type, $id );
+        if (! Authorisation::canDeleteElement($id, $type, $userId)) 
+			return array("result" => false, "msg" => "The user cannot delete this element !");
+		
+		$res = array("result" => false, "msg" => "Something bad happend : impossible to delete this element");
+
+        //Delete the comments
+        $resComments = Comment::deleteAllContextComments($id,$type, $userId);
+		if (@$resComments["result"]) {
+			$resDocs = Document::removeDocumentByFolder($type."/".$id);
+			PHDB::remove($type, array("_id"=>new MongoId($id)));
+			$res = array("result" => true, 
+						 "msg" => "The element has been deleted succesfully", 
+						 "resDocs" => $resDocs);
+		} else {
+			return $resComments;
+		}
+		
+		return $res;
+	}
+
 	/**
 	 * The element is mark as pending deletion with a date.
 	 * Send notification/mail to $admins (list of persons) to know if they accept the delete of the element
@@ -1641,7 +1702,7 @@ class Element {
         unset($params['id']);
 
         $postParams = array();
-        if( !in_array( $collection, array("poi", "actions", "proposals", "resolutions") ) && 
+        if( !in_array( $collection, array("poi", "actions", "proposals", "resolutions", "classified", "ressources") ) && 
         	@$params["urls"] && @$params["medias"] ){
 	        	$postParams["medias"] = $params["medias"];
 	        	unset($params['medias']);
@@ -1690,7 +1751,6 @@ class Element {
             }
 
             if($id){ //var_dump($params); exit;
-        	
             	$exists = PHDB::findOne($collection,array("_id"=>new MongoId($id)));
                 if(!@$exists){
                 	$params["creator"] = Yii::app()->session["userId"];
@@ -2260,18 +2320,21 @@ class Element {
 					$res[] = self::updateField($collection, $id, "fax", $params["fax"]);
 				if(isset($params["mobile"]))
 					$res[] = self::updateField($collection, $id, "mobile", $params["mobile"]);
-				if(!empty($params["parentId"]) && !empty($params["parentType"])){
+				if( !empty($params["parentId"]) ){
 					$parent["parentId"] = $params["parentId"] ;
-					$parent["parentType"] = $params["parentType"] ;
+					$parent["parentType"] = ( !empty($params["parentType"]) ? $params["parentType"] : "dontKnow" ) ;
 					$resParent = self::updateField($collection, $id, "parent", $parent);
-					$resParent["value"]["parent"] = Element::getByTypeAndId( $params["parentType"], $params["parentId"]);
+
+					if($params["parentType"] != "dontKnow" && $params["parentId"] != "dontKnow")
+						$resParent["value"]["parent"] = Element::getByTypeAndId( $params["parentType"], $params["parentId"]);
 					$res[] = $resParent;
 				}
-				if(!empty($params["organizerId"]) && !empty($params["organizerType"])){
+
+				if(!empty($params["organizerId"]) ){
 					$organizer["organizerId"] = $params["organizerId"] ;
-					$organizer["organizerType"] = $params["organizerType"] ;
+					$organizer["organizerType"] = ( !empty($params["organizerType"]) ? $params["organizerType"] : "dontKnow" ) ;
 					$resOrg = self::updateField($collection, $id, "organizer", $organizer);
-					if($params["organizerType"]!="dontKnow"){
+					if($params["organizerType"]!="dontKnow" && $params["parentId"] != "dontKnow"){
 						$resOrg["value"]["organizer"] = Element::getByTypeAndId( $params["organizerType"], $params["organizerId"]);
 					}
 					$res[] = $resOrg;
@@ -2514,6 +2577,19 @@ class Element {
 
 		if(!empty($element["properties"]["avancement"]))
 			$newElement["avancement"] = $element["properties"]["avancement"];
+
+
+		if($type == Person::COLLECTION){
+			if(empty($newElement["socialNetwork"]))
+				$newElement["socialNetwork"] = array();
+
+			$sNetwork = array("telegram", "github", "skype", "twitter", "facebook", "gpplus", "instagram", "diaspora", "mastodon");
+			foreach ($sNetwork as $key => $value) {
+				if(empty($newElement["socialNetwork"][$value]))
+					$newElement["socialNetwork"][$value] = "";
+			}
+		}
+		
 
 		return $newElement;
 	}

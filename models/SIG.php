@@ -492,9 +492,9 @@ class SIG
 	        if(!empty($extratags)){
 	            $url .= "&extratags=1";
 	        }
-	        if(!empty($extratags)){
-	            $url .= "&email=contact@communecter.org";
-	        }
+	        //if(!empty($extratags)){
+	            $url .= "&email=contact@openatlas.co";
+	       // }
 
 	        if(!empty($namedetails)){
 	            $url .= "&namedetails=1";
@@ -596,7 +596,6 @@ class SIG
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
         $result = curl_exec($ch);
-        //var_dump($result);
         curl_close($ch);
         return $result ;
     }

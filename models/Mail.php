@@ -102,12 +102,13 @@ class Mail {
 		
         if(empty($msg))
             $msg = $invitor["name"]. " vous invite à rejoindre ".self::getAppName().".";
-		if(empty($subject)){
+		
+        if(empty($subject)){
             //$subject = $invitor["name"]. " vous invite à rejoindre ".self::getAppName().".";
-            if(@$invitor && empty(@$invitor["name"])) "{who} is waiting for you on {what}"
+            if(@$invitor && empty(@$invitor["name"]))
                 $subject = Yii::t("mail", "{who} is waiting for you on {what}", array("{who}"=>$invitor["name"], "{what}"=>self::getAppName()));
             else
-                $subject = Yii::t("mail", "{what} is waiting for you", array("{what}"=>self::getAppName()));
+                $subject = Yii::t("mail", "{what} is waiting for you", array( "{what}"=>self::getAppName() ) ) ;
         }
 
         
@@ -128,10 +129,9 @@ class Mail {
                                     "invitorLogo" => @$invitor["profilThumbImageUrl"],
                                     "logo" => Yii::app()->params["logoUrl"],
                                     "logo2" => Yii::app()->params["logoUrl2"],
-                                    //"logo"=> "/images/logo-communecter.png",
-                                    //"logo2" => "/images/logoLTxt.jpg",
                                     "invitedUserId" => $person["_id"],
-                                    "message" => $msg)
+                                    "message" => $msg,
+                                    "language" => ( !empty($person["language"]) ? $person["language"] : "fr" ))
         );
 
         if(!empty($invitorUrl))
@@ -143,18 +143,16 @@ class Mail {
         if(isset($person["invitedBy"]))
             $invitor = Person::getSimpleUserById($person["invitedBy"]);
         else if(isset($nameInvitor)){
-
             $invitor["name"] = $nameInvitor ;
             // var_dump($invitor["name"]);
         }
         
 
-        if(@$invitor && empty(@$invitor["name"])) "{who} is waiting for you on {what}"
+        if(@$invitor && empty(@$invitor["name"]))
             $subject = Yii::t("mail", "{who} is waiting for you on {what}", array("{who}"=>$invitor["name"], "{what}"=>self::getAppName()));
         else
             $subject = Yii::t("mail", "{what} is waiting for you", array("{what}"=>self::getAppName()));
-        //if(empty($subject))
-         //   $subject = $invitor["name"]. " vous invite à rejoindre ".self::getAppName().".";
+
 
         if(!@$person["email"] || empty($person["email"])){
             $getEmail=Person::getEmailById((string)$person["_id"]);
@@ -173,7 +171,8 @@ class Mail {
                                     "logo2" => Yii::app()->params["logoUrl2"],
                                     //"logo"=> "/images/logo-communecter.png",
                                     //"logo2" => "/images/logoLTxt.jpg",
-                                    "invitedUserId" => $person["_id"])
+                                    "invitedUserId" => $person["_id"],
+                                    "language" => ( !empty($person["language"]) ? $person["language"] : "fr" ) )
         );
 
         if(!empty($invitorUrl))
@@ -703,4 +702,41 @@ class Mail {
         return isset(Yii::app()->params["name"]) ? Yii::app()->params["name"] : Yii::app()->name;       
     }
 
+
+	public static function mailMaj() {
+
+		$persons=PHDB::find(Person::COLLECTION, array("pending"=>array('$exists'=>0), "email"=>array('$exists'=>1)), array("name", "language", "email"));
+		$i=0;
+		$v=0;
+		$languageUser = Yii::app()->language;
+		$res = array();
+		foreach($persons as $key => $value){
+			if(!empty($value["email"]) && DataValidator::email($value["email"])=="" && !empty($value["language"])){
+				echo $key." : ".$value["name"]." : ".$value["language"]." <br/> ";
+				// Yii::app()->language = $value["language"];
+				$subject = Yii::t("mail", "New Update");
+		        $params = array(
+		            "type" => Cron::TYPE_MAIL,
+		            "tpl"=>'update',
+		            "subject" => $subject,
+		            "from"=>Yii::app()->params['adminEmail'],
+		            "to" => $value["email"],
+		            "tplParams" => array(   "title" => self::getAppName() ,
+		                                    "logo" => Yii::app()->params["logoUrl"],
+		                                    "logo2" => Yii::app()->params["logoUrl2"],
+		                                    "invitedUserId" => $value["_id"],
+		                                    "language" => ( !empty($value["language"]) ? $value["language"] : "fr" ) )
+		        );
+		        Mail::schedule($params);
+				$i++;
+			}else{
+				$v++;
+			}
+		}
+		echo $i." mails envoyé pour relancer l'inscription<br>";
+		echo $v." utilisateur non inscrit (validé) qui ont un mail de marde<br>";
+
+		Yii::app()->language = $languageUser ;
+
+	}
 }

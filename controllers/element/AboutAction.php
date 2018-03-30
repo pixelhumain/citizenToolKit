@@ -6,7 +6,8 @@ class AboutAction extends CAction {
 
 		$element=Element::getByTypeAndId($type,$id);
 		
-		if(@$element["parentId"] && @$element["parentType"])
+		if(@$element["parentId"] && @$element["parentType"]&& 
+            $element["parentId"] != "dontKnow" && $element["parentType"] != "dontKnow")
             $element['parent'] = Element::getByTypeAndId( $element["parentType"], $element["parentId"]);
 
         if(@$element["organizerId"] && @$element["organizerType"] && 
