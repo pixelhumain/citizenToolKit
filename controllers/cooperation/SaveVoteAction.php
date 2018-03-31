@@ -43,15 +43,13 @@ class SaveVoteAction extends CAction {
 
 				if(@$json == "false"){
 					echo $controller->renderPartial($page, $params, true);
+					Yii::app()->end();
 				}else{
 					$params["result"] = false;
 					$params["msg"] = $params["msgController"];
 					return Rest::json($params);
 					Yii::app()->end();
 				}
-
-				echo $controller->renderPartial($page, $params, true);
-				exit;
 			}else{
 				$withoutMe = $allVotes[$hasVote];
 				$pos = array_search($myId, $withoutMe);
