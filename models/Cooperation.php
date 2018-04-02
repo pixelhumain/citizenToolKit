@@ -401,19 +401,28 @@ class Cooperation {
                 );
 		$targetId = @$params["parentId"];
 		$targetType = @$params["parentType"];
+		$scopeType = ($targetType != Person::COLLECTION) ? "private" : "restricted";
+
+		//si c'est une proposal sans room, qui n'est pas une modération (!= News::COLLECTION)
+		//on parle d'un sondage
 
 		$object = array("type" => $type,
 						"id" => $id,
 						"displayName" => $name);
 
+		if(!isset($params["idParentRoom"]) && 
+				$type == Proposal::COLLECTION && 
+				@$params["parentType"] != News::COLLECTION)
+			$object["isSurvey"] = true;
+
 		$buildArray = array(
 				"type" => ActivityStream::COLLECTION,
-				"verb" => ActStr::VERB_CREATE,
+				"verb" => ActStr::VERB_PUBLISH,
 				"target" => array("id" => $targetId,
 								  "type"=> $targetType),
 				"author" => Yii::app()->session["userId"],
 				"object" => $object,
-				"scope" => array("type"=>"private"),
+				"scope" => array("type"=>$scopeType),
 			    "created" => new MongoDate(time()),
 				"sharedBy" => array(array(	"id" => Yii::app()->session["userId"],
 											"type"=> "citoyens",

@@ -141,6 +141,30 @@ class GetDataDetailAction extends CAction {
 			$contextMap = PHDB::findAndSortAndLimitAndIndex( ActionRoom::COLLECTION, $where);
 		}
 		
+		if( $dataName == "surveys" ){
+			$where = array("parentType"=>$type, "parentId"=>$id);
+			$contextMap = PHDB::findAndSortAndLimitAndIndex( Proposal::COLLECTION, $where);
+			foreach ($contextMap as $k => $value) {
+				if(isset($contextMap[$k]["idParentRoom"])){
+					unset($contextMap[$k]);
+				}else{
+					$contextMap[$k]["type"] = Proposal::COLLECTION;
+					$contextMap[$k]["voteRes"] = Proposal::getAllVoteRes($value);
+					$contextMap[$k]["hasVote"] = @$value["votes"] ? Cooperation::userHasVoted( Yii::app()->session['userId'], $value["votes"]) : false;
+				}
+			}
+		}
+		
+		if( $dataName == "proposals" ){
+			$where = array("creator"=>$id);
+			$contextMap = PHDB::findAndSortAndLimitAndIndex( Proposal::COLLECTION, $where);
+			foreach ($contextMap as $k => $value) {
+				$contextMap[$k]["type"] = Proposal::COLLECTION;
+				$contextMap[$k]["voteRes"] = Proposal::getAllVoteRes($value);
+				$contextMap[$k]["hasVote"] = @$value["votes"] ? Cooperation::userHasVoted( Yii::app()->session['userId'], $value["votes"]) : false;
+			}
+		}
+
 
 		if($dataName == "liveNow"){
 			$post = $_POST; 
