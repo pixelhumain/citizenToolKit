@@ -14,10 +14,10 @@ class GetCoopDataAction extends CAction {
 
 		$controller=$this->getController();
 
-		if($type == Room::CONTROLLER && ($dataId == "undefined" || $dataId == "")){
-			return "nop";
+		/*if($type == Room::CONTROLLER && ($dataId == "undefined" || $dataId == "")){
+			echo "nop"; return "";
 			Yii::app()->end();
-		}
+		}*/
 
 		$auth = Authorisation::canParticipate(Yii::app()->session['userId'], $parentType, $parentId);
 		$openData = Authorisation::isOpenData(Yii::app()->session['userId'], $parentType, $parentId);
