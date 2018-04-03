@@ -569,6 +569,7 @@ class News {
 	*/
 	public static function uploadNewsImage($urlImage,$size,$authorId,$actionUpload=true){
 		$allowed_ext = array('jpg','jpeg','png','gif'); 
+		ini_set('user_agent','Mozilla/4.0 (compatible; MSIE 6.0)');
     	$ext = strtolower(pathinfo($urlImage, PATHINFO_EXTENSION));
     	if(empty($ext))
     		$ext="png";
