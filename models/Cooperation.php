@@ -430,6 +430,43 @@ class Cooperation {
 											"updated" => new MongoDate(time()))),
 			);
 
+		if(!empty($params["address"]) ){
+			$buildArray["scope"]["type"]="public";
+			$address = null ;
+			if( !empty( $params["address"] )){
+	        	$localityId = $params["address"]["localityId"];
+	        	$address = $params["address"];
+	        }
+
+	        if( isset( $params["geo"] ))
+				$geo = $params["geo"];
+
+			if(!@$localityId){
+
+		        $author=Person::getSimpleUserById(Yii::app()->session["userId"]);
+		        
+		        if(@$author["address"] && @$author["address"]["localityId"]){
+			        $localityId=$author["address"]["localityId"];
+		        	$address=$author["address"];
+		        	if(!@$geo)
+		        		$geo = $author["geo"];
+	        	}
+			}
+
+			$scope = array( "parentId"=>$localityId,
+							"parentType"=>City::COLLECTION,
+							"name"=>$address["addressLocality"],
+							"geo" => $geo
+						);
+			if (!(empty($address["postalCode"]))) {
+				$scope["postalCode"] = $address["postalCode"];
+			}
+
+			$scope = array_merge($scope, Zone::getLevelIdById($localityId, $address, City::COLLECTION) ) ;
+
+			$buildArray["scope"]["localities"][] = $scope ;
+		}
+
 			//$params=ActivityStream::buildEntry($buildArray);
 			$newsShared=ActivityStream::addEntry($buildArray);
 	}

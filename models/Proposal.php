@@ -35,6 +35,12 @@ class Proposal
 		"amendementDateEnd" 	=> array("name" => "amendementDateEnd"),
 		"durationAmendement" 	=> array("name" => "durationAmendement"),
 		
+		"address" => array("name" => "address", "rules" => array("addressValid")),
+	    "addresses" => array("name" => "addresses"),
+	    
+	    "geo" => array("name" => "geo", "rules" => array("geoValid")),
+	    "geoPosition" => array("name" => "geoPosition", "rules" => array("geoPositionValid")),
+	    
 		// true / false
 		"voteActivated" 		=> array("name" => "voteActivated", 		"rules" => array("required")),
 		"voteDateEnd" 			=> array("name" => "voteDateEnd"),

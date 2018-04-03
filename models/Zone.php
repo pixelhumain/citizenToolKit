@@ -322,7 +322,7 @@ class Zone {
 		$translates = self::getTranslateById($id, Zone::COLLECTION);
 		$userT = strtoupper(Yii::app()->language) ;
 		if(!empty($translates) ){
-			$name = (!empty($translates["translates"][$userT]) ? $translates["translates"][$userT] : $translates["origin"]);
+			$name = (!empty($translates["translates"][$userT]) ? $translates["translates"][$userT] : @$translates["origin"]);
 		}else
 			$name = "";
 		
