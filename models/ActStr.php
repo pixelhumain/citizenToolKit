@@ -18,6 +18,7 @@ class ActStr {
     const VERB_UPDATE = "update";
     const VERB_CREATE = "create";
     const VERB_DELETE = "delete";
+    const VERB_PUBLISH = "publish";
       
     const VERB_JOIN = "join";
     const VERB_WAIT = "wait";

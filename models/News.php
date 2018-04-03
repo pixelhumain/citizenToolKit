@@ -262,7 +262,12 @@ class News {
 
 		//Check if the userId can delete the news
 		$authorization=self::canAdministrate($userId, $id,$deleteProcess);
-		if (!$authorization) return array("result"=>false, "userId"=>$userId, "msg"=>Yii::t("common","You are not allowed to delete this news"), "id" => $id);
+
+		if (!$authorization) 
+			return array("result"=>false, "userId"=>$userId, 
+						 "msg"=>Yii::t("common","You are not allowed to delete this news"), 
+						 "id" => $id);
+
 		if($authorization=="share")
 			$countShare=count($news["sharedBy"]);
 		if($authorization===true || (@$countShare && $countShare==1)){
@@ -274,7 +279,7 @@ class News {
 					unlink($pathFileDelete);
 			}
 		
-			//récupère les activityStream liés à la news
+			//récupère les activityStream liés à la news (les partages)
 			$actStream = PHDB::find(self::COLLECTION,array("type"=>"activityStream",
 															"verb"=>ActStr::TYPE_ACTIVITY_SHARE,
 															"object.type"=>"news",
@@ -287,6 +292,7 @@ class News {
 					PHDB::remove(Comment::COLLECTION,array( "contextType"=>"news",
 															"contextId"=>$key));
 				}
+
 			//efface les activityStream lié à la news
 			PHDB::remove(self::COLLECTION,array("type"=>"activityStream",
 												"verb"=>ActStr::TYPE_ACTIVITY_SHARE,
@@ -642,10 +648,21 @@ class News {
         if (@$news["author"]["id"] == $userId && (!@$news["verb"] || $news["verb"]!="share")) return true;
         if (@$news["sharedBy"] && in_array($userId,array_column($news["sharedBy"],"id"))) return "share";
         if (Authorisation::isUserSuperAdmin($userId)) return true;
+
+
+	    $DDATypes = array(	Proposal::COLLECTION, Action::COLLECTION, 
+	    					Room::COLLECTION, Resolution::COLLECTION);
+	    
+		if (in_array(@$news["object"]["type"], $DDATypes)){
+			return Authorisation::canEditItem($userId, $news["object"]["type"], $news["object"]["id"],null,null,true);
+		}
+
         $what = (@$news["verb"] == "create" ) ? "object" : "target" ;
 	    $parentId = @$news[$what]["id"];
 	    $parentType = @$news[$what]["type"];
 	    if(@$deleteProcess) return Authorisation::isOpenEdition($parentId, $parentType);
+
+
         return Authorisation::isElementAdmin($parentId, $parentType, $userId);
     }
 

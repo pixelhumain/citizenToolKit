@@ -1316,7 +1316,18 @@ class Element {
 
 		$res = array("result" => false, "msg" => "Something bad happend : impossible to delete this element");
 
-		if (!in_array($elementType, $elemTypes)) return array( "result" => false, "msg" => "Impossible to delete this type of element" );
+		//What type of element i can delete
+		$managedTypes = array(Organization::COLLECTION, 
+							Project::COLLECTION, 
+							Event::COLLECTION, 
+							Classified::COLLECTION,
+							Proposal::COLLECTION, 
+							Action::COLLECTION, 
+							Room::COLLECTION);
+		
+		if (!in_array($elementType, $managedTypes)) 
+			return array( "result" => false, "msg" => "Impossible to delete this type of element" );
+
 		$modelElement = self::getModelByType($elementType);
 
 		$canBeDeleted = false;
@@ -1359,10 +1370,20 @@ class Element {
 			$canBeDeleted = false;
 		}
 
+		$DDATypes = array(	Proposal::COLLECTION, 
+							Action::COLLECTION, 
+							Resolution::COLLECTION,
+							Room::COLLECTION);
+
+		if (in_array($elementType, $DDATypes)) 
+			$canBeDeleted = true;
+
 		// If the userId is superAdmin : element can be deleted as well
 		if (Authorisation::isUserSuperAdmin($userId)) {
 			$canBeDeleted = true;
 		}
+
+		//var_dump($element["links"]); exit;
 
 		//Try to delete the element
 		if ($canBeDeleted) {
@@ -1472,7 +1493,7 @@ class Element {
     		return $resError;
     	}
     	//Delete Action Rooms
-    	$res = ActionRoom::deleteElementActionRooms($elementId, $elementType, $userId);
+    	$res = Room::deleteElementActionRooms($elementId, $elementType, $userId);
     	$resError["action"]["deleteElementActionRooms"] = $res; 
     	if (!$res["result"]) return $resError;
 
@@ -1505,10 +1526,27 @@ class Element {
 		}
 
 		if($elementType == Room::COLLECTION){
-			$where = array("idParentRoom" => $elementId);
+			$DDATypes = array(	Proposal::COLLECTION, 
+								Resolution::COLLECTION, 
+								Action::COLLECTION);
+
+			foreach ($DDATypes as $k => $ddaType) {
+				$where = array("idParentRoom" => $elementId);
+    			$ddaOfThisRoom = PHDB::find($ddaType, $where);
+    			foreach ($ddaOfThisRoom as $kk => $dda) {
+    				$whereNews = array("object.type" => $ddaType, "object.id" => (string)$dda["_id"]);
+    				//echo "FOUND : ".$ddaType."::COLLECTION > "; var_dump($dda);
+    				//echo "REMOVE : News::COLLECTION > "; var_dump($whereNews);
+    				PHDB::remove(News::COLLECTION, $whereNews);
+    			}
+    			//echo "REMOVE : ".$ddaType."::COLLECTION > "; var_dump($where);
+    			PHDB::remove($ddaType, $where);
+			}
+			//exit;
+			/*$where = array("idParentRoom" => $elementId);
     		PHDB::remove(Proposal::COLLECTION, $where);
     		PHDB::remove(Action::COLLECTION, $where);
-    		PHDB::remove(Resolution::COLLECTION, $where);
+    		PHDB::remove(Resolution::COLLECTION, $where);*/
 		}
 		
 		//Unset the organizer for events organized by the element

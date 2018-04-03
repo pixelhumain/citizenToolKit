@@ -55,7 +55,7 @@ class Cooperation {
 
 	public static function getColorVoted($voted){
 		if(isset(self::$colorVoted[$voted])) return self::$colorVoted[$voted];
-			else return "dark";
+		else return "dark";
 	}
 
 	public static function getCoopData($parentType, $parentId, $type, $status=null, $dataId=null){
@@ -209,12 +209,36 @@ class Cooperation {
 		return $res;
 	}
 
+	public static function checkRoleAccessInNews($newsList){ //return $newsList;
+		$me = Element::getByTypeAndId("citoyens", Yii::app()->session['userId']);
+		foreach($newsList as $k => $news){
+			if(@$news["object"] && @$news["object"]["type"] == "proposals"){
+				$proposal = Proposal::getById(@$news["object"]["id"]);
+				$parentRoom = Room::getById(@$proposal["idParentRoom"]);
+				if(@$parentRoom["roles"]){
+					if($proposal["parentType"] == "projects") 		$link = "projects";
+					if($proposal["parentType"] == "organizations")  $link = "memberOf";
+					$myRoles = @$me["links"][@$link][@$proposal["parentId"]]["roles"] ? 
+							   @$me["links"][@$link][@$proposal["parentId"]]["roles"] : array();
+
+					$accessRoom = @$parentRoom ? Room::getAccessByRole($parentRoom, $myRoles) : ""; 
+					
+					if($accessRoom == "lock"){
+						unset($newsList[$k]);
+					}
+				}
+			}
+		}
+		return $newsList;
+		
+	}
+
 
 
 	public static function userHasVoted($userId, $obj){
 		foreach ($obj as $keyVal=>$arr) {
 			foreach ($arr as $keyId) {
-				if($keyId == $userId) return $keyVal;
+				if($keyId == $userId) return (string)$keyVal;
 			}
 		}
 		return false;
@@ -317,6 +341,9 @@ class Cooperation {
 								$voteRes["up"]["percent"] > intval(@$resolution["majority"]);
 					
 					$resolution["status"] = $adopted ? "adopted" : "refused";
+
+					if(@$resolution["answers"]) $resolution["status"] = "adopted";
+
 					$resolutionExist = Resolution::getById($key);
 					
 					if(!$resolutionExist){ //} && $proposal["parentType"] == News::COLLECTION){
@@ -374,25 +401,71 @@ class Cooperation {
                 );
 		$targetId = @$params["parentId"];
 		$targetType = @$params["parentType"];
+		$scopeType = ($targetType != Person::COLLECTION) ? "private" : "restricted";
+
+		//si c'est une proposal sans room, qui n'est pas une modération (!= News::COLLECTION)
+		//on parle d'un sondage
 
 		$object = array("type" => $type,
 						"id" => $id,
 						"displayName" => $name);
 
+		if(!isset($params["idParentRoom"]) && 
+				$type == Proposal::COLLECTION && 
+				@$params["parentType"] != News::COLLECTION)
+			$object["isSurvey"] = true;
+
 		$buildArray = array(
 				"type" => ActivityStream::COLLECTION,
-				"verb" => ActStr::VERB_CREATE,
+				"verb" => ActStr::VERB_PUBLISH,
 				"target" => array("id" => $targetId,
 								  "type"=> $targetType),
 				"author" => Yii::app()->session["userId"],
 				"object" => $object,
-				"scope" => array("type"=>"private"),
+				"scope" => array("type"=>$scopeType),
 			    "created" => new MongoDate(time()),
 				"sharedBy" => array(array(	"id" => Yii::app()->session["userId"],
 											"type"=> "citoyens",
 											//"comment"=>@$comment,
 											"updated" => new MongoDate(time()))),
 			);
+
+		if(!empty($params["address"]) ){
+			$buildArray["scope"]["type"]="public";
+			$address = null ;
+			if( !empty( $params["address"] )){
+	        	$localityId = $params["address"]["localityId"];
+	        	$address = $params["address"];
+	        }
+
+	        if( isset( $params["geo"] ))
+				$geo = $params["geo"];
+
+			if(!@$localityId){
+
+		        $author=Person::getSimpleUserById(Yii::app()->session["userId"]);
+		        
+		        if(@$author["address"] && @$author["address"]["localityId"]){
+			        $localityId=$author["address"]["localityId"];
+		        	$address=$author["address"];
+		        	if(!@$geo)
+		        		$geo = $author["geo"];
+	        	}
+			}
+
+			$scope = array( "parentId"=>$localityId,
+							"parentType"=>City::COLLECTION,
+							"name"=>$address["addressLocality"],
+							"geo" => $geo
+						);
+			if (!(empty($address["postalCode"]))) {
+				$scope["postalCode"] = $address["postalCode"];
+			}
+
+			$scope = array_merge($scope, Zone::getLevelIdById($localityId, $address, City::COLLECTION) ) ;
+
+			$buildArray["scope"]["localities"][] = $scope ;
+		}
 
 			//$params=ActivityStream::buildEntry($buildArray);
 			$newsShared=ActivityStream::addEntry($buildArray);

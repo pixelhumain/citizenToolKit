@@ -251,7 +251,7 @@ class Translate {
 	    }
 
 	   
-		//var_dump($date2); exit;
+		//var_dump($date2); //exit;
 	    $Ecart = time()-$date2;
 	    $lblEcart = "";
 	    $tradAgo=true;
@@ -260,6 +260,7 @@ class Translate {
 	    	$lblEcart = Yii::t("common","in")." ";
 			$Ecart = $date2 - time();
 	    }
+	    //var_dump($Ecart); echo " ".$lblEcart; //exit;
 
 		if(isset($timezone) && $timezone != ""){
 			if(date_default_timezone_get()!=$timezone){

@@ -35,7 +35,7 @@ class SaveVoteAction extends CAction {
 		$hasVote = Cooperation::userHasVoted($myId, $allVotes);
 
 		$root = $parentType != "amendement" ? "votes" : "amendements.".@$idAmdt.".votes";
-		if($hasVote != false){
+		if($hasVote !== false){
 			if($hasVote == $voteValue){
 				$page = "proposal";
 				$params = Cooperation::getCoopData(null, null, "proposal", null, $parentId);
@@ -43,15 +43,13 @@ class SaveVoteAction extends CAction {
 
 				if(@$json == "false"){
 					echo $controller->renderPartial($page, $params, true);
+					Yii::app()->end();
 				}else{
 					$params["result"] = false;
 					$params["msg"] = $params["msgController"];
 					return Rest::json($params);
 					Yii::app()->end();
 				}
-
-				echo $controller->renderPartial($page, $params, true);
-				exit;
 			}else{
 				$withoutMe = $allVotes[$hasVote];
 				$pos = array_search($myId, $withoutMe);
@@ -87,7 +85,6 @@ class SaveVoteAction extends CAction {
 		if(@$moderation == "true") {
 			$page = "moderation";
 			$params["news"] = News::getById($proposal["parentId"]);
-			//var_dump($params); exit;
 		}
 		
 		if(@$json == "false"){
