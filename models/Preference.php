@@ -91,6 +91,12 @@ class Preference {
 				$preferences["isOpenEdition"] = (empty($context["preferences"]["isOpenEdition"])?false:$context["preferences"]["isOpenEdition"]);
 		}
 
+		if($setType == "mailNotif"){
+			$preferences["mailNotif"] = $setValue;
+		}else{
+			$preferences["mailNotif"] = ((empty($context["preferences"]["mailNotif"]))?false:true);
+		}
+
 		if(self::isOpenData($preferences))
 			Badge::addAndUpdateBadges("opendata", $id, $type);
 		else

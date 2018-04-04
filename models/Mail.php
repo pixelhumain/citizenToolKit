@@ -465,9 +465,12 @@ class Mail {
 
             if ($key != Yii::app()->session["userId"]) {
 
-            	$member = Element::getElementById( $key, Person::COLLECTION, null, array("email") );
+            	$member = Element::getElementById( $key, Person::COLLECTION, null, array("email","preferences") );
 
-            	if (!empty($member["email"])) {
+            	if (!empty($member["email"]) && 
+                    !empty($member["preferences"]) && 
+                    !empty($member["preferences"]["mailNotif"]) &&
+                    $member["preferences"]["mailNotif"] == true ) {
 
                     
                     
