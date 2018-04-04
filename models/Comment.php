@@ -87,20 +87,25 @@ class Comment {
 			"tags" => @$comment["tags"],
 			"status" => self::STATUS_POSTED 
 		);
-
-
-		var_dump($comment); exit;
+		
 
 		$target = array(	"id"=> $comment["contextId"],
  							"type"=>$comment["contextType"],
- 							"name"=> $options["name"]);
+ 							"name"=> $options["name"],
+ 							"value" => $content);
 
 		if(!empty($target)){
-	    	$author = array(	"id"=> (String) $user["_id"],
-	 							"type"=>Person::COLLECTION,
-	 							"name"=> $user["name"]);
-	    	$params = Mail::createParamsMails(ActStr::VERB_COMMENT, $target, null, $author);
-	   		Mail::mailNotif($_POST["parentId"], $_POST["parentType"], $params);
+			$parent = Element::getParentById($target["id"], $target["type"]);
+
+			$nameAuthor = Person::getNameById($userId);
+	    	$author = array(	"id"=> $userId,
+	 							"type"=> Person::COLLECTION,
+	 							"name"=> $nameAuthor["name"]);
+	    	$params = Mail::createParamsMails(ActStr::VERB_COMMENT, $target, $parent, $author);
+	    	//var_dump($params); exit;
+	   		Mail::mailNotif($parent["id"], $parent["type"], $params);
+
+	   		//exit;
 	    }
 		
 
@@ -307,11 +312,13 @@ class Comment {
 	 */
 	public static function getCommentOptions($id, $type) {
 		$res = self::$defaultDiscussOptions;
-		
-		$collection = PHDB::findOneById( $type ,$id, array("commentOptions" => 1));
+		$collection = PHDB::findOneById( $type ,$id, array("commentOptions" => 1, "name" => 1));
 
 		if (@$collection["commentOptions"]) {
 			$res = $collection["commentOptions"];
+		}
+		if (@$collection["name"]) {
+			$res["name"] = $collection["name"];
 		}
 		
 		return $res;

@@ -160,6 +160,11 @@ class Person {
 	  	return $person;
 	}
 
+	public static function getNameById($id) { 
+		$person = PHDB::findOneById( self::COLLECTION ,$id, array("name") );
+	  	return $person;
+	}
+
 
 	/**
 	 * Retrieve a simple user (id, name, profilImageUrl) by id from DB

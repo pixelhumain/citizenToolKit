@@ -1283,6 +1283,10 @@ class Element {
 	                	$res["afterSave"] = Project::afterSave($params, @$params["parentId"] , @$params["parentType"] );
 
 	                $res["afterSaveGbl"] = self::afterSave((string)$params["_id"],$collection,$params,$postParams);
+                
+	                 if( $collection == Poi::COLLECTION ){
+	                	var_dump($collection); var_dump($collection); exit ;
+	                }
                 }
                 else
                 	PHDB::update($collection,array("_id"=>new MongoId($id)), array('$set' => $params ));
@@ -1313,6 +1317,37 @@ class Element {
                 	$res["afterSave"] = Project::afterSave($params, @$params["parentId"] , @$params["parentType"] );
 
                 $res["afterSaveGbl"] = self::afterSave((string)$params["_id"],$collection,$params,$postParams);
+
+
+
+                if( $collection == Poi::COLLECTION ){
+
+                	
+
+					
+
+				   	if( !empty($params["parentId"]) && !empty($params["parentType"]) ){
+						$nameParent = Element::getNameById($params["parentId"], $params["parentType"]);
+						$target = array(	"id"=> $params["parentId"],
+				 							"type"=> $params["parentType"],
+				 							"name"=> $nameParent["name"]);
+
+
+						$object = array(	"id"=> (string)$params["_id"],
+				 							"type"=>$collection,
+				 							"name"=> $params["name"]);
+
+						$nameAuthor = Person::getNameById(Yii::app()->session["userId"]);
+				    	$author = array(	"id"=> Yii::app()->session["userId"],
+				 							"type"=> Person::COLLECTION,
+				 							"name"=> $nameAuthor["name"]);
+				    	$params = Mail::createParamsMails(ActStr::VERB_ADD, $target, $object, $author);
+				    	Mail::mailNotif($target["id"], $target["type"], $params);
+					}
+                }
+
+
+
 
                 if( false && @$params["parentType"] && @$params["parentId"] )
                 {
@@ -1442,6 +1477,26 @@ class Element {
 		$where["_id"] = new MongoId($id) ;
 		$element = PHDB::findOne($collection, $where ,$fields);
 		return @$element;
+	}
+
+	public static function getNameById($id, $collection){
+		$where["_id"] = new MongoId($id) ;
+		$element = PHDB::findOne($collection, $where ,array("name"));
+		return @$element;
+	}
+
+	public static function getParentById($id, $collection){
+		$where["_id"] = new MongoId($id) ;
+		$element = PHDB::findOne($collection, $where ,array("parentId", "parentType"));
+		if(!empty($element["parentId"]) && !empty($element["parentType"])){
+			$parentName = self::getNameById($element["parentId"], $element["parentType"]);
+			$parent = array("name" => $parentName["name"],
+							"id" => $element["parentId"],
+							"type" => $element["parentType"]);
+		}
+		else
+			$parent = null ;
+		return $parent;
 	}
 
 
