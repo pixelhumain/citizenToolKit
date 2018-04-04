@@ -2270,7 +2270,7 @@ public static function isUniqueEmail($email) {
 			unset($res["streetAddress"]);
 
 
-			if(count($res["postalCodes"]) == 1 ){
+			if(!empty($res["postalCodes"]) && count($res["postalCodes"]) == 1 ){
 				$res["allCP"] = true ;
 
 				if(!empty($res["postalCodes"][0]["postalCode"])){
