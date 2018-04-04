@@ -24,6 +24,6 @@ class UpdateFieldAction extends CAction
           return Rest::json(array("result"=>false,"msg"=>Yii::t("common","Invalid request")));
         }
         
-        return Rest::json(array("result"=>true, "msg"=>Yii::t("project","Project well updated"), $projectFieldName=>$projectFieldValue));
+        return Rest::json(array("result"=>true, "msg"=>Yii::t("project","The project has been updated"), $projectFieldName=>$projectFieldValue));
     }
 }

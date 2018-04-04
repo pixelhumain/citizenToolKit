@@ -128,28 +128,31 @@ class WebSearchAction extends CAction
         if($currentSearch == "")
             $currentSearch = @$_POST["category"] ? "#".$_POST["category"] : "";
 
-        if($currentSearch != ""){
+        if($currentSearch != ""){ 
+       // echo "you are in currentSearch : ".$currentSearch; exit;
             $paramsGAC = array( "name" => $currentSearch,
                                 "searchType"=>array(Person::COLLECTION, Project::COLLECTION, 
                                                     Organization::COLLECTION, Event::COLLECTION, Poi::COLLECTION)
                             );
 
             $elements = Search::globalAutoComplete($paramsGAC);
-            //if(sizeof($elements)==0){
-                $paramsGAC = array( "searchTag" => array($currentSearch),
+            $elements = $elements["results"];
+        //if(sizeof($elements)==0){
+                $paramsGAC = array( "searchTag" => array("#".$currentSearch),
                                     "searchType"=>array(Person::COLLECTION, Project::COLLECTION, 
                                                         Organization::COLLECTION, Event::COLLECTION, Poi::COLLECTION)
                             );
                 $elementsTags = Search::globalAutoComplete($paramsGAC);
             //}
-
-            if(sizeof($elementsTags)>0)
-                $elements = array_merge($elements, $elementsTags);
+               // echo sizeof($elementsTags);
+//var_dump($elements); exit;
+           if(sizeof($elementsTags["results"])>0)
+               $elements = array_merge($elements, $elementsTags["results"]);
 
             $params["elements"] = $elements;
         }
         /*complete search with element*/
-
+       // var_dump($params); exit;
         CO2Stat::incNbLoad("co2-websearch");
     	echo $controller->renderPartial("webSearch", $params, true);
     }

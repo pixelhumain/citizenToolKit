@@ -11,11 +11,20 @@ class Proposal
   	const STATUS_CLOSED 	= "closed";
 	const STATUS_ARCHIVED 	= "archived";
 
+	public static $colorChartMultipleChoice = 
+					array ("#68db87", "#68cbdb", "#e4cf58", 
+						   "#e47158", "#b793d4", "#f59580", 
+						   "#f5c680", "#80f586", "#8f80f5", "#f580ba" );
+
+
 	public static $dataBinding = array (
 		
 		"title" 				=> array("name" => "title"),
 		"shortDescription" 		=> array("name" => "shortDescription"),
 		"description" 			=> array("name" => "description", 			"rules" => array("required")),
+		
+		"answers"				=> array("name" => "answers"),
+
 		"arguments" 			=> array("name" => "arguments"),
 		"tags" 					=> array("name" => "tags"),
 	    "urls" 					=> array("name" => "urls"),
@@ -26,6 +35,12 @@ class Proposal
 		"amendementDateEnd" 	=> array("name" => "amendementDateEnd"),
 		"durationAmendement" 	=> array("name" => "durationAmendement"),
 		
+		"address" => array("name" => "address", "rules" => array("addressValid")),
+	    "addresses" => array("name" => "addresses"),
+	    
+	    "geo" => array("name" => "geo", "rules" => array("geoValid")),
+	    "geoPosition" => array("name" => "geoPosition", "rules" => array("geoPositionValid")),
+	    
 		// true / false
 		"voteActivated" 		=> array("name" => "voteActivated", 		"rules" => array("required")),
 		"voteDateEnd" 			=> array("name" => "voteDateEnd"),
@@ -66,8 +81,18 @@ class Proposal
 	}
 
 	public static function getById($id) {
-		$survey = PHDB::findOneById( self::COLLECTION , $id );
-		return $survey;
+		$proposal = PHDB::findOneById( self::COLLECTION , $id );
+		$proposal["type"] = self::COLLECTION;
+		$proposal["voteRes"] = self::getAllVoteRes($proposal);
+
+		$proposal["hasVote"] = @$proposal["votes"] ? Cooperation::userHasVoted(
+													@Yii::app()->session['userId'], $proposal["votes"]) : false; 
+		if(@$proposal["parentType"] &&  @$proposal["parentType"] != null &&
+		   @$proposal["parentId"] 	&&  @$proposal["parentId"] != null){
+			$proposal["auth"] = Authorisation::canParticipate(@Yii::app()->session['userId'], 
+															  @$proposal["parentType"], @$proposal["parentId"]);
+		}
+		return $proposal;
 	}
 
 	public static function getSimpleSpecById($id, $where=null, $fields=null){
@@ -92,11 +117,22 @@ class Proposal
 
  		$votes = @$proposal["votes"] ? $proposal["votes"] : array();
 
- 		if(!@$votes["up"]) $votes["up"] = array();
- 		if(!@$votes["down"]) $votes["down"] = array();
- 		if(!@$votes["white"]) $votes["white"] = array();
- 		if(!@$votes["uncomplet"]) $votes["uncomplet"] = array();
-
+ 		
+ 		if(@$proposal["answers"]){
+ 			$voteRes = $proposal["answers"];
+ 			//$votes = array();
+ 			foreach ($voteRes as $key => $value) {
+ 				$voteRes[$key] = array( "bg-color"=> "vote-".$key,
+ 									 	"bg-color-val"=> self::getColorChart($key),
+ 									 	"voteValue"=>$value);
+ 				if(!@$votes[$key]) $votes[$key] = array();
+ 			}
+ 		}else{
+ 			if(!@$votes["up"]) $votes["up"] = array();
+	 		if(!@$votes["down"]) $votes["down"] = array();
+	 		if(!@$votes["white"]) $votes["white"] = array();
+	 		if(!@$votes["uncomplet"]) $votes["uncomplet"] = array();
+ 		}
  		//$voteRes = array("up"=>array(), );
 
  		$totalVotant = 0;
@@ -108,6 +144,8 @@ class Proposal
  			$voteRes[$key]["percent"] = $totalVotant > 0 ? round($voteRes[$key]["votant"] * 100 / $totalVotant, 2) : 0;
  		}
 
+ 		//var_dump($voteRes); echo "<br><br>"; var_dump($votes); exit;
+ 		
  		return $voteRes;
 	}
 	public static function getTotalVoters($proposal){
@@ -143,6 +181,10 @@ class Proposal
 
         PHDB::insert(self::COLLECTION, $moderation );
         error_log("moderation created");
+	}
+
+	private static function getColorChart($key){
+		return @self::$colorChartMultipleChoice[$key] ? self::$colorChartMultipleChoice[$key] : "#c6c6c6";
 	}
 }
 
