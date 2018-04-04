@@ -16,6 +16,7 @@ class Cron {
 	const STATUS_PENDING = "pending";
 	const STATUS_FAIL = "fail";
 	const STATUS_DONE = "done";
+	const STATUS_UPDATE = "update";
 
 	const EXEC_COUNT = 5;
 	/**
