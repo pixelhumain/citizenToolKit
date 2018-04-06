@@ -196,7 +196,7 @@ class Link {
      * @param type $role array if user added has a role in parent item
      * @return result array with the result of the operation
      */
-    public static function connect($originId, $originType, $targetId, $targetType, $userId, $connectType,$isAdmin=false,$pendingAdmin=false,$isPending=false, $isInviting=false, $role="") {
+    public static function connect($originId, $originType, $targetId, $targetType, $userId, $connectType,$isAdmin=false,$pendingAdmin=false,$isPending=false, $isInviting=false, $role="", $settings=false) {
 	    //0. Check if the $originId and the $targetId exists
         $origin = Element::checkIdAndType($originId, $originType);
 		$target = Element::checkIdAndType($targetId, $targetType);
@@ -232,10 +232,10 @@ class Link {
                 $links["links.".$connectType.".".$targetId.".".Link::IS_ADMIN_PENDING] = true;
             }
         }
-        if ($role != ""){
+        if ($role != "")
         	$links["links.".$connectType.".".$targetId.".roles"] = $role;
-        }
-
+        if($settings)
+            $links["links.".$connectType.".".$targetId.".".$settings["name"]] = $settings["value"];
 	    //2. Create the links
         PHDB::update($originType, 
                        array("_id" => $origin["_id"]) , 

@@ -28,7 +28,13 @@ class Preference {
 		$res = array("result" => true, "msg" => Yii::t("common","Your request is well updated"));
 		return $res;
 	}
-	
+
+	public static updateSettings($userId, $params){
+		$settings=array("name"=>$params["name"],"value"=>$params["value"])
+		Link::connect($parentId, $parentType, $childId, $childType,Yii::app()->session["userId"], $parentConnectAs, null, null, null,null, null, $settings);
+ 		Link::connect($childId, $childType, $parentId, $parentType, Yii::app()->session["userId"], $childConnectAs, null, null, null, null, null, $settings);
+	}
+
 	public static function updateConfidentiality($id, $type, $param){
 		if ($type == Person::COLLECTION){
 			$id = $param["idEntity"];
