@@ -62,7 +62,7 @@ class Mail {
         
 
 
-        $mail = Mail::getMailUpdate(Yii::app()->params['adminEmail'], 'notifAdminNewPro') ;
+        $mail = Mail::getMailUpdate(Yii::app()->params['adminEmail'], 'notifAdminNewUser') ;
 
     	if(!empty($mail)){
             $mail["tplParams"]["data"][] = $person;

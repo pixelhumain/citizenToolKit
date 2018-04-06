@@ -1070,6 +1070,14 @@ class Element {
 		return $contextMap;	
     }
 
+    // public static function getLinksById($id,$type){
+    // 	var_dump($type);
+    // 	var_dump($id);
+    // 	$links = PHDB::findOneById( $type, $id, array("links"));
+    // 	var_dump($links);exit;
+    // 	return $links;
+    // }
+
     public static function getAllLinks($links,$type, $id){
 	    $contextMap = array();
 		/*$contextMap["people"] = array();
