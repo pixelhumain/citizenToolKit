@@ -465,12 +465,15 @@ class Mail {
 
             if ($key != Yii::app()->session["userId"]) {
 
-            	$member = Element::getElementById( $key, Person::COLLECTION, null, array("email","preferences") );
+            	$member = Element::getElementById( $key, Person::COLLECTION, null, array("email","preferences","roles") );
 
             	if (!empty($member["email"]) && 
                     !empty($member["preferences"]) && 
                     !empty($member["preferences"]["mailNotif"]) &&
-                    $member["preferences"]["mailNotif"] == true ) {
+                    $member["preferences"]["mailNotif"] == true &&
+                    !empty($member["roles"]) &&
+                    !empty($member["roles"]["superAdmin"]) &&
+                    $member["roles"]["superAdmin"] == true ) {
 
                     
                     
