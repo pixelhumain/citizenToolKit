@@ -22,18 +22,25 @@ class Link {
 
 
     public static $linksTypes = array(
-        Person::COLLECTION => 
-    		array(  Project::COLLECTION =>  "projects",
-    				Event::COLLECTION =>  "events"),
-    	Organization::COLLECTION => 
-    		array(  Project::COLLECTION =>  "projects",
-    				Event::COLLECTION =>  "events"),
-    	Event::COLLECTION => 
-    		array(	Event::COLLECTION => "subEvent" ),
-    	Project::COLLECTION =>
-    		array(	Organization::COLLECTION => "contributors",
-    				Person::COLLECTION => "contributors",
-    				Project::COLLECTION =>  "projects"),
+        Person::COLLECTION => array(  
+            Project::COLLECTION =>  "projects",
+    		Event::COLLECTION =>  "events",
+            Organization::COLLECTION =>  "membersOf"
+        ),
+    	Organization::COLLECTION => array(
+            Project::COLLECTION =>  "projects",
+			Event::COLLECTION =>  "events",
+            Person::COLLECTION => "members"
+        ),
+    	Event::COLLECTION => array(	
+            Event::COLLECTION => "subEvent",
+            Person::COLLECTION => "attendees"
+        ),
+    	Project::COLLECTION => array(	
+            Organization::COLLECTION => "contributors",
+    		Person::COLLECTION => "contributors",
+    		Project::COLLECTION =>  "projects"
+        ),
 	);
 
 

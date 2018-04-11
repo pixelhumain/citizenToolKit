@@ -32,9 +32,11 @@ class Notification{
 		ActStr::VERB_FOLLOW => array(
 			"repeat" => true,
 			//"context" => array("user","members"),
-			"mail" => array(
-				"type"=>"daily"
-			),
+			"mail" => {
+				"settings"=>"low"
+				"tpl"=>"follow",
+			},
+
 			//WHAT == you || elementName
 			"type"=> array(
 				"user"=> array(
@@ -64,9 +66,10 @@ class Notification{
 			),
 			"labelArray" => array("who","where"),
 			"context" => "admin",
-			"mail" => array(
-				"type"=>"instantly"
-			),
+			"mail" => {
+				"settings"=>"high"
+				"tpl"=>"askToBecomeAdmin",
+			},
 			"icon" => "fa-cog",
 			"url" => "page/type/{collection}/id/{id}/view/notifications"
 		),
@@ -90,8 +93,13 @@ class Notification{
 			),
 			"labelArray" => array("who","where"),
 			"mail" => array(
-				"type"=>"instantly"
+				"settings"=>"default",
+				"tpl"=>"delete"
 			),
+			"settings"=>"low",
+			"mail" => {
+				"tpl"=>"delete",
+			},
 			"icon" => "fa-trash",
 		),
 		//// USED ONLY FOR EVENT
@@ -99,8 +107,9 @@ class Notification{
 		ActStr::VERB_JOIN => array(
 			"repeat" => true,
 			//"context" => "members",
+			"settings"=>"high",
 			"mail" => array(
-				"type"=>"daily"
+				"tpl"=>"join"
 			),
 			"type" => array(
 				"asMember"=> array(
@@ -201,9 +210,9 @@ class Notification{
 				)
 			),
 			"labelArray" => array("who","where"),
+			"settings"=> "default",
 			"mail" => array(
-				"type"=>"instantly",
-				"to" => "author" //If orga or project to members
+				"tpl" => "comment" //If orga or project to members
 			),
 			"icon" => "fa-comment"
 			//"url" => "{whatController}/detail/id/{whatId}"
@@ -250,6 +259,7 @@ class Notification{
 				)
 			),
 			"labelArray" => array("who", "where"),
+			"settings"=> "default",
 			"mail" => array(
 				"type"=>"instantly",
 				"to" => "author" //If orga or project to members
@@ -298,6 +308,7 @@ class Notification{
 				)
 			),
 			"labelArray" => array("who", "where"),
+			"settings"=> "default",
 			"mail" => array(
 				"type"=>"instantly",
 				"to" => "author" //If orga or project to members
@@ -324,10 +335,12 @@ class Notification{
 					"labelRepeat" => "{who} writes posts on the wall of {where}"
 				)
 			),
+			"settings"=> "default",
 			"url" => "page/type/{collection}/id/{id}",
 			"labelArray" => array("who", "where"),
 			"icon" => "fa-rss"
 		),
+		// TODO BOUBOULE - ADD REPEAT ACTIONS FOR SAME TYPE ELEMENT ADDED
 		ActStr::VERB_ADD => array(
 			"type" => array(
 				/*"need"=> array(
@@ -404,6 +417,7 @@ class Notification{
 				"city" => true
 			),*/
 			//"label"=>"{who} added {type} {what} in {where}",
+			"settings"=> "default",
 			"labelArray" => array("who","where","what"),
 			"icon" => "fa-plus"
 		),
@@ -413,7 +427,8 @@ class Notification{
 			"labelRepeat"=>"{who} have voted on {what} in {where}",
 			"labelArray" => array("who","where"),
 			"icon" => ActStr::ICON_VOTE,
-			"url" =>  "page/type/{collection}/id/{id}/view/coop/room/{roomId}/proposal/{objectId}"
+			"url" =>  "page/type/{collection}/id/{id}/view/coop/room/{roomId}/proposal/{objectId}",
+			"settings"=> "default",
 		),
 		ActStr::VERB_AMEND => array(
 			"repeat" => true,
@@ -421,7 +436,8 @@ class Notification{
 			"labelRepeat"=>"{who} have amended the proposal {what} in {where}",
 			"labelArray" => array("who","where"),
 			"icon" => ActStr::ICON_VOTE,
-			"url" =>  "page/type/{collection}/id/{id}/view/coop/room/{roomId}/proposal/{objectId}"
+			"url" =>  "page/type/{collection}/id/{id}/view/coop/room/{roomId}/proposal/{objectId}",
+			"settings"=> "default",
 		),
 
 		/*
@@ -452,7 +468,8 @@ class Notification{
 			),
 			"labelArray" => array("who","where"),
 			"icon" => "fa-check",
-			"url" => "page/type/{collection}/id/{id}/view/directory/dir/{connectAs}"
+			"url" => "page/type/{collection}/id/{id}/view/directory/dir/{connectAs}",
+			"settings"=> "high",
 		),
 		//FROM USER LINK TO AN ELEMENT ACTING ON IT
 		ActStr::VERB_INVITE => array(
@@ -480,6 +497,7 @@ class Notification{
 			),
 			"labelArray" => array("author","who","where"),
 			"context" => "admin",
+			"settings"=> "high",
 			"mail" => array(
 				"type"=>"instantly",
 				"to" => "user"
@@ -519,6 +537,7 @@ class Notification{
 			),
 			"labelArray" => array("author","who","where"),
 			"icon" => "fa-check",
+			"settings"=> "high",
 			"url" => "page/type/{collection}/id/{id}/view/directory/dir/{connectAs}"
 		)/*,
 		"SIGNIN" => array(
