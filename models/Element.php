@@ -339,6 +339,8 @@ class Element {
 			$element = PHDB::findOne( Room::COLLECTION ,array("_id"=>new MongoId($id)));
 		else if($type == Network::COLLECTION )
 			$element = Network::getById($id);
+		else if($type == Service::COLLECTION)
+			$element = Service::getById($id);
 		else
 			$element = PHDB::findOne($type,array("_id"=>new MongoId($id)));
 	  	
