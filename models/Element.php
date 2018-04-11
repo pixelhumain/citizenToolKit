@@ -1293,6 +1293,77 @@ class Element {
 	}
 
 	/**
+		Get communtiy of an element, complete or linked to specific search
+		* @param String $typeCommunity : get specific type of element in a community
+		* @param String $attribute defined the kind of community : members / admin / pending
+		* @param String $role : get sepecific member with role,
+		* @param String $settings : in order to get specific community towards a notifications and emails settings
+	**/
+	public static function getCommunityByTypeAndId($type, $id, $typeCommunity="all", $attribute=null, $role=null, $settings=null) {
+		$res = array();
+	  	$element = self::getElementSimpleById($id, $type, null, array("links"));
+	  	
+	  	if (empty($element)) {
+            throw new CTKException(Yii::t("common", "The id of {what} is unkown : please contact us to fix this problem", array("{what}"=>Yii::t("common","this ".self::getControlerByCollection($type)))));
+        }
+	  	
+	  	if ( isset($element) && isset( $element["links"] ) && isset( $element["links"][Link::$linksTypes[$type][Person::COLLECTION]] ) ) 
+	  	{
+	  		$community = array();
+	  		foreach ($element["links"][Link::$linksTypes[$type][Person::COLLECTION]] as $key => $value) {
+	  			$add=false;
+	  			$searchInAttribute=false;
+		        if(!@$value["toBeValidated"] && !@$value["isInviting"]){
+			        $add = ($typeCommunty=="all" || $value['type'] == $typeCommunity) ? true : false;
+			        if($attribute !== null){  
+			        	if($attribute=="isAdmin" && @$value["isAdmin"] && !@$value["isAdminPending"]){
+			        		$add = (empty($role) || (!empty($role) && @$value["roles"] && in_array($role, $value["roles"]))) ? true : false;
+			        	}
+			        	else if($attribute=="onlyMembers" && !@$value["isAdmin"]){
+			        		$add = (empty($role) || (!empty($role) && @$value["roles"] && in_array($role, $value["roles"]))) ? true : false;
+			        	}
+			        	else{
+			        		$add=false;
+			        	}
+			        	$searchInAttribute=false;
+			        }
+			        if($searchInAttribute == false && $roles !== null){
+			        	if(@$value["roles"] && in_array($role, $value["roles"])
+			        		$add=true;
+			        	else
+			        		$add=false;
+			        }
+			        if($settings !== null){
+			        	if(@$value[$settings["type"]]){
+			        		if($settings["value"]=="high" && $value[$settings["type"]]=="high")
+			        			$add=true;
+			        		else if($settings["value"]=="default" && in_array($value[$settings["type"]],["default","high"]))
+			        			$add=true;
+			        		else if($settings["value"]=="low" && $value[$settings["type"]] != "desactivated")
+			        			$add=true;
+			        		else
+			        			$add=false;
+			        	}
+			        	else if(in_array($settings["type"], ["low", "default"])){
+			        		$add=true;
+			        	}else
+			        		$add=false;
+			        }
+			    }
+
+		    	if($add){
+	        		if(@$settings && $settings["type"]=="mail"){
+	        			$mail=Person::getEmailById($value); 
+	        			$res[$key] = $mail["email"];
+	        		}else
+	        			$res[$key] = $value;
+	        	}
+	  		}
+	  	}
+	  	return $res;
+	}
+
+	/**
 	 * Demande la suppression d'un élément
 	 * - Si creator demande la suppression et organisation vide (pas de links, pas de members) => suppression de l’orga
 	 * - Si superadmin => suppression direct
