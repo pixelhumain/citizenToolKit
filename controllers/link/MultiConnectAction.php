@@ -29,9 +29,10 @@ class MultiConnectAction extends CAction
 							$child[] = array( 	"childId" => $key,
 												"childType" => Person::COLLECTION,
 												"childName" => $value["name"],
-												"roles"=> "");
-							//var_dump($child["roles"]); exit;
-							//$res[] = Link::multiconnect($child, $_POST["parentId"], $_POST["parentType"]);
+												"roles"=> $value["roles"]);
+							//var_dump($child);
+							
+							$res[] = Link::multiconnect($child, $_POST["parentId"], $_POST["parentType"]);
 						}
 					}
 				}
@@ -55,8 +56,9 @@ class MultiConnectAction extends CAction
 								$child[] = array( 	"childId" => $creatUser["id"],
 													"childType" => Person::COLLECTION,
 													"childName" => $value["name"],
-													"roles"=> "");
-								//$res[] = Link::multiconnect($child, $_POST["parentId"], $_POST["parentType"]);
+													"roles"=> $value["roles"]);
+								//var_dump($child);
+								$res[] = Link::multiconnect($child, $_POST["parentId"], $_POST["parentType"]);
 							}
 						}
 					}
@@ -74,13 +76,14 @@ class MultiConnectAction extends CAction
 							$child[] = array( 	"childId" => $key,
 												"childType" => Organization::COLLECTION,
 												"childName" => $value["name"],
-												"roles"=> "");
+												"roles"=> $value["roles"]);
+							//var_dump($child);
 							$res[] = Link::multiconnect($child, $_POST["parentId"], $_POST["parentType"]);
 						}
 					}
 				}
 
-				var_dump($res); exit;
+				//var_dump($res); exit;
 				return Rest::json($res);
 				// $res = Element::updateBlock($_POST);
 				// return Rest::json($res);

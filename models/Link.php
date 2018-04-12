@@ -768,9 +768,9 @@ class Link {
             throw new CTKException(Yii::t("common","Can not manage the type ").$parentType);
 
         //Retrieve the child info
-        var_dump($childId);
+        //var_dump($childId);
         $pendingChild = Person::getById($childId);
-        var_dump($pendingChild);exit;
+        //var_dump($pendingChild);exit;
         if (!$pendingChild) {
             return array("result" => false, "msg" => "Something went wrong ! Impossible to find the children ".$childId);
         }
@@ -932,6 +932,7 @@ class Link {
         else
             $levelNotif="asMember";
         //First case : The parent doesn't have an admin yet or it is an action from an admin or it is an event: 
+
 		if (count($usersAdmin) == 0 || $actionFromAdmin || ($actionFromMember && $childId != Yii::app()->session["userId"]) || $parentType == Event::COLLECTION) {
             //the person is automatically added as member (admin or not) of the parent
             //var_dump("here");
@@ -985,6 +986,7 @@ class Link {
 					$msg= $pendingChild["name"]." ".Yii::t("common","is now ".$typeOfDemand." of")." ".$parentData["name"];
 				}*/
 			}
+            
 			// Check if links follows exists than if true, remove of follows and followers links
 			self::checkAndRemoveFollowLink($parentId,$parentType,$childId,$childType);
 			$toBeValidatedAdmin=false;
@@ -1027,7 +1029,7 @@ class Link {
             $msg = Yii::t("common","Your request has been sent to other admins.");
             // After : the 1rst existing Admin to take the decision will remove the "pending" to make a real admin
         } 
-        
+       
 		Link::connect($parentId, $parentType, $childId, $childType,Yii::app()->session["userId"], $parentConnectAs, $isConnectingAdmin, $toBeValidatedAdmin, $toBeValidated, $isInviting, $userRole);
 		Link::connect($childId, $childType, $parentId, $parentType, Yii::app()->session["userId"], $childConnectAs, $isConnectingAdmin, $toBeValidatedAdmin, $toBeValidated, $isInviting, $userRole);
         Notification::constructNotification($verb, $pendingChild , array("type"=>$parentType,"id"=> $parentId,"name"=>$parentData["name"]), null, $levelNotif);
@@ -1217,6 +1219,8 @@ class Link {
 				}
 			}
 	 	}
+
+
 	 	if($finalResult == true){
 		 	if($msg==1)
 		 		$msg = Yii::t("common","New member(s) have been succesfully added");

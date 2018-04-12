@@ -715,8 +715,8 @@ class Element {
 			$set = array("organizerId" => $fieldValue["organizerId"], 
 							 "organizerType" => $fieldValue["organizerType"]);
 			//get element and remove current organizer
-			var_dump($fieldValue);
-			exit;
+			//var_dump($fieldValue);
+			//exit;
 			$element = self::getElementById($id, $collection);
 			if( !empty($element["organizerId"]) || !empty($element["links"]["organizer"]) ){
 				$oldOrganizerId = @$element["organizerId"] ? $element["organizerId"] : $element["links"]["organizer"];
