@@ -32,11 +32,7 @@ class Notification{
 		ActStr::VERB_FOLLOW => array(
 			"repeat" => true,
 			//"context" => array("user","members"),
-			"mail" => {
-				"settings"=>"low"
-				"tpl"=>"follow",
-			},
-
+			"settings"=>"low",
 			//WHAT == you || elementName
 			"type"=> array(
 				"user"=> array(
@@ -66,10 +62,7 @@ class Notification{
 			),
 			"labelArray" => array("who","where"),
 			"context" => "admin",
-			"mail" => {
-				"settings"=>"high"
-				"tpl"=>"askToBecomeAdmin",
-			},
+			"settings"=>"high",
 			"icon" => "fa-cog",
 			"url" => "page/type/{collection}/id/{id}/view/notifications"
 		),
@@ -92,14 +85,7 @@ class Notification{
 				)
 			),
 			"labelArray" => array("who","where"),
-			"mail" => array(
-				"settings"=>"default",
-				"tpl"=>"delete"
-			),
-			"settings"=>"low",
-			"mail" => {
-				"tpl"=>"delete",
-			},
+			"settings"=>"default",
 			"icon" => "fa-trash",
 		),
 		//// USED ONLY FOR EVENT
@@ -557,17 +543,18 @@ class Notification{
 	* params string $alreadyAuthorNotify could be used if a notification for a specific user is already create
 	* return array of id with two boolean for each id, isUnseen && isUnread
 	**/
-	public static function communityToNotify($construct, $alreadyAuhtorNotify=null){
+	public static function communityToNotify($construct, $alreadyAuhtorNotify=null, $notificationType="notifications"){
 		//inform the entities members of the new member
 		//build list of people to notify
 		$type=$construct["target"]["type"];
 		$id=$construct["target"]["id"];
 		$impactType="all";
 		$impactRole=null;
-		if(@$construct["context"]){
+		if(@$construct["context"] || Event::COLLECTION){
 			$impactType=Person::COLLECTION;
 			$impactRole="isAdmin";
 		}
+		$settings=array("type"=>$notificationType, "value"=>$construct["settings"]);
         $people = array();
 	    $members = array();
 	    if(in_array($type, array( Proposal::COLLECTION))){
@@ -575,7 +562,8 @@ class Notification{
 	    	$type=$prop["parentType"];
 	    	$id=$prop["parentId"];
 	    }
-	    if( $type == Project::COLLECTION )
+	    $members = Element::getCommunityByTypeAndId($type, $id ,$impactType, $impactRole, null, $settings);
+	    /*if( $type == Project::COLLECTION )
 	    	$members = Project::getContributorsByProjectId( $id ,$impactType, $impactRole);
 	    else if( $type == Organization::COLLECTION)
 	    	$members = Organization::getMembersByOrganizationId( $id ,$impactType, $impactRole) ;
@@ -585,6 +573,10 @@ class Notification{
 	    	if($construct["verb"]==ActStr::VERB_CONFIRM && @$construct["target"]["invitorId"] && !@$members[$construct["target"]["invitorId"]]){
 	    		$members[$construct["target"]["invitorId"]]=array();
 	    	}
+	    }*/
+	    // ADD INVITOR IF NOT IN ADMIN LIST
+	    if($type == Event::COLLECTION && $construct["verb"]==ActStr::VERB_CONFIRM && @$construct["target"]["invitorId"] && !@$members[$construct["target"]["invitorId"]]){
+	    	$members[$construct["target"]["invitorId"]]=array();
 	    }
 	    if($construct["verb"]==Actstr::VERB_DELETE && $construct["levelType"]==ActStr::VERB_REFUSE){
 	    	$userAskingToDelete=Element::getElementSimpleById($id, $type, null,array("userAskingToDelete"));
@@ -601,15 +593,21 @@ class Notification{
 				if(($alreadyAuhtorNotify != $authorNews["author"] && $news["target"]["type"]==Person::COLLECTION) || ( $news["target"]["type"] !=Person::COLLECTION && Yii::app()->session["userId"]!=$authorNews["author"])){
 					//echo $alreadyAuhtorNotify;
 					if($news["target"]["type"] !=Person::COLLECTION){
-						if( $news["target"]["type"] == Project::COLLECTION )
+						if($news["target"]["id"]){
+							$impactType="all";
+							$impactRole=null;
+						}
+						$members = Element::getCommunityByTypeAndId($news["target"]["type"], $news["target"]["id"] ,$impactType, $impactRole, null, $settings);
+						/*if( $news["target"]["type"] == Project::COLLECTION )
 	    					$members = Project::getContributorsByProjectId( $news["target"]["id"] ,$impactType, $impactRole);
 	    				else if( $news["target"]["type"] == Organization::COLLECTION)
 	    					$members = Organization::getMembersByOrganizationId( $news["target"]["id"] ,$impactType, $impactRole);
 	    				else if( $news["target"]["type"] == Event::COLLECTION )
-	    					$members = Event::getAttendeesByEventId( $news["target"]["id"] , "all", null ) ;
+	    					$members = Event::getAttendeesByEventId( $news["target"]["id"] , "all", null ) ;*/
 					}
-					else
+					else{
 						$people[$authorNews["author"]] = array("isUnread" => true, "isUnseen" => true);
+					}
 				}
 			} 
 		} 
