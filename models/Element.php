@@ -1314,21 +1314,18 @@ class Element {
 	  			$add=false;
 	  			$searchInAttribute=false;
 		        if(!@$value["toBeValidated"] && !@$value["isInviting"]){
-			        $add = ($typeCommunty=="all" || $value['type'] == $typeCommunity) ? true : false;
+			        $add = ($typeCommunity=="all" || $value['type'] == $typeCommunity) ? true : false;
 			        if($attribute !== null){  
-			        	if($attribute=="isAdmin" && @$value["isAdmin"] && !@$value["isAdminPending"]){
+			        	if($attribute=="isAdmin" && @$value["isAdmin"] && !@$value["isAdminPending"])
 			        		$add = (empty($role) || (!empty($role) && @$value["roles"] && in_array($role, $value["roles"]))) ? true : false;
-			        	}
-			        	else if($attribute=="onlyMembers" && !@$value["isAdmin"]){
+			        	else if($attribute=="onlyMembers" && !@$value["isAdmin"])
 			        		$add = (empty($role) || (!empty($role) && @$value["roles"] && in_array($role, $value["roles"]))) ? true : false;
-			        	}
-			        	else{
+			        	else
 			        		$add=false;
-			        	}
 			        	$searchInAttribute=false;
 			        }
-			        if($searchInAttribute == false && $roles !== null){
-			        	if(@$value["roles"] && in_array($role, $value["roles"])
+			        if($searchInAttribute == false && $role !== null){
+			        	if(@$value["roles"] && in_array($role, $value["roles"]))
 			        		$add=true;
 			        	else
 			        		$add=false;
@@ -1344,13 +1341,12 @@ class Element {
 			        		else
 			        			$add=false;
 			        	}
-			        	else if(in_array($settings["type"], ["low", "default"])){
+			        	else if(in_array($settings["type"], ["low", "default"]))
 			        		$add=true;
-			        	}else
+			        	else
 			        		$add=false;
 			        }
 			    }
-
 		    	if($add){
 	        		if(@$settings && $settings["type"]=="mail"){
 	        			$mail=Person::getEmailById($value); 
