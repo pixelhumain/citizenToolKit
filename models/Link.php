@@ -25,7 +25,7 @@ class Link {
         Person::COLLECTION => array(  
             Project::COLLECTION =>  "projects",
     		Event::COLLECTION =>  "events",
-            Organization::COLLECTION =>  "membersOf"
+            Organization::COLLECTION =>  "memberOf"
         ),
     	Organization::COLLECTION => array(
             Project::COLLECTION =>  "projects",
