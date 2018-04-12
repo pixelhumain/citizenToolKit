@@ -75,6 +75,7 @@ class Cooperation {
 				$res["allCount"] = self::getAllCount($parentType, $parentId);
 
 			}else{ //si un d'id : prend récupère toutes les proposals & actions & resolutions de la room
+				if(isset($dataId) && $dataId != "undefined")
 				$res["room"] = Room::getById($dataId);
 
 				$query = array( "idParentRoom" => $dataId, 

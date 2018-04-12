@@ -758,6 +758,7 @@ class Link {
      * @return result array with the result of the operation
      */
 	public static function follow($parentId, $parentType, $child){
+        
 		$childId = @$child["childId"];
         $childType = $child["childType"];
         $levelNotif=null;
@@ -774,7 +775,9 @@ class Link {
             throw new CTKException(Yii::t("common","Can not manage the type ").$parentType);
 
         //Retrieve the child info
+        var_dump($childId);
         $pendingChild = Person::getById($childId);
+        var_dump($pendingChild);exit;
         if (!$pendingChild) {
             return array("result" => false, "msg" => "Something went wrong ! Impossible to find the children ".$childId);
         }
@@ -1169,11 +1172,11 @@ class Link {
 	}
 
 
-	private static function multiconnect($child, $parentId, $parentType){
-		assert('!empty($_POST["childs"])'); //The childs are mandatory');
-	    //assert('!empty($_POST["childType"])'); //The child type is mandatory');
-	    assert('!empty($_POST["parentId"])'); //The parent id is mandatory');
-	    assert('!empty($_POST["parentType"])'); //The parent type is mandatory');
+	public static function multiconnect($child, $parentId, $parentType){
+		// assert('!empty($child)'); //The childs are mandatory');
+	 //    //assert('!empty($_POST["childType"])'); //The child type is mandatory');
+	 //    assert('!empty($parentId)'); //The parent id is mandatory');
+	 //    assert('!empty($parentType)'); //The parent type is mandatory');
 
 	    $result = array("result"=>false, "msg"=>Yii::t("common", "Incorrect request"));
 		
@@ -1181,14 +1184,15 @@ class Link {
 			return array("result"=>false, "msg"=>Yii::t("common", "You are not loggued or do not have acces to this feature "));
 		}
 	
-		$parentId = $_POST["parentId"];
-    	$parentType = $_POST["parentType"];
+		// $parentId = $parentId;
+  //   	$parentType = $parentType;
     	//$isConnectingAdmin = @$_POST["connectType"];
 		$newMembers = array();
 		$msg=false;
 		$finalResult = false;
 		$onlyOrganization=true;
-		foreach($_POST["childs"] as $key => $contact){
+
+		foreach($child as $key => $contact){
 			if(@$contact["childId"] != $parentId ){
 				$roles="";
 			    $child = array(
@@ -1197,13 +1201,13 @@ class Link {
 			    	"childName" => @$contact["childName"],
 					"childEmail" => @$contact["childEmail"],
 			    );
-			    if(@$contact["roles"])
+			    if(!empty($contact["roles"]))
 			    	$roles=$contact["roles"];
 		    	if($child["childType"]==Person::COLLECTION)
 		    		$onlyOrganization=false;    	
 		    	$isConnectingAdmin= (@$contact["connectType"]=="admin") ? true : false;
 		    	
-		    	$res = Link::connectParentToChild($parentId, $parentType, $child, $isConnectingAdmin, Yii::app()->session["userId"], $roles);
+                $res = Link::connectParentToChild($parentId, $parentType, $child, $isConnectingAdmin, Yii::app()->session["userId"], $roles);
 		    	if($res["result"] == true){
 			    	if($msg != 2)
 			    		$msg=1;
@@ -1227,6 +1231,8 @@ class Link {
 		 		$msg = Yii::t("common","New member(s) have been succesfully added except those already in the community");		 		
 	 		$result = array("result"=>true, "msg" => $msg,"newMembers" => $newMembers, "onlyOrganization"=>$onlyOrganization);
 		}else $result = $res;
+
+        return $res;
 	}
 } 
 ?>

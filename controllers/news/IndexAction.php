@@ -212,7 +212,7 @@ class IndexAction extends CAction
 						$orRequest=array(
 							array("author"=> $id,"targetIsAuthor"=>array('$exists'=>false),"type"=>"news"), 
 							array("target.id"=> $id, "target.type" => Person::COLLECTION),
-							array("sharedBy.id"=>array('$in'=>array($id))),
+							array("sharedBy.id"=>array('$in'=>array($id)), "verb"=> "share"),
 						);
 					} else {
 						$orRequest=array(
@@ -222,7 +222,7 @@ class IndexAction extends CAction
 								"scope.type"=> array('$in'=> $scope)
 							), 
 							array("target.id"=> $id, "scope.type"=> array('$in'=> $scope),
-							array("sharedBy.id"=>array('$in'=>array($id))))
+							array("sharedBy.id"=>array('$in'=>array($id)),"verb"=> "share"))
 						);
 					}
 					if((!@$params["canManageNews"] || $params["canManageNews"] == false ) && @Yii::app()->session["userId"]){
