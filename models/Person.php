@@ -404,7 +404,7 @@ class Person {
 	  	$res = array("people" => array(), "organizations" => array(), 
 	  				 "projects" => array(), "events" => array());
 
-	  	$person = self::getById($id);
+	  	$person = Element::getElementSimpleById($id, Person::COLLECTION, null, array("links"));
 
 	  	//error_log($id);
 	  	if (empty($person)) {
@@ -416,7 +416,7 @@ class Person {
 	  		$myContacts = $person["links"];
 	  	}
 
-	  	$valIDLink = array();
+	  	/*$valIDLink = array();
 	  	foreach (array("follows", "memberOf", "projects", "events") as $n => $link) {
 	  		if( isset($myContacts[$link])){
 			  	foreach ($myContacts[$link] as $key => $contact) {
@@ -424,9 +424,48 @@ class Person {
 			  		$valIDLink[$type][] = new MongoId($key) ;
 				}
 			}
+		}*/
+		$infos=["id", "name", "slug", "username", "shortDescription", "address", "type", "profilThumbImageUrl", "profilImageUrl", "profilMediumImageUrl","preferences", "hasRC", "endDate"];
+		foreach($myContacts as $connectKey => $links){
+			if(in_array($connectKey,["follows", "memberOf", "projects", "events"])){
+				foreach($links as $key => $value){
+					//Condition on double link in my contact (ex: user follow an association and wait for validation to become member)
+					if(@$res[$type][$key]){
+						if($connectKey=="follows") $res[$type][$key]["isFollowed"]=true;
+						foreach($value as $label => $v){
+							if($label != "type")
+								$$res[$type][$key][$label]=$v;
+						}
+					}else{
+						$contactComplet = Element::getElementSimpleById($key, $value["type"], null, $infos);
+						if(!empty($contactComplet) && !@$contactComplet["disabled"]){
+							if($connectKey=="follows") $contactComplet["isFollowed"]=true;
+							foreach($value as $label => $v){
+								if($label != "type")
+									$contactComplet[$label]=$v;
+							}
+							if(@$contactComplet["endDate"]){
+								date_default_timezone_set('UTC');
+								$contactComplet["endDate"] = date(DateTime::ISO8601, $contactComplet["endDate"]->sec);
+							}
+							/*if(@$value[Link::IS_ADMIN]) $contactComplet[Link::IS_ADMIN]=true;
+							if(@$value[Link::IS_ADMIN_PENDING]) $contactComplet[Link::IS_ADMIN_PENDING]=true;
+							if(@$value[Link::IS_ADMIN_INVITING]) $contactComplet[Link::IS_ADMIN_INVITING]=true;
+							if(@$value[Link::TO_BE_VALIDATED]) $contactComplet[Link::TO_BE_VALIDATED]=true;
+							if(@$value[Link::IS_INVITING]) $contactComplet[Link::IS_INVITING]=true;
+							if(@$value["roles"]) $contactComplet["roles"]=true;
+							if(@$value["notifications"]) $contactComplet["notifications"]=$value["notifications"];
+							if(@$value["mails"]) $contactComplet["mails"]=$value["mails"];*/
+							$type=($value["type"]==self::COLLECTION) ? "people" : $value["type"];
+							//if($type=="organizations" &&)
+							if(in_array($type, ["people", "projects","events","organizations"]))
+								$res[$type][$key] = $contactComplet;
+						}
+					}
+				}
+			}
 		}
-
-		if( !empty($valIDLink) ) {
+		/*if( !empty($valIDLink) ) {
 			foreach ($valIDLink as $type => $valLink) {
 				$contactsComplet = null;
 				if($type == self::COLLECTION){
@@ -443,7 +482,7 @@ class Person {
 
 				if($contactsComplet != null)	$res[$type] = $contactsComplet;
 			}
-		}
+		}*/
 
 
 	 //  	foreach (array("follows", "memberOf", "projects", "events") as $n => $link) {
