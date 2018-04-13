@@ -1740,7 +1740,9 @@ class Element {
         $valid = array("result"=>true);
         if( $collection == Event::COLLECTION ){
             $valid = Event::validateFirst($params);
-        } error_log("KEY : ". $key);
+        } 
+        error_log("KEY : ". $key);
+
         if( $valid["result"] )
         	try {
         		//var_dump($key);exit;
@@ -2277,10 +2279,16 @@ class Element {
 		$res = array();
 		foreach ($listMails as $key => $mail){
 			$valid = DataValidator::email($mail) ;
-			if( $valid  == "")
-				$res[$mail] = PHDB::findOne( Person::COLLECTION , array( "email" => $mail ), array("_id", "name", "profilThumbImageUrl") );
+			if( $valid  == ""){
+				$person = PHDB::findOne( Person::COLLECTION , array( "email" => $mail ), array("_id", "name", "profilThumbImageUrl") );
+				if(!empty($person["_id"])){
+					$person["id"] = (String) $person["_id"];
+					$res[$mail] = $person;
+				}else
+					$res[$mail] = false ;
+			}
 			else
-				$res[$mail] = $valid ;
+				$res[$mail] = false ;
 		}
 		return $res;
 	}
