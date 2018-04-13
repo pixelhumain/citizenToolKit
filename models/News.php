@@ -107,7 +107,8 @@ class News {
 		 	{
 
 		 		$target=array(	"id"=>$_POST["parentId"],
-		 						"type"=>$_POST["parentType"]);
+		 						"type"=>$_POST["parentType"],
+		 						"value" => $_POST["text"]);
 			
 				$type=$_POST["parentType"];
 				$news["target"]["type"] = $type;

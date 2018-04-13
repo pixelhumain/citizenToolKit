@@ -8,7 +8,7 @@ class Mail {
                         ActStr::VERB_POST => array(
                             "url" => "page/type/{collection}/id/{id}",
                             "labelArray" => array("who", "where"),
-                            "label"=>"{who} wrote a message on the wall :",
+                            "label"=>"{who} wrote a message :",
                             "icon" => "fa-rss" ),
                         ActStr::VERB_ADD => array(
                             "type" => array(
@@ -23,7 +23,7 @@ class Mail {
                         ActStr::VERB_COMMENT => array(
                             "type" => array(
                                 Poi::COLLECTION => array(
-                                    "label" => "{who} commented the production :",
+                                    "label" => "{who} commented :",
                                 ),
                                 // Comment::COLLECTION => array(
                                 //     "label" => "{who} answered to your comment posted : }",
