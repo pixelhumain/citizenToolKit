@@ -85,7 +85,24 @@ class Mail {
 	        Mail::schedule($params, true);
     	}
     }
-
+    public static function referenceEmailInElement($collection, $id, $email){
+        $element=Element::getElementSimpleById($id, $collection, null, array("name"));
+        $params = array(
+            "type" => Cron::TYPE_MAIL,
+            "tpl"=>"referenceEmailInElement",
+            "subject" => Yii::t("mail","{who} added your contact in {where} on {website}", array("{who}"=>Yii::app()->session["user"]["name"], "{where}"=>Yii::t("common","the ".Element::getControlerByCollection($collection))." ".$element["name"] ,"{website}"=>self::getAppName())),
+            "from"=>Yii::app()->params['adminEmail'],
+            "to" => $email,
+            "tplParams" => array(   "collection"   => $collection ,
+                                    "id"   => $id,
+                                    "name" => $element["name"],
+                                    "invitorId"=>Yii::app()->session["userId"],
+                                    "invitorName"=>Yii::app()->session["user"]["name"],
+                                    "title" => Yii::app()->name ,
+                                    "logo"  => "/images/logoLTxt.jpg")
+        );
+        Mail::schedule($params);
+    }
     public static function notifAdminNewPro($person) {
 
     	$params = array(

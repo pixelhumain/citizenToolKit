@@ -339,6 +339,8 @@ class Element {
 			$element = PHDB::findOne( Room::COLLECTION ,array("_id"=>new MongoId($id)));
 		else if($type == Network::COLLECTION )
 			$element = Network::getById($id);
+		else if($type == Service::COLLECTION)
+			$element = Service::getById($id);
 		else
 			$element = PHDB::findOne($type,array("_id"=>new MongoId($id)));
 	  	
@@ -713,8 +715,8 @@ class Element {
 			$set = array("organizerId" => $fieldValue["organizerId"], 
 							 "organizerType" => $fieldValue["organizerType"]);
 			//get element and remove current organizer
-			var_dump($fieldValue);
-			exit;
+			//var_dump($fieldValue);
+			//exit;
 			$element = self::getElementById($id, $collection);
 			if( !empty($element["organizerId"]) || !empty($element["links"]["organizer"]) ){
 				$oldOrganizerId = @$element["organizerId"] ? $element["organizerId"] : $element["links"]["organizer"];
@@ -1805,7 +1807,9 @@ class Element {
         $valid = array("result"=>true);
         if( $collection == Event::COLLECTION ){
             $valid = Event::validateFirst($params);
-        } error_log("KEY : ". $key);
+        } 
+        error_log("KEY : ". $key);
+
         if( $valid["result"] )
         	try {
         		//var_dump($key);exit;
@@ -1942,6 +1946,13 @@ class Element {
     		//echo "afterSave - "; var_dump($poiParams); exit;
     		$res["medias"] = self::save($poiParams);
     	}
+    	// Mail reference inivite on communecter
+        if(in_array($collection,[Organization::COLLECTION,Project::COLLECTION,Event::COLLECTION])){
+        	if(@$params["email"] && $params["email"]!=@Yii::app()->session["userEmail"]){
+        		Mail::referenceEmailInElement($collection, $id, $params["email"]);
+        	}
+        }
+                
     	return $res;
     }
 
@@ -2342,10 +2353,16 @@ class Element {
 		$res = array();
 		foreach ($listMails as $key => $mail){
 			$valid = DataValidator::email($mail) ;
-			if( $valid  == "")
-				$res[$mail] = PHDB::findOne( Person::COLLECTION , array( "email" => $mail ), array("_id", "name", "profilThumbImageUrl") );
+			if( $valid  == ""){
+				$person = PHDB::findOne( Person::COLLECTION , array( "email" => $mail ), array("_id", "name", "profilThumbImageUrl") );
+				if(!empty($person["_id"])){
+					$person["id"] = (String) $person["_id"];
+					$res[$mail] = $person;
+				}else
+					$res[$mail] = false ;
+			}
 			else
-				$res[$mail] = $valid ;
+				$res[$mail] = false ;
 		}
 		return $res;
 	}
@@ -2370,8 +2387,16 @@ class Element {
 					$res[] = self::updateField($collection, $id, "tags", $params["tags"]);
 				if(isset($params["type"])  && ( $collection == Event::COLLECTION || $collection == Organization::COLLECTION) )
 					$res[] = self::updateField($collection, $id, "type", $params["type"]);
-				if(isset($params["email"]))
-					$res[] = self::updateField($collection, $id, "email", $params["email"]);
+				if(isset($params["email"])){
+					$resEmail=self::updateField($collection, $id, "email", $params["email"]);
+					$res[] = $resEmail;
+					// Mail reference inivite on communecter
+			        if($resEmail["result"] && in_array($collection,[Organization::COLLECTION,Project::COLLECTION,Event::COLLECTION])){
+			        	if(@$params["email"] && $params["email"]!=@Yii::app()->session["userEmail"]){
+			        		Mail::referenceEmailInElement($collection, $id, $params["email"]);
+			        	}
+			        }
+				}
 				if(isset($params["slug"])){
 					$el = PHDB::findOne($collection,array("_id"=>new MongoId($id)));
 					$oldslug = @$el["slug"];
