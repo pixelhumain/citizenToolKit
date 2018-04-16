@@ -791,7 +791,7 @@ class Mail {
     public static function mailNotif($parentId, $parentType, $paramsMail = null) {
         // var_dump($parentId);
         // var_dump($parentType);
-        //var_dump($paramsMail);exit;
+        // var_dump($paramsMail);exit;
         $element = Element::getElementById( $parentId, $parentType, null, array("links", "name") );
        
         foreach ($element["links"]["members"] as $key => $value) {

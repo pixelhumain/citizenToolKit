@@ -1360,7 +1360,7 @@ class Element {
 		    	if($add){
 	        		if(@$settings && $settings["type"]=="mail"){
 	        			$mail=Person::getEmailById($value); 
-	        			$res[$key] = $mail["email"];
+	        			array_push($res, $mail["email"]);
 	        		}else
 	        			$res[$key] = $value;
 	        	}
