@@ -562,7 +562,9 @@ class Notification{
 	    	$type=$prop["parentType"];
 	    	$id=$prop["parentId"];
 	    }
+
 	    $members = Element::getCommunityByTypeAndId($type, $id ,$impactType, $impactRole, null, $settings);
+	    //var_dump($members);
 	    /*if( $type == Project::COLLECTION )
 	    	$members = Project::getContributorsByProjectId( $id ,$impactType, $impactRole);
 	    else if( $type == Organization::COLLECTION)
@@ -617,6 +619,7 @@ class Notification{
 	    		$people[$key] = array("isUnread" => true, "isUnseen" => true); 
 	    	}
 	    }
+	    //var_dump($people);exit;
 	    $construct["community"]=$people;
 	    return $construct;
 	}
@@ -1167,8 +1170,13 @@ class Notification{
 		// COnstruct notification for target
 		$notificationPart = self::communityToNotify($notificationPart, @$alreadyAuhtorNotify);
 		//$["community"]=$community;
+		// var_dump($notifyCommunity);
+		// var_dump($notificationPart); exit;
 		$update = false;
+		var_dump($notifyCommunity);
+		var_dump($notificationPart["community"]);
 		if(!empty($notificationPart["community"]) && $notifyCommunity){
+			var_dump("HERE");
 		    if(in_array("author",$notificationPart["labelArray"])){
 		        $notificationPart["object"] = array($authorId => array("name"=>$author["name"]));
 		        $notificationPart["author"] = array(Yii::app()->session["userId"]=> array("name"=> Yii::app()->session["user"]["name"]));
@@ -1177,9 +1185,14 @@ class Notification{
 		    else if($object){
 		        $notificationPart["object"]=array("id" => $object["id"], "type" => $object["type"]);
 		    }
+
 		    if($notificationPart["verb"]==Actstr::VERB_COMMENT && $notificationPart["levelType"]==Comment::COLLECTION)
 		    	$notificationPart["levelType"]=$notificationPart["target"]["type"];
-			if((@$notificationPart["repeat"] && $notificationPart["repeat"]) || (@$notificationPart["type"] && @$notificationPart["type"][$levelType] && @$notificationPart["type"][$levelType]["repeat"])){	
+
+			if( ( @$notificationPart["repeat"] && $notificationPart["repeat"] ) || 
+				( 	@$notificationPart["type"] && 
+					@$notificationPart["type"][$levelType] && 
+					@$notificationPart["type"][$levelType]["repeat"] ) ) {	
 				$update=self::checkIfAlreadyNotifForAnotherLink($notificationPart);
 				/********* MAILING PROCEDURE *********/
 				/** Update mail notification
@@ -1192,8 +1205,10 @@ class Notification{
 				/********** END MAIL PROCEDURE ******/
 
 			}
-			if($update==false && !empty($notificationPart["community"]))
-				 self::createNotification($notificationPart);
+			var_dump($update);
+			if($update==false && !empty($notificationPart["community"])){
+				var_dump($notificationPart);  
+				self::createNotification($notificationPart);
 				/********* MAILING PROCEDURE *********/
 				/** Création mail notification
 				* Créer un cron avec:
@@ -1207,7 +1222,10 @@ class Notification{
 				* Envoie de l'email
 				**/
 				/********** END MAILING PROCEDURE *********/
+			}
+
 		}
+		exit;
 	}
 	/** TODO BOUBOULE
 	* !!!!!???? Should be written on communityToNotify ???!!!!!! 

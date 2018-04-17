@@ -816,7 +816,7 @@ class Mail {
                             array('$set' => array("tplParams" => $mail["tplParams"]))           
                         );
 
-                    }else{
+                    } else {
                         $paramTpl = self::createParamsTpl($paramsMail, null);
                         // var_dump($paramTpl); exit ;
                         $params = array (

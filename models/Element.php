@@ -1324,6 +1324,7 @@ class Element {
 	  			$add=false;
 	  			$searchInAttribute=false;
 		        if(!@$value["toBeValidated"] && !@$value["isInviting"]){
+		        	
 			        $add = ($typeCommunity=="all" || $value['type'] == $typeCommunity) ? true : false;
 			        if($attribute !== null){  
 			        	if($attribute=="isAdmin" && @$value["isAdmin"] && !@$value["isAdminPending"])
@@ -1340,7 +1341,10 @@ class Element {
 			        	else
 			        		$add=false;
 			        }
+
 			        if($settings !== null){
+			        	// var_dump($settings);
+			        	// var_dump($value);
 			        	if(@$value[$settings["type"]]){
 			        		if($settings["value"]=="high" && $value[$settings["type"]]=="high")
 			        			$add=true;
@@ -1350,13 +1354,15 @@ class Element {
 			        			$add=true;
 			        		else
 			        			$add=false;
+
 			        	}
-			        	else if(in_array($settings["type"], ["low", "default"]))
+			        	else if(in_array($settings["value"], ["low", "default"]))
 			        		$add=true;
 			        	else
 			        		$add=false;
 			        }
 			    }
+			    //var_dump($add);
 		    	if($add){
 	        		if(@$settings && $settings["type"]=="mail"){
 	        			$mail=Person::getEmailById($value); 
@@ -1366,6 +1372,7 @@ class Element {
 	        	}
 	  		}
 	  	}
+
 	  	return $res;
 	}
 
