@@ -49,8 +49,7 @@ class News {
 	 * @param type sort
 	 * News limited to 15
 	 */
-	public static function getNewsForObjectId($param,$sort=array("created"=>-1),$type, $followsArrayIds=null)
-	{
+	public static function getNewsForObjectId($param,$sort=array("created"=>-1),$type, $followsArrayIds=null) {
 		//$param=array();
 	    $res = PHDB::findAndSort(self::COLLECTION, $param,$sort,6);
 	    foreach ($res as $key => $news) {

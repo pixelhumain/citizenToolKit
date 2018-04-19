@@ -654,7 +654,7 @@ class Notification{
 		} 
 		foreach ($membersToNotifs as $key => $value) 
 	    {
-	    	if( $key != Yii::app()->session['userId'] && !in_array($key, $peopleNotifs) && count($people) < self::PEOPLE_NOTIFY_LIMIT && $key != $alreadyAuhtorNotify && (!@$value["type"] || $value["type"]==Person::COLLECTION)){
+	    	if( $key != Yii::app()->session['userId'] && !in_array($key, $peopleNotifs) && count($peopleNotifs) < self::PEOPLE_NOTIFY_LIMIT && $key != $alreadyAuhtorNotify && (!@$value["type"] || $value["type"]==Person::COLLECTION)){
 	    		$peopleNotifs[$key] = array("isUnread" => true, "isUnseen" => true); 
 	    	}
 	    }
@@ -1135,6 +1135,19 @@ class Notification{
 		else
 			$authorId=$author["id"];
 		$notificationPart["author"]=array("id"=>$authorId,"name"=>$author["name"]);
+
+
+		if(!empty($notificationPart["target"]) && empty($notificationPart["target"]["name"])){
+			$elt = Element::getElementById( $notificationPart["target"]["id"], $notificationPart["target"]["type"], null, array("name") );
+			$notificationPart["target"]["name"] = $elt["name"];
+		}
+
+		if(!empty($notificationPart["object"]) && empty($notificationPart["object"]["name"])){
+			$elt = Element::getElementById( $notificationPart["object"]["id"], $notificationPart["object"]["type"], null, array("name") );
+			$notificationPart["object"]["name"] = $elt["name"];
+		}
+
+
 		//Move labelUpToNotify in getLabel
 		$notificationPart["labelUpNotifyTarget"] = "author";
 		$notifyCommunity=true;
@@ -1242,9 +1255,10 @@ class Notification{
 				/********** END MAIL PROCEDURE ******/
 
 			}
-
+			
+			
 			if($update==false && !empty($notificationPart["community"]["notifications"])){
-				 self::createNotification($notificationPart);
+				self::createNotification($notificationPart);
 				/********* MAILING PROCEDURE *********/
 				/** Création mail notification
 				* Créer un cron avec:
@@ -1260,8 +1274,9 @@ class Notification{
 				/********** END MAILING PROCEDURE *********/
 			}
 
+			Mail::createNotification($notificationPart);
+
 		}
-		exit;
 	}
 	/** TODO BOUBOULE
 	* !!!!!???? Should be written on communityToNotify ???!!!!!! 

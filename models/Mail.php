@@ -787,7 +787,6 @@ class Mail {
         return $res ;
     }
 
-
     public static function mailNotif($parentId, $parentType, $paramsMail = null) {
         // var_dump($parentId);
         // var_dump($parentType);
@@ -842,42 +841,84 @@ class Mail {
     }
 
 
-    public static function createParamsMails($verb, $target = null, $object = null, $author = null){
-        $paramsMail = Mail::$mailTree[$verb];
+    public static function createNotification($construct, $type=null){
+       
+        
+        foreach ($construct["community"]["mails"] as $key => $value) {
 
-        if($verb == ActStr::VERB_ADD){
-            if(!empty($paramsMail["type"][$object["type"]])){
-                $type = $paramsMail["type"][$object["type"]];
-                // var_dump($target["type"]);
-                // var_dump($paramsMail["type"][$target["type"]]); exit ;
-                unset($paramsMail["type"][$object["type"]]);
-                $paramsMail = array_merge($paramsMail, $type);
-            }
-        }else{
-            if(!empty($paramsMail["type"][$target["type"]])){
-                $type = $paramsMail["type"][$target["type"]];
-                // var_dump($target["type"]);
-                // var_dump($paramsMail["type"][$target["type"]]); exit ;
-                unset($paramsMail["type"][$target["type"]]);
-                $paramsMail = array_merge($paramsMail, $type);
+            if ($key != Yii::app()->session["userId"]) {
+
+                $member = Element::getElementById( $key, Person::COLLECTION, null, array("email","preferences") );
+               
+                if (!empty($member["email"]) 
+                    // !empty($member["preferences"]) && 
+                    // !empty($member["preferences"]["mailNotif"]) &&
+                    // $member["preferences"]["mailNotif"] == true 
+                ) {
+                    
+                    $mail = Mail::getMailUpdate($member["email"], 'notification') ;
+                    if(!empty($mail)){
+                        $paramTpl = self::createParamsTpl($construct, $mail["tplParams"]["data"]);
+                        $mail["tplParams"]["data"]= $paramTpl ;
+                        PHDB::update(Cron::COLLECTION,
+                            array("_id" => $mail["_id"]) , 
+                            array('$set' => array("tplParams" => $mail["tplParams"]))           
+                        );
+
+                    } else {
+                        //var_dump($notificationPart);
+                        $paramTpl = self::createParamsTpl($construct, null);
+                        $params = array (
+                            "type" => Cron::TYPE_MAIL,
+                            "tpl"=>'notification',
+                            "subject" => "[".self::getAppName()."] - Il y a du nouveaux",
+                            "from"=>Yii::app()->params['adminEmail'],
+                            "to" => $member["email"],
+                            "tplParams" => array(
+                                "logo" => Yii::app()->params["logoUrl"],
+                                "logo2" => Yii::app()->params["logoUrl2"],
+                                "data" => $paramTpl
+                            )
+                        );
+
+                        Mail::schedule($params, true);
+                    }
+                }
             }
         }
-        
-
-        $paramsMail["verb"] = $verb;
-        $paramsMail["target"]=$target;
-        $paramsMail["object"]=$object;
-        $paramsMail["author"]=$author;
-
-        return $paramsMail;
     }
 
 
-    public static function createParamsTpl($paramsMail, $paramTpl = null){
-        $targetType = $paramsMail["target"]["type"];
-        $targetId = $paramsMail["target"]["id"];
-        $verb = $paramsMail["verb"];
+    // public static function createParamsMails($verb, $target = null, $object = null, $author = null){
+    //     $paramsMail = Mail::$mailTree[$verb];
 
+    //     if($verb == ActStr::VERB_ADD){
+    //         if(!empty($paramsMail["type"][$object["type"]])){
+    //             $type = $paramsMail["type"][$object["type"]];
+    //             unset($paramsMail["type"][$object["type"]]);
+    //             $paramsMail = array_merge($paramsMail, $type);
+    //         }
+    //     }else{
+    //         if(!empty($paramsMail["type"][$target["type"]])){
+    //             $type = $paramsMail["type"][$target["type"]];
+    //             unset($paramsMail["type"][$target["type"]]);
+    //             $paramsMail = array_merge($paramsMail, $type);
+    //         }
+    //     }
+        
+
+    //     $paramsMail["verb"] = $verb;
+    //     $paramsMail["target"]=$target;
+    //     $paramsMail["object"]=$object;
+    //     $paramsMail["author"]=$author;
+
+    //     return $paramsMail;
+    // }
+
+    public static function createParamsTpl($construct, $paramTpl = null){
+        $targetType = $construct["target"]["type"];
+        $targetId = $construct["target"]["id"];
+        $verb = $construct["verb"];
 
         if(empty($paramTpl))
             $paramTpl = array();
@@ -888,38 +929,18 @@ class Mail {
         if(empty($paramTpl[ $targetType ][ $targetId ])){
 
             $paramTpl[ $targetType ][ $targetId ] = array( "url" => Yii::app()->getRequest()->getBaseUrl(true)."/#element.detail.type.".$targetType.".id.".$targetId,
-                                                            "name" => $paramsMail["target"]["name"]  ) ;
+                                                            "name" => $construct["target"]["name"]  ) ;
         }
 
         if(empty($paramTpl[ $targetType ][ $targetId ][ $verb ]))
             $paramTpl[ $targetType ][ $targetId ][ $verb ] = array();
         
-        $paramLabel = array();
-
-        foreach ($paramsMail["labelArray"] as $key => $value) {
-            if("who" == $value && !empty($paramsMail[ "author" ]) ){
-                $url = Yii::app()->getRequest()->getBaseUrl(true)."/#element.detail.type.".$paramsMail[ "author" ][ "type" ].".id.".$paramsMail[ "author" ][ "id" ] ;
-                $str = '<a href="'.$url.'" >'.$paramsMail[ "author" ][ "name" ]."</a>";
-            }
-            else if("where" == $value && !empty($paramsMail[ "target" ]) ){
-                $url = Yii::app()->getRequest()->getBaseUrl(true)."/#element.detail.type.".$paramsMail[ "target" ][ "type" ].".id.".$paramsMail[ "target" ][ "id" ] ;
-                $str = '<a href="'.$url.'" >'.$paramsMail[ "target" ][ "name" ]."</a>";
-            }
-            else if("what" == $value && !empty($paramsMail[ "object" ])){
-                $url = Yii::app()->getRequest()->getBaseUrl(true)."/#element.detail.type.".$paramsMail[ "object" ][ "type" ].".id.".$paramsMail[ "object" ][ "id" ] ;
-                $str = '<a href="'.$url.'" >'.$paramsMail[ "object" ][ "name" ]."</a>";
-            }
-
-            $paramLabel["{".$value."}"] = $str;
-        }
-       
-
-        $info["text"] = Yii::t("mail", $paramsMail["label"], $paramLabel);
-
-
-        if( ( $verb == ActStr::VERB_COMMENT || $verb == ActStr::VERB_POST ) && !empty($paramsMail["target"]["value"] ) ) {
-            $info["value"] = $paramsMail["target"]["value"] ;
-        }
+        $notif["notify"] = array( 
+            "displayName"   => Notification::getLabelNotification($construct),
+            "labelArray"=> Notification::getArrayLabelNotification($construct),
+            "labelAuthorObject"=>$construct["labelUpNotifyTarget"],
+        );
+        $info["text"] = Notification::translateLabel($notif);
 
         $paramTpl[ $targetType ][ $targetId ][ $verb ][] = $info ;
 
