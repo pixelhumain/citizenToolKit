@@ -1757,7 +1757,7 @@ class Element {
         $data = null;
 
         if(empty($params["collection"]))
-        	return array("result"=> false, "error"=>"400", "msg" => "Bad Request");
+        	return array("result"=> false, "error"=>"400", "msg" => "Bad Request : Check you parameters");
 
         $collection = $params["collection"];
         
@@ -2669,7 +2669,7 @@ class Element {
 		$newElement["fixe"] = (!empty($element["telephone"]["fixe"])) ? ArrayHelper::arrayToString($element["telephone"]["fixe"]) : "" ;
 		$newElement["mobile"] = (!empty($element["telephone"]["mobile"])) ? ArrayHelper::arrayToString($element["telephone"]["mobile"]) : "" ;
 		$newElement["fax"] = (!empty($element["telephone"]["fax"])) ? ArrayHelper::arrayToString($element["telephone"]["fax"]) : "" ;
-		$newElement["id"] = (String) $element["_id"] ;
+		$newElement["id"] = @(String) $element["_id"] ;
 
 		if(!empty($type))
 			$newElement["type"] = $type;
