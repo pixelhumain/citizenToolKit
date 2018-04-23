@@ -470,10 +470,7 @@ class Mail {
             	if (!empty($member["email"]) && 
                     !empty($member["preferences"]) && 
                     !empty($member["preferences"]["mailNotif"]) &&
-                    $member["preferences"]["mailNotif"] == true &&
-                    !empty($member["roles"]) &&
-                    !empty($member["roles"]["superAdmin"]) &&
-                    $member["roles"]["superAdmin"] == true ) {
+                    $member["preferences"]["mailNotif"] == true ) {
 
                     
                     
