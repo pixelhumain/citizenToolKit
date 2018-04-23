@@ -2569,7 +2569,7 @@ class Element {
 		$newElement["fixe"] = (!empty($element["telephone"]["fixe"])) ? ArrayHelper::arrayToString($element["telephone"]["fixe"]) : "" ;
 		$newElement["mobile"] = (!empty($element["telephone"]["mobile"])) ? ArrayHelper::arrayToString($element["telephone"]["mobile"]) : "" ;
 		$newElement["fax"] = (!empty($element["telephone"]["fax"])) ? ArrayHelper::arrayToString($element["telephone"]["fax"]) : "" ;
-		$newElement["id"] = (String) $element["_id"] ;
+		$newElement["id"] = @(String) $element["_id"] ;
 
 		if(!empty($type))
 			$newElement["type"] = $type;
