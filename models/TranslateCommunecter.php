@@ -11,10 +11,10 @@ class TranslateCommunecter {
 	    "name" 		=> array("valueOf" => "name"),
 	    "url" 	=> array("valueOf" => array(
 	    					"website" 		=> array(	"valueOf" => 'url'),
-							"communecter" 	=> array(	"valueOf" => '_id.$id',
-									   						"type" 	=> "url", 
-															"prefix"   => "/#person.detail.id.",
-															"suffix"   => ""),
+							"communecter" 	=> array(	"valueOf" => 'slug',
+								   						"type" 	=> "url", 
+														"prefix"   => "/#@",
+														"suffix"   => ""),
 						    "api" 			=> array(	"valueOf"  	=> '_id.$id', 
 															"type" 	=> "url", 
 															"prefix"   => "/api/person/get/id/",
@@ -47,10 +47,10 @@ class TranslateCommunecter {
 	  
 	    "url" 	=> array("valueOf" => array(
 	    					"website" 		=> array(	"valueOf" => 'url'),
-							"communecter" 	=> array(	"valueOf" => '_id.$id',
-									   						"type" 	=> "url", 
-															"prefix"   => "/#person.detail.id.",
-															"suffix"   => ""),
+							"communecter" 	=> array(	"valueOf" => 'slug',
+								   						"type" 	=> "url", 
+														"prefix"   => "/#@",
+														"suffix"   => ""),
 						    "api" 			=> array(	"valueOf"  	=> '_id.$id', 
 															"type" 	=> "url", 
 															"prefix"   => "/api/person/get/id/",
@@ -172,10 +172,10 @@ class TranslateCommunecter {
 												"prefix"   => "/api/data/get/type/events/id/",
 												"suffix"   => "")))*/
 											"url" 	=> array("valueOf" => array(
-									    					"communecter" 	=> array(	"valueOf" => '_id.$id',
-																	   						"type" 	=> "url", 
-																							"prefix"   => "/#event.detail.id.",
-																							"suffix"   => ""),
+									    					"communecter" 	=> array(	"valueOf" => 'slug',
+																   						"type" 	=> "url", 
+																						"prefix"   => "/#@",
+																						"suffix"   => ""),
 														    "api" 			=> array(	"valueOf"  	=> '_id.$id', 
 																							"type" 	=> "url", 
 																							"prefix"   => "/api/event/get/id/",
@@ -192,15 +192,35 @@ class TranslateCommunecter {
 	    "image"		=> array("valueOf" => "image",
 							 "type" 	=> "url"),
 	    "url" 		=> array("valueOf" => array(
-								"communecter" 	=> array(	"valueOf" => '_id.$id',
+								"communecter" 	=> array(	"valueOf" => 'slug',
 										   						"type" 	=> "url", 
-																"prefix"   => "/#organization.detail.id.",
+																"prefix"   => "/#@",
 																"suffix"   => ""),
 							    "api" 			=> array(	"valueOf"  	=> '_id.$id', 
 																"type" 	=> "url", 
 																"prefix"   => "/api/organization/get/id/",
 																"suffix"   => "" ),
 	    						"website" 		=> array(	"valueOf" => 'url'))),
+	   	"address" 	=> array("parentKey"=>"address", 
+	    					 "valueOf" => array(
+									"@type" 			=> "PostalAddress", 
+									"streetAddress" 	=> array("valueOf" => "streetAddress"),
+									"postalCode" 		=> array("valueOf" => "postalCode"),
+									"addressLocality"   => array("valueOf" => "addressLocality"),
+									"codeInsee" 		=> array("valueOf" => "codeInsee"),
+									"addressRegion" 	=> array("valueOf" => "addressRegion"),
+									"addressCountry" 	=> array("valueOf" => "addressCountry")
+				 					)),
+	   	"geo" 	=> array("parentKey"=>"geo", 
+	    					 "valueOf" => array(
+									"@type" 			=> "GeoCoordinates", 
+									"latitude" 			=> array("valueOf" => "latitude"),
+									"longitude" 		=> array("valueOf" => "longitude")
+				 					)),
+	   	"shortDescription"		=> array("valueOf" => "shortDescription"),
+	   	"description"		=> array("valueOf" => "description"),
+	   	"tags"		=> array("valueOf" => "tags"),
+	   	"slug"		=> array("valueOf" => "slug"),
 	);
 
 	public static $dataBinding_organization = array(
@@ -211,9 +231,9 @@ class TranslateCommunecter {
 							 "type" 	=> "url"),
 	    "url" 		=> array("valueOf" => array(
 		    					"website" 		=> array(	"valueOf" => 'url'),
-								"communecter" 	=> array(	"valueOf" => '_id.$id',
+								"communecter" 	=> array(	"valueOf" => 'slug',
 										   						"type" 	=> "url", 
-																"prefix"   => "/#organization.detail.id.",
+																"prefix"   => "/#@",
 																"suffix"   => ""),
 							    "api" 			=> array(	"valueOf"  	=> '_id.$id', 
 																"type" 	=> "url", 
@@ -421,15 +441,33 @@ class TranslateCommunecter {
 	    "image"		=> array("valueOf" => "image",
 							 "type" 	=> "url"),
 	    "url" 		=> array("valueOf" => array(
-								"communecter" 	=> array(	"valueOf" => '_id.$id',
-										   						"type" 	=> "url", 
-																"prefix"   => "/#event.detail.id.",
-																"suffix"   => ""),
+								"communecter" 	=> array(	"valueOf" => 'slug',
+									   						"type" 	=> "url", 
+															"prefix"   => "/#@",
+															"suffix"   => ""),
 							    "api" 			=> array(	"valueOf"  	=> '_id.$id', 
 																"type" 	=> "url", 
 																"prefix"   => "/api/event/get/id/",
 																"suffix"   => "" ),
-	    						"website" 		=> array(	"valueOf" => 'url')))
+	    						"website" 		=> array(	"valueOf" => 'url'))),
+	    "address" 	=> array("parentKey"=>"address", 
+	    					 "valueOf" => array(
+									"@type" 			=> "PostalAddress", 
+									"streetAddress" 	=> array("valueOf" => "streetAddress"),
+									"postalCode" 		=> array("valueOf" => "postalCode"),
+									"addressLocality"   => array("valueOf" => "addressLocality"),
+									"codeInsee" 		=> array("valueOf" => "codeInsee"),
+									"addressRegion" 	=> array("valueOf" => "addressRegion"),
+									"addressCountry" 	=> array("valueOf" => "addressCountry")
+				 					)),
+	   	"startDate"		=> array("valueOf" => "startDate"),
+	   	"endDate"		=> array("valueOf" => "endDate"),
+	   	"geo" 	=> array("parentKey"=>"geo", 
+	    					 "valueOf" => array(
+									"@type" 			=> "GeoCoordinates", 
+									"latitude" 			=> array("valueOf" => "latitude"),
+									"longitude" 		=> array("valueOf" => "longitude")
+				 					)),
 	);
 
 	public static $dataBinding_event = array(
@@ -548,6 +586,7 @@ class TranslateCommunecter {
 	    "name" 		=> array("valueOf" => "name"),
 	    "image"		=> array("valueOf" => "image",
 							 "type" 	=> "url"),
+	    "maturity" 		=> array("valueOf" => "maturity"),
 	    "url" 		=> array("valueOf" => array(
 		    					
 								"communecter" 	=> array(	"valueOf" => '_id.$id',
@@ -559,11 +598,31 @@ class TranslateCommunecter {
 																"prefix"   => "/api/project/get/id/",
 																"suffix"   => "" ),
 							    "website" 		=> array(	"valueOf" => 'url'))),
+	    "address" 	=> array("parentKey"=>"address", 
+	    					 "valueOf" => array(
+									"@type" 			=> "PostalAddress", 
+									"streetAddress" 	=> array("valueOf" => "streetAddress"),
+									"postalCode" 		=> array("valueOf" => "postalCode"),
+									"addressLocality"   => array("valueOf" => "addressLocality"),
+									"codeInsee" 		=> array("valueOf" => "codeInsee"),
+									"addressRegion" 	=> array("valueOf" => "addressRegion"),
+									"addressCountry" 	=> array("valueOf" => "addressCountry")
+				 					)),
+	   	"startDate"		=> array("valueOf" => "startDate"),
+	   	"endDate"		=> array("valueOf" => "endDate"),
+	   	"geo" 	=> array("parentKey"=>"geo", 
+	    					 "valueOf" => array(
+									"@type" 			=> "GeoCoordinates", 
+									"latitude" 			=> array("valueOf" => "latitude"),
+									"longitude" 		=> array("valueOf" => "longitude")
+				 					)),
+
 	);
 
 	public static $dataBinding_project = array(
 		"@type"		=> "Project",
 	    "name" 		=> array("valueOf" => "name"),
+	    "maturity" 		=> array("valueOf" => "maturity"),
 	    "image"		=> array("valueOf" => "image",
 							 "type" 	=> "url"),
 	    "url" 		=> array("valueOf" => array(
