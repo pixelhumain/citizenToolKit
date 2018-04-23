@@ -1690,7 +1690,7 @@ class Element {
         $data = null;
 
         if(empty($params["collection"]))
-        	return array("result"=> false, "error"=>"400", "msg" => "Bad Request");
+        	return array("result"=> false, "error"=>"400", "msg" => "Bad Request : Check you parameters");
 
         $collection = $params["collection"];
         
