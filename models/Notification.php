@@ -383,9 +383,12 @@ class Notification{
 					"noUpdate" => true
 				),
 				"asMember"=> array(
-					"url" => "page/type/{collection}/id/{id}/view/directory/dir/members",
-					"label" => "{who} added {what} as member of {where}",
-					"labelRepeat" => "{who} added {what} as members of {where}",
+					"url" => "page/type/{collection}/id/{id}/view/directory/dir/{connectAs}",
+					"label" => "{author} added {who} in the community of {where}",
+					"labelRepeat" => "{author} have added {who} in the community of {where}",
+					"sameAuthor" => array(
+						"labelRepeat" => "{author} added {who} in the community of {where}"
+					),
 					"repeat" => true
 				),
 				"chat" => array(
@@ -404,7 +407,7 @@ class Notification{
 			),*/
 			//"label"=>"{who} added {type} {what} in {where}",
 			"settings"=> "default",
-			"labelArray" => array("who","where","what"),
+			"labelArray" => array("who","where","what", "author"),
 			"icon" => "fa-plus"
 		),
 		ActStr::VERB_VOTE => array(
@@ -829,6 +832,7 @@ class Notification{
 		}
 		if(in_array("what",$construct["labelArray"]))
 			$specifyLabel["{what}"] = [@$construct["object"]["name"]];
+		
 		return $specifyLabel;
 	}
 
@@ -931,7 +935,10 @@ class Notification{
 						$s="";
 						if($data > 1)
 							$s="s";
-						$who.=" ".Yii::t("common","and")." ".$data." ".Yii::t("common", "person".$s);
+						$typeMore="person";
+						if($notif["verb"]==ActStr::VERB_ADD && @$notif["notify"]["objectType"] && $notif["notify"]["objectType"]=="asMember")
+							$typeMore="organization";
+						$who.=" ".Yii::t("common","and")." ".$data." ".Yii::t("common", $typeMore.$s);
 					}else
 						$who.=$data;
 					$i++;
@@ -1040,6 +1047,14 @@ class Notification{
 				return true;
 			else{
 				$countRepeat=1;
+				if($notification["verb"] == Actstr::VERB_ADD){
+					foreach($notification["author"] as $key => $i){
+						if($key == Yii::app()->session["userId"]){
+							$sameAuthor=true;
+						}else
+							$sameAuthor=false;
+					}
+				}
 				foreach($notification[$construct["labelUpNotifyTarget"]] as $key => $i){
 					if(($notification["verb"] != Actstr::VERB_POST && $notification["verb"] != Actstr::VERB_COMMENT) || ($key != Yii::app()->session["userId"]))
 						$countRepeat++;
@@ -1208,8 +1223,9 @@ class Notification{
 		$notificationPart = self::communityToNotify($notificationPart, @$alreadyAuhtorNotify);
 		//$["community"]=$community;
 		$update = false;
-		if(!empty($notificationPart["community"]["notifications"]) && $notifyCommunity){
-		    if(in_array("author",$notificationPart["labelArray"])){
+		if(!empty($notificationPart["community"]) && $notifyCommunity){
+		    if(in_array("author",$notificationPart["labelArray"]) 
+		    	&& ($notificationPart["verb"] != Actstr::VERB_ADD || (@$notificationPart["levelType"] && $notificationPart["levelType"]=="asMember"))){
 		        $notificationPart["object"] = array($authorId => array("name"=>$author["name"]));
 		        $notificationPart["author"] = array(Yii::app()->session["userId"]=> array("name"=> Yii::app()->session["user"]["name"]));
 		        $notificationPart["labelUpNotifyTarget"]="object";
