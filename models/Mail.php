@@ -919,7 +919,8 @@ class Mail {
         $targetType = $construct["target"]["type"];
         $targetId = $construct["target"]["id"];
         $verb = $construct["verb"];
-
+        $repeat = "";
+        
         if(empty($paramTpl))
             $paramTpl = array();
 
@@ -934,7 +935,14 @@ class Mail {
 
         if(empty($paramTpl[ $targetType ][ $targetId ][ $verb ]))
             $paramTpl[ $targetType ][ $targetId ][ $verb ] = array();
+        else{
+            $repeat = "Repeat";
+        }
         
+        var_dump($construct); exit ;
+
+        //$newLabel=self::getLabelNotification($construct, null, $countRepeat, $notification, "Repeat", @$sameAuthor);
+
         $notif["notify"] = array( 
             "displayName"   => Notification::getLabelNotification($construct),
             "labelArray"=> Notification::getArrayLabelNotification($construct),

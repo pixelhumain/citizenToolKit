@@ -11,6 +11,7 @@ class CTKAction extends CAction {
      */
     public function __construct($controller,$id) {
         parent::__construct($controller,$id);
+        echo Yii::app()->session["userId"];
         $this->currentUserId = Yii::app()->session["userId"];
     }
 
