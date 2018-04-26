@@ -822,6 +822,7 @@ class Notification{
 				array_push($specifyLabel["{who}"],$nbOthers);
 			}
 		}
+
 		if(in_array("where",$construct["labelArray"])){
 			if(@$construct["target"]["name"])
 				$specifyLabel["{where}"] = [$construct["target"]["name"]];
@@ -1025,7 +1026,9 @@ class Notification{
 				Up notif and label $repeat +1 
 		Return array of ids  
 	*/
-	public static function checkIfAlreadyNotifForAnotherLink($construct, $isUserNotif=false)	{
+
+
+	public static function getNotificationByConstruct($construct)	{
 		$where=array("verb"=>$construct["verb"], "target.id"=>$construct["target"]["id"], "target.type"=>$construct["target"]["type"],"updated"=>array('$gte'=>new MongoDate(strtotime('-7 days', time()))));
 		if($construct["labelUpNotifyTarget"]=="object")
 			$where["author.".Yii::app()->session["userId"]] = array('$exists' => true);
@@ -1040,12 +1043,36 @@ class Notification{
 			$where["object.id"] = $construct["object"]["id"];
 			$where["object.type"] = $construct["object"]["type"];
 		}
-	//	$timestamp = strtotime('-7 days', time());
-	//	$dateFilter = new MongoDate(strtotime($inputDate))
-
 		$notification = PHDB::findOne(ActivityStream::COLLECTION, $where);
+
+		return $notification ;
+	}
+
+	// CLEMENT : J'ai enlever $isUserNotif=false car il n'etait pas utiliser dans le code
+	public static function checkIfAlreadyNotifForAnotherLink($construct)	{
+		// $where=array("verb"=>$construct["verb"], "target.id"=>$construct["target"]["id"], "target.type"=>$construct["target"]["type"],"updated"=>array('$gte'=>new MongoDate(strtotime('-7 days', time()))));
+		// if($construct["labelUpNotifyTarget"]=="object")
+		// 	$where["author.".Yii::app()->session["userId"]] = array('$exists' => true);
+		// if($construct["labelUpNotifyTarget"]=="object" && $construct["verb"]==ActStr::VERB_ACCEPT)
+		// 	$where["object"] = array('$exists' => true);
+		// if($construct["levelType"])
+		// 	$where["notify.objectType"] = $construct["levelType"];
+  //       else if($construct["verb"]==Actstr::VERB_POST && !@$construct["target"]["targetIsAuthor"] && !@$construct["target"]["userWall"])
+		//     $where["notify.objectType"]=News::COLLECTION;
+		// if($construct["object"] && !empty($construct["object"]) &&
+		// 		 ($construct["verb"]==Actstr::VERB_COMMENT || $construct["verb"]==Actstr::VERB_LIKE|| $construct["verb"]==Actstr::VERB_UNLIKE)){
+		// 	$where["object.id"] = $construct["object"]["id"];
+		// 	$where["object.type"] = $construct["object"]["type"];
+		// }
+
+		// $notification = PHDB::findOne(ActivityStream::COLLECTION, $where);
+
+		$notification = self::getNotificationByConstruct($construct) ;
+
 		if(!empty($notification)){
-			if(@$construct["type"] && @$construct["type"][$construct["levelType"]] && @$construct["type"][$construct["levelType"]]["noUpdate"])
+			if( @$construct["type"] && 
+				@$construct["type"][$construct["levelType"]] && 
+				@$construct["type"][$construct["levelType"]]["noUpdate"])
 				return true;
 			else{
 				$countRepeat=1;
@@ -1073,6 +1100,7 @@ class Notification{
 					}
 				else
 					$notification["author"][Yii::app()->session['userId']]=array("name" => Yii::app()->session['user']['name']);
+				
 				PHDB::update(ActivityStream::COLLECTION,
 					array("_id" => $notification["_id"]),
 					array('$set' => array(
@@ -1221,7 +1249,7 @@ class Notification{
 				$notificationPart["community"]["notifications"]=array($userNotify=>array("isUnread" => true, "isUnseen" => true));
 				if((@$notificationPart["type"][$levelType] && @$notificationPart["type"][$levelType]["repeat"])
 					|| in_array($notificationPart["verb"], array(Actstr::VERB_COMMENT,Actstr::VERB_LIKE,Actstr::VERB_UNLIKE)))
-					$update=self::checkIfAlreadyNotifForAnotherLink($notificationPart,true);
+					$update=self::checkIfAlreadyNotifForAnotherLink($notificationPart);
 				if($update==false){
 			 	    //--------- MOVE ON GETLABEL -----------//
 			 	   ////////// !!!!!! $type was to null ... change to user for comment on comment but could be a bug in other notification with user notification ... ???? !!!!! ////////////////

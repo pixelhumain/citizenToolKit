@@ -920,7 +920,8 @@ class Mail {
         $targetId = $construct["target"]["id"];
         $verb = $construct["verb"];
         $repeat = "";
-        
+        $countRepeat=1;
+
         if(empty($paramTpl))
             $paramTpl = array();
 
@@ -933,24 +934,47 @@ class Mail {
                                                             "name" => $construct["target"]["name"]  ) ;
         }
 
+
+        $notification = Notification::getNotificationByConstruct($construct) ;
+        $countRepeat=1;
+		if($notification["verb"] == Actstr::VERB_ADD){
+			foreach($notification["author"] as $key => $i){
+				if($key == Yii::app()->session["userId"]){
+					$sameAuthor=true;
+				}else
+					$sameAuthor=false;
+			}
+		}
+		foreach($notification[$construct["labelUpNotifyTarget"]] as $key => $i){
+			if(($notification["verb"] != Actstr::VERB_POST && $notification["verb"] != Actstr::VERB_COMMENT) || ($key != Yii::app()->session["userId"]))
+				$countRepeat++;
+		}
+		if($countRepeat==1)
+			$sameAuthor=true;
+
         if(empty($paramTpl[ $targetType ][ $targetId ][ $verb ]))
             $paramTpl[ $targetType ][ $targetId ][ $verb ] = array();
         else{
             $repeat = "Repeat";
         }
         
-        var_dump($construct); exit ;
 
-        //$newLabel=self::getLabelNotification($construct, null, $countRepeat, $notification, "Repeat", @$sameAuthor);
+        // if($countRepeat==1)
+        //     $sameAuthor=true;
+        // Get new Label
 
         $notif["notify"] = array( 
-            "displayName"   => Notification::getLabelNotification($construct),
-            "labelArray"=> Notification::getArrayLabelNotification($construct),
+            //"displayName"   => Notification::getLabelNotification($construct),
+            "displayName"   => Notification::getLabelNotification($construct, null, 1, null, $repeat, @$sameAuthor),
+            "labelArray"=> Notification::getArrayLabelNotification($construct, null, $countRepeat, $notification, $repeat, @$sameAuthor),
             "labelAuthorObject"=>$construct["labelUpNotifyTarget"],
         );
-        $info["text"] = Notification::translateLabel($notif);
 
-        $paramTpl[ $targetType ][ $targetId ][ $verb ][] = $info ;
+        //$info["text"] = Notification::translateLabel($notif);
+        $info["label"] = Notification::getLabelNotification($construct, null, 1, null, $repeat, @$sameAuthor);
+        $info["labelArray"] = Notification::getArrayLabelNotification($construct, null, $countRepeat, $notification, $repeat, @$sameAuthor ) ;
+
+        $paramTpl[ $targetType ][ $targetId ][ $verb ] = $info ;
 
         return $paramTpl ;
 
