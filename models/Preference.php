@@ -22,6 +22,10 @@ class Preference {
 			$action='$unset';
 			$update=array("preferences.seeExplanations"=>"");
 		}else{
+			if($preferenceValue==="true" || $preferenceValue=="default"){
+				$action='$unset';
+				$preferenceValue="";
+			}
 			$update=array("preferences.".$preferenceName=>$preferenceValue);
 			if(!empty($preferenceSubName))
 				$update=array("preferences.".$preferenceName.".".$preferenceSubName=>$preferenceValue);
@@ -41,10 +45,17 @@ class Preference {
 		$childType=(@$params["childType"]) ? $params["childType"] : Person::COLLECTION; 
 		$parentConnectAs=Link::$linksTypes[$parentType][$childType];
 		$childConnectAs=Link::$linksTypes[$childType][$parentType];
-		//Add notification - email label in parent link
-		Link::connect($parentId, $parentType, $childId, $childType,Yii::app()->session["userId"], $parentConnectAs, null, null, null,null, null, $settings);
- 		//Add notification - email label in child link
- 		Link::connect($childId, $childType, $parentId, $parentType, Yii::app()->session["userId"], $childConnectAs, null, null, null, null, null, $settings);
+		if($settings["value"]=="default"){
+			//Add notification - email label in parent link
+			Link::disconnect($parentId, $parentType, $childId, $childType,Yii::app()->session["userId"], $parentConnectAs, null, $settings);
+	 		//Add notification - email label in child link
+	 		Link::disconnect($childId, $childType, $parentId, $parentType, Yii::app()->session["userId"], $childConnectAs, null, $settings);
+		}else{
+			//Add notification - email label in parent link
+			Link::connect($parentId, $parentType, $childId, $childType,Yii::app()->session["userId"], $parentConnectAs, null, null, null,null, null, $settings);
+	 		//Add notification - email label in child link
+	 		Link::connect($childId, $childType, $parentId, $parentType, Yii::app()->session["userId"], $childConnectAs, null, null, null, null, null, $settings);
+ 		}
  		return array("result" => true, "msg" => Yii::t("common","Your request is well updated"));
 	}
 

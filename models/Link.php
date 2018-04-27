@@ -263,7 +263,7 @@ class Link {
      * @param type $userId The userId doing the action
      * @return result array with the result of the operation
      */
-    public static function disconnect($originId, $originType, $targetId, $targetType, $userId, $connectType, $linkOption=null) {
+    public static function disconnect($originId, $originType, $targetId, $targetType, $userId, $connectType, $linkOption=null, $settings=null) {
         
         //0. Check if the $originId and the $targetId exists
         $origin = Element::checkIdAndType($originId, $originType, "disconnect");
@@ -278,6 +278,9 @@ class Link {
                     );
             }
         }
+        if ($settings != null && $settings["value"]=="default"){
+            $unset=array("links.".$connectType.".".$targetId.".".$settings["name"] => "");
+        } 
         //2. Remove the links
         PHDB::update( $originType, 
                        array("_id" => $origin["_id"]) , 
