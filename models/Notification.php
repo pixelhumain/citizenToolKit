@@ -128,13 +128,19 @@ class Notification{
 					"label" => "{who} commented on your news {what}",
 					"labelRepeat" => "{who} added comments on your news {what}",
 					"sameAuthor"=>array(
-						"labelRepeat" => "{who} added few comments on your news {what}"
+						"labelRepeat" => "{who} added few comments on your news {what}",
+						"labelRepeatMail" => "{who} added few comments on your news {what}"
 					),
+					"labelMail" => "{who} commented on your news {what}",
+					"labelRepeatMail" => "{who} added comments on your news {what}",
 					"targetIsAuthor"=> array(
 						"label"=> "{who} commented a news {what} posted on {where}",
 						"labelRepeat"=> "{who} added comments on a news {what} posted on {where}",
+						"labelMail"=> "{who} commented a news {what}",
+						"labelRepeatMail" => "{who} added comments on a news {what}",
 						"sameAuthor"=>array(
-							"labelRepeat" => "{who} added few comments on a news {what} posted on {where}"
+							"labelRepeat" => "{who} added few comments on a news {what} posted on {where}",
+							"labelRepeatMail" => "{who} added few comments on a news {what}"
 						)
 					),
 					"notifyUser" => true,
@@ -306,20 +312,29 @@ class Notification{
 			"type" => array(
 				"targetIsAuthor" => array(
 					"label"=>"{where} publishes a new post",
-					"labelRepeat"=>"{where} publishes new posts"
+					"labelRepeat"=>"{where} publishes new posts",
+					"labelMail"=>"{who} writes a post",
+					"labelRepeatMail"=>"{who} write posts"
 				),
 				"userWall" => array(
 					"label"=>"{who} writes a post on your wall",
 					"labelRepeat"=>"{who} write posts on your wall",
+					"labelMail"=>"{who} writes a post on your wall",
+					"labelRepeatMail"=>"{who} write posts on your wall",
 					"sameAuthor" => array(
-						"labelRepeat" => "{who} writes posts on your wall"
+						"labelRepeat" => "{who} writes posts on your wall",
+						"labelRepeatMail" => "{who} writes posts on your wall"
 					)
 				),
 				"label"=>"{who} writes a post on the wall of {where}",
 				"labelRepeat"=>"{who} write posts on the wall of {where}",
+				"labelMail"=>"{who} writes a post",
+				"labelRepeatMail"=>"{who} write posts",
 				"sameAuthor" => array(
-					"labelRepeat" => "{who} writes posts on the wall of {where}"
+					"labelRepeat" => "{who} writes posts on the wall of {where}",
+					"labelRepeatMail" => "{who} writes posts"
 				)
+				
 			),
 			"settings"=> "default",
 			"url" => "page/type/{collection}/id/{id}",
@@ -334,7 +349,8 @@ class Notification{
 				),*/
 				Project::COLLECTION => array(
 					"url" => "page/type/{objectType}/id/{objectId}",
-					"label" => "{who} added a new project on {where}"
+					"label" => "{who} added a new project on {where}",
+					"labelMail" => "{who} added a new project : {what}"
 				),
 				Event::COLLECTION=> array(
 					"url" => "page/type/{objectType}/id/{objectId}",
@@ -1182,12 +1198,12 @@ class Notification{
 
 		if(!empty($notificationPart["target"]) && empty($notificationPart["target"]["name"])){
 			$elt = Element::getElementById( $notificationPart["target"]["id"], $notificationPart["target"]["type"], null, array("name") );
-			$notificationPart["target"]["name"] = $elt["name"];
+			$notificationPart["target"]["name"] = @$elt["name"];
 		}
-
+		var_dump($notificationPart["object"]);
 		if(!empty($notificationPart["object"]) && empty($notificationPart["object"]["name"])){
 			$elt = Element::getElementById( $notificationPart["object"]["id"], $notificationPart["object"]["type"], null, array("name") );
-			$notificationPart["object"]["name"] = $elt["name"];
+			$notificationPart["object"]["name"] = @$elt["name"];
 		}
 
 

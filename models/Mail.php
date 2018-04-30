@@ -916,11 +916,14 @@ class Mail {
     // }
 
     public static function createParamsTpl($construct, $paramTpl = null){
+
+    	var_dump($construct); exit ; 
         $targetType = $construct["target"]["type"];
         $targetId = $construct["target"]["id"];
         $verb = $construct["verb"];
-        $repeat = "";
+        $repeat = "Mail";
         $countRepeat=1;
+        $labelArray = array() ;
 
         if(empty($paramTpl))
             $paramTpl = array();
@@ -930,53 +933,152 @@ class Mail {
 
         if(empty($paramTpl[ $targetType ][ $targetId ])){
 
-            $paramTpl[ $targetType ][ $targetId ] = array( "url" => Yii::app()->getRequest()->getBaseUrl(true)."/#element.detail.type.".$targetType.".id.".$targetId,
+            $paramTpl[ $targetType ][ $targetId ] = array( "url" => Yii::app()->getRequest()->getBaseUrl(true)."/#page.type.".$targetType.".id.".$targetId,
                                                             "name" => $construct["target"]["name"]  ) ;
         }
 
-
-        $notification = Notification::getNotificationByConstruct($construct) ;
-        $countRepeat=1;
-		if($notification["verb"] == Actstr::VERB_ADD){
-			foreach($notification["author"] as $key => $i){
-				if($key == Yii::app()->session["userId"]){
-					$sameAuthor=true;
-				}else
-					$sameAuthor=false;
-			}
-		}
-		foreach($notification[$construct["labelUpNotifyTarget"]] as $key => $i){
-			if(($notification["verb"] != Actstr::VERB_POST && $notification["verb"] != Actstr::VERB_COMMENT) || ($key != Yii::app()->session["userId"]))
-				$countRepeat++;
-		}
-		if($countRepeat==1)
-			$sameAuthor=true;
-
-        if(empty($paramTpl[ $targetType ][ $targetId ][ $verb ]))
+        if(empty($paramTpl[ $targetType ][ $targetId ][ $verb ]) ){
             $paramTpl[ $targetType ][ $targetId ][ $verb ] = array();
-        else{
-            $repeat = "Repeat";
+        }else{
+        	$labelArray = $paramTpl[ $targetType ][ $targetId ][ $verb ]["labelArray"] ;
+        	$countRepeat = $paramTpl[ $targetType ][ $targetId ][ $verb ]["countRepeat"] ;
+        	$countRepeat++;
         }
         
+        foreach ($construct["labelArray"] as $key => $value) {
+        	$str = "";
+            if("who" == $value ){
+            	//var_dump($construct[ "target" ]);
+            	if( !empty($construct[ "target" ]) && 
+            		!empty($construct[ "target" ][ "targetIsAuthor" ]) && 
+            		$construct[ "target" ][ "targetIsAuthor" ] == true )
+            		$str = $construct[ "target" ][ "name" ];
+            	else if(!empty($construct[ "author" ]) ) 
+					$str = $construct[ "author" ][ "name" ];
 
-        // if($countRepeat==1)
-        //     $sameAuthor=true;
-        // Get new Label
+				//var_dump($str); exit;
+            }
+            else if("where" == $value && !empty($construct[ "target" ]) ){
+                $str = $construct[ "target" ][ "name" ];
+            }
+            else if("what" == $value && !empty($construct[ "object" ])){
+                $str = $construct[ "object" ][ "name" ];
+            }
 
-        $notif["notify"] = array( 
-            //"displayName"   => Notification::getLabelNotification($construct),
-            "displayName"   => Notification::getLabelNotification($construct, null, 1, null, $repeat, @$sameAuthor),
-            "labelArray"=> Notification::getArrayLabelNotification($construct, null, $countRepeat, $notification, $repeat, @$sameAuthor),
-            "labelAuthorObject"=>$construct["labelUpNotifyTarget"],
-        );
+            if(!empty($str)){
+            	$find = false ;
+            	if(!empty($labelArray["{".$value."}"])){
+            		foreach ($labelArray["{".$value."}"] as $key2 => $value2){
+	            		if($value2 == $str)
+	            			$find = true;
+	            	}
+            	}
+            	
+            	if($find == false){
+            		// if(count($labelArray["{".$value."}"]) == 2 ){
+            		// 	$labelArray["{".$value."}"][2] = 1 ;
+            		// }else if(count($labelArray["{".$value."}"]) == 3 ){
+            		// 	$labelArray["{".$value."}"][2] = ( !empty($labelArray["{".$value."}"][2]) ? 1 : $labelArray["{".$value."}"][2] + 1 ) ;
+            		// }else{
+            			$labelArray["{".$value."}"][] = $str;
+            		//}
+            		
+            	}
+            }
+        }
 
-        //$info["text"] = Notification::translateLabel($notif);
+        if($countRepeat > 1)
+        	$repeat = "RepeatMail";
+
+        //$info["label"] = Yii::t("mail", $paramsMail["label"], $paramLabel);
         $info["label"] = Notification::getLabelNotification($construct, null, 1, null, $repeat, @$sameAuthor);
-        $info["labelArray"] = Notification::getArrayLabelNotification($construct, null, $countRepeat, $notification, $repeat, @$sameAuthor ) ;
-
+        $info["labelArray"] = $labelArray ;
+        $info["countRepeat"] = $countRepeat ;
         $paramTpl[ $targetType ][ $targetId ][ $verb ] = $info ;
-
         return $paramTpl ;
 
     }
+
+    public static function translateLabel($mail){
+		$resArray=array();
+		if( !empty($mail["labelArray"]) ) {
+			
+			// if( !empty($mail["notify"]["labelArray"]["{author}"]) && 
+			// 	!empty($mail["notify"]["labelArray"]["{author}"]) ) {
+			// 	$author="";
+			// 	$i=0;
+			// 	$countEntry=count($mail["notify"]["labelArray"]["{author}"]);
+			// 	foreach($mail["notify"]["labelArray"]["{author}"] as $data){
+			// 		if($i == 1 && $countEntry==2)
+			// 			$author.=" ".Yii::t("common","and")." ";
+			// 		else if($i > 0)
+			// 			$author.=", ";
+			// 		if($i==2 && is_numeric($data)){
+			// 			$s="";
+			// 			if($data > 1)
+			// 				$s="s";
+			// 			$author.=" ".Yii::t("common","and")." ".$data." ".Yii::t("common", "person".$s);
+			// 		}else
+			// 			$author.=$data;
+			// 		$i++;
+			// 	}
+			// 	$resArray["{author}"]=$author;
+			// }
+			if( !empty($mail["labelArray"]["{who}"]) ){
+				$who="";
+				$i=0;
+				$countEntry = count($mail["labelArray"]["{who}"]);
+				foreach ($mail["labelArray"]["{who}"] as $key => $value) {
+					if($i == 1 && $countEntry==2)
+						$who.=" ".Yii::t("common","and")." ";
+					else if($i > 0)
+						$who.=", ";
+
+					if($i >= 2 ){
+						$s="";
+						if($countEntry > 3)
+							$s="s";
+						$typeMore="person";
+
+						// if( $mail["verb"]==ActStr::VERB_ADD && 
+						// 	!empty($mail["objectType"]) && 
+						// 	$mail["objectType"] == "asMember" )
+						// 	$typeMore="organization";
+
+						$who.=" ".Yii::t("common","and")." ".($countEntry - 2)." ".Yii::t("common", $typeMore.$s);
+					}else
+						$who.=$value;
+					$i++;
+				}
+
+				$resArray["{who}"] = $who;
+			}
+
+			// if( !empty($mail["notify"]["labelArray"]["{what}"]) ){
+			// 	$what="";
+			// 	$i=0;
+			// 	foreach($mail["notify"]["labelArray"]["{what}"] as $data){
+			// 		if($i > 0)
+			// 			$what.=" ";
+			// 		$what=Yii::t("notification",$data);
+			// 		$i++;
+			// 	}
+			// 	$resArray["{what}"]=$what;
+			// }
+
+			// if(!empty($mail["notify"]["labelArray"]["{where}"])){
+			// 	$where="";
+			// 	$i=0;
+			// 	foreach($mail["notify"]["labelArray"]["{where}"] as $data){
+			// 		if($i > 0)
+			// 			$where.=" ";
+			// 		$where=Yii::t("notification",$data);
+			// 		$i++;
+			// 	}
+			// 	$resArray["{where}"]=$where;
+			// }
+		}
+		
+		return Yii::t("mail",$mail["label"], $resArray);
+	}
 }
