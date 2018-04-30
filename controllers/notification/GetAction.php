@@ -27,7 +27,7 @@ class GetAction extends CAction
             $params = array("notify.id.".Yii::app()->session["userId"] => array('$exists' => true));
           }
 
-          $res = ActivityStream::getNotifications($params);
+          $res = ActivityStream::getNotifications($params, @$_POST['indexMin']);
           if(!empty($res)){
             $timezone="";
               foreach($res as $key => $data){
