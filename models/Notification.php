@@ -393,7 +393,7 @@ class Notification{
 				),
 				"chat" => array(
 					"url" => "page/type/{collection}/id/{id}",
-					"label" => "{who} added a Chat on {where}"
+					"label" => "{who} added a chat on {where}"
 				),
 			),
 			/*"context" => array(
