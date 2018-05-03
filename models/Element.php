@@ -1908,7 +1908,7 @@ class Element {
                 	$res["afterSave"] = Network::afterSave($params, Yii::app()->session["userId"]);
 
                // echo "pas d'id - "; var_dump($postParams); exit;
-               $res["afterSaveGbl"] = self::afterSave((string)$params["_id"],$collection,$params,$postParams);
+               $res["afterSaveGbl"] = self::afterSave((string)$params["_id"],$collection,$params,$postParams, Yii::app()->session["userId"], $paramsLinkImport);
                 //if( false && @$params["parentType"] && @$params["parentId"] )
                 //{
                     //createdObjectAsParam($authorType, $authorId, $objectType, $objectId, $targetType, $targetId, $geo, $tags, $address, $verb="create")
@@ -1935,7 +1935,7 @@ class Element {
         return $res;
     }
 
-    public static function afterSave ($id, $collection, $params,$postParams) {
+    public static function afterSave ($id, $collection, $params, $postParams, $creatorId, $paramsImport) {
     	$res = array();
     	
     	if( @$postParams["medias"] )
@@ -1959,6 +1959,20 @@ class Element {
         		Mail::referenceEmailInElement($collection, $id, $params["email"]);
         	}
         }
+
+
+
+        if (empty($paramsImport))
+			Notification::createdObjectAsParam( Person::COLLECTION, 
+												$creatorId, 
+												$collection, 
+												$id, 
+												Person::COLLECTION, 
+												$creatorId, 
+												( !empty($params["geo"]) ? $params["geo"] : "" ) , 
+												( !empty($params["tags"]) ? $params["tags"] : null ),
+												( ( !empty($organization["address"]) && !empty($organization["address"]["codeInsee"]) ) ? $organization["address"]["codeInsee"] : "" ) ) ;
+		ActivityStream::saveActivityHistory( ActStr::VERB_CREATE, $id, $collection, "organization", $params["name"] ) ;
                 
     	return $res;
     }

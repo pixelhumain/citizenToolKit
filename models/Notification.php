@@ -347,6 +347,11 @@ class Notification{
 				/*"need"=> array(
 					"url" => "{ctrlr}/detail/id/{id}"
 				),*/
+				Poi::COLLECTION => array(
+					"url" => "page/type/{objectType}/id/{objectId}",
+					//"label" => "{who} added a new project on {where}",
+					"labelMail" => "{who} added a new point of interest : {what}"
+				),
 				Project::COLLECTION => array(
 					"url" => "page/type/{objectType}/id/{objectId}",
 					"label" => "{who} added a new project on {where}",
@@ -354,11 +359,13 @@ class Notification{
 				),
 				Event::COLLECTION=> array(
 					"url" => "page/type/{objectType}/id/{objectId}",
-					"label" => "{who} added a new event on {where}"
+					"label" => "{who} added a new event on {where}",
+					"labelMail" => "{who} added a new event : {what}"
 				),
 				Classified::COLLECTION=> array(
 					"url" => "page/type/{objectType}/id/{objectId}",
-					"label" => "{who} added a new classified on {where}"
+					"label" => "{who} added a new classified on {where}",
+					"labelMail" => "{who} added a new classified : {what}"
 				),
 				ActionRoom::COLLECTION_ACTIONS=> array(
 					"url"=>"rooms/actions/id/{objectId}",
@@ -1199,13 +1206,20 @@ class Notification{
 		if(!empty($notificationPart["target"]) && empty($notificationPart["target"]["name"])){
 			$elt = Element::getElementById( $notificationPart["target"]["id"], $notificationPart["target"]["type"], null, array("name") );
 			$notificationPart["target"]["name"] = @$elt["name"];
+			$target["name"] = @$elt["name"];
 		}
-		var_dump($notificationPart["object"]);
+		//var_dump($notificationPart["object"]); 
 		if(!empty($notificationPart["object"]) && empty($notificationPart["object"]["name"])){
 			$elt = Element::getElementById( $notificationPart["object"]["id"], $notificationPart["object"]["type"], null, array("name") );
+			//var_dump($elt); 
 			$notificationPart["object"]["name"] = @$elt["name"];
+			$object["name"] = @$elt["name"];
+
+			//var_dump($notificationPart["object"]); 
 		}
 
+		
+		//var_dump($notificationPart["object"]); 
 
 		//Move labelUpToNotify in getLabel
 		$notificationPart["labelUpNotifyTarget"] = "author";
@@ -1222,6 +1236,9 @@ class Notification{
 			$notificationPart["object"]=$target;
 			$notificationPart["target"]=array("type"=>$propAct["parentType"],"id"=>$propAct["parentId"]);
 		}
+
+		//var_dump($notificationPart["object"]); 
+
 		// Create notification specially for user added to the next notify for community of target
 		if(@$notificationPart["notifyUser"] || (@$notificationPart["type"] && @$notificationPart["type"][$levelType] && @$notificationPart["type"][$levelType]["notifyUser"])){
 			$update=false;
@@ -1297,7 +1314,7 @@ class Notification{
 		        $notificationPart["labelUpNotifyTarget"]="object";
 		    }
 		    else if($object){
-		        $notificationPart["object"]=array("id" => $object["id"], "type" => $object["type"]);
+		        $notificationPart["object"]= array( "id" => $object["id"], "type" => $object["type"], "name" => @$object["name"] );
 		    }
 
 		    if($notificationPart["verb"]==Actstr::VERB_COMMENT && $notificationPart["levelType"]==Comment::COLLECTION)
@@ -1337,7 +1354,7 @@ class Notification{
 				**/
 				/********** END MAILING PROCEDURE *********/
 			}
-
+			//var_dump($notificationPart["object"]); exit;
 			Mail::createNotification($notificationPart);
 
 		}

@@ -888,36 +888,9 @@ class Mail {
         }
     }
 
-
-    // public static function createParamsMails($verb, $target = null, $object = null, $author = null){
-    //     $paramsMail = Mail::$mailTree[$verb];
-
-    //     if($verb == ActStr::VERB_ADD){
-    //         if(!empty($paramsMail["type"][$object["type"]])){
-    //             $type = $paramsMail["type"][$object["type"]];
-    //             unset($paramsMail["type"][$object["type"]]);
-    //             $paramsMail = array_merge($paramsMail, $type);
-    //         }
-    //     }else{
-    //         if(!empty($paramsMail["type"][$target["type"]])){
-    //             $type = $paramsMail["type"][$target["type"]];
-    //             unset($paramsMail["type"][$target["type"]]);
-    //             $paramsMail = array_merge($paramsMail, $type);
-    //         }
-    //     }
-        
-
-    //     $paramsMail["verb"] = $verb;
-    //     $paramsMail["target"]=$target;
-    //     $paramsMail["object"]=$object;
-    //     $paramsMail["author"]=$author;
-
-    //     return $paramsMail;
-    // }
-
     public static function createParamsTpl($construct, $paramTpl = null){
 
-    	var_dump($construct); exit ; 
+    	//var_dump($construct); exit ; 
         $targetType = $construct["target"]["type"];
         $targetId = $construct["target"]["id"];
         $verb = $construct["verb"];
@@ -937,13 +910,21 @@ class Mail {
                                                             "name" => $construct["target"]["name"]  ) ;
         }
 
+        $paramsVerb = array() ;
+
         if(empty($paramTpl[ $targetType ][ $targetId ][ $verb ]) ){
             $paramTpl[ $targetType ][ $targetId ][ $verb ] = array();
-        }else{
-        	$labelArray = $paramTpl[ $targetType ][ $targetId ][ $verb ]["labelArray"] ;
-        	$countRepeat = $paramTpl[ $targetType ][ $targetId ][ $verb ]["countRepeat"] ;
-        	$countRepeat++;
+        } else {
+
+            if($verb != ActStr::VERB_ADD){
+                $labelArray = $paramTpl[ $targetType ][ $targetId ][ $verb ]["labelArray"] ;
+                $countRepeat = $paramTpl[ $targetType ][ $targetId ][ $verb ]["countRepeat"] ;
+                $countRepeat++;
+            }
+        	
         }
+
+
         
         foreach ($construct["labelArray"] as $key => $value) {
         	$str = "";
@@ -994,7 +975,14 @@ class Mail {
         $info["label"] = Notification::getLabelNotification($construct, null, 1, null, $repeat, @$sameAuthor);
         $info["labelArray"] = $labelArray ;
         $info["countRepeat"] = $countRepeat ;
-        $paramTpl[ $targetType ][ $targetId ][ $verb ] = $info ;
+
+        if($verb == ActStr::VERB_ADD){
+            $info["url"] = Yii::app()->getRequest()->getBaseUrl(true)."/#page.type.".$construct[ "object" ][ "type" ].".id.".$construct[ "object" ][ "id" ] ;
+            $paramTpl[ $targetType ][ $targetId ][ $verb ][] = $info ;
+        }
+        else
+            $paramTpl[ $targetType ][ $targetId ][ $verb ] = $info ;
+
         return $paramTpl ;
 
     }
@@ -1054,22 +1042,22 @@ class Mail {
 				$resArray["{who}"] = $who;
 			}
 
-			// if( !empty($mail["notify"]["labelArray"]["{what}"]) ){
-			// 	$what="";
-			// 	$i=0;
-			// 	foreach($mail["notify"]["labelArray"]["{what}"] as $data){
-			// 		if($i > 0)
-			// 			$what.=" ";
-			// 		$what=Yii::t("notification",$data);
-			// 		$i++;
-			// 	}
-			// 	$resArray["{what}"]=$what;
-			// }
+			if( !empty($mail["labelArray"]["{what}"]) ){
+				$what="";
+				$i=0;
+				foreach($mail["labelArray"]["{what}"] as $data){
+					if($i > 0)
+						$what.=" ";
+					$what=Yii::t("notification",$data);
+					$i++;
+				}
+				$resArray["{what}"]=$what;
+			}
 
-			// if(!empty($mail["notify"]["labelArray"]["{where}"])){
+			// if(!empty($mail["labelArray"]["{where}"])){
 			// 	$where="";
 			// 	$i=0;
-			// 	foreach($mail["notify"]["labelArray"]["{where}"] as $data){
+			// 	foreach($mail["labelArray"]["{where}"] as $data){
 			// 		if($i > 0)
 			// 			$where.=" ";
 			// 		$where=Yii::t("notification",$data);
