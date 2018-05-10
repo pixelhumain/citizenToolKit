@@ -65,7 +65,7 @@ class Api {
     }
 
 
-    public static function getData($bindMap, $format = null, $type, $id = null, $limit=50, $index=0, $tags = null, $multiTags=null , $key = null, $insee = null, $geoShape = null, $idElement = null, $typeElement = null){
+    public static function getData($bindMap, $format = null, $type, $id = null, $limit=50, $index=0, $tags = null, $multiTags=null , $key = null, $insee = null, $geoShape = null, $idElement = null, $typeElement = null, $namecity = null){
         
         // Create params for request
         $params = array();
@@ -79,6 +79,37 @@ class Api {
         if( @$insee ){
             if($type == City::COLLECTION) $params["insee"] = $insee;
             else $params["address.codeInsee"] = $insee ;
+        }
+
+        if( @$namecity ){
+
+            $namecityArray = explode(",", $namecity);
+            // $params["address.addressLocality"] = array('$or' => $namecityArray) ;
+
+            // $where = array( '$or'=> 
+            //                 array(  array("origin" => new MongoRegex("/^".$regex."/i")),
+            //                         array("translates.".strtoupper(Yii::app()->language) => array( '$in' => array (new MongoRegex("/^".$regex."/i") ) ) ),
+            //                         array("postalCodes.origin" => new MongoRegex("/^".$regex."/i") ),
+            //                         array("postalCodes.postalCode" => new MongoRegex("/^".$regex."/i") )
+            //             ) );
+            $allQueryLocality = array();
+            if(count($namecityArray ) == 1){
+                $params["address.addressLocality"] = new MongoRegex("/".$namecityArray[0]."/i");
+            }else{
+                foreach ($namecityArray as $keyLocality => $locality) {
+                
+                    $queryLocality = new MongoRegex("/".$locality."/i")  ;
+
+                    //Consolidate Queries
+                    if(!empty($queryLocality)) {
+                        $allQueryLocality[] = $queryLocality;
+                    }
+                    unset($queryLocality);
+
+                }
+                $params["address.addressLocality"] = array('$in' => $allQueryLocality);
+            }
+            
         }
         
         if( @$tags ){
@@ -101,6 +132,8 @@ class Api {
         if ($format == Translate::FORMAT_GOGO) {
             $params["geoPosition"] = array('$exists' => 1);
         }
+
+        //echo Rest::json($params); exit ;
 
         $data = PHDB::findAndLimitAndIndex($type , $params, $limit, $index);
         $data = self::getUrlImage($data, $type);
@@ -137,12 +170,19 @@ class Api {
 
         // create JSON
         if(empty($id)){
-            $meta["limit"] = $limit;
+            $meta["limit"] = count($data);
             $server = ((isset($_SERVER['HTTPS']) AND (!empty($_SERVER['HTTPS'])) AND strtolower($_SERVER['HTTPS'])!='off') ? 'https://' : 'http://').$_SERVER['HTTP_HOST'];
             $meta["next"] = $server.Yii::app()->createUrl("/api/".Element::getControlerByCollection($type)."/get/limit/".$limit."/index/".($index+$limit));
 
             if(@$format)
-                $meta["format"] = "/format/".$format ;
+                $meta["next"] .= "/format/".$format ;
+
+            if(!empty($tags))
+                $meta["next"] .= "/tags/".$tags ;
+
+            if(!empty($namecity))
+                $meta["next"] .= "/namecity/".$namecity ;
+
             if($index != 0){
                 $newIndex = $index - $limit;
                 if($newIndex < 0)
