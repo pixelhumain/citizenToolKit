@@ -112,7 +112,7 @@ class GetDataDetailAction extends CAction {
 			$col = ($dataName == "ressources") ? Ressource::COLLECTION : Classified::COLLECTION;
 			$contextMap = Element::getByIdAndTypeOfParent( $col , $id, $type, array("updated"=>-1));
 			foreach ($contextMap as $key => $value) {
-				$contextMap[$key]["label"] = @$value["type"];
+				$contextMap[$key]["category"] = @$value["type"];
 				$contextMap[$key]["type"] = $col;
 				$contextMap[$key]["typeSig"] = $col;
 			}
