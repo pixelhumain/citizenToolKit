@@ -1562,7 +1562,6 @@ class City {
 		            }
 					$newCities[] = $value ;
 				}else{
-					$value["allCP"] = true ;
 					$newCities[] = $value ;
 					$value["allCP"] = false;
 					foreach ($value["postalCodes"] as $keyCP => $valueCP) {
