@@ -83,5 +83,10 @@ class Slug {
 		}
 		return $res;
 	}
+	
+	public static function removeByParentIdAndType($id, $type){
+		$where = array("id" => $id, "type" => $type);
+	    PHDB::remove(self::COLLECTION, $where);
+	}
 }
 

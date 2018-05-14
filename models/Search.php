@@ -180,7 +180,7 @@ class Search {
 		$query = array();
       	$queryNews=array();
       	$query = Search::searchString($search, $query);
-		$query = array('$and' => array( $query , array("state" => array('$ne' => "uncomplete")) ));
+		$query = array('$and' => array( $query , array("state" => array('$nin' => array("uncomplete", "deleted")) )));
       	//$queryNews = Search::searchNewsString($search, $query);
       	//$queryNews = array('$and' => array( $queryNews , array("type"=>News::COLLECTION, "scope.type"=>News::TYPE_PUBLIC, "target.type"=>array('$ne'=>"pixels"))));
       	if($latest)
