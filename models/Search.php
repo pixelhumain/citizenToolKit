@@ -867,6 +867,7 @@ class Search {
 	//*********************************  PERSONS   ******************************************
   	public static function searchPersons($query, $indexStep, $indexMin, $prefLocality=false){
        	$res = array();
+       	$query = array('$and' => array( $query , array("tobeactivated" => array('$exists' => 0)))) ;
        	$allCitoyen = PHDB::findAndSortAndLimitAndIndex ( Person::COLLECTION , $query, 
   										  array("updated" => -1), $indexStep, $indexMin);
        	//print_r($allCitoyen);
