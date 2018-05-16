@@ -687,25 +687,32 @@ class Search {
   	}
   	public static function getQueryClassifieds($query, $searchSType, $subType, $section, $priceMin, $priceMax, $devise){
   		$queryPrice = array('$and' =>	array(array('devise' => $devise)) ) ;	
-		if(@$priceMin) $queryPrice['$and'][] = array('price' => array('$gte' => (int)$priceMin));
-		if(@$priceMax) $queryPrice['$and'][] = array('price' => array('$lte' => (int)$priceMax));
-		if(@$priceMin || @$priceMax || @$devise) 
-			$query = array('$and' => array( $query , $queryPrice) );
+		//if(@$priceMin) $queryPrice[] = array('price' => array('$gte' => (int)$priceMin));
+		//if(@$priceMax) $queryPrice[] = array('price' => array('$lte' => (int)$priceMax));
+		//if(@$priceMin || @$priceMax || @$devise) 
+		//	$query = array('$and' => array( $query , $queryPrice) );
+		if(@$priceMax)
+			array_push( $query[ '$and' ], array( 'price' => array('$lte' => (int)$priceMax)) );
+		if(@$priceMin)
+			array_push( $query[ '$and' ], array( 'price' => array('$gte' => (int)$priceMin)) );
+		if(@$devise)
+			array_push( $query[ '$and' ], array( 'devise' => $devise) );
 		if(isset($searchSType) && $searchSType != "")
         	array_push( $query[ '$and' ], array( "type" => $searchSType ) );
   		if(isset($subType) && $subType != "")
-        	array_push( $query[ '$and' ], array( "subType" => $subType ) );
-  		if(isset($searchSType) && $searchSType != "")
-        	array_push( $query[ '$and' ], array( "section" => $searchSType ) );
+        	array_push( $query[ '$and' ], array( "subtype" => $subType ) );
+  		if(isset($section) && $section != "")
+        	array_push( $query[ '$and' ], array( "section" => $section ) );
   		return $query;
+
   	}
   	public static function getQueryRessources($query, $searchSType, $subType, $section){
   		if(isset($searchSType) && $searchSType != "")
         	array_push( $query[ '$and' ], array( "type" => $searchSType ) );
   		if(isset($subType) && $subType != "")
-        	array_push( $query[ '$and' ], array( "subType" => $subType ) );
-  		if(isset($searchSType) && $searchSType != "")
-        	array_push( $query[ '$and' ], array( "section" => $searchSType ) );
+        	array_push( $query[ '$and' ], array( "subtype" => $subType ) );
+  		if(isset($section) && $section != "")
+        	array_push( $query[ '$and' ], array( "section" => $section ) );
   		return $query;
   	}
   	//*********************************  END Specific squeries   ****************************************
