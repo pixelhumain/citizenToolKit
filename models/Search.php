@@ -35,8 +35,8 @@ class Search {
 
 	public static function accentToRegex($text) {
 
-		$from = str_split(utf8_decode('ŠŒŽšœžŸ¥µÀÁÂÃÄÅÆÇÈÉÊËẼÌÍÎÏĨÐÑÒÓÔÕÖØÙÚÛÜÝßàáâãäåæçèéêëẽìíîïĩðñòóôõöøùúûüýÿ'));
-		$to   = str_split(strtolower('SOZsozYYuAAAAAAACEEEEEIIIIIDNOOOOOOUUUUYsaaaaaaaceeeeeiiiiionoooooouuuuyy'));
+		$from = str_split(utf8_decode('ŠŒŽšœžŸ¥µÀÁÂÃÄÅÆÇÈÉÊËẼÌÍÎÏĨÐÑÒÓÔÕÖØÙÚÛÜÝßàáâãäåæçèéêëẽìíîïĩðñòóôõöøùúûüýÿ---\''));
+		$to   = str_split(strtolower('SOZsozYYuAAAAAAACEEEEEIIIIIDNOOOOOOUUUUYsaaaaaaaceeeeeiiiiionoooooouuuuyy    '));
 		//‘ŠŒŽšœžŸ¥µÀÁÂÃÄÅÆÇÈÉÊËẼÌÍÎÏĨÐÑÒÓÔÕÖØÙÚÛÜÝßàáâãäåæçèéêëẽìíîïĩðñòóôõöøùúûüýÿaeiouçAEIOUÇ';
 		//‘SOZsozYYuAAAAAAACEEEEEIIIIIDNOOOOOOUUUUYsaaaaaaaceeeeeiiiiionoooooouuuuyyaeioucAEIOUÇ';
 		$text = utf8_decode($text);
@@ -49,7 +49,7 @@ class Search {
 			else 
 				$regex[$value] = $value;
 		}
-
+		
 		foreach ($regex as $rg_key => $rg)
 		{
 			$text = preg_replace("/[$rg]/", "_{$rg_key}_", $text);
@@ -166,7 +166,7 @@ class Search {
 		$query = array();
       	$queryNews=array();
       	$query = Search::searchString($search, $query);
-		$query = array('$and' => array( $query , array("state" => array('$ne' => "uncomplete")) ));
+		$query = array('$and' => array( $query , array("state" => array('$nin' => array("uncomplete", "deleted")) )));
       	//$queryNews = Search::searchNewsString($search, $query);
       	//$queryNews = array('$and' => array( $queryNews , array("type"=>News::COLLECTION, "scope.type"=>News::TYPE_PUBLIC, "target.type"=>array('$ne'=>"pixels"))));
       	if($latest)
@@ -845,6 +845,7 @@ class Search {
 	//*********************************  PERSONS   ******************************************
   	public static function searchPersons($query, $indexStep, $indexMin, $prefLocality=false){
        	$res = array();
+       	$query = array('$and' => array( $query , array("tobeactivated" => array('$exists' => 0)))) ;
        	$allCitoyen = PHDB::findAndSortAndLimitAndIndex ( Person::COLLECTION , $query, 
   										  array("updated" => -1), $indexStep, $indexMin);
        	//print_r($allCitoyen);
