@@ -201,6 +201,7 @@ class TranslateCommunecter {
 																"prefix"   => "/api/organization/get/id/",
 																"suffix"   => "" ),
 	    						"website" 		=> array(	"valueOf" => 'url'))),
+	    "email"		=> array("valueOf" => "email"),
 	   	"address" 	=> array("parentKey"=>"address", 
 	    					 "valueOf" => array(
 									"@type" 			=> "PostalAddress", 
