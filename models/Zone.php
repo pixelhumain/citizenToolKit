@@ -399,7 +399,8 @@ class Zone {
 	  			$res["scopes"][$key] = self::createScope($city, City::COLLECTION, $cp);
 	  		}
 
-	  	}else if ( !empty($params["zones"]) ){
+	  	}
+	  	if ( !empty($params["zones"]) ){
 	  		foreach ($params["zones"] as $key => $value) {
 	  			$zoneId = $value;
 	  			$zone = self::getById($zoneId);
@@ -408,7 +409,8 @@ class Zone {
 	  			
 	  		}
 
-	  	}else if ( !empty($params["cp"]) ){
+	  	}
+	  	if ( !empty($params["cp"]) ){
 
 	  		foreach ($params["cp"] as $key => $value) {
 	  			if(strpos($value, "level") != false){
