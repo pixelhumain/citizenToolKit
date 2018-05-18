@@ -318,8 +318,13 @@ class Document {
 	public static function listMyDocumentByIdAndType($id, $type, $contentKey= null, $docType = null, $sort=array())	{	
 		$params = array("id"=> $id,
 						"type" => $type);
-		if (isset($contentKey) && $contentKey != null) 
-			$params["contentKey"] = $contentKey;
+		if (isset($contentKey) && $contentKey != null){
+			if(is_array($contentKey))
+				$params["contentKey"] = array('$in' => $contentKey);
+			else
+				$params["contentKey"] = $contentKey;
+		} 
+			
 		if (isset($docType)) 
 			$params["doctype"] = $docType;
 		//if (isset($docType)) 
