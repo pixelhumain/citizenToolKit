@@ -4,7 +4,7 @@
         public function run($id = null, $insee = null, $type = null) {
 
             if ($id != null) {
-                if ($type == "city") {
+                if ($type == City::COLLECTION) {
                     $res = City::getById($id);
                 } elseif ($type == "zone") {
                     $res = Zone::getById($id);

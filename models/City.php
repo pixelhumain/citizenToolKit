@@ -1614,5 +1614,19 @@ class City {
 		return $city;
 	}
 
+
+	public static function setCitiesByScope($scope){
+
+		foreach ($scope as $key => $value) {
+			 $city = self::getById($value);
+		}
+		
+
+		return $city;
+	}
+
+
+	
+
 }
 ?>
