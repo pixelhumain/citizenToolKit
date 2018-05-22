@@ -1456,9 +1456,13 @@ class City {
 				$resNominatimState = json_decode(SIG::getGeoByAddressNominatim(null, null, null, trim($countryCode), true, true, true, $scopeValue, true),true);
 
 				$resNominatimCountry = json_decode(SIG::getGeoByAddressNominatim(null, null, null, trim($countryCode), true, true, true, $scopeValue, false, true),true);
-					//var_dump($resNominatimCountry );
-				$resNominatim = array_merge($resNominatimState, $resNominatimCountry);
-				$resNominatim = array_merge($resNominatimCity , $resNominatim);
+				if(!empty($resNominatimCountry))
+					$resNominatim = array_merge($resNominatimState, $resNominatimCountry);
+				else if(!empty($resNominatimState))
+					$resNominatim = $resNominatimState;
+				else 
+					$resNominatim = array();
+				
 			}else
 				$resNominatim = $resNominatimCity;			
 
