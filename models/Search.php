@@ -141,31 +141,18 @@ class Search {
         $startDate = isset($_POST['startDate']) ? $_POST['startDate'] : null;
         $endDate = isset($_POST['endDate']) ? $_POST['endDate'] : null;
         $searchSType = !empty($post['searchSType']) ? $post['searchSType'] : "";
+        $subType = !empty($post['subType']) ? $post['subType'] : "";
+        $section = !empty($post['section']) ? $post['section'] : "";
         $sourceKey = !empty($post['sourceKey']) ? $post['sourceKey'] : "";
         $countResult = (@$post["count"]) ? true : false;
-        //$page = @$post['searchPage'] ? $post['searchPage'] : 0;
-        $app = @$post['app'] ? $post['app'] : "";
-        $searchOnAll = ($app=="territorial") ? true : false;
+        $initType = isset($_POST['initType']) ? $_POST['initType'] : null;
+        $searchOnAll = (@$post['initType'] && $post['initType']=="all") ? true : false;
         $ranges = @$post['ranges'] ? $post['ranges'] : null;
         $countType = isset($post['countType']) ? $post['countType'] : null;
         $indexMin = isset($post['indexMin']) ? $post['indexMin'] : 0;
-        $indexMax = isset($post['indexMax']) ? $post['indexMax'] : 30;
 		$indexStep = isset($post['indexStep']) ? $post['indexStep'] : 30;
 		
-        //$indexStep = 100;
-        /*$indexStep=30;
-      	$indexMin=30*$page;
-      	$indexMax=30;
-      	$searchByPage=true;
-        //print_r($post);
-      	if(@$post['indexMax']){
-      	//	echo "ouiiiiiiii";
-      		$indexMin = isset($post['indexMin']) ? $post['indexMin'] : 0;
-        	$indexMax = isset($post['indexMax']) ? $post['indexMax'] : 30;
-			$indexStep = $indexMax - $indexMin;
-			$searchByPage=false;
-		}*/
-		$searchTypeOrga = ""; /* used in CO2 to find different organisation type */
+       $searchTypeOrga = ""; /* used in CO2 to find different organisation type */
 		
 		if( sizeOf($searchType) == 1 &&
 			@$searchType[0] == Organization::TYPE_NGO ||
@@ -175,7 +162,6 @@ class Search {
 				$searchTypeOrga = $searchType[0];
 				$searchType = array(Organization::COLLECTION);
 		}
-		//echo $indexStep;
 		//*********************************  DEFINE GLOBAL QUERY   ******************************************
 		$query = array();
       	$queryNews=array();
@@ -188,9 +174,9 @@ class Search {
   		if($sourceKey!="")
   			$query['$and'][] = array("source.key"=>$sourceKey);
 
-  		if($api == true){
+  		//if($api == true){
   			//$query = array('$and' => array($query, array("preferences.isOpenData"=> true)));
-  		}
+  		//}
   		
   		
         //*********************************  TAGS   ******************************************
@@ -210,11 +196,8 @@ class Search {
   			if(!empty($queryTags))
   				$query = array('$and' => array( $query , $queryTags) );
   		}
-  		//unset($tmpTags);
-  		//var_dump($queryTags); exit;
   		$queryPersons=$query;
   		//*********************************  DEFINE LOCALITY QUERY   ****************************************
-  		//$query = array('$and' => array( $query , self::searchLocality($post, $query) ) );
   		if(!empty($searchLocality)){
   			$query = self::searchLocality($searchLocality, $query);
   			$queryPersons=$query;
@@ -222,42 +205,21 @@ class Search {
   			//$queryNews = self::searchLocalityNews($searchLocality, $queryNews);
   		}
   		$queryEvents = Search::getQueryEvents($query, $searchSType, $startDate, $endDate);
-  		$queryClassifieds = Search::getQueryClassifieds($query, @$priceMin, @$priceMax, @$devise);
+  		$queryClassifieds = Search::getQueryClassifieds($query, $searchSType, $subType, $section, @$priceMin, @$priceMax, @$devise);
+  		$queryRessources=Search::getQueryRessources($query, $searchSType, $subType, $section);
   		$allRes = array();
 
-  		// var_dump($queryEvents);
-  		// echo "<br/>";
   		//*********************************  CITIES   ******************************************
   		if(!empty($search) /*&& !empty($locality) */){
-			if(strcmp($filter, City::COLLECTION) != 0 && self::typeWanted(City::COLLECTION, $searchType)){
-		  		//$allCitiesRes = self::searchCities($search, null, $country);
-				// $scopeValue = str_replace(array(
-				// 	'/', '-', '*', '+', '?', '|',
-				// 	'(', ')', '[', ']', '{', '}', '\\', " "), ".", trim($search));
-				// $where = array('$or'=> 
-				// 	array(  array("name" => new MongoRegex("/".$scopeValue."/i")),
-				// 		array("alternateName" => new MongoRegex("/".$scopeValue."/i")),
-				// 		array("postalCodes.postalCode" => new MongoRegex("/^".$scopeValue."/i")),
-				// 		array("postalCodes.name" => new MongoRegex("/^".$scopeValue."/i")),
-				// 	)
-				// );
-				// $where = array('$and'=> array($where, array("country" => strtoupper($country)) ));
-				//var_dump($where);
+			if(strcmp($filter, City::COLLECTION) != 0 && self::typeWanted(City::COLLECTION, $searchType))
 		  		$allCitiesRes = City::searchCity($country, $search, false, false);
-		  		//var_dump(count($allCitiesRes));
-
-		  	}
 		  	
-		  	//if(isset($allCitiesRes)) usort($allCitiesRes, "self::mySortByName");
-		  	
-		  	if(count($allRes) < $indexMax){
+		  	if(count($allRes) < $indexStep){
 		  		if(isset($allCitiesRes)) 
 		  			$allRes = array_merge($allRes, $allCitiesRes);
 		  	}
-		  	//var_dump($allCitiesRes);
 		}
 
-		//var_dump($allRes);
 	  		
 		//*********************************  PERSONS   ******************************************
        	if(strcmp($filter, Person::COLLECTION) != 0 && (self::typeWanted(Person::COLLECTION, $searchType) || self::typeWanted("persons", $searchType) ) ) {
@@ -291,7 +253,7 @@ class Search {
 			
        		if($search != "")
        			$searchAll=true;
-			$allRes = array_merge($allRes, self::searchEvents($queryEvents, $indexStep, $indexMin, $searchSType, $searchOnAll, $searchAll));
+			$allRes = array_merge($allRes, self::searchEvents($queryEvents, $indexStep, $indexMin, $searchOnAll, $searchAll));
 	  	}
 	  	//*********************************  PROJECTS   ******************************************
 		if(strcmp($filter, Project::COLLECTION) != 0 && self::typeWanted(Project::COLLECTION, $searchType)){
@@ -348,7 +310,7 @@ class Search {
 				$indexMin=$ranges[Ressource::COLLECTION]["indexMin"];
 				$indexStep=$ranges[Ressource::COLLECTION]["indexMax"]-$ranges[Ressource::COLLECTION]["indexMin"];
 			}
-        	$allRes = array_merge($allRes, self::searchAny(Ressource::COLLECTION, $query, $indexStep, $indexMin));
+        	$allRes = array_merge($allRes, self::searchAny(Ressource::COLLECTION, $queryRessources, $indexStep, $indexMin));
 	  	}
 
 	  	//*********************************  NEWS   ******************************************
@@ -361,12 +323,12 @@ class Search {
 	  	}
 
 	  	//*********************************  DDA   ******************************************
-		if(strcmp($filter, ActionRoom::COLLECTION) != 0 && self::typeWanted(ActionRoom::COLLECTION, $searchType)){
+		/*if(strcmp($filter, ActionRoom::COLLECTION) != 0 && self::typeWanted(ActionRoom::COLLECTION, $searchType)){
 			$allRes = array_merge($allRes, self::searchDDA($query, $indexMax));
 	  	}
 	  	if(strcmp($filter, ActionRoom::COLLECTION) != 0 && self::typeWanted(ActionRoom::COLLECTION, $searchType)){
 			$allRes = array_merge($allRes, self::searchDDA($query, $indexMax));
-	  	}
+	  	}*/
 	  	
 
 		//*********************************  VOTES / propositions   ******************************************
@@ -400,7 +362,7 @@ class Search {
 				}
 	  		}
 			if(@$value["updated"]) {
-				if($app=="agenda")
+				if($initType=="agenda")
 					$allRes[$key]["updatedLbl"] = Translate::pastTime(@$value["startDate"],"date");
 				else if($value["type"]==News::COLLECTION){
 					if(@$value["updated"])
@@ -417,7 +379,7 @@ class Search {
 	  	//echo $search;
 	  	$results["results"]=$allRes;
 	  	if($countResult && !empty($countType))
-	  		$results["count"]=search::countResultsByCollection($countType, $query, $queryPersons, $queryNews, $queryEvents, $queryClassifieds);
+	  		$results["count"]=search::countResultsByCollection($countType, $query, $queryPersons, $queryNews, $queryEvents, $queryClassifieds, $queryRessources);
 	  	$element["gallery"] = Document::listMyDocumentByIdAndType((string)@$element["_id"], @$type);
 	  	//var_dump($allRes);
 	  	return $results ;
@@ -429,7 +391,7 @@ class Search {
     // params queryPersons is array of condition specific for people
     // params queryNews is array of condition specific for news
     // params queryEvents is array of condition specific for events
-    public static function countResultsByCollection($countType, $query, $queryPersons, $queryNews, $queryEvents, $queryClassifieds){
+    public static function countResultsByCollection($countType, $query, $queryPersons, $queryNews, $queryEvents, $queryClassifieds, $queryRessources){
     	$count=array();
     	foreach($countType as $value){
 	  			$countQuery=$query;
@@ -438,6 +400,7 @@ class Search {
 	  			else if($value==News::COLLECTION) $countQuery=$queryNews;
 	  			else if($value==Event::COLLECTION) $countQuery=$queryEvents;
 	  			else if($value==Classified::COLLECTION) $countQuery=$queryClassifieds;
+	  			else if($value==Ressource::COLLECTION) $countQuery=$queryRessources;
 	  			else if(in_array($value, ["Group", "NGO", "LocalBusiness", "GovernmentOrganization"])){
           			array_push( $countQuery[ '$and' ], array( "type" => $value ) );
           			$col=Organization::COLLECTION;
@@ -711,7 +674,7 @@ class Search {
 		if($endDate!=null)
        		array_push( $queryEvent[ '$and' ], array( "endDate" => array( '$lte' => new MongoDate( (float)$endDate ) ) ) );
   		if(isset($searchSType) && $searchSType != "")
-        	array_push( $queryEvent[ '$and' ], array( "type" => $_POST["searchSType"] ) );
+        	array_push( $queryEvent[ '$and' ], array( "type" => $searchSType ) );
     	// $queryEvent = array('$and' => 
 					// 	array( $queryEvent , 
 					// 	array( '$or' => array( 
@@ -722,12 +685,34 @@ class Search {
 					// 			) ) ) ) ) );
   		return $queryEvent;
   	}
-  	public static function getQueryClassifieds($query, $priceMin, $priceMax, $devise){
+  	public static function getQueryClassifieds($query, $searchSType, $subType, $section, $priceMin, $priceMax, $devise){
   		$queryPrice = array('$and' =>	array(array('devise' => $devise)) ) ;	
-		if(@$priceMin) $queryPrice['$and'][] = array('price' => array('$gte' => (int)$priceMin));
-		if(@$priceMax) $queryPrice['$and'][] = array('price' => array('$lte' => (int)$priceMax));
-		if(@$priceMin || @$priceMax || @$devise) 
-			$query = array('$and' => array( $query , $queryPrice) );
+		//if(@$priceMin) $queryPrice[] = array('price' => array('$gte' => (int)$priceMin));
+		//if(@$priceMax) $queryPrice[] = array('price' => array('$lte' => (int)$priceMax));
+		//if(@$priceMin || @$priceMax || @$devise) 
+		//	$query = array('$and' => array( $query , $queryPrice) );
+		if(@$priceMax)
+			array_push( $query[ '$and' ], array( 'price' => array('$lte' => (int)$priceMax)) );
+		if(@$priceMin)
+			array_push( $query[ '$and' ], array( 'price' => array('$gte' => (int)$priceMin)) );
+		if(@$devise)
+			array_push( $query[ '$and' ], array( 'devise' => $devise) );
+		if(isset($searchSType) && $searchSType != "")
+        	array_push( $query[ '$and' ], array( "type" => $searchSType ) );
+  		if(isset($subType) && $subType != "")
+        	array_push( $query[ '$and' ], array( "subtype" => $subType ) );
+  		if(isset($section) && $section != "")
+        	array_push( $query[ '$and' ], array( "section" => $section ) );
+  		return $query;
+
+  	}
+  	public static function getQueryRessources($query, $searchSType, $subType, $section){
+  		if(isset($searchSType) && $searchSType != "")
+        	array_push( $query[ '$and' ], array( "type" => $searchSType ) );
+  		if(isset($subType) && $subType != "")
+        	array_push( $query[ '$and' ], array( "subtype" => $subType ) );
+  		if(isset($section) && $section != "")
+        	array_push( $query[ '$and' ], array( "section" => $section ) );
   		return $query;
   	}
   	//*********************************  END Specific squeries   ****************************************
@@ -949,7 +934,7 @@ class Search {
 	
 
 	//*********************************  EVENT   ******************************************
-	public static function searchEvents($query, $indexStep, $indexMin, $searchSType, $searchOnAll=null, $all=null){
+	public static function searchEvents($query, $indexStep, $indexMin, $searchOnAll=null, $all=null){
 		date_default_timezone_set('UTC');
 		$queryEvent = $query;
 

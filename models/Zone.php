@@ -380,5 +380,112 @@ class Zone {
 	  	$zones =PHDB::findAndSort( self::TRANSLATE,$params, array(), $limit, $fields);
 	  	return $zones;
 	}
+
+
+	public static function getScopeByIds($params) {
+		$res = array("scopes" => array());
+	  	if( !empty($params["cities"]) ){
+	  		foreach ($params["cities"] as $key => $value) {
+	  			$cp = null ;
+	  			if(strpos($value, "cp") != false){
+	  				$exp = explode("cp", $value);
+	  				$cityId = $exp[0];
+	  				$cp = $exp[1];
+	  			}else{
+	  				$cityId = $value;
+	  			}
+	  			$city = City::getById($cityId);
+	  			$key = (String) $city["_id"].City::COLLECTION.(empty($cp) ? "" : $cp) ;
+	  			$res["scopes"][$key] = self::createScope($city, City::COLLECTION, $cp);
+	  		}
+
+	  	}
+	  	if ( !empty($params["zones"]) ){
+	  		foreach ($params["zones"] as $key => $value) {
+	  			$zoneId = $value;
+	  			$zone = self::getById($zoneId);
+  				$key = (String) $zone["_id"]."level".self::getLevel($zone) ;
+  				$res["scopes"][$key] = self::createScope($zone, self::COLLECTION, self::getLevel($zone));
+	  			
+	  		}
+
+	  	}
+	  	if ( !empty($params["cp"]) ){
+
+	  		foreach ($params["cp"] as $key => $value) {
+	  			if(strpos($value, "level") != false){
+	  				$cp = substr($value, 0, strlen($value)-8);
+	  				$countryCode = substr($value, -8, 2);
+	  			}else{
+	  				$cp = substr($value, 0, strlen($value)-2);
+	  				$countryCode = substr($value, -2, 2);
+	  			}
+
+	  			$key = $cp.$countryCode ;	
+  				$zone = array("id" => $key,
+  						"name" => $cp,
+  						"type" => "cp",
+						"countryCode" => $countryCode,
+						"active" => true );
+
+  				
+  				$res["scopes"][$key] = self::createScope($zone, "cp");
+	  			
+
+	  			
+	  		}
+	  		
+  			
+	  	}
+
+	  	return $res ;
+	}
+
+	public static function createScope($zone, $type, $cp = null) {
+		$scope = array(
+			"id" => (!empty($zone["id"]) ? $zone["id"] : (String) $zone["_id"]),
+			"name" => $zone["name"],
+			"type" => $type,
+			"countryCode" => ( !empty($zone["countryCode"]) ? $zone["countryCode"] : $zone["country"] ),
+			"active" => true,
+		);
+
+		if($type == City::COLLECTION){
+			if(!empty($cp)){
+				$scope["postalCode"] = $cp;
+				$scope["allCP"] = false;
+				foreach ($zone["postalCodes"] as $key => $value) {
+					if($value["postalCode"] == $scope["postalCode"]){
+						$scope["name"] = $value["name"]." ( ".$scope["postalCode"]." ) ";
+						break;
+					}
+				}
+			}else{
+				$scope["allCP"] = true;
+			}
+		}else if($type == self::COLLECTION){
+			if($cp == null)
+				$cp = self::getLevel($zone);
+			$scope["type"] = "level".$cp ;
+			$scope["level"] = $cp ;
+
+		}
+		return $scope ;
+	}
+
+
+	public static function getLevel($zone){
+		$level = null;
+		if(in_array("1", $zone["level"]) ){
+			$level = "1";
+		}else if(in_array("2", $zone["level"]) ){
+			$level = "2";
+		}else if(in_array("3", $zone["level"]) ){
+			$level = "3";
+		}else if(in_array("4", $zone["level"]) ){
+			$level = "4";
+		}
+		return $level ;
+	}
 }
 ?>
