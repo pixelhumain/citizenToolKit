@@ -32,7 +32,7 @@ class MultiConnectAction extends CAction
 												"roles"=> (empty($value["roles"]) ? array() : $value["roles"]));
 							//var_dump($child);
 							
-							$res[] = Link::multiconnect($child, $_POST["parentId"], $_POST["parentType"]);
+							$res["citoyens"][] = Link::multiconnect($child, $_POST["parentId"], $_POST["parentType"]);
 						}
 					}
 				}
@@ -41,7 +41,7 @@ class MultiConnectAction extends CAction
 					$child = array();
 					foreach ($list["invites"] as $key => $value) {
 						$newPerson = array(	"name" => $value["name"],
-											"email" => $key,
+											"email" => $value["mail"],
 											"invitedBy" => Yii::app()->session["userId"]);
 
 						$creatUser = Person::createAndInvite($newPerson, @$value["msg"]);
@@ -50,7 +50,7 @@ class MultiConnectAction extends CAction
 								$invitedUserId = $creatUser["id"];
 								$child["childId"] = $_POST["parentId"];
 								$child["childType"] = $_POST["parentType"];
-								$res[] = Link::follow($invitedUserId, Person::COLLECTION, $child);
+								$res["invites"][] = Link::follow($invitedUserId, Person::COLLECTION, $child);
 								
 							} else {
 								$child[] = array( 	"childId" => $creatUser["id"],
@@ -58,7 +58,7 @@ class MultiConnectAction extends CAction
 													"childName" => $value["name"],
 													"roles"=> (empty($value["roles"]) ? array() : $value["roles"]));
 								//var_dump($child);
-								$res[] = Link::multiconnect($child, $_POST["parentId"], $_POST["parentType"]);
+								$res["invites"][]= Link::multiconnect($child, $_POST["parentId"], $_POST["parentType"]);
 							}
 						}
 					}
@@ -78,7 +78,7 @@ class MultiConnectAction extends CAction
 												"childName" => $value["name"],
 												"roles"=> (empty($value["roles"]) ? array() : $value["roles"]));
 							//var_dump($child);
-							$res[] = Link::multiconnect($child, $_POST["parentId"], $_POST["parentType"]);
+							$res["organizations"][] = Link::multiconnect($child, $_POST["parentId"], $_POST["parentType"]);
 						}
 					}
 				}
