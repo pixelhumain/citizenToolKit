@@ -10,6 +10,11 @@ class InviteAction extends CAction {
 			"parentId" => ( empty($id) ? Yii::app()->session["userId"] : $id ) ,
 			"search" => true
 		);
+
+        if($params["parentType"] != Person::COLLECTION){
+            $parent = Element::getElementById($id, $type, null, array("links"));
+            $params["parentLinks"] = $parent["links"];
+        }
         
 		if(Yii::app()->request->isAjaxRequest)
             echo $controller->renderPartial("invite",$params,true);
