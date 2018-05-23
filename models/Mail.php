@@ -175,7 +175,7 @@ class Mail {
                                     "logo2" => Yii::app()->params["logoUrl2"],
                                     "invitedUserId" => $person["_id"],
                                     "message" => $msg,
-                                    "language" => Yii::app()->language
+                                    "language" => Yii::app()->language )
         );
 
         if(!empty($invitorUrl))
