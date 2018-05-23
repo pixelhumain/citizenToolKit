@@ -1020,9 +1020,9 @@ class Search {
 				$parent=array();
 			$allClassified[$key]["parent"] = $parent;
 			$allClassified[$key]["category"] = @$allClassified[$key]["type"];
-			$allClassified[$key]["type"] = "classified";
+			$allClassified[$key]["type"] = "classifieds";
 
-			$allClassified[$key]["gallery"] = Document::listMyDocumentByIdAndType(@$key, "classified");
+			$allClassified[$key]["gallery"] = Document::listMyDocumentByIdAndType(@$key, "classifieds");
 			//if(@$value["type"])
 			//	$allClassified[$key]["typeSig"] = Classified::COLLECTION.".".$value["type"];
 			//else
