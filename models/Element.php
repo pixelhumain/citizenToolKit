@@ -2390,6 +2390,8 @@ class Element {
 					$res[] = self::updateField($collection, $id, "diaspora", self::getAndCheckUrl($params["diaspora"]));
 				if(isset($params["mastodon"]))
 					$res[] = self::updateField($collection, $id, "mastodon", self::getAndCheckUrl($params["mastodon"]));
+				if(isset($params["instagram"]))
+					$res[] = self::updateField($collection, $id, "instagram", self::getAndCheckUrl($params["instagram"]));
 
 			}else if( $block == "when" && ( $collection == Event::COLLECTION || $collection == Project::COLLECTION) ) {
 				

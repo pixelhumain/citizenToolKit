@@ -244,10 +244,15 @@ class City {
 	  	return $city;
 	}
 
-	public static function getByPostalCode($cp) {
+	public static function getByPostalCode($cp, $countryCode=null, $fields=array()) {
 
 		$params = array('postalCodes' => array('$elemMatch' => array('postalCode' => $cp ) ) );
-	    $city = self::getWhere($params);
+
+		if(!empty($countryCode)){
+			$params["country"] = $countryCode;
+		}
+
+	    $city = self::getWhere($params, $fields, 0);
 	    
     	return $city;
 	}
@@ -1456,9 +1461,13 @@ class City {
 				$resNominatimState = json_decode(SIG::getGeoByAddressNominatim(null, null, null, trim($countryCode), true, true, true, $scopeValue, true),true);
 
 				$resNominatimCountry = json_decode(SIG::getGeoByAddressNominatim(null, null, null, trim($countryCode), true, true, true, $scopeValue, false, true),true);
-					//var_dump($resNominatimCountry );
-				$resNominatim = array_merge($resNominatimState, $resNominatimCountry);
-				$resNominatim = array_merge($resNominatimCity , $resNominatim);
+				if(!empty($resNominatimCountry))
+					$resNominatim = array_merge($resNominatimState, $resNominatimCountry);
+				else if(!empty($resNominatimState))
+					$resNominatim = $resNominatimState;
+				else 
+					$resNominatim = array();
+				
 			}else
 				$resNominatim = $resNominatimCity;			
 

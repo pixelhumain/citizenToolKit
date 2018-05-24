@@ -201,6 +201,7 @@ class TranslateCommunecter {
 																"prefix"   => "/api/organization/get/id/",
 																"suffix"   => "" ),
 	    						"website" 		=> array(	"valueOf" => 'url'))),
+	    "email"		=> array("valueOf" => "email"),
 	   	"address" 	=> array("parentKey"=>"address", 
 	    					 "valueOf" => array(
 									"@type" 			=> "PostalAddress", 
@@ -217,6 +218,7 @@ class TranslateCommunecter {
 									"latitude" 			=> array("valueOf" => "latitude"),
 									"longitude" 		=> array("valueOf" => "longitude")
 				 					)),
+	   	
 	   	"shortDescription"		=> array("valueOf" => "shortDescription"),
 	   	"description"		=> array("valueOf" => "description"),
 	   	"tags"		=> array("valueOf" => "tags"),

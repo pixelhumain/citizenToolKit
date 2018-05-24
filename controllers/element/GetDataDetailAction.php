@@ -64,25 +64,15 @@ class GetDataDetailAction extends CAction {
 
 				foreach (array_reverse($element["links"]["events"]) as $keyEv => $valueEv) {
 					 $event = Event::getSimpleEventById($keyEv);
-					 //var_dump($event); exit;
-					 if(!empty($event)){
-					 	$event["typeEvent"] = @$event["type"];
-						$event["type"] = "events";
-						$event["typeSig"] = Event::COLLECTION;
-						$contextMap[$keyEv] = $event;
-					 }
+					 if(!empty($event))
+					 	$contextMap[$keyEv] = $event;
 				}
 			}
 			if(isset($element["links"]["subEvents"])){
 				foreach (array_reverse($element["links"]["subEvents"]) as $keyEv => $valueEv) {
-					 $event = Event::getSimpleEventById($keyEv);
-					 //var_dump($event); exit;
-					 if(!empty($event)){
-					 	$event["typeEvent"] = @$event["type"];
-						$event["type"] = "events";
-						$event["typeSig"] = Event::COLLECTION;
+					$event = Event::getSimpleEventById($keyEv);
+					if(!empty($event))
 						$contextMap[$keyEv] = $event;
-					 }
 				}
 
 			}
@@ -200,6 +190,7 @@ class GetDataDetailAction extends CAction {
 							array("startDate"=>1), 10);
 			//var_dump($events);
 			foreach ($events as $key => $value) {
+				$events[$key]["typeEvent"] = @$value["type"];
 				$events[$key]["type"] = "events";
 				$events[$key]["typeSig"] = "events";
 				if(@$value["startDate"]) {

@@ -8,8 +8,9 @@ class AddChartSvAction extends CAction
 		$params["element"] = $element;
 		$params["properties"]=array();
 		if (isset($element["properties"]["chart"])){
-				$params["properties"]=$element["properties"]["chart"];
-			}
+			$params["properties"]=$element["properties"]["chart"];
+		}
+
 		$params["parentType"] = $type;
 		$params["parentId"] = $id;
 		$params["edit"] = Authorisation::canEditItem(Yii::app()->session["userId"], $type, $id);
@@ -17,7 +18,6 @@ class AddChartSvAction extends CAction
 
         if(Yii::app()->request->isAjaxRequest){
 			echo $controller->renderPartial("addChartSV", $params, true);
-
 		}
     }
 }
