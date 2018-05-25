@@ -2078,8 +2078,8 @@ public static function isUniqueEmail($email) {
      * @return array res : boolean, msg : string
      */
     public static function deletePerson($id, $userId) {
-		//Only super admin can delete a person
-    	if (! Authorisation::isUserSuperAdmin($userId)) {
+		//Only super admin can delete a person or user himself
+    	if (! Authorisation::isUserSuperAdmin($userId) && $id != $userId ) {
     		return array("result" => false, "msg" => "You must be a superadmin to delete a person");
     	}
 
@@ -2140,6 +2140,9 @@ public static function isUniqueEmail($email) {
     	//exit;
     	//TODO SBAR : remove thumb and medium
     	
+    	if($id == $userId)
+    		Person::clearUserSessionData();
+
     	return array("result" => true, "msg" => "The person has been deleted succesfully");
     }
 
