@@ -132,7 +132,7 @@ class Search {
 		$search = (@$post['name']) ? trim(urldecode($post['name'])) : "";
         $searchLocality = isset($post['locality']) ? $post['locality'] : null;
         $searchType = isset($post['searchType']) ? $post['searchType'] : null;
-        $searchTags = isset($post['searchTag']) ? $post['searchTag'] : null;
+        $searchTags = isset($post['searchTags']) ? $post['searchTags'] : null;
         $country = isset($post['country']) ? $post['country'] : "";
         $priceMin = isset($_POST['priceMin']) ? $_POST['priceMin'] : null;
         $priceMax = isset($_POST['priceMax']) ? $_POST['priceMax'] : null;
