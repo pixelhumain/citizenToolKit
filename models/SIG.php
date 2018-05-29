@@ -29,7 +29,7 @@ class SIG
     public static function geoCodage($organization){
     	if(!empty($organization['address']['streetAddress']))
 		{
-			$nominatim = "http://nominatim.openstreetmap.org/search?q=".urlencode($organization['address']['streetAddress'])."&format=json&polygon=0&addressdetails=1";
+			$nominatim = "https://nominatim.openstreetmap.org/search?q=".urlencode($organization['address']['streetAddress'])."&format=json&polygon=0&addressdetails=1";
 
 			$curl = curl_init($nominatim);
 			curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
@@ -441,7 +441,7 @@ class SIG
     // Nominatim
     public static function getLocalityByLatLonNominatim($lat, $lon, $countryCode = null, $extratags = null){
     	try{
-			$url = 'http://nominatim.openstreetmap.org/reverse?format=json&lat='.$lat.'&lon='.$lon.'&zoom=18&addressdetails=1';
+			$url = 'https://nominatim.openstreetmap.org/reverse?format=json&lat='.$lat.'&lon='.$lon.'&zoom=18&addressdetails=1';
 			if(!empty($countryCode))
 	            $url .= "&countrycodes=".self::changeCountryForNominatim($countryCode);
 
@@ -464,7 +464,7 @@ class SIG
 													
     public static function getGeoByAddressNominatim($street = null, $cp = null, $city = null, $countryCode = null, $polygon_geojson = null, $extratags = null, $namedetails = null, $nameLevel = null, $state = null, $county = null){
         try{
-	        $url = "http://nominatim.openstreetmap.org/search?format=json&addressdetails=1" ;
+	        $url = "https://nominatim.openstreetmap.org/search?format=json&addressdetails=1" ;
 	        if(!empty($street))
 	            $url .= "&street=".str_replace(" ", "+", $street);
 	        
@@ -499,7 +499,7 @@ class SIG
 	        if(!empty($namedetails)){
 	            $url .= "&namedetails=1";
 	        }
-	        //var_dump($url);
+	        var_dump($url);
 	        // $res =  file_get_contents($url);
 	        // return $res;
 			return self::getUrl($url);
@@ -597,6 +597,7 @@ class SIG
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
         $result = curl_exec($ch);
         curl_close($ch);
+        var_dump($result);
         return $result ;
     }
 
