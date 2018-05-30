@@ -115,7 +115,7 @@ class Gamification {
 			}
 		}
 
-		if( $type == Person::COLLECTION )
+		if( $eltype == Person::COLLECTION )
 		{
 			$cols = array( Organization::COLLECTION, Event::COLLECTION, Project::COLLECTION, News::COLLECTION, Classified::COLLECTION, Ressource::COLLECTION );
 
