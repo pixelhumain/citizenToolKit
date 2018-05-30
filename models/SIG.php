@@ -499,7 +499,7 @@ class SIG
 	        if(!empty($namedetails)){
 	            $url .= "&namedetails=1";
 	        }
-	        var_dump($url);
+	        //var_dump($url);
 	        // $res =  file_get_contents($url);
 	        // return $res;
 			return self::getUrl($url);
@@ -597,7 +597,7 @@ class SIG
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
         $result = curl_exec($ch);
         curl_close($ch);
-        var_dump($result);
+        //var_dump($result);
         return $result ;
     }
 
