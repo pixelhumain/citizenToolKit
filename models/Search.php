@@ -132,7 +132,7 @@ class Search {
 		$search = (@$post['name']) ? trim(urldecode($post['name'])) : "";
         $searchLocality = isset($post['locality']) ? $post['locality'] : null;
         $searchType = isset($post['searchType']) ? $post['searchType'] : null;
-        $searchTags = isset($post['searchTag']) ? $post['searchTag'] : null;
+        $searchTags = isset($post['searchTags']) ? $post['searchTags'] : null;
         $country = isset($post['country']) ? $post['country'] : "";
         $priceMin = isset($_POST['priceMin']) ? $_POST['priceMin'] : null;
         $priceMax = isset($_POST['priceMax']) ? $_POST['priceMax'] : null;
@@ -1020,9 +1020,9 @@ class Search {
 				$parent=array();
 			$allClassified[$key]["parent"] = $parent;
 			$allClassified[$key]["category"] = @$allClassified[$key]["type"];
-			$allClassified[$key]["type"] = "classified";
+			$allClassified[$key]["type"] = "classifieds";
 
-			$allClassified[$key]["gallery"] = Document::listMyDocumentByIdAndType(@$key, "classified");
+			$allClassified[$key]["gallery"] = Document::listMyDocumentByIdAndType(@$key, "classifieds");
 			//if(@$value["type"])
 			//	$allClassified[$key]["typeSig"] = Classified::COLLECTION.".".$value["type"];
 			//else

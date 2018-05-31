@@ -98,7 +98,7 @@ class GetDataDetailAction extends CAction {
 			}
 		}
 
-		if($dataName == "classified" || $dataName == "ressources"){
+		if($dataName == "classifieds" || $dataName == "ressources"){
 			$col = ($dataName == "ressources") ? Ressource::COLLECTION : Classified::COLLECTION;
 			$contextMap = Element::getByIdAndTypeOfParent( $col , $id, $type, array("updated"=>-1));
 			foreach ($contextMap as $key => $value) {
@@ -215,8 +215,8 @@ class GetDataDetailAction extends CAction {
 							array("updated"=>-1), 10);
 
 			foreach ($classified as $key => $value) {
-				$classified[$key]["type"] = "classified";
-				$classified[$key]["typeSig"] = "classified";
+				$classified[$key]["type"] = "classifieds";
+				$classified[$key]["typeSig"] = "classifieds";
 				if(@$value["updated"]) {
 					$classified[$key]["updatedLbl"] = Translate::pastTime(@$value["updated"],"timestamp");
 		  		}

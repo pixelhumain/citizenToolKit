@@ -329,8 +329,8 @@ class IndexAction extends CAction
 
 		 			
 			$queryTag = array();
-			if(@$_POST["tagSearch"] && !empty($_POST["tagSearch"])){
-				foreach ($_POST["tagSearch"] as $key => $tag) {
+			if(@$_POST["searchTags"] && !empty($_POST["searchTags"])){
+				foreach ($_POST["searchTags"] as $key => $tag) {
 					if($tag != "")
 					$queryTag[] = new MongoRegex("/".$tag."/i");
 				}
@@ -343,20 +343,23 @@ class IndexAction extends CAction
 			
 			if(@$_POST['searchType']){
 				$searchType=array();
-				foreach($_POST['searchType'] as $data){
-					if($data == "news" || $data == "idea" || $data == "question" || $data == "announce" || $data == "information")
-						$searchType[]=array("type" => $data);
-					else
-						$searchType[]=array("object.type" => $data);
-				}
+				//foreach($_POST['searchType'] as $data){
+					if($_POST['searchType'] == "news")
+						$searchType=array("type" => $_POST['searchType']);
+					else if ($_POST['searchType'] == "activityStream")
+						$searchType=array("type" => $_POST['searchType']);
+					else if($_POST['searchType'] == "surveys")
+						$searchType=array("object.type"=>"proposals", "verb"=>"publish");
+				//}
 				
 				//
-				if(isset($where['$and']) && isset($searchType)){
-					$where['$and'][] = array('$or' =>$searchType);
-				}else if(isset($searchType)){
-					$where = array_merge($where, array('$and' => array(array('$or' =>$searchType))));
+				//if(isset($where['$and']) && isset($searchType)){
+				//	$where['$and'][] = array('$or' =>$searchType);
+				//}else if(isset($searchType)){
+				if(!empty($searchType))
+					$where = array_merge($where, $searchType);
 					//$where = array('$and' => array( $where , array('$and' => array(array('$or' =>$searchType))) ) );
-				}
+				//}
 				//echo '<pre>';var_dump($where);echo '</pre>'; return;
 			}
 			
