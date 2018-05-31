@@ -903,13 +903,14 @@ class Link {
             $result = $class::createAndInvite($child);
             if ($result["result"]) {
                 $childId = $result["id"];
-            } else 
-                return $result;
+            } else {
+                return array("result"=>false, "name"=> @$child["childName"], "type"=> $childType, "email"=> @$childEmail, "msgError"=>$result);
+            }
         }
 
         //Retrieve the child info
         //$pendingChild = $class::getById($childId);
-        $pendingChild = Element::getElementSimpleById($childId, $childType);
+        $pendingChild = Element::getElementSimpleById($childId, $childType, null, ["_id", "name", "profilThumbImageUrl"]);
 		$pendingChild["id"] = $childId;
         if (!$pendingChild) {
             return array("result" => false, "msg" => "Something went wrong ! Impossible to find the children ".$childId);
@@ -1206,7 +1207,7 @@ class Link {
 		    	$isConnectingAdmin= (@$contact["connectType"]=="admin") ? true : false;
 		    	
                 $res = Link::connectParentToChild($parentId, $parentType, $child, $isConnectingAdmin, Yii::app()->session["userId"], $roles);
-		    	if($res["result"] == true){
+		    	if($res["result"]==true){
 			    	if($msg != 2)
 			    		$msg=1;
 					$newMember = $res["newElement"];

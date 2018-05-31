@@ -24,7 +24,7 @@ class MultiConnectAction extends CAction
 
 							$child = array( "childId" => $_POST["parentId"],
 											"childType" => $_POST["parentType"]);
-							$res[] = Link::follow($key, Person::COLLECTION, $child);
+							$res["citoyens"][] = Link::follow($key, Person::COLLECTION, $child);
 						} else {
 							$child[] = array( 	"childId" => $key,
 												"childType" => Person::COLLECTION,
@@ -73,7 +73,7 @@ class MultiConnectAction extends CAction
 						if($_POST["parentType"] == Person::COLLECTION){
 							$child = array( "id" => $key,
 											"type" => Person::COLLECTION);
-							Link::follow($_POST["parentId"], $_POST["parentType"], $child);
+							$res["citoyens"][] = Link::follow($_POST["parentId"], $_POST["parentType"], $child);
 						}else{
 							$child[] = array( 	"childId" => $key,
 												"childType" => Organization::COLLECTION,
