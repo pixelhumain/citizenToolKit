@@ -10,6 +10,7 @@ class Project {
 	public static $dataBinding = array(
 	    "name" => array("name" => "name", "rules" => array("required")),
 	    "slug" => array("name" => "slug", "rules" => array("checkSlug")),
+	    "email" => array("name" => "email", "rules" => array("email")),
 	    "address" => array("name" => "address", "rules" => array("addressValid")),
 	    "addresses" => array("name" => "addresses"),
 	    "streetAddress" => array("name" => "address.streetAddress"),
