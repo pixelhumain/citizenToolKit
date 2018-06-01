@@ -82,7 +82,6 @@ class Bookmark {
 	    eval($eval);
 	    $ret = array();
 	    foreach ($colarr as $col => $arr) {
-	    	
 	        foreach ($arr as $k => $v) {
 	            $k = substr($k,1);
 	            if(is_string($k)){
