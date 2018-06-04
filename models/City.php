@@ -1457,8 +1457,13 @@ class City {
 			// }
 			// else
 			$resNominatimCity = json_decode(SIG::getGeoByAddressNominatim(null, null, $scopeValue, trim($countryCode), true, true, true),true);
+
+			
+
 			if(empty($resNominatimCity)){
 				$resNominatimState = json_decode(SIG::getGeoByAddressNominatim(null, null, null, trim($countryCode), true, true, true, $scopeValue, true),true);
+
+				//var_dump($resNominatimState);
 
 				$resNominatimCountry = json_decode(SIG::getGeoByAddressNominatim(null, null, null, trim($countryCode), true, true, true, $scopeValue, false, true),true);
 				if(!empty($resNominatimCountry))
@@ -1477,6 +1482,8 @@ class City {
 
 			$typeCities = array("city", "village", "town", "hamlet", "state") ;
 			$typePlace = array("city", "village", "town", "hamlet") ;
+
+			//var_dump($resNominatim); exit;
 			if(!empty($resNominatim)){
 				foreach (@$resNominatim as $key => $value) {
 

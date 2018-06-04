@@ -82,12 +82,17 @@ class Bookmark {
 	    eval($eval);
 	    $ret = array();
 	    foreach ($colarr as $col => $arr) {
+	    	
 	        foreach ($arr as $k => $v) {
 	            $k = substr($k,1);
-	            if (!isset($ret[$k])) $ret[$k] = $array[$k];
-	            $ret[$k][$col] = @$array[$k][$col];
+	            if(is_string($k)){
+	            	if ( empty($ret[$k]) )
+		            	$ret[$k] = $array[$k];
+		            $ret[$k][$col] = @$array[$k][$col];
+	            }
 	        }
 	    }
+
 	    return $ret;
 	}
 }
