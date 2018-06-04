@@ -13,7 +13,7 @@ class InviteAction extends CAction {
                 "search" => true
             );
 
-            if($params["parentType"] != Person::COLLECTION){
+            if(!empty($params["parentType"]) && $params["parentType"] != Person::COLLECTION){
                 $parent = Element::getElementById($id, $type, null, array("links"));
                 $params["parentLinks"] = ( !empty($parent["links"]) ? $parent["links"] : array() );
             }
