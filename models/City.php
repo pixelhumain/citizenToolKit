@@ -229,8 +229,8 @@ class City {
 	  	return $city;
 	}
 
-	public static function getById($id) {
-	  	$city = PHDB::findOne(self::COLLECTION, array("_id"=>new MongoId($id)));
+	public static function getById($id, $fields=null) {
+	  	$city = PHDB::findOne(self::COLLECTION, array("_id"=>new MongoId($id)), $fields);
 	  	return $city;
 	}
 

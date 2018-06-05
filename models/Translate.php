@@ -93,15 +93,13 @@ class Translate {
 					}
 						
 				} 
-				else if( strpos( $bindPath["valueOf"], ".") > 0 )
-				{
+				else if( strpos( $bindPath["valueOf"], ".") > 0 ) {
 					//the value is fetched deeply in the source data map
 					$valByPath = self::getValueByPath( $bindPath["valueOf"] ,$data );
 					if(!empty($valByPath))
 						$newData[$key] = $valByPath;
 				}
-				else if( isset( $data[ $bindPath[ "valueOf" ] ] )  )
-				{
+				else if( isset( $data[ $bindPath[ "valueOf" ] ] )  ) {
 					//otherwise simply get the value of the requested element
 					$valByPath = $data[ $bindPath["valueOf"] ];
 					if(!empty($valByPath))

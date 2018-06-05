@@ -1,13 +1,17 @@
 <?php
     class GetAction extends CAction {
 
-        public function run($id = null, $insee = null, $type = null) {
+        public function run($id = null, $type = null, $fields = array()) {
 
             if ($id != null) {
+
+                if(!empty($fields))
+                    $fields = explode(",", $fields);
+
                 if ($type == City::COLLECTION) {
-                    $res = City::getById($id);
+                    $res = City::getById($id, $fields);
                 } elseif ($type == "zone") {
-                    $res = Zone::getById($id);
+                    $res = Zone::getById($id, $fields);
                 } 
             } elseif ($insee != null) {
 
