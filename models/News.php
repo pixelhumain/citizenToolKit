@@ -18,9 +18,9 @@ class News {
 	 * @param type $id : is the mongoId of the news
 	 * @return object
 	 */
-	public static function getById($id,$followsArrayIds=null) {
+	public static function getById($id,$followsArrayIds=null, $convertNews=true) {
 	  	$news = PHDB::findOne( self::COLLECTION,array("_id"=>new MongoId($id)));
-	  	if(@$news["type"]){
+	  	if(@$news["type"] && $convertNews){
 			$news=NewsTranslator::convertParamsForNews($news,true,$followsArrayIds);
 		}
 		return $news;
@@ -642,13 +642,11 @@ class News {
 	 * @return bool : true if the user can administrate the news, false else
 	 */
 	public static function canAdministrate($userId, $id,$deleteProcess=false) {
-        $news = self::getById($id, false);
+        $news = self::getById($id, false, false);
         
         if (empty($news)) return false;
-        if (@$news["author"]["id"] == $userId && (!@$news["verb"] || $news["verb"]!="share")) return true;
+        if (@$news["author"] == $userId && (!@$news["verb"] || $news["verb"]!="share")) return true;
         if (@$news["sharedBy"] && in_array($userId,array_column($news["sharedBy"],"id"))) return "share";
-        if (Authorisation::isUserSuperAdmin($userId)) return true;
-
 
 	    $DDATypes = array(	Proposal::COLLECTION, Action::COLLECTION, 
 	    					Room::COLLECTION, Resolution::COLLECTION);
@@ -661,9 +659,8 @@ class News {
 	    $parentId = @$news[$what]["id"];
 	    $parentType = @$news[$what]["type"];
 	    if(@$deleteProcess) return Authorisation::isOpenEdition($parentId, $parentType);
-
-
-        return Authorisation::isElementAdmin($parentId, $parentType, $userId);
+	    if(Authorisation::isElementAdmin($parentId, $parentType, $userId)) return true;
+	   	if(count(Authorisation::listAdmins($parentId,  $parentType, false)) == 0 && Authorisation::canParticipate($userId, $parentType, $parentId)) return true;
     }
 
 }

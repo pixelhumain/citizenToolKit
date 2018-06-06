@@ -3004,7 +3004,7 @@ class Element {
 		}
 
 		//manage delete in progress status
-		$params["deletePending"] = Element::isElementStatusDeletePending($type, $id);
+		$params["deletePending"] = Notification::isElementStatusDeletePending($type, $id);
 		
 		
 		return $params;

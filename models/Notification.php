@@ -367,14 +367,14 @@ class Notification{
 					"label" => "{who} added a new classified on {where}",
 					"labelMail" => "{who} added a new classified : {what}"
 				),
-				ActionRoom::COLLECTION_ACTIONS=> array(
+				/*ActionRoom::COLLECTION_ACTIONS=> array(
 					"url"=>"rooms/actions/id/{objectId}",
 					"label"=> "{who} added a new actions list on {where}"
 				),
 				ActionRoom::TYPE_DISCUSS => array(
 					"url"=>"comment/index/type/actionRooms/id/{objectId}",
 					"label" => "{who} added a new discussion room on {where}"
-				),
+				),*/
 				ActionRoom::TYPE_VOTE => array(
 					"url"=>"survey/entries/id/{objectId}",
 					"label" => "{who} added a new voting room on {where}"
@@ -1733,6 +1733,8 @@ class Notification{
 	    }
 	    return $ret;
 	}
+
+
 	/*
 	when someone joins or leaves or disables a project / organization / event
 	notify all contributors

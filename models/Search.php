@@ -1158,6 +1158,8 @@ class Search {
 	  		else
 	  			$parent=array();
 			$allPlace[$key]["parent"] = $parent;
+			if($collection==Ressource::COLLECTION)
+				$allPlace[$key]["category"] = @$value["type"];
 			if(@$value["type"])
 				$allPlace[$key]["typeComplet"] = $collection.".".$value["type"];
 			else
