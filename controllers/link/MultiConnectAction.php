@@ -15,9 +15,9 @@ class MultiConnectAction extends CAction
 				// var_dump(count($list["citoyens"]));var_dump(count($list["invites"]));var_dump(count($list["organizations"])); exit ;
 
 				if( !empty($list["citoyens"]) && count($list["citoyens"]) > 0 ){
-					$child = array();
+					
 					foreach ($list["citoyens"] as $key => $value) {
-						
+						$child = array();
 						if($_POST["parentType"] == Person::COLLECTION){
 							// $child = array( "childId" => $key,
 							// 			"childType" => Person::COLLECTION);
@@ -39,8 +39,9 @@ class MultiConnectAction extends CAction
 				}
 
 				if( !empty($list["invites"]) && count($list["invites"]) > 0 ){
-					$child = array();
+					
 					foreach ($list["invites"] as $key => $value) {
+						$child = array();
 						$newPerson = array(	"name" => $value["name"],
 											"email" => $value["mail"],
 											"invitedBy" => Yii::app()->session["userId"]);
@@ -67,9 +68,9 @@ class MultiConnectAction extends CAction
 				}
 
 				if( !empty($list["organizations"]) && count($list["organizations"]) > 0 ){
-					$child = array();
+					
 					foreach ($list["organizations"] as $key => $value) {
-						
+						$child = array();
 						if($_POST["parentType"] == Person::COLLECTION){
 							$child = array( "id" => $key,
 											"type" => Person::COLLECTION);
