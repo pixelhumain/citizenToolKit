@@ -267,7 +267,7 @@ class News {
 						 "msg"=>Yii::t("common","You are not allowed to delete this news"), 
 						 "id" => $id);
 
-		if($authorization=="share")
+		if($authorization=="share" && !empty($news["sharedBy"]))
 			$countShare=count($news["sharedBy"]);
 		if($authorization===true || (@$countShare && $countShare==1)){
 			//Delete image
@@ -313,7 +313,7 @@ class News {
 		}
 		$res=array("result" => true, 
 					"msg" => "The news with id ".$id." and ".$nbCommentsDeleted." comments have been removed with succes.",
-					"type"=>$news["type"],
+					"type"=>@$news["type"],
 					"commentsDeleted" => $nbCommentsDeleted
 					);
 		if(@$shareUpdate){

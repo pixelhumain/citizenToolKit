@@ -2117,8 +2117,8 @@ public static function isUniqueEmail($email) {
      * @return array res : boolean, msg : string
      */
     public static function deletePerson($id, $userId) {
-		//Only super admin can delete a person
-    	if (! Authorisation::isUserSuperAdmin($userId)) {
+		//Only super admin can delete a person or user himself
+    	if (! Authorisation::isUserSuperAdmin($userId) && $id != $userId ) {
     		return array("result" => false, "msg" => "You must be a superadmin to delete a person");
     	}
 
@@ -2151,6 +2151,8 @@ public static function isUniqueEmail($email) {
     	//Delete Notifications
     	ActivityStream::removeNotificationsByUser($id);
 
+    	Slug::removeByParentIdAndType($id, self::COLLECTION);
+
     	//Check if the user got activity (news, comments, votes)
 		$res = self::checkActivity($id);
 		if ($res["result"]) {
@@ -2166,13 +2168,20 @@ public static function isUniqueEmail($email) {
 		}
 
     	//Documents => Profil Images
-    	$profilImages = Document::listMyDocumentByIdAndType($id, self::COLLECTION, Document::IMG_PROFIL, Document::DOC_TYPE_IMAGE, array( 'created' => -1 ));
+    	$docType = array(Document::IMG_PROFIL, Document::IMG_BANNER, Document::IMG_SLIDER, Document::IMG_SLIDER);
+    	$profilImages = Document::listMyDocumentByIdAndType($id, self::COLLECTION, $docType, Document::DOC_TYPE_IMAGE, array( 'created' => -1 ));
+    	//var_dump($profilImages);
     	foreach ($profilImages as $docId => $document) {
+    		//var_dump($docId); 
     		Document::removeDocumentById($docId, $userId);
-    		error_log("delete document id ".$docId);
+    		//error_log("delete document id ".$docId);
     	}
+    	//exit;
     	//TODO SBAR : remove thumb and medium
     	
+    	if($id == $userId)
+    		Person::clearUserSessionData();
+
     	return array("result" => true, "msg" => "The person has been deleted succesfully");
     }
 

@@ -97,7 +97,7 @@ class IndexAction extends CAction
 	            }
 	        }
 	        else if ($type=="city"){
-	        	$localities = isset($_POST['localities']) ? $_POST['localities'] : null;
+	        	$localities = isset($_POST['locality']) ? $_POST['locality'] : null;
 	        	//$searchType = isset($_POST['searchType']) ? $_POST['searchType'] : null;
 				$searchBy = isset($_POST['searchBy']) ? $_POST['searchBy'] : "INSEE";
 				$tagSearch = isset($_POST['tagSearch']) ? $_POST['tagSearch'] : "";
@@ -329,8 +329,8 @@ class IndexAction extends CAction
 
 		 			
 			$queryTag = array();
-			if(@$_POST["tagSearch"] && !empty($_POST["tagSearch"])){
-				foreach ($_POST["tagSearch"] as $key => $tag) {
+			if(@$_POST["searchTags"] && !empty($_POST["searchTags"])){
+				foreach ($_POST["searchTags"] as $key => $tag) {
 					if($tag != "")
 					$queryTag[] = new MongoRegex("/".$tag."/i");
 				}
@@ -343,20 +343,23 @@ class IndexAction extends CAction
 			
 			if(@$_POST['searchType']){
 				$searchType=array();
-				foreach($_POST['searchType'] as $data){
-					if($data == "news" || $data == "idea" || $data == "question" || $data == "announce" || $data == "information")
-						$searchType[]=array("type" => $data);
-					else
-						$searchType[]=array("object.type" => $data);
-				}
+				//foreach($_POST['searchType'] as $data){
+					if($_POST['searchType'] == "news")
+						$searchType=array("type" => $_POST['searchType']);
+					else if ($_POST['searchType'] == "activityStream")
+						$searchType=array("type" => $_POST['searchType']);
+					else if($_POST['searchType'] == "surveys")
+						$searchType=array("object.type"=>"proposals", "verb"=>"publish");
+				//}
 				
 				//
-				if(isset($where['$and']) && isset($searchType)){
-					$where['$and'][] = array('$or' =>$searchType);
-				}else if(isset($searchType)){
-					$where = array_merge($where, array('$and' => array(array('$or' =>$searchType))));
+				//if(isset($where['$and']) && isset($searchType)){
+				//	$where['$and'][] = array('$or' =>$searchType);
+				//}else if(isset($searchType)){
+				if(!empty($searchType))
+					$where = array_merge($where, $searchType);
 					//$where = array('$and' => array( $where , array('$and' => array(array('$or' =>$searchType))) ) );
-				}
+				//}
 				//echo '<pre>';var_dump($where);echo '</pre>'; return;
 			}
 			
@@ -387,10 +390,10 @@ class IndexAction extends CAction
 			// $where = array('$and' => array( $where , array('sharedBy.updated' => array( '$lt' => $date ) ) ) );
 			// $where = array('$and' => array( $where , array("target.type" => array('$ne' => "pixels") ) ) );
 
-			if(@$_POST["textSearch"] && $_POST["textSearch"]!=""){
+			if(@$_POST["name"] && $_POST["name"]!=""){
 			
 				$textTag=null;
-		  		$textSearch = $_POST["textSearch"];
+		  		$textSearch = $_POST["name"];
 		  		$textTag = explode(" ", $textSearch);
 				$hashTag = substr($textSearch, 0, 1);
 		  		if(sizeof($textTag)==1 && $hashTag=="#"){
@@ -401,7 +404,7 @@ class IndexAction extends CAction
 		  			//var_dump($where["tags"]);	
 		  		}else{
 		  			//$where = array('$and' => array( $where ,  array('text' => new MongoRegex("/".$_POST["textSearch"]."/i") ) ) );
-					$where = array_merge($where,  array('text' => new MongoRegex("/".$_POST["textSearch"]."/i") ) );
+					$where = array_merge($where,  array('text' => new MongoRegex("/".$_POST["name"]."/i") ) );
 		  		}
 		  	
 				

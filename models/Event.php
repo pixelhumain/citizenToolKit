@@ -30,6 +30,7 @@ class Event {
 	public static $dataBinding = array (
 	    "name" => array("name" => "name", "rules" => array("required")),
 	    "slug" => array("name" => "slug", "rules" => array("checkSlug")),
+	    "email" => array("name" => "email", "rules" => array("email")),
 	    "type" => array("name" => "type"),
 	    "public"  => array("name" => "public"),
 	    "parent" => array("name" => "parent"),

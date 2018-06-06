@@ -840,9 +840,11 @@ class Link {
         $isInviting = false;
         $levelNotif = null;
 
+        $parentData = Element::getElementSimpleById($parentId, $parentType, null, array("_id", "name", "link"));
+        $usersAdmin = Authorisation::listAdmins($parentId,  $parentType, false);
 		if($parentType == Organization::COLLECTION){
-			$parentData = Organization::getById($parentId);
-			$usersAdmin = Authorisation::listAdmins($parentId,  $parentType, false);
+			//$parentData = Organization::getById($parentId);
+			// $usersAdmin = Authorisation::listAdmins($parentId,  $parentType, false);
 			$parentUsersList = Organization::getMembersByOrganizationId($parentId,  "all", null);
 			$parentController = Organization::CONTROLLER;
 			$parentConnectAs = "members";
@@ -851,8 +853,8 @@ class Link {
 				$typeOfDemand = "member";
 		}
 		else if ($parentType == Project::COLLECTION){
-			$parentData = Project::getById($parentId);			
-			$usersAdmin = Authorisation::listAdmins($parentId,  $parentType, false);
+			// $parentData = Project::getById($parentId);			
+			// $usersAdmin = Authorisation::listAdmins($parentId,  $parentType, false);
 			$parentUsersList = Project::getContributorsByProjectId( $parentId ,"all", null ) ;
 			$parentController=Project::CONTROLLER;
 			$parentConnectAs="contributors";
@@ -861,8 +863,8 @@ class Link {
 				$typeOfDemand = "contributor";
 		} 
 		else if ($parentType == Event::COLLECTION){
-			$parentData = Event::getById($parentId);	
-			$usersAdmin = Authorisation::listAdmins($parentId,  $parentType, false);
+			// $parentData = Event::getById($parentId);	
+			// $usersAdmin = Authorisation::listAdmins($parentId,  $parentType, false);
 			//print_r($usersAdmin);
 			$parentUsersList = Event::getAttendeesByEventId( $parentId ,"all", null);
 			$parentController = Event::CONTROLLER;
@@ -911,12 +913,14 @@ class Link {
             $result = $class::createAndInvite($child);
             if ($result["result"]) {
                 $childId = $result["id"];
-            } else 
-                return $result;
+            } else {
+                return array("result"=>false, "name"=> @$child["childName"], "type"=> $childType, "email"=> @$childEmail, "msgError"=>$result);
+            }
         }
 
         //Retrieve the child info
-        $pendingChild = $class::getById($childId);
+        //$pendingChild = $class::getById($childId);
+        $pendingChild = Element::getElementSimpleById($childId, $childType, null, ["_id", "name", "profilThumbImageUrl"]);
 		$pendingChild["id"] = $childId;
         if (!$pendingChild) {
             return array("result" => false, "msg" => "Something went wrong ! Impossible to find the children ".$childId);
@@ -1213,7 +1217,7 @@ class Link {
 		    	$isConnectingAdmin= (@$contact["connectType"]=="admin") ? true : false;
 		    	
                 $res = Link::connectParentToChild($parentId, $parentType, $child, $isConnectingAdmin, Yii::app()->session["userId"], $roles);
-		    	if($res["result"] == true){
+		    	if($res["result"]==true){
 			    	if($msg != 2)
 			    		$msg=1;
 					$newMember = $res["newElement"];

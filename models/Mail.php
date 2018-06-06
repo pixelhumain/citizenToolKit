@@ -99,7 +99,10 @@ class Mail {
                                     "invitorId"=>Yii::app()->session["userId"],
                                     "invitorName"=>Yii::app()->session["user"]["name"],
                                     "title" => Yii::app()->name ,
-                                    "logo"  => "/images/logoLTxt.jpg")
+                                   "logo" => Yii::app()->params["logoUrl"],
+                                    "logo2" => Yii::app()->params["logoUrl2"],
+                                    "language" => Yii::app()->language
+                                    )
         );
         Mail::schedule($params);
     }
@@ -172,7 +175,7 @@ class Mail {
                                     "logo2" => Yii::app()->params["logoUrl2"],
                                     "invitedUserId" => $person["_id"],
                                     "message" => $msg,
-                                    "language" => ( !empty($person["language"]) ? $person["language"] : "fr" ))
+                                    "language" => Yii::app()->language )
         );
 
         if(!empty($invitorUrl))

@@ -115,7 +115,7 @@ class Gamification {
 			}
 		}
 
-		if( $type == Person::COLLECTION )
+		if( $eltype == Person::COLLECTION )
 		{
 			$cols = array( Organization::COLLECTION, Event::COLLECTION, Project::COLLECTION, News::COLLECTION, Classified::COLLECTION, Ressource::COLLECTION );
 
@@ -175,7 +175,7 @@ class Gamification {
 		$points['total'] += $points['actions']['total'];	
 
 		/***** LINKS ******/
-		$points['links']['total'] = self::calcPoints($userId);
+		$points['links']['total'] = self::calcPoints( Person::COLLECTION, $userId );
 		$points['total'] += $points['links']['total'];
 
 		//Format double in Integer
@@ -199,7 +199,7 @@ class Gamification {
 
 	public static function badge($userId) {
 		
-		$total = self::calcPoints($userId);
+		$total = self::calcPoints(Person::COLLECTION,$userId);
 		$res = Yii::t("common","air");
 
 		if( $total > self::BADGE_SEED_LIMIT && $total < self::BADGE_GERM_LIMIT )
