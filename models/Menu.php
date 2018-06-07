@@ -231,7 +231,7 @@ class Menu {
         			Yii::t("common","Organization community"),
         			Yii::t("common","Community") ,
         			'connectdevelop hide',
-        			"loadByHash('#organization.directory.id.".$id."?tpl=directory2')","organization", "directory");
+        			"loadByHash('#element.detail.type.organizations.id.".$id."')","organization", "directory");
                
         //ALBUM
         //-----------------------------
