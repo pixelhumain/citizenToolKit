@@ -2268,6 +2268,16 @@ class Element {
 		return $res;
 	}
 
+	public static function getCuriculum($id, $type){
+		$res = array();
+		$listElt = array(Organization::COLLECTION, Person::COLLECTION, Project::COLLECTION, Event::COLLECTION);
+		if(in_array($type, $listElt) ){
+			$res = PHDB::findOne( $type , array( "_id" => new MongoId($id) ) ,array("curiculum") );
+			$res = (!empty($res["curiculum"]) ? $res["curiculum"] : array() );
+		}
+		return $res;
+	}
+
 	public static function getContacts($id, $type){
 		$res = array();
 		$listElt = array(Organization::COLLECTION, Person::COLLECTION, Project::COLLECTION, Event::COLLECTION);
