@@ -2454,6 +2454,16 @@ class Element {
 					Notification::constructNotification ( ActStr::VERB_AMEND, array("id" => Yii::app()->session["userId"],"name"=> Yii::app()->session["user"]["name"]), array("type"=>$proposal["parentType"],"id"=>$proposal["parentId"]),array( "type"=>Proposal::COLLECTION,"id"=> $params["id"] ) );
 					$res[] = self::updateField($collection, $id, "amendements", $amdtList);
 				}
+			
+			}else if($block == "curiculum.skills"){
+				$cv = array();
+				$CVAttrs = array("competences", "motivation", "url");
+				foreach ($CVAttrs as $att) {
+					if(@$params[$att]) 
+					$cv["skills"][$att] = @$params[$att];
+				}
+				$res[] = self::updateField($collection, $id, "curiculum", $cv);
+				//var_dump($params);
 			}
 
 			if(Import::isUncomplete($id, $collection)){
