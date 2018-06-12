@@ -26,6 +26,7 @@ class MultiConnectAction extends CAction
 											"childType" => $_POST["parentType"]);
 							$res["citoyens"][] = Link::follow($key, Person::COLLECTION, $child);
 						} else {
+							$child = array();
 							$child[] = array( 	"childId" => $key,
 												"childType" => Person::COLLECTION,
 												"childName" => $value["name"],
@@ -55,6 +56,7 @@ class MultiConnectAction extends CAction
 								$res["invites"][] = Link::follow($invitedUserId, Person::COLLECTION, $child);
 								
 							} else {
+								$child = array();
 								$child[] = array( 	"childId" => $creatUser["id"],
 													"childType" => Person::COLLECTION,
 													"childName" => $value["name"],
@@ -76,6 +78,7 @@ class MultiConnectAction extends CAction
 											"type" => Person::COLLECTION);
 							$res["citoyens"][] = Link::follow($_POST["parentId"], $_POST["parentType"], $child);
 						}else{
+							$child = array();
 							$child[] = array( 	"childId" => $key,
 												"childType" => Organization::COLLECTION,
 												"childName" => $value["name"],
