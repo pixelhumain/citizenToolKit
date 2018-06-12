@@ -151,6 +151,7 @@ class Search {
         $countType = isset($post['countType']) ? $post['countType'] : null;
         $indexMin = isset($post['indexMin']) ? $post['indexMin'] : 0;
 		$indexStep = isset($post['indexStep']) ? $post['indexStep'] : 30;
+		$lastTimes = (!empty($post["lastTimes"])) ? $post["lastTimes"] : false;
 		
        $searchTypeOrga = ""; /* used in CO2 to find different organisation type */
 		
@@ -171,6 +172,10 @@ class Search {
       	//$queryNews = array('$and' => array( $queryNews , array("type"=>News::COLLECTION, "scope.type"=>News::TYPE_PUBLIC, "target.type"=>array('$ne'=>"pixels"))));
       	if($latest)
   			$query = array('$and' => array($query, array("updated"=>array('$exists'=>1))));
+
+  		if(!empty($lastTimes))
+  			$query = array('$and' => array($query, array("updated"=>array('$gt' => $lastTimes))));
+  		
   		if($sourceKey!="")
   			$query['$and'][] = array("source.key"=>$sourceKey);
 

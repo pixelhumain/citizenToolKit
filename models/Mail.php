@@ -929,4 +929,29 @@ class Mail {
         return $paramTpl ;
 
     }
+
+
+    public static function bookmarkNotif($params, $userID) {
+
+        $user = Person::getSimpleUserById($userID);
+        if (!empty($user["email"])) {
+            $params = array (
+                "type" => Cron::TYPE_MAIL,
+                "tpl"=>'bookmarkNotif',
+                "subject" => "[".self::getAppName()."] - Nouvelles annonces, ".@$user["name"],
+                "from"=>Yii::app()->params['adminEmail'],
+                "to" => $user["email"],
+                "tplParams" => array(
+                    "userName" => @$user["name"],
+                    "logo"=> Yii::app()->params["logoUrl"],
+                    "logo2" => Yii::app()->params["logoUrl2"],
+                    "params" => $params,
+                    "baseUrl" => Yii::app()->getRequest()->getBaseUrl(true)."/"
+                ),
+            );
+            
+            Mail::schedule($params);
+        }
+        // }
+    }
 }
