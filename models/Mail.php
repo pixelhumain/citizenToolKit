@@ -946,7 +946,7 @@ class Mail {
                     "logo"=> Yii::app()->params["logoUrl"],
                     "logo2" => Yii::app()->params["logoUrl2"],
                     "params" => $params,
-                    // "url" => Yii::app()->getRequest()->getBaseUrl(true)."/".$url
+                    "baseUrl" => Yii::app()->getRequest()->getBaseUrl(true)."/"
                 ),
             );
             
