@@ -1176,7 +1176,7 @@ class Link {
 	 //    //assert('!empty($_POST["childType"])'); //The child type is mandatory');
 	 //    assert('!empty($parentId)'); //The parent id is mandatory');
 	 //    assert('!empty($parentType)'); //The parent type is mandatory');
-
+        //var_dump($child);
 	    $result = array("result"=>false, "msg"=>Yii::t("common", "Incorrect request"));
 		
 		if ( ! Person::logguedAndValid() ) {
