@@ -95,4 +95,69 @@ class Bookmark {
 
 	    return $ret;
 	}
+
+	public static function sendMailNotif(){
+		$res = array();
+		$where = array( "type" => "jobs" );
+		$book = PHDB::find(self::COLLECTION,$where,array());
+
+		foreach ($book as $keyB => $valueB) {
+			if($valueB["parentType"] == Person::COLLECTION && strrpos($valueB["url"], "annonces?") !== false){
+				$url = explode("annonces?" ,parse_url( $valueB["url"], PHP_URL_FRAGMENT));
+				parse_str($url[1]);
+				//var_dump($searchSType);
+				$params = array(
+					"countType" => array("classifieds"),
+					"indexMin" => 0,
+					"initType" => "classifieds",
+					"searchType" => array("classifieds"),
+					"lastTimes" => $valueB["updated"]
+				);
+
+				if(!empty($searchSType))
+					$params["searchSType"] = $searchSType ;
+
+				if(!empty($section))
+					$params["section"] = $section ;
+
+				if(!empty($category))
+					$params["category"] = $category ;
+
+				if(!empty($subType))
+					$params["subType"] = $subType ;
+
+				if(!empty($priceMin))
+					$params["priceMin"] = $priceMin ;
+
+				if(!empty($priceMax))
+					$params["priceMax"] = $priceMax ;
+
+				if(!empty($devise))
+					$params["devise"] = $devise ;
+
+				$search = Search::globalAutoComplete($params);
+
+
+				if(!empty($search["results"])){
+					if(empty($res[$valueB["parentId"]])){
+						$res[$valueB["parentId"]] = $search["results"];
+					}else{
+						$res[$valueB["parentId"]] = array_merge($res[$valueB["parentId"]], $search["results"]);
+					}
+					// $update = PHDB::update( self::COLLECTION, 
+					// 						array( "_id" => new MongoId($keyB) ),
+					// 						array('updated' => time() ) );
+
+
+				}
+			}
+		}
+
+		foreach ($res as $keyR => $valueR) {
+			Mail::bookmarkNotif($valueR, $keyR);
+		}
+	    
+	    return $params;
+	}
+
 }
