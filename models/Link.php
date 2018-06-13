@@ -751,6 +751,7 @@ class Link {
      * @return result array with the result of the operation
      */
 	public static function follow($parentId, $parentType, $child){
+        
 		$childId = @$child["childId"];
         $childType = $child["childType"];
         $levelNotif=null;
@@ -767,7 +768,9 @@ class Link {
             throw new CTKException(Yii::t("common","Can not manage the type ").$parentType);
 
         //Retrieve the child info
+        //var_dump($childId);
         $pendingChild = Person::getById($childId);
+        //var_dump($pendingChild);exit;
         if (!$pendingChild) {
             return array("result" => false, "msg" => "Something went wrong ! Impossible to find the children ".$childId);
         }
@@ -827,9 +830,11 @@ class Link {
         $isInviting = false;
         $levelNotif = null;
 
+        $parentData = Element::getElementSimpleById($parentId, $parentType, null, array("_id", "name", "link"));
+        $usersAdmin = Authorisation::listAdmins($parentId,  $parentType, false);
 		if($parentType == Organization::COLLECTION){
-			$parentData = Organization::getById($parentId);
-			$usersAdmin = Authorisation::listAdmins($parentId,  $parentType, false);
+			//$parentData = Organization::getById($parentId);
+			// $usersAdmin = Authorisation::listAdmins($parentId,  $parentType, false);
 			$parentUsersList = Organization::getMembersByOrganizationId($parentId,  "all", null);
 			$parentController = Organization::CONTROLLER;
 			$parentConnectAs = "members";
@@ -838,8 +843,8 @@ class Link {
 				$typeOfDemand = "member";
 		}
 		else if ($parentType == Project::COLLECTION){
-			$parentData = Project::getById($parentId);			
-			$usersAdmin = Authorisation::listAdmins($parentId,  $parentType, false);
+			// $parentData = Project::getById($parentId);			
+			// $usersAdmin = Authorisation::listAdmins($parentId,  $parentType, false);
 			$parentUsersList = Project::getContributorsByProjectId( $parentId ,"all", null ) ;
 			$parentController=Project::CONTROLLER;
 			$parentConnectAs="contributors";
@@ -848,8 +853,8 @@ class Link {
 				$typeOfDemand = "contributor";
 		} 
 		else if ($parentType == Event::COLLECTION){
-			$parentData = Event::getById($parentId);	
-			$usersAdmin = Authorisation::listAdmins($parentId,  $parentType, false);
+			// $parentData = Event::getById($parentId);	
+			// $usersAdmin = Authorisation::listAdmins($parentId,  $parentType, false);
 			//print_r($usersAdmin);
 			$parentUsersList = Event::getAttendeesByEventId( $parentId ,"all", null);
 			$parentController = Event::CONTROLLER;
@@ -903,7 +908,8 @@ class Link {
         }
 
         //Retrieve the child info
-        $pendingChild = $class::getById($childId);
+        //$pendingChild = $class::getById($childId);
+        $pendingChild = Element::getElementSimpleById($childId, $childType);
 		$pendingChild["id"] = $childId;
         if (!$pendingChild) {
             return array("result" => false, "msg" => "Something went wrong ! Impossible to find the children ".$childId);
@@ -929,6 +935,7 @@ class Link {
         else
             $levelNotif="asMember";
         //First case : The parent doesn't have an admin yet or it is an action from an admin or it is an event: 
+
 		if (count($usersAdmin) == 0 || $actionFromAdmin || ($actionFromMember && $childId != Yii::app()->session["userId"]) || $parentType == Event::COLLECTION) {
             //the person is automatically added as member (admin or not) of the parent
             //var_dump("here");
@@ -982,6 +989,7 @@ class Link {
 					$msg= $pendingChild["name"]." ".Yii::t("common","is now ".$typeOfDemand." of")." ".$parentData["name"];
 				}*/
 			}
+            
 			// Check if links follows exists than if true, remove of follows and followers links
 			self::checkAndRemoveFollowLink($parentId,$parentType,$childId,$childType);
 			$toBeValidatedAdmin=false;
@@ -1024,7 +1032,7 @@ class Link {
             $msg = Yii::t("common","Your request has been sent to other admins.");
             // After : the 1rst existing Admin to take the decision will remove the "pending" to make a real admin
         } 
-        
+       
 		Link::connect($parentId, $parentType, $childId, $childType,Yii::app()->session["userId"], $parentConnectAs, $isConnectingAdmin, $toBeValidatedAdmin, $toBeValidated, $isInviting, $userRole);
 		Link::connect($childId, $childType, $parentId, $parentType, Yii::app()->session["userId"], $childConnectAs, $isConnectingAdmin, $toBeValidatedAdmin, $toBeValidated, $isInviting, $userRole);
         Notification::constructNotification($verb, $pendingChild , array("type"=>$parentType,"id"=> $parentId,"name"=>$parentData["name"]), null, $levelNotif);
@@ -1159,6 +1167,72 @@ class Link {
                 array('$unset' => array("links.".$connectTypeOf.".".$parentId.".".$valueUpdate => ""))
                 );
 		return array("result"=>true, "msg"=>"The link has been added with success");
+	}
+
+
+	public static function multiconnect($child, $parentId, $parentType){
+		// assert('!empty($child)'); //The childs are mandatory');
+	 //    //assert('!empty($_POST["childType"])'); //The child type is mandatory');
+	 //    assert('!empty($parentId)'); //The parent id is mandatory');
+	 //    assert('!empty($parentType)'); //The parent type is mandatory');
+
+	    $result = array("result"=>false, "msg"=>Yii::t("common", "Incorrect request"));
+		
+		if ( ! Person::logguedAndValid() ) {
+			return array("result"=>false, "msg"=>Yii::t("common", "You are not loggued or do not have acces to this feature "));
+		}
+	
+		// $parentId = $parentId;
+  //   	$parentType = $parentType;
+    	//$isConnectingAdmin = @$_POST["connectType"];
+		$newMembers = array();
+		$msg=false;
+		$finalResult = false;
+		$onlyOrganization=true;
+
+		foreach($child as $key => $contact){
+			if(@$contact["childId"] != $parentId ){
+				$roles="";
+			    $child = array(
+					"childId" => @$contact["childId"],
+			    	"childType" => @$contact["childType"] == "people" ? "citoyens" : @$contact["childType"],
+			    	"childName" => @$contact["childName"],
+					"childEmail" => @$contact["childEmail"],
+			    );
+			    if(!empty($contact["roles"]))
+			    	$roles=$contact["roles"];
+		    	if($child["childType"]==Person::COLLECTION)
+		    		$onlyOrganization=false;    	
+		    	$isConnectingAdmin= (@$contact["connectType"]=="admin") ? true : false;
+		    	
+                $res = Link::connectParentToChild($parentId, $parentType, $child, $isConnectingAdmin, Yii::app()->session["userId"], $roles);
+		    	if($res["result"] == true){
+			    	if($msg != 2)
+			    		$msg=1;
+					$newMember = $res["newElement"];
+			    	$newMember["childType"] = $res["newElementType"];
+			    	array_push($newMembers, $newMember);
+			    	$finalResult=true; 
+				} else {
+					if($msg==1){
+						$msg=2;
+					}else if($msg != 2){
+						$msg=false;
+					}
+				}
+			}
+	 	}
+
+
+	 	if($finalResult == true){
+		 	if($msg==1)
+		 		$msg = Yii::t("common","New member(s) have been succesfully added");
+		 	else
+		 		$msg = Yii::t("common","New member(s) have been succesfully added except those already in the community");		 		
+	 		$result = array("result"=>true, "msg" => $msg,"newMembers" => $newMembers, "onlyOrganization"=>$onlyOrganization);
+		}else $result = $res;
+
+        return $res;
 	}
 } 
 ?>

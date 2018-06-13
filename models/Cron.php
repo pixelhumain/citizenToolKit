@@ -16,22 +16,26 @@ class Cron {
 	const STATUS_PENDING = "pending";
 	const STATUS_FAIL = "fail";
 	const STATUS_DONE = "done";
+	const STATUS_UPDATE = "update";
 
 	const EXEC_COUNT = 5;
 	/**
 	 * adds an entry into the cron collection
 	 * @param $params : a set of information for a proper cron entry
 	*/
-	public static function save($params){
+	public static function save($params, $update=null){
 		//echo "adding Cron entry";
 		$userId=null;
 		if(@Yii::app()->session['userId'])
 			$userId=Yii::app()->session['userId'];
 		else if(@$params['tplParams'] && @$params['tplParams']["user"])
 			$userId=$params['tplParams']["user"];
+
+		$status = ( ( !empty($update) && $update == true ) ?  self::STATUS_UPDATE : self::STATUS_PENDING );
+
 	    $new = array(
 			"userId" => $userId,
-			"status" => self::STATUS_PENDING,
+			"status" => $status,
 	  		"type"   => $params['type'],
 	  		//contextType
 	  		//contextId

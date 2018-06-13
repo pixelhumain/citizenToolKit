@@ -1077,6 +1077,7 @@ class Notification{
 	* params string||array $context should be use to specify community to notify (only admin, only person, etc)
 	*/
 	public static function constructNotification($verb, $author, $target, $object = null, $levelType = null, $context = null){
+		//var_dump($author);exit;
 		$notificationPart = self::$notificationTree[$verb];
 		$notificationPart["verb"] = $verb;
 		$notificationPart["target"]=$target;

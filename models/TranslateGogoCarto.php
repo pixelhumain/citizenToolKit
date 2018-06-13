@@ -60,13 +60,41 @@ class TranslateGogoCarto {
 	   	array(10507,10513,10512),
 	);
 
-	// public static $dataBinding_organization_symply = array(
-	// 	0 => array("valueOf"  	=> '_id.$id'),
-	// 	1 => 1,
-	// 	2 => array("valueOf" => "name"),
-	// 	3 => array("valueOf" => "coordinates.1"),
-	//     4 => array("valueOf" => "coordinates.0"),
-	//     5 => 0,
-	//    	6 => array("valueOf" => "optionValues"),
-	// );
+	public static $dataBinding_network = array(
+		
+		"@type"		=> "Organization",
+		"typeSig"=>	"organizations",
+		"typeElement"=>	"organization",
+		"typeOrganization"=>	"NGO",
+		"type"=>	"NGO",
+
+	    "name" 		=> array("valueOf" => "name"),
+
+	    "geo" 	=> array("parentKey"=>"geo", 
+    					 "valueOf" => array(
+								"latitude" 			=> array("valueOf" => "latitude"),
+								"longitude" 			=> array("valueOf" => "longitude")
+			 					)),
+
+	    "geoPosition" 	=> array("parentKey"=>"geo", 
+    					 "valueOf" => array(
+								"latitude" 			=> array("valueOf" => "latitude"),
+								"longitude" 			=> array("valueOf" => "longitude")
+			 					)),
+
+		"address" 	=> array("parentKey"=>"address", 
+	    					 "valueOf" => array(
+									"streetAddress" 	=> array("valueOf" => "streetAddress"),
+									"postalCode" 		=> array("valueOf" => "postalCode"),
+									"addressLocality"   => array("valueOf" => "addressLocality"),
+									"addressCountry" 	=> array("valueOf" => "addressCountry"))),
+	   	"shortDescription"		=> array("valueOf" => "description"),
+	   	"description"		=> array("valueOf" => "descriptionMore"),
+	   	"url" 		=> array("valueOf" => 'website'),
+	   	"source" 		=> array(	"valueOf" => 'id',
+			   						"type" 	=> "url", 
+									"prefix"   => "http://presdecheznous.fr/annuaire#/fiche/pdcn/",
+									"suffix"   => ""),
+	   	//"email"		=> array("valueOf" => "email"),
+	);
 }

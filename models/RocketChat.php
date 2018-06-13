@@ -128,6 +128,34 @@ class RocketChat{
 		return $res;
 	}
 
+	public static function post($to, $msg) 
+	{ 
+		define('REST_API_ROOT', '/api/v1/');
+		define('ROCKET_CHAT_INSTANCE', Yii::app()->params['rocketchatURL']);
+
+		try{
+			Yii::import('rocketchat.RocketChatClient', true);
+			Yii::import('rocketchat.RocketChatUser', true);
+			Yii::import('rocketchat.RocketChatChannel', true);
+			Yii::import('rocketchat.RocketChatGroup', true);
+			Yii::import('httpful.Request', true);
+			Yii::import('httpful.Bootstrap', true);
+			
+			$channel = ( @$type == "true" ) ? new \RocketChat\Channel( $to,array(),true ) : new \RocketChat\Group( $to,array(),true );
+			
+			$res = (object)array(
+				"name" => $to,
+				"type" => ( @$type == "true" ) ? "channel":"group"
+			);
+			$res->info = $channel->info() ;
+			//$res->post = $channel->postMessage($new) ;
+
+		} catch (Exception $e) {
+            $res->msg = $e->getMessage();
+		}
+		return $res;
+	}
+
 	public static function listUserChannels() { 
 		
 		define('REST_API_ROOT', '/api/v1/');

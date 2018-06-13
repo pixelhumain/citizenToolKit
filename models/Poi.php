@@ -125,7 +125,9 @@ class Poi {
 	 * @return poi
 	 */
 	public static function getById($id) { 
+		
 	  	$poi = PHDB::findOneById( self::COLLECTION ,$id );
+	  	
 	  	// Use case notragora
 	  	if(@$poi["type"])
 		  	$poi["typeSig"] = self::COLLECTION.".".$poi["type"];

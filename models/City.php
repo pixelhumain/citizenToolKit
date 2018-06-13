@@ -244,10 +244,15 @@ class City {
 	  	return $city;
 	}
 
-	public static function getByPostalCode($cp) {
+	public static function getByPostalCode($cp, $countryCode=null, $fields=array()) {
 
 		$params = array('postalCodes' => array('$elemMatch' => array('postalCode' => $cp ) ) );
-	    $city = self::getWhere($params);
+
+		if(!empty($countryCode)){
+			$params["country"] = $countryCode;
+		}
+
+	    $city = self::getWhere($params, $fields, 0);
 	    
     	return $city;
 	}
@@ -1566,7 +1571,6 @@ class City {
 		            }
 					$newCities[] = $value ;
 				}else{
-					$value["allCP"] = true ;
 					$newCities[] = $value ;
 					$value["allCP"] = false;
 					foreach ($value["postalCodes"] as $keyCP => $valueCP) {

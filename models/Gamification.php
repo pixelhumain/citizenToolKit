@@ -85,24 +85,24 @@ class Gamification {
 	/*
 	Calculate Gamification points based on gamifaication rules
 	*/
-	public static function calcPoints($userId, $filter=null) {
+	public static function calcPoints($eltype,$userId, $filter=null) {
 		
 		$res = 0;
-		$person = Person::getById($userId);
-		if( isset( $person['links'] ) )
+		$el = Element::getByTypeAndId($eltype, $userId);
+		if( isset( $el['links'] ) )
 		{
-			foreach ( $person['links'] as $type => $list) {
-				if( $type == Link::person2events && ( !$filter || $filter == Link::person2events) ){
+			foreach ( $el['links'] as $type => $list) {
+				if( ($type == Link::person2events || $type == Link::event2person) && ( !$filter || $filter == Link::person2events) ){
 					foreach ($list as $key => $value) {
 						$res += self::POINTS_LINK_USER_2_EVENT;
 					}
 				}
-				if( $type == Link::person2projects && (!$filter || $filter == Link::person2projects) ){
+				if( ($type == Link::person2projects || $type == Link::project2person) && (!$filter || $filter == Link::person2projects) ){
 					foreach ($list as $key => $value) {
 						$res += self::POINTS_LINK_USER_2_PROJECT;
 					}
 				}
-				if( $type == Link::person2organization && (!$filter || $filter == Link::person2organization) ){
+				if( ($type == Link::person2organization || $type == Link::organization2person) && (!$filter || $filter == Link::person2organization) ){
 					foreach ($list as $key => $value) {
 						$res += self::POINTS_LINK_USER_2_ORGANIZATION;
 					}
@@ -115,16 +115,18 @@ class Gamification {
 			}
 		}
 
-		$cols = array( Organization::COLLECTION, Event::COLLECTION, Project::COLLECTION, News::COLLECTION, Classified::COLLECTION, Ressource::COLLECTION );
+		if( $type == Person::COLLECTION )
+		{
+			$cols = array( Organization::COLLECTION, Event::COLLECTION, Project::COLLECTION, News::COLLECTION, Classified::COLLECTION, Ressource::COLLECTION );
 
-		foreach ($cols as $key => $col) {
+			foreach ($cols as $key => $col) {
 
-			$list = PHDB::find($col, array( "creator" => $userId ) );
-			$res += count($list) * self::POINTS_CREATE;
+				$list = PHDB::find($col, array( "creator" => $userId ) );
+				$res += count($list) * self::POINTS_CREATE;
 
+			}
 		}
 		
-
 		return $res;
 	}
 
@@ -173,7 +175,7 @@ class Gamification {
 		$points['total'] += $points['actions']['total'];	
 
 		/***** LINKS ******/
-		$points['links']['total'] = self::calcPoints($userId);
+		$points['links']['total'] = self::calcPoints( Person::COLLECTION, $userId );
 		$points['total'] += $points['links']['total'];
 
 		//Format double in Integer
@@ -197,7 +199,7 @@ class Gamification {
 
 	public static function badge($userId) {
 		
-		$total = self::calcPoints($userId);
+		$total = self::calcPoints(Person::COLLECTION,$userId);
 		$res = Yii::t("common","air");
 
 		if( $total > self::BADGE_SEED_LIMIT && $total < self::BADGE_GERM_LIMIT )

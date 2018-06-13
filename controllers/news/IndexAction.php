@@ -97,7 +97,7 @@ class IndexAction extends CAction
 	            }
 	        }
 	        else if ($type=="city"){
-	        	$localities = isset($_POST['localities']) ? $_POST['localities'] : null;
+	        	$localities = isset($_POST['locality']) ? $_POST['locality'] : null;
 	        	//$searchType = isset($_POST['searchType']) ? $_POST['searchType'] : null;
 				$searchBy = isset($_POST['searchBy']) ? $_POST['searchBy'] : "INSEE";
 				$tagSearch = isset($_POST['tagSearch']) ? $_POST['tagSearch'] : "";
@@ -387,10 +387,10 @@ class IndexAction extends CAction
 			// $where = array('$and' => array( $where , array('sharedBy.updated' => array( '$lt' => $date ) ) ) );
 			// $where = array('$and' => array( $where , array("target.type" => array('$ne' => "pixels") ) ) );
 
-			if(@$_POST["textSearch"] && $_POST["textSearch"]!=""){
+			if(@$_POST["name"] && $_POST["name"]!=""){
 			
 				$textTag=null;
-		  		$textSearch = $_POST["textSearch"];
+		  		$textSearch = $_POST["name"];
 		  		$textTag = explode(" ", $textSearch);
 				$hashTag = substr($textSearch, 0, 1);
 		  		if(sizeof($textTag)==1 && $hashTag=="#"){
@@ -401,7 +401,7 @@ class IndexAction extends CAction
 		  			//var_dump($where["tags"]);	
 		  		}else{
 		  			//$where = array('$and' => array( $where ,  array('text' => new MongoRegex("/".$_POST["textSearch"]."/i") ) ) );
-					$where = array_merge($where,  array('text' => new MongoRegex("/".$_POST["textSearch"]."/i") ) );
+					$where = array_merge($where,  array('text' => new MongoRegex("/".$_POST["name"]."/i") ) );
 		  		}
 		  	
 				
