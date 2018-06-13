@@ -1024,7 +1024,7 @@ class Search {
 			else
 				$parent=array();
 			$allClassified[$key]["parent"] = $parent;
-			$allClassified[$key]["category"] = @$allClassified[$key]["type"];
+			$allClassified[$key]["typeClassified"] = @$value["type"];
 			$allClassified[$key]["type"] = "classifieds";
 
 			$allClassified[$key]["gallery"] = Document::listMyDocumentByIdAndType(@$key, "classifieds");
