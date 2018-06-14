@@ -114,7 +114,7 @@ class Bookmark {
 
 	public static function sendMailNotif(){
 		$res = array();
-		$where = array( "type" => "jobs" );
+		$where = array( "type" => "research", "alert" => "true");
 		$book = PHDB::find(self::COLLECTION,$where,array());
 
 		foreach ($book as $keyB => $valueB) {
@@ -160,20 +160,25 @@ class Bookmark {
 					}else{
 						$res[$valueB["parentId"]] = array_merge($res[$valueB["parentId"]], $search["results"]);
 					}
-					// $update = PHDB::update( self::COLLECTION, 
+
+					$update = PHDB::update( self::COLLECTION, array("_id" => new MongoId($keyB)), 
+                                  array('$set' => array('updated' => time() ) ));
+					// $update = PHDB::update( , 
 					// 						array( "_id" => new MongoId($keyB) ),
-					// 						array('updated' => time() ) );
+					// 						);
 
 
 				}
 			}
 		}
 
-		foreach ($res as $keyR => $valueR) {
-			Mail::bookmarkNotif($valueR, $keyR);
+		if(!empty($res)){
+			foreach ($res as $keyR => $valueR) {
+				Mail::bookmarkNotif($valueR, $keyR);
+			}
 		}
-	    
-	    return $params;
+
+	    return $res;
 	}
 
 }
