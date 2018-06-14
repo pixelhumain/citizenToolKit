@@ -903,13 +903,14 @@ class Link {
             $result = $class::createAndInvite($child);
             if ($result["result"]) {
                 $childId = $result["id"];
-            } else 
-                return $result;
+            } else {
+                return array("result"=>false, "name"=> @$child["childName"], "type"=> $childType, "email"=> @$childEmail, "msgError"=>$result);
+            }
         }
 
         //Retrieve the child info
         //$pendingChild = $class::getById($childId);
-        $pendingChild = Element::getElementSimpleById($childId, $childType);
+        $pendingChild = Element::getElementSimpleById($childId, $childType, null, ["_id", "name", "profilThumbImageUrl"]);
 		$pendingChild["id"] = $childId;
         if (!$pendingChild) {
             return array("result" => false, "msg" => "Something went wrong ! Impossible to find the children ".$childId);
@@ -1175,7 +1176,7 @@ class Link {
 	 //    //assert('!empty($_POST["childType"])'); //The child type is mandatory');
 	 //    assert('!empty($parentId)'); //The parent id is mandatory');
 	 //    assert('!empty($parentType)'); //The parent type is mandatory');
-
+        //var_dump($child);
 	    $result = array("result"=>false, "msg"=>Yii::t("common", "Incorrect request"));
 		
 		if ( ! Person::logguedAndValid() ) {
@@ -1206,7 +1207,7 @@ class Link {
 		    	$isConnectingAdmin= (@$contact["connectType"]=="admin") ? true : false;
 		    	
                 $res = Link::connectParentToChild($parentId, $parentType, $child, $isConnectingAdmin, Yii::app()->session["userId"], $roles);
-		    	if($res["result"] == true){
+		    	if($res["result"]==true){
 			    	if($msg != 2)
 			    		$msg=1;
 					$newMember = $res["newElement"];

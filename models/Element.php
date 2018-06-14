@@ -2268,6 +2268,16 @@ class Element {
 		return $res;
 	}
 
+	public static function getCuriculum($id, $type){
+		$res = array();
+		$listElt = array(Organization::COLLECTION, Person::COLLECTION, Project::COLLECTION, Event::COLLECTION);
+		if(in_array($type, $listElt) ){
+			$res = PHDB::findOne( $type , array( "_id" => new MongoId($id) ) ,array("curiculum") );
+			$res = (!empty($res["curiculum"]) ? $res["curiculum"] : array() );
+		}
+		return $res;
+	}
+
 	public static function getContacts($id, $type){
 		$res = array();
 		$listElt = array(Organization::COLLECTION, Person::COLLECTION, Project::COLLECTION, Event::COLLECTION);
@@ -2444,6 +2454,16 @@ class Element {
 					Notification::constructNotification ( ActStr::VERB_AMEND, array("id" => Yii::app()->session["userId"],"name"=> Yii::app()->session["user"]["name"]), array("type"=>$proposal["parentType"],"id"=>$proposal["parentId"]),array( "type"=>Proposal::COLLECTION,"id"=> $params["id"] ) );
 					$res[] = self::updateField($collection, $id, "amendements", $amdtList);
 				}
+			
+			}else if($block == "curiculum.skills"){
+				$cv = array();
+				$CVAttrs = array("competences", "motivation", "url");
+				foreach ($CVAttrs as $att) {
+					if(@$params[$att]) 
+					$cv["skills"][$att] = @$params[$att];
+				}
+				$res[] = self::updateField($collection, $id, "curiculum", $cv);
+				//var_dump($params);
 			}
 
 			if(Import::isUncomplete($id, $collection)){

@@ -11,10 +11,11 @@ Activity Streams are made to keep track of activity inside any environment
 class Bookmark {
 
 	const COLLECTION = "bookmarks";
+	const CONTROLLER = "bookmark";
 	//From Post/Form name to database field name
 	public static $dataBinding = array (
 	    "name" => array("name" => "name", "rules" => array("required")),
-	    //"type" => array("name" => "type"),
+	    "type" => array("name" => "type"),
 	    "url" => array("name" => "url"),
 	    "parentId" => array("name" => "id"),
 	    "parentType" => array("name" => "type"),
@@ -41,6 +42,7 @@ class Bookmark {
 	    "updated" => array("name" => "updated"),
 	    "created" => array("name" => "created"),
 	    "locality" => array("name" => "address"),
+	    "alert" => array("name" => "alert"),
 	    "descriptionHTML" => array("name" => "descriptionHTML")
 	);
 	public static function getListByWhere($where) {
@@ -64,6 +66,21 @@ class Bookmark {
 		}
 		return self::sortTags($arrayTags, array('count'=>SORT_DESC));
 	}
+	public static function save($params){
+		$valid = DataValidator::validate( ucfirst(self::CONTROLLER), json_decode (json_encode ($params), true), null);
+		if( $valid["result"]){ 
+			$params["created"]=time();
+			$params["updated"]=time();
+			$params["creator"]=Yii::app()->session["userId"];
+			PHDB::insert(self::COLLECTION, $params);
+	    	$res = array('result'=>true, "msg" => Yii::t("document","The bookmark is succesfully registered"), "value" => $params);
+		}else
+			$res = array( "result" => false, "error"=>"400",
+                          "msg" => Yii::t("common","Something went really bad : ".$valid['msg']) );
+
+        return $res;
+
+	}
 	public static function removeById($id){
 		PHDB::remove(self::COLLECTION, array("_id"=>new MongoId($id)));
 	    $res = array('result'=>true, "msg" => Yii::t("document","Bookmark deleted"), "id" => $id);
@@ -84,10 +101,84 @@ class Bookmark {
 	    foreach ($colarr as $col => $arr) {
 	        foreach ($arr as $k => $v) {
 	            $k = substr($k,1);
-	            if (!isset($ret[$k])) $ret[$k] = $array[$k];
-	            $ret[$k][$col] = @$array[$k][$col];
+	            if(is_string($k)){
+	            	if ( empty($ret[$k]) )
+		            	$ret[$k] = $array[$k];
+		            $ret[$k][$col] = @$array[$k][$col];
+	            }
 	        }
 	    }
+
 	    return $ret;
 	}
+
+	public static function sendMailNotif(){
+		$res = array();
+		$where = array( "type" => "research", "alert" => "true");
+		$book = PHDB::find(self::COLLECTION,$where,array());
+
+		foreach ($book as $keyB => $valueB) {
+			if($valueB["parentType"] == Person::COLLECTION && strrpos($valueB["url"], "annonces?") !== false){
+				$url = explode("annonces?" ,parse_url( $valueB["url"], PHP_URL_FRAGMENT));
+				parse_str($url[1]);
+				//var_dump($searchSType);
+				$params = array(
+					"countType" => array("classifieds"),
+					"indexMin" => 0,
+					"initType" => "classifieds",
+					"searchType" => array("classifieds"),
+					"lastTimes" => $valueB["updated"]
+				);
+
+				if(!empty($searchSType))
+					$params["searchSType"] = $searchSType ;
+
+				if(!empty($section))
+					$params["section"] = $section ;
+
+				if(!empty($category))
+					$params["category"] = $category ;
+
+				if(!empty($subType))
+					$params["subType"] = $subType ;
+
+				if(!empty($priceMin))
+					$params["priceMin"] = $priceMin ;
+
+				if(!empty($priceMax))
+					$params["priceMax"] = $priceMax ;
+
+				if(!empty($devise))
+					$params["devise"] = $devise ;
+
+				$search = Search::globalAutoComplete($params);
+
+
+				if(!empty($search["results"])){
+					if(empty($res[$valueB["parentId"]])){
+						$res[$valueB["parentId"]] = $search["results"];
+					}else{
+						$res[$valueB["parentId"]] = array_merge($res[$valueB["parentId"]], $search["results"]);
+					}
+
+					$update = PHDB::update( self::COLLECTION, array("_id" => new MongoId($keyB)), 
+                                  array('$set' => array('updated' => time() ) ));
+					// $update = PHDB::update( , 
+					// 						array( "_id" => new MongoId($keyB) ),
+					// 						);
+
+
+				}
+			}
+		}
+
+		if(!empty($res)){
+			foreach ($res as $keyR => $valueR) {
+				Mail::bookmarkNotif($valueR, $keyR);
+			}
+		}
+
+	    return $res;
+	}
+
 }
