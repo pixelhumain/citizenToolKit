@@ -229,8 +229,8 @@ class City {
 	  	return $city;
 	}
 
-	public static function getById($id) {
-	  	$city = PHDB::findOne(self::COLLECTION, array("_id"=>new MongoId($id)));
+	public static function getById($id, $fields=null) {
+	  	$city = PHDB::findOne(self::COLLECTION, array("_id"=>new MongoId($id)), $fields);
 	  	return $city;
 	}
 
@@ -1629,6 +1629,20 @@ class City {
 
 		return $city;
 	}
+
+
+	public static function setCitiesByScope($scope){
+
+		foreach ($scope as $key => $value) {
+			 $city = self::getById($value);
+		}
+		
+
+		return $city;
+	}
+
+
+	
 
 }
 ?>
