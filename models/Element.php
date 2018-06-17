@@ -2457,7 +2457,8 @@ class Element {
 			
 			}else if($block == "curiculum.skills"){
 				$cv = array();
-				$CVAttrs = array("competences", "motivation", "url");
+				$CVAttrs = array("competences", "mainQualification", "hasVehicle", "languages",
+								"motivation", "driverLicense", "url");
 				foreach ($CVAttrs as $att) {
 					if(@$params[$att]) 
 					$cv["skills"][$att] = @$params[$att];
