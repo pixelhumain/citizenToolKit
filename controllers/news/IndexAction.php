@@ -343,14 +343,14 @@ class IndexAction extends CAction
 			
 			if(@$_POST['searchType']){
 				$searchType=array();
-				//foreach($_POST['searchType'] as $data){
-					if($_POST['searchType'] == "news")
-						$searchType=array("type" => $_POST['searchType']);
-					else if ($_POST['searchType'] == "activityStream")
-						$searchType=array("type" => $_POST['searchType']);
-					else if($_POST['searchType'] == "surveys")
+				foreach($_POST['searchType'] as $data){
+					if($data == "news")
+						$searchType=array("type" => $data);
+					else if ($data == "activityStream")
+						$searchType=array("type" => $data);
+					else if($data == "surveys")
 						$searchType=array("object.type"=>"proposals", "verb"=>"publish");
-				//}
+				}
 				
 				//
 				//if(isset($where['$and']) && isset($searchType)){

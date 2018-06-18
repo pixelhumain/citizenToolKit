@@ -192,7 +192,7 @@ class Search {
   				(strcmp($filter, Ressource::COLLECTION) != 0 && self::typeWanted(Ressource::COLLECTION, $searchType)) 
   				//|| (strcmp($filter, Place::COLLECTION) != 0 && self::typeWanted(Place::COLLECTION, $searchType)) 
   				){
-        		$queryTags =  self::searchTags($searchTags, '$all') ;
+        		$queryTags =  self::searchTags($searchTags, '$in') ;
 	  		}
   			else if( (strcmp($filter, Service::COLLECTION) != 0 )){
   				$queryTags =  self::searchTags($searchTags, '$in', 'type') ;
