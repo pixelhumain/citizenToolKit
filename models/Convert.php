@@ -414,7 +414,7 @@ class Convert {
 
 	public static function poleEmploi($url) {
 		$curl = curl_init();
-		 
+		
 		curl_setopt($curl, CURLOPT_URL, "https://entreprise.pole-emploi.fr/connexion/oauth2/access_token?realm=%2Fpartenaire");
 
 		curl_setopt($curl, CURLOPT_POST, true);
@@ -423,7 +423,7 @@ class Convert {
 		$token = curl_exec($curl);
 		 
 		curl_close($curl);
-		//var_dump($token);
+		//echo $token; //exit;
 		$token_final = json_decode($token, true);
 
 		$curl2 = curl_init();
@@ -440,8 +440,91 @@ class Convert {
 
 		curl_setopt($curl2, CURLOPT_RETURNTRANSFER, 1);
 		$offres = curl_exec($curl2);
-		// echo $offres;
-		// exit;
+		//echo $offres;  exit;
+		curl_close($curl2);
+
+		$offres_final = json_decode($offres, true);
+		return $offres_final;
+	}
+
+
+	public static function poleEmploi2($url) {
+		$curl = curl_init();
+		
+		curl_setopt($curl, CURLOPT_URL, "https://entreprise.pole-emploi.fr/connexion/oauth2/access_token?realm=%2Fpartenaire");
+
+		curl_setopt($curl, CURLOPT_POST, true);
+		//curl_setopt($curl, CURLOPT_POSTFIELDS, "grant_type=client_credentials&client_id=PAR_communecter_9cfae83c352184eff02df647f08661355f3be7028c7ea4eda731bf8718efbfff&client_secret=62a4a6aa2d82fa201eca1ebb3df639882d2ed7cd75284486aaed3a436df67e55&scope=application_PAR_communecter_9cfae83c352184eff02df647f08661355f3be7028c7ea4eda731bf8718efbfff api_infotravailv1"); 
+		//curl_setopt($curl, CURLOPT_POSTFIELDS, "grant_type=client_credentials&client_id=PAR_communectertest2_eec650756ca4df371af67d130e98f3e03a9ae759115430434495b7c6b30ceeb8&client_secret=577887007208e46c71f93ab2caab89e911ef86d934f6f804707fb6e2f19a5ba0&scope=application_PAR_communectertest2_eec650756ca4df371af67d130e98f3e03a9ae759115430434495b7c6b30ceeb8 api_infotravailv1");
+		curl_setopt($curl, CURLOPT_POSTFIELDS, "grant_type=client_credentials&client_id=PAR_communectertest_c46ea89b19688d7d3364badae07f308f722f83b0cd9bd040ecc5a468c6f1d07a&client_secret=de3f5d98dcefef02d98c239b3973878320ec7815005dff553afc35ae067f3dc9&scope=application_PAR_communectertest_c46ea89b19688d7d3364badae07f308f722f83b0cd9bd040ecc5a468c6f1d07a api_offresdemploiv1 o2dsoffre api_infotravailv1"); 
+
+		curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+		$token = curl_exec($curl);
+		 
+		curl_close($curl);
+		//echo $token; //exit;
+		$token_final = json_decode($token, true);
+
+		$curl2 = curl_init();
+
+		$pos = strpos($url, "=");
+
+		$url_head = substr($url, 0, ($pos+1));
+		$url_param = substr($url, ($pos+1));
+
+		$url = $url_head . urlencode($url_param);
+		//var_dump($url);
+		curl_setopt($curl2, CURLOPT_URL, $url);
+		curl_setopt($curl2, CURLOPT_HTTPHEADER, array("Authorization: Bearer ".$token_final["access_token"]));
+
+		curl_setopt($curl2, CURLOPT_RETURNTRANSFER, 1);
+		$offres = curl_exec($curl2);
+		//echo $offres;  exit;
+		curl_close($curl2);
+
+		$offres_final = json_decode($offres, true);
+		return $offres_final;
+	}
+
+	public static function poleEmploiError($url) {
+		$curl = curl_init();
+		 
+		curl_setopt($curl, CURLOPT_URL, "https://entreprise.pole-emploi.fr/connexion/oauth2/access_token?realm=%2Fpartenaire");
+
+		curl_setopt($curl, CURLOPT_POST, true);
+		curl_setopt($curl, CURLOPT_POSTFIELDS, "grant_type=client_credentials&client_id=PAR_communecter_9cfae83c352184eff02df647f08661355f3be7028c7ea4eda731bf8718efbfff&client_secret=62a4a6aa2d82fa201eca1ebb3df639882d2ed7cd75284486aaed3a436df67e55&scope=application_PAR_communecter_9cfae83c352184eff02df647f08661355f3be7028c7ea4eda731bf8718efbfff api_infotravailv1");
+
+		//curl_setopt($curl, CURLOPT_POSTFIELDS, "grant_type=client_credentials&client_id=PAR_communectertest2_eec650756ca4df371af67d130e98f3e03a9ae759115430434495b7c6b30ceeb8&client_secret=577887007208e46c71f93ab2caab89e911ef86d934f6f804707fb6e2f19a5ba0&scope=application_PAR_communectertest2_eec650756ca4df371af67d130e98f3e03a9ae759115430434495b7c6b30ceeb8 api_infotravailv1");
+
+		// curl_setopt($curl, CURLOPT_POSTFIELDS, "grant_type=client_credentials&client_id=PAR_communectertest_c46ea89b19688d7d3364badae07f308f722f83b0cd9bd040ecc5a468c6f1d07a&client_secret=de3f5d98dcefef02d98c239b3973878320ec7815005dff553afc35ae067f3dc9&scope=application_PAR_communectertest_c46ea89b19688d7d3364badae07f308f722f83b0cd9bd040ecc5a468c6f1d07a api_offresdemploiv1 o2dsoffre"); 
+		curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+		$token = curl_exec($curl);
+		 
+		curl_close($curl);
+		
+		$token_final = json_decode($token, true);
+		//Rest::json( $token_final  ); exit ;
+		$curl2 = curl_init();
+
+		$pos = strpos($url, "=");
+		//var_dump($url);
+		$url_head = substr($url, 0, ($pos+1));
+		$url_param = substr($url, ($pos+1));
+		// var_dump($url_head);
+		// var_dump($url_param); exit ;
+		$url = $url_head . urlencode($url_param);
+		$url = urlencode($url);
+		//var_dump($url);
+		curl_setopt($curl2, CURLOPT_URL, $url);
+		curl_setopt($curl2, CURLOPT_HTTPGET, true);
+		curl_setopt($curl2, CURLOPT_HTTPHEADER, array("Authorization: Bearer ".$token_final["access_token"], "Content-Type: text/json"));
+
+		curl_setopt($curl2, CURLOPT_RETURNTRANSFER, 1);
+		//Rest::json( curl_getinfo ( $curl2 ) ); exit ;
+		$offres = curl_exec($curl2);
+		//var_dump($curl2);
+		//Rest::json( curl_getinfo ( $curl2 ) );
+		//exit;
 		curl_close($curl2);
 
 		$offres_final = json_decode($offres, true);
@@ -482,7 +565,9 @@ class Convert {
 
 		// $offres_final = json_decode($offres, true);
 
-		$offres_final = self::poleEmploi($url);
+		//$offres_final = self::poleEmploi($url);
+		$url = 'https://api.emploi-store.fr/partenaire/offresdemploi/v1/rechercheroffres/cityCode/75056';
+		$offres_final = self::poleEmploi2($url);
 
 		$map = TranslatePoleEmploiToPh::$mapping_offres;
 
