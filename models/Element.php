@@ -2456,11 +2456,27 @@ class Element {
 				}
 			
 			}else if($block == "curiculum.skills"){
-				$cv = array();
-				$CVAttrs = array("competences", "motivation", "url");
+				$parent = Element::getByTypeAndId($params["typeElement"], $params["id"]);
+				$cv = @$parent["curiculum"] ? $parent["curiculum"] : array();
+
+				$CVAttrs = array("competences", "mainQualification", "hasVehicle", "languages",
+								"motivation", "driverLicense", "url");
 				foreach ($CVAttrs as $att) {
 					if(@$params[$att]) 
 					$cv["skills"][$att] = @$params[$att];
+				}
+				$res[] = self::updateField($collection, $id, "curiculum", $cv);
+				//var_dump($params);
+			}else if($block == "curiculum.lifepath"){
+				$parent = Element::getByTypeAndId($params["typeElement"], $params["id"]);
+				$cv = @$parent["curiculum"] ? $parent["curiculum"] : array();
+				$indexLP = @$cv["lifepath"] ? sizeof($cv["lifepath"]) : 0;
+				
+				$CVAttrs = array("title", "description", "startDate", "endDate",
+								"location");
+				foreach ($CVAttrs as $att) {
+					if(@$params[$att]) 
+					$cv["lifepath"][$indexLP][$att] = @$params[$att];
 				}
 				$res[] = self::updateField($collection, $id, "curiculum", $cv);
 				//var_dump($params);
