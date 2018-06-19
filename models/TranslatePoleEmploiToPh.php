@@ -27,17 +27,12 @@ class TranslatePoleEmploiToPh {
 		"gpsLongitude" => "geo.longitude",
 		"gpsLatitude" => "geo.latitude",
 		"contractTypeName" => "type",
-		// "ROME_PROFESSION_CARD_CODE" => 
 		"description" => "description",
 		"romeProfessionName" => "tags.0",
 		"contractTypeCode" => "tags.1",
 		"QUALIFICATION_NAME" => "tags.2",
-		"origins.originUrl" => "url",
-		// "geoP" 	=> array("valueOf" => array(
-		// 							"@type" 			=> "GeoCoordinates", 
-		// 							"latitude" 			=> array("valueOf" => "gpsLatitude"),
-		// 							"longitude" 		=> array("valueOf" => "LONGITUDE")
-		// 		 					)),
+		"origins.0.originUrl" => "url",
+		
 	);
 
 }

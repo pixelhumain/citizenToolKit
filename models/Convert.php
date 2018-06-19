@@ -490,11 +490,11 @@ class Convert {
 		// $data = array(	'criterias' => array(
 		// 					'cityCode'=>'75056' ));
 
-		$data = array(	'technicalParameters' => array(
-							'page'=>1,
-							'per_page'=>20,
-							'sort'=>1 ));
-		$dataCurl = json_encode($data);
+		// $data = array(	'technicalParameters' => array(
+		// 					'page'=>1,
+		// 					'per_page'=>20,
+		// 					'sort'=>1 ));
+		$dataCurl = json_encode($params);
 		//echo $dataCurl;  exit;
 		curl_setopt($curl2, CURLOPT_POSTFIELDS, $dataCurl);
 		curl_setopt($curl2, CURLOPT_RETURNTRANSFER, 1);
@@ -515,14 +515,16 @@ class Convert {
 
 	public static function convertPoleEmploiToPh($url, $params= array(), $activity_letters = null) {
 
-		if(!empty($params)){
+		//if(!empty($params)){
 			$params = array(	
 						'technicalParameters' => array(
 							'page'=>1,
 							'per_page'=>20,
-							'sort'=>1 ) );
-		}
-
+							'sort'=>1) ,
+						'criterias' => array(
+							'cityCode'=>"97407" ) );
+		//}
+			
 		$offres_final = self::poleEmploi2($url, $params);
 		//var_dump($offres_final);
 		$map = TranslatePoleEmploiToPh::$mapping_offres;
