@@ -7,9 +7,10 @@ class Convert {
 		$param['typeElement'] = Event::COLLECTION;
 
 		foreach ($map as $key => $value) {
-
-			$param['infoCreateData'][$key]["valueAttributeElt"] = $value;
-			$param['infoCreateData'][$key]["idHeadCSV"] = $key;
+			$p = array("valueAttributeElt" => $value,
+						"idHeadCSV" => $key);
+			$param['infoCreateData'][]=$p ;
+			//$param['infoCreateData'][$key]["idHeadCSV"] = $key;
 		}
 
 		$param['typeFile'] = 'json';
@@ -448,7 +449,7 @@ class Convert {
 	}
 
 
-	public static function poleEmploi2($url) {
+	public static function poleEmploi2($url, $params) {
 		$curl = curl_init();
 		
 		curl_setopt($curl, CURLOPT_URL, "https://entreprise.pole-emploi.fr/connexion/oauth2/access_token?realm=%2Fpartenaire");
@@ -469,144 +470,99 @@ class Convert {
 
 		$pos = strpos($url, "=");
 
-		$url_head = substr($url, 0, ($pos+1));
-		$url_param = substr($url, ($pos+1));
-
-		$url = $url_head . urlencode($url_param);
-		//var_dump($url);
-		curl_setopt($curl2, CURLOPT_URL, $url);
-		curl_setopt($curl2, CURLOPT_HTTPHEADER, array("Authorization: Bearer ".$token_final["access_token"]));
-
-		curl_setopt($curl2, CURLOPT_RETURNTRANSFER, 1);
-		$offres = curl_exec($curl2);
-		//echo $offres;  exit;
-		curl_close($curl2);
-
-		$offres_final = json_decode($offres, true);
-		return $offres_final;
-	}
-
-	public static function poleEmploiError($url) {
-		$curl = curl_init();
-		 
-		curl_setopt($curl, CURLOPT_URL, "https://entreprise.pole-emploi.fr/connexion/oauth2/access_token?realm=%2Fpartenaire");
-
-		curl_setopt($curl, CURLOPT_POST, true);
-		curl_setopt($curl, CURLOPT_POSTFIELDS, "grant_type=client_credentials&client_id=PAR_communecter_9cfae83c352184eff02df647f08661355f3be7028c7ea4eda731bf8718efbfff&client_secret=62a4a6aa2d82fa201eca1ebb3df639882d2ed7cd75284486aaed3a436df67e55&scope=application_PAR_communecter_9cfae83c352184eff02df647f08661355f3be7028c7ea4eda731bf8718efbfff api_infotravailv1");
-
-		//curl_setopt($curl, CURLOPT_POSTFIELDS, "grant_type=client_credentials&client_id=PAR_communectertest2_eec650756ca4df371af67d130e98f3e03a9ae759115430434495b7c6b30ceeb8&client_secret=577887007208e46c71f93ab2caab89e911ef86d934f6f804707fb6e2f19a5ba0&scope=application_PAR_communectertest2_eec650756ca4df371af67d130e98f3e03a9ae759115430434495b7c6b30ceeb8 api_infotravailv1");
-
-		// curl_setopt($curl, CURLOPT_POSTFIELDS, "grant_type=client_credentials&client_id=PAR_communectertest_c46ea89b19688d7d3364badae07f308f722f83b0cd9bd040ecc5a468c6f1d07a&client_secret=de3f5d98dcefef02d98c239b3973878320ec7815005dff553afc35ae067f3dc9&scope=application_PAR_communectertest_c46ea89b19688d7d3364badae07f308f722f83b0cd9bd040ecc5a468c6f1d07a api_offresdemploiv1 o2dsoffre"); 
-		curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
-		$token = curl_exec($curl);
-		 
-		curl_close($curl);
-		
-		$token_final = json_decode($token, true);
-		//Rest::json( $token_final  ); exit ;
-		$curl2 = curl_init();
-
-		$pos = strpos($url, "=");
-		//var_dump($url);
-		$url_head = substr($url, 0, ($pos+1));
-		$url_param = substr($url, ($pos+1));
-		// var_dump($url_head);
-		// var_dump($url_param); exit ;
-		$url = $url_head . urlencode($url_param);
-		$url = urlencode($url);
-		//var_dump($url);
-		curl_setopt($curl2, CURLOPT_URL, $url);
-		curl_setopt($curl2, CURLOPT_HTTPGET, true);
-		curl_setopt($curl2, CURLOPT_HTTPHEADER, array("Authorization: Bearer ".$token_final["access_token"], "Content-Type: text/json"));
-
-		curl_setopt($curl2, CURLOPT_RETURNTRANSFER, 1);
-		//Rest::json( curl_getinfo ( $curl2 ) ); exit ;
-		$offres = curl_exec($curl2);
-		//var_dump($curl2);
-		//Rest::json( curl_getinfo ( $curl2 ) );
-		//exit;
-		curl_close($curl2);
-
-		$offres_final = json_decode($offres, true);
-		return $offres_final;
-	}
-
-	public static function convertPoleEmploiToPh($url, $activity_letters = null) {
-
-		//CODE POUR FORGER UN ACCESS TOKEN NECESSAIRE POUR INTEROGER L'API
-
-		// $curl = curl_init();
-		 
-		// curl_setopt($curl, CURLOPT_URL, "https://entreprise.pole-emploi.fr/connexion/oauth2/access_token?realm=%2Fpartenaire");
-
-		// curl_setopt($curl, CURLOPT_POST, true);
-		// curl_setopt($curl, CURLOPT_POSTFIELDS, "grant_type=client_credentials&client_id=PAR_communecter_9cfae83c352184eff02df647f08661355f3be7028c7ea4eda731bf8718efbfff&client_secret=62a4a6aa2d82fa201eca1ebb3df639882d2ed7cd75284486aaed3a436df67e55&scope=application_PAR_communecter_9cfae83c352184eff02df647f08661355f3be7028c7ea4eda731bf8718efbfff api_infotravailv1"); 
-		// curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
-		// $token = curl_exec($curl);
-		 
-		// curl_close($curl);
-		// $token_final = json_decode($token, true);
-
-		// $curl2 = curl_init();
-
-		// $pos = strpos($url, "=");
-
 		// $url_head = substr($url, 0, ($pos+1));
 		// $url_param = substr($url, ($pos+1));
 
 		// $url = $url_head . urlencode($url_param);
-		// curl_setopt($curl2, CURLOPT_URL, $url);
-		// curl_setopt($curl2, CURLOPT_HTTPHEADER, array("Authorization: Bearer ".$token_final["access_token"]));
+		//var_dump($url);
+		curl_setopt($curl2, CURLOPT_URL, $url);
+		curl_setopt($curl2, CURLOPT_HTTPHEADER, 
+			array(	'Authorization: Bearer '.$token_final["access_token"], 
+					'Content-type: application/json'));
+		curl_setopt($curl2, CURLOPT_POST, true);
+		// $data = array(	'technicalParameters' => array(
+		// 					'page'=>1,
+		// 					'per_page'=>20,
+		// 					'sort'=>1 ),
+		// 				'criterias' => array(
+		// 					'cityCode'=>'75056' ));
 
-		// curl_setopt($curl2, CURLOPT_RETURNTRANSFER, 1);
-		// $offres = curl_exec($curl2);
+		// $data = array(	'criterias' => array(
+		// 					'cityCode'=>'75056' ));
+
+		$data = array(	'technicalParameters' => array(
+							'page'=>1,
+							'per_page'=>20,
+							'sort'=>1 ));
+		$dataCurl = json_encode($data);
+		//echo $dataCurl;  exit;
+		curl_setopt($curl2, CURLOPT_POSTFIELDS, $dataCurl);
+		curl_setopt($curl2, CURLOPT_RETURNTRANSFER, 1);
+
 		
-		// curl_close($curl2);
+		$offres = curl_exec($curl2);
+		// echo curl_getinfo ( $curl2, CURLINFO_HTTP_CODE  )."<br/>"; 
+		// echo curl_getinfo ( $curl2, CURLINFO_EFFECTIVE_URL  )."<br/>"; 
+		// echo curl_getinfo ( $curl2, CURLINFO_HEADER_OUT  )."<br/>";
+		// exit ;
+		//echo $offres;  exit;
+		curl_close($curl2);
 
-		// $offres_final = json_decode($offres, true);
+		$offres_final = json_decode($offres, true);
 
-		//$offres_final = self::poleEmploi($url);
-		$url = 'https://api.emploi-store.fr/partenaire/offresdemploi/v1/rechercheroffres/cityCode/75056';
-		$offres_final = self::poleEmploi2($url);
+		return $offres_final;
+	}
 
+	public static function convertPoleEmploiToPh($url, $params= array(), $activity_letters = null) {
+
+		if(!empty($params)){
+			$params = array(	
+						'technicalParameters' => array(
+							'page'=>1,
+							'per_page'=>20,
+							'sort'=>1 ) );
+		}
+
+		$offres_final = self::poleEmploi2($url, $params);
+		//var_dump($offres_final);
 		$map = TranslatePoleEmploiToPh::$mapping_offres;
 
 		$param = self::getPrimaryParam($map);
 
-		$param['pathObject'] = 'records';
+		$param['pathObject'] = '';
 		$param['key'] = 'convert_poleemploi';
 		$param['nameFile'] = 'convert_poleemploi';
 
 		$offres_array = [];
 		$offres_array['records'] = [];
 
-		if ($activity_letters == null) {
-			if(!empty($offres_final["result"])){
-				foreach ($offres_final["result"]["records"] as $key => $value) {
-					$offres_array['records'][$key] = $value;
-				}
-			}
-		} else {
+		// if ($activity_letters == null) {
+		// 	if(!empty($offres_final["result"])){
+		// 		foreach ($offres_final["result"]["records"] as $key => $value) {
+		// 			$offres_array['records'][$key] = $value;
+		// 		}
+		// 	}
+		// } else {
 
-			$letters = explode(",", $activity_letters);
-			if(!empty($offres_final["result"])){
-				foreach ($offres_final["result"]["records"] as $key => $value) {
+		// 	$letters = explode(",", $activity_letters);
+		// 	if(!empty($offres_final["result"])){
+		// 		foreach ($offres_final["result"]["records"] as $key => $value) {
 
-					$first_letter = $value["ROME_PROFESSION_CARD_CODE"][0];
+		// 			$first_letter = $value["ROME_PROFESSION_CARD_CODE"][0];
 
-					if (in_array($first_letter, $letters)) {
-						$offres_array['records'][$key] = $value;
-					}
-				}
-			}
-		}
-		
+		// 			if (in_array($first_letter, $letters)) {
+		// 				$offres_array['records'][$key] = $value;
+		// 			}
+		// 		}
+		// 	}
+		// }
+		//var_dump($url);
 		if (isset($url)) {
-			$param['file'][0] = json_encode($offres_array);
+			$param['file'][0] = json_encode($offres_final["results"]);
 		}
-
+		//var_dump($param);
 		$result = Import::previewData($param);
-
+		//var_dump($result);
 		if ($result['result'] !== false) {
 			$res = json_decode($result['elements']);
 		} else {

@@ -2,7 +2,7 @@
 
 class TranslatePoleEmploiToPh {
 
-	public static $mapping_offres = array(
+	public static $mapping_offres_infotravail = array(
 
 		"ROME_PROFESSION_CARD_NAME" => "name",
 		"LONGITUDE" => "geo.longitude",
@@ -19,6 +19,25 @@ class TranslatePoleEmploiToPh {
 									"latitude" 			=> array("valueOf" => "LATITUDE"),
 									"longitude" 		=> array("valueOf" => "LONGITUDE")
 				 					)),
+	);
+
+	public static $mapping_offres = array(
+
+		"title" => "name",
+		"gpsLongitude" => "geo.longitude",
+		"gpsLatitude" => "geo.latitude",
+		"contractTypeName" => "type",
+		// "ROME_PROFESSION_CARD_CODE" => 
+		"description" => "description",
+		"romeProfessionName" => "tags.0",
+		"contractTypeCode" => "tags.1",
+		"QUALIFICATION_NAME" => "tags.2",
+		"origins.originUrl" => "url",
+		// "geoP" 	=> array("valueOf" => array(
+		// 							"@type" 			=> "GeoCoordinates", 
+		// 							"latitude" 			=> array("valueOf" => "gpsLatitude"),
+		// 							"longitude" 		=> array("valueOf" => "LONGITUDE")
+		// 		 					)),
 	);
 
 }
