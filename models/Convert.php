@@ -537,29 +537,8 @@ class Convert {
 
 		$offres_array = [];
 		$offres_array['records'] = [];
-
-		// if ($activity_letters == null) {
-		// 	if(!empty($offres_final["result"])){
-		// 		foreach ($offres_final["result"]["records"] as $key => $value) {
-		// 			$offres_array['records'][$key] = $value;
-		// 		}
-		// 	}
-		// } else {
-
-		// 	$letters = explode(",", $activity_letters);
-		// 	if(!empty($offres_final["result"])){
-		// 		foreach ($offres_final["result"]["records"] as $key => $value) {
-
-		// 			$first_letter = $value["ROME_PROFESSION_CARD_CODE"][0];
-
-		// 			if (in_array($first_letter, $letters)) {
-		// 				$offres_array['records'][$key] = $value;
-		// 			}
-		// 		}
-		// 	}
-		// }
-		//var_dump($url);
-		if (isset($url)) {
+		
+		if (isset($url) && !empty($offres_final["results"])) {
 			$param['file'][0] = json_encode($offres_final["results"]);
 		}
 		//var_dump($param);
