@@ -1433,9 +1433,9 @@ class City {
 		if($geoShape) $att[] =  "geoShape";
 		$regex = Search::accentToRegex($scopeValue);
 		$where = array( '$or'=> 
-							array(  array("origin" => new MongoRegex("/^".$regex."/i")),
-									array("translates.".strtoupper(Yii::app()->language) => array( '$in' => array (new MongoRegex("/^".$regex."/i") ) ) ),
-									array("postalCodes.origin" => new MongoRegex("/^".$regex."/i") ),
+							array(  array("origin" => new MongoRegex("/".$regex."/i")),
+									array("translates.".strtoupper(Yii::app()->language) => array( '$in' => array (new MongoRegex("/".$regex."/i") ) ) ),
+									array("postalCodes.origin" => new MongoRegex("/".$regex."/i") ),
 		 							array("postalCodes.postalCode" => new MongoRegex("/^".$regex."/i") )
 						) );
 
