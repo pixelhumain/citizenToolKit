@@ -541,14 +541,15 @@ class Convert {
 		}
 		//var_dump($param);
 		$result = Import::previewData($param);
+		$result["count"] = $offres_final["technicalParameters"]["totalNumber"];
 		//var_dump($result);
-		if ($result['result'] !== false) {
-			$res = json_decode($result['elements']);
-		} else {
-			$res = [];
-		}
+		if ($result['result'] !== false)
+			$result['elements'] = json_decode($result['elements']);
+		// } else {
+		// 	$res = [];
+		// }
 
-		return $res;
+		return $result;
 	}
 
 	public static function ConvertValueFlowsToPh($url) {
