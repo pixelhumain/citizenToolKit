@@ -515,7 +515,7 @@ class Convert {
 
 	public static function convertPoleEmploiToPh($url, $params= array(), $activity_letters = null) {
 
-		if(!empty($params)){
+		if(empty($params)){
 			$params = array(	
 						'technicalParameters' => array(
 							'page'=>1,
