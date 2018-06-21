@@ -515,15 +515,13 @@ class Convert {
 
 	public static function convertPoleEmploiToPh($url, $params= array(), $activity_letters = null) {
 
-		//if(!empty($params)){
+		if(!empty($params)){
 			$params = array(	
 						'technicalParameters' => array(
 							'page'=>1,
 							'per_page'=>20,
-							'sort'=>1) ,
-						'criterias' => array(
-							'cityCode'=>"97407" ) );
-		//}
+							'sort'=>1) );
+		}
 			
 		$offres_final = self::poleEmploi2($url, $params);
 		//var_dump($offres_final);
