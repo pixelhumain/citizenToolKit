@@ -505,11 +505,10 @@ class Convert {
 		// echo curl_getinfo ( $curl2, CURLINFO_EFFECTIVE_URL  )."<br/>"; 
 		// echo curl_getinfo ( $curl2, CURLINFO_HEADER_OUT  )."<br/>";
 		// exit ;
-		//echo $offres;  exit;
+		echo $offres;  exit;
 		curl_close($curl2);
 
 		$offres_final = json_decode($offres, true);
-
 		return $offres_final;
 	}
 
@@ -545,9 +544,7 @@ class Convert {
 		//var_dump($result);
 		if ($result['result'] !== false)
 			$result['elements'] = json_decode($result['elements']);
-		// } else {
-		// 	$res = [];
-		// }
+
 
 		return $result;
 	}
