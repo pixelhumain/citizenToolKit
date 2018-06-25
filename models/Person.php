@@ -610,7 +610,7 @@ class Person {
 			//generate unique temporary userName for Meteor app when inviting
 			$newPerson["username"] = substr(str_shuffle("0123456789abcdefghijklmnopqrstuvwxyz"), 0, 32);
 			//Add pending boolean
-			$newPerson["pending"] = true;
+			//$newPerson["pending"] = true;
 		} else if ($mode == self::REGISTER_MODE_NORMAL) {
 			array_push($dataPersonMinimal, "username", "postalCode", "city", "pwd");
 		} else if ($mode == self::REGISTER_MODE_TWO_STEPS) {
