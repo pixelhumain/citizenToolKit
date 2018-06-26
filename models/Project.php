@@ -365,7 +365,7 @@ class Project {
 		$newProject["updated"] = time();
 	    PHDB::insert(self::COLLECTION,$newProject);
 
-	    Badge::addAndUpdateBadges("opendata",(String)$newProject["_id"], Project::COLLECTION);
+	    //Badge::addAndUpdateBadges("opendata",(String)$newProject["_id"], Project::COLLECTION);
 		Link::addContributor(Yii::app() -> session["userId"],Person::COLLECTION,$parentId,$parentType,$newProject["_id"]);
 	   // Link::connect($parentId, $parentType, $newProject["_id"], self::COLLECTION, $parentId, "projects", true );
 
@@ -376,7 +376,7 @@ class Project {
 
 	public static function afterSave($params, $import){
 	    
-	    Badge::addAndUpdateBadges("opendata",(String)$params["_id"], Project::COLLECTION);
+	    //Badge::addAndUpdateBadges("opendata",(String)$params["_id"], Project::COLLECTION);
 	    if( !@$params['parentType'] && !@$params['parentId'] ){
 			$params['parentType'] = Person::COLLECTION; 
 			$params['parentId'] = Yii::app() -> session["userId"];

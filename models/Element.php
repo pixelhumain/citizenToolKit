@@ -5,7 +5,7 @@ class Element {
 	const STATUS_DELETE_PEDING = "deletePending";
 	const ERROR_DELETING = "errorTryingToDelete";
 
-	public static $urlTypes = array(
+	public static $urlTypes = array (
         "chat" => "Chat",
         "decisionroom" => "Salle de decision",
         "website" => "Site web",
@@ -1703,7 +1703,6 @@ class Element {
 		//$paramsImport = (empty($params["paramsImport"])?null:$params["paramsImport"]);
 		$paramsLinkImport = ( empty($params["paramsImport"] ) ? null : $params["paramsImport"]);
 		
-		
 		unset($params["paramsImport"]);
         unset($params['key']);
        
@@ -1790,6 +1789,7 @@ class Element {
                 }
                 else
                 	PHDB::update($collection,array("_id"=>new MongoId($id)), array('$set' => $params ));
+                
                 $res = array("result"=>true,
                              "msg"=>Yii::t("common","Your data are well updated"),
                              "reload"=>true,

@@ -427,7 +427,7 @@ class Event {
 		}
 	    PHDB::insert(self::COLLECTION,$newEvent);
 	    
-	    Badge::addAndUpdateBadges("opendata",(String)$newEvent["_id"], Event::COLLECTION);
+	    //Badge::addAndUpdateBadges("opendata",(String)$newEvent["_id"], Event::COLLECTION);
 	    /*
 	    * except if organiser type is dontKnow
 		*   Add the creator as the first attendee
@@ -498,7 +498,7 @@ class Event {
 
 	public static function afterSave($params, $import = false, $warnings = null) {
 		
-	    Badge::addAndUpdateBadges("opendata",(String)$params["_id"], Event::COLLECTION);
+	    //Badge::addAndUpdateBadges("opendata",(String)$params["_id"], Event::COLLECTION);
 	    /*
 	    * except if organiser type is dontKnow
 		*   Add the creator as the first attendee

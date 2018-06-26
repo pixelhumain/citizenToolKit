@@ -134,7 +134,7 @@ class Organization {
 	    	throw new CTKException(Yii::t("organization","Problem inserting the new organization"));
 	    }
 
-	    Badge::addAndUpdateBadges("opendata", $newOrganizationId, Organization::COLLECTION);
+	    //Badge::addAndUpdateBadges("opendata", $newOrganizationId, Organization::COLLECTION);
 		
 		//Manage link with the creator depending of the role selected
 		if (@$organization["role"] == "admin") {
@@ -199,7 +199,7 @@ class Organization {
 
 	public static function afterSave($organization, $creatorId,$paramsImport=null) {
 	    $newOrganizationId = (string)$organization['_id'];
-		Badge::addAndUpdateBadges("opendata", $newOrganizationId, Organization::COLLECTION);
+		//Badge::addAndUpdateBadges("opendata", $newOrganizationId, Organization::COLLECTION);
 		//Manage link with the creator depending of the role selected
 		if (@$organization["role"] == "admin") {
 			$isToLink = true;
@@ -683,7 +683,7 @@ class Organization {
 		}
 		else{
 			if (! Authorisation::isOrganizationAdmin($userId, $organizationId)) 
-				return Rest::json(array("result"=>false, "msg"=>Yii::t("organization", "Unauthorized Access.")));
+				return Rest::json(array("result"=>false,"xxx"=>false, "msg"=>Yii::t("organization", "Unauthorized Access.")));
 			else 
 				$authorization=true;
 		}
