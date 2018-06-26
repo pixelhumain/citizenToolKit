@@ -92,7 +92,7 @@ class Import
 
    
 
-    public static  function previewData($post){
+    public static  function previewData($post, $notCheck=false){
         $params = array("result"=>false);
         $elements = array();
         $saveCities = array();
@@ -146,7 +146,9 @@ class Import
                         $element['source']['key'] = $post['key'];
                     }
 
-                    $element = self::checkElement($element, $post['typeElement']);
+                    if($notCheck != true)
+                        $element = self::checkElement($element, $post['typeElement']);
+
                     if(!empty($element["saveCities"])){
                     	$saveCities[] = $element["saveCities"];
                     	unset($element["saveCities"]);
@@ -371,38 +373,50 @@ class Import
 		$result = false;
 		$saveCities = array();
 
-
-
-
-        //var_dump($address);
 		if( !empty($address["addressLocality"]) && !empty($address["addressCountry"]) ){
 
             $regexCity = Search::accentToRegex(strtolower($address["addressLocality"]));
-            //var_dump($regexCity);
-			$where = array('$or'=> 
-						array(  
-							array("name" => new MongoRegex("/^".$regexCity."/i")),
-							array("alternateName" => new MongoRegex("/^".$regexCity."/i")),
-							array("postalCodes.name" => new MongoRegex("/^".$regexCity."/i"))
-						) );
-			$where = array('$and' => array($where, array("country" => strtoupper($address["addressCountry"])) ) );
+            $city = null ;
+            if(!empty($address["codeInsee"])){
+                $where = array('$and' => array(
+                                array("insee" => strtoupper($address["codeInsee"])), 
+                                array("country" => strtoupper($address["addressCountry"])) ) );
+                $city = PHDB::findOne(City::COLLECTION, $where, $fields);
+            }
 
-			if( !empty($address["postalCode"]) ){
-				$where = array('$and' => array($where, array("postalCodes.postalCode" => $address["postalCode"]) ) );
-			}
-            $fields = array("name", "geo", "country", "level1", "level1Name","level2", "level2Name","level3", "level3Name","level4", "level4Name", "osmID", "postalCode", "insee");
+            if(empty($city)){
+                $where = array('$or'=> 
+                        array(  
+                            array("name" => new MongoRegex("/^".$regexCity."/i")),
+                            array("alternateName" => new MongoRegex("/^".$regexCity."/i")),
+                            array("postalCodes.name" => new MongoRegex("/^".$regexCity."/i"))
+                        ) );
 
-			$city = PHDB::findOne(City::COLLECTION, $where, $fields);
+                $where = array('$and' => array($where, array("country" => strtoupper($address["addressCountry"])) ) );
+
+                if( !empty($address["postalCode"]) ){
+                    $where = array('$and' => array($where, array("postalCodes.postalCode" => $address["postalCode"]) ) );
+                }
+                $fields = array("name", "geo", "country", "level1", "level1Name","level2", "level2Name","level3", "level3Name","level4", "level4Name", "osmID", "postalCode", "insee");
+
+                $city = PHDB::findOne(City::COLLECTION, $where, $fields);
+            }
 
 			if(!empty($city)){
-				$resGeo = self::getLatLonBySIG($address);
-				$lat = ( empty($resGeo["lat"]) ? $city["geo"]["latitude"] : $resGeo["lat"] );
-				$lon = ( empty($resGeo["lon"]) ? $city["geo"]["longitude"] : $resGeo["lon"] );
-				
+
+                if(empty($geo["latitude"]) || empty($geo["longitude"])){
+                    $resGeo = self::getLatLonBySIG($address);
+                    $lat = ( empty($resGeo["lat"]) ? $city["geo"]["latitude"] : $resGeo["lat"] );
+                    $lon = ( empty($resGeo["lon"]) ? $city["geo"]["longitude"] : $resGeo["lon"] );
+                }else{
+                    $lat = $geo["latitude"] ;
+                    $lon = $geo["longitude"];
+                }
 				$newA = self::getAddressConform($city, $address);
 				$newGeo = SIG::getFormatGeo($lat, $lon);
 				$newGeoPosition = SIG::getFormatGeoPosition($lat, $lon);
 				$result = true;
+
 			} else {
 				$resNominatim = json_decode(SIG::getGeoByAddressNominatim(null, null, $address["addressLocality"], trim($address["addressCountry"]), false, true),true);
 				if(!empty($resNominatim)){
@@ -445,7 +459,7 @@ class Import
 			$lon = ( is_numeric($geo["longitude"]) ? strval($geo["longitude"]) : $geo["longitude"] ) ;
 
 			$city = SIG::getCityByLatLngGeoShape( $lat, $lon, null, (!empty($address["addressCountry"]) ? $address["addressCountry"] : null ) ) ;
-            //var_dump($city);
+
             if(!empty($city)){
                 $newA = self::getAddressConform($city, $address);
                 $newGeo = SIG::getFormatGeo($lat, $lon);
@@ -478,6 +492,7 @@ class Import
 				}
             }		
 		}
+
 		$res = array(	"result" => $result,
 						"address" => ( empty($newA) ? null : $newA),
 						"geo" => ( empty($newGeo) ? null : $newGeo),
