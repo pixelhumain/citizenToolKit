@@ -311,11 +311,11 @@ class Element {
 			$element = PHDB::findOneById($type, $id, $what);
 		else if($type == Person::COLLECTION)
 			$element = Person::getById($id);
-		else if($type == Organization::COLLECTION)
+		else if($type == Organization::COLLECTION || $type == Organization::CONTROLLER  )
 			$element = Organization::getById($id);		
-		else if($type == Project::COLLECTION)
+		else if($type == Project::COLLECTION || $type == Project::CONTROLLER)
 			$element = Project::getById($id);	
-		else if($type == Event::COLLECTION)
+		else if($type == Event::COLLECTION || $type == Event::CONTROLLER )
 			$element = Event::getById($id);	
 		else if($type == City::COLLECTION)
 			$element = City::getIdByInsee($id);
