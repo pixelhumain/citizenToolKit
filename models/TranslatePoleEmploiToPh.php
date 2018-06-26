@@ -32,6 +32,10 @@ class TranslatePoleEmploiToPh {
 		"contractTypeCode" => "tags.1",
 		"QUALIFICATION_NAME" => "tags.2",
 		"origins.0.originUrl" => "url",
+		"postcode" => "address.postalCode",
+		"cityCode" => "address.codeInsee",
+		"cityName" => "address.addressLocality",
+		"countryCode" => "address.addressCountry",
 		
 	);
 
