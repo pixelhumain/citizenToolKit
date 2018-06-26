@@ -1112,6 +1112,44 @@ class City {
 		return $city;
 	}
 
+	public static function getGeoShapeCity($params){
+		$where = array();
+		$city = array();
+		
+		if(!empty($params["id"])){
+			$a = array();
+			foreach ($params["id"] as $key => $value) {
+				$a[] = new MongoId($value);
+			}
+			$where = array( "_id" => array('$in' => $a));
+		}
+		else if(!empty($params["insee"])){
+			//var_dump($params["insee"]); exit;
+			$a = array();
+			foreach ($params["insee"] as $key => $value) {
+				$a[] = $value;
+			}
+			$where = array( "insee" => array('$in' => $a));
+		}
+		else if(!empty($params["name"])){
+			$a = array();
+			foreach ($params["name"] as $key => $value) {
+				$a[] =$value;
+			}
+			$where = array( "name" => array('$in' => $a));
+		}
+		//var_dump($where); exit;
+		if(!empty($where)){
+			$fields = array("geoShape","name");
+			$city = PHDB::find(City::COLLECTION, $where, $fields);
+
+			if(!empty($city["geoShape"]) && $city["geoShape"]["type"] == "Point")
+				unset($city["geoShape"]);
+		}
+		
+		return $city;
+	}
+
 	public static function detailKeysLevels($key){
 		$keyArray = explode("@", $key);
 		$res = array();
@@ -1395,9 +1433,9 @@ class City {
 		if($geoShape) $att[] =  "geoShape";
 		$regex = Search::accentToRegex($scopeValue);
 		$where = array( '$or'=> 
-							array(  array("origin" => new MongoRegex("/^".$regex."/i")),
-									array("translates.".strtoupper(Yii::app()->language) => array( '$in' => array (new MongoRegex("/^".$regex."/i") ) ) ),
-									array("postalCodes.origin" => new MongoRegex("/^".$regex."/i") ),
+							array(  array("origin" => new MongoRegex("/".$regex."/i")),
+									array("translates.".strtoupper(Yii::app()->language) => array( '$in' => array (new MongoRegex("/".$regex."/i") ) ) ),
+									array("postalCodes.origin" => new MongoRegex("/".$regex."/i") ),
 		 							array("postalCodes.postalCode" => new MongoRegex("/^".$regex."/i") )
 						) );
 
