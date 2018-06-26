@@ -454,7 +454,8 @@ class Convert {
 		// 	$res = Yii::app()->params["token".$apiName];
 		// } else {
 			$res = Application::getToken($apiName);
-			if(empty($res) || (!empty($res) && ($res["expireToken"]-time()) > 180) ){
+			if(empty($res) || (!empty($res) && ($res["expireToken"]-time()) <= 180) ){
+
 				if($apiName == "poleEmploi")
 					$res["token"] = self::poleEmploiToken();
 				
@@ -462,12 +463,14 @@ class Convert {
 		//}
 		return ( empty($res["token"]) ? null : $res["token"] ) ;
 	}
-
+//Yii::app()->params["poleEmploi"]["client_id"]
 	public static function poleEmploiToken() {
 		$curl = curl_init();
 		curl_setopt($curl, CURLOPT_URL, "https://entreprise.pole-emploi.fr/connexion/oauth2/access_token?realm=%2Fpartenaire");
 		curl_setopt($curl, CURLOPT_POST, true);
-		curl_setopt($curl, CURLOPT_POSTFIELDS, "grant_type=client_credentials&client_id=PAR_communectertest_c46ea89b19688d7d3364badae07f308f722f83b0cd9bd040ecc5a468c6f1d07a&client_secret=de3f5d98dcefef02d98c239b3973878320ec7815005dff553afc35ae067f3dc9&scope=application_PAR_communectertest_c46ea89b19688d7d3364badae07f308f722f83b0cd9bd040ecc5a468c6f1d07a api_offresdemploiv1 o2dsoffre api_infotravailv1"); 
+		// curl_setopt($curl, CURLOPT_POSTFIELDS, "grant_type=client_credentials&client_id=PAR_communectertest_c46ea89b19688d7d3364badae07f308f722f83b0cd9bd040ecc5a468c6f1d07a&client_secret=de3f5d98dcefef02d98c239b3973878320ec7815005dff553afc35ae067f3dc9&scope=application_PAR_communectertest_c46ea89b19688d7d3364badae07f308f722f83b0cd9bd040ecc5a468c6f1d07a api_offresdemploiv1 o2dsoffre api_infotravailv1");
+		//var_dump(Yii::app()->params["poleEmploi"]["client_secret"]);
+		curl_setopt($curl, CURLOPT_POSTFIELDS, "grant_type=client_credentials&client_id=".Yii::app()->params["poleEmploi"]["client_id"]."&client_secret=".Yii::app()->params["poleEmploi"]["client_secret"]."&scope=".Yii::app()->params["poleEmploi"]["scope"]);
 		curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
 		$token = curl_exec($curl);
 		$token_final = json_decode($token, true);
@@ -491,12 +494,12 @@ class Convert {
 		
 		
 		$token_final = self::getToken("poleEmploi") ;
-
+		
 		$res = array(	"httpCode" => "0",
 						"result" => array(),
 						"token" => $token_final );
 
-		if(!empty($token_final)){
+		if(!empty($token_final) && !empty($token_final["access_token"])){
 			$curl2 = curl_init();
 			curl_setopt($curl2, CURLOPT_URL, $url);
 			curl_setopt($curl2, CURLOPT_HTTPHEADER, 

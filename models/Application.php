@@ -26,8 +26,6 @@ class Application {
 				"ClientPassword" => $params["mangoPay"]["ClientPassword"],
 				"TemporaryFolder" => $params["mangoPay"]["TemporaryFolder"]
 			);
-
-			Yii::app()->params["applicationId"] = (string) $params["_id"];
 			
 		}
 	}
@@ -58,14 +56,19 @@ class Application {
 		if(empty($params["api"][$apiName]))
 			$params["api"][$apiName] = array();
 
-		$params["api"][$apiName]["token"] = $token;
-		$params["api"][$apiName]["expireToken"] = time()+$token["expires_in"];
-		Yii::app()->params["token".$apiName] = $token;
-		$res = PHDB::update(self::COLLECTION,
-						array( "key" => "devParams") ,
-						//array("_id" => new MongoId(Yii::app()->params["applicationId"])) ,
-						array('$set' => array("api" => $params["api"]))
-					);
+		$res = array("result" => false);
+		if(!empty($token["expires_in"])){
+			$params["api"][$apiName]["token"] = $token;
+
+			$params["api"][$apiName]["expireToken"] = time()+$token["expires_in"];
+			Yii::app()->params["token".$apiName] = $token;
+			$res = PHDB::update(self::COLLECTION,
+							array( "key" => "devParams") ,
+							//array("_id" => new MongoId(Yii::app()->params["applicationId"])) ,
+							array('$set' => array("api" => $params["api"]))
+						);
+		}
+		
 
 		return $res ;
 	}
