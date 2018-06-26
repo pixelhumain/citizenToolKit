@@ -92,7 +92,7 @@ class Import
 
    
 
-    public static  function previewData($post){
+    public static  function previewData($post, $notCheck=false){
         $params = array("result"=>false);
         $elements = array();
         $saveCities = array();
@@ -146,7 +146,9 @@ class Import
                         $element['source']['key'] = $post['key'];
                     }
 
-                    $element = self::checkElement($element, $post['typeElement']);
+                    if($notCheck != true)
+                        $element = self::checkElement($element, $post['typeElement']);
+
                     if(!empty($element["saveCities"])){
                     	$saveCities[] = $element["saveCities"];
                     	unset($element["saveCities"]);
