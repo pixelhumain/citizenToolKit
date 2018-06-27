@@ -731,8 +731,10 @@ class Authorisation {
 		} else if ($parentType == Event::COLLECTION){     
 	        $parent = Event::getById($parentId);
 	        $link="attendees";
-		}
-		
+		}else if ($parentType == Form::COLLECTION){     
+            $parent = Form::getById($parentId);
+            $link="survey";
+        }
 
         if ($users = @$parent["links"][$link]) {
             foreach ($users as $personId => $linkDetail) {
