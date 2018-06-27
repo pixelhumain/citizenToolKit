@@ -117,6 +117,16 @@ class Authorisation {
         return $res;
     }
 
+
+    public static function isFormAdmin($userId, $organizationId) {
+        $res = false;
+        $myOrganizations = self::listUserOrganizationAdmin($userId);
+        if(!empty($myOrganizations))
+          $res = array_key_exists((string)$organizationId, $myOrganizations);
+
+        return $res;
+    }
+
     /**
      * Return true if the user is member of the organization
      * @param String the id of the user
@@ -732,10 +742,10 @@ class Authorisation {
 	        $parent = Event::getById($parentId);
 	        $link="attendees";
 		}else if ($parentType == Form::COLLECTION){     
-            $parent = Form::getById($parentId);
+            $parent = Form::getLinksById($parentId);
             $link="survey";
         }
-
+        //var_dump($parent) ; exit ;
         if ($users = @$parent["links"][$link]) {
             foreach ($users as $personId => $linkDetail) {
                 if (@$linkDetail["isAdmin"] == true) {
@@ -791,6 +801,9 @@ class Authorisation {
             $res = self::isProjectAdmin($elementId, $userId);
         } else if( $elementType == Organization::COLLECTION ) {
             $res = self::isOrganizationAdmin($userId, $elementId);
+        } else if( $elementType == Form::COLLECTION ) {
+            //$res = self::isFormAdmin($userId, $elementId);
+            $res = true;
         } else 
             error_log("isElementAdmin : Can not manage that type ! : ".$elementType);
         return $res;
