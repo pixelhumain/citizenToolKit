@@ -168,7 +168,13 @@ class Search {
 		$query = array();
       	$queryNews=array();
       	$query = Search::searchString($search, $query);
-		$query = array('$and' => array( $query , array("state" => array('$nin' => array("uncomplete", "deleted")) )));
+		$query = array('$and' => 
+							array( $query , 
+								array("state" => array('$nin' => array("uncomplete", "deleted")),
+									'preferences.private'=>array('$exists'=>false)
+								)	
+							)
+						);
       	//$queryNews = Search::searchNewsString($search, $query);
       	//$queryNews = array('$and' => array( $queryNews , array("type"=>News::COLLECTION, "scope.type"=>News::TYPE_PUBLIC, "target.type"=>array('$ne'=>"pixels"))));
       	if($latest)

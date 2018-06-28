@@ -1731,6 +1731,7 @@ class Element {
         if(isset($params["price"]))
         	$params["price"] = (int)$params["price"];
 
+        
         /*$microformat = PHDB::findOne(PHType::TYPE_MICROFORMATS, array( "key"=> $key));
         $validate = ( !isset($microformat )  || !isset($microformat["jsonSchema"])) ? false : true;
         //validation process based on microformat defeinition of the form
@@ -1913,6 +1914,19 @@ class Element {
 		        $params["creator"] = Yii::app()->session["userId"];
 		        $params["created"] = time();
 		    }
+		    
+		    if(@$params["public"] && in_array($params["collection"], [Event::COLLECTION, Project::COLLECTION])){
+        		//$params["preferences"]["public"]=$params["public"];
+        		if(!is_bool($params["public"]))
+		    		$params["public"] = ($params["public"] == "true") ? true : false;
+		    	if($params["public"]==false)
+		    		$params["preferences"]["private"]=true;
+        		if(@$params["preferences"]["private"]){
+        			$params["preferences"]["isOpenData"]=false;
+        			$params["preferences"]["isOpenEdition"]=false;
+        		}
+        		unset($params["public"]);
+        	}
 
 		    if (isset($params["allDay"])) {
 		    	if ($params["allDay"] == "true") {
