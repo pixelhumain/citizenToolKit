@@ -88,15 +88,16 @@ class Comment {
 			"status" => self::STATUS_POSTED 
 		);
 		
-
+		//Rest::json($options); exit ;
 		$target = array(	"id"=> $comment["contextId"],
  							"type"=>$comment["contextType"],
- 							"name"=> $options["name"],
+ 							"name"=> @$options["name"],
  							"value" => $content);
 
 		if(!empty($target)){
+			
 			$parent = Element::getParentById($target["id"], $target["type"]);
-
+			//Rest::json($parent); exit ;
 			$nameAuthor = Person::getNameById($userId);
 	    	$author = array(	"id"=> $userId,
 	 							"type"=> Person::COLLECTION,
@@ -312,8 +313,9 @@ class Comment {
 	 */
 	public static function getCommentOptions($id, $type) {
 		$res = self::$defaultDiscussOptions;
+		//var_dump($id); var_dump($type); exit ;
 		$collection = PHDB::findOneById( $type ,$id, array("commentOptions" => 1, "name" => 1));
-
+		//Rest::json($collection); exit ;
 		if (@$collection["commentOptions"]) {
 			$res = $collection["commentOptions"];
 		}

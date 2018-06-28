@@ -25,9 +25,12 @@ class Mail {
                                 Poi::COLLECTION => array(
                                     "label" => "{who} commented :",
                                 ),
-                                // Comment::COLLECTION => array(
-                                //     "label" => "{who} answered to your comment posted : }",
-                                // )
+                                Comment::COLLECTION => array(
+                                    "label" => "{who} answered to a comment posted",
+                                ),
+                                News::COLLECTION => array(
+                                    "label" => "{who} answered to a new posted",
+                                )
                             ),
                             "labelArray" => array("who","where","what"),
                             "mail" => array(
@@ -457,7 +460,7 @@ class Mail {
     public static function mailNotif($parentId, $parentType, $paramsMail = null) {
         // var_dump($parentId);
         // var_dump($parentType);
-        //var_dump($paramsMail);exit;
+        // var_dump($paramsMail);exit;
         $element = Element::getElementById( $parentId, $parentType, null, array("links", "name") );
        
         foreach ($element["links"]["members"] as $key => $value) {
@@ -513,7 +516,7 @@ class Mail {
 
     public static function createParamsMails($verb, $target = null, $object = null, $author = null){
         $paramsMail = Mail::$mailTree[$verb];
-
+        // var_dump($verb); var_dump($target["type"]); exit ;
         if($verb == ActStr::VERB_ADD){
             if(!empty($paramsMail["type"][$object["type"]])){
                 $type = $paramsMail["type"][$object["type"]];
@@ -524,6 +527,7 @@ class Mail {
             }
         }else{
             if(!empty($paramsMail["type"][$target["type"]])){
+
                 $type = $paramsMail["type"][$target["type"]];
                 // var_dump($target["type"]);
                 // var_dump($paramsMail["type"][$target["type"]]); exit ;
@@ -545,6 +549,7 @@ class Mail {
 
 
     public static function createParamsTpl($paramsMail, $paramTpl = null){
+        //Rest::json($paramsMail); exit ;
         $targetType = $paramsMail["target"]["type"];
         $targetId = $paramsMail["target"]["id"];
         $verb = $paramsMail["verb"];

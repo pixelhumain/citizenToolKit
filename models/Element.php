@@ -1488,13 +1488,31 @@ class Element {
 	public static function getParentById($id, $collection){
 		$where["_id"] = new MongoId($id) ;
 		$element = PHDB::findOne($collection, $where ,array("parentId", "parentType"));
-		if(!empty($element["parentId"]) && !empty($element["parentType"])){
+		if(!empty($element["parentId"]) && !empty($element["parentType"]) && $element["parentType"] == News::COLLECTION){
 			$parentName = self::getNameById($element["parentId"], $element["parentType"]);
 			$parent = array("name" => $parentName["name"],
 							"id" => $element["parentId"],
 							"type" => $element["parentType"]);
 		}
-		else
+		else if($collection == News::COLLECTION){
+			$news = News::getById($id);
+			$parent = array( "id" => $news["target"]["id"],
+							"type" => $news["target"]["type"]);
+			if($parent["type"]  == Person::COLLECTION ){
+				$person = Person::getById($parent["id"]);
+				$parent["name"] = $person["name"];
+			} else if($parent["type"]  == Organization::COLLECTION ){
+				$organization = Organization::getById($parent["id"]);
+				$parent["name"] = $organization["name"];
+			} else if($parent["type"]  == Event::COLLECTION ){
+				$event = Event::getById($parent["id"]);
+				$parent["name"] = $event["name"];
+			} else if($parent["type"]  == Project::COLLECTION ){
+				$project = Project::getById($parent["id"]);
+				$parent["name"] = $project["name"];
+			}
+			
+		}else
 			$parent = null ;
 		return $parent;
 	}
