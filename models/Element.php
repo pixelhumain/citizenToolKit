@@ -2268,6 +2268,16 @@ class Element {
 		return $res;
 	}
 
+	public static function getCuriculum($id, $type){
+		$res = array();
+		$listElt = array(Organization::COLLECTION, Person::COLLECTION, Project::COLLECTION, Event::COLLECTION);
+		if(in_array($type, $listElt) ){
+			$res = PHDB::findOne( $type , array( "_id" => new MongoId($id) ) ,array("curiculum") );
+			$res = (!empty($res["curiculum"]) ? $res["curiculum"] : array() );
+		}
+		return $res;
+	}
+
 	public static function getContacts($id, $type){
 		$res = array();
 		$listElt = array(Organization::COLLECTION, Person::COLLECTION, Project::COLLECTION, Event::COLLECTION);
@@ -2444,6 +2454,32 @@ class Element {
 					Notification::constructNotification ( ActStr::VERB_AMEND, array("id" => Yii::app()->session["userId"],"name"=> Yii::app()->session["user"]["name"]), array("type"=>$proposal["parentType"],"id"=>$proposal["parentId"]),array( "type"=>Proposal::COLLECTION,"id"=> $params["id"] ) );
 					$res[] = self::updateField($collection, $id, "amendements", $amdtList);
 				}
+			
+			}else if($block == "curiculum.skills"){
+				$parent = Element::getByTypeAndId($params["typeElement"], $params["id"]);
+				$cv = @$parent["curiculum"] ? $parent["curiculum"] : array();
+
+				$CVAttrs = array("competences", "mainQualification", "hasVehicle", "languages",
+								"motivation", "driverLicense", "url");
+				foreach ($CVAttrs as $att) {
+					if(@$params[$att]) 
+					$cv["skills"][$att] = @$params[$att];
+				}
+				$res[] = self::updateField($collection, $id, "curiculum", $cv);
+				//var_dump($params);
+			}else if($block == "curiculum.lifepath"){
+				$parent = Element::getByTypeAndId($params["typeElement"], $params["id"]);
+				$cv = @$parent["curiculum"] ? $parent["curiculum"] : array();
+				$indexLP = @$cv["lifepath"] ? sizeof($cv["lifepath"]) : 0;
+				
+				$CVAttrs = array("title", "description", "startDate", "endDate",
+								"location");
+				foreach ($CVAttrs as $att) {
+					if(@$params[$att]) 
+					$cv["lifepath"][$indexLP][$att] = @$params[$att];
+				}
+				$res[] = self::updateField($collection, $id, "curiculum", $cv);
+				//var_dump($params);
 			}
 
 			if(Import::isUncomplete($id, $collection)){

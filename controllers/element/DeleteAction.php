@@ -14,6 +14,7 @@ class DeleteAction extends CAction {
             Rest::json( array( "result" => false, "msg" => "You are not allowed to delete this element !" ));
             return;
         }
+        
 
         $elemTypes = array( 
             Organization::COLLECTION, Organization::CONTROLLER, 

@@ -132,7 +132,7 @@ class Search {
 		$search = (@$post['name']) ? trim(urldecode($post['name'])) : "";
         $searchLocality = isset($post['locality']) ? $post['locality'] : null;
         $searchType = isset($post['searchType']) ? $post['searchType'] : null;
-        $searchTags = isset($post['searchTag']) ? $post['searchTag'] : null;
+        $searchTags = isset($post['searchTags']) ? $post['searchTags'] : null;
         $country = isset($post['country']) ? $post['country'] : "";
         $priceMin = isset($_POST['priceMin']) ? $_POST['priceMin'] : null;
         $priceMax = isset($_POST['priceMax']) ? $_POST['priceMax'] : null;
@@ -151,6 +151,7 @@ class Search {
         $countType = isset($post['countType']) ? $post['countType'] : null;
         $indexMin = isset($post['indexMin']) ? $post['indexMin'] : 0;
 		$indexStep = isset($post['indexStep']) ? $post['indexStep'] : 30;
+		$lastTimes = (!empty($post["lastTimes"])) ? $post["lastTimes"] : false;
 		
        $searchTypeOrga = ""; /* used in CO2 to find different organisation type */
 		
@@ -171,6 +172,10 @@ class Search {
       	//$queryNews = array('$and' => array( $queryNews , array("type"=>News::COLLECTION, "scope.type"=>News::TYPE_PUBLIC, "target.type"=>array('$ne'=>"pixels"))));
       	if($latest)
   			$query = array('$and' => array($query, array("updated"=>array('$exists'=>1))));
+
+  		if(!empty($lastTimes))
+  			$query = array('$and' => array($query, array("updated"=>array('$gt' => $lastTimes))));
+  		
   		if($sourceKey!="")
   			$query['$and'][] = array("source.key"=>$sourceKey);
 
@@ -1019,10 +1024,10 @@ class Search {
 			else
 				$parent=array();
 			$allClassified[$key]["parent"] = $parent;
-			$allClassified[$key]["category"] = @$allClassified[$key]["type"];
-			$allClassified[$key]["type"] = "classified";
+			$allClassified[$key]["typeClassified"] = @$value["type"];
+			$allClassified[$key]["type"] = "classifieds";
 
-			$allClassified[$key]["gallery"] = Document::listMyDocumentByIdAndType(@$key, "classified");
+			$allClassified[$key]["gallery"] = Document::listMyDocumentByIdAndType(@$key, "classifieds");
 			//if(@$value["type"])
 			//	$allClassified[$key]["typeSig"] = Classified::COLLECTION.".".$value["type"];
 			//else
