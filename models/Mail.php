@@ -194,7 +194,7 @@ class Mail {
     
     public static function notifAddPersonInGroup($person, $group, $msg = null, $nameInvitor = null, $invitorUrl = null, $subject=null) {
         $invitor = Person::getSimpleUserById(Yii::app()->session["userId"]);
-
+        //Rest::json($person); exit ;
 
         if(empty($msg))
             $msg = $invitor["name"]. " vous a ajouté à ".$group["name"].".";
@@ -216,7 +216,7 @@ class Mail {
                                     "title" => self::getAppName() ,
                                     "logo" => Yii::app()->params["logoUrl"],
                                     "logo2" => Yii::app()->params["logoUrl2"],
-                                    "invitedUserId" => $person["childId"],
+                                    "invitedUserId" => Yii::app()->session["userId"],
                                     "groupName" => $group["name"],
                                     "message" => $msg)
         );
