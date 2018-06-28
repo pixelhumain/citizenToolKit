@@ -152,7 +152,6 @@ class Import
 
             foreach($file->children() as $child){
                 $arbre[$n] = $child->getName();
-                $contenu[$n] = $child->__toString();
                 $n++;
             }
 
@@ -174,7 +173,6 @@ class Import
                     "attributesElt" => $attributesElt,
                     "arrayMapping" => $arrayMapping,
                     "arbre" => $arbre,
-                    "contenu" => $contenu,
                     "json" => $json,
                     "typeFile" => $post['typeFile'],
                     "idMapping" => $post['idMapping'],
@@ -186,7 +184,6 @@ class Import
                     "attributesElt" => $attributesElt,
                     "arrayMapping" => $arrayMapping,
                     "arbre" => $arbre,
-                    "contenu" => $contenu,
                     "json" => $json,
                     "typeFile" => $post['typeFile'],
                     "idMapping" => $post['idMapping']);
@@ -231,6 +228,18 @@ class Import
                 $file = json_decode($post['file'][0], true);
                 $file = @$file[$post["pathObject"]];
             }
+
+            /*$json = json_decode($post['file'][0], true);
+            $i = 0;
+            foreach($json as $key => $value){
+                $i++;
+                foreach($post['infoCreateData'] as $keyCSV => $valueCSV){
+                    if($key != $keyCSV)
+                        $json[$i] = $keyCSV;
+                    }
+                }
+            var_dump($json);
+            exit;*/
             
             if(@$file)
             foreach ($file as $keyFile => $valueFile){ //Parcours les informations par COLONNE du fichier
