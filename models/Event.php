@@ -427,7 +427,7 @@ class Event {
 		}
 	    PHDB::insert(self::COLLECTION,$newEvent);
 	    
-	    Badge::addAndUpdateBadges("opendata",(String)$newEvent["_id"], Event::COLLECTION);
+	    //Badge::addAndUpdateBadges("opendata",(String)$newEvent["_id"], Event::COLLECTION);
 	    /*
 	    * except if organiser type is dontKnow
 		*   Add the creator as the first attendee
@@ -498,7 +498,7 @@ class Event {
 
 	public static function afterSave($params, $import = false, $warnings = null) {
 		
-	    Badge::addAndUpdateBadges("opendata",(String)$params["_id"], Event::COLLECTION);
+	    //Badge::addAndUpdateBadges("opendata",(String)$params["_id"], Event::COLLECTION);
 	    /*
 	    * except if organiser type is dontKnow
 		*   Add the creator as the first attendee
@@ -522,7 +522,7 @@ class Event {
     	if( @$params["parentId"] )
 			Link::connect( $params["parentId"], Event::COLLECTION,$params["_id"], Event::COLLECTION, Yii::app()->session["userId"], "subEvents");	
 
-		if (empty($import))
+		if (empty($import) && Preference::isPublicElement(@$params["preferences"]))
 			Notification::createdObjectAsParam( Person::COLLECTION, Yii::app()->session['userId'],Event::COLLECTION, (String)$params["_id"], $params["organizerType"], $params["organizerId"], @$params["geo"], array($params["type"]),@$params["address"]);
 	    if($params["organizerType"]==Organization::COLLECTION || $params["organizerType"]==Project::COLLECTION || @$params["parentId"]){
 			if(@$params["parentId"]){

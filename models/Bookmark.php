@@ -155,11 +155,16 @@ class Bookmark {
 
 
 				if(!empty($search["results"])){
-					if(empty($res[$valueB["parentId"]])){
-						$res[$valueB["parentId"]] = $search["results"];
-					}else{
-						$res[$valueB["parentId"]] = array_merge($res[$valueB["parentId"]], $search["results"]);
-					}
+					$val = array(	"name" => $valueB["name"], 
+									"url" => $valueB["url"], 
+									"results" => $search["results"]);
+					$res[$valueB["parentId"]][] = $val;
+					// if(empty($res[$valueB["parentId"]])){
+
+					// 	$res[$valueB["parentId"]][] = $val;
+					// }else{
+					// 	$res[$valueB["parentId"]][] = array_merge($res[$valueB["parentId"]], $search["results"]);
+					// }
 
 					$update = PHDB::update( self::COLLECTION, array("_id" => new MongoId($keyB)), 
                                   array('$set' => array('updated' => time() ) ));

@@ -784,7 +784,48 @@ class Mail {
 
 	}
 
+    public static function confirmSavingSurvey($user, $survey) {
 
+        //$languageUser = Yii::app()->language;
+        $subject = Yii::t("surveys", "{what} Your application package is well submited", array("{what}"=> "[".$survey["title"]."]"));
+        $params = array(
+            "type" => Cron::TYPE_MAIL,
+            "tpl"=>'survey.submissionSuccess',
+            "subject" => $subject,
+            "from"=>Yii::app()->params['adminEmail'],
+            "to" => $user["email"],
+            "tplParams" => array(   "title" => $survey["title"] ,
+                                    "logo" => Yii::app()->createUrl('/'.$survey["urlLogo"]),
+                                    "logo2" => Yii::app()->createUrl('/'.$survey["urlLogo"]),
+                                    "user" => $user,
+                                    "language" => Yii::app()->language,
+                                    "survey"=>$survey
+                                    )
+        );
+        Mail::schedule($params);
+    }
+
+    public static function sendNewAnswerToAdmin($email, $user, $survey) {
+
+        //$languageUser = Yii::app()->language;
+        $subject = Yii::t("surveys", "{what} A new application package is added", array("{what}"=> "[".$survey["title"]."]"));
+        $params = array(
+            "type" => Cron::TYPE_MAIL,
+            "tpl"=>'survey.newSubmission',
+            "subject" => $subject,
+            "from"=>Yii::app()->params['adminEmail'],
+            "to" => $email,
+            "tplParams" => array(   "title" => $survey["title"] ,
+                                    "logo" => Yii::app()->createUrl('/'.$survey["urlLogo"]),
+                                    "logo2" => Yii::app()->createUrl('/'.$survey["urlLogo"]),
+                                    "user" => $user,
+                                    "language" => Yii::app()->language,
+                                    "survey"=>$survey
+                                )
+        );
+        Mail::schedule($params);
+    }
+   
 	private static function getMailUpdate($mail, $tpl ) {
     	$res = PHDB::findOne( Cron::COLLECTION, array("tpl" => $tpl, "to" => $mail, "status" => Cron::STATUS_UPDATE) );
         return $res ;

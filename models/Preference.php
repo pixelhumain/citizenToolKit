@@ -30,12 +30,12 @@ class Preference {
 	}
 	
 	public static function updateConfidentiality($id, $type, $param){
-		if ($type == Person::COLLECTION){
-			$id = $param["idEntity"];
-			$context = Person::getById($id);
-		}
+		//if ($type == Person::COLLECTION){
+		$id = $param["idEntity"];
+		$context = Element::getElementSimpleById($id, $type, null, array("preferences"));
+		//}
 
-		if($type == Organization::COLLECTION){
+		/*if($type == Organization::COLLECTION){
 			$id = $param["idEntity"];
 			$context = Organization::getById($id);
 		}
@@ -46,7 +46,7 @@ class Preference {
 		if($type == Project::COLLECTION){
 			$id = $param["idEntity"];
 			$context = Project::getById($id);
-		}
+		}*/
 
 		$setType = $param["type"]; 
 		$setValue = $param["value"];
@@ -60,7 +60,8 @@ class Preference {
 			//if(in_array($setType, $publicFields)) {
 			foreach ($publicFields as $key => $value) {
 			    if ($setType === $value) {
-			    	unset($publicFields[$key]);
+			    	array_splice($publicFields, $key, 1);
+			    	//unset($publicFields[$key]);
 			    }
 			}	
 		}
@@ -69,17 +70,18 @@ class Preference {
 			$privateFields=$context["preferences"]["privateFields"];
 			foreach ($privateFields as $key => $value) {
 			    if ($setType === $value) {
-			    	unset($privateFields[$key]);
+			    	array_splice($privateFields, $key, 1);
+			    	//unset($privateFields[$key]);
 			    }
 			}		
 		}
-
-
+		
 		if($setValue=="public"){
-			$publicFields[]=$setType;
+			array_push($publicFields,$setType);
 		}
 		if($setValue=="private"){
-			$privateFields[]=$setType;
+			array_push($privateFields,$setType);
+			//$privateFields[]=$setType;
 		}
 		if($setValue=="true"){
 			$setValue =true;
@@ -90,16 +92,21 @@ class Preference {
 
 		$preferences["privateFields"] = $privateFields;
 		$preferences["publicFields"] = $publicFields;
-
+		
 		if($setType == "isOpenData"){
 			$preferences["isOpenData"] = $setValue;
 		}else{
 			$preferences["isOpenData"] = ((empty($context["preferences"]["isOpenData"]))?false:true);
 		}
+		if($setType == "private"){
+			$preferences["private"] = $setValue;
+		}else{
+			$preferences["private"] = ((empty($context["preferences"]["private"]))?false:true);
+		}
 		if($setType == "isOpenEdition"){
 			$preferences["isOpenEdition"] = $setValue;
-			//PHDB::update( $type,  array("_id" => new MongoId($id)), 
-		 										//array('$unset' => array("hasRC"=>"") ));
+			PHDB::update( $type,  array("_id" => new MongoId($id)), 
+		 										array('$unset' => array("hasRC"=>"") ));
 		}else{
 			if($type != Person::COLLECTION)
 				$preferences["isOpenEdition"] = (empty($context["preferences"]["isOpenEdition"])?false:$context["preferences"]["isOpenEdition"]);
@@ -130,7 +137,12 @@ class Preference {
 			$isOpenData = true ;
 		return $isOpenData;
 	}
-
+	public static function isPublicElement($preferences) {
+		$isPublic = true ;
+		if(@$preferences["private"])
+			$isPublic = false ;
+		return $isPublic;
+	}
 	public static function isOpenEdition($preferences) {
 		$isOpenData = false ;
 		if(@$preferences["isOpenEdition"])

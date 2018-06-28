@@ -7,9 +7,10 @@ class Convert {
 		$param['typeElement'] = Event::COLLECTION;
 
 		foreach ($map as $key => $value) {
-
-			$param['infoCreateData'][$key]["valueAttributeElt"] = $value;
-			$param['infoCreateData'][$key]["idHeadCSV"] = $key;
+			$p = array("valueAttributeElt" => $value,
+						"idHeadCSV" => $key);
+			$param['infoCreateData'][]=$p ;
+			//$param['infoCreateData'][$key]["idHeadCSV"] = $key;
 		}
 
 		$param['typeFile'] = 'json';
@@ -414,7 +415,7 @@ class Convert {
 
 	public static function poleEmploi($url) {
 		$curl = curl_init();
-		 
+		
 		curl_setopt($curl, CURLOPT_URL, "https://entreprise.pole-emploi.fr/connexion/oauth2/access_token?realm=%2Fpartenaire");
 
 		curl_setopt($curl, CURLOPT_POST, true);
@@ -423,7 +424,7 @@ class Convert {
 		$token = curl_exec($curl);
 		 
 		curl_close($curl);
-		//var_dump($token);
+		//echo $token; //exit;
 		$token_final = json_decode($token, true);
 
 		$curl2 = curl_init();
@@ -440,95 +441,135 @@ class Convert {
 
 		curl_setopt($curl2, CURLOPT_RETURNTRANSFER, 1);
 		$offres = curl_exec($curl2);
-		// echo $offres;
-		// exit;
+		//echo $offres;  exit;
 		curl_close($curl2);
 
 		$offres_final = json_decode($offres, true);
 		return $offres_final;
 	}
 
-	public static function convertPoleEmploiToPh($url, $activity_letters = null) {
-
-		//CODE POUR FORGER UN ACCESS TOKEN NECESSAIRE POUR INTEROGER L'API
-
-		// $curl = curl_init();
-		 
-		// curl_setopt($curl, CURLOPT_URL, "https://entreprise.pole-emploi.fr/connexion/oauth2/access_token?realm=%2Fpartenaire");
-
-		// curl_setopt($curl, CURLOPT_POST, true);
-		// curl_setopt($curl, CURLOPT_POSTFIELDS, "grant_type=client_credentials&client_id=PAR_communecter_9cfae83c352184eff02df647f08661355f3be7028c7ea4eda731bf8718efbfff&client_secret=62a4a6aa2d82fa201eca1ebb3df639882d2ed7cd75284486aaed3a436df67e55&scope=application_PAR_communecter_9cfae83c352184eff02df647f08661355f3be7028c7ea4eda731bf8718efbfff api_infotravailv1"); 
-		// curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
-		// $token = curl_exec($curl);
-		 
-		// curl_close($curl);
-		// $token_final = json_decode($token, true);
-
-		// $curl2 = curl_init();
-
-		// $pos = strpos($url, "=");
-
-		// $url_head = substr($url, 0, ($pos+1));
-		// $url_param = substr($url, ($pos+1));
-
-		// $url = $url_head . urlencode($url_param);
-		// curl_setopt($curl2, CURLOPT_URL, $url);
-		// curl_setopt($curl2, CURLOPT_HTTPHEADER, array("Authorization: Bearer ".$token_final["access_token"]));
-
-		// curl_setopt($curl2, CURLOPT_RETURNTRANSFER, 1);
-		// $offres = curl_exec($curl2);
+	public static function getToken($apiName){
 		
-		// curl_close($curl2);
+		// if(!empty(Yii::app()->params["token".$apiName])){
+		// 	$res = Yii::app()->params["token".$apiName];
+		// } else {
+			$res = Application::getToken($apiName);
+			if(empty($res) || (!empty($res) && ($res["expireToken"]-time()) <= 180) ){
 
-		// $offres_final = json_decode($offres, true);
-
-		$offres_final = self::poleEmploi($url);
-
-		$map = TranslatePoleEmploiToPh::$mapping_offres;
-
-		$param = self::getPrimaryParam($map);
-
-		$param['pathObject'] = 'records';
-		$param['key'] = 'convert_poleemploi';
-		$param['nameFile'] = 'convert_poleemploi';
-
-		$offres_array = [];
-		$offres_array['records'] = [];
-
-		if ($activity_letters == null) {
-			if(!empty($offres_final["result"])){
-				foreach ($offres_final["result"]["records"] as $key => $value) {
-					$offres_array['records'][$key] = $value;
-				}
+				if($apiName == "poleEmploi")
+					$res["token"] = self::poleEmploiToken();
+				
 			}
-		} else {
+		//}
+		return ( empty($res["token"]) ? null : $res["token"] ) ;
+	}
+//Yii::app()->params["poleEmploi"]["client_id"]
+	public static function poleEmploiToken() {
+		$curl = curl_init();
+		curl_setopt($curl, CURLOPT_URL, "https://entreprise.pole-emploi.fr/connexion/oauth2/access_token?realm=%2Fpartenaire");
+		curl_setopt($curl, CURLOPT_POST, true);
+		// curl_setopt($curl, CURLOPT_POSTFIELDS, "grant_type=client_credentials&client_id=PAR_communectertest_c46ea89b19688d7d3364badae07f308f722f83b0cd9bd040ecc5a468c6f1d07a&client_secret=de3f5d98dcefef02d98c239b3973878320ec7815005dff553afc35ae067f3dc9&scope=application_PAR_communectertest_c46ea89b19688d7d3364badae07f308f722f83b0cd9bd040ecc5a468c6f1d07a api_offresdemploiv1 o2dsoffre api_infotravailv1");
+		//var_dump(Yii::app()->params["poleEmploi"]["client_secret"]);
+		curl_setopt($curl, CURLOPT_POSTFIELDS, "grant_type=client_credentials&client_id=".Yii::app()->params["poleEmploi"]["client_id"]."&client_secret=".Yii::app()->params["poleEmploi"]["client_secret"]."&scope=".Yii::app()->params["poleEmploi"]["scope"]);
+		curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+		$token = curl_exec($curl);
+		$token_final = json_decode($token, true);
+		Application::saveToken("poleEmploi", $token_final);
+		curl_close($curl);
+		return $token_final ;
+	}
 
-			$letters = explode(",", $activity_letters);
-			if(!empty($offres_final["result"])){
-				foreach ($offres_final["result"]["records"] as $key => $value) {
 
-					$first_letter = $value["ROME_PROFESSION_CARD_CODE"][0];
+	public static function poleEmploi2($url, $params) {
 
-					if (in_array($first_letter, $letters)) {
-						$offres_array['records'][$key] = $value;
-					}
-				}
-			}
-		}
 		
-		if (isset($url)) {
-			$param['file'][0] = json_encode($offres_array);
+			// $curl = curl_init();
+			// curl_setopt($curl, CURLOPT_URL, "https://entreprise.pole-emploi.fr/connexion/oauth2/access_token?realm=%2Fpartenaire");
+			// curl_setopt($curl, CURLOPT_POST, true);
+			// curl_setopt($curl, CURLOPT_POSTFIELDS, "grant_type=client_credentials&client_id=PAR_communectertest_c46ea89b19688d7d3364badae07f308f722f83b0cd9bd040ecc5a468c6f1d07a&client_secret=de3f5d98dcefef02d98c239b3973878320ec7815005dff553afc35ae067f3dc9&scope=application_PAR_communectertest_c46ea89b19688d7d3364badae07f308f722f83b0cd9bd040ecc5a468c6f1d07a api_offresdemploiv1 o2dsoffre api_infotravailv1"); 
+			// curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+			// $token = curl_exec($curl);
+			// $token_final = json_decode($token, true);
+			// curl_close($curl);
+		
+		
+		$token_final = self::getToken("poleEmploi") ;
+		
+		$res = array(	"httpCode" => "0",
+						"result" => array(),
+						"token" => $token_final );
+
+		if(!empty($token_final) && !empty($token_final["access_token"])){
+			$curl2 = curl_init();
+			curl_setopt($curl2, CURLOPT_URL, $url);
+			curl_setopt($curl2, CURLOPT_HTTPHEADER, 
+				array(	'Authorization: Bearer '.$token_final["access_token"], 
+						'Content-type: application/json'));
+			curl_setopt($curl2, CURLOPT_POST, true);
+			$dataCurl = json_encode($params);
+			curl_setopt($curl2, CURLOPT_POSTFIELDS, $dataCurl);
+			curl_setopt($curl2, CURLOPT_RETURNTRANSFER, 1);
+			$offres = curl_exec($curl2);
+			$res = array(	"httpCode" => curl_getinfo ( $curl2, CURLINFO_HTTP_CODE  ),
+							"result" => $offres,
+							"token" => $token_final );
+			// 
+			// echo curl_getinfo ( $curl2, CURLINFO_HTTP_CODE  )."<br/>"; 
+			// // echo curl_getinfo ( $curl2, CURLINFO_EFFECTIVE_URL  )."<br/>"; 
+			// // echo curl_getinfo ( $curl2, CURLINFO_HEADER_OUT  )."<br/>";
+			// // exit ;
+			// echo $offres;  exit;
+			curl_close($curl2);
 		}
-
-		$result = Import::previewData($param);
-
-		if ($result['result'] !== false) {
-			$res = json_decode($result['elements']);
-		} else {
-			$res = [];
-		}
-
 		return $res;
+	}
+
+	public static function convertPoleEmploiToPh($url, $params= array(), $activity_letters = null) {
+
+		if(empty($params)){
+			$params = array(	
+						'technicalParameters' => array(
+							'page'=>1,
+							'per_page'=>20,
+							'sort'=>1) );
+		}
+			
+		$resPoleEmploie = self::poleEmploi2($url, $params);
+		//var_dump($resPoleEmploie);
+		if($resPoleEmploie["httpCode"] == "200"){
+			$offres_final = json_decode($resPoleEmploie["result"], true);
+			$map = TranslatePoleEmploiToPh::$mapping_offres;
+
+			$param = self::getPrimaryParam($map);
+
+			$param['pathObject'] = '';
+			$param['key'] = 'convert_poleemploi';
+			$param['nameFile'] = 'convert_poleemploi';
+
+			$offres_array = [];
+			$offres_array['records'] = [];
+			
+			if (isset($url) && !empty($offres_final["results"])) {
+				$param['file'][0] = json_encode($offres_final["results"]);
+			}
+			//var_dump($param);
+			$result = Import::previewData($param, true);
+			$result["count"] = $offres_final["technicalParameters"]["totalNumber"];
+			//var_dump($result);
+			if ($result['result'] !== false)
+				$result['elements'] = json_decode($result['elements']);
+			// } else {
+			// 	$res = [];
+			// }
+		}else{
+			$result['result'] = false;
+			$result['msg'] = "Il y a un soucis avec l'api du site Pole Emploi. Veuillez rééssayer dans quelque instant";
+			$result['return'] = $resPoleEmploie;
+			$result['data'] = $resPoleEmploie["result"];
+		}
+		
+
+		return $result;
 	}
 
 	public static function ConvertValueFlowsToPh($url) {

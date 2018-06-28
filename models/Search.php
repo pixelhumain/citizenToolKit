@@ -142,6 +142,7 @@ class Search {
         $endDate = isset($_POST['endDate']) ? $_POST['endDate'] : null;
         $searchSType = !empty($post['searchSType']) ? $post['searchSType'] : "";
         $subType = !empty($post['subType']) ? $post['subType'] : "";
+        $category = !empty($post['category']) ? $post['category'] : "";
         $section = !empty($post['section']) ? $post['section'] : "";
         $sourceKey = !empty($post['sourceKey']) ? $post['sourceKey'] : "";
         $countResult = (@$post["count"]) ? true : false;
@@ -167,7 +168,13 @@ class Search {
 		$query = array();
       	$queryNews=array();
       	$query = Search::searchString($search, $query);
-		$query = array('$and' => array( $query , array("state" => array('$nin' => array("uncomplete", "deleted")) )));
+		$query = array('$and' => 
+							array( $query , 
+								array("state" => array('$nin' => array("uncomplete", "deleted")),
+									'preferences.private'=>array('$exists'=>false)
+								)	
+							)
+						);
       	//$queryNews = Search::searchNewsString($search, $query);
       	//$queryNews = array('$and' => array( $queryNews , array("type"=>News::COLLECTION, "scope.type"=>News::TYPE_PUBLIC, "target.type"=>array('$ne'=>"pixels"))));
       	if($latest)
@@ -192,7 +199,7 @@ class Search {
   				(strcmp($filter, Ressource::COLLECTION) != 0 && self::typeWanted(Ressource::COLLECTION, $searchType)) 
   				//|| (strcmp($filter, Place::COLLECTION) != 0 && self::typeWanted(Place::COLLECTION, $searchType)) 
   				){
-        		$queryTags =  self::searchTags($searchTags, '$all') ;
+        		$queryTags =  self::searchTags($searchTags, '$in') ;
 	  		}
   			else if( (strcmp($filter, Service::COLLECTION) != 0 )){
   				$queryTags =  self::searchTags($searchTags, '$in', 'type') ;
@@ -210,7 +217,7 @@ class Search {
   			//$queryNews = self::searchLocalityNews($searchLocality, $queryNews);
   		}
   		$queryEvents = Search::getQueryEvents($query, $searchSType, $startDate, $endDate);
-  		$queryClassifieds = Search::getQueryClassifieds($query, $searchSType, $subType, $section, @$priceMin, @$priceMax, @$devise);
+  		$queryClassifieds = Search::getQueryClassifieds($query, $searchSType, $section, $category, $subType,@$priceMin, @$priceMax, @$devise);
   		$queryRessources=Search::getQueryRessources($query, $searchSType, $subType, $section);
   		$allRes = array();
 
@@ -690,7 +697,7 @@ class Search {
 					// 			) ) ) ) ) );
   		return $queryEvent;
   	}
-  	public static function getQueryClassifieds($query, $searchSType, $subType, $section, $priceMin, $priceMax, $devise){
+  	public static function getQueryClassifieds($query, $searchSType, $section, $category, $subType, $priceMin, $priceMax, $devise){
   		$queryPrice = array('$and' =>	array(array('devise' => $devise)) ) ;	
 		//if(@$priceMin) $queryPrice[] = array('price' => array('$gte' => (int)$priceMin));
 		//if(@$priceMax) $queryPrice[] = array('price' => array('$lte' => (int)$priceMax));
@@ -706,6 +713,8 @@ class Search {
         	array_push( $query[ '$and' ], array( "type" => $searchSType ) );
   		if(isset($subType) && $subType != "")
         	array_push( $query[ '$and' ], array( "subtype" => $subType ) );
+  		if(isset($category) && $category != "")
+        	array_push( $query[ '$and' ], array( "category" => $category ) );
   		if(isset($section) && $section != "")
         	array_push( $query[ '$and' ], array( "section" => $section ) );
   		return $query;

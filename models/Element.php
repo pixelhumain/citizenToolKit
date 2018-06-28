@@ -5,7 +5,7 @@ class Element {
 	const STATUS_DELETE_PEDING = "deletePending";
 	const ERROR_DELETING = "errorTryingToDelete";
 
-	public static $urlTypes = array(
+	public static $urlTypes = array (
         "chat" => "Chat",
         "decisionroom" => "Salle de decision",
         "website" => "Site web",
@@ -265,7 +265,9 @@ class Element {
             $res = ActionRoom:: getActionById($id);
         } else if ( $type == Survey::COLLECTION) {
             $res = Survey::getById($id);
-        } else {
+        } else if ( $type == Form::COLLECTION) {
+            $res = Form::getByIdMongo($id);
+        }  else {
         	throw new CTKException("Can not manage this type : ".$type);
         }
         if (empty($res)) throw new CTKException("The actor (".$id." / ".$type.") is unknown");
@@ -311,11 +313,11 @@ class Element {
 			$element = PHDB::findOneById($type, $id, $what);
 		else if($type == Person::COLLECTION)
 			$element = Person::getById($id);
-		else if($type == Organization::COLLECTION)
+		else if($type == Organization::COLLECTION || $type == Organization::CONTROLLER  )
 			$element = Organization::getById($id);		
-		else if($type == Project::COLLECTION)
+		else if($type == Project::COLLECTION || $type == Project::CONTROLLER)
 			$element = Project::getById($id);	
-		else if($type == Event::COLLECTION)
+		else if($type == Event::COLLECTION || $type == Event::CONTROLLER )
 			$element = Event::getById($id);	
 		else if($type == City::COLLECTION)
 			$element = City::getIdByInsee($id);
@@ -1703,7 +1705,6 @@ class Element {
 		//$paramsImport = (empty($params["paramsImport"])?null:$params["paramsImport"]);
 		$paramsLinkImport = ( empty($params["paramsImport"] ) ? null : $params["paramsImport"]);
 		
-		
 		unset($params["paramsImport"]);
         unset($params['key']);
        
@@ -1732,6 +1733,7 @@ class Element {
         if(isset($params["price"]))
         	$params["price"] = (int)$params["price"];
 
+        
         /*$microformat = PHDB::findOne(PHType::TYPE_MICROFORMATS, array( "key"=> $key));
         $validate = ( !isset($microformat )  || !isset($microformat["jsonSchema"])) ? false : true;
         //validation process based on microformat defeinition of the form
@@ -1790,6 +1792,7 @@ class Element {
                 }
                 else
                 	PHDB::update($collection,array("_id"=>new MongoId($id)), array('$set' => $params ));
+                
                 $res = array("result"=>true,
                              "msg"=>Yii::t("common","Your data are well updated"),
                              "reload"=>true,
@@ -1913,6 +1916,19 @@ class Element {
 		        $params["creator"] = Yii::app()->session["userId"];
 		        $params["created"] = time();
 		    }
+		    
+		    if(@$params["public"] && in_array($params["collection"], [Event::COLLECTION, Project::COLLECTION])){
+        		//$params["preferences"]["public"]=$params["public"];
+        		if(!is_bool($params["public"]))
+		    		$params["public"] = ($params["public"] == "true") ? true : false;
+		    	if($params["public"]==false)
+		    		$params["preferences"]["private"]=true;
+        		if(@$params["preferences"]["private"]){
+        			$params["preferences"]["isOpenData"]=false;
+        			$params["preferences"]["isOpenEdition"]=false;
+        		}
+        		unset($params["public"]);
+        	}
 
 		    if (isset($params["allDay"])) {
 		    	if ($params["allDay"] == "true") {
