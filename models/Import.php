@@ -15,6 +15,8 @@ class Import
         //Prends en charge les fichier CSV
         else if($post['typeFile'] == "csv")
             $params = self::parsingCSV($post); 
+       else if($post['typeFile'] == "xml")
+            $params = self::parsingXML($post);
         return $params ;
     }
 
@@ -134,6 +136,66 @@ class Import
             return $params ;
     }
 
+    public static function parsingXML($post)
+    {
+        $params = array("result" => false);
+
+        if(isset($post['file']))
+        {
+
+            $arbre = array();
+            $contenu = array();
+            $file = simplexml_load_string($post['file'][0]);
+            $n = 0;
+            $json = ['elements' => [$file]];
+            $json= json_encode($json,true);
+
+            foreach($file->children() as $child){
+                $arbre[$n] = $child->getName();
+                $contenu[$n] = $child->__toString();
+                $n++;
+            }
+
+            if($post['idMapping'] != "-1"){
+                $where = array("_id" => new MongoId($post['idMapping']));
+                $fields = array("fields");
+                $mapping = self::getMappings($where, $fields);
+                $mapping[$post['idMapping']]["fields"] = Mapping::replaceByRealDot($mapping[$post['idMapping']]["fields"]);
+                $arrayMapping = $mapping[$post['idMapping']]["fields"];
+                $find = PHDB::findOne(self::MAPPINGS,$where);
+            }
+            else
+                $arrayMapping = array();
+
+            $attributesElt = ArrayHelper::getAllPathJson(file_get_contents("../../modules/co2/data/import/".Element::getControlerByCollection($post["typeElement"]).".json", FILE_USE_INCLUDE_PATH));
+
+            if($post['idMapping'] != "-1"){
+                $params = array("result" => true,
+                    "attributesElt" => $attributesElt,
+                    "arrayMapping" => $arrayMapping,
+                    "arbre" => $arbre,
+                    "contenu" => $contenu,
+                    "json" => $json,
+                    "typeFile" => $post['typeFile'],
+                    "idMapping" => $post['idMapping'],
+                    "nameUpdate" => $find['name']);
+            }
+
+            else{
+                    $params = array("result" => true,
+                    "attributesElt" => $attributesElt,
+                    "arrayMapping" => $arrayMapping,
+                    "arbre" => $arbre,
+                    "contenu" => $contenu,
+                    "json" => $json,
+                    "typeFile" => $post['typeFile'],
+                    "idMapping" => $post['idMapping']);
+            }
+    }
+        return $params;
+    }
+
+
     //Info sûr : prend en entrée un tableau et un champ qui est NULL.
     public static function getMappings($where=array(),$fields=null){
 
@@ -162,6 +224,7 @@ class Import
                 unset($file[0]);
             }
             elseif ((!isset($post['pathObject'])) || ($post['pathObject'] == "")) {
+               // var_dump($post['file'][0]);
                 $file = json_decode($post['file'][0], true);
             }
             else {
@@ -172,21 +235,24 @@ class Import
             if(@$file)
             foreach ($file as $keyFile => $valueFile){ //Parcours les informations par COLONNE du fichier
                 $nb++;
-                //if(!empty($valueFile)){
+                if(!empty($valueFile)){
                     $element = array();     //Tableau vide
+                   // var_dump($keyFile);
                     foreach ($post['infoCreateData'] as $key => $value) { //Parcours les informations PAR LIGNE
                         $valueData = null;
 
                         if($post['typeFile'] == "csv" && in_array($value["idHeadCSV"], $headFile)){
                             $idValueFile = array_search($value["idHeadCSV"], $headFile);
                             $valFile =  (!empty($valueFile[$idValueFile])?$valueFile[$idValueFile]:null);
-                        }else if ($post['typeFile'] == "json"){
-                            $valFile =  ArrayHelper::getValueByDotPath($valueFile , $value["idHeadCSV"]);
-                            // var_dump($valFile);
+                        }else if ($post['typeFile'] == "json" || $post['typeFile'] == "xml"){
+                            $valFile =  ArrayHelper::getValueByDotPath($valueFile , $value['idHeadCSV']);
                         }
                         else{
                             $valFile =  (!empty($valueFile[$value["idHeadCSV"]])?$valueFile[$value["idHeadCSV"]]:null);
                         }
+
+                       //var_dump($valFile);
+                       //echo $valFile."<br>";
 
                         if(!empty($valFile)){
                             $valueData = (is_string($valFile)?trim($valFile):$valFile);
@@ -223,9 +289,9 @@ class Import
                         $elementsWarnings[] = $element;
                     else
                         $elements[] = $element;
-                //}
+                }
             }
-            
+
             //Tableau qui prend un résultat en true, les elements corrects, incorrect et les différents liste d'élèment que l'utilisateur aura sélectionné.
             $params = array("result"=>true,
                             "elements"=>json_encode(json_decode(json_encode($elements),true)),
