@@ -867,12 +867,12 @@ class Link {
             // $usersAdmin = Authorisation::listAdmins($parentId,  $parentType, false);
             //print_r($usersAdmin);
             $parentData["name"] = $parentData["title"];
-            $parentUsersList = Form::getSurveyByFormId( $parentId ,"all", null);
+            $parentUsersList = Form::getLinksFormsByFormId( $parentId ,"all", null);
             $parentController = Form::CONTROLLER;
-            $parentConnectAs="survey";
-            $childConnectAs="survey";
+            $parentConnectAs="forms";
+            $childConnectAs="forms";
             if(!$isConnectingAdmin)
-                $typeOfDemand = "survey";
+                $typeOfDemand = "forms";
         } else {
             throw new CTKException(Yii::t("common","Can not manage the type ").$parentType);
         }
@@ -1112,9 +1112,9 @@ class Link {
         } else if ($parentType==Form::COLLECTION) {
             $parent = Form::getByIdMongo($parentId); 
             $parent["name"] = $parent["title"];        
-            $connectTypeOf = "survey";
-            $connectType = "survey";
-            $typeOfDemand="survey";
+            $connectTypeOf = "forms";
+            $connectType = "forms";
+            $typeOfDemand="forms";
             $usersAdmin = Authorisation::listAdmins($parentId,  $parentType, false);
         } else {
             throw new CTKException(Yii::t("common","Can not manage the type ").$parentType);
