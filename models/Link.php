@@ -755,7 +755,7 @@ class Link {
 		$childId = @$child["childId"];
         $childType = $child["childType"];
         $levelNotif=null;
-		if ( in_array($parentType, array( Organization::COLLECTION, Project::COLLECTION, Classified::COLLECTION, Place::COLLECTION ) ) ){
+		if ( in_array($parentType, array( Organization::COLLECTION, Project::COLLECTION, Classified::COLLECTION, Place::COLLECTION, Form::COLLECTION ) ) ){
             $parentData = Element::getByTypeAndId($parentType, $parentId);           
             $parentController = Element::getControlerByCollection($parentType);
         }
@@ -830,7 +830,7 @@ class Link {
         $isInviting = false;
         $levelNotif = null;
 
-        $parentData = Element::getElementSimpleById($parentId, $parentType, null, array("_id", "name", "link"));
+        $parentData = Element::getElementSimpleById($parentId, $parentType, null, array("_id", "name", "link", "title"));
         $usersAdmin = Authorisation::listAdmins($parentId,  $parentType, false);
 		if($parentType == Organization::COLLECTION){
 			//$parentData = Organization::getById($parentId);
@@ -862,9 +862,21 @@ class Link {
 			$childConnectAs="events";
 			if(!$isConnectingAdmin)
 				$typeOfDemand = "attendee";
-		} else {
+		}else if ($parentType == Form::COLLECTION){
+            // $parentData = Event::getById($parentId); 
+            // $usersAdmin = Authorisation::listAdmins($parentId,  $parentType, false);
+            //print_r($usersAdmin);
+            $parentData["name"] = $parentData["title"];
+            $parentUsersList = Form::getLinksFormsByFormId( $parentId ,"all", null);
+            $parentController = Form::CONTROLLER;
+            $parentConnectAs="forms";
+            $childConnectAs="forms";
+            if(!$isConnectingAdmin)
+                $typeOfDemand = "forms";
+        } else {
             throw new CTKException(Yii::t("common","Can not manage the type ").$parentType);
         }
+
         
         if (!$parentData) {
             return array("result" => false, "msg" => "Unknown ".$parentController.". Please check your parameters !");
@@ -884,6 +896,7 @@ class Link {
             return array("result" => false, "msg" => "Unknown ".$childType.". Please check your parameters !");
         }
 		
+
         //if the childId is empty => it's an invitation
         //Let's create the child
         if (empty($childId)) {
@@ -915,6 +928,8 @@ class Link {
         if (!$pendingChild) {
             return array("result" => false, "msg" => "Something went wrong ! Impossible to find the children ".$childId);
         }
+
+
 		//Check if the child is already link to the parent with the connectType
 		$alreadyLink=false;
 		if($typeOfDemand != "admin"){
@@ -1034,7 +1049,9 @@ class Link {
             // After : the 1rst existing Admin to take the decision will remove the "pending" to make a real admin
         } 
        
+
 		Link::connect($parentId, $parentType, $childId, $childType,Yii::app()->session["userId"], $parentConnectAs, $isConnectingAdmin, $toBeValidatedAdmin, $toBeValidated, $isInviting, $userRole);
+        //var_dump($pendingChild); exit ;
 		Link::connect($childId, $childType, $parentId, $parentType, Yii::app()->session["userId"], $childConnectAs, $isConnectingAdmin, $toBeValidatedAdmin, $toBeValidated, $isInviting, $userRole);
         Notification::constructNotification($verb, $pendingChild , array("type"=>$parentType,"id"=> $parentId,"name"=>$parentData["name"]), null, $levelNotif);
         //Notification::actionOnPerson($verb, ActStr::ICON_SHARE, $pendingChild , array("type"=>$parentType,"id"=> $parentId,"name"=>$parentData["name"]), $invitation);
@@ -1091,6 +1108,13 @@ class Link {
             $connectTypeOf = "events";
             $connectType = "attendees";
             $typeOfDemand="attendee";
+            $usersAdmin = Authorisation::listAdmins($parentId,  $parentType, false);
+        } else if ($parentType==Form::COLLECTION) {
+            $parent = Form::getByIdMongo($parentId); 
+            $parent["name"] = $parent["title"];        
+            $connectTypeOf = "forms";
+            $connectType = "forms";
+            $typeOfDemand="forms";
             $usersAdmin = Authorisation::listAdmins($parentId,  $parentType, false);
         } else {
             throw new CTKException(Yii::t("common","Can not manage the type ").$parentType);

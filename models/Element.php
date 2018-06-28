@@ -265,7 +265,9 @@ class Element {
             $res = ActionRoom:: getActionById($id);
         } else if ( $type == Survey::COLLECTION) {
             $res = Survey::getById($id);
-        } else {
+        } else if ( $type == Form::COLLECTION) {
+            $res = Form::getByIdMongo($id);
+        }  else {
         	throw new CTKException("Can not manage this type : ".$type);
         }
         if (empty($res)) throw new CTKException("The actor (".$id." / ".$type.") is unknown");
