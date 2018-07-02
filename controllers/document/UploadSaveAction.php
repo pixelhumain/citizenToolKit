@@ -2,7 +2,7 @@
 class UploadSaveAction extends CAction {
 	
     //$folder is the $type of the element
-	public function run($dir,$folder=null,$ownerId=null,$input, $contentKey=false, $docType=false, $rename=false) {
+	public function run($dir,$folder=null,$ownerId=null,$input, $contentKey=false, $docType=false, $rename=false, $subDir=null, $keySurvey=null) {
 		
         $res = array('result'=>false, 'msg'=>Yii::t("document","Something went wrong with your upload!"));
         if (Person::logguedAndValid()) 
@@ -19,8 +19,8 @@ class UploadSaveAction extends CAction {
                 $res = array('result'=>false,'msg'=>Yii::t("document","Something went wrong with your upload!"));
             }
             $res['file'] = @$file;   
-                        
-            $res = Document::checkFileRequirements($file, $dir, $folder, $ownerId, $input, @$contentKey, @$docType);
+
+            $res = Document::checkFileRequirements($file, $dir, $folder, $ownerId, $input, @$contentKey, @$docType, @$subDir, @$keySurvey);
             if ($res["result"]) {
                 $res = Document::uploadDocument($file, $res["uploadDir"],$input,$rename);
                 if ($res["result"]) {
@@ -46,7 +46,11 @@ class UploadSaveAction extends CAction {
                     $subFolder="/".Document::GENERATED_ALBUM_FOLDER;
                 if(@$docType && $docType==Document::DOC_TYPE_FILE){
                     $subFolder="/".Document::GENERATED_FILE_FOLDER;
-                    $contentKey="";
+                    if($contentKey!="survey")
+                        $contentKey="";
+                    else{
+                        $subFolder.="/".$contentKey."/".$keySurvey."/".$subDir;
+                    }
                 }
                 $params = array(
                     "id" => $ownerId,
@@ -60,6 +64,10 @@ class UploadSaveAction extends CAction {
                 );
                 if(@$docType && $docType==Document::DOC_TYPE_FILE)
                     $params["doctype"]=$docType;
+                if(@$docType && $docType==Document::DOC_TYPE_FILE)
+                    $params["doctype"]=$docType;
+                if(@$keySurvey && @$subDir)
+                    $params["keySurvey"]=$subDir;
                 if(@$_POST["parentType"])
                     $params["parentType"] = $folder;
                 if(@$_POST["parentId"])

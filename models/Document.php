@@ -111,6 +111,8 @@ class Document {
 	    	$new["doctype"]=Document::getDoctype($params['name']);
 	    if(@$params["crop"])
 	    	$new["crop"]=$params["crop"];
+	    if(@$params["keySurvey"])
+	    	$new["keySurvey"]=$params["keySurvey"];
 
 	    //if item exists
 	    //if( PHDB::count($new['type'],array("_id"=>new MongoId($new['id']))) > 0 ){
@@ -187,7 +189,8 @@ class Document {
 			}
 		}
 	   //Notification::constructNotification(ActStr::VERB_ADD, array("id" => Yii::app()->session["userId"],"name"=> Yii::app()->session["user"]["name"]), array("type"=>$new["type"],"id"=> $new["id"]), null, $typeNotif);
-	    return array( "result"=>true, "msg"=>Yii::t('document','Document saved successfully'), "id"=>$new["_id"],"name"=>$new["name"],"src"=>@$src);	
+		$survey=(@$new["keySurvey"]) ? $new["keySurvey"] : false;
+	    return array( "result"=>true, "msg"=>Yii::t('document','Document saved successfully'), "id"=>$new["_id"],"name"=>$new["name"],"src"=>@$src, "survey"=>$survey);	
 	}
 	
 	
@@ -1133,7 +1136,7 @@ class Document {
 			//$file = file_get_contents($pathFile.$nameFile, FILE_USE_INCLUDE_PATH);
 			//$file = self::urlGetContents($pathFile.$nameFile);
 			$file = self::urlGetContents($urlFile);
-			$res = self::checkFileRequirements($file["file"], $dir, $folder, $ownerId, $input, null, null, $nameFile, $file["size"] );
+			$res = self::checkFileRequirements($file["file"], $dir, $folder, $ownerId, $input, null, null, null, null, $nameFile, $file["size"] );
 			if ($res["result"]) {
 				$res = self::uploadDocument($file, $res["uploadDir"], $input, $rename, $nameFile, $file["size"]);
 			}
@@ -1181,7 +1184,7 @@ class Document {
 	 * @param type|null $sizeUrl The size of the file (not mandatory : could be retrieve from the file when it's not an URL file)
 	 * @return array result => boolean, msg => String, uploadDir => where the file is stored
 	 */
-	public static function checkFileRequirements($file, $dir, $folder, $ownerId, $input, $contentKey=null, $docType=null,$nameUrl = null, $sizeUrl=null) {
+	public static function checkFileRequirements($file, $dir, $folder, $ownerId, $input, $contentKey=null, $docType=null, $subDir=null, $keySurvey=null, $nameUrl = null, $sizeUrl=null) {
 		//TODO SBAR
 		//$dir devrait être calculé : sinon on peut facilement enregistrer des fichiers n'importe où
 		$upload_dir = Yii::app()->params['uploadDir'];
@@ -1209,6 +1212,21 @@ class Document {
         }
        	if( @$docType && $docType==Document::DOC_TYPE_FILE){
        		$upload_dir .= Document::GENERATED_FILE_FOLDER.'/';
+            if( !file_exists ( $upload_dir ) )
+                mkdir ( $upload_dir,0775 );
+       	}
+       	if( @$contentKey && $contentKey=="survey"){
+	        $upload_dir .= $contentKey.'/';
+            if( !file_exists ( $upload_dir ) )
+                mkdir ( $upload_dir,0775 );        
+        }
+        if(@$keySurvey){
+        	$upload_dir .= $keySurvey.'/';
+        	if( !file_exists ( $upload_dir ) )
+            	mkdir ( $upload_dir,0775 );
+        }
+       	if(@$subDir){
+       		$upload_dir .= $subDir.'/';
             if( !file_exists ( $upload_dir ) )
                 mkdir ( $upload_dir,0775 );
        	}
