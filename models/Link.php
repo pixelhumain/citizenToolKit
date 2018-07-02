@@ -863,16 +863,23 @@ class Link {
 			if(!$isConnectingAdmin)
 				$typeOfDemand = "attendee";
 		}else if ($parentType == Form::COLLECTION){
-            // $parentData = Event::getById($parentId); 
-            // $usersAdmin = Authorisation::listAdmins($parentId,  $parentType, false);
-            //print_r($usersAdmin);
             $parentData["name"] = $parentData["title"];
             $parentUsersList = Form::getLinksFormsByFormId( $parentId ,"all", null);
             $parentController = Form::CONTROLLER;
-            $parentConnectAs="forms";
-            $childConnectAs="forms";
-            if(!$isConnectingAdmin)
-                $typeOfDemand = "forms";
+
+            if( $childType == Project::COLLECTION &&  !empty($child["link"]) && $child["link"] == "projectExtern"){
+                $parentConnectAs="projectExtern";
+                $childConnectAs="projectExtern";
+                if(!$isConnectingAdmin)
+                    $typeOfDemand = "projectExtern";
+            }else{
+                $parentConnectAs="forms";
+                $childConnectAs="forms";
+                if(!$isConnectingAdmin)
+                    $typeOfDemand = "forms";
+            }
+
+           
         } else {
             throw new CTKException(Yii::t("common","Can not manage the type ").$parentType);
         }
@@ -892,7 +899,10 @@ class Link {
         //ou Child type Person
         } else if ($childType == Person::COLLECTION) {
             $class = "Person";
+        } else if ($childType == Project::COLLECTION) {
+            $class = "Project";
         } else {
+            //Rest::json($parentData); exit ;
             return array("result" => false, "msg" => "Unknown ".$childType.". Please check your parameters !");
         }
 		
@@ -1227,7 +1237,10 @@ class Link {
 			    if(!empty($contact["roles"]))
 			    	$roles=$contact["roles"];
 		    	if($child["childType"]==Person::COLLECTION)
-		    		$onlyOrganization=false;    	
+		    		$onlyOrganization=false;
+
+                if(!empty($contact["link"]))
+                    $child["link"] = $contact["link"];  	
 		    	$isConnectingAdmin= (@$contact["connectType"]=="admin") ? true : false;
 		    	
                 $res = Link::connectParentToChild($parentId, $parentType, $child, $isConnectingAdmin, Yii::app()->session["userId"], $roles);
