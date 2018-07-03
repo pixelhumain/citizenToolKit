@@ -47,7 +47,7 @@ class Element {
 	    	Action::COLLECTION => Action::CONTROLLER,
 	    	//ActionRoom::COLLECTION => ActionRoom::CONTROLLER,
 	    	//ActionRoom::COLLECTION_ACTIONS => ActionRoom::CONTROLLER,
-	    	Place::COLLECTION => Place::CONTROLLER,
+	    	//Place::COLLECTION => Place::CONTROLLER,
 	    	Ressource::COLLECTION => Ressource::COLLECTION,
 	    	Ressource::CONTROLLER => Ressource::CONTROLLER
 	    );	    
