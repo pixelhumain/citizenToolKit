@@ -873,10 +873,10 @@ class Link {
                 if(!$isConnectingAdmin)
                     $typeOfDemand = "projectExtern";
             }else{
-                $parentConnectAs="forms";
+                $parentConnectAs="members";
                 $childConnectAs="forms";
                 if(!$isConnectingAdmin)
-                    $typeOfDemand = "forms";
+                    $typeOfDemand = "members";
             }
 
            
@@ -1123,8 +1123,8 @@ class Link {
             $parent = Form::getByIdMongo($parentId); 
             $parent["name"] = $parent["title"];        
             $connectTypeOf = "forms";
-            $connectType = "forms";
-            $typeOfDemand="forms";
+            $connectType = "members";
+            $typeOfDemand="members";
             $usersAdmin = Authorisation::listAdmins($parentId,  $parentType, false);
         } else {
             throw new CTKException(Yii::t("common","Can not manage the type ").$parentType);
