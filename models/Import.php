@@ -501,6 +501,10 @@ class Import
         if(empty($element['email']) && $typeElement == Person::COLLECTION)
             $warnings[] = "203" ;
 
+
+        if(empty($element['type']) && $typeElement == Organization::COLLECTION || $typeElement == Event::COLLECTION)
+            $warnings[] = "300" ;
+
         if($typeElement != Person::COLLECTION){
             if(!empty($element['address'])){
                 if(empty($element['address']['addressCountry']))$warnings[] = "104" ;
