@@ -341,6 +341,7 @@ class Zone {
 			$where["hasCity"] = array(	'$exists' => "1");
 
 		$fields = array("name","level", "translateId", "countryCode", "hasCity");
+		Rest::json($where); exit ;
 		$zones = PHDB::find(self::COLLECTION, $where, $fields);
 		$res = array();
 		$trad = PHDB::find(	self::TRANSLATE, 
