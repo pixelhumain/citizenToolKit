@@ -5,7 +5,7 @@ class Survey
 	const COLLECTION = "surveys";
 	const PARENT_COLLECTION = "actionRooms";
 	const CONTROLLER = "survey";
-
+	const MODULE = "survey";
 	const TYPE_SURVEY = 'survey';
 	const TYPE_ENTRY  = 'entry';
   	const STATUS_CLEARED 	= "cleared";
