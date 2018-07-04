@@ -421,8 +421,11 @@ class Element {
 	 * @param type $type : is the type of the parent
 	 * @return list of pois
 	 */
-	public static function getByIdAndTypeOfParent($collection, $id, $type, $orderBy){
-		$list = PHDB::findAndSort($collection,array("parentId"=>$id,"parentType"=>$type), $orderBy);
+	public static function getByIdAndTypeOfParent($collection, $id, $type, $orderBy,$where=null){
+		$condition=array("parentId"=>$id,"parentType"=>$type);
+		if(@$where && !empty($where))
+			$condition=array_merge($condition, $where);
+		$list = PHDB::findAndSort($collection,$condition, $orderBy);
 	   	return $list;
 	}
 	/**

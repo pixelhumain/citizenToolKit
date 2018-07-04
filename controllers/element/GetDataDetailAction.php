@@ -98,12 +98,13 @@ class GetDataDetailAction extends CAction {
 			}
 		}
 
-		if($dataName == "classifieds" || $dataName == "ressources"){
-			$col = ($dataName == "ressources") ? Ressource::COLLECTION : Classified::COLLECTION;
-			$contextMap = Element::getByIdAndTypeOfParent( $col , $id, $type, array("updated"=>-1));
+		if($dataName == "classifieds" || $dataName == "ressources" || $dataName == "jobs"){
+			$col = Classified::COLLECTION;
+			$contextMap = Element::getByIdAndTypeOfParent( $col , $id, $type, array("updated"=>-1), array("type"=>$dataName));
 			foreach ($contextMap as $key => $value) {
 				$contextMap[$key]["category"] = @$value["type"];
 				$contextMap[$key]["type"] = $col;
+				$contextMap[$key]["typeClassified"] = $dataName;
 				$contextMap[$key]["typeSig"] = $col;
 			}
 		}
