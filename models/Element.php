@@ -47,7 +47,7 @@ class Element {
 	    	Action::COLLECTION => Action::CONTROLLER,
 	    	//ActionRoom::COLLECTION => ActionRoom::CONTROLLER,
 	    	//ActionRoom::COLLECTION_ACTIONS => ActionRoom::CONTROLLER,
-	    	//Place::COLLECTION => Place::CONTROLLER,
+	    	Place::COLLECTION => Place::CONTROLLER,
 	    	Ressource::COLLECTION => Ressource::COLLECTION,
 	    	Ressource::CONTROLLER => Ressource::CONTROLLER
 	    );	    
@@ -71,7 +71,7 @@ class Element {
 	    	Action::CONTROLLER => Action::COLLECTION,
 	    	//ActionRoom::CONTROLLER => ActionRoom::COLLECTION,
 	    	//ActionRoom::CONTROLLER_ACTIONS => ActionRoom::COLLECTION,
-	    	//Place::CONTROLLER => Place::COLLECTION,
+	    	Place::CONTROLLER => Place::COLLECTION,
 	    	Ressource::COLLECTION => Ressource::COLLECTION,
 	    	Ressource::CONTROLLER => Ressource::CONTROLLER
 	    );	    
@@ -283,7 +283,7 @@ class Element {
                 throw new CTKException("Impossible to link something on a disabled organization");    
             }
         } else 
-        if ( in_array($type, array( Person::COLLECTION, Project::COLLECTION,Event::COLLECTION, /*Classified::COLLECTION, */ Need::COLLECTION,Poi::COLLECTION,Network::COLLECTION) ) ){
+        if ( in_array($type, array( Person::COLLECTION, Project::COLLECTION,Event::COLLECTION, Classified::COLLECTION, Need::COLLECTION,Poi::COLLECTION,Network::COLLECTION) ) ){
             $res = self::getByTypeAndId($type, $id);       
         } else if ($type== ActionRoom::COLLECTION_ACTIONS){
             $res = ActionRoom:: getActionById($id);

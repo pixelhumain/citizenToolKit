@@ -147,14 +147,14 @@ class Notification{
 					"repeat" => true,
 					"url" => "page/type/news/id/{id}"
 				),
-				// Classified::COLLECTION => array(
-				// 	"label" => "{who} commented on classified {what} in {where}",
-				// 	"labelRepeat" => "{who} added comments on classified {what} in {where}",
-				// 	"sameAuthor"=>array(
-				// 		"labelRepeat" => "{who} added few comments on classified {what} in {where}"
-				// 	),
-				// 	"url" => "page/type/{collection}/id/{id}",
-				// ),
+				Classified::COLLECTION => array(
+					"label" => "{who} commented on classified {what} in {where}",
+					"labelRepeat" => "{who} added comments on classified {what} in {where}",
+					"sameAuthor"=>array(
+						"labelRepeat" => "{who} added few comments on classified {what} in {where}"
+					),
+					"url" => "page/type/{collection}/id/{id}",
+				),
 				Proposal::COLLECTION => array(
 					"label" => "{who} commented on proposal {what} in {where}",
 					"labelRepeat" => "{who} added comments on proposal {what} in {where}",
@@ -222,11 +222,11 @@ class Notification{
 					"parentTarget"=>true,
 					"url" => "page/type/news/id/{id}"
 				),
-				// Classified::COLLECTION => array(
-				// 	"label" => "{who} commented on classified {what} in {where}",
-				// 	"labelRepeat" => "{who} added comments on classified {what} in {where}",
-				// 	"url" => "page/type/{collection}/id/{id}",
-				// ),
+				Classified::COLLECTION => array(
+					"label" => "{who} commented on classified {what} in {where}",
+					"labelRepeat" => "{who} added comments on classified {what} in {where}",
+					"url" => "page/type/{collection}/id/{id}",
+				),
 				Proposal::COLLECTION => array(
 					"label" => "{who} commented on proposal {what} in {where}",
 					"labelRepeat" => "{who} added comments on proposal {what} in {where}",
@@ -275,11 +275,11 @@ class Notification{
 					"labelRepeat" => "{who} added comments on proposal {what} in {where}",
 					"url" => "page/type/{collection}/id/{id}/view/coop/room/{roomId}/proposal/{objectId}",
 				),
-				// Classified::COLLECTION => array(
-				// 	"label" => "{who} commented on classified {what} in {where}",
-				// 	"labelRepeat" => "{who} added comments on classified {what} in {where}",
-				// 	"url" => "page/type/{collection}/id/{id}",
-				// ),
+				Classified::COLLECTION => array(
+					"label" => "{who} commented on classified {what} in {where}",
+					"labelRepeat" => "{who} added comments on classified {what} in {where}",
+					"url" => "page/type/{collection}/id/{id}",
+				),
 				Action::COLLECTION => array(
 					"label" => "{who} commented on action {what} in {where}",
 					"labelRepeat" => "{who} added comments on action {what} in {where}",
@@ -341,10 +341,10 @@ class Notification{
 					"url" => "page/type/{objectType}/id/{objectId}",
 					"label" => "{who} added a new event on {where}"
 				),
-				// Classified::COLLECTION=> array(
-				// 	"url" => "page/type/{objectType}/id/{objectId}",
-				// 	"label" => "{who} added a new classified on {where}"
-				// ),
+				Classified::COLLECTION=> array(
+					"url" => "page/type/{objectType}/id/{objectId}",
+					"label" => "{who} added a new classified on {where}"
+				),
 				ActionRoom::COLLECTION_ACTIONS=> array(
 					"url"=>"rooms/actions/id/{objectId}",
 					"label"=> "{who} added a new actions list on {where}"
@@ -1234,7 +1234,7 @@ class Notification{
 			$news=News::getById($id);
 			$authorNews=News::getAuthor($id);
 			$parent=Element::getElementSimpleById($news["target"]["id"], $news["target"]["type"]);
-		} else if(in_array($type, [Organization::COLLECTION, Project::COLLECTION, Event::COLLECTION, /*Classified::COLLECTION*/])){
+		} else if(in_array($type, [Organization::COLLECTION, Project::COLLECTION, Event::COLLECTION, Classified::COLLECTION])){
 			$parent=Element::getElementSimpleById($id, $type);
 		}
 		$res=array();
