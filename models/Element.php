@@ -54,6 +54,30 @@ class Element {
     	return @$ctrls[$type];
     }
 
+
+    public static function getCollectionByControler ($type) { 
+
+		$ctrls = array(
+	    	Organization::CONTROLLER => Organization::COLLECTION,
+	    	Person::CONTROLLER => Person::COLLECTION,
+	    	Event::CONTROLLER => Event::COLLECTION,
+	    	Project::CONTROLLER => Project::COLLECTION,
+			News::COLLECTION => News::COLLECTION,
+	    	Need::CONTROLLER => Need::COLLECTION,
+	    	City::CONTROLLER => City::COLLECTION,
+	    	Survey::CONTROLLER => Survey::COLLECTION,
+	    	Poi::CONTROLLER => Poi::COLLECTION,
+	    	Proposal::CONTROLLER => Proposal::COLLECTION,
+	    	Action::CONTROLLER => Action::COLLECTION,
+	    	//ActionRoom::CONTROLLER => ActionRoom::COLLECTION,
+	    	//ActionRoom::CONTROLLER_ACTIONS => ActionRoom::COLLECTION,
+	    	//Place::CONTROLLER => Place::COLLECTION,
+	    	Ressource::COLLECTION => Ressource::COLLECTION,
+	    	Ressource::CONTROLLER => Ressource::CONTROLLER
+	    );	    
+    	return @$ctrls[$type];
+    }
+
     public static function getModelByType($type) {
     	$models = array(
 	    	Organization::COLLECTION => "Organization",

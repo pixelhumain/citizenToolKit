@@ -869,7 +869,7 @@ class Link {
 
             if( $childType == Project::COLLECTION &&  !empty($child["link"]) && $child["link"] == "projectExtern"){
                 $parentConnectAs="projectExtern";
-                $childConnectAs="projectExtern";
+                $childConnectAs="forms";
                 if(!$isConnectingAdmin)
                     $typeOfDemand = "projectExtern";
             }else{
