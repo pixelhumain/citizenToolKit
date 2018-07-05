@@ -14,8 +14,9 @@ class InviteAction extends CAction {
             );
 
             if(!empty($params["parentType"]) && $params["parentType"] != Person::COLLECTION){
-                $parent = Element::getElementById($id, $type, null, array("links"));
+                $parent = Element::getElementById($id, $type, null, array("links", "id"));
                 $params["parentLinks"] = ( !empty($parent["links"]) ? $parent["links"] : array() );
+                $params["id"] = $parent["id"];
             }
             
             if(Yii::app()->request->isAjaxRequest)
