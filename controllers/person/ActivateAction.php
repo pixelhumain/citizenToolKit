@@ -47,10 +47,11 @@ class ActivateAction extends CAction
         if(@$redirect){
             if(strrpos($redirect, "survey") !== false){
                 $redirect=str_replace(".", "/", $redirect);
-                $urlRedirect=Yii::app()->createUrl($redirect."#panel.box-login");
+                $urlRedirect=Yii::app()->createUrl($redirect."?".$params."#panel.box-login");
             }else if(strrpos($redirect, "custom") !== false)
-                $urlRedirect=Yii::app()->createUrl($redirect."#panel.box-login");
+                $urlRedirect=Yii::app()->createUrl($redirect."?el=".$_GET["el"]."&".$params."#panel.box-login");
         }
+        //echo $urlRedirect;
 	    $controller->redirect($urlRedirect);
     }
 
