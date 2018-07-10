@@ -6,7 +6,7 @@
 */
 class ActivateAction extends CAction
 {
-    public function run($user, $validationKey, $invitedBy=null) {
+    public function run($user, $validationKey, $invitedBy=null, $redirect=null) {
     	assert('$user != ""; //The user is mandatory');
     	assert('$validationKey != ""; //The validation Key is mandatory');
 
@@ -43,7 +43,15 @@ class ActivateAction extends CAction
                                             $params, 
                                             array_keys($params)
                                         ));
-	    $controller->redirect(Yii::app()->createUrl("/".$controller->module->id)."?".$params."#panel.box-login");
+        $urlRedirect=Yii::app()->createUrl("/".$controller->module->id)."?".$params."#panel.box-login";
+        if(@$redirect){
+            if(strrpos($redirect, "survey") !== false){
+                $redirect=str_replace(".", "/", $redirect);
+                $urlRedirect=Yii::app()->createUrl($redirect."#panel.box-login");
+            }else if(strrpos($redirect, "custom") !== false)
+                $urlRedirect=Yii::app()->createUrl($redirect."#panel.box-login");
+        }
+	    $controller->redirect($urlRedirect);
     }
 
     
