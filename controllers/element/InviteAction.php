@@ -18,6 +18,11 @@ class InviteAction extends CAction {
                 $params["parentLinks"] = ( !empty($parent["links"]) ? $parent["links"] : array() );
                 $params["id"] = $parent["id"];
             }
+
+            if( !empty( Yii::app()->session["custom"] ) && !empty( Yii::app()->session["custom"]["roles"])){
+                $params["roles"] = Yii::app()->session["custom"]["roles"] ;
+            } else
+                $params["roles"] = array();
             
             if(Yii::app()->request->isAjaxRequest)
                 echo $controller->renderPartial("invite",$params,true);
