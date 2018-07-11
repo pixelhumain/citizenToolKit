@@ -5,7 +5,7 @@
 */
 class ValidateInvitationAction extends CAction {
 
-    public function run($user, $validationKey) {
+    public function run($user, $validationKey, $invitation=null,$redirect=null) {
         assert('$user != ""; //The user is mandatory');
         assert('$validationKey != ""; //The validation Key is mandatory');
 
@@ -38,13 +38,29 @@ class ValidateInvitationAction extends CAction {
                     //Your account already exists on the plateform : please try to login
                     $error = "accountAlreadyExists";
                     $params["error"] = $error;
-                    $controller->redirect(Yii::app()->createUrl("/".$controller->module->id)."?".$this->arrayToUrlParams($params)."#panel.box-login");
+                    $urlRedirect=Yii::app()->createUrl("/".$controller->module->id)."?".$this->arrayToUrlParams($params)."#panel.box-login";
+                    if(@$redirect){
+                        if(strrpos($redirect, "survey") !== false){
+                            $redirect=str_replace(".", "/", $redirect);
+                            $urlRedirect=Yii::app()->createUrl($redirect."?".$this->arrayToUrlParams($params)."#panel.box-login");
+                        }else if(strrpos($redirect, "custom") !== false)
+                            $urlRedirect=Yii::app()->createUrl($redirect."?el=".$_GET["el"]."&".$this->arrayToUrlParams($params)."#panel.box-login");
+                    }
+                    $controller->redirect($urlRedirect);
                 }
             }
         }
         
         $params["error"] = $error;
-        $controller->redirect(Yii::app()->createUrl("/".$controller->module->id)."?".$this->arrayToUrlParams($params)."#panel.box-register");
+        $urlRedirect=Yii::app()->createUrl("/".$controller->module->id)."?".$this->arrayToUrlParams($params)."#panel.box-register";
+        if(@$redirect){
+            if(strrpos($redirect, "survey") !== false){
+                $redirect=str_replace(".", "/", $redirect);
+                $urlRedirect=Yii::app()->createUrl($redirect."?".$this->arrayToUrlParams($params)."#panel.box-register");
+            }else if(strrpos($redirect, "custom") !== false)
+                $urlRedirect=Yii::app()->createUrl($redirect."?el=".$_GET["el"]."&".$this->arrayToUrlParams($params)."#panel.box-register");
+        }
+        $controller->redirect($urlRedirect);
     }
 
     private function arrayToUrlParams($params) {

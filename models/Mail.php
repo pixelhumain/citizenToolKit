@@ -458,6 +458,7 @@ class Mail {
                 "typeOfDemand"=> $typeOfDemand,
                 "verb"=> $verb)     
         );   
+        $params=self::getCustomMail($params);
         Mail::schedule($params);
     }
     /**
