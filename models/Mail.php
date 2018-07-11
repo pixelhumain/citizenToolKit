@@ -174,6 +174,7 @@ class Mail {
                                     "message" => $msg,
                                     "language" => Yii::app()->language )
         );
+
         $params=self::getCustomMail($params);
         if(!empty($invitorUrl))
             $params["tplParams"]["invitorUrl"] = $invitorUrl;
@@ -457,7 +458,8 @@ class Mail {
                 "parentType" => $parentType,       
                 "typeOfDemand"=> $typeOfDemand,
                 "verb"=> $verb)     
-        );   
+        ); 
+        $params=self::getCustomMail($params);
         Mail::schedule($params);
     }
     /**
