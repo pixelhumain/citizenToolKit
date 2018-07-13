@@ -5,7 +5,6 @@ class LogoutAction extends CAction
     {
         $controller = $this->getController();
         Person::clearUserSessionData();
-
         $url = "co2#";
         //print_r(@Yii::app()->session['custom']);
         //print_r(@Yii::app()->session);
@@ -14,6 +13,7 @@ class LogoutAction extends CAction
         	$url="/network/default/index?src=".$_GET["network"];
         if(@Yii::app()->session['custom'] && @Yii::app()->session['custom']["url"]){
         	$url=Yii::app()->session['custom']["url"];
+            //Rest::json(Yii::app()->session['custom']["url"]); exit ;
         }
     	//echo $url;
     	$controller->redirect(Yii::app()->createUrl($url) );
