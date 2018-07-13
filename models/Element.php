@@ -48,8 +48,11 @@ class Element {
 	    	//ActionRoom::COLLECTION => ActionRoom::CONTROLLER,
 	    	//ActionRoom::COLLECTION_ACTIONS => ActionRoom::CONTROLLER,
 	    	Place::COLLECTION => Place::CONTROLLER,
-	    	Ressource::COLLECTION => Ressource::COLLECTION,
-	    	Ressource::CONTROLLER => Ressource::CONTROLLER
+	    	Classified::COLLECTION => Classified::CONTROLLER,
+	    	Classified::TYPE_RESSOURCES => Classified::TYPE_RESSOURCES_CONTROLLER,
+	    	Classified::TYPE_JOBS => Classified::TYPE_JOBS_CONTROLLER,
+	    	//Ressource::COLLECTION => Ressource::COLLECTION,
+	    	//Ressource::CONTROLLER => Ressource::CONTROLLER
 	    );	    
     	return @$ctrls[$type];
     }
@@ -143,6 +146,9 @@ class Element {
 	    	Organization::TYPE_BUSINESS => "industry",
 	    	Organization::TYPE_GROUP 	=> "circle-o",
 	    	Organization::TYPE_GOV 		=> "university",
+	    	Classified::COLLECTION 		=> "bullhorn",
+	    	Classified::TYPE_RESSOURCES	=>"cubes",
+	    	Classified::TYPE_JOBS=>"briefcase",
 	    );	
 	    
 	    if(isset($fas[$type])) return $fas[$type];
@@ -159,6 +165,9 @@ class Element {
 	    	Organization::TYPE_BUSINESS => "azure",
 	    	Organization::TYPE_GROUP 	=> "turq",
 	    	Organization::TYPE_GOV 		=> "red",
+	    	Classified::COLLECTION 		=> "azure",
+	    	Classified::TYPE_RESSOURCES	=>"vine",
+	    	Classified::TYPE_JOBS=>"yellow-k",
 	    );	
 	    if(isset($colors[$type])) return $colors[$type];
 	    else return false;
