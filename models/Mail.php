@@ -886,6 +886,11 @@ class Mail {
             $params["tplParams"]["title"]=Yii::app()->session["custom"]["title"];
         if(@Yii::app()->session["custom"] && @Yii::app()->session["custom"]["url"])
             $params["tplParams"]["url"]=Yii::app()->session["custom"]["url"];
+
+        if( @Yii::app()->session["custom"] && 
+            @Yii::app()->session["custom"]["mail"] && 
+            @Yii::app()->session["custom"]["mail"][$params["tpl"]])
+            $params["tplParams"] = array_merge($params["tplParams"], Yii::app()->session["custom"]["mail"][$params["tpl"]]) ;
         return $params;
 
     }
