@@ -876,7 +876,7 @@ class Mail {
     public static function getCustomMail($params){
         if(@Yii::app()->session["custom"] && @Yii::app()->session["custom"]["logo"]){
             $params["tplParams"]["logo"]=Yii::app()->session["custom"]["logo"];
-            $params["tplParams"]["logo2"]=Yii::app()->session["custom"]["logo"];
+            $params["tplParams"]["logo2"]="";
             $params["tplParams"]["logoHeader"]=Yii::app()->session["custom"]["logo"];
         }else{
             $params["tplParams"]["logo"]=Yii::app()->params["logoUrl"];
