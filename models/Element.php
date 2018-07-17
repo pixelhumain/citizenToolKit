@@ -1779,7 +1779,7 @@ class Element {
         if( $collection == Event::COLLECTION ){
             $valid = Event::validateFirst($params);
         } 
-        error_log("KEY : ". $key);
+        //error_log("KEY : ". $key);
 
         if( $valid["result"] )
         	try {
@@ -1789,10 +1789,8 @@ class Element {
         		$valid = array("result"=>false, "msg" => $e->getMessage());
         	}
         
-        if( $valid["result"]) 
-        {
-			if( $collection == Event::COLLECTION )
-			{
+        if( $valid["result"]) {
+			if( $collection == Event::COLLECTION ){
             	 $res = Event::formatBeforeSaving($params);
             	 if ($res["result"]) 
             	 	$params = $res["params"];
