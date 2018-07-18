@@ -1993,43 +1993,12 @@ class Element {
 			if(isset($params["shortDescription"]))
 				$params["shortDescription"] = strip_tags($params["shortDescription"]);
 
-		    
-			/*if (@$params["amendementDateEnd"]){
-				$params["amendementDateEnd"] = Cooperation::formatDateBeforeSaving($params["amendementDateEnd"]);
-				//$params["amendementDateEnd"] = $params["amendementDateEnd"]->format('Y-m-d H:i');
-			}
 
-			if (@$params["voteDateEnd"]){
-				$params["voteDateEnd"] = Cooperation::formatDateBeforeSaving($params["voteDateEnd"]);
-				//$params["voteDateEnd"] = $params["voteDateEnd"]->format('Y-m-d H:i');
-			}*/
-
-			//TODO SBAR - Manage elsewhere (maybe in the view)
-			//Manage the event startDate and endDate format : 
-			//it comes with the format DD/MM/YYYY HH:ii or DD/MM/YYYY 
-			//and must be transform in YYYY-MM-DD HH:ii
-			/*if (@$params["startDate"]) {
-				$startDate = DateTime::createFromFormat('d/m/Y', $params["startDate"]);
-				if (empty($startDate)) {
-					$startDate = DateTime::createFromFormat('d/m/Y H:i', $params["startDate"]);
-					if (! empty($startDate)) 
-						$params["startDate"] = $startDate->format('Y-m-d H:i');
-					else 
-						throw new CTKException("Start Date is not well formated !");
-				} else 
-					$params["startDate"] = $startDate->format('Y-m-d');
+			if(!empty($params["parentType"])){
+				$parentType = self::getCollectionByControler($params["parentType"]);
+				if(!empty($parentType))
+					$params["parentType"] = $parentType;
 			}
-			if (@$params["endDate"]) {
-				$endDate = DateTime::createFromFormat('d/m/Y', $params["endDate"]);
-				if (empty($endDate)) {
-					$endDate = DateTime::createFromFormat('d/m/Y H:i', $params["endDate"]);
-					if (! empty($endDate)) 
-						$params["endDate"] = $endDate->format('Y-m-d H:i');
-					else 
-						throw new CTKException("End Date is not well formated !");
-				} else 
-					$params["endDate"] = $endDate->format('Y-m-d');
-			}*/
     	}
         return $params;
     }
@@ -2413,6 +2382,7 @@ class Element {
 					$res[] = self::updateField($collection, $id, "fax", $params["fax"]);
 				if(isset($params["mobile"]))
 					$res[] = self::updateField($collection, $id, "mobile", $params["mobile"]);
+				
 				if( !empty($params["parentId"]) ){
 					$parent["parentId"] = $params["parentId"] ;
 					$parent["parentType"] = ( !empty($params["parentType"]) ? $params["parentType"] : "dontKnow" ) ;
