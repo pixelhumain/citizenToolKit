@@ -57,7 +57,6 @@ class Mail {
         Cron::save($params, $update);
     }
 
-
     public static function notifAdminNewUser($person) {
         
 
@@ -75,7 +74,7 @@ class Mail {
     		$params = array(
 	            "type" => Cron::TYPE_MAIL,
 	            "tpl"=>'notifAdminNewUser',
-	            "subject" => 'Nouvel utilisateur sur le site '.self::getAppName(),
+	            "subject" => Yii::t("mail",'New user on {website}',array("{website}"=>self::getAppName())),
 	            "from"=>Yii::app()->params['adminEmail'],
 	            "to" => Yii::app()->params['adminEmail'],
 	            "tplParams" => array(   "data"   => $data ,
@@ -110,7 +109,7 @@ class Mail {
     	$params = array(
             "type" => Cron::TYPE_MAIL,
             "tpl"=>'notifAdminNewPro',
-            "subject" => 'Nouveau compte pro crée sur '.self::getAppName(),
+            "subject" => Yii::t("mail",'New professional account on {website}',array("{website}"=>self::getAppName())),
             "from"=>Yii::app()->params['adminEmail'],
             "to" => Yii::app()->params['adminEmail'],
             "tplParams" => array(   "person"   => $person ,
@@ -290,7 +289,7 @@ class Mail {
         $params = array(
             "type" => Cron::TYPE_MAIL,
             "tpl"=>'passwordRetreive',
-            "subject" => 'Réinitialisation du mot de passe pour le site '.self::getAppName(),
+            "subject" => Yii::t("mail","Retreive your password on {website}", array("{website}"=>self::getAppName())),
             "from"=>Yii::app()->params['adminEmail'],
             "to" => $email,
             "tplParams" => array(   "pwd"   => $pwd ,
@@ -306,7 +305,7 @@ class Mail {
         $params = array(
             "type" => Cron::TYPE_MAIL,
             "tpl"=>'validation', //TODO validation should be Controller driven boolean $this->userAccountValidation 
-            "subject" => Yii::t("common","Confirm your account on ").self::getAppName(),
+            "subject" => Yii::t("mail","Confirm your account on {website}", array("{website}"=>self::getAppName())),
             "from" => Yii::app()->params['adminEmail'],
             "to" => $person["email"],
             "tplParams" => array( "user"  => $person["_id"] ,
@@ -315,7 +314,7 @@ class Mail {
         $params=self::getCustomMail($params);
         Mail::schedule($params);
     }
-
+    //TODO QUESTION BOUBOULE => TO DELETE ... 
     public static function newEvent( $creator, $newEvent )
     {
         $params = array(
@@ -331,7 +330,7 @@ class Mail {
             );
         Mail::schedule($params);
     }
-
+    //TODO QUESTION BOUBOULE => TO DELETE ... 
     public static function newProject( $creator, $newProject )
     {
         $params = array(
@@ -347,7 +346,7 @@ class Mail {
             );
         Mail::schedule($params);
     }
-
+    //TODO QUESTION BOUBOULE => TO DELETE ... 
     public static function newOrganization( $creator,$newOrganization )
     {
         $params = array (
@@ -369,7 +368,7 @@ class Mail {
         $params = array(
             "type" => Cron::TYPE_MAIL,
             "tpl"=>'invitation',
-            "subject" => 'You have been invited to '.self::getAppName().' by '.$user["name"],
+            "subject" => Yii::t("mail", 'You have been invited to {website} by {who}', array("{website}"=>self::getAppName(),"{who}"=>$user["name"])),
             "from"=>Yii::app()->params['adminEmail'],
             "to" => $person["email"],
             "tplParams" => array(   "invitorName"   => $user["name"],
@@ -379,6 +378,8 @@ class Mail {
         );
         Mail::schedule($params);
     }
+
+    //TODO QUESTION BOUBOULE : TO DELETE OR IMPROVE PROCESS
 	/**
 	* Send an email to contact@pixelhumain.com quand quelqu'un post dans les news help and bugs	
 	* @param string $text message of user
@@ -411,7 +412,8 @@ class Mail {
            $params = array (
                 "type" => Cron::TYPE_MAIL,
                 "tpl"=>'askToBecomeAdmin',
-                "subject" => "[".self::getAppName()."] ".Yii::t("organization","A citizen ask to become ".$typeOfDemand." of")." ".$parent["name"],
+                "subject" => "[".self::getAppName()."] ".Yii::t("mail","A citizen ask to become {what} of {where}", 
+                    array("{what}"=>$typeOfDemand, "{where}"=>$parent["name"])),
                 "from"=>Yii::app()->params['adminEmail'],
                 "to" => $currentAdminEmail,
                 "tplParams" => array(  "newPendingAdmin"=> $newPendingAdmin ,
@@ -486,7 +488,8 @@ class Mail {
         $params = array (
             "type" => Cron::TYPE_MAIL,
             "tpl"=>'confirmYouTo',
-            "subject" => "[".self::getAppName()."] ".Yii::t("mail","Confirmation to ".$verb)." ".$parent["name"],    
+            "subject" => "[".self::getAppName()."] ".Yii::t("mail","Confirmation to {what} {where}", 
+                array("{what}"=>$verb, "{where}"=>$parent["name"])),    
             "from"=>Yii::app()->params['adminEmail'],       
             "to" => $childMail["email"],     
             "tplParams" => array(  
@@ -733,7 +736,13 @@ class Mail {
     }   
 
     private static function getAppName() {
-        return isset(Yii::app()->params["name"]) ? Yii::app()->params["name"] : Yii::app()->name;       
+        if(@Yii::app()->session["custom"] && @Yii::app()->session["custom"]["title"])
+            $appName=Yii::app()->session["custom"]["title"];
+        else if(@Yii::app()->params["name"])
+            $appName=Yii::app()->params["name"];
+        else
+            $appName=Yii::app()->name;
+        return $appName;       
     }
 
 
@@ -890,10 +899,11 @@ class Mail {
         if( @Yii::app()->session["custom"] && 
             @Yii::app()->session["custom"]["mail"] && 
             @Yii::app()->session["custom"]["mail"][$params["tpl"]])
-            $params["tplParams"] = array_merge($params["tplParams"], Yii::app()->session["custom"]["mail"][$params["tpl"]]) ;
+            $params["tplParams"] = array_merge($params["tplParams"], Yii::app()->session["custom"]["mail"][$params["tpl"]]);
         return $params;
 
     }
+    
     public static function createParamsMails($verb, $target = null, $object = null, $author = null){
         $paramsMail = Mail::$mailTree[$verb];
 
