@@ -513,25 +513,34 @@ class Search {
 		return $query;
 	}
 
+	public static function concatQuery($q1, $q2, $verb){
+		if( empty($q1) ){
+			$query = $q2 ;
+		}else{
+			$query = array($verb => array( $q1 , $q2 ) ) ;
+		}
+		return $query ;
+	}
+
 	public static function searchSourceKey($sourceKey, $query){
 		$tmpSourceKey = array();
-  		if($sourceKey != null && $sourceKey != ""){
-  			//Several Sourcekey
-	  		if(is_array($sourceKey)){
-	  			foreach ($sourceKey as $value) {
-	  				$tmpSourceKey[] = $value;
-	  			}
-	  		}//One Sourcekey
-	  		else{
-	  			$tmpSourceKey[] = $sourceKey;
-	  		}
+		if($sourceKey != null && $sourceKey != ""){
+			//Several Sourcekey
+			if(is_array($sourceKey)){
+				foreach ($sourceKey as $value) {
+					$tmpSourceKey[] = $value;
+				}
+			}//One Sourcekey
+			else{
+				$tmpSourceKey[] = $sourceKey;
+			}
 
-	  		if(count($tmpSourceKey)){
-	  			$query = array('$and' => array( $query , array("source.keys" => array('$in' => $tmpSourceKey))));
-	  		}
-	  		unset($tmpSourceKey);
-	  	}
-	  	return $query ;
+			if(count($tmpSourceKey)){
+				$query = array('$and' => array( $query , array("source.keys" => array('$in' => $tmpSourceKey))));
+			}
+			unset($tmpSourceKey);
+		}
+		return $query ;
 	}
 
 	//*********************************  Zones   ******************************************

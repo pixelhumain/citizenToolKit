@@ -21,6 +21,8 @@ class SimplyAutoCompleteAction extends CAction
         $mainTag = isset($_POST['mainTag']) ? $_POST['mainTag'] : null;
         $paramsFiltre = isset($_POST['paramsFiltre']) ? $_POST['paramsFiltre'] : null;
 
+        $parent = isset($_POST['parent']) ? $_POST['parent'] : null;
+
 
    //      if($search == null && $sourceKey == null) {
    //      	Rest::json(array());
@@ -28,37 +30,58 @@ class SimplyAutoCompleteAction extends CAction
    //      }
 
         $getCreator = false ;
-        //strpos($sourceKey[0], "@")
-        if( $sourceKey != null && $sourceKey != "" && strpos($sourceKey[0], "@") > 0 ) {
-        	//var_dump($sourceKey);
-        	$split = explode("@", $sourceKey[0]);
-        	$query = array();
-        	try{
-        		$element = Element::getByTypeAndId($split[1], $split[0]);
-	        	if(!empty($element) && 
-	        		(	$split[1] != Person::COLLECTION || 
-                     Preference::showPreference($element, $split[1], "directory", Yii::app()->session["userId"]) ) ) {
+  //       if( $sourceKey != null && $sourceKey != "" && strpos($sourceKey[0], "@") > 0 ) {
+  //       	$split = explode("@", $sourceKey[0]);
+  //       	$query = array();
+  //       	try{
+  //       		$element = Element::getByTypeAndId($split[1], $split[0]);
+	 //        	if(!empty($element) && 
+	 //        		(	$split[1] != Person::COLLECTION || 
+  //                    Preference::showPreference($element, $split[1], "directory", Yii::app()->session["userId"]) ) ) {
 
-	        		$query = array("creator" => $split[0]);
-		        	$links = array("events", "projects", "followers", "members", "memberOf", "subEvents", "follows", "attendees", "organizer", "contributors");
-		        	foreach ($links as $key => $value) {
-		        		$query = array('$or' => array($query, array("links.".$value.".".$split[0] => array('$exists' => 1))));
-		        	}
-		        	$getCreator = true ;
-	        	}
-        	}catch (MongoException $m){
+	 //        		$query = array("creator" => $split[0]);
+		//         	$links = array("events", "projects", "followers", "members", "memberOf", "subEvents", "follows", "attendees", "organizer", "contributors");
+		//         	foreach ($links as $key => $value) {
+		//         		$query = array('$or' => array($query, array("links.".$value.".".$split[0] => array('$exists' => 1))));
+		//         	}
+		//         	$getCreator = true ;
+	 //        	}
+  //       	}catch (MongoException $m){
 				
-			}
-		}else{
-	        /***********************************  DEFINE GLOBAL QUERY   *****************************************/
+		// 	}
+		// }
 
-	        $query = array();
+		if( !empty($parent) ) {
+			//Rest::json($parent); exit ;
+			$query = array();
+			if(Organization::COLLECTION == $parent["type"]){
+				if(strcmp($filter, Organization::COLLECTION) != 0 && Search::typeWanted(Organization::COLLECTION, $searchType)){
+					$q = array("links.memberOf.".$parent["id"]=> array('$exists' => 1) );
+					$query = Search::concatQuery($query, $q, '$or');
+				}
+
+				if(strcmp($filter, Project::COLLECTION) != 0 && Search::typeWanted(Project::COLLECTION, $searchType)){
+					$q = array("links.contributors.".$parent["id"]=> array('$exists' => 1) );
+					$query = Search::concatQuery($query, $q, '$or');
+				}
+					
+
+				if(strcmp($filter, Event::COLLECTION) != 0 && Search::typeWanted(Event::COLLECTION, $searchType)){
+					$q = array("links.attendees.".$parent["id"]=> array('$exists' => 1) );
+					$query = Search::concatQuery($query, $q, '$or');
+				}
+			}
+			
+		}  else {
+			/***********************************  DEFINE GLOBAL QUERY   *****************************************/
+
+			$query = array();
 			$query = Search::searchString($search, $query);
 
-	        /***********************************  TAGS   *****************************************/
+			/***********************************  TAGS   *****************************************/
 
-	        if(!empty($searchTags)) {
-		  		$verbTag = ( (!empty($paramsFiltre) && '$all' == $paramsFiltre) ? '$all' : '$in' ) ;
+			if(!empty($searchTags)) {
+				$verbTag = ( (!empty($paramsFiltre) && '$all' == $paramsFiltre) ? '$all' : '$in' ) ;
 		  		$queryTags =  Search::searchTags($searchTags, $verbTag) ;
 
 				if( !empty($queryTags) )
@@ -81,7 +104,7 @@ class SimplyAutoCompleteAction extends CAction
 	  	$query =  Search::searchLocalityNetworkOld($query, $_POST);
 	  	if(!empty($scope))
 	  		$query =  Search::searchLocalityNetwork($scope, $query);
-
+	  	//Rest::json($query);exit;
 	    $allRes = array();
         /***********************************  PERSONS   *****************************************/
        if(strcmp($filter, Person::COLLECTION) != 0 && Search::typeWanted("citoyen", $searchType)){
@@ -97,41 +120,15 @@ class SimplyAutoCompleteAction extends CAction
 	  	}
 
 	  	/***********************************  ORGANISATIONS   *****************************************/
-    //     if(strcmp($filter, Organization::COLLECTION) != 0 && Search::typeWanted("organizations", $searchType)){
-        	       	
-	  	// 	$allOrganizations = PHDB::find ( Organization::COLLECTION ,$query ,array("id" => 1, "name" => 1, "type" => 1, "email" => 1, "url" => 1, "shortDescription" => 1, "description" => 1, "address" => 1, "pending" => 1, "tags" => 1, "geo" => 1, "updated" => 1, "profilImageUrl" => 1, "profilThumbImageUrl" => 1, "profilMarkerImageUrl" => 1,"profilMediumImageUrl" => 1, "addresses"=>1, "telephone"=>1, "slug"=>1));
-	  	// 	foreach ($allOrganizations as $key => $value) {
-	  	// 		$orga = Organization::getSimpleOrganizationById($key, $value);
 
-	  	// 		$allOrganizations[$key] = $orga;
-				// $allOrganizations[$key]["type"] = "organizations";
-				// $allOrganizations[$key]["typeSig"] = "organizations";
-	  	// 	}
-	  	// 	$allRes = array_merge($allRes, $allOrganizations);
-	  	// }
 
 	  	if(strcmp($filter, Organization::COLLECTION) != 0 && Search::typeWanted(Organization::COLLECTION, $searchType)){
+
+	  		//Rest::json($query); exit ;
 			$allRes = array_merge($allRes, Search::searchOrganizations($query, 0, $indexMin,  $searchType, null));
 	  	}
 
 	  	/***********************************  EVENT   *****************************************/
-
-   //      if(strcmp($filter, Event::COLLECTION) != 0 && Search::typeWanted("events", $searchType)){
-
-   //      	$queryEvent = $query;
-   //      	if( !isset( $queryEvent['$and'] ) )
-   //      		$queryEvent['$and'] = array();
-
-   //      	array_push( $queryEvent[ '$and' ], array( "endDate" => array( '$gte' => new MongoDate( time() ) ) ) );
-	  // 		$allEvents = PHDB::findAndSort( PHType::TYPE_EVENTS, $queryEvent, array("startDate" => 1), 100, array("name", "address", "startDate", "endDate", "shortDescription", "description"));
-	  // 		foreach ($allEvents as $key => $value) {
-	  // 			$event = Event::getById($key);
-			// 	$event["type"] = "event";
-			// 	$event["typeSig"] = "events";
-			// 	$allEvents[$key] = $event;
-	  // 		}
-			// $allRes = array_merge($allRes, $allEvents);
-	  // 	}
 
 	  	if(strcmp($filter, Event::COLLECTION) != 0 && Search::typeWanted(Event::COLLECTION, $searchType)){
 
@@ -146,19 +143,6 @@ class SimplyAutoCompleteAction extends CAction
 	  	}
 
 	  	/***********************************  PROJECTS   *****************************************/
-    //     if(strcmp($filter, Project::COLLECTION) != 0 && Search::typeWanted("projects", $searchType)){
-	  	// 	$allProject = PHDB::find(Project::COLLECTION, $query, array("name", "address", "shortDescription", "description"));
-	  	// 	foreach ($allProject as $key => $value) {
-	  	// 		$project = Project::getById($key);
-	  	// 		if(@$project["links"]["followers"][Yii::app()->session["userId"]]){
-		  // 			$orga["isFollowed"] = true;
-	  	// 		}
-				// $project["type"] = "project";
-				// $project["typeSig"] = "projects";
-				// $allProject[$key] = $project;
-	  	// 	}
-	  	// 	$allRes = array_merge($allRes, $allProject);
-	  	// }
 
 	  	if(strcmp($filter, Project::COLLECTION) != 0 && Search::typeWanted(Project::COLLECTION, $searchType)){
 			$allRes = array_merge($allRes, Search::searchProject($query, 0, $indexMin));
@@ -246,6 +230,7 @@ class SimplyAutoCompleteAction extends CAction
 		  		//$res["cities"] = $allCitiesRes;
 	  		}
 	  	}
+
 
 	  	//trie les éléments dans l'ordre alphabetique par name
 	  	function mySort($a, $b){
