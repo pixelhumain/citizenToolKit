@@ -190,7 +190,7 @@ class Event {
 		
 		$simpleEvent = array();
 		if(empty($event))
-			$event = PHDB::findOneById( self::COLLECTION ,$id, array("id" => 1, "name" => 1, "type" => 1,  "shortDescription" => 1, "description" => 1, "address" => 1, "geo" => 1, "tags" => 1, "links" => 1, "profilImageUrl" => 1, "profilThumbImageUrl" => 1, "profilMarkerImageUrl" => 1, "profilMediumImageUrl" => 1, "startDate" => 1, "endDate" => 1, "addresses"=>1, "allDay" => 1));
+			$event = PHDB::findOneById( self::COLLECTION ,$id, array("id" => 1, "name" => 1, "creator" => 1,  "shortDescription" => 1, "description" => 1, "address" => 1, "geo" => 1, "tags" => 1, "links" => 1, "profilImageUrl" => 1, "profilThumbImageUrl" => 1, "profilMarkerImageUrl" => 1, "profilMediumImageUrl" => 1, "startDate" => 1, "endDate" => 1, "addresses"=>1, "allDay" => 1, "preferences" => 1));
 		if(!empty($event)){
 			$simpleEvent["id"] = $id;
 			$simpleEvent["_id"] = $event["_id"];
@@ -209,23 +209,25 @@ class Event {
 				$simpleEvent["endDate"] = date(DateTime::ISO8601, $event["endDate"]->sec);
 				$simpleEvent["endDateSec"] = $event["endDate"]->sec ;
 			}
-			$simpleEvent["type"] = @$event["type"];
+			$simpleEvent["typeEvent"] = @$event["type"];
 			$simpleEvent["geo"] = @$event["geo"];
 			$simpleEvent["tags"] = @$event["tags"];
+			$simpleEvent["preferences"] = @$event["preferences"];
 			$simpleEvent["shortDescription"] = @$event["shortDescription"];
 			$simpleEvent["description"] = @$event["description"];
 			$simpleEvent["addresses"] = @$event["addresses"];
 			$simpleEvent["allDay"] = @$event["allDay"];
+			$simpleEvent["creator"] = @$event["creator"];
 			
 			$simpleEvent = array_merge($simpleEvent, 
-									   Document::retrieveAllImagesUrl($id, self::COLLECTION, $simpleEvent["type"], 
+									   Document::retrieveAllImagesUrl($id, self::COLLECTION, $simpleEvent["typeEvent"], 
 									   $event));
 			
 			$simpleEvent["address"] = empty($event["address"]) ? 
 									  array("addressLocality" => Yii::t("common","Unknown Locality")) : 
 									  $event["address"];
 
-			$simpleEvent["typeEvent"] = $simpleEvent["type"];
+			//$simpleEvent["typeEvent"] = $simpleEvent["type"];
 			$simpleEvent["type"] = Event::COLLECTION;
 			$simpleEvent["typeSig"] = Event::COLLECTION;
 			
@@ -427,7 +429,7 @@ class Event {
 		}
 	    PHDB::insert(self::COLLECTION,$newEvent);
 	    
-	    Badge::addAndUpdateBadges("opendata",(String)$newEvent["_id"], Event::COLLECTION);
+	    //Badge::addAndUpdateBadges("opendata",(String)$newEvent["_id"], Event::COLLECTION);
 	    /*
 	    * except if organiser type is dontKnow
 		*   Add the creator as the first attendee
@@ -498,7 +500,7 @@ class Event {
 
 	public static function afterSave($params, $import = false, $warnings = null) {
 		
-	    Badge::addAndUpdateBadges("opendata",(String)$params["_id"], Event::COLLECTION);
+	    //Badge::addAndUpdateBadges("opendata",(String)$params["_id"], Event::COLLECTION);
 	    /*
 	    * except if organiser type is dontKnow
 		*   Add the creator as the first attendee
@@ -522,7 +524,7 @@ class Event {
     	if( @$params["parentId"] )
 			Link::connect( $params["parentId"], Event::COLLECTION,$params["_id"], Event::COLLECTION, Yii::app()->session["userId"], "subEvents");	
 
-		if (empty($import))
+		if (empty($import) && Preference::isPublicElement(@$params["preferences"]))
 			Notification::createdObjectAsParam( Person::COLLECTION, Yii::app()->session['userId'],Event::COLLECTION, (String)$params["_id"], $params["organizerType"], $params["organizerId"], @$params["geo"], array($params["type"]),@$params["address"]);
 	    if($params["organizerType"]==Organization::COLLECTION || $params["organizerType"]==Project::COLLECTION || @$params["parentId"]){
 			if(@$params["parentId"]){

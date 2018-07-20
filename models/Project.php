@@ -365,7 +365,7 @@ class Project {
 		$newProject["updated"] = time();
 	    PHDB::insert(self::COLLECTION,$newProject);
 
-	    Badge::addAndUpdateBadges("opendata",(String)$newProject["_id"], Project::COLLECTION);
+	    //Badge::addAndUpdateBadges("opendata",(String)$newProject["_id"], Project::COLLECTION);
 		Link::addContributor(Yii::app() -> session["userId"],Person::COLLECTION,$parentId,$parentType,$newProject["_id"]);
 	   // Link::connect($parentId, $parentType, $newProject["_id"], self::COLLECTION, $parentId, "projects", true );
 
@@ -376,7 +376,7 @@ class Project {
 
 	public static function afterSave($params, $import){
 	    
-	    Badge::addAndUpdateBadges("opendata",(String)$params["_id"], Project::COLLECTION);
+	    //Badge::addAndUpdateBadges("opendata",(String)$params["_id"], Project::COLLECTION);
 	    if( !@$params['parentType'] && !@$params['parentId'] ){
 			$params['parentType'] = Person::COLLECTION; 
 			$params['parentId'] = Yii::app() -> session["userId"];
@@ -386,8 +386,7 @@ class Project {
 		//if it's a subProject of another project
     	if( @$params["parentId"] && $params["parentType"]==self::COLLECTION)
 			Link::connect( $params["parentId"], self::COLLECTION, (string)$params["_id"], self::COLLECTION, Yii::app()->session["userId"], "projects");
-
-		if(empty($import))
+		if(empty($import) && Preference::isPublicElement(@$params["preferences"]))
 	    	Notification::createdObjectAsParam(Person::COLLECTION,Yii::app() -> session["userId"],Project::COLLECTION, (String)$params["_id"], $params['parentType'], $params['parentId'], @$params["geo"], @$params["tags"] ,@$params["address"]);
 	    if($params["parentType"]==Organization::COLLECTION || $params["parentType"]==Project::COLLECTION)
 	    	Notification::constructNotification(ActStr::VERB_ADD, array("id" => Yii::app()->session["userId"],"name"=> Yii::app()->session["user"]["name"]), array("type"=>$params["parentType"],"id"=> $params["parentId"]), array("id"=>(string)$params["_id"],"type"=> Project::COLLECTION), Project::COLLECTION);

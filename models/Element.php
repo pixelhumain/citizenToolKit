@@ -5,7 +5,7 @@ class Element {
 	const STATUS_DELETE_PEDING = "deletePending";
 	const ERROR_DELETING = "errorTryingToDelete";
 
-	public static $urlTypes = array(
+	public static $urlTypes = array (
         "chat" => "Chat",
         "decisionroom" => "Salle de decision",
         "website" => "Site web",
@@ -48,6 +48,33 @@ class Element {
 	    	//ActionRoom::COLLECTION => ActionRoom::CONTROLLER,
 	    	//ActionRoom::COLLECTION_ACTIONS => ActionRoom::CONTROLLER,
 	    	Place::COLLECTION => Place::CONTROLLER,
+	    	Classified::COLLECTION => Classified::CONTROLLER,
+	    	Classified::TYPE_RESSOURCES => Classified::TYPE_RESSOURCES_CONTROLLER,
+	    	Classified::TYPE_JOBS => Classified::TYPE_JOBS_CONTROLLER,
+	    	//Ressource::COLLECTION => Ressource::COLLECTION,
+	    	//Ressource::CONTROLLER => Ressource::CONTROLLER
+	    );	    
+    	return @$ctrls[$type];
+    }
+
+
+    public static function getCollectionByControler ($type) { 
+
+		$ctrls = array(
+	    	Organization::CONTROLLER => Organization::COLLECTION,
+	    	Person::CONTROLLER => Person::COLLECTION,
+	    	Event::CONTROLLER => Event::COLLECTION,
+	    	Project::CONTROLLER => Project::COLLECTION,
+			News::COLLECTION => News::COLLECTION,
+	    	Need::CONTROLLER => Need::COLLECTION,
+	    	City::CONTROLLER => City::COLLECTION,
+	    	Survey::CONTROLLER => Survey::COLLECTION,
+	    	Poi::CONTROLLER => Poi::COLLECTION,
+	    	Proposal::CONTROLLER => Proposal::COLLECTION,
+	    	Action::CONTROLLER => Action::COLLECTION,
+	    	//ActionRoom::CONTROLLER => ActionRoom::COLLECTION,
+	    	//ActionRoom::CONTROLLER_ACTIONS => ActionRoom::COLLECTION,
+	    	Place::CONTROLLER => Place::COLLECTION,
 	    	Ressource::COLLECTION => Ressource::COLLECTION,
 	    	Ressource::CONTROLLER => Ressource::CONTROLLER
 	    );	    
@@ -119,6 +146,9 @@ class Element {
 	    	Organization::TYPE_BUSINESS => "industry",
 	    	Organization::TYPE_GROUP 	=> "circle-o",
 	    	Organization::TYPE_GOV 		=> "university",
+	    	Classified::COLLECTION 		=> "bullhorn",
+	    	Classified::TYPE_RESSOURCES	=>"cubes",
+	    	Classified::TYPE_JOBS=>"briefcase",
 	    );	
 	    
 	    if(isset($fas[$type])) return $fas[$type];
@@ -135,6 +165,9 @@ class Element {
 	    	Organization::TYPE_BUSINESS => "azure",
 	    	Organization::TYPE_GROUP 	=> "turq",
 	    	Organization::TYPE_GOV 		=> "red",
+	    	Classified::COLLECTION 		=> "azure",
+	    	Classified::TYPE_RESSOURCES	=>"vine",
+	    	Classified::TYPE_JOBS=>"yellow-k",
 	    );	
 	    if(isset($colors[$type])) return $colors[$type];
 	    else return false;
@@ -259,13 +292,15 @@ class Element {
                 throw new CTKException("Impossible to link something on a disabled organization");    
             }
         } else 
-        if ( in_array($type, array( Person::COLLECTION, Project::COLLECTION,Event::COLLECTION, Classified::COLLECTION,Need::COLLECTION,Poi::COLLECTION,Network::COLLECTION) ) ){
+        if ( in_array($type, array( Person::COLLECTION, Project::COLLECTION,Event::COLLECTION, Classified::COLLECTION, Need::COLLECTION,Poi::COLLECTION,Network::COLLECTION) ) ){
             $res = self::getByTypeAndId($type, $id);       
         } else if ($type== ActionRoom::COLLECTION_ACTIONS){
             $res = ActionRoom:: getActionById($id);
         } else if ( $type == Survey::COLLECTION) {
             $res = Survey::getById($id);
-        } else {
+        } else if ( $type == Form::COLLECTION) {
+            $res = Form::getByIdMongo($id);
+        }  else {
         	throw new CTKException("Can not manage this type : ".$type);
         }
         if (empty($res)) throw new CTKException("The actor (".$id." / ".$type.") is unknown");
@@ -311,11 +346,11 @@ class Element {
 			$element = PHDB::findOneById($type, $id, $what);
 		else if($type == Person::COLLECTION)
 			$element = Person::getById($id);
-		else if($type == Organization::COLLECTION)
+		else if($type == Organization::COLLECTION || $type == Organization::CONTROLLER  )
 			$element = Organization::getById($id);		
-		else if($type == Project::COLLECTION)
+		else if($type == Project::COLLECTION || $type == Project::CONTROLLER)
 			$element = Project::getById($id);	
-		else if($type == Event::COLLECTION)
+		else if($type == Event::COLLECTION || $type == Event::CONTROLLER )
 			$element = Event::getById($id);	
 		else if($type == City::COLLECTION)
 			$element = City::getIdByInsee($id);
@@ -395,8 +430,11 @@ class Element {
 	 * @param type $type : is the type of the parent
 	 * @return list of pois
 	 */
-	public static function getByIdAndTypeOfParent($collection, $id, $type, $orderBy){
-		$list = PHDB::findAndSort($collection,array("parentId"=>$id,"parentType"=>$type), $orderBy);
+	public static function getByIdAndTypeOfParent($collection, $id, $type, $orderBy,$where=null){
+		$condition=array("parentId"=>$id,"parentType"=>$type);
+		if(@$where && !empty($where))
+			$condition=array_merge($condition, $where);
+		$list = PHDB::findAndSort($collection,$condition, $orderBy);
 	   	return $list;
 	}
 	/**
@@ -1777,7 +1815,6 @@ class Element {
 		//$paramsImport = (empty($params["paramsImport"])?null:$params["paramsImport"]);
 		$paramsLinkImport = ( empty($params["paramsImport"] ) ? null : $params["paramsImport"]);
 		
-		
 		unset($params["paramsImport"]);
         unset($params['key']);
        
@@ -1806,6 +1843,7 @@ class Element {
         if(isset($params["price"]))
         	$params["price"] = (int)$params["price"];
 
+        
         /*$microformat = PHDB::findOne(PHType::TYPE_MICROFORMATS, array( "key"=> $key));
         $validate = ( !isset($microformat )  || !isset($microformat["jsonSchema"])) ? false : true;
         //validation process based on microformat defeinition of the form
@@ -1815,7 +1853,7 @@ class Element {
         if( $collection == Event::COLLECTION ){
             $valid = Event::validateFirst($params);
         } 
-        error_log("KEY : ". $key);
+        //error_log("KEY : ". $key);
 
         if( $valid["result"] )
         	try {
@@ -1825,10 +1863,8 @@ class Element {
         		$valid = array("result"=>false, "msg" => $e->getMessage());
         	}
         
-        if( $valid["result"]) 
-        {
-			if( $collection == Event::COLLECTION )
-			{
+        if( $valid["result"]) {
+			if( $collection == Event::COLLECTION ){
             	 $res = Event::formatBeforeSaving($params);
             	 if ($res["result"]) 
             	 	$params = $res["params"];
@@ -1864,6 +1900,7 @@ class Element {
                 }
                 else
                 	PHDB::update($collection,array("_id"=>new MongoId($id)), array('$set' => $params ));
+                
                 $res = array("result"=>true,
                              "msg"=>Yii::t("common","Your data are well updated"),
                              "reload"=>true,
@@ -2001,6 +2038,19 @@ class Element {
 		        $params["creator"] = Yii::app()->session["userId"];
 		        $params["created"] = time();
 		    }
+		    
+		    if(@$params["public"] && in_array($params["collection"], [Event::COLLECTION, Project::COLLECTION])){
+        		//$params["preferences"]["public"]=$params["public"];
+        		if(!is_bool($params["public"]))
+		    		$params["public"] = ($params["public"] == "true") ? true : false;
+		    	if($params["public"]==false)
+		    		$params["preferences"]["private"]=true;
+        		if(@$params["preferences"]["private"]){
+        			$params["preferences"]["isOpenData"]=false;
+        			$params["preferences"]["isOpenEdition"]=false;
+        		}
+        		unset($params["public"]);
+        	}
 
 		    if (isset($params["allDay"])) {
 		    	if ($params["allDay"] == "true") {
@@ -2031,43 +2081,12 @@ class Element {
 			if(isset($params["shortDescription"]))
 				$params["shortDescription"] = strip_tags($params["shortDescription"]);
 
-		    
-			/*if (@$params["amendementDateEnd"]){
-				$params["amendementDateEnd"] = Cooperation::formatDateBeforeSaving($params["amendementDateEnd"]);
-				//$params["amendementDateEnd"] = $params["amendementDateEnd"]->format('Y-m-d H:i');
-			}
 
-			if (@$params["voteDateEnd"]){
-				$params["voteDateEnd"] = Cooperation::formatDateBeforeSaving($params["voteDateEnd"]);
-				//$params["voteDateEnd"] = $params["voteDateEnd"]->format('Y-m-d H:i');
-			}*/
-
-			//TODO SBAR - Manage elsewhere (maybe in the view)
-			//Manage the event startDate and endDate format : 
-			//it comes with the format DD/MM/YYYY HH:ii or DD/MM/YYYY 
-			//and must be transform in YYYY-MM-DD HH:ii
-			/*if (@$params["startDate"]) {
-				$startDate = DateTime::createFromFormat('d/m/Y', $params["startDate"]);
-				if (empty($startDate)) {
-					$startDate = DateTime::createFromFormat('d/m/Y H:i', $params["startDate"]);
-					if (! empty($startDate)) 
-						$params["startDate"] = $startDate->format('Y-m-d H:i');
-					else 
-						throw new CTKException("Start Date is not well formated !");
-				} else 
-					$params["startDate"] = $startDate->format('Y-m-d');
+			if(!empty($params["parentType"])){
+				$parentType = self::getCollectionByControler($params["parentType"]);
+				if(!empty($parentType))
+					$params["parentType"] = $parentType;
 			}
-			if (@$params["endDate"]) {
-				$endDate = DateTime::createFromFormat('d/m/Y', $params["endDate"]);
-				if (empty($endDate)) {
-					$endDate = DateTime::createFromFormat('d/m/Y H:i', $params["endDate"]);
-					if (! empty($endDate)) 
-						$params["endDate"] = $endDate->format('Y-m-d H:i');
-					else 
-						throw new CTKException("End Date is not well formated !");
-				} else 
-					$params["endDate"] = $endDate->format('Y-m-d');
-			}*/
     	}
         return $params;
     }
@@ -2356,6 +2375,16 @@ class Element {
 		return $res;
 	}
 
+	public static function getCuriculum($id, $type){
+		$res = array();
+		$listElt = array(Organization::COLLECTION, Person::COLLECTION, Project::COLLECTION, Event::COLLECTION);
+		if(in_array($type, $listElt) ){
+			$res = PHDB::findOne( $type , array( "_id" => new MongoId($id) ) ,array("curiculum") );
+			$res = (!empty($res["curiculum"]) ? $res["curiculum"] : array() );
+		}
+		return $res;
+	}
+
 	public static function getContacts($id, $type){
 		$res = array();
 		$listElt = array(Organization::COLLECTION, Person::COLLECTION, Project::COLLECTION, Event::COLLECTION);
@@ -2441,6 +2470,7 @@ class Element {
 					$res[] = self::updateField($collection, $id, "fax", $params["fax"]);
 				if(isset($params["mobile"]))
 					$res[] = self::updateField($collection, $id, "mobile", $params["mobile"]);
+				
 				if( !empty($params["parentId"]) ){
 					$parent["parentId"] = $params["parentId"] ;
 					$parent["parentType"] = ( !empty($params["parentType"]) ? $params["parentType"] : "dontKnow" ) ;
@@ -2532,6 +2562,32 @@ class Element {
 					Notification::constructNotification ( ActStr::VERB_AMEND, array("id" => Yii::app()->session["userId"],"name"=> Yii::app()->session["user"]["name"]), array("type"=>$proposal["parentType"],"id"=>$proposal["parentId"]),array( "type"=>Proposal::COLLECTION,"id"=> $params["id"] ) );
 					$res[] = self::updateField($collection, $id, "amendements", $amdtList);
 				}
+			
+			}else if($block == "curiculum.skills"){
+				$parent = Element::getByTypeAndId($params["typeElement"], $params["id"]);
+				$cv = @$parent["curiculum"] ? $parent["curiculum"] : array();
+
+				$CVAttrs = array("competences", "mainQualification", "hasVehicle", "languages",
+								"motivation", "driverLicense", "url");
+				foreach ($CVAttrs as $att) {
+					if(@$params[$att]) 
+					$cv["skills"][$att] = @$params[$att];
+				}
+				$res[] = self::updateField($collection, $id, "curiculum", $cv);
+				//var_dump($params);
+			}else if($block == "curiculum.lifepath"){
+				$parent = Element::getByTypeAndId($params["typeElement"], $params["id"]);
+				$cv = @$parent["curiculum"] ? $parent["curiculum"] : array();
+				$indexLP = @$cv["lifepath"] ? sizeof($cv["lifepath"]) : 0;
+				
+				$CVAttrs = array("title", "description", "startDate", "endDate",
+								"location");
+				foreach ($CVAttrs as $att) {
+					if(@$params[$att]) 
+					$cv["lifepath"][$indexLP][$att] = @$params[$att];
+				}
+				$res[] = self::updateField($collection, $id, "curiculum", $cv);
+				//var_dump($params);
 			}
 
 			if(Import::isUncomplete($id, $collection)){

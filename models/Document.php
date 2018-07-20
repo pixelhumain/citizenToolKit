@@ -111,6 +111,8 @@ class Document {
 	    	$new["doctype"]=Document::getDoctype($params['name']);
 	    if(@$params["crop"])
 	    	$new["crop"]=$params["crop"];
+	    if(@$params["keySurvey"])
+	    	$new["keySurvey"]=$params["keySurvey"];
 
 	    //if item exists
 	    //if( PHDB::count($new['type'],array("_id"=>new MongoId($new['id']))) > 0 ){
@@ -149,17 +151,17 @@ class Document {
 		    }
 	    }
 
-		//}
-	    if(isset($params["category"]) && !empty($params["category"]))
+	    if( isset($params["category"]) && !empty($params["category"]) )
 	    	$new["category"] = $params["category"];
-	    if($new["contentKey"]==self::IMG_BANNER || $new["contentKey"]==self::IMG_PROFIL){
-	    	PHDB::update(self::COLLECTION,
-	    		array("id"=>$new["id"],"type"=>$new["type"],"contentKey"=>$new["contentKey"],
-	    			"current"=>array('$exists'=>true)),
-	    		array('$unset'=>array("current"=>true))
-	    		);
+
+	    if( $new["contentKey"]==self::IMG_BANNER || $new["contentKey"]==self::IMG_PROFIL ){
+	    	PHDB::update( self::COLLECTION,
+	    		array("id" => $new["id"], "type" => $new["type"], "contentKey" => $new["contentKey"],
+	    			"current" => array('$exists'=>true)),
+	    		array('$unset'=>array("current"=>true) ) );
 	    	$new["current"]=true;
 	    }
+
 	    PHDB::insert(self::COLLECTION, $new);
 	    if($new["doctype"]==self::DOC_TYPE_IMAGE){
 		    if (substr_count(@$new["contentKey"], self::IMG_BANNER)) {
@@ -177,7 +179,7 @@ class Document {
 			   	self::generateAlbumImages($new);
 			    //Generate image profil if necessary
 			    if (substr_count(@$new["contentKey"], self::IMG_PROFIL)) {
-			    	self::generateProfilImages($new);
+			    	$src=self::generateProfilImages($new);
 			    	$typeNotif="profilImage";
 			    }
 			    if (substr_count(@$new["contentKey"], self::IMG_SLIDER)) {
@@ -187,7 +189,8 @@ class Document {
 			}
 		}
 	   //Notification::constructNotification(ActStr::VERB_ADD, array("id" => Yii::app()->session["userId"],"name"=> Yii::app()->session["user"]["name"]), array("type"=>$new["type"],"id"=> $new["id"]), null, $typeNotif);
-	    return array("result"=>true, "msg"=>Yii::t('document','Document saved successfully'), "id"=>$new["_id"],"name"=>$new["name"],"src"=>@$src);	
+		$survey=(@$new["keySurvey"]) ? $new["keySurvey"] : false;
+	    return array( "result"=>true, "msg"=>Yii::t('document','Document saved successfully'), "id"=>$new["_id"],"name"=>$new["name"],"src"=>@$src, "survey"=>$survey);	
 	}
 	
 	
@@ -826,7 +829,7 @@ class Document {
 		}
         //Remove the bck directory
         CFileHelper::removeDirectory($upload_dir."bck");
-        return array("result" => true, "msg" => "Thumb and markers have been generated");
+        return array("result" => true, "msg" => "Thumb and markers have been generated","changes"=>$changes);
 	}
 
 	// Resize initial image for album size 
@@ -1053,7 +1056,11 @@ class Document {
 					$marker = "";
 				} 
 
-				PHDB::update($type, array("_id" => new MongoId($id)), array('$set' => array("profilImageUrl" => $profil, "profilThumbImageUrl" => $profilThumb, "profilMarkerImageUrl" =>  $marker,"profilMediumImageUrl" =>  $profilMedium)));
+				PHDB::update($type, array("_id" => new MongoId($id)), 
+								    array('$set' => array("profilImageUrl" => $profil, 
+								    					  "profilThumbImageUrl" => $profilThumb, 
+								    					  "profilMarkerImageUrl" =>  $marker,
+								    					  "profilMediumImageUrl" =>  $profilMedium)));
 				error_log("Add Profil image url for the ".$type." with the id ".$id);
 			}
 			
@@ -1129,7 +1136,7 @@ class Document {
 			//$file = file_get_contents($pathFile.$nameFile, FILE_USE_INCLUDE_PATH);
 			//$file = self::urlGetContents($pathFile.$nameFile);
 			$file = self::urlGetContents($urlFile);
-			$res = self::checkFileRequirements($file["file"], $dir, $folder, $ownerId, $input, null, null, $nameFile, $file["size"] );
+			$res = self::checkFileRequirements($file["file"], $dir, $folder, $ownerId, $input, null, null, null, null, $nameFile, $file["size"] );
 			if ($res["result"]) {
 				$res = self::uploadDocument($file, $res["uploadDir"], $input, $rename, $nameFile, $file["size"]);
 			}
@@ -1177,7 +1184,7 @@ class Document {
 	 * @param type|null $sizeUrl The size of the file (not mandatory : could be retrieve from the file when it's not an URL file)
 	 * @return array result => boolean, msg => String, uploadDir => where the file is stored
 	 */
-	public static function checkFileRequirements($file, $dir, $folder, $ownerId, $input, $contentKey=null, $docType=null,$nameUrl = null, $sizeUrl=null) {
+	public static function checkFileRequirements($file, $dir, $folder, $ownerId, $input, $contentKey=null, $docType=null, $subDir=null, $keySurvey=null, $nameUrl = null, $sizeUrl=null) {
 		//TODO SBAR
 		//$dir devrait être calculé : sinon on peut facilement enregistrer des fichiers n'importe où
 		$upload_dir = Yii::app()->params['uploadDir'];
@@ -1205,6 +1212,21 @@ class Document {
         }
        	if( @$docType && $docType==Document::DOC_TYPE_FILE){
        		$upload_dir .= Document::GENERATED_FILE_FOLDER.'/';
+            if( !file_exists ( $upload_dir ) )
+                mkdir ( $upload_dir,0775 );
+       	}
+       	if( @$contentKey && $contentKey=="survey"){
+	        $upload_dir .= $contentKey.'/';
+            if( !file_exists ( $upload_dir ) )
+                mkdir ( $upload_dir,0775 );        
+        }
+        if(@$keySurvey){
+        	$upload_dir .= $keySurvey.'/';
+        	if( !file_exists ( $upload_dir ) )
+            	mkdir ( $upload_dir,0775 );
+        }
+       	if(@$subDir){
+       		$upload_dir .= $subDir.'/';
             if( !file_exists ( $upload_dir ) )
                 mkdir ( $upload_dir,0775 );
        	}

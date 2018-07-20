@@ -57,7 +57,6 @@ class Mail {
         Cron::save($params, $update);
     }
 
-
     public static function notifAdminNewUser($person) {
         
 
@@ -75,7 +74,7 @@ class Mail {
     		$params = array(
 	            "type" => Cron::TYPE_MAIL,
 	            "tpl"=>'notifAdminNewUser',
-	            "subject" => 'Nouvel utilisateur sur le site '.self::getAppName(),
+	            "subject" => Yii::t("mail",'New user on {website}',array("{website}"=>self::getAppName())),
 	            "from"=>Yii::app()->params['adminEmail'],
 	            "to" => Yii::app()->params['adminEmail'],
 	            "tplParams" => array(   "data"   => $data ,
@@ -99,11 +98,10 @@ class Mail {
                                     "invitorId"=>Yii::app()->session["userId"],
                                     "invitorName"=>Yii::app()->session["user"]["name"],
                                     "title" => Yii::app()->name ,
-                                   "logo" => Yii::app()->params["logoUrl"],
-                                    "logo2" => Yii::app()->params["logoUrl2"],
                                     "language" => Yii::app()->language
                                     )
         );
+        $params=self::getCustomMail($params);
         Mail::schedule($params);
     }
     public static function notifAdminNewPro($person) {
@@ -111,7 +109,7 @@ class Mail {
     	$params = array(
             "type" => Cron::TYPE_MAIL,
             "tpl"=>'notifAdminNewPro',
-            "subject" => 'Nouveau compte pro crée sur '.self::getAppName(),
+            "subject" => Yii::t("mail",'New professional account on {website}',array("{website}"=>self::getAppName())),
             "from"=>Yii::app()->params['adminEmail'],
             "to" => Yii::app()->params['adminEmail'],
             "tplParams" => array(   "person"   => $person ,
@@ -171,13 +169,12 @@ class Mail {
             "tplParams" => array(   "invitorName"   => $invitor["name"],
                                     "title" => self::getAppName() ,
                                     "invitorLogo" => @$invitor["profilThumbImageUrl"],
-                                    "logo" => Yii::app()->params["logoUrl"],
-                                    "logo2" => Yii::app()->params["logoUrl2"],
                                     "invitedUserId" => $person["_id"],
                                     "message" => $msg,
                                     "language" => Yii::app()->language )
         );
 
+        $params=self::getCustomMail($params);
         if(!empty($invitorUrl))
             $params["tplParams"]["invitorUrl"] = $invitorUrl;
         
@@ -211,14 +208,10 @@ class Mail {
             "to" => $person["email"],
             "tplParams" => array(   "invitorName"   => @$invitor["name"],
                                     "title" => self::getAppName() ,
-                                    "logo" => Yii::app()->params["logoUrl"],
-                                    "logo2" => Yii::app()->params["logoUrl2"],
-                                    //"logo"=> "/images/logo-communecter.png",
-                                    //"logo2" => "/images/logoLTxt.jpg",
                                     "invitedUserId" => $person["_id"],
                                     "language" => ( !empty($person["language"]) ? $person["language"] : "fr" ) )
         );
-
+        $params=self::getCustomMail($params);
         if(!empty($invitorUrl))
             $params["tplParams"]["invitorUrl"] = $invitorUrl;
         
@@ -296,14 +289,14 @@ class Mail {
         $params = array(
             "type" => Cron::TYPE_MAIL,
             "tpl"=>'passwordRetreive',
-            "subject" => 'Réinitialisation du mot de passe pour le site '.self::getAppName(),
+            "subject" => Yii::t("mail","Retreive your password on {website}", array("{website}"=>self::getAppName())),
             "from"=>Yii::app()->params['adminEmail'],
             "to" => $email,
             "tplParams" => array(   "pwd"   => $pwd ,
-                                    "title" => self::getAppName() ,
-                                    "logo"  => "/images/logo-communecter.png",
-                                    "logo2" => "/images/logoLTxt.jpg")
+                                    "title" => self::getAppName() 
+                                    )
         );
+        $params=self::getCustomMail($params);
         Mail::schedule($params);
     }
 
@@ -312,18 +305,16 @@ class Mail {
         $params = array(
             "type" => Cron::TYPE_MAIL,
             "tpl"=>'validation', //TODO validation should be Controller driven boolean $this->userAccountValidation 
-            "subject" => Yii::t("common","Confirm your account on ").self::getAppName(),
+            "subject" => Yii::t("mail","Confirm your account on {website}", array("{website}"=>self::getAppName())),
             "from" => Yii::app()->params['adminEmail'],
             "to" => $person["email"],
             "tplParams" => array( "user"  => $person["_id"] ,
-                                  "title" => self::getAppName() ,
-                                  "logo" => Yii::app()->params["logoUrl"],
-                                     "logo2" => Yii::app()->params["logoUrl2"]
-                                  //"urlRedirect" => Yii::app()->getRequest()->getBaseUrl(true);
+                                  "title" => self::getAppName() 
                                   ) );
+        $params=self::getCustomMail($params);
         Mail::schedule($params);
     }
-
+    //TODO QUESTION BOUBOULE => TO DELETE ... 
     public static function newEvent( $creator, $newEvent )
     {
         $params = array(
@@ -339,7 +330,7 @@ class Mail {
             );
         Mail::schedule($params);
     }
-
+    //TODO QUESTION BOUBOULE => TO DELETE ... 
     public static function newProject( $creator, $newProject )
     {
         $params = array(
@@ -355,7 +346,7 @@ class Mail {
             );
         Mail::schedule($params);
     }
-
+    //TODO QUESTION BOUBOULE => TO DELETE ... 
     public static function newOrganization( $creator,$newOrganization )
     {
         $params = array (
@@ -377,7 +368,7 @@ class Mail {
         $params = array(
             "type" => Cron::TYPE_MAIL,
             "tpl"=>'invitation',
-            "subject" => 'You have been invited to '.self::getAppName().' by '.$user["name"],
+            "subject" => Yii::t("mail", 'You have been invited to {website} by {who}', array("{website}"=>self::getAppName(),"{who}"=>$user["name"])),
             "from"=>Yii::app()->params['adminEmail'],
             "to" => $person["email"],
             "tplParams" => array(   "invitorName"   => $user["name"],
@@ -387,6 +378,8 @@ class Mail {
         );
         Mail::schedule($params);
     }
+
+    //TODO QUESTION BOUBOULE : TO DELETE OR IMPROVE PROCESS
 	/**
 	* Send an email to contact@pixelhumain.com quand quelqu'un post dans les news help and bugs	
 	* @param string $text message of user
@@ -419,17 +412,17 @@ class Mail {
            $params = array (
                 "type" => Cron::TYPE_MAIL,
                 "tpl"=>'askToBecomeAdmin',
-                "subject" => "[".self::getAppName()."] ".Yii::t("organization","A citizen ask to become ".$typeOfDemand." of")." ".$parent["name"],
+                "subject" => "[".self::getAppName()."] ".Yii::t("mail","A citizen ask to become {what} of {where}", 
+                    array("{what}"=>$typeOfDemand, "{where}"=>$parent["name"])),
                 "from"=>Yii::app()->params['adminEmail'],
                 "to" => $currentAdminEmail,
                 "tplParams" => array(  "newPendingAdmin"=> $newPendingAdmin ,
                                         "title" => self::getAppName() ,
-                                        "logo"=> Yii::app()->params["logoUrl"],
-                                        "logo2" => Yii::app()->params["logoUrl2"],
                                         "parent" => $parent,
                                         "parentType" => $parentType,
                                         "typeOfDemand"=> $typeOfDemand)
-            );   
+            );  
+            $params=self::getCustomMail($params); 
             Mail::schedule($params);
         }
     }
@@ -467,7 +460,8 @@ class Mail {
                 "parentType" => $parentType,       
                 "typeOfDemand"=> $typeOfDemand,
                 "verb"=> $verb)     
-        );   
+        );
+        $params=self::getCustomMail($params);
         Mail::schedule($params);
     }
     /**
@@ -494,21 +488,21 @@ class Mail {
         $params = array (
             "type" => Cron::TYPE_MAIL,
             "tpl"=>'confirmYouTo',
-            "subject" => "[".self::getAppName()."] ".Yii::t("mail","Confirmation to ".$verb)." ".$parent["name"],    
+            "subject" => "[".self::getAppName()."] ".Yii::t("mail","Confirmation to {what} {where}", 
+                array("{what}"=>$verb, "{where}"=>$parent["name"])),    
             "from"=>Yii::app()->params['adminEmail'],       
             "to" => $childMail["email"],     
             "tplParams" => array(  
                 "newChild"=> $child,      
                 "title" => self::getAppName() , 
-                "logo"=> Yii::app()->params["logoUrl"],
-                "logo2" => Yii::app()->params["logoUrl2"],
                 "authorName"=>Yii::app()->session["user"]["name"],   
                 "authorId" => Yii::app()->session["userId"],  
                 "parent" => $parent,       
                 "parentType" => $parentType,       
                 "typeOfDemand"=> $typeOfDemand,
                 "verb"=> $verb)     
-        );   
+        );
+        $params=self::getCustomMail($params);   
         Mail::schedule($params);
     }
     /**
@@ -535,13 +529,12 @@ class Mail {
                 "to" => $mail,     
                 "tplParams" => array(    
                     "title" => self::getAppName(), 
-                    "logo"=> Yii::app()->params["logoUrl"],
-                    "logo2" => Yii::app()->params["logoUrl2"],
                     "authorName"=>Yii::app()->session["user"]["name"],   
                     "authorId" => Yii::app()->session["userId"],  
                     "parent" => $element,       
                     "parentType" => $elementType)     
             );   
+            $params=self::getCustomMail($params);
         }
         Mail::schedule($params);
     }
@@ -743,7 +736,13 @@ class Mail {
     }   
 
     private static function getAppName() {
-        return isset(Yii::app()->params["name"]) ? Yii::app()->params["name"] : Yii::app()->name;       
+        if(@Yii::app()->session["custom"] && @Yii::app()->session["custom"]["title"])
+            $appName=Yii::app()->session["custom"]["title"];
+        else if(@Yii::app()->params["name"])
+            $appName=Yii::app()->params["name"];
+        else
+            $appName=Yii::app()->name;
+        return $appName;       
     }
 
 
@@ -784,7 +783,48 @@ class Mail {
 
 	}
 
+    public static function confirmSavingSurvey($user, $survey) {
 
+        //$languageUser = Yii::app()->language;
+        $subject = Yii::t("surveys", "{what} Your application package is well submited", array("{what}"=> "[".$survey["title"]."]"));
+        $params = array(
+            "type" => Cron::TYPE_MAIL,
+            "tpl"=>'survey.submissionSuccess',
+            "subject" => $subject,
+            "from"=>Yii::app()->params['adminEmail'],
+            "to" => $user["email"],
+            "tplParams" => array(   "title" => $survey["title"] ,
+                                    "logo" => Yii::app()->createUrl('/'.$survey["urlLogo"]),
+                                    "logo2" => Yii::app()->createUrl('/'.$survey["urlLogo"]),
+                                    "user" => $user,
+                                    "language" => Yii::app()->language,
+                                    "survey"=>$survey
+                                    )
+        );
+        Mail::schedule($params);
+    }
+
+    public static function sendNewAnswerToAdmin($email, $user, $survey) {
+
+        //$languageUser = Yii::app()->language;
+        $subject = Yii::t("surveys", "{what} A new application package is added", array("{what}"=> "[".$survey["title"]."]"));
+        $params = array(
+            "type" => Cron::TYPE_MAIL,
+            "tpl"=>'survey.newSubmission',
+            "subject" => $subject,
+            "from"=>Yii::app()->params['adminEmail'],
+            "to" => $email,
+            "tplParams" => array(   "title" => $survey["title"] ,
+                                    "logo" => Yii::app()->createUrl('/'.$survey["urlLogo"]),
+                                    "logo2" => Yii::app()->createUrl('/'.$survey["urlLogo"]),
+                                    "user" => $user,
+                                    "language" => Yii::app()->language,
+                                    "survey"=>$survey
+                                )
+        );
+        Mail::schedule($params);
+    }
+   
 	private static function getMailUpdate($mail, $tpl ) {
     	$res = PHDB::findOne( Cron::COLLECTION, array("tpl" => $tpl, "to" => $mail, "status" => Cron::STATUS_UPDATE) );
         return $res ;
@@ -831,11 +871,9 @@ class Mail {
                                 "elementType" => $parentType,
                                 "elementName" => $element["name"],
                                 "userName" => @$user["name"],
-                                "logo"=> Yii::app()->params["logoUrl"],
-                                "logo2" => Yii::app()->params["logoUrl2"],
                                 "data" => $paramTpl)
                         );
-
+                        $params=self::getCustomMail($params);
                         Mail::schedule($params, true);
                     }
                 }
@@ -843,11 +881,30 @@ class Mail {
         }
     }
 
+    public static function getCustomMail($params){
+        if(@Yii::app()->session["custom"] && @Yii::app()->session["custom"]["logo"]){
+            $params["tplParams"]["logo"]=Yii::app()->session["custom"]["logo"];
+            $params["tplParams"]["logo2"]="";
+            $params["tplParams"]["logoHeader"]=Yii::app()->session["custom"]["logo"];
+        }else{
+            $params["tplParams"]["logo"]=Yii::app()->params["logoUrl"];
+            $params["tplParams"]["logo2"]=Yii::app()->params["logoUrl2"];
+        }
+        if(@Yii::app()->session["custom"] && @Yii::app()->session["custom"]["title"])
+            $params["tplParams"]["title"]=Yii::app()->session["custom"]["title"];
+        if(@Yii::app()->session["custom"] && @Yii::app()->session["custom"]["url"])
+            $params["tplParams"]["url"]=Yii::app()->session["custom"]["url"];
 
-    public static function createNotification($construct, $type=null){
-       
-        
-        foreach ($construct["community"]["mails"] as $key => $value) {
+        if( @Yii::app()->session["custom"] && 
+            @Yii::app()->session["custom"]["mail"] && 
+            @Yii::app()->session["custom"]["mail"][$params["tpl"]])
+            $params["tplParams"] = array_merge($params["tplParams"], Yii::app()->session["custom"]["mail"][$params["tpl"]]);
+        return $params;
+
+    }
+    
+    public static function createParamsMails($verb, $target = null, $object = null, $author = null){
+        $paramsMail = Mail::$mailTree[$verb];
 
             if ($key != Yii::app()->session["userId"]) {
 
@@ -1072,4 +1129,29 @@ class Mail {
 		
 		return Yii::t("mail",$mail["label"], $resArray);
 	}
+
+
+    public static function bookmarkNotif($params, $userID) {
+
+        $user = Person::getSimpleUserById($userID);
+        if (!empty($user["email"])) {
+            $params = array (
+                "type" => Cron::TYPE_MAIL,
+                "tpl"=>'bookmarkNotif',
+                "subject" => "[".self::getAppName()."] - Nouvelles annonces, ".@$user["name"],
+                "from"=>Yii::app()->params['adminEmail'],
+                "to" => $user["email"],
+                "tplParams" => array(
+                    "userName" => @$user["name"],
+                    "logo"=> Yii::app()->params["logoUrl"],
+                    "logo2" => Yii::app()->params["logoUrl2"],
+                    "params" => $params,
+                    "baseUrl" => Yii::app()->getRequest()->getBaseUrl(true)."/"
+                ),
+            );
+            
+            Mail::schedule($params);
+        }
+        // }
+    }
 }

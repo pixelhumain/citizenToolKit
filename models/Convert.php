@@ -6,16 +6,17 @@ class Convert {
 		$param = array();
 		$param['typeElement'] = Event::COLLECTION;
 
-        foreach ($map as $key => $value) {
+		foreach ($map as $key => $value) {
+			$p = array("valueAttributeElt" => $value,
+						"idHeadCSV" => $key);
+			$param['infoCreateData'][]=$p ;
+			//$param['infoCreateData'][$key]["idHeadCSV"] = $key;
+		}
 
-            $param['infoCreateData'][$key]["valueAttributeElt"] = $value;
-            $param['infoCreateData'][$key]["idHeadCSV"] = $key;
-        }
+		$param['typeFile'] = 'json';
+		$param['warnings'] = false;
 
-        $param['typeFile'] = 'json';
-        $param['warnings'] = false;
-
-        return $param;
+		return $param;
 	}
 
 	public static function getCorrectUrlForOdsAndDatanova() {
@@ -63,32 +64,32 @@ class Convert {
 
 		$param = self::getPrimaryParam($map);
 
-        $param['key'] = 'convert_ods';
-        $param['nameFile'] = 'convert_ods';
-        $param['pathObject'] = 'records';
+		$param['key'] = 'convert_ods';
+		$param['nameFile'] = 'convert_ods';
+		$param['pathObject'] = 'records';
 
-        $ch = curl_init();
+		$ch = curl_init();
 
-	    curl_setopt($ch, CURLOPT_URL, $url_complete);
-	    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-	    curl_setopt($ch, CURLOPT_HEADER, 0);
+		curl_setopt($ch, CURLOPT_URL, $url_complete);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($ch, CURLOPT_HEADER, 0);
 
-	    $return = curl_exec ($ch);
-	    curl_close ($ch);
+		$return = curl_exec ($ch);
+		curl_close ($ch);
 
-        if (isset($url)) {
-        	$param['file'][0] = $return;
-        }
+		if (isset($url)) {
+			$param['file'][0] = $return;
+		}
 
-        $result = Import::previewData($param);
+		$result = Import::previewData($param);
 
-        if ($result['result'] !== false) {
+		if ($result['result'] !== false) {
 			$res = json_decode($result['elements']);
 		} else {
 			$res = [];
 		}
 
-        return $res;
+		return $res;
 	}
 
 	public static function convertEducMembreToPh($url) {
@@ -99,32 +100,32 @@ class Convert {
 
 		$param = self::getPrimaryParam($map);
 
-        $param['key'] = 'convert_educ_membre';
-        $param['nameFile'] = 'convert_educ_membre';
-        $param['pathObject'] = 'records';
+		$param['key'] = 'convert_educ_membre';
+		$param['nameFile'] = 'convert_educ_membre';
+		$param['pathObject'] = 'records';
 
 		$ch = curl_init();
 
-	    curl_setopt($ch, CURLOPT_URL, $url_complete);
-	    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-	    curl_setopt($ch, CURLOPT_HEADER, 0);
+		curl_setopt($ch, CURLOPT_URL, $url_complete);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($ch, CURLOPT_HEADER, 0);
 
-	    $return = curl_exec ($ch);
-	    curl_close ($ch);
+		$return = curl_exec ($ch);
+		curl_close ($ch);
 
-        if (isset($url)) {
-        	$param['file'][0] = $return;
-        }
+		if (isset($url)) {
+			$param['file'][0] = $return;
+		}
 
-        $result = Import::previewData($param);
+		$result = Import::previewData($param);
 
-        if ($result['result'] !== false) {
+		if ($result['result'] !== false) {
 			$res = json_decode($result['elements']);
 		} else {
 			$res = [];
 		}
 
-        return $res;
+		return $res;
 	}
 
 	public static function convertEducEcoleToPh($url) {
@@ -136,32 +137,32 @@ class Convert {
 
 		$param = self::getPrimaryParam($map);
 
-        $param['key'] = 'convert_educ_ecole';
-        $param['nameFile'] = 'convert_educ_ecole';
-        $param['pathObject'] = 'records';
+		$param['key'] = 'convert_educ_ecole';
+		$param['nameFile'] = 'convert_educ_ecole';
+		$param['pathObject'] = 'records';
 
 		$ch = curl_init();
 
-	    curl_setopt($ch, CURLOPT_URL, $url_complete);
-	    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-	    curl_setopt($ch, CURLOPT_HEADER, 0);
+		curl_setopt($ch, CURLOPT_URL, $url_complete);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($ch, CURLOPT_HEADER, 0);
 
-	    $return = curl_exec ($ch);
-	    curl_close ($ch);
+		$return = curl_exec ($ch);
+		curl_close ($ch);
 
-        if (isset($url)) {
-        	$param['file'][0] = $return;
-        }
+		if (isset($url)) {
+			$param['file'][0] = $return;
+		}
 
-        $result = Import::previewData($param);
+		$result = Import::previewData($param);
 
-        if ($result['result'] !== false) {
+		if ($result['result'] !== false) {
 			$res = json_decode($result['elements']);
 		} else {
 			$res = [];
 		}
 
-        return $res;
+		return $res;
 	}
 
 	public static function convertEducEtabToPh($url) {
@@ -174,32 +175,32 @@ class Convert {
 
 		$param = self::getPrimaryParam($map);
 
-        $param['key'] = 'convert_educ_etab';
-        $param['nameFile'] = 'convert_educ_etab';
-        $param['pathObject'] = 'records';
+		$param['key'] = 'convert_educ_etab';
+		$param['nameFile'] = 'convert_educ_etab';
+		$param['pathObject'] = 'records';
 
-        $ch = curl_init();
+		$ch = curl_init();
 
-	    curl_setopt($ch, CURLOPT_URL, $url_complete);
-	    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-	    curl_setopt($ch, CURLOPT_HEADER, 0);
+		curl_setopt($ch, CURLOPT_URL, $url_complete);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($ch, CURLOPT_HEADER, 0);
 
-	    $return = curl_exec ($ch);
-	    curl_close ($ch);
+		$return = curl_exec ($ch);
+		curl_close ($ch);
 
-        if (isset($url)) {
-        	$param['file'][0] = $return;
-        }
+		if (isset($url)) {
+			$param['file'][0] = $return;
+		}
 
-        $result = Import::previewData($param);
+		$result = Import::previewData($param);
 
-        if ($result['result'] !== false) {
+		if ($result['result'] !== false) {
 			$res = json_decode($result['elements']);
 		} else {
 			$res = [];
 		}
 
-        return $res;
+		return $res;
 
 	}
 
@@ -211,32 +212,32 @@ class Convert {
 
 		$param = self::getPrimaryParam($map);
 
-        $param['key'] = 'convert_educ_struct';
-        $param['nameFile'] = 'convert_educ_struct';
-        $param['pathObject'] = 'records';
+		$param['key'] = 'convert_educ_struct';
+		$param['nameFile'] = 'convert_educ_struct';
+		$param['pathObject'] = 'records';
 
-        $ch = curl_init();
+		$ch = curl_init();
 
-	    curl_setopt($ch, CURLOPT_URL, $url_complete);
-	    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-	    curl_setopt($ch, CURLOPT_HEADER, 0);
+		curl_setopt($ch, CURLOPT_URL, $url_complete);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($ch, CURLOPT_HEADER, 0);
 
-	    $return = curl_exec ($ch);
-	    curl_close ($ch);
+		$return = curl_exec ($ch);
+		curl_close ($ch);
 
-        if (isset($url)) {
-        	$param['file'][0] = $return;
-        }
+		if (isset($url)) {
+			$param['file'][0] = $return;
+		}
 
-        $result = Import::previewData($param);
+		$result = Import::previewData($param);
 
-        if ($result['result'] !== false) {
+		if ($result['result'] !== false) {
 			$res = json_decode($result['elements']);
 		} else {
 			$res = [];
 		}
 
-        return $res;
+		return $res;
 
 
 	}
@@ -249,33 +250,33 @@ class Convert {
 
 		$url_complete = str_replace("geofilter_polygon", "geofilter.polygon", $url_complete);
 
-        $param = self::getPrimaryParam($map);
+		$param = self::getPrimaryParam($map);
 
-        $param['key'] = 'convert_datanova';
-        $param['nameFile'] = 'convert_datanova';
-        $param['pathObject'] = 'records';
-        $ch = curl_init();
+		$param['key'] = 'convert_datanova';
+		$param['nameFile'] = 'convert_datanova';
+		$param['pathObject'] = 'records';
+		$ch = curl_init();
 
-	    curl_setopt($ch, CURLOPT_URL, $url_complete);
-	    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-	    curl_setopt($ch, CURLOPT_HEADER, 0);
+		curl_setopt($ch, CURLOPT_URL, $url_complete);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($ch, CURLOPT_HEADER, 0);
 
-	    $return = curl_exec ($ch);
-	    curl_close ($ch);
+		$return = curl_exec ($ch);
+		curl_close ($ch);
 
-        if (isset($url)) {
-        	$param['file'][0] = $return;
-        }
+		if (isset($url)) {
+			$param['file'][0] = $return;
+		}
 
-        $result = Import::previewData($param);
+		$result = Import::previewData($param);
 
-        if ($result['result'] !== false) {
+		if ($result['result'] !== false) {
 			$res = json_decode($result['elements']);
 		} else {
 			$res = [];
 		}
 
-        return $res;
+		return $res;
 
 	}
 
@@ -283,32 +284,32 @@ class Convert {
 
 		$map = TranslateOsmToPh::$mapping_element;
 
-        $param = self::getPrimaryParam($map);
+		$param = self::getPrimaryParam($map);
 
-        $param['pathObject'] = 'elements';
-        $param['nameFile'] = 'convert_osm';
-        $param['key'] = 'convert_osm';
+		$param['pathObject'] = 'elements';
+		$param['nameFile'] = 'convert_osm';
+		$param['key'] = 'convert_osm';
 
-        $pos = strpos($url, "=");
+		$pos = strpos($url, "=");
 
 		$url_head = substr($url, 0, ($pos+1));
 		$url_param = substr($url, ($pos+1));
 
 		$url_osm = $url_head . urlencode($url_param);
 
-        if (isset($url_osm)) {
-        	$param['file'][0] = file_get_contents($url_osm);
-        }
+		if (isset($url_osm)) {
+			$param['file'][0] = file_get_contents($url_osm);
+		}
 
-        $result = Import::previewData($param);
+		$result = Import::previewData($param);
 
-        if ($result['result'] !== false) {
+		if ($result['result'] !== false) {
 			$res = json_decode($result['elements']);
 		} else {
 			$res = [];
 		}
 
-        return $res;
+		return $res;
 	}
 
 	public static function convertDatagouvToPh($url) {
@@ -318,9 +319,9 @@ class Convert {
 		$map = TranslateDatagouvToPh::$mapping_datasets;
 		$param = self::getPrimaryParam($map);
 
-        $param['typeFile'] = 'json';
-        $param['key'] = 'convert_datagouv';
-        $param['nameFile'] = 'convert_datagouv';
+		$param['typeFile'] = 'json';
+		$param['key'] = 'convert_datagouv';
+		$param['nameFile'] = 'convert_datagouv';
 		$list_dataset = json_decode(file_get_contents($url), true);
 
 		foreach ($list_dataset as $key => $value) {
@@ -341,7 +342,7 @@ class Convert {
 			$res = [];
 		}
 
-        return $res;
+		return $res;
 	}
 
 	public static function convertWikiToPh($url, $text_filter) {
@@ -350,74 +351,71 @@ class Convert {
 
 		$map = TranslateWikiToPh::$mapping_element;
 
-        $param = self::getPrimaryParam($map);
+		$param = self::getPrimaryParam($map);
 
-        $param['key'] = 'convert_wiki';
-        $param['nameFile'] = 'convert_wiki';
+		$param['key'] = 'convert_wiki';
+		$param['nameFile'] = 'convert_wiki';
 
-        $wikidata_page_city = json_decode(file_get_contents($url), true);
+		$wikidata_page_city = json_decode(file_get_contents($url), true);
 
-        $pos_wikidataID = strrpos($url, "Q");
+		$pos_wikidataID = strrpos($url, "Q");
 
-        $wikidataID = substr($url, $pos_wikidataID);
-        $wikidataID = substr($wikidataID, 0, strpos($wikidataID, "."));
+		$wikidataID = substr($url, $pos_wikidataID);
+		$wikidataID = substr($wikidataID, 0, strpos($wikidataID, "."));
 
-        $label_dbpedia = $wikidata_page_city["entities"][$wikidataID]["sitelinks"]["frwiki"]["title"];
+		$label_dbpedia = $wikidata_page_city["entities"][$wikidataID]["sitelinks"]["frwiki"]["title"];
 
-        // $url_wikipedia = "https://fr.wikipedia.org/wiki/".str_replace(" ", "_", $label_dbpedia);
-        // var_dump($url_wikipedia);
+		// $url_wikipedia = "https://fr.wikipedia.org/wiki/".str_replace(" ", "_", $label_dbpedia);
+		// var_dump($url_wikipedia);
 
-        $wikidata_article = json_decode(file_get_contents("https://query.wikidata.org/sparql?format=json&query=SELECT%20DISTINCT%20%3Fitem%20%3FitemLabel%20%3FitemDescription%20%3Fcoor%20%3Frange%20WHERE%20{%0A%20%3Fitem%20wdt%3AP131%20wd%3A".$wikidataID.".%0A%20%3Fitem%20%3Frange%20wd%3A".$wikidataID.".%0A%20%3Fitem%20wdt%3AP625%20%3Fcoor.%0A%20SERVICE%20wikibase%3Alabel%20{%20bd%3AserviceParam%20wikibase%3Alanguage%20%22fr%22.%20}%0A}"), true);
+		$wikidata_article = json_decode(file_get_contents("https://query.wikidata.org/sparql?format=json&query=SELECT%20DISTINCT%20%3Fitem%20%3FitemLabel%20%3FitemDescription%20%3Fcoor%20%3Frange%20WHERE%20{%0A%20%3Fitem%20wdt%3AP131%20wd%3A".$wikidataID.".%0A%20%3Fitem%20%3Frange%20wd%3A".$wikidataID.".%0A%20%3Fitem%20wdt%3AP625%20%3Fcoor.%0A%20SERVICE%20wikibase%3Alabel%20{%20bd%3AserviceParam%20wikibase%3Alanguage%20%22fr%22.%20}%0A}"), true);
 
-        $key_wikidata_item = 0;
+		$key_wikidata_item = 0;
 
-        foreach ($wikidata_article['results']['bindings'] as $key => $value) {
+		foreach ($wikidata_article['results']['bindings'] as $key => $value) {
 
-        	if ($text_filter !== null) {
+			if ($text_filter !== null) {
 
-        		if(stristr($value['itemLabel']['value'], $text_filter) == true) {
+				if(stristr($value['itemLabel']['value'], $text_filter) == true) {
 
-			    	$all_data[$key_wikidata_item] = array();
+					$all_data[$key_wikidata_item] = array();
 
-		        	if (@$value['coor']) {
-		        		$coor = self::getLatLongWikidataItem($value);
-		        		array_push($all_data[$key_wikidata_item], $value['itemLabel']['value'], $coor, $value['item']['value'], @$value['itemDescription']['value'], @$value['itemDescription']['value']);
-		        	}
-		        	$key_wikidata_item++;
+					if (@$value['coor']) {
+						$coor = self::getLatLongWikidataItem($value);
+						array_push($all_data[$key_wikidata_item], $value['itemLabel']['value'], $coor, $value['item']['value'], @$value['itemDescription']['value'], @$value['itemDescription']['value']);
+					}
+					$key_wikidata_item++;
 				}
-        	} else {
+			} else {
 
-        		$all_data[$key_wikidata_item] = array();
+				$all_data[$key_wikidata_item] = array();
 
-	        	if (@$value['coor']) {
-	        		$coor = self::getLatLongWikidataItem($value);
-	        		array_push($all_data[$key_wikidata_item], $value['itemLabel']['value'], $coor, $value['item']['value'], @$value['itemDescription']['value'], @$value['itemDescription']['value']);
-	        	}
+				if (@$value['coor']) {
+					$coor = self::getLatLongWikidataItem($value);
+					array_push($all_data[$key_wikidata_item], $value['itemLabel']['value'], $coor, $value['item']['value'], @$value['itemDescription']['value'], @$value['itemDescription']['value']);
+				}
 
-	        	$key_wikidata_item++;
-        	}        	
-        }
+				$key_wikidata_item++;
+			}        	
+		}
 
-        $param['file'][0] = json_encode($all_data);
+		$param['file'][0] = json_encode($all_data);
 
 		$result = Import::previewData($param);
 
-        if ($result['result'] !== false) {
+		if ($result['result'] !== false) {
 			$res = json_decode($result['elements']);
 		} else {
 			$res = [];
 		}
 
-        return $res;
+		return $res;
 
 	}
 
-	public static function convertPoleEmploiToPh($url, $activity_letters = null) {
-
-		//CODE POUR FORGER UN ACCESS TOKEN NECESSAIRE POUR INTEROGER L'API
-
+	public static function poleEmploi($url) {
 		$curl = curl_init();
-		 
+		
 		curl_setopt($curl, CURLOPT_URL, "https://entreprise.pole-emploi.fr/connexion/oauth2/access_token?realm=%2Fpartenaire");
 
 		curl_setopt($curl, CURLOPT_POST, true);
@@ -426,7 +424,7 @@ class Convert {
 		$token = curl_exec($curl);
 		 
 		curl_close($curl);
-
+		//echo $token; //exit;
 		$token_final = json_decode($token, true);
 
 		$curl2 = curl_init();
@@ -437,100 +435,182 @@ class Convert {
 		$url_param = substr($url, ($pos+1));
 
 		$url = $url_head . urlencode($url_param);
-
+		//var_dump($url);
 		curl_setopt($curl2, CURLOPT_URL, $url);
 		curl_setopt($curl2, CURLOPT_HTTPHEADER, array("Authorization: Bearer ".$token_final["access_token"]));
 
 		curl_setopt($curl2, CURLOPT_RETURNTRANSFER, 1);
 		$offres = curl_exec($curl2);
-		 
+		//echo $offres;  exit;
 		curl_close($curl2);
 
 		$offres_final = json_decode($offres, true);
+		return $offres_final;
+	}
 
-		$map = TranslatePoleEmploiToPh::$mapping_offres;
-
-        $param = self::getPrimaryParam($map);
-
-        $param['pathObject'] = 'records';
-        $param['key'] = 'convert_poleemploi';
-        $param['nameFile'] = 'convert_poleemploi';
-
-        $offres_array = [];
-        $offres_array['records'] = [];
-
-        if ($activity_letters == null) {
-        	foreach ($offres_final["result"]["records"] as $key => $value) {
-	        	$offres_array['records'][$key] = $value;
-	        }
-        } else {
-
-        	$letters = explode(",", $activity_letters);
-
-        	foreach ($offres_final["result"]["records"] as $key => $value) {
-
-	        	$first_letter = $value["ROME_PROFESSION_CARD_CODE"][0];
-
-	        	if (in_array($first_letter, $letters)) {
-	        		$offres_array['records'][$key] = $value;
-	        	}
-	        }
-        }
+	public static function getToken($apiName){
 		
+		// if(!empty(Yii::app()->params["token".$apiName])){
+		// 	$res = Yii::app()->params["token".$apiName];
+		// } else {
+			$res = Application::getToken($apiName);
+			if(empty($res) || (!empty($res) && ($res["expireToken"]-time()) <= 180) ){
+
+				if($apiName == "poleEmploi")
+					$res["token"] = self::poleEmploiToken();
+				
+			}
+		//}
+		return ( empty($res["token"]) ? null : $res["token"] ) ;
+	}
+//Yii::app()->params["poleEmploi"]["client_id"]
+	public static function poleEmploiToken() {
+		$curl = curl_init();
+		curl_setopt($curl, CURLOPT_URL, "https://entreprise.pole-emploi.fr/connexion/oauth2/access_token?realm=%2Fpartenaire");
+		curl_setopt($curl, CURLOPT_POST, true);
+		// curl_setopt($curl, CURLOPT_POSTFIELDS, "grant_type=client_credentials&client_id=PAR_communectertest_c46ea89b19688d7d3364badae07f308f722f83b0cd9bd040ecc5a468c6f1d07a&client_secret=de3f5d98dcefef02d98c239b3973878320ec7815005dff553afc35ae067f3dc9&scope=application_PAR_communectertest_c46ea89b19688d7d3364badae07f308f722f83b0cd9bd040ecc5a468c6f1d07a api_offresdemploiv1 o2dsoffre api_infotravailv1");
+		//var_dump(Yii::app()->params["poleEmploi"]["client_secret"]);
+		curl_setopt($curl, CURLOPT_POSTFIELDS, "grant_type=client_credentials&client_id=".Yii::app()->params["poleEmploi"]["client_id"]."&client_secret=".Yii::app()->params["poleEmploi"]["client_secret"]."&scope=".Yii::app()->params["poleEmploi"]["scope"]);
+		curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+		$token = curl_exec($curl);
+		$token_final = json_decode($token, true);
+		Application::saveToken("poleEmploi", $token_final);
+		curl_close($curl);
+		return $token_final ;
+	}
+
+
+	public static function poleEmploi2($url, $params) {
+
+		
+			// $curl = curl_init();
+			// curl_setopt($curl, CURLOPT_URL, "https://entreprise.pole-emploi.fr/connexion/oauth2/access_token?realm=%2Fpartenaire");
+			// curl_setopt($curl, CURLOPT_POST, true);
+			// curl_setopt($curl, CURLOPT_POSTFIELDS, "grant_type=client_credentials&client_id=PAR_communectertest_c46ea89b19688d7d3364badae07f308f722f83b0cd9bd040ecc5a468c6f1d07a&client_secret=de3f5d98dcefef02d98c239b3973878320ec7815005dff553afc35ae067f3dc9&scope=application_PAR_communectertest_c46ea89b19688d7d3364badae07f308f722f83b0cd9bd040ecc5a468c6f1d07a api_offresdemploiv1 o2dsoffre api_infotravailv1"); 
+			// curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+			// $token = curl_exec($curl);
+			// $token_final = json_decode($token, true);
+			// curl_close($curl);
+		
+		
+		$token_final = self::getToken("poleEmploi") ;
+		
+		$res = array(	"httpCode" => "0",
+						"result" => array(),
+						"token" => $token_final );
+
+		if(!empty($token_final) && !empty($token_final["access_token"])){
+			$curl2 = curl_init();
+			curl_setopt($curl2, CURLOPT_URL, $url);
+			curl_setopt($curl2, CURLOPT_HTTPHEADER, 
+				array(	'Authorization: Bearer '.$token_final["access_token"], 
+						'Content-type: application/json'));
+			curl_setopt($curl2, CURLOPT_POST, true);
+			$dataCurl = json_encode($params);
+			curl_setopt($curl2, CURLOPT_POSTFIELDS, $dataCurl);
+			curl_setopt($curl2, CURLOPT_RETURNTRANSFER, 1);
+			$offres = curl_exec($curl2);
+			$res = array(	"httpCode" => curl_getinfo ( $curl2, CURLINFO_HTTP_CODE  ),
+							"result" => $offres,
+							"token" => $token_final );
+			// 
+			// echo curl_getinfo ( $curl2, CURLINFO_HTTP_CODE  )."<br/>"; 
+			// // echo curl_getinfo ( $curl2, CURLINFO_EFFECTIVE_URL  )."<br/>"; 
+			// // echo curl_getinfo ( $curl2, CURLINFO_HEADER_OUT  )."<br/>";
+			// // exit ;
+			// echo $offres;  exit;
+			curl_close($curl2);
+		}
+		return $res;
+	}
+
+	public static function convertPoleEmploiToPh($url, $params= array(), $activity_letters = null) {
+
+		if(empty($params)){
+			$params = array(	
+						'technicalParameters' => array(
+							'page'=>1,
+							'per_page'=>20,
+							'sort'=>1) );
+		}
+			
+		$resPoleEmploie = self::poleEmploi2($url, $params);
+		//var_dump($resPoleEmploie);
+		if($resPoleEmploie["httpCode"] == "200"){
+			$offres_final = json_decode($resPoleEmploie["result"], true);
+			$map = TranslatePoleEmploiToPh::$mapping_offres;
+
+			$param = self::getPrimaryParam($map);
+
+			$param['pathObject'] = '';
+			$param['key'] = 'convert_poleemploi';
+			$param['nameFile'] = 'convert_poleemploi';
+
+			$offres_array = [];
+			$offres_array['records'] = [];
+			
+			if (isset($url) && !empty($offres_final["results"])) {
+				$param['file'][0] = json_encode($offres_final["results"]);
+			}
+			//var_dump($param);
+			$result = Import::previewData($param, true);
+			$result["count"] = $offres_final["technicalParameters"]["totalNumber"];
+			//var_dump($result);
+			if ($result['result'] !== false)
+				$result['elements'] = json_decode($result['elements']);
+			// } else {
+			// 	$res = [];
+			// }
+		}else{
+			$result['result'] = false;
+			$result['msg'] = "Il y a un soucis avec l'api du site Pole Emploi. Veuillez rééssayer dans quelque instant";
+			$result['return'] = $resPoleEmploie;
+			$result['data'] = $resPoleEmploie["result"];
+		}
+		
+
+		return $result;
+	}
+
+	public static function ConvertValueFlowsToPh($url) {
+
+		$map = TranslateValueFlowsToPh::$mapping_valueflows;
+
+		$param = self::getPrimaryParam($map);
+
+		$param['nameFile'] = 'convert_valueflows';
+		$param['key'] = 'convert_valueflows';
+
 		if (isset($url)) {
-        	$param['file'][0] = json_encode($offres_array);
-        }
+			$param['file'][0] = file_get_contents($url);
+		}
 
-        $result = Import::previewData($param);
+		$result = Import::previewData($param);
 
-        if ($result['result'] !== false) {
+		if ($result['result'] !== false) {
 			$res = json_decode($result['elements']);
 		} else {
 			$res = [];
 		}
 
-        return $res;
-    }
+		return $res;
+	}
 
-    public static function ConvertValueFlowsToPh($url) {
+	public static function ConvertOrgancityToPh($url) {
 
-    	$map = TranslateValueFlowsToPh::$mapping_valueflows;
+		$map = TranslateOrgancityToPh::$mapping_organcity;
+		$param = self::getPrimaryParam($map);
 
-        $param = self::getPrimaryParam($map);
+		$param['nameFile'] = 'convert_organcity';
+		$param['key'] = 'convert_organcity';
 
-        $param['nameFile'] = 'convert_valueflows';
-        $param['key'] = 'convert_valueflows';
-
-        if (isset($url)) {
-        	$param['file'][0] = file_get_contents($url);
-        }
-
-        $result = Import::previewData($param);
-
-        if ($result['result'] !== false) {
-			$res = json_decode($result['elements']);
-		} else {
-			$res = [];
+		if (isset($url)) {
+			$param['file'][0] = file_get_contents($url);
 		}
 
-        return $res;
-    }
+		$result = Import::previewData($param);
 
-    public static function ConvertOrgancityToPh($url) {
-
-    	$map = TranslateOrgancityToPh::$mapping_organcity;
-        $param = self::getPrimaryParam($map);
-
-        $param['nameFile'] = 'convert_organcity';
-        $param['key'] = 'convert_organcity';
-
-        if (isset($url)) {
-        	$param['file'][0] = file_get_contents($url);
-        }
-
-        $result = Import::previewData($param);
-
-        var_dump($result);
+		var_dump($result);
 
   //       if ($result['result'] !== false) {
 		// 	$res = json_decode($result['elements']);
@@ -539,7 +619,7 @@ class Convert {
 		// }
 
   //       return $res;
-    }
+	}
 
 	public static function getLatLongWikidataItem($wikidata_item) {
 
@@ -560,17 +640,17 @@ class Convert {
 		$res = array();
 
 		if (!empty($url)) {
-        	$data = SIG::getUrl($url);
-        	$data = json_decode($data, true);
-        }
+			$data = SIG::getUrl($url);
+			$data = json_decode($data, true);
+		}
 
-        //$res = $url ;
+		//$res = $url ;
 
 		$map = TranslateGogoCarto::$dataBinding_network;
 		//var_dump($map);
 		//foreach ($data["data"] as $key => $value) {
 			 // var_dump($value);
-    //     		echo "<br/>";
+	//     		echo "<br/>";
 			//$res[] = Translate::convert($value , $map);
 		//}
 
@@ -583,9 +663,9 @@ class Convert {
   //       $param['key'] = 'convert_wiki';
   //       $param['nameFile'] = 'convert_wiki';
 
-        
-       
-        return $result;
+		
+	   
+		return $result;
 
 	}
 }

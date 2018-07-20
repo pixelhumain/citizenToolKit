@@ -64,15 +64,21 @@ class GetDataDetailAction extends CAction {
 
 				foreach (array_reverse($element["links"]["events"]) as $keyEv => $valueEv) {
 					 $event = Event::getSimpleEventById($keyEv);
-					 if(!empty($event))
+					 if(!empty($event) && 
+					 	(Preference::isPublicElement(@$event["preferences"]) 
+						|| Authorisation::canSeePrivateElement(@$event["links"], Event::COLLECTION, $keyEv, $event["creator"], @$type, @$id))){
 					 	$contextMap[$keyEv] = $event;
+					 }
 				}
 			}
 			if(isset($element["links"]["subEvents"])){
 				foreach (array_reverse($element["links"]["subEvents"]) as $keyEv => $valueEv) {
 					$event = Event::getSimpleEventById($keyEv);
-					if(!empty($event))
-						$contextMap[$keyEv] = $event;
+					if(!empty($event)&& 
+					 	(Preference::isPublicElement(@$event["preferences"]) 
+						|| Authorisation::canSeePrivateElement(@$event["links"], Event::COLLECTION, $keyEv, $event["creator"], @$type, @$id))){
+					 	$contextMap[$keyEv] = $event;
+					 }
 				}
 
 			}
@@ -82,9 +88,12 @@ class GetDataDetailAction extends CAction {
 			if(isset($element["links"]["projects"]))
 			foreach ($element["links"]["projects"] as $keyProj => $valueProj) {
 				$project = Project::getPublicData($keyProj);
-				$project["type"] = "projects";
-				$project["typeSig"] = Project::COLLECTION;
-           		$contextMap[$keyProj] = $project;
+				if(Preference::isPublicElement(@$project["preferences"]) 
+					|| Authorisation::canSeePrivateElement($project["links"], Project::COLLECTION, $keyProj, $project["creator"], @$type, @$id)){
+					$project["type"] = "projects";
+					$project["typeSig"] = Project::COLLECTION;
+	           		$contextMap[$keyProj] = $project;
+           		}
 			}
 		}
 		if($dataName == "organizations"){
@@ -98,12 +107,13 @@ class GetDataDetailAction extends CAction {
 			}
 		}
 
-		if($dataName == "classifieds" || $dataName == "ressources"){
-			$col = ($dataName == "ressources") ? Ressource::COLLECTION : Classified::COLLECTION;
-			$contextMap = Element::getByIdAndTypeOfParent( $col , $id, $type, array("updated"=>-1));
+		if($dataName == "classifieds" || $dataName == "ressources" || $dataName == "jobs"){
+			$col = Classified::COLLECTION;
+			$contextMap = Element::getByIdAndTypeOfParent( $col , $id, $type, array("updated"=>-1), array("type"=>$dataName));
 			foreach ($contextMap as $key => $value) {
-				$contextMap[$key]["category"] = @$value["type"];
+				$contextMap[$key]["typeClassified"] = @$value["type"];
 				$contextMap[$key]["type"] = $col;
+				$contextMap[$key]["typeClassified"] = $dataName;
 				$contextMap[$key]["typeSig"] = $col;
 			}
 		}
