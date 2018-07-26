@@ -270,6 +270,21 @@ class Organization {
 			}
 			
 		}
+		if( !empty($organization["parentType"]) && 
+			!empty($organization["parentId"]) && 
+			!empty($organization["source"]) &&
+			!empty($organization["source"]["insertOrign"]) &&
+			$organization["source"]["insertOrign"] == "network"){
+
+			//var_dump("ddsdsq");
+			$child = array();
+			$child[] = array( 	"childId" => $newOrganizationId,
+								"childType" => Organization::COLLECTION,
+								"childName" => $organization["name"],
+								"roles"=> array() );
+			Link::multiconnect($child, $organization["parentId"], $organization["parentType"]);
+			//var_dump($pepe);
+		}
 
 	    //send Notification Email
 	    $creator = Person::getById($creatorId);
