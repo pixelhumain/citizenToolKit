@@ -60,6 +60,7 @@ class Notification{
 					"labelRepeat"=>"{who} want to administrate {where}"
 				)
 			),
+			"tpl" => "askToBecomeAdmin",
 			"labelArray" => array("who","where"),
 			"context" => "admin",
 			"settings"=>"high",
@@ -94,9 +95,9 @@ class Notification{
 			"repeat" => true,
 			//"context" => "members",
 			"settings"=>"high",
-			"mail" => array(
-				"tpl"=>"join"
-			),
+			// "mail" => array(
+			// 	"tpl"=>"join"
+			// ),
 			"type" => array(
 				"asMember"=> array(
 					Event::COLLECTION => array(
@@ -487,6 +488,7 @@ class Notification{
 		ActStr::VERB_INVITE => array(
 			"repeat" => true,
 			"notifyUser" => true,
+			"tpl" => "invitation",
 			"type" => array(
 				"asMember" => array(
 					"to"=> "members",
@@ -510,10 +512,10 @@ class Notification{
 			"labelArray" => array("author","who","where"),
 			"context" => "admin",
 			"settings"=> "high",
-			"mail" => array(
-				"type"=>"instantly",
-				"to" => "user"
-			),
+			// "mail" => array(
+			// 	"type"=>"instantly",
+			// 	"to" => "user"
+			// ),
 			"icon" => "fa-send",
 			"url" => "page/type/{collection}/id/{id}"
 		),
@@ -531,7 +533,7 @@ class Notification{
 				"asMember" => array(
 					"to"=> "members",
 					"label"=>"{author} confirmed {who} to join {where}",
-					"labelRepeat"=>"{author} confirmed {who} to join {where}"
+					"labelRepeat"=>"{author} confirmed {who} to join {where}",
 				),
 				"asAdmin" => array(
 					"to"=> "members",
@@ -540,7 +542,8 @@ class Notification{
 				),
 				"user" => array(
 					"asMember" => array(
-						"label"=>"{author} confirmed your request to join {where}"
+						"label"=>"{author} confirmed your request to join {where}",
+						"tpl" => "confirmYouTo"
 					),
 					"asAdmin" => array(
 						"label"=>"{author} confirmed your request to administrate {where}"

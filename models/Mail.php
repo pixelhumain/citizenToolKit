@@ -902,6 +902,55 @@ class Mail {
         return $params;
 
     }
+
+    public static function createNotification($construct, $tpl=null){
+       
+        
+        foreach ($construct["community"]["mails"] as $key => $value) {
+            // if ($key != Yii::app()->session["userId"]) {
+            //     $member = Element::getElementById( $key, Person::COLLECTION, null, array("email","preferences") );
+              
+            //     if (!empty($member["email"]) ) {
+                    
+                    //$mail = Mail::getMailUpdate($member["email"], 'notification') ;
+
+                // TODO Rapha
+                // géré les tpl et le count ++ mail 
+                if(@$construct["tpl"]){
+
+                } else {
+                    $mail = Mail::getMailUpdate($value, 'notification') ;
+                    if(!empty($mail)){
+                        $paramTpl = self::createParamsTpl($construct, $mail["tplParams"]["data"]);
+                        $mail["tplParams"]["data"]= $paramTpl ;
+                        PHDB::update(Cron::COLLECTION,
+                            array("_id" => $mail["_id"]) , 
+                            array('$set' => array("tplParams" => $mail["tplParams"]))           
+                        );
+                    } else {
+                        //var_dump($notificationPart);
+                        $paramTpl = self::createParamsTpl($construct, null);
+                        $params = array (
+                            "type" => Cron::TYPE_MAIL,
+                            "tpl"=>'notification',
+                            "subject" => "[".self::getAppName()."] - Il y a du nouveaux",
+                            "from"=>Yii::app()->params['adminEmail'],
+                            "to" => $value,
+                            "tplParams" => array(
+                                "logo" => Yii::app()->params["logoUrl"],
+                                "logo2" => Yii::app()->params["logoUrl2"],
+                                "data" => $paramTpl
+                            )
+                        );
+                        Mail::schedule($params, true);
+                    }
+                }
+                    
+            //     }
+            // }
+        }
+    }
+
     
     public static function createParamsMails($verb, $target = null, $object = null, $author = null){
         $paramsMail = Mail::$mailTree[$verb];
@@ -965,7 +1014,7 @@ class Mail {
             $paramTpl[$targetType] = array();
 
         if(empty($paramTpl[ $targetType ][ $targetId ])){
-
+            //TODO mettre le slug 
             $paramTpl[ $targetType ][ $targetId ] = array( "url" => Yii::app()->getRequest()->getBaseUrl(true)."/#page.type.".$targetType.".id.".$targetId,
                                                             "name" => $construct["target"]["name"]  ) ;
         }
@@ -984,8 +1033,6 @@ class Mail {
         	
         }
 
-
-        
         foreach ($construct["labelArray"] as $key => $value) {
         	$str = "";
             if("who" == $value ){
