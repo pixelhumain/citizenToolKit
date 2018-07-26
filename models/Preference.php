@@ -119,9 +119,10 @@ class Preference {
 		else if($setValue=="false"){
 			$setValue=false;
 		}
-
-		$preferences["privateFields"] = $privateFields;
-		$preferences["publicFields"] = $publicFields;
+		if(!empty($privateFields))
+			$preferences["privateFields"] = $privateFields;
+		if(!empty($publicFields))
+			$preferences["publicFields"] = $publicFields;
 		
 		if($setType == "isOpenData"){
 			$preferences["isOpenData"] = $setValue;
@@ -131,7 +132,8 @@ class Preference {
 		if($setType == "private"){
 			$preferences["private"] = $setValue;
 		}else{
-			$preferences["private"] = ((empty($context["preferences"]["private"]))?false:true);
+			if(!empty($context["preferences"]["private"]))
+				$preferences["private"] = true;
 		}
 		if($setType == "isOpenEdition"){
 			$preferences["isOpenEdition"] = $setValue;
