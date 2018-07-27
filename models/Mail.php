@@ -915,7 +915,7 @@ class Mail {
                     //$mail = Mail::getMailUpdate($member["email"], 'notification') ;
 
                 // TODO Rapha
-                // géré les tpl et le count ++ mail 
+                // géré les tpl et le count ++ mail , mail translate a ajouter dans Element::getCommunityByTypeAndId
                 if(@$construct["tpl"]){
 
                 } else {
