@@ -608,7 +608,7 @@ class Notification{
 		$impactType=Person::COLLECTION;
 		$impactRole=null;
 		if(@$construct["context"] || Event::COLLECTION){
-			$impactType=Person::COLLECTION;
+			//$impactType=Person::COLLECTION;
 			$impactRole="isAdmin";
 		}
 		$settings=array("type"=>$notificationType, "value"=>$construct["settings"]);
@@ -665,7 +665,7 @@ class Notification{
 					//echo $alreadyAuhtorNotify;
 					if($news["target"]["type"] !=Person::COLLECTION){
 						if($news["target"]["id"]){
-							$impactType="all";
+							//$impactType="all";
 							$impactRole=null;
 						}
 						$membersToNotifs = Element::getCommunityByTypeAndId($news["target"]["type"], $news["target"]["id"],$impactType, $impactRole, null, $settings);

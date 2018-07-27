@@ -919,6 +919,8 @@ class Mail {
                 if(@$construct["tpl"]){
 
                 } else {
+                    //var_dump($value);
+                    //break;
                     $mail = Mail::getMailUpdate($value["email"], 'notification') ;
                     if(!empty($mail)){
                         $paramTpl = self::createParamsTpl($construct, $mail["tplParams"]["data"]);

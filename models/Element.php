@@ -1360,29 +1360,26 @@ class Element {
 	  		$community = array();
 	  		foreach ($element["links"][Link::$linksTypes[$type][Person::COLLECTION]] as $key => $value) {
 	  			$add=false;
-	  			$searchInAttribute=false;
-		        if(!@$value["toBeValidated"] && !@$value["isInviting"]){
+	  			if(!@$value["toBeValidated"] && !@$value["isInviting"]){
 		        	
 			        $add = ($typeCommunity=="all" || $value['type'] == $typeCommunity) ? true : false;
-			        if($attribute !== null){  
+			        if($add && $attribute !== null){  
 			        	if($attribute=="isAdmin" && @$value["isAdmin"] && !@$value["isAdminPending"])
 			        		$add = (empty($role) || (!empty($role) && @$value["roles"] && in_array($role, $value["roles"]))) ? true : false;
 			        	else if($attribute=="onlyMembers" && !@$value["isAdmin"])
 			        		$add = (empty($role) || (!empty($role) && @$value["roles"] && in_array($role, $value["roles"]))) ? true : false;
 			        	else
 			        		$add=false;
-			        	$searchInAttribute=false;
+			        	//$searchInAttribute=false;
 			        }
-			        if($searchInAttribute == false && $role !== null){
+			        if($add && $role !== null){
 			        	if(@$value["roles"] && in_array($role, $value["roles"]))
 			        		$add=true;
 			        	else
 			        		$add=false;
 			        }
 
-			        if($settings !== null){
-			        	// var_dump($settings);
-			        	// var_dump($value);
+			        if($add && $settings !== null){
 			        	if(@$value[$settings["type"]]){
 			        		if($settings["value"]=="high" && $value[$settings["type"]]=="high")
 			        			$add=true;
@@ -1400,9 +1397,8 @@ class Element {
 			        		$add=false;
 			        }
 			    }
-			    //var_dump($add);
-		    	if($add){
-	        		if(@$settings && $settings["type"]=="mail")
+			  	if($add){
+		    		if(@$settings && $settings["type"]=="mail")
 	        			$res[$key]=Element::getElementSimpleById($value, Person::COLLECTION, null, array("email", "username")); 
 	        		else
 	        			$res[$key] = $value;
