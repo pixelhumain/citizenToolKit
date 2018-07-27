@@ -1398,9 +1398,9 @@ class Element {
 			        }
 			    }
 			  	if($add){
-		    		if(@$settings && $settings["type"]=="mail")
-	        			$res[$key]=Element::getElementSimpleById($value, Person::COLLECTION, null, array("email", "username")); 
-	        		else
+		    		if(@$settings && $settings["type"]=="mails"){
+	        			$res[$key]= Element::getElementSimpleById($key, Person::COLLECTION, null, array("email", "username")); 
+	        		}else
 	        			$res[$key] = $value;
 	        	}
 	  		}

@@ -905,7 +905,6 @@ class Mail {
 
     public static function createNotification($construct, $tpl=null){
        
-        
         foreach ($construct["community"]["mails"] as $key => $value) {
             // if ($key != Yii::app()->session["userId"]) {
             //     $member = Element::getElementById( $key, Person::COLLECTION, null, array("email","preferences") );
@@ -919,8 +918,6 @@ class Mail {
                 if(@$construct["tpl"]){
 
                 } else {
-                    //var_dump($value);
-                    //break;
                     $mail = Mail::getMailUpdate($value["email"], 'notification') ;
                     if(!empty($mail)){
                         $paramTpl = self::createParamsTpl($construct, $mail["tplParams"]["data"]);
