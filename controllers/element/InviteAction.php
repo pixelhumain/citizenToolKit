@@ -16,7 +16,7 @@ class InviteAction extends CAction {
             if(!empty($params["parentType"]) && $params["parentType"] != Person::COLLECTION){
                 $parent = Element::getElementById($id, $type, null, array("links", "id"));
                 $params["parentLinks"] = ( !empty($parent["links"]) ? $parent["links"] : array() );
-                $params["id"] = $parent["id"];
+                $params["id"] = $id;
             }
 
             if( !empty( Yii::app()->session["custom"] ) && !empty( Yii::app()->session["custom"]["roles"])){
