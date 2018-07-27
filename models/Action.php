@@ -175,11 +175,9 @@ class Action
                                     array("_id" => new MongoId($element["_id"])), 
                                     $params);
                     //NOTIFICATION LIKE AND DISLIKE
-                    if($action == "voteUp") 
-                       $verb = ActStr::VERB_LIKE;
-                    else if($action == "voteDown")
-                        $verb = ActStr::VERB_UNLIKE;
-
+                    if(in_array($action, ["voteUp", "voteDown"]))
+                       $verb = ActStr::VERB_REACT;
+                  
                     if(@$verb && $collection != Survey::COLLECTION){
                         $objectNotif=null;
                         if($collection==Comment::COLLECTION){

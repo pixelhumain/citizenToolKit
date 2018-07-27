@@ -928,6 +928,7 @@ class Mail {
                         );
                     } else {
                         //var_dump($notificationPart);
+                        $language=(@$value["language"]) ? $value["language"] : "fr";
                         $paramTpl = self::createParamsTpl($construct, null);
                         $params = array (
                             "type" => Cron::TYPE_MAIL,
