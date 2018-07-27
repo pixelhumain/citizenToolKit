@@ -1355,7 +1355,7 @@ class Element {
             throw new CTKException(Yii::t("common", "The id of {what} is unkown : please contact us to fix this problem", array("{what}"=>Yii::t("common","this ".self::getControlerByCollection($type)))));
         }
 	  	
-	  	if ( isset($element) && isset( $element["links"] ) && isset( $element["links"][Link::$linksTypes[$type][Person::COLLECTION]] ) ) 
+	  	if ( @$element && @$element["links"] && @$element["links"][Link::$linksTypes[$type]] && @$element["links"][Link::$linksTypes[$type][Person::COLLECTION]] ) 
 	  	{
 	  		$community = array();
 	  		foreach ($element["links"][Link::$linksTypes[$type][Person::COLLECTION]] as $key => $value) {
