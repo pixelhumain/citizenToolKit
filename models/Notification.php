@@ -605,7 +605,7 @@ class Notification{
 		//build list of people to notify
 		$type=$construct["target"]["type"];
 		$id=$construct["target"]["id"];
-		$impactType="all";
+		$impactType=Person::COLLECTION;
 		$impactRole=null;
 		if(@$construct["context"] || Event::COLLECTION){
 			$impactType=Person::COLLECTION;

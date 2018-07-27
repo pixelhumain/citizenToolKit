@@ -1402,10 +1402,9 @@ class Element {
 			    }
 			    //var_dump($add);
 		    	if($add){
-	        		if(@$settings && $settings["type"]=="mail"){
-	        			$mail=Person::getEmailById($value); 
-	        			array_push($res, $mail["email"]);
-	        		}else
+	        		if(@$settings && $settings["type"]=="mail")
+	        			$res[$key]=Element::getElementSimpleById($value, Person::COLLECTION, null, array("email", "username")); 
+	        		else
 	        			$res[$key] = $value;
 	        	}
 	  		}
