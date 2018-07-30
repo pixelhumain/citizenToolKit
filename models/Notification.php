@@ -981,7 +981,7 @@ class Notification{
 					}
 				}
 			}
-			else $userNotify=$author["id"]; // Case specific to invitation or accept proccess in a community
+			else $userNotify=$construct["author"]["id"]; // Case specific to invitation or accept proccess in a community
 
 			if($isToNotify){
 				if(gettype($userNotify)!="string")
