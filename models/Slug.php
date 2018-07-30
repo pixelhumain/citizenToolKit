@@ -23,6 +23,13 @@ class Slug {
 	public static function getBySlug($slug){
 		return PHDB::findOne(self::COLLECTION,array("name"=>$slug));
 	}
+	public static function getElementBySlug($slug){
+		$el = PHDB::findOne(self::COLLECTION,array("name"=>$slug));
+		return array( 
+			"type" => $el["type"], 
+			"id" => $el["id"],
+			"el" => Element::getByTypeAndId( $el["type"], $el["id"] ) );
+	}
 	
 	public static function check($slug,$type=null,$id=null){
 		if(!in_array($slug,["search","agenda","annonces","live", "ressources", "settings", "store", "welcome", "home", "admin", "info", "docs","default"])){
