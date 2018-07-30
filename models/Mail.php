@@ -904,7 +904,7 @@ class Mail {
     }
 
     public static function createNotification($construct, $tpl=null){
-       
+        // var_dump($construct);
         foreach ($construct["community"]["mails"] as $key => $value) {
             // if ($key != Yii::app()->session["userId"]) {
             //     $member = Element::getElementById( $key, Person::COLLECTION, null, array("email","preferences") );
@@ -1016,7 +1016,7 @@ class Mail {
         if(empty($paramTpl[ $targetType ][ $targetId ])){
             //TODO mettre le slug 
             $paramTpl[ $targetType ][ $targetId ] = array( "url" => Yii::app()->getRequest()->getBaseUrl(true)."/#page.type.".$targetType.".id.".$targetId,
-                                                            "name" => $construct["target"]["name"]  ) ;
+                                                            "name" => @$construct["target"]["name"]  ) ;
         }
 
         $paramsVerb = array() ;
@@ -1040,17 +1040,17 @@ class Mail {
             	if( !empty($construct[ "target" ]) && 
             		!empty($construct[ "target" ][ "targetIsAuthor" ]) && 
             		$construct[ "target" ][ "targetIsAuthor" ] == true )
-            		$str = $construct[ "target" ][ "name" ];
+            		$str = @$construct[ "target" ][ "name" ];
             	else if(!empty($construct[ "author" ]) ) 
-					$str = $construct[ "author" ][ "name" ];
+					$str = @$construct[ "author" ][ "name" ];
 
 				//var_dump($str); exit;
             }
             else if("where" == $value && !empty($construct[ "target" ]) ){
-                $str = $construct[ "target" ][ "name" ];
+                $str = @$construct[ "target" ][ "name" ];
             }
             else if("what" == $value && !empty($construct[ "object" ])){
-                $str = $construct[ "object" ][ "name" ];
+                $str = @$construct[ "object" ][ "name" ];
             }
 
             if(!empty($str)){
