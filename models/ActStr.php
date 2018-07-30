@@ -35,6 +35,7 @@ class ActStr {
     const VERB_AUTHORIZE = "authorize";
     const VERB_ATTEND = "attend";
     const VERB_COMMENT = "comment";
+    const VERB_REACT = "react";
     const VERB_LIKE = "like";
     const VERB_UNLIKE = "unlike";
     const VERB_MENTION = "mention";

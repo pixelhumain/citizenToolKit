@@ -89,8 +89,8 @@ class Notification{
 			"settings"=>"default",
 			"icon" => "fa-trash",
 		),
-		//// USED ONLY FOR EVENT
-		// FOR ORGANIZATRION AND PROJECT IF ONLY MEMBER
+		//// USED ONLY FOR EVENT (because there is no confirmation of admin)
+		// FOR ORGANIZATION AND PROJECT IF ONLY MEMBER
 		ActStr::VERB_JOIN => array(
 			"repeat" => true,
 			//"context" => "members",
@@ -210,7 +210,7 @@ class Notification{
 			"icon" => "fa-comment"
 			//"url" => "{whatController}/detail/id/{whatId}"
 		),
-		ActStr::VERB_LIKE => array(
+		/*ActStr::VERB_LIKE => array(
 			"repeat" => true,
 			"type" => array(
 				News::COLLECTION => array(
@@ -224,7 +224,7 @@ class Notification{
 					"parentTarget"=>true,
 					"url" => "page/type/news/id/{id}"
 				),
-				Classified::COLLECTION => array(
+				/*Classified::COLLECTION => array(
 					"label" => "{who} commented on classified {what} in {where}",
 					"labelRepeat" => "{who} added comments on classified {what} in {where}",
 					"url" => "page/type/{collection}/id/{id}",
@@ -243,7 +243,7 @@ class Notification{
 					"label" => "{who} commented on resolution {what} in {where}",
 					"labelRepeat" => "{who} added comments on resolution {what} in {where}",
 					"url" => "page/type/{collection}/id/{id}/view/coop/room/{roomId}/resolution/{objectId}"
-				),
+				//),
 				Comment::COLLECTION => array(
 					"label"=>"{who} likes your comment on {where}",
 					"labelRepeat"=>"{who} like your comment on {where}",
@@ -273,7 +273,7 @@ class Notification{
 					"parentTarget"=> true,
 					"url" => "page/type/news/id/{id}"
 				),
-				Proposal::COLLECTION => array(
+				/*Proposal::COLLECTION => array(
 					"label" => "{who} commented on proposal {what} in {where}",
 					"labelRepeat" => "{who} added comments on proposal {what} in {where}",
 					"url" => "page/type/{collection}/id/{id}/view/coop/room/{roomId}/proposal/{objectId}",
@@ -292,7 +292,7 @@ class Notification{
 					"label" => "{who} commented on resolution {what} in {where}",
 					"labelRepeat" => "{who} added comments on resolution {what} in {where}",
 					"url" => "page/type/{collection}/id/{id}/view/coop/room/{roomId}/resolution/{objectId}"
-				),
+				//),
 				Comment::COLLECTION => array(
 					"label"=>"{who} disapproves your comment on {where}",
 					"labelRepeat"=>"{who} disapproves your comment on {where}",
@@ -307,6 +307,62 @@ class Notification{
 				"to" => "author" //If orga or project to members
 			),
 			"icon" => "fa-thumbs-down"
+		),*/
+		ActStr::VERB_REACT => array(
+			"repeat" => true,
+			"type" => array(
+				News::COLLECTION => array(
+					"targetIsAuthor" => array(
+						"label"=>"{who} reacts on a news {what} from {where}",
+						"labelRepeat"=>"{who} react on a news {what} from {where}",
+						"labelMail"=>"{who} reacts on a news {what} from {where}",
+						"labelMailRepeat"=>"{who} react on a news {what} from {where}"
+					),
+					"label"=>"{who} reacts on your news {what}",
+					"labelRepeat"=>"{who} react on your news {what}",
+					"labelMail"=>"{who} reacts on your news {what}",
+					"labelMailRepeat"=>"{who} react on your news {what}",
+					
+					"notifyUser" => true,
+					"parentTarget"=> true,
+					"url" => "page/type/news/id/{id}"
+				),
+				/*Proposal::COLLECTION => array(
+					"label" => "{who} commented on proposal {what} in {where}",
+					"labelRepeat" => "{who} added comments on proposal {what} in {where}",
+					"url" => "page/type/{collection}/id/{id}/view/coop/room/{roomId}/proposal/{objectId}",
+				),
+				Classified::COLLECTION => array(
+					"label" => "{who} commented on classified {what} in {where}",
+					"labelRepeat" => "{who} added comments on classified {what} in {where}",
+					"url" => "page/type/{collection}/id/{id}",
+				),
+				Action::COLLECTION => array(
+					"label" => "{who} commented on action {what} in {where}",
+					"labelRepeat" => "{who} added comments on action {what} in {where}",
+					"url" => "page/type/{collection}/id/{id}/view/coop/room/{roomId}/action/{objectId}"
+				),
+				Resolution::COLLECTION => array(
+					"label" => "{who} commented on resolution {what} in {where}",
+					"labelRepeat" => "{who} added comments on resolution {what} in {where}",
+					"url" => "page/type/{collection}/id/{id}/view/coop/room/{roomId}/resolution/{objectId}"
+				),*/
+				Comment::COLLECTION => array(
+					"label"=>"{who} reacts on your comment on {where}",
+					"labelRepeat"=>"{who} react on your comment on {where}",
+					"labelMail"=>"{who} reacts on your comment on {where}",
+					"labelMailRepeat"=>"{who} react on your comment on {where}",
+					"url" => "targetTypeUrl",
+					"notifyUser" => true
+				)
+			),
+			"labelArray" => array("who", "where"),
+			"settings"=> "default",
+			"mail" => array(
+				"type"=>"instantly",
+				"to" => "author" //If orga or project to members
+			),
+			"icon" => "fa-heartbeat"
 		),
 		ActStr::VERB_POST => array(
 			"repeat" => true,
@@ -342,7 +398,6 @@ class Notification{
 			"labelArray" => array("who", "where"),
 			"icon" => "fa-rss"
 		),
-		// TODO BOUBOULE - ADD REPEAT ACTIONS FOR SAME TYPE ELEMENT ADDED
 		ActStr::VERB_ADD => array(
 			"type" => array(
 				/*"need"=> array(
@@ -350,23 +405,47 @@ class Notification{
 				),*/
 				Poi::COLLECTION => array(
 					"url" => "page/type/{objectType}/id/{objectId}",
-					//"label" => "{who} added a new project on {where}",
-					"labelMail" => "{who} added a new point of interest : {what}"
+					"urlRepeat"=>"page/type/{collection}/id/{id}/view/directory/dir/{objectType}",
+					"label" => "{who} added a new point of interest on {where}",
+					"labelMail" => "{who} added a new point of interest : {what}",
+					"labelRepeat" => "{who} have added ponts of interst on {where}",
+					"sameAuthor" => array(
+						"labelRepeat" => "{who} added points of interest on {where}"
+					)
 				),
 				Project::COLLECTION => array(
 					"url" => "page/type/{objectType}/id/{objectId}",
 					"label" => "{who} added a new project on {where}",
-					"labelMail" => "{who} added a new project : {what}"
+					"labelMail" => "{who} added a new project : {what}",
+					"urlRepeat"=>"page/type/{collection}/id/{id}/view/directory/dir/{objectType}",
+					"labelRepeat" => "{who} have added new projects on {where}",
+					"repeat"=>true,
+					"sameAuthor" => array(
+						"labelRepeat" => "{who} added new projects on {where}"
+					)
 				),
 				Event::COLLECTION=> array(
 					"url" => "page/type/{objectType}/id/{objectId}",
 					"label" => "{who} added a new event on {where}",
-					"labelMail" => "{who} added a new event : {what}"
+					"labelMail" => "{who} added a new event : {what}",
+					"urlRepeat"=>"page/type/{collection}/id/{id}/view/directory/dir/{objectType}",
+					"labelRepeat" => "{who} have added new events on {where}",
+					"repeat"=>true,
+					"sameAuthor" => array(
+						"labelRepeat" => "{who} added new events on {where}"
+					)
 				),
 				Classified::COLLECTION=> array(
 					"url" => "page/type/{objectType}/id/{objectId}",
 					"label" => "{who} added a new classified on {where}",
-					"labelMail" => "{who} added a new classified : {what}"
+					"labelMail" => "{who} added a new classified : {what}",
+					"urlRepeat"=>"page/type/{collection}/id/{id}/view/directory/dir/{objectType}",
+					"labelRepeat" => "{who} have added new classifieds on {where}",
+					"repeat"=>true,
+					"sameAuthor" => array(
+						"labelRepeat" => "{who} added new classifieds on {where}"
+					)
+					
 				),
 				/*ActionRoom::COLLECTION_ACTIONS=> array(
 					"url"=>"rooms/actions/id/{objectId}",
@@ -376,25 +455,40 @@ class Notification{
 					"url"=>"comment/index/type/actionRooms/id/{objectId}",
 					"label" => "{who} added a new discussion room on {where}"
 				),*/
-				ActionRoom::TYPE_VOTE => array(
+				/*ActionRoom::TYPE_VOTE => array(
 					"url"=>"survey/entries/id/{objectId}",
 					"label" => "{who} added a new voting room on {where}"
-				),
+				),*/
 				Room::COLLECTION => array(
 					"url"=>"page/type/{collection}/id/{id}/view/coop/room/{objectId}",
-					"label" => "{who} added a new room in the co-space on {where}"
+					"label" => "{who} added a new room in the co-space on {where}",
+					"labelRepeat" => "{who} added new rooms in the co-space on {where}",
+					"labelMail" => "{who} added a new room : {what}",
+					"repeat"=>true
 				),
 				Proposal::COLLECTION => array(
 					"url" => "page/type/{collection}/id/{id}/view/coop/room/{roomId}/proposal/{objectId}",
-					"label"=> "{who} added a new proposal {what} in {where}"
+					"urlRepeat"=>"page/type/{collection}/id/{id}/view/coop",
+					"label"=> "{who} added a new proposal {what} in {where}",
+					"labelMail" => "{who} added a new proposal : {what}",
+					"labelRepeat" => "{who} added few proposals in {where}",
+					"repeat"=>true
 				),
 				Action::COLLECTION => array(
 					"url" => "page/type/{collection}/id/{id}/view/coop/room/{roomId}/action/{objectId}",
-					"label" => "{who} added a new action {what} in {where}"
+					"urlRepeat"=>"page/type/{collection}/id/{id}/view/coop",
+					"label" => "{who} added a new action {what} in {where}",
+					"labelMail" => "{who} added a new action : {what}",
+					"labelRepeat" => "{who} added few actions in {where}",
+					"repeat"=>true
 				),
 				Resolution::COLLECTION => array(
 					"url" => "page/type/{collection}/id/{id}/view/coop/room/{roomId}/resolution/{objectId}",
-					"label" => "A new resolution {what} is added in {where}"
+					"label" => "A new resolution {what} is added in {where}",
+					"urlRepeat"=>"page/type/{collection}/id/{id}/view/coop",
+					"labelRepeat" => "Few resolutions {what} are in {where}",
+					"labelMail" => "The proposal {what} is resolved",
+					"repeat"=>true
 				),
 				"profilImage" => array(
 					"url" => "targetTypeUrl",
@@ -410,7 +504,10 @@ class Notification{
 					"url" => "page/type/{collection}/id/{id}/view/directory/dir/{connectAs}",
 					"label" => "{author} added {who} in the community of {where}",
 					"labelRepeat" => "{author} have added {who} in the community of {where}",
+					"labelMail" => "{author} added {who} in the community of {where}",
+					"labelMailRepeat" => "{author} have added {who} in the community of {where}",
 					"sameAuthor" => array(
+						"labelMailRepeat" => "{author} added {who} in the community of {where}",
 						"labelRepeat" => "{author} added {who} in the community of {where}"
 					),
 					"repeat" => true
@@ -472,11 +569,15 @@ class Notification{
 			"type"=>array(
 				"asMember"=>array(
 					"label" => "{who} confirmed the invitation to join {where}",
-					"labelRepeat" => "{who} have confirmed the invitation to join {where}"
+					"labelMail" => "{who} confirmed the invitation to join {where}",
+					"labelRepeat" => "{who} have confirmed the invitation to join {where}",
+					"labelMailRepeat" => "{who} have confirmed the invitation to join {where}",
 				),
 				"asAdmin"=>array(
 					"label" => "{who} confirmed the invitation to administrate {where}",
-					"labelRepeat" => "{who} have confirmed the invitation to administrate {where}"
+					"labelRepeat" => "{who} have confirmed the invitation to administrate {where}",
+					"labelMail" => "{who} confirmed the invitation to administrate {where}",
+					"labelMailRepeat" => "{who} confirmed the invitation to administrate {where}",
 				)
 			),
 			"labelArray" => array("who","where"),
@@ -493,12 +594,16 @@ class Notification{
 				"asMember" => array(
 					"to"=> "members",
 					"label"=>"{author} invited {who} to join {where}",
-					"labelRepeat"=>"{author} invited {who} to join {where}"
+					"labelRepeat"=>"{author} invited {who} to join {where}",
+					"labelMail"=>"{author} invited {who} to join {where}",
+					"labelRepeatMail"=>"{author} invited {who} to join {where}"
 				),
 				"asAdmin" => array(
 					"to"=> "members",
 					"label"=>"{author} invited {who} to administrate {where}",
-					"labelRepeat"=>"{author} invited {who} to administrate {where}"
+					"labelRepeat"=>"{author} invited {who} to administrate {where}",
+					"labelMail"=>"{author} invited {who} to administrate {where}",
+					"labelRepeatMail"=>"{author} invited {who} to administrate {where}"
 				),
 				"user" => array(
 					"asMember" => array(
@@ -605,10 +710,10 @@ class Notification{
 		//build list of people to notify
 		$type=$construct["target"]["type"];
 		$id=$construct["target"]["id"];
-		$impactType="all";
+		$impactType=Person::COLLECTION;
 		$impactRole=null;
 		if(@$construct["context"] || Event::COLLECTION){
-			$impactType=Person::COLLECTION;
+			//$impactType=Person::COLLECTION;
 			$impactRole="isAdmin";
 		}
 		$settings=array("type"=>$notificationType, "value"=>$construct["settings"]);
@@ -665,14 +770,14 @@ class Notification{
 					//echo $alreadyAuhtorNotify;
 					if($news["target"]["type"] !=Person::COLLECTION){
 						if($news["target"]["id"]){
-							$impactType="all";
+							//$impactType="all";
 							$impactRole=null;
 						}
 						$membersToNotifs = Element::getCommunityByTypeAndId($news["target"]["type"], $news["target"]["id"],$impactType, $impactRole, null, $settings);
 						$peopleMails = Element::getCommunityByTypeAndId($news["target"]["type"], $news["target"]["id"], $impactType, $impactRole, null, array("type"=>"mails", "value"=>$construct["settings"]));
 					}
 					else{
-						$notifUser=self::checkUserNotificationPreference($construct["verb"], $authorNews["author"]);
+						$notifUser=self::checkUserNotificationPreference($construct["verb"], $construct["settings"], $authorNews["author"]);
 						if(@$notifUser["notifications"] && $notifUser["notifications"])
 		 					$peopleNotifs[$authorNews["author"]] = array("isUnread" => true, "isUnseen" => true);
 		 				if(@$notifUser["email"] && !empty($notifUser["email"]))
@@ -762,57 +867,7 @@ class Notification{
 		}
 		else
 			$label = $construct["label".$repeat];
-		//return $label;
-		/*if($construct["labelUpNotifyTarget"]=="object"){
-			$memberName="";
-			if($construct["object"]){
-				if(@$construct["object"]["name"])
-					$memberName=$construct["object"]["name"];
-				else{
-					foreach($construct["object"] as $user){
-						$memberName=$user["name"];
-					}
-				}
-			}
-			$specifyLabel["{author}"] = Yii::app()->session['user']['name'];
-		}else {
-			$memberName=Yii::app()->session['user']['name'];
-		}
-
-		if($count==1){
-			$specifyLabel["{who}"] = $memberName;
-		}
-		else if($count==2){
-			foreach($notification[$construct["labelUpNotifyTarget"]] as $data){
-				$lastAuthorName=$data["name"];
-				break; 
-			}
-			$specifyLabel["{who}"] = $memberName." ".Yii::t("common","and")." ".$lastAuthorName;
-		}
-		else {
-			foreach($notification[$construct["labelUpNotifyTarget"]] as $data){
-				$lastAuthorName=$data["name"];
-				break;
-			}
-			$nbOthers = $count - 2;
-			if($nbOthers == 1) $labelUser = "person"; else $labelUser = "persons";
-			$specifyLabel["{who}"] = $memberName.", ".$lastAuthorName." ".Yii::t("common","and")." ".$nbOthers." ".Yii::t("common", $labelUser);
-		}
-		if(in_array("where",$construct["labelArray"])){
-			if(@$construct["target"]["name"])
-				$specifyLabel["{where}"] = $construct["target"]["name"];
-			else{
-				$resArray=self::getTargetInformation($construct["target"]["id"],$construct["target"]["type"], $construct["object"]);
-				$specifyLabel["{where}"] = @$resArray["{where}"];
-				if(@$resArray["{what}"])
-					$specifyLabel["{what}"]=$resArray["{what}"];
-			}
-		}
-		//if(in_array("type", $labelArray))
-		//	$specifyLabel["{type}"] = $labelArray["typeValue"];
-		if(in_array("what",$construct["labelArray"]))
-			$specifyLabel["{what}"] = @$construct["object"]["name"];
-		return Yii::t("notification",$label, $specifyLabel);*/
+		
 		return $label;
 	}
 
@@ -834,9 +889,8 @@ class Notification{
 			$memberName=Yii::app()->session['user']['name'];
 		}
 
-		//if($count==1){
 		$specifyLabel["{who}"] = [$memberName];
-		//}
+
 		if($count>1){
 			foreach($notification[$construct["labelUpNotifyTarget"]] as $data){
 				$lastAuthorName=$data["name"];
@@ -1007,13 +1061,20 @@ class Notification{
 		return Yii::t("notification",$notif["notify"]["displayName"], $resArray);
 	} 
 
-	public static function getUrlNotification($construct){
-		if(@$construct["url"])
-			$url=$construct["url"];
-		else 
-			$url=$construct["type"][$construct["levelType"]]["url"];
+	public static function getUrlNotification($construct, $urlRepeat=null){
+		if(@$urlRepeat && !empty($urlRepeat)){
+			$url=$urlRepeat;
+		}else{
+			if(@$construct["url"])
+				$url=$construct["url"];
+			else 
+				$url=$construct["type"][$construct["levelType"]]["url"];
+		}
+
 		if($url=="targetTypeUrl"){
-			if(in_array($construct["verb"],[Actstr::VERB_COMMENT, Actstr::VERB_LIKE,Actstr::VERB_UNLIKE]) && @$construct["object"] && ($construct["object"]["type"]==Proposal::COLLECTION || $construct["object"]["type"]==Action::COLLECTION || $construct["object"]["type"]==Resolution::COLLECTION))
+			if(in_array($construct["verb"],[Actstr::VERB_COMMENT, Actstr::VERB_REACT])
+				&& @$construct["object"] 
+				&& in_array($construct["object"]["type"],[Proposal::COLLECTION, Action::COLLECTION,Resolution::COLLECTION]))
 				$url=$construct["type"][$construct["object"]["type"]]["url"];
 			else
 				$url=$construct["type"][$construct["target"]["type"]]["url"];
@@ -1040,20 +1101,19 @@ class Notification{
 		}
 		return $url;
 	}
-	/* TODO BOUBOULE
-		Regarde si une notif portant sur le même type ajout comment like sur la même target existe alors:
-		=> Si n’existe pas
-			Return false
-		=> sinon
-			Check by ids si read is false
-				Remove all ids of this notif where read is false
-				Add id in resultArray notif $repeatAction 1
-			Else is true
-				Up notif and label $repeat +1 
-		Return array of ids  
+	/*************
+	* Check if a notification is already existing depending to the constructor of notification
+	*	Params always checked:
+	*		-- Same verb of notification
+	*		-- Same target
+	*		-- Check if notification is more recent than 7 days
+	*	Params with usecase
+	*		-- labelUpNotifyTarget is object (comment, react and DDA stuff
+	*			--- check if it is the author of the new action
+	*			--- accept demand of someone => check if object exist
+	*		-- The same LevelType 
+	*		-- The same object for an comment or a reaction (like/unlike)  
 	*/
-
-
 	public static function getNotificationByConstruct($construct)	{
 		$where=array("verb"=>$construct["verb"], "target.id"=>$construct["target"]["id"], "target.type"=>$construct["target"]["type"],"updated"=>array('$gte'=>new MongoDate(strtotime('-7 days', time()))));
 		if($construct["labelUpNotifyTarget"]=="object")
@@ -1064,8 +1124,7 @@ class Notification{
 			$where["notify.objectType"] = $construct["levelType"];
         else if($construct["verb"]==Actstr::VERB_POST && !@$construct["target"]["targetIsAuthor"] && !@$construct["target"]["userWall"])
 		    $where["notify.objectType"]=News::COLLECTION;
-		if($construct["object"] && !empty($construct["object"]) &&
-				 ($construct["verb"]==Actstr::VERB_COMMENT || $construct["verb"]==Actstr::VERB_LIKE|| $construct["verb"]==Actstr::VERB_UNLIKE)){
+		if($construct["object"] && !empty($construct["object"]) && in_array($construct["verb"], [Actstr::VERB_COMMENT, Actstr::VERB_REACT])){
 			$where["object.id"] = $construct["object"]["id"];
 			$where["object.type"] = $construct["object"]["type"];
 		}
@@ -1074,25 +1133,15 @@ class Notification{
 		return $notification ;
 	}
 
-	// CLEMENT : J'ai enlever $isUserNotif=false car il n'etait pas utiliser dans le code
+	
+	/**********************************
+	* This function will check if a notification respecting same params is already existed
+	* Return false if not existed
+	* Else it will update the label of the notification and parameters wanted
+	***********************************/ 
+	// BOUBOULE : J'ai enlever $isUserNotif=false car il n'etait pas utiliser dans le code
 	public static function checkIfAlreadyNotifForAnotherLink($construct)	{
-		// $where=array("verb"=>$construct["verb"], "target.id"=>$construct["target"]["id"], "target.type"=>$construct["target"]["type"],"updated"=>array('$gte'=>new MongoDate(strtotime('-7 days', time()))));
-		// if($construct["labelUpNotifyTarget"]=="object")
-		// 	$where["author.".Yii::app()->session["userId"]] = array('$exists' => true);
-		// if($construct["labelUpNotifyTarget"]=="object" && $construct["verb"]==ActStr::VERB_ACCEPT)
-		// 	$where["object"] = array('$exists' => true);
-		// if($construct["levelType"])
-		// 	$where["notify.objectType"] = $construct["levelType"];
-  //       else if($construct["verb"]==Actstr::VERB_POST && !@$construct["target"]["targetIsAuthor"] && !@$construct["target"]["userWall"])
-		//     $where["notify.objectType"]=News::COLLECTION;
-		// if($construct["object"] && !empty($construct["object"]) &&
-		// 		 ($construct["verb"]==Actstr::VERB_COMMENT || $construct["verb"]==Actstr::VERB_LIKE|| $construct["verb"]==Actstr::VERB_UNLIKE)){
-		// 	$where["object.id"] = $construct["object"]["id"];
-		// 	$where["object.type"] = $construct["object"]["type"];
-		// }
-
-		// $notification = PHDB::findOne(ActivityStream::COLLECTION, $where);
-
+		
 		$notification = self::getNotificationByConstruct($construct) ;
 
 		if(!empty($notification)){
@@ -1102,7 +1151,8 @@ class Notification{
 				return true;
 			else{
 				$countRepeat=1;
-				if($notification["verb"] == Actstr::VERB_ADD){
+				//BOUBOULE - UNDERSTAND WHY HERE
+				/*if($notification["verb"] == Actstr::VERB_ADD){
 					foreach($notification["author"] as $key => $i){
 						if($key == Yii::app()->session["userId"]){
 							$sameAuthor=true;
@@ -1110,12 +1160,21 @@ class Notification{
 							$sameAuthor=false;
 					}
 				}
+
 				foreach($notification[$construct["labelUpNotifyTarget"]] as $key => $i){
 					if(($notification["verb"] != Actstr::VERB_POST && $notification["verb"] != Actstr::VERB_COMMENT) || ($key != Yii::app()->session["userId"]))
 						$countRepeat++;
+				}*/
+				//// INSTEDA OF THIS
+				foreach($notification[$construct["labelUpNotifyTarget"]] as $key => $i){
+					if(/*($notification["verb"] != Actstr::VERB_POST && $notification["verb"] != Actstr::VERB_COMMENT) || (*/$key != Yii::app()->session["userId"])
+						$countRepeat++;
 				}
+				/// OOOOOOOOK
 				if($countRepeat==1)
 					$sameAuthor=true;
+				if(@$construct["type"][$construct["levelType"]]["urlRepeat"])
+					$newUrl=self::getUrlNotification($construct, $construct["type"][$construct["levelType"]]["urlRepeat"]);
 				// Get new Label
 				$newLabel=self::getLabelNotification($construct, null, $countRepeat, $notification, "Repeat", @$sameAuthor);
 				$arrayLabel=self::getArrayLabelNotification($construct, null, $countRepeat, $notification, "Repeat", @$sameAuthor);
@@ -1127,17 +1186,18 @@ class Notification{
 				else
 					$notification["author"][Yii::app()->session['userId']]=array("name" => Yii::app()->session['user']['name']);
 				
+				$set=array(
+					$construct["labelUpNotifyTarget"]=>$notification[$construct["labelUpNotifyTarget"]],
+					"notify.labelArray"=>$arrayLabel,
+					"notify.id" => $construct["community"]["notifications"],
+					"notify.displayName"=> $newLabel,
+					"notify.labelAuthorObject"=>$construct["labelUpNotifyTarget"],
+					"updated" => new MongoDate(time())
+				);
+				if(@$newUrl) $set["notify.url"]=$newUrl;
 				PHDB::update(ActivityStream::COLLECTION,
 					array("_id" => $notification["_id"]),
-					array('$set' => array(
-						$construct["labelUpNotifyTarget"]=>$notification[$construct["labelUpNotifyTarget"]],
-						"notify.labelArray"=>$arrayLabel,
-						"notify.id" => $construct["community"]["notifications"],
-						"notify.displayName"=> $newLabel,
-						"notify.labelAuthorObject"=>$construct["labelUpNotifyTarget"],
-						"updated" => new MongoDate(time())
-						)
-					)
+					array('$set' => $set)
 				);
 				return true;
 			}
@@ -1192,7 +1252,6 @@ class Notification{
 	* params string||array $context should be use to specify community to notify (only admin, only person, etc)
 	*/
 	public static function constructNotification($verb, $author, $target, $object = null, $levelType = null, $context = null){
-		//var_dump($author);exit;
 		$notificationPart = self::$notificationTree[$verb];
 		$notificationPart["verb"] = $verb;
 		$notificationPart["target"]=$target;
@@ -1207,36 +1266,30 @@ class Notification{
 
 
 		if(!empty($notificationPart["target"]) && empty($notificationPart["target"]["name"])){
-			$elt = Element::getElementById( $notificationPart["target"]["id"], $notificationPart["target"]["type"], null, array("name") );
-			$notificationPart["target"]["name"] = @$elt["name"];
-			$target["name"] = @$elt["name"];
+			$elt = Element::getElementById( $notificationPart["target"]["id"], $notificationPart["target"]["type"], null, array("name", "slug", "profilThumbImageUrl") );
+			$notificationPart["target"]=array_merge($notificationPart["target"],$elt);			
 		}
-		//var_dump($notificationPart["object"]); 
 		if(!empty($notificationPart["object"]) && empty($notificationPart["object"]["name"])){
-			$elt = Element::getElementById( $notificationPart["object"]["id"], $notificationPart["object"]["type"], null, array("name") );
-			//var_dump($elt); 
-			$notificationPart["object"]["name"] = @$elt["name"];
-			$object["name"] = @$elt["name"];
-
-			//var_dump($notificationPart["object"]); 
+			$elt = Element::getElementById( $notificationPart["object"]["id"], $notificationPart["object"]["type"], null, array("name", "text", "slug", "profilMediumImageUrl", "shortDescription") );
+			$notificationPart["object"]=array_merge($notificationPart["object"],$elt);
+			$object = $notificationPart["object"];
 		}
 
 		
-		//var_dump($notificationPart["object"]); 
-
+		
 		//Move labelUpToNotify in getLabel
 		$notificationPart["labelUpNotifyTarget"] = "author";
 		$notifyCommunity=true;
 		//Specific usecase for comment on proposal
-		if(in_array($verb,[Actstr::VERB_COMMENT,Actstr::VERB_LIKE,Actstr::VERB_UNLIKE]) && 
-			($target["type"]==Proposal::COLLECTION || $target["type"]==Action::COLLECTION || $target["type"]==Resolution::COLLECTION)){
+		if(in_array($verb,[Actstr::VERB_COMMENT,Actstr::VERB_REACT]) && 
+			in_array($target["type"], [Proposal::COLLECTION, Action::COLLECTION, Resolution::COLLECTION])){
 			if($target["type"]==Proposal::COLLECTION)
 				$propAct=Proposal::getById($target["id"]);
 			else if($target["type"]==Action::COLLECTION)
 				$propAct=Action::getById($target["id"]);
 			else if($target["type"]==Resolution::COLLECTION)
 				$propAct=Resolution::getById($target["id"]);
-			$notificationPart["object"]=$target;
+			$notificationPart["object"]=$notificationPart["target"];
 			$notificationPart["target"]=array("type"=>$propAct["parentType"],"id"=>$propAct["parentId"]);
 		}
 
@@ -1247,7 +1300,7 @@ class Notification{
 			$update=false;
 			$isToNotify=true;
 			// If answered on comment is the same than on the news or other don't notify twice the author of parent and comment
-			if($verb==Actstr::VERB_COMMENT || $verb==Actstr::VERB_LIKE || $verb==Actstr::VERB_UNLIKE){
+			if(in_array($verb,[Actstr::VERB_COMMENT,Actstr::VERB_REACT])){
 				if(@$notificationPart["object"] && !empty($notificationPart["object"]))
 					$notifyCommunity=false;
 				$comment=Comment::getById($object["id"]);
@@ -1274,7 +1327,6 @@ class Notification{
 						$isToNotify=false;
 					}
 				}
-
 			}else
 				$userNotify=$author["id"];
 
@@ -1284,7 +1336,7 @@ class Notification{
 				$alreadyAuhtorNotify=$userNotify;
 				$notificationPart["community"]["notifications"]=array($userNotify=>array("isUnread" => true, "isUnseen" => true));
 				if((@$notificationPart["type"][$levelType] && @$notificationPart["type"][$levelType]["repeat"])
-					|| in_array($notificationPart["verb"], array(Actstr::VERB_COMMENT,Actstr::VERB_LIKE,Actstr::VERB_UNLIKE)))
+					|| in_array($notificationPart["verb"], [Actstr::VERB_COMMENT,Actstr::VERB_REACT]))
 					$update=self::checkIfAlreadyNotifForAnotherLink($notificationPart);
 				if($update==false){
 			 	    //--------- MOVE ON GETLABEL -----------//
@@ -1299,16 +1351,9 @@ class Notification{
 			} 
 		}
 		// COnstruct notification for target
+		// Notifiy the community of an element
 		$notificationPart = self::communityToNotify($notificationPart, @$alreadyAuhtorNotify);
-		//$["community"]=$community;
-		// var_dump($notifyCommunity);
-		// var_dump($notificationPart); exit;
 		$update = false;
-
-
-		// if(!empty($notificationPart["community"]["notifications"]) && $notifyCommunity){
-		//     if(in_array("author",$notificationPart["labelArray"])){
-
 		if(!empty($notificationPart["community"]) && $notifyCommunity){
 		    if(in_array("author",$notificationPart["labelArray"]) 
 		    	&& ($notificationPart["verb"] != Actstr::VERB_ADD || (@$notificationPart["levelType"] && $notificationPart["levelType"]=="asMember"))){
@@ -1316,17 +1361,19 @@ class Notification{
 		        $notificationPart["author"] = array(Yii::app()->session["userId"]=> array("name"=> Yii::app()->session["user"]["name"]));
 		        $notificationPart["labelUpNotifyTarget"]="object";
 		    }
-		    else if($object){
-		        $notificationPart["object"]= array( "id" => $object["id"], "type" => $object["type"], "name" => @$object["name"] );
-		    }
+		    // !!!!!!!!!!!!!!! COMMENT HERE VIEW BEHAVIOR IF OBJECT IS CHANGED BEFORE !!!!!!!!!!!!! //
+		    //else if($object){
+		        //$notificationPart["object"]= array( "id" => $object["id"], "type" => $object["type"], "name" => @$notificationPart["object"]);
+		    //}
 
 		    if($notificationPart["verb"]==Actstr::VERB_COMMENT && $notificationPart["levelType"]==Comment::COLLECTION)
 		    	$notificationPart["levelType"]=$notificationPart["target"]["type"];
 
+		    //Check if the notification indicates a repeat system 
 			if( ( @$notificationPart["repeat"] && $notificationPart["repeat"] ) || 
 				( 	@$notificationPart["type"] && 
 					@$notificationPart["type"][$levelType] && 
-					@$notificationPart["type"][$levelType]["repeat"] ) ) {	
+					@$notificationPart["type"][$levelType]["repeat"] ) )
 				$update=self::checkIfAlreadyNotifForAnotherLink($notificationPart);
 				/********* MAILING PROCEDURE *********/
 				/** Update mail notification
@@ -1337,8 +1384,6 @@ class Notification{
 				* Envoie de l'email
 				**/
 				/********** END MAIL PROCEDURE ******/
-
-			}
 			
 			
 			if($update==false && !empty($notificationPart["community"]["notifications"])){

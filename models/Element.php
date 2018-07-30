@@ -1355,34 +1355,31 @@ class Element {
             throw new CTKException(Yii::t("common", "The id of {what} is unkown : please contact us to fix this problem", array("{what}"=>Yii::t("common","this ".self::getControlerByCollection($type)))));
         }
 	  	
-	  	if ( isset($element) && isset( $element["links"] ) && isset( $element["links"][Link::$linksTypes[$type][Person::COLLECTION]] ) ) 
+	  	if ( @$element && @$element["links"] && @$element["links"][Link::$linksTypes[$type]] && @$element["links"][Link::$linksTypes[$type][Person::COLLECTION]] ) 
 	  	{
 	  		$community = array();
 	  		foreach ($element["links"][Link::$linksTypes[$type][Person::COLLECTION]] as $key => $value) {
 	  			$add=false;
-	  			$searchInAttribute=false;
-		        if(!@$value["toBeValidated"] && !@$value["isInviting"]){
+	  			if(!@$value["toBeValidated"] && !@$value["isInviting"]){
 		        	
 			        $add = ($typeCommunity=="all" || $value['type'] == $typeCommunity) ? true : false;
-			        if($attribute !== null){  
+			        if($add && $attribute !== null){  
 			        	if($attribute=="isAdmin" && @$value["isAdmin"] && !@$value["isAdminPending"])
 			        		$add = (empty($role) || (!empty($role) && @$value["roles"] && in_array($role, $value["roles"]))) ? true : false;
 			        	else if($attribute=="onlyMembers" && !@$value["isAdmin"])
 			        		$add = (empty($role) || (!empty($role) && @$value["roles"] && in_array($role, $value["roles"]))) ? true : false;
 			        	else
 			        		$add=false;
-			        	$searchInAttribute=false;
+			        	//$searchInAttribute=false;
 			        }
-			        if($searchInAttribute == false && $role !== null){
+			        if($add && $role !== null){
 			        	if(@$value["roles"] && in_array($role, $value["roles"]))
 			        		$add=true;
 			        	else
 			        		$add=false;
 			        }
 
-			        if($settings !== null){
-			        	// var_dump($settings);
-			        	// var_dump($value);
+			        if($add && $settings !== null){
 			        	if(@$value[$settings["type"]]){
 			        		if($settings["value"]=="high" && $value[$settings["type"]]=="high")
 			        			$add=true;
@@ -1400,11 +1397,9 @@ class Element {
 			        		$add=false;
 			        }
 			    }
-			    //var_dump($add);
-		    	if($add){
-	        		if(@$settings && $settings["type"]=="mail"){
-	        			$mail=Person::getEmailById($value); 
-	        			array_push($res, $mail["email"]);
+			  	if($add){
+		    		if(@$settings && $settings["type"]=="mails"){
+	        			$res[$key]= Element::getElementSimpleById($key, Person::COLLECTION, null, array("email", "username", "language")); 
 	        		}else
 	        			$res[$key] = $value;
 	        	}
@@ -1945,7 +1940,7 @@ class Element {
                 	$res["afterSave"] = Network::afterSave($params, Yii::app()->session["userId"]);
 
                // echo "pas d'id - "; var_dump($postParams); exit;
-               $res["afterSaveGbl"] = self::afterSave((string)$params["_id"],$collection,$params,$postParams, Yii::app()->session["userId"], $paramsLinkImport);
+               $res["afterSaveGbl"] = self::afterSave((string)$params["_id"],$collection,$params,$postParams, $paramsLinkImport);
                 //if( false && @$params["parentType"] && @$params["parentId"] )
                 //{
                     //createdObjectAsParam($authorType, $authorId, $objectType, $objectId, $targetType, $targetId, $geo, $tags, $address, $verb="create")
@@ -1972,7 +1967,7 @@ class Element {
         return $res;
     }
 
-    public static function afterSave ($id, $collection, $params, $postParams, $creatorId, $paramsImport) {
+    public static function afterSave ($id, $collection, $params, $postParams, $paramsImport=null) {
     	$res = array();
     	
     	if( @$postParams["medias"] )
@@ -2001,11 +1996,11 @@ class Element {
 
         if (empty($paramsImport))
 			Notification::createdObjectAsParam( Person::COLLECTION, 
-												$creatorId, 
+												Yii::app()->session["userId"], 
 												$collection, 
 												$id, 
 												Person::COLLECTION, 
-												$creatorId, 
+												Yii::app()->session["userId"], 
 												( !empty($params["geo"]) ? $params["geo"] : "" ) , 
 												( !empty($params["tags"]) ? $params["tags"] : null ),
 												( ( !empty($organization["address"]) && !empty($organization["address"]["codeInsee"]) ) ? $organization["address"]["codeInsee"] : "" ) ) ;

@@ -905,7 +905,6 @@ class Mail {
 
     public static function createNotification($construct, $tpl=null){
        
-        
         foreach ($construct["community"]["mails"] as $key => $value) {
             // if ($key != Yii::app()->session["userId"]) {
             //     $member = Element::getElementById( $key, Person::COLLECTION, null, array("email","preferences") );
@@ -919,7 +918,7 @@ class Mail {
                 if(@$construct["tpl"]){
 
                 } else {
-                    $mail = Mail::getMailUpdate($value, 'notification') ;
+                    $mail = Mail::getMailUpdate($value["email"], 'notification') ;
                     if(!empty($mail)){
                         $paramTpl = self::createParamsTpl($construct, $mail["tplParams"]["data"]);
                         $mail["tplParams"]["data"]= $paramTpl ;
@@ -929,13 +928,14 @@ class Mail {
                         );
                     } else {
                         //var_dump($notificationPart);
+                        $language=(@$value["language"]) ? $value["language"] : "fr";
                         $paramTpl = self::createParamsTpl($construct, null);
                         $params = array (
                             "type" => Cron::TYPE_MAIL,
                             "tpl"=>'notification',
                             "subject" => "[".self::getAppName()."] - Il y a du nouveaux",
                             "from"=>Yii::app()->params['adminEmail'],
-                            "to" => $value,
+                            "to" => $value["email"],
                             "tplParams" => array(
                                 "logo" => Yii::app()->params["logoUrl"],
                                 "logo2" => Yii::app()->params["logoUrl2"],
@@ -952,7 +952,7 @@ class Mail {
     }
 
     
-    public static function createParamsMails($verb, $target = null, $object = null, $author = null){
+   /* public static function createParamsMails($verb, $target = null, $object = null, $author = null){
         $paramsMail = Mail::$mailTree[$verb];
 
             if ($key != Yii::app()->session["userId"]) {
@@ -995,7 +995,7 @@ class Mail {
                 }
             }
         }
-    }
+    }*/
 
     public static function createParamsTpl($construct, $paramTpl = null){
 
