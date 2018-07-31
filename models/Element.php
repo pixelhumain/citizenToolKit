@@ -1350,12 +1350,10 @@ class Element {
 	public static function getCommunityByTypeAndId($type, $id, $typeCommunity="all", $attribute=null, $role=null, $settings=null) {
 		$res = array();
 	  	$element = self::getElementSimpleById($id, $type, null, array("links"));
-	  	
 	  	if (empty($element)) {
             throw new CTKException(Yii::t("common", "The id of {what} is unkown : please contact us to fix this problem", array("{what}"=>Yii::t("common","this ".self::getControlerByCollection($type)))));
         }
-	  	
-	  	if ( @$element && @$element["links"] && @$element["links"][Link::$linksTypes[$type]] && @$element["links"][Link::$linksTypes[$type][Person::COLLECTION]] ) 
+	  	if ( @$element && @$element["links"] && @Link::$linksTypes[$type] && @$element["links"][Link::$linksTypes[$type][Person::COLLECTION]] ) 
 	  	{
 	  		$community = array();
 	  		foreach ($element["links"][Link::$linksTypes[$type][Person::COLLECTION]] as $key => $value) {
@@ -1378,7 +1376,6 @@ class Element {
 			        	else
 			        		$add=false;
 			        }
-
 			        if($add && $settings !== null){
 			        	if(@$value[$settings["type"]]){
 			        		if($settings["value"]=="high" && $value[$settings["type"]]=="high")
@@ -1398,14 +1395,13 @@ class Element {
 			        }
 			    }
 			  	if($add){
-		    		if(@$settings && $settings["type"]=="mails"){
+		    		if(@$settings && $settings["type"]=="mails")
 	        			$res[$key]= Element::getElementSimpleById($key, Person::COLLECTION, null, array("email", "username", "language")); 
-	        		}else
+	        		else
 	        			$res[$key] = $value;
 	        	}
 	  		}
 	  	}
-
 	  	return $res;
 	}
 
