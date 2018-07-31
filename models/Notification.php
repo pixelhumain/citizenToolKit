@@ -67,7 +67,7 @@ class Notification{
 			"tpl" => "askToBecomeAdmin",
 			"labelArray" => array("who","where"),
 			"context" => "admin",
-			"settings"=>"high",
+			"settings"=>"low",
 			"icon" => "fa-cog",
 			"url" => "page/type/{collection}/id/{id}/view/notifications"
 		),

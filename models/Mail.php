@@ -1083,7 +1083,7 @@ class Mail {
         $info["labelArray"] = $labelArray ;
         $info["countRepeat"] = $countRepeat ;
 
-        if($verb == ActStr::VERB_ADD){
+        if($verb == ActStr::VERB_ADD && $construct[ "levelType" ] != "asMember"){
             $info["url"] = Yii::app()->getRequest()->getBaseUrl(true)."/#page.type.".$construct[ "object" ][ "type" ].".id.".$construct[ "object" ][ "id" ] ;
             $paramTpl[ $targetType ][ $targetId ][ $verb ][] = $info ;
         }
