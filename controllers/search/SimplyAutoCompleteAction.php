@@ -148,6 +148,15 @@ class SimplyAutoCompleteAction extends CAction
 			$allRes = array_merge($allRes, Search::searchProject($query, 0, $indexMin));
 	  	}
 
+	  	//*********************************  CLASSIFIED   ******************************************
+		if(strcmp($filter, Classified::COLLECTION) != 0 && Search::typeWanted(Classified::COLLECTION, $searchType)){
+
+			if(!empty($searchTags) && in_array("favorites", $searchTags))
+				$allRes = array_merge($allRes, Search::searchFavorites(Classified::COLLECTION));
+			else 
+				$allRes = array_merge($allRes, Search::searchClassified($query, 0, $indexMin, @$priceMin, @$priceMax, @$devise));
+	  	}
+
 	  	/***********************************  CITIES   *****************************************/
         if(strcmp($filter, City::COLLECTION) != 0 && Search::typeWanted("cities", $searchType)){
 	  		$query = array( "name" => new MongoRegex("/".Search::wd_remove_accents($search)."/i"));//array('$text' => array('$search' => $search));//
