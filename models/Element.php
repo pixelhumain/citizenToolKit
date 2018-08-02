@@ -1901,7 +1901,7 @@ class Element {
     public static function afterSave ($id, $collection, $params,$postParams) {
     	$res = array();
     	
-    	if( @$postParams["medias"] )
+    	/*if( @$postParams["medias"] )
     	{
     		//create POI for medias connected to the parent
     		unset($params['_id']);
@@ -1915,7 +1915,7 @@ class Element {
     		$poiParams["urls"] = $postParams['urls'];
     		//echo "afterSave - "; var_dump($poiParams); exit;
     		$res["medias"] = self::save($poiParams);
-    	}
+    	}*/
     	// Mail reference inivite on communecter
         if(in_array($collection,[Organization::COLLECTION,Project::COLLECTION,Event::COLLECTION])){
         	if(@$params["email"] && $params["email"]!=@Yii::app()->session["userEmail"]){
