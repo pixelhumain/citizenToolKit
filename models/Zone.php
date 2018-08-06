@@ -68,7 +68,7 @@ class Zone {
 	}
 
 	public static function getLevelIdById($id, $zone=null, $type){
-		Rest::json($zone); exit ;
+		//Rest::json($zone); exit ;
 		if(empty($zone)){
 			$where = array("_id"=>new MongoId($id));
 			$fields = array("name", "level", "level1", "level1Name", "level2", "level2Name", "level3", "level3Name", "level4", "level4Name",  "", "", "", "", "", "", "");
