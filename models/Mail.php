@@ -861,6 +861,7 @@ class Mail {
                     } else {
                         $paramTpl = self::createParamsTpl($paramsMail, null);
                         // var_dump($paramTpl); exit ;
+                        
                         $params = array (
                             "type" => Cron::TYPE_MAIL,
                             "tpl"=>'mailNotif',
@@ -1090,12 +1091,14 @@ class Mail {
         // $info["labelArray"] = $labelArray ;
         // $info["countRepeat"] = $countRepeat ;
 
+
         // if($verb == ActStr::VERB_ADD){
         //     $info["url"] = Yii::app()->getRequest()->getBaseUrl(true)."/#page.type.".$construct[ "object" ][ "type" ].".id.".$construct[ "object" ][ "id" ] ;
         //     $paramTpl[ $targetType ][ $targetId ][ $verb ][] = $info ;
         // }
         // else
         //     $paramTpl[ $targetType ][ $targetId ][ $verb ] = $info ;
+
 
         $paramTpl[] = $myParam ;
         return $paramTpl ;
