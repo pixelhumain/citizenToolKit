@@ -861,7 +861,7 @@ class Mail {
                     } else {
                         $paramTpl = self::createParamsTpl($paramsMail, null);
                         // var_dump($paramTpl); exit ;
-                        
+
                         $params = array (
                             "type" => Cron::TYPE_MAIL,
                             "tpl"=>'mailNotif',
@@ -905,7 +905,7 @@ class Mail {
     }
 
     public static function createNotification($construct, $tpl=null){
-        Rest::json($construct); exit ;
+        //Rest::json($construct); exit ;
         foreach ($construct["community"]["mails"] as $key => $value) {
             // if ($key != Yii::app()->session["userId"]) {
             //     $member = Element::getElementById( $key, Person::COLLECTION, null, array("email","preferences") );
@@ -1004,7 +1004,7 @@ class Mail {
 
     	//var_dump($construct); exit ;
        
-
+        //Rest::json($construct);exit ;
         $targetType = $construct["target"]["type"];
         $targetId = $construct["target"]["id"];
         $verb = $construct["verb"];
@@ -1014,25 +1014,30 @@ class Mail {
 
 
         $myParam = array(
-            "targetType" => $targetType,
-            "targetId" => $targetId,
+            // "targetType" => $targetType,
+            // "targetId" => $targetId,
             "verb" => $verb,
             "repeat" => "Mail",
-            "url" => Yii::app()->getRequest()->getBaseUrl(true)."/#page.type.".$targetType.".id.".$targetId,
-            "name" => @$construct["target"]["name"]
+            // "url" => Yii::app()->getRequest()->getBaseUrl(true)."/#page.type.".$targetType.".id.".$targetId,
+            // "name" => @$construct["target"]["name"]
         );
 
-        // if(empty($paramTpl))
-        //     $paramTpl = array();
+        if(!empty($construct["value"]))
+            $myParam["value"] = $construct["value"];
 
-        // if(empty($paramTpl[$targetType]))
-        //     $paramTpl[$targetType] = array();
+        if(empty($paramTpl))
+            $paramTpl = array();
 
-        // if(empty($paramTpl[ $targetType ][ $targetId ])){
-        //     //TODO mettre le slug 
-        //     $paramTpl[ $targetType ][ $targetId ] = array( "url" => Yii::app()->getRequest()->getBaseUrl(true)."/#page.type.".$targetType.".id.".$targetId,
-        //                                                     "name" => @$construct["target"]["name"]  ) ;
-        // }
+        if(empty($paramTpl[$targetType]))
+            $paramTpl[$targetType] = array();
+
+        if(empty($paramTpl[ $targetType ][ $targetId ])){
+            //TODO mettre le slug 
+            $paramTpl[ $targetType ][ $targetId ] = array( "url" => Yii::app()->getRequest()->getBaseUrl(true)."/#page.type.".$targetType.".id.".$targetId,
+                                                            "name" => @$construct["target"]["name"],
+                                                            "countData" => 0,
+                                                            "data" => array() ) ;
+        }
 
         // $paramsVerb = array() ;
 
@@ -1040,55 +1045,55 @@ class Mail {
         //     $paramTpl[ $targetType ][ $targetId ][ $verb ] = array();
         // } else {
 
-        //     if($verb != ActStr::VERB_ADD){
-        //         $labelArray = $paramTpl[ $targetType ][ $targetId ][ $verb ]["labelArray"] ;
-        //         $countRepeat = $paramTpl[ $targetType ][ $targetId ][ $verb ]["countRepeat"] ;
-        //         $countRepeat++;
-        //     }
+            // if($verb != ActStr::VERB_ADD){
+            //     $labelArray = $paramTpl[ $targetType ][ $targetId ][ $verb ]["labelArray"] ;
+            //     $countRepeat = $paramTpl[ $targetType ][ $targetId ][ $verb ]["countRepeat"] ;
+            //     $countRepeat++;
+            // }
         	
-        // }
+        //}
 
-    //     foreach ($construct["labelArray"] as $key => $value) {
-    //     	$str = "";
-    //         if("who" == $value ){
-    //         	//var_dump($construct[ "target" ]);
-    //         	if( !empty($construct[ "target" ]) && 
-    //         		!empty($construct[ "target" ][ "targetIsAuthor" ]) && 
-    //         		$construct[ "target" ][ "targetIsAuthor" ] == true )
-    //         		$str = @$construct[ "target" ][ "name" ];
-    //         	else if(!empty($construct[ "author" ]) ) 
-				// 	$str = @$construct[ "author" ][ "name" ];
+        foreach ($construct["labelArray"] as $key => $value) {
+        	$str = "";
+            if("who" == $value ){
+            	//var_dump($construct[ "target" ]);
+            	if( !empty($construct[ "target" ]) && 
+            		!empty($construct[ "target" ][ "targetIsAuthor" ]) && 
+            		$construct[ "target" ][ "targetIsAuthor" ] == true )
+            		$str = @$construct[ "target" ][ "name" ];
+            	else if(!empty($construct[ "author" ]) ) 
+					$str = @$construct[ "author" ][ "name" ];
 
-				// //var_dump($str); exit;
-    //         }
-    //         else if("where" == $value && !empty($construct[ "target" ]) ){
-    //             $str = @$construct[ "target" ][ "name" ];
-    //         }
-    //         else if("what" == $value && !empty($construct[ "object" ])){
-    //             $str = @$construct[ "object" ][ "name" ];
-    //         }
+				//var_dump($str); exit;
+            }
+            else if("where" == $value && !empty($construct[ "target" ]) ){
+                $str = @$construct[ "target" ][ "name" ];
+            }
+            else if("what" == $value && !empty($construct[ "object" ])){
+                $str = @$construct[ "object" ][ "name" ];
+            }
 
-    //         if(!empty($str)){
-    //         	$find = false ;
-    //         	if(!empty($labelArray["{".$value."}"])){
-    //         		foreach ($labelArray["{".$value."}"] as $key2 => $value2){
-	   //          		if($value2 == $str)
-	   //          			$find = true;
-	   //          	}
-    //         	}
+            if(!empty($str)){
+            	$find = false ;
+            	if(!empty($labelArray["{".$value."}"])){
+            		foreach ($labelArray["{".$value."}"] as $key2 => $value2){
+	            		if($value2 == $str)
+	            			$find = true;
+	            	}
+            	}
             	
-    //         	if($find == false){
-    //         		$labelArray["{".$value."}"][] = $str;
-    //             }
-    //         }
-    //     }
+            	if($find == false){
+            		$labelArray["{".$value."}"][] = $str;
+                }
+            }
+        }
 
         // if($countRepeat > 1)
         // 	$repeat = "RepeatMail";
 
         //$info["label"] = Yii::t("mail", $paramsMail["label"], $paramLabel);
-        // $info["label"] = Notification::getLabelNotification($construct, null, 1, null, $repeat, @$sameAuthor);
-        // $info["labelArray"] = $labelArray ;
+        $myParam["label"] = Notification::getLabelNotification($construct, null, 1, null, $repeat, @$sameAuthor);
+        $myParam["labelArray"] = $labelArray ;
         // $info["countRepeat"] = $countRepeat ;
 
 
@@ -1099,13 +1104,16 @@ class Mail {
         // else
         //     $paramTpl[ $targetType ][ $targetId ][ $verb ] = $info ;
 
-
-        $paramTpl[] = $myParam ;
+        if($paramTpl[ $targetType ][ $targetId ]["countData"] < 3)
+            $paramTpl[ $targetType ][ $targetId ]["data"][] = $myParam ;
+        
+        $paramTpl[ $targetType ][ $targetId ]["countData"]++ ;
         return $paramTpl ;
 
     }
 
     public static function translateLabel($mail){
+        //Rest::json($mail); exit ;
 		$resArray=array();
 		if( !empty($mail["labelArray"]) ) {
 			
@@ -1185,6 +1193,7 @@ class Mail {
 			// }
 		}
 		
+
 		return Yii::t("mail",$mail["label"], $resArray);
 	}
 
