@@ -117,6 +117,9 @@ class Action
                 }else{
 	            	if(($action=="voteUp" || $action=="voteDown" || $action=="reportAbuse") && (isset($element[$action][$userId])))
     	                throw new CTKException("Well done ! Stop playing and join us to help the construction of this common!");
+                    if($action=="vote" && @$element[$action][$userId] && @$element[$action][$userId]["status"]==@$details["status"])
+                        throw new CTKException("Well done ! Stop playing and join us to help the building of the Common!");
+                
                 }
 
                 // Additional info
@@ -127,10 +130,10 @@ class Action
                 else 
                     $details = array('date' => new MongoDate(time()));
                 //$mapUser[ self::NODE_ACTIONS.".".$collection.".".$action.".".(string)$element["_id"] ] = $details ;
-                $mapUser[self::NODE_ACTIONS.".".$collection.".".(string)$element["_id"].".".$action ] = $action ;
+                //$mapUser[self::NODE_ACTIONS.".".$collection.".".(string)$element["_id"].".".$action ] = $action ;
                 //update the user table => adds or removes an action
-                PHDB::update ( Person::COLLECTION , array( "_id" => $user["_id"]), 
-                                                    array( $dbMethod => $mapUser));
+                //PHDB::update ( Person::COLLECTION , array( "_id" => $user["_id"]), 
+                //                                  array( $dbMethod => $mapUser));
 
                 //Decrement when removing an action instance
                 if($unset){
@@ -159,7 +162,7 @@ class Action
                 else{
                     $mapObject[ $action.".".(string)$user["_id"] ] = $details ;
                     $params = array();
-
+                    $createNotification=true;
                     //if : empeche la mise à jour de la date des news à chaque commentaire
                     if(!(in_array($collection, [News::COLLECTION,Service::COLLECTION,Product::COLLECTION]) && $action == Action::ACTION_COMMENT)){    
                         if( $dbMethod == '$set'){
@@ -170,13 +173,23 @@ class Action
                     }
                     $params[$dbMethod] = $mapObject;
                     $params['$inc'] = array( $action."Count" => $inc);
-
+                    if($action=="vote"){
+                        $params['$inc'] = array( $action."Count.".$details["status"] => $inc);
+                        if(@$element[$action] && @$element[$action][$userId]){
+                            $createNotification=false;
+                            if($action."Count.".$element[$action][$userId]["status"]>1)
+                                $params['$inc']=array_merge($params['$inc'], array( $action."Count.".$element[$action][$userId]["status"] => -1));
+                            else
+                                $params['$unset']= array( $action."Count.".$element[$action][$userId]["status"] => 1);
+                        }
+                    }
                     PHDB::update ($collection, 
                                     array("_id" => new MongoId($element["_id"])), 
                                     $params);
                     //NOTIFICATION LIKE AND DISLIKE
-                    if(in_array($action, ["voteUp", "voteDown"]))
+                    if(in_array($action, ["vote"])){
                        $verb = ActStr::VERB_REACT;
+                    }
                   
                     if(@$verb && $collection != Survey::COLLECTION){
                         $objectNotif=null;
@@ -188,7 +201,8 @@ class Action
                             if(@$element["targetIsAuthor"] || @$target["object"])
                                 $target["targetIsAuthor"]=true;
                         }
-                        Notification::constructNotification($verb, array("id" => Yii::app()->session["userId"],"name"=> Yii::app()->session["user"]["name"]), $target, $objectNotif, $collection);
+                        if($createNotification)
+                            Notification::constructNotification($verb, array("id" => Yii::app()->session["userId"],"name"=> Yii::app()->session["user"]["name"]), $target, $objectNotif, $collection);
                     }
 
                     if($action == "reportAbuse" && $collection == News::COLLECTION){
