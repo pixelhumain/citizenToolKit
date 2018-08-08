@@ -684,7 +684,7 @@ class Link {
         			array("_id"=> new MongoId($childId)),
         			array($action => array("links.".$connectTypeOf.".".$contextId.".roles" => $roles)) );
         
-        return array("result"=>true, "msg"=>Yii::t("link",$msg,null,Yii::app()->controller->module->id), "memberOfid"=>$contextId, "memberid"=>$childId);
+        return array("result"=>true, "msg"=>Yii::t("link",$msg,null,Yii::app()->controller->module->id), "memberOfid"=>$contextId, "memberid"=>$childId, "roles" => $roles);
     }
 
     /** TODO BOUBOULE - TO DELETE WITH CTK/CONTROLLERS/PERSON/DISCONNECTACTION.PHP
