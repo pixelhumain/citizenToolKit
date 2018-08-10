@@ -14,6 +14,7 @@ class Action
 
     const ACTION_MODERATE       = "moderate";
     const ACTION_VOTE_UP        = "voteUp";
+     const ACTION_VOTE        = "vote";
     const ACTION_VOTE_ABSTAIN   = "voteAbstain";
     const ACTION_VOTE_UNCLEAR   = "voteUnclear";
     const ACTION_VOTE_MOREINFO  = "voteMoreInfo";
@@ -236,14 +237,17 @@ class Action
                         );
                     }
                 }
-               
-
+                $msg="OK !"; //WDTF ?
+                if($action==self::ACTION_REPORT_ABUSE)
+                    $msg=Yii::t("common","Thank you ! We are dealing it as quickly as possible. If there is more than 5 report, the news will be hidden");
+                if($action==self::ACTION_VOTE)
+                    $msg=Yii::t("common","Reaction succesfully saved");
                 $res = array( "result"          => true,  
                               "userActionSaved" => true,
                               "user"            => PHDB::findOne ( Person::COLLECTION , array("_id" => new MongoId( $userId ) ),array("actions")),
                               "element"         => PHDB::findOne ($collection,array("_id" => new MongoId($id) ),array( $action)),
                               "inc"         => $inc,
-                              "msg"             => "Ok !"
+                              "msg"             => $msg
                                );
             } else {
                 $res = array( "result" => true,  "userAllreadyDidAction" => true, "msg" => Yii::t("common","You have already made this action" ));
@@ -251,7 +255,20 @@ class Action
         }
         return $res;
     }
-
+    public static function getList($type , $id, $actionType, $indexStep=0){
+        $object=PHDB::findOne($type,
+                     array("_id" => new MongoId( $id )),
+                     array($actionType."Count", $actionType)
+                );
+        if(!empty($object) && !empty($object[$actionType])){
+            foreach ($object[$actionType] as $key => $value) {
+                $type = (@$value["type"]) ? $value["type"] : Person::COLLECTION;
+                $target=Element::getElementSimpleById($key, $type,null, array("slug", "name", "profilThumbImageUrl"));
+                $object[$actionType][$key]=array_merge($object[$actionType][$key], $target);
+            }
+        }
+        return $object;
+    }
     /* TODO BOUBOULE - Not necessary anymore ... ?
     The Action History colelction helps build timeline and historical visualisations 
     on a given item
