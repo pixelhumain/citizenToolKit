@@ -127,5 +127,17 @@ class Cron {
 		}
 	}
 
+	public static function processUpdateToPending(){
+		$where = array( "status" => self::STATUS_UPDATE);
+		$mails = PHDB::find( self::COLLECTION, $where);
+		
+		foreach ($mails as $key => $value) {
+			$set = array("status" => self::STATUS_PENDING);
+			$res = PHDB::update(self::COLLECTION, 
+				  	array("_id"=>new MongoId($key)),
+					array('$set' => $set) );
+		}
+	}
+
 }
 ?>
