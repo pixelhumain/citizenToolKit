@@ -990,7 +990,7 @@ class Mail {
     }
 
 
-    public static function bookmarkNotif($params, $userID) {
+    public static function bookmarkNotif($paramsB, $userID) {
 
         $user = Person::getSimpleUserById($userID);
         if (!empty($user["email"])) {
@@ -1004,7 +1004,7 @@ class Mail {
                     "userName" => @$user["name"],
                     "logo"=> Yii::app()->params["logoUrl"],
                     "logo2" => Yii::app()->params["logoUrl2"],
-                    "params" => $params,
+                    "params" => $paramsB,
                     "baseUrl" => Yii::app()->getRequest()->getBaseUrl(true)."/"
                 ),
             );
@@ -1012,5 +1012,33 @@ class Mail {
             Mail::schedule($params);
         }
         // }
+    }
+
+    public static function initTplParams($params) {
+        $tplP = array(  "logo"=> Yii::app()->params["logoUrl"],
+                        "logo2" => Yii::app()->params["logoUrl2"],
+                        "baseUrl" => Yii::app()->getRequest()->getBaseUrl(true)."/");
+
+        $res = array_merge($tplP, $params);
+        //Rest::json($res); exit;
+        return $res;
+    }
+
+    public static function createAndSend($params) {
+
+        if(!empty($params["email"])) {
+            $res = array (
+                "type" => Cron::TYPE_MAIL,
+                "tpl"=>$params["tpl"],
+                "subject" => $params["tplObject"],
+                "from"=>Yii::app()->params['adminEmail'],
+                "to" => $params["tplMail"],
+                "tplParams" => self::initTplParams($params),
+            );
+            $res=self::getCustomMail($res);
+
+            //Rest::json($res); exit;
+            Mail::schedule($res);
+        }
     }
 }
