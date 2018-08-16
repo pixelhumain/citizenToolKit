@@ -105,6 +105,7 @@ class Element {
 	    	Place::COLLECTION   => "Place",
 	    	Ressource::COLLECTION   => "Ressource",
 	    	Circuit::COLLECTION   	 => "Circuit",
+	    	Risk::COLLECTION   => "Risk",
 	    );	
 	 	return @$models[$type];     
     }
