@@ -662,7 +662,7 @@ class Link {
         }
         if($connectType=="members")
             $connectTypeOf="memberOf";
-        else if($connectType=="contributors")
+        else if($connectType=="contributors" || $connectType=="projectExtern")
             $connectTypeOf="projects";
         if($connectType=="attendees")
             $connectTypeOf="events";
