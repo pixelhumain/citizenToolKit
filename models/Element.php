@@ -756,6 +756,7 @@ class Element {
 			//var_dump($fieldValue);
 			//exit;
 			$element = self::getElementById($id, $collection);
+			
 			if( !empty($element["organizerId"]) || !empty($element["links"]["organizer"]) ){
 				$oldOrganizerId = @$element["organizerId"] ? $element["organizerId"] : $element["links"]["organizer"];
 				$oldOrganizerType = @$element["organizerType"] ? $element["organizerType"] : $element["links"]["organizer"][$oldOrganizerId]["type"];
@@ -2397,6 +2398,7 @@ class Element {
 					$organizer["organizerId"] = $params["organizerId"] ;
 					$organizer["organizerType"] = ( !empty($params["organizerType"]) ? $params["organizerType"] : "dontKnow" ) ;
 					$resOrg = self::updateField($collection, $id, "organizer", $organizer);
+
 					if($params["organizerType"]!="dontKnow" && $params["parentId"] != "dontKnow"){
 						$resOrg["value"]["organizer"] = Element::getByTypeAndId( $params["organizerType"], $params["organizerId"]);
 					}
