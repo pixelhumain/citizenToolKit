@@ -48,10 +48,15 @@ class Action
         "idParentRoom"          => array("name" => "idParentRoom",          "rules" => array("required")),
         "parentId"              => array("name" => "parentId",              "rules" => array("required")),
         "parentType"            => array("name" => "parentType",            "rules" => array("required")),
+
+        "parentIdSurvey"              => array("name" => "parentIdSurvey",              "rules" => array("required")),
+        "parentTypeSurvey"            => array("name" => "parentTypeSurvey",            "rules" => array("required")),
+        "role"                 => array("name" => "role"),
+        
         
         "idParentResolution"    => array("name" => "idParentResolution"),
         
-        "email"                 => array("name" => "status"), 
+        "email"                 => array("name" => "status"),
         
         "modified" => array("name" => "modified"),
         "updated" => array("name" => "updated"),
