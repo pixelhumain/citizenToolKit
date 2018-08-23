@@ -2399,7 +2399,7 @@ class Element {
 					$organizer["organizerType"] = ( !empty($params["organizerType"]) ? $params["organizerType"] : "dontKnow" ) ;
 					$resOrg = self::updateField($collection, $id, "organizer", $organizer);
 
-					if($params["organizerType"]!="dontKnow" && $params["parentId"] != "dontKnow"){
+					if($params["organizerType"]!="dontKnow" && $params["organizerId"] != "dontKnow"){
 						$resOrg["value"]["organizer"] = Element::getByTypeAndId( $params["organizerType"], $params["organizerId"]);
 					}
 					$res[] = $resOrg;
