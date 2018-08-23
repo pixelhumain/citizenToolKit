@@ -767,7 +767,7 @@ class Element {
 			//add new organizer
 			if($fieldValue["organizerId"] != 'dontKnow' && $fieldValue["organizerType"] != 'dontKnow')
 				$res = Link::addOrganizer($fieldValue["organizerId"], $fieldValue["organizerType"], $id, Yii::app()->session["userId"]);
-			if (! @$res["result"]) throw new CTKException(@$res["msg"]);
+			if (!empty($res) && ! @$res["result"]) throw new CTKException(@$res["msg"]);
 
 		}else if ($dataFieldName == "parent") {
 			
@@ -793,8 +793,7 @@ class Element {
 							 "parentType" => "");
 			}
 
-
-			if (! @$res["result"]) throw new CTKException(@$res["msg"]);
+			if (!empty($res) && ! @$res["result"]) throw new CTKException(@$res["msg"]);
 
 		} else if ($dataFieldName == "seePreferences") {
 			//var_dump($fieldValue);
@@ -2336,6 +2335,7 @@ class Element {
 		$id = $params["id"];
 		$res = array();
 		try {
+
 			if($block == "info"){
 				if(isset($params["name"])){
 					$res[] = self::updateField($collection, $id, "name", $params["name"]);
@@ -2360,6 +2360,7 @@ class Element {
 			        	}
 			        }
 				}
+
 				if(isset($params["slug"])){
 					$el = PHDB::findOne($collection,array("_id"=>new MongoId($id)));
 					$oldslug = @$el["slug"];
@@ -2388,12 +2389,11 @@ class Element {
 					$parent["parentId"] = $params["parentId"] ;
 					$parent["parentType"] = ( !empty($params["parentType"]) ? $params["parentType"] : "dontKnow" ) ;
 					$resParent = self::updateField($collection, $id, "parent", $parent);
-
-					if($params["parentType"] != "dontKnow" && $params["parentId"] != "dontKnow")
+					if($parent["parentType"] != "dontKnow" && $parent["parentId"] != "dontKnow")
 						$resParent["value"]["parent"] = Element::getByTypeAndId( $params["parentType"], $params["parentId"]);
 					$res[] = $resParent;
 				}
-
+				
 				if(!empty($params["organizerId"]) ){
 					$organizer["organizerId"] = $params["organizerId"] ;
 					$organizer["organizerType"] = ( !empty($params["organizerType"]) ? $params["organizerType"] : "dontKnow" ) ;
