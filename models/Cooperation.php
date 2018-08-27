@@ -416,6 +416,26 @@ class Cooperation {
 				@$params["parentType"] != News::COLLECTION)
 			$object["isSurvey"] = true;
 
+		if(empty($params["idParentRoom"]) && !empty($params["parentIdSurvey"])){
+   //          parentId : dyFInputs.inputHidden(contextData.id),
+   //          parentType : dyFInputs.inputHidden(contextData.type),
+   //          status : dyFInputs.inputHidden("open"),
+   //          name : dyFInputs.name("room"),
+   //          description : dyFInputs.textarea(tradDynForm.description, "...",null,true),
+   //          roles : dyFInputs.tags(rolesList, tradDynForm["addroles"] , tradDynForm["limitAccessRole"]),
+			$form = Form::getByIdMongo($params["parentIdSurvey"], array("name"));
+			$room = array(
+				"parentId" => $params["parentId"],
+				"parentType" => $params["parentType"],
+				"status" => "open",
+				"description" => "",
+				"name" => $form["name"]
+			);
+
+
+
+		}
+
 		$buildArray = array(
 				"type" => ActivityStream::COLLECTION,
 				"verb" => ActStr::VERB_PUBLISH,
