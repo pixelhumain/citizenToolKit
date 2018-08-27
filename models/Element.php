@@ -2000,7 +2000,39 @@ class Element {
 				if(!empty($parentType))
 					$params["parentType"] = $parentType;
 			}
+
+			if(empty($params["idParentRoom"]) && 
+				!empty($params["parentIdSurvey"]) && 
+				$params["collection"] == Action::COLLECTION){
+				$room = PHDB::findOne(ActionRoom::COLLECTION, array("parentIdSurvey" => $params["parentIdSurvey"]));
+
+				if(empty($room)){
+
+					$form = Form::getByIdMongo($params["parentIdSurvey"], array("title"));
+
+					$paramsRoom = array(
+						"parentId" => $params["parentId"],
+						"parentType" => $params["parentType"],
+						"parentIdSurvey" => $params["parentIdSurvey"],
+						"status" => "open",
+						"description" => "",
+						"name" => $form["title"],
+						"key" => ActionRoom::CONTROLLER,
+						"collection" => ActionRoom::COLLECTION,
+					);
+					//
+					//
+					$room = self::save($paramsRoom);
+					//Rest::json($room); exit ;
+					$params["idParentRoom"] = $room["id"] ;
+				}else{
+					//var_dump($room); exit;
+					$params["idParentRoom"] = (String) $room["_id"] ;
+				}
+				//Rest::json($params); exit ;			
+			}
     	}
+
         return $params;
     }
 
