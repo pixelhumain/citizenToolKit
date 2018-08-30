@@ -364,9 +364,9 @@ class Document {
 		//,"created"=>array('$gt'=>1)
 		$where=array("id"=>$id,"type"=>$type,"contentKey"=>$contentKey);
 		if(@$collection)
-			$where["collection"]=$collection;
+			$where["folderId"]=$collection;
 		else if(!@$collection && $contentKey==self::IMG_SLIDER)
-			$where["collection"]=array('$exists'=>true);
+			$where["folderId"]=array('$exists'=>false);
 		$doc = PHDB::findOne( self::COLLECTION, $where);
 		if(!empty($doc)){
 			$doc=self::getListOfImage(array($doc));
@@ -380,7 +380,7 @@ class Document {
 		if(@$contentKey)
 			$where["contentKey"]=$contentKey;
 		if(@$col)
-			$where["collection"]=$col;
+			$where["folderId"]=$col;
 		return PHDB::count( self::COLLECTION, $where);
 	}
 	public static function getListOfImage($listDocumentsofType){
@@ -413,19 +413,9 @@ class Document {
 				}
 				else{
 					$pushImage['id'] = (string)$value["_id"];
-					$imagePath = Yii::app()->baseUrl."/".Yii::app()->params['uploadUrl'].$value["moduleId"]."/".$value["folder"];
-					if($value["contentKey"]=="profil")
-						$imageThumbPath = $imagePath."/".self::GENERATED_MEDIUM_FOLDER;
-					//else if($value["contentKey"]=="banner")
-						//$imageThumbPath = $imagePath."/".self::GENERATED_IMAGES_FOLDER;
-					else
-						$imageThumbPath = $imagePath."/".self::GENERATED_IMAGES_FOLDER;
-					$imagePath .= "/".$value["name"];
-					$imageThumbPath .= "/".$value["name"];
+					$imagePath = self::getDocumentPath($value, true);
+					$imageThumbPath = ($value["contentKey"]=="profil") ? self::getDocumentPath($value, true, self::GENERATED_MEDIUM_FOLDER."/") : self::getDocumentPath($value, true, self::GENERATED_IMAGES_FOLDER."/");
 				}
-				/*if (!isset($listDocuments[$currentContentKey])) {
-					$listDocuments[$currentContentKey] = array();
-				} */
 				$pushImage['moduleId'] = $value["moduleId"];
 				$pushImage['contentKey'] = $value["contentKey"];
 				$pushImage['imagePath'] = $imagePath;
@@ -743,12 +733,17 @@ class Document {
     	return $folderUrl;
     }
 
-    public static function getDocumentPath($document){
-    	return self::getDocumentFolderPath($document).$document["name"];
+    public static function getDocumentPath($document, $imgPath=false, $thumb=""){
+    	return self::getDocumentFolderPath($document, $imgPath).$thumb.$document["name"];
     }
 
-    public static function getDocumentFolderPath($document){
-    	return Yii::app()->params['uploadDir'].$document["moduleId"]."/".$document["folder"]."/";
+    public static function getDocumentFolderPath($document, $imgPath=false){
+    	$path=($imgPath) ? Yii::app()->baseUrl."/".Yii::app()->params['uploadUrl'] : Yii::app()->params['uploadDir'];
+    	$path.=$document["moduleId"]."/".$document["folder"]."/";
+    	if(@$document["folderId"]){
+    		$path.=Folder::getParentFoldersPath($document["folderId"]);
+    	} 
+    	return $path;
     }
 
     /**
@@ -1242,7 +1237,7 @@ class Document {
         }
 
         //Check extension
-        $allowed_ext = array('jpg','jpeg','png','gif',"pdf","xls","xlsx","doc","docx","ppt","pptx","odt","ods","odp");
+        $allowed_ext = array('jpg','jpeg','png','gif',"pdf","xls","xlsx","doc","docx","ppt","pptx","odt","ods","odp", "csv");
         
         $nameFile = (!empty($nameUrl) ? $nameUrl : $file["name"] );
         
