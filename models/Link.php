@@ -836,6 +836,11 @@ class Link {
 
         $parentData = Element::getElementSimpleById($parentId, $parentType, null, array("_id", "name", "link", "title"));
         $usersAdmin = Authorisation::listAdmins($parentId,  $parentType, false);
+
+        $actionFromAdmin=in_array($userId,$usersAdmin);
+        $actionFromMember=false;
+
+        
 		if($parentType == Organization::COLLECTION){
 			//$parentData = Organization::getById($parentId);
 			// $usersAdmin = Authorisation::listAdmins($parentId,  $parentType, false);
@@ -884,6 +889,14 @@ class Link {
             }
 
            
+        } else if ($parentType == Action::COLLECTION){
+            $parentUsersList = Action::getContributorsByProjectId( $parentId ,"all", null ) ;
+            $parentController=Action::CONTROLLER;
+            $parentConnectAs="actions";
+            $childConnectAs="projects";
+            if(!$isConnectingAdmin)
+                $typeOfDemand = "contributor";
+
         } else {
             throw new CTKException(Yii::t("common","Can not manage the type ").$parentType);
         }
@@ -894,8 +907,7 @@ class Link {
         }
         
         //Check if the user is admin
-		$actionFromAdmin=in_array($userId,$usersAdmin);
-        $actionFromMember=false;
+		
         if(@$parentUsersList[$userId])
             $actionFromMember=true;
         if ($childType == Organization::COLLECTION) {

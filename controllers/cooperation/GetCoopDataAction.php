@@ -77,7 +77,7 @@ class GetCoopDataAction extends CAction {
 		            }
 		        }
 
-		        if($res["action"]["parentIdSurvey"])
+		        if(!empty($res["action"]["parentIdSurvey"]))
 		        	$res["action"]["parentSurvey"] = Form::getByIdMongo($res["action"]["parentIdSurvey"]);
 			} 
 			if($type == Resolution::CONTROLLER || $type == Resolution::COLLECTION){

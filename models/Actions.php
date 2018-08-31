@@ -80,6 +80,26 @@ class Actions {
 		return $res;
     }
 
+
+    public static function assign($params) {
+        $res = array( "result" => false );
+        if( isset( Yii::app()->session["userId"] ))
+        { 
+            if( $action = PHDB::findOne( self::COLLECTION, array("_id"=>new MongoId($params["idAction"])) ) ) 
+            {
+                if( Authorisation::canParticipate(Yii::app()->session["userId"], $action["parentType"], $action["parentId"]) ) 
+                {
+                    $res = Link::connect($params["idAction"], self::COLLECTION, $params["idLink"], $params["typeLink"], Yii::app()->session["userId"], $params["verbLink"] );
+                    Action::updateParent($_POST['id'], self::COLLECTION);
+                 } else 
+                    $res["msg"] = "restrictedAccess";
+             } else
+                $res["msg"] = "SurveydoesntExist";
+         } else 
+            $res["msg"] = "mustBeLoggued";
+        return $res;
+    }
+
     /**
      * Delete an action and its children (comments...)
      * @param String $id id of the action to delete
@@ -132,6 +152,50 @@ class Actions {
 		} 
 		
 		return $res;
+    }
+
+
+    /**
+     * get contributors for a Project By an project Id
+     * @param String $id : is the mongoId (String) of the project
+     * @param String $type : can be used to filter the contributor by type (all (default), person, project)
+     * @return arrays of contributors (links.contributors)
+     */
+    public static function getContributorsByProjectId($id, $type="all",$role=null) {
+        $res = array();
+        $action = project::getById($id);
+        
+        if (empty($action)) {
+            throw new CTKException(Yii::t("project", "The project id is unkown : contact your admin"));
+        }
+        
+        if ( isset($action) && isset( $action["links"] ) && isset( $action["links"]["contributors"] ) ) 
+        {
+            $contributors = array();
+            foreach($action["links"]["contributors"] as $key => $contributor){
+                if (!@$contributor["toBeValidated"] && !@$contributor["isInviting"])
+                    $contributors[$key]=$contributor;
+            }
+            //No filter needed
+            if ($type == "all") {
+                return $contributors;
+            } else {
+                foreach ($action["links"]["contributors"] as $key => $contributor) {
+                    if ($contributor['type'] == $type ) {
+                        if (!@$contributor["toBeValidated"] && !@$contributor["isInviting"])
+                            $res[$key] = $contributor;
+                    }
+                    if ( $role && @$contributor[$role] == true ) {
+                        if ($role=="isAdmin"){
+                            if(!@$contributor["isAdminPending"] && !@$contributor["toBeValidated"] && !@$contributor["isInviting"])
+                                $res[$key] = $contributor;
+                        } else
+                        $res[$key] = $contributor;
+                    }
+                }
+            }
+        }
+        return $res;
     }
 
 

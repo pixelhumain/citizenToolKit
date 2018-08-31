@@ -2031,6 +2031,11 @@ class Element {
 				}
 				//Rest::json($params); exit ;			
 			}
+
+
+			if($params["collection"] == Action::COLLECTION && !empty($params["role"])){
+				$params["role"] = array( InflectorHelper::slugify( $params["role"] ) => $params["role"] ) ;
+			}
     	}
 
         return $params;
