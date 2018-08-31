@@ -836,7 +836,6 @@ class Link {
 
         $parentData = Element::getElementSimpleById($parentId, $parentType, null, array("_id", "name", "link", "title"));
         $usersAdmin = Authorisation::listAdmins($parentId,  $parentType, false);
-
         $actionFromAdmin=in_array($userId,$usersAdmin);
         $actionFromMember=false;
 
