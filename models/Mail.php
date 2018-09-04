@@ -1039,6 +1039,8 @@ class Mail {
 
             //Rest::json($res); exit;
             Mail::schedule($res);
+        }else{
+            throw new CTKException(Yii::t("common","Missing email!"));
         }
     }
 }
