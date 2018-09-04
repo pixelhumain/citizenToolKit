@@ -101,18 +101,17 @@ class Document {
 	  		"name" => $params['name'],
 	  		"size" => (int) $params['size'],
 	  		"contentKey" => @$params["contentKey"],
+	  		"doctype"=> $params["doctype"],
 	  		'created' => time()
 	    );
-	    if(@$params["doctype"]){
-	    	$new["doctype"]=$params["doctype"];
-	    	$new["contentKey"]=Document::getFileContentKey($params['name']);
-	    }
-	    else
-	    	$new["doctype"]=Document::getDoctype($params['name']);
+	    if($params["doctype"]==self::DOC_TYPE_FILE)
+	    	$new["contentKey"]=self::getFileContentKey($params['name']);
+	    if(@$params["folderId"])
+	    	$new["folderId"]=$params["folderId"];
 	    if(@$params["crop"])
 	    	$new["crop"]=$params["crop"];
-	    if(@$params["keySurvey"])
-	    	$new["keySurvey"]=$params["keySurvey"];
+	    if(@$params["surveyId"])
+	    	$new["surveyId"]=$params["surveyId"];
 
 	    //if item exists
 	    //if( PHDB::count($new['type'],array("_id"=>new MongoId($new['id']))) > 0 ){
@@ -164,7 +163,7 @@ class Document {
 
 	    PHDB::insert(self::COLLECTION, $new);
 	    if($new["doctype"]==self::DOC_TYPE_IMAGE){
-		    if (substr_count(@$new["contentKey"], self::IMG_BANNER)) {
+		    if ($new["contentKey"]==self::IMG_BANNER) {
 		    	// get banner image resize and crop
 		    	$src=self::generateBannerImages($new);
 		    	// get normal image resize
@@ -178,18 +177,18 @@ class Document {
 			    //Generate small image
 			   	self::generateAlbumImages($new);
 			    //Generate image profil if necessary
-			    if (substr_count(@$new["contentKey"], self::IMG_PROFIL)) {
+			    if ($new["contentKey"]== self::IMG_PROFIL) {
 			    	$src=self::generateProfilImages($new);
 			    	$typeNotif="profilImage";
 			    }
-			    if (substr_count(@$new["contentKey"], self::IMG_SLIDER)) {
+			    if ($new["contentKey"]== self::IMG_SLIDER) {
 			    	self::generateAlbumImages($new, self::GENERATED_IMAGES_FOLDER);
 			    	$typeNotif="albumImage";
 			    }
 			}
 		}
 	   //Notification::constructNotification(ActStr::VERB_ADD, array("id" => Yii::app()->session["userId"],"name"=> Yii::app()->session["user"]["name"]), array("type"=>$new["type"],"id"=> $new["id"]), null, $typeNotif);
-		$survey=(@$new["keySurvey"]) ? $new["keySurvey"] : false;
+		$survey=(@$new["surveyId"]) ? true : false;
 	    return array( "result"=>true, "msg"=>Yii::t('document','Document saved successfully'), "id"=>$new["_id"],"name"=>$new["name"],"src"=>@$src, "survey"=>$survey);	
 	}
 	
@@ -833,6 +832,10 @@ class Document {
 	public static function generateAlbumImages($document,$folderAlbum=null) {
     	$dir = $document["moduleId"];
     	$folder = $document["folder"];
+    	$folderPath="";
+    	if(@$document["folderId"]){
+    		$folderPath=substr("/".Folder::getParentFoldersPath($document["folderId"]), 0, -1);
+    	}
 		if($folderAlbum==self::GENERATED_IMAGES_FOLDER){
 			$destination='/'.self::GENERATED_IMAGES_FOLDER;
 			$maxWidth=200;
@@ -845,7 +848,7 @@ class Document {
 			$quality=80;
 		}
 		//The images will be stored in the /uploadDir/moduleId/ownerType/ownerId/thumb (ex : /upload/communecter/citoyen/1242354235435/thumb)
-		$upload_dir = Yii::app()->params['uploadDir'].$dir.'/'.$folder.$destination; 
+		$upload_dir = Yii::app()->params['uploadDir'].$dir.'/'.$folder.$folderPath.$destination; 
 		
 		if(!file_exists ( $upload_dir )) {       
 			mkdir($upload_dir, 0775);
@@ -1179,7 +1182,7 @@ class Document {
 	 * @param type|null $sizeUrl The size of the file (not mandatory : could be retrieve from the file when it's not an URL file)
 	 * @return array result => boolean, msg => String, uploadDir => where the file is stored
 	 */
-	public static function checkFileRequirements($file, $dir, $folder, $ownerId, $input, $contentKey=null, $docType=null, $subDir=null, $keySurvey=null, $nameUrl = null, $sizeUrl=null) {
+	public static function checkFileRequirements($file, $dir, $folder, $ownerId, $input, $contentKey=null, $docType=null, $folderId=null, $subDir=null, $nameUrl = null, $sizeUrl=null) {
 		//TODO SBAR
 		//$dir devrait être calculé : sinon on peut facilement enregistrer des fichiers n'importe où
 		$upload_dir = Yii::app()->params['uploadDir'];
@@ -1205,12 +1208,17 @@ class Document {
             	mkdir ( $upload_dir,0775 );
 
         }
+
+           
        	if( @$docType && $docType==Document::DOC_TYPE_FILE){
        		$upload_dir .= Document::GENERATED_FILE_FOLDER.'/';
             if( !file_exists ( $upload_dir ) )
                 mkdir ( $upload_dir,0775 );
        	}
-       	if( @$contentKey && $contentKey=="survey"){
+       //	if(@$folderId){
+
+       	//}
+       	/*if( @$contentKey && $contentKey=="survey"){
 	        $upload_dir .= $contentKey.'/';
             if( !file_exists ( $upload_dir ) )
                 mkdir ( $upload_dir,0775 );        
@@ -1219,23 +1227,29 @@ class Document {
         	$upload_dir .= $keySurvey.'/';
         	if( !file_exists ( $upload_dir ) )
             	mkdir ( $upload_dir,0775 );
-        }
+        }*/
+        
        	if(@$subDir){
-       		$upload_dir .= $subDir.'/';
-            if( !file_exists ( $upload_dir ) )
-                mkdir ( $upload_dir,0775 );
+       		$arraySub=explode(".", $subDir);
+       		foreach($arraySub as $sub){
+	       		$upload_dir .= $sub.'/';
+	            if( !file_exists ( $upload_dir ) )
+	                mkdir ( $upload_dir,0775 );
+        	}
        	}
         if( @$input=="newsImage" || (@$contentKey && $contentKey==Document::IMG_SLIDER)){
 	        $upload_dir .= Document::GENERATED_ALBUM_FOLDER.'/';
             if( !file_exists ( $upload_dir ) )
                 mkdir ( $upload_dir,0775 );
         }
-		if( @$input=="banner"){
+		if($contentKey==self::IMG_BANNER){
 	        $upload_dir .= Document::GENERATED_BANNER_FOLDER.'/';
             if( !file_exists ( $upload_dir ) )
                 mkdir ( $upload_dir,0775 );
         }
-
+        if(@$folderId){
+        	$upload_dir .= Folder::getParentFoldersPath($folderId);
+        }
         //Check extension
         $allowed_ext = array('jpg','jpeg','png','gif',"pdf","xls","xlsx","doc","docx","ppt","pptx","odt","ods","odp", "csv");
         

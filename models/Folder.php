@@ -23,8 +23,16 @@ class Folder {
     }
     public static function createFolder($folder){
         $folderPath=self::getFolderPath($folder);
-        if( !file_exists ( $folderPath ) )
-                   mkdir ( $folderPath,0775 );
+        $upload_dir = Yii::app()->params['uploadDir']."communecter/";
+        $folderPath=str_replace ( $upload_dir , "" , $folderPath ); 
+        $folderPathExp=explode("/", $folderPath);
+        foreach($folderPathExp as $v){
+            $upload_dir .= $v.'/';
+            if( !file_exists ( $upload_dir ) )
+                mkdir ( $upload_dir,0775 );
+        }
+        // if( !file_exists ( $folderPath ) )
+          //  mkdir ( $folderPath,0775 );
         return true;
     }
     public static function update($id,$name,$del=false)
@@ -137,14 +145,24 @@ class Folder {
             $path=false;
         return $path;
     }
-    public static function moveToFolder($ids,$idFolder=null, $type=Document::COLLECTION)
-    {
-        $folder=self::getById($idFolder);
-        $newFolderPath=self::getFolderPath($folder);
+    public static function moveToFolder($ids, $idFolder=null, $type=Document::COLLECTION)
+    {   
+        if(!empty($idFolder)){
+            $folder=self::getById($idFolder);
+            $folderName=$folder["name"];
+            $newFolderPath=self::getFolderPath($folder);
+            $action='$set';
+        }else{
+            $folderName=Yii::t("common","the root");
+            $action='$unset';
+        }
+
         foreach($ids as $id){
             if($type==Document::COLLECTION){
                 $movedEl=Document::getById($id);
                 $tmp_path=Document::getDocumentPath($movedEl);
+                if(!@$newFolderPath)
+                    $newFolderPath= Yii::app()->params['uploadDir'].$movedEl["moduleId"]."/".$movedEl["folder"]."/";
                 $new_path=$newFolderPath.$movedEl["name"];
                 //thumb move
                 if($movedEl["doctype"]==Document::DOC_TYPE_IMAGE){
@@ -160,6 +178,13 @@ class Folder {
             }else{
                 $movedEl=self::getById($id);
                 $tmp_path=self::getFolderPath($movedEl);
+                 if(!@$newFolderPath){
+                    $newFolderPath= Yii::app()->params['uploadDir']."communecter/";//".$movedEl["folder"]."/";
+                    if(@$movedEl["contextType"] && @$movedEl["contextId"] && @$movedEl["docType"]){
+                        $docTypePath=($movedEl["docType"]=="image") ? "album" : $movedEl["docType"];
+                        $newFolderPath.=$movedEl["contextType"]."/".$movedEl["contextId"]."/".$docTypePath."/";
+                    }
+                }
                 $new_path=$newFolderPath.(string)$movedEl["_id"];
                 CFileHelper::copyDirectory( $tmp_path, $new_path);
                 CFileHelper::removeDirectory($tmp_path);
@@ -168,11 +193,14 @@ class Folder {
                 
             PHDB::update($type,
                             array("_id"=>new MongoId($id)),
-                            array('$set' => array($labelUpdate => $idFolder))
+                            array( $action=> array($labelUpdate => $idFolder))
                         );
-            $movedEl[$labelUpdate]=$idFolder;
+            if($idFolder!="")
+                $movedEl[$labelUpdate]=$idFolder;
+            else
+                $movedEl[$labelUpdate]=(@$movedEl["docType"]=="image" || @$movedEl["doctype"]=="image") ? "album" : "file";
         }     
-        return array("result"=>true, "movedEl"=> $movedEl, "msg"=>Yii::t("common","Documents added with success to {what}",array("{what}"=>$folder["name"])),"movedIn"=>$idFolder); 
+        return array("result"=>true, "movedEl"=> $movedEl, "msg"=>Yii::t("common","Documents added with success to {what}",array("{what}"=>$folderName)),"movedIn"=>$idFolder); 
     }
 
     public static function createDocument($targetId,$targetType,$name,$colType="collections",$docType=null,$subDir=array()){

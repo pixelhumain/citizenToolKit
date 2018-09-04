@@ -51,13 +51,13 @@ class IndexAction extends CAction
 					$countAlbums=Folder::countSubfoldersByContext($id, $type, $docType);
 					$params["folders"]=array();
 					$params["folders"]=array(
-						"profil"=>array("name"=>Yii::t('common', "profile"), "contentKey" => true, "count"=>$countImagesProfil,"imageThumb"=>@$thumbProfil),
-						"banner"=>array("name"=>Yii::t('common', "cover"), "contentKey" => true, "count"=>$countImagesBanner,"imageThumb"=>@$thumbBanner),
-						"album"=>array("name"=>Yii::t('common', "album"), "contentKey" => true, "count"=>$countImagesAlbum,"imageThumb"=>@$thumbAlbum,"countFolders"=>@$countAlbums)
+						"profil"=>array("edit"=>false,"name"=>Yii::t('common', "profile"), "contentKey" => true, "count"=>$countImagesProfil,"imageThumb"=>@$thumbProfil),
+						"banner"=>array("edit"=>false,"name"=>Yii::t('common', "cover"), "contentKey" => true, "count"=>$countImagesBanner,"imageThumb"=>@$thumbBanner),
+						"album"=>array("edit"=>false,"name"=>Yii::t('common', "album"), "contentKey" => true, "count"=>$countImagesAlbum,"imageThumb"=>@$thumbAlbum,"countFolders"=>@$countAlbums)
 				);
 			//}
 			}else{
-				$where=array("id"=>$id, "type"=>$type, "doctype"=>$docType);
+				$where=array("id"=>$id, "type"=>$type, "doctype"=>$docType, "surveyId"=>array('$exists'=>false));
 				if($docType==Document::DOC_TYPE_IMAGE)
 					$where["contentKey"] = $contentKey;
 				if(@$folderId)
