@@ -402,8 +402,8 @@ class Person {
 	 * @return person document as in db
 	 */
 	public static function getPersonLinksByPersonId($id) {
-	  	$res = array("people" => array(), "organizations" => array(), 
-	  				 "projects" => array(), "events" => array());
+	  	$res = array(Person::COLLECTION => array(), Organization::COLLECTION => array(), 
+	  				 Project::COLLECTION => array(), Event::COLLECTION => array());
 
 	  	$person = Element::getElementSimpleById($id, Person::COLLECTION, null, array("links"));
 
@@ -457,9 +457,9 @@ class Person {
 							if(@$value["roles"]) $contactComplet["roles"]=true;
 							if(@$value["notifications"]) $contactComplet["notifications"]=$value["notifications"];
 							if(@$value["mails"]) $contactComplet["mails"]=$value["mails"];*/
-							$type=($value["type"]==self::COLLECTION) ? "people" : $value["type"];
+							$type= $value["type"];
 							//if($type=="organizations" &&)
-							if(in_array($type, ["people", "projects","events","organizations"]))
+							if(in_array($type, ["citoyens", "projects","events","organizations"]))
 								$res[$type][$key] = $contactComplet;
 						}
 					}
@@ -514,27 +514,46 @@ class Person {
 		// 		}
 		// 	}
 		// }
+		//print_r($res);
+		
 
-		//trie les éléments dans l'ordre alphabetique par name
-	  	function mySort($a, $b){ 
-		  	if( isset($a['name']) && isset($b['name']) ){
-		    	return (strtolower($b['name']) < strtolower($a['name']));
-			}else{
-				return false;
-			}
-		}
-
-	  	if(isset($res["people"])) 	 	 usort($res["people"], 		  "mySort");
-	  	if(isset($res["organizations"])) usort($res["organizations"], "mySort");
-	  	if(isset($res["projects"])) 	 usort($res["projects"], 	  "mySort");
-	  	if(isset($res["events"])) 		 usort($res["events"], 		  "mySort");
-
+	  	if(isset($res["citoyens"])) 	 	 $res["citoyens"]=self::sortContact($res["citoyens"], array("name"=>SORT_ASC));
+	  	if(isset($res["organizations"])) $res["organizations"]=self::sortContact($res["organizations"],array("name"=>SORT_ASC));
+	  	if(isset($res["projects"])) 	 $res["projects"]=self::sortContact($res["projects"],array("name"=>SORT_ASC));
+	  	if(isset($res["events"])) 		 $res["events"]=self::sortContact($res["events"],array("name"=>SORT_ASC));
 		if($id != Yii::app()->session["userId"])
-			$res["people"][(string)$id] = $person;
+			$res["citoyens"][(string)$id] = $person;
 		
 		return $res;
 	}
+	/**
+	* Get array of news order by date of creation
+	* @param array $array is the array of news to return well order
+	* @param array $cols is the array indicated on which column of $array it is sorted
+	**/
 
+	public static function sortContact($array, $cols){
+		$colarr = array();
+	    foreach ($cols as $col => $order) {
+	        $colarr[$col] = array();
+	        foreach ($array as $k => $row) { $colarr[$col]['_'.$k] = strtolower(@$row[$col]); }
+	    }
+	    $eval = 'array_multisort(';
+	    foreach ($cols as $col => $order) {
+	        $eval .= '$colarr[\''.$col.'\'],'.$order.',';
+	    }
+	    $eval = substr($eval,0,-1).');';
+	    eval($eval);
+	    $ret = array();
+	    foreach ($colarr as $col => $arr) {
+	        foreach ($arr as $k => $v) {
+	            $k = substr($k,1);
+	            if (!isset($ret[$k])) $ret[$k] = $array[$k];
+	            $ret[$k][$col] = @$array[$k][$col];
+	        }
+	    }
+	    return $ret;
+	}
 
 	public static function newPersonFromPost($person) {
 		$newPerson = array();

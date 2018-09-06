@@ -665,7 +665,7 @@ class Link {
         }
         if($connectType=="members")
             $connectTypeOf="memberOf";
-        else if($connectType=="contributors")
+        else if($connectType=="contributors" || $connectType=="projectExtern")
             $connectTypeOf="projects";
         if($connectType=="attendees")
             $connectTypeOf="events";
@@ -687,7 +687,7 @@ class Link {
         			array("_id"=> new MongoId($childId)),
         			array($action => array("links.".$connectTypeOf.".".$contextId.".roles" => $roles)) );
         
-        return array("result"=>true, "msg"=>Yii::t("link",$msg,null,Yii::app()->controller->module->id), "memberOfid"=>$contextId, "memberid"=>$childId);
+        return array("result"=>true, "msg"=>Yii::t("link",$msg,null,Yii::app()->controller->module->id), "memberOfid"=>$contextId, "memberid"=>$childId, "roles" => $roles);
     }
 
     /** TODO BOUBOULE - TO DELETE WITH CTK/CONTROLLERS/PERSON/DISCONNECTACTION.PHP
@@ -839,6 +839,10 @@ class Link {
 
         $parentData = Element::getElementSimpleById($parentId, $parentType, null, array("_id", "name", "link", "title"));
         $usersAdmin = Authorisation::listAdmins($parentId,  $parentType, false);
+        $actionFromAdmin=in_array($userId,$usersAdmin);
+        $actionFromMember=false;
+
+        
 		if($parentType == Organization::COLLECTION){
 			//$parentData = Organization::getById($parentId);
 			// $usersAdmin = Authorisation::listAdmins($parentId,  $parentType, false);
@@ -887,6 +891,14 @@ class Link {
             }
 
            
+        } else if ($parentType == Action::COLLECTION){
+            $parentUsersList = Action::getContributorsByProjectId( $parentId ,"all", null ) ;
+            $parentController=Action::CONTROLLER;
+            $parentConnectAs="actions";
+            $childConnectAs="projects";
+            if(!$isConnectingAdmin)
+                $typeOfDemand = "contributor";
+
         } else {
             throw new CTKException(Yii::t("common","Can not manage the type ").$parentType);
         }
@@ -897,8 +909,7 @@ class Link {
         }
         
         //Check if the user is admin
-		$actionFromAdmin=in_array($userId,$usersAdmin);
-        $actionFromMember=false;
+		
         if(@$parentUsersList[$userId])
             $actionFromMember=true;
         if ($childType == Organization::COLLECTION) {

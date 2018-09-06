@@ -83,7 +83,7 @@ class MultiConnectAction extends CAction
 												"childType" => Organization::COLLECTION,
 												"childName" => $value["name"],
 												"roles" => (empty($value["roles"]) ? array() : $value["roles"]) );
-							//var_dump($child);
+							
 							$res["organizations"][] = Link::multiconnect($child, $_POST["parentId"], $_POST["parentType"]);
 						}
 					}
