@@ -198,8 +198,11 @@ class Notification{
 				Comment::COLLECTION => array(
 					"label" => "{who} answered to your comment posted on {where}",
 					"labelRepeat" => "{who} added comments on your comments posted on {where}",
+					"labelMail" => "{who} answered to your comment posted on {where}",
+					"labelRepeatMail" => "{who} added comments on your comments posted on {where}",
 					"sameAuthor" => array(
-						"labelRepeat" => "{who} added few comments on your comments posted on {where}"
+						"labelRepeat" => "{who} added few comments on your comments posted on {where}",
+						"labelRepeatMail" => "{who} added few comments on your comments posted on {where}"
 					),
 					"url" => "targetTypeUrl",
 					"notifyUser" => true,
@@ -354,7 +357,7 @@ class Notification{
 					"label"=>"{who} reacts on your comment on {where}",
 					"labelRepeat"=>"{who} react on your comment on {where}",
 					"labelMail"=>"{who} reacts on your comment on {where}",
-					"labelMailRepeat"=>"{who} react on your comment on {where}",
+					"labelRepeatMail"=>"{who} react on your comment on {where}",
 					"url" => "targetTypeUrl",
 					"notifyUser" => true
 				)
@@ -574,13 +577,13 @@ class Notification{
 					"label" => "{who} confirmed the invitation to join {where}",
 					"labelMail" => "{who} confirmed the invitation to join {where}",
 					"labelRepeat" => "{who} have confirmed the invitation to join {where}",
-					"labelMailRepeat" => "{who} have confirmed the invitation to join {where}",
+					"labelRepeatMail" => "{who} have confirmed the invitation to join {where}",
 				),
 				"asAdmin"=>array(
 					"label" => "{who} confirmed the invitation to administrate {where}",
 					"labelRepeat" => "{who} have confirmed the invitation to administrate {where}",
 					"labelMail" => "{who} confirmed the invitation to administrate {where}",
-					"labelMailRepeat" => "{who} confirmed the invitation to administrate {where}",
+					"labelRepeatMail" => "{who} confirmed the invitation to administrate {where}",
 				)
 			),
 			"labelArray" => array("who","where"),
@@ -642,11 +645,15 @@ class Notification{
 					"to"=> "members",
 					"label"=>"{author} confirmed {who} to join {where}",
 					"labelRepeat"=>"{author} confirmed {who} to join {where}",
+					"labelMail"=>"{author} confirmed {who} to join {where}",
+					"labelRepeatMail"=>"{author} confirmed {who} to join {where}",
 				),
 				"asAdmin" => array(
 					"to"=> "members",
 					"label"=>"{author} confirmed {who} to administrate {where}",
-					"labelRepeat"=>"{author} confirmed {who} to administrate {where}"
+					"labelRepeat"=>"{author} confirmed {who} to administrate {where}",
+					"labelMail"=>"{author} confirmed {who} to administrate {where}",
+					"labelRepeatMail"=>"{author} confirmed {who} to administrate {where}"
 				),
 				"user" => array(
 					"asMember" => array(
@@ -1275,9 +1282,8 @@ class Notification{
 					$label = $construct["type"][$construct["levelType"]][$construct["target"]["type"]]["label".$repeat];
 			}
 			else{
-				if($sameAuthor && @$construct["type"][$construct["levelType"]]["sameAuthor"]){
+				if($sameAuthor && @$construct["type"][$construct["levelType"]]["sameAuthor"])
 					$label = $construct["type"][$construct["levelType"]]["sameAuthor"]["label".$repeat];
-				}
 				else
 					$label = $construct["type"][$construct["levelType"]]["label".$repeat];
 				//Specific case for comment, like, unlike on news
