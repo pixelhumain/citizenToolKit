@@ -848,12 +848,14 @@ class Notification{
 	* params string levelType indicates if there is subLevel
 	* params string||array $context should be use to specify community to notify (only admin, only person, etc)
 	*/
-	public static function constructNotification($verb, $author, $target, $object = null, $levelType = null, $context = null){
+	public static function constructNotification($verb, $author, $target, $object = null, $levelType = null, $context = null, $value=null){
 		$notificationPart = self::$notificationTree[$verb];
 		$notificationPart["verb"] = $verb;
 		$notificationPart["target"]=$target;
 		$notificationPart["object"]=$object;
 		$notificationPart["levelType"]=$levelType;
+
+		$notificationPart["value"]=$value;
 		// Object could be the object in following method if action is by an other acting on an other person (ex: author add so as member {"member"=> $author})
 		if(@$author["_id"])
 			$authorId=(string)$author["_id"];

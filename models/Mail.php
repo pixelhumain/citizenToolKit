@@ -861,6 +861,7 @@ class Mail {
                     } else {
                         $paramTpl = self::createParamsTpl($paramsMail, null);
                         // var_dump($paramTpl); exit ;
+
                         $params = array (
                             "type" => Cron::TYPE_MAIL,
                             "tpl"=>'mailNotif',
@@ -904,7 +905,7 @@ class Mail {
     }
 
     public static function createNotification($construct, $tpl=null){
-        // var_dump($construct);
+        //Rest::json($construct); exit ;
         foreach ($construct["community"]["mails"] as $key => $value) {
             // if ($key != Yii::app()->session["userId"]) {
             //     $member = Element::getElementById( $key, Person::COLLECTION, null, array("email","preferences") );
@@ -914,10 +915,12 @@ class Mail {
                     //$mail = Mail::getMailUpdate($member["email"], 'notification') ;
 
                 // TODO Rapha
-                // géré les tpl et le count ++ mail 
+                // géré les tpl et refaire la données pour avoir un seul tableau , mail translate a ajouter dans Element::getCommunityByTypeAndId
+             
                 if(@$construct["tpl"]){
 
                 } else {
+
                     $mail = Mail::getMailUpdate($value["email"], 'notification') ;
                     if(!empty($mail)){
                         $paramTpl = self::createParamsTpl($construct, $mail["tplParams"]["data"]);
@@ -999,13 +1002,28 @@ class Mail {
 
     public static function createParamsTpl($construct, $paramTpl = null){
 
-    	//var_dump($construct); exit ; 
+    	//var_dump($construct); exit ;
+       
+        //Rest::json($construct);exit ;
         $targetType = $construct["target"]["type"];
         $targetId = $construct["target"]["id"];
         $verb = $construct["verb"];
         $repeat = "Mail";
         $countRepeat=1;
         $labelArray = array() ;
+
+
+        $myParam = array(
+            // "targetType" => $targetType,
+            // "targetId" => $targetId,
+            "verb" => $verb,
+            "repeat" => "Mail",
+            // "url" => Yii::app()->getRequest()->getBaseUrl(true)."/#page.type.".$targetType.".id.".$targetId,
+            // "name" => @$construct["target"]["name"]
+        );
+
+        if(!empty($construct["value"]))
+            $myParam["value"] = $construct["value"];
 
         if(empty($paramTpl))
             $paramTpl = array();
@@ -1016,22 +1034,24 @@ class Mail {
         if(empty($paramTpl[ $targetType ][ $targetId ])){
             //TODO mettre le slug 
             $paramTpl[ $targetType ][ $targetId ] = array( "url" => Yii::app()->getRequest()->getBaseUrl(true)."/#page.type.".$targetType.".id.".$targetId,
-                                                            "name" => @$construct["target"]["name"]  ) ;
+                                                            "name" => @$construct["target"]["name"],
+                                                            "countData" => 0,
+                                                            "data" => array() ) ;
         }
 
-        $paramsVerb = array() ;
+        // $paramsVerb = array() ;
 
-        if(empty($paramTpl[ $targetType ][ $targetId ][ $verb ]) ){
-            $paramTpl[ $targetType ][ $targetId ][ $verb ] = array();
-        } else {
+        // if(empty($paramTpl[ $targetType ][ $targetId ][ $verb ]) ){
+        //     $paramTpl[ $targetType ][ $targetId ][ $verb ] = array();
+        // } else {
 
-            if($verb != ActStr::VERB_ADD){
-                $labelArray = $paramTpl[ $targetType ][ $targetId ][ $verb ]["labelArray"] ;
-                $countRepeat = $paramTpl[ $targetType ][ $targetId ][ $verb ]["countRepeat"] ;
-                $countRepeat++;
-            }
+            // if($verb != ActStr::VERB_ADD){
+            //     $labelArray = $paramTpl[ $targetType ][ $targetId ][ $verb ]["labelArray"] ;
+            //     $countRepeat = $paramTpl[ $targetType ][ $targetId ][ $verb ]["countRepeat"] ;
+            //     $countRepeat++;
+            // }
         	
-        }
+        //}
 
         foreach ($construct["labelArray"] as $key => $value) {
         	$str = "";
@@ -1063,38 +1083,37 @@ class Mail {
             	}
             	
             	if($find == false){
-            		// if(count($labelArray["{".$value."}"]) == 2 ){
-            		// 	$labelArray["{".$value."}"][2] = 1 ;
-            		// }else if(count($labelArray["{".$value."}"]) == 3 ){
-            		// 	$labelArray["{".$value."}"][2] = ( !empty($labelArray["{".$value."}"][2]) ? 1 : $labelArray["{".$value."}"][2] + 1 ) ;
-            		// }else{
-            			$labelArray["{".$value."}"][] = $str;
-            		//}
-            		
-            	}
+            		$labelArray["{".$value."}"][] = $str;
+                }
             }
         }
 
-        if($countRepeat > 1)
-        	$repeat = "RepeatMail";
+        // if($countRepeat > 1)
+        // 	$repeat = "RepeatMail";
 
         //$info["label"] = Yii::t("mail", $paramsMail["label"], $paramLabel);
-        $info["label"] = Notification::getLabelNotification($construct, null, 1, null, $repeat, @$sameAuthor);
-        $info["labelArray"] = $labelArray ;
-        $info["countRepeat"] = $countRepeat ;
+        $myParam["label"] = Notification::getLabelNotification($construct, null, 1, null, $repeat, @$sameAuthor);
+        $myParam["labelArray"] = $labelArray ;
+        // $info["countRepeat"] = $countRepeat ;
 
-        if($verb == ActStr::VERB_ADD && $construct[ "levelType" ] != "asMember"){
-            $info["url"] = Yii::app()->getRequest()->getBaseUrl(true)."/#page.type.".$construct[ "object" ][ "type" ].".id.".$construct[ "object" ][ "id" ] ;
-            $paramTpl[ $targetType ][ $targetId ][ $verb ][] = $info ;
-        }
-        else
-            $paramTpl[ $targetType ][ $targetId ][ $verb ] = $info ;
 
+        // if($verb == ActStr::VERB_ADD){
+        //     $info["url"] = Yii::app()->getRequest()->getBaseUrl(true)."/#page.type.".$construct[ "object" ][ "type" ].".id.".$construct[ "object" ][ "id" ] ;
+        //     $paramTpl[ $targetType ][ $targetId ][ $verb ][] = $info ;
+        // }
+        // else
+        //     $paramTpl[ $targetType ][ $targetId ][ $verb ] = $info ;
+
+        if($paramTpl[ $targetType ][ $targetId ]["countData"] < 3)
+            $paramTpl[ $targetType ][ $targetId ]["data"][] = $myParam ;
+        
+        $paramTpl[ $targetType ][ $targetId ]["countData"]++ ;
         return $paramTpl ;
 
     }
 
     public static function translateLabel($mail){
+        //Rest::json($mail); exit ;
 		$resArray=array();
 		if( !empty($mail["labelArray"]) ) {
 			
@@ -1174,6 +1193,7 @@ class Mail {
 			// }
 		}
 		
+
 		return Yii::t("mail",$mail["label"], $resArray);
 	}
 
