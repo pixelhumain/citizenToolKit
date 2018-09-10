@@ -349,10 +349,10 @@ class Document {
 	 * @param array $limit represent the number of document by type that will be return. If not set, everything will be return
 	 * @return array a list of documents + URL sorted by contentkey type (IMG_PROFIL, IMG_SLIDER...)
 	 */
-	public static function getListDocumentsWhere($where, $docType, $limit=null){
-		$listDocumentsofType = PHDB::findAndSort( self::COLLECTION,$where, array( 'created' => -1 ));
-		if($docType="image"){
-			$docs=self::getListOfImage($listDocumentsofType);
+	public static function getListDocumentsWhere($where, $docType=null, $limit=null){
+		$docs = PHDB::findAndSort( self::COLLECTION,$where, array( 'created' => -1 ));
+		if($docType=="image"){
+			$docs=self::getListOfImage($docs);
 		}
 
 		return $docs;
