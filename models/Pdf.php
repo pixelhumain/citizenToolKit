@@ -1,5 +1,5 @@
 <?php 
-class Pdf {
+class Pdf extends CommunecterController{
 
 	// require __DIR__.'/vendor/autoload.php';
 
@@ -156,9 +156,8 @@ class Pdf {
 		//Rest::json($data); exit;
 
 		$html = "<h1>Dossier</h1>";
-		$ctrl = $this->getController();
-    	$ctrl->layout = "//layouts/empty";
-		$html = $ctrl->render( "dossier" ,$params);
+		$html = $params["html"];
+		//$html = $ctrl->render( "dossier" ,$params);
 
 		return $html;
 
