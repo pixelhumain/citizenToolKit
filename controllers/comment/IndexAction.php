@@ -1,12 +1,12 @@
  <?php
 class IndexAction extends CAction
 {
-    public function run($type, $id)
+    public function run($type, $id, $path = null)
     {
         $controller=$this->getController();
 
         $params = array();
-        $res = Comment::buildCommentsTree($id, $type, Yii::app()->session["userId"], @$_POST["filters"]);
+        $res = Comment::buildCommentsTree($id, $type, Yii::app()->session["userId"], @$_POST["filters"], $path);
         $params['comments'] = $res["comments"];
         $params['communitySelectedComments'] = $res["communitySelectedComments"];
         $params['abusedComments'] = $res["abusedComments"];
@@ -15,6 +15,9 @@ class IndexAction extends CAction
         $params["contextType"] = $type;
         $params["nbComment"] = $res["nbComment"];
         $params['canComment'] = $res["canComment"] ;
+
+        if(@$path)
+            $params['path'] = $path ;
 		
         if($type == Event::COLLECTION) {
             $params["context"] = Event::getById($id);
@@ -39,8 +42,16 @@ class IndexAction extends CAction
             $params['canComment'] = true;
         } else if($type == Ressource::COLLECTION) {
             $params["context"] = Ressource::getById($id);
+        } else if($type == Form::ANSWER_COLLECTION) {
+            $params["context"] = Form::getAnswerById($id);
+
+
+
+
+
         } else if($type == Resolution::COLLECTION) {
             $params["context"] = Resolution::getById($id);
+
 
             /*AUTH*/
             //var_dump($params["context"]); exit;
@@ -103,6 +114,8 @@ class IndexAction extends CAction
         } else if($type == Need::COLLECTION) {
             $params["context"] = Need::getById($id);
         } else if($type == Media::COLLECTION) {
+            $params["context"] = Media::getById($id);
+        } else if($type == Form::ANSWER_COLLECTION) {
             $params["context"] = Media::getById($id);
         } else {
         	throw new CTKException("Error : the type is unknown ".$type);

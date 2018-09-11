@@ -88,6 +88,10 @@ class Comment {
 			"status" => self::STATUS_POSTED,
 			"argval" => @$comment["argval"]
 		);
+
+		if(@$comment["path"])
+			$newComment["path"]=$comment["path"];
+
 		if(@$comment["rating"])
 			$newComment["rating"]=(int)$comment["rating"];
 		if(@$comment["mentions"])
@@ -145,7 +149,7 @@ class Comment {
 	 * @param String $contextType The context object type. Can be anything 
 	 * @return array of comment organize in tree
 	 */
-	public static function buildCommentsTree($contextId, $contextType, $userId, $filters=null) {
+	public static function buildCommentsTree($contextId, $contextType, $userId, $filters=null, $path=null) {
 
 		$res = array();
 		$commentTree = array();
@@ -156,6 +160,10 @@ class Comment {
 		$whereContext = array(
 					"contextId" => $contextId, 
 					"contextType" => $contextType);
+
+		if(@$path)
+            $whereContext['path'] = $path ;
+        
 		if(@$filters && !empty($filters)){
 			foreach ($filters as $value) {
 				if($value=="rating")
