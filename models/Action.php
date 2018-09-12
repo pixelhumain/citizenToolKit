@@ -99,7 +99,7 @@ class Action
      * @param boolean $multiple : true : the user can do multiple action, else can not.
      * @return array result (result, msg)
      */
-        public static function addAction( $userId=null , $id=null, $collection=null, $action=null, $unset=false, $multiple=false, $details=null){
+        public static function addAction( $userId=null , $id=null, $collection=null, $action=null, $unset=false, $multiple=false, $details=null, $path=null){
        
         $user = Person::getById($userId);
         $element = ($id) ? PHDB::findOne ($collection, array("_id" => new MongoId($id) )) : null;
@@ -162,7 +162,11 @@ class Action
                     // DELETE IN NOTIFICATION REMOVE LIKE
                 }
                 else{
-                    $mapObject[ $action.".".(string)$user["_id"] ] = $details ;
+                    if(@$path)
+                        $mapObject[ $action.".".$path.".".(string)$user["_id"] ] = $details ;
+                    else
+                        $mapObject[ $action.".".(string)$user["_id"] ] = $details ;
+
                     $params = array();
 
                     //if : empeche la mise à jour de la date des news à chaque commentaire
@@ -174,8 +178,14 @@ class Action
                         else $params['$set'] = array( "updated" => new MongoDate(time()), "modified" => new MongoDate(time()) );
                     }
                     $params[$dbMethod] = $mapObject;
-                    $params['$inc'] = array( $action."Count" => $inc);
 
+                    if(@$path)
+                        $params['$inc'] = array( $action.".".$path."Count" => $inc);
+                    else
+                        $params['$inc'] = array( $action."Count" => $inc);
+
+                    //$params['$inc'] = array( $action."Count" => $inc);
+                    //Rest::json( $params); exit ;
                     PHDB::update ($collection, 
                                     array("_id" => new MongoId($element["_id"])), 
                                     $params);
