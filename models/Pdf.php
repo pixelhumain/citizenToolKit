@@ -7,6 +7,8 @@ class Pdf extends CommunecterController{
 	
 	public static function initPdf() {
     	Yii::import("tcpdf.tcpdf", true);
+    	
+
 		Yii::import("html2pdf.MyPdf", true);	
 		Yii::import("html2pdf.Parsing.TextParser", true);	
 		Yii::import("html2pdf.Parsing.TagParser", true);	
@@ -59,6 +61,8 @@ class Pdf extends CommunecterController{
 
     public static function createPdf($params) {
      	Yii::import("tcpdf.tcpdf", true);
+     	
+
      	if (class_exists('tcpdf', false) && !empty($params)) {
 
 				$server = ((isset($_SERVER['HTTPS']) AND (!empty($_SERVER['HTTPS'])) AND strtolower($_SERVER['HTTPS'])!='off') ? 'https://' : 'http://').$_SERVER['HTTP_HOST'];
