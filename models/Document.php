@@ -412,6 +412,7 @@ class Document {
 				}
 				else{
 					$pushImage['id'] = (string)$value["_id"];
+					$pushImage['_id'] = $value["_id"];
 					$imagePath = self::getDocumentPath($value, true);
 					$imageThumbPath = ($value["contentKey"]=="profil") ? self::getDocumentPath($value, true, self::GENERATED_MEDIUM_FOLDER."/") : self::getDocumentPath($value, true, self::GENERATED_IMAGES_FOLDER."/");
 				}
