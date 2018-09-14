@@ -79,7 +79,7 @@ class Folder {
         }
         // remove the current folder in DB
         PHDB::remove(self::COLLECTION, array("_id" => new MongoId($id) ));
-        return array("result"=>true, "folder"=>array("id"=>$id), "msg"=>Yii::t("common","Folder {what} and all files and folders deleted with success",array("{what}"=>$folder["name"])));
+        return array("result"=>true, "folder"=>array("id"=>$id), "msg"=>Yii::t("common","Folder {what} and all its elements deleted with success",array("{what}"=>$folder["name"])));
     }
     /**
     * remove a document by folder and delete the file on the filesystem
