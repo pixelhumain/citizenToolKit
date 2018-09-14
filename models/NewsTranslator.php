@@ -163,6 +163,8 @@ class NewsTranslator {
 					if(@$data && !empty($data)){
 						$image=Document::getById($data);
 						if(@$image){
+							$image["imagePath"]=Document::getDocumentPath($image, true);
+							$image["imageThumbPath"]=Document::getDocumentPath($image, true, Document::GENERATED_IMAGES_FOLDER."/");
 							array_push($images,$image);
 						}else{
 							$countImages=intval($params["media"]["countImages"]);
@@ -189,6 +191,7 @@ class NewsTranslator {
 					if(@$data && !empty($data)){
 						$file=Document::getById($data);
 						if(@$file){
+							$file["docPath"]=Document::getDocumentPath($file, true);
 							array_push($files,$file);
 						}else{
 							$countFiles=intval($params["media"]["countFiles"]);
