@@ -135,12 +135,13 @@ class Document {
 	                $params["parentType"] = $elem["parentType"];
 	            } 
 
-			if (!Authorisation::canEditItem( $params['author'], $params['type'], $params['id'], @$params["parentType"],@$params["parentId"])) {
+			if (!Authorisation::canEditItem( $params['author'], $params['type'], $params['id'], @$params["parentType"],@$params["parentId"]) && !Authorisation::canParticipate($params['author'], $params["type"], $params["id"])) {
 		    	return array("result"=>false, "type"=>$params['type'],"id"=>@$params["id"],  "parentType"=>@$params["parentType"],"parentId"=>@$params["parentId"], "msg"=>Yii::t('document',"You are not allowed to modify the document of this item !") );
 		    }
 		} else {
 		    if (   ! Authorisation::canEditItem($params['author'], $params['type'], $params['id']) 
 		    	&& !Authorisation::isOpenEdition($params['id'], $params['type']) 
+		    	&& !Authorisation::canParticipate($params['author'], $params["type"], $params["id"])
 		    	&& (!@$params["formOrigin"] || !Link::isLinked($params['id'], $params['type'], $params['author']))) 
 		    {
 			    if(@$params["formOrigin"] && $params["formOrigin"]=="news")
