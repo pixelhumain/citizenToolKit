@@ -218,8 +218,6 @@ class NewsTranslator {
 		}
 
 		if(!isset($params["author"]["id"]) || @$params["verb"] == "create"){ 
-			//var_dump($params["author"]); //exit;
-			//$author=array("id"=>$params["author"]);
 			$authorId=@$params["author"];
 			$authorType=Person::COLLECTION;
 			$fields=array("name","profilThumbImageUrl", "geo");
@@ -227,7 +225,6 @@ class NewsTranslator {
 				$authorId=$params["target"]["id"];
 				$authorType=$params["target"]["type"];
 				$author=Element::getElementSimpleById( $params["target"]["id"],$params["target"]["type"],null, $fields);
-	  			//$author =  Element::getByTypeAndId($params["target"]["type"], $params["target"]["id"]);
 	  			$params["authorName"] = @$author["name"];
 	  			$params["authorId"] = @$params["target"]["id"];
 	  			$params["authorType"] = @$params["target"]["type"];
@@ -235,15 +232,10 @@ class NewsTranslator {
 	  			$params["sharedBy"] = array();
 			}else{
 				$author=Element::getElementSimpleById( $params["author"],Person::COLLECTION,null, $fields);
-  				//$author =  Person::getSimpleUserById($params["author"]);
-	  		}
+  			}
 	  	}else{
 	  		$author = $params["author"];
 	  	}
-
-	  	// if($params["verb"] == "create"){
-	  	// 	$params["author"]
-	  	// }
 
 	  	$author = array("id"=>@$authorId,
 					    "geo"=>@$author["geo"],
@@ -265,7 +257,6 @@ class NewsTranslator {
 			$lastKey = null;
 
 			$count=0;
-			//var_dump($params["sharedBy"]);
 			foreach($params["sharedBy"] as $key => $value){
 				 //on commence par prendre la date du premier partage (date de création si news)
 				if($count==0) $dateUpdated = @$value["updated"];
