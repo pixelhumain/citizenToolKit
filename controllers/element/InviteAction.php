@@ -2,7 +2,7 @@
 
 class InviteAction extends CAction {
     
-    public function run($id=null, $type=null) {
+    public function run($id=null, $type=null, $session=null) {
     	
         $controller=$this->getController();
         if(!empty(Yii::app()->session["userId"])){
