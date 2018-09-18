@@ -135,12 +135,13 @@ class Document {
 	                $params["parentType"] = $elem["parentType"];
 	            } 
 
-			if (!Authorisation::canEditItem( $params['author'], $params['type'], $params['id'], @$params["parentType"],@$params["parentId"])) {
+			if (!Authorisation::canEditItem( $params['author'], $params['type'], $params['id'], @$params["parentType"],@$params["parentId"]) && !Authorisation::canParticipate($params['author'], $params["type"], $params["id"])) {
 		    	return array("result"=>false, "type"=>$params['type'],"id"=>@$params["id"],  "parentType"=>@$params["parentType"],"parentId"=>@$params["parentId"], "msg"=>Yii::t('document',"You are not allowed to modify the document of this item !") );
 		    }
 		} else {
 		    if (   ! Authorisation::canEditItem($params['author'], $params['type'], $params['id']) 
 		    	&& !Authorisation::isOpenEdition($params['id'], $params['type']) 
+		    	&& !Authorisation::canParticipate($params['author'], $params["type"], $params["id"])
 		    	&& (!@$params["formOrigin"] || !Link::isLinked($params['id'], $params['type'], $params['author']))) 
 		    {
 			    if(@$params["formOrigin"] && $params["formOrigin"]=="news")
@@ -349,10 +350,10 @@ class Document {
 	 * @param array $limit represent the number of document by type that will be return. If not set, everything will be return
 	 * @return array a list of documents + URL sorted by contentkey type (IMG_PROFIL, IMG_SLIDER...)
 	 */
-	public static function getListDocumentsWhere($where, $docType, $limit=null){
-		$listDocumentsofType = PHDB::findAndSort( self::COLLECTION,$where, array( 'created' => -1 ));
-		if($docType="image"){
-			$docs=self::getListOfImage($listDocumentsofType);
+	public static function getListDocumentsWhere($where, $docType=null, $limit=null){
+		$docs = PHDB::findAndSort( self::COLLECTION,$where, array( 'created' => -1 ));
+		if($docType=="image"){
+			$docs=self::getListOfImage($docs);
 		}
 
 		return $docs;
@@ -412,6 +413,7 @@ class Document {
 				}
 				else{
 					$pushImage['id'] = (string)$value["_id"];
+					$pushImage['_id'] = $value["_id"];
 					$imagePath = self::getDocumentPath($value, true);
 					$imageThumbPath = ($value["contentKey"]=="profil") ? self::getDocumentPath($value, true, self::GENERATED_MEDIUM_FOLDER."/") : self::getDocumentPath($value, true, self::GENERATED_IMAGES_FOLDER."/");
 				}

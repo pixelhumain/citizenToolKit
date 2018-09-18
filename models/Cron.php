@@ -115,12 +115,13 @@ class Cron {
 	 * @param $params : a set of information for the document (?to define)
 	*/
 	public static function processCron($count=5){
-		$where = array( "status" => self::STATUS_PENDING, 
+		$where = array( "status" => self::STATUS_PENDING,
+						"userId" => array('$ne' => null)
 						/*'$or' => array( array( "execTS" => array( '$gt' => time())),
 										array( "execTS" => array( '$exists'=>-1 ) ) )*/
 					);
 		$jobs = PHDB::findAndSort( self::COLLECTION, $where, array('execDate' => 1), self::EXEC_COUNT);
-		//var_dump($jobs);
+		//Rest::json($jobs); exit ;
 		foreach ($jobs as $key => $value) {
 			//TODO : cumulé plusieur message au meme email 
 			self::processEntry($value);

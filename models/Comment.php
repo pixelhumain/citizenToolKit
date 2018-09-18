@@ -88,6 +88,10 @@ class Comment {
 			"status" => self::STATUS_POSTED,
 			"argval" => @$comment["argval"]
 		);
+
+		if(@$comment["path"])
+			$newComment["path"]=$comment["path"];
+
 		if(@$comment["rating"])
 			$newComment["rating"]=(int)$comment["rating"];
 		if(@$comment["mentions"])
@@ -129,6 +133,7 @@ class Comment {
 			$objectNotif = array("id"=> $comment["parentCommentId"], "type" => Comment::COLLECTION);
 			$typeAction=Comment::COLLECTION;
 		}
+		if($comment["contextType"] != Form::ANSWER_COLLECTION)
 		Notification::constructNotification( 	ActStr::VERB_COMMENT, 
 												array(	"id" => Yii::app()->session["userId"],
 														"name"=> Yii::app()->session["user"]["name"]), 
@@ -138,7 +143,7 @@ class Comment {
 												$objectNotif, 
 												$typeAction);
 		//Increment comment count (can have multiple comment by user)
-		$resAction = Action::addAction($userId , $comment["contextId"], $comment["contextType"], Action::ACTION_COMMENT, false, true) ;
+		$resAction = Action::addAction($userId , $comment["contextId"], $comment["contextType"], Action::ACTION_COMMENT, false, true, null, ( !empty($comment["path"]) ? $comment["path"] : null ) ) ;
 		if (! $resAction["result"]) {
 			$res = array("result"=>false, "msg"=> Yii::t("comment","Something went really bad"));
 		}
@@ -152,7 +157,7 @@ class Comment {
 	 * @param String $contextType The context object type. Can be anything 
 	 * @return array of comment organize in tree
 	 */
-	public static function buildCommentsTree($contextId, $contextType, $userId, $filters=null) {
+	public static function buildCommentsTree($contextId, $contextType, $userId, $filters=null, $path=null) {
 
 		$res = array();
 		$commentTree = array();
@@ -163,6 +168,10 @@ class Comment {
 		$whereContext = array(
 					"contextId" => $contextId, 
 					"contextType" => $contextType);
+
+		if(@$path)
+            $whereContext['path'] = $path ;
+
 		if(@$filters && !empty($filters)){
 			foreach ($filters as $value) {
 				if($value=="rating")
