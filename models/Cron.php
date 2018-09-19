@@ -116,7 +116,8 @@ class Cron {
 	*/
 	public static function processCron($count=5){
 		$where = array( "status" => self::STATUS_PENDING,
-						"userId" => array('$ne' => null)
+						"userId" => array('$ne' => null),
+						"to" => array('$ne' => null)
 						/*'$or' => array( array( "execTS" => array( '$gt' => time())),
 										array( "execTS" => array( '$exists'=>-1 ) ) )*/
 					);
