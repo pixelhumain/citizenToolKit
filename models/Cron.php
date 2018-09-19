@@ -115,13 +115,25 @@ class Cron {
 	 * @param $params : a set of information for the document (?to define)
 	*/
 	public static function processCron($count=5){
-		$where = array( "status" => self::STATUS_PENDING,
-						"userId" => array('$ne' => null),
-						"to" => array('$ne' => null)
-						/*'$or' => array( array( "execTS" => array( '$gt' => time())),
-										array( "execTS" => array( '$exists'=>-1 ) ) )*/
-					);
-		$jobs = PHDB::findAndSort( self::COLLECTION, $where, array('execDate' => 1), self::EXEC_COUNT);
+		
+
+		$regex = Search::accentToRegex("fake.");
+		// $where = array( "status" => self::STATUS_PENDING,
+		// 				"userId" => array('$ne' => null),
+		// 				"to" => array('$ne' => null),
+		// 				"to" => array('$not' => new MongoRegex("/".$regex."/i")),
+		// 				"tpl" => array('$ne' =>"priorisationCTE"),
+		// 				/*'$or' => array( array( "execTS" => array( '$gt' => time())),
+		// 								array( "execTS" => array( '$exists'=>-1 ) ) )*/
+		// 			);
+
+		$where = array('$and'=> array(
+                        array( "status" => self::STATUS_PENDING), 
+                        array("userId" => array('$ne' => null)),
+                        array("to" => array('$ne' => null)),
+                        array("to" => array('$not' => new MongoRegex("/".$regex."/i"))),
+                        array("tpl" => array('$ne' =>"priorisationCTE")) ) ) ;
+		$jobs = PHDB::findAndSort( self::COLLECTION, $where, array('execDate' => 1), 10);
 		//Rest::json($jobs); exit ;
 		foreach ($jobs as $key => $value) {
 			//TODO : cumulé plusieur message au meme email 
