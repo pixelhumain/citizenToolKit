@@ -34,6 +34,7 @@ class Document {
 	 * @return type
 	 */
 	public static function getById($id) {
+		error_log("doc xxxxxxxxxxxxxxxx".$id);
 	  	return PHDB::findOne( self::COLLECTION,array("_id"=>new MongoId(@$id)));
 	}
 
