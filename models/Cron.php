@@ -129,7 +129,7 @@ class Cron {
 
 		$where = array('$and'=> array(
                         array( "status" => self::STATUS_PENDING), 
-                        array("userId" => array('$ne' => null)),
+                        //array("userId" => array('$ne' => null)),
                         array("to" => array('$ne' => null)),
                         array("to" => array('$not' => new MongoRegex("/".$regex."/i"))),
                         array("tpl" => array('$ne' =>"priorisationCTE")) ) ) ;
