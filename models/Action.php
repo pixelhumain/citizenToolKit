@@ -205,7 +205,8 @@ class Action
                             if(@$element["targetIsAuthor"] || @$target["object"])
                                 $target["targetIsAuthor"]=true;
                         }
-                        Notification::constructNotification($verb, array("id" => Yii::app()->session["userId"],"name"=> Yii::app()->session["user"]["name"]), $target, $objectNotif, $collection);
+                        if($target["type"]!=Form::ANSWER_COLLECTION)
+                            Notification::constructNotification($verb, array("id" => Yii::app()->session["userId"],"name"=> Yii::app()->session["user"]["name"]), $target, $objectNotif, $collection);
                     }
 
                     if($action == "reportAbuse" && $collection == News::COLLECTION){
