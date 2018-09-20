@@ -35,11 +35,12 @@ class Document {
 	 */
 	public static function getById($id) {
 		try {
+			//error_log("doc xxxxxxxxxxxxxxxx".$id);
 			return PHDB::findOne( self::COLLECTION,array("_id"=>new MongoId(@$id)));
 		} catch (Exception $e) {
 			error_log($e);
 		}
-	  	
+
 	}
 
 	public static function getWhere($params) {
