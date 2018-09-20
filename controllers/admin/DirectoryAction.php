@@ -57,8 +57,8 @@ class DirectoryAction extends CAction
       $searchTags = isset($_POST['searchTag']) ? $_POST['searchTag'] : null;
       $country = isset($_POST['country']) ? $_POST['country'] : "";
       $search="";
-      if(@$_POST["value"] && !empty($_POST["value"])){
-        $search = trim(urldecode($_POST['value']));
+      if(@$_POST["text"] && !empty($_POST["text"])){
+        $search = trim(urldecode($_POST['text']));
       }
       $query = array();
       $queryNews=array();
