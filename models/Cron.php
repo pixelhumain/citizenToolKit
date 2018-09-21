@@ -131,7 +131,7 @@ class Cron {
                         array( "status" => self::STATUS_PENDING), 
                         //array("userId" => array('$ne' => null)),
                         array("to" => array('$ne' => null)),
-                        /*array("to" => array('$not' => new MongoRegex("/".$regex."/i"))),*/
+                        array("to" => array('$not' => new MongoRegex("/".$regex."/i"))),*/
                         array("tpl" => array('$ne' =>"priorisationCTE")) ) ) ;
 		$jobs = PHDB::findAndSort( self::COLLECTION, $where, array('execDate' => 1), 10);
 		//Rest::json($jobs); exit ;
