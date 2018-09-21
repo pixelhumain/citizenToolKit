@@ -137,7 +137,12 @@ class Cron {
 		//Rest::json($jobs); exit ;
 		foreach ($jobs as $key => $value) {
 			//TODO : cumulé plusieur message au meme email 
-			self::processEntry($value);
+			try {
+				self::processEntry($value);
+			} catch (Exception $e) {
+				error_log("processCron : ".$e);
+			}
+			
 		}
 	}
 
