@@ -136,6 +136,9 @@ class Comment {
 
 		if($comment["contextType"] != Form::ANSWER_COLLECTION)
 			Notification::constructNotification(ActStr::VERB_COMMENT, array("id" => Yii::app()->session["userId"],"name"=> Yii::app()->session["user"]["name"]), array("type"=>$comment["contextType"],"id"=> $comment["contextId"],"name"=>@$options["name"]), $objectNotif, $typeAction);
+		else{
+			Form::createNotificationAnswer($comment);
+		}
 		//Increment comment count (can have multiple comment by user)
 		$resAction = Action::addAction($userId , $comment["contextId"], $comment["contextType"], Action::ACTION_COMMENT, false, true, null, ( !empty($comment["path"]) ? $comment["path"] : null ) ) ;
 		if (! $resAction["result"]) {
