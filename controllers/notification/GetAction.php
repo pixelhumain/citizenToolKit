@@ -50,7 +50,7 @@ class GetAction extends CAction
           $datas["notif"] = $res;
           if(@$_POST["refreshTimestamp"])
             $datas["countNotif"] = ActivityStream::countUnseenNotifications(Yii::app()->session["userId"], $type, $id);
-          $datas["coop"] = Cooperation::getCountNotif();
+          //$datas["coop"] = Cooperation::getCountNotif();
 
         } else{
           $data = array('result' => false , 'msg'=>'something somewhere went terribly wrong');   
