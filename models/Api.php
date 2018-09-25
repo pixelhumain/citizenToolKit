@@ -65,7 +65,7 @@ class Api {
     }
 
 
-    public static function getData($bindMap, $format = null, $type, $id = null, $limit=50, $index=0, $tags = null, $multiTags=null , $key = null, $insee = null, $geoShape = null, $idElement = null, $typeElement = null, $namecity = null){
+    public static function getData($bindMap, $format = null, $type, $id = null, $limit=50, $index=0, $tags = null, $multiTags=null , $key = null, $insee = null, $geoShape = null, $idElement = null, $typeElement = null, $namecity = null, $p = null){
         
         // Create params for request
         $params = array();
@@ -110,6 +110,14 @@ class Api {
                 $params["address.addressLocality"] = array('$in' => $allQueryLocality);
             }
             
+        }
+
+        if( @$p["level3"] ){
+            $params["address.level3"] = $p["level3"] ;
+        }
+
+        if( @$p["level4"] ){
+            $params["address.level4"] = $p["level4"] ;
         }
         
         if( @$tags ){

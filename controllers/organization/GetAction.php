@@ -2,7 +2,7 @@
 
 class GetAction extends CAction
 {
-    public function run($id = null, $format = null, $limit=50, $index=0, $tags = null, $multiTags=null , $key = null, $insee = null, $fullRepresentation = null, $namecity=null) {
+    public function run($id = null, $format = null, $limit=50, $index=0, $tags = null, $multiTags=null , $key = null, $insee = null, $fullRepresentation = null, $namecity=null, $level3=null, $level4=null) {
 		$controller=$this->getController();
 		// Get format
 		header("Access-Control-Allow-Origin: *");
@@ -24,8 +24,14 @@ class GetAction extends CAction
 		else{
 	       $bindMap = (empty($id) ? TranslateCommunecter::$dataBinding_allOrganization : TranslateCommunecter::$dataBinding_organization);
 		}
+		$p = array();
+		if(!empty($level3))
+			$p["level3"] = $level3;
 
-      	$result = Api::getData($bindMap, $format, Organization::COLLECTION, $id,$limit, $index, $tags, $multiTags, $key, $insee, null, null, null, $namecity);
+		if(!empty($level4))
+			$p["level4"] = $level4;
+
+      	$result = Api::getData($bindMap, $format, Organization::COLLECTION, $id,$limit, $index, $tags, $multiTags, $key, $insee, null, null, null, $namecity, $p);
 
       	if ($format == Translate::FORMAT_KML) {
 			$strucKml = News::getStrucKml();		
