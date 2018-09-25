@@ -48,7 +48,20 @@ class Cron {
 	    if( $params['type'] == self::TYPE_MAIL )
 	    	$new = array_merge($new , self::addMailParams($params) );
 
-	    PHDB::insert(self::COLLECTION,$new);
+	    if(!empty($new["to"])){
+
+	    	$entity = PHDB::findOne( Person::COLLECTION ,array("email" => $new["to"]), array("preferences"));
+
+	    	if(!empty($entity)){
+	    		if(!empty($entity["preferences"]["sendMail"]) && $entity["preferences"]["sendMail"]===true){
+	    			PHDB::insert(self::COLLECTION,$new);
+	    		}
+	    		
+	    	}else
+	    		PHDB::insert(self::COLLECTION,$new);
+	    }
+
+	    
 	}
 	
     /**
