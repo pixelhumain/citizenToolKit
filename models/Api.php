@@ -131,8 +131,12 @@ class Api {
 
         if( @$key ) $params["source.key"] = $key ;
         
-        if( $limit > 500) $limit = 500 ;
-        else if($limit < 1) $limit = 50 ;
+        if($format != "csv"){
+            if( $limit > 500) $limit = 500 ;
+            else if($limit < 1) $limit = 50 ;
+        }else
+            $limit = 0;
+        
 
         if($index < 0) $index = 0 ;
         //if($type != City::COLLECTION) $params["preferences.isOpenData"] = true ;
