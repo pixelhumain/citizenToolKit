@@ -99,6 +99,13 @@ class Preference {
 		}else{
 			$preferences["isOpenData"] = ((empty($context["preferences"]["isOpenData"]))?false:true);
 		}
+
+		if($setType == "sendMail"){
+			$preferences["sendMail"] = $setValue;
+		}else{
+			$preferences["sendMail"] = ((empty($context["preferences"]["sendMail"]))?false:true);
+		}
+
 		if($setType == "private"){
 			$preferences["private"] = $setValue;
 		}else{
