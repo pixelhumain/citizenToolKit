@@ -595,7 +595,6 @@ class Notification{
 		ActStr::VERB_INVITE => array(
 			"repeat" => true,
 			"notifyUser" => true,
-			"tpl" => "invitation",
 			"type" => array(
 				"asMember" => array(
 					"to"=> "members",
@@ -612,6 +611,7 @@ class Notification{
 					"labelRepeatMail"=>"{author} invited {who} to administrate {where}"
 				),
 				"user" => array(
+					"tpl" => "invitation",
 					"asMember" => array(
 						"label"=>"{author} invited you to join {where}"
 					),
@@ -943,6 +943,7 @@ class Notification{
 				**/
 				/********** END MAILING PROCEDURE *********/
 			}
+			var_dump("HERE");
 			Mail::createNotification($notificationPart);
 
 		}
@@ -1011,6 +1012,7 @@ class Notification{
 						self::createNotification($construct,"user");
 				    }
 				}
+
 				if(@$notifUser["email"] && $notifUser["email"]){
 			    	$construct["community"]["mails"]=array($userNotify=>array("email" => $notifUser["email"], "language" => $notifUser["language"] ));
 			    	Mail::createNotification($construct);

@@ -1016,6 +1016,7 @@ class Link {
                     $pendingChild["isInviting"]=true;
                 }
                 $toBeValidated=false;
+                //var_dump("HERE1");
                 Mail::someoneInviteYouToBecome($parentData, $parentType, $pendingChild, $typeOfDemand);
 			} else{
                 // Verb Confirm in ValidateLink
@@ -1070,8 +1071,10 @@ class Link {
                 array_push($listofAdminsEmail, $currentAdmin["email"]);
             }
             //CREATE VARIABLE OF EMAIL AND GENERALIZE EMAIL someoneDemandToBecome || someoneInvitingYouTo
-            if (count($listofAdminsEmail))
+            if (count($listofAdminsEmail)){
+                var_dump("HERE2");
                 Mail::someoneDemandToBecome($parentData, $parentType, $pendingChild, $listofAdminsEmail, $typeOfDemand);
+            }
             //TODO - Notification
             $msg = Yii::t("common","Your request has been sent to other admins.");
             // After : the 1rst existing Admin to take the decision will remove the "pending" to make a real admin
@@ -1081,6 +1084,7 @@ class Link {
 		Link::connect($parentId, $parentType, $childId, $childType,Yii::app()->session["userId"], $parentConnectAs, $isConnectingAdmin, $toBeValidatedAdmin, $toBeValidated, $isInviting, $userRole);
         //var_dump($pendingChild); exit ;
 		Link::connect($childId, $childType, $parentId, $parentType, Yii::app()->session["userId"], $childConnectAs, $isConnectingAdmin, $toBeValidatedAdmin, $toBeValidated, $isInviting, $userRole);
+        //Rest::json(array($verb, $pendingChild )); exit ;
         Notification::constructNotification($verb, $pendingChild , array("type"=>$parentType,"id"=> $parentId,"name"=>$parentData["name"]), null, $levelNotif);
         //Notification::actionOnPerson($verb, ActStr::ICON_SHARE, $pendingChild , array("type"=>$parentType,"id"=> $parentId,"name"=>$parentData["name"]), $invitation);
 		$res = array("result" => true, "msg" => $msg, "parent" => $parentData,"parentType"=>$parentType,"newElement"=>$pendingChild, "newElementType"=> $childType );
@@ -1260,7 +1264,6 @@ class Link {
                 if(!empty($contact["link"]))
                     $child["link"] = $contact["link"];  	
 		    	$isConnectingAdmin= (@$contact["connectType"]=="admin") ? true : false;
-		    	
                 $res = Link::connectParentToChild($parentId, $parentType, $child, $isConnectingAdmin, Yii::app()->session["userId"], $roles);
 		    	if($res["result"]==true){
 			    	if($msg != 2)
