@@ -212,10 +212,13 @@ class Import
         $result = array("result" => true);
 
         $geo = (empty($element['geo']) ? null : $element['geo']);
-
+        //$element['type'] = "LocalBusiness";
+        // if(empty($element['address']["addressCountry"]))
+        //     $element['address']["addressCountry"] = "FR";
         if($typeElement != Person::COLLECTION ) {
             $address = (empty($element['address']) ? null : $element['address']);
             $geo = (empty($element['geo']) ? null : $element['geo']);
+            
 
             if(!empty($address) && !empty($address["addressCountry"])  && !empty($address["postalCode"]) && strtoupper($address["addressCountry"]) == "FR" && strlen($address["postalCode"]) == 4 )
                 $address["postalCode"] = '0'.$address["postalCode"];
