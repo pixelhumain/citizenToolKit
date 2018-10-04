@@ -136,6 +136,7 @@ class Mail {
         );
         Mail::schedule($params);
     }
+
     public static function invitePerson($person, $msg = null, $nameInvitor = null, $invitorUrl = null, $subject=null) {
         if(isset($person["invitedBy"]))
             $invitor = Person::getSimpleUserById($person["invitedBy"]);
@@ -180,6 +181,7 @@ class Mail {
         
         Mail::schedule($params);
     }
+
     public static function relaunchInvitePerson($person, $nameInvitor = null, $invitorUrl = null, $subject=null) {
         if(isset($person["invitedBy"]))
             $invitor = Person::getSimpleUserById($person["invitedBy"]);
@@ -864,13 +866,59 @@ class Mail {
 
     }
 
-    public static function createNotification($construct, $tpl=null){
-        Rest::json($construct); exit ;
+    public static function invitation($construct, $val) {
 
-        if(!empty($construct["notifyUser"]) && $construct["notifyUser"] == true) {
-             // creer mail pour le user 
+
+		// if(isset($person["invitedBy"]))
+		//     $invitor = Person::getSimpleUserById($person["invitedBy"]);
+		// else if(isset($nameInvitor))
+		//     $invitor["name"] = $nameInvitor ;
+
+		foreach ($construct["author"] as $key => $value) {
+			$invitor["name"] = $value["name"];
+		}
+
+		if(@$invitor && empty(@$invitor["name"]))
+			$subject = Yii::t("mail", "{who} is waiting for you on {what}", array("{who}"=>$invitor["name"], "{what}"=>self::getAppName()));
+		else
+			$subject = Yii::t("mail", "{what} is waiting for you", array( "{what}"=>self::getAppName() ) ) ;
+
+        
+
+        if(!@$val["email"] || empty($val["email"])){
+			$getEmail=Person::getEmailById($val["id"]);
+			$val["email"]=$getEmail["email"];
         }
 
+        $target = (!empty($construct["target"]) ? $construct["target"] : null ) ;
+
+        $params = array(
+			"type" => Cron::TYPE_MAIL,
+			"tpl"=>'invitation',
+			"subject" => $subject,
+			"from"=>Yii::app()->params['adminEmail'],
+			"to" => $val["email"],
+			"tplParams" => array(	"invitorName"   => $invitor["name"],
+									"title" => self::getAppName() ,
+									"invitorLogo" => @$invitor["profilThumbImageUrl"],
+									"invitedUserId" => $val["id"],
+									"message" => @$msg,
+									"target" => $target,
+									"language" => $val["language"] )
+        );
+
+        $params=self::getCustomMail($params);
+        if(!empty($invitorUrl))
+			$params["tplParams"]["invitorUrl"] = $invitorUrl;
+        
+        // $s = array("construct" => $construct, "params" => $params, "val" => $val);
+        // Rest::json($s); exit;
+
+        Mail::schedule($params);
+    }
+
+    public static function createNotification($construct, $tpl=null){
+        //Rest::json($construct); exit ;
 
         foreach ($construct["community"]["mails"] as $key => $value) {
             // if ($key != Yii::app()->session["userId"]) {
@@ -883,10 +931,17 @@ class Mail {
                 // TODO Rapha
                 // géré les tpl et refaire la données pour avoir un seul tableau , mail translate a ajouter dans Element::getCommunityByTypeAndId
              
-                if(!empty($construct["tpl"])) {
-                    Rest::json(array($construct, $value)); exit ;
-                } else {
+                if(!empty($tpl)) {
+                    
+                //     $params = array("tpl" => $tpl,
+                // "subject" => $params["tplObject"],
+                // "from"=>Yii::app()->params['adminEmail'],
+                // "to" => $params["tplMail"],
 
+                    Mail::$tpl($construct, $value);
+
+
+                } else {
                     $mail = Mail::getMailUpdate($value["email"], 'notification') ;
                     if(!empty($mail)){
                         $paramTpl = self::createParamsTpl($construct, $mail["tplParams"]["data"]);

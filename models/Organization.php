@@ -728,6 +728,7 @@ class Organization {
 	 */
 	public static function createAndInvite($param) {
 	  	try {
+	  		var_dump("Organisation::createAndInvite");
 	  		$res = self::insert($param, $param["invitedBy"], $param["invitedBy"]);
 	  	} catch (CTKException $e) {
 	  		$res = array("result"=>false, "msg"=> $e->getMessage());

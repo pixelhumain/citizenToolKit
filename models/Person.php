@@ -599,11 +599,12 @@ class Person {
 	 */
 	public static function createAndInvite($param, $msg = null, $gmail =null) {
 	  	try {
+	  		//var_dump("Person::createAndInvite");
 	  		//Check if the person can still invite : has he got enought invitations left
 	  		$invitor = self::getById($param["invitedBy"]);
 	  		$res = self::insert($param, self::REGISTER_MODE_MINIMAL);
 	  		//send invitation mail
-			Mail::invitePerson($res["person"], $msg);
+			//Mail::invitePerson($res["person"], $msg);
 		  		  		
 	  	} catch (CTKException $e) {
 	  		$res = array("result"=>false, "msg"=> $e->getMessage());

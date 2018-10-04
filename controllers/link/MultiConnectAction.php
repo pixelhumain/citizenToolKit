@@ -50,10 +50,19 @@ class MultiConnectAction extends CAction
 						$creatUser = Person::createAndInvite($newPerson, @$value["msg"]);
 						if ($creatUser["result"]) {
 							if($_POST["parentType"] == Person::COLLECTION){
-								$invitedUserId = $creatUser["id"];
-								$child["childId"] = $_POST["parentId"];
-								$child["childType"] = $_POST["parentType"];
-								$res["invites"][] = Link::follow($invitedUserId, Person::COLLECTION, $child);
+								// $invitedUserId = $creatUser["id"];
+								// $child["childId"] = $_POST["parentId"];
+								// $child["childType"] = $_POST["parentType"];
+								// $res["invites"][] = Link::follow($invitedUserId, Person::COLLECTION, $child);
+
+								$child = array();
+								$child[] = array( 	"childId" => $creatUser["id"],
+													"childType" => Person::COLLECTION,
+													"childName" => $newPerson["name"],
+													"roles" => (empty($value["roles"]) ? array() : $value["roles"]),
+													"connectType" => (empty($value["isAdmin"]) ? "" : $value["isAdmin"]) );
+
+								$res["invites"][]= Link::multiconnect($child, $_POST["parentId"], $_POST["parentType"]);
 								
 							} else {
 								$child = array();

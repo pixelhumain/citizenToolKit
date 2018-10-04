@@ -56,12 +56,16 @@ class Notification{
 				"asMember" => array(
 					"to"=> "members",
 					"label"=>"{who} wants to join {where}",
-					"labelRepeat"=>"{who} want to join {where}"
+					"labelRepeat"=>"{who} want to join {where}",
+					"labelMail" => "{who} wants to join {where}",
+					"labelMailRepeat"=>"{who} want to join {where}",
 				),
 				"asAdmin" => array(
 					"to" => "admin",
 					"label"=>"{who} wants to administrate {where}",
-					"labelRepeat"=>"{who} want to administrate {where}"
+					"labelRepeat"=>"{who} want to administrate {where}",
+					"labelMail" => "{who} wants to administrate {where}",
+					"labelMailRepeat"=>"{who} want to administrate {where}",
 				)
 			),
 			"tpl" => "askToBecomeAdmin",
@@ -612,6 +616,7 @@ class Notification{
 				),
 				"user" => array(
 					"tpl" => "invitation",
+					"settings"=> "low",
 					"asMember" => array(
 						"label"=>"{author} invited you to join {where}"
 					),
@@ -683,7 +688,7 @@ class Notification{
 	* MOVE TO PREFERENCES
 	****************/
 	public static function checkUserNotificationPreference($verb, $settings, $id){
-		$person = Element::getElementById( $id, Person::COLLECTION, null, array("email","preferences","language"));
+		$person = Element::getElementById( $id, Person::COLLECTION, null, array("name", "email","preferences","language"));
 	 	if(@$person["preferences"]["notifications"]){
 	 		$add["notifications"]=true;
 	 		foreach($person["preferences"]["notifications"] as $key => $value){
@@ -708,8 +713,13 @@ class Notification{
     		$add["email"]=false;
     	if($add["email"]){
     		$add["email"]=$person["email"];
-    		$add["language"]=$person["email"];
+    		$add["language"]=( @$person["language"] ? $person["language"] : "fr" ) ;
     	}
+
+    	$add["id"] = $id;
+    	if(@$person["name"])
+    		$add["name"] = $person["name"];
+    	
 		return $add;
 	}
 	/** TODO BOUBOULE
@@ -760,7 +770,7 @@ class Notification{
 	    	if(!@$members[$userAskingToDelete])
 	    		$members[$userAskingToDelete]=array();
 	    }
-		if($type == Person::COLLECTION && $construct["verb"]==Actstr::VERB_FOLLOW){
+		if($type == Person::COLLECTION && ($construct["verb"]==Actstr::VERB_FOLLOW || $construct["verb"]==Actstr::VERB_POST) ){
 			$notifUser=self::checkUserNotificationPreference($construct["verb"], $construct["settings"],$id);
 			if(@$notifUser["notifications"] && $notifUser["notifications"])
 		 		$peopleNotifs[$id] = array("isUnread" => true, "isUnseen" => true);
@@ -813,6 +823,7 @@ class Notification{
             "author"=> $construct["author"],
  			"target"=> $construct["target"]
         );
+        //Rest::json($asParam); exit ;
         if($construct["object"])
         	$asParam["object"]=$construct["object"];
  	    $stream = ActStr::buildEntry($asParam);
@@ -943,7 +954,8 @@ class Notification{
 				**/
 				/********** END MAILING PROCEDURE *********/
 			}
-			var_dump("HERE");
+			//Rest::json($notificationPart); exit ;
+			$tpl = ( ( @$construct["tpl"] ) ? $construct["tpl"] : null );
 			Mail::createNotification($notificationPart);
 
 		}
@@ -991,14 +1003,17 @@ class Notification{
 					}
 				}
 			}
-			else $userNotify=$construct["author"]["id"]; // Case specific to invitation or accept proccess in a community
+			else
+				$userNotify=$construct["author"]["id"]; // Case specific to invitation or accept proccess in a community
 
+			//Rest::json($isToNotify); exit ;
 			if($isToNotify){
 				if(gettype($userNotify)!="string")
 					$userNotify=(string)$userNotify["id"];
 
 				$construct["alreadyAuhtorNotify"]=$userNotify;
-				$notifUser=self::checkUserNotificationPreference($construct["verb"], $construct["settings"],$userNotify);
+				$settings = ( ( @$construct["type"] && @$construct["type"]["user"] && @$construct["type"]["user"]["settings"]) ? $construct["type"]["user"]["settings"] : $construct["settings"] );
+				$notifUser=self::checkUserNotificationPreference($construct["verb"], $settings, $userNotify);
 				if(@$notifUser["notifications"] && $notifUser["notifications"]){
 					$construct["community"]["notifications"]=array($userNotify=>array("isUnread" => true, "isUnseen" => true));
 					if((@$construct["type"][$levelType] && @$construct["type"][$levelType]["repeat"])
@@ -1013,9 +1028,16 @@ class Notification{
 				    }
 				}
 
-				if(@$notifUser["email"] && $notifUser["email"]){
-			    	$construct["community"]["mails"]=array($userNotify=>array("email" => $notifUser["email"], "language" => $notifUser["language"] ));
-			    	Mail::createNotification($construct);
+				//Rest::json($construct); exit ;
+
+				if(!empty($notifUser["email"])){
+					$tpl = ( ( @$construct["type"] && @$construct["type"]["user"] && @$construct["type"]["user"]["tpl"]) ? $construct["type"]["user"]["tpl"] : null );
+
+			    	//$construct["community"]["mails"] = array($userNotify=>array("email" => $notifUser["email"], "language" => $notifUser["language"] ));
+
+			    	$construct["community"]["mails"] = array($userNotify=>$notifUser );
+			    	
+			    	Mail::createNotification($construct, $tpl);
 				}
 			} 
 		}

@@ -899,6 +899,11 @@ class Link {
             if(!$isConnectingAdmin)
                 $typeOfDemand = "contributor";
 
+        }else if($parentType == Person::COLLECTION){
+            $parentUsersList = Person::getPersonFollowsByUser($parentId);
+            $parentController = Person::CONTROLLER;
+            $parentConnectAs = "follows";
+            $childConnectAs = "followers";
         } else {
             throw new CTKException(Yii::t("common","Can not manage the type ").$parentType);
         }
@@ -927,6 +932,7 @@ class Link {
 
         //if the childId is empty => it's an invitation
         //Let's create the child
+        //TODO RAPHA CLEM : Est-ce que on peut arriver la sans que childID sois renseigner ?
         if (empty($childId)) {
             $invitation = ActStr::VERB_INVITE;
             $child = array(
@@ -1017,7 +1023,7 @@ class Link {
                 }
                 $toBeValidated=false;
                 //var_dump("HERE1");
-                Mail::someoneInviteYouToBecome($parentData, $parentType, $pendingChild, $typeOfDemand);
+                //Mail::someoneInviteYouToBecome($parentData, $parentType, $pendingChild, $typeOfDemand);
 			} else{
                 // Verb Confirm in ValidateLink
 				$verb = ActStr::VERB_JOIN;
@@ -1072,8 +1078,8 @@ class Link {
             }
             //CREATE VARIABLE OF EMAIL AND GENERALIZE EMAIL someoneDemandToBecome || someoneInvitingYouTo
             if (count($listofAdminsEmail)){
-                var_dump("HERE2");
-                Mail::someoneDemandToBecome($parentData, $parentType, $pendingChild, $listofAdminsEmail, $typeOfDemand);
+                // var_dump("HERE2");
+                // Mail::someoneDemandToBecome($parentData, $parentType, $pendingChild, $listofAdminsEmail, $typeOfDemand);
             }
             //TODO - Notification
             $msg = Yii::t("common","Your request has been sent to other admins.");
