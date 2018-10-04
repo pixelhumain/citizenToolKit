@@ -213,8 +213,8 @@ class Import
 
         $geo = (empty($element['geo']) ? null : $element['geo']);
         //$element['type'] = "LocalBusiness";
-        // if(empty($element['address']["addressCountry"]))
-        //     $element['address']["addressCountry"] = "FR";
+        if(empty($element['address']["addressCountry"]))
+            $element['address']["addressCountry"] = "FR";
         if($typeElement != Person::COLLECTION ) {
             $address = (empty($element['address']) ? null : $element['address']);
             $geo = (empty($element['geo']) ? null : $element['geo']);
@@ -602,7 +602,7 @@ class Import
 								}
 								else{
 									$good = false ;
-									$element["name"] = $exist["element"]["name"];
+									$element["name"] = @$exist["element"]["name"];
 									$element["info"] = "La commune n'existe pas, penser a l'ajouter avants"; 
 								}
                             }
