@@ -387,8 +387,8 @@ class Import
                 $city = PHDB::findOne(City::COLLECTION, $where, $fields);
             }
             if( stripos($address["addressLocality"], "CEDEX") !== false && $address["addressCountry"] == "FR" ){
-                $local = str_replace("", "CEDEX", $address["addressLocality"]);
-                var_dump($local);
+                $local = trim(str_replace("CEDEX", "", $address["addressLocality"]));
+                //var_dump($local);
                 $regexCity = Search::accentToRegex(strtolower($local));
             }
             else
@@ -407,12 +407,12 @@ class Import
                 $where = array('$and' => array($where, array("country" => strtoupper($address["addressCountry"])) ) );
                 
                 if( !empty($address["postalCode"]) && !(stripos($address["addressLocality"], "CEDEX") !== false && $address["addressCountry"] == "FR") ){
-                    var_dump(stripos($address["addressLocality"], "CEDEX"));
-                    var_dump($address["addressCountry"] == "FR");
+                    // var_dump(stripos($address["addressLocality"], "CEDEX"));
+                    // var_dump($address["addressCountry"] == "FR");
                     $where = array('$and' => array($where, array("postalCodes.postalCode" => $address["postalCode"]) ) );
                 }
 
-                Rest::json($where); exit;
+                //Rest::json($where); exit;
 
                 $fields = array("name", "geo", "country", "level1", "level1Name","level2", "level2Name","level3", "level3Name","level4", "level4Name", "osmID", "postalCode", "insee");
 
