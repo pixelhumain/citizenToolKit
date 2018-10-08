@@ -245,6 +245,7 @@ class Preference {
 	public static function initPreferences($type) {
 		$preferences = array();
 		$preferences["isOpenData"] = true;
+		$preferences["sendMail"] = false;
 		if($type == Person::COLLECTION){
 			$preferences["publicFields"] = array("locality", "directory");
 			$preferences["privateFields"] = array("birthDate", "email", "phone");

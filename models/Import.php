@@ -213,8 +213,8 @@ class Import
 
         $geo = (empty($element['geo']) ? null : $element['geo']);
         //$element['type'] = "LocalBusiness";
-        if(empty($element['address']["addressCountry"]))
-            $element['address']["addressCountry"] = "FR";
+        // if(empty($element['address']["addressCountry"]))
+        //     $element['address']["addressCountry"] = "FR";
         if($typeElement != Person::COLLECTION ) {
             $address = (empty($element['address']) ? null : $element['address']);
             $geo = (empty($element['geo']) ? null : $element['geo']);
@@ -378,7 +378,7 @@ class Import
 
 		if( !empty($address["addressLocality"]) && !empty($address["addressCountry"]) ){
 
-            $regexCity = Search::accentToRegex(strtolower($address["addressLocality"]));
+            
             $city = null ;
             if(!empty($address["codeInsee"])){
                 $where = array('$and' => array(
@@ -386,8 +386,17 @@ class Import
                                 array("country" => strtoupper($address["addressCountry"])) ) );
                 $city = PHDB::findOne(City::COLLECTION, $where, $fields);
             }
+            if( stripos($address["addressLocality"], "CEDEX") !== false && $address["addressCountry"] == "FR" ){
+                $local = str_replace("", "CEDEX", $address["addressLocality"]);
+                var_dump($local);
+                $regexCity = Search::accentToRegex(strtolower($local));
+            }
+            else
+                $regexCity = Search::accentToRegex(strtolower($address["addressLocality"]));
 
             if(empty($city)){
+
+
                 $where = array('$or'=> 
                         array(  
                             array("name" => new MongoRegex("/^".$regexCity."/i")),
@@ -396,14 +405,21 @@ class Import
                         ) );
 
                 $where = array('$and' => array($where, array("country" => strtoupper($address["addressCountry"])) ) );
-
-                if( !empty($address["postalCode"]) ){
+                
+                if( !empty($address["postalCode"]) && !(stripos($address["addressLocality"], "CEDEX") !== false && $address["addressCountry"] == "FR") ){
+                    var_dump(stripos($address["addressLocality"], "CEDEX"));
+                    var_dump($address["addressCountry"] == "FR");
                     $where = array('$and' => array($where, array("postalCodes.postalCode" => $address["postalCode"]) ) );
                 }
+
+                Rest::json($where); exit;
+
                 $fields = array("name", "geo", "country", "level1", "level1Name","level2", "level2Name","level3", "level3Name","level4", "level4Name", "osmID", "postalCode", "insee");
 
                 $city = PHDB::findOne(City::COLLECTION, $where, $fields);
             }
+
+            
 
 			if(!empty($city)){
 

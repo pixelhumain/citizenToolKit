@@ -53,7 +53,7 @@ class Cron {
 	    	$entity = PHDB::findOne( Person::COLLECTION ,array("email" => $new["to"]), array("preferences"));
 
 	    	if(!empty($entity)){
-	    		if(!empty($entity["preferences"]["sendMail"]) && $entity["preferences"]["sendMail"]===true){
+	    		if( (!empty($entity["preferences"]["sendMail"]) && $entity["preferences"]["sendMail"]===true) || $params["tpl"] == "invitation"){
 	    			PHDB::insert(self::COLLECTION,$new);
 	    		}
 	    		
@@ -147,7 +147,7 @@ class Cron {
                         array("to" => array('$not' => new MongoRegex("/".$regex."/i"))),
                         array("tpl" => array('$ne' =>"priorisationCTE")) ) ) ;
 		$jobs = PHDB::findAndSort( self::COLLECTION, $where, array('execDate' => 1), 10);
-		//Rest::json($jobs); exit ;
+		Rest::json($jobs); exit ;
 		foreach ($jobs as $key => $value) {
 			//TODO : cumulé plusieur message au meme email 
 			try {
