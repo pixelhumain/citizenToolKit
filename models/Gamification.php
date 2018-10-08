@@ -58,8 +58,10 @@ class Gamification {
 	const BADGE_TREE_LIMIT = 300;
 	const BADGE_FOREST_LIMIT = 500;
 	const BADGE_COUNTRY_LIMIT = 5000;
-	const BADGE_CONTINENT_LIMIT = 20000;
-	const BADGE_PLANET_LIMIT = 100000;
+	const BADGE_PLANET_LIMIT = 20000;
+	const BADGE_SUN_LIMIT = 100000;
+	const BADGE_SYSTEM_LIMIT = 200000;
+	const BADGE_GALAXY_LIMIT = 300000;
 	//points if profile is filled above 80%
 
 	//actions (like/dislike/abuse)
@@ -195,27 +197,93 @@ class Gamification {
 		return $points;
 	}
 
+	public static function getAllLevelAndCurent($total, $userId, $path){
+		$arrayLevel=array("air"=>array("label"=>self::badge($userId, 1), "icon"=>self::badge($userId, 1, $path), "points"=>0));
+		$currentKey="air";
+		if( $total >= self::BADGE_SEED_LIMIT){
+			$currentKey="seed";
+			$arrayLevel[$currentKey]=array("label"=>self::badge($userId, self::BADGE_SEED_LIMIT), "icon"=>self::badge($userId, self::BADGE_SEED_LIMIT, $path), "points"=>self::BADGE_SEED_LIMIT);
+		}if( $total >= self::BADGE_GERM_LIMIT){
+			$currentKey="germ";
+			$arrayLevel[$currentKey]=array("label"=>self::badge($userId, self::BADGE_GERM_LIMIT), "icon"=>self::badge($userId, self::BADGE_GERM_LIMIT, $path), "points"=>self::BADGE_GERM_LIMIT);
+		}if( $total >= self::BADGE_PLANT_LIMIT){	
+			$currentKey="plant";
+			$arrayLevel[$currentKey]=array("label"=>self::badge($userId, self::BADGE_PLANT_LIMIT), "icon"=>self::badge($userId, self::BADGE_PLANT_LIMIT, $path), "points"=>self::BADGE_PLANT_LIMIT);
+		}if( $total >= self::BADGE_TREE_LIMIT){
+			$currentKey="tree";
+			$arrayLevel[$currentKey]=array("label"=>self::badge($userId, self::BADGE_TREE_LIMIT), "icon"=>self::badge($userId, self::BADGE_TREE_LIMIT, $path), "points"=>self::BADGE_TREE_LIMIT);
+		}if( $total >= self::BADGE_FOREST_LIMIT){
+			$currentKey="forest";
+			$arrayLevel[$currentKey]=array("label"=>self::badge($userId, self::BADGE_FOREST_LIMIT), "icon"=>self::badge($userId, self::BADGE_FOREST_LIMIT, $path), "points"=>self::BADGE_FOREST_LIMIT);
+		}if( $total >= self::BADGE_COUNTRY_LIMIT){	
+			$currentKey="country";
+			$arrayLevel[$currentKey]=array("label"=>self::badge($userId, self::BADGE_COUNTRY_LIMIT), "icon"=>self::badge($userId, self::BADGE_COUNTRY_LIMIT, $path), "points"=>self::BADGE_COUNTRY_LIMIT);
+		}if( $total >= self::BADGE_PLANET_LIMIT){
+			$currentKey="planet";
+			$arrayLevel[$currentKey]=array("label"=>self::badge($userId, self::BADGE_PLANET_LIMIT), "icon"=>self::badge($userId, self::BADGE_PLANET_LIMIT, $path), "points"=>self::BADGE_PLANET_LIMIT);
+		}if( $total >= self::BADGE_SUN_LIMIT){
+			$currentKey="sun";
+			$arrayLevel[$currentKey]=array("label"=>self::badge($userId, self::BADGE_SUN_LIMIT), "icon"=>self::badge($userId, self::BADGE_SUN_LIMIT, $path), "points"=>self::BADGE_SUN_LIMIT);
+		}if( $total >= self::BADGE_SYSTEM_LIMIT){
+			$currentKey="system";
+			$arrayLevel[$currentKey]=array("label"=>self::badge($userId, self::BADGE_SYSTEM_LIMIT), "icon"=>self::badge($userId, self::BADGE_SYSTEM_LIMIT, $path), "points"=>self::BADGE_SYSTEM_LIMIT);
+		}if( $total >= self::BADGE_GALAXY_LIMIT ){
+			$currentKey="galaxy";
+			$arrayLevel[$currentKey]=array("label"=>self::badge($userId, self::BADGE_GALAXY_LIMIT), "icon"=>self::badge($userId, self::BADGE_GALAXY_LIMIT, $path), "points"=>self::BADGE_GALAXY_LIMIT);
+		}
+		$arrayLevel[$currentKey]["current"]=true;
+		return $arrayLevel;
+	}
 
-
-	public static function badge($userId) {
+	public static function badge($userId, $total=null, $iconPath=false) {
 		
-		$total = self::calcPoints(Person::COLLECTION,$userId);
-		$res = Yii::t("common","air");
-
-		if( $total > self::BADGE_SEED_LIMIT && $total < self::BADGE_GERM_LIMIT )
-			$res = Yii::t("common","seed");
-		if( $total > self::BADGE_GERM_LIMIT && $total < self::BADGE_PLANT_LIMIT )
-			$res = Yii::t("common","germ");
-		if( $total > self::BADGE_PLANT_LIMIT && $total < self::BADGE_TREE_LIMIT )
-			$res = Yii::t("common","plant");
-		if( $total > self::BADGE_TREE_LIMIT && $total < self::BADGE_FOREST_LIMIT )
-			$res = Yii::t("common","tree");
-		if( $total > self::BADGE_FOREST_LIMIT && $total < self::BADGE_COUNTRY_LIMIT )
-			$res = Yii::t("common","forest");
-		if( $total > self::BADGE_COUNTRY_LIMIT && $total < self::BADGE_PLANET_LIMIT )
-			$res = Yii::t("common","country");
-		if( $total > self::BADGE_PLANET_LIMIT )
-			$res = Yii::t("common","planet");
+		$total = (@$total && !empty($total)) ? $total : self::calcPoints(Person::COLLECTION,$userId);
+		if(!$iconPath){
+			$res = Yii::t("common","air");
+			if( $total >= self::BADGE_SEED_LIMIT && $total < self::BADGE_GERM_LIMIT )
+				$res = Yii::t("common","seed");
+			if( $total >= self::BADGE_GERM_LIMIT && $total < self::BADGE_PLANT_LIMIT )
+				$res = Yii::t("common","germ");
+			if( $total >= self::BADGE_PLANT_LIMIT && $total < self::BADGE_TREE_LIMIT )
+				$res = Yii::t("common","plant");
+			if( $total >= self::BADGE_TREE_LIMIT && $total < self::BADGE_FOREST_LIMIT )
+				$res = Yii::t("common","tree");
+			if( $total >= self::BADGE_FOREST_LIMIT && $total < self::BADGE_COUNTRY_LIMIT )
+				$res = Yii::t("common","forest");
+			if( $total >= self::BADGE_COUNTRY_LIMIT && $total < self::BADGE_PLANET_LIMIT )
+				$res = Yii::t("common","country");
+			if( $total >= self::BADGE_PLANET_LIMIT && $total < self::BADGE_SUN_LIMIT )
+				$res = Yii::t("common","planet");
+			if( $total >= self::BADGE_SUN_LIMIT && $total < self::BADGE_SYSTEM_LIMIT )
+				$res = Yii::t("common","sun");
+			if( $total >= self::BADGE_SYSTEM_LIMIT && $total < self::BADGE_GALAXY_LIMIT )
+				$res = Yii::t("common","solar system");
+			if( $total >= self::BADGE_GALAXY_LIMIT )
+				$res = Yii::t("common","galaxy");
+			
+		}else{
+			$res =$iconPath."/images/gamification/air.png";
+			if( $total >= self::BADGE_SEED_LIMIT && $total < self::BADGE_GERM_LIMIT )
+				$res =$iconPath."/images/gamification/seed.png";
+			if( $total >= self::BADGE_GERM_LIMIT && $total < self::BADGE_PLANT_LIMIT )
+				$res =$iconPath."/images/gamification/germ.png";
+			if( $total >= self::BADGE_PLANT_LIMIT && $total < self::BADGE_TREE_LIMIT )
+				$res =$iconPath."/images/gamification/plant.png";
+			if( $total >= self::BADGE_TREE_LIMIT && $total < self::BADGE_FOREST_LIMIT )
+				$res =$iconPath."/images/gamification/tree.png";
+			if( $total >= self::BADGE_FOREST_LIMIT && $total < self::BADGE_COUNTRY_LIMIT )
+				$res =$iconPath."/images/gamification/forest.png";
+			if( $total >= self::BADGE_COUNTRY_LIMIT && $total < self::BADGE_PLANET_LIMIT )
+				$res =$iconPath."/images/gamification/earth.png";
+			if( $total >= self::BADGE_PLANET_LIMIT && $total < self::BADGE_SUN_LIMIT)
+				$res =$iconPath."/images/gamification/planet.png";
+			if( $total >= self::BADGE_SUN_LIMIT && $total < self::BADGE_SYSTEM_LIMIT )
+				$res =$iconPath."/images/gamification/sun.png";
+			if( $total >= self::BADGE_SYSTEM_LIMIT && $total < self::BADGE_GALAXY_LIMIT )
+				$res =$iconPath."/images/gamification/system.png";
+			if( $total >= self::BADGE_GALAXY_LIMIT )
+				$res =$iconPath."/images/gamification/galaxy.png";
+		}
 		
 		return $res;
 	}

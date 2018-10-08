@@ -656,9 +656,9 @@ class Notification{
 					"labelRepeatMail"=>"{author} confirmed {who} to administrate {where}"
 				),
 				"user" => array(
+					"tpl" => "confirmYouTo",
 					"asMember" => array(
 						"label"=>"{author} confirmed your request to join {where}",
-						"tpl" => "confirmYouTo"
 					),
 					"asAdmin" => array(
 						"label"=>"{author} confirmed your request to administrate {where}"
@@ -723,6 +723,7 @@ class Notification{
 	public static function communityToNotify($construct, $alreadyAuhtorNotify=null, $notificationType="notifications"){
 		//inform the entities members of the new member
 		//build list of people to notify
+		print_r($construct);
 		$type=$construct["target"]["type"];
 		$id=$construct["target"]["id"];
 		$impactType=Person::COLLECTION;
@@ -760,7 +761,7 @@ class Notification{
 	    	if(!@$members[$userAskingToDelete])
 	    		$members[$userAskingToDelete]=array();
 	    }
-		if($type == Person::COLLECTION && $construct["verb"]==Actstr::VERB_FOLLOW){
+		if($type == Person::COLLECTION && ($construct["verb"]==Actstr::VERB_FOLLOW || $construct["verb"]==Actstr::VERB_POST)){
 			$notifUser=self::checkUserNotificationPreference($construct["verb"], $construct["settings"],$id);
 			if(@$notifUser["notifications"] && $notifUser["notifications"])
 		 		$peopleNotifs[$id] = array("isUnread" => true, "isUnseen" => true);
@@ -795,6 +796,7 @@ class Notification{
 	    		$peopleNotifs[$key] = array("isUnread" => true, "isUnseen" => true); 
 	    	}
 	    }
+	    print_r($peopleNotifs);
 
 	    $construct["community"]=array("notifications"=>$peopleNotifs,"mails"=>$peopleMails);
 	    return $construct;
@@ -1013,7 +1015,7 @@ class Notification{
 				}
 				if(@$notifUser["email"] && $notifUser["email"]){
 			    	$construct["community"]["mails"]=array($userNotify=>array("email" => $notifUser["email"], "language" => $notifUser["language"] ));
-			    	Mail::createNotification($construct);
+			    	Mail::createNotification($construct,"user");
 				}
 			} 
 		}
