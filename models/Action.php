@@ -18,6 +18,8 @@ class Action
     const ACTION_VOTE_UNCLEAR   = "voteUnclear";
     const ACTION_VOTE_MOREINFO  = "voteMoreInfo";
     const ACTION_VOTE_DOWN      = "voteDown";
+
+    const ACTION_FUND      = "fund";
    
     //const ACTION_VOTE_BLOCK   = "voteBlock";
     const ACTION_PURCHASE       = "purchase";
@@ -104,6 +106,23 @@ class Action
         $user = Person::getById($userId);
         $element = ($id) ? PHDB::findOne ($collection, array("_id" => new MongoId($id) )) : null;
         $res = array('result' => false , 'msg'=>'something somewhere went terribly wrong');
+
+        $possibleActions = array(
+            self::ACTION_ROOMS,
+            self::ACTION_ROOMS_TYPE_SURVEY,
+            self::ACTION_MODERATE,
+            self::ACTION_VOTE_UP,
+            self::ACTION_VOTE_ABSTAIN,
+            self::ACTION_VOTE_UNCLEAR,
+            self::ACTION_VOTE_MOREINFO,
+            self::ACTION_VOTE_DOWN,
+            self::ACTION_FUND,
+            self::ACTION_PURCHASE,
+            self::ACTION_COMMENT,
+            self::ACTION_REPORT_ABUSE,
+            self::ACTION_FOLLOW );
+        if(!in_array($action, $possibleActions))
+            throw new CTKException("Well done ! Stop playing and join us to help the construction of this common!");
 
         if($user && $element){
             //check user hasn't allready done the action or if it's allowed

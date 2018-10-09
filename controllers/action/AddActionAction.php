@@ -21,6 +21,13 @@ class AddActionAction extends CAction
                 $detail['comment']=$_POST["comment"];
             }
 
+            if (@$_POST["detail"]){
+                $detail['detail']= $_POST["detail"];
+                if (@$detail['detail']["amount"]){
+                    $detail['detail']["amount"]= (int)$detail['detail']["amount"];
+                }
+            }
+
 	        try {
                 $res = Action::addAction($userId , $_POST['id'], $_POST['collection'],$_POST['action'], isset($_POST['unset']), isset($_POST["multiple"]), $detail );  
             } catch (CTKException $e) {
