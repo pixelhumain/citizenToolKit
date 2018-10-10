@@ -38,6 +38,7 @@ class RegisterAction extends CAction
 		}
 
 		$pendingUserId = Person::getPendingUserByEmail($email);
+		
 		//The user already exist in the db (invitation process) : the data should be updated
 		if ($pendingUserId != "") {
 			$res = Person::updateMinimalData($pendingUserId, $newPerson);

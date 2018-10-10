@@ -67,7 +67,12 @@ class SimplyAutoCompleteAction extends CAction
 					
 
 				if(strcmp($filter, Event::COLLECTION) != 0 && Search::typeWanted(Event::COLLECTION, $searchType)){
-					$q = array("links.attendees.".$parent["id"]=> array('$exists' => 1) );
+					$q = array("links.organizer.".$parent["id"]=> array('$exists' => 1) );
+					$query = Search::concatQuery($query, $q, '$or');
+				}
+
+				if(strcmp($filter, Classified::COLLECTION) != 0 && Search::typeWanted(Classified::COLLECTION, $searchType)){
+					$q = array("parentId"=> $parent["id"] );
 					$query = Search::concatQuery($query, $q, '$or');
 					$q = array("links.organizer.".$parent["id"]=> array('$exists' => 1) );
 					$query = Search::concatQuery($query, $q, '$or');
@@ -76,6 +81,8 @@ class SimplyAutoCompleteAction extends CAction
 					//Rest::json($query);exit;
 				}
 			}
+
+			//Rest::json($query); exit ;
 			
 		}  else {
 			/***********************************  DEFINE GLOBAL QUERY   *****************************************/

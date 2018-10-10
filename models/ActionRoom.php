@@ -217,6 +217,34 @@ class ActionRoom {
 		return $res;
      }
 
+      /**
+        * must be part of the organisation or project to take action 
+        * on city actions anyone can participate
+        * @return [json Map] list
+        */
+    public static function assignPeople($params){
+        $res = array( "result" => false );
+        if( isset( Yii::app()->session["userId"] ))
+        { 
+            if( $action = PHDB::findOne( self::COLLECTION_ACTIONS, array("_id"=>new MongoId($params["id"])) ) ) 
+            {
+                if( Authorisation::canParticipate($params["child"], $action["parentType"], $action["parentId"]) ){
+                    $res = Link::connect($params["id"], self::COLLECTION_ACTIONS,$params["child"], Person::COLLECTION, Yii::app()->session["userId"], "contributors", true );
+
+                    $res["newElement"] = PHDB::findOne( Person::COLLECTION, array("_id"=>new MongoId($params["child"])), array("name") ) ;
+                    $res["parentType"] = self::COLLECTION_ACTIONS;
+                    $res["parent"] = $action ;
+                    $res["newElementType"] = Person::COLLECTION ;
+                    Action::updateParent($params['id'], self::COLLECTION_ACTIONS);
+                } else 
+                    $res["msg"] = "restrictedAccess";
+             } else
+                $res["msg"] = "SurveydoesntExist";
+         } else 
+            $res["msg"] = "mustBeLoggued";
+        return $res;
+     }
+
      public static function getAllRoomsByTypeId($type, $id, $archived=null){
 
         $where = array("created"=>array('$exists'=>1) ) ;

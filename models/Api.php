@@ -65,7 +65,7 @@ class Api {
     }
 
 
-    public static function getData($bindMap, $format = null, $type, $id = null, $limit=50, $index=0, $tags = null, $multiTags=null , $key = null, $insee = null, $geoShape = null, $idElement = null, $typeElement = null, $namecity = null){
+    public static function getData($bindMap, $format = null, $type, $id = null, $limit=50, $index=0, $tags = null, $multiTags=null , $key = null, $insee = null, $geoShape = null, $idElement = null, $typeElement = null, $namecity = null, $p = null){
         
         // Create params for request
         $params = array();
@@ -111,6 +111,14 @@ class Api {
             }
             
         }
+
+        if( @$p["level3"] ){
+            $params["address.level3"] = $p["level3"] ;
+        }
+
+        if( @$p["level4"] ){
+            $params["address.level4"] = $p["level4"] ;
+        }
         
         if( @$tags ){
             $tagsArray = explode(",", $tags);
@@ -123,8 +131,12 @@ class Api {
 
         if( @$key ) $params["source.key"] = $key ;
         
-        if( $limit > 500) $limit = 500 ;
-        else if($limit < 1) $limit = 50 ;
+        if($format != "csv"){
+            if( $limit > 500) $limit = 500 ;
+            else if($limit < 1) $limit = 50 ;
+        }else
+            $limit = 0;
+        
 
         if($index < 0) $index = 0 ;
         //if($type != City::COLLECTION) $params["preferences.isOpenData"] = true ;

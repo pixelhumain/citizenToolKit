@@ -9,12 +9,13 @@ class UpdateAdminLinkAction extends CAction{
 		if(!empty($form) && 
 			!empty($form["links"]) && 
 			!empty($form["links"][$_POST["connect"]][$_POST["childId"]])){
-
-			if($_POST["isAdmin"] == true){
+			if($_POST["isAdmin"] === true){
 				$form["links"][ $_POST["connect"] ][ $_POST["childId"] ]["isAdmin"] = true ;
 			}else{
 				unset($form["links"][ $_POST["connect"] ][ $_POST["childId"] ]["isAdmin"]);
 			}
+
+			
 			
 			$res = PHDB::update( $_POST["parentType"], 
 										array("_id" => new MongoId($_POST["parentId"])), 

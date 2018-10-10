@@ -752,7 +752,8 @@ class Authorisation {
      * @return type array of person Id
      */
     public static function listAdmins($parentId, $parentType, $pending=false) {
-        $res = array();   
+        $res = array(); 
+
         if ($parentType == Organization::COLLECTION){     
 	        $parent = Organization::getById($parentId);
 	        $link="members";
@@ -763,11 +764,11 @@ class Authorisation {
 		} else if ($parentType == Event::COLLECTION){     
 	        $parent = Event::getById($parentId);
 	        $link="attendees";
-		}else if ($parentType == Form::COLLECTION){     
+		}else if ($parentType == Form::COLLECTION){  
             $parent = Form::getLinksById($parentId);
             $link="survey";
         }
-        //var_dump($parent) ; exit ;
+        
         if ($users = @$parent["links"][$link]) {
             foreach ($users as $personId => $linkDetail) {
                 if (@$linkDetail["isAdmin"] == true) {

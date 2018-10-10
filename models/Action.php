@@ -18,6 +18,8 @@ class Action
     const ACTION_VOTE_UNCLEAR   = "voteUnclear";
     const ACTION_VOTE_MOREINFO  = "voteMoreInfo";
     const ACTION_VOTE_DOWN      = "voteDown";
+
+    const ACTION_FUND      = "fund";
    
     //const ACTION_VOTE_BLOCK   = "voteBlock";
     const ACTION_PURCHASE       = "purchase";
@@ -48,10 +50,15 @@ class Action
         "idParentRoom"          => array("name" => "idParentRoom",          "rules" => array("required")),
         "parentId"              => array("name" => "parentId",              "rules" => array("required")),
         "parentType"            => array("name" => "parentType",            "rules" => array("required")),
+
+        "parentIdSurvey"              => array("name" => "parentIdSurvey",              "rules" => array("required")),
+        "parentTypeSurvey"            => array("name" => "parentTypeSurvey",            "rules" => array("required")),
+        "role"                 => array("name" => "role"),
+        
         
         "idParentResolution"    => array("name" => "idParentResolution"),
         
-        "email"                 => array("name" => "status"), 
+        "email"                 => array("name" => "status"),
         
         "modified" => array("name" => "modified"),
         "updated" => array("name" => "updated"),
@@ -94,11 +101,28 @@ class Action
      * @param boolean $multiple : true : the user can do multiple action, else can not.
      * @return array result (result, msg)
      */
-        public static function addAction( $userId=null , $id=null, $collection=null, $action=null, $unset=false, $multiple=false, $details=null){
+        public static function addAction( $userId=null , $id=null, $collection=null, $action=null, $unset=false, $multiple=false, $details=null, $path=null){
        
         $user = Person::getById($userId);
         $element = ($id) ? PHDB::findOne ($collection, array("_id" => new MongoId($id) )) : null;
         $res = array('result' => false , 'msg'=>'something somewhere went terribly wrong');
+
+        $possibleActions = array(
+            self::ACTION_ROOMS,
+            self::ACTION_ROOMS_TYPE_SURVEY,
+            self::ACTION_MODERATE,
+            self::ACTION_VOTE_UP,
+            self::ACTION_VOTE_ABSTAIN,
+            self::ACTION_VOTE_UNCLEAR,
+            self::ACTION_VOTE_MOREINFO,
+            self::ACTION_VOTE_DOWN,
+            self::ACTION_FUND,
+            self::ACTION_PURCHASE,
+            self::ACTION_COMMENT,
+            self::ACTION_REPORT_ABUSE,
+            self::ACTION_FOLLOW );
+        if(!in_array($action, $possibleActions))
+            throw new CTKException("Well done ! Stop playing and join us to help the construction of this common!");
 
         if($user && $element){
             //check user hasn't allready done the action or if it's allowed
@@ -157,7 +181,11 @@ class Action
                     // DELETE IN NOTIFICATION REMOVE LIKE
                 }
                 else{
-                    $mapObject[ $action.".".(string)$user["_id"] ] = $details ;
+                    if(@$path)
+                        $mapObject[ $action.".".$path.".".(string)$user["_id"] ] = $details ;
+                    else
+                        $mapObject[ $action.".".(string)$user["_id"] ] = $details ;
+
                     $params = array();
 
                     //if : empeche la mise à jour de la date des news à chaque commentaire
@@ -169,8 +197,14 @@ class Action
                         else $params['$set'] = array( "updated" => new MongoDate(time()), "modified" => new MongoDate(time()) );
                     }
                     $params[$dbMethod] = $mapObject;
-                    $params['$inc'] = array( $action."Count" => $inc);
 
+                    if(@$path)
+                        $params['$inc'] = array( $action.".".$path."Count" => $inc);
+                    else
+                        $params['$inc'] = array( $action."Count" => $inc);
+
+                    //$params['$inc'] = array( $action."Count" => $inc);
+                    //Rest::json( $params); exit ;
                     PHDB::update ($collection, 
                                     array("_id" => new MongoId($element["_id"])), 
                                     $params);
@@ -190,7 +224,8 @@ class Action
                             if(@$element["targetIsAuthor"] || @$target["object"])
                                 $target["targetIsAuthor"]=true;
                         }
-                        Notification::constructNotification($verb, array("id" => Yii::app()->session["userId"],"name"=> Yii::app()->session["user"]["name"]), $target, $objectNotif, $collection);
+                        if($target["type"]!=Form::ANSWER_COLLECTION)
+                            Notification::constructNotification($verb, array("id" => Yii::app()->session["userId"],"name"=> Yii::app()->session["user"]["name"]), $target, $objectNotif, $collection);
                     }
 
                     if($action == "reportAbuse" && $collection == News::COLLECTION){

@@ -34,7 +34,13 @@ class Document {
 	 * @return type
 	 */
 	public static function getById($id) {
-	  	return PHDB::findOne( self::COLLECTION,array("_id"=>new MongoId($id)));
+		try {
+			//error_log("doc xxxxxxxxxxxxxxxx".$id);
+			return PHDB::findOne( self::COLLECTION,array("_id"=>new MongoId(@$id)));
+		} catch (Exception $e) {
+			error_log($e);
+		}
+
 	}
 
 	public static function getWhere($params) {
@@ -101,18 +107,17 @@ class Document {
 	  		"name" => $params['name'],
 	  		"size" => (int) $params['size'],
 	  		"contentKey" => @$params["contentKey"],
+	  		"doctype"=> $params["doctype"],
 	  		'created' => time()
 	    );
-	    if(@$params["doctype"]){
-	    	$new["doctype"]=$params["doctype"];
-	    	$new["contentKey"]=Document::getFileContentKey($params['name']);
-	    }
-	    else
-	    	$new["doctype"]=Document::getDoctype($params['name']);
+	    if($params["doctype"]==self::DOC_TYPE_FILE)
+	    	$new["contentKey"]=self::getFileContentKey($params['name']);
+	    if(@$params["folderId"])
+	    	$new["folderId"]=$params["folderId"];
 	    if(@$params["crop"])
 	    	$new["crop"]=$params["crop"];
-	    if(@$params["keySurvey"])
-	    	$new["keySurvey"]=$params["keySurvey"];
+	    if(@$params["surveyId"])
+	    	$new["surveyId"]=$params["surveyId"];
 
 	    //if item exists
 	    //if( PHDB::count($new['type'],array("_id"=>new MongoId($new['id']))) > 0 ){
@@ -136,12 +141,13 @@ class Document {
 	                $params["parentType"] = $elem["parentType"];
 	            } 
 
-			if (!Authorisation::canEditItem( $params['author'], $params['type'], $params['id'], @$params["parentType"],@$params["parentId"])) {
+			if (!Authorisation::canEditItem( $params['author'], $params['type'], $params['id'], @$params["parentType"],@$params["parentId"]) && !Authorisation::canParticipate($params['author'], $params["type"], $params["id"])) {
 		    	return array("result"=>false, "type"=>$params['type'],"id"=>@$params["id"],  "parentType"=>@$params["parentType"],"parentId"=>@$params["parentId"], "msg"=>Yii::t('document',"You are not allowed to modify the document of this item !") );
 		    }
 		} else {
 		    if (   ! Authorisation::canEditItem($params['author'], $params['type'], $params['id']) 
 		    	&& !Authorisation::isOpenEdition($params['id'], $params['type']) 
+		    	&& !Authorisation::canParticipate($params['author'], $params["type"], $params["id"])
 		    	&& (!@$params["formOrigin"] || !Link::isLinked($params['id'], $params['type'], $params['author']))) 
 		    {
 			    if(@$params["formOrigin"] && $params["formOrigin"]=="news")
@@ -164,7 +170,7 @@ class Document {
 
 	    PHDB::insert(self::COLLECTION, $new);
 	    if($new["doctype"]==self::DOC_TYPE_IMAGE){
-		    if (substr_count(@$new["contentKey"], self::IMG_BANNER)) {
+		    if ($new["contentKey"]==self::IMG_BANNER) {
 		    	// get banner image resize and crop
 		    	$src=self::generateBannerImages($new);
 		    	// get normal image resize
@@ -178,18 +184,18 @@ class Document {
 			    //Generate small image
 			   	self::generateAlbumImages($new);
 			    //Generate image profil if necessary
-			    if (substr_count(@$new["contentKey"], self::IMG_PROFIL)) {
+			    if ($new["contentKey"]== self::IMG_PROFIL) {
 			    	$src=self::generateProfilImages($new);
 			    	$typeNotif="profilImage";
 			    }
-			    if (substr_count(@$new["contentKey"], self::IMG_SLIDER)) {
+			    if ($new["contentKey"]== self::IMG_SLIDER) {
 			    	self::generateAlbumImages($new, self::GENERATED_IMAGES_FOLDER);
 			    	$typeNotif="albumImage";
 			    }
 			}
 		}
 	   //Notification::constructNotification(ActStr::VERB_ADD, array("id" => Yii::app()->session["userId"],"name"=> Yii::app()->session["user"]["name"]), array("type"=>$new["type"],"id"=> $new["id"]), null, $typeNotif);
-		$survey=(@$new["keySurvey"]) ? $new["keySurvey"] : false;
+		$survey=(@$new["surveyId"]) ? true : false;
 	    return array( "result"=>true, "msg"=>Yii::t('document','Document saved successfully'), "id"=>$new["_id"],"name"=>$new["name"],"src"=>@$src, "survey"=>$survey);	
 	}
 	
@@ -350,10 +356,10 @@ class Document {
 	 * @param array $limit represent the number of document by type that will be return. If not set, everything will be return
 	 * @return array a list of documents + URL sorted by contentkey type (IMG_PROFIL, IMG_SLIDER...)
 	 */
-	public static function getListDocumentsWhere($where, $docType, $limit=null){
-		$listDocumentsofType = PHDB::findAndSort( self::COLLECTION,$where, array( 'created' => -1 ));
-		if($docType="image"){
-			$docs=self::getListOfImage($listDocumentsofType);
+	public static function getListDocumentsWhere($where, $docType=null, $limit=null){
+		$docs = PHDB::findAndSort( self::COLLECTION,$where, array( 'created' => -1 ));
+		if($docType=="image"){
+			$docs=self::getListOfImage($docs);
 		}
 
 		return $docs;
@@ -364,9 +370,9 @@ class Document {
 		//,"created"=>array('$gt'=>1)
 		$where=array("id"=>$id,"type"=>$type,"contentKey"=>$contentKey);
 		if(@$collection)
-			$where["collection"]=$collection;
+			$where["folderId"]=$collection;
 		else if(!@$collection && $contentKey==self::IMG_SLIDER)
-			$where["collection"]=array('$exists'=>true);
+			$where["folderId"]=array('$exists'=>false);
 		$doc = PHDB::findOne( self::COLLECTION, $where);
 		if(!empty($doc)){
 			$doc=self::getListOfImage(array($doc));
@@ -380,7 +386,7 @@ class Document {
 		if(@$contentKey)
 			$where["contentKey"]=$contentKey;
 		if(@$col)
-			$where["collection"]=$col;
+			$where["folderId"]=$col;
 		return PHDB::count( self::COLLECTION, $where);
 	}
 	public static function getListOfImage($listDocumentsofType){
@@ -413,19 +419,10 @@ class Document {
 				}
 				else{
 					$pushImage['id'] = (string)$value["_id"];
-					$imagePath = Yii::app()->baseUrl."/".Yii::app()->params['uploadUrl'].$value["moduleId"]."/".$value["folder"];
-					if($value["contentKey"]=="profil")
-						$imageThumbPath = $imagePath."/".self::GENERATED_MEDIUM_FOLDER;
-					//else if($value["contentKey"]=="banner")
-						//$imageThumbPath = $imagePath."/".self::GENERATED_IMAGES_FOLDER;
-					else
-						$imageThumbPath = $imagePath."/".self::GENERATED_IMAGES_FOLDER;
-					$imagePath .= "/".$value["name"];
-					$imageThumbPath .= "/".$value["name"];
+					$pushImage['_id'] = $value["_id"];
+					$imagePath = self::getDocumentPath($value, true);
+					$imageThumbPath = ($value["contentKey"]=="profil") ? self::getDocumentPath($value, true, self::GENERATED_MEDIUM_FOLDER."/") : self::getDocumentPath($value, true, self::GENERATED_IMAGES_FOLDER."/");
 				}
-				/*if (!isset($listDocuments[$currentContentKey])) {
-					$listDocuments[$currentContentKey] = array();
-				} */
 				$pushImage['moduleId'] = $value["moduleId"];
 				$pushImage['contentKey'] = $value["contentKey"];
 				$pushImage['imagePath'] = $imagePath;
@@ -743,12 +740,17 @@ class Document {
     	return $folderUrl;
     }
 
-    public static function getDocumentPath($document){
-    	return self::getDocumentFolderPath($document).$document["name"];
+    public static function getDocumentPath($document, $imgPath=false, $thumb=""){
+    	return self::getDocumentFolderPath($document, $imgPath).$thumb.$document["name"];
     }
 
-    public static function getDocumentFolderPath($document){
-    	return Yii::app()->params['uploadDir'].$document["moduleId"]."/".$document["folder"]."/";
+    public static function getDocumentFolderPath($document, $imgPath=false){
+    	$path=($imgPath) ? Yii::app()->baseUrl."/".Yii::app()->params['uploadUrl'] : Yii::app()->params['uploadDir'];
+    	$path.=$document["moduleId"]."/".$document["folder"]."/";
+    	if(@$document["folderId"]){
+    		$path.=Folder::getParentFoldersPath($document["folderId"]);
+    	} 
+    	return $path;
     }
 
     /**
@@ -838,6 +840,10 @@ class Document {
 	public static function generateAlbumImages($document,$folderAlbum=null) {
     	$dir = $document["moduleId"];
     	$folder = $document["folder"];
+    	$folderPath="";
+    	if(@$document["folderId"]){
+    		$folderPath=substr("/".Folder::getParentFoldersPath($document["folderId"]), 0, -1);
+    	}
 		if($folderAlbum==self::GENERATED_IMAGES_FOLDER){
 			$destination='/'.self::GENERATED_IMAGES_FOLDER;
 			$maxWidth=200;
@@ -850,7 +856,7 @@ class Document {
 			$quality=80;
 		}
 		//The images will be stored in the /uploadDir/moduleId/ownerType/ownerId/thumb (ex : /upload/communecter/citoyen/1242354235435/thumb)
-		$upload_dir = Yii::app()->params['uploadDir'].$dir.'/'.$folder.$destination; 
+		$upload_dir = Yii::app()->params['uploadDir'].$dir.'/'.$folder.$folderPath.$destination; 
 		
 		if(!file_exists ( $upload_dir )) {       
 			mkdir($upload_dir, 0775);
@@ -1184,7 +1190,7 @@ class Document {
 	 * @param type|null $sizeUrl The size of the file (not mandatory : could be retrieve from the file when it's not an URL file)
 	 * @return array result => boolean, msg => String, uploadDir => where the file is stored
 	 */
-	public static function checkFileRequirements($file, $dir, $folder, $ownerId, $input, $contentKey=null, $docType=null, $subDir=null, $keySurvey=null, $nameUrl = null, $sizeUrl=null) {
+	public static function checkFileRequirements($file, $dir, $folder, $ownerId, $input, $contentKey=null, $docType=null, $folderId=null, $subDir=null, $nameUrl = null, $sizeUrl=null) {
 		//TODO SBAR
 		//$dir devrait être calculé : sinon on peut facilement enregistrer des fichiers n'importe où
 		$upload_dir = Yii::app()->params['uploadDir'];
@@ -1210,12 +1216,17 @@ class Document {
             	mkdir ( $upload_dir,0775 );
 
         }
+
+           
        	if( @$docType && $docType==Document::DOC_TYPE_FILE){
        		$upload_dir .= Document::GENERATED_FILE_FOLDER.'/';
             if( !file_exists ( $upload_dir ) )
                 mkdir ( $upload_dir,0775 );
        	}
-       	if( @$contentKey && $contentKey=="survey"){
+       //	if(@$folderId){
+
+       	//}
+       	/*if( @$contentKey && $contentKey=="survey"){
 	        $upload_dir .= $contentKey.'/';
             if( !file_exists ( $upload_dir ) )
                 mkdir ( $upload_dir,0775 );        
@@ -1224,25 +1235,31 @@ class Document {
         	$upload_dir .= $keySurvey.'/';
         	if( !file_exists ( $upload_dir ) )
             	mkdir ( $upload_dir,0775 );
-        }
+        }*/
+        
        	if(@$subDir){
-       		$upload_dir .= $subDir.'/';
-            if( !file_exists ( $upload_dir ) )
-                mkdir ( $upload_dir,0775 );
+       		$arraySub=explode(".", $subDir);
+       		foreach($arraySub as $sub){
+	       		$upload_dir .= $sub.'/';
+	            if( !file_exists ( $upload_dir ) )
+	                mkdir ( $upload_dir,0775 );
+        	}
        	}
         if( @$input=="newsImage" || (@$contentKey && $contentKey==Document::IMG_SLIDER)){
 	        $upload_dir .= Document::GENERATED_ALBUM_FOLDER.'/';
             if( !file_exists ( $upload_dir ) )
                 mkdir ( $upload_dir,0775 );
         }
-		if( @$input=="banner"){
+		if($contentKey==self::IMG_BANNER){
 	        $upload_dir .= Document::GENERATED_BANNER_FOLDER.'/';
             if( !file_exists ( $upload_dir ) )
                 mkdir ( $upload_dir,0775 );
         }
-
+        if(@$folderId){
+        	$upload_dir .= Folder::getParentFoldersPath($folderId);
+        }
         //Check extension
-        $allowed_ext = array('jpg','jpeg','png','gif',"pdf","xls","xlsx","doc","docx","ppt","pptx","odt","ods","odp");
+        $allowed_ext = array('jpg','jpeg','png','gif',"pdf","xls","xlsx","doc","docx","ppt","pptx","odt","ods","odp", "csv");
         
         $nameFile = (!empty($nameUrl) ? $nameUrl : $file["name"] );
         

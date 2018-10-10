@@ -105,6 +105,7 @@ class Element {
 	    	Place::COLLECTION   => "Place",
 	    	Ressource::COLLECTION   => "Ressource",
 	    	Circuit::COLLECTION   	 => "Circuit",
+	    	Risk::COLLECTION   => "Risk",
 	    );	
 	 	return @$models[$type];     
     }
@@ -341,7 +342,7 @@ class Element {
     	return $link;
     }
 
-	public static function getByTypeAndId($type, $id,$what=null){
+	public static function getByTypeAndId($type, $id,$what=null, $update=null){
 		if( @$what ) 
 			$element = PHDB::findOneById($type, $id, $what);
 		else if($type == Person::COLLECTION)
@@ -382,7 +383,14 @@ class Element {
 	  	if ($element == null) 
 	  		$element = Element::getGhost($type);
 	  		//throw new CTKException("The element you are looking for has been moved or deleted");
-
+	  	if(@$update && $update && !@$element["images"]){
+	  		$typeEl=(in_array($type, [Event::CONTROLLER, Project::CONTROLLER, Organization::CONTROLLER])) ? Element::getCollectionByControler($type) : $type; 
+	  		$where=array(
+	  			"id"=>$id, "type"=>$typeEl, "doctype"=>"image", 
+	  			"contentKey"=>"profil", "current"=>array('$exists'=>true)
+	  		);
+	  		$element["images"] = Document::getListDocumentsWhere($where, "image");
+	  	}
 	  	$el = $element;
 		if(@$el["links"]) foreach(array("followers", "follows", "members", "contributors") as $key)
 			if(@$el["links"][$key])
@@ -1784,7 +1792,7 @@ class Element {
         if( $valid["result"] )
         	try {
         		//var_dump($key);exit;
-        		$valid = DataValidator::validate( ucfirst($key), json_decode (json_encode ($params), true), ( empty($paramsLinkImport) ? null : true) );
+        		$valid = DataValidator::validate( ucfirst($key), json_decode (json_encode ($params), true), ( empty($paramsLinkImport) ? null : true), $id );
         	} catch (CTKException $e) {
         		$valid = array("result"=>false, "msg" => $e->getMessage());
         	}
@@ -1999,14 +2007,51 @@ class Element {
 				if(!empty($parentType))
 					$params["parentType"] = $parentType;
 			}
+
+			if(empty($params["idParentRoom"]) && 
+				!empty($params["parentIdSurvey"]) && 
+				$params["collection"] == Action::COLLECTION){
+				$room = PHDB::findOne(ActionRoom::COLLECTION, array("parentIdSurvey" => $params["parentIdSurvey"]));
+
+				if(empty($room)){
+
+					$form = Form::getByIdMongo($params["parentIdSurvey"], array("title"));
+
+					$paramsRoom = array(
+						"parentId" => $params["parentId"],
+						"parentType" => $params["parentType"],
+						"parentIdSurvey" => $params["parentIdSurvey"],
+						"status" => "open",
+						"description" => "",
+						"name" => $form["title"],
+						"key" => ActionRoom::CONTROLLER,
+						"collection" => ActionRoom::COLLECTION,
+					);
+					//
+					//
+					$room = self::save($paramsRoom);
+					//Rest::json($room); exit ;
+					$params["idParentRoom"] = $room["id"] ;
+				}else{
+					//var_dump($room); exit;
+					$params["idParentRoom"] = (String) $room["_id"] ;
+				}
+				//Rest::json($params); exit ;			
+			}
+
+
+			if($params["collection"] == Action::COLLECTION && !empty($params["role"])){
+				$params["role"] = array( InflectorHelper::slugify( $params["role"] ) => $params["role"] ) ;
+			}
     	}
+
         return $params;
     }
 
 	public static function alreadyExists ($params, $collection) {
 		$result = array("result" => false);
 		$where = array(	"name" => $params["name"],
-						"address.localityId" => $params["address"]["localityId"]);
+						"address.localityId" => @$params["address"]["localityId"]);
 		$element = PHDB::findOne($collection, $where);
 		if(!empty($element))
 			$result = array("result" => true ,

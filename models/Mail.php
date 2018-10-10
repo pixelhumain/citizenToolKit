@@ -1026,7 +1026,7 @@ class Mail {
 
     public static function createAndSend($params) {
 
-        if(!empty($params["email"])) {
+        if(!empty($params["tplMail"])) {
             $res = array (
                 "type" => Cron::TYPE_MAIL,
                 "tpl"=>$params["tpl"],
@@ -1039,6 +1039,8 @@ class Mail {
 
             //Rest::json($res); exit;
             Mail::schedule($res);
+        }else{
+            throw new CTKException(Yii::t("common","Missing email!"));
         }
     }
 }

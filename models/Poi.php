@@ -135,7 +135,9 @@ class Poi {
 		  	$poi["typeSig"] = self::COLLECTION;
 		if(@$poi["type"])
 	  		$poi = array_merge($poi, Document::retrieveAllImagesUrl($id, self::COLLECTION, $poi["type"], $poi));
-
+	  	$where=array("id"=>@$id, "type"=>self::COLLECTION, "doctype"=>"image");
+	  	$poi["images"] = Document::getListDocumentsWhere($where, "image");//(@$id, self::COLLECTION);
+	  	
 	  	return $poi;
 	}
 
