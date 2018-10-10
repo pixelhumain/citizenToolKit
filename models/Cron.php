@@ -18,7 +18,7 @@ class Cron {
 	const STATUS_DONE = "done";
 	const STATUS_UPDATE = "update";
 
-	const EXEC_COUNT = 5;
+	const EXEC_COUNT = 10;
 	/**
 	 * adds an entry into the cron collection
 	 * @param $params : a set of information for a proper cron entry
@@ -139,15 +139,40 @@ class Cron {
 		// 				/*'$or' => array( array( "execTS" => array( '$gt' => time())),
 		// 								array( "execTS" => array( '$exists'=>-1 ) ) )*/
 		// 			);
+		$tpl = array("invitation", "passwordRetreive", "validation");
 
 		$where = array('$and'=> array(
                         array( "status" => self::STATUS_PENDING), 
                         //array("userId" => array('$ne' => null)),
                         array("to" => array('$ne' => null)),
                         array("to" => array('$not' => new MongoRegex("/".$regex."/i"))),
-                        array("tpl" => array('$ne' =>"priorisationCTE")) ) ) ;
-		$jobs = PHDB::findAndSort( self::COLLECTION, $where, array('execDate' => 1), 10);
+                        array("tpl" => array('$ne' =>"priorisationCTE")),
+                        array("tpl" => array('$in' => $tpl)) ) ) ;
+		$jobs = PHDB::findAndSort( self::COLLECTION, $where, array('execDate' => 1), self::EXEC_COUNT);
 		//Rest::json($jobs); exit ;
+		$reste = self::EXEC_COUNT - count($jobs) ;
+		//Rest::json($reste); exit ;
+		if($reste > 0){
+			$valID = array();
+			foreach ($jobs as $key => $value) {
+				$valID[] = new MongoId($key) ;
+			}
+
+
+			$where2 = array('$and'=> array(
+                        array( "status" => self::STATUS_PENDING),
+                        array("to" => array('$ne' => null)),
+                        array("to" => array('$not' => new MongoRegex("/".$regex."/i"))),
+                        array("tpl" => array('$ne' =>"priorisationCTE")),
+                        array("_id" => array('$nin' => $valID)) )  ) ;
+			$others = PHDB::findAndSort( self::COLLECTION, $where2, array('execDate' => 1), $reste);
+			//Rest::json($others); exit ;
+			$jobs = array_merge($jobs, $others);
+		}
+
+		
+		//Rest::json($jobs); exit ;
+
 		foreach ($jobs as $key => $value) {
 			//TODO : cumulé plusieur message au meme email 
 			try {
