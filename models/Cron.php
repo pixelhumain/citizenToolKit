@@ -158,7 +158,6 @@ class Cron {
 				$valID[] = new MongoId($key) ;
 			}
 
-
 			$where2 = array('$and'=> array(
                         array( "status" => self::STATUS_PENDING),
                         array("to" => array('$ne' => null)),
