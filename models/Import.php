@@ -93,6 +93,7 @@ class Import
    
 
     public static  function previewData($post, $notCheck=false){
+
         $params = array("result"=>false);
         $elements = array();
         $saveCities = array();
