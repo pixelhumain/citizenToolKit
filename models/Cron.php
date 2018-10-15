@@ -48,12 +48,13 @@ class Cron {
 	    if( $params['type'] == self::TYPE_MAIL )
 	    	$new = array_merge($new , self::addMailParams($params) );
 
+	    //Rest::json($new); exit ;
 	    if(!empty($new["to"])){
 
 	    	$entity = PHDB::findOne( Person::COLLECTION ,array("email" => $new["to"]), array("preferences"));
 
-	    	if(!empty($entity)){
-	    		if( (!empty($entity["preferences"]["sendMail"]) && $entity["preferences"]["sendMail"]===true) || $params["tpl"] == "invitation"){
+	    	if(!empty($entity)){ 
+	    		if( (!empty($entity["preferences"]["sendMail"]) && $entity["preferences"]["sendMail"]===true) || $params["tpl"] == "invitation" || $params["tpl"] == "validation" || $params["tpl"] == "passwordRetreive"){
 	    			PHDB::insert(self::COLLECTION,$new);
 	    		}
 	    		

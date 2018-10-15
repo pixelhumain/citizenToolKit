@@ -1260,7 +1260,7 @@ class Person {
         $account["email"]=$email["email"];
         if (!empty($account)) {
 	       // if($admin==true){
-	       	Rest::json($accountId); exit;
+	       	//Rest::json($accountId); exit;
 	        PHDB::update(	self::COLLECTION,
 	                    	array("_id"=>new MongoId($accountId)), 
 	                        array('$unset' => array("roles.tobeactivated"=>""),
