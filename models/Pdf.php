@@ -134,11 +134,13 @@ class Pdf extends CommunecterController{
 				$pdf->setTextShadow(array('enabled'=>true, 'depth_w'=>0.2, 'depth_h'=>0.2, 'color'=>array(196,196,196), 'opacity'=>1, 'blend_mode'=>'Normal'));
 
 				// Set some content to print
+				
 				$html = self::$params["tplData"]($params);
 
 
 				// Print text using writeHTMLCell()
-				$pdf->writeHTMLCell(0, 0, '', '', $html, 0, 1, 0, true, '', true);
+				//$pdf->writeHTMLCell(0, 0, '', '', $html, 0, 1, 0, true, '', true);
+				$pdf->writeHTML($html, true, false, false, false, '');
 
 				// ---------------------------------------------------------
 				ob_end_clean();

@@ -99,6 +99,13 @@ class Preference {
 		}else{
 			$preferences["isOpenData"] = ((empty($context["preferences"]["isOpenData"]))?false:true);
 		}
+
+		if($setType == "sendMail"){
+			$preferences["sendMail"] = $setValue;
+		}else{
+			$preferences["sendMail"] = ((empty($context["preferences"]["sendMail"]))?false:true);
+		}
+
 		if($setType == "private"){
 			$preferences["private"] = $setValue;
 		}else{
@@ -238,6 +245,7 @@ class Preference {
 	public static function initPreferences($type) {
 		$preferences = array();
 		$preferences["isOpenData"] = true;
+		$preferences["sendMail"] = false;
 		if($type == Person::COLLECTION){
 			$preferences["publicFields"] = array("locality", "directory");
 			$preferences["privateFields"] = array("birthDate", "email", "phone");

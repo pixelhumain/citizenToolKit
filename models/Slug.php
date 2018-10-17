@@ -24,11 +24,14 @@ class Slug {
 		return PHDB::findOne(self::COLLECTION,array("name"=>$slug));
 	}
 	public static function getElementBySlug($slug){
+		$res = null;
 		$el = PHDB::findOne(self::COLLECTION,array("name"=>$slug));
-		return array( 
-			"type" => $el["type"], 
-			"id" => $el["id"],
-			"el" => Element::getByTypeAndId( $el["type"], $el["id"] ) );
+		if($el)
+			$res = array( 
+				"type" => $el["type"], 
+				"id" => $el["id"],
+				"el" => Element::getByTypeAndId( $el["type"], $el["id"] ) );
+		return $res;
 	}
 	
 	public static function check($slug,$type=null,$id=null){

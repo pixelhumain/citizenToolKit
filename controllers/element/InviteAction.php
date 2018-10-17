@@ -18,6 +18,8 @@ class InviteAction extends CAction {
                 $params["id"] = (empty($parent["id"]) ? $id : $parent["id"]);
             }
 
+            //Rest::json($params); exit ;
+
             if( !empty( Yii::app()->session["custom"] ) && !empty( Yii::app()->session["custom"]["roles"])){
                 $params["roles"] = Yii::app()->session["custom"]["roles"] ;
             } else

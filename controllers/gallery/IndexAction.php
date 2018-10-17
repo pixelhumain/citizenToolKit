@@ -70,6 +70,11 @@ class IndexAction extends CAction
 					$params["tagsFilter"]=Bookmark::getListOfTags($where);
 				}else{
 					$resFiles=Document::getListDocumentsWhere($where,$docType);
+					if($docType=="file"){
+						foreach($resFiles as $key => $v){
+							$resFiles[$key]["docPath"]=Document::getDocumentPath($v, true);
+						}
+					}
 				}
 				$params["docs"] = $resFiles; 
 				$params["folders"]=array();
