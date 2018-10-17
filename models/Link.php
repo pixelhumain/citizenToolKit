@@ -899,6 +899,11 @@ class Link {
             if(!$isConnectingAdmin)
                 $typeOfDemand = "contributor";
 
+        }else if($parentType == Person::COLLECTION){
+            $parentUsersList = Person::getPersonFollowsByUser($parentId);
+            $parentController = Person::CONTROLLER;
+            $parentConnectAs = "follows";
+            $childConnectAs = "followers";
         } else {
             throw new CTKException(Yii::t("common","Can not manage the type ").$parentType);
         }
@@ -927,6 +932,7 @@ class Link {
 
         //if the childId is empty => it's an invitation
         //Let's create the child
+        //TODO RAPHA CLEM : Est-ce que on peut arriver la sans que childID sois renseigner ?
         if (empty($childId)) {
             $invitation = ActStr::VERB_INVITE;
             $child = array(
@@ -1016,7 +1022,8 @@ class Link {
                     $pendingChild["isInviting"]=true;
                 }
                 $toBeValidated=false;
-                Mail::someoneInviteYouToBecome($parentData, $parentType, $pendingChild, $typeOfDemand);
+                //var_dump("HERE1");
+                //Mail::someoneInviteYouToBecome($parentData, $parentType, $pendingChild, $typeOfDemand);
 			} else{
                 // Verb Confirm in ValidateLink
 				$verb = ActStr::VERB_JOIN;
@@ -1070,8 +1077,10 @@ class Link {
                 array_push($listofAdminsEmail, $currentAdmin["email"]);
             }
             //CREATE VARIABLE OF EMAIL AND GENERALIZE EMAIL someoneDemandToBecome || someoneInvitingYouTo
-            if (count($listofAdminsEmail))
-                Mail::someoneDemandToBecome($parentData, $parentType, $pendingChild, $listofAdminsEmail, $typeOfDemand);
+            if (count($listofAdminsEmail)){
+                // var_dump("HERE2");
+                // Mail::someoneDemandToBecome($parentData, $parentType, $pendingChild, $listofAdminsEmail, $typeOfDemand);
+            }
             //TODO - Notification
             $msg = Yii::t("common","Your request has been sent to other admins.");
             // After : the 1rst existing Admin to take the decision will remove the "pending" to make a real admin
@@ -1081,6 +1090,7 @@ class Link {
 		Link::connect($parentId, $parentType, $childId, $childType,Yii::app()->session["userId"], $parentConnectAs, $isConnectingAdmin, $toBeValidatedAdmin, $toBeValidated, $isInviting, $userRole);
         //var_dump($pendingChild); exit ;
 		Link::connect($childId, $childType, $parentId, $parentType, Yii::app()->session["userId"], $childConnectAs, $isConnectingAdmin, $toBeValidatedAdmin, $toBeValidated, $isInviting, $userRole);
+        //Rest::json(array($verb, $pendingChild )); exit ;
         Notification::constructNotification($verb, $pendingChild , array("type"=>$parentType,"id"=> $parentId,"name"=>$parentData["name"]), null, $levelNotif);
         //Notification::actionOnPerson($verb, ActStr::ICON_SHARE, $pendingChild , array("type"=>$parentType,"id"=> $parentId,"name"=>$parentData["name"]), $invitation);
 		$res = array("result" => true, "msg" => $msg, "parent" => $parentData,"parentType"=>$parentType,"newElement"=>$pendingChild, "newElementType"=> $childType );
@@ -1260,7 +1270,6 @@ class Link {
                 if(!empty($contact["link"]))
                     $child["link"] = $contact["link"];  	
 		    	$isConnectingAdmin= (@$contact["connectType"]=="admin") ? true : false;
-		    	
                 $res = Link::connectParentToChild($parentId, $parentType, $child, $isConnectingAdmin, Yii::app()->session["userId"], $roles);
 		    	if($res["result"]==true){
 			    	if($msg != 2)

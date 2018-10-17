@@ -16,7 +16,7 @@ class MultiConnectAction extends CAction
 
 				if( !empty($list["citoyens"]) && count($list["citoyens"]) > 0 ){
 					
-					foreach ($list["citoyens"] as $key => $value) {
+					foreach ($list["citoyens"] as $key => $value) { 
 						$child = array();
 						if($_POST["parentType"] == Person::COLLECTION){
 							// $child = array( "childId" => $key,
@@ -25,6 +25,11 @@ class MultiConnectAction extends CAction
 							$child = array( "childId" => $_POST["parentId"],
 											"childType" => $_POST["parentType"]);
 							$res["citoyens"][] = Link::follow($key, Person::COLLECTION, $child);
+						}else if($_POST["parentType"] == Action::COLLECTION){
+
+							$params = array( "id" => $_POST["parentId"],
+											"child" => $key);
+							$res["citoyens"][] = ActionRoom::assignPeople($params);
 						} else {
 							$child = array();
 							$child[] = array( 	"childId" => $key,
@@ -50,10 +55,25 @@ class MultiConnectAction extends CAction
 						$creatUser = Person::createAndInvite($newPerson, @$value["msg"]);
 						if ($creatUser["result"]) {
 							if($_POST["parentType"] == Person::COLLECTION){
-								$invitedUserId = $creatUser["id"];
-								$child["childId"] = $_POST["parentId"];
-								$child["childType"] = $_POST["parentType"];
-								$res["invites"][] = Link::follow($invitedUserId, Person::COLLECTION, $child);
+								// $invitedUserId = $creatUser["id"];
+								// $child["childId"] = $_POST["parentId"];
+								// $child["childType"] = $_POST["parentType"];
+								// $res["invites"][] = Link::follow($invitedUserId, Person::COLLECTION, $child);
+
+								$child = array();
+								$child[] = array( 	"childId" => $creatUser["id"],
+													"childType" => Person::COLLECTION,
+													"childName" => $newPerson["name"],
+													"roles" => (empty($value["roles"]) ? array() : $value["roles"]),
+													"connectType" => (empty($value["isAdmin"]) ? "" : $value["isAdmin"]) );
+
+								$res["invites"][]= Link::multiconnect($child, $_POST["parentId"], $_POST["parentType"]);
+								
+							} else if($_POST["parentType"] == Action::COLLECTION){
+
+								$params = array( "id" => $_POST["parentId"],
+												"child" => $creatUser["id"]);
+								$res["citoyens"][] = ActionRoom::assignPeople($params);
 								
 							} else {
 								$child = array();

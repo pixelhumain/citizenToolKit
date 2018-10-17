@@ -136,6 +136,7 @@ class Mail {
         );
         Mail::schedule($params);
     }
+
     public static function invitePerson($person, $msg = null, $nameInvitor = null, $invitorUrl = null, $subject=null) {
         if(isset($person["invitedBy"]))
             $invitor = Person::getSimpleUserById($person["invitedBy"]);
@@ -180,6 +181,7 @@ class Mail {
         
         Mail::schedule($params);
     }
+
     public static function relaunchInvitePerson($person, $nameInvitor = null, $invitorUrl = null, $subject=null) {
         if(isset($person["invitedBy"]))
             $invitor = Person::getSimpleUserById($person["invitedBy"]);
@@ -464,47 +466,7 @@ class Mail {
         $params=self::getCustomMail($params);
         Mail::schedule($params);
     }
-    /**
-
-     * Send an email to the person when its request is confirmed
-     * @param array $parent datas of an element where person is inviting
-     * @param array $newChild Datas of a person inviting
-     * @param string $typeOfDemand gives the link definition between the parent and the child
-     * @return null
-     */
-
-    public static function someoneConfirmYouTo($parent, $parentType, $child, $typeOfDemand) {
-        if($typeOfDemand=="admin")
-            $verb="administrate";
-        else{
-            if($parentType==Event::COLLECTION)
-                $verb="participate to";
-            else if($parentType==Project::COLLECTION)
-                $verb="contribute to";
-            else
-                $verb="join";
-        }
-        $childMail=Person::getEmailById((string)$child["_id"]);
-        $params = array (
-            "type" => Cron::TYPE_MAIL,
-            "tpl"=>'confirmYouTo',
-            "subject" => "[".self::getAppName()."] ".Yii::t("mail","Confirmation to {what} {where}", 
-                array("{what}"=>$verb, "{where}"=>$parent["name"])),    
-            "from"=>Yii::app()->params['adminEmail'],       
-            "to" => $childMail["email"],     
-            "tplParams" => array(  
-                "newChild"=> $child,      
-                "title" => self::getAppName() , 
-                "authorName"=>Yii::app()->session["user"]["name"],   
-                "authorId" => Yii::app()->session["userId"],  
-                "parent" => $parent,       
-                "parentType" => $parentType,       
-                "typeOfDemand"=> $typeOfDemand,
-                "verb"=> $verb)     
-        );
-        $params=self::getCustomMail($params);   
-        Mail::schedule($params);
-    }
+    
     /**
      * Send an email to person or member when a follow is done on him or one of its elment
      * @param array $parent datas of an element where person is following
@@ -833,7 +795,7 @@ class Mail {
     public static function mailNotif($parentId, $parentType, $paramsMail = null) {
         // var_dump($parentId);
         // var_dump($parentType);
-        // var_dump($paramsMail);exit;
+        //Rest::json($paramsMail);exit;
         $element = Element::getElementById( $parentId, $parentType, null, array("links", "name") );
        
         foreach ($element["links"]["members"] as $key => $value) {
@@ -904,8 +866,60 @@ class Mail {
 
     }
 
+    public static function invitation($construct, $val) {
+
+
+		// if(isset($person["invitedBy"]))
+		//     $invitor = Person::getSimpleUserById($person["invitedBy"]);
+		// else if(isset($nameInvitor))
+		//     $invitor["name"] = $nameInvitor ;
+
+		foreach ($construct["author"] as $key => $value) {
+			$invitor["name"] = $value["name"];
+		}
+
+		if(@$invitor && empty(@$invitor["name"]))
+			$subject = Yii::t("mail", "{who} is waiting for you on {what}", array("{who}"=>$invitor["name"], "{what}"=>self::getAppName()));
+		else
+			$subject = Yii::t("mail", "{what} is waiting for you", array( "{what}"=>self::getAppName() ) ) ;
+
+        
+
+        if(!@$val["email"] || empty($val["email"])){
+			$getEmail=Person::getEmailById($val["id"]);
+			$val["email"]=$getEmail["email"];
+        }
+
+        $target = (!empty($construct["target"]) ? $construct["target"] : null ) ;
+
+        $params = array(
+			"type" => Cron::TYPE_MAIL,
+			"tpl"=>'invitation',
+			"subject" => $subject,
+			"from"=>Yii::app()->params['adminEmail'],
+			"to" => $val["email"],
+			"tplParams" => array(	"invitorName"   => $invitor["name"],
+									"title" => self::getAppName() ,
+									"invitorLogo" => @$invitor["profilThumbImageUrl"],
+									"invitedUserId" => $val["id"],
+									"message" => @$msg,
+									"target" => $target,
+									"language" => $val["language"] )
+        );
+
+        $params=self::getCustomMail($params);
+        if(!empty($invitorUrl))
+			$params["tplParams"]["invitorUrl"] = $invitorUrl;
+        
+        // $s = array("construct" => $construct, "params" => $params, "val" => $val);
+        // Rest::json($s); exit;
+
+        Mail::schedule($params);
+    }
+
     public static function createNotification($construct, $tpl=null){
         //Rest::json($construct); exit ;
+
         foreach ($construct["community"]["mails"] as $key => $value) {
             // if ($key != Yii::app()->session["userId"]) {
             //     $member = Element::getElementById( $key, Person::COLLECTION, null, array("email","preferences") );
@@ -917,10 +931,17 @@ class Mail {
                 // TODO Rapha
                 // géré les tpl et refaire la données pour avoir un seul tableau , mail translate a ajouter dans Element::getCommunityByTypeAndId
              
-                if(@$construct["tpl"]){
+                if(!empty($tpl)) {
+                    
+                //     $params = array("tpl" => $tpl,
+                // "subject" => $params["tplObject"],
+                // "from"=>Yii::app()->params['adminEmail'],
+                // "to" => $params["tplMail"],
+
+                    Mail::$tpl($construct, $value);
+
 
                 } else {
-
                     $mail = Mail::getMailUpdate($value["email"], 'notification') ;
                     if(!empty($mail)){
                         $paramTpl = self::createParamsTpl($construct, $mail["tplParams"]["data"]);
@@ -952,6 +973,48 @@ class Mail {
             //     }
             // }
         }
+    }
+
+    /**
+
+     * Send an email to the person when its request is confirmed
+     * @param array $parent datas of an element where person is inviting
+     * @param array $newChild Datas of a person inviting
+     * @param string $typeOfDemand gives the link definition between the parent and the child
+     * @return null
+     */
+
+    public static function someoneConfirmYouTo($parent, $parentType, $child, $typeOfDemand) {
+        if($typeOfDemand=="admin")
+            $verb="administrate";
+        else{
+            if($parentType==Event::COLLECTION)
+                $verb="participate to";
+            else if($parentType==Project::COLLECTION)
+                $verb="contribute to";
+            else
+                $verb="join";
+        }
+        $childMail=Person::getEmailById((string)$child["_id"]);
+        $params = array (
+            "type" => Cron::TYPE_MAIL,
+            "tpl"=>'confirmYouTo',
+            "subject" => "[".self::getAppName()."] ".Yii::t("mail","Confirmation to {what} {where}", 
+                array("{what}"=>$verb, "{where}"=>$parent["name"])),    
+            "from"=>Yii::app()->params['adminEmail'],       
+            "to" => $childMail["email"],     
+            "tplParams" => array(  
+                "newChild"=> $child,      
+                "title" => self::getAppName() , 
+                "authorName"=>Yii::app()->session["user"]["name"],   
+                "authorId" => Yii::app()->session["userId"],  
+                "parent" => $parent,       
+                "parentType" => $parentType,       
+                "typeOfDemand"=> $typeOfDemand,
+                "verb"=> $verb)     
+        );
+        $params=self::getCustomMail($params);   
+        Mail::schedule($params);
     }
 
     

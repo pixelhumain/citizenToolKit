@@ -599,11 +599,12 @@ class Person {
 	 */
 	public static function createAndInvite($param, $msg = null, $gmail =null) {
 	  	try {
+	  		//var_dump("Person::createAndInvite");
 	  		//Check if the person can still invite : has he got enought invitations left
 	  		$invitor = self::getById($param["invitedBy"]);
 	  		$res = self::insert($param, self::REGISTER_MODE_MINIMAL);
 	  		//send invitation mail
-			Mail::invitePerson($res["person"], $msg);
+			//Mail::invitePerson($res["person"], $msg);
 		  		  		
 	  	} catch (CTKException $e) {
 	  		$res = array("result"=>false, "msg"=> $e->getMessage());
@@ -663,6 +664,10 @@ class Person {
 	  	
 	  	if (!empty($person["invitedBy"])) {
 	  		$newPerson["invitedBy"] = $person["invitedBy"];
+	  	}
+
+	  	if (!empty($person["preferences"])) {
+	  		$newPerson["preferences"] = $person["preferences"];
 	  	}
 
 	  	if ($mode == self::REGISTER_MODE_NORMAL || $mode == self::REGISTER_MODE_TWO_STEPS) {
@@ -1272,9 +1277,11 @@ class Person {
         $account["email"]=$email["email"];
         if (!empty($account)) {
 	       // if($admin==true){
+	       	//Rest::json($accountId); exit;
 	        PHDB::update(	self::COLLECTION,
 	                    	array("_id"=>new MongoId($accountId)), 
-	                        array('$unset' => array("roles.tobeactivated"=>""))
+	                        array('$unset' => array("roles.tobeactivated"=>""),
+	                    			'$set'=> array("preferences.sendMail"=>true))
 	                    );
 	        //}
 	       	$res = array("result"=>true, "account" => $account, "msg" => "The account and email is now validated !");
@@ -1301,6 +1308,7 @@ class Person {
 
 		//Check if it's a minimal user
 		$account = self::getById($personId, false);
+
 		if (! @$account["pending"]) {
 			throw new CTKException("Impossible to update an account not pending !");
 		} else {
@@ -1318,10 +1326,15 @@ class Person {
 			$personToUpdate["pwd"] = $pwd;
 			// CREATE SLUG FOR CITOYENS
 			$personToUpdate["slug"]=Slug::checkAndCreateSlug($personToUpdate["username"]);
+
+			
 	  	    Slug::save(Person::COLLECTION,$personId,$personToUpdate["slug"]);
 			PHDB::update(self::COLLECTION, array("_id" => new MongoId($personId)), 
 			                          array('$set' => $personToUpdate, '$unset' => array("pending" => "" ,"roles.tobeactivated"=>""
 			                          	)));
+
+
+			Preference::updatePreferences($personId, self::COLLECTION,"sendMail", true);
 			
 			//Send Notification to Invitor
 			if(!empty($account["invitedBy"])){
