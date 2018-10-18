@@ -921,26 +921,9 @@ class Mail {
         //Rest::json($construct); exit ;
 
         foreach ($construct["community"]["mails"] as $key => $value) {
-            // if ($key != Yii::app()->session["userId"]) {
-            //     $member = Element::getElementById( $key, Person::COLLECTION, null, array("email","preferences") );
-              
-            //     if (!empty($member["email"]) ) {
-                    
-                    //$mail = Mail::getMailUpdate($member["email"], 'notification') ;
-
-                // TODO Rapha
-                // géré les tpl et refaire la données pour avoir un seul tableau , mail translate a ajouter dans Element::getCommunityByTypeAndId
              
                 if(!empty($tpl)) {
-                    
-                //     $params = array("tpl" => $tpl,
-                // "subject" => $params["tplObject"],
-                // "from"=>Yii::app()->params['adminEmail'],
-                // "to" => $params["tplMail"],
-
                     Mail::$tpl($construct, $value);
-
-
                 } else {
                     $mail = Mail::getMailUpdate($value["email"], 'notification') ;
                     if(!empty($mail)){
@@ -1243,17 +1226,17 @@ class Mail {
 				$resArray["{what}"]=$what;
 			}
 
-			// if(!empty($mail["labelArray"]["{where}"])){
-			// 	$where="";
-			// 	$i=0;
-			// 	foreach($mail["labelArray"]["{where}"] as $data){
-			// 		if($i > 0)
-			// 			$where.=" ";
-			// 		$where=Yii::t("notification",$data);
-			// 		$i++;
-			// 	}
-			// 	$resArray["{where}"]=$where;
-			// }
+			if(!empty($mail["labelArray"]["{where}"])){
+				$where="";
+				$i=0;
+				foreach($mail["labelArray"]["{where}"] as $data){
+					if($i > 0)
+						$where.=" ";
+					$where=Yii::t("notification",$data);
+					$i++;
+				}
+				$resArray["{where}"]=$where;
+			}
 		}
 		
 

@@ -44,8 +44,8 @@ class Notification{
 			),
 			"label" => "{who} is following {where}",
 			"labelRepeat"=>"{who} are following {where}",
-			"labelMail" => "{who} is following {where}",
-			"labelMailRepeat"=>"{who} are following {where}",
+			"labelMail" => "{who} is following",
+			"labelMailRepeat"=>"{who} are following",
 			"labelArray" => array("who","where"),
 			"icon" => "fa-link",
 			"url" => "page/type/{collection}/id/{id}/view/directory/dir/followers"
@@ -57,18 +57,18 @@ class Notification{
 					"to"=> "members",
 					"label"=>"{who} wants to join {where}",
 					"labelRepeat"=>"{who} want to join {where}",
-					"labelMail" => "{who} wants to join {where}",
-					"labelMailRepeat"=>"{who} want to join {where}",
+					"labelMail" => "{who} wants to join",
+					"labelMailRepeat"=>"{who} want to join",
 				),
 				"asAdmin" => array(
 					"to" => "admin",
 					"label"=>"{who} wants to administrate {where}",
 					"labelRepeat"=>"{who} want to administrate {where}",
-					"labelMail" => "{who} wants to administrate {where}",
-					"labelMailRepeat"=>"{who} want to administrate {where}",
+					"labelMail" => "{who} wants to administrate",
+					"labelMailRepeat"=>"{who} want to administrate",
 				)
 			),
-			"tpl" => "askToBecomeAdmin",
+			//"tpl" => "askToBecomeAdmin",
 			"labelArray" => array("who","where"),
 			"context" => "admin",
 			"settings"=>"low",
@@ -93,6 +93,7 @@ class Notification{
 					"url" => "live"
 				)
 			),
+			"tpl" => "deleted",
 			"labelArray" => array("who","where"),
 			"settings"=>"default",
 			"icon" => "fa-trash",
