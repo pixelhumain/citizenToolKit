@@ -39,13 +39,13 @@ class Notification{
 					"label" => "{who} is following you",
 					"labelRepeat"=>"{who} are following you",
 					"labelMail" => "{who} is following you",
-					"labelMailRepeat"=>"{who} are following you",
+					"labelRepeatMail"=>"{who} are following you",
 				)
 			),
 			"label" => "{who} is following {where}",
 			"labelRepeat"=>"{who} are following {where}",
 			"labelMail" => "{who} is following",
-			"labelMailRepeat"=>"{who} are following",
+			"labelRepeatMail"=>"{who} are following",
 			"labelArray" => array("who","where"),
 			"icon" => "fa-link",
 			"url" => "page/type/{collection}/id/{id}/view/directory/dir/followers"
@@ -58,14 +58,14 @@ class Notification{
 					"label"=>"{who} wants to join {where}",
 					"labelRepeat"=>"{who} want to join {where}",
 					"labelMail" => "{who} wants to join",
-					"labelMailRepeat"=>"{who} want to join",
+					"labelRepeatMail"=>"{who} want to join",
 				),
 				"asAdmin" => array(
 					"to" => "admin",
 					"label"=>"{who} wants to administrate {where}",
 					"labelRepeat"=>"{who} want to administrate {where}",
 					"labelMail" => "{who} wants to administrate",
-					"labelMailRepeat"=>"{who} want to administrate",
+					"labelRepeatMail"=>"{who} want to administrate",
 				)
 			),
 			//"tpl" => "askToBecomeAdmin",
@@ -111,15 +111,21 @@ class Notification{
 				"asMember"=> array(
 					Event::COLLECTION => array(
 						"label"=>"{who} participates to {where}",
-						"labelRepeat"=>"{who} participate to {where}"
+						"labelRepeat"=>"{who} participate to {where}",
+						"labelMail"=>"{who} participates to {where}",
+						"labelRepeatMail"=>"{who} participate to {where}"
 					),
 					Organization::COLLECTION => array(
 						"label"=>"{who} joins {where}",
-						"labelRepeat"=>"{who} join {where}"
+						"labelRepeat"=>"{who} join {where}",
+						"labelMail"=>"{who} joins {where}",
+						"labelRepeatMail"=>"{who} join {where}",
 					),
 					Project::COLLECTION => array(
 						"label"=>"{who} contributes to {where}",
-						"labelRepeat"=>"{who} contribute to {where}"
+						"labelRepeat"=>"{who} contribute to {where}",
+						"labelMail"=>"{who} contributes to {where}",
+						"labelRepeatMail"=>"{who} contribute to {where}"
 					)
 				),
 				"asAdmin" => array(
@@ -161,6 +167,8 @@ class Notification{
 				Classified::COLLECTION => array(
 					"label" => "{who} commented on classified {what} in {where}",
 					"labelRepeat" => "{who} added comments on classified {what} in {where}",
+					"labelMail" => "{who} commented on classified {what} in {where}",
+					"labelRepeatMail" => "{who} added comments on classified {what} in {where}",
 					"sameAuthor"=>array(
 						"labelRepeat" => "{who} added few comments on classified {what} in {where}"
 					),
@@ -328,12 +336,12 @@ class Notification{
 						"label"=>"{who} reacts on a news {what} from {where}",
 						"labelRepeat"=>"{who} react on a news {what} from {where}",
 						"labelMail"=>"{who} reacts on a news {what} from {where}",
-						"labelMailRepeat"=>"{who} react on a news {what} from {where}"
+						"labelRepeatMail"=>"{who} react on a news {what} from {where}"
 					),
 					"label"=>"{who} reacts on your news {what}",
 					"labelRepeat"=>"{who} react on your news {what}",
 					"labelMail"=>"{who} reacts on your news {what}",
-					"labelMailRepeat"=>"{who} react on your news {what}",
+					"labelRepeatMail"=>"{who} react on your news {what}",
 					"notifyUser" => true,
 					"parentTarget"=> true,
 					"url" => "page/type/news/id/{id}"
@@ -516,9 +524,9 @@ class Notification{
 					"label" => "{author} added {who} in the community of {where}",
 					"labelRepeat" => "{author} have added {who} in the community of {where}",
 					"labelMail" => "{author} added {who} in the community of {where}",
-					"labelMailRepeat" => "{author} have added {who} in the community of {where}",
+					"labelRepeatMail" => "{author} have added {who} in the community of {where}",
 					"sameAuthor" => array(
-						"labelMailRepeat" => "{author} added {who} in the community of {where}",
+						"labelRepeatMail" => "{author} added {who} in the community of {where}",
 						"labelRepeat" => "{author} added {who} in the community of {where}"
 					),
 					"repeat" => true
@@ -734,7 +742,7 @@ class Notification{
 	public static function communityToNotify($construct, $alreadyAuhtorNotify=null, $notificationType="notifications"){
 		//inform the entities members of the new member
 		//build list of people to notify
-		print_r($construct);
+		//print_r($construct);
 		$type=$construct["target"]["type"];
 		$id=$construct["target"]["id"];
 		$impactType=Person::COLLECTION;
@@ -807,7 +815,7 @@ class Notification{
 	    		$peopleNotifs[$key] = array("isUnread" => true, "isUnseen" => true); 
 	    	}
 	    }
-	    print_r($peopleNotifs);
+	    //print_r($peopleNotifs);
 
 	    $construct["community"]=array("notifications"=>$peopleNotifs,"mails"=>$peopleMails);
 	    return $construct;
@@ -959,6 +967,7 @@ class Notification{
 			}
 			//Rest::json($notificationPart); exit ;
 			$tpl = ( ( @$construct["tpl"] ) ? $construct["tpl"] : null );
+
 			Mail::createNotification($notificationPart);
 
 		}

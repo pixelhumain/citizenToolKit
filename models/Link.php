@@ -929,7 +929,7 @@ class Link {
             return array("result" => false, "msg" => "Unknown ".$childType.". Please check your parameters !");
         }
 		
-
+        
         //if the childId is empty => it's an invitation
         //Let's create the child
         //TODO RAPHA CLEM : Est-ce que on peut arriver la sans que childID sois renseigner ?
