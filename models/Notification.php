@@ -662,9 +662,9 @@ class Notification{
 					"labelRepeatMail"=>"{author} confirmed {who} to administrate {where}"
 				),
 				"user" => array(
+					"tpl" => "confirmYouTo",
 					"asMember" => array(
 						"label"=>"{author} confirmed your request to join {where}",
-						"tpl" => "confirmYouTo"
 					),
 					"asAdmin" => array(
 						"label"=>"{author} confirmed your request to administrate {where}"
@@ -734,6 +734,7 @@ class Notification{
 	public static function communityToNotify($construct, $alreadyAuhtorNotify=null, $notificationType="notifications"){
 		//inform the entities members of the new member
 		//build list of people to notify
+		print_r($construct);
 		$type=$construct["target"]["type"];
 		$id=$construct["target"]["id"];
 		$impactType=Person::COLLECTION;
@@ -806,6 +807,7 @@ class Notification{
 	    		$peopleNotifs[$key] = array("isUnread" => true, "isUnseen" => true); 
 	    	}
 	    }
+	    print_r($peopleNotifs);
 
 	    $construct["community"]=array("notifications"=>$peopleNotifs,"mails"=>$peopleMails);
 	    return $construct;
