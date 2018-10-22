@@ -428,6 +428,7 @@ class Notification{
 					"label" => "{who} added a new point of interest on {where}",
 					"labelMail" => "{who} added a new point of interest : {what}",
 					"labelRepeat" => "{who} have added ponts of interst on {where}",
+					"labelRepeatMail" => "{who} have added ponts of interst on {where}",
 					"sameAuthor" => array(
 						"labelRepeat" => "{who} added points of interest on {where}"
 					)
@@ -438,6 +439,7 @@ class Notification{
 					"labelMail" => "{who} added a new project : {what}",
 					"urlRepeat"=>"page/type/{collection}/id/{id}/view/directory/dir/{objectType}",
 					"labelRepeat" => "{who} have added new projects on {where}",
+					"labelRepeatMail" => "{who} have added new projects on {where}",
 					"repeat"=>true,
 					"sameAuthor" => array(
 						"labelRepeat" => "{who} added new projects on {where}"
@@ -449,6 +451,7 @@ class Notification{
 					"labelMail" => "{who} added a new event : {what}",
 					"urlRepeat"=>"page/type/{collection}/id/{id}/view/directory/dir/{objectType}",
 					"labelRepeat" => "{who} have added new events on {where}",
+					"labelRepeatMail" => "{who} have added new events on {where}",
 					"repeat"=>true,
 					"sameAuthor" => array(
 						"labelRepeat" => "{who} added new events on {where}"
@@ -460,6 +463,7 @@ class Notification{
 					"labelMail" => "{who} added a new classified : {what}",
 					"urlRepeat"=>"page/type/{collection}/id/{id}/view/directory/dir/{objectType}",
 					"labelRepeat" => "{who} have added new classifieds on {where}",
+					"labelRepeatMail" => "{who} have added new classifieds on {where}",
 					"repeat"=>true,
 					"sameAuthor" => array(
 						"labelRepeat" => "{who} added new classifieds on {where}"
@@ -483,6 +487,7 @@ class Notification{
 					"label" => "{who} added a new room in the co-space on {where}",
 					"labelRepeat" => "{who} added new rooms in the co-space on {where}",
 					"labelMail" => "{who} added a new room : {what}",
+					"labelRepeatMail" => "{who} added new rooms in the co-space on {where}",
 					"repeat"=>true
 				),
 				Proposal::COLLECTION => array(
@@ -491,6 +496,7 @@ class Notification{
 					"label"=> "{who} added a new proposal {what} in {where}",
 					"labelMail" => "{who} added a new proposal : {what}",
 					"labelRepeat" => "{who} added few proposals in {where}",
+					"labelRepeatMail" => "{who} added few proposals in {where}",
 					"repeat"=>true
 				),
 				Action::COLLECTION => array(
@@ -499,6 +505,7 @@ class Notification{
 					"label" => "{who} added a new action {what} in {where}",
 					"labelMail" => "{who} added a new action : {what}",
 					"labelRepeat" => "{who} added few actions in {where}",
+					"labelRepeatMail" => "{who} added few actions in {where}",
 					"repeat"=>true
 				),
 				Resolution::COLLECTION => array(
@@ -507,6 +514,7 @@ class Notification{
 					"urlRepeat"=>"page/type/{collection}/id/{id}/view/coop",
 					"labelRepeat" => "Few resolutions {what} are in {where}",
 					"labelMail" => "The proposal {what} is resolved",
+					"labelRepeatMail" => "Few resolutions {what} are in {where}",
 					"repeat"=>true
 				),
 				"profilImage" => array(
@@ -554,6 +562,8 @@ class Notification{
 			"repeat" => true,
 			"label" => "{who} voted on {what} in {where}",
 			"labelRepeat"=>"{who} have voted on {what} in {where}",
+			"labelMail" => "{who} voted on {what} in {where}",
+			"labelRepeatMail"=>"{who} have voted on {what} in {where}",
 			"labelArray" => array("who","where"),
 			"icon" => ActStr::ICON_VOTE,
 			"url" =>  "page/type/{collection}/id/{id}/view/coop/room/{roomId}/proposal/{objectId}",
@@ -563,6 +573,8 @@ class Notification{
 			"repeat" => true,
 			"label" => "{who} amended the proposal {what} in {where}",
 			"labelRepeat"=>"{who} have amended the proposal {what} in {where}",
+			"labelMail" => "{who} amended the proposal {what} in {where}",
+			"labelRepeatMail"=>"{who} have amended the proposal {what} in {where}",
 			"labelArray" => array("who","where"),
 			"icon" => ActStr::ICON_VOTE,
 			"url" =>  "page/type/{collection}/id/{id}/view/coop/room/{roomId}/proposal/{objectId}",
@@ -885,11 +897,12 @@ class Notification{
 			$authorId=$author["id"];
 		$notificationPart["author"]=array("id"=>$authorId,"name"=>$author["name"]);
 		if(!empty($notificationPart["target"]) && empty($notificationPart["target"]["name"])){
-			$elt = Element::getElementById( $notificationPart["target"]["id"], $notificationPart["target"]["type"], null, array("name", "slug", "profilThumbImageUrl") );
+			$elt = Element::getElementById( $notificationPart["target"]["id"], $notificationPart["target"]["type"], null, array("name", "title", "slug", "profilThumbImageUrl") );
 			$notificationPart["target"]=array_merge($notificationPart["target"],$elt);			
 		}
+		
 		if(!empty($notificationPart["object"]) && empty($notificationPart["object"]["name"])){
-			$elt = Element::getElementById( $notificationPart["object"]["id"], $notificationPart["object"]["type"], null, array("name", "text", "slug", "profilMediumImageUrl", "shortDescription") );
+			$elt = Element::getElementById( $notificationPart["object"]["id"], $notificationPart["object"]["type"], null, array("name", "title", "text", "slug", "profilMediumImageUrl", "shortDescription") );
 			$notificationPart["object"]=array_merge($notificationPart["object"],$elt);
 			$object = $notificationPart["object"];
 		}

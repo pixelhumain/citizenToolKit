@@ -1113,10 +1113,11 @@ class Mail {
 				//var_dump($str); exit;
             }
             else if("where" == $value && !empty($construct[ "target" ]) ){
-                $str = @$construct[ "target" ][ "name" ];
+                //$str = @$construct[ "target" ][ "name" ];
+                $str = (!empty($construct[ "target" ][ "name" ]) ? @$construct[ "target" ][ "name" ] : @$construct[ "target" ][ "title" ]);
             }
             else if("what" == $value && !empty($construct[ "object" ])){
-                $str = @$construct[ "object" ][ "name" ];
+                $str = (!empty($construct[ "object" ][ "name" ]) ? @$construct[ "object" ][ "name" ] : @$construct[ "object" ][ "title" ]);
             }
 
             if(!empty($str)){

@@ -1974,6 +1974,8 @@ class Element {
     public static function afterSave ($id, $collection, $params, $postParams, $paramsImport=null) {
     	$res = array();
     	
+    	if(!empty($params["title"]) && empty($params["name"]))
+    		$params["name"] = $params["title"];
     	/*if( @$postParams["medias"] )
     	{
     		//create POI for medias connected to the parent
@@ -2008,6 +2010,28 @@ class Element {
 												( !empty($params["geo"]) ? $params["geo"] : "" ) , 
 												( !empty($params["tags"]) ? $params["tags"] : null ),
 												( ( !empty($organization["address"]) && !empty($organization["address"]["codeInsee"]) ) ? $organization["address"]["codeInsee"] : "" ) ) ;
+
+
+		if( ( !empty($params["organizerType"]) && in_array($params["organizerType"], array(Organization::COLLECTION, Project::COLLECTION)) ) || 
+			( !empty($params["parentType"]) && in_array($params["parentType"], array(Organization::COLLECTION, Project::COLLECTION)) ) ) {
+
+			if( !empty($params["parentId"]) ){
+	    		$parentId=$params["parentId"];
+	    		$parentType=$params["parentType"];
+			} else{
+	    		$parentId=$params["organizerId"];
+	    		$parentType=$params["organizerType"];
+			}
+
+			//Rest::json($params); exit ;
+	    	Notification::constructNotification(ActStr::VERB_ADD, array("id" => Yii::app()->session["userId"],"name"=> Yii::app()->session["user"]["name"]), array("type"=>$parentType,"id"=> $parentId), array("id"=>$id,"type"=> $collection), $collection);
+	    }
+
+	    // if( ){
+	    // 	Notification::constructNotification(ActStr::VERB_ADD, array("id" => Yii::app()->session["userId"],"name"=> Yii::app()->session["user"]["name"]), array("type"=>$params["parentType"],"id"=> $params["parentId"]), array("id"=>(string)$params["_id"],"type"=> $collection), $collection);
+	    // }
+
+
 		ActivityStream::saveActivityHistory( ActStr::VERB_CREATE, $id, $collection, "organization", $params["name"] ) ;
                 
     	return $res;
