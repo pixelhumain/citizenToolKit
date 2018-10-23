@@ -198,38 +198,38 @@ class Gamification {
 	}
 
 	public static function getAllLevelAndCurent($total, $userId, $path){
-		$arrayLevel=array("air"=>array("label"=>self::badge($userId, 1), "icon"=>self::badge($userId, 1, $path), "points"=>0));
+		$arrayLevel=array("air"=>array("label"=>self::badge($userId, 1), "icon"=>self::badge($userId, 1, $path), "points"=>0, "nextStep"=>self::BADGE_SEED_LIMIT));
 		$currentKey="air";
 		if( $total >= self::BADGE_SEED_LIMIT){
 			$currentKey="seed";
-			$arrayLevel[$currentKey]=array("label"=>self::badge($userId, self::BADGE_SEED_LIMIT), "icon"=>self::badge($userId, self::BADGE_SEED_LIMIT, $path), "points"=>self::BADGE_SEED_LIMIT);
+			$arrayLevel[$currentKey]=array("label"=>self::badge($userId, self::BADGE_SEED_LIMIT), "icon"=>self::badge($userId, self::BADGE_SEED_LIMIT, $path), "points"=>self::BADGE_SEED_LIMIT, "nextStep"=>self::BADGE_GERM_LIMIT);
 		}if( $total >= self::BADGE_GERM_LIMIT){
 			$currentKey="germ";
-			$arrayLevel[$currentKey]=array("label"=>self::badge($userId, self::BADGE_GERM_LIMIT), "icon"=>self::badge($userId, self::BADGE_GERM_LIMIT, $path), "points"=>self::BADGE_GERM_LIMIT);
+			$arrayLevel[$currentKey]=array("label"=>self::badge($userId, self::BADGE_GERM_LIMIT), "icon"=>self::badge($userId, self::BADGE_GERM_LIMIT, $path), "points"=>self::BADGE_GERM_LIMIT, "nextStep"=>self::BADGE_PLANT_LIMIT);
 		}if( $total >= self::BADGE_PLANT_LIMIT){	
 			$currentKey="plant";
-			$arrayLevel[$currentKey]=array("label"=>self::badge($userId, self::BADGE_PLANT_LIMIT), "icon"=>self::badge($userId, self::BADGE_PLANT_LIMIT, $path), "points"=>self::BADGE_PLANT_LIMIT);
+			$arrayLevel[$currentKey]=array("label"=>self::badge($userId, self::BADGE_PLANT_LIMIT), "icon"=>self::badge($userId, self::BADGE_PLANT_LIMIT, $path), "points"=>self::BADGE_PLANT_LIMIT,"nextStep"=>self::BADGE_TREE_LIMIT);
 		}if( $total >= self::BADGE_TREE_LIMIT){
 			$currentKey="tree";
-			$arrayLevel[$currentKey]=array("label"=>self::badge($userId, self::BADGE_TREE_LIMIT), "icon"=>self::badge($userId, self::BADGE_TREE_LIMIT, $path), "points"=>self::BADGE_TREE_LIMIT);
+			$arrayLevel[$currentKey]=array("label"=>self::badge($userId, self::BADGE_TREE_LIMIT), "icon"=>self::badge($userId, self::BADGE_TREE_LIMIT, $path), "points"=>self::BADGE_TREE_LIMIT, "nextStep"=>self::BADGE_FOREST_LIMIT);
 		}if( $total >= self::BADGE_FOREST_LIMIT){
 			$currentKey="forest";
-			$arrayLevel[$currentKey]=array("label"=>self::badge($userId, self::BADGE_FOREST_LIMIT), "icon"=>self::badge($userId, self::BADGE_FOREST_LIMIT, $path), "points"=>self::BADGE_FOREST_LIMIT);
+			$arrayLevel[$currentKey]=array("label"=>self::badge($userId, self::BADGE_FOREST_LIMIT), "icon"=>self::badge($userId, self::BADGE_FOREST_LIMIT, $path), "points"=>self::BADGE_FOREST_LIMIT, "nextStep"=>self::BADGE_COUNTRY_LIMIT);
 		}if( $total >= self::BADGE_COUNTRY_LIMIT){	
 			$currentKey="country";
-			$arrayLevel[$currentKey]=array("label"=>self::badge($userId, self::BADGE_COUNTRY_LIMIT), "icon"=>self::badge($userId, self::BADGE_COUNTRY_LIMIT, $path), "points"=>self::BADGE_COUNTRY_LIMIT);
+			$arrayLevel[$currentKey]=array("label"=>self::badge($userId, self::BADGE_COUNTRY_LIMIT), "icon"=>self::badge($userId, self::BADGE_COUNTRY_LIMIT, $path), "points"=>self::BADGE_COUNTRY_LIMIT, "nextStep"=>self::BADGE_PLANET_LIMIT);
 		}if( $total >= self::BADGE_PLANET_LIMIT){
 			$currentKey="planet";
-			$arrayLevel[$currentKey]=array("label"=>self::badge($userId, self::BADGE_PLANET_LIMIT), "icon"=>self::badge($userId, self::BADGE_PLANET_LIMIT, $path), "points"=>self::BADGE_PLANET_LIMIT);
+			$arrayLevel[$currentKey]=array("label"=>self::badge($userId, self::BADGE_PLANET_LIMIT), "icon"=>self::badge($userId, self::BADGE_PLANET_LIMIT, $path), "points"=>self::BADGE_PLANET_LIMIT, "nextStep"=>self::BADGE_SUN_LIMIT);
 		}if( $total >= self::BADGE_SUN_LIMIT){
 			$currentKey="sun";
-			$arrayLevel[$currentKey]=array("label"=>self::badge($userId, self::BADGE_SUN_LIMIT), "icon"=>self::badge($userId, self::BADGE_SUN_LIMIT, $path), "points"=>self::BADGE_SUN_LIMIT);
+			$arrayLevel[$currentKey]=array("label"=>self::badge($userId, self::BADGE_SUN_LIMIT), "icon"=>self::badge($userId, self::BADGE_SUN_LIMIT, $path), "points"=>self::BADGE_SUN_LIMIT, "nextStep"=>self::BADGE_SYSTEM_LIMIT);
 		}if( $total >= self::BADGE_SYSTEM_LIMIT){
 			$currentKey="system";
-			$arrayLevel[$currentKey]=array("label"=>self::badge($userId, self::BADGE_SYSTEM_LIMIT), "icon"=>self::badge($userId, self::BADGE_SYSTEM_LIMIT, $path), "points"=>self::BADGE_SYSTEM_LIMIT);
+			$arrayLevel[$currentKey]=array("label"=>self::badge($userId, self::BADGE_SYSTEM_LIMIT), "icon"=>self::badge($userId, self::BADGE_SYSTEM_LIMIT, $path), "points"=>self::BADGE_SYSTEM_LIMIT, "nextStep"=>self::BADGE_GALAXY_LIMIT);
 		}if( $total >= self::BADGE_GALAXY_LIMIT ){
 			$currentKey="galaxy";
-			$arrayLevel[$currentKey]=array("label"=>self::badge($userId, self::BADGE_GALAXY_LIMIT), "icon"=>self::badge($userId, self::BADGE_GALAXY_LIMIT, $path), "points"=>self::BADGE_GALAXY_LIMIT);
+			$arrayLevel[$currentKey]=array("label"=>self::badge($userId, self::BADGE_GALAXY_LIMIT), "icon"=>self::badge($userId, self::BADGE_GALAXY_LIMIT, $path), "points"=>self::BADGE_GALAXY_LIMIT, "nextStep"=>false);
 		}
 		$arrayLevel[$currentKey]["current"]=true;
 		return $arrayLevel;
