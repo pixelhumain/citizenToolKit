@@ -2131,18 +2131,30 @@ public static function isUniqueEmail($email) {
 			//Events => attendees / organizer
 			Event::COLLECTION => array("attendees", "organizer"),
 			//Needs => links/helpers
-			Need::COLLECTION => array("helpers")
+			Need::COLLECTION => array("helpers"),
+			//Form => links/members
+			Form::COLLECTION => array("members")
 		);
-
+		//$resDisconnect = array();
     	foreach ($links2collection as $collection => $linkTypes) {
     		foreach ($linkTypes as $linkType) {    		
 	    		$where = array("links.".$linkType.".".$id => array('$exists' => true));
 	    		$action = array('$unset' => array("links.".$linkType.".".$id => ""));
-	    		PHDB::update($collection, $where, $action);
-	    		error_log("delete links type ".$linkType." on collection ".$collection." for user ".$id);
+
+	    		$elt = PHDB::find($collection, $where, array("name"));
+
+	    		foreach ($elt as $keyElt => $valueElt) {
+	    			PHDB::update($collection, array("_id"=>new MongoId($keyElt)), $action);
+	    		}
+	    		//PHDB::update($collection, $where, $action);
+	    		//error_log("delete links type ".$linkType." on collection ".$collection." for user ".$id);
+
+	    		// $resDisconnect[] = array( "where" => $where,
+	    		// 							"action" => $action);
 	    	}
     	}
 
+    	//Rest::json($resDisconnect); exit;
     	//Delete Notifications
     	ActivityStream::removeNotificationsByUser($id);
 
@@ -2165,13 +2177,10 @@ public static function isUniqueEmail($email) {
     	//Documents => Profil Images
     	$docType = array(Document::IMG_PROFIL, Document::IMG_BANNER, Document::IMG_SLIDER, Document::IMG_SLIDER);
     	$profilImages = Document::listMyDocumentByIdAndType($id, self::COLLECTION, $docType, Document::DOC_TYPE_IMAGE, array( 'created' => -1 ));
-    	//var_dump($profilImages);
+
     	foreach ($profilImages as $docId => $document) {
-    		//var_dump($docId); 
     		Document::removeDocumentById($docId, $userId);
-    		//error_log("delete document id ".$docId);
     	}
-    	//exit;
     	//TODO SBAR : remove thumb and medium
     	
     	if($id == $userId)
