@@ -1059,31 +1059,36 @@ class Mail {
         $labelArray = array() ;
 
 
+        if(empty($paramTpl["countData"]))
+            $paramTpl["countData"] = 0;
+
+        if(empty($paramTpl["data"]))
+            $paramTpl["data"] = array();
+
         $myParam = array(
-            // "targetType" => $targetType,
-            // "targetId" => $targetId,
+            "targetType" => $targetType,
+            "targetId" => $targetId,
             "verb" => $verb,
             "repeat" => "Mail",
-            // "url" => Yii::app()->getRequest()->getBaseUrl(true)."/#page.type.".$targetType.".id.".$targetId,
-            // "name" => @$construct["target"]["name"]
+            "url" => Yii::app()->getRequest()->getBaseUrl(true)."/#page.type.".$targetType.".id.".$targetId,
+            "name" => @$construct["target"]["name"]
         );
 
         if(!empty($construct["value"]))
             $myParam["value"] = $construct["value"];
 
-        if(empty($paramTpl))
-            $paramTpl = array();
+        // if(empty($paramTpl))
+        //     $paramTpl = array();
 
-        if(empty($paramTpl[$targetType]))
-            $paramTpl[$targetType] = array();
+        // if(empty($paramTpl[$targetType]))
+        //     $paramTpl[$targetType] = array();
 
-        if(empty($paramTpl[ $targetType ][ $targetId ])){
-            //TODO mettre le slug 
-            $paramTpl[ $targetType ][ $targetId ] = array( "url" => Yii::app()->getRequest()->getBaseUrl(true)."/#page.type.".$targetType.".id.".$targetId,
-                                                            "name" => @$construct["target"]["name"],
-                                                            "countData" => 0,
-                                                            "data" => array() ) ;
-        }
+        // if(empty($paramTpl[ $targetType ][ $targetId ])){
+        //     $paramTpl[ $targetType ][ $targetId ] = array( "url" => Yii::app()->getRequest()->getBaseUrl(true)."/#page.type.".$targetType.".id.".$targetId,
+        //                                                     "name" => @$construct["target"]["name"],
+        //                                                     "countData" => 0,
+        //                                                     "data" => array() ) ;
+        // }
 
         // $paramsVerb = array() ;
 
@@ -1100,24 +1105,33 @@ class Mail {
         //}
 
         foreach ($construct["labelArray"] as $key => $value) {
-        	$str = "";
+        	$str =  array( "name" => "",
+                           "url" => "" ) ;
             if("who" == $value ){
             	//var_dump($construct[ "target" ]);
             	if( !empty($construct[ "target" ]) && 
             		!empty($construct[ "target" ][ "targetIsAuthor" ]) && 
-            		$construct[ "target" ][ "targetIsAuthor" ] == true )
-            		$str = @$construct[ "target" ][ "name" ];
-            	else if(!empty($construct[ "author" ]) ) 
-					$str = @$construct[ "author" ][ "name" ];
+            		$construct[ "target" ][ "targetIsAuthor" ] == true ){
+                    $str["name"] = @$construct[ "target" ][ "name" ];
+                    $str["url"] = Yii::app()->getRequest()->getBaseUrl(true)."/#page.type.".$targetType.".id.".$targetId;
+                }
+            	else if(!empty($construct[ "author" ]) ){
+					$str["name"] = @$construct[ "author" ][ "name" ];
+                    $str["url"] = Yii::app()->getRequest()->getBaseUrl(true)."/#page.type.".$construct[ "author" ]["type"].".id.".$construct[ "author" ]["id"];
+                }
 
-				//var_dump($str); exit;
+				
             }
             else if("where" == $value && !empty($construct[ "target" ]) ){
                 //$str = @$construct[ "target" ][ "name" ];
-                $str = (!empty($construct[ "target" ][ "name" ]) ? @$construct[ "target" ][ "name" ] : @$construct[ "target" ][ "title" ]);
+                $str["name"] = (!empty($construct[ "target" ][ "name" ]) ? @$construct[ "target" ][ "name" ] : @$construct[ "target" ][ "title" ]);
+
+                $str["url"] = Yii::app()->getRequest()->getBaseUrl(true)."/#page.type.".$construct[ "target" ]["type"].".id.".$construct[ "target" ]["id"];
             }
             else if("what" == $value && !empty($construct[ "object" ])){
-                $str = (!empty($construct[ "object" ][ "name" ]) ? @$construct[ "object" ][ "name" ] : @$construct[ "object" ][ "title" ]);
+                $str["name"] = (!empty($construct[ "object" ][ "name" ]) ? @$construct[ "object" ][ "name" ] : @$construct[ "object" ][ "title" ]);
+
+                $str["url"] = Yii::app()->getRequest()->getBaseUrl(true)."/#page.type.".$construct[ "object" ]["type"].".id.".$construct[ "object" ]["id"];
             }
 
             if(!empty($str)){
@@ -1151,16 +1165,22 @@ class Mail {
         // else
         //     $paramTpl[ $targetType ][ $targetId ][ $verb ] = $info ;
 
-        if($paramTpl[ $targetType ][ $targetId ]["countData"] < 3)
-            $paramTpl[ $targetType ][ $targetId ]["data"][] = $myParam ;
+        // if($paramTpl[ $targetType ][ $targetId ]["countData"] < 3)
+        //     $paramTpl[ $targetType ][ $targetId ]["data"][] = $myParam ;
+
+        if($paramTpl["countData"] < 3)
+            $paramTpl["data"][] = $myParam ;
         
-        $paramTpl[ $targetType ][ $targetId ]["countData"]++ ;
+        $paramTpl["countData"]++ ;
+
         return $paramTpl ;
 
     }
 
     public static function translateLabel($mail){
         //Rest::json($mail); exit ;
+
+        //var_dump($mail); exit ;
 		$resArray=array();
 		if( !empty($mail["labelArray"]) ) {
 			
@@ -1207,8 +1227,20 @@ class Mail {
 						// 	$typeMore="organization";
 
 						$who.=" ".Yii::t("common","and")." ".($countEntry - 2)." ".Yii::t("common", $typeMore.$s);
-					}else
+					}else{
+                        $color = Element::getColorIcon($value[""]);
+                        $name = "<a href='".$value["url"]."' target='_blank' style='color:".$color.";font-weight:800;font-variant:small-caps;'>".$value["name"]."</a>";
 						$who.=$value;
+                    }
+
+
+
+
+                    $name = $value["name"];
+
+                    if( !empty($value["url"]) ){
+                     
+                    }
 					$i++;
 				}
 
