@@ -44,8 +44,8 @@ class Notification{
 			),
 			"label" => "{who} is following {where}",
 			"labelRepeat"=>"{who} are following {where}",
-			"labelMail" => "{who} is following",
-			"labelRepeatMail"=>"{who} are following",
+			"labelMail" => "{who} is following {where}",
+			"labelRepeatMail"=> "{who} are following {where}",
 			"labelArray" => array("who","where"),
 			"icon" => "fa-link",
 			"url" => "page/type/{collection}/id/{id}/view/directory/dir/followers"
@@ -57,15 +57,15 @@ class Notification{
 					"to"=> "members",
 					"label"=>"{who} wants to join {where}",
 					"labelRepeat"=>"{who} want to join {where}",
-					"labelMail" => "{who} wants to join",
-					"labelRepeatMail"=>"{who} want to join",
+					"labelMail" => "{who} wants to join {where}",
+					"labelRepeatMail"=>"{who} want to join {where}",
 				),
 				"asAdmin" => array(
 					"to" => "admin",
 					"label"=>"{who} wants to administrate {where}",
 					"labelRepeat"=>"{who} want to administrate {where}",
-					"labelMail" => "{who} wants to administrate",
-					"labelRepeatMail"=>"{who} want to administrate",
+					"labelMail" =>"{who} wants to administrate {where}",
+					"labelRepeatMail"=>"{who} want to administrate {where}",
 				)
 			),
 			//"tpl" => "askToBecomeAdmin",
@@ -80,16 +80,19 @@ class Notification{
 				ActStr::VERB_ASK => array(
 					"to"=> "admin",
 					"label"=>"{who} asks the suppression of {where}",
+					"labelMail"=>"{who} asks the suppression of {where}",
 					"url" => "page/type/{collection}/id/{id}"
 				),
 				ActStr::VERB_REFUSE => array(
 					"to" => "admin",
 					"label"=>"{who} stopped the pending suppression of {where}",
+					"labelMail"=>"{who} stopped the pending suppression of {where}",
 					"url" => "page/type/{collection}/id/{id}"
 				),
 				ActStr::VERB_DELETE => array(
 					"to" => "members",
 					"label"=>"{who} deleted {where}",
+					"labelMail"=>"{who} deleted {where}",
 					"url" => "live"
 				)
 			),
@@ -153,10 +156,10 @@ class Notification{
 						"label"=> "{who} commented a news {what} posted on {where}",
 						"labelRepeat"=> "{who} added comments on a news {what} posted on {where}",
 						"labelMail"=> "{who} commented a news {what}",
-						"labelRepeatMail" => "{who} added comments on a news {what}",
+						"labelRepeatMail" => "{who} added comments on a news {what} posted on {where}",
 						"sameAuthor"=>array(
 							"labelRepeat" => "{who} added few comments on a news {what} posted on {where}",
-							"labelRepeatMail" => "{who} added few comments on a news {what}"
+							"labelRepeatMail" => "{who} added few comments on a news {what} posted on {where}"
 						)
 					),
 					"notifyUser" => true,
@@ -170,7 +173,8 @@ class Notification{
 					"labelMail" => "{who} commented on classified {what} in {where}",
 					"labelRepeatMail" => "{who} added comments on classified {what} in {where}",
 					"sameAuthor"=>array(
-						"labelRepeat" => "{who} added few comments on classified {what} in {where}"
+						"labelRepeat" => "{who} added few comments on classified {what} in {where}",
+						"labelRepeatMail" => "{who} added few comments on classified {what} in {where}"
 					),
 					"url" => "page/type/{collection}/id/{id}",
 				),
@@ -178,7 +182,8 @@ class Notification{
 					"label" => "{who} commented on proposal {what} in {where}",
 					"labelRepeat" => "{who} added comments on proposal {what} in {where}",
 					"sameAuthor"=>array(
-						"labelRepeat" => "{who} added few comments on proposal {what} in {where}"
+						"labelRepeat" => "{who} added few comments on proposal {what} in {where}",
+						"labelRepeatMail" => "{who} added few comments on proposal {what} in {where}"
 					),
 					"url" => "page/type/{collection}/id/{id}/view/coop/room/{roomId}/proposal/{objectId}",
 				),
@@ -186,7 +191,8 @@ class Notification{
 					"label" => "{who} commented on action {what} in {where}",
 					"labelRepeat" => "{who} added comments on action {what} in {where}",
 					"sameAuthor"=>array(
-						"labelRepeat" => "{who} added few comments on action {what} in {where}"
+						"labelRepeat" => "{who} added few comments on action {what} in {where}",
+						"labelRepeatMail" => "{who} added few comments on action {what} in {where}"
 					),
 					"url" => "page/type/{collection}/id/{id}/view/coop/room/{roomId}/action/{objectId}"
 				),
@@ -194,13 +200,16 @@ class Notification{
 					"label" => "{who} commented on resolution {what} in {where}",
 					"labelRepeat" => "{who} added comments on resolution {what} in {where}",
 					"sameAuthor"=>array(
-						"labelRepeat" => "{who} added few comments on resolution {what} in {where}"
+						"labelRepeat" => "{who} added few comments on resolution {what} in {where}",
+						"labelRepeatMail" => "{who} added few comments on resolution {what} in {where}"
 					),
 					"url" => "page/type/{collection}/id/{id}/view/coop/room/{roomId}/resolution/{objectId}"
 				),
 				ActionRoom::COLLECTION => array(
 					"label" => "{who} commented on discussion {what} in {where}",
 					"labelRepeat" => "{who} added comments on discussion {what} in {where}",
+					"labelMail" => "{who} commented on discussion {what} in {where}",
+					"labelRepeatMail" => "{who} added comments on discussion {what} in {where}",
 					"url" => "comment/index/type/actionRooms/id/{id}"
 				),
 				/*"needs" => array(
@@ -390,7 +399,7 @@ class Notification{
 					"label"=>"{where} publishes a new post",
 					"labelRepeat"=>"{where} publishes new posts",
 					"labelMail"=>"{who} writes a post",
-					"labelRepeatMail"=>"{who} write posts"
+					"labelRepeatMail"=>"{who} write posts on the wall of {where}",
 				),
 				"userWall" => array(
 					"label"=>"{who} writes a post on your wall",
@@ -404,11 +413,11 @@ class Notification{
 				),
 				"label"=>"{who} writes a post on the wall of {where}",
 				"labelRepeat"=>"{who} write posts on the wall of {where}",
-				"labelMail"=>"{who} writes a post",
-				"labelRepeatMail"=>"{who} write posts",
+				"labelMail"=>"{who} writes a post on the wall of {where}",
+				"labelRepeatMail"=>"{who} write posts on the wall of {where}",
 				"sameAuthor" => array(
 					"labelRepeat" => "{who} writes posts on the wall of {where}",
-					"labelRepeatMail" => "{who} writes posts"
+					"labelRepeatMail" => "{who} writes posts on the wall of {where}",
 				)
 				
 			),
@@ -448,7 +457,7 @@ class Notification{
 				Event::COLLECTION=> array(
 					"url" => "page/type/{objectType}/id/{objectId}",
 					"label" => "{who} added a new event on {where}",
-					"labelMail" => "{who} added a new event : {what}",
+					"labelMail" => "{who} added a new event : {what} ",
 					"urlRepeat"=>"page/type/{collection}/id/{id}/view/directory/dir/{objectType}",
 					"labelRepeat" => "{who} have added new events on {where}",
 					"labelRepeatMail" => "{who} have added new events on {where}",
@@ -930,6 +939,8 @@ class Notification{
 		// Notifiy the community of an element
 		$notificationPart = self::communityToNotify($notificationPart, @$notificationPart["alreadyAuhtorNotify"]);
 		$update = false;
+
+		//Rest::json($notificationPart); exit ;
 		if(!empty($notificationPart["community"]) && $notificationPart["notifyCommunity"]){
 		    if(in_array("author",$notificationPart["labelArray"]) 
 		    	&& ($notificationPart["verb"] != Actstr::VERB_ADD || (@$notificationPart["levelType"] && $notificationPart["levelType"]=="asMember"))){

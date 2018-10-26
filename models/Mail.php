@@ -1054,28 +1054,49 @@ class Mail {
         $targetType = $construct["target"]["type"];
         $targetId = $construct["target"]["id"];
         $verb = $construct["verb"];
-        $repeat = "Mail";
+        $repeat = false;
+        $repeatKey = null;
         $countRepeat=1;
         $labelArray = array() ;
-
+        $myParam = null ;
 
         if(empty($paramTpl["countData"]))
             $paramTpl["countData"] = 0;
 
         if(empty($paramTpl["data"]))
             $paramTpl["data"] = array();
+        else{
+        	foreach ($paramTpl["data"] as $keyD => $valD) {
+        		
+        		if(	$valD["verb"] == $verb && 
+        			$valD["targetType"] == $targetType && 
+        			$valD["targetId"] == $targetId ){
+        			$myParam = $valD ;
+        			$repeatKey = $keyD ;
+        			break;
+        		} 
+        	}
+        }
 
-        $myParam = array(
-            "targetType" => $targetType,
-            "targetId" => $targetId,
-            "verb" => $verb,
-            "repeat" => "Mail",
-            "url" => Yii::app()->getRequest()->getBaseUrl(true)."/#page.type.".$targetType.".id.".$targetId,
-            "name" => @$construct["target"]["name"]
-        );
+        if($myParam == null)
+	        $myParam = array(
+	            "targetType" => $targetType,
+	            "targetId" => $targetId,
+	            "verb" => $verb,
+	            "repeat" => "Mail",
+	            "url" => Yii::app()->getRequest()->getBaseUrl(true)."/#page.type.".$targetType.".id.".$targetId,
+	            "name" => @$construct["target"]["name"]
+	        );
+	    else{
+	    	$myParam["repeat"] = "RepeatMail";
+	    	$repeat = true;
+	    	$labelArray = $myParam["labelArray"];
+	    }
 
-        if(!empty($construct["value"]))
+        if(!empty($construct["value"]) && $repeat == false)
             $myParam["value"] = $construct["value"];
+        else if(!empty($myParam["value"]) && $repeat == true)
+            unset($myParam["value"]);
 
         // if(empty($paramTpl))
         //     $paramTpl = array();
@@ -1096,13 +1117,17 @@ class Mail {
         //     $paramTpl[ $targetType ][ $targetId ][ $verb ] = array();
         // } else {
 
-            // if($verb != ActStr::VERB_ADD){
-            //     $labelArray = $paramTpl[ $targetType ][ $targetId ][ $verb ]["labelArray"] ;
-            //     $countRepeat = $paramTpl[ $targetType ][ $targetId ][ $verb ]["countRepeat"] ;
-            //     $countRepeat++;
-            // }
+        // if($verb != ActStr::VERB_ADD){
+        //     $labelArray = $paramTpl[ $targetType ][ $targetId ][ $verb ]["labelArray"] ;
+        //     $countRepeat = $paramTpl[ $targetType ][ $targetId ][ $verb ]["countRepeat"] ;
+        //     $countRepeat++;
+        // }
         	
         //}
+
+
+
+
 
         foreach ($construct["labelArray"] as $key => $value) {
         	$str =  array( "name" => "",
@@ -1113,11 +1138,13 @@ class Mail {
             		!empty($construct[ "target" ][ "targetIsAuthor" ]) && 
             		$construct[ "target" ][ "targetIsAuthor" ] == true ){
                     $str["name"] = @$construct[ "target" ][ "name" ];
+                	$str["type"] = @$construct[ "target" ][ "type" ];
                     $str["url"] = Yii::app()->getRequest()->getBaseUrl(true)."/#page.type.".$targetType.".id.".$targetId;
                 }
             	else if(!empty($construct[ "author" ]) ){
 					$str["name"] = @$construct[ "author" ][ "name" ];
-                    $str["url"] = Yii::app()->getRequest()->getBaseUrl(true)."/#page.type.".$construct[ "author" ]["type"].".id.".$construct[ "author" ]["id"];
+					$str["type"] = Person::COLLECTION;
+                    $str["url"] = Yii::app()->getRequest()->getBaseUrl(true)."/#page.type.".Person::COLLECTION.".id.".$construct[ "author" ]["id"];
                 }
 
 				
@@ -1125,12 +1152,12 @@ class Mail {
             else if("where" == $value && !empty($construct[ "target" ]) ){
                 //$str = @$construct[ "target" ][ "name" ];
                 $str["name"] = (!empty($construct[ "target" ][ "name" ]) ? @$construct[ "target" ][ "name" ] : @$construct[ "target" ][ "title" ]);
-
+                $str["type"] = @$construct[ "target" ][ "type" ];
                 $str["url"] = Yii::app()->getRequest()->getBaseUrl(true)."/#page.type.".$construct[ "target" ]["type"].".id.".$construct[ "target" ]["id"];
             }
             else if("what" == $value && !empty($construct[ "object" ])){
                 $str["name"] = (!empty($construct[ "object" ][ "name" ]) ? @$construct[ "object" ][ "name" ] : @$construct[ "object" ][ "title" ]);
-
+                $str["type"] = @$construct[ "object" ][ "type" ];
                 $str["url"] = Yii::app()->getRequest()->getBaseUrl(true)."/#page.type.".$construct[ "object" ]["type"].".id.".$construct[ "object" ]["id"];
             }
 
@@ -1153,7 +1180,7 @@ class Mail {
         // 	$repeat = "RepeatMail";
 
         //$info["label"] = Yii::t("mail", $paramsMail["label"], $paramLabel);
-        $myParam["label"] = Notification::getLabelNotification($construct, null, 1, null, $repeat, @$sameAuthor);
+        $myParam["label"] = Notification::getLabelNotification($construct, null, 1, null, $myParam["repeat"], @$sameAuthor);
         $myParam["labelArray"] = $labelArray ;
         // $info["countRepeat"] = $countRepeat ;
 
@@ -1168,10 +1195,14 @@ class Mail {
         // if($paramTpl[ $targetType ][ $targetId ]["countData"] < 3)
         //     $paramTpl[ $targetType ][ $targetId ]["data"][] = $myParam ;
 
-        if($paramTpl["countData"] < 3)
+        //var_dump($repeat); exit ;
+        if($repeat === true){
+        	$paramTpl["data"][$repeatKey] = $myParam ;
+        }else if($paramTpl["countData"] < 3)
             $paramTpl["data"][] = $myParam ;
         
-        $paramTpl["countData"]++ ;
+        if($repeat == null)
+        	$paramTpl["countData"]++ ;
 
         return $paramTpl ;
 
@@ -1184,27 +1215,6 @@ class Mail {
 		$resArray=array();
 		if( !empty($mail["labelArray"]) ) {
 			
-			// if( !empty($mail["notify"]["labelArray"]["{author}"]) && 
-			// 	!empty($mail["notify"]["labelArray"]["{author}"]) ) {
-			// 	$author="";
-			// 	$i=0;
-			// 	$countEntry=count($mail["notify"]["labelArray"]["{author}"]);
-			// 	foreach($mail["notify"]["labelArray"]["{author}"] as $data){
-			// 		if($i == 1 && $countEntry==2)
-			// 			$author.=" ".Yii::t("common","and")." ";
-			// 		else if($i > 0)
-			// 			$author.=", ";
-			// 		if($i==2 && is_numeric($data)){
-			// 			$s="";
-			// 			if($data > 1)
-			// 				$s="s";
-			// 			$author.=" ".Yii::t("common","and")." ".$data." ".Yii::t("common", "person".$s);
-			// 		}else
-			// 			$author.=$data;
-			// 		$i++;
-			// 	}
-			// 	$resArray["{author}"]=$author;
-			// }
 			if( !empty($mail["labelArray"]["{who}"]) ){
 				$who="";
 				$i=0;
@@ -1228,18 +1238,9 @@ class Mail {
 
 						$who.=" ".Yii::t("common","and")." ".($countEntry - 2)." ".Yii::t("common", $typeMore.$s);
 					}else{
-                        $color = Element::getColorIcon($value[""]);
-                        $name = "<a href='".$value["url"]."' target='_blank' style='color:".$color.";font-weight:800;font-variant:small-caps;'>".$value["name"]."</a>";
-						$who.=$value;
-                    }
-
-
-
-
-                    $name = $value["name"];
-
-                    if( !empty($value["url"]) ){
-                     
+                        $color = Element::getColorIcon($value["type"]);
+                        $who.= "<a href='".$value["url"]."' target='_blank' style='color:".$color.";font-weight:800;font-variant:small-caps;'>".$value["name"]."</a>";
+						//$who.=$value;
                     }
 					$i++;
 				}
@@ -1253,7 +1254,10 @@ class Mail {
 				foreach($mail["labelArray"]["{what}"] as $data){
 					if($i > 0)
 						$what.=" ";
-					$what=Yii::t("notification",$data);
+					$color = Element::getColorIcon($data["type"]);
+					$what.= "<a href='".$data["url"]."' target='_blank' style='color:".$color.";font-weight:800;font-variant:small-caps;'>".Yii::t("notification",$data["name"])."</a>";
+
+					//$what.=Yii::t("notification",$data["name"]);
 					$i++;
 				}
 				$resArray["{what}"]=$what;
@@ -1265,7 +1269,10 @@ class Mail {
 				foreach($mail["labelArray"]["{where}"] as $data){
 					if($i > 0)
 						$where.=" ";
-					$where=Yii::t("notification",$data);
+
+					$color = Element::getColorIcon($data["type"]);
+					$where.= "<a href='".$data["url"]."' target='_blank' style='color:".$color.";font-weight:800;font-variant:small-caps;'>".Yii::t("notification",$data["name"])."</a>";
+					//$where.=Yii::t("notification",$data["name"]);
 					$i++;
 				}
 				$resArray["{where}"]=$where;
