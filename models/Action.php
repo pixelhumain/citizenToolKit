@@ -19,7 +19,6 @@ class Action
     const ACTION_VOTE_UNCLEAR   = "voteUnclear";
     const ACTION_VOTE_MOREINFO  = "voteMoreInfo";
     const ACTION_VOTE_DOWN      = "voteDown";
-
     const ACTION_FUND      = "fund";
    
     //const ACTION_VOTE_BLOCK   = "voteBlock";
@@ -113,6 +112,7 @@ class Action
             self::ACTION_ROOMS_TYPE_SURVEY,
             self::ACTION_MODERATE,
             self::ACTION_VOTE_UP,
+            self::ACTION_VOTE,  
             self::ACTION_VOTE_ABSTAIN,
             self::ACTION_VOTE_UNCLEAR,
             self::ACTION_VOTE_MOREINFO,
