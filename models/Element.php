@@ -2000,16 +2000,19 @@ class Element {
 
 
 
-        if (empty($paramsImport))
+        if (empty($paramsImport)){
+        	$targetNewsId=(@$params["parentId"] && !empty($params["parentId"])) ? $params["parentId"] : Yii::app()->session["userId"];
+        	$targetNewsType=( @$params["parentType"] && !empty($params["parentType"])) ? $params["parentType"]: Person::COLLECTION; 
 			Notification::createdObjectAsParam( Person::COLLECTION, 
 												Yii::app()->session["userId"], 
 												$collection, 
 												$id, 
-												Person::COLLECTION, 
-												Yii::app()->session["userId"], 
+												$targetNewsType, 
+												$targetNewsId, 
 												( !empty($params["geo"]) ? $params["geo"] : "" ) , 
 												( !empty($params["tags"]) ? $params["tags"] : null ),
 												( ( !empty($organization["address"]) && !empty($organization["address"]["codeInsee"]) ) ? $organization["address"]["codeInsee"] : "" ) ) ;
+        }
 
 
 		if( ( !empty($params["organizerType"]) && in_array($params["organizerType"], array(Organization::COLLECTION, Project::COLLECTION)) ) || 
