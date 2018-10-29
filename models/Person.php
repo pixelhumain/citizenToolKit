@@ -2120,6 +2120,9 @@ public static function isUniqueEmail($email) {
 		$person = self::getById($id);
 		if (empty($person)) return array("result" => false, "msg" => "Unknown person id");
 
+		//Delete email 
+		PHDB::remove(Cron::COLLECTION, array("to" => $person["email"]));
+
     	//Delete links on elements collections		
 		$links2collection = array(
 			//Person => Person that follows the user we want to delete and the 
@@ -2146,19 +2149,23 @@ public static function isUniqueEmail($email) {
 	    		foreach ($elt as $keyElt => $valueElt) {
 	    			PHDB::update($collection, array("_id"=>new MongoId($keyElt)), $action);
 	    		}
-	    		//PHDB::update($collection, $where, $action);
-	    		//error_log("delete links type ".$linkType." on collection ".$collection." for user ".$id);
-
-	    		// $resDisconnect[] = array( "where" => $where,
-	    		// 							"action" => $action);
 	    	}
     	}
 
-    	//Rest::json($resDisconnect); exit;
+
+    	//PHDB::update( Form::ANSWER_COLLECTION, array("email"=> $person["email"]), $action);
+
     	//Delete Notifications
     	ActivityStream::removeNotificationsByUser($id);
 
     	Slug::removeByParentIdAndType($id, self::COLLECTION);
+
+    	$paramsMail = array("tpl" => "deleted",
+    						"tplObject" => "[COmmunecter] Votre compte a été supprimer",
+    						"tplMail" => $person["email"],
+    						"name" => $person["name"] );
+
+    	Mail::createAndSend($paramsMail);
 
     	//Check if the user got activity (news, comments, votes)
 		$res = self::checkActivity($id);
@@ -2181,7 +2188,6 @@ public static function isUniqueEmail($email) {
     	foreach ($profilImages as $docId => $document) {
     		Document::removeDocumentById($docId, $userId);
     	}
-    	//TODO SBAR : remove thumb and medium
     	
     	if($id == $userId)
     		Person::clearUserSessionData();
