@@ -883,8 +883,6 @@ class Mail {
 		else
 			$subject = Yii::t("mail", "{what} is waiting for you", array( "{what}"=>self::getAppName() ) ) ;
 
-        
-
         if(!@$val["email"] || empty($val["email"])){
 			$getEmail=Person::getEmailById($val["id"]);
 			$val["email"]=$getEmail["email"];
@@ -910,9 +908,6 @@ class Mail {
         $params=self::getCustomMail($params);
         if(!empty($invitorUrl))
 			$params["tplParams"]["invitorUrl"] = $invitorUrl;
-        
-        // $s = array("construct" => $construct, "params" => $params, "val" => $val);
-        // Rest::json($s); exit;
 
         Mail::schedule($params);
     }
@@ -1000,55 +995,7 @@ class Mail {
         Mail::schedule($params);
     }
 
-    
-   /* public static function createParamsMails($verb, $target = null, $object = null, $author = null){
-        $paramsMail = Mail::$mailTree[$verb];
-
-            if ($key != Yii::app()->session["userId"]) {
-
-                $member = Element::getElementById( $key, Person::COLLECTION, null, array("email","preferences") );
-               
-                if (!empty($member["email"]) 
-                    // !empty($member["preferences"]) && 
-                    // !empty($member["preferences"]["mailNotif"]) &&
-                    // $member["preferences"]["mailNotif"] == true 
-                ) {
-                    
-                    $mail = Mail::getMailUpdate($member["email"], 'notification') ;
-                    if(!empty($mail)){
-                        $paramTpl = self::createParamsTpl($construct, $mail["tplParams"]["data"]);
-                        $mail["tplParams"]["data"]= $paramTpl ;
-                        PHDB::update(Cron::COLLECTION,
-                            array("_id" => $mail["_id"]) , 
-                            array('$set' => array("tplParams" => $mail["tplParams"]))           
-                        );
-
-                    } else {
-                        //var_dump($notificationPart);
-                        $paramTpl = self::createParamsTpl($construct, null);
-                        $params = array (
-                            "type" => Cron::TYPE_MAIL,
-                            "tpl"=>'notification',
-                            "subject" => "[".self::getAppName()."] - Il y a du nouveaux",
-                            "from"=>Yii::app()->params['adminEmail'],
-                            "to" => $member["email"],
-                            "tplParams" => array(
-                                "logo" => Yii::app()->params["logoUrl"],
-                                "logo2" => Yii::app()->params["logoUrl2"],
-                                "data" => $paramTpl
-                            )
-                        );
-
-                        Mail::schedule($params, true);
-                    }
-                }
-            }
-        }
-    }*/
-
     public static function createParamsTpl($construct, $paramTpl = null){
-
-    	//var_dump($construct); exit ;
        
         //Rest::json($construct);exit ;
         $targetType = $construct["target"]["type"];
@@ -1098,42 +1045,10 @@ class Mail {
         else if(!empty($myParam["value"]) && $repeat == true)
             unset($myParam["value"]);
 
-        // if(empty($paramTpl))
-        //     $paramTpl = array();
-
-        // if(empty($paramTpl[$targetType]))
-        //     $paramTpl[$targetType] = array();
-
-        // if(empty($paramTpl[ $targetType ][ $targetId ])){
-        //     $paramTpl[ $targetType ][ $targetId ] = array( "url" => Yii::app()->getRequest()->getBaseUrl(true)."/#page.type.".$targetType.".id.".$targetId,
-        //                                                     "name" => @$construct["target"]["name"],
-        //                                                     "countData" => 0,
-        //                                                     "data" => array() ) ;
-        // }
-
-        // $paramsVerb = array() ;
-
-        // if(empty($paramTpl[ $targetType ][ $targetId ][ $verb ]) ){
-        //     $paramTpl[ $targetType ][ $targetId ][ $verb ] = array();
-        // } else {
-
-        // if($verb != ActStr::VERB_ADD){
-        //     $labelArray = $paramTpl[ $targetType ][ $targetId ][ $verb ]["labelArray"] ;
-        //     $countRepeat = $paramTpl[ $targetType ][ $targetId ][ $verb ]["countRepeat"] ;
-        //     $countRepeat++;
-        // }
-        	
-        //}
-
-
-
-
-
         foreach ($construct["labelArray"] as $key => $value) {
         	$str =  array( "name" => "",
                            "url" => "" ) ;
             if("who" == $value ){
-            	//var_dump($construct[ "target" ]);
             	if( !empty($construct[ "target" ]) && 
             		!empty($construct[ "target" ][ "targetIsAuthor" ]) && 
             		$construct[ "target" ][ "targetIsAuthor" ] == true ){
@@ -1176,26 +1091,9 @@ class Mail {
             }
         }
 
-        // if($countRepeat > 1)
-        // 	$repeat = "RepeatMail";
-
-        //$info["label"] = Yii::t("mail", $paramsMail["label"], $paramLabel);
         $myParam["label"] = Notification::getLabelNotification($construct, null, 1, null, $myParam["repeat"], @$sameAuthor);
         $myParam["labelArray"] = $labelArray ;
-        // $info["countRepeat"] = $countRepeat ;
 
-
-        // if($verb == ActStr::VERB_ADD){
-        //     $info["url"] = Yii::app()->getRequest()->getBaseUrl(true)."/#page.type.".$construct[ "object" ][ "type" ].".id.".$construct[ "object" ][ "id" ] ;
-        //     $paramTpl[ $targetType ][ $targetId ][ $verb ][] = $info ;
-        // }
-        // else
-        //     $paramTpl[ $targetType ][ $targetId ][ $verb ] = $info ;
-
-        // if($paramTpl[ $targetType ][ $targetId ]["countData"] < 3)
-        //     $paramTpl[ $targetType ][ $targetId ]["data"][] = $myParam ;
-
-        //var_dump($repeat); exit ;
         if($repeat === true){
         	$paramTpl["data"][$repeatKey] = $myParam ;
         }else if($paramTpl["countData"] < 3)
