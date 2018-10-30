@@ -506,10 +506,10 @@ class Notification{
 					"urlRepeat"=>"page/type/{collection}/id/{id}/view/coop",
 					"label"=> "{who} added a new proposal {what} in {where}",
 					"labelMail" => "{who} added a new proposal : {what}",
-					"labelRepeat" => "{who} added few proposals in {where}",
+					"labelRepeat" => "{who} have added few proposals in {where}",
 					"labelRepeatMail" => "{who} added few proposals in {where}",
 					"sameAuthor" => array(
-						"labelRepeat" => "{who} have added few proposals on {where}"
+						"labelRepeat" => "{who} added few proposals in {where}"
 					),
 					"repeat"=>true
 				),
@@ -581,7 +581,10 @@ class Notification{
 			"labelRepeat"=>"{who} have voted on {what} in {where}",
 			"labelMail" => "{who} voted on {what} in {where}",
 			"labelRepeatMail"=>"{who} have voted on {what} in {where}",
-			"labelArray" => array("who","where"),
+			"labelArray" => array("who", "what", "where"),
+			"sameAuthor" => array(
+				"labelRepeat" => "{who} voted few times on {what} in {where}"
+			),
 			"icon" => ActStr::ICON_VOTE,
 			"url" =>  "page/type/{collection}/id/{id}/view/coop/room/{roomId}/proposal/{objectId}",
 			"settings"=> "default",
@@ -592,7 +595,11 @@ class Notification{
 			"labelRepeat"=>"{who} have amended the proposal {what} in {where}",
 			"labelMail" => "{who} amended the proposal {what} in {where}",
 			"labelRepeatMail"=>"{who} have amended the proposal {what} in {where}",
-			"labelArray" => array("who","where"),
+			"labelArray" => array("who","what","where"),
+			"sameAuthor" => array(
+				"labelRepeat" => "{who} amended few times the proposal {what} in {where}"
+			),
+			
 			"icon" => ActStr::ICON_VOTE,
 			"url" =>  "page/type/{collection}/id/{id}/view/coop/room/{roomId}/proposal/{objectId}",
 			"settings"=> "default",
@@ -1437,8 +1444,10 @@ class Notification{
 					$specifyLabel["{what}"]=$resArray["{what}"];
 			}
 		}
-		if(in_array("what",$construct["labelArray"]))
-			$specifyLabel["{what}"] = [@$construct["object"]["name"]];
+		if(in_array("what",$construct["labelArray"])){
+			$nameWhat=(@$construct["object"]["title"]) ? @$construct["object"]["title"] : @$construct["object"]["name"];
+			$specifyLabel["{what}"] = [$nameWhat];
+		}
 		
 		return $specifyLabel;
 	}
