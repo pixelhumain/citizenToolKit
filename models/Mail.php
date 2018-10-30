@@ -428,6 +428,7 @@ class Mail {
             Mail::schedule($params);
         }
     }
+
     /**
      * Send an email to the person invite by a member of an element 
      * @param array $parent datas of an element where person is inviting
@@ -866,13 +867,40 @@ class Mail {
 
     }
 
+
+    /**
+     * Send an email when some one ask to become an admin of an organization to the current admins
+     * @param array $organization datas of an organization
+     * @param array $newPendingAdmin Datas of a person asking to become an admin
+     * @param array $listofAdminsEmail array of email to send to
+     * @return null
+     */
+
+    // public static function askToBecome( $parent, $parentType, $newPendingAdmin, $listofAdminsEmail, $typeOfDemand) {
+
+	public static function askToBecome($construct, $val) {
+		//Rest::json($construct); exit ; 
+
+
+
+        $params = array (
+            "type" => Cron::TYPE_MAIL,
+            "tpl"=>'askToBecome',
+            "subject" => "[".self::getAppName()."] ".Yii::t("mail","A citizen ask to become {what} of {where}", 
+                array("{what}"=>$construct["value"], "{where}"=>$construct["target"]["name"])),
+            "from"=>Yii::app()->params['adminEmail'],
+            "to" => $val["email"],
+            "tplParams" => array(	"newPendingAdmin"=> $val ,
+									"title" => self::getAppName() ,
+									"parent" => $construct["target"],
+									"parentType" => $construct["target"]["type"],
+									"typeOfDemand"=> $construct["value"])
+        );  
+        $params=self::getCustomMail($params); 
+        Mail::schedule($params);
+    }
+
     public static function invitation($construct, $val) {
-
-
-		// if(isset($person["invitedBy"]))
-		//     $invitor = Person::getSimpleUserById($person["invitedBy"]);
-		// else if(isset($nameInvitor))
-		//     $invitor["name"] = $nameInvitor ;
 
 		foreach ($construct["author"] as $key => $value) {
 			$invitor["name"] = $value["name"];
@@ -914,7 +942,7 @@ class Mail {
 
     public static function createNotification($construct, $tpl=null){
         //Rest::json($construct); exit ;
-
+    	//Rest::json($tpl); exit ;
         foreach ($construct["community"]["mails"] as $key => $value) {
              
                 if(!empty($tpl)) {
