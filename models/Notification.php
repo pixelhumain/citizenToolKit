@@ -68,7 +68,7 @@ class Notification{
 					"labelRepeatMail"=>"{who} want to administrate {where}",
 				)
 			),
-			//"tpl" => "askToBecomeAdmin",
+			"tpl" => "askToBecomeAdmin",
 			"labelArray" => array("who","where"),
 			"context" => "admin",
 			"settings"=>"low",
