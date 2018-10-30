@@ -68,7 +68,7 @@ class Notification{
 					"labelRepeatMail"=>"{who} want to administrate {where}",
 				)
 			),
-			//"tpl" => "askToBecomeAdmin",
+			"tpl" => "askToBecome",
 			"labelArray" => array("who","where"),
 			"context" => "admin",
 			"settings"=>"low",
@@ -998,9 +998,9 @@ class Notification{
 				/********** END MAILING PROCEDURE *********/
 			}
 			//Rest::json($notificationPart); exit ;
-			$tpl = ( ( @$construct["tpl"] ) ? $construct["tpl"] : null );
+			$tpl = ( ( @$notificationPart["tpl"] ) ? $notificationPart["tpl"] : null );
 
-			Mail::createNotification($notificationPart);
+			Mail::createNotification($notificationPart, $tpl);
 
 		}
 	}
