@@ -787,8 +787,8 @@ class Link {
 		$msg=Yii::t("common","You are following")." ".$parentData["name"];
 		Link::connect($parentId, $parentType, $childId, $childType,Yii::app()->session["userId"], $parentConnectAs);
 		Link::connect($childId, $childType, $parentId, $parentType, Yii::app()->session["userId"], $childConnectAs);
-        if($parentType==Person::COLLECTION)
-            Mail::follow($parentData, $parentType);
+        // if($parentType==Person::COLLECTION)
+        //     Mail::follow($parentData, $parentType);
         //else
           //  Mail::follow($element, $elementType, $listOfMail);
         Notification::constructNotification($verb, $pendingChild , array("type"=>$parentType,"id"=> $parentId,"name"=>$parentData["name"]), null, $levelNotif);
