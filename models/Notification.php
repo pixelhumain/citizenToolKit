@@ -972,9 +972,10 @@ class Notification{
 		    if(	in_array("author",$notificationPart["labelArray"]) && 
 		    	( $notificationPart["verb"] != Actstr::VERB_ADD || 
 					( @$notificationPart["levelType"] && $notificationPart["levelType"]=="asMember") ) ) {
-		
-		        // $notificationPart["object"] = array($authorId => array("name"=>$author["name"]));
+					// !!!!!!!!!!!!!!!CAREFULLY !!!!!!!!!!!!
+		       	// $notificationPart["object"] = array($authorId => array("name"=>$author["name"]));
 		        // $notificationPart["author"] = array(Yii::app()->session["userId"]=> array("name"=> Yii::app()->session["user"]["name"]));
+		        // !!!!!!!!!!!!!!!CAREFULLY END !!!!!!!!!!!!
 		        $notificationPart["labelUpNotifyTarget"]="object";
 		    }
 		    // !!!!!!!!!!!!!!! COMMENT HERE VIEW BEHAVIOR IF OBJECT IS CHANGED BEFORE !!!!!!!!!!!!! //
@@ -1087,7 +1088,9 @@ class Notification{
 				 	    if(@$construct["type"]["user"])
 							$construct["labelUpNotifyTarget"]="object";
 						// -------- END MOVE ON GETLABEL --------///
+						// !!!!!!!!!!!!!!!CAREFULLY !!!!!!!!!!!!
 						// $construct["author"]=array(Yii::app()->session["userId"] => array("name"=> Yii::app()->session["user"]["name"]));
+						// !!!!!!!!!!!!!!!CAREFULLY END!!!!!!!!!!!!
 						self::createNotification($construct,"user");
 				    }
 				}
