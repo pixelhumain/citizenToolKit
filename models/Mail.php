@@ -990,7 +990,7 @@ class Mail {
         		if(	$valD["verb"] == $verb && 
         			$valD["targetType"] == $targetType && 
         			$valD["targetId"] == $targetId && 
-        			( !empty($construct["object"]) && $valD["object"]["type"] == $construct["object"]["type"]  ) ) {
+        			( !empty($construct["object"]) && !empty($valD["object"]) && $valD["object"]["type"] == $construct["object"]["type"]  ) ) {
         			$myParam = $valD ;
         			$repeatKey = $keyD ;
         			break;
