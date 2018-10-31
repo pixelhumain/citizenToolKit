@@ -166,10 +166,8 @@ class Bookmark {
 					// 	$res[$valueB["parentId"]][] = array_merge($res[$valueB["parentId"]], $search["results"]);
 					// }
 
-					$update = PHDB::update( self::COLLECTION, array("_id" => new MongoId($keyB)), 
-                                  array('$set' => array('updated' => time() ) ));
-					// $update = PHDB::update( , 
-					// 						array( "_id" => new MongoId($keyB) ),
+					// $update = PHDB::update( self::COLLECTION, array("_id" => new MongoId($keyB)), 
+     //                              array('$set' => array('updated' => time() ) ));
 					// 						);
 
 

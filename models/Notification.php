@@ -155,7 +155,7 @@ class Notification{
 					"targetIsAuthor"=> array(
 						"label"=> "{who} commented a news {what} posted on {where}",
 						"labelRepeat"=> "{who} added comments on a news {what} posted on {where}",
-						"labelMail"=> "{who} commented a news {what}",
+						"labelMail"=> "{who} commented a news {what} posted on {where}",
 						"labelRepeatMail" => "{who} added comments on a news {what} posted on {where}",
 						"sameAuthor"=>array(
 							"labelRepeat" => "{who} added few comments on a news {what} posted on {where}",
@@ -231,7 +231,7 @@ class Notification{
 					"repeat"=>true
 				)
 			),
-			"labelArray" => array("who","where"),
+			"labelArray" => array("who","where","what"),
 			"settings"=> "default",
 			"mail" => array(
 				"tpl" => "comment" //If orga or project to members
@@ -457,7 +457,7 @@ class Notification{
 				Event::COLLECTION=> array(
 					"url" => "page/type/{objectType}/id/{objectId}",
 					"label" => "{who} added a new event on {where}",
-					"labelMail" => "{who} added a new event : {what} ",
+					"labelMail" => "{who} added a new event : {what}",
 					"urlRepeat"=>"page/type/{collection}/id/{id}/view/directory/dir/{objectType}",
 					"labelRepeat" => "{who} have added new events on {where}",
 					"labelRepeatMail" => "{who} have added new events on {where}",
@@ -907,6 +907,8 @@ class Notification{
 	* params string||array $context should be use to specify community to notify (only admin, only person, etc)
 	*/
 	public static function constructNotification($verb, $author, $target, $object = null, $levelType = null, $context = null, $value=null){
+
+		//Rest::json($author); exit ;
 		$notificationPart = self::$notificationTree[$verb];
 		$notificationPart["verb"] = $verb;
 		$notificationPart["target"]=$target;
@@ -916,7 +918,7 @@ class Notification{
 		$notificationPart["value"]=$value;
 		// Object could be the object in following method if action is by an other acting on an other person (ex: author add so as member {"member"=> $author})
 		if(@$author["_id"])
-			$authorId=(string)$author["_id"];
+			$authorId=(String)$author["_id"];
 		else
 			$authorId=$author["id"];
 
@@ -927,7 +929,8 @@ class Notification{
 											"type"=>Person::COLLECTION,
 											"profilThumbImageUrl"=>@$eltauthor["profilThumbImageUrl"]);
 
-
+		//echo '<br><br>' ;var_dump($notificationPart["author"]);
+		
 		if(	!empty($notificationPart["target"]) && 
 			( 	empty($notificationPart["target"]["name"]) || 
 				empty($notificationPart["target"]["profilThumbImageUrl"]) ) ) {
@@ -964,13 +967,15 @@ class Notification{
 		// Notifiy the community of an element
 		$notificationPart = self::communityToNotify($notificationPart, @$notificationPart["alreadyAuhtorNotify"]);
 		$update = false;
-
+		//echo '<br><br>' ;var_dump($notificationPart["author"]);
 		//Rest::json($notificationPart); exit ;
 		if(!empty($notificationPart["community"]) && $notificationPart["notifyCommunity"]){
-		    if(in_array("author",$notificationPart["labelArray"]) 
-		    	&& ($notificationPart["verb"] != Actstr::VERB_ADD || (@$notificationPart["levelType"] && $notificationPart["levelType"]=="asMember"))){
-		        $notificationPart["object"] = array($authorId => array("name"=>$author["name"]));
-		        $notificationPart["author"] = array(Yii::app()->session["userId"]=> array("name"=> Yii::app()->session["user"]["name"]));
+		    if(	in_array("author",$notificationPart["labelArray"]) && 
+		    	( $notificationPart["verb"] != Actstr::VERB_ADD || 
+					( @$notificationPart["levelType"] && $notificationPart["levelType"]=="asMember") ) ) {
+		
+		        // $notificationPart["object"] = array($authorId => array("name"=>$author["name"]));
+		        // $notificationPart["author"] = array(Yii::app()->session["userId"]=> array("name"=> Yii::app()->session["user"]["name"]));
 		        $notificationPart["labelUpNotifyTarget"]="object";
 		    }
 		    // !!!!!!!!!!!!!!! COMMENT HERE VIEW BEHAVIOR IF OBJECT IS CHANGED BEFORE !!!!!!!!!!!!! //
@@ -1016,7 +1021,7 @@ class Notification{
 			}
 			//Rest::json($notificationPart); exit ;
 			$tpl = ( ( @$notificationPart["tpl"] ) ? $notificationPart["tpl"] : null );
-
+			//echo '<br><br>' ;var_dump($notificationPart["author"]); 
 			Mail::createNotification($notificationPart, $tpl);
 
 		}
@@ -1084,7 +1089,7 @@ class Notification{
 				 	    if(@$construct["type"]["user"])
 							$construct["labelUpNotifyTarget"]="object";
 						// -------- END MOVE ON GETLABEL --------///
-						$construct["author"]=array(Yii::app()->session["userId"] => array("name"=> Yii::app()->session["user"]["name"]));
+						// $construct["author"]=array(Yii::app()->session["userId"] => array("name"=> Yii::app()->session["user"]["name"]));
 						self::createNotification($construct,"user");
 				    }
 				}

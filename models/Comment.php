@@ -141,7 +141,9 @@ class Comment {
 															"id"=> $comment["contextId"],
 															"name"=>@$options["name"] ), 
 													$objectNotif,
-													$typeAction);
+													$typeAction,
+													null,
+													$newComment["text"]);
 		else{
 			Form::createNotificationAnswer($comment);
 		}

@@ -975,6 +975,7 @@ class Mail {
     public static function createParamsTpl($construct, $paramTpl = null){
        
         //Rest::json($construct);exit ;
+        //echo '<br><br>' ;var_dump($construct["author"]); exit ;
         $targetType = $construct["target"]["type"];
         $targetId = $construct["target"]["id"];
         $verb = $construct["verb"];
@@ -994,7 +995,8 @@ class Mail {
         		
         		if(	$valD["verb"] == $verb && 
         			$valD["targetType"] == $targetType && 
-        			$valD["targetId"] == $targetId ){
+        			$valD["targetId"] == $targetId && 
+        			( !empty($construct["object"]) && $valD["object"]["type"] == $construct["object"]["type"]  ) ) {
         			$myParam = $valD ;
         			$repeatKey = $keyD ;
         			break;
@@ -1021,6 +1023,9 @@ class Mail {
             $myParam["value"] = $construct["value"];
         else if(!empty($myParam["value"]) && $repeat == true)
             unset($myParam["value"]);
+
+        if(!empty($construct["object"]))
+            $myParam["object"] = $construct["object"];
 
         foreach ($construct["labelArray"] as $key => $value) {
         	$str =  array( "name" => "",
@@ -1192,7 +1197,7 @@ class Mail {
                     "userName" => @$user["name"],
                     "logo"=> Yii::app()->params["logoUrl"],
                     "logo2" => Yii::app()->params["logoUrl2"],
-                    "params" => $paramsB,
+                    "params" => $params,
                     "baseUrl" => Yii::app()->getRequest()->getBaseUrl(true)."/"
                 ),
             );
