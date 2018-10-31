@@ -436,7 +436,7 @@ class Notification{
 					"urlRepeat"=>"page/type/{collection}/id/{id}/view/directory/dir/{objectType}",
 					"label" => "{who} added a new point of interest on {where}",
 					"labelMail" => "{who} added a new point of interest : {what}",
-					"labelRepeat" => "{who} have added ponts of interst on {where}",
+					"labelRepeat" => "{who} have added points of interest on {where}",
 					"labelRepeatMail" => "{who} have added ponts of interst on {where}",
 					"sameAuthor" => array(
 						"labelRepeat" => "{who} added points of interest on {where}"
@@ -476,8 +476,7 @@ class Notification{
 					"repeat"=>true,
 					"sameAuthor" => array(
 						"labelRepeat" => "{who} added new classifieds on {where}"
-					)
-					
+					)	
 				),
 				/*ActionRoom::COLLECTION_ACTIONS=> array(
 					"url"=>"rooms/actions/id/{objectId}",
@@ -496,7 +495,10 @@ class Notification{
 					"label" => "{who} added a new room in the co-space on {where}",
 					"labelRepeat" => "{who} added new rooms in the co-space on {where}",
 					"labelMail" => "{who} added a new room : {what}",
-					"labelRepeatMail" => "{who} added new rooms in the co-space on {where}",
+					"labelRepeatMail" => "{who} have added new rooms in the co-space on {where}",
+					"sameAuthor" => array(
+						"labelRepeat" => "{who} added new rooms in the co-space on {where}"
+					),
 					"repeat"=>true
 				),
 				Proposal::COLLECTION => array(
@@ -504,8 +506,11 @@ class Notification{
 					"urlRepeat"=>"page/type/{collection}/id/{id}/view/coop",
 					"label"=> "{who} added a new proposal {what} in {where}",
 					"labelMail" => "{who} added a new proposal : {what}",
-					"labelRepeat" => "{who} added few proposals in {where}",
+					"labelRepeat" => "{who} have added few proposals in {where}",
 					"labelRepeatMail" => "{who} added few proposals in {where}",
+					"sameAuthor" => array(
+						"labelRepeat" => "{who} added few proposals in {where}"
+					),
 					"repeat"=>true
 				),
 				Action::COLLECTION => array(
@@ -514,7 +519,10 @@ class Notification{
 					"label" => "{who} added a new action {what} in {where}",
 					"labelMail" => "{who} added a new action : {what}",
 					"labelRepeat" => "{who} added few actions in {where}",
-					"labelRepeatMail" => "{who} added few actions in {where}",
+					"labelRepeatMail" => "{who} have added few actions in {where}",
+					"sameAuthor" => array(
+						"labelRepeat" => "{who} added few actions in {where}"
+					),
 					"repeat"=>true
 				),
 				Resolution::COLLECTION => array(
@@ -573,7 +581,10 @@ class Notification{
 			"labelRepeat"=>"{who} have voted on {what} in {where}",
 			"labelMail" => "{who} voted on {what} in {where}",
 			"labelRepeatMail"=>"{who} have voted on {what} in {where}",
-			"labelArray" => array("who","where"),
+			"labelArray" => array("who", "what", "where"),
+			"sameAuthor" => array(
+				"labelRepeat" => "{who} voted few times on {what} in {where}"
+			),
 			"icon" => ActStr::ICON_VOTE,
 			"url" =>  "page/type/{collection}/id/{id}/view/coop/room/{roomId}/proposal/{objectId}",
 			"settings"=> "default",
@@ -584,7 +595,11 @@ class Notification{
 			"labelRepeat"=>"{who} have amended the proposal {what} in {where}",
 			"labelMail" => "{who} amended the proposal {what} in {where}",
 			"labelRepeatMail"=>"{who} have amended the proposal {what} in {where}",
-			"labelArray" => array("who","where"),
+			"labelArray" => array("who","what","where"),
+			"sameAuthor" => array(
+				"labelRepeat" => "{who} amended few times the proposal {what} in {where}"
+			),
+			
 			"icon" => ActStr::ICON_VOTE,
 			"url" =>  "page/type/{collection}/id/{id}/view/coop/room/{roomId}/proposal/{objectId}",
 			"settings"=> "default",
@@ -1439,8 +1454,10 @@ class Notification{
 					$specifyLabel["{what}"]=$resArray["{what}"];
 			}
 		}
-		if(in_array("what",$construct["labelArray"]))
-			$specifyLabel["{what}"] = [@$construct["object"]["name"]];
+		if(in_array("what",$construct["labelArray"])){
+			$nameWhat=(@$construct["object"]["title"]) ? @$construct["object"]["title"] : @$construct["object"]["name"];
+			$specifyLabel["{what}"] = [$nameWhat];
+		}
 		
 		return $specifyLabel;
 	}
