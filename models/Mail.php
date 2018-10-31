@@ -847,11 +847,9 @@ class Mail {
     }
 
     public static function invitation($construct, $val) {
-
-		foreach ($construct["author"] as $key => $value) {
-			$invitor["name"] = $value["name"];
-		}
-
+    	//Rest::json($construct["author"]); exit;
+		$invitor = $construct["author"];
+		
 		if(@$invitor && !empty($invitor["name"]))
 			$subject = Yii::t("mail", "{who} is waiting for you on {what}", array("{who}"=>$invitor["name"], "{what}"=>self::getAppName()));
 		else
