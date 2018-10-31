@@ -829,9 +829,6 @@ class Mail {
 
 	public static function askToBecome($construct, $val) {
 		//Rest::json($construct); exit ; 
-
-
-
         $params = array (
             "type" => Cron::TYPE_MAIL,
             "tpl"=>'askToBecome',
@@ -893,7 +890,6 @@ class Mail {
         //Rest::json($construct); exit ;
     	//Rest::json($tpl); exit ;
         foreach ($construct["community"]["mails"] as $key => $value) {
-             
                 if(!empty($tpl)) {
                     Mail::$tpl($construct, $value);
                 } else {
