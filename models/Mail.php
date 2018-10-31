@@ -852,7 +852,7 @@ class Mail {
 			$invitor["name"] = $value["name"];
 		}
 
-		if(@$invitor && empty(@$invitor["name"]))
+		if(@$invitor && !empty($invitor["name"]))
 			$subject = Yii::t("mail", "{who} is waiting for you on {what}", array("{who}"=>$invitor["name"], "{what}"=>self::getAppName()));
 		else
 			$subject = Yii::t("mail", "{what} is waiting for you", array( "{what}"=>self::getAppName() ) ) ;

@@ -398,8 +398,8 @@ class Notification{
 				"targetIsAuthor" => array(
 					"label"=>"{where} publishes a new post",
 					"labelRepeat"=>"{where} publishes new posts",
-					"labelMail"=>"{who} writes a post",
-					"labelRepeatMail"=>"{who} write posts on the wall of {where}",
+					"labelMail"=>"{who} publishes a new post",
+					"labelRepeatMail"=>"{where} publishes new posts",
 				),
 				"userWall" => array(
 					"label"=>"{who} writes a post on your wall",
@@ -519,7 +519,7 @@ class Notification{
 					"label" => "{who} added a new action {what} in {where}",
 					"labelMail" => "{who} added a new action : {what}",
 					"labelRepeat" => "{who} added few actions in {where}",
-					"labelRepeatMail" => "{who} have added few actions in {where}",
+					"labelRepeatMail" => "{who} added few actions in {where}",
 					"sameAuthor" => array(
 						"labelRepeat" => "{who} added few actions in {where}"
 					),
