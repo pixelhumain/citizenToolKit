@@ -827,7 +827,7 @@ class Notification{
 			if(Yii::app()->session["userId"] != $alreadyAuhtorNotify){
 				$news=News::getById($id);
 				$authorNews=News::getAuthor($id);
-				if(($alreadyAuhtorNotify != $authorNews["author"] && $news["target"]["type"]==Person::COLLECTION) || ( $news["target"]["type"] !=Person::COLLECTION && Yii::app()->session["userId"]!=$authorNews["author"])){
+				if(($alreadyAuhtorNotify != $authorNews["author"] && $news["target"]["type"]==Person::COLLECTION) || $news["target"]["type"] !=Person::COLLECTION /*&& Yii::app()->session["userId"]!=$authorNews["author"])*/){
 					if($news["target"]["type"] !=Person::COLLECTION){
 						if($news["target"]["id"]){
 							$impactRole=null;
@@ -851,7 +851,6 @@ class Notification{
 	    		$peopleNotifs[$key] = array("isUnread" => true, "isUnseen" => true); 
 	    	}
 	    }
-	    //print_r($peopleNotifs);
 
 	    $construct["community"]=array("notifications"=>$peopleNotifs,"mails"=>$peopleMails);
 	    return $construct;
@@ -954,8 +953,6 @@ class Notification{
 		// Notifiy the community of an element
 		$notificationPart = self::communityToNotify($notificationPart, @$notificationPart["alreadyAuhtorNotify"]);
 		$update = false;
-
-		//Rest::json($notificationPart); exit ;
 		if(!empty($notificationPart["community"]) && $notificationPart["notifyCommunity"]){
 		    if(in_array("author",$notificationPart["labelArray"]) 
 		    	&& ($notificationPart["verb"] != Actstr::VERB_ADD || (@$notificationPart["levelType"] && $notificationPart["levelType"]=="asMember"))){
@@ -1006,7 +1003,6 @@ class Notification{
 			}
 			//Rest::json($notificationPart); exit ;
 			$tpl = ( ( @$notificationPart["tpl"] ) ? $notificationPart["tpl"] : null );
-
 			Mail::createNotification($notificationPart, $tpl);
 
 		}
@@ -1039,10 +1035,9 @@ class Notification{
 
 					if(!@$construct["object"] || empty($construct["object"]))
 						$userNotify=$authorNews["author"];
-					
 					// 2.1 -- If user notify a news where news' author is organization, project, event
 					// 			-- Go forward to notify community except user who do the action
-					if(@$news["targetIsAuthor"]){
+					if(@$news["targetIsAuthor"] || ($news["type"]!="news" && $news["target"]["type"] != Person::COLLECTION)){
 						$isToNotify=false;
 						$construct["notifyCommunity"]=true;
 					}
