@@ -890,6 +890,9 @@ class Mail {
         //Rest::json($construct); exit ;
     	//Rest::json($tpl); exit ;
         foreach ($construct["community"]["mails"] as $key => $value) {
+
+        	if( $key != Yii::app()->session['userId'] ){
+
                 if(!empty($tpl)) {
                     Mail::$tpl($construct, $value);
                 } else {
@@ -902,7 +905,6 @@ class Mail {
                             array('$set' => array("tplParams" => $mail["tplParams"]))           
                         );
                     } else {
-                        //var_dump($notificationPart);
                         $language=(@$value["language"]) ? $value["language"] : "fr";
                         $paramTpl = self::createParamsTpl($construct, null);
                         $params = array (
@@ -920,9 +922,7 @@ class Mail {
                         Mail::schedule($params, true);
                     }
                 }
-                    
-            //     }
-            // }
+            }
         }
     }
 
