@@ -172,7 +172,25 @@ class Element {
 	    );	
 	    if(isset($colors[$type])) return $colors[$type];
 	    else return false;
-     }
+	}
+
+	public static function getColorMail ($type) { 
+    	$colors = array(
+	    	Organization::COLLECTION 	=> "green",
+	    	Person::COLLECTION 			=> "#FFC600",
+	    	Event::COLLECTION 			=> "orange",
+	    	Project::COLLECTION 		=> "purple",
+	    	Organization::TYPE_NGO 		=> "green",
+	    	Organization::TYPE_BUSINESS => "azure",
+	    	Organization::TYPE_GROUP 	=> "turq",
+	    	Organization::TYPE_GOV 		=> "red",
+	    	Classified::COLLECTION 		=> "#2BB0C6",
+	    	Classified::TYPE_RESSOURCES	=>"#2BB0C6",
+	    	Classified::TYPE_JOBS=>"#2BB0C6",
+	    );	
+	    if(isset($colors[$type])) return $colors[$type];
+	    else return false;
+	}
     
     public static function getElementSpecsByType ($type) { 
     	$ctrler = self::getControlerByCollection ($type);

@@ -785,7 +785,7 @@ class Notification{
 
 	    $membersToNotifs = Element::getCommunityByTypeAndId($type, $id ,$impactType, $impactRole, null, array("type"=>"notifications", "value"=>$construct["settings"]));
 	    $peopleMails = Element::getCommunityByTypeAndId($type, $id ,$impactType, $impactRole, null, array("type"=>"mails", "value"=>$construct["settings"]));
-	    
+	    //Rest::json($peopleMails); exit
 	    // ADD INVITOR IF NOT IN ADMIN LIST
 	    if($type == Event::COLLECTION && $construct["verb"]==ActStr::VERB_CONFIRM && @$construct["target"]["invitorId"] && !@$members[$construct["target"]["invitorId"]]){
 	    	$notifUser=self::checkUserNotificationPreference($construct["verb"], $construct["settings"],$construct["target"]["invitorId"]);
@@ -904,8 +904,18 @@ class Notification{
 			$authorId=(string)$author["_id"];
 		else
 			$authorId=$author["id"];
-		$notificationPart["author"]=array("id"=>$authorId,"name"=>$author["name"]);
-		if(!empty($notificationPart["target"]) && empty($notificationPart["target"]["name"])){
+
+		$eltauthor = Element::getElementById( $authorId, Person::COLLECTION, null, array("profilThumbImageUrl") );
+
+		$notificationPart["author"]=array(	"id"=>$authorId,
+											"name"=>$author["name"],
+											"type"=>Person::COLLECTION,
+											"profilThumbImageUrl"=>@$eltauthor["profilThumbImageUrl"]);
+
+
+		if(	!empty($notificationPart["target"]) && 
+			( 	empty($notificationPart["target"]["name"]) || 
+				empty($notificationPart["target"]["profilThumbImageUrl"]) ) ) {
 			$elt = Element::getElementById( $notificationPart["target"]["id"], $notificationPart["target"]["type"], null, array("name", "title", "slug", "profilThumbImageUrl") );
 			$notificationPart["target"]=array_merge($notificationPart["target"],$elt);			
 		}
