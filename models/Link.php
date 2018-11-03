@@ -837,7 +837,7 @@ class Link {
         $isInviting = false;
         $levelNotif = null;
 
-        $parentData = Element::getElementSimpleById($parentId, $parentType, null, array("_id", "name", "link", "title"));
+        $parentData = Element::getElementSimpleById($parentId, $parentType, null, array("_id", "name", "links", "title"));
         $usersAdmin = Authorisation::listAdmins($parentId,  $parentType, false);
         $actionFromAdmin=in_array($userId,$usersAdmin);
         $actionFromMember=false;
@@ -988,14 +988,13 @@ class Link {
 
 		if (count($usersAdmin) == 0 || $actionFromAdmin || ($actionFromMember && $childId != Yii::app()->session["userId"]) || $parentType == Event::COLLECTION) {
             //the person is automatically added as member (admin or not) of the parent
-            //var_dump("here");
             if ($actionFromAdmin || ($actionFromMember && $childId != Yii::app()->session["userId"]) || ($parentType == Event::COLLECTION && $childId != Yii::app()->session["userId"]) 
                 || (count($usersAdmin) == 0 && $childId != Yii::app()->session["userId"])) {
 	            //If admin add as admin or member
+            
                 $verb = ActStr::VERB_INVITE; 
 	            if($isConnectingAdmin==true){
-					//$verb = ActStr::VERB_ACCEPT;
-                    if(@$parentData["links"] 
+			         if(@$parentData["links"] 
                         && @$parentData["links"][$parentConnectAs] 
                         && @$parentData["links"][$parentConnectAs][$childId]
                         && @$parentData["links"][$parentConnectAs][$childId][self::TO_BE_VALIDATED]){
