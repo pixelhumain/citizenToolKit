@@ -435,7 +435,7 @@ class Notification{
 					"url" => "page/type/{objectType}/id/{objectId}",
 					"urlRepeat"=>"page/type/{collection}/id/{id}/view/directory/dir/{objectType}",
 					"label" => "{who} added a new point of interest on {where}",
-					"labelMail" => "{who} added a new point of interest : {what}",
+					"labelMail" => "{who} added a new point of interest : {what} on {where}",
 					"labelRepeat" => "{who} have added points of interest on {where}",
 					"labelRepeatMail" => "{who} have added ponts of interst on {where}",
 					"sameAuthor" => array(
@@ -445,7 +445,7 @@ class Notification{
 				Project::COLLECTION => array(
 					"url" => "page/type/{objectType}/id/{objectId}",
 					"label" => "{who} added a new project on {where}",
-					"labelMail" => "{who} added a new project : {what}",
+					"labelMail" => "{who} added a new project : {what} on {where}",
 					"urlRepeat"=>"page/type/{collection}/id/{id}/view/directory/dir/{objectType}",
 					"labelRepeat" => "{who} have added new projects on {where}",
 					"labelRepeatMail" => "{who} have added new projects on {where}",
@@ -457,7 +457,7 @@ class Notification{
 				Event::COLLECTION=> array(
 					"url" => "page/type/{objectType}/id/{objectId}",
 					"label" => "{who} added a new event on {where}",
-					"labelMail" => "{who} added a new event : {what}",
+					"labelMail" => "{who} added a new event : {what} on {where}",
 					"urlRepeat"=>"page/type/{collection}/id/{id}/view/directory/dir/{objectType}",
 					"labelRepeat" => "{who} have added new events on {where}",
 					"labelRepeatMail" => "{who} have added new events on {where}",
@@ -469,7 +469,7 @@ class Notification{
 				Classified::COLLECTION=> array(
 					"url" => "page/type/{objectType}/id/{objectId}",
 					"label" => "{who} added a new classified on {where}",
-					"labelMail" => "{who} added a new classified : {what}",
+					"labelMail" => "{who} added a new classified : {what} on {where}",
 					"urlRepeat"=>"page/type/{collection}/id/{id}/view/directory/dir/{objectType}",
 					"labelRepeat" => "{who} have added new classifieds on {where}",
 					"labelRepeatMail" => "{who} have added new classifieds on {where}",
@@ -494,7 +494,7 @@ class Notification{
 					"url"=>"page/type/{collection}/id/{id}/view/coop/room/{objectId}",
 					"label" => "{who} added a new room in the co-space on {where}",
 					"labelRepeat" => "{who} added new rooms in the co-space on {where}",
-					"labelMail" => "{who} added a new room : {what}",
+					"labelMail" => "{who} added a new room : {what} on {where}",
 					"labelRepeatMail" => "{who} have added new rooms in the co-space on {where}",
 					"sameAuthor" => array(
 						"labelRepeat" => "{who} added new rooms in the co-space on {where}"
@@ -505,7 +505,7 @@ class Notification{
 					"url" => "page/type/{collection}/id/{id}/view/coop/room/{roomId}/proposal/{objectId}",
 					"urlRepeat"=>"page/type/{collection}/id/{id}/view/coop",
 					"label"=> "{who} added a new proposal {what} in {where}",
-					"labelMail" => "{who} added a new proposal : {what}",
+					"labelMail" => "{who} added a new proposal : {what} in {where}",
 					"labelRepeat" => "{who} have added few proposals in {where}",
 					"labelRepeatMail" => "{who} added few proposals in {where}",
 					"sameAuthor" => array(
@@ -517,7 +517,7 @@ class Notification{
 					"url" => "page/type/{collection}/id/{id}/view/coop/room/{roomId}/action/{objectId}",
 					"urlRepeat"=>"page/type/{collection}/id/{id}/view/coop",
 					"label" => "{who} added a new action {what} in {where}",
-					"labelMail" => "{who} added a new action : {what}",
+					"labelMail" => "{who} added a new action : {what} in {where}",
 					"labelRepeat" => "{who} added few actions in {where}",
 					"labelRepeatMail" => "{who} added few actions in {where}",
 					"sameAuthor" => array(
@@ -530,7 +530,7 @@ class Notification{
 					"label" => "A new resolution {what} is added in {where}",
 					"urlRepeat"=>"page/type/{collection}/id/{id}/view/coop",
 					"labelRepeat" => "Few resolutions {what} are in {where}",
-					"labelMail" => "The proposal {what} is resolved",
+					"labelMail" => "The proposal {what} is resolved in {where}",
 					"labelRepeatMail" => "Few resolutions {what} are in {where}",
 					"repeat"=>true
 				),

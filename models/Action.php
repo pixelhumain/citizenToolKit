@@ -234,6 +234,7 @@ class Action
                                 $target["targetIsAuthor"]=true;
                         }
 
+                        Rest::json($target); exit;
                         if($target["type"]!=Form::ANSWER_COLLECTION && $createNotification)
                             Notification::constructNotification($verb, array("id" => Yii::app()->session["userId"],"name"=> Yii::app()->session["user"]["name"]), $target, $objectNotif, $collection);
                     }
