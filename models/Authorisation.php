@@ -72,7 +72,8 @@ class Authorisation {
         $result = array();
         //organization i'am admin 
         $where = array( "links.members.".$userId.".isAdmin" => true,
-                        "links.members.".$userId.".isAdminPending" => array('$exists' => false )
+                        "links.members.".$userId.".isAdminPending" => array('$exists' => false ),
+                        "links.members.".$userId.".".Link::TO_BE_VALIDATED => array('$exists' => false )
                     );
 
         $organizations = PHDB::find(Organization::COLLECTION, $where);
@@ -658,10 +659,12 @@ class Authorisation {
     * @param itemId id of the item we want to edits
     * @return a boolean
     */
-    public static function canParticipate($userId, $type, $itemId){
+    public static function canParticipate($userId, $type, $itemId, $openEdition=true){
         $res=false;
         if( $userId )
-        {   $res = Preference::isOpenEdition(Preference::getPreferencesByTypeId($itemId, $type));
+        {   
+            if($openEdition)
+                $res = Preference::isOpenEdition(Preference::getPreferencesByTypeId($itemId, $type));
             //var_dump($res);
             if($res != true){
                 if( $type == Person::COLLECTION && $itemId == $userId)
@@ -681,10 +684,30 @@ class Authorisation {
             }
             
         }
-        //var_dump($res);
         return $res;
     }
+    public static function canSeePrivateElement($links, $type, $id, $creator, $parentType=null, $parentId=null){
+        if(!@Yii::app()->session["userId"])
+            return false;
+        else{
+            // SuperAdmin is equal to superman, he can see everything
+            if( self::isUserSuperAdmin(Yii::app()->session["userId"]) )
+                return true;
+            //creator access to his creativity
+            if(Yii::app()->session["userId"]==$creator)
+                return true;
+            // attendees and contributors directly access and see the element
+            if(!empty($links) && 
+                @$links[Link::$linksTypes[$type][Person::COLLECTION]] && 
+                @$links[Link::$linksTypes[$type][Person::COLLECTION]][Yii::app()->session["userId"]])
+                return true;
+            if(!empty($parentType) && !empty($parentId))
+                return self::canParticipate(Yii::app()->session["userId"], $parentType, $parentId, false);
 
+            return false;
+        }
+
+    }
     /**
     * check if a user is a local citizen
     * @param cityId is a unique  city Id
@@ -730,7 +753,8 @@ class Authorisation {
      * @return type array of person Id
      */
     public static function listAdmins($parentId, $parentType, $pending=false) {
-        $res = array();   
+        $res = array(); 
+
         if ($parentType == Organization::COLLECTION){     
 	        $parent = Organization::getById($parentId);
 	        $link="members";
@@ -741,11 +765,11 @@ class Authorisation {
 		} else if ($parentType == Event::COLLECTION){     
 	        $parent = Event::getById($parentId);
 	        $link="attendees";
-		}else if ($parentType == Form::COLLECTION){     
+		}else if ($parentType == Form::COLLECTION){  
             $parent = Form::getLinksById($parentId);
             $link="survey";
         }
-        //var_dump($parent) ; exit ;
+        
         if ($users = @$parent["links"][$link]) {
             foreach ($users as $personId => $linkDetail) {
                 if (@$linkDetail["isAdmin"] == true) {

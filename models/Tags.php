@@ -2,6 +2,12 @@
 
 class Tags {
 
+	const COLLECTION = "tags";
+	const ICON = "fa-tags";
+
+	public static function getByName($tag) {
+        return PHDB::findOne( self::COLLECTION,array("tag"=>$tag));
+    }
 	/**
 	 * From an array of tags (String), the new tags will be saved 
 	 * Filter the array and return all the valid tags

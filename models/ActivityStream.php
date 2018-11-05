@@ -31,9 +31,17 @@ class ActivityStream {
 	public static function getWhere($params) {
 	  	 return PHDB::find( self::COLLECTION,$params,null,null);
 	}
-	public static function getNotifications($param,$sort=array("updated"=>-1))
+	public static function getNotifications($param, $indexMin=0, $sort=array("updated"=>-1), $indexStep=15)
 	{
-	    return PHDB::findAndSort(self::COLLECTION, $param,$sort);
+	    return PHDB::findAndSortAndLimitAndIndex(self::COLLECTION, $param, $sort, $indexStep, $indexMin);
+	}
+	public static function getNotificationsByStep($param, $indexMin=0, $sort=array("updated"=>-1), $indexStep=15)
+	{
+	    return PHDB::findAndSortAndLimitAndIndex(self::COLLECTION, $param, $sort, $indexStep, $indexMin);
+	}
+	public static function getNotificationsByTimeLimit($param, $sort=array("updated"=>-1))
+	{
+	    return PHDB::findAndSort(self::COLLECTION, $param, $sort);
 	}
 	public static function countUnseenNotifications($userId, $elementType, $elementId){
 		if($elementType != Person::COLLECTION){

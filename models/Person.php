@@ -402,10 +402,10 @@ class Person {
 	 * @return person document as in db
 	 */
 	public static function getPersonLinksByPersonId($id) {
-	  	$res = array("people" => array(), "organizations" => array(), 
-	  				 "projects" => array(), "events" => array());
+	  	$res = array(Person::COLLECTION => array(), Organization::COLLECTION => array(), 
+	  				 Project::COLLECTION => array(), Event::COLLECTION => array());
 
-	  	$person = self::getById($id);
+	  	$person = Element::getElementSimpleById($id, Person::COLLECTION, null, array("links"));
 
 	  	//error_log($id);
 	  	if (empty($person)) {
@@ -417,7 +417,7 @@ class Person {
 	  		$myContacts = $person["links"];
 	  	}
 
-	  	$valIDLink = array();
+	  	/*$valIDLink = array();
 	  	foreach (array("follows", "memberOf", "projects", "events") as $n => $link) {
 	  		if( isset($myContacts[$link])){
 			  	foreach ($myContacts[$link] as $key => $contact) {
@@ -425,9 +425,49 @@ class Person {
 			  		$valIDLink[$type][] = new MongoId($key) ;
 				}
 			}
+		}*/
+		$infos=["id", "name", "slug", "username", "shortDescription", "address", "type", "profilThumbImageUrl", "profilImageUrl", "profilMediumImageUrl","preferences", "hasRC", "endDate"];
+		foreach($myContacts as $connectKey => $links){
+			if(in_array($connectKey,["follows", "memberOf", "projects", "events"])){
+				foreach($links as $key => $value){
+					//Condition on double link in my contact (ex: user follow an association and wait for validation to become member)
+					if(@$res[$type][$key]){
+						if($connectKey=="follows") $res[$type][$key]["isFollowed"]=true;
+						foreach($value as $label => $v){
+							if($label != "type")
+								$$res[$type][$key][$label]=$v;
+						}
+					}else{
+						$contactComplet = Element::getElementSimpleById($key, $value["type"], null, $infos);
+						if(!empty($contactComplet) && !@$contactComplet["disabled"]){
+							if($connectKey=="follows") $contactComplet["isFollowed"]=true;
+							foreach($value as $label => $v){
+								if($label != "type")
+									$contactComplet[$label]=$v;
+							}
+							
+							if(@$contactComplet["endDate"]){
+								date_default_timezone_set('UTC');
+								$contactComplet["endDate"] = date(DateTime::ISO8601, $contactComplet["endDate"]->sec);
+							}
+							/*if(@$value[Link::IS_ADMIN]) $contactComplet[Link::IS_ADMIN]=true;
+							if(@$value[Link::IS_ADMIN_PENDING]) $contactComplet[Link::IS_ADMIN_PENDING]=true;
+							if(@$value[Link::IS_ADMIN_INVITING]) $contactComplet[Link::IS_ADMIN_INVITING]=true;
+							if(@$value[Link::TO_BE_VALIDATED]) $contactComplet[Link::TO_BE_VALIDATED]=true;
+							if(@$value[Link::IS_INVITING]) $contactComplet[Link::IS_INVITING]=true;
+							if(@$value["roles"]) $contactComplet["roles"]=true;
+							if(@$value["notifications"]) $contactComplet["notifications"]=$value["notifications"];
+							if(@$value["mails"]) $contactComplet["mails"]=$value["mails"];*/
+							$type= $value["type"];
+							//if($type=="organizations" &&)
+							if(in_array($type, ["citoyens", "projects","events","organizations"]))
+								$res[$type][$key] = $contactComplet;
+						}
+					}
+				}
+			}
 		}
-
-		if( !empty($valIDLink) ) {
+		/*if( !empty($valIDLink) ) {
 			foreach ($valIDLink as $type => $valLink) {
 				$contactsComplet = null;
 				if($type == self::COLLECTION){
@@ -444,7 +484,7 @@ class Person {
 
 				if($contactsComplet != null)	$res[$type] = $contactsComplet;
 			}
-		}
+		}*/
 
 
 	 //  	foreach (array("follows", "memberOf", "projects", "events") as $n => $link) {
@@ -475,27 +515,46 @@ class Person {
 		// 		}
 		// 	}
 		// }
+		//print_r($res);
+		
 
-		//trie les éléments dans l'ordre alphabetique par name
-	  	function mySort($a, $b){ 
-		  	if( isset($a['name']) && isset($b['name']) ){
-		    	return (strtolower($b['name']) < strtolower($a['name']));
-			}else{
-				return false;
-			}
-		}
-
-	  	if(isset($res["people"])) 	 	 usort($res["people"], 		  "mySort");
-	  	if(isset($res["organizations"])) usort($res["organizations"], "mySort");
-	  	if(isset($res["projects"])) 	 usort($res["projects"], 	  "mySort");
-	  	if(isset($res["events"])) 		 usort($res["events"], 		  "mySort");
-
+	  	if(isset($res["citoyens"])) 	 	 $res["citoyens"]=self::sortContact($res["citoyens"], array("name"=>SORT_ASC));
+	  	if(isset($res["organizations"])) $res["organizations"]=self::sortContact($res["organizations"],array("name"=>SORT_ASC));
+	  	if(isset($res["projects"])) 	 $res["projects"]=self::sortContact($res["projects"],array("name"=>SORT_ASC));
+	  	if(isset($res["events"])) 		 $res["events"]=self::sortContact($res["events"],array("name"=>SORT_ASC));
 		if($id != Yii::app()->session["userId"])
-			$res["people"][(string)$id] = $person;
+			$res["citoyens"][(string)$id] = $person;
 		
 		return $res;
 	}
+	/**
+	* Get array of news order by date of creation
+	* @param array $array is the array of news to return well order
+	* @param array $cols is the array indicated on which column of $array it is sorted
+	**/
 
+	public static function sortContact($array, $cols){
+		$colarr = array();
+	    foreach ($cols as $col => $order) {
+	        $colarr[$col] = array();
+	        foreach ($array as $k => $row) { $colarr[$col]['_'.$k] = strtolower(@$row[$col]); }
+	    }
+	    $eval = 'array_multisort(';
+	    foreach ($cols as $col => $order) {
+	        $eval .= '$colarr[\''.$col.'\'],'.$order.',';
+	    }
+	    $eval = substr($eval,0,-1).');';
+	    eval($eval);
+	    $ret = array();
+	    foreach ($colarr as $col => $arr) {
+	        foreach ($arr as $k => $v) {
+	            $k = substr($k,1);
+	            if (!isset($ret[$k])) $ret[$k] = $array[$k];
+	            $ret[$k][$col] = @$array[$k][$col];
+	        }
+	    }
+	    return $ret;
+	}
 
 	public static function newPersonFromPost($person) {
 		$newPerson = array();
@@ -541,50 +600,12 @@ class Person {
 	 */
 	public static function createAndInvite($param, $msg = null, $gmail =null) {
 	  	try {
+	  		//var_dump("Person::createAndInvite");
 	  		//Check if the person can still invite : has he got enought invitations left
 	  		$invitor = self::getById($param["invitedBy"]);
-	  	// 	if (@Yii::app()->params['betaTest']){
-		  // 		if (@$invitor["numberOfInvit"] > 0 
-	  	// 			|| Role::isSuperAdmin($invitor["roles"])) {
-			 //  		PHDB::update(self::COLLECTION, array("_id" => new MongoId($param["invitedBy"])), 
-			 //  			array('$inc' => array("numberOfInvit" => -1)));
-				// } else {
-		  // 			return array("result"=>false, "msg"=> Yii::t("person","Sorry, you can't invite more people to join the platform. You do not have enough invitations left."));
-		  // 		}
-		  // 	}
-	  		// //Check if it is not robot or a curl
-	  		// if($gmail != true){
-		  	// 	$nbInvitation = 3;
-		  	// 	$limit = 15;
-		  	// 	if(@$invitor["invitationDate"] && count($invitor["invitationDate"]) >= $nbInvitation){
-			  // 		rsort($invitor["invitationDate"]);
-			  // 		$lastDate=0;
-			  // 		$amountDelay = 0;
-			  // 		foreach($invitor["invitationDate"] as $data){
-				 //  		if($lastDate != 0){
-					//   		$step=$lastDate- $data;
-				 //  			$amountDelay += $step; 
-				 //  			if($step < 5)
-					// 	  		return array("result"=>false, "msg"=> "You're so fast for us. Take a breath Lucky Luke");
-				 //  		}
-			  // 			$lastDate=$data;
-			  // 		}
-			  // 		if($amountDelay < $limit){
-				 //  		return array("result"=>false, "msg"=> "You're so fast for us. Take a breath Lucky Luke");
-			  // 		}else{
-				 //  		PHDB::update(self::COLLECTION, array("_id" => new MongoId($param["invitedBy"])), 
-			  // 				array('$set' => array('invitationDate' => array())));
-			  // 		}
-		  	// 	}
-		  	// }
 	  		$res = self::insert($param, self::REGISTER_MODE_MINIMAL);
-	  		// if($gmail != true){
-	  		// 	PHDB::update(self::COLLECTION, array("_id" => new MongoId($param["invitedBy"])), 
-		  	// 		array('$push' => array('invitationDate' => time())));	
-	  		// }
-
 	  		//send invitation mail
-			Mail::invitePerson($res["person"], $msg);
+			//Mail::invitePerson($res["person"], $msg);
 		  		  		
 	  	} catch (CTKException $e) {
 	  		$res = array("result"=>false, "msg"=> $e->getMessage());
@@ -611,7 +632,7 @@ class Person {
 			//generate unique temporary userName for Meteor app when inviting
 			$newPerson["username"] = substr(str_shuffle("0123456789abcdefghijklmnopqrstuvwxyz"), 0, 32);
 			//Add pending boolean
-			//$newPerson["pending"] = true;
+			$newPerson["pending"] = true;
 		} else if ($mode == self::REGISTER_MODE_NORMAL) {
 			array_push($dataPersonMinimal, "username", "postalCode", "city", "pwd");
 		} else if ($mode == self::REGISTER_MODE_TWO_STEPS) {
@@ -644,6 +665,10 @@ class Person {
 	  	
 	  	if (!empty($person["invitedBy"])) {
 	  		$newPerson["invitedBy"] = $person["invitedBy"];
+	  	}
+
+	  	if (!empty($person["preferences"])) {
+	  		$newPerson["preferences"] = $person["preferences"];
 	  	}
 
 	  	if ($mode == self::REGISTER_MODE_NORMAL || $mode == self::REGISTER_MODE_TWO_STEPS) {
@@ -1253,9 +1278,11 @@ class Person {
         $account["email"]=$email["email"];
         if (!empty($account)) {
 	       // if($admin==true){
+	       	//Rest::json($accountId); exit;
 	        PHDB::update(	self::COLLECTION,
 	                    	array("_id"=>new MongoId($accountId)), 
-	                        array('$unset' => array("roles.tobeactivated"=>""))
+	                        array('$unset' => array("roles.tobeactivated"=>""),
+	                    			'$set'=> array("preferences.sendMail"=>true))
 	                    );
 	        //}
 	       	$res = array("result"=>true, "account" => $account, "msg" => "The account and email is now validated !");
@@ -1282,6 +1309,7 @@ class Person {
 
 		//Check if it's a minimal user
 		$account = self::getById($personId, false);
+
 		if (! @$account["pending"]) {
 			throw new CTKException("Impossible to update an account not pending !");
 		} else {
@@ -1299,10 +1327,15 @@ class Person {
 			$personToUpdate["pwd"] = $pwd;
 			// CREATE SLUG FOR CITOYENS
 			$personToUpdate["slug"]=Slug::checkAndCreateSlug($personToUpdate["username"]);
+
+			
 	  	    Slug::save(Person::COLLECTION,$personId,$personToUpdate["slug"]);
 			PHDB::update(self::COLLECTION, array("_id" => new MongoId($personId)), 
 			                          array('$set' => $personToUpdate, '$unset' => array("pending" => "" ,"roles.tobeactivated"=>""
 			                          	)));
+
+
+			Preference::updatePreferences($personId, self::COLLECTION,"sendMail", true);
 			
 			//Send Notification to Invitor
 			if(!empty($account["invitedBy"])){
@@ -2087,6 +2120,9 @@ public static function isUniqueEmail($email) {
 		$person = self::getById($id);
 		if (empty($person)) return array("result" => false, "msg" => "Unknown person id");
 
+		//Delete email 
+		PHDB::remove(Cron::COLLECTION, array("to" => $person["email"]));
+
     	//Delete links on elements collections		
 		$links2collection = array(
 			//Person => Person that follows the user we want to delete and the 
@@ -2098,22 +2134,38 @@ public static function isUniqueEmail($email) {
 			//Events => attendees / organizer
 			Event::COLLECTION => array("attendees", "organizer"),
 			//Needs => links/helpers
-			Need::COLLECTION => array("helpers")
+			Need::COLLECTION => array("helpers"),
+			//Form => links/members
+			Form::COLLECTION => array("members")
 		);
-
+		//$resDisconnect = array();
     	foreach ($links2collection as $collection => $linkTypes) {
     		foreach ($linkTypes as $linkType) {    		
 	    		$where = array("links.".$linkType.".".$id => array('$exists' => true));
 	    		$action = array('$unset' => array("links.".$linkType.".".$id => ""));
-	    		PHDB::update($collection, $where, $action);
-	    		error_log("delete links type ".$linkType." on collection ".$collection." for user ".$id);
+
+	    		$elt = PHDB::find($collection, $where, array("name"));
+
+	    		foreach ($elt as $keyElt => $valueElt) {
+	    			PHDB::update($collection, array("_id"=>new MongoId($keyElt)), $action);
+	    		}
 	    	}
     	}
+
+
+    	//PHDB::update( Form::ANSWER_COLLECTION, array("email"=> $person["email"]), $action);
 
     	//Delete Notifications
     	ActivityStream::removeNotificationsByUser($id);
 
     	Slug::removeByParentIdAndType($id, self::COLLECTION);
+
+    	$paramsMail = array("tpl" => "deleted",
+    						"tplObject" => "[COmmunecter] Votre compte a été supprimer",
+    						"tplMail" => $person["email"],
+    						"name" => $person["name"] );
+
+    	Mail::createAndSend($paramsMail);
 
     	//Check if the user got activity (news, comments, votes)
 		$res = self::checkActivity($id);
@@ -2132,14 +2184,10 @@ public static function isUniqueEmail($email) {
     	//Documents => Profil Images
     	$docType = array(Document::IMG_PROFIL, Document::IMG_BANNER, Document::IMG_SLIDER, Document::IMG_SLIDER);
     	$profilImages = Document::listMyDocumentByIdAndType($id, self::COLLECTION, $docType, Document::DOC_TYPE_IMAGE, array( 'created' => -1 ));
-    	//var_dump($profilImages);
+
     	foreach ($profilImages as $docId => $document) {
-    		//var_dump($docId); 
     		Document::removeDocumentById($docId, $userId);
-    		//error_log("delete document id ".$docId);
     	}
-    	//exit;
-    	//TODO SBAR : remove thumb and medium
     	
     	if($id == $userId)
     		Person::clearUserSessionData();

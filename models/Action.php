@@ -14,10 +14,12 @@ class Action
 
     const ACTION_MODERATE       = "moderate";
     const ACTION_VOTE_UP        = "voteUp";
+     const ACTION_VOTE        = "vote";
     const ACTION_VOTE_ABSTAIN   = "voteAbstain";
     const ACTION_VOTE_UNCLEAR   = "voteUnclear";
     const ACTION_VOTE_MOREINFO  = "voteMoreInfo";
     const ACTION_VOTE_DOWN      = "voteDown";
+    const ACTION_FUND      = "fund";
    
     //const ACTION_VOTE_BLOCK   = "voteBlock";
     const ACTION_PURCHASE       = "purchase";
@@ -48,10 +50,15 @@ class Action
         "idParentRoom"          => array("name" => "idParentRoom",          "rules" => array("required")),
         "parentId"              => array("name" => "parentId",              "rules" => array("required")),
         "parentType"            => array("name" => "parentType",            "rules" => array("required")),
+
+        "parentIdSurvey"              => array("name" => "parentIdSurvey",              "rules" => array("required")),
+        "parentTypeSurvey"            => array("name" => "parentTypeSurvey",            "rules" => array("required")),
+        "role"                 => array("name" => "role"),
+        
         
         "idParentResolution"    => array("name" => "idParentResolution"),
         
-        "email"                 => array("name" => "status"), 
+        "email"                 => array("name" => "status"),
         
         "modified" => array("name" => "modified"),
         "updated" => array("name" => "updated"),
@@ -94,11 +101,29 @@ class Action
      * @param boolean $multiple : true : the user can do multiple action, else can not.
      * @return array result (result, msg)
      */
-        public static function addAction( $userId=null , $id=null, $collection=null, $action=null, $unset=false, $multiple=false, $details=null){
+        public static function addAction( $userId=null , $id=null, $collection=null, $action=null, $unset=false, $multiple=false, $details=null, $path=null){
        
         $user = Person::getById($userId);
         $element = ($id) ? PHDB::findOne ($collection, array("_id" => new MongoId($id) )) : null;
         $res = array('result' => false , 'msg'=>'something somewhere went terribly wrong');
+
+        $possibleActions = array(
+            self::ACTION_ROOMS,
+            self::ACTION_ROOMS_TYPE_SURVEY,
+            self::ACTION_MODERATE,
+            self::ACTION_VOTE_UP,
+            self::ACTION_VOTE,  
+            self::ACTION_VOTE_ABSTAIN,
+            self::ACTION_VOTE_UNCLEAR,
+            self::ACTION_VOTE_MOREINFO,
+            self::ACTION_VOTE_DOWN,
+            self::ACTION_FUND,
+            self::ACTION_PURCHASE,
+            self::ACTION_COMMENT,
+            self::ACTION_REPORT_ABUSE,
+            self::ACTION_FOLLOW );
+        if(!in_array($action, $possibleActions))
+            throw new CTKException("Well done ! Stop playing and join us to help the construction of this common!");
 
         if($user && $element){
             //check user hasn't allready done the action or if it's allowed
@@ -117,6 +142,9 @@ class Action
                 }else{
 	            	if(($action=="voteUp" || $action=="voteDown" || $action=="reportAbuse") && (isset($element[$action][$userId])))
     	                throw new CTKException("Well done ! Stop playing and join us to help the construction of this common!");
+                    if($action=="vote" && @$element[$action][$userId] && @$element[$action][$userId]["status"]==@$details["status"])
+                        throw new CTKException("Well done ! Stop playing and join us to help the building of the Common!");
+                
                 }
 
                 // Additional info
@@ -127,10 +155,10 @@ class Action
                 else 
                     $details = array('date' => new MongoDate(time()));
                 //$mapUser[ self::NODE_ACTIONS.".".$collection.".".$action.".".(string)$element["_id"] ] = $details ;
-                $mapUser[self::NODE_ACTIONS.".".$collection.".".(string)$element["_id"].".".$action ] = $action ;
+                //$mapUser[self::NODE_ACTIONS.".".$collection.".".(string)$element["_id"].".".$action ] = $action ;
                 //update the user table => adds or removes an action
-                PHDB::update ( Person::COLLECTION , array( "_id" => $user["_id"]), 
-                                                    array( $dbMethod => $mapUser));
+                //PHDB::update ( Person::COLLECTION , array( "_id" => $user["_id"]), 
+                //                                  array( $dbMethod => $mapUser));
 
                 //Decrement when removing an action instance
                 if($unset){
@@ -157,9 +185,13 @@ class Action
                     // DELETE IN NOTIFICATION REMOVE LIKE
                 }
                 else{
-                    $mapObject[ $action.".".(string)$user["_id"] ] = $details ;
-                    $params = array();
+                    if(@$path)
+                        $mapObject[ $action.".".$path.".".(string)$user["_id"] ] = $details ;
+                    else
+                        $mapObject[ $action.".".(string)$user["_id"] ] = $details ;
 
+                    $params = array();
+                    $createNotification=true;
                     //if : empeche la mise à jour de la date des news à chaque commentaire
                     if(!(in_array($collection, [News::COLLECTION,Service::COLLECTION,Product::COLLECTION]) && $action == Action::ACTION_COMMENT)){    
                         if( $dbMethod == '$set'){
@@ -169,17 +201,28 @@ class Action
                         else $params['$set'] = array( "updated" => new MongoDate(time()), "modified" => new MongoDate(time()) );
                     }
                     $params[$dbMethod] = $mapObject;
-                    $params['$inc'] = array( $action."Count" => $inc);
-
+                    if(@$path)
+                        $params['$inc'] = array( $action.".".$path."Count" => $inc);
+                    else
+                        $params['$inc'] = array( $action."Count" => $inc);
+                    if($action=="vote"){
+                        $params['$inc'] = array( $action."Count.".$details["status"] => $inc);
+                        if(@$element[$action] && @$element[$action][$userId]){
+                            $createNotification=false;
+                            if($action."Count.".$element[$action][$userId]["status"]>1)
+                                $params['$inc']=array_merge($params['$inc'], array( $action."Count.".$element[$action][$userId]["status"] => -1));
+                            else
+                                $params['$unset']= array( $action."Count.".$element[$action][$userId]["status"] => 1);
+                        }
+                    }
                     PHDB::update ($collection, 
                                     array("_id" => new MongoId($element["_id"])), 
                                     $params);
                     //NOTIFICATION LIKE AND DISLIKE
-                    if($action == "voteUp") 
-                       $verb = ActStr::VERB_LIKE;
-                    else if($action == "voteDown")
-                        $verb = ActStr::VERB_UNLIKE;
-
+                    if(in_array($action, ["vote"])){
+                       $verb = ActStr::VERB_REACT;
+                    }
+                  
                     if(@$verb && $collection != Survey::COLLECTION){
                         $objectNotif=null;
                         if($collection==Comment::COLLECTION){
@@ -190,7 +233,9 @@ class Action
                             if(@$element["targetIsAuthor"] || @$target["object"])
                                 $target["targetIsAuthor"]=true;
                         }
-                        Notification::constructNotification($verb, array("id" => Yii::app()->session["userId"],"name"=> Yii::app()->session["user"]["name"]), $target, $objectNotif, $collection);
+
+                        if($target["type"]!=Form::ANSWER_COLLECTION && $createNotification)
+                            Notification::constructNotification($verb, array("id" => Yii::app()->session["userId"],"name"=> Yii::app()->session["user"]["name"]), $target, $objectNotif, $collection);
                     }
 
                     if($action == "reportAbuse" && $collection == News::COLLECTION){
@@ -224,14 +269,17 @@ class Action
                         );
                     }
                 }
-               
-
+                $msg="OK !"; //WDTF ?
+                if($action==self::ACTION_REPORT_ABUSE)
+                    $msg=Yii::t("common","Thank you ! We are dealing it as quickly as possible. If there is more than 5 report, the news will be hidden");
+                if($action==self::ACTION_VOTE)
+                    $msg=Yii::t("common","Reaction succesfully saved");
                 $res = array( "result"          => true,  
                               "userActionSaved" => true,
                               "user"            => PHDB::findOne ( Person::COLLECTION , array("_id" => new MongoId( $userId ) ),array("actions")),
                               "element"         => PHDB::findOne ($collection,array("_id" => new MongoId($id) ),array( $action)),
                               "inc"         => $inc,
-                              "msg"             => "Ok !"
+                              "msg"             => $msg
                                );
             } else {
                 $res = array( "result" => true,  "userAllreadyDidAction" => true, "msg" => Yii::t("common","You have already made this action" ));
@@ -239,7 +287,20 @@ class Action
         }
         return $res;
     }
-
+    public static function getList($type , $id, $actionType, $indexStep=0){
+        $object=PHDB::findOne($type,
+                     array("_id" => new MongoId( $id )),
+                     array($actionType."Count", $actionType)
+                );
+        if(!empty($object) && !empty($object[$actionType])){
+            foreach ($object[$actionType] as $key => $value) {
+                $type = (@$value["type"]) ? $value["type"] : Person::COLLECTION;
+                $target=Element::getElementSimpleById($key, $type,null, array("slug", "name", "profilThumbImageUrl"));
+                $object[$actionType][$key]=array_merge($object[$actionType][$key], $target);
+            }
+        }
+        return $object;
+    }
     /* TODO BOUBOULE - Not necessary anymore ... ?
     The Action History colelction helps build timeline and historical visualisations 
     on a given item

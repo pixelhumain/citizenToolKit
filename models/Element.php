@@ -48,6 +48,33 @@ class Element {
 	    	//ActionRoom::COLLECTION => ActionRoom::CONTROLLER,
 	    	//ActionRoom::COLLECTION_ACTIONS => ActionRoom::CONTROLLER,
 	    	Place::COLLECTION => Place::CONTROLLER,
+	    	Classified::COLLECTION => Classified::CONTROLLER,
+	    	Classified::TYPE_RESSOURCES => Classified::TYPE_RESSOURCES_CONTROLLER,
+	    	Classified::TYPE_JOBS => Classified::TYPE_JOBS_CONTROLLER,
+	    	//Ressource::COLLECTION => Ressource::COLLECTION,
+	    	//Ressource::CONTROLLER => Ressource::CONTROLLER
+	    );	    
+    	return @$ctrls[$type];
+    }
+
+
+    public static function getCollectionByControler ($type) { 
+
+		$ctrls = array(
+	    	Organization::CONTROLLER => Organization::COLLECTION,
+	    	Person::CONTROLLER => Person::COLLECTION,
+	    	Event::CONTROLLER => Event::COLLECTION,
+	    	Project::CONTROLLER => Project::COLLECTION,
+			News::COLLECTION => News::COLLECTION,
+	    	Need::CONTROLLER => Need::COLLECTION,
+	    	City::CONTROLLER => City::COLLECTION,
+	    	Survey::CONTROLLER => Survey::COLLECTION,
+	    	Poi::CONTROLLER => Poi::COLLECTION,
+	    	Proposal::CONTROLLER => Proposal::COLLECTION,
+	    	Action::CONTROLLER => Action::COLLECTION,
+	    	//ActionRoom::CONTROLLER => ActionRoom::COLLECTION,
+	    	//ActionRoom::CONTROLLER_ACTIONS => ActionRoom::COLLECTION,
+	    	Place::CONTROLLER => Place::COLLECTION,
 	    	Ressource::COLLECTION => Ressource::COLLECTION,
 	    	Ressource::CONTROLLER => Ressource::CONTROLLER
 	    );	    
@@ -78,6 +105,7 @@ class Element {
 	    	Place::COLLECTION   => "Place",
 	    	Ressource::COLLECTION   => "Ressource",
 	    	Circuit::COLLECTION   	 => "Circuit",
+	    	Risk::COLLECTION   => "Risk",
 	    );	
 	 	return @$models[$type];     
     }
@@ -119,6 +147,9 @@ class Element {
 	    	Organization::TYPE_BUSINESS => "industry",
 	    	Organization::TYPE_GROUP 	=> "circle-o",
 	    	Organization::TYPE_GOV 		=> "university",
+	    	Classified::COLLECTION 		=> "bullhorn",
+	    	Classified::TYPE_RESSOURCES	=>"cubes",
+	    	Classified::TYPE_JOBS=>"briefcase",
 	    );	
 	    
 	    if(isset($fas[$type])) return $fas[$type];
@@ -135,10 +166,31 @@ class Element {
 	    	Organization::TYPE_BUSINESS => "azure",
 	    	Organization::TYPE_GROUP 	=> "turq",
 	    	Organization::TYPE_GOV 		=> "red",
+	    	Classified::COLLECTION 		=> "azure",
+	    	Classified::TYPE_RESSOURCES	=>"vine",
+	    	Classified::TYPE_JOBS=>"yellow-k",
 	    );	
 	    if(isset($colors[$type])) return $colors[$type];
 	    else return false;
-     }
+	}
+
+	public static function getColorMail ($type) { 
+    	$colors = array(
+	    	Organization::COLLECTION 	=> "green",
+	    	Person::COLLECTION 			=> "#FFC600",
+	    	Event::COLLECTION 			=> "orange",
+	    	Project::COLLECTION 		=> "purple",
+	    	Organization::TYPE_NGO 		=> "green",
+	    	Organization::TYPE_BUSINESS => "azure",
+	    	Organization::TYPE_GROUP 	=> "turq",
+	    	Organization::TYPE_GOV 		=> "red",
+	    	Classified::COLLECTION 		=> "#2BB0C6",
+	    	Classified::TYPE_RESSOURCES	=>"#2BB0C6",
+	    	Classified::TYPE_JOBS=>"#2BB0C6",
+	    );	
+	    if(isset($colors[$type])) return $colors[$type];
+	    else return false;
+	}
     
     public static function getElementSpecsByType ($type) { 
     	$ctrler = self::getControlerByCollection ($type);
@@ -259,7 +311,7 @@ class Element {
                 throw new CTKException("Impossible to link something on a disabled organization");    
             }
         } else 
-        if ( in_array($type, array( Person::COLLECTION, Project::COLLECTION,Event::COLLECTION, Classified::COLLECTION,Need::COLLECTION,Poi::COLLECTION,Network::COLLECTION) ) ){
+        if ( in_array($type, array( Person::COLLECTION, Project::COLLECTION,Event::COLLECTION, Classified::COLLECTION, Need::COLLECTION,Poi::COLLECTION,Network::COLLECTION) ) ){
             $res = self::getByTypeAndId($type, $id);       
         } else if ($type== ActionRoom::COLLECTION_ACTIONS){
             $res = ActionRoom:: getActionById($id);
@@ -308,7 +360,7 @@ class Element {
     	return $link;
     }
 
-	public static function getByTypeAndId($type, $id,$what=null){
+	public static function getByTypeAndId($type, $id,$what=null, $update=null){
 		if( @$what ) 
 			$element = PHDB::findOneById($type, $id, $what);
 		else if($type == Person::COLLECTION)
@@ -349,7 +401,14 @@ class Element {
 	  	if ($element == null) 
 	  		$element = Element::getGhost($type);
 	  		//throw new CTKException("The element you are looking for has been moved or deleted");
-
+	  	if(@$update && $update && !@$element["images"]){
+	  		$typeEl=(in_array($type, [Event::CONTROLLER, Project::CONTROLLER, Organization::CONTROLLER])) ? Element::getCollectionByControler($type) : $type; 
+	  		$where=array(
+	  			"id"=>$id, "type"=>$typeEl, "doctype"=>"image", 
+	  			"contentKey"=>"profil", "current"=>array('$exists'=>true)
+	  		);
+	  		$element["images"] = Document::getListDocumentsWhere($where, "image");
+	  	}
 	  	$el = $element;
 		if(@$el["links"]) foreach(array("followers", "follows", "members", "contributors") as $key)
 			if(@$el["links"][$key])
@@ -397,8 +456,11 @@ class Element {
 	 * @param type $type : is the type of the parent
 	 * @return list of pois
 	 */
-	public static function getByIdAndTypeOfParent($collection, $id, $type, $orderBy){
-		$list = PHDB::findAndSort($collection,array("parentId"=>$id,"parentType"=>$type), $orderBy);
+	public static function getByIdAndTypeOfParent($collection, $id, $type, $orderBy,$where=null){
+		$condition=array("parentId"=>$id,"parentType"=>$type);
+		if(@$where && !empty($where))
+			$condition=array_merge($condition, $where);
+		$list = PHDB::findAndSort($collection,$condition, $orderBy);
 	   	return $list;
 	}
 	/**
@@ -720,6 +782,7 @@ class Element {
 			//var_dump($fieldValue);
 			//exit;
 			$element = self::getElementById($id, $collection);
+			
 			if( !empty($element["organizerId"]) || !empty($element["links"]["organizer"]) ){
 				$oldOrganizerId = @$element["organizerId"] ? $element["organizerId"] : $element["links"]["organizer"];
 				$oldOrganizerType = @$element["organizerType"] ? $element["organizerType"] : $element["links"]["organizer"][$oldOrganizerId]["type"];
@@ -730,7 +793,7 @@ class Element {
 			//add new organizer
 			if($fieldValue["organizerId"] != 'dontKnow' && $fieldValue["organizerType"] != 'dontKnow')
 				$res = Link::addOrganizer($fieldValue["organizerId"], $fieldValue["organizerType"], $id, Yii::app()->session["userId"]);
-			if (! @$res["result"]) throw new CTKException(@$res["msg"]);
+			if (!empty($res) && ! @$res["result"]) throw new CTKException(@$res["msg"]);
 
 		}else if ($dataFieldName == "parent") {
 			
@@ -756,8 +819,7 @@ class Element {
 							 "parentType" => "");
 			}
 
-
-			if (! @$res["result"]) throw new CTKException(@$res["msg"]);
+			if (!empty($res) && ! @$res["result"]) throw new CTKException(@$res["msg"]);
 
 		} else if ($dataFieldName == "seePreferences") {
 			//var_dump($fieldValue);
@@ -1305,6 +1367,71 @@ class Element {
 	}
 
 	/**
+		Get communtiy of an element, complete or linked to specific search
+		* @param String $typeCommunity : get specific type of element in a community
+		* @param String $attribute defined the kind of community : members / admin / pending
+		* @param String $role : get sepecific member with role,
+		* @param String $settings : in order to get specific community towards a notifications and emails settings
+	**/
+	public static function getCommunityByTypeAndId($type, $id, $typeCommunity="all", $attribute=null, $role=null, $settings=null) {
+		$res = array();
+	  	$element = self::getElementSimpleById($id, $type, null, array("links"));
+	  	if (empty($element)) {
+            throw new CTKException(Yii::t("common", "The id of {what} is unkown : please contact us to fix this problem", array("{what}"=>Yii::t("common","this ".self::getControlerByCollection($type)))));
+        }
+	  	if ( @$element && @$element["links"] && @Link::$linksTypes[$type] && @$element["links"][Link::$linksTypes[$type][Person::COLLECTION]] ) 
+	  	{
+	  		$community = array();
+	  		foreach ($element["links"][Link::$linksTypes[$type][Person::COLLECTION]] as $key => $value) {
+	  			$add=false;
+	  			if(!@$value["toBeValidated"] && !@$value["isInviting"]){
+		        	
+			        $add = ($typeCommunity=="all" || $value['type'] == $typeCommunity) ? true : false;
+			        if($add && $attribute !== null){  
+			        	if($attribute=="isAdmin" && @$value["isAdmin"] && !@$value["isAdminPending"])
+			        		$add = (empty($role) || (!empty($role) && @$value["roles"] && in_array($role, $value["roles"]))) ? true : false;
+			        	else if($attribute=="onlyMembers" && !@$value["isAdmin"])
+			        		$add = (empty($role) || (!empty($role) && @$value["roles"] && in_array($role, $value["roles"]))) ? true : false;
+			        	else
+			        		$add=false;
+			        	//$searchInAttribute=false;
+			        }
+			        if($add && $role !== null){
+			        	if(@$value["roles"] && in_array($role, $value["roles"]))
+			        		$add=true;
+			        	else
+			        		$add=false;
+			        }
+			        if($add && $settings !== null){
+			        	if(@$value[$settings["type"]]){
+			        		if($settings["value"]=="high" && $value[$settings["type"]]=="high")
+			        			$add=true;
+			        		else if($settings["value"]=="default" && in_array($value[$settings["type"]],["default","high"]))
+			        			$add=true;
+			        		else if($settings["value"]=="low" && $value[$settings["type"]] != "desactivated")
+			        			$add=true;
+			        		else
+			        			$add=false;
+
+			        	}
+			        	else if(in_array($settings["value"], ["low", "default"]))
+			        		$add=true;
+			        	else
+			        		$add=false;
+			        }
+			    }
+			  	if($add){
+		    		if(@$settings && $settings["type"]=="mails")
+	        			$res[$key]= Element::getElementSimpleById($key, Person::COLLECTION, null, array("email", "username", "language")); 
+	        		else
+	        			$res[$key] = $value;
+	        	}
+	  		}
+	  	}
+	  	return $res;
+	}
+
+	/**
 	 * Demande la suppression d'un élément
 	 * - Si creator demande la suppression et organisation vide (pas de links, pas de members) => suppression de l’orga
 	 * - Si superadmin => suppression direct
@@ -1743,20 +1870,18 @@ class Element {
         if( $collection == Event::COLLECTION ){
             $valid = Event::validateFirst($params);
         } 
-        error_log("KEY : ". $key);
+        //error_log("KEY : ". $key);
 
         if( $valid["result"] )
         	try {
         		//var_dump($key);exit;
-        		$valid = DataValidator::validate( ucfirst($key), json_decode (json_encode ($params), true), ( empty($paramsLinkImport) ? null : true) );
+        		$valid = DataValidator::validate( ucfirst($key), json_decode (json_encode ($params), true), ( empty($paramsLinkImport) ? null : true), $id );
         	} catch (CTKException $e) {
         		$valid = array("result"=>false, "msg" => $e->getMessage());
         	}
         
-        if( $valid["result"]) 
-        {
-			if( $collection == Event::COLLECTION )
-			{
+        if( $valid["result"]) {
+			if( $collection == Event::COLLECTION ){
             	 $res = Event::formatBeforeSaving($params);
             	 if ($res["result"]) 
             	 	$params = $res["params"];
@@ -1837,7 +1962,7 @@ class Element {
                 	$res["afterSave"] = Network::afterSave($params, Yii::app()->session["userId"]);
 
                // echo "pas d'id - "; var_dump($postParams); exit;
-               $res["afterSaveGbl"] = self::afterSave((string)$params["_id"],$collection,$params,$postParams);
+               $res["afterSaveGbl"] = self::afterSave((string)$params["_id"],$collection,$params,$postParams, $paramsLinkImport);
                 //if( false && @$params["parentType"] && @$params["parentId"] )
                 //{
                     //createdObjectAsParam($authorType, $authorId, $objectType, $objectId, $targetType, $targetId, $geo, $tags, $address, $verb="create")
@@ -1864,10 +1989,12 @@ class Element {
         return $res;
     }
 
-    public static function afterSave ($id, $collection, $params,$postParams) {
+    public static function afterSave ($id, $collection, $params, $postParams, $paramsImport=null) {
     	$res = array();
     	
-    	if( @$postParams["medias"] )
+    	if(!empty($params["title"]) && empty($params["name"]))
+    		$params["name"] = $params["title"];
+    	/*if( @$postParams["medias"] )
     	{
     		//create POI for medias connected to the parent
     		unset($params['_id']);
@@ -1881,13 +2008,52 @@ class Element {
     		$poiParams["urls"] = $postParams['urls'];
     		//echo "afterSave - "; var_dump($poiParams); exit;
     		$res["medias"] = self::save($poiParams);
-    	}
+    	}*/
     	// Mail reference inivite on communecter
         if(in_array($collection,[Organization::COLLECTION,Project::COLLECTION,Event::COLLECTION])){
         	if(@$params["email"] && $params["email"]!=@Yii::app()->session["userEmail"]){
         		Mail::referenceEmailInElement($collection, $id, $params["email"]);
         	}
         }
+
+
+
+        if (empty($paramsImport)){
+        	$targetNewsId=(@$params["parentId"] && !empty($params["parentId"])) ? $params["parentId"] : Yii::app()->session["userId"];
+        	$targetNewsType=( @$params["parentType"] && !empty($params["parentType"])) ? $params["parentType"]: Person::COLLECTION; 
+			Notification::createdObjectAsParam( Person::COLLECTION, 
+												Yii::app()->session["userId"], 
+												$collection, 
+												$id, 
+												$targetNewsType, 
+												$targetNewsId, 
+												( !empty($params["geo"]) ? $params["geo"] : "" ) , 
+												( !empty($params["tags"]) ? $params["tags"] : null ),
+												( ( !empty($organization["address"]) && !empty($organization["address"]["codeInsee"]) ) ? $organization["address"]["codeInsee"] : "" ) ) ;
+        }
+
+
+		if( ( !empty($params["organizerType"]) && in_array($params["organizerType"], array(Organization::COLLECTION, Project::COLLECTION)) ) || 
+			( !empty($params["parentType"]) && in_array($params["parentType"], array(Organization::COLLECTION, Project::COLLECTION)) ) ) {
+
+			if( !empty($params["parentId"]) ){
+	    		$parentId=$params["parentId"];
+	    		$parentType=$params["parentType"];
+			} else{
+	    		$parentId=$params["organizerId"];
+	    		$parentType=$params["organizerType"];
+			}
+
+			//Rest::json($params); exit ;
+	    	Notification::constructNotification(ActStr::VERB_ADD, array("id" => Yii::app()->session["userId"],"name"=> Yii::app()->session["user"]["name"]), array("type"=>$parentType,"id"=> $parentId), array("id"=>$id,"type"=> $collection), $collection);
+	    }
+
+	    // if( ){
+	    // 	Notification::constructNotification(ActStr::VERB_ADD, array("id" => Yii::app()->session["userId"],"name"=> Yii::app()->session["user"]["name"]), array("type"=>$params["parentType"],"id"=> $params["parentId"]), array("id"=>(string)$params["_id"],"type"=> $collection), $collection);
+	    // }
+
+
+		ActivityStream::saveActivityHistory( ActStr::VERB_CREATE, $id, $collection, "organization", $params["name"] ) ;
                 
     	return $res;
     }
@@ -1959,51 +2125,57 @@ class Element {
 			if(isset($params["shortDescription"]))
 				$params["shortDescription"] = strip_tags($params["shortDescription"]);
 
-		    
-			/*if (@$params["amendementDateEnd"]){
-				$params["amendementDateEnd"] = Cooperation::formatDateBeforeSaving($params["amendementDateEnd"]);
-				//$params["amendementDateEnd"] = $params["amendementDateEnd"]->format('Y-m-d H:i');
+
+			if(!empty($params["parentType"])){
+				$parentType = self::getCollectionByControler($params["parentType"]);
+				if(!empty($parentType))
+					$params["parentType"] = $parentType;
 			}
 
-			if (@$params["voteDateEnd"]){
-				$params["voteDateEnd"] = Cooperation::formatDateBeforeSaving($params["voteDateEnd"]);
-				//$params["voteDateEnd"] = $params["voteDateEnd"]->format('Y-m-d H:i');
-			}*/
+			if(empty($params["idParentRoom"]) && 
+				!empty($params["parentIdSurvey"]) && 
+				$params["collection"] == Action::COLLECTION){
+				$room = PHDB::findOne(ActionRoom::COLLECTION, array("parentIdSurvey" => $params["parentIdSurvey"]));
 
-			//TODO SBAR - Manage elsewhere (maybe in the view)
-			//Manage the event startDate and endDate format : 
-			//it comes with the format DD/MM/YYYY HH:ii or DD/MM/YYYY 
-			//and must be transform in YYYY-MM-DD HH:ii
-			/*if (@$params["startDate"]) {
-				$startDate = DateTime::createFromFormat('d/m/Y', $params["startDate"]);
-				if (empty($startDate)) {
-					$startDate = DateTime::createFromFormat('d/m/Y H:i', $params["startDate"]);
-					if (! empty($startDate)) 
-						$params["startDate"] = $startDate->format('Y-m-d H:i');
-					else 
-						throw new CTKException("Start Date is not well formated !");
-				} else 
-					$params["startDate"] = $startDate->format('Y-m-d');
+				if(empty($room)){
+
+					$form = Form::getByIdMongo($params["parentIdSurvey"], array("title"));
+
+					$paramsRoom = array(
+						"parentId" => $params["parentId"],
+						"parentType" => $params["parentType"],
+						"parentIdSurvey" => $params["parentIdSurvey"],
+						"status" => "open",
+						"description" => "",
+						"name" => $form["title"],
+						"key" => ActionRoom::CONTROLLER,
+						"collection" => ActionRoom::COLLECTION,
+					);
+					//
+					//
+					$room = self::save($paramsRoom);
+					//Rest::json($room); exit ;
+					$params["idParentRoom"] = $room["id"] ;
+				}else{
+					//var_dump($room); exit;
+					$params["idParentRoom"] = (String) $room["_id"] ;
+				}
+				//Rest::json($params); exit ;			
 			}
-			if (@$params["endDate"]) {
-				$endDate = DateTime::createFromFormat('d/m/Y', $params["endDate"]);
-				if (empty($endDate)) {
-					$endDate = DateTime::createFromFormat('d/m/Y H:i', $params["endDate"]);
-					if (! empty($endDate)) 
-						$params["endDate"] = $endDate->format('Y-m-d H:i');
-					else 
-						throw new CTKException("End Date is not well formated !");
-				} else 
-					$params["endDate"] = $endDate->format('Y-m-d');
-			}*/
+
+
+			if($params["collection"] == Action::COLLECTION && !empty($params["role"])){
+				$params["role"] = array( InflectorHelper::slugify( $params["role"] ) => $params["role"] ) ;
+			}
     	}
+
         return $params;
     }
 
 	public static function alreadyExists ($params, $collection) {
 		$result = array("result" => false);
 		$where = array(	"name" => $params["name"],
-						"address.localityId" => $params["address"]["localityId"]);
+						"address.localityId" => @$params["address"]["localityId"]);
 		$element = PHDB::findOne($collection, $where);
 		if(!empty($element))
 			$result = array("result" => true ,
@@ -2332,6 +2504,7 @@ class Element {
 		$id = $params["id"];
 		$res = array();
 		try {
+
 			if($block == "info"){
 				if(isset($params["name"])){
 					$res[] = self::updateField($collection, $id, "name", $params["name"]);
@@ -2356,6 +2529,7 @@ class Element {
 			        	}
 			        }
 				}
+
 				if(isset($params["slug"])){
 					$el = PHDB::findOne($collection,array("_id"=>new MongoId($id)));
 					$oldslug = @$el["slug"];
@@ -2379,21 +2553,22 @@ class Element {
 					$res[] = self::updateField($collection, $id, "fax", $params["fax"]);
 				if(isset($params["mobile"]))
 					$res[] = self::updateField($collection, $id, "mobile", $params["mobile"]);
+				
 				if( !empty($params["parentId"]) ){
 					$parent["parentId"] = $params["parentId"] ;
 					$parent["parentType"] = ( !empty($params["parentType"]) ? $params["parentType"] : "dontKnow" ) ;
 					$resParent = self::updateField($collection, $id, "parent", $parent);
-
-					if($params["parentType"] != "dontKnow" && $params["parentId"] != "dontKnow")
+					if($parent["parentType"] != "dontKnow" && $parent["parentId"] != "dontKnow")
 						$resParent["value"]["parent"] = Element::getByTypeAndId( $params["parentType"], $params["parentId"]);
 					$res[] = $resParent;
 				}
-
+				
 				if(!empty($params["organizerId"]) ){
 					$organizer["organizerId"] = $params["organizerId"] ;
 					$organizer["organizerType"] = ( !empty($params["organizerType"]) ? $params["organizerType"] : "dontKnow" ) ;
 					$resOrg = self::updateField($collection, $id, "organizer", $organizer);
-					if($params["organizerType"]!="dontKnow" && $params["parentId"] != "dontKnow"){
+
+					if($params["organizerType"]!="dontKnow" && $params["organizerId"] != "dontKnow"){
 						$resOrg["value"]["organizer"] = Element::getByTypeAndId( $params["organizerType"], $params["organizerId"]);
 					}
 					$res[] = $resOrg;
@@ -2970,7 +3145,7 @@ class Element {
 		}
 
 		//manage delete in progress status
-		$params["deletePending"] = Element::isElementStatusDeletePending($type, $id);
+		$params["deletePending"] = Notification::isElementStatusDeletePending($type, $id);
 		
 		
 		return $params;

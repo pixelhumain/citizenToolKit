@@ -68,13 +68,14 @@ class Zone {
 	}
 
 	public static function getLevelIdById($id, $zone=null, $type){
-
+		//Rest::json($zone); exit ;
 		if(empty($zone)){
 			$where = array("_id"=>new MongoId($id));
 			$fields = array("name", "level", "level1", "level1Name", "level2", "level2Name", "level3", "level3Name", "level4", "level4Name",  "", "", "", "", "", "", "");
 			$zone = PHDB::findOne($type, $where, $fields);
 		}
 
+		// Rest::json($zone); exit ;
 		//( (empty($zone["level1Name"]) && in_array("1", $zone["level"])) ? $zone["name"] : $zone["level1Name"])
 
 		if(!empty($zone["level1"])){
@@ -89,7 +90,7 @@ class Zone {
 			$res["level2Name"] = ( (empty($zone["level2Name"]) && in_array("2", $zone["level"])) ? $zone["name"] : @$zone["level2Name"]);
 			//$res["level2Name"] = $zone["level2Name"];
 		}
-		if(!empty($zone["level3"])){
+		if( !empty($zone["level3"]) ){
 			$res["level3"] = $zone["level3"];
 			$res["level3Name"] = ( (empty($zone["level3Name"]) && in_array("3", $zone["level"])) ? $zone["name"] : @$zone["level3Name"]);
 			//$res["level3Name"] = $zone["level3Name"];

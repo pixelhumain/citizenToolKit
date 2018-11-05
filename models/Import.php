@@ -141,6 +141,7 @@ class Import
     }
    
     public static  function previewData($post, $notCheck=false){
+
         $params = array("result"=>false);
         $elements = array();
         $saveCities = array();
@@ -249,6 +250,7 @@ class Import
         if($typeElement != Person::COLLECTION ) {
             $address = (empty($element['address']) ? null : $element['address']);
             $geo = (empty($element['geo']) ? null : $element['geo']);
+
             if(!empty($address) && !empty($address["addressCountry"])  && !empty($address["postalCode"]) && strtoupper($address["addressCountry"]) == "FR" && strlen($address["postalCode"]) == 4 )
                 $address["postalCode"] = '0'.$address["postalCode"];
                 $detailsLocality = self::getAndCheckAddressForEntity($address, $geo) ;
@@ -377,13 +379,16 @@ class Import
         }
         return $geo ;
     }
-    public static function getAndCheckAddressForEntity($address = null, $geo = null){
-        $lat = null;
-        $lon = null;
-        $result = false;
-        $saveCities = array();
-        if( !empty($address["addressLocality"]) && !empty($address["addressCountry"]) ){
-            $regexCity = Search::accentToRegex(strtolower($address["addressLocality"]));
+
+
+
+	public static function getAndCheckAddressForEntity($address = null, $geo = null){
+		$lat = null;
+		$lon = null;
+		$result = false;
+		$saveCities = array();
+
+		if( !empty($address["addressLocality"]) && !empty($address["addressCountry"]) ){
             $city = null ;
             if(!empty($address["codeInsee"])){
                 $where = array('$and' => array(
@@ -391,7 +396,17 @@ class Import
                                 array("country" => strtoupper($address["addressCountry"])) ) );
                 $city = PHDB::findOne(City::COLLECTION, $where, $fields);
             }
+            if( stripos($address["addressLocality"], "CEDEX") !== false && $address["addressCountry"] == "FR" ){
+                $local = trim(str_replace("CEDEX", "", $address["addressLocality"]));
+                //var_dump($local);
+                $regexCity = Search::accentToRegex(strtolower($local));
+            }
+            else
+                $regexCity = Search::accentToRegex(strtolower($address["addressLocality"]));
+
             if(empty($city)){
+
+
                 $where = array('$or'=> 
                         array(  
                             array("name" => new MongoRegex("/^".$regexCity."/i")),
@@ -399,13 +414,21 @@ class Import
                             array("postalCodes.name" => new MongoRegex("/^".$regexCity."/i"))
                         ) );
                 $where = array('$and' => array($where, array("country" => strtoupper($address["addressCountry"])) ) );
-                if( !empty($address["postalCode"]) ){
+                
+                if( !empty($address["postalCode"]) && !(stripos($address["addressLocality"], "CEDEX") !== false && $address["addressCountry"] == "FR") ){
+                    // var_dump(stripos($address["addressLocality"], "CEDEX"));
+                    // var_dump($address["addressCountry"] == "FR");
+
                     $where = array('$and' => array($where, array("postalCodes.postalCode" => $address["postalCode"]) ) );
                 }
+
+                //Rest::json($where); exit;
+
                 $fields = array("name", "geo", "country", "level1", "level1Name","level2", "level2Name","level3", "level3Name","level4", "level4Name", "osmID", "postalCode", "insee");
                 $city = PHDB::findOne(City::COLLECTION, $where, $fields);
             }
             if(!empty($city)){
+
                 if(empty($geo["latitude"]) || empty($geo["longitude"])){
                     $resGeo = self::getLatLonBySIG($address);
                     $lat = ( empty($resGeo["lat"]) ? $city["geo"]["latitude"] : $resGeo["lat"] );
@@ -506,6 +529,11 @@ class Import
             $warnings[] = "201" ;
         if(empty($element['email']) && $typeElement == Person::COLLECTION)
             $warnings[] = "203" ;
+
+
+
+        if(empty($element['type']) && $typeElement == Organization::COLLECTION || $typeElement == Event::COLLECTION)
+            $warnings[] = "300" ;
         if($typeElement != Person::COLLECTION){
             if(!empty($element['address'])){
                 if(empty($element['address']['addressCountry']))$warnings[] = "104" ;
@@ -560,21 +588,41 @@ class Import
                             $element["info"] = "La ville existes déjà";
                         }
                     }else{
-                        if( !empty( $value["address"] ) ) {
-                            $good = true ;
-                            if(!empty($value["address"]["osmID"])){
-                                $city = City::getByOsmId($value["address"]["osmID"]);
-                                if(!empty($city)){
-                                    $value["address"] = self::getAddressConform($city, $value["address"]);
-                                    $resGeo = self::getLatLonBySIG($value["address"]);
-                                    $value["geo"] = SIG::getFormatGeo($resGeo["lat"], $resGeo["lon"]);
-                                    $value["geoPosition"] = SIG::getFormatGeoPosition($resGeo["lat"], $resGeo["lon"]);
-                                }
-                                else{
-                                    $good = false ;
-                                    $element["name"] = $exist["element"]["name"];
-                                    $element["info"] = "La commune n'existe pas, penser a l'ajouter avants"; 
-                                }
+//<<<<<<< savMap
+//                        if( !empty( $value["address"] ) ) {
+//                            $good = true ;
+//                            if(!empty($value["address"]["osmID"])){
+//                                $city = City::getByOsmId($value["address"]["osmID"]);
+//                                if(!empty($city)){
+//                                    $value["address"] = self::getAddressConform($city, $value["address"]);
+////                                    $resGeo = self::getLatLonBySIG($value["address"]);
+//                                    $value["geo"] = SIG::getFormatGeo($resGeo["lat"], $resGeo["lon"]);
+//                                    $value["geoPosition"] = SIG::getFormatGeoPosition($resGeo["lat"], $resGeo["lon"]);
+//                                }
+//                                else{
+//                                    $good = false ;
+//                                    $element["name"] = $exist["element"]["name"];
+//                                    $element["info"] = "La commune n'existe pas, penser a l'ajouter avants"; 
+//                                }
+//=======
+
+						if( !empty( $value["address"] ) ) {
+							$good = true ;
+							if(!empty($value["address"]["osmID"])){
+								$city = City::getByOsmId($value["address"]["osmID"]);
+
+								if(!empty($city)){
+									$value["address"] = self::getAddressConform($city, $value["address"]);
+									$resGeo = self::getLatLonBySIG($value["address"]);
+									$value["geo"] = SIG::getFormatGeo($resGeo["lat"], $resGeo["lon"]);
+									$value["geoPosition"] = SIG::getFormatGeoPosition($resGeo["lat"], $resGeo["lon"]);
+								}
+								else{
+									$good = false ;
+									$element["name"] = @$exist["element"]["name"];
+									$element["info"] = "La commune n'existe pas, penser a l'ajouter avants"; 
+								}
+//>>>>>>> development
                             }
                             if($good == true){
                                 $exist = Element::alreadyExists($value, $typeElement);

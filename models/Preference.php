@@ -15,20 +15,50 @@ class Preference {
 		return $preferences;
 	}
 	
-	public static function updatePreferences($id, $type,$preferenceName=null, $preferenceValue=null) {
+	public static function updatePreferences($id, $type,$preferenceName=null, $preferenceValue=null, $preferenceSubName=null) {
 		$action='$set';
+		$update=array();
 		if(!@$preferenceName || empty($preferenceName)){
 			$action='$unset';
-			$preferenceName="seeExplanations";
-			$preferenceValue="";
-		}	
-		PHDB::update($type, array("_id" => new MongoId($id)), 
-			                          array($action => array("preferences.".$preferenceName => $preferenceValue)
-			                          ));
+			$update=array("preferences.seeExplanations"=>"");
+		}else{
+			if($preferenceValue==="true" || $preferenceValue=="default"){
+				$action='$unset';
+				$preferenceValue="";
+			}
+			$update=array("preferences.".$preferenceName=>$preferenceValue);
+			if(!empty($preferenceSubName))
+				$update=array("preferences.".$preferenceName.".".$preferenceSubName=>$preferenceValue);
+		}
+
+		PHDB::update($type, array("_id" => new MongoId($id)), array($action => $update)
+		);
 		$res = array("result" => true, "msg" => Yii::t("common","Your request is well updated"));
 		return $res;
 	}
-	
+
+	public static function updateSettings($userId, $params){
+		$settings=array("name"=>$params["settings"],"value"=>$params["value"]);
+		$parentId=$params["id"];
+		$parentType=$params["type"];
+		$childId=(@$params["childId"]) ? $params["childId"] : Yii::app()->session["userId"];
+		$childType=(@$params["childType"]) ? $params["childType"] : Person::COLLECTION; 
+		$parentConnectAs=Link::$linksTypes[$parentType][$childType];
+		$childConnectAs=Link::$linksTypes[$childType][$parentType];
+		if($settings["value"]=="default"){
+			//Add notification - email label in parent link
+			Link::disconnect($parentId, $parentType, $childId, $childType,Yii::app()->session["userId"], $parentConnectAs, null, $settings);
+	 		//Add notification - email label in child link
+	 		Link::disconnect($childId, $childType, $parentId, $parentType, Yii::app()->session["userId"], $childConnectAs, null, $settings);
+		}else{
+			//Add notification - email label in parent link
+			Link::connect($parentId, $parentType, $childId, $childType,Yii::app()->session["userId"], $parentConnectAs, null, null, null,null, null, $settings);
+	 		//Add notification - email label in child link
+	 		Link::connect($childId, $childType, $parentId, $parentType, Yii::app()->session["userId"], $childConnectAs, null, null, null, null, null, $settings);
+ 		}
+ 		return array("result" => true, "msg" => Yii::t("common","Your request is well updated"));
+	}
+
 	public static function updateConfidentiality($id, $type, $param){
 		//if ($type == Person::COLLECTION){
 		$id = $param["idEntity"];
@@ -89,19 +119,28 @@ class Preference {
 		else if($setValue=="false"){
 			$setValue=false;
 		}
-
-		$preferences["privateFields"] = $privateFields;
-		$preferences["publicFields"] = $publicFields;
+		if(!empty($privateFields))
+			$preferences["privateFields"] = $privateFields;
+		if(!empty($publicFields))
+			$preferences["publicFields"] = $publicFields;
 		
 		if($setType == "isOpenData"){
 			$preferences["isOpenData"] = $setValue;
 		}else{
 			$preferences["isOpenData"] = ((empty($context["preferences"]["isOpenData"]))?false:true);
 		}
+
+		if($setType == "sendMail"){
+			$preferences["sendMail"] = $setValue;
+		}else{
+			$preferences["sendMail"] = ((empty($context["preferences"]["sendMail"]))?false:true);
+		}
+
 		if($setType == "private"){
 			$preferences["private"] = $setValue;
 		}else{
-			$preferences["private"] = ((empty($context["preferences"]["private"]))?false:true);
+			if(!empty($context["preferences"]["private"]))
+				$preferences["private"] = true;
 		}
 		if($setType == "isOpenEdition"){
 			$preferences["isOpenEdition"] = $setValue;
@@ -119,7 +158,6 @@ class Preference {
 		
 		/*PHDB::update($type, array("_id" => new MongoId($id)), 
 		    array('$set' => array("preferences.privateFields" => $privateFields, "preferences.publicFields" => $publicFields)));*/
-
 		$result = PHDB::update($type, array("_id" => new MongoId($id)), 
 		    						array('$set' => array("preferences" => $preferences)));
 
@@ -236,6 +274,7 @@ class Preference {
 	public static function initPreferences($type) {
 		$preferences = array();
 		$preferences["isOpenData"] = true;
+		$preferences["sendMail"] = false;
 		if($type == Person::COLLECTION){
 			$preferences["publicFields"] = array("locality", "directory");
 			$preferences["privateFields"] = array("birthDate", "email", "phone");

@@ -18,7 +18,7 @@ class Cron {
 	const STATUS_DONE = "done";
 	const STATUS_UPDATE = "update";
 
-	const EXEC_COUNT = 5;
+	const EXEC_COUNT = 10;
 	/**
 	 * adds an entry into the cron collection
 	 * @param $params : a set of information for a proper cron entry
@@ -48,7 +48,21 @@ class Cron {
 	    if( $params['type'] == self::TYPE_MAIL )
 	    	$new = array_merge($new , self::addMailParams($params) );
 
-	    PHDB::insert(self::COLLECTION,$new);
+	    //Rest::json($new); exit ;
+	    if(!empty($new["to"])){
+
+	    	$entity = PHDB::findOne( Person::COLLECTION ,array("email" => $new["to"]), array("preferences"));
+
+	    	if(!empty($entity)){ 
+	    		if( (!empty($entity["preferences"]["sendMail"]) && $entity["preferences"]["sendMail"]===true) || $params["tpl"] == "invitation" || $params["tpl"] == "validation" || $params["tpl"] == "passwordRetreive"){
+	    			PHDB::insert(self::COLLECTION,$new);
+	    		}
+	    		
+	    	}else
+	    		PHDB::insert(self::COLLECTION,$new);
+	    }
+
+	    
 	}
 	
     /**
@@ -115,17 +129,80 @@ class Cron {
 	 * @param $params : a set of information for the document (?to define)
 	*/
 	public static function processCron($count=5){
-		$where = array( "status" => self::STATUS_PENDING, 
-						/*'$or' => array( array( "execTS" => array( '$gt' => time())),
-										array( "execTS" => array( '$exists'=>-1 ) ) )*/
-					);
+		
+
+		$regex = Search::accentToRegex("fake.");
+		// $where = array( "status" => self::STATUS_PENDING,
+		// 				"userId" => array('$ne' => null),
+		// 				"to" => array('$ne' => null),
+		// 				"to" => array('$not' => new MongoRegex("/".$regex."/i")),
+		// 				"tpl" => array('$ne' =>"priorisationCTE"),
+		// 				/*'$or' => array( array( "execTS" => array( '$gt' => time())),
+		// 								array( "execTS" => array( '$exists'=>-1 ) ) )*/
+		// 			);
+		$tpl = array("invitation", "passwordRetreive", "validation");
+
+		$where = array('$and'=> array(
+                        array( "status" => self::STATUS_PENDING), 
+                        //array("userId" => array('$ne' => null)),
+                        array("to" => array('$ne' => null)),
+                        array("to" => array('$not' => new MongoRegex("/".$regex."/i"))),
+                        array("tpl" => array('$ne' =>"priorisationCTE")),
+                        array("tpl" => array('$in' => $tpl)) ) ) ;
 		$jobs = PHDB::findAndSort( self::COLLECTION, $where, array('execDate' => 1), self::EXEC_COUNT);
-		//var_dump($jobs);
+		//Rest::json($jobs); exit ;
+		$reste = self::EXEC_COUNT - count($jobs) ;
+		//Rest::json($reste); exit ;
+		if($reste > 0){
+			$valID = array();
+			foreach ($jobs as $key => $value) {
+				$valID[] = new MongoId($key) ;
+			}
+
+			$where2 = array('$and'=> array(
+                        array( "status" => self::STATUS_PENDING),
+                        array("to" => array('$ne' => null)),
+                        array("to" => array('$not' => new MongoRegex("/".$regex."/i"))),
+                        array("tpl" => array('$ne' =>"priorisationCTE")),
+                        array("_id" => array('$nin' => $valID)) )  ) ;
+			$others = PHDB::findAndSort( self::COLLECTION, $where2, array('execDate' => 1), $reste);
+			//Rest::json($others); exit ;
+			$jobs = array_merge($jobs, $others);
+		}
+
+		
+		//Rest::json($jobs); exit ;
+
 		foreach ($jobs as $key => $value) {
 			//TODO : cumulé plusieur message au meme email 
-			self::processEntry($value);
+			try {
+				self::processEntry($value);
+			} catch (Exception $e) {
+				error_log("processCron : ".$e);
+			}
+			
 		}
 	}
+
+	public static function processUpdateToPending(){
+		$where = array( "status" => self::STATUS_UPDATE);
+		$mails = PHDB::find( self::COLLECTION, $where);
+		
+		foreach ($mails as $key => $value) {
+			$set = array("status" => self::STATUS_PENDING);
+			$res = PHDB::update(self::COLLECTION, 
+				  	array("_id"=>new MongoId($key)),
+					array('$set' => $set) );
+		}
+	}
+
+	public static function getCron($where = array()){
+		$cron = PHDB::find( self::COLLECTION , $where );
+
+		return $cron;
+	}
+
+
 
 }
 ?>

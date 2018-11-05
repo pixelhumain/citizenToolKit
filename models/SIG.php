@@ -352,8 +352,8 @@ class SIG
 
 	public static function getGeoQuery($params, $att){
 		return array(	$att  => array( '$exists' => true ),
-    					$att.'.latitude' => array('$gt' => floatval($params['latMinScope']), '$lt' => floatval($params['latMaxScope'])),
-						$att.'.longitude' => array('$gt' => floatval($params['lngMinScope']), '$lt' => floatval($params['lngMaxScope']))
+    					$att.'.0' => array('$gt' => floatval($params['latMinScope']), '$lt' => floatval($params['latMaxScope'])),
+						$att.'.1' => array('$gt' => floatval($params['lngMinScope']), '$lt' => floatval($params['lngMaxScope']))
 					  );
 	}
 
