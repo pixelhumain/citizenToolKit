@@ -833,10 +833,10 @@ class Mail {
             "type" => Cron::TYPE_MAIL,
             "tpl"=>'askToBecome',
             "subject" => "[".self::getAppName()."] ".Yii::t("mail","A citizen ask to become {what} of {where}", 
-                array("{what}"=>$construct["value"], "{where}"=>$construct["target"]["name"])),
+                array("{what}"=>Yii::t("common",$construct["value"]), "{where}"=>$construct["target"]["name"])),
             "from"=>Yii::app()->params['adminEmail'],
             "to" => $val["email"],
-            "tplParams" => array(	"newPendingAdmin"=> $val ,
+            "tplParams" => array(	"newPendingAdmin"=> $construct["author"] ,
 									"title" => self::getAppName() ,
 									"parent" => $construct["target"],
 									"parentType" => $construct["target"]["type"],
@@ -895,6 +895,7 @@ class Mail {
                     Mail::$tpl($construct, $value);
                 } else {
                     $mail = Mail::getMailUpdate($value["email"], 'notification') ;
+                    //Rest::json($mail); exit ;
                     if(!empty($mail)){
                         $paramTpl = self::createParamsTpl($construct, $mail["tplParams"]["data"]);
                         $mail["tplParams"]["data"]= $paramTpl ;
@@ -990,13 +991,18 @@ class Mail {
         		if(	$valD["verb"] == $verb && 
         			$valD["targetType"] == $targetType && 
         			$valD["targetId"] == $targetId && 
-        			( !empty($construct["object"]) && !empty($valD["object"]) && $valD["object"]["type"] == $construct["object"]["type"]  ) ) {
+        			(	( 	!empty($construct["object"]) && 
+                        	!empty($valD["object"]) && 
+                        	$valD["object"]["type"] == $construct["object"]["type"]  ) ||
+                        empty($construct["object"] ) ) ) {
         			$myParam = $valD ;
         			$repeatKey = $keyD ;
         			break;
         		} 
         	}
         }
+
+        //Rest::json($myParam) ;exit;
 
         if($myParam == null)
 	        $myParam = array(
@@ -1079,7 +1085,7 @@ class Mail {
         
         if($repeat == null)
         	$paramTpl["countData"]++ ;
-
+        //Rest::json($paramTpl); exit ;
         return $paramTpl ;
 
     }

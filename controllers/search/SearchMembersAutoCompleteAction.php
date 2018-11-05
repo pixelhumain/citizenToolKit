@@ -19,10 +19,12 @@ class SearchMembersAutoCompleteAction extends CAction {
 		else
 			$elementId=Yii::app()->session["userId"];
 
-		$searchAccent = Api::accentToRegex($search);
+		//$searchAccent = Api::accentToRegex($search);
 		
+		$regex = Search::accentToRegex($search);
+
 		$query = array( '$or' => 	array( array("email" => new MongoRegex("/".$search."/i")),
-									array("name" => new MongoRegex("/.*{$searchAccent}.*/i"))),
+									array("name" => new MongoRegex("/".$regex."/i"))),
 						"_id" => array('$ne' => new MongoId($elementId)));
 
 		$limitSearchPerson = 0;
@@ -34,11 +36,11 @@ class SearchMembersAutoCompleteAction extends CAction {
 		} else if (@$_POST['searchMode'] == self::ORGANIZATION_ONLY) {
 			$limitSearchOrganization = 12;
 		} else {
-			$limitSearchPerson = 6;
-			$limitSearchOrganization = 6;
+			$limitSearchPerson = null;
+			$limitSearchOrganization = 0;
 		}
-		
-		if ($limitSearchPerson > 0) {
+		//Rest::json($query); exit;
+		//if ($limitSearchPerson > 0) {
 			$allCitoyens = PHDB::findAndSort( Person::COLLECTION , $query, array(/*"name" => 1*/), $limitSearchPerson);
 			foreach ($allCitoyens as $key => $value) {
 				$person = Person::getSimpleUserById($key, $value);
@@ -46,10 +48,10 @@ class SearchMembersAutoCompleteAction extends CAction {
 			}
 			$all["citoyens"] = $allCitoyens;
 			//Update the number of organization to search
-			if ($limitSearchOrganization > 0) {
-				$limitSearchOrganization = 12 - count($allCitoyens);
-			}
-		}
+			// if ($limitSearchOrganization > 0) {
+			// 	$limitSearchOrganization = 12 - count($allCitoyens);
+			// }
+		//}
 		
 		if ($limitSearchOrganization > 0) {
 			$queryDisabled = array("disabled" => array('$exists' => false));
