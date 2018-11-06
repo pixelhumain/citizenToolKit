@@ -181,6 +181,8 @@ class Notification{
 				Proposal::COLLECTION => array(
 					"label" => "{who} commented on proposal {what} in {where}",
 					"labelRepeat" => "{who} added comments on proposal {what} in {where}",
+					"labelMail" => "{who} commented on proposal {what} in {where}",
+					"labelRepeatMail" => "{who} have added few comments on proposal {what} in {where}",
 					"sameAuthor"=>array(
 						"labelRepeat" => "{who} added few comments on proposal {what} in {where}",
 						"labelRepeatMail" => "{who} added few comments on proposal {what} in {where}"
@@ -190,6 +192,8 @@ class Notification{
 				Action::COLLECTION => array(
 					"label" => "{who} commented on action {what} in {where}",
 					"labelRepeat" => "{who} added comments on action {what} in {where}",
+					"labelMail" => "{who} commented on action {what} in {where}",
+					"labelRepeatMail" => "{who} have added few comments on action {what} in {where}",
 					"sameAuthor"=>array(
 						"labelRepeat" => "{who} added few comments on action {what} in {where}",
 						"labelRepeatMail" => "{who} added few comments on action {what} in {where}"
