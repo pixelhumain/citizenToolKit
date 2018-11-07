@@ -874,9 +874,7 @@ class Notification{
  			"target"=> $construct["target"]
         );
         if($construct["object"]){
-        	if(	in_array("author",$notificationPart["labelArray"]) && 
-		    	( $notificationPart["verb"] != Actstr::VERB_ADD || 
-					( @$notificationPart["levelType"] && $notificationPart["levelType"]=="asMember") ) ) {
+        	if($construct["labelUpNotifyTarget"]=="object")
 		       	$notificationPart["object"] = array($construct["object"]["id"]=>$construct["object"]);
 		    else
         		$asParam["object"]=$construct["object"];
@@ -974,7 +972,7 @@ class Notification{
 		    	( $notificationPart["verb"] != Actstr::VERB_ADD || 
 					( @$notificationPart["levelType"] && $notificationPart["levelType"]=="asMember") ) ) {
 		       	$notificationPart["object"] = array("id"=>$authorId, "type"=> Person::COLLECTION, "name"=>$author["name"]);
-		        $notificationPart["author"] = array("id"=>Yii::app()->session["userId"], "type"=> Person::COLLECTION, "name"=> Yii::app()->session["user"]["name"], "profilThumbImageUrl"=>@Yii::app()->session["user"]["profilThumbImageUrl"]));
+		        $notificationPart["author"] = array("id"=>Yii::app()->session["userId"], "type"=> Person::COLLECTION, "name"=> Yii::app()->session["user"]["name"], "profilThumbImageUrl"=>@Yii::app()->session["user"]["profilThumbImageUrl"]);
 		        $notificationPart["labelUpNotifyTarget"]="object";
 		    }
 		    // !!!!!!!!!!!!!!! COMMENT HERE VIEW BEHAVIOR IF OBJECT IS CHANGED BEFORE !!!!!!!!!!!!! //
