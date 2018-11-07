@@ -1053,14 +1053,14 @@ class Notification{
 						$userNotify=$authorNews["author"];
 					// 2.1 -- If user notify a news where news' author is organization, project, event
 					// 			-- Go forward to notify community except user who do the action
-					if(@$news["targetIsAuthor"] || ($news["type"]!="news" && $news["target"]["type"] != Person::COLLECTION)){
+					if((@$news["targetIsAuthor"] || ($news["type"]!="news" && $news["target"]["type"] != Person::COLLECTION)) && empty($construct["object"])){
 						$isToNotify=false;
 						$construct["notifyCommunity"]=true;
 					}
 					// 2.2 -- If comment's author is the news' author or there is no comment's author   and news' author is current user
 					//		-- Go forward 
-					if(($commentAuthor!="" && $commentAuthor==$authorNews["author"]) 
-						|| ($commentAuthor=="" && Yii::app()->session["userId"]==$authorNews["author"])){
+					if(/*($commentAuthor!="" && $commentAuthor==$authorNews["author"]) 
+						|| (*/$commentAuthor=="" && Yii::app()->session["userId"]==$authorNews["author"]/*)*/){
 						$isToNotify=false;
 					}
 				}
