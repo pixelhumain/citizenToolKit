@@ -116,7 +116,7 @@ class Bookmark {
 		$res = array();
 		$where = array( "type" => "research", "alert" => "true");
 		$book = PHDB::find(self::COLLECTION,$where,array());
-
+		//Rest::json($book); exit;
 		foreach ($book as $keyB => $valueB) {
 			if($valueB["parentType"] == Person::COLLECTION && strrpos($valueB["url"], "annonces?") !== false){
 				$url = explode("annonces?" ,parse_url( $valueB["url"], PHP_URL_FRAGMENT));
@@ -151,8 +151,34 @@ class Bookmark {
 				if(!empty($devise))
 					$params["devise"] = $devise ;
 
+				if(!empty($zones)){
+					$z = Zone::getById($zones,array("name", "level"));
+					$level = Zone::getLevel($z);
+					$loc = array(
+						"type" => "level".$level,
+						"id" => @$zones
+					);
+					$params["locality"][] = $loc ;
+				}
+
+
+				// if(!empty($cities)){
+					
+				// 	$z = Zone::getById($zones,array("name", "level")) 
+				// 	$level = Zone::getLevel($z);
+				// 	$loc = array(
+				// 		"type" => "level".$level
+				// 		"id" => @$zones
+				// 	);
+
+				// 	$params["locality"][] = $loc ;
+				// }
+				
+				//Rest::json($params); exit;
+
 				$search = Search::globalAutoComplete($params);
 
+				Rest::json($search); exit;
 
 				if(!empty($search["results"])){
 					$val = array(	"name" => $valueB["name"], 

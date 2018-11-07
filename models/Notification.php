@@ -973,8 +973,8 @@ class Notification{
 		    	( $notificationPart["verb"] != Actstr::VERB_ADD || 
 					( @$notificationPart["levelType"] && $notificationPart["levelType"]=="asMember") ) ) {
 					// !!!!!!!!!!!!!!!CAREFULLY !!!!!!!!!!!!
-		       	// $notificationPart["object"] = array($authorId => array("name"=>$author["name"]));
-		        // $notificationPart["author"] = array(Yii::app()->session["userId"]=> array("name"=> Yii::app()->session["user"]["name"]));
+		       		// $notificationPart["object"] = array($authorId => array("name"=>$author["name"]));
+					// $notificationPart["author"] = array(Yii::app()->session["userId"]=> array("name"=> Yii::app()->session["user"]["name"]));
 		        // !!!!!!!!!!!!!!!CAREFULLY END !!!!!!!!!!!!
 		        $notificationPart["labelUpNotifyTarget"]="object";
 		    }
