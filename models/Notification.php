@@ -875,7 +875,7 @@ class Notification{
         );
         if($construct["object"]){
         	if($construct["labelUpNotifyTarget"]=="object")
-		       	$notificationPart["object"] = array($construct["object"]["id"]=>$construct["object"]);
+		       	$asParam["object"] = array($construct["object"]["id"]=>$construct["object"]);
 		    else
         		$asParam["object"]=$construct["object"];
         }
@@ -971,7 +971,7 @@ class Notification{
 		    if(	in_array("author",$notificationPart["labelArray"]) && 
 		    	( $notificationPart["verb"] != Actstr::VERB_ADD || 
 					( @$notificationPart["levelType"] && $notificationPart["levelType"]=="asMember") ) ) {
-		       	$notificationPart["object"] = array("id"=>$authorId, "type"=> Person::COLLECTION, "name"=>$author["name"]);
+		       	$notificationPart["object"] = array("id"=>$authorId, "type"=> Person::COLLECTION, "name"=>$author["name"], "profilThumbImageUrl"=>@$eltauthor["profilThumbImageUrl"]);
 		        $notificationPart["author"] = array("id"=>Yii::app()->session["userId"], "type"=> Person::COLLECTION, "name"=> Yii::app()->session["user"]["name"], "profilThumbImageUrl"=>@Yii::app()->session["user"]["profilThumbImageUrl"]);
 		        $notificationPart["labelUpNotifyTarget"]="object";
 		    }
@@ -1085,7 +1085,7 @@ class Notification{
 							$construct["labelUpNotifyTarget"]="object";
 						// -------- END MOVE ON GETLABEL --------///
 						// !!!!!!!!!!!!!!!CAREFULLY !!!!!!!!!!!!
-						$construct["author"]=array("id"=>Yii::app()->session["userId"], "type"=> Person::COLLECTION, "name"=> Yii::app()->session["user"]["name"], "name"=> Yii::app()->session["user"]["profilThumbImageUrl"]);
+						$construct["author"]=array("id"=>Yii::app()->session["userId"], "type"=> Person::COLLECTION, "name"=> Yii::app()->session["user"]["name"], "profilThumbImageUrl"=> Yii::app()->session["user"]["profilThumbImageUrl"]);
 						// !!!!!!!!!!!!!!!CAREFULLY END!!!!!!!!!!!!
 						self::createNotification($construct,"user");
 				    }
@@ -1153,7 +1153,7 @@ class Notification{
 				// Add new author to notification
 				if($construct["labelUpNotifyTarget"] == "object")
 					//foreach($construct["object"] as $key => $data){
-					$notification["object"][$construct["object"]["id"]]=$object;
+					$notification["object"][$construct["object"]["id"]]=$construct["object"];
 					//}
 				else
 					$notification["author"][Yii::app()->session['userId']]=array("name" => Yii::app()->session['user']['name'], "profilThumbImageUrl" => Yii::app()->session['user']['profilThumbImageUrl']);
