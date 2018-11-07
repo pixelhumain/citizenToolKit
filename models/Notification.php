@@ -787,7 +787,7 @@ class Notification{
 		$id=$construct["target"]["id"];
 		$impactType=Person::COLLECTION;
 		$impactRole=null;
-		if(@$construct["context"] || Event::COLLECTION){
+		if(@$construct["context"]/* || Event::COLLECTION*/){
 			//$impactType=Person::COLLECTION;
 			$impactRole="isAdmin";
 		}
@@ -801,7 +801,6 @@ class Notification{
 	    	$type=$prop["parentType"];
 	    	$id=$prop["parentId"];
 	    }
-
 	    $membersToNotifs = Element::getCommunityByTypeAndId($type, $id ,$impactType, $impactRole, null, array("type"=>"notifications", "value"=>$construct["settings"]));
 	    $peopleMails = Element::getCommunityByTypeAndId($type, $id ,$impactType, $impactRole, null, array("type"=>"mails", "value"=>$construct["settings"]));
 	    //Rest::json($peopleMails); exit
@@ -1437,9 +1436,11 @@ class Notification{
 		$specifyLabel["{who}"] = [$memberName];
 
 		if($count>1){
-			foreach($notification[$construct["labelUpNotifyTarget"]] as $data){
-				$lastAuthorName=$data["name"];
-				break; 
+			foreach($notification[$construct["labelUpNotifyTarget"]] as $key=> $data){
+				if($key!=Yii::app()->session["userId"]){
+					$lastAuthorName=$data["name"];
+					break; 
+				}
 			}
 			array_push($specifyLabel["{who}"],$lastAuthorName);
 			if($count >2){
