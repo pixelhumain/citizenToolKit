@@ -152,50 +152,60 @@ class Bookmark {
 					$params["devise"] = $devise ;
 
 				if(!empty($zones)){
-					$z = Zone::getById($zones,array("name", "level"));
-					$level = Zone::getLevel($z);
-					$loc = array(
-						"type" => "level".$level,
-						"id" => @$zones
-					);
-					$params["locality"][] = $loc ;
+					$zonesArray = explode(",", $zones);
+					foreach ($zonesArray as $keyZ => $valZ) {
+						$z = Zone::getById($valZ,array("name", "level"));
+						$level = Zone::getLevel($z);
+						$loc = array(
+							"type" => "level".$level,
+							"id" => @$valZ
+						);
+						$params["locality"][] = $loc ;
+					}
 				}
 
-
-				// if(!empty($cities)){
-					
-				// 	$z = Zone::getById($zones,array("name", "level")) 
-				// 	$level = Zone::getLevel($z);
-				// 	$loc = array(
-				// 		"type" => "level".$level
-				// 		"id" => @$zones
-				// 	);
-
-				// 	$params["locality"][] = $loc ;
-				// }
+				if(!empty($cities)){
+					$citiesArray = explode(",", $cities);
+					foreach ($citiesArray as $keyC => $valC) {
+						if(MongoId::isValid($valC) === true) {
+							$loc = array(
+								"type" => City::COLLECTION,
+								"id" => @$valC
+							);
+							$params["locality"][] = $loc ;
+						} else {
+							$cArray = explode("cp", $valC);
+							$loc = array(
+								"type" => City::COLLECTION,
+								"id" => $cArray[0],
+								"postalCode" => $cArray[1],
+							);
+							$params["locality"][] = $loc ;
+						}
+					}
+				}
 				
 				//Rest::json($params); exit;
 
 				$search = Search::globalAutoComplete($params);
 
-				Rest::json($search); exit;
+				//Rest::json($search); exit;
 
 				if(!empty($search["results"])){
 					$val = array(	"name" => $valueB["name"], 
 									"url" => $valueB["url"], 
 									"results" => $search["results"]);
 					$res[$valueB["parentId"]][] = $val;
+					
 					// if(empty($res[$valueB["parentId"]])){
-
 					// 	$res[$valueB["parentId"]][] = $val;
 					// }else{
 					// 	$res[$valueB["parentId"]][] = array_merge($res[$valueB["parentId"]], $search["results"]);
 					// }
 
-					// $update = PHDB::update( self::COLLECTION, array("_id" => new MongoId($keyB)), 
-     //                              array('$set' => array('updated' => time() ) ));
-					// 						);
-
+					$update = PHDB::update( self::COLLECTION, 
+											array("_id" => new MongoId($keyB)), 
+											array('$set' => array('updated' => time() ) ));
 
 				}
 			}

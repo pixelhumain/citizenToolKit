@@ -950,7 +950,7 @@ class Mail {
             "type" => Cron::TYPE_MAIL,
             "tpl"=>'confirmYouTo',
             "subject" => "[".self::getAppName()."] ".Yii::t("mail","Confirmation to {what} {where}", 
-                array("{what}"=>$verb, "{where}"=>$parent["name"])),    
+                array("{what}"=>Yii::t("mail",$verb), "{where}"=>$parent["name"])),    
             "from"=>Yii::app()->params['adminEmail'],       
             "to" => $childMail["email"],     
             "tplParams" => array(  
@@ -979,6 +979,15 @@ class Mail {
         $countRepeat=1;
         $labelArray = array() ;
         $myParam = null ;
+
+
+        if($targetType == News::COLLECTION){
+            $news=News::getById($targetId);
+            //$authorNews=News::getAuthor($id);
+            // $parent = Element::getElementSimpleById($news["target"]["id"], $news["target"]["type"], array(), array("name"));
+            $construct["target"] = $news["target"] ;
+        }
+
 
         if(empty($paramTpl["countData"]))
             $paramTpl["countData"] = 0;
@@ -1026,6 +1035,11 @@ class Mail {
 
         if(!empty($construct["object"]))
             $myParam["object"] = $construct["object"];
+
+
+
+
+
 
         foreach ($construct["labelArray"] as $key => $value) {
         	$str =  array( "name" => "",
