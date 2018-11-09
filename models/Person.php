@@ -446,7 +446,7 @@ class Person {
 									$contactComplet[$label]=$v;
 							}
 							
-							if(@$contactComplet["endDate"]){
+							if(@$contactComplet["endDate"] && is_object($contactComplet["endDate"])){
 								date_default_timezone_set('UTC');
 								$contactComplet["endDate"] = date(DateTime::ISO8601, $contactComplet["endDate"]->sec);
 							}
