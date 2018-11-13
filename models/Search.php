@@ -185,9 +185,9 @@ class Search {
   		if(!empty($lastTimes))
   			$query = array('$and' => array($query, array("updated"=>array('$gt' => $lastTimes))));
   		
-  		if($sourceKey!="")
-  			$query['$and'][] = array("source.key"=>$sourceKey);
-
+  		//if($sourceKey!="")
+  		//	$query['$and'][] = array("source.key"=>$sourceKey);
+  		$query = self::searchSourceKey($sourceKey, $query);
   		//if($api == true){
   			//$query = array('$and' => array($query, array("preferences.isOpenData"=> true)));
   		//}

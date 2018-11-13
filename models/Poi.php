@@ -4,6 +4,7 @@ class Poi {
 	const COLLECTION = "poi";
 	const CONTROLLER = "poi";
 	const MODULE = "poi";
+	const ICON = "fa-map-marker";
 	
 	//TODO Translate
 	public static $types = array (
