@@ -173,7 +173,7 @@ class Search {
 		$query = array('$and' => 
 							array( $query , 
 								array("state" => array('$nin' => array("uncomplete", "deleted")),
-									'preferences.private'=>array('$exists'=>false)
+									'$or'=>array(array('preferences.private'=>array('$exists'=>false)), array('preferences.private'=>false))
 								)	
 							)
 						);
