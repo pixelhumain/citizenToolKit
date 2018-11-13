@@ -244,6 +244,8 @@ class Import
                 $element['endDate'] = date('Y-m-d H:i:s', strtotime($element['endDate']));
         }
 
+        
+
         if(!empty($element["tags"]))
             $element["tags"] = self::checkTag($element["tags"]);
         
@@ -541,7 +543,7 @@ class Import
             $warnings[] = "203" ;
 
 
-        if(empty($element['type']) && $typeElement == Organization::COLLECTION || $typeElement == Event::COLLECTION)
+        if(empty($element['type']) && ( $typeElement == Organization::COLLECTION || $typeElement == Event::COLLECTION) )
             $warnings[] = "300" ;
 
         if($typeElement != Person::COLLECTION){
