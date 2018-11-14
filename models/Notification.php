@@ -699,15 +699,15 @@ class Notification{
 					"to"=> "members",
 					"label"=>"{author} confirmed {who} to join {where}",
 					"labelRepeat"=>"{author} confirmed {who} to join {where}",
-					"labelMail"=>"{author} confirmed {who} to join {where}",
-					"labelRepeatMail"=>"{author} confirmed {who} to join {where}",
+					"labelMail"=>"{who} confirmed {what} to join {where}",
+					"labelRepeatMail"=>"{who} confirmed {what} to join {where}",
 				),
 				"asAdmin" => array(
 					"to"=> "members",
 					"label"=>"{author} confirmed {who} to administrate {where}",
 					"labelRepeat"=>"{author} confirmed {who} to administrate {where}",
-					"labelMail"=>"{author} confirmed {who} to administrate {where}",
-					"labelRepeatMail"=>"{author} confirmed {who} to administrate {where}"
+					"labelMail"=>"{who} confirmed {what} to administrate {where}",
+					"labelRepeatMail"=>"{who} confirmed {what} to administrate {where}"
 				),
 				"user" => array(
 					"tpl" => "confirmYouTo",
