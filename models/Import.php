@@ -223,7 +223,7 @@ class Import
 
             if(!empty($address) && !empty($address["addressCountry"])  && !empty($address["postalCode"]) && strtoupper($address["addressCountry"]) == "FR" && strlen($address["postalCode"]) == 4 )
                 $address["postalCode"] = '0'.$address["postalCode"];
-
+                //Rest::json($address); exit;
                 $detailsLocality = self::getAndCheckAddressForEntity($address, $geo) ;
             
             if($detailsLocality["result"] == true){
@@ -243,6 +243,8 @@ class Import
             if(!empty($element['endDate']))
                 $element['endDate'] = date('Y-m-d H:i:s', strtotime($element['endDate']));
         }
+
+
 
         if(!empty($element["tags"]))
             $element["tags"] = self::checkTag($element["tags"]);
@@ -541,7 +543,7 @@ class Import
             $warnings[] = "203" ;
 
 
-        if(empty($element['type']) && $typeElement == Organization::COLLECTION || $typeElement == Event::COLLECTION)
+        if(empty($element['type']) && ( $typeElement == Organization::COLLECTION || $typeElement == Event::COLLECTION) )
             $warnings[] = "300" ;
 
         if($typeElement != Person::COLLECTION){
