@@ -395,6 +395,10 @@ class Element {
 			$element = Network::getById($id);
 		else if($type == Service::COLLECTION)
 			$element = Service::getById($id);
+		else if($type == Product::COLLECTION)
+			$element = Product::getById($id);
+		else if($type == News::COLLECTION)
+			$element = News::getById($id);
 		else
 			$element = PHDB::findOne($type,array("_id"=>new MongoId($id)));
 	  	
