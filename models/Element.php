@@ -401,13 +401,16 @@ class Element {
 	  	if ($element == null) 
 	  		$element = Element::getGhost($type);
 	  		//throw new CTKException("The element you are looking for has been moved or deleted");
-	  	if(@$update && $update && !@$element["images"]){
-	  		$typeEl=(in_array($type, [Event::CONTROLLER, Project::CONTROLLER, Organization::CONTROLLER])) ? Element::getCollectionByControler($type) : $type; 
-	  		$where=array(
-	  			"id"=>$id, "type"=>$typeEl, "doctype"=>"image", 
-	  			"contentKey"=>"profil", "current"=>array('$exists'=>true)
-	  		);
-	  		$element["images"] = Document::getListDocumentsWhere($where, "image");
+	  	if(@$update && $update){
+	  	 	if(!@$element["images"]){
+		  		$typeEl=(in_array($type, [Event::CONTROLLER, Project::CONTROLLER, Organization::CONTROLLER])) ? Element::getCollectionByControler($type) : $type; 
+		  		$where=array(
+		  			"id"=>$id, "type"=>$typeEl, "doctype"=>"image", 
+		  			"contentKey"=>"profil", "current"=>array('$exists'=>true)
+		  		);
+		  		$element["images"] = Document::getListDocumentsWhere($where, "image");
+		  	}
+		  	$element["public"]=(@$element["preferences"] && @$element["preferences"]["private"] && $element["preferences"]["private"]) ? false : true;
 	  	}
 	  	$el = $element;
 		if(@$el["links"]) foreach(array("followers", "follows", "members", "contributors") as $key)
@@ -2083,12 +2086,14 @@ class Element {
 		        $params["created"] = time();
 		    }
 		    
-		    if(@$params["public"] && in_array($params["collection"], [Event::COLLECTION, Project::COLLECTION])){
+		    if(@$params["public"] && in_array($params["collection"], [Event::COLLECTION, Project::COLLECTION, Classified::COLLECTION])){
         		//$params["preferences"]["public"]=$params["public"];
         		if(!is_bool($params["public"]))
 		    		$params["public"] = ($params["public"] == "true") ? true : false;
 		    	if($params["public"]==false)
 		    		$params["preferences"]["private"]=true;
+		    	else
+		    		$params["preferences"]["private"]=false;
         		if(@$params["preferences"]["private"]){
         			$params["preferences"]["isOpenData"]=false;
         			$params["preferences"]["isOpenEdition"]=false;
