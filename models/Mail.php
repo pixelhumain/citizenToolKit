@@ -1106,9 +1106,9 @@ class Mail {
 
     public static function translateLabel($mail){
         //Rest::json($mail); exit ;
-    	$color = "#4285f4";
-    	$color = "#ea0040";
-    	$color = "#95bf00";
+    	// $color = "#4285f4";
+    	// $color = "#ea0040";
+    	// $color = "#95bf00";
         //var_dump($mail); exit ;
 		$resArray=array();
 		if( !empty($mail["labelArray"]) ) {
@@ -1129,24 +1129,14 @@ class Mail {
 							$s="s";
 						$typeMore="person";
 
-						// if( $mail["verb"]==ActStr::VERB_ADD && 
-						// 	!empty($mail["objectType"]) && 
-						// 	$mail["objectType"] == "asMember" )
-						// 	$typeMore="organization";
-
 						$who.=" ".Yii::t("common","and")." ".($countEntry - 2)." ".Yii::t("common", $typeMore.$s);
 					}else{
-                        //$color = Element::getColorMail($value["type"]);
-						$color = "#4285f4";
+						$color = "#ea0040";
                         $img = "";
-
-                        // '<div class="btn-chk-contact">
-                        // 	<img src="http://127.0.0.1/ph/upload/communecter/citoyens/55e042ffe41d754428848363/thumb/profil-resized.png?t=1525847500" class="thumb-send-to bg-yellow" width="35" height="35">
-                        // 	<span class="info-contact"><span class="name-contact text-dark text-bold" idcontact="55e042ffe41d754428848363">Raphael RIVIERE</span><br><span class="cp-contact text-light pull-left" idcontact="55e042ffe41d754428848363">62000&nbsp;</span><span class="city-contact text-light pull-left" idcontact="55e042ffe41d754428848363">ARRAS</span></span></div>'
 
 
                         if(!empty($value["img"])){
-  $img = '<img id="menu-thumb-profil" src="'.Yii::app()->getRequest()->getBaseUrl(true).$value["img"].'" alt="image" width="35" height="35" style="display: inline; vertical-align: middle; border-radius:100%;">';
+                            $img = '<img id="menu-thumb-profil" src="'.Yii::app()->getRequest()->getBaseUrl(true).$value["img"].'" alt="image" width="35" height="35" style="display: inline; vertical-align: middle; border-radius:100%;">';
                         }
 
 
@@ -1183,7 +1173,7 @@ class Mail {
 						$where.=" ";
 
 					//$color = Element::getColorMail($data["type"]);
-					$color = "#95bf00";
+					$color = "#ea0040";
 					$where.= "<a href='".$data["url"]."' target='_blank' style='color:".$color.";font-weight:800;font-variant:small-caps;'>".Yii::t("notification",$data["name"])."</a>";
 					//$where.=Yii::t("notification",$data["name"]);
 					$i++;

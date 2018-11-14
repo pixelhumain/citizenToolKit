@@ -16,6 +16,7 @@ class Project {
 	    "streetAddress" => array("name" => "address.streetAddress"),
 	    "postalCode" => array("name" => "address.postalCode"),
 	    "city" => array("name" => "address.codeInsee"),
+	    "public"  => array("name" => "public"),
 	    "addressCountry" => array("name" => "address.addressCountry"),
 	    "geo" => array("name" => "geo", "rules" => array("geoValid")),
 	    "geoPosition" => array("name" => "geoPosition", "rules" => array("geoPositionValid")),
