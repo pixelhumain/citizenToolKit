@@ -652,11 +652,15 @@ class Import
 									}
 									if(!empty($value["startDate"])){
 										$startDate = DateTime::createFromFormat('Y-m-d H:i:s', $value["startDate"]);
-										$value["startDate"] = $startDate->format('d/m/Y H:i');
+										//$value["startDate"] = $startDate->format('d/m/Y H:i');
+
+                                        //Rest::json($startDate ); exit ;
 									}
+
+
 									if(!empty($value["endDate"])){
 										$endDate = DateTime::createFromFormat('Y-m-d H:i:s', $value["endDate"]);
-										$value["endDate"] = $endDate->format('d/m/Y H:i');
+										//$value["endDate"] = $endDate->format('d/m/Y H:i');
 									}
 
 									if(!empty($value["geo"])){
