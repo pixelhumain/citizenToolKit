@@ -1059,8 +1059,6 @@ class Mail {
 					$str["img"] = @$construct[ "author" ][ "profilThumbImageUrl" ];
                     $str["url"] = Yii::app()->getRequest()->getBaseUrl(true)."/#page.type.".Person::COLLECTION.".id.".$construct[ "author" ]["id"];
                 }
-
-				
             }
             else if("where" == $value && !empty($construct[ "target" ]) ){
                 //$str = @$construct[ "target" ][ "name" ];
@@ -1072,6 +1070,11 @@ class Mail {
                 $str["name"] = (!empty($construct[ "object" ][ "name" ]) ? @$construct[ "object" ][ "name" ] : @$construct[ "object" ][ "title" ]);
                 $str["type"] = @$construct[ "object" ][ "type" ];
                 $str["url"] = Yii::app()->getRequest()->getBaseUrl(true)."/#page.type.".$construct[ "object" ]["type"].".id.".$construct[ "object" ]["id"];
+            }else if("author" == $value && !empty($construct[ "author" ])){
+                $str["name"] = @$construct[ "author" ][ "name" ];
+                $str["type"] = Person::COLLECTION;
+                $str["img"] = @$construct[ "author" ][ "profilThumbImageUrl" ];
+                $str["url"] = Yii::app()->getRequest()->getBaseUrl(true)."/#page.type.".Person::COLLECTION.".id.".$construct[ "author" ]["id"];
             }
 
             if(!empty($str)){
@@ -1133,21 +1136,47 @@ class Mail {
 					}else{
 						$color = "#ea0040";
                         $img = "";
-
-
                         if(!empty($value["img"])){
                             $img = '<img id="menu-thumb-profil" src="'.Yii::app()->getRequest()->getBaseUrl(true).$value["img"].'" alt="image" width="35" height="35" style="display: inline; vertical-align: middle; border-radius:100%;">';
                         }
-
-
                         $who.= "<a href='".$value["url"]."' target='_blank' style='color:".$color.";font-weight:800;font-variant:small-caps;'>".$img." <span style=''>".$value["name"]."</span>"."</a>";
-						//$who.=$value;
                     }
 					$i++;
 				}
 
 				$resArray["{who}"] = $who;
 			}
+
+            if( !empty($mail["labelArray"]["{author}"]) ){
+                $who="";
+                $i=0;
+                $countEntry = count($mail["labelArray"]["{author}"]);
+                foreach ($mail["labelArray"]["{author}"] as $key => $value) {
+                    if($i == 1 && $countEntry==2)
+                        $who.=" ".Yii::t("common","and")." ";
+                    else if($i > 0)
+                        $who.=", ";
+
+                    if($i >= 2 ){
+                        $s="";
+                        if($countEntry > 3)
+                            $s="s";
+                        $typeMore="person";
+
+                        $who.=" ".Yii::t("common","and")." ".($countEntry - 2)." ".Yii::t("common", $typeMore.$s);
+                    }else{
+                        $color = "#ea0040";
+                        $img = "";
+                        if(!empty($value["img"])){
+                            $img = '<img id="menu-thumb-profil" src="'.Yii::app()->getRequest()->getBaseUrl(true).$value["img"].'" alt="image" width="35" height="35" style="display: inline; vertical-align: middle; border-radius:100%;">';
+                        }
+                        $who.= "<a href='".$value["url"]."' target='_blank' style='color:".$color.";font-weight:800;font-variant:small-caps;'>".$img." <span style=''>".$value["name"]."</span>"."</a>";
+                    }
+                    $i++;
+                }
+
+                $resArray["{author}"] = $who;
+            }
 
 			if( !empty($mail["labelArray"]["{what}"]) ){
 				$what="";
