@@ -167,16 +167,43 @@ class Search {
 				$searchType = array(Organization::COLLECTION);
 		}
 		//*********************************  DEFINE GLOBAL QUERY   ******************************************
+		$arrayIds=[];
+		if(@Yii::app()->session["userId"]){
+			$user=Element::getElementSimpleById(Yii::app()->session["userId"],Person::COLLECTION,null, array("links"));
+			$arrayIds=[Yii::app()->session["userId"]];
+			if(@$user["links"]["memberOf"] && !empty($user["links"]["memberOf"])){
+				foreach ($user["links"]["memberOf"] as $key => $data){
+					if(!@$data[Link::TO_BE_VALIDATED])
+						array_push($arrayIds,$key);
+				}
+			}
+			if(@$user["links"]["projects"] && !empty($user["links"]["projects"])){
+				foreach ($user["links"]["projects"] as $key => $data){
+					if(!@$data[Link::TO_BE_VALIDATED])
+						array_push($arrayIds,$key);
+				}
+			}
+			if(@$user["links"]["events"] && !empty($user["links"]["events"])){
+				foreach ($user["links"]["events"] as $key => $data){
+					if(!@$data[Link::TO_BE_VALIDATED])
+						array_push($arrayIds,$key);
+				}
+			}
+		}
 		$query = array();
       	$queryNews=array();
       	$query = Search::searchString($search, $query);
 		$query = array('$and' => 
 							array( $query , 
 								array("state" => array('$nin' => array("uncomplete", "deleted")),
-									'$or'=>array(array('preferences.private'=>array('$exists'=>false)), array('preferences.private'=>false))
+									'$or'=>array(array('preferences.private'=>array('$exists'=>false)), 
+										array('preferences.private'=>false),
+										array("parentId" => array('$in' => $arrayIds)),
+										 )
 								)	
 							)
 						);
+
       	//$queryNews = Search::searchNewsString($search, $query);
       	//$queryNews = array('$and' => array( $queryNews , array("type"=>News::COLLECTION, "scope.type"=>News::TYPE_PUBLIC, "target.type"=>array('$ne'=>"pixels"))));
       	if($latest)

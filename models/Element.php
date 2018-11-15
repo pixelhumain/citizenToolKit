@@ -2025,7 +2025,7 @@ class Element {
 
 
 
-        if (empty($paramsImport)){
+        if (empty($paramsImport) && Preference::isPublicElement(@$params["preferences"])){
         	$targetNewsId=(@$params["parentId"] && !empty($params["parentId"])) ? $params["parentId"] : Yii::app()->session["userId"];
         	$targetNewsType=( @$params["parentType"] && !empty($params["parentType"])) ? $params["parentType"]: Person::COLLECTION; 
 			Notification::createdObjectAsParam( Person::COLLECTION, 
