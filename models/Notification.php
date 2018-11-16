@@ -664,7 +664,7 @@ class Notification{
 					"labelRepeatMail"=>"{author} invited {who} to administrate {where}"
 				),
 				"user" => array(
-					"tpl" => "invitation",
+					"tpl" => "inviteYouTo",
 					"settings"=> "low",
 					"asMember" => array(
 						"label"=>"{author} invited you to join {where}"
