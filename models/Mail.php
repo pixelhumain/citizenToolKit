@@ -857,16 +857,16 @@ class Mail {
 		else
 			$subject = Yii::t("mail", "{what} is waiting for you", array( "{what}"=>self::getAppName() ) ) ;
 
-        if(!@$val["email"] || empty($val["email"])){
+		if(!@$val["email"] || empty($val["email"])){
 			$getEmail=Person::getEmailById($val["id"]);
 			$val["email"]=$getEmail["email"];
-        }
+		}
 
-        $target = (!empty($construct["target"]) ? $construct["target"] : null ) ;
+		$target = (!empty($construct["target"]) ? $construct["target"] : null ) ;
 
-        $value = (!empty($construct["value"]) ? $construct["value"] : null ) ;
+		$value = (!empty($construct["value"]) ? $construct["value"] : null ) ;
 
-        $params = array(
+		$params = array(
 			"type" => Cron::TYPE_MAIL,
 			"tpl"=>'invitation',
 			"subject" => $subject,
@@ -879,50 +879,61 @@ class Mail {
 									"message" => @$msg,
 									"target" => $target,
 									"language" => $val["language"],
-                                    "value" => $value )
-        );
+									"value" => $value )
+		);
 
-        $params=self::getCustomMail($params);
-        if(!empty($invitorUrl))
+		$params=self::getCustomMail($params);
+		if(!empty($invitorUrl))
 			$params["tplParams"]["invitorUrl"] = $invitorUrl;
 
-        Mail::schedule($params);
-    }
+		Mail::schedule($params);
+	}
 
-    //public static function inviteYouTo($parent, $parentType, $newChild, $typeOfDemand) {
-    public static function inviteYouTo($construct, $val) {
-        $invitor = $construct["author"];
-        $target = (!empty($construct["target"]) ? $construct["target"] : null ) ;
-        $value = (!empty($construct["value"]) ? $construct["value"] : null ) ;
+	//public static function inviteYouTo($parent, $parentType, $newChild, $typeOfDemand) {
+	public static function inviteYouTo($construct, $val) {
+		//Rest::json($val); exit;
 
-        if($value["typeOfDemand"]=="admin")
-            $verb="administrate";
-        else{
-            if($parentType==Event::COLLECTION)
-                $verb="participate to";
-            else if($parentType==Project::COLLECTION)
-                $verb="contribute to";
-            else
-                $verb="join";
-        }
-        //$childMail=Person::getEmailById((string)$newChild["_id"]);
-        $params = array (
-            "type" => Cron::TYPE_MAIL,
-            "tpl"=>'inviteYouTo',
-            "subject" => "[".self::getAppName()."] ".Yii::t("mail","Invitation to {what} {where}",array("{what}"=>Yii::t("mail",$verb),"{where}"=>$target["name"])),    
-            "from"=>Yii::app()->params['adminEmail'],       
-            "to" => $val["email"],     
-            "tplParams" => array(    
-                "title" => self::getAppName() , 
-                "invitorName"   => $invitor["name"],
-                "invitorLogo" => @$invitor["profilThumbImageUrl"],
-                "invitedUserId" => $val["id"], 
-                "target" => $target,      
-                "value"=> $value)     
-        );
-        $params=self::getCustomMail($params);
-        Mail::schedule($params);
-    }
+
+		$person = Element::getElementById($val["id"], Person::COLLECTION, null, array("roles"));
+
+		if(!empty($person["roles"]) && !empty($person["roles"]["tobeactivated"]) && $person["roles"]["tobeactivated"] == true){
+			Mail::invitation($construct, $val);
+		}else{
+			$invitor = $construct["author"];
+			$target = (!empty($construct["target"]) ? $construct["target"] : null ) ;
+			$value = (!empty($construct["value"]) ? $construct["value"] : null ) ;
+
+			if($value["typeOfDemand"]=="admin")
+				$verb="administrate";
+			else{
+				if($parentType==Event::COLLECTION)
+					$verb="participate to";
+				else if($parentType==Project::COLLECTION)
+					$verb="contribute to";
+				else
+					$verb="join";
+			}
+
+			$params = array (
+				"type" => Cron::TYPE_MAIL,
+				"tpl"=>'inviteYouTo',
+				"subject" => "[".self::getAppName()."] ".Yii::t("mail","Invitation to {what} {where}",array("{what}"=>Yii::t("mail",$verb),"{where}"=>$target["name"])),
+				"from"=>Yii::app()->params['adminEmail'], 
+				"to" => $val["email"],
+				"tplParams" => array(
+					"title" => self::getAppName() , 
+					"invitorName"   => $invitor["name"],
+					"invitorLogo" => @$invitor["profilThumbImageUrl"],
+					"invitedUserId" => $val["id"], 
+					"target" => $target,
+					"value"=> $value)
+			);
+			$params=self::getCustomMail($params);
+			Mail::schedule($params);
+		}
+
+		
+	}
 
     public static function createNotification($construct, $tpl=null){
         //Rest::json($construct); exit ;

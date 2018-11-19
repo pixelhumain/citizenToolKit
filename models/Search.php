@@ -196,9 +196,10 @@ class Search {
 		$query = array('$and' => 
 							array( $query , 
 								array("state" => array('$nin' => array("uncomplete", "deleted")),
-									'$or'=>array(array('preferences.private'=>array('$exists'=>false)), 
-										array('preferences.private'=>false),
-										array("parentId" => array('$in' => $arrayIds)),
+									'$or'=>array(
+											array('preferences.private'=>array('$exists'=>false)), 
+											array('preferences.private'=>false),
+											array("parentId" => array('$in' => $arrayIds)),
 										 )
 								)	
 							)
@@ -920,7 +921,8 @@ class Search {
 	//*********************************  PERSONS   ******************************************
   	public static function searchPersons($query, $indexStep, $indexMin, $prefLocality=false){
        	$res = array();
-       	$query = array('$and' => array( $query , array("tobeactivated" => array('$exists' => 0)))) ;
+       	$query = array('$and' => array( $query , array("roles.tobeactivated" => array('$exists' => 0)))) ;
+
        	$allCitoyen = PHDB::findAndSortAndLimitAndIndex ( Person::COLLECTION , $query, 
   										  array("updated" => -1), $indexStep, $indexMin);
        	//print_r($allCitoyen);

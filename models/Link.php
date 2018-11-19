@@ -1087,8 +1087,8 @@ class Link {
        
         $valNotif = array( "typeOfDemand" => $typeOfDemand,
                             "verb" => $verb);
-		// Link::connect($parentId, $parentType, $childId, $childType,Yii::app()->session["userId"], $parentConnectAs, $isConnectingAdmin, $toBeValidatedAdmin, $toBeValidated, $isInviting, $userRole);
-  //       Link::connect($childId, $childType, $parentId, $parentType, Yii::app()->session["userId"], $childConnectAs, $isConnectingAdmin, $toBeValidatedAdmin, $toBeValidated, $isInviting, $userRole);
+		Link::connect($parentId, $parentType, $childId, $childType,Yii::app()->session["userId"], $parentConnectAs, $isConnectingAdmin, $toBeValidatedAdmin, $toBeValidated, $isInviting, $userRole);
+        Link::connect($childId, $childType, $parentId, $parentType, Yii::app()->session["userId"], $childConnectAs, $isConnectingAdmin, $toBeValidatedAdmin, $toBeValidated, $isInviting, $userRole);
         //Rest::json(array($verb, $pendingChild )); exit ;
         Notification::constructNotification($verb, $pendingChild , array("type"=>$parentType,"id"=> $parentId,"name"=>$parentData["name"]), null, $levelNotif, null, $valNotif);
         //Notification::actionOnPerson($verb, ActStr::ICON_SHARE, $pendingChild , array("type"=>$parentType,"id"=> $parentId,"name"=>$parentData["name"]), $invitation);
@@ -1233,20 +1233,12 @@ class Link {
 
 
 	public static function multiconnect($child, $parentId, $parentType){
-		// assert('!empty($child)'); //The childs are mandatory');
-	 //    //assert('!empty($_POST["childType"])'); //The child type is mandatory');
-	 //    assert('!empty($parentId)'); //The parent id is mandatory');
-	 //    assert('!empty($parentType)'); //The parent type is mandatory');
-        //var_dump($child);
-	    $result = array("result"=>false, "msg"=>Yii::t("common", "Incorrect request"));
+        $result = array("result"=>false, "msg"=>Yii::t("common", "Incorrect request"));
 		
 		if ( ! Person::logguedAndValid() ) {
 			return array("result"=>false, "msg"=>Yii::t("common", "You are not loggued or do not have acces to this feature "));
 		}
-	
-		// $parentId = $parentId;
-  //   	$parentType = $parentType;
-    	//$isConnectingAdmin = @$_POST["connectType"];
+        
 		$newMembers = array();
 		$msg=false;
 		$finalResult = false;
