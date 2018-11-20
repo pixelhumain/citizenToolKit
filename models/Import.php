@@ -20,7 +20,7 @@ class Import
         $attributesElt = ArrayHelper::getAllPathJson(file_get_contents("../../modules/co2/data/import/".Element::getControlerByCollection($post["typeElement"]).".json", FILE_USE_INCLUDE_PATH));
         if($post['idMapping'] != "-1"){
             $where = array("_id" => new MongoId($post['idMapping']));
-            $fields = array("fields");
+            $fields = array();
             $mapping = self::getMappings($where, $fields);
             //Remplace les "_dot_" par des "."
             $mapping[$post['idMapping']]["fields"] = Mapping::replaceByRealDot($mapping[$post['idMapping']]["fields"]);
@@ -31,6 +31,8 @@ class Import
         $params = array("result"=>true,
                         "attributesElt"=>$attributesElt,
                         "arrayMapping"=>$arrayMapping,
+                        "idMapping"=>$post['idMapping'],
+                        "mapping"=> $mapping[$post['idMapping']],
                         "typeFile"=>$post['typeFile']);
         return $params ;
     }
@@ -47,7 +49,7 @@ class Import
             if($post['idMapping'] != "-1"){
                 
                 $where = array("_id" => new MongoId($post['idMapping']));
-                $fields = array("fields");
+                $fields = array();
                 $mapping = self::getMappings($where, $fields);
                 $mapping[$post['idMapping']]["fields"] = Mapping::replaceByRealDot($mapping[$post['idMapping']]["fields"]);
                 $arrayMapping = $mapping[$post['idMapping']]["fields"];
@@ -71,6 +73,8 @@ class Import
             $params = array("result"=>true,
                         "attributesElt"=>$attributesElt,
                         "arrayMapping"=>$arrayMapping,
+                        "idMapping"=>$post['idMapping'],
+                        "mapping"=> $mapping[$post['idMapping']],
                         "arbre"=>$arbre,
                         "typeFile"=>$post['typeFile']);          
         }
@@ -389,15 +393,9 @@ class Import
 		$result = false;
 		$saveCities = array();
 
-<<<<<<< HEAD
 		if( !empty($address["addressLocality"]) && 
             !empty($address["addressCountry"]) && 
             empty($geo["latitude"]) && empty($geo["longitude"]) ) {
-
-            
-=======
-		if( !empty($address["addressLocality"]) && !empty($address["addressCountry"]) ){
->>>>>>> d4337746e9e9e67847e60775d4ae1a4214e91957
             $city = null ;
             if(!empty($address["codeInsee"])){
                 $where = array('$and' => array(
@@ -478,18 +476,6 @@ class Import
                         }
                         if($result == true)
                             break;
-<<<<<<< HEAD
-					}
-				}
-			}
-
-		} else if(!empty($geo["latitude"]) && !empty($geo["longitude"])){
-			$lat = ( is_numeric($geo["latitude"]) ? strval($geo["latitude"]) : $geo["latitude"] ) ;
-			$lon = ( is_numeric($geo["longitude"]) ? strval($geo["longitude"]) : $geo["longitude"] ) ;
-
-			$city = SIG::getCityByLatLngGeoShape( $lat, $lon, null, (!empty($address["addressCountry"]) ? $address["addressCountry"] : null ) ) ;
-
-=======
                     }
                 }
             }
@@ -497,7 +483,6 @@ class Import
             $lat = ( is_numeric($geo["latitude"]) ? strval($geo["latitude"]) : $geo["latitude"] ) ;
             $lon = ( is_numeric($geo["longitude"]) ? strval($geo["longitude"]) : $geo["longitude"] ) ;
             $city = SIG::getCityByLatLngGeoShape( $lat, $lon, null, (!empty($address["addressCountry"]) ? $address["addressCountry"] : null ) ) ;
->>>>>>> d4337746e9e9e67847e60775d4ae1a4214e91957
             if(!empty($city)){
                 $newA = self::getAddressConform($city, $address);
                 $newGeo = SIG::getFormatGeo($lat, $lon);
