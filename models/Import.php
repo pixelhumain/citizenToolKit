@@ -379,7 +379,9 @@ class Import
 		$result = false;
 		$saveCities = array();
 
-		if( !empty($address["addressLocality"]) && !empty($address["addressCountry"]) ){
+		if( !empty($address["addressLocality"]) && 
+            !empty($address["addressCountry"]) && 
+            empty($geo["latitude"]) && empty($geo["longitude"]) ) {
 
             
             $city = null ;
@@ -391,7 +393,6 @@ class Import
             }
             if( stripos($address["addressLocality"], "CEDEX") !== false && $address["addressCountry"] == "FR" ){
                 $local = trim(str_replace("CEDEX", "", $address["addressLocality"]));
-                //var_dump($local);
                 $regexCity = Search::accentToRegex(strtolower($local));
             }
             else
@@ -476,7 +477,7 @@ class Import
 				}
 			}
 
-		}else if(!empty($geo["latitude"]) && !empty($geo["longitude"])){
+		} else if(!empty($geo["latitude"]) && !empty($geo["longitude"])){
 			$lat = ( is_numeric($geo["latitude"]) ? strval($geo["latitude"]) : $geo["latitude"] ) ;
 			$lon = ( is_numeric($geo["longitude"]) ? strval($geo["longitude"]) : $geo["longitude"] ) ;
 
