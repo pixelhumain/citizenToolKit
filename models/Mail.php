@@ -436,37 +436,39 @@ class Mail {
      * @param string $typeOfDemand gives the link definition between the parent and the child
      * @return null
      */
-    public static function someoneInviteYouToBecome($parent, $parentType, $newChild, $typeOfDemand) {
-        if($typeOfDemand=="admin")
-            $verb="administrate";
-        else{
-            if($parentType==Event::COLLECTION)
-                $verb="participate to";
-            else if($parentType==Project::COLLECTION)
-                $verb="contribute to";
-            else
-                $verb="join";
-        }
-        $childMail=Person::getEmailById((string)$newChild["_id"]);
-        $params = array (
-            "type" => Cron::TYPE_MAIL,
-            "tpl"=>'inviteYouTo',
-            "subject" => "[".self::getAppName()."] ".Yii::t("mail","Invitation to {what} {where}",array("{what}"=>Yii::t("mail",$verb),"{where}"=>$parent["name"])),    
-            "from"=>Yii::app()->params['adminEmail'],       
-            "to" => $childMail["email"],     
-            "tplParams" => array(  
-                "newChild"=> $newChild,      
-                "title" => self::getAppName() , 
-                "invitorName"=>Yii::app()->session["user"]["name"],   
-                "invitorId" => Yii::app()->session["userId"],  
-                "parent" => $parent,       
-                "parentType" => $parentType,       
-                "typeOfDemand"=> $typeOfDemand,
-                "verb"=> $verb)     
-        );
-        $params=self::getCustomMail($params);
-        Mail::schedule($params);
-    }
+    // public static function someoneInviteYouToBecome($parent, $parentType, $newChild, $typeOfDemand) {
+    //     if($typeOfDemand=="admin")
+    //         $verb="administrate";
+    //     else{
+    //         if($parentType==Event::COLLECTION)
+    //             $verb="participate to";
+    //         else if($parentType==Project::COLLECTION)
+    //             $verb="contribute to";
+    //         else
+    //             $verb="join";
+    //     }
+    //     $childMail=Person::getEmailById((string)$newChild["_id"]);
+    //     $params = array (
+    //         "type" => Cron::TYPE_MAIL,
+    //         "tpl"=>'inviteYouTo',
+    //         "subject" => "[".self::getAppName()."] ".Yii::t("mail","Invitation to {what} {where}",array("{what}"=>Yii::t("mail",$verb),"{where}"=>$parent["name"])),    
+    //         "from"=>Yii::app()->params['adminEmail'],       
+    //         "to" => $childMail["email"],     
+    //         "tplParams" => array(  
+    //             "newChild"=> $newChild,      
+    //             "title" => self::getAppName() , 
+    //             "invitorName"=>Yii::app()->session["user"]["name"],   
+    //             "invitorId" => Yii::app()->session["userId"],  
+    //             "parent" => $parent,       
+    //             "parentType" => $parentType,       
+    //             "typeOfDemand"=> $typeOfDemand,
+    //             "verb"=> $verb)     
+    //     );
+    //     $params=self::getCustomMail($params);
+    //     Mail::schedule($params);
+    // }
+
+
     
     /**
      * Send an email to person or member when a follow is done on him or one of its elment
@@ -833,14 +835,14 @@ class Mail {
             "type" => Cron::TYPE_MAIL,
             "tpl"=>'askToBecome',
             "subject" => "[".self::getAppName()."] ".Yii::t("mail","A citizen ask to become {what} of {where}", 
-                array("{what}"=>$construct["value"], "{where}"=>$construct["target"]["name"])),
+                array("{what}"=>Yii::t("common",@$construct["value"]["typeOfDemand"]), "{where}"=>$construct["target"]["name"])),
             "from"=>Yii::app()->params['adminEmail'],
             "to" => $val["email"],
-            "tplParams" => array(	"newPendingAdmin"=> $val ,
+            "tplParams" => array(	"newPendingAdmin"=> $construct["author"] ,
 									"title" => self::getAppName() ,
 									"parent" => $construct["target"],
 									"parentType" => $construct["target"]["type"],
-									"typeOfDemand"=> $construct["value"])
+									"typeOfDemand"=> @$construct["value"]["typeOfDemand"])
         );  
         $params=self::getCustomMail($params); 
         Mail::schedule($params);
@@ -855,14 +857,16 @@ class Mail {
 		else
 			$subject = Yii::t("mail", "{what} is waiting for you", array( "{what}"=>self::getAppName() ) ) ;
 
-        if(!@$val["email"] || empty($val["email"])){
+		if(!@$val["email"] || empty($val["email"])){
 			$getEmail=Person::getEmailById($val["id"]);
 			$val["email"]=$getEmail["email"];
-        }
+		}
 
-        $target = (!empty($construct["target"]) ? $construct["target"] : null ) ;
+		$target = (!empty($construct["target"]) ? $construct["target"] : null ) ;
 
-        $params = array(
+		$value = (!empty($construct["value"]) ? $construct["value"] : null ) ;
+
+		$params = array(
 			"type" => Cron::TYPE_MAIL,
 			"tpl"=>'invitation',
 			"subject" => $subject,
@@ -874,15 +878,62 @@ class Mail {
 									"invitedUserId" => $val["id"],
 									"message" => @$msg,
 									"target" => $target,
-									"language" => $val["language"] )
-        );
+									"language" => $val["language"],
+									"value" => $value )
+		);
 
-        $params=self::getCustomMail($params);
-        if(!empty($invitorUrl))
+		$params=self::getCustomMail($params);
+		if(!empty($invitorUrl))
 			$params["tplParams"]["invitorUrl"] = $invitorUrl;
 
-        Mail::schedule($params);
-    }
+		Mail::schedule($params);
+	}
+
+	//public static function inviteYouTo($parent, $parentType, $newChild, $typeOfDemand) {
+	public static function inviteYouTo($construct, $val) {
+		//Rest::json($val); exit;
+
+
+		$person = Element::getElementById($val["id"], Person::COLLECTION, null, array("roles"));
+
+		if(!empty($person["roles"]) && !empty($person["roles"]["tobeactivated"]) && $person["roles"]["tobeactivated"] == true){
+			Mail::invitation($construct, $val);
+		}else{
+			$invitor = $construct["author"];
+			$target = (!empty($construct["target"]) ? $construct["target"] : null ) ;
+			$value = (!empty($construct["value"]) ? $construct["value"] : null ) ;
+
+			if($value["typeOfDemand"]=="admin")
+				$verb="administrate";
+			else{
+				if($parentType==Event::COLLECTION)
+					$verb="participate to";
+				else if($parentType==Project::COLLECTION)
+					$verb="contribute to";
+				else
+					$verb="join";
+			}
+
+			$params = array (
+				"type" => Cron::TYPE_MAIL,
+				"tpl"=>'inviteYouTo',
+				"subject" => "[".self::getAppName()."] ".Yii::t("mail","Invitation to {what} {where}",array("{what}"=>Yii::t("mail",$verb),"{where}"=>$target["name"])),
+				"from"=>Yii::app()->params['adminEmail'], 
+				"to" => $val["email"],
+				"tplParams" => array(
+					"title" => self::getAppName() , 
+					"invitorName"   => $invitor["name"],
+					"invitorLogo" => @$invitor["profilThumbImageUrl"],
+					"invitedUserId" => $val["id"], 
+					"target" => $target,
+					"value"=> $value)
+			);
+			$params=self::getCustomMail($params);
+			Mail::schedule($params);
+		}
+
+		
+	}
 
     public static function createNotification($construct, $tpl=null){
         //Rest::json($construct); exit ;
@@ -895,6 +946,7 @@ class Mail {
                     Mail::$tpl($construct, $value);
                 } else {
                     $mail = Mail::getMailUpdate($value["email"], 'notification') ;
+                    //Rest::json($mail); exit ;
                     if(!empty($mail)){
                         $paramTpl = self::createParamsTpl($construct, $mail["tplParams"]["data"]);
                         $mail["tplParams"]["data"]= $paramTpl ;
@@ -949,7 +1001,7 @@ class Mail {
             "type" => Cron::TYPE_MAIL,
             "tpl"=>'confirmYouTo',
             "subject" => "[".self::getAppName()."] ".Yii::t("mail","Confirmation to {what} {where}", 
-                array("{what}"=>$verb, "{where}"=>$parent["name"])),    
+                array("{what}"=>Yii::t("mail",$verb), "{where}"=>$parent["name"])),    
             "from"=>Yii::app()->params['adminEmail'],       
             "to" => $childMail["email"],     
             "tplParams" => array(  
@@ -979,6 +1031,15 @@ class Mail {
         $labelArray = array() ;
         $myParam = null ;
 
+
+        if($targetType == News::COLLECTION){
+            $news=News::getById($targetId);
+            //$authorNews=News::getAuthor($id);
+            // $parent = Element::getElementSimpleById($news["target"]["id"], $news["target"]["type"], array(), array("name"));
+            $construct["target"] = $news["target"] ;
+        }
+
+
         if(empty($paramTpl["countData"]))
             $paramTpl["countData"] = 0;
 
@@ -990,13 +1051,18 @@ class Mail {
         		if(	$valD["verb"] == $verb && 
         			$valD["targetType"] == $targetType && 
         			$valD["targetId"] == $targetId && 
-        			( !empty($construct["object"]) && !empty($valD["object"]) && $valD["object"]["type"] == $construct["object"]["type"]  ) ) {
+        			(	( 	!empty($construct["object"]) && 
+                        	!empty($valD["object"]) && 
+                        	$valD["object"]["type"] == $construct["object"]["type"]  ) ||
+                        empty($construct["object"] ) ) ) {
         			$myParam = $valD ;
         			$repeatKey = $keyD ;
         			break;
         		} 
         	}
         }
+
+        //Rest::json($myParam) ;exit;
 
         if($myParam == null)
 	        $myParam = array(
@@ -1021,6 +1087,11 @@ class Mail {
         if(!empty($construct["object"]))
             $myParam["object"] = $construct["object"];
 
+
+
+
+
+
         foreach ($construct["labelArray"] as $key => $value) {
         	$str =  array( "name" => "",
                            "url" => "" ) ;
@@ -1039,8 +1110,6 @@ class Mail {
 					$str["img"] = @$construct[ "author" ][ "profilThumbImageUrl" ];
                     $str["url"] = Yii::app()->getRequest()->getBaseUrl(true)."/#page.type.".Person::COLLECTION.".id.".$construct[ "author" ]["id"];
                 }
-
-				
             }
             else if("where" == $value && !empty($construct[ "target" ]) ){
                 //$str = @$construct[ "target" ][ "name" ];
@@ -1052,6 +1121,11 @@ class Mail {
                 $str["name"] = (!empty($construct[ "object" ][ "name" ]) ? @$construct[ "object" ][ "name" ] : @$construct[ "object" ][ "title" ]);
                 $str["type"] = @$construct[ "object" ][ "type" ];
                 $str["url"] = Yii::app()->getRequest()->getBaseUrl(true)."/#page.type.".$construct[ "object" ]["type"].".id.".$construct[ "object" ]["id"];
+            }else if("author" == $value && !empty($construct[ "author" ])){
+                $str["name"] = @$construct[ "author" ][ "name" ];
+                $str["type"] = Person::COLLECTION;
+                $str["img"] = @$construct[ "author" ][ "profilThumbImageUrl" ];
+                $str["url"] = Yii::app()->getRequest()->getBaseUrl(true)."/#page.type.".Person::COLLECTION.".id.".$construct[ "author" ]["id"];
             }
 
             if(!empty($str)){
@@ -1079,16 +1153,16 @@ class Mail {
         
         if($repeat == null)
         	$paramTpl["countData"]++ ;
-
+        //Rest::json($paramTpl); exit ;
         return $paramTpl ;
 
     }
 
     public static function translateLabel($mail){
         //Rest::json($mail); exit ;
-    	$color = "#4285f4";
-    	$color = "#ea0040";
-    	$color = "#95bf00";
+    	// $color = "#4285f4";
+    	// $color = "#ea0040";
+    	// $color = "#95bf00";
         //var_dump($mail); exit ;
 		$resArray=array();
 		if( !empty($mail["labelArray"]) ) {
@@ -1109,35 +1183,51 @@ class Mail {
 							$s="s";
 						$typeMore="person";
 
-						// if( $mail["verb"]==ActStr::VERB_ADD && 
-						// 	!empty($mail["objectType"]) && 
-						// 	$mail["objectType"] == "asMember" )
-						// 	$typeMore="organization";
-
 						$who.=" ".Yii::t("common","and")." ".($countEntry - 2)." ".Yii::t("common", $typeMore.$s);
 					}else{
-                        //$color = Element::getColorMail($value["type"]);
-						$color = "#4285f4";
+						$color = "#ea0040";
                         $img = "";
-
-                        // '<div class="btn-chk-contact">
-                        // 	<img src="http://127.0.0.1/ph/upload/communecter/citoyens/55e042ffe41d754428848363/thumb/profil-resized.png?t=1525847500" class="thumb-send-to bg-yellow" width="35" height="35">
-                        // 	<span class="info-contact"><span class="name-contact text-dark text-bold" idcontact="55e042ffe41d754428848363">Raphael RIVIERE</span><br><span class="cp-contact text-light pull-left" idcontact="55e042ffe41d754428848363">62000&nbsp;</span><span class="city-contact text-light pull-left" idcontact="55e042ffe41d754428848363">ARRAS</span></span></div>'
-
-
                         if(!empty($value["img"])){
-  $img = '<img id="menu-thumb-profil" src="'.Yii::app()->getRequest()->getBaseUrl(true).$value["img"].'" alt="image" width="35" height="35" style="display: inline; vertical-align: middle; border-radius:100%;">';
+                            $img = '<img id="menu-thumb-profil" src="'.Yii::app()->getRequest()->getBaseUrl(true).$value["img"].'" alt="image" width="35" height="35" style="display: inline; vertical-align: middle; border-radius:100%;">';
                         }
-
-
                         $who.= "<a href='".$value["url"]."' target='_blank' style='color:".$color.";font-weight:800;font-variant:small-caps;'>".$img." <span style=''>".$value["name"]."</span>"."</a>";
-						//$who.=$value;
                     }
 					$i++;
 				}
 
 				$resArray["{who}"] = $who;
 			}
+
+            if( !empty($mail["labelArray"]["{author}"]) ){
+                $who="";
+                $i=0;
+                $countEntry = count($mail["labelArray"]["{author}"]);
+                foreach ($mail["labelArray"]["{author}"] as $key => $value) {
+                    if($i == 1 && $countEntry==2)
+                        $who.=" ".Yii::t("common","and")." ";
+                    else if($i > 0)
+                        $who.=", ";
+
+                    if($i >= 2 ){
+                        $s="";
+                        if($countEntry > 3)
+                            $s="s";
+                        $typeMore="person";
+
+                        $who.=" ".Yii::t("common","and")." ".($countEntry - 2)." ".Yii::t("common", $typeMore.$s);
+                    }else{
+                        $color = "#ea0040";
+                        $img = "";
+                        if(!empty($value["img"])){
+                            $img = '<img id="menu-thumb-profil" src="'.Yii::app()->getRequest()->getBaseUrl(true).$value["img"].'" alt="image" width="35" height="35" style="display: inline; vertical-align: middle; border-radius:100%;">';
+                        }
+                        $who.= "<a href='".$value["url"]."' target='_blank' style='color:".$color.";font-weight:800;font-variant:small-caps;'>".$img." <span style=''>".$value["name"]."</span>"."</a>";
+                    }
+                    $i++;
+                }
+
+                $resArray["{author}"] = $who;
+            }
 
 			if( !empty($mail["labelArray"]["{what}"]) ){
 				$what="";
@@ -1163,7 +1253,7 @@ class Mail {
 						$where.=" ";
 
 					//$color = Element::getColorMail($data["type"]);
-					$color = "#95bf00";
+					$color = "#ea0040";
 					$where.= "<a href='".$data["url"]."' target='_blank' style='color:".$color.";font-weight:800;font-variant:small-caps;'>".Yii::t("notification",$data["name"])."</a>";
 					//$where.=Yii::t("notification",$data["name"]);
 					$i++;
