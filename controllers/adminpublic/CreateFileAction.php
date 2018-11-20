@@ -14,7 +14,8 @@ class CreateFileAction extends CAction
         $userId = Yii::app()->session["userId"];
         $where = array("userId" => $userId);
 
-    	$params["allMappings"] = Import::getMappings($where);
+        $params["allMappings"] = Import::getMappings($where);
+        
     	if(Yii::app()->request->isAjaxRequest)
             echo $controller->renderPartial("createfile",$params,true);
         else 
