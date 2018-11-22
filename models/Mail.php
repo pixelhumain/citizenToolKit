@@ -136,6 +136,7 @@ class Mail {
         );
         Mail::schedule($params);
     }
+
     public static function invitePerson($person, $msg = null, $nameInvitor = null, $invitorUrl = null, $subject=null) {
         if(isset($person["invitedBy"]))
             $invitor = Person::getSimpleUserById($person["invitedBy"]);
@@ -180,6 +181,7 @@ class Mail {
         
         Mail::schedule($params);
     }
+
     public static function relaunchInvitePerson($person, $nameInvitor = null, $invitorUrl = null, $subject=null) {
         if(isset($person["invitedBy"]))
             $invitor = Person::getSimpleUserById($person["invitedBy"]);
@@ -426,6 +428,7 @@ class Mail {
             Mail::schedule($params);
         }
     }
+
     /**
      * Send an email to the person invite by a member of an element 
      * @param array $parent datas of an element where person is inviting
@@ -433,78 +436,40 @@ class Mail {
      * @param string $typeOfDemand gives the link definition between the parent and the child
      * @return null
      */
-    public static function someoneInviteYouToBecome($parent, $parentType, $newChild, $typeOfDemand) {
-        if($typeOfDemand=="admin")
-            $verb="administrate";
-        else{
-            if($parentType==Event::COLLECTION)
-                $verb="participate to";
-            else if($parentType==Project::COLLECTION)
-                $verb="contribute to";
-            else
-                $verb="join";
-        }
-        $childMail=Person::getEmailById((string)$newChild["_id"]);
-        $params = array (
-            "type" => Cron::TYPE_MAIL,
-            "tpl"=>'inviteYouTo',
-            "subject" => "[".self::getAppName()."] ".Yii::t("mail","Invitation to {what} {where}",array("{what}"=>Yii::t("mail",$verb),"{where}"=>$parent["name"])),    
-            "from"=>Yii::app()->params['adminEmail'],       
-            "to" => $childMail["email"],     
-            "tplParams" => array(  
-                "newChild"=> $newChild,      
-                "title" => self::getAppName() , 
-                "invitorName"=>Yii::app()->session["user"]["name"],   
-                "invitorId" => Yii::app()->session["userId"],  
-                "parent" => $parent,       
-                "parentType" => $parentType,       
-                "typeOfDemand"=> $typeOfDemand,
-                "verb"=> $verb)     
-        );
-        $params=self::getCustomMail($params);
-        Mail::schedule($params);
-    }
-    /**
+    // public static function someoneInviteYouToBecome($parent, $parentType, $newChild, $typeOfDemand) {
+    //     if($typeOfDemand=="admin")
+    //         $verb="administrate";
+    //     else{
+    //         if($parentType==Event::COLLECTION)
+    //             $verb="participate to";
+    //         else if($parentType==Project::COLLECTION)
+    //             $verb="contribute to";
+    //         else
+    //             $verb="join";
+    //     }
+    //     $childMail=Person::getEmailById((string)$newChild["_id"]);
+    //     $params = array (
+    //         "type" => Cron::TYPE_MAIL,
+    //         "tpl"=>'inviteYouTo',
+    //         "subject" => "[".self::getAppName()."] ".Yii::t("mail","Invitation to {what} {where}",array("{what}"=>Yii::t("mail",$verb),"{where}"=>$parent["name"])),    
+    //         "from"=>Yii::app()->params['adminEmail'],       
+    //         "to" => $childMail["email"],     
+    //         "tplParams" => array(  
+    //             "newChild"=> $newChild,      
+    //             "title" => self::getAppName() , 
+    //             "invitorName"=>Yii::app()->session["user"]["name"],   
+    //             "invitorId" => Yii::app()->session["userId"],  
+    //             "parent" => $parent,       
+    //             "parentType" => $parentType,       
+    //             "typeOfDemand"=> $typeOfDemand,
+    //             "verb"=> $verb)     
+    //     );
+    //     $params=self::getCustomMail($params);
+    //     Mail::schedule($params);
+    // }
 
-     * Send an email to the person when its request is confirmed
-     * @param array $parent datas of an element where person is inviting
-     * @param array $newChild Datas of a person inviting
-     * @param string $typeOfDemand gives the link definition between the parent and the child
-     * @return null
-     */
 
-    public static function someoneConfirmYouTo($parent, $parentType, $child, $typeOfDemand) {
-        if($typeOfDemand=="admin")
-            $verb="administrate";
-        else{
-            if($parentType==Event::COLLECTION)
-                $verb="participate to";
-            else if($parentType==Project::COLLECTION)
-                $verb="contribute to";
-            else
-                $verb="join";
-        }
-        $childMail=Person::getEmailById((string)$child["_id"]);
-        $params = array (
-            "type" => Cron::TYPE_MAIL,
-            "tpl"=>'confirmYouTo',
-            "subject" => "[".self::getAppName()."] ".Yii::t("mail","Confirmation to {what} {where}", 
-                array("{what}"=>$verb, "{where}"=>$parent["name"])),    
-            "from"=>Yii::app()->params['adminEmail'],       
-            "to" => $childMail["email"],     
-            "tplParams" => array(  
-                "newChild"=> $child,      
-                "title" => self::getAppName() , 
-                "authorName"=>Yii::app()->session["user"]["name"],   
-                "authorId" => Yii::app()->session["userId"],  
-                "parent" => $parent,       
-                "parentType" => $parentType,       
-                "typeOfDemand"=> $typeOfDemand,
-                "verb"=> $verb)     
-        );
-        $params=self::getCustomMail($params);   
-        Mail::schedule($params);
-    }
+    
     /**
      * Send an email to person or member when a follow is done on him or one of its elment
      * @param array $parent datas of an element where person is following
@@ -831,57 +796,6 @@ class Mail {
     }
 
 
-    public static function mailNotif($parentId, $parentType, $paramsMail = null) {
-        // var_dump($parentId);
-        // var_dump($parentType);
-        //var_dump($paramsMail);exit;
-        $element = Element::getElementById( $parentId, $parentType, null, array("links", "name") );
-       
-        foreach ($element["links"]["members"] as $key => $value) {
-            
-            if ($key != Yii::app()->session["userId"]) {
-
-                $member = Element::getElementById( $key, Person::COLLECTION, null, array("email","preferences") );
-
-                if (!empty($member["email"]) && 
-                    !empty($member["preferences"]) && 
-                    !empty($member["preferences"]["mailNotif"]) &&
-                    $member["preferences"]["mailNotif"] == true ) {
-                    
-                    $mail = Mail::getMailUpdate($member["email"], 'mailNotif') ;
-                    if(!empty($mail)){
-
-                        $paramTpl = self::createParamsTpl($paramsMail, $mail["tplParams"]["data"]);
-                        // var_dump($paramTpl); exit ;
-                        $mail["tplParams"]["data"] = $paramTpl ;
-                        PHDB::update(Cron::COLLECTION,
-                            array("_id" => $mail["_id"]) , 
-                            array('$set' => array("tplParams" => $mail["tplParams"]))           
-                        );
-
-                    }else{
-                        $paramTpl = self::createParamsTpl($paramsMail, null);
-                        // var_dump($paramTpl); exit ;
-                        $params = array (
-                            "type" => Cron::TYPE_MAIL,
-                            "tpl"=>'mailNotif',
-                            "subject" => "[".self::getAppName()."] - Nouveau message dans ".@$element["name"],
-                            "from"=>Yii::app()->params['adminEmail'],
-                            "to" => $member["email"],
-                            "tplParams" => array(
-                                "elementType" => $parentType,
-                                "elementName" => $element["name"],
-                                "userName" => @$user["name"],
-                                "data" => $paramTpl)
-                        );
-                        $params=self::getCustomMail($params);
-                        Mail::schedule($params, true);
-                    }
-                }
-            }
-        }
-    }
-
     public static function getCustomMail($params){
         if(@Yii::app()->session["custom"] && @Yii::app()->session["custom"]["logo"]){
             $params["tplParams"]["logo"]=Yii::app()->session["custom"]["logo"];
@@ -903,94 +817,457 @@ class Mail {
         return $params;
 
     }
-    
-    public static function createParamsMails($verb, $target = null, $object = null, $author = null){
-        $paramsMail = Mail::$mailTree[$verb];
 
-        if($verb == ActStr::VERB_ADD){
-            if(!empty($paramsMail["type"][$object["type"]])){
-                $type = $paramsMail["type"][$object["type"]];
-                // var_dump($target["type"]);
-                // var_dump($paramsMail["type"][$target["type"]]); exit ;
-                unset($paramsMail["type"][$object["type"]]);
-                $paramsMail = array_merge($paramsMail, $type);
-            }
-        }else{
-            if(!empty($paramsMail["type"][$target["type"]])){
-                $type = $paramsMail["type"][$target["type"]];
-                // var_dump($target["type"]);
-                // var_dump($paramsMail["type"][$target["type"]]); exit ;
-                unset($paramsMail["type"][$target["type"]]);
-                $paramsMail = array_merge($paramsMail, $type);
-            }
-        }
-        
 
-        $paramsMail["verb"] = $verb;
-        $paramsMail["target"]=$target;
-        $paramsMail["object"]=$object;
-        $paramsMail["author"]=$author;
+    /**
+     * Send an email when some one ask to become an admin of an organization to the current admins
+     * @param array $organization datas of an organization
+     * @param array $newPendingAdmin Datas of a person asking to become an admin
+     * @param array $listofAdminsEmail array of email to send to
+     * @return null
+     */
 
-        return $paramsMail;
+    // public static function askToBecome( $parent, $parentType, $newPendingAdmin, $listofAdminsEmail, $typeOfDemand) {
+
+	public static function askToBecome($construct, $val) {
+		//Rest::json($construct); exit ; 
+        $params = array (
+            "type" => Cron::TYPE_MAIL,
+            "tpl"=>'askToBecome',
+            "subject" => "[".self::getAppName()."] ".Yii::t("mail","A citizen ask to become {what} of {where}", 
+                array("{what}"=>Yii::t("common",@$construct["value"]["typeOfDemand"]), "{where}"=>$construct["target"]["name"])),
+            "from"=>Yii::app()->params['adminEmail'],
+            "to" => $val["email"],
+            "tplParams" => array(	"newPendingAdmin"=> $construct["author"] ,
+									"title" => self::getAppName() ,
+									"parent" => $construct["target"],
+									"parentType" => $construct["target"]["type"],
+									"typeOfDemand"=> @$construct["value"]["typeOfDemand"])
+        );  
+        $params=self::getCustomMail($params); 
+        Mail::schedule($params);
     }
 
+    public static function invitation($construct, $val) {
+    	//Rest::json($construct["author"]); exit;
+		$invitor = $construct["author"];
+		
+		if(@$invitor && !empty($invitor["name"]))
+			$subject = Yii::t("mail", "{who} is waiting for you on {what}", array("{who}"=>$invitor["name"], "{what}"=>self::getAppName()));
+		else
+			$subject = Yii::t("mail", "{what} is waiting for you", array( "{what}"=>self::getAppName() ) ) ;
 
-    public static function createParamsTpl($paramsMail, $paramTpl = null){
-        $targetType = $paramsMail["target"]["type"];
-        $targetId = $paramsMail["target"]["id"];
-        $verb = $paramsMail["verb"];
+		if(!@$val["email"] || empty($val["email"])){
+			$getEmail=Person::getEmailById($val["id"]);
+			$val["email"]=$getEmail["email"];
+		}
+
+		$target = (!empty($construct["target"]) ? $construct["target"] : null ) ;
+
+		$value = (!empty($construct["value"]) ? $construct["value"] : null ) ;
+
+		$params = array(
+			"type" => Cron::TYPE_MAIL,
+			"tpl"=>'invitation',
+			"subject" => $subject,
+			"from"=>Yii::app()->params['adminEmail'],
+			"to" => $val["email"],
+			"tplParams" => array(	"invitorName"   => $invitor["name"],
+									"title" => self::getAppName() ,
+									"invitorLogo" => @$invitor["profilThumbImageUrl"],
+									"invitedUserId" => $val["id"],
+									"message" => @$msg,
+									"target" => $target,
+									"language" => $val["language"],
+									"value" => $value )
+		);
+
+		$params=self::getCustomMail($params);
+		if(!empty($invitorUrl))
+			$params["tplParams"]["invitorUrl"] = $invitorUrl;
+
+		Mail::schedule($params);
+	}
+
+	//public static function inviteYouTo($parent, $parentType, $newChild, $typeOfDemand) {
+	public static function inviteYouTo($construct, $val) {
+		//Rest::json($val); exit;
 
 
-        if(empty($paramTpl))
-            $paramTpl = array();
+		$person = Element::getElementById($val["id"], Person::COLLECTION, null, array("roles"));
 
-        if(empty($paramTpl[$targetType]))
-            $paramTpl[$targetType] = array();
+		if(!empty($person["roles"]) && !empty($person["roles"]["tobeactivated"]) && $person["roles"]["tobeactivated"] == true){
+			Mail::invitation($construct, $val);
+		}else{
+			$invitor = $construct["author"];
+			$target = (!empty($construct["target"]) ? $construct["target"] : null ) ;
+			$value = (!empty($construct["value"]) ? $construct["value"] : null ) ;
 
-        if(empty($paramTpl[ $targetType ][ $targetId ])){
+			if($value["typeOfDemand"]=="admin")
+				$verb="administrate";
+			else{
+				if($parentType==Event::COLLECTION)
+					$verb="participate to";
+				else if($parentType==Project::COLLECTION)
+					$verb="contribute to";
+				else
+					$verb="join";
+			}
 
-            $paramTpl[ $targetType ][ $targetId ] = array( "url" => Yii::app()->getRequest()->getBaseUrl(true)."/#element.detail.type.".$targetType.".id.".$targetId,
-                                                            "name" => $paramsMail["target"]["name"]  ) ;
+			$params = array (
+				"type" => Cron::TYPE_MAIL,
+				"tpl"=>'inviteYouTo',
+				"subject" => "[".self::getAppName()."] ".Yii::t("mail","Invitation to {what} {where}",array("{what}"=>Yii::t("mail",$verb),"{where}"=>$target["name"])),
+				"from"=>Yii::app()->params['adminEmail'], 
+				"to" => $val["email"],
+				"tplParams" => array(
+					"title" => self::getAppName() , 
+					"invitorName"   => $invitor["name"],
+					"invitorLogo" => @$invitor["profilThumbImageUrl"],
+					"invitedUserId" => $val["id"], 
+					"target" => $target,
+					"value"=> $value)
+			);
+			$params=self::getCustomMail($params);
+			Mail::schedule($params);
+		}
+
+		
+	}
+
+    public static function createNotification($construct, $tpl=null){
+        //Rest::json($construct); exit ;
+    	//Rest::json($tpl); exit ;
+        foreach ($construct["community"]["mails"] as $key => $value) {
+
+        	if( $key != Yii::app()->session['userId'] ){
+
+                if(!empty($tpl)) {
+                    Mail::$tpl($construct, $value);
+                } else {
+                    $mail = Mail::getMailUpdate($value["email"], 'notification') ;
+                    //Rest::json($mail); exit ;
+                    if(!empty($mail)){
+                        $paramTpl = self::createParamsTpl($construct, $mail["tplParams"]["data"]);
+                        $mail["tplParams"]["data"]= $paramTpl ;
+                        PHDB::update(Cron::COLLECTION,
+                            array("_id" => $mail["_id"]) , 
+                            array('$set' => array("tplParams" => $mail["tplParams"]))           
+                        );
+                    } else {
+                        $language=(@$value["language"]) ? $value["language"] : "fr";
+                        $paramTpl = self::createParamsTpl($construct, null);
+                        $params = array (
+                            "type" => Cron::TYPE_MAIL,
+                            "tpl"=>'notification',
+                            "subject" => "[".self::getAppName()."] - Il y a du nouveaux",
+                            "from"=>Yii::app()->params['adminEmail'],
+                            "to" => $value["email"],
+                            "tplParams" => array(
+                                "logo" => Yii::app()->params["logoUrl"],
+                                "logo2" => Yii::app()->params["logoUrl2"],
+                                "data" => $paramTpl
+                            )
+                        );
+                        Mail::schedule($params, true);
+                    }
+                }
+            }
         }
+    }
 
-        if(empty($paramTpl[ $targetType ][ $targetId ][ $verb ]))
-            $paramTpl[ $targetType ][ $targetId ][ $verb ] = array();
-        
-        $paramLabel = array();
+    /**
 
-        foreach ($paramsMail["labelArray"] as $key => $value) {
-            if("who" == $value && !empty($paramsMail[ "author" ]) ){
-                $url = Yii::app()->getRequest()->getBaseUrl(true)."/#element.detail.type.".$paramsMail[ "author" ][ "type" ].".id.".$paramsMail[ "author" ][ "id" ] ;
-                $str = '<a href="'.$url.'" >'.$paramsMail[ "author" ][ "name" ]."</a>";
-            }
-            else if("where" == $value && !empty($paramsMail[ "target" ]) ){
-                $url = Yii::app()->getRequest()->getBaseUrl(true)."/#element.detail.type.".$paramsMail[ "target" ][ "type" ].".id.".$paramsMail[ "target" ][ "id" ] ;
-                $str = '<a href="'.$url.'" >'.$paramsMail[ "target" ][ "name" ]."</a>";
-            }
-            else if("what" == $value && !empty($paramsMail[ "object" ])){
-                $url = Yii::app()->getRequest()->getBaseUrl(true)."/#element.detail.type.".$paramsMail[ "object" ][ "type" ].".id.".$paramsMail[ "object" ][ "id" ] ;
-                $str = '<a href="'.$url.'" >'.$paramsMail[ "object" ][ "name" ]."</a>";
-            }
+     * Send an email to the person when its request is confirmed
+     * @param array $parent datas of an element where person is inviting
+     * @param array $newChild Datas of a person inviting
+     * @param string $typeOfDemand gives the link definition between the parent and the child
+     * @return null
+     */
 
-            $paramLabel["{".$value."}"] = $str;
+    public static function someoneConfirmYouTo($parent, $parentType, $child, $typeOfDemand) {
+        if($typeOfDemand=="admin")
+            $verb="administrate";
+        else{
+            if($parentType==Event::COLLECTION)
+                $verb="participate to";
+            else if($parentType==Project::COLLECTION)
+                $verb="contribute to";
+            else
+                $verb="join";
         }
+        $childMail=Person::getEmailById((string)$child["_id"]);
+        $params = array (
+            "type" => Cron::TYPE_MAIL,
+            "tpl"=>'confirmYouTo',
+            "subject" => "[".self::getAppName()."] ".Yii::t("mail","Confirmation to {what} {where}", 
+                array("{what}"=>Yii::t("mail",$verb), "{where}"=>$parent["name"])),    
+            "from"=>Yii::app()->params['adminEmail'],       
+            "to" => $childMail["email"],     
+            "tplParams" => array(  
+                "newChild"=> $child,      
+                "title" => self::getAppName() , 
+                "authorName"=>Yii::app()->session["user"]["name"],   
+                "authorId" => Yii::app()->session["userId"],  
+                "parent" => $parent,       
+                "parentType" => $parentType,       
+                "typeOfDemand"=> $typeOfDemand,
+                "verb"=> $verb)     
+        );
+        $params=self::getCustomMail($params);   
+        Mail::schedule($params);
+    }
+
+    public static function createParamsTpl($construct, $paramTpl = null){
        
+        //Rest::json($construct);exit ;
+        //echo '<br><br>' ;var_dump($construct["author"]); exit ;
+        $targetType = $construct["target"]["type"];
+        $targetId = $construct["target"]["id"];
+        $verb = $construct["verb"];
+        $repeat = false;
+        $repeatKey = null;
+        $countRepeat=1;
+        $labelArray = array() ;
+        $myParam = null ;
 
-        $info["text"] = Yii::t("mail", $paramsMail["label"], $paramLabel);
 
-
-        if( ( $verb == ActStr::VERB_COMMENT || $verb == ActStr::VERB_POST ) && !empty($paramsMail["target"]["value"] ) ) {
-            $info["value"] = $paramsMail["target"]["value"] ;
+        if($targetType == News::COLLECTION){
+            $news=News::getById($targetId);
+            //$authorNews=News::getAuthor($id);
+            // $parent = Element::getElementSimpleById($news["target"]["id"], $news["target"]["type"], array(), array("name"));
+            $construct["target"] = $news["target"] ;
         }
 
-        $paramTpl[ $targetType ][ $targetId ][ $verb ][] = $info ;
 
+        if(empty($paramTpl["countData"]))
+            $paramTpl["countData"] = 0;
+
+        if(empty($paramTpl["data"]))
+            $paramTpl["data"] = array();
+        else{
+        	foreach ($paramTpl["data"] as $keyD => $valD) {
+        		
+        		if(	$valD["verb"] == $verb && 
+        			$valD["targetType"] == $targetType && 
+        			$valD["targetId"] == $targetId && 
+        			(	( 	!empty($construct["object"]) && 
+                        	!empty($valD["object"]) && 
+                        	$valD["object"]["type"] == $construct["object"]["type"]  ) ||
+                        empty($construct["object"] ) ) ) {
+        			$myParam = $valD ;
+        			$repeatKey = $keyD ;
+        			break;
+        		} 
+        	}
+        }
+
+        //Rest::json($myParam) ;exit;
+
+        if($myParam == null)
+	        $myParam = array(
+	            "targetType" => $targetType,
+	            "targetId" => $targetId,
+	            "verb" => $verb,
+	            "repeat" => "Mail",
+	            "url" => Yii::app()->getRequest()->getBaseUrl(true)."/#page.type.".$targetType.".id.".$targetId,
+	            "name" => @$construct["target"]["name"]
+	        );
+	    else{
+	    	$myParam["repeat"] = "RepeatMail";
+	    	$repeat = true;
+	    	$labelArray = $myParam["labelArray"];
+	    }
+
+        if(!empty($construct["value"]) && $repeat == false)
+            $myParam["value"] = $construct["value"];
+        else if(!empty($myParam["value"]) && $repeat == true)
+            unset($myParam["value"]);
+
+        if(!empty($construct["object"]))
+            $myParam["object"] = $construct["object"];
+
+
+
+
+
+
+        foreach ($construct["labelArray"] as $key => $value) {
+        	$str =  array( "name" => "",
+                           "url" => "" ) ;
+            if("who" == $value ){
+            	if( !empty($construct[ "target" ]) && 
+            		!empty($construct[ "target" ][ "targetIsAuthor" ]) && 
+            		$construct[ "target" ][ "targetIsAuthor" ] == true ){
+                    $str["name"] = @$construct[ "target" ][ "name" ];
+                	$str["type"] = @$construct[ "target" ][ "type" ];
+                	$str["img"] = @$construct[ "target" ][ "profilThumbImageUrl" ];
+                    $str["url"] = Yii::app()->getRequest()->getBaseUrl(true)."/#page.type.".$targetType.".id.".$targetId;
+                }
+            	else if(!empty($construct[ "author" ]) ){
+					$str["name"] = @$construct[ "author" ][ "name" ];
+					$str["type"] = Person::COLLECTION;
+					$str["img"] = @$construct[ "author" ][ "profilThumbImageUrl" ];
+                    $str["url"] = Yii::app()->getRequest()->getBaseUrl(true)."/#page.type.".Person::COLLECTION.".id.".$construct[ "author" ]["id"];
+                }
+            }
+            else if("where" == $value && !empty($construct[ "target" ]) ){
+                //$str = @$construct[ "target" ][ "name" ];
+                $str["name"] = (!empty($construct[ "target" ][ "name" ]) ? @$construct[ "target" ][ "name" ] : @$construct[ "target" ][ "title" ]);
+                $str["type"] = @$construct[ "target" ][ "type" ];
+                $str["url"] = Yii::app()->getRequest()->getBaseUrl(true)."/#page.type.".$construct[ "target" ]["type"].".id.".$construct[ "target" ]["id"];
+            }
+            else if("what" == $value && !empty($construct[ "object" ])){
+                $str["name"] = (!empty($construct[ "object" ][ "name" ]) ? @$construct[ "object" ][ "name" ] : @$construct[ "object" ][ "title" ]);
+                $str["type"] = @$construct[ "object" ][ "type" ];
+                $str["url"] = Yii::app()->getRequest()->getBaseUrl(true)."/#page.type.".$construct[ "object" ]["type"].".id.".$construct[ "object" ]["id"];
+            }else if("author" == $value && !empty($construct[ "author" ])){
+                $str["name"] = @$construct[ "author" ][ "name" ];
+                $str["type"] = Person::COLLECTION;
+                $str["img"] = @$construct[ "author" ][ "profilThumbImageUrl" ];
+                $str["url"] = Yii::app()->getRequest()->getBaseUrl(true)."/#page.type.".Person::COLLECTION.".id.".$construct[ "author" ]["id"];
+            }
+
+            if(!empty($str)){
+            	$find = false ;
+            	if(!empty($labelArray["{".$value."}"])){
+            		foreach ($labelArray["{".$value."}"] as $key2 => $value2){
+	            		if($value2 == $str)
+	            			$find = true;
+	            	}
+            	}
+            	
+            	if($find == false){
+            		$labelArray["{".$value."}"][] = $str;
+                }
+            }
+        }
+
+        $myParam["label"] = Notification::getLabelNotification($construct, null, 1, null, $myParam["repeat"], @$sameAuthor);
+        $myParam["labelArray"] = $labelArray ;
+
+        if($repeat === true){
+        	$paramTpl["data"][$repeatKey] = $myParam ;
+        }else if($paramTpl["countData"] < 3)
+            $paramTpl["data"][] = $myParam ;
+        
+        if($repeat == null)
+        	$paramTpl["countData"]++ ;
+        //Rest::json($paramTpl); exit ;
         return $paramTpl ;
 
     }
 
+    public static function translateLabel($mail){
+        //Rest::json($mail); exit ;
+    	// $color = "#4285f4";
+    	// $color = "#ea0040";
+    	// $color = "#95bf00";
+        //var_dump($mail); exit ;
+		$resArray=array();
+		if( !empty($mail["labelArray"]) ) {
+			
+			if( !empty($mail["labelArray"]["{who}"]) ){
+				$who="";
+				$i=0;
+				$countEntry = count($mail["labelArray"]["{who}"]);
+				foreach ($mail["labelArray"]["{who}"] as $key => $value) {
+					if($i == 1 && $countEntry==2)
+						$who.=" ".Yii::t("common","and")." ";
+					else if($i > 0)
+						$who.=", ";
 
-    public static function bookmarkNotif($paramsB, $userID) {
+					if($i >= 2 ){
+						$s="";
+						if($countEntry > 3)
+							$s="s";
+						$typeMore="person";
+
+						$who.=" ".Yii::t("common","and")." ".($countEntry - 2)." ".Yii::t("common", $typeMore.$s);
+					}else{
+						$color = "#ea0040";
+                        $img = "";
+                        if(!empty($value["img"])){
+                            $img = '<img id="menu-thumb-profil" src="'.Yii::app()->getRequest()->getBaseUrl(true).$value["img"].'" alt="image" width="35" height="35" style="display: inline; vertical-align: middle; border-radius:100%;">';
+                        }
+                        $who.= "<a href='".$value["url"]."' target='_blank' style='color:".$color.";font-weight:800;font-variant:small-caps;'>".$img." <span style=''>".$value["name"]."</span>"."</a>";
+                    }
+					$i++;
+				}
+
+				$resArray["{who}"] = $who;
+			}
+
+            if( !empty($mail["labelArray"]["{author}"]) ){
+                $who="";
+                $i=0;
+                $countEntry = count($mail["labelArray"]["{author}"]);
+                foreach ($mail["labelArray"]["{author}"] as $key => $value) {
+                    if($i == 1 && $countEntry==2)
+                        $who.=" ".Yii::t("common","and")." ";
+                    else if($i > 0)
+                        $who.=", ";
+
+                    if($i >= 2 ){
+                        $s="";
+                        if($countEntry > 3)
+                            $s="s";
+                        $typeMore="person";
+
+                        $who.=" ".Yii::t("common","and")." ".($countEntry - 2)." ".Yii::t("common", $typeMore.$s);
+                    }else{
+                        $color = "#ea0040";
+                        $img = "";
+                        if(!empty($value["img"])){
+                            $img = '<img id="menu-thumb-profil" src="'.Yii::app()->getRequest()->getBaseUrl(true).$value["img"].'" alt="image" width="35" height="35" style="display: inline; vertical-align: middle; border-radius:100%;">';
+                        }
+                        $who.= "<a href='".$value["url"]."' target='_blank' style='color:".$color.";font-weight:800;font-variant:small-caps;'>".$img." <span style=''>".$value["name"]."</span>"."</a>";
+                    }
+                    $i++;
+                }
+
+                $resArray["{author}"] = $who;
+            }
+
+			if( !empty($mail["labelArray"]["{what}"]) ){
+				$what="";
+				$i=0;
+				foreach($mail["labelArray"]["{what}"] as $data){
+					if($i > 0)
+						$what.=" ";
+					//$color = Element::getColorMail($data["type"]);
+					$color = "#ea0040";
+					$what.= "<a href='".$data["url"]."' target='_blank' style='color:".$color.";font-weight:800;font-variant:small-caps;'>".Yii::t("notification",$data["name"])."</a>";
+
+					//$what.=Yii::t("notification",$data["name"]);
+					$i++;
+				}
+				$resArray["{what}"]=$what;
+			}
+
+			if(!empty($mail["labelArray"]["{where}"])){
+				$where="";
+				$i=0;
+				foreach($mail["labelArray"]["{where}"] as $data){
+					if($i > 0)
+						$where.=" ";
+
+					//$color = Element::getColorMail($data["type"]);
+					$color = "#ea0040";
+					$where.= "<a href='".$data["url"]."' target='_blank' style='color:".$color.";font-weight:800;font-variant:small-caps;'>".Yii::t("notification",$data["name"])."</a>";
+					//$where.=Yii::t("notification",$data["name"]);
+					$i++;
+				}
+				$resArray["{where}"]=$where;
+			}
+		}
+		
+
+		return Yii::t("mail",$mail["label"], $resArray);
+	}
+
+
+    public static function bookmarkNotif($params, $userID) {
 
         $user = Person::getSimpleUserById($userID);
         if (!empty($user["email"])) {
@@ -1004,7 +1281,7 @@ class Mail {
                     "userName" => @$user["name"],
                     "logo"=> Yii::app()->params["logoUrl"],
                     "logo2" => Yii::app()->params["logoUrl2"],
-                    "params" => $paramsB,
+                    "params" => $params,
                     "baseUrl" => Yii::app()->getRequest()->getBaseUrl(true)."/"
                 ),
             );

@@ -302,9 +302,9 @@ class Organization {
 	    else
 	    	$orgaCodeInsee="";
 
-	    if (empty($paramsImport))
-			Notification::createdObjectAsParam(Person::COLLECTION,$creatorId,Organization::COLLECTION, $newOrganizationId, Person::COLLECTION,$creatorId, $orgaGeo,$orgaTags,$orgaCodeInsee);
-		ActivityStream::saveActivityHistory(ActStr::VERB_CREATE, $newOrganizationId, Organization::COLLECTION, "organization", $organization["name"]);
+	 //    if (empty($paramsImport))
+		// 	Notification::createdObjectAsParam(Person::COLLECTION,$creatorId,Organization::COLLECTION, $newOrganizationId, Person::COLLECTION,$creatorId, $orgaGeo,$orgaTags,$orgaCodeInsee);
+		// ActivityStream::saveActivityHistory(ActStr::VERB_CREATE, $newOrganizationId, Organization::COLLECTION, "organization", $organization["name"]);
 	    $organization = Organization::getById($newOrganizationId);
 	    return array("result"=>true,
 		    			"msg"=>"Votre organisation est communectée.", 
@@ -728,6 +728,7 @@ class Organization {
 	 */
 	public static function createAndInvite($param) {
 	  	try {
+	  		var_dump("Organisation::createAndInvite");
 	  		$res = self::insert($param, $param["invitedBy"], $param["invitedBy"]);
 	  	} catch (CTKException $e) {
 	  		$res = array("result"=>false, "msg"=> $e->getMessage());

@@ -15,20 +15,50 @@ class Preference {
 		return $preferences;
 	}
 	
-	public static function updatePreferences($id, $type,$preferenceName=null, $preferenceValue=null) {
+	public static function updatePreferences($id, $type,$preferenceName=null, $preferenceValue=null, $preferenceSubName=null) {
 		$action='$set';
+		$update=array();
 		if(!@$preferenceName || empty($preferenceName)){
 			$action='$unset';
-			$preferenceName="seeExplanations";
-			$preferenceValue="";
-		}	
-		PHDB::update($type, array("_id" => new MongoId($id)), 
-			                          array($action => array("preferences.".$preferenceName => $preferenceValue)
-			                          ));
+			$update=array("preferences.seeExplanations"=>"");
+		}else{
+			if($preferenceValue==="true" || $preferenceValue=="default"){
+				$action='$unset';
+				$preferenceValue="";
+			}
+			$update=array("preferences.".$preferenceName=>$preferenceValue);
+			if(!empty($preferenceSubName))
+				$update=array("preferences.".$preferenceName.".".$preferenceSubName=>$preferenceValue);
+		}
+
+		PHDB::update($type, array("_id" => new MongoId($id)), array($action => $update)
+		);
 		$res = array("result" => true, "msg" => Yii::t("common","Your request is well updated"));
 		return $res;
 	}
-	
+
+	public static function updateSettings($userId, $params){
+		$settings=array("name"=>$params["settings"],"value"=>$params["value"]);
+		$parentId=$params["id"];
+		$parentType=$params["type"];
+		$childId=(@$params["childId"]) ? $params["childId"] : Yii::app()->session["userId"];
+		$childType=(@$params["childType"]) ? $params["childType"] : Person::COLLECTION; 
+		$parentConnectAs=Link::$linksTypes[$parentType][$childType];
+		$childConnectAs=Link::$linksTypes[$childType][$parentType];
+		if($settings["value"]=="default"){
+			//Add notification - email label in parent link
+			Link::disconnect($parentId, $parentType, $childId, $childType,Yii::app()->session["userId"], $parentConnectAs, null, $settings);
+	 		//Add notification - email label in child link
+	 		Link::disconnect($childId, $childType, $parentId, $parentType, Yii::app()->session["userId"], $childConnectAs, null, $settings);
+		}else{
+			//Add notification - email label in parent link
+			Link::connect($parentId, $parentType, $childId, $childType,Yii::app()->session["userId"], $parentConnectAs, null, null, null,null, null, $settings);
+	 		//Add notification - email label in child link
+	 		Link::connect($childId, $childType, $parentId, $parentType, Yii::app()->session["userId"], $childConnectAs, null, null, null, null, null, $settings);
+ 		}
+ 		return array("result" => true, "msg" => Yii::t("common","Your request is well updated"));
+	}
+
 	public static function updateConfidentiality($id, $type, $param){
 		//if ($type == Person::COLLECTION){
 		$id = $param["idEntity"];
@@ -128,7 +158,6 @@ class Preference {
 		
 		/*PHDB::update($type, array("_id" => new MongoId($id)), 
 		    array('$set' => array("preferences.privateFields" => $privateFields, "preferences.publicFields" => $publicFields)));*/
-
 		$result = PHDB::update($type, array("_id" => new MongoId($id)), 
 		    						array('$set' => array("preferences" => $preferences)));
 

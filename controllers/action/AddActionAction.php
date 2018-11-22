@@ -11,7 +11,10 @@ class AddActionAction extends CAction
         //User must be login to do action
         $userId = Yii::app()->session["userId"];
         if ( Person::logguedAndValid() ) {
-            $detail = null;
+            // Detail array concern satus of voting (sad, like, enjoy) and moderation reason and comment
+            $detail = (@$_POST["details"]) ? $_POST["details"] : null;
+          
+            //$detail = null;
             //Reason 
         	if (@$_POST["reason"]){
 	        	$detail['reason']=$_POST["reason"];
@@ -27,7 +30,6 @@ class AddActionAction extends CAction
                     $detail['detail']["amount"]= (int)$detail['detail']["amount"];
                 }
             }
-
 	        try {
                 $res = Action::addAction($userId , $_POST['id'], $_POST['collection'],$_POST['action'], isset($_POST['unset']), isset($_POST["multiple"]), $detail );  
             } catch (CTKException $e) {

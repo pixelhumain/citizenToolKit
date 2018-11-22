@@ -200,7 +200,7 @@ class Link {
      * @param type $role array if user added has a role in parent item
      * @return result array with the result of the operation
      */
-    public static function connect($originId, $originType, $targetId, $targetType, $userId, $connectType,$isAdmin=false,$pendingAdmin=false,$isPending=false, $isInviting=false, $role="") {
+    public static function connect($originId, $originType, $targetId, $targetType, $userId, $connectType,$isAdmin=false,$pendingAdmin=false,$isPending=false, $isInviting=false, $role="", $settings=false) {
 	    //0. Check if the $originId and the $targetId exists
         $origin = Element::checkIdAndType($originId, $originType);
 		$target = Element::checkIdAndType($targetId, $targetType);
@@ -236,10 +236,10 @@ class Link {
                 $links["links.".$connectType.".".$targetId.".".Link::IS_ADMIN_PENDING] = true;
             }
         }
-        if ($role != ""){
+        if ($role != "")
         	$links["links.".$connectType.".".$targetId.".roles"] = $role;
-        }
-
+        if($settings)
+            $links["links.".$connectType.".".$targetId.".".$settings["name"]] = $settings["value"];
 	    //2. Create the links
         PHDB::update($originType, 
                        array("_id" => $origin["_id"]) , 
@@ -260,7 +260,7 @@ class Link {
      * @param type $userId The userId doing the action
      * @return result array with the result of the operation
      */
-    public static function disconnect($originId, $originType, $targetId, $targetType, $userId, $connectType, $linkOption=null) {
+    public static function disconnect($originId, $originType, $targetId, $targetType, $userId, $connectType, $linkOption=null, $settings=null) {
         
         //0. Check if the $originId and the $targetId exists
         $origin = Element::checkIdAndType($originId, $originType, "disconnect");
@@ -275,6 +275,9 @@ class Link {
                     );
             }
         }
+        if ($settings != null && $settings["value"]=="default"){
+            $unset=array("links.".$connectType.".".$targetId.".".$settings["name"] => "");
+        } 
         //2. Remove the links
         PHDB::update( $originType, 
                        array("_id" => $origin["_id"]) , 
@@ -784,8 +787,8 @@ class Link {
 		$msg=Yii::t("common","You are following")." ".$parentData["name"];
 		Link::connect($parentId, $parentType, $childId, $childType,Yii::app()->session["userId"], $parentConnectAs);
 		Link::connect($childId, $childType, $parentId, $parentType, Yii::app()->session["userId"], $childConnectAs);
-        if($parentType==Person::COLLECTION)
-            Mail::follow($parentData, $parentType);
+        // if($parentType==Person::COLLECTION)
+        //     Mail::follow($parentData, $parentType);
         //else
           //  Mail::follow($element, $elementType, $listOfMail);
         Notification::constructNotification($verb, $pendingChild , array("type"=>$parentType,"id"=> $parentId,"name"=>$parentData["name"]), null, $levelNotif);
@@ -834,7 +837,7 @@ class Link {
         $isInviting = false;
         $levelNotif = null;
 
-        $parentData = Element::getElementSimpleById($parentId, $parentType, null, array("_id", "name", "link", "title"));
+        $parentData = Element::getElementSimpleById($parentId, $parentType, null, array("_id", "name", "links", "title"));
         $usersAdmin = Authorisation::listAdmins($parentId,  $parentType, false);
         $actionFromAdmin=in_array($userId,$usersAdmin);
         $actionFromMember=false;
@@ -896,6 +899,11 @@ class Link {
             if(!$isConnectingAdmin)
                 $typeOfDemand = "contributor";
 
+        }else if($parentType == Person::COLLECTION){
+            $parentUsersList = Person::getPersonFollowsByUser($parentId);
+            $parentController = Person::CONTROLLER;
+            $parentConnectAs = "follows";
+            $childConnectAs = "followers";
         } else {
             throw new CTKException(Yii::t("common","Can not manage the type ").$parentType);
         }
@@ -921,9 +929,10 @@ class Link {
             return array("result" => false, "msg" => "Unknown ".$childType.". Please check your parameters !");
         }
 		
-
+        
         //if the childId is empty => it's an invitation
         //Let's create the child
+        //TODO RAPHA CLEM : Est-ce que on peut arriver la sans que childID sois renseigner ?
         if (empty($childId)) {
             $invitation = ActStr::VERB_INVITE;
             $child = array(
@@ -979,14 +988,13 @@ class Link {
 
 		if (count($usersAdmin) == 0 || $actionFromAdmin || ($actionFromMember && $childId != Yii::app()->session["userId"]) || $parentType == Event::COLLECTION) {
             //the person is automatically added as member (admin or not) of the parent
-            //var_dump("here");
             if ($actionFromAdmin || ($actionFromMember && $childId != Yii::app()->session["userId"]) || ($parentType == Event::COLLECTION && $childId != Yii::app()->session["userId"]) 
                 || (count($usersAdmin) == 0 && $childId != Yii::app()->session["userId"])) {
 	            //If admin add as admin or member
+            
                 $verb = ActStr::VERB_INVITE; 
 	            if($isConnectingAdmin==true){
-					//$verb = ActStr::VERB_ACCEPT;
-                    if(@$parentData["links"] 
+			         if(@$parentData["links"] 
                         && @$parentData["links"][$parentConnectAs] 
                         && @$parentData["links"][$parentConnectAs][$childId]
                         && @$parentData["links"][$parentConnectAs][$childId][self::TO_BE_VALIDATED]){
@@ -1013,7 +1021,8 @@ class Link {
                     $pendingChild["isInviting"]=true;
                 }
                 $toBeValidated=false;
-                Mail::someoneInviteYouToBecome($parentData, $parentType, $pendingChild, $typeOfDemand);
+                //var_dump("HERE1");
+                //Mail::someoneInviteYouToBecome($parentData, $parentType, $pendingChild, $typeOfDemand);
 			} else{
                 // Verb Confirm in ValidateLink
 				$verb = ActStr::VERB_JOIN;
@@ -1067,18 +1076,21 @@ class Link {
                 array_push($listofAdminsEmail, $currentAdmin["email"]);
             }
             //CREATE VARIABLE OF EMAIL AND GENERALIZE EMAIL someoneDemandToBecome || someoneInvitingYouTo
-            if (count($listofAdminsEmail))
-                Mail::someoneDemandToBecome($parentData, $parentType, $pendingChild, $listofAdminsEmail, $typeOfDemand);
+            if (count($listofAdminsEmail)){
+                // var_dump("HERE2");
+                // Mail::someoneDemandToBecome($parentData, $parentType, $pendingChild, $listofAdminsEmail, $typeOfDemand);
+            }
             //TODO - Notification
             $msg = Yii::t("common","Your request has been sent to other admins.");
             // After : the 1rst existing Admin to take the decision will remove the "pending" to make a real admin
         } 
        
-
+        $valNotif = array( "typeOfDemand" => $typeOfDemand,
+                            "verb" => $verb);
 		Link::connect($parentId, $parentType, $childId, $childType,Yii::app()->session["userId"], $parentConnectAs, $isConnectingAdmin, $toBeValidatedAdmin, $toBeValidated, $isInviting, $userRole);
-        //var_dump($pendingChild); exit ;
-		Link::connect($childId, $childType, $parentId, $parentType, Yii::app()->session["userId"], $childConnectAs, $isConnectingAdmin, $toBeValidatedAdmin, $toBeValidated, $isInviting, $userRole);
-        Notification::constructNotification($verb, $pendingChild , array("type"=>$parentType,"id"=> $parentId,"name"=>$parentData["name"]), null, $levelNotif);
+        Link::connect($childId, $childType, $parentId, $parentType, Yii::app()->session["userId"], $childConnectAs, $isConnectingAdmin, $toBeValidatedAdmin, $toBeValidated, $isInviting, $userRole);
+        //Rest::json(array($verb, $pendingChild )); exit ;
+        Notification::constructNotification($verb, $pendingChild , array("type"=>$parentType,"id"=> $parentId,"name"=>$parentData["name"]), null, $levelNotif, null, $valNotif);
         //Notification::actionOnPerson($verb, ActStr::ICON_SHARE, $pendingChild , array("type"=>$parentType,"id"=> $parentId,"name"=>$parentData["name"]), $invitation);
 		$res = array("result" => true, "msg" => $msg, "parent" => $parentData,"parentType"=>$parentType,"newElement"=>$pendingChild, "newElementType"=> $childType );
 		return $res;
@@ -1221,20 +1233,12 @@ class Link {
 
 
 	public static function multiconnect($child, $parentId, $parentType){
-		// assert('!empty($child)'); //The childs are mandatory');
-	 //    //assert('!empty($_POST["childType"])'); //The child type is mandatory');
-	 //    assert('!empty($parentId)'); //The parent id is mandatory');
-	 //    assert('!empty($parentType)'); //The parent type is mandatory');
-        //var_dump($child);
-	    $result = array("result"=>false, "msg"=>Yii::t("common", "Incorrect request"));
+        $result = array("result"=>false, "msg"=>Yii::t("common", "Incorrect request"));
 		
 		if ( ! Person::logguedAndValid() ) {
 			return array("result"=>false, "msg"=>Yii::t("common", "You are not loggued or do not have acces to this feature "));
 		}
-	
-		// $parentId = $parentId;
-  //   	$parentType = $parentType;
-    	//$isConnectingAdmin = @$_POST["connectType"];
+        
 		$newMembers = array();
 		$msg=false;
 		$finalResult = false;
@@ -1257,7 +1261,6 @@ class Link {
                 if(!empty($contact["link"]))
                     $child["link"] = $contact["link"];  	
 		    	$isConnectingAdmin= (@$contact["connectType"]=="admin") ? true : false;
-		    	
                 $res = Link::connectParentToChild($parentId, $parentType, $child, $isConnectingAdmin, Yii::app()->session["userId"], $roles);
 		    	if($res["result"]==true){
 			    	if($msg != 2)

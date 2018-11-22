@@ -26,8 +26,12 @@ class GetAction extends CAction
           }else{
             $params = array("notify.id.".Yii::app()->session["userId"] => array('$exists' => true));
           }
-
-          $res = ActivityStream::getNotifications($params);
+          if(@$_POST["refreshTimestamp"]){
+            $params = array_merge($params,  array('updated' => array( '$gt' => new MongoDate($_POST["refreshTimestamp"]) ) ) );
+            $res=ActivityStream::getNotificationsByTimeLimit($params);
+          }
+          else
+            $res = ActivityStream::getNotificationsByStep($params, @$_POST['indexMin']);
           if(!empty($res)){
             $timezone="";
               foreach($res as $key => $data){
@@ -38,12 +42,15 @@ class GetAction extends CAction
                     $res[$key]["notify"]["displayName"]=Notification::translateLabel($data);
                 }
                 $res[$key]["timeAgo"]=Translate::pastTime(date(@$data["updated"]->sec), "timestamp", $timezone);
+                $res[$key]["timestamp"]=$data["updated"]->sec;
               } 
           }
 
           //$data["notif"] = $res;
           $datas["notif"] = $res;
-          $datas["coop"] = Cooperation::getCountNotif();
+          if(@$_POST["refreshTimestamp"])
+            $datas["countNotif"] = ActivityStream::countUnseenNotifications(Yii::app()->session["userId"], $type, $id);
+          //$datas["coop"] = Cooperation::getCountNotif();
 
         } else{
           $data = array('result' => false , 'msg'=>'something somewhere went terribly wrong');   

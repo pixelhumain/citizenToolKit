@@ -16,6 +16,7 @@ class Project {
 	    "streetAddress" => array("name" => "address.streetAddress"),
 	    "postalCode" => array("name" => "address.postalCode"),
 	    "city" => array("name" => "address.codeInsee"),
+	    "public"  => array("name" => "public"),
 	    "addressCountry" => array("name" => "address.addressCountry"),
 	    "geo" => array("name" => "geo", "rules" => array("geoValid")),
 	    "geoPosition" => array("name" => "geoPosition", "rules" => array("geoPositionValid")),
@@ -388,8 +389,8 @@ class Project {
 			Link::connect( $params["parentId"], self::COLLECTION, (string)$params["_id"], self::COLLECTION, Yii::app()->session["userId"], "projects");
 		if(empty($import) && Preference::isPublicElement(@$params["preferences"]))
 	    	Notification::createdObjectAsParam(Person::COLLECTION,Yii::app() -> session["userId"],Project::COLLECTION, (String)$params["_id"], $params['parentType'], $params['parentId'], @$params["geo"], @$params["tags"] ,@$params["address"]);
-	    if($params["parentType"]==Organization::COLLECTION || $params["parentType"]==Project::COLLECTION)
-	    	Notification::constructNotification(ActStr::VERB_ADD, array("id" => Yii::app()->session["userId"],"name"=> Yii::app()->session["user"]["name"]), array("type"=>$params["parentType"],"id"=> $params["parentId"]), array("id"=>(string)$params["_id"],"type"=> Project::COLLECTION), Project::COLLECTION);
+	    // if($params["parentType"]==Organization::COLLECTION || $params["parentType"]==Project::COLLECTION)
+	    // 	Notification::constructNotification(ActStr::VERB_ADD, array("id" => Yii::app()->session["userId"],"name"=> Yii::app()->session["user"]["name"]), array("type"=>$params["parentType"],"id"=> $params["parentId"]), array("id"=>(string)$params["_id"],"type"=> Project::COLLECTION), Project::COLLECTION);
 
 	    //ActivityStream::saveActivityHistory(ActStr::VERB_CREATE, (String)$params["_id"], Project::COLLECTION, "project", $params["name"]);
 	    return array("result"=>true, "msg"=>"Votre projet est communecté.", "id" => $params["_id"]);	

@@ -153,6 +153,8 @@ class Search {
         $indexMin = isset($post['indexMin']) ? $post['indexMin'] : 0;
 		$indexStep = isset($post['indexStep']) ? $post['indexStep'] : 30;
 		$lastTimes = (!empty($post["lastTimes"])) ? $post["lastTimes"] : false;
+		$onlyCount = isset($post['onlyCount']) ? true : false;
+		$searchGeo = (@$post["geoSearch"]) ? $post["geoSearch"] : null; 
 		
        $searchTypeOrga = ""; /* used in CO2 to find different organisation type */
 		
@@ -165,16 +167,44 @@ class Search {
 				$searchType = array(Organization::COLLECTION);
 		}
 		//*********************************  DEFINE GLOBAL QUERY   ******************************************
+		$arrayIds=[];
+		if(@Yii::app()->session["userId"]){
+			$user=Element::getElementSimpleById(Yii::app()->session["userId"],Person::COLLECTION,null, array("links"));
+			$arrayIds=[Yii::app()->session["userId"]];
+			if(@$user["links"]["memberOf"] && !empty($user["links"]["memberOf"])){
+				foreach ($user["links"]["memberOf"] as $key => $data){
+					if(!@$data[Link::TO_BE_VALIDATED])
+						array_push($arrayIds,$key);
+				}
+			}
+			if(@$user["links"]["projects"] && !empty($user["links"]["projects"])){
+				foreach ($user["links"]["projects"] as $key => $data){
+					if(!@$data[Link::TO_BE_VALIDATED])
+						array_push($arrayIds,$key);
+				}
+			}
+			if(@$user["links"]["events"] && !empty($user["links"]["events"])){
+				foreach ($user["links"]["events"] as $key => $data){
+					if(!@$data[Link::TO_BE_VALIDATED])
+						array_push($arrayIds,$key);
+				}
+			}
+		}
 		$query = array();
       	$queryNews=array();
       	$query = Search::searchString($search, $query);
 		$query = array('$and' => 
 							array( $query , 
 								array("state" => array('$nin' => array("uncomplete", "deleted")),
-									'preferences.private'=>array('$exists'=>false)
+									'$or'=>array(
+											array('preferences.private'=>array('$exists'=>false)), 
+											array('preferences.private'=>false),
+											array("parentId" => array('$in' => $arrayIds)),
+										 )
 								)	
 							)
 						);
+
       	//$queryNews = Search::searchNewsString($search, $query);
       	//$queryNews = array('$and' => array( $queryNews , array("type"=>News::COLLECTION, "scope.type"=>News::TYPE_PUBLIC, "target.type"=>array('$ne'=>"pixels"))));
       	if($latest)
@@ -183,9 +213,9 @@ class Search {
   		if(!empty($lastTimes))
   			$query = array('$and' => array($query, array("updated"=>array('$gt' => $lastTimes))));
   		
-  		if($sourceKey!="")
-  			$query['$and'][] = array("source.key"=>$sourceKey);
-
+  		//if($sourceKey!="")
+  		//	$query['$and'][] = array("source.key"=>$sourceKey);
+  		$query = self::searchSourceKey($sourceKey, $query);
   		//if($api == true){
   			//$query = array('$and' => array($query, array("preferences.isOpenData"=> true)));
   		//}
@@ -210,8 +240,8 @@ class Search {
   		}
   		$queryPersons=$query;
   		//*********************************  DEFINE LOCALITY QUERY   ****************************************
-  		if(!empty($searchLocality)){
-  			$query = self::searchLocality($searchLocality, $query);
+  		if(!empty($searchLocality) || !empty($searchGeo)){
+  			$query = self::searchLocality($searchLocality, $query, $searchGeo);
   			$queryPersons=$query;
   			array_push( $queryPersons[ '$and' ], array("preferences.publicFields"=>array('$in' =>array("locality") )));
   			//$queryNews = self::searchLocalityNews($searchLocality, $queryNews);
@@ -220,179 +250,180 @@ class Search {
   		$queryClassifieds = Search::getQueryClassifieds($query, $searchSType, $section, $category, $subType,@$priceMin, @$priceMax, @$devise);
   		$queryRessources=Search::getQueryRessources($query, $searchSType, $subType, $section);
   		$allRes = array();
+  		if(!$onlyCount){
+	  		//*********************************  CITIES   ******************************************
+	  		if(!empty($search) /*&& !empty($locality) */){
+				if(strcmp($filter, City::COLLECTION) != 0 && self::typeWanted(City::COLLECTION, $searchType))
+			  		$allCitiesRes = City::searchCity($country, $search, false, false);
+			  	
+			  	if(count($allRes) < $indexStep){
+			  		if(isset($allCitiesRes)) 
+			  			$allRes = array_merge($allRes, $allCitiesRes);
+			  	}
+			}
 
-  		//*********************************  CITIES   ******************************************
-  		if(!empty($search) /*&& !empty($locality) */){
-			if(strcmp($filter, City::COLLECTION) != 0 && self::typeWanted(City::COLLECTION, $searchType))
-		  		$allCitiesRes = City::searchCity($country, $search, false, false);
+		  		
+			//*********************************  PERSONS   ******************************************
+	       	if(strcmp($filter, Person::COLLECTION) != 0 && (self::typeWanted(Person::COLLECTION, $searchType) || self::typeWanted("persons", $searchType) ) ) {
+				$prefLocality = (!empty($searchLocality) ? true : false);
+				if(@$ranges){
+					$indexMin=$ranges[Person::COLLECTION]["indexMin"];
+					$indexStep=$ranges[Person::COLLECTION]["indexMax"]-$ranges[Person::COLLECTION]["indexMin"];
+				}
+				$allRes = array_merge($allRes, self::searchPersons($queryPersons, $indexStep, $indexMin, $prefLocality));
+
+		  	}
+
+		  	//*********************************  ORGANISATIONS   ******************************************
+			if(strcmp($filter, Organization::COLLECTION) != 0 && self::typeWanted(Organization::COLLECTION, $searchType)){
+				if(@$ranges){
+					$indexMin=$ranges[Organization::COLLECTION]["indexMin"];
+					$indexStep=$ranges[Organization::COLLECTION]["indexMax"]-$ranges[Organization::COLLECTION]["indexMin"];
+				}
+				$allRes = array_merge($allRes, self::searchOrganizations($query, $indexStep, $indexMin,  $searchType, $searchTypeOrga));
+		  	}
+
+		  	date_default_timezone_set('UTC');
+					
+		  	//*********************************  EVENT   ******************************************
+			if(strcmp($filter, Event::COLLECTION) != 0 && self::typeWanted(Event::COLLECTION, $searchType)){
+				$searchAll=false;
+				if(@$ranges){
+					$indexMin=$ranges[Event::COLLECTION]["indexMin"];
+					$indexStep=$ranges[Event::COLLECTION]["indexMax"]-$ranges[Event::COLLECTION]["indexMin"];
+				}
+				
+	       		if($search != "")
+	       			$searchAll=true;
+				$allRes = array_merge($allRes, self::searchEvents($queryEvents, $indexStep, $indexMin, $searchOnAll, $searchAll));
+		  	}
+		  	//*********************************  PROJECTS   ******************************************
+			if(strcmp($filter, Project::COLLECTION) != 0 && self::typeWanted(Project::COLLECTION, $searchType)){
+				if(@$ranges){
+					$indexMin=$ranges[Project::COLLECTION]["indexMin"];
+					$indexStep=$ranges[Project::COLLECTION]["indexMax"]-$ranges[Project::COLLECTION]["indexMin"];
+				}
+				$allRes = array_merge($allRes, self::searchProject($query, $indexStep, $indexMin));
+		  	}
+			//*********************************  CLASSIFIED   ******************************************
+			if(strcmp($filter, Classified::COLLECTION) != 0 && self::typeWanted(Classified::COLLECTION, $searchType)){
+				//var_dump($query) ; exit;
+				if(@$ranges){
+					$indexMin=$ranges[Classified::COLLECTION]["indexMin"];
+					$indexStep=$ranges[Classified::COLLECTION]["indexMax"]-$ranges[Classified::COLLECTION]["indexMin"];
+				}
+				if(!empty($searchTags) && in_array("favorites", $searchTags))
+					$allRes = array_merge($allRes, self::searchFavorites(Classified::COLLECTION));
+				else 
+					$allRes = array_merge($allRes, self::searchClassified($queryClassifieds, $indexStep, $indexMin, @$priceMin, @$priceMax, @$devise));
+		  	}
+		  	//*********************************  POI   ******************************************
+			if(strcmp($filter, Poi::COLLECTION) != 0 && self::typeWanted(Poi::COLLECTION, $searchType)){
+				if(@$ranges){
+					$indexMin=$ranges[Poi::COLLECTION]["indexMin"];
+					$indexStep=$ranges[Poi::COLLECTION]["indexMax"]-$ranges[Poi::COLLECTION]["indexMin"];
+				}
+				$allRes = array_merge($allRes, self::searchPoi($query, $indexStep, $indexMin));
+		  	}
+		  	//*********************************  PRODUCT  ******************************************
+	        if(strcmp($filter, Product::COLLECTION) != 0 && self::typeWanted(Product::COLLECTION, $searchType)){
+	        	$allRes = array_merge($allRes, self::searchProduct($query, $indexStep, $indexMin));
+		  	}
+		  	//*********************************  SERVICE  ******************************************
+	        if(strcmp($filter, Service::COLLECTION) != 0 && self::typeWanted(Service::COLLECTION, $searchType)){
+	        	$allRes = array_merge($allRes, self::searchService($query, $indexStep, $indexMin));
+		  	}
+		  	//*********************************  SERVICE  ******************************************
+	        if(strcmp($filter, Circuit::COLLECTION) != 0 && self::typeWanted(Circuit::COLLECTION, $searchType)){
+	        	$allRes = array_merge($allRes, self::searchCircuit($query, $indexStep, $indexMin));
+		  	}
+		  	//*********************************  PLACE   ******************************************
+	        if(strcmp($filter, Place::COLLECTION) != 0 && self::typeWanted(Place::COLLECTION, $searchType)){
+	        	if(@$ranges){
+					$indexMin=$ranges[Place::COLLECTION]["indexMin"];
+					$indexStep=$ranges[Place::COLLECTION]["indexMax"]-$ranges[Place::COLLECTION]["indexMin"];
+				}
+	        	$allRes = array_merge($allRes, self::searchAny(Place::COLLECTION,$query, $indexStep, $indexMin));
+		  	}
+
+		  	//*********************************  RESSOURCE   ******************************************
+	        if(strcmp($filter, Ressource::COLLECTION) != 0 && self::typeWanted(Ressource::COLLECTION, $searchType)){
+	        	if(@$ranges){
+					$indexMin=$ranges[Ressource::COLLECTION]["indexMin"];
+					$indexStep=$ranges[Ressource::COLLECTION]["indexMax"]-$ranges[Ressource::COLLECTION]["indexMin"];
+				}
+	        	$allRes = array_merge($allRes, self::searchAny(Ressource::COLLECTION, $queryRessources, $indexStep, $indexMin));
+		  	}
+
+		  	//*********************************  NEWS   ******************************************
+		  	if(strcmp($filter, News::COLLECTION) != 0 && self::typeWanted(News::COLLECTION, $searchType)){
+		  		if(@$ranges){
+					$indexMin=$ranges[News::COLLECTION]["indexMin"];
+					$indexStep=$ranges[News::COLLECTION]["indexMax"]-$ranges[News::COLLECTION]["indexMin"];
+				}
+				$allRes = array_merge($allRes, self::searchNews($queryNews, $indexStep, $indexMin));
+		  	}
+
+		  	//*********************************  DDA   ******************************************
+			/*if(strcmp($filter, ActionRoom::COLLECTION) != 0 && self::typeWanted(ActionRoom::COLLECTION, $searchType)){
+				$allRes = array_merge($allRes, self::searchDDA($query, $indexMax));
+		  	}
+		  	if(strcmp($filter, ActionRoom::COLLECTION) != 0 && self::typeWanted(ActionRoom::COLLECTION, $searchType)){
+				$allRes = array_merge($allRes, self::searchDDA($query, $indexMax));
+		  	}*/
 		  	
-		  	if(count($allRes) < $indexStep){
-		  		if(isset($allCitiesRes)) 
-		  			$allRes = array_merge($allRes, $allCitiesRes);
+
+			//*********************************  VOTES / propositions   ******************************************
+			//error_log(print_r($searchType)); 
+			//error_log("filter : ".$filter);
+			if(isset(Yii::app()->session["userId"]) && 
+				//(strcmp($filter, ActionRoom::TYPE_VOTE) != 0 && 
+					self::typeWanted(ActionRoom::TYPE_VOTE, $searchType) ||
+				//(strcmp($filter, ActionRoom::TYPE_ACTIONS) != 0 && 
+					self::typeWanted(ActionRoom::TYPE_ACTIONS, $searchType)
+				 ){    
+				$allRes = array_merge($allRes, self::searchVotes($query, $indexStep, $indexMin, $searchType));
+			}
+
+		  	if(@$post['tpl'] == "/pod/nowList"){
+		  		usort($allRes, "self::mySortByUpdated");
+		  	}
+		  	foreach ($allRes as $key => $value) {
+		  		if($searchOnAll){
+		  			if($value["type"]==News::COLLECTION){
+		  				if(@$value["updated"])
+							$allRes[$key]["sorting"] = @$value["updated"]->sec;
+						else if(@$value["created"])
+							$allRes[$key]["sorting"] = @$value["created"]->sec;
+		  			}
+					else{
+						if(is_object(@$value["updated"]))
+							$allRes[$key]["sorting"] = @$value["updated"]->sec;
+						else
+							$allRes[$key]["sorting"] = @$value["updated"];
+					}
+		  		}
+				if(@$value["updated"]) {
+					if($initType=="agenda")
+						$allRes[$key]["updatedLbl"] = Translate::pastTime(@$value["startDate"],"date");
+					else if($value["type"]==News::COLLECTION){
+						if(@$value["updated"])
+							$allRes[$key]["updatedLbl"] = Translate::pastTime(@$value["updated"]->sec, "timestamp");
+						else if(@$value["created"])
+							$allRes[$key]["updatedLbl"] = Translate::pastTime(@$value["created"]->sec, "timestamp");
+					}
+					else
+						$allRes[$key]["updatedLbl"] = Translate::pastTime(@$value["updated"],"timestamp");
+		  		}
 		  	}
 		}
-
-	  		
-		//*********************************  PERSONS   ******************************************
-       	if(strcmp($filter, Person::COLLECTION) != 0 && (self::typeWanted(Person::COLLECTION, $searchType) || self::typeWanted("persons", $searchType) ) ) {
-			$prefLocality = (!empty($searchLocality) ? true : false);
-			if(@$ranges){
-				$indexMin=$ranges[Person::COLLECTION]["indexMin"];
-				$indexStep=$ranges[Person::COLLECTION]["indexMax"]-$ranges[Person::COLLECTION]["indexMin"];
-			}
-			$allRes = array_merge($allRes, self::searchPersons($queryPersons, $indexStep, $indexMin, $prefLocality));
-
-	  	}
-
-	  	//*********************************  ORGANISATIONS   ******************************************
-		if(strcmp($filter, Organization::COLLECTION) != 0 && self::typeWanted(Organization::COLLECTION, $searchType)){
-			if(@$ranges){
-				$indexMin=$ranges[Organization::COLLECTION]["indexMin"];
-				$indexStep=$ranges[Organization::COLLECTION]["indexMax"]-$ranges[Organization::COLLECTION]["indexMin"];
-			}
-			$allRes = array_merge($allRes, self::searchOrganizations($query, $indexStep, $indexMin,  $searchType, $searchTypeOrga));
-	  	}
-
-	  	date_default_timezone_set('UTC');
-				
-	  	//*********************************  EVENT   ******************************************
-		if(strcmp($filter, Event::COLLECTION) != 0 && self::typeWanted(Event::COLLECTION, $searchType)){
-			$searchAll=false;
-			if(@$ranges){
-				$indexMin=$ranges[Event::COLLECTION]["indexMin"];
-				$indexStep=$ranges[Event::COLLECTION]["indexMax"]-$ranges[Event::COLLECTION]["indexMin"];
-			}
-			
-       		if($search != "")
-       			$searchAll=true;
-			$allRes = array_merge($allRes, self::searchEvents($queryEvents, $indexStep, $indexMin, $searchOnAll, $searchAll));
-	  	}
-	  	//*********************************  PROJECTS   ******************************************
-		if(strcmp($filter, Project::COLLECTION) != 0 && self::typeWanted(Project::COLLECTION, $searchType)){
-			if(@$ranges){
-				$indexMin=$ranges[Project::COLLECTION]["indexMin"];
-				$indexStep=$ranges[Project::COLLECTION]["indexMax"]-$ranges[Project::COLLECTION]["indexMin"];
-			}
-			$allRes = array_merge($allRes, self::searchProject($query, $indexStep, $indexMin));
-	  	}
-		//*********************************  CLASSIFIED   ******************************************
-		if(strcmp($filter, Classified::COLLECTION) != 0 && self::typeWanted(Classified::COLLECTION, $searchType)){
-			//var_dump($query) ; exit;
-			if(@$ranges){
-				$indexMin=$ranges[Classified::COLLECTION]["indexMin"];
-				$indexStep=$ranges[Classified::COLLECTION]["indexMax"]-$ranges[Classified::COLLECTION]["indexMin"];
-			}
-			if(!empty($searchTags) && in_array("favorites", $searchTags))
-				$allRes = array_merge($allRes, self::searchFavorites(Classified::COLLECTION));
-			else 
-				$allRes = array_merge($allRes, self::searchClassified($queryClassifieds, $indexStep, $indexMin, @$priceMin, @$priceMax, @$devise));
-	  	}
-	  	//*********************************  POI   ******************************************
-		if(strcmp($filter, Poi::COLLECTION) != 0 && self::typeWanted(Poi::COLLECTION, $searchType)){
-			if(@$ranges){
-				$indexMin=$ranges[Poi::COLLECTION]["indexMin"];
-				$indexStep=$ranges[Poi::COLLECTION]["indexMax"]-$ranges[Poi::COLLECTION]["indexMin"];
-			}
-			$allRes = array_merge($allRes, self::searchPoi($query, $indexStep, $indexMin));
-	  	}
-	  	//*********************************  PRODUCT  ******************************************
-        if(strcmp($filter, Product::COLLECTION) != 0 && self::typeWanted(Product::COLLECTION, $searchType)){
-        	$allRes = array_merge($allRes, self::searchProduct($query, $indexStep, $indexMin));
-	  	}
-	  	//*********************************  SERVICE  ******************************************
-        if(strcmp($filter, Service::COLLECTION) != 0 && self::typeWanted(Service::COLLECTION, $searchType)){
-        	$allRes = array_merge($allRes, self::searchService($query, $indexStep, $indexMin));
-	  	}
-	  	//*********************************  SERVICE  ******************************************
-        if(strcmp($filter, Circuit::COLLECTION) != 0 && self::typeWanted(Circuit::COLLECTION, $searchType)){
-        	$allRes = array_merge($allRes, self::searchCircuit($query, $indexStep, $indexMin));
-	  	}
-	  	//*********************************  PLACE   ******************************************
-        if(strcmp($filter, Place::COLLECTION) != 0 && self::typeWanted(Place::COLLECTION, $searchType)){
-        	if(@$ranges){
-				$indexMin=$ranges[Place::COLLECTION]["indexMin"];
-				$indexStep=$ranges[Place::COLLECTION]["indexMax"]-$ranges[Place::COLLECTION]["indexMin"];
-			}
-        	$allRes = array_merge($allRes, self::searchAny(Place::COLLECTION,$query, $indexStep, $indexMin));
-	  	}
-
-	  	//*********************************  RESSOURCE   ******************************************
-        if(strcmp($filter, Ressource::COLLECTION) != 0 && self::typeWanted(Ressource::COLLECTION, $searchType)){
-        	if(@$ranges){
-				$indexMin=$ranges[Ressource::COLLECTION]["indexMin"];
-				$indexStep=$ranges[Ressource::COLLECTION]["indexMax"]-$ranges[Ressource::COLLECTION]["indexMin"];
-			}
-        	$allRes = array_merge($allRes, self::searchAny(Ressource::COLLECTION, $queryRessources, $indexStep, $indexMin));
-	  	}
-
-	  	//*********************************  NEWS   ******************************************
-	  	if(strcmp($filter, News::COLLECTION) != 0 && self::typeWanted(News::COLLECTION, $searchType)){
-	  		if(@$ranges){
-				$indexMin=$ranges[News::COLLECTION]["indexMin"];
-				$indexStep=$ranges[News::COLLECTION]["indexMax"]-$ranges[News::COLLECTION]["indexMin"];
-			}
-			$allRes = array_merge($allRes, self::searchNews($queryNews, $indexStep, $indexMin));
-	  	}
-
-	  	//*********************************  DDA   ******************************************
-		/*if(strcmp($filter, ActionRoom::COLLECTION) != 0 && self::typeWanted(ActionRoom::COLLECTION, $searchType)){
-			$allRes = array_merge($allRes, self::searchDDA($query, $indexMax));
-	  	}
-	  	if(strcmp($filter, ActionRoom::COLLECTION) != 0 && self::typeWanted(ActionRoom::COLLECTION, $searchType)){
-			$allRes = array_merge($allRes, self::searchDDA($query, $indexMax));
-	  	}*/
-	  	
-
-		//*********************************  VOTES / propositions   ******************************************
-		//error_log(print_r($searchType)); 
-		//error_log("filter : ".$filter);
-		if(isset(Yii::app()->session["userId"]) && 
-			//(strcmp($filter, ActionRoom::TYPE_VOTE) != 0 && 
-				self::typeWanted(ActionRoom::TYPE_VOTE, $searchType) ||
-			//(strcmp($filter, ActionRoom::TYPE_ACTIONS) != 0 && 
-				self::typeWanted(ActionRoom::TYPE_ACTIONS, $searchType)
-			 ){    
-			$allRes = array_merge($allRes, self::searchVotes($query, $indexStep, $indexMin, $searchType));
-		}
-
-	  	if(@$post['tpl'] == "/pod/nowList"){
-	  		usort($allRes, "self::mySortByUpdated");
-	  	}
-	  	foreach ($allRes as $key => $value) {
-	  		if($searchOnAll){
-	  			if($value["type"]==News::COLLECTION){
-	  				if(@$value["updated"])
-						$allRes[$key]["sorting"] = @$value["updated"]->sec;
-					else if(@$value["created"])
-						$allRes[$key]["sorting"] = @$value["created"]->sec;
-	  			}
-				else{
-					if(is_object(@$value["updated"]))
-						$allRes[$key]["sorting"] = @$value["updated"]->sec;
-					else
-						$allRes[$key]["sorting"] = @$value["updated"];
-				}
-	  		}
-			if(@$value["updated"]) {
-				if($initType=="agenda")
-					$allRes[$key]["updatedLbl"] = Translate::pastTime(@$value["startDate"],"date");
-				else if($value["type"]==News::COLLECTION){
-					if(@$value["updated"])
-						$allRes[$key]["updatedLbl"] = Translate::pastTime(@$value["updated"]->sec, "timestamp");
-					else if(@$value["created"])
-						$allRes[$key]["updatedLbl"] = Translate::pastTime(@$value["created"]->sec, "timestamp");
-				}
-				else
-					$allRes[$key]["updatedLbl"] = Translate::pastTime(@$value["updated"],"timestamp");
-	  		}
-	  	}
 	  	//$params["results"]["count"][$_POST["type"]] = PHDB::count( $_POST["type"] , $queryNews);
 	  	//print_r($allRes);
 	  	//echo $search;
 	  	$results["results"]=$allRes;
 	  	if($countResult && !empty($countType))
 	  		$results["count"]=search::countResultsByCollection($countType, $query, $queryPersons, $queryNews, $queryEvents, $queryClassifieds, $queryRessources);
-	  	$element["gallery"] = Document::listMyDocumentByIdAndType((string)@$element["_id"], @$type);
+	  	//$element["gallery"] = Document::listMyDocumentByIdAndType((string)@$element["_id"], @$type);
 	  	//var_dump($allRes);
 	  	return $results ;
     }
@@ -568,34 +599,36 @@ class Search {
 	//****************************DEFINE LOCALITY QUERY   ***************************************
 	//*********************************  ZONES   *************************************************
 	//************************ LOCALITY QUERY FOR ELEMENT ****************************************
-	public static function searchLocality($localities, $query){
+	public static function searchLocality($localities, $query, $geo=null){
 		$allQueryLocality = array();
-		if(!empty($localities))
-		foreach ($localities as $key => $locality){
-			if(!empty($locality)){
-				if( @$locality["type"] == City::COLLECTION){
-					$queryLocality = array("address.localityId" => @$locality["id"]);
-					if(!empty($locality["postalCode"]))
-						$queryLocality = array_merge($queryLocality, array("address.postalCode" => new MongoRegex("/^".$locality["postalCode"]."/i")));
+		if(!empty($localities) && empty($geo)){
+			foreach ($localities as $key => $locality){
+				if(!empty($locality)){
+					if( @$locality["type"] == City::COLLECTION){
+						$queryLocality = array("address.localityId" => @$locality["id"]);
+						if(!empty($locality["postalCode"]))
+							$queryLocality = array_merge($queryLocality, array("address.postalCode" => new MongoRegex("/^".$locality["postalCode"]."/i")));
+					}
+					else if(@$locality["type"] == "cp"){
+						$queryLocality = array("address.postalCode" => new MongoRegex("/^".$locality["name"]."/i"));
+						if(!empty($locality["countryCode"]))
+							$queryLocality = array_merge($queryLocality, array("address.addressCountry" => $locality["countryCode"]));
+					}
+					else if(@$locality["type"] == "country"){
+						$queryLocality = array("address.addressCountry" => $locality["countryCode"]);
+					}
+					else
+						$queryLocality = array("address.".$locality["type"] => @$locality["id"]);
+					
+					if(empty($allQueryLocality))
+						$allQueryLocality = $queryLocality;
+					else if(!empty($queryLocality))
+						$allQueryLocality = array('$or' => array($allQueryLocality ,$queryLocality));
 				}
-				else if(@$locality["type"] == "cp"){
-					$queryLocality = array("address.postalCode" => new MongoRegex("/^".$locality["name"]."/i"));
-					if(!empty($locality["countryCode"]))
-						$queryLocality = array_merge($queryLocality, array("address.addressCountry" => $locality["countryCode"]));
-				}
-				else if(@$locality["type"] == "country"){
-					$queryLocality = array("address.addressCountry" => $locality["countryCode"]);
-				}
-				else
-					$queryLocality = array("address.".$locality["type"] => @$locality["id"]);
-				
-				if(empty($allQueryLocality))
-					$allQueryLocality = $queryLocality;
-				else if(!empty($queryLocality))
-					$allQueryLocality = array('$or' => array($allQueryLocality ,$queryLocality));
 			}
+		}else if (!empty($geo)){
+			$allQueryLocality = SIG::getGeoQuery($geo, "geoPosition.coordinates");
 		}
-
 		//modifié le 21/10/2017 by Tango, en espérant que ça ne casse aucun autre process
 		//(la query originale était perdu => pb pour les tags)
 		if(!empty($allQueryLocality)){
@@ -690,12 +723,25 @@ class Search {
   		// var_dump(date("d.m.y H:i:s", $endDate));
   		// echo "<br/>";
   		// echo "<br/>";
-  		if($startDate!=null)
-			array_push( $queryEvent[ '$and' ], array( "startDate" => array( '$gte' => new MongoDate( (float)$startDate ) ) ) );
+  		/*array('$or'=> array(array("startDate" => array( '$gte' => new MongoDate( (float)$startDate ) ) ),
+													array("endDate"=>array('$exists'=>true),"startDate" => array( '$gte' => new MongoDate( (float)$startDate ) ), "endDate" => array( '$lte' => new MongoDate( (float)$startDate ) ) ))) );*/
+  		if($startDate!=null){
+			if(!empty($endDate))
+				array_push( $queryEvent[ '$and' ], array("startDate" => array( '$gte' => new MongoDate( (float)$startDate ) ) ));
+			else{
+				array_push( $queryEvent[ '$and' ], 
+					array('$or'=> array(
+						array("startDate" => array( '$gte' => new MongoDate( (float)$startDate ) ) ),
+						array("endDate"=>array('$exists'=>true),
+							"endDate" => array( '$gte' => new MongoDate( (float)$startDate ) ) ))) );
+							//"startDate" => array( '$gte' => new MongoDate( (float)$startDate ) ), 
+			}
+  		}
 		if($endDate!=null)
        		array_push( $queryEvent[ '$and' ], array( "endDate" => array( '$lte' => new MongoDate( (float)$endDate ) ) ) );
   		if(isset($searchSType) && $searchSType != "")
         	array_push( $queryEvent[ '$and' ], array( "type" => $searchSType ) );
+        
     	// $queryEvent = array('$and' => 
 					// 	array( $queryEvent , 
 					// 	array( '$or' => array( 
@@ -875,7 +921,8 @@ class Search {
 	//*********************************  PERSONS   ******************************************
   	public static function searchPersons($query, $indexStep, $indexMin, $prefLocality=false){
        	$res = array();
-       	$query = array('$and' => array( $query , array("tobeactivated" => array('$exists' => 0)))) ;
+       	$query = array('$and' => array( $query , array("roles.tobeactivated" => array('$exists' => 0)))) ;
+
        	$allCitoyen = PHDB::findAndSortAndLimitAndIndex ( Person::COLLECTION , $query, 
   										  array("updated" => -1), $indexStep, $indexMin);
        	//print_r($allCitoyen);

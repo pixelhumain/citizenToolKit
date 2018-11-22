@@ -133,9 +133,17 @@ class Comment {
 			$objectNotif = array("id"=> $comment["parentCommentId"], "type" => Comment::COLLECTION);
 			$typeAction=Comment::COLLECTION;
 		}
-
 		if($comment["contextType"] != Form::ANSWER_COLLECTION)
-			Notification::constructNotification(ActStr::VERB_COMMENT, array("id" => Yii::app()->session["userId"],"name"=> Yii::app()->session["user"]["name"]), array("type"=>$comment["contextType"],"id"=> $comment["contextId"],"name"=>@$options["name"]), $objectNotif, $typeAction);
+			Notification::constructNotification( 	ActStr::VERB_COMMENT, 
+													array(	"id" => Yii::app()->session["userId"],
+															"name"=> Yii::app()->session["user"]["name"]), 
+													array(	"type"=>$comment["contextType"],
+															"id"=> $comment["contextId"],
+															"name"=>@$options["name"] ), 
+													$objectNotif,
+													$typeAction,
+													null,
+													$newComment["text"]);
 		else{
 			Form::createNotificationAnswer($comment);
 		}

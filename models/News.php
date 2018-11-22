@@ -49,8 +49,7 @@ class News {
 	 * @param type sort
 	 * News limited to 15
 	 */
-	public static function getNewsForObjectId($param,$sort=array("created"=>-1),$type, $followsArrayIds=null)
-	{
+	public static function getNewsForObjectId($param,$sort=array("created"=>-1),$type, $followsArrayIds=null) {
 		//$param=array();
 	    $res = PHDB::findAndSort(self::COLLECTION, $param,$sort,6);
 	    foreach ($res as $key => $news) {
@@ -107,7 +106,7 @@ class News {
 			else if($params["parentType"]==Person::COLLECTION && $params["parentId"] != Yii::app()->session["userId"])
 				$target["userWall"]=true;
 			if($params["parentType"] != Person::COLLECTION || $params["parentId"] != Yii::app()->session["userId"])
-        		Notification::constructNotification(ActStr::VERB_POST, array("id" => Yii::app()->session["userId"],"name" => Yii::app()->session["user"]["name"]) , $target, null, null);
+        		Notification::constructNotification(ActStr::VERB_POST, array("id" => Yii::app()->session["userId"],"name" => Yii::app()->session["user"]["name"]) , $target, null, null, null, $news["text"]);
 			$news=NewsTranslator::convertParamsForNews($news);			  		
 		    $news["author"] = Person::getSimpleUserById(Yii::app()->session["userId"]);
 		    

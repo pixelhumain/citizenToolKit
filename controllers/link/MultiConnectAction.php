@@ -12,16 +12,11 @@ class MultiConnectAction extends CAction
 				$list = $_POST["listInvite"] ;
 				$res = array();
 
-				// var_dump(count($list["citoyens"]));var_dump(count($list["invites"]));var_dump(count($list["organizations"])); exit ;
-
 				if( !empty($list["citoyens"]) && count($list["citoyens"]) > 0 ){
 					
 					foreach ($list["citoyens"] as $key => $value) { 
 						$child = array();
 						if($_POST["parentType"] == Person::COLLECTION){
-							// $child = array( "childId" => $key,
-							// 			"childType" => Person::COLLECTION);
-
 							$child = array( "childId" => $_POST["parentId"],
 											"childType" => $_POST["parentType"]);
 							$res["citoyens"][] = Link::follow($key, Person::COLLECTION, $child);
@@ -37,8 +32,6 @@ class MultiConnectAction extends CAction
 												"childName" => $value["name"],
 												"roles"=> (empty($value["roles"]) ? array() : $value["roles"]),
 												"connectType" => (empty($value["isAdmin"]) ? "" : $value["isAdmin"]) );
-							//var_dump($child);
-							
 							$res["citoyens"][] = Link::multiconnect($child, $_POST["parentId"], $_POST["parentType"]);
 						}
 					}
@@ -55,10 +48,14 @@ class MultiConnectAction extends CAction
 						$creatUser = Person::createAndInvite($newPerson, @$value["msg"]);
 						if ($creatUser["result"]) {
 							if($_POST["parentType"] == Person::COLLECTION){
-								$invitedUserId = $creatUser["id"];
-								$child["childId"] = $_POST["parentId"];
-								$child["childType"] = $_POST["parentType"];
-								$res["invites"][] = Link::follow($invitedUserId, Person::COLLECTION, $child);
+								$child = array();
+								$child[] = array( 	"childId" => $creatUser["id"],
+													"childType" => Person::COLLECTION,
+													"childName" => $newPerson["name"],
+													"roles" => (empty($value["roles"]) ? array() : $value["roles"]),
+													"connectType" => (empty($value["isAdmin"]) ? "" : $value["isAdmin"]) );
+
+								$res["invites"][]= Link::multiconnect($child, $_POST["parentId"], $_POST["parentType"]);
 								
 							} else if($_POST["parentType"] == Action::COLLECTION){
 
@@ -73,7 +70,6 @@ class MultiConnectAction extends CAction
 													"childName" => $value["name"],
 													"roles" => (empty($value["roles"]) ? array() : $value["roles"]),
 													"connectType" => (empty($value["isAdmin"]) ? "" : $value["isAdmin"]) );
-								//var_dump($child);
 								$res["invites"][]= Link::multiconnect($child, $_POST["parentId"], $_POST["parentType"]);
 							}
 						}
@@ -99,11 +95,7 @@ class MultiConnectAction extends CAction
 						}
 					}
 				}
-
-				//var_dump($res); exit;
 				return Rest::json($res);
-				// $res = Element::updateBlock($_POST);
-				// return Rest::json($res);
 			} catch (CTKException $e) {
 				return Rest::json(array("result"=>false, "msg"=>$e->getMessage(), "data"=>$_POST));
 			}

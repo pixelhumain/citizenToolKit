@@ -196,5 +196,13 @@ class Cron {
 		}
 	}
 
+	public static function getCron($where = array()){
+		$cron = PHDB::find( self::COLLECTION , $where );
+
+		return $cron;
+	}
+
+
+
 }
 ?>

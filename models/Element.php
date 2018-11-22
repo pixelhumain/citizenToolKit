@@ -172,7 +172,25 @@ class Element {
 	    );	
 	    if(isset($colors[$type])) return $colors[$type];
 	    else return false;
-     }
+	}
+
+	public static function getColorMail ($type) { 
+    	$colors = array(
+	    	Organization::COLLECTION 	=> "green",
+	    	Person::COLLECTION 			=> "#FFC600",
+	    	Event::COLLECTION 			=> "orange",
+	    	Project::COLLECTION 		=> "purple",
+	    	Organization::TYPE_NGO 		=> "green",
+	    	Organization::TYPE_BUSINESS => "azure",
+	    	Organization::TYPE_GROUP 	=> "turq",
+	    	Organization::TYPE_GOV 		=> "red",
+	    	Classified::COLLECTION 		=> "#2BB0C6",
+	    	Classified::TYPE_RESSOURCES	=>"#2BB0C6",
+	    	Classified::TYPE_JOBS=>"#2BB0C6",
+	    );	
+	    if(isset($colors[$type])) return $colors[$type];
+	    else return false;
+	}
     
     public static function getElementSpecsByType ($type) { 
     	$ctrler = self::getControlerByCollection ($type);
@@ -377,19 +395,26 @@ class Element {
 			$element = Network::getById($id);
 		else if($type == Service::COLLECTION)
 			$element = Service::getById($id);
+		else if($type == Product::COLLECTION)
+			$element = Product::getById($id);
+		else if($type == News::COLLECTION)
+			$element = News::getById($id);
 		else
 			$element = PHDB::findOne($type,array("_id"=>new MongoId($id)));
 	  	
 	  	if ($element == null) 
 	  		$element = Element::getGhost($type);
 	  		//throw new CTKException("The element you are looking for has been moved or deleted");
-	  	if(@$update && $update && !@$element["images"]){
-	  		$typeEl=(in_array($type, [Event::CONTROLLER, Project::CONTROLLER, Organization::CONTROLLER])) ? Element::getCollectionByControler($type) : $type; 
-	  		$where=array(
-	  			"id"=>$id, "type"=>$typeEl, "doctype"=>"image", 
-	  			"contentKey"=>"profil", "current"=>array('$exists'=>true)
-	  		);
-	  		$element["images"] = Document::getListDocumentsWhere($where, "image");
+	  	if(@$update && $update){
+	  	 	if(!@$element["images"]){
+		  		$typeEl=(in_array($type, [Event::CONTROLLER, Project::CONTROLLER, Organization::CONTROLLER])) ? Element::getCollectionByControler($type) : $type; 
+		  		$where=array(
+		  			"id"=>$id, "type"=>$typeEl, "doctype"=>"image", 
+		  			"contentKey"=>"profil", "current"=>array('$exists'=>true)
+		  		);
+		  		$element["images"] = Document::getListDocumentsWhere($where, "image");
+		  	}
+		  	$element["public"]=(@$element["preferences"] && @$element["preferences"]["private"] && $element["preferences"]["private"]) ? false : true;
 	  	}
 	  	$el = $element;
 		if(@$el["links"]) foreach(array("followers", "follows", "members", "contributors") as $key)
@@ -1349,6 +1374,71 @@ class Element {
 	}
 
 	/**
+		Get communtiy of an element, complete or linked to specific search
+		* @param String $typeCommunity : get specific type of element in a community
+		* @param String $attribute defined the kind of community : members / admin / pending
+		* @param String $role : get sepecific member with role,
+		* @param String $settings : in order to get specific community towards a notifications and emails settings
+	**/
+	public static function getCommunityByTypeAndId($type, $id, $typeCommunity="all", $attribute=null, $role=null, $settings=null) {
+		$res = array();
+	  	$element = self::getElementSimpleById($id, $type, null, array("links"));
+	  	if (empty($element)) {
+            throw new CTKException(Yii::t("common", "The id of {what} is unkown : please contact us to fix this problem", array("{what}"=>Yii::t("common","this ".self::getControlerByCollection($type)))));
+        }
+	  	if ( @$element && @$element["links"] && @Link::$linksTypes[$type] && @$element["links"][Link::$linksTypes[$type][Person::COLLECTION]] ) 
+	  	{
+	  		$community = array();
+	  		foreach ($element["links"][Link::$linksTypes[$type][Person::COLLECTION]] as $key => $value) {
+	  			$add=false;
+	  			if(!@$value["toBeValidated"] && !@$value["isInviting"]){
+		        	
+			        $add = ($typeCommunity=="all" || $value['type'] == $typeCommunity) ? true : false;
+			        if($add && $attribute !== null){  
+			        	if($attribute=="isAdmin" && @$value["isAdmin"] && !@$value["isAdminPending"])
+			        		$add = (empty($role) || (!empty($role) && @$value["roles"] && in_array($role, $value["roles"]))) ? true : false;
+			        	else if($attribute=="onlyMembers" && !@$value["isAdmin"])
+			        		$add = (empty($role) || (!empty($role) && @$value["roles"] && in_array($role, $value["roles"]))) ? true : false;
+			        	else
+			        		$add=false;
+			        	//$searchInAttribute=false;
+			        }
+			        if($add && $role !== null){
+			        	if(@$value["roles"] && in_array($role, $value["roles"]))
+			        		$add=true;
+			        	else
+			        		$add=false;
+			        }
+			        if($add && $settings !== null){
+			        	if(@$value[$settings["type"]]){
+			        		if($settings["value"]=="high" && $value[$settings["type"]]=="high")
+			        			$add=true;
+			        		else if($settings["value"]=="default" && in_array($value[$settings["type"]],["default","high"]))
+			        			$add=true;
+			        		else if($settings["value"]=="low" && $value[$settings["type"]] != "desactivated")
+			        			$add=true;
+			        		else
+			        			$add=false;
+
+			        	}
+			        	else if(in_array($settings["value"], ["low", "default"]))
+			        		$add=true;
+			        	else
+			        		$add=false;
+			        }
+			    }
+			  	if($add){
+		    		if(@$settings && $settings["type"]=="mails")
+	        			$res[$key]= Element::getElementSimpleById($key, Person::COLLECTION, null, array("email", "username", "language")); 
+	        		else
+	        			$res[$key] = $value;
+	        	}
+	  		}
+	  	}
+	  	return $res;
+	}
+
+	/**
 	 * Demande la suppression d'un élément
 	 * - Si creator demande la suppression et organisation vide (pas de links, pas de members) => suppression de l’orga
 	 * - Si superadmin => suppression direct
@@ -1879,7 +1969,7 @@ class Element {
                 	$res["afterSave"] = Network::afterSave($params, Yii::app()->session["userId"]);
 
                // echo "pas d'id - "; var_dump($postParams); exit;
-               $res["afterSaveGbl"] = self::afterSave((string)$params["_id"],$collection,$params,$postParams);
+               $res["afterSaveGbl"] = self::afterSave((string)$params["_id"],$collection,$params,$postParams, $paramsLinkImport);
                 //if( false && @$params["parentType"] && @$params["parentId"] )
                 //{
                     //createdObjectAsParam($authorType, $authorId, $objectType, $objectId, $targetType, $targetId, $geo, $tags, $address, $verb="create")
@@ -1906,9 +1996,11 @@ class Element {
         return $res;
     }
 
-    public static function afterSave ($id, $collection, $params,$postParams) {
+    public static function afterSave ($id, $collection, $params, $postParams, $paramsImport=null) {
     	$res = array();
     	
+    	if(!empty($params["title"]) && empty($params["name"]))
+    		$params["name"] = $params["title"];
     	/*if( @$postParams["medias"] )
     	{
     		//create POI for medias connected to the parent
@@ -1930,6 +2022,45 @@ class Element {
         		Mail::referenceEmailInElement($collection, $id, $params["email"]);
         	}
         }
+
+
+
+        if (empty($paramsImport) && Preference::isPublicElement(@$params["preferences"])){
+        	$targetNewsId=(@$params["parentId"] && !empty($params["parentId"])) ? $params["parentId"] : Yii::app()->session["userId"];
+        	$targetNewsType=( @$params["parentType"] && !empty($params["parentType"])) ? $params["parentType"]: Person::COLLECTION; 
+			Notification::createdObjectAsParam( Person::COLLECTION, 
+												Yii::app()->session["userId"], 
+												$collection, 
+												$id, 
+												$targetNewsType, 
+												$targetNewsId, 
+												( !empty($params["geo"]) ? $params["geo"] : "" ) , 
+												( !empty($params["tags"]) ? $params["tags"] : null ),
+												( ( !empty($organization["address"]) && !empty($organization["address"]["codeInsee"]) ) ? $organization["address"]["codeInsee"] : "" ) ) ;
+        }
+
+
+		if( ( !empty($params["organizerType"]) && in_array($params["organizerType"], array(Organization::COLLECTION, Project::COLLECTION)) ) || 
+			( !empty($params["parentType"]) && in_array($params["parentType"], array(Organization::COLLECTION, Project::COLLECTION)) ) ) {
+
+			if( !empty($params["parentId"]) ){
+	    		$parentId=$params["parentId"];
+	    		$parentType=$params["parentType"];
+			} else{
+	    		$parentId=$params["organizerId"];
+	    		$parentType=$params["organizerType"];
+			}
+
+			//Rest::json($params); exit ;
+	    	Notification::constructNotification(ActStr::VERB_ADD, array("id" => Yii::app()->session["userId"],"name"=> Yii::app()->session["user"]["name"]), array("type"=>$parentType,"id"=> $parentId), array("id"=>$id,"type"=> $collection), $collection);
+	    }
+
+	    // if( ){
+	    // 	Notification::constructNotification(ActStr::VERB_ADD, array("id" => Yii::app()->session["userId"],"name"=> Yii::app()->session["user"]["name"]), array("type"=>$params["parentType"],"id"=> $params["parentId"]), array("id"=>(string)$params["_id"],"type"=> $collection), $collection);
+	    // }
+
+
+		ActivityStream::saveActivityHistory( ActStr::VERB_CREATE, $id, $collection, "organization", $params["name"] ) ;
                 
     	return $res;
     }
@@ -1959,12 +2090,14 @@ class Element {
 		        $params["created"] = time();
 		    }
 		    
-		    if(@$params["public"] && in_array($params["collection"], [Event::COLLECTION, Project::COLLECTION])){
+		    if(@$params["public"] && in_array($params["collection"], [Event::COLLECTION, Project::COLLECTION, Classified::COLLECTION])){
         		//$params["preferences"]["public"]=$params["public"];
         		if(!is_bool($params["public"]))
 		    		$params["public"] = ($params["public"] == "true") ? true : false;
 		    	if($params["public"]==false)
 		    		$params["preferences"]["private"]=true;
+		    	else
+		    		$params["preferences"]["private"]=false;
         		if(@$params["preferences"]["private"]){
         			$params["preferences"]["isOpenData"]=false;
         			$params["preferences"]["isOpenEdition"]=false;
@@ -3041,7 +3174,7 @@ class Element {
 		}
 
 		//manage delete in progress status
-		$params["deletePending"] = Element::isElementStatusDeletePending($type, $id);
+		$params["deletePending"] = Notification::isElementStatusDeletePending($type, $id);
 		
 		
 		return $params;

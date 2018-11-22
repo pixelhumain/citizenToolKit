@@ -72,7 +72,8 @@ class Authorisation {
         $result = array();
         //organization i'am admin 
         $where = array( "links.members.".$userId.".isAdmin" => true,
-                        "links.members.".$userId.".isAdminPending" => array('$exists' => false )
+                        "links.members.".$userId.".isAdminPending" => array('$exists' => false ),
+                        "links.members.".$userId.".".Link::TO_BE_VALIDATED => array('$exists' => false )
                     );
 
         $organizations = PHDB::find(Organization::COLLECTION, $where);
