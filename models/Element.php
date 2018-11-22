@@ -2183,12 +2183,32 @@ class Element {
 
 	public static function alreadyExists ($params, $collection) {
 		$result = array("result" => false);
-		$where = array(	"name" => $params["name"],
-						"address.localityId" => @$params["address"]["localityId"]);
-		$element = PHDB::findOne($collection, $where);
-		if(!empty($element))
-			$result = array("result" => true ,
-							"element" => $element);
+
+		if($collection != Event::COLLECTION){
+			$where = array(	"name" => $params["name"],
+							"address.localityId" => @$params["address"]["localityId"]);
+
+			
+			// if(!empty($params["startDate"])){
+			// 	$startDate = DateTime::createFromFormat('Y-m-d H:i:s', $params["startDate"]);
+			// 	$s = new MongoDate(strtotime($startDate->format('d/m/Y H:i')));
+			// 	$where["startDate"] = array('$lte' => $s );
+			// }
+
+			// if(!empty($params["endDate"])){
+			// 	$endDate = DateTime::createFromFormat('Y-m-d H:i:s', $params["endDate"]);
+			// 	$s = new MongoDate(strtotime($endDate->format('d/m/Y H:i')));
+			// 	$where["endDate"] = array('$lte' => $s );
+			// }
+
+			//Rest::json($where); exit;
+
+			$element = PHDB::findOne($collection, $where);
+			if(!empty($element))
+				$result = array("result" => true ,
+								"element" => $element);
+		}
+		
 		return $result;
     }
 
