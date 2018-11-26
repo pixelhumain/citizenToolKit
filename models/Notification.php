@@ -346,8 +346,8 @@ class Notification{
 			"type" => array(
 				News::COLLECTION => array(
 					"targetIsAuthor" => array(
-						"label"=>"{who} reacts on a news from {where}",
-						"labelRepeat"=>"{who} react on a news from {where}",
+						"label"=>"{who} reacts on a news {what} from {where}",
+						"labelRepeat"=>"{who} react on a news {what} from {where}",
 						"labelMail"=>"{who} reacts on a news from {where}",
 						"labelRepeatMail"=>"{who} react on a news from {where}"
 					),
