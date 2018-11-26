@@ -906,9 +906,9 @@ class Mail {
 			if($value["typeOfDemand"]=="admin")
 				$verb="administrate";
 			else{
-				if($parentType==Event::COLLECTION)
+				if($target["type"]==Event::COLLECTION)
 					$verb="participate to";
-				else if($parentType==Project::COLLECTION)
+				else if($target["type"]==Project::COLLECTION)
 					$verb="contribute to";
 				else
 					$verb="join";
