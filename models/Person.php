@@ -435,7 +435,7 @@ class Person {
 						if($connectKey=="follows") $res[$type][$key]["isFollowed"]=true;
 						foreach($value as $label => $v){
 							if($label != "type")
-								$$res[$type][$key][$label]=$v;
+								$res[$type][$key][$label]=$v;
 						}
 					}else{
 						$contactComplet = Element::getElementSimpleById($key, $value["type"], null, $infos);
