@@ -10,6 +10,25 @@ class Badge {
 			$badges = $account["badges"];
 		return $badges;
 	}
+	public static function getBadgesByLinks($links) {
+		$badges = array();
+		foreach ($links as $sec => $l) {
+			foreach ($l as $id => $v) {
+				if(@$v["type"]){
+					$el = Element::getByTypeAndId( $v["type"],$id );
+					if( @$el["preferences"]["badge"] ){
+						$b = array( "name"=>$el["name"],
+								    "type"=>$v["type"]);
+						if(!empty($el["profilThumbImageUrl"]))
+							$b["img"] = $el["profilThumbImageUrl"];
+						$badges[] = $b;
+					}
+				}
+			}
+		}
+		
+		return $badges;
+	}
 
 	public static function checkBadgeInListBadges($badge, $badges) {
 		
