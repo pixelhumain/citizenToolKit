@@ -616,6 +616,9 @@ class SIG
 
 
     public static function getFormatGeo($latitude, $longitude){
+    	$latitude = ( is_numeric($latitude) ? strval($latitude) : $latitude ) ;
+        $longitude = ( is_numeric($longitude) ? strval($longitude) : $longitude ) ;
+
         return array("@type"=>"GeoCoordinates", "latitude" => $latitude, "longitude" => $longitude);
     }
 
