@@ -973,7 +973,7 @@ class Element {
 	    if($type == Organization::COLLECTION){
 	    	$connectAs="members";
 	    	$elt = Organization::getSimpleOrganizationById($id);
-			$newOrga["type"]=Organization::COLLECTION;
+			//$newOrga["type"]=Organization::COLLECTION;
 			$contextMap[$elt["id"]] = $elt;
 	    }
 	    else if($type == Project::COLLECTION){
@@ -1161,11 +1161,12 @@ class Element {
 		$contextMap["events"] = array();
 		$contextMap["followers"] = array();*/
 
+		//var_dump($type); var_dump($id); exit; 
 
 	    if($type == Organization::COLLECTION){
 	    	$connectAs="members";
 	    	$elt = Organization::getSimpleOrganizationById($id);
-			$newOrga["type"]=Organization::COLLECTION;
+			//$newOrga["type"]=Organization::COLLECTION;
 			$contextMap[$elt["id"]] = $elt;
 	    }
 	    else if($type == Project::COLLECTION){
@@ -3207,5 +3208,26 @@ public static function myNetwork($id, $type){
 				"#".$element["slug"] : 
 				"#page.type.".@$element["type"].".id.".$id;
  	}
+
+
+
+ 	public static function getByArrayId($type, $valLink, $fieldsPer){
+ 		if( !empty($valLink) ) {
+			foreach ($valLink as $type => $valLink) {
+				$contactsComplet = null;
+				if($type == Person::COLLECTION)
+					$contactsComplet = Person::getByArrayId($valLink, $fieldsPer, true, true); 
+				if($type == Organization::COLLECTION)
+					$contactsComplet = Organization::getByArrayId($valLink, $fieldsOrg, true);
+				if($type == Project::COLLECTION)
+					$contactsComplet = Project::getByArrayId($valLink, $fieldsPro, true);
+				if($type == Event::COLLECTION)
+					$contactsComplet = Event::getByArrayId($valLink, $fieldEve, true);
+
+				if(!empty($contactsComplet))
+					$contextMap = array_merge($contextMap, $contactsComplet);					
+			}
+		}
+ 	} 
 
 }
