@@ -148,7 +148,7 @@ class RocketChat{
 				"type" => ( @$type == "true" ) ? "channel":"group"
 			);
 			$res->info = $channel->info() ;
-			//$res->post = $channel->postMessage($new) ;
+			$res->post = $channel->postMessage($new) ;
 
 		} catch (Exception $e) {
             $res->msg = $e->getMessage();

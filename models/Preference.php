@@ -130,6 +130,12 @@ class Preference {
 			$preferences["isOpenData"] = ((empty($context["preferences"]["isOpenData"]))?false:true);
 		}
 
+		if($setType == "badge"){
+			$preferences["badge"] = $setValue;
+		}else{
+			$preferences["badge"] = ((empty($context["preferences"]["badge"]))?false:true);
+		}
+
 		if($setType == "sendMail"){
 			$preferences["sendMail"] = $setValue;
 		}else{
