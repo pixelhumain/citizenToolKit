@@ -954,13 +954,13 @@ class Mail {
                             array("_id" => $mail["_id"]) , 
                             array('$set' => array("tplParams" => $mail["tplParams"]))           
                         );
-                    } else {
+                    } else { 
                         $language=(@$value["language"]) ? $value["language"] : "fr";
                         $paramTpl = self::createParamsTpl($construct, null);
                         $params = array (
                             "type" => Cron::TYPE_MAIL,
                             "tpl"=>'notification',
-                            "subject" => "[".self::getAppName()."] - Il y a du nouveaux",
+                            "subject" => "[".self::getAppName()."] - ".Yii::t("mail", "We got news for you."),
                             "from"=>Yii::app()->params['adminEmail'],
                             "to" => $value["email"],
                             "tplParams" => array(
