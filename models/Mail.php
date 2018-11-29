@@ -1267,14 +1267,15 @@ class Mail {
 	}
 
 
-    public static function bookmarkNotif($params, $userID) {
+    public static function bookmarkNotif($params, $userID, $mailParams=null) {
 
         $user = Person::getSimpleUserById($userID);
         if (!empty($user["email"])) {
-            $params = array (
+            $subTit=(@$mailParams["title"]) ? $mailParams["title"] : self::getAppName();
+            $mailConstruct = array (
                 "type" => Cron::TYPE_MAIL,
                 "tpl"=>'bookmarkNotif',
-                "subject" => "[".self::getAppName()."] - Nouvelles annonces, ".@$user["name"],
+                "subject" => "[".$subTit."] - Nouvelles annonces, ".@$user["name"],
                 "from"=>Yii::app()->params['adminEmail'],
                 "to" => $user["email"],
                 "tplParams" => array(
@@ -1285,8 +1286,20 @@ class Mail {
                     "baseUrl" => Yii::app()->getRequest()->getBaseUrl(true)."/"
                 ),
             );
-            
-            Mail::schedule($params);
+            if(@$mailParams && !empty($mailParams)){
+                if(@$mailParams["logo"]){
+                    $mailConstruct["tplParams"]["logo"]=$mailParams["logo"];
+                    $mailConstruct["tplParams"]["logo2"]=$mailParams["logo"];
+                    $mailConstruct["tplParams"]["logoHeader"]=$mailParams["logo"];
+                }
+                if(@$mailParams["title"])
+                    $mailConstruct["tplParams"]["title"]=$mailParams["title"];
+                if(@$mailParams["url"])
+                   // $mailConstruct["tplParams"]["baseUrl"]=Yii::app()->getRequest()->getBaseUrl(true).$mailParams["url"];
+                    $mailConstruct["tplParams"]["url"]=Yii::app()->getRequest()->getBaseUrl(true).$mailParams["url"];
+                
+            }
+            Mail::schedule($mailConstruct);
         }
         // }
     }
