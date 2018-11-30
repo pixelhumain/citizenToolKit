@@ -43,6 +43,8 @@ class Bookmark {
 	    "created" => array("name" => "created"),
 	    "locality" => array("name" => "address"),
 	    "alert" => array("name" => "alert"),
+	    "searchUrl"=>array("name" => "searchUrl"),
+	    "mailParams"=>array("name" => "mailParams"),
 	    "descriptionHTML" => array("name" => "descriptionHTML")
 	);
 	public static function getListByWhere($where) {
@@ -73,7 +75,7 @@ class Bookmark {
 			$params["updated"]=time();
 			$params["creator"]=Yii::app()->session["userId"];
 			PHDB::insert(self::COLLECTION, $params);
-	    	$res = array('result'=>true, "msg" => Yii::t("document","The bookmark is succesfully registered"), "value" => $params);
+	    	$res = array('result'=>true, "msg" => Yii::t("common","The bookmark is succesfully registered"), "value" => $params);
 		}else
 			$res = array( "result" => false, "error"=>"400",
                           "msg" => Yii::t("common","Something went really bad : ".$valid['msg']) );
@@ -118,8 +120,9 @@ class Bookmark {
 		$book = PHDB::find(self::COLLECTION,$where,array());
 		//Rest::json($book); exit;
 		foreach ($book as $keyB => $valueB) {
-			if($valueB["parentType"] == Person::COLLECTION && strrpos($valueB["url"], "annonces?") !== false){
-				$url = explode("annonces?" ,parse_url( $valueB["url"], PHP_URL_FRAGMENT));
+			$urlSearch=(@$valueB["searchUrl"]) ? $valueB["searchUrl"] : $valueB["url"];
+			if($valueB["parentType"] == Person::COLLECTION && strrpos($urlSearch, "annonces?") !== false){
+				$url = explode("annonces?" ,parse_url( $urlSearch, PHP_URL_FRAGMENT));
 				parse_str($url[1]);
 				//var_dump($searchSType);
 				$params = array(
@@ -129,6 +132,15 @@ class Bookmark {
 					"searchType" => array("classifieds"),
 					"lastTimes" => $valueB["updated"]
 				);
+
+				if(!empty($sourceKey))
+					$params["sourceKey"] = $sourceKey ;
+				
+				if(!empty($text))
+					$params["text"] = $text ;
+
+				if(!empty($tags))
+					$params["tags"] = explode(",", $tags) ;
 
 				if(!empty($searchSType))
 					$params["searchSType"] = $searchSType ;
@@ -195,7 +207,10 @@ class Bookmark {
 					$val = array(	"name" => $valueB["name"], 
 									"url" => $valueB["url"], 
 									"results" => $search["results"]);
-					$res[$valueB["parentId"]][] = $val;
+					if(!@$res[$valueB["parentId"]]) $res[$valueB["parentId"]]=array();
+					$res[$valueB["parentId"]]["search"][] = $val;
+					if(@$valueB["mailParams"])
+						$res[$valueB["parentId"]]["mailParams"]=$valueB["mailParams"];
 					
 					// if(empty($res[$valueB["parentId"]])){
 					// 	$res[$valueB["parentId"]][] = $val;
@@ -213,7 +228,7 @@ class Bookmark {
 
 		if(!empty($res)){
 			foreach ($res as $keyR => $valueR) {
-				Mail::bookmarkNotif($valueR, $keyR);
+				Mail::bookmarkNotif($valueR["search"], $keyR, @$valueR["mailParams"]);
 			}
 		}
 
