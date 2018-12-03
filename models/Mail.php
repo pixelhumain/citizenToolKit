@@ -1027,7 +1027,7 @@ class Mail {
         $verb = $construct["verb"];
         $repeat = false;
         $repeatKey = null;
-        $countRepeat=1;
+        $sameAuthor =null;
         $labelArray = array() ;
         $myParam = null ;
 
@@ -1057,6 +1057,9 @@ class Mail {
                         empty($construct["object"] ) ) ) {
         			$myParam = $valD ;
         			$repeatKey = $keyD ;
+
+
+                    //if()
         			break;
         		} 
         	}

@@ -501,7 +501,8 @@ class Notification{
 					"labelMail" => "{who} added a new room : {what} on {where}",
 					"labelRepeatMail" => "{who} have added new rooms in the co-space on {where}",
 					"sameAuthor" => array(
-						"labelRepeat" => "{who} added new rooms in the co-space on {where}"
+						"labelRepeat" => "{who} added new rooms in the co-space on {where}",
+						"labelRepeatMail" => "{who} added new rooms in the co-space on {where}"
 					),
 					"repeat"=>true
 				),
@@ -965,6 +966,7 @@ class Notification{
 		// COnstruct notification for target with community
 		// Notifiy the community of an element
 		$notificationPart = self::communityToNotify($notificationPart, @$notificationPart["alreadyAuhtorNotify"]);
+		//Rest::json($notificationPart); exit ;
 		$update = false;
 		if(!empty($notificationPart["community"]) && $notificationPart["notifyCommunity"]){
 		    if(	in_array("author",$notificationPart["labelArray"]) && 
