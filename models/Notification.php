@@ -359,7 +359,7 @@ class Notification{
 					"parentTarget"=> true,
 					"url" => "page/type/news/id/{id}"
 				),
-				/*Proposal::COLLECTION => array(
+				Proposal::COLLECTION => array(
 					"label" => "{who} commented on proposal {what} in {where}",
 					"labelRepeat" => "{who} added comments on proposal {what} in {where}",
 					"url" => "page/type/{collection}/id/{id}/view/coop/room/{roomId}/proposal/{objectId}",
@@ -378,7 +378,7 @@ class Notification{
 					"label" => "{who} commented on resolution {what} in {where}",
 					"labelRepeat" => "{who} added comments on resolution {what} in {where}",
 					"url" => "page/type/{collection}/id/{id}/view/coop/room/{roomId}/resolution/{objectId}"
-				),*/
+				),
 				Comment::COLLECTION => array(
 					"label"=>"{who} reacts on your comment on {where}",
 					"labelRepeat"=>"{who} react on your comment on {where}",
@@ -1229,8 +1229,12 @@ class Notification{
 		if($url=="targetTypeUrl"){
 			if(in_array($construct["verb"],[Actstr::VERB_COMMENT, Actstr::VERB_REACT])
 				&& @$construct["object"] 
-				&& in_array($construct["object"]["type"],[Proposal::COLLECTION, Action::COLLECTION,Resolution::COLLECTION]))
-				$url=$construct["type"][$construct["object"]["type"]]["url"];
+				&& in_array($construct["object"]["type"],[Proposal::COLLECTION, Action::COLLECTION,Resolution::COLLECTION])){
+
+			//var_dump($construct);
+			$url=$construct["type"][$construct["object"]["type"]]["url"];
+			//var_dump($construct);
+		}
 			else
 				$url=$construct["type"][$construct["target"]["type"]]["url"];
 		}
