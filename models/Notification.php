@@ -514,7 +514,8 @@ class Notification{
 					"labelRepeat" => "{who} have added few proposals in {where}",
 					"labelRepeatMail" => "{who} added few proposals in {where}",
 					"sameAuthor" => array(
-						"labelRepeat" => "{who} added few proposals in {where}"
+						"labelRepeat" => "{who} added few proposals in {where}",
+						"labelRepeatMail" => "{who} added few proposals in {where}"
 					),
 					"repeat"=>true
 				),
@@ -526,7 +527,8 @@ class Notification{
 					"labelRepeat" => "{who} added few actions in {where}",
 					"labelRepeatMail" => "{who} added few actions in {where}",
 					"sameAuthor" => array(
-						"labelRepeat" => "{who} added few actions in {where}"
+						"labelRepeat" => "{who} added few actions in {where}",
+						"labelRepeatMail" => "{who} added few actions in {where}"
 					),
 					"repeat"=>true
 				),
@@ -588,7 +590,8 @@ class Notification{
 			"labelRepeatMail"=>"{who} have voted on {what} in {where}",
 			"labelArray" => array("who", "what", "where"),
 			"sameAuthor" => array(
-				"labelRepeat" => "{who} voted few times on {what} in {where}"
+				"labelRepeat" => "{who} voted few times on {what} in {where}",
+				"labelRepeatMail" => "{who} voted few times on {what} in {where}"
 			),
 			"icon" => ActStr::ICON_VOTE,
 			"url" =>  "page/type/{collection}/id/{id}/view/coop/room/{roomId}/proposal/{objectId}",
@@ -602,7 +605,8 @@ class Notification{
 			"labelRepeatMail"=>"{who} have amended the proposal {what} in {where}",
 			"labelArray" => array("who","what","where"),
 			"sameAuthor" => array(
-				"labelRepeat" => "{who} amended few times the proposal {what} in {where}"
+				"labelRepeat" => "{who} amended few times the proposal {what} in {where}",
+				"labelRepeatMail" => "{who} amended few times the proposal {what} in {where}"
 			),
 			
 			"icon" => ActStr::ICON_VOTE,
