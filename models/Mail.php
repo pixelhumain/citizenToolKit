@@ -1058,7 +1058,20 @@ class Mail {
         			$myParam = $valD ;
         			$repeatKey = $keyD ;
 
+        			//Rest::json(array("valD" => $valD, "construct" => $construct)); exit;
 
+                    if( !empty($valD["labelArray"]) && 
+                        !empty($valD["labelArray"]["{author}"]) &&
+                        !empty($valD["labelArray"]["{author}"]) &&
+                        !empty($construct["author"]) &&
+                        !empty($construct["author"]["id"]) ){
+
+                    	foreach ($valD["labelArray"]["{author}"] as $keyA => $valA) {
+                    		if( $construct["author"]["id"] == $valA["id"]){
+                    			$sameAuthor = true;
+                    		}
+                    	}
+                    }
                     //if()
         			break;
         		} 
@@ -1106,29 +1119,34 @@ class Mail {
                 	$str["type"] = @$construct[ "target" ][ "type" ];
                 	$str["img"] = @$construct[ "target" ][ "profilThumbImageUrl" ];
                     $str["url"] = Yii::app()->getRequest()->getBaseUrl(true)."/#page.type.".$targetType.".id.".$targetId;
+                    $str["id"] = @$targetId;
                 }
             	else if(!empty($construct[ "author" ]) ){
 					$str["name"] = @$construct[ "author" ][ "name" ];
 					$str["type"] = Person::COLLECTION;
 					$str["img"] = @$construct[ "author" ][ "profilThumbImageUrl" ];
                     $str["url"] = Yii::app()->getRequest()->getBaseUrl(true)."/#page.type.".Person::COLLECTION.".id.".$construct[ "author" ]["id"];
+                    $str["id"] = @$construct[ "author" ]["id"];
                 }
             }
             else if("where" == $value && !empty($construct[ "target" ]) ){
                 //$str = @$construct[ "target" ][ "name" ];
                 $str["name"] = (!empty($construct[ "target" ][ "name" ]) ? @$construct[ "target" ][ "name" ] : @$construct[ "target" ][ "title" ]);
                 $str["type"] = @$construct[ "target" ][ "type" ];
+                $str["id"] = @$construct[ "target" ]["id"];
                 $str["url"] = Yii::app()->getRequest()->getBaseUrl(true)."/#page.type.".$construct[ "target" ]["type"].".id.".$construct[ "target" ]["id"];
             }
             else if("what" == $value && !empty($construct[ "object" ])){
                 $str["name"] = (!empty($construct[ "object" ][ "name" ]) ? @$construct[ "object" ][ "name" ] : @$construct[ "object" ][ "title" ]);
                 $str["type"] = @$construct[ "object" ][ "type" ];
+                $str["id"] = @$construct[ "object" ]["id"];
                 $str["url"] = Yii::app()->getRequest()->getBaseUrl(true)."/#page.type.".$construct[ "object" ]["type"].".id.".$construct[ "object" ]["id"];
             }else if("author" == $value && !empty($construct[ "author" ])){
                 $str["name"] = @$construct[ "author" ][ "name" ];
                 $str["type"] = Person::COLLECTION;
                 $str["img"] = @$construct[ "author" ][ "profilThumbImageUrl" ];
                 $str["url"] = Yii::app()->getRequest()->getBaseUrl(true)."/#page.type.".Person::COLLECTION.".id.".$construct[ "author" ]["id"];
+                $str["id"] = $construct[ "author" ]["id"];
             }
 
             if(!empty($str)){
@@ -1146,6 +1164,7 @@ class Mail {
             }
         }
 
+        //Rest::json($sameAuthor); exit;
         $myParam["label"] = Notification::getLabelNotification($construct, null, 1, null, $myParam["repeat"], @$sameAuthor);
         $myParam["labelArray"] = $labelArray ;
 
