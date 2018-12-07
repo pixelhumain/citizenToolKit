@@ -54,7 +54,7 @@ class SimplyAutoCompleteAction extends CAction
 		if( !empty($parent) ) {
 			//Rest::json($parent); exit ;
 			$query = array();
-			if(Organization::COLLECTION == $parent["type"]){
+			if(Organization::COLLECTION == $parent["type"] || Project::COLLECTION == $parent["type"]){
 				if(strcmp($filter, Organization::COLLECTION) != 0 && Search::typeWanted(Organization::COLLECTION, $searchType)){
 					$q = array("links.memberOf.".$parent["id"]=> array('$exists' => 1) );
 					$query = Search::concatQuery($query, $q, '$or');
