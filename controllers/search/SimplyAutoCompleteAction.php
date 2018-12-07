@@ -71,6 +71,11 @@ class SimplyAutoCompleteAction extends CAction
 					$query = Search::concatQuery($query, $q, '$or');
 				}
 
+				if(strcmp($filter, Poi::COLLECTION) != 0 && Search::typeWanted(Poi::COLLECTION, $searchType)){
+					$q = array("parentType" => $parent["type"], "parentId" => $parent["id"]);
+					$query = Search::concatQuery($query, $q, '$or');
+				}
+
 				if(strcmp($filter, Classified::COLLECTION) != 0 && Search::typeWanted(Classified::COLLECTION, $searchType)){
 					$q = array("parentId"=> $parent["id"] );
 					$query = Search::concatQuery($query, $q, '$or');
@@ -158,6 +163,10 @@ class SimplyAutoCompleteAction extends CAction
 
 	  	if(strcmp($filter, Project::COLLECTION) != 0 && Search::typeWanted(Project::COLLECTION, $searchType)){
 			$allRes = array_merge($allRes, Search::searchProject($query, 0, $indexMin));
+	  	}
+
+	  	if(strcmp($filter, Poi::COLLECTION) != 0 && Search::typeWanted(Poi::COLLECTION, $searchType)){
+			$allRes = array_merge($allRes, Search::searchPoi($query, 0, $indexMin));
 	  	}
 
 	  	//*********************************  CLASSIFIED   ******************************************
@@ -262,6 +271,7 @@ class SimplyAutoCompleteAction extends CAction
 			}
 		}
 
+		//Rest::json($allRes); exit;
 	  	if(isset($allRes)) //si on a des resultat dans la liste
 	  		if(!Search::typeWanted("events", $searchType)) //si on n'est pas en mode "event" (les event sont classé par date)
 	  			usort($allRes, "mySort"); //on tri les éléments par ordre alphabetique sur le name

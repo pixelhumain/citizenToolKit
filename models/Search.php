@@ -1120,11 +1120,11 @@ class Search {
 
 	//*********************************  POI   ******************************************
 	public static function searchPoi($query, $indexStep, $indexMin){
-		//var_dump($query); exit;
+		//Rest::json($query); exit;
 		
     	$allPoi = PHDB::findAndSortAndLimitAndIndex(Poi::COLLECTION, $query, 
   												array("updated" => -1), $indexStep, $indexMin);
-
+    	//Rest::json($allPoi); exit;
   		//var_dump($query); exit;
     	foreach ($allPoi as $key => $value) {
 	  		if(@$value["parentId"] && @$value["parentType"])
@@ -1140,6 +1140,7 @@ class Search {
 			$allPoi[$key]["typePoi"] = @$allPoi[$key]["type"];
 			$allPoi[$key]["type"] = Poi::COLLECTION;
   		}
+  		//Rest::json($allPoi); exit;
   		return $allPoi;
   	}
 	//*********************************  PRODUCT   ******************************************
