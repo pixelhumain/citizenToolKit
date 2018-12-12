@@ -472,7 +472,7 @@ class Document {
 	public static function authorizedToStock($id, $type,$docType){
 		$authorizedToStock=false;
 		if(@Yii::app()->session["userId"]){
-			if($type=="city"){
+			if(empty($type) || $type=="city"){
 				$id=Yii::app()->session["userId"];
 				$type=Person::COLLECTION;
 			}

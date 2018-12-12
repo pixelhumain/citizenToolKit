@@ -19,6 +19,7 @@ class Element {
 
 	public static $connectTypes = array(
 		Organization::COLLECTION => "members",
+		Place::COLLECTION => "members",
 		Project::COLLECTION => "contributors",
 		Event::COLLECTION => "attendees",
 		Person::COLLECTION => "followers"
