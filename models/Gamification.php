@@ -123,8 +123,8 @@ class Gamification {
 
 			foreach ($cols as $key => $col) {
 
-				$list = PHDB::find($col, array( "creator" => $userId ) );
-				$res += count($list) * self::POINTS_CREATE;
+				$c = PHDB::count($col, array( "creator" => $userId ) );
+				$res += $c * self::POINTS_CREATE;
 
 			}
 		}

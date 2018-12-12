@@ -115,7 +115,7 @@ class Event {
 	 * @return type
 	 */
 	public static function getById($id) {
-		var_dump($id);
+		//var_dump($id);
 		$event = PHDB::findOne(self::COLLECTION,array("_id"=>new MongoId($id)));
 		if (!empty($event["startDate"]) && !empty($event["endDate"])) {
 			if (gettype($event["startDate"]) == "object" && gettype($event["endDate"]) == "object") {
